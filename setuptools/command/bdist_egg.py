@@ -16,7 +16,10 @@ class bdist_egg(Command):
 
     description = "create an \"egg\" distribution"
 
-    user_options = [('bdist-dir=', 'd',
+    user_options = [('egg-info=', 'e',
+                     "directory containing EGG-INFO for the distribution "
+                     "(default: EGG-INFO.in)"),
+                    ('bdist-dir=', 'd',
                      "temporary directory for creating the distribution"),
                     ('plat-name=', 'p',
                      "platform name to embed in generated filenames "
@@ -37,6 +40,7 @@ class bdist_egg(Command):
 
 
     def initialize_options (self):
+        self.egg_info = None
         self.bdist_dir = None
         self.plat_name = None
         self.keep_temp = 0
@@ -48,6 +52,12 @@ class bdist_egg(Command):
 
 
     def finalize_options (self):
+
+        if self.egg_info is None and os.path.isdir('EGG-INFO.in'):
+            self.egg_info = 'EGG-INFO.in'
+
+        elif self.egg_info:
+            self.ensure_dirname('egg_info')
 
         if self.bdist_dir is None:
             bdist_base = self.get_finalized_command('bdist').bdist_base
@@ -91,6 +101,12 @@ class bdist_egg(Command):
         egg_info = os.path.join(archive_root,'EGG-INFO')
         self.mkpath(egg_info)
 
+        if self.egg_info:
+            for filename in os.listdir(self.egg_info):
+                path = os.path.join(self.egg_info,filename)
+                if os.path.isfile(path):
+                    self.copy_file(path,os.path.join(egg_info,filename))
+                
         if not self.dry_run:
             self.distribution.metadata.write_pkg_info(egg_info)
 
