@@ -18,6 +18,10 @@ import sys
 import os
 import time
 import zipimport
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
 
 __all__ = [
     'register_loader_type', 'get_provider', 'IResourceProvider',
@@ -312,7 +316,6 @@ class ZipProvider(DefaultProvider):
         return self.loader.get_data(path)
 
     def get_resource_stream(self, manager, resource_name):
-        from cStringIO import StringIO
         return StringIO(self.get_resource_string(manager, resource_name))
 
     def _extract_resource(self, manager, resource_name):
