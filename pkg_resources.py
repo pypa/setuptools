@@ -623,6 +623,7 @@ class Distribution(object):
                 name,version,py_version,platform = match.group(
                     'name','ver','pyver','plat'
                 )
+                name = name.replace('_','-')
                 if version and '_' in version:
                     version = version.replace('_','-')
         return cls(
@@ -653,7 +654,6 @@ class Distribution(object):
 
     parsed_version = property(parsed_version)
     
-
 def parse_requirements(strs):
     """Yield ``Requirement`` objects for each specification in `strs`
 
@@ -681,7 +681,8 @@ def parse_requirements(strs):
             match = VERSION(line,p)
             if not match:
                 raise ValueError("Expected version spec in",line,"at",line[p:])
-            specs.append(match.group(1,2))
+            op,val = match.group(1,2)
+            specs.append((op,val.replace('_','-')))
             p = match.end()
             match = COMMA(line,p)
             if match:
@@ -689,7 +690,7 @@ def parse_requirements(strs):
             elif not LINE_END(line,p):
                 raise ValueError("Expected ',' or EOL in",line,"at",line[p:])
 
-        yield distname, specs
+        yield distname.replace('_','-'), specs
 
 
 

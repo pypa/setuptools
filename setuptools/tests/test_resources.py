@@ -53,8 +53,8 @@ class ParseTests(TestCase):
 
     def testSimple(self):
         self.assertEqual(
-            list(parse_requirements('Twis-Ted>=1.2')),
-            [('Twis_Ted',[('>=','1.2')])]
+            list(parse_requirements('Twis-Ted>=1.2-1')),
+            [('Twis-Ted',[('>=','1.2-1')])]
         )
         self.assertEqual(
             list(parse_requirements('Twisted >=1.2, \ # more\n<2.0')),
