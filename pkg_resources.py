@@ -77,7 +77,9 @@ class IResourceProvider:
         """The named metadata resource as a string"""
 
     def get_metadata_lines(name):
-        """The named metadata resource as a filtered iterator of stripped lines"""
+        """The named metadata resource as a filtered iterator of
+        stripped (of # comments and whitespace) lines
+        """
 
     # XXX list_resources?  glob_resources?
 
@@ -96,15 +98,18 @@ class ResourceManager:
 
     def resource_filename(self, package_name, resource_name):
         """Return a true filesystem path for specified resource"""
-        return get_provider(package_name).get_resource_filename(self, resource_name)
+        return get_provider(package_name).get_resource_filename(self,
+            resource_name)
 
     def resource_stream(self, package_name, resource_name):
         """Return a readable file-like object for specified resource"""
-        return get_provider(package_name).get_resource_stream(self, resource_name)
+        return get_provider(package_name).get_resource_stream(self,
+            resource_name)
 
     def resource_string(self, package_name, resource_name):
         """Return specified resource as a string"""
-        return get_provider(package_name).get_resource_string(self, resource_name)
+        return get_provider(package_name).get_resource_string(self,
+            resource_name)
 
     def get_cache_path(self, archive_name, names=()):
         """Return absolute location in cache for `archive_name` and `names`
@@ -212,7 +217,7 @@ class DefaultProvider:
 
     def __init__(self, module):
         self.module = module
-        self.loader = getattr(module, '__loader__',None)
+        self.loader = getattr(module, '__loader__', None)
         self.module_path = os.path.dirname(module.__file__)
 
     def get_resource_filename(self, manager, resource_name):
@@ -240,7 +245,7 @@ class DefaultProvider:
     def get_metadata_lines(self, name):
         for line in self.get_metadata(name).splitlines():
             line = line.strip()
-            if line:
+            if not line.startswith('#'):
                 yield line
 
     def _has(self, path):
@@ -329,7 +334,7 @@ class ZipProvider(DefaultProvider):
             (t & 0x1F) * 2, 0, 0, -1
         )
         timestamp = time.mktime(date_time)
-        real_path = manager.get_cache_path(self.egg_name, self.prefix+parts)
+        real_path = manager.get_cache_path(self.egg_name, self.prefix + parts)
 
         if os.path.isfile(real_path):
             stat = os.stat(real_path)
