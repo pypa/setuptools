@@ -10,8 +10,9 @@ from distutils.core import Extension
 from setuptools.depends import extract_constant, get_module_constant
 from setuptools.depends import find_module, Require
 from distutils.version import StrictVersion, LooseVersion
-
+from distutils.util import convert_path
 import sys, os.path
+
 
 def makeSetup(**args):
     """Return distribution from 'setup(**args)', without executing commands"""
@@ -25,7 +26,6 @@ def makeSetup(**args):
         return setuptools.setup(**args)
     finally:
         distutils.core_setup_stop_after = None
-
 
 
 
@@ -80,24 +80,21 @@ class DependsTests(TestCase):
             get_module_constant('setuptools.tests','__doc__'),__doc__
         )
 
-    def testDependsCmd(self):
-        dist = makeSetup()
-        cmd = dist.get_command_obj('depends')
-        cmd.ensure_finalized()
-        self.assertEqual(cmd.temp, dist.get_command_obj('build').build_temp)
-        self.assertEqual(cmd.install_lib, dist.get_command_obj('install').install_lib)
-
-
     def testRequire(self):
+
         req = Require('Distutils','1.0.3','distutils')
 
         self.assertEqual(req.name, 'Distutils')
         self.assertEqual(req.module, 'distutils')
         self.assertEqual(req.requested_version, '1.0.3')
         self.assertEqual(req.attribute, '__version__')
+        self.assertEqual(req.full_name(), 'Distutils-1.0.3')
 
         from distutils import __version__
         self.assertEqual(req.get_version(), __version__)
+        self.failUnless(req.version_ok('1.0.9'))
+        self.failIf(req.version_ok('0.9.1'))
+        self.failIf(req.version_ok('unknown'))
 
         self.failUnless(req.is_present())
         self.failUnless(req.is_current())
@@ -105,19 +102,63 @@ class DependsTests(TestCase):
         req = Require('Distutils 3000','03000','distutils',format=LooseVersion)
         self.failUnless(req.is_present())
         self.failIf(req.is_current())
+        self.failIf(req.version_ok('unknown'))
 
         req = Require('Do-what-I-mean','1.0','d-w-i-m')
         self.failIf(req.is_present())
         self.failIf(req.is_current())
 
-        req = Require('Tests', None, 'tests')
+        req = Require('Tests', None, 'tests', homepage="http://example.com")
         self.assertEqual(req.format, None)
         self.assertEqual(req.attribute, None)
         self.assertEqual(req.requested_version, None)
+        self.assertEqual(req.full_name(), 'Tests')
+        self.assertEqual(req.homepage, 'http://example.com')
 
         paths = [os.path.dirname(p) for p in __path__]
         self.failUnless(req.is_present(paths))
         self.failUnless(req.is_current(paths))
+
+
+
+    def testDependsCmd(self):
+        path1 = convert_path('foo/bar/baz')
+        path2 = convert_path('foo/bar/baz/spam')
+
+        dist = makeSetup(
+            extra_path='spam',
+            script_args=['install','--install-lib',path1]
+        )
+
+        cmd = dist.get_command_obj('depends')
+        cmd.ensure_finalized()
+
+        self.assertEqual(cmd.temp, dist.get_command_obj('build').build_temp)
+        self.assertEqual(cmd.search_path, [path2,path1]+sys.path)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -247,9 +288,10 @@ class DistroTests(TestCase):
 class FeatureTests(TestCase):
 
     def setUp(self):
+        self.req = Require('Distutils','1.0.3','distutils')
         self.dist = makeSetup(
             features={
-                'foo': Feature("foo",standard=True,requires='baz'),
+                'foo': Feature("foo",standard=True,requires=['baz',self.req]),
                 'bar': Feature("bar",  standard=True, packages=['pkg.bar'],
                                py_modules=['bar_et'], remove=['bar.ext'],
                        ),
@@ -284,7 +326,6 @@ class FeatureTests(TestCase):
             self.dist.features['dwim'].include_in, self.dist
         )
 
-
     def testFeatureOptions(self):
         dist = self.dist
         self.failUnless(
@@ -309,13 +350,13 @@ class FeatureTests(TestCase):
         self.assertEqual(dist.with_foo,1)
         self.assertEqual(dist.with_bar,0)
         self.assertEqual(dist.with_baz,1)
-
         self.failIf('bar_et' in dist.py_modules)
         self.failIf('pkg.bar' in dist.packages)
         self.failUnless('pkg.baz' in dist.packages)
         self.failUnless('scripts/baz_it' in dist.scripts)
         self.failUnless(('libfoo','foo/foofoo.c') in dist.libraries)
         self.assertEqual(dist.ext_modules,[])
+        self.assertEqual(dist.requires, [self.req])
 
         # If we ask for bar, it should fail because we explicitly disabled
         # it on the command line

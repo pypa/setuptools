@@ -10,10 +10,6 @@ To-Do
 
   * Dependency class
 
-    * Check for presence/version via file existence, regular expression match,
-      version comparison (using 'distutils.version' classes), installed on
-      sys.path, or require just installation directory
-
     * Find appropriate release, or explain why not
 
     * Base URL(s) and distribution name
@@ -41,18 +37,4 @@ To-Do
     replace with real metadata once it's known.
 
   * REQUIRES should probably just be list of dependencies
-
-* Bootstrap module
-
-  The idea here is that you include the "bootstrap module" in your
-  distribution, and it downloads the right version of setuptools automatically
-  if a good-enough version isn't on sys.path.  This would let you use
-  setuptools for your installer, without having to distribute the full
-  setuptools package.  This would might look something like::
-
-      from boot_setuptools import require_version
-      require_version("0.6", "http://somewhere/setuptools-0.6.tar.gz")
-      
-      from setuptools import setup, Feature, findPackages
-      # ...etc
 

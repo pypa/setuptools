@@ -1,7 +1,7 @@
 __all__ = ['Distribution', 'Feature']
-
 from distutils.core import Distribution as _Distribution
 from distutils.core import Extension
+from setuptools.depends import Require
 from setuptools.command.build_py import build_py
 from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
@@ -11,7 +11,6 @@ from distutils.errors import DistutilsSetupError
 sequence = tuple, list
 
 class Distribution(_Distribution):
-
     """Distribution with support for features, tests, and package data
 
     This is an enhanced version of 'distutils.dist.Distribution' that
@@ -67,7 +66,6 @@ class Distribution(_Distribution):
         self.cmdclass.setdefault('build_ext',build_ext)
         self.cmdclass.setdefault('install',install)
         self.cmdclass.setdefault('install_lib',install_lib)
-
         if self.features:
             self._set_global_opts_from_features()
 
@@ -288,7 +286,6 @@ class Distribution(_Distribution):
 
 
 class Feature:
-
     """A subset of the distribution that can be excluded if unneeded/wanted
 
     Features are created using these keyword arguments:
@@ -312,6 +309,8 @@ class Feature:
 
       'requires' -- a string or sequence of strings naming features that should
          also be included if this feature is included.  Defaults to empty list.
+         May also contain 'Require' objects that should be added/removed from
+         the distribution.
 
       'remove' -- a string or list of strings naming packages to be removed
          from the distribution if this feature is *not* included.  If the
@@ -345,15 +344,15 @@ class Feature:
         self.standard = standard
         self.available = available
         self.optional = optional
-
-        if isinstance(requires,str):
+        if isinstance(requires,(str,Require)):
             requires = requires,
 
-        self.requires = requires
+        self.requires = [r for r in requires if isinstance(r,str)]
+        er = [r for r in requires if not isinstance(r,str)]
+        if er: extras['requires'] = er
 
         if isinstance(remove,str):
             remove = remove,
-
         self.remove = remove
         self.extras = extras
 
@@ -367,7 +366,6 @@ class Feature:
     def include_by_default(self):
         """Should this feature be included by default?"""
         return self.available and self.standard
-
 
     def include_in(self,dist):
 

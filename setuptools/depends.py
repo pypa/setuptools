@@ -10,7 +10,9 @@ __all__ = [
 class Require:
     """A prerequisite to building or installing a distribution"""
 
-    def __init__(self,name,requested_version,module,attribute=None,format=None):
+    def __init__(self,name,requested_version,module,homepage='',
+        attribute=None,format=None
+    ):
 
         if format is None and requested_version is not None:
             format = StrictVersion
@@ -20,23 +22,21 @@ class Require:
             if attribute is None:
                 attribute = '__version__'
 
-        self.name = name
-        self.requested_version = requested_version
-        self.module = module
-        self.attribute = attribute
-        self.format = format
+        self.__dict__.update(locals())
+        del self.self
 
 
+    def full_name(self):
+        """Return full package/distribution name, w/version"""
+        if self.requested_version is not None:
+            return '%s-%s' % (self.name,self.requested_version)
+        return self.name
 
 
-
-
-
-
-
-
-
-
+    def version_ok(self,version):
+        """Is 'version' sufficiently up-to-date?"""
+        return self.attribute is None or self.format is None or \
+            str(version)<>"unknown" and version >= self.requested_version
 
 
     def get_version(self, paths=None, default="unknown"):
@@ -66,18 +66,18 @@ class Require:
 
         return v
 
+
     def is_present(self,paths=None):
         """Return true if dependency is present on 'paths'"""
         return self.get_version(paths) is not None
+
 
     def is_current(self,paths=None):
         """Return true if dependency is present and up-to-date on 'paths'"""
         version = self.get_version(paths)
         if version is None:
             return False
-        return self.attribute is None or self.format is None or \
-            version >= self.requested_version
-
+        return self.version_ok(version)
 
 
 def _iter_code(code):
