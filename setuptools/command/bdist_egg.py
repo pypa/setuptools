@@ -8,6 +8,7 @@ import os
 from distutils.core import Command
 from distutils.util import get_platform
 from distutils.dir_util import create_tree, remove_tree, ensure_relative,mkpath
+from distutils.sysconfig import get_python_version
 from distutils.errors import *
 from distutils import log
 
@@ -74,8 +75,8 @@ class bdist_egg(Command):
 
         # And make an archive relative to the root of the
         # pseudo-installation tree.
-        archive_basename = "%s-%s" % (self.distribution.get_fullname(),
-                                      self.plat_name)
+        archive_basename = "%s-py%s-%s" % (self.distribution.get_fullname(),
+                                      get_python_version(),self.plat_name)
 
         # OS/2 objects to any ":" characters in a filename (such as when
         # a timestamp is used in a version) so change them to hyphens.
