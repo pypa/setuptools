@@ -37,8 +37,6 @@ def find_packages(where='.'):
     return out
 
 
-
-
 def setup(**attrs):
     """Do package setup
 
@@ -49,34 +47,3 @@ def setup(**attrs):
     """
     attrs.setdefault("distclass",Distribution)
     return distutils.core.setup(**attrs)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
