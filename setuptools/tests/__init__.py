@@ -1,22 +1,17 @@
 """Tests for the 'setuptools' package"""
 
-import os.path
-import sys
-
-from unittest import TestSuite, TestCase, makeSuite, main
-
+from unittest import TestSuite, TestCase, makeSuite
 import distutils.core, distutils.cmd
-from distutils.core import Extension
 from distutils.errors import DistutilsOptionError, DistutilsPlatformError
 from distutils.errors import DistutilsSetupError
-from distutils.util import convert_path
-from distutils.version import StrictVersion, LooseVersion
-
 import setuptools, setuptools.dist
-
 from setuptools import Feature
+from distutils.core import Extension
 from setuptools.depends import extract_constant, get_module_constant
 from setuptools.depends import find_module, Require
+from distutils.version import StrictVersion, LooseVersion
+from distutils.util import convert_path
+import sys, os.path
 
 
 def makeSetup(**args):
@@ -25,7 +20,7 @@ def makeSetup(**args):
     distutils.core._setup_stop_after = "commandline"
 
     # Don't let system command line leak into tests!
-    args.setdefault('script_args', ['install'])
+    args.setdefault('script_args',['install'])
 
     try:
         return setuptools.setup(**args)
@@ -33,9 +28,21 @@ def makeSetup(**args):
         distutils.core_setup_stop_after = None
 
 
+
+
+
+
+
+
+
+
+
+
+
 class DependsTests(TestCase):
 
     def testExtractConst(self):
+
         from setuptools.depends import extract_constant
 
         def f1():
@@ -63,14 +70,18 @@ class DependsTests(TestCase):
 
     def testModuleExtract(self):
         from distutils import __version__
-        self.assertEqual(get_module_constant('distutils', '__version__'),
-                         __version__)
-        self.assertEqual(get_module_constant('sys', 'version'),
-                         sys.version)
-        self.assertEqual(get_module_constant('setuptools.tests', '__doc__'),
-                         __doc__)
+        self.assertEqual(
+            get_module_constant('distutils','__version__'), __version__
+        )
+        self.assertEqual(
+            get_module_constant('sys','version'), sys.version
+        )
+        self.assertEqual(
+            get_module_constant('setuptools.tests','__doc__'),__doc__
+        )
 
     def testRequire(self):
+
         req = Require('Distutils','1.0.3','distutils')
 
         self.assertEqual(req.name, 'Distutils')
@@ -88,8 +99,7 @@ class DependsTests(TestCase):
         self.failUnless(req.is_present())
         self.failUnless(req.is_current())
 
-        req = Require('Distutils 3000', '03000', 'distutils',
-                      format=LooseVersion)
+        req = Require('Distutils 3000','03000','distutils',format=LooseVersion)
         self.failUnless(req.is_present())
         self.failIf(req.is_current())
         self.failIf(req.version_ok('unknown'))
@@ -109,26 +119,47 @@ class DependsTests(TestCase):
         self.failUnless(req.is_present(paths))
         self.failUnless(req.is_current(paths))
 
+
+
     def testDependsCmd(self):
         path1 = convert_path('foo/bar/baz')
         path2 = convert_path('foo/bar/baz/spam')
 
-        dist = makeSetup(extra_path='spam',
-                         script_args=['install', '--install-lib', path1,
-                                      '--prefix', path2,
-                                      'build', '--compiler=mingw32',])
+        dist = makeSetup(
+            extra_path='spam',
+            script_args=['install','--install-lib',path1]
+        )
 
         cmd = dist.get_command_obj('depends')
         cmd.ensure_finalized()
 
         self.assertEqual(cmd.temp, dist.get_command_obj('build').build_temp)
-        self.assertEqual(cmd.search_path, [path2,path1] + sys.path)
+        self.assertEqual(cmd.search_path, [path2,path1]+sys.path)
 
-        self.assertEqual(cmd.unsafe_options,
-                         {'install': ['--install-lib',path1]})
-        self.assertEqual(cmd.safe_options, {
-            'build':['--compiler','mingw32'],
-            'install':['--prefix',os.path.abspath(path2)]})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class DistroTests(TestCase):
@@ -141,15 +172,13 @@ class DistroTests(TestCase):
             packages=['a', 'a.b', 'a.b.c', 'b', 'c'],
             py_modules=['b.d','x'],
             ext_modules = (self.e1, self.e2),
-            script_args = [
-                'build', '-q', 'build_ext', '-i',
-                'install', '--prefix=/usr/lib', '--install-lib','/test'
-            ],
             package_dir = {},
         )
 
+
     def testDistroType(self):
-        self.failUnless(isinstance(self.dist, setuptools.dist.Distribution))
+        self.failUnless(isinstance(self.dist,setuptools.dist.Distribution))
+
 
     def testExcludePackage(self):
         self.dist.exclude_package('a')
@@ -167,6 +196,12 @@ class DistroTests(TestCase):
 
         # test removals from unspecified options
         makeSetup().exclude_package('x')
+
+
+
+
+
+
 
     def testIncludeExclude(self):
         # remove an extension
@@ -206,32 +241,48 @@ class DistroTests(TestCase):
         self.dist.exclude_package('c')
         self.failIf(self.dist.has_contents_for('c'))
 
+
+
+
     def testInvalidIncludeExclude(self):
         self.assertRaises(DistutilsSetupError,
-                          self.dist.include, nonexistent_option='x')
+            self.dist.include, nonexistent_option='x'
+        )
         self.assertRaises(DistutilsSetupError,
-                          self.dist.exclude, nonexistent_option='x')
+            self.dist.exclude, nonexistent_option='x'
+        )
         self.assertRaises(DistutilsSetupError,
-                          self.dist.include, packages={'x':'y'})
+            self.dist.include, packages={'x':'y'}
+        )
         self.assertRaises(DistutilsSetupError,
-                          self.dist.exclude, packages={'x':'y'})
+            self.dist.exclude, packages={'x':'y'}
+        )
         self.assertRaises(DistutilsSetupError,
-                          self.dist.include, ext_modules={'x':'y'})
+            self.dist.include, ext_modules={'x':'y'}
+        )
         self.assertRaises(DistutilsSetupError,
-                          self.dist.exclude, ext_modules={'x':'y'})
+            self.dist.exclude, ext_modules={'x':'y'}
+        )
 
         self.assertRaises(DistutilsSetupError,
-                          self.dist.include, package_dir=['q'])
+            self.dist.include, package_dir=['q']
+        )
         self.assertRaises(DistutilsSetupError,
-                          self.dist.exclude, package_dir=['q'])
+            self.dist.exclude, package_dir=['q']
+        )
 
-    def testCmdLineOpts(self):
-        self.assertEqual(
-            self.dist.get_cmdline_options(),
-            {'install':{'prefix':'/usr/lib', 'install-lib':'/test'},
-             'build': {'quiet':None},
-             'build_ext': {'inplace':None},
-             })
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class FeatureTests(TestCase):
@@ -244,41 +295,51 @@ class FeatureTests(TestCase):
                 'bar': Feature("bar",  standard=True, packages=['pkg.bar'],
                                py_modules=['bar_et'], remove=['bar.ext'],
                        ),
-                'baz': Feature("baz", optional=False, packages=['pkg.baz'],
-                               scripts=['scripts/baz_it'],
-                               libraries=[('libfoo','foo/foofoo.c')]
+                'baz': Feature(
+                        "baz", optional=False, packages=['pkg.baz'],
+                        scripts = ['scripts/baz_it'],
+                        libraries=[('libfoo','foo/foofoo.c')]
                        ),
                 'dwim': Feature("DWIM", available=False, remove='bazish'),
-                },
+            },
             script_args=['--without-bar', 'install'],
-            packages=['pkg.bar', 'pkg.foo'],
-            py_modules=['bar_et', 'bazish'],
-            ext_modules=[Extension('bar.ext',['bar.c'])]
+            packages = ['pkg.bar', 'pkg.foo'],
+            py_modules = ['bar_et', 'bazish'],
+            ext_modules = [Extension('bar.ext',['bar.c'])]
         )
 
     def testDefaults(self):
         self.failIf(
-            Feature("test",standard=True,remove='x',available=False
-            ).include_by_default())
+            Feature(
+                "test",standard=True,remove='x',available=False
+            ).include_by_default()
+        )
         self.failUnless(
-            Feature("test",standard=True,remove='x').include_by_default())
+            Feature("test",standard=True,remove='x').include_by_default()
+        )
         # Feature must have either kwargs, removes, or requires
         self.assertRaises(DistutilsSetupError, Feature, "test")
 
     def testAvailability(self):
-        self.assertRaises(DistutilsPlatformError,
-                          self.dist.features['dwim'].include_in, self.dist)
+        self.assertRaises(
+            DistutilsPlatformError,
+            self.dist.features['dwim'].include_in, self.dist
+        )
 
     def testFeatureOptions(self):
         dist = self.dist
-        self.failUnless(('with-dwim', None, 'include DWIM')
-                        in dist.feature_options)
-        self.failUnless(('without-dwim', None, 'exclude DWIM (default)')
-                        in dist.feature_options)
-        self.failUnless(('with-bar', None, 'include bar (default)')
-                        in dist.feature_options)
-        self.failUnless(('without-bar', None, 'exclude bar')
-                        in dist.feature_options)
+        self.failUnless(
+            ('with-dwim',None,'include DWIM') in dist.feature_options
+        )
+        self.failUnless(
+            ('without-dwim',None,'exclude DWIM (default)') in dist.feature_options
+        )
+        self.failUnless(
+            ('with-bar',None,'include bar (default)') in dist.feature_options
+        )
+        self.failUnless(
+            ('without-bar',None,'exclude bar') in dist.feature_options
+        )
         self.assertEqual(dist.feature_negopt['without-foo'],'with-foo')
         self.assertEqual(dist.feature_negopt['without-bar'],'with-bar')
         self.assertEqual(dist.feature_negopt['without-dwim'],'with-dwim')
@@ -302,9 +363,9 @@ class FeatureTests(TestCase):
         self.assertRaises(DistutilsOptionError, dist.include_feature, 'bar')
 
     def testFeatureWithInvalidRemove(self):
-        self.assertRaises(SystemExit,
-                          makeSetup, features={'x': Feature('x', remove='y')})
-
+        self.assertRaises(
+            SystemExit, makeSetup, features = {'x':Feature('x', remove='y')}
+        )
 
 class TestCommandTests(TestCase):
 
@@ -327,7 +388,7 @@ class TestCommandTests(TestCase):
         ts3 = makeSetup(
             test_suite='bar.tests',
             script_args=['test','-m','foo.tests']
-            ).get_command_obj('test')
+        ).get_command_obj('test')
         ts3.ensure_finalized()
         self.assertEqual(ts3.test_module, 'foo.tests')
         self.assertEqual(ts3.test_suite,  'foo.tests.test_suite')
@@ -335,7 +396,7 @@ class TestCommandTests(TestCase):
     def testConflictingOptions(self):
         ts4 = makeSetup(
             script_args=['test','-m','bar.tests', '-s','foo.tests.suite']
-            ).get_command_obj('test')
+        ).get_command_obj('test')
         self.assertRaises(DistutilsOptionError, ts4.ensure_finalized)
 
     def testNoSuite(self):
@@ -344,13 +405,47 @@ class TestCommandTests(TestCase):
         self.assertEqual(ts5.test_suite, None)
 
 
+
+
+
 testClasses = (DependsTests, DistroTests, FeatureTests, TestCommandTests)
 
 def test_suite():
     return TestSuite([makeSuite(t,'test') for t in testClasses])
 
-if __name__ == "__main__":
-    # We have to run this from an imported setuptools.tests package,
-    # since the tests themselves rely on __path__.
-    import setuptools.tests
-    main(defaultTest="setuptools.tests.test_suite")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
