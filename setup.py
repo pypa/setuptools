@@ -22,6 +22,6 @@ setup(
         Require('PyUnit', None, 'unittest', "http://pyunit.sf.net/"),
     ],
     packages = find_packages(),
-    py_modules = ['setuptools_boot', 'pkg_resources'],
+    py_modules = ['pkg_resources'],
 )
 
