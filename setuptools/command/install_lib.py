@@ -14,4 +14,3 @@ class install_lib(_install_lib):
                 bytecode_files.append(py_file + "o")
 
         return bytecode_files
-
