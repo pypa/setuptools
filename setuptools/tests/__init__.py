@@ -1,6 +1,6 @@
 """Tests for the 'setuptools' package"""
 
-from unittest import TestSuite, TestCase, makeSuite
+from unittest import TestSuite, TestCase, makeSuite, defaultTestLoader
 import distutils.core, distutils.cmd
 from distutils.errors import DistutilsOptionError, DistutilsPlatformError
 from distutils.errors import DistutilsSetupError
@@ -409,13 +409,13 @@ class TestCommandTests(TestCase):
 
 
 testClasses = (DependsTests, DistroTests, FeatureTests, TestCommandTests)
+testNames = ["setuptools.tests.test_resources"]
 
 def test_suite():
-    return TestSuite([makeSuite(t,'test') for t in testClasses])
-
-
-
-
+    return TestSuite(
+        [makeSuite(t,'test') for t in testClasses]+
+        [defaultTestLoader.loadTestsFromName(n) for n in testNames]
+    )
 
 
 

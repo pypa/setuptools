@@ -3,7 +3,6 @@
 Build .egg distributions"""
 
 # This module should be kept compatible with Python 2.3
-
 import os
 from distutils.core import Command
 from distutils.util import get_platform
@@ -11,14 +10,15 @@ from distutils.dir_util import create_tree, remove_tree, ensure_relative,mkpath
 from distutils.sysconfig import get_python_version
 from distutils.errors import *
 from distutils import log
+from pkg_resources import parse_requirements
 
 class bdist_egg(Command):
 
     description = "create an \"egg\" distribution"
 
-    user_options = [('egg-info=', 'e',
-                     "directory containing EGG-INFO for the distribution "
-                     "(default: EGG-INFO.in)"),
+    user_options = [('egg-base=', 'e',
+                     "directory containing .egg-info directories"
+                     "(default: top of the source tree)"),
                     ('bdist-dir=', 'd',
                      "temporary directory for creating the distribution"),
                     ('plat-name=', 'p',
@@ -40,6 +40,9 @@ class bdist_egg(Command):
 
 
     def initialize_options (self):
+        self.egg_name = None
+        self.egg_version = None
+        self.egg_base = None
         self.egg_info = None
         self.bdist_dir = None
         self.plat_name = None
@@ -47,27 +50,35 @@ class bdist_egg(Command):
         self.dist_dir = None
         self.skip_build = 0
         self.relative = 0
-        
-    # initialize_options()
 
 
     def finalize_options (self):
+        self.egg_name = self.distribution.get_name().replace('-','_')
+        self.egg_version = self.distribution.get_version().replace('-','_')
+        try:
+            list(
+                parse_requirements('%s==%s' % (self.egg_name,self.egg_version))
+            )
+        except ValueError:
+            raise DistutilsOptionError(
+                "Invalid distribution name or version syntax: %s-%s" %
+                (self.egg_name,self.egg_version)
+            )
+        if self.egg_base is None:
+            dirs = self.distribution.package_dir
+            self.egg_base = (dirs or {}).get('','.')
 
-        if self.egg_info is None and os.path.isdir('EGG-INFO.in'):
-            self.egg_info = 'EGG-INFO.in'
-
-        elif self.egg_info:
-            self.ensure_dirname('egg_info')
-
+        self.ensure_dirname('egg_base')
+        self.egg_info = os.path.join(
+            self.egg_base, self.egg_name+'.egg-info'
+        )
         if self.bdist_dir is None:
             bdist_base = self.get_finalized_command('bdist').bdist_base
             self.bdist_dir = os.path.join(bdist_base, 'egg')
-
         self.set_undefined_options('bdist',
                                    ('dist_dir', 'dist_dir'),
                                    ('plat_name', 'plat_name'))
 
-    # finalize_options()
 
     def write_stub(self, resource, pyfile):
         f = open(pyfile,'w')
@@ -84,9 +95,33 @@ class bdist_egg(Command):
         ]))
         f.close()
 
-        
-    def run (self):
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    def run(self):
         if not self.skip_build:
             self.run_command('build')
 
@@ -113,46 +148,50 @@ class bdist_egg(Command):
 
         if to_compile:
             install.byte_compile(to_compile)
-            
+
         # And make an archive relative to the root of the
         # pseudo-installation tree.
-        archive_basename = "%s-py%s" % (self.distribution.get_fullname(),
+        archive_basename = "%s-%s-py%s" % (self.egg_name, self.egg_version,
                                       get_python_version())
 
         if ext_outputs:
             archive_basename += "-" + self.plat_name
 
         # OS/2 objects to any ":" characters in a filename (such as when
-        # a timestamp is used in a version) so change them to hyphens.
+        # a timestamp is used in a version) so change them to underscores.
         if os.name == "os2":
-            archive_basename = archive_basename.replace(":", "-")
+            archive_basename = archive_basename.replace(":", "_")
 
         pseudoinstall_root = os.path.join(self.dist_dir, archive_basename)
         archive_root = self.bdist_dir
 
         # Make the EGG-INFO directory
-        log.info("creating EGG-INFO directory")
         egg_info = os.path.join(archive_root,'EGG-INFO')
         self.mkpath(egg_info)
+        self.mkpath(self.egg_info)
+
+        log.info("writing %s" % os.path.join(self.egg_info,'PKG-INFO'))
+        if not self.dry_run:
+            self.distribution.metadata.write_pkg_info(self.egg_info)
+
+        native_libs = os.path.join(self.egg_info,"native_libs.txt")
+        if ext_outputs:
+            log.info("writing %s" % native_libs)
+            if not self.dry_run:
+                libs_file = open(native_libs, 'wt')
+                libs_file.write('\n'.join(ext_outputs))
+                libs_file.write('\n')
+                libs_file.close()
+        elif os.path.isfile(native_libs):
+            log.info("removing %s" % native_libs)
+            if not self.dry_run:
+                os.unlink(native_libs)
 
         if self.egg_info:
             for filename in os.listdir(self.egg_info):
                 path = os.path.join(self.egg_info,filename)
                 if os.path.isfile(path):
                     self.copy_file(path,os.path.join(egg_info,filename))
-
-        log.info("writing EGG-INFO/PKG-INFO")
-        if not self.dry_run:
-            self.distribution.metadata.write_pkg_info(egg_info)
-
-        if ext_outputs:
-            log.info("writing EGG-INFO/native_libs.txt")
-            if not self.dry_run:
-                libs_file = open(
-                    os.path.join(egg_info,"native_libs.txt"),'wt')
-                libs_file.write('\n'.join(ext_outputs))
-                libs_file.write('\n')
-                libs_file.close()
 
         # Make the archive
         make_zipfile(pseudoinstall_root+'.egg',
@@ -161,10 +200,6 @@ class bdist_egg(Command):
 
         if not self.keep_temp:
             remove_tree(self.bdist_dir, dry_run=self.dry_run)
-
-    # run()
-
-# class bdist_egg
 
 
 
@@ -176,7 +211,7 @@ def make_zipfile (zip_filename, base_dir, verbose=0, dry_run=0):
     raises DistutilsExecError.  Returns the name of the output zip file.
     """
     import zipfile
-        
+
     mkpath(os.path.dirname(zip_filename), dry_run=dry_run)
 
     # If zipfile module is not available, try spawning an external
@@ -202,4 +237,10 @@ def make_zipfile (zip_filename, base_dir, verbose=0, dry_run=0):
     return zip_filename
 
 # make_zipfile ()
+
+
+
+
+
+
 

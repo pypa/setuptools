@@ -13,23 +13,14 @@ The package resource API is designed to work with normal filesystem packages,
 .zip files and with custom PEP 302 loaders that support the ``get_data()``
 method.
 """
-
-import sys
-import os
-import time
-import zipimport
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
-
 __all__ = [
     'register_loader_type', 'get_provider', 'IResourceProvider',
     'ResourceManager', 'iter_distributions', 'require', 'resource_string',
     'resource_stream', 'resource_filename', 'set_extraction_path',
-    'cleanup_resources', # 'glob_resources'
+    'cleanup_resources', 'parse_requirements', # 'glob_resources'
 ]
 
+import sys, os, zipimport, time, re
 _provider_factories = {}
 
 def register_loader_type(loader_type, provider_factory):
@@ -41,7 +32,6 @@ def register_loader_type(loader_type, provider_factory):
     """
     _provider_factories[loader_type] = provider_factory
 
-
 def get_provider(moduleName):
     """Return an IResourceProvider for the named module"""
     module = sys.modules[moduleName]
@@ -50,6 +40,7 @@ def get_provider(moduleName):
 
 
 class IResourceProvider:
+
     """An object that provides access to package resources"""
 
     def get_resource_filename(manager, resource_name):
@@ -77,11 +68,16 @@ class IResourceProvider:
         """The named metadata resource as a string"""
 
     def get_metadata_lines(name):
-        """The named metadata resource as a filtered iterator of
-        stripped (of # comments and whitespace) lines
-        """
+        """Yield named metadata resource as list of non-blank non-comment lines
+
+       Leading and trailing whitespace is stripped from each line, and lines
+       with ``#`` as the first non-blank character are omitted.
+       """
 
     # XXX list_resources?  glob_resources?
+
+
+
 
 
 class ResourceManager:
@@ -98,18 +94,32 @@ class ResourceManager:
 
     def resource_filename(self, package_name, resource_name):
         """Return a true filesystem path for specified resource"""
-        return get_provider(package_name).get_resource_filename(self,
-            resource_name)
+        return get_provider(package_name).get_resource_filename(self,resource_name)
 
     def resource_stream(self, package_name, resource_name):
         """Return a readable file-like object for specified resource"""
-        return get_provider(package_name).get_resource_stream(self,
-            resource_name)
+        return get_provider(package_name).get_resource_stream(self,resource_name)
 
     def resource_string(self, package_name, resource_name):
         """Return specified resource as a string"""
-        return get_provider(package_name).get_resource_string(self,
-            resource_name)
+        return get_provider(package_name).get_resource_string(self,resource_name)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def get_cache_path(self, archive_name, names=()):
         """Return absolute location in cache for `archive_name` and `names`
@@ -131,23 +141,6 @@ class ResourceManager:
         self.cached_files.append(target_path)
         return target_path
 
-    def require(self, requirement, path=None):
-        """Ensure a distribution matching `requirement` is on ``sys.path``
-
-        The `requirement` and `path` arguments are the same as for
-        the ``iter_distributions()`` method, but `requirement` is not optional
-        for `require`, since you must specify the desired distribution name.
-        """
-        for dist in self.iter_distributions(requirement, path):
-            dist.require()
-            return
-        else:
-            pass
-            #raise ImportError(
-            #    "No distributions found matching " + repr(requirement)
-            #)
-
-    # XXX Not yet implemented
 
     def postprocess(self, filename):
         """Perform any platform-specific postprocessing of file `filename`
@@ -155,24 +148,19 @@ class ResourceManager:
         This is where Mac header rewrites should be done; other platforms don't
         have anything special they should do.
 
-        Resource providers should call this method after successfully
-        extracting a compressed resource.  They should not call it on resources
+        Resource providers should call this method ONLY after successfully
+        extracting a compressed resource.  They must NOT call it on resources
         that are already in the filesystem.
         """
         # XXX
-        # print "postprocessing", filename     
 
-    def iter_distributions(self, requirement=None, path=None):
-        """Iterate over distributions in `path` matching `requirement`
 
-        The `path` is a sequence of ``sys.path`` items.  If not supplied,
-        ``sys.path`` is used.
 
-        The `requirement` is an optional string specifying the name of the
-        desired distribution.
-        """
-        # XXX
-        return ()
+
+
+
+
+
 
     def set_extraction_path(self, path):
         """Set the base path where resources will be extracted to, if needed.
@@ -207,9 +195,96 @@ class ResourceManager:
         directory used for extractions.
         """
         # XXX
-        pass
 
 
+
+
+
+
+
+
+def iter_distributions(requirement=None, path=None):
+    """Iterate over distributions in `path` matching `requirement`
+
+    The `path` is a sequence of ``sys.path`` items.  If not supplied,
+    ``sys.path`` is used.
+
+    The `requirement` is an optional string specifying the name of the
+    desired distribution.
+    """
+    if path is None:
+        path = sys.path
+
+    if requirement is not None:
+        requirements = list(parse_requirements(requirement))
+        try:
+            requirement, = requirements
+        except ValueError:
+            raise ValueError("Must specify exactly one requirement")
+
+    for item in path:
+        source = get_dist_source(item)
+        for dist in source.iter_distributions(requirement):
+            yield dist
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def require(*requirements):
+    """Ensure that distributions matching `requirements` are on ``sys.path``
+
+    `requirements` must be a string or a (possibly-nested) sequence
+    thereof, specifying the distributions and versions required.
+    XXX THIS IS DRAFT CODE FOR DESIGN PURPOSES ONLY RIGHT NOW
+    """
+    all_distros = {}
+    installed = {}
+    for dist in iter_distributions():
+        key = dist.name.lower()
+        all_distros.setdefault(key,[]).append(dist)
+        if dist.installed():
+            installed[key] = dist   # XXX what if more than one on path?
+
+    all_requirements = {}
+
+    def _require(requirements,source=None):
+        for req in parse_requirements(requirements):
+            name,vers = req # XXX
+            key = name.lower()
+            all_requirements.setdefault(key,[]).append((req,source))
+            if key in installed and not req.matches(installed[key]):
+                raise ImportError(
+                    "The installed %s distribution does not match"  # XXX
+                )   # XXX should this be a subclass of ImportError?
+            all_distros[key] = distros = [
+                dist for dist in all_distros.get(key,[])
+                if req.matches(dist)
+            ]
+            if not distros:
+                raise ImportError(
+                    "No %s distribution matches all criteria for " % name
+                )   # XXX should this be a subclass of ImportError?
+        for key in all_requirements.keys(): # XXX sort them
+            pass
+            # find "best" distro for key and install it
+            # after _require()-ing its requirements
+        
+    _require(requirements)
+        
 class DefaultProvider:
     """Provides access to package resources in the filesystem"""
 
@@ -243,10 +318,13 @@ class DefaultProvider:
         return self._get(os.path.join(self.egg_info, *name.split('/')))
 
     def get_metadata_lines(self, name):
-        for line in self.get_metadata(name).splitlines():
-            line = line.strip()
-            if not line.startswith('#'):
-                yield line
+        return yield_lines(self.get_metadata(name))
+
+
+
+
+
+
 
     def _has(self, path):
         return os.path.exists(path)
@@ -265,6 +343,7 @@ class DefaultProvider:
 register_loader_type(type(None), DefaultProvider)
 
 
+
 class NullProvider(DefaultProvider):
     """Try to implement resource support for arbitrary PEP 302 loaders"""
 
@@ -274,33 +353,36 @@ class NullProvider(DefaultProvider):
         )
 
     def _get(self, path):
-        get_data = getattr(self.loader, 'get_data', None)
-        if get_data is None:
-            raise NotImplementedError(
-                "Can't perform this operation for loaders without 'get_data()'"
-            )
-        return get_data(path)
+        if hasattr(self.loader, 'get_data'):
+            return self.loader.get_data(path)
+        raise NotImplementedError(
+            "Can't perform this operation for loaders without 'get_data()'"
+        )
 
 
 register_loader_type(object, NullProvider)
+
+
+
+
 
 
 class ZipProvider(DefaultProvider):
     """Resource support for zips and eggs"""
 
     egg_name = None
-    eagers = None
+    eagers   = None
 
     def __init__(self, module):
         self.module = module
         self.loader = module.__loader__
         self.zipinfo = zipimport._zip_directory_cache[self.loader.archive]
-        self.zip_pre = self.loader.archive + os.sep
+        self.zip_pre = self.loader.archive+os.sep
 
         path = self.module_path = os.path.dirname(module.__file__)
         old = None
         self.prefix = []
-        while path != old:
+        while path!=old:
             if path.lower().endswith('.egg'):
                 self.egg_name = os.path.basename(path)
                 self.egg_info = os.path.join(path, 'EGG-INFO')
@@ -323,22 +405,24 @@ class ZipProvider(DefaultProvider):
     def get_resource_stream(self, manager, resource_name):
         return StringIO(self.get_resource_string(manager, resource_name))
 
+
+
+
     def _extract_resource(self, manager, resource_name):
         parts = resource_name.split('/')
         zip_path = os.path.join(self.module_path, *parts)
-        zip_stat = self.zipinfo[os.path.join(*(self.prefix + parts))]
-        t, d, size = zip_stat[5], zip_stat[6], zip_stat[3]
+        zip_stat = self.zipinfo[os.path.join(*self.prefix+parts)]
+        t,d,size = zip_stat[5], zip_stat[6], zip_stat[3]
         date_time = (
-            (d >> 9) + 1980, (d >> 5) & 0xF, d & 0x1F,
-            (t & 0xFFFF) >> 11, (t >> 5) & 0x3F,
-            (t & 0x1F) * 2, 0, 0, -1
+            (d>>9)+1980, (d>>5)&0xF, d&0x1F,                      # ymd
+            (t&0xFFFF)>>11, (t>>5)&0x3F, (t&0x1F) * 2, 0, 0, -1   # hms, etc.
         )
         timestamp = time.mktime(date_time)
-        real_path = manager.get_cache_path(self.egg_name, self.prefix + parts)
+        real_path = manager.get_cache_path(self.egg_name, self.prefix+parts)
 
         if os.path.isfile(real_path):
             stat = os.stat(real_path)
-            if stat.st_size == size and stat.st_mtime == timestamp:
+            if stat.st_size==size and stat.st_mtime==timestamp:
                 # size and stamp match, don't bother extracting
                 return real_path
 
@@ -346,7 +430,7 @@ class ZipProvider(DefaultProvider):
 
         data = self.loader.get_data(zip_path)
         open(real_path, 'wb').write(data)
-        os.utime(real_path, (timestamp, timestamp))
+        os.utime(real_path, (timestamp,timestamp))
         manager.postprocess(real_path)
         return real_path
 
@@ -358,6 +442,12 @@ class ZipProvider(DefaultProvider):
                     eagers.extend(self.get_metadata_lines(name))
             self.eagers = eagers
         return self.eagers
+
+
+
+
+
+
 
     def get_resource_filename(self, manager, resource_name):
         if not self.egg_name:
@@ -377,13 +467,117 @@ class ZipProvider(DefaultProvider):
 register_loader_type(zipimport.zipimporter, ZipProvider)
 
 
+def StringIO(*args, **kw):
+    """Thunk to load the real StringIO on demand"""
+    global StringIO
+    try:
+        from cStringIO import StringIO
+    except ImportError:
+        from StringIO import StringIO
+    return StringIO(*args,**kw)
+
+
+def get_distro_source(path_item):
+    pass    # XXX
+
+
+
+
+
+
+
+
+
+
+
+def yield_lines(strs):
+    """Yield non-empty/non-comment lines of a ``basestring`` or sequence"""
+    if isinstance(strs,basestring):
+        for s in strs.splitlines():
+            s = s.strip()
+            if s and not s.startswith('#'):     # skip blank lines/comments
+                yield s
+    else:
+        for ss in strs:
+            for s in yield_lines(ss):
+                yield s
+
+LINE_END = re.compile(r"\s*(#.*)?$").match         # whitespace and comment
+CONTINUE = re.compile(r"\s*\\\s*(#.*)?$").match    # line continuation
+DISTRO   = re.compile(r"\s*(\w+)").match           # Distribution name
+VERSION  = re.compile(r"\s*(<=?|>=?|==|!=)\s*((\w|\.)+)").match  # version info
+COMMA    = re.compile(r"\s*,").match               # comma between items
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def parse_requirements(strs):
+    """Yield ``Requirement`` objects for each specification in `strs`
+
+    `strs` must be an instance of ``basestring``, or a (possibly-nested)
+    sequence thereof.
+    """
+    # create a steppable iterator, so we can handle \-continuations
+    lines = iter(yield_lines(strs))
+    for line in lines:
+        line = line.replace('-','_')
+        match = DISTRO(line)
+        if not match:
+            raise ValueError("Missing distribution spec", line)
+        distname = match.group(1)
+        p = match.end()
+        specs = []
+        while not LINE_END(line,p):
+            if CONTINUE(line,p):
+                try:
+                    line = lines.next().replace('-','_'); p = 0
+                except StopIteration:
+                    raise ValueError(
+                        "\\ must not appear on the last nonblank line"
+                    )
+            match = VERSION(line,p)
+            if not match:
+                raise ValueError("Expected version spec in",line,"at",line[p:])
+            specs.append(match.group(1,2))
+            p = match.end()
+            match = COMMA(line,p)
+            if match:
+                p = match.end() # skip the comma
+            elif not LINE_END(line,p):
+                raise ValueError("Expected ',' or EOL in",line,"at",line[p:])
+
+        yield distname, specs
+
+
+
+
+
 def _get_mro(cls):
     """Get an mro for a type or classic class"""
-    if not isinstance(cls, type):
-        cls = type('', (cls, object), {})
+    if not isinstance(cls,type):
+        class cls(cls,object): pass
         return cls.__mro__[1:]
     return cls.__mro__
-
 
 def _find_adapter(registry, ob):
     """Return an adapter factory for `ob` from `registry`"""
@@ -407,3 +601,15 @@ def _initialize(g):
         if not name.startswith('_'):
             g[name] = getattr(_manager, name)
 _initialize(globals())
+
+
+
+
+
+
+
+
+
+
+
+
