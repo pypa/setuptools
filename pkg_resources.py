@@ -17,7 +17,8 @@ __all__ = [
     'register_loader_type', 'get_provider', 'IResourceProvider',
     'ResourceManager', 'iter_distributions', 'require', 'resource_string',
     'resource_stream', 'resource_filename', 'set_extraction_path',
-    'cleanup_resources', 'parse_requirements', 'parse_version'# 'glob_resources'
+    'cleanup_resources', 'parse_requirements', 'parse_version',
+    'Distribution', # 'glob_resources'
 ]
 
 import sys, os, zipimport, time, re
@@ -37,7 +38,6 @@ def get_provider(moduleName):
     module = sys.modules[moduleName]
     loader = getattr(module, '__loader__', None)
     return _find_adapter(_provider_factories, loader)(module)
-
 
 class IResourceProvider:
 
@@ -508,6 +508,12 @@ DISTRO   = re.compile(r"\s*(\w+)").match           # Distribution name
 VERSION  = re.compile(r"\s*(<=?|>=?|==|!=)\s*((\w|\.)+)").match  # version info
 COMMA    = re.compile(r"\s*,").match               # comma between items
 
+EGG_NAME = re.compile(
+    r"(?P<name>[^-]+)"
+    r"( -(?P<ver>[^-]+) (-py(?P<pyver>[^-]+) (-(?P<plat>.+))? )? )?",
+    re.VERBOSE | re.IGNORECASE
+).match
+
 component_re = re.compile(r'(\d+ | [a-z]+ | \.| -)', re.VERBOSE)
 replace = {'pre':'c', 'preview':'c','-':'final-','rc':'c'}.get
 
@@ -522,12 +528,6 @@ def _parse_version_parts(s):
             yield '*'+part
 
     yield '*final'  # ensure that alpha/beta/candidate are before final
-
-
-
-
-
-
 
 
 
@@ -571,6 +571,88 @@ def parse_version(s):
 
 
 
+
+class Distribution(object):
+    """Wrap an actual or potential sys.path entry w/metadata"""
+    
+    def __init__(self,
+        path_str, metadata=None, name=None, version=None,
+        py_version=sys.version[:3]
+    ):
+        if name:
+            self.name = name
+        if version:
+            self.version = version
+
+        self.py_version = py_version
+        self.path = path_str
+        self.normalized_path = os.path.normpath(os.path.normcase(path_str))
+
+    def installed_on(self,path=None):
+        """Is this distro installed on `path`? (defaults to ``sys.path``)"""
+        if path is None:
+            path = sys.path
+        if self.path in path or self.normalized_path in path:
+            return True
+        for item in path:
+            normalized = os.path.normpath(os.path.normcase(item))
+            if normalized == self.normalized_path:
+                return True
+        return False
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    #@classmethod
+    def from_filename(cls,filename,metadata=None):
+        name,version,py_version,platform = [None]*4
+        basename,ext = os.path.splitext(os.path.basename(filename))
+        if ext.lower()==".egg":
+            match = EGG_NAME(basename)
+            if match:
+                name,version,py_version,platform = match.group(
+                    'name','ver','pyver','plat'
+                )
+                if version and '_' in version:
+                    version = version.replace('_','-')
+        return cls(
+            filename,metadata,name=name,version=version,py_version=py_version
+        )
+    from_filename = classmethod(from_filename)
+
+    # These properties have to be lazy so that we don't have to load any
+    # metadata until/unless it's actually needed.  (i.e., some distributions
+    # may not know their name or version without loading PKG-INFO)
+
+    #@property
+    def key(self):
+        try:
+            return self._key
+        except AttributeError:
+            self._key = key = self.name.lower()
+            return key
+    key = property(key)
+
+    #@property
+    def parsed_version(self):
+        try:
+            return self._parsed_version
+        except AttributeError:
+            self._parsed_version = pv = parse_version(self.version)
+            return pv
+
+    parsed_version = property(parsed_version)
+    
 
 def parse_requirements(strs):
     """Yield ``Requirement`` objects for each specification in `strs`
