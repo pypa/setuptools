@@ -2,7 +2,6 @@ __all__ = ['Distribution', 'Feature']
 from distutils.core import Distribution as _Distribution
 from distutils.core import Extension
 from setuptools.depends import Require
-from setuptools.command.build_py import build_py
 from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
 from setuptools.command.install_lib import install_lib
@@ -58,11 +57,13 @@ class Distribution(_Distribution):
 
     def __init__ (self, attrs=None):
         self.features = {}
-        self.package_data = {}
         self.test_suite = None
         self.requires = []
         _Distribution.__init__(self,attrs)
-        self.cmdclass.setdefault('build_py',build_py)
+        if not hasattr(self, "package_data"):
+            from setuptools.command.build_py import build_py
+            self.package_data = {}
+            self.cmdclass.setdefault('build_py',build_py)
         self.cmdclass.setdefault('build_ext',build_ext)
         self.cmdclass.setdefault('install',install)
         self.cmdclass.setdefault('install_lib',install_lib)
