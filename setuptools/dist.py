@@ -285,6 +285,47 @@ class Distribution(_Distribution):
 
 
 
+    def get_cmdline_options(self):
+        """Return a '{cmd: {opt:val}}' map of all command-line options
+
+        Option names are all long, but do not include the leading '--', and
+        contain dashes rather than underscores.  If the option doesn't take
+        an argument (e.g. '--quiet'), the 'val' is 'None'.
+
+        Note that options provided by config files are intentionally excluded.
+        """
+
+        d = {}
+
+        for cmd,opts in self.command_options.items():
+
+            for opt,(src,val) in opts.items():
+
+                if src != "command line":
+                    continue
+
+                opt = opt.replace('_','-')
+
+                if val==0:
+                    cmdobj = self.get_command_obj(cmd)
+                    neg_opt = self.negative_opt.copy()
+                    neg_opt.update(getattr(cmdobj,'negative_opt',{}))
+                    for neg,pos in neg_opt.items():
+                        if pos==opt:
+                            opt=neg
+                            val=None
+                            break
+                    else:
+                        raise AssertionError("Shouldn't be able to get here")
+
+                elif val==1:
+                    val = None
+
+                d.setdefault(cmd,{})[opt] = val
+
+        return d
+
+
 class Feature:
     """A subset of the distribution that can be excluded if unneeded/wanted
 

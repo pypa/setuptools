@@ -127,7 +127,10 @@ class DependsTests(TestCase):
 
         dist = makeSetup(
             extra_path='spam',
-            script_args=['install','--install-lib',path1]
+            script_args=[
+                'install','--install-lib',path1, '--prefix',path2,
+                'build','--compiler=mingw32',               
+            ]
         )
 
         cmd = dist.get_command_obj('depends')
@@ -136,16 +139,13 @@ class DependsTests(TestCase):
         self.assertEqual(cmd.temp, dist.get_command_obj('build').build_temp)
         self.assertEqual(cmd.search_path, [path2,path1]+sys.path)
 
-
-
-
-
-
-
-
-
-
-
+        self.assertEqual(cmd.unsafe_options,
+            {'install':['--install-lib',path1]}
+        )
+        self.assertEqual(cmd.safe_options, {
+            'build':['--compiler','mingw32'],
+            'install':['--prefix',os.path.abspath(path2)]
+        })
 
 
 
@@ -172,6 +172,10 @@ class DistroTests(TestCase):
             packages=['a', 'a.b', 'a.b.c', 'b', 'c'],
             py_modules=['b.d','x'],
             ext_modules = (self.e1, self.e2),
+            script_args = [
+                'build', '-q', 'build_ext', '-i',
+                'install', '--prefix=/usr/lib', '--install-lib','/test'
+            ],
             package_dir = {},
         )
 
@@ -196,10 +200,6 @@ class DistroTests(TestCase):
 
         # test removals from unspecified options
         makeSetup().exclude_package('x')
-
-
-
-
 
 
 
@@ -271,12 +271,12 @@ class DistroTests(TestCase):
             self.dist.exclude, package_dir=['q']
         )
 
-
-
-
-
-
-
+    def testCmdLineOpts(self):
+        self.assertEqual(self.dist.get_cmdline_options(),
+            {   'install':{'prefix':'/usr/lib', 'install-lib':'/test'},
+                'build': {'quiet':None}, 'build_ext':{'inplace':None},
+            }
+        )
 
 
 

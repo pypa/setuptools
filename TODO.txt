@@ -4,8 +4,6 @@ To-Do
 
   * install_deps command (install runtime dependencies)
 
-    * compute child command line, abort if user specified incompatible options
-
     * OPEN ISSUE: should parent install command include child install's files?
 
   * Dependency class
