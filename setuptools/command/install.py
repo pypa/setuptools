@@ -6,6 +6,4 @@ class install(_install):
     def has_dependencies(self):
         return self.distribution.has_dependencies()
 
-    sub_commands = [('depends',has_dependencies)] + _install.sub_commands
-
-
+    sub_commands = [('depends', has_dependencies)] + _install.sub_commands
