@@ -56,13 +56,15 @@ class Distribution(_Distribution):
     """
 
     def __init__ (self, attrs=None):
+        have_package_data = hasattr(self, "package_data")
+        if not have_package_data:
+            self.package_data = {}
         self.features = {}
         self.test_suite = None
         self.requires = []
         _Distribution.__init__(self,attrs)
-        if not hasattr(self, "package_data"):
+        if not have_package_data:
             from setuptools.command.build_py import build_py
-            self.package_data = {}
             self.cmdclass.setdefault('build_py',build_py)
         self.cmdclass.setdefault('build_ext',build_ext)
         self.cmdclass.setdefault('install',install)
