@@ -2,7 +2,7 @@
 
 Build .egg distributions"""
 
-# This module should be kept compatible with Python 2.1
+# This module should be kept compatible with Python 2.3
 
 import os
 from distutils.core import Command
@@ -69,7 +69,22 @@ class bdist_egg(Command):
 
     # finalize_options()
 
+    def write_stub(self, resource, pyfile):
+        f = open(pyfile,'w')
+        f.write('\n'.join([
+            "def __bootstrap__():",
+            "   global __bootstrap__, __loader__, __file__",
+            "   import sys, pkg_resources",
+            "   __file__ = pkg_resources.resource_filename(__name__,%r)"
+                % resource,
+            "   del __bootstrap__, __loader__",
+            "   reload(sys.modules[__name__])",
+            "__bootstrap__()",
+            "" # terminal \n
+        ]))
+        f.close()
 
+        
     def run (self):
 
         if not self.skip_build:
@@ -80,13 +95,32 @@ class bdist_egg(Command):
         install.skip_build = self.skip_build
         install.warn_dir = 0
 
+        ext_outputs = \
+            install._mutate_outputs(self.distribution.has_ext_modules(),
+                                    'build_ext', 'build_lib',
+                                    '')
         log.info("installing to %s" % self.bdist_dir)
         self.run_command('install_lib')
 
+        to_compile = []
+        for ext_name in ext_outputs:
+            filename,ext = os.path.splitext(ext_name)
+            pyfile = os.path.join(self.bdist_dir, filename + '.py')
+            log.info("creating stub loader for %s" % ext_name)
+            if not self.dry_run:
+                self.write_stub(os.path.basename(ext_name), pyfile)
+            to_compile.append(pyfile)
+
+        if to_compile:
+            install.byte_compile(to_compile)
+            
         # And make an archive relative to the root of the
         # pseudo-installation tree.
-        archive_basename = "%s-py%s-%s" % (self.distribution.get_fullname(),
-                                      get_python_version(),self.plat_name)
+        archive_basename = "%s-py%s" % (self.distribution.get_fullname(),
+                                      get_python_version())
+
+        if ext_outputs:
+            archive_basename += "-" + self.plat_name
 
         # OS/2 objects to any ":" characters in a filename (such as when
         # a timestamp is used in a version) so change them to hyphens.
@@ -97,7 +131,7 @@ class bdist_egg(Command):
         archive_root = self.bdist_dir
 
         # Make the EGG-INFO directory
-        log.info("creating EGG-INFO files")
+        log.info("creating EGG-INFO directory")
         egg_info = os.path.join(archive_root,'EGG-INFO')
         self.mkpath(egg_info)
 
@@ -106,9 +140,19 @@ class bdist_egg(Command):
                 path = os.path.join(self.egg_info,filename)
                 if os.path.isfile(path):
                     self.copy_file(path,os.path.join(egg_info,filename))
-                
+
+        log.info("writing EGG-INFO/PKG-INFO")
         if not self.dry_run:
             self.distribution.metadata.write_pkg_info(egg_info)
+
+        if ext_outputs:
+            log.info("writing EGG-INFO/native_libs.txt")
+            if not self.dry_run:
+                libs_file = open(
+                    os.path.join(egg_info,"native_libs.txt"),'wt')
+                libs_file.write('\n'.join(ext_outputs))
+                libs_file.write('\n')
+                libs_file.close()
 
         # Make the archive
         make_zipfile(pseudoinstall_root+'.egg',
