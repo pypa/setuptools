@@ -1,9 +1,10 @@
+import os
+import sys
+
 from distutils.cmd import Command
-import os, sys
 
 
 class depends(Command):
-
     """Download and install dependencies, if needed"""
 
     description = "download and install dependencies, if needed"
@@ -13,28 +14,27 @@ class depends(Command):
          "directory where dependencies will be downloaded and built"),
         ('ignore-extra-args', 'i',
          "ignore options that won't be passed to child setup scripts"),
-    ]
+        ]
 
     path_attrs = [
         # Note: these must be in *reverse* order, as they are pushed onto the
         # *front* of a copy of sys.path.
-        ('install','install_libbase'),      # installation base if extra_path
-        ('install_lib','install_dir'),      # where modules are installed
-    ]
+        ('install', 'install_libbase'),     # installation base if extra_path
+        ('install_lib', 'install_dir'),     # where modules are installed
+        ]
 
     # Command options that can be safely passed to dependencies' setup scripts
     safe_opts = {
         'install': [
-            'prefix','exec-prefix','home','install-base','install-platbase',
-            'root','optimize','force','verbose','quiet'
-        ],
-        'build': ['compiler','debug','force','verbose','quiet'],
-    }
+            'prefix', 'exec-prefix', 'home', 'install-base',
+            'install-platbase', 'root', 'optimize', 'force', 'verbose', 'quiet'
+            ],
+        'build': ['compiler', 'debug', 'force', 'verbose', 'quiet'],
+        }
 
     # Options with string arguments that are *not* directories or files, and
     # so should *not* have absolute-path fixups applied.
-    non_fs_opts = {'build':['compiler'] }
-
+    non_fs_opts = {'build': ['compiler']}
 
     def initialize_options(self):
         self.temp = None; self.ignore_extra_args = None
@@ -85,7 +85,7 @@ class depends(Command):
 
         needed = [
             dep for dep in self.distribution.requires if self.is_needed(dep)
-        ]
+            ]
 
         if not needed:
             self.announce("all dependencies are present and up-to-date")
@@ -97,7 +97,7 @@ class depends(Command):
 
         self.announce(
             "dependencies will be installed using:\n    "+' '.join(argv)+'\n'
-        )
+            )
 
         # Alert for unsupported commands/options, unless '-i' was used
         if self.unsafe_options:
@@ -109,31 +109,26 @@ class depends(Command):
                     " force the build to proceed.\nOtherwise, you will need"
                     " to omit the unsupported options,\nor install the"
                     " dependencies manually."
-                )
-
+                    )
 
         # Alert the user to missing items
         fmt = "\t%s\t%s\n"
-        items = [fmt % (dep.full_name(),dep.homepage) for dep in needed]
+        items = [fmt % (dep.full_name(), dep.homepage) for dep in needed]
         items.insert(0,"Please install the following packages *first*:\n")
         items.append('')
         raise SystemExit('\n'.join(items))  # dump msg to stderr and exit
-
-
 
     def warn_unsafe_options_used(self):
         lines = []; write = lines.append
         write("the following command options are not supported for building")
         write("dependencies, and will be IGNORED:")
         for cmd,line in self.unsafe_options.items():
-            write('\t%s %s' % (cmd,' '.join(line)))
+            write('\t%s %s' % (cmd, ' '.join(line)))
         write('')
         self.warn('\n'.join(lines))
 
-
     def is_needed(self,dep):
         """Does the specified dependency need to be installed/updated?"""
-
         self.announce("searching for "+dep.full_name())
         version = dep.get_version(self.search_path)
 
@@ -152,13 +147,3 @@ class depends(Command):
         else:
             self.announce(status+" (update needed)")
             return True
-
-
-
-
-
-
-
-
-
-

@@ -8,4 +8,4 @@ __all__ = ['test', 'depends']
 distutils.command.__path__.extend(__path__)
 distutils.command.__all__.extend(
     [cmd for cmd in __all__ if cmd not in distutils.command.__all__]
-)
+    )
