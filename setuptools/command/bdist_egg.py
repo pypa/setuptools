@@ -10,7 +10,7 @@ from distutils.dir_util import create_tree, remove_tree, ensure_relative,mkpath
 from distutils.sysconfig import get_python_version
 from distutils.errors import *
 from distutils import log
-from pkg_resources import parse_requirements
+from pkg_resources import parse_requirements, get_platform
 
 class bdist_egg(Command):
 
@@ -75,9 +75,9 @@ class bdist_egg(Command):
         if self.bdist_dir is None:
             bdist_base = self.get_finalized_command('bdist').bdist_base
             self.bdist_dir = os.path.join(bdist_base, 'egg')
-        self.set_undefined_options('bdist',
-                                   ('dist_dir', 'dist_dir'),
-                                   ('plat_name', 'plat_name'))
+        if self.plat_name is None:
+            self.plat_name = get_platform()
+        self.set_undefined_options('bdist',('dist_dir', 'dist_dir'))
 
 
     def write_stub(self, resource, pyfile):

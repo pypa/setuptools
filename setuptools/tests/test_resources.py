@@ -4,21 +4,53 @@ import pkg_resources, sys
 
 class DistroTests(TestCase):
 
-    def testEmptyiter(self):
+    def testCollection(self):
         # empty path should produce no distributions
-        self.assertEqual(list(iter_distributions(path=[])), [])
+        ad = AvailableDistributions([])
+        self.assertEqual(list(ad), [])
+        self.assertEqual(len(ad),0)
+        self.assertEqual(ad.get('FooPkg'),None)
+        self.failIf('FooPkg' in ad)
+        ad.add(Distribution.from_filename("FooPkg-1.3_1.egg"))
+        ad.add(Distribution.from_filename("FooPkg-1.4-py2.4-win32.egg"))
+        ad.add(Distribution.from_filename("FooPkg-1.2-py2.4.egg"))
+
+        # Name is in there now
+        self.failUnless('FooPkg' in ad)
+
+        # But only 1 package
+        self.assertEqual(list(ad), ['foopkg'])
+        self.assertEqual(len(ad),1)
+
+        # Distributions sort by version
+        self.assertEqual(
+            [dist.version for dist in ad['FooPkg']], ['1.4','1.3-1','1.2']
+        )
+
+        # Removing a distribution leaves sequence alone
+        ad.remove(ad['FooPkg'][1])
+        self.assertEqual(
+            [dist.version for dist in ad.get('FooPkg')], ['1.4','1.2']
+        )
+
+        # And inserting adds them in order
+        ad.add(Distribution.from_filename("FooPkg-1.9.egg"))
+        self.assertEqual(
+            [dist.version for dist in ad['FooPkg']], ['1.9','1.4','1.2']
+        )
 
     def checkFooPkg(self,d):
         self.assertEqual(d.name, "FooPkg")
         self.assertEqual(d.key, "foopkg")
         self.assertEqual(d.version, "1.3-1")
         self.assertEqual(d.py_version, "2.4")
+        self.assertEqual(d.platform, "win32")
         self.assertEqual(d.parsed_version, parse_version("1.3-1"))
-        
+
     def testDistroBasics(self):
         d = Distribution(
             "/some/path",
-            name="FooPkg",version="1.3-1",py_version="2.4"
+            name="FooPkg",version="1.3-1",py_version="2.4",platform="win32"
         )
         self.checkFooPkg(d)
         self.failUnless(d.installed_on(["/some/path"]))
@@ -26,11 +58,20 @@ class DistroTests(TestCase):
 
         d = Distribution("/some/path")
         self.assertEqual(d.py_version, sys.version[:3])
+        self.assertEqual(d.platform, None)
 
     def testDistroParse(self):
         d = Distribution.from_filename("FooPkg-1.3_1-py2.4-win32.egg")
         self.checkFooPkg(d)
-        
+
+
+
+
+
+
+
+
+
 
 
 
@@ -107,7 +148,7 @@ class ParseTests(TestCase):
         0.79.9999+0.80.0pre2-3 0.79.9999+0.80.0pre2-2
         0.77.2-1 0.77.1-1 0.77.0-1
         """.split()
-        
+
         for p,v1 in enumerate(torture):
             for v2 in torture[p+1:]:
                 c(v2,v1)

@@ -15,13 +15,30 @@ method.
 """
 __all__ = [
     'register_loader_type', 'get_provider', 'IResourceProvider',
-    'ResourceManager', 'iter_distributions', 'require', 'resource_string',
+    'ResourceManager', 'AvailableDistributions', 'require', 'resource_string',
     'resource_stream', 'resource_filename', 'set_extraction_path',
     'cleanup_resources', 'parse_requirements', 'parse_version',
+    'compatible_platforms', 'get_platform',
     'Distribution', # 'glob_resources'
 ]
 
 import sys, os, zipimport, time, re
+
+def _sort_dists(dists):
+    tmp = [(dist.version,dist) for dist in dists]
+    tmp.sort()
+    tmp.reverse()
+    dists[:] = [d for v,d in tmp]
+
+
+
+
+
+
+
+
+
+
 _provider_factories = {}
 
 def register_loader_type(loader_type, provider_factory):
@@ -38,6 +55,30 @@ def get_provider(moduleName):
     module = sys.modules[moduleName]
     loader = getattr(module, '__loader__', None)
     return _find_adapter(_provider_factories, loader)(module)
+
+def get_platform():
+    """Return this platform's string for platform-specific distributions
+
+    XXX Currently this is the same as ``distutils.util.get_platform()``, but it
+    needs some hacks for Linux and Mac OS X.
+    """
+    from distutils.util import get_platform
+    return get_platform()
+
+def compatible_platforms(provided,required):
+    """Can code for the `provided` platform run on the `required` platform?
+
+    Returns true if either platform is ``None``, or the platforms are equal.
+
+    XXX Needs compatibility checks for Linux and Mac OS X.
+    """
+    if provided is None or required is None or provided==required:
+        return True     # easy case
+
+    # XXX all the tricky cases go here
+    
+    return False
+
 
 class IResourceProvider:
 
@@ -80,6 +121,99 @@ class IResourceProvider:
 
 
 
+class AvailableDistributions(object):
+    """Searchable snapshot of distributions on a search path"""
+
+    def __init__(self, search_path=None, platform=get_platform()):
+        """Snapshot distributions available on a search path
+
+        `search_path` should be a sequence of ``sys.path`` items.  If not
+        supplied, ``sys.path`` is used.
+
+        The `platform` is an optional string specifying the name of the
+        platform that platform-specific distributions must be compatible
+        with.  If not specified, it defaults to the current platform
+        (as defined by the result of ``get_platform()`` when ``pkg_resources``
+        was first imported.)
+
+        You may explicitly set `platform` to ``None`` if you wish to map *all*
+        distributions, not just those compatible with the running platform.
+        """
+
+        self._distmap = {}
+        self._cache = {}
+        self.scan(search_path,platform)
+
+    def __iter__(self):
+        """Iterate over distribution keys"""
+        return iter(self._distmap.keys())
+
+    def __contains__(self,name):
+        """Has a distribution named `name` ever been added to this map?"""
+        return name.lower() in self._distmap
+
+    def __len__(self):
+        return len(self._distmap)
+
+    def get(self,key,default=None):
+        """Return ``self[key]`` if `key` in self, otherwise return `default`"""
+        if key in self:
+            return self[key]
+        else:
+            return default
+
+    def scan(self, search_path=None, platform=get_platform()):
+        """Scan `search_path` for distributions usable on `platform`
+
+        Any distributions found are added to the distribution map.
+        `search_path` should be a sequence of ``sys.path`` items.  If not
+        supplied, ``sys.path`` is used.  `platform` is an optional string
+        specifying the name of the platform that platform-specific
+        distributions must be compatible with.  If unspecified, it defaults to
+        the current platform.
+
+        You may explicitly set `platform` to ``None`` if you wish to map *all*
+        distributions, not just those compatible with the running platform.
+        """
+        if search_path is None:
+            search_path = sys.path
+        add = self.add
+        for item in search_path:
+            source = get_dist_source(item)
+            for dist in source.iter_distributions(requirement):
+                if compatible_platforms(dist.platform, platform):
+                    add(dist)
+
+    def __getitem__(self,key):
+        """Return a newest-to-oldest list of distributions for the given key
+
+        The returned list may be modified in-place, e.g. for narrowing down
+        usable distributions.
+        """
+        try:
+            return self._cache[key]
+        except KeyError:
+            key = key.lower()
+            if key not in self._distmap:
+                raise
+
+        if key not in self._cache:
+            dists = self._cache[key] = self._distmap[key]
+            _sort_dists(dists)
+
+        return self._cache[key]
+
+    def add(self,dist):
+        """Add `dist` to the distribution map"""
+        self._distmap.setdefault(dist.key,[]).append(dist)
+        if dist.key in self._cache:
+            _sort_dists(self._cache[dist.key])
+
+    def remove(self,dist):
+        """Remove `dist` from the distribution map"""
+        self._distmap[dist.key].remove(dist)
+
+
 class ResourceManager:
     """Manage resource extraction and packages"""
 
@@ -94,32 +228,21 @@ class ResourceManager:
 
     def resource_filename(self, package_name, resource_name):
         """Return a true filesystem path for specified resource"""
-        return get_provider(package_name).get_resource_filename(self,resource_name)
+        return get_provider(package_name).get_resource_filename(
+            self,resource_name
+        )
 
     def resource_stream(self, package_name, resource_name):
         """Return a readable file-like object for specified resource"""
-        return get_provider(package_name).get_resource_stream(self,resource_name)
+        return get_provider(package_name).get_resource_stream(
+            self, resource_name
+        )
 
     def resource_string(self, package_name, resource_name):
         """Return specified resource as a string"""
-        return get_provider(package_name).get_resource_string(self,resource_name)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        return get_provider(package_name).get_resource_string(
+            self, resource_name
+        )
 
     def get_cache_path(self, archive_name, names=()):
         """Return absolute location in cache for `archive_name` and `names`
@@ -203,47 +326,6 @@ class ResourceManager:
 
 
 
-def iter_distributions(requirement=None, path=None):
-    """Iterate over distributions in `path` matching `requirement`
-
-    The `path` is a sequence of ``sys.path`` items.  If not supplied,
-    ``sys.path`` is used.
-
-    The `requirement` is an optional string specifying the name of the
-    desired distribution.
-    """
-    if path is None:
-        path = sys.path
-
-    if requirement is not None:
-        requirements = list(parse_requirements(requirement))
-        try:
-            requirement, = requirements
-        except ValueError:
-            raise ValueError("Must specify exactly one requirement")
-
-    for item in path:
-        source = get_dist_source(item)
-        for dist in source.iter_distributions(requirement):
-            yield dist
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def require(*requirements):
     """Ensure that distributions matching `requirements` are on ``sys.path``
 
@@ -251,14 +333,8 @@ def require(*requirements):
     thereof, specifying the distributions and versions required.
     XXX THIS IS DRAFT CODE FOR DESIGN PURPOSES ONLY RIGHT NOW
     """
-    all_distros = {}
+    all_distros = AvailableDistributions()
     installed = {}
-    for dist in iter_distributions():
-        key = dist.name.lower()
-        all_distros.setdefault(key,[]).append(dist)
-        if dist.installed():
-            installed[key] = dist   # XXX what if more than one on path?
-
     all_requirements = {}
 
     def _require(requirements,source=None):
@@ -282,9 +358,15 @@ def require(*requirements):
             pass
             # find "best" distro for key and install it
             # after _require()-ing its requirements
-        
+
     _require(requirements)
-        
+
+
+
+
+
+
+
 class DefaultProvider:
     """Provides access to package resources in the filesystem"""
 
@@ -544,7 +626,7 @@ def parse_version(s):
     dropped, but dashes are retained.  Trailing zeros between alpha segments
     or dashes are suppressed, so that e.g. 2.4.0 is considered the same as 2.4.
     Alphanumeric parts are lower-cased.
-   
+
     The algorithm assumes that strings like '-' and any alpha string > "final"
     represents a "patch level".  So, "2.4-1" is assumed to be a branch or patch
     of "2.4", and therefore "2.4.1" is considered newer than "2.4-1".
@@ -556,7 +638,7 @@ def parse_version(s):
     Finally, to handle miscellaneous cases, the strings "pre", "preview", and
     "rc" are treated as if they were "c", i.e. as though they were release
     candidates, and therefore are not as new as a version string that does not
-    contain them.    
+    contain them.
     """
     parts = []
     for part in _parse_version_parts(s.lower()):
@@ -574,17 +656,18 @@ def parse_version(s):
 
 class Distribution(object):
     """Wrap an actual or potential sys.path entry w/metadata"""
-    
+
     def __init__(self,
         path_str, metadata=None, name=None, version=None,
-        py_version=sys.version[:3]
+        py_version=sys.version[:3], platform=None
     ):
         if name:
-            self.name = name
+            self.name = name.replace('_','-')
         if version:
-            self.version = version
+            self.version = version.replace('_','-')
 
         self.py_version = py_version
+        self.platform = platform
         self.path = path_str
         self.normalized_path = os.path.normpath(os.path.normcase(path_str))
 
@@ -612,7 +695,6 @@ class Distribution(object):
 
 
 
-
     #@classmethod
     def from_filename(cls,filename,metadata=None):
         name,version,py_version,platform = [None]*4
@@ -623,11 +705,9 @@ class Distribution(object):
                 name,version,py_version,platform = match.group(
                     'name','ver','pyver','plat'
                 )
-                name = name.replace('_','-')
-                if version and '_' in version:
-                    version = version.replace('_','-')
         return cls(
-            filename,metadata,name=name,version=version,py_version=py_version
+            filename, metadata, name=name, version=version,
+            py_version=py_version, platform=platform
         )
     from_filename = classmethod(from_filename)
 
@@ -653,7 +733,9 @@ class Distribution(object):
             return pv
 
     parsed_version = property(parsed_version)
-    
+
+
+
 def parse_requirements(strs):
     """Yield ``Requirement`` objects for each specification in `strs`
 
@@ -691,7 +773,6 @@ def parse_requirements(strs):
                 raise ValueError("Expected ',' or EOL in",line,"at",line[p:])
 
         yield distname.replace('_','-'), specs
-
 
 
 
