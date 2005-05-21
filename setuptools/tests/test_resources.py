@@ -80,6 +80,47 @@ class DistroTests(TestCase):
 
 
 
+class RequirementsTests(TestCase):
+
+    def testBasics(self):
+        r = Requirement("Twisted", [('>=','1.2')])
+        self.assertEqual(str(r),"Twisted>=1.2")
+        self.assertEqual(repr(r),"Requirement('Twisted', [('>=', '1.2')])")
+        self.assertEqual(r, Requirement("Twisted", [('>=','1.2')]))
+        self.assertEqual(r, Requirement("twisTed", [('>=','1.2')]))
+        self.assertNotEqual(r, Requirement("Twisted", [('>=','2.0')]))
+        self.assertNotEqual(r, Requirement("Zope", [('>=','1.2')]))
+        self.assertNotEqual(r, Requirement("Zope", [('>=','3.0')]))
+
+    def testOrdering(self):
+        r1 = Requirement("Twisted", [('==','1.2c1'),('>=','1.2')])
+        r2 = Requirement("Twisted", [('>=','1.2'),('==','1.2c1')])
+        self.assertEqual(r1,r2)
+        self.assertEqual(str(r1),str(r2))
+        self.assertEqual(str(r2),"Twisted==1.2c1,>=1.2")
+
+    def testBasicContains(self):
+        r = Requirement("Twisted", [('>=','1.2')])
+        foo_dist = Distribution.from_filename("FooPkg-1.3_1.egg")
+        twist11  = Distribution.from_filename("Twisted-1.1.egg")
+        twist12  = Distribution.from_filename("Twisted-1.2.egg")
+        self.failUnless(parse_version('1.2') in r)
+        self.failUnless(parse_version('1.1') not in r)
+        self.failUnless('1.2' in r)
+        self.failUnless('1.1' not in r)
+        self.failUnless(foo_dist not in r)
+        self.failUnless(twist11 not in r)
+        self.failUnless(twist12 in r)
+
+    def testAdvancedContains(self):
+        r, = parse_requirements("Foo>=1.2,<=1.3,==1.9,>2.0,!=2.5,<3.0,==4.5")
+        for v in ('1.2','1.2.2','1.3','1.9','2.0.1','2.3','2.6','3.0c1','4.5'):
+            self.failUnless(v in r, (v,r))
+        for v in ('1.2c1','1.3.1','1.5','1.9.1','2.0','2.5','3.0','4.0'):
+            self.failUnless(v not in r, (v,r))
+
+
+
 class ParseTests(TestCase):
 
     def testEmptyParse(self):
@@ -92,14 +133,14 @@ class ParseTests(TestCase):
         ]:
             self.assertEqual(list(pkg_resources.yield_lines(inp)),out)
 
-    def testSimple(self):
+    def testSimpleRequirements(self):
         self.assertEqual(
             list(parse_requirements('Twis-Ted>=1.2-1')),
-            [('Twis-Ted',[('>=','1.2-1')])]
+            [Requirement('Twis-Ted',[('>=','1.2-1')])]
         )
         self.assertEqual(
             list(parse_requirements('Twisted >=1.2, \ # more\n<2.0')),
-            [('Twisted',[('>=','1.2'),('<','2.0')])]
+            [Requirement('Twisted',[('>=','1.2'),('<','2.0')])]
         )
         self.assertRaises(ValueError,lambda:list(parse_requirements(">=2.3")))
         self.assertRaises(ValueError,lambda:list(parse_requirements("x\\")))

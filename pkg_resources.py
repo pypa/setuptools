@@ -19,7 +19,7 @@ __all__ = [
     'resource_stream', 'resource_filename', 'set_extraction_path',
     'cleanup_resources', 'parse_requirements', 'parse_version',
     'compatible_platforms', 'get_platform',
-    'Distribution', # 'glob_resources'
+    'Distribution', 'Requirement', # 'glob_resources'
 ]
 
 import sys, os, zipimport, time, re
@@ -740,7 +740,7 @@ def parse_requirements(strs):
     """Yield ``Requirement`` objects for each specification in `strs`
 
     `strs` must be an instance of ``basestring``, or a (possibly-nested)
-    sequence thereof.
+    iterable thereof.
     """
     # create a steppable iterator, so we can handle \-continuations
     lines = iter(yield_lines(strs))
@@ -772,10 +772,61 @@ def parse_requirements(strs):
             elif not LINE_END(line,p):
                 raise ValueError("Expected ',' or EOL in",line,"at",line[p:])
 
-        yield distname.replace('_','-'), specs
+        yield Requirement(distname.replace('_','-'), specs)
 
 
 
+
+class Requirement:
+
+    def __init__(self, distname, specs=()):
+        self.distname = distname
+        self.key = distname.lower()
+        index = [(parse_version(v),state_machine[op],op,v) for op,v in specs]
+        index.sort()
+        self.specs = [(op,ver) for parsed,trans,op,ver in index]
+        self.index = index
+
+    def __str__(self):
+        return self.distname + ','.join([''.join(s) for s in self.specs])
+
+    def __repr__(self):
+        return "Requirement(%r, %r)" % (self.distname, self.specs)
+
+    def __eq__(self,other):
+        return isinstance(other,Requirement) \
+            and self.key==other.key and self.specs==other.specs
+
+    def __contains__(self,item):
+        if isinstance(item,Distribution):
+            if item.key <> self.key:
+                return False
+            item = item.parsed_version
+        elif isinstance(item,basestring):
+            item = parse_version(item)
+        last = True
+        for parsed,trans,op,ver in self.index:
+            action = trans[cmp(item,parsed)]
+            if action=='F':
+                return False
+            elif action=='T':
+                return True
+            elif action=='+':
+                last = True
+            elif action=='-':
+                last = False
+        return last
+
+
+state_machine = {
+    #       =><
+    '<' :  '--T',
+    '<=':  'T-T',
+    '>' :  'F+F',
+    '>=':  'T+F',
+    '==':  'T..',
+    '!=':  'F..',
+}
 
 def _get_mro(cls):
     """Get an mro for a type or classic class"""
@@ -806,15 +857,5 @@ def _initialize(g):
         if not name.startswith('_'):
             g[name] = getattr(_manager, name)
 _initialize(globals())
-
-
-
-
-
-
-
-
-
-
 
 
