@@ -1,6 +1,7 @@
 from unittest import TestCase, makeSuite
 from pkg_resources import *
 import pkg_resources, sys
+from sets import ImmutableSet
 
 class Metadata:
     """Mock object to return metadata as if from an on-disk distribution"""
@@ -16,7 +17,6 @@ class Metadata:
 
     def get_metadata_lines(self,name):
         return yield_lines(self.get_metadata(name))
-
 
 
 class DistroTests(TestCase):
@@ -167,12 +167,13 @@ class RequirementsTests(TestCase):
     def testBasics(self):
         r = Requirement.parse("Twisted>=1.2")
         self.assertEqual(str(r),"Twisted>=1.2")
-        self.assertEqual(repr(r),"Requirement('Twisted', [('>=', '1.2')])")
+        self.assertEqual(repr(r),"Requirement('Twisted', [('>=', '1.2')], ())")
         self.assertEqual(r, Requirement("Twisted", [('>=','1.2')]))
         self.assertEqual(r, Requirement("twisTed", [('>=','1.2')]))
         self.assertNotEqual(r, Requirement("Twisted", [('>=','2.0')]))
         self.assertNotEqual(r, Requirement("Zope", [('>=','1.2')]))
         self.assertNotEqual(r, Requirement("Zope", [('>=','3.0')]))
+        self.assertNotEqual(r, Requirement.parse("Twisted[extras]>=1.2"))
 
     def testOrdering(self):
         r1 = Requirement("Twisted", [('==','1.2c1'),('>=','1.2')])
@@ -200,6 +201,46 @@ class RequirementsTests(TestCase):
             self.failUnless(v in r, (v,r))
         for v in ('1.2c1','1.3.1','1.5','1.9.1','2.0','2.5','3.0','4.0'):
             self.failUnless(v not in r, (v,r))
+
+
+    def testOptionsAndHashing(self):
+        r1 = Requirement.parse("Twisted[foo,bar]>=1.2")
+        r2 = Requirement.parse("Twisted[bar,FOO]>=1.2")
+        r3 = Requirement.parse("Twisted[BAR,FOO]>=1.2.0")
+        self.assertEqual(r1,r2)
+        self.assertEqual(r1,r3)
+        self.assertEqual(r1.options, ("foo","bar"))
+        self.assertEqual(r2.options, ("bar","FOO"))
+        self.assertEqual(hash(r1), hash(r2))
+        self.assertEqual(
+            hash(r1), hash(("twisted", ((">=",parse_version("1.2")),),
+                            ImmutableSet(["foo","bar"])))
+        )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -233,7 +274,7 @@ class ParseTests(TestCase):
                     """
                 )
             ),
-            [(None,["x"]), ("y",["z","a"]), ("b",["c"]), ("q",["v"])]
+            [(None,["x"]), ("y",["z","a"]), ("b",["c"]), ("d",[]), ("q",["v"])]
         )
         self.assertRaises(ValueError,list,pkg_resources.split_sections("[foo"))
 

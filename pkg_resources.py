@@ -14,7 +14,7 @@ The package resource API is designed to work with normal filesystem packages,
 method.
 """
 __all__ = [
-    'register_loader_type', 'get_provider', 'IResourceProvider', 
+    'register_loader_type', 'get_provider', 'IResourceProvider',
     'ResourceManager', 'AvailableDistributions', 'require', 'resource_string',
     'resource_stream', 'resource_filename', 'set_extraction_path',
     'cleanup_resources', 'parse_requirements', 'parse_version',
@@ -25,6 +25,7 @@ __all__ = [
 ]
 
 import sys, os, zipimport, time, re
+from sets import ImmutableSet
 
 class ResolutionError(Exception):
     """Abstract base for dependency resolution errors"""
@@ -37,7 +38,6 @@ class DistributionNotFound(ResolutionError):
 
 class InvalidOption(ResolutionError):
     """Invalid or unrecognized option name for a distribution"""
-
 
 _provider_factories = {}
 
@@ -418,7 +418,6 @@ def require(*requirements):
 
         * get_distro_source() isn't implemented
         * Distribution.install_on() isn't implemented
-        * Requirement.options isn't implemented
         * AvailableDistributions.resolve() is untested
         * AvailableDistributions.scan() is untested
 
@@ -430,6 +429,7 @@ def require(*requirements):
 
     for dist in AvailableDistributions().resolve(requirements):
         dist.install_on(sys.path)
+
 
 
 
@@ -668,9 +668,11 @@ def yield_lines(strs):
 
 LINE_END = re.compile(r"\s*(#.*)?$").match         # whitespace and comment
 CONTINUE = re.compile(r"\s*\\\s*(#.*)?$").match    # line continuation
-DISTRO   = re.compile(r"\s*(\w+)").match           # Distribution name
+DISTRO   = re.compile(r"\s*(\w+)").match           # Distribution or option
 VERSION  = re.compile(r"\s*(<=?|>=?|==|!=)\s*((\w|\.)+)").match  # version info
 COMMA    = re.compile(r"\s*,").match               # comma between items
+OBRACKET = re.compile(r"\s*\[").match
+CBRACKET = re.compile(r"\s*\]").match
 
 EGG_NAME = re.compile(
     r"(?P<name>[^-]+)"
@@ -692,8 +694,6 @@ def _parse_version_parts(s):
             yield '*'+part
 
     yield '*final'  # ensure that alpha/beta/candidate are before final
-
-
 
 def parse_version(s):
     """Convert a version string to a sortable key
@@ -867,15 +867,12 @@ def parse_requirements(strs):
     """
     # create a steppable iterator, so we can handle \-continuations
     lines = iter(yield_lines(strs))
-    for line in lines:
-        line = line.replace('-','_')
-        match = DISTRO(line)
-        if not match:
-            raise ValueError("Missing distribution spec", line)
-        distname = match.group(1)
-        p = match.end()
-        specs = []
-        while not LINE_END(line,p):
+
+    def scan_list(ITEM,TERMINATOR,line,p,groups,item_name):
+
+        items = []
+
+        while not TERMINATOR(line,p):
             if CONTINUE(line,p):
                 try:
                     line = lines.next().replace('-','_'); p = 0
@@ -883,63 +880,110 @@ def parse_requirements(strs):
                     raise ValueError(
                         "\\ must not appear on the last nonblank line"
                     )
-            match = VERSION(line,p)
+
+            match = ITEM(line,p)
             if not match:
-                raise ValueError("Expected version spec in",line,"at",line[p:])
-            op,val = match.group(1,2)
-            specs.append((op,val.replace('_','-')))
+                raise ValueError("Expected "+item_name+" in",line,"at",line[p:])
+
+            items.append(match.group(*groups))
             p = match.end()
+
             match = COMMA(line,p)
             if match:
                 p = match.end() # skip the comma
-            elif not LINE_END(line,p):
-                raise ValueError("Expected ',' or EOL in",line,"at",line[p:])
+            elif not TERMINATOR(line,p):
+                raise ValueError(
+                    "Expected ',' or end-of-list in",line,"at",line[p:]
+                )
 
-        yield Requirement(distname.replace('_','-'), specs)
+        match = TERMINATOR(line,p)
+        if match: p = match.end()   # skip the terminator, if any
+        return line, p, items
+
+    for line in lines:
+        line = line.replace('-','_')
+        match = DISTRO(line)
+        if not match:
+            raise ValueError("Missing distribution spec", line)
+        distname = match.group(1)
+        p = match.end()
+        options = []
+
+        match = OBRACKET(line,p)
+        if match:
+            p = match.end()
+            line, p, options = scan_list(DISTRO,CBRACKET,line,p,(1,),"option")
+
+        line, p, specs = scan_list(VERSION,LINE_END,line,p,(1,2),"version spec")
+        specs = [(op,val.replace('_','-')) for op,val in specs]
+        yield Requirement(distname.replace('_','-'), specs, options)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 
 class Requirement:
 
-    def __init__(self, distname, specs=()):
+    def __init__(self, distname, specs=(), options=()):
         self.distname = distname
         self.key = distname.lower()
         index = [(parse_version(v),state_machine[op],op,v) for op,v in specs]
         index.sort()
         self.specs = [(op,ver) for parsed,trans,op,ver in index]
-        self.index = index
+        self.index, self.options = index, tuple(options)
+        self.hashCmp = (
+            self.key, tuple([(op,parsed) for parsed,trans,op,ver in index]),
+            ImmutableSet(map(str.lower,options))
+        )
+        self.__hash = hash(self.hashCmp)
 
     def __str__(self):
         return self.distname + ','.join([''.join(s) for s in self.specs])
 
     def __repr__(self):
-        return "Requirement(%r, %r)" % (self.distname, self.specs)
+        return "Requirement(%r, %r, %r)" % \
+            (self.distname,self.specs,self.options)
 
     def __eq__(self,other):
-        return isinstance(other,Requirement) \
-            and self.key==other.key and self.specs==other.specs
+        return isinstance(other,Requirement) and self.hashCmp==other.hashCmp
 
     def __contains__(self,item):
         if isinstance(item,Distribution):
-            if item.key <> self.key:
-                return False
+            if item.key <> self.key: return False
             item = item.parsed_version
         elif isinstance(item,basestring):
             item = parse_version(item)
         last = True
         for parsed,trans,op,ver in self.index:
             action = trans[cmp(item,parsed)]
-            if action=='F':
-                return False
-            elif action=='T':
-                return True
-            elif action=='+':
-                last = True
-            elif action=='-':
-                last = False
+            if action=='F':     return False
+            elif action=='T':   return True
+            elif action=='+':   last = True
+            elif action=='-':   last = False
         return last
 
+
+    def __hash__(self):
+        return self.__hash
 
     #@staticmethod
     def parse(s):
@@ -948,9 +992,10 @@ class Requirement:
             if len(reqs)==1:
                 return reqs[0]
             raise ValueError("Expected only one requirement", s)
-        raise ValueError("No requirements found", s)            
+        raise ValueError("No requirements found", s)
 
     parse = staticmethod(parse)
+
 
 state_machine = {
     #       =><
@@ -962,12 +1007,14 @@ state_machine = {
     '!=':  'F..',
 }
 
+
 def _get_mro(cls):
     """Get an mro for a type or classic class"""
     if not isinstance(cls,type):
         class cls(cls,object): pass
         return cls.__mro__[1:]
     return cls.__mro__
+
 
 def _find_adapter(registry, ob):
     """Return an adapter factory for `ob` from `registry`"""
@@ -995,7 +1042,7 @@ def split_sections(s):
     for line in yield_lines(s):
         if line.startswith("["):
             if line.endswith("]"):
-                if content:
+                if section or content:
                     yield section, content
                 section = line[1:-1].strip().lower()
                 content = []
@@ -1005,8 +1052,16 @@ def split_sections(s):
             content.append(line)
 
     # wrap up last segment
-    if content:
-        yield section, content
+    yield section, content
+
+
+
+
+
+
+
+
+
 
 
 # Set up global resource manager
@@ -1018,6 +1073,33 @@ def _initialize(g):
         if not name.startswith('_'):
             g[name] = getattr(_manager, name)
 _initialize(globals())
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
