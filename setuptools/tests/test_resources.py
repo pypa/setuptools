@@ -39,6 +39,47 @@ class DistroTests(TestCase):
             [dist.version for dist in ad['FooPkg']], ['1.9','1.4','1.2']
         )
 
+        path = []
+        req, = parse_requirements("FooPkg>=1.3")
+
+        # Nominal case: no distros on path, should yield all applicable
+        self.assertEqual(ad.best_match(req,path).version, '1.9')
+
+        # If a matching distro is already installed, should return only that
+        path.append("FooPkg-1.4-py2.4-win32.egg")
+        self.assertEqual(ad.best_match(req,path).version, '1.4')
+
+        # If the first matching distro is unsuitable, it's a version conflict
+        path.insert(0,"FooPkg-1.2-py2.4.egg")
+        self.assertRaises(VersionConflict, ad.best_match, req, path)        
+
+        # If more than one match on the path, the first one takes precedence
+        path.insert(0,"FooPkg-1.4-py2.4-win32.egg")
+        self.assertEqual(ad.best_match(req,path).version, '1.4')
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     def checkFooPkg(self,d):
         self.assertEqual(d.name, "FooPkg")
         self.assertEqual(d.key, "foopkg")
@@ -83,7 +124,7 @@ class DistroTests(TestCase):
 class RequirementsTests(TestCase):
 
     def testBasics(self):
-        r = Requirement("Twisted", [('>=','1.2')])
+        r = Requirement.parse("Twisted>=1.2")
         self.assertEqual(str(r),"Twisted>=1.2")
         self.assertEqual(repr(r),"Requirement('Twisted', [('>=', '1.2')])")
         self.assertEqual(r, Requirement("Twisted", [('>=','1.2')]))
@@ -142,15 +183,15 @@ class ParseTests(TestCase):
             list(parse_requirements('Twisted >=1.2, \ # more\n<2.0')),
             [Requirement('Twisted',[('>=','1.2'),('<','2.0')])]
         )
-        self.assertRaises(ValueError,lambda:list(parse_requirements(">=2.3")))
-        self.assertRaises(ValueError,lambda:list(parse_requirements("x\\")))
-        self.assertRaises(ValueError,lambda:list(parse_requirements("x==2 q")))
-
-
-
-
-
-
+        self.assertEqual(
+            Requirement.parse("FooBar==1.99a3"),
+            Requirement("FooBar", [('==','1.99a3')])
+        )
+        self.assertRaises(ValueError,Requirement.parse,">=2.3")
+        self.assertRaises(ValueError,Requirement.parse,"x\\")
+        self.assertRaises(ValueError,Requirement.parse,"x==2 q")
+        self.assertRaises(ValueError,Requirement.parse,"X==1\nY==2")
+        self.assertRaises(ValueError,Requirement.parse,"#")
 
 
 

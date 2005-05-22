@@ -19,6 +19,7 @@ __all__ = [
     'resource_stream', 'resource_filename', 'set_extraction_path',
     'cleanup_resources', 'parse_requirements', 'parse_version',
     'compatible_platforms', 'get_platform',
+    'ResolutionError', 'VersionConflict', 'DistributionNotFound',
     'Distribution', 'Requirement', # 'glob_resources'
 ]
 
@@ -27,17 +28,16 @@ import sys, os, zipimport, time, re
 def _sort_dists(dists):
     tmp = [(dist.version,dist) for dist in dists]
     tmp.sort()
-    tmp.reverse()
-    dists[:] = [d for v,d in tmp]
+    dists[::-1] = [d for v,d in tmp]
 
+class ResolutionError(ImportError):
+    """Abstract base for dependency resolution errors"""
 
+class VersionConflict(ResolutionError):
+    """An already-installed version conflicts with the requested version"""
 
-
-
-
-
-
-
+class DistributionNotFound(ResolutionError):
+    """A requested distribution was not found"""
 
 _provider_factories = {}
 
@@ -76,7 +76,7 @@ def compatible_platforms(provided,required):
         return True     # easy case
 
     # XXX all the tricky cases go here
-    
+
     return False
 
 
@@ -137,7 +137,7 @@ class AvailableDistributions(object):
         was first imported.)
 
         You may explicitly set `platform` to ``None`` if you wish to map *all*
-        distributions, not just those compatible with the running platform.
+        distributions, not just those compatible with a single platform.
         """
 
         self._distmap = {}
@@ -179,10 +179,10 @@ class AvailableDistributions(object):
             search_path = sys.path
         add = self.add
         for item in search_path:
-            source = get_dist_source(item)
+            source = get_distro_source(item)
             for dist in source.iter_distributions(requirement):
                 if compatible_platforms(dist.platform, platform):
-                    add(dist)
+                    add(dist)   # XXX should also check python version!
 
     def __getitem__(self,key):
         """Return a newest-to-oldest list of distributions for the given key
@@ -212,6 +212,77 @@ class AvailableDistributions(object):
     def remove(self,dist):
         """Remove `dist` from the distribution map"""
         self._distmap[dist.key].remove(dist)
+
+    def best_match(self,requirement,path=None):
+        """Find distribution best matching `requirement` and usable on `path`
+
+        If a distribution that's already installed on `path` is unsuitable,
+        a VersionConflict is raised.  If one or more suitable distributions are
+        already installed, the leftmost distribution (i.e., the one first in
+        the search path) is returned.  Otherwise, the available distribution
+        with the highest version number is returned, or a deferred distribution
+        object is returned if a suitable ``obtain()`` method exists.  If there
+        is no way to meet the requirement, None is returned.
+        """
+        if path is None:
+            path = sys.path
+
+        distros = self.get(requirement.key, ())
+        find = dict([(dist.path,dist) for dist in distros]).get
+
+        for item in path:
+            dist = find(item)
+            if dist is not None:
+                if dist in requirement:
+                    return dist
+                else:
+                    raise VersionConflict(dist,requirement) # XXX add more info
+
+        for dist in distros:
+            if dist in requirement:
+                return dist
+
+        return self.obtain(requirement) # as a last resort, try and download
+
+    def resolve(self, requirements, path=None):
+        """List all distributions needed to (recursively) meet requirements"""
+
+        if path is None:
+            path = sys.path
+
+        requirements = list(requirements)[::1]  # set up the stack
+        processed = {}  # set of processed requirements
+        best = {}       # key -> dist
+
+        while requirements:
+
+            req = requirements.pop()
+            if req in processed:
+                # Ignore cyclic or redundant dependencies
+                continue
+
+            dist = best.get(req.key)
+
+            if dist is None:
+                # Find the best distribution and add it to the map
+                dist = best[req.key] = self.best_match(req,path)
+                if dist is None:
+                    raise DistributionNotFound(req)  # XXX put more info here
+
+            elif dist not in requirement:
+                # Oops, the "best" so far conflicts with a dependency
+                raise VersionConflict(req,dist) # XXX put more info here
+
+            requirements.extend(dist.depends(req.options)[::-1])
+            processed[req] = True
+
+        return best.values()    # return list of distros to install
+
+
+    def obtain(self, requirement):
+        """Obtain a distro that matches requirement (e.g. via download)"""
+        return None     # override this in subclasses
+
 
 
 class ResourceManager:
@@ -243,6 +314,17 @@ class ResourceManager:
         return get_provider(package_name).get_resource_string(
             self, resource_name
         )
+
+
+
+
+
+
+
+
+
+
+
 
     def get_cache_path(self, archive_name, names=()):
         """Return absolute location in cache for `archive_name` and `names`
@@ -331,35 +413,35 @@ def require(*requirements):
 
     `requirements` must be a string or a (possibly-nested) sequence
     thereof, specifying the distributions and versions required.
-    XXX THIS IS DRAFT CODE FOR DESIGN PURPOSES ONLY RIGHT NOW
+
+    XXX This doesn't work yet, because:
+
+        * get_distro_source() isn't implemented
+        * Distribution.depends() isn't implemented
+        * Distribution.install_on() isn't implemented
+        * Requirement.options isn't implemented
+        * AvailableDistributions.resolve() is untested
+        * AvailableDistributions.scan() is untested
+
+    There may be other things missing as well, but this definitely won't work
+    as long as any of the above items remain unimplemented.
     """
-    all_distros = AvailableDistributions()
-    installed = {}
-    all_requirements = {}
 
-    def _require(requirements,source=None):
-        for req in parse_requirements(requirements):
-            name,vers = req # XXX
-            key = name.lower()
-            all_requirements.setdefault(key,[]).append((req,source))
-            if key in installed and not req.matches(installed[key]):
-                raise ImportError(
-                    "The installed %s distribution does not match"  # XXX
-                )   # XXX should this be a subclass of ImportError?
-            all_distros[key] = distros = [
-                dist for dist in all_distros.get(key,[])
-                if req.matches(dist)
-            ]
-            if not distros:
-                raise ImportError(
-                    "No %s distribution matches all criteria for " % name
-                )   # XXX should this be a subclass of ImportError?
-        for key in all_requirements.keys(): # XXX sort them
-            pass
-            # find "best" distro for key and install it
-            # after _require()-ing its requirements
+    requirements = parse_requirements(requirements)
 
-    _require(requirements)
+    for dist in AvailableDistributions().resolve(requirements):
+        dist.install_on(sys.path)
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -669,31 +751,12 @@ class Distribution(object):
         self.py_version = py_version
         self.platform = platform
         self.path = path_str
-        self.normalized_path = os.path.normpath(os.path.normcase(path_str))
 
     def installed_on(self,path=None):
         """Is this distro installed on `path`? (defaults to ``sys.path``)"""
         if path is None:
             path = sys.path
-        if self.path in path or self.normalized_path in path:
-            return True
-        for item in path:
-            normalized = os.path.normpath(os.path.normcase(item))
-            if normalized == self.normalized_path:
-                return True
-        return False
-
-
-
-
-
-
-
-
-
-
-
-
+        return self.path in path
 
     #@classmethod
     def from_filename(cls,filename,metadata=None):
@@ -710,6 +773,9 @@ class Distribution(object):
             py_version=py_version, platform=platform
         )
     from_filename = classmethod(from_filename)
+
+
+
 
     # These properties have to be lazy so that we don't have to load any
     # metadata until/unless it's actually needed.  (i.e., some distributions
@@ -733,6 +799,22 @@ class Distribution(object):
             return pv
 
     parsed_version = property(parsed_version)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -817,6 +899,17 @@ class Requirement:
                 last = False
         return last
 
+
+    #@staticmethod
+    def parse(s):
+        reqs = list(parse_requirements(s))
+        if reqs:
+            if len(reqs)==1:
+                return reqs[0]
+            raise ValueError("Expected only one requirement", s)
+        raise ValueError("No requirements found", s)            
+
+    parse = staticmethod(parse)
 
 state_machine = {
     #       =><
