@@ -2,6 +2,23 @@ from unittest import TestCase, makeSuite
 from pkg_resources import *
 import pkg_resources, sys
 
+class Metadata:
+    """Mock object to return metadata as if from an on-disk distribution"""
+
+    def __init__(self,*pairs):
+        self.metadata = dict(pairs)
+
+    def has_metadata(self,name):
+        return name in self.metadata
+
+    def get_metadata(self,name):
+        return self.metadata[name]
+
+    def get_metadata_lines(self,name):
+        return yield_lines(self.get_metadata(name))
+
+
+
 class DistroTests(TestCase):
 
     def testCollection(self):
@@ -26,13 +43,11 @@ class DistroTests(TestCase):
         self.assertEqual(
             [dist.version for dist in ad['FooPkg']], ['1.4','1.3-1','1.2']
         )
-
         # Removing a distribution leaves sequence alone
         ad.remove(ad['FooPkg'][1])
         self.assertEqual(
             [dist.version for dist in ad.get('FooPkg')], ['1.4','1.2']
         )
-
         # And inserting adds them in order
         ad.add(Distribution.from_filename("FooPkg-1.9.egg"))
         self.assertEqual(
@@ -51,34 +66,11 @@ class DistroTests(TestCase):
 
         # If the first matching distro is unsuitable, it's a version conflict
         path.insert(0,"FooPkg-1.2-py2.4.egg")
-        self.assertRaises(VersionConflict, ad.best_match, req, path)        
+        self.assertRaises(VersionConflict, ad.best_match, req, path)
 
         # If more than one match on the path, the first one takes precedence
         path.insert(0,"FooPkg-1.4-py2.4-win32.egg")
         self.assertEqual(ad.best_match(req,path).version, '1.4')
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     def checkFooPkg(self,d):
         self.assertEqual(d.name, "FooPkg")
@@ -104,6 +96,55 @@ class DistroTests(TestCase):
     def testDistroParse(self):
         d = Distribution.from_filename("FooPkg-1.3_1-py2.4-win32.egg")
         self.checkFooPkg(d)
+
+    def testDistroMetadata(self):
+        d = Distribution(
+            "/some/path", name="FooPkg", py_version="2.4", platform="win32",
+            metadata = Metadata(
+                ('PKG-INFO',"Metadata-Version: 1.0\nVersion: 1.3-1\n")
+            )
+        )
+        self.checkFooPkg(d)
+
+
+    def distDepends(self, txt):
+        return Distribution("/foo", metadata=Metadata(('depends.txt', txt)))
+
+    def checkDepends(self, dist, txt, opts=()):
+        self.assertEqual(
+            list(dist.depends(opts)),
+            list(parse_requirements(txt))
+        )
+
+    def testDistroDependsSimple(self):
+        for v in "Twisted>=1.5", "Twisted>=1.5\nZConfig>=2.0":
+            self.checkDepends(self.distDepends(v), v)
+
+
+    def testDistroDependsOptions(self):
+        d = self.distDepends("""
+            Twisted>=1.5
+            [docgen]
+            ZConfig>=2.0
+            docutils>=0.3
+            [fastcgi]
+            fcgiapp>=0.1""")
+        self.checkDepends(d,"Twisted>=1.5")
+        self.checkDepends(
+            d,"Twisted>=1.5 ZConfig>=2.0 docutils>=0.3".split(), ["docgen"]
+        )
+        self.checkDepends(
+            d,"Twisted>=1.5 fcgiapp>=0.1".split(), ["fastcgi"]
+        )
+        self.checkDepends(
+            d,"Twisted>=1.5 ZConfig>=2.0 docutils>=0.3 fcgiapp>=0.1".split(),
+            ["docgen","fastcgi"]
+        )
+        self.checkDepends(
+            d,"Twisted>=1.5 fcgiapp>=0.1 ZConfig>=2.0 docutils>=0.3".split(),
+            ["fastcgi", "docgen"]
+        )
+        self.assertRaises(InvalidOption, d.depends, ["foo"])
 
 
 
@@ -174,6 +215,35 @@ class ParseTests(TestCase):
         ]:
             self.assertEqual(list(pkg_resources.yield_lines(inp)),out)
 
+    def testSplitting(self):
+        self.assertEqual(
+            list(
+                pkg_resources.split_sections("""
+                    x
+                    [Y]
+                    z
+
+                    a
+                    [b ]
+                    # foo
+                    c
+                    [ d]
+                    [q]
+                    v
+                    """
+                )
+            ),
+            [(None,["x"]), ("y",["z","a"]), ("b",["c"]), ("q",["v"])]
+        )
+        self.assertRaises(ValueError,list,pkg_resources.split_sections("[foo"))
+
+
+
+
+
+
+
+
     def testSimpleRequirements(self):
         self.assertEqual(
             list(parse_requirements('Twis-Ted>=1.2-1')),
@@ -194,6 +264,18 @@ class ParseTests(TestCase):
         self.assertRaises(ValueError,Requirement.parse,"#")
 
 
+    def testVersionEquality(self):
+        def c(s1,s2):
+            p1, p2 = parse_version(s1),parse_version(s2)
+            self.assertEqual(p1,p2, (s1,s2,p1,p2))
+
+        c('0.4', '0.4.0')
+        c('0.4.0.0', '0.4.0')
+        c('0.4.0-0', '0.4-0')
+        c('0pl1', '0.0pl1')
+        c('0pre1', '0.0c1')
+        c('0.0.0preview1', '0c1')
+        c('0.0c1', '0rc1')
 
 
 
@@ -234,47 +316,6 @@ class ParseTests(TestCase):
         for p,v1 in enumerate(torture):
             for v2 in torture[p+1:]:
                 c(v2,v1)
-
-
-
-
-
-
-
-
-
-
-    def testVersionEquality(self):
-        def c(s1,s2):
-            p1, p2 = parse_version(s1),parse_version(s2)
-            self.assertEqual(p1,p2, (s1,s2,p1,p2))
-
-        c('0.4', '0.4.0')
-        c('0.4.0.0', '0.4.0')
-        c('0.4.0-0', '0.4-0')
-        c('0pl1', '0.0pl1')
-        c('0pre1', '0.0c1')
-        c('0.0.0preview1', '0c1')
-        c('0.0c1', '0rc1')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

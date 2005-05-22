@@ -14,23 +14,19 @@ The package resource API is designed to work with normal filesystem packages,
 method.
 """
 __all__ = [
-    'register_loader_type', 'get_provider', 'IResourceProvider',
+    'register_loader_type', 'get_provider', 'IResourceProvider', 
     'ResourceManager', 'AvailableDistributions', 'require', 'resource_string',
     'resource_stream', 'resource_filename', 'set_extraction_path',
     'cleanup_resources', 'parse_requirements', 'parse_version',
-    'compatible_platforms', 'get_platform',
+    'compatible_platforms', 'get_platform', 'IMetadataProvider',
     'ResolutionError', 'VersionConflict', 'DistributionNotFound',
-    'Distribution', 'Requirement', # 'glob_resources'
+    'InvalidOption', 'Distribution', 'Requirement', 'yield_lines',
+    'split_sections', # 'glob_resources'
 ]
 
 import sys, os, zipimport, time, re
 
-def _sort_dists(dists):
-    tmp = [(dist.version,dist) for dist in dists]
-    tmp.sort()
-    dists[::-1] = [d for v,d in tmp]
-
-class ResolutionError(ImportError):
+class ResolutionError(Exception):
     """Abstract base for dependency resolution errors"""
 
 class VersionConflict(ResolutionError):
@@ -38,6 +34,10 @@ class VersionConflict(ResolutionError):
 
 class DistributionNotFound(ResolutionError):
     """A requested distribution was not found"""
+
+class InvalidOption(ResolutionError):
+    """Invalid or unrecognized option name for a distribution"""
+
 
 _provider_factories = {}
 
@@ -80,7 +80,22 @@ def compatible_platforms(provided,required):
     return False
 
 
-class IResourceProvider:
+class IMetadataProvider:
+
+    def has_metadata(name):
+        """Does the package's distribution contain the named metadata?"""
+
+    def get_metadata(name):
+        """The named metadata resource as a string"""
+
+    def get_metadata_lines(name):
+        """Yield named metadata resource as list of non-blank non-comment lines
+
+       Leading and trailing whitespace is stripped from each line, and lines
+       with ``#`` as the first non-blank character are omitted.
+       """
+
+class IResourceProvider(IMetadataProvider):
 
     """An object that provides access to package resources"""
 
@@ -102,22 +117,7 @@ class IResourceProvider:
     def has_resource(resource_name):
         """Does the package contain the named resource?"""
 
-    def has_metadata(name):
-        """Does the package's distribution contain the named metadata?"""
-
-    def get_metadata(name):
-        """The named metadata resource as a string"""
-
-    def get_metadata_lines(name):
-        """Yield named metadata resource as list of non-blank non-comment lines
-
-       Leading and trailing whitespace is stripped from each line, and lines
-       with ``#`` as the first non-blank character are omitted.
-       """
-
     # XXX list_resources?  glob_resources?
-
-
 
 
 
@@ -417,7 +417,6 @@ def require(*requirements):
     XXX This doesn't work yet, because:
 
         * get_distro_source() isn't implemented
-        * Distribution.depends() isn't implemented
         * Distribution.install_on() isn't implemented
         * Requirement.options isn't implemented
         * AvailableDistributions.resolve() is untested
@@ -431,6 +430,7 @@ def require(*requirements):
 
     for dist in AvailableDistributions().resolve(requirements):
         dist.install_on(sys.path)
+
 
 
 
@@ -746,11 +746,12 @@ class Distribution(object):
         if name:
             self.name = name.replace('_','-')
         if version:
-            self.version = version.replace('_','-')
+            self._version = version.replace('_','-')
 
         self.py_version = py_version
         self.platform = platform
         self.path = path_str
+        self.metadata = metadata
 
     def installed_on(self,path=None):
         """Is this distro installed on `path`? (defaults to ``sys.path``)"""
@@ -773,7 +774,6 @@ class Distribution(object):
             py_version=py_version, platform=platform
         )
     from_filename = classmethod(from_filename)
-
 
 
 
@@ -800,17 +800,58 @@ class Distribution(object):
 
     parsed_version = property(parsed_version)
 
+    #@property
+    def version(self):
+        try:
+            return self._version
+        except AttributeError:
+            for line in self.metadata.get_metadata_lines('PKG-INFO'):
+                if line.lower().startswith('version:'):
+                    self._version = line.split(':',1)[1].strip()
+                    return self._version
+            else:
+                raise AttributeError(
+                    "Missing Version: header in PKG-INFO", self
+                )
+    version = property(version)
 
 
 
 
+    #@property
+    def _dep_map(self):
+        try:
+            return self.__dep_map
+        except AttributeError:
+            dm = self.__dep_map = {None: []}
+            if self.metadata.has_metadata('depends.txt'):
+                for section,contents in split_sections(
+                    self.metadata.get_metadata_lines('depends.txt')
+                ):
+                    dm[section] = list(parse_requirements(contents))
+            return dm
+
+    _dep_map = property(_dep_map)
+
+    def depends(self,options=()):
+        """List of Requirements needed for this distro if `options` are used"""
+        dm = self._dep_map
+        deps = []
+        deps.extend(dm.get(None,()))
+
+        for opt in options:
+            try:
+                deps.extend(dm[opt.lower()])
+            except KeyError:
+                raise InvalidOption("No such option", self, opt)
+        return deps
 
 
 
-
-
-
-
+def _sort_dists(dists):
+    tmp = [(dist.version,dist) for dist in dists]
+    tmp.sort()
+    dists[::-1] = [d for v,d in tmp]
 
 
 
@@ -941,6 +982,33 @@ def _ensure_directory(path):
         os.makedirs(dirname)
 
 
+def split_sections(s):
+    """Split a string or iterable thereof into (section,content) pairs
+
+    Each ``section`` is a lowercase version of the section header ("[section]")
+    and each ``content`` is a list of stripped lines excluding blank lines and
+    comment-only lines.  If there are any such lines before the first section
+    header, they're returned in a first ``section`` of ``None``.
+    """
+    section = None
+    content = []
+    for line in yield_lines(s):
+        if line.startswith("["):
+            if line.endswith("]"):
+                if content:
+                    yield section, content
+                section = line[1:-1].strip().lower()
+                content = []
+            else:
+                raise ValueError("Invalid section heading", line)
+        else:
+            content.append(line)
+
+    # wrap up last segment
+    if content:
+        yield section, content
+
+
 # Set up global resource manager
 
 _manager = ResourceManager()
@@ -950,5 +1018,8 @@ def _initialize(g):
         if not name.startswith('_'):
             g[name] = getattr(_manager, name)
 _initialize(globals())
+
+
+
 
 
