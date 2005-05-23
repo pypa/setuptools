@@ -250,12 +250,12 @@ class AvailableDistributions(object):
         if path is None:
             path = sys.path
 
-        requirements = list(requirements)[::1]  # set up the stack
+        requirements = list(requirements)[::-1]  # set up the stack
         processed = {}  # set of processed requirements
         best = {}       # key -> dist
+        to_install = []
 
         while requirements:
-
             req = requirements.pop()
             if req in processed:
                 # Ignore cyclic or redundant dependencies
@@ -268,21 +268,21 @@ class AvailableDistributions(object):
                 dist = best[req.key] = self.best_match(req,path)
                 if dist is None:
                     raise DistributionNotFound(req)  # XXX put more info here
+                to_install.append(dist)
 
-            elif dist not in requirement:
+            elif dist not in req:
                 # Oops, the "best" so far conflicts with a dependency
                 raise VersionConflict(req,dist) # XXX put more info here
 
             requirements.extend(dist.depends(req.options)[::-1])
             processed[req] = True
 
-        return best.values()    # return list of distros to install
+        return to_install    # return list of distros to install
 
 
     def obtain(self, requirement):
         """Obtain a distro that matches requirement (e.g. via download)"""
         return None     # override this in subclasses
-
 
 
 class ResourceManager:
@@ -418,7 +418,6 @@ def require(*requirements):
 
         * get_distro_source() isn't implemented
         * Distribution.install_on() isn't implemented
-        * AvailableDistributions.resolve() is untested
         * AvailableDistributions.scan() is untested
 
     There may be other things missing as well, but this definitely won't work
@@ -429,6 +428,7 @@ def require(*requirements):
 
     for dist in AvailableDistributions().resolve(requirements):
         dist.install_on(sys.path)
+
 
 
 

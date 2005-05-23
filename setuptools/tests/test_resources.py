@@ -121,6 +121,47 @@ class DistroTests(TestCase):
             self.checkDepends(self.distDepends(v), v)
 
 
+    def testResolve(self):
+        ad = AvailableDistributions([])
+
+        # Resolving no requirements -> nothing to install
+        self.assertEqual( list(ad.resolve([],[])), [] )
+
+        # Request something not in the collection -> DistributionNotFound
+        self.assertRaises(
+            DistributionNotFound, ad.resolve, parse_requirements("Foo"), []
+        )
+
+        Foo = Distribution.from_filename(
+            "/foo_dir/Foo-1.2.egg",
+            metadata=Metadata(('depends.txt', "[bar]\nBaz>=2.0"))
+        )
+        ad.add(Foo)
+
+        # Request thing(s) that are available -> list to install
+        self.assertEqual(
+            list(ad.resolve(parse_requirements("Foo"),[])), [Foo]
+        )
+
+        # Request an option that causes an unresolved dependency for "Baz"
+        self.assertRaises(
+            DistributionNotFound, ad.resolve,parse_requirements("Foo[bar]"),[]
+        )      
+        Baz = Distribution.from_filename(
+            "/foo_dir/Baz-2.1.egg", metadata=Metadata(('depends.txt', "Foo"))
+        )
+        ad.add(Baz)
+
+        # Install list now includes resolved dependency
+        self.assertEqual(
+            list(ad.resolve(parse_requirements("Foo[bar]"),[])), [Foo,Baz]
+        )
+        # Requests for conflicting versions produce VersionConflict
+        self.assertRaises(
+            VersionConflict,
+            ad.resolve, parse_requirements("Foo==1.2\nFoo!=1.2"), []
+        )
+
     def testDistroDependsOptions(self):
         d = self.distDepends("""
             Twisted>=1.5
