@@ -40,6 +40,7 @@ class InvalidOption(ResolutionError):
     """Invalid or unrecognized option name for a distribution"""
 
 _provider_factories = {}
+PY_MAJOR = sys.version[:3]
 
 def register_loader_type(loader_type, provider_factory):
     """Register `provider_factory` to make providers for `loader_type`
@@ -76,7 +77,6 @@ def compatible_platforms(provided,required):
         return True     # easy case
 
     # XXX all the tricky cases go here
-
     return False
 
 
@@ -124,25 +124,16 @@ class IResourceProvider(IMetadataProvider):
 class AvailableDistributions(object):
     """Searchable snapshot of distributions on a search path"""
 
-    def __init__(self, search_path=None, platform=get_platform()):
+    def __init__(self,search_path=None,platform=get_platform(),python=PY_MAJOR):
         """Snapshot distributions available on a search path
 
-        `search_path` should be a sequence of ``sys.path`` items.  If not
-        supplied, ``sys.path`` is used.
-
-        The `platform` is an optional string specifying the name of the
-        platform that platform-specific distributions must be compatible
-        with.  If not specified, it defaults to the current platform
-        (as defined by the result of ``get_platform()`` when ``pkg_resources``
-        was first imported.)
-
-        You may explicitly set `platform` to ``None`` if you wish to map *all*
-        distributions, not just those compatible with a single platform.
+        The constructor arguments are the same as those for the ``scan()``
+        method; see that method's documentation for details.
         """
 
         self._distmap = {}
         self._cache = {}
-        self.scan(search_path,platform)
+        self.scan(search_path,platform,python)
 
     def __iter__(self):
         """Iterate over distribution keys"""
@@ -162,7 +153,7 @@ class AvailableDistributions(object):
         else:
             return default
 
-    def scan(self, search_path=None, platform=get_platform()):
+    def scan(self, search_path=None, platform=get_platform(), python=PY_MAJOR):
         """Scan `search_path` for distributions usable on `platform`
 
         Any distributions found are added to the distribution map.
@@ -170,19 +161,27 @@ class AvailableDistributions(object):
         supplied, ``sys.path`` is used.  `platform` is an optional string
         specifying the name of the platform that platform-specific
         distributions must be compatible with.  If unspecified, it defaults to
-        the current platform.
+        the current platform.  `python` is an optional string naming the
+        desired version of Python (e.g. ``'2.4'``); it defaults to the current
+        version.
 
-        You may explicitly set `platform` to ``None`` if you wish to map *all*
-        distributions, not just those compatible with the running platform.
+        You may explicitly set `platform` (and/or `python`) to ``None`` if you
+        wish to map *all* distributions, not just those compatible with the
+        running platform or Python version.
         """
+
         if search_path is None:
             search_path = sys.path
+
         add = self.add
+
         for item in search_path:
-            source = get_distro_source(item)
-            for dist in source.iter_distributions(requirement):
+            for dist in find_distributions(item):
+                if python is not None and dist.py_version!=python:
+                    continue
                 if compatible_platforms(dist.platform, platform):
-                    add(dist)   # XXX should also check python version!
+                    add(dist)
+
 
     def __getitem__(self,key):
         """Return a newest-to-oldest list of distributions for the given key
@@ -190,6 +189,7 @@ class AvailableDistributions(object):
         The returned list may be modified in-place, e.g. for narrowing down
         usable distributions.
         """
+
         try:
             return self._cache[key]
         except KeyError:
@@ -416,7 +416,7 @@ def require(*requirements):
 
     XXX This doesn't work yet, because:
 
-        * get_distro_source() isn't implemented
+        * find_distributions() isn't implemented
         * AvailableDistributions.scan() is untested
 
     There may be other things missing as well, but this definitely won't work
@@ -641,8 +641,8 @@ def StringIO(*args, **kw):
     return StringIO(*args,**kw)
 
 
-def get_distro_source(path_item):
-    pass    # XXX
+def find_distributions(path_item):
+    return ()   # XXX
 
 
 
@@ -741,7 +741,7 @@ class Distribution(object):
 
     def __init__(self,
         path_str, metadata=None, name=None, version=None,
-        py_version=sys.version[:3], platform=None
+        py_version=PY_MAJOR, platform=None
     ):
         if name:
             self.name = name.replace('_','-')
