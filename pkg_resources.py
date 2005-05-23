@@ -417,7 +417,6 @@ def require(*requirements):
     XXX This doesn't work yet, because:
 
         * get_distro_source() isn't implemented
-        * Distribution.install_on() isn't implemented
         * AvailableDistributions.scan() is untested
 
     There may be other things missing as well, but this definitely won't work
@@ -428,6 +427,7 @@ def require(*requirements):
 
     for dist in AvailableDistributions().resolve(requirements):
         dist.install_on(sys.path)
+
 
 
 
@@ -846,17 +846,17 @@ class Distribution(object):
                 raise InvalidOption("No such option", self, opt)
         return deps
 
+    def install_on(self,path=None):
+        # XXX this needs to interface with namespace packages and such
+        if path is None: path = sys.path
+        if self.path not in path:
+            path.append(self.path)
 
 
 def _sort_dists(dists):
     tmp = [(dist.version,dist) for dist in dists]
     tmp.sort()
     dists[::-1] = [d for v,d in tmp]
-
-
-
-
-
 
 
 def parse_requirements(strs):
