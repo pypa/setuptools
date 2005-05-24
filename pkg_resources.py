@@ -414,13 +414,8 @@ def require(*requirements):
     `requirements` must be a string or a (possibly-nested) sequence
     thereof, specifying the distributions and versions required.
 
-    XXX This doesn't work yet, because:
-
-        * find_distributions() isn't implemented
-        * AvailableDistributions.scan() is untested
-
-    There may be other things missing as well, but this definitely won't work
-    as long as any of the above items remain unimplemented.
+    XXX This doesn't support arbitrary PEP 302 sys.path items yet, because
+    ``find_distributions()`` is hardcoded at the moment.
     """
 
     requirements = parse_requirements(requirements)
@@ -449,15 +444,21 @@ def require(*requirements):
 
 
 
-class DefaultProvider:
-    """Provides access to package resources in the filesystem"""
 
+
+
+
+
+class NullProvider:
+    """Try to implement resources and metadata for arbitrary PEP 302 loaders"""
+
+    egg_name = None
     egg_info = None
+    loader = None
 
     def __init__(self, module):
-        self.module = module
         self.loader = getattr(module, '__loader__', None)
-        self.module_path = os.path.dirname(module.__file__)
+        self.module_path = os.path.dirname(getattr(module, '__file__', ''))
 
     def get_resource_filename(self, manager, resource_name):
         return self._fn(resource_name)
@@ -484,33 +485,6 @@ class DefaultProvider:
     def get_metadata_lines(self, name):
         return yield_lines(self.get_metadata(name))
 
-
-
-
-
-
-
-    def _has(self, path):
-        return os.path.exists(path)
-
-    def _get(self, path):
-        stream = open(path, 'rb')
-        try:
-            return stream.read()
-        finally:
-            stream.close()
-
-    def _fn(self, resource_name):
-        return os.path.join(self.module_path, *resource_name.split('/'))
-
-
-register_loader_type(type(None), DefaultProvider)
-
-
-
-class NullProvider(DefaultProvider):
-    """Try to implement resource support for arbitrary PEP 302 loaders"""
-
     def _has(self, path):
         raise NotImplementedError(
             "Can't perform this operation for unregistered loader type"
@@ -523,27 +497,18 @@ class NullProvider(DefaultProvider):
             "Can't perform this operation for loaders without 'get_data()'"
         )
 
+    def _fn(self, resource_name):
+        return os.path.join(self.module_path, *resource_name.split('/'))
 
 register_loader_type(object, NullProvider)
 
 
+class DefaultProvider(NullProvider):
+    """Provides access to package resources in the filesystem"""
 
-
-
-
-class ZipProvider(DefaultProvider):
-    """Resource support for zips and eggs"""
-
-    egg_name = None
-    eagers   = None
-
-    def __init__(self, module):
-        self.module = module
-        self.loader = module.__loader__
-        self.zipinfo = zipimport._zip_directory_cache[self.loader.archive]
-        self.zip_pre = self.loader.archive+os.sep
-
-        path = self.module_path = os.path.dirname(module.__file__)
+    def __init__(self,module):
+        NullProvider.__init__(self,module)
+        path = self.module_path
         old = None
         self.prefix = []
         while path!=old:
@@ -554,6 +519,27 @@ class ZipProvider(DefaultProvider):
             old = path
             path, base = os.path.split(path)
             self.prefix.append(base)
+
+    def _has(self, path): return os.path.exists(path)
+
+    def _get(self, path):
+        stream = open(path, 'rb')
+        try:
+            return stream.read()
+        finally:
+            stream.close()
+
+register_loader_type(type(None), DefaultProvider)
+
+class ZipProvider(DefaultProvider):
+    """Resource support for zips and eggs"""
+
+    eagers = None
+
+    def __init__(self, module):
+        DefaultProvider.__init__(self,module)
+        self.zipinfo = zipimport._zip_directory_cache[self.loader.archive]
+        self.zip_pre = self.loader.archive+os.sep
 
     def _short_name(self, path):
         if path.startswith(self.zip_pre):
@@ -568,6 +554,20 @@ class ZipProvider(DefaultProvider):
 
     def get_resource_stream(self, manager, resource_name):
         return StringIO(self.get_resource_string(manager, resource_name))
+
+    def get_resource_filename(self, manager, resource_name):
+        if not self.egg_name:
+            raise NotImplementedError(
+                "resource_filename() only supported for .egg, not .zip"
+            )
+
+        # should lock for extraction here
+        eagers = self._get_eager_resources()
+        if resource_name in eagers:
+            for name in eagers:
+                self._extract_resource(manager, name)
+
+        return self._extract_resource(manager, resource_name)
 
 
 
@@ -608,27 +608,50 @@ class ZipProvider(DefaultProvider):
         return self.eagers
 
 
-
-
-
-
-
-    def get_resource_filename(self, manager, resource_name):
-        if not self.egg_name:
-            raise NotImplementedError(
-                "resource_filename() only supported for .egg, not .zip"
-            )
-
-        # should lock for extraction here
-        eagers = self._get_eager_resources()
-        if resource_name in eagers:
-            for name in eagers:
-                self._extract_resource(manager, name)
-
-        return self._extract_resource(manager, resource_name)
-
-
 register_loader_type(zipimport.zipimporter, ZipProvider)
+
+
+
+
+class PathMetadata(DefaultProvider):
+    """Metadata provider for egg directories
+
+    Usage::
+
+        # Development eggs:
+
+        egg_info = "/path/to/PackageName.egg-info"
+        base_dir = os.path.dirname(egg_info)
+        metadata = PathMetadata(base_dir, egg_info)
+        dist_name = os.path.splitext(os.path.basename(egg_info))[0]
+        dist = Distribution(basedir,name=dist_name,metadata=metadata)
+
+        # Unpacked egg directories:
+
+        egg_path = "/path/to/PackageName-ver-pyver-etc.egg"
+        metadata = PathMetadata(egg_path, os.path.join(egg_path,'EGG-INFO'))
+        dist = Distribution.from_filename(egg_path, metadata=metadata)
+    """
+
+    def __init__(self, path, egg_info):
+        self.module_path = path
+        self.egg_info = egg_info
+
+
+class EggMetadata(ZipProvider):
+    """Metadata provider for .egg files"""
+
+    def __init__(self, importer):
+        """Create a metadata provider from a zipimporter"""
+
+        self.zipinfo = zipimport._zip_directory_cache[importer.archive]
+        self.zip_pre = importer.archive+os.sep
+        self.loader = importer
+        self.module_path = os.path.join(importer.archive, importer.prefix)
+
+        # we assume here that our metadata may be nested inside a "basket"
+        # of multiple eggs; that's why we use module_path instead of .archive
+        self.egg_info = os.path.join(self.module_path, 'EGG-INFO')
 
 
 def StringIO(*args, **kw):
@@ -642,16 +665,34 @@ def StringIO(*args, **kw):
 
 
 def find_distributions(path_item):
-    return ()   # XXX
-
-
-
-
-
-
-
-
-
+    """Yield distributions accessible via `path_item`"""
+    if not os.path.exists(path_item):
+        return
+    elif os.path.isdir(path_item):
+        if path_item.lower().endswith('.egg'):
+            # unpacked egg
+            yield Distribution.from_filename(
+                egg_path, metadata=PathMetadata(
+                    path_item,os.path.join(path_item,'EGG-INFO')
+                )
+            )
+        else:
+            # scan for .egg and .egg-info in directory
+            for entry in os.listdir(path_item):
+                fullpath = os.path.join(path_item, entry)
+                if entry.lower().endswith('.egg'):
+                    for dist in find_distributions(fullpath):
+                        yield dist
+                elif entry.lower().endswith('.egg-info'):
+                    if os.path.isdir(fullpath):
+                        # development egg
+                        metadata = PathMetadata(path_item, fullpath)
+                        dist_name = os.path.splitext(entry)[0]
+                        yield Distribution(path_item,metadata,name=dist_name)
+    elif path_item.lower().endswith('.egg'):
+        # packed egg
+        metadata = EggMetadata(zipimport.zipimporter(path_item))
+        yield Distribution.from_filename(path_item, metadata=metadata)
 
 
 def yield_lines(strs):
@@ -761,7 +802,7 @@ class Distribution(object):
 
     #@classmethod
     def from_filename(cls,filename,metadata=None):
-        name,version,py_version,platform = [None]*4
+        name,version,py_version,platform = [None,None,PY_MAJOR,None]
         basename,ext = os.path.splitext(os.path.basename(filename))
         if ext.lower()==".egg":
             match = EGG_NAME(basename)
