@@ -742,7 +742,7 @@ def register_finder(importer_type, distribution_finder):
     """Register `distribution_finder` to find distributions in sys.path items
 
     `importer_type` is the type or class of a PEP 302 "Importer" (sys.path item
-    handler), and `distribution_finder_type` is a callable that, passed a path
+    handler), and `distribution_finder` is a callable that, passed a path
     item and the importer instance, yields ``Distribution`` instances found on
     that path item.  See ``pkg_resources.find_on_path`` for an example."""
     _distribution_finders[importer_type] = distribution_finder
@@ -814,6 +814,129 @@ def find_on_path(importer,path_item):
         yield Distribution.from_filename(path_item, metadata=metadata)
 
 register_finder(ImpWrapper,find_on_path)
+
+
+
+
+_namespace_handlers = {}
+_namespace_packages = {}
+
+def register_namespace_handler(importer_type, namespace_handler):
+    """Register `namespace_handler` to declare namespace packages
+
+    `importer_type` is the type or class of a PEP 302 "Importer" (sys.path item
+    handler), and `namespace_handler` is a callable like this::
+
+        def namespace_handler(importer,path_entry,moduleName,module):
+            # return a path_entry to use for child packages
+
+    Namespace handlers are only called if the importer object has already
+    agreed that it can handle the relevant path item, and they should only
+    return a subpath if the module __path__ does not already contain an
+    equivalent subpath.  For an example namespace handler, see
+    ``pkg_resources.file_ns_handler``.
+    """
+    _namespace_handlers[importer_type] = namespace_handler
+
+
+def _handle_ns(packageName, path_item):
+    """Ensure that named package includes a subpath of path_item (if needed)"""
+    importer = get_importer(path_item)
+    loader = importer.find_module(packageName)
+    if loader is None:
+        return None
+
+    module = sys.modules.get(packageName) or loader.load_module(packageName)
+    if not hasattr(module,'__path__'):
+        raise TypeError("Not a package:", packageName)
+
+    handler = _find_adapter(_distribution_finders, importer)
+    subpath = handler(importer,path_item,packageName,module)
+
+    if subpath is not None:
+        module.__path__.append(subpath)
+
+    return subpath
+
+
+def declare_namespace(packageName):
+    """Declare that package 'packageName' is a namespace package"""
+
+    # XXX nslock.acquire()
+    try:
+        if packageName in _namespace_packages:
+            return
+
+        path, parent = sys.path, None
+        if '.' in packageName:
+            parent = '.'.join(package.split('.')[:-1])
+            declare_namespace(parent)
+            __import__(parent)
+            try:
+                path = sys.modules[parent].__path__
+            except AttributeError:
+                raise TypeError("Not a package:", parent)
+    
+        for path_item in path:
+            # Ensure all the parent's path items are reflected in the child,
+            # if they apply
+            _handle_ns(packageName, path_item)
+    
+        # Track what packages are namespaces, so when new path items are added,
+        # they can be updated
+        _namespace_packages.setdefault(parent,[]).append(packageName)
+        _namespace_packages.setdefault(packageName,[])
+
+    finally:
+        pass # XXX nslock.release()
+
+def fixup_namespace_packages(path_item, parent=None):
+    """Ensure that previously-declared namespace packages include path_item"""
+    # XXX nslock.acquire()
+    try:
+        for package in _namespace_packages.get(parent,()):
+            subpath = _handle_ns(package, path_item)
+            if subpath: fixup_namespace_packages(subpath,package)
+    finally:
+        pass # XXX nslock.release()
+
+def file_ns_handler(importer, path_item, packageName, module):
+    """Compute an ns-package subpath for a filesystem or zipfile importer"""
+
+    subpath = os.path.join(path_item, packageName.split('.')[-1])
+    normalized = os.path.normpath(os.path.normcase(subpath))
+    for item in module.__path__:
+        if os.path.normpath(os.path.normcase(item))==normalized:
+            break
+    else:
+        # Only return the path if it's not already there
+        return subpath
+
+register_namespace_handler(ImpWrapper,file_ns_handler)
+register_namespace_handler(zipimport.zipimporter,file_ns_handler)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -988,11 +1111,10 @@ class Distribution(object):
             return self.__dep_map
         except AttributeError:
             dm = self.__dep_map = {None: []}
-            if self.metadata.has_metadata('depends.txt'):
-                for section,contents in split_sections(
-                    self.metadata.get_metadata_lines('depends.txt')
-                ):
-                    dm[section] = list(parse_requirements(contents))
+            for section,contents in split_sections(
+                self._get_metadata('depends.txt')
+            ):
+                dm[section] = list(parse_requirements(contents))
             return dm
 
     _dep_map = property(_dep_map)
@@ -1010,18 +1132,19 @@ class Distribution(object):
                 raise InvalidOption("No such option", self, opt)
         return deps
 
+    def _get_metadata(self,name):
+        if self.metadata.has_metadata(name):
+            for line in self.metadata.get_metadata_lines(name):
+                yield line
+
     def install_on(self,path=None):
-        # XXX this needs to interface with namespace packages and such
+        """Ensure distribution is importable on `path` (default=sys.path)"""
         if path is None: path = sys.path
         if self.path not in path:
             path.append(self.path)
-
-
-def _sort_dists(dists):
-    tmp = [(dist.version,dist) for dist in dists]
-    tmp.sort()
-    dists[::-1] = [d for v,d in tmp]
-
+        if path is sys.path:
+            fixup_namespace_packages(self.path)
+            map(declare_namespace, self._get_metadata('namespace_packages.txt'))
 
 def parse_requirements(strs):
     """Yield ``Requirement`` objects for each specification in `strs`
@@ -1083,10 +1206,10 @@ def parse_requirements(strs):
         yield Requirement(distname.replace('_','-'), specs, options)
 
 
-
-
-
-
+def _sort_dists(dists):
+    tmp = [(dist.version,dist) for dist in dists]
+    tmp.sort()
+    dists[::-1] = [d for v,d in tmp]
 
 
 
