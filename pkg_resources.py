@@ -24,7 +24,7 @@ __all__ = [
     'split_sections', # 'glob_resources'
 ]
 
-import sys, os, zipimport, time, re
+import sys, os, zipimport, time, re, imp
 from sets import ImmutableSet
 
 class ResolutionError(Exception):
@@ -842,6 +842,8 @@ def register_namespace_handler(importer_type, namespace_handler):
 def _handle_ns(packageName, path_item):
     """Ensure that named package includes a subpath of path_item (if needed)"""
     importer = get_importer(path_item)
+    if importer is None:
+        return None
     loader = importer.find_module(packageName)
     if loader is None:
         return None
@@ -850,12 +852,10 @@ def _handle_ns(packageName, path_item):
     if not hasattr(module,'__path__'):
         raise TypeError("Not a package:", packageName)
 
-    handler = _find_adapter(_distribution_finders, importer)
+    handler = _find_adapter(_namespace_handlers, importer)
     subpath = handler(importer,path_item,packageName,module)
-
     if subpath is not None:
         module.__path__.append(subpath)
-
     return subpath
 
 
@@ -876,12 +876,12 @@ def declare_namespace(packageName):
                 path = sys.modules[parent].__path__
             except AttributeError:
                 raise TypeError("Not a package:", parent)
-    
+
         for path_item in path:
             # Ensure all the parent's path items are reflected in the child,
             # if they apply
             _handle_ns(packageName, path_item)
-    
+
         # Track what packages are namespaces, so when new path items are added,
         # they can be updated
         _namespace_packages.setdefault(parent,[]).append(packageName)
@@ -916,10 +916,10 @@ register_namespace_handler(ImpWrapper,file_ns_handler)
 register_namespace_handler(zipimport.zipimporter,file_ns_handler)
 
 
+def null_ns_handler(importer, path_item, packageName, module):
+    return None
 
-
-
-
+register_namespace_handler(object,null_ns_handler)
 
 
 
