@@ -1,5 +1,4 @@
-"""\
-Package resource API
+"""Package resource API
 --------------------
 
 A resource is a logical file contained within a package, or a logical
@@ -21,6 +20,7 @@ __all__ = [
     'compatible_platforms', 'get_platform', 'IMetadataProvider',
     'ResolutionError', 'VersionConflict', 'DistributionNotFound',
     'InvalidOption', 'Distribution', 'Requirement', 'yield_lines',
+    'get_importer', 'find_distributions', 'find_on_path', 'register_finder',
     'split_sections', # 'glob_resources'
 ]
 
@@ -654,6 +654,107 @@ class EggMetadata(ZipProvider):
         self.egg_info = os.path.join(self.module_path, 'EGG-INFO')
 
 
+class ImpWrapper:
+    """PEP 302 Importer that wraps Python's "normal" import algorithm"""
+
+    def __init__(self, path=None):
+        if path is not None and not os.path.isdir(path):
+            raise ImportError
+        self.path = path
+
+    def find_module(self, fullname, path=None):
+        subname = fullname.split(".")[-1]
+        if subname != fullname and self.path is None:
+            return None
+        if self.path is None:
+            path = None
+        else:
+            path = [self.path]
+        try:
+            file, filename, etc = imp.find_module(subname, path)
+        except ImportError:
+            return None
+        return ImpLoader(file, filename, etc)
+
+
+class ImpLoader:
+    """PEP 302 Loader that wraps Python's "normal" import algorithm"""
+
+    def __init__(self, file, filename, etc):
+        self.file = file
+        self.filename = filename
+        self.etc = etc
+
+    def load_module(self, fullname):
+        try:
+            mod = imp.load_module(fullname, self.file, self.filename, self.etc)
+        finally:
+            if self.file: self.file.close()
+        # Note: we don't set __loader__ because we want the module to look
+        # normal; i.e. this is just a wrapper for standard import machinery
+        return mod
+
+
+def get_importer(path_item):
+    """Retrieve a PEP 302 "importer" for the given path item
+
+    If there is no importer, this returns a wrapper around the builtin import
+    machinery.  The returned importer is only cached if it was created by a
+    path hook.
+    """
+    try:
+        importer = sys.path_importer_cache[path_item]
+    except KeyError:
+        for hook in sys.path_hooks:
+            try:
+                importer = hook(path_item)
+            except ImportError:
+                pass
+            else:
+                break
+        else:
+            importer = None
+
+    sys.path_importer_cache.setdefault(path_item,importer)
+    if importer is None:
+        try:
+            importer = ImpWrapper(path_item)
+        except ImportError:
+            pass
+    return importer
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+_distribution_finders = {}
+
+def register_finder(importer_type, distribution_finder):
+    """Register `distribution_finder` to find distributions in sys.path items
+
+    `importer_type` is the type or class of a PEP 302 "Importer" (sys.path item
+    handler), and `distribution_finder_type` is a callable that, passed a path
+    item and the importer instance, yields ``Distribution`` instances found on
+    that path item.  See ``pkg_resources.find_on_path`` for an example."""
+    _distribution_finders[importer_type] = distribution_finder
+
+
+def find_distributions(path_item):
+    """Yield distributions accessible via `path_item`"""
+    importer = get_importer(path_item)
+    finder = _find_adapter(_distribution_finders, importer)
+    return finder(importer,path_item)
+
+
 def StringIO(*args, **kw):
     """Thunk to load the real StringIO on demand"""
     global StringIO
@@ -664,8 +765,26 @@ def StringIO(*args, **kw):
     return StringIO(*args,**kw)
 
 
-def find_distributions(path_item):
-    """Yield distributions accessible via `path_item`"""
+
+
+
+
+
+
+
+
+
+
+
+
+def find_nothing(importer,path_item):
+    return ()
+
+register_finder(object,find_nothing)
+
+
+def find_on_path(importer,path_item):
+    """Yield distributions accessible on a sys.path directory"""
     if not os.path.exists(path_item):
         return
     elif os.path.isdir(path_item):
@@ -681,7 +800,7 @@ def find_distributions(path_item):
             for entry in os.listdir(path_item):
                 fullpath = os.path.join(path_item, entry)
                 if entry.lower().endswith('.egg'):
-                    for dist in find_distributions(fullpath):
+                    for dist in find_on_path(importer,fullpath):
                         yield dist
                 elif entry.lower().endswith('.egg-info'):
                     if os.path.isdir(fullpath):
@@ -693,6 +812,10 @@ def find_distributions(path_item):
         # packed egg
         metadata = EggMetadata(zipimport.zipimporter(path_item))
         yield Distribution.from_filename(path_item, metadata=metadata)
+
+register_finder(ImpWrapper,find_on_path)
+
+
 
 
 def yield_lines(strs):
