@@ -96,35 +96,18 @@ class bdist_egg(Command):
         f.close()
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     def run(self):
         if not self.skip_build:
             self.run_command('build')
 
+        if self.distribution.data_files:
+            install = self.reinitialize_command('install_data')
+            install.install_dir = self.bdist_dir
+            install.force = 0
+            install.root = None
+            log.info("installing package data to %s" % self.bdist_dir)
+            self.run_command('install_data')
+        
         install = self.reinitialize_command('install_lib', reinit_subcommands=1)
         install.install_dir = self.bdist_dir
         install.skip_build = self.skip_build
@@ -134,8 +117,9 @@ class bdist_egg(Command):
             install._mutate_outputs(self.distribution.has_ext_modules(),
                                     'build_ext', 'build_lib',
                                     '')
-        log.info("installing to %s" % self.bdist_dir)
+        log.info("installing library code to %s" % self.bdist_dir)
         self.run_command('install_lib')
+
 
         to_compile = []
         for ext_name in ext_outputs:
@@ -174,6 +158,10 @@ class bdist_egg(Command):
         if not self.dry_run:
             self.distribution.metadata.write_pkg_info(self.egg_info)
 
+
+
+
+
         native_libs = os.path.join(self.egg_info,"native_libs.txt")
         if ext_outputs:
             log.info("writing %s" % native_libs)
@@ -193,6 +181,8 @@ class bdist_egg(Command):
                 if os.path.isfile(path):
                     self.copy_file(path,os.path.join(egg_info,filename))
 
+
+
         # Make the archive
         make_zipfile(pseudoinstall_root+'.egg',
                           archive_root, verbose=self.verbose,
@@ -200,6 +190,16 @@ class bdist_egg(Command):
 
         if not self.keep_temp:
             remove_tree(self.bdist_dir, dry_run=self.dry_run)
+
+
+
+
+
+
+
+
+
+
 
 
 
