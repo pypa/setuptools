@@ -1,6 +1,3 @@
-#!python.exe
-import site
-
 #!python
 """\
 Easy Install
