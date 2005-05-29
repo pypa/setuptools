@@ -184,7 +184,7 @@ class Installer:
             )
         elif multi is None:
             multi = True
-            
+
         elif not multi:
             # explicit false, raise an error
             raise RuntimeError(
@@ -337,7 +337,9 @@ class Installer:
             try:
                 sys.argv[:] = [setup_script, '-q', 'bdist_egg']
                 sys.path.insert(0,os.getcwd())
-                execfile(setup_script, {'__file__':setup_script})
+                execfile(setup_script,
+                    {'__file__':setup_script, '__name__':'__main__'}
+                )
             except SystemExit, v:
                 if v.args and v.args[0]:
                     raise RuntimeError(
@@ -347,8 +349,6 @@ class Installer:
             os.chdir(old_dir)
             sys.path[:] = save_path
             sys.argv[:] = save_argv
-
-
 
 
 
@@ -383,10 +383,10 @@ class Installer:
                     shutil.move(egg_path, destination)
                 else:
                     shutil.copy2(egg_path, destination)
-    
+
             elif os.path.isdir(egg_path):
                 shutil.move(egg_path, destination)
-    
+
             else:
                 os.mkdir(destination)
                 self._extract_zip(egg_path, destination)
@@ -502,7 +502,7 @@ def main(argv):
     parser.add_option("-z", "--zip",
                       action="store_true", dest="zip_ok", default=False,
                       help="install package as a zipfile")
-                      
+
     parser.add_option("-m", "--multi-version",
                       action="store_true", dest="multi", default=None,
                       help="make apps have to require() a version")
@@ -512,7 +512,7 @@ def main(argv):
     try:
         if not args:
             raise RuntimeError("No urls, filenames, or requirements specified")
-           
+
         for spec in args:
             inst = Installer(options.instdir, options.zip_ok, options.multi)
             try:
