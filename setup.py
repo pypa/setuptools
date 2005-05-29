@@ -7,7 +7,7 @@ from distutils.version import LooseVersion
 
 setup(
     name="setuptools",
-    version="0.0.1",
+    version="0.3a1",
 
     description="Distutils enhancements",
     author="Phillip J. Eby",
@@ -22,6 +22,7 @@ setup(
         Require('PyUnit', None, 'unittest', "http://pyunit.sf.net/"),
     ],
     packages = find_packages(),
-    py_modules = ['pkg_resources'],
+    py_modules = ['pkg_resources', 'easy_install'],
+    scripts = ['easy_install.py']
 )
 

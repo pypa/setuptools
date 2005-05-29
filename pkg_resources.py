@@ -13,15 +13,15 @@ The package resource API is designed to work with normal filesystem packages,
 method.
 """
 __all__ = [
-    'register_loader_type', 'get_provider', 'IResourceProvider',
+    'register_loader_type', 'get_provider', 'IResourceProvider','PathMetadata',
     'ResourceManager', 'AvailableDistributions', 'require', 'resource_string',
     'resource_stream', 'resource_filename', 'set_extraction_path',
-    'cleanup_resources', 'parse_requirements', 'parse_version',
-    'compatible_platforms', 'get_platform', 'IMetadataProvider',
-    'ResolutionError', 'VersionConflict', 'DistributionNotFound',
+    'cleanup_resources', 'parse_requirements', 'ensure_directory',
+    'compatible_platforms', 'get_platform', 'IMetadataProvider','parse_version',
+    'ResolutionError', 'VersionConflict', 'DistributionNotFound','EggMetadata',
     'InvalidOption', 'Distribution', 'Requirement', 'yield_lines',
     'get_importer', 'find_distributions', 'find_on_path', 'register_finder',
-    'split_sections', # 'glob_resources'
+    'split_sections', 'declare_namespace', 'register_namespace_handler',
 ]
 
 import sys, os, zipimport, time, re, imp
@@ -342,7 +342,7 @@ class ResourceManager:
         extract_path = self.extraction_path
         extract_path = extract_path or os.path.expanduser('~/.python-eggs')
         target_path = os.path.join(extract_path, archive_name, *names)
-        _ensure_directory(target_path)
+        ensure_directory(target_path)
         self.cached_files.append(target_path)
         return target_path
 
@@ -791,7 +791,7 @@ def find_on_path(importer,path_item):
         if path_item.lower().endswith('.egg'):
             # unpacked egg
             yield Distribution.from_filename(
-                egg_path, metadata=PathMetadata(
+                path_item, metadata=PathMetadata(
                     path_item,os.path.join(path_item,'EGG-INFO')
                 )
             )
@@ -1310,7 +1310,7 @@ def _find_adapter(registry, ob):
             return registry[t]
 
 
-def _ensure_directory(path):
+def ensure_directory(path):
     dirname = os.path.dirname(path)
     if not os.path.isdir(dirname):
         os.makedirs(dirname)
