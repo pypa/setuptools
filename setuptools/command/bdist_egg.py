@@ -53,7 +53,7 @@ class bdist_egg(Command):
 
 
     def finalize_options (self):
-        self.egg_name = self.distribution.get_name().replace('-','_')
+        self.egg_name = self.distribution.get_name().replace('-','_').replace(' ','_')
         self.egg_version = self.distribution.get_version().replace('-','_')
         try:
             list(
