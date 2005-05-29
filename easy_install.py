@@ -235,14 +235,14 @@ class Installer:
                         "Not a URL, existing file, or requirement spec: %r" %
                         (spec,)
                     )
+
         # process a Requirement
         dist = AvailableDistributions().best_match(spec,[])
         if dist is not None and dist.path.endswith('.egg'):
             return dist.path
 
-        # TODO: search here for a distro to download
+        return self.download(self._find_package(spec))
 
-        raise DistributionNotFound(spec)
 
     def install_eggs(self, dist_filename):
         # .egg dirs or files are already built, so just return them
@@ -351,10 +351,10 @@ class Installer:
             sys.argv[:] = save_argv
 
 
-
-
-
-
+    def _find_package(self, req):       
+        # TODO: search here for a distro to download, matching Requirement
+        # 'req' and return the package URL or filename
+        raise DistributionNotFound(spec)
 
 
 
@@ -492,7 +492,7 @@ class PthDistributions(AvailableDistributions):
 
 URL_SCHEME = re.compile('([-+.a-z0-9]{2,}):',re.I).match
 
-def main(argv):
+def main(argv, factory=Installer):
     from optparse import OptionParser
 
     parser = OptionParser(usage = "usage: %prog [options] url [url...]")
@@ -514,7 +514,7 @@ def main(argv):
             raise RuntimeError("No urls, filenames, or requirements specified")
 
         for spec in args:
-            inst = Installer(options.instdir, options.zip_ok, options.multi)
+            inst = factory(options.instdir, options.zip_ok, options.multi)
             try:
                 print "Downloading", spec
                 downloaded = inst.download(spec)
