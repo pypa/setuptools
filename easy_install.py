@@ -153,10 +153,10 @@ Options
     need.
 """
 
-import sys, os.path, pkg_resources, re, zipimport
+import sys, os.path, pkg_resources, re, zipimport, zipfile, tarfile, shutil
+from distutils.sysconfig import get_python_lib
+from shutil import rmtree   # must have, because it can be called from __del__
 from pkg_resources import *
-
-
 
 
 
@@ -168,8 +168,6 @@ class Installer:
     pth_file = None
 
     def __init__(self, instdir=None, zip_ok=False, multi=None, tmpdir=None):
-        from distutils.sysconfig import get_python_lib
-        site_packages = get_python_lib()
 
         if tmpdir is None:
             from tempfile import mkdtemp
@@ -177,6 +175,7 @@ class Installer:
 
         self.tmpdir = tmpdir
 
+        site_packages = get_python_lib()
         if instdir is None or self.samefile(site_packages,instdir):
             instdir = site_packages
             self.pth_file = PthDistributions(
@@ -197,22 +196,23 @@ class Installer:
 
     def close(self):
         if os.path.isdir(self.tmpdir):
-            from shutil import rmtree
             rmtree(self.tmpdir,True)
 
     def __del__(self):
         self.close()
 
+
+
     def samefile(self,p1,p2):
-        try:
-            os.path.samefile
-        except AttributeError:
-            return (
-                os.path.normpath(os.path.normcase(p1)) ==
-                os.path.normpath(os.path.normcase(p2))
-            )
-        else:
+        if hasattr(os.path,'samefile') and (
+            os.path.exists(p1) and os.path.exists(p2)
+        ):
             return os.path.samefile(p1,p2)
+        return (
+            os.path.normpath(os.path.normcase(p1)) ==
+            os.path.normpath(os.path.normcase(p2))
+        )
+
 
     def download(self, spec):
         """Locate and/or download or `spec`, returning a local filename"""
@@ -222,7 +222,7 @@ class Installer:
             scheme = URL_SCHEME(spec)
             if scheme:
                 # It's a url, download it to self.tmpdir
-                return self._download_url(scheme, spec)
+                return self._download_url(scheme.group(1), spec)
 
             elif os.path.exists(spec):
                 # Existing file or directory, just return it
@@ -250,19 +250,8 @@ class Installer:
             return self.install_egg(dist_filename,True)
 
         # Anything else, try to extract and build
-        import zipfile, tarfile
-        if zipfile.is_zipfile(dist_filename):
-            self._extract_zip(dist_filename, self.tmpdir)
-        else:
-            import tarfile
-            try:
-                tar = tarfile.open(dist_filename)
-            except tarfile.TarError:
-                raise RuntimeError(
-                    "Not a valid tar or zip archive: %s" % dist_filename
-                )
-            else:
-                self._extract_tar(tar)
+        if os.path.isfile(dist_filename):
+            self._extract_file(dist_filename)
 
         # Find the setup.py file
         from glob import glob
@@ -284,6 +273,17 @@ class Installer:
             os.path.join(os.path.dirname(setup_script),'dist','*.egg')
         ):
             self.install_egg(egg, self.zip_ok)
+
+
+
+
+
+
+
+
+
+
+
 
     def _extract_zip(self,zipname,extract_dir):
         import zipfile
@@ -351,7 +351,7 @@ class Installer:
             sys.argv[:] = save_argv
 
 
-    def _find_package(self, req):       
+    def _find_package(self, req):
         # TODO: search here for a distro to download, matching Requirement
         # 'req' and return the package URL or filename
         raise DistributionNotFound(spec)
@@ -412,16 +412,24 @@ class Installer:
         # Determine download filename
         from urlparse import urlparse
         name = filter(None,urlparse(url)[2].split('/'))[-1]
+
         while '..' in name:
             name = name.replace('..','.').replace('\\','_')
 
+        filename = os.path.join(self.tmpdir,name)
+
+        if scheme=='svn' or scheme.startswith('svn+'):
+            return self._download_svn(url, filename)
+
         # Download the file
         from urllib import FancyURLopener, URLopener
-        class opener(FancyURLopener):
+
+        class _opener(FancyURLopener):
             http_error_default = URLopener.http_error_default
+
         try:
-            filename,headers = opener().retrieve(
-                url,os.path.join(self.tmpdir,name)
+            filename,headers = _opener().retrieve(
+                url,filename
             )
         except IOError,v:
             if v.args and v.args[0]=='http error':
@@ -430,6 +438,10 @@ class Installer:
                 )
             else:
                 raise
+
+        if headers['content-type'].lower().startswith('text/html'):
+            return self._download_html(url, headers, filename)
+
         # and return its filename
         return filename
 
@@ -437,9 +449,38 @@ class Installer:
 
 
 
+    def _extract_file(self, dist_filename):
+        if zipfile.is_zipfile(dist_filename):
+            self._extract_zip(dist_filename, self.tmpdir)
+        else:
+            try:
+                tar = tarfile.open(dist_filename)
+            except tarfile.TarError:
+                raise RuntimeError(
+                    "Not a valid tar or zip archive: %s" % dist_filename
+                )
+            else:
+                self._extract_tar(tar)
 
 
+    def _download_html(self, url, headers, filename):
+        # Check if it is a subversion index page:
+        file = open(filename)
+        for line in file:
+            if line.strip():
+                if re.search(r'<title>Revision \d+:', line):
+                    file.close()
+                    os.unlink(filename)
+                    return self._download_svn(url, filename)
+                else:
+                    break   # not an index page
+        file.close()
+        raise RuntimeError("Unexpected HTML page found at "+url)
 
+
+    def _download_svn(self, url, filename):
+        os.system("svn checkout -q %s %s" % (url, filename))
+        return filename
 
 
 
@@ -511,7 +552,7 @@ def main(argv, factory=Installer):
 
     try:
         if not args:
-            raise RuntimeError("No urls, filenames, or requirements specified")
+            parser.error("No urls, filenames, or requirements specified")
 
         for spec in args:
             inst = factory(options.instdir, options.zip_ok, options.multi)
@@ -523,11 +564,11 @@ def main(argv, factory=Installer):
             finally:
                 inst.close()
     except RuntimeError, v:
-        parser.error(str(v))
+        print >>sys.stderr,"error:",v
+        sys.exit(1)
 
 if __name__ == '__main__':
     main(sys.argv[1:])
-
 
 
 
