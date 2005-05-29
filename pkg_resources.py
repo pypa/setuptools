@@ -755,6 +755,15 @@ def find_distributions(path_item):
     return finder(importer,path_item)
 
 
+def find_in_zip(importer,path_item):
+    # for now, we only yield the .egg file itself, if applicable; 
+    # i.e., we don't support "baskets" yet, just eggs
+    for item in find_on_path(importer,path_item):
+        yield item
+
+register_finder(zipimport.zipimporter,find_in_zip)
+
+
 def StringIO(*args, **kw):
     """Thunk to load the real StringIO on demand"""
     global StringIO
@@ -763,13 +772,6 @@ def StringIO(*args, **kw):
     except ImportError:
         from StringIO import StringIO
     return StringIO(*args,**kw)
-
-
-
-
-
-
-
 
 
 
