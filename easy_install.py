@@ -13,7 +13,9 @@ Downloading and Installing a Package
 ------------------------------------
 
 For basic use of ``easy_install``, you need only supply the filename or URL of
-a source distribution or .egg file (Python Egg).
+a source distribution or .egg file (`Python Egg`__).
+
+__ http://peak.telecommunity.com/DevCenter/PythonEggs
 
 **Example 1**. Download a source distribution, automatically building and
 installing it::
@@ -160,8 +162,6 @@ from pkg_resources import *
 
 
 
-
-
 class Installer:
     """Manage a download/build/install process"""
 
@@ -279,7 +279,7 @@ class Installer:
                 )
             setup_script = setups[0]
 
-        self._run_setup(setups[0])
+        self._run_setup(setup_script)
         for egg in glob(
             os.path.join(os.path.dirname(setup_script),'dist','*.egg')
         ):
