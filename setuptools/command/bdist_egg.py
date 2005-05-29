@@ -13,31 +13,31 @@ from distutils import log
 from pkg_resources import parse_requirements, get_platform
 
 class bdist_egg(Command):
-
     description = "create an \"egg\" distribution"
-
-    user_options = [('egg-base=', 'e',
-                     "directory containing .egg-info directories"
-                     "(default: top of the source tree)"),
-                    ('bdist-dir=', 'd',
-                     "temporary directory for creating the distribution"),
-                    ('plat-name=', 'p',
+    user_options = [
+        ('egg-base=', 'e', "directory containing .egg-info directories"
+                           " (default: top of the source tree)"),
+        ('bdist-dir=', 'd',
+            "temporary directory for creating the distribution"),
+        ('tag-svn-revision', None,
+            "Add subversion revision ID to version number"),
+        ('tag-date', None, "Add date stamp (e.g. 20050528) to version number"),
+        ('tag-build=', None, "Specify explicit tag to add to version number"),
+        ('plat-name=', 'p',
                      "platform name to embed in generated filenames "
                      "(default: %s)" % get_platform()),
-                    ('keep-temp', 'k',
+        ('keep-temp', 'k',
                      "keep the pseudo-installation tree around after " +
                      "creating the distribution archive"),
-                    ('dist-dir=', 'd',
+        ('dist-dir=', 'd',
                      "directory to put final built distributions in"),
-                    ('skip-build', None,
+        ('skip-build', None,
                      "skip rebuilding everything (for testing/debugging)"),
-                    ('relative', None,
-                     "build the archive using relative paths"
-                     "(default: false)"),
-                   ]
+    ]
 
-    boolean_options = ['keep-temp', 'skip-build', 'relative']
-
+    boolean_options = [
+        'keep-temp', 'skip-build', 'relative','tag-date','tag-svn-revision'
+    ]
 
     def initialize_options (self):
         self.egg_name = None
@@ -49,12 +49,13 @@ class bdist_egg(Command):
         self.keep_temp = 0
         self.dist_dir = None
         self.skip_build = 0
-        self.relative = 0
-
+        self.tag_build = None
+        self.tag_svn_revision = 0
+        self.tag_date = 0
 
     def finalize_options (self):
-        self.egg_name = self.distribution.get_name().replace('-','_').replace(' ','_')
-        self.egg_version = self.distribution.get_version().replace('-','_')
+        self.egg_name = self.distribution.get_name().replace(' ','-')
+        self.egg_version = self.tagged_version()
         try:
             list(
                 parse_requirements('%s==%s' % (self.egg_name,self.egg_version))
@@ -78,7 +79,6 @@ class bdist_egg(Command):
         if self.plat_name is None:
             self.plat_name = get_platform()
         self.set_undefined_options('bdist',('dist_dir', 'dist_dir'))
-
 
     def write_stub(self, resource, pyfile):
         f = open(pyfile,'w')
@@ -135,9 +135,8 @@ class bdist_egg(Command):
 
         # And make an archive relative to the root of the
         # pseudo-installation tree.
-        archive_basename = "%s-%s-py%s" % (self.egg_name, self.egg_version,
-                                      get_python_version())
-
+        archive_basename = "%s-%s-py%s" % ( self.egg_name.replace('-','_'),
+            self.egg_version.replace('-','_'), get_python_version())
         if ext_outputs:
             archive_basename += "-" + self.plat_name
 
@@ -156,11 +155,12 @@ class bdist_egg(Command):
 
         log.info("writing %s" % os.path.join(self.egg_info,'PKG-INFO'))
         if not self.dry_run:
-            self.distribution.metadata.write_pkg_info(self.egg_info)
-
-
-
-
+            metadata = self.distribution.metadata
+            metadata.version, oldver = self.egg_version, metadata.version
+            try:
+                metadata.write_pkg_info(self.egg_info)
+            finally:
+                metadata.version = oldver
 
         native_libs = os.path.join(self.egg_info,"native_libs.txt")
         if ext_outputs:
@@ -181,8 +181,6 @@ class bdist_egg(Command):
                 if os.path.isfile(path):
                     self.copy_file(path,os.path.join(egg_info,filename))
 
-
-
         # Make the archive
         make_zipfile(pseudoinstall_root+'.egg',
                           archive_root, verbose=self.verbose,
@@ -191,16 +189,28 @@ class bdist_egg(Command):
         if not self.keep_temp:
             remove_tree(self.bdist_dir, dry_run=self.dry_run)
 
+    def tagged_version(self):
+        version = self.distribution.get_version()
+        if self.tag_build:
+            version+='-'+self.tag_build
 
+        if self.tag_svn_revision and os.path.exists('.svn'):
+            version += '-%s' % self.get_svn_revision()
 
+        if self.tag_date:
+            import time
+            version += time.strftime("-%Y%m%d")
 
+        return version
 
-
-
-
-
-
-
+    def get_svn_revision(self):
+        stdin, stdout = os.popen4("svn info"); stdin.close()
+        result = stdout.read(); stdout.close()
+        import re
+        match = re.search(r'Last Changed Rev: (\d+)', result)
+        if not match:
+            raise RuntimeError("svn info error: %s" % result.strip())
+        return match.group(1)
 
 
 def make_zipfile (zip_filename, base_dir, verbose=0, dry_run=0):
@@ -211,7 +221,6 @@ def make_zipfile (zip_filename, base_dir, verbose=0, dry_run=0):
     raises DistutilsExecError.  Returns the name of the output zip file.
     """
     import zipfile
-
     mkpath(os.path.dirname(zip_filename), dry_run=dry_run)
 
     # If zipfile module is not available, try spawning an external
@@ -230,17 +239,8 @@ def make_zipfile (zip_filename, base_dir, verbose=0, dry_run=0):
     if not dry_run:
         z = zipfile.ZipFile(zip_filename, "w",
                             compression=zipfile.ZIP_DEFLATED)
-
         os.path.walk(base_dir, visit, z)
         z.close()
 
     return zip_filename
-
-# make_zipfile ()
-
-
-
-
-
-
 
