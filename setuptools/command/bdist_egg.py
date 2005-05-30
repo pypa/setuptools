@@ -7,7 +7,7 @@ import os
 from distutils.core import Command
 from distutils.util import get_platform
 from distutils.dir_util import create_tree, remove_tree, ensure_relative,mkpath
-from distutils.sysconfig import get_python_version
+from distutils.sysconfig import get_python_version, get_python_lib
 from distutils.errors import *
 from distutils import log
 from pkg_resources import parse_requirements, get_platform
@@ -95,19 +95,39 @@ class bdist_egg(Command):
         ]))
         f.close()
 
+    def do_install_data(self):
+        self.get_finalized_command('install').install_lib = self.bdist_dir
+        site_packages = os.path.normcase(os.path.realpath(get_python_lib()))
+        old, self.distribution.data_files = self.distribution.data_files,[]
+        for item in old:
+            if isinstance(item,tuple) and len(item)==2:
+                if os.path.isabs(item[0]):
+                    realpath = os.path.realpath(item[0])
+                    normalized = os.path.normcase(realpath)
+                    if normalized==site_packages or normalized.startswith(
+                        site_packages+os.sep
+                    ):
+                        item = realpath[len(site_packages)+1:], item[1]
+                    # XXX else: raise ???
+            self.distribution.data_files.append(item)
+        try:
+            install = self.reinitialize_command('install_data')
+            # kludge for setups that use a 3-tuple inst_data
+            install.install_dir = install.install_base = \
+                install.install_data = install.install_lib = self.bdist_dir
+            install.force = 0; install.root = None
+            log.info("installing package data to %s" % self.bdist_dir)
+            self.run_command('install_data')
+        finally:
+            self.distribution.data_files = old
 
     def run(self):
+
         if not self.skip_build:
             self.run_command('build')
 
-        if self.distribution.data_files:
-            install = self.reinitialize_command('install_data')
-            install.install_dir = self.bdist_dir
-            install.force = 0
-            install.root = None
-            log.info("installing package data to %s" % self.bdist_dir)
-            self.run_command('install_data')
-        
+        # We run install_lib before install_data, because some data hacks
+        # pull their data path from the install_lib command.
         install = self.reinitialize_command('install_lib', reinit_subcommands=1)
         install.install_dir = self.bdist_dir
         install.skip_build = self.skip_build
@@ -120,7 +140,6 @@ class bdist_egg(Command):
         log.info("installing library code to %s" % self.bdist_dir)
         self.run_command('install_lib')
 
-
         to_compile = []
         for ext_name in ext_outputs:
             filename,ext = os.path.splitext(ext_name)
@@ -132,6 +151,9 @@ class bdist_egg(Command):
 
         if to_compile:
             install.byte_compile(to_compile)
+
+        if self.distribution.data_files:
+            self.do_install_data()
 
         # And make an archive relative to the root of the
         # pseudo-installation tree.
@@ -213,6 +235,15 @@ class bdist_egg(Command):
         return match.group(1)
 
 
+
+
+
+
+
+
+
+
+
 def make_zipfile (zip_filename, base_dir, verbose=0, dry_run=0):
     """Create a zip file from all the files under 'base_dir'.  The output
     zip file will be named 'base_dir' + ".zip".  Uses either the "zipfile"
@@ -243,4 +274,14 @@ def make_zipfile (zip_filename, base_dir, verbose=0, dry_run=0):
         z.close()
 
     return zip_filename
+
+
+
+
+
+
+
+
+
+
 
