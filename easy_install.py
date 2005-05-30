@@ -154,10 +154,10 @@ Options
 """
 
 import sys, os.path, pkg_resources, re, zipimport, zipfile, tarfile, shutil
+import urlparse, urllib, tempfile
 from distutils.sysconfig import get_python_lib
 from shutil import rmtree   # must have, because it can be called from __del__
 from pkg_resources import *
-
 
 
 
@@ -170,8 +170,7 @@ class Installer:
     def __init__(self, instdir=None, zip_ok=False, multi=None, tmpdir=None):
 
         if tmpdir is None:
-            from tempfile import mkdtemp
-            tmpdir = mkdtemp(prefix="easy_install-")
+            tmpdir = tempfile.mkdtemp(prefix="easy_install-")
 
         self.tmpdir = tmpdir
 
@@ -200,6 +199,7 @@ class Installer:
 
     def __del__(self):
         self.close()
+
 
 
 
@@ -286,9 +286,7 @@ class Installer:
 
 
     def _extract_zip(self,zipname,extract_dir):
-        import zipfile
         z = zipfile.ZipFile(zipname)
-
         try:
             for info in z.infolist():
                 name = info.filename
@@ -325,6 +323,8 @@ class Installer:
                         tarobj.extract(member,self.tmpdir)
         finally:
             tarobj.close()
+
+
 
     def _run_setup(self, setup_script):
         from setuptools.command import bdist_egg
@@ -368,7 +368,7 @@ class Installer:
 
 
     def install_egg(self, egg_path, zip_ok):
-        import shutil
+
         destination = os.path.join(self.instdir, os.path.basename(egg_path))
         ensure_directory(destination)
 
@@ -409,9 +409,9 @@ class Installer:
             self.pth_file.save()
 
     def _download_url(self, scheme, url):
+
         # Determine download filename
-        from urlparse import urlparse
-        name = filter(None,urlparse(url)[2].split('/'))[-1]
+        name = filter(None,urlparse.urlparse(url)[2].split('/'))[-1]
 
         while '..' in name:
             name = name.replace('..','.').replace('\\','_')
@@ -422,10 +422,8 @@ class Installer:
             return self._download_svn(url, filename)
 
         # Download the file
-        from urllib import FancyURLopener, URLopener
-
-        class _opener(FancyURLopener):
-            http_error_default = URLopener.http_error_default
+        class _opener(urllib.FancyURLopener):
+            http_error_default = urllib.URLopener.http_error_default
 
         try:
             filename,headers = _opener().retrieve(
@@ -449,6 +447,8 @@ class Installer:
 
 
 
+
+
     def _extract_file(self, dist_filename):
         if zipfile.is_zipfile(dist_filename):
             self._extract_zip(dist_filename, self.tmpdir)
@@ -464,16 +464,28 @@ class Installer:
 
 
     def _download_html(self, url, headers, filename):
-        # Check if it is a subversion index page:
+        # Check for a sourceforge URL
+        sf_url = url.startswith('http://prdownloads.')
         file = open(filename)
         for line in file:
             if line.strip():
+                # Check for a subversion index page
                 if re.search(r'<title>Revision \d+:', line):
+                    # it's a subversion index page:
                     file.close()
                     os.unlink(filename)
                     return self._download_svn(url, filename)
-                else:
-                    break   # not an index page
+                # Check for a SourceForge header
+                elif sf_url:
+                    if re.search(r'^<HTML><HEAD>', line, re.I):
+                        continue    # skip first line
+                    elif re.search(r'<TITLE>Select a Mirror for File:',line):
+                        # Sourceforge mirror page
+                        page = file.read()
+                        file.close()
+                        os.unlink(filename)
+                        return self._download_sourceforge(url, page)
+                break   # not an index page
         file.close()
         raise RuntimeError("Unexpected HTML page found at "+url)
 
@@ -481,6 +493,35 @@ class Installer:
     def _download_svn(self, url, filename):
         os.system("svn checkout -q %s %s" % (url, filename))
         return filename
+
+    def _download_sourceforge(self, source_url, sf_page):
+        """Download package from randomly-selected SourceForge mirror"""
+
+        mirror_regex = re.compile(r'HREF=(/.*?\?use_mirror=[^>]*)')
+        urls = [m.group(1) for m in mirror_regex.finditer(sf_page)]
+        if not urls:
+            raise RuntimeError(
+                "URL looks like a Sourceforge mirror page, but no URLs found"
+            )
+
+        import random
+        url = urlparse.urljoin(source_url, random.choice(urls))
+        f = urllib.urlopen(url)
+        match = re.search(
+            r'<META HTTP-EQUIV="refresh" content=".*?URL=(.*?)"',
+            f.read()
+        )
+        f.close()
+
+        if match:
+            download_url = match.group(1)
+            scheme = URL_SCHEME(download_url)
+            return self._download_url(scheme.group(1), download_url)
+        else:
+            raise RuntimeError(
+                'No META HTTP-EQUIV="refresh" found in Sourceforge page at %s'
+                % url
+            )
 
 
 
