@@ -174,15 +174,15 @@ class bdist_egg(Command):
         egg_info = os.path.join(archive_root,'EGG-INFO')
         self.mkpath(egg_info)
         self.mkpath(self.egg_info)
-
         log.info("writing %s" % os.path.join(self.egg_info,'PKG-INFO'))
         if not self.dry_run:
             metadata = self.distribution.metadata
             metadata.version, oldver = self.egg_version, metadata.version
+            metadata.name, oldname   = self.egg_name, metadata.name
             try:
                 metadata.write_pkg_info(self.egg_info)
             finally:
-                metadata.version = oldver
+                metadata.name, metadata.version = oldname, oldver
 
         native_libs = os.path.join(self.egg_info,"native_libs.txt")
         if ext_outputs:
