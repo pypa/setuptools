@@ -166,13 +166,15 @@ class Installer:
     """Manage a download/build/install process"""
 
     pth_file = None
+    cleanup = False
 
     def __init__(self, instdir=None, zip_ok=False, multi=None, tmpdir=None):
-
         if tmpdir is None:
             tmpdir = tempfile.mkdtemp(prefix="easy_install-")
-
-        self.tmpdir = tmpdir
+            self.cleanup = True
+        elif not os.path.isdir(tmpdir):
+            os.makedirs(tmpdir)
+        self.tmpdir = os.path.realpath(tmpdir)
 
         site_packages = get_python_lib()
         if instdir is None or self.samefile(site_packages,instdir):
@@ -194,13 +196,11 @@ class Installer:
         self.multi = multi
 
     def close(self):
-        if os.path.isdir(self.tmpdir):
+        if self.cleanup and os.path.isdir(self.tmpdir):
             rmtree(self.tmpdir,True)
 
     def __del__(self):
         self.close()
-
-
 
 
     def samefile(self,p1,p2):
@@ -269,14 +269,14 @@ class Installer:
             setup_script = setups[0]
 
         self._run_setup(setup_script)
+
+        eggs = []
         for egg in glob(
             os.path.join(os.path.dirname(setup_script),'dist','*.egg')
         ):
-            self.install_egg(egg, self.zip_ok)
+            eggs.append(self.install_egg(egg, self.zip_ok))
 
-
-
-
+        return eggs
 
 
 
@@ -339,7 +339,7 @@ class Installer:
                 sys.path.insert(0,os.getcwd())
                 DirectorySandbox(self.tmpdir).run(
                     lambda: execfile(
-                        setup_script,
+                        "setup.py",
                         {'__file__':setup_script, '__name__':'__main__'}
                     )
                 )
@@ -391,22 +391,22 @@ class Installer:
                 os.mkdir(destination)
                 self._extract_zip(egg_path, destination)
 
-        if self.pth_file is not None:
-            if os.path.isdir(destination):
-                dist = Distribution.from_filename(
-                    destination, metadata=PathMetadata(
-                        destination, os.path.join(destination,'EGG-INFO')
-                    )
+        if os.path.isdir(destination):
+            dist = Distribution.from_filename(
+                destination, metadata=PathMetadata(
+                    destination, os.path.join(destination,'EGG-INFO')
                 )
-            else:
-                metadata = EggMetadata(zipimport.zipimporter(destination))
-                dist = Distribution.from_filename(destination,metadata=metadata)
+            )
+        else:
+            metadata = EggMetadata(zipimport.zipimporter(destination))
+            dist = Distribution.from_filename(destination,metadata=metadata)
 
-            # remove old
-            map(self.pth_file.remove, self.pth_file.get(dist.key,()))
+        if self.pth_file is not None:
+            map(self.pth_file.remove, self.pth_file.get(dist.key,())) # drop old
             if not self.multi:
                 self.pth_file.add(dist) # add new
             self.pth_file.save()
+        return dist
 
     def _download_url(self, scheme, url):
 
@@ -522,6 +522,47 @@ class Installer:
                 'No META HTTP-EQUIV="refresh" found in Sourceforge page at %s'
                 % url
             )
+
+
+
+
+
+
+
+
+
+    def installation_report(self, dist):
+        """Helpful installation message for display to package users"""
+
+        msg = "Installed %(eggloc)s to %(instdir)s"
+        if self.multi:
+            msg += """
+
+Because this distribution was installed --multi-version or --install-dir,
+before you can import modules from this package in an application, you
+will need to 'import pkg_resources' and then use a 'require()' call
+similar to one of these examples, in order to select the desired version:
+
+    pkg_resources.require("%(name)s")  # latest installed version
+    pkg_resources.require("%(name)s==%(version)s")  # this exact version
+    pkg_resources.require("%(name)s>=%(version)s")  # this version or higher
+"""
+        if not self.samefile(get_python_lib(),self.instdir):
+            msg += """
+
+Note also that the installation directory must be on sys.path at runtime for
+this to work.  (e.g. by being the application's script directory, by being on
+PYTHONPATH, or by being added to sys.path by your code.)
+"""
+        eggloc = os.path.basename(dist.path)
+        instdir = os.path.realpath(self.instdir)
+        name = dist.name
+        version = dist.version
+        return msg % locals()
+
+
+
+
 
 
 
@@ -670,7 +711,7 @@ class DirectorySandbox(AbstractSandbox):
     def _remap_input(self,operation,path,*args,**kw):
         """Called for path inputs"""
         if operation in self.write_ops and not self._ok(path):
-            self._violation(operation, path, *args, **kw)
+            self._violation(operation, os.path.realpath(path), *args, **kw)
         return path
 
     def _remap_pair(self,operation,src,dst,*args,**kw):
@@ -740,7 +781,6 @@ URL_SCHEME = re.compile('([-+.a-z0-9]{2,}):',re.I).match
 
 def main(argv, factory=Installer):
     from optparse import OptionParser
-
     parser = OptionParser(usage = "usage: %prog [options] url [url...]")
     parser.add_option("-d", "--install-dir", dest="instdir", default=None,
                       help="install package to DIR", metavar="DIR")
@@ -753,27 +793,69 @@ def main(argv, factory=Installer):
                       action="store_true", dest="multi", default=None,
                       help="make apps have to require() a version")
 
+    parser.add_option("-b", "--build-directory", dest="tmpdir", metavar="DIR",
+                      default=None,
+                      help="download/extract/build in DIR; keep the results")
     (options, args) = parser.parse_args()
 
     try:
         if not args:
             parser.error("No urls, filenames, or requirements specified")
-
         for spec in args:
-            inst = factory(options.instdir, options.zip_ok, options.multi)
+            inst = factory(
+                options.instdir, options.zip_ok, options.multi, options.tmpdir
+            )
             try:
                 print "Downloading", spec
                 downloaded = inst.download(spec)
                 print "Installing", os.path.basename(downloaded)
-                inst.install_eggs(downloaded)
+                for dist in inst.install_eggs(downloaded):
+                    print inst.installation_report(dist)
             finally:
                 inst.close()
     except RuntimeError, v:
         print >>sys.stderr,"error:",v
         sys.exit(1)
 
+
 if __name__ == '__main__':
     main(sys.argv[1:])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
