@@ -1,0 +1,249 @@
+============
+Easy Install
+============
+
+Easy Install is a python module (``easy_install``) that lets you automatically
+download, build, install, and manage Python packages.
+
+(Please share your experiences with us! Whether you encountered success or
+difficulty installing a particular package, please add your notes to the
+`Experience Reports <http://peak.telecommunity.com/DevCenter/PackageNotes>`_
+page. You'll need to register for a Wiki ID if you don't already have one; you
+can do that from the `User Preferences
+<http://peak.telecommunity.com/DevCenter/UserPreferences>`_ page. Thanks!)
+
+.. contents:: **Table of Contents**
+
+
+Using "Easy Install"
+====================
+
+
+Installing "Easy Install"
+-------------------------
+
+Unix-like Systems (including Mac OS X and Cygwin)
+   Download either the `Python 2.3 easy_install shell script
+   <http://peak.telecommunity.com/dist/ez_install-0.3a3-py2.3-unix.sh>`_ or the
+   `Python 2.4 easy_install shell script
+   <http://peak.telecommunity.com/dist/ez_install-0.3a3-py2.4-unix.sh>`_. Place
+   the file somewhere on your PATH, after renaming it to ``easy_install``. Note
+   that these scripts assume you have ``python2.3`` or ``python2.4`` accessible
+   via the ``PATH`` environment variable. Then, you can use ``easy_install`` to
+   finish its own installation, by running one of the following, depending on
+   your Python version::
+
+     # Python 2.3
+     easy_install http://peak.telecommunity.com/dist/setuptools-0.3a3-py2.3.egg
+
+     # Python 2.4
+     easy_install http://peak.telecommunity.com/dist/setuptools-0.3a3-py2.4.egg
+
+
+All Other Systems
+   Download the `easy_install (aka setuptools) source distribution
+   <http://peak.telecommunity.com/dist/setuptools-0.3a3.zip>`_, and follow the
+   normal procedure for installing a source package with distutils. An
+   ``easy_install.py`` script will be installed in the normal location for
+   Python scripts on your platform. In the examples below, you'll need to
+   replace references to ``easy_install`` with the correct invocation to run
+   ``easy_install.py`` on your system. If you have Python 2.4 or better, you
+   can also use ``python -m easy_install``, which will have the same effect,
+   but which may be easier for you to type.
+
+
+Downloading and Installing a Package
+------------------------------------
+
+For basic use of ``easy_install``, you need only supply the filename or URL of
+a source distribution or .egg file (`Python Egg`__).
+
+__ http://peak.telecommunity.com/DevCenter/PythonEggs
+
+**Example 1**. Download a source distribution, automatically building and
+installing it::
+
+    easy_install http://example.com/path/to/MyPackage-1.2.3.tgz
+
+**Example 2**. Install an already-downloaded .egg file::
+
+    easy_install /my_downloads/OtherPackage-3.2.1-py2.3.egg
+
+Easy Install recognizes distutils *source* (not binary) distribution files with
+extensions of .tgz, .tar, .tar.gz, .tar.bz2, or .zip. And of course it handles
+already-built .egg distributions.
+
+By default, packages are installed to the running Python installation's
+``site-packages`` directory, unless you provide the ``-d`` or ``--install-dir``
+option to specify an alternative directory.
+
+Packages installed to ``site-packages`` are added to an ``easy-install.pth``
+file, so that Python will be able to import the package by default. If you do
+not want this to happen, you should use the ``-m`` or ``--multi`` option, which
+allows multiple versions of the same package to be selected at runtime.
+
+Note that installing to a directory other than ``site-packages`` already
+implies the ``-m`` option, so if you cannot install to ``site-packages``,
+please see the `Command-Line Options`_ section below (under ``--multi``) to 
+find out how to select packages at runtime.
+
+
+Upgrading a Package
+-------------------
+
+You don't need to do anything special to upgrade a package: just install the
+new version. If you're using ``-m`` or ``--multi`` (or installing outside of
+``site-packages``), the runtime system automatically selects the newest
+available version of a package. If you're installing to ``site-packages`` and
+not using ``-m``, installing a package automatically replaces its older version
+in the ``easy-install.pth`` file, so that Python will import the latest version
+by default.
+
+``easy_install`` never actually deletes packages (unless you're installing a
+package with the same name and version number as an existing package), so if
+you want to get rid of older versions of a package, please see `Uninstalling
+Packages`_, below.
+
+
+Changing the Active Version (``site-packages`` installs only)
+-------------------------------------------------------------
+
+If you've upgraded a package, but need to revert to a previously-installed
+version, you can do so like this::
+
+    easy_install PackageName==1.2.3
+
+Where ``1.2.3`` is replaced by the exact version number you wish to switch to.
+Note that the named package and version must already have been installed to
+``site-packages``.
+
+If you'd like to switch to the latest version of ``PackageName``, you can do so
+like this::
+
+    easy_install PackageName
+
+This will activate the latest installed version.
+
+
+Uninstalling Packages
+---------------------
+
+If you have replaced a package with another version, then you can just delete
+the package(s) you don't need by deleting the PackageName-versioninfo.egg file
+or directory (found in the installation directory).
+
+If you want to delete the currently installed version of a package (or all
+versions of a package), you should first run::
+
+    easy_install -m PackageName
+
+This will ensure that Python doesn't continue to search for a package you're
+planning to remove. After you've done this, you can safely delete the .egg
+files or directories.
+
+
+Reference Manual
+================
+
+
+Command-Line Options
+--------------------
+
+``--zip, -z``
+    Enable installing the package as a zip file. This can significantly
+    increase Python's overall import performance if you're installing to
+    ``site-packages`` and not using the ``--multi`` option, because Python
+    process zipfile entries on ``sys.path`` much faster than it does
+    directories. So, if you don't use this option, and you install a lot of
+    packages, some of them may be slower to import.
+
+    But, this option is disabled by default, unless you're installing from an
+    already-built binary zipfile (``.egg`` file). This is to avoid problems
+    when using packages that dosn't support running from a zip file. Such
+    packages usually access data files in their package directories using the
+    Python ``__file__`` or ``__path__`` attribute, instead of the
+    ``pkg_resources`` API. So, if you find that a package doesn't work properly
+    when used with this option, you may want to suggest to the author that they
+    switch to using the ``pkg_resources`` resource API, which will allow their
+    package to work whether it's installed as a zipfile or not.
+
+    (Note: this option only affects the installation of newly-built packages
+    that are not already installed in the target directory; if you want to
+    convert an existing installed version from zipped to unzipped or vice
+    versa, you'll need to delete the existing version first.)
+
+``--multi-version, -m``
+    "Multi-version" mode. Specifying this option prevents ``easy_install`` from
+    adding an ``easy-install.pth`` entry for the package being installed, and
+    if an entry for any version the package already exists, it will be removed
+    upon successful installation. In multi-version mode, no specific version of
+    the package is available for importing, unless you use
+    ``pkg_resources.require()`` to put it on ``sys.path``. This can be as
+    simple as::
+
+        from pkg_resources import require
+        require("SomePackage", "OtherPackage", "MyPackage")
+
+    which will put the latest installed version of the specified packages on
+    ``sys.path`` for you. (For more advanced uses, like selecting specific
+    versions and enabling optional dependencies, see the ``pkg_resources`` API
+    doc.) Note that if you install to a directory other than ``site-packages``,
+    this option is automatically in effect, because ``.pth`` files can only be
+    used in ``site-packages`` (at least in Python 2.3 and 2.4). So, if you use
+    the ``--install-dir`` or ``-i`` options, you must also use ``require()`` to
+    enable packages at runtime
+
+``--install-dir=DIR, -d DIR``
+    Set the installation directory. It is up to you to ensure that this
+    directory is on ``sys.path`` at runtime, and to use
+    ``pkg_resources.require()`` to enable the installed package(s) that you
+    need.
+
+``--build-directory=DIR, -b DIR`` (New in 0.3a3)
+    Set the directory used to download, extract, and install the package.  The
+    directory is not cleared before or after installation, so the downloaded
+    packages and extracted contents will remain there afterwards, allowing you
+    to read any documentation, examples, scripts, etc. that may have been
+    included with the source distribution (if any).
+
+
+Release Notes/Change History
+============================
+
+0.3a3
+ * Added ``--build-directory=DIR/-b DIR`` option.
+
+ * Added "installation report" that explains how to use 'require()' when doing
+   a multiversion install or alternate installation directory.
+
+ * Added SourceForge mirror auto-select (Contributed by Ian Bicking)
+
+ * Added "sandboxing" that stops a setup script from running if it attempts to
+   write to the filesystem outside of the build area
+
+ * Added more workarounds for packages with quirky ``install_data`` hacks
+
+
+0.3a2
+ * Added subversion download support for ``svn:`` and ``svn+`` URLs, as well as
+ automatic recognition of HTTP subversion URLs (Contributed by Ian Bicking)
+
+ * Added new options to ``bdist_egg`` to allow tagging the egg's version number
+   with a subversion revision number, the current date, or an explicit tag
+   value.  Run ``setup.py bdist_egg --help`` to get more information.
+
+ * Misc. bug fixes
+
+
+0.3a1
+ Initial release.
+
+
+
+Future Plans
+============
+
+* Support packages that include scripts
+
+* Automatic package download URL discovery via PyPI/CheeseShop
+
