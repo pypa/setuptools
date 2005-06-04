@@ -92,11 +92,9 @@ class IMetadataProvider:
         """Yield named metadata resource as list of non-blank non-comment lines
 
        Leading and trailing whitespace is stripped from each line, and lines
-       with ``#`` as the first non-blank character are omitted.
-       """
+       with ``#`` as the first non-blank character are omitted."""
 
 class IResourceProvider(IMetadataProvider):
-
     """An object that provides access to package resources"""
 
     def get_resource_filename(manager, resource_name):
@@ -117,9 +115,11 @@ class IResourceProvider(IMetadataProvider):
     def has_resource(resource_name):
         """Does the package contain the named resource?"""
 
-    # XXX list_resources?  glob_resources?
+    def resource_isdir(resource_name):
+        """Is the named resource a directory?  (like ``os.path.isdir()``)"""
 
-
+    def resource_listdir(resource_name):
+        """List of resource names in the directory (like ``os.listdir()``)"""
 
 class AvailableDistributions(object):
     """Searchable snapshot of distributions on a search path"""
@@ -297,6 +297,10 @@ class ResourceManager:
         """Does the named resource exist in the named package?"""
         return get_provider(package_name).has_resource(self, resource_name)
 
+    def resource_isdir(self, package_name, resource_name):
+        """Does the named resource exist in the named package?"""
+        return get_provider(package_name).resource_isdir(self, resource_name)
+
     def resource_filename(self, package_name, resource_name):
         """Return a true filesystem path for specified resource"""
         return get_provider(package_name).get_resource_filename(
@@ -315,12 +319,8 @@ class ResourceManager:
             self, resource_name
         )
 
-
-
-
-
-
-
+    def list_resources(self,  package_name, resource_name):
+        return get_provider(package_name).resource_listdir(self, resource_name)
 
 
 
@@ -485,6 +485,11 @@ class NullProvider:
     def get_metadata_lines(self, name):
         return yield_lines(self.get_metadata(name))
 
+    def resource_isdir(self,name): return False
+
+    def resource_listdir(self,name):
+        return []
+
     def _has(self, path):
         raise NotImplementedError(
             "Can't perform this operation for unregistered loader type"
@@ -503,11 +508,39 @@ class NullProvider:
 register_loader_type(object, NullProvider)
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class DefaultProvider(NullProvider):
     """Provides access to package resources in the filesystem"""
 
     def __init__(self,module):
         NullProvider.__init__(self,module)
+        self._setup_prefix()
+        
+    def _setup_prefix(self):
+        # we assume here that our metadata may be nested inside a "basket"
+        # of multiple eggs; that's why we use module_path instead of .archive
         path = self.module_path
         old = None
         self.prefix = []
@@ -520,7 +553,14 @@ class DefaultProvider(NullProvider):
             path, base = os.path.split(path)
             self.prefix.append(base)
 
-    def _has(self, path): return os.path.exists(path)
+    def _has(self, path):
+        return os.path.exists(path)
+
+    def resource_isdir(self,name):
+        return os.path.isdir(self._fn(name))
+
+    def resource_listdir(self,name):
+        return os.listdir(self._fn(name))
 
     def _get(self, path):
         stream = open(path, 'rb')
@@ -530,6 +570,7 @@ class DefaultProvider(NullProvider):
             stream.close()
 
 register_loader_type(type(None), DefaultProvider)
+
 
 class ZipProvider(DefaultProvider):
     """Resource support for zips and eggs"""
@@ -546,11 +587,9 @@ class ZipProvider(DefaultProvider):
             return path[len(self.zip_pre):]
         return path
 
-    def _has(self, path):
-        return self._short_name(path) in self.zipinfo
+    def _has(self, path): return self._short_name(path) in self.zipinfo or self.resource_isdir(path)
 
-    def _get(self, path):
-        return self.loader.get_data(path)
+    def _get(self, path): return self.loader.get_data(path)
 
     def get_resource_stream(self, manager, resource_name):
         return StringIO(self.get_resource_string(manager, resource_name))
@@ -569,10 +608,27 @@ class ZipProvider(DefaultProvider):
 
         return self._extract_resource(manager, resource_name)
 
+    def resource_isdir(self, resource_name):
+        if resource_name.endswith('/'):
+            resource_name = resource_name[:-1]
+        return resource_name in self._index()
 
+    def resource_listdir(self, resource_name):
+        if resource_name.endswith('/'):
+            resource_name = resource_name[:-1]
+        return list(self._index().get(resource_name, ()))
 
-
+    def _extract_directory(self, manager, resource_name):
+        if resource_name.endswith('/'):
+            resource_name = resource_name[:-1]
+        for resource in self.resource_listdir(resource_name):
+            last = self._extract_resource(manager, resource_name+'/'+resource)
+        return os.path.dirname(last)    # return the directory path
+        
     def _extract_resource(self, manager, resource_name):
+        if self.resource_isdir(resource_name):
+            return self._extract_dir(resource_name)
+            
         parts = resource_name.split('/')
         zip_path = os.path.join(self.module_path, *parts)
         zip_stat = self.zipinfo[os.path.join(*self.prefix+parts)]
@@ -607,8 +663,34 @@ class ZipProvider(DefaultProvider):
             self.eagers = eagers
         return self.eagers
 
+    def _index(self):
+        try:
+            return self._dirindex
+        except AttributeError:
+            ind = {}; skip = len(self.prefix)
+            for path in self.zipinfo:
+                parts = path.split(os.sep)
+                if parts[:skip] != self.prefix:
+                    continue    # only include items under our prefix
+                parts = parts[skip:]   # but don't include prefix in paths
+                while parts:
+                    parent = '/'.join(parts[:-1])
+                    if parent in ind:
+                        ind[parent].append(parts[-1])
+                        break
+                    else:
+                        ind[parent] = [parts.pop()]
+            self._dirindex = ind
+            return ind
+
 
 register_loader_type(zipimport.zipimporter, ZipProvider)
+
+
+
+
+
+
 
 
 
@@ -647,11 +729,11 @@ class EggMetadata(ZipProvider):
         self.zipinfo = zipimport._zip_directory_cache[importer.archive]
         self.zip_pre = importer.archive+os.sep
         self.loader = importer
-        self.module_path = os.path.join(importer.archive, importer.prefix)
-
-        # we assume here that our metadata may be nested inside a "basket"
-        # of multiple eggs; that's why we use module_path instead of .archive
-        self.egg_info = os.path.join(self.module_path, 'EGG-INFO')
+        if importer.prefix:
+            self.module_path = os.path.join(importer.archive, importer.prefix)
+        else:
+            self.module_path = importer.archive
+        self._setup_prefix()
 
 
 class ImpWrapper:
@@ -754,13 +836,16 @@ def find_distributions(path_item):
     finder = _find_adapter(_distribution_finders, importer)
     return finder(importer,path_item)
 
-
 def find_in_zip(importer,path_item):
-    # for now, we only yield the .egg file itself, if applicable; 
-    # i.e., we don't support "baskets" yet, just eggs
-    for item in find_on_path(importer,path_item):
-        yield item
-
+    metadata = EggMetadata(importer)
+    if metadata.has_metadata('PKG-INFO'):
+        yield Distribution.from_filename(path_item, metadata=metadata)
+    for subitem in metadata.resource_listdir('/'):
+        if subitem.endswith('.egg'):
+            subpath = os.path.join(path_item, subitem)
+            for dist in find_in_zip(zipimport.zipimporter(subpath), subpath):
+                yield dist
+        
 register_finder(zipimport.zipimporter,find_in_zip)
 
 
@@ -772,11 +857,6 @@ def StringIO(*args, **kw):
     except ImportError:
         from StringIO import StringIO
     return StringIO(*args,**kw)
-
-
-
-
-
 
 
 def find_nothing(importer,path_item):
@@ -864,7 +944,7 @@ def _handle_ns(packageName, path_item):
 def declare_namespace(packageName):
     """Declare that package 'packageName' is a namespace package"""
 
-    # XXX nslock.acquire()
+    imp.acquire_lock()
     try:
         if packageName in _namespace_packages:
             return
@@ -890,17 +970,17 @@ def declare_namespace(packageName):
         _namespace_packages.setdefault(packageName,[])
 
     finally:
-        pass # XXX nslock.release()
+        imp.release_lock()
 
 def fixup_namespace_packages(path_item, parent=None):
     """Ensure that previously-declared namespace packages include path_item"""
-    # XXX nslock.acquire()
+    imp.acquire_lock()
     try:
         for package in _namespace_packages.get(parent,()):
             subpath = _handle_ns(package, path_item)
             if subpath: fixup_namespace_packages(subpath,package)
     finally:
-        pass # XXX nslock.release()
+        imp.release_lock()
 
 def file_ns_handler(importer, path_item, packageName, module):
     """Compute an ns-package subpath for a filesystem or zipfile importer"""
