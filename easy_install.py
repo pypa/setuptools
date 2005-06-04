@@ -674,10 +674,11 @@ def main(argv, factory=Installer):
                       default=None,
                       help="download/extract/build in DIR; keep the results")
     (options, args) = parser.parse_args()
-
     try:
         if not args:
             parser.error("No urls, filenames, or requirements specified")
+        elif len(args)>1 and options.tmpdir is not None:
+            parser.error("Build directory can only be set when using one URL")
         for spec in args:
             inst = factory(
                 options.instdir, options.zip_ok, options.multi, options.tmpdir
@@ -693,7 +694,6 @@ def main(argv, factory=Installer):
     except RuntimeError, v:
         print >>sys.stderr,"error:",v
         sys.exit(1)
-
 
 if __name__ == '__main__':
     main(sys.argv[1:])

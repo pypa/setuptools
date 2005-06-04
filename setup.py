@@ -7,7 +7,7 @@ from distutils.version import LooseVersion
 
 setup(
     name="setuptools",
-    version="0.3a3",
+    version="0.3a4",
 
     description="Distutils packaging and installation enhancements",
     author="Phillip J. Eby",

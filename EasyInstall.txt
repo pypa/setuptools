@@ -206,9 +206,30 @@ Command-Line Options
     to read any documentation, examples, scripts, etc. that may have been
     included with the source distribution (if any).
 
+    This option can only be used when you are specifying a single installation
+    URL or filename, so that the installer will not be confused by the presence
+    of multiple ``setup.py`` files in the build directory.
+
 
 Release Notes/Change History
 ============================
+
+0.3a4
+ * ``pkg_resources`` now supports resource directories, not just the resources
+   in them.  In particular, there are ``resource_listdir()`` and
+   ``resource_isdir()`` APIs.
+
+ * ``pkg_resources`` now supports "egg baskets" -- .egg zipfiles which contain
+   multiple distributions in subdirectories whose names end with ``.egg``.
+   Having such a "basket" in a directory on ``sys.path`` is equivalent to
+   having the individual eggs in that directory, but the contained eggs can
+   be individually added (or not) to ``sys.path``.  Currently, however, there
+   is no automated way to create baskets.
+
+ * Namespace package manipulation is now protected by the Python import lock.
+
+ * Restrict ``--build-directory=DIR/-b DIR`` option to only be used with single
+   URL installs, to avoid running the wrong setup.py.
 
 0.3a3
  * Added ``--build-directory=DIR/-b DIR`` option.
@@ -226,14 +247,13 @@ Release Notes/Change History
 
 0.3a2
  * Added subversion download support for ``svn:`` and ``svn+`` URLs, as well as
- automatic recognition of HTTP subversion URLs (Contributed by Ian Bicking)
+   automatic recognition of HTTP subversion URLs (Contributed by Ian Bicking)
 
  * Added new options to ``bdist_egg`` to allow tagging the egg's version number
    with a subversion revision number, the current date, or an explicit tag
    value.  Run ``setup.py bdist_egg --help`` to get more information.
 
  * Misc. bug fixes
-
 
 0.3a1
  Initial release.
