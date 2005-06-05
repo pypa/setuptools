@@ -24,9 +24,9 @@ Installing "Easy Install"
 
 Unix-like Systems (including Mac OS X and Cygwin)
    Download either the `Python 2.3 easy_install shell script
-   <http://peak.telecommunity.com/dist/ez_install-0.3a4-py2.3-unix.sh>`_ or the
+   <http://peak.telecommunity.com/dist/ez_install-0.4a1-py2.3-unix.sh>`_ or the
    `Python 2.4 easy_install shell script
-   <http://peak.telecommunity.com/dist/ez_install-0.3a4-py2.4-unix.sh>`_. Place
+   <http://peak.telecommunity.com/dist/ez_install-0.4a1-py2.4-unix.sh>`_. Place
    the file somewhere on your PATH, after renaming it to ``easy_install``. Note
    that these scripts assume you have ``python2.3`` or ``python2.4`` accessible
    via the ``PATH`` environment variable. Then, you can use ``easy_install`` to
@@ -34,15 +34,15 @@ Unix-like Systems (including Mac OS X and Cygwin)
    your Python version::
 
      # Python 2.3
-     easy_install http://peak.telecommunity.com/dist/setuptools-0.3a4-py2.3.egg
+     easy_install http://peak.telecommunity.com/dist/setuptools-0.4a1-py2.3.egg
 
      # Python 2.4
-     easy_install http://peak.telecommunity.com/dist/setuptools-0.3a4-py2.4.egg
+     easy_install http://peak.telecommunity.com/dist/setuptools-0.4a1-py2.4.egg
 
 
 All Other Systems
    Download the `easy_install (aka setuptools) source distribution
-   <http://peak.telecommunity.com/dist/setuptools-0.3a4.zip>`_, and follow the
+   <http://peak.telecommunity.com/dist/setuptools-0.4a1.zip>`_, and follow the
    normal procedure for installing a source package with distutils. An
    ``easy_install.py`` script will be installed in the normal location for
    Python scripts on your platform. In the examples below, you'll need to
@@ -60,18 +60,33 @@ a source distribution or .egg file (`Python Egg`__).
 
 __ http://peak.telecommunity.com/DevCenter/PythonEggs
 
-**Example 1**. Download a source distribution, automatically building and
-installing it::
+**Example 1**. Install a package by name, searching PyPI for the latest
+version, and automatically downloading, building, and installing it::
+
+    easy_install SQLObject
+
+**Example 2**. Install a package by name and version from a given
+"download page"::
+
+    easy_install -s http://peak.telecommunity.com/dist "setuptools>=0.4a1"
+
+**Example 3**. Download a source distribution from a specified URL,
+automatically building and installing it::
 
     easy_install http://example.com/path/to/MyPackage-1.2.3.tgz
 
-**Example 2**. Install an already-downloaded .egg file::
+**Example 4**. Install an already-downloaded .egg file::
 
     easy_install /my_downloads/OtherPackage-3.2.1-py2.3.egg
 
-Easy Install recognizes distutils *source* (not binary) distribution files with
-extensions of .tgz, .tar, .tar.gz, .tar.bz2, or .zip. And of course it handles
-already-built .egg distributions.
+Easy Install accepts URLs, filenames, PyPI package names (i.e., ``distutils``
+"distribution" names), and package+version specifiers.  In each case, it will
+attempt to locate the latest available version that meets your criteria.
+
+When downloading or processing downloaded files, Easy Install recognizes
+distutils *source* (not binary) distribution files with extensions of .tgz,
+.tar, .tar.gz, .tar.bz2, or .zip.  And of course it handles already-built .egg
+distributions as well.
 
 By default, packages are installed to the running Python installation's
 ``site-packages`` directory, unless you provide the ``-d`` or ``--install-dir``
@@ -92,12 +107,31 @@ Upgrading a Package
 -------------------
 
 You don't need to do anything special to upgrade a package: just install the
-new version. If you're using ``-m`` or ``--multi`` (or installing outside of
-``site-packages``), the runtime system automatically selects the newest
-available version of a package. If you're installing to ``site-packages`` and
-not using ``-m``, installing a package automatically replaces its older version
-in the ``easy-install.pth`` file, so that Python will import the latest version
-by default.
+new version, either by requesting a specific version, e.g.::
+
+    easy_install "SomePackage==2.0"
+
+a version greater than the one you have now::
+
+    easy_install "SomePackage>2.0"
+
+or by using a download page, direct download URL, or package filename::
+
+    easy_install -s http://example.com/downloads ExamplePackage
+
+    easy_install http://example.com/downloads/ExamplePackage-2.0-py2.4.egg
+
+    easy_install my_downloads/ExamplePackage-2.0.tgz
+
+If you're using ``-m`` or ``--multi`` (or installing outside of
+``site-packages``), the ``require()`` function automatically selects the newest
+available version of a package that meets your version criteria at runtime, so
+installation is the only step needed.
+
+If you're installing to ``site-packages`` and not using ``-m``, installing a
+package automatically replaces any previous version in the ``easy-install.pth``
+file, so that Python will import the most-recently installed version by
+default.
 
 ``easy_install`` never actually deletes packages (unless you're installing a
 package with the same name and version number as an existing package), so if
@@ -296,6 +330,8 @@ Future Plans
 ============
 
 * Support packages that include scripts
-
-* Automatic package download URL discovery via PyPI/CheeseShop
+* Log progress to a logger, with -v and -q options to control verbosity
+* Process the installed package's dependencies as well as the base package
+* Additional utilities to list/remove/verify packages
+* Signature checking?  SSL?  Ability to suppress PyPI search?
 
