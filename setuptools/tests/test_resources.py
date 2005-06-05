@@ -319,13 +319,20 @@ class ParseTests(TestCase):
         )
         self.assertRaises(ValueError,list,pkg_resources.split_sections("[foo"))
 
+    def testSafeName(self):
+        self.assertEqual(safe_name("adns-python"), "adns-python")
+        self.assertEqual(safe_name("WSGI Utils"),  "WSGI-Utils")
+        self.assertEqual(safe_name("WSGI  Utils"), "WSGI-Utils")
+        self.assertEqual(safe_name("Money$$$Maker"), "Money-Maker")
+        self.assertEqual(safe_name("peak.web"), "peak-web")
 
-
-
-
-
-
-
+    def testSafeVersion(self):
+        self.assertEqual(safe_version("1.2-1"), "1.2-1")
+        self.assertEqual(safe_version("1.2 alpha"),  "1.2.alpha")
+        self.assertEqual(safe_version("2.3.4 20050521"), "2.3.4.20050521")
+        self.assertEqual(safe_version("Money$$$Maker"), "Money-Maker")
+        self.assertEqual(safe_version("peak.web"), "peak.web")
+        
     def testSimpleRequirements(self):
         self.assertEqual(
             list(parse_requirements('Twis-Ted>=1.2-1')),
@@ -358,14 +365,7 @@ class ParseTests(TestCase):
         c('0pre1', '0.0c1')
         c('0.0.0preview1', '0c1')
         c('0.0c1', '0rc1')
-
-
-
-
-
-
-
-
+        c('1.2a1', '1.2.a.1'); c('1.2...a', '1.2a')
 
     def testVersionOrdering(self):
         def c(s1,s2):

@@ -10,7 +10,7 @@ from distutils.dir_util import create_tree, remove_tree, ensure_relative,mkpath
 from distutils.sysconfig import get_python_version, get_python_lib
 from distutils.errors import *
 from distutils import log
-from pkg_resources import parse_requirements, get_platform
+from pkg_resources import parse_requirements, get_platform, safe_name, safe_version
 
 class bdist_egg(Command):
     description = "create an \"egg\" distribution"
@@ -54,7 +54,7 @@ class bdist_egg(Command):
         self.tag_date = 0
 
     def finalize_options (self):
-        self.egg_name = self.distribution.get_name().replace(' ','-')
+        self.egg_name = safe_name(self.distribution.get_name())
         self.egg_version = self.tagged_version()
         try:
             list(
@@ -122,7 +122,6 @@ class bdist_egg(Command):
             self.distribution.data_files = old
 
     def run(self):
-
         if not self.skip_build:
             self.run_command('build')
 
@@ -161,6 +160,7 @@ class bdist_egg(Command):
             self.egg_version.replace('-','_'), get_python_version())
         if ext_outputs:
             archive_basename += "-" + self.plat_name
+            ext_outputs = [out.replace(os.sep,'/') for out in ext_outputs]
 
         # OS/2 objects to any ":" characters in a filename (such as when
         # a timestamp is used in a version) so change them to underscores.
@@ -223,7 +223,7 @@ class bdist_egg(Command):
             import time
             version += time.strftime("-%Y%m%d")
 
-        return version
+        return safe_version(version)
 
     def get_svn_revision(self):
         stdin, stdout = os.popen4("svn info"); stdin.close()

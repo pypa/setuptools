@@ -22,10 +22,22 @@ __all__ = [
     'InvalidOption', 'Distribution', 'Requirement', 'yield_lines',
     'get_importer', 'find_distributions', 'find_on_path', 'register_finder',
     'split_sections', 'declare_namespace', 'register_namespace_handler',
+    'safe_name', 'safe_version'
 ]
 
 import sys, os, zipimport, time, re, imp
 from sets import ImmutableSet
+
+
+
+
+
+
+
+
+
+
+
 
 class ResolutionError(Exception):
     """Abstract base for dependency resolution errors"""
@@ -57,6 +69,17 @@ def get_provider(moduleName):
     loader = getattr(module, '__loader__', None)
     return _find_adapter(_provider_factories, loader)(module)
 
+
+
+
+
+
+
+
+
+
+
+
 def get_platform():
     """Return this platform's string for platform-specific distributions
 
@@ -78,6 +101,24 @@ def compatible_platforms(provided,required):
 
     # XXX all the tricky cases go here
     return False
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class IMetadataProvider:
@@ -424,22 +465,22 @@ def require(*requirements):
         dist.install_on(sys.path)
 
 
+def safe_name(name):
+    """Convert an arbitrary string to a standard distribution name
+
+    Any runs of non-alphanumeric characters are replaced with a single '-'.
+    """
+    return re.sub('[^A-Za-z0-9]+', '-', name)
 
 
+def safe_version(version):
+    """Convert an arbitrary string to a standard version string
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+    Spaces become dots, and all other non-alphanumeric characters become
+    dashes, with runs of multiple dashes condensed to a single dash.
+    """
+    version = version.replace(' ','.')
+    return re.sub('[^A-Za-z0-9.]+', '-', version)
 
 
 
