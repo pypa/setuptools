@@ -15,8 +15,8 @@ method.
 __all__ = [
     'register_loader_type', 'get_provider', 'IResourceProvider','PathMetadata',
     'ResourceManager', 'AvailableDistributions', 'require', 'resource_string',
-    'resource_stream', 'resource_filename', 'set_extraction_path',
-    'cleanup_resources', 'parse_requirements', 'ensure_directory',
+    'resource_stream', 'resource_filename', 'set_extraction_path', 'EGG_DIST',
+    'cleanup_resources', 'parse_requirements', 'ensure_directory','SOURCE_DIST',
     'compatible_platforms', 'get_platform', 'IMetadataProvider','parse_version',
     'ResolutionError', 'VersionConflict', 'DistributionNotFound','EggMetadata',
     'InvalidOption', 'Distribution', 'Requirement', 'yield_lines',
@@ -1105,9 +1105,12 @@ def parse_version(s):
 
 
 
+EGG_DIST    = 2
+SOURCE_DIST = 1
+
 class Distribution(object):
     """Wrap an actual or potential sys.path entry w/metadata"""
-
+    typecode = EGG_DIST
     def __init__(self,
         path_str, metadata=None, name=None, version=None,
         py_version=PY_MAJOR, platform=None
@@ -1116,7 +1119,6 @@ class Distribution(object):
             self.name = name.replace('_','-')
         if version:
             self._version = version.replace('_','-')
-
         self.py_version = py_version
         self.platform = platform
         self.path = path_str
@@ -1143,8 +1145,6 @@ class Distribution(object):
             py_version=py_version, platform=platform
         )
     from_filename = classmethod(from_filename)
-
-
 
     # These properties have to be lazy so that we don't have to load any
     # metadata until/unless it's actually needed.  (i.e., some distributions
@@ -1174,13 +1174,13 @@ class Distribution(object):
         try:
             return self._version
         except AttributeError:
-            for line in self.metadata.get_metadata_lines('PKG-INFO'):
+            for line in self._get_metadata('PKG-INFO'):
                 if line.lower().startswith('version:'):
                     self._version = line.split(':',1)[1].strip()
                     return self._version
             else:
                 raise AttributeError(
-                    "Missing Version: header in PKG-INFO", self
+                    "Missing 'Version:' header in PKG-INFO", self
                 )
     version = property(version)
 
@@ -1215,7 +1215,7 @@ class Distribution(object):
         return deps
 
     def _get_metadata(self,name):
-        if self.metadata.has_metadata(name):
+        if self.metadata is not None and self.metadata.has_metadata(name):
             for line in self.metadata.get_metadata_lines(name):
                 yield line
 
@@ -1289,9 +1289,9 @@ def parse_requirements(strs):
 
 
 def _sort_dists(dists):
-    tmp = [(dist.version,dist) for dist in dists]
+    tmp = [(dist.version,dist.typecode,dist) for dist in dists]
     tmp.sort()
-    dists[::-1] = [d for v,d in tmp]
+    dists[::-1] = [d for v,t,d in tmp]
 
 
 
