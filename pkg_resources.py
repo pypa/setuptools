@@ -127,13 +127,30 @@ class AvailableDistributions(object):
     def __init__(self,search_path=None,platform=get_platform(),python=PY_MAJOR):
         """Snapshot distributions available on a search path
 
-        The constructor arguments are the same as those for the ``scan()``
-        method; see that method's documentation for details.
-        """
+        Any distributions found on `search_path` are added to the distribution
+        map.  `search_path` should be a sequence of ``sys.path`` items.  If not
+        supplied, ``sys.path`` is used.
 
+        `platform` is an optional string specifying the name of the platform
+        that platform-specific distributions must be compatible with.  If
+        unspecified, it defaults to the current platform.  `python` is an
+        optional string naming the desired version of Python (e.g. ``'2.4'``);
+        it defaults to the current version.
+
+        You may explicitly set `platform` (and/or `python`) to ``None`` if you
+        wish to map *all* distributions, not just those compatible with the
+        running platform or Python version.
+        """
         self._distmap = {}
         self._cache = {}
-        self.scan(search_path,platform,python)
+        self.platform = platform
+        self.python = python
+        self.scan(search_path)
+
+    def can_add(self, dist):
+        """Is distribution `dist` acceptable for this collection?"""
+        return (self.python is None or dist.py_version==self.python) \
+           and compatible_platforms(dist.platform,self.platform)
 
     def __iter__(self):
         """Iterate over distribution keys"""
@@ -143,8 +160,7 @@ class AvailableDistributions(object):
         """Has a distribution named `name` ever been added to this map?"""
         return name.lower() in self._distmap
 
-    def __len__(self):
-        return len(self._distmap)
+    def __len__(self): return len(self._distmap)
 
     def get(self,key,default=None):
         """Return ``self[key]`` if `key` in self, otherwise return `default`"""
@@ -153,35 +169,20 @@ class AvailableDistributions(object):
         else:
             return default
 
-    def scan(self, search_path=None, platform=get_platform(), python=PY_MAJOR):
+    def scan(self, search_path=None):
         """Scan `search_path` for distributions usable on `platform`
 
         Any distributions found are added to the distribution map.
         `search_path` should be a sequence of ``sys.path`` items.  If not
-        supplied, ``sys.path`` is used.  `platform` is an optional string
-        specifying the name of the platform that platform-specific
-        distributions must be compatible with.  If unspecified, it defaults to
-        the current platform.  `python` is an optional string naming the
-        desired version of Python (e.g. ``'2.4'``); it defaults to the current
-        version.
-
-        You may explicitly set `platform` (and/or `python`) to ``None`` if you
-        wish to map *all* distributions, not just those compatible with the
-        running platform or Python version.
+        supplied, ``sys.path`` is used.  Only distributions conforming to
+        the platform/python version defined at initialization are added.
         """
-
         if search_path is None:
             search_path = sys.path
 
-        add = self.add
-
         for item in search_path:
             for dist in find_distributions(item):
-                if python is not None and dist.py_version!=python:
-                    continue
-                if compatible_platforms(dist.platform, platform):
-                    add(dist)
-
+                self.add(dist)
 
     def __getitem__(self,key):
         """Return a newest-to-oldest list of distributions for the given key
@@ -189,7 +190,6 @@ class AvailableDistributions(object):
         The returned list may be modified in-place, e.g. for narrowing down
         usable distributions.
         """
-
         try:
             return self._cache[key]
         except KeyError:
@@ -204,10 +204,11 @@ class AvailableDistributions(object):
         return self._cache[key]
 
     def add(self,dist):
-        """Add `dist` to the distribution map"""
-        self._distmap.setdefault(dist.key,[]).append(dist)
-        if dist.key in self._cache:
-            _sort_dists(self._cache[dist.key])
+        """Add `dist` to the distribution map, only if it's suitable"""
+        if self.can_add(dist):
+            self._distmap.setdefault(dist.key,[]).append(dist)
+            if dist.key in self._cache:
+                _sort_dists(self._cache[dist.key])
 
     def remove(self,dist):
         """Remove `dist` from the distribution map"""
@@ -241,8 +242,7 @@ class AvailableDistributions(object):
         for dist in distros:
             if dist in requirement:
                 return dist
-
-        return self.obtain(requirement) # as a last resort, try and download
+        return self.obtain(requirement) # try and download
 
     def resolve(self, requirements, path=None):
         """List all distributions needed to (recursively) meet requirements"""
@@ -1132,7 +1132,7 @@ class Distribution(object):
 
     #@classmethod
     def from_filename(cls,filename,metadata=None):
-        name,version,py_version,platform = [None,None,PY_MAJOR,None]
+        name,version,py_version,platform = [None]*4
         basename,ext = os.path.splitext(os.path.basename(filename))
         if ext.lower()==".egg":
             match = EGG_NAME(basename)
@@ -1142,7 +1142,7 @@ class Distribution(object):
                 )
         return cls(
             filename, metadata, name=name, version=version,
-            py_version=py_version, platform=platform
+            py_version=py_version or PY_MAJOR, platform=platform
         )
     from_filename = classmethod(from_filename)
 

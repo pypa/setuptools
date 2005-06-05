@@ -23,7 +23,7 @@ class DistroTests(TestCase):
 
     def testCollection(self):
         # empty path should produce no distributions
-        ad = AvailableDistributions([])
+        ad = AvailableDistributions([], python=None)
         self.assertEqual(list(ad), [])
         self.assertEqual(len(ad),0)
         self.assertEqual(ad.get('FooPkg'),None)
