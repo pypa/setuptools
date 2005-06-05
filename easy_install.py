@@ -39,13 +39,140 @@ _open = open
 
 
 
+EXTENSIONS = (
+   (EGG_DIST,    ".egg"),
+   (SOURCE_DIST, ".tar.gz"),
+   (SOURCE_DIST, ".tar.bz2"),
+   (SOURCE_DIST, ".tar"),
+   (SOURCE_DIST, ".zip"),
+   (SOURCE_DIST, ".tgz"),
+)
+
+class URLDistribution(Distribution):
+    """A distribution that has not been installed"""
+
+    def __init__(self, url, metadata=None):
+        path = urlparse.urlparse(url)[2]
+        base = path.split('/')[-1]
+
+        for typecode, ext in EXTENSIONS:
+            if base.endswith(ext):
+                base = base[:-len(ext)]
+                break
+        else:
+            raise DistributionNotFound(url)
+
+        self.typecode = typecode
+        name, version, py_version, platform = [None]*4
+        match = pkg_resources.EGG_NAME(base)
+        if match:
+            name,version,py_version,platform = match.group(
+                'name','ver','pyver','plat'
+            )
+        else:
+            name = base
+        Distribution.__init__(self,
+            url, metadata=metadata, name=name, version=version or "0",
+            py_version=py_version or pkg_resources.PY_MAJOR, platform=platform
+        )
+
+
+
+
+
+class PackageIndex(AvailableDistributions):
+    """A distribution index that scans web pages for download URLs"""
+
+    def __init__(self,index_url="http://www.python.org/pypi",*args,**kw):
+        AvailableDistributions.__init__(self,*args,**kw)
+        self.index_url = index_url
+        self.scanned_urls = {}
+
+    def scan_url(self, url):
+        self.process_url(url, True)
+
+    def process_url(self, url, retrieve=False):
+        if url in self.scanned_urls:
+            return
+        try:
+            dist = URLDistribution(url)
+        except DistributionNotFound:    # not a distro, so scan the page
+            if not retrieve:
+                return    # unless we're skipping retrieval
+        else:
+            # It's a distro, just process it
+            self.scanned_urls[url] = True
+            self.add(dist)  # XXX should check py_ver/platform!
+            return
+
+        f = urllib.urlopen(url)
+        self.scanned_urls[url] = True
+
+        if 'html' not in f.headers['content-type'].lower():
+            f.close()   # not html, we can't process it
+            return
+        url = f.url     # handle redirects
+        href = re.compile(r"""href\s*=\s*['"]?([^'"> ]+)""", re.I)
+        page = f.read()
+        f.close()
+        for match in href.finditer(page):
+            link = urlparse.urljoin(url, match.group(1))
+            self.process_url(link)
+
+
+
+    def obtain(self,requirement):
+        self.find_packages(requirement)
+        for dist in self.get(requirement.key, ()):
+            if dist in requirement:
+                return dist
+
+    def find_packages(self,requirement):
+        pass # XXX process PyPI entries for package
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class Installer:
     """Manage a download/build/install process"""
 
     pth_file = None
     cleanup = False
 
-    def __init__(self, instdir=None, zip_ok=False, multi=None, tmpdir=None):
+    def __init__(self,
+        instdir=None, zip_ok=False, multi=None, tmpdir=None, index=None
+    ):
+        if index is None:
+            index = AvailableDistributions()
         if tmpdir is None:
             tmpdir = tempfile.mkdtemp(prefix="easy_install-")
             self.cleanup = True
@@ -67,7 +194,7 @@ class Installer:
             raise RuntimeError(
                 "Can't do single-version installs outside site-packages"
             )
-
+        self.index = index
         self.instdir = instdir
         self.zip_ok = zip_ok
         self.multi = multi
@@ -79,7 +206,6 @@ class Installer:
     def __del__(self):
         self.close()
 
-
     def samefile(self,p1,p2):
         if hasattr(os.path,'samefile') and (
             os.path.exists(p1) and os.path.exists(p2)
@@ -89,7 +215,6 @@ class Installer:
             os.path.normpath(os.path.normcase(p1)) ==
             os.path.normpath(os.path.normcase(p2))
         )
-
 
     def download(self, spec):
         """Locate and/or download or `spec`, returning a local filename"""
@@ -114,12 +239,10 @@ class Installer:
                     )
 
         # process a Requirement
-        dist = AvailableDistributions().best_match(spec,[])
-        if dist is not None and dist.path.endswith('.egg'):
-            return dist.path
-
-        return self.download(self._find_package(spec))
-
+        dist = self.index.best_match(spec,[])
+        if dist is not None:
+            return self.download(dist.path)
+        return None
 
     def install_eggs(self, dist_filename):
         # .egg dirs or files are already built, so just return them
@@ -231,10 +354,10 @@ class Installer:
             sys.argv[:] = save_argv
 
 
-    def _find_package(self, req):
-        # TODO: search here for a distro to download, matching Requirement
-        # 'req' and return the package URL or filename
-        raise DistributionNotFound(spec)
+
+
+
+
 
 
 
@@ -277,7 +400,7 @@ class Installer:
         else:
             metadata = EggMetadata(zipimport.zipimporter(destination))
             dist = Distribution.from_filename(destination,metadata=metadata)
-
+            self.index.add(dist)
         if self.pth_file is not None:
             map(self.pth_file.remove, self.pth_file.get(dist.key,())) # drop old
             if not self.multi:
@@ -314,7 +437,7 @@ class Installer:
             else:
                 raise
 
-        if headers['content-type'].lower().startswith('text/html'):
+        if 'html' in headers['content-type'].lower():
             return self._download_html(url, headers, filename)
 
         # and return its filename
@@ -657,7 +780,9 @@ class PthDistributions(AvailableDistributions):
 URL_SCHEME = re.compile('([-+.a-z0-9]{2,}):',re.I).match
 
 def main(argv, factory=Installer):
+
     from optparse import OptionParser
+
     parser = OptionParser(usage = "usage: %prog [options] url [url...]")
     parser.add_option("-d", "--install-dir", dest="instdir", default=None,
                       help="install package to DIR", metavar="DIR")
@@ -673,59 +798,57 @@ def main(argv, factory=Installer):
     parser.add_option("-b", "--build-directory", dest="tmpdir", metavar="DIR",
                       default=None,
                       help="download/extract/build in DIR; keep the results")
+
+    parser.add_option("-u", "--index-url", dest="index_url", metavar="URL",
+                      default="http://www.python.org/pypi",
+                      help="Base URL of Python Package Index")
+
+    parser.add_option("-s", "--scan-url", dest="scan_urls", metavar="URL",
+                      action="append",
+                      help="Additional URL(s) to search for packages")
+
     (options, args) = parser.parse_args()
+
+    if not args:
+        parser.error("No urls, filenames, or requirements specified")
+    elif len(args)>1 and options.tmpdir is not None:
+        parser.error("Build directory can only be set when using one URL")
+
+
+
+
+
     try:
-        if not args:
-            parser.error("No urls, filenames, or requirements specified")
-        elif len(args)>1 and options.tmpdir is not None:
-            parser.error("Build directory can only be set when using one URL")
+        index = PackageIndex(options.index_url)
+        if options.scan_urls:
+            for url in options.scan_urls:
+                index.scan_url(url)
+
         for spec in args:
             inst = factory(
-                options.instdir, options.zip_ok, options.multi, options.tmpdir
+                options.instdir, options.zip_ok, options.multi, options.tmpdir,
+                index
             )
             try:
                 print "Downloading", spec
                 downloaded = inst.download(spec)
+                if downloaded is None:
+                    raise RuntimeError(
+                        "Could not find distribution for %r" % spec
+                    )
                 print "Installing", os.path.basename(downloaded)
                 for dist in inst.install_eggs(downloaded):
                     print inst.installation_report(dist)
             finally:
                 inst.close()
+
     except RuntimeError, v:
         print >>sys.stderr,"error:",v
         sys.exit(1)
 
+
 if __name__ == '__main__':
     main(sys.argv[1:])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
