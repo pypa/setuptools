@@ -24,9 +24,9 @@ Installing "Easy Install"
 
 Unix-like Systems (including Mac OS X and Cygwin)
    Download either the `Python 2.3 easy_install shell script
-   <http://peak.telecommunity.com/dist/ez_install-0.3a3-py2.3-unix.sh>`_ or the
+   <http://peak.telecommunity.com/dist/ez_install-0.3a4-py2.3-unix.sh>`_ or the
    `Python 2.4 easy_install shell script
-   <http://peak.telecommunity.com/dist/ez_install-0.3a3-py2.4-unix.sh>`_. Place
+   <http://peak.telecommunity.com/dist/ez_install-0.3a4-py2.4-unix.sh>`_. Place
    the file somewhere on your PATH, after renaming it to ``easy_install``. Note
    that these scripts assume you have ``python2.3`` or ``python2.4`` accessible
    via the ``PATH`` environment variable. Then, you can use ``easy_install`` to
@@ -34,15 +34,15 @@ Unix-like Systems (including Mac OS X and Cygwin)
    your Python version::
 
      # Python 2.3
-     easy_install http://peak.telecommunity.com/dist/setuptools-0.3a3-py2.3.egg
+     easy_install http://peak.telecommunity.com/dist/setuptools-0.3a4-py2.3.egg
 
      # Python 2.4
-     easy_install http://peak.telecommunity.com/dist/setuptools-0.3a3-py2.4.egg
+     easy_install http://peak.telecommunity.com/dist/setuptools-0.3a4-py2.4.egg
 
 
 All Other Systems
    Download the `easy_install (aka setuptools) source distribution
-   <http://peak.telecommunity.com/dist/setuptools-0.3a3.zip>`_, and follow the
+   <http://peak.telecommunity.com/dist/setuptools-0.3a4.zip>`_, and follow the
    normal procedure for installing a source package with distutils. An
    ``easy_install.py`` script will be installed in the normal location for
    Python scripts on your platform. In the examples below, you'll need to
