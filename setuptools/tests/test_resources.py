@@ -258,12 +258,19 @@ class RequirementsTests(TestCase):
                             ImmutableSet(["foo","bar"])))
         )
 
+    def testVersionEquality(self):
+        r1 = Requirement.parse("setuptools==0.3a2")
+        r2 = Requirement.parse("setuptools!=0.3a4")
+        d = Distribution.from_filename
 
+        self.failIf(d("setuptools-0.3a4.egg") in r1)
+        self.failIf(d("setuptools-0.3a1.egg") in r1)
+        self.failIf(d("setuptools-0.3a4.egg") in r2)
 
-
-
-
-
+        self.failUnless(d("setuptools-0.3a2.egg") in r1)
+        self.failUnless(d("setuptools-0.3a2.egg") in r2)
+        self.failUnless(d("setuptools-0.3a3.egg") in r2)
+        self.failUnless(d("setuptools-0.3a5.egg") in r2)
 
 
 

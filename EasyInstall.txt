@@ -210,9 +210,41 @@ Command-Line Options
     URL or filename, so that the installer will not be confused by the presence
     of multiple ``setup.py`` files in the build directory.
 
+``--scan-url=URL, -s URL`` (New in 0.4a1)
+    Scan the specified "download page" for direct links to downloadable eggs or
+    source distributions.  Any usable packages will be downloaded if they are
+    required by a command line argument.  For example, this::
+
+        easy_install -s http://peak.telecommunity.com/dist PyProtocols
+
+    will download and install the latest version of PyProtocols linked from
+    the PEAK downloads page, but ignore the other download links on that page.
+
+    You may use this option more than once, to list multiple download pages.
+    If all requested packages can be found using the specified download pages,
+    the Python Package Index will *not* be consulted.
+
+``--index-url=URL, -u URL`` (New in 0.4a1)
+    Specifies the base URL of the Python Package Index.  The default is
+    http://www.python.org/pypi if not specified.  When a package is requested
+    that is not locally available or linked from a ``--scan-url`` download
+    page, the package index will be searched for download pages for the needed
+    package, and those download pages will be searched for links to download
+    an egg or source distribution.
+
 
 Release Notes/Change History
 ============================
+
+0.4a1
+ * Added ``--scan-url`` and ``--index-url`` options, to scan download pages
+   and search PyPI for needed packages.
+
+ * Fixed a bug in requirements processing for exact versions (i.e. ``==`` and
+   ``!=``) when only one condition was included.
+
+ * Added ``safe_name()`` and ``safe_version()`` APIs to clean up handling of
+   arbitrary distribution names and versions found on PyPI.
 
 0.3a4
  * ``pkg_resources`` now supports resource directories, not just the resources

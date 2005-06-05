@@ -54,6 +54,9 @@ class InvalidOption(ResolutionError):
 _provider_factories = {}
 PY_MAJOR = sys.version[:3]
 
+EGG_DIST    = 2
+SOURCE_DIST = 1
+
 def register_loader_type(loader_type, provider_factory):
     """Register `provider_factory` to make providers for `loader_type`
 
@@ -68,9 +71,6 @@ def get_provider(moduleName):
     module = sys.modules[moduleName]
     loader = getattr(module, '__loader__', None)
     return _find_adapter(_provider_factories, loader)(module)
-
-
-
 
 
 
@@ -1146,23 +1146,21 @@ def parse_version(s):
 
 
 
-EGG_DIST    = 2
-SOURCE_DIST = 1
-
 class Distribution(object):
     """Wrap an actual or potential sys.path entry w/metadata"""
-    typecode = EGG_DIST
+    
     def __init__(self,
         path_str, metadata=None, name=None, version=None,
-        py_version=PY_MAJOR, platform=None
+        py_version=PY_MAJOR, platform=None, distro_type = EGG_DIST
     ):
         if name:
-            self.name = name.replace('_','-')
+            self.name = safe_name(name)
         if version:
-            self._version = version.replace('_','-')
+            self._version = safe_version(version)
         self.py_version = py_version
         self.platform = platform
         self.path = path_str
+        self.distro_type = distro_type
         self.metadata = metadata
 
     def installed_on(self,path=None):
@@ -1186,6 +1184,8 @@ class Distribution(object):
             py_version=py_version or PY_MAJOR, platform=platform
         )
     from_filename = classmethod(from_filename)
+
+
 
     # These properties have to be lazy so that we don't have to load any
     # metadata until/unless it's actually needed.  (i.e., some distributions
@@ -1330,7 +1330,7 @@ def parse_requirements(strs):
 
 
 def _sort_dists(dists):
-    tmp = [(dist.version,dist.typecode,dist) for dist in dists]
+    tmp = [(dist.version,dist.distro_type,dist) for dist in dists]
     tmp.sort()
     dists[::-1] = [d for v,t,d in tmp]
 
@@ -1382,15 +1382,15 @@ class Requirement:
             item = item.parsed_version
         elif isinstance(item,basestring):
             item = parse_version(item)
-        last = True
+        last = None
         for parsed,trans,op,ver in self.index:
             action = trans[cmp(item,parsed)]
             if action=='F':     return False
             elif action=='T':   return True
             elif action=='+':   last = True
-            elif action=='-':   last = False
+            elif action=='-' or last is None:   last = False
+        if last is None: last = True    # no rules encountered
         return last
-
 
     def __hash__(self):
         return self.__hash
@@ -1414,7 +1414,7 @@ state_machine = {
     '>' :  'F+F',
     '>=':  'T+F',
     '==':  'T..',
-    '!=':  'F..',
+    '!=':  'F++',
 }
 
 

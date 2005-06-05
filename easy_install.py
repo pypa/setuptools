@@ -28,139 +28,139 @@ import __builtin__
 from distutils.sysconfig import get_python_lib
 from shutil import rmtree   # must have, because it can be called from __del__
 from pkg_resources import *
-
 _os = sys.modules[os.name]
 _open = open
 
+class Opener(urllib.FancyURLopener):
+    def http_error_default(self, url, fp, errcode, errmsg, headers):
+        """Default error handling -- don't raise an exception."""
+        info = urllib.addinfourl(fp, headers, "http:" + url)
+        info.status, info.reason = errcode, errmsg
+        return info
+opener = Opener()
 
+HREF = re.compile(r"""href\s*=\s*['"]?([^'"> ]+)""", re.I)
+EXTENSIONS = ".tar.gz .tar.bz2 .tar .zip .tgz".split()
 
+def distros_for_url(url, metadata=None):
+    """Yield egg or source distribution objects that might be found at a URL"""
 
+    path = urlparse.urlparse(url)[2]
+    base = urllib.unquote(path.split('/')[-1])
 
+    if base.endswith('.egg'):
+        dist = Distribution.from_filename(base, metadata)
+        dist.path = url
+        yield dist
+        return  # only one, unambiguous interpretation
 
+    for ext in EXTENSIONS:
+        if base.endswith(ext):
+            base = base[:-len(ext)]
+            break
+    else:
+        return  # no extension matched
 
+    # Generate alternative interpretations of a source distro name
+    # Because some packages are ambiguous as to name/versions split
+    # e.g. "adns-python-1.1.0", "egenix-mx-commercial", etc.
+    # So, we generate each possible interepretation (e.g. "adns, python-1.1.0"
+    # "adns-python, 1.1.0", and "adns-python-1.1.0, no version").  In practice,
+    # the spurious interpretations should be ignored, because in the event
+    # there's also an "adns" package, the spurious "python-1.1.0" version will
+    # compare lower than any numeric version number, and is therefore unlikely
+    # to match a request for it.  It's still a potential problem, though, and
+    # in the long run PyPI and the distutils should go for "safe" names and
+    # versions in source distribution names.
 
-EXTENSIONS = (
-   (EGG_DIST,    ".egg"),
-   (SOURCE_DIST, ".tar.gz"),
-   (SOURCE_DIST, ".tar.bz2"),
-   (SOURCE_DIST, ".tar"),
-   (SOURCE_DIST, ".zip"),
-   (SOURCE_DIST, ".tgz"),
-)
-
-class URLDistribution(Distribution):
-    """A distribution that has not been installed"""
-
-    def __init__(self, url, metadata=None):
-        path = urlparse.urlparse(url)[2]
-        base = path.split('/')[-1]
-
-        for typecode, ext in EXTENSIONS:
-            if base.endswith(ext):
-                base = base[:-len(ext)]
-                break
-        else:
-            raise DistributionNotFound(url)
-
-        self.typecode = typecode
-        name, version, py_version, platform = [None]*4
-        match = pkg_resources.EGG_NAME(base)
-        if match:
-            name,version,py_version,platform = match.group(
-                'name','ver','pyver','plat'
-            )
-        else:
-            name = base
-        Distribution.__init__(self,
-            url, metadata=metadata, name=name, version=version or "0",
-            py_version=py_version or pkg_resources.PY_MAJOR, platform=platform
+    parts = base.split('-')
+    for p in range(1,len(parts)+1):
+        yield Distribution(
+            url, metadata, '-'.join(parts[:p]), '-'.join(parts[p:]),
+            distro_type = SOURCE_DIST
         )
-
-
-
-
 
 class PackageIndex(AvailableDistributions):
     """A distribution index that scans web pages for download URLs"""
 
     def __init__(self,index_url="http://www.python.org/pypi",*args,**kw):
         AvailableDistributions.__init__(self,*args,**kw)
-        self.index_url = index_url
+        self.index_url = index_url + "/"[:not index_url.endswith('/')]
         self.scanned_urls = {}
+        self.fetched_urls = {}
+        self.package_pages = {}
 
     def scan_url(self, url):
         self.process_url(url, True)
 
     def process_url(self, url, retrieve=False):
-        if url in self.scanned_urls:
-            return
-        try:
-            dist = URLDistribution(url)
-        except DistributionNotFound:    # not a distro, so scan the page
-            if not retrieve:
-                return    # unless we're skipping retrieval
-        else:
-            # It's a distro, just process it
-            self.scanned_urls[url] = True
-            self.add(dist)  # XXX should check py_ver/platform!
+        if url in self.scanned_urls and not retrieve:
             return
 
-        f = urllib.urlopen(url)
         self.scanned_urls[url] = True
+        dists = list(distros_for_url(url))
+        map(self.add, dists)
 
+        if dists or not retrieve or url in self.fetched_urls:
+            # don't need the actual page
+            return
+
+        f = opener.open(url)
+        self.fetched_urls[url] = self.fetched_urls[f.url] = True
         if 'html' not in f.headers['content-type'].lower():
             f.close()   # not html, we can't process it
             return
-        url = f.url     # handle redirects
-        href = re.compile(r"""href\s*=\s*['"]?([^'"> ]+)""", re.I)
+
+        base = f.url     # handle redirects
         page = f.read()
         f.close()
-        for match in href.finditer(page):
-            link = urlparse.urljoin(url, match.group(1))
-            self.process_url(link)
+        if url.startswith(self.index_url):
+            self.process_index(url, page)
+        else:
+            for match in HREF.finditer(page):
+                link = urlparse.urljoin(base, match.group(1))
+                self.process_url(link)
 
+    def find_packages(self,requirement):       
+        self.scan_url(self.index_url + requirement.distname)
+        if not self.package_pages.get(requirement.key):
+            # We couldn't find the target package, so search the index page too
+            self.scan_url(self.index_url)
+        for url in self.package_pages.get(requirement.key,()):
+            # scan each page that might be related to the desired package
+            self.scan_url(url)
 
+    def process_index(self,url,page):
+        def scan(link):
+            if link.startswith(self.index_url):
+                parts = map(
+                    urllib.unquote, link[len(self.index_url):].split('/')
+                )
+                if len(parts)==2:
+                    # it's a package page, sanitize and index it
+                    pkg = safe_name(parts[0])
+                    ver = safe_version(parts[1])
+                    self.package_pages.setdefault(pkg.lower(),{})[link] = True          
+        if url==self.index_url or 'Index of Packages</title>' in page:
+            # process an index page into the package-page index
+            for match in HREF.finditer(page):
+                scan( urlparse.urljoin(url, match.group(1)) )
+        else:
+            scan(url)   # ensure this page is in the page index
+            # process individual package page
+            for tag in ("<th>Home Page", "<th>Download URL"):
+                pos = page.find(tag)
+                if pos!=-1:
+                    match = HREF.search(page,pos)
+                    if match:
+                        # Process the found URL
+                        self.scan_url(urlparse.urljoin(url, match.group(1)))
 
     def obtain(self,requirement):
         self.find_packages(requirement)
         for dist in self.get(requirement.key, ()):
             if dist in requirement:
                 return dist
-
-    def find_packages(self,requirement):
-        pass # XXX process PyPI entries for package
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 class Installer:
     """Manage a download/build/install process"""
@@ -801,11 +801,11 @@ def main(argv, factory=Installer):
 
     parser.add_option("-u", "--index-url", dest="index_url", metavar="URL",
                       default="http://www.python.org/pypi",
-                      help="Base URL of Python Package Index")
+                      help="base URL of Python Package Index")
 
     parser.add_option("-s", "--scan-url", dest="scan_urls", metavar="URL",
                       action="append",
-                      help="Additional URL(s) to search for packages")
+                      help="additional URL(s) to search for packages")
 
     (options, args) = parser.parse_args()
 
