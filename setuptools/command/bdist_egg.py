@@ -96,9 +96,12 @@ class bdist_egg(Command):
         f.close()
 
     def do_install_data(self):
+        # Hack for packages that install data to install's --install-lib
         self.get_finalized_command('install').install_lib = self.bdist_dir
+
         site_packages = os.path.normcase(os.path.realpath(get_python_lib()))
         old, self.distribution.data_files = self.distribution.data_files,[]
+
         for item in old:
             if isinstance(item,tuple) and len(item)==2:
                 if os.path.isabs(item[0]):
@@ -110,36 +113,27 @@ class bdist_egg(Command):
                         item = realpath[len(site_packages)+1:], item[1]
                     # XXX else: raise ???
             self.distribution.data_files.append(item)
+
         try:
-            install = self.reinitialize_command('install_data')
-            # kludge for setups that use a 3-tuple inst_data
-            install.install_dir = install.install_base = \
-                install.install_data = install.install_lib = self.bdist_dir
-            install.force = 0; install.root = None
             log.info("installing package data to %s" % self.bdist_dir)
-            self.run_command('install_data')
+            self.call_command('install_data', force=0, root=None)
         finally:
             self.distribution.data_files = old
 
-    def run(self):
-        if not self.skip_build:
-            self.run_command('build')
 
+    def run(self):
         # We run install_lib before install_data, because some data hacks
         # pull their data path from the install_lib command.
-        install = self.reinitialize_command('install_lib', reinit_subcommands=1)
-        install.install_dir = self.bdist_dir
-        install.skip_build = self.skip_build
-        install.warn_dir = 0
 
-        ext_outputs = \
-            install._mutate_outputs(self.distribution.has_ext_modules(),
-                                    'build_ext', 'build_lib',
-                                    '')
         log.info("installing library code to %s" % self.bdist_dir)
-        self.run_command('install_lib')
+        cmd = self.call_command('install_lib', warn_dir=0)
+
+        ext_outputs = cmd._mutate_outputs(
+            self.distribution.has_ext_modules(), 'build_ext', 'build_lib', ''
+        )
 
         to_compile = []
+
         for ext_name in ext_outputs:
             filename,ext = os.path.splitext(ext_name)
             pyfile = os.path.join(self.bdist_dir, filename + '.py')
@@ -149,15 +143,21 @@ class bdist_egg(Command):
             to_compile.append(pyfile)
 
         if to_compile:
-            install.byte_compile(to_compile)
+            cmd.byte_compile(to_compile)
 
         if self.distribution.data_files:
             self.do_install_data()
+
+        if self.distribution.scripts:
+            script_dir = os.path.join(self.bdist_dir,'EGG-INFO','scripts')
+            log.info("installing scripts to %s" % script_dir)
+            self.call_command('install_scripts', install_dir=script_dir)
 
         # And make an archive relative to the root of the
         # pseudo-installation tree.
         archive_basename = "%s-%s-py%s" % ( self.egg_name.replace('-','_'),
             self.egg_version.replace('-','_'), get_python_version())
+
         if ext_outputs:
             archive_basename += "-" + self.plat_name
             ext_outputs = [out.replace(os.sep,'/') for out in ext_outputs]
@@ -207,7 +207,6 @@ class bdist_egg(Command):
         make_zipfile(pseudoinstall_root+'.egg',
                           archive_root, verbose=self.verbose,
                           dry_run=self.dry_run)
-
         if not self.keep_temp:
             remove_tree(self.bdist_dir, dry_run=self.dry_run)
 
@@ -234,14 +233,23 @@ class bdist_egg(Command):
             raise RuntimeError("svn info error: %s" % result.strip())
         return match.group(1)
 
+    def call_command(self,cmdname,**kw):
+        cmd = self.reinitialize_command(cmdname)
+        for dirname in INSTALL_DIRECTORY_ATTRS:
+            if dirname in cmd.__dict__:     # don't overwrite methods!
+                setattr(cmd,dirname,self.bdist_dir)
+        cmd.skip_build = self.skip_build
+        for k,v in kw.items():
+            setattr(cmd,k,v)
+        self.run_command(cmdname)
+        return cmd
 
+# Attribute names of options for commands that might need to be convinced to
+# install to the egg build directory
 
-
-
-
-
-
-
+INSTALL_DIRECTORY_ATTRS = [
+    'install_lib', 'install_dir', 'install_data', 'install_base'
+]
 
 
 def make_zipfile (zip_filename, base_dir, verbose=0, dry_run=0):
@@ -274,14 +282,6 @@ def make_zipfile (zip_filename, base_dir, verbose=0, dry_run=0):
         z.close()
 
     return zip_filename
-
-
-
-
-
-
-
-
 
 
 
