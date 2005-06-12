@@ -280,7 +280,8 @@ Known Issues
 
  * All downloads are now managed by the ``PackageIndex`` class (which is now
    subclassable and replaceable), so that embedders can more easily override
-   download logic, give download progress reports, etc.
+   download logic, give download progress reports, etc.  The class has also
+   been moved to the new ``setuptools.package_index`` module.
 
  * The ``Installer`` class no longer handles downloading, manages a temporary
    directory, or tracks the ``zip_ok`` option.  Downloading is now handled
