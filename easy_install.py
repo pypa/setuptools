@@ -19,23 +19,23 @@ import re
 import zipimport
 import shutil
 import urlparse
-import urllib
+import urllib2
 import tempfile
 
 from setuptools.sandbox import run_setup
 from setuptools.archive_util import unpack_archive
 from distutils.sysconfig import get_python_lib
-from shutil import rmtree   # must have, because it can be called from __del__
 from pkg_resources import *
 
 
-class Opener(urllib.FancyURLopener):
-    def http_error_default(self, url, fp, errcode, errmsg, headers):
-        """Default error handling -- don't raise an exception."""
-        info = urllib.addinfourl(fp, headers, "http:" + url)
-        info.status, info.reason = errcode, errmsg
-        return info
-opener = Opener()
+
+
+
+
+
+
+
+
 
 
 
@@ -46,7 +46,7 @@ def distros_for_url(url, metadata=None):
     """Yield egg or source distribution objects that might be found at a URL"""
 
     path = urlparse.urlparse(url)[2]
-    base = urllib.unquote(path.split('/')[-1])
+    base = urllib2.unquote(path.split('/')[-1])
 
     if base.endswith('.egg'):
         dist = Distribution.from_filename(base, metadata)
@@ -71,7 +71,7 @@ def distros_for_url(url, metadata=None):
     # compare lower than any numeric version number, and is therefore unlikely
     # to match a request for it.  It's still a potential problem, though, and
     # in the long run PyPI and the distutils should go for "safe" names and
-    # versions in source distribution names.
+    # versions in distribution archive names (sdist and bdist).
 
     parts = base.split('-')
     for p in range(1,len(parts)+1):
@@ -105,7 +105,7 @@ class PackageIndex(AvailableDistributions):
             # don't need the actual page
             return
 
-        f = opener.open(url)
+        f = self.open_url(url)
         self.fetched_urls[url] = self.fetched_urls[f.url] = True
         if 'html' not in f.headers['content-type'].lower():
             f.close()   # not html, we can't process it
@@ -121,7 +121,7 @@ class PackageIndex(AvailableDistributions):
                 link = urlparse.urljoin(base, match.group(1))
                 self.process_url(link)
 
-    def find_packages(self,requirement):       
+    def find_packages(self,requirement):
         self.scan_url(self.index_url + requirement.distname)
         if not self.package_pages.get(requirement.key):
             # We couldn't find the target package, so search the index page too
@@ -134,13 +134,13 @@ class PackageIndex(AvailableDistributions):
         def scan(link):
             if link.startswith(self.index_url):
                 parts = map(
-                    urllib.unquote, link[len(self.index_url):].split('/')
+                    urllib2.unquote, link[len(self.index_url):].split('/')
                 )
                 if len(parts)==2:
                     # it's a package page, sanitize and index it
                     pkg = safe_name(parts[0])
                     ver = safe_version(parts[1])
-                    self.package_pages.setdefault(pkg.lower(),{})[link] = True          
+                    self.package_pages.setdefault(pkg.lower(),{})[link] = True
         if url==self.index_url or 'Index of Packages</title>' in page:
             # process an index page into the package-page index
             for match in HREF.finditer(page):
@@ -162,69 +162,25 @@ class PackageIndex(AvailableDistributions):
             if dist in requirement:
                 return dist
 
-class Installer:
-    """Manage a download/build/install process"""
+    def download(self, spec, tmpdir):
+        """Locate and/or download `spec`, returning a local filename
 
-    pth_file = None
-    cleanup = False
+        `spec` may be a ``Requirement`` object, or a string containing a URL,
+        an existing local filename, or a package/version requirement spec
+        (i.e. the string form of a ``Requirement`` object).
 
-    def __init__(self,
-        instdir=None, zip_ok=False, multi=None, tmpdir=None, index=None
-    ):
-        if index is None:
-            index = AvailableDistributions()
-        if tmpdir is None:
-            tmpdir = tempfile.mkdtemp(prefix="easy_install-")
-            self.cleanup = True
-        elif not os.path.isdir(tmpdir):
-            os.makedirs(tmpdir)
-        self.tmpdir = os.path.realpath(tmpdir)
+        If necessary, the requirement is searched for in the package index.
+        If the download is successful, the return value is a local file path,
+        and it is a subpath of `tmpdir` if the distribution had to be
+        downloaded.  If no matching distribution is found, return ``None``.
+        Various errors may be raised if a problem occurs during downloading.
+        """
 
-        site_packages = get_python_lib()
-        if instdir is None or self.samefile(site_packages,instdir):
-            instdir = site_packages
-            self.pth_file = PthDistributions(
-                os.path.join(instdir,'easy-install.pth')
-            )
-        elif multi is None:
-            multi = True
-
-        elif not multi:
-            # explicit false, raise an error
-            raise RuntimeError(
-                "Can't do single-version installs outside site-packages"
-            )
-        self.index = index
-        self.instdir = instdir
-        self.zip_ok = zip_ok
-        self.multi = multi
-
-    def close(self):
-        if self.cleanup and os.path.isdir(self.tmpdir):
-            rmtree(self.tmpdir,True)
-
-    def __del__(self):
-        self.close()
-
-    def samefile(self,p1,p2):
-        if hasattr(os.path,'samefile') and (
-            os.path.exists(p1) and os.path.exists(p2)
-        ):
-            return os.path.samefile(p1,p2)
-        return (
-            os.path.normpath(os.path.normcase(p1)) ==
-            os.path.normpath(os.path.normcase(p2))
-        )
-
-    def download(self, spec):
-        """Locate and/or download or `spec`, returning a local filename"""
-        if isinstance(spec,Requirement):
-            pass
-        else:
+        if not isinstance(spec,Requirement):
             scheme = URL_SCHEME(spec)
             if scheme:
-                # It's a url, download it to self.tmpdir
-                return self._download_url(scheme.group(1), spec)
+                # It's a url, download it to tmpdir
+                return self._download_url(scheme.group(1), spec, tmpdir)
 
             elif os.path.exists(spec):
                 # Existing file or directory, just return it
@@ -239,127 +195,88 @@ class Installer:
                     )
 
         # process a Requirement
-        dist = self.index.best_match(spec,[])
+        dist = self.best_match(spec,[])
         if dist is not None:
-            return self.download(dist.path)
+            return self.download(dist.path, tmpdir)
+
         return None
 
-    def install_eggs(self, dist_filename):
-        # .egg dirs or files are already built, so just return them
-        if dist_filename.lower().endswith('.egg'):
-            return [self.install_egg(dist_filename,True)]
 
-        # Anything else, try to extract and build
-        if os.path.isfile(dist_filename):
-            unpack_archive(dist_filename, self.tmpdir)  # XXX add progress log
 
-        # Find the setup.py file
-        from glob import glob
-        setup_script = os.path.join(self.tmpdir, 'setup.py')
-        if not os.path.exists(setup_script):
-            setups = glob(os.path.join(self.tmpdir, '*', 'setup.py'))
-            if not setups:
-                raise RuntimeError(
-                    "Couldn't find a setup script in %s" % dist_filename
-                )
-            if len(setups)>1:
-                raise RuntimeError(
-                    "Multiple setup scripts in %s" % dist_filename
-                )
-            setup_script = setups[0]
-
-        from setuptools.command import bdist_egg
-        sys.modules.setdefault('distutils.command.bdist_egg', bdist_egg)
+    dl_blocksize = 8192
+    
+    def _download_to(self, url, filename):
+        # Download the file
+        fp, tfp = None, None
         try:
-            run_setup(setup_script, '-q', 'bdist_egg')
-        except SystemExit, v:
-            raise RuntimeError(
-                "Setup script exited with %s" % (v.args[0],)
-            )
-
-        eggs = []
-        for egg in glob(
-            os.path.join(os.path.dirname(setup_script),'dist','*.egg')
-        ):
-            eggs.append(self.install_egg(egg, self.zip_ok))
-
-        return eggs
-
-    def install_egg(self, egg_path, zip_ok):
-
-        destination = os.path.join(self.instdir, os.path.basename(egg_path))
-        ensure_directory(destination)
-
-        if not self.samefile(egg_path, destination):
-            if os.path.isdir(destination):
-                shutil.rmtree(destination)
-            elif os.path.isfile(destination):
-                os.unlink(destination)
-
-            if zip_ok:
-                if egg_path.startswith(self.tmpdir):
-                    shutil.move(egg_path, destination)
-                else:
-                    shutil.copy2(egg_path, destination)
-
-            elif os.path.isdir(egg_path):
-                shutil.move(egg_path, destination)
-
-            else:
-                os.mkdir(destination)
-                unpack_archive(egg_path, destination)   # XXX add progress??
-
-        if os.path.isdir(destination):
-            dist = Distribution.from_filename(
-                destination, metadata=PathMetadata(
-                    destination, os.path.join(destination,'EGG-INFO')
+            fp = self.open_url(url)
+            if isinstance(fp, urllib2.HTTPError):
+                raise RuntimeError(
+                    "Can't download %s: %s %s" % (url, fp.code,fp.msg)
                 )
-            )
-        else:
-            metadata = EggMetadata(zipimport.zipimporter(destination))
-            dist = Distribution.from_filename(destination,metadata=metadata)
-            self.index.add(dist)
-        if self.pth_file is not None:
-            map(self.pth_file.remove, self.pth_file.get(dist.key,())) # drop old
-            if not self.multi:
-                self.pth_file.add(dist) # add new
-            self.pth_file.save()
-        return dist
 
-    def _download_url(self, scheme, url):
+            headers = fp.info()
+            blocknum = 0
+            bs = self.dl_blocksize
+            size = -1
+
+            if "content-length" in headers:
+                size = int(headers["Content-Length"])
+                self.reporthook(url, filename, blocknum, bs, size)
+
+            tfp = open(filename,'wb')      
+            while True:
+                block = fp.read(bs)
+                if block:
+                    tfp.write(block)
+                    blocknum += 1
+                    self.reporthook(url, filename, blocknum, bs, size)
+                else:
+                    break
+            return headers
+
+        finally:
+            if fp: fp.close()
+            if tfp: tfp.close()
+
+    def reporthook(self, url, filename, blocknum, blksize, size):
+        pass    # no-op
+
+
+
+    def open_url(self, url):
+        try:
+            return urllib2.urlopen(url)
+        except urllib2.HTTPError, v:
+            return v
+        except urllib2.URLError, v:
+            raise RuntimeError("Download error: %s" % v.reason)
+
+
+    def _download_url(self, scheme, url, tmpdir):
 
         # Determine download filename
-        name = filter(None,urlparse.urlparse(url)[2].split('/'))[-1]
+        #
+        name = filter(None,urlparse.urlparse(url)[2].split('/'))
+        if name:
+            name = name[-1]
+            while '..' in name:
+                name = name.replace('..','.').replace('\\','_')
+        else:
+            name = "__downloaded__"    # default if URL has no path contents
 
-        while '..' in name:
-            name = name.replace('..','.').replace('\\','_')
-
-        filename = os.path.join(self.tmpdir,name)
-
-        if scheme=='svn' or scheme.startswith('svn+'):
-            return self._download_svn(url, filename)
+        filename = os.path.join(tmpdir,name)
 
         # Download the file
-        class _opener(urllib.FancyURLopener):
-            http_error_default = urllib.URLopener.http_error_default
-
-        try:
-            filename,headers = _opener().retrieve(
-                url,filename
-            )
-        except IOError,v:
-            if v.args and v.args[0]=='http error':
-                raise RuntimeError(
-                    "Download error: %s %s" % v.args[1:3]
-                )
+        #
+        if scheme=='svn' or scheme.startswith('svn+'):
+            return self._download_svn(url, filename)
+        else:
+            headers = self._download_to(url, filename)
+            if 'html' in headers['content-type'].lower():
+                return self._download_html(url, headers, filename, tmpdir)
             else:
-                raise
-
-        if 'html' in headers['content-type'].lower():
-            return self._download_html(url, headers, filename)
-
-        # and return its filename
-        return filename
+                return filename
 
 
 
@@ -367,7 +284,8 @@ class Installer:
 
 
 
-    def _download_html(self, url, headers, filename):
+
+    def _download_html(self, url, headers, filename, tmpdir):
         # Check for a sourceforge URL
         sf_url = url.startswith('http://prdownloads.')
         file = open(filename)
@@ -388,7 +306,7 @@ class Installer:
                         page = file.read()
                         file.close()
                         os.unlink(filename)
-                        return self._download_sourceforge(url, page)
+                        return self._download_sourceforge(url, page, tmpdir)
                 break   # not an index page
         file.close()
         raise RuntimeError("Unexpected HTML page found at "+url)
@@ -408,7 +326,7 @@ class Installer:
 
 
 
-    def _download_sourceforge(self, source_url, sf_page):
+    def _download_sourceforge(self, source_url, sf_page, tmpdir):
         """Download package from randomly-selected SourceForge mirror"""
 
         mirror_regex = re.compile(r'HREF=(/.*?\?use_mirror=[^>]*)')
@@ -420,7 +338,7 @@ class Installer:
 
         import random
         url = urlparse.urljoin(source_url, random.choice(urls))
-        f = urllib.urlopen(url)
+        f = self.open_url(url)
         match = re.search(
             r'<META HTTP-EQUIV="refresh" content=".*?URL=(.*?)"',
             f.read()
@@ -430,7 +348,7 @@ class Installer:
         if match:
             download_url = match.group(1)
             scheme = URL_SCHEME(download_url)
-            return self._download_url(scheme.group(1), download_url)
+            return self._download_url(scheme.group(1), download_url, tmpdir)
         else:
             raise RuntimeError(
                 'No META HTTP-EQUIV="refresh" found in Sourceforge page at %s'
@@ -444,6 +362,129 @@ class Installer:
 
 
 
+
+
+
+
+
+class Installer:
+    """Manage a download/build/install process"""
+
+    pth_file = None
+    cleanup = False
+
+    def __init__(self, instdir=None, multi=None):
+        site_packages = get_python_lib()
+        if instdir is None or self.samefile(site_packages,instdir):
+            instdir = site_packages
+            self.pth_file = PthDistributions(
+                os.path.join(instdir,'easy-install.pth')
+            )
+        elif multi is None:
+            multi = True
+
+        elif not multi:
+            # explicit false, raise an error
+            raise RuntimeError(
+                "Can't do single-version installs outside site-packages"
+            )
+
+        self.instdir = instdir
+        self.multi = multi
+
+
+    def samefile(self,p1,p2):
+        if hasattr(os.path,'samefile') and (
+            os.path.exists(p1) and os.path.exists(p2)
+        ):
+            return os.path.samefile(p1,p2)
+        return (
+            os.path.normpath(os.path.normcase(p1)) ==
+            os.path.normpath(os.path.normcase(p2))
+        )
+
+
+
+
+
+
+    def install_eggs(self, dist_filename, zip_ok, tmpdir):
+        # .egg dirs or files are already built, so just return them
+        if dist_filename.lower().endswith('.egg'):
+            return [self.install_egg(dist_filename, True, tmpdir)]
+
+        # Anything else, try to extract and build
+        if os.path.isfile(dist_filename):
+            unpack_archive(dist_filename, tmpdir)  # XXX add progress log
+
+        # Find the setup.py file
+        from glob import glob
+        setup_script = os.path.join(tmpdir, 'setup.py')
+        if not os.path.exists(setup_script):
+            setups = glob(os.path.join(tmpdir, '*', 'setup.py'))
+            if not setups:
+                raise RuntimeError(
+                    "Couldn't find a setup script in %s" % dist_filename
+                )
+            if len(setups)>1:
+                raise RuntimeError(
+                    "Multiple setup scripts in %s" % dist_filename
+                )
+            setup_script = setups[0]
+
+        from setuptools.command import bdist_egg
+        sys.modules.setdefault('distutils.command.bdist_egg', bdist_egg)
+        try:
+            run_setup(setup_script, ['-q', 'bdist_egg'])
+        except SystemExit, v:
+            raise RuntimeError(
+                "Setup script exited with %s" % (v.args[0],)
+            )
+
+        eggs = []
+        for egg in glob(
+            os.path.join(os.path.dirname(setup_script),'dist','*.egg')
+        ):
+            eggs.append(self.install_egg(egg, zip_ok, tmpdir))
+
+        return eggs
+
+    def install_egg(self, egg_path, zip_ok, tmpdir):
+
+        destination = os.path.join(self.instdir, os.path.basename(egg_path))
+        ensure_directory(destination)
+
+        if not self.samefile(egg_path, destination):
+            if os.path.isdir(destination):
+                shutil.rmtree(destination)
+            elif os.path.isfile(destination):
+                os.unlink(destination)
+
+            if zip_ok:
+                if egg_path.startswith(tmpdir):
+                    shutil.move(egg_path, destination)
+                else:
+                    shutil.copy2(egg_path, destination)
+
+            elif os.path.isdir(egg_path):
+                shutil.move(egg_path, destination)
+
+            else:
+                os.mkdir(destination)
+                unpack_archive(egg_path, destination)   # XXX add progress??
+
+        if os.path.isdir(destination):
+            dist = Distribution.from_filename(
+                destination, metadata=PathMetadata(
+                    destination, os.path.join(destination,'EGG-INFO')
+                )
+            )
+        else:
+            metadata = EggMetadata(zipimport.zipimporter(destination))
+            dist = Distribution.from_filename(destination,metadata=metadata)
+
+        self.update_pth(dist)
+        return dist
 
 
 
@@ -478,14 +519,14 @@ PYTHONPATH, or by being added to sys.path by your code.)
         version = dist.version
         return msg % locals()
 
-
-
-
-
-
-
-
-
+    def update_pth(self,dist):
+        if self.pth_file is not None:
+            remove = self.pth_file.remove
+            for d in self.pth_file.get(dist.key,()):    # drop old entries
+                remove(d)
+            if not self.multi:
+                self.pth_file.add(dist) # add new entry
+            self.pth_file.save()
 
 
 
@@ -533,7 +574,7 @@ class PthDistributions(AvailableDistributions):
 
 URL_SCHEME = re.compile('([-+.a-z0-9]{2,}):',re.I).match
 
-def main(argv, factory=Installer):
+def main(argv, installer_type=Installer, index_type=PackageIndex):
 
     from optparse import OptionParser
 
@@ -572,44 +613,44 @@ def main(argv, factory=Installer):
 
 
 
+    def alloc_tmp():
+        if options.tmpdir is None:
+            return tempfile.mkdtemp(prefix="easy_install-")
+        elif not os.path.isdir(options.tmpdir):
+            os.makedirs(options.tmpdir)
+        return os.path.realpath(options.tmpdir)
+
     try:
-        index = PackageIndex(options.index_url)
+        index = index_type(options.index_url)
+        inst = installer_type(options.instdir, options.multi)
+
         if options.scan_urls:
             for url in options.scan_urls:
                 index.scan_url(url)
 
         for spec in args:
-            inst = factory(
-                options.instdir, options.zip_ok, options.multi, options.tmpdir,
-                index
-            )
+            tmpdir = alloc_tmp()
             try:
                 print "Downloading", spec
-                downloaded = inst.download(spec)
-                if downloaded is None:
+                download = index.download(spec, tmpdir)
+                if download is None:
                     raise RuntimeError(
                         "Could not find distribution for %r" % spec
                     )
-                print "Installing", os.path.basename(downloaded)
-                for dist in inst.install_eggs(downloaded):
+
+                print "Installing", os.path.basename(download)
+                for dist in inst.install_eggs(download,options.zip_ok, tmpdir):
+                    index.add(dist)
                     print inst.installation_report(dist)
+
             finally:
-                inst.close()
+                if options.tmpdir is None:
+                    shutil.rmtree(tmpdir)
 
     except RuntimeError, v:
         print >>sys.stderr,"error:",v
         sys.exit(1)
 
-
 if __name__ == '__main__':
     main(sys.argv[1:])
-
-
-
-
-
-
-
-
-
 

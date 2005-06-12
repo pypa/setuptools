@@ -274,6 +274,23 @@ Known Issues
  * There's no automatic retry for borked Sourceforge mirrors, which can easily
    time out or be missing a file.
 
+0.4a2
+ * Use ``urllib2`` instead of ``urllib``, to allow use of ``https:`` URLs if
+   Python includes SSL support.
+
+ * All downloads are now managed by the ``PackageIndex`` class (which is now
+   subclassable and replaceable), so that embedders can more easily override
+   download logic, give download progress reports, etc.
+
+ * The ``Installer`` class no longer handles downloading, manages a temporary
+   directory, or tracks the ``zip_ok`` option.  Downloading is now handled
+   by ``PackageIndex``, and the latter two are now managed by ``main()``.
+
+ * There is a new ``setuptools.sandbox.run_setup()`` API to invoke a setup
+   script in a directory sandbox, and a new ``setuptools.archive_util`` module
+   with an ``unpack_archive()`` API.  These were split out of EasyInstall to
+   allow reuse by other tools and applications.
+
 0.4a1
  * Added ``--scan-url`` and ``--index-url`` options, to scan download pages
    and search PyPI for needed packages.

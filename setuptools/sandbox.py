@@ -8,7 +8,7 @@ __all__ = [
 ]
 
 
-def run_setup(setup_script, *args):
+def run_setup(setup_script, args):
     """Run a distutils setup script, sandboxed in its directory"""
 
     old_dir = os.getcwd()
