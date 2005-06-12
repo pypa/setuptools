@@ -22,7 +22,7 @@ __all__ = [
     'InvalidOption', 'Distribution', 'Requirement', 'yield_lines',
     'get_importer', 'find_distributions', 'find_on_path', 'register_finder',
     'split_sections', 'declare_namespace', 'register_namespace_handler',
-    'safe_name', 'safe_version'
+    'safe_name', 'safe_version', 'run_main',
 ]
 
 import sys, os, zipimport, time, re, imp
@@ -102,12 +102,12 @@ def compatible_platforms(provided,required):
     # XXX all the tricky cases go here
     return False
 
-
-
-
-
-
-
+def run_main(dist_spec, script_name):
+    """Locate distribution `dist_spec` and run its `script_name` script"""
+    import __main__
+    __main__.__dict__.clear()
+    __main__.__dict__.update({'__name__':'__main__'})
+    require(dist_spec)[0].metadata.run_script(script_name, __main__.__dict__)
 
 
 
@@ -135,6 +135,33 @@ class IMetadataProvider:
        Leading and trailing whitespace is stripped from each line, and lines
        with ``#`` as the first non-blank character are omitted."""
 
+    def metadata_isdir(name):
+        """Is the named metadata a directory?  (like ``os.path.isdir()``)"""
+
+    def metadata_listdir(name):
+        """List of metadata names in the directory (like ``os.listdir()``)"""
+
+    def run_script(script_name, namespace):
+        """Execute the named script in the supplied namespace dictionary"""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class IResourceProvider(IMetadataProvider):
     """An object that provides access to package resources"""
 
@@ -161,6 +188,20 @@ class IResourceProvider(IMetadataProvider):
 
     def resource_listdir(resource_name):
         """List of resource names in the directory (like ``os.listdir()``)"""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 class AvailableDistributions(object):
     """Searchable snapshot of distributions on a search path"""
@@ -460,9 +501,10 @@ def require(*requirements):
     """
 
     requirements = parse_requirements(requirements)
-
-    for dist in AvailableDistributions().resolve(requirements):
+    to_install = AvailableDistributions().resolve(requirements)
+    for dist in to_install:
         dist.install_on(sys.path)
+    return to_install
 
 
 def safe_name(name):
@@ -489,7 +531,6 @@ def safe_version(version):
 
 
 
-
 class NullProvider:
     """Try to implement resources and metadata for arbitrary PEP 302 loaders"""
 
@@ -502,39 +543,78 @@ class NullProvider:
         self.module_path = os.path.dirname(getattr(module, '__file__', ''))
 
     def get_resource_filename(self, manager, resource_name):
-        return self._fn(resource_name)
+        return self._fn(self.module_path, resource_name)
 
     def get_resource_stream(self, manager, resource_name):
-        return open(self._fn(resource_name), 'rb')
+        return open(self._fn(self.module_path, resource_name), 'rb')
 
     def get_resource_string(self, manager, resource_name):
-        return self._get(self._fn(resource_name))
+        return self._get(self._fn(self.module_path, resource_name))
 
     def has_resource(self, resource_name):
-        return self._has(self._fn(resource_name))
+        return self._has(self._fn(self.module_path, resource_name))
 
     def has_metadata(self, name):
-        if not self.egg_info:
-            raise NotImplementedError("Only .egg supports metadata")
-        return self._has(os.path.join(self.egg_info, *name.split('/')))
+        return self.egg_info and self._has(self._fn(self.egg_info,name))
 
     def get_metadata(self, name):
         if not self.egg_info:
-            raise NotImplementedError("Only .egg supports metadata")
-        return self._get(os.path.join(self.egg_info, *name.split('/')))
+            return ""
+        return self._get(self._fn(self.egg_info,name))
 
     def get_metadata_lines(self, name):
         return yield_lines(self.get_metadata(name))
 
-    def resource_isdir(self,name): return False
+    def resource_isdir(self,name):
+        return self._isdir(self._fn(self.module_path, resource_name))
+
+    def metadata_isdir(self,name):
+        return self.egg_info and self._isdir(self._fn(self.egg_info,name))
+
 
     def resource_listdir(self,name):
+        return self._listdir(self._fn(self.egg_info,name))
+
+    def metadata_listdir(self,name):
+        if self.egg_info:
+            return self._listdir(self._fn(self.egg_info,name))
         return []
+
+    def run_script(self,script_name,namespace):
+        script = 'scripts/'+script_name
+        if not self.has_metadata(script):
+            raise ResolutionError("No script named %r" % script_name)
+        script_text = self.get_metadata(script).replace('\r\n','\n')
+        script_text = script_text.replace('\r','\n')
+        script_filename = self._fn(self.egg_info,script)
+
+        if os.path.exists(script_filename):
+            execfile(script_filename, namespace, namespace)
+        else:
+            from linecache import cache
+            cache[script_filename] = (
+                len(script_text), 0, script_text.split('\n'), script_filename
+            )
+            script_code = compile(script_text,script_filename,'exec')
+            exec script_code in namespace, namespace
 
     def _has(self, path):
         raise NotImplementedError(
             "Can't perform this operation for unregistered loader type"
         )
+
+    def _isdir(self, path):
+        raise NotImplementedError(
+            "Can't perform this operation for unregistered loader type"
+        )
+
+    def _listdir(self, path):
+        raise NotImplementedError(
+            "Can't perform this operation for unregistered loader type"
+        )
+
+    def _fn(self, base, resource_name):
+        return os.path.join(base, *resource_name.split('/'))
 
     def _get(self, path):
         if hasattr(self.loader, 'get_data'):
@@ -543,10 +623,12 @@ class NullProvider:
             "Can't perform this operation for loaders without 'get_data()'"
         )
 
-    def _fn(self, resource_name):
-        return os.path.join(self.module_path, *resource_name.split('/'))
-
 register_loader_type(object, NullProvider)
+
+
+
+
+
 
 
 
@@ -578,7 +660,7 @@ class DefaultProvider(NullProvider):
     def __init__(self,module):
         NullProvider.__init__(self,module)
         self._setup_prefix()
-        
+
     def _setup_prefix(self):
         # we assume here that our metadata may be nested inside a "basket"
         # of multiple eggs; that's why we use module_path instead of .archive
@@ -597,11 +679,11 @@ class DefaultProvider(NullProvider):
     def _has(self, path):
         return os.path.exists(path)
 
-    def resource_isdir(self,name):
-        return os.path.isdir(self._fn(name))
+    def _isdir(self,path):
+        return os.path.isdir(path)
 
-    def resource_listdir(self,name):
-        return os.listdir(self._fn(name))
+    def _listdir(self,path):
+        return os.listdir(path)
 
     def _get(self, path):
         stream = open(path, 'rb')
@@ -628,10 +710,6 @@ class ZipProvider(DefaultProvider):
             return path[len(self.zip_pre):]
         return path
 
-    def _has(self, path): return self._short_name(path) in self.zipinfo or self.resource_isdir(path)
-
-    def _get(self, path): return self.loader.get_data(path)
-
     def get_resource_stream(self, manager, resource_name):
         return StringIO(self.get_resource_string(manager, resource_name))
 
@@ -649,27 +727,19 @@ class ZipProvider(DefaultProvider):
 
         return self._extract_resource(manager, resource_name)
 
-    def resource_isdir(self, resource_name):
-        if resource_name.endswith('/'):
-            resource_name = resource_name[:-1]
-        return resource_name in self._index()
-
-    def resource_listdir(self, resource_name):
-        if resource_name.endswith('/'):
-            resource_name = resource_name[:-1]
-        return list(self._index().get(resource_name, ()))
-
     def _extract_directory(self, manager, resource_name):
         if resource_name.endswith('/'):
             resource_name = resource_name[:-1]
         for resource in self.resource_listdir(resource_name):
             last = self._extract_resource(manager, resource_name+'/'+resource)
         return os.path.dirname(last)    # return the directory path
-        
+
+
+
     def _extract_resource(self, manager, resource_name):
         if self.resource_isdir(resource_name):
             return self._extract_dir(resource_name)
-            
+
         parts = resource_name.split('/')
         zip_path = os.path.join(self.module_path, *parts)
         zip_stat = self.zipinfo[os.path.join(*self.prefix+parts)]
@@ -704,6 +774,9 @@ class ZipProvider(DefaultProvider):
             self.eagers = eagers
         return self.eagers
 
+
+
+
     def _index(self):
         try:
             return self._dirindex
@@ -724,14 +797,23 @@ class ZipProvider(DefaultProvider):
             self._dirindex = ind
             return ind
 
+    def _has(self, path):
+        return self._short_name(path) in self.zipinfo or self._isdir(path)
+
+    def _isdir(self,path):
+        path = self._short_name(path).replace(os.sep, '/')
+        if path.endswith('/'): path = path[:-1]
+        return path in self._index()
+
+    def _listdir(self,path):
+        path = self._short_name(path).replace(os.sep, '/')
+        if path.endswith('/'): path = path[:-1]
+        return list(self._index().get(path, ()))
+
+    _get = NullProvider._get
+
 
 register_loader_type(zipimport.zipimporter, ZipProvider)
-
-
-
-
-
-
 
 
 
@@ -886,7 +968,7 @@ def find_in_zip(importer,path_item):
             subpath = os.path.join(path_item, subitem)
             for dist in find_in_zip(zipimport.zipimporter(subpath), subpath):
                 yield dist
-        
+
 register_finder(zipimport.zipimporter,find_in_zip)
 
 
@@ -1148,7 +1230,7 @@ def parse_version(s):
 
 class Distribution(object):
     """Wrap an actual or potential sys.path entry w/metadata"""
-    
+
     def __init__(self,
         path_str, metadata=None, name=None, version=None,
         py_version=PY_MAJOR, platform=None, distro_type = EGG_DIST

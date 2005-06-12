@@ -2,8 +2,9 @@
 """Distutils setup file, used to install or test 'setuptools'"""
 
 VERSION = "0.4a1"
+import sys
 from setuptools import setup, find_packages, Require
-from distutils.version import LooseVersion
+PYVER = sys.version[:3]
 
 setup(
     name="setuptools",
@@ -38,11 +39,10 @@ setup(
         Require('PyUnit', None, 'unittest', "http://pyunit.sf.net/"),
     ],
 
-    
     packages = find_packages(),
     py_modules = ['pkg_resources', 'easy_install'],
     scripts = ['easy_install.py'],
-    extra_path = ('setuptools', 'setuptools-%s.egg' % VERSION),
+    extra_path = ('setuptools', 'setuptools-%s-py%s.egg' % (VERSION,PYVER)),
 
     classifiers = [f.strip() for f in """
     Development Status :: 3 - Alpha

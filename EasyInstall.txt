@@ -65,10 +65,10 @@ version, and automatically downloading, building, and installing it::
 
     easy_install SQLObject
 
-**Example 2**. Install a package by name and version from a given
-"download page"::
+**Example 2**. Install or upgrade a package by name and version by finding
+links on a given "download page"::
 
-    easy_install -s http://peak.telecommunity.com/dist "setuptools>=0.4a1"
+    easy_install -f http://peak.telecommunity.com/dist "setuptools>=0.4a1"
 
 **Example 3**. Download a source distribution from a specified URL,
 automatically building and installing it::
@@ -90,17 +90,26 @@ distributions as well.
 
 By default, packages are installed to the running Python installation's
 ``site-packages`` directory, unless you provide the ``-d`` or ``--install-dir``
-option to specify an alternative directory.
+option to specify an alternative directory, or specify an alternate location
+using distutils configuration files.  (See `Configuration Files`_, below.)
+
+By default, any scripts included with the package are installed to the running
+Python installation's standard script installation location.  However, if you
+specify an installation directory via the command line or a config file, then
+the default directory for installing scripts will be the same as the package
+installation directory, to ensure that the script will have access to the
+installed package.  You can override this using the ``-s`` or ``--script-dir``
+option.
 
 Packages installed to ``site-packages`` are added to an ``easy-install.pth``
-file, so that Python will be able to import the package by default. If you do
-not want this to happen, you should use the ``-m`` or ``--multi`` option, which
-allows multiple versions of the same package to be selected at runtime.
+file, so that Python will always use the most-recently-installed version of
+the package.  If you would like to be able to select which version to use at
+runtime, you should use the ``-m`` or ``--multi-version`` option.
 
-Note that installing to a directory other than ``site-packages`` already
-implies the ``-m`` option, so if you cannot install to ``site-packages``,
-please see the `Command-Line Options`_ section below (under ``--multi``) to 
-find out how to select packages at runtime.
+Note, however, that installing to a directory other than ``site-packages``
+already implies the ``-m`` option, so if you cannot install to
+``site-packages``, please see the `Command-Line Options`_ section below (under
+``--multi-version``) to find out how to select packages at runtime.
 
 
 Upgrading a Package
@@ -133,6 +142,11 @@ package automatically replaces any previous version in the ``easy-install.pth``
 file, so that Python will import the most-recently installed version by
 default.
 
+If you haven't suppressed script installation (using ``--exclude-scripts`` or
+``-x``), then the upgraded version's scripts will be installed, and they will
+be automatically patched to ``require()`` the corresponding version of the
+package, so that you can use them even if not installing to ``site-packages``.
+
 ``easy_install`` never actually deletes packages (unless you're installing a
 package with the same name and version number as an existing package), so if
 you want to get rid of older versions of a package, please see `Uninstalling
@@ -148,15 +162,22 @@ version, you can do so like this::
     easy_install PackageName==1.2.3
 
 Where ``1.2.3`` is replaced by the exact version number you wish to switch to.
-Note that the named package and version must already have been installed to
-``site-packages``.
+If a package matching the requested name and version is not already installed
+in a directory on ``sys.path``, it will be located via PyPI and installed.
 
-If you'd like to switch to the latest version of ``PackageName``, you can do so
-like this::
+If you'd like to switch to the latest installed version of ``PackageName``, you
+can do so like this::
 
     easy_install PackageName
 
-This will activate the latest installed version.
+This will activate the latest installed version.  (Note: if you have set any
+``find_links`` via distutils configuration files, those download pages will be
+checked for the latest available version of the package, and it will be
+downloaded and installed if it is newer than your current version.)
+
+Note that changing the active version of a package will install the newly
+active version's scripts, unless the ``--exclude-scripts`` or ``-x`` option is
+specified.
 
 
 Uninstalling Packages
@@ -173,7 +194,45 @@ versions of a package), you should first run::
 
 This will ensure that Python doesn't continue to search for a package you're
 planning to remove. After you've done this, you can safely delete the .egg
-files or directories.
+files or directories, along with any scripts you wish to remove.
+
+
+Managing Scripts
+----------------
+
+Whenever you install, upgrade, or change versions of a package, EasyInstall
+automatically installs the scripts for the selected package version, unless
+you tell it not to with ``-x`` or ``--exclude-scripts``.  If any scripts in
+the script directory have the same name, they are overwritten.
+
+Thus, you do not normally need to manually delete scripts for older versions of
+a package, unless the newer version of the package does not include a script
+of the same name.  However, if you are completely uninstalling a package, you
+may wish to manually delete its scripts.
+
+EasyInstall's default behavior means that you can normally only run scripts
+from one version of a package at a time.  If you want to keep multiple versions
+of a script available, however, you can simply use the ``--multi-version`` or
+``-m`` option, and rename the scripts that EasyInstall creates.  This works
+because EasyInstall installs scripts as short code stubs that ``require()`` the
+matching version of the package the script came from, so renaming the script
+has no effect on what it executes.
+
+For example, suppose you want to use two versions of the ``rst2html`` tool
+provided by the `docutils <http://docutils.sf.net/>`_ package.  You might
+first install one version::
+
+    easy_install -m docutils==0.3.9
+
+then rename the ``rst2html.py`` to ``r2h_039``, and install another version::
+
+    easy_install -m docutils==0.3.10
+
+This will create another ``rst2html.py`` script, this one using docutils
+version 0.3.10 instead of 0.3.9.  You now have two scripts, each using a
+different version of the package.  (Notice that we used ``-m`` for both
+installations, so that Python won't lock us out of using anything but the most
+recently-installed version of the package.)
 
 
 Reference Manual
@@ -267,8 +326,22 @@ Command-Line Options
     or in a distutils configuration file, the distutils default installation
     location is used.  Normally, this would be the ``site-packages`` directory,
     but if you are using distutils configuration files, setting things like
-    ``--prefix`` or ``--install-lib``, then those settings are taken into
-    account when computing the default directory.
+    ``prefix`` or ``install_lib``, then those settings are taken into
+    account when computing the default installation directory.
+
+``--script-dir=DIR, -s DIR``
+    Set the script installation directory.  If you don't supply this option
+    (via the command line or a configuration file), but you *have* supplied
+    an ``--install-dir`` (via command line or config file), then this option
+    defaults to the same directory, so that the scripts will be able to find
+    their associated package installation.  Otherwise, this setting defaults
+    to the location where the distutils would normally install scripts, taking
+    any distutils configuration file settings into account.
+
+``--exclude-scripts, -x``
+    Don't install scripts.  This is useful if you need to install multiple
+    versions of a package, but do not want to reset the version that will be
+    run by scripts that are already installed.
 
 ``--find-links=URL, -f URL`` (Option renamed in 0.4a2)
     Scan the specified "download pages" for direct links to downloadable eggs
@@ -319,6 +392,8 @@ Known Issues
    time out or be missing a file.
 
 0.4a2
+ * Added support for installing scripts
+ 
  * Added support for setting options via distutils configuration files
 
  * Renamed ``--scan-url/-s`` to ``--find-links/-f`` to free up ``-s`` for the
@@ -405,9 +480,9 @@ Known Issues
 Future Plans
 ============
 
-* Support packages that include scripts
 * Log progress to a logger, with -v and -q options to control verbosity
 * Process the installed package's dependencies as well as the base package
 * Additional utilities to list/remove/verify packages
 * Signature checking?  SSL?  Ability to suppress PyPI search?
+* Support installation from bdist_wininst packages?
 

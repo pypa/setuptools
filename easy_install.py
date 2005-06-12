@@ -17,7 +17,7 @@ import sys, os.path, zipimport, shutil, tempfile
 from setuptools import Command
 from setuptools.sandbox import run_setup
 from distutils.sysconfig import get_python_lib
-
+from distutils.errors import DistutilsArgError
 from setuptools.archive_util import unpack_archive
 from setuptools.package_index import PackageIndex
 from pkg_resources import *
@@ -43,31 +43,31 @@ class easy_install(Command):
     """Manage a download/build/install process"""
 
     description = "Find/get/install Python packages"
-
     command_consumes_arguments = True
-    
     user_options = [
         ("zip-ok", "z", "install package as a zipfile"),
         ("multi-version", "m", "make apps have to require() a version"),
         ("install-dir=", "d", "install package to DIR"),
+        ("script-dir=", "s", "install scripts to DIR"),
+        ("exclude-scripts", "x", "Don't install scripts"),
         ("index-url=", "i", "base URL of Python Package Index"),
         ("find-links=", "f", "additional URL(s) to search for packages"),
         ("build-directory=", "b",
             "download/extract/build in DIR; keep the results"),
     ]
 
-    boolean_options = [ 'zip-ok', 'multi-version' ]
+    boolean_options = [ 'zip-ok', 'multi-version', 'exclude-scripts' ]
     create_index = PackageIndex
     
     def initialize_options(self):
         self.zip_ok = None
         self.multi_version = None
-        self.install_dir = None
+        self.install_dir = self.script_dir = self.exclude_scripts = None
         self.index_url = None
         self.find_links = None
         self.build_directory = None
         self.args = None
-
+        
         # Options not specifiable via command line
         self.package_index = None
         self.pth_file = None
@@ -81,11 +81,22 @@ class easy_install(Command):
         return tmpdir
         
     def finalize_options(self):
-        # Let install_lib get set by install_lib command, which in turn
+        # If a non-default installation directory was specified, default the
+        # script directory to match it.
+        if self.script_dir is None:
+            self.script_dir = self.install_dir
+
+        # Let install_dir get set by install_lib command, which in turn
         # gets its info from the install command, and takes into account
         # --prefix and --home and all that other crud.
-        #
-        self.set_undefined_options('install_lib',('install_dir','install_dir'))
+        self.set_undefined_options('install_lib',
+            ('install_dir','install_dir')
+        )         
+        # Likewise, set default script_dir from 'install_scripts.install_dir'
+        self.set_undefined_options('install_scripts',
+            ('install_dir', 'script_dir')
+        )
+
         site_packages = get_python_lib()       
         instdir = self.install_dir
 
@@ -102,10 +113,10 @@ class easy_install(Command):
 
         elif not self.multi_version:
             # explicit false set from Python code; raise an error
-            raise RuntimeError(
+            raise DistutilsArgError(
                 "Can't do single-version installs outside site-packages"
             )
-            
+
         self.index_url = self.index_url or "http://www.python.org/pypi"
         if self.package_index is None:
             self.package_index = self.create_index(self.index_url)
@@ -117,10 +128,13 @@ class easy_install(Command):
                 self.package_index.scan_url(link)
 
         if not self.args:
-            parser.error("No urls, filenames, or requirements specified")
+            raise DistutilsArgError(
+                "No urls, filenames, or requirements specified (see --help)")
         elif len(self.args)>1 and self.build_directory is not None:
-            parser.error("Build directory can only be set when using one URL")
-            
+            raise DistutilsArgError(
+                "Build directory can only be set when using one URL"   
+            )
+
     def run(self):
         for spec in self.args:
             self.easy_install(spec)
@@ -139,6 +153,7 @@ class easy_install(Command):
             print "Installing", os.path.basename(download)
             for dist in self.install_eggs(download, self.zip_ok, tmpdir):
                 self.package_index.add(dist)
+                self.install_egg_scripts(dist)
                 print self.installation_report(dist)
 
         finally:
@@ -147,16 +162,42 @@ class easy_install(Command):
 
 
 
+    def install_egg_scripts(self, dist):
+        metadata = dist.metadata
+        if self.exclude_scripts or not metadata.metadata_isdir('scripts'):
+            return
 
+        from distutils.command.build_scripts import first_line_re
 
+        for script_name in metadata.metadata_listdir('scripts'):
+            target = os.path.join(self.script_dir, script_name)
 
+            print "Installing", script_name, "to", target
 
+            script_text = metadata.get_metadata('scripts/'+script_name)
+            script_text = script_text.replace('\r','\n')
+            first, rest = script_text.split('\n',1)
 
+            match = first_line_re.match(first)
+            options = ''
+            if match:
+                options = match.group(1) or ''
+                if options:
+                    options = ' '+options
 
+            spec = '%s==%s' % (dist.name,dist.version)
 
+            script_text = '\n'.join([
+                "#!%s%s" % (os.path.normpath(sys.executable),options),
+                "# EASY-INSTALL-SCRIPT: %r,%r" % (spec, script_name),
+                "import pkg_resources",
+                "pkg_resources.run_main(%r, %r)" % (spec, script_name)
+            ])
 
-
-
+            f = open(target,"w")
+            f.write(script_text)
+            f.close()
+            
 
 
 
@@ -329,7 +370,7 @@ class PthDistributions(AvailableDistributions):
 def main(argv, cmds={'easy_install':easy_install}):
     from setuptools import setup
     try:
-        setup(cmdclass = cmds, script_args = ['easy_install']+argv)
+        setup(cmdclass = cmds, script_args = ['-q','easy_install', '-v']+argv)
     except RuntimeError, v:
         print >>sys.stderr,"error:",v
         sys.exit(1)
