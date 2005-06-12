@@ -1307,7 +1307,7 @@ class Distribution(object):
                 )
     version = property(version)
 
-
+        
 
 
     #@property
@@ -1350,6 +1350,47 @@ class Distribution(object):
         if path is sys.path:
             fixup_namespace_packages(self.path)
             map(declare_namespace, self._get_metadata('namespace_packages.txt'))
+
+    def egg_name(self):
+        """Return what this distribution's standard .egg filename should be"""
+        filename = "%s-%s-py%s" % (
+            self.name.replace('-','_'), self.version.replace('-','_'),
+            self.py_version or PY_MAJOR
+        )
+
+        if self.platform:
+            filename += '-'+self.platform
+
+        return filename
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def parse_requirements(strs):
     """Yield ``Requirement`` objects for each specification in `strs`

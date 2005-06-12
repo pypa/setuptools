@@ -22,34 +22,28 @@ Using "Easy Install"
 Installing "Easy Install"
 -------------------------
 
-Unix-like Systems (including Mac OS X and Cygwin)
-   Download either the `Python 2.3 easy_install shell script
-   <http://peak.telecommunity.com/dist/ez_install-0.4a1-py2.3-unix.sh>`_ or the
-   `Python 2.4 easy_install shell script
-   <http://peak.telecommunity.com/dist/ez_install-0.4a1-py2.4-unix.sh>`_. Place
-   the file somewhere on your PATH, after renaming it to ``easy_install``. Note
-   that these scripts assume you have ``python2.3`` or ``python2.4`` accessible
-   via the ``PATH`` environment variable. Then, you can use ``easy_install`` to
-   finish its own installation, by running one of the following, depending on
-   your Python version::
+Windows users can just download and run the `setuptools binary installer for
+Windows <http://peak.telecommunity.com/dist/setuptools-0.4a2.win32.exe>`_.
+All others should just download `ez_setup.py
+<http://peak.telecommunity.com/dist/ez_setup.py>`_, and run it; this will
+download and install the correct version of ``setuptools`` for your Python
+version.  You may receive a message telling you about an obsolete version of
+setuptools being present; if so, you must be sure to delete it entirely, along
+with the old ``pkg_resources`` module if it's present on ``sys.path``.
+    
+An ``easy_install.py`` script will be installed in the normal location for
+Python scripts on your platform. In the examples below, you'll need to replace
+references to ``easy_install`` with the correct invocation to run
+``easy_install.py`` on your system. If you have Python 2.4 or better, you can
+also use ``python -m easy_install``, which will have the same effect, but which
+may be easier for you to type.
 
-     # Python 2.3
-     easy_install http://peak.telecommunity.com/dist/setuptools-0.4a1-py2.3.egg
-
-     # Python 2.4
-     easy_install http://peak.telecommunity.com/dist/setuptools-0.4a1-py2.4.egg
-
-
-All Other Systems
-   Download the `easy_install (aka setuptools) source distribution
-   <http://peak.telecommunity.com/dist/setuptools-0.4a1.zip>`_, and follow the
-   normal procedure for installing a source package with distutils. An
-   ``easy_install.py`` script will be installed in the normal location for
-   Python scripts on your platform. In the examples below, you'll need to
-   replace references to ``easy_install`` with the correct invocation to run
-   ``easy_install.py`` on your system. If you have Python 2.4 or better, you
-   can also use ``python -m easy_install``, which will have the same effect,
-   but which may be easier for you to type.
+(Note: the ``ez_setup.py`` script accepts the same `Command-Line Options`_ and
+`Configuration Files`_  as ``easy_install`` itself, so you can use them to
+control its behavior.  However, you should avoid using a custom installation
+directory or doing multi-version installs of the setuptools package, because
+this may make it impossible for scripts installed with EasyInstall to access
+it afterwards.)
 
 
 Downloading and Installing a Package
@@ -68,7 +62,7 @@ version, and automatically downloading, building, and installing it::
 **Example 2**. Install or upgrade a package by name and version by finding
 links on a given "download page"::
 
-    easy_install -f http://peak.telecommunity.com/dist "setuptools>=0.4a1"
+    easy_install -f http://peak.telecommunity.com/dist "setuptools>=0.4a2"
 
 **Example 3**. Download a source distribution from a specified URL,
 automatically building and installing it::
@@ -391,13 +385,21 @@ Known Issues
  * There's no automatic retry for borked Sourceforge mirrors, which can easily
    time out or be missing a file.
 
+ * EasyInstall does not yet respect the distutils "verbose/quite" and "dry-run"
+   options, even though it accepts them.
+
 0.4a2
  * Added support for installing scripts
  
- * Added support for setting options via distutils configuration files
+ * Added support for setting options via distutils configuration files, and
+   using distutils' default options as a basis for EasyInstall's defaults.
 
  * Renamed ``--scan-url/-s`` to ``--find-links/-f`` to free up ``-s`` for the
    script installation directory option.
+
+ * Added ``ez_setup.py`` installer/bootstrap script to make initial setuptools
+   installation easier, and to allow distributions using setuptools to avoid
+   having to include setuptools in their source distribution.
 
  * Use ``urllib2`` instead of ``urllib``, to allow use of ``https:`` URLs if
    Python includes SSL support.
@@ -409,7 +411,8 @@ Known Issues
 
  * The ``Installer`` class no longer handles downloading, manages a temporary
    directory, or tracks the ``zip_ok`` option.  Downloading is now handled
-   by ``PackageIndex``, and the latter two are now managed by ``main()``.
+   by ``PackageIndex``, and ``Installer`` has become an ``easy_install``
+   command class based on ``setuptools.Command``.
 
  * There is a new ``setuptools.sandbox.run_setup()`` API to invoke a setup
    script in a directory sandbox, and a new ``setuptools.archive_util`` module
@@ -476,13 +479,13 @@ Known Issues
  Initial release.
 
 
-
 Future Plans
 ============
 
 * Log progress to a logger, with -v and -q options to control verbosity
+* Display more information about downloads and progress when being verbose
 * Process the installed package's dependencies as well as the base package
+* Support installation from bdist_wininst packages?
 * Additional utilities to list/remove/verify packages
 * Signature checking?  SSL?  Ability to suppress PyPI search?
-* Support installation from bdist_wininst packages?
 

@@ -247,6 +247,7 @@ class easy_install(Command):
     def install_egg(self, egg_path, zip_ok, tmpdir):
 
         destination = os.path.join(self.install_dir,os.path.basename(egg_path))
+        destination = os.path.abspath(destination)
         ensure_directory(destination)
 
         if not samefile(egg_path, destination):
@@ -280,7 +281,6 @@ class easy_install(Command):
 
         self.update_pth(dist)
         return dist
-
 
 
 

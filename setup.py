@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 """Distutils setup file, used to install or test 'setuptools'"""
 
-VERSION = "0.4a1"
-import sys
+VERSION = "0.4a2"
 from setuptools import setup, find_packages, Require
-PYVER = sys.version[:3]
 
 setup(
     name="setuptools",
@@ -26,7 +24,7 @@ setup(
         "download mirrors, or from Python Eggs.  Been looking for a CPAN "
         "clone for Python? When combined with PyPI, this gets pretty darn "
         "close. See the home page and download page for details and docs.",
-        
+
     keywords = "CPAN PyPI distutils eggs package management",
     url = "http://peak.telecommunity.com/PythonEggs",
     download_url = "http://peak.telecommunity.com/DevCenter/EasyInstall",
@@ -39,10 +37,12 @@ setup(
         Require('PyUnit', None, 'unittest', "http://pyunit.sf.net/"),
     ],
 
+
+
     packages = find_packages(),
     py_modules = ['pkg_resources', 'easy_install'],
     scripts = ['easy_install.py'],
-    extra_path = ('setuptools', 'setuptools-%s-py%s.egg' % (VERSION,PYVER)),
+    extra_path = ('setuptools', 'setuptools-%s.egg' % VERSION),
 
     classifiers = [f.strip() for f in """
     Development Status :: 3 - Alpha

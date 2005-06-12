@@ -10,7 +10,8 @@ from distutils.dir_util import create_tree, remove_tree, ensure_relative,mkpath
 from distutils.sysconfig import get_python_version, get_python_lib
 from distutils.errors import *
 from distutils import log
-from pkg_resources import parse_requirements, get_platform, safe_name, safe_version
+from pkg_resources import parse_requirements, get_platform, safe_name, \
+    safe_version, Distribution
 
 class bdist_egg(Command):
     description = "create an \"egg\" distribution"
@@ -34,7 +35,6 @@ class bdist_egg(Command):
         ('skip-build', None,
                      "skip rebuilding everything (for testing/debugging)"),
     ]
-
     boolean_options = [
         'keep-temp', 'skip-build', 'relative','tag-date','tag-svn-revision'
     ]
@@ -133,14 +133,14 @@ class bdist_egg(Command):
         )
 
         to_compile = []
-
-        for ext_name in ext_outputs:
+        for (p,ext_name) in enumerate(ext_outputs):
             filename,ext = os.path.splitext(ext_name)
             pyfile = os.path.join(self.bdist_dir, filename + '.py')
             log.info("creating stub loader for %s" % ext_name)
             if not self.dry_run:
                 self.write_stub(os.path.basename(ext_name), pyfile)
             to_compile.append(pyfile)
+            ext_outputs[p] = ext_name.replace(os.sep,'/')
 
         if to_compile:
             cmd.byte_compile(to_compile)
@@ -155,18 +155,10 @@ class bdist_egg(Command):
 
         # And make an archive relative to the root of the
         # pseudo-installation tree.
-        archive_basename = "%s-%s-py%s" % ( self.egg_name.replace('-','_'),
-            self.egg_version.replace('-','_'), get_python_version())
-
-        if ext_outputs:
-            archive_basename += "-" + self.plat_name
-            ext_outputs = [out.replace(os.sep,'/') for out in ext_outputs]
-
-        # OS/2 objects to any ":" characters in a filename (such as when
-        # a timestamp is used in a version) so change them to underscores.
-        if os.name == "os2":
-            archive_basename = archive_basename.replace(":", "_")
-
+        archive_basename = Distribution(
+            None, None, self.egg_name, self.egg_version, get_python_version(),
+            ext_outputs and self.plat_name
+        ).egg_name()
         pseudoinstall_root = os.path.join(self.dist_dir, archive_basename)
         archive_root = self.bdist_dir
 
@@ -174,6 +166,7 @@ class bdist_egg(Command):
         egg_info = os.path.join(archive_root,'EGG-INFO')
         self.mkpath(egg_info)
         self.mkpath(self.egg_info)
+
         log.info("writing %s" % os.path.join(self.egg_info,'PKG-INFO'))
         if not self.dry_run:
             metadata = self.distribution.metadata
@@ -242,6 +235,13 @@ class bdist_egg(Command):
         cmd = self.reinitialize_command(cmdname, **kw)
         self.run_command(cmdname)
         return cmd
+
+
+
+
+
+
+
 
 
 # Attribute names of options for commands that might need to be convinced to
