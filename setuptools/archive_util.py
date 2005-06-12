@@ -1,0 +1,164 @@
+"""Utilities for extracting common archive formats"""
+
+
+__all__ = [
+    "unpack_archive", "unpack_zipfile", "unpack_tarfile", "default_filter",
+    "UnrecognizedFormat", "extraction_drivers"
+]
+
+import zipfile, tarfile, os
+from pkg_resources import ensure_directory
+
+class UnrecognizedFormat(RuntimeError):
+    """Couldn't recognize the archive type"""
+
+def default_filter(src,dst):
+    """The default progress/filter callback; returns True for all files"""
+    
+    return True
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def unpack_archive(filename, extract_dir, progress_filter=default_filter,
+    drivers=None
+):
+    """Unpack `filename` to `extract_dir`, or raise ``UnrecognizedFormat``
+
+    `progress_filter` is a function taking two arguments: a source path
+    internal to the archive ('/'-separated), and a filesystem path where it
+    will be extracted.  The callback must return a true value, or else that
+    file or directory will be skipped.  The callback can thus be used to
+    report on the progress of the extraction, as well as to filter the items
+    extracted.
+
+    `drivers`, if supplied, must be a non-empty sequence of functions with the
+    same signature as this function (minus the `drivers` argument), that raise
+    ``UnrecognizedFormat`` if they do not support extracting the designated
+    archive type.  The `drivers` are tried in sequence until one is found that
+    does not raise an error, or until all are exhausted (in which case
+    ``UnrecognizedFormat`` is raised).  If you do not supply a sequence of
+    drivers, the module's ``extraction_drivers`` constant will be used, which
+    means that ``unpack_zipfile`` and ``unpack_tarfile`` will be tried, in that
+    order.
+    """
+    for driver in drivers or extraction_drivers:
+        try:
+            driver(filename, extract_dir, progress_filter)
+        except UnrecognizedFormat:
+            continue
+        else:
+            return
+    else:
+        raise UnrecognizedFormat(
+            "Not a recognized archive type: %s" % filename
+        )
+
+
+
+
+
+
+
+
+def unpack_zipfile(filename, extract_dir, progress_filter=default_filter):
+    """Unpack zip `filename` to `extract_dir`
+
+    Raises ``UnrecognizedFormat`` if `filename` is not a zipfile (as determined
+    by ``zipfile.is_zipfile()``).  See ``unpack_archive()`` for an explanation
+    of the `progress_filter` argument.
+    """
+
+    if not zipfile.is_zipfile(filename):
+        raise UnrecognizedFormat("%s is not a zip file" % (filename,))
+
+    z = zipfile.ZipFile(filename)
+    try:
+        for info in z.infolist():
+            name = info.filename
+
+            # don't extract absolute paths or ones with .. in them
+            if name.startswith('/') or '..' in name:
+                continue
+
+            target = os.path.join(extract_dir,name)
+            if not progress_filter(name,target):
+                continue
+            if name.endswith('/'):
+                # directory
+                ensure_directory(target)
+            else:
+                # file
+                ensure_directory(target)
+                data = z.read(info.filename)
+                f = open(target,'wb')
+                try:
+                    f.write(data)
+                finally:
+                    f.close()
+                    del data
+    finally:
+        z.close()
+
+
+
+def unpack_tarfile(filename, extract_dir, progress_filter=default_filter):
+    """Unpack tar/tar.gz/tar.bz2 `filename` to `extract_dir`
+
+    Raises ``UnrecognizedFormat`` if `filename` is not a tarfile (as determined
+    by ``tarfile.open()``).  See ``unpack_archive()`` for an explanation
+    of the `progress_filter` argument.
+    """
+
+    try:
+        tarobj = tarfile.open(filename)
+    except tarfile.TarError:
+        raise UnrecognizedFormat(
+            "%s is not a compressed or uncompressed tar file" % (filename,)
+        )
+
+    try:
+        tarobj.chown = lambda *args: None   # don't do any chowning!
+        for member in tarobj:
+            if member.isfile() or member.isdir():
+                name = member.name
+                # don't extract absolute paths or ones with .. in them
+                if not name.startswith('/') and '..' not in name:
+                    dst = os.path.join(extract_dir, *name.split('/'))                
+                    if progress_filter(name, dst):
+                        tarobj.extract(member,extract_dir)
+        return True
+    finally:
+        tarobj.close()
+
+
+
+
+extraction_drivers = unpack_zipfile, unpack_tarfile
+
+
+
+
+
+
+
+

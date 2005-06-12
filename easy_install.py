@@ -17,19 +17,17 @@ import os.path
 import pkg_resources
 import re
 import zipimport
-import zipfile
-import tarfile
 import shutil
 import urlparse
 import urllib
 import tempfile
-import __builtin__
 
+from setuptools.sandbox import run_setup
+from setuptools.archive_util import unpack_archive
 from distutils.sysconfig import get_python_lib
 from shutil import rmtree   # must have, because it can be called from __del__
 from pkg_resources import *
-_os = sys.modules[os.name]
-_open = open
+
 
 class Opener(urllib.FancyURLopener):
     def http_error_default(self, url, fp, errcode, errmsg, headers):
@@ -38,6 +36,8 @@ class Opener(urllib.FancyURLopener):
         info.status, info.reason = errcode, errmsg
         return info
 opener = Opener()
+
+
 
 HREF = re.compile(r"""href\s*=\s*['"]?([^'"> ]+)""", re.I)
 EXTENSIONS = ".tar.gz .tar.bz2 .tar .zip .tgz".split()
@@ -251,7 +251,7 @@ class Installer:
 
         # Anything else, try to extract and build
         if os.path.isfile(dist_filename):
-            self._extract_file(dist_filename)
+            unpack_archive(dist_filename, self.tmpdir)  # XXX add progress log
 
         # Find the setup.py file
         from glob import glob
@@ -268,7 +268,14 @@ class Installer:
                 )
             setup_script = setups[0]
 
-        self._run_setup(setup_script)
+        from setuptools.command import bdist_egg
+        sys.modules.setdefault('distutils.command.bdist_egg', bdist_egg)
+        try:
+            run_setup(setup_script, '-q', 'bdist_egg')
+        except SystemExit, v:
+            raise RuntimeError(
+                "Setup script exited with %s" % (v.args[0],)
+            )
 
         eggs = []
         for egg in glob(
@@ -277,95 +284,6 @@ class Installer:
             eggs.append(self.install_egg(egg, self.zip_ok))
 
         return eggs
-
-
-
-
-
-
-
-
-    def _extract_zip(self,zipname,extract_dir):
-        z = zipfile.ZipFile(zipname)
-        try:
-            for info in z.infolist():
-                name = info.filename
-
-                # don't extract absolute paths or ones with .. in them
-                if name.startswith('/') or '..' in name:
-                    continue
-
-                target = os.path.join(extract_dir,name)
-                if name.endswith('/'):
-                    # directory
-                    ensure_directory(target)
-                else:
-                    # file
-                    ensure_directory(target)
-                    data = z.read(info.filename)
-                    f = open(target,'wb')
-                    try:
-                        f.write(data)
-                    finally:
-                        f.close()
-                        del data
-        finally:
-            z.close()
-
-    def _extract_tar(self,tarobj):
-        try:
-            tarobj.chown = lambda *args: None   # don't do any chowning!
-            for member in tarobj:
-                if member.isfile() or member.isdir():
-                    name = member.name
-                    # don't extract absolute paths or ones with .. in them
-                    if not name.startswith('/') and '..' not in name:
-                        tarobj.extract(member,self.tmpdir)
-        finally:
-            tarobj.close()
-
-
-
-    def _run_setup(self, setup_script):
-        from setuptools.command import bdist_egg
-        sys.modules.setdefault('distutils.command.bdist_egg', bdist_egg)
-        old_dir = os.getcwd()
-        save_argv = sys.argv[:]
-        save_path = sys.path[:]
-        try:
-            os.chdir(os.path.dirname(setup_script))
-            try:
-                sys.argv[:] = [setup_script, '-q', 'bdist_egg']
-                sys.path.insert(0,os.getcwd())
-                DirectorySandbox(self.tmpdir).run(
-                    lambda: execfile(
-                        "setup.py",
-                        {'__file__':setup_script, '__name__':'__main__'}
-                    )
-                )
-            except SystemExit, v:
-                if v.args and v.args[0]:
-                    raise RuntimeError(
-                        "Setup script exited with %s" % (v.args[0],)
-                    )
-        finally:
-            os.chdir(old_dir)
-            sys.path[:] = save_path
-            sys.argv[:] = save_argv
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     def install_egg(self, egg_path, zip_ok):
 
@@ -389,7 +307,7 @@ class Installer:
 
             else:
                 os.mkdir(destination)
-                self._extract_zip(egg_path, destination)
+                unpack_archive(egg_path, destination)   # XXX add progress??
 
         if os.path.isdir(destination):
             dist = Distribution.from_filename(
@@ -449,20 +367,6 @@ class Installer:
 
 
 
-    def _extract_file(self, dist_filename):
-        if zipfile.is_zipfile(dist_filename):
-            self._extract_zip(dist_filename, self.tmpdir)
-        else:
-            try:
-                tar = tarfile.open(dist_filename)
-            except tarfile.TarError:
-                raise RuntimeError(
-                    "Not a valid tar or zip archive: %s" % dist_filename
-                )
-            else:
-                self._extract_tar(tar)
-
-
     def _download_html(self, url, headers, filename):
         # Check for a sourceforge URL
         sf_url = url.startswith('http://prdownloads.')
@@ -494,6 +398,16 @@ class Installer:
         os.system("svn checkout -q %s %s" % (url, filename))
         return filename
 
+
+
+
+
+
+
+
+
+
+
     def _download_sourceforge(self, source_url, sf_page):
         """Download package from randomly-selected SourceForge mirror"""
 
@@ -522,6 +436,10 @@ class Installer:
                 'No META HTTP-EQUIV="refresh" found in Sourceforge page at %s'
                 % url
             )
+
+
+
+
 
 
 
@@ -570,170 +488,6 @@ PYTHONPATH, or by being added to sys.path by your code.)
 
 
 
-
-
-class AbstractSandbox:
-    """Wrap 'os' module and 'open()' builtin for virtualizing setup scripts"""
-
-    _active = False
-
-    def __init__(self):
-        self._attrs = [
-            name for name in dir(_os)
-                if not name.startswith('_') and hasattr(self,name)
-        ]
-
-    def _copy(self, source):
-        for name in self._attrs:
-            setattr(os, name, getattr(source,name))
-
-    def run(self, func):
-        """Run 'func' under os sandboxing"""
-        try:
-            self._copy(self)
-            __builtin__.open = __builtin__.file = self._open
-            self._active = True
-            return func()
-        finally:
-            self._active = False
-            __builtin__.open = __builtin__.file = _open
-            self._copy(_os)
-
-
-    def _mk_dual_path_wrapper(name):
-        original = getattr(_os,name)
-        def wrap(self,src,dst,*args,**kw):
-            if self._active:
-                src,dst = self._remap_pair(name,src,dst,*args,**kw)
-            return original(src,dst,*args,**kw)
-        return wrap
-
-
-    for name in ["rename", "link", "symlink"]:
-        if hasattr(_os,name): locals()[name] = _mk_dual_path_wrapper(name)
-
-
-    def _mk_single_path_wrapper(name, original=None):
-        original = original or getattr(_os,name)
-        def wrap(self,path,*args,**kw):
-            if self._active:
-                path = self._remap_input(name,path,*args,**kw)
-            return original(path,*args,**kw)
-        return wrap
-
-    _open = _mk_single_path_wrapper('file', _open)
-    for name in [
-        "stat", "listdir", "chdir", "open", "chmod", "chown", "mkdir",
-        "remove", "unlink", "rmdir", "utime", "lchown", "chroot", "lstat",
-        "startfile", "mkfifo", "mknod", "pathconf", "access"
-    ]:
-        if hasattr(_os,name): locals()[name] = _mk_single_path_wrapper(name)
-
-
-    def _mk_single_with_return(name):
-        original = getattr(_os,name)
-        def wrap(self,path,*args,**kw):
-            if self._active:
-                path = self._remap_input(name,path,*args,**kw)
-                return self._remap_output(name, original(path,*args,**kw))
-            return original(path,*args,**kw)
-        return wrap
-
-    for name in ['readlink', 'tempnam']:
-        if hasattr(_os,name): locals()[name] = _mk_single_with_return(name)
-
-    def _mk_query(name):
-        original = getattr(_os,name)
-        def wrap(self,*args,**kw):
-            retval = original(*args,**kw)
-            if self._active:
-                return self._remap_output(name, retval)
-            return retval
-        return wrap
-
-    for name in ['getcwd', 'tmpnam']:
-        if hasattr(_os,name): locals()[name] = _mk_query(name)
-
-    def _validate_path(self,path):
-        """Called to remap or validate any path, whether input or output"""
-        return path
-
-    def _remap_input(self,operation,path,*args,**kw):
-        """Called for path inputs"""
-        return self._validate_path(path)
-
-    def _remap_output(self,operation,path):
-        """Called for path outputs"""
-        return self._validate_path(path)
-
-    def _remap_pair(self,operation,src,dst,*args,**kw):
-        """Called for path pairs like rename, link, and symlink operations"""
-        return (
-            self._remap_input(operation+'-from',src,*args,**kw),
-            self._remap_input(operation+'-to',dst,*args,**kw)
-        )
-
-
-class DirectorySandbox(AbstractSandbox):
-    """Restrict operations to a single subdirectory - pseudo-chroot"""
-
-    write_ops = dict.fromkeys([
-        "open", "chmod", "chown", "mkdir", "remove", "unlink", "rmdir",
-        "utime", "lchown", "chroot", "mkfifo", "mknod", "tempnam",
-    ])
-
-    def __init__(self,sandbox):
-        self._sandbox = os.path.realpath(sandbox)
-        self._prefix = os.path.join(self._sandbox,'')
-        AbstractSandbox.__init__(self)
-
-    def _violation(self, operation, *args, **kw):
-        raise SandboxViolation(operation, args, kw)
-
-    def _open(self, path, mode='r', *args, **kw):
-        if mode not in ('r', 'rt', 'rb', 'rU') and not self._ok(path):
-            self._violation("open", path, mode, *args, **kw)
-        return _open(path,mode,*args,**kw)
-
-    def tmpnam(self):
-        self._violation("tmpnam")
-
-    def _ok(self,path):
-        active = self._active
-        try:
-            self._active = False
-            realpath = os.path.realpath(path)
-            if realpath==self._sandbox or realpath.startswith(self._prefix):
-                return True
-        finally:
-            self._active = active
-
-    def _remap_input(self,operation,path,*args,**kw):
-        """Called for path inputs"""
-        if operation in self.write_ops and not self._ok(path):
-            self._violation(operation, os.path.realpath(path), *args, **kw)
-        return path
-
-    def _remap_pair(self,operation,src,dst,*args,**kw):
-        """Called for path pairs like rename, link, and symlink operations"""
-        if not self._ok(src) or not self._ok(dst):
-            self._violation(operation, src, dst, *args, **kw)
-        return (src,dst)
-
-
-class SandboxViolation(RuntimeError):
-    """A setup script attempted to modify the filesystem outside the sandbox"""
-
-    def __str__(self):
-        return """SandboxViolation: %s%r %s
-
-The package setup script has attempted to modify files on your system
-that are not within the EasyInstall build area, and has been aborted.
-
-This package cannot be safely installed by EasyInstall, and may not
-support alternate installation locations even if you run its setup
-script by hand.  Please inform the package's author and the EasyInstall
-maintainers to find out if a fix or workaround is available.""" % self.args
 
 
 class PthDistributions(AvailableDistributions):

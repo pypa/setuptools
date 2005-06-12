@@ -270,6 +270,10 @@ Command-Line Options
 Release Notes/Change History
 ============================
 
+Known Issues
+ * There's no automatic retry for borked Sourceforge mirrors, which can easily
+   time out or be missing a file.
+
 0.4a1
  * Added ``--scan-url`` and ``--index-url`` options, to scan download pages
    and search PyPI for needed packages.
