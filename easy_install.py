@@ -14,6 +14,7 @@ __ http://peak.telecommunity.com/DevCenter/EasyInstall
 
 import sys, os.path, zipimport, shutil, tempfile
 
+from setuptools import Command
 from setuptools.sandbox import run_setup
 from distutils.sysconfig import get_python_lib
 
@@ -22,6 +23,15 @@ from setuptools.package_index import PackageIndex
 from pkg_resources import *
 
 
+def samefile(p1,p2):
+    if hasattr(os.path,'samefile') and (
+        os.path.exists(p1) and os.path.exists(p2)
+    ):
+        return os.path.samefile(p1,p2)
+    return (
+        os.path.normpath(os.path.normcase(p1)) ==
+        os.path.normpath(os.path.normcase(p2))
+    )
 
 
 
@@ -29,51 +39,123 @@ from pkg_resources import *
 
 
 
-
-
-
-
-
-
-
-
-
-
-class Installer:
+class easy_install(Command):
     """Manage a download/build/install process"""
 
-    pth_file = None
-    cleanup = False
+    description = "Find/get/install Python packages"
 
-    def __init__(self, instdir=None, multi=None):
-        site_packages = get_python_lib()
-        if instdir is None or self.samefile(site_packages,instdir):
+    command_consumes_arguments = True
+    
+    user_options = [
+        ("zip-ok", "z", "install package as a zipfile"),
+        ("multi-version", "m", "make apps have to require() a version"),
+        ("install-dir=", "d", "install package to DIR"),
+        ("index-url=", "i", "base URL of Python Package Index"),
+        ("find-links=", "f", "additional URL(s) to search for packages"),
+        ("build-directory=", "b",
+            "download/extract/build in DIR; keep the results"),
+    ]
+
+    boolean_options = [ 'zip-ok', 'multi-version' ]
+    create_index = PackageIndex
+    
+    def initialize_options(self):
+        self.zip_ok = None
+        self.multi_version = None
+        self.install_dir = None
+        self.index_url = None
+        self.find_links = None
+        self.build_directory = None
+        self.args = None
+
+        # Options not specifiable via command line
+        self.package_index = None
+        self.pth_file = None
+
+    def alloc_tmp(self):
+        if self.build_directory is None:
+            return tempfile.mkdtemp(prefix="easy_install-")
+        tmpdir = os.path.realpath(self.build_directory)
+        if not os.path.isdir(tmpdir):
+            os.makedirs(tmpdir)
+        return tmpdir
+        
+    def finalize_options(self):
+        # Let install_lib get set by install_lib command, which in turn
+        # gets its info from the install command, and takes into account
+        # --prefix and --home and all that other crud.
+        #
+        self.set_undefined_options('install_lib',('install_dir','install_dir'))
+        site_packages = get_python_lib()       
+        instdir = self.install_dir
+
+        if instdir is None or samefile(site_packages,instdir):
             instdir = site_packages
-            self.pth_file = PthDistributions(
-                os.path.join(instdir,'easy-install.pth')
-            )
-        elif multi is None:
-            multi = True
+            if self.pth_file is None:
+                self.pth_file = PthDistributions(
+                    os.path.join(instdir,'easy-install.pth')
+                )
+            self.install_dir = instdir    
 
-        elif not multi:
-            # explicit false, raise an error
+        elif self.multi_version is None:
+            self.multi_version = True
+
+        elif not self.multi_version:
+            # explicit false set from Python code; raise an error
             raise RuntimeError(
                 "Can't do single-version installs outside site-packages"
             )
+            
+        self.index_url = self.index_url or "http://www.python.org/pypi"
+        if self.package_index is None:
+            self.package_index = self.create_index(self.index_url)
 
-        self.instdir = instdir
-        self.multi = multi
+        if self.find_links is not None:
+            if isinstance(self.find_links, basestring):
+                self.find_links = self.find_links.split()
+            for link in self.find_links:
+                self.package_index.scan_url(link)
+
+        if not self.args:
+            parser.error("No urls, filenames, or requirements specified")
+        elif len(self.args)>1 and self.build_directory is not None:
+            parser.error("Build directory can only be set when using one URL")
+            
+    def run(self):
+        for spec in self.args:
+            self.easy_install(spec)
 
 
-    def samefile(self,p1,p2):
-        if hasattr(os.path,'samefile') and (
-            os.path.exists(p1) and os.path.exists(p2)
-        ):
-            return os.path.samefile(p1,p2)
-        return (
-            os.path.normpath(os.path.normcase(p1)) ==
-            os.path.normpath(os.path.normcase(p2))
-        )
+    def easy_install(self, spec):       
+        tmpdir = self.alloc_tmp()
+        try:
+            print "Downloading", spec
+            download = self.package_index.download(spec, tmpdir)
+            if download is None:
+                raise RuntimeError(
+                    "Could not find distribution for %r" % spec
+                )
+
+            print "Installing", os.path.basename(download)
+            for dist in self.install_eggs(download, self.zip_ok, tmpdir):
+                self.package_index.add(dist)
+                print self.installation_report(dist)
+
+        finally:
+            if self.build_directory is None:
+                shutil.rmtree(tmpdir)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -123,10 +205,10 @@ class Installer:
 
     def install_egg(self, egg_path, zip_ok, tmpdir):
 
-        destination = os.path.join(self.instdir, os.path.basename(egg_path))
+        destination = os.path.join(self.install_dir,os.path.basename(egg_path))
         ensure_directory(destination)
 
-        if not self.samefile(egg_path, destination):
+        if not samefile(egg_path, destination):
             if os.path.isdir(destination):
                 shutil.rmtree(destination)
             elif os.path.isfile(destination):
@@ -166,7 +248,7 @@ class Installer:
         """Helpful installation message for display to package users"""
 
         msg = "Installed %(eggloc)s to %(instdir)s"
-        if self.multi:
+        if self.multi_version:
             msg += """
 
 Because this distribution was installed --multi-version or --install-dir,
@@ -178,7 +260,7 @@ similar to one of these examples, in order to select the desired version:
     pkg_resources.require("%(name)s==%(version)s")  # this exact version
     pkg_resources.require("%(name)s>=%(version)s")  # this version or higher
 """
-        if not self.samefile(get_python_lib(),self.instdir):
+        if not samefile(get_python_lib(),self.install_dir):
             msg += """
 
 Note also that the installation directory must be on sys.path at runtime for
@@ -186,7 +268,7 @@ this to work.  (e.g. by being the application's script directory, by being on
 PYTHONPATH, or by being added to sys.path by your code.)
 """
         eggloc = os.path.basename(dist.path)
-        instdir = os.path.realpath(self.instdir)
+        instdir = os.path.realpath(self.install_dir)
         name = dist.name
         version = dist.version
         return msg % locals()
@@ -196,7 +278,7 @@ PYTHONPATH, or by being added to sys.path by your code.)
             remove = self.pth_file.remove
             for d in self.pth_file.get(dist.key,()):    # drop old entries
                 remove(d)
-            if not self.multi:
+            if not self.multi_version:
                 self.pth_file.add(dist) # add new entry
             self.pth_file.save()
 
@@ -244,85 +326,44 @@ class PthDistributions(AvailableDistributions):
 
 
 
-def main(argv, installer_type=Installer, index_type=PackageIndex):
-
-    from optparse import OptionParser
-
-    parser = OptionParser(usage = "usage: %prog [options] url [url...]")
-    parser.add_option("-d", "--install-dir", dest="instdir", default=None,
-                      help="install package to DIR", metavar="DIR")
-
-    parser.add_option("-z", "--zip",
-                      action="store_true", dest="zip_ok", default=False,
-                      help="install package as a zipfile")
-
-    parser.add_option("-m", "--multi-version",
-                      action="store_true", dest="multi", default=None,
-                      help="make apps have to require() a version")
-
-    parser.add_option("-b", "--build-directory", dest="tmpdir", metavar="DIR",
-                      default=None,
-                      help="download/extract/build in DIR; keep the results")
-
-    parser.add_option("-u", "--index-url", dest="index_url", metavar="URL",
-                      default="http://www.python.org/pypi",
-                      help="base URL of Python Package Index")
-
-    parser.add_option("-s", "--scan-url", dest="scan_urls", metavar="URL",
-                      action="append",
-                      help="additional URL(s) to search for packages")
-
-    (options, args) = parser.parse_args()
-
-    if not args:
-        parser.error("No urls, filenames, or requirements specified")
-    elif len(args)>1 and options.tmpdir is not None:
-        parser.error("Build directory can only be set when using one URL")
-
-
-
-
-
-
-
-    def alloc_tmp():
-        if options.tmpdir is None:
-            return tempfile.mkdtemp(prefix="easy_install-")
-        elif not os.path.isdir(options.tmpdir):
-            os.makedirs(options.tmpdir)
-        return os.path.realpath(options.tmpdir)
-
+def main(argv, cmds={'easy_install':easy_install}):
+    from setuptools import setup
     try:
-        index = index_type(options.index_url)
-        inst = installer_type(options.instdir, options.multi)
-
-        if options.scan_urls:
-            for url in options.scan_urls:
-                index.scan_url(url)
-
-        for spec in args:
-            tmpdir = alloc_tmp()
-            try:
-                print "Downloading", spec
-                download = index.download(spec, tmpdir)
-                if download is None:
-                    raise RuntimeError(
-                        "Could not find distribution for %r" % spec
-                    )
-
-                print "Installing", os.path.basename(download)
-                for dist in inst.install_eggs(download,options.zip_ok, tmpdir):
-                    index.add(dist)
-                    print inst.installation_report(dist)
-
-            finally:
-                if options.tmpdir is None:
-                    shutil.rmtree(tmpdir)
-
+        setup(cmdclass = cmds, script_args = ['easy_install']+argv)
     except RuntimeError, v:
         print >>sys.stderr,"error:",v
         sys.exit(1)
 
+
 if __name__ == '__main__':
     main(sys.argv[1:])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

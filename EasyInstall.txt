@@ -179,11 +179,39 @@ files or directories.
 Reference Manual
 ================
 
+Configuration Files
+-------------------
+
+(New in 0.4a2)
+
+You may specify default options for EasyInstall using the standard
+distutils configuration files, under the command heading ``easy_install``.
+EasyInstall will look first for a ``setup.cfg`` file in the current directory,
+then a ``~/.pydistutils.cfg`` or ``$HOME\\pydistutils.cfg`` (on Unix-like OSes
+and Windows, respectively), and finally a ``distutils.cfg`` file in the
+``distutils`` package directory.  Here's a simple example::
+
+    [easy_install]
+
+    # set the default location to install packages
+    install_dir = /home/me/lib/python
+    
+    # Notice that indentation can be used to continue an option
+    # value; this is especially useful for the "--find-links"
+    # option, which tells easy_install to use download links on
+    # these pages before consulting PyPI:
+    #
+    find_links = http://sqlobject.org/
+                 http://peak.telecommunity.com/dist/
+
+See also the current Python documentation on the `use and location of distutils
+configuration files <http://docs.python.org/inst/config-syntax.html>`_.
+
 
 Command-Line Options
 --------------------
 
-``--zip, -z``
+``--zip-ok, -z``
     Enable installing the package as a zip file. This can significantly
     increase Python's overall import performance if you're installing to
     ``site-packages`` and not using the ``--multi`` option, because Python
@@ -221,17 +249,55 @@ Command-Line Options
     which will put the latest installed version of the specified packages on
     ``sys.path`` for you. (For more advanced uses, like selecting specific
     versions and enabling optional dependencies, see the ``pkg_resources`` API
-    doc.) Note that if you install to a directory other than ``site-packages``,
+    doc.)
+
+    Note that if you install to a directory other than ``site-packages``,
     this option is automatically in effect, because ``.pth`` files can only be
     used in ``site-packages`` (at least in Python 2.3 and 2.4). So, if you use
-    the ``--install-dir`` or ``-i`` options, you must also use ``require()`` to
-    enable packages at runtime
+    the ``--install-dir`` or ``-d`` option (or they are set via configuration
+    file(s)) you must also use ``require()`` to enable packages at runtime.
 
 ``--install-dir=DIR, -d DIR``
     Set the installation directory. It is up to you to ensure that this
     directory is on ``sys.path`` at runtime, and to use
     ``pkg_resources.require()`` to enable the installed package(s) that you
     need.
+
+    (New in 0.4a2) If this option is not directly specified on the command line
+    or in a distutils configuration file, the distutils default installation
+    location is used.  Normally, this would be the ``site-packages`` directory,
+    but if you are using distutils configuration files, setting things like
+    ``--prefix`` or ``--install-lib``, then those settings are taken into
+    account when computing the default directory.
+
+``--find-links=URL, -f URL`` (Option renamed in 0.4a2)
+    Scan the specified "download pages" for direct links to downloadable eggs
+    or source distributions.  Any usable packages will be downloaded if they
+    are required by a command line argument.  For example, this::
+
+        easy_install -f http://peak.telecommunity.com/dist PyProtocols
+
+    will download and install the latest version of PyProtocols linked from
+    the PEAK downloads page, but ignore the other download links on that page.
+    If all requested packages can be found using links on the specified
+    download pages, the Python Package Index will *not* be consulted.  You can
+    use ``file:`` URLs to reference a local filename.
+
+    You may specify multiple URLs with this option, separated by whitespace.
+    Note that on the command line, you will probably have to surround the URLs
+    with quotes, so that they are recognized as a single option value.  You can
+    also specify URLs in a configuration file; see `Configuration Files`_,
+    above; but note that this means the specified pages will be downloaded
+    every time you use EasyInstall (unless overridden on the command line) and
+    thus may make startup slower.
+
+``--index-url=URL, -u URL`` (New in 0.4a1)
+    Specifies the base URL of the Python Package Index.  The default is
+    http://www.python.org/pypi if not specified.  When a package is requested
+    that is not locally available or linked from a ``--find-links`` download
+    page, the package index will be searched for download pages for the needed
+    package, and those download pages will be searched for links to download
+    an egg or source distribution.
 
 ``--build-directory=DIR, -b DIR`` (New in 0.3a3)
     Set the directory used to download, extract, and install the package.  The
@@ -244,28 +310,6 @@ Command-Line Options
     URL or filename, so that the installer will not be confused by the presence
     of multiple ``setup.py`` files in the build directory.
 
-``--scan-url=URL, -s URL`` (New in 0.4a1)
-    Scan the specified "download page" for direct links to downloadable eggs or
-    source distributions.  Any usable packages will be downloaded if they are
-    required by a command line argument.  For example, this::
-
-        easy_install -s http://peak.telecommunity.com/dist PyProtocols
-
-    will download and install the latest version of PyProtocols linked from
-    the PEAK downloads page, but ignore the other download links on that page.
-
-    You may use this option more than once, to list multiple download pages.
-    If all requested packages can be found using the specified download pages,
-    the Python Package Index will *not* be consulted.
-
-``--index-url=URL, -u URL`` (New in 0.4a1)
-    Specifies the base URL of the Python Package Index.  The default is
-    http://www.python.org/pypi if not specified.  When a package is requested
-    that is not locally available or linked from a ``--scan-url`` download
-    page, the package index will be searched for download pages for the needed
-    package, and those download pages will be searched for links to download
-    an egg or source distribution.
-
 
 Release Notes/Change History
 ============================
@@ -275,6 +319,11 @@ Known Issues
    time out or be missing a file.
 
 0.4a2
+ * Added support for setting options via distutils configuration files
+
+ * Renamed ``--scan-url/-s`` to ``--find-links/-f`` to free up ``-s`` for the
+   script installation directory option.
+
  * Use ``urllib2`` instead of ``urllib``, to allow use of ``https:`` URLs if
    Python includes SSL support.
 
@@ -291,6 +340,11 @@ Known Issues
    script in a directory sandbox, and a new ``setuptools.archive_util`` module
    with an ``unpack_archive()`` API.  These were split out of EasyInstall to
    allow reuse by other tools and applications.
+
+ * ``setuptools.Command`` now supports reinitializing commands using keyword
+   arguments to set/reset options.  Also, ``Command`` subclasses can now set
+   their ``command_consumes_arguments`` attribute to ``True`` in order to
+   receive an ``args`` option containing the rest of the command line.
 
 0.4a1
  * Added ``--scan-url`` and ``--index-url`` options, to scan download pages

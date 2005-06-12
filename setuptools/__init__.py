@@ -4,7 +4,7 @@ import distutils.core, setuptools.command
 from setuptools.dist import Distribution, Feature
 from setuptools.extension import Extension
 from setuptools.depends import Require
-from distutils.core import Command
+from distutils.core import Command as _Command
 from distutils.util import convert_path
 import os.path
 
@@ -37,6 +37,8 @@ def find_packages(where='.'):
     return out
 
 
+
+
 def setup(**attrs):
     """Do package setup
 
@@ -47,3 +49,34 @@ def setup(**attrs):
     """
     attrs.setdefault("distclass",Distribution)
     return distutils.core.setup(**attrs)
+    
+
+class Command(_Command):
+    __doc__ = _Command.__doc__
+
+    command_consumes_arguments = False
+
+    def reinitialize_command(self, command, reinit_subcommands=0, **kw):
+        cmd = _Command.reinitialize_command(self, command, reinit_subcommands)
+        for k,v in kw.items():
+            setattr(cmd,k,v)    # update command with keywords
+        return cmd
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

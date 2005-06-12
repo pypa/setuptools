@@ -4,7 +4,7 @@ Build .egg distributions"""
 
 # This module should be kept compatible with Python 2.3
 import os
-from distutils.core import Command
+from setuptools import Command
 from distutils.util import get_platform
 from distutils.dir_util import create_tree, remove_tree, ensure_relative,mkpath
 from distutils.sysconfig import get_python_version, get_python_lib
@@ -234,15 +234,15 @@ class bdist_egg(Command):
         return match.group(1)
 
     def call_command(self,cmdname,**kw):
-        cmd = self.reinitialize_command(cmdname)
+        """Invoke reinitialized command `cmdname` with keyword args"""
         for dirname in INSTALL_DIRECTORY_ATTRS:
-            if dirname in cmd.__dict__:     # don't overwrite methods!
-                setattr(cmd,dirname,self.bdist_dir)
-        cmd.skip_build = self.skip_build
-        for k,v in kw.items():
-            setattr(cmd,k,v)
+            kw.setdefault(dirname,self.bdist_dir)
+        kw.setdefault('skip_build',self.skip_build)
+
+        cmd = self.reinitialize_command(cmdname, **kw)
         self.run_command(cmdname)
         return cmd
+
 
 # Attribute names of options for commands that might need to be convinced to
 # install to the egg build directory

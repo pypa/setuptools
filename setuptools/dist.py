@@ -1,4 +1,5 @@
 __all__ = ['Distribution', 'Feature']
+
 from distutils.core import Distribution as _Distribution
 from distutils.core import Extension
 from setuptools.depends import Require
@@ -7,7 +8,36 @@ from setuptools.command.install import install
 from setuptools.command.install_lib import install_lib
 from distutils.errors import DistutilsOptionError, DistutilsPlatformError
 from distutils.errors import DistutilsSetupError
+
 sequence = tuple, list
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 class Distribution(_Distribution):
     """Distribution with support for features, tests, and package data
@@ -54,7 +84,6 @@ class Distribution(_Distribution):
     the distribution.  They are used by the feature subsystem to configure the
     distribution for the included and excluded features.
     """
-
     def __init__ (self, attrs=None):
         have_package_data = hasattr(self, "package_data")
         if not have_package_data:
@@ -82,6 +111,15 @@ class Distribution(_Distribution):
     def _feature_attrname(self,name):
         """Convert feature name to corresponding option attribute name"""
         return 'with_'+name.replace('-','_')
+
+
+
+
+
+
+
+
+
 
     def _set_global_opts_from_features(self):
         """Add --with-X/--without-X options based on optional features"""
@@ -277,14 +315,55 @@ class Distribution(_Distribution):
             )
         map(self.exclude_package, packages)
 
+
+
+
+
+
+
+
+
+
+
+
     def _parse_command_opts(self, parser, args):
         # Remove --with-X/--without-X options when processing command args
         self.global_options = self.__class__.global_options
         self.negative_opt = self.__class__.negative_opt
-        return _Distribution._parse_command_opts(self, parser, args)
+
+        # Handle commands that want to consume all remaining arguments
+        command = args[0]
+        nargs = _Distribution._parse_command_opts(self, parser, args)
+
+        cmd_class = self.get_command_class(command)
+        if getattr(cmd_class,'command_consumes_arguments',None):
+            self.get_option_dict(command)['args'] = ("command line", nargs)
+            if nargs is not None:
+                return []
+
+        return nargs
+
 
     def has_dependencies(self):
         return not not self.requires
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
