@@ -23,7 +23,7 @@ Installing "Easy Install"
 -------------------------
 
 Windows users can just download and run the `setuptools binary installer for
-Windows <http://peak.telecommunity.com/dist/setuptools-0.4a2.win32.exe>`_.
+Windows <http://peak.telecommunity.com/dist/setuptools-0.4a4.win32.exe>`_.
 All others should just download `ez_setup.py
 <http://peak.telecommunity.com/dist/ez_setup.py>`_, and run it; this will
 download and install the correct version of ``setuptools`` for your Python
@@ -62,7 +62,7 @@ version, and automatically downloading, building, and installing it::
 **Example 2**. Install or upgrade a package by name and version by finding
 links on a given "download page"::
 
-    easy_install -f http://peak.telecommunity.com/dist "setuptools>=0.4a3"
+    easy_install -f http://peak.telecommunity.com/dist "setuptools>=0.4a4"
 
 **Example 3**. Download a source distribution from a specified URL,
 automatically building and installing it::
@@ -229,6 +229,26 @@ installations, so that Python won't lock us out of using anything but the most
 recently-installed version of the package.)
 
 
+Controlling Build Options
+-------------------------
+
+EasyInstall respects standard distutils `Configuration Files`_, so you can use
+them to configure build options for packages that it installs from source.  For
+example, if you are on Windows using the MinGW compiler, you can configure the
+default compiler by putting something like this::
+
+    [build]
+    compiler = mingw32
+
+into the appropriate distutils configuration file.  In fact, since this is just
+normal distutils configuration, it will affect any builds using that config
+file, not just ones done by EasyInstall.  For example, if you add those lines
+to ``distutils.cfg`` in the ``distutils`` package directory, it will be the
+default compiler for *all* packages you build.  See `Configuration Files`_
+below for a list of the standard configuration file locations, and links to
+more documentation on using distutils configuration files.
+
+
 Reference Manual
 ================
 
@@ -257,8 +277,17 @@ and Windows, respectively), and finally a ``distutils.cfg`` file in the
     find_links = http://sqlobject.org/
                  http://peak.telecommunity.com/dist/
 
-See also the current Python documentation on the `use and location of distutils
-configuration files <http://docs.python.org/inst/config-syntax.html>`_.
+In addition to accepting configuration for its own options under
+``[easy_install]``, EasyInstall also respects defaults specified for other
+distutils commands.  For example, if you don't set an ``install_dir`` for
+``[easy_install]``, but *have* set an ``install_lib`` for the ``[install]``
+command, this will become EasyInstall's default installation directory.  Thus,
+if you are already using distutils configuration files to set default install
+locations, build options, etc., EasyInstall will respect your existing settings
+until and unless you override them explicitly in an ``[easy_install]`` section.
+
+For more information, see also the current Python documentation on the `use and
+location of distutils configuration files <http://docs.python.org/inst/config-syntax.html>`_.
 
 
 Command-Line Options
@@ -377,6 +406,34 @@ Command-Line Options
     URL or filename, so that the installer will not be confused by the presence
     of multiple ``setup.py`` files in the build directory.
 
+``--verbose, -v, --quiet, -q`` (New in 0.4a4)
+    Control the level of detail of EasyInstall's progress messages.  The
+    default detail level is "info", which prints information only about
+    relatively time-consuming operations like running a setup script, unpacking
+    an archive, or retrieving a URL.  Using ``-q`` or ``--quiet`` drops the
+    detail level to "warn", which will only display installation reports,
+    warnings, and errors.  Using ``-v`` or ``--verbose`` increases the detail
+    level to include individual file-level operations, link analysis messages,
+    and distutils messages from any setup scripts that get run.  If you include
+    the ``-v`` option more than once, the second and subsequent uses are passed
+    down to any setup scripts, increasing the verbosity of their reporting as
+    well.
+
+``--dry-run, -n`` (New in 0.4a4)
+    Don't actually install the package or scripts.  This option is passed down
+    to any setup scripts run, so packages should not actually build either.
+    This does *not* skip downloading, nor does it skip extracting source
+    distributions to a temporary/build directory.
+
+``--optimize=LEVEL``, ``-O LEVEL`` (New in 0.4a4)
+    If you are installing from a source distribution, and are *not* using the
+    ``--zip-ok`` option, this option controls the optimization level for
+    compiling installed ``.py`` files to ``.pyo`` files.  It does not affect
+    the compilation of modules contained in ``.egg`` files, only those in
+    ``.egg`` directories.  The optimization level can be set to 0, 1, or 2;
+    the default is 0 (unless it's set under ``install`` or ``install_lib`` in
+    one of your distutils configuration files).
+
 
 Release Notes/Change History
 ============================
@@ -385,8 +442,15 @@ Known Issues
  * There's no automatic retry for borked Sourceforge mirrors, which can easily
    time out or be missing a file.
 
- * EasyInstall does not yet respect the distutils "verbose/quiet" and "dry-run"
-   options, even though it accepts them.
+0.4a4
+ * Added support for the distutils "verbose/quiet" and "dry-run" options, as
+   well as the "optimize" flag.
+
+ * Support downloading packages that were uploaded to PyPI (by scanning all
+   links on package pages, not just the homepage/download links).
+
+ * Fix problems with ``resource_listdir()``, ``resource_isdir()`` and resource
+   directory extraction for zipped eggs.
 
 0.4a3
  * Fixed scripts not being able to see a ``__file__`` variable in ``__main__``
@@ -493,10 +557,13 @@ Known Issues
 Future Plans
 ============
 
-* Log progress to a logger, with -v and -q options to control verbosity
-* Display more information about downloads and progress when being verbose
 * Process the installed package's dependencies as well as the base package
+* Support "self-installation" - bootstrapping setuptools install into another
+  package's installation process (copy egg, write setuptools.pth)
 * Support installation from bdist_wininst packages?
 * Additional utilities to list/remove/verify packages
 * Signature checking?  SSL?  Ability to suppress PyPI search?
+* Display byte progress meter when downloading distributions and long pages?
+* Redirect stdout/stderr to log during run_setup?
+
 

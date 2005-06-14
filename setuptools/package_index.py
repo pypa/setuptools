@@ -2,6 +2,7 @@
 
 import sys, os.path, re, urlparse, urllib2
 from pkg_resources import *
+from distutils import log
 
 HREF = re.compile(r"""href\s*=\s*['"]?([^'"> ]+)""", re.I)
 URL_SCHEME = re.compile('([-+.a-z0-9]{2,}):',re.I).match
@@ -10,7 +11,6 @@ EXTENSIONS = ".tar.gz .tar.bz2 .tar .zip .tgz".split()
 __all__ = [
     'PackageIndex', 'distros_for_url', 
 ]
-
 
 
 
@@ -359,13 +359,13 @@ class PackageIndex(AvailableDistributions):
         return filename
 
     def debug(self, msg, *args):
-        pass #print msg % args    # XXX
+        log.debug(msg, *args)
 
     def info(self, msg, *args):
-        print msg % args    # XXX
+        log.info(msg, *args)
         
     def warn(self, msg, *args):
-        print msg % args    # XXX
+        log.warn(msg, *args)
 
     def _download_sourceforge(self, source_url, sf_page, tmpdir):
         """Download package from randomly-selected SourceForge mirror"""

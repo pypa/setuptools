@@ -16,8 +16,9 @@ import sys, os.path, zipimport, shutil, tempfile
 
 from setuptools import Command
 from setuptools.sandbox import run_setup
+from distutils import log, dir_util
 from distutils.sysconfig import get_python_lib
-from distutils.errors import DistutilsArgError
+from distutils.errors import DistutilsArgError, DistutilsOptionError
 from setuptools.archive_util import unpack_archive
 from setuptools.package_index import PackageIndex
 from pkg_resources import *
@@ -32,7 +33,6 @@ def samefile(p1,p2):
         os.path.normpath(os.path.normcase(p1)) ==
         os.path.normpath(os.path.normcase(p2))
     )
-
 
 
 
@@ -54,11 +54,14 @@ class easy_install(Command):
         ("find-links=", "f", "additional URL(s) to search for packages"),
         ("build-directory=", "b",
             "download/extract/build in DIR; keep the results"),
+        ('optimize=', 'O',
+         "also compile with optimization: -O1 for \"python -O\", "
+         "-O2 for \"python -OO\", and -O0 to disable [default: -O0]"),
     ]
 
     boolean_options = [ 'zip-ok', 'multi-version', 'exclude-scripts' ]
     create_index = PackageIndex
-    
+
     def initialize_options(self):
         self.zip_ok = None
         self.multi_version = None
@@ -67,19 +70,16 @@ class easy_install(Command):
         self.find_links = None
         self.build_directory = None
         self.args = None
-        
+        self.optimize = None
+
         # Options not specifiable via command line
         self.package_index = None
         self.pth_file = None
 
-    def alloc_tmp(self):
-        if self.build_directory is None:
-            return tempfile.mkdtemp(prefix="easy_install-")
-        tmpdir = os.path.realpath(self.build_directory)
-        if not os.path.isdir(tmpdir):
-            os.makedirs(tmpdir)
-        return tmpdir
-        
+
+
+
+
     def finalize_options(self):
         # If a non-default installation directory was specified, default the
         # script directory to match it.
@@ -91,13 +91,13 @@ class easy_install(Command):
         # --prefix and --home and all that other crud.
         self.set_undefined_options('install_lib',
             ('install_dir','install_dir')
-        )         
+        )
         # Likewise, set default script_dir from 'install_scripts.install_dir'
         self.set_undefined_options('install_scripts',
             ('install_dir', 'script_dir')
         )
 
-        site_packages = get_python_lib()       
+        site_packages = get_python_lib()
         instdir = self.install_dir
 
         if instdir is None or samefile(site_packages,instdir):
@@ -106,7 +106,7 @@ class easy_install(Command):
                 self.pth_file = PthDistributions(
                     os.path.join(instdir,'easy-install.pth')
                 )
-            self.install_dir = instdir    
+            self.install_dir = instdir
 
         elif self.multi_version is None:
             self.multi_version = True
@@ -124,23 +124,66 @@ class easy_install(Command):
         if self.find_links is not None:
             if isinstance(self.find_links, basestring):
                 self.find_links = self.find_links.split()
-            for link in self.find_links:
-                self.package_index.scan_url(link)
+        else:
+            self.find_links = []
+
+        self.set_undefined_options('install_lib', ('optimize','optimize'))
+
+        if not isinstance(self.optimize,int):
+            try:
+                self.optimize = int(self.optimize)
+                if not (0 <= self.optimize <= 2): raise ValueError
+            except ValueError:
+                raise DistutilsOptionError("--optimize must be 0, 1, or 2")
 
         if not self.args:
             raise DistutilsArgError(
                 "No urls, filenames, or requirements specified (see --help)")
+
         elif len(self.args)>1 and self.build_directory is not None:
             raise DistutilsArgError(
-                "Build directory can only be set when using one URL"   
+                "Build directory can only be set when using one URL"
             )
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    def alloc_tmp(self):
+        if self.build_directory is None:
+            return tempfile.mkdtemp(prefix="easy_install-")
+        tmpdir = os.path.realpath(self.build_directory)
+        if not os.path.isdir(tmpdir):
+            os.makedirs(tmpdir)
+        return tmpdir
+
+
     def run(self):
-        for spec in self.args:
-            self.easy_install(spec)
+        if self.verbose<>self.distribution.verbose:
+            log.set_verbosity(self.verbose)
+        try:
+            for link in self.find_links:
+                self.package_index.scan_url(link)
+            for spec in self.args:
+                self.easy_install(spec)
+        finally:
+            log.set_verbosity(self.distribution.verbose)
 
 
-    def easy_install(self, spec):       
+    def easy_install(self, spec):
         tmpdir = self.alloc_tmp()
         try:
             download = self.package_index.download(spec, tmpdir)
@@ -149,17 +192,15 @@ class easy_install(Command):
                     "Could not find distribution for %r" % spec
                 )
 
-            print "Processing", os.path.basename(download)
+            log.info("Processing %s", os.path.basename(download))
             for dist in self.install_eggs(download, self.zip_ok, tmpdir):
                 self.package_index.add(dist)
                 self.install_egg_scripts(dist)
-                print self.installation_report(dist)
+                log.warn(self.installation_report(dist))
 
         finally:
             if self.build_directory is None:
                 shutil.rmtree(tmpdir)
-
-
 
 
     def install_egg_scripts(self, dist):
@@ -172,7 +213,7 @@ class easy_install(Command):
         for script_name in metadata.metadata_listdir('scripts'):
             target = os.path.join(self.script_dir, script_name)
 
-            print "Installing", script_name, "script to", self.script_dir
+            log.info("Installing %s script to %s", script_name,self.script_dir)
 
             script_text = metadata.get_metadata('scripts/'+script_name)
             script_text = script_text.replace('\r','\n')
@@ -193,11 +234,11 @@ class easy_install(Command):
                 "import pkg_resources",
                 "pkg_resources.run_main(%r, %r)" % (spec, script_name)
             ])
+            if not self.dry_run:
+                f = open(target,"w")
+                f.write(script_text)
+                f.close()
 
-            f = open(target,"w")
-            f.write(script_text)
-            f.close()
-            
 
 
 
@@ -210,7 +251,7 @@ class easy_install(Command):
 
         # Anything else, try to extract and build
         if os.path.isfile(dist_filename):
-            unpack_archive(dist_filename, tmpdir)  # XXX add progress log
+            unpack_archive(dist_filename, tmpdir, self.unpack_progress)
 
         # Find the setup.py file
         from glob import glob
@@ -226,48 +267,51 @@ class easy_install(Command):
                     "Multiple setup scripts in %s" % dist_filename
                 )
             setup_script = setups[0]
-        from setuptools.command import bdist_egg
-        sys.modules.setdefault('distutils.command.bdist_egg', bdist_egg)
-        try:
-            print "Running", setup_script[len(tmpdir)+1:]
-            run_setup(setup_script, ['-q', 'bdist_egg'])
-        except SystemExit, v:
-            raise RuntimeError(
-                "Setup script exited with %s" % (v.args[0],)
-            )
+
+        self.build_egg(tmpdir, setup_script)
+        dist_dir = os.path.join(os.path.dirname(setup_script),'dist')
 
         eggs = []
-        for egg in glob(
-            os.path.join(os.path.dirname(setup_script),'dist','*.egg')
-        ):
+        for egg in glob(os.path.join(dist_dir,'*.egg')):
             eggs.append(self.install_egg(egg, zip_ok, tmpdir))
+
+        if not eggs and not self.dry_run:
+            log.warn("No eggs found in %s (setup script problem?)", dist_dir)
 
         return eggs
 
-    def install_egg(self, egg_path, zip_ok, tmpdir):
 
+
+
+
+
+    def install_egg(self, egg_path, zip_ok, tmpdir):
         destination = os.path.join(self.install_dir,os.path.basename(egg_path))
         destination = os.path.abspath(destination)
-        ensure_directory(destination)
+        if not self.dry_run:
+            ensure_directory(destination)
 
         if not samefile(egg_path, destination):
             if os.path.isdir(destination):
-                shutil.rmtree(destination)
+                dir_util.remove_tree(destination, dry_run=self.dry_run)
+
             elif os.path.isfile(destination):
-                os.unlink(destination)
+                self.execute(os.unlink,(destination,),"Removing "+destination)
 
             if zip_ok:
                 if egg_path.startswith(tmpdir):
-                    shutil.move(egg_path, destination)
+                    f,m = shutil.move, "Moving"
                 else:
-                    shutil.copy2(egg_path, destination)
-
+                    f,m = shutil.copy2, "Copying"
             elif os.path.isdir(egg_path):
-                shutil.move(egg_path, destination)
-
+                f,m = shutil.move, "Moving"
             else:
-                os.mkdir(destination)
-                unpack_archive(egg_path, destination)   # XXX add progress??
+                self.mkpath(destination)
+                f,m = self.unpack_and_compile, "Extracting"
+
+            self.execute(f, (egg_path, destination),
+                (m+" %s to %s") %
+                (os.path.basename(egg_path),os.path.dirname(destination)))
 
         if os.path.isdir(destination):
             dist = Distribution.from_filename(
@@ -282,13 +326,10 @@ class easy_install(Command):
         self.update_pth(dist)
         return dist
 
-
-
-
     def installation_report(self, dist):
         """Helpful installation message for display to package users"""
 
-        msg = "Installed %(eggloc)s to %(instdir)s"
+        msg = "\nInstalled %(eggloc)s to %(instdir)s"
         if self.multi_version:
             msg += """
 
@@ -318,10 +359,92 @@ PYTHONPATH, or by being added to sys.path by your code.)
         if self.pth_file is not None:
             remove = self.pth_file.remove
             for d in self.pth_file.get(dist.key,()):    # drop old entries
+                log.info("Removing %s from .pth file", d)
                 remove(d)
             if not self.multi_version:
+                log.info("Adding %s to .pth file", dist)
                 self.pth_file.add(dist) # add new entry
             self.pth_file.save()
+
+
+    def build_egg(self, tmpdir, setup_script):
+        from setuptools.command import bdist_egg
+        sys.modules.setdefault('distutils.command.bdist_egg', bdist_egg)
+
+        args = ['bdist_egg']
+        if self.verbose>2:
+            v = 'v' * self.verbose - 1
+            args.insert(0,'-'+v)
+        elif self.verbose<2:
+            args.insert(0,'-q')
+        if self.dry_run:
+            args.insert(0,'-n')
+
+        log.info("Running %s %s", setup_script[len(tmpdir)+1:], ' '.join(args))
+        try:
+            try:
+                run_setup(setup_script, args)
+            except SystemExit, v:
+                raise RuntimeError(
+                    "Setup script exited with %s" % (v.args[0],)
+                )
+        finally:
+            log.set_verbosity(self.verbose) # restore our log verbosity
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    def unpack_progress(self, src, dst):
+        # Progress filter for unpacking
+        log.debug("Unpacking %s to %s", src, dst)
+        return True     # only unpack-and-compile skips files for dry run
+
+
+    def unpack_and_compile(self, egg_path, destination):
+        to_compile = []
+
+        def pf(src,dst):
+            if dst.endswith('.py'):
+                to_compile.append(dst)
+            self.unpack_progress(src,dst)
+            return not self.dry_run
+
+        unpack_archive(egg_path, destination, pf)
+
+        from distutils.util import byte_compile
+        try:
+            # try to make the byte compile messages quieter
+            log.set_verbosity(self.verbose - 1)
+
+            byte_compile(to_compile, optimize=0, force=1, dry_run=self.dry_run) 
+            if self.optimize:
+                byte_compile(
+                    to_compile, optimize=self.optimize, force=1,
+                    dry_run=self.dry_run
+                )
+        finally:
+            log.set_verbosity(self.verbose)     # restore original verbosity
+
+
+
+
+
+
+
 
 
 

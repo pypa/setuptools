@@ -190,7 +190,7 @@ class bdist_egg(Command):
             if not self.dry_run:
                 os.unlink(native_libs)
 
-        if self.egg_info:
+        if self.egg_info and os.path.exists(self.egg_info):
             for filename in os.listdir(self.egg_info):
                 path = os.path.join(self.egg_info,filename)
                 if os.path.isfile(path):
@@ -231,7 +231,7 @@ class bdist_egg(Command):
         for dirname in INSTALL_DIRECTORY_ATTRS:
             kw.setdefault(dirname,self.bdist_dir)
         kw.setdefault('skip_build',self.skip_build)
-
+        kw.setdefault('dry_run', self.dry_run)
         cmd = self.reinitialize_command(cmdname, **kw)
         self.run_command(cmdname)
         return cmd
@@ -262,24 +262,24 @@ def make_zipfile (zip_filename, base_dir, verbose=0, dry_run=0):
     import zipfile
     mkpath(os.path.dirname(zip_filename), dry_run=dry_run)
 
-    # If zipfile module is not available, try spawning an external
-    # 'zip' command.
-    log.info("creating '%s' and adding '%s' to it",
-             zip_filename, base_dir)
+    log.info("creating '%s' and adding '%s' to it", zip_filename, base_dir)
 
     def visit (z, dirname, names):
         for name in names:
             path = os.path.normpath(os.path.join(dirname, name))
             if os.path.isfile(path):
                 p = path[len(base_dir)+1:]
-                z.write(path, p)
-                log.info("adding '%s'" % p)
+                if not dry_run:
+                    z.write(path, p)
+                log.debug("adding '%s'" % p)
 
     if not dry_run:
         z = zipfile.ZipFile(zip_filename, "w",
                             compression=zipfile.ZIP_DEFLATED)
         os.path.walk(base_dir, visit, z)
         z.close()
+    else:
+        os.path.walk(base_dir, visit, None)
 
     return zip_filename
 
