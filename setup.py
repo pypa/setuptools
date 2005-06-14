@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Distutils setup file, used to install or test 'setuptools'"""
 
-VERSION = "0.4a2"
+VERSION = "0.4a3"
 from setuptools import setup, find_packages, Require
 
 setup(

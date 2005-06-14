@@ -62,7 +62,7 @@ version, and automatically downloading, building, and installing it::
 **Example 2**. Install or upgrade a package by name and version by finding
 links on a given "download page"::
 
-    easy_install -f http://peak.telecommunity.com/dist "setuptools>=0.4a2"
+    easy_install -f http://peak.telecommunity.com/dist "setuptools>=0.4a3"
 
 **Example 3**. Download a source distribution from a specified URL,
 automatically building and installing it::
@@ -385,8 +385,19 @@ Known Issues
  * There's no automatic retry for borked Sourceforge mirrors, which can easily
    time out or be missing a file.
 
- * EasyInstall does not yet respect the distutils "verbose/quite" and "dry-run"
+ * EasyInstall does not yet respect the distutils "verbose/quiet" and "dry-run"
    options, even though it accepts them.
+
+0.4a3
+ * Fixed scripts not being able to see a ``__file__`` variable in ``__main__``
+
+ * Fixed a problem with ``resource_isdir()`` implementation that was introduced
+   in 0.4a2.
+
+ * Add progress messages to the search/download process so that you can tell
+   what URLs it's reading to find download links.  (Hopefully, this will help
+   people report out-of-date and broken links to package authors, and to tell
+   when they've asked for a package that doesn't exist.)
 
 0.4a2
  * Added support for installing scripts
