@@ -116,10 +116,10 @@ class PackageIndex(AvailableDistributions):
         f.close()
         if url.startswith(self.index_url):
             self.process_index(url, page)
-        else:
-            for match in HREF.finditer(page):
-                link = urlparse.urljoin(base, match.group(1))
-                self.process_url(link)
+
+        for match in HREF.finditer(page):
+            link = urlparse.urljoin(base, match.group(1))
+            self.process_url(link)
 
     def process_index(self,url,page):
         """Process the contents of a PyPI page"""
