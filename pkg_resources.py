@@ -573,7 +573,7 @@ class NullProvider:
 
 
     def resource_listdir(self,resource_name):
-        return self._listdir(self._fn(self.egg_info,resource_name))
+        return self._listdir(self._fn(self.module_path,resource_name))
 
     def metadata_listdir(self,name):
         if self.egg_info:
@@ -738,7 +738,7 @@ class ZipProvider(DefaultProvider):
 
     def _extract_resource(self, manager, resource_name):
         if self.resource_isdir(resource_name):
-            return self._extract_dir(resource_name)
+            return self._extract_directory(resource_name)
 
         parts = resource_name.split('/')
         zip_path = os.path.join(self.module_path, *parts)
