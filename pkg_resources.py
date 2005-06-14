@@ -587,7 +587,7 @@ class NullProvider:
         script_text = self.get_metadata(script).replace('\r\n','\n')
         script_text = script_text.replace('\r','\n')
         script_filename = self._fn(self.egg_info,script)
-
+        namespace['__file__'] = script_filename
         if os.path.exists(script_filename):
             execfile(script_filename, namespace, namespace)
         else:
