@@ -738,7 +738,7 @@ class ZipProvider(DefaultProvider):
 
     def _extract_resource(self, manager, resource_name):
         if self.resource_isdir(resource_name):
-            return self._extract_directory(resource_name)
+            return self._extract_directory(manager, resource_name)
 
         parts = resource_name.split('/')
         zip_path = os.path.join(self.module_path, *parts)
@@ -801,21 +801,21 @@ class ZipProvider(DefaultProvider):
         return self._short_name(path) in self.zipinfo or self._isdir(path)
 
     def _isdir(self,path):
-        path = self._short_name(path).replace(os.sep, '/')
-        if path.endswith('/'): path = path[:-1]
-        return path in self._index()
+        return self._dir_name(path) in self._index()
 
     def _listdir(self,path):
-        path = self._short_name(path).replace(os.sep, '/')
+        return list(self._index().get(self._dir_name(path), ()))
+
+    def _dir_name(self,path):
+        if path.startswith(self.module_path+os.sep):
+            path = path[len(self.module_path+os.sep):]
+        path = path.replace(os.sep,'/')
         if path.endswith('/'): path = path[:-1]
-        return list(self._index().get(path, ()))
+        return path
 
     _get = NullProvider._get
 
-
 register_loader_type(zipimport.zipimporter, ZipProvider)
-
-
 
 
 class PathMetadata(DefaultProvider):
