@@ -143,14 +143,13 @@ class easy_install(Command):
     def easy_install(self, spec):       
         tmpdir = self.alloc_tmp()
         try:
-            print "Downloading", spec
             download = self.package_index.download(spec, tmpdir)
             if download is None:
                 raise RuntimeError(
                     "Could not find distribution for %r" % spec
                 )
 
-            print "Installing", os.path.basename(download)
+            print "Processing", os.path.basename(download)
             for dist in self.install_eggs(download, self.zip_ok, tmpdir):
                 self.package_index.add(dist)
                 self.install_egg_scripts(dist)
@@ -159,6 +158,7 @@ class easy_install(Command):
         finally:
             if self.build_directory is None:
                 shutil.rmtree(tmpdir)
+
 
 
 
@@ -172,7 +172,7 @@ class easy_install(Command):
         for script_name in metadata.metadata_listdir('scripts'):
             target = os.path.join(self.script_dir, script_name)
 
-            print "Installing", script_name, "to", target
+            print "Installing", script_name, "script to", self.script_dir
 
             script_text = metadata.get_metadata('scripts/'+script_name)
             script_text = script_text.replace('\r','\n')
@@ -226,10 +226,10 @@ class easy_install(Command):
                     "Multiple setup scripts in %s" % dist_filename
                 )
             setup_script = setups[0]
-
         from setuptools.command import bdist_egg
         sys.modules.setdefault('distutils.command.bdist_egg', bdist_egg)
         try:
+            print "Running", setup_script[len(tmpdir)+1:]
             run_setup(setup_script, ['-q', 'bdist_egg'])
         except SystemExit, v:
             raise RuntimeError(
