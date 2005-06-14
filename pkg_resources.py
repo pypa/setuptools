@@ -565,15 +565,15 @@ class NullProvider:
     def get_metadata_lines(self, name):
         return yield_lines(self.get_metadata(name))
 
-    def resource_isdir(self,name):
+    def resource_isdir(self,resource_name):
         return self._isdir(self._fn(self.module_path, resource_name))
 
     def metadata_isdir(self,name):
         return self.egg_info and self._isdir(self._fn(self.egg_info,name))
 
 
-    def resource_listdir(self,name):
-        return self._listdir(self._fn(self.egg_info,name))
+    def resource_listdir(self,resource_name):
+        return self._listdir(self._fn(self.egg_info,resource_name))
 
     def metadata_listdir(self,name):
         if self.egg_info:
@@ -1237,7 +1237,7 @@ class Distribution(object):
     ):
         if name:
             self.name = safe_name(name)
-        if version:
+        if version is not None:
             self._version = safe_version(version)
         self.py_version = py_version
         self.platform = platform
@@ -1363,12 +1363,12 @@ class Distribution(object):
 
         return filename
 
+    def __repr__(self):
+        return "%s (%s)" % (self,self.path)
 
-
-
-
-
-
+    def __str__(self):
+        version = getattr(self,'version',None) or "[unknown version]"
+        return "%s %s" % (self.name,version)
 
 
 
