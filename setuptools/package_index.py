@@ -90,21 +90,21 @@ class PackageIndex(AvailableDistributions):
         self.fetched_urls = {}
         self.package_pages = {}
 
-    def scan_url(self, url):
-        self.process_url(url, True)
-
     def process_url(self, url, retrieve=False):
         if url in self.scanned_urls and not retrieve:
             return
 
         self.scanned_urls[url] = True
         dists = list(distros_for_url(url))
-        map(self.add, dists)
+        if dists: self.debug("Found link: %s", url)
 
-        if dists or not retrieve or url in self.fetched_urls:
+        if dists or not retrieve or url in self.fetched_urls:           
+            for dist in dists:
+                self.add(dist)
             # don't need the actual page
             return
 
+        self.info("Reading %s", url)
         f = self.open_url(url)
         self.fetched_urls[url] = self.fetched_urls[f.url] = True
         if 'html' not in f.headers['content-type'].lower():
@@ -121,17 +121,11 @@ class PackageIndex(AvailableDistributions):
                 link = urlparse.urljoin(base, match.group(1))
                 self.process_url(link)
 
-    def find_packages(self,requirement):
-        self.scan_url(self.index_url + requirement.distname)
-        if not self.package_pages.get(requirement.key):
-            # We couldn't find the target package, so search the index page too
-            self.scan_url(self.index_url)
-        for url in self.package_pages.get(requirement.key,()):
-            # scan each page that might be related to the desired package
-            self.scan_url(url)
-
     def process_index(self,url,page):
+        """Process the contents of a PyPI page"""
+        
         def scan(link):
+            # Process a URL to see if it's for a package page
             if link.startswith(self.index_url):
                 parts = map(
                     urllib2.unquote, link[len(self.index_url):].split('/')
@@ -141,10 +135,12 @@ class PackageIndex(AvailableDistributions):
                     pkg = safe_name(parts[0])
                     ver = safe_version(parts[1])
                     self.package_pages.setdefault(pkg.lower(),{})[link] = True
+
         if url==self.index_url or 'Index of Packages</title>' in page:
             # process an index page into the package-page index
             for match in HREF.finditer(page):
                 scan( urlparse.urljoin(url, match.group(1)) )
+
         else:
             scan(url)   # ensure this page is in the page index
             # process individual package page
@@ -156,11 +152,56 @@ class PackageIndex(AvailableDistributions):
                         # Process the found URL
                         self.scan_url(urlparse.urljoin(url, match.group(1)))
 
+
+
+
+
+
+
+
+
+
+
+    def find_packages(self,requirement):
+        self.scan_url(self.index_url + requirement.distname+'/')
+        if not self.package_pages.get(requirement.key):
+            # We couldn't find the target package, so search the index page too
+            self.warn(
+                "Couldn't find index page for %r (maybe misspelled?)",
+                requirement.distname
+            )
+            if self.index_url not in self.fetched_urls:
+                self.warn(
+                    "Scanning index of all packages (this may take a while)"
+                )
+            self.scan_url(self.index_url)
+
+        for url in self.package_pages.get(requirement.key,()):
+            # scan each page that might be related to the desired package
+            self.scan_url(url)
+
     def obtain(self,requirement):
         self.find_packages(requirement)
         for dist in self.get(requirement.key, ()):
             if dist in requirement:
                 return dist
+            self.debug("%s does not match %s", requirement, dist)                
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def download(self, spec, tmpdir):
         """Locate and/or download `spec`, returning a local filename
@@ -193,19 +234,21 @@ class PackageIndex(AvailableDistributions):
                         "Not a URL, existing file, or requirement spec: %r" %
                         (spec,)
                     )
-
         # process a Requirement
+        self.info("Searching for %s", spec)
         dist = self.best_match(spec,[])
         if dist is not None:
+            self.info("Best match: %s", dist)
             return self.download(dist.path, tmpdir)
 
+        self.warn("No local packages or download links found for %s", spec)
         return None
-
-
 
     dl_blocksize = 8192
 
     def _download_to(self, url, filename):
+        self.info("Downloading %s", url)
+
         # Download the file
         fp, tfp = None, None
         try:
@@ -242,8 +285,6 @@ class PackageIndex(AvailableDistributions):
     def reporthook(self, url, filename, blocknum, blksize, size):
         pass    # no-op
 
-
-
     def open_url(self, url):
         try:
             return urllib2.urlopen(url)
@@ -278,8 +319,8 @@ class PackageIndex(AvailableDistributions):
             else:
                 return filename
 
-
-
+    def scan_url(self, url):
+        self.process_url(url, True)
 
 
 
@@ -313,21 +354,23 @@ class PackageIndex(AvailableDistributions):
 
 
     def _download_svn(self, url, filename):
+        self.info("Doing subversion checkout from %s to %s", url, filename)
         os.system("svn checkout -q %s %s" % (url, filename))
         return filename
 
+    def debug(self, msg, *args):
+        pass #print msg % args    # XXX
 
-
-
-
-
-
-
-
-
+    def info(self, msg, *args):
+        print msg % args    # XXX
+        
+    def warn(self, msg, *args):
+        print msg % args    # XXX
 
     def _download_sourceforge(self, source_url, sf_page, tmpdir):
         """Download package from randomly-selected SourceForge mirror"""
+
+        self.debug("Processing SourceForge mirror page")
 
         mirror_regex = re.compile(r'HREF=(/.*?\?use_mirror=[^>]*)')
         urls = [m.group(1) for m in mirror_regex.finditer(sf_page)]
@@ -338,6 +381,12 @@ class PackageIndex(AvailableDistributions):
 
         import random
         url = urlparse.urljoin(source_url, random.choice(urls))
+
+        self.info(
+            "Requesting redirect to (randomly selected) %r mirror",
+            url.split('=',1)[-1]
+        )
+
         f = self.open_url(url)
         match = re.search(
             r'<META HTTP-EQUIV="refresh" content=".*?URL=(.*?)"',
@@ -354,14 +403,6 @@ class PackageIndex(AvailableDistributions):
                 'No META HTTP-EQUIV="refresh" found in Sourceforge page at %s'
                 % url
             )
-
-
-
-
-
-
-
-
 
 
 
