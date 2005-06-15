@@ -13,6 +13,32 @@ from distutils import log
 from pkg_resources import parse_requirements, get_platform, safe_name, \
     safe_version, Distribution
 
+
+def write_stub(resource, pyfile):
+    f = open(pyfile,'w')
+    f.write('\n'.join([
+        "def __bootstrap__():",
+        "   global __bootstrap__, __loader__, __file__",
+        "   import sys, pkg_resources, imp",
+        "   __file__ = pkg_resources.resource_filename(__name__,%r)"
+            % resource,
+        "   del __bootstrap__, __loader__",
+        "   imp.load_dynamic(__name__,__file__)",
+        "__bootstrap__()",
+        "" # terminal \n
+    ]))
+    f.close()
+
+
+
+
+
+
+
+
+
+
+
 class bdist_egg(Command):
     description = "create an \"egg\" distribution"
     user_options = [
@@ -53,6 +79,7 @@ class bdist_egg(Command):
         self.tag_svn_revision = 0
         self.tag_date = 0
 
+
     def finalize_options (self):
         self.egg_name = safe_name(self.distribution.get_name())
         self.egg_version = self.tagged_version()
@@ -80,20 +107,19 @@ class bdist_egg(Command):
             self.plat_name = get_platform()
         self.set_undefined_options('bdist',('dist_dir', 'dist_dir'))
 
-    def write_stub(self, resource, pyfile):
-        f = open(pyfile,'w')
-        f.write('\n'.join([
-            "def __bootstrap__():",
-            "   global __bootstrap__, __loader__, __file__",
-            "   import sys, pkg_resources, imp",
-            "   __file__ = pkg_resources.resource_filename(__name__,%r)"
-                % resource,
-            "   del __bootstrap__, __loader__",
-            "   imp.load_dynamic(__name__,__file__)",
-            "__bootstrap__()",
-            "" # terminal \n
-        ]))
-        f.close()
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def do_install_data(self):
         # Hack for packages that install data to install's --install-lib
@@ -121,6 +147,21 @@ class bdist_egg(Command):
             self.distribution.data_files = old
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     def run(self):
         # We run install_lib before install_data, because some data hacks
         # pull their data path from the install_lib command.
@@ -138,7 +179,7 @@ class bdist_egg(Command):
             pyfile = os.path.join(self.bdist_dir, filename + '.py')
             log.info("creating stub loader for %s" % ext_name)
             if not self.dry_run:
-                self.write_stub(os.path.basename(ext_name), pyfile)
+                write_stub(os.path.basename(ext_name), pyfile)
             to_compile.append(pyfile)
             ext_outputs[p] = ext_name.replace(os.sep,'/')
 
