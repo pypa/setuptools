@@ -22,7 +22,7 @@ __all__ = [
     'InvalidOption', 'Distribution', 'Requirement', 'yield_lines',
     'get_importer', 'find_distributions', 'find_on_path', 'register_finder',
     'split_sections', 'declare_namespace', 'register_namespace_handler',
-    'safe_name', 'safe_version', 'run_main',
+    'safe_name', 'safe_version', 'run_main', 'BINARY_DIST',
 ]
 
 import sys, os, zipimport, time, re, imp
@@ -54,7 +54,8 @@ class InvalidOption(ResolutionError):
 _provider_factories = {}
 PY_MAJOR = sys.version[:3]
 
-EGG_DIST    = 2
+EGG_DIST    = 3
+BINARY_DIST = 2
 SOURCE_DIST = 1
 
 def register_loader_type(loader_type, provider_factory):
@@ -71,7 +72,6 @@ def get_provider(moduleName):
     module = sys.modules[moduleName]
     loader = getattr(module, '__loader__', None)
     return _find_adapter(_provider_factories, loader)(module)
-
 
 
 
@@ -231,7 +231,8 @@ class AvailableDistributions(object):
 
     def can_add(self, dist):
         """Is distribution `dist` acceptable for this collection?"""
-        return (self.python is None or dist.py_version==self.python) \
+        return (self.python is None or dist.py_version is None
+            or dist.py_version==self.python) \
            and compatible_platforms(dist.platform,self.platform)
 
     def __iter__(self):
@@ -242,7 +243,6 @@ class AvailableDistributions(object):
         """Has a distribution named `name` ever been added to this map?"""
         return name.lower() in self._distmap
 
-    def __len__(self): return len(self._distmap)
 
     def get(self,key,default=None):
         """Return ``self[key]`` if `key` in self, otherwise return `default`"""
@@ -361,11 +361,11 @@ class AvailableDistributions(object):
 
         return to_install    # return list of distros to install
 
-
     def obtain(self, requirement):
         """Obtain a distro that matches requirement (e.g. via download)"""
         return None     # override this in subclasses
 
+    def __len__(self): return len(self._distmap)
 
 class ResourceManager:
     """Manage resource extraction and packages"""
@@ -373,7 +373,7 @@ class ResourceManager:
     extraction_path = None
 
     def __init__(self):
-        self.cached_files = []
+        self.cached_files = {}
 
     def resource_exists(self, package_name, resource_name):
         """Does the named resource exist in the named package?"""
@@ -425,7 +425,7 @@ class ResourceManager:
         extract_path = extract_path or os.path.expanduser('~/.python-eggs')
         target_path = os.path.join(extract_path, archive_name, *names)
         ensure_directory(target_path)
-        self.cached_files.append(target_path)
+        self.cached_files[target_path] = 1
         return target_path
 
 
@@ -1263,7 +1263,7 @@ class Distribution(object):
                 )
         return cls(
             filename, metadata, name=name, version=version,
-            py_version=py_version or PY_MAJOR, platform=platform
+            py_version=py_version, platform=platform
         )
     from_filename = classmethod(from_filename)
 
@@ -1453,7 +1453,7 @@ def parse_requirements(strs):
 
 
 def _sort_dists(dists):
-    tmp = [(dist.version,dist.distro_type,dist) for dist in dists]
+    tmp = [(dist.parsed_version,dist.distro_type,dist) for dist in dists]
     tmp.sort()
     dists[::-1] = [d for v,t,d in tmp]
 
