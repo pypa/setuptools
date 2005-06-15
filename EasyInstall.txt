@@ -23,14 +23,14 @@ Installing "Easy Install"
 -------------------------
 
 Windows users can just download and run the `setuptools binary installer for
-Windows <http://peak.telecommunity.com/dist/setuptools-0.4a4.win32.exe>`_.
+Windows <http://peak.telecommunity.com/dist/setuptools-0.5a1.win32.exe>`_.
 All others should just download `ez_setup.py
 <http://peak.telecommunity.com/dist/ez_setup.py>`_, and run it; this will
 download and install the correct version of ``setuptools`` for your Python
 version.  You may receive a message telling you about an obsolete version of
 setuptools being present; if so, you must be sure to delete it entirely, along
 with the old ``pkg_resources`` module if it's present on ``sys.path``.
-    
+
 An ``easy_install.py`` script will be installed in the normal location for
 Python scripts on your platform. In the examples below, you'll need to replace
 references to ``easy_install`` with the correct invocation to run
@@ -62,7 +62,7 @@ version, and automatically downloading, building, and installing it::
 **Example 2**. Install or upgrade a package by name and version by finding
 links on a given "download page"::
 
-    easy_install -f http://peak.telecommunity.com/dist "setuptools>=0.4a4"
+    easy_install -f http://peak.telecommunity.com/dist "setuptools>=0.5a1"
 
 **Example 3**. Download a source distribution from a specified URL,
 automatically building and installing it::
@@ -78,9 +78,9 @@ Easy Install accepts URLs, filenames, PyPI package names (i.e., ``distutils``
 attempt to locate the latest available version that meets your criteria.
 
 When downloading or processing downloaded files, Easy Install recognizes
-distutils *source* (not binary) distribution files with extensions of .tgz,
-.tar, .tar.gz, .tar.bz2, or .zip.  And of course it handles already-built .egg
-distributions as well.
+distutils source distribution files with extensions of .tgz, .tar, .tar.gz,
+.tar.bz2, or .zip.  And of course it handles already-built .egg
+distributions as well as ``.win32.exe`` installers built using distutils.
 
 By default, packages are installed to the running Python installation's
 ``site-packages`` directory, unless you provide the ``-d`` or ``--install-dir``
@@ -268,7 +268,7 @@ and Windows, respectively), and finally a ``distutils.cfg`` file in the
 
     # set the default location to install packages
     install_dir = /home/me/lib/python
-    
+
     # Notice that indentation can be used to continue an option
     # value; this is especially useful for the "--find-links"
     # option, which tells easy_install to use download links on
@@ -442,6 +442,24 @@ Known Issues
  * There's no automatic retry for borked Sourceforge mirrors, which can easily
    time out or be missing a file.
 
+0.5a1
+ * Added support for converting ``.win32.exe`` installers to eggs on the fly.
+   EasyInstall will now recognize such files by name and install them.
+
+ * Added support for "self-installation" bootstrapping.  Packages can now
+   include ``ez_setup.py`` in their source distribution, and add the following
+   to their ``setup.py``, in order to automatically bootstrap installation of
+   setuptools as part of their setup process::
+
+    from ez_setup import use_setuptools
+    use_setuptools()
+
+    from setuptools import setup
+    # etc...
+
+ * Fixed a problem with picking the "best" version to install (versions were
+   being sorted as strings, rather than as parsed values)
+
 0.4a4
  * Added support for the distutils "verbose/quiet" and "dry-run" options, as
    well as the "optimize" flag.
@@ -465,7 +483,7 @@ Known Issues
 
 0.4a2
  * Added support for installing scripts
- 
+
  * Added support for setting options via distutils configuration files, and
    using distutils' default options as a basis for EasyInstall's defaults.
 
@@ -558,9 +576,6 @@ Future Plans
 ============
 
 * Process the installed package's dependencies as well as the base package
-* Support "self-installation" - bootstrapping setuptools install into another
-  package's installation process (copy egg, write setuptools.pth)
-* Support installation from bdist_wininst packages?
 * Additional utilities to list/remove/verify packages
 * Signature checking?  SSL?  Ability to suppress PyPI search?
 * Display byte progress meter when downloading distributions and long pages?

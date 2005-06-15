@@ -9,25 +9,25 @@ URL_SCHEME = re.compile('([-+.a-z0-9]{2,}):',re.I).match
 EXTENSIONS = ".tar.gz .tar.bz2 .tar .zip .tgz".split()
 
 __all__ = [
-    'PackageIndex', 'distros_for_url', 
+    'PackageIndex', 'distros_for_url', 'parse_bdist_wininst',
+    'interpret_distro_name',
 ]
 
 
+def parse_bdist_wininst(name):
+    """Return (base,pyversion) or (None,None) for possible .exe name"""
 
+    lower = name.lower()
+    base, py_ver = None, None
 
+    if lower.endswith('.exe'):
+        if lower.endswith('.win32.exe'):
+            base = name[:-10]
+        elif lower[-16:].startswith('.win32-py'):
+            py_ver = base[-7:-4]
+            base = name[:-16]
 
-
-
-
-
-
-
-
-
-
-
-
-
+    return base,py_ver
 
 
 
@@ -44,19 +44,45 @@ def distros_for_url(url, metadata=None):
 
     path = urlparse.urlparse(url)[2]
     base = urllib2.unquote(path.split('/')[-1])
-
+    
     if base.endswith('.egg'):
         dist = Distribution.from_filename(base, metadata)
         dist.path = url
-        yield dist
-        return  # only one, unambiguous interpretation
+        return [dist]   # only one, unambiguous interpretation
 
+    if base.endswith('.exe'):
+        win_base, py_ver = parse_bdist_wininst(name)
+        if win_base is not None:
+            return interpret_distro_name(
+                url, win_base, metadata, py_ver, BINARY_DIST, "win32"
+            )
+
+    # Try source distro extensions (.zip, .tgz, etc.)
+    #            
     for ext in EXTENSIONS:
         if base.endswith(ext):
-            base = base[:-len(ext)]
-            break
-    else:
-        return  # no extension matched
+            base = base[:-len(ext)]               
+            return interpret_distro_name(url, base, metadata)
+
+    return []  # no extension matched
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+def interpret_distro_name(url, base, metadata,
+    py_version=None, distro_type=SOURCE_DIST, platform=None
+):
 
     # Generate alternative interpretations of a source distro name
     # Because some packages are ambiguous as to name/versions split
@@ -74,8 +100,23 @@ def distros_for_url(url, metadata=None):
     for p in range(1,len(parts)+1):
         yield Distribution(
             url, metadata, '-'.join(parts[:p]), '-'.join(parts[p:]),
-            distro_type = SOURCE_DIST
+            py_version=py_version, distro_type = distro_type,
+            platform = platform
         )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

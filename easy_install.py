@@ -12,7 +12,7 @@ __ http://peak.telecommunity.com/DevCenter/EasyInstall
 
 """
 
-import sys, os.path, zipimport, shutil, tempfile
+import sys, os.path, zipimport, shutil, tempfile, zipfile
 
 from setuptools import Command
 from setuptools.sandbox import run_setup
@@ -20,9 +20,14 @@ from distutils import log, dir_util
 from distutils.sysconfig import get_python_lib
 from distutils.errors import DistutilsArgError, DistutilsOptionError
 from setuptools.archive_util import unpack_archive
-from setuptools.package_index import PackageIndex
+from setuptools.package_index import PackageIndex, parse_bdist_wininst
+from setuptools.command import bdist_egg
 from pkg_resources import *
 
+__all__ = [
+    'samefile', 'easy_install', 'PthDistributions', 'extract_wininst_cfg',
+    'main', 'get_exe_prefixes',
+]
 
 def samefile(p1,p2):
     if hasattr(os.path,'samefile') and (
@@ -33,11 +38,6 @@ def samefile(p1,p2):
         os.path.normpath(os.path.normcase(p1)) ==
         os.path.normpath(os.path.normcase(p2))
     )
-
-
-
-
-
 
 class easy_install(Command):
     """Manage a download/build/install process"""
@@ -249,6 +249,9 @@ class easy_install(Command):
         if dist_filename.lower().endswith('.egg'):
             return [self.install_egg(dist_filename, True, tmpdir)]
 
+        if dist_filename.lower().endswith('.exe'):
+            return [self.install_exe(dist_filename, tmpdir)]
+
         # Anything else, try to extract and build
         if os.path.isfile(dist_filename):
             unpack_archive(dist_filename, tmpdir, self.unpack_progress)
@@ -279,9 +282,6 @@ class easy_install(Command):
             log.warn("No eggs found in %s (setup script problem?)", dist_dir)
 
         return eggs
-
-
-
 
 
 
@@ -326,6 +326,88 @@ class easy_install(Command):
         self.update_pth(dist)
         return dist
 
+    def install_exe(self, dist_filename, tmpdir):
+        # See if it's valid, get data
+        cfg = extract_wininst_cfg(dist_filename)
+        if cfg is None:
+            raise RuntimeError(
+                "%s is not a valid distutils Windows .exe" % dist_filename
+            )
+
+        # Create a dummy distribution object until we build the real distro
+        dist = Distribution(None,
+            name=cfg.get('metadata','name'),
+            version=cfg.get('metadata','version'),
+            platform="win32"
+        )
+
+        # Convert the .exe to an unpacked egg
+        egg_path = dist.path = os.path.join(tmpdir, dist.egg_name()+'.egg')
+        egg_tmp  = egg_path+'.tmp'
+        self.exe_to_egg(dist_filename, egg_tmp)
+
+        # Write EGG-INFO/PKG-INFO
+        pkg_inf = os.path.join(egg_tmp, 'EGG-INFO', 'PKG-INFO')
+        f = open(pkg_inf,'w')
+        f.write('Metadata-Version: 1.0\n')
+        for k,v in cfg.items('metadata'):
+            if k<>'target_version':
+                f.write('%s: %s\n' % (k.replace('_','-').title(), v))
+        f.close()
+
+        # Build .egg file from tmpdir
+        bdist_egg.make_zipfile(
+            egg_path, egg_tmp,
+            verbose=self.verbose, dry_run=self.dry_run
+        )
+
+        # install the .egg        
+        return self.install_egg(egg_path, self.zip_ok, tmpdir)
+
+
+
+
+    def exe_to_egg(self, dist_filename, egg_tmp):
+        """Extract a bdist_wininst to the directories an egg would use"""
+
+        # Check for .pth file and set up prefix translations
+        prefixes = get_exe_prefixes(dist_filename)
+        to_compile = []
+        native_libs = []
+
+        def process(src,dst):
+            for old,new in prefixes:
+                if src.startswith(old):
+                    src = new+src[len(old):]
+                    dst = os.path.join(egg_tmp, *src.split('/'))
+                    dl = dst.lower()
+                    if dl.endswith('.pyd') or dl.endswith('.dll'):
+                        native_libs.append(src)
+                    elif dl.endswith('.py') and old!='SCRIPTS/':
+                        to_compile.append(dst)
+                    return dst
+            if not src.endswith('.pth'):
+                log.warn("WARNING: can't process %s", src)
+            return None
+
+        # extract, tracking .pyd/.dll->native_libs and .py -> to_compile
+        unpack_archive(dist_filename, egg_tmp, process)
+       
+        for res in native_libs:
+            if res.lower().endswith('.pyd'):    # create stubs for .pyd's
+                parts = res.split('/')
+                resource, parts[-1] = parts[-1], parts[-1][:-1]
+                pyfile = os.path.join(egg_tmp, *parts)
+                to_compile.append(pyfile)
+                bdist_egg.write_stub(resource, pyfile)
+        
+        self.byte_compile(to_compile)   # compile .py's
+        
+        if native_libs:     # write EGG-INFO/native_libs.txt
+            nl_txt = os.path.join(egg_tmp, 'EGG-INFO', 'native_libs.txt')
+            ensure_directory(nl_txt)
+            open(nl_txt,'w').write('\n'.join(native_libs)+'\n')
+
     def installation_report(self, dist):
         """Helpful installation message for display to package users"""
 
@@ -355,20 +437,19 @@ PYTHONPATH, or by being added to sys.path by your code.)
         version = dist.version
         return msg % locals()
 
-    def update_pth(self,dist):
-        if self.pth_file is not None:
-            remove = self.pth_file.remove
-            for d in self.pth_file.get(dist.key,()):    # drop old entries
-                log.info("Removing %s from .pth file", d)
-                remove(d)
-            if not self.multi_version:
-                log.info("Adding %s to .pth file", dist)
-                self.pth_file.add(dist) # add new entry
-            self.pth_file.save()
+
+
+
+
+
+
+
+
+
+
 
 
     def build_egg(self, tmpdir, setup_script):
-        from setuptools.command import bdist_egg
         sys.modules.setdefault('distutils.command.bdist_egg', bdist_egg)
 
         args = ['bdist_egg']
@@ -391,27 +472,28 @@ PYTHONPATH, or by being added to sys.path by your code.)
         finally:
             log.set_verbosity(self.verbose) # restore our log verbosity
 
+    def update_pth(self,dist):
+        if self.pth_file is not None:
+            remove = self.pth_file.remove
+            for d in self.pth_file.get(dist.key,()):    # drop old entries
+                log.info("Removing %s from .pth file", d)
+                remove(d)
+            if not self.multi_version:
+                log.info("Adding %s to .pth file", dist)
+                self.pth_file.add(dist) # add new entry
+            self.pth_file.save()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            if dist.name=='setuptools':
+                # Ensure that setuptools itself never becomes unavailable!
+                f = open(os.path.join(self.install_dir,'setuptools.pth'), 'w')
+                f.write(dist.path+'\n')
+                f.close()
 
 
     def unpack_progress(self, src, dst):
         # Progress filter for unpacking
         log.debug("Unpacking %s to %s", src, dst)
-        return True     # only unpack-and-compile skips files for dry run
+        return dst     # only unpack-and-compile skips files for dry run
 
 
     def unpack_and_compile(self, egg_path, destination):
@@ -421,10 +503,13 @@ PYTHONPATH, or by being added to sys.path by your code.)
             if dst.endswith('.py'):
                 to_compile.append(dst)
             self.unpack_progress(src,dst)
-            return not self.dry_run
+            return not self.dry_run and dst or None
 
         unpack_archive(egg_path, destination, pf)
+        self.byte_compile(to_compile)
 
+
+    def byte_compile(self, to_compile):
         from distutils.util import byte_compile
         try:
             # try to make the byte compile messages quieter
@@ -438,6 +523,85 @@ PYTHONPATH, or by being added to sys.path by your code.)
                 )
         finally:
             log.set_verbosity(self.verbose)     # restore original verbosity
+
+
+
+
+
+
+
+
+def extract_wininst_cfg(dist_filename):
+    """Extract configuration data from a bdist_wininst .exe
+
+    Returns a ConfigParser.RawConfigParser, or None
+    """
+    f = open(dist_filename,'rb')
+    try:
+        endrec = zipfile._EndRecData(f)
+        if endrec is None:
+            return None
+
+        prepended = (endrec[9] - endrec[5]) - endrec[6]
+        if prepended < 12:  # no wininst data here
+            return None               
+        f.seek(prepended-12)
+
+        import struct, StringIO, ConfigParser
+        tag, cfglen, bmlen = struct.unpack("<iii",f.read(12))
+        if tag<>0x1234567A:
+            return None     # not a valid tag
+
+        f.seek(prepended-(12+cfglen+bmlen))
+        cfg = ConfigParser.RawConfigParser({'version':'','target_version':''})
+        try:
+            cfg.readfp(StringIO.StringIO(f.read(cfglen)))
+        except ConfigParser.Error:
+            return None
+        if not cfg.has_section('metadata') or not cfg.has_section('Setup'):
+            return None
+        return cfg              
+
+    finally:
+        f.close()
+
+
+
+
+
+
+
+
+def get_exe_prefixes(exe_filename):
+    """Get exe->egg path translations for a given .exe file"""
+
+    prefixes = [
+        ('PURELIB/', ''),
+        ('PLATLIB/', ''),
+        ('SCRIPTS/', 'EGG-INFO/scripts/')
+    ]
+    z = zipfile.ZipFile(exe_filename)
+    try:
+        for info in z.infolist():
+            name = info.filename
+            if not name.endswith('.pth'):
+                continue
+            parts = name.split('/')
+            if len(parts)<>2:
+                continue
+            if parts[0] in ('PURELIB','PLATLIB'):
+                pth = z.read(name).strip()
+                prefixes[0] = ('PURELIB/%s/' % pth), ''
+                prefixes[1] = ('PLATLIB/%s/' % pth), ''
+                break
+    finally:
+        z.close()
+
+    return prefixes
+
+
+
+
 
 
 
