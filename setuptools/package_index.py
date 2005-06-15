@@ -24,7 +24,7 @@ def parse_bdist_wininst(name):
         if lower.endswith('.win32.exe'):
             base = name[:-10]
         elif lower[-16:].startswith('.win32-py'):
-            py_ver = base[-7:-4]
+            py_ver = name[-7:-4]
             base = name[:-16]
 
     return base,py_ver
@@ -51,7 +51,7 @@ def distros_for_url(url, metadata=None):
         return [dist]   # only one, unambiguous interpretation
 
     if base.endswith('.exe'):
-        win_base, py_ver = parse_bdist_wininst(name)
+        win_base, py_ver = parse_bdist_wininst(base)
         if win_base is not None:
             return interpret_distro_name(
                 url, win_base, metadata, py_ver, BINARY_DIST, "win32"
