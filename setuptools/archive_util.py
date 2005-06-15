@@ -13,9 +13,9 @@ class UnrecognizedFormat(RuntimeError):
     """Couldn't recognize the archive type"""
 
 def default_filter(src,dst):
-    """The default progress/filter callback; returns True for all files"""
-    
-    return True
+    """The default progress/filter callback; returns True for all files"""   
+    return dst
+
 
 
 
@@ -46,10 +46,11 @@ def unpack_archive(filename, extract_dir, progress_filter=default_filter,
 
     `progress_filter` is a function taking two arguments: a source path
     internal to the archive ('/'-separated), and a filesystem path where it
-    will be extracted.  The callback must return a true value, or else that
-    file or directory will be skipped.  The callback can thus be used to
-    report on the progress of the extraction, as well as to filter the items
-    extracted.
+    will be extracted.  The callback must return the desired extract path
+    (which may be the same as the one passed in), or else ``None`` to skip
+    that file or directory.  The callback can thus be used to report on the
+    progress of the extraction, as well as to filter the items extracted or
+    alter their extraction paths.
 
     `drivers`, if supplied, must be a non-empty sequence of functions with the
     same signature as this function (minus the `drivers` argument), that raise
@@ -79,7 +80,6 @@ def unpack_archive(filename, extract_dir, progress_filter=default_filter,
 
 
 
-
 def unpack_zipfile(filename, extract_dir, progress_filter=default_filter):
     """Unpack zip `filename` to `extract_dir`
 
@@ -100,8 +100,9 @@ def unpack_zipfile(filename, extract_dir, progress_filter=default_filter):
             if name.startswith('/') or '..' in name:
                 continue
 
-            target = os.path.join(extract_dir,name)
-            if not progress_filter(name,target):
+            target = os.path.join(extract_dir, *name.split('/'))
+            target = progress_filter(name, target)
+            if not target:
                 continue
             if name.endswith('/'):
                 # directory
@@ -118,7 +119,6 @@ def unpack_zipfile(filename, extract_dir, progress_filter=default_filter):
                     del data
     finally:
         z.close()
-
 
 
 def unpack_tarfile(filename, extract_dir, progress_filter=default_filter):
@@ -144,8 +144,11 @@ def unpack_tarfile(filename, extract_dir, progress_filter=default_filter):
                 # don't extract absolute paths or ones with .. in them
                 if not name.startswith('/') and '..' not in name:
                     dst = os.path.join(extract_dir, *name.split('/'))                
-                    if progress_filter(name, dst):
-                        tarobj.extract(member,extract_dir)
+                    dst = progress_filter(name, dst)
+                    if dst:
+                        if dst.endswith(os.sep):
+                            dst = dst[:-1]
+                        tarobj._extract_member(member,dst)  # XXX Ugh
         return True
     finally:
         tarobj.close()
@@ -154,9 +157,6 @@ def unpack_tarfile(filename, extract_dir, progress_filter=default_filter):
 
 
 extraction_drivers = unpack_zipfile, unpack_tarfile
-
-
-
 
 
 
