@@ -63,8 +63,10 @@ def use_setuptools(
             sys.exit(2)
 
     except ImportError:
-        sys.path.insert(0, download_setuptools(version, download_base, to_dir))
-
+        egg = download_setuptools(version, download_base, to_dir)
+        sys.path.insert(0, egg)
+        import setuptools; setuptools.bootstrap_install_from = egg
+        
     import pkg_resources
     try:
         pkg_resources.require("setuptools>="+version)
@@ -77,8 +79,6 @@ def use_setuptools(
             " a more recent version first."
         ) % version
         sys.exit(2)
-
-
 
 def download_setuptools(
     version=DEFAULT_VERSION, download_base=DEFAULT_URL, to_dir=os.curdir
@@ -95,21 +95,21 @@ def download_setuptools(
     saveto = os.path.join(to_dir, egg_name)
     src = dst = None
 
-    try:
-        src = urllib2.urlopen(url)
-        dst = open(saveto,"wb")
-        shutil.copyfileobj(src,dst)
-    finally:
-        if src: src.close()
-        if dst: dst.close()
+    if not os.path.exists(saveto):  # Avoid repeated downloads
+        try:
+            from distutils import log
+            log.warn("Downloading %s", url)
+            src = urllib2.urlopen(url)
+            # Read/write all in one block, so we don't create a corrupt file
+            # if the download is interrupted.
+            data = src.read()           
+            dst = open(saveto,"wb")
+            dst.write(data)
+        finally:
+            if src: src.close()
+            if dst: dst.close()
 
     return os.path.realpath(saveto)
-
-
-
-
-
-
 
 
 

@@ -8,9 +8,9 @@ from setuptools.command.install import install
 from setuptools.command.install_lib import install_lib
 from distutils.errors import DistutilsOptionError, DistutilsPlatformError
 from distutils.errors import DistutilsSetupError
+import setuptools
 
 sequence = tuple, list
-
 
 
 
@@ -348,18 +348,18 @@ class Distribution(_Distribution):
         return not not self.requires
 
 
+    def run_commands(self):
+        if setuptools.bootstrap_install_from and 'install' in self.commands:
+            # Bootstrap self-installation of setuptools
+            from easy_install import easy_install
+            cmd = easy_install(
+                self, args=[setuptools.bootstrap_install_from], zip_ok=1
+            )
+            cmd.ensure_finalized()
+            cmd.run()
+            setuptools.bootstrap_install_from = None
 
-
-
-
-
-
-
-
-
-
-
-
+        _Distribution.run_commands(self)
 
 
 

@@ -15,6 +15,7 @@ __all__ = [
     'find_packages'
 ]
 
+bootstrap_install_from = None
 
 def find_packages(where='.'):
     """Return a list all Python packages found within directory 'where'
@@ -38,7 +39,6 @@ def find_packages(where='.'):
 
 
 
-
 def setup(**attrs):
     """Do package setup
 
@@ -56,17 +56,17 @@ class Command(_Command):
 
     command_consumes_arguments = False
 
+    def __init__(self, dist, **kw):
+        # Add support for keyword arguments
+        _Command.__init__(self,dist)
+        for k,v in kw.items():
+            setattr(self,k,v)
+            
     def reinitialize_command(self, command, reinit_subcommands=0, **kw):
         cmd = _Command.reinitialize_command(self, command, reinit_subcommands)
         for k,v in kw.items():
             setattr(cmd,k,v)    # update command with keywords
         return cmd
-
-
-
-
-
-
 
 
 
