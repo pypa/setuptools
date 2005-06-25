@@ -1,12 +1,10 @@
-import os, sys, __builtin__
+import os, sys, __builtin__, tempfile
 _os = sys.modules[os.name]
 _open = open
-
 
 __all__ = [
     "AbstractSandbox", "DirectorySandbox", "SandboxViolation", "run_setup",
 ]
-
 
 def run_setup(setup_script, args):
     """Run a distutils setup script, sandboxed in its directory"""
@@ -15,8 +13,12 @@ def run_setup(setup_script, args):
     save_argv = sys.argv[:]
     save_path = sys.path[:]
     setup_dir = os.path.abspath(os.path.dirname(setup_script))
+    temp_dir = os.path.join(setup_dir,'temp')
+    if not os.path.isdir(temp_dir): os.makedirs(temp_dir)
+    save_tmp = tempfile.tempdir
 
     try:
+        tempfile.tempdir = temp_dir
         os.chdir(setup_dir)
         try:
             sys.argv[:] = [setup_script]+list(args)
@@ -35,9 +37,7 @@ def run_setup(setup_script, args):
         os.chdir(old_dir)
         sys.path[:] = save_path
         sys.argv[:] = save_argv
-
-
-
+        tempfile.tempdir = save_tmp
 
 class AbstractSandbox:
     """Wrap 'os' module and 'open()' builtin for virtualizing setup scripts"""

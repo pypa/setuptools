@@ -23,7 +23,7 @@ def parse_bdist_wininst(name):
     if lower.endswith('.exe'):
         if lower.endswith('.win32.exe'):
             base = name[:-10]
-        elif lower[-16:].startswith('.win32-py'):
+        elif lower.startswith('.win32-py',-16):
             py_ver = name[-7:-4]
             base = name[:-16]
 

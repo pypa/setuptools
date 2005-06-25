@@ -23,7 +23,7 @@ Installing "Easy Install"
 -------------------------
 
 Windows users can just download and run the `setuptools binary installer for
-Windows <http://peak.telecommunity.com/dist/setuptools-0.5a1.win32.exe>`_.
+Windows <http://peak.telecommunity.com/dist/setuptools-0.5a3.win32.exe>`_.
 All others should just download `ez_setup.py
 <http://peak.telecommunity.com/dist/ez_setup.py>`_, and run it; this will
 download and install the correct version of ``setuptools`` for your Python
@@ -62,7 +62,7 @@ version, and automatically downloading, building, and installing it::
 **Example 2**. Install or upgrade a package by name and version by finding
 links on a given "download page"::
 
-    easy_install -f http://peak.telecommunity.com/dist "setuptools>=0.5a1"
+    easy_install -f http://peak.telecommunity.com/dist "setuptools>=0.5a3"
 
 **Example 3**. Download a source distribution from a specified URL,
 automatically building and installing it::
@@ -441,6 +441,15 @@ Release Notes/Change History
 Known Issues
  * There's no automatic retry for borked Sourceforge mirrors, which can easily
    time out or be missing a file.
+
+0.5a3
+ * Fixed not setting script permissions to allow execution.
+ 
+ * Improved sandboxing so that setup scripts that want a temporary directory
+   (e.g. pychecker) can still run in the sandbox.
+
+0.5a2
+ * Fix stupid stupid refactoring-at-the-last-minute typos.  :(
 
 0.5a1
  * Added support for converting ``.win32.exe`` installers to eggs on the fly.

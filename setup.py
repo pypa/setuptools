@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Distutils setup file, used to install or test 'setuptools'"""
 
-VERSION = "0.5a1"
+VERSION = "0.5a3"
 from setuptools import setup, find_packages, Require
 
 setup(
@@ -26,7 +26,7 @@ setup(
         "close. See the home page and download page for details and docs.",
 
     keywords = "CPAN PyPI distutils eggs package management",
-    url = "http://peak.telecommunity.com/PythonEggs",
+    url = "http://peak.telecommunity.com/DevCenter/PythonEggs",
     download_url = "http://peak.telecommunity.com/DevCenter/EasyInstall",
 
     test_suite = 'setuptools.tests.test_suite',

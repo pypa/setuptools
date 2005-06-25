@@ -238,10 +238,10 @@ class easy_install(Command):
                 f = open(target,"w")
                 f.write(script_text)
                 f.close()
-
-
-
-
+                try:
+                    os.chmod(target,0755)
+                except (AttributeError, os.error):
+                    pass
 
 
     def install_eggs(self, dist_filename, zip_ok, tmpdir):

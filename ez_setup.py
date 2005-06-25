@@ -14,7 +14,7 @@ the appropriate options to ``use_setuptools()``.
 This file can also be run as a script to install or upgrade setuptools.
 """
 
-DEFAULT_VERSION = "0.5a1"
+DEFAULT_VERSION = "0.5a3"
 DEFAULT_URL     = "http://peak.telecommunity.com/dist/"
 
 import sys, os
