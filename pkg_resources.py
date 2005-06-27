@@ -296,7 +296,7 @@ class AvailableDistributions(object):
         """Remove `dist` from the distribution map"""
         self._distmap[dist.key].remove(dist)
 
-    def best_match(self,requirement,path=None):
+    def best_match(self, requirement, path=None, installer=None):
         """Find distribution best matching `requirement` and usable on `path`
 
         If a distribution that's already installed on `path` is unsuitable,
@@ -324,9 +324,9 @@ class AvailableDistributions(object):
         for dist in distros:
             if dist in requirement:
                 return dist
-        return self.obtain(requirement) # try and download
+        return self.obtain(requirement, installer) # try and download/install
 
-    def resolve(self, requirements, path=None):
+    def resolve(self, requirements, path=None, installer=None):
         """List all distributions needed to (recursively) meet requirements"""
 
         if path is None:
@@ -344,26 +344,26 @@ class AvailableDistributions(object):
                 continue
 
             dist = best.get(req.key)
-
             if dist is None:
                 # Find the best distribution and add it to the map
-                dist = best[req.key] = self.best_match(req,path)
+                dist = best[req.key] = self.best_match(req, path, installer)
                 if dist is None:
                     raise DistributionNotFound(req)  # XXX put more info here
                 to_install.append(dist)
 
             elif dist not in req:
                 # Oops, the "best" so far conflicts with a dependency
-                raise VersionConflict(req,dist) # XXX put more info here
+                raise VersionConflict(dist,req) # XXX put more info here
 
             requirements.extend(dist.depends(req.options)[::-1])
             processed[req] = True
 
         return to_install    # return list of distros to install
 
-    def obtain(self, requirement):
+    def obtain(self, requirement, installer=None):
         """Obtain a distro that matches requirement (e.g. via download)"""
-        return None     # override this in subclasses
+        if installer is not None:
+            return installer(requirement)
 
     def __len__(self): return len(self._distmap)
 
@@ -1316,10 +1316,9 @@ class Distribution(object):
             return self.__dep_map
         except AttributeError:
             dm = self.__dep_map = {None: []}
-            for section,contents in split_sections(
-                self._get_metadata('depends.txt')
-            ):
-                dm[section] = list(parse_requirements(contents))
+            for name in 'requires.txt', 'depends.txt':
+                for extra,reqs in split_sections(self._get_metadata(name)):
+                    dm.setdefault(extra,[]).extend(parse_requirements(reqs))
             return dm
 
     _dep_map = property(_dep_map)
@@ -1350,6 +1349,7 @@ class Distribution(object):
         if path is sys.path:
             fixup_namespace_packages(self.path)
             map(declare_namespace, self._get_metadata('namespace_packages.txt'))
+
 
     def egg_name(self):
         """Return what this distribution's standard .egg filename should be"""

@@ -203,7 +203,7 @@ class PackageIndex(AvailableDistributions):
 
 
 
-    def find_packages(self,requirement):
+    def find_packages(self, requirement):
         self.scan_url(self.index_url + requirement.distname+'/')
         if not self.package_pages.get(requirement.key):
             # We couldn't find the target package, so search the index page too
@@ -221,13 +221,13 @@ class PackageIndex(AvailableDistributions):
             # scan each page that might be related to the desired package
             self.scan_url(url)
 
-    def obtain(self,requirement):
+    def obtain(self, requirement, installer=None):
         self.find_packages(requirement)
         for dist in self.get(requirement.key, ()):
             if dist in requirement:
                 return dist
             self.debug("%s does not match %s", requirement, dist)                
-
+        return super(PackageIndex, self).obtain(requirement,installer)
 
 
 
@@ -245,19 +245,20 @@ class PackageIndex(AvailableDistributions):
 
 
     def download(self, spec, tmpdir):
-        """Locate and/or download `spec`, returning a local filename
+        """Locate and/or download `spec` to `tmpdir`, returning a local path
 
         `spec` may be a ``Requirement`` object, or a string containing a URL,
-        an existing local filename, or a package/version requirement spec
+        an existing local filename, or a project/version requirement spec
         (i.e. the string form of a ``Requirement`` object).
 
-        If necessary, the requirement is searched for in the package index.
-        If the download is successful, the return value is a local file path,
-        and it is a subpath of `tmpdir` if the distribution had to be
-        downloaded.  If no matching distribution is found, return ``None``.
-        Various errors may be raised if a problem occurs during downloading.
+        If `spec` is a ``Requirement`` object or a string containing a
+        project/version requirement spec, this method is equivalent to
+        the ``fetch()`` method.  If `spec` is a local, existing file or
+        directory name, it is simply returned unchanged.  If `spec` is a URL,
+        it is downloaded to a subpath of `tmpdir`, and the local filename is
+        returned.  Various errors may be raised if a problem occurs during
+        downloading.
         """
-
         if not isinstance(spec,Requirement):
             scheme = URL_SCHEME(spec)
             if scheme:
@@ -275,15 +276,55 @@ class PackageIndex(AvailableDistributions):
                         "Not a URL, existing file, or requirement spec: %r" %
                         (spec,)
                     )
+
+        return self.fetch(spec, tmpdir, force_scan)
+
+
+
+
+
+
+
+    def fetch(self, requirement, tmpdir, force_scan=False):
+        """Obtain a file suitable for fulfilling `requirement`
+
+        `requirement` must be a ``pkg_resources.Requirement`` instance.
+        If necessary, or if the `force_scan` flag is set, the requirement is
+        searched for in the (online) package index as well as the locally
+        installed packages.  If a distribution matching `requirement` is found,
+        the return value is the same as if you had called the ``download()``
+        method with the matching distribution's URL.  If no matching
+        distribution is found, returns ``None``.
+        """
+
         # process a Requirement
-        self.info("Searching for %s", spec)
-        dist = self.best_match(spec,[])
+        self.info("Searching for %s", requirement)
+
+        if force_scan:
+            self.find_packages(requirement)
+
+        dist = self.best_match(requirement, [])     # XXX
+
         if dist is not None:
             self.info("Best match: %s", dist)
             return self.download(dist.path, tmpdir)
 
-        self.warn("No local packages or download links found for %s", spec)
+        self.warn(
+            "No local packages or download links found for %s", requirement
+        )
         return None
+
+
+
+
+
+
+
+
+
+
+
+
 
     dl_blocksize = 8192
 

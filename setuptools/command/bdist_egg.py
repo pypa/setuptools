@@ -11,7 +11,7 @@ from distutils.sysconfig import get_python_version, get_python_lib
 from distutils.errors import *
 from distutils import log
 from pkg_resources import parse_requirements, get_platform, safe_name, \
-    safe_version, Distribution
+    safe_version, Distribution, yield_lines
 
 
 def write_stub(resource, pyfile):
@@ -78,7 +78,7 @@ class bdist_egg(Command):
         self.tag_build = None
         self.tag_svn_revision = 0
         self.tag_date = 0
-
+        self.egg_output = None
 
     def finalize_options (self):
         self.egg_name = safe_name(self.distribution.get_name())
@@ -105,19 +105,19 @@ class bdist_egg(Command):
             self.bdist_dir = os.path.join(bdist_base, 'egg')
         if self.plat_name is None:
             self.plat_name = get_platform()
+
         self.set_undefined_options('bdist',('dist_dir', 'dist_dir'))
 
+        if self.egg_output is None:
 
+            # Compute filename of the output egg
+            basename = Distribution(
+                None, None, self.egg_name, self.egg_version,
+                get_python_version(),
+                self.distribution.has_ext_modules() and self.plat_name
+            ).egg_name()
 
-
-
-
-
-
-
-
-
-
+            self.egg_output = os.path.join(self.dist_dir, basename+'.egg')
 
 
 
@@ -146,22 +146,22 @@ class bdist_egg(Command):
         finally:
             self.distribution.data_files = old
 
+    def get_outputs(self):
+        return [self.egg_output]
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def write_requirements(self):
+        dist = self.distribution
+        if not getattr(dist,'install_requires',None) and \
+           not getattr(dist,'extras_require',None): return
+        requires = os.path.join(self.egg_info,"requires.txt")
+        log.info("writing %s", requires)
+        if not self.dry_run:
+            f = open(requires, 'wt')
+            f.write('\n'.join(yield_lines(dist.install_requires)))
+            for extra,reqs in dist.extras_require.items():
+                f.write('\n\n[%s]\n%s' % (extra, '\n'.join(yield_lines(reqs))))
+            f.close()
+            
     def run(self):
         # We run install_lib before install_data, because some data hacks
         # pull their data path from the install_lib command.
@@ -189,24 +189,19 @@ class bdist_egg(Command):
         if self.distribution.data_files:
             self.do_install_data()
 
-        if self.distribution.scripts:
-            script_dir = os.path.join(self.bdist_dir,'EGG-INFO','scripts')
-            log.info("installing scripts to %s" % script_dir)
-            self.call_command('install_scripts', install_dir=script_dir)
-
-        # And make an archive relative to the root of the
-        # pseudo-installation tree.
-        archive_basename = Distribution(
-            None, None, self.egg_name, self.egg_version, get_python_version(),
-            ext_outputs and self.plat_name
-        ).egg_name()
-        pseudoinstall_root = os.path.join(self.dist_dir, archive_basename)
-        archive_root = self.bdist_dir
-
         # Make the EGG-INFO directory
+        archive_root = self.bdist_dir
         egg_info = os.path.join(archive_root,'EGG-INFO')
         self.mkpath(egg_info)
         self.mkpath(self.egg_info)
+
+        if self.distribution.scripts:
+            script_dir = os.path.join(egg_info, 'scripts')
+            log.info("installing scripts to %s" % script_dir)
+            self.call_command('install_scripts', install_dir=script_dir)
+
+        self.write_requirements()
+
 
         log.info("writing %s" % os.path.join(self.egg_info,'PKG-INFO'))
         if not self.dry_run:
@@ -231,15 +226,20 @@ class bdist_egg(Command):
             if not self.dry_run:
                 os.unlink(native_libs)
 
-        if self.egg_info and os.path.exists(self.egg_info):
-            for filename in os.listdir(self.egg_info):
-                path = os.path.join(self.egg_info,filename)
-                if os.path.isfile(path):
-                    self.copy_file(path,os.path.join(egg_info,filename))
+        for filename in os.listdir(self.egg_info):
+            path = os.path.join(self.egg_info,filename)
+            if os.path.isfile(path):
+                self.copy_file(path,os.path.join(egg_info,filename))
 
+        if os.path.exists(os.path.join(self.egg_info,'depends.txt')):
+            log.warn(
+                "WARNING: 'depends.txt' will not be used by setuptools 0.6!"
+            )
+            log.warn(
+                "Use the install_requires/extras_require setup() args instead."
+            )
         # Make the archive
-        make_zipfile(pseudoinstall_root+'.egg',
-                          archive_root, verbose=self.verbose,
+        make_zipfile(self.egg_output, archive_root, verbose=self.verbose,
                           dry_run=self.dry_run)
         if not self.keep_temp:
             remove_tree(self.bdist_dir, dry_run=self.dry_run)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Distutils setup file, used to install or test 'setuptools'"""
 
-VERSION = "0.5a3"
+VERSION = "0.5a4"
 from setuptools import setup, find_packages, Require
 
 setup(
@@ -42,7 +42,6 @@ setup(
     packages = find_packages(),
     py_modules = ['pkg_resources', 'easy_install'],
     scripts = ['easy_install.py'],
-    extra_path = ('setuptools', 'setuptools-%s.egg' % VERSION),
 
     classifiers = [f.strip() for f in """
     Development Status :: 3 - Alpha
@@ -57,6 +56,7 @@ setup(
     Topic :: Utilities
     """.splitlines() if f.strip()]
 )
+
 
 
 

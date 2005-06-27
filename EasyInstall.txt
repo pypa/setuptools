@@ -23,7 +23,7 @@ Installing "Easy Install"
 -------------------------
 
 Windows users can just download and run the `setuptools binary installer for
-Windows <http://peak.telecommunity.com/dist/setuptools-0.5a3.win32.exe>`_.
+Windows <http://peak.telecommunity.com/dist/setuptools-0.5a4.win32.exe>`_.
 All others should just download `ez_setup.py
 <http://peak.telecommunity.com/dist/ez_setup.py>`_, and run it; this will
 download and install the correct version of ``setuptools`` for your Python
@@ -62,7 +62,7 @@ version, and automatically downloading, building, and installing it::
 **Example 2**. Install or upgrade a package by name and version by finding
 links on a given "download page"::
 
-    easy_install -f http://peak.telecommunity.com/dist "setuptools>=0.5a3"
+    easy_install -f http://peak.telecommunity.com/dist "setuptools>=0.5a4"
 
 **Example 3**. Download a source distribution from a specified URL,
 automatically building and installing it::
@@ -72,6 +72,11 @@ automatically building and installing it::
 **Example 4**. Install an already-downloaded .egg file::
 
     easy_install /my_downloads/OtherPackage-3.2.1-py2.3.egg
+
+**Example 5**.  Upgrade an already-installed package to the latest version
+listed on PyPI:
+
+    easy_install --upgrade PyProtocols
 
 Easy Install accepts URLs, filenames, PyPI package names (i.e., ``distutils``
 "distribution" names), and package+version specifiers.  In each case, it will
@@ -118,23 +123,29 @@ a version greater than the one you have now::
 
     easy_install "SomePackage>2.0"
 
+using the upgrade flag, to find the latest available version on PyPI::
+
+    easy_install --upgrade SomePackage
+
 or by using a download page, direct download URL, or package filename::
 
-    easy_install -s http://example.com/downloads ExamplePackage
+    easy_install -f http://example.com/downloads ExamplePackage
 
     easy_install http://example.com/downloads/ExamplePackage-2.0-py2.4.egg
 
     easy_install my_downloads/ExamplePackage-2.0.tgz
 
 If you're using ``-m`` or ``--multi`` (or installing outside of
-``site-packages``), the ``require()`` function automatically selects the newest
-available version of a package that meets your version criteria at runtime, so
-installation is the only step needed.
+``site-packages``), using the ``require()`` function at runtime automatically
+selects the newest installed version of a package that meets your version
+criteria.  So, installing a newer version is the only step needed to upgrade
+such packages.
 
-If you're installing to ``site-packages`` and not using ``-m``, installing a
-package automatically replaces any previous version in the ``easy-install.pth``
-file, so that Python will import the most-recently installed version by
-default.
+If you're installing to Python's ``site-packages`` directory (and not
+using ``-m``), installing a package automatically replaces any previous version
+in the ``easy-install.pth`` file, so that Python will import the most-recently
+installed version by default.  So, again, installing the newer version is the
+only upgrade step needed.
 
 If you haven't suppressed script installation (using ``--exclude-scripts`` or
 ``-x``), then the upgraded version's scripts will be installed, and they will
@@ -339,6 +350,16 @@ Command-Line Options
     the ``--install-dir`` or ``-d`` option (or they are set via configuration
     file(s)) you must also use ``require()`` to enable packages at runtime.
 
+``--upgrade, -U``   (New in 0.5a4)
+    By default, EasyInstall only searches the Python Package Index if a
+    project/version requirement can't be met by distributions already installed
+    on sys.path or the installation directory.  However, if you supply the
+    ``--upgrade`` or ``-U`` flag, EasyInstall will always check the package
+    index before selecting a version to install.  In this way, you can force
+    EasyInstall to use the latest available version of any package it installs
+    (subject to any version requirements that might exclude such later
+    versions).
+
 ``--install-dir=DIR, -d DIR``
     Set the installation directory. It is up to you to ensure that this
     directory is on ``sys.path`` at runtime, and to use
@@ -365,6 +386,14 @@ Command-Line Options
     Don't install scripts.  This is useful if you need to install multiple
     versions of a package, but do not want to reset the version that will be
     run by scripts that are already installed.
+
+``--always-copy, -a``   (New in 0.5a4)
+    Copy all needed distributions to the installation directory, even if they
+    are already present in a directory on sys.path.  In older versions of
+    EasyInstall, this was the default behavior, but now you must explicitly
+    request it.  By default, EasyInstall will no longer copy such distributions
+    from other sys.path directories to the installation directory, unless you
+    explicitly gave the distribution's filename on the command line.
 
 ``--find-links=URL, -f URL`` (Option renamed in 0.4a2)
     Scan the specified "download pages" for direct links to downloadable eggs
@@ -434,6 +463,12 @@ Command-Line Options
     the default is 0 (unless it's set under ``install`` or ``install_lib`` in
     one of your distutils configuration files).
 
+``--record=FILENAME``  (New in 0.5a4)
+    Write a record of all installed files to FILENAME.  This is basically the
+    same as the same option for the standard distutils "install" command, and
+    is included for compatibility with tools that expect to pass this option
+    to "setup.py install".
+
 
 Release Notes/Change History
 ============================
@@ -441,6 +476,46 @@ Release Notes/Change History
 Known Issues
  * There's no automatic retry for borked Sourceforge mirrors, which can easily
    time out or be missing a file.
+
+0.5a4
+ * Added ``--always-copy/-a`` option to always copy needed packages to the
+   installation directory, even if they're already present elsewhere on
+   sys.path. (In previous versions, this was the default behavior, but now
+   you must request it.)
+ 
+ * Added ``--upgrade/-U`` option to force checking PyPI for latest available
+   version(s) of all packages requested by name and version, even if a matching
+   version is available locally.
+
+ * Setup scripts using setuptools can now list their dependencies directly in
+   the setup.py file, without having to manually create a ``depends.txt`` file.
+   The ``install_requires`` and ``extras_require`` arguments to ``setup()``
+   are used to create a dependencies file automatically.  If you are manually
+   creating ``depends.txt`` right now, please switch to using these setup
+   arguments as soon as practical, because ``depends.txt`` support will be
+   removed in the 0.6 release cycle.  For documentation on the new arguments,
+   see the ``setuptools.dist.Distribution`` class.
+
+ * Added automatic installation of dependencies declared by a distribution
+   being installed.  These dependencies must be listed in the distribution's
+   ``EGG-INFO`` directory, so the distribution has to have declared its
+   dependencies by using setuptools.  If a package has requirements it didn't
+   declare, you'll still have to deal with them yourself.  (E.g., by asking
+   EasyInstall to find and install them.)
+
+ * Setup scripts using setuptools now always install using ``easy_install``
+   internally, for ease of uninstallation and upgrading.  Note: you *must*
+   remove any ``extra_path`` argument from your setup script, as it conflicts
+   with the proper functioning of the ``easy_install`` command.  (Also, added   
+   the ``--record`` option to ``easy_install`` for the benefit of tools that
+   run ``setup.py install --record=filename`` on behalf of another packaging
+   system.)
+
+ * ``pkg_resources.AvailableDistributions.resolve()`` and related methods now
+   accept an ``installer`` argument: a callable taking one argument, a
+   ``Requirement`` instance.  The callable must return a ``Distribution``
+   object, or ``None`` if no distribution is found.  This feature is used by
+   EasyInstall to resolve dependencies by recursively invoking itself.
 
 0.5a3
  * Fixed not setting script permissions to allow execution.
@@ -584,10 +659,8 @@ Known Issues
 Future Plans
 ============
 
-* Process the installed package's dependencies as well as the base package
 * Additional utilities to list/remove/verify packages
 * Signature checking?  SSL?  Ability to suppress PyPI search?
 * Display byte progress meter when downloading distributions and long pages?
 * Redirect stdout/stderr to log during run_setup?
-
 

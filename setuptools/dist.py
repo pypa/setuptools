@@ -8,36 +8,9 @@ from setuptools.command.install import install
 from setuptools.command.install_lib import install_lib
 from distutils.errors import DistutilsOptionError, DistutilsPlatformError
 from distutils.errors import DistutilsSetupError
-import setuptools
+import setuptools, pkg_resources
 
 sequence = tuple, list
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 class Distribution(_Distribution):
     """Distribution with support for features, tests, and package data
@@ -45,13 +18,34 @@ class Distribution(_Distribution):
     This is an enhanced version of 'distutils.dist.Distribution' that
     effectively adds the following new optional keyword arguments to 'setup()':
 
+     'install_requires' -- a string or sequence of strings specifying project
+        versions that the distribution requires when installed, in the format
+        used by 'pkg_resources.require()'.  They will be installed
+        automatically when the package is installed.  If you wish to use
+        packages that are not available in PyPI, or want to give your users an
+        alternate download location, you can add a 'find_links' option to the
+        '[easy_install]' section of your project's 'setup.cfg' file, and then
+        setuptools will scan the listed web pages for links that satisfy the
+        requirements.
+
+     'extras_require' -- a dictionary mapping names of optional "extras" to the
+        additional requirement(s) that using those extras incurs. For example,
+        this::
+
+            extras_require = dict(reST = ["docutils>=0.3", "reSTedit"])
+
+        indicates that the distribution can optionally provide an extra
+        capability called "reST", but it can only be used if docutils and
+        reSTedit are installed.  If the user installs your package using
+        EasyInstall and requests one of your extras, the corresponding
+        additional requirements will be installed if needed.
+
      'features' -- a dictionary mapping option names to 'setuptools.Feature'
         objects.  Features are a portion of the distribution that can be
         included or excluded based on user options, inter-feature dependencies,
         and availability on the current system.  Excluded features are omitted
         from all setup commands, including source and binary distributions, so
         you can create multiple distributions from the same source tree.
-
         Feature names should be valid Python identifiers, except that they may
         contain the '-' (minus) sign.  Features can be included or excluded
         via the command line options '--with-X' and '--without-X', where 'X' is
@@ -84,6 +78,8 @@ class Distribution(_Distribution):
     the distribution.  They are used by the feature subsystem to configure the
     distribution for the included and excluded features.
     """
+
+
     def __init__ (self, attrs=None):
         have_package_data = hasattr(self, "package_data")
         if not have_package_data:
@@ -91,15 +87,67 @@ class Distribution(_Distribution):
         self.features = {}
         self.test_suite = None
         self.requires = []
+        self.install_requires = []
+        self.extras_require = {}
         _Distribution.__init__(self,attrs)
         if not have_package_data:
             from setuptools.command.build_py import build_py
             self.cmdclass.setdefault('build_py',build_py)
+
         self.cmdclass.setdefault('build_ext',build_ext)
         self.cmdclass.setdefault('install',install)
         self.cmdclass.setdefault('install_lib',install_lib)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    def finalize_options(self):
+        _Distribution.finalize_options(self)
+
         if self.features:
             self._set_global_opts_from_features()
+
+        if self.extra_path:
+            raise DistutilsSetupError(
+                "The 'extra_path' parameter is not needed when using "
+                "setuptools.  Please remove it from your setup script."
+            )
+        try:
+            list(pkg_resources.parse_requirements(self.install_requires))
+        except (TypeError,ValueError):
+            raise DistutilsSetupError(
+                "'install_requires' must be a string or list of strings "
+                "containing valid project/version requirement specifiers"
+            )
+        try:
+            for k,v in self.extras_require.items():
+                list(pkg_resources.parse_requirements(v))
+        except (TypeError,ValueError,AttributeError):
+            raise DistutilsSetupError(
+                "'extras_require' must be a dictionary whose values are "
+                "strings or lists of strings containing valid project/version "
+                "requirement specifiers."
+            )
 
     def parse_command_line(self):
         """Process features after parsing command line options"""
@@ -108,17 +156,10 @@ class Distribution(_Distribution):
             self._finalize_features()
         return result
 
+
     def _feature_attrname(self,name):
         """Convert feature name to corresponding option attribute name"""
         return 'with_'+name.replace('-','_')
-
-
-
-
-
-
-
-
 
 
     def _set_global_opts_from_features(self):
@@ -343,29 +384,29 @@ class Distribution(_Distribution):
 
         return nargs
 
-
     def has_dependencies(self):
         return not not self.requires
 
-
     def run_commands(self):
-        if setuptools.bootstrap_install_from and 'install' in self.commands:
+        for cmd in self.commands:
+            if cmd=='install' and not cmd in self.have_run:
+                self.install_eggs()
+            else:
+                self.run_command(cmd)
+
+    def install_eggs(self):
+        from easy_install import easy_install
+        cmd = easy_install(self, args="x")
+        cmd.ensure_finalized()  # finalize before bdist_egg munges install cmd
+        self.run_command('bdist_egg')
+        args = [self.get_command_obj('bdist_egg').egg_output]
+        if setuptools.bootstrap_install_from:
             # Bootstrap self-installation of setuptools
-            from easy_install import easy_install
-            cmd = easy_install(
-                self, args=[setuptools.bootstrap_install_from], zip_ok=1
-            )
-            cmd.ensure_finalized()
-            cmd.run()
-            setuptools.bootstrap_install_from = None
-
-        _Distribution.run_commands(self)
-
-
-
-
-
-
+            args.insert(0, setuptools.bootstrap_install_from)
+        cmd.args = args
+        cmd.run()
+        self.have_run['install'] = 1
+        setuptools.bootstrap_install_from = None
 
     def get_cmdline_options(self):
         """Return a '{cmd: {opt:val}}' map of all command-line options
