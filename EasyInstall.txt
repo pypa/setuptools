@@ -26,8 +26,12 @@ Windows users can just download and run the `setuptools binary installer for
 Windows <http://peak.telecommunity.com/dist/setuptools-0.5a4.win32.exe>`_.
 All others should just download `ez_setup.py
 <http://peak.telecommunity.com/dist/ez_setup.py>`_, and run it; this will
-download and install the correct version of ``setuptools`` for your Python
-version.  You may receive a message telling you about an obsolete version of
+download and install the `Python 2.3 egg`_ or `Python 2.4 egg`_ for you.
+
+.. _Python 2.3 egg: http://peak.telecommunity.com/dist/setuptools-0.5a4-py2.3.egg
+.. _Python 2.4 egg: http://peak.telecommunity.com/dist/setuptools-0.5a4-py2.4.egg
+
+You may receive a message telling you about an obsolete version of
 setuptools being present; if so, you must be sure to delete it entirely, along
 with the old ``pkg_resources`` module if it's present on ``sys.path``.
 
@@ -74,7 +78,7 @@ automatically building and installing it::
     easy_install /my_downloads/OtherPackage-3.2.1-py2.3.egg
 
 **Example 5**.  Upgrade an already-installed package to the latest version
-listed on PyPI:
+listed on PyPI::
 
     easy_install --upgrade PyProtocols
 
