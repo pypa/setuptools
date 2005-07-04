@@ -89,6 +89,7 @@ class Distribution(_Distribution):
         self.requires = []
         self.install_requires = []
         self.extras_require = {}
+        self.dist_files = []
         _Distribution.__init__(self,attrs)
         if not have_package_data:
             from setuptools.command.build_py import build_py
@@ -97,7 +98,6 @@ class Distribution(_Distribution):
         self.cmdclass.setdefault('build_ext',build_ext)
         self.cmdclass.setdefault('install',install)
         self.cmdclass.setdefault('install_lib',install_lib)
-
 
 
 

@@ -201,9 +201,8 @@ class bdist_egg(Command):
             self.call_command('install_scripts', install_dir=script_dir)
 
         self.write_requirements()
-
-
         log.info("writing %s" % os.path.join(self.egg_info,'PKG-INFO'))
+        
         if not self.dry_run:
             metadata = self.distribution.metadata
             metadata.version, oldver = self.egg_version, metadata.version
@@ -233,9 +232,7 @@ class bdist_egg(Command):
 
         if os.path.exists(os.path.join(self.egg_info,'depends.txt')):
             log.warn(
-                "WARNING: 'depends.txt' will not be used by setuptools 0.6!"
-            )
-            log.warn(
+                "WARNING: 'depends.txt' will not be used by setuptools 0.6!\n"
                 "Use the install_requires/extras_require setup() args instead."
             )
         # Make the archive
@@ -243,6 +240,9 @@ class bdist_egg(Command):
                           dry_run=self.dry_run)
         if not self.keep_temp:
             remove_tree(self.bdist_dir, dry_run=self.dry_run)
+
+        getattr(self.distribution,'dist_files',[]).append(
+            ('bdist_egg',get_python_version(),self.egg_output))
 
     def tagged_version(self):
         version = self.distribution.get_version()
