@@ -192,7 +192,7 @@ class easy_install(Command):
 
     def add_output(self, path):
         if os.path.isdir(path):
-            for base, dirs, files in walk(path):
+            for base, dirs, files in os.walk(path):
                 for filename in files:
                     self.outputs.append(os.path.join(base,filename))
         else:
