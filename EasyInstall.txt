@@ -481,6 +481,12 @@ Known Issues
  * There's no automatic retry for borked Sourceforge mirrors, which can easily
    time out or be missing a file.
 
+0.5a5
+ * Added ``egg_info`` command to ``setuptools``-based packages.  This command
+   just creates or updates the "projectname.egg-info" directory, without
+   building an egg.  It's used by the ``bdist_egg`` command now, and will be
+   used by the ``test`` and ``develop`` commands later on.
+
 0.5a4
  * Added ``--always-copy/-a`` option to always copy needed packages to the
    installation directory, even if they're already present elsewhere on
