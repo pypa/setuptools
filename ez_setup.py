@@ -132,7 +132,7 @@ def main(argv, version=DEFAULT_VERSION):
         try:
             egg = download_setuptools(version, to_dir=tmpdir)
             sys.path.insert(0,egg)
-            from easy_install import main
+            from setuptools.command.easy_install import main
             main(list(argv)+[egg])
         finally:
             shutil.rmtree(tmpdir)
@@ -146,12 +146,12 @@ def main(argv, version=DEFAULT_VERSION):
     try:
         pkg_resources.require(req)
     except pkg_resources.VersionConflict:
-        from easy_install import main
+        from setuptools.command.easy_install import main
         main(list(argv)+[req])
         sys.exit(0) # try to force an exit
     else:
         if argv:
-            from easy_install import main
+            from setuptools.command.easy_install import main
             main(argv)
         else:
             print "Setuptools successfully installed or upgraded."

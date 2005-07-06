@@ -40,7 +40,7 @@ setup(
 
 
     packages = find_packages(),
-    py_modules = ['pkg_resources', 'easy_install'],
+    py_modules = ['pkg_resources'],
     scripts = ['easy_install.py'],
 
     classifiers = [f.strip() for f in """

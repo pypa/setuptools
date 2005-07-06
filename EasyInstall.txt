@@ -493,12 +493,18 @@ Known Issues
    directly on the source.  This avoids an "unmanaged" installation of the
    package to ``site-packages`` or elsewhere.
 
+ * Made ``easy_install`` a standard ``setuptools`` command, moving it from
+   the ``easy_install`` module to ``setuptools.command.easy_install``.  Note
+   that if you were importing or extending it, you must now change your imports
+   accordingly.  ``easy_install.py`` is still installed as a script, but not as
+   a module.
+
 0.5a4
  * Added ``--always-copy/-a`` option to always copy needed packages to the
    installation directory, even if they're already present elsewhere on
    sys.path. (In previous versions, this was the default behavior, but now
    you must request it.)
- 
+
  * Added ``--upgrade/-U`` option to force checking PyPI for latest available
    version(s) of all packages requested by name and version, even if a matching
    version is available locally.
@@ -522,7 +528,7 @@ Known Issues
  * Setup scripts using setuptools now always install using ``easy_install``
    internally, for ease of uninstallation and upgrading.  Note: you *must*
    remove any ``extra_path`` argument from your setup script, as it conflicts
-   with the proper functioning of the ``easy_install`` command.  (Also, added   
+   with the proper functioning of the ``easy_install`` command.  (Also, added
    the ``--record`` option to ``easy_install`` for the benefit of tools that
    run ``setup.py install --record=filename`` on behalf of another packaging
    system.)
@@ -535,7 +541,7 @@ Known Issues
 
 0.5a3
  * Fixed not setting script permissions to allow execution.
- 
+
  * Improved sandboxing so that setup scripts that want a temporary directory
    (e.g. pychecker) can still run in the sandbox.
 

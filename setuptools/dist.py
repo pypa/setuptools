@@ -395,7 +395,7 @@ class Distribution(_Distribution):
                 self.run_command(cmd)
 
     def install_eggs(self):
-        from easy_install import easy_install
+        from setuptools.command.easy_install import easy_install
         cmd = easy_install(self, args="x")
         cmd.ensure_finalized()  # finalize before bdist_egg munges install cmd
         self.run_command('bdist_egg')
