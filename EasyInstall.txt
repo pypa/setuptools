@@ -484,8 +484,14 @@ Known Issues
 0.5a5
  * Added ``egg_info`` command to ``setuptools``-based packages.  This command
    just creates or updates the "projectname.egg-info" directory, without
-   building an egg.  It's used by the ``bdist_egg`` command now, and will be
-   used by the ``test`` and ``develop`` commands later on.
+   building an egg.  It's used by the ``bdist_egg`` and ``test`` commands now,
+   and will be used by the ``develop`` command later on.
+
+ * Enhanced the ``test`` command so that it doesn't install the package, but
+   instead builds any C extensions in-place, updates the ``.egg-info``
+   metadata, adds the source directory to ``sys.path``, and runs the tests
+   directly on the source.  This avoids an "unmanaged" installation of the
+   package to ``site-packages`` or elsewhere.
 
 0.5a4
  * Added ``--always-copy/-a`` option to always copy needed packages to the

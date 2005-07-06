@@ -122,19 +122,19 @@ class DependsTests(TestCase):
 
 
     def testDependsCmd(self):
-        path1 = convert_path('foo/bar/baz')
-        path2 = convert_path('foo/bar/baz/spam')
+        path = convert_path('foo/bar/baz')
 
         dist = makeSetup(
-            extra_path='spam',
-            script_args=['install','--install-lib',path1]
+            script_args=['install','--install-lib',path]
         )
 
         cmd = dist.get_command_obj('depends')
         cmd.ensure_finalized()
 
         self.assertEqual(cmd.temp, dist.get_command_obj('build').build_temp)
-        self.assertEqual(cmd.search_path, [path2,path1]+sys.path)
+        self.assertEqual(cmd.search_path, [path+os.path.sep,path]+sys.path)
+
+
 
 
 

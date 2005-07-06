@@ -1,4 +1,4 @@
-from distutils.cmd import Command
+from setuptools import Command
 from distutils.errors import DistutilsOptionError
 import sys
 
@@ -40,35 +40,35 @@ class test(Command):
 
 
     def run(self):
+        # Ensure metadata is up-to-date
+        self.run_command('egg_info')
 
-        # Install before testing
-        self.run_command('install')
+        # Build extensions in-place
+        self.reinitialize_command('build_ext', inplace=1)
+        self.run_command('build_ext')
 
         if self.test_suite:
             cmd = ' '.join(self.test_args)
-
             if self.dry_run:
                 self.announce('skipping "unittest %s" (dry run)' % cmd)
             else:
                 self.announce('running "unittest %s"' % cmd)
-                import unittest
-                unittest.main(None, None, [unittest.__file__]+self.test_args)
+                self.run_tests()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def run_tests(self):
+        import unittest, pkg_resources
+        old_path = sys.path[:]
+        ei_cmd = self.get_finalized_command("egg_info")
+        try:
+            # put the egg on sys.path, and require() it
+            sys.path.insert(0, ei_cmd.egg_base)
+            pkg_resources.require(
+                "%s==%s" % (ei_cmd.egg_name, ei_cmd.egg_version)
+            )
+            unittest.main(None, None, [unittest.__file__]+self.test_args)
+        finally:
+            sys.path[:] = old_path
+            # XXX later this might need to save/restore the WorkingSet
 
 
 
