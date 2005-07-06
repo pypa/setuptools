@@ -4,9 +4,9 @@ import sys
 
 class test(Command):
 
-    """Command to run unit tests after installation"""
+    """Command to run unit tests after in-place build"""
 
-    description = "run unit tests after installation"
+    description = "run unit tests after in-place build"
 
     user_options = [
         ('test-module=','m', "Run 'test_suite' in specified module"),

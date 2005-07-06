@@ -1,6 +1,6 @@
 import distutils.command
 
-__all__ = ['test', 'depends', 'bdist_egg']
+__all__ = ['test', 'develop', 'bdist_egg']
 
 
 # Make our commands available as though they were part of the distutils

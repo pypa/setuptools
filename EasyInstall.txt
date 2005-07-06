@@ -482,10 +482,17 @@ Known Issues
    time out or be missing a file.
 
 0.5a5
+ * Added ``develop`` command to ``setuptools``-based packages.  This command
+   installs an ``.egg-link`` pointing to the package's source directory, and
+   script wrappers that ``execfile()`` the source versions of the package's
+   scripts.  This lets you put your development checkout(s) on sys.path without
+   having to actually install them.  (To uninstall the link, use
+   use ``setup.py develop --uninstall``.)
+
  * Added ``egg_info`` command to ``setuptools``-based packages.  This command
    just creates or updates the "projectname.egg-info" directory, without
-   building an egg.  It's used by the ``bdist_egg`` and ``test`` commands now,
-   and will be used by the ``develop`` command later on.
+   building an egg.  (It's used by the ``bdist_egg``, ``test``, and ``develop``
+   commands.)
 
  * Enhanced the ``test`` command so that it doesn't install the package, but
    instead builds any C extensions in-place, updates the ``.egg-info``

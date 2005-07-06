@@ -126,7 +126,7 @@ class easy_install(Command):
         for path_item in self.install_dir, self.script_dir:
             if path_item not in self.shadow_path:
                 self.shadow_path.insert(0, self.install_dir)
-        
+
         if self.package_index is None:
             self.package_index = self.create_index(
                 self.index_url, search_path = self.shadow_path
@@ -207,12 +207,12 @@ class easy_install(Command):
         tmpdir = self.alloc_tmp()
         download = None
 
-        try:           
+        try:
             if not isinstance(spec,Requirement):
                 if URL_SCHEME(spec):
                     # It's a url, download it to tmpdir and process
                     download = self.package_index.download(spec, tmpdir)
-                    return self.install_item(None, download, tmpdir, True)                   
+                    return self.install_item(None, download, tmpdir, True)
 
                 elif os.path.exists(spec):
                     # Existing file or directory, just process it directly
@@ -290,40 +290,81 @@ class easy_install(Command):
         if self.exclude_scripts or not metadata.metadata_isdir('scripts'):
             return
 
-        from distutils.command.build_scripts import first_line_re
-
         for script_name in metadata.metadata_listdir('scripts'):
-            target = os.path.join(self.script_dir, script_name)
+            self.install_script(
+                dist, script_name,
+                metadata.get_metadata('scripts/'+script_name).replace('\r','\n')
+            )
 
-            log.info("Installing %s script to %s", script_name,self.script_dir)
 
-            script_text = metadata.get_metadata('scripts/'+script_name)
-            script_text = script_text.replace('\r','\n')
-            first, rest = script_text.split('\n',1)
 
-            match = first_line_re.match(first)
-            options = ''
-            if match:
-                options = match.group(1) or ''
-                if options:
-                    options = ' '+options
 
-            spec = '%s==%s' % (dist.name,dist.version)
 
-            script_text = '\n'.join([
-                "#!%s%s" % (os.path.normpath(sys.executable),options),
-                "# EASY-INSTALL-SCRIPT: %r,%r" % (spec, script_name),
-                "import pkg_resources",
-                "pkg_resources.run_main(%r, %r)" % (spec, script_name)
-            ])
-            if not self.dry_run:
-                f = open(target,"w")
-                f.write(script_text)
-                f.close()
-                try:
-                    os.chmod(target,0755)
-                except (AttributeError, os.error):
-                    pass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    def install_script(self, dist, script_name, script_text, dev_path=None):
+        log.info("Installing %s script to %s", script_name,self.script_dir)
+        target = os.path.join(self.script_dir, script_name)
+        first, rest = script_text.split('\n',1)
+        from distutils.command.build_scripts import first_line_re
+        match = first_line_re.match(first)
+        options = ''
+        if match:
+            options = match.group(1) or ''
+            if options:
+                options = ' '+options
+        spec = '%s==%s' % (dist.name,dist.version)
+        executable = os.path.normpath(sys.executable)
+
+        if dev_path:
+            script_text = (
+                "#!%(executable)s%(options)s\n"
+                "# EASY-INSTALL-DEV-SCRIPT: %(spec)r,%(script_name)r\n"
+                "from pkg_resources import require; require(%(spec)r)\n"
+                "del require\n"
+                "__file__ = %(dev_path)r\n"
+                "execfile(__file__)\n"
+            ) % locals()
+        else:
+            script_text = (
+                "#!%(executable)s%(options)s\n"
+                "# EASY-INSTALL-SCRIPT: %(spec)r,%(script_name)r\n"
+                "import pkg_resources\n"
+                "pkg_resources.run_main(%(spec)r, %(script_name)r)\n"
+            ) % locals()
+
+        if not self.dry_run:
+            f = open(target,"w")
+            f.write(script_text)
+            f.close()
+            try:
+                os.chmod(target,0755)
+            except (AttributeError, os.error):
+                pass
 
 
     def install_eggs(self, dist_filename, zip_ok, tmpdir):
@@ -373,7 +414,7 @@ class easy_install(Command):
         else:
             metadata = EggMetadata(zipimport.zipimporter(egg_path))
         return Distribution.from_filename(egg_path,metadata=metadata)
-        
+
     def install_egg(self, egg_path, zip_ok, tmpdir):
         destination = os.path.join(self.install_dir,os.path.basename(egg_path))
         destination = os.path.abspath(destination)
@@ -443,7 +484,7 @@ class easy_install(Command):
             verbose=self.verbose, dry_run=self.dry_run
         )
 
-        # install the .egg        
+        # install the .egg
         return self.install_egg(egg_path, self.zip_ok, tmpdir)
 
 
@@ -474,7 +515,7 @@ class easy_install(Command):
 
         # extract, tracking .pyd/.dll->native_libs and .py -> to_compile
         unpack_archive(dist_filename, egg_tmp, process)
-       
+
         for res in native_libs:
             if res.lower().endswith('.pyd'):    # create stubs for .pyd's
                 parts = res.split('/')
@@ -482,9 +523,9 @@ class easy_install(Command):
                 pyfile = os.path.join(egg_tmp, *parts)
                 to_compile.append(pyfile)
                 bdist_egg.write_stub(resource, pyfile)
-        
+
         self.byte_compile(to_compile)   # compile .py's
-        
+
         if native_libs:     # write EGG-INFO/native_libs.txt
             nl_txt = os.path.join(egg_tmp, 'EGG-INFO', 'native_libs.txt')
             ensure_directory(nl_txt)
@@ -599,6 +640,7 @@ PYTHONPATH, or by being added to sys.path by your code.)
 
         if dist.name=='setuptools':
             # Ensure that setuptools itself never becomes unavailable!
+            # XXX should this check for latest version?
             f = open(os.path.join(self.install_dir,'setuptools.pth'), 'w')
             f.write(dist.path+'\n')
             f.close()
@@ -608,7 +650,6 @@ PYTHONPATH, or by being added to sys.path by your code.)
         # Progress filter for unpacking
         log.debug("Unpacking %s to %s", src, dst)
         return dst     # only unpack-and-compile skips files for dry run
-
 
 
 
@@ -632,7 +673,7 @@ PYTHONPATH, or by being added to sys.path by your code.)
             # try to make the byte compile messages quieter
             log.set_verbosity(self.verbose - 1)
 
-            byte_compile(to_compile, optimize=0, force=1, dry_run=self.dry_run) 
+            byte_compile(to_compile, optimize=0, force=1, dry_run=self.dry_run)
             if self.optimize:
                 byte_compile(
                     to_compile, optimize=self.optimize, force=1,
@@ -667,7 +708,7 @@ def extract_wininst_cfg(dist_filename):
 
         prepended = (endrec[9] - endrec[5]) - endrec[6]
         if prepended < 12:  # no wininst data here
-            return None               
+            return None
         f.seek(prepended-12)
 
         import struct, StringIO, ConfigParser
@@ -683,7 +724,7 @@ def extract_wininst_cfg(dist_filename):
             return None
         if not cfg.has_section('metadata') or not cfg.has_section('Setup'):
             return None
-        return cfg              
+        return cfg
 
     finally:
         f.close()
