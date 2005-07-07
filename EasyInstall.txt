@@ -491,6 +491,22 @@ Known Issues
    in Exemaker.  So, don't use Exemaker to wrap ``easy_install.py``, or at any
    rate don't expect it to work with all packages.
 
+0.5a6
+ * Beefed up the "sdist" command so that if you don't have a MANIFEST.in, it
+   will include all files under revision control (CVS or Subversion) in the
+   current directory, and it will regenerate the list every time you create a
+   source distribution, not just when you tell it to.  This should make the
+   default "do what you mean" more often than the distutils' default behavior
+   did, while still retaining the old behavior in the presence of MANIFEST.in.
+
+ * Fixed the "develop" command always updating .pth files, even if you
+   specified ``-n`` or ``--dry-run``.
+
+ * Slightly changed the format of the generated version when you use
+   ``--tag-build`` on the "egg_info" command, so that you can make tagged
+   revisions compare *lower* than the version specified in setup.py (e.g. by
+   using ``--tag-build=dev``).
+
 0.5a5
  * Added ``develop`` command to ``setuptools``-based packages.  This command
    installs an ``.egg-link`` pointing to the package's source directory, and
