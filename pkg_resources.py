@@ -22,7 +22,7 @@ __all__ = [
     'InvalidOption', 'Distribution', 'Requirement', 'yield_lines',
     'get_importer', 'find_distributions', 'find_on_path', 'register_finder',
     'split_sections', 'declare_namespace', 'register_namespace_handler',
-    'safe_name', 'safe_version', 'run_main', 'BINARY_DIST',
+    'safe_name', 'safe_version', 'run_main', 'BINARY_DIST', 'run_script',
 ]
 
 import sys, os, zipimport, time, re, imp
@@ -102,15 +102,15 @@ def compatible_platforms(provided,required):
     # XXX all the tricky cases go here
     return False
 
-def run_main(dist_spec, script_name):
+def run_script(dist_spec, script_name):
     """Locate distribution `dist_spec` and run its `script_name` script"""
-    import __main__
-    __main__.__dict__.clear()
-    __main__.__dict__.update({'__name__':'__main__'})
-    require(dist_spec)[0].metadata.run_script(script_name, __main__.__dict__)
+    ns = sys._getframe(1).f_globals
+    name = ns['__name__']
+    ns.clear()
+    ns['__name__'] = name
+    require(dist_spec)[0].metadata.run_script(script_name, ns)
 
-
-
+run_main = run_script   # backward compatibility
 
 
 
