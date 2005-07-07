@@ -124,7 +124,7 @@ class egg_info(Command):
     def tagged_version(self):
         version = self.distribution.get_version()
         if self.tag_build:
-            version+='-'+self.tag_build
+            version+=self.tag_build
 
         if self.tag_svn_revision and os.path.exists('.svn'):
             version += '-%s' % self.get_svn_revision()
