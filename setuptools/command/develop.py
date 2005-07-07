@@ -4,41 +4,6 @@ from pkg_resources import Distribution, PathMetadata
 from distutils import log
 import sys, os
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class develop(easy_install):
     """Set up package for development"""
 
@@ -59,9 +24,20 @@ class develop(easy_install):
 
     command_consumes_arguments = False  # override base
 
+    def run(self):
+        if self.uninstall:
+            self.multi_version = True
+            self.uninstall_link()
+        else:
+            self.install_for_development()
+
     def initialize_options(self):
         self.uninstall = None
         easy_install.initialize_options(self)
+
+
+
+
 
     def finalize_options(self):
         ei = self.get_finalized_command("egg_info")
@@ -77,15 +53,6 @@ class develop(easy_install):
             PathMetadata(self.egg_path, os.path.abspath(ei.egg_info)),
             name = ei.egg_name
         )
-
-
-
-    def run(self):
-        if self.uninstall:
-            self.multi_version = True
-            self.uninstall_link()
-        else:
-            self.install_for_development()
 
     def install_for_development(self):
         # Ensure metadata is up-to-date
@@ -108,6 +75,11 @@ class develop(easy_install):
         # and handling requirements
         self.process_distribution(None, self.dist)
 
+
+
+
+
+
     def uninstall_link(self):
         if os.path.exists(self.egg_link):
             log.info("Removing %s (link to %s)", self.egg_link, self.egg_base)
@@ -117,9 +89,11 @@ class develop(easy_install):
                 return
             if not self.dry_run:
                 os.unlink(self.egg_link)
-        self.update_pth(self.dist)  # remove any .pth link to us
+        if not self.dry_run:
+            self.update_pth(self.dist)  # remove any .pth link to us
         if self.distribution.scripts:
             log.warn("Note: you must uninstall or replace scripts manually!")
+
 
     def install_egg_scripts(self, dist):
         if dist is not self.dist:
@@ -134,21 +108,6 @@ class develop(easy_install):
             script_text = f.read()
             f.close()
             self.install_script(dist, script_name, script_text, script_path)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
