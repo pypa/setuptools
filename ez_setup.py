@@ -150,7 +150,7 @@ def main(argv, version=DEFAULT_VERSION):
             from setuptools.command.easy_install import main
         except ImportError:
             from easy_install import main
-        main(list(argv)+[req])
+        main(list(argv)+[download_setuptools()])
         sys.exit(0) # try to force an exit
     else:
         if argv:
