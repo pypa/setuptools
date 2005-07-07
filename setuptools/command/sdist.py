@@ -63,8 +63,34 @@ def walk_revctrl(dirname='', memo=None):
                     for item in walk_revctrl(path, memo):
                         yield item
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class sdist(_sdist):
     """Smart sdist that finds anything supported by revision control"""
+
+    def run(self):
+        _sdist.run(self)
+        dist_files = getattr(self.distribution,'dist_files',[])
+        for file in self.archive_files:
+            data = ('sdist', '', file)
+            if data not in dist_files:
+                dist_files.append(data)
+
     def finalize_options(self):
         _sdist.finalize_options(self)
         if not os.path.isfile(self.template):
@@ -73,6 +99,21 @@ class sdist(_sdist):
     def add_defaults(self):
         _sdist.add_defaults(self)
         self.filelist.extend(walk_revctrl())
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

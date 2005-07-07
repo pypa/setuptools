@@ -14,8 +14,8 @@ the appropriate options to ``use_setuptools()``.
 This file can also be run as a script to install or upgrade setuptools.
 """
 
-DEFAULT_VERSION = "0.5a6"
-DEFAULT_URL     = "http://peak.telecommunity.com/dist/"
+DEFAULT_VERSION = "0.5a7"
+DEFAULT_URL     = "http://www.python.org/packages/source/s/setuptools/"
 
 import sys, os
 
@@ -91,7 +91,7 @@ def download_setuptools(
     """
     import urllib2, shutil
     egg_name = "setuptools-%s-py%s.egg" % (version,sys.version[:3])
-    url = download_base + egg_name
+    url = download_base + egg_name + '.zip'  # XXX
     saveto = os.path.join(to_dir, egg_name)
     src = dst = None
 

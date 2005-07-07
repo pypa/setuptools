@@ -44,7 +44,9 @@ def distros_for_url(url, metadata=None):
 
     path = urlparse.urlparse(url)[2]
     base = urllib2.unquote(path.split('/')[-1])
-    
+    if base.endswith('.egg.zip'):
+        base = base[:-4]    # strip the .zip
+
     if base.endswith('.egg'):
         dist = Distribution.from_filename(base, metadata)
         dist.path = url
@@ -58,10 +60,10 @@ def distros_for_url(url, metadata=None):
             )
 
     # Try source distro extensions (.zip, .tgz, etc.)
-    #            
+    #
     for ext in EXTENSIONS:
         if base.endswith(ext):
-            base = base[:-len(ext)]               
+            base = base[:-len(ext)]
             return interpret_distro_name(url, base, metadata)
 
     return []  # no extension matched
@@ -78,8 +80,6 @@ def distros_for_url(url, metadata=None):
 
 
 
-
-    
 def interpret_distro_name(url, base, metadata,
     py_version=None, distro_type=SOURCE_DIST, platform=None
 ):
@@ -139,7 +139,7 @@ class PackageIndex(AvailableDistributions):
         dists = list(distros_for_url(url))
         if dists: self.debug("Found link: %s", url)
 
-        if dists or not retrieve or url in self.fetched_urls:           
+        if dists or not retrieve or url in self.fetched_urls:
             for dist in dists:
                 self.add(dist)
             # don't need the actual page
@@ -164,7 +164,7 @@ class PackageIndex(AvailableDistributions):
 
     def process_index(self,url,page):
         """Process the contents of a PyPI page"""
-        
+
         def scan(link):
             # Process a URL to see if it's for a package page
             if link.startswith(self.index_url):
@@ -226,7 +226,7 @@ class PackageIndex(AvailableDistributions):
         for dist in self.get(requirement.key, ()):
             if dist in requirement:
                 return dist
-            self.debug("%s does not match %s", requirement, dist)                
+            self.debug("%s does not match %s", requirement, dist)
         return super(PackageIndex, self).obtain(requirement,installer)
 
 
@@ -388,6 +388,9 @@ class PackageIndex(AvailableDistributions):
         else:
             name = "__downloaded__"    # default if URL has no path contents
 
+        if name.endswith('.egg.zip'):
+            name = name[:-4]    # strip the extra .zip before download
+
         filename = os.path.join(tmpdir,name)
 
         # Download the file
@@ -403,9 +406,6 @@ class PackageIndex(AvailableDistributions):
 
     def scan_url(self, url):
         self.process_url(url, True)
-
-
-
 
 
     def _download_html(self, url, headers, filename, tmpdir):
@@ -445,7 +445,7 @@ class PackageIndex(AvailableDistributions):
 
     def info(self, msg, *args):
         log.info(msg, *args)
-        
+
     def warn(self, msg, *args):
         log.warn(msg, *args)
 
