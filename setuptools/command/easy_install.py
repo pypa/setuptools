@@ -354,7 +354,7 @@ class easy_install(Command):
                 "#!%(executable)s%(options)s\n"
                 "# EASY-INSTALL-SCRIPT: %(spec)r,%(script_name)r\n"
                 "import pkg_resources\n"
-                "pkg_resources.run_main(%(spec)r, %(script_name)r)\n"
+                "pkg_resources.run_script(%(spec)r, %(script_name)r)\n"
             ) % locals()
 
         if not self.dry_run:

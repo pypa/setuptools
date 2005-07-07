@@ -5,6 +5,7 @@ from distutils.core import Extension
 from setuptools.depends import Require
 from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
+from setuptools.command.sdist import sdist
 from setuptools.command.install_lib import install_lib
 from distutils.errors import DistutilsOptionError, DistutilsPlatformError
 from distutils.errors import DistutilsSetupError
@@ -79,7 +80,6 @@ class Distribution(_Distribution):
     distribution for the included and excluded features.
     """
 
-
     def __init__ (self, attrs=None):
         have_package_data = hasattr(self, "package_data")
         if not have_package_data:
@@ -98,7 +98,7 @@ class Distribution(_Distribution):
         self.cmdclass.setdefault('build_ext',build_ext)
         self.cmdclass.setdefault('install',install)
         self.cmdclass.setdefault('install_lib',install_lib)
-
+        self.cmdclass.setdefault('sdist',sdist)
 
 
 
