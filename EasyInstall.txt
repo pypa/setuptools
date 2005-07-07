@@ -481,6 +481,16 @@ Known Issues
  * There's no automatic retry for borked Sourceforge mirrors, which can easily
    time out or be missing a file.
 
+ * Wrapping ``easy_install.py`` with the Exemaker utility may cause failures
+   when building packages that want to compile themselves with optimization
+   enabled.  This is because Exemaker sets ``sys.executable`` to point to the
+   ``easy_install`` wrapper, instead of to the Python executable, and the
+   ``distutils.util.byte_compile()`` function expects to be able to invoke
+   ``sys.executable`` to run a short Python script.  Unfortunately, this can't
+   be directly fixed by EasyInstall; it has to be fixed in the distutils or
+   in Exemaker.  So, don't use Exemaker to wrap ``easy_install.py``, or at any
+   rate don't expect it to work with all packages.
+
 0.5a5
  * Added ``develop`` command to ``setuptools``-based packages.  This command
    installs an ``.egg-link`` pointing to the package's source directory, and
