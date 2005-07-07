@@ -66,7 +66,7 @@ def use_setuptools(
         egg = download_setuptools(version, download_base, to_dir)
         sys.path.insert(0, egg)
         import setuptools; setuptools.bootstrap_install_from = egg
-        
+
     import pkg_resources
     try:
         pkg_resources.require("setuptools>="+version)
@@ -102,7 +102,7 @@ def download_setuptools(
             src = urllib2.urlopen(url)
             # Read/write all in one block, so we don't create a corrupt file
             # if the download is interrupted.
-            data = src.read()           
+            data = src.read()
             dst = open(saveto,"wb")
             dst.write(data)
         finally:
@@ -146,7 +146,10 @@ def main(argv, version=DEFAULT_VERSION):
     try:
         pkg_resources.require(req)
     except pkg_resources.VersionConflict:
-        from setuptools.command.easy_install import main
+        try:
+            from setuptools.command.easy_install import main
+        except ImportError:
+            from easy_install import main
         main(list(argv)+[req])
         sys.exit(0) # try to force an exit
     else:
@@ -158,7 +161,4 @@ def main(argv, version=DEFAULT_VERSION):
 
 if __name__=='__main__':
     main(sys.argv[1:])
-
-
-
 
