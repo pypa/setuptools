@@ -5,6 +5,15 @@ from distutils import log
 from distutils.errors import *
 from setuptools.command.setopt import edit_config, option_base, config_file
 
+def shquote(arg):
+    """Quote an argument for later parsing by shlex.split()"""
+    for c in '"', "'", "\\", "#":
+        if c in arg: return repr(arg)
+    if arg.split()<>[arg]:
+        return repr(arg)
+    return arg        
+
+
 class alias(option_base):
     """Define a shortcut that invokes one or more commands"""
     
@@ -17,12 +26,10 @@ class alias(option_base):
 
     boolean_options = option_base.boolean_options + ['remove']
 
-
     def initialize_options(self):
         option_base.initialize_options(self)
         self.args = None
         self.remove = None
-
 
     def finalize_options(self):
         option_base.finalize_options(self)
@@ -31,13 +38,6 @@ class alias(option_base):
                 "Must specify exactly one argument (the alias name) when "
                 "using --remove"
             )
-
-
-
-
-
-
-
 
     def run(self):
         aliases = self.distribution.get_option_dict('aliases')
@@ -61,7 +61,7 @@ class alias(option_base):
                 return
         else:
             alias = self.args[0]
-            command = ' '.join(map(repr,self.args[1:]))
+            command = ' '.join(map(shquote,self.args[1:]))
 
         edit_config(self.filename, {'aliases': {alias:command}}, self.dry_run)
 
