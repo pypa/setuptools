@@ -15,7 +15,7 @@ def get_description():
     f.close()
     return ''.join(lines)
     
-VERSION = "0.5a7"
+VERSION = "0.5a8"
 
 from setuptools import setup, find_packages, Require
 setup(
@@ -28,7 +28,7 @@ setup(
     license="PSF or ZPL",
     long_description = get_description(),
     keywords = "CPAN PyPI distutils eggs package management",
-    url = "http://peak.telecommunity.com/DevCenter/EasyInstall",
+    url = "http://peak.telecommunity.com/DevCenter/setuptools",
     test_suite = 'setuptools.tests.test_suite',
     requires = [
         Require('Distutils','1.0.3','distutils',

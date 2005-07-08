@@ -13,6 +13,11 @@ page. You'll need to register for a Wiki ID if you don't already have one; you
 can do that from the `User Preferences
 <http://peak.telecommunity.com/DevCenter/UserPreferences>`_ page. Thanks!)
 
+(Also, if you'd like to learn about how you can use ``setuptools`` to make your
+own packages work better with EasyInstall, or provide EasyInstall-like features
+without requiring your users to use EasyInstall directly, you'll probably want
+to check out the full `setuptools`_ documentation as well.)
+
 .. contents:: **Table of Contents**
 
 
@@ -24,7 +29,7 @@ Installing "Easy Install"
 -------------------------
 
 Windows users can just download and run the `setuptools binary installer for
-Windows <http://peak.telecommunity.com/dist/setuptools-0.5a7.win32.exe>`_.
+Windows <http://peak.telecommunity.com/dist/setuptools-0.5a8.win32.exe>`_.
 All others should just download `ez_setup.py
 <http://peak.telecommunity.com/dist/ez_setup.py>`_, and run it; this will
 download and install the appropriate ``setuptools`` egg for your Python
@@ -65,7 +70,7 @@ version, and automatically downloading, building, and installing it::
 **Example 2**. Install or upgrade a package by name and version by finding
 links on a given "download page"::
 
-    easy_install -f http://peak.telecommunity.com/dist "setuptools>=0.5a7"
+    easy_install -f http://peak.telecommunity.com/dist "setuptools>=0.5a8"
 
 **Example 3**. Download a source distribution from a specified URL,
 automatically building and installing it::
@@ -490,6 +495,12 @@ Known Issues
    in Exemaker.  So, don't use Exemaker to wrap ``easy_install.py``, or at any
    rate don't expect it to work with all packages.
 
+0.5a8
+ * There is now a separate documentation page for `setuptools`_; revision
+   history that's not specific to EasyInstall has been moved to that page.
+
+ .. _setuptools: http://peak.telecommunity.com/DevCenter/setuptools
+
 0.5a5
  * Made ``easy_install`` a standard ``setuptools`` command, moving it from
    the ``easy_install`` module to ``setuptools.command.easy_install``.  Note
@@ -587,7 +598,7 @@ Known Issues
  * Misc. bug fixes
 
 0.3a1
- Initial release.
+ * Initial release.
 
 
 Future Plans
