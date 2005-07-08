@@ -1,33 +1,34 @@
 #!/usr/bin/env python
 """Distutils setup file, used to install or test 'setuptools'"""
 
+def get_description():
+    # Get our long description from the documentation
+    f = file('setuptools.txt')
+    lines = []
+    for line in f:
+        if not line.strip():
+            break     # skip to first blank line
+    for line in f:
+        if line.startswith('.. contents::'):
+            break     # read to table of contents
+        lines.append(line)
+    f.close()
+    return ''.join(lines)
+    
 VERSION = "0.5a7"
-from setuptools import setup, find_packages, Require
 
+from setuptools import setup, find_packages, Require
 setup(
     name="setuptools",
     version=VERSION,
-
     description="Download, build, install, upgrade, and uninstall Python "
         "packages -- easily!",
-
     author="Phillip J. Eby",
     author_email="peak@eby-sarna.com",
     license="PSF or ZPL",
-    long_description =
-        "Setuptools enhances the distutils with support for Python Eggs "
-        "(http://peak.telecommunity.com/DevCenter/PythonEggs) and more.  Its "
-        "'EasyInstall' tool "
-        "(http://peak.telecommunity.com/DevCenter/EasyInstall) lets you "
-        "download and install (or cleanly upgrade) Python packages on your "
-        "system, from source distributions, subversion checkouts, SourceForge "
-        "download mirrors, or from Python Eggs.  Been looking for a CPAN "
-        "clone for Python? When combined with PyPI, this gets pretty darn "
-        "close. See the home page and download page for details and docs.",
-
+    long_description = get_description(),
     keywords = "CPAN PyPI distutils eggs package management",
     url = "http://peak.telecommunity.com/DevCenter/EasyInstall",
-
     test_suite = 'setuptools.tests.test_suite',
     requires = [
         Require('Distutils','1.0.3','distutils',
@@ -35,7 +36,6 @@ setup(
         ),
         Require('PyUnit', None, 'unittest', "http://pyunit.sf.net/"),
     ],
-
 
 
 

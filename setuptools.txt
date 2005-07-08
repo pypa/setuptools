@@ -1,0 +1,699 @@
+======================================================
+Building and Distributing Packages with ``setuptools``
+======================================================
+
+``setuptools`` is a collection of enhancements to the Python ``distutils``
+(for Python 2.3 and up) that allow you to more easily build and distribute
+Python packages, especially ones that have dependencies on other packages.
+
+Packages built and distributed using ``setuptools`` look to the user like
+ordinary Python packages based on the ``distutils``.  Your users don't need to
+install or even know about setuptools in order to use them, and you don't
+have to include the entire setuptools package in your distributions.  By
+including just a single `bootstrap module`_ (a 5K .py file), your package will
+automatically download and install ``setuptools`` if the user is building your
+package from source and doesn't have a suitable version already installed.
+
+.. _bootstrap module: http://peak.telecommunity.com/dist/ez_setup.py
+
+Feature Highlights:
+
+* Automatically find/download/install/upgrade dependencies at build time using
+  the `EasyInstall tool <http://peak.telecommunity.com/DevCenter/EasyInstall>`_,
+  which supports downloading via HTTP, FTP, Subversion, and SourceForge, and
+  automatically scans web pages linked from PyPI to find download links.  (It's
+  the closest thing to CPAN currently available for Python.)
+
+* Create `Python Eggs <http://peak.telecommunity.com/DevCenter/PythonEggs>`_ -
+  a single-file importable distribution format 
+  
+* Include data files inside your package directories, where your code can
+  actually use them.  (Python 2.4 distutils includes this feature already, but
+  setuptools provides the feature for Python 2.3 packages also.)
+
+* Automatically include all packages in your source tree, without listing them
+  individually in setup.py
+
+* Automatically include all relevant files in your source distributions,
+  without needing to create a MANIFEST.in and without having to force MANIFEST
+  regeneration
+
+* Transparent Pyrex support, so that your setup.py can list .pyx files and
+  still work even when the end-user doesn't have Pyrex installed (as long as
+  you include the Pyrex-generated C in your source distribution)
+
+* Command aliases - create project-specific, per-user, or site-wide shortcut
+  names for commonly used commands and options
+
+* PyPI upload support - upload your source distributions and eggs to PyPI
+
+* Put your package in "development mode", such that it's available on sys.path,
+  yet you can still edit it directly from your source checkout.
+
+
+.. contents:: **Table of Contents**
+
+
+-----------------
+Developer's Guide
+-----------------
+
+
+Installing ``setuptools``
+=========================
+
+Windows users can just download and run the `setuptools binary installer for
+Windows <http://peak.telecommunity.com/dist/setuptools-0.5a7.win32.exe>`_.
+All others should just download `ez_setup.py`_ and run it; this will
+download and install the appropriate egg for your Python version.
+
+.. _ez_setup.py: `bootstrap module`_
+
+You may receive a message telling you about an obsolete version of
+setuptools being present; if so, you must be sure to delete it entirely, along
+with the old ``pkg_resources`` module if it's present on ``sys.path``.
+
+
+Basic Use
+=========
+
+For basic use of setuptools, just import things from setuptools instead of
+the distutils.  Here's a minimal setup script using setuptools::
+
+    from setuptools import setup, find_packages
+    setup(
+        name = "HelloWorld",
+        version = "0.1",
+        packages = find_packages(),
+    )
+
+As you can see, it doesn't take much to use setuptools in a project.
+Just by doing the above, this project will be able to produce eggs, upload to
+PyPI, and automatically include all packages in the directory where the
+setup.py lives.  See the sections below on `Enhanced Commands`_ and `New
+Commands`_ to see what commands you can give to this setup.py.
+
+Of course, before you release your project to PyPI, you'll want to add a bit
+more information to your setup script to help people find or learn about your
+project.  And maybe your project will have grown by then to include a few
+dependencies, and perhaps some data files and scripts::
+        
+    from setuptools import setup, find_packages
+    setup(
+        name = "HelloWorld",
+        version = "0.1",
+        packages = find_packages(),
+        scripts = ['say_hello.py'],
+
+        # Project uses reStructuredText, so ensure that the docutils get
+        # installed or upgraded on the target machine
+        install_requires = ['docutils>=0.3'],
+
+        package_data = {
+            # If any package contains *.txt or *.rst files, include them:
+            '': ['*.txt', '*.rst'],
+            # And include any *.msg files found in the 'hello' package, too:
+            'hello': ['*.msg'],
+        }
+
+        # metadata for upload to PyPI
+        author = "Me",
+        author_email = "me@example.com",
+        description = "This is an Example Package",
+        license = "PSF",
+        keywords = "hello world example examples",
+        url = "http://example.com/HelloWorld/",   # project home page, if any
+
+        # could also include long_description, download_url, classifiers, etc.
+    )
+
+In the following sections, we'll explain what most of these
+
+Declaring Dependencies
+======================
+
+``setuptools`` supports automatically installing dependencies when a package is
+installed, and including information about dependencies in Python Eggs (so that
+package management tools like EasyInstall can use the information).
+
+``setuptools`` and ``pkg_resources`` use a common syntax for specifying a
+project's required dependencies.  This syntax consists of a project's PyPI
+name, optionally followed by a comma-separated list of "extras" in square
+brackets, optionally followed by a comma-separated list of version
+specifiers.  A version specifier is one of the operators ``<``, ``>``, ``<=``,
+``>=``, ``==`` or ``!=``, followed by a version identifier.  Tokens may be
+separated by whitespace, but any whitespace or nonstandard characters within a
+project name or version identifier must be replaced with ``-``.
+
+Here are some example requirement specifiers::
+
+    docutils >= 0.3
+
+    # comment lines and \ continuations are allowed in requirement strings
+    BazSpam ==1.1, ==1.2, ==1.3, ==1.4, ==1.5, \
+        ==1.6, ==1.7  # and so are line-end comments
+
+    PEAK[FastCGI, reST]>=0.5a4
+
+    setuptools==0.5a7
+
+The simplest way to include requirement specifiers is to use the
+``install_requires`` argument to ``setup()``.  It takes a string or list of
+strings containing requirement specifiers.  If you include more than one
+requirement in a string, each requirement must begin on a new line.
+
+This has three effects:
+
+1. When your project is installed, either by using EasyInstall, ``setup.py
+   install``, or ``setup.py develop``, all of the dependencies not already
+   installed will be located (via PyPI), downloaded, built (if necessary),
+   and installed.
+
+2. Any scripts in your project will be installed with wrappers that verify
+   the availability of the specified dependencies at runtime, and ensure that
+   the correct versions are added to ``sys.path`` (e.g. if multiple versions
+   have been installed).
+
+3. Python Egg distributions will include a metadata file listing the
+   dependencies.
+
+Note, by the way, that if you declare your dependencies in ``setup.py``, you do
+*not* need to use the ``require()`` function in your scripts or modules, as
+long as you either install the project or use ``setup.py develop`` to do
+development work on it.  (See `"Development Mode"`_ below for more details on
+using ``setup.py develop``.)
+
+
+Declaring "Extras" (optional features with their own dependencies)
+------------------------------------------------------------------
+
+Sometimes a project has "recommended" dependencies, that are not required for
+all uses of the project.  For example, a project might offer optional PDF
+output if ReportLab is installed, and reStructuredText support if docutils is
+installed.  These optional features are called "extras", and setuptools allows
+you to define their requirements as well.  In this way, other projects that
+require these optional features can force the additional requirements to be
+installed, by naming the desired extras in their ``install_requires``.
+
+For example, let's say that Project A offers optional PDF and reST support::
+
+    setup(
+        name="Project-A",
+        ...
+        extras_require = {
+            'PDF':  ["ReportLab>=1.2", "RXP"],
+            'reST': ["docutils>=0.3"],
+        }
+    )
+
+And that project B needs project A, *with* PDF support::
+
+    setup(
+        name="Project-B",
+        install_requires = ["Project-A[PDF]"],
+        ...
+    )
+
+This will cause ReportLab to be installed along with project A, if project B is
+installed -- even if project A was already installed.  In this way, a project
+can encapsulate groups of optional "downstream dependencies" under a feature
+name, so that packages that depend on it don't have to know what the downstream
+dependencies are.  If a later version of Project A builds in PDF support and
+no longer needs ReportLab, or if it ends up needing other dependencies besides
+ReportLab in order to provide PDF support, Project B's setup information does
+not need to change, but the right packages will still be installed if needed.
+
+As you can see, the ``extras_require`` argument takes a dictionary mapping
+names of "extra" features, to strings or lists of strings describing those
+features' requirements.  These requirements will *not* be automatically
+installed unless another package depends on them (directly or indirectly) by
+including the desired "extras" in square brackets after the associated project
+name.  (Or if the extras were listed in a requirement spec on the EasyInstall
+command line.)
+
+Note, by the way, that if a project ends up not needing any other packages to
+support a feature, it should keep an empty requirements list for that feature
+in its ``extras_require`` argument, so that packages depending on that feature
+don't break (due to an invalid feature name).  For example, if Project A above
+builds in PDF support and no longer needs ReportLab, it should change its
+setup to this::
+
+    setup(
+        name="Project-A",
+        ...
+        extras_require = {
+            'PDF':  [],
+            'reST': ["docutils>=0.3"],
+        }
+    )
+
+so that Package B doesn't have to remove the ``[PDF]`` from its requirement
+specifier.
+
+
+Distributing a ``setuptools``-based package
+===========================================
+
+Your users might not have ``setuptools`` installed on their machines, or even
+if they do, it might not be the right version.  Fixing this is easy; just
+download `ez_setup.py`_, and put it in the same directory as your ``setup.py``
+script.  (Be sure to add it to your revision control system, too.)  Then add
+these two lines to the very top of your setup script, before the script imports
+anything from setuptools::
+
+    import ez_setup
+    ez_setup.use_setuptools()
+
+That's it.  The ``ez_setup`` module will automatically download a matching
+version of ``setuptools`` from PyPI, if it isn't present on the target system.
+Whenever you install an updated version of setuptools, you should also update
+your projects' ``ez_setup.py`` files, so that a matching version gets installed
+on the target machine(s).  If you're using Subversion, you may wish to use
+"externals" to make all your projects share a single ``ez_setup.py``, so that
+you only have to update it in one place to update all your projects.
+
+By the way, setuptools supports the new PyPI "upload" command, so you can use
+``setup.py sdist upload`` or ``setup.py bdist_egg upload`` to upload your
+source or egg distributions respectively.  Your project's current version must
+be registered with PyPI first, of course; you can use ``setup.py register`` to
+do that.  Or you can do it all in one step, e.g. ``setup.py register sdist
+bdist_egg upload`` will register the package, build source and egg
+distributions, and then upload them both to PyPI, where they'll be easily
+found by other projects that depend on them.
+
+
+Including Data Files
+====================
+
+The distutils have traditionally allowed installation of "data files", which
+are placed in a platform-specific location.  However, the most common use case
+for data files distributed with a package is for use *by* the package, usually
+by including the data files in the package directory.  Setuptools supports this
+by allowing a ``package_data`` argument to ``setup()``, e.g.::
+
+    from setuptools import setup, find_packages
+    setup(
+        ...
+        package_data = {
+            # If any package contains *.txt or *.rst files, include them:
+            '': ['*.txt', '*.rst'],
+            # And include any *.msg files found in the 'hello' package, too:
+            'hello': ['*.msg'],
+        }
+    )
+
+The ``package_data`` argument is a dictionary that maps from package names to
+lists of glob patterns.  The globs may include subdirectory names, if the data
+files are contained in a subdirectory of the package.  For example, if the
+package tree looks like this::
+
+    setup.py
+    src/
+        mypkg/
+            __init__.py
+            mypkg.txt
+            data/
+                somefile.dat
+                otherdata.dat
+
+The setuptools setup file might look like this::
+
+    from setuptools import setup, find_packages
+    setup(
+        ...
+        packages = find_packages('src'),  # include all packages under src
+        package_dir = {'':'src'},   # tell distutils packages are under src
+        
+        package_data = {
+            # If any package contains *.txt files, include them:
+            '': ['*.txt'],
+            # And include any *.dat files found in the 'data' subdirectory
+            # of the 'mypkg' package, also:
+            'mypkg': ['data/*.dat'],
+        }
+    )
+
+Notice that if you list patterns in ``package_data`` under the empty string,
+these patterns are used to find files in every package, even ones that also
+have their own patterns listed.  Thus, in the above example, the ``mypkg.txt``
+file gets included even though it's not listed in the patterns for ``mypkg``.
+
+Also notice that if you use paths, you *must* use a forward slash (``/``) as
+the path separator, even if you are on Windows.  Setuptools automatically
+converts slashes to appropriate platform-specific separators at build time.
+
+(Note: although the ``package_data`` argument was previously only available in
+``setuptools``, it was also added to the Python ``distutils`` package as of
+Python 2.4; there is `some documentation for the feature`__ available on the
+python.org website.)
+
+__ http://docs.python.org/dist/node11.html 
+
+
+Accessing Data Files at Runtime
+-------------------------------
+
+Typically, existing programs manipulate a package's ``__file__`` attribute in
+order to find the location of data files.  However, this manipulation isn't
+compatible with PEP 302-based import hooks, including importing from zip files
+and Python Eggs.  It is strongly recommended that, if you are using data files,
+you should use the `Resource Management API`_ of ``pkg_resources`` to access
+them.  The ``pkg_resources`` module is distributed as part of setuptools, so if
+you're using setuptools to distribute your package, there is no reason not to
+use its resource management API.  See also `Accessing Package Resources`_ for
+a quick example of converting code that uses ``__file__`` to use
+``pkg_resources`` instead.
+
+.. _Resource Management API: http://peak.telecommunity.com/DevCenter/PythonEggs#resource-management
+.. _Accessing Package Resources: http://peak.telecommunity.com/DevCenter/PythonEggs#accessing-package-resources
+
+.. XXX put doc about zip_safe flag here, once it's implemented
+
+
+"Development Mode"
+==================
+
+Sorry, this section isn't written yet, and neither is anything below this
+point except the changelog.  You might want to `subscribe to changes in this
+page <setuptools?action=subscribe>`_ to see when the documentation is added or
+updated.
+
+
+Tagging and "Daily Build" or "Snapshot" Releases
+------------------------------------------------
+
+XXX
+
+
+Using ``find_packages()``
+=========================
+
+XXX
+
+
+Building Extensions written with Pyrex
+======================================
+
+XXX
+
+
+-----------------
+Enhanced Commands
+-----------------
+
+
+``build_ext`` - automatic support for Pyrex extensions
+======================================================
+
+XXX
+
+
+``bdist, sdist`` - added support for "daily" or "special" build tagging
+=======================================================================
+
+XXX
+
+
+``sdist`` - auto-include files from CVS or Subversion 
+======================================================
+
+XXX
+
+
+``upload`` - support uploading Python Eggs
+==========================================
+
+XXX
+
+
+
+------------
+New Commands
+------------
+
+
+``alias`` - Define shortcuts for commonly used commands
+=======================================================
+
+XXX
+
+
+``bdist_egg`` - Create a Python Egg for the package
+===================================================
+
+XXX
+
+
+``develop`` - "Install" the source package in-place
+===================================================
+
+XXX
+
+
+``egg_info`` - Create egg metadata and set build tags
+=====================================================
+
+XXX
+
+
+``easy_install`` - Find, download, and install other packages
+=============================================================
+
+XXX
+
+
+``test`` - Build package and run a unittest suite
+=================================================
+
+XXX
+
+
+``rotate`` - Delete outdated distribution files
+===============================================
+
+XXX
+
+
+``saveopts`` - Save used options to a configuration file
+========================================================
+
+XXX
+
+
+``setopt`` - Set a distutils or setuptools option in a config file
+==================================================================
+
+XXX
+
+
+------------------------------------
+Extending and Reusing ``setuptools``
+------------------------------------
+
+Subclassing ``Command``
+=======================
+
+XXX
+
+
+Utility Modules
+===============
+
+``ez_setup``
+------------
+
+XXX
+
+
+``setuptools.archive_util``
+---------------------------
+
+XXX
+
+
+``setuptools.sandbox``
+----------------------
+
+XXX
+
+
+``setuptools.package_index``
+----------------------------
+
+XXX
+
+
+----------------------------
+Release Notes/Change History
+----------------------------
+
+0.5a8
+ * The "egg_info" command now always sets the distribution metadata to "safe"
+   forms of the distribution name and version, so that distribution files will
+   be generated with parseable names (i.e., ones that don't include '-' in the
+   name or version).  Also, this means that if you use the various ``--tag``
+   options of "egg_info", any distributions generated will use the tags in the
+   version, not just egg distributions.
+
+ * Added support for defining command aliases in distutils configuration files,
+   under the "[aliases]" section.  To prevent recursion and to allow aliases to
+   call the command of the same name, a given alias can be expanded only once
+   per command-line invocation.  You can define new aliases with the "alias"
+   command, either for the local, global, or per-user configuration.
+
+ * Added "rotate" command to delete old distribution files, given a set of
+   patterns to match and the number of files to keep.  (Keeps the most
+   recently-modified distribution files matching each pattern.)
+
+ * Added "saveopts" command that saves all command-line options for the current
+   invocation to the local, global, or per-user configuration file.  Useful for
+   setting defaults without having to hand-edit a configuration file.
+
+ * Added a "setopt" command that sets a single option in a specified distutils
+   configuration file.
+
+0.5a7
+ * Added "upload" support for egg and source distributions, including a bug
+   fix for "upload" and a temporary workaround for lack of .egg support in
+   PyPI.
+
+0.5a6
+ * Beefed up the "sdist" command so that if you don't have a MANIFEST.in, it
+   will include all files under revision control (CVS or Subversion) in the
+   current directory, and it will regenerate the list every time you create a
+   source distribution, not just when you tell it to.  This should make the
+   default "do what you mean" more often than the distutils' default behavior
+   did, while still retaining the old behavior in the presence of MANIFEST.in.
+
+ * Fixed the "develop" command always updating .pth files, even if you
+   specified ``-n`` or ``--dry-run``.
+
+ * Slightly changed the format of the generated version when you use
+   ``--tag-build`` on the "egg_info" command, so that you can make tagged
+   revisions compare *lower* than the version specified in setup.py (e.g. by
+   using ``--tag-build=dev``).
+
+0.5a5
+ * Added ``develop`` command to ``setuptools``-based packages.  This command
+   installs an ``.egg-link`` pointing to the package's source directory, and
+   script wrappers that ``execfile()`` the source versions of the package's
+   scripts.  This lets you put your development checkout(s) on sys.path without
+   having to actually install them.  (To uninstall the link, use
+   use ``setup.py develop --uninstall``.)
+
+ * Added ``egg_info`` command to ``setuptools``-based packages.  This command
+   just creates or updates the "projectname.egg-info" directory, without
+   building an egg.  (It's used by the ``bdist_egg``, ``test``, and ``develop``
+   commands.)
+
+ * Enhanced the ``test`` command so that it doesn't install the package, but
+   instead builds any C extensions in-place, updates the ``.egg-info``
+   metadata, adds the source directory to ``sys.path``, and runs the tests
+   directly on the source.  This avoids an "unmanaged" installation of the
+   package to ``site-packages`` or elsewhere.
+
+ * Made ``easy_install`` a standard ``setuptools`` command, moving it from
+   the ``easy_install`` module to ``setuptools.command.easy_install``.  Note
+   that if you were importing or extending it, you must now change your imports
+   accordingly.  ``easy_install.py`` is still installed as a script, but not as
+   a module.
+
+0.5a4
+ * Setup scripts using setuptools can now list their dependencies directly in
+   the setup.py file, without having to manually create a ``depends.txt`` file.
+   The ``install_requires`` and ``extras_require`` arguments to ``setup()``
+   are used to create a dependencies file automatically.  If you are manually
+   creating ``depends.txt`` right now, please switch to using these setup
+   arguments as soon as practical, because ``depends.txt`` support will be
+   removed in the 0.6 release cycle.  For documentation on the new arguments,
+   see the ``setuptools.dist.Distribution`` class.
+
+ * Setup scripts using setuptools now always install using ``easy_install``
+   internally, for ease of uninstallation and upgrading.  Note: you *must*
+   remove any ``extra_path`` argument from your setup script, as it conflicts
+   with the proper functioning of the ``easy_install`` command.
+
+ * ``pkg_resources.AvailableDistributions.resolve()`` and related methods now
+   accept an ``installer`` argument: a callable taking one argument, a
+   ``Requirement`` instance.  The callable must return a ``Distribution``
+   object, or ``None`` if no distribution is found.  This feature is used by
+   EasyInstall to resolve dependencies by recursively invoking itself.
+
+0.5a1
+ * Added support for "self-installation" bootstrapping.  Packages can now
+   include ``ez_setup.py`` in their source distribution, and add the following
+   to their ``setup.py``, in order to automatically bootstrap installation of
+   setuptools as part of their setup process::
+
+    from ez_setup import use_setuptools
+    use_setuptools()
+
+    from setuptools import setup
+    # etc...
+
+0.4a4
+ * Fix problems with ``resource_listdir()``, ``resource_isdir()`` and resource
+   directory extraction for zipped eggs.
+
+0.4a3
+ * Fixed scripts not being able to see a ``__file__`` variable in ``__main__``
+
+ * Fixed a problem with ``resource_isdir()`` implementation that was introduced
+   in 0.4a2.
+
+0.4a2
+ * Added ``ez_setup.py`` installer/bootstrap script to make initial setuptools
+   installation easier, and to allow distributions using setuptools to avoid
+   having to include setuptools in their source distribution.
+
+ * All downloads are now managed by the ``PackageIndex`` class (which is now
+   subclassable and replaceable), so that embedders can more easily override
+   download logic, give download progress reports, etc.  The class has also
+   been moved to the new ``setuptools.package_index`` module.
+
+ * The ``Installer`` class no longer handles downloading, manages a temporary
+   directory, or tracks the ``zip_ok`` option.  Downloading is now handled
+   by ``PackageIndex``, and ``Installer`` has become an ``easy_install``
+   command class based on ``setuptools.Command``.
+
+ * There is a new ``setuptools.sandbox.run_setup()`` API to invoke a setup
+   script in a directory sandbox, and a new ``setuptools.archive_util`` module
+   with an ``unpack_archive()`` API.  These were split out of EasyInstall to
+   allow reuse by other tools and applications.
+
+ * ``setuptools.Command`` now supports reinitializing commands using keyword
+   arguments to set/reset options.  Also, ``Command`` subclasses can now set
+   their ``command_consumes_arguments`` attribute to ``True`` in order to
+   receive an ``args`` option containing the rest of the command line.
+
+0.4a1
+ * Fixed a bug in requirements processing for exact versions (i.e. ``==`` and
+   ``!=``) when only one condition was included.
+
+ * Added ``safe_name()`` and ``safe_version()`` APIs to clean up handling of
+   arbitrary distribution names and versions found on PyPI.
+
+0.3a4
+ * ``pkg_resources`` now supports resource directories, not just the resources
+   in them.  In particular, there are ``resource_listdir()`` and
+   ``resource_isdir()`` APIs.
+
+ * ``pkg_resources`` now supports "egg baskets" -- .egg zipfiles which contain
+   multiple distributions in subdirectories whose names end with ``.egg``.
+   Having such a "basket" in a directory on ``sys.path`` is equivalent to
+   having the individual eggs in that directory, but the contained eggs can
+   be individually added (or not) to ``sys.path``.  Currently, however, there
+   is no automated way to create baskets.
+
+ * Namespace package manipulation is now protected by the Python import lock.
+
+0.3a2
+ * Added new options to ``bdist_egg`` to allow tagging the egg's version number
+   with a subversion revision number, the current date, or an explicit tag
+   value.  Run ``setup.py bdist_egg --help`` to get more information.
+
+ * Misc. bug fixes
+
+0.3a1
+ Initial release.
+

@@ -2,8 +2,9 @@
 Easy Install
 ============
 
-Easy Install is a python module (``easy_install``) that lets you automatically
-download, build, install, and manage Python packages.
+Easy Install is a python module (``easy_install``) bundled with ``setuptools``
+that lets you automatically download, build, install, and manage Python
+packages.
 
 (Please share your experiences with us! Whether you encountered success or
 difficulty installing a particular package, please add your notes to the
@@ -26,7 +27,8 @@ Windows users can just download and run the `setuptools binary installer for
 Windows <http://peak.telecommunity.com/dist/setuptools-0.5a7.win32.exe>`_.
 All others should just download `ez_setup.py
 <http://peak.telecommunity.com/dist/ez_setup.py>`_, and run it; this will
-download and install the appropriate egg for you.
+download and install the appropriate ``setuptools`` egg for your Python
+version.
 
 You may receive a message telling you about an obsolete version of
 setuptools being present; if so, you must be sure to delete it entirely, along
@@ -488,71 +490,7 @@ Known Issues
    in Exemaker.  So, don't use Exemaker to wrap ``easy_install.py``, or at any
    rate don't expect it to work with all packages.
 
-0.5a8
- * The "egg_info" command now always sets the distribution metadata to "safe"
-   forms of the distribution name and version, so that distribution files will
-   be generated with parseable names (i.e., ones that don't include '-' in the
-   name or version).  Also, this means that if you use the various ``--tag``
-   options of "egg_info", any distributions generated will use the tags in the
-   version, not just egg distributions.
-
- * Added support for defining command aliases in distutils configuration files,
-   under the "[aliases]" section.  To prevent recursion and to allow aliases to
-   call the command of the same name, a given alias can be expanded only once
-   per command-line invocation.  You can define new aliases with the "alias"
-   command, either for the local, global, or per-user configuration.
-
- * Added "rotate" command to delete old distribution files, given a set of
-   patterns to match and the number of files to keep.  (Keeps the most
-   recently-modified distribution files matching each pattern.)
-
- * Added "saveopts" command that saves all command-line options for the current
-   invocation to the local, global, or per-user configuration file.  Useful for
-   setting defaults without having to hand-edit a configuration file.
-
- * Added a "setopt" command that sets a single option in a specified distutils
-   configuration file.
-
-0.5a7
- * Added "upload" support for egg and source distributions, including a bug
-   fix for "upload" and a temporary workaround for lack of .egg support in
-   PyPI.
-
-0.5a6
- * Beefed up the "sdist" command so that if you don't have a MANIFEST.in, it
-   will include all files under revision control (CVS or Subversion) in the
-   current directory, and it will regenerate the list every time you create a
-   source distribution, not just when you tell it to.  This should make the
-   default "do what you mean" more often than the distutils' default behavior
-   did, while still retaining the old behavior in the presence of MANIFEST.in.
-
- * Fixed the "develop" command always updating .pth files, even if you
-   specified ``-n`` or ``--dry-run``.
-
- * Slightly changed the format of the generated version when you use
-   ``--tag-build`` on the "egg_info" command, so that you can make tagged
-   revisions compare *lower* than the version specified in setup.py (e.g. by
-   using ``--tag-build=dev``).
-
 0.5a5
- * Added ``develop`` command to ``setuptools``-based packages.  This command
-   installs an ``.egg-link`` pointing to the package's source directory, and
-   script wrappers that ``execfile()`` the source versions of the package's
-   scripts.  This lets you put your development checkout(s) on sys.path without
-   having to actually install them.  (To uninstall the link, use
-   use ``setup.py develop --uninstall``.)
-
- * Added ``egg_info`` command to ``setuptools``-based packages.  This command
-   just creates or updates the "projectname.egg-info" directory, without
-   building an egg.  (It's used by the ``bdist_egg``, ``test``, and ``develop``
-   commands.)
-
- * Enhanced the ``test`` command so that it doesn't install the package, but
-   instead builds any C extensions in-place, updates the ``.egg-info``
-   metadata, adds the source directory to ``sys.path``, and runs the tests
-   directly on the source.  This avoids an "unmanaged" installation of the
-   package to ``site-packages`` or elsewhere.
-
  * Made ``easy_install`` a standard ``setuptools`` command, moving it from
    the ``easy_install`` module to ``setuptools.command.easy_install``.  Note
    that if you were importing or extending it, you must now change your imports
@@ -569,15 +507,6 @@ Known Issues
    version(s) of all packages requested by name and version, even if a matching
    version is available locally.
 
- * Setup scripts using setuptools can now list their dependencies directly in
-   the setup.py file, without having to manually create a ``depends.txt`` file.
-   The ``install_requires`` and ``extras_require`` arguments to ``setup()``
-   are used to create a dependencies file automatically.  If you are manually
-   creating ``depends.txt`` right now, please switch to using these setup
-   arguments as soon as practical, because ``depends.txt`` support will be
-   removed in the 0.6 release cycle.  For documentation on the new arguments,
-   see the ``setuptools.dist.Distribution`` class.
-
  * Added automatic installation of dependencies declared by a distribution
    being installed.  These dependencies must be listed in the distribution's
    ``EGG-INFO`` directory, so the distribution has to have declared its
@@ -585,19 +514,9 @@ Known Issues
    declare, you'll still have to deal with them yourself.  (E.g., by asking
    EasyInstall to find and install them.)
 
- * Setup scripts using setuptools now always install using ``easy_install``
-   internally, for ease of uninstallation and upgrading.  Note: you *must*
-   remove any ``extra_path`` argument from your setup script, as it conflicts
-   with the proper functioning of the ``easy_install`` command.  (Also, added
-   the ``--record`` option to ``easy_install`` for the benefit of tools that
-   run ``setup.py install --record=filename`` on behalf of another packaging
-   system.)
-
- * ``pkg_resources.AvailableDistributions.resolve()`` and related methods now
-   accept an ``installer`` argument: a callable taking one argument, a
-   ``Requirement`` instance.  The callable must return a ``Distribution``
-   object, or ``None`` if no distribution is found.  This feature is used by
-   EasyInstall to resolve dependencies by recursively invoking itself.
+ * Added the ``--record`` option to ``easy_install`` for the benefit of tools
+   that run ``setup.py install --record=filename`` on behalf of another
+   packaging system.)
 
 0.5a3
  * Fixed not setting script permissions to allow execution.
@@ -612,17 +531,6 @@ Known Issues
  * Added support for converting ``.win32.exe`` installers to eggs on the fly.
    EasyInstall will now recognize such files by name and install them.
 
- * Added support for "self-installation" bootstrapping.  Packages can now
-   include ``ez_setup.py`` in their source distribution, and add the following
-   to their ``setup.py``, in order to automatically bootstrap installation of
-   setuptools as part of their setup process::
-
-    from ez_setup import use_setuptools
-    use_setuptools()
-
-    from setuptools import setup
-    # etc...
-
  * Fixed a problem with picking the "best" version to install (versions were
    being sorted as strings, rather than as parsed values)
 
@@ -633,15 +541,7 @@ Known Issues
  * Support downloading packages that were uploaded to PyPI (by scanning all
    links on package pages, not just the homepage/download links).
 
- * Fix problems with ``resource_listdir()``, ``resource_isdir()`` and resource
-   directory extraction for zipped eggs.
-
 0.4a3
- * Fixed scripts not being able to see a ``__file__`` variable in ``__main__``
-
- * Fixed a problem with ``resource_isdir()`` implementation that was introduced
-   in 0.4a2.
-
  * Add progress messages to the search/download process so that you can tell
    what URLs it's reading to find download links.  (Hopefully, this will help
    people report out-of-date and broken links to package authors, and to tell
@@ -656,57 +556,14 @@ Known Issues
  * Renamed ``--scan-url/-s`` to ``--find-links/-f`` to free up ``-s`` for the
    script installation directory option.
 
- * Added ``ez_setup.py`` installer/bootstrap script to make initial setuptools
-   installation easier, and to allow distributions using setuptools to avoid
-   having to include setuptools in their source distribution.
-
  * Use ``urllib2`` instead of ``urllib``, to allow use of ``https:`` URLs if
    Python includes SSL support.
-
- * All downloads are now managed by the ``PackageIndex`` class (which is now
-   subclassable and replaceable), so that embedders can more easily override
-   download logic, give download progress reports, etc.  The class has also
-   been moved to the new ``setuptools.package_index`` module.
-
- * The ``Installer`` class no longer handles downloading, manages a temporary
-   directory, or tracks the ``zip_ok`` option.  Downloading is now handled
-   by ``PackageIndex``, and ``Installer`` has become an ``easy_install``
-   command class based on ``setuptools.Command``.
-
- * There is a new ``setuptools.sandbox.run_setup()`` API to invoke a setup
-   script in a directory sandbox, and a new ``setuptools.archive_util`` module
-   with an ``unpack_archive()`` API.  These were split out of EasyInstall to
-   allow reuse by other tools and applications.
-
- * ``setuptools.Command`` now supports reinitializing commands using keyword
-   arguments to set/reset options.  Also, ``Command`` subclasses can now set
-   their ``command_consumes_arguments`` attribute to ``True`` in order to
-   receive an ``args`` option containing the rest of the command line.
 
 0.4a1
  * Added ``--scan-url`` and ``--index-url`` options, to scan download pages
    and search PyPI for needed packages.
 
- * Fixed a bug in requirements processing for exact versions (i.e. ``==`` and
-   ``!=``) when only one condition was included.
-
- * Added ``safe_name()`` and ``safe_version()`` APIs to clean up handling of
-   arbitrary distribution names and versions found on PyPI.
-
 0.3a4
- * ``pkg_resources`` now supports resource directories, not just the resources
-   in them.  In particular, there are ``resource_listdir()`` and
-   ``resource_isdir()`` APIs.
-
- * ``pkg_resources`` now supports "egg baskets" -- .egg zipfiles which contain
-   multiple distributions in subdirectories whose names end with ``.egg``.
-   Having such a "basket" in a directory on ``sys.path`` is equivalent to
-   having the individual eggs in that directory, but the contained eggs can
-   be individually added (or not) to ``sys.path``.  Currently, however, there
-   is no automated way to create baskets.
-
- * Namespace package manipulation is now protected by the Python import lock.
-
  * Restrict ``--build-directory=DIR/-b DIR`` option to only be used with single
    URL installs, to avoid running the wrong setup.py.
 
@@ -723,14 +580,9 @@ Known Issues
 
  * Added more workarounds for packages with quirky ``install_data`` hacks
 
-
 0.3a2
  * Added subversion download support for ``svn:`` and ``svn+`` URLs, as well as
    automatic recognition of HTTP subversion URLs (Contributed by Ian Bicking)
-
- * Added new options to ``bdist_egg`` to allow tagging the egg's version number
-   with a subversion revision number, the current date, or an explicit tag
-   value.  Run ``setup.py bdist_egg --help`` to get more information.
 
  * Misc. bug fixes
 
