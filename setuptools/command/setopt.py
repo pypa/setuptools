@@ -51,10 +51,9 @@ def edit_config(filename, settings, dry_run=False):
     log.debug("Reading configuration from %s", filename)
     opts = RawConfigParser()
     opts.read([filename])
-
     for section, options in settings.items():
         if options is None:
-            log.debug("Deleting section [%s] from %s", section, filename)
+            log.info("Deleting section [%s] from %s", section, filename)
             opts.remove_section(section)
         else:
             if not opts.has_section(section):
@@ -66,6 +65,10 @@ def edit_config(filename, settings, dry_run=False):
                         section, option, filename
                     )
                     opts.remove_option(section,option)
+                    if not opts.options(section):
+                        log.info("Deleting empty [%s] section from %s",
+                                  section, filename)
+                        opts.remove_section(section)
                 else:
                     log.debug(
                         "Setting %s.%s to %r in %s",
@@ -75,10 +78,7 @@ def edit_config(filename, settings, dry_run=False):
 
     log.info("Writing %s", filename)
     if not dry_run:
-        f = open(filename,'w')
-        opts.write(f)
-        f.close()
-
+        f = open(filename,'w'); opts.write(f); f.close()
 
 class option_base(Command):
     """Abstract base class for commands that mess with config files"""
