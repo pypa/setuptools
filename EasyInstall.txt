@@ -488,6 +488,25 @@ Known Issues
    in Exemaker.  So, don't use Exemaker to wrap ``easy_install.py``, or at any
    rate don't expect it to work with all packages.
 
+0.5a8
+ * The "egg_info" command now always sets the distribution metadata to "safe"
+   forms of the distribution name and version, so that distribution files will
+   be generated with parseable names (i.e., ones that don't include '-' in the
+   name or version).  Also, this means that if you use the various ``--tag``
+   options of "egg_info", any distributions generated will use the tags in the
+   version, not just egg distributions.
+   
+ * Added "rotate" command to delete old distribution files, given a set of
+   patterns to match and the number of files to keep.  (Keeps the most
+   recently-modified distribution files matching each pattern.)
+
+ * Added "saveopts" command that saves all command-line options for the current
+   invocation to the local, global, or per-user configuration file.  Useful for
+   setting defaults without having to hand-edit a configuration file.
+
+ * Added a "setopt" command that sets a single option in a specified distutils
+   configuration file.
+
 0.5a7
  * Added "upload" support for egg and source distributions, including a bug
    fix for "upload" and a temporary workaround for lack of .egg support in
