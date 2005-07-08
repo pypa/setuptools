@@ -7,21 +7,19 @@ class saveopts(option_base):
 
     description = "save supplied options to setup.cfg or other config file"
 
-    user_options = option_base.user_options + [
-    ]
-
-    boolean_options = option_base.boolean_options + [
-    ]    
-
     def run(self):
         dist = self.distribution
         commands = dist.command_options.keys()
         settings = {}
+
         for cmd in commands:
+
             if cmd=='saveopts':
-                continue
+                continue    # don't save our own options!
+
             for opt,(src,val) in dist.get_option_dict(cmd).items():
                 if src=="command line":
                     settings.setdefault(cmd,{})[opt] = val
+
         edit_config(self.filename, settings, self.dry_run)
 

@@ -84,12 +84,12 @@ class option_base(Command):
     """Abstract base class for commands that mess with config files"""
     
     user_options = [
-        ('filename=', 'f',
-                 "set the file to use (default=setup.cfg)"),
         ('global-config', 'g',
                  "save options to the site-wide distutils.cfg file"),
         ('user-config', 'u',
                  "save options to the current user's pydistutils.cfg file"),
+        ('filename=', 'f',
+                 "configuration file to use (default=setup.cfg)"),
     ]
 
     boolean_options = [
@@ -126,12 +126,12 @@ class setopt(option_base):
 
     description = "set an option in setup.cfg or another config file"
 
-    user_options = option_base.user_options + [
+    user_options = [
         ('command=', 'c', 'command to set an option for'),
         ('option=',  'o',  'option to set'),
         ('set-value=',   's', 'value of the option'),
-        ('remove',   'r', 'unset the value'), 
-    ]
+        ('remove',   'r', 'remove (unset) the value'), 
+    ] + option_base.user_options
 
     boolean_options = option_base.boolean_options + ['remove']
 

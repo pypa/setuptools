@@ -84,6 +84,7 @@ class sdist(_sdist):
     """Smart sdist that finds anything supported by revision control"""
 
     def run(self):
+        self.run_command('egg_info')
         _sdist.run(self)
         dist_files = getattr(self.distribution,'dist_files',[])
         for file in self.archive_files:
@@ -99,7 +100,6 @@ class sdist(_sdist):
     def add_defaults(self):
         _sdist.add_defaults(self)
         self.filelist.extend(walk_revctrl())
-
 
 
 

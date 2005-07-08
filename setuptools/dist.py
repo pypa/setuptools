@@ -372,10 +372,19 @@ class Distribution(_Distribution):
         self.global_options = self.__class__.global_options
         self.negative_opt = self.__class__.negative_opt
 
-        # Handle commands that want to consume all remaining arguments
+        # First, expand any aliases
         command = args[0]
+        aliases = self.get_option_dict('aliases')
+        while command in aliases:
+            src,alias = aliases[command]
+            del aliases[command]    # ensure each alias can expand only once!
+            import shlex
+            args[:1] = shlex.split(alias,True)            
+            command = args[0]
+
         nargs = _Distribution._parse_command_opts(self, parser, args)
 
+        # Handle commands that want to consume all remaining arguments
         cmd_class = self.get_command_class(command)
         if getattr(cmd_class,'command_consumes_arguments',None):
             self.get_option_dict(command)['args'] = ("command line", nargs)
@@ -383,6 +392,21 @@ class Distribution(_Distribution):
                 return []
 
         return nargs
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def has_dependencies(self):
         return not not self.requires
@@ -407,6 +431,23 @@ class Distribution(_Distribution):
         cmd.run()
         self.have_run['install'] = 1
         setuptools.bootstrap_install_from = None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def get_cmdline_options(self):
         """Return a '{cmd: {opt:val}}' map of all command-line options

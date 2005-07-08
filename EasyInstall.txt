@@ -495,7 +495,13 @@ Known Issues
    name or version).  Also, this means that if you use the various ``--tag``
    options of "egg_info", any distributions generated will use the tags in the
    version, not just egg distributions.
-   
+
+ * Added support for defining command aliases in distutils configuration files,
+   under the "[aliases]" section.  To prevent recursion and to allow aliases to
+   call the command of the same name, a given alias can be expanded only once
+   per command-line invocation.  You can define new aliases with the "alias"
+   command, either for the local, global, or per-user configuration.
+
  * Added "rotate" command to delete old distribution files, given a set of
    patterns to match and the number of files to keep.  (Keeps the most
    recently-modified distribution files matching each pattern.)
