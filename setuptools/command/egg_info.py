@@ -60,13 +60,13 @@ class egg_info(Command):
         self.ensure_dirname('egg_base')
         self.egg_info = os.path.join(self.egg_base, self.egg_name+'.egg-info')
 
-
-
-
-
-
-
-
+        # Set package version and name for the benefit of dumber commands
+        # (e.g. sdist, bdist_wininst, etc.)  We escape '-' so filenames will
+        # be more machine-parseable.
+        #
+        metadata = self.distribution.metadata
+        metadata.version = self.egg_version.replace('-','_')
+        metadata.name    = self.egg_name.replace('-','_')
 
 
 
@@ -90,6 +90,8 @@ class egg_info(Command):
             metadata.version, oldver = self.egg_version, metadata.version
             metadata.name, oldname   = self.egg_name, metadata.name
             try:
+                # write unescaped data to PKG-INFO, so older pkg_resources
+                # can still parse it
                 metadata.write_pkg_info(self.egg_info)
             finally:
                 metadata.name, metadata.version = oldname, oldver
@@ -119,8 +121,6 @@ class egg_info(Command):
             f.close()
 
 
-
-            
     def tagged_version(self):
         version = self.distribution.get_version()
         if self.tag_build:

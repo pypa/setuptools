@@ -1299,7 +1299,7 @@ class Distribution(object):
         except AttributeError:
             for line in self._get_metadata('PKG-INFO'):
                 if line.lower().startswith('version:'):
-                    self._version = line.split(':',1)[1].strip()
+                    self._version = safe_version(line.split(':',1)[1].strip())
                     return self._version
             else:
                 raise AttributeError(
