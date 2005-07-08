@@ -6,9 +6,9 @@ from distutils.errors import *
 from setuptools.command.setopt import edit_config, option_base
 
 class alias(option_base):
-    """Abstract base class for commands that mess with config files"""
+    """Define a shortcut that invokes one or more commands"""
     
-    description = "set an option in setup.cfg or another config file"
+    description = "define a shortcut to invoke one or more commands"
 
     user_options = [
         ('alias=',  'a',  'the name of the new pseudo-command'),

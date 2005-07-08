@@ -7,7 +7,7 @@ from distutils.errors import *
 class rotate(Command):
     """Delete older distributions"""
 
-    description = "Delete older distributions, keeping N newest files"
+    description = "delete older distributions, keeping N newest files"
     user_options = [
         ('match=',    'm', "patterns to match (required)"),
         ('dist-dir=', 'd', "directory where the distributions are"),
