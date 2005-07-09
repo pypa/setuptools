@@ -1,5 +1,4 @@
 """Extensions to the 'distutils' for large or complex distributions"""
-
 import distutils.core, setuptools.command
 from setuptools.dist import Distribution, Feature
 from setuptools.extension import Extension
@@ -9,7 +8,6 @@ from distutils.util import convert_path
 import os.path
 
 __version__ = '0.5a8'
-
 __all__ = [
     'setup', 'Distribution', 'Feature', 'Command', 'Extension', 'Require',
     'find_packages'
@@ -17,16 +15,17 @@ __all__ = [
 
 bootstrap_install_from = None
 
-def find_packages(where='.'):
+def find_packages(where='.', exclude=()):
     """Return a list all Python packages found within directory 'where'
 
     'where' should be supplied as a "cross-platform" (i.e. URL-style) path; it
-    will be converted to the appropriate local path syntax.
+    will be converted to the appropriate local path syntax.  'exclude' is a
+    sequence of package names to exclude; '*' can be used as a wildcard in the
+    names, such that 'foo.*' will exclude all subpackages of 'foo' (but not
+    'foo' itself).
     """
-
     out = []
     stack=[(convert_path(where), '')]
-
     while stack:
         where,prefix = stack.pop(0)
         for name in os.listdir(where):
@@ -35,9 +34,10 @@ def find_packages(where='.'):
                 os.path.isfile(os.path.join(fn,'__init__.py'))
             ):
                 out.append(prefix+name); stack.append((fn,prefix+name+'.'))
+    for pat in exclude:
+        from fnmatch import fnmatchcase
+        out = [item for item in out if not fnmatchcase(item,pat)]
     return out
-
-
 
 def setup(**attrs):
     """Do package setup
