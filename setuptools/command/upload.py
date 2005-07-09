@@ -75,8 +75,10 @@ class upload(Command):
         basename = os.path.basename(filename)
         if basename.endswith('.egg'):
             basename += '.zip'
+        comment = ''
         if command=='bdist_egg':
             command='sdist'
+            comment='Binary egg for use with setuptools'
         data = {
             ':action':'file_upload',
             'protcol_version':'1',
@@ -87,7 +89,6 @@ class upload(Command):
             'pyversion':pyversion,
             'md5_digest':md5(content).hexdigest(),
             }
-        comment = ''
         if command == 'bdist_rpm':
             dist, version, id = platform.dist()
             if dist:
