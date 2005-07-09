@@ -28,17 +28,18 @@ Feature Highlights:
   a single-file importable distribution format 
   
 * Include data files inside your package directories, where your code can
-  actually use them.  (Python 2.4 distutils includes this feature already, but
-  setuptools provides the feature for Python 2.3 packages also.)
+  actually use them.  (Python 2.4 distutils also supports this feature, but
+  setuptools provides the feature for Python 2.3 packages also, and supports
+  accessing data files in zipped packages too.)
 
 * Automatically include all packages in your source tree, without listing them
   individually in setup.py
 
 * Automatically include all relevant files in your source distributions,
-  without needing to create a MANIFEST.in and without having to force MANIFEST
-  regeneration
+  without needing to create a ``MANIFEST.in`` file, and without having to force
+  regeneration of the ``MANIFEST`` file when your source tree changes.
 
-* Transparent Pyrex support, so that your setup.py can list .pyx files and
+* Transparent Pyrex support, so that your setup.py can list ``.pyx`` files and
   still work even when the end-user doesn't have Pyrex installed (as long as
   you include the Pyrex-generated C in your source distribution)
 
@@ -47,8 +48,8 @@ Feature Highlights:
 
 * PyPI upload support - upload your source distributions and eggs to PyPI
 
-* Put your package in "development mode", such that it's available on sys.path,
-  yet you can still edit it directly from your source checkout.
+* Deploy your project in "development mode", such that it's available on
+  ``sys.path``, yet can still be edited directly from its source checkout.
 
 
 .. contents:: **Table of Contents**
@@ -90,8 +91,8 @@ the distutils.  Here's a minimal setup script using setuptools::
 As you can see, it doesn't take much to use setuptools in a project.
 Just by doing the above, this project will be able to produce eggs, upload to
 PyPI, and automatically include all packages in the directory where the
-setup.py lives.  See the sections below on `Enhanced Commands`_ and `New
-Commands`_ to see what commands you can give to this setup.py.
+setup.py lives.  See the `Command Reference`_ section below to see what
+commands you can give to this setup script.
 
 Of course, before you release your project to PyPI, you'll want to add a bit
 more information to your setup script to help people find or learn about your
@@ -127,7 +128,10 @@ dependencies, and perhaps some data files and scripts::
         # could also include long_description, download_url, classifiers, etc.
     )
 
-In the following sections, we'll explain what most of these
+In the sections that follow, we'll explain what most of these ``setup()``
+arguments do (except for the metadata ones), and the various ways you might use
+them in your own project(s).
+
 
 Declaring Dependencies
 ======================
@@ -268,9 +272,7 @@ That's it.  The ``ez_setup`` module will automatically download a matching
 version of ``setuptools`` from PyPI, if it isn't present on the target system.
 Whenever you install an updated version of setuptools, you should also update
 your projects' ``ez_setup.py`` files, so that a matching version gets installed
-on the target machine(s).  If you're using Subversion, you may wish to use
-"externals" to make all your projects share a single ``ez_setup.py``, so that
-you only have to update it in one place to update all your projects.
+on the target machine(s).
 
 By the way, setuptools supports the new PyPI "upload" command, so you can use
 ``setup.py sdist upload`` or ``setup.py bdist_egg upload`` to upload your
@@ -280,6 +282,43 @@ do that.  Or you can do it all in one step, e.g. ``setup.py register sdist
 bdist_egg upload`` will register the package, build source and egg
 distributions, and then upload them both to PyPI, where they'll be easily
 found by other projects that depend on them.
+
+
+Managing Multiple Projects
+--------------------------
+
+If you're managing several projects that need to use ``ez_setup``, and you are
+using Subversion as your revision control system, you can use the
+"svn:externals" property to share a single copy of ``ez_setup`` between
+projects, so that it will always be up-to-date whenever you check out or update
+an individual project, without having to manually update each project to use
+a new version.
+
+However, because Subversion only supports using directories as externals, you
+have to turn ``ez_setup.py`` into ``ez_setup/__init__.py`` in order to do this,
+then create "externals" definitions that map the ``ez_setup`` directory into
+each project.  Also, if any of your projects use ``find_packages()`` on their
+setup directory, you will need to exclude the resulting ``ez_setup`` package,
+to keep it from being included in your distributions, e.g.::
+
+    setup(
+        ...
+        packages = find_packages(exclude=['ez_setup']),
+    )
+
+Of course, the ``ez_setup`` package will still be included in your packages'
+source distributions, as it needs to be.
+
+For your convenience, you may use the following external definition, which will
+track the latest version of setuptools::
+
+    ez_setup svn://svn.eby-sarna.com/svnroot/ez_setup
+
+You can set this by executing this command in your project directory::
+
+    svn propedit svn:externals .
+
+And then adding the line shown above to the file that comes up for editing.
 
 
 Including Data Files
@@ -373,16 +412,63 @@ a quick example of converting code that uses ``__file__`` to use
 "Development Mode"
 ==================
 
-Sorry, this section isn't written yet, and neither is anything below this
-point except the changelog.  You might want to `subscribe to changes in this
-page <setuptools?action=subscribe>`_ to see when the documentation is added or
-updated.
+Under normal circumstances, the ``distutils`` assume that you are going to
+build a distribution of your project, not use it in its "raw" or "unbuilt"
+form.  If you were to use the ``distutils`` that way, you would have to rebuild
+and reinstall your project every time you made a change to it during
+development.
+
+Another problem that sometimes comes up with the ``distutils`` is that you may
+need to do development on two related projects at the same time.  You may need
+to put both projects' packages in the same directory to run them, but need to
+keep them separate for revision control purposes.  How can you do this?
+
+Setuptools allows you to deploy your projects for use in a common directory or
+staging area, but without copying any files.  Thus, you can edit each project's
+code in its checkout directory, and only need to run build commands when you
+change a project's C extensions or similarly compiled files.  You can even
+deploy a project into another project's checkout directory, if that's your
+preferred way of working (as opposed to using a common independent staging area
+or the site-packages directory).
+
+To do this, use the ``setup.py develop`` command.  It works very similarly to
+``setup.py install`` or the EasyInstall tool, except that it doesn't actually
+install anything.  Instead, it creates a special ``.egg-link`` file in the
+deployment directory, that links to your project's source code.  And, if your
+deployment directory is Python's ``site-packages`` directory, it will also
+update the ``easy-install.pth`` file to include your project's source code,
+thereby making it available on ``sys.path`` for all programs using that Python
+installation.
+
+In addition, the ``develop`` command creates wrapper scripts in the target
+script directory that will run your in-development scripts after ensuring that
+all your ``install_requires`` packages are available on ``sys.path``.
+
+You can deploy the same project to multiple staging areas, e.g. if you have
+multiple projects on the same machine that are sharing the same project you're
+doing development work.
+
+When you're done with a given development task, you can remove the project
+source from a staging area using ``setup.py develop --uninstall``, specifying
+the desired staging area if it's not the default.
+
+There are several options to control the precise behavior of the ``develop``
+command; see the section on the `develop`_ command below for more details.
 
 
 Tagging and "Daily Build" or "Snapshot" Releases
-------------------------------------------------
+================================================
 
-XXX
+Sorry, this section isn't written yet, and neither are the next few sections,
+until you get to the `Command Reference`_ section below.  You might want to
+`subscribe to changes in this page <setuptools?action=subscribe>`_ to see when
+new documentation is added or updated.
+
+
+Generating Source Distributions
+===============================
+
+XXX ``sdist`` - auto-include files from CVS or Subversion
 
 
 Using ``find_packages()``
@@ -398,97 +484,524 @@ XXX
 
 
 -----------------
-Enhanced Commands
+Command Reference
 -----------------
 
-
-``build_ext`` - automatic support for Pyrex extensions
-======================================================
-
-XXX
-
-
-``bdist, sdist`` - added support for "daily" or "special" build tagging
-=======================================================================
-
-XXX
-
-
-``sdist`` - auto-include files from CVS or Subversion 
-======================================================
-
-XXX
-
-
-``upload`` - support uploading Python Eggs
-==========================================
-
-XXX
-
-
-
-------------
-New Commands
-------------
-
+.. _alias:
 
 ``alias`` - Define shortcuts for commonly used commands
 =======================================================
 
-XXX
+Sometimes, you need to use the same commands over and over, but you can't
+necessarily set them as defaults.  For example, if you produce both development
+snapshot releases and "stable" releases of a project, you may want to put
+the distributions in different places, or use different ``egg_info`` tagging
+options, etc.  In these cases, it doesn't make sense to set the options in
+a distutils configuration file, because the values of the options changed based
+on what you're trying to do.
+
+Setuptools therefore allows you to define "aliases" - shortcut names for
+an arbitrary string of commands and options, using ``setup.py alias aliasname
+expansion``, where aliasname is the name of the new alias, and the remainder of
+the command line supplies its expansion.  For example, this command defines
+a sitewide alias called "daily", that sets various ``egg_info`` tagging
+options::
+
+    setup.py alias --global-config daily egg_info --tag-svn-revision \
+        --tag-build=development
+
+Once the alias is defined, it can then be used with other setup commands,
+e.g.::
+
+    setup.py daily bdist_egg        # generate a daily-build .egg file
+    setup.py daily sdist            # generate a daily-build source distro
+    setup.py daily sdist bdist_egg  # generate both
+
+The above commands are interpreted as if the word ``daily`` were replaced with
+``egg_info --tag-svn-revision --tag-build=development``.
+
+Note that setuptools will expand each alias *at most once* in a given command
+line.  This serves two purposes.  First, if you accidentally create an alias
+loop, it will have no effect; you'll instead get an error message about an
+unknown command.  Second, it allows you to define an alias for a command, that
+uses that command.  For example, this (project-local) alias::
+
+    setup.py alias bdist_egg bdist_egg rotate -k1 -m.egg
+
+redefines the ``bdist_egg`` command so that it always runs the ``rotate``
+command afterwards to delete all but the newest egg file.  It doesn't loop
+indefinitely on ``bdist_egg`` because the alias is only expanded once when
+used.
+
+You can remove a defined alias with the ``--remove`` (or ``-r``) option, e.g.::
+
+    setup.py alias --global-config --remove daily
+
+would delete the "daily" alias we defined above.
+
+Aliases can be defined on a project-specific, per-user, or sitewide basis.  The
+default is to define or remove a project-specific alias, but you can use any of
+the `configuration file options`_ (listed under the `saveopts`_ command, below)
+to determine which distutils configuration file an aliases will be added to
+(or removed from).
+
+Note that if you omit the "expansion" argument to the ``alias`` command,
+you'll get output showing that alias' current definition (and what
+configuration file it's defined in).  If you omit the alias name as well,
+you'll get a listing of all current aliases along with their configuration
+file locations.
 
 
-``bdist_egg`` - Create a Python Egg for the package
+``bdist_egg`` - Create a Python Egg for the project
 ===================================================
 
-XXX
+This command generates a Python Egg (``.egg`` file) for the project.  Python
+Eggs are the preferred binary distribution format for EasyInstall, because they
+are cross-platform (for "pure" packages), directly importable, and contain
+project metadata including scripts and information about the project's
+dependencies.  They can be simply downloaded and added to ``sys.path``
+directly, or they can be placed in a directory on ``sys.path`` and then
+automatically discovered by the egg runtime system.
+
+This command runs the `egg_info`_ command (if it hasn't already run) to update
+the project's metadata (``.egg-info``) directory.  If you have added any extra
+metadata files to the ``.egg-info`` directory, those files will be included in
+the new egg file's metadata directory, for use by the egg runtime system or by
+any applications or frameworks that use that metadata.
+
+You won't usually need to specify any special options for this command; just
+use ``bdist_egg`` and you're done.  But there are a couple of options that may
+be occasionally useful:
+
+``--dist-dir=DIR, -d DIR``
+    Set the directory where the ``.egg`` file will be placed.  If you don't
+    supply this, then the ``--dist-dir`` setting of the ``bdist`` command
+    will be used, which is usually a directory named ``dist`` in the project
+    directory.
+
+``--plat-name=PLATFORM, -p PLATFORM``
+    Set the platform name string that will be embedded in the egg's filename
+    (assuming the egg contains C extensions).  This can be used to override
+    the distutils default platform name with something more meaningful.  Keep
+    in mind, however, that the egg runtime system expects to see eggs with
+    distutils platform names, so it may ignore or reject eggs with non-standard
+    platform names.  Similarly, the EasyInstall program may ignore them when
+    searching web pages for download links.  However, if you are
+    cross-compiling or doing some other unusual things, you might find a use
+    for this option.
+
+There are also some options you will probably never need, but which are there
+because they were copied from similar ``bdist`` commands used as an example for
+creating this one.  They may be useful for testing and debugging, however,
+which is why we kept them:
+
+``--keep-temp, -k``
+    Keep the contents of the ``--bdist-dir`` tree around after creating the
+    ``.egg`` file.
+
+``--bdist-dir=DIR, -b DIR``
+    Set the temporary directory for creating the distribution.  The entire
+    contents of this directory are zipped to create the ``.egg`` file, after
+    running various installation commands to copy the package's modules, data,
+    and extensions here.
+
+``--skip-build``
+    Skip doing any "build" commands; just go straight to the
+    install-and-compress phases.
 
 
-``develop`` - "Install" the source package in-place
-===================================================
+.. _develop:
 
-XXX
+``develop`` - Deploy the project source in "Development Mode"
+=============================================================
 
+This command allows you to deploy your project's source for use in one or more
+"staging areas" where it will be available for importing.  This deployment is
+done in such a way that changes to the project source are immediately available
+in the staging area(s), without needing to run a build or install step after
+each change.
+
+The ``develop`` command works by creating an ``.egg-link`` file (named for the
+project) in the given staging area.  If the staging area is Python's
+``site-packages`` directory, it also updates an ``easy-install.pth`` file so
+that the project is on ``sys.path`` by default for all programs run using that
+Python installation.
+
+The ``develop`` command also installs wrapper scripts in the staging area (or
+a separate directory, as specified) that will ensure the project's dependencies
+are available on ``sys.path`` before running the project's source scripts.
+And, it ensures that any missing project dependencies are available in the
+staging area, by downloading and installing them if necessary.
+
+Last, but not least, the ``develop`` command invokes the ``build_ext -i``
+command to ensure any C extensions in the project have been built and are
+up-to-date, and the ``egg_info`` command to ensure the project's metadata is
+updated (so that the runtime and wrappers know what the project's dependencies
+are).  If you make changes to the project's metadata or C extensions, you
+should rerun the ``develop`` command (or ``egg_info``, or ``build_ext -i``) in
+order to keep the project up-to-date.  If you add or rename any of the
+project's scripts, you should re-run ``develop`` against all relevant staging
+areas to update the wrapper scripts.  Most other kinds of changes to your
+project should not require any build operations or rerunning ``develop``.
+
+Here are the options that the ``develop`` command accepts.  Note that they
+affect the project's dependencies as well as the project itself, so if you have
+dependencies that need to be installed and you use ``--exclude-scripts`` (for
+example), the dependencies' scripts will not be installed either!  For this
+reason, you may want to use EasyInstall to install the project's dependencies
+before using the ``develop`` command, if you need finer control over the
+installation options for dependencies.
+
+``--uninstall, -u``
+    Un-deploy the current project.  You may use the ``--install-dir`` or ``-d``
+    option to designate the staging area.  The created ``.egg-link`` file will
+    be removed, if present and it is still pointing to the project directory.
+    The project directory will be removed from ``easy-install.pth`` if the
+    staging area is Python's ``site-packages`` directory.
+
+    Note that this option currently does *not* uninstall script wrappers!  You
+    must uninstall them yourself, or overwrite them by using EasyInstall to
+    activate a different version of the package.  You can also avoid installing
+    script wrappers in the first place, if you use the ``--exclude-scripts``
+    (aka ``-x``) option when you run ``develop`` to deploy the project.
+
+``--multi-version, -m``
+    "Multi-version" mode. Specifying this option prevents ``develop`` from
+    adding an ``easy-install.pth`` entry for the project(s) being deployed, and
+    if an entry for any version of a project already exists, the entry will be
+    removed upon successful deployment.  In multi-version mode, no specific
+    version of the package is available for importing, unless you use
+    ``pkg_resources.require()`` to put it on ``sys.path``, or you are running
+    a wrapper script generated by ``setuptools`` or EasyInstall.  (In which
+    case the wrapper script calls ``require()`` for you.)
+
+    Note that if you install to a directory other than ``site-packages``,
+    this option is automatically in effect, because ``.pth`` files can only be
+    used in ``site-packages`` (at least in Python 2.3 and 2.4). So, if you use
+    the ``--install-dir`` or ``-d`` option (or they are set via configuration
+    file(s)) your project and its dependencies will be deployed in multi-
+    version mode.
+
+``--install-dir=DIR, -d DIR``
+    Set the installation directory (staging area).  If this option is not
+    directly specified on the command line or in a distutils configuration
+    file, the distutils default installation location is used.  Normally, this
+    will be the ``site-packages`` directory, but if you are using distutils
+    configuration files, setting things like ``prefix`` or ``install_lib``,
+    then those settings are taken into account when computing the default
+    staging area.
+
+``--script-dir=DIR, -s DIR``
+    Set the script installation directory.  If you don't supply this option
+    (via the command line or a configuration file), but you *have* supplied
+    an ``--install-dir`` (via command line or config file), then this option
+    defaults to the same directory, so that the scripts will be able to find
+    their associated package installation.  Otherwise, this setting defaults
+    to the location where the distutils would normally install scripts, taking
+    any distutils configuration file settings into account.
+
+``--exclude-scripts, -x``
+    Don't deploy script wrappers.  This is useful if you don't want to disturb
+    existing versions of the scripts in the staging area.
+
+``--always-copy, -a``
+    Copy all needed distributions to the staging area, even if they
+    are already present in another directory on ``sys.path``.  By default, if
+    a requirement can be met using a distribution that is already available in
+    a directory on ``sys.path``, it will not be copied to the staging area.
+
+
+.. _egg_info:
 
 ``egg_info`` - Create egg metadata and set build tags
 =====================================================
 
-XXX
+This command performs two operations: it updates a project's ``.egg-info``
+metadata directory (used by the ``bdist_egg``, ``develop``, and ``test``
+commands), and it allows you to temporarily change a project's version string,
+to support "daily builds" or "snapshot" releases.  It is run automatically by
+the ``sdist``, ``bdist_egg``, ``develop``, and ``test`` commands in order to
+update the project's metadata, but you can also specify it explicitly in order
+to temporarily change the project's version string.
 
+The following options can be used to modify the project's version string for
+all remaining commands on the setup command line.  The options are processed
+in the order shown, so if you use more than one, the request tags will be added
+in the following order:
 
-``easy_install`` - Find, download, and install other packages
-=============================================================
+``--tag-build=NAME, -b NAME``
+    Append NAME to the project's version string.  Due to the way setuptools
+    processes "pre-release" version suffixes beginning with the letters "a"
+    through "e" (like "alpha", "beta", and "candidate"), you will usually want
+    to use a tag like "build" or "dev", as this will cause the version number
+    to be considered *lower* than the project's default version.  (If you
+    want to make the version number *higher* than the default version, you can
+    always leave off --tag-build and use one or both of the following options.)
 
-XXX
+``--tag-svn-revision, -r``
+    If the current directory is a Subversion checkout (i.e. has a ``.svn``
+    subdirectory, this appends a string of the form "-rNNNN" to the project's
+    version string, where NNNN is the revision number of the most recent
+    modification to the current directory, as obtained from the ``svn info``
+    command.
 
+``--tag-date, -d``
+    Add a date stamp of the form "-YYYYMMDD" (e.g. "-20050528") to the
+    project's version number.
 
-``test`` - Build package and run a unittest suite
-=================================================
+For advanced uses, there is one other option that can be set, to change the
+location of the project's ``.egg-info`` directory.  Commands that need to find
+the project's source directory or metadata should get it from this setting:
 
-XXX
+``--egg-base=SOURCEDIR, -e SOURCEDIR``
+    Specify the directory that should contain the .egg-info directory.  This
+    should normally be the root of your project's source tree (which is not
+    necessarily the same as your project directory; some projects use a ``src``
+    or ``lib`` subdirectory as the source root).  You should not normally need
+    to specify this directory, as it is normally determined from the
+    ``package_dir`` argument to the ``setup()`` function, if any.  If there is
+    no ``package_dir`` set, this option defaults to the current directory.
 
 
 ``rotate`` - Delete outdated distribution files
 ===============================================
 
-XXX
+As you develop new versions of your project, your distribution (``dist``)
+directory will gradually fill up with older source and/or binary distribution
+files.  The ``rotate`` command lets you automatically clean these up, keeping
+only the N most-recently modified files matching a given pattern.
 
+``--match=PATTERNLIST, -m PATTERNLIST``
+    Comma-separated list of glob patterns to match.  This option is *required*.
+    The project name and ``-*`` is prepended to the supplied patterns, in order
+    to match only distributions belonging to the current project (in case you
+    have a shared distribution directory for multiple projects).  Typically,
+    you will use a glob pattern like ``.zip`` or ``.egg`` to match files of
+    the specified type.  Note that each supplied pattern is treated as a
+    distinct group of files for purposes of selecting files to delete.
+    
+``--keep=COUNT, -k COUNT``
+    Number of matching distributions to keep.  For each group of files
+    identified by a pattern specified with the ``--match`` option, delete all
+    but the COUNT most-recently-modified files in that group.  This option is
+    *required*.
+
+``--dist-dir=DIR, -d DIR``
+    Directory where the distributions are.  This defaults to the value of the
+    ``bdist`` command's ``--dist-dir`` option, which will usually be the
+    project's ``dist`` subdirectory.
+
+**Example 1**: Delete all .tar.gz files from the distribution directory, except
+for the 3 most recently modified ones::
+
+    setup.py rotate --match=.tar.gz --keep=3
+
+**Example 2**: Delete all Python 2.3 or Python 2.4 eggs from the distribution
+directory, except the most recently modified one for each Python version::
+
+    setup.py rotate --match=-py2.3*.egg,-py2.4*.egg --keep=1
+
+
+.. _saveopts:
 
 ``saveopts`` - Save used options to a configuration file
 ========================================================
 
-XXX
+Finding and editing ``distutils`` configuration files can be a pain, especially
+since you also have to translate the configuration options from command-line
+form to the proper configuration file format.  You can avoid these hassles by
+using the ``saveopts`` command.  Just add it to the command line to save the
+options you used.  For example, this command builds the project using
+the ``mingw32`` C compiler, then saves the --compiler setting as the default
+for future builds (even those run implicitly by the ``install`` command)::
 
+    setup.py build --compiler=mingw32 saveopts
+
+The ``saveopts`` command saves all options for every commmand specified on the
+command line to the project's local ``setup.cfg`` file, unless you use one of
+the `configuration file options`_ to change where the options are saved.  For
+example, this command does the same as above, but saves the compiler setting
+to the site-wide (global) distutils configuration::
+    
+    setup.py build --compiler=mingw32 saveopts -g
+
+Note that it doesn't matter where you place the ``saveopts`` command on the
+command line; it will still save all the options specified for all commands.
+For example, this is another valid way to spell the last example::
+
+    setup.py saveopts -g build --compiler=mingw32 
+
+Note, however, that all of the commands specified are always run, regardless of
+where ``saveopts`` is placed on the command line.
+
+
+Configuration File Options
+--------------------------
+
+Normally, settings such as options and aliases are saved to the project's
+local ``setup.cfg`` file.  But you can override this and save them to the
+global or per-user configuration files, or to a manually-specified filename.
+
+``--global-config, -g``
+    Save settings to the global ``distutils.cfg`` file inside the ``distutils``
+    package directory.  You must have write access to that directory to use
+    this option.  You also can't combine this option with ``-u`` or ``-f``.
+    
+``--user-config, -u``
+    Save settings to the current user's ``~/.pydistutils.cfg`` (POSIX) or
+    ``$HOME/pydistutils.cfg`` (Windows) file.  You can't combine this option
+    with ``-g`` or ``-f``.
+
+``--filename=FILENAME, -f FILENAME``
+    Save settings to the specified configuration file to use.  You can't
+    combine this option with ``-g`` or ``-u``.  Note that if you specify a
+    non-standard filename, the ``distutils`` and ``setuptools`` will not
+    use the file's contents.  This option is mainly included for use in
+    testing.
+
+These options are used by other ``setuptools`` commands that modify
+configuration files, such as the `alias`_ and `setopt`_ commands.
+
+
+.. _setopt:
 
 ``setopt`` - Set a distutils or setuptools option in a config file
 ==================================================================
 
-XXX
+This command is mainly for use by scripts, but it can also be used as a quick
+and dirty way to change a distutils configuration option without having to
+remember what file the options are in and then open an editor.
+
+**Example 1**.  Set the default C compiler to ``mingw32`` (using long option
+names)::
+
+    setup.py setopt --command=build --option=compiler --set-value=mingw32
+
+**Example 2**.  Remove any setting for the distutils default package
+installation directory (short option names)::
+  
+    setup.py setopt -c install -o install_lib -r
+
+
+Options for the ``setopt`` command:
+
+``--command=COMMAND, -c COMMAND``
+    Command to set the option for.  This option is required.
+
+``--option=OPTION, -o OPTION``
+    The name of the option to set.  This option is required.
+
+``--set-value=VALUE, -s VALUE``
+    The value to set the option to.  Not needed if ``-r`` or ``--remove`` is
+    set.
+
+``--remove, -r``
+    Remove (unset) the option, instead of setting it.
+
+In addition to the above options, you may use any of the `configuration file
+options`_ (listed under the `saveopts`_ command, above) to determine which
+distutils configuration file the option will be added to (or removed from).
+
+
+``test`` - Build package and run a unittest suite
+=================================================
+
+When doing test-driven development, or running automated builds that need
+testing before they are deployed for downloading or use, it's often useful
+to be able to run a project's unit tests without actually deploying the project
+anywhere, even using the ``develop`` command.  The ``test`` command runs a
+project's unit tests without actually deploying it, by temporarily putting the
+project's source on ``sys.path``, after first running ``build_ext -i`` and
+``egg_info`` to ensure that any C extensions and project metadata are
+up-to-date.
+
+To use this command, your project's tests must be wrapped in a ``unittest``
+test suite by either a function, a ``TestCase`` class or method, or a module
+containing ``TestCase`` classes.  Note that many test systems including
+``doctest`` support wrapping their non-``unittest`` tests in ``TestSuite``
+objects.  So, if you are using a test package that does not support this, we
+suggest you encourage its developers to implement test suite support, as this
+is a convenient and standard way to aggregate a collection of tests to be run
+under a common test harness.
+
+By default, tests will be run in the "verbose" mode of the ``unittest``
+package's text test runner, but you can get the "quiet" mode (just dots) if
+you supply the ``-q`` or ``--quiet`` option, either as a global option to
+the setup script (e.g. ``setup.py -q test``) or as an option for the ``test``
+command itself (e.g. ``setup.py test -q``).  There is one other option
+available:
+
+``--test-suite=NAME, -s NAME``
+    Specify the test suite (or module, class, or method) to be run
+    (e.g. ``some_module.test_suite``).  The default for this option can be
+    set by giving a ``test_suite`` argument to the ``setup()`` function, e.g.::
+
+        setup(
+            # ...
+            test_suite = "my_package.tests.test_all"
+        )
+
+    If you did not set a ``test_suite`` in your ``setup()`` call, and do not
+    provide a ``--test-suite`` option, an error will occur.
+
+
+``upload`` - Upload source and/or egg distributions to PyPI
+===========================================================
+
+PyPI now supports uploading project files for redistribution; uploaded files
+are easily found by EasyInstall, even if you don't have download links on your
+project's home page.
+
+Although Python 2.5 will support uploading all types of distributions to PyPI,
+setuptools only supports source distributions and eggs.  (This is partly
+because PyPI's upload support is currently broken for various other file
+types.)  To upload files, you must include the ``upload`` command *after* the
+``sdist`` or ``bdist_egg`` commands on the setup command line.  For example::
+
+    setup.py bdist_egg upload         # create an egg and upload it
+    setup.py sdist upload             # create a source distro and upload it
+    setup.py sdist bdist_egg upload   # create and upload both
+    
+Note that to upload files for a project, the corresponding version must already
+be registered with PyPI, using the distutils ``register`` command.  It's
+usually a good idea to include the ``register`` command at the start of the
+command line, so that any registration problems can be found and fixed before
+building and uploading the distributions, e.g.::
+
+    setup.py register sdist bdist_egg upload
+
+This will update PyPI's listing for your project's current version.
+
+Note, by the way, that the metadata in your ``setup()`` call determines what
+will be listed in PyPI for your package.  Try to fill out as much of it as
+possible, as it will save you a lot of trouble manually adding and updating
+your PyPI listings.  Just put it in ``setup.py`` and use the ``register``
+comamnd to keep PyPI up to date.
+
+The ``upload`` command has a few options worth noting:
+
+``--sign, -s``
+    Sign each uploaded file using GPG (GNU Privacy Guard).  The ``gpg`` program
+    must be available for execution on the system ``PATH``.
+
+``--show-response``
+    Display the full response text from server; this is useful for debugging
+    PyPI problems.
+
+``--repository=URL, -r URL``
+    The URL of the repository to upload to.  Defaults to
+    http://www.python.org/pypi (i.e., the main PyPI installation).
 
 
 ------------------------------------
 Extending and Reusing ``setuptools``
 ------------------------------------
+
+Sorry, this section isn't written yet, and neither is a lot of what's below
+this point, except for the change log.  You might want to `subscribe to changes
+in this page <setuptools?action=subscribe>`_ to see when new documentation is
+added or updated.
+
 
 Subclassing ``Command``
 =======================
@@ -526,6 +1039,15 @@ XXX
 ----------------------------
 Release Notes/Change History
 ----------------------------
+
+0.5a9
+ * Include ``svn:externals`` directories in source distributions as well as
+   normal subversion-controlled files and directories.
+
+ * Added ``exclude=patternlist`` option to ``setuptools.find_packages()``
+
+ * Changed --tag-svn-revision to include an "r" in front of the revision number
+   for better readability.
 
 0.5a8
  * The "egg_info" command now always sets the distribution metadata to "safe"
