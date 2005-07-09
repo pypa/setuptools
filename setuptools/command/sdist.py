@@ -6,28 +6,28 @@ entities = [
     ("&lt;","<"), ("&gt;", ">"), ("&quot;", '"'), ("&apos;", "'"),
     ("&amp;", "&")
 ]
+
 def unescape(data):
     for old,new in entities:
         data = data.replace(old,new)
     return data
 
-patterns = [
-    (convert_path('CVS/Entries'), re.compile(r"^\w?/([^/]+)/", re.M), None),
-    (convert_path('.svn/entries'), re.compile(r'name="([^"]+)"'), unescape),
-]
+def re_finder(pattern, postproc=None):
+    def find(dirname, filename):
+        f = open(filename,'rU')
+        data = f.read()
+        f.close()
+        for match in pattern.finditer(data):
+            path = match.group(1)
+            if postproc:
+                path = postproc(path)
+            yield joinpath(dirname,path)
+    return find
 
 def joinpath(prefix,suffix):
     if not prefix:
         return suffix
     return os.path.join(prefix,suffix)
-
-
-
-
-
-
-
-
 
 
 
@@ -46,38 +46,47 @@ def walk_revctrl(dirname='', memo=None):
     if dirname in memo:
         # Don't rescan a scanned directory
         return
-    for path, pattern, postproc in patterns:
+    for path, finder in finders:
         path = joinpath(dirname,path)
         if os.path.isfile(path):
-            f = open(path,'rU')
-            data = f.read()
-            f.close()
-            for match in pattern.finditer(data):
-                path = match.group(1)
-                if postproc:
-                    path = postproc(path)
-                path = joinpath(dirname,path)
+            for path in finder(dirname,path):
                 if os.path.isfile(path):
                     yield path
                 elif os.path.isdir(path):
                     for item in walk_revctrl(path, memo):
                         yield item
 
+def externals_finder(dirname, filename):
+    """Find any 'svn:externals' directories"""
+    found = False
+    f = open(filename,'rb')
+    for line in iter(f.readline, ''):    # can't use direct iter!
+        parts = line.split()
+        if len(parts)==2:
+            kind,length = parts
+            data = f.read(int(length))
+            if kind=='K' and data=='svn:externals':
+                found = True
+            elif kind=='V' and found:
+                f.close()
+                break
+    else:
+        f.close()
+        return
+
+    for line in data.splitlines():
+        parts = line.split()
+        if parts:
+            yield joinpath(dirname, parts[0])
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+finders = [
+    (convert_path('CVS/Entries'),
+        re_finder(re.compile(r"^\w?/([^/]+)/", re.M))),
+    (convert_path('.svn/entries'),
+        re_finder(re.compile(r'name="([^"]+)"'), unescape)),
+    (convert_path('.svn/dir-props'), externals_finder),
+]
 
 
 class sdist(_sdist):
@@ -100,15 +109,6 @@ class sdist(_sdist):
     def add_defaults(self):
         _sdist.add_defaults(self)
         self.filelist.extend(walk_revctrl())
-
-
-
-
-
-
-
-
-
 
 
 
