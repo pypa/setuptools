@@ -127,7 +127,7 @@ class egg_info(Command):
             version+=self.tag_build
 
         if self.tag_svn_revision and os.path.exists('.svn'):
-            version += '-%s' % self.get_svn_revision()
+            version += '-r%s' % self.get_svn_revision()
 
         if self.tag_date:
             import time
