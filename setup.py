@@ -17,7 +17,8 @@ def get_description():
     
 VERSION = "0.5a8"
 
-from setuptools import setup, find_packages, Require
+from setuptools import setup, find_packages
+
 setup(
     name="setuptools",
     version=VERSION,
@@ -30,18 +31,13 @@ setup(
     keywords = "CPAN PyPI distutils eggs package management",
     url = "http://peak.telecommunity.com/DevCenter/setuptools",
     test_suite = 'setuptools.tests.test_suite',
-    requires = [
-        Require('Distutils','1.0.3','distutils',
-            "http://www.python.org/sigs/distutils-sig/"
-        ),
-        Require('PyUnit', None, 'unittest', "http://pyunit.sf.net/"),
-    ],
-
-
 
     packages = find_packages(),
     py_modules = ['pkg_resources'],
     scripts = ['easy_install.py'],
+
+
+
 
     classifiers = [f.strip() for f in """
     Development Status :: 3 - Alpha
@@ -56,6 +52,10 @@ setup(
     Topic :: Utilities
     """.splitlines() if f.strip()]
 )
+
+
+
+
 
 
 
