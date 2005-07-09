@@ -52,14 +52,14 @@ class bdist_egg(Command):
         ('keep-temp', 'k',
                      "keep the pseudo-installation tree around after " +
                      "creating the distribution archive"),
-        ('dist-dir=', 'd',
+        ('dist-dir=', 'b',
                      "directory to put final built distributions in"),
         ('skip-build', None,
                      "skip rebuilding everything (for testing/debugging)"),
     ]
 
     boolean_options = [
-        'keep-temp', 'skip-build', 'relative','tag-date','tag-svn-revision'
+        'keep-temp', 'skip-build',
     ]
 
 
