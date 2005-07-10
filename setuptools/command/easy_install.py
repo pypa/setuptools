@@ -21,7 +21,7 @@ from distutils.errors import DistutilsArgError, DistutilsOptionError, DistutilsE
 from setuptools.archive_util import unpack_archive
 from setuptools.package_index import PackageIndex, parse_bdist_wininst
 from setuptools.package_index import URL_SCHEME
-from setuptools.command import bdist_egg
+from setuptools.command import bdist_egg, egg_info
 from pkg_resources import *
 
 __all__ = [
@@ -697,6 +697,7 @@ PYTHONPATH, or by being added to sys.path by your code.)
 
     def build_and_install(self, setup_script, setup_base, zip_ok):
         sys.modules.setdefault('distutils.command.bdist_egg', bdist_egg)
+        sys.modules.setdefault('distutils.command.bdist_egg', egg_info)
 
         args = ['bdist_egg', '--dist-dir']
         if self.verbose>2:
@@ -734,7 +735,6 @@ PYTHONPATH, or by being added to sys.path by your code.)
         finally:
             shutil.rmtree(dist_dir)
             log.set_verbosity(self.verbose) # restore our log verbosity
-
 
     def update_pth(self,dist):
         if self.pth_file is None:

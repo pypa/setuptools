@@ -9,7 +9,7 @@ from distutils.errors import *
 from distutils import log
 from pkg_resources import parse_requirements, safe_name, \
     safe_version, yield_lines
-
+from setuptools.dist import iter_distribution_names
 
 class egg_info(Command):
 
@@ -83,8 +83,8 @@ class egg_info(Command):
     def run(self):
         # Make the .egg-info directory, then write PKG-INFO and requires.txt
         self.mkpath(self.egg_info)
+        log.info("writing %s" % os.path.join(self.egg_info,'PKG-INFO'))
 
-        log.info("writing %s" % os.path.join(self.egg_info,'PKG-INFO'))       
         if not self.dry_run:
             metadata = self.distribution.metadata
             metadata.version, oldver = self.egg_version, metadata.version
@@ -96,14 +96,15 @@ class egg_info(Command):
             finally:
                 metadata.name, metadata.version = oldname, oldver
 
+        self.write_namespace_packages()
         self.write_requirements()
         self.write_toplevel_names()
+
         if os.path.exists(os.path.join(self.egg_info,'depends.txt')):
             log.warn(
                 "WARNING: 'depends.txt' will not be used by setuptools 0.6!\n"
                 "Use the install_requires/extras_require setup() args instead."
             )
-
 
     def write_requirements(self):
         dist = self.distribution
@@ -119,7 +120,6 @@ class egg_info(Command):
             for extra,reqs in dist.extras_require.items():
                 f.write('\n\n[%s]\n%s' % (extra, '\n'.join(yield_lines(reqs))))
             f.close()
-
 
     def tagged_version(self):
         version = self.distribution.get_version()
@@ -144,21 +144,62 @@ class egg_info(Command):
 
 
     def write_toplevel_names(self):
-        pkgs = dict.fromkeys(self.distribution.packages or ())
-        pkgs.update(dict.fromkeys(self.distribution.py_modules or ()))
-        for ext in self.distribution.ext_modules or ():
-            if isinstance(ext,tuple):
-                name,buildinfo = ext
-            else:
-                name = ext.name
-            pkgs[name]=1
-        pkgs = dict.fromkeys([k.split('.',1)[0] for k in pkgs])
-        toplevel = os.path.join(self.egg_info,"top_level.txt")
+        pkgs = dict.fromkeys(
+            [k.split('.',1)[0]
+                for k in iter_distribution_names(self.distribution)
+            ]
+        )
+        toplevel = os.path.join(self.egg_info, "top_level.txt")
         log.info("writing list of top-level names to %s" % toplevel)
         if not self.dry_run:
             f = open(toplevel, 'wt')
             f.write('\n'.join(pkgs))
             f.write('\n')
             f.close()
+
+
+
+
+
+
+    def write_namespace_packages(self):
+        nsp = getattr(self.distribution,'namespace_packages',None)
+        if nsp is None:
+            return
+
+        filename = os.path.join(self.egg_info,"namespace_packages.txt")
+
+        if nsp:
+            log.info("writing %s", filename)
+            if not self.dry_run:
+                f = open(filename, 'wt')
+                f.write('\n'.join(nsp))
+                f.write('\n')
+                f.close()
+
+        elif os.path.exists(filename):
+            log.info("deleting %s", filename)
+            if not self.dry_run:
+                os.unlink(filename)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

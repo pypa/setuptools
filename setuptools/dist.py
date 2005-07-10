@@ -90,6 +90,8 @@ class Distribution(_Distribution):
         self.install_requires = []
         self.extras_require = {}
         self.dist_files = []
+        self.zip_safe = None
+        self.namespace_packages = None
         _Distribution.__init__(self,attrs)
         if not have_package_data:
             from setuptools.command.build_py import build_py
@@ -100,19 +102,17 @@ class Distribution(_Distribution):
         self.cmdclass.setdefault('install_lib',install_lib)
         self.cmdclass.setdefault('sdist',sdist)
 
+    def parse_command_line(self):
+        """Process features after parsing command line options"""
+        result = _Distribution.parse_command_line(self)
+        if self.features:
+            self._finalize_features()
+        return result
 
 
-
-
-
-
-
-
-
-
-
-
-
+    def _feature_attrname(self,name):
+        """Convert feature name to corresponding option attribute name"""
+        return 'with_'+name.replace('-','_')
 
 
 
@@ -123,10 +123,8 @@ class Distribution(_Distribution):
 
     def finalize_options(self):
         _Distribution.finalize_options(self)
-
         if self.features:
             self._set_global_opts_from_features()
-
         if self.extra_path:
             raise DistutilsSetupError(
                 "The 'extra_path' parameter is not needed when using "
@@ -148,19 +146,21 @@ class Distribution(_Distribution):
                 "strings or lists of strings containing valid project/version "
                 "requirement specifiers."
             )
-
-    def parse_command_line(self):
-        """Process features after parsing command line options"""
-        result = _Distribution.parse_command_line(self)
-        if self.features:
-            self._finalize_features()
-        return result
-
-
-    def _feature_attrname(self,name):
-        """Convert feature name to corresponding option attribute name"""
-        return 'with_'+name.replace('-','_')
-
+        if self.namespace_packages is not None:
+            try:
+                assert ''.join(self.namespace_packages)!=self.namespace_packages
+            except (TypeError,ValueError,AttributeError,AssertionError):
+                raise DistutilsSetupError(
+                    "'namespace_packages' must be a sequence of strings"
+                )
+            for nsp in self.namespace_packages:
+                for name in iter_distribution_names(self):
+                    if name.startswith(nsp+'.'): break
+                else:
+                    raise DistutilsSetupError(
+                        "Distribution contains no modules or packages for " +
+                        "namespace package %r" % nsp
+                    )
 
     def _set_global_opts_from_features(self):
         """Add --with-X/--without-X options based on optional features"""
@@ -488,6 +488,47 @@ class Distribution(_Distribution):
                 d.setdefault(cmd,{})[opt] = val
 
         return d
+
+
+def iter_distribution_names(distribution):
+    """Yield all packages, modules, and extensions declared by distribution"""
+
+    for pkg in distribution.packages or ():
+        yield pkg
+
+    for module in distribution.py_modules or ():
+        yield module
+
+    for ext in distribution.ext_modules or ():
+        if isinstance(ext,tuple):
+            name,buildinfo = ext
+            yield name
+        else:
+            yield ext.name
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class Feature:

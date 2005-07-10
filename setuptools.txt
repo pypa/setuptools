@@ -133,6 +133,56 @@ arguments do (except for the metadata ones), and the various ways you might use
 them in your own project(s).
 
 
+New and Changed ``setup()`` Keywords
+====================================
+
+The following keyword arguments to ``setup()`` are added or changed by
+``setuptools``.  All of them are optional; you do not have to supply them
+unless you need the associated ``setuptools`` feature.
+
+``package_data``
+    A dictionary mapping package names to lists of glob patterns.  For a
+    complete description and examples, see the section below on `Including
+    Data Files`_.
+
+``zip_safe``
+    A boolean (True or False) flag specifying whether the project can be
+    safely installed and run from a zip file.  If this argument is not
+    supplied, the ``bdist_egg`` command will have to analyze all of your
+    project's contents for possible problems each time it buids an egg.
+
+``install_requires``
+    A string or list of strings specifying what other distributions need to
+    be installed when this one is.  See the section below on `Declaring
+    Dependencies`_ for details and examples of the format of this argument.
+    
+``extras_require``
+    A dictionary mapping names of "extras" (optional features of your project)
+    to strings or lists of strings specifying what other distributions must be
+    installed to support those features.  See the section below on `Declaring
+    Dependencies`_ for details and examples of the format of this argument.
+
+``test_suite``
+    A string naming a ``unittest.TestCase`` subclass (or a module containing
+    one or more of them, or a method of such a subclass), or naming a function
+    that can be called with no arguments and returns a ``unittest.TestSuite``.
+    Specifying this argument enables use of the `test`_ command to run the
+    specified test suite, e.g. via ``setup.py test``.  See the section on the
+    `test`_ command below for more details.
+
+``namespace_packages``
+    A list of strings naming the project's "namespace packages".  A namespace
+    package is a package that may be split across multiple project
+    distributions.  For example, Zope 3's ``zope`` package is a namespace
+    package, because subpackages like ``zope.interface`` and ``zope.publisher``
+    may be distributed separately.  The egg runtime system can automatically
+    merge such subpackages into a single parent package at runtime, as long
+    as you declare them in each project that contains any subpackages of the
+    namespace package, and as long as the namespace package's ``__init__.py``
+    does not contain any code.  See the section below on `Namespace Packages`_
+    for more information.
+
+
 Declaring Dependencies
 ======================
 
@@ -406,7 +456,11 @@ a quick example of converting code that uses ``__file__`` to use
 .. _Resource Management API: http://peak.telecommunity.com/DevCenter/PythonEggs#resource-management
 .. _Accessing Package Resources: http://peak.telecommunity.com/DevCenter/PythonEggs#accessing-package-resources
 
-.. XXX put doc about zip_safe flag here, once it's implemented
+
+Setting the ``zip_safe`` flag
+-----------------------------
+
+XXX put doc about zip_safe flag here, once it's implemented
 
 
 "Development Mode"
@@ -481,6 +535,62 @@ Building Extensions written with Pyrex
 ======================================
 
 XXX
+
+
+Namespace Packages
+==================
+
+Sometimes, a large package is more useful if distributed as a collection of
+smaller eggs.  However, Python does not normally allow the contents of a
+package to be retrieved from more than one location.  "Namespace packages"
+are a solution for this problem.  When you declare a package to be a namespace
+package, it means that the package has no meaningful contents in its
+``__init__.py``, and that it is merely a container for modules and subpackages.
+
+The ``pkg_resources`` runtime will automatically ensure that the contents of
+namespace packages that are spread over multiple eggs or directories are
+combined into a single virtual package.
+
+The ``namespace_packages`` argument to ``setup()`` lets you declare your
+project's namespace packages, so that they will be included in your project's
+metadata.  Then, the runtime will automatically detect this when it adds the
+distribution to ``sys.path``, and ensure that the packages are properly merged.
+
+The argument should list the namespace packages that the egg participates in.
+For example, the ZopeInterface project might do this::
+
+    setup(
+        # ...
+        namespace_packages = ['zope']
+    )
+
+because it contains a ``zope.interface`` package that lives in the ``zope``
+namespace package.  Similarly, a project for a standalone ``zope.publisher``
+would also declare the ``zope`` namespace package.
+
+Namespace packages don't have to be top-level packages.  For example, Zope 3's
+``zope.app`` package is a namespace package, and in the future PEAK's
+``peak.util`` package will be too.
+
+Note, by the way, that your project's source tree must include the namespace
+packages' ``__init__.py`` files (and the ``__init__.py`` of any parent
+packages), in a normal Python package layout.  These ``__init__.py`` files
+should not contain any code or data, because only *one* egg's ``__init__.py``
+files will be used to construct the parent packages in memory at runtime, and
+there is no guarantee which egg will be used.
+
+For example, if both ``zope.interface`` and ``zope.publisher`` have been
+installed from separate distributions, it is unspecified which of the two
+distributions' ``zope/__init__.py`` files will be used to create the ``zope``
+package in memory.  Therefore, it is better not to have any code or data in
+a namespace package's ``__init__`` module, so as to prevent any complications.
+
+(This is one reason the concept is called a "namespace package": it is a
+package that exists *only* to provide a namespace under which other modules or
+packages are gathered.  In Java, for example, namespace packages are often used
+just to avoid naming collisions between different projects, using package names
+like ``org.apache`` as a namespace for packages that are part of apache.org
+projects.)
 
 
 -----------------
@@ -916,6 +1026,8 @@ options`_ (listed under the `saveopts`_ command, above) to determine which
 distutils configuration file the option will be added to (or removed from).
 
 
+.. _test:
+
 ``test`` - Build package and run a unittest suite
 =================================================
 
@@ -1078,6 +1190,8 @@ Release Notes/Change History
    directory that lists all top-level modules and packages in the distribution.
    This is used by the ``easy_install`` command to find possibly-conflicting
    "unmanaged" packages when installing the distribution.
+
+ * Added ``zip_safe`` and ``namespace_packages`` arguments to ``setup()``.
 
  * Fixed the swapped ``-d`` and ``-b`` options of ``bdist_egg``.
 
