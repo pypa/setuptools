@@ -44,7 +44,7 @@ class bdist_egg(Command):
     description = "create an \"egg\" distribution"
 
     user_options = [
-        ('bdist-dir=', 'd',
+        ('bdist-dir=', 'b',
             "temporary directory for creating the distribution"),
         ('plat-name=', 'p',
                      "platform name to embed in generated filenames "
@@ -54,7 +54,7 @@ class bdist_egg(Command):
         ('keep-temp', 'k',
                      "keep the pseudo-installation tree around after " +
                      "creating the distribution archive"),
-        ('dist-dir=', 'b',
+        ('dist-dir=', 'd',
                      "directory to put final built distributions in"),
         ('skip-build', None,
                      "skip rebuilding everything (for testing/debugging)"),

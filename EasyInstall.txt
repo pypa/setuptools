@@ -556,6 +556,9 @@ Known Issues
    base error type for errors that should just issue a message to stderr and
    exit the program without a traceback.
 
+ * EasyInstall can now be given a path to a directory containing a setup
+   script, and it will attempt to build and install the package there.
+
 0.5a8
  * There is now a separate documentation page for `setuptools`_; revision
    history that's not specific to EasyInstall has been moved to that page.

@@ -419,6 +419,8 @@ class easy_install(Command):
         # Anything else, try to extract and build
         if os.path.isfile(dist_filename):
             unpack_archive(dist_filename, tmpdir, self.unpack_progress)
+        elif os.path.isdir(dist_filename):
+            tmpdir = dist_filename  # ugh
 
         # Find the setup.py file
         from glob import glob
@@ -436,7 +438,7 @@ class easy_install(Command):
             setup_script = setups[0]
 
         self.build_egg(tmpdir, setup_script)
-        dist_dir = os.path.join(os.path.dirname(setup_script),'dist')
+        dist_dir = os.path.join(os.path.dirname(setup_script),'dist')   # XXX
 
         eggs = []
         for egg in glob(os.path.join(dist_dir,'*.egg')):
@@ -446,8 +448,6 @@ class easy_install(Command):
             log.warn("No eggs found in %s (setup script problem?)", dist_dir)
 
         return eggs
-
-
 
     def egg_distribution(self, egg_path):
         if os.path.isdir(egg_path):
