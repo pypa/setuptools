@@ -12,7 +12,7 @@ __ http://peak.telecommunity.com/DevCenter/EasyInstall
 """
 
 import sys, os.path, zipimport, shutil, tempfile, zipfile
-
+from glob import glob
 from setuptools import Command
 from setuptools.sandbox import run_setup
 from distutils import log, dir_util
@@ -412,21 +412,21 @@ class easy_install(Command):
         # .egg dirs or files are already built, so just return them
         if dist_filename.lower().endswith('.egg'):
             return [self.install_egg(dist_filename, True, tmpdir)]
-
-        if dist_filename.lower().endswith('.exe'):
+        elif dist_filename.lower().endswith('.exe'):
             return [self.install_exe(dist_filename, tmpdir)]
 
         # Anything else, try to extract and build
+        setup_base = tmpdir
         if os.path.isfile(dist_filename):
             unpack_archive(dist_filename, tmpdir, self.unpack_progress)
         elif os.path.isdir(dist_filename):
-            tmpdir = dist_filename  # ugh
+            setup_base = os.path.abspath(dist_filename)
 
         # Find the setup.py file
-        from glob import glob
-        setup_script = os.path.join(tmpdir, 'setup.py')
+        setup_script = os.path.join(setup_base, 'setup.py')
+
         if not os.path.exists(setup_script):
-            setups = glob(os.path.join(tmpdir, '*', 'setup.py'))
+            setups = glob(os.path.join(setup_base, '*', 'setup.py'))
             if not setups:
                 raise DistutilsError(
                     "Couldn't find a setup script in %s" % dist_filename
@@ -437,17 +437,17 @@ class easy_install(Command):
                 )
             setup_script = setups[0]
 
-        self.build_egg(tmpdir, setup_script)
-        dist_dir = os.path.join(os.path.dirname(setup_script),'dist')   # XXX
+        # Now run it, and return the result
+        return self.build_and_install(setup_script, setup_base, zip_ok)
 
-        eggs = []
-        for egg in glob(os.path.join(dist_dir,'*.egg')):
-            eggs.append(self.install_egg(egg, zip_ok, tmpdir))
 
-        if not eggs and not self.dry_run:
-            log.warn("No eggs found in %s (setup script problem?)", dist_dir)
 
-        return eggs
+
+
+
+
+
+
 
     def egg_distribution(self, egg_path):
         if os.path.isdir(egg_path):
@@ -695,10 +695,10 @@ PYTHONPATH, or by being added to sys.path by your code.)
 
 
 
-    def build_egg(self, tmpdir, setup_script):
+    def build_and_install(self, setup_script, setup_base, zip_ok):
         sys.modules.setdefault('distutils.command.bdist_egg', bdist_egg)
 
-        args = ['bdist_egg']
+        args = ['bdist_egg', '--dist-dir']
         if self.verbose>2:
             v = 'v' * self.verbose - 1
             args.insert(0,'-'+v)
@@ -707,33 +707,33 @@ PYTHONPATH, or by being added to sys.path by your code.)
         if self.dry_run:
             args.insert(0,'-n')
 
-        log.info("Running %s %s", setup_script[len(tmpdir)+1:], ' '.join(args))
+        dist_dir = tempfile.mkdtemp(prefix='egg-dist-tmp-', dir=setup_base)       
         try:
+            args.append(dist_dir)
+            log.info(
+                "Running %s %s", setup_script[len(setup_base)+1:],
+                ' '.join(args)
+            )
             try:
                 run_setup(setup_script, args)
             except SystemExit, v:
                 raise DistutilsError(
                     "Setup script exited with %s" % (v.args[0],)
                 )
+
+            eggs = []
+            for egg in glob(os.path.join(dist_dir,'*.egg')):
+                eggs.append(self.install_egg(egg, zip_ok, setup_base))
+
+            if not eggs and not self.dry_run:
+                log.warn("No eggs found in %s (setup script problem?)",
+                    dist_dir)
+               
+            return eggs
+
         finally:
+            shutil.rmtree(dist_dir)
             log.set_verbosity(self.verbose) # restore our log verbosity
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     def update_pth(self,dist):

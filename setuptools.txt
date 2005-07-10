@@ -1079,6 +1079,8 @@ Release Notes/Change History
    This is used by the ``easy_install`` command to find possibly-conflicting
    "unmanaged" packages when installing the distribution.
 
+ * Fixed the swapped ``-d`` and ``-b`` options of ``bdist_egg``.
+
 0.5a8
  * The "egg_info" command now always sets the distribution metadata to "safe"
    forms of the distribution name and version, so that distribution files will
