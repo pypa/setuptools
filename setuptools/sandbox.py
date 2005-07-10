@@ -1,7 +1,7 @@
 import os, sys, __builtin__, tempfile
 _os = sys.modules[os.name]
 _open = open
-
+from distutils.errors import DistutilsError
 __all__ = [
     "AbstractSandbox", "DirectorySandbox", "SandboxViolation", "run_setup",
 ]
@@ -188,7 +188,7 @@ class DirectorySandbox(AbstractSandbox):
         return (src,dst)
 
 
-class SandboxViolation(RuntimeError):
+class SandboxViolation(DistutilsError):
     """A setup script attempted to modify the filesystem outside the sandbox"""
 
     def __str__(self):

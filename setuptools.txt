@@ -570,7 +570,7 @@ the new egg file's metadata directory, for use by the egg runtime system or by
 any applications or frameworks that use that metadata.
 
 You won't usually need to specify any special options for this command; just
-use ``bdist_egg`` and you're done.  But there are a couple of options that may
+use ``bdist_egg`` and you're done.  But there are a few options that may
 be occasionally useful:
 
 ``--dist-dir=DIR, -d DIR``
@@ -589,6 +589,19 @@ be occasionally useful:
     searching web pages for download links.  However, if you are
     cross-compiling or doing some other unusual things, you might find a use
     for this option.
+
+``--exclude-source-files``
+    Don't include any modules' ``.py`` files in the egg, just compiled Python,
+    C, and data files.  (Note that this doesn't affect any ``.py`` files in the
+    EGG-INFO directory or its subdirectories, since for example there may be
+    scripts with a ``.py`` extension which must still be retained.)  We don't
+    recommend that you use this option except for packages that are being
+    bundled for proprietary end-user applications, or for "embedded" scenarios
+    where space is at an absolute premium.  On the other hand, if your package
+    is going to be installed and used in compressed form, you might as well
+    exclude the source because Python's ``traceback`` module doesn't currently
+    understand how to display zipped source code anyway, or how to deal with
+    files that are in a different place from where their code was compiled.
 
 There are also some options you will probably never need, but which are there
 because they were copied from similar ``bdist`` commands used as an example for
@@ -726,8 +739,8 @@ to temporarily change the project's version string.
 
 The following options can be used to modify the project's version string for
 all remaining commands on the setup command line.  The options are processed
-in the order shown, so if you use more than one, the request tags will be added
-in the following order:
+in the order shown, so if you use more than one, the requested tags will be
+added in the following order:
 
 ``--tag-build=NAME, -b NAME``
     Append NAME to the project's version string.  Due to the way setuptools
@@ -1048,6 +1061,23 @@ Release Notes/Change History
 
  * Changed --tag-svn-revision to include an "r" in front of the revision number
    for better readability.
+
+ * Added ability to build eggs without including source files (except for any
+   scripts, of course), using the ``--exclude-source-files`` option to
+   ``bdist_egg``.
+
+ * ``setup.py install`` now automatically detects when an "unmanaged" package
+   or module is going to be on ``sys.path`` ahead of a package being installed,
+   thereby preventing the newer version from being imported.  If this occurs,
+   a warning message is output to ``sys.stderr``, but installation proceeds
+   anyway.  The warning message informs the user what files or directories
+   need deleting, and advises them they can also use EasyInstall (with the
+   ``--delete-conflicting`` option) to do it automatically.
+
+ * The ``egg_info`` command now adds a ``top_level.txt`` file to the metadata
+   directory that lists all top-level modules and packages in the distribution.
+   This is used by the ``easy_install`` command to find possibly-conflicting
+   "unmanaged" packages when installing the distribution.
 
 0.5a8
  * The "egg_info" command now always sets the distribution metadata to "safe"

@@ -97,6 +97,7 @@ class egg_info(Command):
                 metadata.name, metadata.version = oldname, oldver
 
         self.write_requirements()
+        self.write_toplevel_names()
         if os.path.exists(os.path.join(self.egg_info,'depends.txt')):
             log.warn(
                 "WARNING: 'depends.txt' will not be used by setuptools 0.6!\n"
@@ -106,7 +107,6 @@ class egg_info(Command):
 
     def write_requirements(self):
         dist = self.distribution
-
         if not getattr(dist,'install_requires',None) and \
            not getattr(dist,'extras_require',None): return
 
@@ -125,14 +125,11 @@ class egg_info(Command):
         version = self.distribution.get_version()
         if self.tag_build:
             version+=self.tag_build
-
         if self.tag_svn_revision and os.path.exists('.svn'):
             version += '-r%s' % self.get_svn_revision()
-
         if self.tag_date:
             import time
             version += time.strftime("-%Y%m%d")
-
         return safe_version(version)
 
 
@@ -142,23 +139,26 @@ class egg_info(Command):
         import re
         match = re.search(r'Last Changed Rev: (\d+)', result)
         if not match:
-            raise RuntimeError("svn info error: %s" % result.strip())
+            raise DistutilsError("svn info error: %s" % result.strip())
         return match.group(1)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def write_toplevel_names(self):
+        pkgs = dict.fromkeys(self.distribution.packages or ())
+        pkgs.update(dict.fromkeys(self.distribution.py_modules or ()))
+        for ext in self.distribution.ext_modules or ():
+            if isinstance(ext,tuple):
+                name,buildinfo = ext
+            else:
+                name = ext.name
+            pkgs[name]=1
+        pkgs = dict.fromkeys([k.split('.',1)[0] for k in pkgs])
+        toplevel = os.path.join(self.egg_info,"top_level.txt")
+        log.info("writing list of top-level names to %s" % toplevel)
+        if not self.dry_run:
+            f = open(toplevel, 'wt')
+            f.write('\n'.join(pkgs))
+            f.write('\n')
+            f.close()
 
 

@@ -49,6 +49,8 @@ class bdist_egg(Command):
         ('plat-name=', 'p',
                      "platform name to embed in generated filenames "
                      "(default: %s)" % get_platform()),
+        ('exclude-source-files', None,
+                     "remove all .py files from the generated egg"),
         ('keep-temp', 'k',
                      "keep the pseudo-installation tree around after " +
                      "creating the distribution archive"),
@@ -59,10 +61,8 @@ class bdist_egg(Command):
     ]
 
     boolean_options = [
-        'keep-temp', 'skip-build',
+        'keep-temp', 'skip-build', 'exclude-source-files'
     ]
-
-
 
 
 
@@ -87,7 +87,7 @@ class bdist_egg(Command):
         self.dist_dir = None
         self.skip_build = 0
         self.egg_output = None
-
+        self.exclude_source_files = None
 
 
     def finalize_options(self):
@@ -227,6 +227,8 @@ class bdist_egg(Command):
                 "Use the install_requires/extras_require setup() args instead."
             )
 
+        if self.exclude_source_files: self.zap_pyfiles()
+
         # Make the archive
         make_zipfile(self.egg_output, archive_root, verbose=self.verbose,
                           dry_run=self.dry_run)
@@ -236,6 +238,45 @@ class bdist_egg(Command):
         # Add to 'Distribution.dist_files' so that the "upload" command works
         getattr(self.distribution,'dist_files',[]).append(
             ('bdist_egg',get_python_version(),self.egg_output))
+
+
+
+
+
+
+    def zap_pyfiles(self):
+        log.info("Removing .py files from temporary directory")
+        for base,dirs,files in os.walk(self.bdist_dir):
+            if 'EGG-INFO' in dirs:
+                dirs.remove('EGG-INFO')
+            for name in files:
+                if name.endswith('.py'):
+                    path = os.path.join(base,name)
+                    log.debug("Deleting %s", path)
+                    os.unlink(path)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

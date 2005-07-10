@@ -8,14 +8,14 @@ __all__ = [
 
 import zipfile, tarfile, os
 from pkg_resources import ensure_directory
+from distutils.errors import DistutilsError
 
-class UnrecognizedFormat(RuntimeError):
+class UnrecognizedFormat(DistutilsError):
     """Couldn't recognize the archive type"""
 
 def default_filter(src,dst):
     """The default progress/filter callback; returns True for all files"""   
     return dst
-
 
 
 

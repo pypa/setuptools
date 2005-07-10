@@ -17,7 +17,7 @@ from setuptools import Command
 from setuptools.sandbox import run_setup
 from distutils import log, dir_util
 from distutils.sysconfig import get_python_lib
-from distutils.errors import DistutilsArgError, DistutilsOptionError
+from distutils.errors import DistutilsArgError, DistutilsOptionError, DistutilsError
 from setuptools.archive_util import unpack_archive
 from setuptools.package_index import PackageIndex, parse_bdist_wininst
 from setuptools.package_index import URL_SCHEME
@@ -43,7 +43,9 @@ class easy_install(Command):
     """Manage a download/build/install process"""
 
     description = "Find/get/install Python packages"
+
     command_consumes_arguments = True
+
     user_options = [
         ("zip-ok", "z", "install package as a zipfile"),
         ("multi-version", "m", "make apps have to require() a version"),
@@ -54,6 +56,10 @@ class easy_install(Command):
         ("always-copy", "a", "Copy all needed packages to install dir"),
         ("index-url=", "i", "base URL of Python Package Index"),
         ("find-links=", "f", "additional URL(s) to search for packages"),
+        ("delete-conflicting", "D", "delete old packages that get in the way"),
+        ("ignore-conflicts-at-my-risk", None,
+            "install even if old packages are in the way, even though it "
+            "most likely means the new package won't work."),
         ("build-directory=", "b",
             "download/extract/build in DIR; keep the results"),
         ('optimize=', 'O',
@@ -62,10 +68,17 @@ class easy_install(Command):
         ('record=', None,
          "filename in which to record list of installed files"),
     ]
+
     boolean_options = [
-        'zip-ok', 'multi-version', 'exclude-scripts', 'upgrade', 'always-copy'
+        'zip-ok', 'multi-version', 'exclude-scripts', 'upgrade', 'always-copy',
+        'delete-conflicting', 'ignore-conflicts-at-my-risk',
     ]
+
     create_index = PackageIndex
+
+
+
+
 
     def initialize_options(self):
         self.zip_ok = None
@@ -79,6 +92,34 @@ class easy_install(Command):
         # Options not specifiable via command line
         self.package_index = None
         self.pth_file = None
+        self.delete_conflicting = None
+        self.ignore_conflicts_at_my_risk = None
+
+
+    def delete_blockers(self, blockers):
+        for filename in blockers:
+            log.info("Deleting %s", filename)
+            if not self.dry_run:
+                if os.path.isdir(filename):
+                    shutil.rmtree(filename)
+                else:
+                    os.unlink(filename)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def finalize_options(self):
         # If a non-default installation directory was specified, default the
@@ -122,16 +163,13 @@ class easy_install(Command):
         self.index_url = self.index_url or "http://www.python.org/pypi"
 
         self.shadow_path = sys.path[:]
-
         for path_item in self.install_dir, self.script_dir:
             if path_item not in self.shadow_path:
                 self.shadow_path.insert(0, self.install_dir)
-
         if self.package_index is None:
             self.package_index = self.create_index(
                 self.index_url, search_path = self.shadow_path
             )
-
         self.local_index = AvailableDistributions(self.shadow_path)
 
         if self.find_links is not None:
@@ -149,6 +187,11 @@ class easy_install(Command):
             except ValueError:
                 raise DistutilsOptionError("--optimize must be 0, 1, or 2")
 
+        if self.delete_conflicting and self.ignore_conflicts_at_my_risk:
+            raise DistutilsOptionError(
+                "Can't use both --delete-conflicting and "
+                "--ignore-conflicts-at-my-risk at the same time"
+            )
         if not self.args:
             raise DistutilsArgError(
                 "No urls, filenames, or requirements specified (see --help)")
@@ -159,8 +202,6 @@ class easy_install(Command):
             )
 
         self.outputs = []
-
-
 
     def alloc_tmp(self):
         if self.build_directory is None:
@@ -221,7 +262,7 @@ class easy_install(Command):
                     try:
                         spec = Requirement.parse(spec)
                     except ValueError:
-                        raise RuntimeError(
+                        raise DistutilsError(
                             "Not a URL, existing file, or requirement spec: %r"
                             % (spec,)
                         )
@@ -232,7 +273,7 @@ class easy_install(Command):
                 spec = None
 
             if download is None:
-                raise RuntimeError(
+                raise DistutilsError(
                     "Could not find distribution for %r" % spec
                 )
 
@@ -254,7 +295,7 @@ class easy_install(Command):
             for dist in dists:
                 self.process_distribution(spec, dist)
         else:
-            dists = [self.egg_distribution(download)]
+            dists = [self.check_conflicts(self.egg_distribution(download))]
             self.process_distribution(spec, dists[0], "Using")
         if spec is not None:
             for dist in dists:
@@ -276,11 +317,11 @@ class easy_install(Command):
                     [requirement], self.shadow_path, self.easy_install
                 )
             except DistributionNotFound, e:
-                raise RuntimeError(
+                raise DistutilsError(
                     "Could not find required distribution %s" % e.args
                 )
             except VersionConflict, e:
-                raise RuntimeError(
+                raise DistutilsError(
                     "Installed distribution %s conflicts with requirement %s"
                     % e.args
                 )
@@ -385,11 +426,11 @@ class easy_install(Command):
         if not os.path.exists(setup_script):
             setups = glob(os.path.join(tmpdir, '*', 'setup.py'))
             if not setups:
-                raise RuntimeError(
+                raise DistutilsError(
                     "Couldn't find a setup script in %s" % dist_filename
                 )
             if len(setups)>1:
-                raise RuntimeError(
+                raise DistutilsError(
                     "Multiple setup scripts in %s" % dist_filename
                 )
             setup_script = setups[0]
@@ -418,10 +459,10 @@ class easy_install(Command):
     def install_egg(self, egg_path, zip_ok, tmpdir):
         destination = os.path.join(self.install_dir,os.path.basename(egg_path))
         destination = os.path.abspath(destination)
-
         if not self.dry_run:
             ensure_directory(destination)
 
+        self.check_conflicts(self.egg_distribution(egg_path))
         if not samefile(egg_path, destination):
             if os.path.isdir(destination):
                 dir_util.remove_tree(destination, dry_run=self.dry_run)
@@ -453,7 +494,7 @@ class easy_install(Command):
         # See if it's valid, get data
         cfg = extract_wininst_cfg(dist_filename)
         if cfg is None:
-            raise RuntimeError(
+            raise DistutilsError(
                 "%s is not a valid distutils Windows .exe" % dist_filename
             )
 
@@ -495,18 +536,23 @@ class easy_install(Command):
 
         # Check for .pth file and set up prefix translations
         prefixes = get_exe_prefixes(dist_filename)
+
         to_compile = []
         native_libs = []
+        top_level = {}
 
         def process(src,dst):
             for old,new in prefixes:
                 if src.startswith(old):
                     src = new+src[len(old):]
-                    dst = os.path.join(egg_tmp, *src.split('/'))
+                    parts = src.split('/')
+                    dst = os.path.join(egg_tmp, *parts)
                     dl = dst.lower()
                     if dl.endswith('.pyd') or dl.endswith('.dll'):
+                        top_level[os.path.splitext(parts[0])[0]] = 1
                         native_libs.append(src)
                     elif dl.endswith('.py') and old!='SCRIPTS/':
+                        top_level[os.path.splitext(parts[0])[0]] = 1
                         to_compile.append(dst)
                     return dst
             if not src.endswith('.pth'):
@@ -526,10 +572,87 @@ class easy_install(Command):
 
         self.byte_compile(to_compile)   # compile .py's
 
-        if native_libs:     # write EGG-INFO/native_libs.txt
-            nl_txt = os.path.join(egg_tmp, 'EGG-INFO', 'native_libs.txt')
-            ensure_directory(nl_txt)
-            open(nl_txt,'w').write('\n'.join(native_libs)+'\n')
+        for name in 'top_level','native_libs':
+            if locals()[name]:
+                txt = os.path.join(egg_tmp, 'EGG-INFO', name+'.txt')
+                ensure_directory(txt)
+                open(txt,'w').write('\n'.join(locals()[name])+'\n')
+
+    def check_conflicts(self, dist):
+        """Verify that there are no conflicting "old-style" packages"""
+
+        from imp import find_module, get_suffixes
+        from glob import glob
+
+        blockers = []
+        names = dict.fromkeys(dist._get_metadata('top_level.txt')) # XXX private attr
+
+        exts = {'.pyc':1, '.pyo':1}     # get_suffixes() might leave one out
+        for ext,mode,typ in get_suffixes():
+            exts[ext] = 1
+
+        for path,files in expand_paths([self.install_dir, get_python_lib()]):
+            for filename in files:
+                base,ext = os.path.splitext(filename)
+                if base in names:
+                    if not ext:
+                        # no extension, check for package
+                        try:
+                            f, filename, descr = find_module(base, [path])
+                        except ImportError:
+                            continue
+                        else:
+                            if f: f.close()
+                            if filename not in blockers:
+                                blockers.append(filename)
+                    elif ext in exts:
+                        blockers.append(os.path.join(path,filename))
+
+        if blockers:
+            self.found_conflicts(dist, blockers)
+
+        return dist
+
+    def found_conflicts(self, dist, blockers):
+        if self.delete_conflicting:
+            log.warn("Attempting to delete conflicting packages:")
+            return self.delete_blockers(blockers)
+
+        msg = """\
+-------------------------------------------------------------------------
+CONFLICT WARNING:
+
+The following modules or packages have the same names as modules or
+packages being installed, and will be *before* the installed packages in
+Python's search path.  You MUST remove all of the relevant files and
+directories before you will be able to use the package(s) you are
+installing:
+
+   %s
+
+""" % '\n   '.join(blockers)
+
+        if self.ignore_conflicts_at_my_risk:
+            msg += """\
+(Note: you can run EasyInstall on '%s' with the
+--delete-conflicting option to attempt deletion of the above files
+and/or directories.)
+""" % dist.name
+        else:
+            msg += """\
+Note: you can attempt this installation again with EasyInstall, and use
+either the --delete-conflicting (-D) option or the
+--ignore-conflicts-at-my-risk option, to either delete the above files
+and directories, or to ignore the conflicts, respectively.  Note that if
+you ignore the conflicts, the installed package(s) may not work.
+"""
+        msg += """\
+-------------------------------------------------------------------------
+"""
+        sys.stderr.write(msg)
+        sys.stderr.flush()
+        if not self.ignore_conflicts_at_my_risk:
+            raise DistutilsError("Installation aborted due to conflicts")
 
     def installation_report(self, dist, what="Installed"):
         """Helpful installation message for display to package users"""
@@ -589,7 +712,7 @@ PYTHONPATH, or by being added to sys.path by your code.)
             try:
                 run_setup(setup_script, args)
             except SystemExit, v:
-                raise RuntimeError(
+                raise DistutilsError(
                     "Setup script exited with %s" % (v.args[0],)
                 )
         finally:
@@ -692,6 +815,47 @@ PYTHONPATH, or by being added to sys.path by your code.)
 
 
 
+
+
+
+def expand_paths(inputs):
+    """Yield sys.path directories that might contain "old-style" packages"""
+
+    seen = {}
+
+    for dirname in inputs:
+        if dirname in seen:
+            continue
+
+        seen[dirname] = 1
+        if not os.path.isdir(dirname):
+            continue
+
+        files = os.listdir(dirname)
+        yield dirname, files
+
+        for name in files:
+            if not name.endswith('.pth'):
+                # We only care about the .pth files
+                continue
+            if name in ('easy-install.pth','setuptools.pth'):
+                # Ignore .pth files that we control
+                continue
+
+            # Read the .pth file
+            f = open(os.path.join(dirname,name))
+            lines = list(yield_lines(f))
+            f.close()
+
+            # Yield existing non-dupe, non-import directory lines from it
+            for line in lines:
+                if not line.startswith("import"):
+                    line = line.rstrip()
+                    if line not in seen:
+                        seen[line] = 1
+                        if not os.path.isdir(line):
+                            continue
+                        yield line, os.listdir(line)
 
 
 
@@ -820,11 +984,11 @@ class PthDistributions(AvailableDistributions):
 
 def main(argv, **kw):
     from setuptools import setup
-    try:
-        setup(script_args = ['-q','easy_install', '-v']+argv, **kw)
-    except RuntimeError, v:
-        print >>sys.stderr,"error:",v
-        sys.exit(1)
+    setup(script_args = ['-q','easy_install', '-v']+argv, **kw)
+
+
+
+
 
 
 

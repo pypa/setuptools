@@ -420,20 +420,20 @@ class Distribution(_Distribution):
 
     def install_eggs(self):
         from setuptools.command.easy_install import easy_install
-        cmd = easy_install(self, args="x")
+        cmd = easy_install(self, args="x", ignore_conflicts_at_my_risk=1)
         cmd.ensure_finalized()  # finalize before bdist_egg munges install cmd
+
         self.run_command('bdist_egg')
         args = [self.get_command_obj('bdist_egg').egg_output]
+
         if setuptools.bootstrap_install_from:
             # Bootstrap self-installation of setuptools
             args.insert(0, setuptools.bootstrap_install_from)
+
         cmd.args = args
         cmd.run()
         self.have_run['install'] = 1
         setuptools.bootstrap_install_from = None
-
-
-
 
 
 

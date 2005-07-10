@@ -3,6 +3,7 @@
 import sys, os.path, re, urlparse, urllib2
 from pkg_resources import *
 from distutils import log
+from distutils.errors import DistutilsError
 
 HREF = re.compile(r"""href\s*=\s*['"]?([^'"> ]+)""", re.I)
 URL_SCHEME = re.compile('([-+.a-z0-9]{2,}):',re.I).match
@@ -28,7 +29,6 @@ def parse_bdist_wininst(name):
             base = name[:-16]
 
     return base,py_ver
-
 
 
 
@@ -272,7 +272,7 @@ class PackageIndex(AvailableDistributions):
                 try:
                     spec = Requirement.parse(spec)
                 except ValueError:
-                    raise RuntimeError(
+                    raise DistutilsError(
                         "Not a URL, existing file, or requirement spec: %r" %
                         (spec,)
                     )
@@ -336,7 +336,7 @@ class PackageIndex(AvailableDistributions):
         try:
             fp = self.open_url(url)
             if isinstance(fp, urllib2.HTTPError):
-                raise RuntimeError(
+                raise DistutilsError(
                     "Can't download %s: %s %s" % (url, fp.code,fp.msg)
                 )
 
@@ -373,7 +373,7 @@ class PackageIndex(AvailableDistributions):
         except urllib2.HTTPError, v:
             return v
         except urllib2.URLError, v:
-            raise RuntimeError("Download error: %s" % v.reason)
+            raise DistutilsError("Download error: %s" % v.reason)
 
 
     def _download_url(self, scheme, url, tmpdir):
@@ -432,7 +432,7 @@ class PackageIndex(AvailableDistributions):
                         return self._download_sourceforge(url, page, tmpdir)
                 break   # not an index page
         file.close()
-        raise RuntimeError("Unexpected HTML page found at "+url)
+        raise DistutilsError("Unexpected HTML page found at "+url)
 
 
     def _download_svn(self, url, filename):
@@ -457,7 +457,7 @@ class PackageIndex(AvailableDistributions):
         mirror_regex = re.compile(r'HREF=(/.*?\?use_mirror=[^>]*)')
         urls = [m.group(1) for m in mirror_regex.finditer(sf_page)]
         if not urls:
-            raise RuntimeError(
+            raise DistutilsError(
                 "URL looks like a Sourceforge mirror page, but no URLs found"
             )
 
@@ -481,7 +481,7 @@ class PackageIndex(AvailableDistributions):
             scheme = URL_SCHEME(download_url)
             return self._download_url(scheme.group(1), download_url, tmpdir)
         else:
-            raise RuntimeError(
+            raise DistutilsError(
                 'No META HTTP-EQUIV="refresh" found in Sourceforge page at %s'
                 % url
             )

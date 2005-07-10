@@ -268,6 +268,36 @@ below for a list of the standard configuration file locations, and links to
 more documentation on using distutils configuration files.
 
 
+Dealing with Installation Conflicts
+-----------------------------------
+
+EasyInstall installs distributions in a "managed" way, such that each
+distribution can be independently activated or deactivated on ``sys.path``.
+However, packages that were not installed by EasyInstall are "unmanaged",
+in that they usually live all in one directory and cannot be independently
+activated or deactivated.
+
+As a result, if you are using EasyInstall to upgrade an existing package, or
+to install a package with the same name as an existing package, EasyInstall
+will warn you of the conflict.  (This is an improvement over ``setup.py
+install``, becuase the ``distutils`` just install new packages on top of old
+ones, possibly combining two unrelated packages or leaving behind modules that
+have been deleted in the newer version of the package.)
+
+By default, EasyInstall will stop the installation if it detects a conflict
+between an existing, "unmanaged" package, and a module or package in any of
+the distributions you're installing.  It will display a list of all of the
+existing files and directories that would need to be deleted for the new
+package to be able to function correctly.  You can then either delete these
+conflicting files and directories yourself and re-run EasyInstall, or you can
+just use the ``--delete-conflicting`` or ``--ignore-conflicts-at-my-risk``
+options, as described under `Command-Line Options`_, below.
+
+Of course, once you've replaced all of your existing "unmanaged" packages with
+versions managed by EasyInstall, you won't have any more conflicts to worry
+about!
+
+
 Reference Manual
 ================
 
@@ -424,6 +454,23 @@ Command-Line Options
     every time you use EasyInstall (unless overridden on the command line) and
     thus may make startup slower.
 
+``--delete-conflicting, -D`` (New in 0.5a9)
+    If you are replacing a package that was previously installed *without*
+    using EasyInstall, the old version may end up on ``sys.path`` before the
+    version being installed with EasyInstall.  EasyInstall will normally abort
+    the installation of a package if it detects such a conflict, and ask you to
+    manually remove the conflicting files or directories.  If you specify this
+    option, however, EasyInstall will attempt to delete the files or
+    directories itself, and then proceed with the installation.
+
+``--ignore-conflicts-at-my-risk`` (New in 0.5a9)
+    Ignore conflicting packages and proceed with installation anyway, even
+    though it means the package probably won't work properly.  If the
+    conflicting package is in a directory you can't write to, this may be your
+    only option, but you will need to take more invasive measures to get the
+    installed package to work, like manually adding it to ``PYTHONPATH`` or to
+    ``sys.path`` at runtime.
+
 ``--index-url=URL, -u URL`` (New in 0.4a1)
     Specifies the base URL of the Python Package Index.  The default is
     http://www.python.org/pypi if not specified.  When a package is requested
@@ -494,6 +541,20 @@ Known Issues
    be directly fixed by EasyInstall; it has to be fixed in the distutils or
    in Exemaker.  So, don't use Exemaker to wrap ``easy_install.py``, or at any
    rate don't expect it to work with all packages.
+
+0.5a9
+ * EasyInstall now automatically detects when an "unmanaged" package or
+   module is going to be on ``sys.path`` ahead of a package you're installing,
+   thereby preventing the newer version from being imported.  By default, it
+   will abort installation to alert you of the problem, but there are also
+   new options (``--delete-conflicting`` and ``--ignore-conflicts-at-my-risk``)
+   available to change the default behavior.  (Note: this new feature doesn't
+   take effect for egg files that were built with older ``setuptools``
+   versions, because they lack the new metadata file required to implement it.)
+
+ * The ``easy_install`` distutils command now uses ``DistutilsError`` as its
+   base error type for errors that should just issue a message to stderr and
+   exit the program without a traceback.
 
 0.5a8
  * There is now a separate documentation page for `setuptools`_; revision
