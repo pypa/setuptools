@@ -86,6 +86,11 @@ listed on PyPI::
 
     easy_install --upgrade PyProtocols
 
+**Example 6**.  Install a source distribution that's already downloaded and
+extracted in the current directory (New in 0.5a9)::
+
+    easy_install .
+
 Easy Install accepts URLs, filenames, PyPI package names (i.e., ``distutils``
 "distribution" names), and package+version specifiers.  In each case, it will
 attempt to locate the latest available version that meets your criteria.
