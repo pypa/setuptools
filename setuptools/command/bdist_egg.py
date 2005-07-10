@@ -3,13 +3,13 @@
 Build .egg distributions"""
 
 # This module should be kept compatible with Python 2.3
-import os
+import os, marshal
 from setuptools import Command
 from distutils.dir_util import remove_tree, mkpath
 from distutils.sysconfig import get_python_version, get_python_lib
 from distutils import log
 from pkg_resources import get_platform, Distribution
-
+from types import CodeType
 
 def write_stub(resource, pyfile):
     f = open(pyfile,'w')
@@ -175,11 +175,12 @@ class bdist_egg(Command):
         ext_outputs = cmd._mutate_outputs(
             self.distribution.has_ext_modules(), 'build_ext', 'build_lib', ''
         )
-
+        self.stubs = []
         to_compile = []
         for (p,ext_name) in enumerate(ext_outputs):
             filename,ext = os.path.splitext(ext_name)
             pyfile = os.path.join(self.bdist_dir, filename + '.py')
+            self.stubs.append(pyfile)
             log.info("creating stub loader for %s" % ext_name)
             if not self.dry_run:
                 write_stub(os.path.basename(ext_name), pyfile)
@@ -202,7 +203,6 @@ class bdist_egg(Command):
             log.info("installing scripts to %s" % script_dir)
             self.call_command('install_scripts', install_dir=script_dir)
 
-
         native_libs = os.path.join(self.egg_info,"native_libs.txt")
         if ext_outputs:
             log.info("writing %s" % native_libs)
@@ -220,6 +220,10 @@ class bdist_egg(Command):
             path = os.path.join(self.egg_info,filename)
             if os.path.isfile(path):
                 self.copy_file(path,os.path.join(egg_info,filename))
+
+        # Write a zip safety flag file
+        flag = self.zip_safe() and 'zip-safe' or 'not-zip-safe'
+        open(os.path.join(archive_root,'EGG-INFO',flag),'w').close()
 
         if os.path.exists(os.path.join(self.egg_info,'depends.txt')):
             log.warn(
@@ -240,49 +244,86 @@ class bdist_egg(Command):
             ('bdist_egg',get_python_version(),self.egg_output))
 
 
-
-
-
-
     def zap_pyfiles(self):
         log.info("Removing .py files from temporary directory")
-        for base,dirs,files in os.walk(self.bdist_dir):
-            if 'EGG-INFO' in dirs:
-                dirs.remove('EGG-INFO')
+        for base,dirs,files in self.walk_contents():
             for name in files:
                 if name.endswith('.py'):
                     path = os.path.join(base,name)
                     log.debug("Deleting %s", path)
                     os.unlink(path)
 
+    def walk_contents(self):
+        """Walk files about to be archived, skipping the metadata directory"""
+        walker = os.walk(self.bdist_dir)
+        base,dirs,files = walker.next()       
+        if 'EGG-INFO' in dirs:
+            dirs.remove('EGG-INFO')
+
+        yield base,dirs,files
+        for bdf in walker:
+            yield bdf
+            
+    def zip_safe(self):
+        safe = getattr(self.distribution,'zip_safe',None)
+        if safe is not None:
+            return safe
+        log.warn("zip_safe flag not set; analyzing archive contents...")
+        safe = True
+        for base, dirs, files in self.walk_contents():
+            for name in files:
+                if name.endswith('.py') or name.endswith('.pyw'):
+                    continue
+                elif name.endswith('.pyc') or name.endswith('.pyo'):
+                    # always scan, even if we already know we're not safe
+                    safe = self.scan_module(base, name) and safe
+                elif safe:
+                    log.warn(
+                        "Distribution contains data or extensions; assuming "
+                        "it's unsafe (set zip_safe=True in setup() to change"
+                    )
+                    safe = False    # XXX
+        return safe
+
+    def scan_module(self, base, name):
+        """Check whether module possibly uses unsafe-for-zipfile stuff"""
+        filename = os.path.join(base,name)
+        if filename[:-1] in self.stubs:
+            return True     # Extension module
+
+        pkg = base[len(self.bdist_dir)+1:].replace(os.sep,'.')
+        module = pkg+(pkg and '.' or '')+os.path.splitext(name)[0]
+
+        f = open(filename,'rb'); f.read(8)   # skip magic & date
+        code = marshal.load(f);  f.close()
+        safe = True
+
+        symbols = dict.fromkeys(iter_symbols(code))
+        for bad in ['__file__', '__path__']:
+            if bad in symbols:
+                log.warn("%s: module references %s", module, bad)
+                safe = False
+        if 'inspect' in symbols:
+            for bad in [
+                'getsource', 'getabsfile', 'getsourcefile', 'getfile'
+                'getsourcelines', 'findsource', 'getcomments', 'getframeinfo',
+                'getinnerframes', 'getouterframes', 'stack', 'trace'
+            ]:
+                if bad in symbols:
+                    log.warn("%s: module MAY be using inspect.%s", module, bad)
+                    safe = False           
+        return safe
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+def iter_symbols(code):
+    """Yield names and strings used by `code` and its nested code objects"""
+    for name in code.co_names: yield name
+    for const in code.co_consts:
+        if isinstance(const,basestring):
+            yield const
+        elif isinstance(const,CodeType):
+            for name in iter_symbols(const):
+                yield name
 
 
 # Attribute names of options for commands that might need to be convinced to
