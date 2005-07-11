@@ -221,9 +221,7 @@ class bdist_egg(Command):
             if os.path.isfile(path):
                 self.copy_file(path,os.path.join(egg_info,filename))
 
-        # Write a zip safety flag file
-        flag = self.zip_safe() and 'zip-safe' or 'not-zip-safe'
-        open(os.path.join(archive_root,'EGG-INFO',flag),'w').close()
+        write_safety_flag(archive_root, self.zip_safe())
 
         if os.path.exists(os.path.join(self.egg_info,'depends.txt')):
             log.warn(
@@ -231,8 +229,9 @@ class bdist_egg(Command):
                 "Use the install_requires/extras_require setup() args instead."
             )
 
-        if self.exclude_source_files: self.zap_pyfiles()
-
+        if self.exclude_source_files:
+            self.zap_pyfiles()
+        
         # Make the archive
         make_zipfile(self.egg_output, archive_root, verbose=self.verbose,
                           dry_run=self.dry_run)
@@ -244,76 +243,118 @@ class bdist_egg(Command):
             ('bdist_egg',get_python_version(),self.egg_output))
 
 
+
     def zap_pyfiles(self):
         log.info("Removing .py files from temporary directory")
-        for base,dirs,files in self.walk_contents():
+        for base,dirs,files in walk_egg(self.bdist_dir):
             for name in files:
                 if name.endswith('.py'):
                     path = os.path.join(base,name)
                     log.debug("Deleting %s", path)
                     os.unlink(path)
 
-    def walk_contents(self):
-        """Walk files about to be archived, skipping the metadata directory"""
-        walker = os.walk(self.bdist_dir)
-        base,dirs,files = walker.next()       
-        if 'EGG-INFO' in dirs:
-            dirs.remove('EGG-INFO')
-
-        yield base,dirs,files
-        for bdf in walker:
-            yield bdf
-            
     def zip_safe(self):
         safe = getattr(self.distribution,'zip_safe',None)
         if safe is not None:
             return safe
         log.warn("zip_safe flag not set; analyzing archive contents...")
-        safe = True
-        for base, dirs, files in self.walk_contents():
-            for name in files:
-                if name.endswith('.py') or name.endswith('.pyw'):
-                    continue
-                elif name.endswith('.pyc') or name.endswith('.pyo'):
-                    # always scan, even if we already know we're not safe
-                    safe = self.scan_module(base, name) and safe
-                elif safe:
-                    log.warn(
-                        "Distribution contains data or extensions; assuming "
-                        "it's unsafe (set zip_safe=True in setup() to change"
-                    )
-                    safe = False    # XXX
-        return safe
+        return analyze_egg(self.bdist_dir, self.stubs)
 
-    def scan_module(self, base, name):
-        """Check whether module possibly uses unsafe-for-zipfile stuff"""
-        filename = os.path.join(base,name)
-        if filename[:-1] in self.stubs:
-            return True     # Extension module
 
-        pkg = base[len(self.bdist_dir)+1:].replace(os.sep,'.')
-        module = pkg+(pkg and '.' or '')+os.path.splitext(name)[0]
 
-        f = open(filename,'rb'); f.read(8)   # skip magic & date
-        code = marshal.load(f);  f.close()
-        safe = True
 
-        symbols = dict.fromkeys(iter_symbols(code))
-        for bad in ['__file__', '__path__']:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def walk_egg(egg_dir):
+    """Walk an unpacked egg's contents, skipping the metadata directory"""
+    walker = os.walk(egg_dir)
+    base,dirs,files = walker.next()       
+    if 'EGG-INFO' in dirs:
+        dirs.remove('EGG-INFO')
+    yield base,dirs,files
+    for bdf in walker:
+        yield bdf
+
+def analyze_egg(egg_dir, stubs):
+    safe = True
+    for base, dirs, files in walk_egg(egg_dir):
+        for name in files:
+            if name.endswith('.py') or name.endswith('.pyw'):
+                continue
+            elif name.endswith('.pyc') or name.endswith('.pyo'):
+                # always scan, even if we already know we're not safe
+                safe = scan_module(egg_dir, base, name, stubs) and safe
+            '''elif safe:
+                log.warn(
+                    "Distribution contains data or extensions; assuming "
+                    "it's unsafe (set zip_safe=True in setup() to change"
+                )
+                safe = False    # XXX'''
+    return safe
+
+def write_safety_flag(egg_dir, safe):
+    # Write a zip safety flag file
+    flag = safe and 'zip-safe' or 'not-zip-safe'
+    open(os.path.join(egg_dir,'EGG-INFO',flag),'w').close()
+
+
+
+
+
+
+
+
+
+
+def scan_module(egg_dir, base, name, stubs):
+    """Check whether module possibly uses unsafe-for-zipfile stuff"""
+
+    filename = os.path.join(base,name)
+    if filename[:-1] in stubs:
+        return True     # Extension module
+
+    pkg = base[len(egg_dir)+1:].replace(os.sep,'.')
+    module = pkg+(pkg and '.' or '')+os.path.splitext(name)[0]
+
+    f = open(filename,'rb'); f.read(8)   # skip magic & date
+    code = marshal.load(f);  f.close()
+    safe = True
+
+    symbols = dict.fromkeys(iter_symbols(code))
+    for bad in ['__file__', '__path__']:
+        if bad in symbols:
+            log.warn("%s: module references %s", module, bad)
+            safe = False
+    if 'inspect' in symbols:
+        for bad in [
+            'getsource', 'getabsfile', 'getsourcefile', 'getfile'
+            'getsourcelines', 'findsource', 'getcomments', 'getframeinfo',
+            'getinnerframes', 'getouterframes', 'stack', 'trace'
+        ]:
             if bad in symbols:
-                log.warn("%s: module references %s", module, bad)
-                safe = False
-        if 'inspect' in symbols:
-            for bad in [
-                'getsource', 'getabsfile', 'getsourcefile', 'getfile'
-                'getsourcelines', 'findsource', 'getcomments', 'getframeinfo',
-                'getinnerframes', 'getouterframes', 'stack', 'trace'
-            ]:
-                if bad in symbols:
-                    log.warn("%s: module MAY be using inspect.%s", module, bad)
-                    safe = False           
-        return safe
-
+                log.warn("%s: module MAY be using inspect.%s", module, bad)
+                safe = False           
+    return safe
 
 def iter_symbols(code):
     """Yield names and strings used by `code` and its nested code objects"""

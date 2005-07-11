@@ -67,6 +67,7 @@ class easy_install(Command):
          "-O2 for \"python -OO\", and -O0 to disable [default: -O0]"),
         ('record=', None,
          "filename in which to record list of installed files"),
+        ('always-unzip', 'Z', "don't install as a zipfile, no matter what")
     ]
 
     boolean_options = [
@@ -74,9 +75,8 @@ class easy_install(Command):
         'delete-conflicting', 'ignore-conflicts-at-my-risk',
     ]
 
+    negative_opt = {'always-unzip': 'zip-ok'}
     create_index = PackageIndex
-
-
 
 
 
@@ -291,7 +291,7 @@ class easy_install(Command):
         install_needed = install_needed or not download.endswith('.egg')
         log.info("Processing %s", os.path.basename(download))
         if install_needed or self.always_copy:
-            dists = self.install_eggs(download, self.zip_ok, tmpdir)
+            dists = self.install_eggs(download, tmpdir)
             for dist in dists:
                 self.process_distribution(spec, dist)
         else:
@@ -337,14 +337,14 @@ class easy_install(Command):
                 metadata.get_metadata('scripts/'+script_name).replace('\r','\n')
             )
 
-
-
-
-
-
-
-
-
+    def should_unzip(self, dist):
+        if self.zip_ok is not None:
+            return not self.zip_ok
+        if dist.metadata.has_metadata('not-zip-safe'):
+            return True
+        if not dist.metadata.has_metadata('zip-safe'):
+            return True
+        return False
 
 
 
@@ -408,10 +408,10 @@ class easy_install(Command):
                 pass
 
 
-    def install_eggs(self, dist_filename, zip_ok, tmpdir):
+    def install_eggs(self, dist_filename, tmpdir):
         # .egg dirs or files are already built, so just return them
         if dist_filename.lower().endswith('.egg'):
-            return [self.install_egg(dist_filename, True, tmpdir)]
+            return [self.install_egg(dist_filename, tmpdir)]
         elif dist_filename.lower().endswith('.exe'):
             return [self.install_exe(dist_filename, tmpdir)]
 
@@ -438,7 +438,7 @@ class easy_install(Command):
             setup_script = setups[0]
 
         # Now run it, and return the result
-        return self.build_and_install(setup_script, setup_base, zip_ok)
+        return self.build_and_install(setup_script, setup_base)
 
 
 
@@ -456,13 +456,14 @@ class easy_install(Command):
             metadata = EggMetadata(zipimport.zipimporter(egg_path))
         return Distribution.from_filename(egg_path,metadata=metadata)
 
-    def install_egg(self, egg_path, zip_ok, tmpdir):
+    def install_egg(self, egg_path, tmpdir):
         destination = os.path.join(self.install_dir,os.path.basename(egg_path))
         destination = os.path.abspath(destination)
         if not self.dry_run:
             ensure_directory(destination)
 
-        self.check_conflicts(self.egg_distribution(egg_path))
+        dist = self.egg_distribution(egg_path)
+        self.check_conflicts(dist)
         if not samefile(egg_path, destination):
             if os.path.isdir(destination):
                 dir_util.remove_tree(destination, dry_run=self.dry_run)
@@ -474,14 +475,13 @@ class easy_install(Command):
                     f,m = shutil.move, "Moving"
                 else:
                     f,m = shutil.copytree, "Copying"
-            elif zip_ok:
-                if egg_path.startswith(tmpdir):
-                    f,m = shutil.move, "Moving"
-                else:
-                    f,m = shutil.copy2, "Copying"
-            else:
+            elif self.should_unzip(dist):
                 self.mkpath(destination)
                 f,m = self.unpack_and_compile, "Extracting"
+            elif egg_path.startswith(tmpdir):
+                f,m = shutil.move, "Moving"
+            else:
+                f,m = shutil.copy2, "Copying"
 
             self.execute(f, (egg_path, destination),
                 (m+" %s to %s") %
@@ -526,17 +526,15 @@ class easy_install(Command):
         )
 
         # install the .egg
-        return self.install_egg(egg_path, self.zip_ok, tmpdir)
+        return self.install_egg(egg_path, tmpdir)
 
 
 
 
     def exe_to_egg(self, dist_filename, egg_tmp):
         """Extract a bdist_wininst to the directories an egg would use"""
-
         # Check for .pth file and set up prefix translations
         prefixes = get_exe_prefixes(dist_filename)
-
         to_compile = []
         native_libs = []
         top_level = {}
@@ -561,16 +559,18 @@ class easy_install(Command):
 
         # extract, tracking .pyd/.dll->native_libs and .py -> to_compile
         unpack_archive(dist_filename, egg_tmp, process)
-
+        stubs = []
         for res in native_libs:
             if res.lower().endswith('.pyd'):    # create stubs for .pyd's
                 parts = res.split('/')
                 resource, parts[-1] = parts[-1], parts[-1][:-1]
                 pyfile = os.path.join(egg_tmp, *parts)
-                to_compile.append(pyfile)
+                to_compile.append(pyfile); stubs.append(pyfile)
                 bdist_egg.write_stub(resource, pyfile)
 
         self.byte_compile(to_compile)   # compile .py's
+        bdist_egg.write_safety_flag(egg_tmp,
+            bdist_egg.analyze_egg(egg_tmp, stubs))  # write zip-safety flag
 
         for name in 'top_level','native_libs':
             if locals()[name]:
@@ -695,7 +695,7 @@ PYTHONPATH, or by being added to sys.path by your code.)
 
 
 
-    def build_and_install(self, setup_script, setup_base, zip_ok):
+    def build_and_install(self, setup_script, setup_base):
         sys.modules.setdefault('distutils.command.bdist_egg', bdist_egg)
         sys.modules.setdefault('distutils.command.bdist_egg', egg_info)
 
@@ -724,7 +724,7 @@ PYTHONPATH, or by being added to sys.path by your code.)
 
             eggs = []
             for egg in glob(os.path.join(dist_dir,'*.egg')):
-                eggs.append(self.install_egg(egg, zip_ok, setup_base))
+                eggs.append(self.install_egg(egg, setup_base))
 
             if not eggs and not self.dry_run:
                 log.warn("No eggs found in %s (setup script problem?)",

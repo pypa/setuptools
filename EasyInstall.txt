@@ -303,6 +303,53 @@ versions managed by EasyInstall, you won't have any more conflicts to worry
 about!
 
 
+Compressed Installation
+-----------------------
+
+EasyInstall tries to install packages in zipped form, if it can.  Zipping
+packages can significantly increase Python's overall import performance if
+you're installing to``site-packages`` and not using the ``--multi`` option,
+because Python processes zipfile entries on ``sys.path`` much faster than it
+does directories.
+
+As of version 0.5a9, EasyInstall analyzes packages to determine whether they
+can be safely installed as a zipfile, and then acts on its analysis.  (Previous
+versions would not install a package as a zipfile unless you used the
+``--zip-ok`` option.)
+
+The current analysis approach is very conservative; it currenly looks for:
+
+ * Any use of the ``__file__`` or ``__path__`` variables (which should be
+   replaced with ``pkg_resources`` API calls)
+
+ * Possible use of ``inspect`` functions that expect to manipulate source files
+   (e.g. ``inspect.getsource()``)
+
+ * Any data files or C extensions (this restriction will be removed in a future
+   release, once the ``pkg_resources`` runtime has been hardened for multi-user
+   environments)
+
+If any of the above are found in the package being installed, EasyInstall will
+assume that the package cannot be safely run from a zipfile, and unzip it to
+a directory instead.  You can override this analysis with the ``-zip-ok`` flag,
+which will tell EasyInstall to install the package as a zipfile anyway.  Or,
+you can use the ``--always-unzip`` flag, in which case EasyInstall will always
+unzip, even if its analysis says the package is safe to run as a zipfile.
+
+Normally, however, it is simplest to let EasyInstall handle the determination
+of whether to zip or unzip, and only specify overrides when needed to work
+around a problem.  If you find you need to override EasyInstall's guesses, you
+may want to contact the package author and the EasyInstall maintainers, so that
+they can make appropriate changes in future versions.
+
+(Note: If a package uses ``setuptools`` in its setup script, the package author
+has the option to declare the package safe or unsafe for zipped usage via the
+``zip_safe`` argument to ``setup()``.  If the package author makes such a
+declaration, EasyInstall believes the package's author and does not perform its
+own analysis.  However, your command-line option, if any, will still override
+the package author's choice.)
+
+
 Reference Manual
 ================
 
@@ -348,27 +395,26 @@ Command-Line Options
 --------------------
 
 ``--zip-ok, -z``
-    Enable installing the package as a zip file. This can significantly
-    increase Python's overall import performance if you're installing to
-    ``site-packages`` and not using the ``--multi`` option, because Python
-    process zipfile entries on ``sys.path`` much faster than it does
-    directories. So, if you don't use this option, and you install a lot of
-    packages, some of them may be slower to import.
+    Install all packages as zip files, even if they are marked as unsafe for
+    running as a zipfile.  This can be useful when EasyInstall's analysis
+    of a non-setuptools package is too conservative, but keep in mind that
+    the package may not work correctly.  (Changed in 0.5a9; previously this
+    option was required in order for zipped installation to happen at all.)
 
-    But, this option is disabled by default, unless you're installing from an
-    already-built binary zipfile (``.egg`` file). This is to avoid problems
-    when using packages that dosn't support running from a zip file. Such
-    packages usually access data files in their package directories using the
-    Python ``__file__`` or ``__path__`` attribute, instead of the
-    ``pkg_resources`` API. So, if you find that a package doesn't work properly
-    when used with this option, you may want to suggest to the author that they
-    switch to using the ``pkg_resources`` resource API, which will allow their
-    package to work whether it's installed as a zipfile or not.
+``--always-unzip, -Z``
+    Don't install any packages as zip files, even if the packages are marked
+    as safe for running as a zipfile.  This can be useful if a package does
+    something unsafe, but not in a way that EasyInstall can easily detect.
+    EasyInstall's default analysis is currently very conservative, however, so
+    you should only use this option if you've had problems with a particular
+    package, and *after* reporting the problem to the package's maintainer and
+    to the EasyInstall maintainers.
 
-    (Note: this option only affects the installation of newly-built packages
-    that are not already installed in the target directory; if you want to
-    convert an existing installed version from zipped to unzipped or vice
-    versa, you'll need to delete the existing version first.)
+    (Note: the ``-z/-Z`` options only affect the installation of newly-built
+    or downloaded packages that are not already installed in the target
+    directory; if you want to convert an existing installed version from
+    zipped to unzipped or vice versa, you'll need to delete the existing
+    version first, and re-run EasyInstall.)
 
 ``--multi-version, -m``
     "Multi-version" mode. Specifying this option prevents ``easy_install`` from
@@ -564,6 +610,15 @@ Known Issues
  * EasyInstall can now be given a path to a directory containing a setup
    script, and it will attempt to build and install the package there.
 
+ * EasyInstall now performs a safety analysis on module contents to determine
+   whether a package is likely to run in zipped form, and displays
+   information about what modules may be doing introspection that would break
+   when running as a zipfile.
+
+ * Added the ``--always-unzip/-Z`` option, to force unzipping of packages that
+   would ordinarily be considered safe to unzip, and changed the meaning of
+   ``--zip-ok/-z`` to "always leave everything zipped".
+   
 0.5a8
  * There is now a separate documentation page for `setuptools`_; revision
    history that's not specific to EasyInstall has been moved to that page.

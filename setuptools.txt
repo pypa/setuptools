@@ -183,6 +183,48 @@ unless you need the associated ``setuptools`` feature.
     for more information.
 
 
+Using ``find_packages()``
+-------------------------
+
+For simple projects, it's usually easy enough to manually add packages to
+the ``packages`` argument of ``setup()``.  However, for very large projects
+(Twisted, PEAK, Zope, Chandler, etc.), it can be a big burden to keep the
+package list updated.  That's what ``setuptools.find_packages()`` is for.
+
+``find_packages()`` takes a source directory, and a list of package names or
+patterns to exclude.  If omitted, the source directory defaults to the same
+directory as the setup script.  Some projects use a ``src`` or ``lib``
+directory as the root of their source tree, and those projects would of course
+use ``"src"`` or ``"lib"`` as the first argument to ``find_packages()``.  (And
+such projects also need something like ``package_dir = {'':'src'}`` in their
+``setup()`` arguments, but that's just a normal distutils thing.)
+
+Anyway, ``find_packages()`` walks the target directory, and finds Python
+packages by looking for ``__init__.py`` files.  It then filters the list of
+packages using the exclusion patterns.  
+
+Exclusion patterns are package names, optionally including wildcards.  For
+example, ``find_packages(exclude=["*.tests"])`` will exclude all packages whose
+last name part is ``tests``.   Or, ``find_packages(exclude=["*.tests",
+"*.tests.*"])`` will also exclude any subpackages of packages named ``tests``,
+but it still won't exclude a top-level ``tests`` package or the children
+thereof.  In fact, if you really want no ``tests`` packages at all, you'll need
+something like this::
+
+    find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"])
+
+in order to cover all the bases.  Really, the exclusion patterns are intended
+to cover simpler use cases than this, like excluding a single, specified
+package and its subpackages.
+
+Regardless of the target directory or exclusions, the ``find_packages()``
+function returns a list of package names suitable for use as the ``packages``
+argument to ``setup()``, and so is usually the easiest way to set that
+argument in your setup script.  Especially since it frees you from having to
+remember to modify your setup script whenever your project grows additional
+top-level packages or subpackages.
+
+
 Declaring Dependencies
 ======================
 
@@ -305,71 +347,6 @@ so that Package B doesn't have to remove the ``[PDF]`` from its requirement
 specifier.
 
 
-Distributing a ``setuptools``-based package
-===========================================
-
-Your users might not have ``setuptools`` installed on their machines, or even
-if they do, it might not be the right version.  Fixing this is easy; just
-download `ez_setup.py`_, and put it in the same directory as your ``setup.py``
-script.  (Be sure to add it to your revision control system, too.)  Then add
-these two lines to the very top of your setup script, before the script imports
-anything from setuptools::
-
-    import ez_setup
-    ez_setup.use_setuptools()
-
-That's it.  The ``ez_setup`` module will automatically download a matching
-version of ``setuptools`` from PyPI, if it isn't present on the target system.
-Whenever you install an updated version of setuptools, you should also update
-your projects' ``ez_setup.py`` files, so that a matching version gets installed
-on the target machine(s).
-
-By the way, setuptools supports the new PyPI "upload" command, so you can use
-``setup.py sdist upload`` or ``setup.py bdist_egg upload`` to upload your
-source or egg distributions respectively.  Your project's current version must
-be registered with PyPI first, of course; you can use ``setup.py register`` to
-do that.  Or you can do it all in one step, e.g. ``setup.py register sdist
-bdist_egg upload`` will register the package, build source and egg
-distributions, and then upload them both to PyPI, where they'll be easily
-found by other projects that depend on them.
-
-
-Managing Multiple Projects
---------------------------
-
-If you're managing several projects that need to use ``ez_setup``, and you are
-using Subversion as your revision control system, you can use the
-"svn:externals" property to share a single copy of ``ez_setup`` between
-projects, so that it will always be up-to-date whenever you check out or update
-an individual project, without having to manually update each project to use
-a new version.
-
-However, because Subversion only supports using directories as externals, you
-have to turn ``ez_setup.py`` into ``ez_setup/__init__.py`` in order to do this,
-then create "externals" definitions that map the ``ez_setup`` directory into
-each project.  Also, if any of your projects use ``find_packages()`` on their
-setup directory, you will need to exclude the resulting ``ez_setup`` package,
-to keep it from being included in your distributions, e.g.::
-
-    setup(
-        ...
-        packages = find_packages(exclude=['ez_setup']),
-    )
-
-Of course, the ``ez_setup`` package will still be included in your packages'
-source distributions, as it needs to be.
-
-For your convenience, you may use the following external definition, which will
-track the latest version of setuptools::
-
-    ez_setup svn://svn.eby-sarna.com/svnroot/ez_setup
-
-You can set this by executing this command in your project directory::
-
-    svn propedit svn:externals .
-
-And then adding the line shown above to the file that comes up for editing.
-
 
 Including Data Files
 ====================
@@ -457,12 +434,6 @@ a quick example of converting code that uses ``__file__`` to use
 .. _Accessing Package Resources: http://peak.telecommunity.com/DevCenter/PythonEggs#accessing-package-resources
 
 
-Setting the ``zip_safe`` flag
------------------------------
-
-XXX put doc about zip_safe flag here, once it's implemented
-
-
 "Development Mode"
 ==================
 
@@ -510,35 +481,128 @@ There are several options to control the precise behavior of the ``develop``
 command; see the section on the `develop`_ command below for more details.
 
 
-Tagging and "Daily Build" or "Snapshot" Releases
-================================================
-
-Sorry, this section isn't written yet, and neither are the next few sections,
-until you get to the `Command Reference`_ section below.  You might want to
-`subscribe to changes in this page <setuptools?action=subscribe>`_ to see when
-new documentation is added or updated.
+Distributing a ``setuptools``-based package
+===========================================
 
 
-Generating Source Distributions
-===============================
+Using ``setuptools``...  Without bundling it!
+---------------------------------------------
 
-XXX ``sdist`` - auto-include files from CVS or Subversion
+Your users might not have ``setuptools`` installed on their machines, or even
+if they do, it might not be the right version.  Fixing this is easy; just
+download `ez_setup.py`_, and put it in the same directory as your ``setup.py``
+script.  (Be sure to add it to your revision control system, too.)  Then add
+these two lines to the very top of your setup script, before the script imports
+anything from setuptools::
+
+    import ez_setup
+    ez_setup.use_setuptools()
+
+That's it.  The ``ez_setup`` module will automatically download a matching
+version of ``setuptools`` from PyPI, if it isn't present on the target system.
+Whenever you install an updated version of setuptools, you should also update
+your projects' ``ez_setup.py`` files, so that a matching version gets installed
+on the target machine(s).
+
+By the way, setuptools supports the new PyPI "upload" command, so you can use
+``setup.py sdist upload`` or ``setup.py bdist_egg upload`` to upload your
+source or egg distributions respectively.  Your project's current version must
+be registered with PyPI first, of course; you can use ``setup.py register`` to
+do that.  Or you can do it all in one step, e.g. ``setup.py register sdist
+bdist_egg upload`` will register the package, build source and egg
+distributions, and then upload them both to PyPI, where they'll be easily
+found by other projects that depend on them.
 
 
-Using ``find_packages()``
-=========================
+Managing Multiple Projects
+--------------------------
 
-XXX
+If you're managing several projects that need to use ``ez_setup``, and you are
+using Subversion as your revision control system, you can use the
+"svn:externals" property to share a single copy of ``ez_setup`` between
+projects, so that it will always be up-to-date whenever you check out or update
+an individual project, without having to manually update each project to use
+a new version.
+
+However, because Subversion only supports using directories as externals, you
+have to turn ``ez_setup.py`` into ``ez_setup/__init__.py`` in order to do this,
+then create "externals" definitions that map the ``ez_setup`` directory into
+each project.  Also, if any of your projects use ``find_packages()`` on their
+setup directory, you will need to exclude the resulting ``ez_setup`` package,
+to keep it from being included in your distributions, e.g.::
+
+    setup(
+        ...
+        packages = find_packages(exclude=['ez_setup']),
+    )
+
+Of course, the ``ez_setup`` package will still be included in your packages'
+source distributions, as it needs to be.
+
+For your convenience, you may use the following external definition, which will
+track the latest version of setuptools::
+
+    ez_setup svn://svn.eby-sarna.com/svnroot/ez_setup
+
+You can set this by executing this command in your project directory::
+
+    svn propedit svn:externals .
+
+And then adding the line shown above to the file that comes up for editing.
 
 
-Building Extensions written with Pyrex
-======================================
+Setting the ``zip_safe`` flag
+-----------------------------
 
-XXX
+For maximum performance, Python packages are best installed as zip files.
+Not all packages, however, are capable of running in compressed form, because
+they may expect to be able to access either source code or data files as
+normal operating system files.  So, ``setuptools`` can install your project
+as a zipfile or a directory, and its default choice is determined by the
+project's ``zip_safe`` flag.
+
+You can pass a True or False value for the ``zip_safe`` argument to the
+``setup()`` function, or you can omit it.  If you omit it, the ``bdist_egg``
+command will analyze your project's contents to see if it can detect any
+conditions that would prevent it from working in a zipfile.  It will output
+notices to the console about any such conditions that it finds.
+
+Currently, this analysis is extremely conservative: it will consider the
+project unsafe if it contains any C extensions or datafiles whatsoever.  This
+does *not* mean that the project can't or won't work as a zipfile!  It just
+means that the ``bdist_egg`` authors aren't yet comfortable asserting that
+the project *will* work.  If the project contains no C or data files, and does
+no ``__file__`` or ``__path__`` introspection or source code manipulation, then
+there is an extremely solid chance the project will work when installed as a
+zipfile.  (And if the project uses ``pkg_resources`` for all its data file
+access, then C extensions and other data files shouldn't be a problem at all.
+See the `Accessing Data Files at Runtime`_ section above for more information.)
+
+However, if ``bdist_egg`` can't be *sure* that your package will work, but
+you've checked over all the warnings it issued, and you are either satisfied it
+*will* work (or if you want to try it for yourself), then you should set
+``zip_safe`` to ``True`` in your ``setup()`` call.  If it turns out that it
+doesn't work, you can always change it to ``False``, which will force
+``setuptools`` to install your project as a directory rather than as a zipfile.
+
+Of course, the end-user can still override either decision, if they are using
+EasyInstall to install your package.  And, if you want to override for testing
+purposes, you can just run ``setup.py easy_install --zip-ok .`` or ``setup.py
+easy_install --always-unzip .`` in your project directory. to install the
+package as a zipfile or directory, respectively.
+
+In the future, as we gain more experience with different packages and become
+more satisfied with the robustness of the ``pkg_resources`` runtime, the
+"zip safety" analysis may become less conservative.  However, we strongly
+recommend that you determine for yourself whether your project functions
+correctly when installed as a zipfile, correct any problems if you can, and
+then make an explicit declaration of ``True`` or ``False`` for the ``zip_safe``
+flag, so that it will not be necessary for ``bdist_egg`` or ``EasyInstall`` to
+try to guess whether your project can work as a zipfile.
 
 
 Namespace Packages
-==================
+------------------
 
 Sometimes, a large package is more useful if distributed as a collection of
 smaller eggs.  However, Python does not normally allow the contents of a
@@ -591,6 +655,109 @@ packages are gathered.  In Java, for example, namespace packages are often used
 just to avoid naming collisions between different projects, using package names
 like ``org.apache`` as a namespace for packages that are part of apache.org
 projects.)
+
+
+Tagging and "Daily Build" or "Snapshot" Releases
+------------------------------------------------
+
+When a set of related projects are under development, it may be important to
+track finer-grained version increments than you would normally use for e.g.
+"stable" releases.  While stable releases might be measured in dotted numbers
+with alpha/beta/etc. status codes, development versions of a project often
+need to be tracked by revision or build number or even build date.  This is
+especially true when projects in development need to refer to one another, and
+therefore may literally need an up-to-the-minute version of something!
+
+To support these scenarios, ``setuptools`` allows you to "tag" your source and
+egg distributions by adding one or more of the following to the project's
+"official" version identifier:
+
+* An identifying string, such as "build" or "dev", or a manually-tracked build
+  or revision number (``--tag-build=STRING, -bSTRING``)
+
+* A "last-modified revision number" string generated automatically from 
+  Subversion's metadata (assuming your project is being built from a Subversion
+  "working copy")  (``--tag-svn-revision, -r``)
+
+* An 8-character representation of the build date (``--tag-date, -d``)
+
+You can add these tags by adding ``egg_info`` and the desired options to
+the command line ahead of the ``sdist`` or ``bdist`` commands that you want
+to generate a daily build or snapshot for.  See the section below on the
+`egg_info`_ command for more details.
+
+Also, if you are creating builds frequently, and either building them in a
+downloadable location or are copying them to a distribution server, you should
+probably also check out the `rotate`_ command, which lets you automatically
+delete all but the N most-recently-modified distributions matching a glob
+pattern.  So, you can use a command line like::
+
+    setup.py egg_info -rbDEV bdist_egg rotate -m.egg -k3
+
+to build an egg whose version info includes 'DEV-rNNNN' (where NNNN is the
+most recent Subversion revision that affected the source tree), and then
+delete any egg files from the distribution directory except for the three
+that were built most recently.
+
+If you have to manage automated builds for multiple packages, each with
+different tagging and rotation policies, you may also want to check out the
+`alias`_ command, which would let each package define an alias like ``daily``
+that would perform the necessary tag, build, and rotate commands.  Then, a
+simpler scriptor cron job could just run ``setup.py daily`` in each project
+directory.  (And, you could also define sitewide or per-user default versions
+of the ``daily`` alias, so that projects that didn't define their own would
+use the appropriate defaults.)
+
+
+Generating Source Distributions
+-------------------------------
+
+``setuptools`` enhances the distutils' default algorithm for source file
+selection, so that all files managed by CVS or Subversion in your project tree
+are included in any source distribution you build.  This is a big improvement
+over having to manually write a ``MANIFEST.in`` file and try to keep it in
+sync with your project.  So, if you are using CVS or Subversion, and your
+source distributions only need to include files that you're tracking in
+revision control, don't create a a ``MANIFEST.in`` file for your project.
+(And, if you already have one, you might consider deleting it the next time
+you would otherwise have to change it.)
+
+Unlike the distutils, ``setuptools`` regenerates the source distribution
+``MANIFEST`` file every time you build a source distribution, as long as you
+*don't* have a ``MANIFEST.in`` file.  If you do have a ``MANIFEST.in`` (e.g.
+because you aren't using CVS or Subversion), then you'll have to follow the
+normal distutils procedures for managing what files get included in a source
+distribution, and setuptools' enhanced algorithms will *not* be used.
+
+(Note, by the way, that if you're using some other revision control system, you
+might consider submitting a patch to the ``setuptools.command.sdist`` module
+so we can include support for it, too.)
+
+
+Distributing Extensions compiled with Pyrex
+-------------------------------------------
+
+``setuptools`` includes transparent support for building Pyrex extensions, as
+long as you define your extensions using ``setuptools.Extension``, *not*
+``distutils.Extension``.  You must also not import anything from Pyrex in
+your setup script.
+
+If you follow these rules, you can safely list ``.pyx`` files as the source
+of your ``Extension`` objects in the setup script.  ``setuptools`` will detect
+at build time whether Pyrex is installed or not.  If it is, then ``setuptools``
+will use it.  If not, then ``setuptools`` will silently change the
+``Extension`` objects to refer to the ``.c`` counterparts of the ``.pyx``
+files, so that the normal distutils C compilation process will occur.
+
+Of course, for this to work, your source distributions must include the C
+code generated by Pyrex, as well as your original ``.pyx`` files.  This means
+that you will probably want to include current ``.c`` files in your revision
+control system, rebuilding them whenever you check changes in for the ``.pyx``
+source files.  This will ensure that people tracking your project in CVS or
+Subversion will be able to build it even if they don't have Pyrex installed,
+and that your source releases will be similarly usable with or without Pyrex.
+
+
 
 
 -----------------
@@ -1192,6 +1359,8 @@ Release Notes/Change History
    "unmanaged" packages when installing the distribution.
 
  * Added ``zip_safe`` and ``namespace_packages`` arguments to ``setup()``.
+   Added package analysis to determine zip-safety if the ``zip_safe`` flag
+   is not given, and advise the author regarding what code might need changing.
 
  * Fixed the swapped ``-d`` and ``-b`` options of ``bdist_egg``.
 
