@@ -15,7 +15,7 @@ def get_description():
     f.close()
     return ''.join(lines)
     
-VERSION = "0.5a8"
+VERSION = "0.5a9"
 
 from setuptools import setup, find_packages
 
@@ -35,7 +35,7 @@ setup(
     packages = find_packages(),
     py_modules = ['pkg_resources'],
     scripts = ['easy_install.py'],
-
+    zip_safe = True,
 
 
 
