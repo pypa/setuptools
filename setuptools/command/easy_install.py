@@ -508,10 +508,12 @@ class easy_install(Command):
         # Convert the .exe to an unpacked egg
         egg_path = dist.path = os.path.join(tmpdir, dist.egg_name()+'.egg')
         egg_tmp  = egg_path+'.tmp'
+        pkg_inf = os.path.join(egg_tmp, 'EGG-INFO', 'PKG-INFO')
+        ensure_directory(pkg_inf)   # make sure EGG-INFO dir exists
+
         self.exe_to_egg(dist_filename, egg_tmp)
 
         # Write EGG-INFO/PKG-INFO
-        pkg_inf = os.path.join(egg_tmp, 'EGG-INFO', 'PKG-INFO')
         f = open(pkg_inf,'w')
         f.write('Metadata-Version: 1.0\n')
         for k,v in cfg.items('metadata'):
@@ -527,8 +529,6 @@ class easy_install(Command):
 
         # install the .egg
         return self.install_egg(egg_path, tmpdir)
-
-
 
 
     def exe_to_egg(self, dist_filename, egg_tmp):
@@ -575,8 +575,8 @@ class easy_install(Command):
         for name in 'top_level','native_libs':
             if locals()[name]:
                 txt = os.path.join(egg_tmp, 'EGG-INFO', name+'.txt')
-                ensure_directory(txt)
                 open(txt,'w').write('\n'.join(locals()[name])+'\n')
+
 
     def check_conflicts(self, dist):
         """Verify that there are no conflicting "old-style" packages"""
@@ -708,7 +708,7 @@ PYTHONPATH, or by being added to sys.path by your code.)
         if self.dry_run:
             args.insert(0,'-n')
 
-        dist_dir = tempfile.mkdtemp(prefix='egg-dist-tmp-', dir=setup_base)       
+        dist_dir = tempfile.mkdtemp(prefix='egg-dist-tmp-', dir=os.path.dirname(setup_script))       
         try:
             args.append(dist_dir)
             log.info(
@@ -877,13 +877,13 @@ def extract_wininst_cfg(dist_filename):
 
         import struct, StringIO, ConfigParser
         tag, cfglen, bmlen = struct.unpack("<iii",f.read(12))
-        if tag<>0x1234567A:
+        if tag not in (0x1234567A, 0x1234567B):
             return None     # not a valid tag
 
         f.seek(prepended-(12+cfglen+bmlen))
         cfg = ConfigParser.RawConfigParser({'version':'','target_version':''})
         try:
-            cfg.readfp(StringIO.StringIO(f.read(cfglen)))
+            cfg.readfp(StringIO.StringIO(f.read(cfglen).split(chr(0),1)[0]))
         except ConfigParser.Error:
             return None
         if not cfg.has_section('metadata') or not cfg.has_section('Setup'):

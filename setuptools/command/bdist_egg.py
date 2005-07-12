@@ -332,14 +332,11 @@ def scan_module(egg_dir, base, name, stubs):
     filename = os.path.join(base,name)
     if filename[:-1] in stubs:
         return True     # Extension module
-
     pkg = base[len(egg_dir)+1:].replace(os.sep,'.')
     module = pkg+(pkg and '.' or '')+os.path.splitext(name)[0]
-
     f = open(filename,'rb'); f.read(8)   # skip magic & date
     code = marshal.load(f);  f.close()
     safe = True
-
     symbols = dict.fromkeys(iter_symbols(code))
     for bad in ['__file__', '__path__']:
         if bad in symbols:
@@ -353,7 +350,11 @@ def scan_module(egg_dir, base, name, stubs):
         ]:
             if bad in symbols:
                 log.warn("%s: module MAY be using inspect.%s", module, bad)
-                safe = False           
+                safe = False
+    if '__name__' in symbols and '__main__' in symbols and '.' not in module:
+        if get_python_version()>="2.4":
+            log.warn("%s: top-level module may be 'python -m' script", module)
+            safe = False
     return safe
 
 def iter_symbols(code):
@@ -365,7 +366,6 @@ def iter_symbols(code):
         elif isinstance(const,CodeType):
             for name in iter_symbols(const):
                 yield name
-
 
 # Attribute names of options for commands that might need to be convinced to
 # install to the egg build directory
