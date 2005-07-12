@@ -24,6 +24,8 @@ class develop(easy_install):
 
     command_consumes_arguments = False  # override base
 
+    negative_opt = {}
+
     def run(self):
         if self.uninstall:
             self.multi_version = True
@@ -34,8 +36,6 @@ class develop(easy_install):
     def initialize_options(self):
         self.uninstall = None
         easy_install.initialize_options(self)
-
-
 
 
 

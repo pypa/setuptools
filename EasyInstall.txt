@@ -67,7 +67,7 @@ version, and automatically downloading, building, and installing it::
 **Example 2**. Install or upgrade a package by name and version by finding
 links on a given "download page"::
 
-    easy_install -f http://peak.telecommunity.com/dist "setuptools>=0.5a10"
+    easy_install -f http://peak.telecommunity.com/dist "setuptools>=0.5a11"
 
 **Example 3**. Download a source distribution from a specified URL,
 automatically building and installing it::

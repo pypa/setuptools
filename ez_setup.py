@@ -14,7 +14,7 @@ the appropriate options to ``use_setuptools()``.
 This file can also be run as a script to install or upgrade setuptools.
 """
 
-DEFAULT_VERSION = "0.5a10"
+DEFAULT_VERSION = "0.5a11"
 DEFAULT_URL     = "http://www.python.org/packages/source/s/setuptools/"
 
 import sys, os
