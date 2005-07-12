@@ -33,7 +33,7 @@ setup(
     test_suite = 'setuptools.tests.test_suite',
 
     packages = find_packages(),
-    py_modules = ['pkg_resources'],
+    py_modules = ['pkg_resources', 'easy_install'],
     scripts = ['easy_install.py'],
     zip_safe = True,
 

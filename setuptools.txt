@@ -1334,6 +1334,17 @@ XXX
 Release Notes/Change History
 ----------------------------
 
+0.5a10
+ * Fix a problem with ``pkg_resources`` being confused by non-existent eggs on
+   ``sys.path`` (e.g. if a user deletes an egg without removing it from the
+   ``easy-install.pth`` file.
+
+ * Fix a problem with "basket" support in ``pkg_resources``, where egg-finding
+   never actually went inside ``.egg`` files.
+
+ * Made ``pkg_resources`` import the module you request resources from, if it's
+   not already imported.
+
 0.5a9
  * Include ``svn:externals`` directories in source distributions as well as
    normal subversion-controlled files and directories.

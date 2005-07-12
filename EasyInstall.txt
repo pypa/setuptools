@@ -495,15 +495,18 @@ Command-Line Options
     the PEAK downloads page, but ignore the other download links on that page.
     If all requested packages can be found using links on the specified
     download pages, the Python Package Index will *not* be consulted.  You can
-    use ``file:`` URLs to reference a local filename.
+    use a ``file:`` URL to reference a local HTML file containing links, or you
+    can just use the name of a directory containing "distribution files"
+    (source archives, eggs, Windows installers, etc.), and EasyInstall will
+    then be aware of the files available there.
 
-    You may specify multiple URLs with this option, separated by whitespace.
-    Note that on the command line, you will probably have to surround the URLs
-    with quotes, so that they are recognized as a single option value.  You can
-    also specify URLs in a configuration file; see `Configuration Files`_,
-    above; but note that this means the specified pages will be downloaded
-    every time you use EasyInstall (unless overridden on the command line) and
-    thus may make startup slower.
+    You may specify multiple URLs or directories with this option, separated by
+    whitespace.  Note that on the command line, you will probably have to
+    surround the URL list with quotes, so that it is recognized as a single
+    option value.  You can also specify URLs in a configuration file; see
+    `Configuration Files`_, above; but note that this means the specified pages
+    will be downloaded every time you use EasyInstall (unless overridden on the
+    command line) and thus may make startup slower.
 
 ``--delete-conflicting, -D`` (New in 0.5a9)
     If you are replacing a package that was previously installed *without*
@@ -592,6 +595,13 @@ Known Issues
    be directly fixed by EasyInstall; it has to be fixed in the distutils or
    in Exemaker.  So, don't use Exemaker to wrap ``easy_install.py``, or at any
    rate don't expect it to work with all packages.
+
+0.5a10
+ * Put the ``easy_install`` module back in as a module, as it's needed for
+ ``python -m`` to run it!
+
+ * Allow ``--find-links/-f`` to accept local directories or filenames as well
+   as URLs.
 
 0.5a9
  * EasyInstall now automatically detects when an "unmanaged" package or

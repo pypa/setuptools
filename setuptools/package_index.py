@@ -44,27 +44,32 @@ def distros_for_url(url, metadata=None):
 
     path = urlparse.urlparse(url)[2]
     base = urllib2.unquote(path.split('/')[-1])
-    if base.endswith('.egg.zip'):
-        base = base[:-4]    # strip the .zip
+    return distros_for_filename(url, base, metadata)
 
-    if base.endswith('.egg'):
-        dist = Distribution.from_filename(base, metadata)
-        dist.path = url
+
+def distros_for_filename(url_or_path, basename, metadata=None):
+    """Yield egg or source distribution objects based on basename"""
+    if basename.endswith('.egg.zip'):
+        basename = basename[:-4]    # strip the .zip
+
+    if basename.endswith('.egg'):
+        dist = Distribution.from_filename(basename, metadata)
+        dist.path = url_or_path
         return [dist]   # only one, unambiguous interpretation
 
-    if base.endswith('.exe'):
-        win_base, py_ver = parse_bdist_wininst(base)
+    if basename.endswith('.exe'):
+        win_base, py_ver = parse_bdist_wininst(basename)
         if win_base is not None:
             return interpret_distro_name(
-                url, win_base, metadata, py_ver, BINARY_DIST, "win32"
+                url_or_path, win_base, metadata, py_ver, BINARY_DIST, "win32"
             )
 
     # Try source distro extensions (.zip, .tgz, etc.)
     #
     for ext in EXTENSIONS:
-        if base.endswith(ext):
-            base = base[:-len(ext)]
-            return interpret_distro_name(url, base, metadata)
+        if basename.endswith(ext):
+            basename = basename[:-len(ext)]
+            return interpret_distro_name(url_or_path, basename, metadata)
 
     return []  # no extension matched
 
@@ -75,12 +80,7 @@ def distros_for_url(url, metadata=None):
 
 
 
-
-
-
-
-
-def interpret_distro_name(url, base, metadata,
+def interpret_distro_name(url_or_path, basename, metadata,
     py_version=None, distro_type=SOURCE_DIST, platform=None
 ):
 
@@ -96,10 +96,10 @@ def interpret_distro_name(url, base, metadata,
     # in the long run PyPI and the distutils should go for "safe" names and
     # versions in distribution archive names (sdist and bdist).
 
-    parts = base.split('-')
+    parts = basename.split('-')
     for p in range(1,len(parts)+1):
         yield Distribution(
-            url, metadata, '-'.join(parts[:p]), '-'.join(parts[p:]),
+            url_or_path, metadata, '-'.join(parts[:p]), '-'.join(parts[p:]),
             py_version=py_version, distro_type = distro_type,
             platform = platform
         )
@@ -132,12 +132,35 @@ class PackageIndex(AvailableDistributions):
         self.package_pages = {}
 
     def process_url(self, url, retrieve=False):
+        """Evaluate a URL as a possible download, and maybe retrieve it"""
+
         if url in self.scanned_urls and not retrieve:
             return
 
         self.scanned_urls[url] = True
-        dists = list(distros_for_url(url))
-        if dists: self.debug("Found link: %s", url)
+
+        if not URL_SCHEME(url):
+            # process filenames or directories
+            if os.path.isfile(url):
+                dists = list(
+                    distros_for_filename(
+                        os.path.realpath(url), os.path.basename(url)
+                    )
+                )
+            elif os.path.isdir(url):
+                url = os.path.realpath(url)
+                for item in os.listdir(url):
+                    self.process_url(os.path.join(url,item))
+                return
+            else:
+                self.warn("Not found: %s", url)
+                return
+        else:
+            dists = list(distros_for_url(url))
+
+        if dists:
+            self.debug("Found link: %s", url)
+
 
         if dists or not retrieve or url in self.fetched_urls:
             for dist in dists:
@@ -148,6 +171,7 @@ class PackageIndex(AvailableDistributions):
         self.info("Reading %s", url)
         f = self.open_url(url)
         self.fetched_urls[url] = self.fetched_urls[f.url] = True
+
         if 'html' not in f.headers['content-type'].lower():
             f.close()   # not html, we can't process it
             return
@@ -161,6 +185,23 @@ class PackageIndex(AvailableDistributions):
         for match in HREF.finditer(page):
             link = urlparse.urljoin(base, match.group(1))
             self.process_url(link)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def process_index(self,url,page):
         """Process the contents of a PyPI page"""

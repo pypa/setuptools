@@ -69,13 +69,13 @@ def register_loader_type(loader_type, provider_factory):
 
 def get_provider(moduleName):
     """Return an IResourceProvider for the named module"""
-    module = sys.modules[moduleName]
+    try:
+        module = sys.modules[moduleName]
+    except KeyError:
+        __import__(moduleName)
+        module = sys.modules[moduleName]
     loader = getattr(module, '__loader__', None)
     return _find_adapter(_provider_factories, loader)(module)
-
-
-
-
 
 
 
@@ -984,6 +984,7 @@ def StringIO(*args, **kw):
 
 def find_nothing(importer,path_item):
     return ()
+
 register_finder(object,find_nothing)
 
 def find_on_path(importer,path_item):
@@ -1004,7 +1005,7 @@ def find_on_path(importer,path_item):
                 fullpath = os.path.join(path_item, entry)
                 lower = entry.lower()
                 if lower.endswith('.egg'):
-                    for dist in find_on_path(importer,fullpath):
+                    for dist in find_distributions(fullpath):
                         yield dist
                 elif lower.endswith('.egg-info'):
                     if os.path.isdir(fullpath):
@@ -1017,11 +1018,10 @@ def find_on_path(importer,path_item):
                         if not line.strip(): continue
                         for item in find_distributions(line.rstrip()):
                             yield item
-    elif path_item.lower().endswith('.egg'):    # packed egg
-        metadata = EggMetadata(zipimport.zipimporter(path_item))
-        yield Distribution.from_filename(path_item, metadata=metadata)
 
 register_finder(ImpWrapper,find_on_path)
+
+
 
 _namespace_handlers = {}
 _namespace_packages = {}
