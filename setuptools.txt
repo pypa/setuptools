@@ -63,10 +63,8 @@ Developer's Guide
 Installing ``setuptools``
 =========================
 
-Windows users can just download and run the `setuptools binary installer for
-Windows <http://peak.telecommunity.com/dist/setuptools-0.5a10.win32.exe>`_.
-All others should just download `ez_setup.py`_ and run it; this will
-download and install the appropriate egg for your Python version.
+Download `ez_setup.py`_ and run it; this will download and install the
+appropriate egg for your Python version.
 
 .. _ez_setup.py: `bootstrap module`_
 

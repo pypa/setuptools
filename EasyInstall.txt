@@ -28,12 +28,9 @@ Using "Easy Install"
 Installing "Easy Install"
 -------------------------
 
-Windows users can just download and run the `setuptools binary installer for
-Windows <http://peak.telecommunity.com/dist/setuptools-0.5a10.win32.exe>`_.
-All others should just download `ez_setup.py
-<http://peak.telecommunity.com/dist/ez_setup.py>`_, and run it; this will
-download and install the appropriate ``setuptools`` egg for your Python
-version.
+Download `ez_setup.py <http://peak.telecommunity.com/dist/ez_setup.py>`_, and
+run it; this will download and install the appropriate ``setuptools`` egg for
+your Python version.
 
 You may receive a message telling you about an obsolete version of
 setuptools being present; if so, you must be sure to delete it entirely, along
