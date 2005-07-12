@@ -35,7 +35,7 @@ setup(
     packages = find_packages(),
     py_modules = ['pkg_resources', 'easy_install'],
     scripts = ['easy_install.py'],
-    zip_safe = True,
+    zip_safe = False,   # We want 'python -m easy_install' to work  :(
 
 
 
