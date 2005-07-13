@@ -1332,6 +1332,18 @@ XXX
 Release Notes/Change History
 ----------------------------
 
+0.5a12
+ * The zip-safety scanner now checks for modules that might be used with
+   ``python -m``, and marks them as unsafe for zipping, since Python 2.4 can't
+   handle ``-m`` on zipped modules.
+
+ * Updated extraction/cache mechanism for zipped resources to avoid inter-
+   process and inter-thread races during extraction.  The default cache
+   location can now be set via the ``PYTHON_EGGS_CACHE`` environment variable,
+   and the default Windows cache is now a ``Python-Eggs`` subdirectory of the
+   current user's "Application Data" directory, if the ``PYTHON_EGGS_CACHE``
+   variable isn't set.
+
 0.5a11
  * Fix breakage of the "develop" command that was caused by the addition of
    ``--always-unzip`` to the ``easy_install`` command.

@@ -67,7 +67,7 @@ version, and automatically downloading, building, and installing it::
 **Example 2**. Install or upgrade a package by name and version by finding
 links on a given "download page"::
 
-    easy_install -f http://peak.telecommunity.com/dist "setuptools>=0.5a11"
+    easy_install -f http://peak.telecommunity.com/dist "setuptools>=0.5a12"
 
 **Example 3**. Download a source distribution from a specified URL,
 automatically building and installing it::
@@ -592,6 +592,14 @@ Known Issues
    be directly fixed by EasyInstall; it has to be fixed in the distutils or
    in Exemaker.  So, don't use Exemaker to wrap ``easy_install.py``, or at any
    rate don't expect it to work with all packages.
+
+0.5a12
+ * Fix ``python -m easy_install`` not working due to setuptools being installed
+   as a zipfile.  Update safety scanner to check for modules that might be used
+   as ``python -m`` scripts.
+
+ * Misc. fixes for win32.exe support, including changes to support Python 2.4's
+   changed ``bdist_wininst`` format.
 
 0.5a10
  * Put the ``easy_install`` module back in as a module, as it's needed for
