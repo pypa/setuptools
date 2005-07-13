@@ -23,11 +23,11 @@ __all__ = [
     'get_importer', 'find_distributions', 'find_on_path', 'register_finder',
     'split_sections', 'declare_namespace', 'register_namespace_handler',
     'safe_name', 'safe_version', 'run_main', 'BINARY_DIST', 'run_script',
+    'get_default_cache',
 ]
 
 import sys, os, zipimport, time, re, imp
 from sets import ImmutableSet
-
 
 
 
@@ -421,16 +421,15 @@ class ResourceManager:
         obtain an extraction location, and only for names they intend to
         extract, as it tracks the generated names for possible cleanup later.
         """
-        extract_path = self.extraction_path
-        extract_path = extract_path or os.path.expanduser('~/.python-eggs')
-        target_path = os.path.join(extract_path, archive_name, *names)
+        extract_path = self.extraction_path or get_default_cache()
+        target_path = os.path.join(extract_path, archive_name+'-tmp', *names)
         ensure_directory(target_path)
         self.cached_files[target_path] = 1
         return target_path
 
 
-    def postprocess(self, filename):
-        """Perform any platform-specific postprocessing of file `filename`
+    def postprocess(self, tempname, filename):
+        """Perform any platform-specific postprocessing of `tempname`
 
         This is where Mac header rewrites should be done; other platforms don't
         have anything special they should do.
@@ -438,11 +437,12 @@ class ResourceManager:
         Resource providers should call this method ONLY after successfully
         extracting a compressed resource.  They must NOT call it on resources
         that are already in the filesystem.
+
+        `tempname` is the current (temporary) name of the file, and `filename`
+        is the name it will be renamed to by the caller after this routine
+        returns.
         """
         # XXX
-
-
-
 
 
 
@@ -488,6 +488,48 @@ class ResourceManager:
 
 
 
+
+
+def get_default_cache():
+    """Determine the default cache location
+
+    This returns the ``PYTHON_EGG_CACHE`` environment variable, if set.
+    Otherwise, on Windows, it returns a "Python-Eggs" subdirectory of the
+    "Application Data" directory.  On all other systems, it's "~/.python-eggs".
+    """
+    try:
+        return os.environ['PYTHON_EGG_CACHE']
+    except KeyError:
+        pass
+
+    if os.name!='nt':
+        return os.path.expanduser('~/.python-eggs')
+
+    app_data = 'Application Data'   # XXX this may be locale-specific!
+    app_homes = [
+        (('APPDATA',), None),       # best option, should be locale-safe
+        (('USERPROFILE',), app_data),
+        (('HOMEDRIVE','HOMEPATH'), app_data),
+        (('HOMEPATH',), app_data),
+        (('HOME',), None),
+        (('WINDIR',), app_data),    # 95/98/ME
+    ]
+
+    for keys, subdir in app_homes:
+        dirname = ''
+        for key in keys:
+            if key in os.environ:
+                dirname = os.path.join(os.environ[key])
+            else:
+                break
+        else:
+            if subdir:
+                dirname = os.path.join(dirname,subdir)
+            return os.path.join(dirname, 'Python-Eggs')
+    else:
+        raise RuntimeError(
+            "Please set the PYTHON_EGG_CACHE enviroment variable"
+        )
 
 
 def require(*requirements):
@@ -719,7 +761,7 @@ class ZipProvider(DefaultProvider):
                 "resource_filename() only supported for .egg, not .zip"
             )
 
-        # should lock for extraction here
+        # no need to lock for extraction, since we use temp names
         eagers = self._get_eager_resources()
         if resource_name in eagers:
             for name in eagers:
@@ -757,13 +799,25 @@ class ZipProvider(DefaultProvider):
                 # size and stamp match, don't bother extracting
                 return real_path
 
-        # print "extracting", zip_path
+        from tempfile import mkstemp
+        outf, tmpnam = mkstemp(".$extract", dir=os.path.dirname(real_path))
+        os.write(outf, self.loader.get_data(zip_path))
+        os.close(outf)
+        os.utime(tmpnam, (timestamp,timestamp))
+        manager.postprocess(tmpnam, real_path)
+        try:
+            os.rename(tmpnam, real_path)
+        except os.error:
+            if os.path.isfile(real_path):
+                stat = os.stat(real_path)
+                if stat.st_size==size and stat.st_mtime==timestamp:
+                    # size and stamp match, somebody did it just ahead of us
+                    # so we're done
+                    return real_path
+            raise
 
-        data = self.loader.get_data(zip_path)
-        open(real_path, 'wb').write(data)
-        os.utime(real_path, (timestamp,timestamp))
-        manager.postprocess(real_path)
         return real_path
+
 
     def _get_eager_resources(self):
         if self.eagers is None:
@@ -773,9 +827,6 @@ class ZipProvider(DefaultProvider):
                     eagers.extend(self.get_metadata_lines(name))
             self.eagers = eagers
         return self.eagers
-
-
-
 
     def _index(self):
         try:
@@ -806,6 +857,9 @@ class ZipProvider(DefaultProvider):
     def _listdir(self,path):
         return list(self._index().get(self._dir_name(path), ()))
 
+
+
+
     def _dir_name(self,path):
         if path.startswith(self.module_path+os.sep):
             path = path[len(self.module_path+os.sep):]
@@ -816,6 +870,35 @@ class ZipProvider(DefaultProvider):
     _get = NullProvider._get
 
 register_loader_type(zipimport.zipimporter, ZipProvider)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class PathMetadata(DefaultProvider):
