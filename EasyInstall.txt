@@ -603,7 +603,7 @@ Known Issues
 
 0.5a10
  * Put the ``easy_install`` module back in as a module, as it's needed for
- ``python -m`` to run it!
+   ``python -m`` to run it!
 
  * Allow ``--find-links/-f`` to accept local directories or filenames as well
    as URLs.
