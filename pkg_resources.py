@@ -531,7 +531,6 @@ def get_default_cache():
             "Please set the PYTHON_EGG_CACHE enviroment variable"
         )
 
-
 def require(*requirements):
     """Ensure that distributions matching `requirements` are on ``sys.path``
 
@@ -717,6 +716,7 @@ class DefaultProvider(NullProvider):
             old = path
             path, base = os.path.split(path)
             self.prefix.append(base)
+        self.prefix.reverse()
 
     def _has(self, path):
         return os.path.exists(path)
@@ -735,7 +735,6 @@ class DefaultProvider(NullProvider):
             stream.close()
 
 register_loader_type(type(None), DefaultProvider)
-
 
 class ZipProvider(DefaultProvider):
     """Resource support for zips and eggs"""
