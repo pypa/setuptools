@@ -1332,6 +1332,16 @@ XXX
 Release Notes/Change History
 ----------------------------
 
+0.6a1
+ * Fixed the ``--tag-svn-revision`` option of ``egg_info`` not finding the
+   latest revision number; it was using the revision number of the directory
+   containing ``setup.py``, not the highest revision number in the project.
+   
+ * Fixed some problems using ``pkg_resources`` w/PEP 302 loaders other than
+   ``zipimport``.
+   
+ * Fixed ``pkg_resources.resource_exists()`` not working correctly.
+
 0.5a13
  * Fixed a bug in resource extraction from nested packages in a zipped egg.
 

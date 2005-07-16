@@ -377,7 +377,7 @@ class ResourceManager:
 
     def resource_exists(self, package_name, resource_name):
         """Does the named resource exist in the named package?"""
-        return get_provider(package_name).has_resource(self, resource_name)
+        return get_provider(package_name).has_resource(resource_name)
 
     def resource_isdir(self, package_name, resource_name):
         """Does the named resource exist in the named package?"""
@@ -587,7 +587,7 @@ class NullProvider:
         return self._fn(self.module_path, resource_name)
 
     def get_resource_stream(self, manager, resource_name):
-        return open(self._fn(self.module_path, resource_name), 'rb')
+        return StringIO(self.get_resource_string(manager, resource_name))
 
     def get_resource_string(self, manager, resource_name):
         return self._get(self._fn(self.module_path, resource_name))
@@ -667,34 +667,6 @@ class NullProvider:
 register_loader_type(object, NullProvider)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class DefaultProvider(NullProvider):
     """Provides access to package resources in the filesystem"""
 
@@ -721,11 +693,16 @@ class DefaultProvider(NullProvider):
     def _has(self, path):
         return os.path.exists(path)
 
+
+
     def _isdir(self,path):
         return os.path.isdir(path)
 
     def _listdir(self,path):
         return os.listdir(path)
+
+    def get_resource_stream(self, manager, resource_name):
+        return open(self._fn(self.module_path, resource_name), 'rb')
 
     def _get(self, path):
         stream = open(path, 'rb')
@@ -735,6 +712,29 @@ class DefaultProvider(NullProvider):
             stream.close()
 
 register_loader_type(type(None), DefaultProvider)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 class ZipProvider(DefaultProvider):
     """Resource support for zips and eggs"""
