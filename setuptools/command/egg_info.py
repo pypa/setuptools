@@ -134,13 +134,16 @@ class egg_info(Command):
 
 
     def get_svn_revision(self):
-        stdin, stdout = os.popen4("svn info"); stdin.close()
+        stdin, stdout = os.popen4("svn info -R"); stdin.close()
         result = stdout.read(); stdout.close()
         import re
-        match = re.search(r'Last Changed Rev: (\d+)', result)
-        if not match:
+        revisions = [
+            int(match.group(1))
+                for match in re.finditer(r'Last Changed Rev: (\d+)', result)
+        ]
+        if not revisions:
             raise DistutilsError("svn info error: %s" % result.strip())
-        return match.group(1)
+        return str(max(revisions))
 
 
     def write_toplevel_names(self):
@@ -156,9 +159,6 @@ class egg_info(Command):
             f.write('\n'.join(pkgs))
             f.write('\n')
             f.close()
-
-
-
 
 
 
