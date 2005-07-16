@@ -1332,6 +1332,9 @@ XXX
 Release Notes/Change History
 ----------------------------
 
+0.5a13
+ * Fixed a bug in resource extraction from nested packages in a zipped egg.
+
 0.5a12
  * The zip-safety scanner now checks for modules that might be used with
    ``python -m``, and marks them as unsafe for zipping, since Python 2.4 can't
