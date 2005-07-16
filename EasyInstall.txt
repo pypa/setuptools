@@ -575,6 +575,31 @@ Command-Line Options
     is included for compatibility with tools that expect to pass this option
     to "setup.py install".
 
+``--site-dirs=DIRLIST, -S DIRLIST``   (New in 0.6a1)
+    Specify one or more custom "site" directories (separated by commas).
+    "Site" directories are directories where ``.pth`` files are processed, such
+    as the main Python ``site-packages`` directory. By default, EasyInstall
+    only knows about Python-defined "site" directories, not those that may be
+    added by an OS distribution or site administrator calling
+    ``site.addsitedir()``.  You should not normally need to use this option
+    directly, as your system administrator should configure it in the
+    ``distutils.cfg`` file of the Python installation. For example, if the
+    administrator wants to make each user's ``~/lib/python2.3`` directory be a
+    "site" directory, he or she should create an ``altinstall.pth`` file in the
+    normal site-packages directory, containing this::
+
+        import os; addsitedir(os.path.expanduser('~/lib/python2.3'))
+
+    and a ``distutils.cfg`` file inside the ``distutils`` package directory,
+    containing this::
+
+        [easy_install]
+        site_dirs = ~/lib/python23
+
+    This will ensure that EasyInstall knows about the additional "site"
+    directory, thereby allowing individual users to install their own
+    Python packages via EasyInstall.
+
 
 Release Notes/Change History
 ============================
@@ -592,6 +617,11 @@ Known Issues
    be directly fixed by EasyInstall; it has to be fixed in the distutils or
    in Exemaker.  So, don't use Exemaker to wrap ``easy_install.py``, or at any
    rate don't expect it to work with all packages.
+
+0.6a1
+ * Added ``--site-dirs`` option to allow adding custom "site" directories.
+   Made ``easy-install.pth`` work in platform-specific alternate site
+   directories (e.g. ``~/Library/Python/2.x/site-packages``).
 
 0.5a12
  * Fix ``python -m easy_install`` not working due to setuptools being installed
