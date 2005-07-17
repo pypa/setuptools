@@ -355,7 +355,7 @@ class AvailableDistributions(object):
                 # Oops, the "best" so far conflicts with a dependency
                 raise VersionConflict(dist,req) # XXX put more info here
 
-            requirements.extend(dist.depends(req.options)[::-1])
+            requirements.extend(dist.depends(req.extras)[::-1])
             processed[req] = True
 
         return to_install    # return list of distros to install
@@ -911,7 +911,7 @@ class PathMetadata(DefaultProvider):
         base_dir = os.path.dirname(egg_info)
         metadata = PathMetadata(base_dir, egg_info)
         dist_name = os.path.splitext(os.path.basename(egg_info))[0]
-        dist = Distribution(basedir,name=dist_name,metadata=metadata)
+        dist = Distribution(basedir,project_name=dist_name,metadata=metadata)
 
         # Unpacked egg directories:
 
@@ -1094,7 +1094,7 @@ def find_on_path(importer,path_item):
                         # development egg
                         metadata = PathMetadata(path_item, fullpath)
                         dist_name = os.path.splitext(entry)[0]
-                        yield Distribution(path_item,metadata,name=dist_name)
+                        yield Distribution(path_item,metadata,project_name=dist_name)
                 elif lower.endswith('.egg-link'):
                     for line in file(fullpath):
                         if not line.strip(): continue
@@ -1314,11 +1314,11 @@ class Distribution(object):
     """Wrap an actual or potential sys.path entry w/metadata"""
 
     def __init__(self,
-        path_str, metadata=None, name=None, version=None,
+        path_str, metadata=None, project_name=None, version=None,
         py_version=PY_MAJOR, platform=None, distro_type = EGG_DIST
     ):
-        if name:
-            self.name = safe_name(name)
+        if project_name:
+            self.project_name = safe_name(project_name)
         if version is not None:
             self._version = safe_version(version)
         self.py_version = py_version
@@ -1340,11 +1340,11 @@ class Distribution(object):
         if ext.lower()==".egg":
             match = EGG_NAME(basename)
             if match:
-                name,version,py_version,platform = match.group(
+                project_name,version,py_version,platform = match.group(
                     'name','ver','pyver','plat'
                 )
         return cls(
-            filename, metadata, name=name, version=version,
+            filename, metadata, project_name=project_name, version=version,
             py_version=py_version, platform=platform
         )
     from_filename = classmethod(from_filename)
@@ -1360,7 +1360,7 @@ class Distribution(object):
         try:
             return self._key
         except AttributeError:
-            self._key = key = self.name.lower()
+            self._key = key = self.project_name.lower()
             return key
     key = property(key)
 
@@ -1436,7 +1436,7 @@ class Distribution(object):
     def egg_name(self):
         """Return what this distribution's standard .egg filename should be"""
         filename = "%s-%s-py%s" % (
-            self.name.replace('-','_'), self.version.replace('-','_'),
+            self.project_name.replace('-','_'), self.version.replace('-','_'),
             self.py_version or PY_MAJOR
         )
 
@@ -1450,7 +1450,7 @@ class Distribution(object):
 
     def __str__(self):
         version = getattr(self,'version',None) or "[unknown version]"
-        return "%s %s" % (self.name,version)
+        return "%s %s" % (self.project_name,version)
 
 
 
@@ -1520,7 +1520,7 @@ def parse_requirements(strs):
         match = DISTRO(line)
         if not match:
             raise ValueError("Missing distribution spec", line)
-        distname = match.group(1)
+        project_name = match.group(1)
         p = match.end()
         options = []
 
@@ -1531,7 +1531,7 @@ def parse_requirements(strs):
 
         line, p, specs = scan_list(VERSION,LINE_END,line,p,(1,2),"version spec")
         specs = [(op,val.replace('_','-')) for op,val in specs]
-        yield Requirement(distname.replace('_','-'), specs, options)
+        yield Requirement(project_name.replace('_','-'), specs, options)
 
 
 def _sort_dists(dists):
@@ -1558,25 +1558,25 @@ def _sort_dists(dists):
 
 class Requirement:
 
-    def __init__(self, distname, specs=(), options=()):
-        self.distname = distname
-        self.key = distname.lower()
+    def __init__(self, project_name, specs=(), extras=()):
+        self.project_name = project_name
+        self.key = project_name.lower()
         index = [(parse_version(v),state_machine[op],op,v) for op,v in specs]
         index.sort()
         self.specs = [(op,ver) for parsed,trans,op,ver in index]
-        self.index, self.options = index, tuple(options)
+        self.index, self.extras = index, tuple(extras)
         self.hashCmp = (
             self.key, tuple([(op,parsed) for parsed,trans,op,ver in index]),
-            ImmutableSet(map(str.lower,options))
+            ImmutableSet(map(str.lower,extras))
         )
         self.__hash = hash(self.hashCmp)
 
     def __str__(self):
-        return self.distname + ','.join([''.join(s) for s in self.specs])
+        return self.project_name + ','.join([''.join(s) for s in self.specs])
 
     def __repr__(self):
         return "Requirement(%r, %r, %r)" % \
-            (self.distname,self.specs,self.options)
+            (self.project_name,self.specs,self.extras)
 
     def __eq__(self,other):
         return isinstance(other,Requirement) and self.hashCmp==other.hashCmp

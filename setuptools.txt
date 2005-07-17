@@ -701,7 +701,7 @@ If you have to manage automated builds for multiple packages, each with
 different tagging and rotation policies, you may also want to check out the
 `alias`_ command, which would let each package define an alias like ``daily``
 that would perform the necessary tag, build, and rotate commands.  Then, a
-simpler scriptor cron job could just run ``setup.py daily`` in each project
+simpler script or cron job could just run ``setup.py daily`` in each project
 directory.  (And, you could also define sitewide or per-user default versions
 of the ``daily`` alias, so that projects that didn't define their own would
 use the appropriate defaults.)

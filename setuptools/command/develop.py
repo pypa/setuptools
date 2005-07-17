@@ -51,7 +51,7 @@ class develop(easy_install):
         self.dist = Distribution(
             self.egg_path,
             PathMetadata(self.egg_path, os.path.abspath(ei.egg_info)),
-            name = ei.egg_name
+            project_name = ei.egg_name
         )
 
     def install_for_development(self):

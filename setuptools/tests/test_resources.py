@@ -73,7 +73,7 @@ class DistroTests(TestCase):
         self.assertEqual(ad.best_match(req,path).version, '1.4')
 
     def checkFooPkg(self,d):
-        self.assertEqual(d.name, "FooPkg")
+        self.assertEqual(d.project_name, "FooPkg")
         self.assertEqual(d.key, "foopkg")
         self.assertEqual(d.version, "1.3-1")
         self.assertEqual(d.py_version, "2.4")
@@ -83,7 +83,7 @@ class DistroTests(TestCase):
     def testDistroBasics(self):
         d = Distribution(
             "/some/path",
-            name="FooPkg",version="1.3-1",py_version="2.4",platform="win32"
+            project_name="FooPkg",version="1.3-1",py_version="2.4",platform="win32"
         )
         self.checkFooPkg(d)
         self.failUnless(d.installed_on(["/some/path"]))
@@ -99,7 +99,7 @@ class DistroTests(TestCase):
 
     def testDistroMetadata(self):
         d = Distribution(
-            "/some/path", name="FooPkg", py_version="2.4", platform="win32",
+            "/some/path", project_name="FooPkg", py_version="2.4", platform="win32",
             metadata = Metadata(
                 ('PKG-INFO',"Metadata-Version: 1.0\nVersion: 1.3-1\n")
             )
@@ -250,8 +250,8 @@ class RequirementsTests(TestCase):
         r3 = Requirement.parse("Twisted[BAR,FOO]>=1.2.0")
         self.assertEqual(r1,r2)
         self.assertEqual(r1,r3)
-        self.assertEqual(r1.options, ("foo","bar"))
-        self.assertEqual(r2.options, ("bar","FOO"))
+        self.assertEqual(r1.extras, ("foo","bar"))
+        self.assertEqual(r2.extras, ("bar","FOO"))
         self.assertEqual(hash(r1), hash(r2))
         self.assertEqual(
             hash(r1), hash(("twisted", ((">=",parse_version("1.2")),),

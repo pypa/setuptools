@@ -245,12 +245,12 @@ class PackageIndex(AvailableDistributions):
 
 
     def find_packages(self, requirement):
-        self.scan_url(self.index_url + requirement.distname+'/')
+        self.scan_url(self.index_url + requirement.project_name+'/')
         if not self.package_pages.get(requirement.key):
             # We couldn't find the target package, so search the index page too
             self.warn(
                 "Couldn't find index page for %r (maybe misspelled?)",
-                requirement.distname
+                requirement.project_name
             )
             if self.index_url not in self.fetched_urls:
                 self.warn(

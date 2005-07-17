@@ -350,7 +350,7 @@ class easy_install(Command):
         self.install_egg_scripts(dist)
         log.warn(self.installation_report(dist, *info))
         if requirement is None:
-            requirement = Requirement.parse('%s==%s'%(dist.name,dist.version))
+            requirement = Requirement.parse('%s==%s'%(dist.project_name,dist.version))
         if dist in requirement:
             log.info("Processing dependencies for %s", requirement)
             try:
@@ -419,7 +419,7 @@ class easy_install(Command):
             options = match.group(1) or ''
             if options:
                 options = ' '+options
-        spec = '%s==%s' % (dist.name,dist.version)
+        spec = '%s==%s' % (dist.project_name,dist.version)
         executable = os.path.normpath(sys.executable)
 
         if dev_path:
@@ -541,7 +541,7 @@ class easy_install(Command):
 
         # Create a dummy distribution object until we build the real distro
         dist = Distribution(None,
-            name=cfg.get('metadata','name'),
+            project_name=cfg.get('metadata','name'),
             version=cfg.get('metadata','version'),
             platform="win32"
         )
@@ -678,7 +678,7 @@ installing:
 (Note: you can run EasyInstall on '%s' with the
 --delete-conflicting option to attempt deletion of the above files
 and/or directories.)
-""" % dist.name
+""" % dist.project_name
         else:
             msg += """\
 Note: you can attempt this installation again with EasyInstall, and use
@@ -719,7 +719,7 @@ this to work.  (e.g. by being the application's script directory, by being on
 PYTHONPATH, or by being added to sys.path by your code.)
 """
         eggloc = dist.path
-        name = dist.name
+        name = dist.project_name
         version = dist.version
         return msg % locals()
 
@@ -802,7 +802,7 @@ PYTHONPATH, or by being added to sys.path by your code.)
 
         self.pth_file.save()
 
-        if dist.name=='setuptools':
+        if dist.project_name=='setuptools':
             # Ensure that setuptools itself never becomes unavailable!
             # XXX should this check for latest version?
             f = open(os.path.join(self.install_dir,'setuptools.pth'), 'w')
