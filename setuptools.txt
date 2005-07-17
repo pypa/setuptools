@@ -1342,6 +1342,16 @@ Release Notes/Change History
    
  * Fixed ``pkg_resources.resource_exists()`` not working correctly.
 
+ * Many ``pkg_resources`` API changes:
+
+   * ``Distribution`` objects now implement the ``IResourceProvider`` and
+     ``IMetadataProvider`` interfaces, so you don't need to reference the (no
+     longer available) ``metadata`` attribute to get at these interfaces.
+
+   * ``Distribution`` and ``Requirement`` both have a ``project_name``
+     attribute for the project name they refer to.  (Previously these were
+     ``name`` and ``distname`` attributes.)
+
 0.5a13
  * Fixed a bug in resource extraction from nested packages in a zipped egg.
 

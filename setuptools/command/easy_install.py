@@ -368,24 +368,24 @@ class easy_install(Command):
                 )
 
     def install_egg_scripts(self, dist):
-        metadata = dist.metadata
-        if self.exclude_scripts or not metadata.metadata_isdir('scripts'):
+        if self.exclude_scripts or not dist.metadata_isdir('scripts'):
             return
 
-        for script_name in metadata.metadata_listdir('scripts'):
+        for script_name in dist.metadata_listdir('scripts'):
             self.install_script(
                 dist, script_name,
-                metadata.get_metadata('scripts/'+script_name).replace('\r','\n')
+                dist.get_metadata('scripts/'+script_name).replace('\r','\n')
             )
 
     def should_unzip(self, dist):
         if self.zip_ok is not None:
             return not self.zip_ok
-        if dist.metadata.has_metadata('not-zip-safe'):
+        if dist.has_metadata('not-zip-safe'):
             return True
-        if not dist.metadata.has_metadata('zip-safe'):
+        if not dist.has_metadata('zip-safe'):
             return True
         return False
+
 
 
 

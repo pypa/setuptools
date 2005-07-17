@@ -3,7 +3,7 @@ from pkg_resources import *
 import pkg_resources, sys
 from sets import ImmutableSet
 
-class Metadata:
+class Metadata(EmptyProvider):
     """Mock object to return metadata as if from an on-disk distribution"""
 
     def __init__(self,*pairs):

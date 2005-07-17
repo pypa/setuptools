@@ -23,7 +23,7 @@ __all__ = [
     'get_importer', 'find_distributions', 'find_on_path', 'register_finder',
     'split_sections', 'declare_namespace', 'register_namespace_handler',
     'safe_name', 'safe_version', 'run_main', 'BINARY_DIST', 'run_script',
-    'get_default_cache',
+    'get_default_cache', 'EmptyProvider', 'empty_provider',
 ]
 
 import sys, os, zipimport, time, re, imp
@@ -108,7 +108,7 @@ def run_script(dist_spec, script_name):
     name = ns['__name__']
     ns.clear()
     ns['__name__'] = name
-    require(dist_spec)[0].metadata.run_script(script_name, ns)
+    require(dist_spec)[0].run_script(script_name, ns)
 
 run_main = run_script   # backward compatibility
 
@@ -714,18 +714,18 @@ class DefaultProvider(NullProvider):
 register_loader_type(type(None), DefaultProvider)
 
 
+class EmptyProvider(NullProvider):
+    """Provider that returns nothing for all requests"""
 
+    _isdir = _has = lambda self,path: False
+    _get          = lambda self,path: ''
+    _listdir      = lambda self,path: []
+    module_path   = None
 
+    def __init__(self):
+        pass
 
-
-
-
-
-
-
-
-
-
+empty_provider = EmptyProvider()
 
 
 
@@ -1325,7 +1325,7 @@ class Distribution(object):
         self.platform = platform
         self.path = path_str
         self.distro_type = distro_type
-        self.metadata = metadata
+        self._provider = metadata or empty_provider
 
     def installed_on(self,path=None):
         """Is this distro installed on `path`? (defaults to ``sys.path``)"""
@@ -1419,8 +1419,8 @@ class Distribution(object):
         return deps
 
     def _get_metadata(self,name):
-        if self.metadata is not None and self.metadata.has_metadata(name):
-            for line in self.metadata.get_metadata_lines(name):
+        if self.has_metadata(name):
+            for line in self.get_metadata_lines(name):
                 yield line
 
     def install_on(self,path=None):
@@ -1452,11 +1452,11 @@ class Distribution(object):
         version = getattr(self,'version',None) or "[unknown version]"
         return "%s %s" % (self.project_name,version)
 
-
-
-
-
-
+    def __getattr__(self,attr):
+        """Delegate all unrecognized public attributes to .metadata provider"""
+        if attr.startswith('_'):
+            raise AttributeError,attr
+        return getattr(self._provider, attr)
 
 
 
