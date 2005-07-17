@@ -311,7 +311,7 @@ class AvailableDistributions(object):
             path = sys.path
 
         distros = self.get(requirement.key, ())
-        find = dict([(dist.path,dist) for dist in distros]).get
+        find = dict([(dist.location,dist) for dist in distros]).get
 
         for item in path:
             dist = find(item)
@@ -1314,16 +1314,15 @@ class Distribution(object):
     """Wrap an actual or potential sys.path entry w/metadata"""
 
     def __init__(self,
-        path_str, metadata=None, project_name=None, version=None,
+        location, metadata=None, project_name=None, version=None,
         py_version=PY_MAJOR, platform=None, distro_type = EGG_DIST
     ):
-        if project_name:
-            self.project_name = safe_name(project_name)
+        self.project_name = safe_name(project_name or 'Unknown')
         if version is not None:
             self._version = safe_version(version)
         self.py_version = py_version
         self.platform = platform
-        self.path = path_str
+        self.location = location
         self.distro_type = distro_type
         self._provider = metadata or empty_provider
 
@@ -1331,23 +1330,24 @@ class Distribution(object):
         """Is this distro installed on `path`? (defaults to ``sys.path``)"""
         if path is None:
             path = sys.path
-        return self.path in path
+        return self.location in path
 
     #@classmethod
-    def from_filename(cls,filename,metadata=None):
-        name,version,py_version,platform = [None]*4
-        basename,ext = os.path.splitext(os.path.basename(filename))
+    def from_location(cls,location,basename,metadata=None):
+        project_name, version, py_version, platform = [None]*4
+        basename, ext = os.path.splitext(basename)
         if ext.lower()==".egg":
             match = EGG_NAME(basename)
             if match:
-                project_name,version,py_version,platform = match.group(
+                project_name, version, py_version, platform = match.group(
                     'name','ver','pyver','plat'
                 )
         return cls(
-            filename, metadata, project_name=project_name, version=version,
+            location, metadata, project_name=project_name, version=version,
             py_version=py_version, platform=platform
         )
-    from_filename = classmethod(from_filename)
+    from_location = classmethod(from_location)
+
 
 
 
@@ -1405,17 +1405,18 @@ class Distribution(object):
 
     _dep_map = property(_dep_map)
 
-    def depends(self,options=()):
+    def depends(self,extras=()):
         """List of Requirements needed for this distro if `options` are used"""
         dm = self._dep_map
         deps = []
         deps.extend(dm.get(None,()))
-
-        for opt in options:
+        for ext in extras:
             try:
-                deps.extend(dm[opt.lower()])
+                deps.extend(dm[ext.lower()])
             except KeyError:
-                raise InvalidOption("No such option", self, opt)
+                raise InvalidOption(
+                    "%s has no such extra feature %r" % (self, ext)
+                )
         return deps
 
     def _get_metadata(self,name):
@@ -1426,12 +1427,11 @@ class Distribution(object):
     def install_on(self,path=None):
         """Ensure distribution is importable on `path` (default=sys.path)"""
         if path is None: path = sys.path
-        if self.path not in path:
-            path.append(self.path)
+        if self.location not in path:
+            path.append(self.location)
         if path is sys.path:
-            fixup_namespace_packages(self.path)
+            fixup_namespace_packages(self.location)
             map(declare_namespace, self._get_metadata('namespace_packages.txt'))
-
 
     def egg_name(self):
         """Return what this distribution's standard .egg filename should be"""
@@ -1446,7 +1446,7 @@ class Distribution(object):
         return filename
 
     def __repr__(self):
-        return "%s (%s)" % (self,self.path)
+        return "%s (%s)" % (self,self.location)
 
     def __str__(self):
         version = getattr(self,'version',None) or "[unknown version]"
@@ -1458,10 +1458,13 @@ class Distribution(object):
             raise AttributeError,attr
         return getattr(self._provider, attr)
 
+    #@classmethod
+    def from_filename(cls,filename,metadata=None):
+        return cls.from_location(filename, os.path.basename(filename), metadata)
+    from_filename = classmethod(from_filename)
 
-
-
-
+    def as_requirement(self):
+        return Requirement.parse('%s==%s' % (dist.project_name, dist.version))
 
 
 

@@ -52,10 +52,8 @@ def distros_for_filename(url_or_path, basename, metadata=None):
     if basename.endswith('.egg.zip'):
         basename = basename[:-4]    # strip the .zip
 
-    if basename.endswith('.egg'):
-        dist = Distribution.from_filename(basename, metadata)
-        dist.path = url_or_path
-        return [dist]   # only one, unambiguous interpretation
+    if basename.endswith('.egg'):   # only one, unambiguous interpretation       
+        return [Distribution.from_location(url_or_path, basename, metadata)]
 
     if basename.endswith('.exe'):
         win_base, py_ver = parse_bdist_wininst(basename)
@@ -72,6 +70,8 @@ def distros_for_filename(url_or_path, basename, metadata=None):
             return interpret_distro_name(url_or_path, basename, metadata)
 
     return []  # no extension matched
+
+
 
 
 

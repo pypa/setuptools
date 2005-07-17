@@ -1,6 +1,5 @@
 #!python
 """\
-
 Easy Install
 ------------
 
@@ -17,7 +16,8 @@ from setuptools import Command
 from setuptools.sandbox import run_setup
 from distutils import log, dir_util
 from distutils.sysconfig import get_python_lib
-from distutils.errors import DistutilsArgError, DistutilsOptionError, DistutilsError
+from distutils.errors import DistutilsArgError, DistutilsOptionError, \
+    DistutilsError
 from setuptools.archive_util import unpack_archive
 from setuptools.package_index import PackageIndex, parse_bdist_wininst
 from setuptools.package_index import URL_SCHEME
@@ -350,7 +350,7 @@ class easy_install(Command):
         self.install_egg_scripts(dist)
         log.warn(self.installation_report(dist, *info))
         if requirement is None:
-            requirement = Requirement.parse('%s==%s'%(dist.project_name,dist.version))
+            requirement = dist.as_requirement()
         if dist in requirement:
             log.info("Processing dependencies for %s", requirement)
             try:
@@ -419,7 +419,7 @@ class easy_install(Command):
             options = match.group(1) or ''
             if options:
                 options = ' '+options
-        spec = '%s==%s' % (dist.project_name,dist.version)
+        spec = dist.as_requirement()
         executable = os.path.normpath(sys.executable)
 
         if dev_path:
@@ -547,7 +547,7 @@ class easy_install(Command):
         )
 
         # Convert the .exe to an unpacked egg
-        egg_path = dist.path = os.path.join(tmpdir, dist.egg_name()+'.egg')
+        egg_path = dist.location = os.path.join(tmpdir, dist.egg_name()+'.egg')
         egg_tmp  = egg_path+'.tmp'
         pkg_inf = os.path.join(egg_tmp, 'EGG-INFO', 'PKG-INFO')
         ensure_directory(pkg_inf)   # make sure EGG-INFO dir exists
@@ -718,7 +718,7 @@ Note also that the installation directory must be on sys.path at runtime for
 this to work.  (e.g. by being the application's script directory, by being on
 PYTHONPATH, or by being added to sys.path by your code.)
 """
-        eggloc = dist.path
+        eggloc = dist.location
         name = dist.project_name
         version = dist.version
         return msg % locals()
@@ -782,14 +782,14 @@ PYTHONPATH, or by being added to sys.path by your code.)
             return
 
         for d in self.pth_file.get(dist.key,()):    # drop old entries
-            if self.multi_version or normalize(d.path) != normalize(dist.path):
+            if self.multi_version or normalize(d.location) != normalize(dist.location):
                 log.info("Removing %s from easy-install.pth file", d)
                 self.pth_file.remove(d)
-                if normalize(d.path) in self.shadow_path:
-                    self.shadow_path.remove(d.path)
+                if normalize(d.location) in self.shadow_path:
+                    self.shadow_path.remove(d.location)
 
         if not self.multi_version:
-            if normalize(dist.path) in map(normalize,self.pth_file.paths):
+            if normalize(dist.location) in map(normalize,self.pth_file.paths):
                 log.info(
                     "%s is already the active version in easy-install.pth",
                     dist
@@ -797,8 +797,8 @@ PYTHONPATH, or by being added to sys.path by your code.)
             else:
                 log.info("Adding %s to easy-install.pth file", dist)
                 self.pth_file.add(dist) # add new entry
-                if normalize(dist.path) not in self.shadow_path:
-                    self.shadow_path.append(normalize(dist.path))
+                if normalize(dist.location) not in self.shadow_path:
+                    self.shadow_path.append(normalize(dist.location))
 
         self.pth_file.save()
 
@@ -806,7 +806,7 @@ PYTHONPATH, or by being added to sys.path by your code.)
             # Ensure that setuptools itself never becomes unavailable!
             # XXX should this check for latest version?
             f = open(os.path.join(self.install_dir,'setuptools.pth'), 'w')
-            f.write(dist.path+'\n')
+            f.write(dist.location+'\n')
             f.close()
 
 
@@ -1051,14 +1051,14 @@ class PthDistributions(AvailableDistributions):
 
     def add(self,dist):
         """Add `dist` to the distribution map"""
-        if dist.path not in self.paths:
-            self.paths.append(dist.path); self.dirty = True
+        if dist.location not in self.paths:
+            self.paths.append(dist.location); self.dirty = True
         AvailableDistributions.add(self,dist)
 
     def remove(self,dist):
         """Remove `dist` from the distribution map"""
-        while dist.path in self.paths:
-            self.paths.remove(dist.path); self.dirty = True
+        while dist.location in self.paths:
+            self.paths.remove(dist.location); self.dirty = True
         AvailableDistributions.remove(self,dist)
 
 

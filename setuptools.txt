@@ -1352,6 +1352,13 @@ Release Notes/Change History
      attribute for the project name they refer to.  (Previously these were
      ``name`` and ``distname`` attributes.)
 
+   * The ``path`` attribute of ``Distribution`` objects is now ``location``,
+     because it isn't necessarily a filesystem path (and hasn't been for some
+     time now).
+
+   * ``Distribution`` objects now have an ``as_requirement()`` method that
+     returns a ``Requirement`` for the distribution's project name and version.
+
 0.5a13
  * Fixed a bug in resource extraction from nested packages in a zipped egg.
 
