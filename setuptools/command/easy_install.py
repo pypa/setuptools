@@ -419,7 +419,7 @@ class easy_install(Command):
             options = match.group(1) or ''
             if options:
                 options = ' '+options
-        spec = dist.as_requirement()
+        spec = str(dist.as_requirement())
         executable = os.path.normpath(sys.executable)
 
         if dev_path:
@@ -789,7 +789,7 @@ PYTHONPATH, or by being added to sys.path by your code.)
                     self.shadow_path.remove(d.location)
 
         if not self.multi_version:
-            if dist.location in map(normalize_path,self.pth_file.paths):
+            if dist.location in self.pth_file.paths:
                 log.info(
                     "%s is already the active version in easy-install.pth",
                     dist
@@ -802,10 +802,10 @@ PYTHONPATH, or by being added to sys.path by your code.)
 
         self.pth_file.save()
 
-        if dist.project_name=='setuptools':
+        if dist.key=='setuptools':
             # Ensure that setuptools itself never becomes unavailable!
             # XXX should this check for latest version?
-            f = open(os.path.join(self.install_dir,'setuptools.pth'), 'w')
+            f = open(os.path.join(self.install_dir,'setuptools.pth'), 'wt')
             f.write(dist.location+'\n')
             f.close()
 
@@ -1027,6 +1027,7 @@ class PthDistributions(AvailableDistributions):
     """A .pth file with Distribution paths in it"""
 
     dirty = False
+
     def __init__(self, filename):
         self.filename = filename; self._load()
         AvailableDistributions.__init__(
@@ -1035,21 +1036,33 @@ class PthDistributions(AvailableDistributions):
 
     def _load(self):
         self.paths = []
+        seen = {}
         if os.path.isfile(self.filename):
-            self.paths = [line.rstrip() for line in open(self.filename,'rt')]
-            while self.paths and not self.paths[-1].strip(): self.paths.pop()
-        # delete non-existent paths, in case somebody deleted a package
-        # manually:
-        for line in list(yield_lines(self.paths)):
-            if not os.path.exists(line):
-                self.paths.remove(line); self.dirty = True
-                
+            for line in open(self.filename,'rt'):
+                path = line.rstrip()
+                self.paths.append(path)
+                if not path.strip() or path.strip().startswith('#'):
+                    continue
+                # skip non-existent paths, in case somebody deleted a package
+                # manually, and duplicate paths as well
+                path = self.paths[-1] = normalize_path(path)
+                if not os.path.exists(path) or path in seen:
+                    self.paths.pop()    # skip it
+                    self.dirty = True   # we cleaned up, so we're dirty now :)
+                    continue
+                seen[path] = 1                
+
+        while self.paths and not self.paths[-1].strip(): self.paths.pop()
+
     def save(self):
         """Write changed .pth file back to disk"""
         if self.dirty:
+            log.debug("Saving %s", self.filename)
             data = '\n'.join(self.paths+[''])
             f = open(self.filename,'wt'); f.write(data); f.close()
             self.dirty = False
+
+
 
     def add(self,dist):
         """Add `dist` to the distribution map"""
@@ -1067,19 +1080,6 @@ class PthDistributions(AvailableDistributions):
 def main(argv, **kw):
     from setuptools import setup
     setup(script_args = ['-q','easy_install', '-v']+argv, **kw)
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
