@@ -362,7 +362,7 @@ class WorkingSet(object):
                 # Oops, the "best" so far conflicts with a dependency
                 raise VersionConflict(dist,req) # XXX put more info here
 
-            requirements.extend(dist.depends(req.extras)[::-1])
+            requirements.extend(dist.requires(req.extras)[::-1])
             processed[req] = True
 
         return to_activate    # return list of distros to activate
@@ -1569,8 +1569,8 @@ class Distribution(object):
 
     _dep_map = property(_dep_map)
 
-    def depends(self,extras=()):
-        """List of Requirements needed for this distro if `options` are used"""
+    def requires(self,extras=()):
+        """List of Requirements needed for this distro if `extras` are used"""
         dm = self._dep_map
         deps = []
         deps.extend(dm.get(None,()))
@@ -1686,24 +1686,24 @@ def parse_requirements(strs):
             raise ValueError("Missing distribution spec", line)
         project_name = match.group(1)
         p = match.end()
-        options = []
+        extras = []
 
         match = OBRACKET(line,p)
         if match:
             p = match.end()
-            line, p, options = scan_list(DISTRO,CBRACKET,line,p,(1,),"option")
+            line, p, extras = scan_list(
+                DISTRO, CBRACKET, line, p, (1,), "'extra' name"
+            )
 
         line, p, specs = scan_list(VERSION,LINE_END,line,p,(1,2),"version spec")
         specs = [(op,val.replace('_','-')) for op,val in specs]
-        yield Requirement(project_name.replace('_','-'), specs, options)
+        yield Requirement(project_name.replace('_','-'), specs, extras)
 
 
 def _sort_dists(dists):
     tmp = [(dist.hashcmp,dist) for dist in dists]
     tmp.sort()
     dists[::-1] = [d for hc,d in tmp]
-
-
 
 
 

@@ -105,18 +105,18 @@ class DistroTests(TestCase):
         self.checkFooPkg(d)
 
 
-    def distDepends(self, txt):
+    def distRequires(self, txt):
         return Distribution("/foo", metadata=Metadata(('depends.txt', txt)))
 
-    def checkDepends(self, dist, txt, opts=()):
+    def checkRequires(self, dist, txt, extras=()):
         self.assertEqual(
-            list(dist.depends(opts)),
+            list(dist.requires(extras)),
             list(parse_requirements(txt))
         )
 
     def testDistroDependsSimple(self):
         for v in "Twisted>=1.5", "Twisted>=1.5\nZConfig>=2.0":
-            self.checkDepends(self.distDepends(v), v)
+            self.checkRequires(self.distRequires(v), v)
 
 
 
@@ -163,29 +163,29 @@ class DistroTests(TestCase):
         )
 
     def testDistroDependsOptions(self):
-        d = self.distDepends("""
+        d = self.distRequires("""
             Twisted>=1.5
             [docgen]
             ZConfig>=2.0
             docutils>=0.3
             [fastcgi]
             fcgiapp>=0.1""")
-        self.checkDepends(d,"Twisted>=1.5")
-        self.checkDepends(
+        self.checkRequires(d,"Twisted>=1.5")
+        self.checkRequires(
             d,"Twisted>=1.5 ZConfig>=2.0 docutils>=0.3".split(), ["docgen"]
         )
-        self.checkDepends(
+        self.checkRequires(
             d,"Twisted>=1.5 fcgiapp>=0.1".split(), ["fastcgi"]
         )
-        self.checkDepends(
+        self.checkRequires(
             d,"Twisted>=1.5 ZConfig>=2.0 docutils>=0.3 fcgiapp>=0.1".split(),
             ["docgen","fastcgi"]
         )
-        self.checkDepends(
+        self.checkRequires(
             d,"Twisted>=1.5 fcgiapp>=0.1 ZConfig>=2.0 docutils>=0.3".split(),
             ["fastcgi", "docgen"]
         )
-        self.assertRaises(InvalidOption, d.depends, ["foo"])
+        self.assertRaises(InvalidOption, d.requires, ["foo"])
 
 
 

@@ -1419,7 +1419,7 @@ Release Notes/Change History
 
    * Distribution objects no longer have an ``installed_on()`` method, and the
      ``install_on()`` method is now ``activate()`` (but may go away altogether
-     soon).
+     soon).  The ``depends()`` method has also been renamed to ``requires()``.
 
    * ``find_distributions()`` now takes an additional argument called ``only``,
      that tells it to only yield distributions whose location is the passed-in
