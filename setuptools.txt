@@ -732,6 +732,58 @@ might consider submitting a patch to the ``setuptools.command.sdist`` module
 so we can include support for it, too.)
 
 
+Making your package available for EasyInstall
+---------------------------------------------
+
+If you use the ``register`` command (``setup.py register``) to register your
+package with PyPI, that's most of the battle right there.  (See the
+`docs for the register command`_ for more details.)
+
+.. _docs for the register command: http://docs.python.org/dist/package-index.html
+
+If you also use the `upload`_ command to upload actual distributions of your
+package, that's even better, because EasyInstall will be able to find and
+download them directly from your project's PyPI page.
+
+However, there may be reasons why you don't want to upload distributions to
+PyPI, and just want your existing distributions (or perhaps a Subversion
+checkout) to be used instead.
+
+So here's what you need to do before running the ``register`` command.  There
+are three ``setup()`` arguments that affect EasyInstall:
+
+``url`` and ``download_url``
+   These become links on your project's PyPI page.  EasyInstall will examine
+   them to see if they link to a package ("primary links"), or whether they are
+   HTML pages.  If they're HTML pages, EasyInstall scans all HREF's on the
+   page for primary links
+
+``long_description``
+   EasyInstall will check any URLs contained in this argument to see if they
+   are primary links.
+
+A URL is considered a "primary link" if it is a link to a .tar.gz, .tgz, .zip,
+.egg, .egg.zip, .tar.bz2, or .exe file, or if it has an ``#egg=project`` or
+``#egg=project-version`` fragment identifier attached to it.  EasyInstall
+attempts to determine a project name and optional version number from the text
+of a primary link *without* downloading it.  When it has found all the primary
+links, EasyInstall will select the best match based on requested version,
+platform compatibility, and other criteria.
+
+So, if your ``url`` or ``download_url`` point either directly to a downloadable
+source distribution, or to HTML page(s) that have direct links to such, then
+EasyInstall will be able to locate downloads automatically.  If you want to
+make Subversion checkouts available, then you should create links with either
+``#egg=project`` or ``#egg=project-version`` added to the URL (replacing
+``project`` and ``version`` with appropriate values).
+
+Note that Subversion checkout links are of lower precedence than other kinds
+of distributions, so EasyInstall will not select a Subversion checkout for
+downloading unless it has a version included in the ``#egg=`` suffix, and
+it's a higher version than EasyInstall has seen in any other links for your
+project.
+
+
 Distributing Extensions compiled with Pyrex
 -------------------------------------------
 
@@ -1342,7 +1394,7 @@ Release Notes/Change History
    
  * Fixed ``pkg_resources.resource_exists()`` not working correctly.
 
- * Many ``pkg_resources`` API changes:
+ * Many ``pkg_resources`` API changes and enhancements:
 
    * ``Distribution`` objects now implement the ``IResourceProvider`` and
      ``IMetadataProvider`` interfaces, so you don't need to reference the (no
@@ -1354,11 +1406,35 @@ Release Notes/Change History
 
    * The ``path`` attribute of ``Distribution`` objects is now ``location``,
      because it isn't necessarily a filesystem path (and hasn't been for some
-     time now).
+     time now).  The ``location`` of ``Distribution`` objects in the filesystem
+     should always be normalized using ``pkg_resources.normalize_path()``; all
+     of the setuptools and EasyInstall code that generates distributions from
+     the filesystem (including ``Distribution.from_filename()``) ensure this
+     invariant, but if you use a more generic API like ``Distribution()`` or
+     ``Distribution.from_location()`` you should take care that you don't
+     create a distribution with an un-normalized filesystem path.
 
    * ``Distribution`` objects now have an ``as_requirement()`` method that
      returns a ``Requirement`` for the distribution's project name and version.
 
+   * Distribution objects no longer have an ``installed_on()`` method, and the
+     ``install_on()`` method is now ``activate()`` (but may go away altogether
+     soon).
+
+   * ``find_distributions()`` now takes an additional argument called ``only``,
+     that tells it to only yield distributions whose location is the passed-in
+     path.  (It defaults to False, so that the default behavior is unchanged.)
+
+   * The ``resolve()`` method of ``AvailableDistributions`` is now a method of
+     ``WorkingSet`` instead, and the ``best_match()`` method now uses a working
+     set instead of a path list as its second argument.
+
+   * There is a new ``pkg_resources.add_activation_listener()`` API that lets
+     you register a callback for notifications about distributions added to
+     ``sys.path`` (including the distributions already on it).  This is
+     basically a hook for extensible applications and frameworks to be able to
+     search for plugin metadata in distributions added at runtime.
+     
 0.5a13
  * Fixed a bug in resource extraction from nested packages in a zipped egg.
 

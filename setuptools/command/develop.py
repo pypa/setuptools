@@ -1,6 +1,6 @@
 from setuptools.command.easy_install import easy_install
 from distutils.util import convert_path
-from pkg_resources import Distribution, PathMetadata
+from pkg_resources import Distribution, PathMetadata, normalize_path
 from distutils import log
 import sys, os
 
@@ -49,7 +49,7 @@ class develop(easy_install):
 
         # Make a distribution for the package's source
         self.dist = Distribution(
-            self.egg_path,
+            normalize_path(self.egg_path),
             PathMetadata(self.egg_path, os.path.abspath(ei.egg_info)),
             project_name = ei.egg_name
         )

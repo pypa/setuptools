@@ -54,23 +54,23 @@ class DistroTests(TestCase):
             [dist.version for dist in ad['FooPkg']], ['1.9','1.4','1.2']
         )
 
-        path = []
+        ws = WorkingSet([])
+        foo12 = Distribution.from_filename("FooPkg-1.2-py2.4.egg")
+        foo14 = Distribution.from_filename("FooPkg-1.4-py2.4-win32.egg")
         req, = parse_requirements("FooPkg>=1.3")
 
         # Nominal case: no distros on path, should yield all applicable
-        self.assertEqual(ad.best_match(req,path).version, '1.9')
-
+        self.assertEqual(ad.best_match(req,ws).version, '1.9')
         # If a matching distro is already installed, should return only that
-        path.append("FooPkg-1.4-py2.4-win32.egg")
-        self.assertEqual(ad.best_match(req,path).version, '1.4')
+        ws.add(foo14); self.assertEqual(ad.best_match(req,ws).version, '1.4')
 
         # If the first matching distro is unsuitable, it's a version conflict
-        path.insert(0,"FooPkg-1.2-py2.4.egg")
-        self.assertRaises(VersionConflict, ad.best_match, req, path)
+        ws = WorkingSet([]); ws.add(foo12); ws.add(foo14)
+        self.assertRaises(VersionConflict, ad.best_match, req, ws)
 
         # If more than one match on the path, the first one takes precedence
-        path.insert(0,"FooPkg-1.4-py2.4-win32.egg")
-        self.assertEqual(ad.best_match(req,path).version, '1.4')
+        ws = WorkingSet([]); ws.add(foo14); ws.add(foo12); ws.add(foo14);
+        self.assertEqual(ad.best_match(req,ws).version, '1.4')
 
     def checkFooPkg(self,d):
         self.assertEqual(d.project_name, "FooPkg")
@@ -86,8 +86,6 @@ class DistroTests(TestCase):
             project_name="FooPkg",version="1.3-1",py_version="2.4",platform="win32"
         )
         self.checkFooPkg(d)
-        self.failUnless(d.installed_on(["/some/path"]))
-        self.failIf(d.installed_on([]))
 
         d = Distribution("/some/path")
         self.assertEqual(d.py_version, sys.version[:3])
@@ -121,15 +119,17 @@ class DistroTests(TestCase):
             self.checkDepends(self.distDepends(v), v)
 
 
+
+
     def testResolve(self):
-        ad = AvailableDistributions([])
+        ad = AvailableDistributions([]); ws = WorkingSet([])
 
         # Resolving no requirements -> nothing to install
-        self.assertEqual( list(ad.resolve([],[])), [] )
+        self.assertEqual( list(ws.resolve([],ad)), [] )
 
         # Request something not in the collection -> DistributionNotFound
         self.assertRaises(
-            DistributionNotFound, ad.resolve, parse_requirements("Foo"), []
+            DistributionNotFound, ws.resolve, parse_requirements("Foo"), ad
         )
 
         Foo = Distribution.from_filename(
@@ -138,28 +138,28 @@ class DistroTests(TestCase):
         )
         ad.add(Foo)
 
-        # Request thing(s) that are available -> list to install
+        # Request thing(s) that are available -> list to activate
         self.assertEqual(
-            list(ad.resolve(parse_requirements("Foo"),[])), [Foo]
+            list(ws.resolve(parse_requirements("Foo"), ad)), [Foo]
         )
 
-        # Request an option that causes an unresolved dependency for "Baz"
+        # Request an extra that causes an unresolved dependency for "Baz"
         self.assertRaises(
-            DistributionNotFound, ad.resolve,parse_requirements("Foo[bar]"),[]
+            DistributionNotFound, ws.resolve,parse_requirements("Foo[bar]"), ad
         )      
         Baz = Distribution.from_filename(
             "/foo_dir/Baz-2.1.egg", metadata=Metadata(('depends.txt', "Foo"))
         )
         ad.add(Baz)
 
-        # Install list now includes resolved dependency
+        # Activation list now includes resolved dependency
         self.assertEqual(
-            list(ad.resolve(parse_requirements("Foo[bar]"),[])), [Foo,Baz]
+            list(ws.resolve(parse_requirements("Foo[bar]"), ad)), [Foo,Baz]
         )
         # Requests for conflicting versions produce VersionConflict
         self.assertRaises(
             VersionConflict,
-            ad.resolve, parse_requirements("Foo==1.2\nFoo!=1.2"), []
+            ws.resolve, parse_requirements("Foo==1.2\nFoo!=1.2"), ad
         )
 
     def testDistroDependsOptions(self):
@@ -208,7 +208,7 @@ class RequirementsTests(TestCase):
     def testBasics(self):
         r = Requirement.parse("Twisted>=1.2")
         self.assertEqual(str(r),"Twisted>=1.2")
-        self.assertEqual(repr(r),"Requirement('Twisted', [('>=', '1.2')], ())")
+        self.assertEqual(repr(r),"Requirement.parse('Twisted>=1.2')")
         self.assertEqual(r, Requirement("Twisted", [('>=','1.2')]))
         self.assertEqual(r, Requirement("twisTed", [('>=','1.2')]))
         self.assertNotEqual(r, Requirement("Twisted", [('>=','2.0')]))
@@ -271,13 +271,6 @@ class RequirementsTests(TestCase):
         self.failUnless(d("setuptools-0.3a2.egg") in r2)
         self.failUnless(d("setuptools-0.3a3.egg") in r2)
         self.failUnless(d("setuptools-0.3a5.egg") in r2)
-
-
-
-
-
-
-
 
 
 

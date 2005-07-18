@@ -623,6 +623,22 @@ Known Issues
    Made ``easy-install.pth`` work in platform-specific alternate site
    directories (e.g. ``~/Library/Python/2.x/site-packages``).
 
+ * If you manually delete the current version of a package, the next run of
+   EasyInstall against the target directory will now remove the stray entry
+   from the ``easy-install.pth``file.
+
+ * EasyInstall now recognizes URLs with a ``#egg=project_name`` fragment ID
+   as pointing to the named project's source checkout.  Such URLs have a lower
+   match precedence than any other kind of distribution, so they'll only be
+   used if they have a higher version number than any other available
+   distribution.  (Future versions may allow you to specify that you want to
+   use source checkouts instead of other kinds of distributions.)  The ``#egg``
+   fragment can contain a version if it's formatted as ``#egg=proj-ver``,
+   where ``proj`` is the project name, and ``ver`` is the version number.  You
+   *must* use the format for these values that the ``bdist_egg`` command uses;
+   i.e., all non-alphanumeric runs must be condensed to single underscore
+   characters.
+
 0.5a12
  * Fix ``python -m easy_install`` not working due to setuptools being installed
    as a zipfile.  Update safety scanner to check for modules that might be used

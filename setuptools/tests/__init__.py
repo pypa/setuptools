@@ -408,21 +408,21 @@ class TestCommandTests(TestCase):
 
 
 
+def test_api():
+    import doctest
+    return doctest.DocFileSuite(
+        'api_tests.txt', optionflags=doctest.ELLIPSIS, package='pkg_resources',
+    )
+
+
 testClasses = (DependsTests, DistroTests, FeatureTests, TestCommandTests)
-testNames = ["setuptools.tests.test_resources"]
+testNames = ["setuptools.tests.test_resources", "setuptools.tests.test_api"]
 
 def test_suite():
     return TestSuite(
         [makeSuite(t,'test') for t in testClasses]+
         [defaultTestLoader.loadTestsFromName(n) for n in testNames]
     )
-
-
-
-
-
-
-
 
 
 

@@ -139,7 +139,7 @@ class easy_install(Command):
         )
         # default --record from the install command
         self.set_undefined_options('install', ('record', 'record'))
-        normpath = map(normalize,sys.path)
+        normpath = map(normalize_path, sys.path)
         self.all_site_dirs = get_site_dirs()
         if self.site_dirs is not None:
             site_dirs = [
@@ -148,15 +148,15 @@ class easy_install(Command):
             for d in site_dirs:
                 if not os.path.isdir(d):
                     log.warn("%s (in --site-dirs) does not exist", d)
-                elif normalize(d) not in normpath:
+                elif normalize_path(d) not in normpath:
                     raise DistutilsOptionError(
                         d+" (in --site-dirs) is not on sys.path"
                     )
                 else:
-                    self.all_site_dirs.append(normalize(d))
+                    self.all_site_dirs.append(normalize_path(d))
 
-        instdir = self.install_dir or self.all_site_dirs[-1]
-        if normalize(instdir) in self.all_site_dirs:
+        instdir = normalize_path(self.install_dir or self.all_site_dirs[-1])
+        if instdir in self.all_site_dirs:
             if self.pth_file is None:
                 self.pth_file = PthDistributions(
                     os.path.join(instdir,'easy-install.pth')
@@ -171,12 +171,12 @@ class easy_install(Command):
                 "Can't do single-version installs outside 'site-package' dirs"
             )
 
-        self.install_dir = normalize(instdir)
+        self.install_dir = instdir
         self.index_url = self.index_url or "http://www.python.org/pypi"
-        self.shadow_path = map(normalize,sys.path)
-        for path_item in self.install_dir, self.script_dir:
-            if normalize(path_item) not in self.shadow_path:
-                self.shadow_path.insert(0, normalize(path_item))
+        self.shadow_path = self.all_site_dirs[:]
+        for path_item in self.install_dir, normalize_path(self.script_dir):
+            if path_item not in self.shadow_path:
+                self.shadow_path.insert(0, path_item)
         if self.package_index is None:
             self.package_index = self.create_index(
                 self.index_url, search_path = self.shadow_path
@@ -354,8 +354,8 @@ class easy_install(Command):
         if dist in requirement:
             log.info("Processing dependencies for %s", requirement)
             try:
-                self.local_index.resolve(
-                    [requirement], self.shadow_path, self.easy_install
+                WorkingSet(self.shadow_path).resolve(
+                    [requirement], self.local_index, self.easy_install
                 )
             except DistributionNotFound, e:
                 raise DistutilsError(
@@ -711,7 +711,7 @@ similar to one of these examples, in order to select the desired version:
     pkg_resources.require("%(name)s==%(version)s")  # this exact version
     pkg_resources.require("%(name)s>=%(version)s")  # this version or higher
 """
-        if self.install_dir not in map(normalize,sys.path):
+        if self.install_dir not in map(normalize_path,sys.path):
             msg += """
 
 Note also that the installation directory must be on sys.path at runtime for
@@ -782,14 +782,14 @@ PYTHONPATH, or by being added to sys.path by your code.)
             return
 
         for d in self.pth_file.get(dist.key,()):    # drop old entries
-            if self.multi_version or normalize(d.location) != normalize(dist.location):
+            if self.multi_version or d.location != dist.location:
                 log.info("Removing %s from easy-install.pth file", d)
                 self.pth_file.remove(d)
-                if normalize(d.location) in self.shadow_path:
+                if d.location in self.shadow_path:
                     self.shadow_path.remove(d.location)
 
         if not self.multi_version:
-            if normalize(dist.location) in map(normalize,self.pth_file.paths):
+            if dist.location in map(normalize_path,self.pth_file.paths):
                 log.info(
                     "%s is already the active version in easy-install.pth",
                     dist
@@ -797,8 +797,8 @@ PYTHONPATH, or by being added to sys.path by your code.)
             else:
                 log.info("Adding %s to easy-install.pth file", dist)
                 self.pth_file.add(dist) # add new entry
-                if normalize(dist.location) not in self.shadow_path:
-                    self.shadow_path.append(normalize(dist.location))
+                if dist.location not in self.shadow_path:
+                    self.shadow_path.append(dist.location)
 
         self.pth_file.save()
 
@@ -894,8 +894,8 @@ def get_site_dirs():
                                          'site-packages'))
 
     sitedirs = filter(os.path.isdir, sitedirs)
-    sitedirs = map(normalize, sitedirs)
-    return sitedirs or [normalize(get_python_lib())]    # ensure at least one
+    sitedirs = map(normalize_path, sitedirs)
+    return sitedirs or [normalize_path(get_python_lib())] # ensure at least one
 
 
 
@@ -906,7 +906,7 @@ def expand_paths(inputs):
     seen = {}
 
     for dirname in inputs:
-        dirname = normalize(dirname)
+        dirname = normalize_path(dirname)
         if dirname in seen:
             continue
 
@@ -933,7 +933,7 @@ def expand_paths(inputs):
             # Yield existing non-dupe, non-import directory lines from it
             for line in lines:
                 if not line.startswith("import"):
-                    line = normalize(line.rstrip())
+                    line = normalize_path(line.rstrip())
                     if line not in seen:
                         seen[line] = 1
                         if not os.path.isdir(line):
@@ -1027,7 +1027,6 @@ class PthDistributions(AvailableDistributions):
     """A .pth file with Distribution paths in it"""
 
     dirty = False
-
     def __init__(self, filename):
         self.filename = filename; self._load()
         AvailableDistributions.__init__(
@@ -1039,14 +1038,17 @@ class PthDistributions(AvailableDistributions):
         if os.path.isfile(self.filename):
             self.paths = [line.rstrip() for line in open(self.filename,'rt')]
             while self.paths and not self.paths[-1].strip(): self.paths.pop()
-
+        # delete non-existent paths, in case somebody deleted a package
+        # manually:
+        for line in list(yield_lines(self.paths)):
+            if not os.path.exists(line):
+                self.paths.remove(line); self.dirty = True
+                
     def save(self):
         """Write changed .pth file back to disk"""
         if self.dirty:
             data = '\n'.join(self.paths+[''])
-            f = open(self.filename,'wt')
-            f.write(data)
-            f.close()
+            f = open(self.filename,'wt'); f.write(data); f.close()
             self.dirty = False
 
     def add(self,dist):
@@ -1062,15 +1064,13 @@ class PthDistributions(AvailableDistributions):
         AvailableDistributions.remove(self,dist)
 
 
-
-
 def main(argv, **kw):
     from setuptools import setup
     setup(script_args = ['-q','easy_install', '-v']+argv, **kw)
 
 
-def normalize(path):
-    return os.path.normcase(os.path.realpath(path))
+
+
 
 
 

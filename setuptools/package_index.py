@@ -5,7 +5,8 @@ from pkg_resources import *
 from distutils import log
 from distutils.errors import DistutilsError
 
-HREF = re.compile(r"""href\s*=\s*['"]?([^'"> ]+)""", re.I)
+EGG_FRAGMENT = re.compile('^egg=(\\w+(-\\w+)?)$')
+HREF = re.compile("""href\\s*=\\s*['"]?([^'"> ]+)""", re.I)
 URL_SCHEME = re.compile('([-+.a-z0-9]{2,}):',re.I).match
 EXTENSIONS = ".tar.gz .tar.bz2 .tar .zip .tgz".split()
 
@@ -38,28 +39,34 @@ def parse_bdist_wininst(name):
 
 
 
-
 def distros_for_url(url, metadata=None):
     """Yield egg or source distribution objects that might be found at a URL"""
 
-    path = urlparse.urlparse(url)[2]
+    scheme, server, path, parameters, query, fragment = urlparse.urlparse(url)
     base = urllib2.unquote(path.split('/')[-1])
-    return distros_for_filename(url, base, metadata)
+    dists = distros_for_location(url, base, metadata) 
+    if fragment and not dists:
+        match = EGG_FRAGMENT.match(fragment)
+        if match:
+            return interpret_distro_name(
+                url, match.group(1), metadata, precedence = CHECKOUT_DIST
+            )
+    return dists
 
 
-def distros_for_filename(url_or_path, basename, metadata=None):
+def distros_for_location(location, basename, metadata=None):
     """Yield egg or source distribution objects based on basename"""
     if basename.endswith('.egg.zip'):
         basename = basename[:-4]    # strip the .zip
 
     if basename.endswith('.egg'):   # only one, unambiguous interpretation       
-        return [Distribution.from_location(url_or_path, basename, metadata)]
+        return [Distribution.from_location(location, basename, metadata)]
 
     if basename.endswith('.exe'):
         win_base, py_ver = parse_bdist_wininst(basename)
         if win_base is not None:
             return interpret_distro_name(
-                url_or_path, win_base, metadata, py_ver, BINARY_DIST, "win32"
+                location, win_base, metadata, py_ver, BINARY_DIST, "win32"
             )
 
     # Try source distro extensions (.zip, .tgz, etc.)
@@ -67,22 +74,28 @@ def distros_for_filename(url_or_path, basename, metadata=None):
     for ext in EXTENSIONS:
         if basename.endswith(ext):
             basename = basename[:-len(ext)]
-            return interpret_distro_name(url_or_path, basename, metadata)
+            return interpret_distro_name(location, basename, metadata)
 
     return []  # no extension matched
 
 
 
+def distros_for_filename(filename, metadata=None):
+    """Yield possible egg or source distribution objects based on a filename"""
+    return distros_for_location(
+        normalize_path(filename), os.path.basename(filename), metadata
+    )
 
 
-
-
-
-
-
-def interpret_distro_name(url_or_path, basename, metadata,
-    py_version=None, distro_type=SOURCE_DIST, platform=None
+def interpret_distro_name(location, basename, metadata,
+    py_version=None, precedence=SOURCE_DIST, platform=None
 ):
+    """Generate alternative interpretations of a source distro name
+
+    Note: if `location` is a filesystem filename, you should call
+    ``pkg_resources.normalize_path()`` on it before passing it to this
+    routine!
+    """
 
     # Generate alternative interpretations of a source distro name
     # Because some packages are ambiguous as to name/versions split
@@ -99,23 +112,10 @@ def interpret_distro_name(url_or_path, basename, metadata,
     parts = basename.split('-')
     for p in range(1,len(parts)+1):
         yield Distribution(
-            url_or_path, metadata, '-'.join(parts[:p]), '-'.join(parts[p:]),
-            py_version=py_version, distro_type = distro_type,
+            location, metadata, '-'.join(parts[:p]), '-'.join(parts[p:]),
+            py_version=py_version, precedence = precedence,
             platform = platform
         )
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -142,11 +142,7 @@ class PackageIndex(AvailableDistributions):
         if not URL_SCHEME(url):
             # process filenames or directories
             if os.path.isfile(url):
-                dists = list(
-                    distros_for_filename(
-                        os.path.realpath(url), os.path.basename(url)
-                    )
-                )
+                dists = list(distros_for_filename(url))
             elif os.path.isdir(url):
                 url = os.path.realpath(url)
                 for item in os.listdir(url):
@@ -160,8 +156,6 @@ class PackageIndex(AvailableDistributions):
 
         if dists:
             self.debug("Found link: %s", url)
-
-
         if dists or not retrieve or url in self.fetched_urls:
             for dist in dists:
                 self.add(dist)
@@ -185,6 +179,12 @@ class PackageIndex(AvailableDistributions):
         for match in HREF.finditer(page):
             link = urlparse.urljoin(base, match.group(1))
             self.process_url(link)
+
+
+
+
+
+
 
 
 
@@ -344,11 +344,11 @@ class PackageIndex(AvailableDistributions):
         if force_scan:
             self.find_packages(requirement)
 
-        dist = self.best_match(requirement, [])     # XXX
+        dist = self.best_match(requirement, WorkingSet([]))     # XXX
 
         if dist is not None:
             self.info("Best match: %s", dist)
-            return self.download(dist.path, tmpdir)
+            return self.download(dist.location, tmpdir)
 
         self.warn(
             "No local packages or download links found for %s", requirement
@@ -475,8 +475,8 @@ class PackageIndex(AvailableDistributions):
         file.close()
         raise DistutilsError("Unexpected HTML page found at "+url)
 
-
     def _download_svn(self, url, filename):
+        url = url.split('#',1)[0]   # remove any fragment for svn's sake
         self.info("Doing subversion checkout from %s to %s", url, filename)
         os.system("svn checkout -q %s %s" % (url, filename))
         return filename
