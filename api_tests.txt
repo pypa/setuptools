@@ -245,3 +245,38 @@ And adding a callback more than once has no effect, either::
     >>> ws.add(Distribution(project_name="JustATest", version="0.99"))
     Added JustATest 0.99
 
+
+Platform Compatibility Rules
+----------------------------
+
+On the Mac, there are potential compatibility issues for modules compiled
+on newer versions of Mac OS X than what the user is running. Additionally,
+Mac OS X will soon have two platforms to contend with: Intel and PowerPC.
+
+Basic equality works as on other platforms::
+
+    >>> from pkg_resources import compatible_platforms as cp
+    >>> reqd = 'macosx-10.4.2-Power_Macintosh'
+    >>> cp(reqd, reqd)
+    True
+    >>> cp("win32", reqd)
+    False
+
+Distributions made on other machine types are not compatible::
+
+    >>> cp("macosx-10.4.2-Intel", reqd)
+    False
+
+Distributions made on earlier versions of the OS are compatible, as
+long as they are from the same top-level version. The patchlevel version
+number does not matter::
+
+    >>> cp("macosx-10.4.5-Power_Macintosh", reqd)
+    True
+    >>> cp("macosx-10.3.5-Power_Macintosh", reqd)
+    True
+    >>> cp("macosx-10.5.5-Power_Macintosh", reqd)
+    False
+    >>> cp("macosx-9.5.5-Power_Macintosh", reqd)
+    False
+

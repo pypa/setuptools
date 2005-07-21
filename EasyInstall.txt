@@ -619,6 +619,17 @@ Known Issues
    rate don't expect it to work with all packages.
 
 0.6a1
+ * Added support for handling MacOS platform information in ``.egg`` filenames,
+   based on a contribution by Kevin Dangoor.  (NOTE: this may make eggs
+   compiled for OS X with older versions of setuptools unusable!  If you have
+   eggs whose file/directory names end with ``-darwin-*.egg``, you will
+   probably need to rename them to ``-macosx-*.egg``, substituting your current
+   Mac OS version for the darwin kernel version in the version number.  Or, you
+   can just delete and reinstall the problematic eggs.)
+
+ * Fixed installing extra ``.pyc`` or ``.pyo`` files for scripts with ``.py``
+   extensions.
+
  * Added ``--site-dirs`` option to allow adding custom "site" directories.
    Made ``easy-install.pth`` work in platform-specific alternate site
    directories (e.g. ``~/Library/Python/2.x/site-packages``).

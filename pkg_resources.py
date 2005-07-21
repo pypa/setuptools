@@ -80,14 +80,46 @@ def get_provider(moduleName):
 
 
 
+def _macosx_vers(_cache=[]):
+    if not _cache:
+        info = os.popen('/usr/bin/sw_vers').read().splitlines()
+        for line in info:
+            key, value = line.split(None, 1)
+            if key == 'ProductVersion:':
+                _cache.append(value.strip().split("."))
+                break
+        else:
+            raise ValueError, "What?!"
+    return _cache[0]
+
+
 def get_platform():
     """Return this platform's string for platform-specific distributions
 
     XXX Currently this is the same as ``distutils.util.get_platform()``, but it
     needs some hacks for Linux and Mac OS X.
     """
+    if sys.platform == "darwin":
+        try:
+            version = _macosx_vers()
+            machine = os.uname()[4].replace(" ", "_")
+            return "macosx-%d.%d.%d-%s" % (int(version[0]), int(version[1]),
+                int(version[2]), machine)
+        except ValueError:
+            # if someone is running a non-Mac darwin system, this will fall
+            # through to the default implementation
+            pass
+            
     from distutils.util import get_platform
     return get_platform()
+
+macosVersionString = re.compile(r"macosx-(\d+)\.(\d+)\.(\d+)-(.*)")
+# XXX darwinVersionString = re.compile(r"darwin-(\d+)\.(\d+)\.(\d+)-(.*)")
+
+
+
+
+
 
 def compatible_platforms(provided,required):
     """Can code for the `provided` platform run on the `required` platform?
@@ -99,8 +131,36 @@ def compatible_platforms(provided,required):
     if provided is None or required is None or provided==required:
         return True     # easy case
 
-    # XXX all the tricky cases go here
+    # Mac OS X special cases
+    reqMac = macosVersionString.match(required)
+    if reqMac:
+        provMac = macosVersionString.match(provided)
+        
+        # is this a Mac package?
+        if not provMac:
+            # XXX backward compatibility should go here!            
+            return False
+        
+        # are they the same major version and machine type?
+        if provMac.group(1) != reqMac.group(1) or \
+            provMac.group(4) != reqMac.group(4):
+            return False
+        
+        # is the required OS major update >= the provided one?
+        if int(provMac.group(2)) > int(reqMac.group(2)):
+            return False
+        
+        return True
+
+    # XXX Linux and other platforms' special cases should go here        
     return False
+
+
+
+
+
+
+
 
 def run_script(dist_spec, script_name):
     """Locate distribution `dist_spec` and run its `script_name` script"""
@@ -111,14 +171,6 @@ def run_script(dist_spec, script_name):
     require(dist_spec)[0].run_script(script_name, ns)
 
 run_main = run_script   # backward compatibility
-
-
-
-
-
-
-
-
 
 
 class IMetadataProvider:
@@ -143,17 +195,6 @@ class IMetadataProvider:
 
     def run_script(script_name, namespace):
         """Execute the named script in the supplied namespace dictionary"""
-
-
-
-
-
-
-
-
-
-
-
 
 
 
