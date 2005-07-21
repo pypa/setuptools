@@ -92,6 +92,8 @@ def _macosx_vers(_cache=[]):
             raise ValueError, "What?!"
     return _cache[0]
 
+def _macosx_arch(machine):
+    return {'PowerPC':'ppc', 'Power_Macintosh':'ppc'}.get(machine,machine)
 
 def get_platform():
     """Return this platform's string for platform-specific distributions
@@ -103,21 +105,19 @@ def get_platform():
         try:
             version = _macosx_vers()
             machine = os.uname()[4].replace(" ", "_")
-            machine = {
-                'PowerPC':'ppc', 'Power_Macintosh':'ppc'
-            }.get(machine,machine)
             return "macosx-%d.%d-%s" % (int(version[0]), int(version[1]),
-                machine)
+                _macosx_arch(machine))
         except ValueError:
             # if someone is running a non-Mac darwin system, this will fall
             # through to the default implementation
             pass
-            
+
     from distutils.util import get_platform
     return get_platform()
 
 macosVersionString = re.compile(r"macosx-(\d+)\.(\d+)-(.*)")
-# XXX darwinVersionString = re.compile(r"darwin-(\d+)\.(\d+)\.(\d+)-(.*)")
+darwinVersionString = re.compile(r"darwin-(\d+)\.(\d+)\.(\d+)-(.*)")
+
 
 
 
@@ -135,30 +135,41 @@ def compatible_platforms(provided,required):
     reqMac = macosVersionString.match(required)
     if reqMac:
         provMac = macosVersionString.match(provided)
-        
+
         # is this a Mac package?
         if not provMac:
-            # XXX backward compatibility should go here!            
-            return False
-        
+            # this is backwards compatibility for packages built before
+            # setuptools 0.6. All packages built after this point will
+            # use the new macosx designation.
+            provDarwin = darwinVersionString.match(provided)
+            if provDarwin:
+                dversion = int(provDarwin.group(1))
+                macosversion = "%s.%s" % (reqMac.group(1), reqMac.group(2))
+                if dversion == 7 and macosversion >= "10.3" or \
+                    dversion == 8 and macosversion >= "10.4":
+
+                    #import warnings
+                    #warnings.warn("Mac eggs should be rebuilt to "
+                    #    "use the macosx designation instead of darwin.",
+                    #    category=DeprecationWarning)
+                    return True
+
+            return False    # egg isn't macosx or legacy darwin
+
         # are they the same major version and machine type?
         if provMac.group(1) != reqMac.group(1) or \
             provMac.group(3) != reqMac.group(3):
             return False
-        
+
+
         # is the required OS major update >= the provided one?
         if int(provMac.group(2)) > int(reqMac.group(2)):
             return False
-        
+
         return True
 
-    # XXX Linux and other platforms' special cases should go here        
+    # XXX Linux and other platforms' special cases should go here
     return False
-
-
-
-
-
 
 
 
@@ -171,6 +182,25 @@ def run_script(dist_spec, script_name):
     require(dist_spec)[0].run_script(script_name, ns)
 
 run_main = run_script   # backward compatibility
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class IMetadataProvider:
@@ -195,6 +225,17 @@ class IMetadataProvider:
 
     def run_script(script_name, namespace):
         """Execute the named script in the supplied namespace dictionary"""
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -620,12 +620,11 @@ Known Issues
 
 0.6a1
  * Added support for handling MacOS platform information in ``.egg`` filenames,
-   based on a contribution by Kevin Dangoor.  (NOTE: this may make eggs
-   compiled for OS X with older versions of setuptools unusable!  If you have
-   eggs whose file/directory names end with ``-darwin-*.egg``, you will
-   probably need to rename them to ``-macosx-*.egg``, substituting your current
-   Mac OS version for the darwin kernel version in the version number.  Or, you
-   can just delete and reinstall the problematic eggs.)
+   based on a contribution by Kevin Dangoor.  You may wish to delete and
+   reinstall any eggs whose filename includes "darwin" and "Power_Macintosh",
+   because the format for this platform information has changed so that minor
+   OS X upgrades (such as 10.4.1 to 10.4.2) do not cause eggs built with a
+   previous OS version to become obsolete.
 
  * Fixed installing extra ``.pyc`` or ``.pyo`` files for scripts with ``.py``
    extensions.

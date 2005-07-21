@@ -280,3 +280,13 @@ number does not matter::
     >>> cp("macosx-9.5-ppc", reqd)
     False
 
+Backwards compatibility for packages made via earlier versions of 
+setuptools is provided as well::
+
+    >>> cp("darwin-8.2.0-Power_Macintosh", reqd)
+    True
+    >>> cp("darwin-7.2.0-Power_Macintosh", reqd)
+    True
+    >>> cp("darwin-8.2.0-Power_Macintosh", "macosx-10.3-ppc")
+    False
+
