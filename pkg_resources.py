@@ -103,8 +103,11 @@ def get_platform():
         try:
             version = _macosx_vers()
             machine = os.uname()[4].replace(" ", "_")
-            return "macosx-%d.%d.%d-%s" % (int(version[0]), int(version[1]),
-                int(version[2]), machine)
+            machine = {
+                'PowerPC':'ppc', 'Power_Macintosh':'ppc'
+            }.get(machine,machine)
+            return "macosx-%d.%d-%s" % (int(version[0]), int(version[1]),
+                machine)
         except ValueError:
             # if someone is running a non-Mac darwin system, this will fall
             # through to the default implementation
@@ -113,11 +116,8 @@ def get_platform():
     from distutils.util import get_platform
     return get_platform()
 
-macosVersionString = re.compile(r"macosx-(\d+)\.(\d+)\.(\d+)-(.*)")
+macosVersionString = re.compile(r"macosx-(\d+)\.(\d+)-(.*)")
 # XXX darwinVersionString = re.compile(r"darwin-(\d+)\.(\d+)\.(\d+)-(.*)")
-
-
-
 
 
 
@@ -143,7 +143,7 @@ def compatible_platforms(provided,required):
         
         # are they the same major version and machine type?
         if provMac.group(1) != reqMac.group(1) or \
-            provMac.group(4) != reqMac.group(4):
+            provMac.group(3) != reqMac.group(3):
             return False
         
         # is the required OS major update >= the provided one?

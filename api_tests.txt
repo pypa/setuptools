@@ -256,7 +256,7 @@ Mac OS X will soon have two platforms to contend with: Intel and PowerPC.
 Basic equality works as on other platforms::
 
     >>> from pkg_resources import compatible_platforms as cp
-    >>> reqd = 'macosx-10.4.2-Power_Macintosh'
+    >>> reqd = 'macosx-10.4-ppc'
     >>> cp(reqd, reqd)
     True
     >>> cp("win32", reqd)
@@ -264,19 +264,19 @@ Basic equality works as on other platforms::
 
 Distributions made on other machine types are not compatible::
 
-    >>> cp("macosx-10.4.2-Intel", reqd)
+    >>> cp("macosx-10.4-i386", reqd)
     False
 
 Distributions made on earlier versions of the OS are compatible, as
 long as they are from the same top-level version. The patchlevel version
 number does not matter::
 
-    >>> cp("macosx-10.4.5-Power_Macintosh", reqd)
+    >>> cp("macosx-10.4-ppc", reqd)
     True
-    >>> cp("macosx-10.3.5-Power_Macintosh", reqd)
+    >>> cp("macosx-10.3-ppc", reqd)
     True
-    >>> cp("macosx-10.5.5-Power_Macintosh", reqd)
+    >>> cp("macosx-10.5-ppc", reqd)
     False
-    >>> cp("macosx-9.5.5-Power_Macintosh", reqd)
+    >>> cp("macosx-9.5-ppc", reqd)
     False
 
