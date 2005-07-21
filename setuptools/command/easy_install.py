@@ -822,7 +822,7 @@ PYTHONPATH, or by being added to sys.path by your code.)
         to_compile = []
 
         def pf(src,dst):
-            if dst.endswith('.py'):
+            if dst.endswith('.py') and not src.startswith('EGG-INFO/'):
                 to_compile.append(dst)
             self.unpack_progress(src,dst)
             return not self.dry_run and dst or None
