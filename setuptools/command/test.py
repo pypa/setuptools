@@ -1,6 +1,7 @@
 from setuptools import Command
 from distutils.errors import DistutilsOptionError
 import sys
+from pkg_resources import *
 
 class test(Command):
 
@@ -38,7 +39,6 @@ class test(Command):
         if self.verbose:
             self.test_args.insert(0,'--verbose')
 
-
     def run(self):
         # Ensure metadata is up-to-date
         self.run_command('egg_info')
@@ -56,19 +56,19 @@ class test(Command):
                 self.run_tests()
 
     def run_tests(self):
-        import unittest, pkg_resources
+        import unittest
         old_path = sys.path[:]
         ei_cmd = self.get_finalized_command("egg_info")
-        try:
-            # put the egg on sys.path, and require() it
-            sys.path.insert(0, ei_cmd.egg_base)
-            pkg_resources.require(
-                "%s==%s" % (ei_cmd.egg_name, ei_cmd.egg_version)
-            )
-            unittest.main(None, None, [unittest.__file__]+self.test_args)
-        finally:
-            sys.path[:] = old_path
-            # XXX later this might need to save/restore the WorkingSet
+        path_item = normalize_path(ei_cmd.egg_base)
+        metadata = PathMetadata(
+            path_item, normalize_path(ei_cmd.egg_info)
+        )
+        dist = Distribution(path_item, metadata, project_name=ei_cmd.egg_name)
+        working_set.add(dist)
+        require(str(dist.as_requirement()))
+        unittest.main(None, None, [unittest.__file__]+self.test_args)
+
+
 
 
 
