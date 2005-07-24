@@ -766,9 +766,9 @@ See the setuptools documentation for the "develop" command for more info.
             self.run_setup(setup_script, setup_base, args)
             all_eggs = AvailableDistributions([dist_dir])
             eggs = []
-            for key in eggs:
-                for dist in eggs[key]:
-                    eggs.append(self.install_egg(egg, setup_base))
+            for key in all_eggs:
+                for dist in all_eggs[key]:
+                    eggs.append(self.install_egg(dist.location, setup_base))
             if not eggs and not self.dry_run:
                 log.warn("No eggs found in %s (setup script problem?)",
                     dist_dir)
