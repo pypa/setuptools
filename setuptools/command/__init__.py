@@ -1,16 +1,9 @@
-import distutils.command
-
 __all__ = [
-    'test', 'develop', 'bdist_egg', 'saveopts', 'setopt', 'rotate', 'alias'
+    'alias', 'bdist_egg', 'build_ext', 'build_py', 'depends', 'develop',
+    'easy_install', 'egg_info', 'install', 'install_lib', 'rotate', 'saveopts',
+    'sdist', 'setopt', 'test', 'upload',
 ]
 
-
-# Make our commands available as though they were part of the distutils
-
-distutils.command.__path__.extend(__path__)
-distutils.command.__all__.extend(
-    [cmd for cmd in __all__ if cmd not in distutils.command.__all__]
-    )
 
 from distutils.command.bdist import bdist
 

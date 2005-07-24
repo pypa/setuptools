@@ -18,6 +18,9 @@ def get_description():
 VERSION = "0.6a0"
 
 from setuptools import setup, find_packages
+import sys
+
+from setuptools.command import __all__ as SETUP_COMMANDS
 
 setup(
     name="setuptools",
@@ -35,9 +38,15 @@ setup(
     packages = find_packages(),
     py_modules = ['pkg_resources', 'easy_install'],
     scripts = ['easy_install.py'],
+    
     zip_safe = False,   # We want 'python -m easy_install' to work  :(
 
-
+    entry_points = {
+        "distutils.commands" : [
+            "%(cmd)s = setuptools.command.%(cmd)s:%(cmd)s" % locals()
+            for cmd in SETUP_COMMANDS if cmd!="build_py" or sys.version>="2.4"
+        ],
+    },
 
     classifiers = [f.strip() for f in """
     Development Status :: 3 - Alpha
@@ -52,15 +61,6 @@ setup(
     Topic :: Utilities
     """.splitlines() if f.strip()]
 )
-
-
-
-
-
-
-
-
-
 
 
 

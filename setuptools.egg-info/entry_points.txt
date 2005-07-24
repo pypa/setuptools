@@ -1,0 +1,17 @@
+[distutils.commands]
+rotate = setuptools.command.rotate:rotate
+develop = setuptools.command.develop:develop
+setopt = setuptools.command.setopt:setopt
+saveopts = setuptools.command.saveopts:saveopts
+egg_info = setuptools.command.egg_info:egg_info
+depends = setuptools.command.depends:depends
+upload = setuptools.command.upload:upload
+alias = setuptools.command.alias:alias
+easy_install = setuptools.command.easy_install:easy_install
+bdist_egg = setuptools.command.bdist_egg:bdist_egg
+install = setuptools.command.install:install
+test = setuptools.command.test:test
+install_lib = setuptools.command.install_lib:install_lib
+build_ext = setuptools.command.build_ext:build_ext
+sdist = setuptools.command.sdist:sdist
+

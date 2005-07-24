@@ -11,6 +11,32 @@ from distutils.errors import DistutilsOptionError, DistutilsPlatformError
 from distutils.errors import DistutilsSetupError
 import setuptools, pkg_resources
 
+def get_command_class(self, command):
+    """Pluggable version of get_command_class()"""
+    if command in self.cmdclass:
+        return self.cmdclass[command]
+
+    for dist in pkg_resources.working_set:
+        if dist.get_entry_info('distutils.commands',command):
+            cmdclass = dist.load_entry_point('distutils.commands',command)
+            self.cmdclass[command] = cmdclass
+            return cmdclass
+    else:
+        return _old_get_command_class(self, command)
+
+def print_commands(self):
+    for dist in pkg_resources.working_set:
+        for cmd,ep in dist.get_entry_map('distutils.commands').items():
+            if cmd not in self.cmdclass:
+                cmdclass = ep.load() # don't require extras, we're not running
+                self.cmdclass[cmd] = cmdclass
+    return _old_print_commands(self)
+
+for meth in 'print_commands', 'get_command_class':
+    if getattr(_Distribution,meth).im_func.func_globals is not globals():
+        globals()['_old_'+meth] = getattr(_Distribution,meth)
+        setattr(_Distribution, meth, globals()[meth])
+
 sequence = tuple, list
 
 class Distribution(_Distribution):
@@ -80,6 +106,21 @@ class Distribution(_Distribution):
     distribution for the included and excluded features.
     """
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     def __init__ (self, attrs=None):
         have_package_data = hasattr(self, "package_data")
         if not have_package_data:
@@ -93,15 +134,9 @@ class Distribution(_Distribution):
         self.zip_safe = None
         self.namespace_packages = None
         self.eager_resources = None
+        self.entry_points = None
         _Distribution.__init__(self,attrs)
-        if not have_package_data:
-            from setuptools.command.build_py import build_py
-            self.cmdclass.setdefault('build_py',build_py)
 
-        self.cmdclass.setdefault('build_ext',build_ext)
-        self.cmdclass.setdefault('install',install)
-        self.cmdclass.setdefault('install_lib',install_lib)
-        self.cmdclass.setdefault('sdist',sdist)
 
     def parse_command_line(self):
         """Process features after parsing command line options"""
@@ -114,6 +149,12 @@ class Distribution(_Distribution):
     def _feature_attrname(self,name):
         """Convert feature name to corresponding option attribute name"""
         return 'with_'+name.replace('-','_')
+
+
+
+
+
+
 
 
 
@@ -171,6 +212,12 @@ class Distribution(_Distribution):
                     "namespace package %r" % nsp
                 )
 
+        if self.entry_points is not None:
+            try:
+                pkg_resources.EntryPoint.parse_map(self.entry_points)
+            except ValueError, e:
+                raise DistutilsSetupError(e)
+
     def _set_global_opts_from_features(self):
         """Add --with-X/--without-X options based on optional features"""
 
@@ -194,12 +241,6 @@ class Distribution(_Distribution):
 
         self.global_options = self.feature_options = go + self.global_options
         self.negative_opt = self.feature_negopt = no
-
-
-
-
-
-
 
 
 
@@ -420,7 +461,7 @@ class Distribution(_Distribution):
             src,alias = aliases[command]
             del aliases[command]    # ensure each alias can expand only once!
             import shlex
-            args[:1] = shlex.split(alias,True)            
+            args[:1] = shlex.split(alias,True)
             command = args[0]
 
         nargs = _Distribution._parse_command_opts(self, parser, args)

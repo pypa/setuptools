@@ -12,21 +12,6 @@ The package resource API is designed to work with normal filesystem packages,
 .zip files and with custom PEP 302 loaders that support the ``get_data()``
 method.
 """
-__all__ = [
-    'register_loader_type', 'get_provider', 'IResourceProvider','PathMetadata',
-    'ResourceManager', 'AvailableDistributions', 'require', 'resource_string',
-    'resource_stream', 'resource_filename', 'set_extraction_path', 'EGG_DIST',
-    'cleanup_resources', 'parse_requirements', 'ensure_directory','SOURCE_DIST',
-    'compatible_platforms', 'get_platform', 'IMetadataProvider','parse_version',
-    'ResolutionError', 'VersionConflict', 'DistributionNotFound','EggMetadata',
-    'InvalidOption', 'Distribution', 'Requirement', 'yield_lines',
-    'get_importer', 'find_distributions', 'find_on_path', 'register_finder',
-    'split_sections', 'declare_namespace', 'register_namespace_handler',
-    'safe_name', 'safe_version', 'run_main', 'BINARY_DIST', 'run_script',
-    'get_default_cache', 'EmptyProvider', 'empty_provider', 'normalize_path',
-    'WorkingSet', 'working_set', 'add_activation_listener', 'CHECKOUT_DIST',
-    'list_resources', 'resource_exists', 'resource_isdir',
-]
 
 import sys, os, zipimport, time, re, imp
 from sets import ImmutableSet
@@ -39,6 +24,62 @@ from sets import ImmutableSet
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+__all__ = [
+    # Basic resource access and distribution/entry point discovery
+    'require', 'run_script', 'get_provider',  'get_distribution',
+    'load_entry_point', 'get_entry_map', 'get_entry_info',
+    'resource_string', 'resource_stream', 'resource_filename',
+    'resource_listdir', 'resource_exists', 'resource_isdir',
+
+    # Environmental control
+    'declare_namespace', 'working_set', 'add_activation_listener',
+    'find_distributions', 'set_extraction_path', 'cleanup_resources',
+    'get_default_cache',
+
+    # Primary implementation classes
+    'AvailableDistributions', 'WorkingSet', 'ResourceManager',
+    'Distribution', 'Requirement', 'EntryPoint',
+
+    # Exceptions
+    'ResolutionError','VersionConflict','DistributionNotFound','UnknownExtra',
+
+    # Parsing functions and string utilities
+    'parse_requirements', 'parse_version', 'safe_name', 'safe_version',
+    'get_platform', 'compatible_platforms', 'yield_lines', 'split_sections',
+
+    # filesystem utilities
+    'ensure_directory', 'normalize_path',
+
+    # Distribution "precedence" constants
+    'EGG_DIST', 'BINARY_DIST', 'SOURCE_DIST', 'CHECKOUT_DIST',
+
+    # "Provider" interfaces, implementations, and registration/lookup APIs
+    'IMetadataProvider', 'IResourceProvider',
+    'PathMetadata', 'EggMetadata', 'EmptyProvider', 'empty_provider',
+    'NullProvider', 'EggProvider', 'DefaultProvider', 'ZipProvider',
+    'register_finder', 'register_namespace_handler', 'register_loader_type',
+    'fixup_namespace_packages', 'get_importer',
+
+    # Deprecated/backward compatibility only
+    'run_main',
+]
+
+
 class ResolutionError(Exception):
     """Abstract base for dependency resolution errors"""
 
@@ -48,8 +89,8 @@ class VersionConflict(ResolutionError):
 class DistributionNotFound(ResolutionError):
     """A requested distribution was not found"""
 
-class InvalidOption(ResolutionError):
-    """Invalid or unrecognized option name for a distribution"""
+class UnknownExtra(ResolutionError):
+    """Distribution doesn't have an "extra feature" of the given name"""
 
 _provider_factories = {}
 PY_MAJOR = sys.version[:3]
@@ -172,7 +213,6 @@ def compatible_platforms(provided,required):
     return False
 
 
-
 def run_script(dist_spec, script_name):
     """Locate distribution `dist_spec` and run its `script_name` script"""
     ns = sys._getframe(1).f_globals
@@ -183,24 +223,25 @@ def run_script(dist_spec, script_name):
 
 run_main = run_script   # backward compatibility
 
+def get_distribution(dist):
+    """Return a current distribution object for a Requirement or string"""
+    if isinstance(dist,basestring): dist = Requirement.parse(dist)
+    if isinstance(dist,Requirement): dist = get_provider(dist)
+    if not isintance(dist,Distribution):
+        raise TypeError("Expected string, Requirement, or Distribution", dist)
+    return dist
 
+def load_entry_point(dist, kind, name):
+    """Return the `name` entry point of `kind` for dist or raise ImportError"""
+    return get_distribution(dist).load_entry_point(dist, kind, name)
+    
+def get_entry_map(dist, kind=None):
+    """Return the entry point map for `kind`, or the full entry map"""
+    return get_distribution(dist).get_entry_map(dist, kind)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+def get_entry_info(dist, kind, name):
+    """Return the EntryPoint object for `kind`+`name`, or ``None``"""
+    return get_distribution(dist).get_entry_info(dist, kind, name)
 
 
 class IMetadataProvider:
@@ -647,7 +688,7 @@ class ResourceManager:
             self, resource_name
         )
 
-    def list_resources(self,  package_name, resource_name):
+    def resource_listdir(self,  package_name, resource_name):
         return get_provider(package_name).resource_listdir(resource_name)
 
 
@@ -1008,9 +1049,9 @@ class ZipProvider(EggProvider):
             return fspath[len(self.egg_root)+1:].split(os.sep)
         raise AssertionError(
             "%s is not a subpath of %s" % (fspath,self.egg_root)
-        )           
+        )
 
-    def get_resource_filename(self, manager, resource_name):       
+    def get_resource_filename(self, manager, resource_name):
         if not self.egg_name:
             raise NotImplementedError(
                 "resource_filename() only supported for .egg, not .zip"
@@ -1493,7 +1534,7 @@ VERSION  = re.compile(r"\s*(<=?|>=?|==|!=)\s*((\w|\.)+)").match  # version info
 COMMA    = re.compile(r"\s*,").match               # comma between items
 OBRACKET = re.compile(r"\s*\[").match
 CBRACKET = re.compile(r"\s*\]").match
-
+MODULE   = re.compile(r"\w+(\.\w+)*$").match
 EGG_NAME = re.compile(
     r"(?P<name>[^-]+)"
     r"( -(?P<ver>[^-]+) (-py(?P<pyver>[^-]+) (-(?P<plat>.+))? )? )?",
@@ -1550,6 +1591,131 @@ def parse_version(s):
                 parts.pop()
         parts.append(part)
     return tuple(parts)
+
+
+
+
+
+
+class EntryPoint(object):
+    """Object representing an importable location"""
+
+    def __init__(self, name, module_name, attrs=(), extras=()):
+        if not MODULE(module_name):
+            raise ValueError("Invalid module name", module_name)
+        self.name = name
+        self.module_name = module_name
+        self.attrs = tuple(attrs)
+        self.extras = Requirement.parse(
+            ("x[%s]" % ','.join(extras)).lower()
+        ).extras
+
+    def __str__(self):
+        s = "%s = %s" % (self.name, self.module_name)
+        if self.attrs:
+            s += ':' + '.'.join(self.attrs)
+        if self.extras:
+            s += ' [%s]' % ','.join(self.extras)
+        return s
+
+    def __repr__(self):
+        return "EntryPoint.parse(%r)" % str(self)
+
+    def load(self):
+        entry = __import__(self.module_name, globals(),globals(), ['__name__'])
+        for attr in self.attrs:
+            try:
+                entry = getattr(entry,attr)
+            except AttributeError:
+                raise ImportError("%r has no %r attribute" % (entry,attr))
+        return entry
+
+
+
+
+
+
+
+
+
+    #@classmethod
+    def parse(cls, src):
+        """Parse a single entry point from string `src`
+
+        Entry point syntax follows the form::
+
+            name = some.module:some.attr [extra1,extra2]
+
+        The entry name and module name are required, but the ``:attrs`` and
+        ``[extras]`` parts are optional
+        """
+        try:
+            attrs = extras = ()
+            name,value = src.split('=',1)
+            if '[' in value:
+                value,extras = value.split('[',1)
+                req = Requirement.parse("x["+extras)
+                if req.specs: raise ValueError
+                extras = req.extras
+            if ':' in value:
+                value,attrs = value.split(':',1)
+                if not MODULE(attrs.rstrip()):
+                    raise ValueError
+                attrs = attrs.rstrip().split('.')
+        except ValueError:
+            raise ValueError(
+                "EntryPoint must be in 'name=module:attrs [extras]' format",
+                src
+            )
+        else:
+            return cls(name.strip(), value.lstrip(), attrs, extras)
+
+    parse = classmethod(parse)
+
+
+
+
+
+
+
+
+    #@classmethod
+    def parse_list(cls, section, contents):
+        if not MODULE(section):
+            raise ValueError("Invalid section name", section)
+        this = {}
+        for ep in map(cls.parse, yield_lines(contents)):
+            if ep.name in this:
+                raise ValueError("Duplicate entry point",section,ep.name)
+            this[ep.name]=ep
+        return this
+
+    parse_list = classmethod(parse_list)
+
+    #@classmethod
+    def parse_map(cls, data):
+        if isinstance(data,dict):
+            data = data.items()
+        else:
+            data = split_sections(data)
+        maps = {}
+        for section, contents in data:
+            if section is None:
+                if not contents:
+                    continue
+                raise ValueError("Entry points must be listed in sections")
+            section = section.strip()
+            if section in maps:
+                raise ValueError("Duplicate section name", section)
+            maps[section] = cls.parse_list(section, contents)
+        return maps
+
+    parse_map = classmethod(parse_map)
+
+
+
+
+
 
 
 
@@ -1660,7 +1826,7 @@ class Distribution(object):
             try:
                 deps.extend(dm[ext.lower()])
             except KeyError:
-                raise InvalidOption(
+                raise UnknownExtra(
                     "%s has no such extra feature %r" % (self, ext)
                 )
         return deps
@@ -1716,6 +1882,47 @@ class Distribution(object):
 
     def as_requirement(self):
         return Requirement.parse('%s==%s' % (self.project_name, self.version))
+
+
+
+
+    def load_entry_point(self, kind, name):
+        """Return the `name` entry point of `kind` or raise ImportError"""
+        ep = self.get_entry_info(kind,name)
+        if ep is None:
+            raise ImportError("Entry point %r not found" % ((kind,name),))
+        if ep.extras:
+            # Ensure any needed extras get added to the working set
+            map(working_set.add, working_set.resolve(self.requires(ep.extras)))
+        return ep.load()
+
+    def get_entry_map(self,kind=None):
+        """Return the entry point map for `kind`, or the full entry map"""
+        try:
+            ep_map = self._ep_map
+        except AttributeError:
+            ep_map = self._ep_map = EntryPoint.parse_map(
+                self._get_metadata('entry_points.txt')
+            )
+        if kind is not None:
+            return ep_map.get(kind,{})
+        return ep_map
+
+    def get_entry_info(self, kind, name):
+        """Return the EntryPoint object for `kind`+`name`, or ``None``"""
+        return self.get_entry_map(kind).get(name)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1885,6 +2092,7 @@ def _find_adapter(registry, ob):
 
 
 def ensure_directory(path):
+    """Ensure that the parent directory of `path` exists"""
     dirname = os.path.dirname(path)
     if not os.path.isdir(dirname):
         os.makedirs(dirname)
@@ -1914,7 +2122,6 @@ def split_sections(s):
 
     # wrap up last segment
     yield section, content
-
 
 
 

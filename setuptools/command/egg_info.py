@@ -8,7 +8,7 @@ from setuptools import Command
 from distutils.errors import *
 from distutils import log
 from pkg_resources import parse_requirements, safe_name, \
-    safe_version, yield_lines
+    safe_version, yield_lines, EntryPoint
 from setuptools.dist import iter_distribution_names
 
 class egg_info(Command):
@@ -95,7 +95,7 @@ class egg_info(Command):
                 metadata.write_pkg_info(self.egg_info)
             finally:
                 metadata.name, metadata.version = oldname, oldver
-
+        self.write_entry_points()
         self.write_requirements()
         self.write_toplevel_names()
         self.write_or_delete_dist_arg('namespace_packages')
@@ -183,23 +183,23 @@ class egg_info(Command):
             if not self.dry_run:
                 os.unlink(filename)
 
+    def write_entry_points(self):
+        ep = getattr(self.distribution,'entry_points',None)
+        if ep is None:
+            return
 
+        epname = os.path.join(self.egg_info,"entry_points.txt")
+        log.info("writing %s", epname)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        if not self.dry_run:
+            f = open(epname, 'wt')
+            if isinstance(ep,basestring):
+                f.write(ep)
+            else:
+                for section, contents in ep.items():
+                    if not isinstance(contents,basestring):
+                        contents = EntryPoint.parse_list(section, contents)
+                        contents = '\n'.join(map(str,contents.values()))
+                    f.write('[%s]\n%s\n\n' % (section,contents))
+            f.close()
 

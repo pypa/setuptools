@@ -185,7 +185,7 @@ class DistroTests(TestCase):
             d,"Twisted>=1.5 fcgiapp>=0.1 ZConfig>=2.0 docutils>=0.3".split(),
             ["fastcgi", "docgen"]
         )
-        self.assertRaises(InvalidOption, d.requires, ["foo"])
+        self.assertRaises(UnknownExtra, d.requires, ["foo"])
 
 
 
@@ -201,6 +201,88 @@ class DistroTests(TestCase):
 
 
 
+
+
+class EntryPointTests(TestCase):
+
+    def assertfields(self, ep):
+        self.assertEqual(ep.name,"foo")
+        self.assertEqual(ep.module_name,"setuptools.tests.test_resources")
+        self.assertEqual(ep.attrs, ("EntryPointTests",))
+        self.assertEqual(ep.extras, ("x",))
+        self.failUnless(ep.load() is EntryPointTests)
+        self.assertEqual(
+            str(ep),
+            "foo = setuptools.tests.test_resources:EntryPointTests [x]"
+        )
+
+    def testBasics(self):
+        ep = EntryPoint(
+            "foo", "setuptools.tests.test_resources", ["EntryPointTests"],
+            ["x"]
+        )
+        self.assertfields(ep)
+
+    def testParse(self):
+        s = "foo = setuptools.tests.test_resources:EntryPointTests [x]"
+        ep = EntryPoint.parse(s)
+        self.assertfields(ep)
+
+        ep = EntryPoint.parse("bar baz=  spammity[PING]")
+        self.assertEqual(ep.name,"bar baz")
+        self.assertEqual(ep.module_name,"spammity")
+        self.assertEqual(ep.attrs, ())
+        self.assertEqual(ep.extras, ("ping",))
+
+        ep = EntryPoint.parse(" fizzly =  wocka:foo")
+        self.assertEqual(ep.name,"fizzly")
+        self.assertEqual(ep.module_name,"wocka")
+        self.assertEqual(ep.attrs, ("foo",))
+        self.assertEqual(ep.extras, ())
+
+
+
+
+
+    def testRejects(self):
+        for ep in [
+            "foo", "x=1=2", "x=a:b:c", "q=x/na", "fez=pish:tush-z", "x=f[a]>2",
+        ]:
+            try: EntryPoint.parse(ep)
+            except ValueError: pass
+            else: raise AssertionError("Should've been bad", ep)
+
+    def checkSubMap(self, m):
+        self.assertEqual(str(m),
+            "{"
+            "'feature2': EntryPoint.parse("
+                "'feature2 = another.module:SomeClass [extra1,extra2]'), "
+            "'feature1': EntryPoint.parse("
+                "'feature1 = somemodule:somefunction')"
+            "}"
+        )
+
+    submap_str = """
+            # define features for blah blah
+            feature1 = somemodule:somefunction
+            feature2 = another.module:SomeClass [extra1,extra2]
+    """
+
+    def testParseList(self):
+        self.checkSubMap(EntryPoint.parse_list("xyz", self.submap_str))
+        self.assertRaises(ValueError, EntryPoint.parse_list, "x a", "foo=bar")
+        self.assertRaises(ValueError, EntryPoint.parse_list, "x",
+            ["foo=baz", "foo=bar"])
+
+    def testParseMap(self):
+        m = EntryPoint.parse_map({'xyz':self.submap_str})
+        self.checkSubMap(m['xyz'])
+        self.assertEqual(m.keys(),['xyz'])
+        m = EntryPoint.parse_map("[xyz]\n"+self.submap_str)
+        self.checkSubMap(m['xyz'])
+        self.assertEqual(m.keys(),['xyz'])
+        self.assertRaises(ValueError, EntryPoint.parse_map, ["[xyz]", "[xyz]"])
+        self.assertRaises(ValueError, EntryPoint.parse_map, self.submap_str)
 
 
 class RequirementsTests(TestCase):

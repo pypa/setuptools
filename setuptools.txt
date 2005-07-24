@@ -153,20 +153,19 @@ unless you need the associated ``setuptools`` feature.
     A string or list of strings specifying what other distributions need to
     be installed when this one is.  See the section below on `Declaring
     Dependencies`_ for details and examples of the format of this argument.
-    
+
+``entry_points``
+    A dictionary mapping entry point group names to strings or lists of strings
+    defining the entry points.  Entry points are used to support dynamic
+    discovery of services or plugins provided by a project.  See `Dynamic
+    Discovery of Services and Plugins`_ for details and examples of the format
+    of this argument.
+
 ``extras_require``
     A dictionary mapping names of "extras" (optional features of your project)
     to strings or lists of strings specifying what other distributions must be
     installed to support those features.  See the section below on `Declaring
     Dependencies`_ for details and examples of the format of this argument.
-
-``test_suite``
-    A string naming a ``unittest.TestCase`` subclass (or a module containing
-    one or more of them, or a method of such a subclass), or naming a function
-    that can be called with no arguments and returns a ``unittest.TestSuite``.
-    Specifying this argument enables use of the `test`_ command to run the
-    specified test suite, e.g. via ``setup.py test``.  See the section on the
-    `test`_ command below for more details.
 
 ``namespace_packages``
     A list of strings naming the project's "namespace packages".  A namespace
@@ -179,6 +178,14 @@ unless you need the associated ``setuptools`` feature.
     namespace package, and as long as the namespace package's ``__init__.py``
     does not contain any code.  See the section below on `Namespace Packages`_
     for more information.
+
+``test_suite``
+    A string naming a ``unittest.TestCase`` subclass (or a module containing
+    one or more of them, or a method of such a subclass), or naming a function
+    that can be called with no arguments and returns a ``unittest.TestSuite``.
+    Specifying this argument enables use of the `test`_ command to run the
+    specified test suite, e.g. via ``setup.py test``.  See the section on the
+    `test`_ command below for more details.
 
 ``eager_resources``
     A list of strings naming resources that should be extracted together, if
@@ -516,7 +523,72 @@ either C or an external program that needs "real" files in your project before
 there's any possibility of ``eager_resources`` being relevant to your project.
 
 
+Extensible Applications and Frameworks
+======================================
 
+
+Dynamic Discovery of Services and Plugins
+-----------------------------------------
+
+``setuptools`` supports creating libraries that "plug in" to extensible
+applications and frameworks, by letting you register "entry points" in your
+project that can be imported by the application or framework.
+
+For example, suppose that a blogging tool wants to support plugins
+that provide translation for various file types to the blog's output format.
+The framework might define an "entry point group" called ``blogtool.parsers``,
+and then allow plugins to register entry points for the file extensions they
+support.
+
+This would allow people to create distributions that contain one or more
+parsers for different file types, and then the blogging tool would be able to
+find the parsers at runtime by looking up an entry point for the file
+extension (or mime type, or however it wants to).
+
+Note that if the blogging tool includes parsers for certain file formats, it
+can register these as entry points in its own setup script, which means it
+doesn't have to special-case its built-in formats.  They can just be treated
+the same as any other plugin's entry points would be.
+
+If you're creating a project that plugs in to an existing application or
+framework, you'll need to know what entry points or entry point groups are
+defined by that application or framework.  Then, you can register entry points
+in your setup script.  Here are a few examples of ways you might register an
+``.rst`` file parser entry point in the ``blogtool.parsers`` entry point group,
+for our hypothetical blogging tool::
+
+    setup(
+        # ...
+        entry_points = {'blogtool.parsers': '.rst = some_module:SomeClass'}
+    )
+
+    setup(
+        # ...
+        entry_points = {'blogtool.parsers': ['.rst = some_module:a_func']}
+    )
+
+    setup(
+        # ...
+        entry_points = """
+            [blogtool.parsers]
+            .rst = some.nested.module:SomeClass.some_classmethod [reST]
+        """,
+        extras_require = dict(reST = "Docutils>=0.3.5")
+    )
+
+The ``entry_points`` argument to ``setup()`` accepts either a string with
+``.ini``-style sections, or a dictionary mapping entry point group names to
+either strings or lists of strings containing entry point specifiers.  An
+entry point specifier consists of a name and value, separated by an ``=``
+sign.  The value consists of a dotted module name, optionally followed by a
+``:`` and a dotted identifier naming an object within the module.  It can
+also include a bracketed list of "extras" that are required for the entry
+point to be used.  When the invoking application or framework requests loading
+of an entry point, any requirements implied by the associated extras will be
+passed to ``pkg_resources.require()``, so that an appropriate error message
+can be displayed if the needed package(s) are missing.  (Of course, the
+invoking app or framework can ignore such errors if it wants to make an entry
+point optional if a requirement isn't installed.)
 
 
 "Development Mode"
@@ -1072,12 +1144,13 @@ Last, but not least, the ``develop`` command invokes the ``build_ext -i``
 command to ensure any C extensions in the project have been built and are
 up-to-date, and the ``egg_info`` command to ensure the project's metadata is
 updated (so that the runtime and wrappers know what the project's dependencies
-are).  If you make changes to the project's metadata or C extensions, you
-should rerun the ``develop`` command (or ``egg_info``, or ``build_ext -i``) in
-order to keep the project up-to-date.  If you add or rename any of the
-project's scripts, you should re-run ``develop`` against all relevant staging
-areas to update the wrapper scripts.  Most other kinds of changes to your
-project should not require any build operations or rerunning ``develop``.
+are).  If you make any changes to the project's setup script or C extensions,
+you should rerun the ``develop`` command against all relevant staging areas to
+keep the project's scripts, metadata and extensions up-to-date.  Most other
+kinds of changes to your project should not require any build operations or
+rerunning ``develop``, but keep in mind that even minor changes to the setup
+script (e.g. changing an entry point definition) require you to re-run the
+``develop`` or ``test`` commands to keep the distribution updated.
 
 Here are the options that the ``develop`` command accepts.  Note that they
 affect the project's dependencies as well as the project itself, so if you have
@@ -1442,8 +1515,39 @@ in this page <setuptools?action=subscribe>`_ to see when new documentation is
 added or updated.
 
 
+Adding Commands
+===============
+
+You can create add-on packages that extend setuptools with additional commands
+by defining entry points in the ``distutils.commands`` group.  For example, if
+you wanted to add a ``foo`` command, you might add something like this to your
+setup script::
+
+    setup(
+        # ...
+        entry_points = {
+            "distutils.commands": [
+                "foo = mypackage.some_module:foo",
+            ],
+        },
+    )
+
+Assuming, of course, that the ``foo`` class in ``mypackage.some_module`` is
+a ``setuptools.Command`` subclass.
+
+Once a project containing such entry points has been activated on ``sys.path``,
+(e.g. by running "install" or "develop" with a site-packages installation
+directory) the command(s) will be available to any ``setuptools``-based setup
+scripts.  It is not necessary to use the ``--command-packages`` option or
+to monkeypatch the ``distutils.command`` package to install your commands;
+``setuptools`` automatically adds a wrapper to the distutils to search for
+entry points in the active distributions on ``sys.path``.  In fact, this is
+how setuptools' own commands are installed: the setuptools setup script defines
+entry points for them.
+
+
 Subclassing ``Command``
-=======================
+-----------------------
 
 XXX
 
@@ -1492,8 +1596,14 @@ Release Notes/Change History
  * Fixed ``pkg_resources.resource_exists()`` not working correctly, along with
    some other resource API bugs.
 
+ * Added ``entry_points`` argument to ``setup()``
 
  * Many ``pkg_resources`` API changes and enhancements:
+
+   * Added ``EntryPoint``, ``get_entry_map``, ``load_entry_point``, and
+     ``get_entry_info`` APIs for dynamic plugin discovery.
+
+   * ``list_resources`` is now ``resource_listdir`` (and it actually works)
 
    * Resource API functions like ``resource_string()`` that accepted a package
      name and resource name, will now also accept a ``Requirement`` object in
@@ -1532,7 +1642,8 @@ Release Notes/Change History
 
    * Distribution objects no longer have an ``installed_on()`` method, and the
      ``install_on()`` method is now ``activate()`` (but may go away altogether
-     soon).  The ``depends()`` method has also been renamed to ``requires()``.
+     soon).  The ``depends()`` method has also been renamed to ``requires()``,
+     and ``InvalidOption`` is now ``UnknownExtra``.
 
    * ``find_distributions()`` now takes an additional argument called ``only``,
      that tells it to only yield distributions whose location is the passed-in
