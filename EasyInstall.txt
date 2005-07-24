@@ -88,6 +88,17 @@ extracted in the current directory (New in 0.5a9)::
 
     easy_install .
 
+**Example 7**.  (New in 0.6a1) Find a source distribution or Subversion
+checkout URL for a package, and extract it or check it out to
+``~/projects/sqlobject`` (the name will always be in all-lowercase), where it
+can be examined or edited.  (The package will not be installed, but it can
+easily be installed with ``easy_install ~/projects/sqlobject``.  See `Editing
+and Viewing Source Packages`_ below for more info.)::
+
+    easy_install --editable --build-directory ~/projects SQLObject
+
+Note:
+
 Easy Install accepts URLs, filenames, PyPI package names (i.e., ``distutils``
 "distribution" names), and package+version specifiers.  In each case, it will
 attempt to locate the latest available version that meets your criteria.
@@ -268,6 +279,44 @@ to ``distutils.cfg`` in the ``distutils`` package directory, it will be the
 default compiler for *all* packages you build.  See `Configuration Files`_
 below for a list of the standard configuration file locations, and links to
 more documentation on using distutils configuration files.
+
+
+Editing and Viewing Source Packages
+-----------------------------------
+
+Sometimes a package's source distribution  contains additional documentation,
+examples, configuration files, etc., that are not part of its actual code.  If
+you want to be able to examine these files, you can use the ``--editable``
+option to EasyInstall, and EasyInstall will look for a source distribution
+or Subversion URL for the package, then download and extract it or check it out
+as a subdirectory of the ``--build-directory`` you specify.  If you then wish
+to install the package after editing or configuring it, you can do so by
+rerunning EasyInstall with that directory as the target.
+
+Note that using ``--editable`` stops EasyInstall from actually building or
+installing the package; it just finds, obtains, and possibly unpacks it for
+you.  This allows you to make changes to the package if necessary, and to
+either install it in development mode using ``setup.py develop`` (if the
+package uses setuptools, that is), or by running ``easy_install projectdir``
+(where ``projectdir`` is the subdirectory EasyInstall created for the
+downloaded package.
+
+In order to use ``--editable`` (``-e`` for short), you *must* also supply a
+``--build-directory`` (``-b`` for short).  The project will be placed in a
+subdirectory of the build directory.  The subdirectory will have the same
+name as the project itself, but in all-lowercase.  If a file or directory of
+that name already exists, EasyInstall will print an error message and exit.
+
+Also, when using ``--editable``, you cannot use URLs or filenames as arguments.
+You *must* specify project names (and optional version requirements) so that
+EasyInstall knows what directory name(s) to create.  If you need to force
+EasyInstall to use a particular URL or filename, you should specify it as a
+``--find-links`` item (``-f`` for short), and then also specify
+the project name, e.g.::
+
+    easy_install -eb ~/projects \
+     -fhttp://prdownloads.sourceforge.net/ctypes/ctypes-0.9.6.tar.gz?download \
+     ctypes==0.9.6
 
 
 Dealing with Installation Conflicts
@@ -530,16 +579,26 @@ Command-Line Options
     package, and those download pages will be searched for links to download
     an egg or source distribution.
 
-``--build-directory=DIR, -b DIR`` (New in 0.3a3)
-    Set the directory used to download, extract, and install the package.  The
-    directory is not cleared before or after installation, so the downloaded
-    packages and extracted contents will remain there afterwards, allowing you
-    to read any documentation, examples, scripts, etc. that may have been
-    included with the source distribution (if any).
+``--editable, -e`` (New in 0.6a1)
+    Only find and download source distributions for the specified projects,
+    unpacking them to subdirectories of the specified ``--build-directory``.
+    EasyInstall will not actually build or install the requested projects or
+    their dependencies; it will just find and extract them for you.  See
+    `Editing and Viewing Source Packages`_ above for more details.
+    
+``--build-directory=DIR, -b DIR`` (UPDATED in 0.6a1)
+    Set the directory used to build source packages.  If a package is built
+    from a source distribution or checkout, it will be extracted to a
+    subdirectory of the specified directory.  The subdirectory will have the
+    same name as the extracted distribution's project, but in all-lowercase.
+    If a file or directory of that name already exists in the given directory,
+    a warning will be printed to the console, and the build will take place in
+    a temporary directory instead.
 
-    This option can only be used when you are specifying a single installation
-    URL or filename, so that the installer will not be confused by the presence
-    of multiple ``setup.py`` files in the build directory.
+    This option is most useful in combination with the ``--editable`` option,
+    which forces EasyInstall to *only* find and extract (but not build and
+    install) source distributions.  See `Editing and Viewing Source Packages`_,
+    above, for more information.
 
 ``--verbose, -v, --quiet, -q`` (New in 0.4a4)
     Control the level of detail of EasyInstall's progress messages.  The
@@ -649,6 +708,13 @@ Known Issues
    i.e., all non-alphanumeric runs must be condensed to single underscore
    characters.
 
+ * Added the ``--editable`` option; see `Editing and Viewing Source Packages`_
+   above for more info.  Also, slightly changed the behavior of the
+   ``--build-directory`` option.
+
+ * Fixed the setup script sandbox facility not recognizing certain paths as
+   valid on case-insensitive platforms.
+
 0.5a12
  * Fix ``python -m easy_install`` not working due to setuptools being installed
    as a zipfile.  Update safety scanner to check for modules that might be used
@@ -689,7 +755,7 @@ Known Issues
  * Added the ``--always-unzip/-Z`` option, to force unzipping of packages that
    would ordinarily be considered safe to unzip, and changed the meaning of
    ``--zip-ok/-z`` to "always leave everything zipped".
-   
+
 0.5a8
  * There is now a separate documentation page for `setuptools`_; revision
    history that's not specific to EasyInstall has been moved to that page.

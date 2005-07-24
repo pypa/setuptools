@@ -783,6 +783,14 @@ downloading unless it has a version included in the ``#egg=`` suffix, and
 it's a higher version than EasyInstall has seen in any other links for your
 project.
 
+As a result, it's a common practice to use mark checkout URLs with a version of
+"dev" (i.e., ``#egg=projectname-dev``), so that users can do something like
+this::
+
+    easy_install --editable projectname==dev
+
+in order to check out the in-development version of ``projectname``.
+
 
 Distributing Extensions compiled with Pyrex
 -------------------------------------------

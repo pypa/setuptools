@@ -69,16 +69,16 @@ class easy_install(Command):
          "filename in which to record list of installed files"),
         ('always-unzip', 'Z', "don't install as a zipfile, no matter what"),
         ('site-dirs=','S',"list of directories where .pth files work"),
+        ('editable', 'e', "Install specified packages in editable form"),
     ]
 
     boolean_options = [
         'zip-ok', 'multi-version', 'exclude-scripts', 'upgrade', 'always-copy',
-        'delete-conflicting', 'ignore-conflicts-at-my-risk',
+        'delete-conflicting', 'ignore-conflicts-at-my-risk', 'editable',
     ]
 
     negative_opt = {'always-unzip': 'zip-ok'}
     create_index = PackageIndex
-
 
     def initialize_options(self):
         self.zip_ok = None
@@ -89,6 +89,8 @@ class easy_install(Command):
         self.args = None
         self.optimize = self.record = None
         self.upgrade = self.always_copy = self.multi_version = None
+        self.editable = None
+
         # Options not specifiable via command line
         self.package_index = None
         self.pth_file = None
@@ -104,8 +106,6 @@ class easy_install(Command):
                     shutil.rmtree(filename)
                 else:
                     os.unlink(filename)
-
-
 
 
 
@@ -203,25 +203,16 @@ class easy_install(Command):
                 "--ignore-conflicts-at-my-risk at the same time"
             )
 
+        if self.editable and not self.build_directory:
+            raise DistutilsArgError(
+                "Must specify a build directory (-b) when using --editable"
+            )
+
         if not self.args:
             raise DistutilsArgError(
                 "No urls, filenames, or requirements specified (see --help)")
 
-        elif len(self.args)>1 and self.build_directory is not None:
-            raise DistutilsArgError(
-                "Build directory can only be set when using one URL"
-            )
-
         self.outputs = []
-
-
-    def alloc_tmp(self):
-        if self.build_directory is None:
-            return tempfile.mkdtemp(prefix="easy_install-")
-        tmpdir = os.path.realpath(self.build_directory)
-        if not os.path.isdir(tmpdir):
-            os.makedirs(tmpdir)
-        return tmpdir
 
 
     def run(self):
@@ -244,6 +235,15 @@ class easy_install(Command):
 
 
 
+
+
+
+
+
+
+
+
+
     def add_output(self, path):
         if os.path.isdir(path):
             for base, dirs, files in os.walk(path):
@@ -252,6 +252,24 @@ class easy_install(Command):
         else:
             self.outputs.append(path)
 
+    def not_editable(self, spec):
+        if self.editable:
+            raise DistutilsArgError(
+                "Invalid argument %r: you can't use filenames or URLs "
+                "with --editable (except via the --find-links option)."
+                % (spec,)
+            )
+
+    def check_editable(self,spec):
+        if not self.editable:
+            return
+
+        if os.path.exists(os.path.join(self.build_directory, spec.key)):
+            raise DistutilsArgError(
+                "%r already exists in %s; can't do a checkout there" %
+                (spec.key, self.build_directory)
+            )
+            
 
 
 
@@ -263,55 +281,33 @@ class easy_install(Command):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        
 
 
 
     def easy_install(self, spec):
-        tmpdir = self.alloc_tmp()
+        tmpdir = tempfile.mkdtemp(prefix="easy_install-")
         download = None
 
         try:
             if not isinstance(spec,Requirement):
                 if URL_SCHEME(spec):
                     # It's a url, download it to tmpdir and process
+                    self.not_editable(spec)
                     download = self.package_index.download(spec, tmpdir)
                     return self.install_item(None, download, tmpdir, True)
 
                 elif os.path.exists(spec):
                     # Existing file or directory, just process it directly
+                    self.not_editable(spec)
                     return self.install_item(None, spec, tmpdir, True)
                 else:
-                    try:
-                        spec = Requirement.parse(spec)
-                    except ValueError:
-                        raise DistutilsError(
-                            "Not a URL, existing file, or requirement spec: %r"
-                            % (spec,)
-                        )
+                    spec = parse_requirement_arg(spec)
 
-            if isinstance(spec, Requirement):
-                download = self.package_index.fetch(spec, tmpdir, self.upgrade)
-            else:
-                spec = None
+            self.check_editable(spec)
+            download = self.package_index.fetch(
+                spec, tmpdir, self.upgrade, self.editable
+            )
 
             if download is None:
                 raise DistutilsError(
@@ -321,8 +317,12 @@ class easy_install(Command):
             return self.install_item(spec, download, tmpdir)
 
         finally:
-            if self.build_directory is None:
+            if os.path.exists(tmpdir):
                 shutil.rmtree(tmpdir)
+
+
+
+
 
 
 
@@ -332,7 +332,7 @@ class easy_install(Command):
         install_needed = install_needed or not download.endswith('.egg')
         log.info("Processing %s", os.path.basename(download))
         if install_needed or self.always_copy:
-            dists = self.install_eggs(download, tmpdir)
+            dists = self.install_eggs(spec, download, tmpdir)
             for dist in dists:
                 self.process_distribution(spec, dist)
         else:
@@ -386,28 +386,28 @@ class easy_install(Command):
             return True
         return False
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def maybe_move(self, spec, dist_filename, setup_base):
+        dst = os.path.join(self.build_directory, spec.key)
+        if os.path.exists(dst):
+            log.warn(
+               "%r already exists in %s; build directory %s will not be kept",
+               spec.key, self.build_directory, setup_base
+            )
+            return setup_base
+        if os.path.isdir(dist_filename):
+            setup_base = dist_filename
+        else:
+            if os.path.dirname(dist_filename)==setup_base:
+                os.unlink(dist_filename)   # get it out of the tmp dir
+            contents = os.listdir(setup_base)
+            if len(contents)==1:
+                dist_filename = os.path.join(setup_base,contents[0])
+                if os.path.isdir(dist_filename):
+                    # if the only thing there is a directory, move it instead
+                    setup_base = dist_filename
+        ensure_directory(dst); shutil.move(setup_base, dst)
+        return dst
+        
     def install_script(self, dist, script_name, script_text, dev_path=None):
         log.info("Installing %s script to %s", script_name,self.script_dir)
         target = os.path.join(self.script_dir, script_name)
@@ -449,7 +449,7 @@ class easy_install(Command):
                 pass
 
 
-    def install_eggs(self, dist_filename, tmpdir):
+    def install_eggs(self, spec, dist_filename, tmpdir):
         # .egg dirs or files are already built, so just return them
         if dist_filename.lower().endswith('.egg'):
             return [self.install_egg(dist_filename, tmpdir)]
@@ -461,7 +461,11 @@ class easy_install(Command):
         if os.path.isfile(dist_filename):
             unpack_archive(dist_filename, tmpdir, self.unpack_progress)
         elif os.path.isdir(dist_filename):
+            # note that setup_base==tmpdir here if this is a svn checkout
             setup_base = os.path.abspath(dist_filename)
+
+        if setup_base==tmpdir and self.build_directory and spec is not None:
+            setup_base = self.maybe_move(spec, dist_filename, setup_base)
 
         # Find the setup.py file
         setup_script = os.path.join(setup_base, 'setup.py')
@@ -479,15 +483,11 @@ class easy_install(Command):
             setup_script = setups[0]
 
         # Now run it, and return the result
-        return self.build_and_install(setup_script, setup_base)
-
-
-
-
-
-
-
-
+        if self.editable:
+            log.warn(self.report_editable(spec, setup_script))
+            return []
+        else:
+            return self.build_and_install(setup_script, setup_base)
 
 
     def egg_distribution(self, egg_path):
@@ -723,24 +723,24 @@ PYTHONPATH, or by being added to sys.path by your code.)
         version = dist.version
         return msg % locals()
 
+    def report_editable(self, spec, setup_script):
+        dirname = os.path.dirname(setup_script)
+        python = sys.executable
+        return """\nExtracted editable version of %(spec)s to %(dirname)s
 
+If it uses setuptools in its setup script, you can activate it in
+"development" mode by going to that directory and running::
 
+    %(python)s setup.py --develop
 
+See the setuptools documentation for the "develop" command for more info.
+""" % locals()
 
-
-
-
-
-
-
-
-
-
-    def build_and_install(self, setup_script, setup_base):
+    def run_setup(self, setup_script, setup_base, args):
         sys.modules.setdefault('distutils.command.bdist_egg', bdist_egg)
-        sys.modules.setdefault('distutils.command.bdist_egg', egg_info)
+        sys.modules.setdefault('distutils.command.egg_info', egg_info)
 
-        args = ['bdist_egg', '--dist-dir']
+        args = list(args)
         if self.verbose>2:
             v = 'v' * self.verbose - 1
             args.insert(0,'-'+v)
@@ -748,31 +748,31 @@ PYTHONPATH, or by being added to sys.path by your code.)
             args.insert(0,'-q')
         if self.dry_run:
             args.insert(0,'-n')
+        log.info(
+            "Running %s %s", setup_script[len(setup_base)+1:], ' '.join(args)
+        )
+        try:
+            run_setup(setup_script, args)
+        except SystemExit, v:
+            raise DistutilsError("Setup script exited with %s" % (v.args[0],))
 
-        dist_dir = tempfile.mkdtemp(prefix='egg-dist-tmp-', dir=os.path.dirname(setup_script))
+    def build_and_install(self, setup_script, setup_base):
+        args = ['bdist_egg', '--dist-dir']
+        dist_dir = tempfile.mkdtemp(
+            prefix='egg-dist-tmp-', dir=os.path.dirname(setup_script)
+        )
         try:
             args.append(dist_dir)
-            log.info(
-                "Running %s %s", setup_script[len(setup_base)+1:],
-                ' '.join(args)
-            )
-            try:
-                run_setup(setup_script, args)
-            except SystemExit, v:
-                raise DistutilsError(
-                    "Setup script exited with %s" % (v.args[0],)
-                )
-
+            self.run_setup(setup_script, setup_base, args)
+            all_eggs = AvailableDistributions([dist_dir])
             eggs = []
-            for egg in glob(os.path.join(dist_dir,'*.egg')):
-                eggs.append(self.install_egg(egg, setup_base))
-
+            for key in eggs:
+                for dist in eggs[key]:
+                    eggs.append(self.install_egg(egg, setup_base))
             if not eggs and not self.dry_run:
                 log.warn("No eggs found in %s (setup script problem?)",
                     dist_dir)
-
             return eggs
-
         finally:
             shutil.rmtree(dist_dir)
             log.set_verbosity(self.verbose) # restore our log verbosity
@@ -1010,13 +1010,13 @@ def get_exe_prefixes(exe_filename):
     return prefixes
 
 
-
-
-
-
-
-
-
+def parse_requirement_arg(spec):
+    try:
+        return Requirement.parse(spec)
+    except ValueError:
+        raise DistutilsError(
+            "Not a URL, existing file, or requirement spec: %r" % (spec,)
+        )
 
 
 

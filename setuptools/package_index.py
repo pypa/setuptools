@@ -318,7 +318,7 @@ class PackageIndex(AvailableDistributions):
                         (spec,)
                     )
 
-        return self.fetch(spec, tmpdir, force_scan)
+        return self.fetch(spec, tmpdir)
 
 
 
@@ -326,7 +326,7 @@ class PackageIndex(AvailableDistributions):
 
 
 
-    def fetch(self, requirement, tmpdir, force_scan=False):
+    def fetch(self, requirement, tmpdir, force_scan=False, source=False):
         """Obtain a file suitable for fulfilling `requirement`
 
         `requirement` must be a ``pkg_resources.Requirement`` instance.
@@ -336,35 +336,35 @@ class PackageIndex(AvailableDistributions):
         the return value is the same as if you had called the ``download()``
         method with the matching distribution's URL.  If no matching
         distribution is found, returns ``None``.
-        """
 
+        If the `source` flag is set, only source distributions and source
+        checkout links will be considered.
+        """
         # process a Requirement
         self.info("Searching for %s", requirement)
 
+        def find(req):
+            for dist in self.get(req.key, ()):
+                if dist in req and (dist.precedence<=SOURCE_DIST or not source):
+                    self.info("Best match: %s", dist)
+                    return self.download(dist.location, tmpdir)
+            
         if force_scan:
             self.find_packages(requirement)
+            dist = find(requirement)
+        else:
+            dist = find(requirement)
+            if dist is None:
+                self.find_packages(requirement)
+                dist = find(requirement)
 
-        dist = self.best_match(requirement, WorkingSet([]))     # XXX
-
-        if dist is not None:
-            self.info("Best match: %s", dist)
-            return self.download(dist.location, tmpdir)
-
-        self.warn(
-            "No local packages or download links found for %s", requirement
-        )
-        return None
-
-
-
-
-
-
-
-
-
-
-
+        if dist is None:
+            self.warn(
+                "No local packages or download links found for %s%s",
+                (source and "a source distribution of " or ""),
+                requirement,
+            )
+        return dist
 
 
     dl_blocksize = 8192
