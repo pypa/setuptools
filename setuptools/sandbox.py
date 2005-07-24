@@ -150,7 +150,7 @@ class DirectorySandbox(AbstractSandbox):
     ])
 
     def __init__(self,sandbox):
-        self._sandbox = os.path.realpath(sandbox)
+        self._sandbox = os.path.normcase(os.path.realpath(sandbox))
         self._prefix = os.path.join(self._sandbox,'')
         AbstractSandbox.__init__(self)
 
@@ -169,7 +169,7 @@ class DirectorySandbox(AbstractSandbox):
         active = self._active
         try:
             self._active = False
-            realpath = os.path.realpath(path)
+            realpath = os.path.normcase(os.path.realpath(path))
             if realpath==self._sandbox or realpath.startswith(self._prefix):
                 return True
         finally:
