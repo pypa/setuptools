@@ -146,7 +146,7 @@ class DistroTests(TestCase):
         # Request an extra that causes an unresolved dependency for "Baz"
         self.assertRaises(
             DistributionNotFound, ws.resolve,parse_requirements("Foo[bar]"), ad
-        )      
+        )
         Baz = Distribution.from_filename(
             "/foo_dir/Baz-2.1.egg", metadata=Metadata(('depends.txt', "Foo"))
         )
@@ -332,7 +332,7 @@ class ParseTests(TestCase):
         self.assertEqual(safe_version("2.3.4 20050521"), "2.3.4.20050521")
         self.assertEqual(safe_version("Money$$$Maker"), "Money-Maker")
         self.assertEqual(safe_version("peak.web"), "peak.web")
-        
+
     def testSimpleRequirements(self):
         self.assertEqual(
             list(parse_requirements('Twis-Ted>=1.2-1')),

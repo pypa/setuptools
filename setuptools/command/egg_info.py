@@ -96,13 +96,13 @@ class egg_info(Command):
             finally:
                 metadata.name, metadata.version = oldname, oldver
 
-        self.write_namespace_packages()
         self.write_requirements()
         self.write_toplevel_names()
-
+        self.write_or_delete_dist_arg('namespace_packages')
+        self.write_or_delete_dist_arg('eager_resources')
         if os.path.exists(os.path.join(self.egg_info,'depends.txt')):
             log.warn(
-                "WARNING: 'depends.txt' will not be used by setuptools 0.6!\n"
+                "WARNING: 'depends.txt' is not used by setuptools 0.6!\n"
                 "Use the install_requires/extras_require setup() args instead."
             )
 
@@ -162,18 +162,19 @@ class egg_info(Command):
 
 
 
-    def write_namespace_packages(self):
-        nsp = getattr(self.distribution,'namespace_packages',None)
-        if nsp is None:
+    def write_or_delete_dist_arg(self, argname, filename=None):
+        value = getattr(self.distribution, argname, None)
+        if value is None:
             return
 
-        filename = os.path.join(self.egg_info,"namespace_packages.txt")
+        filename = filename or argname+'.txt'
+        filename = os.path.join(self.egg_info,filename)
 
-        if nsp:
+        if value:
             log.info("writing %s", filename)
             if not self.dry_run:
                 f = open(filename, 'wt')
-                f.write('\n'.join(nsp))
+                f.write('\n'.join(value))
                 f.write('\n')
                 f.close()
 
@@ -181,7 +182,6 @@ class egg_info(Command):
             log.info("deleting %s", filename)
             if not self.dry_run:
                 os.unlink(filename)
-
 
 
 

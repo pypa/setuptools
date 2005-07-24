@@ -25,11 +25,11 @@ __all__ = [
     'safe_name', 'safe_version', 'run_main', 'BINARY_DIST', 'run_script',
     'get_default_cache', 'EmptyProvider', 'empty_provider', 'normalize_path',
     'WorkingSet', 'working_set', 'add_activation_listener', 'CHECKOUT_DIST',
+    'list_resources', 'resource_exists', 'resource_isdir',
 ]
 
 import sys, os, zipimport, time, re, imp
 from sets import ImmutableSet
-
 
 
 
@@ -68,17 +68,17 @@ def register_loader_type(loader_type, provider_factory):
     """
     _provider_factories[loader_type] = provider_factory
 
-def get_provider(moduleName):
-    """Return an IResourceProvider for the named module"""
+def get_provider(moduleOrReq):
+    """Return an IResourceProvider for the named module or requirement"""
+    if isinstance(moduleOrReq,Requirement):
+        return working_set.find(moduleOrReq) or require(str(moduleOrReq))[0]
     try:
-        module = sys.modules[moduleName]
+        module = sys.modules[moduleOrReq]
     except KeyError:
-        __import__(moduleName)
-        module = sys.modules[moduleName]
+        __import__(moduleOrReq)
+        module = sys.modules[moduleOrReq]
     loader = getattr(module, '__loader__', None)
     return _find_adapter(_provider_factories, loader)(module)
-
-
 
 def _macosx_vers(_cache=[]):
     if not _cache:
@@ -627,7 +627,7 @@ class ResourceManager:
 
     def resource_isdir(self, package_name, resource_name):
         """Does the named resource exist in the named package?"""
-        return get_provider(package_name).resource_isdir(self, resource_name)
+        return get_provider(package_name).resource_isdir(resource_name)
 
     def resource_filename(self, package_name, resource_name):
         """Return a true filesystem path for specified resource"""
@@ -648,7 +648,7 @@ class ResourceManager:
         )
 
     def list_resources(self,  package_name, resource_name):
-        return get_provider(package_name).resource_listdir(self, resource_name)
+        return get_provider(package_name).resource_listdir(resource_name)
 
 
 
@@ -913,8 +913,8 @@ class NullProvider:
 register_loader_type(object, NullProvider)
 
 
-class DefaultProvider(NullProvider):
-    """Provides access to package resources in the filesystem"""
+class EggProvider(NullProvider):
+    """Provider based on a virtual filesystem"""
 
     def __init__(self,module):
         NullProvider.__init__(self,module)
@@ -925,21 +925,27 @@ class DefaultProvider(NullProvider):
         # of multiple eggs; that's why we use module_path instead of .archive
         path = self.module_path
         old = None
-        self.prefix = []
         while path!=old:
             if path.lower().endswith('.egg'):
                 self.egg_name = os.path.basename(path)
                 self.egg_info = os.path.join(path, 'EGG-INFO')
+                self.egg_root = path
                 break
             old = path
             path, base = os.path.split(path)
-            self.prefix.append(base)
-        self.prefix.reverse()
+
+
+
+
+
+
+
+
+class DefaultProvider(EggProvider):
+    """Provides access to package resources in the filesystem"""
 
     def _has(self, path):
         return os.path.exists(path)
-
-
 
     def _isdir(self,path):
         return os.path.isdir(path)
@@ -976,67 +982,63 @@ empty_provider = EmptyProvider()
 
 
 
-
-
-
-
-
-
-class ZipProvider(DefaultProvider):
+class ZipProvider(EggProvider):
     """Resource support for zips and eggs"""
 
     eagers = None
 
     def __init__(self, module):
-        DefaultProvider.__init__(self,module)
+        EggProvider.__init__(self,module)
         self.zipinfo = zipimport._zip_directory_cache[self.loader.archive]
         self.zip_pre = self.loader.archive+os.sep
 
-    def _short_name(self, path):
-        if path.startswith(self.zip_pre):
-            return path[len(self.zip_pre):]
-        return path
+    def _zipinfo_name(self, fspath):
+        # Convert a virtual filename (full path to file) into a zipfile subpath
+        # usable with the zipimport directory cache for our target archive
+        if fspath.startswith(self.zip_pre):
+            return fspath[len(self.zip_pre):]
+        raise AssertionError(
+            "%s is not a subpath of %s" % (fspath,self.zip_pre)
+        )
 
-    def get_resource_stream(self, manager, resource_name):
-        return StringIO(self.get_resource_string(manager, resource_name))
+    def _parts(self,zip_path):
+        # Convert a zipfile subpath into an egg-relative path part list
+        fspath = self.zip_pre+zip_path  # pseudo-fs path
+        if fspath.startswith(self.egg_root+os.sep):
+            return fspath[len(self.egg_root)+1:].split(os.sep)
+        raise AssertionError(
+            "%s is not a subpath of %s" % (fspath,self.egg_root)
+        )           
 
-    def get_resource_filename(self, manager, resource_name):
+    def get_resource_filename(self, manager, resource_name):       
         if not self.egg_name:
             raise NotImplementedError(
                 "resource_filename() only supported for .egg, not .zip"
             )
-
         # no need to lock for extraction, since we use temp names
+        zip_path = self._resource_to_zip(resource_name)
         eagers = self._get_eager_resources()
-        if resource_name in eagers:
+        if '/'.join(self._parts(zip_path)) in eagers:
             for name in eagers:
-                self._extract_resource(manager, name)
+                self._extract_resource(manager, self._eager_to_zip(name))
+        return self._extract_resource(manager, zip_path)
 
-        return self._extract_resource(manager, resource_name)
+    def _extract_resource(self, manager, zip_path):
+        if zip_path in self._index():
+            for name in self._index()[zip_path]:
+                last = self._extract_resource(
+                    manager, os.path.join(zip_path, name)
+                )
+            return os.path.dirname(last)  # return the extracted directory name
 
-    def _extract_directory(self, manager, resource_name):
-        if resource_name.endswith('/'):
-            resource_name = resource_name[:-1]
-        for resource in self.resource_listdir(resource_name):
-            last = self._extract_resource(manager, resource_name+'/'+resource)
-        return os.path.dirname(last)    # return the directory path
-
-
-
-    def _extract_resource(self, manager, resource_name):
-        if self.resource_isdir(resource_name):
-            return self._extract_directory(manager, resource_name)
-
-        parts = resource_name.split('/')
-        zip_path = os.path.join(self.module_path, *parts)
-        zip_stat = self.zipinfo[os.path.join(*self.prefix+parts)]
+        zip_stat = self.zipinfo[zip_path]
         t,d,size = zip_stat[5], zip_stat[6], zip_stat[3]
         date_time = (
             (d>>9)+1980, (d>>5)&0xF, d&0x1F,                      # ymd
             (t&0xFFFF)>>11, (t>>5)&0x3F, (t&0x1F) * 2, 0, 0, -1   # hms, etc.
         )
         timestamp = time.mktime(date_time)
-        real_path = manager.get_cache_path(self.egg_name, self.prefix+parts)
+        real_path = manager.get_cache_path(self.egg_name, self._parts(zip_path))
 
         if os.path.isfile(real_path):
             stat = os.stat(real_path)
@@ -1060,9 +1062,7 @@ class ZipProvider(DefaultProvider):
                     # so we're done
                     return real_path
             raise
-
         return real_path
-
 
     def _get_eager_resources(self):
         if self.eagers is None:
@@ -1077,12 +1077,9 @@ class ZipProvider(DefaultProvider):
         try:
             return self._dirindex
         except AttributeError:
-            ind = {}; skip = len(self.prefix)
+            ind = {}
             for path in self.zipinfo:
                 parts = path.split(os.sep)
-                if parts[:skip] != self.prefix:
-                    continue    # only include items under our prefix
-                parts = parts[skip:]   # but don't include prefix in paths
                 while parts:
                     parent = '/'.join(parts[:-1])
                     if parent in ind:
@@ -1093,28 +1090,31 @@ class ZipProvider(DefaultProvider):
             self._dirindex = ind
             return ind
 
-    def _has(self, path):
-        return self._short_name(path) in self.zipinfo or self._isdir(path)
+    def _has(self, fspath):
+        zip_path = self._zipinfo_name(fspath)
+        return zip_path in self.zipinfo or zip_path in self._index()
 
-    def _isdir(self,path):
-        return self._dir_name(path) in self._index()
+    def _isdir(self,fspath):
+        return self._zipinfo_name(fspath) in self._index()
 
-    def _listdir(self,path):
-        return list(self._index().get(self._dir_name(path), ()))
-
-
+    def _listdir(self,fspath):
+        return list(self._index().get(self._zipinfo_name(fspath), ()))
 
 
-    def _dir_name(self,path):
-        if path.startswith(self.module_path+os.sep):
-            path = path[len(self.module_path+os.sep):]
-        path = path.replace(os.sep,'/')
-        if path.endswith('/'): path = path[:-1]
-        return path
 
-    _get = NullProvider._get
+
+
+
+    def _eager_to_zip(self,resource_name):
+        return self._zipinfo_name(self._fn(self.egg_root,resource_name))
+
+    def _resource_to_zip(self,resource_name):
+        return self._zipinfo_name(self._fn(self.module_path,resource_name))
 
 register_loader_type(zipimport.zipimporter, ZipProvider)
+
+
+
 
 
 

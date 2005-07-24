@@ -180,6 +180,22 @@ unless you need the associated ``setuptools`` feature.
     does not contain any code.  See the section below on `Namespace Packages`_
     for more information.
 
+``eager_resources``
+    A list of strings naming resources that should be extracted together, if
+    any of them is needed, or if any C extensions included in the project are
+    imported.  This argument is only useful if the project will be installed as
+    a zipfile, and there is a need to have all of the listed resources be
+    extracted to the filesystem *as a unit*.  Resources listed here
+    should be '/'-separated paths, relative to the source root, so to list a
+    resource ``foo.png`` in package ``bar.baz``, you would include the string
+    ``bar/baz/foo.png`` in this argument.
+
+    If you only need to obtain resources one at a time, or you don't have any C
+    extensions that access other files in the project (such as data files or
+    shared libraries), you probably do NOT need this argument and shouldn't
+    mess with it.  For more details on how this argument works, see the section
+    below on `Automatic Resource Extraction`_.
+
 
 Using ``find_packages()``
 -------------------------
@@ -414,6 +430,7 @@ python.org website.)
 __ http://docs.python.org/dist/node11.html 
 
 
+
 Accessing Data Files at Runtime
 -------------------------------
 
@@ -430,6 +447,76 @@ a quick example of converting code that uses ``__file__`` to use
 
 .. _Resource Management API: http://peak.telecommunity.com/DevCenter/PythonEggs#resource-management
 .. _Accessing Package Resources: http://peak.telecommunity.com/DevCenter/PythonEggs#accessing-package-resources
+
+
+Non-Package Data Files
+----------------------
+
+The ``distutils`` normally install general "data files" to a platform-specific
+location (e.g. ``/usr/share``).  This feature intended to be used for things
+like documentation, example configuration files, and the like.  ``setuptools``
+does not install these data files in a separate location, however.  They are
+bundled inside the egg file or directory, alongside the Python modules and
+packages.  The data files can also be accessed using the `Resource Management
+API`_, by specifying a ``Requirement`` instead of a package name::
+
+    from pkg_resources import Requirement, resource_filename
+    filename = resource_filename(Requirement.parse("MyProject"),"sample.conf")
+
+The above code will obtain the filename of the "sample.conf" file in the data
+root of the "MyProject" distribution.
+
+Note, by the way, that this encapsulation of data files means that you can't
+actually install data files to some arbitrary location on a user's machine;
+this is a feature, not a bug.  You can always include a script in your
+distribution that extracts and copies your the documentation or data files to
+a user-specified location, at their discretion.  If you put related data files
+in a single directory, you can use ``resource_filename()`` with the directory
+name to get a filesystem directory that then can be copied with the ``shutil``
+module.  (Even if your package is installed as a zipfile, calling
+``resource_filename()`` on a directory will return an actual filesystem
+directory, whose contents will be that entire subtree of your distribution.)
+
+(Of course, if you're writing a new package, you can just as easily place your
+data files or directories inside one of your packages, rather than using the
+distutils' approach.  However, if you're updating an existing application, it
+may be simpler not to change the way it currently specifies these data files.)
+
+
+Automatic Resource Extraction
+-----------------------------
+
+If you are using tools that expect your resources to be "real" files, or your
+project includes non-extension native libraries or other files that your C
+extensions expect to be able to access, you may need to list those files in
+the ``eager_resources`` argument to ``setup()``, so that the files will be
+extracted together, whenever a C extension in the project is imported.  This
+is especially important if your project includes shared libraries *other* than
+distutils-built C extensions.  Those shared libraries should be listed as
+``eager_resources``, because they need to be present in the filesystem when the
+C extensions that link to them are used.
+
+The ``pkg_resources`` runtime for compressed packages will automatically
+extract *all* C extensions and ``eager_resources`` at the same time, whenever
+*any* C extension or eager resource is requested via the ``resource_filename()``
+API.  (C extensions are imported using ``resource_filename()`` internally.)
+This ensures that C extensions will see all of the "real" files that they
+expect to see.
+
+Note also that you can list directory resource names in ``eager_resources`` as
+well, in which case the directory's contents (including subdirectories) will be
+extracted whenever any C extension or eager resource is requested.
+
+Please note that if you're not sure whether you need to use this argument, you
+don't!  It's really intended to support projects with lots of non-Python
+dependencies and as a last resort for crufty projects that can't otherwise
+handle being compressed.  If your package is pure Python, Python plus data
+files, or Python plus C, you really don't need this.  You've got to be using
+either C or an external program that needs "real" files in your project before
+there's any possibility of ``eager_resources`` being relevant to your project.
+
+
+
 
 
 "Development Mode"
@@ -1396,13 +1483,31 @@ Release Notes/Change History
  * Fixed the ``--tag-svn-revision`` option of ``egg_info`` not finding the
    latest revision number; it was using the revision number of the directory
    containing ``setup.py``, not the highest revision number in the project.
+
+ * Added ``eager_resources`` setup argument
    
  * Fixed some problems using ``pkg_resources`` w/PEP 302 loaders other than
-   ``zipimport``.
-   
- * Fixed ``pkg_resources.resource_exists()`` not working correctly.
+   ``zipimport``, and the previously-broken "eager resource" support.
+
+ * Fixed ``pkg_resources.resource_exists()`` not working correctly, along with
+   some other resource API bugs.
+
 
  * Many ``pkg_resources`` API changes and enhancements:
+
+   * Resource API functions like ``resource_string()`` that accepted a package
+     name and resource name, will now also accept a ``Requirement`` object in
+     place of the package name (to allow access to non-package data files in
+     an egg).
+
+   * ``get_provider()`` will now accept a ``Requirement`` instance or a module
+     name.  If it is given a ``Requirement``, it will return a corresponding
+     ``Distribution`` (by calling ``require()`` if a suitable distribution
+     isn't already in the working set), rather than returning a metadata and
+     resource provider for a specific module.  (The difference is in how
+     resource paths are interpreted; supplying a module name means resources
+     path will be module-relative, rather than relative to the distribution's
+     root.)
 
    * ``Distribution`` objects now implement the ``IResourceProvider`` and
      ``IMetadataProvider`` interfaces, so you don't need to reference the (no

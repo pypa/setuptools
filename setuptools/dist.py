@@ -92,6 +92,7 @@ class Distribution(_Distribution):
         self.dist_files = []
         self.zip_safe = None
         self.namespace_packages = None
+        self.eager_resources = None
         _Distribution.__init__(self,attrs)
         if not have_package_data:
             from setuptools.command.build_py import build_py
@@ -120,16 +121,18 @@ class Distribution(_Distribution):
 
 
 
-
     def finalize_options(self):
         _Distribution.finalize_options(self)
+
         if self.features:
             self._set_global_opts_from_features()
+
         if self.extra_path:
             raise DistutilsSetupError(
                 "The 'extra_path' parameter is not needed when using "
                 "setuptools.  Please remove it from your setup script."
             )
+
         try:
             list(pkg_resources.parse_requirements(self.install_requires))
         except (TypeError,ValueError):
@@ -137,6 +140,7 @@ class Distribution(_Distribution):
                 "'install_requires' must be a string or list of strings "
                 "containing valid project/version requirement specifiers"
             )
+
         try:
             for k,v in self.extras_require.items():
                 list(pkg_resources.parse_requirements(v))
@@ -146,21 +150,26 @@ class Distribution(_Distribution):
                 "strings or lists of strings containing valid project/version "
                 "requirement specifiers."
             )
-        if self.namespace_packages is not None:
-            try:
-                assert ''.join(self.namespace_packages)!=self.namespace_packages
-            except (TypeError,ValueError,AttributeError,AssertionError):
-                raise DistutilsSetupError(
-                    "'namespace_packages' must be a sequence of strings"
-                )
-            for nsp in self.namespace_packages:
-                for name in iter_distribution_names(self):
-                    if name.startswith(nsp+'.'): break
-                else:
+
+        for attr in 'namespace_packages','eager_resources':
+            value = getattr(self,attr,None)
+            if value is not None:
+                try:
+                    assert ''.join(value)!=value
+                except (TypeError,ValueError,AttributeError,AssertionError):
                     raise DistutilsSetupError(
-                        "Distribution contains no modules or packages for " +
-                        "namespace package %r" % nsp
+                        "%r must be a list of strings (got %r)" % (attr,value)
                     )
+
+
+        for nsp in self.namespace_packages or ():
+            for name in iter_distribution_names(self):
+                if name.startswith(nsp+'.'): break
+            else:
+                raise DistutilsSetupError(
+                    "Distribution contains no modules or packages for " +
+                    "namespace package %r" % nsp
+                )
 
     def _set_global_opts_from_features(self):
         """Add --with-X/--without-X options based on optional features"""
@@ -186,6 +195,14 @@ class Distribution(_Distribution):
         self.global_options = self.feature_options = go + self.global_options
         self.negative_opt = self.feature_negopt = no
 
+
+
+
+
+
+
+
+
     def _finalize_features(self):
         """Add/remove features and resolve dependencies between them"""
 
@@ -202,6 +219,30 @@ class Distribution(_Distribution):
             if not self.feature_is_included(name):
                 feature.exclude_from(self)
                 self._set_feature(name,0)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def _set_feature(self,name,status):
         """Set feature's inclusion status"""
