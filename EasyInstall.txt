@@ -647,7 +647,7 @@ Command-Line Options
     "site" directory, he or she should create an ``altinstall.pth`` file in the
     normal site-packages directory, containing this::
 
-        import os; addsitedir(os.path.expanduser('~/lib/python2.3'))
+        import os, site; site.addsitedir(os.path.expanduser('~/lib/python2.3'))
 
     and a ``distutils.cfg`` file inside the ``distutils`` package directory,
     containing this::

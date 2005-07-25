@@ -216,16 +216,20 @@ class EntryPointTests(TestCase):
             "foo = setuptools.tests.test_resources:EntryPointTests [x]"
         )
 
+    def setUp(self):
+        self.dist = Distribution.from_filename(
+            "FooPkg-1.2-py2.4.egg", metadata=Metadata(('requires.txt','[x]')))
+
     def testBasics(self):
         ep = EntryPoint(
             "foo", "setuptools.tests.test_resources", ["EntryPointTests"],
-            ["x"]
+            ["x"], self.dist
         )
         self.assertfields(ep)
 
     def testParse(self):
         s = "foo = setuptools.tests.test_resources:EntryPointTests [x]"
-        ep = EntryPoint.parse(s)
+        ep = EntryPoint.parse(s, self.dist)
         self.assertfields(ep)
 
         ep = EntryPoint.parse("bar baz=  spammity[PING]")
@@ -239,10 +243,6 @@ class EntryPointTests(TestCase):
         self.assertEqual(ep.module_name,"wocka")
         self.assertEqual(ep.attrs, ("foo",))
         self.assertEqual(ep.extras, ())
-
-
-
-
 
     def testRejects(self):
         for ep in [

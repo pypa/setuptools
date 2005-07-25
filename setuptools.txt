@@ -72,6 +72,14 @@ You may receive a message telling you about an obsolete version of
 setuptools being present; if so, you must be sure to delete it entirely, along
 with the old ``pkg_resources`` module if it's present on ``sys.path``.
 
+To get the in-development version of setuptools, run::
+
+    cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/python login
+    cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/python \
+        co -d setuptools python/nondist/sandbox/setuptools
+
+You can then install it using the usual "setup.py install" incantation.
+
 
 Basic Use
 =========

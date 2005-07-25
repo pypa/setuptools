@@ -42,7 +42,7 @@ from sets import ImmutableSet
 __all__ = [
     # Basic resource access and distribution/entry point discovery
     'require', 'run_script', 'get_provider',  'get_distribution',
-    'load_entry_point', 'get_entry_map', 'get_entry_info',
+    'load_entry_point', 'get_entry_map', 'get_entry_info', 'iter_entry_points',
     'resource_string', 'resource_stream', 'resource_filename',
     'resource_listdir', 'resource_exists', 'resource_isdir',
 
@@ -231,17 +231,17 @@ def get_distribution(dist):
         raise TypeError("Expected string, Requirement, or Distribution", dist)
     return dist
 
-def load_entry_point(dist, kind, name):
-    """Return the `name` entry point of `kind` for dist or raise ImportError"""
-    return get_distribution(dist).load_entry_point(dist, kind, name)
+def load_entry_point(dist, group, name):
+    """Return `name` entry point of `group` for `dist` or raise ImportError"""
+    return get_distribution(dist).load_entry_point(group, name)
     
-def get_entry_map(dist, kind=None):
-    """Return the entry point map for `kind`, or the full entry map"""
-    return get_distribution(dist).get_entry_map(dist, kind)
+def get_entry_map(dist, group=None):
+    """Return the entry point map for `group`, or the full entry map"""
+    return get_distribution(dist).get_entry_map(group)
 
-def get_entry_info(dist, kind, name):
-    """Return the EntryPoint object for `kind`+`name`, or ``None``"""
-    return get_distribution(dist).get_entry_info(dist, kind, name)
+def get_entry_info(dist, group, name):
+    """Return the EntryPoint object for `group`+`name`, or ``None``"""
+    return get_distribution(dist).get_entry_info(group, name)
 
 
 class IMetadataProvider:
@@ -377,7 +377,6 @@ class WorkingSet(object):
             for key in self.entry_keys[item]:
                 yield self.by_key[key]
 
-
     def find(self, req):
         """Find a distribution matching requirement `req`
 
@@ -394,19 +393,20 @@ class WorkingSet(object):
         else:
             return dist
 
+    def iter_entry_points(self, group, name=None):
+        """Yield entry point objects from `group` matching `name`
 
-
-
-
-
-
-
-
-
-
-
-
-
+        If `name` is None, yields all entry points in `group` from all
+        distributions in the working set, otherwise only ones matching
+        both `group` and `name` are yielded (in distribution order).
+        """
+        for dist in self:
+            entries = dist.get_entry_map(group)
+            if name is None:
+                for ep in entries.values():
+                    yield ep
+            elif name in entries:
+                yield entries[name]
 
     def add(self, dist, entry=None):
         """Add `dist` to working set, associated with `entry`
@@ -1600,7 +1600,7 @@ def parse_version(s):
 class EntryPoint(object):
     """Object representing an importable location"""
 
-    def __init__(self, name, module_name, attrs=(), extras=()):
+    def __init__(self, name, module_name, attrs=(), extras=(), dist=None):
         if not MODULE(module_name):
             raise ValueError("Invalid module name", module_name)
         self.name = name
@@ -1609,6 +1609,7 @@ class EntryPoint(object):
         self.extras = Requirement.parse(
             ("x[%s]" % ','.join(extras)).lower()
         ).extras
+        self.dist = dist
 
     def __str__(self):
         s = "%s = %s" % (self.name, self.module_name)
@@ -1621,7 +1622,8 @@ class EntryPoint(object):
     def __repr__(self):
         return "EntryPoint.parse(%r)" % str(self)
 
-    def load(self):
+    def load(self, require=True):
+        if require: self.require()
         entry = __import__(self.module_name, globals(),globals(), ['__name__'])
         for attr in self.attrs:
             try:
@@ -1630,16 +1632,14 @@ class EntryPoint(object):
                 raise ImportError("%r has no %r attribute" % (entry,attr))
         return entry
 
-
-
-
-
-
-
-
-
+    def require(self):
+        if self.extras and not self.dist:
+            raise UnknownExtra("Can't require() without a distribution", self)
+        map(working_set.add,
+            working_set.resolve(self.dist.requires(self.extras)))
+        
     #@classmethod
-    def parse(cls, src):
+    def parse(cls, src, dist=None):
         """Parse a single entry point from string `src`
 
         Entry point syntax follows the form::
@@ -1668,7 +1668,7 @@ class EntryPoint(object):
                 src
             )
         else:
-            return cls(name.strip(), value.lstrip(), attrs, extras)
+            return cls(name.strip(), value.lstrip(), attrs, extras, dist)
 
     parse = classmethod(parse)
 
@@ -1680,11 +1680,12 @@ class EntryPoint(object):
 
 
     #@classmethod
-    def parse_list(cls, section, contents):
+    def parse_list(cls, section, contents, dist=None):
         if not MODULE(section):
             raise ValueError("Invalid section name", section)
         this = {}
-        for ep in map(cls.parse, yield_lines(contents)):
+        for line in yield_lines(contents):
+            ep = cls.parse(line, dist)
             if ep.name in this:
                 raise ValueError("Duplicate entry point",section,ep.name)
             this[ep.name]=ep
@@ -1693,7 +1694,7 @@ class EntryPoint(object):
     parse_list = classmethod(parse_list)
 
     #@classmethod
-    def parse_map(cls, data):
+    def parse_map(cls, data, dist=None):
         if isinstance(data,dict):
             data = data.items()
         else:
@@ -1707,13 +1708,10 @@ class EntryPoint(object):
             section = section.strip()
             if section in maps:
                 raise ValueError("Duplicate section name", section)
-            maps[section] = cls.parse_list(section, contents)
+            maps[section] = cls.parse_list(section, contents, dist)
         return maps
 
     parse_map = classmethod(parse_map)
-
-
-
 
 
 
@@ -1886,31 +1884,31 @@ class Distribution(object):
 
 
 
-    def load_entry_point(self, kind, name):
-        """Return the `name` entry point of `kind` or raise ImportError"""
-        ep = self.get_entry_info(kind,name)
+    def load_entry_point(self, group, name):
+        """Return the `name` entry point of `group` or raise ImportError"""
+        ep = self.get_entry_info(group,name)
         if ep is None:
-            raise ImportError("Entry point %r not found" % ((kind,name),))
-        if ep.extras:
-            # Ensure any needed extras get added to the working set
-            map(working_set.add, working_set.resolve(self.requires(ep.extras)))
+            raise ImportError("Entry point %r not found" % ((group,name),))
         return ep.load()
 
-    def get_entry_map(self,kind=None):
-        """Return the entry point map for `kind`, or the full entry map"""
+    def get_entry_map(self, group=None):
+        """Return the entry point map for `group`, or the full entry map"""
         try:
             ep_map = self._ep_map
         except AttributeError:
             ep_map = self._ep_map = EntryPoint.parse_map(
-                self._get_metadata('entry_points.txt')
+                self._get_metadata('entry_points.txt'), self
             )
-        if kind is not None:
-            return ep_map.get(kind,{})
+        if group is not None:
+            return ep_map.get(group,{})
         return ep_map
 
-    def get_entry_info(self, kind, name):
-        """Return the EntryPoint object for `kind`+`name`, or ``None``"""
-        return self.get_entry_map(kind).get(name)
+    def get_entry_info(self, group, name):
+        """Return the EntryPoint object for `group`+`name`, or ``None``"""
+        return self.get_entry_map(group).get(name)
+
+
+
 
 
 
@@ -2147,6 +2145,7 @@ _initialize(globals())
 
 working_set = WorkingSet()
 require = working_set.require
+iter_entry_points = working_set.iter_entry_points
 add_activation_listener = working_set.subscribe
 
 # Activate all distributions already on sys.path, and ensure that
@@ -2154,7 +2153,6 @@ add_activation_listener = working_set.subscribe
 # calling ``require()``) will get activated as well.
 #
 add_activation_listener(lambda dist: dist.activate())
-
 
 
 

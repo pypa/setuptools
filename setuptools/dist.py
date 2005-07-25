@@ -16,20 +16,17 @@ def get_command_class(self, command):
     if command in self.cmdclass:
         return self.cmdclass[command]
 
-    for dist in pkg_resources.working_set:
-        if dist.get_entry_info('distutils.commands',command):
-            cmdclass = dist.load_entry_point('distutils.commands',command)
-            self.cmdclass[command] = cmdclass
-            return cmdclass
+    for ep in pkg_resources.iter_entry_points('distutils.commands',command):
+        self.cmdclass[command] = cmdclass = ep.load()
+        return cmdclass
     else:
         return _old_get_command_class(self, command)
 
 def print_commands(self):
-    for dist in pkg_resources.working_set:
-        for cmd,ep in dist.get_entry_map('distutils.commands').items():
-            if cmd not in self.cmdclass:
-                cmdclass = ep.load() # don't require extras, we're not running
-                self.cmdclass[cmd] = cmdclass
+    for ep in pkg_resources.iter_entry_points('distutils.commands'):
+        if ep.name not in self.cmdclass:
+            cmdclass = ep.load(False) # don't require extras, we're not running
+            self.cmdclass[ep.name] = cmdclass
     return _old_print_commands(self)
 
 for meth in 'print_commands', 'get_command_class':
@@ -38,6 +35,9 @@ for meth in 'print_commands', 'get_command_class':
         setattr(_Distribution, meth, globals()[meth])
 
 sequence = tuple, list
+
+
+
 
 class Distribution(_Distribution):
     """Distribution with support for features, tests, and package data
