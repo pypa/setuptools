@@ -44,7 +44,7 @@ setup(
     entry_points = {
         "distutils.commands" : [
             "%(cmd)s = setuptools.command.%(cmd)s:%(cmd)s" % locals()
-            for cmd in SETUP_COMMANDS if cmd!="build_py" or sys.version>="2.4"
+            for cmd in SETUP_COMMANDS if cmd!="build_py" or sys.version<"2.4"
         ],
     },
 

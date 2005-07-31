@@ -227,7 +227,7 @@ def get_distribution(dist):
     """Return a current distribution object for a Requirement or string"""
     if isinstance(dist,basestring): dist = Requirement.parse(dist)
     if isinstance(dist,Requirement): dist = get_provider(dist)
-    if not isintance(dist,Distribution):
+    if not isinstance(dist,Distribution):
         raise TypeError("Expected string, Requirement, or Distribution", dist)
     return dist
 
@@ -1443,7 +1443,7 @@ def declare_namespace(packageName):
 
         path, parent = sys.path, None
         if '.' in packageName:
-            parent = '.'.join(package.split('.')[:-1])
+            parent = '.'.join(packageName.split('.')[:-1])
             declare_namespace(parent)
             __import__(parent)
             try:
