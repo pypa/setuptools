@@ -1122,7 +1122,7 @@ class ZipProvider(EggProvider):
             for path in self.zipinfo:
                 parts = path.split(os.sep)
                 while parts:
-                    parent = '/'.join(parts[:-1])
+                    parent = os.sep.join(parts[:-1])
                     if parent in ind:
                         ind[parent].append(parts[-1])
                         break
