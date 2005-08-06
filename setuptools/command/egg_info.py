@@ -8,7 +8,7 @@ from setuptools import Command
 from distutils.errors import *
 from distutils import log
 from pkg_resources import parse_requirements, safe_name, \
-    safe_version, yield_lines, EntryPoint
+    safe_version, yield_lines, EntryPoint, iter_entry_points
 
 class egg_info(Command):
 
@@ -80,46 +80,54 @@ class egg_info(Command):
 
 
 
+    def write_or_delete_file(self, what, filename, data):
+        """Write `data` to `filename` or delete if empty
+
+        If `data` is non-empty, this routine is the same as ``write_file()``.
+        If `data` is empty but not ``None``, this is the same as calling
+        ``delete_file(filename)`.  If `data` is ``None``, then this is a no-op
+        unless `filename` exists, in which case a warning is issued about the
+        orphaned file.
+        """
+        if data:
+            self.write_file(what, filename, data)
+        elif os.path.exists(filename):
+            if data is None:
+                log.warn(
+                    "%s not set in setup(), but %s exists", what, filename
+                )
+                return
+            else:
+                self.delete_file(filename)
+
+    def write_file(self, what, filename, data):
+        """Write `data` to `filename` (if not a dry run) after announcing it
+
+        `what` is used in a log message to identify what is being written
+        to the file.
+        """
+        log.info("writing %s to %s", what, filename)
+        if not self.dry_run:
+            f = open(filename, 'wb')
+            f.write(data)
+            f.close()
+
+    def delete_file(self, filename):
+        """Delete `filename` (if not a dry run) after announcing it"""
+        log.info("deleting %s", filename)
+        if not self.dry_run:
+            os.unlink(filename)
+
+
+
+
     def run(self):
         # Make the .egg-info directory, then write PKG-INFO and requires.txt
         self.mkpath(self.egg_info)
-        log.info("writing %s" % os.path.join(self.egg_info,'PKG-INFO'))
-
-        if not self.dry_run:
-            metadata = self.distribution.metadata
-            metadata.version, oldver = self.egg_version, metadata.version
-            metadata.name, oldname   = self.egg_name, metadata.name
-            try:
-                # write unescaped data to PKG-INFO, so older pkg_resources
-                # can still parse it
-                metadata.write_pkg_info(self.egg_info)
-            finally:
-                metadata.name, metadata.version = oldname, oldver
-        self.write_entry_points()
-        self.write_requirements()
-        self.write_toplevel_names()
-        self.write_or_delete_dist_arg('namespace_packages')
-        self.write_or_delete_dist_arg('eager_resources')
-        if os.path.exists(os.path.join(self.egg_info,'depends.txt')):
-            log.warn(
-                "WARNING: 'depends.txt' is not used by setuptools 0.6!\n"
-                "Use the install_requires/extras_require setup() args instead."
-            )
-
-    def write_requirements(self):
-        dist = self.distribution
-        if not getattr(dist,'install_requires',None) and \
-           not getattr(dist,'extras_require',None): return
-
-        requires = os.path.join(self.egg_info,"requires.txt")
-        log.info("writing %s", requires)
-
-        if not self.dry_run:
-            f = open(requires, 'wt')
-            f.write('\n'.join(yield_lines(dist.install_requires)))
-            for extra,reqs in dist.extras_require.items():
-                f.write('\n\n[%s]\n%s' % (extra, '\n'.join(yield_lines(reqs))))
-            f.close()
+        installer = self.distribution.fetch_build_egg
+        for ep in iter_entry_points('egg_info.writers'):
+            writer = ep.load(installer=installer)
+            writer(self, ep.name, os.path.join(self.egg_info,ep.name))
 
     def tagged_version(self):
         version = self.distribution.get_version()
@@ -131,7 +139,6 @@ class egg_info(Command):
             import time
             version += time.strftime("-%Y%m%d")
         return safe_version(version)
-
 
     def get_svn_revision(self):
         stdin, stdout = os.popen4("svn info -R"); stdin.close()
@@ -146,60 +153,94 @@ class egg_info(Command):
         return str(max(revisions))
 
 
-    def write_toplevel_names(self):
-        pkgs = dict.fromkeys(
-            [k.split('.',1)[0]
-                for k in self.distribution.iter_distribution_names()
-            ]
+
+
+
+
+
+
+
+
+
+def write_pkg_info(cmd, basename, filename):
+    log.info("writing %s", filename)
+    if not cmd.dry_run:
+        metadata = cmd.distribution.metadata
+        metadata.version, oldver = cmd.egg_version, metadata.version
+        metadata.name, oldname   = cmd.egg_name, metadata.name
+        try:
+            # write unescaped data to PKG-INFO, so older pkg_resources
+            # can still parse it
+            metadata.write_pkg_info(cmd.egg_info)
+        finally:
+            metadata.name, metadata.version = oldname, oldver
+
+def warn_depends_obsolete(cmd, basename, filename):
+    if os.path.exists(filename):
+        log.warn(
+            "WARNING: 'depends.txt' is not used by setuptools 0.6!\n"
+            "Use the install_requires/extras_require setup() args instead."
         )
-        toplevel = os.path.join(self.egg_info, "top_level.txt")
-        log.info("writing list of top-level names to %s" % toplevel)
-        if not self.dry_run:
-            f = open(toplevel, 'wt')
-            f.write('\n'.join(pkgs))
-            f.write('\n')
-            f.close()
+
+
+def write_requirements(cmd, basename, filename):
+    dist = cmd.distribution
+    data = ['\n'.join(yield_lines(dist.install_requires or ()))]
+    for extra,reqs in (dist.extras_require or {}).items():
+        data.append('\n\n[%s]\n%s' % (extra, '\n'.join(yield_lines(reqs))))
+    cmd.write_or_delete_file("requirements", filename, ''.join(data))
+
+def write_toplevel_names(cmd, basename, filename):
+    pkgs = dict.fromkeys(
+        [k.split('.',1)[0]
+            for k in cmd.distribution.iter_distribution_names()
+        ]
+    )
+    cmd.write_file("top-level names", filename, '\n'.join(pkgs)+'\n')
 
 
 
-    def write_or_delete_dist_arg(self, argname, filename=None):
-        value = getattr(self.distribution, argname, None)
-        filename = filename or argname+'.txt'
-        filename = os.path.join(self.egg_info,filename)
-        if value:
-            log.info("writing %s", filename)
-            if not self.dry_run:
-                f = open(filename, 'wt')
-                f.write('\n'.join(value))
-                f.write('\n')
-                f.close()
-        elif os.path.exists(filename):
-            if value is None:
-                log.warn(
-                    "%s not set in setup(), but %s exists", argname, filename
-                )
-            return
-            log.info("deleting %s", filename)
-            if not self.dry_run:
-                os.unlink(filename)
 
-    def write_entry_points(self):
-        ep = getattr(self.distribution,'entry_points',None)
-        if ep is None:
-            return
 
-        epname = os.path.join(self.egg_info,"entry_points.txt")
-        log.info("writing %s", epname)
 
-        if not self.dry_run:
-            f = open(epname, 'wt')
-            if isinstance(ep,basestring):
-                f.write(ep)
-            else:
-                for section, contents in ep.items():
-                    if not isinstance(contents,basestring):
-                        contents = EntryPoint.parse_list(section, contents)
-                        contents = '\n'.join(map(str,contents.values()))
-                    f.write('[%s]\n%s\n\n' % (section,contents))
-            f.close()
+def write_arg(cmd, basename, filename):
+    argname = os.path.splitext(basename)[0]
+    value = getattr(cmd.distribution, argname, None)
+    if value is not None:
+        value = '\n'.join(value)+'\n'
+    cmd.write_or_delete_file(argname, filename, value)
+
+def write_entries(cmd, basename, filename):
+    ep = cmd.distribution.entry_points
+
+    if isinstance(ep,basestring) or ep is None:
+        data = ep
+    elif ep is not None:
+        data = []
+        for section, contents in ep.items():
+            if not isinstance(contents,basestring):
+                contents = EntryPoint.parse_list(section, contents)
+                contents = '\n'.join(map(str,contents.values()))
+            data.append('[%s]\n%s\n\n' % (section,contents))
+        data = ''.join(data)
+
+    cmd.write_or_delete_file('entry points', filename, data)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -40,7 +40,6 @@ setup(
     scripts = ['easy_install.py'],
     
     zip_safe = False,   # We want 'python -m easy_install' to work  :(
-
     entry_points = {
         "distutils.commands" : [
             "%(cmd)s = setuptools.command.%(cmd)s:%(cmd)s" % locals()
@@ -50,13 +49,23 @@ setup(
             "eager_resources    = setuptools.dist:assert_string_list",
             "namespace_packages = setuptools.dist:check_nsp",
             "extras_require     = setuptools.dist:check_extras",
+            "install_requires   = setuptools.dist:check_install_requires",
             "entry_points       = setuptools.dist:check_entry_points",
             "test_suite         = setuptools.dist:check_test_suite",
             "zip_safe           = setuptools.dist:assert_bool",
-        ]
+        ],
+        "egg_info.writers": [
+            "PKG-INFO = setuptools.command.egg_info:write_pkg_info",
+            "requires.txt = setuptools.command.egg_info:write_requirements",
+            "entry_points.txt = setuptools.command.egg_info:write_entries",
+            "eager_resources.txt = setuptools.command.egg_info:write_arg",
+            "namespace_packages.txt = setuptools.command.egg_info:write_arg",
+            "top_level.txt = setuptools.command.egg_info:write_toplevel_names",
+            "depends.txt = setuptools.command.egg_info:warn_depends_obsolete",
+        ],
     },
-
-    setup_requires = ['setuptools>=0.6a0'],
+    # uncomment for testing
+    # setup_requires = ['setuptools>=0.6a0'],
 
     classifiers = [f.strip() for f in """
     Development Status :: 3 - Alpha
@@ -68,23 +77,6 @@ setup(
     Topic :: Software Development :: Libraries :: Python Modules
     Topic :: System :: Archiving :: Packaging
     Topic :: System :: Systems Administration
-    Topic :: Utilities
-    """.splitlines() if f.strip()]
+    Topic :: Utilities""".splitlines() if f.strip()]
 )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

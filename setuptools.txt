@@ -622,6 +622,21 @@ invoking app or framework can ignore such errors if it wants to make an entry
 point optional if a requirement isn't installed.)
 
 
+Defining Additional Metadata
+----------------------------
+
+Some extensible applications and frameworks may need to define their own kinds
+of metadata to include in eggs, which they can then access using the
+``pkg_resources`` metadata APIs.  Ordinarily, this is done by having plugin
+developers include additional files in their ``ProjectName.egg-info``
+directory.  However, since it can be tedious to create such files by hand, you
+may want to create a distutils extension that will create the necessary files
+from arguments to ``setup()``, in much the same way that ``setuptools`` does
+for many of the ``setup()`` arguments it adds.  See the section below on
+`Creating distutils Extensions`_ for more details, especially the subsection on
+`Adding new EGG-INFO Files`_.
+
+
 "Development Mode"
 ==================
 
@@ -1301,6 +1316,14 @@ the project's source directory or metadata should get it from this setting:
     ``package_dir`` argument to the ``setup()`` function, if any.  If there is
     no ``package_dir`` set, this option defaults to the current directory.
 
+In addition to writing the core egg metadata defined by ``setuptools`` and
+required by ``pkg_resources``, this command can be extended to write other
+metadata files as well, by defining entry points in the ``egg_info.writers``
+group.  See the section on `Adding new EGG-INFO Files`_ below for more details.
+Note that using additional metadata writers may require you to include a
+``setup_requires`` argument to ``setup()`` in order to ensure that the desired
+writers are available on ``sys.path``.
+
 
 .. _rotate:
 
@@ -1639,6 +1662,60 @@ sufficient to define the entry points in your extension, as long as the setup
 script lists your extension in its ``setup_requires`` argument.
 
 
+Adding new EGG-INFO Files
+-------------------------
+
+Some extensible applications or frameworks may want to allow third parties to
+develop plugins with application or framework-specific metadata included in
+the plugins' EGG-INFO directory, for easy access via the ``pkg_resources``
+metadata API.  The easiest way to allow this is to create a distutils extension
+to be used from the plugin projects' setup scripts (via ``setup_requires``)
+that defines a new setup keyword, and then uses that data to write an EGG-INFO
+file when the ``egg_info`` command is run.
+
+The ``egg_info`` command looks for extension points in an ``egg_info.writers``
+group, and calls them to write the files.  Here's a simple example of a
+distutils extension defining a setup argument ``foo_bar``, which is a list of
+lines that will be written to ``foo_bar.txt`` in the EGG-INFO directory of any
+project that uses the argument::
+
+    setup(
+        # ...
+        entry_points = {
+            "distutils.setup_keywords": [
+                "foo_bar = setuptools.dist:assert_string_list",
+            ],
+            "egg_info.writers": [
+                "foo_bar.txt = setuptools.command.egg_info:write_arg",
+            ],
+        },
+    )
+
+This simple example makes use of two utility functions defined by setuptools
+for its own use: a routine to validate that a setup keyword is a sequence of
+strings, and another one that looks up a setup argument and writes it to
+a file.  Here's what the writer utility looks like::
+
+    def write_arg(cmd, basename, filename):
+        argname = os.path.splitext(basename)[0]
+        value = getattr(cmd.distribution, argname, None)
+        if value is not None:
+            value = '\n'.join(value)+'\n'
+        cmd.write_or_delete_file(argname, filename, value)
+
+As you can see, ``egg_info.writers`` entry points must be a function taking
+three arguments: a ``egg_info`` command instance, the basename of the file to
+write (e.g. ``foo_bar.txt``), and the actual full filename that should be
+written to.
+
+In general, writer functions should honor the command object's ``dry_run``
+setting when writing files, and use the ``distutils.log`` object to do any
+console output.  The easiest way to conform to this requirement is to use
+the ``cmd`` object's ``write_file()``, ``delete_file()``, and
+``write_or_delete_file()`` methods exclusively for your file operations.  See
+those methods' docstrings for more details.
+
+
 Subclassing ``Command``
 -----------------------
 
@@ -1709,9 +1786,10 @@ Release Notes/Change History
    ``setup_requires`` allows you to automatically find and download packages
    that are needed in order to *build* your project (as opposed to running it).
 
- * ``setuptools`` now finds its commands and ``setup()`` argument validators
-   using entry points, so that they are extensible by third-party packages.
-   See `Creating distutils Extensions`_ above for more details.
+ * ``setuptools`` now finds its commands, ``setup()`` argument validators, and
+   metadata writers using entry points, so that they can be extended by
+   third-party packages.  See `Creating distutils Extensions`_ above for more
+   details.
 
  * The vestigial ``depends`` command has been removed.  It was never finished
    or documented, and never would have worked without EasyInstall - which it
