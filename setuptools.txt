@@ -1597,6 +1597,10 @@ Release Notes/Change History
    containing ``setup.py``, not the highest revision number in the project.
 
  * Added ``eager_resources`` setup argument
+
+ * Enhanced performance of ``require()`` and related operations when all
+   requirements are already in the working set, and enhanced performance of
+   directory scanning for distributions.
    
  * Fixed some problems using ``pkg_resources`` w/PEP 302 loaders other than
    ``zipimport``, and the previously-broken "eager resource" support.

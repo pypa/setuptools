@@ -460,8 +460,6 @@ class WorkingSet(object):
         already-installed distribution; it should return a ``Distribution`` or
         ``None``.
         """
-        if env is None:
-            env = AvailableDistributions(self.entries)
 
         requirements = list(requirements)[::-1]  # set up the stack
         processed = {}  # set of processed requirements
@@ -477,6 +475,8 @@ class WorkingSet(object):
             dist = best.get(req.key)
             if dist is None:
                 # Find the best distribution and add it to the map
+                if env is None:
+                    env = AvailableDistributions(self.entries)
                 dist = best[req.key] = env.best_match(req, self, installer)
                 if dist is None:
                     raise DistributionNotFound(req)  # XXX put more info here
@@ -1232,8 +1232,6 @@ class ImpWrapper:
     """PEP 302 Importer that wraps Python's "normal" import algorithm"""
 
     def __init__(self, path=None):
-        if path is not None and not os.path.isdir(path):
-            raise ImportError
         self.path = path
 
     def find_module(self, fullname, path=None):
@@ -1267,6 +1265,8 @@ class ImpLoader:
         # Note: we don't set __loader__ because we want the module to look
         # normal; i.e. this is just a wrapper for standard import machinery
         return mod
+
+
 
 
 def get_importer(path_item):
@@ -1357,9 +1357,8 @@ register_finder(object,find_nothing)
 
 def find_on_path(importer, path_item, only=False):
     """Yield distributions accessible on a sys.path directory"""
-    if not os.path.exists(path_item):
-        return
     path_item = normalize_path(path_item)
+
     if os.path.isdir(path_item):
         if path_item.lower().endswith('.egg'):
             # unpacked egg
@@ -1370,10 +1369,10 @@ def find_on_path(importer, path_item, only=False):
             )
         else:
             # scan for .egg and .egg-info in directory
-            for entry in os.listdir(path_item):
-                fullpath = os.path.join(path_item, entry)
+            for entry in os.listdir(path_item):               
                 lower = entry.lower()
                 if lower.endswith('.egg-info'):
+                    fullpath = os.path.join(path_item, entry)
                     if os.path.isdir(fullpath):
                         # development egg
                         metadata = PathMetadata(path_item, fullpath)
@@ -1382,15 +1381,16 @@ def find_on_path(importer, path_item, only=False):
                             path_item, metadata, project_name=dist_name
                         )
                 elif not only and lower.endswith('.egg'):
-                    for dist in find_distributions(fullpath):
+                    for dist in find_distributions(os.path.join(path_item, entry)):
                         yield dist
                 elif not only and lower.endswith('.egg-link'):
-                    for line in file(fullpath):
+                    for line in file(os.path.join(path_item, entry)):
                         if not line.strip(): continue
                         for item in find_distributions(line.rstrip()):
                             yield item
 
 register_finder(ImpWrapper,find_on_path)
+
 
 _namespace_handlers = {}
 _namespace_packages = {}
