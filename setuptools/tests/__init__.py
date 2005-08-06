@@ -121,47 +121,6 @@ class DependsTests(TestCase):
 
 
 
-    def testDependsCmd(self):
-        path = convert_path('foo/bar/baz')
-
-        dist = makeSetup(
-            script_args=['install','--install-lib',path]
-        )
-
-        cmd = dist.get_command_obj('depends')
-        cmd.ensure_finalized()
-
-        self.assertEqual(cmd.temp, dist.get_command_obj('build').build_temp)
-        self.assertEqual(cmd.search_path, [path+os.path.sep,path]+sys.path)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class DistroTests(TestCase):
 
     def setUp(self):

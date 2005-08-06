@@ -1713,6 +1713,10 @@ Release Notes/Change History
    using entry points, so that they are extensible by third-party packages.
    See `Creating distutils Extensions`_ above for more details.
 
+ * The vestigial ``depends`` command has been removed.  It was never finished
+   or documented, and never would have worked without EasyInstall - which it
+   pre-dated and was never compatible with.
+
  * Many ``pkg_resources`` API changes and enhancements:
 
    * Added ``EntryPoint``, ``get_entry_map``, ``load_entry_point``, and
@@ -1918,9 +1922,7 @@ Release Notes/Change History
    see the ``setuptools.dist.Distribution`` class.
 
  * Setup scripts using setuptools now always install using ``easy_install``
-   internally, for ease of uninstallation and upgrading.  Note: you *must*
-   remove any ``extra_path`` argument from your setup script, as it conflicts
-   with the proper functioning of the ``easy_install`` command.
+   internally, for ease of uninstallation and upgrading.
 
  * ``pkg_resources.AvailableDistributions.resolve()`` and related methods now
    accept an ``installer`` argument: a callable taking one argument, a

@@ -207,9 +207,8 @@ class Distribution(_Distribution):
         have_package_data = hasattr(self, "package_data")
         if not have_package_data:
             self.package_data = {}
-
+        self.requires = []  # XXX
         self.features = {}
-        self.requires = []
         self.dist_files = []
 
         if attrs and 'setup_requires' in attrs:
@@ -244,17 +243,12 @@ class Distribution(_Distribution):
 
 
 
+
     def finalize_options(self):
         _Distribution.finalize_options(self)
 
         if self.features:
             self._set_global_opts_from_features()
-
-        if self.extra_path:
-            raise DistutilsSetupError(
-                "The 'extra_path' parameter is not needed when using "
-                "setuptools.  Please remove it from your setup script."
-            )
 
         for ep in pkg_resources.iter_entry_points('distutils.setup_keywords'):
             value = getattr(self,ep.name,None)
@@ -281,6 +275,12 @@ class Distribution(_Distribution):
             self._egg_fetcher = cmd
 
         return cmd.easy_install(req)
+
+
+
+
+
+
 
 
 
@@ -557,47 +557,6 @@ class Distribution(_Distribution):
 
         return nargs
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    def has_dependencies(self):
-        return not not self.requires
-
-    def run_commands(self):
-        for cmd in self.commands:
-            if cmd=='install' and not cmd in self.have_run:
-                self.install_eggs()
-            else:
-                self.run_command(cmd)
-
-    def install_eggs(self):
-        from setuptools.command.easy_install import easy_install
-        cmd = easy_install(self, args="x", ignore_conflicts_at_my_risk=1)
-        cmd.ensure_finalized()  # finalize before bdist_egg munges install cmd
-
-        self.run_command('bdist_egg')
-        args = [self.get_command_obj('bdist_egg').egg_output]
-
-        if setuptools.bootstrap_install_from:
-            # Bootstrap self-installation of setuptools
-            args.insert(0, setuptools.bootstrap_install_from)
-
-        cmd.args = args
-        cmd.run()
-        self.have_run['install'] = 1
-        setuptools.bootstrap_install_from = None
 
 
 
