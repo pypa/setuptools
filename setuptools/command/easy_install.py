@@ -97,6 +97,7 @@ class easy_install(Command):
         self.delete_conflicting = None
         self.ignore_conflicts_at_my_risk = None
         self.site_dirs = None
+        self.installed_projects = {}
 
     def delete_blockers(self, blockers):
         for filename in blockers:
@@ -106,7 +107,6 @@ class easy_install(Command):
                     shutil.rmtree(filename)
                 else:
                     os.unlink(filename)
-
 
 
 
@@ -222,7 +222,7 @@ class easy_install(Command):
             for link in self.find_links:
                 self.package_index.scan_url(link)
             for spec in self.args:
-                self.easy_install(spec)
+                self.easy_install(spec, True)
             if self.record:
                 from distutils import file_util
                 self.execute(
@@ -285,7 +285,7 @@ class easy_install(Command):
 
 
 
-    def easy_install(self, spec):
+    def easy_install(self, spec, deps=False):
         tmpdir = tempfile.mkdtemp(prefix="easy_install-")
         download = None
 
@@ -295,12 +295,12 @@ class easy_install(Command):
                     # It's a url, download it to tmpdir and process
                     self.not_editable(spec)
                     download = self.package_index.download(spec, tmpdir)
-                    return self.install_item(None, download, tmpdir, True)
+                    return self.install_item(None, download, tmpdir, deps, True)
 
                 elif os.path.exists(spec):
                     # Existing file or directory, just process it directly
                     self.not_editable(spec)
-                    return self.install_item(None, spec, tmpdir, True)
+                    return self.install_item(None, spec, tmpdir, deps, True)
                 else:
                     spec = parse_requirement_arg(spec)
 
@@ -314,7 +314,7 @@ class easy_install(Command):
                     "Could not find distribution for %r" % spec
                 )
 
-            return self.install_item(spec, download, tmpdir)
+            return self.install_item(spec, download, tmpdir, deps)
 
         finally:
             if os.path.exists(tmpdir):
@@ -326,46 +326,87 @@ class easy_install(Command):
 
 
 
-    def install_item(self, spec, download, tmpdir, install_needed=False):
+    def install_item(self, spec, download, tmpdir, deps, install_needed=False):
+
         # Installation is also needed if file in tmpdir or is not an egg
         install_needed = install_needed or os.path.dirname(download) == tmpdir
         install_needed = install_needed or not download.endswith('.egg')
+
         log.info("Processing %s", os.path.basename(download))
+
         if install_needed or self.always_copy:
             dists = self.install_eggs(spec, download, tmpdir)
             for dist in dists:
-                self.process_distribution(spec, dist)
+                self.process_distribution(spec, dist, deps)
         else:
             dists = [self.check_conflicts(self.egg_distribution(download))]
-            self.process_distribution(spec, dists[0], "Using")
+            self.process_distribution(spec, dists[0], deps, "Using")
+
         if spec is not None:
             for dist in dists:
                 if dist in spec:
                     return dist
 
-    def process_distribution(self, requirement, dist, *info):
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    def process_distribution(self, requirement, dist, deps=True, *info):
         self.update_pth(dist)
         self.package_index.add(dist)
         self.local_index.add(dist)
         self.install_egg_scripts(dist)
+        self.installed_projects[dist.key] = dist
         log.warn(self.installation_report(dist, *info))
+
         if requirement is None:
             requirement = dist.as_requirement()
-        if dist in requirement:
+
+        if dist not in requirement:
+            return
+
+        if deps or self.always_copy:            
             log.info("Processing dependencies for %s", requirement)
-            try:
-                WorkingSet(self.shadow_path).resolve(
-                    [requirement], self.local_index, self.easy_install
-                )
-            except DistributionNotFound, e:
-                raise DistutilsError(
-                    "Could not find required distribution %s" % e.args
-                )
-            except VersionConflict, e:
-                raise DistutilsError(
-                    "Installed distribution %s conflicts with requirement %s"
-                    % e.args
-                )
+        else:
+            return
+
+        if self.always_copy:
+            # Recursively install *all* dependencies
+            for req in dist.requires(requirement.extras):
+                if req.key not in self.installed_projects:
+                    self.easy_install(req)
+            return
+
+        try:
+            WorkingSet(self.shadow_path).resolve(
+                [requirement], self.local_index, self.easy_install
+            )
+        except DistributionNotFound, e:
+            raise DistutilsError(
+                "Could not find required distribution %s" % e.args
+            )
+        except VersionConflict, e:
+            raise DistutilsError(
+                "Installed distribution %s conflicts with requirement %s"
+                % e.args
+            )
+
 
     def install_egg_scripts(self, dist):
         if self.exclude_scripts or not dist.metadata_isdir('scripts'):
