@@ -1601,6 +1601,9 @@ Release Notes/Change History
  * Enhanced performance of ``require()`` and related operations when all
    requirements are already in the working set, and enhanced performance of
    directory scanning for distributions.
+
+ * The ``sdist`` command now recognizes Subversion "deleted file" entries and
+   does not include them in source distributions.
    
  * Fixed some problems using ``pkg_resources`` w/PEP 302 loaders other than
    ``zipimport``, and the previously-broken "eager resource" support.

@@ -84,7 +84,11 @@ finders = [
     (convert_path('CVS/Entries'),
         re_finder(re.compile(r"^\w?/([^/]+)/", re.M))),
     (convert_path('.svn/entries'),
-        re_finder(re.compile(r'name="([^"]+)"'), unescape)),
+        re_finder(
+            re.compile(r'name="([^"]+)"(?![^>]+deleted="true")', re.I),
+            unescape
+        )
+    ),
     (convert_path('.svn/dir-props'), externals_finder),
 ]
 
@@ -109,10 +113,6 @@ class sdist(_sdist):
     def add_defaults(self):
         _sdist.add_defaults(self)
         self.filelist.extend(walk_revctrl())
-
-
-
-
 
 
 
