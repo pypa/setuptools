@@ -192,6 +192,7 @@ optional second parameter to ``add()``
 But even if a distribution is found under multiple path entries, it still only
 shows up once when iterating the working set:
 
+    >>> ws.add_entry(ws.entries[0])
     >>> list(ws)
     [Bar 0.9 (http://example.com/something)]
 

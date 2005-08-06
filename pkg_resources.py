@@ -367,16 +367,6 @@ class WorkingSet(object):
 
 
 
-    def __iter__(self):
-        """Yield distributions for non-duplicate projects in the working set
-
-        The yield order is the order in which the items' path entries were
-        added to the working set.
-        """
-        for item in self.entries:
-            for key in self.entry_keys[item]:
-                yield self.by_key[key]
-
     def find(self, req):
         """Find a distribution matching requirement `req`
 
@@ -408,6 +398,29 @@ class WorkingSet(object):
             elif name in entries:
                 yield entries[name]
 
+
+
+
+
+
+
+
+
+
+
+    def __iter__(self):
+        """Yield distributions for non-duplicate projects in the working set
+
+        The yield order is the order in which the items' path entries were
+        added to the working set.
+        """
+        seen = {}
+        for item in self.entries:
+            for key in self.entry_keys[item]:
+                if key not in seen:
+                    seen[key]=1
+                    yield self.by_key[key]
+
     def add(self, dist, entry=None):
         """Add `dist` to working set, associated with `entry`
 
@@ -431,23 +444,10 @@ class WorkingSet(object):
 
         self.by_key[dist.key] = dist
         keys = self.entry_keys[entry]
-
         if dist.key not in keys:
             keys.append(dist.key)
 
         self._added_new(dist)
-
-
-
-
-
-
-
-
-
-
-
-
 
     def resolve(self, requirements, env=None, installer=None):
         """List all distributions needed to (recursively) meet `requirements`
