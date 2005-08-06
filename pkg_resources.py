@@ -1622,8 +1622,8 @@ class EntryPoint(object):
     def __repr__(self):
         return "EntryPoint.parse(%r)" % str(self)
 
-    def load(self, require=True):
-        if require: self.require()
+    def load(self, require=True, env=None, installer=None):
+        if require: self.require(env, installer)
         entry = __import__(self.module_name, globals(),globals(), ['__name__'])
         for attr in self.attrs:
             try:
@@ -1632,11 +1632,11 @@ class EntryPoint(object):
                 raise ImportError("%r has no %r attribute" % (entry,attr))
         return entry
 
-    def require(self):
+    def require(self, env=None, installer=None):
         if self.extras and not self.dist:
             raise UnknownExtra("Can't require() without a distribution", self)
         map(working_set.add,
-            working_set.resolve(self.dist.requires(self.extras)))
+            working_set.resolve(self.dist.requires(self.extras),env,installer))
         
     #@classmethod
     def parse(cls, src, dist=None):
