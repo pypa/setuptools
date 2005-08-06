@@ -9,7 +9,6 @@ from distutils.errors import *
 from distutils import log
 from pkg_resources import parse_requirements, safe_name, \
     safe_version, yield_lines, EntryPoint
-from setuptools.dist import iter_distribution_names
 
 class egg_info(Command):
 
@@ -35,6 +34,7 @@ class egg_info(Command):
         self.tag_build = None
         self.tag_svn_revision = 0
         self.tag_date = 0
+
 
 
 
@@ -149,7 +149,7 @@ class egg_info(Command):
     def write_toplevel_names(self):
         pkgs = dict.fromkeys(
             [k.split('.',1)[0]
-                for k in iter_distribution_names(self.distribution)
+                for k in self.distribution.iter_distribution_names()
             ]
         )
         toplevel = os.path.join(self.egg_info, "top_level.txt")
@@ -164,12 +164,8 @@ class egg_info(Command):
 
     def write_or_delete_dist_arg(self, argname, filename=None):
         value = getattr(self.distribution, argname, None)
-        if value is None:
-            return
-
         filename = filename or argname+'.txt'
         filename = os.path.join(self.egg_info,filename)
-
         if value:
             log.info("writing %s", filename)
             if not self.dry_run:
@@ -177,8 +173,12 @@ class egg_info(Command):
                 f.write('\n'.join(value))
                 f.write('\n')
                 f.close()
-
         elif os.path.exists(filename):
+            if value is None:
+                log.warn(
+                    "%s not set in setup(), but %s exists", argname, filename
+                )
+            return
             log.info("deleting %s", filename)
             if not self.dry_run:
                 os.unlink(filename)

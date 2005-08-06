@@ -64,7 +64,11 @@ Installing ``setuptools``
 =========================
 
 Download `ez_setup.py`_ and run it; this will download and install the
-appropriate egg for your Python version.
+appropriate egg for your Python version.  (Note: if you are behind
+an NTLM-based firewall that prevents Python programs from accessing the net
+directly, you may wish to install and use the `APS proxy server
+<http://ntlmaps.sf.net/>`_, which lets you get past such firewalls in the same
+way that your web browser(s) do.)
 
 .. _ez_setup.py: `bootstrap module`_
 
@@ -79,6 +83,16 @@ To get the in-development version of setuptools, run::
         co -d setuptools python/nondist/sandbox/setuptools
 
 You can then install it using the usual "setup.py install" incantation.
+
+Note that ``setuptools`` *must* be installed as an egg directory; it will not
+operate correctly otherwise.  If you are unable to install to a valid
+``site-packages`` directory (e.g. a "non-root install"), you will therefore
+need to manually add the setuptools egg to your ``PYTHONPATH``.  (You won't
+need to do this for every egg you install, because the ``pkg_resources`` module
+can automatically find eggs and add them to ``sys.path`` at runtime.  It's just
+that the ``setuptools`` egg contains ``pkg_resources`` and therefore has to
+be manually bootstrapped if you can't install it to a ``site-packages``
+directory.)
 
 
 Basic Use
@@ -174,6 +188,15 @@ unless you need the associated ``setuptools`` feature.
     to strings or lists of strings specifying what other distributions must be
     installed to support those features.  See the section below on `Declaring
     Dependencies`_ for details and examples of the format of this argument.
+
+``setup_requires``
+    A string or list of strings specifying what other distributions need to
+    be present in order for the *setup script* to run.  ``setuptools`` will
+    attempt to obtain these (even going so far as to download them using
+    ``EasyInstall``) before processing the rest of the setup script or commands.
+    This argument is needed if you are using distutils extensions as part of
+    your build process; for example, extensions that process setup() arguments
+    and turn them into EGG-INFO metadata files.
 
 ``namespace_packages``
     A list of strings naming the project's "namespace packages".  A namespace
@@ -1517,19 +1540,28 @@ The ``upload`` command has a few options worth noting:
 Extending and Reusing ``setuptools``
 ------------------------------------
 
-Sorry, this section isn't written yet, and neither is a lot of what's below
-this point, except for the change log.  You might want to `subscribe to changes
-in this page <setuptools?action=subscribe>`_ to see when new documentation is
-added or updated.
+Creating ``distutils`` Extensions
+=================================
+
+It can be hard to add new commands or setup arguments to the distutils.  But
+the ``setuptools`` package makes it a bit easier, by allowing you to distribute
+a distutils extension as a separate project, and then have projects that need
+the extension just refer to it in their ``setup_requires`` argument.
+
+With ``setuptools``, your distutils extension projects can hook in new
+commands and ``setup()`` arguments just by defining "entry points".  These
+are mappings from command or argument names to a specification of where to
+import a handler from.  (See the section on `Dynamic Discovery of Services and
+Plugins`_ above for some more background on entry points.)
 
 
 Adding Commands
-===============
+---------------
 
-You can create add-on packages that extend setuptools with additional commands
-by defining entry points in the ``distutils.commands`` group.  For example, if
-you wanted to add a ``foo`` command, you might add something like this to your
-setup script::
+You can add new ``setup`` commands by defining entry points in the
+``distutils.commands`` group.  For example, if you wanted to add a ``foo``
+command, you might add something like this to your distutils extension
+project's setup script::
 
     setup(
         # ...
@@ -1540,8 +1572,8 @@ setup script::
         },
     )
 
-Assuming, of course, that the ``foo`` class in ``mypackage.some_module`` is
-a ``setuptools.Command`` subclass.
+(Assuming, of course, that the ``foo`` class in ``mypackage.some_module`` is
+a ``setuptools.Command`` subclass.)
 
 Once a project containing such entry points has been activated on ``sys.path``,
 (e.g. by running "install" or "develop" with a site-packages installation
@@ -1550,18 +1582,76 @@ scripts.  It is not necessary to use the ``--command-packages`` option or
 to monkeypatch the ``distutils.command`` package to install your commands;
 ``setuptools`` automatically adds a wrapper to the distutils to search for
 entry points in the active distributions on ``sys.path``.  In fact, this is
-how setuptools' own commands are installed: the setuptools setup script defines
-entry points for them.
+how setuptools' own commands are installed: the setuptools project's setup
+script defines entry points for them!
+
+
+Adding ``setup()`` Arguments
+----------------------------
+
+Sometimes, your commands may need additional arguments to the ``setup()``
+script.  You can enable this by defining entry points in the
+``distutils.setup_keywords`` group.  For example, if you wanted a ``setup()``
+argument called ``bar_baz``, you might add something like this to your
+distutils extension project's setup script::
+
+    setup(
+        # ...
+        entry_points = {
+            "distutils.commands": [
+                "foo = mypackage.some_module:foo",
+            ],
+            "distutils.setup_keywords": [
+                "bar_baz = mypackage.some_module:validate_bar_baz",
+            ],
+        },
+    )
+
+The idea here is that the entry point defines a function that will be called
+to validate the ``setup()`` argument, if it's supplied.  The ``Distribution``
+object will have the initial value of the attribute set to ``None``, and the
+validation function will only be called if the ``setup()`` call sets it to
+a non-None value.  Here's an example validation function::
+
+    def assert_bool(dist, attr, value):
+        """Verify that value is True, False, 0, or 1"""
+        if bool(value) != value:
+            raise DistutilsSetupError(
+                "%r must be a boolean value (got %r)" % (attr,value)
+            )
+
+Your function should accept three arguments: the ``Distribution`` object,
+the attribute name, and the attribute value.  It should raise a
+``DistutilsSetupError`` (from the ``distutils.error`` module) if the argument
+is invalid.  Remember, your function will only be called with non-None values,
+and the default value of arguments defined this way is always None.  So, your
+commands should always be prepared for the possibility that the attribute will
+be ``None`` when they access it later.
+
+If more than one active distribution defines an entry point for the same
+``setup()`` argument, *all* of them will be called.  This allows multiple
+distutils extensions to define a common argument, as long as they agree on
+what values of that argument are valid.
+
+Also note that as with commands, it is not necessary to subclass or monkeypatch
+the distutils ``Distribution`` class in order to add your arguments; it is
+sufficient to define the entry points in your extension, as long as the setup
+script lists your extension in its ``setup_requires`` argument.
 
 
 Subclassing ``Command``
 -----------------------
 
+Sorry, this section isn't written yet, and neither is a lot of what's below
+this point, except for the change log.  You might want to `subscribe to changes
+in this page <setuptools?action=subscribe>`_ to see when new documentation is
+added or updated.
+
 XXX
 
 
-Utility Modules
-===============
+Reusing ``setuptools`` Code
+===========================
 
 ``ez_setup``
 ------------
@@ -1604,14 +1694,24 @@ Release Notes/Change History
 
  * The ``sdist`` command now recognizes Subversion "deleted file" entries and
    does not include them in source distributions.
-   
+
+ * ``setuptools`` now embeds itself more thoroughly into the distutils, so that
+   other distutils extensions (e.g. py2exe, py2app) will subclass setuptools'
+   versions of things, rather than the native distutils ones.
+
  * Fixed some problems using ``pkg_resources`` w/PEP 302 loaders other than
    ``zipimport``, and the previously-broken "eager resource" support.
 
  * Fixed ``pkg_resources.resource_exists()`` not working correctly, along with
    some other resource API bugs.
 
- * Added ``entry_points`` argument to ``setup()``
+ * Added ``entry_points`` and ``setup_requires`` arguments to ``setup()``;
+   ``setup_requires`` allows you to automatically find and download packages
+   that are needed in order to *build* your project (as opposed to running it).
+
+ * ``setuptools`` now finds its commands and ``setup()`` argument validators
+   using entry points, so that they are extensible by third-party packages.
+   See `Creating distutils Extensions`_ above for more details.
 
  * Many ``pkg_resources`` API changes and enhancements:
 

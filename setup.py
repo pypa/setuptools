@@ -46,7 +46,17 @@ setup(
             "%(cmd)s = setuptools.command.%(cmd)s:%(cmd)s" % locals()
             for cmd in SETUP_COMMANDS if cmd!="build_py" or sys.version<"2.4"
         ],
+        "distutils.setup_keywords": [
+            "eager_resources    = setuptools.dist:assert_string_list",
+            "namespace_packages = setuptools.dist:check_nsp",
+            "extras_require     = setuptools.dist:check_extras",
+            "entry_points       = setuptools.dist:check_entry_points",
+            "test_suite         = setuptools.dist:check_test_suite",
+            "zip_safe           = setuptools.dist:assert_bool",
+        ]
     },
+
+    setup_requires = ['setuptools>=0.6a0'],
 
     classifiers = [f.strip() for f in """
     Development Status :: 3 - Alpha
@@ -61,8 +71,6 @@ setup(
     Topic :: Utilities
     """.splitlines() if f.strip()]
 )
-
-
 
 
 

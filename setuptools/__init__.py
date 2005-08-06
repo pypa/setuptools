@@ -1,6 +1,6 @@
 """Extensions to the 'distutils' for large or complex distributions"""
+from setuptools.dist import Distribution, Feature, _get_unpatched
 import distutils.core, setuptools.command
-from setuptools.dist import Distribution, Feature
 from setuptools.extension import Extension
 from setuptools.depends import Require
 from distutils.core import Command as _Command
@@ -39,17 +39,9 @@ def find_packages(where='.', exclude=()):
         out = [item for item in out if not fnmatchcase(item,pat)]
     return out
 
-def setup(**attrs):
-    """Do package setup
-
-    This function takes the same arguments as 'distutils.core.setup()', except
-    that the default distribution class is 'setuptools.dist.Distribution'.  See
-    that class' documentation for details on the new keyword arguments that it
-    makes available via this function.
-    """
-    attrs.setdefault("distclass",Distribution)
-    return distutils.core.setup(**attrs)
+setup = distutils.core.setup
     
+_Command = _get_unpatched(_Command)
 
 class Command(_Command):
     __doc__ = _Command.__doc__
@@ -67,6 +59,14 @@ class Command(_Command):
         for k,v in kw.items():
             setattr(cmd,k,v)    # update command with keywords
         return cmd
+
+import distutils.core
+distutils.core.Command = Command    # we can't patch distutils.cmd, alas
+
+
+
+
+
 
 
 

@@ -9,32 +9,114 @@ from setuptools.command.sdist import sdist
 from setuptools.command.install_lib import install_lib
 from distutils.errors import DistutilsOptionError, DistutilsPlatformError
 from distutils.errors import DistutilsSetupError
-import setuptools, pkg_resources
+import setuptools, pkg_resources, distutils.core, distutils.dist, distutils.cmd
+import os
 
-def get_command_class(self, command):
-    """Pluggable version of get_command_class()"""
-    if command in self.cmdclass:
-        return self.cmdclass[command]
+def _get_unpatched(cls):
+    """Protect against re-patching the distutils if reloaded
 
-    for ep in pkg_resources.iter_entry_points('distutils.commands',command):
-        self.cmdclass[command] = cmdclass = ep.load()
-        return cmdclass
-    else:
-        return _old_get_command_class(self, command)
+    Also ensures that no other distutils extension monkeypatched the distutils
+    first.
+    """
+    while cls.__module__.startswith('setuptools'):
+        cls, = cls.__bases__
+    if not cls.__module__.startswith('distutils'):
+        raise AssertionError(
+            "distutils has already been patched by %r" % cls
+        )
+    return cls
 
-def print_commands(self):
-    for ep in pkg_resources.iter_entry_points('distutils.commands'):
-        if ep.name not in self.cmdclass:
-            cmdclass = ep.load(False) # don't require extras, we're not running
-            self.cmdclass[ep.name] = cmdclass
-    return _old_print_commands(self)
-
-for meth in 'print_commands', 'get_command_class':
-    if getattr(_Distribution,meth).im_func.func_globals is not globals():
-        globals()['_old_'+meth] = getattr(_Distribution,meth)
-        setattr(_Distribution, meth, globals()[meth])
+_Distribution = _get_unpatched(_Distribution)
 
 sequence = tuple, list
+
+
+
+
+
+
+
+
+
+
+def assert_string_list(dist, attr, value):
+    """Verify that value is a string list or None"""
+    try:
+        assert ''.join(value)!=value
+    except (TypeError,ValueError,AttributeError,AssertionError):
+        raise DistutilsSetupError(
+            "%r must be a list of strings (got %r)" % (attr,value)
+        )
+
+def check_nsp(dist, attr, value):
+    """Verify that namespace packages are valid"""
+    assert_string_list(dist,attr,value)
+
+    for nsp in value:
+        for name in dist.iter_distribution_names():
+            if name.startswith(nsp+'.'): break
+        else:
+            raise DistutilsSetupError(
+                "Distribution contains no modules or packages for " +
+                "namespace package %r" % nsp
+            )
+
+def check_extras(dist, attr, value):
+    """Verify that extras_require mapping is valid"""
+    try:
+        for k,v in value.items():
+            list(pkg_resources.parse_requirements(v))
+    except (TypeError,ValueError,AttributeError):
+        raise DistutilsSetupError(
+            "'extras_require' must be a dictionary whose values are "
+            "strings or lists of strings containing valid project/version "
+            "requirement specifiers."
+        )
+
+def assert_bool(dist, attr, value):
+    """Verify that value is True, False, 0, or 1"""
+    if bool(value) != value:
+        raise DistutilsSetupError(
+            "%r must be a boolean value (got %r)" % (attr,value)
+        )
+
+def check_install_requires(dist, attr, value):
+    """Verify that install_requires is a valid requirements list"""
+    try:
+        list(pkg_resources.parse_requirements(value))
+    except (TypeError,ValueError):
+        raise DistutilsSetupError(
+            "'install_requires' must be a string or list of strings "
+            "containing valid project/version requirement specifiers"
+        )
+
+def check_entry_points(dist, attr, value):
+    """Verify that entry_points map is parseable"""
+    try:
+        pkg_resources.EntryPoint.parse_map(value)
+    except ValueError, e:
+        raise DistutilsSetupError(e)
+
+
+def check_test_suite(dist, attr, value):
+    if not isinstance(value,basestring):
+        raise DistutilsSetupError("test_suite must be a string")
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -125,16 +207,19 @@ class Distribution(_Distribution):
         have_package_data = hasattr(self, "package_data")
         if not have_package_data:
             self.package_data = {}
+
         self.features = {}
-        self.test_suite = None
         self.requires = []
-        self.install_requires = []
-        self.extras_require = {}
         self.dist_files = []
-        self.zip_safe = None
-        self.namespace_packages = None
-        self.eager_resources = None
-        self.entry_points = None
+
+        if attrs and 'setup_requires' in attrs:
+            # Make sure we have any eggs needed to interpret 'attrs'
+            self.fetch_build_eggs(attrs.pop('setup_requires'))
+
+        for ep in pkg_resources.iter_entry_points('distutils.setup_keywords'):
+            if not hasattr(self,ep.name):
+                setattr(self,ep.name,None)
+
         _Distribution.__init__(self,attrs)
 
 
@@ -145,20 +230,17 @@ class Distribution(_Distribution):
             self._finalize_features()
         return result
 
-
     def _feature_attrname(self,name):
         """Convert feature name to corresponding option attribute name"""
         return 'with_'+name.replace('-','_')
 
-
-
-
-
-
-
-
-
-
+    def fetch_build_eggs(self, requires):
+        """Resolve pre-setup requirements"""
+        from pkg_resources import working_set, parse_requirements
+        for dist in working_set.resolve(
+            parse_requirements(requires), installer=self.fetch_build_egg
+        ):
+            working_set.add(dist)
 
 
 
@@ -174,49 +256,34 @@ class Distribution(_Distribution):
                 "setuptools.  Please remove it from your setup script."
             )
 
-        try:
-            list(pkg_resources.parse_requirements(self.install_requires))
-        except (TypeError,ValueError):
-            raise DistutilsSetupError(
-                "'install_requires' must be a string or list of strings "
-                "containing valid project/version requirement specifiers"
-            )
-
-        try:
-            for k,v in self.extras_require.items():
-                list(pkg_resources.parse_requirements(v))
-        except (TypeError,ValueError,AttributeError):
-            raise DistutilsSetupError(
-                "'extras_require' must be a dictionary whose values are "
-                "strings or lists of strings containing valid project/version "
-                "requirement specifiers."
-            )
-
-        for attr in 'namespace_packages','eager_resources':
-            value = getattr(self,attr,None)
+        for ep in pkg_resources.iter_entry_points('distutils.setup_keywords'):
+            value = getattr(self,ep.name,None)
             if value is not None:
-                try:
-                    assert ''.join(value)!=value
-                except (TypeError,ValueError,AttributeError,AssertionError):
-                    raise DistutilsSetupError(
-                        "%r must be a list of strings (got %r)" % (attr,value)
-                    )
+                ep.require(installer=self.fetch_build_egg)
+                ep.load()(self, ep.name, value)
 
 
-        for nsp in self.namespace_packages or ():
-            for name in iter_distribution_names(self):
-                if name.startswith(nsp+'.'): break
-            else:
-                raise DistutilsSetupError(
-                    "Distribution contains no modules or packages for " +
-                    "namespace package %r" % nsp
-                )
+    def fetch_build_egg(self, req):
+        """Fetch an egg needed for building"""
+        try:
+            cmd = self._egg_fetcher
+        except AttributeError:
+            from setuptools.command.easy_install import easy_install
+            cmd = easy_install(
+                self.__class__({'script_args':['easy_install']}),
+                args="x", install_dir=os.curdir, exclude_scripts=True,
+                always_copy=False, build_directory=None, editable=False,
+                upgrade=False
+            )
+            cmd.ensure_finalized()
+            cmd.zip_ok = None       # override any setup.cfg setting for these
+            cmd.build_directory = None
+            self._egg_fetcher = cmd
 
-        if self.entry_points is not None:
-            try:
-                pkg_resources.EntryPoint.parse_map(self.entry_points)
-            except ValueError, e:
-                raise DistutilsSetupError(e)
+        return cmd.easy_install(req)
+
+
+
 
     def _set_global_opts_from_features(self):
         """Add --with-X/--without-X options based on optional features"""
@@ -244,6 +311,21 @@ class Distribution(_Distribution):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     def _finalize_features(self):
         """Add/remove features and resolve dependencies between them"""
 
@@ -262,24 +344,24 @@ class Distribution(_Distribution):
                 self._set_feature(name,0)
 
 
+    def get_command_class(self, command):
+        """Pluggable version of get_command_class()"""
+        if command in self.cmdclass:
+            return self.cmdclass[command]
 
+        for ep in pkg_resources.iter_entry_points('distutils.commands',command):
+            ep.require(installer=self.fetch_build_egg)
+            self.cmdclass[command] = cmdclass = ep.load()
+            return cmdclass
+        else:
+            return _Distribution.get_command_class(self, command)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def print_commands(self):
+        for ep in pkg_resources.iter_entry_points('distutils.commands'):
+            if ep.name not in self.cmdclass:
+                cmdclass = ep.load(False) # don't require extras, we're not running
+                self.cmdclass[ep.name] = cmdclass
+        return _Distribution.print_commands(self)
 
 
 
@@ -572,25 +654,25 @@ class Distribution(_Distribution):
         return d
 
 
-def iter_distribution_names(distribution):
-    """Yield all packages, modules, and extensions declared by distribution"""
+    def iter_distribution_names(self):
+        """Yield all packages, modules, and extension names in distribution"""
 
-    for pkg in distribution.packages or ():
-        yield pkg
+        for pkg in self.packages or ():
+            yield pkg
 
-    for module in distribution.py_modules or ():
-        yield module
+        for module in self.py_modules or ():
+            yield module
 
-    for ext in distribution.ext_modules or ():
-        if isinstance(ext,tuple):
-            name,buildinfo = ext
-            yield name
-        else:
-            yield ext.name
+        for ext in self.ext_modules or ():
+            if isinstance(ext,tuple):
+                name,buildinfo = ext
+                yield name
+            else:
+                yield ext.name
 
-
-
-
+# Install it throughout the distutils
+for module in distutils.dist, distutils.core, distutils.cmd:
+    module.Distribution = Distribution
 
 
 
