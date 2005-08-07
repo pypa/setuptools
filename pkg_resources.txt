@@ -46,7 +46,11 @@ Developer's Guide
 API Reference
 -------------
 
-XXX Namespace stuff, 
+
+Namespace Package Support
+=========================
+
+XXX
 
 
 ``WorkingSet`` Objects
@@ -96,30 +100,64 @@ calls the ``resource_string()`` method of the global ``ResourceManager``::
     import pkg_resources
     my_data = pkg_resources.resource_string(__name__, "foo.dat")
 
-Thus, you can use the APIs below without needing a ``ResourceManager``
-instance; just import and use them.
+Thus, you can use the APIs below without needing an explicit
+``ResourceManager`` instance; just import and use them as needed.
 
 
 Basic Resource Access
 ---------------------
 
-XXX explain resource paths, layout, etc. here
+In the following methods, the `package_or_requirement` argument may be either
+a Python package/module name (e.g. ``foo.bar``) or a ``Requirement`` instance.
+If it is a package or module name, the named module or package must be
+importable (i.e., be in a distribution or directory on ``sys.path``), and the
+`resource_name` argument is interpreted relative to the named package.  (Note
+that if a module name is used, then the resource name is relative to the
+package immediately containing the named module.)
+
+If it is a ``Requirement``, then the requirement is automatically resolved
+(searching the current ``Environment`` if necessary) and a matching
+distribution is added to the ``WorkingSet`` and ``sys.path`` if one was not
+already present.  (Unless the ``Requirement`` can't be satisfied, in which
+case an exception is raised.)  The `resource_name` argument is then interpreted
+relative to the root of the identified distribution; i.e. its first path
+segment will be treated as a peer of the top-level modules or packages in the
+distribution.
+
+Note that resource names must be ``/``-separated paths and cannot be absolute
+(i.e. no leading ``/``) or contain relative names like ``..``.  Do *not* use
+``os.path`` routines to manipulate resource paths, as they are *not* filesystem
+paths.
 
 ``resource_exists(package_or_requirement, resource_name)``
-    Does the named resource exist?
+    Does the named resource exist?  Return ``True`` or ``False`` accordingly.
 
 ``resource_stream(package_or_requirement, resource_name)``
-    Return a readable file-like object for specified resource
+    Return a readable file-like object for the specified resource; it may be
+    an actual file, a ``StringIO``, or some similar object.  The stream is
+    in "binary mode", in the sense that whatever bytes are in the resource
+    will be read as-is.
 
 ``resource_string(package_or_requirement, resource_name)``
-    Return specified resource as a string
+    Return the specified resource as a string.  The resource is read in
+    binary fashion, such that the returned string contains exactly the bytes
+    that are stored in the resource.
 
 ``resource_isdir(package_or_requirement, resource_name)``
-    Is the named resource an existing directory?
+    Is the named resource a directory?  Return ``True`` or ``False``
+    accordingly.
 
 ``resource_listdir(package_or_requirement, resource_name)``
-    List the contents of the named resource directory
-    
+    List the contents of the named resource directory, just like ``os.listdir``
+    except that it works even if the resource is in a zipfile.
+
+Note that only ``resource_exists()`` and ``resource_isdir()`` are insensitive
+as to the resource type.  You cannot use ``resource_listdir()`` on a file
+resource, and you can't use ``resource_string()`` or ``resource_stream()`` on
+directory resources.  Using an inappropriate method for the resource type may
+result in an exception or undefined behavior, depending on the platform and
+distribution format involved.
+
 
 Resource Extraction
 -------------------
@@ -141,19 +179,19 @@ Resource Extraction
 
 ``set_extraction_path(path)``
     Set the base path where resources will be extracted to, if needed.
-    
+
     If you do not call this routine before any extractions take place, the
     path defaults to the return value of ``get_default_cache()``.  (Which is
     based on the ``PYTHON_EGG_CACHE`` environment variable, with various
     platform-specific fallbacks.  See that routine's documentation for more
     details.)
-   
+
     Resources are extracted to subdirectories of this path based upon
     information given by the ``IResourceProvider``.  You may set this to a
     temporary directory, but then you must call ``cleanup_resources()`` to
     delete the extracted files when done.  There is no guarantee that
     ``cleanup_resources()`` will be able to remove all extracted files.
-    
+
     (Note: you may not change the extraction path for a given resource
     manager once resources have been extracted, unless you first call
     ``cleanup_resources()``.)
@@ -182,13 +220,13 @@ you must therefore have an explicit ``ResourceManager`` instance to use them.
 
 ``get_cache_path(archive_name, names=())``
     Return absolute location in cache for `archive_name` and `names`
-    
+
     The parent directory of the resulting path will be created if it does
     not already exist.  `archive_name` should be the base filename of the
     enclosing egg (which may not be the name of the enclosing zipfile!),
     including its ".egg" extension.  `names`, if provided, should be a
     sequence of path name parts "under" the egg's extraction location.
-    
+
     This method should only be called by resource providers that need to
     obtain an extraction location, and only for names they intend to
     extract, as it tracks the generated names for possible cleanup later.
@@ -198,10 +236,69 @@ you must therefore have an explicit ``ResourceManager`` instance to use them.
     Resource providers should call this method ONLY after successfully
     extracting a compressed resource.  They must NOT call it on resources
     that are already in the filesystem.
-    
+
     `tempname` is the current (temporary) name of the file, and `filename`
     is the name it will be renamed to by the caller after this routine
     returns.
+
+
+Metadata API
+============
+
+The metadata API is used to access metadata resources bundled in a pluggable
+distribution.  Metadata resources are virtual files or directories containing
+information about the distribution, such as might be used by an extensible
+application or framework to connect "plugins".  Like other kinds of resources,
+metadata resource names are ``/``-separated and should not contain ``..`` or
+begin with a ``/``.  You should not use ``os.path`` routines to manipulate
+resource paths.
+
+The metadata API is provided by objects implementing the ``IMetadataProvider``
+interface.  ``Distribution`` objects created with a ``metadata`` setting
+implement this interface, as do objects returned by the ``get_provider()``
+function:
+
+``get_provider(package_or_requirement)``
+    If a package name is supplied, return an ``IMetadataProvider`` for the
+    package.  If a ``Requirement`` is supplied, resolve it by returning a
+    ``Distribution`` from the current working set (searching the current
+    ``Environment`` if necessary and adding the newly found ``Distribution``
+    to the working set).  If the named package can't be imported, or the
+    ``Requirement`` can't be satisfied, an exception is raised.
+
+    Note also that if you supply a package name, and the package is not part
+    of a pluggable distribution (i.e., it has no metadata), then you will still
+    get an ``IMetadataProvider`` object, but it will just be an empty one that
+    answers ``False`` when asked if any given metadata resource file or
+    directory exists.
+
+The methods provided by ``IMetadataProvider`` (and ``Distribution`` objects
+with a ``metadata`` attribute set) are:
+
+``has_metadata(name)``
+    Does the named metadata resource exist?
+
+``metadata_isdir(name)``
+    Is the named metadata resource a directory?
+
+``metadata_listdir(name)``
+    List of metadata names in the directory (like ``os.listdir()``)
+
+``get_metadata(name)``
+    Return the named metadata resource as a string.  The data is read in binary
+    mode; i.e., the exact bytes of the resource file are returned.
+
+``get_metadata_lines(name)``
+    Yield named metadata resource as list of non-blank non-comment lines.  This
+    is short for calling ``yield_lines(provider.get_metadata(name))``.  See the
+    section on `yield_lines()`_ below for more information on the syntax it
+    recognizes.
+
+``run_script(script_name, namespace)``
+    Execute the named script in the supplied namespace dictionary.  Raises
+    ``ResolutionError`` if there is no script by that name in the ``scripts``
+    metadata directory.  `namespace` should be a Python dictionary, usually
+    a module dictionary if the script is being run as a module.
 
 
 Exceptions
@@ -275,6 +372,8 @@ Parsing Utilities
     candidates, and therefore are not as new as a version string that does not
     contain them.
 
+.. _yield_lines():
+
 ``yield_lines(strs)``
     Yield non-empty/non-comment lines from a string/unicode or a possibly-
     nested sequence thereof.  If `strs` is an instance of ``basestring``, it
@@ -336,7 +435,7 @@ Platform Utilities
 
 ``get_platform()``
     Return this platform's identifier string.  For Windows, the return value
-    is ``"win32"``, and for Mac OS X it is a string of the form 
+    is ``"win32"``, and for Mac OS X it is a string of the form
     ``"macosx-10.4-ppc"``.  All other platforms return the same uname-based
     string that the ``distutils.util.get_platform()`` function returns.
 
@@ -375,5 +474,5 @@ File/Path Utilities
     (notably Cygwin and Mac OS X) the ``normcase`` function does not accurately
     reflect the platform's case-sensitivity, so there is always the possibility
     of two apparently-different paths being equal on such platforms.
-    
+
 
