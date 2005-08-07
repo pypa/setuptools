@@ -1557,26 +1557,29 @@ def _parse_version_parts(s):
     yield '*final'  # ensure that alpha/beta/candidate are before final
 
 def parse_version(s):
-    """Convert a version string to a sortable key
+    """Convert a version string to a chronologically-sortable key
 
     This is a rough cross between distutils' StrictVersion and LooseVersion;
     if you give it versions that would work with StrictVersion, then it behaves
-    the same; otherwise it acts like a slightly-smarter LooseVersion.
+    the same; otherwise it acts like a slightly-smarter LooseVersion. It is
+    *possible* to create pathological version coding schemes that will fool
+    this parser, but they should be very rare in practice.
 
     The returned value will be a tuple of strings.  Numeric portions of the
     version are padded to 8 digits so they will compare numerically, but
     without relying on how numbers compare relative to strings.  Dots are
     dropped, but dashes are retained.  Trailing zeros between alpha segments
-    or dashes are suppressed, so that e.g. 2.4.0 is considered the same as 2.4.
-    Alphanumeric parts are lower-cased.
+    or dashes are suppressed, so that e.g. "2.4.0" is considered the same as
+    "2.4". Alphanumeric parts are lower-cased.
 
-    The algorithm assumes that strings like '-' and any alpha string > "final"
-    represents a "patch level".  So, "2.4-1" is assumed to be a branch or patch
-    of "2.4", and therefore "2.4.1" is considered newer than "2.4-1".
+    The algorithm assumes that strings like "-" and any alpha string that
+    alphabetically follows "final"  represents a "patch level".  So, "2.4-1"
+    is assumed to be a branch or patch of "2.4", and therefore "2.4.1" is
+    considered newer than "2.4-1", whic in turn is newer than "2.4".
 
     Strings like "a", "b", "c", "alpha", "beta", "candidate" and so on (that
     come before "final" alphabetically) are assumed to be pre-release versions,
-    and so the version "2.4" is considered newer than "2.4a1".
+    so that the version "2.4" is considered newer than "2.4a1".
 
     Finally, to handle miscellaneous cases, the strings "pre", "preview", and
     "rc" are treated as if they were "c", i.e. as though they were release
@@ -1591,7 +1594,6 @@ def parse_version(s):
                 parts.pop()
         parts.append(part)
     return tuple(parts)
-
 
 
 
@@ -1810,7 +1812,7 @@ class Distribution(object):
             dm = self.__dep_map = {None: []}
             for name in 'requires.txt', 'depends.txt':
                 for extra,reqs in split_sections(self._get_metadata(name)):
-                    dm.setdefault(extra,[]).extend(parse_requirements(reqs))
+                    dm.setdefault(extra.lower(),[]).extend(parse_requirements(reqs))
             return dm
 
     _dep_map = property(_dep_map)
@@ -2099,7 +2101,7 @@ def ensure_directory(path):
 def split_sections(s):
     """Split a string or iterable thereof into (section,content) pairs
 
-    Each ``section`` is a lowercase version of the section header ("[section]")
+    Each ``section`` is a stripped version of the section header ("[section]")
     and each ``content`` is a list of stripped lines excluding blank lines and
     comment-only lines.  If there are any such lines before the first section
     header, they're returned in a first ``section`` of ``None``.
@@ -2111,7 +2113,7 @@ def split_sections(s):
             if line.endswith("]"):
                 if section or content:
                     yield section, content
-                section = line[1:-1].strip().lower()
+                section = line[1:-1].strip()
                 content = []
             else:
                 raise ValueError("Invalid section heading", line)

@@ -2,10 +2,10 @@
 Package Discovery and Resource Access using ``pkg_resources``
 =============================================================
 
-The ``pkg_resources`` module, distributed with ``setuptools``, provides
-features for Python libraries to access resource files, and for extensible
+The ``pkg_resources`` module distributed with ``setuptools`` provides an API
+for Python libraries to access their resource files, and for extensible
 applications and frameworks to automatically discover plugins.  It also
-provides runtime support for using C extensions that are inside zipfile
+provides runtime support for using C extensions that are inside zipfile-format
 eggs, support for merging packages that have separately-distributed modules or
 subpackages, and APIs for managing Python's current "working set" of active
 packages.
@@ -96,38 +96,128 @@ Utility Functions
 Parsing Utilities
 -----------------
 
-yield_lines
-    XXX
+``parse_version(version)``
+    Parse a project's version string, returning a value that can be used to
+    compare versions by chronological order.  Semantically, the format is a
+    rough cross between distutils' ``StrictVersion`` and ``LooseVersion``
+    classes; if you give it versions that would work with ``StrictVersion``,
+    then they will compare the same way.  Otherwise, comparisons are more like
+    a "smarter" form of ``LooseVersion``.  It is *possible* to create
+    pathological version coding schemes that will fool this parser, but they
+    should be very rare in practice.
 
-split_sections
-    XXX
+    The returned value will be a tuple of strings.  Numeric portions of the
+    version are padded to 8 digits so they will compare numerically, but
+    without relying on how numbers compare relative to strings.  Dots are
+    dropped, but dashes are retained.  Trailing zeros between alpha segments
+    or dashes are suppressed, so that e.g. "2.4.0" is considered the same as
+    "2.4". Alphanumeric parts are lower-cased.
 
-parse_version
-    XXX
+    The algorithm assumes that strings like "-" and any alpha string that
+    alphabetically follows "final"  represents a "patch level".  So, "2.4-1"
+    is assumed to be a branch or patch of "2.4", and therefore "2.4.1" is
+    considered newer than "2.4-1", whic in turn is newer than "2.4".
 
-safe_name
-    XXX
+    Strings like "a", "b", "c", "alpha", "beta", "candidate" and so on (that
+    come before "final" alphabetically) are assumed to be pre-release versions,
+    so that the version "2.4" is considered newer than "2.4a1".
 
-safe_version
-    XXX
+    Finally, to handle miscellaneous cases, the strings "pre", "preview", and
+    "rc" are treated as if they were "c", i.e. as though they were release
+    candidates, and therefore are not as new as a version string that does not
+    contain them.
+
+``yield_lines(strs)``
+    Yield non-empty/non-comment lines from a string/unicode or a possibly-
+    nested sequence thereof.  If `strs` is an instance of ``basestring``, it
+    is split into lines, and each non-blank, non-comment line is yielded after
+    stripping leading and trailing whitespace.  (Lines whose first non-blank
+    character is ``#`` are considered comment lines.)
+
+    If `strs` is not an instance of ``basestring``, it is iterated over, and
+    each item is passed recursively to ``yield_lines()``, so that an arbitarily
+    nested sequence of strings, or sequences of sequences of strings can be
+    flattened out to the lines contained therein.  So for example, passing
+    a file object or a list of strings to ``yield_lines`` will both work.
+    (Note that between each string in a sequence of strings there is assumed to
+    be an implicit line break, so lines cannot bridge two strings in a
+    sequence.)
+
+    This routine is used extensively by ``pkg_resources`` to parse metadata
+    and file formats of various kinds, and most other ``pkg_resources``
+    parsing functions that yield multiple values will use it to break up their
+    input.  However, this routine is idempotent, so calling ``yield_lines()``
+    on the output of another call to ``yield_lines()`` is completely harmless.
+
+``split_sections(strs)``
+    Split a string (or possibly-nested iterable thereof), yielding ``(section,
+    content)`` pairs found using an ``.ini``-like syntax.  Each ``section`` is
+    a whitespace-stripped version of the section name ("``[section]``")
+    and each ``content`` is a list of stripped lines excluding blank lines and
+    comment-only lines.  If there are any non-blank, non-comment lines before
+    the first section header, they're yielded in a first ``section`` of
+    ``None``.
+
+    This routine uses ``yield_lines()`` as its front end, so you can pass in
+    anything that ``yield_lines()`` accepts, such as an open text file, string,
+    or sequence of strings.  ``ValueError`` is raised if a malformed section
+    header is found (i.e. a line starting with ``[`` but not ending with
+    ``]``).
+
+    Note that this simplistic parser assumes that any line whose first nonblank
+    character is ``[`` is a section heading, so it can't support .ini format
+    variations that allow ``[`` as the first nonblank character on other lines.
+
+``safe_name(name)``
+    Return a "safe" form of a project's name, suitable for use in a
+    ``Requirement`` string, as a distribution name, or a PyPI project name.
+    All non-alphanumeric runs are condensed to single "-" characters, such that
+    a name like "The $$$ Tree" becomes "The-Tree".  Note that if you are
+    generating a filename from this value you should replace the "-" characters
+    with underscores ("_") because setuptools and the distutils
+
+``safe_version(version)``
+    Similar to ``safe_name()`` except that spaces in the input become dots, and
+    dots are allowed to exist in the output.  As with ``safe_name()``, if you
+    are generating a filename from this you should replace any "-" characters
+    in the output with underscores.
 
 
 Platform Utilities
 ------------------
 
-get_platform
-    XXX
+``get_platform()``
+    Return this platform's identifier string.  For Windows, the return value
+    is ``"win32"``, and for Mac OS X it is a string of the form 
+    ``"macosx-10.4-ppc"``.  All other platforms return the same uname-based
+    string that the ``distutils.util.get_platform()`` function returns.
 
-compatible_platforms
-    XXX
+``compatible_platforms(provided, required)``
+    Return true if a distribution built on the `provided` platform may be used
+    on the `required` platform.  If either platform value is ``None``, it is
+    considered a wildcard, and the platforms are therefore compatible.
+    Likewise, if the platform strings are equal, they're also considered
+    compatible, and ``True`` is returned.  Currently, the only non-equal
+    platform strings that are considered compatible are Mac OS X platform
+    strings with the same hardware type (e.g. ``ppc``) and major version
+    (e.g. ``10``) with the `provided` platform's minor version being less than
+    or equal to the `required` platform's minor version.
 
 
 File/Path Utilities
 -------------------
 
-ensure_directory
-    XXX
+``ensure_directory(path)``
+    Ensure that the parent directory (``os.path.dirname``) of `path` actually
+    exists, using ``os.makedirs()`` if necessary.
 
-normalize_path
-    XXX
+``normalize_path(path)``
+    Return a "normalized" version of `path`, such that two paths represent
+    the same filesystem location if they have equal ``normalized_path()``
+    values.  Specifically, this is a shortcut for calling ``os.path.realpath``
+    and ``os.path.normcase`` on `path`.  Unfortunately, on certain platforms
+    (notably Cygwin and Mac OS X) the ``normcase`` function does not accurately
+    reflect the platform's case-sensitivity, so there is always the possibility
+    of two apparently-different paths being equal on such platforms.
+    
 
