@@ -46,6 +46,8 @@ Developer's Guide
 API Reference
 -------------
 
+XXX Namespace stuff, 
+
 
 ``WorkingSet`` Objects
 ======================
@@ -74,23 +76,169 @@ XXX Syntax, parse_requirments, Requirement.parse, etc.
 ``Distribution`` Objects
 ========================
 
-XXX
+Factories: get_provider, get_distribution, find_distributions; see also
+WorkingSet and Environment APIs.
 
 
-``ResourceManager`` Objects
-===========================
+``ResourceManager`` API
+=======================
 
-XXX
+The ``ResourceManager`` class provides uniform access to package resources,
+whether those resources exist as files and directories or are compressed in
+an archive of some kind.
+
+Normally, you do not need to create or explicitly manage ``ResourceManager``
+instances, as the ``pkg_resources`` module creates a global instance for you,
+and makes most of its methods available as top-level names in the
+``pkg_resources`` module namespace.  So, for example, this code actually
+calls the ``resource_string()`` method of the global ``ResourceManager``::
+
+    import pkg_resources
+    my_data = pkg_resources.resource_string(__name__, "foo.dat")
+
+Thus, you can use the APIs below without needing a ``ResourceManager``
+instance; just import and use them.
+
+
+Basic Resource Access
+---------------------
+
+XXX explain resource paths, layout, etc. here
+
+``resource_exists(package_or_requirement, resource_name)``
+    Does the named resource exist?
+
+``resource_stream(package_or_requirement, resource_name)``
+    Return a readable file-like object for specified resource
+
+``resource_string(package_or_requirement, resource_name)``
+    Return specified resource as a string
+
+``resource_isdir(package_or_requirement, resource_name)``
+    Is the named resource an existing directory?
+
+``resource_listdir(package_or_requirement, resource_name)``
+    List the contents of the named resource directory
+    
+
+Resource Extraction
+-------------------
+
+``resource_filename(package_or_requirement, resource_name)``
+    Sometimes, it is not sufficient to access a resource in string or stream
+    form, and a true filesystem filename is needed.  In such cases, you can
+    use this method (or module-level function) to obtain a filename for a
+    resource.  If the resource is in an archive distribution (such as a zipped
+    egg), it will be extracted to a cache directory, and the filename within
+    the cache will be returned.  If the named resource is a directory, then
+    all resources within that directory (including subdirectories) are also
+    extracted.  If the named resource is a C extension or "eager resource"
+    (see the ``setuptools`` documentation for details), then all C extensions
+    and eager resources are extracted at the same time.
+
+    Archived resources are extracted to a cache location that can be managed by
+    the following two methods:
+
+``set_extraction_path(path)``
+    Set the base path where resources will be extracted to, if needed.
+    
+    If you do not call this routine before any extractions take place, the
+    path defaults to the return value of ``get_default_cache()``.  (Which is
+    based on the ``PYTHON_EGG_CACHE`` environment variable, with various
+    platform-specific fallbacks.  See that routine's documentation for more
+    details.)
+   
+    Resources are extracted to subdirectories of this path based upon
+    information given by the ``IResourceProvider``.  You may set this to a
+    temporary directory, but then you must call ``cleanup_resources()`` to
+    delete the extracted files when done.  There is no guarantee that
+    ``cleanup_resources()`` will be able to remove all extracted files.
+    
+    (Note: you may not change the extraction path for a given resource
+    manager once resources have been extracted, unless you first call
+    ``cleanup_resources()``.)
+
+``cleanup_resources(force=False)``
+    Delete all extracted resource files and directories, returning a list
+    of the file and directory names that could not be successfully removed.
+    This function does not have any concurrency protection, so it should
+    generally only be called when the extraction path is a temporary
+    directory exclusive to a single process.  This method is not
+    automatically called; you must call it explicitly or register it as an
+    ``atexit`` function if you wish to ensure cleanup of a temporary
+    directory used for extractions.
+
+
+"Provider" Interface
+--------------------
+
+If you are implementing an ``IResourceProvider`` and/or ``IMetadataProvider``
+for a new distribution archive format, you may need to use the following
+``ResourceManager`` methods to co-ordinate extraction of resources to the
+filesystem.  If you're not implementing an archive format, however, you have
+no need to use these methods.  Unlike the other methods listed above, they are
+*not* available as top-level functions tied to the global ``ResourceManager``;
+you must therefore have an explicit ``ResourceManager`` instance to use them.
+
+``get_cache_path(archive_name, names=())``
+    Return absolute location in cache for `archive_name` and `names`
+    
+    The parent directory of the resulting path will be created if it does
+    not already exist.  `archive_name` should be the base filename of the
+    enclosing egg (which may not be the name of the enclosing zipfile!),
+    including its ".egg" extension.  `names`, if provided, should be a
+    sequence of path name parts "under" the egg's extraction location.
+    
+    This method should only be called by resource providers that need to
+    obtain an extraction location, and only for names they intend to
+    extract, as it tracks the generated names for possible cleanup later.
+
+``postprocess(tempname, filename)``
+    Perform any platform-specific postprocessing of `tempname`.
+    Resource providers should call this method ONLY after successfully
+    extracting a compressed resource.  They must NOT call it on resources
+    that are already in the filesystem.
+    
+    `tempname` is the current (temporary) name of the file, and `filename`
+    is the name it will be renamed to by the caller after this routine
+    returns.
 
 
 Exceptions
 ==========
 
-XXX ResolutionError, VersionConflict, DistributionNotFound, UnknownExtra
+``pkg_resources`` provides a simple exception hierarchy for problems that may
+occur when processing requests to locate and activate packages::
+
+    ResolutionError
+        DistributionNotFound
+        VersionConflict
+        UnknownExtra
+
+``ResolutionError``
+    This class is used as a base class for the other three exceptions, so that
+    you can catch all of them with a single "except" clause.  It is also raised
+    directly for miscellaneous requirement-resolution problems like trying to
+    run a script that doesn't exist in the distribution it was requested from.
+
+``DistributionNotFound``
+    A distribution needed to fulfill a requirement could not be found.
+
+``VersionConflict``
+    The requested version of a project conflicts with an already-activated
+    version of the same project.
+
+``UnknownExtra``
+    One of the "extras" requested was not recognized by the distribution it
+    was requested from.
 
 
 Utility Functions
 =================
+
+In addition to its high-level APIs, ``pkg_resources`` also includes several
+generally-useful utility routines.  These routines are used to implement the
+high-level APIs, but can also be quite useful by themselves.
 
 
 Parsing Utilities
@@ -202,6 +350,14 @@ Platform Utilities
     strings with the same hardware type (e.g. ``ppc``) and major version
     (e.g. ``10``) with the `provided` platform's minor version being less than
     or equal to the `required` platform's minor version.
+
+``get_default_cache()``
+    Determine the default cache location for extracting resources from zipped
+    eggs.  This routine returns the ``PYTHON_EGG_CACHE`` environment variable,
+    if set.  Otherwise, on Windows, it returns a "Python-Eggs" subdirectory of
+    the user's "Application Data" directory.  On all other systems, it returns
+    ``os.path.expanduser("~/.python-eggs")`` if ``PYTHON_EGG_CACHE`` is not
+    set.
 
 
 File/Path Utilities

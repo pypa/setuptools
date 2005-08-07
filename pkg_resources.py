@@ -656,44 +656,44 @@ AvailableDistributions = Environment    # XXX backward compatibility
 
 class ResourceManager:
     """Manage resource extraction and packages"""
-
     extraction_path = None
 
     def __init__(self):
         self.cached_files = {}
 
-    def resource_exists(self, package_name, resource_name):
-        """Does the named resource exist in the named package?"""
-        return get_provider(package_name).has_resource(resource_name)
+    def resource_exists(self, package_or_requirement, resource_name):
+        """Does the named resource exist?"""
+        return get_provider(package_or_requirement).has_resource(resource_name)
 
-    def resource_isdir(self, package_name, resource_name):
-        """Does the named resource exist in the named package?"""
-        return get_provider(package_name).resource_isdir(resource_name)
+    def resource_isdir(self, package_or_requirement, resource_name):
+        """Is the named resource an existing directory?"""
+        return get_provider(package_or_requirement).resource_isdir(
+            resource_name
+        )
 
-    def resource_filename(self, package_name, resource_name):
+    def resource_filename(self, package_or_requirement, resource_name):
         """Return a true filesystem path for specified resource"""
-        return get_provider(package_name).get_resource_filename(
-            self,resource_name
+        return get_provider(package_or_requirement).get_resource_filename(
+            self, resource_name
         )
 
-    def resource_stream(self, package_name, resource_name):
+    def resource_stream(self, package_or_requirement, resource_name):
         """Return a readable file-like object for specified resource"""
-        return get_provider(package_name).get_resource_stream(
+        return get_provider(package_or_requirement).get_resource_stream(
             self, resource_name
         )
 
-    def resource_string(self, package_name, resource_name):
+    def resource_string(self, package_or_requirement, resource_name):
         """Return specified resource as a string"""
-        return get_provider(package_name).get_resource_string(
+        return get_provider(package_or_requirement).get_resource_string(
             self, resource_name
         )
 
-    def resource_listdir(self,  package_name, resource_name):
-        return get_provider(package_name).resource_listdir(resource_name)
-
-
-
-
+    def resource_listdir(self, package_or_requirement, resource_name):
+        """List the contents of the named resource directory"""
+        return get_provider(package_or_requirement).resource_listdir(
+            resource_name
+        )
 
     def get_cache_path(self, archive_name, names=()):
         """Return absolute location in cache for `archive_name` and `names`
@@ -701,7 +701,7 @@ class ResourceManager:
         The parent directory of the resulting path will be created if it does
         not already exist.  `archive_name` should be the base filename of the
         enclosing egg (which may not be the name of the enclosing zipfile!),
-        including the ".egg" extension.  `names`, if provided, should be a
+        including its ".egg" extension.  `names`, if provided, should be a
         sequence of path name parts "under" the egg's extraction location.
 
         This method should only be called by resource providers that need to
@@ -739,7 +739,12 @@ class ResourceManager:
     def set_extraction_path(self, path):
         """Set the base path where resources will be extracted to, if needed.
 
-        If not set, this defaults to ``os.expanduser("~/.python-eggs")``.
+        If you do not call this routine before any extractions take place, the
+        path defaults to the return value of ``get_default_cache()``.  (Which
+        is based on the ``PYTHON_EGG_CACHE`` environment variable, with various
+        platform-specific fallbacks.  See that routine's documentation for more
+        details.)
+   
         Resources are extracted to subdirectories of this path based upon
         information given by the ``IResourceProvider``.  You may set this to a
         temporary directory, but then you must call ``cleanup_resources()`` to
@@ -769,11 +774,6 @@ class ResourceManager:
         directory used for extractions.
         """
         # XXX
-
-
-
-
-
 
 
 
