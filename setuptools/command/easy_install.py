@@ -181,7 +181,7 @@ class easy_install(Command):
             self.package_index = self.create_index(
                 self.index_url, search_path = self.shadow_path
             )
-        self.local_index = AvailableDistributions(self.shadow_path)
+        self.local_index = Environment(self.shadow_path)
 
         if self.find_links is not None:
             if isinstance(self.find_links, basestring):
@@ -805,7 +805,7 @@ See the setuptools documentation for the "develop" command for more info.
         try:
             args.append(dist_dir)
             self.run_setup(setup_script, setup_base, args)
-            all_eggs = AvailableDistributions([dist_dir])
+            all_eggs = Environment([dist_dir])
             eggs = []
             for key in all_eggs:
                 for dist in all_eggs[key]:
@@ -1064,14 +1064,14 @@ def parse_requirement_arg(spec):
 
 
 
-class PthDistributions(AvailableDistributions):
+class PthDistributions(Environment):
     """A .pth file with Distribution paths in it"""
 
     dirty = False
 
     def __init__(self, filename):
         self.filename = filename; self._load()
-        AvailableDistributions.__init__(
+        Environment.__init__(
             self, list(yield_lines(self.paths)), None, None
         )
 
@@ -1109,13 +1109,13 @@ class PthDistributions(AvailableDistributions):
         """Add `dist` to the distribution map"""
         if dist.location not in self.paths:
             self.paths.append(dist.location); self.dirty = True
-        AvailableDistributions.add(self,dist)
+        Environment.add(self,dist)
 
     def remove(self,dist):
         """Remove `dist` from the distribution map"""
         while dist.location in self.paths:
             self.paths.remove(dist.location); self.dirty = True
-        AvailableDistributions.remove(self,dist)
+        Environment.remove(self,dist)
 
 
 def main(argv, **kw):

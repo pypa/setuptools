@@ -52,7 +52,7 @@ __all__ = [
     'get_default_cache',
 
     # Primary implementation classes
-    'AvailableDistributions', 'WorkingSet', 'ResourceManager',
+    'Environment', 'WorkingSet', 'ResourceManager',
     'Distribution', 'Requirement', 'EntryPoint',
 
     # Exceptions
@@ -76,7 +76,7 @@ __all__ = [
     'fixup_namespace_packages', 'get_importer',
 
     # Deprecated/backward compatibility only
-    'run_main',
+    'run_main', 'AvailableDistributions',
 ]
 
 
@@ -453,7 +453,7 @@ class WorkingSet(object):
         """List all distributions needed to (recursively) meet `requirements`
 
         `requirements` must be a sequence of ``Requirement`` objects.  `env`,
-        if supplied, should be an ``AvailableDistributions`` instance.  If
+        if supplied, should be an ``Environment`` instance.  If
         not supplied, it defaults to all distributions available within any
         entry or distribution in the working set.  `installer`, if supplied,
         will be invoked with each requirement that cannot be met by an
@@ -476,7 +476,7 @@ class WorkingSet(object):
             if dist is None:
                 # Find the best distribution and add it to the map
                 if env is None:
-                    env = AvailableDistributions(self.entries)
+                    env = Environment(self.entries)
                 dist = best[req.key] = env.best_match(req, self, installer)
                 if dist is None:
                     raise DistributionNotFound(req)  # XXX put more info here
@@ -531,7 +531,7 @@ class WorkingSet(object):
 
 
 
-class AvailableDistributions(object):
+class Environment(object):
     """Searchable snapshot of distributions on a search path"""
 
     def __init__(self,search_path=None,platform=get_platform(),python=PY_MAJOR):
@@ -645,7 +645,6 @@ class AvailableDistributions(object):
 
         return self.obtain(req, installer) # try and download/install
 
-
     def obtain(self, requirement, installer=None):
         """Obtain a distro that matches requirement (e.g. via download)"""
         if installer is not None:
@@ -653,6 +652,7 @@ class AvailableDistributions(object):
 
     def __len__(self): return len(self._distmap)
 
+AvailableDistributions = Environment    # XXX backward compatibility
 
 class ResourceManager:
     """Manage resource extraction and packages"""

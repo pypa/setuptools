@@ -121,11 +121,11 @@ def interpret_distro_name(location, basename, metadata,
 
 
 
-class PackageIndex(AvailableDistributions):
+class PackageIndex(Environment):
     """A distribution index that scans web pages for download URLs"""
 
     def __init__(self,index_url="http://www.python.org/pypi",*args,**kw):
-        AvailableDistributions.__init__(self,*args,**kw)
+        Environment.__init__(self,*args,**kw)
         self.index_url = index_url + "/"[:not index_url.endswith('/')]
         self.scanned_urls = {}
         self.fetched_urls = {}

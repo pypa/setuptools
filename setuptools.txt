@@ -51,6 +51,12 @@ Feature Highlights:
 * Deploy your project in "development mode", such that it's available on
   ``sys.path``, yet can still be edited directly from its source checkout.
 
+* Easily extend the distutils with new commands or ``setup()`` arguments, and
+  distribute/reuse your extensions for multiple projects, without copying code.
+
+* Create extensible applications and frameworks that automatically discover
+  extensions, using simple "entry points" declared in a project's setup script.
+
 
 .. contents:: **Table of Contents**
 
@@ -1846,7 +1852,9 @@ Release Notes/Change History
      that tells it to only yield distributions whose location is the passed-in
      path.  (It defaults to False, so that the default behavior is unchanged.)
 
-   * The ``resolve()`` method of ``AvailableDistributions`` is now a method of
+   * ``AvailableDistributions`` is now called ``Environment``
+
+   * The ``resolve()`` method of ``Environment`` is now a method of
      ``WorkingSet`` instead, and the ``best_match()`` method now uses a working
      set instead of a path list as its second argument.
 

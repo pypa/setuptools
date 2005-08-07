@@ -1,0 +1,133 @@
+=============================================================
+Package Discovery and Resource Access using ``pkg_resources``
+=============================================================
+
+The ``pkg_resources`` module, distributed with ``setuptools``, provides
+features for Python libraries to access resource files, and for extensible
+applications and frameworks to automatically discover plugins.  It also
+provides runtime support for using C extensions that are inside zipfile
+eggs, support for merging packages that have separately-distributed modules or
+subpackages, and APIs for managing Python's current "working set" of active
+packages.
+
+
+.. contents:: **Table of Contents**
+
+
+--------
+Overview
+--------
+
+XXX
+
+
+-----------------
+Developer's Guide
+-----------------
+
+    Accessing Resources
+    Finding and Activating Package Distributions
+        get_provider()
+        require()
+        WorkingSet
+        iter_distributions
+    Running Scripts
+    Configuration
+    Namespace Packages
+    Extensible Applications and Frameworks
+        Locating entry points
+        Activation listeners
+        Metadata access
+        Extended Discovery and Installation
+    Supporting Custom PEP 302 Implementations
+
+
+-------------
+API Reference
+-------------
+
+
+``WorkingSet`` Objects
+======================
+
+Listeners
+
+
+``Environment`` Objects
+=======================
+
+XXX
+
+
+``EntryPoint`` Objects
+======================
+
+XXX
+
+
+``Requirement`` Objects
+=======================
+
+XXX Syntax, parse_requirments, Requirement.parse, etc.
+
+
+``Distribution`` Objects
+========================
+
+XXX
+
+
+``ResourceManager`` Objects
+===========================
+
+XXX
+
+
+Exceptions
+==========
+
+XXX ResolutionError, VersionConflict, DistributionNotFound, UnknownExtra
+
+
+Utility Functions
+=================
+
+
+Parsing Utilities
+-----------------
+
+yield_lines
+    XXX
+
+split_sections
+    XXX
+
+parse_version
+    XXX
+
+safe_name
+    XXX
+
+safe_version
+    XXX
+
+
+Platform Utilities
+------------------
+
+get_platform
+    XXX
+
+compatible_platforms
+    XXX
+
+
+File/Path Utilities
+-------------------
+
+ensure_directory
+    XXX
+
+normalize_path
+    XXX
+
