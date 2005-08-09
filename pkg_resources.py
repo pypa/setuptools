@@ -1597,8 +1597,6 @@ def parse_version(s):
 
 
 
-
-
 class EntryPoint(object):
     """Object representing an importable location"""
 
@@ -1812,9 +1810,9 @@ class Distribution(object):
             dm = self.__dep_map = {None: []}
             for name in 'requires.txt', 'depends.txt':
                 for extra,reqs in split_sections(self._get_metadata(name)):
-                    dm.setdefault(extra.lower(),[]).extend(parse_requirements(reqs))
+                    if extra: extra = extra.lower()
+                    dm.setdefault(extra,[]).extend(parse_requirements(reqs))
             return dm
-
     _dep_map = property(_dep_map)
 
     def requires(self,extras=()):
