@@ -39,7 +39,7 @@ class build_py(_build_py):
     def get_data_files(self):
         """Generate list of '(package,src_dir,build_dir,filenames)' tuples"""
         data = []
-        for package in self.packages:
+        for package in self.packages or ():
             # Locate package source directory
             src_dir = self.get_package_dir(package)
 

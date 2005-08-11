@@ -1794,8 +1794,8 @@ class Distribution(object):
                     self._version = safe_version(line.split(':',1)[1].strip())
                     return self._version
             else:
-                raise AttributeError(
-                    "Missing 'Version:' header in PKG-INFO", self
+                raise ValueError(
+                    "Missing 'Version:' header and/or PKG-INFO file", self
                 )
     version = property(version)
 

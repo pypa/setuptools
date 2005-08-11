@@ -269,7 +269,6 @@ class easy_install(Command):
                 "%r already exists in %s; can't do a checkout there" %
                 (spec.key, self.build_directory)
             )
-            
 
 
 
@@ -281,7 +280,8 @@ class easy_install(Command):
 
 
 
-        
+
+
 
 
 
@@ -381,7 +381,7 @@ class easy_install(Command):
         if dist not in requirement:
             return
 
-        if deps or self.always_copy:            
+        if deps or self.always_copy:
             log.info("Processing dependencies for %s", requirement)
         else:
             return
@@ -448,7 +448,7 @@ class easy_install(Command):
                     setup_base = dist_filename
         ensure_directory(dst); shutil.move(setup_base, dst)
         return dst
-        
+
     def install_script(self, dist, script_name, script_text, dev_path=None):
         log.info("Installing %s script to %s", script_name,self.script_dir)
         target = os.path.join(self.script_dir, script_name)
@@ -502,10 +502,11 @@ class easy_install(Command):
         if os.path.isfile(dist_filename):
             unpack_archive(dist_filename, tmpdir, self.unpack_progress)
         elif os.path.isdir(dist_filename):
-            # note that setup_base==tmpdir here if this is a svn checkout
             setup_base = os.path.abspath(dist_filename)
 
-        if setup_base==tmpdir and self.build_directory and spec is not None:
+        if (setup_base.startswith(tmpdir)   # something we downloaded
+            and self.build_directory and spec is not None
+        ):
             setup_base = self.maybe_move(spec, dist_filename, setup_base)
 
         # Find the setup.py file
@@ -529,7 +530,6 @@ class easy_install(Command):
             return []
         else:
             return self.build_and_install(setup_script, setup_base)
-
 
     def egg_distribution(self, egg_path):
         if os.path.isdir(egg_path):
@@ -1091,7 +1091,7 @@ class PthDistributions(Environment):
                     self.paths.pop()    # skip it
                     self.dirty = True   # we cleaned up, so we're dirty now :)
                     continue
-                seen[path] = 1                
+                seen[path] = 1
 
         while self.paths and not self.paths[-1].strip(): self.paths.pop()
 

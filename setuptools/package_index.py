@@ -7,6 +7,8 @@ from distutils.errors import DistutilsError
 
 EGG_FRAGMENT = re.compile('^egg=(\\w+(-\\w+)?)$')
 HREF = re.compile("""href\\s*=\\s*['"]?([^'"> ]+)""", re.I)
+# this is here to fix emacs' cruddy broken syntax highlighting: '
+
 URL_SCHEME = re.compile('([-+.a-z0-9]{2,}):',re.I).match
 EXTENSIONS = ".tar.gz .tar.bz2 .tar .zip .tgz".split()
 
@@ -30,8 +32,6 @@ def parse_bdist_wininst(name):
             base = name[:-16]
 
     return base,py_ver
-
-
 
 
 
@@ -371,10 +371,10 @@ class PackageIndex(Environment):
 
     def _download_to(self, url, filename):
         self.info("Downloading %s", url)
-
         # Download the file
         fp, tfp = None, None
         try:
+            url = url.split('#', 1)[0]
             fp = self.open_url(url)
             if isinstance(fp, urllib2.HTTPError):
                 raise DistutilsError(
