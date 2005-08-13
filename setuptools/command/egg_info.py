@@ -219,7 +219,7 @@ def write_entries(cmd, basename, filename):
         data = []
         for section, contents in ep.items():
             if not isinstance(contents,basestring):
-                contents = EntryPoint.parse_list(section, contents)
+                contents = EntryPoint.parse_group(section, contents)
                 contents = '\n'.join(map(str,contents.values()))
             data.append('[%s]\n%s\n\n' % (section,contents))
         data = ''.join(data)

@@ -138,7 +138,7 @@ to it::
     ['http://example.com/something']
     >>> dist in ws
     True
-    >>> Distribution('foo') in ws
+    >>> Distribution('foo',version="") in ws
     False
 
 And you can iterate over its distributions::

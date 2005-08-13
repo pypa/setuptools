@@ -269,9 +269,9 @@ class EntryPointTests(TestCase):
     """
 
     def testParseList(self):
-        self.checkSubMap(EntryPoint.parse_list("xyz", self.submap_str))
-        self.assertRaises(ValueError, EntryPoint.parse_list, "x a", "foo=bar")
-        self.assertRaises(ValueError, EntryPoint.parse_list, "x",
+        self.checkSubMap(EntryPoint.parse_group("xyz", self.submap_str))
+        self.assertRaises(ValueError, EntryPoint.parse_group, "x a", "foo=bar")
+        self.assertRaises(ValueError, EntryPoint.parse_group, "x",
             ["foo=baz", "foo=bar"])
 
     def testParseMap(self):
@@ -397,7 +397,7 @@ class ParseTests(TestCase):
                     """
                 )
             ),
-            [(None,["x"]), ("y",["z","a"]), ("b",["c"]), ("d",[]), ("q",["v"])]
+            [(None,["x"]), ("Y",["z","a"]), ("b",["c"]), ("d",[]), ("q",["v"])]
         )
         self.assertRaises(ValueError,list,pkg_resources.split_sections("[foo"))
 

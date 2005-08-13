@@ -46,11 +46,12 @@ Developer's Guide
 API Reference
 -------------
 
+    'require', 'run_script',
 
 Namespace Package Support
 =========================
 
-XXX
+declare_namespace, fixup_namespace_packages, register_namespace_handler
 
 
 ``WorkingSet`` Objects
@@ -65,16 +66,176 @@ Listeners
 XXX
 
 
-``EntryPoint`` Objects
-======================
-
-XXX
-
-
 ``Requirement`` Objects
 =======================
 
 XXX Syntax, parse_requirments, Requirement.parse, etc.
+
+
+
+
+Entry Points
+============
+
+Entry points are a simple way for distributions to "advertise" Python objects
+(such as functions or classes) for use by other distributions.  Extensible
+applications and frameworks can search for entry points with a particular name
+or group, either from a specific distribution or from all active distributions
+on sys.path, and then inspect or load the advertised objects at will.
+
+Entry points belong to "groups" which are named with a dotted name similar to
+a Python package or module name.  For example, the ``setuptools`` package uses
+an entry point named ``distutils.commands`` in order to find commands defined
+by distutils extensions.  ``setuptools`` treats the names of entry points
+defined in that group as the acceptable commands for a setup script.
+
+In a similar way, other packages can define their own entry point groups,
+either using dynamic names within the group (like ``distutils.commands``), or
+possibly using predefined names within the group.  For example, a blogging
+framework that offers various pre- or post-publishing hooks might define an
+entry point group and look for entry points named "pre_process" and
+"post_process" within that group.
+
+To advertise an entry point, a project needs to use ``setuptools`` and provide
+an ``entry_points`` argument to ``setup()`` in its setup script, so that the
+entry points will be included in the distribution's metadata.  For more
+details, see the ``setuptools`` documentation.  (XXX link here to setuptools)
+
+Each project distribution can advertise at most one entry point of a given
+name within the same entry point group.  For example, a distutils extension
+could advertise two different ``distutils.commands`` entry points, as long as
+they had different names.  However, there is nothing that prevents *different*
+projects from advertising entry points of the same name in the same group.  In
+some cases, this is a desirable thing, since the application or framework that
+uses the entry points may be calling them as hooks, or in some other way
+combining them.  It is up to the application or framework to decide what to do
+if multiple distributions advertise an entry point; some possibilities include
+using both entry points, displaying an error message, using the first one found
+in sys.path order, etc.
+
+
+Convenience API
+---------------
+
+In the following functions, the `dist` argument can be a ``Distribution``
+instance, a ``Requirement`` instance, or a string specifying a requirement
+(i.e. project name, version, etc.).  If the argument is a string or
+``Requirement``, the specified distribution is located (and added to sys.path
+if not already present).  An error will be raised if a matching distribution is
+not available.
+
+The `group` argument should be a string containing a dotted identifier,
+identifying an entry point group.  If you are defining an entry point group,
+you should include some portion of your package's name in the group name so as
+to avoid collision with other packages' entry point groups.
+
+``load_entry_point(dist, group, name)``
+    Load the named entry point from the specified distribution, or raise
+    ``ImportError``.
+
+``get_entry_info(dist, group, name)``
+    Return an ``EntryPoint`` object for the given `group` and `name` from
+    the specified distribution.  Returns ``None`` if the distribution has not
+    advertised a matching entry point.
+
+``get_entry_map(dist, group=None)
+    Return the distribution's entry point map for `group`, or the full entry
+    map for the distribution.  This function always returns a dictionary,
+    even if the distribution advertises no entry points.  If `group` is given,
+    the dictionary maps entry point names to the corresponding ``EntryPoint``
+    object.  If `group` is None, the dictionary maps group names to
+    dictionaries that then map entry point names to the corresponding
+    ``EntryPoint`` instance in that group.
+
+``iter_entry_points(group, name=None)``
+    Yield entry point objects from `group` matching `name`
+
+    If `name` is None, yields all entry points in `group` from all
+    distributions in the working set on sys.path, otherwise only ones matching
+    both `group` and `name` are yielded.  Entry points are yielded from
+    the active distributions in the order that the distributions appear on
+    sys.path.  (Within entry points for a particular distribution, however,
+    there is no particular ordering.)
+
+
+Creating and Parsing
+--------------------
+
+``EntryPoint(name, module_name, attrs=(), extras=(), dist=None)``
+    Create an ``EntryPoint`` instance.  `name` is the entry point name.  The
+    `module_name` is the (dotted) name of the module containing the advertised
+    object.  `attrs` is an optional tuple of names to look up from the
+    module to obtain the advertised object.  For example, an `attrs` of
+    ``("foo","bar")`` and a `module_name` of ``"baz"`` would mean that the
+    advertised object could be obtained by the following code::
+
+        import baz
+        advertised_object = baz.foo.bar
+    
+    The `extras` are an optional tuple of "extra feature" names that the
+    distribution needs in order to provide this entry point.  When the
+    entry point is loaded, these extra features are looked up in the `dist`
+    argument to find out what other distributions may need to be activated
+    on sys.path; see the ``load()`` method for more details.  The `extras`
+    argument is only meaningful if `dist` is specified.  `dist` must be
+    a ``Distribution`` instance.
+    
+``EntryPoint.parse(src, dist=None)`` (classmethod)
+    Parse a single entry point from string `src`
+
+    Entry point syntax follows the form::
+
+        name = some.module:some.attr [extra1,extra2]
+
+    The entry name and module name are required, but the ``:attrs`` and
+    ``[extras]`` parts are optional, as is the whitespace shown between
+    some of the items.  The `dist` argument is passed through to the
+    ``EntryPoint()`` constructor, along with the other values parsed from
+    `src`.
+
+``EntryPoint.parse_group(group, lines, dist=None)`` (classmethod)
+    Parse `lines` (a string or sequence of lines) to create a dictionary
+    mapping entry point names to ``EntryPoint`` objects.  ``ValueError`` is
+    raised if entry point names are duplicated, if `group` is not a valid
+    entry point group name, or if there are any syntax errors.  (Note: the
+    `group` parameter is used only for validation and to create more
+    informative error messages.)  If `dist` is provided, it will be used to
+    set the ``dist`` attribute of the created ``EntryPoint`` objects.
+
+``EntryPoint.parse_map(data, dist=None)`` (classmethod)
+    Parse `data` into a dictionary mapping group names to dictionaries mapping
+    entry point names to ``EntryPoint`` objects.  If `data` is a dictionary,
+    then the keys are used as group names and the values are passed to
+    ``parse_group()`` as the `lines` argument.  If `data` is a string or
+    sequence of lines, it is first split into .ini-style sections (using
+    the ``split_sections()`` utility function) and the section names are used
+    as group names.  In either case, the `dist` argument is passed through to
+    ``parse_group()`` so that the entry points will be linked to the specified
+    distribution.
+
+
+``EntryPoint`` Objects
+----------------------
+
+For simple introspection, ``EntryPoint`` objects have attributes that
+correspond exactly to the constructor argument names: ``name``,
+``module_name``, ``attrs``, ``extras``, and ``dist`` are all available.  In
+addition, the following methods are provided:
+
+``load(require=True, env=None, installer=None)``
+    Load the entry point, returning the advertised Python object, or raise
+    ``ImportError`` if it cannot be obtained.  If `require` is a true value,
+    then ``require(env, installer)`` is called before attempting the import.
+
+``require(env=None, installer=None)``
+    Ensure that any "extras" needed by the entry point are available on
+    sys.path.  ``UnknownExtra`` is raised if the ``EntryPoint`` has ``extras``,
+    but no ``dist``, or if the named extras are not defined by the
+    distribution.  If `env` is supplied, it must be an ``Environment``, and it
+    will be used to search for needed distributions if they are not already
+    present on sys.path.  If `installer` is supplied, it must be a callable
+    taking a ``Requirement`` instance and returning a matching importable
+    ``Distribution`` instance or None.
 
 
 ``Distribution`` Objects
@@ -82,6 +243,10 @@ XXX Syntax, parse_requirments, Requirement.parse, etc.
 
 Factories: get_provider, get_distribution, find_distributions; see also
 WorkingSet and Environment APIs.
+
+register_finder
+register_loader_type
+'load_entry_point', 'get_entry_map', 'get_entry_info'
 
 
 ``ResourceManager`` API
@@ -457,6 +622,21 @@ Platform Utilities
     the user's "Application Data" directory.  On all other systems, it returns
     ``os.path.expanduser("~/.python-eggs")`` if ``PYTHON_EGG_CACHE`` is not
     set.
+
+
+PEP 302 Utilities
+-----------------
+
+``get_importer(path_item)``
+    Retrieve a PEP 302 "importer" for the given path item (which need not
+    actually be on ``sys.path``).  This routine simulates the PEP 302 protocol
+    for obtaining an "importer" object.  It first checks for an importer for
+    the path item in ``sys.path_importer_cache``, and if not found it calls
+    each of the ``sys.path_hooks`` and caches the result if a good importer is
+    found.  If no importer is found, this routine returns an ``ImpWrapper``
+    instance that wraps the builtin import machinery as a PEP 302-compliant
+    "importer" object.  This ``ImpWrapper`` is *not* cached; instead a new
+    instance is returned each time.
 
 
 File/Path Utilities

@@ -1598,7 +1598,7 @@ def parse_version(s):
 
 
 class EntryPoint(object):
-    """Object representing an importable location"""
+    """Object representing an advertised importable object"""
 
     def __init__(self, name, module_name, attrs=(), extras=(), dist=None):
         if not MODULE(module_name):
@@ -1680,40 +1680,40 @@ class EntryPoint(object):
 
 
     #@classmethod
-    def parse_list(cls, section, contents, dist=None):
-        if not MODULE(section):
-            raise ValueError("Invalid section name", section)
+    def parse_group(cls, group, lines, dist=None):
+        """Parse an entry point group"""
+        if not MODULE(group):
+            raise ValueError("Invalid group name", group)
         this = {}
-        for line in yield_lines(contents):
+        for line in yield_lines(lines):
             ep = cls.parse(line, dist)
             if ep.name in this:
-                raise ValueError("Duplicate entry point",section,ep.name)
+                raise ValueError("Duplicate entry point", group, ep.name)
             this[ep.name]=ep
         return this
 
-    parse_list = classmethod(parse_list)
+    parse_group = classmethod(parse_group)
 
     #@classmethod
     def parse_map(cls, data, dist=None):
+        """Parse a map of entry point groups"""
         if isinstance(data,dict):
             data = data.items()
         else:
             data = split_sections(data)
         maps = {}
-        for section, contents in data:
-            if section is None:
-                if not contents:
+        for group, lines in data:
+            if group is None:
+                if not lines:
                     continue
-                raise ValueError("Entry points must be listed in sections")
-            section = section.strip()
-            if section in maps:
-                raise ValueError("Duplicate section name", section)
-            maps[section] = cls.parse_list(section, contents, dist)
+                raise ValueError("Entry points must be listed in groups")
+            group = group.strip()
+            if group in maps:
+                raise ValueError("Duplicate group name", group)
+            maps[group] = cls.parse_group(group, lines, dist)
         return maps
 
     parse_map = classmethod(parse_map)
-
-
 
 
 
@@ -1862,7 +1862,9 @@ class Distribution(object):
             return str(self)
 
     def __str__(self):
-        version = getattr(self,'version',None) or "[unknown version]"
+        try: version = getattr(self,'version',None)
+        except ValueError: version = None
+        version = version or "[unknown version]"
         return "%s %s" % (self.project_name,version)
 
     def __getattr__(self,attr):
@@ -1880,8 +1882,6 @@ class Distribution(object):
 
     def as_requirement(self):
         return Requirement.parse('%s==%s' % (self.project_name, self.version))
-
-
 
 
     def load_entry_point(self, group, name):
