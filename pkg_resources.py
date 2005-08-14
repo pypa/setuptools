@@ -398,13 +398,13 @@ class WorkingSet(object):
             elif name in entries:
                 yield entries[name]
 
-
-
-
-
-
-
-
+    def run_script(self, requires, script_name):
+        """Locate distribution for `requires` and run `script_name` script"""
+        ns = sys._getframe(1).f_globals
+        name = ns['__name__']
+        ns.clear()
+        ns['__name__'] = name
+        self.require(requires)[0].run_script(script_name, ns)
 
 
 
@@ -2147,14 +2147,14 @@ working_set = WorkingSet()
 require = working_set.require
 iter_entry_points = working_set.iter_entry_points
 add_activation_listener = working_set.subscribe
+run_script = working_set.run_script
+run_main = run_script   # backward compatibility
 
 # Activate all distributions already on sys.path, and ensure that
 # all distributions added to the working set in the future (e.g. by
 # calling ``require()``) will get activated as well.
 #
 add_activation_listener(lambda dist: dist.activate())
-
-
 
 
 
