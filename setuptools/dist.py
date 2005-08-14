@@ -54,7 +54,7 @@ def check_nsp(dist, attr, value):
 
     for nsp in value:
         for name in dist.iter_distribution_names():
-            if name==nsp or name.startswith(nsp+'.'): break
+            if name.startswith(nsp+'.'): break
         else:
             raise DistutilsSetupError(
                 "Distribution contains no modules or packages for " +
