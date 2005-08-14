@@ -53,9 +53,7 @@ def check_nsp(dist, attr, value):
     assert_string_list(dist,attr,value)
 
     for nsp in value:
-        for name in dist.iter_distribution_names():
-            if name.startswith(nsp+'.'): break
-        else:
+        if not dist.has_contents_for(nsp):
             raise DistutilsSetupError(
                 "Distribution contains no modules or packages for " +
                 "namespace package %r" % nsp
@@ -79,6 +77,8 @@ def assert_bool(dist, attr, value):
         raise DistutilsSetupError(
             "%r must be a boolean value (got %r)" % (attr,value)
         )
+
+
 
 def check_install_requires(dist, attr, value):
     """Verify that install_requires is a valid requirements list"""
@@ -436,17 +436,17 @@ class Distribution(_Distribution):
 
         pfx = package+'.'
 
-        for p in self.packages or ():
+        for p in self.iter_distribution_names():
             if p==package or p.startswith(pfx):
                 return True
 
-        for p in self.py_modules or ():
-            if p==package or p.startswith(pfx):
-                return True
 
-        for p in self.ext_modules or ():
-            if p.name==package or p.name.startswith(pfx):
-                return True
+
+
+
+
+
+
 
 
     def _exclude_misc(self,name,value):
