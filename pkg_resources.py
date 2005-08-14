@@ -13,7 +13,7 @@ The package resource API is designed to work with normal filesystem packages,
 method.
 """
 
-import sys, os, zipimport, time, re, imp
+import sys, os, zipimport, time, re, imp, new
 from sets import ImmutableSet
 
 
@@ -1412,7 +1412,6 @@ def register_namespace_handler(importer_type, namespace_handler):
     """
     _namespace_handlers[importer_type] = namespace_handler
 
-
 def _handle_ns(packageName, path_item):
     """Ensure that named package includes a subpath of path_item (if needed)"""
     importer = get_importer(path_item)
@@ -1421,17 +1420,18 @@ def _handle_ns(packageName, path_item):
     loader = importer.find_module(packageName)
     if loader is None:
         return None
-
-    module = sys.modules.get(packageName) or loader.load_module(packageName)
-    if not hasattr(module,'__path__'):
+    module = sys.modules.get(packageName)
+    if module is None:
+        module = sys.modules[packageName] = new.module(packageName)
+        module.__path__ = []
+    elif not hasattr(module,'__path__'):
         raise TypeError("Not a package:", packageName)
-
     handler = _find_adapter(_namespace_handlers, importer)
     subpath = handler(importer,path_item,packageName,module)
     if subpath is not None:
         module.__path__.append(subpath)
+        loader.load_module(packageName)
     return subpath
-
 
 def declare_namespace(packageName):
     """Declare that package 'packageName' is a namespace package"""
@@ -1451,15 +1451,15 @@ def declare_namespace(packageName):
             except AttributeError:
                 raise TypeError("Not a package:", parent)
 
-        for path_item in path:
-            # Ensure all the parent's path items are reflected in the child,
-            # if they apply
-            _handle_ns(packageName, path_item)
-
         # Track what packages are namespaces, so when new path items are added,
         # they can be updated
         _namespace_packages.setdefault(parent,[]).append(packageName)
         _namespace_packages.setdefault(packageName,[])
+
+        for path_item in path:
+            # Ensure all the parent's path items are reflected in the child,
+            # if they apply
+            _handle_ns(packageName, path_item)
 
     finally:
         imp.release_lock()
@@ -1478,9 +1478,9 @@ def file_ns_handler(importer, path_item, packageName, module):
     """Compute an ns-package subpath for a filesystem or zipfile importer"""
 
     subpath = os.path.join(path_item, packageName.split('.')[-1])
-    normalized = os.path.normpath(os.path.normcase(subpath))
+    normalized = normalize_path(subpath)
     for item in module.__path__:
-        if os.path.normpath(os.path.normcase(item))==normalized:
+        if normalize_path(item)==normalized:
             break
     else:
         # Only return the path if it's not already there
