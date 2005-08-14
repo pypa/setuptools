@@ -18,12 +18,14 @@ packages.
 Overview
 --------
 
-XXX
+XXX TBD
 
 
 -----------------
 Developer's Guide
 -----------------
+
+This section isn't written yet.  Currently planned topics include::
 
     Accessing Resources
     Finding and Activating Package Distributions
@@ -519,7 +521,7 @@ to avoid collision with other packages' entry point groups.
     the specified distribution.  Returns ``None`` if the distribution has not
     advertised a matching entry point.
 
-``get_entry_map(dist, group=None)
+``get_entry_map(dist, group=None)``
     Return the distribution's entry point map for `group`, or the full entry
     map for the distribution.  This function always returns a dictionary,
     even if the distribution advertises no entry points.  If `group` is given,
@@ -876,7 +878,10 @@ If it is a package or module name, the named module or package must be
 importable (i.e., be in a distribution or directory on ``sys.path``), and the
 `resource_name` argument is interpreted relative to the named package.  (Note
 that if a module name is used, then the resource name is relative to the
-package immediately containing the named module.)
+package immediately containing the named module.  Also, you should not use use
+a namespace package name, because a namespace package can be spread across
+multiple distributions, and is therefore ambiguous as to which distribution
+should be searched for the resource.)
 
 If it is a ``Requirement``, then the requirement is automatically resolved
 (searching the current ``Environment`` if necessary) and a matching
@@ -888,7 +893,7 @@ segment will be treated as a peer of the top-level modules or packages in the
 distribution.
 
 Note that resource names must be ``/``-separated paths and cannot be absolute
-(i.e. no leading ``/``) or contain relative names like ``..``.  Do *not* use
+(i.e. no leading ``/``) or contain relative names like ``".."``.  Do *not* use
 ``os.path`` routines to manipulate resource paths, as they are *not* filesystem
 paths.
 
@@ -1186,8 +1191,8 @@ You may instead wish to subclass one of the `built-in resource providers`_.
 Built-in Resource Providers
 ---------------------------
 
-``pkg_resources`` includes several provider classes, whose inheritance
-tree looks like this::
+``pkg_resources`` includes several provider classes that are automatically used
+where appropriate.  Their inheritance tree looks like this::
 
     NullProvider
         EggProvider
