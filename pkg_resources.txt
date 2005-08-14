@@ -58,12 +58,91 @@ declare_namespace, fixup_namespace_packages, register_namespace_handler
 ======================
 
 Listeners
+working_set
 
 
 ``Environment`` Objects
 =======================
 
-XXX
+An "environment" is a collection of ``Distribution`` objects, usually ones
+that are present and potentially importable on the current platform.
+``Environment`` objects are used by ``pkg_resources`` to index available
+distributions during dependency resolution.
+
+``Environment(search_path=None, platform=get_platform(), python=PY_MAJOR)``
+    Create an environment snapshot by scanning `search_path` for distributions
+    compatible with `platform` and `python`.  `search_path` should be a
+    sequence of strings such as might be used on ``sys.path``.  If a
+    `search_path` isn't supplied, ``sys.path`` is used.
+
+    `platform` is an optional string specifying the name of the platform
+    that platform-specific distributions must be compatible with.  If
+    unspecified, it defaults to the current platform.  `python` is an
+    optional string naming the desired version of Python (e.g. ``'2.4'``);
+    it defaults to the currently-running version.
+
+    You may explicitly set `platform` (and/or `python`) to ``None`` if you
+    wish to include *all* distributions, not just those compatible with the
+    running platform or Python version.
+
+    Note that `search_path` is scanned immediately for distributions, and the
+    resulting ``Environment`` is a snapshot of the found distributions.  It
+    is not automatically updated if the system's state changes due to e.g.
+    installation or removal of distributions.
+
+``__getitem__(project_name)``
+    Returns a list of distributions for the given project name, ordered
+    from newest to oldest version.  (And highest to lowest format precedence
+    for distributions that contain the same version of the project.)  If there
+    are no distributions for the project, returns an empty list.
+
+``__iter__()``
+    Yield the unique project names of the distributions in this environment.
+    The yielded names are always in lower case.
+
+``add(dist)``
+    Add `dist` to the environment if it matches the platform and python version
+    specified at creation time, and only if the distribution hasn't already
+    been added. (i.e., adding the same distribution more than once is a no-op.)
+
+``remove(dist)``
+    Remove `dist` from the environment.
+
+``can_add(dist)``
+    Is distribution `dist` acceptable for this environment?  If it's not
+    compatible with the platform and python version specified at creation of
+    the environment, False is returned.
+
+``best_match(req, working_set, installer=None)``
+    Find distribution best matching `req` and usable on `working_set`
+
+    This calls the ``find(req)`` method of the `working_set` to see if a
+    suitable distribution is already active.  (This may raise
+    ``VersionConflict`` if an unsuitable version of the project is already
+    active in the specified `working_set`.)  If a suitable distribution isn't
+    active, this method returns the newest distribution in the environment
+    that meets the ``Requirement`` in `req`.  If no suitable distribution is
+    found, and `installer` is supplied, then the result of calling
+    the environment's ``obtain(req, installer)`` method will be returned.
+
+``obtain(requirement, installer=None)``
+    Obtain a distro that matches requirement (e.g. via download).  In the
+    base ``Environment`` class, this routine just returns
+    ``installer(requirement)``, unless `installer` is None, in which case
+    None is returned instead.  This method is a hook that allows subclasses
+    to attempt other ways of obtaining a distribution before falling back
+    to the `installer` argument.
+
+``scan(search_path=None)``
+    Scan `search_path` for distributions usable on `platform`
+
+    Any distributions found are added to the environment.  `search_path` should
+    be a sequence of strings such as might be used on ``sys.path``.  If not
+    supplied, ``sys.path`` is used.  Only distributions conforming to
+    the platform/python version defined at initialization are added.  This
+    method is a shortcut for using the ``find_distributions()`` function to
+    find the distributions from each item in `search_path`, and then calling
+    ``add()`` to add each one to the environment.
 
 
 ``Requirement`` Objects
@@ -75,18 +154,21 @@ some purpose.  These objects (or their string form) are used by various
 distribution needs.
 
 
-Requirements Parsing 
+Requirements Parsing
 --------------------
 
 ``parse_requirements(s)``
-    Yield ``Requirement`` objects for a string or list of lines.  Each
+    Yield ``Requirement`` objects for a string or iterable of lines.  Each
     requirement must start on a new line.  See below for syntax.
 
 ``Requirement.parse(s)``
-    Create a ``Requirement`` object from a string or list of lines.  A
+    Create a ``Requirement`` object from a string or iterable of lines.  A
     ``ValueError`` is raised if the string or lines do not contain a valid
-    requirement specifier.  The syntax of a requirement specifier can be
-    defined in EBNF as follows::
+    requirement specifier, or if they contain more than one specifier.  (To
+    parse multiple specifiers from a string or iterable of strings, use
+    ``parse_requirements()`` instead.)
+
+    The syntax of a requirement specifier can be defined in EBNF as follows::
 
         requirement  ::= project_name versionspec? extras?
         versionspec  ::= comparison version (',' comparison version)*
@@ -100,7 +182,7 @@ Requirements Parsing
     Tokens can be separated by whitespace, and a requirement can be continued
     over multiple lines using a backslash (``\\``).  Line-end comments (using
     ``#``) are also allowed.
-    
+
     Some examples of valid requirement specifiers::
 
         FooProject >= 1.2
@@ -258,7 +340,7 @@ Creating and Parsing
 
         import baz
         advertised_object = baz.foo.bar
-    
+
     The `extras` are an optional tuple of "extra feature" names that the
     distribution needs in order to provide this entry point.  When the
     entry point is loaded, these extra features are looked up in the `dist`
@@ -266,7 +348,7 @@ Creating and Parsing
     on sys.path; see the ``load()`` method for more details.  The `extras`
     argument is only meaningful if `dist` is specified.  `dist` must be
     a ``Distribution`` instance.
-    
+
 ``EntryPoint.parse(src, dist=None)`` (classmethod)
     Parse a single entry point from string `src`
 
@@ -323,6 +405,10 @@ addition, the following methods are provided:
     present on sys.path.  If `installer` is supplied, it must be a callable
     taking a ``Requirement`` instance and returning a matching importable
     ``Distribution`` instance or None.
+
+``__str__()``
+    The string form of an ``EntryPoint`` is a string that could be passed to
+    ``EntryPoint.parse()`` to yield an equivalent ``EntryPoint``.
 
 
 ``Distribution`` Objects

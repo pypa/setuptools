@@ -1852,7 +1852,11 @@ Release Notes/Change History
      that tells it to only yield distributions whose location is the passed-in
      path.  (It defaults to False, so that the default behavior is unchanged.)
 
-   * ``AvailableDistributions`` is now called ``Environment``
+   * ``AvailableDistributions`` is now called ``Environment``, and the
+     ``get()``, ``__len__()``, and ``__contains__()`` methods were removed,
+     because they weren't particularly useful.  ``__getitem__()`` no longer
+     raises ``KeyError``; it just returns an empty list if there are no
+     distributions for the named project.
 
    * The ``resolve()`` method of ``Environment`` is now a method of
      ``WorkingSet`` instead, and the ``best_match()`` method now uses a working

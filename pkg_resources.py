@@ -234,7 +234,7 @@ def get_distribution(dist):
 def load_entry_point(dist, group, name):
     """Return `name` entry point of `group` for `dist` or raise ImportError"""
     return get_distribution(dist).load_entry_point(group, name)
-    
+
 def get_entry_map(dist, group=None):
     """Return the entry point map for `group`, or the full entry map"""
     return get_distribution(dist).get_entry_map(group)
@@ -537,8 +537,8 @@ class Environment(object):
     def __init__(self,search_path=None,platform=get_platform(),python=PY_MAJOR):
         """Snapshot distributions available on a search path
 
-        Any distributions found on `search_path` are added to the distribution
-        map.  `search_path` should be a sequence of ``sys.path`` items.  If not
+        Any distributions found on `search_path` are added to the environment.
+        `search_path` should be a sequence of ``sys.path`` items.  If not
         supplied, ``sys.path`` is used.
 
         `platform` is an optional string specifying the name of the platform
@@ -558,31 +558,24 @@ class Environment(object):
         self.scan(search_path)
 
     def can_add(self, dist):
-        """Is distribution `dist` acceptable for this collection?"""
+        """Is distribution `dist` acceptable for this environment?
+
+        The distribution must match the platform and python version
+        requirements specified when this environment was created, or False
+        is returned.
+        """
         return (self.python is None or dist.py_version is None
             or dist.py_version==self.python) \
            and compatible_platforms(dist.platform,self.platform)
 
-    def __iter__(self):
-        """Iterate over distribution keys"""
-        return iter(self._distmap.keys())
-
-    def __contains__(self,name):
-        """Has a distribution named `name` ever been added to this map?"""
-        return name.lower() in self._distmap
-
-
-    def get(self,key,default=None):
-        """Return ``self[key]`` if `key` in self, otherwise return `default`"""
-        if key in self:
-            return self[key]
-        else:
-            return default
+    def remove(self, dist):
+        """Remove `dist` from the environment"""
+        self._distmap[dist.key].remove(dist)
 
     def scan(self, search_path=None):
-        """Scan `search_path` for distributions usable on `platform`
+        """Scan `search_path` for distributions usable in this environment
 
-        Any distributions found are added to the distribution map.
+        Any distributions found are added to the environment.
         `search_path` should be a sequence of ``sys.path`` items.  If not
         supplied, ``sys.path`` is used.  Only distributions conforming to
         the platform/python version defined at initialization are added.
@@ -594,65 +587,72 @@ class Environment(object):
             for dist in find_distributions(item):
                 self.add(dist)
 
-    def __getitem__(self,key):
-        """Return a newest-to-oldest list of distributions for the given key
-
-        The returned list may be modified in-place, e.g. for narrowing down
-        usable distributions.
+    def __getitem__(self,project_name):
+        """Return a newest-to-oldest list of distributions for `project_name`
         """
         try:
-            return self._cache[key]
+            return self._cache[project_name]
         except KeyError:
-            key = key.lower()
-            if key not in self._distmap:
-                raise
+            project_name = project_name.lower()
+            if project_name not in self._distmap:
+                return []
 
-        if key not in self._cache:
-            dists = self._cache[key] = self._distmap[key]
+        if project_name not in self._cache:
+            dists = self._cache[project_name] = self._distmap[project_name]
             _sort_dists(dists)
 
-        return self._cache[key]
+        return self._cache[project_name]
 
     def add(self,dist):
-        """Add `dist` to the distribution map, only if it's suitable"""
+        """Add `dist` if we ``can_add()`` it and it isn't already added"""
         if self.can_add(dist):
-            self._distmap.setdefault(dist.key,[]).append(dist)
-            if dist.key in self._cache:
-                _sort_dists(self._cache[dist.key])
+            dists = self._distmap.setdefault(dist.key,[])
+            if dist not in dists:
+                dists.append(dist)
+                if dist.key in self._cache:
+                    _sort_dists(self._cache[dist.key])
 
-    def remove(self,dist):
-        """Remove `dist` from the distribution map"""
-        self._distmap[dist.key].remove(dist)
 
     def best_match(self, req, working_set, installer=None):
         """Find distribution best matching `req` and usable on `working_set`
 
-        If a distribution that's already active in `working_set` is unsuitable,
-        a VersionConflict is raised.  If one or more suitable distributions are
-        already active, the leftmost distribution (i.e., the one first in
-        the search path) is returned.  Otherwise, the available distribution
-        with the highest version number is returned.  If nothing is available,
-        returns ``obtain(req,installer)`` or ``None`` if no distribution can
-        be obtained.
+        This calls the ``find(req)`` method of the `working_set` to see if a
+        suitable distribution is already active.  (This may raise
+        ``VersionConflict`` if an unsuitable version of the project is already
+        active in the specified `working_set`.)  If a suitable distribution
+        isn't active, this method returns the newest distribution in the
+        environment that meets the ``Requirement`` in `req`.  If no suitable
+        distribution is found, and `installer` is supplied, then the result of
+        calling the environment's ``obtain(req, installer)`` method will be
+        returned.
         """
         dist = working_set.find(req)
         if dist is not None:
             return dist
-
-        for dist in self.get(req.key, ()):
+        for dist in self[req.key]:
             if dist in req:
                 return dist
-
         return self.obtain(req, installer) # try and download/install
 
     def obtain(self, requirement, installer=None):
-        """Obtain a distro that matches requirement (e.g. via download)"""
+        """Obtain a distribution matching `requirement` (e.g. via download)
+
+        Obtain a distro that matches requirement (e.g. via download).  In the
+        base ``Environment`` class, this routine just returns
+        ``installer(requirement)``, unless `installer` is None, in which case
+        None is returned instead.  This method is a hook that allows subclasses
+        to attempt other ways of obtaining a distribution before falling back
+        to the `installer` argument."""
         if installer is not None:
             return installer(requirement)
 
-    def __len__(self): return len(self._distmap)
+    def __iter__(self):
+        """Yield the unique project names of the available distributions"""
+        for key in self._distmap.keys():
+            if self[key]: yield key
 
 AvailableDistributions = Environment    # XXX backward compatibility
+
 
 class ResourceManager:
     """Manage resource extraction and packages"""
@@ -744,7 +744,7 @@ class ResourceManager:
         is based on the ``PYTHON_EGG_CACHE`` environment variable, with various
         platform-specific fallbacks.  See that routine's documentation for more
         details.)
-   
+
         Resources are extracted to subdirectories of this path based upon
         information given by the ``IResourceProvider``.  You may set this to a
         temporary directory, but then you must call ``cleanup_resources()`` to
@@ -1369,7 +1369,7 @@ def find_on_path(importer, path_item, only=False):
             )
         else:
             # scan for .egg and .egg-info in directory
-            for entry in os.listdir(path_item):               
+            for entry in os.listdir(path_item):
                 lower = entry.lower()
                 if lower.endswith('.egg-info'):
                     fullpath = os.path.join(path_item, entry)
@@ -1637,7 +1637,7 @@ class EntryPoint(object):
             raise UnknownExtra("Can't require() without a distribution", self)
         map(working_set.add,
             working_set.resolve(self.dist.requires(self.extras),env,installer))
-        
+
     #@classmethod
     def parse(cls, src, dist=None):
         """Parse a single entry point from string `src`

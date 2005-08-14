@@ -264,7 +264,7 @@ class PackageIndex(Environment):
 
     def obtain(self, requirement, installer=None):
         self.find_packages(requirement)
-        for dist in self.get(requirement.key, ()):
+        for dist in self[requirement.key]:
             if dist in requirement:
                 return dist
             self.debug("%s does not match %s", requirement, dist)
@@ -344,7 +344,7 @@ class PackageIndex(Environment):
         self.info("Searching for %s", requirement)
 
         def find(req):
-            for dist in self.get(req.key, ()):
+            for dist in self[req.key]:
                 if dist in req and (dist.precedence<=SOURCE_DIST or not source):
                     self.info("Best match: %s", dist)
                     return self.download(dist.location, tmpdir)
