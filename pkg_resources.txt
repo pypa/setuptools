@@ -626,19 +626,24 @@ addition, the following methods are provided:
     ``EntryPoint.parse()`` to yield an equivalent ``EntryPoint``.
 
 
-
 ``Distribution`` Objects
 ========================
 
-Factories: see also
-WorkingSet and Environment APIs.
+``Distribution`` objects represent collections of Python code that may or may
+not be importable, and may or may not have metadata and resources associated
+with them.  Their metadata may include information such as what other projects
+the distribution depends on, what entry points the distribution advertises, and
+so on.
 
-register_finder
-register_loader_type
-'load_entry_point', 'get_entry_map', 'get_entry_info'
 
 Getting or Creating Distributions
 ---------------------------------
+
+Most commonly, you'll obtain ``Distribution`` objects from a ``WorkingSet`` or
+an ``Environment``.  (See the sections above on `WorkingSet Objects`_ and
+`Environment Objects`_, which are containers for active distributions and
+available distributions, respectively.)  You can also obtain ``Distribution``
+objects from one of these high-level APIs:
 
 ``find_distributions(path_item, only=False)``
     Yield distributions accessible via `path_item`.  If `only` is true, yield
@@ -655,7 +660,191 @@ Getting or Creating Distributions
     it is used to locate and activate a matching distribution, which is then
     returned.
 
+However, if you're creating specialized tools for working with distributions,
+or creating a new distribution format, you may also need to create
+``Distribution`` objects directly, using one of the three constructors below.
 
+These constructors all take an optional `metadata` argument, which is used to
+access any resources or metadata associated with the distribution.  `metadata`
+must be an object that implements the ``IResourceProvider`` interface, or None.
+If it is None, an ``EmptyProvider`` is used instead.  ``Distribution`` objects
+implement both the `IResourceProvider`_ and `IMetadataProvider Methods`_ by
+delegating them to the `metadata` object.
+
+``Distribution.from_location(location, basename, metadata=None)`` (classmethod)
+    Create a distribution for `location`, which must be a string such as a
+    URL, filename, or other string that might be used on ``sys.path``.
+    `basename` is a string naming the distribution, like ``Foo-1.2-py2.4.egg``.
+    If `basename` ends with ``.egg``, then the project's name, version, python
+    version and platform are extracted from the filename and used to set those
+    properties of the created distribution.
+
+``Distribution.from_filename(filename, metadata=None)`` (classmethod)
+    Create a distribution by parsing a local filename.  This is a shorter way
+    of saying  ``Distribution.from_location(normalize_path(filename),
+    os.path.basename(filename), metadata)``.  In other words, it creates a
+    distribution whose location is the normalize form of the filename, parsing
+    name and version information from the base portion of the filename.
+
+``Distribution(location,metadata,project_name,version,py_version,platform,precedence)``
+    Create a distribution by setting its properties.  All arguments are
+    optional and default to None, except for `py_version` (which defaults to
+    the current Python version) and `precedence` (which defaults to
+    ``EGG_DIST``; for more details see ``precedence`` under `Distribution
+    Attributes`_ below).  Note that it's usually easier to use the
+    ``from_filename()`` or ``from_location()`` constructors than to specify
+    all these arguments individually.
+
+
+``Distribution`` Attributes
+---------------------------
+
+location
+    A string indicating the distribution's location.  For an importable
+    distribution, this is the string that would be added to ``sys.path`` to
+    make it actively importable.  For non-importable distributions, this is
+    simply a filename, URL, or other way of locating the distribution.
+
+project_name
+    A string, naming the project that this distribution is for.  Project names
+    are defined by a project's setup script, and they are used to identify
+    projects on PyPI.  When a ``Distribution`` is constructed, the
+    `project_name` argument is passed through the ``safe_name()`` utility
+    function to filter out any unacceptable characters.
+
+key
+    ``dist.key`` is short for ``dist.project_name.lower()``.  It's used for
+    case-insensitive comparison and indexing of distributions by project name.
+
+version
+    A string denoting what release of the project this distribution contains.
+    When a ``Distribution`` is constructed, the `version` argument is passed
+    through the ``safe_version()`` utility function to filter out any
+    unacceptable characters.  If no `version` is specified at construction
+    time, then attempting to access this attribute later will cause the
+    ``Distribution`` to try to discover its version by reading its ``PKG-INFO``
+    metadata file.  If ``PKG-INFO`` is unavailable or can't be parsed,
+    ``ValueError`` is raised.
+
+parsed_version
+    The ``parsed_version`` is a tuple representing a "parsed" form of the
+    distribution's ``version``.  ``dist.parsed_version`` is a shortcut for
+    calling ``parse_version(dist.version)``.  It is used to compare or sort
+    distributions by version.  (See the `Parsing Utilities`_ section below for
+    more information on the ``parse_version()`` function.)  Note that accessing
+    ``parsed_version`` may result in a ``ValueError`` if the ``Distribution``
+    was constructed without a `version` and without `metadata` capable of
+    supplying the missing version info.
+
+py_version
+    The major/minor Python version the distribution supports, as a string.
+    For example, "2.3" or "2.4".  The default is the current version of Python.
+    
+platform
+    A string representing the platform the distribution is intended for, or
+    ``None`` if the distribution is "pure Python" and therefore cross-platform.
+    See `Platform Utilities`_ below for more information on platform strings.
+    
+precedence
+    A distribution's ``precedence`` is used to determine the relative order of
+    two distributions that have the same ``project_name`` and
+    ``parsed_version``.  The default precedence is ``pkg_resources.EGG_DIST``,
+    which is the highest (i.e. most preferred) precedence.  The full list
+    of predefined precedences, from most preferred to least preferred, is:
+    ``EGG_DIST``, ``BINARY_DIST``, ``SOURCE_DIST``, and ``CHECKOUT_DIST``.
+    Normally, precedences other than ``EGG_DIST`` are used only by the
+    ``setuptools.package_index`` module, when sorting distributions found in a
+    package index to determine their suitability for installation.
+
+
+
+``Distribution`` Methods
+------------------------
+
+``activate(path=None)``
+    Ensure distribution is importable on `path`.  If `path` is None,
+    ``sys.path`` is used instead.  This ensures that the distribution's
+    ``location`` is in the `path` list, and it also performs any necessary
+    namespace package fixups or declarations.  (That is, if the distribution
+    contains namespace packages, this method ensures that they are declared,
+    and that the distribution's contents for those namespace packages are
+    merged with the contents provided by any other active distributions.  See
+    the section above on `Namespace Package Support`_ for more information.)
+
+    ``pkg_resources`` adds a notification callback to the global ``working_set``
+    that ensures this method is called whenever a distribution is added to it.
+    Therefore, you should not normally need to explicitly call this method.
+    (Note that this means that namespace packages on ``sys.path`` are always
+    imported as soon as ``pkg_resources`` is, which is another reason why
+    namespace packages should not contain any code or import statements.)
+
+``as_requirement()``
+    Return a ``Requirement`` instance that matches this distribution's project
+    name and version.
+    
+``requires(extras=())``
+    List the ``Requirement`` objects that specify this distribution's
+    dependencies.  If `extras` is specified, it should be a sequence of names
+    of "extras" defined by the distribution, and the list returned will then
+    include any dependencies needed to support the named "extras".
+
+``egg_name()``
+    Return what this distribution's standard filename should be, not including
+    the ".egg" extension.  For example, a distribution for project "Foo"
+    version 1.2 that runs on Python 2.3 for Windows would have an ``egg_name()``
+    of ``Foo-1.2-py2.3-win32``.  Any dashes in the name or version are
+    converted to underscores.  (``Distribution.from_location()`` will convert
+    them back when parsing a ".egg" file name.)  
+
+``__cmp__(other)``, ``__hash__()``
+    Distribution objects are hashed and compared on the basis of their parsed
+    version and precedence, followed by their key (lowercase project name),
+    location, Python version, and platform.
+    
+The following methods are used to access ``EntryPoint`` objects advertised
+by the distribution.  See the section above on `Entry Points`_ for more
+detailed information about these operations:
+
+``get_entry_info(group, name)``
+    Return the ``EntryPoint`` object for `group` and `name`, or None if no
+    such point is advertised by this distribution.
+
+``get_entry_map(group=None)``
+    Return the entry point map for `group`.  If `group` is None, return
+    a dictionary mapping group names to entry point maps for all groups.
+    (An entry point map is a dictionary of entry point names to ``EntryPoint``
+    objects.)
+
+``load_entry_point(group, name)``
+    Short for ``get_entry_info(group, name).load()``.  Returns the object
+    advertised by the named entry point, or raises ``ImportError`` if
+    the entry point isn't advertised by this distribution, or there is some
+    other import problem.
+
+In addition to the above methods, ``Distribution`` objects also implement all
+of the `IResourceProvider`_ and `IMetadataProvider Methods`_ (which are
+documented in later sections):
+
+* ``has_metadata(name)``
+* ``metadata_isdir(name)``
+* ``metadata_listdir(name)``
+* ``get_metadata(name)``
+* ``get_metadata_lines(name)``
+* ``run_script(script_name, namespace)``
+* ``get_resource_filename(manager, resource_name)``
+* ``get_resource_stream(manager, resource_name)``
+* ``get_resource_string(manager, resource_name)``
+* ``has_resource(resource_name)``
+* ``resource_isdir(resource_name)``
+* ``resource_listdir(resource_name)``
+ 
+If the distribution was created with a `metadata` argument, these resource and
+metadata access methods are all delegated to that `metadata` provider.
+Otherwise, they are delegated to an ``EmptyProvider``, so that the distribution
+will appear to have no resources or metadata.  This delegation approach is used
+so that supporting custom importers or new distribution formats can be done
+simply by creating an appropriate `IResourceProvider`_ implementation; see the
+section below on `Supporting Custom Importers`_ for more details.
 
 
 ``ResourceManager`` API
@@ -1211,5 +1400,4 @@ File/Path Utilities
     (notably Cygwin and Mac OS X) the ``normcase`` function does not accurately
     reflect the platform's case-sensitivity, so there is always the possibility
     of two apparently-different paths being equal on such platforms.
-
 

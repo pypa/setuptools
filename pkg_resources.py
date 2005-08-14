@@ -1881,8 +1881,8 @@ class Distribution(object):
     from_filename = classmethod(from_filename)
 
     def as_requirement(self):
+        """Return a ``Requirement`` that matches this distribution exactly"""
         return Requirement.parse('%s==%s' % (self.project_name, self.version))
-
 
     def load_entry_point(self, group, name):
         """Return the `name` entry point of `group` or raise ImportError"""
