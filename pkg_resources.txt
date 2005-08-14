@@ -69,9 +69,96 @@ XXX
 ``Requirement`` Objects
 =======================
 
-XXX Syntax, parse_requirments, Requirement.parse, etc.
+``Requirement`` objects express what versions of a project are suitable for
+some purpose.  These objects (or their string form) are used by various
+``pkg_resources`` APIs in order to find distributions that a script or
+distribution needs.
 
 
+Requirements Parsing 
+--------------------
+
+``parse_requirements(s)``
+    Yield ``Requirement`` objects for a string or list of lines.  Each
+    requirement must start on a new line.  See below for syntax.
+
+``Requirement.parse(s)``
+    Create a ``Requirement`` object from a string or list of lines.  A
+    ``ValueError`` is raised if the string or lines do not contain a valid
+    requirement specifier.  The syntax of a requirement specifier can be
+    defined in EBNF as follows::
+
+        requirement  ::= project_name versionspec? extras?
+        versionspec  ::= comparison version (',' comparison version)*
+        comparison   ::= '<' | '<=' | '!=' | '==' | '>=' | '>'
+        extras       ::= '[' extralist? ']'
+        extralist    ::= identifier (',' identifier)*
+        project_name ::= identifier
+        identifier   ::= [-A-Za-z0-9_]+
+        version      ::= [-A-Za-z0-9_.]+
+
+    Tokens can be separated by whitespace, and a requirement can be continued
+    over multiple lines using a backslash (``\\``).  Line-end comments (using
+    ``#``) are also allowed.
+    
+    Some examples of valid requirement specifiers::
+
+        FooProject >= 1.2
+        Fizzy [foo, bar]
+        PickyThing<1.6,>1.9,!=1.9.6,<2.0a0,==2.4c1
+        SomethingWhoseVersionIDontCareAbout
+
+    The project name is the only required portion of a requirement string, and
+    if it's the only thing supplied, the requirement will accept any version
+    of that project.
+
+    The "extras" in a requirement are used to request optional features of a
+    project, that may require additional project distributions in order to
+    function.  For example, if the hypothetical "Report-O-Rama" project offered
+    optional PDF support, it might require an additional library in order to
+    provide that support.  Thus, a project needing Report-O-Rama's PDF features
+    could use a requirement of ``Report-O-Rama[PDF]`` to request installation
+    or activation of both Report-O-Rama and any libraries it needs in order to
+    provide PDF support.  For example, you could use::
+
+        easy_install.py Report-O-Rama[PDF]
+
+    To install the necessary packages using the EasyInstall program, or call
+    ``pkg_resources.require('Report-O-Rama[PDF]')`` to add the necessary
+    distributions to sys.path at runtime.
+
+
+``Requirement`` Methods and Attributes
+--------------------------------------
+
+``__contains__(dist_or_version)``
+    Return true if `dist_or_version` fits the criteria for this requirement.
+    If `dist_or_version` is a ``Distribution`` object, its project name must
+    match the requirement's project name, and its version must meet the
+    requirement's version criteria.  If `dist_or_version` is a string, it is
+    parsed using the ``parse_version()`` utility function.  Otherwise, it is
+    assumed to be an already-parsed version.
+
+``__eq__(other_requirement)``
+    A requirement compares equal to another requirement if they have
+    case-insensitively equal project names, version specifiers, and "extras".
+    (The order that extras and version specifiers are in is also ignored.)
+    Equal requirements also have equal hashes, so that requirements can be
+    used in sets or as dictionary keys.
+
+``__str__()``
+    The string form of a ``Requirement`` is a string that, if passed to
+    ``Requirement.parse()``, would return an equal ``Requirement`` object.
+
+``project_name``
+    The name of the required project
+
+``key``
+    An all-lowercase version of the ``project_name``, useful for comparison
+    or indexing.
+
+``extras``
+    A tuple of names of "extras" that this requirement calls for.
 
 
 Entry Points
