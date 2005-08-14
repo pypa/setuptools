@@ -822,7 +822,7 @@ See the setuptools documentation for the "develop" command for more info.
         if self.pth_file is None:
             return
 
-        for d in self.pth_file.get(dist.key,()):    # drop old entries
+        for d in self.pth_file[dist.key]:    # drop old entries
             if self.multi_version or d.location != dist.location:
                 log.info("Removing %s from easy-install.pth file", d)
                 self.pth_file.remove(d)
