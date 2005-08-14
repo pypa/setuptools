@@ -26,8 +26,8 @@ def write_stub(resource, pyfile):
     ]))
     f.close()
 
-
-
+# stub __init__.py for packages distributed without one
+NS_PKG_STUB = '__import__("pkg_resources").declare_namespace(__name__)'
 
 
 
@@ -186,7 +186,7 @@ class bdist_egg(Command):
                 write_stub(os.path.basename(ext_name), pyfile)
             to_compile.append(pyfile)
             ext_outputs[p] = ext_name.replace(os.sep,'/')
-
+        to_compile.extend(self.make_init_files())
         if to_compile:
             cmd.byte_compile(to_compile)
 
@@ -260,30 +260,30 @@ class bdist_egg(Command):
         log.warn("zip_safe flag not set; analyzing archive contents...")
         return analyze_egg(self.bdist_dir, self.stubs)
 
+    def make_init_files(self):
+        """Create missing package __init__ files"""
+        init_files = []       
+        for base,dirs,files in walk_egg(self.bdist_dir):
+            if base==self.bdist_dir:
+                # don't put an __init__ in the root
+                continue
+            for name in files:
+                if name.endswith('.py'):
+                    if '__init__.py' not in files:
+                        pkg = base[len(self.bdist_dir)+1:].replace(os.sep,'.')
+                        if self.distribution.has_contents_for(pkg):
+                            log.warn("Creating missing __init__.py for %s",pkg)
+                            filename = os.path.join(base,'__init__.py')
+                            if not self.dry_run:
+                                f = open(filename,'w'); f.write(NS_PKG_STUB)
+                                f.close()    
+                            init_files.append(filename)
+                    break
+            else:
+                # not a package, don't traverse to subdirectories
+                dirs[:] = []
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        return init_files
 
 def walk_egg(egg_dir):
     """Walk an unpacked egg's contents, skipping the metadata directory"""
