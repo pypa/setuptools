@@ -1429,8 +1429,8 @@ def _handle_ns(packageName, path_item):
     handler = _find_adapter(_namespace_handlers, importer)
     subpath = handler(importer,path_item,packageName,module)
     if subpath is not None:
-        module.__path__.append(subpath)
-        loader.load_module(packageName)
+        path = module.__path__; path.append(subpath)
+        loader.load_module(packageName); module.__path__ = path
     return subpath
 
 def declare_namespace(packageName):
