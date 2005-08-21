@@ -1,5 +1,5 @@
 __all__ = [
-    'alias', 'bdist_egg', 'build_ext', 'build_py', 'develop',
+    'alias', 'bdist_egg', 'bdist_rpm', 'build_ext', 'build_py', 'develop',
     'easy_install', 'egg_info', 'install', 'install_lib', 'rotate', 'saveopts',
     'sdist', 'setopt', 'test', 'upload',
 ]

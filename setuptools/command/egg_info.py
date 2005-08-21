@@ -60,13 +60,13 @@ class egg_info(Command):
         self.ensure_dirname('egg_base')
         self.egg_info = os.path.join(self.egg_base, self.egg_name+'.egg-info')
 
-        # Set package version and name for the benefit of dumber commands
-        # (e.g. sdist, bdist_wininst, etc.)  We escape '-' so filenames will
-        # be more machine-parseable.
+        # Set package version for the benefit of dumber commands
+        # (e.g. sdist, bdist_wininst, etc.) 
         #
-        metadata = self.distribution.metadata
-        metadata.version = self.egg_version.replace('-','_')
-        metadata.name    = self.egg_name.replace('-','_')
+        self.distribution.metadata.version = self.egg_version
+
+
+
 
 
 
