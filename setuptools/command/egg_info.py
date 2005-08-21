@@ -3,7 +3,7 @@
 Create a distribution's .egg-info directory and contents"""
 
 # This module should be kept compatible with Python 2.3
-import os
+import os, re
 from setuptools import Command
 from distutils.errors import *
 from distutils import log
@@ -141,26 +141,26 @@ class egg_info(Command):
         return safe_version(version)
 
     def get_svn_revision(self):
-        stdin, stdout = os.popen4("svn info -R"); stdin.close()
-        result = stdout.read(); stdout.close()
-        import re
-        revisions = [
-            int(match.group(1))
-                for match in re.finditer(r'Last Changed Rev: (\d+)', result)
-        ]
-        if not revisions:
-            raise DistutilsError("svn info error: %s" % result.strip())
-        return str(max(revisions))
-
-
-
-
-
-
-
-
-
-
+        revision = 0
+        urlre = re.compile('url="([^"]+)"')
+        revre = re.compile('committed-rev="(\d+)"')
+        for base,dirs,files in os.walk(os.curdir):
+            if '.svn' not in dirs:
+                dirs[:] = []
+                continue    # no sense walking uncontrolled subdirs
+            dirs.remove('.svn')
+            f = open(os.path.join(base,'.svn','entries'))
+            data = f.read()
+            f.close()
+            dirurl = urlre.search(data).group(1)    # get repository URL
+            if base==os.curdir:
+                base_url = dirurl+'/'   # save the root url
+            elif not dirurl.startswith(base_url):
+                dirs[:] = []
+                continue    # not part of the same svn tree, skip it
+            for match in revre.finditer(data):
+                revision = max(revision, int(match.group(1)))
+        return str(revision)
 
 def write_pkg_info(cmd, basename, filename):
     log.info("writing %s", filename)
