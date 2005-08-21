@@ -73,12 +73,9 @@ class upload(Command):
         # Fill in the data
         content = open(filename,'rb').read()
         basename = os.path.basename(filename)
-        if basename.endswith('.egg'):
-            basename += '.zip'
         comment = ''
-        if command=='bdist_egg':
-            command='sdist'
-            comment='Binary egg for use with setuptools'
+        if command=='bdist_egg' and self.distribution.has_ext_modules():
+            comment = "built on %s" % platform.platform(terse=1)
         data = {
             ':action':'file_upload',
             'protcol_version':'1',

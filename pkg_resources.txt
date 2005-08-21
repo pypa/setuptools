@@ -625,7 +625,7 @@ addition, the following methods are provided:
 
 ``__str__()``
     The string form of an ``EntryPoint`` is a string that could be passed to
-    ``EntryPoint.parse()`` to yield an equivalent ``EntryPoint``.
+    ``EntryPoint.parse()`` to produce an equivalent ``EntryPoint``.
 
 
 ``Distribution`` Objects
