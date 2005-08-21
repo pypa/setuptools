@@ -40,18 +40,19 @@ import sys, os
 
 
 def use_setuptools(
-    version=DEFAULT_VERSION, download_base=DEFAULT_URL, to_dir=os.curdir
+    version=DEFAULT_VERSION, download_base=DEFAULT_URL, to_dir=os.curdir,
+    download_delay=15
 ):
     """Automatically find/download setuptools and make it available on sys.path
 
     `version` should be a valid setuptools version number that is available
     as an egg for download under the `download_base` URL (which should end with
     a '/').  `to_dir` is the directory where setuptools will be downloaded, if
-    it is not already available.
-
-    If an older version of setuptools is installed, this will print a message
-    to ``sys.stderr`` and raise SystemExit in an attempt to abort the calling
-    script.
+    it is not already available.  If `download_delay` is specified, it should
+    be the number of seconds that will be paused before initiating a download,
+    should one be required.  If an older version of setuptools is installed,
+    this routine will print a message to ``sys.stderr`` and raise SystemExit in
+    an attempt to abort the calling script.  
     """
     try:
         import setuptools
@@ -61,9 +62,8 @@ def use_setuptools(
             "remove it from your system entirely before rerunning this script."
             )
             sys.exit(2)
-
     except ImportError:
-        egg = download_setuptools(version, download_base, to_dir)
+        egg = download_setuptools(version, download_base, to_dir, dl_delay)
         sys.path.insert(0, egg)
         import setuptools; setuptools.bootstrap_install_from = egg
 
@@ -81,45 +81,45 @@ def use_setuptools(
         sys.exit(2)
 
 def download_setuptools(
-    version=DEFAULT_VERSION, download_base=DEFAULT_URL, to_dir=os.curdir
+    version=DEFAULT_VERSION, download_base=DEFAULT_URL, to_dir=os.curdir,
+    delay = 15
 ):
     """Download setuptools from a specified location and return its filename
 
     `version` should be a valid setuptools version number that is available
     as an egg for download under the `download_base` URL (which should end
     with a '/'). `to_dir` is the directory where the egg will be downloaded.
+    `delay` is the number of seconds to pause before an actual download attempt.
     """
     import urllib2, shutil
     egg_name = "setuptools-%s-py%s.egg" % (version,sys.version[:3])
-    url = download_base + egg_name + '.zip'  # XXX
+    url = download_base + egg_name
     saveto = os.path.join(to_dir, egg_name)
     src = dst = None
-
     if not os.path.exists(saveto):  # Avoid repeated downloads
         try:
             from distutils import log
+            if delay:
+                log.warn("""
+---------------------------------------------------------------------------
+This script requires setuptools version %s to run (even to display
+help).  I will attempt to download it for you from %s, but
+you may need to enable firewall access for this script first.
+I will start the download in %d seconds.
+---------------------------------------------------------------------------""",
+                    version, download_base, delay
+                )
+                from time import sleep; sleep(delay)
             log.warn("Downloading %s", url)
             src = urllib2.urlopen(url)
             # Read/write all in one block, so we don't create a corrupt file
             # if the download is interrupted.
             data = src.read()
-            dst = open(saveto,"wb")
-            dst.write(data)
+            dst = open(saveto,"wb"); dst.write(data)
         finally:
             if src: src.close()
             if dst: dst.close()
-
     return os.path.realpath(saveto)
-
-
-
-
-
-
-
-
-
-
 
 def main(argv, version=DEFAULT_VERSION):
     """Install or upgrade setuptools and EasyInstall"""
