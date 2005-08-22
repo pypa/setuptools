@@ -170,7 +170,11 @@ class bdist_egg(Command):
         # pull their data path from the install_lib command.
         
         log.info("installing library code to %s" % self.bdist_dir)
+        instcmd = self.get_finalized_command('install')
+        old_root = instcmd.root
+        instcmd.root = None
         cmd = self.call_command('install_lib', warn_dir=0)
+        instcmd.root = old_root
 
         ext_outputs = cmd._mutate_outputs(
             self.distribution.has_ext_modules(), 'build_ext', 'build_lib', ''

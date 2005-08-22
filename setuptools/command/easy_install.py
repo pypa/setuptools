@@ -90,6 +90,7 @@ class easy_install(Command):
         self.optimize = self.record = None
         self.upgrade = self.always_copy = self.multi_version = None
         self.editable = None
+        self.root = None
 
         # Options not specifiable via command line
         self.package_index = None
@@ -107,7 +108,6 @@ class easy_install(Command):
                     shutil.rmtree(filename)
                 else:
                     os.unlink(filename)
-
 
 
 
@@ -224,19 +224,19 @@ class easy_install(Command):
             for spec in self.args:
                 self.easy_install(spec, True)
             if self.record:
+                outputs = self.outputs
+                if self.root:               # strip any package prefix
+                    root_len = len(self.root)
+                    for counter in xrange(len(outputs)):
+                        outputs[counter] = outputs[counter][root_len:]
                 from distutils import file_util
                 self.execute(
-                    file_util.write_file, (self.record, self.outputs),
+                    file_util.write_file, (self.record, outputs),
                     "writing list of installed files to '%s'" %
                     self.record
                 )
         finally:
             log.set_verbosity(self.distribution.verbose)
-
-
-
-
-
 
 
 
