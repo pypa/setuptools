@@ -18,7 +18,8 @@ packages.
 Overview
 --------
 
-XXX TBD
+This section isn't written yet.  For now, please check out the extensive `API
+Reference`_ below.
 
 
 -----------------
@@ -42,6 +43,8 @@ This section isn't written yet.  Currently planned topics include::
         Metadata access
         Extended Discovery and Installation
     Supporting Custom PEP 302 Implementations
+
+For now, please check out the extensive `API Reference`_ below.
 
 
 -------------

@@ -69,12 +69,21 @@ Developer's Guide
 Installing ``setuptools``
 =========================
 
-Download `ez_setup.py`_ and run it; this will download and install the
-appropriate egg for your Python version.  (Note: if you are behind
-an NTLM-based firewall that prevents Python programs from accessing the net
-directly, you may wish to install and use the `APS proxy server
-<http://ntlmaps.sf.net/>`_, which lets you get past such firewalls in the same
-way that your web browser(s) do.)
+If you are behind an NTLM-based firewall that prevents Python programs from
+accessing the net directly, you may wish to first install and use the `APS
+proxy server <http://ntlmaps.sf.net/>`_, which lets you get past such firewalls
+in the same way that your web browser(s) do.
+
+If you do not have write access to your computer's ``site-packages`` directory,
+please also see the EasyInstall documentation on `Non-Root Installation`_ for
+more detailed instructions on pre-configuring your system for the best
+usability with setuptools and EasyInstall, then return here for the remaining
+steps.
+
+.. _Non-Root Installation: http://peak.telecommunity.com/DevCenter/EasyInstall#non-root-installation
+
+To install setuptools, first download `ez_setup.py`_ and run it; this will
+automatically download and install the appropriate egg for your Python version.
 
 .. _ez_setup.py: `bootstrap module`_
 
@@ -90,15 +99,18 @@ To get the in-development version of setuptools, run::
 
 You can then install it using the usual "setup.py install" incantation.
 
-Note that ``setuptools`` *must* be installed as an egg directory; it will not
+(Note that ``setuptools`` *must* be installed as an egg directory; it will not
 operate correctly otherwise.  If you are unable to install to a valid
-``site-packages`` directory (e.g. a "non-root install"), you will therefore
-need to manually add the setuptools egg to your ``PYTHONPATH``.  (You won't
-need to do this for every egg you install, because the ``pkg_resources`` module
-can automatically find eggs and add them to ``sys.path`` at runtime.  It's just
-that the ``setuptools`` egg contains ``pkg_resources`` and therefore has to
-be manually bootstrapped if you can't install it to a ``site-packages``
-directory.)
+``site-packages`` directory (e.g. a "non-root install" that doesn't conform
+to the `Non-Root Installation`_ procedure), you will therefore need to manually
+add the setuptools egg to your ``PYTHONPATH``.  You won't need to do this for
+every egg you install, because the ``pkg_resources`` module can automatically
+find eggs and add them to ``sys.path`` at runtime.  It's just that the
+``setuptools`` egg contains the ``pkg_resources`` runtime, and therefore has to
+be manually bootstrapped if you can't install it to a valid ``site-packages``
+directory.  However, if you are installing as root or you followed the
+`Non-Root Installation`_ procedure, you shouldn't have to worry about any of
+this.)
 
 
 Basic Use

@@ -109,8 +109,7 @@ you may need to enable firewall access for this script first.
 I will start the download in %d seconds.
 ---------------------------------------------------------------------------""",
                     version, download_base, delay
-                )
-                from time import sleep; sleep(delay)
+                ); from time import sleep; sleep(delay)
             log.warn("Downloading %s", url)
             src = urllib2.urlopen(url)
             # Read/write all in one block, so we don't create a corrupt file

@@ -28,11 +28,19 @@ Using "Easy Install"
 Installing "Easy Install"
 -------------------------
 
+If you are behind an NTLM-based firewall that prevents Python programs from
+accessing the net directly, you may wish to first install and use the `APS
+proxy server <http://ntlmaps.sf.net/>`_, which lets you get past such firewalls
+in the same way that your web browser(s) do.
+
+If you do not have write access to your computer's ``site-packages`` directory,
+please also see the section below on `Non-Root Installation`_ for more detailed
+instructions on pre-configuring your system for the best usability with
+EasyInstall, then return here for the remaining steps.
+
 Download `ez_setup.py <http://peak.telecommunity.com/dist/ez_setup.py>`_, and
 run it; this will download and install the appropriate ``setuptools`` egg for
-your Python version.  (Note: if you do not have write access to your computer's
-``site-packages`` directory, please see the section below on `Non-Root
-Installation`_ for more detailed instructions.)
+your Python version.
 
 You may receive a message telling you about an obsolete version of
 setuptools being present; if so, you must be sure to delete it entirely, along
