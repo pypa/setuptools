@@ -30,7 +30,9 @@ Installing "Easy Install"
 
 Download `ez_setup.py <http://peak.telecommunity.com/dist/ez_setup.py>`_, and
 run it; this will download and install the appropriate ``setuptools`` egg for
-your Python version.
+your Python version.  (Note: if you do not have write access to your computer's
+``site-packages`` directory, please see the section below on `Non-Root
+Installation`_ for more detailed instructions.)
 
 You may receive a message telling you about an obsolete version of
 setuptools being present; if so, you must be sure to delete it entirely, along
@@ -658,6 +660,67 @@ Command-Line Options
     This will ensure that EasyInstall knows about the additional "site"
     directory, thereby allowing individual users to install their own
     Python packages via EasyInstall.
+
+
+Non-Root Installation
+---------------------
+
+If you want to use EasyInstall on a computer where you do not have write access
+to Python's main ``site-packages`` directory, you may need to set up an
+alternate ``PYTHONHOME`` location, which allows Python to read a second
+``site-packages`` directory.
+
+If you are on a Mac OS X machine, you should just use the
+``~/Library/Python2.x/site-packages`` directory (replacing the ``x`` with the
+appropriate number).  Just make sure the directory exists, and use it as your
+installation location for all packages (including EasyInstall itself).  You
+do not need to set up a ``PYTHONHOME``, so you can skip the rest of this
+section, unless you want to be able to override system-installed packages.
+
+If you are on a Linux, BSD, Cygwin, or other similar Unix-like operating
+system, you should create a ``~/lib/python2.x/site-packages`` directory
+instead.  You will need to know your Python version's ``sys.prefix`` and
+``sys.exec_prefix``, which you can find out by running::
+
+    python -c "import sys; print sys.prefix; print sys.exec_prefix"
+
+(Replace "python" with the right path or version for your platform.)
+
+Assuming your ``sys.prefix`` is ``/usr/local``, and you are working with
+Python 2.4, you need to then perform the following steps (possibly making
+adjustments for the tools available on your platform)::
+
+    cd /usr/local/lib/python2.4  
+    find . -name lib-dynload -prune -o -name site-packages -prune -o \
+        -print >~/pyfiles
+    zip -r ~/lib/python24.zip . -i@$HOME/pyfiles
+    rm ~/pyfiles
+    mkdir -p ~/lib/python2.4/site-packages
+    ln -s /usr/local/lib/python2.4/lib-* ~/lib/python2.4/
+
+    echo "[install]" >>~/.pydistutils.cfg
+    echo "prefix=$HOME" >>~/.pydistutils.cfg
+    echo "exec_prefix=$HOME" >>~/.pydistutils.cfg
+
+Note that all of the paths above should be based on ``sys.prefix``, not
+``sys.exec_prefix`` (unless they're the same).  Once these one-time steps are
+completed, you can set your ``PYTHONHOME`` with::
+
+    export PYTHONHOME=$HOME:/old_exec_prefix
+
+replacing ``/old_exec_prefix`` with the original value of ``sys.exec_prefix``.
+
+The downside to this setup is that it can take up as much as 10 megabytes of
+disk space to store the zipped standard library.  The upside, however, is that
+Python usually starts much faster with a zipped standard library! And of
+course, you'll effectively have complete control over your own Python
+installation, without needing to convince a system administrator to install
+packages for you.
+
+Note that if you were previously setting a ``PYTHONPATH`` and/or had other
+special configuration options in your ``~/.pydistutils.cfg``, you may need to
+remove these settings, after relocating any older installed modules to your
+new ``~/lib/python2.x`` directory.
 
 
 Release Notes/Change History
