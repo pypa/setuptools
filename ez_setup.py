@@ -13,27 +13,27 @@ the appropriate options to ``use_setuptools()``.
 
 This file can also be run as a script to install or upgrade setuptools.
 """
-
 DEFAULT_VERSION = "0.6a0"
 DEFAULT_URL     = "http://www.python.org/packages/source/s/setuptools/"
 
+md5_data = {
+    'setuptools-0.5a13-py2.3.egg': '85edcf0ef39bab66e130d3f38f578c86',
+    'setuptools-0.5a13-py2.4.egg': 'ede4be600e3890e06d4ee5e0148e092a',
+}
+
 import sys, os
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+def _validate_md5(egg_name, data):
+    if egg_name in md5_data:
+        from md5 import md5
+        digest = md5(data).hexdigest()
+        if digest != md5_data[egg_name]:
+            print >>sys.stderr, (
+                "md5 validation of %s failed!  (Possible download problem?)"
+                % egg_name
+            )
+            sys.exit(2)
+    return data    
 
 
 
@@ -103,7 +103,8 @@ def download_setuptools(
                 log.warn("""
 ---------------------------------------------------------------------------
 This script requires setuptools version %s to run (even to display
-help).  I will attempt to download it for you from %s, but
+help).  I will attempt to download it for you (from
+%s), but
 you may need to enable firewall access for this script first.
 I will start the download in %d seconds.
 ---------------------------------------------------------------------------""",
@@ -114,7 +115,7 @@ I will start the download in %d seconds.
             src = urllib2.urlopen(url)
             # Read/write all in one block, so we don't create a corrupt file
             # if the download is interrupted.
-            data = src.read()
+            data = _validate_md5(egg_name, src.read())
             dst = open(saveto,"wb"); dst.write(data)
         finally:
             if src: src.close()
@@ -130,7 +131,7 @@ def main(argv, version=DEFAULT_VERSION):
         import tempfile, shutil
         tmpdir = tempfile.mkdtemp(prefix="easy_install-")
         try:
-            egg = download_setuptools(version, to_dir=tmpdir)
+            egg = download_setuptools(version, to_dir=tmpdir, delay=0)
             sys.path.insert(0,egg)
             from setuptools.command.easy_install import main
             main(list(argv)+[egg])
@@ -159,6 +160,47 @@ def main(argv, version=DEFAULT_VERSION):
         else:
             print "Setuptools version",version,"or greater has been installed."
             print '(Run "ez_setup.py -U setuptools" to reinstall or upgrade.)'
+
+
+            
+def update_md5(filenames):
+    """Update our built-in md5 registry"""
+
+    import re
+    from md5 import md5
+
+    for name in filenames:
+        base = os.path.basename(name)
+        f = open(name,'rb')       
+        md5_data[base] = md5(f.read()).hexdigest()
+        f.close()
+
+    data = ["    %r: %r,\n" % it for it in md5_data.items()]
+    data.sort()
+    repl = "".join(data)
+
+    import inspect
+    srcfile = inspect.getsourcefile(sys.modules[__name__])
+    f = open(srcfile); src = f.read(); f.close()
+
+    match = re.search("\nmd5_data = {\n([^}]+)}", src)
+    if not match:
+        print >>sys.stderr, "Internal error!"
+        sys.exit(2)
+
+    src = src[:match.start(1)] + repl + src[match.end(1):]
+    f = open(srcfile,'w')
+    f.write(src)
+    f.close()
+
+
 if __name__=='__main__':
-    main(sys.argv[1:])
+    if len(sys.argv)>2 and sys.argv[1]=='--md5update':
+        update_md5(sys.argv[2:])
+    else:
+        main(sys.argv[1:])
+
+
+
+
 
