@@ -678,6 +678,9 @@ Known Issues
    rate don't expect it to work with all packages.
 
 0.6a1
+ * EasyInstall now does MD5 validation of downloads from PyPI, or from any link
+   that has an "#md5=..." trailer with a 32-digit lowercase hex md5 digest.
+
  * Added support for handling MacOS platform information in ``.egg`` filenames,
    based on a contribution by Kevin Dangoor.  You may wish to delete and
    reinstall any eggs whose filename includes "darwin" and "Power_Macintosh",
