@@ -1777,15 +1777,23 @@ Release Notes/Change History
 ----------------------------
 
 0.6a1
+ * The ``build_ext`` command now works better when using the ``--inplace``
+   option and multiple Python versions.  It now makes sure that all extensions
+   match the current Python version, even if newer copies were built for a
+   different Python version.
+
+ * The ``upload`` command no longer attaches an extra ``.zip`` when uploading
+   eggs, as PyPI now supports egg uploads without trickery.
+
+ * The ``ez_setup`` script/module now displays a warning before downloading
+   the setuptools egg, and attempts to check the downloaded egg against an
+   internal MD5 checksum table.
+
  * Fixed the ``--tag-svn-revision`` option of ``egg_info`` not finding the
    latest revision number; it was using the revision number of the directory
    containing ``setup.py``, not the highest revision number in the project.
 
  * Added ``eager_resources`` setup argument
-
- * Enhanced performance of ``require()`` and related operations when all
-   requirements are already in the working set, and enhanced performance of
-   directory scanning for distributions.
 
  * The ``sdist`` command now recognizes Subversion "deleted file" entries and
    does not include them in source distributions.
@@ -1793,12 +1801,6 @@ Release Notes/Change History
  * ``setuptools`` now embeds itself more thoroughly into the distutils, so that
    other distutils extensions (e.g. py2exe, py2app) will subclass setuptools'
    versions of things, rather than the native distutils ones.
-
- * Fixed some problems using ``pkg_resources`` w/PEP 302 loaders other than
-   ``zipimport``, and the previously-broken "eager resource" support.
-
- * Fixed ``pkg_resources.resource_exists()`` not working correctly, along with
-   some other resource API bugs.
 
  * Added ``entry_points`` and ``setup_requires`` arguments to ``setup()``;
    ``setup_requires`` allows you to automatically find and download packages
@@ -1812,103 +1814,15 @@ Release Notes/Change History
  * The vestigial ``depends`` command has been removed.  It was never finished
    or documented, and never would have worked without EasyInstall - which it
    pre-dated and was never compatible with.
-
- * Many ``pkg_resources`` API changes and enhancements:
-
-   * Added ``EntryPoint``, ``get_entry_map``, ``load_entry_point``, and
-     ``get_entry_info`` APIs for dynamic plugin discovery.
-
-   * ``list_resources`` is now ``resource_listdir`` (and it actually works)
-
-   * Resource API functions like ``resource_string()`` that accepted a package
-     name and resource name, will now also accept a ``Requirement`` object in
-     place of the package name (to allow access to non-package data files in
-     an egg).
-
-   * ``get_provider()`` will now accept a ``Requirement`` instance or a module
-     name.  If it is given a ``Requirement``, it will return a corresponding
-     ``Distribution`` (by calling ``require()`` if a suitable distribution
-     isn't already in the working set), rather than returning a metadata and
-     resource provider for a specific module.  (The difference is in how
-     resource paths are interpreted; supplying a module name means resources
-     path will be module-relative, rather than relative to the distribution's
-     root.)
-
-   * ``Distribution`` objects now implement the ``IResourceProvider`` and
-     ``IMetadataProvider`` interfaces, so you don't need to reference the (no
-     longer available) ``metadata`` attribute to get at these interfaces.
-
-   * ``Distribution`` and ``Requirement`` both have a ``project_name``
-     attribute for the project name they refer to.  (Previously these were
-     ``name`` and ``distname`` attributes.)
-
-   * The ``path`` attribute of ``Distribution`` objects is now ``location``,
-     because it isn't necessarily a filesystem path (and hasn't been for some
-     time now).  The ``location`` of ``Distribution`` objects in the filesystem
-     should always be normalized using ``pkg_resources.normalize_path()``; all
-     of the setuptools and EasyInstall code that generates distributions from
-     the filesystem (including ``Distribution.from_filename()``) ensure this
-     invariant, but if you use a more generic API like ``Distribution()`` or
-     ``Distribution.from_location()`` you should take care that you don't
-     create a distribution with an un-normalized filesystem path.
-
-   * ``Distribution`` objects now have an ``as_requirement()`` method that
-     returns a ``Requirement`` for the distribution's project name and version.
-
-   * Distribution objects no longer have an ``installed_on()`` method, and the
-     ``install_on()`` method is now ``activate()`` (but may go away altogether
-     soon).  The ``depends()`` method has also been renamed to ``requires()``,
-     and ``InvalidOption`` is now ``UnknownExtra``.
-
-   * ``find_distributions()`` now takes an additional argument called ``only``,
-     that tells it to only yield distributions whose location is the passed-in
-     path.  (It defaults to False, so that the default behavior is unchanged.)
-
-   * ``AvailableDistributions`` is now called ``Environment``, and the
-     ``get()``, ``__len__()``, and ``__contains__()`` methods were removed,
-     because they weren't particularly useful.  ``__getitem__()`` no longer
-     raises ``KeyError``; it just returns an empty list if there are no
-     distributions for the named project.
-
-   * The ``resolve()`` method of ``Environment`` is now a method of
-     ``WorkingSet`` instead, and the ``best_match()`` method now uses a working
-     set instead of a path list as its second argument.
-
-   * There is a new ``pkg_resources.add_activation_listener()`` API that lets
-     you register a callback for notifications about distributions added to
-     ``sys.path`` (including the distributions already on it).  This is
-     basically a hook for extensible applications and frameworks to be able to
-     search for plugin metadata in distributions added at runtime.
      
-0.5a13
- * Fixed a bug in resource extraction from nested packages in a zipped egg.
-
 0.5a12
  * The zip-safety scanner now checks for modules that might be used with
    ``python -m``, and marks them as unsafe for zipping, since Python 2.4 can't
    handle ``-m`` on zipped modules.
 
- * Updated extraction/cache mechanism for zipped resources to avoid inter-
-   process and inter-thread races during extraction.  The default cache
-   location can now be set via the ``PYTHON_EGGS_CACHE`` environment variable,
-   and the default Windows cache is now a ``Python-Eggs`` subdirectory of the
-   current user's "Application Data" directory, if the ``PYTHON_EGGS_CACHE``
-   variable isn't set.
-
 0.5a11
  * Fix breakage of the "develop" command that was caused by the addition of
    ``--always-unzip`` to the ``easy_install`` command.
-
-0.5a10
- * Fix a problem with ``pkg_resources`` being confused by non-existent eggs on
-   ``sys.path`` (e.g. if a user deletes an egg without removing it from the
-   ``easy-install.pth`` file).
-
- * Fix a problem with "basket" support in ``pkg_resources``, where egg-finding
-   never actually went inside ``.egg`` files.
-
- * Made ``pkg_resources`` import the module you request resources from, if it's
-   not already imported.
 
 0.5a9
  * Include ``svn:externals`` directories in source distributions as well as
@@ -2026,12 +1940,6 @@ Release Notes/Change History
  * Setup scripts using setuptools now always install using ``easy_install``
    internally, for ease of uninstallation and upgrading.
 
- * ``pkg_resources.AvailableDistributions.resolve()`` and related methods now
-   accept an ``installer`` argument: a callable taking one argument, a
-   ``Requirement`` instance.  The callable must return a ``Distribution``
-   object, or ``None`` if no distribution is found.  This feature is used by
-   EasyInstall to resolve dependencies by recursively invoking itself.
-
 0.5a1
  * Added support for "self-installation" bootstrapping.  Packages can now
    include ``ez_setup.py`` in their source distribution, and add the following
@@ -2043,16 +1951,6 @@ Release Notes/Change History
 
     from setuptools import setup
     # etc...
-
-0.4a4
- * Fix problems with ``resource_listdir()``, ``resource_isdir()`` and resource
-   directory extraction for zipped eggs.
-
-0.4a3
- * Fixed scripts not being able to see a ``__file__`` variable in ``__main__``
-
- * Fixed a problem with ``resource_isdir()`` implementation that was introduced
-   in 0.4a2.
 
 0.4a2
  * Added ``ez_setup.py`` installer/bootstrap script to make initial setuptools
@@ -2078,27 +1976,6 @@ Release Notes/Change History
    arguments to set/reset options.  Also, ``Command`` subclasses can now set
    their ``command_consumes_arguments`` attribute to ``True`` in order to
    receive an ``args`` option containing the rest of the command line.
-
-0.4a1
- * Fixed a bug in requirements processing for exact versions (i.e. ``==`` and
-   ``!=``) when only one condition was included.
-
- * Added ``safe_name()`` and ``safe_version()`` APIs to clean up handling of
-   arbitrary distribution names and versions found on PyPI.
-
-0.3a4
- * ``pkg_resources`` now supports resource directories, not just the resources
-   in them.  In particular, there are ``resource_listdir()`` and
-   ``resource_isdir()`` APIs.
-
- * ``pkg_resources`` now supports "egg baskets" -- .egg zipfiles which contain
-   multiple distributions in subdirectories whose names end with ``.egg``.
-   Having such a "basket" in a directory on ``sys.path`` is equivalent to
-   having the individual eggs in that directory, but the contained eggs can
-   be individually added (or not) to ``sys.path``.  Currently, however, there
-   is no automated way to create baskets.
-
- * Namespace package manipulation is now protected by the Python import lock.
 
 0.3a2
  * Added new options to ``bdist_egg`` to allow tagging the egg's version number
