@@ -13,7 +13,7 @@ the appropriate options to ``use_setuptools()``.
 
 This file can also be run as a script to install or upgrade setuptools.
 """
-DEFAULT_VERSION = "0.6a0"
+DEFAULT_VERSION = "0.6a1"
 DEFAULT_URL     = "http://www.python.org/packages/source/s/setuptools/"
 
 md5_data = {
@@ -150,7 +150,7 @@ def main(argv, version=DEFAULT_VERSION):
             from setuptools.command.easy_install import main
         except ImportError:
             from easy_install import main
-        main(list(argv)+[download_setuptools()])
+        main(list(argv)+[download_setuptools(delay=0)])
         sys.exit(0) # try to force an exit
     else:
         if argv:
