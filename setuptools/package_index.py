@@ -4,10 +4,16 @@ import sys, os.path, re, urlparse, urllib2
 from pkg_resources import *
 from distutils import log
 from distutils.errors import DistutilsError
+from md5 import md5
 
 EGG_FRAGMENT = re.compile('^egg=(\\w+(-\\w+)?)$')
 HREF = re.compile("""href\\s*=\\s*['"]?([^'"> ]+)""", re.I)
-# this is here to fix emacs' cruddy broken syntax highlighting: '
+# this is here to fix emacs' cruddy broken syntax highlighting
+
+PYPI_MD5 = re.compile(
+    '<a href="([^"#]+)">([^<]+)</a>\n\s+\\(<a href="[^?]+\?:action=show_md5'
+    '&amp;digest=([0-9a-f]{32})">md5</a>\\)'
+)
 
 URL_SCHEME = re.compile('([-+.a-z0-9]{2,}):',re.I).match
 EXTENSIONS = ".tar.gz .tar.bz2 .tar .zip .tgz".split()
@@ -33,18 +39,12 @@ def parse_bdist_wininst(name):
 
     return base,py_ver
 
-
-
-
-
-
-
 def distros_for_url(url, metadata=None):
     """Yield egg or source distribution objects that might be found at a URL"""
 
     scheme, server, path, parameters, query, fragment = urlparse.urlparse(url)
     base = urllib2.unquote(path.split('/')[-1])
-    dists = distros_for_location(url, base, metadata) 
+    dists = distros_for_location(url, base, metadata)
     if fragment and not dists:
         match = EGG_FRAGMENT.match(fragment)
         if match:
@@ -59,7 +59,7 @@ def distros_for_location(location, basename, metadata=None):
     if basename.endswith('.egg.zip'):
         basename = basename[:-4]    # strip the .zip
 
-    if basename.endswith('.egg'):   # only one, unambiguous interpretation       
+    if basename.endswith('.egg'):   # only one, unambiguous interpretation
         return [Distribution.from_location(location, basename, metadata)]
 
     if basename.endswith('.exe'):
@@ -174,7 +174,7 @@ class PackageIndex(Environment):
         page = f.read()
         f.close()
         if url.startswith(self.index_url):
-            self.process_index(url, page)
+            page = self.process_index(url, page)
 
         for match in HREF.finditer(page):
             link = urlparse.urljoin(base, match.group(1))
@@ -234,9 +234,9 @@ class PackageIndex(Environment):
                         # Process the found URL
                         self.scan_url(urlparse.urljoin(url, match.group(1)))
 
-
-
-
+        return PYPI_MD5.sub(
+            lambda m: '<a href="%s#md5=%s">%s</a>' % m.group(1,3,2), page
+        )
 
 
 
@@ -270,16 +270,16 @@ class PackageIndex(Environment):
             self.debug("%s does not match %s", requirement, dist)
         return super(PackageIndex, self).obtain(requirement,installer)
 
-
-
-
-
-
-
-
-
-
-
+    def check_md5(self, cs, info, filename, tfp):
+        if re.match('md5=[0-9a-f]{32}$', info):
+            self.debug("Validating md5 checksum for %s", filename)
+            if cs.hexdigest()<>info[4:]:
+                tfp.close()
+                os.unlink(filename)
+                raise DistutilsError(
+                    "MD5 validation failed for "+os.path.basename(filename)+
+                    "; possible download problem?"
+                )
 
 
 
@@ -348,7 +348,7 @@ class PackageIndex(Environment):
                 if dist in req and (dist.precedence<=SOURCE_DIST or not source):
                     self.info("Best match: %s", dist)
                     return self.download(dist.location, tmpdir)
-            
+
         if force_scan:
             self.find_packages(requirement)
             dist = find(requirement)
@@ -372,35 +372,35 @@ class PackageIndex(Environment):
     def _download_to(self, url, filename):
         self.info("Downloading %s", url)
         # Download the file
-        fp, tfp = None, None
+        fp, tfp, info = None, None, None
         try:
-            url = url.split('#', 1)[0]
+            if '#' in url:
+                url, info = url.split('#', 1)
             fp = self.open_url(url)
             if isinstance(fp, urllib2.HTTPError):
                 raise DistutilsError(
                     "Can't download %s: %s %s" % (url, fp.code,fp.msg)
                 )
-
+            cs = md5()
             headers = fp.info()
             blocknum = 0
             bs = self.dl_blocksize
             size = -1
-
             if "content-length" in headers:
                 size = int(headers["Content-Length"])
                 self.reporthook(url, filename, blocknum, bs, size)
-
             tfp = open(filename,'wb')
             while True:
                 block = fp.read(bs)
                 if block:
+                    cs.update(block)
                     tfp.write(block)
                     blocknum += 1
                     self.reporthook(url, filename, blocknum, bs, size)
                 else:
                     break
+            if info: self.check_md5(cs, info, filename, tfp)
             return headers
-
         finally:
             if fp: fp.close()
             if tfp: tfp.close()
