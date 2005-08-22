@@ -77,7 +77,7 @@ version, and automatically downloading, building, and installing it::
 **Example 2**. Install or upgrade a package by name and version by finding
 links on a given "download page"::
 
-    easy_install -f http://peak.telecommunity.com/dist "setuptools>=0.6a1"
+    easy_install -f http://pythonpaste.org/package_index.html SQLObject
 
 **Example 3**. Download a source distribution from a specified URL,
 automatically building and installing it::
@@ -106,8 +106,6 @@ easily be installed with ``easy_install ~/projects/sqlobject``.  See `Editing
 and Viewing Source Packages`_ below for more info.)::
 
     easy_install --editable --build-directory ~/projects SQLObject
-
-Note:
 
 Easy Install accepts URLs, filenames, PyPI package names (i.e., ``distutils``
 "distribution" names), and package+version specifiers.  In each case, it will
