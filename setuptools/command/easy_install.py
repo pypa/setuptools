@@ -104,12 +104,12 @@ class easy_install(Command):
         for filename in blockers:
             log.info("Deleting %s", filename)
             if not self.dry_run:
-                if hasattr(os.path,'islink') and os.path.islink(filename):
-                    os.unlink(filename)
-                elif os.path.isdir(filename):
-                    shutil.rmtree(filename)                
+                if os.path.isdir(filename) and not os.path.islink(filename):
+                    shutil.rmtree(filename)
                 else:
                     os.unlink(filename)
+
+
 
 
 
@@ -547,9 +547,9 @@ class easy_install(Command):
         dist = self.egg_distribution(egg_path)
         self.check_conflicts(dist)
         if not samefile(egg_path, destination):
-            if os.path.isdir(destination):
+            if os.path.isdir(destination) and not os.path.islink(destination):
                 dir_util.remove_tree(destination, dry_run=self.dry_run)
-            elif os.path.isfile(destination):
+            elif os.path.exists(destination):
                 self.execute(os.unlink,(destination,),"Removing "+destination)
 
             if os.path.isdir(egg_path):
@@ -841,23 +841,23 @@ See the setuptools documentation for the "develop" command for more info.
                 if dist.location not in self.shadow_path:
                     self.shadow_path.append(dist.location)
 
-        self.pth_file.save()
+        if not self.dry_run:
 
-        if dist.key=='setuptools':
-            # Ensure that setuptools itself never becomes unavailable!
-            # XXX should this check for latest version?
-            filename = os.path.join(self.install_dir,'setuptools.pth')
-            unlink_if_symlink(filename)
-            f = open(filename, 'wt')
-            f.write(dist.location+'\n')
-            f.close()
+            self.pth_file.save()
 
+            if dist.key=='setuptools':
+                # Ensure that setuptools itself never becomes unavailable!
+                # XXX should this check for latest version?
+                filename = os.path.join(self.install_dir,'setuptools.pth')
+                if os.path.islink(filename): unlink(filename)
+                f = open(filename, 'wt')
+                f.write(dist.location+'\n')
+                f.close()
 
     def unpack_progress(self, src, dst):
         # Progress filter for unpacking
         log.debug("Unpacking %s to %s", src, dst)
         return dst     # only unpack-and-compile skips files for dry run
-
 
     def unpack_and_compile(self, egg_path, destination):
         to_compile = []
@@ -1017,9 +1017,9 @@ def extract_wininst_cfg(dist_filename):
         f.close()
 
 
-def unlink_if_symlink(filename):
-    if hasattr(os.path,'islink') and os.path.islink(filename):
-        os.unlink(filename)
+
+
+
 
 
 
@@ -1100,10 +1100,10 @@ class PthDistributions(Environment):
         if self.dirty:
             log.debug("Saving %s", self.filename)
             data = '\n'.join(self.paths+[''])
-            unlink_if_symlink(self.filename)
+            if os.path.islink(self.filename):
+                os.unlink(self.filename)
             f = open(self.filename,'wt'); f.write(data); f.close()
             self.dirty = False
-
 
     def add(self,dist):
         """Add `dist` to the distribution map"""
