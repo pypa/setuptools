@@ -168,14 +168,11 @@ class bdist_egg(Command):
 
         # We run install_lib before install_data, because some data hacks
         # pull their data path from the install_lib command.
-        
         log.info("installing library code to %s" % self.bdist_dir)
         instcmd = self.get_finalized_command('install')
-        old_root = instcmd.root
-        instcmd.root = None
+        old_root = instcmd.root; instcmd.root = None
         cmd = self.call_command('install_lib', warn_dir=0)
         instcmd.root = old_root
-
         ext_outputs = cmd._mutate_outputs(
             self.distribution.has_ext_modules(), 'build_ext', 'build_lib', ''
         )
@@ -201,7 +198,6 @@ class bdist_egg(Command):
         archive_root = self.bdist_dir
         egg_info = os.path.join(archive_root,'EGG-INFO')
         self.mkpath(egg_info)
-
         if self.distribution.scripts:
             script_dir = os.path.join(egg_info, 'scripts')
             log.info("installing scripts to %s" % script_dir)

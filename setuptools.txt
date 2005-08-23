@@ -10,7 +10,7 @@ Packages built and distributed using ``setuptools`` look to the user like
 ordinary Python packages based on the ``distutils``.  Your users don't need to
 install or even know about setuptools in order to use them, and you don't
 have to include the entire setuptools package in your distributions.  By
-including just a single `bootstrap module`_ (a 5K .py file), your package will
+including just a single `bootstrap module`_ (a 7K .py file), your package will
 automatically download and install ``setuptools`` if the user is building your
 package from source and doesn't have a suitable version already installed.
 

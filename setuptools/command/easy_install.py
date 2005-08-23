@@ -104,12 +104,12 @@ class easy_install(Command):
         for filename in blockers:
             log.info("Deleting %s", filename)
             if not self.dry_run:
-                if os.path.isdir(filename):
-                    shutil.rmtree(filename)
+                if hasattr(os.path,'islink') and os.path.islink(filename):
+                    os.unlink(filename)
+                elif os.path.isdir(filename):
+                    shutil.rmtree(filename)                
                 else:
                     os.unlink(filename)
-
-
 
 
 
@@ -846,7 +846,9 @@ See the setuptools documentation for the "develop" command for more info.
         if dist.key=='setuptools':
             # Ensure that setuptools itself never becomes unavailable!
             # XXX should this check for latest version?
-            f = open(os.path.join(self.install_dir,'setuptools.pth'), 'wt')
+            filename = os.path.join(self.install_dir,'setuptools.pth')
+            unlink_if_symlink(filename)
+            f = open(filename, 'wt')
             f.write(dist.location+'\n')
             f.close()
 
@@ -855,8 +857,6 @@ See the setuptools documentation for the "develop" command for more info.
         # Progress filter for unpacking
         log.debug("Unpacking %s to %s", src, dst)
         return dst     # only unpack-and-compile skips files for dry run
-
-
 
 
     def unpack_and_compile(self, egg_path, destination):
@@ -1017,9 +1017,9 @@ def extract_wininst_cfg(dist_filename):
         f.close()
 
 
-
-
-
+def unlink_if_symlink(filename):
+    if hasattr(os.path,'islink') and os.path.islink(filename):
+        os.unlink(filename)
 
 
 
@@ -1100,9 +1100,9 @@ class PthDistributions(Environment):
         if self.dirty:
             log.debug("Saving %s", self.filename)
             data = '\n'.join(self.paths+[''])
+            unlink_if_symlink(self.filename)
             f = open(self.filename,'wt'); f.write(data); f.close()
             self.dirty = False
-
 
 
     def add(self,dist):
