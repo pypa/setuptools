@@ -688,7 +688,11 @@ contents::
     install_lib = ~/Library/Python$py_version_short/site-packages
 
 This will tell the distutils (and EasyInstall) to always install packages in
-the appropriate personal ``site-packages`` directory.
+the appropriate personal ``site-packages`` directory.  (Note: do *not* replace
+``$py_version_short`` with an actual Python version in the configuration file!
+The distutils will substitute the correct value at runtime, so that the above
+configuration file will work correctly no matter what Python version you use,
+now or in the future.)
 
 If you are on a Linux, BSD, Cygwin, or other similar Unix-like operating
 system, you should create a ``~/lib/python2.x/site-packages`` directory
@@ -725,16 +729,16 @@ Finally, you will also need a private ``python`` executable, e.g.::
 
 Note that if hardlinking as shown doesn't work (e.g. because the system Python
 is on a different filesystem), you should use ``copy -p`` instead of ``ln``.
-Do NOT use a symlink; the Python binary must be copied or hardlinked, otherwise
-it will use the system ``site-packages`` directory and not yours.
+Do NOT use a symlink!  The Python binary must be copied or hardlinked,
+otherwise it will use the system ``site-packages`` directory and not yours.
 
 Note that if you were previously setting a ``PYTHONPATH`` and/or had other
 special configuration options in your ``~/.pydistutils.cfg``, you may need to
-remove these settings, after relocating any older installed modules to your
+remove these settings and relocate any older installed modules to your
 new ``~/lib/python2.x/site-packages`` directory.  Also note that you must now
 make sure to use the ``~/bin/python`` executable instead of the system Python,
-and ideally you should put ``~/bin`` first on your ``PATH`` as well, because
-that is where EasyInstall will install new Python scripts.
+and ideally you should put the ``~/bin`` directory first on your ``PATH`` as
+well, because that is where EasyInstall will install new Python scripts.
 
 
 Release Notes/Change History
@@ -757,6 +761,11 @@ Known Issues
 0.6a1
  * EasyInstall now does MD5 validation of downloads from PyPI, or from any link
    that has an "#md5=..." trailer with a 32-digit lowercase hex md5 digest.
+
+ * EasyInstall now handles symlinks in target directories by removing the link,
+   rather than attempting to overwrite the link's destination.  This makes it
+   easier to set up an alternate Python "home" directory (as described above in
+   the `Non-Root Installation`_ section).
 
  * Added support for handling MacOS platform information in ``.egg`` filenames,
    based on a contribution by Kevin Dangoor.  You may wish to delete and
