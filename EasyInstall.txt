@@ -784,7 +784,7 @@ Known Issues
 
  * Added ``--site-dirs`` option to allow adding custom "site" directories.
    Made ``easy-install.pth`` work in platform-specific alternate site
-   directories (e.g. ``~/Library/Python/2.x/site-packages``).
+   directories (e.g. ``~/Library/Python/2.x/site-packages`` on Mac OS X).
 
  * If you manually delete the current version of a package, the next run of
    EasyInstall against the target directory will now remove the stray entry
@@ -794,8 +794,7 @@ Known Issues
    as pointing to the named project's source checkout.  Such URLs have a lower
    match precedence than any other kind of distribution, so they'll only be
    used if they have a higher version number than any other available
-   distribution.  (Future versions may allow you to specify that you want to
-   use source checkouts instead of other kinds of distributions.)  The ``#egg``
+   distribution, or if you use the ``--editable`` option.  The ``#egg``
    fragment can contain a version if it's formatted as ``#egg=proj-ver``,
    where ``proj`` is the project name, and ``ver`` is the version number.  You
    *must* use the format for these values that the ``bdist_egg`` command uses;
