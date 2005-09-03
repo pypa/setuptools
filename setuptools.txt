@@ -1777,6 +1777,9 @@ Release Notes/Change History
 ----------------------------
 
 0.6a1
+ * Added support for building "old-style" RPMs that don't install an egg for
+   the target package, using a ``--no-egg`` option.
+   
  * The ``build_ext`` command now works better when using the ``--inplace``
    option and multiple Python versions.  It now makes sure that all extensions
    match the current Python version, even if newer copies were built for a
