@@ -481,6 +481,7 @@ class easy_install(Command):
             ) % locals()
 
         if not self.dry_run:
+            ensure_directory(target)
             f = open(target,"w")
             f.write(script_text)
             f.close()
@@ -488,7 +489,6 @@ class easy_install(Command):
                 os.chmod(target,0755)
             except (AttributeError, os.error):
                 pass
-
 
     def install_eggs(self, spec, dist_filename, tmpdir):
         # .egg dirs or files are already built, so just return them
