@@ -479,7 +479,7 @@ class easy_install(Command):
                 "import pkg_resources\n"
                 "pkg_resources.run_script(%(spec)r, %(script_name)r)\n"
             ) % locals()
-
+        self.add_output(target)
         if not self.dry_run:
             ensure_directory(target)
             f = open(target,"w")
