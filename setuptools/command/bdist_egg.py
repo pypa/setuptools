@@ -173,9 +173,8 @@ class bdist_egg(Command):
         old_root = instcmd.root; instcmd.root = None
         cmd = self.call_command('install_lib', warn_dir=0)
         instcmd.root = old_root
-        ext_outputs = cmd._mutate_outputs(
-            self.distribution.has_ext_modules(), 'build_ext', 'build_lib', ''
-        )
+
+        ext_outputs = self.get_ext_outputs()
         self.stubs = []
         to_compile = []
         for (p,ext_name) in enumerate(ext_outputs):
@@ -187,6 +186,7 @@ class bdist_egg(Command):
                 write_stub(os.path.basename(ext_name), pyfile)
             to_compile.append(pyfile)
             ext_outputs[p] = ext_name.replace(os.sep,'/')
+
         to_compile.extend(self.make_init_files())
         if to_compile:
             cmd.byte_compile(to_compile)
@@ -284,6 +284,47 @@ class bdist_egg(Command):
                 dirs[:] = []
 
         return init_files
+
+    def get_ext_outputs(self):
+        """Get a list of relative paths to C extensions in the output distro"""
+
+        if not self.distribution.has_ext_modules():
+            return []
+
+        build_cmd = self.get_finalized_command('build_ext')
+        prefix_len = len(build_cmd.build_lib) + len(os.sep)
+
+        outputs = []
+        for filename in build_cmd.get_outputs():
+            outputs.append(filename[prefix_len:])
+
+        return outputs
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def walk_egg(egg_dir):
     """Walk an unpacked egg's contents, skipping the metadata directory"""
