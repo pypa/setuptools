@@ -849,7 +849,7 @@ See the setuptools documentation for the "develop" command for more info.
                 # Ensure that setuptools itself never becomes unavailable!
                 # XXX should this check for latest version?
                 filename = os.path.join(self.install_dir,'setuptools.pth')
-                if os.path.islink(filename): unlink(filename)
+                if os.path.islink(filename): os.unlink(filename)
                 f = open(filename, 'wt')
                 f.write(dist.location+'\n')
                 f.close()
