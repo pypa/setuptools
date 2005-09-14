@@ -788,7 +788,7 @@ Known Issues
 
  * If you manually delete the current version of a package, the next run of
    EasyInstall against the target directory will now remove the stray entry
-   from the ``easy-install.pth``file.
+   from the ``easy-install.pth`` file.
 
  * EasyInstall now recognizes URLs with a ``#egg=project_name`` fragment ID
    as pointing to the named project's source checkout.  Such URLs have a lower
