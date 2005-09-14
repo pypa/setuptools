@@ -44,6 +44,7 @@ def distros_for_url(url, metadata=None):
 
     scheme, server, path, parameters, query, fragment = urlparse.urlparse(url)
     base = urllib2.unquote(path.split('/')[-1])
+    if '#' in base: base, fragment = base.split('#',1)
     dists = distros_for_location(url, base, metadata)
     if fragment and not dists:
         match = EGG_FRAGMENT.match(fragment)
@@ -77,7 +78,6 @@ def distros_for_location(location, basename, metadata=None):
             return interpret_distro_name(location, basename, metadata)
 
     return []  # no extension matched
-
 
 
 def distros_for_filename(filename, metadata=None):
