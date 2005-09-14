@@ -69,7 +69,7 @@ def use_setuptools(
             )
             sys.exit(2)
     except ImportError:
-        egg = download_setuptools(version, download_base, to_dir, dl_delay)
+        egg = download_setuptools(version, download_base, to_dir, download_delay)
         sys.path.insert(0, egg)
         import setuptools; setuptools.bootstrap_install_from = egg
 
