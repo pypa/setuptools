@@ -13,12 +13,16 @@ the appropriate options to ``use_setuptools()``.
 
 This file can also be run as a script to install or upgrade setuptools.
 """
-DEFAULT_VERSION = "0.6a1c2"
+DEFAULT_VERSION = "0.6a1"
 DEFAULT_URL     = "http://www.python.org/packages/source/s/setuptools/"
 
 md5_data = {
     'setuptools-0.5a13-py2.3.egg': '85edcf0ef39bab66e130d3f38f578c86',
     'setuptools-0.5a13-py2.4.egg': 'ede4be600e3890e06d4ee5e0148e092a',
+    'setuptools-0.6a1-py2.3.egg': 'ee819a13b924d9696b0d6ca6d1c5833d',
+    'setuptools-0.6a1-py2.4.egg': '8256b5f1cd9e348ea6877b5ddd56257d',
+    'setuptools-0.6a1c1-py2.3.egg': '1eaf2ca9fb2417977d5b5042dc50e1f4',
+    'setuptools-0.6a1c1-py2.4.egg': '5baad71652b3047756ba1dcbf721b1ee',
     'setuptools-0.6a1c2-py2.3.egg': '92291ca957044306d96a7b8589c01d87',
     'setuptools-0.6a1c2-py2.4.egg': '5ae6405341eddb5baf93cd6ab178efb1',
 }

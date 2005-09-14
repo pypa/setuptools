@@ -18,16 +18,82 @@ packages.
 Overview
 --------
 
-This section isn't written yet.  For now, please check out the extensive `API
-Reference`_ below.
+Eggs are a distribution format for Python modules, similar in concept to Java's
+"jars" or Ruby's "gems".  They differ from previous Python distribution formats
+in that they are importable (i.e. they can be added to ``sys.path``), and they
+are *discoverable*, meaning that they carry metadata that unambiguously
+identifies their contents and dependencies, and thus can be *automatically*
+found and added to ``sys.path`` in response to simple requests of the form,
+"get me everything I need to use docutils' PDF support".
+
+The ``pkg_resources`` module provides runtime facilities for finding,
+introspecting, activating and using eggs and other "pluggable" distribution
+formats.  Because these are new concepts in Python (and not that well-
+established in other languages either), it helps to have a few special terms
+for talking about eggs and how they can be used:
+
+project
+    A library, framework, script, plugin, application, or collection of data
+    or other resources, or some combination thereof.  Projects are assumed to
+    have "relatively unique" names, e.g. names registered with PyPI.
+
+release
+    A snapshot of a project at a particular point in time, denoted by a version
+    identifier.  
+
+distribution
+    A file or files that represent a particular release.
+
+importable distribution
+    A file or directory that, if placed on ``sys.path``, allows Python to
+    import any modules contained within it.
+
+pluggable distribution
+    An importable distribution whose filename unambiguously identifies its
+    release (i.e. project and version), and whose contents unamabiguously
+    specify what releases of other projects will satisfy its runtime
+    requirements.
+
+extra
+    An "extra" is an optional feature of a release, that may impose additional
+    runtime requirements.  For example, if docutils PDF support required a
+    PDF support library to be present, docutils could define its PDF support as
+    an "extra", and list what other project releases need to be available in
+    order to provide it.
+
+environment
+    A collection of distributions potentially available for importing, but not
+    necessarily active.  More than one distribution (i.e. release version) for
+    a given project may be present in an environment.
+    
+working set
+    A collection of distributions actually available for importing, as on
+    ``sys.path``.  At most one distribution (release version) of a given
+    project may be present in a working set, as otherwise there would be
+    ambiguity as to what to import.
+
+eggs
+    Eggs are pluggable distributions in one of the three formats currently
+    supported by ``pkg_resources``.  There are built eggs, development eggs,
+    and egg links.  Built eggs are directories or zipfiles whose name ends
+    with ``.egg`` and follows the egg naming conventions, and contain an
+    ``EGG-INFO`` subdirectory (zipped or otherwise).  Development eggs are
+    normal directories of Python code with one or more ``ProjectName.egg-info``
+    subdirectories.  And egg links are ``*.egg-link`` files that contain the
+    name of a built or development egg, to support symbolic linking on
+    platforms that do not have native symbolic links.
+
+(For more information about these terms and concepts, see also this
+`architectural overview`_ of ``pkg_resources`` and Python Eggs in general.)
+
+.. _architectural overview: http://mail.python.org/pipermail/distutils-sig/2005-June/004652.html
 
 
------------------
-Developer's Guide
------------------
+.. -----------------
+.. Developer's Guide
+.. -----------------
 
-This section isn't written yet.  Currently planned topics include::
-
+.. This section isn't written yet.  Currently planned topics include
     Accessing Resources
     Finding and Activating Package Distributions
         get_provider()
@@ -43,8 +109,7 @@ This section isn't written yet.  Currently planned topics include::
         Metadata access
         Extended Discovery and Installation
     Supporting Custom PEP 302 Implementations
-
-For now, please check out the extensive `API Reference`_ below.
+.. For now, please check out the extensive `API Reference`_ below.
 
 
 -------------
