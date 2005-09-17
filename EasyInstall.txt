@@ -46,12 +46,8 @@ You may receive a message telling you about an obsolete version of
 setuptools being present; if so, you must be sure to delete it entirely, along
 with the old ``pkg_resources`` module if it's present on ``sys.path``.
 
-An ``easy_install.py`` script will be installed in the normal location for
-Python scripts on your platform. In the examples below, you'll need to replace
-references to ``easy_install`` with the correct invocation to run
-``easy_install.py`` on your system. If you have Python 2.4 or better, you can
-also use ``python -m easy_install``, which will have the same effect, but which
-may be easier for you to type.
+An ``easy_install`` script will be installed in the normal location for
+Python scripts on your platform.
 
 (Note: the ``ez_setup.py`` script accepts the same `Command-Line Options`_ and
 `Configuration Files`_  as ``easy_install`` itself, so you can use them to
@@ -59,6 +55,28 @@ control its behavior.  However, you should avoid using a custom installation
 directory or doing multi-version installs of the setuptools package, because
 this may make it impossible for scripts installed with EasyInstall to access
 it afterwards.)
+
+
+Windows Installation
+~~~~~~~~~~~~~~~~~~~~
+
+On Windows, an ``easy_install.exe`` launcher will also be installed, so that
+you can just type ``easy_install`` as long as it's on your ``PATH``.  If typing
+``easy_install`` at the command prompt doesn't work, check to make sure your
+``PATH`` includes the appropriate ``C:\\Python2X\\Scripts`` directory.  On
+most current versions of Windows, you can change the ``PATH`` by right-clicking
+"My Computer", choosing "Properties" and selecting the "Advanced" tab, then
+clicking the "Environment Variables" button.  ``PATH`` will be in the "System
+Variables" section, and you will probably need to reboot for the change to take
+effect.  Be sure to add a ``;`` after the last item on ``PATH`` before adding
+the scripts directory to it.
+
+Note that instead of changing your ``PATH`` to include the Python scripts
+directory, you can also retarget the installtion location for scripts so they
+go on a directory that's already on the ``PATH``.  For more information see the
+sections below on `Command-Line Options`_ and `Configuration Files`_.  You
+can pass command line options (such as ``--script-dir``) to ``ez_setup.py`` to
+control where ``easy_install.exe`` will be installed.
 
 
 Downloading and Installing a Package
@@ -757,6 +775,15 @@ Known Issues
    be directly fixed by EasyInstall; it has to be fixed in the distutils or
    in Exemaker.  So, don't use Exemaker to wrap ``easy_install.py``, or at any
    rate don't expect it to work with all packages.
+
+0.6a2
+ * EasyInstall can now install "console_scripts" defined by packages that use
+   ``setuptools`` and define appropriate entry points.  On Windows, console
+   scripts get an ``.exe`` wrapper so you can just type their name.  On other
+   platforms, the scripts are installed without a file extension.
+
+ * Using ``python -m easy_install`` is now DEPRECATED, since an
+   ``easy_install`` wrapper is now available on all platforms.
 
 0.6a1
  * EasyInstall now does MD5 validation of downloads from PyPI, or from any link

@@ -101,6 +101,11 @@ class develop(easy_install):
             return easy_install.install_egg_scripts(self,dist)
 
         # create wrapper scripts in the script dir, pointing to dist.scripts
+
+        # new-style...
+        self.install_console_scripts(dist)  
+
+        # ...and old-style
         for script_name in self.distribution.scripts or []:
             script_path = os.path.abspath(convert_path(script_name))
             script_name = os.path.basename(script_path)
@@ -108,11 +113,6 @@ class develop(easy_install):
             script_text = f.read()
             f.close()
             self.install_script(dist, script_name, script_text, script_path)
-
-
-
-
-
 
 
 

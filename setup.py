@@ -34,12 +34,12 @@ setup(
     keywords = "CPAN PyPI distutils eggs package management",
     url = "http://peak.telecommunity.com/DevCenter/setuptools",
     test_suite = 'setuptools.tests.test_suite',
-
     packages = find_packages(),
+    package_data = {'setuptools': ['launcher.exe']},
     py_modules = ['pkg_resources', 'easy_install'],
-    scripts = ['easy_install.py'],
+
     
-    zip_safe = False,   # We want 'python -m easy_install' to work  :(
+    zip_safe = False,   # We want 'python -m easy_install' to work, for now :(
     entry_points = {
         "distutils.commands" : [
             "%(cmd)s = setuptools.command.%(cmd)s:%(cmd)s" % locals()
@@ -63,9 +63,9 @@ setup(
             "top_level.txt = setuptools.command.egg_info:write_toplevel_names",
             "depends.txt = setuptools.command.egg_info:warn_depends_obsolete",
         ],
+        "console_scripts":
+            ["easy_install = setuptools.command.easy_install:main"],
     },
-    # uncomment for testing
-    # setup_requires = ['setuptools>=0.6a0'],
 
     classifiers = [f.strip() for f in """
     Development Status :: 3 - Alpha
@@ -78,5 +78,46 @@ setup(
     Topic :: System :: Archiving :: Packaging
     Topic :: System :: Systems Administration
     Topic :: Utilities""".splitlines() if f.strip()]
+
+
+    # uncomment for testing
+    # setup_requires = ['setuptools>=0.6a0'],
 )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -244,6 +244,19 @@ class easy_install(Command):
 
 
 
+    def install_egg_scripts(self, dist):
+        """Write all the scripts for `dist`, unless scripts are excluded"""
+
+        self.install_console_scripts(dist)
+        if self.exclude_scripts or not dist.metadata_isdir('scripts'):
+            return
+
+        for script_name in dist.metadata_listdir('scripts'):
+            self.install_script(
+                dist, script_name,
+                dist.get_metadata('scripts/'+script_name).replace('\r','\n')
+            )
+
     def add_output(self, path):
         if os.path.isdir(path):
             for base, dirs, files in os.walk(path):
@@ -269,19 +282,6 @@ class easy_install(Command):
                 "%r already exists in %s; can't do a checkout there" %
                 (spec.key, self.build_directory)
             )
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -408,16 +408,6 @@ class easy_install(Command):
             )
 
 
-    def install_egg_scripts(self, dist):
-        if self.exclude_scripts or not dist.metadata_isdir('scripts'):
-            return
-
-        for script_name in dist.metadata_listdir('scripts'):
-            self.install_script(
-                dist, script_name,
-                dist.get_metadata('scripts/'+script_name).replace('\r','\n')
-            )
-
     def should_unzip(self, dist):
         if self.zip_ok is not None:
             return not self.zip_ok
@@ -449,23 +439,63 @@ class easy_install(Command):
         ensure_directory(dst); shutil.move(setup_base, dst)
         return dst
 
-    def install_script(self, dist, script_name, script_text, dev_path=None):
-        log.info("Installing %s script to %s", script_name,self.script_dir)
-        target = os.path.join(self.script_dir, script_name)
-        first, rest = script_text.split('\n',1)
-        from distutils.command.build_scripts import first_line_re
-        match = first_line_re.match(first)
-        options = ''
-        if match:
-            options = match.group(1) or ''
-            if options:
-                options = ' '+options
+
+
+
+
+
+
+
+
+
+
+    def install_console_scripts(self, dist):
+        """Write new-style console scripts, unless excluded"""
+        
+        if self.exclude_scripts:
+            return
+
         spec = str(dist.as_requirement())
-        executable = os.path.normpath(sys.executable)
+        group = 'console_scripts'
+
+        for name,ep in dist.get_entry_map(group).items():
+
+            script_text = get_script_header("") + (
+                "# EASY-INSTALL-ENTRY-SCRIPT: %(spec)r,%(group)r,%(name)r\n"
+                "import sys\n"
+                "from pkg_resources import load_entry_point\n"
+                "\n"
+                "sys.exit(\n"
+                "   load_entry_point(%(spec)r, %(group)r, %(name)r)()\n"
+                ")\n"
+            ) % locals()
+
+            if sys.platform=='win32':
+                # On Windows, add a .py extension and an .exe launcher
+                self.write_script(name+'.py', script_text)
+                self.write_script(
+                    name+'.exe', resource_string('setuptools','launcher.exe'),
+                    'b' # write in binary mode
+                )
+            else:
+                # On other platforms, we assume the right thing to do is to
+                # write the stub with no extension.
+                self.write_script(name, script_text)
+
+
+
+
+
+
+
+
+
+    def install_script(self, dist, script_name, script_text, dev_path=None):
+        """Generate a legacy script wrapper and install it"""
+        spec = str(dist.as_requirement())
 
         if dev_path:
-            script_text = (
-                "#!%(executable)s%(options)s\n"
+            script_text = get_script_header(script_text) + (                
                 "# EASY-INSTALL-DEV-SCRIPT: %(spec)r,%(script_name)r\n"
                 "from pkg_resources import require; require(%(spec)r)\n"
                 "del require\n"
@@ -473,22 +503,33 @@ class easy_install(Command):
                 "execfile(__file__)\n"
             ) % locals()
         else:
-            script_text = (
-                "#!%(executable)s%(options)s\n"
+            script_text = get_script_header(script_text) + (                
+                "#!python\n"
                 "# EASY-INSTALL-SCRIPT: %(spec)r,%(script_name)r\n"
                 "import pkg_resources\n"
                 "pkg_resources.run_script(%(spec)r, %(script_name)r)\n"
             ) % locals()
+
+        self.write_script(script_name, script_text)
+
+
+    def write_script(self, script_name, contents, mode="t"):
+        """Write an executable file to the scripts directory"""
+        log.info("Installing %s script to %s", script_name, self.script_dir)
+
+        target = os.path.join(self.script_dir, script_name)
         self.add_output(target)
+
         if not self.dry_run:
             ensure_directory(target)
-            f = open(target,"w")
-            f.write(script_text)
+            f = open(target,"w"+mode)
+            f.write(contents)
             f.close()
             try:
                 os.chmod(target,0755)
             except (AttributeError, os.error):
                 pass
+
 
     def install_eggs(self, spec, dist_filename, tmpdir):
         # .egg dirs or files are already built, so just return them
@@ -1118,26 +1159,26 @@ class PthDistributions(Environment):
         Environment.remove(self,dist)
 
 
-def main(argv, **kw):
+def get_script_header(script_text):
+    """Create a #! line, getting options (if any) from script_text"""
+    from distutils.command.build_scripts import first_line_re
+    first, rest = (script_text+'\n').split('\n',1)
+    match = first_line_re.match(first)
+    options = ''
+    if match:
+        script_text = rest
+        options = match.group(1) or ''
+        if options:
+            options = ' '+options
+    executable = os.path.normpath(sys.executable)
+    return "#!%(executable)s%(options)s\n" % locals()
+
+
+def main(argv=None, **kw):
     from setuptools import setup
+    if argv is None:
+        argv = sys.argv[1:]
     setup(script_args = ['-q','easy_install', '-v']+argv, **kw)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

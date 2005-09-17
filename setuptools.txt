@@ -199,7 +199,8 @@ unless you need the associated ``setuptools`` feature.
     defining the entry points.  Entry points are used to support dynamic
     discovery of services or plugins provided by a project.  See `Dynamic
     Discovery of Services and Plugins`_ for details and examples of the format
-    of this argument.
+    of this argument.  In addition, this keyword is used to support `Automatic
+    Script Creation`_.
 
 ``extras_require``
     A dictionary mapping names of "extras" (optional features of your project)
@@ -295,6 +296,49 @@ remember to modify your setup script whenever your project grows additional
 top-level packages or subpackages.
 
 
+Automatic Script Creation
+=========================
+
+Packaging and installing scripts can be a bit awkward with the distutils.  For
+one thing, there's no easy way to have a script's filename match local
+conventions on both Windows and POSIX platforms.  For another, you often have
+to create a separate file just for the "main" script, when your actual "main"
+is a function in a module somewhere.  And even in Python 2.4, using the ``-m``
+option only works for actual ``.py`` files that aren't installed in a package.
+
+``setuptools`` fixes all of these problems by automatically generating scripts
+for you with the correct extension, and on Windows it will even create an
+``.exe`` file so that users don't have to change their ``PATHEXT`` settings.
+The way to use this feature is to define "entry points" in your setup script
+that indicate what function the generated script should import and run.  For
+example, to create two scripts called ``foo`` and ``bar``, you might do
+something like this::
+
+    setup(
+        # other arguments here...
+        entry_points = {
+            'console_scripts': [
+                'foo = my_package.some_module:main_func',
+                'bar = other_module:some_func',
+            ]
+        }
+    )
+
+When this project is installed on non-Windows platforms (using "setup.py
+install", "setup.py develop", or by using EasyInstall), a pair of ``foo`` and
+``bar`` scripts will be installed that import ``main_func`` and ``some_func``
+from the specified modules.  The functions you specify are called with no
+arguments, and their return value is passed to ``sys.exit()``, so you can
+return an errorlevel or message to print to stderr.
+
+You may define as many "console script" entry points as you like, and each one
+can optionally specify "extras" that it depends on, and that will be added to
+``sys.path`` when the script is run.  For more information on "extras", see
+section below on `Declaring Extras`_.  For more information on "entry points"
+in general, see the section below on `Dynamic Discovery of Services and
+Plugins`_.
+
+
 Declaring Dependencies
 ======================
 
@@ -350,6 +394,9 @@ development work on it.  (See `"Development Mode"`_ below for more details on
 using ``setup.py develop``.)
 
 
+.. _Declaring Extras:
+
+
 Declaring "Extras" (optional features with their own dependencies)
 ------------------------------------------------------------------
 
@@ -372,7 +419,33 @@ For example, let's say that Project A offers optional PDF and reST support::
         }
     )
 
-And that project B needs project A, *with* PDF support::
+As you can see, the ``extras_require`` argument takes a dictionary mapping
+names of "extra" features, to strings or lists of strings describing those
+features' requirements.  These requirements will *not* be automatically
+installed unless another package depends on them (directly or indirectly) by
+including the desired "extras" in square brackets after the associated project
+name.  (Or if the extras were listed in a requirement spec on the EasyInstall
+command line.)
+
+Extras can be used by a project's `entry points`_ to specify dynamic
+dependencies.  For example, if Project A includes a "rst2pdf" script, it might
+declare it like this, so that the "PDF" requirements are only resolved if the
+"rst2pdf" script is run::
+
+    setup(
+        name="Project-A",
+        ...
+        entry_points = {
+            'console_scripts':
+                ['rst2pdf = project_a.tools.pdfgen [PDF]'],
+                ['rst2html = project_a.tools.htmlgen'],
+                # more script entry points ...
+        }
+    )
+
+Projects can also use another project's extras when specifying dependencies.
+For example, if project B needs "project A" with PDF support installed, it
+might declare the dependency like this::
 
     setup(
         name="Project-B",
@@ -389,19 +462,11 @@ no longer needs ReportLab, or if it ends up needing other dependencies besides
 ReportLab in order to provide PDF support, Project B's setup information does
 not need to change, but the right packages will still be installed if needed.
 
-As you can see, the ``extras_require`` argument takes a dictionary mapping
-names of "extra" features, to strings or lists of strings describing those
-features' requirements.  These requirements will *not* be automatically
-installed unless another package depends on them (directly or indirectly) by
-including the desired "extras" in square brackets after the associated project
-name.  (Or if the extras were listed in a requirement spec on the EasyInstall
-command line.)
-
 Note, by the way, that if a project ends up not needing any other packages to
 support a feature, it should keep an empty requirements list for that feature
 in its ``extras_require`` argument, so that packages depending on that feature
 don't break (due to an invalid feature name).  For example, if Project A above
-builds in PDF support and no longer needs ReportLab, it should change its
+builds in PDF support and no longer needs ReportLab, it could change its
 setup to this::
 
     setup(
@@ -415,7 +480,6 @@ setup to this::
 
 so that Package B doesn't have to remove the ``[PDF]`` from its requirement
 specifier.
-
 
 
 Including Data Files
@@ -575,6 +639,8 @@ there's any possibility of ``eager_resources`` being relevant to your project.
 Extensible Applications and Frameworks
 ======================================
 
+
+.. _Entry Points:
 
 Dynamic Discovery of Services and Plugins
 -----------------------------------------
@@ -1775,6 +1841,12 @@ XXX
 ----------------------------
 Release Notes/Change History
 ----------------------------
+
+0.6a2
+ * Added ``console_scripts`` entry point group to allow installing scripts
+   without the need to create separate script files.  On Windows, console
+   scripts get an ``.exe`` wrapper so you can just type their name.  On other
+   platforms, the scripts are written without a file extension.
 
 0.6a1
  * Added support for building "old-style" RPMs that don't install an egg for

@@ -15,5 +15,8 @@ import sys
 from setuptools.command.easy_install import *
 
 if __name__ == '__main__':
+    print >>sys.stderr, "NOTE: python -m easy_install is deprecated."
+    print >>sys.stderr, "Please use the 'easy_install' command instead."
+    print >>sys.stderr
     main(sys.argv[1:])
 
