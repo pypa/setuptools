@@ -39,6 +39,9 @@ Feature Highlights:
   without needing to create a ``MANIFEST.in`` file, and without having to force
   regeneration of the ``MANIFEST`` file when your source tree changes.
 
+* Automatically generate wrapper scripts or Windows (console) .exe files for
+  any number of "main" functions in your project.
+
 * Transparent Pyrex support, so that your setup.py can list ``.pyx`` files and
   still work even when the end-user doesn't have Pyrex installed (as long as
   you include the Pyrex-generated C in your source distribution)

@@ -14,7 +14,7 @@ the appropriate options to ``use_setuptools()``.
 This file can also be run as a script to install or upgrade setuptools.
 """
 import sys
-DEFAULT_VERSION = "0.6a1"
+DEFAULT_VERSION = "0.6a2"
 DEFAULT_URL     = "http://cheeseshop.python.org/packages/%s/s/setuptools/" % sys.version[:3]
 
 md5_data = {
@@ -22,10 +22,8 @@ md5_data = {
     'setuptools-0.5a13-py2.4.egg': 'ede4be600e3890e06d4ee5e0148e092a',
     'setuptools-0.6a1-py2.3.egg': 'ee819a13b924d9696b0d6ca6d1c5833d',
     'setuptools-0.6a1-py2.4.egg': '8256b5f1cd9e348ea6877b5ddd56257d',
-    'setuptools-0.6a1c1-py2.3.egg': '1eaf2ca9fb2417977d5b5042dc50e1f4',
-    'setuptools-0.6a1c1-py2.4.egg': '5baad71652b3047756ba1dcbf721b1ee',
-    'setuptools-0.6a1c2-py2.3.egg': '92291ca957044306d96a7b8589c01d87',
-    'setuptools-0.6a1c2-py2.4.egg': '5ae6405341eddb5baf93cd6ab178efb1',
+    'setuptools-0.6a2-py2.3.egg': 'b98da449da411267c37a738f0ab625ba',
+    'setuptools-0.6a2-py2.4.egg': 'be5b88bc30aed63fdefd2683be135c3b',
 }
 
 import sys, os
@@ -41,9 +39,6 @@ def _validate_md5(egg_name, data):
             )
             sys.exit(2)
     return data    
-
-
-
 
 
 def use_setuptools(
@@ -187,7 +182,7 @@ def update_md5(filenames):
 
     import inspect
     srcfile = inspect.getsourcefile(sys.modules[__name__])
-    f = open(srcfile); src = f.read(); f.close()
+    f = open(srcfile, 'rb'); src = f.read(); f.close()
 
     match = re.search("\nmd5_data = {\n([^}]+)}", src)
     if not match:
