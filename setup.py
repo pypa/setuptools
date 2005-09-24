@@ -14,13 +14,14 @@ def get_description():
         lines.append(line)
     f.close()
     return ''.join(lines)
-    
-VERSION = "0.6a2"
 
+VERSION = "0.6a2"
 from setuptools import setup, find_packages
 import sys
-
 from setuptools.command import __all__ as SETUP_COMMANDS
+scripts = []
+if sys.platform != "win32":
+    scripts = ["easy_install.py"]   # for backward compatibility only
 
 setup(
     name="setuptools",
@@ -38,7 +39,6 @@ setup(
     package_data = {'setuptools': ['launcher.exe']},
     py_modules = ['pkg_resources', 'easy_install'],
 
-    
     zip_safe = False,   # We want 'python -m easy_install' to work, for now :(
     entry_points = {
         "distutils.commands" : [
@@ -77,8 +77,8 @@ setup(
     Topic :: Software Development :: Libraries :: Python Modules
     Topic :: System :: Archiving :: Packaging
     Topic :: System :: Systems Administration
-    Topic :: Utilities""".splitlines() if f.strip()]
-
+    Topic :: Utilities""".splitlines() if f.strip()],
+    scripts = scripts,
 
     # uncomment for testing
     # setup_requires = ['setuptools>=0.6a0'],

@@ -1,22 +1,15 @@
 #!python
 """\
-
-Easy Install
-------------
-
-A tool for doing automatic download/extract/build of distutils-based Python
-packages.  For detailed documentation, see the accompanying EasyInstall.txt
-file, or visit the `EasyInstall home page`__.
-
-__ http://peak.telecommunity.com/DevCenter/EasyInstall
+This script/module exists for backward compatibility only!  It will go away
+entirely in 0.7.  Please start using the 'easy_install' script or .exe instead
+of using 'python -m easy_install' or running 'easy_install.py' directly.
 """
 
-import sys
-from setuptools.command.easy_install import *
-
 if __name__ == '__main__':
-    print >>sys.stderr, "NOTE: python -m easy_install is deprecated."
-    print >>sys.stderr, "Please use the 'easy_install' command instead."
-    print >>sys.stderr
-    main(sys.argv[1:])
+    import sys
+    print >>sys.stderr, \
+        "Please use the 'easy_install' script or executable instead."
+    print >>sys.stderr, \
+        "(i.e., don't include the '.py' extension and don't use 'python -m')"
+    sys.exit(2)
 
