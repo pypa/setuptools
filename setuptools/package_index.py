@@ -6,7 +6,7 @@ from distutils import log
 from distutils.errors import DistutilsError
 from md5 import md5
 
-EGG_FRAGMENT = re.compile('^egg=(\\w+(-\\w+)?)$')
+EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.]+)$')
 HREF = re.compile("""href\\s*=\\s*['"]?([^'"> ]+)""", re.I)
 # this is here to fix emacs' cruddy broken syntax highlighting
 

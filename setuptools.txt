@@ -1066,8 +1066,11 @@ So, if your ``url`` or ``download_url`` point either directly to a downloadable
 source distribution, or to HTML page(s) that have direct links to such, then
 EasyInstall will be able to locate downloads automatically.  If you want to
 make Subversion checkouts available, then you should create links with either
-``#egg=project`` or ``#egg=project-version`` added to the URL (replacing
-``project`` and ``version`` with appropriate values).
+``#egg=project`` or ``#egg=project-version`` added to the URL.  You should
+replace ``project`` and ``version`` with the values they would have in an egg
+filename.  (Be sure to actually generate an egg and then use the initial part
+of the filename, rather than trying to guess what the escaped form of the
+project name and version number will be.)
 
 Note that Subversion checkout links are of lower precedence than other kinds
 of distributions, so EasyInstall will not select a Subversion checkout for
