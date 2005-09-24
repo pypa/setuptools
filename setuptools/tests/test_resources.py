@@ -333,7 +333,7 @@ class RequirementsTests(TestCase):
         self.assertEqual(r1,r2)
         self.assertEqual(r1,r3)
         self.assertEqual(r1.extras, ("foo","bar"))
-        self.assertEqual(r2.extras, ("bar","FOO"))
+        self.assertEqual(r2.extras, ("bar","foo"))  # extras are normalized
         self.assertEqual(hash(r1), hash(r2))
         self.assertEqual(
             hash(r1), hash(("twisted", ((">=",parse_version("1.2")),),

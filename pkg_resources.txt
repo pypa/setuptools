@@ -522,7 +522,10 @@ Requirements Parsing
     or indexing.
 
 ``extras``
-    A tuple of names of "extras" that this requirement calls for.
+    A tuple of names of "extras" that this requirement calls for.  (These will
+    be all-lowercase and normalized using the ``safe_extra()`` parsing utility
+    function, so they may not exactly equal the extras the requirement was
+    created with.)
 
 
 Entry Points
@@ -1413,6 +1416,12 @@ Parsing Utilities
     are generating a filename from this you should replace any "-" characters
     in the output with underscores.
 
+``safe_extra(extra)``
+    Return a "safe" form of an extra's name, suitable for use in a requirement
+    string or a setup script's ``extras_require`` keyword.  This routine is
+    similar to ``safe_name()`` except that non-alphanumeric runs are replaced
+    by a single underbar (``_``), and the result is lowercased.
+    
 
 Platform Utilities
 ------------------
@@ -1479,6 +1488,10 @@ File/Path Utilities
 Release Notes/Change History
 ----------------------------
 
+0.6a3
+ * Added ``safe_extra()`` parsing utility routine, and use it for Requirement,
+   EntryPoint, and Distribution objects' extras handling.
+ 
 0.6a1
  * Enhanced performance of ``require()`` and related operations when all
    requirements are already in the working set, and enhanced performance of

@@ -61,6 +61,7 @@ __all__ = [
     # Parsing functions and string utilities
     'parse_requirements', 'parse_version', 'safe_name', 'safe_version',
     'get_platform', 'compatible_platforms', 'yield_lines', 'split_sections',
+    'safe_extra',
 
     # filesystem utilities
     'ensure_directory', 'normalize_path',
@@ -78,7 +79,6 @@ __all__ = [
     # Deprecated/backward compatibility only
     'run_main', 'AvailableDistributions',
 ]
-
 
 class ResolutionError(Exception):
     """Abstract base for dependency resolution errors"""
@@ -836,14 +836,14 @@ def safe_version(version):
     return re.sub('[^A-Za-z0-9.]+', '-', version)
 
 
+def safe_extra(extra):
+    """Convert an arbitrary string to a standard 'extra' name
 
-
-
-
-
-
-
-
+    Any runs of non-alphanumeric characters are replaced with a single '_',
+    and the result is always lowercased.
+    """
+    return re.sub('[^A-Za-z0-9]+', '_', extra).lower()
+    
 
 
 
@@ -1606,9 +1606,7 @@ class EntryPoint(object):
         self.name = name
         self.module_name = module_name
         self.attrs = tuple(attrs)
-        self.extras = Requirement.parse(
-            ("x[%s]" % ','.join(extras)).lower()
-        ).extras
+        self.extras = Requirement.parse(("x[%s]" % ','.join(extras))).extras
         self.dist = dist
 
     def __str__(self):
@@ -1637,6 +1635,8 @@ class EntryPoint(object):
             raise UnknownExtra("Can't require() without a distribution", self)
         map(working_set.add,
             working_set.resolve(self.dist.requires(self.extras),env,installer))
+
+
 
     #@classmethod
     def parse(cls, src, dist=None):
@@ -1810,7 +1810,7 @@ class Distribution(object):
             dm = self.__dep_map = {None: []}
             for name in 'requires.txt', 'depends.txt':
                 for extra,reqs in split_sections(self._get_metadata(name)):
-                    if extra: extra = extra.lower()
+                    if extra: extra = safe_extra(extra)
                     dm.setdefault(extra,[]).extend(parse_requirements(reqs))
             return dm
     _dep_map = property(_dep_map)
@@ -1822,7 +1822,7 @@ class Distribution(object):
         deps.extend(dm.get(None,()))
         for ext in extras:
             try:
-                deps.extend(dm[ext.lower()])
+                deps.extend(dm[safe_extra(ext)])
             except KeyError:
                 raise UnknownExtra(
                     "%s has no such extra feature %r" % (self, ext)
@@ -2014,10 +2014,10 @@ class Requirement:
         index = [(parse_version(v),state_machine[op],op,v) for op,v in specs]
         index.sort()
         self.specs = [(op,ver) for parsed,trans,op,ver in index]
-        self.index, self.extras = index, tuple(extras)
+        self.index, self.extras = index, tuple(map(safe_extra,extras))
         self.hashCmp = (
             self.key, tuple([(op,parsed) for parsed,trans,op,ver in index]),
-            ImmutableSet(map(str.lower,extras))
+            ImmutableSet(self.extras)
         )
         self.__hash = hash(self.hashCmp)
 
