@@ -10,7 +10,7 @@ file, or visit the `EasyInstall home page`__.
 __ http://peak.telecommunity.com/DevCenter/EasyInstall
 """
 
-import sys, os.path, zipimport, shutil, tempfile, zipfile
+import sys, os.path, zipimport, shutil, tempfile, zipfile, re
 from glob import glob
 from setuptools import Command
 from setuptools.sandbox import run_setup
@@ -247,7 +247,7 @@ class easy_install(Command):
     def install_egg_scripts(self, dist):
         """Write all the scripts for `dist`, unless scripts are excluded"""
 
-        self.install_console_scripts(dist)
+        self.install_wrapper_scripts(dist)
         if self.exclude_scripts or not dist.metadata_isdir('scripts'):
             return
 
@@ -440,52 +440,52 @@ class easy_install(Command):
         return dst
 
 
-
-
-
-
-
-
-
-
-
-    def install_console_scripts(self, dist):
-        """Write new-style console scripts, unless excluded"""
-        
+    def install_wrapper_scripts(self, dist):
         if self.exclude_scripts:
             return
+        for group in 'console_scripts', 'gui_scripts':
+            for name,ep in dist.get_entry_map(group).items():
+                self._install_wrapper_script(dist, group, name, ep)
+
+
+
+    def _install_wrapper_script(self, dist, group, name, entry_point):
+        """Write new-style console scripts, unless excluded"""
 
         spec = str(dist.as_requirement())
-        group = 'console_scripts'
+        header = get_script_header("")
+        script_text = (
+            "# EASY-INSTALL-ENTRY-SCRIPT: %(spec)r,%(group)r,%(name)r\n"
+            "__requires__ = %(spec)r\n"
+            "import sys\n"
+            "from pkg_resources import load_entry_point\n"
+            "\n"
+            "sys.exit(\n"
+            "   load_entry_point(%(spec)r, %(group)r, %(name)r)()\n"
+            ")\n"
+        ) % locals()
 
-        for name,ep in dist.get_entry_map(group).items():
-
-            script_text = get_script_header("") + (
-                "# EASY-INSTALL-ENTRY-SCRIPT: %(spec)r,%(group)r,%(name)r\n"
-                "__requires__ = %(spec)r\n"
-                "import sys\n"
-                "from pkg_resources import load_entry_point\n"
-                "\n"
-                "sys.exit(\n"
-                "   load_entry_point(%(spec)r, %(group)r, %(name)r)()\n"
-                ")\n"
-            ) % locals()
-
-            if sys.platform=='win32':
-                # On Windows, add a .py extension and an .exe launcher
-                self.write_script(name+'.py', script_text)
-                self.write_script(
-                    name+'.exe', resource_string('setuptools','launcher.exe'),
-                    'b' # write in binary mode
-                )
+        if sys.platform=='win32':
+            # On Windows, add a .py extension and an .exe launcher
+            if group=='gui_scripts':
+                ext, launcher = '.pyw', 'gui.exe'
+                new_header = re.sub('(?i)python.exe','pythonw.exe',header)
             else:
-                # On other platforms, we assume the right thing to do is to
-                # write the stub with no extension.
-                self.write_script(name, script_text)
+                ext, launcher = '.py',  'cli.exe'
+                new_header = re.sub('(?i)pythonw.exe','pythonw.exe',header)
 
+            if os.path.exists(new_header[2:-1]):
+                header = new_header
 
-
-
+            self.write_script(name+ext, header+script_text)
+            self.write_script(
+                name+'.exe', resource_string('setuptools', launcher),
+                'b' # write in binary mode
+            )
+        else:
+            # On other platforms, we assume the right thing to do is to just
+            # write the stub with no extension.
+            self.write_script(name, header+script_text)
 
 
 
@@ -495,7 +495,7 @@ class easy_install(Command):
         spec = str(dist.as_requirement())
 
         if dev_path:
-            script_text = get_script_header(script_text) + (                
+            script_text = get_script_header(script_text) + (
                 "# EASY-INSTALL-DEV-SCRIPT: %(spec)r,%(script_name)r\n"
                 "__requires__ = %(spec)r\n"
                 "from pkg_resources import require; require(%(spec)r)\n"
@@ -504,7 +504,7 @@ class easy_install(Command):
                 "execfile(__file__)\n"
             ) % locals()
         else:
-            script_text = get_script_header(script_text) + (                
+            script_text = get_script_header(script_text) + (
                 "# EASY-INSTALL-SCRIPT: %(spec)r,%(script_name)r\n"
                 "__requires__ = %(spec)r\n"
                 "import pkg_resources\n"

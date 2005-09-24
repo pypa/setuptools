@@ -12,7 +12,8 @@
 
     To build/rebuild with mingw32, do this in the setuptools project directory:
 
-        gcc -mno-cygwin -O -s -o setuptools/launcher.exe launcher.c
+        gcc -DGUI=0           -mno-cygwin -O -s -o setuptools/cli.exe launcher.c
+        gcc -DGUI=1 -mwindows -mno-cygwin -O -s -o setuptools/gui.exe launcher.c
 
     It links to msvcrt.dll, but this shouldn't be a problem since it doesn't
     actually run Python in the same process.  Note that using 'exec' instead
@@ -32,14 +33,13 @@
 int fail(char *format, char *data) {
     /* Print error message to stderr and return 1 */
     fprintf(stderr, format, data);
-    return 1;
+    return 2;
 }
 
 
 
 
-
-int main(int argc, char **argv) {
+int run(int argc, char **argv, int is_gui) {
 
     char python[256];   /* python executable's filename*/
     char script[256];   /* the script's filename */
@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
     end = script + strlen(script);
     while( end>script && *end != '.')
         *end-- = '\0';
-    strcat(script, "py");
+    strcat(script, (GUI ? "pyw" : "py"));
 
     /* figure out the target python executable */
 
@@ -102,19 +102,19 @@ int main(int argc, char **argv) {
     newargs[argc+1] = NULL;
 
     /* printf("args 0: %s\nargs 1: %s\n", newargs[0], newargs[1]); */
-
+    if (is_gui) {
+        /* Use exec, we don't need to wait for the GUI to finish */
+        execv(newargs[0], (const char * const *)(newargs));
+        return fail("Could not exec %s", python);   /* shouldn't get here! */
+    }
+    /* We *do* need to wait for a CLI to finish, so use spawn */
     return spawnv(P_WAIT, newargs[0], (const char * const *)(newargs));
 }
 
 
-
-
-
-
-
-
-
-
+int WINAPI WinMain(HINSTANCE hI, HINSTANCE hP, LPSTR lpCmd, int nShow) {
+    return run(__argc, __argv, GUI);
+}
 
 
 

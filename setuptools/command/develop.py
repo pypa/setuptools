@@ -103,7 +103,7 @@ class develop(easy_install):
         # create wrapper scripts in the script dir, pointing to dist.scripts
 
         # new-style...
-        self.install_console_scripts(dist)  
+        self.install_wrapper_scripts(dist)  
 
         # ...and old-style
         for script_name in self.distribution.scripts or []:

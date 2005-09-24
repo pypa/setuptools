@@ -39,8 +39,9 @@ Feature Highlights:
   without needing to create a ``MANIFEST.in`` file, and without having to force
   regeneration of the ``MANIFEST`` file when your source tree changes.
 
-* Automatically generate wrapper scripts or Windows (console) .exe files for
-  any number of "main" functions in your project.
+* Automatically generate wrapper scripts or Windows (console and GUI) .exe
+  files for any number of "main" functions in your project.  (Note: this is not
+  a py2exe replacement; the .exe files rely on the local Python installation.)
 
 * Transparent Pyrex support, so that your setup.py can list ``.pyx`` files and
   still work even when the end-user doesn't have Pyrex installed (as long as
@@ -314,8 +315,8 @@ for you with the correct extension, and on Windows it will even create an
 ``.exe`` file so that users don't have to change their ``PATHEXT`` settings.
 The way to use this feature is to define "entry points" in your setup script
 that indicate what function the generated script should import and run.  For
-example, to create two scripts called ``foo`` and ``bar``, you might do
-something like this::
+example, to create two console scripts called ``foo`` and ``bar``, and a GUI
+script called ``baz``, you might do something like this::
 
     setup(
         # other arguments here...
@@ -323,23 +324,31 @@ something like this::
             'console_scripts': [
                 'foo = my_package.some_module:main_func',
                 'bar = other_module:some_func',
+            ],
+            'gui_scripts': [
+                'baz = my_package_gui.start_func',
             ]
         }
     )
 
 When this project is installed on non-Windows platforms (using "setup.py
-install", "setup.py develop", or by using EasyInstall), a pair of ``foo`` and
-``bar`` scripts will be installed that import ``main_func`` and ``some_func``
-from the specified modules.  The functions you specify are called with no
-arguments, and their return value is passed to ``sys.exit()``, so you can
-return an errorlevel or message to print to stderr.
+install", "setup.py develop", or by using EasyInstall), a set of ``foo``,
+``bar``, and ``baz`` scripts will be installed that import ``main_func`` and
+``some_func`` from the specified modules.  The functions you specify are called
+with no arguments, and their return value is passed to ``sys.exit()``, so you
+can return an errorlevel or message to print to stderr.
 
-You may define as many "console script" entry points as you like, and each one
-can optionally specify "extras" that it depends on, and that will be added to
-``sys.path`` when the script is run.  For more information on "extras", see
-section below on `Declaring Extras`_.  For more information on "entry points"
-in general, see the section below on `Dynamic Discovery of Services and
-Plugins`_.
+On Windows, a set of ``foo.exe``, ``bar.exe``, and ``baz.exe`` launchers are
+created, alongside a set of ``foo.py``, ``bar.py``, and ``baz.pyw`` files.  The
+``.exe`` wrappers find and execute the right version of Python to run the
+``.py`` or ``.pyw`` file.
+
+You may define as many "console script" and "gui script" entry points as you
+like, and each one can optionally specify "extras" that it depends on, that
+will be added to ``sys.path`` when the script is run.  For more information on
+"extras", see the section below on `Declaring Extras`_.  For more information
+on "entry points" in general, see the section below on `Dynamic Discovery of
+Services and Plugins`_.
 
 
 Declaring Dependencies
@@ -1847,6 +1856,11 @@ XXX
 ----------------------------
 Release Notes/Change History
 ----------------------------
+
+0.6a3
+ * Added ``gui_scripts`` entry point group to allow installing GUI scripts
+   on Windows and other platforms.  (The special handling is only for Windows;
+   other platforms are treated the same as for ``console_scripts``.)
 
 0.6a2
  * Added ``console_scripts`` entry point group to allow installing scripts
