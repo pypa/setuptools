@@ -778,14 +778,27 @@ Known Issues
    in Exemaker.  So, don't use Exemaker to wrap ``easy_install.py``, or at any
    rate don't expect it to work with all packages.
 
+0.6a3
+ * Improved error message when trying to use old ways of running
+   ``easy_install``.  Removed the ability to run via ``python -m`` or by
+   running ``easy_install.py``; ``easy_install`` is the command to run on all
+   supported platforms.
+
+ * Improved wrapper script generation and runtime initialization so that a
+   VersionConflict doesn't occur if you later install a competing version of a
+   needed package as the default version of that package.
+
+ * Fixed a problem parsing version numbers in ``#egg=`` links.
+   
 0.6a2
  * EasyInstall can now install "console_scripts" defined by packages that use
    ``setuptools`` and define appropriate entry points.  On Windows, console
    scripts get an ``.exe`` wrapper so you can just type their name.  On other
    platforms, the scripts are installed without a file extension.
 
- * Using ``python -m easy_install`` is now DEPRECATED, since an
-   ``easy_install`` wrapper is now available on all platforms.
+ * Using ``python -m easy_install`` or running ``easy_install.py`` is now
+   DEPRECATED, since an ``easy_install`` wrapper is now available on all
+   platforms.
 
 0.6a1
  * EasyInstall now does MD5 validation of downloads from PyPI, or from any link
