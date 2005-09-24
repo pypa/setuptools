@@ -1610,6 +1610,8 @@ available:
     provide a ``--test-suite`` option, an error will occur.
 
 
+.. _upload:
+
 ``upload`` - Upload source and/or egg distributions to PyPI
 ===========================================================
 

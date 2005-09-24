@@ -15,7 +15,7 @@ def get_description():
     f.close()
     return ''.join(lines)
 
-VERSION = "0.6a2"
+VERSION = "0.6a3"
 from setuptools import setup, find_packages
 import sys
 from setuptools.command import __all__ as SETUP_COMMANDS
