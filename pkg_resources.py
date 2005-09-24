@@ -463,7 +463,7 @@ class WorkingSet(object):
 
         requirements = list(requirements)[::-1]  # set up the stack
         processed = {}  # set of processed requirements
-        best = {}       # key -> dist
+        best = dict([(d.key,d) for d in self])  # key -> dist
         to_activate = []
 
         while requirements:
@@ -2131,19 +2131,35 @@ def split_sections(s):
 
 
 # Set up global resource manager
-
 _manager = ResourceManager()
-
 def _initialize(g):
     for name in dir(_manager):
         if not name.startswith('_'):
             g[name] = getattr(_manager, name)
 _initialize(globals())
 
-
 # Prepare the master working set and make the ``require()`` API available
-
 working_set = WorkingSet()
+try:
+    # Does the main program list any requirements?
+    from __main__ import __requires__
+except ImportError:
+    pass # No: just use the default working set based on sys.path
+else:
+    # Yes: ensure the requirements are met, by prefixing sys.path if necessary
+    try:
+        working_set.require(__requires__)
+    except VersionConflict:     # try it without defaults already on sys.path
+        working_set = WorkingSet([])    # by starting with an empty path
+        for dist in working_set.resolve(
+            parse_requirements(__requires__), Environment()
+        ):
+            working_set.add(dist)
+        for entry in sys.path:  # add any missing entries from sys.path
+            if entry not in working_set.entries:
+                working_set.add_entry(entry)
+        sys.path[:] = working_set.entries   # then copy back to sys.path
+
 require = working_set.require
 iter_entry_points = working_set.iter_entry_points
 add_activation_listener = working_set.subscribe
@@ -2153,21 +2169,5 @@ run_main = run_script   # backward compatibility
 # Activate all distributions already on sys.path, and ensure that
 # all distributions added to the working set in the future (e.g. by
 # calling ``require()``) will get activated as well.
-#
 add_activation_listener(lambda dist: dist.activate())
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

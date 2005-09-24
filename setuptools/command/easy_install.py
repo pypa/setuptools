@@ -462,6 +462,7 @@ class easy_install(Command):
 
             script_text = get_script_header("") + (
                 "# EASY-INSTALL-ENTRY-SCRIPT: %(spec)r,%(group)r,%(name)r\n"
+                "__requires__ = %(spec)r\n"
                 "import sys\n"
                 "from pkg_resources import load_entry_point\n"
                 "\n"
@@ -489,7 +490,6 @@ class easy_install(Command):
 
 
 
-
     def install_script(self, dist, script_name, script_text, dev_path=None):
         """Generate a legacy script wrapper and install it"""
         spec = str(dist.as_requirement())
@@ -497,6 +497,7 @@ class easy_install(Command):
         if dev_path:
             script_text = get_script_header(script_text) + (                
                 "# EASY-INSTALL-DEV-SCRIPT: %(spec)r,%(script_name)r\n"
+                "__requires__ = %(spec)r\n"
                 "from pkg_resources import require; require(%(spec)r)\n"
                 "del require\n"
                 "__file__ = %(dev_path)r\n"
@@ -504,14 +505,13 @@ class easy_install(Command):
             ) % locals()
         else:
             script_text = get_script_header(script_text) + (                
-                "#!python\n"
                 "# EASY-INSTALL-SCRIPT: %(spec)r,%(script_name)r\n"
+                "__requires__ = %(spec)r\n"
                 "import pkg_resources\n"
                 "pkg_resources.run_script(%(spec)r, %(script_name)r)\n"
             ) % locals()
 
         self.write_script(script_name, script_text)
-
 
     def write_script(self, script_name, contents, mode="t"):
         """Write an executable file to the scripts directory"""
