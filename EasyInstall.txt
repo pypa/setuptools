@@ -72,7 +72,7 @@ effect.  Be sure to add a ``;`` after the last item on ``PATH`` before adding
 the scripts directory to it.
 
 Note that instead of changing your ``PATH`` to include the Python scripts
-directory, you can also retarget the installtion location for scripts so they
+directory, you can also retarget the installation location for scripts so they
 go on a directory that's already on the ``PATH``.  For more information see the
 sections below on `Command-Line Options`_ and `Configuration Files`_.  You
 can pass command line options (such as ``--script-dir``) to ``ez_setup.py`` to
@@ -732,6 +732,8 @@ libraries::
     rm ~/lib/python2.4/site-packages
     mkdir ~/lib/python2.4/site-packages
     ln -s /usr/local/lib/python2.4/site-packages/* ~/lib/python2.4/site-packages
+    mkdir ~/include/python2.4
+    ln -s /usr/local/include/python2.4/* ~/include/python2.4
 
 If your ``sys.exec_prefix`` was different from your ``sys.prefix``, you will
 also need to do this::
