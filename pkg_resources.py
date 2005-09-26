@@ -463,7 +463,7 @@ class WorkingSet(object):
 
         requirements = list(requirements)[::-1]  # set up the stack
         processed = {}  # set of processed requirements
-        best = dict([(d.key,d) for d in self])  # key -> dist
+        best = {}  # key -> dist
         to_activate = []
 
         while requirements:
@@ -471,20 +471,20 @@ class WorkingSet(object):
             if req in processed:
                 # Ignore cyclic or redundant dependencies
                 continue
-
             dist = best.get(req.key)
             if dist is None:
                 # Find the best distribution and add it to the map
-                if env is None:
-                    env = Environment(self.entries)
-                dist = best[req.key] = env.best_match(req, self, installer)
+                dist = self.by_key.get(req.key)
                 if dist is None:
-                    raise DistributionNotFound(req)  # XXX put more info here
+                    if env is None:
+                        env = Environment(self.entries)
+                    dist = best[req.key] = env.best_match(req, self, installer)
+                    if dist is None:
+                        raise DistributionNotFound(req)  # XXX put more info here
                 to_activate.append(dist)
             elif dist not in req:
                 # Oops, the "best" so far conflicts with a dependency
                 raise VersionConflict(dist,req) # XXX put more info here
-
             requirements.extend(dist.requires(req.extras)[::-1])
             processed[req] = True
 

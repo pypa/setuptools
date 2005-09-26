@@ -123,7 +123,6 @@ class DistroTests(TestCase):
 
     def testResolve(self):
         ad = Environment([]); ws = WorkingSet([])
-
         # Resolving no requirements -> nothing to install
         self.assertEqual( list(ws.resolve([],ad)), [] )
 
@@ -131,7 +130,6 @@ class DistroTests(TestCase):
         self.assertRaises(
             DistributionNotFound, ws.resolve, parse_requirements("Foo"), ad
         )
-
         Foo = Distribution.from_filename(
             "/foo_dir/Foo-1.2.egg",
             metadata=Metadata(('depends.txt', "[bar]\nBaz>=2.0"))
@@ -139,10 +137,12 @@ class DistroTests(TestCase):
         ad.add(Foo)
 
         # Request thing(s) that are available -> list to activate
-        self.assertEqual(
-            list(ws.resolve(parse_requirements("Foo"), ad)), [Foo]
-        )
-
+        for i in range(3):
+            targets = list(ws.resolve(parse_requirements("Foo"), ad))
+            self.assertEqual(targets, [Foo])
+            map(ws.add,targets)
+        ws = WorkingSet([]) # reset
+        
         # Request an extra that causes an unresolved dependency for "Baz"
         self.assertRaises(
             DistributionNotFound, ws.resolve,parse_requirements("Foo[bar]"), ad

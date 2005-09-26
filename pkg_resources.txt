@@ -1488,6 +1488,9 @@ File/Path Utilities
 Release Notes/Change History
 ----------------------------
 
+0.6a4
+ * Fix a bug in ``WorkingSet.resolve()`` that was introduced in 0.6a3.
+
 0.6a3
  * Added ``safe_extra()`` parsing utility routine, and use it for Requirement,
    EntryPoint, and Distribution objects' extras handling.
