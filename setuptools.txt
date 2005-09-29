@@ -1859,6 +1859,9 @@ XXX
 Release Notes/Change History
 ----------------------------
 
+0.6a5
+ * Fixed missing gui/cli .exe files in distribution.  Fixed bugs in tests.
+ 
 0.6a3
  * Added ``gui_scripts`` entry point group to allow installing GUI scripts
    on Windows and other platforms.  (The special handling is only for Windows;

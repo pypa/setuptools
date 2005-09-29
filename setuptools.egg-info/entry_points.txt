@@ -24,7 +24,6 @@ bdist_rpm = setuptools.command.bdist_rpm:bdist_rpm
 rotate = setuptools.command.rotate:rotate
 develop = setuptools.command.develop:develop
 setopt = setuptools.command.setopt:setopt
-build_py = setuptools.command.build_py:build_py
 saveopts = setuptools.command.saveopts:saveopts
 egg_info = setuptools.command.egg_info:egg_info
 upload = setuptools.command.upload:upload
