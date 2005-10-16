@@ -102,13 +102,13 @@ class easy_install(Command):
 
     def delete_blockers(self, blockers):
         for filename in blockers:
-            log.info("Deleting %s", filename)
-            if not self.dry_run:
-                if os.path.isdir(filename) and not os.path.islink(filename):
-                    shutil.rmtree(filename)
-                else:
-                    os.unlink(filename)
-
+            if os.path.exists(filename) or os.path.islink(filename):
+                log.info("Deleting %s", filename)
+                if not self.dry_run:
+                    if os.path.isdir(filename) and not os.path.islink(filename):
+                        shutil.rmtree(filename)
+                    else:
+                        os.unlink(filename)
 
 
 
@@ -464,18 +464,21 @@ class easy_install(Command):
             "   load_entry_point(%(spec)r, %(group)r, %(name)r)()\n"
             ")\n"
         ) % locals()
-
         if sys.platform=='win32':
             # On Windows, add a .py extension and an .exe launcher
             if group=='gui_scripts':
-                ext, launcher = '.pyw', 'gui.exe'
+                ext, launcher = '-script.pyw', 'gui.exe'
+                old = ['.pyw']
                 new_header = re.sub('(?i)python.exe','pythonw.exe',header)
             else:
-                ext, launcher = '.py',  'cli.exe'
+                ext, launcher = '-script.py', 'cli.exe'
+                old = ['.py','.pyc','.pyo']
                 new_header = re.sub('(?i)pythonw.exe','pythonw.exe',header)
-
             if os.path.exists(new_header[2:-1]):
                 header = new_header
+            
+            self.delete_blockers(   # clean up old .py/.pyw w/o a script
+                [os.path.join(self.script_dir,name+x) for x in old])
 
             self.write_script(name+ext, header+script_text)
             self.write_script(
@@ -486,9 +489,6 @@ class easy_install(Command):
             # On other platforms, we assume the right thing to do is to just
             # write the stub with no extension.
             self.write_script(name, header+script_text)
-
-
-
 
     def install_script(self, dist, script_name, script_text, dev_path=None):
         """Generate a legacy script wrapper and install it"""

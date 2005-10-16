@@ -12,8 +12,8 @@
 
     To build/rebuild with mingw32, do this in the setuptools project directory:
 
-        gcc -DGUI=0           -mno-cygwin -O -s -o setuptools/cli.exe launcher.c
-        gcc -DGUI=1 -mwindows -mno-cygwin -O -s -o setuptools/gui.exe launcher.c
+       gcc -DGUI=0           -mno-cygwin -O -s -o setuptools/cli.exe launcher.c
+       gcc -DGUI=1 -mwindows -mno-cygwin -O -s -o setuptools/gui.exe launcher.c
 
     It links to msvcrt.dll, but this shouldn't be a problem since it doesn't
     actually run Python in the same process.  Note that using 'exec' instead
@@ -55,7 +55,8 @@ int run(int argc, char **argv, int is_gui) {
     end = script + strlen(script);
     while( end>script && *end != '.')
         *end-- = '\0';
-    strcat(script, (GUI ? "pyw" : "py"));
+    *end-- = '\0';
+    strcat(script, (GUI ? "-script.pyw" : "-script.py"));
 
     /* figure out the target python executable */
 
@@ -74,7 +75,6 @@ int run(int argc, char **argv, int is_gui) {
 
     *ptr = '\0';
     while (ptr>python && isspace(*ptr)) *ptr-- = '\0';  /* strip trailing sp */
-
     if (strncmp(python, "#!", 2)) {
         /* default to python.exe if no #! header */
         strcpy(python, "#!python.exe");

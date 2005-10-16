@@ -780,6 +780,9 @@ Known Issues
 0.6a6
  * Added ``--no-deps`` option.
 
+ * Improved Windows ``.exe`` script wrappers so that the script can have the
+   same name as a module without confusing Python.
+
 0.6a3
  * Improved error message when trying to use old ways of running
    ``easy_install``.  Removed the ability to run via ``python -m`` or by
