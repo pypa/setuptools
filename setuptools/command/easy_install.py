@@ -70,13 +70,13 @@ class easy_install(Command):
         ('always-unzip', 'Z', "don't install as a zipfile, no matter what"),
         ('site-dirs=','S',"list of directories where .pth files work"),
         ('editable', 'e', "Install specified packages in editable form"),
+        ('no-deps', 'N', "don't install dependencies"),
     ]
-
     boolean_options = [
         'zip-ok', 'multi-version', 'exclude-scripts', 'upgrade', 'always-copy',
         'delete-conflicting', 'ignore-conflicts-at-my-risk', 'editable',
+        'no-deps',
     ]
-
     negative_opt = {'always-unzip': 'zip-ok'}
     create_index = PackageIndex
 
@@ -89,7 +89,7 @@ class easy_install(Command):
         self.args = None
         self.optimize = self.record = None
         self.upgrade = self.always_copy = self.multi_version = None
-        self.editable = None
+        self.editable = self.no_deps = None
         self.root = None
 
         # Options not specifiable via command line
@@ -222,7 +222,7 @@ class easy_install(Command):
             for link in self.find_links:
                 self.package_index.scan_url(link)
             for spec in self.args:
-                self.easy_install(spec, True)
+                self.easy_install(spec, not self.no_deps)
             if self.record:
                 outputs = self.outputs
                 if self.root:               # strip any package prefix

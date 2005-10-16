@@ -685,6 +685,11 @@ Command-Line Options
     directory, thereby allowing individual users to install their own
     Python packages via EasyInstall.
 
+``--no-deps, -N``  (New in 0.6a6)
+    Don't install any dependencies.  This is intended as a convenience for
+    tools that wrap eggs in a platform-specific packaging system.  (We don't
+    recommend that you use it for anything else.)
+
 
 Non-Root Installation
 ---------------------
@@ -714,7 +719,11 @@ now or in the future.)
 
 If you are on a Linux, BSD, Cygwin, or other similar Unix-like operating
 system, you should create a ``~/lib/python2.x/site-packages`` directory
-instead.  You will need to know your Python version's ``sys.prefix`` and
+instead.  (Note: Ian Bicking has created a script that can automate most of the
+process that follows; see http://svn.colorstudy.com/home/ianb/non_root_python.py
+for details.)
+
+You will need to know your Python version's ``sys.prefix`` and
 ``sys.exec_prefix``, which you can find out by running::
 
     python -c "import sys; print sys.prefix; print sys.exec_prefix"
@@ -732,7 +741,7 @@ libraries::
     rm ~/lib/python2.4/site-packages
     mkdir ~/lib/python2.4/site-packages
     ln -s /usr/local/lib/python2.4/site-packages/* ~/lib/python2.4/site-packages
-    mkdir ~/include/python2.4
+    mkdir -p ~/include/python2.4
     ln -s /usr/local/include/python2.4/* ~/include/python2.4
 
 If your ``sys.exec_prefix`` was different from your ``sys.prefix``, you will
@@ -768,15 +777,8 @@ Known Issues
  * There's no automatic retry for borked Sourceforge mirrors, which can easily
    time out or be missing a file.
 
- * Wrapping ``easy_install.py`` with the Exemaker utility may cause failures
-   when building packages that want to compile themselves with optimization
-   enabled.  This is because Exemaker sets ``sys.executable`` to point to the
-   ``easy_install`` wrapper, instead of to the Python executable, and the
-   ``distutils.util.byte_compile()`` function expects to be able to invoke
-   ``sys.executable`` to run a short Python script.  Unfortunately, this can't
-   be directly fixed by EasyInstall; it has to be fixed in the distutils or
-   in Exemaker.  So, don't use Exemaker to wrap ``easy_install.py``, or at any
-   rate don't expect it to work with all packages.
+0.6a6
+ * Added ``--no-deps`` option.
 
 0.6a3
  * Improved error message when trying to use old ways of running
