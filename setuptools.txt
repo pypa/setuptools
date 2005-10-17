@@ -221,6 +221,13 @@ unless you need the associated ``setuptools`` feature.
     your build process; for example, extensions that process setup() arguments
     and turn them into EGG-INFO metadata files.
 
+    (Note: projects listed in ``setup_requires`` will NOT be automatically
+    installed on the system where the setup script is being run.  They are
+    simply downloaded to the setup directory if they're not locally available
+    already.  If you want them to be installed, as well as being available
+    when the setup script is run, you should add them to ``install_requires``
+    **and** ``setup_requires``.)
+
 ``namespace_packages``
     A list of strings naming the project's "namespace packages".  A namespace
     package is a package that may be split across multiple project
