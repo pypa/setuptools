@@ -25,6 +25,8 @@ Using "Easy Install"
 ====================
 
 
+.. _installation instructions:
+
 Installing "Easy Install"
 -------------------------
 
@@ -718,12 +720,46 @@ configuration file will work correctly no matter what Python version you use,
 now or in the future.)
 
 If you are on a Linux, BSD, Cygwin, or other similar Unix-like operating
-system, you should create a ``~/lib/python2.x/site-packages`` directory
-instead.  (Note: Ian Bicking has created a script that can automate most of the
-process that follows; see http://svn.colorstudy.com/home/ianb/non_root_python.py
-for details.)
+system, you have a couple of different options.  You can create a "virtual"
+Python installation, which uses its own library directories and some symlinks
+to the site-wide Python.  Or, you can use a "traditional" ``PYTHONPATH``-based
+installation, which isn't as flexible, but which you may find more familiar,
+especially if you already have a custom ``PYTHONPATH`` set up.
 
-You will need to know your Python version's ``sys.prefix`` and
+
+Creating a "Virtual" Python
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the simplest case, your virtual Python installation will live under the
+``~/lib/python2.x``, ``~/include/python2.x``, and ``~/bin`` directories.  Just
+download `virtual-python.py`_ and run it using the site-wide Python.  If you
+want to customize the location, you can use the ``--prefix`` option to specify
+an installation base directory in place of ``~``.  (Use ``--help`` to get the
+complete list of options.)
+
+.. _virtual-python.py: http://peak.telecommunity.com/dist/virtual-python.py
+
+When you're done, you'll have a ``~/bin/python`` executable that's linked to
+the local Python installation and inherits all its current libraries, but which
+allows you to add as many new libraries as you want.  Simply use this new
+Python in place of your system-defined one, and you can modify it as you like
+without breaking anything that relies on the system Python.  You'll also still
+need to follow the standard `installation instructions`_ to install setuptools
+and EasyInstall, using your new ``~/bin/python`` executable in place of the
+system Python.
+
+Note that if you were previously setting a ``PYTHONPATH`` and/or had other
+special configuration options in your ``~/.pydistutils.cfg``, you may need to
+remove these settings *before* running ``virtual-python.py``.  You should
+also make sure that the ``~/bin`` directory (or whatever directory you choose)
+is on your ``PATH``, because that is where EasyInstall will install new Python
+scripts.
+
+If you'd prefer to do the installation steps by hand, or just want to know what
+the script will do, here are the steps.  (If you don't care how it works, you
+can just skip the rest of this section.)
+
+First, you will need to know your Python version's ``sys.prefix`` and
 ``sys.exec_prefix``, which you can find out by running::
 
     python -c "import sys; print sys.prefix; print sys.exec_prefix"
@@ -761,13 +797,43 @@ is on a different filesystem), you should use ``copy -p`` instead of ``ln``.
 Do NOT use a symlink!  The Python binary must be copied or hardlinked,
 otherwise it will use the system ``site-packages`` directory and not yours.
 
-Note that if you were previously setting a ``PYTHONPATH`` and/or had other
-special configuration options in your ``~/.pydistutils.cfg``, you may need to
-remove these settings and relocate any older installed modules to your
-new ``~/lib/python2.x/site-packages`` directory.  Also note that you must now
-make sure to use the ``~/bin/python`` executable instead of the system Python,
-and ideally you should put the ``~/bin`` directory first on your ``PATH`` as
-well, because that is where EasyInstall will install new Python scripts.
+You can now proceed with the standard `installation instructions`_.
+
+
+"Traditional" ``PYTHONPATH``-based Installation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This installation method is not as robust or as flexible as `creating a
+"virtual" python`_ installation, as it uses various tricks to fool Python into
+processing ``.pth`` files where it normally wouldn't.  We suggest you try the
+virtual Python approach first, as we are providing this method mainly for
+people who just can't get past their unshakeable belief that creating a virtual
+python is somehow "Not Right", or that putting stuff on ``PYTHONPATH`` "Should
+Just Work, Darnit."  So, if you're not one of those people, you don't
+need these instructions.  :-)
+
+Assuming that you want to install packages in a directory called ``~/py-lib``,
+and scripts in ``~/bin``, here's what you need to do:
+
+First, edit ``~/.pydistutils.cfg`` to include these settings::
+
+    [install]
+    install_lib = ~/py-lib
+    install_scripts = ~/bin
+    
+    [easy_install]
+    site_dirs = ~/py_lib
+
+Be sure to do this *before* you try to run the ``ez_setup.py`` installation
+script.  Then, follow the standard `installation instructions`_, but take
+careful note of the full pathname of the ``.egg`` file that gets installed, so
+that you can add it to your ``PYTHONPATH``, along with ``~/py_lib``.
+
+You *must* add the setuptools egg file to your ``PYTHONPATH`` manually, or it
+will not work, and neither will any other packages you install with
+EasyInstall.  You will not, however, have to manually add any other
+packages to the ``PYTHONPATH``; EasyInstall will take care of them for you, as
+long as the setuptools egg is explicitly listed in ``PYTHONPATH``.
 
 
 Release Notes/Change History
@@ -778,6 +844,12 @@ Known Issues
    time out or be missing a file.
 
 0.6a6
+ * Added support for "traditional" PYTHONPATH-based non-root installation, and
+   also the convenient ``virtual-python.py`` script, based on a contribution
+   by Ian Bicking.  The setuptools egg now contains a hacked ``site`` module
+   that makes the PYTHONPATH-based approach work with .pth files, so that you
+   can get the full EasyInstall feature set on such installations.
+
  * Added ``--no-deps`` option.
 
  * Improved Windows ``.exe`` script wrappers so that the script can have the

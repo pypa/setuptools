@@ -356,7 +356,7 @@ class WorkingSet(object):
         self.entry_keys.setdefault(entry, [])
         self.entries.append(entry)
         for dist in find_distributions(entry, True):
-            self.add(dist, entry)
+            self.add(dist, entry, False)
 
 
     def __contains__(self,dist):
@@ -421,7 +421,7 @@ class WorkingSet(object):
                     seen[key]=1
                     yield self.by_key[key]
 
-    def add(self, dist, entry=None):
+    def add(self, dist, entry=None, insert=True):
         """Add `dist` to working set, associated with `entry`
 
         If `entry` is unspecified, it defaults to the ``.location`` of `dist`.
@@ -432,22 +432,22 @@ class WorkingSet(object):
         doesn't already have a distribution in the set.  If it's added, any
         callbacks registered with the ``subscribe()`` method will be called.
         """
+        if insert:
+            dist.insert_on(self.entries, entry)
+
         if entry is None:
             entry = dist.location
-
-        if entry not in self.entry_keys:
-            self.entries.append(entry)
-            self.entry_keys[entry] = []
+        keys = self.entry_keys.setdefault(entry,[])
 
         if dist.key in self.by_key:
             return      # ignore hidden distros
 
         self.by_key[dist.key] = dist
-        keys = self.entry_keys[entry]
         if dist.key not in keys:
             keys.append(dist.key)
 
         self._added_new(dist)
+
 
     def resolve(self, requirements, env=None, installer=None):
         """List all distributions needed to (recursively) meet `requirements`
@@ -1837,11 +1837,11 @@ class Distribution(object):
     def activate(self,path=None):
         """Ensure distribution is importable on `path` (default=sys.path)"""
         if path is None: path = sys.path
-        if self.location not in path:
-            path.append(self.location)
+        self.insert_on(path)
         if path is sys.path:
             fixup_namespace_packages(self.location)
             map(declare_namespace, self._get_metadata('namespace_packages.txt'))
+
 
     def egg_name(self):
         """Return what this distribution's standard .egg filename should be"""
@@ -1906,6 +1906,47 @@ class Distribution(object):
     def get_entry_info(self, group, name):
         """Return the EntryPoint object for `group`+`name`, or ``None``"""
         return self.get_entry_map(group).get(name)
+
+    def insert_on(self, path, loc = None):
+        """Insert self.location in path before its nearest parent directory"""
+        loc = loc or self.location
+        if not loc: return
+        if path is sys.path:
+            self.check_version_conflict()
+        best, pos = 0, -1
+        for p,item in enumerate(path):
+            if loc.startswith(item) and len(item)>best and loc<>item:
+                best, pos = len(item), p
+        if pos==-1:
+            if loc not in path: path.append(loc)
+        elif loc not in path[:pos+1]:
+            while loc in path: path.remove(loc)
+            path.insert(pos,loc)
+
+
+
+    def check_version_conflict(self):
+        if self.key=='setuptools':
+            return      # ignore the inevitable setuptools self-conflicts  :(
+
+        nsp = dict.fromkeys(self._get_metadata('namespace_packages.txt'))
+
+        for modname in self._get_metadata('top_level.txt'):
+            if modname not in sys.modules or modname in nsp:
+                continue
+
+            fn = getattr(sys.modules[modname], '__file__', None)
+            if fn and fn.startswith(self.location):
+                continue
+
+            from warnings import warn
+            warn(
+                "Module %s was already imported from %s, but %s is being added"
+                " to sys.path" % (modname, fn, self.location)
+            )
+
+
+
 
 
 
@@ -2165,9 +2206,9 @@ iter_entry_points = working_set.iter_entry_points
 add_activation_listener = working_set.subscribe
 run_script = working_set.run_script
 run_main = run_script   # backward compatibility
-
 # Activate all distributions already on sys.path, and ensure that
 # all distributions added to the working set in the future (e.g. by
 # calling ``require()``) will get activated as well.
 add_activation_listener(lambda dist: dist.activate())
+working_set.entries=[]; map(working_set.add_entry,sys.path) # match order
 

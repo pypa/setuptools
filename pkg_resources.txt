@@ -1488,6 +1488,17 @@ File/Path Utilities
 Release Notes/Change History
 ----------------------------
 
+0.6a6
+ * Activated distributions are now inserted in ``sys.path`` (and the working
+   set) just before the directory that contains them, instead of at the end.
+   This allows e.g. eggs in ``site-packages`` to override unmanged modules in
+   the same location, and allows eggs found earlier on ``sys.path`` to override
+   ones found later.
+
+ * When a distribution is activated, it now checks whether any contained
+   non-namespace modules have already been imported and issues a warning if
+   a conflicting module has already been imported.
+
 0.6a4
  * Fix a bug in ``WorkingSet.resolve()`` that was introduced in 0.6a3.
 

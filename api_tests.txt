@@ -182,12 +182,12 @@ once)::
     ['...example.com...', '...pkg_resources...', '...pkg_resources...']
 
 And you can specify the path entry a distribution was found under, using the
-optional second parameter to ``add()``
+optional second parameter to ``add()``::
 
+    >>> ws = WorkingSet([])
     >>> ws.add(dist,"foo")
-    >>> ws.add(dist,"bar")
     >>> ws.entries
-    ['http://example.com/something', ..., 'foo', 'bar']
+    ['foo']
 
 But even if a distribution is found under multiple path entries, it still only
 shows up once when iterating the working set:
@@ -222,14 +222,14 @@ again for new distributions added thereafter::
     >>> def added(dist): print "Added", dist
     >>> ws.subscribe(added)
     Added Bar 0.9
-    >>> foo12 = Distribution(project_name="Foo", version="1.2") 
+    >>> foo12 = Distribution(project_name="Foo", version="1.2", location="f12") 
     >>> ws.add(foo12)
     Added Foo 1.2
 
 Note, however, that only the first distribution added for a given project name
 will trigger a callback, even during the initial ``subscribe()`` callback::
 
-    >>> foo14 = Distribution(project_name="Foo", version="1.4") 
+    >>> foo14 = Distribution(project_name="Foo", version="1.4", location="f14") 
     >>> ws.add(foo14)   # no callback, because Foo 1.2 is already active
 
     >>> ws = WorkingSet([])
