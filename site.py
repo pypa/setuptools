@@ -200,7 +200,7 @@ def addsitepackages(known_paths):
                                          'Python',
                                          sys.version[:3],
                                          'site-packages'))
-            for sitedir in sys.path:
+            for sitedir in sys.path+sitedirs:
                 if sitedir and os.path.isdir(sitedir):
                     addsitedir(sitedir, known_paths)
     return None
