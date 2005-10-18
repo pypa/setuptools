@@ -855,6 +855,13 @@ Known Issues
  * Improved Windows ``.exe`` script wrappers so that the script can have the
    same name as a module without confusing Python.
 
+ * Changed dependency processing so that it's breadth-first, allowing a
+   depender's preferences to override those of a dependee, to prevent conflicts
+   when a lower version is acceptable to the dependee, but not the depender.
+   Also, ensure that currently installed/selected packages aren't given
+   precedence over ones desired by a package being installed, which could
+   cause conflict errors.
+
 0.6a3
  * Improved error message when trying to use old ways of running
    ``easy_install``.  Removed the ability to run via ``python -m`` or by

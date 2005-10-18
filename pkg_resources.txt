@@ -1499,6 +1499,10 @@ Release Notes/Change History
    non-namespace modules have already been imported and issues a warning if
    a conflicting module has already been imported.
 
+ * Changed dependency processing so that it's breadth-first, allowing a
+   depender's preferences to override those of a dependee, to prevent conflicts
+   when a lower version is acceptable to the dependee, but not the depender.
+
 0.6a4
  * Fix a bug in ``WorkingSet.resolve()`` that was introduced in 0.6a3.
 

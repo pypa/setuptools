@@ -394,7 +394,7 @@ class easy_install(Command):
             return
 
         try:
-            WorkingSet(self.shadow_path).resolve(
+            WorkingSet([]).resolve(
                 [requirement], self.local_index, self.easy_install
             )
         except DistributionNotFound, e:

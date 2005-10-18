@@ -467,7 +467,7 @@ class WorkingSet(object):
         to_activate = []
 
         while requirements:
-            req = requirements.pop()
+            req = requirements.pop(0)   # process dependencies breadth-first
             if req in processed:
                 # Ignore cyclic or redundant dependencies
                 continue
