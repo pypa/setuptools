@@ -692,6 +692,26 @@ Command-Line Options
     tools that wrap eggs in a platform-specific packaging system.  (We don't
     recommend that you use it for anything else.)
 
+``--allow-hosts=PATTERNS, -H PATTERNS``   (New in 0.6a6)
+    Restrict downloading and spidering to hosts matching the specified glob
+    patterns.  E.g. ``-H *.python.org`` restricts web access so that only
+    packages listed and downloadable from machines in the ``python.org``
+    domain.  The glob patterns must match the *entire* user/host/port section of
+    the target URL(s).  For example, ``*.python.org`` will NOT accept a URL
+    like ``http://python.org/foo`` or ``http://www.python.org:8080/``.
+    Multiple patterns can be specified by separting them with commas.  The
+    default pattern is ``*``, which matches anything.
+
+    In general, this option is mainly useful for blocking EasyInstall's web
+    access altogether (e.g. ``-Hlocalhost``), or to restrict it to an intranet
+    or other trusted site.  EasyInstall will do the best it can to satisfy
+    dependencies given your host restrictions, but of course can fail if it
+    can't find suitable packages.  EasyInstall displays all blocked URLs, so
+    that you can adjust your ``--allow-hosts`` setting if it is more strict
+    than you intended.  Some sites may wish to define a restrictive default
+    setting for this option in their `configuration files`_, and then manually
+    override the setting on the command line as needed.
+
 
 Non-Root Installation
 ---------------------
@@ -850,7 +870,7 @@ Known Issues
    that makes the PYTHONPATH-based approach work with .pth files, so that you
    can get the full EasyInstall feature set on such installations.
 
- * Added ``--no-deps`` option.
+ * Added ``--no-deps`` and ``--allow-hosts`` options.
 
  * Improved Windows ``.exe`` script wrappers so that the script can have the
    same name as a module without confusing Python.

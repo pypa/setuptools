@@ -5,11 +5,11 @@ from pkg_resources import *
 from distutils import log
 from distutils.errors import DistutilsError
 from md5 import md5
+from fnmatch import translate
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.]+)$')
 HREF = re.compile("""href\\s*=\\s*['"]?([^'"> ]+)""", re.I)
 # this is here to fix emacs' cruddy broken syntax highlighting
-
 PYPI_MD5 = re.compile(
     '<a href="([^"#]+)">([^<]+)</a>\n\s+\\(<a href="[^?]+\?:action=show_md5'
     '&amp;digest=([0-9a-f]{32})">md5</a>\\)'
@@ -124,25 +124,25 @@ def interpret_distro_name(location, basename, metadata,
 class PackageIndex(Environment):
     """A distribution index that scans web pages for download URLs"""
 
-    def __init__(self,index_url="http://www.python.org/pypi",*args,**kw):
+    def __init__(self,index_url="http://www.python.org/pypi",hosts=('*',),*args,**kw):
         Environment.__init__(self,*args,**kw)
         self.index_url = index_url + "/"[:not index_url.endswith('/')]
         self.scanned_urls = {}
         self.fetched_urls = {}
         self.package_pages = {}
+        self.allows = re.compile('|'.join(map(translate,hosts))).match
 
     def process_url(self, url, retrieve=False):
         """Evaluate a URL as a possible download, and maybe retrieve it"""
-
         if url in self.scanned_urls and not retrieve:
             return
 
         self.scanned_urls[url] = True
-
         if not URL_SCHEME(url):
             # process filenames or directories
             if os.path.isfile(url):
-                dists = list(distros_for_filename(url))
+                map(self.add, distros_for_filename(url))
+                return    # no need to retrieve anything
             elif os.path.isdir(url):
                 url = os.path.realpath(url)
                 for item in os.listdir(url):
@@ -153,13 +153,16 @@ class PackageIndex(Environment):
                 return
         else:
             dists = list(distros_for_url(url))
+            if dists:
+                if not self.url_ok(url):
+                    return
+                self.debug("Found link: %s", url)
 
-        if dists:
-            self.debug("Found link: %s", url)
         if dists or not retrieve or url in self.fetched_urls:
-            for dist in dists:
-                self.add(dist)
-            # don't need the actual page
+            map(self.add, dists)
+            return  # don't need the actual page
+
+        if not self.url_ok(url):
             return
 
         self.info("Reading %s", url)
@@ -181,17 +184,14 @@ class PackageIndex(Environment):
             self.process_url(link)
 
 
-
-
-
-
-
-
-
-
-
-
-
+    def url_ok(self, url, fatal=False):
+        if self.allows(urlparse.urlparse(url)[1]):
+            return True
+        msg = "\nLink to % s ***BLOCKED*** by --allow-hosts\n"
+        if fatal:
+            raise DistutilsError(msg % url)
+        else:
+            self.warn(msg, url)
 
 
 
@@ -368,8 +368,8 @@ class PackageIndex(Environment):
 
 
     dl_blocksize = 8192
-
     def _download_to(self, url, filename):
+        self.url_ok(url,True)   # raises error if not allowed
         self.info("Downloading %s", url)
         # Download the file
         fp, tfp, info = None, None, None

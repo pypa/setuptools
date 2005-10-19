@@ -43,7 +43,6 @@ class easy_install(Command):
     """Manage a download/build/install process"""
 
     description = "Find/get/install Python packages"
-
     command_consumes_arguments = True
 
     user_options = [
@@ -71,6 +70,7 @@ class easy_install(Command):
         ('site-dirs=','S',"list of directories where .pth files work"),
         ('editable', 'e', "Install specified packages in editable form"),
         ('no-deps', 'N', "don't install dependencies"),
+        ('allow-hosts=', 'H', "pattern(s) that hostnames must match"),
     ]
     boolean_options = [
         'zip-ok', 'multi-version', 'exclude-scripts', 'upgrade', 'always-copy',
@@ -89,7 +89,7 @@ class easy_install(Command):
         self.args = None
         self.optimize = self.record = None
         self.upgrade = self.always_copy = self.multi_version = None
-        self.editable = self.no_deps = None
+        self.editable = self.no_deps = self.allow_hosts = None
         self.root = None
 
         # Options not specifiable via command line
@@ -177,9 +177,15 @@ class easy_install(Command):
         for path_item in self.install_dir, normalize_path(self.script_dir):
             if path_item not in self.shadow_path:
                 self.shadow_path.insert(0, path_item)
+
+        if self.allow_hosts is not None:
+            hosts = [s.strip() for s in self.allow_hosts.split(',')]
+        else:
+            hosts = ['*']
+
         if self.package_index is None:
             self.package_index = self.create_index(
-                self.index_url, search_path = self.shadow_path
+                self.index_url, search_path = self.shadow_path, hosts=hosts
             )
         self.local_index = Environment(self.shadow_path)
 
@@ -202,7 +208,6 @@ class easy_install(Command):
                 "Can't use both --delete-conflicting and "
                 "--ignore-conflicts-at-my-risk at the same time"
             )
-
         if self.editable and not self.build_directory:
             raise DistutilsArgError(
                 "Must specify a build directory (-b) when using --editable"
@@ -237,11 +242,6 @@ class easy_install(Command):
                 )
         finally:
             log.set_verbosity(self.distribution.verbose)
-
-
-
-
-
 
 
     def install_egg_scripts(self, dist):
