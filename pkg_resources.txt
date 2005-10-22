@@ -1503,6 +1503,9 @@ Release Notes/Change History
    depender's preferences to override those of a dependee, to prevent conflicts
    when a lower version is acceptable to the dependee, but not the depender.
 
+ * Fixed a problem extracting zipped files on Windows, when the egg in question
+   has had changed contents but still has the same version number.
+
 0.6a4
  * Fix a bug in ``WorkingSet.resolve()`` that was introduced in 0.6a3.
 

@@ -1071,7 +1071,6 @@ class ZipProvider(EggProvider):
                     manager, os.path.join(zip_path, name)
                 )
             return os.path.dirname(last)  # return the extracted directory name
-
         zip_stat = self.zipinfo[zip_path]
         t,d,size = zip_stat[5], zip_stat[6], zip_stat[3]
         date_time = (
@@ -1080,27 +1079,28 @@ class ZipProvider(EggProvider):
         )
         timestamp = time.mktime(date_time)
         real_path = manager.get_cache_path(self.egg_name, self._parts(zip_path))
-
         if os.path.isfile(real_path):
             stat = os.stat(real_path)
             if stat.st_size==size and stat.st_mtime==timestamp:
                 # size and stamp match, don't bother extracting
                 return real_path
-
         from tempfile import mkstemp
         outf, tmpnam = mkstemp(".$extract", dir=os.path.dirname(real_path))
         os.write(outf, self.loader.get_data(zip_path))
         os.close(outf)
         os.utime(tmpnam, (timestamp,timestamp))
         manager.postprocess(tmpnam, real_path)
-        try:
-            os.rename(tmpnam, real_path)
+        try: os.rename(tmpnam, real_path)
         except os.error:
             if os.path.isfile(real_path):
                 stat = os.stat(real_path)
                 if stat.st_size==size and stat.st_mtime==timestamp:
                     # size and stamp match, somebody did it just ahead of us
                     # so we're done
+                    return real_path
+                elif os.name=='nt':     # Windows, delete old file and retry
+                    os.unlink(real_path)
+                    os.rename(tmpnam, real_path)
                     return real_path
             raise
         return real_path
