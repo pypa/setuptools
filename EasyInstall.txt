@@ -42,7 +42,9 @@ EasyInstall, then return here for the remaining steps.
 
 Download `ez_setup.py <http://peak.telecommunity.com/dist/ez_setup.py>`_, and
 run it; this will download and install the appropriate ``setuptools`` egg for
-your Python version.
+your Python version.  (You will need at least Python 2.3.5, or if you are on a
+64-bit platform, Python 2.4.)
+
 
 You may receive a message telling you about an obsolete version of
 setuptools being present; if so, you must be sure to delete it entirely, along
@@ -599,7 +601,7 @@ Command-Line Options
     installed package to work, like manually adding it to ``PYTHONPATH`` or to
     ``sys.path`` at runtime.
 
-``--index-url=URL, -u URL`` (New in 0.4a1)
+``--index-url=URL, -i URL`` (New in 0.4a1)
     Specifies the base URL of the Python Package Index.  The default is
     http://www.python.org/pypi if not specified.  When a package is requested
     that is not locally available or linked from a ``--find-links`` download
@@ -862,6 +864,9 @@ Release Notes/Change History
 Known Issues
  * There's no automatic retry for borked Sourceforge mirrors, which can easily
    time out or be missing a file.
+
+0.6a7
+ * Fixed not being able to install Windows script wrappers using Python 2.3
 
 0.6a6
  * Added support for "traditional" PYTHONPATH-based non-root installation, and

@@ -1491,7 +1491,7 @@ Release Notes/Change History
 0.6a6
  * Activated distributions are now inserted in ``sys.path`` (and the working
    set) just before the directory that contains them, instead of at the end.
-   This allows e.g. eggs in ``site-packages`` to override unmanged modules in
+   This allows e.g. eggs in ``site-packages`` to override unmanaged modules in
    the same location, and allows eggs found earlier on ``sys.path`` to override
    ones found later.
 
