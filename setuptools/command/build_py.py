@@ -1,5 +1,4 @@
-import os.path
-
+import os.path, sys
 from distutils.command.build_py import build_py as _build_py
 from distutils.util import convert_path
 from glob import glob
@@ -35,6 +34,10 @@ class build_py(_build_py):
         # Only compile actual .py files, using our base class' idea of what our
         # output files are.
         self.byte_compile(_build_py.get_outputs(self, include_bytecode=0))
+
+
+
+
 
     def get_data_files(self):
         """Generate list of '(package,src_dir,build_dir,filenames)' tuples"""
@@ -75,6 +78,8 @@ class build_py(_build_py):
                 self.mkpath(os.path.dirname(target))
                 self.copy_file(os.path.join(src_dir, filename), target)
 
+
+
     def get_outputs(self, include_bytecode=1):
         """Return complete list of files copied to the build directory
 
@@ -88,3 +93,31 @@ class build_py(_build_py):
             for package, src_dir, build_dir,filenames in self.data_files
             for filename in filenames
             ]
+
+
+if sys.version>="2.4":
+    # Python 2.4 already has the above code
+    build_py = _build_py
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

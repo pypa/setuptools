@@ -15,7 +15,7 @@ def get_description():
     f.close()
     return ''.join(lines)
 
-VERSION = "0.6a6"
+VERSION = "0.6a7"
 from setuptools import setup, find_packages
 import sys
 from setuptools.command import __all__ as SETUP_COMMANDS
@@ -43,7 +43,7 @@ setup(
     entry_points = {
         "distutils.commands" : [
             "%(cmd)s = setuptools.command.%(cmd)s:%(cmd)s" % locals()
-            for cmd in SETUP_COMMANDS if cmd!="build_py" or sys.version<"2.4"
+            for cmd in SETUP_COMMANDS
         ],
         "distutils.setup_keywords": [
             "eager_resources    = setuptools.dist:assert_string_list",

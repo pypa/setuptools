@@ -134,7 +134,7 @@ class DistroTests(TestCase):
             "/foo_dir/Foo-1.2.egg",
             metadata=Metadata(('depends.txt', "[bar]\nBaz>=2.0"))
         )
-        ad.add(Foo)
+        ad.add(Foo); ad.add(Distribution.from_filename("Foo-0.9.egg"))
 
         # Request thing(s) that are available -> list to activate
         for i in range(3):
