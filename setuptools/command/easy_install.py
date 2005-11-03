@@ -10,7 +10,7 @@ file, or visit the `EasyInstall home page`__.
 __ http://peak.telecommunity.com/DevCenter/EasyInstall
 """
 
-import sys, os.path, zipimport, shutil, tempfile, zipfile, re
+import sys, os.path, zipimport, shutil, tempfile, zipfile, re, stat
 from glob import glob
 from setuptools import Command
 from setuptools.sandbox import run_setup
@@ -318,7 +318,7 @@ class easy_install(Command):
 
         finally:
             if os.path.exists(tmpdir):
-                shutil.rmtree(tmpdir)
+                smart_rmtree(tmpdir)
 
 
 
@@ -374,27 +374,22 @@ class easy_install(Command):
         self.install_egg_scripts(dist)
         self.installed_projects[dist.key] = dist
         log.warn(self.installation_report(dist, *info))
-
-        if requirement is None:
-            requirement = dist.as_requirement()
-
-        if dist not in requirement:
+        if not deps and not self.always_copy:
             return
+        elif requirement is not None and dist.key != requirement.key:
+            log.warn("Skipping dependencies for %s", dist)
+            return  # XXX this is not the distribution we were looking for
 
-        if deps or self.always_copy:
-            log.info("Processing dependencies for %s", requirement)
-        else:
-            return
+        if requirement is None or dist not in requirement:
+            # if we wound up with a different version, resolve what we've got
+            distreq = dist.as_requirement()
+            requirement = Requirement(
+                distreq.project_name, distreq.specs, requirement.extras
+            )
 
-        if self.always_copy:
-            # Recursively install *all* dependencies
-            for req in dist.requires(requirement.extras):
-                if req.key not in self.installed_projects:
-                    self.easy_install(req)
-            return
-
+        log.info("Processing dependencies for %s", requirement)
         try:
-            WorkingSet([]).resolve(
+            distros = WorkingSet([]).resolve(
                 [requirement], self.local_index, self.easy_install
             )
         except DistributionNotFound, e:
@@ -407,6 +402,11 @@ class easy_install(Command):
                 % e.args
             )
 
+        if self.always_copy:
+            # Force all the relevant distros to be copied or activated
+            for dist in distros:
+                if dist.key not in self.installed_projects:
+                    self.easy_install(dist.as_requirement())
 
     def should_unzip(self, dist):
         if self.zip_ok is not None:
@@ -824,7 +824,7 @@ See the setuptools documentation for the "develop" command for more info.
 
         args = list(args)
         if self.verbose>2:
-            v = 'v' * self.verbose - 1
+            v = 'v' * (self.verbose - 1)
             args.insert(0,'-'+v)
         elif self.verbose<2:
             args.insert(0,'-q')
@@ -1179,6 +1179,47 @@ def main(argv=None, **kw):
     if argv is None:
         argv = sys.argv[1:]
     setup(script_args = ['-q','easy_install', '-v']+argv, **kw)
+
+
+
+
+
+
+
+
+def smart_rmtree(path):
+    """Recursively delete a directory tree."""
+    cmdtuples = []
+    shutil._build_cmdtuple(path, cmdtuples)
+    for func, arg in cmdtuples:
+        try:
+            func(arg)
+        except OSError:
+            if os.name=='nt' and func is not os.rmdir:
+                os.chmod(arg, stat.S_IWRITE)
+                try:
+                    func(arg)
+                    continue
+                except OSError:
+                    pass
+            exc = sys.exc_info()
+            raise exc[0], (exc[1][0], exc[1][1] + ' removing '+arg)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

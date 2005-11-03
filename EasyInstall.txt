@@ -865,6 +865,15 @@ Known Issues
  * There's no automatic retry for borked Sourceforge mirrors, which can easily
    time out or be missing a file.
 
+0.6a8
+ * Fixed not installing dependencies for some packages fetched via Subversion
+
+ * Fixed dependency installation with ``--always-copy`` not using the same
+   dependency resolution procedure as other operations.
+
+ * Fixed not fully removing temporary directories on Windows, if a Subversion
+   checkout left read-only files behind
+
 0.6a7
  * Fixed not being able to install Windows script wrappers using Python 2.3
 
