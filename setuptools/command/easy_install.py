@@ -379,10 +379,10 @@ class easy_install(Command):
         elif requirement is not None and dist.key != requirement.key:
             log.warn("Skipping dependencies for %s", dist)
             return  # XXX this is not the distribution we were looking for
-
-        if requirement is None or dist not in requirement:
+        elif requirement is None or dist not in requirement:
             # if we wound up with a different version, resolve what we've got
             distreq = dist.as_requirement()
+            requirement = requirement or distreq
             requirement = Requirement(
                 distreq.project_name, distreq.specs, requirement.extras
             )
