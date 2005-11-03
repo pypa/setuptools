@@ -62,6 +62,10 @@ Feature Highlights:
 * Create extensible applications and frameworks that automatically discover
   extensions, using simple "entry points" declared in a project's setup script.
 
+In addition to the PyPI downloads, the development version of ``setuptools``
+is available from the `Python SVN sandbox`_.
+
+.. _Python SVN sandbox: http://svn.python.org/projects/sandbox/trunk/setuptools/#egg=setuptools-dev
 
 .. contents:: **Table of Contents**
 
@@ -98,13 +102,13 @@ You may receive a message telling you about an obsolete version of
 setuptools being present; if so, you must be sure to delete it entirely, along
 with the old ``pkg_resources`` module if it's present on ``sys.path``.
 
-To get the in-development version of setuptools, run::
+To get the in-development version of setuptools, first install a stable version
+using the instructions above.  Then run::
 
-    cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/python login
-    cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/python \
-        co -d setuptools python/nondist/sandbox/setuptools
+    ez_setup.py setuptools==dev
 
-You can then install it using the usual "setup.py install" incantation.
+This will download and install the latest development (i.e. unstable) version
+of setuptools from the Python Subversion sandbox.
 
 (Note that ``setuptools`` *must* be installed as an egg directory; it will not
 operate correctly otherwise.  If you are unable to install to a valid
