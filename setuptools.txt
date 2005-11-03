@@ -1873,6 +1873,10 @@ XXX
 Release Notes/Change History
 ----------------------------
 
+0.6a8
+ * Fixed some problems building extensions when Pyrex was installed, especially
+   with Python 2.4 and/or packages using SWIG.
+
 0.6a5
  * Fixed missing gui/cli .exe files in distribution.  Fixed bugs in tests.
  

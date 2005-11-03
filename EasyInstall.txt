@@ -874,6 +874,9 @@ Known Issues
  * Fixed not fully removing temporary directories on Windows, if a Subversion
    checkout left read-only files behind
 
+ * Fixed some problems building extensions when Pyrex was installed, especially
+   with Python 2.4 and/or packages using SWIG.
+
 0.6a7
  * Fixed not being able to install Windows script wrappers using Python 2.3
 

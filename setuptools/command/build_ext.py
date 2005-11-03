@@ -1,11 +1,11 @@
-# Attempt to use Pyrex for building extensions, if available
-
+from distutils.command.build_ext import build_ext as _du_build_ext
 try:
+    # Attempt to use Pyrex for building extensions, if available
     from Pyrex.Distutils.build_ext import build_ext as _build_ext
 except ImportError:
-    from distutils.command.build_ext import build_ext as _build_ext
+    _build_ext = _du_build_ext
 
-import os
+import os, sys
 from distutils.file_util import copy_file
 
 class build_ext(_build_ext):
@@ -38,4 +38,45 @@ class build_ext(_build_ext):
                 src_filename, dest_filename, verbose=self.verbose,
                 dry_run=self.dry_run
             )
+
+    if _build_ext is not _du_build_ext:
+        # Workaround for problems using some Pyrex versions w/SWIG and/or 2.4
+        def swig_sources(self, sources, *otherargs):
+            # first do any Pyrex processing
+            sources = _build_ext.swig_sources(self, sources) or sources
+            # Then do any actual SWIG stuff on the remainder
+            return _du_build_ext.swig_sources(self, sources, *otherargs)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
