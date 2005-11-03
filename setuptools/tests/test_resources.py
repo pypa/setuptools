@@ -125,7 +125,6 @@ class DistroTests(TestCase):
         ad = Environment([]); ws = WorkingSet([])
         # Resolving no requirements -> nothing to install
         self.assertEqual( list(ws.resolve([],ad)), [] )
-
         # Request something not in the collection -> DistributionNotFound
         self.assertRaises(
             DistributionNotFound, ws.resolve, parse_requirements("Foo"), ad
@@ -141,6 +140,8 @@ class DistroTests(TestCase):
             targets = list(ws.resolve(parse_requirements("Foo"), ad))
             self.assertEqual(targets, [Foo])
             map(ws.add,targets)
+        self.assertRaises(VersionConflict, ws.resolve,
+            parse_requirements("Foo==0.9"), ad)
         ws = WorkingSet([]) # reset
         
         # Request an extra that causes an unresolved dependency for "Baz"
@@ -157,11 +158,10 @@ class DistroTests(TestCase):
             list(ws.resolve(parse_requirements("Foo[bar]"), ad)), [Foo,Baz]
         )
         # Requests for conflicting versions produce VersionConflict
-        self.assertRaises(
-            VersionConflict,
+        self.assertRaises( VersionConflict,
             ws.resolve, parse_requirements("Foo==1.2\nFoo!=1.2"), ad
         )
-
+        
     def testDistroDependsOptions(self):
         d = self.distRequires("""
             Twisted>=1.5

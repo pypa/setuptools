@@ -1488,6 +1488,10 @@ File/Path Utilities
 Release Notes/Change History
 ----------------------------
 
+0.6a8
+ * Fixed a problem with ``WorkingSet.resolve()`` that prevented version
+   conflicts from being detected at runtime.
+
 0.6a6
  * Activated distributions are now inserted in ``sys.path`` (and the working
    set) just before the directory that contains them, instead of at the end.

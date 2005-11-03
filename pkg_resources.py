@@ -482,7 +482,7 @@ class WorkingSet(object):
                     if dist is None:
                         raise DistributionNotFound(req)  # XXX put more info here
                 to_activate.append(dist)
-            elif dist not in req:
+            if dist not in req:
                 # Oops, the "best" so far conflicts with a dependency
                 raise VersionConflict(dist,req) # XXX put more info here
             requirements.extend(dist.requires(req.extras)[::-1])
