@@ -163,6 +163,7 @@ class PackageIndex(Environment):
             return  # don't need the actual page
 
         if not self.url_ok(url):
+            self.fetched_urls[url] = True
             return
 
         self.info("Reading %s", url)
@@ -192,7 +193,6 @@ class PackageIndex(Environment):
             raise DistutilsError(msg % url)
         else:
             self.warn(msg, url)
-
 
 
 
