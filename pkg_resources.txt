@@ -1492,6 +1492,12 @@ Release Notes/Change History
  * Fixed a problem with ``WorkingSet.resolve()`` that prevented version
    conflicts from being detected at runtime.
 
+ * Improved runtime conflict warning message to identify a line in the user's
+   program, rather than flagging the ``warn()`` call in ``pkg_resources``.
+
+ * Avoid giving runtime conflict warnings for namespace packages, even if they
+   were declared by a different package than the one currently being activated.
+
 0.6a6
  * Activated distributions are now inserted in ``sys.path`` (and the working
    set) just before the directory that contains them, instead of at the end.

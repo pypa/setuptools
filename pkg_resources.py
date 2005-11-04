@@ -1932,31 +1932,31 @@ class Distribution(object):
         nsp = dict.fromkeys(self._get_metadata('namespace_packages.txt'))
 
         for modname in self._get_metadata('top_level.txt'):
-            if modname not in sys.modules or modname in nsp:
+            if (modname not in sys.modules or modname in nsp
+                or modname in _namespace_packages
+            ):
                 continue
 
             fn = getattr(sys.modules[modname], '__file__', None)
             if fn and fn.startswith(self.location):
                 continue
 
+            level = 1
+            g = globals()
+            try:
+                # find the first stack frame that is *not* code in
+                # the pkg_resources module, to use for the warning                
+                while sys._getframe(level).f_globals is g:
+                    level += 1
+            except ValueError:
+                pass
+
             from warnings import warn
             warn(
                 "Module %s was already imported from %s, but %s is being added"
-                " to sys.path" % (modname, fn, self.location)
+                " to sys.path" % (modname, fn, self.location),
+                stacklevel = level+1
             )
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
