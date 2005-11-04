@@ -13,6 +13,7 @@ class install(_install):
     def initialize_options(self):
         _install.initialize_options(self)
         self.old_and_unmanageable = None
+        self.no_compile = None  # make DISTUTILS_DEBUG work right!
 
     def handle_extra_path(self):
         # We always ignore extra_path, because we always install eggs
@@ -37,7 +38,6 @@ class install(_install):
             root=self.root
         )
         cmd.ensure_finalized()  # finalize before bdist_egg munges install cmd
-
 
         self.run_command('bdist_egg')
         args = [self.distribution.get_command_obj('bdist_egg').egg_output]
