@@ -1110,6 +1110,71 @@ this::
 in order to check out the in-development version of ``projectname``.
 
 
+Managing "Continuous Releases" Using Subversion
+-----------------------------------------------
+
+If you expect your users to track in-development versions of your project via
+Subversion, there are a few additional steps you should take to ensure that
+things work smoothly with EasyInstall.  First, you should add the following
+to your project's ``setup.cfg`` file::
+
+    [egg_info]
+    tag_build = .dev
+    tag_svn_revision = 1
+
+This will tell ``setuptools`` to generate package version numbers like
+``1.0a1.dev-r1263``, which will be considered to be an *older* release than
+``1.0a1``.  Thus, when you actually release ``1.0a1``, the entire egg
+infrastructure (including ``setuptools``, ``pkg_resources`` and EasyInstall)
+will know that ``1.0a1`` supersedes any interim snapshots from Subversion, and
+handle upgrades accordingly.
+
+Note, by the way, that this means that you need to remove these settings from
+``setup.cfg`` when you make an official release.  This is easy to do if you
+are developing on the trunk and using tags or branches for your releases - just
+make the change after branching or tagging the release, so the trunk will still
+produce development snapshots.
+
+Also notice that this procedure means that the project version number you
+specify in ``setup.py`` should always be the *next* version of your software,
+not the last released version.
+
+(Alternately, you can leave out the ``tag_build=.dev``, and always use the
+*last* release as a version number, so that your post-1.0 builds are labelled
+``1.0-r1263``, indicating a post-1.0 patchlevel.  Most projects so far,
+however, seem to prefer to think of their project as being a future version
+still under development, rather than a past version being patched.  It is of
+course possible for a single project to have both situations, using
+post-release numbering on release branches, and pre-release numbering on the
+trunk.  But you don't have to make things this complex if you don't want to.)
+
+Commonly, projects releasing code from Subversion will include a PyPI link to
+their checkout URL (as described in the previous section) with an
+``#egg=projectname-dev`` suffix.  This allows users to request EasyInstall
+to download ``projectname==dev`` in order to get the latest in-development
+code.  Note that if your project depends on such in-progress code, you may wish
+to specify your ``install_requires`` (or other requirements) to include
+``==dev``, e.g.::
+
+    install_requires = ["OtherProject>=0.2a1.dev-r143,==dev"]
+
+The above example says, "I really want at least this particular development
+revision number, but feel free to follow and use an ``#egg=OtherProject-dev``
+link if you find one".  This avoids the need to have actual source or binary
+distribution snapshots of in-development code available, just to be able to
+depend on the latest and greatest a project has to offer.
+
+A final note for Subversion development: if you are using SVN revision tags
+as described in this section, it's a good idea to run ``setup.py develop``
+after each Subversion checkin or update, because your project's version number
+will be changing, and your script wrappers need to be updated accordingly.
+Also, if the project's requirements have changed, the ``develop`` command will
+take care of fetching the updated dependencies, building changed extensions,
+etc.  You should also inform your users of the need to run this command, if
+they are working from a Subversion checkout, rather than using EasyInstall to
+periodically fetch the latest version.
+
+
 Distributing Extensions compiled with Pyrex
 -------------------------------------------
 
