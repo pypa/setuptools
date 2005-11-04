@@ -1471,10 +1471,11 @@ added in the following order:
     Append NAME to the project's version string.  Due to the way setuptools
     processes "pre-release" version suffixes beginning with the letters "a"
     through "e" (like "alpha", "beta", and "candidate"), you will usually want
-    to use a tag like "build" or "dev", as this will cause the version number
+    to use a tag like ".build" or ".dev", as this will cause the version number
     to be considered *lower* than the project's default version.  (If you
     want to make the version number *higher* than the default version, you can
-    always leave off --tag-build and use one or both of the following options.)
+    always leave off --tag-build and then use one or both of the following
+    options.)
 
 ``--tag-svn-revision, -r``
     If the current directory is a Subversion checkout (i.e. has a ``.svn``
@@ -1482,6 +1483,16 @@ added in the following order:
     version string, where NNNN is the revision number of the most recent
     modification to the current directory, as obtained from the ``svn info``
     command.
+
+    If the current directory is not a Subversion checkout, the command will
+    look for a ``PKG-INFO`` file instead, and try to find the revision number
+    from that, by looking for a "-rNNNN" string at the end of the version
+    number.  (This is so that building a package from a source distribution of
+    a Subversion snapshot will produce a binary with the correct version
+    number.)
+
+    If there is no ``PKG-INFO`` file, or the version number contained therein
+    does not end with ``-r`` and a number, then ``-r0`` is used.
 
 ``--tag-date, -d``
     Add a date stamp of the form "-YYYYMMDD" (e.g. "-20050528") to the
@@ -1950,6 +1961,10 @@ Release Notes/Change History
 
  * Made ``develop`` command accept all the same options as ``easy_install``,
    and use the ``easy_install`` command's configuration settings as defaults.
+
+ * Made ``egg_info --tag-svn-revision`` fall back to extracting the revision
+   number from ``PKG-INFO`` in case it is being run on a source distribution of
+   a snapshot taken from a Subversion-based project.
 
 0.6a5
  * Fixed missing gui/cli .exe files in distribution.  Fixed bugs in tests.

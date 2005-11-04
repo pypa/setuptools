@@ -160,7 +160,7 @@ class egg_info(Command):
                 continue    # not part of the same svn tree, skip it
             for match in revre.finditer(data):
                 revision = max(revision, int(match.group(1)))
-        return str(revision)
+        return str(revision or get_pkg_info_revision())
 
 def write_pkg_info(cmd, basename, filename):
     log.info("writing %s", filename)
@@ -226,17 +226,17 @@ def write_entries(cmd, basename, filename):
 
     cmd.write_or_delete_file('entry points', filename, data)
 
-
-
-
-
-
-
-
-
-
-
-
+def get_pkg_info_revision():
+    # See if we can get a -r### off of PKG-INFO, in case this is an sdist of
+    # a subversion revision
+    #
+    if os.path.exists('PKG-INFO'):
+        f = open('PKG-INFO','rU')
+        for line in f:
+            match = re.match(r"Version:.*-r(\d+)\s*$", line)
+            if match:
+                return int(match.group(1))
+    return 0
 
 
 
