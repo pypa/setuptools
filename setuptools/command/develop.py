@@ -9,22 +9,13 @@ class develop(easy_install):
 
     description = "install package in 'development mode'"
 
-    user_options = [
-        ("install-dir=", "d", "link package from DIR"),
-        ("script-dir=", "s", "create script wrappers in DIR"),
-        ("multi-version", "m", "make apps have to require() a version"),
-        ("exclude-scripts", "x", "Don't install scripts"),
-        ("always-copy", "a", "Copy all needed dependencies to install dir"),
+    user_options = easy_install.user_options + [
         ("uninstall", "u", "Uninstall this source package"),
     ]
 
-    boolean_options = [
-        'multi-version', 'exclude-scripts', 'always-copy', 'uninstall'
-    ]
+    boolean_options = easy_install.boolean_options + ['uninstall']
 
     command_consumes_arguments = False  # override base
-
-    negative_opt = {}
 
     def run(self):
         if self.uninstall:
@@ -37,11 +28,21 @@ class develop(easy_install):
         self.uninstall = None
         easy_install.initialize_options(self)
 
+        # Pull in any easy_install configuration options
+        self.distribution._set_command_options(
+            self, self.distribution.get_option_dict('easy_install')
+        )
+
+
+
+
+
 
 
     def finalize_options(self):
         ei = self.get_finalized_command("egg_info")
         self.args = [ei.egg_name]
+        
         easy_install.finalize_options(self)
         self.egg_link = os.path.join(self.install_dir, ei.egg_name+'.egg-link')
         self.egg_base = ei.egg_base
@@ -57,12 +58,10 @@ class develop(easy_install):
     def install_for_development(self):
         # Ensure metadata is up-to-date
         self.run_command('egg_info')
-        ei = self.get_finalized_command("egg_info")
 
         # Build extensions in-place
         self.reinitialize_command('build_ext', inplace=1)
         self.run_command('build_ext')
-
 
         # create an .egg-link in the installation dir, pointing to our egg
         log.info("Creating %s (link to %s)", self.egg_link, self.egg_base)
@@ -74,6 +73,7 @@ class develop(easy_install):
         # postprocess the installed distro, fixing up .pth, installing scripts,
         # and handling requirements
         self.process_distribution(None, self.dist)
+
 
 
 
@@ -92,6 +92,7 @@ class develop(easy_install):
         if not self.dry_run:
             self.update_pth(self.dist)  # remove any .pth link to us
         if self.distribution.scripts:
+            # XXX should also check for entry point scripts!
             log.warn("Note: you must uninstall or replace scripts manually!")
 
 
@@ -113,7 +114,6 @@ class develop(easy_install):
             script_text = f.read()
             f.close()
             self.install_script(dist, script_name, script_text, script_path)
-
 
 
 

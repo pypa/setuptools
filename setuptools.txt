@@ -1376,13 +1376,13 @@ rerunning ``develop``, but keep in mind that even minor changes to the setup
 script (e.g. changing an entry point definition) require you to re-run the
 ``develop`` or ``test`` commands to keep the distribution updated.
 
-Here are the options that the ``develop`` command accepts.  Note that they
-affect the project's dependencies as well as the project itself, so if you have
-dependencies that need to be installed and you use ``--exclude-scripts`` (for
-example), the dependencies' scripts will not be installed either!  For this
-reason, you may want to use EasyInstall to install the project's dependencies
-before using the ``develop`` command, if you need finer control over the
-installation options for dependencies.
+Here are some of the options that the ``develop`` command accepts.  Note that
+they affect the project's dependencies as well as the project itself, so if you
+have dependencies that need to be installed and you use ``--exclude-scripts``
+(for example), the dependencies' scripts will not be installed either!  For
+this reason, you may want to use EasyInstall to install the project's
+dependencies before using the ``develop`` command, if you need finer control
+over the installation options for dependencies.
 
 ``--uninstall, -u``
     Un-deploy the current project.  You may use the ``--install-dir`` or ``-d``
@@ -1441,6 +1441,12 @@ installation options for dependencies.
     are already present in another directory on ``sys.path``.  By default, if
     a requirement can be met using a distribution that is already available in
     a directory on ``sys.path``, it will not be copied to the staging area.
+
+In addition to the above options, the ``develop`` command also accepts all of
+the same options accepted by ``easy_install``.  If you've configured any
+``easy_install`` settings in your ``setup.cfg`` (or other distutils config
+files), the ``develop`` command will use them as defaults, unless you override
+them in a ``[develop]`` section or on the command line.
 
 
 .. _egg_info:
@@ -1941,6 +1947,9 @@ Release Notes/Change History
 0.6a8
  * Fixed some problems building extensions when Pyrex was installed, especially
    with Python 2.4 and/or packages using SWIG.
+
+ * Made ``develop`` command accept all the same options as ``easy_install``,
+   and use the ``easy_install`` command's configuration settings as defaults.
 
 0.6a5
  * Fixed missing gui/cli .exe files in distribution.  Fixed bugs in tests.
