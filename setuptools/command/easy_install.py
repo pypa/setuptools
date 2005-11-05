@@ -106,7 +106,7 @@ class easy_install(Command):
                 log.info("Deleting %s", filename)
                 if not self.dry_run:
                     if os.path.isdir(filename) and not os.path.islink(filename):
-                        shutil.rmtree(filename)
+                        rmtree(filename)
                     else:
                         os.unlink(filename)
 
@@ -318,7 +318,7 @@ class easy_install(Command):
 
         finally:
             if os.path.exists(tmpdir):
-                smart_rmtree(tmpdir)
+                rmtree(tmpdir)
 
 
 
@@ -856,7 +856,7 @@ See the setuptools documentation for the "develop" command for more info.
                     dist_dir)
             return eggs
         finally:
-            shutil.rmtree(dist_dir)
+            rmtree(dist_dir)
             log.set_verbosity(self.verbose) # restore our log verbosity
 
     def update_pth(self,dist):
@@ -1173,7 +1173,6 @@ def get_script_header(script_text):
     executable = os.path.normpath(sys.executable)
     return "#!%(executable)s%(options)s\n" % locals()
 
-
 def main(argv=None, **kw):
     from setuptools import setup
     if argv is None:
@@ -1181,46 +1180,47 @@ def main(argv=None, **kw):
     setup(script_args = ['-q','easy_install', '-v']+argv, **kw)
 
 
+def auto_chmod(func, arg, exc):
+    if func is os.remove and os.name=='nt':
+        os.chmod(arg, stat.S_IWRITE)
+        return func(arg)
+    exc = sys.exc_info()
+    raise exc[0], (exc[1][0], exc[1][1] + (" %s %s" % (func,arg)))
 
+def rmtree(path, ignore_errors=False, onerror=auto_chmod):
+    """Recursively delete a directory tree.
 
-
-
-
-
-def smart_rmtree(path):
-    """Recursively delete a directory tree."""
-    cmdtuples = []
-    shutil._build_cmdtuple(path, cmdtuples)
-    for func, arg in cmdtuples:
+    This code is taken from the Python 2.4 version of 'shutil', because
+    the 2.3 version doesn't really work right.
+    """
+    if ignore_errors:
+        def onerror(*args):
+            pass
+    elif onerror is None:
+        def onerror(*args):
+            raise
+    names = []
+    try:
+        names = os.listdir(path)
+    except os.error, err:
+        onerror(os.listdir, path, sys.exc_info())
+    for name in names:
+        fullname = os.path.join(path, name)
         try:
-            func(arg)
-        except OSError:
-            if os.name=='nt' and func is not os.rmdir:
-                os.chmod(arg, stat.S_IWRITE)
-                try:
-                    func(arg)
-                    continue
-                except OSError:
-                    pass
-            exc = sys.exc_info()
-            raise exc[0], (exc[1][0], exc[1][1] + ' removing '+arg)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            mode = os.lstat(fullname).st_mode
+        except os.error:
+            mode = 0
+        if stat.S_ISDIR(mode):
+            rmtree(fullname, ignore_errors, onerror)
+        else:
+            try:
+                os.remove(fullname)
+            except os.error, err:
+                onerror(os.remove, fullname, sys.exc_info())
+    try:
+        os.rmdir(path)
+    except os.error:
+        onerror(os.rmdir, path, sys.exc_info())
 
 
 
