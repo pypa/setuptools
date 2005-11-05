@@ -7,7 +7,7 @@ import os, re
 from setuptools import Command
 from distutils.errors import *
 from distutils import log
-from pkg_resources import parse_requirements, safe_name, \
+from pkg_resources import parse_requirements, safe_name, parse_version, \
     safe_version, yield_lines, EntryPoint, iter_entry_points
 
 class egg_info(Command):
@@ -65,16 +65,16 @@ class egg_info(Command):
         #
         self.distribution.metadata.version = self.egg_version
 
-
-
-
-
-
-
-
-
-
-
+        # If we bootstrapped around the lack of a PKG-INFO, as might be the
+        # case in a fresh checkout, make sure that any special tags get added
+        # to the version info
+        #
+        pd = self.distribution._patched_dist
+        if pd is not None and pd.key==self.egg_name.lower():
+            pd._version = self.egg_version
+            pd._parsed_version = parse_version(self.egg_version)
+            self.distribution._patched_dist = None
+            
 
 
 

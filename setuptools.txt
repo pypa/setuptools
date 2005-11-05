@@ -1966,6 +1966,17 @@ Release Notes/Change History
    number from ``PKG-INFO`` in case it is being run on a source distribution of
    a snapshot taken from a Subversion-based project.
 
+ * Fixed some problems with fresh checkouts of projects that don't include
+   ``.egg-info/PKG-INFO`` under revision control and put the project's source
+   code directly in the project directory.  If such a package had any
+   requirements that get processed before the ``egg_info`` command can be run,
+   the setup scripts would fail with a "Missing 'Version:' header and/or
+   PKG-INFO file" error, because the egg runtime interpreted the unbuilt
+   metadata in a directory on ``sys.path`` (i.e. the current directory) as
+   being a corrupted egg.  Setuptools now monkeypatches the distribution
+   metadata cache to pretend that the egg has valid version information, until
+   it has a chance to make it actually be so (via the ``egg_info`` command).
+
 0.6a5
  * Fixed missing gui/cli .exe files in distribution.  Fixed bugs in tests.
  

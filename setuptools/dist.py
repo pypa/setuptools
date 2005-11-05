@@ -188,20 +188,20 @@ class Distribution(_Distribution):
     distribution for the included and excluded features.
     """
 
+    _patched_dist = None
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def patch_missing_pkg_info(self, attrs):
+        # Fake up a replacement for the data that would normally come from
+        # PKG-INFO, but which might not yet be built if this is a fresh
+        # checkout.
+        #
+        if not attrs or 'name' not in attrs or 'version' not in attrs:
+            return
+        key = pkg_resources.safe_name(str(attrs['name'])).lower()
+        dist = pkg_resources.working_set.by_key.get(key)
+        if dist is not None and not dist.has_metadata('PKG-INFO'):
+            dist._version = pkg_resources.safe_version(str(attrs['version']))
+            self._patched_dist = dist
 
     def __init__ (self, attrs=None):
         have_package_data = hasattr(self, "package_data")
@@ -210,7 +210,7 @@ class Distribution(_Distribution):
         self.requires = []  # XXX
         self.features = {}
         self.dist_files = []
-
+        self.patch_missing_pkg_info(attrs)
         if attrs and 'setup_requires' in attrs:
             # Make sure we have any eggs needed to interpret 'attrs'
             self.fetch_build_eggs(attrs.pop('setup_requires'))
