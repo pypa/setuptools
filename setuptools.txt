@@ -636,11 +636,16 @@ If you are using tools that expect your resources to be "real" files, or your
 project includes non-extension native libraries or other files that your C
 extensions expect to be able to access, you may need to list those files in
 the ``eager_resources`` argument to ``setup()``, so that the files will be
-extracted together, whenever a C extension in the project is imported.  This
-is especially important if your project includes shared libraries *other* than
-distutils-built C extensions.  Those shared libraries should be listed as
-``eager_resources``, because they need to be present in the filesystem when the
-C extensions that link to them are used.
+extracted together, whenever a C extension in the project is imported.
+
+This is especially important if your project includes shared libraries *other*
+than distutils-built C extensions, and those shared libraries use file
+extensions other than ``.dll``, ``.so``, or ``.dylib``, which are the
+extensions that setuptools 0.6a8 and higher automatically detects as shared
+libraries and adds to the ``native_libs.txt`` file for you.  Any shared
+libraries whose names do not end with one of those extensions should be listed
+as ``eager_resources``, because they need to be present in the filesystem when
+he C extensions that link to them are used.
 
 The ``pkg_resources`` runtime for compressed packages will automatically
 extract *all* C extensions and ``eager_resources`` at the same time, whenever
@@ -1965,6 +1970,9 @@ Release Notes/Change History
  * Made ``egg_info --tag-svn-revision`` fall back to extracting the revision
    number from ``PKG-INFO`` in case it is being run on a source distribution of
    a snapshot taken from a Subversion-based project.
+
+ * Automatically detect ``.dll``, ``.so`` and ``.dylib`` files that are being
+   installed as data, adding them to ``native_libs.txt`` automatically.
 
  * Fixed some problems with fresh checkouts of projects that don't include
    ``.egg-info/PKG-INFO`` under revision control and put the project's source
