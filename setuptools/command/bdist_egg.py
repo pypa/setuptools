@@ -288,31 +288,31 @@ class bdist_egg(Command):
     def get_ext_outputs(self):
         """Get a list of relative paths to C extensions in the output distro"""
 
+        outputs = []
+        paths = {self.bdist_dir:''}
+        for base, dirs, files in os.walk(self.bdist_dir):
+            for filename in files:
+                if os.path.splitext(filename)[1].lower() in NATIVE_EXTENSIONS:
+                    outputs.append(paths[base]+filename)
+            for filename in dirs:
+                paths[os.path.join(base,filename)] = paths[base]+filename+'/'
+        
         if not self.distribution.has_ext_modules():
-            return []
+            return outputs
 
         build_cmd = self.get_finalized_command('build_ext')
         prefix_len = len(build_cmd.build_lib) + len(os.sep)
 
-        outputs = []
         for filename in build_cmd.get_outputs():
-            outputs.append(filename[prefix_len:])
+            if os.path.splitext(filename)[1].lower() not in NATIVE_EXTENSIONS:
+                # only add files w/unrecognized extensions, since the
+                # recognized ones will already be in the list
+                outputs.append(filename[prefix_len:])
 
         return outputs
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+NATIVE_EXTENSIONS = dict.fromkeys('.dll .so .dylib .pyd'.split())
 
 
 
