@@ -1915,6 +1915,7 @@ class Distribution(object):
             self.check_version_conflict()
         best, pos = 0, -1
         for p,item in enumerate(path):
+            item = normalize_path(item)
             if loc.startswith(item) and len(item)>best and loc<>item:
                 best, pos = len(item), p
         if pos==-1:
@@ -1922,7 +1923,6 @@ class Distribution(object):
         elif loc not in path[:pos+1]:
             while loc in path: path.remove(loc)
             path.insert(pos,loc)
-
 
 
     def check_version_conflict(self):
