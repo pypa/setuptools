@@ -1498,6 +1498,8 @@ Release Notes/Change History
  * Avoid giving runtime conflict warnings for namespace packages, even if they
    were declared by a different package than the one currently being activated.
 
+ * Fix path insertion algorithm for case-insensitive filesystems.
+
 0.6a6
  * Activated distributions are now inserted in ``sys.path`` (and the working
    set) just before the directory that contains them, instead of at the end.
