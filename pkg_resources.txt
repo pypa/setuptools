@@ -1500,6 +1500,9 @@ Release Notes/Change History
 
  * Fix path insertion algorithm for case-insensitive filesystems.
 
+ * Fixed a problem with nested namespace packages (e.g. ``peak.util``) not
+   being set as an attribute of their parent package.
+
 0.6a6
  * Activated distributions are now inserted in ``sys.path`` (and the working
    set) just before the directory that contains them, instead of at the end.

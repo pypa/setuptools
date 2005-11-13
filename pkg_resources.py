@@ -843,7 +843,7 @@ def safe_extra(extra):
     and the result is always lowercased.
     """
     return re.sub('[^A-Za-z0-9]+', '_', extra).lower()
-    
+
 
 
 
@@ -1423,7 +1423,7 @@ def _handle_ns(packageName, path_item):
     module = sys.modules.get(packageName)
     if module is None:
         module = sys.modules[packageName] = new.module(packageName)
-        module.__path__ = []
+        module.__path__ = []; _set_parent_ns(packageName)
     elif not hasattr(module,'__path__'):
         raise TypeError("Not a package:", packageName)
     handler = _find_adapter(_namespace_handlers, importer)
@@ -1501,12 +1501,12 @@ def normalize_path(filename):
     return os.path.normcase(os.path.realpath(filename))
 
 
-
-
-
-
-
-
+def _set_parent_ns(packageName):
+    parts = packageName.split('.')
+    name = parts.pop()
+    if parts:
+        parent = '.'.join(parts)
+        setattr(sys.modules[parent], name, sys.modules[packageName])
 
 
 
@@ -1945,7 +1945,7 @@ class Distribution(object):
             g = globals()
             try:
                 # find the first stack frame that is *not* code in
-                # the pkg_resources module, to use for the warning                
+                # the pkg_resources module, to use for the warning
                 while sys._getframe(level).f_globals is g:
                     level += 1
             except ValueError:
