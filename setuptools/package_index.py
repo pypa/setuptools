@@ -463,16 +463,14 @@ class PackageIndex(Environment):
                     return self._download_svn(url, filename)
                 # Check for a SourceForge header
                 elif sf_url:
-                    if re.search(r'^<HTML><HEAD>', line, re.I):
-                        continue    # skip first line
-                    elif re.search(r'<TITLE>Select a Mirror for File:',line):
-                        # Sourceforge mirror page
-                        page = file.read()
-                        file.close()
+                    page = ''.join(list(file))
+                    if '?use_mirror=' in page:
+                        file.close();
                         os.unlink(filename)
                         return self._download_sourceforge(url, page, tmpdir)
                 break   # not an index page
         file.close()
+        os.unlink(filename)
         raise DistutilsError("Unexpected HTML page found at "+url)
 
     def _download_svn(self, url, filename):
@@ -490,12 +488,14 @@ class PackageIndex(Environment):
     def warn(self, msg, *args):
         log.warn(msg, *args)
 
+
+
     def _download_sourceforge(self, source_url, sf_page, tmpdir):
         """Download package from randomly-selected SourceForge mirror"""
 
         self.debug("Processing SourceForge mirror page")
 
-        mirror_regex = re.compile(r'HREF=(/.*?\?use_mirror=[^>]*)')
+        mirror_regex = re.compile(r'HREF="?(/.*?\?use_mirror=[^">]*)', re.I)
         urls = [m.group(1) for m in mirror_regex.finditer(sf_page)]
         if not urls:
             raise DistutilsError(
