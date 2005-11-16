@@ -465,7 +465,7 @@ class PackageIndex(Environment):
                 elif sf_url:
                     page = ''.join(list(file))
                     if '?use_mirror=' in page:
-                        file.close();
+                        file.close()
                         os.unlink(filename)
                         return self._download_sourceforge(url, page, tmpdir)
                 break   # not an index page

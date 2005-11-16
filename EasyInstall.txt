@@ -866,6 +866,8 @@ Known Issues
    time out or be missing a file.
 
 0.6a8
+ * Update for changed SourceForge mirror format
+ 
  * Fixed not installing dependencies for some packages fetched via Subversion
 
  * Fixed dependency installation with ``--always-copy`` not using the same
