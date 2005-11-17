@@ -1,5 +1,4 @@
-/*
-    Setuptools Script Launcher for Windows
+/*  Setuptools Script Launcher for Windows
 
     This is a stub executable for Windows that functions somewhat like
     Effbot's "exemaker", in that it runs a script with the same name but
@@ -23,7 +22,6 @@
     starting.  So, we have to use spawnv() and wait for Python to exit before
     continuing.  :(
 */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -35,9 +33,11 @@ int fail(char *format, char *data) {
     fprintf(stderr, format, data);
     return 2;
 }
-
-
-
+char *quoted(char *data) {
+    char *result = calloc(strlen(data)+3,sizeof(char));
+    strcat(result,"\""); strcat(result,data); strcat(result,"\"");
+    return result;
+}
 
 int run(int argc, char **argv, int is_gui) {
 
@@ -96,19 +96,19 @@ int run(int argc, char **argv, int is_gui) {
 
     /* Argument array needs to be argc+1 for args, plus 1 for null sentinel */
     newargs = (char **)calloc(argc+2, sizeof(char *));
-    newargs[0] = python;
-    newargs[1] = script;
+    newargs[0] = quoted(python);
+    newargs[1] = quoted(script);
     memcpy(newargs+2, argv+1, (argc-1)*sizeof(char *));
     newargs[argc+1] = NULL;
 
     /* printf("args 0: %s\nargs 1: %s\n", newargs[0], newargs[1]); */
     if (is_gui) {
         /* Use exec, we don't need to wait for the GUI to finish */
-        execv(newargs[0], (const char * const *)(newargs));
+        execv(python, (const char * const *)(newargs));
         return fail("Could not exec %s", python);   /* shouldn't get here! */
     }
     /* We *do* need to wait for a CLI to finish, so use spawn */
-    return spawnv(P_WAIT, newargs[0], (const char * const *)(newargs));
+    return spawnv(P_WAIT, python, (const char * const *)(newargs));
 }
 
 
