@@ -7,11 +7,15 @@ import os, re
 from setuptools import Command
 from distutils.errors import *
 from distutils import log
+from distutils.command.sdist import sdist
+from distutils import file_util
+from distutils.util import convert_path
+from distutils.filelist import FileList
 from pkg_resources import parse_requirements, safe_name, parse_version, \
     safe_version, yield_lines, EntryPoint, iter_entry_points
+from sdist import walk_revctrl
 
 class egg_info(Command):
-
     description = "create a distribution's .egg-info directory"
 
     user_options = [
@@ -25,7 +29,6 @@ class egg_info(Command):
 
     boolean_options = ['tag-date','tag-svn-revision']
 
-
     def initialize_options (self):
         self.egg_name = None
         self.egg_version = None
@@ -34,9 +37,6 @@ class egg_info(Command):
         self.tag_build = None
         self.tag_svn_revision = 0
         self.tag_date = 0
-
-
-
 
 
     def finalize_options (self):
@@ -58,10 +58,12 @@ class egg_info(Command):
             self.egg_base = (dirs or {}).get('',os.curdir)
 
         self.ensure_dirname('egg_base')
-        self.egg_info = os.path.join(self.egg_base, self.egg_name+'.egg-info')
+        self.egg_info = self.egg_name+'.egg-info'
+        if self.egg_base != os.curdir:
+            self.egg_info = os.path.join(self.egg_base, self.egg_info)
 
         # Set package version for the benefit of dumber commands
-        # (e.g. sdist, bdist_wininst, etc.) 
+        # (e.g. sdist, bdist_wininst, etc.)
         #
         self.distribution.metadata.version = self.egg_version
 
@@ -74,8 +76,6 @@ class egg_info(Command):
             pd._version = self.egg_version
             pd._parsed_version = parse_version(self.egg_version)
             self.distribution._patched_dist = None
-            
-
 
 
 
@@ -122,12 +122,12 @@ class egg_info(Command):
 
 
     def run(self):
-        # Make the .egg-info directory, then write PKG-INFO and requires.txt
         self.mkpath(self.egg_info)
         installer = self.distribution.fetch_build_egg
         for ep in iter_entry_points('egg_info.writers'):
             writer = ep.load(installer=installer)
             writer(self, ep.name, os.path.join(self.egg_info,ep.name))
+        self.find_sources()
 
     def tagged_version(self):
         version = self.distribution.get_version()
@@ -161,6 +161,129 @@ class egg_info(Command):
             for match in revre.finditer(data):
                 revision = max(revision, int(match.group(1)))
         return str(revision or get_pkg_info_revision())
+
+    def find_sources(self):
+        """Generate SOURCES.txt manifest file"""
+        manifest_filename = os.path.join(self.egg_info,"SOURCES.txt")
+        mm = manifest_maker(self.distribution)
+        mm.manifest = manifest_filename
+        mm.run()
+        self.filelist = mm.filelist
+
+
+class FileList(FileList):
+    """File list that accepts only existing, platform-independent paths"""
+
+    def append(self, item):
+        path = convert_path(item)
+        if os.path.exists(path):
+            self.files.append(path)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class manifest_maker(sdist):
+
+    template = "MANIFEST.in"
+    
+    def initialize_options (self):
+        self.use_defaults = 1
+        self.prune = 1
+        self.manifest_only = 1
+        self.force_manifest = 1
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        self.filelist = FileList()
+        self.filelist.findall()
+        self.add_defaults()
+        if os.path.exists(self.template):
+            self.read_template()
+        self.prune_file_list()
+        self.filelist.sort()
+        self.filelist.remove_duplicates()
+        self.write_manifest()
+
+    def write_manifest (self):
+        """Write the file list in 'self.filelist' (presumably as filled in
+        by 'add_defaults()' and 'read_template()') to the manifest file
+        named by 'self.manifest'.
+        """
+        files = self.filelist.files
+        if os.sep!='/':
+            files = [f.replace(os.sep,'/') for f in files]
+        self.execute(file_util.write_file, (self.manifest, files),
+                     "writing manifest file '%s'" % self.manifest)
+
+
+
+
+
+
+
+    def add_defaults(self):
+        sdist.add_defaults(self)
+        self.filelist.extend([self.template,self.manifest])
+        rcfiles = list(walk_revctrl())
+        if rcfiles:
+            self.filelist.extend(rcfiles)
+        elif os.path.exists(self.manifest):
+            self.read_manifest()
+        ei_cmd = self.get_finalized_command('egg_info')
+        self.filelist.include_pattern("*", prefix=ei_cmd.egg_info)
+
+    def prune_file_list (self):
+        build = self.get_finalized_command('build')
+        base_dir = self.distribution.get_fullname()
+        self.filelist.exclude_pattern(None, prefix=build.build_base)
+        self.filelist.exclude_pattern(None, prefix=base_dir)
+        self.filelist.exclude_pattern(os.sep+'\(RCS|CVS|\.svn)', is_regex=1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def write_pkg_info(cmd, basename, filename):
     log.info("writing %s", filename)
