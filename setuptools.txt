@@ -2010,6 +2010,9 @@ Release Notes/Change History
    automatically include any package data listed in revision control or
    ``MANIFEST.in``.
 
+ * Fixed ``--tag-svn-revision`` not working when run from a source
+   distribution.
+
 0.6a8
  * Fixed some problems building extensions when Pyrex was installed, especially
    with Python 2.4 and/or packages using SWIG.

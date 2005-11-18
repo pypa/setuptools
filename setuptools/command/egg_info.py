@@ -133,11 +133,11 @@ class egg_info(Command):
         version = self.distribution.get_version()
         if self.tag_build:
             version+=self.tag_build
-        if self.tag_svn_revision and os.path.exists('.svn'):
-            version += '-r%s' % self.get_svn_revision()
+        if self.tag_svn_revision and (
+            os.path.exists('.svn') or os.path.exists('PKG-INFO')
+        ):  version += '-r%s' % self.get_svn_revision()
         if self.tag_date:
-            import time
-            version += time.strftime("-%Y%m%d")
+            import time; version += time.strftime("-%Y%m%d")
         return safe_version(version)
 
     def get_svn_revision(self):
