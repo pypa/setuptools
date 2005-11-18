@@ -1112,9 +1112,9 @@ class PthDistributions(Environment):
 
     def __init__(self, filename):
         self.filename = filename; self._load()
-        Environment.__init__(
-            self, list(yield_lines(self.paths)), None, None
-        )
+        Environment.__init__(self, [], None, None)
+        for path in yield_lines(self.paths):
+            map(self.add, find_distributions(path, True))
 
     def _load(self):
         self.paths = []

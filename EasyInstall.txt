@@ -865,6 +865,11 @@ Known Issues
  * There's no automatic retry for borked Sourceforge mirrors, which can easily
    time out or be missing a file.
 
+0.6a9
+
+ * Fixed ``.pth`` file processing picking up nested eggs (i.e. ones inside
+   "baskets") when they weren't explicitly listed in the ``.pth`` file.
+
 0.6a8
  * Update for changed SourceForge mirror format
  
