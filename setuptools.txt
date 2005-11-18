@@ -189,6 +189,13 @@ The following keyword arguments to ``setup()`` are added or changed by
 ``setuptools``.  All of them are optional; you do not have to supply them
 unless you need the associated ``setuptools`` feature.
 
+``include_package_data``
+    If set to ``True``, this tells ``setuptools`` to automatically include any
+    data files it finds inside your package directories, that are either under
+    CVS or Subversion control, or which are specified by your ``MANIFEST.in``
+    file.  For more information, see the section below on `Including Data
+    Files`_.
+    
 ``package_data``
     A dictionary mapping package names to lists of glob patterns.  For a
     complete description and examples, see the section below on `Including
@@ -514,8 +521,26 @@ Including Data Files
 The distutils have traditionally allowed installation of "data files", which
 are placed in a platform-specific location.  However, the most common use case
 for data files distributed with a package is for use *by* the package, usually
-by including the data files in the package directory.  Setuptools supports this
-by allowing a ``package_data`` argument to ``setup()``, e.g.::
+by including the data files in the package directory.
+
+Setuptools offers two ways to specify data files to be included in your
+packages.  First, you can simply use the ``include_package_data`` keyword,
+e.g.::
+
+    from setuptools import setup, find_packages
+    setup(
+        ...
+        include_package_data = True
+    )
+
+This tells setuptools to install any data files it finds in your packages.  The
+data files must be under CVS or Subversion control, or else they must be
+specified via the distutils' ``MANIFEST.in`` file.
+
+If you want finer-grained control over what files are included (for example, if
+you have documentation files in your package directories and want to exclude
+them from installation), then you can use the ``package_data`` keyword instead,
+e.g.::
 
     from setuptools import setup, find_packages
     setup(
@@ -574,7 +599,6 @@ Python 2.4; there is `some documentation for the feature`__ available on the
 python.org website.)
 
 __ http://docs.python.org/dist/node11.html 
-
 
 
 Accessing Data Files at Runtime
@@ -1981,6 +2005,10 @@ Release Notes/Change History
    as are the standard defaults and pruning.  But the manifest is built inside
    the project's ``.egg-info`` directory as ``SOURCES.txt``, and it is rebuilt
    every time the ``egg_info`` command is run.
+
+ * Added the ``include_package_data`` keyword to ``setup()``, allowing you to
+   automatically include any package data listed in revision control or
+   ``MANIFEST.in``.
 
 0.6a8
  * Fixed some problems building extensions when Pyrex was installed, especially

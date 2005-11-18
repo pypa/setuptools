@@ -36,7 +36,7 @@ setup(
     url = "http://peak.telecommunity.com/DevCenter/setuptools",
     test_suite = 'setuptools.tests.test_suite',
     packages = find_packages(),
-    package_data = {'setuptools': ['*.exe']},
+    include_package_data = True,
     py_modules = ['pkg_resources', 'easy_install', 'site'],
 
     zip_safe = False,   # We want 'python -m easy_install' to work, for now :(
@@ -53,6 +53,7 @@ setup(
             "entry_points       = setuptools.dist:check_entry_points",
             "test_suite         = setuptools.dist:check_test_suite",
             "zip_safe           = setuptools.dist:assert_bool",
+            "include_package_data = setuptools.dist:assert_bool",
         ],
         "egg_info.writers": [
             "PKG-INFO = setuptools.command.egg_info:write_pkg_info",
@@ -66,7 +67,6 @@ setup(
         "console_scripts":
             ["easy_install = setuptools.command.easy_install:main"],
     },
-
     classifiers = [f.strip() for f in """
     Development Status :: 3 - Alpha
     Intended Audience :: Developers

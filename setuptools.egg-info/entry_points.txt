@@ -2,6 +2,7 @@
 entry_points = setuptools.dist:check_entry_points
 extras_require = setuptools.dist:check_extras
 install_requires = setuptools.dist:check_install_requires
+include_package_data = setuptools.dist:assert_bool
 namespace_packages = setuptools.dist:check_nsp
 test_suite = setuptools.dist:check_test_suite
 eager_resources = setuptools.dist:assert_string_list
