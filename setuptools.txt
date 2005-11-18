@@ -182,6 +182,99 @@ arguments do (except for the metadata ones), and the various ways you might use
 them in your own project(s).
 
 
+Specifying Your Project's Version
+---------------------------------
+
+Setuptools can work well with most versioning schemes; there are, however, a
+few special things to watch out for, in order to ensure that setuptools and
+EasyInstall can always tell what version of your package is newer than another
+version.  Knowing these things will also help you correctly specify what
+versions of other projects your project depends on.
+
+A version consists of an alternating series of release numbers and pre-release
+or post-release tags.  A release number is a series of digits punctuated by
+dots, such as ``2.4`` or ``0.5``.  Each series of digits is treated
+numerically, so releases ``2.1`` and ``2.1.0`` are different ways to spell the
+same release number, denoting the first subrelease of release 2.  But  ``2.10``
+is the *tenth* subrelease of release 2, and so is a different and newer release
+from ``2.1`` or ``2.1.0``.  Leading zeros are also ignored, so ``2.01`` is the
+same as ``2.1``.
+
+Following a release number, you can have either a pre-release or post-release
+tag.  Pre-release tags make a version be considered *older* than the version
+they are appended to.  So, revision ``2.4`` is *newer* than revision ``2.4c1``,
+which in turn is newer than ``2.4b1`` or ``2.4a1``.  Postrelease tags make
+a version be considered *newer* than the version they are appended to.  So,
+revisions like ``2.4-1`` and ``2.4pl3`` are newer than ``2.4``, but are *older*
+than ``2.4.1`` (which has a higher release number).  
+
+A pre-release tag is a series of letters that are alphabetically before
+"final".  Some examples of prerelease tags would include ``alpha``, ``beta``,
+``a``, ``c``, ``dev``, and so on.  You do not have to place a dot before
+the prerelease tag if it's immediately after a number, but it's okay to do
+so if you prefer.  Thus, ``2.4c1`` and ``2.4.c1`` both represent release
+candidate 1 of version ``2.4``, and are treated as identical by setuptools.
+
+In addition, there are three special prerelease tags that are treated as if
+they were the letter ``c``: ``pre``, ``preview``, and ``rc``.  So, version
+``2.4rc1``, ``2.4pre1`` and ``2.4preview1`` are all the exact same version as
+``2.4c1``, and are treated as identical by setuptools.
+
+A post-release tag is either a series of letters that are alphabetically
+greater than or equal to "final", or a dash (``-``).  Post-release tags are
+generally used to separate patch numbers, port numbers, build numbers, revision
+numbers, or date stamps from the release number.  For example, the version
+``2.4-r1263`` might denote Subversion revision 1263 of a post-release patch of
+version ``2.4``.  Or you might use ``2.4-20051127`` to denote a date-stamped
+post-release.
+
+Notice that after each pre or post-release tag, you are free to place another
+release number, followed again by more pre- or post-release tags.  For example,
+``0.6a9.dev-r41475`` could denote Subversion revision 41475 of the in-
+development version of the ninth alpha of release 0.6.  Notice that ``dev`` is
+a pre-release tag, so this version is a *lower* version number than ``0.6a9``,
+which would be the actual ninth alpha of release 0.6.  But the ``-r41475`` is
+a post-release tag, so this version is *newer* than ``0.6a9.dev``.
+
+For the most part, setuptools' interpretation of version numbers is intuitive,
+but here are a few tips that will keep you out of trouble in the corner cases:
+
+* Don't use ``-`` or any other character than ``.`` as a separator, unless you
+  really want a post-release.  Remember that ``2.1-rc2`` means you've
+  *already* released ``2.1``, whereas ``2.1rc2`` and ``2.1.c2`` are candidates
+  you're putting out *before* ``2.1``.  If you accidentally distribute copies
+  of a post-release that you meant to be a pre-release, the only safe fix is to
+  bump your main release number (e.g. to ``2.1.1``) and re-release the project.
+
+* Don't stick adjoining pre-release tags together without a dot or number
+  between them.  Version ``1.9adev`` is the ``adev`` prerelease of ``1.9``,
+  *not* a development pre-release of ``1.9a``.  Use ``.dev`` instead, as in
+  ``1.9a.dev``, or separate the prerelease tags with a number, as in
+  ``1.9a0dev``.  ``1.9a.dev``, ``1.9a0dev``, and even ``1.9.a.dev`` are
+  identical versions from setuptools' point of view, so you can use whatever
+  scheme you prefer.
+
+* If you want to be certain that your chosen numbering scheme works the way
+  you think it will, you can use the ``pkg_resources.parse_version()`` function
+  to compare different version numbers::
+
+    >>> from pkg_resources import parse_version
+    >>> parse_version('1.9.a.dev') == parse_version('1.9a0dev')
+    True
+    >>> parse_version('2.1-rc2') < parse_version('2.1')
+    False
+    >>> parse_version('0.6a9dev-r41475') < parse_version('0.6a9')
+    True
+
+Once you've decided on a version numbering scheme for your project, you can
+have setuptools automatically tag your in-development releases with various
+pre- or post-release tags.  See the following sections for more details:
+
+* `Tagging and "Daily Build" or "Snapshot" Releases`_
+* `Managing "Continuous Releases" Using Subversion`_
+* The `egg_info`_ command
+
+
 New and Changed ``setup()`` Keywords
 ====================================
 
@@ -1014,21 +1107,29 @@ To support these scenarios, ``setuptools`` allows you to "tag" your source and
 egg distributions by adding one or more of the following to the project's
 "official" version identifier:
 
-* An identifying string, such as "build" or "dev", or a manually-tracked build
-  or revision number (``--tag-build=STRING, -bSTRING``)
+* A manually-specified pre-release tag, such as "build" or "dev", or a
+  manually-specified post-release tag, such as a build or revision number
+  (``--tag-build=STRING, -bSTRING``)
 
 * A "last-modified revision number" string generated automatically from 
   Subversion's metadata (assuming your project is being built from a Subversion
   "working copy")  (``--tag-svn-revision, -r``)
 
-* An 8-character representation of the build date (``--tag-date, -d``)
+* An 8-character representation of the build date (``--tag-date, -d``), as
+  a postrelease tag
 
 You can add these tags by adding ``egg_info`` and the desired options to
 the command line ahead of the ``sdist`` or ``bdist`` commands that you want
 to generate a daily build or snapshot for.  See the section below on the
 `egg_info`_ command for more details.
 
-Also, if you are creating builds frequently, and either building them in a
+(Also, before you release your project, be sure to see the section above on
+`Specifying Your Project's Version`_ for more information about how pre- and
+post-release tags affect how setuptools and EasyInstall interpret version
+numbers.  This is important in order to make sure that dependency processing
+tools will know which versions of your project are newer than others.)
+
+Finally, if you are creating builds frequently, and either building them in a
 downloadable location or are copying them to a distribution server, you should
 probably also check out the `rotate`_ command, which lets you automatically
 delete all but the N most-recently-modified distributions matching a glob
@@ -1239,8 +1340,6 @@ control system, rebuilding them whenever you check changes in for the ``.pyx``
 source files.  This will ensure that people tracking your project in CVS or
 Subversion will be able to build it even if they don't have Pyrex installed,
 and that your source releases will be similarly usable with or without Pyrex.
-
-
 
 
 -----------------
@@ -1506,6 +1605,18 @@ to temporarily change the project's version string.  (It also generates the
 ``.egg-info/SOURCES.txt`` manifest file, which is used when you are building
 source distributions.)
 
+(In addition to writing the core egg metadata defined by ``setuptools`` and
+required by ``pkg_resources``, this command can be extended to write other
+metadata files as well, by defining entry points in the ``egg_info.writers``
+group.  See the section on `Adding new EGG-INFO Files`_ below for more details.
+Note that using additional metadata writers may require you to include a
+``setup_requires`` argument to ``setup()`` in order to ensure that the desired
+writers are available on ``sys.path``.)
+
+
+Release Tagging Options
+-----------------------
+
 The following options can be used to modify the project's version string for
 all remaining commands on the setup command line.  The options are processed
 in the order shown, so if you use more than one, the requested tags will be
@@ -1542,9 +1653,20 @@ added in the following order:
     Add a date stamp of the form "-YYYYMMDD" (e.g. "-20050528") to the
     project's version number.
 
+(Note: Because these options modify the version number used for source and
+binary distributions of your project, you should first make sure that you know
+how the resulting version numbers will be interpreted by automated tools
+like EasyInstall.  See the section above on `Specifying Your Project's
+Version`_ for an explanation of pre- and post-release tags, as well as tips on
+how to choose and verify a versioning scheme for your your project.)
+
 For advanced uses, there is one other option that can be set, to change the
 location of the project's ``.egg-info`` directory.  Commands that need to find
 the project's source directory or metadata should get it from this setting:
+
+
+Other ``egg_info`` Options
+--------------------------
 
 ``--egg-base=SOURCEDIR, -e SOURCEDIR``
     Specify the directory that should contain the .egg-info directory.  This
@@ -1555,13 +1677,6 @@ the project's source directory or metadata should get it from this setting:
     ``package_dir`` argument to the ``setup()`` function, if any.  If there is
     no ``package_dir`` set, this option defaults to the current directory.
 
-In addition to writing the core egg metadata defined by ``setuptools`` and
-required by ``pkg_resources``, this command can be extended to write other
-metadata files as well, by defining entry points in the ``egg_info.writers``
-group.  See the section on `Adding new EGG-INFO Files`_ below for more details.
-Note that using additional metadata writers may require you to include a
-``setup_requires`` argument to ``setup()`` in order to ensure that the desired
-writers are available on ``sys.path``.
 
 
 .. _rotate:
