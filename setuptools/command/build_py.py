@@ -121,3 +121,44 @@ class build_py(_build_py):
 
 
 
+    def check_package(self, package, package_dir):
+        """Check namespace packages' __init__ for declare_namespace"""
+        try:
+            return self.packages_checked[package]
+        except KeyError:
+            pass
+
+        init_py = _build_py.check_package(self, package, package_dir)
+        self.packages_checked[package] = init_py
+
+        if not init_py or not self.distribution.namespace_packages:
+            return init_py
+
+        for pkg in self.distribution.namespace_packages:
+            if pkg==package or pkg.startswith(package+'.'):
+                break
+        else:
+            return init_py
+
+        f = open(init_py,'rU')
+        if 'declare_namespace' not in f.read():
+            from distutils import log
+            log.warn(
+               "WARNING: %s is a namespace package, but its __init__.py does\n"
+               "not declare_namespace(); setuptools 0.7 will REQUIRE this!\n"
+               '(See the setuptools manual under "Namespace Packages" for '
+               "details.)\n", package
+            )
+        f.close()
+        return init_py
+
+    def initialize_options(self):
+        self.packages_checked={}
+        _build_py.initialize_options(self)
+
+
+
+
+
+
+

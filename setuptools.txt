@@ -1046,17 +1046,14 @@ are a solution for this problem.  When you declare a package to be a namespace
 package, it means that the package has no meaningful contents in its
 ``__init__.py``, and that it is merely a container for modules and subpackages.
 
-The ``pkg_resources`` runtime will automatically ensure that the contents of
-namespace packages that are spread over multiple eggs or directories are
-combined into a single virtual package.
+The ``pkg_resources`` runtime will then automatically ensure that the contents
+of namespace packages that are spread over multiple eggs or directories are
+combined into a single "virtual" package.
 
 The ``namespace_packages`` argument to ``setup()`` lets you declare your
 project's namespace packages, so that they will be included in your project's
-metadata.  Then, the runtime will automatically detect this when it adds the
-distribution to ``sys.path``, and ensure that the packages are properly merged.
-
-The argument should list the namespace packages that the egg participates in.
-For example, the ZopeInterface project might do this::
+metadata.  The argument should list the namespace packages that the egg
+participates in.  For example, the ZopeInterface project might do this::
 
     setup(
         # ...
@@ -1065,7 +1062,9 @@ For example, the ZopeInterface project might do this::
 
 because it contains a ``zope.interface`` package that lives in the ``zope``
 namespace package.  Similarly, a project for a standalone ``zope.publisher``
-would also declare the ``zope`` namespace package.
+would also declare the ``zope`` namespace package.  When these projects are
+installed and used, Python will see them both as part of a "virtual" ``zope``
+package, even though they will be installed in different locations.
 
 Namespace packages don't have to be top-level packages.  For example, Zope 3's
 ``zope.app`` package is a namespace package, and in the future PEAK's
@@ -1074,22 +1073,50 @@ Namespace packages don't have to be top-level packages.  For example, Zope 3's
 Note, by the way, that your project's source tree must include the namespace
 packages' ``__init__.py`` files (and the ``__init__.py`` of any parent
 packages), in a normal Python package layout.  These ``__init__.py`` files
-should not contain any code or data, because only *one* egg's ``__init__.py``
-files will be used to construct the parent packages in memory at runtime, and
-there is no guarantee which egg will be used.
+*must* contain the line::
 
-For example, if both ``zope.interface`` and ``zope.publisher`` have been
-installed from separate distributions, it is unspecified which of the two
-distributions' ``zope/__init__.py`` files will be used to create the ``zope``
-package in memory.  Therefore, it is better not to have any code or data in
-a namespace package's ``__init__`` module, so as to prevent any complications.
+    __import__('pkg_resources').declare_namespace(__name__)
 
-(This is one reason the concept is called a "namespace package": it is a
-package that exists *only* to provide a namespace under which other modules or
-packages are gathered.  In Java, for example, namespace packages are often used
-just to avoid naming collisions between different projects, using package names
-like ``org.apache`` as a namespace for packages that are part of apache.org
-projects.)
+This code ensures that the namespace package machinery is operating and that
+the current package is registered as a namespace package.
+
+You can include other code and data in a namespace package's ``__init__.py``,
+but it's generally not a great idea because the loading order of each
+project's namespace packages is not guaranteed, and thus the actual contents
+of the parent package at runtime may vary from one machine to another.  While
+it's true that you won't have such conflicts if only one project defines the
+contents of a particular namespace package's ``__init__.py``, it's less error-
+prone to just leave ``__init__.py`` empty except for the declaration line.
+
+(Note that this non-deterministic ordering also means that you must include
+the declaration line in the ``__init__.py`` of *every* project that has
+contents for the namespace package in question, in order to ensure that the
+namespace will be declared regardless of which project's copy of
+``__init__.py`` is loaded first.  If the first loaded ``__init__.py`` doesn't
+declare it, it will never *be* declared, because no other copies will ever be
+loaded!)
+
+
+TRANSITIONAL NOTE
+~~~~~~~~~~~~~~~~~
+
+Setuptools 0.6a automatically calls ``declare_namespace()`` for you at runtime,
+but the 0.7a versions will *not*.  This is because the automatic declaration
+feature has some negative side effects, such as needing to import all namespace
+packages during the initialization of the ``pkg_resources`` runtime, and also
+the need for ``pkg_resources`` to be explicitly imported before any namespace
+packages work at all.  Beginning with the 0.7a releases, you'll be responsible
+for including your own declaration lines, and the automatic declaration feature
+will be dropped to get rid of the negative side effects.
+
+During the remainder of the 0.6 development cycle, therefore, setuptools will
+warn you about missing ``declare_namespace()`` calls in your ``__init__.py``
+files, and you should correct these as soon as possible before setuptools 0.7a1
+is released.  Namespace packages without declaration lines will not work
+correctly once a user has upgraded to setuptools 0.7a1, so it's important that
+you make this change now in order to avoid having your code break in the field.
+Our apologies for the inconvenience, and thank you for your patience.
+
 
 
 Tagging and "Daily Build" or "Snapshot" Releases
@@ -2127,6 +2154,8 @@ Release Notes/Change History
 
  * Fixed ``--tag-svn-revision`` not working when run from a source
    distribution.
+
+ * Added warning for namespace packages with missing ``declare_namespace()``
 
 0.6a8
  * Fixed some problems building extensions when Pyrex was installed, especially
