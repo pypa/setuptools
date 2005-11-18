@@ -261,7 +261,8 @@ class manifest_maker(sdist):
         base_dir = self.distribution.get_fullname()
         self.filelist.exclude_pattern(None, prefix=build.build_base)
         self.filelist.exclude_pattern(None, prefix=base_dir)
-        self.filelist.exclude_pattern(os.sep+'\(RCS|CVS|\.svn)', is_regex=1)
+        sep = re.escape(os.sep)
+        self.filelist.exclude_pattern(sep+r'(RCS|CVS|\.svn)'+sep, is_regex=1)
 
 
 
