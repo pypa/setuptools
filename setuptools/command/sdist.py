@@ -93,26 +93,67 @@ finders = [
 ]
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class sdist(_sdist):
     """Smart sdist that finds anything supported by revision control"""
 
+    user_options = [
+        ('formats=', None,
+         "formats for source distribution (comma-separated list)"),
+        ('keep-temp', 'k',
+         "keep the distribution tree around after creating " +
+         "archive file(s)"),
+        ('dist-dir=', 'd',
+         "directory to put the source distribution archive(s) in "
+         "[default: dist]"),
+        ]
+
+    negative_opt = {}
+
     def run(self):
         self.run_command('egg_info')
-        _sdist.run(self)
+        ei_cmd = self.get_finalized_command('egg_info')
+        self.filelist = ei_cmd.filelist
+        self.filelist.append(os.path.join(ei_cmd.egg_info,'SOURCES.txt'))
+
+        self.check_metadata()
+        self.make_distribution()        
+
         dist_files = getattr(self.distribution,'dist_files',[])
         for file in self.archive_files:
             data = ('sdist', '', file)
             if data not in dist_files:
                 dist_files.append(data)
 
-    def finalize_options(self):
-        _sdist.finalize_options(self)
-        if not os.path.isfile(self.template):
-            self.force_manifest = 1     # always regen if no template
 
-    def add_defaults(self):
-        _sdist.add_defaults(self)
-        self.filelist.extend(walk_revctrl())
+
 
 
 

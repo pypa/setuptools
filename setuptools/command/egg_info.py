@@ -246,7 +246,8 @@ class manifest_maker(sdist):
 
     def add_defaults(self):
         sdist.add_defaults(self)
-        self.filelist.extend([self.template,self.manifest])
+        self.filelist.append(self.template)
+        self.filelist.append(self.manifest)
         rcfiles = list(walk_revctrl())
         if rcfiles:
             self.filelist.extend(rcfiles)
@@ -261,7 +262,6 @@ class manifest_maker(sdist):
         self.filelist.exclude_pattern(None, prefix=build.build_base)
         self.filelist.exclude_pattern(None, prefix=base_dir)
         self.filelist.exclude_pattern(os.sep+'\(RCS|CVS|\.svn)', is_regex=1)
-
 
 
 

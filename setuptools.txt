@@ -1040,16 +1040,29 @@ revision control, don't create a a ``MANIFEST.in`` file for your project.
 (And, if you already have one, you might consider deleting it the next time
 you would otherwise have to change it.)
 
-Unlike the distutils, ``setuptools`` regenerates the source distribution
-``MANIFEST`` file every time you build a source distribution, as long as you
-*don't* have a ``MANIFEST.in`` file.  If you do have a ``MANIFEST.in`` (e.g.
-because you aren't using CVS or Subversion), then you'll have to follow the
-normal distutils procedures for managing what files get included in a source
-distribution, and setuptools' enhanced algorithms will *not* be used.
+If you need to include automatically generated files, or files that are kept in
+an unsupported revision control system, you'll need to create a ``MANIFEST.in``
+file to specify any files that the default file location algorithm doesn't
+catch.  See the distutils documentation for more information on the format of
+the ``MANIFEST.in`` file.
 
-(Note, by the way, that if you're using some other revision control system, you
-might consider submitting a patch to the ``setuptools.command.sdist`` module
-so we can include support for it, too.)
+But, be sure to ignore any part of the distutils documentation that deals with
+``MANIFEST`` or how it's generated from ``MANIFEST.in``; setuptools shields you
+from these issues and doesn't work the same way in any case.  Unlike the
+distutils, setuptools regenerates the source distribution manifest file
+every time you build a source distribution, and it builds it inside the
+project's ``.egg-info`` directory, out of the way of your main project
+directory.  You therefore need not worry about whether it is up-to-date or not.
+
+Indeed, because setuptools' approach to determining the contents of a source
+distribution is so much simpler, its ``sdist`` command omits nearly all of
+the options that the distutils' more complex ``sdist`` process requires.  For
+all practical purposes, you'll probably use only the ``--formats`` option, if
+you use any option at all.
+
+(By the way, if you're using some other revision control system, you might
+consider submitting a patch to the ``setuptools.command.sdist`` module,
+so we can include support for your system.)
 
 
 Making your package available for EasyInstall
@@ -1465,7 +1478,9 @@ commands), and it allows you to temporarily change a project's version string,
 to support "daily builds" or "snapshot" releases.  It is run automatically by
 the ``sdist``, ``bdist_egg``, ``develop``, and ``test`` commands in order to
 update the project's metadata, but you can also specify it explicitly in order
-to temporarily change the project's version string.
+to temporarily change the project's version string.  (It also generates the
+``.egg-info/SOURCES.txt`` manifest file, which is used when you are building
+source distributions.)
 
 The following options can be used to modify the project's version string for
 all remaining commands on the setup command line.  The options are processed
@@ -1959,6 +1974,13 @@ XXX
 ----------------------------
 Release Notes/Change History
 ----------------------------
+
+0.6a9
+ * The ``sdist`` command no longer uses the traditional ``MANIFEST`` file to
+   create source distributions.  ``MANIFEST.in`` is still read and processed,
+   as are the standard defaults and pruning.  But the manifest is built inside
+   the project's ``.egg-info`` directory as ``SOURCES.txt``, and it is rebuilt
+   every time the ``egg_info`` command is run.
 
 0.6a8
  * Fixed some problems building extensions when Pyrex was installed, especially
