@@ -605,7 +605,7 @@ class Environment(object):
 
     def add(self,dist):
         """Add `dist` if we ``can_add()`` it and it isn't already added"""
-        if self.can_add(dist):
+        if self.can_add(dist) and dist.has_version():
             dists = self._distmap.setdefault(dist.key,[])
             if dist not in dists:
                 dists.append(dist)
@@ -1940,31 +1940,31 @@ class Distribution(object):
             fn = getattr(sys.modules[modname], '__file__', None)
             if fn and fn.startswith(self.location):
                 continue
-
-            level = 1
-            g = globals()
-            try:
-                # find the first stack frame that is *not* code in
-                # the pkg_resources module, to use for the warning
-                while sys._getframe(level).f_globals is g:
-                    level += 1
-            except ValueError:
-                pass
-
-            from warnings import warn
-            warn(
+            issue_warning(
                 "Module %s was already imported from %s, but %s is being added"
                 " to sys.path" % (modname, fn, self.location),
-                stacklevel = level+1
             )
 
+    def has_version(self):
+        try:
+            self.version
+        except ValueError:
+            issue_warning("Unbuilt egg for "+repr(self))
+            return False
+        return True
 
-
-
-
-
-
-
+def issue_warning(*args,**kw):
+    level = 1
+    g = globals()
+    try:
+        # find the first stack frame that is *not* code in
+        # the pkg_resources module, to use for the warning
+        while sys._getframe(level).f_globals is g:
+            level += 1
+    except ValueError:
+        pass
+    from warnings import warn
+    warn(stacklevel = level+1, *args, **kw)
 
 def parse_requirements(strs):
     """Yield ``Requirement`` objects for each specification in `strs`
@@ -2076,7 +2076,7 @@ class Requirement:
     def __contains__(self,item):
         if isinstance(item,Distribution):
             if item.key <> self.key: return False
-            item = item.parsed_version
+            if self.index: item = item.parsed_version  # only get if we need it
         elif isinstance(item,basestring):
             item = parse_version(item)
         last = None
