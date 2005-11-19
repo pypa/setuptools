@@ -21,7 +21,24 @@ class bdist_rpm(_bdist_rpm):
         _bdist_rpm.run(self)
 
     def _make_spec_file(self):
+        version = self.distribution.get_version()
+        rpmversion = version.replace('-','_')
         spec = _bdist_rpm._make_spec_file(self)
+        line23 = '%define version '+version
+        line24 = '%define version '+rpmversion
+        spec  = [
+            line.replace(
+                "Source0: %{name}-%{version}.tar",
+                "Source0: %{name}-%{unmangled_version}.tar"
+            ).replace(
+                "%setup",
+                "%setup -n %{name}-%{unmangled_version}"
+            ).replace(line23,line24)
+            for line in spec
+        ]
+        spec.insert(spec.index(line24)+1, "%define unmangled_version "+version)
+
+
         if not self.no_egg:
             return spec
 
@@ -31,3 +48,35 @@ class bdist_rpm(_bdist_rpm):
                 "setup.py install ","setup.py install --old-and-unmanageable "
             ) for line in spec
         ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
