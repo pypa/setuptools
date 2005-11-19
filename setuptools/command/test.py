@@ -47,6 +47,9 @@ class test(Command):
         self.reinitialize_command('build_ext', inplace=1)
         self.run_command('build_ext')
 
+        if self.distribution.tests_require:            
+            self.distribution.fetch_build_eggs(self.distribution.tests_require)
+
         if self.test_suite:
             cmd = ' '.join(self.test_args)
             if self.dry_run:
@@ -54,6 +57,7 @@ class test(Command):
             else:
                 self.announce('running "unittest %s"' % cmd)
                 self.run_tests()
+
 
     def run_tests(self):
         import unittest
@@ -67,10 +71,6 @@ class test(Command):
         working_set.add(dist)
         require(str(dist.as_requirement()))
         unittest.main(None, None, [unittest.__file__]+self.test_args)
-
-
-
-
 
 
 

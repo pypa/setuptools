@@ -80,14 +80,14 @@ def assert_bool(dist, attr, value):
 
 
 
-def check_install_requires(dist, attr, value):
+def check_requirements(dist, attr, value):
     """Verify that install_requires is a valid requirements list"""
     try:
         list(pkg_resources.parse_requirements(value))
     except (TypeError,ValueError):
         raise DistutilsSetupError(
-            "'install_requires' must be a string or list of strings "
-            "containing valid project/version requirement specifiers"
+            "%r must be a string or list of strings "
+            "containing valid project/version requirement specifiers" % (attr,)
         )
 
 def check_entry_points(dist, attr, value):

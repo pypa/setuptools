@@ -40,6 +40,7 @@ setup(
     py_modules = ['pkg_resources', 'easy_install', 'site'],
 
     zip_safe = False,   # We want 'python -m easy_install' to work, for now :(
+
     entry_points = {
         "distutils.commands" : [
             "%(cmd)s = setuptools.command.%(cmd)s:%(cmd)s" % locals()
@@ -49,7 +50,8 @@ setup(
             "eager_resources    = setuptools.dist:assert_string_list",
             "namespace_packages = setuptools.dist:check_nsp",
             "extras_require     = setuptools.dist:check_extras",
-            "install_requires   = setuptools.dist:check_install_requires",
+            "install_requires   = setuptools.dist:check_requirements",
+            "tests_require      = setuptools.dist:check_requirements",
             "entry_points       = setuptools.dist:check_entry_points",
             "test_suite         = setuptools.dist:check_test_suite",
             "zip_safe           = setuptools.dist:assert_bool",
@@ -67,6 +69,17 @@ setup(
         "console_scripts":
             ["easy_install = setuptools.command.easy_install:main"],
     },
+
+
+
+
+
+
+
+
+
+
+
     classifiers = [f.strip() for f in """
     Development Status :: 3 - Alpha
     Intended Audience :: Developers
@@ -83,19 +96,6 @@ setup(
     # uncomment for testing
     # setup_requires = ['setuptools>=0.6a0'],
 )
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

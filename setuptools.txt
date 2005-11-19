@@ -355,6 +355,17 @@ unless you need the associated ``setuptools`` feature.
     specified test suite, e.g. via ``setup.py test``.  See the section on the
     `test`_ command below for more details.
 
+``tests_require``
+    If your project's tests need one or more additional packages besides those
+    needed to install it, you can use this option to specify them.  It should 
+    be a string or list of strings specifying what other distributions need to
+    be present for the package's tests to run.  When you run the ``test``
+    command, ``setuptools`` will  attempt to obtain these (even going
+    so far as to download them using ``EasyInstall``).  Note that these
+    required projects will *not* be installed on the system where the tests
+    are run, but only downloaded to the project's setup directory if they're
+    not already installed locally.
+
 ``eager_resources``
     A list of strings naming resources that should be extracted together, if
     any of them is needed, or if any C extensions included in the project are
@@ -1996,7 +2007,7 @@ Adding ``setup()`` Arguments
 ----------------------------
 
 Sometimes, your commands may need additional arguments to the ``setup()``
-script.  You can enable this by defining entry points in the
+call.  You can enable this by defining entry points in the
 ``distutils.setup_keywords`` group.  For example, if you wanted a ``setup()``
 argument called ``bar_baz``, you might add something like this to your
 distutils extension project's setup script::
@@ -2041,8 +2052,9 @@ what values of that argument are valid.
 
 Also note that as with commands, it is not necessary to subclass or monkeypatch
 the distutils ``Distribution`` class in order to add your arguments; it is
-sufficient to define the entry points in your extension, as long as the setup
-script lists your extension in its ``setup_requires`` argument.
+sufficient to define the entry points in your extension, as long as any setup
+script using your extension lists your project in its ``setup_requires``
+argument.
 
 
 Adding new EGG-INFO Files
@@ -2156,6 +2168,10 @@ Release Notes/Change History
    distribution.
 
  * Added warning for namespace packages with missing ``declare_namespace()``
+
+ * Added ``tests_require`` keyword to ``setup()``, so that e.g. packages
+   requiring ``nose`` to run unit tests can make this dependency optional
+   unless the ``test`` command is run.
 
 0.6a8
  * Fixed some problems building extensions when Pyrex was installed, especially
