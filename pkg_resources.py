@@ -1754,7 +1754,7 @@ class Distribution(object):
     hashcmp = property(
         lambda self: (
             getattr(self,'parsed_version',()), self.precedence, self.key,
-            self.location, self.py_version, self.platform
+            -len(self.location), self.location, self.py_version, self.platform
         )
     )
     def __cmp__(self, other): return cmp(self.hashcmp, other)

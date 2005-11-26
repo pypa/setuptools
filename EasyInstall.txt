@@ -870,6 +870,10 @@ Known Issues
  * Fixed ``.pth`` file processing picking up nested eggs (i.e. ones inside
    "baskets") when they weren't explicitly listed in the ``.pth`` file.
 
+ * If more than one URL appears to describe the exact same distribution, prefer
+   the shortest one.  This helps to avoid "table of contents" CGI URLs like the
+   ones on effbot.org.
+
 0.6a8
  * Update for changed SourceForge mirror format
  
