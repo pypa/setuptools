@@ -2174,6 +2174,9 @@ Release Notes/Change History
    requiring ``nose`` to run unit tests can make this dependency optional
    unless the ``test`` command is run.
 
+ * Made all commands that use ``easy_install`` respect its configuration
+   options, as this was causing some problems with ``setup.py install``.
+
 0.6a8
  * Fixed some problems building extensions when Pyrex was installed, especially
    with Python 2.4 and/or packages using SWIG.

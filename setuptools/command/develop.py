@@ -28,10 +28,10 @@ class develop(easy_install):
         self.uninstall = None
         easy_install.initialize_options(self)
 
-        # Pull in any easy_install configuration options
-        self.distribution._set_command_options(
-            self, self.distribution.get_option_dict('easy_install')
-        )
+
+
+
+
 
 
 

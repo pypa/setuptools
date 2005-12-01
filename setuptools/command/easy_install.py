@@ -100,6 +100,17 @@ class easy_install(Command):
         self.site_dirs = None
         self.installed_projects = {}
 
+        # Always read easy_install options, even if we are subclassed, or have
+        # an independent instance created.  This ensures that defaults will
+        # always come from the standard configuration file(s)' "easy_install"
+        # section, even if this is a "develop" or "install" command, or some
+        # other embedding.
+        self._dry_run = None
+        self.verbose = self.distribution.verbose
+        self.distribution._set_command_options(
+            self, self.distribution.get_option_dict('easy_install')
+        )
+
     def delete_blockers(self, blockers):
         for filename in blockers:
             if os.path.exists(filename) or os.path.islink(filename):
@@ -109,17 +120,6 @@ class easy_install(Command):
                         rmtree(filename)
                     else:
                         os.unlink(filename)
-
-
-
-
-
-
-
-
-
-
-
 
     def finalize_options(self):
         # If a non-default installation directory was specified, default the
