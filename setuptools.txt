@@ -197,8 +197,8 @@ dots, such as ``2.4`` or ``0.5``.  Each series of digits is treated
 numerically, so releases ``2.1`` and ``2.1.0`` are different ways to spell the
 same release number, denoting the first subrelease of release 2.  But  ``2.10``
 is the *tenth* subrelease of release 2, and so is a different and newer release
-from ``2.1`` or ``2.1.0``.  Leading zeros are also ignored, so ``2.01`` is the
-same as ``2.1``.
+from ``2.1`` or ``2.1.0``.  Leading zeros within a series of digits are also
+ignored, so ``2.01`` is the same as ``2.1``, and different from ``2.0.1``.
 
 Following a release number, you can have either a pre-release or post-release
 tag.  Pre-release tags make a version be considered *older* than the version
@@ -1349,11 +1349,12 @@ A final note for Subversion development: if you are using SVN revision tags
 as described in this section, it's a good idea to run ``setup.py develop``
 after each Subversion checkin or update, because your project's version number
 will be changing, and your script wrappers need to be updated accordingly.
+
 Also, if the project's requirements have changed, the ``develop`` command will
 take care of fetching the updated dependencies, building changed extensions,
-etc.  You should also inform your users of the need to run this command, if
-they are working from a Subversion checkout, rather than using EasyInstall to
-periodically fetch the latest version.
+etc.  Be sure to also remind any of your users who check out your project
+from Subversion that they need to run ``setup.py develop`` after every update
+in order to keep their checkout completely in sync.
 
 
 Distributing Extensions compiled with Pyrex

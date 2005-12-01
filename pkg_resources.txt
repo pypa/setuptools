@@ -136,7 +136,7 @@ directly alter ``sys.path`` at runtime, you may find these APIs useful:
     corresponding package in all distributions on ``sys.path`` that contain a
     package of that name.  (More precisely, if an importer's
     ``find_module(name)`` returns a loader, then it will also be searched for
-    the package's contents.)  Whenever a Distribution's ``to_install()`` method
+    the package's contents.)  Whenever a Distribution's ``activate()`` method
     is invoked, it checks for the presence of namespace packages and updates
     their ``__path__`` contents accordingly.
 
@@ -209,13 +209,23 @@ abbreviation for ``pkg_resources.working_set.require()``:
     For the syntax of requirement specifiers, see the section below on
     `Requirements Parsing`_.
 
-    Note: in general, it should not be necessary for you to call this method
+    In general, it should not be necessary for you to call this method
     directly.  It's intended more for use in quick-and-dirty scripting and
     interactive interpreter hacking than for production use. If you're creating
     an actual library or application, it's strongly recommended that you create
     a "setup.py" script using ``setuptools``, and declare all your requirements
     there.  That way, tools like EasyInstall can automatically detect what
     requirements your package has, and deal with them accordingly.
+
+    Note that calling ``require('SomePackage')`` will not install
+    ``SomePackage`` if it isn't already present.  If you need to do this, you
+    should use the ``resolve()`` method instead, which allows you to pass an
+    ``installer`` callback that will be invoked when a needed distribution
+    can't be found on the local machine.  You can then have this callback
+    display a dialog, automatically download the needed distribution, or
+    whatever else is appropriate for your application. See the documentation
+    below on the ``resolve()`` method for more information, and also on the
+    ``obtain()`` method of ``Environment`` objects.
 
 ``run_script(requires, script_name)``
     Locate distribution specified by `requires` and run its `script_name`
