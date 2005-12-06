@@ -94,6 +94,8 @@ class DistroTests(TestCase):
     def testDistroParse(self):
         d = Distribution.from_filename("FooPkg-1.3_1-py2.4-win32.egg")
         self.checkFooPkg(d)
+        d = Distribution.from_filename("FooPkg-1.3_1-py2.4-win32.egg-info")
+        self.checkFooPkg(d)
 
     def testDistroMetadata(self):
         d = Distribution(
@@ -117,8 +119,6 @@ class DistroTests(TestCase):
     def testDistroDependsSimple(self):
         for v in "Twisted>=1.5", "Twisted>=1.5\nZConfig>=2.0":
             self.checkRequires(self.distRequires(v), v)
-
-
 
 
     def testResolve(self):

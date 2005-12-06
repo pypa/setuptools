@@ -70,7 +70,7 @@ __all__ = [
     'EGG_DIST', 'BINARY_DIST', 'SOURCE_DIST', 'CHECKOUT_DIST',
 
     # "Provider" interfaces, implementations, and registration/lookup APIs
-    'IMetadataProvider', 'IResourceProvider',
+    'IMetadataProvider', 'IResourceProvider', 'FileMetadata',
     'PathMetadata', 'EggMetadata', 'EmptyProvider', 'empty_provider',
     'NullProvider', 'EggProvider', 'DefaultProvider', 'ZipProvider',
     'register_finder', 'register_namespace_handler', 'register_loader_type',
@@ -1155,31 +1155,31 @@ class ZipProvider(EggProvider):
 register_loader_type(zipimport.zipimporter, ZipProvider)
 
 
+class FileMetadata(EmptyProvider):
+    """Metadata handler for standalone PKG-INFO files
 
+    Usage::
 
+        metadata = FileMetadata("/path/to/PKG-INFO")
 
+    This provider rejects all data and metadata requests except for PKG-INFO,
+    which is treated as existing, and will be the contents of the file at
+    the provided location.
+    """
 
+    def __init__(self,path):
+        self.path = path
 
+    def has_metadata(self,name):
+        return name=='PKG-INFO'
 
+    def get_metadata(self,name):
+        if name=='PKG-INFO':
+            return open(self.path,'rU').read()
+        raise KeyError("No metadata except PKG-INFO is available")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def get_metadata_lines(self,name):
+        return yield_lines(self.get_metadata(name))
 
 
 
@@ -1373,13 +1373,14 @@ def find_on_path(importer, path_item, only=False):
                 lower = entry.lower()
                 if lower.endswith('.egg-info'):
                     fullpath = os.path.join(path_item, entry)
-                    if os.path.isdir(fullpath):
-                        # development egg
+                    metadata = None
+                    if os.path.isdir(fullpath):                       
+                        # egg-info directory, allow getting metadata
                         metadata = PathMetadata(path_item, fullpath)
-                        dist_name = os.path.splitext(entry)[0]
-                        yield Distribution(
-                            path_item, metadata, project_name=dist_name
-                        )
+                    else:
+                        metadata = FileMetadata(fullpath)
+                    yield Distribution.from_location(path_item,entry,metadata)
+
                 elif not only and lower.endswith('.egg'):
                     for dist in find_distributions(os.path.join(path_item, entry)):
                         yield dist
@@ -1390,7 +1391,6 @@ def find_on_path(importer, path_item, only=False):
                             yield item
 
 register_finder(ImpWrapper,find_on_path)
-
 
 _namespace_handlers = {}
 _namespace_packages = {}
@@ -1739,7 +1739,7 @@ class Distribution(object):
     def from_location(cls,location,basename,metadata=None):
         project_name, version, py_version, platform = [None]*4
         basename, ext = os.path.splitext(basename)
-        if ext.lower()==".egg":
+        if ext.lower() in (".egg",".egg-info"):
             match = EGG_NAME(basename)
             if match:
                 project_name, version, py_version, platform = match.group(
@@ -1754,12 +1754,12 @@ class Distribution(object):
     hashcmp = property(
         lambda self: (
             getattr(self,'parsed_version',()), self.precedence, self.key,
-            -len(self.location), self.location, self.py_version, self.platform
+            -len(self.location or ''), self.location, self.py_version,
+            self.platform
         )
     )
     def __cmp__(self, other): return cmp(self.hashcmp, other)
     def __hash__(self): return hash(self.hashcmp)
-
 
     # These properties have to be lazy so that we don't have to load any
     # metadata until/unless it's actually needed.  (i.e., some distributions

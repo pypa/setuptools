@@ -1282,6 +1282,7 @@ where appropriate.  Their inheritance tree looks like this::
             ZipProvider
                 EggMetadata
         EmptyProvider
+            FileMetadata
 
 
 ``NullProvider``
@@ -1325,6 +1326,14 @@ where appropriate.  Their inheritance tree looks like this::
     a specific egg *within* a basket, or a zipfile egg (where the zipfile
     itself is a ".egg").  It can also be a combination, such as a zipfile egg
     that also contains other eggs.
+
+``FileMetadata(path_to_pkg_info)``
+    Create an ``IResourceProvider`` that provides exactly one metadata
+    resource: ``PKG-INFO``.  The supplied path should be a distutils PKG-INFO
+    file.  This is basically the same as an ``EmptyProvider``, except that
+    requests for ``PKG-INFO`` will be answered using the contents of the
+    designated file.  (This provider is used to wrap ``.egg-info`` files
+    installed by vendor-supplied system packages.)
 
 
 Utility Functions
@@ -1502,6 +1511,12 @@ Release Notes/Change History
  * Don't raise an error when an invalid (unfinished) distribution is found
    unless absolutely necessary.  Warn about skipping invalid/unfinished eggs
    when building an Environment.
+
+ * Added support for ``.egg-info`` files or directories with version/platform
+   information embedded in the filename, so that system packagers have the
+   option of including ``PKG-INFO`` files to indicate the presence of a
+   system-installed egg, without needing to use ``.egg`` directories, zipfiles,
+   or ``.pth`` manipulation.
 
 0.6a8
  * Fixed a problem with ``WorkingSet.resolve()`` that prevented version
