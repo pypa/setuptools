@@ -1373,7 +1373,6 @@ def find_on_path(importer, path_item, only=False):
                 lower = entry.lower()
                 if lower.endswith('.egg-info'):
                     fullpath = os.path.join(path_item, entry)
-                    metadata = None
                     if os.path.isdir(fullpath):                       
                         # egg-info directory, allow getting metadata
                         metadata = PathMetadata(path_item, fullpath)
@@ -1391,6 +1390,7 @@ def find_on_path(importer, path_item, only=False):
                             yield item
 
 register_finder(ImpWrapper,find_on_path)
+
 
 _namespace_handlers = {}
 _namespace_packages = {}
