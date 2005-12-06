@@ -2177,6 +2177,10 @@ Release Notes/Change History
  * Made all commands that use ``easy_install`` respect its configuration
    options, as this was causing some problems with ``setup.py install``.
 
+ * Added an ``unpack_directory()`` driver to ``setuptools.archive_util``, so
+   that you can process a directory tree through a processing filter as if it
+   were a zipfile or tarfile.
+
 0.6a8
  * Fixed some problems building extensions when Pyrex was installed, especially
    with Python 2.4 and/or packages using SWIG.

@@ -3,10 +3,10 @@
 
 __all__ = [
     "unpack_archive", "unpack_zipfile", "unpack_tarfile", "default_filter",
-    "UnrecognizedFormat", "extraction_drivers"
+    "UnrecognizedFormat", "extraction_drivers", "unpack_directory",
 ]
 
-import zipfile, tarfile, os
+import zipfile, tarfile, os, shutil
 from pkg_resources import ensure_directory
 from distutils.errors import DistutilsError
 
@@ -73,6 +73,47 @@ def unpack_archive(filename, extract_dir, progress_filter=default_filter,
         raise UnrecognizedFormat(
             "Not a recognized archive type: %s" % filename
         )
+
+
+
+
+
+
+
+def unpack_directory(filename, extract_dir, progress_filter=default_filter):
+    """"Unpack" a directory, using the same interface as for archives
+
+    Raises ``UnrecognizedFormat`` if `filename` is not a directory
+    """
+    if not os.path.isdir(filename):
+        raise UnrecognizedFormat("%s is not a directory" % (filename,))
+
+    paths = {filename:('',extract_dir)}
+    for base, dirs, files in os.walk(filename):
+        src,dst = paths[base]
+        for d in dirs:
+            paths[os.path.join(base,d)] = src+d+'/', os.path.join(dst,d)
+        for f in files:
+            name = src+f
+            target = os.path.join(dst,f)
+            target = progress_filter(src+f, target)
+            if not target:
+                continue    # skip non-files
+            ensure_directory(target)
+            shutil.copyfile(os.path.join(base,f), target)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -156,7 +197,7 @@ def unpack_tarfile(filename, extract_dir, progress_filter=default_filter):
 
 
 
-extraction_drivers = unpack_zipfile, unpack_tarfile
+extraction_drivers = unpack_directory, unpack_zipfile, unpack_tarfile
 
 
 
