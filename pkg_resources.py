@@ -1589,13 +1589,13 @@ def parse_version(s):
     parts = []
     for part in _parse_version_parts(s.lower()):
         if part.startswith('*'):
+            if part<'*final':   # remove '-' before a prerelease tag
+                while parts and parts[-1]=='*final-': parts.pop()
             # remove trailing zeros from each series of numeric parts
             while parts and parts[-1]=='00000000':
                 parts.pop()
         parts.append(part)
     return tuple(parts)
-
-
 
 class EntryPoint(object):
     """Object representing an advertised importable object"""

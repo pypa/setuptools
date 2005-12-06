@@ -434,19 +434,19 @@ class ParseTests(TestCase):
         self.assertRaises(ValueError,Requirement.parse,"X==1\nY==2")
         self.assertRaises(ValueError,Requirement.parse,"#")
 
-
     def testVersionEquality(self):
         def c(s1,s2):
             p1, p2 = parse_version(s1),parse_version(s2)
             self.assertEqual(p1,p2, (s1,s2,p1,p2))
 
+        c('1.2-rc1', '1.2rc1')
         c('0.4', '0.4.0')
         c('0.4.0.0', '0.4.0')
         c('0.4.0-0', '0.4-0')
         c('0pl1', '0.0pl1')
         c('0pre1', '0.0c1')
         c('0.0.0preview1', '0c1')
-        c('0.0c1', '0rc1')
+        c('0.0c1', '0-rc1')
         c('1.2a1', '1.2.a.1'); c('1.2...a', '1.2a')
 
     def testVersionOrdering(self):
@@ -470,6 +470,7 @@ class ParseTests(TestCase):
         c('0.4', '4.0')
         c('0.0.4', '0.4.0')
         c('0pl1', '0.4pl1')
+        c('2.1.0-rc1','2.1.0')
 
         torture ="""
         0.80.1-3 0.80.1-2 0.80.1-1 0.79.9999+0.80.0pre4-1
@@ -480,7 +481,6 @@ class ParseTests(TestCase):
         for p,v1 in enumerate(torture):
             for v2 in torture[p+1:]:
                 c(v2,v1)
-
 
 
 
