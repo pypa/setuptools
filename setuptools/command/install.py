@@ -50,9 +50,9 @@ class install(_install):
         cmd.run()
         setuptools.bootstrap_install_from = None
 
-
-
-
+    sub_commands = _install.sub_commands + [
+        ('install_egg_info', lambda self: True),
+    ]
 
 
 

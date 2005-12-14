@@ -11,7 +11,7 @@ Packages built and distributed using ``setuptools`` look to the user like
 ordinary Python packages based on the ``distutils``.  Your users don't need to
 install or even know about setuptools in order to use them, and you don't
 have to include the entire setuptools package in your distributions.  By
-including just a single `bootstrap module`_ (a 7K .py file), your package will
+including just a single `bootstrap module`_ (an 8K .py file), your package will
 automatically download and install ``setuptools`` if the user is building your
 package from source and doesn't have a suitable version already installed.
 
@@ -2181,6 +2181,10 @@ Release Notes/Change History
    that you can process a directory tree through a processing filter as if it
    were a zipfile or tarfile.
 
+ * Added an internal ``install_egg_info`` command to use as part of old-style
+   ``install`` operations, that installs an ``.egg-info`` directory with the
+   package.
+
 0.6a8
  * Fixed some problems building extensions when Pyrex was installed, especially
    with Python 2.4 and/or packages using SWIG.
@@ -2433,4 +2437,13 @@ Release Notes/Change History
 
 0.3a1
  * Initial release.
+
+
+Mailing list
+============
+
+Please use the `distutils-sig mailing list`_ for questions and discussion about
+setuptools.
+
+.. _distutils-sig mailing list: http://mail.python.org/pipermail/distutils-sig/
 
