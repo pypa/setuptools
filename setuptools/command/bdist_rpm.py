@@ -6,12 +6,6 @@ from distutils.command.bdist_rpm import bdist_rpm as _bdist_rpm
 
 class bdist_rpm(_bdist_rpm):
 
-    user_options = _bdist_rpm.user_options + [
-        ('no-egg', None, "Don't install as an egg (may break the package!)")
-    ]
-
-    boolean_options = _bdist_rpm.boolean_options + ['no-egg']
-
     def initialize_options(self):
         _bdist_rpm.initialize_options(self)
         self.no_egg = None
@@ -31,24 +25,16 @@ class bdist_rpm(_bdist_rpm):
                 "Source0: %{name}-%{version}.tar",
                 "Source0: %{name}-%{unmangled_version}.tar"
             ).replace(
+                "setup.py install ",
+                "setup.py install --single-version-externally-managed "
+            ).replace(
                 "%setup",
                 "%setup -n %{name}-%{unmangled_version}"
             ).replace(line23,line24)
             for line in spec
         ]
         spec.insert(spec.index(line24)+1, "%define unmangled_version "+version)
-
-
-        if not self.no_egg:
-            return spec
-
-        # Hack the spec file so that we install old-style
-        return [
-            line.replace(
-                "setup.py install ","setup.py install --old-and-unmanageable "
-            ) for line in spec
-        ]
-
+        return spec
 
 
 

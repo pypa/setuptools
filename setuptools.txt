@@ -1629,6 +1629,25 @@ files), the ``develop`` command will use them as defaults, unless you override
 them in a ``[develop]`` section or on the command line.
 
 
+``easy_install`` - Find and install packages
+============================================
+
+This command runs the `EasyInstall tool
+<http://peak.telecommunity.com/DevCenter/EasyInstall>`_ for you.  It is exactly
+equivalent to running the ``easy_install`` command.  All command line arguments
+following this command are consumed and not processed further by the distutils,
+so this must be the last command listed on the command line.  Please see
+the EasyInstall documentation for the options reference and usage examples.
+Normally, there is no reason to use this command via the command line, as you
+can just use ``easy_install`` directly.  It's only listed here so that you know
+it's a distutils command, which means that you can:
+
+* create command aliases that use it,
+* create distutils extensions that invoke it as a subcommand, and
+* configure options for it in your ``setup.cfg`` or other distutils config
+  files.
+
+
 .. _egg_info:
 
 ``egg_info`` - Create egg metadata and set build tags
@@ -1716,6 +1735,47 @@ Other ``egg_info`` Options
     ``package_dir`` argument to the ``setup()`` function, if any.  If there is
     no ``package_dir`` set, this option defaults to the current directory.
 
+
+``install`` - Run ``easy_install`` or old-style installation
+============================================================
+
+The setuptools ``install`` command is basically a shortcut to run the
+``easy_install`` command on the current project.  However, for convenience
+in creating "system packages" of setuptools-based projects, you can also
+use this option:
+
+``--single-version-externally-managed``
+    This boolean option tells the ``install`` command to perform an "old style"
+    installation, with the addition of an ``.egg-info`` directory so that the
+    installed project will still have its metadata available and operate
+    normally.  If you use this option, you *must* also specify the ``--root``
+    or ``--record`` options (or both), because otherwise you will have no way
+    to identify and remove the installed files.
+
+This option is automatically in effect when ``install`` is invoked by another
+distutils command, so that commands like ``bdist_wininst`` and ``bdist_rpm``
+will create system packages of eggs.
+
+
+``install_egg_info`` - Install an ``.egg-info`` directory in ``site-packages``
+==============================================================================
+
+Setuptools runs this command as part of ``install`` operations that use the
+``--single-version-externally-managed`` options.  You should not invoke it
+directly; it is documented here for completeness and so that distutils
+extensions such as system package builders can make use of it.  This command
+has only one option:
+
+``--install-dir=DIR, -d DIR``
+    The parent directory where the ``.egg-info`` directory will be placed.
+    Defaults to the same as the ``--install-dir`` option specified for the
+    ``install_lib`` command, which is usually the system ``site-packages``
+    directory.
+
+This command assumes that the ``egg_info`` command has been given valid options
+via the command line or ``setup.cfg``, as it will invoke the ``egg_info``
+command and use its options to locate the project's source ``.egg-info``
+directory.
 
 
 .. _rotate:
@@ -2184,6 +2244,13 @@ Release Notes/Change History
  * Added an internal ``install_egg_info`` command to use as part of old-style
    ``install`` operations, that installs an ``.egg-info`` directory with the
    package.
+
+ * Added a ``--single-version-externally-managed`` option to the ``install``
+   command so that you can more easily wrap a "flat" egg in a system package.
+
+ * Enhanced ``bdist_rpm`` so that it installs single-version eggs that
+   don't rely on a ``.pth`` file.  The ``--no-egg`` option has been removed,
+   since all RPMs are now built in a more backwards-compatible format.
 
 0.6a8
  * Fixed some problems building extensions when Pyrex was installed, especially

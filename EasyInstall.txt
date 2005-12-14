@@ -874,6 +874,10 @@ Known Issues
    the shortest one.  This helps to avoid "table of contents" CGI URLs like the
    ones on effbot.org.
 
+ * Quote arguments to python.exe (including python's path) to avoid problems
+   when Python (or a script) is installed in a directory whose name contains
+   spaces on Windows.
+
 0.6a8
  * Update for changed SourceForge mirror format
  
