@@ -145,7 +145,7 @@ class easy_install(Command):
             site_dirs = [
                 os.path.expanduser(s.strip()) for s in self.site_dirs.split(',')
             ]
-            for d in site_dirs:
+            for d in site_dirs:                           
                 if not os.path.isdir(d):
                     log.warn("%s (in --site-dirs) does not exist", d)
                 elif normalize_path(d) not in normpath:
@@ -637,12 +637,13 @@ class easy_install(Command):
         self.exe_to_egg(dist_filename, egg_tmp)
 
         # Write EGG-INFO/PKG-INFO
-        f = open(pkg_inf,'w')
-        f.write('Metadata-Version: 1.0\n')
-        for k,v in cfg.items('metadata'):
-            if k<>'target_version':
-                f.write('%s: %s\n' % (k.replace('_','-').title(), v))
-        f.close()
+        if not os.path.exists(pkg_inf):
+            f = open(pkg_inf,'w')
+            f.write('Metadata-Version: 1.0\n')
+            for k,v in cfg.items('metadata'):
+                if k<>'target_version':
+                    f.write('%s: %s\n' % (k.replace('_','-').title(), v))
+            f.close()
 
         # Build .egg file from tmpdir
         bdist_egg.make_zipfile(
@@ -652,7 +653,6 @@ class easy_install(Command):
 
         # install the .egg
         return self.install_egg(egg_path, tmpdir)
-
 
     def exe_to_egg(self, dist_filename, egg_tmp):
         """Extract a bdist_wininst to the directories an egg would use"""
@@ -692,14 +692,14 @@ class easy_install(Command):
                 bdist_egg.write_stub(resource, pyfile)
 
         self.byte_compile(to_compile)   # compile .py's
-        bdist_egg.write_safety_flag(egg_tmp,
+        bdist_egg.write_safety_flag(os.path.join(egg_tmp,'EGG-INFO'),
             bdist_egg.analyze_egg(egg_tmp, stubs))  # write zip-safety flag
 
         for name in 'top_level','native_libs':
             if locals()[name]:
                 txt = os.path.join(egg_tmp, 'EGG-INFO', name+'.txt')
-                open(txt,'w').write('\n'.join(locals()[name])+'\n')
-
+                if not os.path.exists(txt):
+                    open(txt,'w').write('\n'.join(locals()[name])+'\n')
 
     def check_conflicts(self, dist):
         """Verify that there are no conflicting "old-style" packages"""
@@ -1076,10 +1076,12 @@ def get_exe_prefixes(exe_filename):
     try:
         for info in z.infolist():
             name = info.filename
-            if not name.endswith('.pth'):
-                continue
             parts = name.split('/')
-            if len(parts)<>2:
+            if len(parts)==3 and parts[2]=='PKG-INFO':
+                if parts[1].endswith('.egg-info'):
+                    prefixes.insert(0,('/'.join(parts[:2]), 'EGG-INFO/'))
+                    break
+            if len(parts)<>2 or not name.endswith('.pth'):
                 continue
             if parts[0] in ('PURELIB','PLATLIB'):
                 pth = z.read(name).strip()
@@ -1099,8 +1101,6 @@ def parse_requirement_arg(spec):
         raise DistutilsError(
             "Not a URL, existing file, or requirement spec: %r" % (spec,)
         )
-
-
 
 
 

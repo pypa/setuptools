@@ -221,7 +221,9 @@ class bdist_egg(Command):
             if os.path.isfile(path):
                 self.copy_file(path,os.path.join(egg_info,filename))
 
-        write_safety_flag(archive_root, self.zip_safe())
+        write_safety_flag(
+            os.path.join(archive_root,'EGG-INFO'), self.zip_safe()
+        )
 
         if os.path.exists(os.path.join(self.egg_info,'depends.txt')):
             log.warn(
@@ -241,8 +243,6 @@ class bdist_egg(Command):
         # Add to 'Distribution.dist_files' so that the "upload" command works
         getattr(self.distribution,'dist_files',[]).append(
             ('bdist_egg',get_python_version(),self.egg_output))
-
-
 
     def zap_pyfiles(self):
         log.info("Removing .py files from temporary directory")
@@ -337,6 +337,11 @@ def walk_egg(egg_dir):
         yield bdf
 
 def analyze_egg(egg_dir, stubs):
+    # check for existing flag in EGG-INFO
+    for flag,fn in safety_flags.items():
+        if os.path.exists(os.path.join(egg_dir,'EGG-INFO',fn)):
+            return flag
+
     safe = True
     for base, dirs, files in walk_egg(egg_dir):
         for name in files:
@@ -345,27 +350,22 @@ def analyze_egg(egg_dir, stubs):
             elif name.endswith('.pyc') or name.endswith('.pyo'):
                 # always scan, even if we already know we're not safe
                 safe = scan_module(egg_dir, base, name, stubs) and safe
-            '''elif safe:
-                log.warn(
-                    "Distribution contains data or extensions; assuming "
-                    "it's unsafe (set zip_safe=True in setup() to change"
-                )
-                safe = False    # XXX'''
     return safe
 
 def write_safety_flag(egg_dir, safe):
-    # Write a zip safety flag file
-    flag = safe and 'zip-safe' or 'not-zip-safe'
-    open(os.path.join(egg_dir,'EGG-INFO',flag),'w').close()
+    # Write or remove zip safety flag file(s)
+    for flag,fn in safety_flags.items():
+        fn = os.path.join(egg_dir, fn)
+        if os.path.exists(fn):
+            if safe is None or bool(safe)<>flag:
+                os.unlink(fn)
+        elif safe is not None and bool(safe)==flag:
+            open(fn,'w').close()
 
-
-
-
-
-
-
-
-
+safety_flags = {
+    True: 'zip-safe',
+    False: 'not-zip-safe',
+}
 
 def scan_module(egg_dir, base, name, stubs):
     """Check whether module possibly uses unsafe-for-zipfile stuff"""

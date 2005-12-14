@@ -285,7 +285,6 @@ class manifest_maker(sdist):
 
 
 
-
 def write_pkg_info(cmd, basename, filename):
     log.info("writing %s", filename)
     if not cmd.dry_run:
@@ -299,6 +298,9 @@ def write_pkg_info(cmd, basename, filename):
         finally:
             metadata.name, metadata.version = oldname, oldver
 
+        safe = getattr(cmd.distribution,'zip_safe',None)
+        import bdist_egg; bdist_egg.write_safety_flag(cmd.egg_info, safe)
+    
 def warn_depends_obsolete(cmd, basename, filename):
     if os.path.exists(filename):
         log.warn(
@@ -321,9 +323,6 @@ def write_toplevel_names(cmd, basename, filename):
         ]
     )
     cmd.write_file("top-level names", filename, '\n'.join(pkgs)+'\n')
-
-
-
 
 
 
