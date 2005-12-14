@@ -26,7 +26,7 @@ class install(_install):
         self.no_compile = None  # make DISTUTILS_DEBUG work right!
 
     def finalize_options(self):
-        _install.initialize_options(self)
+        _install.finalize_options(self)
         if self.single_version_externally_managed:
             if not self.root and not self.record:
                 raise DistutilsArgError(
