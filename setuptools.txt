@@ -2252,6 +2252,13 @@ Release Notes/Change History
    don't rely on a ``.pth`` file.  The ``--no-egg`` option has been removed,
    since all RPMs are now built in a more backwards-compatible format.
 
+ * Support full roundtrip translation of eggs to and from ``bdist_wininst``
+   format.  Running ``bdist_wininst`` on a setuptools-based package wraps the
+   egg in an .exe that will safely install it as an egg (i.e., with metadata
+   and entry-point wrapper scripts), and ``easy_install`` can turn the .exe
+   back into an ``.egg`` file or directory and install it as such.
+
+
 0.6a8
  * Fixed some problems building extensions when Pyrex was installed, especially
    with Python 2.4 and/or packages using SWIG.

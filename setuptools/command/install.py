@@ -15,8 +15,11 @@ class install(_install):
         'old-and-unmanageable', 'single-version-externally-managed',
     ]
 
-    sub_commands = _install.sub_commands + [
+    sub_commands = [
+        cmd for cmd in _install.sub_commands if cmd[0] != 'install_scripts'
+    ] + [
         ('install_egg_info', lambda self: True),
+        ('install_scripts',  lambda self: True),
     ]
 
     def initialize_options(self):
@@ -53,7 +56,7 @@ class install(_install):
 
         cmd = easy_install(
             self.distribution, args="x", ignore_conflicts_at_my_risk=1,
-            root=self.root
+            root=self.root, record=self.record,
         )
         cmd.ensure_finalized()  # finalize before bdist_egg munges install cmd
 

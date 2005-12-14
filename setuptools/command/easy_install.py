@@ -579,20 +579,19 @@ class easy_install(Command):
             raise DistutilsError(
                 "%s is not a valid distutils Windows .exe" % dist_filename
             )
-
         # Create a dummy distribution object until we build the real distro
         dist = Distribution(None,
             project_name=cfg.get('metadata','name'),
-            version=cfg.get('metadata','version'),
-            platform="win32"
+            version=cfg.get('metadata','version'), platform="win32"
         )
 
         # Convert the .exe to an unpacked egg
         egg_path = dist.location = os.path.join(tmpdir, dist.egg_name()+'.egg')
         egg_tmp  = egg_path+'.tmp'
-        pkg_inf = os.path.join(egg_tmp, 'EGG-INFO', 'PKG-INFO')
+        egg_info = os.path.join(egg_tmp, 'EGG-INFO') 
+        pkg_inf = os.path.join(egg_info, 'PKG-INFO')
         ensure_directory(pkg_inf)   # make sure EGG-INFO dir exists
-
+        dist._provider = PathMetadata(egg_tmp, egg_info)    # XXX
         self.exe_to_egg(dist_filename, egg_tmp)
 
         # Write EGG-INFO/PKG-INFO
@@ -603,13 +602,14 @@ class easy_install(Command):
                 if k<>'target_version':
                     f.write('%s: %s\n' % (k.replace('_','-').title(), v))
             f.close()
-
+        script_dir = os.path.join(egg_info,'scripts')
+        self.delete_blockers(   # delete entry-point scripts to avoid duping
+            [os.path.join(script_dir,args[0]) for args in get_script_args(dist)]
+        )       
         # Build .egg file from tmpdir
         bdist_egg.make_zipfile(
-            egg_path, egg_tmp,
-            verbose=self.verbose, dry_run=self.dry_run
+            egg_path, egg_tmp, verbose=self.verbose, dry_run=self.dry_run
         )
-
         # install the .egg
         return self.install_egg(egg_path, tmpdir)
 

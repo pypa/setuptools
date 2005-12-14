@@ -878,6 +878,12 @@ Known Issues
    when Python (or a script) is installed in a directory whose name contains
    spaces on Windows.
 
+ * Support full roundtrip translation of eggs to and from ``bdist_wininst``
+   format.  Running ``bdist_wininst`` on a setuptools-based package wraps the
+   egg in an .exe that will safely install it as an egg (i.e., with metadata
+   and entry-point wrapper scripts), and ``easy_install`` can turn the .exe
+   back into an ``.egg`` file or directory and install it as such.
+
 0.6a8
  * Update for changed SourceForge mirror format
  
