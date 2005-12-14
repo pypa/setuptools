@@ -439,56 +439,15 @@ class easy_install(Command):
         ensure_directory(dst); shutil.move(setup_base, dst)
         return dst
 
-
     def install_wrapper_scripts(self, dist):
-        if self.exclude_scripts:
-            return
-        for group in 'console_scripts', 'gui_scripts':
-            for name,ep in dist.get_entry_map(group).items():
-                self._install_wrapper_script(dist, group, name, ep)
+        if not self.exclude_scripts:
+            for args in get_script_args(dist):
+                self.write_script(*args)
 
 
 
-    def _install_wrapper_script(self, dist, group, name, entry_point):
-        """Write new-style console scripts, unless excluded"""
 
-        spec = str(dist.as_requirement())
-        header = get_script_header("")
-        script_text = (
-            "# EASY-INSTALL-ENTRY-SCRIPT: %(spec)r,%(group)r,%(name)r\n"
-            "__requires__ = %(spec)r\n"
-            "import sys\n"
-            "from pkg_resources import load_entry_point\n"
-            "\n"
-            "sys.exit(\n"
-            "   load_entry_point(%(spec)r, %(group)r, %(name)r)()\n"
-            ")\n"
-        ) % locals()
-        if sys.platform=='win32':
-            # On Windows, add a .py extension and an .exe launcher
-            if group=='gui_scripts':
-                ext, launcher = '-script.pyw', 'gui.exe'
-                old = ['.pyw']
-                new_header = re.sub('(?i)python.exe','pythonw.exe',header)
-            else:
-                ext, launcher = '-script.py', 'cli.exe'
-                old = ['.py','.pyc','.pyo']
-                new_header = re.sub('(?i)pythonw.exe','pythonw.exe',header)
-            if os.path.exists(new_header[2:-1]):
-                header = new_header
-            
-            self.delete_blockers(   # clean up old .py/.pyw w/o a script
-                [os.path.join(self.script_dir,name+x) for x in old])
 
-            self.write_script(name+ext, header+script_text)
-            self.write_script(
-                name+'.exe', resource_string('setuptools', launcher),
-                'b' # write in binary mode
-            )
-        else:
-            # On other platforms, we assume the right thing to do is to just
-            # write the stub with no extension.
-            self.write_script(name, header+script_text)
 
     def install_script(self, dist, script_name, script_text, dev_path=None):
         """Generate a legacy script wrapper and install it"""
@@ -513,10 +472,11 @@ class easy_install(Command):
 
         self.write_script(script_name, script_text)
 
-    def write_script(self, script_name, contents, mode="t"):
+    def write_script(self, script_name, contents, mode="t", blockers=()):
         """Write an executable file to the scripts directory"""
+        self.delete_blockers(   # clean up old .py/.pyw w/o a script
+            [os.path.join(self.script_dir,x) for x in blockers])
         log.info("Installing %s script to %s", script_name, self.script_dir)
-
         target = os.path.join(self.script_dir, script_name)
         self.add_output(target)
 
@@ -529,7 +489,6 @@ class easy_install(Command):
                 os.chmod(target,0755)
             except (AttributeError, os.error):
                 pass
-
 
     def install_eggs(self, spec, dist_filename, tmpdir):
         # .egg dirs or files are already built, so just return them
@@ -1186,6 +1145,47 @@ def auto_chmod(func, arg, exc):
         return func(arg)
     exc = sys.exc_info()
     raise exc[0], (exc[1][0], exc[1][1] + (" %s %s" % (func,arg)))
+
+def get_script_args(dist):
+    """Yield write_script() argument tuples for a distribution's entrypoints"""
+    spec = str(dist.as_requirement())
+    header = get_script_header("")
+    for group in 'console_scripts', 'gui_scripts':
+        for name,ep in dist.get_entry_map(group).items():
+            script_text = (
+                "# EASY-INSTALL-ENTRY-SCRIPT: %(spec)r,%(group)r,%(name)r\n"
+                "__requires__ = %(spec)r\n"
+                "import sys\n"
+                "from pkg_resources import load_entry_point\n"
+                "\n"
+                "sys.exit(\n"
+                "   load_entry_point(%(spec)r, %(group)r, %(name)r)()\n"
+                ")\n"
+            ) % locals()
+            if sys.platform=='win32':
+                # On Windows, add a .py extension and an .exe launcher
+                if group=='gui_scripts':
+                    ext, launcher = '-script.pyw', 'gui.exe'
+                    old = ['.pyw']
+                    new_header = re.sub('(?i)python.exe','pythonw.exe',header)
+                else:
+                    ext, launcher = '-script.py', 'cli.exe'
+                    old = ['.py','.pyc','.pyo']
+                    new_header = re.sub('(?i)pythonw.exe','pythonw.exe',header)
+
+                if os.path.exists(new_header[2:-1]):
+                    hdr = new_header
+                else:
+                    hdr = header
+                yield (name+ext, hdr+script_text, 't', [name+x for x in old])
+                yield (
+                    name+'.exe', resource_string('setuptools', launcher),
+                    'b' # write in binary mode
+                )
+            else:
+                # On other platforms, we assume the right thing to do is to
+                # just write the stub with no extension.
+                yield (name, header+script_text)
 
 def rmtree(path, ignore_errors=False, onerror=auto_chmod):
     """Recursively delete a directory tree.
