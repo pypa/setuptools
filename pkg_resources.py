@@ -15,8 +15,8 @@ method.
 
 import sys, os, zipimport, time, re, imp, new
 from sets import ImmutableSet
-
-
+from os import utime, rename, unlink    # capture these to bypass sandboxing
+from os import open as os_open
 
 
 
@@ -1084,13 +1084,12 @@ class ZipProvider(EggProvider):
             if stat.st_size==size and stat.st_mtime==timestamp:
                 # size and stamp match, don't bother extracting
                 return real_path
-        from tempfile import mkstemp
-        outf, tmpnam = mkstemp(".$extract", dir=os.path.dirname(real_path))
+        outf, tmpnam = _mkstemp(".$extract", dir=os.path.dirname(real_path))
         os.write(outf, self.loader.get_data(zip_path))
         os.close(outf)
-        os.utime(tmpnam, (timestamp,timestamp))
+        utime(tmpnam, (timestamp,timestamp))
         manager.postprocess(tmpnam, real_path)
-        try: os.rename(tmpnam, real_path)
+        try: rename(tmpnam, real_path)
         except os.error:
             if os.path.isfile(real_path):
                 stat = os.stat(real_path)
@@ -1099,11 +1098,12 @@ class ZipProvider(EggProvider):
                     # so we're done
                     return real_path
                 elif os.name=='nt':     # Windows, delete old file and retry
-                    os.unlink(real_path)
-                    os.rename(tmpnam, real_path)
+                    unlink(real_path)
+                    rename(tmpnam, real_path)
                     return real_path
             raise
         return real_path
+
 
     def _get_eager_resources(self):
         if self.eagers is None:
@@ -2136,7 +2136,6 @@ def ensure_directory(path):
     if not os.path.isdir(dirname):
         os.makedirs(dirname)
 
-
 def split_sections(s):
     """Split a string or iterable thereof into (section,content) pairs
 
@@ -2162,13 +2161,14 @@ def split_sections(s):
     # wrap up last segment
     yield section, content
 
-
-
-
-
-
-
-
+def _mkstemp(*args,**kw):
+    from tempfile import mkstemp
+    old_open = os.open
+    try:
+        os.open = os_open   # temporarily bypass sandboxing
+        return mkstemp(*args,**kw)
+    finally:
+        os.open = old_open  # and then put it back
 
 
 # Set up global resource manager
