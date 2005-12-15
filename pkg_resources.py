@@ -1357,7 +1357,7 @@ register_finder(object,find_nothing)
 
 def find_on_path(importer, path_item, only=False):
     """Yield distributions accessible on a sys.path directory"""
-    path_item = normalize_path(path_item)
+    path_item = _normalize_cached(path_item)
 
     if os.path.isdir(path_item):
         if path_item.lower().endswith('.egg'):
@@ -1478,9 +1478,9 @@ def file_ns_handler(importer, path_item, packageName, module):
     """Compute an ns-package subpath for a filesystem or zipfile importer"""
 
     subpath = os.path.join(path_item, packageName.split('.')[-1])
-    normalized = normalize_path(subpath)
+    normalized = _normalize_cached(subpath)
     for item in module.__path__:
-        if normalize_path(item)==normalized:
+        if _normalize_cached(item)==normalized:
             break
     else:
         # Only return the path if it's not already there
@@ -1500,6 +1500,12 @@ def normalize_path(filename):
     """Normalize a file/dir name for comparison purposes"""
     return os.path.normcase(os.path.realpath(filename))
 
+def _normalize_cached(filename,_cache={}):
+    try:
+        return _cache[filename]
+    except KeyError:
+        _cache[filename] = result = normalize_path(filename)
+        return result
 
 def _set_parent_ns(packageName):
     parts = packageName.split('.')
@@ -1507,12 +1513,6 @@ def _set_parent_ns(packageName):
     if parts:
         parent = '.'.join(parts)
         setattr(sys.modules[parent], name, sys.modules[packageName])
-
-
-
-
-
-
 
 
 def yield_lines(strs):
@@ -1876,7 +1876,7 @@ class Distribution(object):
     #@classmethod
     def from_filename(cls,filename,metadata=None):
         return cls.from_location(
-            normalize_path(filename), os.path.basename(filename), metadata
+            _normalize_cached(filename), os.path.basename(filename), metadata
         )
     from_filename = classmethod(from_filename)
 
@@ -1915,7 +1915,7 @@ class Distribution(object):
             self.check_version_conflict()
         best, pos = 0, -1
         for p,item in enumerate(path):
-            item = normalize_path(item)
+            item = _normalize_cached(item)
             if loc.startswith(item) and len(item)>best and loc<>item:
                 best, pos = len(item), p
         if pos==-1:
