@@ -23,6 +23,7 @@ class install_egg_info(Command):
         ).egg_name()+'.egg-info'
         self.source = ei_cmd.egg_info
         self.target = os.path.join(self.install_dir, basename) 
+        self.outputs = [self.target]
 
     def run(self):
         self.run_command('egg_info')
@@ -38,9 +39,8 @@ class install_egg_info(Command):
         )
 
 
-
     def get_outputs(self):
-        return [self.target]    # XXX list all files, not just dir?
+        return self.outputs
 
     def copytree(self):
         # Copy the .egg-info tree to site-packages
@@ -52,11 +52,11 @@ class install_egg_info(Command):
             for skip in '.svn/','CVS/':
                 if src.startswith(skip) or '/'+skip in src:
                     return None
+            self.outputs.append(dst)
             log.debug("Copying %s to %s", src, dst)
             return dst
 
         unpack_archive(self.source, self.target, skimmer)
-
 
 
 
