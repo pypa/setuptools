@@ -55,6 +55,8 @@ setup(
             "entry_points       = setuptools.dist:check_entry_points",
             "test_suite         = setuptools.dist:check_test_suite",
             "zip_safe           = setuptools.dist:assert_bool",
+            "package_data         = setuptools.dist:check_package_data",
+            "exclude_package_data = setuptools.dist:check_package_data",
             "include_package_data = setuptools.dist:assert_bool",
         ],
         "egg_info.writers": [
@@ -69,8 +71,6 @@ setup(
         "console_scripts":
             ["easy_install = setuptools.command.easy_install:main"],
     },
-
-
 
 
 

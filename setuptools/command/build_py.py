@@ -1,4 +1,4 @@
-import os.path, sys
+import os.path, sys, fnmatch
 from distutils.command.build_py import build_py as _build_py
 from distutils.util import convert_path
 from glob import glob
@@ -12,10 +12,10 @@ class build_py(_build_py):
     Also, this version of the 'build_py' command allows you to specify both
     'py_modules' and 'packages' in the same setup operation.
     """
-
     def finalize_options(self):
         _build_py.finalize_options(self)
         self.package_data = self.distribution.package_data
+        self.exclude_package_data = self.distribution.exclude_package_data or {}
         if 'data_files' in self.__dict__: del self.__dict__['data_files']
 
     def run(self):
@@ -68,7 +68,7 @@ class build_py(_build_py):
         for pattern in globs:
             # Each pattern has to be converted to a platform-specific path
             files.extend(glob(os.path.join(src_dir, convert_path(pattern))))
-        return files
+        return self.exclude_data_files(package, src_dir, files)
 
     def build_package_data(self):
         """Copy data files into build directory"""
@@ -155,6 +155,47 @@ class build_py(_build_py):
     def initialize_options(self):
         self.packages_checked={}
         _build_py.initialize_options(self)
+
+
+
+
+
+
+
+    def exclude_data_files(self, package, src_dir, files):
+        """Filter filenames for package's data files in 'src_dir'"""
+        globs = (self.exclude_package_data.get('', [])
+                 + self.exclude_package_data.get(package, []))
+        bad = []
+        for pattern in globs:           
+            bad.extend(
+                fnmatch.filter(
+                    files, os.path.join(src_dir, convert_path(pattern))
+                )
+            )
+        bad = dict.fromkeys(bad)
+        return [f for f in files if f not in bad]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
