@@ -1066,16 +1066,24 @@ Creating System Packages
     Setuptools currently supports ``bdist_rpm``, ``bdist_wininst``, and
     ``bdist_dumb`` formats for system packaging.  If a user has a locally-
     installed "bdist" packaging tool that internally uses the distutils
-    ``install`` command, it should be able to work with ``setuptools``.  If
-    it doesn't, please report the problem via the `mailing list`_ so that
+    ``install`` command, it should be able to work with ``setuptools``.  Some
+    examples of "bdist" formats that this should work with include the
+    ``bdist_nsi`` and ``bdist_msi`` formats for Windows.
+
+    However, packaging tools that build binary distributions by running
+    ``setup.py install`` on the command line or as a subprocess will require
+    modification to work with setuptools.  They should use the
+    ``--single-version-externally-managed`` option to the ``install`` command,
+    combined with the standard ``--root`` or ``--record`` options.
+    See the `install command`_ documentation below for more details.  The
+    ``bdist_deb`` command is an example of a command that currently requires
+    this kind of patching to work with setuptools.
+
+    If you or your users have a problem building a usable system package for
+    your project, please report the problem via the `mailing list`_ so that
     either the "bdist" tool in question or setuptools can be modified to
     resolve the issue.
 
-    Packaging tools that build binary distributions by running ``setup.py
-    install`` on the command line or as a subprocess can be made to work with
-    setuptools by using the ``--single-version-externally-managed`` option,
-    combined with the standard ``--root`` or ``--record`` options.
-    See the `install command`_ documentation below for more details.
 
 
 Managing Multiple Projects
