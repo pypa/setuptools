@@ -30,39 +30,66 @@ Using "Easy Install"
 Installing "Easy Install"
 -------------------------
 
-If you are behind an NTLM-based firewall that prevents Python programs from
-accessing the net directly, you may wish to first install and use the `APS
-proxy server <http://ntlmaps.sf.net/>`_, which lets you get past such firewalls
-in the same way that your web browser(s) do.
-
-If you do not have write access to your computer's ``site-packages`` directory,
-please also see the section below on `Non-Root Installation`_ for more detailed
-instructions on pre-configuring your system for the best usability with
-EasyInstall, then return here for the remaining steps.
-
 Download `ez_setup.py <http://peak.telecommunity.com/dist/ez_setup.py>`_, and
 run it; this will download and install the appropriate ``setuptools`` egg for
 your Python version.  (You will need at least Python 2.3.5, or if you are on a
-64-bit platform, Python 2.4.)
+64-bit platform, Python 2.4.)  An ``easy_install`` script will be installed in
+the normal location for Python scripts on your platform.
 
+You may receive a message telling you about an obsolete version of setuptools
+being present; if so, you must be sure to delete it entirely, along with the
+old ``pkg_resources`` module if it's present on ``sys.path``.
 
-You may receive a message telling you about an obsolete version of
-setuptools being present; if so, you must be sure to delete it entirely, along
-with the old ``pkg_resources`` module if it's present on ``sys.path``.
-
-An ``easy_install`` script will be installed in the normal location for
-Python scripts on your platform.
-
-(Note: the ``ez_setup.py`` script accepts the same `Command-Line Options`_ and
+The ``ez_setup.py`` script accepts the same `Command-Line Options`_ and
 `Configuration Files`_  as ``easy_install`` itself, so you can use them to
-control its behavior.  However, you should avoid using a custom installation
-directory or doing multi-version installs of the setuptools package, because
-this may make it impossible for scripts installed with EasyInstall to access
-it afterwards.)
+control its behavior.  In particular, you can use the --script-dir option to
+direct script installation to a custom location.  You should not, however,
+use custom installation locations without first reading the section below on
+`Custom Installation Locations`_.
+
+The instructions you've just read assume that:
+
+* You are installling to Python's primary ``site-packages`` directory
+
+* You have unrestricted internet access on the computer where you are
+  installing.
+
+If you are behind an NTLM-based firewall that prevents Python programs from
+accessing the net directly, you may wish to first install and use the `APS
+proxy server <http://ntlmaps.sf.net/>`_, which lets you get past such firewalls
+in the same way that your web browser(s) do.  This will let ``ez_setup.py``
+download the setuptools egg.
+
+If you can't use APS, or don't have internet access at all, you will need to
+first download the appropriate ``.egg`` file from the `setuptools PyPI page
+<http://cheeseshop.python.org/pypi/setuptools>`_ using a computer with internet
+access.  Place the egg in the same directory as ``ez_setup.py`` on the target
+computer before running it.
+
+If you are installing to a custom location or do not have write access to
+Python's primary ``site-packages`` directory, please also see the section below
+on `Custom Installation Locations`_ for more detailed instructions.
 
 
-Windows Installation
-~~~~~~~~~~~~~~~~~~~~
+Troubleshooting
+~~~~~~~~~~~~~~~
+
+If EasyInstall/setuptools appears to install correctly, and you can run the
+``easy_install`` command but it fails with an ``ImportError``, the most likely
+cause is that you installed to a location other than ``site-packages``,
+without taking any of the steps described in the `Custom Installation
+Locations`_ section below.  Please see that section and follow the steps to
+make sure that your custom location will work correctly.  Then re-install.
+
+Similarly, if you can run ``easy_install``, and it appears to be installing
+packages, but then you can't import them, the most likely issue is that you
+installed EasyInstall correctly but are using it to install packages to a
+non-standard location that hasn't been properly prepared.  Again, see the
+section on `Custom Installation Locations`_ for more details.
+
+
+Windows Notes
+~~~~~~~~~~~~~
 
 On Windows, an ``easy_install.exe`` launcher will also be installed, so that
 you can just type ``easy_install`` as long as it's on your ``PATH``.  If typing
@@ -81,6 +108,7 @@ go on a directory that's already on the ``PATH``.  For more information see the
 sections below on `Command-Line Options`_ and `Configuration Files`_.  You
 can pass command line options (such as ``--script-dir``) to ``ez_setup.py`` to
 control where ``easy_install.exe`` will be installed.
+
 
 
 Downloading and Installing a Package
@@ -669,25 +697,11 @@ Command-Line Options
     "Site" directories are directories where ``.pth`` files are processed, such
     as the main Python ``site-packages`` directory. By default, EasyInstall
     only knows about Python-defined "site" directories, not those that may be
-    added by an OS distribution or site administrator calling
+    added by an OS distribution or site administrator using call(s) to
     ``site.addsitedir()``.  You should not normally need to use this option
     directly, as your system administrator should configure it in the
-    ``distutils.cfg`` file of the Python installation. For example, if the
-    administrator wants to make each user's ``~/lib/python2.3`` directory be a
-    "site" directory, he or she should create an ``altinstall.pth`` file in the
-    normal site-packages directory, containing this::
-
-        import os, site; site.addsitedir(os.path.expanduser('~/lib/python2.3'))
-
-    and a ``distutils.cfg`` file inside the ``distutils`` package directory,
-    containing this::
-
-        [easy_install]
-        site_dirs = ~/lib/python23
-
-    This will ensure that EasyInstall knows about the additional "site"
-    directory, thereby allowing individual users to install their own
-    Python packages via EasyInstall.
+    ``distutils.cfg`` file of the Python installation.  See the `Administrator
+    Installation`_ section below for details.
 
 ``--no-deps, -N``  (New in 0.6a6)
     Don't install any dependencies.  This is intended as a convenience for
@@ -715,42 +729,156 @@ Command-Line Options
     override the setting on the command line as needed.
 
 
-Non-Root Installation
----------------------
+.. _non-root installation:
 
-If you want to use EasyInstall on a computer where you do not have write access
-to Python's main ``site-packages`` directory, you may need to set up an
-alternate "home" location for Python, so that it uses a personal
-``site-packages`` directory instead of the system-wide ``site-packages``.
+Custom Installation Locations
+-----------------------------
+
+EasyInstall manages what packages are active using Python ``.pth`` files, which
+are normally only usable in Python's main ``site-packages`` directory.  On some
+platforms (such as Mac OS X), there are additional ``site-packages``
+directories that you can use besides the main one, but usually there is only
+one directory on the system where you can install packages without extra steps.
+
+There are many reasons, however, why you might want to install packages
+somewhere other than the ``site-packages`` directory.  For example, you might
+not have write access to that directory.  You may be working with unstable
+versions of packages that you don't want to install system-wide.  And so on.
+
+The following sections describe various approaches to custom installation; feel
+free to choose which one best suits your system and needs.
+
+`Administrator Installation`_
+    This approach is for when you have write access to ``site-packages`` (or
+    another directory where ``.pth`` files are processed), but don't want to
+    install packages there.  This can also be used by a system administrator
+    to enable each user having their own private directories that EasyInstall
+    will use to install packages.
+
+`Mac OS X "User" Installation`_
+    This approach produces a result similar to an administrator installation
+    that gives each user their own private package directory, but on Mac OS
+    the hard part has already been done for you.  This is probably the best
+    approach for Mac OS X users.
+
+`Creating a "Virtual" Python`_
+    This approach is for when you don't have "root" or access to write to the
+    ``site-packages`` directory, and would like to be able to set up one or
+    more "virtual python" executables for your projects.  This approach
+    gives you the benefits of multiple Python installations, but without having
+    to actually install Python more than once and use up lots of disk space.
+    (Only the Python executable is copied; the libraries will be symlinked
+    from the systemwide Python.)
+
+    If you don't already have any ``PYTHONPATH`` customization or
+    special distutils configuration, and you can't use either of the preceding
+    approaches, this is probably the best one for you.
+
+`"Traditional" PYTHONPATH-based Installation`_
+    If you already have a custom ``PYTHONPATH``, and/or a custom distutils
+    configuration, and don't want to change any of your existing setup, you may
+    be interested in this approach.  (If you're using a custom ``.pth`` file to
+    point to your custom installation location, however, you should use
+    `Administrator Installation`_ to enable ``.pth`` processing in the custom
+    location instead, as that is easier and more flexible than this approach.)
+
+    This is the least robust and least flexible of the approaches, however, so
+    you should probably at least take a look at the others and consider whether
+    one of them might be an improvement over your current setup.
+
+
+Administrator Installation
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have root access to your machine, you can easily configure it to allow
+each user to have their own directory where Python packages can be installed
+and managed by EasyInstall.
+
+First, create an ``altinstall.pth`` file in Python's ``site-packages``
+directory,  containing the following line (substituting the correct Python
+version)::
+
+    import os, site; site.addsitedir(os.path.expanduser('~/lib/python2.3'))
+
+This will automatically add each user's ``~/lib/python2.X`` directory to
+``sys.path`` (if it exists), *and* it will process any ``.pth`` files in that
+directory -- which is what makes it usable with EasyInstall.
+
+The next step is to create or modify ``distutils.cfg`` in the ``distutils``
+directory of your Python library.  The correct directory will be something like
+``/usr/lib/python2.X/distutils`` on most Posix systems and something like
+``C:\\Python2X\Lib\distutils`` on Windows machines.  Add the following lines
+to the file, substituting the correct Python version if necessary::
+
+    [install]
+    install_lib = ~/lib/python2.3
+
+    # This next line is optional but often quite useful; it directs EasyInstall
+    # and the distutils to install scripts in the user's "bin" directory:
+    install_scripts = ~/bin
+
+    [easy_install]
+    site_dirs = ~/lib/python2.3
+
+This will configure the distutils and EasyInstall to install packages to the
+user's home directory by default, and will tell EasyInstall that Python has
+been configured to accept ``.pth`` files in that directory.
+
+Of course, you aren't limited to using a ``~/lib/python2.X`` directory with
+this approach.  You can substitute a specific systemwide directory if you like.
+You can also edit ``~/.pydistutils.cfg`` (or ``~/pydistutils.cfg`` on Windows)
+instead of changing the master ``distutils.cfg`` file.  The true keys of this
+approach are simply that:
+
+1. any custom installation directory must be added to ``sys.path`` using a
+   ``site.addsitedir()`` call from a working ``.pth`` file or
+   ``sitecustomize.py``.
+
+2. The active distutils configuration file(s) or ``easy_install`` command line
+   should include the custom directory in the ``--site-dirs`` option, so that
+   EasyInstall knows that ``.pth`` files will work in that location.  (This is
+   because Python does not keep track of what directories are or aren't enabled
+   for ``.pth`` processing, in any way that EasyInstall can find out.)
+
+As long as both of these things have been done, your custom installation
+location is good to go.
+
+
+Mac OS X "User" Installation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you are on a Mac OS X machine, you should just use the
-``~/Library/Python2.x/site-packages`` directory (replacing the ``x`` with the
-appropriate number).  Just make sure the directory exists, and use it as your
-installation location for all packages (including EasyInstall itself).  To
-make the distutils install to this personal ``site-packages`` directory by
-default, you should create a ``~/.pydistutils.cfg`` file with the following
-contents::
+``~/Library/Python2.x/site-packages`` directory as your custom installation
+location, because it is already configured to process ``.pth`` files, and
+EasyInstall already knows this.
+
+Before installing EasyInstall/setuptools, just create a ``~/.pydistutils.cfg``
+file with the following contents (or add this to the existing contents)::
 
     [install]
     install_lib = ~/Library/Python$py_version_short/site-packages
 
-This will tell the distutils (and EasyInstall) to always install packages in
-the appropriate personal ``site-packages`` directory.  (Note: do *not* replace
+This will tell the distutils and EasyInstall to always install packages in
+your personal ``site-packages`` directory.  (Note: do *not* replace
 ``$py_version_short`` with an actual Python version in the configuration file!
 The distutils will substitute the correct value at runtime, so that the above
-configuration file will work correctly no matter what Python version you use,
+configuration file should work correctly no matter what Python version you use,
 now or in the future.)
 
-If you are on a Linux, BSD, Cygwin, or other similar Unix-like operating
-system, you have a couple of different options.  You can create a "virtual"
-Python installation, which uses its own library directories and some symlinks
-to the site-wide Python.  Or, you can use a "traditional" ``PYTHONPATH``-based
-installation, which isn't as flexible, but which you may find more familiar,
-especially if you already have a custom ``PYTHONPATH`` set up.
+Once you have done this, you can follow the normal `installation instructions`_
+and use ``easy_install`` without any other special options or steps, unless
+you also want to customize where scripts are installed.  (In which case, you
+can add an ``install_scripts`` line to the above to set the installation
+location.)
 
 
 Creating a "Virtual" Python
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you are on a Linux, BSD, Cygwin, or other similar Unix-like operating
+system, but don't have root access, you can create your own "virtual"
+Python installation, which uses its own library directories and some symlinks
+to the site-wide Python.
 
 In the simplest case, your virtual Python installation will live under the
 ``~/lib/python2.x``, ``~/include/python2.x``, and ``~/bin`` directories.  Just
@@ -772,54 +900,14 @@ system Python.
 
 Note that if you were previously setting a ``PYTHONPATH`` and/or had other
 special configuration options in your ``~/.pydistutils.cfg``, you may need to
-remove these settings *before* running ``virtual-python.py``.  You should
-also make sure that the ``~/bin`` directory (or whatever directory you choose)
-is on your ``PATH``, because that is where EasyInstall will install new Python
-scripts.
+remove these settings *before* running ``virtual-python.py``.  This is because
+your new Python executable will not need *any* custom configuration for the
+distutils or EasyInstall; everything will go to the correct ``~/lib`` and
+``~/bin`` directories automatically.
 
-If you'd prefer to do the installation steps by hand, or just want to know what
-the script will do, here are the steps.  (If you don't care how it works, you
-can just skip the rest of this section.)
-
-First, you will need to know your Python version's ``sys.prefix`` and
-``sys.exec_prefix``, which you can find out by running::
-
-    python -c "import sys; print sys.prefix; print sys.exec_prefix"
-
-(Replace "python" with the right path or version for your platform.)
-
-Assuming your ``sys.prefix`` is ``/usr/local``, and you are working with
-Python 2.4, you need to then perform the following steps (possibly making
-adjustments for the tools available on your platform).  First, you need
-to set up the local library directories, by symlinking to the system Python's
-libraries::
-
-    mkdir -p ~/lib/python2.4
-    ln -s /usr/local/lib/python2.4/* ~/lib/python2.4/
-    rm ~/lib/python2.4/site-packages
-    mkdir ~/lib/python2.4/site-packages
-    ln -s /usr/local/lib/python2.4/site-packages/* ~/lib/python2.4/site-packages
-    mkdir -p ~/include/python2.4
-    ln -s /usr/local/include/python2.4/* ~/include/python2.4
-
-If your ``sys.exec_prefix`` was different from your ``sys.prefix``, you will
-also need to do this::
-
-    ln -s /execprefix/lib/python2.4/* ~/lib/python2.4/
-
-replacing ``execprefix`` in the above with the value of ``sys.exec_prefix``.
-
-Finally, you will also need a private ``python`` executable, e.g.::
-
-    mkdir -p ~/bin
-    ln /usr/local/bin/python2.4 ~/bin/python
-
-Note that if hardlinking as shown doesn't work (e.g. because the system Python
-is on a different filesystem), you should use ``copy -p`` instead of ``ln``.
-Do NOT use a symlink!  The Python binary must be copied or hardlinked,
-otherwise it will use the system ``site-packages`` directory and not yours.
-
-You can now proceed with the standard `installation instructions`_.
+You should, however, also make sure that the ``bin`` subdirectory of your
+installation prefix (e.g. ``~/bin``) is on your ``PATH``, because that is where
+EasyInstall and the distutils will install new Python scripts.
 
 
 "Traditional" ``PYTHONPATH``-based Installation
@@ -827,17 +915,16 @@ You can now proceed with the standard `installation instructions`_.
 
 This installation method is not as robust or as flexible as `creating a
 "virtual" python`_ installation, as it uses various tricks to fool Python into
-processing ``.pth`` files where it normally wouldn't.  We suggest you try the
-virtual Python approach first, as we are providing this method mainly for
-people who just can't get past their unshakeable belief that creating a virtual
-python is somehow "Not Right", or that putting stuff on ``PYTHONPATH`` "Should
-Just Work, Darnit."  So, if you're not one of those people, you don't
-need these instructions.  :-)
+processing ``.pth`` files where it normally wouldn't.  We suggest you at least
+consider using one of the other approaches, as they will generally result in
+a cleaner, more usable Python configuration.  However, if for some reason you
+can't or won't use one of the other approaches, here's how to do it.
 
 Assuming that you want to install packages in a directory called ``~/py-lib``,
 and scripts in ``~/bin``, here's what you need to do:
 
-First, edit ``~/.pydistutils.cfg`` to include these settings::
+First, edit ``~/.pydistutils.cfg`` to include these settings, if you don't
+already have them::
 
     [install]
     install_lib = ~/py-lib
@@ -851,11 +938,13 @@ script.  Then, follow the standard `installation instructions`_, but take
 careful note of the full pathname of the ``.egg`` file that gets installed, so
 that you can add it to your ``PYTHONPATH``, along with ``~/py_lib``.
 
-You *must* add the setuptools egg file to your ``PYTHONPATH`` manually, or it
-will not work, and neither will any other packages you install with
-EasyInstall.  You will not, however, have to manually add any other
-packages to the ``PYTHONPATH``; EasyInstall will take care of them for you, as
-long as the setuptools egg is explicitly listed in ``PYTHONPATH``.
+You *must* add the setuptools egg file *and* ``~/py_lib`` to your
+``PYTHONPATH`` environment variable manually, or it will not work, and neither
+will any other packages you install with EasyInstall.  You will not, however,
+have to manually add any other packages to the ``PYTHONPATH``; EasyInstall will
+take care of them for you by automatically editing
+``~/py-lib/easy-install.pth``, as long as the setuptools egg is explicitly
+listed in ``PYTHONPATH``.
 
 
 Release Notes/Change History

@@ -69,6 +69,8 @@ is available from the `Python SVN sandbox`_.
 
 .. contents:: **Table of Contents**
 
+.. _ez_setup.py: `bootstrap module`_
+
 
 -----------------
 Developer's Guide
@@ -78,50 +80,22 @@ Developer's Guide
 Installing ``setuptools``
 =========================
 
-If you are behind an NTLM-based firewall that prevents Python programs from
-accessing the net directly, you may wish to first install and use the `APS
-proxy server <http://ntlmaps.sf.net/>`_, which lets you get past such firewalls
-in the same way that your web browser(s) do.
+Please follow the `EasyInstall Installation Instructions`_ to install the
+current stable version of setuptools.  In particular, be sure to read the
+section on `Custom Installation Locations`_ if you are installing anywhere
+other than Python's ``site-packages`` directory.
 
-If you do not have write access to your computer's ``site-packages`` directory,
-please also see the EasyInstall documentation on `Non-Root Installation`_ for
-more detailed instructions on pre-configuring your system for the best
-usability with setuptools and EasyInstall, then return here for the remaining
-steps.
+.. _EasyInstall Installation Instructions: http://peak.telecommunity.com/DevCenter/EasyInstall#installation-instructions
 
-.. _Non-Root Installation: http://peak.telecommunity.com/DevCenter/EasyInstall#non-root-installation
+.. _Custom Installation Locations: http://peak.telecommunity.com/DevCenter/EasyInstall#custom-installation-locations
 
-To install setuptools, first download `ez_setup.py`_ and run it; this will
-automatically download and install the appropriate egg for your Python version.
-(You will need at least Python 2.3.5, or if you are on a 64-bit platform,
-Python 2.4.)
-
-.. _ez_setup.py: `bootstrap module`_
-
-You may receive a message telling you about an obsolete version of
-setuptools being present; if so, you must be sure to delete it entirely, along
-with the old ``pkg_resources`` module if it's present on ``sys.path``.
-
-To get the in-development version of setuptools, first install a stable version
-using the instructions above.  Then run::
+If you want the current in-development version of setuptools, you should first
+install a stable version, and then run::
 
     ez_setup.py setuptools==dev
 
 This will download and install the latest development (i.e. unstable) version
 of setuptools from the Python Subversion sandbox.
-
-(Note that ``setuptools`` *must* be installed as an egg directory; it will not
-operate correctly otherwise.  If you are unable to install to a valid
-``site-packages`` directory (e.g. a "non-root install" that doesn't conform
-to the `Non-Root Installation`_ procedure), you will therefore need to manually
-add the setuptools egg to your ``PYTHONPATH``.  You won't need to do this for
-every egg you install, because the ``pkg_resources`` module can automatically
-find eggs and add them to ``sys.path`` at runtime.  It's just that the
-``setuptools`` egg contains the ``pkg_resources`` runtime, and therefore has to
-be manually bootstrapped if you can't install it to a valid ``site-packages``
-directory.  However, if you are installing as root or you followed the
-`Non-Root Installation`_ procedure, you shouldn't have to worry about any of
-this.)
 
 
 Basic Use
@@ -1017,6 +991,10 @@ do that.  Or you can do it all in one step, e.g. ``setup.py register sdist
 bdist_egg upload`` will register the package, build source and egg
 distributions, and then upload them both to PyPI, where they'll be easily
 found by other projects that depend on them.
+
+(By the way, if you need to distribute a specific version of ``setuptools``,
+you can specify the exact version and base download URL as parameters to the
+``use_setuptools()`` function.  See the function's docstring for details.)
 
 
 Managing Multiple Projects
