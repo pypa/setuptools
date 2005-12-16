@@ -37,20 +37,50 @@ class install(_install):
                     " packages"
                 )
 
+
+
     def handle_extra_path(self):
         # We always ignore extra_path, because we install as .egg or .egg-info
         self.path_file = None
         self.extra_dirs = ''
 
     def run(self):
-        if (self.old_and_unmanageable or self.single_version_externally_managed
-           or sys._getframe(1).f_globals.get('__name__','') != 'distutils.dist'
-        ):
-            # Either we were asked for the old behavior, or we're not being
-            # run from the command line.  This is a bit kludgy, because a
-            # command might use dist.run_command() to run 'install', but
-            # bdist_dumb and bdist_wininst both call run() directly right now.
+        # Explicit request for old-style install?  Just do it
+        if self.old_and_unmanageable or self.single_version_externally_managed:
             return _install.run(self)
+
+        # Attempt to detect whether we were called from setup() or by another
+        # command.  If we were called by setup(), our caller will be the
+        # 'run_command' method in 'distutils.dist', and *its* caller will be
+        # the 'run_commands' method.  If we were called any other way, our
+        # immediate caller *might* be 'run_command', but it won't have been
+        # called by 'run_commands'.  This is slightly kludgy, but seems to
+        # work.
+        #
+        caller = sys._getframe(2)
+        caller_module = caller.f_globals.get('__name__','')
+        caller_name = caller.f_code.co_name
+        
+        if caller_module != 'distutils.dist' or caller_name!='run_commands':
+            # We weren't called from the command line or setup(), so we
+            # should run in backward-compatibility mode to support bdist_*
+            # commands.
+            _install.run(self)
+        else:
+            self.do_egg_install()
+            
+
+
+
+
+
+
+
+
+
+
+
+    def do_egg_install(self):
 
         from setuptools.command.easy_install import easy_install
 
@@ -70,6 +100,14 @@ class install(_install):
         cmd.args = args
         cmd.run()
         setuptools.bootstrap_install_from = None
+
+
+
+
+
+
+
+
 
 
 
