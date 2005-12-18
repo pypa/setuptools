@@ -757,7 +757,7 @@ free to choose which one best suits your system and needs.
 
 `Mac OS X "User" Installation`_
     This approach produces a result similar to an administrator installation
-    that gives each user their own private package directory, but on Mac OS
+    that gives each user their own private package directory, but on Mac OS X
     the hard part has already been done for you.  This is probably the best
     approach for Mac OS X users.
 
@@ -814,7 +814,11 @@ to the file, substituting the correct Python version if necessary::
     install_lib = ~/lib/python2.3
 
     # This next line is optional but often quite useful; it directs EasyInstall
-    # and the distutils to install scripts in the user's "bin" directory:
+    # and the distutils to install scripts in the user's "bin" directory.  For
+    # Mac OS X framework Python builds, you should use /usr/local/bin instead,
+    # because neither ~/bin nor the default script installation location are on
+    # the system PATH.
+    #
     install_scripts = ~/bin
 
     [easy_install]
@@ -857,19 +861,22 @@ file with the following contents (or add this to the existing contents)::
 
     [install]
     install_lib = ~/Library/Python$py_version_short/site-packages
+    install_scripts = ~/bin
 
 This will tell the distutils and EasyInstall to always install packages in
-your personal ``site-packages`` directory.  (Note: do *not* replace
-``$py_version_short`` with an actual Python version in the configuration file!
-The distutils will substitute the correct value at runtime, so that the above
-configuration file should work correctly no matter what Python version you use,
-now or in the future.)
+your personal ``site-packages`` directory, and scripts to ``~/bin``.  (Note: do
+*not* replace ``$py_version_short`` with an actual Python version in the
+configuration file!  The distutils will substitute the correct value at
+runtime, so that the above configuration file should work correctly no matter
+what Python version you use, now or in the future.)
 
 Once you have done this, you can follow the normal `installation instructions`_
-and use ``easy_install`` without any other special options or steps, unless
-you also want to customize where scripts are installed.  (In which case, you
-can add an ``install_scripts`` line to the above to set the installation
-location.)
+and use ``easy_install`` without any other special options or steps.
+
+(Note, however, that ``~/bin`` is not in the default ``PATH``, so you may have
+to refer to scripts by their full location.  You may want to modify your shell
+startup script (likely ``.bashrc`` or ``.profile``) or your
+``~/.MacOSX/environment.plist`` to include ``~/bin`` in your ``PATH``.
 
 
 Creating a "Virtual" Python
