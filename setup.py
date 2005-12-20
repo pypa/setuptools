@@ -40,7 +40,7 @@ setup(
     test_suite = 'setuptools.tests.test_suite',
     
     packages = find_packages(),
-    package_data = {'setuptools':'*.exe'},
+    package_data = {'setuptools':['*.exe']},
     py_modules = ['pkg_resources', 'easy_install', 'site'],
 
     zip_safe = False,   # We want 'python -m easy_install' to work, for now :(
