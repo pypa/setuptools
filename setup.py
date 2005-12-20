@@ -15,10 +15,13 @@ def get_description():
     f.close()
     return ''.join(lines)
 
+from distutils.util import convert_path
+d = {}; execfile(convert_path('setuptools/command/__init__.py'), d)
+SETUP_COMMANDS = d['__all__']
+
 VERSION = "0.6a9"
 from setuptools import setup, find_packages
 import sys
-from setuptools.command import __all__ as SETUP_COMMANDS
 scripts = []
 if sys.platform != "win32":
     scripts = ["easy_install.py"]   # for backward compatibility only
@@ -35,8 +38,9 @@ setup(
     keywords = "CPAN PyPI distutils eggs package management",
     url = "http://peak.telecommunity.com/DevCenter/setuptools",
     test_suite = 'setuptools.tests.test_suite',
+    
     packages = find_packages(),
-    include_package_data = True,
+    package_data = {'setuptools':'*.exe'},
     py_modules = ['pkg_resources', 'easy_install', 'site'],
 
     zip_safe = False,   # We want 'python -m easy_install' to work, for now :(
@@ -71,10 +75,6 @@ setup(
         "console_scripts":
             ["easy_install = setuptools.command.easy_install:main"],
     },
-
-
-
-
 
 
 
