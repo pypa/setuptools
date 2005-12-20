@@ -5,14 +5,15 @@ from pkg_resources import Distribution, PathMetadata, ensure_directory
 import os
 from distutils import log
 
-
 class install_scripts(_install_scripts):
     """Do normal script install, plus any egg_info wrapper scripts"""
 
     def run(self):
         self.run_command("egg_info")
-        _install_scripts.run(self)  # run first to set up self.outfiles
-
+        if self.distribution.scripts:
+            _install_scripts.run(self)  # run first to set up self.outfiles
+        else:
+            self.outfiles = []
         ei_cmd = self.get_finalized_command("egg_info")       
         dist = Distribution(
             ei_cmd.egg_base, PathMetadata(ei_cmd.egg_base, ei_cmd.egg_info),
