@@ -1,6 +1,6 @@
 from distutils.command.install_scripts import install_scripts \
      as _install_scripts
-from easy_install import get_script_args
+from easy_install import get_script_args, sys_executable
 from pkg_resources import Distribution, PathMetadata, ensure_directory
 import os
 from distutils import log
@@ -19,12 +19,12 @@ class install_scripts(_install_scripts):
             ei_cmd.egg_base, PathMetadata(ei_cmd.egg_base, ei_cmd.egg_info),
             ei_cmd.egg_name, ei_cmd.egg_version,
         )
-        for args in get_script_args(dist):
-            self.write_script(*args)
+        bs_cmd = self.get_finalized_command('build_scripts')
+        executable = getattr(bs_cmd,'executable',sys_executable)
+        for args in get_script_args(dist, executable): self.write_script(*args)
 
     def write_script(self, script_name, contents, mode="t", *ignored):
         """Write an executable file to the scripts directory"""
-
         log.info("Installing %s script to %s", script_name, self.install_dir)
         target = os.path.join(self.install_dir, script_name)
         self.outfiles.append(target)

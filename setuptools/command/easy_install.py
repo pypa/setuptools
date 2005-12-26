@@ -9,7 +9,6 @@ file, or visit the `EasyInstall home page`__.
 
 __ http://peak.telecommunity.com/DevCenter/EasyInstall
 """
-
 import sys, os.path, zipimport, shutil, tempfile, zipfile, re, stat
 from glob import glob
 from setuptools import Command
@@ -23,6 +22,7 @@ from setuptools.package_index import PackageIndex, parse_bdist_wininst
 from setuptools.package_index import URL_SCHEME
 from setuptools.command import bdist_egg, egg_info
 from pkg_resources import *
+sys_executable = os.path.normpath(sys.executable)
 
 __all__ = [
     'samefile', 'easy_install', 'PthDistributions', 'extract_wininst_cfg',
@@ -1118,7 +1118,7 @@ class PthDistributions(Environment):
         Environment.remove(self,dist)
 
 
-def get_script_header(script_text):
+def get_script_header(script_text, executable=sys_executable):
     """Create a #! line, getting options (if any) from script_text"""
     from distutils.command.build_scripts import first_line_re
     first, rest = (script_text+'\n').split('\n',1)
@@ -1129,7 +1129,6 @@ def get_script_header(script_text):
         options = match.group(1) or ''
         if options:
             options = ' '+options
-    executable = os.path.normpath(sys.executable)
     return "#!%(executable)s%(options)s\n" % locals()
 
 def main(argv=None, **kw):
@@ -1146,10 +1145,11 @@ def auto_chmod(func, arg, exc):
     exc = sys.exc_info()
     raise exc[0], (exc[1][0], exc[1][1] + (" %s %s" % (func,arg)))
 
-def get_script_args(dist):
+
+def get_script_args(dist, executable=sys_executable):
     """Yield write_script() argument tuples for a distribution's entrypoints"""
     spec = str(dist.as_requirement())
-    header = get_script_header("")
+    header = get_script_header("", executable)
     for group in 'console_scripts', 'gui_scripts':
         for name,ep in dist.get_entry_map(group).items():
             script_text = (
