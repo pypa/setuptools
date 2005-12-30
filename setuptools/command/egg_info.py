@@ -58,7 +58,7 @@ class egg_info(Command):
             self.egg_base = (dirs or {}).get('',os.curdir)
 
         self.ensure_dirname('egg_base')
-        self.egg_info = self.egg_name+'.egg-info'
+        self.egg_info = self.egg_name.replace('-','_')+'.egg-info'
         if self.egg_base != os.curdir:
             self.egg_info = os.path.join(self.egg_base, self.egg_info)
 
