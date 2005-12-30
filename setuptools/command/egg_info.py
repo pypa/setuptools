@@ -37,7 +37,7 @@ class egg_info(Command):
         self.tag_build = None
         self.tag_svn_revision = 0
         self.tag_date = 0
-
+        self.broken_egg_info = False
 
     def finalize_options (self):
         self.egg_name = safe_name(self.distribution.get_name())
@@ -61,6 +61,7 @@ class egg_info(Command):
         self.egg_info = self.egg_name.replace('-','_')+'.egg-info'
         if self.egg_base != os.curdir:
             self.egg_info = os.path.join(self.egg_base, self.egg_info)
+        if '-' in self.egg_name: self.check_broken_egg_info()
 
         # Set package version for the benefit of dumber commands
         # (e.g. sdist, bdist_wininst, etc.)
@@ -76,7 +77,6 @@ class egg_info(Command):
             pd._version = self.egg_version
             pd._parsed_version = parse_version(self.egg_version)
             self.distribution._patched_dist = None
-
 
 
 
@@ -170,6 +170,20 @@ class egg_info(Command):
         mm.run()
         self.filelist = mm.filelist
 
+    def check_broken_egg_info(self):
+        bei = self.egg_name+'.egg-info'
+        if self.egg_base != os.curdir:
+            bei = os.path.join(self.egg_base, bei)
+        if os.path.exists(bei):
+            log.warn(
+                "-"*78+'\n'
+                "Note: Your current .egg-info directory has a '-' in its name;"
+                '\nthis will not work correctly with "setup.py develop".\n\n'
+                'Please rename %s to %s to correct this problem.\n'+'-'*78,
+                bei, self.egg_info
+            )
+            self.broken_egg_info = self.egg_info
+            self.egg_info = bei     # make it work for now
 
 class FileList(FileList):
     """File list that accepts only existing, platform-independent paths"""
@@ -190,23 +204,10 @@ class FileList(FileList):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 class manifest_maker(sdist):
 
     template = "MANIFEST.in"
-    
+
     def initialize_options (self):
         self.use_defaults = 1
         self.prune = 1
@@ -300,7 +301,7 @@ def write_pkg_info(cmd, basename, filename):
 
         safe = getattr(cmd.distribution,'zip_safe',None)
         import bdist_egg; bdist_egg.write_safety_flag(cmd.egg_info, safe)
-    
+
 def warn_depends_obsolete(cmd, basename, filename):
     if os.path.exists(filename):
         log.warn(

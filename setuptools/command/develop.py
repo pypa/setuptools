@@ -2,6 +2,7 @@ from setuptools.command.easy_install import easy_install
 from distutils.util import convert_path
 from pkg_resources import Distribution, PathMetadata, normalize_path
 from distutils import log
+from distutils.errors import *
 import sys, os
 
 class develop(easy_install):
@@ -38,11 +39,14 @@ class develop(easy_install):
 
 
 
-
     def finalize_options(self):
         ei = self.get_finalized_command("egg_info")
-        self.args = [ei.egg_name]
-        
+        if ei.broken_egg_info:
+            raise DistutilsError(
+            "Please rename %r to %r before using 'develop'"
+            % (ei.egg_info, ei.broken_egg_info)
+            )
+        self.args = [ei.egg_name]       
         easy_install.finalize_options(self)
         self.egg_link = os.path.join(self.install_dir, ei.egg_name+'.egg-link')
         self.egg_base = ei.egg_base
@@ -73,10 +77,6 @@ class develop(easy_install):
         # postprocess the installed distro, fixing up .pth, installing scripts,
         # and handling requirements
         self.process_distribution(None, self.dist)
-
-
-
-
 
 
 
