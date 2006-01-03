@@ -98,9 +98,10 @@ you can just type ``easy_install`` as long as it's on your ``PATH``.  If typing
 most current versions of Windows, you can change the ``PATH`` by right-clicking
 "My Computer", choosing "Properties" and selecting the "Advanced" tab, then
 clicking the "Environment Variables" button.  ``PATH`` will be in the "System
-Variables" section, and you will probably need to reboot for the change to take
-effect.  Be sure to add a ``;`` after the last item on ``PATH`` before adding
-the scripts directory to it.
+Variables" section, and you will need to exit and restart your command shell
+(command.com, cmd.exe, bash, or other) for the change to take effect.  Be sure
+to add a ``;`` after the last item on ``PATH`` before adding the scripts
+directory to it.
 
 Note that instead of changing your ``PATH`` to include the Python scripts
 directory, you can also retarget the installation location for scripts so they
