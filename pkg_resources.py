@@ -2049,9 +2049,9 @@ def _sort_dists(dists):
 
 
 class Requirement:
-    def __init__(self, project_name, specs=(), extras=()):
-        self.project_name = project_name
-        self.key = project_name.lower()
+    def __init__(self, project_name, specs, extras):
+        """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
+        self.project_name, self.key = project_name, project_name.lower()
         index = [(parse_version(v),state_machine[op],op,v) for op,v in specs]
         index.sort()
         self.specs = [(op,ver) for parsed,trans,op,ver in index]
