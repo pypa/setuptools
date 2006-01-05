@@ -1,9 +1,7 @@
 __all__ = ['Distribution', 'Feature']
 
 from distutils.core import Distribution as _Distribution
-from distutils.core import Extension
 from setuptools.depends import Require
-from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
 from setuptools.command.sdist import sdist
 from setuptools.command.install_lib import install_lib
@@ -29,6 +27,8 @@ def _get_unpatched(cls):
 _Distribution = _get_unpatched(_Distribution)
 
 sequence = tuple, list
+
+
 
 
 
