@@ -52,9 +52,7 @@ class build_ext(_build_ext):
         for ext in self.shlibs:
             if self.get_ext_fullname(ext.name)==fullname:
                 fn, ext = os.path.splitext(filename)
-                fn = self.shlib_compiler.library_filename(fn,'shared')
-                print "shlib",fn
-                return fn
+                return self.shlib_compiler.library_filename(fn,'shared')
         return filename
 
     def initialize_options(self):
@@ -78,6 +76,8 @@ class build_ext(_build_ext):
             _build_ext.build_extension(self,ext)
         finally:
             self.compiler = _compiler
+
+
 
 
     def setup_shlib_compiler(self):
