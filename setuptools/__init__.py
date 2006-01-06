@@ -1,5 +1,5 @@
 """Extensions to the 'distutils' for large or complex distributions"""
-from setuptools.extension import Extension, SharedLibrary
+from setuptools.extension import Extension, Library
 from setuptools.dist import Distribution, Feature, _get_unpatched
 import distutils.core, setuptools.command
 from setuptools.depends import Require

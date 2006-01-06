@@ -7,7 +7,7 @@ except ImportError:
 
 import os, sys
 from distutils.file_util import copy_file
-from setuptools.extension import SharedLibrary
+from setuptools.extension import Library
 from distutils.ccompiler import new_compiler
 from distutils.sysconfig import customize_compiler
 
@@ -52,7 +52,7 @@ class build_ext(_build_ext):
         for ext in self.shlibs:
             if self.get_ext_fullname(ext.name)==fullname:
                 fn, ext = os.path.splitext(filename)
-                return self.shlib_compiler.library_filename(fn,'shared')
+                return self.shlib_compiler.library_filename(fn,libtype)
         return filename
 
     def initialize_options(self):
@@ -63,7 +63,7 @@ class build_ext(_build_ext):
     def finalize_options(self):
         _build_ext.finalize_options(self)
         self.shlibs = [ext for ext in self.extensions or ()
-                        if isinstance(ext,SharedLibrary)]
+                        if isinstance(ext,Library)]
         if self.shlibs:
             self.setup_shlib_compiler()
             self.library_dirs.append(self.build_lib)
@@ -71,7 +71,7 @@ class build_ext(_build_ext):
     def build_extension(self, ext):
         _compiler = self.compiler
         try:
-            if isinstance(ext,SharedLibrary):
+            if isinstance(ext,Library):
                 self.compiler = self.shlib_compiler
             _build_ext.build_extension(self,ext)
         finally:
@@ -107,22 +107,11 @@ class build_ext(_build_ext):
         if self.link_objects is not None:
             compiler.set_link_objects(self.link_objects)
 
-        # hack so distutils' build_extension() builds a shared lib instead
-        #
-        def link_shared_object(self, objects, output_libname, output_dir=None,
-            libraries=None, library_dirs=None, runtime_library_dirs=None,
-            export_symbols=None, debug=0, extra_preargs=None,
-            extra_postargs=None, build_temp=None, target_lang=None
-        ):  self.link(
-                self.SHARED_LIBRARY, objects, output_libname,
-                output_dir, libraries, library_dirs, runtime_library_dirs,
-                export_symbols, debug, extra_preargs, extra_postargs,
-                build_temp, target_lang
-            )
+        # hack so distutils' build_extension() builds a library instead
         compiler.link_shared_object = link_shared_object.__get__(compiler)
 
     def get_export_symbols(self, ext):
-        if isinstance(ext,SharedLibrary):
+        if isinstance(ext,Library):
             return ext.export_symbols
         return _build_ext.get_export_symbols(self,ext)
         
@@ -132,33 +121,44 @@ class build_ext(_build_ext):
 
 
 
+if os.name=='nt':
+    # Build shared libraries on Windows
+    libtype = 'shared'
+    def link_shared_object(self, objects, output_libname, output_dir=None,
+        libraries=None, library_dirs=None, runtime_library_dirs=None,
+        export_symbols=None, debug=0, extra_preargs=None,
+        extra_postargs=None, build_temp=None, target_lang=None
+    ):  self.link(
+            self.SHARED_LIBRARY, objects, output_libname,
+            output_dir, libraries, library_dirs, runtime_library_dirs,
+            export_symbols, debug, extra_preargs, extra_postargs,
+            build_temp, target_lang
+        )
+else:
+    # Build static libraries everywhere else
+    libtype = 'static'
+    def link_shared_object(self, objects, output_libname, output_dir=None,
+        libraries=None, library_dirs=None, runtime_library_dirs=None,
+        export_symbols=None, debug=0, extra_preargs=None,
+        extra_postargs=None, build_temp=None, target_lang=None
+    ):
+        # XXX we need to either disallow these attrs on Library instances,
+        #     or warn/abort here if set, or something...
+        #libraries=None, library_dirs=None, runtime_library_dirs=None,
+        #export_symbols=None, extra_preargs=None, extra_postargs=None,
+        #build_temp=None
 
+        assert output_dir is None   # distutils build_ext doesn't pass this       
+        output_dir,filename = os.path.split(output_libname)
+        basename, ext = os.path.splitext(filename)
+        if self.library_filename("x").startswith('lib'):
+            # strip 'lib' prefix; this is kludgy if some platform uses
+            # a different prefix
+            basename = basename[3:] 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        self.create_static_lib(
+            objects, basename, output_dir, debug, target_lang
+        )
 
 
 

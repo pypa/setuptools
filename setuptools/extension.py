@@ -25,8 +25,8 @@ class Extension(_Extension):
                     sources.append(s)
             self.sources = sources
 
-class SharedLibrary(Extension):
-    """Just like a regular Extension, but built as a shared library instead"""
+class Library(Extension):
+    """Just like a regular Extension, but built as a library instead"""
 
 import sys, distutils.core, distutils.extension
 distutils.core.Extension = Extension
