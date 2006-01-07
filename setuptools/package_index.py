@@ -245,12 +245,16 @@ class PackageIndex(Environment):
 
 
     def find_packages(self, requirement):
-        self.scan_url(self.index_url + requirement.project_name+'/')
+        self.scan_url(self.index_url + requirement.unsafe_name+'/')
+        if not self.package_pages.get(requirement.key):
+            # Fall back to safe version of the name
+            self.scan_url(self.index_url + requirement.project_name+'/')
+
         if not self.package_pages.get(requirement.key):
             # We couldn't find the target package, so search the index page too
             self.warn(
                 "Couldn't find index page for %r (maybe misspelled?)",
-                requirement.project_name
+                requirement.unsafe_name
             )
             if self.index_url not in self.fetched_urls:
                 self.warn(
@@ -280,10 +284,6 @@ class PackageIndex(Environment):
                     "MD5 validation failed for "+os.path.basename(filename)+
                     "; possible download problem?"
                 )
-
-
-
-
 
     def download(self, spec, tmpdir):
         """Locate and/or download `spec` to `tmpdir`, returning a local path

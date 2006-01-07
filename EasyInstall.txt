@@ -962,6 +962,12 @@ Known Issues
  * There's no automatic retry for borked Sourceforge mirrors, which can easily
    time out or be missing a file.
 
+0.6a10
+ * PyPI searches now use the exact spelling of requirements specified on the
+   command line or in a project's ``install_requires``.  Previously, a
+   normalized form of the name was used, which could lead to unnecessary
+   full-index searches when a project's name had an underscore (``_``) in it.
+
 0.6a9
 
  * Fixed ``.pth`` file processing picking up nested eggs (i.e. ones inside

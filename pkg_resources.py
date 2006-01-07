@@ -1529,8 +1529,8 @@ def yield_lines(strs):
 
 LINE_END = re.compile(r"\s*(#.*)?$").match         # whitespace and comment
 CONTINUE = re.compile(r"\s*\\\s*(#.*)?$").match    # line continuation
-DISTRO   = re.compile(r"\s*(\w+)").match           # Distribution or option
-VERSION  = re.compile(r"\s*(<=?|>=?|==|!=)\s*((\w|\.)+)").match  # version info
+DISTRO   = re.compile(r"\s*((\w|-)+)").match       # Distribution or option
+VERSION  = re.compile(r"\s*(<=?|>=?|==|!=)\s*((\w|[-.])+)").match  # ver. info
 COMMA    = re.compile(r"\s*,").match               # comma between items
 OBRACKET = re.compile(r"\s*\[").match
 CBRACKET = re.compile(r"\s*\]").match
@@ -1982,7 +1982,7 @@ def parse_requirements(strs):
         while not TERMINATOR(line,p):
             if CONTINUE(line,p):
                 try:
-                    line = lines.next().replace('-','_'); p = 0
+                    line = lines.next(); p = 0
                 except StopIteration:
                     raise ValueError(
                         "\\ must not appear on the last nonblank line"
@@ -2008,7 +2008,6 @@ def parse_requirements(strs):
         return line, p, items
 
     for line in lines:
-        line = line.replace('-','_')
         match = DISTRO(line)
         if not match:
             raise ValueError("Missing distribution spec", line)
@@ -2024,8 +2023,8 @@ def parse_requirements(strs):
             )
 
         line, p, specs = scan_list(VERSION,LINE_END,line,p,(1,2),"version spec")
-        specs = [(op,val.replace('_','-')) for op,val in specs]
-        yield Requirement(project_name.replace('_','-'), specs, extras)
+        specs = [(op,safe_version(val)) for op,val in specs]
+        yield Requirement(project_name, specs, extras)
 
 
 def _sort_dists(dists):
@@ -2048,9 +2047,11 @@ def _sort_dists(dists):
 
 
 
+
 class Requirement:
     def __init__(self, project_name, specs, extras):
         """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
+        self.unsafe_name, project_name = project_name, safe_name(project_name)
         self.project_name, self.key = project_name, project_name.lower()
         index = [(parse_version(v),state_machine[op],op,v) for op,v in specs]
         index.sort()
@@ -2067,8 +2068,6 @@ class Requirement:
         extras = ','.join(self.extras)
         if extras: extras = '[%s]' % extras
         return '%s%s%s' % (self.project_name, extras, specs)
-
-    def __repr__(self): return "Requirement.parse(%r)" % str(self)
 
     def __eq__(self,other):
         return isinstance(other,Requirement) and self.hashCmp==other.hashCmp
@@ -2089,8 +2088,11 @@ class Requirement:
         if last is None: last = True    # no rules encountered
         return last
 
+
     def __hash__(self):
         return self.__hash
+
+    def __repr__(self): return "Requirement.parse(%r)" % str(self)
 
     #@staticmethod
     def parse(s):
@@ -2102,7 +2104,6 @@ class Requirement:
         raise ValueError("No requirements found", s)
 
     parse = staticmethod(parse)
-
 
 state_machine = {
     #       =><
@@ -2121,7 +2122,6 @@ def _get_mro(cls):
         class cls(cls,object): pass
         return cls.__mro__[1:]
     return cls.__mro__
-
 
 def _find_adapter(registry, ob):
     """Return an adapter factory for `ob` from `registry`"""
