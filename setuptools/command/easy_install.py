@@ -499,7 +499,7 @@ class easy_install(Command):
 
         # Anything else, try to extract and build
         setup_base = tmpdir
-        if os.path.isfile(dist_filename):
+        if os.path.isfile(dist_filename) and not dist_filename.endswith('.py'):
             unpack_archive(dist_filename, tmpdir, self.unpack_progress)
         elif os.path.isdir(dist_filename):
             setup_base = os.path.abspath(dist_filename)

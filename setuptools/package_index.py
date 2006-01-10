@@ -1,6 +1,6 @@
 """PyPI and direct package downloading"""
 
-import sys, os.path, re, urlparse, urllib2
+import sys, os.path, re, urlparse, urllib2, shutil
 from pkg_resources import *
 from distutils import log
 from distutils.errors import DistutilsError
@@ -39,12 +39,15 @@ def parse_bdist_wininst(name):
 
     return base,py_ver
 
-def distros_for_url(url, metadata=None):
-    """Yield egg or source distribution objects that might be found at a URL"""
-
+def egg_info_for_url(url):
     scheme, server, path, parameters, query, fragment = urlparse.urlparse(url)
     base = urllib2.unquote(path.split('/')[-1])
     if '#' in base: base, fragment = base.split('#',1)
+    return base,fragment
+
+def distros_for_url(url, metadata=None):
+    """Yield egg or source distribution objects that might be found at a URL"""
+    base, fragment = egg_info_for_url(url)
     dists = distros_for_location(url, base, metadata)
     if fragment and not dists:
         match = EGG_FRAGMENT.match(fragment)
@@ -54,12 +57,10 @@ def distros_for_url(url, metadata=None):
             )
     return dists
 
-
 def distros_for_location(location, basename, metadata=None):
     """Yield egg or source distribution objects based on basename"""
     if basename.endswith('.egg.zip'):
         basename = basename[:-4]    # strip the .zip
-
     if basename.endswith('.egg'):   # only one, unambiguous interpretation
         return [Distribution.from_location(location, basename, metadata)]
 
@@ -76,7 +77,6 @@ def distros_for_location(location, basename, metadata=None):
         if basename.endswith(ext):
             basename = basename[:-len(ext)]
             return interpret_distro_name(location, basename, metadata)
-
     return []  # no extension matched
 
 
@@ -205,7 +205,6 @@ class PackageIndex(Environment):
 
     def process_index(self,url,page):
         """Process the contents of a PyPI page"""
-
         def scan(link):
             # Process a URL to see if it's for a package page
             if link.startswith(self.index_url):
@@ -217,14 +216,15 @@ class PackageIndex(Environment):
                     pkg = safe_name(parts[0])
                     ver = safe_version(parts[1])
                     self.package_pages.setdefault(pkg.lower(),{})[link] = True
+                    return to_filename(pkg), to_filename(ver)
+            return None, None
 
         if url==self.index_url or 'Index of Packages</title>' in page:
             # process an index page into the package-page index
             for match in HREF.finditer(page):
                 scan( urlparse.urljoin(url, match.group(1)) )
-
         else:
-            scan(url)   # ensure this page is in the page index
+            pkg,ver = scan(url)   # ensure this page is in the page index
             # process individual package page
             for tag in ("<th>Home Page", "<th>Download URL"):
                 pos = page.find(tag)
@@ -232,35 +232,44 @@ class PackageIndex(Environment):
                     match = HREF.search(page,pos)
                     if match:
                         # Process the found URL
-                        self.scan_url(urlparse.urljoin(url, match.group(1)))
-
+                        new_url = urlparse.urljoin(url, match.group(1))
+                        base, frag = egg_info_for_url(new_url)
+                        if base.endswith('.py') and not frag:
+                            if pkg and ver:
+                                new_url+='#egg=%s-%s' % (pkg,ver)
+                            else:
+                                self.need_version_info(url)
+                        self.scan_url(new_url)
         return PYPI_MD5.sub(
             lambda m: '<a href="%s#md5=%s">%s</a>' % m.group(1,3,2), page
         )
 
+    def need_version_info(self, url):
+        self.scan_all(
+            "Page at %s links to .py file(s) without version info; an index "
+            "scan is required.", url
+        )
 
-
-
-
-
+    def scan_all(self, msg, *args):
+        if self.index_url not in self.fetched_urls:
+            if msg: self.warn(msg,*args)
+            self.warn(
+                "Scanning index of all packages (this may take a while)"
+            )
+        self.scan_url(self.index_url)
 
     def find_packages(self, requirement):
         self.scan_url(self.index_url + requirement.unsafe_name+'/')
         if not self.package_pages.get(requirement.key):
             # Fall back to safe version of the name
             self.scan_url(self.index_url + requirement.project_name+'/')
-
         if not self.package_pages.get(requirement.key):
             # We couldn't find the target package, so search the index page too
             self.warn(
                 "Couldn't find index page for %r (maybe misspelled?)",
                 requirement.unsafe_name
             )
-            if self.index_url not in self.fetched_urls:
-                self.warn(
-                    "Scanning index of all packages (this may take a while)"
-                )
-            self.scan_url(self.index_url)
+            self.scan_all()
 
         for url in self.package_pages.get(requirement.key,()):
             # scan each page that might be related to the desired package
@@ -273,6 +282,8 @@ class PackageIndex(Environment):
                 return dist
             self.debug("%s does not match %s", requirement, dist)
         return super(PackageIndex, self).obtain(requirement,installer)
+
+
 
     def check_md5(self, cs, info, filename, tfp):
         if re.match('md5=[0-9a-f]{32}$', info):
@@ -290,7 +301,10 @@ class PackageIndex(Environment):
 
         `spec` may be a ``Requirement`` object, or a string containing a URL,
         an existing local filename, or a project/version requirement spec
-        (i.e. the string form of a ``Requirement`` object).
+        (i.e. the string form of a ``Requirement`` object).  If it is the URL
+        of a .py file with an unambiguous ``#egg=name-version`` tag (i.e., one
+        that escapes ``-`` as ``_`` throughout), a trivial ``setup.py`` is
+        automatically created alongside the downloaded file.
 
         If `spec` is a ``Requirement`` object or a string containing a
         project/version requirement spec, this method is equivalent to
@@ -304,8 +318,11 @@ class PackageIndex(Environment):
             scheme = URL_SCHEME(spec)
             if scheme:
                 # It's a url, download it to tmpdir
-                return self._download_url(scheme.group(1), spec, tmpdir)
-
+                found = self._download_url(scheme.group(1), spec, tmpdir)
+                base, fragment = egg_info_for_url(spec)
+                if base.endswith('.py'):
+                    found = self.gen_setup(found,fragment,tmpdir)
+                return found
             elif os.path.exists(spec):
                 # Existing file or directory, just return it
                 return spec
@@ -317,13 +334,7 @@ class PackageIndex(Environment):
                         "Not a URL, existing file, or requirement spec: %r" %
                         (spec,)
                     )
-
         return self.fetch(spec, tmpdir)
-
-
-
-
-
 
 
     def fetch(self, requirement, tmpdir, force_scan=False, source=False):
@@ -367,6 +378,47 @@ class PackageIndex(Environment):
         return dist
 
 
+    def gen_setup(self, filename, fragment, tmpdir):
+        match = EGG_FRAGMENT.match(fragment); #import pdb; pdb.set_trace()
+        dists = match and [d for d in
+            interpret_distro_name(filename, match.group(1), None) if d.version
+        ] or []
+
+        if len(dists)==1:   # unambiguous ``#egg`` fragment
+            basename = os.path.basename(filename)
+
+            # Make sure the file has been downloaded to the temp dir.
+            if os.path.dirname(filename) != tmpdir:
+                dst = os.path.join(tmpdir, basename)
+                from setuptools.command.easy_install import samefile
+                if not samefile(filename, dst):
+                    shutil.copy2(filename, dst)
+                    filename=dst
+
+            file = open(os.path.join(tmpdir, 'setup.py'), 'w')
+            file.write(
+                "from setuptools import setup\n"
+                "setup(name=%r, version=%r, py_modules=[%r])\n"
+                % (
+                    dists[0].project_name, dists[0].version,
+                    os.path.splitext(basename)[0]
+                )
+            )
+            file.close()
+            return filename
+
+        elif match:
+            raise DistutilsError(
+                "Can't unambiguously interpret project/version identifier %r; "
+                "any dashes in the name or version should be escaped using "
+                "underscores. %r" % (fragment,dists)
+            )
+        else:
+            raise DistutilsError(
+                "Can't process plain .py files without an '#egg=name-version'"
+                " suffix to enable automatic setup script generation."
+            )
+        
     dl_blocksize = 8192
     def _download_to(self, url, filename):
         self.url_ok(url,True)   # raises error if not allowed

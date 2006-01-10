@@ -968,6 +968,13 @@ Known Issues
    normalized form of the name was used, which could lead to unnecessary
    full-index searches when a project's name had an underscore (``_``) in it.
 
+ * EasyInstall can now download bare ``.py`` files and wrap them in an egg,
+   as long as you include an ``#egg=name-version`` suffix on the URL, or if
+   the ``.py`` file is listed as the "Download URL" on the project's PyPI page.
+   This allows third parties to "package" trivial Python modules just by
+   linking to them (e.g. from within their own PyPI page or download links
+   page).
+
 0.6a9
 
  * Fixed ``.pth`` file processing picking up nested eggs (i.e. ones inside

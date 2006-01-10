@@ -12,7 +12,7 @@ from distutils import file_util
 from distutils.util import convert_path
 from distutils.filelist import FileList
 from pkg_resources import parse_requirements, safe_name, parse_version, \
-    safe_version, yield_lines, EntryPoint, iter_entry_points
+    safe_version, yield_lines, EntryPoint, iter_entry_points, to_filename
 from sdist import walk_revctrl
 
 class egg_info(Command):
@@ -58,7 +58,7 @@ class egg_info(Command):
             self.egg_base = (dirs or {}).get('',os.curdir)
 
         self.ensure_dirname('egg_base')
-        self.egg_info = self.egg_name.replace('-','_')+'.egg-info'
+        self.egg_info = to_filename(self.egg_name)+'.egg-info'
         if self.egg_base != os.curdir:
             self.egg_info = os.path.join(self.egg_base, self.egg_info)
         if '-' in self.egg_name: self.check_broken_egg_info()
