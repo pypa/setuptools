@@ -61,7 +61,7 @@ __all__ = [
     # Parsing functions and string utilities
     'parse_requirements', 'parse_version', 'safe_name', 'safe_version',
     'get_platform', 'compatible_platforms', 'yield_lines', 'split_sections',
-    'safe_extra',
+    'safe_extra', 'to_filename',
 
     # filesystem utilities
     'ensure_directory', 'normalize_path',
@@ -821,9 +821,9 @@ def get_default_cache():
 def safe_name(name):
     """Convert an arbitrary string to a standard distribution name
 
-    Any runs of non-alphanumeric characters are replaced with a single '-'.
+    Any runs of non-alphanumeric/. characters are replaced with a single '-'.
     """
-    return re.sub('[^A-Za-z0-9]+', '-', name)
+    return re.sub('[^A-Za-z0-9.]+', '-', name)
 
 
 def safe_version(version):
@@ -842,15 +842,15 @@ def safe_extra(extra):
     Any runs of non-alphanumeric characters are replaced with a single '_',
     and the result is always lowercased.
     """
-    return re.sub('[^A-Za-z0-9]+', '_', extra).lower()
+    return re.sub('[^A-Za-z0-9.]+', '_', extra).lower()
 
 
+def to_filename(name):
+    """Convert a project or version name to its filename-escaped form
 
-
-
-
-
-
+    Any '-' characters are currently replaced with '_'.
+    """
+    return name.replace('-','_')
 
 
 
@@ -1529,7 +1529,7 @@ def yield_lines(strs):
 
 LINE_END = re.compile(r"\s*(#.*)?$").match         # whitespace and comment
 CONTINUE = re.compile(r"\s*\\\s*(#.*)?$").match    # line continuation
-DISTRO   = re.compile(r"\s*((\w|-)+)").match       # Distribution or option
+DISTRO   = re.compile(r"\s*((\w|[-.])+)").match    # Distribution or extra
 VERSION  = re.compile(r"\s*(<=?|>=?|==|!=)\s*((\w|[-.])+)").match  # ver. info
 COMMA    = re.compile(r"\s*,").match               # comma between items
 OBRACKET = re.compile(r"\s*\[").match
@@ -1846,7 +1846,7 @@ class Distribution(object):
     def egg_name(self):
         """Return what this distribution's standard .egg filename should be"""
         filename = "%s-%s-py%s" % (
-            self.project_name.replace('-','_'), self.version.replace('-','_'),
+            to_filename(self.project_name), to_filename(self.version),
             self.py_version or PY_MAJOR
         )
 

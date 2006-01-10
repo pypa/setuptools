@@ -406,7 +406,7 @@ class ParseTests(TestCase):
         self.assertEqual(safe_name("WSGI Utils"),  "WSGI-Utils")
         self.assertEqual(safe_name("WSGI  Utils"), "WSGI-Utils")
         self.assertEqual(safe_name("Money$$$Maker"), "Money-Maker")
-        self.assertEqual(safe_name("peak.web"), "peak-web")
+        self.assertNotEqual(safe_name("peak.web"), "peak-web")
 
     def testSafeVersion(self):
         self.assertEqual(safe_version("1.2-1"), "1.2-1")

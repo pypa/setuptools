@@ -1445,6 +1445,12 @@ Parsing Utilities
     similar to ``safe_name()`` except that non-alphanumeric runs are replaced
     by a single underbar (``_``), and the result is lowercased.
     
+``to_filename(name_or_version)``
+    Escape a name or version string so it can be used in a dash-separated
+    filename (or ``#egg=name-version`` tag) without ambiguity.  You
+    should only pass in values that were returned by ``safe_name()`` or
+    ``safe_version()``.
+
 
 Platform Utilities
 ------------------
@@ -1510,6 +1516,13 @@ File/Path Utilities
 ----------------------------
 Release Notes/Change History
 ----------------------------
+
+0.6a10
+ * ``safe_name()`` now allows dots in project names.
+
+ * There is a new ``to_filename()`` function that escapes project names and
+   versions for safe use in constructing egg filenames from a Distribution
+   object's metadata.
 
 0.6a9
  * Don't raise an error when an invalid (unfinished) distribution is found
