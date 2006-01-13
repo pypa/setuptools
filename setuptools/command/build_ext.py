@@ -16,7 +16,7 @@ libtype = 'shared'
 if os.name != 'nt':
     try:
         from dl import RTLD_NOW
-        # XXX not ready for primetime yet: have_rtld = True
+        have_rtld = True
     except ImportError:
         pass
 
@@ -82,41 +82,41 @@ class build_ext(_build_ext):
 
     def get_ext_filename(self, fullname):
         filename = _build_ext.get_ext_filename(self,fullname)
-        for ext in self.extensions:
-            if self.get_ext_fullname(ext.name)==fullname:
-                if isinstance(ext,Library):
-                    fn, ext = os.path.splitext(filename)
-                    return self.shlib_compiler.library_filename(fn,libtype)
-                elif have_rtld and self.links_to_dynamic(ext):
-                    d,fn = os.path.split(filename)
-                    return os.path.join(d,'dl-'+fn)
-                else:
-                    return filename
-        raise AssertionError(
-            "Filename requested for nonexistent extension", fullname
-        )
+        ext = self.ext_map[fullname]
+        if isinstance(ext,Library):
+            fn, ext = os.path.splitext(filename)
+            return self.shlib_compiler.library_filename(fn,libtype)
+        elif have_rtld and ext.links_to_dynamic:
+            d,fn = os.path.split(filename)
+            return os.path.join(d,'dl-'+fn)
+        else:
+            return filename
 
     def initialize_options(self):
         _build_ext.initialize_options(self)
         self.shlib_compiler = None
         self.shlibs = []
+        self.ext_map = {}
 
     def finalize_options(self):
         _build_ext.finalize_options(self)
+        self.check_extensions_list(self.extensions)
         self.shlibs = [ext for ext in self.extensions or ()
                         if isinstance(ext,Library)]
         if self.shlibs:
             self.setup_shlib_compiler()
-
-
-
-
-
-
-
-
-
-
+        for ext in self.extensions:
+            fullname = ext._full_name = self.get_ext_fullname(ext.name)
+            self.ext_map[fullname] = ext
+            filename = ext._file_name = self.get_ext_filename(fullname)
+            ltd = ext._links_to_dynamic = \
+                self.shlibs and self.links_to_dynamic(ext) or False
+            ext._needs_stub = ltd and have_rtld and not isinstance(ext,Library)
+            libdir = os.path.dirname(os.path.join(self.build_lib,filename))
+            if ltd and libdir not in ext.library_dirs:
+                ext.library_dirs.append(libdir)
+            if ltd and have_rtld and os.curdir not in ext.runtime_library_dirs:
+                ext.runtime_library_dirs.append(os.curdir)
 
 
 
@@ -164,43 +164,84 @@ class build_ext(_build_ext):
 
     def build_extension(self, ext):
         _compiler = self.compiler
-        _rpath = ext.runtime_library_dirs
-        _ldirs = ext.library_dirs
         try:
             if isinstance(ext,Library):
                 self.compiler = self.shlib_compiler
-            if self.links_to_dynamic(ext):
-                if have_rtld: ext.runtime_library_dirs = _rpath + [os.curdir]
-                ext.library_dirs = _ldirs + [
-                    os.path.dirname(
-                        os.path.join(self.build_lib,
-                            self.get_ext_filename(
-                                self.get_ext_fullname(ext.name)
-                            )
-                        )
-                    )
-                ]
-                # XXX if not lib, write .py stub
             _build_ext.build_extension(self,ext)
+            if ext._needs_stub:
+                self.write_stub(ext)
         finally:
             self.compiler = _compiler
-            ext.runtime_library_dirs = _rpath
-            ext.library_dirs = _ldirs
 
+    def write_stub(self, ext):
+        log.info("writing stub loader for %s",ext._full_name)
+        stub_file = os.path.join(self.build_lib, *ext._full_name.split('.'))
+        stub_file += '.py'
+        if not self.dry_run:
+            f = open(stub_file,'w')
+            f.write('\n'.join([
+                "def __bootstrap__():",
+                "   global __bootstrap__, __file__, __loader__",
+                "   import sys, os, pkg_resources, imp, dl",
+                "   __file__ = pkg_resources.resource_filename(__name__,%r)"
+                   % os.path.basename(ext._file_name),
+                "   del __bootstrap__",
+                "   if '__loader__' in globals():",
+                "       del __loader__",
+                "   old_flags = sys.getdlopenflags()",
+                "   old_dir = os.getcwd()",
+                "   try:",
+                "     os.chdir(os.path.dirname(__file__))",
+                "     sys.setdlopenflags(dl.RTLD_NOW)",
+                "     imp.load_dynamic(__name__,__file__)",
+                "   finally:",
+                "     sys.setdlopenflags(old_flags)",
+                "     os.chdir(old_dir)",
+                "__bootstrap__()",
+                "" # terminal \n
+            ]))
+            f.close()
+        self.get_finalized_command('build_py').byte_compile(stub_file)
 
     def links_to_dynamic(self, ext):
         """Return true if 'ext' links to a dynamic lib in the same package"""
         # XXX this should check to ensure the lib is actually being built
         # XXX as dynamic, and not just using a locally-found version or a
         # XXX static-compiled version
-        libnames = dict.fromkeys(
-            [self.get_ext_fullname(lib.name) for lib in self.shlibs]
-        )
-        pkg = '.'.join(self.get_ext_fullname(ext.name).split('.')[:-1])
-        if pkg: pkg+='.'
+        libnames = dict.fromkeys([lib._full_name for lib in self.shlibs])
+        pkg = '.'.join(ext._full_name.split('.')[:-1]+[''])
         for libname in ext.libraries:
             if pkg+libname in libnames: return True
         return False
+
+    def get_outputs(self):
+        outputs = _build_ext.get_outputs(self)
+        optimize = self.get_finalized_command('build_py').optimize
+        for ext in self.extensions:
+            if ext._needs_stub:
+                base = os.path.join(self.build_lib, *ext._full_name.split('.'))
+                outputs.append(base+'.py')
+                outputs.append(base+'.pyc')
+                if optimize:
+                    outputs.append(base+'.pyo')
+        return outputs
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 if have_rtld or os.name=='nt':
