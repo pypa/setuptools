@@ -10,6 +10,7 @@ from distutils.file_util import copy_file
 from setuptools.extension import Library
 from distutils.ccompiler import new_compiler
 from distutils.sysconfig import customize_compiler
+from distutils import log
 
 have_rtld = False
 libtype = 'shared'
@@ -38,8 +39,7 @@ if os.name != 'nt':
 
 
 
-
-class build_ext(_build_ext):   
+class build_ext(_build_ext):
     def run(self):
         """Build extensions in build directory, then copy if --inplace"""
         old_inplace, self.inplace = self.inplace, 0
@@ -50,7 +50,7 @@ class build_ext(_build_ext):
 
     def copy_extensions_to_source(self):
         build_py = self.get_finalized_command('build_py')
-        for ext in self.extensions or ():
+        for ext in self.extensions:
             fullname = self.get_ext_fullname(ext.name)
             filename = self.get_ext_filename(fullname)
             modpath = fullname.split('.')
@@ -66,6 +66,9 @@ class build_ext(_build_ext):
                 src_filename, dest_filename, verbose=self.verbose,
                 dry_run=self.dry_run
             )
+            if ext._needs_stub:
+                self.write_stub(package_dir, ext, False)
+
 
     if _build_ext is not _du_build_ext:
         # Workaround for problems using some Pyrex versions w/SWIG and/or 2.4
@@ -77,16 +80,13 @@ class build_ext(_build_ext):
 
 
 
-
-
-
     def get_ext_filename(self, fullname):
         filename = _build_ext.get_ext_filename(self,fullname)
         ext = self.ext_map[fullname]
         if isinstance(ext,Library):
             fn, ext = os.path.splitext(filename)
             return self.shlib_compiler.library_filename(fn,libtype)
-        elif have_rtld and ext.links_to_dynamic:
+        elif have_rtld and ext._links_to_dynamic:
             d,fn = os.path.split(filename)
             return os.path.join(d,'dl-'+fn)
         else:
@@ -100,18 +100,19 @@ class build_ext(_build_ext):
 
     def finalize_options(self):
         _build_ext.finalize_options(self)
-        self.check_extensions_list(self.extensions)
-        self.shlibs = [ext for ext in self.extensions or ()
+        self.extensions = self.extensions or []
+        self.check_extensions_list()
+        self.shlibs = [ext for ext in self.extensions
                         if isinstance(ext,Library)]
         if self.shlibs:
             self.setup_shlib_compiler()
         for ext in self.extensions:
             fullname = ext._full_name = self.get_ext_fullname(ext.name)
             self.ext_map[fullname] = ext
-            filename = ext._file_name = self.get_ext_filename(fullname)
             ltd = ext._links_to_dynamic = \
                 self.shlibs and self.links_to_dynamic(ext) or False
             ext._needs_stub = ltd and have_rtld and not isinstance(ext,Library)
+            filename = ext._file_name = self.get_ext_filename(fullname)
             libdir = os.path.dirname(os.path.join(self.build_lib,filename))
             if ltd and libdir not in ext.library_dirs:
                 ext.library_dirs.append(libdir)
@@ -120,11 +121,10 @@ class build_ext(_build_ext):
 
 
 
-
     def setup_shlib_compiler(self):
         compiler = self.shlib_compiler = new_compiler(
             compiler=self.compiler, dry_run=self.dry_run, force=self.force
-        ) 
+        )
         customize_compiler(compiler)
         if sys.platform == "darwin":
             # XXX need to fix up compiler_so:ccshared + linker_so:ldshared too
@@ -155,7 +155,7 @@ class build_ext(_build_ext):
         if isinstance(ext,Library):
             return ext.export_symbols
         return _build_ext.get_export_symbols(self,ext)
-        
+
 
 
 
@@ -169,14 +169,13 @@ class build_ext(_build_ext):
                 self.compiler = self.shlib_compiler
             _build_ext.build_extension(self,ext)
             if ext._needs_stub:
-                self.write_stub(ext)
+                self.write_stub(self.build_lib, ext)
         finally:
             self.compiler = _compiler
 
-    def write_stub(self, ext):
+    def write_stub(self, output_dir, ext, compile=True):
         log.info("writing stub loader for %s",ext._full_name)
-        stub_file = os.path.join(self.build_lib, *ext._full_name.split('.'))
-        stub_file += '.py'
+        stub_file = os.path.join(output_dir, *ext._full_name.split('.'))+'.py'
         if not self.dry_run:
             f = open(stub_file,'w')
             f.write('\n'.join([
@@ -201,7 +200,8 @@ class build_ext(_build_ext):
                 "" # terminal \n
             ]))
             f.close()
-        self.get_finalized_command('build_py').byte_compile(stub_file)
+        if compile:
+            self.get_finalized_command('build_py').byte_compile(stub_file)
 
     def links_to_dynamic(self, ext):
         """Return true if 'ext' links to a dynamic lib in the same package"""
@@ -246,7 +246,7 @@ class build_ext(_build_ext):
 
 if have_rtld or os.name=='nt':
     # Build shared libraries
-    #   
+    #
     def link_shared_object(self, objects, output_libname, output_dir=None,
         libraries=None, library_dirs=None, runtime_library_dirs=None,
         export_symbols=None, debug=0, extra_preargs=None,
@@ -272,13 +272,13 @@ else:
         #export_symbols=None, extra_preargs=None, extra_postargs=None,
         #build_temp=None
 
-        assert output_dir is None   # distutils build_ext doesn't pass this       
+        assert output_dir is None   # distutils build_ext doesn't pass this
         output_dir,filename = os.path.split(output_libname)
         basename, ext = os.path.splitext(filename)
         if self.library_filename("x").startswith('lib'):
             # strip 'lib' prefix; this is kludgy if some platform uses
             # a different prefix
-            basename = basename[3:] 
+            basename = basename[3:]
 
         self.create_static_lib(
             objects, basename, output_dir, debug, target_lang
