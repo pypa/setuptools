@@ -164,13 +164,13 @@ class build_ext(_build_ext):
 
     def build_extension(self, ext):
         _compiler = self.compiler
-        _rpath = ext.runtime_library_path
+        _rpath = ext.runtime_library_dirs
         _ldirs = library_dirs
         try:
             if isinstance(ext,Library):
                 self.compiler = self.shlib_compiler
             if have_rtld and self.links_to_dynamic(ext):
-                ext.runtime_library_path = _rpath + [os.curdir]
+                ext.runtime_library_dirs = _rpath + [os.curdir]
                 ext.library_dirs = _ldirs + [
                     os.path.dirname(
                         os.path.join(self.build_lib,
@@ -184,7 +184,7 @@ class build_ext(_build_ext):
             _build_ext.build_extension(self,ext)
         finally:
             self.compiler = _compiler
-            ext.runtime_library_path = _rpath
+            ext.runtime_library_dirs = _rpath
             ext.library_dirs = _ldirs
 
 
