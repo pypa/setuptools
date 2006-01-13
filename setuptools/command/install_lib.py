@@ -14,3 +14,12 @@ class install_lib(_install_lib):
                 bytecode_files.append(py_file + "o")
 
         return bytecode_files
+
+
+    def run(self):
+        self.build()
+        outfiles = self.install()
+        if outfiles is not None:
+            # always compile, in case we have any extension stubs to deal with
+            self.byte_compile(outfiles) 
+

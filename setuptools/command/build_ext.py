@@ -67,7 +67,7 @@ class build_ext(_build_ext):
                 dry_run=self.dry_run
             )
             if ext._needs_stub:
-                self.write_stub(package_dir, ext, False)
+                self.write_stub(package_dir or os.curdir, ext)
 
 
     if _build_ext is not _du_build_ext:
@@ -101,7 +101,7 @@ class build_ext(_build_ext):
     def finalize_options(self):
         _build_ext.finalize_options(self)
         self.extensions = self.extensions or []
-        self.check_extensions_list()
+        self.check_extensions_list(self.extensions)
         self.shlibs = [ext for ext in self.extensions
                         if isinstance(ext,Library)]
         if self.shlibs:
@@ -169,12 +169,14 @@ class build_ext(_build_ext):
                 self.compiler = self.shlib_compiler
             _build_ext.build_extension(self,ext)
             if ext._needs_stub:
-                self.write_stub(self.build_lib, ext)
+                self.write_stub(
+                    self.get_finalized_command('build_py').build_lib, ext
+                )
         finally:
             self.compiler = _compiler
 
-    def write_stub(self, output_dir, ext, compile=True):
-        log.info("writing stub loader for %s",ext._full_name)
+    def write_stub(self, output_dir, ext):
+        log.info("writing stub loader for %s to %s",ext._full_name, output_dir)
         stub_file = os.path.join(output_dir, *ext._full_name.split('.'))+'.py'
         if not self.dry_run:
             f = open(stub_file,'w')
@@ -200,8 +202,6 @@ class build_ext(_build_ext):
                 "" # terminal \n
             ]))
             f.close()
-        if compile:
-            self.get_finalized_command('build_py').byte_compile(stub_file)
 
     def links_to_dynamic(self, ext):
         """Return true if 'ext' links to a dynamic lib in the same package"""
