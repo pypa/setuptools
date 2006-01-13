@@ -165,12 +165,12 @@ class build_ext(_build_ext):
     def build_extension(self, ext):
         _compiler = self.compiler
         _rpath = ext.runtime_library_dirs
-        _ldirs = library_dirs
+        _ldirs = ext.library_dirs
         try:
             if isinstance(ext,Library):
                 self.compiler = self.shlib_compiler
-            if have_rtld and self.links_to_dynamic(ext):
-                ext.runtime_library_dirs = _rpath + [os.curdir]
+            if self.links_to_dynamic(ext):
+                if have_rtld: ext.runtime_library_dirs = _rpath + [os.curdir]
                 ext.library_dirs = _ldirs + [
                     os.path.dirname(
                         os.path.join(self.build_lib,
@@ -196,12 +196,12 @@ class build_ext(_build_ext):
         libnames = dict.fromkeys(
             [self.get_ext_fullname(lib.name) for lib in self.shlibs]
         )
-        if not libnames:
-            return False
         pkg = '.'.join(self.get_ext_fullname(ext.name).split('.')[:-1])
+        if pkg: pkg+='.'
         for libname in ext.libraries:
-            if ('%s.%s' % (pkg,libname)) in libnames:
-                return True
+            if pkg+libname in libnames: return True
+        return False
+
 
 if have_rtld or os.name=='nt':
     # Build shared libraries

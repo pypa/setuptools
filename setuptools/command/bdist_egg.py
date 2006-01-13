@@ -10,6 +10,7 @@ from distutils.sysconfig import get_python_version, get_python_lib
 from distutils import log
 from pkg_resources import get_platform, Distribution
 from types import CodeType
+from setuptools.extension import Library
 
 def write_stub(resource, pyfile):
     f = open(pyfile,'w')
@@ -28,7 +29,6 @@ def write_stub(resource, pyfile):
 
 # stub __init__.py for packages distributed without one
 NS_PKG_STUB = '__import__("pkg_resources").declare_namespace(__name__)'
-
 
 
 
@@ -174,7 +174,7 @@ class bdist_egg(Command):
         cmd = self.call_command('install_lib', warn_dir=0)
         instcmd.root = old_root
 
-        ext_outputs = self.get_ext_outputs()
+        all_outputs, ext_outputs = self.get_ext_outputs()
         self.stubs = []
         to_compile = []
         for (p,ext_name) in enumerate(ext_outputs):
@@ -204,11 +204,11 @@ class bdist_egg(Command):
             self.call_command('install_scripts', install_dir=script_dir)
 
         native_libs = os.path.join(self.egg_info,"native_libs.txt")
-        if ext_outputs:
+        if all_outputs:
             log.info("writing %s" % native_libs)
             if not self.dry_run:
                 libs_file = open(native_libs, 'wt')
-                libs_file.write('\n'.join(ext_outputs))
+                libs_file.write('\n'.join(all_outputs))
                 libs_file.write('\n')
                 libs_file.close()
         elif os.path.isfile(native_libs):
@@ -288,28 +288,28 @@ class bdist_egg(Command):
     def get_ext_outputs(self):
         """Get a list of relative paths to C extensions in the output distro"""
 
-        outputs = []
+        all_outputs = []
+        ext_outputs = []
+
         paths = {self.bdist_dir:''}
         for base, dirs, files in os.walk(self.bdist_dir):
             for filename in files:
                 if os.path.splitext(filename)[1].lower() in NATIVE_EXTENSIONS:
-                    outputs.append(paths[base]+filename)
+                    all_outputs.append(paths[base]+filename)
             for filename in dirs:
                 paths[os.path.join(base,filename)] = paths[base]+filename+'/'
-        
-        if not self.distribution.has_ext_modules():
-            return outputs
 
-        build_cmd = self.get_finalized_command('build_ext')
-        prefix_len = len(build_cmd.build_lib) + len(os.sep)
+        if self.distribution.has_ext_modules():
+            build_cmd = self.get_finalized_command('build_ext')
+            for ext in build_cmd.extensions:
+                if isinstance(ext,Library):
+                    continue
+                fullname = build_cmd.get_ext_fullname(ext.name)
+                filename = build_cmd.get_ext_filename(fullname)
+                if not os.path.basename(filename).startswith('dl-'):
+                    ext_outputs.append(filename)
 
-        for filename in build_cmd.get_outputs():
-            if os.path.splitext(filename)[1].lower() not in NATIVE_EXTENSIONS:
-                # only add files w/unrecognized extensions, since the
-                # recognized ones will already be in the list
-                outputs.append(filename[prefix_len:])
-
-        return outputs
+        return all_outputs, ext_outputs
 
 
 NATIVE_EXTENSIONS = dict.fromkeys('.dll .so .dylib .pyd'.split())
