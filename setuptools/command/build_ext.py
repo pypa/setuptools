@@ -11,6 +11,34 @@ from setuptools.extension import Library
 from distutils.ccompiler import new_compiler
 from distutils.sysconfig import customize_compiler
 
+have_rtld = False
+libtype = 'shared'
+if os.name != 'nt':
+    try:
+        from dl import RTLD_NOW
+        # XXX not ready for primetime yet: have_rtld = True
+    except ImportError:
+        pass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class build_ext(_build_ext):   
     def run(self):
         """Build extensions in build directory, then copy if --inplace"""
@@ -47,13 +75,26 @@ class build_ext(_build_ext):
             # Then do any actual SWIG stuff on the remainder
             return _du_build_ext.swig_sources(self, sources, *otherargs)
 
+
+
+
+
+
     def get_ext_filename(self, fullname):
         filename = _build_ext.get_ext_filename(self,fullname)
-        for ext in self.shlibs:
+        for ext in self.extensions:
             if self.get_ext_fullname(ext.name)==fullname:
-                fn, ext = os.path.splitext(filename)
-                return self.shlib_compiler.library_filename(fn,libtype)
-        return filename
+                if isinstance(ext,Library):
+                    fn, ext = os.path.splitext(filename)
+                    return self.shlib_compiler.library_filename(fn,libtype)
+                elif have_rtld and self.links_to_dynamic(ext):
+                    d,fn = os.path.split(filename)
+                    return os.path.join(d,'dl-'+fn)
+                else:
+                    return filename
+        raise AssertionError(
+            "Filename requested for nonexistent extension", fullname
+        )
 
     def initialize_options(self):
         _build_ext.initialize_options(self)
@@ -66,16 +107,16 @@ class build_ext(_build_ext):
                         if isinstance(ext,Library)]
         if self.shlibs:
             self.setup_shlib_compiler()
-            self.library_dirs.append(self.build_lib)
 
-    def build_extension(self, ext):
-        _compiler = self.compiler
-        try:
-            if isinstance(ext,Library):
-                self.compiler = self.shlib_compiler
-            _build_ext.build_extension(self,ext)
-        finally:
-            self.compiler = _compiler
+
+
+
+
+
+
+
+
+
 
 
 
@@ -121,9 +162,50 @@ class build_ext(_build_ext):
 
 
 
-if os.name=='nt':
-    # Build shared libraries on Windows
-    libtype = 'shared'
+    def build_extension(self, ext):
+        _compiler = self.compiler
+        _rpath = ext.runtime_library_path
+        _ldirs = library_dirs
+        try:
+            if isinstance(ext,Library):
+                self.compiler = self.shlib_compiler
+            if have_rtld and self.links_to_dynamic(ext):
+                ext.runtime_library_path = _rpath + [os.curdir]
+                ext.library_dirs = _ldirs + [
+                    os.path.dirname(
+                        os.path.join(self.build_lib,
+                            self.get_ext_filename(
+                                self.get_ext_fullname(ext.name)
+                            )
+                        )
+                    )
+                ]
+                # XXX if not lib, write .py stub
+            _build_ext.build_extension(self,ext)
+        finally:
+            self.compiler = _compiler
+            ext.runtime_library_path = _rpath
+            ext.library_dirs = _ldirs
+
+
+    def links_to_dynamic(self, ext):
+        """Return true if 'ext' links to a dynamic lib in the same package"""
+        # XXX this should check to ensure the lib is actually being built
+        # XXX as dynamic, and not just using a locally-found version or a
+        # XXX static-compiled version
+        libnames = dict.fromkeys(
+            [self.get_ext_fullname(lib.name) for lib in self.shlibs]
+        )
+        if not libnames:
+            return False
+        pkg = '.'.join(self.get_ext_fullname(ext.name).split('.')[:-1])
+        for libname in ext.libraries:
+            if ('%s.%s' % (pkg,libname)) in libnames:
+                return True
+
+if have_rtld or os.name=='nt':
+    # Build shared libraries
+    #   
     def link_shared_object(self, objects, output_libname, output_dir=None,
         libraries=None, library_dirs=None, runtime_library_dirs=None,
         export_symbols=None, debug=0, extra_preargs=None,
@@ -137,6 +219,7 @@ if os.name=='nt':
 else:
     # Build static libraries everywhere else
     libtype = 'static'
+
     def link_shared_object(self, objects, output_libname, output_dir=None,
         libraries=None, library_dirs=None, runtime_library_dirs=None,
         export_symbols=None, debug=0, extra_preargs=None,
@@ -159,6 +242,5 @@ else:
         self.create_static_lib(
             objects, basename, output_dir, debug, target_lang
         )
-
 
 
