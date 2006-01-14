@@ -11,6 +11,7 @@ from setuptools.extension import Library
 from distutils.ccompiler import new_compiler
 from distutils.sysconfig import customize_compiler
 from distutils import log
+from distutils.errors import *
 
 have_rtld = False
 libtype = 'shared'
