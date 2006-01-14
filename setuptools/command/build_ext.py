@@ -67,7 +67,7 @@ class build_ext(_build_ext):
                 dry_run=self.dry_run
             )
             if ext._needs_stub:
-                self.write_stub(package_dir or os.curdir, ext)
+                self.write_stub(package_dir or os.curdir, ext, True)
 
 
     if _build_ext is not _du_build_ext:
@@ -175,34 +175,6 @@ class build_ext(_build_ext):
         finally:
             self.compiler = _compiler
 
-    def write_stub(self, output_dir, ext):
-        log.info("writing stub loader for %s to %s",ext._full_name, output_dir)
-        stub_file = os.path.join(output_dir, *ext._full_name.split('.'))+'.py'
-        if not self.dry_run:
-            f = open(stub_file,'w')
-            f.write('\n'.join([
-                "def __bootstrap__():",
-                "   global __bootstrap__, __file__, __loader__",
-                "   import sys, os, pkg_resources, imp, dl",
-                "   __file__ = pkg_resources.resource_filename(__name__,%r)"
-                   % os.path.basename(ext._file_name),
-                "   del __bootstrap__",
-                "   if '__loader__' in globals():",
-                "       del __loader__",
-                "   old_flags = sys.getdlopenflags()",
-                "   old_dir = os.getcwd()",
-                "   try:",
-                "     os.chdir(os.path.dirname(__file__))",
-                "     sys.setdlopenflags(dl.RTLD_NOW)",
-                "     imp.load_dynamic(__name__,__file__)",
-                "   finally:",
-                "     sys.setdlopenflags(old_flags)",
-                "     os.chdir(old_dir)",
-                "__bootstrap__()",
-                "" # terminal \n
-            ]))
-            f.close()
-
     def links_to_dynamic(self, ext):
         """Return true if 'ext' links to a dynamic lib in the same package"""
         # XXX this should check to ensure the lib is actually being built
@@ -231,17 +203,45 @@ class build_ext(_build_ext):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
+    def write_stub(self, output_dir, ext, compile=False):
+        log.info("writing stub loader for %s to %s",ext._full_name, output_dir)
+        stub_file = os.path.join(output_dir, *ext._full_name.split('.'))+'.py'
+        if compile and os.path.exists(stub_file):
+            raise DistutilsError(stub_file+" already exists! Please delete.")
+        if not self.dry_run:
+            f = open(stub_file,'w')
+            f.write('\n'.join([
+                "def __bootstrap__():",
+                "   global __bootstrap__, __file__, __loader__",
+                "   import sys, os, pkg_resources, imp, dl",
+                "   __file__ = pkg_resources.resource_filename(__name__,%r)"
+                   % os.path.basename(ext._file_name),
+                "   del __bootstrap__",
+                "   if '__loader__' in globals():",
+                "       del __loader__",
+                "   old_flags = sys.getdlopenflags()",
+                "   old_dir = os.getcwd()",
+                "   try:",
+                "     os.chdir(os.path.dirname(__file__))",
+                "     sys.setdlopenflags(dl.RTLD_NOW)",
+                "     imp.load_dynamic(__name__,__file__)",
+                "   finally:",
+                "     sys.setdlopenflags(old_flags)",
+                "     os.chdir(old_dir)",
+                "__bootstrap__()",
+                "" # terminal \n
+            ]))
+            f.close()
+        if compile:
+            from distutils.util import byte_compile
+            byte_compile([stub_file], optimize=0,
+                         force=True, dry_run=self.dry_run)
+            optimize = self.get_finalized_command('install_lib').optimize
+            if optimize > 0:
+                byte_compile([stub_file], optimize=optimize,
+                             force=True, dry_run=self.dry_run)
+            if os.path.exists(stub_file) and not self.dry_run:
+                os.unlink(stub_file)
 
 
 if have_rtld or os.name=='nt':
