@@ -9,30 +9,30 @@ import os, sys
 from distutils.file_util import copy_file
 from setuptools.extension import Library
 from distutils.ccompiler import new_compiler
-from distutils.sysconfig import customize_compiler, _config_vars
+from distutils.sysconfig import customize_compiler, get_config_var
+get_config_var("LDSHARED")  # make sure _config_vars is initialized
+from distutils.sysconfig import _config_vars
 from distutils import log
 from distutils.errors import *
 
 have_rtld = False
+use_stubs = False
 libtype = 'shared'
-if os.name != 'nt':
+
+if sys.platform == "darwin":
+    use_stubs = True
+elif os.name != 'nt':
     try:
         from dl import RTLD_NOW
         have_rtld = True
+        use_stubs = True
     except ImportError:
         pass
 
-
-
-
-
-
-
-
-
-
-
-
+def if_dl(s):
+    if have_rtld:
+        return s
+    return ''
 
 
 
@@ -86,7 +86,7 @@ class build_ext(_build_ext):
         if isinstance(ext,Library):
             fn, ext = os.path.splitext(filename)
             return self.shlib_compiler.library_filename(fn,libtype)
-        elif have_rtld and ext._links_to_dynamic:
+        elif use_stubs and ext._links_to_dynamic:
             d,fn = os.path.split(filename)
             return os.path.join(d,'dl-'+fn)
         else:
@@ -111,12 +111,12 @@ class build_ext(_build_ext):
             self.ext_map[fullname] = ext
             ltd = ext._links_to_dynamic = \
                 self.shlibs and self.links_to_dynamic(ext) or False
-            ext._needs_stub = ltd and have_rtld and not isinstance(ext,Library)
+            ext._needs_stub = ltd and use_stubs and not isinstance(ext,Library)
             filename = ext._file_name = self.get_ext_filename(fullname)
             libdir = os.path.dirname(os.path.join(self.build_lib,filename))
             if ltd and libdir not in ext.library_dirs:
                 ext.library_dirs.append(libdir)
-            if ltd and have_rtld and os.curdir not in ext.runtime_library_dirs:
+            if ltd and use_stubs and os.curdir not in ext.runtime_library_dirs:
                 ext.runtime_library_dirs.append(os.curdir)
 
 
@@ -129,7 +129,7 @@ class build_ext(_build_ext):
             tmp = _config_vars.copy()
             try:
                 # XXX Help!  I don't have any idea whether these are right...
-                _config_vars['LDSHARED'] = "-dynamiclib -undefined dynamic_lookup"
+                _config_vars['LDSHARED'] = "gcc -Wl,-x -dynamiclib -undefined dynamic_lookup"
                 _config_vars['CCSHARED'] = " -dynamiclib"
                 _config_vars['SO'] = ".dylib"
                 customize_compiler(compiler)
@@ -213,20 +213,20 @@ class build_ext(_build_ext):
             f.write('\n'.join([
                 "def __bootstrap__():",
                 "   global __bootstrap__, __file__, __loader__",
-                "   import sys, os, pkg_resources, imp, dl",
+                "   import sys, os, pkg_resources, imp"+if_dl(", dl"),
                 "   __file__ = pkg_resources.resource_filename(__name__,%r)"
                    % os.path.basename(ext._file_name),
                 "   del __bootstrap__",
                 "   if '__loader__' in globals():",
                 "       del __loader__",
-                "   old_flags = sys.getdlopenflags()",
+                if_dl("   old_flags = sys.getdlopenflags()"),
                 "   old_dir = os.getcwd()",
                 "   try:",
                 "     os.chdir(os.path.dirname(__file__))",
-                "     sys.setdlopenflags(dl.RTLD_NOW)",
+                if_dl("     sys.setdlopenflags(dl.RTLD_NOW)"),
                 "     imp.load_dynamic(__name__,__file__)",
                 "   finally:",
-                "     sys.setdlopenflags(old_flags)",
+                if_dl("     sys.setdlopenflags(old_flags)"),
                 "     os.chdir(old_dir)",
                 "__bootstrap__()",
                 "" # terminal \n
@@ -244,7 +244,7 @@ class build_ext(_build_ext):
                 os.unlink(stub_file)
 
 
-if have_rtld or os.name=='nt':
+if use_stubs or os.name=='nt':
     # Build shared libraries
     #
     def link_shared_object(self, objects, output_libname, output_dir=None,
