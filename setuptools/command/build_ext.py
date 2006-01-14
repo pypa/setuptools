@@ -9,7 +9,7 @@ import os, sys
 from distutils.file_util import copy_file
 from setuptools.extension import Library
 from distutils.ccompiler import new_compiler
-from distutils.sysconfig import customize_compiler
+from distutils.sysconfig import customize_compiler, _config_vars
 from distutils import log
 from distutils.errors import *
 
@@ -21,7 +21,6 @@ if os.name != 'nt':
         have_rtld = True
     except ImportError:
         pass
-
 
 
 
@@ -126,10 +125,19 @@ class build_ext(_build_ext):
         compiler = self.shlib_compiler = new_compiler(
             compiler=self.compiler, dry_run=self.dry_run, force=self.force
         )
-        customize_compiler(compiler)
         if sys.platform == "darwin":
-            # XXX need to fix up compiler_so:ccshared + linker_so:ldshared too
-            compiler.shared_lib_extension = ".dylib"
+            tmp = _config_vars.copy()
+            try:
+                # XXX Help!  I don't have any idea whether these are right...
+                _config_vars['LDSHARED'] = "-dynamiclib -undefined dynamic_lookup"
+                _config_vars['CCSHARED'] = " -dynamiclib"
+                _config_vars['SO'] = ".dylib"
+                customize_compiler(compiler)
+            finally:
+                _config_vars.clear()
+                _config_vars.update(tmp)
+        else:
+            customize_compiler(compiler)
 
         if self.include_dirs is not None:
             compiler.set_include_dirs(self.include_dirs)
@@ -152,16 +160,12 @@ class build_ext(_build_ext):
         # hack so distutils' build_extension() builds a library instead
         compiler.link_shared_object = link_shared_object.__get__(compiler)
 
+
+
     def get_export_symbols(self, ext):
         if isinstance(ext,Library):
             return ext.export_symbols
         return _build_ext.get_export_symbols(self,ext)
-
-
-
-
-
-
 
     def build_extension(self, ext):
         _compiler = self.compiler
@@ -198,11 +202,6 @@ class build_ext(_build_ext):
                 if optimize:
                     outputs.append(base+'.pyo')
         return outputs
-
-
-
-
-
 
     def write_stub(self, output_dir, ext, compile=False):
         log.info("writing stub loader for %s to %s",ext._full_name, output_dir)
