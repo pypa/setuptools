@@ -564,7 +564,7 @@ class PackageIndex(Environment):
 
         f = self.open_url(url)
         match = re.search(
-            r'<META HTTP-EQUIV="refresh" content=".*?URL=(.*?)"',
+            r'(?i)<META HTTP-EQUIV="refresh" content=".*?URL=(.*?)"',
             f.read()
         )
         f.close()
