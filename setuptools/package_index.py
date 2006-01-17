@@ -250,7 +250,7 @@ class PackageIndex(Environment):
             "scan is required.", url
         )
 
-    def scan_all(self, msg, *args):
+    def scan_all(self, msg=None, *args):
         if self.index_url not in self.fetched_urls:
             if msg: self.warn(msg,*args)
             self.warn(
