@@ -134,9 +134,9 @@ class PackageIndex(Environment):
 
     def process_url(self, url, retrieve=False):
         """Evaluate a URL as a possible download, and maybe retrieve it"""
+        url = fix_sf_url(url)
         if url in self.scanned_urls and not retrieve:
             return
-
         self.scanned_urls[url] = True
         if not URL_SCHEME(url):
             # process filenames or directories
@@ -295,6 +295,36 @@ class PackageIndex(Environment):
                     "MD5 validation failed for "+os.path.basename(filename)+
                     "; possible download problem?"
                 )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def download(self, spec, tmpdir):
         """Locate and/or download `spec` to `tmpdir`, returning a local path
@@ -502,8 +532,6 @@ class PackageIndex(Environment):
 
 
     def _download_html(self, url, headers, filename, tmpdir):
-        # Check for a sourceforge URL
-        sf_url = url.startswith('http://prdownloads.')
         file = open(filename)
         for line in file:
             if line.strip():
@@ -513,13 +541,6 @@ class PackageIndex(Environment):
                     file.close()
                     os.unlink(filename)
                     return self._download_svn(url, filename)
-                # Check for a SourceForge header
-                elif sf_url:
-                    page = ''.join(list(file))
-                    if '?use_mirror=' in page:
-                        file.close()
-                        os.unlink(filename)
-                        return self._download_sourceforge(url, page, tmpdir)
                 break   # not an index page
         file.close()
         os.unlink(filename)
@@ -541,43 +562,42 @@ class PackageIndex(Environment):
         log.warn(msg, *args)
 
 
+def fix_sf_url(url):
+    scheme, server, path, param, query, frag = urlparse.urlparse(url)
+    if server!='prdownloads.sourceforge.net':
+        return url
+    return urlparse.urlunparse(
+        (scheme, 'dl.sourceforge.net', 'sourceforge'+path, param, '', frag)
+    )
 
-    def _download_sourceforge(self, source_url, sf_page, tmpdir):
-        """Download package from randomly-selected SourceForge mirror"""
 
-        self.debug("Processing SourceForge mirror page")
 
-        mirror_regex = re.compile(r'HREF="?(/.*?\?use_mirror=[^">]*)', re.I)
-        urls = [m.group(1) for m in mirror_regex.finditer(sf_page)]
-        if not urls:
-            raise DistutilsError(
-                "URL looks like a Sourceforge mirror page, but no URLs found"
-            )
 
-        import random
-        url = urlparse.urljoin(source_url, random.choice(urls))
 
-        self.info(
-            "Requesting redirect to (randomly selected) %r mirror",
-            url.split('=',1)[-1]
-        )
 
-        f = self.open_url(url)
-        match = re.search(
-            r'(?i)<META HTTP-EQUIV="refresh" content=".*?URL=(.*?)"',
-            f.read()
-        )
-        f.close()
 
-        if match:
-            download_url = match.group(1)
-            scheme = URL_SCHEME(download_url)
-            return self._download_url(scheme.group(1), download_url, tmpdir)
-        else:
-            raise DistutilsError(
-                'No META HTTP-EQUIV="refresh" found in Sourceforge page at %s'
-                % url
-            )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
