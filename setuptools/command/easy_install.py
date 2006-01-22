@@ -772,7 +772,7 @@ PYTHONPATH, or by being added to sys.path by your code.)
 If it uses setuptools in its setup script, you can activate it in
 "development" mode by going to that directory and running::
 
-    %(python)s setup.py --develop
+    %(python)s setup.py develop
 
 See the setuptools documentation for the "develop" command for more info.
 """ % locals()
