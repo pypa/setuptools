@@ -1,6 +1,6 @@
 """PyPI and direct package downloading"""
 
-import sys, os.path, re, urlparse, urllib2, shutil
+import sys, os.path, re, urlparse, urllib2, shutil, random, socket
 from pkg_resources import *
 from distutils import log
 from distutils.errors import DistutilsError
@@ -562,18 +562,28 @@ class PackageIndex(Environment):
         log.warn(msg, *args)
 
 
+
+
+
+
+
+
+
+
+
+
 def fix_sf_url(url):
     scheme, server, path, param, query, frag = urlparse.urlparse(url)
     if server!='prdownloads.sourceforge.net':
         return url
     return urlparse.urlunparse(
-        (scheme, 'dl.sourceforge.net', 'sourceforge'+path, param, '', frag)
+        (scheme, get_sf_ip(), 'sourceforge'+path, param, '', frag)
     )
 
-
-
-
-
+def get_sf_ip(_mirrors=[]):
+    if not _mirrors:
+        _mirrors[:] = socket.gethostbyname_ex('dl.sourceforge.net')[-1]
+    return random.choice(_mirrors)
 
 
 
