@@ -122,6 +122,7 @@ class easy_install(Command):
                         os.unlink(filename)
 
     def finalize_options(self):
+        self._expand('install_dir','script_dir','build_directory','site_dirs')
         # If a non-default installation directory was specified, default the
         # script directory to match it.
         if self.script_dir is None:
@@ -154,7 +155,6 @@ class easy_install(Command):
                     )
                 else:
                     self.all_site_dirs.append(normalize_path(d))
-
         instdir = normalize_path(self.install_dir or self.all_site_dirs[-1])
         if instdir in self.all_site_dirs:
             if self.pth_file is None:
@@ -887,15 +887,15 @@ See the setuptools documentation for the "develop" command for more info.
         finally:
             log.set_verbosity(self.verbose)     # restore original verbosity
 
-
-
-
-
-
-
-
-
-
+    def _expand(self, *attrs):
+        config_vars = self.get_finalized_command('install').config_vars
+        for attr in attrs:
+            val = getattr(self, attr)
+            if val is not None:
+                if os.name == 'posix':
+                    val = os.path.expanduser(val)
+                val = subst_vars(val, config_vars)
+                setattr(self, attr, val)
 
 
 

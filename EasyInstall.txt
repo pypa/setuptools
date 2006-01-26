@@ -963,6 +963,13 @@ Known Issues
    time out or be missing a file.
 
 0.6a10
+ * Expand ``$variables`` used in the ``--site-dirs``, ``--build-directory``,
+   ``--install-dir``, and ``--script-dir`` options, whether on the command line
+   or in configuration files.
+
+ * Improved SourceForge mirror processing to work faster and be less affected
+   by transient HTML changes made by SourceForge.
+
  * PyPI searches now use the exact spelling of requirements specified on the
    command line or in a project's ``install_requires``.  Previously, a
    normalized form of the name was used, which could lead to unnecessary
@@ -976,7 +983,6 @@ Known Issues
    page).
 
 0.6a9
-
  * Fixed ``.pth`` file processing picking up nested eggs (i.e. ones inside
    "baskets") when they weren't explicitly listed in the ``.pth`` file.
 
