@@ -889,6 +889,7 @@ See the setuptools documentation for the "develop" command for more info.
 
     def _expand(self, *attrs):
         config_vars = self.get_finalized_command('install').config_vars
+        from distutils.util import subst_vars
         for attr in attrs:
             val = getattr(self, attr)
             if val is not None:
@@ -896,7 +897,6 @@ See the setuptools documentation for the "develop" command for more info.
                     val = os.path.expanduser(val)
                 val = subst_vars(val, config_vars)
                 setattr(self, attr, val)
-
 
 
 
