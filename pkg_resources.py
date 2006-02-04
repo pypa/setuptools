@@ -142,7 +142,9 @@ def get_platform():
     XXX Currently this is the same as ``distutils.util.get_platform()``, but it
     needs some hacks for Linux and Mac OS X.
     """
-    if sys.platform == "darwin":
+    from distutils.util import get_platform
+    plat = get_platform()
+    if sys.platform == "darwin" and not plat.startswith('macosx-'):
         try:
             version = _macosx_vers()
             machine = os.uname()[4].replace(" ", "_")
@@ -152,9 +154,7 @@ def get_platform():
             # if someone is running a non-Mac darwin system, this will fall
             # through to the default implementation
             pass
-
-    from distutils.util import get_platform
-    return get_platform()
+    return plat
 
 macosVersionString = re.compile(r"macosx-(\d+)\.(\d+)-(.*)")
 darwinVersionString = re.compile(r"darwin-(\d+)\.(\d+)\.(\d+)-(.*)")
