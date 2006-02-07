@@ -589,6 +589,14 @@ Command-Line Options
     from other sys.path directories to the installation directory, unless you
     explicitly gave the distribution's filename on the command line.
 
+    Note that as of 0.6a10, using this option excludes "system" and
+    "development" eggs from consideration because they can't be reliably
+    copied.  This may cause EasyInstall to choose an older version of a package
+    than what you expected, or it may cause downloading and installation of a
+    fresh copy of something that's already installed.  You will see warning
+    messages for any eggs that EasyInstall skips, before it falls back to an
+    older version or attempts to download a fresh copy.
+
 ``--find-links=URL, -f URL`` (Option renamed in 0.4a2)
     Scan the specified "download pages" for direct links to downloadable eggs
     or source distributions.  Any usable packages will be downloaded if they
@@ -981,6 +989,11 @@ Known Issues
    This allows third parties to "package" trivial Python modules just by
    linking to them (e.g. from within their own PyPI page or download links
    page).
+
+ * The ``--always-copy`` option now skips "system" and "development" eggs since
+   they can't be reliably copied.  Note that this may cause EasyInstall to
+   choose an older version of a package than what you expected, or it may cause
+   downloading and installation of a fresh version of what's already installed.
 
 0.6a9
  * Fixed ``.pth`` file processing picking up nested eggs (i.e. ones inside

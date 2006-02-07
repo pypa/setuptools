@@ -305,25 +305,25 @@ class easy_install(Command):
                     spec = parse_requirement_arg(spec)
 
             self.check_editable(spec)
-            download = self.package_index.fetch(
-                spec, tmpdir, self.upgrade, self.editable
+            dist = self.package_index.fetch_distribution(
+                spec, tmpdir, self.upgrade, self.editable, not self.always_copy
             )
 
-            if download is None:
-                raise DistutilsError(
-                    "Could not find distribution for %r" % spec
-                )
-
-            return self.install_item(spec, download, tmpdir, deps)
+            if dist is None:
+                msg = "Could not find suitable distribution for %r" % spec
+                if self.always_copy:
+                    msg+=" (--always-copy skips system and development eggs)"
+                raise DistutilsError(msg)
+            elif dist.precedence==DEVELOP_DIST:
+                # .egg-info dists don't need installing, just process deps
+                self.process_distribution(spec, dist, deps, "Using")                
+                return dist
+            else:
+                return self.install_item(spec, dist.location, tmpdir, deps)
 
         finally:
             if os.path.exists(tmpdir):
                 rmtree(tmpdir)
-
-
-
-
-
 
 
     def install_item(self, spec, download, tmpdir, deps, install_needed=False):

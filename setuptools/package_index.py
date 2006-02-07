@@ -337,12 +337,12 @@ class PackageIndex(Environment):
         automatically created alongside the downloaded file.
 
         If `spec` is a ``Requirement`` object or a string containing a
-        project/version requirement spec, this method is equivalent to
-        the ``fetch()`` method.  If `spec` is a local, existing file or
-        directory name, it is simply returned unchanged.  If `spec` is a URL,
-        it is downloaded to a subpath of `tmpdir`, and the local filename is
-        returned.  Various errors may be raised if a problem occurs during
-        downloading.
+        project/version requirement spec, this method returns the location of
+        a matching distribution (possibly after downloading it to `tmpdir`).
+        If `spec` is a locally existing file or directory name, it is simply
+        returned unchanged.  If `spec` is a URL, it is downloaded to a subpath
+        of `tmpdir`, and the local filename is returned.  Various errors may be
+        raised if a problem occurs during downloading.
         """
         if not isinstance(spec,Requirement):
             scheme = URL_SCHEME(spec)
@@ -364,31 +364,49 @@ class PackageIndex(Environment):
                         "Not a URL, existing file, or requirement spec: %r" %
                         (spec,)
                     )
-        return self.fetch(spec, tmpdir)
+        return getattr(self.fetch_distribution(spec, tmpdir),'location',None)
 
 
-    def fetch(self, requirement, tmpdir, force_scan=False, source=False):
-        """Obtain a file suitable for fulfilling `requirement`
+    def fetch_distribution(self,
+        requirement, tmpdir, force_scan=False, source=False, develop_ok=False
+    ):
+        """Obtain a distribution suitable for fulfilling `requirement`
 
         `requirement` must be a ``pkg_resources.Requirement`` instance.
         If necessary, or if the `force_scan` flag is set, the requirement is
         searched for in the (online) package index as well as the locally
         installed packages.  If a distribution matching `requirement` is found,
-        the return value is the same as if you had called the ``download()``
-        method with the matching distribution's URL.  If no matching
-        distribution is found, returns ``None``.
+        the returned distribution's ``location`` is the value you would have
+        gotten from calling the ``download()`` method with the matching
+        distribution's URL or filename.  If no matching distribution is found,
+        ``None`` is returned.
 
         If the `source` flag is set, only source distributions and source
-        checkout links will be considered.
+        checkout links will be considered.  Unless the `develop_ok` flag is
+        set, development and system eggs (i.e., those using the ``.egg-info``
+        format) will be ignored.
         """
+
         # process a Requirement
         self.info("Searching for %s", requirement)
+        skipped = {}
 
         def find(req):
+            # Find a matching distribution; may be called more than once
+
             for dist in self[req.key]:
+
+                if dist.precedence==DEVELOP_DIST and not develop_ok:
+                    if dist not in skipped:
+                        self.warn("Skipping development or system egg: %s",dist)
+                        skipped[dist] = 1
+                    continue
+
                 if dist in req and (dist.precedence<=SOURCE_DIST or not source):
                     self.info("Best match: %s", dist)
-                    return self.download(dist.location, tmpdir)
+                    return dist.clone(
+                        location=self.download(dist.location, tmpdir)
+                    )
 
         if force_scan:
             self.find_packages(requirement)
@@ -406,6 +424,29 @@ class PackageIndex(Environment):
                 requirement,
             )
         return dist
+
+    def fetch(self, requirement, tmpdir, force_scan=False, source=False):
+        """Obtain a file suitable for fulfilling `requirement`
+
+        DEPRECATED; use the ``fetch_distribution()`` method now instead.  For
+        backward compatibility, this routine is identical but returns the
+        ``location`` of the downloaded distribution instead of a distribution
+        object.
+        """
+        dist = self.fetch_dist(requirement,tmpdir,force_scan,source)
+        if dist is not None:
+            return dist.location
+        return None
+
+
+
+
+
+
+
+
+
+
 
 
     def gen_setup(self, filename, fragment, tmpdir):
