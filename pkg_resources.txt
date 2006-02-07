@@ -754,20 +754,23 @@ If it is None, an ``EmptyProvider`` is used instead.  ``Distribution`` objects
 implement both the `IResourceProvider`_ and `IMetadataProvider Methods`_ by
 delegating them to the `metadata` object.
 
-``Distribution.from_location(location, basename, metadata=None)`` (classmethod)
+``Distribution.from_location(location, basename, metadata=None, **kw)`` (classmethod)
     Create a distribution for `location`, which must be a string such as a
     URL, filename, or other string that might be used on ``sys.path``.
     `basename` is a string naming the distribution, like ``Foo-1.2-py2.4.egg``.
     If `basename` ends with ``.egg``, then the project's name, version, python
     version and platform are extracted from the filename and used to set those
-    properties of the created distribution.
+    properties of the created distribution.  Any additional keyword arguments
+    are forwarded to the ``Distribution()`` constructor.
 
-``Distribution.from_filename(filename, metadata=None)`` (classmethod)
+``Distribution.from_filename(filename, metadata=None**kw)`` (classmethod)
     Create a distribution by parsing a local filename.  This is a shorter way
     of saying  ``Distribution.from_location(normalize_path(filename),
     os.path.basename(filename), metadata)``.  In other words, it creates a
     distribution whose location is the normalize form of the filename, parsing
-    name and version information from the base portion of the filename.
+    name and version information from the base portion of the filename.  Any
+    additional keyword arguments are forwarded to the ``Distribution()``
+    constructor.
 
 ``Distribution(location,metadata,project_name,version,py_version,platform,precedence)``
     Create a distribution by setting its properties.  All arguments are
@@ -834,10 +837,12 @@ precedence
     ``parsed_version``.  The default precedence is ``pkg_resources.EGG_DIST``,
     which is the highest (i.e. most preferred) precedence.  The full list
     of predefined precedences, from most preferred to least preferred, is:
-    ``EGG_DIST``, ``BINARY_DIST``, ``SOURCE_DIST``, and ``CHECKOUT_DIST``.
-    Normally, precedences other than ``EGG_DIST`` are used only by the
-    ``setuptools.package_index`` module, when sorting distributions found in a
-    package index to determine their suitability for installation.
+    ``EGG_DIST``, ``BINARY_DIST``, ``SOURCE_DIST``, ``CHECKOUT_DIST``, and
+    ``DEVELOP_DIST``.  Normally, precedences other than ``EGG_DIST`` are used
+    only by the ``setuptools.package_index`` module, when sorting distributions
+    found in a package index to determine their suitability for installation.
+    "System" and "Development" eggs (i.e., ones that use the ``.egg-info``
+    format), however, are automatically given a precedence of ``DEVELOP_DIST``.
 
 
 
@@ -870,6 +875,11 @@ precedence
     dependencies.  If `extras` is specified, it should be a sequence of names
     of "extras" defined by the distribution, and the list returned will then
     include any dependencies needed to support the named "extras".
+
+``clone(**kw)``
+    Create a copy of the distribution.  Any supplied keyword arguments override
+    the corresponding argument to the ``Distribution()`` constructor, allowing
+    you to change some of the copied distribution's attributes.
 
 ``egg_name()``
     Return what this distribution's standard filename should be, not including
@@ -1523,6 +1533,12 @@ Release Notes/Change History
  * There is a new ``to_filename()`` function that escapes project names and
    versions for safe use in constructing egg filenames from a Distribution
    object's metadata.
+
+ * Added ``Distribution.clone()`` method, and keyword argument support to other
+   ``Distribution`` constructors.
+
+ * Added the ``DEVELOP_DIST`` precedence, and automatically assign it to
+   eggs using ``.egg-info`` format.
 
 0.6a9
  * Don't raise an error when an invalid (unfinished) distribution is found

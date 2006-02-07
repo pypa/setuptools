@@ -67,7 +67,7 @@ __all__ = [
     'ensure_directory', 'normalize_path',
 
     # Distribution "precedence" constants
-    'EGG_DIST', 'BINARY_DIST', 'SOURCE_DIST', 'CHECKOUT_DIST',
+    'EGG_DIST', 'BINARY_DIST', 'SOURCE_DIST', 'CHECKOUT_DIST', 'DEVELOP_DIST',
 
     # "Provider" interfaces, implementations, and registration/lookup APIs
     'IMetadataProvider', 'IResourceProvider', 'FileMetadata',
@@ -94,11 +94,11 @@ class UnknownExtra(ResolutionError):
 
 _provider_factories = {}
 PY_MAJOR = sys.version[:3]
-
 EGG_DIST    = 3
 BINARY_DIST = 2
 SOURCE_DIST = 1
 CHECKOUT_DIST = 0
+DEVELOP_DIST = -1
 
 def register_loader_type(loader_type, provider_factory):
     """Register `provider_factory` to make providers for `loader_type`
@@ -1378,8 +1378,9 @@ def find_on_path(importer, path_item, only=False):
                         metadata = PathMetadata(path_item, fullpath)
                     else:
                         metadata = FileMetadata(fullpath)
-                    yield Distribution.from_location(path_item,entry,metadata)
-
+                    yield Distribution.from_location(
+                        path_item,entry,metadata,precedence=DEVELOP_DIST
+                    )
                 elif not only and lower.endswith('.egg'):
                     for dist in find_distributions(os.path.join(path_item, entry)):
                         yield dist
@@ -1390,7 +1391,6 @@ def find_on_path(importer, path_item, only=False):
                             yield item
 
 register_finder(ImpWrapper,find_on_path)
-
 
 _namespace_handlers = {}
 _namespace_packages = {}
@@ -1736,7 +1736,7 @@ class Distribution(object):
         self._provider = metadata or empty_provider
 
     #@classmethod
-    def from_location(cls,location,basename,metadata=None):
+    def from_location(cls,location,basename,metadata=None,**kw):
         project_name, version, py_version, platform = [None]*4
         basename, ext = os.path.splitext(basename)
         if ext.lower() in (".egg",".egg-info"):
@@ -1747,7 +1747,7 @@ class Distribution(object):
                 )
         return cls(
             location, metadata, project_name=project_name, version=version,
-            py_version=py_version, platform=platform
+            py_version=py_version, platform=platform, **kw
         )
     from_location = classmethod(from_location)
 
@@ -1852,7 +1852,6 @@ class Distribution(object):
 
         if self.platform:
             filename += '-'+self.platform
-
         return filename
 
     def __repr__(self):
@@ -1874,9 +1873,10 @@ class Distribution(object):
         return getattr(self._provider, attr)
 
     #@classmethod
-    def from_filename(cls,filename,metadata=None):
+    def from_filename(cls,filename,metadata=None, **kw):
         return cls.from_location(
-            _normalize_cached(filename), os.path.basename(filename), metadata
+            _normalize_cached(filename), os.path.basename(filename), metadata,
+            **kw
         )
     from_filename = classmethod(from_filename)
 
@@ -1953,6 +1953,19 @@ class Distribution(object):
             return False
         return True
 
+    def clone(self,**kw):
+        """Copy this distribution, substituting in any changed keyword args"""
+        for attr in (
+            'project_name', 'version', 'py_version', 'platform', 'location',
+            'precedence'
+        ):
+            kw.setdefault(attr, getattr(self,attr,None))
+        kw.setdefault('metadata', self._provider)
+        return self.__class__(**kw)
+
+
+
+
 def issue_warning(*args,**kw):
     level = 1
     g = globals()
@@ -1965,6 +1978,34 @@ def issue_warning(*args,**kw):
         pass
     from warnings import warn
     warn(stacklevel = level+1, *args, **kw)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def parse_requirements(strs):
     """Yield ``Requirement`` objects for each specification in `strs`
