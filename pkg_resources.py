@@ -18,26 +18,26 @@ from sets import ImmutableSet
 from os import utime, rename, unlink    # capture these to bypass sandboxing
 from os import open as os_open
 
+def _get_max_platform(plat):
+    """Return this platform's maximum compatible version.
 
+    distutils.util.get_platform() normally reports the minimum version
+    of Mac OS X that would be required to *use* extensions produced by
+    distutils.  But what we want when checking compatibility is to know the
+    version of Mac OS X that we are *running*.  To allow usage of packages that
+    explicitly require a newer version of Mac OS X, we must also know the
+    current version of the OS.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    If this condition occurs for any other platform with a version in its
+    platform strings, this function should be extended accordingly.
+    """
+    m = macosVersionString.match(plat)
+    if m is not None and sys.platform == "darwin":
+        try:
+            plat = 'macosx-%s-%s' % ('.'.join(_macosx_vers()[:2]), m.group(3))
+        except ValueError:
+            pass    # not Mac OS X
+    return plat
 
 __all__ = [
     # Basic resource access and distribution/entry point discovery
@@ -167,10 +167,12 @@ def compatible_platforms(provided,required):
 
     Returns true if either platform is ``None``, or the platforms are equal.
 
-    XXX Needs compatibility checks for Linux and Mac OS X.
+    XXX Needs compatibility checks for Linux and other unixy OSes.
     """
     if provided is None or required is None or provided==required:
         return True     # easy case
+    provided = _get_max_platform(provided)
+    if provided==required: return True
 
     # Mac OS X special cases
     reqMac = macosVersionString.match(required)
@@ -194,14 +196,12 @@ def compatible_platforms(provided,required):
                     #    "use the macosx designation instead of darwin.",
                     #    category=DeprecationWarning)
                     return True
-
             return False    # egg isn't macosx or legacy darwin
 
         # are they the same major version and machine type?
         if provMac.group(1) != reqMac.group(1) or \
             provMac.group(3) != reqMac.group(3):
             return False
-
 
         # is the required OS major update >= the provided one?
         if int(provMac.group(2)) > int(reqMac.group(2)):
