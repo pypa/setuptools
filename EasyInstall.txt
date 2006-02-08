@@ -545,14 +545,14 @@ Command-Line Options
     file(s)) you must also use ``require()`` to enable packages at runtime.
 
 ``--upgrade, -U``   (New in 0.5a4)
-    By default, EasyInstall only searches the Python Package Index if a
-    project/version requirement can't be met by distributions already installed
+    By default, EasyInstall only searches online if a project/version
+    requirement can't be met by distributions already installed
     on sys.path or the installation directory.  However, if you supply the
     ``--upgrade`` or ``-U`` flag, EasyInstall will always check the package
-    index before selecting a version to install.  In this way, you can force
-    EasyInstall to use the latest available version of any package it installs
-    (subject to any version requirements that might exclude such later
-    versions).
+    index and ``--find-links`` URLs before selecting a version to install.  In
+    this way, you can force EasyInstall to use the latest available version of
+    any package it installs (subject to any version requirements that might
+    exclude such later versions).
 
 ``--install-dir=DIR, -d DIR``
     Set the installation directory. It is up to you to ensure that this
@@ -597,29 +597,41 @@ Command-Line Options
     messages for any eggs that EasyInstall skips, before it falls back to an
     older version or attempts to download a fresh copy.
 
-``--find-links=URL, -f URL`` (Option renamed in 0.4a2)
-    Scan the specified "download pages" for direct links to downloadable eggs
-    or source distributions.  Any usable packages will be downloaded if they
-    are required by a command line argument.  For example, this::
+``--find-links=URLS_OR_FILENAMES, -f URLS_OR_FILENAMES``
+    Scan the specified "download pages" or directories for direct links to eggs
+    or other distributions.  Any existing file or directory names or direct
+    download URLs are immediately added to EasyInstall's search cache, and any
+    indirect URLs (ones that don't point to eggs or other recognized archive
+    formats) are added to a list of additional places to search for download
+    links.  As soon as EasyInstall has to go online to find a package (either
+    because it doesn't exist locally, or because ``--upgrade`` or ``-U`` was
+    used), the specified URLs will be downloaded and scanned for additional
+    direct links.
 
-        easy_install -f http://peak.telecommunity.com/dist PyProtocols
+    Eggs and archives found by way of ``--find-links`` are only downloaded if
+    they are needed to meet a requirement specified on the command line; links
+    to unneeded packages are ignored.
 
-    will download and install the latest version of PyProtocols linked from
-    the PEAK downloads page, but ignore the other download links on that page.
     If all requested packages can be found using links on the specified
-    download pages, the Python Package Index will *not* be consulted.  You can
-    use a ``file:`` URL to reference a local HTML file containing links, or you
-    can just use the name of a directory containing "distribution files"
-    (source archives, eggs, Windows installers, etc.), and EasyInstall will
-    then be aware of the files available there.
+    download pages, the Python Package Index will not be consulted unless you
+    also specified the ``--upgrade`` or ``-U`` option.
 
-    You may specify multiple URLs or directories with this option, separated by
-    whitespace.  Note that on the command line, you will probably have to
-    surround the URL list with quotes, so that it is recognized as a single
-    option value.  You can also specify URLs in a configuration file; see
-    `Configuration Files`_, above; but note that this means the specified pages
-    will be downloaded every time you use EasyInstall (unless overridden on the
-    command line) and thus may make startup slower.
+    (Note: if you want to refer to a local HTML file containing links, you must
+    use a ``file:`` URL, as filenames that do not refer to a directory, egg, or
+    archive are ignored.)
+
+    You may specify multiple URLs or file/directory names with this option,
+    separated by whitespace.  Note that on the command line, you will probably
+    have to surround the URL list with quotes, so that it is recognized as a
+    single option value.  You can also specify URLs in a configuration file;
+    see `Configuration Files`_, above.
+
+    Changed in 0.6a10: previously all URLs and directories passed to this
+    option were scanned as early as possible, but from 0.6a10 on, only
+    directories and direct archive links are scanned immediately; URLs are not
+    retrieved unless a package search was already going to go online due to a
+    package not being available locally, or due to the use of the ``--update``
+    or ``-U`` option.
 
 ``--delete-conflicting, -D`` (New in 0.5a9)
     If you are replacing a package that was previously installed *without*
@@ -994,6 +1006,13 @@ Known Issues
    they can't be reliably copied.  Note that this may cause EasyInstall to
    choose an older version of a package than what you expected, or it may cause
    downloading and installation of a fresh version of what's already installed.
+
+ * The ``--find-links`` option previously scanned all supplied URLs and
+   directories as early as possible, but now only directories and direct
+   archive links are scanned immediately.  URLs are not retrieved unless a
+   package search was already going to go online due to a package not being
+   available locally, or due to the use of the ``--update`` or ``-U`` option.
+
 
 0.6a9
  * Fixed ``.pth`` file processing picking up nested eggs (i.e. ones inside

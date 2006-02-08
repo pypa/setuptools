@@ -131,6 +131,7 @@ class PackageIndex(Environment):
         self.fetched_urls = {}
         self.package_pages = {}
         self.allows = re.compile('|'.join(map(translate,hosts))).match
+        self.to_scan = []
 
     def process_url(self, url, retrieve=False):
         """Evaluate a URL as a possible download, and maybe retrieve it"""
@@ -139,18 +140,8 @@ class PackageIndex(Environment):
             return
         self.scanned_urls[url] = True
         if not URL_SCHEME(url):
-            # process filenames or directories
-            if os.path.isfile(url):
-                map(self.add, distros_for_filename(url))
-                return    # no need to retrieve anything
-            elif os.path.isdir(url):
-                url = os.path.realpath(url)
-                for item in os.listdir(url):
-                    self.process_url(os.path.join(url,item))
-                return
-            else:
-                self.warn("Not found: %s", url)
-                return
+            self.process_filename(url)
+            return
         else:
             dists = list(distros_for_url(url))
             if dists:
@@ -170,6 +161,7 @@ class PackageIndex(Environment):
         f = self.open_url(url)
         self.fetched_urls[url] = self.fetched_urls[f.url] = True
 
+
         if 'html' not in f.headers['content-type'].lower():
             f.close()   # not html, we can't process it
             return
@@ -184,6 +176,21 @@ class PackageIndex(Environment):
             link = urlparse.urljoin(base, match.group(1))
             self.process_url(link)
 
+    def process_filename(self, fn, nested=False):
+        # process filenames or directories
+        if not os.path.exists(fn):
+            self.warn("Not found: %s", url)
+            return
+
+        if os.path.isdir(fn):
+            path = os.path.realpath(fn)
+            for item in os.listdir(path):
+                self.process_filename(os.path.join(path,item), True)
+
+        dists = distros_for_filename(fn)
+        if dists:
+            self.debug("Found: %s", fn)
+            map(self.add, dists)
 
     def url_ok(self, url, fatal=False):
         if self.allows(urlparse.urlparse(url)[1]):
@@ -193,13 +200,6 @@ class PackageIndex(Environment):
             raise DistutilsError(msg % url)
         else:
             self.warn(msg, url)
-
-
-
-
-
-
-
 
 
 
@@ -260,9 +260,11 @@ class PackageIndex(Environment):
 
     def find_packages(self, requirement):
         self.scan_url(self.index_url + requirement.unsafe_name+'/')
+        
         if not self.package_pages.get(requirement.key):
             # Fall back to safe version of the name
             self.scan_url(self.index_url + requirement.project_name+'/')
+
         if not self.package_pages.get(requirement.key):
             # We couldn't find the target package, so search the index page too
             self.warn(
@@ -276,14 +278,12 @@ class PackageIndex(Environment):
             self.scan_url(url)
 
     def obtain(self, requirement, installer=None):
-        self.find_packages(requirement)
+        self.prescan(); self.find_packages(requirement)
         for dist in self[requirement.key]:
             if dist in requirement:
                 return dist
             self.debug("%s does not match %s", requirement, dist)
         return super(PackageIndex, self).obtain(requirement,installer)
-
-
 
     def check_md5(self, cs, info, filename, tfp):
         if re.match('md5=[0-9a-f]{32}$', info):
@@ -296,26 +296,26 @@ class PackageIndex(Environment):
                     "; possible download problem?"
                 )
 
+    def add_find_links(self, urls):
+        """Add `urls` to the list that will be prescanned for searches"""
+        for url in urls:
+            if (
+                self.to_scan is None        # if we have already "gone online"
+                or not URL_SCHEME(url)      # or it's a local file/directory
+                or url.startswith('file:')
+                or list(distros_for_url(url))   # or a direct package link
+            ):
+                # then go ahead and process it now
+                self.scan_url(url)
+            else:
+                # otherwise, defer retrieval till later
+                self.to_scan.append(url)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def prescan(self):
+        """Scan urls scheduled for prescanning (e.g. --find-links)"""
+        if self.to_scan:
+            map(self.scan_url, self.to_scan)
+        self.to_scan = None     # from now on, go ahead and process immediately
 
 
 
@@ -409,13 +409,17 @@ class PackageIndex(Environment):
                     )
 
         if force_scan:
+            self.prescan()
+            self.find_packages(requirement)
+
+        dist = find(requirement)
+        if dist is None and self.to_scan is not None:
+            self.prescan()
+            dist = find(requirement)
+
+        if dist is None and not force_scan:
             self.find_packages(requirement)
             dist = find(requirement)
-        else:
-            dist = find(requirement)
-            if dist is None:
-                self.find_packages(requirement)
-                dist = find(requirement)
 
         if dist is None:
             self.warn(
@@ -437,10 +441,6 @@ class PackageIndex(Environment):
         if dist is not None:
             return dist.location
         return None
-
-
-
-
 
 
 

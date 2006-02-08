@@ -194,7 +194,7 @@ class easy_install(Command):
                 self.find_links = self.find_links.split()
         else:
             self.find_links = []
-
+        self.package_index.add_find_links(self.find_links)
         self.set_undefined_options('install_lib', ('optimize','optimize'))
         if not isinstance(self.optimize,int):
             try:
@@ -224,8 +224,6 @@ class easy_install(Command):
         if self.verbose<>self.distribution.verbose:
             log.set_verbosity(self.verbose)
         try:
-            for link in self.find_links:
-                self.package_index.scan_url(link)
             for spec in self.args:
                 self.easy_install(spec, not self.no_deps)
             if self.record:
@@ -242,6 +240,8 @@ class easy_install(Command):
                 )
         finally:
             log.set_verbosity(self.distribution.verbose)
+
+
 
 
     def install_egg_scripts(self, dist):

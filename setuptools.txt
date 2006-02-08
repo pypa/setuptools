@@ -2342,6 +2342,9 @@ XXX
 Release Notes/Change History
 ----------------------------
 
+0.6a10
+ * Fixed the ``develop`` command ignoring ``--find-links``.
+
 0.6a9
  * The ``sdist`` command no longer uses the traditional ``MANIFEST`` file to
    create source distributions.  ``MANIFEST.in`` is still read and processed,
