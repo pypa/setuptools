@@ -67,6 +67,8 @@ class develop(easy_install):
         self.reinitialize_command('build_ext', inplace=1)
         self.run_command('build_ext')
 
+        self.install_site_py()  # ensure that target dir is site-safe
+
         # create an .egg-link in the installation dir, pointing to our egg
         log.info("Creating %s (link to %s)", self.egg_link, self.egg_base)
         if not self.dry_run:
@@ -77,8 +79,6 @@ class develop(easy_install):
         # postprocess the installed distro, fixing up .pth, installing scripts,
         # and handling requirements
         self.process_distribution(None, self.dist)
-
-
 
     def uninstall_link(self):
         if os.path.exists(self.egg_link):

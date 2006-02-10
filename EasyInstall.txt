@@ -34,7 +34,9 @@ Download `ez_setup.py <http://peak.telecommunity.com/dist/ez_setup.py>`_, and
 run it; this will download and install the appropriate ``setuptools`` egg for
 your Python version.  (You will need at least Python 2.3.5, or if you are on a
 64-bit platform, Python 2.4.)  An ``easy_install`` script will be installed in
-the normal location for Python scripts on your platform.
+the normal location for Python scripts on your platform.  (Windows users, don't
+put ``ez_setup.py`` inside your Python installation; please put it in some
+other directory before running it.)
 
 You may receive a message telling you about an obsolete version of setuptools
 being present; if so, you must be sure to delete it entirely, along with the
@@ -185,11 +187,6 @@ file, so that Python will always use the most-recently-installed version of
 the package.  If you would like to be able to select which version to use at
 runtime, you should use the ``-m`` or ``--multi-version`` option.
 
-Note, however, that installing to a directory other than ``site-packages``
-already implies the ``-m`` option, so if you cannot install to
-``site-packages``, please see the `Command-Line Options`_ section below (under
-``--multi-version``) to find out how to select packages at runtime.
-
 
 Upgrading a Package
 -------------------
@@ -215,17 +212,16 @@ or by using a download page, direct download URL, or package filename::
 
     easy_install my_downloads/ExamplePackage-2.0.tgz
 
-If you're using ``-m`` or ``--multi`` (or installing outside of
-``site-packages``), using the ``require()`` function at runtime automatically
-selects the newest installed version of a package that meets your version
-criteria.  So, installing a newer version is the only step needed to upgrade
-such packages.
+If you're using ``-m`` or ``--multi-version`` , using the ``require()``
+function at runtime automatically selects the newest installed version of a
+package that meets your version criteria.  So, installing a newer version is
+the only step needed to upgrade such packages.
 
-If you're installing to Python's ``site-packages`` directory (and not
-using ``-m``), installing a package automatically replaces any previous version
-in the ``easy-install.pth`` file, so that Python will import the most-recently
-installed version by default.  So, again, installing the newer version is the
-only upgrade step needed.
+If you're installing to a directory on PYTHONPATH, or a configured "site"
+directory (and not using ``-m``), installing a package automatically replaces
+any previous version in the ``easy-install.pth`` file, so that Python will
+import the most-recently installed version by default.  So, again, installing
+the newer version is the only upgrade step needed.
 
 If you haven't suppressed script installation (using ``--exclude-scripts`` or
 ``-x``), then the upgraded version's scripts will be installed, and they will
@@ -412,17 +408,16 @@ Compressed Installation
 -----------------------
 
 EasyInstall tries to install packages in zipped form, if it can.  Zipping
-packages can significantly increase Python's overall import performance if
-you're installing to``site-packages`` and not using the ``--multi`` option,
-because Python processes zipfile entries on ``sys.path`` much faster than it
-does directories.
+packages can improve Python's overall import performance if you're not using
+the ``--multi-version`` option, because Python processes zipfile entries on
+``sys.path`` much faster than it does directories.
 
 As of version 0.5a9, EasyInstall analyzes packages to determine whether they
 can be safely installed as a zipfile, and then acts on its analysis.  (Previous
 versions would not install a package as a zipfile unless you used the
 ``--zip-ok`` option.)
 
-The current analysis approach is very conservative; it currenly looks for:
+The current analysis approach is fairly conservative; it currenly looks for:
 
  * Any use of the ``__file__`` or ``__path__`` variables (which should be
    replaced with ``pkg_resources`` API calls)
@@ -538,11 +533,9 @@ Command-Line Options
     versions and enabling optional dependencies, see the ``pkg_resources`` API
     doc.)
 
-    Note that if you install to a directory other than ``site-packages``,
-    this option is automatically in effect, because ``.pth`` files can only be
-    used in ``site-packages`` (at least in Python 2.3 and 2.4). So, if you use
-    the ``--install-dir`` or ``-d`` option (or they are set via configuration
-    file(s)) you must also use ``require()`` to enable packages at runtime.
+    Changed in 0.6a10: this option is no longer silently enabled when
+    installing to a non-PYTHONPATH, non-"site" directory.  You must always
+    explicitly use this option if you want it to be active.
 
 ``--upgrade, -U``   (New in 0.5a4)
     By default, EasyInstall only searches online if a project/version
@@ -958,21 +951,16 @@ already have them::
     install_lib = ~/py-lib
     install_scripts = ~/bin
     
-    [easy_install]
-    site_dirs = ~/py_lib
-
 Be sure to do this *before* you try to run the ``ez_setup.py`` installation
-script.  Then, follow the standard `installation instructions`_, but take
-careful note of the full pathname of the ``.egg`` file that gets installed, so
-that you can add it to your ``PYTHONPATH``, along with ``~/py_lib``.
+script.  Then, follow the standard `installation instructions`_, but make
+sure that ``~/py-lib`` is listed in your ``PYTHONPATH`` environment variable.
 
-You *must* add the setuptools egg file *and* ``~/py_lib`` to your
-``PYTHONPATH`` environment variable manually, or it will not work, and neither
-will any other packages you install with EasyInstall.  You will not, however,
-have to manually add any other packages to the ``PYTHONPATH``; EasyInstall will
-take care of them for you by automatically editing
-``~/py-lib/easy-install.pth``, as long as the setuptools egg is explicitly
-listed in ``PYTHONPATH``.
+Your library installation directory *must* be in listed in ``PYTHONPATH``,
+not only when you install packages with EasyInstall, but also when you use
+any packages that are installed using EasyInstall.  You will probably want to
+edit your ``~/.profile`` or other configuration file(s) to ensure that it is
+set, if you haven't already got this set up on your machine.
+
 
 
 Release Notes/Change History
@@ -983,6 +971,11 @@ Known Issues
    time out or be missing a file.
 
 0.6a10
+ * Enhanced ``PYTHONPATH`` support so that you don't have to put any eggs on it
+   to make it work.  ``--multi-version`` is no longer a silent default; you
+   must explicitly use it if installing to a non-PYTHONPATH, non-"site"
+   directory.
+
  * Expand ``$variables`` used in the ``--site-dirs``, ``--build-directory``,
    ``--install-dir``, and ``--script-dir`` options, whether on the command line
    or in configuration files.

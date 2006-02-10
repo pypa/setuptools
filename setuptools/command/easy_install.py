@@ -99,7 +99,7 @@ class easy_install(Command):
         self.ignore_conflicts_at_my_risk = None
         self.site_dirs = None
         self.installed_projects = {}
-
+        self.sitepy_installed = False
         # Always read easy_install options, even if we are subclassed, or have
         # an independent instance created.  This ensures that defaults will
         # always come from the standard configuration file(s)' "easy_install"
@@ -155,21 +155,20 @@ class easy_install(Command):
                     )
                 else:
                     self.all_site_dirs.append(normalize_path(d))
-        instdir = normalize_path(self.install_dir or self.all_site_dirs[-1])
+        instdir = normalize_path(self.install_dir)
         if instdir in self.all_site_dirs:
             if self.pth_file is None:
                 self.pth_file = PthDistributions(
                     os.path.join(instdir,'easy-install.pth')
                 )
 
-        elif self.multi_version is None:
-            self.multi_version = True
-
         elif not self.multi_version:
-            # explicit false set from Python code; raise an error
-            raise DistutilsArgError(
-                "Can't do single-version installs outside 'site-package' dirs"
-            )
+            # Can't install non-multi to non-site dir
+            raise DistutilsError(self.no_default_version_msg())
+
+        if instdir in map(normalize_path, self.site_dirs or []):
+            # don't install site.py if install target is already a site dir
+            self.sitepy_installed = True
 
         self.install_dir = instdir
         self.index_url = self.index_url or "http://www.python.org/pypi"
@@ -194,6 +193,7 @@ class easy_install(Command):
                 self.find_links = self.find_links.split()
         else:
             self.find_links = []
+
         self.package_index.add_find_links(self.find_links)
         self.set_undefined_options('install_lib', ('optimize','optimize'))
         if not isinstance(self.optimize,int):
@@ -288,6 +288,7 @@ class easy_install(Command):
     def easy_install(self, spec, deps=False):
         tmpdir = tempfile.mkdtemp(prefix="easy_install-")
         download = None
+        self.install_site_py()
 
         try:
             if not isinstance(spec,Requirement):
@@ -324,7 +325,6 @@ class easy_install(Command):
         finally:
             if os.path.exists(tmpdir):
                 rmtree(tmpdir)
-
 
     def install_item(self, spec, download, tmpdir, deps, install_needed=False):
 
@@ -687,7 +687,7 @@ class easy_install(Command):
                             if f: f.close()
                             if filename not in blockers:
                                 blockers.append(filename)
-                    elif ext in exts:
+                    elif ext in exts and base!='site':  # XXX ugh
                         blockers.append(os.path.join(path,filename))
 
         if blockers:
@@ -900,9 +900,92 @@ See the setuptools documentation for the "develop" command for more info.
 
 
 
+    def no_default_version_msg(self):
+        return """
+-----------------------------------------------------------------------
+CONFIGURATION PROBLEM:
+
+You are attempting to install a package to a directory that is not
+on PYTHONPATH and is not registered as supporting Python ".pth" files
+by default.  Here are some of your options for correcting this:
+
+* You can choose a different installation directory, i.e., one that is
+  on PYTHONPATH or supports .pth files
+
+* You can add the installation directory to the PYTHONPATH environment
+  variable.  (It must then also be on PYTHONPATH whenever you run
+  Python and want to use the package(s) you are installing.)
+
+* You can set up the installation directory to support ".pth" files,
+  and configure EasyInstall to recognize this, by using one of the
+  approaches described here:
+
+  http://peak.telecommunity.com/EasyInstall.html#custom-installation-locations
+
+Please make the appropriate changes for your system and try again.
+Thank you for your patience.
+-----------------------------------------------------------------------
+"""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    def install_site_py(self):
+        """Make sure there's a site.py in the target dir, if needed"""
+
+        if self.sitepy_installed:
+            return  # already did it, or don't need to
+
+        sitepy = os.path.join(self.install_dir, "site.py")
+        source = resource_string(Requirement.parse("setuptools"), "site.py")
+
+        if os.path.exists(sitepy):
+            log.debug("Checking existing site.py in %s", self.install_dir)
+            current = open(sitepy,'rb').read()
+            if current != source:
+                raise DistutilsError(
+                    "%s is not a setuptools-generated site.py; please"
+                    " remove it." % sitepy
+                )
+        else:
+            log.info("Creating %s", sitepy)
+            if not self.dry_run:
+                f = open(sitepy,'wb')
+                f.write(source)
+                f.close()
+            self.byte_compile([sitepy])
+
+        self.sitepy_installed = True
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def get_site_dirs():
-    # return a list of 'site' dirs, based on 'site' module's code to do this
-    sitedirs = []
+    # return a list of 'site' dirs
+    sitedirs = filter(None,os.environ.get('PYTHONPATH','').split(os.pathsep))
     prefixes = [sys.prefix]
     if sys.exec_prefix != sys.prefix:
         prefixes.append(sys.exec_prefix)
@@ -939,7 +1022,7 @@ def get_site_dirs():
 
     sitedirs = filter(os.path.isdir, sitedirs)
     sitedirs = map(normalize_path, sitedirs)
-    return sitedirs     # ensure at least one
+    return sitedirs
 
 def expand_paths(inputs):
     """Yield sys.path directories that might contain "old-style" packages"""
