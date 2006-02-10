@@ -971,10 +971,13 @@ Known Issues
    time out or be missing a file.
 
 0.6a10
+ * Added ``--prefix`` option for more do-what-I-mean-ishness in the absence of
+   RTFM-ing.  :)
+
  * Enhanced ``PYTHONPATH`` support so that you don't have to put any eggs on it
-   to make it work.  ``--multi-version`` is no longer a silent default; you
-   must explicitly use it if installing to a non-PYTHONPATH, non-"site"
-   directory.
+   manually to make it work.  ``--multi-version`` is no longer a silent
+   default; you must explicitly use it if installing to a non-PYTHONPATH,
+   non-"site" directory.
 
  * Expand ``$variables`` used in the ``--site-dirs``, ``--build-directory``,
    ``--install-dir``, and ``--script-dir`` options, whether on the command line

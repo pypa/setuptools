@@ -41,11 +41,11 @@ def samefile(p1,p2):
 
 class easy_install(Command):
     """Manage a download/build/install process"""
-
     description = "Find/get/install Python packages"
     command_consumes_arguments = True
 
     user_options = [
+        ('prefix=', None, "installation prefix"),
         ("zip-ok", "z", "install package as a zipfile"),
         ("multi-version", "m", "make apps have to require() a version"),
         ("upgrade", "U", "force upgrade (searches PyPI for latest versions)"),
@@ -90,7 +90,7 @@ class easy_install(Command):
         self.optimize = self.record = None
         self.upgrade = self.always_copy = self.multi_version = None
         self.editable = self.no_deps = self.allow_hosts = None
-        self.root = None
+        self.root = self.prefix = None
 
         # Options not specifiable via command line
         self.package_index = None
@@ -146,7 +146,7 @@ class easy_install(Command):
             site_dirs = [
                 os.path.expanduser(s.strip()) for s in self.site_dirs.split(',')
             ]
-            for d in site_dirs:                           
+            for d in site_dirs:
                 if not os.path.isdir(d):
                     log.warn("%s (in --site-dirs) does not exist", d)
                 elif normalize_path(d) not in normpath:
@@ -317,7 +317,7 @@ class easy_install(Command):
                 raise DistutilsError(msg)
             elif dist.precedence==DEVELOP_DIST:
                 # .egg-info dists don't need installing, just process deps
-                self.process_distribution(spec, dist, deps, "Using")                
+                self.process_distribution(spec, dist, deps, "Using")
                 return dist
             else:
                 return self.install_item(spec, dist.location, tmpdir, deps)
@@ -588,7 +588,7 @@ class easy_install(Command):
         # Convert the .exe to an unpacked egg
         egg_path = dist.location = os.path.join(tmpdir, dist.egg_name()+'.egg')
         egg_tmp  = egg_path+'.tmp'
-        egg_info = os.path.join(egg_tmp, 'EGG-INFO') 
+        egg_info = os.path.join(egg_tmp, 'EGG-INFO')
         pkg_inf = os.path.join(egg_info, 'PKG-INFO')
         ensure_directory(pkg_inf)   # make sure EGG-INFO dir exists
         dist._provider = PathMetadata(egg_tmp, egg_info)    # XXX
@@ -605,7 +605,7 @@ class easy_install(Command):
         script_dir = os.path.join(egg_info,'scripts')
         self.delete_blockers(   # delete entry-point scripts to avoid duping
             [os.path.join(script_dir,args[0]) for args in get_script_args(dist)]
-        )       
+        )
         # Build .egg file from tmpdir
         bdist_egg.make_zipfile(
             egg_path, egg_tmp, verbose=self.verbose, dry_run=self.dry_run
@@ -887,27 +887,34 @@ See the setuptools documentation for the "develop" command for more info.
         finally:
             log.set_verbosity(self.verbose)     # restore original verbosity
 
-    def _expand(self, *attrs):
-        config_vars = self.get_finalized_command('install').config_vars
-        from distutils.util import subst_vars
-        for attr in attrs:
-            val = getattr(self, attr)
-            if val is not None:
-                if os.name == 'posix':
-                    val = os.path.expanduser(val)
-                val = subst_vars(val, config_vars)
-                setattr(self, attr, val)
+
+
+
+
+
+
+
+
+
+
 
 
 
     def no_default_version_msg(self):
-        return """
------------------------------------------------------------------------
-CONFIGURATION PROBLEM:
+        return """bad install directory or PYTHONPATH
 
 You are attempting to install a package to a directory that is not
 on PYTHONPATH and is not registered as supporting Python ".pth" files
-by default.  Here are some of your options for correcting this:
+by default.  The installation directory you specified (via --install-dir,
+--prefix, or the distutils default setting) was:
+
+    %s
+
+and your PYTHONPATH environment variable currently contains:
+
+    %r
+
+Here are some of your options for correcting the problem:
 
 * You can choose a different installation directory, i.e., one that is
   on PYTHONPATH or supports .pth files
@@ -922,16 +929,9 @@ by default.  Here are some of your options for correcting this:
 
   http://peak.telecommunity.com/EasyInstall.html#custom-installation-locations
 
-Please make the appropriate changes for your system and try again.
-Thank you for your patience.
------------------------------------------------------------------------
-"""
-
-
-
-
-
-
+Please make the appropriate changes for your system and try again.""" % (
+        self.install_dir, os.environ.get('PYTHONPATH','')
+    )
 
 
 
@@ -961,6 +961,7 @@ Thank you for your patience.
         else:
             log.info("Creating %s", sitepy)
             if not self.dry_run:
+                ensure_directory(sitepy)
                 f = open(sitepy,'wb')
                 f.write(source)
                 f.close()
@@ -974,6 +975,45 @@ Thank you for your patience.
 
 
 
+
+
+
+
+
+
+
+    INSTALL_SCHEMES = dict(
+        posix = dict(
+            install_dir = '$base/lib/python$py_version_short/site-packages',
+            script_dir  = '$base/bin',
+        ),
+    )
+
+    DEFAULT_SCHEME = dict(
+        install_dir = '$base/Lib/site-packages',
+        script_dir  = '$base/Scripts',
+    )
+
+    def _expand(self, *attrs):
+        config_vars = self.get_finalized_command('install').config_vars
+
+        if self.prefix:
+            # Set default install_dir/scripts from --prefix
+            config_vars = config_vars.copy()
+            config_vars['base'] = self.prefix
+            scheme = self.INSTALL_SCHEMES.get(os.name,self.DEFAULT_SCHEME)
+            for attr,val in scheme.items():
+                if getattr(self,attr,None) is None:
+                    setattr(self,attr,val)
+
+        from distutils.util import subst_vars
+        for attr in attrs:
+            val = getattr(self, attr)
+            if val is not None:
+                val = subst_vars(val, config_vars)
+                if os.name == 'posix':
+                    val = os.path.expanduser(val)
+                setattr(self, attr, val)
 
 
 
@@ -1018,11 +1058,11 @@ def get_site_dirs():
                                          'site-packages'))
     for plat_specific in (0,1):
         site_lib = get_python_lib(plat_specific)
-        if site_lib not in sitedirs: sitedirs.append(site_lib)        
+        if site_lib not in sitedirs: sitedirs.append(site_lib)
 
-    sitedirs = filter(os.path.isdir, sitedirs)
     sitedirs = map(normalize_path, sitedirs)
     return sitedirs
+
 
 def expand_paths(inputs):
     """Yield sys.path directories that might contain "old-style" packages"""
