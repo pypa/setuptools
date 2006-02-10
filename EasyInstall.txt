@@ -1009,6 +1009,7 @@ Known Issues
    package search was already going to go online due to a package not being
    available locally, or due to the use of the ``--update`` or ``-U`` option.
 
+ * Fixed the annoying ``--help-commands`` wart.
 
 0.6a9
  * Fixed ``.pth`` file processing picking up nested eggs (i.e. ones inside

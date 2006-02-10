@@ -1254,12 +1254,6 @@ def get_script_header(script_text, executable=sys_executable):
             options = ' '+options
     return "#!%(executable)s%(options)s\n" % locals()
 
-def main(argv=None, **kw):
-    from setuptools import setup
-    if argv is None:
-        argv = sys.argv[1:]
-    setup(script_args = ['-q','easy_install', '-v']+argv, **kw)
-
 
 def auto_chmod(func, arg, exc):
     if func is os.remove and os.name=='nt':
@@ -1267,6 +1261,12 @@ def auto_chmod(func, arg, exc):
         return func(arg)
     exc = sys.exc_info()
     raise exc[0], (exc[1][0], exc[1][1] + (" %s %s" % (func,arg)))
+
+
+
+
+
+
 
 
 def get_script_args(dist, executable=sys_executable):
@@ -1345,6 +1345,47 @@ def rmtree(path, ignore_errors=False, onerror=auto_chmod):
     except os.error:
         onerror(os.rmdir, path, sys.exc_info())
 
+
+
+
+
+
+
+def main(argv=None, **kw):
+    from setuptools import setup
+    from setuptools.dist import Distribution
+    import distutils.core
+
+    USAGE = """\
+usage: %(script)s [options] requirement_or_url ...
+   or: %(script)s --help
+"""
+    
+    def gen_usage (script_name):
+        script = os.path.basename(script_name)
+        return USAGE % vars()
+
+    def with_ei_usage(f):
+        old_gen_usage = distutils.core.gen_usage
+        try:
+            distutils.core.gen_usage = gen_usage
+            return f()
+        finally:
+            distutils.core.gen_usage = old_gen_usage
+        
+    class DistributionWithoutHelpCommands(Distribution):
+        def _show_help(self,*args,**kw):
+            with_ei_usage(lambda: Distribution._show_help(self,*args,**kw))
+
+    if argv is None:
+        argv = sys.argv[1:]
+
+    with_ei_usage(lambda:
+        setup(
+            script_args = ['-q','easy_install', '-v']+argv, 
+            distclass=DistributionWithoutHelpCommands, **kw
+        )
+    )
 
 
 
