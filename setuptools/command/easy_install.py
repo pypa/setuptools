@@ -933,8 +933,8 @@ def get_site_dirs():
                                          'Python',
                                          sys.version[:3],
                                          'site-packages'))
-
-        site_lib = get_python_lib(prefix=prefix or None)
+    for plat_specific in (0,1):
+        site_lib = get_python_lib(plat_specific)
         if site_lib not in sitedirs: sitedirs.append(site_lib)        
 
     sitedirs = filter(os.path.isdir, sitedirs)
