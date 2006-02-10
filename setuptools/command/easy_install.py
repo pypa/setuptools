@@ -934,8 +934,8 @@ def get_site_dirs():
                                          sys.version[:3],
                                          'site-packages'))
 
-         site_lib = get_python_lib(prefix=prefix or None)
-         if site_lib not in sitedirs: sitedirs.append(site_lib)        
+        site_lib = get_python_lib(prefix=prefix or None)
+        if site_lib not in sitedirs: sitedirs.append(site_lib)        
 
     sitedirs = filter(os.path.isdir, sitedirs)
     sitedirs = map(normalize_path, sitedirs)
