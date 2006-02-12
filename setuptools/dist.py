@@ -118,7 +118,7 @@ def check_package_data(dist, attr, value):
         "wildcard patterns"
     )
 
-    
+
 
 
 class Distribution(_Distribution):
@@ -221,6 +221,9 @@ class Distribution(_Distribution):
 
         _Distribution.__init__(self,attrs)
 
+        if isinstance(self.metadata.version, (int,long,float)):
+            # Some people apparently take "version number" too literally :)
+            self.metadata.version = str(self.metadata.version)
 
     def parse_command_line(self):
         """Process features after parsing command line options"""
@@ -240,9 +243,6 @@ class Distribution(_Distribution):
             parse_requirements(requires), installer=self.fetch_build_egg
         ):
             working_set.add(dist)
-
-
-
 
     def finalize_options(self):
         _Distribution.finalize_options(self)
