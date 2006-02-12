@@ -316,8 +316,95 @@ installations, so that Python won't lock us out of using anything but the most
 recently-installed version of the package.)
 
 
+
+Tips & Techniques
+-----------------
+
+
+Restricting Downloads with ``--allow-hosts``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the ``--allow-hosts`` (``-H``) option to restrict what domains
+EasyInstall will look for links and downloads on.  ``--allow-hosts=None``
+prevents downloading altogether.  You can also use wildcards, for example
+to restrict downloading to hosts in your own intranet.  See the section below
+on `Command-Line Options`_ for more details on the ``--allow-hosts`` option.
+
+By default, there are no host restrictions in effect, but you can change this
+default by editing the appropriate `configuration files`_ and adding::
+
+    [easy_install]
+    allow_hosts = *.myintranet.example.com,*.python.org
+
+The above example would then allow downloads only from hosts in the
+``python.org`` and ``myintranet.example.com`` domains, unless overridden on the
+command line.
+
+
+Installing on Un-networked Machines
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Just copy the eggs or source packages you need to a directory on the target
+machine, then use the ``-f`` or ``--find-links`` option to specify that
+directory's location.  For example::
+
+    easy_install -H None -f somedir SomePackage
+
+will attempt to install SomePackage using only eggs and source packages found
+in ``somedir`` and disallowing all remote access.  You should of course make
+sure you have all of SomePackage's dependencies available in somedir.
+
+If you have another machine of the same operating system and library versions
+(or if the packages aren't platform-specific), you can create the directory of
+eggs using a command like this::
+
+    easy_install -zmaxd somedir SomePackage
+
+This will tell EasyInstall to put zipped eggs or source packages for
+SomePackage and all its dependencies into ``somedir``, without creating any
+scripts or .pth files.  You can then copy the contents of ``somedir`` to the
+target machine.  (``-z`` means zipped eggs, ``-m`` means multi-version, which
+prevents .pth files from being used, ``-a`` means to copy all the eggs needed,
+even if they're installed elsewhere on the machine, and ``-d`` indicates the
+directory to place the eggs in.)
+
+
+Packaging Others' Projects As Eggs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Need to distribute a package that isn't published in egg form?  You can use
+EasyInstall to build eggs for a project.  You'll want to use the ``--zip-ok``,
+``--exclude-scripts``, and possibly ``--no-deps`` options (``-z``, ``-x`` and
+``-N``, respectively).  Use ``-d`` or ``--install-dir`` to specify the location
+where you'd like the eggs placed.  By placing them in a directory that is
+published to the web, you can then make the eggs available for download, either
+in an intranet or to the internet at large.
+
+
+Creating your own Package Index
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In addition to local directories and the Python Package Index, EasyInstall can
+find download links on most any web page whose URL is given to the ``-f``
+(``--find-links``) option.  In the simplest case, you can simply have a web
+page with links to eggs or Python source packages, even an automatically
+generated directory listing (such as the Apache web server provides).
+
+If you are setting up an intranet site for package downloads, you may want to
+configure the target machines to use your download site by default, adding
+something like this to their `configuration files`_::
+
+    [easy_install]
+    find_links = http://mypackages.example.com/somedir/
+                 http://turbogears.org/download/
+                 http://peak.telecommunity.com/dist/
+
+As you can see, you can list multiple URLs separated by whitespace, continuing
+on multiple lines if necessary (as long as the subsequent lines are indented.
+
+
 Controlling Build Options
--------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 EasyInstall respects standard distutils `Configuration Files`_, so you can use
 them to configure build options for packages that it installs from source.  For
@@ -337,7 +424,7 @@ more documentation on using distutils configuration files.
 
 
 Editing and Viewing Source Packages
------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Sometimes a package's source distribution  contains additional documentation,
 examples, configuration files, etc., that are not part of its actual code.  If
@@ -375,7 +462,7 @@ the project name, e.g.::
 
 
 Dealing with Installation Conflicts
------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 EasyInstall installs distributions in a "managed" way, such that each
 distribution can be independently activated or deactivated on ``sys.path``.
@@ -405,7 +492,7 @@ about!
 
 
 Compressed Installation
------------------------
+~~~~~~~~~~~~~~~~~~~~~~~
 
 EasyInstall tries to install packages in zipped form, if it can.  Zipping
 packages can improve Python's overall import performance if you're not using

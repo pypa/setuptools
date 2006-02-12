@@ -349,6 +349,13 @@ function are for.
     yourself to deal with the existing items; just register the callback and
     be prepared for the fact that it will be called immediately by this method.
 
+    Note that callbacks *must not* allow exceptions to propagate, or they will
+    interfere with the operation of other callbacks and possibly result in an
+    inconsistent working set state.  Callbacks should use a try/except block
+    to ignore, log, or otherwise process any errors, especially since the code
+    that caused the callback to be invoked is unlikely to be able to handle
+    the errors any better than the callback itself.
+
 ``pkg_resources.add_activation_listener()`` is an alternate spelling of
 ``pkg_resources.working_set.subscribe()``.
 
