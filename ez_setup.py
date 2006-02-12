@@ -123,8 +123,14 @@ help).  I will attempt to download it for you (from
 %s), but
 you may need to enable firewall access for this script first.
 I will start the download in %d seconds.
+
+(Note: if this machine does not have network access, please obtain the file
+
+   %s
+
+and place it in this directory before rerunning this script.)
 ---------------------------------------------------------------------------""",
-                    version, download_base, delay
+                    version, download_base, delay, url
                 ); from time import sleep; sleep(delay)
             log.warn("Downloading %s", url)
             src = urllib2.urlopen(url)
