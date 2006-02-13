@@ -3,7 +3,7 @@
 Build .egg distributions"""
 
 # This module should be kept compatible with Python 2.3
-import os, marshal
+import sys, os, marshal
 from setuptools import Command
 from distutils.dir_util import remove_tree, mkpath
 from distutils.sysconfig import get_python_version, get_python_lib
@@ -415,8 +415,7 @@ INSTALL_DIRECTORY_ATTRS = [
     'install_lib', 'install_dir', 'install_data', 'install_base'
 ]
 
-
-def make_zipfile (zip_filename, base_dir, verbose=0, dry_run=0):
+def make_zipfile (zip_filename, base_dir, verbose=0, dry_run=0, compress=None):
     """Create a zip file from all the files under 'base_dir'.  The output
     zip file will be named 'base_dir' + ".zip".  Uses either the "zipfile"
     Python module (if available) or the InfoZIP "zip" utility (if installed
@@ -425,7 +424,6 @@ def make_zipfile (zip_filename, base_dir, verbose=0, dry_run=0):
     """
     import zipfile
     mkpath(os.path.dirname(zip_filename), dry_run=dry_run)
-
     log.info("creating '%s' and adding '%s' to it", zip_filename, base_dir)
 
     def visit (z, dirname, names):
@@ -437,15 +435,17 @@ def make_zipfile (zip_filename, base_dir, verbose=0, dry_run=0):
                     z.write(path, p)
                 log.debug("adding '%s'" % p)
 
+    if compress is None:
+        compress = (sys.version>="2.4") # avoid 2.3 zipimport bug when 64 bits
+
+    compression = [zipfile.ZIP_STORED, zipfile.ZIP_DEFLATED][bool(compress)]
     if not dry_run:
-        z = zipfile.ZipFile(zip_filename, "w",
-                            compression=zipfile.ZIP_DEFLATED)
+        z = zipfile.ZipFile(zip_filename, "w", compression=compression)
         os.path.walk(base_dir, visit, z)
         z.close()
     else:
         os.path.walk(base_dir, visit, None)
 
     return zip_filename
-
 
 
