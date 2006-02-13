@@ -201,7 +201,7 @@ class bdist_egg(Command):
         if self.distribution.scripts:
             script_dir = os.path.join(egg_info, 'scripts')
             log.info("installing scripts to %s" % script_dir)
-            self.call_command('install_scripts', install_dir=script_dir)
+            self.call_command('install_scripts',install_dir=script_dir,no_ep=1)
 
         native_libs = os.path.join(self.egg_info,"native_libs.txt")
         if all_outputs:
