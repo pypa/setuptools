@@ -155,22 +155,7 @@ class easy_install(Command):
                     )
                 else:
                     self.all_site_dirs.append(normalize_path(d))
-        instdir = normalize_path(self.install_dir)
-        if instdir in self.all_site_dirs:
-            if self.pth_file is None:
-                self.pth_file = PthDistributions(
-                    os.path.join(instdir,'easy-install.pth')
-                )
-
-        elif not self.multi_version:
-            # Can't install non-multi to non-site dir
-            raise DistutilsError(self.no_default_version_msg())
-
-        if instdir in map(normalize_path, self.site_dirs or []):
-            # don't install site.py if install target is already a site dir
-            self.sitepy_installed = True
-
-        self.install_dir = instdir
+        self.check_site_dir()
         self.index_url = self.index_url or "http://www.python.org/pypi"
         self.shadow_path = self.all_site_dirs[:]
         for path_item in self.install_dir, normalize_path(self.script_dir):
@@ -212,13 +197,11 @@ class easy_install(Command):
             raise DistutilsArgError(
                 "Must specify a build directory (-b) when using --editable"
             )
-
         if not self.args:
             raise DistutilsArgError(
                 "No urls, filenames, or requirements specified (see --help)")
 
         self.outputs = []
-
 
     def run(self):
         if self.verbose<>self.distribution.verbose:
@@ -242,7 +225,147 @@ class easy_install(Command):
             log.set_verbosity(self.distribution.verbose)
 
 
+    def pseudo_tempname(self):
+        """Return a pseudo-tempname base in the install directory.
 
+        This code is intentionally naive; if a malicious party can write to
+        the target directory you're already in deep doodoo.
+        """
+        try:
+            pid = os.getpid()
+        except:
+            import random
+            pid = random.randint(0,sys.maxint)
+        return os.path.join(self.install_dir, "test-easy-install-%s" % pid)
+
+
+
+
+
+
+
+    def check_site_dir(self):
+        """Verify that self.install_dir is .pth-capable dir, if needed"""
+
+        instdir = normalize_path(self.install_dir)
+        pth_file = os.path.join(instdir,'easy-install.pth')
+
+        # Is it a configured, PYTHONPATH, implicit, or explicit site dir?
+        is_site_dir = instdir in self.all_site_dirs
+
+        if not is_site_dir:
+            # No?  Then directly test whether it does .pth file processing
+            is_site_dir = self.check_pth_processing()
+        else:
+            # make sure we can write to target dir
+            testfile = self.pseudo_tempname()+'.write-test'
+            test_exists = os.path.exists(testfile)
+            try:
+                if test_exists: os.unlink(testfile)
+                open(testfile,'w').close()
+                os.unlink(testfile)
+            except (OSError,IOError):
+                self.cant_write_to_target()
+
+        if not is_site_dir and not self.multi_version:
+            # Can't install non-multi to non-site dir
+            raise DistutilsError(self.no_default_version_msg())
+
+        if is_site_dir:
+            if self.pth_file is None:
+                self.pth_file = PthDistributions(pth_file)
+        else:
+            self.pth_file = None
+
+        PYTHONPATH = os.environ.get('PYTHONPATH','').split(os.pathsep)
+        if instdir not in map(normalize_path, filter(None,PYTHONPATH)):
+            # only PYTHONPATH dirs need a site.py, so pretend it's there
+            self.sitepy_installed = True
+
+        self.install_dir = instdir
+
+
+    def cant_write_to_target(self):
+        msg = """can't create or remove files in install directory 
+
+The following error occurred while trying to add or remove files in the
+installation directory:
+
+    %s
+
+The installation directory you specified (via --install-dir, --prefix, or
+the distutils default setting) was:
+
+    %s
+"""     % (sys.exc_info()[1], self.install_dir,)
+
+        if not os.path.exists(self.install_dir):
+            msg += """
+This directory does not currently exist.  Please create it and try again, or
+choose a different installation directory (using the -d or --install-dir
+option).
+"""
+        else:
+            msg += """
+Perhaps your account does not have write access to this directory?  If the
+installation directory is a system-owned directory, you may need to sign in
+as the administrator or "root" account.  If you do not have administrative
+access to this machine, you may wish to choose a different installation
+directory, preferably one that is listed in your PYTHONPATH environment
+variable.
+
+For information on other options, you may wish to consult the
+documentation at:
+    
+  http://peak.telecommunity.com/EasyInstall.html
+
+Please make the appropriate changes for your system and try again.
+"""
+        raise DistutilsError(msg)
+
+
+
+
+    def check_pth_processing(self):
+        """Empirically verify whether .pth files are supported in inst. dir"""
+        instdir = self.install_dir
+        log.info("Checking .pth file support in %s", instdir)
+        pth_file = self.pseudo_tempname()+".pth"
+        ok_file = pth_file+'.ok'
+        ok_exists = os.path.exists(ok_file)
+        try:
+            if ok_exists: os.unlink(ok_file)
+            f = open(pth_file,'w')
+        except (OSError,IOError):
+            self.cant_write_to_target()
+        else:
+            try:
+                f.write("import os;open(%r,'w').write('OK')\n" % (ok_file,))
+                f.close(); f=None   
+                executable = sys.executable
+                if os.name=='nt':   
+                    dirname,basename = os.path.split(executable)
+                    alt = os.path.join(dirname,'pythonw.exe')
+                    if basename.lower()=='python.exe' and os.path.exists(alt):
+                        # use pythonw.exe to avoid opening a console window 
+                        executable = alt
+        
+                from distutils.spawn import spawn
+                spawn([executable,'-E','-c','pass'],0)
+
+                if os.path.exists(ok_file):
+                    log.info(
+                        "TEST PASSED: %s appears to support .pth files",
+                        instdir
+                    )
+                    return True
+            finally:
+                if f: f.close()
+                if os.path.exists(ok_file): os.unlink(ok_file) 
+                if os.path.exists(pth_file): os.unlink(pth_file)
+                
+        log.warn("TEST FAILED: %s does NOT support .pth files", instdir)
+        return False
 
     def install_egg_scripts(self, dist):
         """Write all the scripts for `dist`, unless scripts are excluded"""
@@ -904,9 +1027,9 @@ See the setuptools documentation for the "develop" command for more info.
         return """bad install directory or PYTHONPATH
 
 You are attempting to install a package to a directory that is not
-on PYTHONPATH and is not registered as supporting Python ".pth" files
-by default.  The installation directory you specified (via --install-dir,
---prefix, or the distutils default setting) was:
+on PYTHONPATH and which Python does not read ".pth" files from.  The
+installation directory you specified (via --install-dir, --prefix, or
+the distutils default setting) was:
 
     %s
 
@@ -923,15 +1046,15 @@ Here are some of your options for correcting the problem:
   variable.  (It must then also be on PYTHONPATH whenever you run
   Python and want to use the package(s) you are installing.)
 
-* You can set up the installation directory to support ".pth" files,
-  and configure EasyInstall to recognize this, by using one of the
-  approaches described here:
+* You can set up the installation directory to support ".pth" files by
+  using one of the approaches described here:
 
   http://peak.telecommunity.com/EasyInstall.html#custom-installation-locations
 
 Please make the appropriate changes for your system and try again.""" % (
         self.install_dir, os.environ.get('PYTHONPATH','')
     )
+
 
 
 

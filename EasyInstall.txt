@@ -182,9 +182,9 @@ installation directory, to ensure that the script will have access to the
 installed package.  You can override this using the ``-s`` or ``--script-dir``
 option.
 
-Packages installed to ``site-packages`` are added to an ``easy-install.pth``
-file, so that Python will always use the most-recently-installed version of
-the package.  If you would like to be able to select which version to use at
+Installed packages are added to an ``easy-install.pth`` file in the install
+directory, so that Python will always use the most-recently-installed version
+of the package.  If you would like to be able to select which version to use at
 runtime, you should use the ``-m`` or ``--multi-version`` option.
 
 
@@ -226,7 +226,8 @@ the newer version is the only upgrade step needed.
 If you haven't suppressed script installation (using ``--exclude-scripts`` or
 ``-x``), then the upgraded version's scripts will be installed, and they will
 be automatically patched to ``require()`` the corresponding version of the
-package, so that you can use them even if not installing to ``site-packages``.
+package, so that you can use them even if they are installed in multi-version
+mode.
 
 ``easy_install`` never actually deletes packages (unless you're installing a
 package with the same name and version number as an existing package), so if
@@ -234,8 +235,8 @@ you want to get rid of older versions of a package, please see `Uninstalling
 Packages`_, below.
 
 
-Changing the Active Version (``site-packages`` installs only)
--------------------------------------------------------------
+Changing the Active Version
+---------------------------
 
 If you've upgraded a package, but need to revert to a previously-installed
 version, you can do so like this::
@@ -645,7 +646,8 @@ Command-Line Options
     location is used.  Normally, this would be the ``site-packages`` directory,
     but if you are using distutils configuration files, setting things like
     ``prefix`` or ``install_lib``, then those settings are taken into
-    account when computing the default installation directory.
+    account when computing the default installation directory, as is the
+    ``--prefix`` option.
 
 ``--script-dir=DIR, -s DIR``
     Set the script installation directory.  If you don't supply this option
@@ -796,13 +798,15 @@ Command-Line Options
 ``--site-dirs=DIRLIST, -S DIRLIST``   (New in 0.6a1)
     Specify one or more custom "site" directories (separated by commas).
     "Site" directories are directories where ``.pth`` files are processed, such
-    as the main Python ``site-packages`` directory. By default, EasyInstall
-    only knows about Python-defined "site" directories, not those that may be
-    added by an OS distribution or site administrator using call(s) to
-    ``site.addsitedir()``.  You should not normally need to use this option
-    directly, as your system administrator should configure it in the
-    ``distutils.cfg`` file of the Python installation.  See the `Administrator
-    Installation`_ section below for details.
+    as the main Python ``site-packages`` directory.  As of 0.6a10, EasyInstall
+    automatically detects whether a given directory processes ``.pth`` files
+    (or can be made to do so), so you should not normally need to use this
+    option.  It is is now only necessary if you want to override EasyInstall's
+    judgment and force an installation directory to be treated as if it
+    supported ``.pth`` files.
+
+    (If you want to *make* a non-``PYTHONPATH`` directory support ``.pth``
+    files, please see the `Administrator Installation`_ section below.)
 
 ``--no-deps, -N``  (New in 0.6a6)
     Don't install any dependencies.  This is intended as a convenience for
@@ -828,6 +832,18 @@ Command-Line Options
     than you intended.  Some sites may wish to define a restrictive default
     setting for this option in their `configuration files`_, and then manually
     override the setting on the command line as needed.
+
+``--prefix=DIR`` (New in 0.6a10)
+    Use the specified directory as a base for computing the default
+    installation and script directories.  On Windows, the resulting default
+    directories will be ``prefix\\Lib\\site-packages`` and ``prefix\\Scripts``,
+    while on other platforms the defaults will be
+    ``prefix/lib/python2.X/site-packages`` (with the appropriate version
+    substituted) for libraries and ``prefix/bin`` for scripts.
+
+    Note that the ``--prefix`` option only sets the *default* installation and
+    script directories, and does not override the ones set on the command line
+    or in a configuration file.
 
 
 .. _non-root installation:
@@ -883,10 +899,6 @@ free to choose which one best suits your system and needs.
     `Administrator Installation`_ to enable ``.pth`` processing in the custom
     location instead, as that is easier and more flexible than this approach.)
 
-    This is the least robust and least flexible of the approaches, however, so
-    you should probably at least take a look at the others and consider whether
-    one of them might be an improvement over your current setup.
-
 
 Administrator Installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -922,12 +934,8 @@ to the file, substituting the correct Python version if necessary::
     #
     install_scripts = ~/bin
 
-    [easy_install]
-    site_dirs = ~/lib/python2.3
-
 This will configure the distutils and EasyInstall to install packages to the
-user's home directory by default, and will tell EasyInstall that Python has
-been configured to accept ``.pth`` files in that directory.
+user's home directory by default.
 
 Of course, you aren't limited to using a ``~/lib/python2.X`` directory with
 this approach.  You can substitute a specific systemwide directory if you like.
@@ -1058,6 +1066,10 @@ Known Issues
    time out or be missing a file.
 
 0.6a10
+ * Added exhaustive testing of the install directory, including a spawn test
+   for ``.pth`` file support, and directory writability/existence checks.  This
+   should virtually eliminate the need to set or configure ``--site-dirs``.
+
  * Added ``--prefix`` option for more do-what-I-mean-ishness in the absence of
    RTFM-ing.  :)
 
