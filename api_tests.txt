@@ -243,8 +243,45 @@ And adding a callback more than once has no effect, either::
     >>> ws.subscribe(added)     # no callbacks
 
     # and no double-callbacks on subsequent additions, either
-    >>> ws.add(Distribution(project_name="JustATest", version="0.99"))
+    >>> just_a_test = Distribution(project_name="JustATest", version="0.99")
+    >>> ws.add(just_a_test)
     Added JustATest 0.99
+
+
+Finding Plugins
+---------------
+
+``WorkingSet`` objects can be used to figure out what plugins in an
+``Environment`` can be loaded without any resolution errors::
+
+    >>> from pkg_resources import Environment
+
+    >>> plugins = Environment([])   # normally, a list of plugin directories
+    >>> plugins.add(foo12)
+    >>> plugins.add(foo14)
+    >>> plugins.add(just_a_test)
+    
+In the simplest case, we just get the newest version of each distribution in
+the plugin environment::
+
+    >>> ws = WorkingSet([])
+    >>> ws.find_plugins(plugins)
+    ([JustATest 0.99, Foo 1.4 (f14)], {})
+
+But if there's a problem with a version conflict or missing requirements, the
+method falls back to older versions, and the error info dict will contain an
+exception instance for each unloadable plugin::
+
+    >>> ws.add(foo12)   # this will conflict with Foo 1.4
+    >>> ws.find_plugins(plugins)
+    ([JustATest 0.99, Foo 1.2 (f12)], {Foo 1.4 (f14): <...VersionConflict...>})
+
+But if you disallow fallbacks, the failed plugin will be skipped instead of
+trying older versions::
+
+    >>> ws.find_plugins(plugins, fallback=False)
+    ([JustATest 0.99], {Foo 1.4 (f14): <...VersionConflict...>})
+
 
 
 Platform Compatibility Rules

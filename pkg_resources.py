@@ -490,6 +490,88 @@ class WorkingSet(object):
 
         return to_activate    # return list of distros to activate
 
+    def find_plugins(self,
+        plugin_env, full_env=None, installer=None, fallback=True
+    ):
+        """Find all activatable distributions in `plugin_env`
+
+        Example usage::
+
+            distributions, errors = working_set.find_plugins(
+                Environment(plugin_dirlist)
+            )
+            map(working_set.add, distributions)  # add plugins+libs to sys.path
+            print "Couldn't load", errors        # display errors
+
+        The `plugin_env` should be an ``Environment`` instance that contains
+        only distributions that are in the project's "plugin directory" or
+        directories. The `full_env`, if supplied, should be an ``Environment``
+        contains all currently-available distributions.  If `full_env` is not
+        supplied, one is created automatically from the ``WorkingSet`` this
+        method is called on, which will typically mean that every directory on
+        ``sys.path`` will be scanned for distributions.
+
+        `installer` is a standard installer callback as used by the
+        ``resolve()`` method. The `fallback` flag indicates whether we should
+        attempt to resolve older versions of a plugin if the newest version
+        cannot be resolved.
+
+        This method returns a 2-tuple: (`distributions`, `error_info`), where
+        `distributions` is a list of the distributions found in `plugin_env`
+        that were loadable, along with any other distributions that are needed
+        to resolve their dependencies.  `error_info` is a dictionary mapping
+        unloadable plugin distributions to an exception instance describing the
+        error that occurred. Usually this will be a ``DistributionNotFound`` or
+        ``VersionConflict`` instance.
+        """
+
+        plugin_projects = list(plugin_env)
+        plugin_projects.sort()  # scan project names in alphabetic order
+
+        error_info = {}
+        distributions = {}
+
+        if full_env is None:
+            env = Environment(self.entries)
+            env += plugin_env
+        else:
+            env = full_env + plugin_env
+
+        shadow_set = self.__class__([])
+        map(shadow_set.add, self)   # put all our entries in shadow_set
+
+        for project_name in plugin_projects:
+
+            for dist in plugin_env[project_name]:
+
+                req = [dist.as_requirement()]
+
+                try:
+                    resolvees = shadow_set.resolve(req, env, installer)
+
+                except ResolutionError,v:
+                    error_info[dist] = v    # save error info
+                    if fallback:
+                        continue    # try the next older version of project
+                    else:
+                        break       # give up on this project, keep going
+
+                else:
+                    map(shadow_set.add, resolvees)
+                    distributions.update(dict.fromkeys(resolvees))
+
+                    # success, no need to try any more versions of this project
+                    break
+
+        distributions = list(distributions)
+        distributions.sort()
+
+        return distributions, error_info
+
+
+
+
+
     def require(self, *requirements):
         """Ensure that distributions matching `requirements` are activated
 
@@ -651,7 +733,48 @@ class Environment(object):
         for key in self._distmap.keys():
             if self[key]: yield key
 
+
+
+
+    def __iadd__(self, other):
+        """In-place addition of a distribution or environment"""
+        if isinstance(other,Distribution):
+            self.add(other)
+        elif isinstance(other,Environment):
+            for project in other:
+                for dist in other[project]:
+                    self.add(dist)
+        else:
+            raise TypeError("Can't add %r to environment" % (other,))
+        return self
+
+    def __add__(self, other):
+        """Add an environment or distribution to an environment"""
+        new = self.__class__([], platform=None, python=None)
+        for env in self, other:
+            new += env
+        return new
+
+
 AvailableDistributions = Environment    # XXX backward compatibility
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class ResourceManager:
@@ -1373,7 +1496,7 @@ def find_on_path(importer, path_item, only=False):
                 lower = entry.lower()
                 if lower.endswith('.egg-info'):
                     fullpath = os.path.join(path_item, entry)
-                    if os.path.isdir(fullpath):                       
+                    if os.path.isdir(fullpath):
                         # egg-info directory, allow getting metadata
                         metadata = PathMetadata(path_item, fullpath)
                     else:
@@ -1966,6 +2089,12 @@ class Distribution(object):
 
 
 
+    #@property
+    def extras(self):
+        return [dep for dep in self._dep_map if dep]
+    extras = property(extras)
+
+
 def issue_warning(*args,**kw):
     level = 1
     g = globals()
@@ -1978,12 +2107,6 @@ def issue_warning(*args,**kw):
         pass
     from warnings import warn
     warn(stacklevel = level+1, *args, **kw)
-
-
-
-
-
-
 
 
 

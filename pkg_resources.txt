@@ -39,7 +39,7 @@ project
 
 release
     A snapshot of a project at a particular point in time, denoted by a version
-    identifier.  
+    identifier.
 
 distribution
     A file or files that represent a particular release.
@@ -65,7 +65,7 @@ environment
     A collection of distributions potentially available for importing, but not
     necessarily active.  More than one distribution (i.e. release version) for
     a given project may be present in an environment.
-    
+
 working set
     A collection of distributions actually available for importing, as on
     ``sys.path``.  At most one distribution (release version) of a given
@@ -199,7 +199,7 @@ abbreviation for ``pkg_resources.working_set.require()``:
 
 ``require(*requirements)``
     Ensure that distributions matching `requirements` are activated
-    
+
     `requirements` must be a string or a (possibly-nested) sequence
     thereof, specifying the distributions and versions required.  The
     return value is a sequence of the distributions that needed to be
@@ -268,7 +268,7 @@ instance:
     should use this when you add additional items to ``sys.path`` and you want
     the global ``working_set`` to reflect the change.  This method is also
     called by the ``WorkingSet()`` constructor during initialization.
-    
+
     This method uses ``find_distributions(entry,False)`` to find distributions
     corresponding to the path entry, and then ``add()`` them.  `entry` is
     always appended to the ``entries`` attribute, even if it is already
@@ -281,12 +281,12 @@ instance:
     distribution for a given project can be active in a given ``WorkingSet``.
 
 ``__iter__()``
-    Yield distributions for non-duplicate projects in the working set.   
+    Yield distributions for non-duplicate projects in the working set.
     The yield order is the order in which the items' path entries were
     added to the working set.
 
 ``find(req)``
-    Find a distribution matching `req` (a ``Requirement`` instance).    
+    Find a distribution matching `req` (a ``Requirement`` instance).
     If there is an active distribution for the requested project, this
     returns it, as long as it meets the version requirement specified by
     `req`.  But, if there is an active distribution for the project and it
@@ -296,7 +296,7 @@ instance:
 
 ``resolve(requirements, env=None, installer=None)``
     List all distributions needed to (recursively) meet `requirements`
-    
+
     `requirements` must be a sequence of ``Requirement`` objects.  `env`,
     if supplied, should be an ``Environment`` instance.  If
     not supplied, an ``Environment`` is created from the working set's
@@ -305,14 +305,14 @@ instance:
     should return a ``Distribution`` or ``None``.  (See the ``obtain()`` method
     of `Environment Objects`_, below, for more information on the `installer`
     argument.)
- 
+
 ``add(dist, entry=None)``
     Add `dist` to working set, associated with `entry`
-    
+
     If `entry` is unspecified, it defaults to ``dist.location``.  On exit from
     this routine, `entry` is added to the end of the working set's ``.entries``
     (if it wasn't already present).
-    
+
     `dist` is only added to the working set if it's for a project that
     doesn't already have a distribution active in the set.  If it's
     successfully added, any  callbacks registered with the ``subscribe()``
@@ -358,6 +358,78 @@ function are for.
 
 ``pkg_resources.add_activation_listener()`` is an alternate spelling of
 ``pkg_resources.working_set.subscribe()``.
+
+
+Locating Plugins
+----------------
+
+Extensible applications will sometimes have a "plugin directory" or a set of
+plugin directories, from which they want to load entry points or other
+metadata.  The ``find_plugins()`` method allows you to do this, by
+
+``find_plugins(plugin_env, full_env=None, fallback=True)``
+
+   Scan `plugin_env` and identify which distributions could be added to this
+   working set without version conflicts or missing requirements.
+
+   Example usage::
+
+       distributions, errors = working_set.find_plugins(
+           Environment(plugin_dirlist)
+       )
+       map(working_set.add, distributions)  # add plugins+libs to sys.path
+       print "Couldn't load", errors        # display errors
+
+   The `plugin_env` should be an ``Environment`` instance that contains only
+   distributions that are in the project's "plugin directory" or directories.
+   The `full_env`, if supplied, should be an ``Environment`` instance that
+   contains all currently-available distributions.
+
+   If `full_env` is not supplied, one is created automatically from the
+   ``WorkingSet`` this method is called on, which will typically mean that
+   every directory on ``sys.path`` will be scanned for distributions.
+
+   This method returns a 2-tuple: (`distributions`, `error_info`), where
+   `distributions` is a list of the distributions found in `plugin_env` that
+   were loadable, along with any other distributions that are needed to resolve
+   their dependencies.  `error_info` is a dictionary mapping unloadable plugin
+   distributions to an exception instance describing the error that occurred.
+   Usually this will be a ``DistributionNotFound`` or ``VersionConflict``
+   instance.
+
+   Most applications will use this method mainly on the master ``working_set``
+   instance in ``pkg_resources``, and then immediately add the returned
+   distributions to the working set so that they are available on sys.path.
+   This will make it possible to find any entry points, and allow any other
+   metadata tracking and hooks to be activated.
+
+   The resolution algorithm used by ``find_plugins()`` is as follows.  First,
+   the project names of the distributions present in `plugin_env` are sorted.
+   Then, each project's eggs are tried in descending version order (i.e.,
+   newest version first).
+
+   An attempt is made to resolve each egg's dependencies. If the attempt is
+   successful, the egg and its dependencies are added to the output list and to
+   a temporary copy of the working set.  The resolution process continues with
+   the next project name, and no older eggs for that project are tried.
+
+   If the resolution attempt fails, however, the error is added to the error
+   dictionary.  If the `fallback` flag is true, the next older version of the
+   plugin is tried, until a working version is found.  If false, the resolution
+   process continues with the next plugin project name.
+
+    Some applications may have stricter fallback requirements than others. For
+    example, an application that has a database schema or persistent objects
+    may not be able to safely downgrade a version of a package. Others may want
+    to ensure that a new plugin configuration is either 100% good or else
+    revert to a known-good configuration.  (That is, they may wish to revert to
+    a known configuration if the `error_info` return value is non-empty.)
+
+   Note that this algorithm gives precedence to satisfying the dependencies of
+   alphabetically prior project names in case of version conflicts. If two
+   projects named "AaronsPlugin" and "ZekesPlugin" both need different versions
+   of "TomsLibrary", then "AaronsPlugin" will win and "ZekesPlugin" will be
+   disabled due to version conflict.
 
 
 ``Environment`` Objects
@@ -409,8 +481,25 @@ distributions during dependency resolution.
 
 ``can_add(dist)``
     Is distribution `dist` acceptable for this environment?  If it's not
-    compatible with the platform and python version specified at creation of
-    the environment, False is returned.
+    compatible with the ``platform`` and ``python`` version values specified
+    when the environment was created, a false value is returned.
+
+``__add__(dist_or_env)``  (``+`` operator)
+    Add a distribution or environment to an ``Environment`` instance, returning
+    a *new* environment object that contains all the distributions previously
+    contained by both.  The new environment will have a ``platform`` and
+    ``python`` of ``None``, meaning that it will not reject any distributions
+    from being added to it; it will simply accept whatever is added.  If you
+    want the added items to be filtered for platform and Python version, or
+    you want to add them to the *same* environment instance, you should use
+    in-place addition (``+=``) instead.
+
+``__iadd__(dist_or_env)``  (``+=`` operator)
+    Add a distribution or environment to an ``Environment`` instance
+    *in-place*, updating the existing instance and returning it.  The
+    ``platform`` and ``python`` filter attributes take effect, so distributions
+    in the source that do not have a suitable platform string or Python version
+    are silently ignored.
 
 ``best_match(req, working_set, installer=None)``
     Find distribution best matching `req` and usable on `working_set`
@@ -809,6 +898,11 @@ key
     ``dist.key`` is short for ``dist.project_name.lower()``.  It's used for
     case-insensitive comparison and indexing of distributions by project name.
 
+extras
+    A list of strings, giving the names of extra features defined by the
+    project's dependency list (the ``extras_require`` argument specified in
+    the project's setup script).
+
 version
     A string denoting what release of the project this distribution contains.
     When a ``Distribution`` is constructed, the `version` argument is passed
@@ -832,12 +926,12 @@ parsed_version
 py_version
     The major/minor Python version the distribution supports, as a string.
     For example, "2.3" or "2.4".  The default is the current version of Python.
-    
+
 platform
     A string representing the platform the distribution is intended for, or
     ``None`` if the distribution is "pure Python" and therefore cross-platform.
     See `Platform Utilities`_ below for more information on platform strings.
-    
+
 precedence
     A distribution's ``precedence`` is used to determine the relative order of
     two distributions that have the same ``project_name`` and
@@ -876,7 +970,7 @@ precedence
 ``as_requirement()``
     Return a ``Requirement`` instance that matches this distribution's project
     name and version.
-    
+
 ``requires(extras=())``
     List the ``Requirement`` objects that specify this distribution's
     dependencies.  If `extras` is specified, it should be a sequence of names
@@ -894,13 +988,13 @@ precedence
     version 1.2 that runs on Python 2.3 for Windows would have an ``egg_name()``
     of ``Foo-1.2-py2.3-win32``.  Any dashes in the name or version are
     converted to underscores.  (``Distribution.from_location()`` will convert
-    them back when parsing a ".egg" file name.)  
+    them back when parsing a ".egg" file name.)
 
 ``__cmp__(other)``, ``__hash__()``
     Distribution objects are hashed and compared on the basis of their parsed
     version and precedence, followed by their key (lowercase project name),
     location, Python version, and platform.
-    
+
 The following methods are used to access ``EntryPoint`` objects advertised
 by the distribution.  See the section above on `Entry Points`_ for more
 detailed information about these operations:
@@ -937,7 +1031,7 @@ documented in later sections):
 * ``has_resource(resource_name)``
 * ``resource_isdir(resource_name)``
 * ``resource_listdir(resource_name)``
- 
+
 If the distribution was created with a `metadata` argument, these resource and
 metadata access methods are all delegated to that `metadata` provider.
 Otherwise, they are delegated to an ``EmptyProvider``, so that the distribution
@@ -1232,10 +1326,10 @@ register various handlers and support functions using these APIs:
     `importer_type`.  `importer_type` is the type or class of a PEP 302
     "importer" (sys.path item handler), and `namespace_handler` is a callable
     with a signature like this::
-    
+
         def namespace_handler(importer, path_entry, moduleName, module):
             # return a path_entry to use for child packages
-    
+
     Namespace handlers are only called if the relevant importer object has
     already agreed that it can handle the relevant path item.  The handler
     should only return a subpath if the module ``__path__`` does not already
@@ -1248,7 +1342,7 @@ register various handlers and support functions using these APIs:
 
 IResourceProvider
 -----------------
-        
+
 ``IResourceProvider`` is an abstract class that documents what methods are
 required of objects returned by a `provider_factory` registered with
 ``register_loader_type()``.  ``IResourceProvider`` is a subclass of
@@ -1310,7 +1404,7 @@ where appropriate.  Their inheritance tree looks like this::
 ``EggProvider``
     This provider class adds in some egg-specific features that are common
     to zipped and unzipped eggs.
-    
+
 ``DefaultProvider``
     This provider class is used for unpacked eggs and "plain old Python"
     filesystem modules.
@@ -1461,7 +1555,7 @@ Parsing Utilities
     string or a setup script's ``extras_require`` keyword.  This routine is
     similar to ``safe_name()`` except that non-alphanumeric runs are replaced
     by a single underbar (``_``), and the result is lowercased.
-    
+
 ``to_filename(name_or_version)``
     Escape a name or version string so it can be used in a dash-separated
     filename (or ``#egg=name-version`` tag) without ambiguity.  You
@@ -1535,6 +1629,10 @@ Release Notes/Change History
 ----------------------------
 
 0.6a10
+ * Added the ``extras`` attribute to ``Distribution``, the ``find_plugins()``
+   method to ``WorkingSet``, and the ``__add__()`` and ``__iadd__()`` methods
+   to ``Environment``.
+
  * ``safe_name()`` now allows dots in project names.
 
  * There is a new ``to_filename()`` function that escapes project names and
@@ -1603,7 +1701,7 @@ Release Notes/Change History
 0.6a3
  * Added ``safe_extra()`` parsing utility routine, and use it for Requirement,
    EntryPoint, and Distribution objects' extras handling.
- 
+
 0.6a1
  * Enhanced performance of ``require()`` and related operations when all
    requirements are already in the working set, and enhanced performance of
@@ -1681,7 +1779,7 @@ Release Notes/Change History
      ``sys.path`` (including the distributions already on it).  This is
      basically a hook for extensible applications and frameworks to be able to
      search for plugin metadata in distributions added at runtime.
-     
+
 0.5a13
  * Fixed a bug in resource extraction from nested packages in a zipped egg.
 
