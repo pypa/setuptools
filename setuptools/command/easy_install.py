@@ -286,7 +286,7 @@ class easy_install(Command):
 
 
     def cant_write_to_target(self):
-        msg = """can't create or remove files in install directory 
+        msg = """can't create or remove files in install directory
 
 The following error occurred while trying to add or remove files in the
 installation directory:
@@ -316,7 +316,7 @@ variable.
 
 For information on other options, you may wish to consult the
 documentation at:
-    
+
   http://peak.telecommunity.com/EasyInstall.html
 
 Please make the appropriate changes for your system and try again.
@@ -341,15 +341,15 @@ Please make the appropriate changes for your system and try again.
         else:
             try:
                 f.write("import os;open(%r,'w').write('OK')\n" % (ok_file,))
-                f.close(); f=None   
+                f.close(); f=None
                 executable = sys.executable
-                if os.name=='nt':   
+                if os.name=='nt':
                     dirname,basename = os.path.split(executable)
                     alt = os.path.join(dirname,'pythonw.exe')
                     if basename.lower()=='python.exe' and os.path.exists(alt):
-                        # use pythonw.exe to avoid opening a console window 
+                        # use pythonw.exe to avoid opening a console window
                         executable = alt
-        
+                    if ' ' in executable: executable='"%s"' % executable
                 from distutils.spawn import spawn
                 spawn([executable,'-E','-c','pass'],0)
 
@@ -361,9 +361,9 @@ Please make the appropriate changes for your system and try again.
                     return True
             finally:
                 if f: f.close()
-                if os.path.exists(ok_file): os.unlink(ok_file) 
+                if os.path.exists(ok_file): os.unlink(ok_file)
                 if os.path.exists(pth_file): os.unlink(pth_file)
-                
+
         log.warn("TEST FAILED: %s does NOT support .pth files", instdir)
         return False
 
@@ -1483,7 +1483,7 @@ def main(argv=None, **kw):
 usage: %(script)s [options] requirement_or_url ...
    or: %(script)s --help
 """
-    
+
     def gen_usage (script_name):
         script = os.path.basename(script_name)
         return USAGE % vars()
@@ -1495,7 +1495,7 @@ usage: %(script)s [options] requirement_or_url ...
             return f()
         finally:
             distutils.core.gen_usage = old_gen_usage
-        
+
     class DistributionWithoutHelpCommands(Distribution):
         def _show_help(self,*args,**kw):
             with_ei_usage(lambda: Distribution._show_help(self,*args,**kw))
@@ -1505,7 +1505,7 @@ usage: %(script)s [options] requirement_or_url ...
 
     with_ei_usage(lambda:
         setup(
-            script_args = ['-q','easy_install', '-v']+argv, 
+            script_args = ['-q','easy_install', '-v']+argv,
             distclass=DistributionWithoutHelpCommands, **kw
         )
     )
