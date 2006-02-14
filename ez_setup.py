@@ -18,10 +18,10 @@ DEFAULT_VERSION = "0.6a10"
 DEFAULT_URL     = "http://cheeseshop.python.org/packages/%s/s/setuptools/" % sys.version[:3]
 
 md5_data = {
-    'setuptools-0.5a13-py2.3.egg': '85edcf0ef39bab66e130d3f38f578c86',
-    'setuptools-0.5a13-py2.4.egg': 'ede4be600e3890e06d4ee5e0148e092a',
     'setuptools-0.6a1-py2.3.egg': 'ee819a13b924d9696b0d6ca6d1c5833d',
     'setuptools-0.6a1-py2.4.egg': '8256b5f1cd9e348ea6877b5ddd56257d',
+    'setuptools-0.6a10-py2.3.egg': '162d8357f1aff2b0349c6c247ee62987',
+    'setuptools-0.6a10-py2.4.egg': '803a2d8db501c1ac3b5b6fb4e907f788',
     'setuptools-0.6a2-py2.3.egg': 'b98da449da411267c37a738f0ab625ba',
     'setuptools-0.6a2-py2.4.egg': 'be5b88bc30aed63fdefd2683be135c3b',
     'setuptools-0.6a3-py2.3.egg': 'ee0e325de78f23aab79d33106dc2a8c8',
