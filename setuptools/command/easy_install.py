@@ -496,7 +496,7 @@ Please make the appropriate changes for your system and try again.
         self.local_index.add(dist)
         self.install_egg_scripts(dist)
         self.installed_projects[dist.key] = dist
-        log.warn(self.installation_report(dist, *info))
+        log.warn(self.installation_report(requirement, dist, *info))
         if not deps and not self.always_copy:
             return
         elif requirement is not None and dist.key != requirement.key:
@@ -859,10 +859,9 @@ you ignore the conflicts, the installed package(s) may not work.
         if not self.ignore_conflicts_at_my_risk:
             raise DistutilsError("Installation aborted due to conflicts")
 
-    def installation_report(self, dist, what="Installed"):
+    def installation_report(self, req, dist, what="Installed"):
         """Helpful installation message for display to package users"""
-
-        msg = "\n%(what)s %(eggloc)s"
+        msg = "\n%(what)s %(eggloc)s%(extras)s"
         if self.multi_version:
             msg += """
 
@@ -875,8 +874,8 @@ similar to one of these examples, in order to select the desired version:
     pkg_resources.require("%(name)s==%(version)s")  # this exact version
     pkg_resources.require("%(name)s>=%(version)s")  # this version or higher
 """
-        if self.install_dir not in map(normalize_path,sys.path):
-            msg += """
+            if self.install_dir not in map(normalize_path,sys.path):
+                msg += """
 
 Note also that the installation directory must be on sys.path at runtime for
 this to work.  (e.g. by being the application's script directory, by being on
@@ -885,6 +884,7 @@ PYTHONPATH, or by being added to sys.path by your code.)
         eggloc = dist.location
         name = dist.project_name
         version = dist.version
+        extras = '' # TODO: self.report_extras(req, dist)
         return msg % locals()
 
     def report_editable(self, spec, setup_script):
