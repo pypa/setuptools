@@ -959,6 +959,14 @@ the desired staging area if it's not the default.
 There are several options to control the precise behavior of the ``develop``
 command; see the section on the `develop`_ command below for more details.
 
+Note that you can also apply setuptools commands to non-setuptools projects,
+using commands like this::
+ 
+   python -c "import setuptools; execfile('setup.py')" develop
+
+That is, you can simply list the normal setup commands and options following
+the quoted part.
+
 
 Distributing a ``setuptools``-based project
 ===========================================

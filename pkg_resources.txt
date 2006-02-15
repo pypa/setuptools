@@ -365,10 +365,11 @@ Locating Plugins
 
 Extensible applications will sometimes have a "plugin directory" or a set of
 plugin directories, from which they want to load entry points or other
-metadata.  The ``find_plugins()`` method allows you to do this, by
+metadata.  The ``find_plugins()`` method allows you to do this, by scanning an
+environment for the newest version of each project that can be safely loaded
+without conflicts or missing requirements.
 
 ``find_plugins(plugin_env, full_env=None, fallback=True)``
-
    Scan `plugin_env` and identify which distributions could be added to this
    working set without version conflicts or missing requirements.
 
@@ -418,12 +419,12 @@ metadata.  The ``find_plugins()`` method allows you to do this, by
    plugin is tried, until a working version is found.  If false, the resolution
    process continues with the next plugin project name.
 
-    Some applications may have stricter fallback requirements than others. For
-    example, an application that has a database schema or persistent objects
-    may not be able to safely downgrade a version of a package. Others may want
-    to ensure that a new plugin configuration is either 100% good or else
-    revert to a known-good configuration.  (That is, they may wish to revert to
-    a known configuration if the `error_info` return value is non-empty.)
+   Some applications may have stricter fallback requirements than others. For
+   example, an application that has a database schema or persistent objects
+   may not be able to safely downgrade a version of a package. Others may want
+   to ensure that a new plugin configuration is either 100% good or else
+   revert to a known-good configuration.  (That is, they may wish to revert to
+   a known configuration if the `error_info` return value is non-empty.)
 
    Note that this algorithm gives precedence to satisfying the dependencies of
    alphabetically prior project names in case of version conflicts. If two
