@@ -1,6 +1,6 @@
 from distutils.command.sdist import sdist as _sdist
 from distutils.util import convert_path
-import os,re
+import os, re, sys
 
 entities = [
     ("&lt;","<"), ("&gt;", ">"), ("&quot;", '"'), ("&apos;", "'"),
@@ -152,13 +152,13 @@ class sdist(_sdist):
             if data not in dist_files:
                 dist_files.append(data)
 
-
-
-
-
-
-
-
-
-
+    def read_template(self):
+        try:
+            _sdist.read_template(self)
+        except:
+            # grody hack to close the template file (MANIFEST.in)
+            # this prevents easy_install's attempt at deleting the file from
+            # dying and thus masking the real error
+            sys.exc_info()[2].tb_next.tb_frame.f_locals['template'].close()
+            raise
 

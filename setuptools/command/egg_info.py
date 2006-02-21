@@ -7,7 +7,7 @@ import os, re
 from setuptools import Command
 from distutils.errors import *
 from distutils import log
-from distutils.command.sdist import sdist
+from setuptools.command.sdist import sdist
 from distutils import file_util
 from distutils.util import convert_path
 from distutils.filelist import FileList
@@ -192,7 +192,6 @@ class FileList(FileList):
         path = convert_path(item)
         if os.path.exists(path):
             self.files.append(path)
-
 
 
 
