@@ -19,7 +19,7 @@ from distutils.util import convert_path
 d = {}; execfile(convert_path('setuptools/command/__init__.py'), d)
 SETUP_COMMANDS = d['__all__']
 
-VERSION = "0.6a10"
+VERSION = "0.6a11"
 from setuptools import setup, find_packages
 import sys
 scripts = []
