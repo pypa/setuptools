@@ -363,8 +363,8 @@ Please make the appropriate changes for your system and try again.
                 if f: f.close()
                 if os.path.exists(ok_file): os.unlink(ok_file)
                 if os.path.exists(pth_file): os.unlink(pth_file)
-
-        log.warn("TEST FAILED: %s does NOT support .pth files", instdir)
+        if not self.multi_version:
+            log.warn("TEST FAILED: %s does NOT support .pth files", instdir)
         return False
 
     def install_egg_scripts(self, dist):

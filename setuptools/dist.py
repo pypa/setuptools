@@ -267,7 +267,7 @@ class Distribution(_Distribution):
                 self.__class__({'script_args':['easy_install']}),
                 args="x", install_dir=os.curdir, exclude_scripts=True,
                 always_copy=False, build_directory=None, editable=False,
-                upgrade=False
+                upgrade=False, multi_version=True
             )
             cmd.ensure_finalized()
             cmd.zip_ok = None       # override any setup.cfg setting for these
