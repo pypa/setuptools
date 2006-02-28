@@ -263,25 +263,25 @@ class Distribution(_Distribution):
             cmd = self._egg_fetcher
         except AttributeError:
             from setuptools.command.easy_install import easy_install
+            dist = self.__class__({'script_args':['easy_install']})
+            dist.parse_config_files()
+            opts = dist.get_option_dict('easy_install')
+            keep = (
+                'find_links', 'site_dirs', 'index_url', 'optimize',
+                'site_dirs', 'allow_hosts'
+            )
+            for key in opts.keys():
+                if key not in keep:
+                    del opts[key]   # don't use any other settings
             cmd = easy_install(
-                self.__class__({'script_args':['easy_install']}),
-                args="x", install_dir=os.curdir, exclude_scripts=True,
+                dist, args=["x"], install_dir=os.curdir, exclude_scripts=True,
                 always_copy=False, build_directory=None, editable=False,
                 upgrade=False, multi_version=True
             )
             cmd.ensure_finalized()
-            cmd.zip_ok = None       # override any setup.cfg setting for these
-            cmd.build_directory = None
             self._egg_fetcher = cmd
 
         return cmd.easy_install(req)
-
-
-
-
-
-
-
 
 
 
