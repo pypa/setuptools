@@ -182,7 +182,7 @@ class PackageIndex(Environment):
             self.warn("Not found: %s", url)
             return
 
-        if os.path.isdir(fn):
+        if os.path.isdir(fn) and not nested:
             path = os.path.realpath(fn)
             for item in os.listdir(path):
                 self.process_filename(os.path.join(path,item), True)
