@@ -1890,7 +1890,8 @@ use this option:
 
 This option is automatically in effect when ``install`` is invoked by another
 distutils command, so that commands like ``bdist_wininst`` and ``bdist_rpm``
-will create system packages of eggs.
+will create system packages of eggs.  It is also automatically in effect if
+you specify the ``--root`` option.
 
 
 ``install_egg_info`` - Install an ``.egg-info`` directory in ``site-packages``
@@ -2349,6 +2350,20 @@ XXX
 ----------------------------
 Release Notes/Change History
 ----------------------------
+
+0.6a11
+ * Made ``--single-version-externally-managed`` automatic when ``--root`` is
+   used, so that most system packagers won't require special support for
+   setuptools.
+
+ * Fixed ``setup_requires``, ``tests_require``, etc. not using ``setup.cfg`` or
+   other configuration files for their option defaults when installing, and
+   also made the install use ``--multi-version`` mode so that the project
+   directory doesn't need to support .pth files.
+
+ * ``MANIFEST.in`` is now forcibly closed when any errors occur while reading
+   it.  Previously, the file could be left open and the actual error would be
+   masked by problems trying to remove the open file on Windows systems.
 
 0.6a10
  * Fixed the ``develop`` command ignoring ``--find-links``.

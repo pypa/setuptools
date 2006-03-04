@@ -1065,6 +1065,9 @@ Known Issues
  * There's no automatic retry for borked Sourceforge mirrors, which can easily
    time out or be missing a file.
 
+0.6a11
+ * Don't recursively traverse subdirectories given to ``--find-links``.
+
 0.6a10
  * Added exhaustive testing of the install directory, including a spawn test
    for ``.pth`` file support, and directory writability/existence checks.  This
