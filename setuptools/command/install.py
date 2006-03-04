@@ -30,14 +30,14 @@ class install(_install):
 
     def finalize_options(self):
         _install.finalize_options(self)
-        if self.single_version_externally_managed:
+        if self.root:
+            self.single_version_externally_managed = True
+        elif self.single_version_externally_managed:
             if not self.root and not self.record:
                 raise DistutilsArgError(
                     "You must specify --record or --root when building system"
                     " packages"
                 )
-
-
 
     def handle_extra_path(self):
         # We always ignore extra_path, because we install as .egg or .egg-info
