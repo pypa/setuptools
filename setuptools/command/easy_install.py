@@ -9,7 +9,7 @@ file, or visit the `EasyInstall home page`__.
 
 __ http://peak.telecommunity.com/DevCenter/EasyInstall
 """
-import sys, os.path, zipimport, shutil, tempfile, zipfile, re, stat
+import sys, os.path, zipimport, shutil, tempfile, zipfile, re, stat, random
 from glob import glob
 from setuptools import Command
 from setuptools.sandbox import run_setup
@@ -55,10 +55,9 @@ class easy_install(Command):
         ("always-copy", "a", "Copy all needed packages to install dir"),
         ("index-url=", "i", "base URL of Python Package Index"),
         ("find-links=", "f", "additional URL(s) to search for packages"),
-        ("delete-conflicting", "D", "delete old packages that get in the way"),
+        ("delete-conflicting", "D", "no longer needed; don't use this"),
         ("ignore-conflicts-at-my-risk", None,
-            "install even if old packages are in the way, even though it "
-            "most likely means the new package won't work."),
+            "no longer needed; don't use this"),
         ("build-directory=", "b",
             "download/extract/build in DIR; keep the results"),
         ('optimize=', 'O',
@@ -79,6 +78,7 @@ class easy_install(Command):
     ]
     negative_opt = {'always-unzip': 'zip-ok'}
     create_index = PackageIndex
+
 
     def initialize_options(self):
         self.zip_ok = None
@@ -221,28 +221,28 @@ class easy_install(Command):
                     "writing list of installed files to '%s'" %
                     self.record
                 )
+            self.warn_deprecated_options()
         finally:
             log.set_verbosity(self.distribution.verbose)
 
-
     def pseudo_tempname(self):
         """Return a pseudo-tempname base in the install directory.
-
         This code is intentionally naive; if a malicious party can write to
         the target directory you're already in deep doodoo.
         """
         try:
             pid = os.getpid()
         except:
-            import random
             pid = random.randint(0,sys.maxint)
         return os.path.join(self.install_dir, "test-easy-install-%s" % pid)
 
-
-
-
-
-
+    def warn_deprecated_options(self):
+        if self.delete_conflicting or self.ignore_conflicts_at_my_risk:
+            log.warn(
+                "Note: The -D, --delete-conflicting and"
+                " --ignore-conflicts-at-my-risk no longer have any purpose"
+                " and should not be used."
+            )
 
     def check_site_dir(self):
         """Verify that self.install_dir is .pth-capable dir, if needed"""
@@ -786,6 +786,7 @@ Please make the appropriate changes for your system and try again.
     def check_conflicts(self, dist):
         """Verify that there are no conflicting "old-style" packages"""
 
+        return dist     # XXX temporarily disable until new strategy is stable
         from imp import find_module, get_suffixes
         from glob import glob
 
@@ -812,7 +813,6 @@ Please make the appropriate changes for your system and try again.
                                 blockers.append(filename)
                     elif ext in exts and base!='site':  # XXX ugh
                         blockers.append(os.path.join(path,filename))
-
         if blockers:
             self.found_conflicts(dist, blockers)
 
@@ -1072,16 +1072,18 @@ Please make the appropriate changes for your system and try again.""" % (
 
         sitepy = os.path.join(self.install_dir, "site.py")
         source = resource_string(Requirement.parse("setuptools"), "site.py")
+        current = ""
 
         if os.path.exists(sitepy):
             log.debug("Checking existing site.py in %s", self.install_dir)
             current = open(sitepy,'rb').read()
-            if current != source:
+            if not current.startswith('def __boot():'):
                 raise DistutilsError(
                     "%s is not a setuptools-generated site.py; please"
                     " remove it." % sitepy
                 )
-        else:
+
+        if current != source:
             log.info("Creating %s", sitepy)
             if not self.dry_run:
                 ensure_directory(sitepy)
@@ -1091,8 +1093,6 @@ Please make the appropriate changes for your system and try again.""" % (
             self.byte_compile([sitepy])
 
         self.sitepy_installed = True
-
-
 
 
 
@@ -1323,9 +1323,13 @@ class PthDistributions(Environment):
 
     def _load(self):
         self.paths = []
+        saw_import = False
         seen = {}
         if os.path.isfile(self.filename):
             for line in open(self.filename,'rt'):
+                if line.startswith('import'):
+                    saw_import = True
+                    continue
                 path = line.rstrip()
                 self.paths.append(path)
                 if not path.strip() or path.strip().startswith('#'):
@@ -1339,17 +1343,41 @@ class PthDistributions(Environment):
                     continue
                 seen[path] = 1
 
-        while self.paths and not self.paths[-1].strip(): self.paths.pop()
+        if self.paths and not saw_import:
+            self.dirty = True   # ensure anything we touch has import wrappers
+
+        while self.paths and not self.paths[-1].strip():
+            self.paths.pop()
+
+
 
     def save(self):
         """Write changed .pth file back to disk"""
-        if self.dirty:
+        if not self.dirty:
+            return
+            
+        data = '\n'.join(self.paths)
+        if data:
             log.debug("Saving %s", self.filename)
-            data = '\n'.join(self.paths+[''])
+            data = (
+                "import sys; sys.__plen = len(sys.path)\n"
+                "%s\n"
+                "import sys; new=sys.path[sys.__plen:];"
+                " del sys.path[sys.__plen:];"
+                " p=getattr(sys,'__egginsert',0); sys.path[p:p]=new;"
+                " sys.__egginsert = p+len(new)\n"
+            ) % data
+
             if os.path.islink(self.filename):
                 os.unlink(self.filename)
-            f = open(self.filename,'wt'); f.write(data); f.close()
-            self.dirty = False
+            f = open(self.filename,'wb')
+            f.write(data); f.close()
+
+        elif os.path.exists(self.filename):
+            log.debug("Deleting empty %s", self.filename)
+            os.unlink(self.filename)
+
+        self.dirty = False
 
     def add(self,dist):
         """Add `dist` to the distribution map"""
@@ -1384,6 +1412,19 @@ def auto_chmod(func, arg, exc):
         return func(arg)
     exc = sys.exc_info()
     raise exc[0], (exc[1][0], exc[1][1] + (" %s %s" % (func,arg)))
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

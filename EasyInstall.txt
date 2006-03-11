@@ -465,6 +465,15 @@ the project name, e.g.::
 Dealing with Installation Conflicts
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+(NOTE: As of 0.6a11, this section is obsolete; it is retained here only so that
+people using older versions of EasyInstall can consult it.  As of version
+0.6a11, installation conflicts are handled automatically without deleting the
+old or system-installed packages, and without ignoring the issue.  Instead,
+eggs are automatically shifted to the front of ``sys.path`` using special
+code added to the ``easy-install.pth`` file.  So, if you are using version
+0.6a11 or better of setuptools, you do not need to worry about conflicts,
+and the following issues do not apply to you.)
+
 EasyInstall installs distributions in a "managed" way, such that each
 distribution can be independently activated or deactivated on ``sys.path``.
 However, packages that were not installed by EasyInstall are "unmanaged",
@@ -715,7 +724,9 @@ Command-Line Options
     package not being available locally, or due to the use of the ``--update``
     or ``-U`` option.
 
-``--delete-conflicting, -D`` (New in 0.5a9)
+``--delete-conflicting, -D`` (Removed in 0.6a11)
+    (As of 0.6a11, this option is no longer necessary; please do not use it!)
+
     If you are replacing a package that was previously installed *without*
     using EasyInstall, the old version may end up on ``sys.path`` before the
     version being installed with EasyInstall.  EasyInstall will normally abort
@@ -724,7 +735,9 @@ Command-Line Options
     option, however, EasyInstall will attempt to delete the files or
     directories itself, and then proceed with the installation.
 
-``--ignore-conflicts-at-my-risk`` (New in 0.5a9)
+``--ignore-conflicts-at-my-risk`` (Removed in 0.6a11)
+    (As of 0.6a11, this option is no longer necessary; please do not use it!)
+
     Ignore conflicting packages and proceed with installation anyway, even
     though it means the package probably won't work properly.  If the
     conflicting package is in a directory you can't write to, this may be your
@@ -1066,6 +1079,14 @@ Known Issues
    time out or be missing a file.
 
 0.6a11
+ * Added automatic handling of installation conflicts.  Eggs are now shifted to
+   the front of sys.path, in an order consistent with where they came from,
+   making EasyInstall seamlessly co-operate with system package managers.
+
+   The ``--delete-conflicting`` and ``--ignore-conflicts-at-my-risk`` options
+   are now no longer necessary, and will generate warnings at the end of a
+   run if you use them.
+
  * Don't recursively traverse subdirectories given to ``--find-links``.
 
 0.6a10

@@ -41,12 +41,16 @@ def __boot():
 
     known_paths = dict([(makepath(item)[1],1) for item in sys.path]) # 2.2 comp
 
+    oldpos = getattr(sys,'__egginsert',0)   # save old insertion position
+    sys.__egginsert = 0                     # and reset the current one
+
     for item in PYTHONPATH:
         addsitedir(item)
+
+    sys.__egginsert += oldpos           # restore effective old position
     
     d,nd = makepath(stdpath[0])
     insert_at = None
-    skipped = []
     new_path = []
 
     for item in sys.path:
@@ -54,28 +58,24 @@ def __boot():
 
         if np==nd and insert_at is None:
             # We've hit the first 'system' path entry, so added entries go here
-            new_path.extend(skipped)
             insert_at = len(new_path)
-            skipped = []
 
-        if np in known_paths:
-            # Old path, just copy
+        if np in known_paths or insert_at is None:
             new_path.append(item)
-        elif insert_at is None:
-            # New path before the insert point, buffer it
-            skipped.append(item)
         else:
             # new path after the insert point, back-insert it
             new_path.insert(insert_at, item)
             insert_at += 1
             
-    new_path.extend(skipped)
     sys.path[:] = new_path
 
 if __name__=='site':    
     __boot()
     del __boot
     
+
+
+
 
 
 

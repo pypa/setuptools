@@ -24,11 +24,11 @@ class develop(easy_install):
             self.uninstall_link()
         else:
             self.install_for_development()
+        self.warn_deprecated_options()
 
     def initialize_options(self):
         self.uninstall = None
         easy_install.initialize_options(self)
-
 
 
 
