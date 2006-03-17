@@ -437,7 +437,7 @@ class PackageIndex(Environment):
         ``location`` of the downloaded distribution instead of a distribution
         object.
         """
-        dist = self.fetch_dist(requirement,tmpdir,force_scan,source)
+        dist = self.fetch_distribution(requirement,tmpdir,force_scan,source)
         if dist is not None:
             return dist.location
         return None
