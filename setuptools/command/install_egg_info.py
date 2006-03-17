@@ -43,8 +43,7 @@ class install_egg_info(Command):
         return self.outputs
 
     def copytree(self):
-        # Copy the .egg-info tree to site-packages
-        
+        # Copy the .egg-info tree to site-packages       
         def skimmer(src,dst):
             # filter out source-control directories; note that 'src' is always
             # a '/'-separated path, regardless of platform.  'dst' is a
@@ -55,7 +54,6 @@ class install_egg_info(Command):
             self.outputs.append(dst)
             log.debug("Copying %s to %s", src, dst)
             return dst
-
         unpack_archive(self.source, self.target, skimmer)
 
     def install_namespaces(self):
@@ -70,11 +68,13 @@ class install_egg_info(Command):
             for pkg in nsp:
                 pth = tuple(pkg.split('.'))
                 f.write(
-                    "import sys,new; "
-                    "m = sys.modules.setdefault(%(pkg)r,new.module(%(pkg)r)); "
+                    "import sys,new,os; "
                     "p = os.path.join(sys._getframe(1).f_locals['sitedir'], "
-                    "*%(pth)r); "
-                    "mp = m.__path__ = getattr(m,'__path__',[]); "
+                        "*%(pth)r); "
+                    "ie = os.path.exists(os.path.join(p,'__init__.py')); "
+                    "m = not ie and "
+                        "sys.modules.setdefault(%(pkg)r,new.module(%(pkg)r)); "
+                    "mp = (m or []) and m.__dict__.setdefault('__path__',[]); "
                     "(p not in mp) and mp.append(p)\n"
                     % locals()
                 )
