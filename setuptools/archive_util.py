@@ -100,9 +100,9 @@ def unpack_directory(filename, extract_dir, progress_filter=default_filter):
             if not target:
                 continue    # skip non-files
             ensure_directory(target)
-            shutil.copyfile(os.path.join(base,f), target)
-
-
+            f = os.path.join(base,f)
+            shutil.copyfile(f, target)
+            shutil.copystat(f, target)
 
 
 
