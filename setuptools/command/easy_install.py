@@ -1288,6 +1288,8 @@ def get_exe_prefixes(exe_filename):
                     break
             if len(parts)<>2 or not name.endswith('.pth'):
                 continue
+            if name.endswith('-nspkg.pth'):
+                continue
             if parts[0] in ('PURELIB','PLATLIB'):
                 pth = z.read(name).strip()
                 prefixes[0] = ('PURELIB/%s/' % pth), ''
@@ -1306,8 +1308,6 @@ def parse_requirement_arg(spec):
         raise DistutilsError(
             "Not a URL, existing file, or requirement spec: %r" % (spec,)
         )
-
-
 
 
 class PthDistributions(Environment):

@@ -37,7 +37,7 @@ class install_egg_info(Command):
         self.execute(self.copytree, (),
             "Copying %s to %s" % (self.source, self.target)
         )
-
+        self.install_namespaces()
 
     def get_outputs(self):
         return self.outputs
@@ -58,25 +58,25 @@ class install_egg_info(Command):
 
         unpack_archive(self.source, self.target, skimmer)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def install_namespaces(self):
+        nsp = (self.distribution.namespace_packages or [])[:]
+        if not nsp: return
+        nsp.sort()  # set up shorter names first
+        filename,ext = os.path.splitext(self.target)
+        filename += '-nspkg.pth'; self.outputs.append(filename)
+        log.info("Installing %s",filename)
+        if not self.dry_run:
+            f = open(filename,'wb')
+            for pkg in nsp:
+                pth = tuple(pkg.split('.'))
+                f.write(
+                    "import sys,new; "
+                    "m = sys.modules.setdefault(%(pkg)r,new.module(%(pkg)r)); "
+                    "p = os.path.join(sys._getframe(1).f_locals['sitedir'], "
+                    "*%(pth)r); "
+                    "mp = m.__path__ = getattr(m,'__path__',[]); "
+                    "(p not in mp) and mp.append(p)\n"
+                    % locals()
+                )
+            f.close()            
 

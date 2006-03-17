@@ -1225,21 +1225,18 @@ packages), in a normal Python package layout.  These ``__init__.py`` files
 This code ensures that the namespace package machinery is operating and that
 the current package is registered as a namespace package.
 
-You can include other code and data in a namespace package's ``__init__.py``,
-but it's generally not a great idea because the loading order of each
-project's namespace packages is not guaranteed, and thus the actual contents
-of the parent package at runtime may vary from one machine to another.  While
-it's true that you won't have such conflicts if only one project defines the
-contents of a particular namespace package's ``__init__.py``, it's less error-
-prone to just leave ``__init__.py`` empty except for the declaration line.
+You must NOT include any other code and data in a namespace package's
+``__init__.py``.  Even though it may appear to work during development, or when
+projects are installed as ``.egg`` files, it will not work when the projects
+are installed using "system" packaging tools -- in such cases the
+``__init__.py`` files will not be installed, let alone executed.
 
-(Note that this non-deterministic ordering also means that you must include
-the declaration line in the ``__init__.py`` of *every* project that has
-contents for the namespace package in question, in order to ensure that the
-namespace will be declared regardless of which project's copy of
-``__init__.py`` is loaded first.  If the first loaded ``__init__.py`` doesn't
-declare it, it will never *be* declared, because no other copies will ever be
-loaded!)
+You must include the ``declare_namespace()``  line in the ``__init__.py`` of
+*every* project that has contents for the namespace package in question, in
+order to ensure that the namespace will be declared regardless of which
+project's copy of ``__init__.py`` is loaded first.  If the first loaded
+``__init__.py`` doesn't declare it, it will never *be* declared, because no
+other copies will ever be loaded!)
 
 
 TRANSITIONAL NOTE
@@ -2352,6 +2349,11 @@ Release Notes/Change History
 ----------------------------
 
 0.6a11
+ * Support namespace packages in conjunction with system packagers, by omitting
+   the installation of any ``__init__.py`` files for namespace packages, and
+   adding a special ``.pth`` file to create a working package in
+   ``sys.modules``.
+
  * Made ``--single-version-externally-managed`` automatic when ``--root`` is
    used, so that most system packagers won't require special support for
    setuptools.
