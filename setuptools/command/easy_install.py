@@ -974,7 +974,7 @@ See the setuptools documentation for the "develop" command for more info.
                 filename = os.path.join(self.install_dir,'setuptools.pth')
                 if os.path.islink(filename): os.unlink(filename)
                 f = open(filename, 'wt')
-                f.write(dist.location+'\n')
+                f.write(self.pth_file.make_relative(dist.location)+'\n')
                 f.close()
 
     def unpack_progress(self, src, dst):
@@ -1316,8 +1316,9 @@ class PthDistributions(Environment):
     dirty = False
 
     def __init__(self, filename):
-        self.filename = filename; self._load()
-        Environment.__init__(self, [], None, None)
+        self.filename = filename
+        self.basedir = normalize_path(os.path.dirname(self.filename))
+        self._load(); Environment.__init__(self, [], None, None)
         for path in yield_lines(self.paths):
             map(self.add, find_distributions(path, True))
 
@@ -1336,7 +1337,9 @@ class PthDistributions(Environment):
                     continue
                 # skip non-existent paths, in case somebody deleted a package
                 # manually, and duplicate paths as well
-                path = self.paths[-1] = normalize_path(path)
+                path = self.paths[-1] = normalize_path(
+                    os.path.join(self.basedir,path)
+                )
                 if not os.path.exists(path) or path in seen:
                     self.paths.pop()    # skip it
                     self.dirty = True   # we cleaned up, so we're dirty now :)
@@ -1345,18 +1348,15 @@ class PthDistributions(Environment):
 
         if self.paths and not saw_import:
             self.dirty = True   # ensure anything we touch has import wrappers
-
         while self.paths and not self.paths[-1].strip():
             self.paths.pop()
-
-
 
     def save(self):
         """Write changed .pth file back to disk"""
         if not self.dirty:
             return
             
-        data = '\n'.join(self.paths)
+        data = '\n'.join(map(self.make_relative,self.paths))
         if data:
             log.debug("Saving %s", self.filename)
             data = (
@@ -1392,6 +1392,12 @@ class PthDistributions(Environment):
         Environment.remove(self,dist)
 
 
+    def make_relative(self,path):
+        if normalize_path(os.path.dirname(path))==self.basedir:
+            return os.path.basename(path)
+        return path
+
+
 def get_script_header(script_text, executable=sys_executable):
     """Create a #! line, getting options (if any) from script_text"""
     from distutils.command.build_scripts import first_line_re
@@ -1412,12 +1418,6 @@ def auto_chmod(func, arg, exc):
         return func(arg)
     exc = sys.exc_info()
     raise exc[0], (exc[1][0], exc[1][1] + (" %s %s" % (func,arg)))
-
-
-
-
-
-
 
 
 

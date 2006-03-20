@@ -1089,6 +1089,10 @@ Known Issues
    time out or be missing a file.
 
 0.6a11
+ * Use relative paths in ``.pth`` files when eggs are being installed to the
+   same directory as the ``.pth`` file.  This maximizes portability of the
+   target directory when building applications that contain eggs.
+
  * Added ``easy_install-N.N`` script(s) for convenience when using multiple
    Python versions.
 
