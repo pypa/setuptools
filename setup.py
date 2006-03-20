@@ -73,11 +73,11 @@ setup(
             "depends.txt = setuptools.command.egg_info:warn_depends_obsolete",
         ],
         "console_scripts":
-            ["easy_install = setuptools.command.easy_install:main"],
+            ["easy_install = setuptools.command.easy_install:main",
+             "easy_install-%s = setuptools.command.easy_install:main"
+             % sys.version[:3]
+            ],
     },
-
-
-
 
 
     classifiers = [f.strip() for f in """

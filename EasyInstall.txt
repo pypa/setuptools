@@ -322,6 +322,16 @@ Tips & Techniques
 -----------------
 
 
+Multiple Python Versions
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+As of version 0.6a11, EasyInstall installs itself under two names:
+``easy_install`` and ``easy_install-N.N``, where ``N.N`` is the Python version
+used to install it.  Thus, if you install EasyInstall for both Python 2.3 and
+2.4, you can use the ``easy_install-2.3`` or ``easy_install-2.4`` scripts to
+install packages for Python 2.3 or 2.4, respectively.
+
+
 Restricting Downloads with ``--allow-hosts``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1079,6 +1089,9 @@ Known Issues
    time out or be missing a file.
 
 0.6a11
+ * Added ``easy_install-N.N`` script(s) for convenience when using multiple
+   Python versions.
+
  * Added automatic handling of installation conflicts.  Eggs are now shifted to
    the front of sys.path, in an order consistent with where they came from,
    making EasyInstall seamlessly co-operate with system package managers.
