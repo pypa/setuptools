@@ -307,13 +307,13 @@ class bdist_egg(Command):
                 fullname = build_cmd.get_ext_fullname(ext.name)
                 filename = build_cmd.get_ext_filename(fullname)
                 if not os.path.basename(filename).startswith('dl-'):
-                    ext_outputs.append(filename)
+                    if os.path.exists(os.path.join(self.bdist_dir,filename)):
+                        ext_outputs.append(filename)
 
         return all_outputs, ext_outputs
 
 
 NATIVE_EXTENSIONS = dict.fromkeys('.dll .so .dylib .pyd'.split())
-
 
 
 
