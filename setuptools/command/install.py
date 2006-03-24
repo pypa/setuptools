@@ -85,8 +85,7 @@ class install(_install):
         from setuptools.command.easy_install import easy_install
 
         cmd = easy_install(
-            self.distribution, args="x", ignore_conflicts_at_my_risk=1,
-            root=self.root, record=self.record,
+            self.distribution, args="x", root=self.root, record=self.record,
         )
         cmd.ensure_finalized()  # finalize before bdist_egg munges install cmd
 
@@ -100,6 +99,7 @@ class install(_install):
         cmd.args = args
         cmd.run()
         setuptools.bootstrap_install_from = None
+
 
 
 
