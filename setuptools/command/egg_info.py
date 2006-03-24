@@ -218,6 +218,8 @@ class manifest_maker(sdist):
 
     def run(self):
         self.filelist = FileList()
+        if not os.path.exists(self.manifest):
+            self.write_manifest()   # it must exist so it'll get in the list
         self.filelist.findall()
         self.add_defaults()
         if os.path.exists(self.template):
@@ -237,8 +239,6 @@ class manifest_maker(sdist):
             files = [f.replace(os.sep,'/') for f in files]
         self.execute(file_util.write_file, (self.manifest, files),
                      "writing manifest file '%s'" % self.manifest)
-
-
 
 
 
