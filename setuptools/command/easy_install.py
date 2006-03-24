@@ -674,7 +674,7 @@ Please make the appropriate changes for your system and try again.
                 dir_util.remove_tree(destination, dry_run=self.dry_run)
             elif os.path.exists(destination):
                 self.execute(os.unlink,(destination,),"Removing "+destination)
-
+            uncache_zipdir(destination)
             if os.path.isdir(egg_path):
                 if egg_path.startswith(tmpdir):
                     f,m = shutil.move, "Moving"
@@ -1420,19 +1420,19 @@ def auto_chmod(func, arg, exc):
     raise exc[0], (exc[1][0], exc[1][1] + (" %s %s" % (func,arg)))
 
 
+def uncache_zipdir(path):
+    """Ensure that the zip directory cache doesn't have stale info for path"""
+    from zipimport import _zip_directory_cache as zdc
+    if path in zdc:
+        del zdc[path]
+    else:
+        path = normalize_path(path)
+        for p in zdc:
+            if normalize_path(p)==path:
+                del zdc[p]
+                return
 
-
-
-
-
-
-
-
-
-
-
-
-
+    
 def get_script_args(dist, executable=sys_executable):
     """Yield write_script() argument tuples for a distribution's entrypoints"""
     spec = str(dist.as_requirement())
