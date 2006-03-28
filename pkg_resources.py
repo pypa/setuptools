@@ -2053,7 +2053,7 @@ class Distribution(object):
             return      # ignore the inevitable setuptools self-conflicts  :(
 
         nsp = dict.fromkeys(self._get_metadata('namespace_packages.txt'))
-
+        loc = normalize_path(self.location)
         for modname in self._get_metadata('top_level.txt'):
             if (modname not in sys.modules or modname in nsp
                 or modname in _namespace_packages
@@ -2061,7 +2061,7 @@ class Distribution(object):
                 continue
 
             fn = getattr(sys.modules[modname], '__file__', None)
-            if fn and fn.startswith(self.location):
+            if fn and normalize_path(fn).startswith(loc):
                 continue
             issue_warning(
                 "Module %s was already imported from %s, but %s is being added"
