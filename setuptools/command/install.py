@@ -10,17 +10,17 @@ class install(_install):
         ('single-version-externally-managed', None,
             "used by system package builders to create 'flat' eggs"),
     ]
-
     boolean_options = _install.boolean_options + [
         'old-and-unmanageable', 'single-version-externally-managed',
     ]
-
-    sub_commands = [
-        cmd for cmd in _install.sub_commands if cmd[0] != 'install_scripts'
-    ] + [
+    new_commands = [
         ('install_egg_info', lambda self: True),
         ('install_scripts',  lambda self: True),
     ]
+    _nc = dict(new_commands)
+    sub_commands = [
+        cmd for cmd in _install.sub_commands if cmd[0] not in _nc
+    ] + new_commands
 
     def initialize_options(self):
         _install.initialize_options(self)
