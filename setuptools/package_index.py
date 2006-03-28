@@ -623,12 +623,12 @@ def fix_sf_url(url):
 
 def get_sf_ip(_mirrors=[]):
     if not _mirrors:
-        _mirrors[:] = socket.gethostbyname_ex('dl.sourceforge.net')[-1]
+        try:
+            _mirrors[:] = socket.gethostbyname_ex('dl.sourceforge.net')[-1]
+        except socket.error:
+            # DNS-bl0ck1n9 f1r3w4llz sUx0rs!
+            _mirrors[:] = ['dl.sourceforge.net']
     return random.choice(_mirrors)
-
-
-
-
 
 
 
