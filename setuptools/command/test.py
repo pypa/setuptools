@@ -2,6 +2,42 @@ from setuptools import Command
 from distutils.errors import DistutilsOptionError
 import sys
 from pkg_resources import *
+from unittest import TestLoader, main
+
+class ScanningLoader(TestLoader):
+
+    def loadTestsFromModule(self, module):
+        """Return a suite of all tests cases contained in the given module
+
+        If the module is a package, load tests from all the modules in it.
+        If the module has an ``additional_tests`` function, call it and add
+        the return value to the tests.
+        """
+
+        tests = [TestLoader.loadTestsFromModule(self,module)]
+
+        if hasattr(module, "additional_tests"):
+            tests.append(module.additional_tests())
+
+        if hasattr(module, '__path__'):
+            for file in resource_listdir(module.__name__, ''):
+                if file.endswith('.py') and file!='__init__.py':
+                    submodule = module.__name__+'.'+file[:-3]
+                else:
+                    if resource_exists(
+                        module.__name__, file+'/__init__.py'
+                    ):
+                        submodule = module.__name__+'.'+file
+                    else:
+                        continue
+                tests.append(self.loadTestsFromName(submodule))
+
+        if len(tests)>1:
+            return self.suiteClass(tests)
+        else:
+            return tests[0] # don't create a nested suite for only one return
+
+
 
 class test(Command):
 
@@ -39,6 +75,11 @@ class test(Command):
         if self.verbose:
             self.test_args.insert(0,'--verbose')
 
+
+
+
+
+
     def run(self):
         # Ensure metadata is up-to-date
         self.run_command('egg_info')
@@ -70,10 +111,10 @@ class test(Command):
         dist = Distribution(path_item, metadata, project_name=ei_cmd.egg_name)
         working_set.add(dist)
         require(str(dist.as_requirement()))
-        unittest.main(None, None, [unittest.__file__]+self.test_args)
-
-
-
+        unittest.main(
+            None, None, [unittest.__file__]+self.test_args,
+            testLoader = ScanningLoader()
+        )
 
 
 

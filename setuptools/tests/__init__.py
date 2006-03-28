@@ -13,6 +13,12 @@ from distutils.version import StrictVersion, LooseVersion
 from distutils.util import convert_path
 import sys, os.path
 
+def additional_tests():
+    import doctest
+    return doctest.DocFileSuite(
+        'api_tests.txt', optionflags=doctest.ELLIPSIS, package='pkg_resources',
+    )
+
 
 def makeSetup(**args):
     """Return distribution from 'setup(**args)', without executing commands"""
@@ -26,12 +32,6 @@ def makeSetup(**args):
         return setuptools.setup(**args)
     finally:
         distutils.core_setup_stop_after = None
-
-
-
-
-
-
 
 
 
@@ -362,47 +362,6 @@ class TestCommandTests(TestCase):
         ts5 = makeSetup().get_command_obj('test')
         ts5.ensure_finalized()
         self.assertEqual(ts5.test_suite, None)
-
-
-
-
-
-def test_api():
-    import doctest
-    return doctest.DocFileSuite(
-        'api_tests.txt', optionflags=doctest.ELLIPSIS, package='pkg_resources',
-    )
-
-
-testClasses = (DependsTests, DistroTests, FeatureTests, TestCommandTests)
-testNames = ["setuptools.tests.test_resources", "setuptools.tests.test_api"]
-
-def test_suite():
-    return TestSuite(
-        [makeSuite(t,'test') for t in testClasses]+
-        [defaultTestLoader.loadTestsFromName(n) for n in testNames]
-    )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

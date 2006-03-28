@@ -37,7 +37,7 @@ setup(
     long_description = get_description(),
     keywords = "CPAN PyPI distutils eggs package management",
     url = "http://peak.telecommunity.com/DevCenter/setuptools",
-    test_suite = 'setuptools.tests.test_suite',
+    test_suite = 'setuptools.tests',
     
     packages = find_packages(),
     package_data = {'setuptools':['*.exe']},

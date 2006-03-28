@@ -332,9 +332,14 @@ unless you need the associated ``setuptools`` feature.
     for more information.
 
 ``test_suite``
-    A string naming a ``unittest.TestCase`` subclass (or a module containing
-    one or more of them, or a method of such a subclass), or naming a function
-    that can be called with no arguments and returns a ``unittest.TestSuite``.
+    A string naming a ``unittest.TestCase`` subclass (or a package or module
+    containing one or more of them, or a method of such a subclass), or naming
+    a function that can be called with no arguments and returns a
+    ``unittest.TestSuite``.  If the named suite is a module, and the module
+    has an ``additional_tests()`` function, it is called and the results are
+    added to the tests to be run.  If the named suite is a package, any
+    submodules and subpackages are recursively added to the overall test suite.
+    
     Specifying this argument enables use of the `test`_ command to run the
     specified test suite, e.g. via ``setup.py test``.  See the section on the
     `test`_ command below for more details.
@@ -2070,12 +2075,17 @@ up-to-date.
 
 To use this command, your project's tests must be wrapped in a ``unittest``
 test suite by either a function, a ``TestCase`` class or method, or a module
-containing ``TestCase`` classes.  Note that many test systems including
-``doctest`` support wrapping their non-``unittest`` tests in ``TestSuite``
-objects.  So, if you are using a test package that does not support this, we
-suggest you encourage its developers to implement test suite support, as this
-is a convenient and standard way to aggregate a collection of tests to be run
-under a common test harness.
+or package containing ``TestCase`` classes.  If the named suite is a module,
+and the module has an ``additional_tests()`` function, it is called and the
+result (which must be a ``unittest.TestSuite``) is added to the tests to be
+run.  If the named suite is a package, any submodules and subpackages are
+recursively added to the overall test suite.
+
+Note that many test systems including ``doctest`` support wrapping their
+non-``unittest`` tests in ``TestSuite`` objects.  So, if you are using a test
+package that does not support this, we suggest you encourage its developers to
+implement test suite support, as this is a convenient and standard way to
+aggregate a collection of tests to be run under a common test harness.
 
 By default, tests will be run in the "verbose" mode of the ``unittest``
 package's text test runner, but you can get the "quiet" mode (just dots) if
@@ -2349,6 +2359,9 @@ Release Notes/Change History
 ----------------------------
 
 0.6a11
+ * Enhanced test loader to scan packages as well as modules, and call
+   ``additional_tests()`` if present to get non-unittest tests.
+
  * Support namespace packages in conjunction with system packagers, by omitting
    the installation of any ``__init__.py`` files for namespace packages, and
    adding a special ``.pth`` file to create a working package in
