@@ -10,6 +10,7 @@ namespace_packages = setuptools.dist:check_nsp
 test_suite = setuptools.dist:check_test_suite
 eager_resources = setuptools.dist:assert_string_list
 zip_safe = setuptools.dist:assert_bool
+test_loader = setuptools.dist:check_importable
 tests_require = setuptools.dist:check_requirements
 
 [setuptools.file_finders]

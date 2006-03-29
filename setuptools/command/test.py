@@ -51,11 +51,10 @@ class test(Command):
             "Test suite to run (e.g. 'some_module.test_suite')"),
     ]
 
-    test_suite = None
-    test_module = None
-
     def initialize_options(self):
-        pass
+        self.test_suite = None
+        self.test_module = None
+        self.test_loader = None
 
 
     def finalize_options(self):
@@ -74,9 +73,10 @@ class test(Command):
 
         if self.verbose:
             self.test_args.insert(0,'--verbose')
-
-
-
+        if self.test_loader is None:
+            self.test_loader = getattr(self.distribution,'test_loader',None)
+        if self.test_loader is None:
+            self.test_loader = "setuptools.command.test:ScanningLoader"
 
 
 
@@ -111,12 +111,12 @@ class test(Command):
         dist = Distribution(path_item, metadata, project_name=ei_cmd.egg_name)
         working_set.add(dist)
         require(str(dist.as_requirement()))
+        loader_ep = EntryPoint.parse("x="+self.test_loader)
+        loader_class = loader_ep.load(require=False)
         unittest.main(
             None, None, [unittest.__file__]+self.test_args,
-            testLoader = ScanningLoader()
+            testLoader = loader_class()
         )
-
-
 
 
 

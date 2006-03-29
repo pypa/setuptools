@@ -41,27 +41,34 @@ setup(
     
     packages = find_packages(),
     package_data = {'setuptools':['*.exe']},
+
     py_modules = ['pkg_resources', 'easy_install', 'site'],
+
     zip_safe = False,   # We want 'python -m easy_install' to work, for now :(
+
     entry_points = {
+
         "distutils.commands" : [
             "%(cmd)s = setuptools.command.%(cmd)s:%(cmd)s" % locals()
             for cmd in SETUP_COMMANDS
         ],
+
         "distutils.setup_keywords": [
-            "eager_resources    = setuptools.dist:assert_string_list",
-            "namespace_packages = setuptools.dist:check_nsp",
-            "extras_require     = setuptools.dist:check_extras",
-            "install_requires   = setuptools.dist:check_requirements",
-            "tests_require      = setuptools.dist:check_requirements",
-            "entry_points       = setuptools.dist:check_entry_points",
-            "test_suite         = setuptools.dist:check_test_suite",
-            "zip_safe           = setuptools.dist:assert_bool",
+            "eager_resources      = setuptools.dist:assert_string_list",
+            "namespace_packages   = setuptools.dist:check_nsp",
+            "extras_require       = setuptools.dist:check_extras",
+            "install_requires     = setuptools.dist:check_requirements",
+            "tests_require        = setuptools.dist:check_requirements",
+            "entry_points         = setuptools.dist:check_entry_points",
+            "test_suite           = setuptools.dist:check_test_suite",
+            "zip_safe             = setuptools.dist:assert_bool",
             "package_data         = setuptools.dist:check_package_data",
             "exclude_package_data = setuptools.dist:check_package_data",
             "include_package_data = setuptools.dist:assert_bool",
-            "dependency_links   = setuptools.dist:assert_string_list",
+            "dependency_links     = setuptools.dist:assert_string_list",
+            "test_loader          = setuptools.dist:check_importable",
         ],
+
         "egg_info.writers": [
             "PKG-INFO = setuptools.command.egg_info:write_pkg_info",
             "requires.txt = setuptools.command.egg_info:write_requirements",
@@ -72,14 +79,17 @@ setup(
             "depends.txt = setuptools.command.egg_info:warn_depends_obsolete",
             "dependency_links.txt = setuptools.command.egg_info:overwrite_arg",
         ],
-        "console_scripts":
-            ["easy_install = setuptools.command.easy_install:main",
+
+        "console_scripts": [
+             "easy_install = setuptools.command.easy_install:main",
              "easy_install-%s = setuptools.command.easy_install:main"
-             % sys.version[:3]
+                % sys.version[:3]
             ],
+            
         "setuptools.file_finders":
             ["svn_cvs = setuptools.command.sdist:_default_revctrl"]
         },
+
     classifiers = [f.strip() for f in """
     Development Status :: 3 - Alpha
     Intended Audience :: Developers
@@ -96,16 +106,6 @@ setup(
     # uncomment for testing
     # setup_requires = ['setuptools>=0.6a0'],
 )
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -28,15 +28,15 @@ _Distribution = _get_unpatched(_Distribution)
 
 sequence = tuple, list
 
-
-
-
-
-
-
-
-
-
+def check_importable(dist, attr, value):
+    try:
+        ep = pkg_resources.EntryPoint.parse('x='+value)
+        assert not ep.extras
+    except (TypeError,ValueError,AttributeError,AssertionError):
+        raise DistutilsSetupError(
+            "%r must be importable 'module:attrs' string (got %r)"
+            % (attr,value)
+        )
 
 
 def assert_string_list(dist, attr, value):

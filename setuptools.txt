@@ -362,6 +362,27 @@ unless you need the associated ``setuptools`` feature.
     are run, but only downloaded to the project's setup directory if they're
     not already installed locally.
 
+``test_loader``
+    If you would like to use a different way of finding tests to run than what
+    setuptools normally uses, you can specify a module name and class name in
+    this argument.  The named class must be instantiable with no arguments, and
+    its instances must support the ``loadTestsFromNames()`` method as defined
+    in the Python ``unittest`` module's ``TestLoader`` class.  Setuptools will
+    pass only one test "name" in the `names` argument: the value supplied for
+    the ``test_suite`` argument.  The loader you specify may interpret this
+    string in any way it likes, as there are no restrictions on what may be
+    contained in a ``test_suite`` string.
+
+    The module name and class name must be separated by a ``:``; the default
+    value of this argument is ``"setuptools.command.test:ScanningLoader"``.  If
+    you want to use the default ``unittest`` behavior instead, you can specify
+    ``"unittest:TestLoader"`` as your ``test_loader`` argument instead.  This
+    will prevent automatic scanning of submodules and subpackages.
+
+    The module and class you specify here may be contained in another package,
+    as long as you use the ``tests_require`` option to ensure that the package
+    containing the loader class is available when the ``test`` command is run.
+
 ``eager_resources``
     A list of strings naming resources that should be extracted together, if
     any of them is needed, or if any C extensions included in the project are
@@ -2471,6 +2492,8 @@ Release Notes/Change History
 ----------------------------
 
 0.6a11
+ * Added ``test_loader`` keyword to support custom test loaders
+
  * Added ``setuptools.file_finders`` entry point group to allow implementing
    revision control plugins.
 
