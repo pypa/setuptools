@@ -319,6 +319,13 @@ unless you need the associated ``setuptools`` feature.
     when the setup script is run, you should add them to ``install_requires``
     **and** ``setup_requires``.)
 
+``dependency_links``
+    A list of strings naming URLs to be searched when satisfying dependencies.
+    These links will be used if needed to install packages specified by
+    ``setup_requires`` or ``tests_require``.  They will also be written into
+    the egg's metadata for use by tools like EasyInstall to use when installing
+    an ``.egg`` file.
+
 ``namespace_packages``
     A list of strings naming the project's "namespace packages".  A namespace
     package is a package that may be split across multiple project
@@ -2359,6 +2366,8 @@ Release Notes/Change History
 ----------------------------
 
 0.6a11
+ * Added ``dependency_links`` to allow specifying URLs for ``--find-links``.
+
  * Enhanced test loader to scan packages as well as modules, and call
    ``additional_tests()`` if present to get non-unittest tests.
 

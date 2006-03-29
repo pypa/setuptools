@@ -80,19 +80,19 @@ class egg_info(Command):
 
 
 
-    def write_or_delete_file(self, what, filename, data):
+    def write_or_delete_file(self, what, filename, data, force=False):
         """Write `data` to `filename` or delete if empty
 
         If `data` is non-empty, this routine is the same as ``write_file()``.
         If `data` is empty but not ``None``, this is the same as calling
         ``delete_file(filename)`.  If `data` is ``None``, then this is a no-op
         unless `filename` exists, in which case a warning is issued about the
-        orphaned file.
+        orphaned file (if `force` is false), or deleted (if `force` is true).
         """
         if data:
             self.write_file(what, filename, data)
         elif os.path.exists(filename):
-            if data is None:
+            if data is None and not force:
                 log.warn(
                     "%s not set in setup(), but %s exists", what, filename
                 )
@@ -326,12 +326,15 @@ def write_toplevel_names(cmd, basename, filename):
 
 
 
-def write_arg(cmd, basename, filename):
+def overwrite_arg(cmd, basename, filename):
+    write_arg(cmd, basename, filename, True)
+
+def write_arg(cmd, basename, filename, force=False):
     argname = os.path.splitext(basename)[0]
     value = getattr(cmd.distribution, argname, None)
     if value is not None:
         value = '\n'.join(value)+'\n'
-    cmd.write_or_delete_file(argname, filename, value)
+    cmd.write_or_delete_file(argname, filename, value, force)
 
 def write_entries(cmd, basename, filename):
     ep = cmd.distribution.entry_points
@@ -347,7 +350,7 @@ def write_entries(cmd, basename, filename):
             data.append('[%s]\n%s\n\n' % (section,contents))
         data = ''.join(data)
 
-    cmd.write_or_delete_file('entry points', filename, data)
+    cmd.write_or_delete_file('entry points', filename, data, True)
 
 def get_pkg_info_revision():
     # See if we can get a -r### off of PKG-INFO, in case this is an sdist of
@@ -360,9 +363,6 @@ def get_pkg_info_revision():
             if match:
                 return int(match.group(1))
     return 0
-
-
-
 
 
 

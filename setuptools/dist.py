@@ -211,16 +211,16 @@ class Distribution(_Distribution):
         self.features = {}
         self.dist_files = []
         self.patch_missing_pkg_info(attrs)
+        # Make sure we have any eggs needed to interpret 'attrs'
+        if attrs and 'dependency_links' in attrs:
+            self.dependency_links = attrs.pop('dependency_links')
+            assert_string_list(self,'dependency_links',self.dependency_links)
         if attrs and 'setup_requires' in attrs:
-            # Make sure we have any eggs needed to interpret 'attrs'
             self.fetch_build_eggs(attrs.pop('setup_requires'))
-
         for ep in pkg_resources.iter_entry_points('distutils.setup_keywords'):
             if not hasattr(self,ep.name):
                 setattr(self,ep.name,None)
-
         _Distribution.__init__(self,attrs)
-
         if isinstance(self.metadata.version, (int,long,float)):
             # Some people apparently take "version number" too literally :)
             self.metadata.version = str(self.metadata.version)
@@ -246,7 +246,6 @@ class Distribution(_Distribution):
 
     def finalize_options(self):
         _Distribution.finalize_options(self)
-
         if self.features:
             self._set_global_opts_from_features()
 
@@ -255,7 +254,6 @@ class Distribution(_Distribution):
             if value is not None:
                 ep.require(installer=self.fetch_build_egg)
                 ep.load()(self, ep.name, value)
-
 
     def fetch_build_egg(self, req):
         """Fetch an egg needed for building"""
@@ -273,17 +271,19 @@ class Distribution(_Distribution):
             for key in opts.keys():
                 if key not in keep:
                     del opts[key]   # don't use any other settings
+            if self.dependency_links:
+                links = self.dependency_links[:]
+                if 'find_links' in opts:
+                    links = opts['find_links'][1].split() + links
+                opts['find_links'] = ('setup', links)
             cmd = easy_install(
                 dist, args=["x"], install_dir=os.curdir, exclude_scripts=True,
                 always_copy=False, build_directory=None, editable=False,
-                upgrade=False, multi_version=True
+                upgrade=False, multi_version=True, no_report = True
             )
             cmd.ensure_finalized()
             self._egg_fetcher = cmd
-
         return cmd.easy_install(req)
-
-
 
     def _set_global_opts_from_features(self):
         """Add --with-X/--without-X options based on optional features"""

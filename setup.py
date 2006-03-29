@@ -42,9 +42,7 @@ setup(
     packages = find_packages(),
     package_data = {'setuptools':['*.exe']},
     py_modules = ['pkg_resources', 'easy_install', 'site'],
-
     zip_safe = False,   # We want 'python -m easy_install' to work, for now :(
-
     entry_points = {
         "distutils.commands" : [
             "%(cmd)s = setuptools.command.%(cmd)s:%(cmd)s" % locals()
@@ -62,15 +60,17 @@ setup(
             "package_data         = setuptools.dist:check_package_data",
             "exclude_package_data = setuptools.dist:check_package_data",
             "include_package_data = setuptools.dist:assert_bool",
+            "dependency_links   = setuptools.dist:assert_string_list",
         ],
         "egg_info.writers": [
             "PKG-INFO = setuptools.command.egg_info:write_pkg_info",
             "requires.txt = setuptools.command.egg_info:write_requirements",
             "entry_points.txt = setuptools.command.egg_info:write_entries",
-            "eager_resources.txt = setuptools.command.egg_info:write_arg",
-            "namespace_packages.txt = setuptools.command.egg_info:write_arg",
+            "eager_resources.txt = setuptools.command.egg_info:overwrite_arg",
+            "namespace_packages.txt = setuptools.command.egg_info:overwrite_arg",
             "top_level.txt = setuptools.command.egg_info:write_toplevel_names",
             "depends.txt = setuptools.command.egg_info:warn_depends_obsolete",
+            "dependency_links.txt = setuptools.command.egg_info:overwrite_arg",
         ],
         "console_scripts":
             ["easy_install = setuptools.command.easy_install:main",

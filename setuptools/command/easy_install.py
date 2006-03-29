@@ -90,7 +90,7 @@ class easy_install(Command):
         self.optimize = self.record = None
         self.upgrade = self.always_copy = self.multi_version = None
         self.editable = self.no_deps = self.allow_hosts = None
-        self.root = self.prefix = None
+        self.root = self.prefix = self.no_report = None
 
         # Options not specifiable via command line
         self.package_index = None
@@ -509,7 +509,10 @@ Please make the appropriate changes for your system and try again.
             requirement = Requirement(
                 distreq.project_name, distreq.specs, requirement.extras
             )
-
+        if dist.has_metadata('dependency_links.txt'):
+            self.package_index.add_find_links(
+                dist.get_metadata_lines('dependency_links.txt')
+            )
         log.info("Processing dependencies for %s", requirement)
         try:
             distros = WorkingSet([]).resolve(
@@ -524,7 +527,6 @@ Please make the appropriate changes for your system and try again.
                 "Installed distribution %s conflicts with requirement %s"
                 % e.args
             )
-
         if self.always_copy:
             # Force all the relevant distros to be copied or activated
             for dist in distros:
@@ -862,7 +864,7 @@ you ignore the conflicts, the installed package(s) may not work.
     def installation_report(self, req, dist, what="Installed"):
         """Helpful installation message for display to package users"""
         msg = "\n%(what)s %(eggloc)s%(extras)s"
-        if self.multi_version:
+        if self.multi_version and not self.no_report:
             msg += """
 
 Because this distribution was installed --multi-version or --install-dir,

@@ -1,4 +1,5 @@
 [distutils.setup_keywords]
+dependency_links = setuptools.dist:assert_string_list
 entry_points = setuptools.dist:check_entry_points
 extras_require = setuptools.dist:check_extras
 package_data = setuptools.dist:check_package_data
@@ -12,11 +13,12 @@ zip_safe = setuptools.dist:assert_bool
 tests_require = setuptools.dist:check_requirements
 
 [egg_info.writers]
+dependency_links.txt = setuptools.command.egg_info:overwrite_arg
 requires.txt = setuptools.command.egg_info:write_requirements
 PKG-INFO = setuptools.command.egg_info:write_pkg_info
-eager_resources.txt = setuptools.command.egg_info:write_arg
+eager_resources.txt = setuptools.command.egg_info:overwrite_arg
 top_level.txt = setuptools.command.egg_info:write_toplevel_names
-namespace_packages.txt = setuptools.command.egg_info:write_arg
+namespace_packages.txt = setuptools.command.egg_info:overwrite_arg
 entry_points.txt = setuptools.command.egg_info:write_entries
 depends.txt = setuptools.command.egg_info:warn_depends_obsolete
 
