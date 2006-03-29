@@ -1291,13 +1291,14 @@ def get_exe_prefixes(exe_filename):
             if name.endswith('-nspkg.pth'):
                 continue
             if parts[0] in ('PURELIB','PLATLIB'):
-                pth = z.read(name).strip()
-                prefixes[0] = ('PURELIB/%s/' % pth), ''
-                prefixes[1] = ('PLATLIB/%s/' % pth), ''
-                break
+                for pth in yield_lines(z.read(name)):
+                    pth = pth.strip().replace('\\','/')
+                    if not pth.startswith('import'):
+                        prefixes.append((('%s/%s/' % (parts[0],pth)), ''))
     finally:
         z.close()
 
+    prefixes.sort(); prefixes.reverse()
     return prefixes
 
 
@@ -1308,7 +1309,6 @@ def parse_requirement_arg(spec):
         raise DistutilsError(
             "Not a URL, existing file, or requirement spec: %r" % (spec,)
         )
-
 
 class PthDistributions(Environment):
     """A .pth file with Distribution paths in it"""
