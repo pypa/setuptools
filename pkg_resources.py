@@ -57,7 +57,8 @@ __all__ = [
 
     # Exceptions
     'ResolutionError','VersionConflict','DistributionNotFound','UnknownExtra',
-
+    'ExtractionError',
+    
     # Parsing functions and string utilities
     'parse_requirements', 'parse_version', 'safe_name', 'safe_version',
     'get_platform', 'compatible_platforms', 'yield_lines', 'split_sections',
@@ -79,7 +80,6 @@ __all__ = [
     # Deprecated/backward compatibility only
     'run_main', 'AvailableDistributions',
 ]
-
 class ResolutionError(Exception):
     """Abstract base for dependency resolution errors"""
 
@@ -759,20 +759,20 @@ class Environment(object):
 AvailableDistributions = Environment    # XXX backward compatibility
 
 
+class ExtractionError(RuntimeError):
+    """An error occurred extracting a resource
 
+    The following attributes are available from instances of this exception:
 
+    manager
+        The resource manager that raised this exception
 
+    cache_path
+        The base directory for resource extraction
 
-
-
-
-
-
-
-
-
-
-
+    original_error
+        The exception instance that caused extraction to fail
+    """
 
 
 
@@ -818,6 +818,47 @@ class ResourceManager:
             resource_name
         )
 
+    def extraction_error(self):
+        """Give an error message for problems extracting file(s)"""
+
+        old_exc = sys.exc_info()[1]
+        cache_path = self.extraction_path or get_default_cache()
+        
+        err = ExtractionError("""Can't extract file(s) to egg cache
+
+The following error occurred while trying to extract file(s) to the Python egg
+cache:
+
+  %s
+
+The Python egg cache directory is currently set to:
+
+  %s
+
+Perhaps your account does not have write access to this directory?  You can
+change the cache directory by setting the PYTHON_EGG_CACHE environment
+variable to point to an accessible directory.
+"""         % (old_exc, cache_path)
+        )
+        err.manager        = self
+        err.cache_path     = cache_path
+        err.original_error = old_exc
+        raise err
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     def get_cache_path(self, archive_name, names=()):
         """Return absolute location in cache for `archive_name` and `names`
 
@@ -833,7 +874,11 @@ class ResourceManager:
         """
         extract_path = self.extraction_path or get_default_cache()
         target_path = os.path.join(extract_path, archive_name+'-tmp', *names)
-        ensure_directory(target_path)
+        try:
+            ensure_directory(target_path)
+        except:
+            self.extraction_error()
+           
         self.cached_files[target_path] = 1
         return target_path
 
@@ -853,10 +898,6 @@ class ResourceManager:
         returns.
         """
         # XXX
-
-
-
-
 
 
     def set_extraction_path(self, path):
@@ -1188,12 +1229,14 @@ class ZipProvider(EggProvider):
         return self._extract_resource(manager, zip_path)
 
     def _extract_resource(self, manager, zip_path):
+
         if zip_path in self._index():
             for name in self._index()[zip_path]:
                 last = self._extract_resource(
                     manager, os.path.join(zip_path, name)
                 )
             return os.path.dirname(last)  # return the extracted directory name
+
         zip_stat = self.zipinfo[zip_path]
         t,d,size = zip_stat[5], zip_stat[6], zip_stat[3]
         date_time = (
@@ -1201,32 +1244,45 @@ class ZipProvider(EggProvider):
             (t&0xFFFF)>>11, (t>>5)&0x3F, (t&0x1F) * 2, 0, 0, -1   # hms, etc.
         )
         timestamp = time.mktime(date_time)
-        real_path = manager.get_cache_path(self.egg_name, self._parts(zip_path))
-        if os.path.isfile(real_path):
-            stat = os.stat(real_path)
-            if stat.st_size==size and stat.st_mtime==timestamp:
-                # size and stamp match, don't bother extracting
-                return real_path
-        outf, tmpnam = _mkstemp(".$extract", dir=os.path.dirname(real_path))
-        os.write(outf, self.loader.get_data(zip_path))
-        os.close(outf)
-        utime(tmpnam, (timestamp,timestamp))
-        manager.postprocess(tmpnam, real_path)
-        try: rename(tmpnam, real_path)
-        except os.error:
+
+        try:
+            real_path = manager.get_cache_path(
+                self.egg_name, self._parts(zip_path)
+            )
+
             if os.path.isfile(real_path):
                 stat = os.stat(real_path)
                 if stat.st_size==size and stat.st_mtime==timestamp:
-                    # size and stamp match, somebody did it just ahead of us
-                    # so we're done
+                    # size and stamp match, don't bother extracting
                     return real_path
-                elif os.name=='nt':     # Windows, delete old file and retry
-                    unlink(real_path)
-                    rename(tmpnam, real_path)
-                    return real_path
-            raise
-        return real_path
 
+            outf, tmpnam = _mkstemp(".$extract", dir=os.path.dirname(real_path))
+            os.write(outf, self.loader.get_data(zip_path))
+            os.close(outf)
+            utime(tmpnam, (timestamp,timestamp))
+            manager.postprocess(tmpnam, real_path)
+
+            try:
+                rename(tmpnam, real_path)
+                
+            except os.error:               
+                if os.path.isfile(real_path):
+                    stat = os.stat(real_path)
+                    
+                    if stat.st_size==size and stat.st_mtime==timestamp:
+                        # size and stamp match, somebody did it just ahead of
+                        # us, so we're done
+                        return real_path
+                    elif os.name=='nt':     # Windows, del old file and retry
+                        unlink(real_path)
+                        rename(tmpnam, real_path)
+                        return real_path
+                raise
+
+        except os.error:
+            manager.extraction_error()  # report a user-friendly error
+
+        return real_path
 
     def _get_eager_resources(self):
         if self.eagers is None:
@@ -1264,11 +1320,6 @@ class ZipProvider(EggProvider):
     def _listdir(self,fspath):
         return list(self._index().get(self._zipinfo_name(fspath), ()))
 
-
-
-
-
-
     def _eager_to_zip(self,resource_name):
         return self._zipinfo_name(self._fn(self.egg_root,resource_name))
 
@@ -1276,6 +1327,28 @@ class ZipProvider(EggProvider):
         return self._zipinfo_name(self._fn(self.module_path,resource_name))
 
 register_loader_type(zipimport.zipimporter, ZipProvider)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class FileMetadata(EmptyProvider):
@@ -1303,6 +1376,15 @@ class FileMetadata(EmptyProvider):
 
     def get_metadata_lines(self,name):
         return yield_lines(self.get_metadata(name))
+
+
+
+
+
+
+
+
+
 
 
 

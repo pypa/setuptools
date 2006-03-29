@@ -1194,6 +1194,14 @@ you must therefore have an explicit ``ResourceManager`` instance to use them.
     obtain an extraction location, and only for names they intend to
     extract, as it tracks the generated names for possible cleanup later.
 
+``extraction_error()``
+    Raise an ``ExtractionError`` describing the active exception as interfering
+    with the extraction process.  You should call this if you encounter any
+    OS errors extracting the file to the cache path; it will format the
+    operating system exception for you, and add other information to the
+    ``ExtractionError`` instance that may be needed by programs that want to
+    wrap or handle extraction errors themselves.
+
 ``postprocess(tempname, filename)``
     Perform any platform-specific postprocessing of `tempname`.
     Resource providers should call this method ONLY after successfully
@@ -1277,6 +1285,8 @@ occur when processing requests to locate and activate packages::
         VersionConflict
         UnknownExtra
 
+    ExtractionError
+
 ``ResolutionError``
     This class is used as a base class for the other three exceptions, so that
     you can catch all of them with a single "except" clause.  It is also raised
@@ -1293,6 +1303,19 @@ occur when processing requests to locate and activate packages::
 ``UnknownExtra``
     One of the "extras" requested was not recognized by the distribution it
     was requested from.
+
+``ExtractionError``
+    A problem occurred extracting a resource to the Python Egg cache.  The
+    following attributes are available on instances of this exception:
+
+    manager
+        The resource manager that raised this exception
+
+    cache_path
+        The base directory for resource extraction
+
+    original_error
+        The exception instance that caused extraction to fail
 
 
 Supporting Custom Importers
@@ -1628,6 +1651,12 @@ File/Path Utilities
 ----------------------------
 Release Notes/Change History
 ----------------------------
+
+0.6a11
+ * Added ``ExtractionError`` and ``ResourceManager.extraction_error()`` so that
+   cache permission problems get a more user-friendly explanation of the
+   problem, and so that programs can catch and handle extraction errors if they
+   need to.
 
 0.6a10
  * Added the ``extras`` attribute to ``Distribution``, the ``find_plugins()``
