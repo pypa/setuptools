@@ -13,8 +13,9 @@ class ScanningLoader(TestLoader):
         If the module has an ``additional_tests`` function, call it and add
         the return value to the tests.
         """
-
-        tests = [TestLoader.loadTestsFromModule(self,module)]
+        tests = []
+        if module.__name__!='setuptools.tests.doctest':  # ugh
+            tests.append(TestLoader.loadTestsFromModule(self,module))
 
         if hasattr(module, "additional_tests"):
             tests.append(module.additional_tests())
@@ -32,11 +33,10 @@ class ScanningLoader(TestLoader):
                         continue
                 tests.append(self.loadTestsFromName(submodule))
 
-        if len(tests)>1:
+        if len(tests)!=1:
             return self.suiteClass(tests)
         else:
             return tests[0] # don't create a nested suite for only one return
-
 
 
 class test(Command):
