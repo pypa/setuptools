@@ -75,7 +75,7 @@ class upload(Command):
         if self.sign:
             gpg_args = ["gpg", "--detach-sign", "-a", filename]
             if self.identity:
-                gpg_args[2:2] = ["--local-user", self.identity)]
+                gpg_args[2:2] = ["--local-user", self.identity]
             spawn(gpg_args,
                   dry_run=self.dry_run)
 
