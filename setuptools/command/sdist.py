@@ -1,6 +1,6 @@
 from distutils.command.sdist import sdist as _sdist
 from distutils.util import convert_path
-import os, re, sys
+import os, re, sys, pkg_resources
 
 entities = [
     ("&lt;","<"), ("&gt;", ">"), ("&quot;", '"'), ("&apos;", "'"),
@@ -39,13 +39,13 @@ def joinpath(prefix,suffix):
 
 
 
-def walk_revctrl(dirname='', memo=None):
+def walk_revctrl(dirname=''):
     """Find all files under revision control"""
-    if memo is None:
-        memo = {}
-    if dirname in memo:
-        # Don't rescan a scanned directory
-        return
+    for ep in pkg_resources.iter_entry_points('setuptools.file_finders'):
+        for item in ep.load()(dirname):
+            yield item
+
+def _default_revctrl(dirname=''):
     for path, finder in finders:
         path = joinpath(dirname,path)
         if os.path.isfile(path):
@@ -53,7 +53,7 @@ def walk_revctrl(dirname='', memo=None):
                 if os.path.isfile(path):
                     yield path
                 elif os.path.isdir(path):
-                    for item in walk_revctrl(path, memo):
+                    for item in _default_revctrl(path):
                         yield item
 
 def externals_finder(dirname, filename):

@@ -77,9 +77,9 @@ setup(
              "easy_install-%s = setuptools.command.easy_install:main"
              % sys.version[:3]
             ],
-    },
-
-
+        "setuptools.file_finders":
+            ["svn_cvs = setuptools.command.sdist:_default_revctrl"]
+        },
     classifiers = [f.strip() for f in """
     Development Status :: 3 - Alpha
     Intended Audience :: Developers

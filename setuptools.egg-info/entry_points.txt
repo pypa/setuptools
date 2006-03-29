@@ -12,6 +12,9 @@ eager_resources = setuptools.dist:assert_string_list
 zip_safe = setuptools.dist:assert_bool
 tests_require = setuptools.dist:check_requirements
 
+[setuptools.file_finders]
+svn_cvs = setuptools.command.sdist:_default_revctrl
+
 [egg_info.writers]
 dependency_links.txt = setuptools.command.egg_info:overwrite_arg
 requires.txt = setuptools.command.egg_info:write_requirements
