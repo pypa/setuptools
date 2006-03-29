@@ -391,6 +391,19 @@ where you'd like the eggs placed.  By placing them in a directory that is
 published to the web, you can then make the eggs available for download, either
 in an intranet or to the internet at large.
 
+If someone distributes a package in the form of a single ``.py`` file, you can
+wrap it in an egg by tacking an ``#egg=name-version`` suffix on the file's URL.
+So, something like this::
+
+    easy_install -f "http://some.example.com/downloads/foo.py#egg=foo-1.0" foo
+
+will install the package as an egg, and     
+
+    easy_install -zmaxd. \
+        -f "http://some.example.com/downloads/foo.py#egg=foo-1.0" foo
+
+will create a ``.egg`` file in the current directory.
+
 
 Creating your own Package Index
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
