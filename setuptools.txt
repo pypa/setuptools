@@ -2156,6 +2156,11 @@ The ``upload`` command has a few options worth noting:
     Sign each uploaded file using GPG (GNU Privacy Guard).  The ``gpg`` program
     must be available for execution on the system ``PATH``.
 
+``--identity=NAME, -i NAME``
+    Specify the identity or key name for GPG to use when signing.  The value of
+    this option will be passed through the ``--local-user`` option of the
+    ``gpg`` program.
+
 ``--show-response``
     Display the full response text from server; this is useful for debugging
     PyPI problems.
@@ -2366,6 +2371,8 @@ Release Notes/Change History
 ----------------------------
 
 0.6a11
+ * Added ``--identity`` option to ``upload`` command.
+
  * Added ``dependency_links`` to allow specifying URLs for ``--find-links``.
 
  * Enhanced test loader to scan packages as well as modules, and call
