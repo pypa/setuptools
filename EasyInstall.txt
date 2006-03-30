@@ -397,7 +397,7 @@ So, something like this::
 
     easy_install -f "http://some.example.com/downloads/foo.py#egg=foo-1.0" foo
 
-will install the package as an egg, and     
+will install the package as an egg, and this::
 
     easy_install -zmaxd. \
         -f "http://some.example.com/downloads/foo.py#egg=foo-1.0" foo

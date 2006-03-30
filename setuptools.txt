@@ -362,6 +362,8 @@ unless you need the associated ``setuptools`` feature.
     are run, but only downloaded to the project's setup directory if they're
     not already installed locally.
 
+.. _test_loader:
+
 ``test_loader``
     If you would like to use a different way of finding tests to run than what
     setuptools normally uses, you can specify a module name and class name in
@@ -373,9 +375,9 @@ unless you need the associated ``setuptools`` feature.
     string in any way it likes, as there are no restrictions on what may be
     contained in a ``test_suite`` string.
 
-    The module name and class name must be separated by a ``:``; the default
+    The module name and class name must be separated by a ``:``.  The default
     value of this argument is ``"setuptools.command.test:ScanningLoader"``.  If
-    you want to use the default ``unittest`` behavior instead, you can specify
+    you want to use the default ``unittest`` behavior, you can specify
     ``"unittest:TestLoader"`` as your ``test_loader`` argument instead.  This
     will prevent automatic scanning of submodules and subpackages.
 
@@ -568,7 +570,7 @@ You can also use a SourceForge ``showfiles.php`` link in the case where a
 package you depend on is distributed via SourceForge.
 
 If you depend on a package that's distributed as a single ``.py`` file, you
-must include an ``#egg=project-version`` suffix to the URL, to give a project
+must include an ``"#egg=project-version"`` suffix to the URL, to give a project
 name and version number.  (Be sure to escape any dashes in the name or version
 by replacing them with underscores.)  EasyInstall will recognize this suffix
 and automatically create a trivial ``setup.py`` to wrap the single ``.py`` file
@@ -2153,7 +2155,9 @@ or package containing ``TestCase`` classes.  If the named suite is a module,
 and the module has an ``additional_tests()`` function, it is called and the
 result (which must be a ``unittest.TestSuite``) is added to the tests to be
 run.  If the named suite is a package, any submodules and subpackages are
-recursively added to the overall test suite.
+recursively added to the overall test suite.  (Note: if your project specifies
+a ``test_loader``, the rules for processing the chosen ``test_suite`` may
+differ; see the `test_loader`_ documentation for more details.)
 
 Note that many test systems including ``doctest`` support wrapping their
 non-``unittest`` tests in ``TestSuite`` objects.  So, if you are using a test
@@ -2411,7 +2415,7 @@ called "foobar", you would write a function something like this::
     def find_files_for_foobar(dirname):
         # loop to yield paths that start with `dirname`
 
-And you would register it in a setup script using something like this:
+And you would register it in a setup script using something like this::
 
     entry_points = {
         "setuptools.file_finders": [
