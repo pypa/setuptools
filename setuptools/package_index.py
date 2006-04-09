@@ -531,6 +531,47 @@ class PackageIndex(Environment):
     def reporthook(self, url, filename, blocknum, blksize, size):
         pass    # no-op
 
+    def retry_sf_download(self, url, filename):
+        try:
+            return self._download_to(url, filename)
+        except:
+            scheme, server, path, param, query, frag = urlparse.urlparse(url)
+            if server!='dl.sourceforge.net':
+                raise
+
+        mirror = get_sf_ip()
+
+        while _sf_mirrors:
+            self.warn("Download failed: %s", sys.exc_info()[1])
+            url = urlparse.urlunparse((scheme, mirror, path, param, '', frag))
+            try:
+                return self._download_to(url, filename)
+            except:
+                _sf_mirrors.remove(mirror)  # don't retry the same mirror
+                mirror = get_sf_ip()
+
+        raise   # fail if no mirror works
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     def open_url(self, url):
         try:
             return urllib2.urlopen(url)
@@ -562,7 +603,7 @@ class PackageIndex(Environment):
         if scheme=='svn' or scheme.startswith('svn+'):
             return self._download_svn(url, filename)
         else:
-            headers = self._download_to(url, filename)
+            headers = self.retry_sf_download(url, filename)
             if 'html' in headers['content-type'].lower():
                 return self._download_html(url, headers, filename, tmpdir)
             else:
@@ -618,19 +659,19 @@ def fix_sf_url(url):
     if server!='prdownloads.sourceforge.net':
         return url
     return urlparse.urlunparse(
-        (scheme, get_sf_ip(), 'sourceforge'+path, param, '', frag)
+        (scheme, 'dl.sourceforge.net', 'sourceforge'+path, param, '', frag)
     )
 
-def get_sf_ip(_mirrors=[]):
-    if not _mirrors:
+_sf_mirrors = []
+
+def get_sf_ip():
+    if not _sf_mirrors:
         try:
-            _mirrors[:] = socket.gethostbyname_ex('dl.sourceforge.net')[-1]
+            _sf_mirrors[:] = socket.gethostbyname_ex('dl.sourceforge.net')[-1]
         except socket.error:
             # DNS-bl0ck1n9 f1r3w4llz sUx0rs!
-            _mirrors[:] = ['dl.sourceforge.net']
-    return random.choice(_mirrors)
-
-
+            _sf_mirrors[:] = ['dl.sourceforge.net']
+    return random.choice(_sf_mirrors)
 
 
 

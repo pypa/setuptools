@@ -1097,9 +1097,11 @@ set, if you haven't already got this set up on your machine.
 Release Notes/Change History
 ============================
 
-Known Issues
- * There's no automatic retry for borked Sourceforge mirrors, which can easily
-   time out or be missing a file.
+0.6a12
+ * Added automatic retry for Sourceforge mirrors.  The new download process is
+   to first just try dl.sourceforge.net, then randomly select mirror IPs and
+   remove ones that fail, until something works.  The removed IPs stay removed
+   for the remainder of the run.
 
 0.6a11
  * Process ``dependency_links.txt`` if found in a distribution, by adding the
