@@ -158,20 +158,18 @@ dist = setup(
     test_suite = 'setuptools.tests',
     src_root = src_root,
     packages = find_packages(),
-    package_data = {'setuptools':['*.exe'], 'setuptools.command':['*.xml']},
+    package_data = {'setuptools':['*.exe', 'site-patch.py'], 'setuptools.command':['*.xml']},
 
-    py_modules = ['pkg_resources', 'easy_install', 'site'],
+    py_modules = ['pkg_resources', 'easy_install'],
 
     zip_safe = (sys.version>="2.5"),   # <2.5 needs unzipped for -m to work
 
     cmdclass = {'test': test},
     entry_points = {
-
         "distutils.commands" : [
             "%(cmd)s = setuptools.command.%(cmd)s:%(cmd)s" % locals()
             for cmd in SETUP_COMMANDS
         ],
-
         "distutils.setup_keywords": [
             "eager_resources        = setuptools.dist:assert_string_list",
             "namespace_packages     = setuptools.dist:check_nsp",
@@ -192,7 +190,6 @@ dist = setup(
             "use_2to3_fixers        = setuptools.dist:assert_string_list",
             "use_2to3_exclude_fixers = setuptools.dist:assert_string_list",
         ],
-
         "egg_info.writers": [
             "PKG-INFO = setuptools.command.egg_info:write_pkg_info",
             "requires.txt = setuptools.command.egg_info:write_requirements",
@@ -203,7 +200,6 @@ dist = setup(
             "depends.txt = setuptools.command.egg_info:warn_depends_obsolete",
             "dependency_links.txt = setuptools.command.egg_info:overwrite_arg",
         ],
-
         "console_scripts": console_scripts,
 
         "setuptools.file_finders":
@@ -211,7 +207,7 @@ dist = setup(
 
         "setuptools.installation":
             ['eggsecutable = setuptools.command.easy_install:bootstrap'],
-        },
+    },
 
 
     classifiers = textwrap.dedent("""

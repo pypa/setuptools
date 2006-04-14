@@ -1277,7 +1277,7 @@ Please make the appropriate changes for your system and try again.""" % (
             return  # already did it, or don't need to
 
         sitepy = os.path.join(self.install_dir, "site.py")
-        source = resource_string(Requirement.parse("distribute"), "site.py")
+        source = resource_string("setuptools", "site-patch.py")
         current = ""
 
         if os.path.exists(sitepy):
