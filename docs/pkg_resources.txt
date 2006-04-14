@@ -137,13 +137,16 @@ Namespace Package Support
 
 A namespace package is a package that only contains other packages and modules,
 with no direct contents of its own.  Such packages can be split across
-multiple, separately-packaged distributions.  Normally, you do not need to use
-the namespace package APIs directly; instead you should supply the
-``namespace_packages`` argument to ``setup()`` in your project's ``setup.py``.
-See the `setuptools documentation on namespace packages`_ for more information.
+multiple, separately-packaged distributions.  They are normally used to split
+up large packages produced by a single organization, such as in the ``zope``
+namespace package for Zope Corporation packages, and the ``peak`` namespace
+package for the Python Enterprise Application Kit.
 
-However, if for some reason you need to manipulate namespace packages or
-directly alter ``sys.path`` at runtime, you may find these APIs useful:
+To create a namespace package, you list it in the ``namespace_packages``
+argument to ``setup()``, in your project's ``setup.py``.  (See the `setuptools
+documentation on namespace packages`_ for more information on this.)  Also,
+you must add a ``declare_namespace()`` call in the package's ``__init__.py``
+file(s):
 
 ``declare_namespace(name)``
     Declare that the dotted package name `name` is a "namespace package" whose

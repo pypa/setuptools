@@ -2311,7 +2311,9 @@ class Distribution(object):
         self.insert_on(path)
         if path is sys.path:
             fixup_namespace_packages(self.location)
-            list(map(declare_namespace, self._get_metadata('namespace_packages.txt')))
+            for pkg in self._get_metadata('namespace_packages.txt'):
+                if pkg in sys.modules:
+                    declare_namespace(pkg)
 
     def egg_name(self):
         """Return what this distribution's standard .egg filename should be"""

@@ -167,12 +167,12 @@ class build_py(_build_py, Mixin2to3):
 
         f = open(init_py,'rbU')
         if 'declare_namespace'.encode() not in f.read():
-            from distutils import log
-            log.warn(
-                "WARNING: %s is a namespace package, but its __init__.py does\n"
-                "not declare_namespace(); setuptools 0.7 will REQUIRE this!\n"
+            from distutils.errors import DistutilsError
+            raise DistutilsError(
+                "Namespace package problem: %s is a namespace package, but its\n"
+                "__init__.py does not call declare_namespace()! Please fix it.\n"
                 '(See the setuptools manual under "Namespace Packages" for '
-                "details.)\n", package
+                "details.)\n" % (package,)
             )
         f.close()
         return init_py

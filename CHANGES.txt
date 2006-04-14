@@ -3,6 +3,19 @@ CHANGES
 =======
 
 ---
+3.0
+---
+
+* Issue #12: Namespace packages are now imported lazily.  That is, the mere
+  declaration of a namespace package in an egg on ``sys.path`` no longer
+  causes it to be imported when ``pkg_resources`` is imported.  Note that this
+  change means that all of a namespace package's ``__init__.py`` files must
+  include a ``declare_namespace()`` call in order to ensure that they will be
+  handled properly at runtime.  In 2.x it was possible to get away without
+  including the declaration, but only at the cost of forcing namespace
+  packages to be imported early, which 3.0 no longer does.
+
+---
 2.3
 ---
 
