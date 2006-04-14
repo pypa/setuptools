@@ -1369,7 +1369,7 @@ You must include the ``declare_namespace()``  line in the ``__init__.py`` of
 order to ensure that the namespace will be declared regardless of which
 project's copy of ``__init__.py`` is loaded first.  If the first loaded
 ``__init__.py`` doesn't declare it, it will never *be* declared, because no
-other copies will ever be loaded!)
+other copies will ever be loaded!
 
 
 TRANSITIONAL NOTE
