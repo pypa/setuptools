@@ -84,18 +84,20 @@ class build_py(_build_py):
         self.manifest_files = mf = {}
         if not self.distribution.include_package_data:
             return
-
         src_dirs = {}
         for package in self.packages or ():
             # Locate package source directory
-            src_dirs[self.get_package_dir(package)] = package
+            src_dirs[assert_relative(self.get_package_dir(package))] = package
 
         self.run_command('egg_info')
         ei_cmd = self.get_finalized_command('egg_info')
         for path in ei_cmd.filelist.files:
-            if path.endswith('.py'): continue
-            d,f = os.path.split(path)
-            while d and d not in src_dirs:
+            if path.endswith('.py'):
+                continue            
+            d,f = os.path.split(assert_relative(path))
+            prev = None
+            while d and d!=prev and d not in src_dirs:
+                prev = d
                 d, df = os.path.split(d)
                 f = os.path.join(df, f)
             if d in src_dirs:
@@ -118,8 +120,6 @@ class build_py(_build_py):
                 for package, src_dir, build_dir,filenames in self.data_files
                 for filename in filenames
                 ]
-
-
 
     def check_package(self, package, package_dir):
         """Check namespace packages' __init__ for declare_namespace"""
@@ -177,19 +177,19 @@ class build_py(_build_py):
         return [f for f in files if f not in bad]
 
 
+def assert_relative(path):
+    if not os.path.isabs(path):
+        return path
+    from distutils.errors import DistutilsSetupError
+    raise DistutilsSetupError(
+"""Error: setup script specifies an absolute path:
 
+    %s
 
-
-
-
-
-
-
-
-
-
-
-
+setup() arguments must *always* be /-separated paths relative to the
+setup.py directory, *never* absolute paths.
+""" % path
+    )
 
 
 
