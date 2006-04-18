@@ -441,7 +441,7 @@ that are present and potentially importable on the current platform.
 ``Environment`` objects are used by ``pkg_resources`` to index available
 distributions during dependency resolution.
 
-``Environment(search_path=None, platform=get_platform(), python=PY_MAJOR)``
+``Environment(search_path=None, platform=get_supported_platform(), python=PY_MAJOR)``
     Create an environment snapshot by scanning `search_path` for distributions
     compatible with `platform` and `python`.  `search_path` should be a
     sequence of strings such as might be used on ``sys.path``.  If a
@@ -1590,11 +1590,21 @@ Parsing Utilities
 Platform Utilities
 ------------------
 
-``get_platform()``
+``get_build_platform()``
     Return this platform's identifier string.  For Windows, the return value
     is ``"win32"``, and for Mac OS X it is a string of the form
     ``"macosx-10.4-ppc"``.  All other platforms return the same uname-based
     string that the ``distutils.util.get_platform()`` function returns.
+    This string is the minimum platform version required by distributions built
+    on the local machine.  (Backward compatibility note: setuptools versions
+    prior to 0.6b1 called this function ``get_platform()``, and the function is
+    still available under that name for backward compatibility reasons.)
+
+``get_supported_platform()`` (New in 0.6b1)
+    This is the similar to ``get_build_platform()``, but is the maximum
+    platform version that the local machine supports.  You will usually want
+    to use this value as the ``provided`` argument to the
+    ``compatible_platforms()`` function.
 
 ``compatible_platforms(provided, required)``
     Return true if a distribution built on the `provided` platform may be used
@@ -1651,6 +1661,11 @@ File/Path Utilities
 ----------------------------
 Release Notes/Change History
 ----------------------------
+
+0.6b1
+ * Split ``get_platform()`` into ``get_supported_platform()`` and
+   ``get_build_platform()`` to work around a Mac versioning problem that caused
+   the behavior of ``compatible_platforms()`` to be platform specific.
 
 0.6a11
  * Added ``ExtractionError`` and ``ResourceManager.extraction_error()`` so that
