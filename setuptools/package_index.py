@@ -179,7 +179,7 @@ class PackageIndex(Environment):
     def process_filename(self, fn, nested=False):
         # process filenames or directories
         if not os.path.exists(fn):
-            self.warn("Not found: %s", url)
+            self.warn("Not found: %s", fn)
             return
 
         if os.path.isdir(fn) and not nested:
@@ -260,7 +260,7 @@ class PackageIndex(Environment):
 
     def find_packages(self, requirement):
         self.scan_url(self.index_url + requirement.unsafe_name+'/')
-        
+
         if not self.package_pages.get(requirement.key):
             # Fall back to safe version of the name
             self.scan_url(self.index_url + requirement.project_name+'/')
@@ -450,7 +450,7 @@ class PackageIndex(Environment):
 
 
     def gen_setup(self, filename, fragment, tmpdir):
-        match = EGG_FRAGMENT.match(fragment); #import pdb; pdb.set_trace()
+        match = EGG_FRAGMENT.match(fragment)
         dists = match and [d for d in
             interpret_distro_name(filename, match.group(1), None) if d.version
         ] or []
@@ -489,7 +489,7 @@ class PackageIndex(Environment):
                 "Can't process plain .py files without an '#egg=name-version'"
                 " suffix to enable automatic setup script generation."
             )
-        
+
     dl_blocksize = 8192
     def _download_to(self, url, filename):
         self.url_ok(url,True)   # raises error if not allowed
@@ -582,7 +582,6 @@ class PackageIndex(Environment):
 
 
     def _download_url(self, scheme, url, tmpdir):
-
         # Determine download filename
         #
         name = filter(None,urlparse.urlparse(url)[2].split('/'))
@@ -602,6 +601,8 @@ class PackageIndex(Environment):
         #
         if scheme=='svn' or scheme.startswith('svn+'):
             return self._download_svn(url, filename)
+        elif scheme=='file':
+            return urllib2.url2pathname(urlparse.urlparse(url)[2])
         else:
             headers = self.retry_sf_download(url, filename)
             if 'html' in headers['content-type'].lower():
@@ -611,7 +612,6 @@ class PackageIndex(Environment):
 
     def scan_url(self, url):
         self.process_url(url, True)
-
 
     def _download_html(self, url, headers, filename, tmpdir):
         file = open(filename)
@@ -694,4 +694,4 @@ def get_sf_ip():
 
 
 
-
+# this line is a kludge to keep the trailing blank lines for pje's editor
