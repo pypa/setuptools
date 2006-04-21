@@ -96,7 +96,6 @@ def interpret_distro_name(location, basename, metadata,
     ``pkg_resources.normalize_path()`` on it before passing it to this
     routine!
     """
-
     # Generate alternative interpretations of a source distro name
     # Because some packages are ambiguous as to name/versions split
     # e.g. "adns-python-1.1.0", "egenix-mx-commercial", etc.
@@ -110,16 +109,17 @@ def interpret_distro_name(location, basename, metadata,
     # versions in distribution archive names (sdist and bdist).
 
     parts = basename.split('-')
+    if not py_version:
+        for i,p in enumerate(parts[2:]):
+            if len(p)==5 and p.startswith('py2.'):
+                return # It's a bdist_dumb, not an sdist -- bail out
+
     for p in range(1,len(parts)+1):
         yield Distribution(
             location, metadata, '-'.join(parts[:p]), '-'.join(parts[p:]),
             py_version=py_version, precedence = precedence,
             platform = platform
         )
-
-
-
-
 
 class PackageIndex(Environment):
     """A distribution index that scans web pages for download URLs"""
@@ -534,6 +534,8 @@ class PackageIndex(Environment):
     def retry_sf_download(self, url, filename):
         try:
             return self._download_to(url, filename)
+        except (KeyboardInterrupt,SystemExit):
+            raise
         except:
             scheme, server, path, param, query, frag = urlparse.urlparse(url)
             if server!='dl.sourceforge.net':
@@ -551,8 +553,6 @@ class PackageIndex(Environment):
                 mirror = get_sf_ip()
 
         raise   # fail if no mirror works
-
-
 
 
 
