@@ -745,7 +745,6 @@ Please make the appropriate changes for your system and try again.
         to_compile = []
         native_libs = []
         top_level = {}
-
         def process(src,dst):
             for old,new in prefixes:
                 if src.startswith(old):
@@ -754,6 +753,7 @@ Please make the appropriate changes for your system and try again.
                     dst = os.path.join(egg_tmp, *parts)
                     dl = dst.lower()
                     if dl.endswith('.pyd') or dl.endswith('.dll'):
+                        parts[-1] = bdist_egg.strip_module(parts[-1])
                         top_level[os.path.splitext(parts[0])[0]] = 1
                         native_libs.append(src)
                     elif dl.endswith('.py') and old!='SCRIPTS/':
@@ -770,11 +770,11 @@ Please make the appropriate changes for your system and try again.
         for res in native_libs:
             if res.lower().endswith('.pyd'):    # create stubs for .pyd's
                 parts = res.split('/')
-                resource, parts[-1] = parts[-1], parts[-1][:-1]
+                resource = parts[-1]
+                parts[-1] = bdist_egg.strip_module(parts[-1])+'.py'
                 pyfile = os.path.join(egg_tmp, *parts)
                 to_compile.append(pyfile); stubs.append(pyfile)
                 bdist_egg.write_stub(resource, pyfile)
-
         self.byte_compile(to_compile)   # compile .py's
         bdist_egg.write_safety_flag(os.path.join(egg_tmp,'EGG-INFO'),
             bdist_egg.analyze_egg(egg_tmp, stubs))  # write zip-safety flag

@@ -624,16 +624,16 @@ class Distribution(_Distribution):
 
         for ext in self.ext_modules or ():
             if isinstance(ext,tuple):
-                name,buildinfo = ext
-                yield name
+                name, buildinfo = ext
             else:
-                yield ext.name
+                name = ext.name
+            if name.endswith('module'):
+                name = name[:-6]
+            yield name
 
 # Install it throughout the distutils
 for module in distutils.dist, distutils.core, distutils.cmd:
     module.Distribution = Distribution
-
-
 
 
 

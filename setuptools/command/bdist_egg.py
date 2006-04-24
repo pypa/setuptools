@@ -12,6 +12,13 @@ from pkg_resources import get_build_platform, Distribution
 from types import CodeType
 from setuptools.extension import Library
 
+def strip_module(filename):
+    if '.' in filename:
+        filename = os.path.splitext(filename)[0]
+    if filename.endswith('module'):
+        filename = filename[:-6]
+    return filename
+
 def write_stub(resource, pyfile):
     f = open(pyfile,'w')
     f.write('\n'.join([
@@ -29,13 +36,6 @@ def write_stub(resource, pyfile):
 
 # stub __init__.py for packages distributed without one
 NS_PKG_STUB = '__import__("pkg_resources").declare_namespace(__name__)'
-
-
-
-
-
-
-
 
 
 
@@ -179,7 +179,7 @@ class bdist_egg(Command):
         to_compile = []
         for (p,ext_name) in enumerate(ext_outputs):
             filename,ext = os.path.splitext(ext_name)
-            pyfile = os.path.join(self.bdist_dir, filename + '.py')
+            pyfile = os.path.join(self.bdist_dir, strip_module(filename)+'.py')
             self.stubs.append(pyfile)
             log.info("creating stub loader for %s" % ext_name)
             if not self.dry_run:
