@@ -254,18 +254,18 @@ class EntryPointTests(TestCase):
 
     def checkSubMap(self, m):
         self.assertEqual(str(m),
-            "{"
-            "'feature2': EntryPoint.parse("
+            "{'feature2': EntryPoint.parse("
                 "'feature2 = another.module:SomeClass [extra1,extra2]'), "
+            "'feature3': EntryPoint.parse('feature3 = this.module [something]'), "
             "'feature1': EntryPoint.parse("
-                "'feature1 = somemodule:somefunction')"
-            "}"
+                "'feature1 = somemodule:somefunction')}"
         )
 
     submap_str = """
             # define features for blah blah
             feature1 = somemodule:somefunction
             feature2 = another.module:SomeClass [extra1,extra2]
+            feature3 = this.module [something]
     """
 
     def testParseList(self):

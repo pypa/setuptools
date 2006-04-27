@@ -1873,7 +1873,7 @@ class EntryPoint(object):
                 src
             )
         else:
-            return cls(name.strip(), value.lstrip(), attrs, extras, dist)
+            return cls(name.strip(), value.strip(), attrs, extras, dist)
 
     parse = classmethod(parse)
 
