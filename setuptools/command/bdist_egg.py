@@ -393,7 +393,7 @@ def scan_module(egg_dir, base, name, stubs):
                 log.warn("%s: module MAY be using inspect.%s", module, bad)
                 safe = False
     if '__name__' in symbols and '__main__' in symbols and '.' not in module:
-        if get_python_version()>="2.4":
+        if sys.version[:3]=="2.4":  # -m works w/zipfiles in 2.5
             log.warn("%s: top-level module may be 'python -m' script", module)
             safe = False
     return safe

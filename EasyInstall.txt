@@ -545,9 +545,7 @@ The current analysis approach is fairly conservative; it currenly looks for:
  * Possible use of ``inspect`` functions that expect to manipulate source files
    (e.g. ``inspect.getsource()``)
 
- * Any data files or C extensions (this restriction will be removed in a future
-   release, once the ``pkg_resources`` runtime has been hardened for multi-user
-   environments)
+ * Top-level modules that might be scripts used with ``python -m`` (Python 2.4)
 
 If any of the above are found in the package being installed, EasyInstall will
 assume that the package cannot be safely run from a zipfile, and unzip it to
@@ -782,7 +780,7 @@ Command-Line Options
     EasyInstall will not actually build or install the requested projects or
     their dependencies; it will just find and extract them for you.  See
     `Editing and Viewing Source Packages`_ above for more details.
-    
+
 ``--build-directory=DIR, -b DIR`` (UPDATED in 0.6a1)
     Set the directory used to build source packages.  If a package is built
     from a source distribution or checkout, it will be extracted to a
@@ -1081,7 +1079,7 @@ already have them::
     [install]
     install_lib = ~/py-lib
     install_scripts = ~/bin
-    
+
 Be sure to do this *before* you try to run the ``ez_setup.py`` installation
 script.  Then, follow the standard `installation instructions`_, but make
 sure that ``~/py-lib`` is listed in your ``PYTHONPATH`` environment variable.
