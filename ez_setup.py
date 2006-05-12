@@ -18,32 +18,12 @@ DEFAULT_VERSION = "0.6b1"
 DEFAULT_URL     = "http://cheeseshop.python.org/packages/%s/s/setuptools/" % sys.version[:3]
 
 md5_data = {
-    'setuptools-0.6a1-py2.3.egg': 'ee819a13b924d9696b0d6ca6d1c5833d',
-    'setuptools-0.6a1-py2.4.egg': '8256b5f1cd9e348ea6877b5ddd56257d',
     'setuptools-0.6a10-py2.3.egg': '162d8357f1aff2b0349c6c247ee62987',
     'setuptools-0.6a10-py2.4.egg': '803a2d8db501c1ac3b5b6fb4e907f788',
     'setuptools-0.6a11-py2.3.egg': 'd12bf8e13aaeb25c91350c8d77f01a71',
     'setuptools-0.6a11-py2.4.egg': 'a95d5bc7a070aa1028bc4dcb5270b133',
-    'setuptools-0.6a11dev_r43177-py2.3.egg': '068ef7c8522539af12f5fb14b4a8cf21',
-    'setuptools-0.6a11dev_r43295-py2.3.egg': 'eb78390e6beac3694342b5629cc6653f',
-    'setuptools-0.6a11dev_r43403-py2.3.egg': 'ba1a6b00f5c1fdd482284a7df3d8bd19',
-    'setuptools-0.6a11dev_r43417-py2.3.egg': 'c6014183afd9fd167d7d82eee78db2c6',
-    'setuptools-0.6a2-py2.3.egg': 'b98da449da411267c37a738f0ab625ba',
-    'setuptools-0.6a2-py2.4.egg': 'be5b88bc30aed63fdefd2683be135c3b',
-    'setuptools-0.6a3-py2.3.egg': 'ee0e325de78f23aab79d33106dc2a8c8',
-    'setuptools-0.6a3-py2.4.egg': 'd95453d525a456d6c23e7a5eea89a063',
-    'setuptools-0.6a4-py2.3.egg': 'e958cbed4623bbf47dd1f268b99d7784',
-    'setuptools-0.6a4-py2.4.egg': '7f33c3ac2ef1296f0ab4fac1de4767d8',
-    'setuptools-0.6a5-py2.3.egg': '748408389c49bcd2d84f6ae0b01695b1',
-    'setuptools-0.6a5-py2.4.egg': '999bacde623f4284bfb3ea77941d2627',
-    'setuptools-0.6a6-py2.3.egg': '7858139f06ed0600b0d9383f36aca24c',
-    'setuptools-0.6a6-py2.4.egg': 'c10d20d29acebce0dc76219dc578d058',
-    'setuptools-0.6a7-py2.3.egg': 'cfc4125ddb95c07f9500adc5d6abef6f',
-    'setuptools-0.6a7-py2.4.egg': 'c6d62dab4461f71aed943caea89e6f20',
-    'setuptools-0.6a8-py2.3.egg': '2f18eaaa3f544f5543ead4a68f3b2e1a',
-    'setuptools-0.6a8-py2.4.egg': '799018f2894f14c9f8bcb2b34e69b391',
-    'setuptools-0.6a9-py2.3.egg': '8e438ad70438b07b0d8f82cae42b278f',
-    'setuptools-0.6a9-py2.4.egg': '8f6e01fc12fb1cd006dc0d6c04327ec1',
+    'setuptools-0.6b1-py2.3.egg': '8822caf901250d848b996b7f25c6e6ca',
+    'setuptools-0.6b1-py2.4.egg': 'b79a8a403e4502fbb85ee3f1941735cb',
 }
 
 import sys, os
@@ -58,7 +38,7 @@ def _validate_md5(egg_name, data):
                 % egg_name
             )
             sys.exit(2)
-    return data    
+    return data
 
 
 def use_setuptools(
@@ -74,7 +54,7 @@ def use_setuptools(
     be the number of seconds that will be paused before initiating a download,
     should one be required.  If an older version of setuptools is installed,
     this routine will print a message to ``sys.stderr`` and raise SystemExit in
-    an attempt to abort the calling script.  
+    an attempt to abort the calling script.
     """
     try:
         import setuptools
@@ -189,7 +169,7 @@ def main(argv, version=DEFAULT_VERSION):
             print '(Run "ez_setup.py -U setuptools" to reinstall or upgrade.)'
 
 
-            
+
 def update_md5(filenames):
     """Update our built-in md5 registry"""
 
@@ -198,7 +178,7 @@ def update_md5(filenames):
 
     for name in filenames:
         base = os.path.basename(name)
-        f = open(name,'rb')       
+        f = open(name,'rb')
         md5_data[base] = md5(f.read()).hexdigest()
         f.close()
 
