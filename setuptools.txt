@@ -349,7 +349,7 @@ unless you need the associated ``setuptools`` feature.
     has an ``additional_tests()`` function, it is called and the results are
     added to the tests to be run.  If the named suite is a package, any
     submodules and subpackages are recursively added to the overall test suite.
-    
+
     Specifying this argument enables use of the `test`_ command to run the
     specified test suite, e.g. via ``setup.py test``.  See the section on the
     `test`_ command below for more details.
@@ -1041,7 +1041,7 @@ command; see the section on the `develop`_ command below for more details.
 
 Note that you can also apply setuptools commands to non-setuptools projects,
 using commands like this::
- 
+
    python -c "import setuptools; execfile('setup.py')" develop
 
 That is, you can simply list the normal setup commands and options following
@@ -2454,7 +2454,7 @@ A few important points for writing revision control file finders:
   with the absence of needed programs (i.e., ones belonging to the revision
   control system itself.  It *may*, however, use ``distutils.log.warn()`` to
   inform the user of the missing program(s).
-  
+
 
 Subclassing ``Command``
 -----------------------
@@ -2497,6 +2497,11 @@ XXX
 ----------------------------
 Release Notes/Change History
 ----------------------------
+
+0.6b1
+ * Strip ``module`` from the end of compiled extension modules when computing
+   the name of a ``.py`` loader/wrapper.  (Python's import machinery ignores
+   this suffix when searching for an extension module.)
 
 0.6a11
  * Added ``test_loader`` keyword to support custom test loaders

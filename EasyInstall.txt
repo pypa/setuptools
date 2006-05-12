@@ -1096,10 +1096,20 @@ Release Notes/Change History
 ============================
 
 0.6b1
+ * Better ambiguity management: accept ``#egg`` name/version even if processing
+   what appears to be a correctly-named distutils file, and ignore ``.egg``
+   files with no ``-``, since valid Python ``.egg`` files always have a version
+   number (but Scheme eggs often don't).
+
+ * Support ``file://`` links to directories in ``--find-links``, so that
+   easy_install can build packages from local source checkouts.
+
  * Added automatic retry for Sourceforge mirrors.  The new download process is
    to first just try dl.sourceforge.net, then randomly select mirror IPs and
    remove ones that fail, until something works.  The removed IPs stay removed
    for the remainder of the run.
+
+ * Ignore bdist_dumb distributions when looking at download URLs.
 
 0.6a11
  * Process ``dependency_links.txt`` if found in a distribution, by adding the
@@ -1187,7 +1197,7 @@ Release Notes/Change History
 
 0.6a8
  * Update for changed SourceForge mirror format
- 
+
  * Fixed not installing dependencies for some packages fetched via Subversion
 
  * Fixed dependency installation with ``--always-copy`` not using the same
@@ -1232,7 +1242,7 @@ Release Notes/Change History
    needed package as the default version of that package.
 
  * Fixed a problem parsing version numbers in ``#egg=`` links.
-   
+
 0.6a2
  * EasyInstall can now install "console_scripts" defined by packages that use
    ``setuptools`` and define appropriate entry points.  On Windows, console

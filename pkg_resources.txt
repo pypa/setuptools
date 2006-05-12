@@ -1667,6 +1667,9 @@ Release Notes/Change History
    ``get_build_platform()`` to work around a Mac versioning problem that caused
    the behavior of ``compatible_platforms()`` to be platform specific.
 
+ * Fix entry point parsing when a standalone module name has whitespace
+   between it and the extras.
+
 0.6a11
  * Added ``ExtractionError`` and ``ResourceManager.extraction_error()`` so that
    cache permission problems get a more user-friendly explanation of the
