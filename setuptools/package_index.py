@@ -48,20 +48,21 @@ def egg_info_for_url(url):
 def distros_for_url(url, metadata=None):
     """Yield egg or source distribution objects that might be found at a URL"""
     base, fragment = egg_info_for_url(url)
-    dists = distros_for_location(url, base, metadata)
-    if fragment and not dists:
+    for dist in distros_for_location(url, base, metadata): yield dist
+    if fragment:
         match = EGG_FRAGMENT.match(fragment)
         if match:
-            return interpret_distro_name(
+            for dist in interpret_distro_name(
                 url, match.group(1), metadata, precedence = CHECKOUT_DIST
-            )
-    return dists
+            ):
+                yield dist
 
 def distros_for_location(location, basename, metadata=None):
     """Yield egg or source distribution objects based on basename"""
     if basename.endswith('.egg.zip'):
         basename = basename[:-4]    # strip the .zip
-    if basename.endswith('.egg'):   # only one, unambiguous interpretation
+    if basename.endswith('.egg') and '-' in basename:
+        # only one, unambiguous interpretation
         return [Distribution.from_location(location, basename, metadata)]
 
     if basename.endswith('.exe'):
@@ -78,7 +79,6 @@ def distros_for_location(location, basename, metadata=None):
             basename = basename[:-len(ext)]
             return interpret_distro_name(location, basename, metadata)
     return []  # no extension matched
-
 
 def distros_for_filename(filename, metadata=None):
     """Yield possible egg or source distribution objects based on a filename"""
