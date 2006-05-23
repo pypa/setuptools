@@ -1,6 +1,6 @@
 [setuptools]
 status = 'beta'
 major = 0
-build = 1
+build = 2
 minor = 6
 
