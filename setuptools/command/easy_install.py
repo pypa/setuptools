@@ -246,7 +246,6 @@ class easy_install(Command):
 
     def check_site_dir(self):
         """Verify that self.install_dir is .pth-capable dir, if needed"""
-
         instdir = normalize_path(self.install_dir)
         pth_file = os.path.join(instdir,'easy-install.pth')
 
@@ -281,9 +280,10 @@ class easy_install(Command):
         if instdir not in map(normalize_path, filter(None,PYTHONPATH)):
             # only PYTHONPATH dirs need a site.py, so pretend it's there
             self.sitepy_installed = True
-
+        elif self.multi_version and not os.path.exists(pth_file):
+            self.sitepy_installed = True    # don't need site.py in this case
+            self.pth_file = None            # and don't create a .pth file
         self.install_dir = instdir
-
 
     def cant_write_to_target(self):
         msg = """can't create or remove files in install directory
@@ -568,8 +568,6 @@ Please make the appropriate changes for your system and try again.
         if not self.exclude_scripts:
             for args in get_script_args(dist):
                 self.write_script(*args)
-
-
 
 
 

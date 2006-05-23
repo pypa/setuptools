@@ -1111,6 +1111,10 @@ Release Notes/Change History
 
  * Ignore bdist_dumb distributions when looking at download URLs.
 
+ * Don't install or update a ``site.py`` patch when installing to a
+   ``PYTHONPATH`` directory with ``--multi-version``, unless an
+   ``easy-install.pth`` file is already in use there.
+
 0.6a11
  * Process ``dependency_links.txt`` if found in a distribution, by adding the
    URLs to the list for scanning.
