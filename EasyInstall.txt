@@ -1095,6 +1095,11 @@ set, if you haven't already got this set up on your machine.
 Release Notes/Change History
 ============================
 
+0.6b2
+ * Don't install or update a ``site.py`` patch when installing to a
+   ``PYTHONPATH`` directory with ``--multi-version``, unless an
+   ``easy-install.pth`` file is already in use there.
+
 0.6b1
  * Better ambiguity management: accept ``#egg`` name/version even if processing
    what appears to be a correctly-named distutils file, and ignore ``.egg``
@@ -1110,10 +1115,6 @@ Release Notes/Change History
    for the remainder of the run.
 
  * Ignore bdist_dumb distributions when looking at download URLs.
-
- * Don't install or update a ``site.py`` patch when installing to a
-   ``PYTHONPATH`` directory with ``--multi-version``, unless an
-   ``easy-install.pth`` file is already in use there.
 
 0.6a11
  * Process ``dependency_links.txt`` if found in a distribution, by adding the
