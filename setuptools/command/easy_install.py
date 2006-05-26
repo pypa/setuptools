@@ -496,7 +496,7 @@ Please make the appropriate changes for your system and try again.
         self.local_index.add(dist)
         self.install_egg_scripts(dist)
         self.installed_projects[dist.key] = dist
-        log.warn(self.installation_report(requirement, dist, *info))
+        log.info(self.installation_report(requirement, dist, *info))
         if not deps and not self.always_copy:
             return
         elif requirement is not None and dist.key != requirement.key:
@@ -649,7 +649,7 @@ Please make the appropriate changes for your system and try again.
 
         # Now run it, and return the result
         if self.editable:
-            log.warn(self.report_editable(spec, setup_script))
+            log.info(self.report_editable(spec, setup_script))
             return []
         else:
             return self.build_and_install(setup_script, setup_base)
@@ -865,10 +865,10 @@ you ignore the conflicts, the installed package(s) may not work.
         if self.multi_version and not self.no_report:
             msg += """
 
-Because this distribution was installed --multi-version or --install-dir,
-before you can import modules from this package in an application, you
-will need to 'import pkg_resources' and then use a 'require()' call
-similar to one of these examples, in order to select the desired version:
+Because this distribution was installed --multi-version, before you can
+import modules from this package in an application, you will need to
+'import pkg_resources' and then use a 'require()' call similar to one of
+these examples, in order to select the desired version:
 
     pkg_resources.require("%(name)s")  # latest installed version
     pkg_resources.require("%(name)s==%(version)s")  # this exact version
