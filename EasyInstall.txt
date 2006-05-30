@@ -1100,6 +1100,9 @@ Release Notes/Change History
    ``PYTHONPATH`` directory with ``--multi-version``, unless an
    ``easy-install.pth`` file is already in use there.
 
+ * Construct ``.pth`` file paths in such a way that installing an egg whose
+   name begins with ``import`` doesn't cause a syntax error.
+
 0.6b1
  * Better ambiguity management: accept ``#egg`` name/version even if processing
    what appears to be a correctly-named distutils file, and ignore ``.egg``
