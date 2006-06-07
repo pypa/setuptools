@@ -1236,10 +1236,16 @@ interface, as do objects returned by the ``get_provider()`` function:
     to the working set).  If the named package can't be imported, or the
     ``Requirement`` can't be satisfied, an exception is raised.
 
-    Note also that if you supply a package name, and the package is not part
-    of a pluggable distribution (i.e., it has no metadata), then you will still
-    get an ``IResourceProvider`` object, but it will return ``False`` when
-    asked if any metadata files or directories exist.
+    NOTE: if you use a package name rather than a ``Requirement``, the object
+    you get back may not be a pluggable distribution, depending on the method
+    by which the package was installed.  In particular, "development" packages
+    and "single-version externally-managed" packages do not have any way to
+    map from a package name to the corresponding project's metadata.  Do not
+    write code that passes a package name to ``get_provider()`` and then tries
+    to retrieve project metadata from the returned object.  It may appear to
+    work when the named package is in an ``.egg`` file or directory, but
+    it will fail in other installation scenarios.  If you want project
+    metadata, you need to ask for a *project*, not a package.
 
 
 ``IMetadataProvider`` Methods
