@@ -2498,6 +2498,9 @@ XXX
 Release Notes/Change History
 ----------------------------
 
+0.6b3
+ * Fix bdist_egg not including files in .egg-info subdirectories.
+
 0.6b1
  * Strip ``module`` from the end of compiled extension modules when computing
    the name of a ``.py`` loader/wrapper.  (Python's import machinery ignores
