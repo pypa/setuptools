@@ -1095,6 +1095,9 @@ set, if you haven't already got this set up on your machine.
 Release Notes/Change History
 ============================
 
+0.6b3
+ * Fix local --find-links eggs not being copied except with --always-copy.
+
 0.6b2
  * Don't install or update a ``site.py`` patch when installing to a
    ``PYTHONPATH`` directory with ``--multi-version``, unless an

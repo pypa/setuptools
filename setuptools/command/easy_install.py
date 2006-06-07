@@ -452,12 +452,22 @@ Please make the appropriate changes for your system and try again.
     def install_item(self, spec, download, tmpdir, deps, install_needed=False):
 
         # Installation is also needed if file in tmpdir or is not an egg
+        install_needed = install_needed or self.always_copy
         install_needed = install_needed or os.path.dirname(download) == tmpdir
         install_needed = install_needed or not download.endswith('.egg')
 
+        if spec and not install_needed:
+            # at this point, we know it's a local .egg, we just don't know if
+            # it's already installed.
+            for dist in self.local_index[spec.project_name]:
+                if dist.location==download:
+                    break
+            else:
+                install_needed = True   # it's not in the local index
+
         log.info("Processing %s", os.path.basename(download))
 
-        if install_needed or self.always_copy:
+        if install_needed:
             dists = self.install_eggs(spec, download, tmpdir)
             for dist in dists:
                 self.process_distribution(spec, dist, deps)
@@ -469,16 +479,6 @@ Please make the appropriate changes for your system and try again.
             for dist in dists:
                 if dist in spec:
                     return dist
-
-
-
-
-
-
-
-
-
-
 
 
 
