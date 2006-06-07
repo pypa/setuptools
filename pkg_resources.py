@@ -2112,22 +2112,63 @@ class Distribution(object):
         """Return the EntryPoint object for `group`+`name`, or ``None``"""
         return self.get_entry_map(group).get(name)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     def insert_on(self, path, loc = None):
         """Insert self.location in path before its nearest parent directory"""
+
         loc = loc or self.location
-        if not loc: return
+        if not loc:
+            return
+
         if path is sys.path:
             self.check_version_conflict()
-        best, pos = 0, -1
-        for p,item in enumerate(path):
-            item = _normalize_cached(item)
-            if loc.startswith(item) and len(item)>best and loc<>item:
-                best, pos = len(item), p
-        if pos==-1:
-            if loc not in path: path.append(loc)
-        elif loc not in path[:pos+1]:
-            while loc in path: path.remove(loc)
-            path.insert(pos,loc)
+
+        nloc = _normalize_cached(loc)
+        bdir = os.path.dirname(nloc)
+        npath= map(_normalize_cached, path)
+
+        bp = None
+        for p, item in enumerate(npath):
+            if item==nloc:
+                break
+            elif item==bdir:
+                path.insert(p, loc)
+                npath.insert(p, nloc)
+                break
+        else:
+            path.append(loc)
+            return
+
+        # p is the spot where we found or inserted loc; now remove duplicates
+        while 1:
+            try:
+                np = npath.index(nloc, p+1)
+            except ValueError:
+                break
+            else:
+                del npath[np], path[np]
+                p = np  # ha!
+
+        return
+
+
 
 
     def check_version_conflict(self):

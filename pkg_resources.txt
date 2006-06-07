@@ -1662,6 +1662,9 @@ File/Path Utilities
 Release Notes/Change History
 ----------------------------
 
+0.6b3
+ * Fixed a duplicate path insertion problem on case-insensitive filesystems.
+
 0.6b1
  * Split ``get_platform()`` into ``get_supported_platform()`` and
    ``get_build_platform()`` to work around a Mac versioning problem that caused
