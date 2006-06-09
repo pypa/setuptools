@@ -14,7 +14,7 @@ the appropriate options to ``use_setuptools()``.
 This file can also be run as a script to install or upgrade setuptools.
 """
 import sys
-DEFAULT_VERSION = "0.6b3"
+DEFAULT_VERSION = "0.6b2"
 DEFAULT_URL     = "http://cheeseshop.python.org/packages/%s/s/setuptools/" % sys.version[:3]
 
 md5_data = {
@@ -143,7 +143,7 @@ def main(argv, version=DEFAULT_VERSION):
             egg = download_setuptools(version, to_dir=tmpdir, delay=0)
             sys.path.insert(0,egg)
             from setuptools.command.easy_install import main
-            main(list(argv)+[egg])
+            return main(list(argv)+[egg])   # we're done here
         finally:
             shutil.rmtree(tmpdir)
     else:

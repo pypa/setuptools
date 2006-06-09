@@ -1101,6 +1101,10 @@ Release Notes/Change History
  * Fix sometimes not detecting local packages installed outside of "site"
    directories.
 
+ * Fix mysterious errors during initial ``setuptools`` install, caused by
+   ``ez_setup`` trying to run ``easy_install`` twice, due to a code fallthru
+   after deleting the egg from which it's running.
+
 0.6b2
  * Don't install or update a ``site.py`` patch when installing to a
    ``PYTHONPATH`` directory with ``--multi-version``, unless an
