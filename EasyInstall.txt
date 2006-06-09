@@ -1096,7 +1096,8 @@ Release Notes/Change History
 ============================
 
 0.6b3
- * Fix local --find-links eggs not being copied except with --always-copy.
+ * Fix local ``--find-links`` eggs not being copied except with
+   ``--always-copy``.
 
  * Fix sometimes not detecting local packages installed outside of "site"
    directories.

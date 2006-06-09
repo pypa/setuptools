@@ -2499,11 +2499,11 @@ Release Notes/Change History
 ----------------------------
 
 0.6b3
- * Fix bdist_egg not including files in .egg-info subdirectories.
+ * Fix ``bdist_egg`` not including files in subdirectories of ``.egg-info``.
 
- * Allow .py files found by the include_package_data option to be
+ * Allow ``.py`` files found by the ``include_package_data`` option to be
    automatically included.  Remove duplicate data file matches if both
-   include_package_data and package_data are used to refer to the same
+   ``include_package_data`` and ``package_data`` are used to refer to the same
    files.
 
 0.6b1
