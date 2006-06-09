@@ -171,7 +171,7 @@ class easy_install(Command):
             self.package_index = self.create_index(
                 self.index_url, search_path = self.shadow_path, hosts=hosts
             )
-        self.local_index = Environment(self.shadow_path)
+        self.local_index = Environment(self.shadow_path+sys.path)
 
         if self.find_links is not None:
             if isinstance(self.find_links, basestring):
