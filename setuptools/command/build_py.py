@@ -92,17 +92,17 @@ class build_py(_build_py):
         self.run_command('egg_info')
         ei_cmd = self.get_finalized_command('egg_info')
         for path in ei_cmd.filelist.files:
-            if path.endswith('.py'):
-                continue            
             d,f = os.path.split(assert_relative(path))
             prev = None
+            oldf = f
             while d and d!=prev and d not in src_dirs:
                 prev = d
                 d, df = os.path.split(d)
                 f = os.path.join(df, f)
             if d in src_dirs:
+                if path.endswith('.py') and f==oldf:
+                    continue    # it's a module, not data
                 mf.setdefault(src_dirs[d],[]).append(path)
-
 
     def get_data_files(self): pass  # kludge 2.4 for lazy computation
 
@@ -167,14 +167,18 @@ class build_py(_build_py):
         globs = (self.exclude_package_data.get('', [])
                  + self.exclude_package_data.get(package, []))
         bad = []
-        for pattern in globs:           
+        for pattern in globs:
             bad.extend(
                 fnmatch.filter(
                     files, os.path.join(src_dir, convert_path(pattern))
                 )
             )
         bad = dict.fromkeys(bad)
-        return [f for f in files if f not in bad]
+        seen = {}
+        return [
+            f for f in files if f not in bad
+                and f not in seen and seen.setdefault(f,1)  # ditch dupes
+        ]
 
 
 def assert_relative(path):
@@ -190,10 +194,6 @@ setup() arguments must *always* be /-separated paths relative to the
 setup.py directory, *never* absolute paths.
 """ % path
     )
-
-
-
-
 
 
 

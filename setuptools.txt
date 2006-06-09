@@ -2501,6 +2501,11 @@ Release Notes/Change History
 0.6b3
  * Fix bdist_egg not including files in .egg-info subdirectories.
 
+ * Allow .py files found by the include_package_data option to be
+   automatically included.  Remove duplicate data file matches if both
+   include_package_data and package_data are used to refer to the same
+   files.
+
 0.6b1
  * Strip ``module`` from the end of compiled extension modules when computing
    the name of a ``.py`` loader/wrapper.  (Python's import machinery ignores
