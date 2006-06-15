@@ -7,7 +7,7 @@
 # If your initials aren't PJE, don't run it.  :)
 #
 
-export VERSION="0.6b3"
+export VERSION="0.6b4"
 
 wpython setup.py setopt -r -c egg_info -o tag_build && \
 wpython setup.py setopt -r setopt -r -c egg_info -o tag_svn_revision && \
