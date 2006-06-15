@@ -575,8 +575,9 @@ Please make the appropriate changes for your system and try again.
     def install_script(self, dist, script_name, script_text, dev_path=None):
         """Generate a legacy script wrapper and install it"""
         spec = str(dist.as_requirement())
+        is_script = is_python_script(script_text, script_name)
 
-        if dev_path:
+        if is_script and dev_path:
             script_text = get_script_header(script_text) + (
                 "# EASY-INSTALL-DEV-SCRIPT: %(spec)r,%(script_name)r\n"
                 "__requires__ = %(spec)r\n"
@@ -585,14 +586,13 @@ Please make the appropriate changes for your system and try again.
                 "__file__ = %(dev_path)r\n"
                 "execfile(__file__)\n"
             ) % locals()
-        else:
+        elif is_script:
             script_text = get_script_header(script_text) + (
                 "# EASY-INSTALL-SCRIPT: %(spec)r,%(script_name)r\n"
                 "__requires__ = %(spec)r\n"
                 "import pkg_resources\n"
                 "pkg_resources.run_script(%(spec)r, %(script_name)r)\n"
             ) % locals()
-
         self.write_script(script_name, script_text)
 
     def write_script(self, script_name, contents, mode="t", blockers=()):
@@ -1401,11 +1401,10 @@ class PthDistributions(Environment):
 def get_script_header(script_text, executable=sys_executable):
     """Create a #! line, getting options (if any) from script_text"""
     from distutils.command.build_scripts import first_line_re
-    first, rest = (script_text+'\n').split('\n',1)
+    first = (script_text+'\n').splitlines()[0]
     match = first_line_re.match(first)
     options = ''
     if match:
-        script_text = rest
         options = match.group(1) or ''
         if options:
             options = ' '+options
@@ -1431,6 +1430,48 @@ def uncache_zipdir(path):
             if normalize_path(p)==path:
                 del zdc[p]
                 return
+
+
+
+def is_python(text, filename='<string>'):
+    "Is this string a valid Python script?"
+    try:
+        compile(text, filename, 'exec')
+    except SyntaxError:
+        return False
+    else:
+        return True
+
+
+def is_python_script(script_text, filename):
+    """Is this text, as a whole, a Python script? (as opposed to shell/bat/etc.
+    """
+    if script_text.startswith('#!'):
+        # It begins with a '#!' line, so check if 'python' is in it somewhere
+        from distutils.command.build_scripts import first_line_re
+        lines = script_text.splitlines()
+
+        if first_line_re.match(lines[0]):
+            return True     # It's got a python "#!" line, consider it Python
+        else:
+            return False    # It's some other scripting language
+
+    if filename.endswith('.py') or filename.endswith('.pyw'):
+        return True     # extension says it's Python
+
+    if is_python(script_text, filename):
+        return True     # it's syntactically valid Python
+
+    return False    # Not any Python I can recognize
+
+
+
+
+
+
+
+
+
 
 
 def get_script_args(dist, executable=sys_executable):
