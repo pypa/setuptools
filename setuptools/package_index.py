@@ -162,7 +162,7 @@ class PackageIndex(Environment):
         self.fetched_urls[url] = self.fetched_urls[f.url] = True
 
 
-        if 'html' not in f.headers['content-type'].lower():
+        if 'html' not in f.headers.get('content-type', '').lower():
             f.close()   # not html, we can't process it
             return
 

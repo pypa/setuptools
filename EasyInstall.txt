@@ -1098,6 +1098,9 @@ Release Notes/Change History
 0.6b4
  * Fix creating Python wrappers for non-Python scripts
 
+ * Fix ``ftp://`` directory listing URLs from causing a crash when used in the
+   "Home page" or "Download URL" slots on PyPI.
+
 0.6b3
  * Fix local ``--find-links`` eggs not being copied except with
    ``--always-copy``.
