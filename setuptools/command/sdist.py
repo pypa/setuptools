@@ -142,9 +142,9 @@ class sdist(_sdist):
         ei_cmd = self.get_finalized_command('egg_info')
         self.filelist = ei_cmd.filelist
         self.filelist.append(os.path.join(ei_cmd.egg_info,'SOURCES.txt'))
-
+        self.check_readme()
         self.check_metadata()
-        self.make_distribution()        
+        self.make_distribution()
 
         dist_files = getattr(self.distribution,'dist_files',[])
         for file in self.archive_files:
@@ -162,3 +162,44 @@ class sdist(_sdist):
             sys.exc_info()[2].tb_next.tb_frame.f_locals['template'].close()
             raise
 
+    def check_readme(self):
+        alts = ("README", "README.txt")
+        for f in alts:
+            if os.path.exists(f):
+                return
+        else:
+            self.warn(
+                "standard file not found: should have one of " +', '.join(alts)
+            )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#

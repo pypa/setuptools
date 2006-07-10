@@ -2570,6 +2570,9 @@ Release Notes/Change History
  * Added ``--no-date`` and ``--no-svn-revision`` options to ``egg_info``
    command, to allow suppressing tags configured in ``setup.cfg``.
 
+ * Fixed redundant warnings about missing ``README`` file(s); it should now
+   appear only if you are actually a source distribution.
+
 0.6b3
  * Fix ``bdist_egg`` not including files in subdirectories of ``.egg-info``.
 
