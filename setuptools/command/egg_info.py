@@ -25,9 +25,19 @@ class egg_info(Command):
             "Add subversion revision ID to version number"),
         ('tag-date', 'd', "Add date stamp (e.g. 20050528) to version number"),
         ('tag-build=', 'b', "Specify explicit tag to add to version number"),
+        ('no-svn-revision', 'R',
+            "Don't add subversion revision ID [default]"),
+        ('no-date', 'D', "Don't include date stamp [default]"),
+        ('tag-build=', 'b', "Specify explicit tag to add to version number"),
     ]
 
-    boolean_options = ['tag-date','tag-svn-revision']
+    boolean_options = ['tag-date', 'tag-svn-revision']
+    negative_opt = {'no-svn-revision': 'tag-svn-revision',
+                    'no-date': 'tag-date'}
+
+
+
+
 
     def initialize_options (self):
         self.egg_name = None
@@ -38,6 +48,37 @@ class egg_info(Command):
         self.tag_svn_revision = 0
         self.tag_date = 0
         self.broken_egg_info = False
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def finalize_options (self):
         self.egg_name = safe_name(self.distribution.get_name())
@@ -366,4 +407,4 @@ def get_pkg_info_revision():
 
 
 
-
+#

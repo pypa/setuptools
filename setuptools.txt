@@ -1534,17 +1534,9 @@ infrastructure (including ``setuptools``, ``pkg_resources`` and EasyInstall)
 will know that ``1.0a1`` supersedes any interim snapshots from Subversion, and
 handle upgrades accordingly.
 
-Note, by the way, that this means that you need to remove these settings from
-``setup.cfg`` when you make an official release.  This is easy to do if you
-are developing on the trunk and using tags or branches for your releases - just
-make the change after branching or tagging the release, so the trunk will still
-produce development snapshots.
-
-Also notice that this procedure means that the project version number you
-specify in ``setup.py`` should always be the *next* version of your software,
-not the last released version.
-
-(Alternately, you can leave out the ``tag_build=.dev``, and always use the
+(Note: the project version number you specify in ``setup.py`` should always be
+the *next* version of your software, not the last released version.
+Alternately, you can leave out the ``tag_build=.dev``, and always use the
 *last* release as a version number, so that your post-1.0 builds are labelled
 ``1.0-r1263``, indicating a post-1.0 patchlevel.  Most projects so far,
 however, seem to prefer to think of their project as being a future version
@@ -1579,6 +1571,41 @@ take care of fetching the updated dependencies, building changed extensions,
 etc.  Be sure to also remind any of your users who check out your project
 from Subversion that they need to run ``setup.py develop`` after every update
 in order to keep their checkout completely in sync.
+
+
+Making "Official" (Non-Snapshot) Releases
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you make an official release, creating source or binary distributions,
+you will need to override the tag settings from ``setup.cfg``, so that you
+don't end up registering versions like ``foobar-0.7a1.dev-r34832``.  This is
+easy to do if you are developing on the trunk and using tags or branches for
+your releases - just make the change to ``setup.cfg`` after branching or
+tagging the release, so the trunk will still produce development snapshots.
+
+Alternately, if you are not branching for releases, you can override the
+default version options on the command line, using something like::
+
+    python setup.py egg_info -RDb "" sdist bdist_egg register upload
+
+The first part of this command (``egg_info -RDb ""``) will override the
+configured tag information, before creating source and binary eggs, registering
+the project with PyPI, and uploading the files.  Thus, these commands will use
+the plain version from your ``setup.py``, without adding the Subversion
+revision number or build designation string.
+
+Of course, if you will be doing this a lot, you may wish to create a personal
+alias for this operation, e.g.::
+
+    python setup.py alias -u release egg_info -RDb ""
+
+You can then use it like this::
+
+    python setup.py release sdist bdist_egg register upload
+
+Or of course you can create more elaborate aliases that do all of the above.
+See the sections below on the `egg_info`_ and `alias`_ commands for more ideas.
+
 
 
 Distributing Extensions compiled with Pyrex
@@ -1881,19 +1908,19 @@ This command performs two operations: it updates a project's ``.egg-info``
 metadata directory (used by the ``bdist_egg``, ``develop``, and ``test``
 commands), and it allows you to temporarily change a project's version string,
 to support "daily builds" or "snapshot" releases.  It is run automatically by
-the ``sdist``, ``bdist_egg``, ``develop``, and ``test`` commands in order to
-update the project's metadata, but you can also specify it explicitly in order
-to temporarily change the project's version string.  (It also generates the
-``.egg-info/SOURCES.txt`` manifest file, which is used when you are building
-source distributions.)
+the ``sdist``, ``bdist_egg``, ``develop``, ``register``, and ``test`` commands
+in order to update the project's metadata, but you can also specify it
+explicitly in order to temporarily change the project's version string while
+executing other commands.  (It also generates the``.egg-info/SOURCES.txt``
+manifest file, which is used when you are building source distributions.)
 
-(In addition to writing the core egg metadata defined by ``setuptools`` and
+In addition to writing the core egg metadata defined by ``setuptools`` and
 required by ``pkg_resources``, this command can be extended to write other
 metadata files as well, by defining entry points in the ``egg_info.writers``
 group.  See the section on `Adding new EGG-INFO Files`_ below for more details.
 Note that using additional metadata writers may require you to include a
 ``setup_requires`` argument to ``setup()`` in order to ensure that the desired
-writers are available on ``sys.path``.)
+writers are available on ``sys.path``.
 
 
 Release Tagging Options
@@ -1914,6 +1941,10 @@ added in the following order:
     always leave off --tag-build and then use one or both of the following
     options.)
 
+    If you have a default build tag set in your ``setup.cfg``, you can suppress
+    it on the command line using ``-b ""`` or ``--tag-build=""`` as an argument
+    to the ``egg_info`` command.
+
 ``--tag-svn-revision, -r``
     If the current directory is a Subversion checkout (i.e. has a ``.svn``
     subdirectory, this appends a string of the form "-rNNNN" to the project's
@@ -1931,9 +1962,18 @@ added in the following order:
     If there is no ``PKG-INFO`` file, or the version number contained therein
     does not end with ``-r`` and a number, then ``-r0`` is used.
 
+``--no-svn-revision, -R``
+    Don't include the Subversion revision in the version number.  This option
+    is included so you can override a default setting put in ``setup.cfg``.
+
 ``--tag-date, -d``
     Add a date stamp of the form "-YYYYMMDD" (e.g. "-20050528") to the
     project's version number.
+
+``--no-date, -D``
+    Don't include a date stamp in the version number.  This option is included
+    so you can override a default setting in ``setup.cfg``.
+
 
 (Note: Because these options modify the version number used for source and
 binary distributions of your project, you should first make sure that you know
@@ -1958,6 +1998,22 @@ Other ``egg_info`` Options
     to specify this directory, as it is normally determined from the
     ``package_dir`` argument to the ``setup()`` function, if any.  If there is
     no ``package_dir`` set, this option defaults to the current directory.
+
+
+``egg_info`` Examples
+---------------------
+
+Creating a dated "nightly build" snapshot egg::
+
+    python setup.py egg_info --tag-date --tag-build=DEV bdist_egg
+
+Creating and uploading a release with no version tags, even if some default
+tags are specified in ``setup.cfg``::
+
+    python setup.py egg_info -RDb "" sdist bdist_egg register upload
+
+(Notice that ``egg_info`` must always appear on the command line *before* any
+commands that you want the version changes to apply to.)
 
 
 .. _install command:
@@ -2510,6 +2566,9 @@ Release Notes/Change History
 0.6b4
  * Fix ``register`` not obeying name/version set by ``egg_info`` command, if
    ``egg_info`` wasn't explicitly run first on the same command line.
+
+ * Added ``--no-date`` and ``--no-svn-revision`` options to ``egg_info``
+   command, to allow suppressing tags configured in ``setup.cfg``.
 
 0.6b3
  * Fix ``bdist_egg`` not including files in subdirectories of ``.egg-info``.
