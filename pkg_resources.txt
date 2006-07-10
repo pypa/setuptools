@@ -610,6 +610,17 @@ Requirements Parsing
     parsed using the ``parse_version()`` utility function.  Otherwise, it is
     assumed to be an already-parsed version.
 
+    The ``Requirement`` object's version specifiers (``.specs``) are internally
+    sorted into ascending version order, and used to establish what ranges of
+    versions are acceptable.  Adjacent redundant conditions are effectively
+    consolidated (e.g. ``">1, >2"`` produces the same results as ``">1"``, and
+    ``"<2,<3"`` produces the same results as``"<3"``). ``"!="`` versions are
+    excised from the ranges they fall within.  The version being tested for
+    acceptability is then checked for membership in the resulting ranges.
+    (Note that providing conflicting conditions for the same version (e.g.
+    ``"<2,>=2"`` or ``"==2,!=2"``) is meaningless and may therefore produce
+    bizarre results when compared with actual version number(s).)
+
 ``__eq__(other_requirement)``
     A requirement compares equal to another requirement if they have
     case-insensitively equal project names, version specifiers, and "extras".
@@ -633,6 +644,14 @@ Requirements Parsing
     be all-lowercase and normalized using the ``safe_extra()`` parsing utility
     function, so they may not exactly equal the extras the requirement was
     created with.)
+
+``specs``
+    A list of ``(op,version)`` tuples, sorted in ascending parsed-version
+    order.  The `op` in each tuple is a comparison operator, represented as
+    a string.  The `version` is the (unparsed) version number.  The relative
+    order of tuples containing the same version numbers is undefined, since
+    having more than one operator for a given version is either redundant or
+    self-contradictory.
 
 
 Entry Points
