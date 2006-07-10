@@ -1410,7 +1410,6 @@ def get_script_header(script_text, executable=sys_executable):
             options = ' '+options
     return "#!%(executable)s%(options)s\n" % locals()
 
-
 def auto_chmod(func, arg, exc):
     if func is os.remove and os.name=='nt':
         os.chmod(arg, stat.S_IWRITE)
@@ -1418,20 +1417,21 @@ def auto_chmod(func, arg, exc):
     exc = sys.exc_info()
     raise exc[0], (exc[1][0], exc[1][1] + (" %s %s" % (func,arg)))
 
-
 def uncache_zipdir(path):
-    """Ensure that the zip directory cache doesn't have stale info for path"""
+    """Ensure that the importer caches dont have stale info for `path`"""
     from zipimport import _zip_directory_cache as zdc
-    if path in zdc:
-        del zdc[path]
+    _uncache(path, zdc)
+    _uncache(path, sys.path_importer_cache)
+
+def _uncache(path, cache):
+    if path in cache:
+        del cache[path]
     else:
         path = normalize_path(path)
-        for p in zdc:
+        for p in cache:
             if normalize_path(p)==path:
-                del zdc[p]
+                del cache[p]
                 return
-
-
 
 def is_python(text, filename='<string>'):
     "Is this string a valid Python script?"

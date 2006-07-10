@@ -1101,6 +1101,9 @@ Release Notes/Change History
  * Fix ``ftp://`` directory listing URLs from causing a crash when used in the
    "Home page" or "Download URL" slots on PyPI.
 
+ * Fix ``sys.path_importer_cache`` not being updated when an existing zipfile
+   or directory is deleted/overwritten.
+
 0.6b3
  * Fix local ``--find-links`` eggs not being copied except with
    ``--always-copy``.
