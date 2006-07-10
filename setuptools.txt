@@ -2507,6 +2507,10 @@ XXX
 Release Notes/Change History
 ----------------------------
 
+0.6b4
+ * Fix ``register`` not obeying name/version set by ``egg_info`` command, if
+   ``egg_info`` wasn't explicitly run first on the same command line.
+
 0.6b3
  * Fix ``bdist_egg`` not including files in subdirectories of ``.egg-info``.
 
