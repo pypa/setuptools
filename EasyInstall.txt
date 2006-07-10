@@ -1104,6 +1104,8 @@ Release Notes/Change History
  * Fix ``sys.path_importer_cache`` not being updated when an existing zipfile
    or directory is deleted/overwritten.
 
+ * Fix not recognizing HTML 404 pages from package indexes.
+
 0.6b3
  * Fix local ``--find-links`` eggs not being copied except with
    ``--always-copy``.

@@ -169,7 +169,7 @@ class PackageIndex(Environment):
         base = f.url     # handle redirects
         page = f.read()
         f.close()
-        if url.startswith(self.index_url):
+        if url.startswith(self.index_url) and getattr(f,'code',None)!=404:
             page = self.process_index(url, page)
 
         for match in HREF.finditer(page):
@@ -253,7 +253,7 @@ class PackageIndex(Environment):
     def scan_all(self, msg=None, *args):
         if self.index_url not in self.fetched_urls:
             if msg: self.warn(msg,*args)
-            self.warn(
+            self.info(
                 "Scanning index of all packages (this may take a while)"
             )
         self.scan_url(self.index_url)
