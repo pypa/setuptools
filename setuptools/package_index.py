@@ -1,6 +1,6 @@
 """PyPI and direct package downloading"""
 
-import sys, os.path, re, urlparse, urllib2, shutil, random, socket
+import sys, os.path, re, urlparse, urllib2, shutil, random, socket, cStringIO
 from pkg_resources import *
 from distutils import log
 from distutils.errors import DistutilsError
@@ -573,6 +573,8 @@ class PackageIndex(Environment):
 
 
     def open_url(self, url):
+        if url.startswith('file:'):
+            return local_open(url)
         try:
             return urllib2.urlopen(url)
         except urllib2.HTTPError, v:
@@ -610,6 +612,7 @@ class PackageIndex(Environment):
             else:
                 return filename
 
+
     def scan_url(self, url):
         self.process_url(url, True)
 
@@ -643,17 +646,6 @@ class PackageIndex(Environment):
     def warn(self, msg, *args):
         log.warn(msg, *args)
 
-
-
-
-
-
-
-
-
-
-
-
 def fix_sf_url(url):
     scheme, server, path, param, query, frag = urlparse.urlparse(url)
     if server!='prdownloads.sourceforge.net':
@@ -674,22 +666,30 @@ def get_sf_ip():
     return random.choice(_sf_mirrors)
 
 
+def local_open(url):
+    """Read a local path, with special support for directories"""
+    scheme, server, path, param, query, frag = urlparse.urlparse(url)
+    filename = urllib2.url2pathname(path)
+    if os.path.isfile(filename):
+        return urllib2.urlopen(url)
+    elif path.endswith('/') and os.path.isdir(filename):
+        files = []
+        for f in os.listdir(filename):
+            if f=='index.html':
+                body = open(os.path.join(filename,f),'rb').read()
+                break
+            elif os.path.isdir(os.path.join(filename,f)):
+                f+='/'
+            files.append("<a href=%r>%s</a>" % (f,f))
+        else:
+            body = ("<html><head><title>%s</title>" % url) + \
+                "</head><body>%s</body></html>" % '\n'.join(files)
+        status, message = 200, "OK"
+    else:
+        status, message, body = 404, "Path not found", "Not found"
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    return urllib2.HTTPError(url, status, message,
+            {'content-type':'text/html'}, cStringIO.StringIO(body))
 
 
 

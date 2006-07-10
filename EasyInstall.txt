@@ -1106,6 +1106,10 @@ Release Notes/Change History
 
  * Fix not recognizing HTML 404 pages from package indexes.
 
+ * Allow ``file://`` URLs to be used as a package index.  URLs that refer to
+   directories will use an internally-generated directory listing if there is
+   no ``index.html`` file in the directory.
+
 0.6b3
  * Fix local ``--find-links`` eggs not being copied except with
    ``--always-copy``.
