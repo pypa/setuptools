@@ -9,11 +9,8 @@
 
 export VERSION="0.6b4"
 
-wpython setup.py setopt -r -c egg_info -o tag_build && \
-wpython setup.py setopt -r setopt -r -c egg_info -o tag_svn_revision && \
-wpython setup.py -q source && \
-cpython setup.py -q binary && \
-svn revert setup.cfg && \
+wpython setup.py -q release source && \
+cpython setup.py -q release binary && \
 python ez_setup.py --md5update dist/setuptools-$VERSION*-py2.?.egg && \
   scp ez_setup.py virtual-python.py t3:web/PEAK/dist/ && \
   cp ez_setup.py ~/projects/ez_setup/__init__.py && \
