@@ -121,6 +121,47 @@ def interpret_distro_name(location, basename, metadata,
             platform = platform
         )
 
+REL = re.compile("""<([^>]*\srel\s*=\s*['"]?([^'">]+)[^>]*)>""", re.I)
+# this line is here to fix emacs' cruddy broken syntax highlighting
+
+def find_external_links(url, page):
+    """Find rel="homepage" and rel="download" links in `page`, yielding URLs"""
+
+    for match in REL.finditer(page):
+        tag, rel = match.groups()
+        rels = map(str.strip, rel.lower().split(','))
+        if 'homepage' in rels or 'download' in rels:
+            for match in HREF.finditer(tag):
+                yield urlparse.urljoin(url, match.group(1))
+
+    for tag in ("<th>Home Page", "<th>Download URL"):
+        pos = page.find(tag)
+        if pos!=-1:
+            match = HREF.search(page,pos)
+            if match:
+                yield urlparse.urljoin(url, match.group(1))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class PackageIndex(Environment):
     """A distribution index that scans web pages for download URLs"""
 
@@ -211,7 +252,7 @@ class PackageIndex(Environment):
                 parts = map(
                     urllib2.unquote, link[len(self.index_url):].split('/')
                 )
-                if len(parts)==2:
+                if len(parts)==2 and '#' not in parts[1]:
                     # it's a package page, sanitize and index it
                     pkg = safe_name(parts[0])
                     ver = safe_version(parts[1])
@@ -219,30 +260,30 @@ class PackageIndex(Environment):
                     return to_filename(pkg), to_filename(ver)
             return None, None
 
-        if url==self.index_url or 'Index of Packages</title>' in page:
-            # process an index page into the package-page index
-            for match in HREF.finditer(page):
-                scan( urlparse.urljoin(url, match.group(1)) )
-        else:
-            pkg,ver = scan(url)   # ensure this page is in the page index
+        # process an index page into the package-page index
+        for match in HREF.finditer(page):
+            scan( urlparse.urljoin(url, match.group(1)) )
+
+        pkg, ver = scan(url)   # ensure this page is in the page index
+        if pkg:
             # process individual package page
-            for tag in ("<th>Home Page", "<th>Download URL"):
-                pos = page.find(tag)
-                if pos!=-1:
-                    match = HREF.search(page,pos)
-                    if match:
-                        # Process the found URL
-                        new_url = urlparse.urljoin(url, match.group(1))
-                        base, frag = egg_info_for_url(new_url)
-                        if base.endswith('.py') and not frag:
-                            if pkg and ver:
-                                new_url+='#egg=%s-%s' % (pkg,ver)
-                            else:
-                                self.need_version_info(url)
-                        self.scan_url(new_url)
-        return PYPI_MD5.sub(
-            lambda m: '<a href="%s#md5=%s">%s</a>' % m.group(1,3,2), page
-        )
+            for new_url in find_external_links(url, page):
+                # Process the found URL
+                base, frag = egg_info_for_url(new_url)
+                if base.endswith('.py') and not frag:
+                    if ver:
+                        new_url+='#egg=%s-%s' % (pkg,ver)
+                    else:
+                        self.need_version_info(url)
+                self.scan_url(new_url)
+
+            return PYPI_MD5.sub(
+                lambda m: '<a href="%s#md5=%s">%s</a>' % m.group(1,3,2), page
+            )
+        else:
+            return ""   # no sense double-scanning non-package pages
+
+
 
     def need_version_info(self, url):
         self.scan_all(
@@ -273,7 +314,7 @@ class PackageIndex(Environment):
             )
             self.scan_all()
 
-        for url in self.package_pages.get(requirement.key,()):
+        for url in list(self.package_pages.get(requirement.key,())):
             # scan each page that might be related to the desired package
             self.scan_url(url)
 

@@ -1110,6 +1110,10 @@ Release Notes/Change History
    directories will use an internally-generated directory listing if there is
    no ``index.html`` file in the directory.
 
+ * Allow external links in a package index to be specified using
+   ``rel="homepage"`` or ``rel="download"``, without needing the old
+   PyPI-specific visible markup.
+
 0.6b3
  * Fix local ``--find-links`` eggs not being copied except with
    ``--always-copy``.
