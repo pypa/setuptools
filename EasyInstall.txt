@@ -1209,6 +1209,9 @@ Release Notes/Change History
    ``rel="homepage"`` or ``rel="download"``, without needing the old
    PyPI-specific visible markup.
 
+ * Suppressed warning message about possibly-misspelled project name, if an egg
+   or link for that project name has already been seen.
+
 0.6b3
  * Fix local ``--find-links`` eggs not being copied except with
    ``--always-copy``.

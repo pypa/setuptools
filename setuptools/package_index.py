@@ -308,11 +308,7 @@ class PackageIndex(Environment):
 
         if not self.package_pages.get(requirement.key):
             # We couldn't find the target package, so search the index page too
-            self.warn(
-                "Couldn't find index page for %r (maybe misspelled?)",
-                requirement.unsafe_name
-            )
-            self.scan_all()
+            self.not_found_in_index(requirement)
 
         for url in list(self.package_pages.get(requirement.key,())):
             # scan each page that might be related to the desired package
@@ -325,6 +321,10 @@ class PackageIndex(Environment):
                 return dist
             self.debug("%s does not match %s", requirement, dist)
         return super(PackageIndex, self).obtain(requirement,installer)
+
+
+
+
 
     def check_md5(self, cs, info, filename, tfp):
         if re.match('md5=[0-9a-f]{32}$', info):
@@ -358,14 +358,14 @@ class PackageIndex(Environment):
             map(self.scan_url, self.to_scan)
         self.to_scan = None     # from now on, go ahead and process immediately
 
-
-
-
-
-
-
-
-
+    def not_found_in_index(self, requirement):
+        if self[requirement.key]:   # we've seen at least one distro
+            meth, msg = self.info, "Couldn't retrieve index page for %r"
+        else:   # no distros seen for this name, might be misspelled
+            meth, msg = (self.warn,
+                "Couldn't find index page for %r (maybe misspelled?)")
+        meth(msg, requirement.unsafe_name)
+        self.scan_all()
 
     def download(self, spec, tmpdir):
         """Locate and/or download `spec` to `tmpdir`, returning a local path
