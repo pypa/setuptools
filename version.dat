@@ -1,6 +1,6 @@
 [setuptools]
-status = 'beta'
+status = 'release candidate'
 major = 0
-build = 4
+build = 1
 minor = 6
 
