@@ -426,6 +426,10 @@ something like this to their `configuration files`_::
 As you can see, you can list multiple URLs separated by whitespace, continuing
 on multiple lines if necessary (as long as the subsequent lines are indented.
 
+If you are more ambitious, you can also create an entirely custom package index
+or PyPI mirror.  See the ``--index-url`` option under `Command-Line Options`_,
+below, and also the section on `The Package Index API`_.
+
 
 Controlling Build Options
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1090,6 +1094,97 @@ any packages that are installed using EasyInstall.  You will probably want to
 edit your ``~/.profile`` or other configuration file(s) to ensure that it is
 set, if you haven't already got this set up on your machine.
 
+
+Package Index "API"
+-------------------
+
+Custom package indexes (and PyPI) must follow the following rules for
+EasyInstall to be able to look up and download packages:
+
+1. Except where stated otherwise, "pages" are HTML or XHTML, and "links"
+   refer to ``href`` attributes.
+
+2. Individual project version pages' URLs must be of the form
+   ``base/projectname/version``, where ``base`` is the package index's base URL.
+
+3. Omitting the ``/version`` part of a project page's URL (but keeping the
+   trailing ``/``) should result in a page that is either:
+
+   a) The single active version of that project, as though the version had been
+      explicitly included, OR
+
+   b) A page with links to all of the active version pages for that project.
+
+4. Individual project version pages should contain direct links to downloadable
+   distributions where possible.  It is explicitly permitted for a project's
+   "long_description" to include URLs, and these should be formatted as HTML
+   links by the package index, as EasyInstall does no special processing to
+   identify what parts of a page are index-specific and which are part of the
+   project's supplied description.
+
+5. Where available, MD5 information should be added to download URLs by
+   appending a fragment identifier of the form ``#md5=...``, where ``...`` is
+   the 32-character hex MD5 digest.  EasyInstall will verify that the
+   downloaded file's MD5 digest matches the given value.
+
+6. Individual project version pages should identify any "homepage" or
+   "download" URLs using ``rel="homepage"`` and ``rel="download"`` attributes
+   on the HTML elements linking to those URLs. Use of these attributes will
+   cause EasyInstall to always follow the provided links, unless it can be
+   determined by inspection that they are downloadable distributions. If the
+   links are not to downloadable distributions, they are retrieved, and if they
+   are HTML, they are scanned for download links. They are *not* scanned for
+   additional "homepage" or "download" links, as these are only processed for
+   pages that are part of a package index site.
+
+7. The root URL of the index, if retrieved with a trailing ``/``, must result
+   in a page containing links to *all* projects' active version pages.
+
+   (Note: This requirement is a workaround for the absence of case-insensitive
+   ``safe_name()`` matching of project names in URL paths. If project names are
+   matched in this fashion (e.g. via the PyPI server, mod_rewrite, or a similar
+   mechanism), then it is not necessary to include this all-packages listing
+   page.)
+
+8. If a package index is accessed via a ``file://`` URL, then EasyInstall will
+   automatically use ``index.html`` files, if present, when trying to read a
+   directory with a trailing ``/`` on the URL.
+
+
+Backward Compatibility
+~~~~~~~~~~~~~~~~~~~~~~
+
+Package indexes that wish to support setuptools versions prior to 0.6b4 should
+also follow these rules:
+
+* Homepage and download links must be preceded with ``"<th>Home Page"`` or
+  ``"<th>Download URL"``, in addition to (or instead of) the ``rel=""``
+  attributes on the actual links.  These marker strings do not need to be
+  visible, or uncommented, however!  For example, the following is a valid
+  homepage link that will work with any version of setuptools::
+
+    <li>
+     <strong>Home Page:</strong>
+     <!-- <th>Home Page -->
+     <a rel="homepage" href="http://sqlobject.org">http://sqlobject.org</a>
+    </li>
+
+  Even though the marker string is in an HTML comment, older versions of
+  EasyInstall will still "see" it and know that the link that follows is the
+  project's home page URL.
+
+* The pages described by paragraph 3(b) of the preceding section *must*
+  contain the string ``"Index of Packages</title>"`` somewhere in their text.
+  This can be inside of an HTML comment, if desired, and it can be anywhere
+  in the page.  (Note: this string MUST NOT appear on normal project pages, as
+  described in paragraphs 2 and 3(a)!)
+
+In addition, for compatibility with PyPI versions that do not use ``#md5=``
+fragment IDs, EasyInstall uses the following regular expression to match PyPI's
+displayed MD5 info (broken onto two lines for readability)::
+
+    <a href="([^"#]+)">([^<]+)</a>\n\s+\(<a href="[^?]+\?:action=show_md5
+    &amp;digest=([0-9a-f]{32})">md5</a>\)
 
 
 Release Notes/Change History
