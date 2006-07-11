@@ -28,12 +28,12 @@ class egg_info(Command):
         ('no-svn-revision', 'R',
             "Don't add subversion revision ID [default]"),
         ('no-date', 'D', "Don't include date stamp [default]"),
-        ('tag-build=', 'b', "Specify explicit tag to add to version number"),
     ]
 
     boolean_options = ['tag-date', 'tag-svn-revision']
     negative_opt = {'no-svn-revision': 'tag-svn-revision',
                     'no-date': 'tag-date'}
+
 
 
 
