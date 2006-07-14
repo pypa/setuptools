@@ -78,7 +78,7 @@ class develop(easy_install):
 
         # postprocess the installed distro, fixing up .pth, installing scripts,
         # and handling requirements
-        self.process_distribution(None, self.dist)
+        self.process_distribution(None, self.dist, not self.no_deps)
 
     def uninstall_link(self):
         if os.path.exists(self.egg_link):

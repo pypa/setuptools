@@ -2563,6 +2563,17 @@ XXX
 Release Notes/Change History
 ----------------------------
 
+0.6c1
+ * Fixed ``AttributeError`` when trying to download a ``setup_requires``
+   dependency when a distribution lacks a ``dependency_links`` setting.
+
+ * Made ``zip-safe`` and ``not-zip-safe`` flag files contain a single byte, so
+   as to play better with packaging tools that complain about zero-length
+   files.
+
+ * Made ``setup.py develop`` respect the ``--no-deps`` option, which it
+   previously was ignoring.
+
 0.6b4
  * Fix ``register`` not obeying name/version set by ``egg_info`` command, if
    ``egg_info`` wasn't explicitly run first on the same command line.

@@ -212,8 +212,8 @@ class Distribution(_Distribution):
         self.dist_files = []
         self.patch_missing_pkg_info(attrs)
         # Make sure we have any eggs needed to interpret 'attrs'
-        if attrs and 'dependency_links' in attrs:
-            self.dependency_links = attrs.pop('dependency_links')
+        if attrs is not None:
+            self.dependency_links = attrs.pop('dependency_links', [])
             assert_string_list(self,'dependency_links',self.dependency_links)
         if attrs and 'setup_requires' in attrs:
             self.fetch_build_eggs(attrs.pop('setup_requires'))
