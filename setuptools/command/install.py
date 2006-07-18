@@ -40,9 +40,15 @@ class install(_install):
                 )
 
     def handle_extra_path(self):
-        # We always ignore extra_path, because we install as .egg or .egg-info
+        if self.root or self.single_version_externally_managed:
+            # explicit backward-compatibility mode, allow extra_path to work
+            return _install.handle_extra_path(self)
+
+        # Ignore extra_path when installing an egg (or being run by another
+        # command without --root or --single-version-externally-managed
         self.path_file = None
         self.extra_dirs = ''
+
 
     def run(self):
         # Explicit request for old-style install?  Just do it
@@ -60,7 +66,7 @@ class install(_install):
         caller = sys._getframe(2)
         caller_module = caller.f_globals.get('__name__','')
         caller_name = caller.f_code.co_name
-        
+
         if caller_module != 'distutils.dist' or caller_name!='run_commands':
             # We weren't called from the command line or setup(), so we
             # should run in backward-compatibility mode to support bdist_*
@@ -68,12 +74,6 @@ class install(_install):
             _install.run(self)
         else:
             self.do_egg_install()
-            
-
-
-
-
-
 
 
 
@@ -120,4 +120,4 @@ class install(_install):
 
 
 
-
+#
