@@ -2577,6 +2577,11 @@ Release Notes/Change History
  * Support ``extra_path`` option to ``setup()`` when ``install`` is run in
    backward-compatibility mode.
 
+ * Rewrite ``setup.cfg`` in ``sdist`` distributions to include any ``egg_info``
+   options that were set on the command line when ``sdist`` was run, so that
+   the building from the source distribution will create a package with an
+   identical version number (unless ``--tag-date`` is in effect).
+
 0.6b4
  * Fix ``register`` not obeying name/version set by ``egg_info`` command, if
    ``egg_info`` wasn't explicitly run first on the same command line.

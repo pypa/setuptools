@@ -39,7 +39,7 @@ class egg_info(Command):
 
 
 
-    def initialize_options (self):
+    def initialize_options(self):
         self.egg_name = None
         self.egg_version = None
         self.egg_base = None
@@ -48,16 +48,16 @@ class egg_info(Command):
         self.tag_svn_revision = 0
         self.tag_date = 0
         self.broken_egg_info = False
+        self.vtags = None
 
-
-
-
-
-
-
-
-
-
+    def save_version_info(self, filename):
+        from setopt import edit_config
+        edit_config(
+            filename,
+            {'egg_info':
+                {'tag_svn_revision':0, 'tag_date': 0, 'tag_build': self.tags()}
+            }
+        )
 
 
 
@@ -82,6 +82,7 @@ class egg_info(Command):
 
     def finalize_options (self):
         self.egg_name = safe_name(self.distribution.get_name())
+        self.vtags = self.tags()
         self.egg_version = self.tagged_version()
 
         try:
@@ -118,7 +119,6 @@ class egg_info(Command):
             pd._version = self.egg_version
             pd._parsed_version = parse_version(self.egg_version)
             self.distribution._patched_dist = None
-
 
 
     def write_or_delete_file(self, what, filename, data, force=False):
@@ -159,8 +159,8 @@ class egg_info(Command):
         if not self.dry_run:
             os.unlink(filename)
 
-
-
+    def tagged_version(self):
+        return safe_version(self.distribution.get_version() + self.vtags)
 
     def run(self):
         self.mkpath(self.egg_info)
@@ -170,8 +170,8 @@ class egg_info(Command):
             writer(self, ep.name, os.path.join(self.egg_info,ep.name))
         self.find_sources()
 
-    def tagged_version(self):
-        version = self.distribution.get_version()
+    def tags(self):
+        version = ''
         if self.tag_build:
             version+=self.tag_build
         if self.tag_svn_revision and (
@@ -179,7 +179,7 @@ class egg_info(Command):
         ):  version += '-r%s' % self.get_svn_revision()
         if self.tag_date:
             import time; version += time.strftime("-%Y%m%d")
-        return safe_version(version)
+        return version
 
     def get_svn_revision(self):
         revision = 0

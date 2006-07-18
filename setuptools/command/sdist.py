@@ -173,18 +173,18 @@ class sdist(_sdist):
             )
 
 
+    def make_release_tree(self, base_dir, files):
+        _sdist.make_release_tree(self, base_dir, files)
 
+        # Save any egg_info command line options used to create this sdist
+        dest = os.path.join(base_dir, 'setup.cfg')
+        if hasattr(os,'link') and os.path.exists(dest):
+            # unlink and re-copy, since it might be hard-linked, and
+            # we don't want to change the source version
+            os.unlink(dest)
+            self.copy_file('setup.cfg', dest)
 
-
-
-
-
-
-
-
-
-
-
+        self.get_finalized_command('egg_info').save_version_info(dest)
 
 
 
