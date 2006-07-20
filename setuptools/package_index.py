@@ -11,8 +11,8 @@ EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.]+)$')
 HREF = re.compile("""href\\s*=\\s*['"]?([^'"> ]+)""", re.I)
 # this is here to fix emacs' cruddy broken syntax highlighting
 PYPI_MD5 = re.compile(
-    '<a href="([^"#]+)">([^<]+)</a>\n\s+\\(<a href="[^?]+\?:action=show_md5'
-    '&amp;digest=([0-9a-f]{32})">md5</a>\\)'
+    '<a href="([^"#]+)">([^<]+)</a>\n\s+\\(<a (?:title="MD5 hash"\n\s+)'
+    'href="[^?]+\?:action=show_md5&amp;digest=([0-9a-f]{32})">md5</a>\\)'
 )
 
 URL_SCHEME = re.compile('([-+.a-z0-9]{2,}):',re.I).match
