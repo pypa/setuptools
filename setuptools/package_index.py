@@ -141,9 +141,9 @@ def find_external_links(url, page):
             if match:
                 yield urlparse.urljoin(url, match.group(1))
 
-
-
-
+user_agent = "Python-urllib/%s setuptools/%s" % (
+    urllib2.__version__, require('setuptools')[0].version
+)
 
 
 
@@ -617,12 +617,13 @@ class PackageIndex(Environment):
         if url.startswith('file:'):
             return local_open(url)
         try:
-            return urllib2.urlopen(url)
+            request = urllib2.Request(url)
+            request.add_header('User-Agent', user_agent)
+            return urllib2.urlopen(request)
         except urllib2.HTTPError, v:
             return v
         except urllib2.URLError, v:
             raise DistutilsError("Download error: %s" % v.reason)
-
 
     def _download_url(self, scheme, url, tmpdir):
         # Determine download filename
@@ -652,7 +653,6 @@ class PackageIndex(Environment):
                 return self._download_html(url, headers, filename, tmpdir)
             else:
                 return filename
-
 
     def scan_url(self, url):
         self.process_url(url, True)

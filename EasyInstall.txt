@@ -1190,6 +1190,10 @@ displayed MD5 info (broken onto two lines for readability)::
 Release Notes/Change History
 ============================
 
+0.6c1
+ * EasyInstall now includes setuptools version information in the
+   ``User-Agent`` string sent to websites it visits.
+
 0.6b4
  * Fix creating Python wrappers for non-Python scripts
 
