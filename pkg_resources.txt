@@ -1687,6 +1687,11 @@ File/Path Utilities
 Release Notes/Change History
 ----------------------------
 
+0.6c2
+ * Fix a problem with eggs specified directly on ``PYTHONPATH`` on
+   case-insensitive filesystems possibly not showing up in the default
+   working set, due to differing normalizations of ``sys.path`` entries.
+
 0.6b3
  * Fixed a duplicate path insertion problem on case-insensitive filesystems.
 

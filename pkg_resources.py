@@ -438,16 +438,16 @@ class WorkingSet(object):
         if entry is None:
             entry = dist.location
         keys = self.entry_keys.setdefault(entry,[])
-
+        keys2 = self.entry_keys.setdefault(dist.location,[])
         if dist.key in self.by_key:
             return      # ignore hidden distros
 
         self.by_key[dist.key] = dist
         if dist.key not in keys:
             keys.append(dist.key)
-
+        if dist.key not in keys2:
+            keys2.append(dist.key)
         self._added_new(dist)
-
 
     def resolve(self, requirements, env=None, installer=None):
         """List all distributions needed to (recursively) meet `requirements`
