@@ -999,7 +999,7 @@ Mac OS X "User" Installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you are on a Mac OS X machine, you should just use the
-``~/Library/Python2.x/site-packages`` directory as your custom installation
+``~/Library/Python/2.x/site-packages`` directory as your custom installation
 location, because it is already configured to process ``.pth`` files, and
 EasyInstall already knows this.
 
@@ -1007,7 +1007,7 @@ Before installing EasyInstall/setuptools, just create a ``~/.pydistutils.cfg``
 file with the following contents (or add this to the existing contents)::
 
     [install]
-    install_lib = ~/Library/Python$py_version_short/site-packages
+    install_lib = ~/Library/Python/$py_version_short/site-packages
     install_scripts = ~/bin
 
 This will tell the distutils and EasyInstall to always install packages in
