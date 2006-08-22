@@ -1,0 +1,103 @@
+Python Script Wrapper for Windows
+=================================
+
+setuptools includes wrappers for Python scripts that allows them to be
+executed like regular windows programs.  There are 2 wrappers, once
+for command-line programs, cli.exe, and one for graphica programs,
+gui.exe.  These programs are almost identical, function pretty much
+the same way, and are generated from the same source file.  In this
+document, we'll demonstrate use of the command-line program only.  The
+wrapper programs are used by copying them to the directory containing
+the script they are to wrap and with the same name as the script they
+are to wrap.  In the rest of this document, we'll give an example that
+will illustrate this.
+
+Let's create a simple script, foo-script.py:
+
+    >>> import os, sys, tempfile
+    >>> sample_directory = tempfile.mkdtemp()
+    >>> open(os.path.join(sample_directory, 'foo-script.py'), 'w').write(
+    ... """#!%(python_exe)s
+    ... import sys
+    ... input = repr(sys.stdin.read())
+    ... print sys.argv[0][-14:]
+    ... print sys.argv[1:]
+    ... print input
+    ... if __debug__:
+    ...     print 'non-optimized'
+    ... """ % dict(python_exe=sys.executable))
+
+Note that the script starts with a Unix-style '#!' line saying which
+Python executable to run.  The wrapper will use this to find the
+correct Python executable.
+
+We'll also copy cli.exe to the sample-directory with the name foo.exe:
+
+    >>> import pkg_resources
+    >>> open(os.path.join(sample_directory, 'foo.exe'), 'wb').write(
+    ...     pkg_resources.resource_string('setuptools', 'cli.exe')
+    ...     )
+
+When the copy of cli.exe, foo.exe in this example, runs, it examines
+the path name it was run with and computes a Python script path name
+by removing the '.exe' suffic and adding the '-script.py' suffix. (For
+GUI programs, the suffix '-script-pyw' is added.)  This is why we
+named out script the way we did.  Now we can run out script by running
+the wrapper:
+
+    >>> import os
+    >>> input, output = os.popen4(os.path.join(sample_directory, 'foo.exe')
+    ...               + r' arg1 "arg 2" "arg \"2\\\"" "arg 4\\" "arg5 a\\b')
+    >>> input.write('hello\nworld\n')
+    >>> input.close()
+    >>> print output.read(),
+    \foo-script.py
+    ['arg1', 'arg 2', 'arg "2\\"', 'arg 4\\', 'arg5 a\\\\b']
+    'hello\nworld\n'
+    non-optimized
+
+This example was a little pathological in that it exercised windows
+(MS C runtime) quoting rules:
+
+- Strings containing spaces are surrounded by double quotes.
+
+- Double quotes in strings need to be escaped by preceding them with
+  back slashes.
+
+- One or more backslashes preceding double quotes quotes need to be
+  escaped by preceding each of them them with back slashes.
+
+Specifying Python Command-line Options
+--------------------------------------
+
+You can specify a single argument on the '#!' line.  This can be used
+to specify Python options like -O, to run in optimized mode or -i
+to start the interactive interpreter.  You can combine multiple
+options as usual. For example, to run in optimized mode and 
+enter the interpreter after running the script, you could use -Oi:
+
+    >>> open(os.path.join(sample_directory, 'foo-script.py'), 'w').write(
+    ... """#!%(python_exe)s  -Oi  
+    ... import sys
+    ... input = repr(sys.stdin.read())
+    ... print sys.argv[0][-14:]
+    ... print sys.argv[1:]
+    ... print input
+    ... if __debug__:
+    ...     print 'non-optimized'
+    ... sys.ps1 = '---'
+    ... """ % dict(python_exe=sys.executable))
+
+    >>> input, output = os.popen4(os.path.join(sample_directory, 'foo.exe'))
+    >>> input.close()
+    >>> print output.read(),
+    \foo-script.py
+    []
+    ''
+    ---
+
+
+We're done with the sample_directory:
+
+    >>> import shutil
+    >>> shutil.rmtree(sample_directory)

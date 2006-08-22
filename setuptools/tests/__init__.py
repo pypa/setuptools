@@ -14,11 +14,16 @@ from distutils.util import convert_path
 import sys, os.path
 
 def additional_tests():
-    import doctest
-    return doctest.DocFileSuite(
-        'api_tests.txt', optionflags=doctest.ELLIPSIS, package='pkg_resources',
-    )
-
+    import doctest, unittest
+    suite = unittest.TestSuite((
+        doctest.DocFileSuite(
+            'api_tests.txt',
+            optionflags=doctest.ELLIPSIS, package='pkg_resources',
+            ),
+        ))
+    if sys.platform == 'win32':
+        suite.addTest(doctest.DocFileSuite('win_script_wrapper.txt'))
+    return suite
 
 def makeSetup(**args):
     """Return distribution from 'setup(**args)', without executing commands"""
