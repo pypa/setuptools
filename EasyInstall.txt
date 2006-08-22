@@ -1190,6 +1190,10 @@ displayed MD5 info (broken onto two lines for readability)::
 Release Notes/Change History
 ============================
 
+0.6c2
+ * Windows script wrappers now support quoted arguments and arguments
+   containing spaces.  (Patch contributed by Jim Fulton.)
+
 0.6c1
  * EasyInstall now includes setuptools version information in the
    ``User-Agent`` string sent to websites it visits.
