@@ -51,7 +51,6 @@ class develop(easy_install):
         self.egg_link = os.path.join(self.install_dir, ei.egg_name+'.egg-link')
         self.egg_base = ei.egg_base
         self.egg_path = os.path.abspath(ei.egg_base)
-
         # Make a distribution for the package's source
         self.dist = Distribution(
             normalize_path(self.egg_path),
@@ -62,12 +61,13 @@ class develop(easy_install):
     def install_for_development(self):
         # Ensure metadata is up-to-date
         self.run_command('egg_info')
-
         # Build extensions in-place
         self.reinitialize_command('build_ext', inplace=1)
         self.run_command('build_ext')
-
         self.install_site_py()  # ensure that target dir is site-safe
+        if setuptools.bootstrap_install_from:
+            self.easy_install(setuptools.bootstrap_install_from)
+            setuptools.bootstrap_install_from = None
 
         # create an .egg-link in the installation dir, pointing to our egg
         log.info("Creating %s (link to %s)", self.egg_link, self.egg_base)

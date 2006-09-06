@@ -2568,6 +2568,9 @@ Release Notes/Change History
    its installation location) when a script requests a version that's not
    available.
 
+ * Running ``setup.py develop`` on a setuptools-using project will now install
+   setuptools if needed, instead of only downloading the egg.
+
 0.6c1
  * Fixed ``AttributeError`` when trying to download a ``setup_requires``
    dependency when a distribution lacks a ``dependency_links`` setting.
