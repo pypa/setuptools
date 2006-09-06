@@ -3,7 +3,7 @@ from distutils.util import convert_path
 from pkg_resources import Distribution, PathMetadata, normalize_path
 from distutils import log
 from distutils.errors import *
-import sys, os
+import sys, os, setuptools
 
 class develop(easy_install):
     """Set up package for development"""

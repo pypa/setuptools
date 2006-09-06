@@ -1408,7 +1408,17 @@ def get_script_header(script_text, executable=sys_executable):
         options = match.group(1) or ''
         if options:
             options = ' '+options
-    return "#!%(executable)s%(options)s\n" % locals()
+    hdr = "#!%(executable)s%(options)s\n" % locals()
+    if unicode(hdr,'ascii','ignore').encode('ascii') != hdr:
+        # Non-ascii path to sys.executable, use -x to prevent warnings
+        if options:
+            if options.strip().startswith('-'):
+                options = ' -x'+options.strip()[1:]
+            # else: punt, we can't do it, let the warning happen anyway
+        else:
+            options = ' -x'
+        hdr = "#!%(executable)s%(options)s\n" % locals()
+    return hdr
 
 def auto_chmod(func, arg, exc):
     if func is os.remove and os.name=='nt':
@@ -1442,7 +1452,6 @@ def is_python(text, filename='<string>'):
     else:
         return True
 
-
 def is_python_script(script_text, filename):
     """Is this text, as a whole, a Python script? (as opposed to shell/bat/etc.
     """
@@ -1463,15 +1472,6 @@ def is_python_script(script_text, filename):
         return True     # it's syntactically valid Python
 
     return False    # Not any Python I can recognize
-
-
-
-
-
-
-
-
-
 
 
 def get_script_args(dist, executable=sys_executable):

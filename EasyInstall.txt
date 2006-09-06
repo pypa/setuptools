@@ -1200,6 +1200,10 @@ Release Notes/Change History
  * A writable installation directory on ``sys.path`` is no longer required to
    download and extract a source distribution using ``--editable``.
 
+ * Generated scripts now use ``-x`` on the ``#!`` line when ``sys.executable``
+   contains non-ASCII characters, to prevent deprecation warnings about an
+   unspecified encoding when the script is run.
+
 0.6c1
  * EasyInstall now includes setuptools version information in the
    ``User-Agent`` string sent to websites it visits.
