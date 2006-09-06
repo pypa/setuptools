@@ -155,7 +155,7 @@ class easy_install(Command):
                     )
                 else:
                     self.all_site_dirs.append(normalize_path(d))
-        self.check_site_dir()
+        if not self.editable: self.check_site_dir()
         self.index_url = self.index_url or "http://www.python.org/pypi"
         self.shadow_path = self.all_site_dirs[:]
         for path_item in self.install_dir, normalize_path(self.script_dir):
@@ -411,7 +411,7 @@ Please make the appropriate changes for your system and try again.
     def easy_install(self, spec, deps=False):
         tmpdir = tempfile.mkdtemp(prefix="easy_install-")
         download = None
-        self.install_site_py()
+        if not self.editable: self.install_site_py()
 
         try:
             if not isinstance(spec,Requirement):

@@ -1197,6 +1197,9 @@ Release Notes/Change History
  * The ``ez_setup.py`` script now actually works when you put a setuptools
    ``.egg`` alongside it for bootstrapping an offline machine.
 
+ * A writable installation directory on ``sys.path`` is no longer required to
+   download and extract a source distribution using ``--editable``.
+
 0.6c1
  * EasyInstall now includes setuptools version information in the
    ``User-Agent`` string sent to websites it visits.
