@@ -77,13 +77,13 @@ def use_setuptools(
     try:
         pkg_resources.require("setuptools>="+version)
 
-    except pkg_resources.VersionConflict:
+    except pkg_resources.VersionConflict, e:
         # XXX could we install in a subprocess here?
         print >>sys.stderr, (
             "The required version of setuptools (>=%s) is not available, and\n"
             "can't be installed while this script is running. Please install\n"
-            " a more recent version first."
-        ) % version
+            " a more recent version first.\n\n(Currently using %r)"
+        ) % (version, e.args[0])
         sys.exit(2)
 
 def download_setuptools(
@@ -139,15 +139,15 @@ def main(argv, version=DEFAULT_VERSION):
     try:
         import setuptools
     except ImportError:
-        import tempfile, shutil
-        tmpdir = tempfile.mkdtemp(prefix="easy_install-")
+        egg = None
         try:
-            egg = download_setuptools(version, to_dir=tmpdir, delay=0)
+            egg = download_setuptools(version, delay=0)
             sys.path.insert(0,egg)
             from setuptools.command.easy_install import main
             return main(list(argv)+[egg])   # we're done here
         finally:
-            shutil.rmtree(tmpdir)
+            if egg and os.path.exists(egg):
+                os.unlink(egg)
     else:
         if setuptools.__version__ == '0.0.1':
             # tell the user to uninstall obsolete version

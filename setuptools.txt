@@ -2563,6 +2563,11 @@ XXX
 Release Notes/Change History
 ----------------------------
 
+0.6c2
+ * The ``ez_setup`` module displays the conflicting version of setuptools (and
+   its installation location) when a script requests a version that's not
+   available.
+
 0.6c1
  * Fixed ``AttributeError`` when trying to download a ``setup_requires``
    dependency when a distribution lacks a ``dependency_links`` setting.
