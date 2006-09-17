@@ -80,32 +80,32 @@ def externals_finder(dirname, filename):
             yield joinpath(dirname, parts[0])
 
 
+entries_pattern = re.compile(r'name="([^"]+)"(?![^>]+deleted="true")', re.I)
+
+def entries_finder(dirname, filename):
+    f = open(filename,'rU')
+    data = f.read()
+    f.close()
+    if data.startswith('8'):    # subversion 1.4
+        for record in map(str.splitlines, data.split('\n\x0c\n')[1:]):
+            if not record or len(record)>=6 and record[5]=="delete":
+                continue    # skip deleted
+            yield joinpath(dirname, record[0])
+    elif data.startswith('<?xml'):
+        for match in entries_pattern.finditer(data):
+            yield joinpath(dirname,unescape(match.group(1)))
+    else:
+        from warnings import warn
+        warn("unrecognized .svn/entries format in "+dirname)
+
+
 finders = [
     (convert_path('CVS/Entries'),
         re_finder(re.compile(r"^\w?/([^/]+)/", re.M))),
-    (convert_path('.svn/entries'),
-        re_finder(
-            re.compile(r'name="([^"]+)"(?![^>]+deleted="true")', re.I),
-            unescape
-        )
-    ),
+    (convert_path('.svn/entries'), entries_finder),
     (convert_path('.svn/dir-props'), externals_finder),
+    (convert_path('.svn/dir-prop-base'), externals_finder),  # svn 1.4
 ]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

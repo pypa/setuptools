@@ -2563,6 +2563,9 @@ XXX
 Release Notes/Change History
 ----------------------------
 
+0.6c3
+ * Fixed breakages caused by Subversion 1.4's new "working copy" format
+
 0.6c2
  * The ``ez_setup`` module displays the conflicting version of setuptools (and
    its installation location) when a script requests a version that's not

@@ -181,10 +181,33 @@ class egg_info(Command):
             import time; version += time.strftime("-%Y%m%d")
         return version
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     def get_svn_revision(self):
         revision = 0
         urlre = re.compile('url="([^"]+)"')
         revre = re.compile('committed-rev="(\d+)"')
+
         for base,dirs,files in os.walk(os.curdir):
             if '.svn' not in dirs:
                 dirs[:] = []
@@ -193,15 +216,33 @@ class egg_info(Command):
             f = open(os.path.join(base,'.svn','entries'))
             data = f.read()
             f.close()
-            dirurl = urlre.search(data).group(1)    # get repository URL
+
+            if data.startswith('8'):
+                data = map(str.splitlines,data.split('\n\x0c\n'))
+                del data[0][0]  # get rid of the '8'
+                dirurl = data[0][3]
+                localrev = max([int(d[9]) for d in data if len(d)>9])
+            elif data.startswith('<?xml'):
+                dirurl = urlre.search(data).group(1)    # get repository URL
+                localrev = max([int(m.group(1)) for m in revre.finditer(data)])
+            else:
+                from warnings import warn
+                warn("unrecognized .svn/entries format; skipping "+base)
+                dirs[:] = []
+                continue
             if base==os.curdir:
                 base_url = dirurl+'/'   # save the root url
             elif not dirurl.startswith(base_url):
                 dirs[:] = []
                 continue    # not part of the same svn tree, skip it
-            for match in revre.finditer(data):
-                revision = max(revision, int(match.group(1)))
+            revision = max(revision, localrev)
+
         return str(revision or get_pkg_info_revision())
+
+
+
+
+
 
     def find_sources(self):
         """Generate SOURCES.txt manifest file"""
