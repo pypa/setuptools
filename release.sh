@@ -7,7 +7,7 @@
 # If your initials aren't PJE, don't run it.  :)
 #
 
-export VERSION="0.6c2"
+export VERSION="0.6c3"
 
 wpython setup.py -q release source && \
 cpython setup.py -q release binary && \
