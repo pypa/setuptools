@@ -58,7 +58,7 @@ __all__ = [
     # Exceptions
     'ResolutionError','VersionConflict','DistributionNotFound','UnknownExtra',
     'ExtractionError',
-    
+
     # Parsing functions and string utilities
     'parse_requirements', 'parse_version', 'safe_name', 'safe_version',
     'get_platform', 'compatible_platforms', 'yield_lines', 'split_sections',
@@ -82,6 +82,7 @@ __all__ = [
 ]
 class ResolutionError(Exception):
     """Abstract base for dependency resolution errors"""
+    def __repr__(self): return self.__class__.__name__+repr(self.args)
 
 class VersionConflict(ResolutionError):
     """An already-installed version conflicts with the requested version"""
@@ -91,7 +92,6 @@ class DistributionNotFound(ResolutionError):
 
 class UnknownExtra(ResolutionError):
     """Distribution doesn't have an "extra feature" of the given name"""
-
 _provider_factories = {}
 PY_MAJOR = sys.version[:3]
 EGG_DIST    = 3
@@ -823,7 +823,7 @@ class ResourceManager:
 
         old_exc = sys.exc_info()[1]
         cache_path = self.extraction_path or get_default_cache()
-        
+
         err = ExtractionError("""Can't extract file(s) to egg cache
 
 The following error occurred while trying to extract file(s) to the Python egg
@@ -878,7 +878,7 @@ variable to point to an accessible directory.
             ensure_directory(target_path)
         except:
             self.extraction_error()
-           
+
         self.cached_files[target_path] = 1
         return target_path
 
@@ -1264,11 +1264,11 @@ class ZipProvider(EggProvider):
 
             try:
                 rename(tmpnam, real_path)
-                
-            except os.error:               
+
+            except os.error:
                 if os.path.isfile(real_path):
                     stat = os.stat(real_path)
-                    
+
                     if stat.st_size==size and stat.st_mtime==timestamp:
                         # size and stamp match, somebody did it just ahead of
                         # us, so we're done

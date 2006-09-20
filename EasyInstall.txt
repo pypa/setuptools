@@ -331,6 +331,10 @@ used to install it.  Thus, if you install EasyInstall for both Python 2.3 and
 2.4, you can use the ``easy_install-2.3`` or ``easy_install-2.4`` scripts to
 install packages for Python 2.3 or 2.4, respectively.
 
+Also, if you're working with Python version 2.4 or higher, you can run Python
+with ``-m easy_install`` to run that particular Python version's
+``easy_install`` command.
+
 
 Restricting Downloads with ``--allow-hosts``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1189,6 +1193,11 @@ displayed MD5 info (broken onto two lines for readability)::
 
 Release Notes/Change History
 ============================
+
+0.6c3
+ * You once again use "python -m easy_install" with Python 2.4 and above.
+
+ * Python 2.5 compatibility fixes added.
 
 0.6c2
  * Windows script wrappers now support quoted arguments and arguments

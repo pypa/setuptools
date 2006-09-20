@@ -1,4 +1,4 @@
-__all__ = ['Distribution', 'Feature']
+__all__ = ['Distribution']
 
 from distutils.core import Distribution as _Distribution
 from setuptools.depends import Require
@@ -207,7 +207,7 @@ class Distribution(_Distribution):
         have_package_data = hasattr(self, "package_data")
         if not have_package_data:
             self.package_data = {}
-        self.requires = []  # XXX
+        self.require_features = []
         self.features = {}
         self.dist_files = []
         self.patch_missing_pkg_info(attrs)
@@ -676,10 +676,10 @@ class Feature:
          based on 'availabile', 'standard', and whether any other feature
          requires it.  The default setting is 'True'.
 
-      'requires' -- a string or sequence of strings naming features that should
-         also be included if this feature is included.  Defaults to empty list.
-         May also contain 'Require' objects that should be added/removed from
-         the distribution.
+      'require_features' -- a string or sequence of strings naming features
+         that should also be included if this feature is included.  Defaults to
+         empty list.  May also contain 'Require' objects that should be
+         added/removed from the distribution.
 
       'remove' -- a string or list of strings naming packages to be removed
          from the distribution if this feature is *not* included.  If the
@@ -704,33 +704,33 @@ class Feature:
     Aside from the methods, the only feature attributes that distributions look
     at are 'description' and 'optional'.
     """
-
     def __init__(self, description, standard=False, available=True,
-        optional=True, requires=(), remove=(), **extras
+        optional=True, require_features=(), remove=(), **extras
     ):
 
         self.description = description
         self.standard = standard
         self.available = available
         self.optional = optional
-        if isinstance(requires,(str,Require)):
-            requires = requires,
+        if isinstance(require_features,(str,Require)):
+            require_features = require_features,
 
-        self.requires = [r for r in requires if isinstance(r,str)]
-        er = [r for r in requires if not isinstance(r,str)]
-        if er: extras['requires'] = er
+        self.require_features = [
+            r for r in require_features if isinstance(r,str)
+        ]
+        er = [r for r in require_features if not isinstance(r,str)]
+        if er: extras['require_features'] = er
 
         if isinstance(remove,str):
             remove = remove,
         self.remove = remove
         self.extras = extras
 
-        if not remove and not requires and not extras:
+        if not remove and not require_features and not extras:
             raise DistutilsSetupError(
-                "Feature %s: must define 'requires', 'remove', or at least one"
+                "Feature %s: must define 'require_features', 'remove', or at least one"
                 " of 'packages', 'py_modules', etc."
             )
-
 
     def include_by_default(self):
         """Should this feature be included by default?"""
@@ -754,7 +754,7 @@ class Feature:
 
         dist.include(**self.extras)
 
-        for f in self.requires:
+        for f in self.require_features:
             dist.include_feature(f)
 
 

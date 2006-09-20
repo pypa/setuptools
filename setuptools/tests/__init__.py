@@ -255,7 +255,7 @@ class FeatureTests(TestCase):
         self.req = Require('Distutils','1.0.3','distutils')
         self.dist = makeSetup(
             features={
-                'foo': Feature("foo",standard=True,requires=['baz',self.req]),
+                'foo': Feature("foo",standard=True,require_features=['baz',self.req]),
                 'bar': Feature("bar",  standard=True, packages=['pkg.bar'],
                                py_modules=['bar_et'], remove=['bar.ext'],
                        ),
@@ -281,7 +281,7 @@ class FeatureTests(TestCase):
         self.failUnless(
             Feature("test",standard=True,remove='x').include_by_default()
         )
-        # Feature must have either kwargs, removes, or requires
+        # Feature must have either kwargs, removes, or require_features
         self.assertRaises(DistutilsSetupError, Feature, "test")
 
     def testAvailability(self):
@@ -320,7 +320,7 @@ class FeatureTests(TestCase):
         self.failUnless('scripts/baz_it' in dist.scripts)
         self.failUnless(('libfoo','foo/foofoo.c') in dist.libraries)
         self.assertEqual(dist.ext_modules,[])
-        self.assertEqual(dist.requires, [self.req])
+        self.assertEqual(dist.require_features, [self.req])
 
         # If we ask for bar, it should fail because we explicitly disabled
         # it on the command line

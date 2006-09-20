@@ -23,8 +23,6 @@ VERSION = "0.6c3"
 from setuptools import setup, find_packages
 import sys
 scripts = []
-if sys.platform != "win32":
-    scripts = ["easy_install.py"]   # for backward compatibility only
 
 setup(
     name="setuptools",
@@ -38,13 +36,12 @@ setup(
     keywords = "CPAN PyPI distutils eggs package management",
     url = "http://peak.telecommunity.com/DevCenter/setuptools",
     test_suite = 'setuptools.tests',
-    
     packages = find_packages(),
     package_data = {'setuptools':['*.exe']},
 
     py_modules = ['pkg_resources', 'easy_install', 'site'],
 
-    zip_safe = False,   # We want 'python -m easy_install' to work, for now :(
+    zip_safe = (sys.version>="2.5"),   # <2.5 needs unzipped for -m to work
 
     entry_points = {
 
@@ -80,12 +77,15 @@ setup(
             "dependency_links.txt = setuptools.command.egg_info:overwrite_arg",
         ],
 
+
+
+
         "console_scripts": [
              "easy_install = setuptools.command.easy_install:main",
              "easy_install-%s = setuptools.command.easy_install:main"
                 % sys.version[:3]
             ],
-            
+
         "setuptools.file_finders":
             ["svn_cvs = setuptools.command.sdist:_default_revctrl"]
         },

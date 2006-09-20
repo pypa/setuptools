@@ -274,13 +274,13 @@ exception instance for each unloadable plugin::
 
     >>> ws.add(foo12)   # this will conflict with Foo 1.4
     >>> ws.find_plugins(plugins)
-    ([JustATest 0.99, Foo 1.2 (f12)], {Foo 1.4 (f14): <...VersionConflict...>})
+    ([JustATest 0.99, Foo 1.2 (f12)], {Foo 1.4 (f14): VersionConflict(...)})
 
 But if you disallow fallbacks, the failed plugin will be skipped instead of
 trying older versions::
 
     >>> ws.find_plugins(plugins, fallback=False)
-    ([JustATest 0.99], {Foo 1.4 (f14): <...VersionConflict...>})
+    ([JustATest 0.99], {Foo 1.4 (f14): VersionConflict(...)})
 
 
 
