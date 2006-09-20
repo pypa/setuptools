@@ -1502,13 +1502,13 @@ def get_importer(path_item):
             pass
     return importer
 
-
-
-
-
-
-
-
+try:
+    from pkgutil import get_importer, ImpImporter
+except ImportError:
+    pass    # Python 2.3 or 2.4, use our own implementation
+else:
+    ImpWrapper = ImpImporter    # Python 2.5, use pkgutil's implementation
+    del ImpLoader, ImpImporter
 
 
 

@@ -1665,6 +1665,10 @@ PEP 302 Utilities
     "importer" object.  This ``ImpWrapper`` is *not* cached; instead a new
     instance is returned each time.
 
+    (Note: When run under Python 2.5, this function is simply an alias for
+    ``pkgutil.get_importer()``, and instead of ``pkg_resources.ImpWrapper``
+    instances, it may return ``pkgutil.ImpImporter`` instances.)
+
 
 File/Path Utilities
 -------------------
@@ -1686,6 +1690,9 @@ File/Path Utilities
 ----------------------------
 Release Notes/Change History
 ----------------------------
+
+0.6c3
+ * Python 2.5 compatibility fixes.
 
 0.6c2
  * Fix a problem with eggs specified directly on ``PYTHONPATH`` on
