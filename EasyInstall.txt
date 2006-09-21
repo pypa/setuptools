@@ -1194,6 +1194,10 @@ displayed MD5 info (broken onto two lines for readability)::
 Release Notes/Change History
 ============================
 
+0.6c4
+ * Fixed not recogninzing ``win32.exe`` installers that included a custom
+   bitmap.
+
 0.6c3
  * You once again use "python -m easy_install" with Python 2.4 and above.
 

@@ -1249,7 +1249,7 @@ def extract_wininst_cfg(dist_filename):
         if tag not in (0x1234567A, 0x1234567B):
             return None     # not a valid tag
 
-        f.seek(prepended-(12+cfglen+bmlen))
+        f.seek(prepended-(12+cfglen))
         cfg = ConfigParser.RawConfigParser({'version':'','target_version':''})
         try:
             cfg.readfp(StringIO.StringIO(f.read(cfglen).split(chr(0),1)[0]))
