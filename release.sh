@@ -7,7 +7,7 @@
 # If your initials aren't PJE, don't run it.  :)
 #
 
-export VERSION="0.6c3"
+export VERSION="0.6c4"
 
 python2.3 setup.py -q release source && \
 python2.4 setup.py -q release binary && \
