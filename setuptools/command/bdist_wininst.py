@@ -1,5 +1,5 @@
 from distutils.command.bdist_wininst import bdist_wininst as _bdist_wininst
-import sys
+import os
 
 class bdist_wininst(_bdist_wininst):
 
