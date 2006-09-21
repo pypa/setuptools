@@ -2564,8 +2564,8 @@ Release Notes/Change History
 ----------------------------
 
 0.6c4
- * Fix ``upload`` not uploading files built by ``bdist_rpm`` on Python 2.3 and
-   2.4.
+ * Fix ``upload`` command not uploading files built by ``bdist_rpm`` or
+   ``bdist_wininst`` under Python 2.3 and 2.4.
 
 0.6c3
  * Fixed breakages caused by Subversion 1.4's new "working copy" format
