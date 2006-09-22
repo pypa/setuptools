@@ -8,7 +8,9 @@ from setuptools import Command
 from distutils.dir_util import remove_tree, mkpath
 from distutils.sysconfig import get_python_version, get_python_lib
 from distutils import log
+from distutils.errors import DistutilsSetupError
 from pkg_resources import get_build_platform, Distribution, ensure_directory
+from pkg_resources import EntryPoint
 from types import CodeType
 from setuptools.extension import Library
 
@@ -36,8 +38,6 @@ def write_stub(resource, pyfile):
 
 # stub __init__.py for packages distributed without one
 NS_PKG_STUB = '__import__("pkg_resources").declare_namespace(__name__)'
-
-
 
 class bdist_egg(Command):
 
@@ -233,7 +233,7 @@ class bdist_egg(Command):
 
         # Make the archive
         make_zipfile(self.egg_output, archive_root, verbose=self.verbose,
-                          dry_run=self.dry_run)
+                          dry_run=self.dry_run, mode=self.gen_header())
         if not self.keep_temp:
             remove_tree(self.bdist_dir, dry_run=self.dry_run)
 
@@ -284,6 +284,47 @@ class bdist_egg(Command):
                 dirs[:] = []
 
         return init_files
+
+    def gen_header(self):
+        epm = EntryPoint.parse_map(self.distribution.entry_points or '')
+        ep = epm.get('setuptools.installation',{}).get('eggsecutable')
+        if ep is None:
+            return 'w'  # not an eggsecutable, do it the usual way.
+
+        if not ep.attrs or ep.extras:
+            raise DistutilsSetupError(
+                "eggsecutable entry point (%r) cannot have 'extras' "
+                "or refer to a module" % (ep,)
+            )
+
+        pyver = sys.version[:3]
+        pkg = ep.module_name
+        full = '.'.join(ep.attrs)
+        base = ep.attrs[0]
+        basename = os.path.basename(self.egg_output)
+
+        header = (
+            "#!/bin/sh\n"
+            'if [[ `basename $0` = "%(basename)s" ]]\n'
+            'then exec python%(pyver)s -c "'
+            "import sys, os; sys.path.insert(0, os.path.abspath('$0')); "
+            "from %(pkg)s import %(base)s; sys.exit(%(full)s())"
+            '" "$@"\n'
+            'else\n'
+            '  echo $0 is not the correct name for this egg file.\n'
+            '  echo Please rename it back to %(basename)s and try again.\n'
+            '  exec false\n'
+            'fi\n'
+
+        ) % locals()
+
+        if not self.dry_run:
+            f = open(self.egg_output, 'w')
+            f.write(header)
+            f.close()
+        return 'a'
+
+
 
     def copy_metadata_to(self, target_dir):
         prefix = os.path.join(self.egg_info,'')
@@ -415,7 +456,9 @@ INSTALL_DIRECTORY_ATTRS = [
     'install_lib', 'install_dir', 'install_data', 'install_base'
 ]
 
-def make_zipfile (zip_filename, base_dir, verbose=0, dry_run=0, compress=None):
+def make_zipfile(zip_filename, base_dir, verbose=0, dry_run=0, compress=None,
+    mode='w'
+):
     """Create a zip file from all the files under 'base_dir'.  The output
     zip file will be named 'base_dir' + ".zip".  Uses either the "zipfile"
     Python module (if available) or the InfoZIP "zip" utility (if installed
@@ -426,7 +469,7 @@ def make_zipfile (zip_filename, base_dir, verbose=0, dry_run=0, compress=None):
     mkpath(os.path.dirname(zip_filename), dry_run=dry_run)
     log.info("creating '%s' and adding '%s' to it", zip_filename, base_dir)
 
-    def visit (z, dirname, names):
+    def visit(z, dirname, names):
         for name in names:
             path = os.path.normpath(os.path.join(dirname, name))
             if os.path.isfile(path):
@@ -440,12 +483,10 @@ def make_zipfile (zip_filename, base_dir, verbose=0, dry_run=0, compress=None):
 
     compression = [zipfile.ZIP_STORED, zipfile.ZIP_DEFLATED][bool(compress)]
     if not dry_run:
-        z = zipfile.ZipFile(zip_filename, "w", compression=compression)
+        z = zipfile.ZipFile(zip_filename, mode, compression=compression)
         os.path.walk(base_dir, visit, z)
         z.close()
     else:
         os.path.walk(base_dir, visit, None)
-
     return zip_filename
-
 #

@@ -84,10 +84,13 @@ setup(
              "easy_install = setuptools.command.easy_install:main",
              "easy_install-%s = setuptools.command.easy_install:main"
                 % sys.version[:3]
-            ],
+        ],
 
         "setuptools.file_finders":
-            ["svn_cvs = setuptools.command.sdist:_default_revctrl"]
+            ["svn_cvs = setuptools.command.sdist:_default_revctrl"],
+
+        "setuptools.installation":
+            ['eggsecutable = setuptools.command.easy_install:bootstrap'],
         },
 
     classifiers = [f.strip() for f in """
@@ -106,9 +109,6 @@ setup(
     # uncomment for testing
     # setup_requires = ['setuptools>=0.6a0'],
 )
-
-
-
 
 
 

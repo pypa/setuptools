@@ -1550,10 +1550,10 @@ def rmtree(path, ignore_errors=False, onerror=auto_chmod):
     except os.error:
         onerror(os.rmdir, path, sys.exc_info())
 
-
-
-
-
+def bootstrap():
+    # This function is called when setuptools*.egg is run using /bin/sh
+    import setuptools; argv0 = os.path.dirname(setuptools.__path__[0])
+    sys.argv[0] = argv0; sys.argv.append(argv0); main()
 
 
 def main(argv=None, **kw):
