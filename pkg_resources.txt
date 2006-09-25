@@ -1540,7 +1540,8 @@ Parsing Utilities
     Finally, to handle miscellaneous cases, the strings "pre", "preview", and
     "rc" are treated as if they were "c", i.e. as though they were release
     candidates, and therefore are not as new as a version string that does not
-    contain them.
+    contain them.  And the string "dev" is treated as if it were an "@" sign;
+    that is, a version coming before even "a" or "alpha".
 
 .. _yield_lines():
 
@@ -1690,6 +1691,9 @@ File/Path Utilities
 ----------------------------
 Release Notes/Change History
 ----------------------------
+
+0.6c4
+ * Fix "dev" versions being considered newer than release candidates.
 
 0.6c3
  * Python 2.5 compatibility fixes.
