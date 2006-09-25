@@ -355,6 +355,14 @@ The above example would then allow downloads only from hosts in the
 ``python.org`` and ``myintranet.example.com`` domains, unless overridden on the
 command line.
 
+Note that if you want to allow downloads from Sourceforge, you need to enable
+the ``dl.sourceforge.net`` host.  All Sourceforge mirror downloads are treated
+as if they had this hostname.  (If a download attempt from
+``dl.sourceforge.net`` fails, it is automatically retried using a randomly
+selected mirror IP drawn from the ``sf-mirrors.telecommunity.com`` round-robin
+addres.  The IP's, however, are not checked against the ``--allow-hosts``
+mask.)
+
 
 Installing on Un-networked Machines
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1197,6 +1205,10 @@ Release Notes/Change History
 0.6c4
  * Fixed not recogninzing ``win32.exe`` installers that included a custom
    bitmap.
+
+ * Fixed SF downloads aborting when a SF mirror returns an HTML page when it
+   should've returned a 404.  Fall back to ``sf-mirrors.telecommunity.com``
+   round-robin address for SF mirrors if ``dl.sourceforge.net`` doesn't work.
 
 0.6c3
  * You once again use "python -m easy_install" with Python 2.4 and above.

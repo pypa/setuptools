@@ -533,7 +533,6 @@ class PackageIndex(Environment):
 
     dl_blocksize = 8192
     def _download_to(self, url, filename):
-        self.url_ok(url,True)   # raises error if not allowed
         self.info("Downloading %s", url)
         # Download the file
         fp, tfp, info = None, None, None
@@ -572,9 +571,18 @@ class PackageIndex(Environment):
     def reporthook(self, url, filename, blocknum, blksize, size):
         pass    # no-op
 
-    def retry_sf_download(self, url, filename):
+
+    def _attempt_download(self, url, filename):
+        headers = self._download_to(url, filename)
+        if 'html' in headers['content-type'].lower():
+            return self._download_html(url, headers, filename)
+        else:
+            return filename
+
+    def _retry_sf_download(self, url, filename):
+        self.url_ok(url, True)   # raises error if not allowed
         try:
-            return self._download_to(url, filename)
+            return self._attempt_download(url, filename)
         except (KeyboardInterrupt,SystemExit):
             raise
         except:
@@ -588,22 +596,14 @@ class PackageIndex(Environment):
             self.warn("Download failed: %s", sys.exc_info()[1])
             url = urlparse.urlunparse((scheme, mirror, path, param, '', frag))
             try:
-                return self._download_to(url, filename)
+                return self._attempt_download(url, filename)
+            except (KeyboardInterrupt,SystemExit):
+                raise
             except:
                 _sf_mirrors.remove(mirror)  # don't retry the same mirror
                 mirror = get_sf_ip()
 
         raise   # fail if no mirror works
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -648,16 +648,16 @@ class PackageIndex(Environment):
         elif scheme=='file':
             return urllib2.url2pathname(urlparse.urlparse(url)[2])
         else:
-            headers = self.retry_sf_download(url, filename)
-            if 'html' in headers['content-type'].lower():
-                return self._download_html(url, headers, filename, tmpdir)
-            else:
-                return filename
+            return self._retry_sf_download(url, filename)
+
+
+
+
 
     def scan_url(self, url):
         self.process_url(url, True)
 
-    def _download_html(self, url, headers, filename, tmpdir):
+    def _download_html(self, url, headers, filename):
         file = open(filename)
         for line in file:
             if line.strip():
@@ -700,7 +700,8 @@ _sf_mirrors = []
 def get_sf_ip():
     if not _sf_mirrors:
         try:
-            _sf_mirrors[:] = socket.gethostbyname_ex('dl.sourceforge.net')[-1]
+            _sf_mirrors[:] = socket.gethostbyname_ex(
+                'sf-mirrors.telecommunity.com')[-1]
         except socket.error:
             # DNS-bl0ck1n9 f1r3w4llz sUx0rs!
             _sf_mirrors[:] = ['dl.sourceforge.net']
@@ -731,7 +732,6 @@ def local_open(url):
 
     return urllib2.HTTPError(url, status, message,
             {'content-type':'text/html'}, cStringIO.StringIO(body))
-
 
 
 
