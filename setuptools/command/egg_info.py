@@ -226,8 +226,7 @@ class egg_info(Command):
                 dirurl = urlre.search(data).group(1)    # get repository URL
                 localrev = max([int(m.group(1)) for m in revre.finditer(data)])
             else:
-                from warnings import warn
-                warn("unrecognized .svn/entries format; skipping "+base)
+                log.warn("unrecognized .svn/entries format; skipping %s", base)
                 dirs[:] = []
                 continue
             if base==os.curdir:
@@ -238,6 +237,7 @@ class egg_info(Command):
             revision = max(revision, localrev)
 
         return str(revision or get_pkg_info_revision())
+
 
 
 

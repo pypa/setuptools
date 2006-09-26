@@ -95,8 +95,7 @@ def entries_finder(dirname, filename):
         for match in entries_pattern.finditer(data):
             yield joinpath(dirname,unescape(match.group(1)))
     else:
-        from warnings import warn
-        warn("unrecognized .svn/entries format in "+dirname)
+        log.warn("unrecognized .svn/entries format in %s", dirname)
 
 
 finders = [
@@ -106,6 +105,7 @@ finders = [
     (convert_path('.svn/dir-props'), externals_finder),
     (convert_path('.svn/dir-prop-base'), externals_finder),  # svn 1.4
 ]
+
 
 
 
