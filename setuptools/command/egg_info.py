@@ -221,7 +221,7 @@ class egg_info(Command):
                 data = map(str.splitlines,data.split('\n\x0c\n'))
                 del data[0][0]  # get rid of the '8'
                 dirurl = data[0][3]
-                localrev = max([int(d[9]) for d in data if len(d)>9])
+                localrev = max([int(d[9]) for d in data if len(d)>9 and d[9]])
             elif data.startswith('<?xml'):
                 dirurl = urlre.search(data).group(1)    # get repository URL
                 localrev = max([int(m.group(1)) for m in revre.finditer(data)])

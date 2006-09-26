@@ -2610,6 +2610,8 @@ Release Notes/Change History
    installer on Unix, without doing multiple downloads, dealing with firewalls,
    etc.)
 
+ * Fix problem with empty revision numbers in Subversion 1.4 ``entries`` files
+
 0.6c3
  * Fixed breakages caused by Subversion 1.4's new "working copy" format
 
