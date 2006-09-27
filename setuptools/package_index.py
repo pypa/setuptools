@@ -14,7 +14,7 @@ PYPI_MD5 = re.compile(
     '<a href="([^"#]+)">([^<]+)</a>\n\s+\\(<a (?:title="MD5 hash"\n\s+)'
     'href="[^?]+\?:action=show_md5&amp;digest=([0-9a-f]{32})">md5</a>\\)'
 )
-
+SF_DOWNLOAD = 'dl.sourceforge.net'
 URL_SCHEME = re.compile('([-+.a-z0-9]{2,}):',re.I).match
 EXTENSIONS = ".tar.gz .tar.bz2 .tar .zip .tgz".split()
 
@@ -165,7 +165,9 @@ user_agent = "Python-urllib/%s setuptools/%s" % (
 class PackageIndex(Environment):
     """A distribution index that scans web pages for download URLs"""
 
-    def __init__(self,index_url="http://www.python.org/pypi",hosts=('*',),*args,**kw):
+    def __init__(self, index_url="http://www.python.org/pypi", hosts=('*',),
+        sf_mirrors=None, *args, **kw
+    ):
         Environment.__init__(self,*args,**kw)
         self.index_url = index_url + "/"[:not index_url.endswith('/')]
         self.scanned_urls = {}
@@ -173,6 +175,33 @@ class PackageIndex(Environment):
         self.package_pages = {}
         self.allows = re.compile('|'.join(map(translate,hosts))).match
         self.to_scan = []
+        if sf_mirrors:
+            if isinstance(sf_mirrors,str):
+                self.sf_mirrors = map(str.strip, sf_mirrors.split(','))
+            else:
+                self.sf_mirrors = map(str.strip, sf_mirrors)
+        else:
+            self.sf_mirrors = ()
+
+
+    def _get_mirrors(self):
+        mirrors = []
+        for mirror in self.sf_mirrors:
+            if mirror:
+                if '.' not in mirror:
+                    mirror += '.dl.sourceforge.net'
+                mirrors.append(mirror)
+
+        if not mirrors:
+            try:
+                mirrors.extend(
+                    socket.gethostbyname_ex('sf-mirrors.telecommunity.com')[-1]
+                )
+            except socket.error:
+                # DNS-bl0ck1n9 f1r3w4llz sUx0rs!
+                mirrors[:] = [SF_DOWNLOAD]
+
+        return mirrors
 
     def process_url(self, url, retrieve=False):
         """Evaluate a URL as a possible download, and maybe retrieve it"""
@@ -202,7 +231,6 @@ class PackageIndex(Environment):
         f = self.open_url(url)
         self.fetched_urls[url] = self.fetched_urls[f.url] = True
 
-
         if 'html' not in f.headers.get('content-type', '').lower():
             f.close()   # not html, we can't process it
             return
@@ -212,7 +240,6 @@ class PackageIndex(Environment):
         f.close()
         if url.startswith(self.index_url) and getattr(f,'code',None)!=404:
             page = self.process_index(url, page)
-
         for match in HREF.finditer(page):
             link = urlparse.urljoin(base, match.group(1))
             self.process_url(link)
@@ -241,6 +268,20 @@ class PackageIndex(Environment):
             raise DistutilsError(msg % url)
         else:
             self.warn(msg, url)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -581,27 +622,27 @@ class PackageIndex(Environment):
 
     def _retry_sf_download(self, url, filename):
         self.url_ok(url, True)   # raises error if not allowed
-        try:
-            return self._attempt_download(url, filename)
-        except (KeyboardInterrupt,SystemExit):
-            raise
-        except:
-            scheme, server, path, param, query, frag = urlparse.urlparse(url)
-            if server!='dl.sourceforge.net':
-                raise
+        scheme, server, path, param, query, frag = urlparse.urlparse(url)
 
-        mirror = get_sf_ip()
+        if server == SF_DOWNLOAD:
+            mirrors = self._get_mirrors()
+            query = ''
+        else:
+            mirrors = [server]
 
-        while _sf_mirrors:
-            self.warn("Download failed: %s", sys.exc_info()[1])
-            url = urlparse.urlunparse((scheme, mirror, path, param, '', frag))
+        while mirrors or server != SF_DOWNLOAD:
+            mirror = random.choice(mirrors)
+            url = urlparse.urlunparse((scheme,mirror,path,param,query,frag))
+
             try:
                 return self._attempt_download(url, filename)
             except (KeyboardInterrupt,SystemExit):
                 raise
             except:
-                _sf_mirrors.remove(mirror)  # don't retry the same mirror
-                mirror = get_sf_ip()
+                if server != SF_DOWNLOAD:
+                    raise
+                self.warn("Download failed: %s", sys.exc_info()[1])
+                mirrors.remove(mirror)
 
         raise   # fail if no mirror works
 
@@ -692,21 +733,8 @@ def fix_sf_url(url):
     if server!='prdownloads.sourceforge.net':
         return url
     return urlparse.urlunparse(
-        (scheme, 'dl.sourceforge.net', 'sourceforge'+path, param, '', frag)
+        (scheme, SF_DOWNLOAD, 'sourceforge'+path, param, '', frag)
     )
-
-_sf_mirrors = []
-
-def get_sf_ip():
-    if not _sf_mirrors:
-        try:
-            _sf_mirrors[:] = socket.gethostbyname_ex(
-                'sf-mirrors.telecommunity.com')[-1]
-        except socket.error:
-            # DNS-bl0ck1n9 f1r3w4llz sUx0rs!
-            _sf_mirrors[:] = ['dl.sourceforge.net']
-    return random.choice(_sf_mirrors)
-
 
 def local_open(url):
     """Read a local path, with special support for directories"""
@@ -732,6 +760,19 @@ def local_open(url):
 
     return urllib2.HTTPError(url, status, message,
             {'content-type':'text/html'}, cStringIO.StringIO(body))
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

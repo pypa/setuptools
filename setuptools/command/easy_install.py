@@ -70,6 +70,7 @@ class easy_install(Command):
         ('editable', 'e', "Install specified packages in editable form"),
         ('no-deps', 'N', "don't install dependencies"),
         ('allow-hosts=', 'H', "pattern(s) that hostnames must match"),
+        ('sf-mirrors=', None, "Sourceforge mirror(s) to use"),
     ]
     boolean_options = [
         'zip-ok', 'multi-version', 'exclude-scripts', 'upgrade', 'always-copy',
@@ -78,7 +79,6 @@ class easy_install(Command):
     ]
     negative_opt = {'always-unzip': 'zip-ok'}
     create_index = PackageIndex
-
 
     def initialize_options(self):
         self.zip_ok = None
@@ -90,7 +90,7 @@ class easy_install(Command):
         self.optimize = self.record = None
         self.upgrade = self.always_copy = self.multi_version = None
         self.editable = self.no_deps = self.allow_hosts = None
-        self.root = self.prefix = self.no_report = None
+        self.root = self.prefix = self.no_report = self.sf_mirrors = None
 
         # Options not specifiable via command line
         self.package_index = None
@@ -166,10 +166,10 @@ class easy_install(Command):
             hosts = [s.strip() for s in self.allow_hosts.split(',')]
         else:
             hosts = ['*']
-
         if self.package_index is None:
             self.package_index = self.create_index(
-                self.index_url, search_path = self.shadow_path, hosts=hosts
+                self.index_url, search_path = self.shadow_path, hosts=hosts,
+                sf_mirrors = self.sf_mirrors
             )
         self.local_index = Environment(self.shadow_path+sys.path)
 
