@@ -319,11 +319,11 @@ class bdist_egg(Command):
         ) % locals()
 
         if not self.dry_run:
+            mkpath(os.path.dirname(self.egg_output), dry_run=self.dry_run)
             f = open(self.egg_output, 'w')
             f.write(header)
             f.close()
         return 'a'
-
 
 
     def copy_metadata_to(self, target_dir):
