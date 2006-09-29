@@ -1393,9 +1393,19 @@ class PthDistributions(Environment):
 
 
     def make_relative(self,path):
-        if normalize_path(os.path.dirname(path))==self.basedir:
-            return os.path.join(os.curdir, os.path.basename(path))
-        return path
+        npath, last = os.path.split(normalize_path(path))
+        baselen = len(self.basedir)
+        parts = [last]
+        sep = os.altsep=='/' and '/' or os.sep
+        while len(npath)>=baselen:
+            if npath==self.basedir:
+                parts.append(os.curdir)
+                parts.reverse()
+                return sep.join(parts)
+            npath, last = os.path.split(npath)
+            parts.append(last)
+        else:
+            return path
 
 
 def get_script_header(script_text, executable=sys_executable):
@@ -1419,6 +1429,9 @@ def get_script_header(script_text, executable=sys_executable):
             options = ' -x'
         hdr = "#!%(executable)s%(options)s\n" % locals()
     return hdr
+
+
+
 
 def auto_chmod(func, arg, exc):
     if func is os.remove and os.name=='nt':
@@ -1452,6 +1465,15 @@ def is_python(text, filename='<string>'):
     else:
         return True
 
+
+
+
+
+
+
+
+
+
 def is_python_script(script_text, filename):
     """Is this text, as a whole, a Python script? (as opposed to shell/bat/etc.
     """
@@ -1472,6 +1494,25 @@ def is_python_script(script_text, filename):
         return True     # it's syntactically valid Python
 
     return False    # Not any Python I can recognize
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def get_script_args(dist, executable=sys_executable):

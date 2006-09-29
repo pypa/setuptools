@@ -2612,6 +2612,10 @@ Release Notes/Change History
 
  * Fix problem with empty revision numbers in Subversion 1.4 ``entries`` files
 
+ * Use cross-platform relative paths in ``easy-install.pth`` when doing
+   ``develop`` and the source directory is a subdirectory of the installation
+   target directory.
+
 0.6c3
  * Fixed breakages caused by Subversion 1.4's new "working copy" format
 
