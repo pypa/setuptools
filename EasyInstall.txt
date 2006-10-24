@@ -1265,6 +1265,10 @@ Release Notes/Change History
  * Allow explicit selection of Sourceforge mirror(s) with ``--sf-mirror``, and
    further refine download/retry algorithm.
 
+ * Fixed not allowing ``os.open()`` of paths outside the sandbox, even if they
+   are opened read-only (e.g. reading ``/dev/urandom`` for random numbers, as
+   is done by ``os.urandom()`` on some platforms).
+
 0.6c3
  * You once again use "python -m easy_install" with Python 2.4 and above.
 

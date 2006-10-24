@@ -1,4 +1,4 @@
-import os, sys, __builtin__, tempfile
+import os, sys, __builtin__, tempfile, operator
 _os = sys.modules[os.name]
 _open = open
 from distutils.errors import DistutilsError
@@ -187,6 +187,21 @@ class DirectorySandbox(AbstractSandbox):
             self._violation(operation, src, dst, *args, **kw)
         return (src,dst)
 
+    def open(self, file, flags, mode=0777):
+        """Called for low-level os.open()"""
+        if flags & WRITE_FLAGS:
+            self._violation("open", file, flags, mode)
+        return _os.open(file,flags,mode)
+
+
+WRITE_FLAGS = reduce(
+    operator.or_,
+    [getattr(_os, a, 0) for a in
+        "O_WRONLY O_RDWR O_APPEND O_CREAT O_TRUNC O_TEMPORARY".split()]
+)
+
+
+
 
 class SandboxViolation(DistutilsError):
     """A setup script attempted to modify the filesystem outside the sandbox"""
@@ -203,3 +218,29 @@ script by hand.  Please inform the package's author and the EasyInstall
 maintainers to find out if a fix or workaround is available.""" % self.args
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#
