@@ -1269,6 +1269,10 @@ Release Notes/Change History
    are opened read-only (e.g. reading ``/dev/urandom`` for random numbers, as
    is done by ``os.urandom()`` on some platforms).
 
+ * Fixed a problem with ``.pth`` testing on Windows when ``sys.executable``
+   has a space in it (e.g., the user installed Python to a ``Program Files``
+   directory).
+
 0.6c3
  * You once again use "python -m easy_install" with Python 2.4 and above.
 

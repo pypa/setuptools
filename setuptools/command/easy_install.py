@@ -349,7 +349,7 @@ Please make the appropriate changes for your system and try again.
                     if basename.lower()=='python.exe' and os.path.exists(alt):
                         # use pythonw.exe to avoid opening a console window
                         executable = alt
-                    if ' ' in executable: executable='"%s"' % executable
+
                 from distutils.spawn import spawn
                 spawn([executable,'-E','-c','pass'],0)
 
