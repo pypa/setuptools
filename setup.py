@@ -1,25 +1,14 @@
 #!/usr/bin/env python
 """Distutils setup file, used to install or test 'setuptools'"""
 
-def get_description():
-    # Get our long description from the documentation
-    f = file('setuptools.txt')
-    lines = []
-    for line in f:
-        if not line.strip():
-            break     # skip to first blank line
-    for line in f:
-        if line.startswith('.. contents::'):
-            break     # read to table of contents
-        lines.append(line)
-    f.close()
-    return ''.join(lines)
-
 from distutils.util import convert_path
-d = {}; execfile(convert_path('setuptools/command/__init__.py'), d)
-SETUP_COMMANDS = d['__all__']
 
+d = {}
+execfile(convert_path('setuptools/command/__init__.py'), d)
+
+SETUP_COMMANDS = d['__all__']
 VERSION = "0.6c4"
+
 from setuptools import setup, find_packages
 import sys
 scripts = []
@@ -30,9 +19,9 @@ setup(
     description="Download, build, install, upgrade, and uninstall Python "
         "packages -- easily!",
     author="Phillip J. Eby",
-    author_email="peak@eby-sarna.com",
+    author_email="distutils-sig@python.org",
     license="PSF or ZPL",
-    long_description = get_description(),
+    long_description = open('README.txt').read(),
     keywords = "CPAN PyPI distutils eggs package management",
     url = "http://peak.telecommunity.com/DevCenter/setuptools",
     test_suite = 'setuptools.tests',
@@ -77,9 +66,6 @@ setup(
             "dependency_links.txt = setuptools.command.egg_info:overwrite_arg",
         ],
 
-
-
-
         "console_scripts": [
              "easy_install = setuptools.command.easy_install:main",
              "easy_install-%s = setuptools.command.easy_install:main"
@@ -92,6 +78,7 @@ setup(
         "setuptools.installation":
             ['eggsecutable = setuptools.command.easy_install:bootstrap'],
         },
+
 
     classifiers = [f.strip() for f in """
     Development Status :: 3 - Alpha
@@ -109,6 +96,19 @@ setup(
     # uncomment for testing
     # setup_requires = ['setuptools>=0.6a0'],
 )
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
