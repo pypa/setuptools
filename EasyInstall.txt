@@ -1198,7 +1198,7 @@ Release Notes/Change History
  * Removed all special support for Sourceforge mirrors, as Sourceforge's
    mirror system now works well for non-browser downloads.
 
- * Fixed not recogninzing ``win32.exe`` installers that included a custom
+ * Fixed not recognizing ``win32.exe`` installers that included a custom
    bitmap.
 
  * Fixed not allowing ``os.open()`` of paths outside the sandbox, even if they
