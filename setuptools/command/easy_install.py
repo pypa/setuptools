@@ -1408,7 +1408,7 @@ class PthDistributions(Environment):
             return path
 
 
-def get_script_header(script_text, executable=sys_executable):
+def get_script_header(script_text, executable=sys_executable, wininst=False):
     """Create a #! line, getting options (if any) from script_text"""
     from distutils.command.build_scripts import first_line_re
     first = (script_text+'\n').splitlines()[0]
@@ -1418,6 +1418,8 @@ def get_script_header(script_text, executable=sys_executable):
         options = match.group(1) or ''
         if options:
             options = ' '+options
+    if wininst and sys.platform!='win32':
+        executable = "python.exe"
     hdr = "#!%(executable)s%(options)s\n" % locals()
     if unicode(hdr,'ascii','ignore').encode('ascii') != hdr:
         # Non-ascii path to sys.executable, use -x to prevent warnings
@@ -1429,8 +1431,6 @@ def get_script_header(script_text, executable=sys_executable):
             options = ' -x'
         hdr = "#!%(executable)s%(options)s\n" % locals()
     return hdr
-
-
 
 
 def auto_chmod(func, arg, exc):
@@ -1515,10 +1515,10 @@ def is_python_script(script_text, filename):
 
 
 
-def get_script_args(dist, executable=sys_executable):
+def get_script_args(dist, executable=sys_executable, wininst=False):
     """Yield write_script() argument tuples for a distribution's entrypoints"""
     spec = str(dist.as_requirement())
-    header = get_script_header("", executable)
+    header = get_script_header("", executable, wininst)
     for group in 'console_scripts', 'gui_scripts':
         for name,ep in dist.get_entry_map(group).items():
             script_text = (
@@ -1531,7 +1531,7 @@ def get_script_args(dist, executable=sys_executable):
                 "   load_entry_point(%(spec)r, %(group)r, %(name)r)()\n"
                 ")\n"
             ) % locals()
-            if sys.platform=='win32':
+            if sys.platform=='win32' or wininst:
                 # On Windows, add a .py extension and an .exe launcher
                 if group=='gui_scripts':
                     ext, launcher = '-script.pyw', 'gui.exe'

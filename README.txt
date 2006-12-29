@@ -23,7 +23,9 @@ version.
 
 Once installation is complete, you will find an ``easy_install.exe`` program in
 your Python ``Scripts`` subdirectory.  Be sure to add this directory to your
-``PATH`` environment variable, if you haven't already done so.
+``PATH`` environment variable, if you haven't already done so.  You must also
+have your Python installation directory (e.g. ``C:\\Python23``) on the
+``PATH``.
 
 
 RPM-Based Systems

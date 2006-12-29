@@ -28,3 +28,10 @@ class bdist_wininst(_bdist_wininst):
             cmd.install_lib = None  # work around distutils bug
         return cmd
 
+    def run(self):
+        self._is_running = True
+        try:
+            _bdist_wininst.run(self)
+        finally:
+            self._is_running = False
+

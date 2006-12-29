@@ -29,11 +29,11 @@ class install_scripts(_install_scripts):
         )
         bs_cmd = self.get_finalized_command('build_scripts')
         executable = getattr(bs_cmd,'executable',sys_executable)
-
-        for args in get_script_args(dist, executable):
+        is_wininst = getattr(
+            self.get_finalized_command("bdist_wininst"), '_is_running', False
+        )
+        for args in get_script_args(dist, executable, is_wininst):
             self.write_script(*args)
-
-
 
 
 
