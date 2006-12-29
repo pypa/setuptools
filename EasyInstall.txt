@@ -1210,7 +1210,7 @@ Release Notes/Change History
    directory).
 
 0.6c3
- * You once again use "python -m easy_install" with Python 2.4 and above.
+ * You can once again use "python -m easy_install" with Python 2.4 and above.
 
  * Python 2.5 compatibility fixes added.
 
