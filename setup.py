@@ -23,7 +23,7 @@ setup(
     license="PSF or ZPL",
     long_description = open('README.txt').read(),
     keywords = "CPAN PyPI distutils eggs package management",
-    url = "http://peak.telecommunity.com/DevCenter/setuptools",
+    url = "http://cheeseshop.python.org/pypi/setuptools",
     test_suite = 'setuptools.tests',
     packages = find_packages(),
     package_data = {'setuptools':['*.exe']},
