@@ -9,7 +9,6 @@ import sys
 if sys.version>='2.5':
     # In Python 2.5 and above, distutils includes its own upload command
     __all__.remove('upload')
-    __all__.remove('bdist_wininst')  # this is only for 'upload' support
 
 from distutils.command.bdist import bdist
 
