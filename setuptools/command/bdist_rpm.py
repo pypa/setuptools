@@ -4,7 +4,7 @@
 # finally, a kludge to track .rpm files for uploading when run on Python <2.5.
 
 from distutils.command.bdist_rpm import bdist_rpm as _bdist_rpm
-import sys
+import sys, os
 
 class bdist_rpm(_bdist_rpm):
 
