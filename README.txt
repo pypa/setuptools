@@ -14,7 +14,8 @@ Windows
 
 Install setuptools using the provided ``.exe`` installer.  If you've previously
 installed older versions of setuptools, please delete all ``setuptools*.egg``
-files from your system FIRST.
+and ``setuptools.pth`` files from your system's ``site-packages`` directory
+(and any other ``sys.path`` directories) FIRST.
 
 If you are upgrading a previous version of setuptools that was installed using
 an ``.exe`` installer, please be sure to also *uninstall that older version*
@@ -23,9 +24,7 @@ version.
 
 Once installation is complete, you will find an ``easy_install.exe`` program in
 your Python ``Scripts`` subdirectory.  Be sure to add this directory to your
-``PATH`` environment variable, if you haven't already done so.  You must also
-have your Python installation directory (e.g. ``C:\\Python23``) on the
-``PATH``.
+``PATH`` environment variable, if you haven't already done so.
 
 
 RPM-Based Systems

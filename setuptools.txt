@@ -2601,6 +2601,13 @@ Release Notes/Change History
 ----------------------------
 
 0.6c4
+
+ * Overhauled Windows script wrapping to support ``bdist_wininst`` better.
+   Scripts installed with ``bdist_wininst`` will always use ``#!python.exe`` or
+   ``#!pythonw.exe`` as the executable name (even when built on non-Windows
+   platforms!), and the wrappers will look for the executable in the script's
+   parent directory (which should find the right version of Python).
+
  * Fix ``upload`` command not uploading files built by ``bdist_rpm`` or
    ``bdist_wininst`` under Python 2.3 and 2.4.
 

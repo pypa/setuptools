@@ -369,16 +369,13 @@ Please make the appropriate changes for your system and try again.
 
     def install_egg_scripts(self, dist):
         """Write all the scripts for `dist`, unless scripts are excluded"""
-
+        if not self.exclude_scripts and dist.metadata_isdir('scripts'):
+            for script_name in dist.metadata_listdir('scripts'):
+                self.install_script(
+                    dist, script_name,
+                    dist.get_metadata('scripts/'+script_name).replace('\r','\n')
+                )
         self.install_wrapper_scripts(dist)
-        if self.exclude_scripts or not dist.metadata_isdir('scripts'):
-            return
-
-        for script_name in dist.metadata_listdir('scripts'):
-            self.install_script(
-                dist, script_name,
-                dist.get_metadata('scripts/'+script_name).replace('\r','\n')
-            )
 
     def add_output(self, path):
         if os.path.isdir(path):
@@ -405,6 +402,9 @@ Please make the appropriate changes for your system and try again.
                 "%r already exists in %s; can't do a checkout there" %
                 (spec.key, self.build_directory)
             )
+
+
+
 
 
 
@@ -1407,7 +1407,6 @@ class PthDistributions(Environment):
         else:
             return path
 
-
 def get_script_header(script_text, executable=sys_executable, wininst=False):
     """Create a #! line, getting options (if any) from script_text"""
     from distutils.command.build_scripts import first_line_re
@@ -1418,8 +1417,10 @@ def get_script_header(script_text, executable=sys_executable, wininst=False):
         options = match.group(1) or ''
         if options:
             options = ' '+options
-    if wininst and sys.platform!='win32':
+    if wininst:
         executable = "python.exe"
+    else:
+        executable = nt_quote_arg(executable)
     hdr = "#!%(executable)s%(options)s\n" % locals()
     if unicode(hdr,'ascii','ignore').encode('ascii') != hdr:
         # Non-ascii path to sys.executable, use -x to prevent warnings
@@ -1431,7 +1432,6 @@ def get_script_header(script_text, executable=sys_executable, wininst=False):
             options = ' -x'
         hdr = "#!%(executable)s%(options)s\n" % locals()
     return hdr
-
 
 def auto_chmod(func, arg, exc):
     if func is os.remove and os.name=='nt':
@@ -1465,6 +1465,47 @@ def is_python(text, filename='<string>'):
     else:
         return True
 
+
+
+
+
+
+
+
+
+
+def nt_quote_arg(arg):
+    """Quote a command line argument according to Windows parsing rules"""
+
+    result = []
+    needquote = False
+    nb = 0
+
+    needquote = (" " in arg) or ("\t" in arg)
+    if needquote:
+        result.append('"')
+
+    for c in arg:
+        if c == '\\':
+            nb += 1
+        elif c == '"':
+            # double preceding backslashes, then add a \"
+            result.append('\\' * (nb*2) + '\\"')
+            nb = 0
+        else:
+            if nb:
+                result.append('\\' * nb)
+                nb = 0
+            result.append(c)
+
+    if nb:
+        result.append('\\' * nb)
+
+    if needquote:
+        result.append('\\' * nb)    # double the trailing backslashes
+        result.append('"')
+
+    return ''.join(result)
 
 
 
@@ -1532,7 +1573,7 @@ def get_script_args(dist, executable=sys_executable, wininst=False):
                 ")\n"
             ) % locals()
             if sys.platform=='win32' or wininst:
-                # On Windows, add a .py extension and an .exe launcher
+                # On Windows/wininst, add a .py extension and an .exe launcher
                 if group=='gui_scripts':
                     ext, launcher = '-script.pyw', 'gui.exe'
                     old = ['.pyw']
@@ -1540,9 +1581,9 @@ def get_script_args(dist, executable=sys_executable, wininst=False):
                 else:
                     ext, launcher = '-script.py', 'cli.exe'
                     old = ['.py','.pyc','.pyo']
-                    new_header = re.sub('(?i)pythonw.exe','pythonw.exe',header)
+                    new_header = re.sub('(?i)pythonw.exe','python.exe',header)
 
-                if os.path.exists(new_header[2:-1]):
+                if os.path.exists(new_header[2:-1]) or sys.platform!='win32':
                     hdr = new_header
                 else:
                     hdr = header
