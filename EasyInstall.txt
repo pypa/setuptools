@@ -355,40 +355,6 @@ The above example would then allow downloads only from hosts in the
 ``python.org`` and ``myintranet.example.com`` domains, unless overridden on the
 command line.
 
-Note that if you want to allow downloads from Sourceforge, you need to enable
-the ``dl.sourceforge.net`` host.  All Sourceforge mirror downloads are treated
-as if they had this hostname, regardless of which mirror is actually used to
-do the downloading.  If you want to restrict downloading to specific
-Sourceforge hosts, you must use the ``--sf-mirrors`` option to set what hosts
-will be substituted for ``dl.sourceforge.net``.  See the next section for more
-details.
-
-
-Selecting Your Preferred Sourceforge Mirror(s)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can use the ``--sf-mirrors`` option on the command line, or via the
-standard `configuration files`_, to select what Sourceforge mirrors you want
-downloads to take place from.  For example, putting this in your
-configuration::
-
-    [easy_install]
-    sf_mirrors = superb-east, superb-west, easynews
-
-Would cause ``easy_install`` to always perform Sourceforge downloads using
-``superb-east.dl.sourceforge.net``, ``superb-west.dl.sourceforge.net``, or
-``easynews.dl.sourceforge.net``.  You can also specify IP addresses or full
-domain names.
-
-The actual mirror used will be selected at runtime.  If the selected mirror
-fails, another mirror will be selected, after eliminating the failed mirror as
-a possible choice.
-
-If you don't specify any mirrors, ``easy_install`` will randomly select mirrors
-from the list of IP addresses for ``sf-mirrors.telecommunity.com``.  And if
-the DNS lookup fails, it will simply make a single download attempt to
-``dl.sourceforge.net``, without using any mirrors at all.
-
 
 Installing on Un-networked Machines
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -909,32 +875,6 @@ Command-Line Options
     setting for this option in their `configuration files`_, and then manually
     override the setting on the command line as needed.
 
-    Note that if you wish to allow Sourceforge downloads, you must allow access
-    to ``dl.sourceforge.net``.  You do not have to list individual Sourceforge
-    mirror addresses, as mirror selection is controlled by the ``--sf-mirrors``
-    option.
-
-``--sf-mirrors=NAMES`` (New in 0.6c4)
-    Set the list of Sourceforge mirror sites to use for downloads published by
-    Sourceforge.  EasyInstall will randomly select one for each Sourceforge
-    download attempt.
-
-    Mirror sites can be given by name (e.g. ``easynews``, ``superb-east``,
-    etc.) or by full hostname/IP address (e.g. ``easynews.dl.sf.net``).  Use a
-    comma to separate mirrors.
-
-    If you do not provide any names, EasyInstall will use the list of IP
-    addresses provided by the ``sf-mirrors.telecommunity.com`` subdomain, which
-    is automatically updated daily from Sourceforge's UI pages and DNS.
-
-    If, due to firewall protections or server failure, it isn't possible to get
-    the mirror list from ``sf-mirrors.telecommunity.com``, EasyInstall will
-    attempt to perform all downloads directly from ``dl.sourceforge.net``
-    without selecting a mirror.  (Note, however, that this is extremely
-    unreliable due to Sourceforge not keeping the ``dl.sourceforge.net`` IP
-    addresses up to date with their UI!  This is why the backup system at
-    ``sf-mirrors.telecommunity.com`` exists.)
-
 ``--prefix=DIR`` (New in 0.6a10)
     Use the specified directory as a base for computing the default
     installation and script directories.  On Windows, the resulting default
@@ -1255,15 +1195,11 @@ Release Notes/Change History
 ============================
 
 0.6c4
+ * Removed all special support for Sourceforge mirrors, as Sourceforge's
+   mirror system now works well for non-browser downloads.
+
  * Fixed not recogninzing ``win32.exe`` installers that included a custom
    bitmap.
-
- * Fixed SF downloads aborting when a SF mirror returns an HTML page when it
-   should've returned a 404.  Fall back to ``sf-mirrors.telecommunity.com``
-   round-robin address for SF mirrors if ``dl.sourceforge.net`` doesn't work.
-
- * Allow explicit selection of Sourceforge mirror(s) with ``--sf-mirror``, and
-   further refine download/retry algorithm.
 
  * Fixed not allowing ``os.open()`` of paths outside the sandbox, even if they
    are opened read-only (e.g. reading ``/dev/urandom`` for random numbers, as
