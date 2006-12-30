@@ -189,8 +189,8 @@ class DirectorySandbox(AbstractSandbox):
 
     def open(self, file, flags, mode=0777):
         """Called for low-level os.open()"""
-        if flags & WRITE_FLAGS:
-            self._violation("open", file, flags, mode)
+        if flags & WRITE_FLAGS and not self._ok(file):
+            self._violation("os.open", file, flags, mode)
         return _os.open(file,flags,mode)
 
 
