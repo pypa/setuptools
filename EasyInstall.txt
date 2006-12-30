@@ -1195,6 +1195,11 @@ Release Notes/Change History
 ============================
 
 0.6c4
+ * Added support for HTTP "Basic" authentication using ``http://user:pass@host``
+   URLs.  If a password-protected page contains links to the same host (and
+   protocol), those links will inherit the credentials used to access the
+   original page.
+
  * Removed all special support for Sourceforge mirrors, as Sourceforge's
    mirror system now works well for non-browser downloads.
 

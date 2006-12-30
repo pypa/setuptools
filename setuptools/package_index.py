@@ -576,9 +576,7 @@ class PackageIndex(Environment):
         if url.startswith('file:'):
             return local_open(url)
         try:
-            request = urllib2.Request(url)
-            request.add_header('User-Agent', user_agent)
-            return urllib2.urlopen(request)
+            return open_with_auth(url)
         except urllib2.HTTPError, v:
             return v
         except urllib2.URLError, v:
@@ -612,6 +610,8 @@ class PackageIndex(Environment):
 
     def scan_url(self, url):
         self.process_url(url, True)
+
+
 
     def _attempt_download(self, url, filename):
         headers = self._download_to(url, filename)
@@ -649,6 +649,47 @@ class PackageIndex(Environment):
 
     def warn(self, msg, *args):
         log.warn(msg, *args)
+
+
+
+
+
+def open_with_auth(url):
+    """Open a urllib2 request, handling HTTP authentication"""
+
+    scheme, netloc, path, params, query, frag = urlparse.urlparse(url)
+
+    if scheme in ('http', 'https'):
+        auth, host = urllib2.splituser(netloc)
+    else:
+        auth = None
+
+    if auth:
+        auth = "Basic " + urllib2.unquote(auth).encode('base64').strip()
+        new_url = urlparse.urlunparse((scheme,host,path,params,query,frag))
+        request = urllib2.Request(new_url)
+        request.add_header("Authorization", auth)
+    else:
+        request = urllib2.Request(url)
+
+    request.add_header('User-Agent', user_agent)
+    fp = urllib2.urlopen(request)
+
+    if auth:
+        # Put authentication info back into request URL if same host,
+        # so that links found on the page will work
+        s2, h2, path2, param2, query2, frag2 = urlparse.urlparse(fp.url)
+        if s2==scheme and h2==host:
+            fp.url = urlparse.urlunparse((s2,netloc,path2,param2,query2,frag2))
+
+    return fp
+
+
+
+
+
+
+
 
 
 
