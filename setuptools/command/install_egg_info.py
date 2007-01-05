@@ -22,7 +22,7 @@ class install_egg_info(Command):
             None, None, ei_cmd.egg_name, ei_cmd.egg_version
         ).egg_name()+'.egg-info'
         self.source = ei_cmd.egg_info
-        self.target = os.path.join(self.install_dir, basename) 
+        self.target = os.path.join(self.install_dir, basename)
         self.outputs = [self.target]
 
     def run(self):
@@ -43,7 +43,7 @@ class install_egg_info(Command):
         return self.outputs
 
     def copytree(self):
-        # Copy the .egg-info tree to site-packages       
+        # Copy the .egg-info tree to site-packages
         def skimmer(src,dst):
             # filter out source-control directories; note that 'src' is always
             # a '/'-separated path, regardless of platform.  'dst' is a
@@ -57,9 +57,8 @@ class install_egg_info(Command):
         unpack_archive(self.source, self.target, skimmer)
 
     def install_namespaces(self):
-        nsp = (self.distribution.namespace_packages or [])[:]
+        nsp = self._get_all_ns_packages()
         if not nsp: return
-        nsp.sort()  # set up shorter names first
         filename,ext = os.path.splitext(self.target)
         filename += '-nspkg.pth'; self.outputs.append(filename)
         log.info("Installing %s",filename)
@@ -78,5 +77,47 @@ class install_egg_info(Command):
                     "(p not in mp) and mp.append(p)\n"
                     % locals()
                 )
-            f.close()            
+            f.close()
+
+
+    def _get_all_ns_packages(self):
+        nsp = {}
+        for pkg in self.distribution.namespace_packages or []:
+            pkg = pkg.split('.')
+            while pkg:
+                nsp['.'.join(pkg)] = 1
+                pkg.pop()
+        nsp=list(nsp)
+        nsp.sort()  # set up shorter names first
+        return nsp
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -2623,6 +2623,11 @@ Release Notes/Change History
    ``develop`` and the source directory is a subdirectory of the installation
    target directory.
 
+ * Fix a problem installing eggs with a system packaging tool if the project
+   contained an implicit namespace package; for example if the ``setup()``
+   listed a namespace package ``foo.bar`` without explicitly listing ``foo``
+   as a namespace package.
+
 0.6c3
  * Fixed breakages caused by Subversion 1.4's new "working copy" format
 
