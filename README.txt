@@ -65,19 +65,19 @@ You can use ``--help`` to get a full options list, but we recommend consulting
 the `EasyInstall manual`_ for detailed instructions, especially `the section
 on custom installation locations`_.
 
-.. _The EasyInstall user's guide and reference manual: http://peak.telecommunity.com/DevCenter/EasyInstall
+.. _EasyInstall manual: http://peak.telecommunity.com/DevCenter/EasyInstall
 .. _the section on custom installation locations: http://peak.telecommunity.com/DevCenter/EasyInstall#custom-installation-locations
 
 
 Cygwin Note
 -----------
 
-If you are trying to install setuptools for the *Windows* version of Python (as
-opposed to the Cygwin version that lives in ``/usr/bin``), you must make sure
-that an appropriate executable (``python2.3``, ``python2.4``, or ``python2.5``)
-is on your **Cygwin** ``PATH`` when invoking the egg.  For example, doing the
-following at a Cygwin bash prompt will install setuptools for the *Windows*
-Python found at ``C:\\Python24``::
+If you are trying to install setuptools for the **Windows** version of Python
+(as opposed to the Cygwin version that lives in ``/usr/bin``), you must make
+sure that an appropriate executable (``python2.3``, ``python2.4``, or
+``python2.5``) is on your **Cygwin** ``PATH`` when invoking the egg.  For
+example, doing the following at a Cygwin bash prompt will install setuptools
+for the **Windows** Python found at ``C:\\Python24``::
 
     ln -s /cygdrive/c/Python24/python.exe python2.4
     PATH=.:$PATH sh setuptools-0.6c4-py2.4.egg
