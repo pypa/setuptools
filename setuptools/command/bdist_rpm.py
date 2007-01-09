@@ -19,7 +19,7 @@ class bdist_rpm(_bdist_rpm):
             if dst==self.dist_dir and src.endswith('.rpm'):
                 getattr(self.distribution,'dist_files',[]).append(
                     ('bdist_rpm',
-                    src.endswith('.src.rpm') and 'any' or get_python_version(),
+                    src.endswith('.src.rpm') and 'any' or sys.version[:3],
                      os.path.join(dst, os.path.basename(src)))
                 )
 
