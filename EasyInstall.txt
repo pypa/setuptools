@@ -1194,6 +1194,10 @@ displayed MD5 info (broken onto two lines for readability)::
 Release Notes/Change History
 ============================
 
+0.6c5
+ * Fixed ``.dll`` files on Cygwin not having executable permisions when an egg
+   is installed unzipped.
+
 0.6c4
  * Added support for HTTP "Basic" authentication using ``http://user:pass@host``
    URLs.  If a password-protected page contains links to the same host (and

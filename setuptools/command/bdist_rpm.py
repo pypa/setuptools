@@ -18,7 +18,7 @@ class bdist_rpm(_bdist_rpm):
             _bdist_rpm.move_file(self, src, dst, level)
             if dst==self.dist_dir and src.endswith('.rpm'):
                 getattr(self.distribution,'dist_files',[]).append(
-                    ('bdist_egg',
+                    ('bdist_rpm',
                     src.endswith('.src.rpm') and 'any' or get_python_version(),
                      os.path.join(dst, os.path.basename(src)))
                 )

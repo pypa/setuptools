@@ -7,7 +7,7 @@ d = {}
 execfile(convert_path('setuptools/command/__init__.py'), d)
 
 SETUP_COMMANDS = d['__all__']
-VERSION = "0.6c4"
+VERSION = "0.6c5"
 
 from setuptools import setup, find_packages
 import sys

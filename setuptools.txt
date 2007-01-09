@@ -2600,6 +2600,10 @@ XXX
 Release Notes/Change History
 ----------------------------
 
+0.6c5
+ * Fix uploaded ``bdist_rpm`` packages being described as ``bdist_egg``
+   packages under Python versions less than 2.5.
+
 0.6c4
 
  * Overhauled Windows script wrapping to support ``bdist_wininst`` better.

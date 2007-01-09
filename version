@@ -1,4 +1,4 @@
-#!/usr/local/bin/invoke /usr/local/bin/c6peak version-config
+#!/usr/local/bin/invoke /usr/bin/peak version-config
 
 # This is a PEAK 'version' tool configuration file, that's
 # also executable.  PJE uses it to bump version numbers in

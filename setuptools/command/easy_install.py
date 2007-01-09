@@ -983,16 +983,22 @@ See the setuptools documentation for the "develop" command for more info.
         return dst     # only unpack-and-compile skips files for dry run
 
     def unpack_and_compile(self, egg_path, destination):
-        to_compile = []
+        to_compile = []; to_chmod = []
 
         def pf(src,dst):
             if dst.endswith('.py') and not src.startswith('EGG-INFO/'):
                 to_compile.append(dst)
-            self.unpack_progress(src,dst)
+            self.unpack_progress(src,dst); to_chmod.append(dst)
             return not self.dry_run and dst or None
 
         unpack_archive(egg_path, destination, pf)
         self.byte_compile(to_compile)
+        if not self.dry_run:
+            flags = stat.S_IXGRP|stat.S_IXGRP
+            for f in to_chmod:
+                mode = ((os.stat(f)[stat.ST_MODE]) | 0555) & 07777
+                log.debug("changing mode of %s to %o", f, mode)
+                os.chmod(f, mode)
 
 
     def byte_compile(self, to_compile):
@@ -1009,12 +1015,6 @@ See the setuptools documentation for the "develop" command for more info.
                 )
         finally:
             log.set_verbosity(self.verbose)     # restore original verbosity
-
-
-
-
-
-
 
 
 
