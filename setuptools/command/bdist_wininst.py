@@ -1,5 +1,5 @@
 from distutils.command.bdist_wininst import bdist_wininst as _bdist_wininst
-import os
+import os, sys
 
 class bdist_wininst(_bdist_wininst):
     if sys.version<'2.5':
