@@ -2604,8 +2604,10 @@ Release Notes/Change History
  * Fix uploaded ``bdist_rpm`` packages being described as ``bdist_egg``
    packages under Python versions less than 2.5.
 
-0.6c4
+ * Fix uploaded ``bdist_wininst`` packages being described as suitable for
+   "any" version by Python 2.5, even if a ``--target-version`` was specified.
 
+0.6c4
  * Overhauled Windows script wrapping to support ``bdist_wininst`` better.
    Scripts installed with ``bdist_wininst`` will always use ``#!python.exe`` or
    ``#!pythonw.exe`` as the executable name (even when built on non-Windows
