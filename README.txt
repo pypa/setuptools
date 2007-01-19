@@ -92,6 +92,14 @@ Cheese Shop`_.  Scroll to the very bottom of the page to find the links.
 
 .. _the project's home page in the Python Cheese Shop: http://cheeseshop.python.org/pypi/setuptools
 
+In addition to the PyPI downloads, the development version of ``setuptools``   
+is available from the `Python SVN sandbox`_, and in-development versions of the 
+`0.6 branch`_ are available as well.
+
+.. _0.6 branch: http://svn.python.org/projects/sandbox/branches/setuptools-0.6/#egg=setuptools-dev06
+
+.. _Python SVN sandbox: http://svn.python.org/projects/sandbox/trunk/setuptools/#egg=setuptools-dev
+
 --------------------------------
 Using Setuptools and EasyInstall
 --------------------------------
