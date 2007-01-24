@@ -305,7 +305,7 @@ class bdist_egg(Command):
 
         header = (
             "#!/bin/sh\n"
-            'if [[ `basename $0` = "%(basename)s" ]]\n'
+            'if [ `basename $0` = "%(basename)s" ]\n'
             'then exec python%(pyver)s -c "'
             "import sys, os; sys.path.insert(0, os.path.abspath('$0')); "
             "from %(pkg)s import %(base)s; sys.exit(%(full)s())"

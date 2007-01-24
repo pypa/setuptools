@@ -2603,6 +2603,9 @@ Release Notes/Change History
 0.6c6
  * Fix not building binary RPMs correctly.
 
+ * Fix "eggsecutables" (such as setuptools' own egg) only being runnable with
+   bash-compatible shells.
+
 0.6c5
  * Fix uploaded ``bdist_rpm`` packages being described as ``bdist_egg``
    packages under Python versions less than 2.5.
