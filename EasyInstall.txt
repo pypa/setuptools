@@ -1194,6 +1194,11 @@ displayed MD5 info (broken onto two lines for readability)::
 Release Notes/Change History
 ============================
 
+0.6c6
+ * EasyInstall no longer aborts the installation process if a URL it wants to
+   retrieve can't be downloaded, unless the URL is an actual package download.
+   Instead, it issues a warning and tries to keep going.
+ 
 0.6c5
  * Fixed ``.dll`` files on Cygwin not having executable permisions when an egg
    is installed unzipped.

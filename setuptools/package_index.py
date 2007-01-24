@@ -166,7 +166,6 @@ class PackageIndex(Environment):
         """Evaluate a URL as a possible download, and maybe retrieve it"""
         if url in self.scanned_urls and not retrieve:
             return
-
         self.scanned_urls[url] = True
         if not URL_SCHEME(url):
             self.process_filename(url)
@@ -187,7 +186,8 @@ class PackageIndex(Environment):
             return
 
         self.info("Reading %s", url)
-        f = self.open_url(url)
+        f = self.open_url(url, "Download error: %s -- Some packages may not be found!")
+        if f is None: return
         self.fetched_urls[url] = self.fetched_urls[f.url] = True
 
         if 'html' not in f.headers.get('content-type', '').lower():
@@ -572,7 +572,7 @@ class PackageIndex(Environment):
         pass    # no-op
 
 
-    def open_url(self, url):
+    def open_url(self, url, warning=None):
         if url.startswith('file:'):
             return local_open(url)
         try:
@@ -580,7 +580,8 @@ class PackageIndex(Environment):
         except urllib2.HTTPError, v:
             return v
         except urllib2.URLError, v:
-            raise DistutilsError("Download error: %s" % v.reason)
+            if warning: self.warn(warning, v.reason)
+            else: raise DistutilsError("Download error: %s" % v.reason)
 
     def _download_url(self, scheme, url, tmpdir):
         # Determine download filename
@@ -610,7 +611,6 @@ class PackageIndex(Environment):
 
     def scan_url(self, url):
         self.process_url(url, True)
-
 
 
     def _attempt_download(self, url, filename):
