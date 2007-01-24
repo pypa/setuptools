@@ -15,6 +15,7 @@ will illustrate this.
 Let's create a simple script, foo-script.py:
 
     >>> import os, sys, tempfile
+    >>> from setuptools.command.easy_install import nt_quote_arg
     >>> sample_directory = tempfile.mkdtemp()
     >>> open(os.path.join(sample_directory, 'foo-script.py'), 'w').write(
     ... """#!%(python_exe)s
@@ -25,7 +26,7 @@ Let's create a simple script, foo-script.py:
     ... print input
     ... if __debug__:
     ...     print 'non-optimized'
-    ... """ % dict(python_exe=sys.executable))
+    ... """ % dict(python_exe=nt_quote_arg(sys.executable)))
 
 Note that the script starts with a Unix-style '#!' line saying which
 Python executable to run.  The wrapper will use this to find the
@@ -46,8 +47,8 @@ named out script the way we did.  Now we can run out script by running
 the wrapper:
 
     >>> import os
-    >>> input, output = os.popen4(os.path.join(sample_directory, 'foo.exe')
-    ...               + r' arg1 "arg 2" "arg \"2\\\"" "arg 4\\" "arg5 a\\b')
+    >>> input, output = os.popen4('"'+nt_quote_arg(os.path.join(sample_directory, 'foo.exe'))
+    ...               + r' arg1 "arg 2" "arg \"2\\\"" "arg 4\\" "arg5 a\\b"')
     >>> input.write('hello\nworld\n')
     >>> input.close()
     >>> print output.read(),
@@ -86,9 +87,9 @@ enter the interpreter after running the script, you could use -Oi:
     ... if __debug__:
     ...     print 'non-optimized'
     ... sys.ps1 = '---'
-    ... """ % dict(python_exe=sys.executable))
+    ... """ % dict(python_exe=nt_quote_arg(sys.executable)))
 
-    >>> input, output = os.popen4(os.path.join(sample_directory, 'foo.exe'))
+    >>> input, output = os.popen4(nt_quote_arg(os.path.join(sample_directory, 'foo.exe')))
     >>> input.close()
     >>> print output.read(),
     \foo-script.py

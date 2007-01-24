@@ -129,6 +129,7 @@ char **parse_argv(char *cmdline, int *argc)
     char *output = cmdline;
     char c;
     int nb = 0;
+    int iq = 0;
     *argc = 0;
 
     result[0] = output;
@@ -136,19 +137,20 @@ char **parse_argv(char *cmdline, int *argc)
 
     do {
         c = *cmdline++;
-        if (!c || isspace(c)) {
+        if (!c || (isspace(c) && !iq)) {
             while (nb) {*output++ = '\\'; nb--; }
             *output++ = 0;
             result[++*argc] = output;
             if (!c) return result;
             while (isspace(*cmdline)) cmdline++;  /* skip leading spaces */
+            if (!*cmdline) return result;  /* avoid empty arg if trailing ws */
             continue;
         }
         if (c == '\\')
             ++nb;   /* count \'s */
         else {
             if (c == '"') {
-                if (!(nb & 1)) c = 0;   /* skip " unless odd # of \ */
+                if (!(nb & 1)) { iq = !iq; c = 0; }  /* skip " unless odd # of \ */
                 nb = nb >> 1;   /* cut \'s in half */
             }
             while (nb) {*output++ = '\\'; nb--; }
@@ -156,8 +158,6 @@ char **parse_argv(char *cmdline, int *argc)
         }
     } while (1);
 }
-
-
 
 
 
