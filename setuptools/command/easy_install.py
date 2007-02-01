@@ -373,7 +373,7 @@ Please make the appropriate changes for your system and try again.
             for script_name in dist.metadata_listdir('scripts'):
                 self.install_script(
                     dist, script_name,
-                    dist.get_metadata('scripts/'+script_name).replace('\r','\n')
+                    '\n'.join(dist.get_metadata('scripts/'+script_name).splitlines())
                 )
         self.install_wrapper_scripts(dist)
 

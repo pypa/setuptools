@@ -1198,7 +1198,10 @@ Release Notes/Change History
  * EasyInstall no longer aborts the installation process if a URL it wants to
    retrieve can't be downloaded, unless the URL is an actual package download.
    Instead, it issues a warning and tries to keep going.
- 
+
+ * Fixed distutils-style scripts originally built on Windows having their line
+   endings doubled when installed on any platform.
+  
 0.6c5
  * Fixed ``.dll`` files on Cygwin not having executable permisions when an egg
    is installed unzipped.
