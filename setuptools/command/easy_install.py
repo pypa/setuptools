@@ -373,7 +373,7 @@ Please make the appropriate changes for your system and try again.
             for script_name in dist.metadata_listdir('scripts'):
                 self.install_script(
                     dist, script_name,
-                    '\n'.join(dist.get_metadata('scripts/'+script_name).splitlines())
+                    dist.get_metadata('scripts/'+script_name)
                 )
         self.install_wrapper_scripts(dist)
 
@@ -593,7 +593,7 @@ Please make the appropriate changes for your system and try again.
                 "import pkg_resources\n"
                 "pkg_resources.run_script(%(spec)r, %(script_name)r)\n"
             ) % locals()
-        self.write_script(script_name, script_text)
+        self.write_script(script_name, script_text, 'b')
 
     def write_script(self, script_name, contents, mode="t", blockers=()):
         """Write an executable file to the scripts directory"""
@@ -1518,23 +1518,23 @@ def nt_quote_arg(arg):
 def is_python_script(script_text, filename):
     """Is this text, as a whole, a Python script? (as opposed to shell/bat/etc.
     """
-    if script_text.startswith('#!'):
-        # It begins with a '#!' line, so check if 'python' is in it somewhere
-        from distutils.command.build_scripts import first_line_re
-        lines = script_text.splitlines()
-
-        if first_line_re.match(lines[0]):
-            return True     # It's got a python "#!" line, consider it Python
-        else:
-            return False    # It's some other scripting language
-
     if filename.endswith('.py') or filename.endswith('.pyw'):
         return True     # extension says it's Python
 
     if is_python(script_text, filename):
         return True     # it's syntactically valid Python
 
+    if script_text.startswith('#!'):
+        # It begins with a '#!' line, so check if 'python' is in it somewhere
+        return 'python' in script_text.splitlines()[0].lower()
+
     return False    # Not any Python I can recognize
+
+
+
+
+
+
 
 
 
