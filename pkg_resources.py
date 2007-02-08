@@ -883,6 +883,23 @@ variable to point to an accessible directory.
         return target_path
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     def postprocess(self, tempname, filename):
         """Perform any platform-specific postprocessing of `tempname`
 
@@ -897,7 +914,31 @@ variable to point to an accessible directory.
         is the name it will be renamed to by the caller after this routine
         returns.
         """
-        # XXX
+
+        if os.name == 'posix':
+            # Make the resource executable
+            mode = ((os.stat(tempname).st_mode) | 0555) & 07777
+            os.chmod(tempname, mode)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     def set_extraction_path(self, path):

@@ -1692,6 +1692,9 @@ File/Path Utilities
 Release Notes/Change History
 ----------------------------
 
+0.6c6
+ * Fix extracted C extensions not having executable permissions under Cygwin.
+
 0.6c4
  * Fix "dev" versions being considered newer than release candidates.
 
