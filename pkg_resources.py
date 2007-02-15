@@ -1633,7 +1633,7 @@ def find_on_path(importer, path_item, only=False):
                 elif not only and lower.endswith('.egg-link'):
                     for line in file(os.path.join(path_item, entry)):
                         if not line.strip(): continue
-                        for item in find_distributions(line.rstrip()):
+                        for item in find_distributions(os.path.join(path_item,line.rstrip())):
                             yield item
 
 register_finder(ImpWrapper,find_on_path)
