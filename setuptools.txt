@@ -1910,6 +1910,15 @@ over the installation options for dependencies.
     a requirement can be met using a distribution that is already available in
     a directory on ``sys.path``, it will not be copied to the staging area.
 
+``--egg-path=DIR``
+    Force the generated ``.egg-link`` file to use a specified relative path
+    to the source directory.  This can be useful in circumstances where your
+    installation directory is being shared by code running under multiple
+    platforms (e.g. Mac and Windows) which have different absolute locations
+    for the code under development, but the same *relative* locations with
+    respect to the installation directory.  If you use this option when
+    installing, you must supply the same relative path when uninstalling.
+
 In addition to the above options, the ``develop`` command also accepts all of
 the same options accepted by ``easy_install``.  If you've configured any
 ``easy_install`` settings in your ``setup.cfg`` (or other distutils config
@@ -2601,6 +2610,10 @@ Release Notes/Change History
 ----------------------------
 
 0.6c6
+ * Added ``--egg-path`` option to ``develop`` command, allowing you to force
+   ``.egg-link`` files to use relative paths (allowing them to be shared across
+   platforms on a networked drive).
+
  * Fix not building binary RPMs correctly.
 
  * Fix "eggsecutables" (such as setuptools' own egg) only being runnable with

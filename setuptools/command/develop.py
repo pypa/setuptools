@@ -12,6 +12,7 @@ class develop(easy_install):
 
     user_options = easy_install.user_options + [
         ("uninstall", "u", "Uninstall this source package"),
+        ("egg-path=", None, "Set the path to be used in the .egg-link file"),
     ]
 
     boolean_options = easy_install.boolean_options + ['uninstall']
@@ -28,9 +29,8 @@ class develop(easy_install):
 
     def initialize_options(self):
         self.uninstall = None
+        self.egg_path = None
         easy_install.initialize_options(self)
-
-
 
 
 
@@ -50,13 +50,35 @@ class develop(easy_install):
         easy_install.finalize_options(self)
         self.egg_link = os.path.join(self.install_dir, ei.egg_name+'.egg-link')
         self.egg_base = ei.egg_base
-        self.egg_path = os.path.abspath(ei.egg_base)
+
+        if self.egg_path is None:
+            self.egg_path = os.path.abspath(ei.egg_base)
+
+        target = normalize_path(self.egg_base)
+        if normalize_path(os.path.join(self.install_dir, self.egg_path)) != target:
+            raise DistutilsOptionError(
+                "--egg-path must be a relative path from the install"
+                " directory to "+target
+        )
+
         # Make a distribution for the package's source
         self.dist = Distribution(
-            normalize_path(self.egg_path),
-            PathMetadata(self.egg_path, os.path.abspath(ei.egg_info)),
+            target,
+            PathMetadata(target, os.path.abspath(ei.egg_info)),
             project_name = ei.egg_name
         )
+
+
+
+
+
+
+
+
+
+
+
+
 
     def install_for_development(self):
         # Ensure metadata is up-to-date
@@ -75,10 +97,10 @@ class develop(easy_install):
             f = open(self.egg_link,"w")
             f.write(self.egg_path)
             f.close()
-
         # postprocess the installed distro, fixing up .pth, installing scripts,
         # and handling requirements
         self.process_distribution(None, self.dist, not self.no_deps)
+
 
     def uninstall_link(self):
         if os.path.exists(self.egg_link):
@@ -94,6 +116,9 @@ class develop(easy_install):
         if self.distribution.scripts:
             # XXX should also check for entry point scripts!
             log.warn("Note: you must uninstall or replace scripts manually!")
+
+
+
 
 
     def install_egg_scripts(self, dist):
@@ -114,6 +139,22 @@ class develop(easy_install):
             script_text = f.read()
             f.close()
             self.install_script(dist, script_name, script_text, script_path)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
