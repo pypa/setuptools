@@ -1460,7 +1460,7 @@ def is_python(text, filename='<string>'):
     "Is this string a valid Python script?"
     try:
         compile(text, filename, 'exec')
-    except SyntaxError:
+    except (SyntaxError, TypeError):
         return False
     else:
         return True
