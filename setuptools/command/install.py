@@ -82,7 +82,7 @@ class install(_install):
 
     def do_egg_install(self):
 
-        from setuptools.command.easy_install import easy_install
+        easy_install = self.distribution.get_command_class('easy_install')
 
         cmd = easy_install(
             self.distribution, args="x", root=self.root, record=self.record,
