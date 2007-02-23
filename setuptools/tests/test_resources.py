@@ -1,7 +1,10 @@
 from unittest import TestCase, makeSuite
 from pkg_resources import *
 import pkg_resources, sys
-from sets import ImmutableSet
+try:
+    frozenset
+except NameError:
+    from sets import ImmutableSet as frozenset
 
 class Metadata(EmptyProvider):
     """Mock object to return metadata as if from an on-disk distribution"""
@@ -17,7 +20,6 @@ class Metadata(EmptyProvider):
 
     def get_metadata_lines(self,name):
         return yield_lines(self.get_metadata(name))
-
 
 class DistroTests(TestCase):
 
@@ -337,7 +339,7 @@ class RequirementsTests(TestCase):
         self.assertEqual(hash(r1), hash(r2))
         self.assertEqual(
             hash(r1), hash(("twisted", ((">=",parse_version("1.2")),),
-                            ImmutableSet(["foo","bar"])))
+                            frozenset(["foo","bar"])))
         )
 
     def testVersionEquality(self):

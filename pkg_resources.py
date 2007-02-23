@@ -14,9 +14,30 @@ method.
 """
 
 import sys, os, zipimport, time, re, imp, new
-from sets import ImmutableSet
+
+try:
+    frozenset
+except NameError:
+    from sets import ImmutableSet as frozenset
+
 from os import utime, rename, unlink    # capture these to bypass sandboxing
 from os import open as os_open
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def get_supported_platform():
     """Return this platform's maximum compatible version.
@@ -38,6 +59,26 @@ def get_supported_platform():
         except ValueError:
             pass    # not Mac OS X
     return plat
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 __all__ = [
     # Basic resource access and distribution/entry point discovery
@@ -2387,7 +2428,7 @@ class Requirement:
         self.index, self.extras = index, tuple(map(safe_extra,extras))
         self.hashCmp = (
             self.key, tuple([(op,parsed) for parsed,trans,op,ver in index]),
-            ImmutableSet(self.extras)
+            frozenset(self.extras)
         )
         self.__hash = hash(self.hashCmp)
 
