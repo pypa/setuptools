@@ -1676,7 +1676,7 @@ def find_on_path(importer, path_item, only=False):
                         if not line.strip(): continue
                         for item in find_distributions(os.path.join(path_item,line.rstrip())):
                             yield item
-
+                        break
 register_finder(ImpWrapper,find_on_path)
 
 _namespace_handlers = {}

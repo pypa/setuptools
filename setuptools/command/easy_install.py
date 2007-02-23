@@ -70,18 +70,18 @@ class easy_install(Command):
         ('editable', 'e', "Install specified packages in editable form"),
         ('no-deps', 'N', "don't install dependencies"),
         ('allow-hosts=', 'H', "pattern(s) that hostnames must match"),
+        ('local-snapshots-ok', 'l', "allow building eggs from local checkouts"),
     ]
     boolean_options = [
         'zip-ok', 'multi-version', 'exclude-scripts', 'upgrade', 'always-copy',
         'delete-conflicting', 'ignore-conflicts-at-my-risk', 'editable',
-        'no-deps',
+        'no-deps', 'local-snapshots-ok',
     ]
     negative_opt = {'always-unzip': 'zip-ok'}
     create_index = PackageIndex
 
-
     def initialize_options(self):
-        self.zip_ok = None
+        self.zip_ok = self.local_snapshots_ok = None
         self.install_dir = self.script_dir = self.exclude_scripts = None
         self.index_url = None
         self.find_links = None
@@ -177,7 +177,8 @@ class easy_install(Command):
                 self.find_links = self.find_links.split()
         else:
             self.find_links = []
-
+        if self.local_snapshots_ok:
+            self.package_index.scan_egg_links(self.shadow_path+sys.path)
         self.package_index.add_find_links(self.find_links)
         self.set_undefined_options('install_lib', ('optimize','optimize'))
         if not isinstance(self.optimize,int):
@@ -201,7 +202,6 @@ class easy_install(Command):
                 "No urls, filenames, or requirements specified (see --help)")
 
         self.outputs = []
-
 
     def run(self):
         if self.verbose<>self.distribution.verbose:

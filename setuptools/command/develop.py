@@ -31,7 +31,7 @@ class develop(easy_install):
         self.uninstall = None
         self.egg_path = None
         easy_install.initialize_options(self)
-
+        self.setup_path = None
 
 
 
@@ -61,6 +61,7 @@ class develop(easy_install):
                 " directory to "+target
         )
 
+        
         # Make a distribution for the package's source
         self.dist = Distribution(
             target,
@@ -68,16 +69,15 @@ class develop(easy_install):
             project_name = ei.egg_name
         )
 
-
-
-
-
-
-
-
-
-
-
+        p = self.egg_base.replace(os.sep,'/')
+        if p!= os.curdir:
+            p = '../' * (p.count('/')+1)
+        self.setup_path = p
+        p = normalize_path(os.path.join(self.install_dir, self.egg_path, p))
+        if  p != normalize_path(os.curdir):
+            raise DistutilsOptionError(
+                "Can't get a consistent path to setup script from"
+                " installation directory", p, normalize_path(os.curdir))
 
 
     def install_for_development(self):
@@ -95,7 +95,7 @@ class develop(easy_install):
         log.info("Creating %s (link to %s)", self.egg_link, self.egg_base)
         if not self.dry_run:
             f = open(self.egg_link,"w")
-            f.write(self.egg_path)
+            f.write(self.egg_path + "\n" + self.setup_path)
             f.close()
         # postprocess the installed distro, fixing up .pth, installing scripts,
         # and handling requirements
@@ -106,7 +106,7 @@ class develop(easy_install):
         if os.path.exists(self.egg_link):
             log.info("Removing %s (link to %s)", self.egg_link, self.egg_base)
             contents = [line.rstrip() for line in file(self.egg_link)]
-            if contents != [self.egg_path]:
+            if contents not in ([self.egg_path], [self.egg_path, self.setup_path]):
                 log.warn("Link points to %s: uninstall aborted", contents)
                 return
             if not self.dry_run:

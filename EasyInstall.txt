@@ -383,6 +383,13 @@ prevents .pth files from being used, ``-a`` means to copy all the eggs needed,
 even if they're installed elsewhere on the machine, and ``-d`` indicates the
 directory to place the eggs in.)
 
+You can also build the eggs from local development packages that were installed
+with the ``setup.py develop`` command, by including the ``-l`` option, e.g.::
+
+    easy_install -zmaxld somedir SomePackage
+
+This will use locally-available source distributions to build the eggs.
+
 
 Packaging Others' Projects As Eggs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -887,6 +894,25 @@ Command-Line Options
     script directories, and does not override the ones set on the command line
     or in a configuration file.
 
+``--local-snapshots-ok, -l`` (New in 0.6c6)
+    Normally, EasyInstall prefers to only install *released* versions of
+    projects, not in-development ones, because such projects may not
+    have a currently-valid version number.  So, it usually only installs them
+    when their ``setup.py`` directory is explicitly passed on the command line.
+    
+    However, if this option is used, then any in-development projects that were
+    installed using the ``setup.py develop`` command, will be used to build
+    eggs, effectively upgrading the "in-development" project to a snapshot
+    release.  Normally, this option is used only in conjunction with the
+    ``--always-copy`` option to create a distributable snapshot of every egg
+    needed to run an application.
+
+    Note that if you use this option, you must make sure that there is a valid
+    version number (such as an SVN revision number tag) for any in-development
+    projects that may be used, as otherwise EasyInstall may not be able to tell
+    what version of the project is "newer" when future installations or
+    upgrades are attempted.
+
 
 .. _non-root installation:
 
@@ -1201,6 +1227,9 @@ Release Notes/Change History
 
  * Fixed distutils-style scripts originally built on Windows having their line
    endings doubled when installed on any platform.
+
+ * Added ``--local-snapshots-ok`` flag, to allow building eggs from projects
+   installed using ``setup.py develop``.
   
 0.6c5
  * Fixed ``.dll`` files on Cygwin not having executable permisions when an egg

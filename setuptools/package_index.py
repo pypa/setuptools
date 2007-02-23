@@ -228,20 +228,20 @@ class PackageIndex(Environment):
         else:
             self.warn(msg, url)
 
+    def scan_egg_links(self, search_path):
+        for item in search_path:
+            if os.path.isdir(item):
+                for entry in os.listdir(item):
+                    if entry.endswith('.egg-link'):
+                        self.scan_egg_link(item, entry)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def scan_egg_link(self, path, entry):
+        lines = filter(None, map(str.strip, file(os.path.join(path, entry))))
+        if len(lines)==2:
+            for dist in find_distributions(os.path.join(path, lines[0])):
+                dist.location = os.path.join(path, *lines)
+                dist.precedence = SOURCE_DIST
+                self.add(dist)
 
 
     def process_index(self,url,page):
