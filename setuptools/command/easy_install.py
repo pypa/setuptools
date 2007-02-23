@@ -532,6 +532,7 @@ Please make the appropriate changes for your system and try again.
             for dist in distros:
                 if dist.key not in self.installed_projects:
                     self.easy_install(dist.as_requirement())
+        log.info("Finished processing dependencies for %s", requirement)
 
     def should_unzip(self, dist):
         if self.zip_ok is not None:
@@ -568,7 +569,6 @@ Please make the appropriate changes for your system and try again.
         if not self.exclude_scripts:
             for args in get_script_args(dist):
                 self.write_script(*args)
-
 
 
 
