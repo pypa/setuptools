@@ -80,7 +80,7 @@ class test(Command):
 
 
 
-    def run(self):
+    def with_project_on_sys_path(self, func):
         # Ensure metadata is up-to-date
         self.run_command('egg_info')
 
@@ -88,7 +88,25 @@ class test(Command):
         self.reinitialize_command('build_ext', inplace=1)
         self.run_command('build_ext')
 
-        if self.distribution.tests_require:            
+        ei_cmd = self.get_finalized_command("egg_info")
+
+        old_path = sys.path[:]
+        old_modules = sys.modules.copy()
+
+        try:
+            sys.path.insert(0, normalize_path(ei_cmd.egg_base))
+            working_set.__init__()
+            require('%s==%s' % (ei_cmd.egg_name, ei_cmd.egg_version))
+            func()
+        finally:
+            sys.path[:] = old_path
+            sys.modules.clear()
+            sys.modules.update(old_modules)
+            working_set.__init__()
+
+
+    def run(self):
+        if self.distribution.tests_require:
             self.distribution.fetch_build_eggs(self.distribution.tests_require)
 
         if self.test_suite:
@@ -97,26 +115,49 @@ class test(Command):
                 self.announce('skipping "unittest %s" (dry run)' % cmd)
             else:
                 self.announce('running "unittest %s"' % cmd)
-                self.run_tests()
+                self.with_project_on_sys_path(self.run_tests)
+
+
+
 
 
     def run_tests(self):
         import unittest
-        old_path = sys.path[:]
-        ei_cmd = self.get_finalized_command("egg_info")
-        path_item = normalize_path(ei_cmd.egg_base)
-        metadata = PathMetadata(
-            path_item, normalize_path(ei_cmd.egg_info)
-        )
-        dist = Distribution(path_item, metadata, project_name=ei_cmd.egg_name)
-        working_set.add(dist)
-        require(str(dist.as_requirement()))
         loader_ep = EntryPoint.parse("x="+self.test_loader)
         loader_class = loader_ep.load(require=False)
         unittest.main(
             None, None, [unittest.__file__]+self.test_args,
             testLoader = loader_class()
         )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

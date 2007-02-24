@@ -2622,6 +2622,10 @@ Release Notes/Change History
  * Fix ``#!`` parsing problems in Windows ``.exe`` script wrappers, when there
    was whitespace inside a quoted argument or at the end of the ``#!`` line
    (a regression introduced in 0.6c4).
+
+ * Fix ``test`` command possibly failing if an older version of the project
+   being tested was installed on ``sys.path`` ahead of the test source
+   directory.
  
 0.6c5
  * Fix uploaded ``bdist_rpm`` packages being described as ``bdist_egg``
