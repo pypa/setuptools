@@ -96,6 +96,7 @@ class test(Command):
         try:
             sys.path.insert(0, normalize_path(ei_cmd.egg_base))
             working_set.__init__()
+            add_activation_listener(lambda dist: dist.activate())
             require('%s==%s' % (ei_cmd.egg_name, ei_cmd.egg_version))
             func()
         finally:
@@ -116,7 +117,6 @@ class test(Command):
             else:
                 self.announce('running "unittest %s"' % cmd)
                 self.with_project_on_sys_path(self.run_tests)
-
 
 
 
