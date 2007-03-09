@@ -581,7 +581,9 @@ class PackageIndex(Environment):
             return v
         except urllib2.URLError, v:
             if warning: self.warn(warning, v.reason)
-            else: raise DistutilsError("Download error: %s" % v.reason)
+            else:
+                raise DistutilsError("Download error for %s: %s"
+                                     % (url, v.reason))
 
     def _download_url(self, scheme, url, tmpdir):
         # Determine download filename
