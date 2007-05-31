@@ -7,7 +7,7 @@ from distutils.core import Command as _Command
 from distutils.util import convert_path
 import os.path
 
-__version__ = '0.6c6'
+__version__ = '0.6c7'
 __all__ = [
     'setup', 'Distribution', 'Feature', 'Command', 'Extension', 'Require',
     'find_packages'
