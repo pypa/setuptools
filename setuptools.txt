@@ -1485,8 +1485,10 @@ all practical purposes, you'll probably use only the ``--formats`` option, if
 you use any option at all.
 
 (By the way, if you're using some other revision control system, you might
-consider submitting a patch to the ``setuptools.command.sdist`` module,
-so we can include support for your system.)
+consider creating and publishing a `revision control plugin for setuptools`_.)
+
+
+.. _revision control plugin for setuptools: `Adding Support for Other Revision Control Systems`_
 
 
 Making your package available for EasyInstall
@@ -2626,6 +2628,9 @@ Release Notes/Change History
  * Fix ``test`` command possibly failing if an older version of the project
    being tested was installed on ``sys.path`` ahead of the test source
    directory.
+
+ * Fix ``find_packages()`` treating ``ez_setup`` and directories with ``.`` in
+   their names as packages.
  
 0.6c5
  * Fix uploaded ``bdist_rpm`` packages being described as ``bdist_egg``

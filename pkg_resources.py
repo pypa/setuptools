@@ -1052,7 +1052,7 @@ def get_default_cache():
         dirname = ''
         for key in keys:
             if key in os.environ:
-                dirname = os.path.join(os.environ[key])
+                dirname = os.path.join(dirname, os.environ[key])
             else:
                 break
         else:

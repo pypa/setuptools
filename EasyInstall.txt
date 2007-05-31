@@ -442,6 +442,19 @@ or PyPI mirror.  See the ``--index-url`` option under `Command-Line Options`_,
 below, and also the section on the `Package Index "API"`_.
 
 
+Password-Protected Sites
+------------------------
+
+If a site you want to download from is password-protected using HTTP "Basic"
+authentication, you can specify your credentials in the URL, like so::
+
+    http://some_userid:some_password@some.example.com/some_path/
+
+You can do this with both index page URLs and direct download URLs.  As long
+as any HTML pages read by easy_install use *relative* links to point to the
+downloads, the same user ID and password will be used to do the downloading.
+
+
 Controlling Build Options
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1230,6 +1243,8 @@ Release Notes/Change History
 
  * Added ``--local-snapshots-ok`` flag, to allow building eggs from projects
    installed using ``setup.py develop``.
+
+ * Fixed not HTML-decoding URLs scraped from web pages
   
 0.6c5
  * Fixed ``.dll`` files on Cygwin not having executable permisions when an egg

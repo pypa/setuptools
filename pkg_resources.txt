@@ -1697,6 +1697,9 @@ Release Notes/Change History
 
  * Allow ``.egg-link`` files to contain relative paths.
 
+ * Fix cache dir defaults on Windows when multiple environment vars are needed
+   to construct a path.
+ 
 0.6c4
  * Fix "dev" versions being considered newer than release candidates.
 

@@ -132,14 +132,14 @@ def find_external_links(url, page):
         rels = map(str.strip, rel.lower().split(','))
         if 'homepage' in rels or 'download' in rels:
             for match in HREF.finditer(tag):
-                yield urlparse.urljoin(url, match.group(1))
+                yield urlparse.urljoin(url, htmldecode(match.group(1)))
 
     for tag in ("<th>Home Page", "<th>Download URL"):
         pos = page.find(tag)
         if pos!=-1:
             match = HREF.search(page,pos)
             if match:
-                yield urlparse.urljoin(url, match.group(1))
+                yield urlparse.urljoin(url, htmldecode(match.group(1)))
 
 user_agent = "Python-urllib/%s setuptools/%s" % (
     urllib2.__version__, require('setuptools')[0].version
@@ -200,7 +200,7 @@ class PackageIndex(Environment):
         if url.startswith(self.index_url) and getattr(f,'code',None)!=404:
             page = self.process_index(url, page)
         for match in HREF.finditer(page):
-            link = urlparse.urljoin(base, match.group(1))
+            link = urlparse.urljoin(base, htmldecode(match.group(1)))
             self.process_url(link)
 
     def process_filename(self, fn, nested=False):
@@ -262,7 +262,7 @@ class PackageIndex(Environment):
 
         # process an index page into the package-page index
         for match in HREF.finditer(page):
-            scan( urlparse.urljoin(url, match.group(1)) )
+            scan( urlparse.urljoin(url, htmldecode(match.group(1))) )
 
         pkg, ver = scan(url)   # ensure this page is in the page index
         if pkg:
@@ -611,6 +611,8 @@ class PackageIndex(Environment):
             self.url_ok(url, True)   # raises error if not allowed
             return self._attempt_download(url, filename)
 
+
+
     def scan_url(self, url):
         self.process_url(url, True)
 
@@ -651,6 +653,44 @@ class PackageIndex(Environment):
 
     def warn(self, msg, *args):
         log.warn(msg, *args)
+
+# This pattern matches a character entity reference (a decimal numeric
+# references, a hexadecimal numeric reference, or a named reference).
+entity_sub = re.compile(r'&(#(\d+|x[\da-fA-F]+)|[\w.:-]+);?').sub
+
+def uchr(c):
+    if not isinstance(c, int):
+        return c
+    if c>255: return unichr(c)
+    return chr(c)
+
+def decode_entity(match):
+    what = match.group(1)
+    if what.startswith('#x'):
+        what = int(what[2:], 16)
+    elif what.startswith('#'):
+        what = int(what[1:])
+    else:
+        from htmlentitydefs import name2codepoint
+        what = name2codepoint.get(what, match.group(0))
+    return uchr(what)
+
+def htmldecode(text):
+    """Decode HTML entities in the given text."""
+    return entity_sub(decode_entity, text)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
