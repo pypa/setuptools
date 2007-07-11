@@ -63,19 +63,19 @@ class Command(_Command):
 import distutils.core
 distutils.core.Command = Command    # we can't patch distutils.cmd, alas
 
+def findall(dir = os.curdir):
+    """Find all files under 'dir' and return the list of full filenames
+    (relative to 'dir').
+    """
+    all_files = []
+    for base, dirs, files in os.walk(dir):
+        if base!=os.curdir:
+            files = [os.path.join(base, f) for f in files]
+        all_files.extend(filter(os.path.isfile, files))
+    return all_files
 
-
-
-
-
-
-
-
-
-
-
-
-
+import distutils.filelist
+distutils.filelist.findall = findall    # fix findall bug in distutils.
 
 
 
