@@ -2611,6 +2611,11 @@ XXX
 Release Notes/Change History
 ----------------------------
 
+0.6c7
+
+ * Fixed ``distutils.filelist.findall()`` crashing on broken symlinks, and 
+   ``egg_info`` command failing on new, uncommitted SVN directories.
+
 0.6c6
  * Added ``--egg-path`` option to ``develop`` command, allowing you to force
    ``.egg-link`` files to use relative paths (allowing them to be shared across
