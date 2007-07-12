@@ -69,7 +69,9 @@ def findall(dir = os.curdir):
     """
     all_files = []
     for base, dirs, files in os.walk(dir):
-        if base!=os.curdir:
+        if base==os.curdir or base.startswith(os.curdir+os.sep):
+            base = base[2:]
+        if base:
             files = [os.path.join(base, f) for f in files]
         all_files.extend(filter(os.path.isfile, files))
     return all_files
