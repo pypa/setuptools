@@ -619,7 +619,7 @@ class PackageIndex(Environment):
 
     def _attempt_download(self, url, filename):
         headers = self._download_to(url, filename)
-        if 'html' in headers['content-type'].lower():
+        if 'html' in headers.get('content-type','').lower():
             return self._download_html(url, headers, filename)
         else:
             return filename
@@ -678,7 +678,6 @@ def decode_entity(match):
 def htmldecode(text):
     """Decode HTML entities in the given text."""
     return entity_sub(decode_entity, text)
-
 
 
 
