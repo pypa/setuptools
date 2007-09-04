@@ -149,7 +149,7 @@ user_agent = "Python-urllib/%s setuptools/%s" % (
 class PackageIndex(Environment):
     """A distribution index that scans web pages for download URLs"""
 
-    def __init__(self, index_url="http://www.python.org/pypi", hosts=('*',),
+    def __init__(self, index_url="http://pypi.python.org/simple", hosts=('*',),
         *args, **kw
     ):
         Environment.__init__(self,*args,**kw)

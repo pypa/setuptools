@@ -64,7 +64,7 @@ download the setuptools egg.
 
 If you can't use APS, or don't have internet access at all, you will need to
 first download the appropriate ``.egg`` file from the `setuptools PyPI page
-<http://cheeseshop.python.org/pypi/setuptools>`_ using a computer with internet
+<http://pypi.python.org/pypi/setuptools>`_ using a computer with internet
 access.  Place the egg in the same directory as ``ez_setup.py`` on the target
 computer before running it.
 
@@ -794,9 +794,9 @@ Command-Line Options
     installed package to work, like manually adding it to ``PYTHONPATH`` or to
     ``sys.path`` at runtime.
 
-``--index-url=URL, -i URL`` (New in 0.4a1)
+``--index-url=URL, -i URL`` (New in 0.4a1; default changed in 0.6c7)
     Specifies the base URL of the Python Package Index.  The default is
-    http://www.python.org/pypi if not specified.  When a package is requested
+    http://pypi.python.org/simple if not specified.  When a package is requested
     that is not locally available or linked from a ``--find-links`` download
     page, the package index will be searched for download pages for the needed
     package, and those download pages will be searched for links to download
@@ -1235,6 +1235,9 @@ Release Notes/Change History
 
 0.6c7
  * ``ftp:`` download URLs now work correctly.
+
+ * The default ``--index-url`` is now ``http://pypi.python.org/simple``, to use
+   the Python Package Index's new simpler (and faster!) REST API.
 
 0.6c6
  * EasyInstall no longer aborts the installation process if a URL it wants to

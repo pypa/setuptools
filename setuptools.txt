@@ -2354,7 +2354,7 @@ The ``upload`` command has a few options worth noting:
 
 ``--repository=URL, -r URL``
     The URL of the repository to upload to.  Defaults to
-    http://www.python.org/pypi (i.e., the main PyPI installation).
+    http://pypi.python.org/pypi (i.e., the main PyPI installation).
 
 
 ------------------------------------

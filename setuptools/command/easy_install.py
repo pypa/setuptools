@@ -156,7 +156,7 @@ class easy_install(Command):
                 else:
                     self.all_site_dirs.append(normalize_path(d))
         if not self.editable: self.check_site_dir()
-        self.index_url = self.index_url or "http://cheeseshop.python.org/pypi"
+        self.index_url = self.index_url or "http://pypi.python.org/simple"
         self.shadow_path = self.all_site_dirs[:]
         for path_item in self.install_dir, normalize_path(self.script_dir):
             if path_item not in self.shadow_path:
