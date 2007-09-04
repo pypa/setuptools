@@ -2230,7 +2230,8 @@ class Distribution(object):
         for p, item in enumerate(npath):
             if item==nloc:
                 break
-            elif item==bdir:
+            elif item==bdir and self.precedence==EGG_DIST:
+                # if it's an .egg, give it precedence over its directory
                 path.insert(p, loc)
                 npath.insert(p, nloc)
                 break
@@ -2249,7 +2250,6 @@ class Distribution(object):
                 p = np  # ha!
 
         return
-
 
 
 

@@ -1692,6 +1692,11 @@ File/Path Utilities
 Release Notes/Change History
 ----------------------------
 
+0.6c7
+ * Fix package precedence problem where single-version eggs installed in
+   ``site-packages`` would take precedence over ``.egg`` files (or directories)
+   installed in ``site-packages``.
+   
 0.6c6
  * Fix extracted C extensions not having executable permissions under Cygwin.
 
