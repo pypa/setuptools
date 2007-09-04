@@ -56,6 +56,30 @@ class install_egg_info(Command):
             return dst
         unpack_archive(self.source, self.target, skimmer)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     def install_namespaces(self):
         nsp = self._get_all_ns_packages()
         if not nsp: return
@@ -66,6 +90,12 @@ class install_egg_info(Command):
             f = open(filename,'wb')
             for pkg in nsp:
                 pth = tuple(pkg.split('.'))
+                trailer = '\n'
+                if '.' in pkg:
+                    trailer = (
+                        "; m and setattr(sys.modules[%r], %r, m)\n"
+                        % ('.'.join(pth[:-1]), pth[-1])
+                    )
                 f.write(
                     "import sys,new,os; "
                     "p = os.path.join(sys._getframe(1).f_locals['sitedir'], "
@@ -74,11 +104,10 @@ class install_egg_info(Command):
                     "m = not ie and "
                         "sys.modules.setdefault(%(pkg)r,new.module(%(pkg)r)); "
                     "mp = (m or []) and m.__dict__.setdefault('__path__',[]); "
-                    "(p not in mp) and mp.append(p)\n"
+                    "(p not in mp) and mp.append(p)%(trailer)s"
                     % locals()
                 )
             f.close()
-
 
     def _get_all_ns_packages(self):
         nsp = {}
@@ -90,34 +119,5 @@ class install_egg_info(Command):
         nsp=list(nsp)
         nsp.sort()  # set up shorter names first
         return nsp
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
