@@ -8,7 +8,6 @@ from setuptools import Command
 from distutils.errors import *
 from distutils import log
 from setuptools.command.sdist import sdist
-from distutils import file_util
 from distutils.util import convert_path
 from distutils.filelist import FileList
 from pkg_resources import parse_requirements, safe_name, parse_version, \
@@ -33,6 +32,7 @@ class egg_info(Command):
     boolean_options = ['tag-date', 'tag-svn-revision']
     negative_opt = {'no-svn-revision': 'tag-svn-revision',
                     'no-date': 'tag-date'}
+
 
 
 
@@ -271,11 +271,11 @@ class FileList(FileList):
     """File list that accepts only existing, platform-independent paths"""
 
     def append(self, item):
+        if item.endswith('\r'):     # Fix older sdists built on Windows
+            item = item[:-1]
         path = convert_path(item)
         if os.path.exists(path):
             self.files.append(path)
-
-
 
 
 
@@ -319,7 +319,7 @@ class manifest_maker(sdist):
         files = self.filelist.files
         if os.sep!='/':
             files = [f.replace(os.sep,'/') for f in files]
-        self.execute(file_util.write_file, (self.manifest, files),
+        self.execute(write_file, (self.manifest, files),
                      "writing manifest file '%s'" % self.manifest)
 
     def warn(self, msg):    # suppress missing-file warnings from sdist
@@ -347,13 +347,13 @@ class manifest_maker(sdist):
         self.filelist.exclude_pattern(sep+r'(RCS|CVS|\.svn)'+sep, is_regex=1)
 
 
-
-
-
-
-
-
-
+def write_file (filename, contents):
+    """Create a file with the specified name and write 'contents' (a
+    sequence of strings without line terminators) to it.
+    """
+    f = open(filename, "wb")        # always write POSIX-style manifest
+    f.write("\n".join(contents))
+    f.close()
 
 
 
