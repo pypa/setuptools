@@ -1233,6 +1233,10 @@ displayed MD5 info (broken onto two lines for readability)::
 Release Notes/Change History
 ============================
 
+0.6final
+ * Prevent ``--help-commands`` and other junk from showing under Python 2.5
+   when running ``easy_install --help``.
+
 0.6c7
  * ``ftp:`` download URLs now work correctly.
 

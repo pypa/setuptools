@@ -1661,6 +1661,7 @@ usage: %(script)s [options] requirement_or_url ...
             distutils.core.gen_usage = old_gen_usage
 
     class DistributionWithoutHelpCommands(Distribution):
+        common_usage = ""
         def _show_help(self,*args,**kw):
             with_ei_usage(lambda: Distribution._show_help(self,*args,**kw))
 
@@ -1674,7 +1675,6 @@ usage: %(script)s [options] requirement_or_url ...
             distclass=DistributionWithoutHelpCommands, **kw
         )
     )
-
 
 
 
