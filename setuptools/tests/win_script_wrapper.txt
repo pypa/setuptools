@@ -5,8 +5,7 @@ setuptools includes wrappers for Python scripts that allows them to be
 executed like regular windows programs.  There are 2 wrappers, once
 for command-line programs, cli.exe, and one for graphica programs,
 gui.exe.  These programs are almost identical, function pretty much
-the same way, and are generated from the same source file.  In this
-document, we'll demonstrate use of the command-line program only.  The
+the same way, and are generated from the same source file.  The
 wrapper programs are used by copying them to the directory containing
 the script they are to wrap and with the same name as the script they
 are to wrap.  In the rest of this document, we'll give an example that
@@ -68,13 +67,14 @@ This example was a little pathological in that it exercised windows
 - One or more backslashes preceding double quotes quotes need to be
   escaped by preceding each of them them with back slashes.
 
+
 Specifying Python Command-line Options
 --------------------------------------
 
 You can specify a single argument on the '#!' line.  This can be used
 to specify Python options like -O, to run in optimized mode or -i
 to start the interactive interpreter.  You can combine multiple
-options as usual. For example, to run in optimized mode and 
+options as usual. For example, to run in optimized mode and
 enter the interpreter after running the script, you could use -Oi:
 
     >>> open(os.path.join(sample_directory, 'foo-script.py'), 'w').write(
@@ -97,8 +97,41 @@ enter the interpreter after running the script, you could use -Oi:
     ''
     ---
 
+Testing the GUI Version
+-----------------------
+
+Now let's test the GUI version with the simple scipt, bar-script.py:
+
+    >>> import os, sys, tempfile
+    >>> from setuptools.command.easy_install import nt_quote_arg
+    >>> sample_directory = tempfile.mkdtemp()
+    >>> open(os.path.join(sample_directory, 'bar-script.pyw'), 'w').write(
+    ... """#!%(python_exe)s
+    ... import sys
+    ... open(sys.argv[1], 'wb').write(repr(sys.argv[2]))
+    ... """ % dict(python_exe=nt_quote_arg(sys.executable)))
+
+We'll also copy gui.exe to the sample-directory with the name bar.exe:
+
+    >>> import pkg_resources
+    >>> open(os.path.join(sample_directory, 'bar.exe'), 'wb').write(
+    ...     pkg_resources.resource_string('setuptools', 'gui.exe')
+    ...     )
+
+Finally, we'll run the script and check the result:
+
+    >>> import os
+    >>> input, output = os.popen4('"'+nt_quote_arg(os.path.join(sample_directory, 'bar.exe'))
+    ...               + r' "%s" "Test Argument"' % os.path.join(sample_directory, 'test_output.txt'))
+    >>> input.close()
+    >>> print output.read()
+    <BLANKLINE>
+    >>> print open(os.path.join(sample_directory, 'test_output.txt'), 'rb').read()
+    'Test Argument'
+
 
 We're done with the sample_directory:
 
     >>> import shutil
     >>> shutil.rmtree(sample_directory)
+

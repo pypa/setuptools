@@ -231,8 +231,8 @@ int run(int argc, char **argv, int is_gui) {
 
     if (is_gui) {
         /* Use exec, we don't need to wait for the GUI to finish */
-        execv(python, (const char * const *)(newargs));
-        return fail("Could not exec %s", python);   /* shouldn't get here! */
+        execv(ptr, (const char * const *)(newargs));
+        return fail("Could not exec %s", ptr);   /* shouldn't get here! */
     }
 
     /* We *do* need to wait for a CLI to finish, so use spawn */

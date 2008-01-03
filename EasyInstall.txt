@@ -1237,6 +1237,8 @@ Release Notes/Change History
  * Prevent ``--help-commands`` and other junk from showing under Python 2.5
    when running ``easy_install --help``.
 
+ * Fixed GUI scripts sometimes not executing on Windows
+
 0.6c7
  * ``ftp:`` download URLs now work correctly.
 
