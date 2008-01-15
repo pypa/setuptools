@@ -70,7 +70,7 @@ class build_ext(_build_ext):
                 self.write_stub(package_dir or os.curdir, ext, True)
 
 
-    if _build_ext is not _du_build_ext:
+    if _build_ext is not _du_build_ext and not hasattr(_build_ext,'pyrex_sources'):
         # Workaround for problems using some Pyrex versions w/SWIG and/or 2.4
         def swig_sources(self, sources, *otherargs):
             # first do any Pyrex processing
