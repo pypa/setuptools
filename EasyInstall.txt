@@ -1239,6 +1239,8 @@ Release Notes/Change History
 
  * Fixed GUI scripts sometimes not executing on Windows
 
+ * Fixed not picking up dependency links from recursive dependencies.
+
 0.6c7
  * ``ftp:`` download URLs now work correctly.
 

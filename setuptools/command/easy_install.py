@@ -497,6 +497,10 @@ Please make the appropriate changes for your system and try again.
         self.install_egg_scripts(dist)
         self.installed_projects[dist.key] = dist
         log.info(self.installation_report(requirement, dist, *info))
+        if dist.has_metadata('dependency_links.txt'):
+            self.package_index.add_find_links(
+                dist.get_metadata_lines('dependency_links.txt')
+            )
         if not deps and not self.always_copy:
             return
         elif requirement is not None and dist.key != requirement.key:
@@ -508,10 +512,6 @@ Please make the appropriate changes for your system and try again.
             requirement = requirement or distreq
             requirement = Requirement(
                 distreq.project_name, distreq.specs, requirement.extras
-            )
-        if dist.has_metadata('dependency_links.txt'):
-            self.package_index.add_find_links(
-                dist.get_metadata_lines('dependency_links.txt')
             )
         log.info("Processing dependencies for %s", requirement)
         try:
