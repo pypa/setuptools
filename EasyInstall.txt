@@ -1241,6 +1241,10 @@ Release Notes/Change History
 
  * Fixed not picking up dependency links from recursive dependencies.
 
+ * Only make ``.py``, ``.dll`` and ``.so`` files executable when unpacking eggs
+
+ * Changes for Jython compatibility
+
 0.6c7
  * ``ftp:`` download URLs now work correctly.
 

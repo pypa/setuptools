@@ -2618,6 +2618,8 @@ Release Notes/Change History
 
  * Updated Pyrex support to work with Pyrex 0.9.6 and higher.
 
+ * Minor changes for Jython compatibility
+
 0.6c7
  * Fixed ``distutils.filelist.findall()`` crashing on broken symlinks, and 
    ``egg_info`` command failing on new, uncommitted SVN directories.

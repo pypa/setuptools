@@ -39,8 +39,6 @@ class DistroTests(TestCase):
         # But only 1 package
         self.assertEqual(list(ad), ['foopkg'])
 
-
-
         # Distributions sort by version
         self.assertEqual(
             [dist.version for dist in ad['FooPkg']], ['1.4','1.3-1','1.2']
@@ -255,14 +253,15 @@ class EntryPointTests(TestCase):
             else: raise AssertionError("Should've been bad", ep)
 
     def checkSubMap(self, m):
-        self.assertEqual(str(m),
-            "{'feature2': EntryPoint.parse("
-                "'feature2 = another.module:SomeClass [extra1,extra2]'), "
-            "'feature3': EntryPoint.parse('feature3 = this.module [something]'), "
-            "'feature1': EntryPoint.parse("
-                "'feature1 = somemodule:somefunction')}"
-        )
+        self.assertEqual(len(m), len(self.submap_expect))
+        for key, ep in self.submap_expect.iteritems():
+            self.assertEqual(repr(m.get(key)), repr(ep))
 
+    submap_expect = dict(
+        feature1=EntryPoint('feature1', 'somemodule', ['somefunction']),
+        feature2=EntryPoint('feature2', 'another.module', ['SomeClass'], ['extra1','extra2']),
+        feature3=EntryPoint('feature3', 'this.module', extras=['something'])
+    )
     submap_str = """
             # define features for blah blah
             feature1 = somemodule:somefunction
@@ -285,7 +284,6 @@ class EntryPointTests(TestCase):
         self.assertEqual(m.keys(),['xyz'])
         self.assertRaises(ValueError, EntryPoint.parse_map, ["[xyz]", "[xyz]"])
         self.assertRaises(ValueError, EntryPoint.parse_map, self.submap_str)
-
 
 class RequirementsTests(TestCase):
 

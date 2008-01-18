@@ -1,6 +1,6 @@
 from distutils.command.install_scripts import install_scripts \
      as _install_scripts
-from easy_install import get_script_args, sys_executable
+from easy_install import get_script_args, sys_executable, chmod
 from pkg_resources import Distribution, PathMetadata, ensure_directory
 import os
 from distutils import log
@@ -50,10 +50,10 @@ class install_scripts(_install_scripts):
             f = open(target,"w"+mode)
             f.write(contents)
             f.close()
-            try:
-                os.chmod(target,0755)
-            except (AttributeError, os.error):
-                pass
+            chmod(target,0755)
+
+
+
 
 
 

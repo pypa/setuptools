@@ -608,10 +608,10 @@ Please make the appropriate changes for your system and try again.
             f = open(target,"w"+mode)
             f.write(contents)
             f.close()
-            try:
-                os.chmod(target,0755)
-            except (AttributeError, os.error):
-                pass
+            chmod(target,0755)
+
+
+
 
     def install_eggs(self, spec, dist_filename, tmpdir):
         # .egg dirs or files are already built, so just return them
@@ -988,18 +988,18 @@ See the setuptools documentation for the "develop" command for more info.
         def pf(src,dst):
             if dst.endswith('.py') and not src.startswith('EGG-INFO/'):
                 to_compile.append(dst)
-            self.unpack_progress(src,dst); to_chmod.append(dst)
+                to_chmod.append(dst)
+            elif dst.endswith('.dll') or dst.endswith('.so'):
+                to_chmod.append(dst)
+            self.unpack_progress(src,dst)
             return not self.dry_run and dst or None
 
         unpack_archive(egg_path, destination, pf)
         self.byte_compile(to_compile)
         if not self.dry_run:
-            flags = stat.S_IXGRP|stat.S_IXGRP
             for f in to_chmod:
-                mode = ((os.stat(f)[stat.ST_MODE]) | 0555) & 07777
-                log.debug("changing mode of %s to %o", f, mode)
-                os.chmod(f, mode)
-
+                mode = ((os.stat(f)[stat.ST_MODE]) | 0555) & 07755
+                chmod(f, mode)
 
     def byte_compile(self, to_compile):
         from distutils.util import byte_compile
@@ -1435,7 +1435,7 @@ def get_script_header(script_text, executable=sys_executable, wininst=False):
 
 def auto_chmod(func, arg, exc):
     if func is os.remove and os.name=='nt':
-        os.chmod(arg, stat.S_IWRITE)
+        chmod(arg, stat.S_IWRITE)
         return func(arg)
     exc = sys.exc_info()
     raise exc[0], (exc[1][0], exc[1][1] + (" %s %s" % (func,arg)))
@@ -1530,18 +1530,18 @@ def is_python_script(script_text, filename):
 
     return False    # Not any Python I can recognize
 
+try:
+    from os import chmod as _chmod
+except ImportError:
+    # Jython compatibility
+    def _chmod(*args): pass
 
-
-
-
-
-
-
-
-
-
-
-
+def chmod(path, mode):
+    log.debug("changing mode of %s to %o", path, mode)
+    try:
+        _chmod(path, mode)
+    except os.error, e:
+        log.debug("chmod failed: %s", e)
 
 
 

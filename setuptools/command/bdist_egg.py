@@ -382,7 +382,7 @@ def analyze_egg(egg_dir, stubs):
     for flag,fn in safety_flags.items():
         if os.path.exists(os.path.join(egg_dir,'EGG-INFO',fn)):
             return flag
-
+    if not can_scan(): return False
     safe = True
     for base, dirs, files in walk_egg(egg_dir):
         for name in files:
@@ -448,6 +448,47 @@ def iter_symbols(code):
         elif isinstance(const,CodeType):
             for name in iter_symbols(const):
                 yield name
+
+def can_scan():
+    if not sys.platform.startswith('java') and sys.platform != 'cli':
+        # CPython, PyPy, etc.
+        return True
+    log.warn("Unable to analyze compiled code on this platform.")
+    log.warn("Please ask the author to include a 'zip_safe'"
+             " setting (either True or False) in the package's setup.py")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Attribute names of options for commands that might need to be convinced to
 # install to the egg build directory
