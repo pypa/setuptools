@@ -94,7 +94,7 @@ class easy_install(Command):
 
         # Options not specifiable via command line
         self.package_index = None
-        self.pth_file = None
+        self.pth_file = self.always_copy_from = None
         self.delete_conflicting = None
         self.ignore_conflicts_at_my_risk = None
         self.site_dirs = None
@@ -455,6 +455,11 @@ Please make the appropriate changes for your system and try again.
         install_needed = install_needed or self.always_copy
         install_needed = install_needed or os.path.dirname(download) == tmpdir
         install_needed = install_needed or not download.endswith('.egg')
+        install_needed = install_needed or (
+            self.always_copy_from is not None and
+            os.path.dirname(normalize_path(download)) ==
+            normalize_path(self.always_copy_from)
+        )
 
         if spec and not install_needed:
             # at this point, we know it's a local .egg, we just don't know if
@@ -479,11 +484,6 @@ Please make the appropriate changes for your system and try again.
             for dist in dists:
                 if dist in spec:
                     return dist
-
-
-
-
-
 
 
 
@@ -527,7 +527,7 @@ Please make the appropriate changes for your system and try again.
                 "Installed distribution %s conflicts with requirement %s"
                 % e.args
             )
-        if self.always_copy:
+        if self.always_copy or self.always_copy_from:
             # Force all the relevant distros to be copied or activated
             for dist in distros:
                 if dist.key not in self.installed_projects:

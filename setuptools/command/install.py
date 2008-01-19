@@ -1,4 +1,4 @@
-import setuptools, sys
+import setuptools, sys, glob
 from distutils.command.install import install as _install
 from distutils.errors import DistutilsArgError
 
@@ -88,6 +88,10 @@ class install(_install):
             self.distribution, args="x", root=self.root, record=self.record,
         )
         cmd.ensure_finalized()  # finalize before bdist_egg munges install cmd
+        cmd.always_copy_from = '.'  # make sure local-dir eggs get installed
+
+        # pick up setup-dir .egg files only: no .egg-info
+        cmd.package_index.scan(glob.glob('*.egg'))
 
         self.run_command('bdist_egg')
         args = [self.distribution.get_command_obj('bdist_egg').egg_output]
@@ -99,10 +103,6 @@ class install(_install):
         cmd.args = args
         cmd.run()
         setuptools.bootstrap_install_from = None
-
-
-
-
 
 
 

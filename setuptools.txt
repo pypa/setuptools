@@ -2620,6 +2620,11 @@ Release Notes/Change History
 
  * Minor changes for Jython compatibility
 
+ * Fixed not installing eggs in ``install_requires`` if they were also used for
+   ``setup_requires`` or ``tests_require``.
+
+ * Fixed not fetching eggs in ``install_requires`` when running tests.
+
 0.6c7
  * Fixed ``distutils.filelist.findall()`` crashing on broken symlinks, and 
    ``egg_info`` command failing on new, uncommitted SVN directories.

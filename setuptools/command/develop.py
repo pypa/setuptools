@@ -3,7 +3,7 @@ from distutils.util import convert_path
 from pkg_resources import Distribution, PathMetadata, normalize_path
 from distutils import log
 from distutils.errors import *
-import sys, os, setuptools
+import sys, os, setuptools, glob
 
 class develop(easy_install):
     """Set up package for development"""
@@ -32,7 +32,7 @@ class develop(easy_install):
         self.egg_path = None
         easy_install.initialize_options(self)
         self.setup_path = None
-
+        self.always_copy_from = '.'   # always copy eggs installed in curdir
 
 
 
@@ -48,9 +48,11 @@ class develop(easy_install):
             )
         self.args = [ei.egg_name]       
         easy_install.finalize_options(self)
+        # pick up setup-dir .egg files only: no .egg-info
+        self.package_index.scan(glob.glob('*.egg'))
+
         self.egg_link = os.path.join(self.install_dir, ei.egg_name+'.egg-link')
         self.egg_base = ei.egg_base
-
         if self.egg_path is None:
             self.egg_path = os.path.abspath(ei.egg_base)
 
@@ -60,7 +62,6 @@ class develop(easy_install):
                 "--egg-path must be a relative path from the install"
                 " directory to "+target
         )
-
         
         # Make a distribution for the package's source
         self.dist = Distribution(
@@ -78,7 +79,6 @@ class develop(easy_install):
             raise DistutilsOptionError(
                 "Can't get a consistent path to setup script from"
                 " installation directory", p, normalize_path(os.curdir))
-
 
     def install_for_development(self):
         # Ensure metadata is up-to-date

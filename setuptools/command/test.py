@@ -107,6 +107,8 @@ class test(Command):
 
 
     def run(self):
+        if self.distribution.install_requires:
+            self.distribution.fetch_build_eggs(self.distribution.install_requires)
         if self.distribution.tests_require:
             self.distribution.fetch_build_eggs(self.distribution.tests_require)
 
@@ -117,8 +119,6 @@ class test(Command):
             else:
                 self.announce('running "unittest %s"' % cmd)
                 self.with_project_on_sys_path(self.run_tests)
-
-
 
 
     def run_tests(self):
