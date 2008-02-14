@@ -8,7 +8,7 @@ from setuptools.command.install_lib import install_lib
 from distutils.errors import DistutilsOptionError, DistutilsPlatformError
 from distutils.errors import DistutilsSetupError
 import setuptools, pkg_resources, distutils.core, distutils.dist, distutils.cmd
-import os
+import os, distutils.log
 
 def _get_unpatched(cls):
     """Protect against re-patching the distutils if reloaded
@@ -51,13 +51,19 @@ def assert_string_list(dist, attr, value):
 def check_nsp(dist, attr, value):
     """Verify that namespace packages are valid"""
     assert_string_list(dist,attr,value)
-
     for nsp in value:
         if not dist.has_contents_for(nsp):
             raise DistutilsSetupError(
                 "Distribution contains no modules or packages for " +
                 "namespace package %r" % nsp
             )
+        if '.' in nsp:
+            parent = '.'.join(nsp.split('.')[:-1])
+            if parent not in value:
+                distutils.log.warn(
+                    "%r is declared as a package namespace, but %r is not:"
+                    " please correct this in setup.py", nsp, parent
+                )
 
 def check_extras(dist, attr, value):
     """Verify that extras_require mapping is valid"""
@@ -71,15 +77,15 @@ def check_extras(dist, attr, value):
             "requirement specifiers."
         )
 
+
+
+
 def assert_bool(dist, attr, value):
     """Verify that value is True, False, 0, or 1"""
     if bool(value) != value:
         raise DistutilsSetupError(
             "%r must be a boolean value (got %r)" % (attr,value)
         )
-
-
-
 def check_requirements(dist, attr, value):
     """Verify that install_requires is a valid requirements list"""
     try:
@@ -89,7 +95,6 @@ def check_requirements(dist, attr, value):
             "%r must be a string or list of strings "
             "containing valid project/version requirement specifiers" % (attr,)
         )
-
 def check_entry_points(dist, attr, value):
     """Verify that entry_points map is parseable"""
     try:
@@ -97,11 +102,9 @@ def check_entry_points(dist, attr, value):
     except ValueError, e:
         raise DistutilsSetupError(e)
 
-
 def check_test_suite(dist, attr, value):
     if not isinstance(value,basestring):
         raise DistutilsSetupError("test_suite must be a string")
-
 
 def check_package_data(dist, attr, value):
     """Verify that value is a dictionary of package names to glob lists"""
@@ -117,9 +120,6 @@ def check_package_data(dist, attr, value):
         attr+" must be a dictionary mapping package names to lists of "
         "wildcard patterns"
     )
-
-
-
 
 class Distribution(_Distribution):
     """Distribution with support for features, tests, and package data

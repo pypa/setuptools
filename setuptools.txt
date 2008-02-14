@@ -2628,6 +2628,9 @@ Release Notes/Change History
  * Allow ``ez_setup.use_setuptools()`` to upgrade existing setuptools
    installations when called from a standalone ``setup.py``.
 
+ * Added a warning if a namespace package is declared, but its parent package
+   is not also declared as a namespace.
+
 0.6c7
  * Fixed ``distutils.filelist.findall()`` crashing on broken symlinks, and 
    ``egg_info`` command failing on new, uncommitted SVN directories.
