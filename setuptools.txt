@@ -2625,6 +2625,9 @@ Release Notes/Change History
 
  * Fixed not fetching eggs in ``install_requires`` when running tests.
 
+ * Allow ``ez_setup.use_setuptools()`` to upgrade existing setuptools
+   installations when called from a standalone ``setup.py``.
+
 0.6c7
  * Fixed ``distutils.filelist.findall()`` crashing on broken symlinks, and 
    ``egg_info`` command failing on new, uncommitted SVN directories.
