@@ -1188,7 +1188,9 @@ class NullProvider:
         )
 
     def _fn(self, base, resource_name):
-        return os.path.join(base, *resource_name.split('/'))
+        if resource_name:
+            return os.path.join(base, *resource_name.split('/'))
+        return base
 
     def _get(self, path):
         if hasattr(self.loader, 'get_data'):
@@ -1220,8 +1222,6 @@ class EggProvider(NullProvider):
                 break
             old = path
             path, base = os.path.split(path)
-
-
 
 
 

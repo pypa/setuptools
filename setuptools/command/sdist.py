@@ -1,5 +1,6 @@
 from distutils.command.sdist import sdist as _sdist
 from distutils.util import convert_path
+from distutils import log
 import os, re, sys, pkg_resources
 
 entities = [
@@ -28,7 +29,6 @@ def joinpath(prefix,suffix):
     if not prefix:
         return suffix
     return os.path.join(prefix,suffix)
-
 
 
 

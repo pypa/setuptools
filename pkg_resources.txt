@@ -1692,6 +1692,9 @@ File/Path Utilities
 Release Notes/Change History
 ----------------------------
 
+0.6final
+ * Fix ``resource_listdir('')`` always returning an empty list for zipped eggs.
+ 
 0.6c7
  * Fix package precedence problem where single-version eggs installed in
    ``site-packages`` would take precedence over ``.egg`` files (or directories)
