@@ -1234,6 +1234,10 @@ Release Notes/Change History
 ============================
 
 0.6final
+ * Fixed ``win32.exe`` support for .pth files, so unnecessary directory nesting
+   is flattened out in the resulting egg.  (There was a case-sensitivity
+   problem that affected some distributions, notably ``pywin32``.)
+
  * Prevent ``--help-commands`` and other junk from showing under Python 2.5
    when running ``easy_install --help``.
 

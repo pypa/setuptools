@@ -744,8 +744,9 @@ Please make the appropriate changes for your system and try again.
         native_libs = []
         top_level = {}
         def process(src,dst):
+            s = src.lower()
             for old,new in prefixes:
-                if src.startswith(old):
+                if s.startswith(old):
                     src = new+src[len(old):]
                     parts = src.split('/')
                     dst = os.path.join(egg_tmp, *parts)
@@ -761,7 +762,6 @@ Please make the appropriate changes for your system and try again.
             if not src.endswith('.pth'):
                 log.warn("WARNING: can't process %s", src)
             return None
-
         # extract, tracking .pyd/.dll->native_libs and .py -> to_compile
         unpack_archive(dist_filename, egg_tmp, process)
         stubs = []
@@ -1273,7 +1273,7 @@ def get_exe_prefixes(exe_filename):
     """Get exe->egg path translations for a given .exe file"""
 
     prefixes = [
-        ('PURELIB/', ''),
+        ('PURELIB/', ''), ('PLATLIB/pywin32_system32', ''),
         ('PLATLIB/', ''),
         ('SCRIPTS/', 'EGG-INFO/scripts/')
     ]
@@ -1290,14 +1290,14 @@ def get_exe_prefixes(exe_filename):
                 continue
             if name.endswith('-nspkg.pth'):
                 continue
-            if parts[0] in ('PURELIB','PLATLIB'):
+            if parts[0].upper() in ('PURELIB','PLATLIB'):
                 for pth in yield_lines(z.read(name)):
                     pth = pth.strip().replace('\\','/')
                     if not pth.startswith('import'):
                         prefixes.append((('%s/%s/' % (parts[0],pth)), ''))
     finally:
         z.close()
-
+    prefixes = [(x.lower(),y) for x, y in prefixes]
     prefixes.sort(); prefixes.reverse()
     return prefixes
 
