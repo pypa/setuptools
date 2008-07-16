@@ -86,7 +86,7 @@ def entries_finder(dirname, filename):
     f = open(filename,'rU')
     data = f.read()
     f.close()
-    if data.startswith('8'):    # subversion 1.4
+    if data.startswith('9') or data.startswith('8'):    # subversion 1.5/1.4
         for record in map(str.splitlines, data.split('\n\x0c\n')[1:]):
             if not record or len(record)>=6 and record[5]=="delete":
                 continue    # skip deleted

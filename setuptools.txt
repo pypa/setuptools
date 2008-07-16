@@ -2631,6 +2631,8 @@ Release Notes/Change History
  * Added a warning if a namespace package is declared, but its parent package
    is not also declared as a namespace.
 
+ * Support Subversion 1.5
+
 0.6c7
  * Fixed ``distutils.filelist.findall()`` crashing on broken symlinks, and 
    ``egg_info`` command failing on new, uncommitted SVN directories.
