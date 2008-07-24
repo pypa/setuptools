@@ -217,9 +217,9 @@ class egg_info(Command):
             data = f.read()
             f.close()
 
-            if data.startswith('8'):
+            if data.startswith('9') or data.startswith('8'):
                 data = map(str.splitlines,data.split('\n\x0c\n'))
-                del data[0][0]  # get rid of the '8'
+                del data[0][0]  # get rid of the '8' or '9'
                 dirurl = data[0][3]
                 localrev = max([int(d[9]) for d in data if len(d)>9 and d[9]]+[0])
             elif data.startswith('<?xml'):
