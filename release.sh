@@ -19,5 +19,6 @@ python2.3 ez_setup.py --md5update dist/setuptools-$VERSION*-py2.?.egg && \
       ~/projects/ez_setup/__init__.py #&& \
   #svn up ~/projects/*/ez_setup
 
-# XXX update wiki pages from EasyInstall.txt, setuptools.txt, &
-#     pkg_resources.txt
+# update wiki pages from EasyInstall.txt, setuptools.txt, &
+# pkg_resources.txt
+python2.5 setup.py wikiup -c "Released version: $VERSION"
