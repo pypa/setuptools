@@ -1862,7 +1862,7 @@ def parse_version(s):
     The algorithm assumes that strings like "-" and any alpha string that
     alphabetically follows "final"  represents a "patch level".  So, "2.4-1"
     is assumed to be a branch or patch of "2.4", and therefore "2.4.1" is
-    considered newer than "2.4-1", whic in turn is newer than "2.4".
+    considered newer than "2.4-1", which in turn is newer than "2.4".
 
     Strings like "a", "b", "c", "alpha", "beta", "candidate" and so on (that
     come before "final" alphabetically) are assumed to be pre-release versions,
@@ -1871,7 +1871,8 @@ def parse_version(s):
     Finally, to handle miscellaneous cases, the strings "pre", "preview", and
     "rc" are treated as if they were "c", i.e. as though they were release
     candidates, and therefore are not as new as a version string that does not
-    contain them.
+    contain them, and "dev" is replaced with an '@' so that it sorts lower than
+    than any other pre-release tag.
     """
     parts = []
     for part in _parse_version_parts(s.lower()):

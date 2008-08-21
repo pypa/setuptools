@@ -45,9 +45,9 @@ Cygwin, Mac OS X, Linux, Other
 ==============================
 
 1. Download the appropriate egg for your version of Python (e.g.
-   ``setuptools-0.6c8-py2.4.egg``).  Do NOT rename it.
+   ``setuptools-0.6c9-py2.4.egg``).  Do NOT rename it.
 
-2. Run it as if it were a shell script, e.g. ``sh setuptools-0.6c8-py2.4.egg``.
+2. Run it as if it were a shell script, e.g. ``sh setuptools-0.6c9-py2.4.egg``.
    Setuptools will install itself using the matching version of Python (e.g.
    ``python2.4``), and will place the ``easy_install`` executable in the
    default location for installing Python scripts (as determined by the
@@ -59,7 +59,7 @@ may include EasyInstall command-line options such as ``--prefix``,
 ``--install-dir``, and so on, following the ``.egg`` filename on the same
 command line.  For example::
 
-    sh setuptools-0.6c8-py2.4.egg --prefix=~
+    sh setuptools-0.6c9-py2.4.egg --prefix=~
 
 You can use ``--help`` to get a full options list, but we recommend consulting
 the `EasyInstall manual`_ for detailed instructions, especially `the section
@@ -80,7 +80,7 @@ example, doing the following at a Cygwin bash prompt will install setuptools
 for the **Windows** Python found at ``C:\\Python24``::
 
     ln -s /cygdrive/c/Python24/python.exe python2.4
-    PATH=.:$PATH sh setuptools-0.6c8-py2.4.egg
+    PATH=.:$PATH sh setuptools-0.6c9-py2.4.egg
     rm python2.4
 
 

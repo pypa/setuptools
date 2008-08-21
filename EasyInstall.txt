@@ -30,47 +30,30 @@ Using "Easy Install"
 Installing "Easy Install"
 -------------------------
 
-Download `ez_setup.py <http://peak.telecommunity.com/dist/ez_setup.py>`_, and
-run it; this will download and install the appropriate ``setuptools`` egg for
-your Python version.  (You will need at least Python 2.3.5, or if you are on a
-64-bit platform, Python 2.4.)  An ``easy_install`` script will be installed in
-the normal location for Python scripts on your platform.  (Windows users, don't
-put ``ez_setup.py`` inside your Python installation; please put it in some
-other directory before running it.)
+Please see the `setuptools PyPI page <http://pypi.python.org/pypi/setuptools>`_
+for download links and basic installation instructions for each of the
+supported platforms.
 
-You may receive a message telling you about an obsolete version of setuptools
-being present; if so, you must be sure to delete it entirely, along with the
-old ``pkg_resources`` module if it's present on ``sys.path``.
+You will need at least Python 2.3.5, or if you are on a 64-bit platform, Python
+2.4.  An ``easy_install`` script will be installed in the normal location for
+Python scripts on your platform.
 
-The ``ez_setup.py`` script accepts the same `Command-Line Options`_ and
-`Configuration Files`_  as ``easy_install`` itself, so you can use them to
-control its behavior.  In particular, you can use the --script-dir option to
-direct script installation to a custom location.  You should not, however,
-use custom installation locations without first reading the section below on
-`Custom Installation Locations`_.
+Note that the instructions on the setuptools PyPI page assume that you are
+are installling to Python's primary ``site-packages`` directory.  If this is
+not the case, you should consult the section below on `Custom Installation
+Locations`_ before installing.  (And, on Windows, you should not use the
+``.exe`` installer when installing to an alternate location.)
 
-The instructions you've just read assume that:
+Note that ``easy_install`` normally works by downloading files from the
+internet.  If you are behind an NTLM-based firewall that prevents Python
+programs from accessing the net directly, you may wish to first install and use
+the `APS proxy server <http://ntlmaps.sf.net/>`_, which lets you get past such
+firewalls in the same way that your web browser(s) do.
 
-* You are installling to Python's primary ``site-packages`` directory
-
-* You have unrestricted internet access on the computer where you are
-  installing.
-
-If you are behind an NTLM-based firewall that prevents Python programs from
-accessing the net directly, you may wish to first install and use the `APS
-proxy server <http://ntlmaps.sf.net/>`_, which lets you get past such firewalls
-in the same way that your web browser(s) do.  This will let ``ez_setup.py``
-download the setuptools egg.
-
-If you can't use APS, or don't have internet access at all, you will need to
-first download the appropriate ``.egg`` file from the `setuptools PyPI page
-<http://pypi.python.org/pypi/setuptools>`_ using a computer with internet
-access.  Place the egg in the same directory as ``ez_setup.py`` on the target
-computer before running it.
-
-If you are installing to a custom location or do not have write access to
-Python's primary ``site-packages`` directory, please also see the section below
-on `Custom Installation Locations`_ for more detailed instructions.
+(Alternately, if you do not wish easy_install to actually download anything, you
+can restrict it from doing so with the ``--allow-hosts`` option; see the
+sections on `restricting downloads with --allow-hosts`_ and `command-line
+options`_ for more details.)
 
 
 Troubleshooting
