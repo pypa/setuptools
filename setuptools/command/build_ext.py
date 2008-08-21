@@ -107,7 +107,9 @@ class build_ext(_build_ext):
         if self.shlibs:
             self.setup_shlib_compiler()
         for ext in self.extensions:
-            fullname = ext._full_name = self.get_ext_fullname(ext.name)
+            ext._full_name = self.get_ext_fullname(ext.name)
+        for ext in self.extensions:
+            fullname = ext._full_name
             self.ext_map[fullname] = ext
             ltd = ext._links_to_dynamic = \
                 self.shlibs and self.links_to_dynamic(ext) or False
@@ -118,8 +120,6 @@ class build_ext(_build_ext):
                 ext.library_dirs.append(libdir)
             if ltd and use_stubs and os.curdir not in ext.runtime_library_dirs:
                 ext.runtime_library_dirs.append(os.curdir)
-
-
 
     def setup_shlib_compiler(self):
         compiler = self.shlib_compiler = new_compiler(
