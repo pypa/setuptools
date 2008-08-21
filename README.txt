@@ -116,8 +116,11 @@ learning about Setuptools, Python Eggs, and EasyInstall:
 Questions, comments, and bug reports should be directed to the `distutils-sig
 mailing list`_.  If you have written (or know of) any tutorials, documentation,
 plug-ins, or other resources for setuptools users, please let us know about
-them there, so this reference list can be updated.
+them there, so this reference list can be updated.  If you have working,
+*tested* patches to correct problems or add features, you may submit them to
+the `setuptools bug tracker`_.
 
+.. _setuptools bug tracker: http://bugs.python.org/setuptools/
 .. _Package Compatibility Notes: http://peak.telecommunity.com/DevCenter/PackageNotes
 .. _The Internal Structure of Python Eggs: http://peak.telecommunity.com/DevCenter/EggFormats
 .. _The setuptools Developer's Guide: http://peak.telecommunity.com/DevCenter/setuptools
