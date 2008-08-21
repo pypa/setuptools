@@ -203,10 +203,12 @@ class bdist_egg(Command):
             log.info("installing scripts to %s" % script_dir)
             self.call_command('install_scripts',install_dir=script_dir,no_ep=1)
 
-        native_libs = os.path.join(self.egg_info,"native_libs.txt")
+        self.copy_metadata_to(egg_info)
+        native_libs = os.path.join(egg_info, "native_libs.txt")
         if all_outputs:
             log.info("writing %s" % native_libs)
             if not self.dry_run:
+                ensure_directory(native_libs)
                 libs_file = open(native_libs, 'wt')
                 libs_file.write('\n'.join(all_outputs))
                 libs_file.write('\n')
@@ -215,8 +217,6 @@ class bdist_egg(Command):
             log.info("removing %s" % native_libs)
             if not self.dry_run:
                 os.unlink(native_libs)
-
-        self.copy_metadata_to(egg_info)
 
         write_safety_flag(
             os.path.join(archive_root,'EGG-INFO'), self.zip_safe()

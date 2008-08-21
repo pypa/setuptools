@@ -168,6 +168,12 @@ class egg_info(Command):
         for ep in iter_entry_points('egg_info.writers'):
             writer = ep.load(installer=installer)
             writer(self, ep.name, os.path.join(self.egg_info,ep.name))
+
+        # Get rid of native_libs.txt if it was put there by older bdist_egg
+        nl = os.path.join(self.egg_info, "native_libs.txt")
+        if os.path.exists(nl):
+            self.delete_file(nl)
+
         self.find_sources()
 
     def tags(self):
@@ -180,12 +186,6 @@ class egg_info(Command):
         if self.tag_date:
             import time; version += time.strftime("-%Y%m%d")
         return version
-
-
-
-
-
-
 
 
 
