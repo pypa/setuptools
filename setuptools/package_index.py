@@ -1,10 +1,12 @@
 """PyPI and direct package downloading"""
-
 import sys, os.path, re, urlparse, urllib2, shutil, random, socket, cStringIO
 from pkg_resources import *
 from distutils import log
 from distutils.errors import DistutilsError
-from md5 import md5
+try:
+    from hashlib import md5
+except ImportError:
+    from md5 import md5
 from fnmatch import translate
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.]+)$')
@@ -14,7 +16,6 @@ PYPI_MD5 = re.compile(
     '<a href="([^"#]+)">([^<]+)</a>\n\s+\\(<a (?:title="MD5 hash"\n\s+)'
     'href="[^?]+\?:action=show_md5&amp;digest=([0-9a-f]{32})">md5</a>\\)'
 )
-
 URL_SCHEME = re.compile('([-+.a-z0-9]{2,}):',re.I).match
 EXTENSIONS = ".tar.gz .tar.bz2 .tar .zip .tgz".split()
 
@@ -22,7 +23,6 @@ __all__ = [
     'PackageIndex', 'distros_for_url', 'parse_bdist_wininst',
     'interpret_distro_name',
 ]
-
 
 def parse_bdist_wininst(name):
     """Return (base,pyversion) or (None,None) for possible .exe name"""
