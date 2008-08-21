@@ -220,7 +220,8 @@ class PackageIndex(Environment):
             map(self.add, dists)
 
     def url_ok(self, url, fatal=False):
-        if self.allows(urlparse.urlparse(url)[1]):
+        s = URL_SCHEME(url)
+        if (s and s.group(1).lower()=='file') or self.allows(urlparse.urlparse(url)[1]):
             return True
         msg = "\nLink to % s ***BLOCKED*** by --allow-hosts\n"
         if fatal:
@@ -242,7 +243,6 @@ class PackageIndex(Environment):
                 dist.location = os.path.join(path, *lines)
                 dist.precedence = SOURCE_DIST
                 self.add(dist)
-
 
     def process_index(self,url,page):
         """Process the contents of a PyPI page"""

@@ -17,3 +17,11 @@ class TestPackageIndex(unittest.TestCase):
             self.assert_(url in str(v))
         else:
             self.assert_(isinstance(v,urllib2.HTTPError))
+
+    def test_url_ok(self):
+        index = setuptools.package_index.PackageIndex(
+            hosts=('www.example.com',)
+        )
+        url = 'file:///tmp/test_package_index'
+        self.assert_(index.url_ok(url, True))
+
