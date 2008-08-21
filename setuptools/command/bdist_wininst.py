@@ -21,8 +21,9 @@ class bdist_wininst(_bdist_wininst):
             installer_name = os.path.join(self.dist_dir,
                                           "%s.win32.exe" % fullname)
             pyversion = 'any'
-
-        dist_files.append(('bdist_wininst', pyversion, installer_name))
+        good = ('bdist_wininst', pyversion, installer_name)
+        if good not in dist_files:
+            dist_files.append(good)
 
     def reinitialize_command (self, command, reinit_subcommands=0):
         cmd = self.distribution.reinitialize_command(
