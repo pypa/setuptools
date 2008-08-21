@@ -629,7 +629,7 @@ class PackageIndex(Environment):
         for line in file:
             if line.strip():
                 # Check for a subversion index page
-                if re.search(r'<title>Revision \d+:', line):
+                if re.search(r'<title>([^- ]+ - )?Revision \d+:', line):
                     # it's a subversion index page:
                     file.close()
                     os.unlink(filename)
