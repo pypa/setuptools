@@ -204,7 +204,6 @@ def get_module_constant(module, symbol, default=-1, paths=None):
 
 
 def extract_constant(code,symbol,default=-1):
-
     """Extract the constant value of 'symbol' from 'code'
 
     If the name 'symbol' is bound to a constant value by the Python code
@@ -237,10 +236,11 @@ def extract_constant(code,symbol,default=-1):
             return const
         else:
             const = default
-
-
-
-
-
+            
+if sys.platform.startswith('java') or sys.platform == 'cli':
+    # XXX it'd be better to test assertions about bytecode instead...
+    del extract_constant, get_module_constant
+    __all__.remove('extract_constant')
+    __all__.remove('get_module_constant')
 
 

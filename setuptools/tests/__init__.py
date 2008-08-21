@@ -1,5 +1,4 @@
 """Tests for the 'setuptools' package"""
-
 from unittest import TestSuite, TestCase, makeSuite, defaultTestLoader
 import distutils.core, distutils.cmd
 from distutils.errors import DistutilsOptionError, DistutilsPlatformError
@@ -7,8 +6,8 @@ from distutils.errors import DistutilsSetupError
 import setuptools, setuptools.dist
 from setuptools import Feature
 from distutils.core import Extension
-from setuptools.depends import extract_constant, get_module_constant
-from setuptools.depends import find_module, Require
+extract_constant, get_module_constant = None, None
+from setuptools.depends import *
 from distutils.version import StrictVersion, LooseVersion
 from distutils.util import convert_path
 import sys, os.path
@@ -41,14 +40,10 @@ def makeSetup(**args):
 
 
 
-
-
-
 class DependsTests(TestCase):
 
     def testExtractConst(self):
-
-        from setuptools.depends import extract_constant
+        if not extract_constant: return  # skip on non-bytecode platforms
 
         def f1():
             global x,y,z
@@ -74,6 +69,7 @@ class DependsTests(TestCase):
         f,p,i = find_module('setuptools.tests'); f.close()
 
     def testModuleExtract(self):
+        if not get_module_constant: return  # skip on non-bytecode platforms
         from distutils import __version__
         self.assertEqual(
             get_module_constant('distutils','__version__'), __version__
@@ -86,6 +82,7 @@ class DependsTests(TestCase):
         )
 
     def testRequire(self):
+        if not extract_constant: return  # skip on non-bytecode platforms
 
         req = Require('Distutils','1.0.3','distutils')
 
@@ -123,7 +120,6 @@ class DependsTests(TestCase):
         paths = [os.path.dirname(p) for p in __path__]
         self.failUnless(req.is_present(paths))
         self.failUnless(req.is_current(paths))
-
 
 
 class DistroTests(TestCase):
