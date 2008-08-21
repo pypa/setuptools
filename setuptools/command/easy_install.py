@@ -639,11 +639,11 @@ Please make the appropriate changes for your system and try again.
             setups = glob(os.path.join(setup_base, '*', 'setup.py'))
             if not setups:
                 raise DistutilsError(
-                    "Couldn't find a setup script in %s" % dist_filename
+                    "Couldn't find a setup script in %s" % os.path.abspath(dist_filename)
                 )
             if len(setups)>1:
                 raise DistutilsError(
-                    "Multiple setup scripts in %s" % dist_filename
+                    "Multiple setup scripts in %s" % os.path.abspath(dist_filename)
                 )
             setup_script = setups[0]
 
