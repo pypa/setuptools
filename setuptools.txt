@@ -3104,11 +3104,14 @@ Release Notes/Change History
  * Initial release.
 
 
-Mailing list
-============
+Mailing List and Bug Tracker
+============================
 
 Please use the `distutils-sig mailing list`_ for questions and discussion about
-setuptools.
+setuptools, and the `setuptools bug tracker`_ ONLY for issues you have
+confirmed via the list are actual bugs, and which you have reduced to a minimal
+set of steps to reproduce.
 
 .. _distutils-sig mailing list: http://mail.python.org/pipermail/distutils-sig/
+.. _setuptools bug tracker: http://bugs.python.org/setuptools/
 

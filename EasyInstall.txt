@@ -6,9 +6,13 @@ Easy Install is a python module (``easy_install``) bundled with ``setuptools``
 that lets you automatically download, build, install, and manage Python
 packages.
 
-(Please share your experiences with us! If you encounter difficulty installing
-a package, please submit a ticket via the `Setuptools Bug Tracker
-<http://bugs.python.org/setuptools/>`_ page.  Thanks!)
+Please share your experiences with us! If you encounter difficulty installing
+a package, please contact us via the `distutils mailing list
+<http://mail.python.org/pipermail/distutils-sig/>`_.  (Note: please DO NOT send
+private email directly to the author of setuptools; it will be discarded.  The
+mailing list is a searchable archive of previously-asked and answered
+questions; you should begin your research there before reporting something as a
+bug -- and then do so via list discussion first.)
 
 (Also, if you'd like to learn about how you can use ``setuptools`` to make your
 own packages work better with EasyInstall, or provide EasyInstall-like features
