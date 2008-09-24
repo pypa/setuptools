@@ -48,10 +48,11 @@ md5_data = {
 }
 
 import sys, os
+try: from hashlib import md5
+except ImportError: from md5 import md5
 
 def _validate_md5(egg_name, data):
     if egg_name in md5_data:
-        from md5 import md5
         digest = md5(data).hexdigest()
         if digest != md5_data[egg_name]:
             print >>sys.stderr, (
@@ -60,7 +61,6 @@ def _validate_md5(egg_name, data):
             )
             sys.exit(2)
     return data
-
 
 def use_setuptools(
     version=DEFAULT_VERSION, download_base=DEFAULT_URL, to_dir=os.curdir,
@@ -230,7 +230,6 @@ def update_md5(filenames):
     """Update our built-in md5 registry"""
 
     import re
-    from md5 import md5
 
     for name in filenames:
         base = os.path.basename(name)
@@ -262,6 +261,7 @@ if __name__=='__main__':
         update_md5(sys.argv[2:])
     else:
         main(sys.argv[1:])
+
 
 
 
