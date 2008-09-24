@@ -1,8 +1,10 @@
-from unittest import TestCase, makeSuite
-from pkg_resources import *
-import pkg_resources, sys
-try:
-    frozenset
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# NOTE: the shebang and encoding lines are for ScriptHeaderTests; do not remove
+from unittest import TestCase, makeSuite; from pkg_resources import *
+from setuptools.command.easy_install import get_script_header, is_sh
+import os, pkg_resources, sys, StringIO
+try: frozenset
 except NameError:
     from sets import ImmutableSet as frozenset
 
@@ -28,14 +30,12 @@ class DistroTests(TestCase):
         ad = Environment([], platform=None, python=None)
         self.assertEqual(list(ad), [])
         self.assertEqual(ad['FooPkg'],[])
-
         ad.add(Distribution.from_filename("FooPkg-1.3_1.egg"))
         ad.add(Distribution.from_filename("FooPkg-1.4-py2.4-win32.egg"))
         ad.add(Distribution.from_filename("FooPkg-1.2-py2.4.egg"))
 
         # Name is in there now
         self.failUnless(ad['FooPkg'])
-
         # But only 1 package
         self.assertEqual(list(ad), ['foopkg'])
 
@@ -490,4 +490,44 @@ class ParseTests(TestCase):
 
 
 
+class ScriptHeaderTests(TestCase):
+    non_ascii_exe = '/Users/José/bin/python'
+
+    def test_get_script_header(self):
+        if not sys.platform.startswith('java') or not is_sh(sys.executable):
+            # This test is for non-Jython platforms
+            self.assertEqual(get_script_header('#!/usr/local/bin/python'),
+                             '#!%s\n' % os.path.normpath(sys.executable))
+            self.assertEqual(get_script_header('#!/usr/bin/python -x'),
+                             '#!%s  -x\n' % os.path.normpath(sys.executable))
+            self.assertEqual(get_script_header('#!/usr/bin/python',
+                                               executable=self.non_ascii_exe),
+                             '#!%s -x\n' % self.non_ascii_exe)
+
+    def test_get_script_header_jython_workaround(self):
+        platform = sys.platform
+        sys.platform = 'java1.5.0_13'
+        stdout = sys.stdout
+        try:
+            # A mock sys.executable that uses a shebang line (this file)
+            exe = os.path.normpath(os.path.splitext(__file__)[0] + '.py')
+            self.assertEqual(
+                get_script_header('#!/usr/local/bin/python', executable=exe),
+                '#!/usr/bin/env %s\n' % exe)
+
+            # Ensure we generate what is basically a broken shebang line
+            # when there's options, with a warning emitted
+            sys.stdout = StringIO.StringIO()
+            self.assertEqual(get_script_header('#!/usr/bin/python -x',
+                                               executable=exe),
+                             '#!%s  -x\n' % exe)
+            self.assert_('Unable to adapt shebang line' in sys.stdout.getvalue())
+            sys.stdout = StringIO.StringIO()
+            self.assertEqual(get_script_header('#!/usr/bin/python',
+                                               executable=self.non_ascii_exe),
+                             '#!%s -x\n' % self.non_ascii_exe)
+            self.assert_('Unable to adapt shebang line' in sys.stdout.getvalue())
+        finally:
+            sys.platform = platform
+            sys.stdout = stdout
 

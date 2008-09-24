@@ -1415,8 +1415,7 @@ def get_script_header(script_text, executable=sys_executable, wininst=False):
     options = ''
     if match:
         options = match.group(1) or ''
-        if options:
-            options = ' '+options
+        if options: options = ' '+options
     if wininst:
         executable = "python.exe"
     else:
@@ -1430,7 +1429,8 @@ def get_script_header(script_text, executable=sys_executable, wininst=False):
             # else: punt, we can't do it, let the warning happen anyway
         else:
             options = ' -x'
-        hdr = "#!%(executable)s%(options)s\n" % locals()
+    executable = fix_jython_executable(executable, options)
+    hdr = "#!%(executable)s%(options)s\n" % locals()
     return hdr
 
 def auto_chmod(func, arg, exc):
@@ -1465,14 +1465,14 @@ def is_python(text, filename='<string>'):
     else:
         return True
 
-
-
-
-
-
-
-
-
+def is_sh(executable):
+    """Determine if the specified executable is a .sh (contains a #! line)"""
+    try:
+        fp = open(executable)
+        magic = fp.read(2)
+        fp.close()
+    except (OSError,IOError): return executable
+    return magic == '#!'
 
 def nt_quote_arg(arg):
     """Quote a command line argument according to Windows parsing rules"""
@@ -1520,10 +1520,8 @@ def is_python_script(script_text, filename):
     """
     if filename.endswith('.py') or filename.endswith('.pyw'):
         return True     # extension says it's Python
-
     if is_python(script_text, filename):
         return True     # it's syntactically valid Python
-
     if script_text.startswith('#!'):
         # It begins with a '#!' line, so check if 'python' is in it somewhere
         return 'python' in script_text.splitlines()[0].lower()
@@ -1543,17 +1541,19 @@ def chmod(path, mode):
     except os.error, e:
         log.debug("chmod failed: %s", e)
 
-
-
-
-
-
-
-
-
-
-
-
+def fix_jython_executable(executable, options):
+    if sys.platform.startswith('java') and is_sh(executable):
+        # Workaround Jython's sys.executable being a .sh (an invalid
+        # shebang line interpreter)
+        if options:
+            # Can't apply the workaround, leave it broken
+            log.warn("WARNING: Unable to adapt shebang line for Jython,"
+                             " the following script is NOT executable\n"
+                     "         see http://bugs.jython.org/issue1112 for"
+                             " more information.")
+        else:
+            return '/usr/bin/env %s' % executable
+    return executable
 
 
 def get_script_args(dist, executable=sys_executable, wininst=False):
