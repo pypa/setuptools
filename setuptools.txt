@@ -2618,7 +2618,8 @@ Release Notes/Change History
 
  * Updated Pyrex support to work with Pyrex 0.9.6 and higher.
 
- * Minor changes for Jython compatibility
+ * Minor changes for Jython compatibility, including skipping tests that can't
+   work on Jython.
 
  * Fixed not installing eggs in ``install_requires`` if they were also used for
    ``setup_requires`` or ``tests_require``.
@@ -2632,6 +2633,21 @@ Release Notes/Change History
    is not also declared as a namespace.
 
  * Support Subversion 1.5
+
+ * Removed use of deprecated ``md5`` module if ``hashlib`` is available
+
+ * Fixed ``bdist_wininst upload`` trying to upload the ``.exe`` twice
+
+ * Fixed ``bdist_egg`` putting a ``native_libs.txt`` in the source package's
+   ``.egg-info``, when it should only be in the built egg's ``EGG-INFO``.
+
+ * Ensure that _full_name is set on all shared libs before extensions are
+   checked for shared lib usage.  (Fixes a bug in the experimental shared
+   library build support.)
+
+ * Fix to allow unpacked eggs containing native libraries to fail more
+   gracefully under Google App Engine (with an ``ImportError`` loading the
+   C-based module, instead of getting a ``NameError``).
 
 0.6c7
  * Fixed ``distutils.filelist.findall()`` crashing on broken symlinks, and 

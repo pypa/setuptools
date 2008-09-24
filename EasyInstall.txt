@@ -6,12 +6,9 @@ Easy Install is a python module (``easy_install``) bundled with ``setuptools``
 that lets you automatically download, build, install, and manage Python
 packages.
 
-(Please share your experiences with us! Whether you encountered success or
-difficulty installing a particular package, please add your notes to the
-`Experience Reports <http://peak.telecommunity.com/DevCenter/PackageNotes>`_
-page. You'll need to register for a Wiki ID if you don't already have one; you
-can do that from the `User Preferences
-<http://peak.telecommunity.com/DevCenter/UserPreferences>`_ page. Thanks!)
+(Please share your experiences with us! If you encounter difficulty installing
+a package, please submit a ticket via the `Setuptools Bug Tracker
+<http://bugs.python.org/setuptools/>`_ page.  Thanks!)
 
 (Also, if you'd like to learn about how you can use ``setuptools`` to make your
 own packages work better with EasyInstall, or provide EasyInstall-like features
@@ -1231,6 +1228,20 @@ Release Notes/Change History
  * Only make ``.py``, ``.dll`` and ``.so`` files executable when unpacking eggs
 
  * Changes for Jython compatibility
+
+ * Improved error message when a requirement is also a directory name, but the
+   specified directory is not a source package.
+
+ * Fixed ``--allow-hosts`` option blocking ``file:`` URLs
+
+ * Fixed HTTP SVN detection failing when the page title included a project
+   name (e.g. on SourceForge-hosted SVN)
+
+ * Fix Jython script installation to handle ``#!`` lines better when
+   ``sys.executable`` is a script.
+
+ * Removed use of deprecated ``md5`` module if ``hashlib`` is available
+
 
 0.6c7
  * ``ftp:`` download URLs now work correctly.
