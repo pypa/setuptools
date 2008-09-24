@@ -272,7 +272,7 @@ class easy_install(Command):
 
         if is_site_dir:
             if self.pth_file is None:
-                self.pth_file = PthDistributions(pth_file)
+                self.pth_file = PthDistributions(pth_file, self.all_site_dirs)
         else:
             self.pth_file = None
 
@@ -1315,8 +1315,8 @@ class PthDistributions(Environment):
 
     dirty = False
 
-    def __init__(self, filename):
-        self.filename = filename
+    def __init__(self, filename, sitedirs=()):
+        self.filename = filename; self.sitedirs=map(normalize_path, sitedirs)
         self.basedir = normalize_path(os.path.dirname(self.filename))
         self._load(); Environment.__init__(self, [], None, None)
         for path in yield_lines(self.paths):
@@ -1325,7 +1325,7 @@ class PthDistributions(Environment):
     def _load(self):
         self.paths = []
         saw_import = False
-        seen = {}
+        seen = dict.fromkeys(self.sitedirs)
         if os.path.isfile(self.filename):
             for line in open(self.filename,'rt'):
                 if line.startswith('import'):
@@ -1381,7 +1381,7 @@ class PthDistributions(Environment):
 
     def add(self,dist):
         """Add `dist` to the distribution map"""
-        if dist.location not in self.paths:
+        if dist.location not in self.paths and dist.location not in self.sitedirs:
             self.paths.append(dist.location); self.dirty = True
         Environment.add(self,dist)
 

@@ -1246,6 +1246,8 @@ Release Notes/Change History
 
  * Removed use of deprecated ``md5`` module if ``hashlib`` is available
 
+ * Keep site directories (e.g. ``site-packages``) from being included in
+   ``.pth`` files.
 
 0.6c7
  * ``ftp:`` download URLs now work correctly.
