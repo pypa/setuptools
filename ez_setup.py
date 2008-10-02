@@ -48,6 +48,10 @@ md5_data = {
     'setuptools-0.6c8-py2.3.egg': '50759d29b349db8cfd807ba8303f1902',
     'setuptools-0.6c8-py2.4.egg': 'cba38d74f7d483c06e9daa6070cce6de',
     'setuptools-0.6c8-py2.5.egg': '1721747ee329dc150590a58b3e1ac95b',
+    'setuptools-0.6c9-py2.3.egg': 'a83c4020414807b496e4cfbe08507c03',
+    'setuptools-0.6c9-py2.4.egg': '260a2be2e5388d66bdaee06abec6342a',
+    'setuptools-0.6c9-py2.5.egg': 'fe67c3e5a17b12c0e7c541b7ea43a8e6',
+    'setuptools-0.6c9-py2.6.egg': 'ca37b1ff16fa2ede6e19383e7b59245a',
 }
 
 import sys, os
