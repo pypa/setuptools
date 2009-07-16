@@ -18,7 +18,7 @@ setup(
     version=VERSION,
     description="Download, build, install, upgrade, and uninstall Python "
         "packages -- easily!",
-    author="",
+    author="The fellowship of the packaging",
     author_email="distutils-sig@python.org",
     license="PSF or ZPL",
     long_description = open('README.txt').read(),
