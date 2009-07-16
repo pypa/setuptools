@@ -23,7 +23,7 @@ setup(
     license="PSF or ZPL",
     long_description = open('README.txt').read(),
     keywords = "CPAN PyPI distutils eggs package management",
-    url = "http://pypi.python.org/pypi/setuptools",
+    url = "http://pypi.python.org/pypi/distribute",
     test_suite = 'setuptools.tests',
     packages = find_packages(),
     package_data = {'setuptools':['*.exe']},
@@ -81,7 +81,7 @@ setup(
 
 
     classifiers = [f.strip() for f in """
-    Development Status :: 3 - Alpha
+    Development Status :: 5 - Production/Stable
     Intended Audience :: Developers
     License :: OSI Approved :: Python Software Foundation License
     License :: OSI Approved :: Zope Public License
@@ -92,32 +92,4 @@ setup(
     Topic :: System :: Systems Administration
     Topic :: Utilities""".splitlines() if f.strip()],
     scripts = scripts,
-
-    # uncomment for testing
-    # setup_requires = ['setuptools>=0.6a0'],
 )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
