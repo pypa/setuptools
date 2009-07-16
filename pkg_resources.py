@@ -1649,7 +1649,7 @@ def find_on_path(importer, path_item, only=False):
     """Yield distributions accessible on a sys.path directory"""
     path_item = _normalize_cached(path_item)
 
-    if os.path.isdir(path_item):
+    if os.path.isdir(path_item) and os.access(path_item, os.R_OK):
         if path_item.lower().endswith('.egg'):
             # unpacked egg
             yield Distribution.from_filename(
