@@ -1453,7 +1453,10 @@ class FileMetadata(EmptyProvider):
 
     def get_metadata(self,name):
         if name=='PKG-INFO':
-            return open(self.path,'rU').read()
+            f = open(self.path,'rU')
+            metadata = f.read()
+            f.close()
+            return metadata
         raise KeyError("No metadata except PKG-INFO is available")
 
     def get_metadata_lines(self,name):

@@ -83,7 +83,9 @@ class upload(Command):
                   dry_run=self.dry_run)
 
         # Fill in the data
-        content = open(filename,'rb').read()
+        f = open(filename,'rb')
+        content = f.read()
+        f.close()
         basename = os.path.basename(filename)
         comment = ''
         if command=='bdist_egg' and self.distribution.has_ext_modules():

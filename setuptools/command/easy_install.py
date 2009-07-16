@@ -781,7 +781,9 @@ Please make the appropriate changes for your system and try again.
             if locals()[name]:
                 txt = os.path.join(egg_tmp, 'EGG-INFO', name+'.txt')
                 if not os.path.exists(txt):
-                    open(txt,'w').write('\n'.join(locals()[name])+'\n')
+                    f = open(txt,'w')
+                    f.write('\n'.join(locals()[name])+'\n')
+                    f.close()
 
     def check_conflicts(self, dist):
         """Verify that there are no conflicting "old-style" packages"""
@@ -1076,7 +1078,9 @@ Please make the appropriate changes for your system and try again.""" % (
 
         if os.path.exists(sitepy):
             log.debug("Checking existing site.py in %s", self.install_dir)
-            current = open(sitepy,'rb').read()
+            f = open(sitepy,'rb')
+            current = f.read()
+            f.close()
             if not current.startswith('def __boot():'):
                 raise DistutilsError(
                     "%s is not a setuptools-generated site.py; please"
@@ -1327,7 +1331,8 @@ class PthDistributions(Environment):
         saw_import = False
         seen = dict.fromkeys(self.sitedirs)
         if os.path.isfile(self.filename):
-            for line in open(self.filename,'rt'):
+            f = open(self.filename,'rt')
+            for line in f:
                 if line.startswith('import'):
                     saw_import = True
                     continue
@@ -1345,6 +1350,7 @@ class PthDistributions(Environment):
                     self.dirty = True   # we cleaned up, so we're dirty now :)
                     continue
                 seen[path] = 1
+            f.close()
 
         if self.paths and not saw_import:
             self.dirty = True   # ensure anything we touch has import wrappers

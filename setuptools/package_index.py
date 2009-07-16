@@ -749,7 +749,9 @@ def local_open(url):
         files = []
         for f in os.listdir(filename):
             if f=='index.html':
-                body = open(os.path.join(filename,f),'rb').read()
+                fp = open(os.path.join(filename,f),'rb')
+                body = fp.read()
+                fp.close()
                 break
             elif os.path.isdir(os.path.join(filename,f)):
                 f+='/'
