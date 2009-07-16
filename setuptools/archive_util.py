@@ -189,7 +189,10 @@ def unpack_tarfile(filename, extract_dir, progress_filter=default_filter):
                     if dst:
                         if dst.endswith(os.sep):
                             dst = dst[:-1]
-                        tarobj._extract_member(member,dst)  # XXX Ugh
+                        try:
+                            tarobj._extract_member(member,dst)  # XXX Ugh
+                        except tarfile.ExtractError:
+                            pass    # chown/chmod/mkfifo/mknode/makedev failed
         return True
     finally:
         tarobj.close()
