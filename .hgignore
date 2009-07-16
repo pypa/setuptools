@@ -3,4 +3,5 @@ syntax: glob
 *~
 .coverage
 distribute.egg-info
-
+build
+dist
