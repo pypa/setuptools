@@ -269,7 +269,7 @@ instance:
     the global ``working_set`` to reflect the change.  This method is also
     called by the ``WorkingSet()`` constructor during initialization.
 
-    This method uses ``find_distributions(entry,False)`` to find distributions
+    This method uses ``find_distributions(entry,True)`` to find distributions
     corresponding to the path entry, and then ``add()`` them.  `entry` is
     always appended to the ``entries`` attribute, even if it is already
     present, however. (This is because ``sys.path`` can contain the same value

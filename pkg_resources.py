@@ -387,7 +387,7 @@ class WorkingSet(object):
     def add_entry(self, entry):
         """Add a path item to ``.entries``, finding any distributions on it
 
-        ``find_distributions(entry,False)`` is used to find distributions
+        ``find_distributions(entry,True)`` is used to find distributions
         corresponding to the path entry, and they are added.  `entry` is
         always appended to ``.entries``, even if it is already present.
         (This is because ``sys.path`` can contain the same value more than
