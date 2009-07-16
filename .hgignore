@@ -1,0 +1,6 @@
+syntax: glob
+*.pyc
+*~
+.coverage
+distribute.egg-info
+
