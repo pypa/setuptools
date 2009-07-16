@@ -14,11 +14,11 @@ import sys
 scripts = []
 
 setup(
-    name="setuptools",
+    name="distribute",
     version=VERSION,
     description="Download, build, install, upgrade, and uninstall Python "
         "packages -- easily!",
-    author="Phillip J. Eby",
+    author="",
     author_email="distutils-sig@python.org",
     license="PSF or ZPL",
     long_description = open('README.txt').read(),
