@@ -2,6 +2,7 @@ from distutils.command.sdist import sdist as _sdist
 from distutils.util import convert_path
 from distutils import log
 import os, re, sys, pkg_resources
+from glob import glob
 
 entities = [
     ("&lt;","<"), ("&gt;", ">"), ("&quot;", '"'), ("&apos;", "'"),
@@ -152,6 +153,51 @@ class sdist(_sdist):
             data = ('sdist', '', file)
             if data not in dist_files:
                 dist_files.append(data)
+
+    def add_defaults(self):
+        standards = [('README', 'README.txt'),
+                     self.distribution.script_name]
+        for fn in standards:
+            if isinstance(fn, tuple):
+                alts = fn
+                got_it = 0
+                for fn in alts:
+                    if os.path.exists(fn):
+                        got_it = 1
+                        self.filelist.append(fn)
+                        break
+
+                if not got_it:
+                    self.warn("standard file not found: should have one of " +
+                              ', '.join(alts))
+            else:
+                if os.path.exists(fn):
+                    self.filelist.append(fn)
+                else:
+                    self.warn("standard file '%s' not found" % fn)
+
+        optional = ['test/test*.py', 'setup.cfg']
+        for pattern in optional:
+            files = filter(os.path.isfile, glob(pattern))
+            if files:
+                self.filelist.extend(files)
+
+        # getting python files
+        if self.distribution.has_pure_modules():
+            build_py = self.get_finalized_command('build_py')
+            self.filelist.extend(build_py.get_source_files())
+
+        if self.distribution.has_ext_modules():
+            build_ext = self.get_finalized_command('build_ext')
+            self.filelist.extend(build_ext.get_source_files())
+
+        if self.distribution.has_c_libraries():
+            build_clib = self.get_finalized_command('build_clib')
+            self.filelist.extend(build_clib.get_source_files())
+
+        if self.distribution.has_scripts():
+            build_scripts = self.get_finalized_command('build_scripts')
+            self.filelist.extend(build_scripts.get_source_files())
 
     def read_template(self):
         try:
