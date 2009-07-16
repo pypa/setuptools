@@ -7,7 +7,7 @@ from distutils.core import Command as _Command
 from distutils.util import convert_path
 import os.path
 
-__version__ = '0.6c9'
+__version__ = '0.6'
 __all__ = [
     'setup', 'Distribution', 'Feature', 'Command', 'Extension', 'Require',
     'find_packages'
@@ -40,7 +40,7 @@ def find_packages(where='.', exclude=()):
     return out
 
 setup = distutils.core.setup
-    
+
 _Command = _get_unpatched(_Command)
 
 class Command(_Command):
@@ -53,7 +53,7 @@ class Command(_Command):
         _Command.__init__(self,dist)
         for k,v in kw.items():
             setattr(self,k,v)
-            
+
     def reinitialize_command(self, command, reinit_subcommands=0, **kw):
         cmd = _Command.reinitialize_command(self, command, reinit_subcommands)
         for k,v in kw.items():
