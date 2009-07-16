@@ -2612,6 +2612,9 @@ Release Notes/Change History
 ----------------------------
 
 0.6final
+
+ * Added compatibility with Subversion 1.6.
+
  * Fixed a missing files problem when using Windows source distributions on
    non-Windows platforms, due to distutils not handling manifest file line
    endings correctly.
