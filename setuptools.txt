@@ -2612,9 +2612,22 @@ Release Notes/Change History
 ----------------------------
 
 0.6final
+ * Protected against failures in tarfile extraction. This closes
+   http://bitbucket.org/tarek/distribute/issue/10.
 
- * Added compatibility with Subversion 1.6.
+ * Made Jython api_tests.txt doctest compatible. This closes
+   http://bitbucket.org/tarek/distribute/issue/7.
 
+ * sandbox.py replaced builtin type file with builtin function open. This
+   closes http://bitbucket.org/tarek/distribute/issue/6.
+
+ * Immediately close all file handles. This closes
+   http://bitbucket.org/tarek/distribute/issue/3.
+
+ * Added compatibility with Subversion 1.6. This references
+   http://bitbucket.org/tarek/distribute/issue/1.
+
+0.6c9
  * Fixed a missing files problem when using Windows source distributions on
    non-Windows platforms, due to distutils not handling manifest file line
    endings correctly.

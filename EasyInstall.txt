@@ -1218,6 +1218,10 @@ Release Notes/Change History
 ============================
 
 0.6final
+ * Immediately close all file handles. This closes
+   http://bitbucket.org/tarek/distribute/issue/3.
+
+0.6c9
  * Fixed ``win32.exe`` support for .pth files, so unnecessary directory nesting
    is flattened out in the resulting egg.  (There was a case-sensitivity
    problem that affected some distributions, notably ``pywin32``.)
