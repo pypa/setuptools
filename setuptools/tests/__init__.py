@@ -70,9 +70,9 @@ class DependsTests(TestCase):
 
     def testModuleExtract(self):
         if not get_module_constant: return  # skip on non-bytecode platforms
-        from distutils import __version__
+        from email import __version__
         self.assertEqual(
-            get_module_constant('distutils','__version__'), __version__
+            get_module_constant('email','__version__'), __version__
         )
         self.assertEqual(
             get_module_constant('sys','version'), sys.version
@@ -84,15 +84,15 @@ class DependsTests(TestCase):
     def testRequire(self):
         if not extract_constant: return  # skip on non-bytecode platforms
 
-        req = Require('Distutils','1.0.3','distutils')
+        req = Require('Email','1.0.3','email')
 
-        self.assertEqual(req.name, 'Distutils')
-        self.assertEqual(req.module, 'distutils')
+        self.assertEqual(req.name, 'Email')
+        self.assertEqual(req.module, 'email')
         self.assertEqual(req.requested_version, '1.0.3')
         self.assertEqual(req.attribute, '__version__')
-        self.assertEqual(req.full_name(), 'Distutils-1.0.3')
+        self.assertEqual(req.full_name(), 'Email-1.0.3')
 
-        from distutils import __version__
+        from email import __version__
         self.assertEqual(req.get_version(), __version__)
         self.failUnless(req.version_ok('1.0.9'))
         self.failIf(req.version_ok('0.9.1'))
@@ -101,7 +101,7 @@ class DependsTests(TestCase):
         self.failUnless(req.is_present())
         self.failUnless(req.is_current())
 
-        req = Require('Distutils 3000','03000','distutils',format=LooseVersion)
+        req = Require('Email 3000','03000','email',format=LooseVersion)
         self.failUnless(req.is_present())
         self.failIf(req.is_current())
         self.failIf(req.version_ok('unknown'))
