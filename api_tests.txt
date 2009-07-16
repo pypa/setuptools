@@ -170,8 +170,8 @@ You can append a path entry to a working set using ``add_entry()``::
     >>> ws.entries
     ['http://example.com/something']
     >>> ws.add_entry(pkg_resources.__file__)
-    >>> ws.entries
-    ['http://example.com/something', '...pkg_resources.py...']
+    >>> ws.entries == ['http://example.com/something', pkg_resources.__file__]
+    True
 
 Multiple additions result in multiple entries, even if the entry is already in
 the working set (because ``sys.path`` can contain the same entry more than
