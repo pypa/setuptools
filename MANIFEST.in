@@ -1,0 +1,6 @@
+recursive-include setuptools *.py *.txt *.exe
+recursive-include tests *.py *.c *.pyx
+include *.py
+include *.txt
+include MANIFEST.in
+include launcher.c
