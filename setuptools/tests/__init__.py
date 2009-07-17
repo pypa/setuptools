@@ -16,7 +16,7 @@ def additional_tests():
     import doctest, unittest
     suite = unittest.TestSuite((
         doctest.DocFileSuite(
-            'api_tests.txt',
+            os.path.join('tests', 'api_tests.txt'),
             optionflags=doctest.ELLIPSIS, package='pkg_resources',
             ),
         ))
