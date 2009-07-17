@@ -2606,7 +2606,6 @@ XXX
 
 XXX
 
-
 Mailing List and Bug Tracker
 ============================
 

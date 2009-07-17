@@ -3,9 +3,12 @@ CHANGES
 =======
 
 setuptools
----------
+----------
 
 0.6final
+ * Packages required at build time where not fully present at install time.
+   This closes http://bitbucket.org/tarek/distribute/issue/12.
+
  * Protected against failures in tarfile extraction. This closes
    http://bitbucket.org/tarek/distribute/issue/10.
 
