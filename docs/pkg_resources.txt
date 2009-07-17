@@ -1693,16 +1693,6 @@ File/Path Utilities
 History
 -------
 
-0.6final
- * Allow to find_on_path on systems with tight permissions to fail gracefully.
-   This closes http://bitbucket.org/tarek/distribute/issue/9.
-
- * Corrected inconsistency between documentation and code of add_entry.
-   This closes http://bitbucket.org/tarek/distribute/issue/8.
-
- * Immediately close all file handles. This closes
-   http://bitbucket.org/tarek/distribute/issue/3.
-
 0.6c9
  * Fix ``resource_listdir('')`` always returning an empty list for zipped eggs.
 
