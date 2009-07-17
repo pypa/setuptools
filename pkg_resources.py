@@ -166,14 +166,9 @@ def get_provider(moduleOrReq):
 
 def _macosx_vers(_cache=[]):
     if not _cache:
-        info = os.popen('/usr/bin/sw_vers').read().splitlines()
-        for line in info:
-            key, value = line.split(None, 1)
-            if key == 'ProductVersion:':
-                _cache.append(value.strip().split("."))
-                break
-        else:
-            raise ValueError, "What?!"
+        import platform
+        version = platform.mac_ver()[0]
+        _cache.append(version.split('.'))
     return _cache[0]
 
 def _macosx_arch(machine):

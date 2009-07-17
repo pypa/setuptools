@@ -29,6 +29,10 @@ setuptools
 pkg_resources
 -------------
 
+* Avoid a call to /usr/bin/sw_vers on OSX and use the official platform API
+  instead. Based on a patch from ronaldoussoren. This closes
+  http://bitbucket.org/tarek/distribute/issue/5.
+
 * Fixed a SandboxViolation for mkdir that could occur in certain cases.
   This closes http://bitbucket.org/tarek/distribute/issue/13.
 
