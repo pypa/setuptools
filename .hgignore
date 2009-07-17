@@ -5,3 +5,7 @@ syntax: glob
 distribute.egg-info
 build
 dist
+lib
+bin
+include
+
