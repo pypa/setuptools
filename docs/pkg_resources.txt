@@ -1690,3 +1690,275 @@ File/Path Utilities
     reflect the platform's case-sensitivity, so there is always the possibility
     of two apparently-different paths being equal on such platforms.
 
+History
+-------
+
+0.6final
+ * Allow to find_on_path on systems with tight permissions to fail gracefully.
+   This closes http://bitbucket.org/tarek/distribute/issue/9.
+
+ * Corrected inconsistency between documentation and code of add_entry.
+   This closes http://bitbucket.org/tarek/distribute/issue/8.
+
+ * Immediately close all file handles. This closes
+   http://bitbucket.org/tarek/distribute/issue/3.
+
+0.6c9
+ * Fix ``resource_listdir('')`` always returning an empty list for zipped eggs.
+
+0.6c7
+ * Fix package precedence problem where single-version eggs installed in
+   ``site-packages`` would take precedence over ``.egg`` files (or directories)
+   installed in ``site-packages``.
+
+0.6c6
+ * Fix extracted C extensions not having executable permissions under Cygwin.
+
+ * Allow ``.egg-link`` files to contain relative paths.
+
+ * Fix cache dir defaults on Windows when multiple environment vars are needed
+   to construct a path.
+ 
+0.6c4
+ * Fix "dev" versions being considered newer than release candidates.
+
+0.6c3
+ * Python 2.5 compatibility fixes.
+
+0.6c2
+ * Fix a problem with eggs specified directly on ``PYTHONPATH`` on
+   case-insensitive filesystems possibly not showing up in the default
+   working set, due to differing normalizations of ``sys.path`` entries.
+
+0.6b3
+ * Fixed a duplicate path insertion problem on case-insensitive filesystems.
+
+0.6b1
+ * Split ``get_platform()`` into ``get_supported_platform()`` and
+   ``get_build_platform()`` to work around a Mac versioning problem that caused
+   the behavior of ``compatible_platforms()`` to be platform specific.
+
+ * Fix entry point parsing when a standalone module name has whitespace
+   between it and the extras.
+
+0.6a11
+ * Added ``ExtractionError`` and ``ResourceManager.extraction_error()`` so that
+   cache permission problems get a more user-friendly explanation of the
+   problem, and so that programs can catch and handle extraction errors if they
+   need to.
+
+0.6a10
+ * Added the ``extras`` attribute to ``Distribution``, the ``find_plugins()``
+   method to ``WorkingSet``, and the ``__add__()`` and ``__iadd__()`` methods
+   to ``Environment``.
+
+ * ``safe_name()`` now allows dots in project names.
+
+ * There is a new ``to_filename()`` function that escapes project names and
+   versions for safe use in constructing egg filenames from a Distribution
+   object's metadata.
+
+ * Added ``Distribution.clone()`` method, and keyword argument support to other
+   ``Distribution`` constructors.
+
+ * Added the ``DEVELOP_DIST`` precedence, and automatically assign it to
+   eggs using ``.egg-info`` format.
+
+0.6a9
+ * Don't raise an error when an invalid (unfinished) distribution is found
+   unless absolutely necessary.  Warn about skipping invalid/unfinished eggs
+   when building an Environment.
+
+ * Added support for ``.egg-info`` files or directories with version/platform
+   information embedded in the filename, so that system packagers have the
+   option of including ``PKG-INFO`` files to indicate the presence of a
+   system-installed egg, without needing to use ``.egg`` directories, zipfiles,
+   or ``.pth`` manipulation.
+
+ * Changed ``parse_version()`` to remove dashes before pre-release tags, so
+   that ``0.2-rc1`` is considered an *older* version than ``0.2``, and is equal
+   to ``0.2rc1``.  The idea that a dash *always* meant a post-release version
+   was highly non-intuitive to setuptools users and Python developers, who
+   seem to want to use ``-rc`` version numbers a lot.
+
+0.6a8
+ * Fixed a problem with ``WorkingSet.resolve()`` that prevented version
+   conflicts from being detected at runtime.
+
+ * Improved runtime conflict warning message to identify a line in the user's
+   program, rather than flagging the ``warn()`` call in ``pkg_resources``.
+
+ * Avoid giving runtime conflict warnings for namespace packages, even if they
+   were declared by a different package than the one currently being activated.
+
+ * Fix path insertion algorithm for case-insensitive filesystems.
+
+ * Fixed a problem with nested namespace packages (e.g. ``peak.util``) not
+   being set as an attribute of their parent package.
+
+0.6a6
+ * Activated distributions are now inserted in ``sys.path`` (and the working
+   set) just before the directory that contains them, instead of at the end.
+   This allows e.g. eggs in ``site-packages`` to override unmanaged modules in
+   the same location, and allows eggs found earlier on ``sys.path`` to override
+   ones found later.
+
+ * When a distribution is activated, it now checks whether any contained
+   non-namespace modules have already been imported and issues a warning if
+   a conflicting module has already been imported.
+
+ * Changed dependency processing so that it's breadth-first, allowing a
+   depender's preferences to override those of a dependee, to prevent conflicts
+   when a lower version is acceptable to the dependee, but not the depender.
+
+ * Fixed a problem extracting zipped files on Windows, when the egg in question
+   has had changed contents but still has the same version number.
+
+0.6a4
+ * Fix a bug in ``WorkingSet.resolve()`` that was introduced in 0.6a3.
+
+0.6a3
+ * Added ``safe_extra()`` parsing utility routine, and use it for Requirement,
+   EntryPoint, and Distribution objects' extras handling.
+
+0.6a1
+ * Enhanced performance of ``require()`` and related operations when all
+   requirements are already in the working set, and enhanced performance of
+   directory scanning for distributions.
+
+ * Fixed some problems using ``pkg_resources`` w/PEP 302 loaders other than
+   ``zipimport``, and the previously-broken "eager resource" support.
+
+ * Fixed ``pkg_resources.resource_exists()`` not working correctly, along with
+   some other resource API bugs.
+
+ * Many API changes and enhancements:
+
+   * Added ``EntryPoint``, ``get_entry_map``, ``load_entry_point``, and
+     ``get_entry_info`` APIs for dynamic plugin discovery.
+
+   * ``list_resources`` is now ``resource_listdir`` (and it actually works)
+
+   * Resource API functions like ``resource_string()`` that accepted a package
+     name and resource name, will now also accept a ``Requirement`` object in
+     place of the package name (to allow access to non-package data files in
+     an egg).
+
+   * ``get_provider()`` will now accept a ``Requirement`` instance or a module
+     name.  If it is given a ``Requirement``, it will return a corresponding
+     ``Distribution`` (by calling ``require()`` if a suitable distribution
+     isn't already in the working set), rather than returning a metadata and
+     resource provider for a specific module.  (The difference is in how
+     resource paths are interpreted; supplying a module name means resources
+     path will be module-relative, rather than relative to the distribution's
+     root.)
+
+   * ``Distribution`` objects now implement the ``IResourceProvider`` and
+     ``IMetadataProvider`` interfaces, so you don't need to reference the (no
+     longer available) ``metadata`` attribute to get at these interfaces.
+
+   * ``Distribution`` and ``Requirement`` both have a ``project_name``
+     attribute for the project name they refer to.  (Previously these were
+     ``name`` and ``distname`` attributes.)
+
+   * The ``path`` attribute of ``Distribution`` objects is now ``location``,
+     because it isn't necessarily a filesystem path (and hasn't been for some
+     time now).  The ``location`` of ``Distribution`` objects in the filesystem
+     should always be normalized using ``pkg_resources.normalize_path()``; all
+     of the setuptools and EasyInstall code that generates distributions from
+     the filesystem (including ``Distribution.from_filename()``) ensure this
+     invariant, but if you use a more generic API like ``Distribution()`` or
+     ``Distribution.from_location()`` you should take care that you don't
+     create a distribution with an un-normalized filesystem path.
+
+   * ``Distribution`` objects now have an ``as_requirement()`` method that
+     returns a ``Requirement`` for the distribution's project name and version.
+
+   * Distribution objects no longer have an ``installed_on()`` method, and the
+     ``install_on()`` method is now ``activate()`` (but may go away altogether
+     soon).  The ``depends()`` method has also been renamed to ``requires()``,
+     and ``InvalidOption`` is now ``UnknownExtra``.
+
+   * ``find_distributions()`` now takes an additional argument called ``only``,
+     that tells it to only yield distributions whose location is the passed-in
+     path.  (It defaults to False, so that the default behavior is unchanged.)
+
+   * ``AvailableDistributions`` is now called ``Environment``, and the
+     ``get()``, ``__len__()``, and ``__contains__()`` methods were removed,
+     because they weren't particularly useful.  ``__getitem__()`` no longer
+     raises ``KeyError``; it just returns an empty list if there are no
+     distributions for the named project.
+
+   * The ``resolve()`` method of ``Environment`` is now a method of
+     ``WorkingSet`` instead, and the ``best_match()`` method now uses a working
+     set instead of a path list as its second argument.
+
+   * There is a new ``pkg_resources.add_activation_listener()`` API that lets
+     you register a callback for notifications about distributions added to
+     ``sys.path`` (including the distributions already on it).  This is
+     basically a hook for extensible applications and frameworks to be able to
+     search for plugin metadata in distributions added at runtime.
+
+0.5a13
+ * Fixed a bug in resource extraction from nested packages in a zipped egg.
+
+0.5a12
+ * Updated extraction/cache mechanism for zipped resources to avoid inter-
+   process and inter-thread races during extraction.  The default cache
+   location can now be set via the ``PYTHON_EGGS_CACHE`` environment variable,
+   and the default Windows cache is now a ``Python-Eggs`` subdirectory of the
+   current user's "Application Data" directory, if the ``PYTHON_EGGS_CACHE``
+   variable isn't set.
+
+0.5a10
+ * Fix a problem with ``pkg_resources`` being confused by non-existent eggs on
+   ``sys.path`` (e.g. if a user deletes an egg without removing it from the
+   ``easy-install.pth`` file).
+
+ * Fix a problem with "basket" support in ``pkg_resources``, where egg-finding
+   never actually went inside ``.egg`` files.
+
+ * Made ``pkg_resources`` import the module you request resources from, if it's
+   not already imported.
+
+0.5a4
+ * ``pkg_resources.AvailableDistributions.resolve()`` and related methods now
+   accept an ``installer`` argument: a callable taking one argument, a
+   ``Requirement`` instance.  The callable must return a ``Distribution``
+   object, or ``None`` if no distribution is found.  This feature is used by
+   EasyInstall to resolve dependencies by recursively invoking itself.
+
+0.4a4
+ * Fix problems with ``resource_listdir()``, ``resource_isdir()`` and resource
+   directory extraction for zipped eggs.
+
+0.4a3
+ * Fixed scripts not being able to see a ``__file__`` variable in ``__main__``
+
+ * Fixed a problem with ``resource_isdir()`` implementation that was introduced
+   in 0.4a2.
+
+0.4a1
+ * Fixed a bug in requirements processing for exact versions (i.e. ``==`` and
+   ``!=``) when only one condition was included.
+
+ * Added ``safe_name()`` and ``safe_version()`` APIs to clean up handling of
+   arbitrary distribution names and versions found on PyPI.
+
+0.3a4
+ * ``pkg_resources`` now supports resource directories, not just the resources
+   in them.  In particular, there are ``resource_listdir()`` and
+   ``resource_isdir()`` APIs.
+
+ * ``pkg_resources`` now supports "egg baskets" -- .egg zipfiles which contain
+   multiple distributions in subdirectories whose names end with ``.egg``.
+   Having such a "basket" in a directory on ``sys.path`` is equivalent to
+   having the individual eggs in that directory, but the contained eggs can
+   be individually added (or not) to ``sys.path``.  Currently, however, there
+   is no automated way to create baskets.
+
+ * Namespace package manipulation is now protected by the Python import lock.
+
+0.3a1
+ * Initial release.
+
