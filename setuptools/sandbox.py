@@ -6,10 +6,8 @@ from distutils.errors import DistutilsError
 __all__ = [
     "AbstractSandbox", "DirectorySandbox", "SandboxViolation", "run_setup",
 ]
-
 def run_setup(setup_script, args):
     """Run a distutils setup script, sandboxed in its directory"""
-
     old_dir = os.getcwd()
     save_argv = sys.argv[:]
     save_path = sys.path[:]
@@ -17,7 +15,7 @@ def run_setup(setup_script, args):
     temp_dir = os.path.join(setup_dir,'temp')
     if not os.path.isdir(temp_dir): os.makedirs(temp_dir)
     save_tmp = tempfile.tempdir
-
+    save_modules = sys.modules.copy()
     try:
         tempfile.tempdir = temp_dir
         os.chdir(setup_dir)
@@ -35,6 +33,9 @@ def run_setup(setup_script, args):
                 raise
             # Normal exit, just return
     finally:
+        sys.modules.update(save_modules)
+        for key in list(sys.modules):
+            if key not in save_modules: del sys.modules[key]
         os.chdir(old_dir)
         sys.path[:] = save_path
         sys.argv[:] = save_argv
