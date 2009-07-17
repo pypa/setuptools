@@ -21,7 +21,7 @@ setup(
     author="The fellowship of the packaging",
     author_email="distutils-sig@python.org",
     license="PSF or ZPL",
-    long_description = open('README.txt').read(),
+    long_description = open('README.txt').read() + open('CHANGES.txt').read(),
     keywords = "CPAN PyPI distutils eggs package management",
     url = "http://pypi.python.org/pypi/distribute",
     test_suite = 'setuptools.tests',
