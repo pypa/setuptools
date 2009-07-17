@@ -423,7 +423,7 @@ on multiple lines if necessary (as long as the subsequent lines are indented.
 
 If you are more ambitious, you can also create an entirely custom package index
 or PyPI mirror.  See the ``--index-url`` option under `Command-Line Options`_,
-below, and also the section on the `Package Index "API"`_.
+below, and also the section on `Package Index "API"`_.
 
 
 Password-Protected Sites
