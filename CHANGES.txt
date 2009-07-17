@@ -29,6 +29,9 @@ setuptools
 pkg_resources
 -------------
 
+* Fixed a SandboxViolation for mkdir that could occur in certain cases.
+  This closes http://bitbucket.org/tarek/distribute/issue/13.
+
 * Allow to find_on_path on systems with tight permissions to fail gracefully.
   This closes http://bitbucket.org/tarek/distribute/issue/9.
 
