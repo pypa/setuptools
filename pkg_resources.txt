@@ -140,6 +140,9 @@ directly alter ``sys.path`` at runtime, you may find these APIs useful:
     is invoked, it checks for the presence of namespace packages and updates
     their ``__path__`` contents accordingly.
 
+Applications that manipulate namespace packages or directly alter ``sys.path``
+at runtime may also need to use this API function:
+
 ``fixup_namespace_packages(path_item)``
     Declare that `path_item` is a newly added item on ``sys.path`` that may
     need to be used to update existing namespace packages.  Ordinarily, this is
@@ -182,7 +185,7 @@ not provide any way to detect arbitrary changes to a list object like
     the constructor is called.
 
     Note that you will not normally construct ``WorkingSet`` instances
-    yourbut instead you will implicitly or explicitly use the global
+    yourself, but instead you will implicitly or explicitly use the global
     ``working_set`` instance.  For the most part, the ``pkg_resources`` API
     is designed so that the ``working_set`` is used by default, such that you
     don't have to explicitly refer to it most of the time.

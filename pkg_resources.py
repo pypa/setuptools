@@ -123,7 +123,8 @@ __all__ = [
 ]
 class ResolutionError(Exception):
     """Abstract base for dependency resolution errors"""
-    def __repr__(self): return self.__class__.__name__+repr(self.args)
+    def __repr__(self):
+        return self.__class__.__name__+repr(self.args)
 
 class VersionConflict(ResolutionError):
     """An already-installed version conflicts with the requested version"""
@@ -134,6 +135,7 @@ class DistributionNotFound(ResolutionError):
 class UnknownExtra(ResolutionError):
     """Distribution doesn't have an "extra feature" of the given name"""
 _provider_factories = {}
+
 PY_MAJOR = sys.version[:3]
 EGG_DIST    = 3
 BINARY_DIST = 2
@@ -200,8 +202,6 @@ def get_build_platform():
 macosVersionString = re.compile(r"macosx-(\d+)\.(\d+)-(.*)")
 darwinVersionString = re.compile(r"darwin-(\d+)\.(\d+)\.(\d+)-(.*)")
 get_platform = get_build_platform   # XXX backward compat
-
-
 
 def compatible_platforms(provided,required):
     """Can code for the `provided` platform run on the `required` platform?
@@ -307,15 +307,6 @@ class IMetadataProvider:
 
     def run_script(script_name, namespace):
         """Execute the named script in the supplied namespace dictionary"""
-
-
-
-
-
-
-
-
-
 
 
 

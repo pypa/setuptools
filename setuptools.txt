@@ -338,8 +338,8 @@ unless you need the associated ``setuptools`` feature.
     merge such subpackages into a single parent package at runtime, as long
     as you declare them in each project that contains any subpackages of the
     namespace package, and as long as the namespace package's ``__init__.py``
-    does not contain any code.  See the section below on `Namespace Packages`_
-    for more information.
+    does not contain any code other than a namespace declaration.  See the
+    section below on `Namespace Packages`_ for more information.
 
 ``test_suite``
     A string naming a ``unittest.TestCase`` subclass (or a package or module
