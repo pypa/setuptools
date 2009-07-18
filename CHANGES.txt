@@ -45,7 +45,6 @@ pkg_resources
 * Immediately close all file handles. This closes
   http://bitbucket.org/tarek/distribute/issue/3.
 
-
 easy_install
 ------------
 
