@@ -14,6 +14,12 @@ the appropriate options to ``use_setuptools()``.
 This file can also be run as a script to install or upgrade setuptools.
 """
 import sys
+import sys, os
+try:
+    from hashlib import md5
+except ImportError:
+    from md5 import md5
+
 DEFAULT_VERSION = "0.6"
 DEFAULT_URL     = "http://pypi.python.org/packages/%s/d/distribute/" % sys.version[:3]
 
@@ -23,10 +29,6 @@ md5_data = {
     'distribute-0.6-py2.5.egg': '',
     'distribute-0.6-py2.6.egg': '',
 }
-
-import sys, os
-try: from hashlib import md5
-except ImportError: from md5 import md5
 
 def _validate_md5(egg_name, data):
     if egg_name in md5_data:
@@ -62,7 +64,7 @@ def use_setuptools(
     try:
         import pkg_resources
     except ImportError:
-        return do_download()       
+        return do_download()
     try:
         pkg_resources.require("distribute>="+version); return
     except pkg_resources.VersionConflict, e:
@@ -126,41 +128,6 @@ and place it in this directory before rerunning this script.)
             if src: src.close()
             if dst: dst.close()
     return os.path.realpath(saveto)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 def main(argv, version=DEFAULT_VERSION):
     """Install or upgrade setuptools and EasyInstall"""
@@ -233,14 +200,9 @@ def update_md5(filenames):
     f.close()
 
 
-if __name__=='__main__':
-    if len(sys.argv)>2 and sys.argv[1]=='--md5update':
+if __name__ == '__main__':
+    if len(sys.argv) > 2 and sys.argv[1] == '--md5update':
         update_md5(sys.argv[2:])
     else:
         main(sys.argv[1:])
-
-
-
-
-
 
