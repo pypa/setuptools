@@ -14,7 +14,7 @@ the appropriate options to ``use_setuptools()``.
 This file can also be run as a script to install or upgrade setuptools.
 """
 import sys
-import sys, os
+import os
 try:
     from hashlib import md5
 except ImportError:
@@ -133,6 +133,34 @@ def main(argv, version=DEFAULT_VERSION):
     """Install or upgrade setuptools and EasyInstall"""
     try:
         import setuptools
+        # we need to check if the installed setuptools
+        # is from Distribute or from setuptools
+        if not hasattr(setuptools, '_distribute'):
+            # we have a setuptools distribution, we need to get out
+            # of our way. This is done by removing all references
+            # of setuptools egg from .pth files.
+
+            # removing setuptools distribution from easy_install.pth
+            # using the --multi-version option seems like the safest
+            # way to do this.
+            from setuptools.command.easy_install import main
+            main(['-q', '-m', 'setuptools'])
+
+            # now removing setuptool.pth manually so installing
+            # 'distribute' will re-create it. Notice that a -U call
+            # will have the same effect.
+            from setuptools.command.easy_install import easy_install
+            from setuptools.dist import Distribution
+            dist = Distribution()
+            cmd = easy_install(dist)
+            cmd.args = ['setuptools']
+            cmd.ensure_finalized()
+            pth_file = os.path.join(cmd.install_dir, 'setuptools.pth')
+            if os.path.exists(pth_file):
+                os.remove(pth_file)
+
+            # now we are ready to install distribute
+            raise ImportError
     except ImportError:
         egg = None
         try:

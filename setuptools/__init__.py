@@ -13,6 +13,15 @@ __all__ = [
     'find_packages'
 ]
 
+# This marker is used to simplify the process that checks is the
+# setuptools package was installed by the Setuptools project
+# or by the Distribute project, in case Setuptools creates
+# a distribution with the same version.
+#
+# The ez_setup script for instance, will check if this
+# attribute is present to decide wether to reinstall the package
+_distribute = True
+
 bootstrap_install_from = None
 
 def find_packages(where='.', exclude=()):

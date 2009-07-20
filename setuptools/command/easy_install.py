@@ -969,8 +969,7 @@ See the setuptools documentation for the "develop" command for more info.
         if not self.dry_run:
 
             self.pth_file.save()
-
-            if dist.key=='setuptools':
+            if dist.key=='distribute':
                 # Ensure that setuptools itself never becomes unavailable!
                 # XXX should this check for latest version?
                 filename = os.path.join(self.install_dir,'setuptools.pth')
