@@ -22,13 +22,14 @@ except ImportError:
     from md5 import md5
 
 DEFAULT_VERSION = "0.6"
-DEFAULT_URL     = "http://pypi.python.org/packages/%s/d/distribute/" % sys.version[:3]
+#DEFAULT_URL     = "http://pypi.python.org/packages/%s/d/distribute/" % sys.version[:3]
+DEFAULT_URL     = "http://bitbucket.org/tarek/distribute/downloads/'
 
 md5_data = {
-    'distribute-0.6-py2.3.egg': '',
-    'distribute-0.6-py2.4.egg': '',
-    'distribute-0.6-py2.5.egg': '',
-    'distribute-0.6-py2.6.egg': '',
+    'distribute-0.6-py2.3.egg': '3fddec6a97c601112612f04d1bfdc3c4',
+    'distribute-0.6-py2.4.egg': '743af8420ff2febad28e8f88b43af642',
+    'distribute-0.6-py2.5.egg': '8da62077b114327d3c73f00506dc638e',
+    'distribute-0.6-py2.6.egg': '2eba87b31ae6530604cf09ccc136f62d',
 }
 
 def _validate_md5(egg_name, data):
