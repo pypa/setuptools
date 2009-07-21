@@ -70,7 +70,7 @@ def use_setuptools(
     except pkg_resources.VersionConflict, e:
         if was_imported:
             print >>sys.stderr, (
-            "The required version of distibute (>=%s) is not available, and\n"
+            "The required version of distribute (>=%s) is not available, and\n"
             "can't be installed while this script is running. Please install\n"
             " a more recent version first, using 'easy_install -U distribute'."
             "\n\n(Currently using %r)"
