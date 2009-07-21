@@ -15,6 +15,7 @@ This file can also be run as a script to install or upgrade setuptools.
 """
 import sys
 import os
+import shutil
 try:
     from hashlib import md5
 except ImportError:
@@ -131,36 +132,50 @@ and place it in this directory before rerunning this script.)
             if dst: dst.close()
     return os.path.realpath(saveto)
 
+
+SETUPTOOLS_PKG_INFO  = """\
+Metadata-Version: 1.0
+Name: setuptools
+Version: 0.6c9
+Summary: xxxx
+Home-page: xxx
+Author: xxx
+Author-email: xxx
+License: xxx
+Description: xxx
+"""
+
+def fake_setuptools():
+    try:
+        import pkg_resources
+    except ImportError:
+        # we're cool
+        return
+    ws  = pkg_resources.working_set
+    setuptools_dist = ws.find(pkg_resources.Requirement.parse('setuptools'))
+    if setuptools_dist is None:
+        return
+    # let's create a fake egg replacing setuptools one
+    setuptools_location = setuptools_dist.location
+    os.rename(setuptools_location, setuptools_location+'.OLD')
+    os.mkdir(setuptools_location)
+    os.mkdir(os.path.join(setuptools_location, 'EGG-INFO'))
+    pkg_info = os.path.join(setuptools_location, 'EGG-INFO', 'PKG-INFO')
+    f = open(pkg_info, 'w')
+    f.write(SETUPTOOLS_PKG_INFO)
+    f.write()
+
 def main(argv, version=DEFAULT_VERSION):
     """Install or upgrade setuptools and EasyInstall"""
+
+    # let's deactivate any existing setuptools installation first
+    fake_setuptools()
+
     try:
         import setuptools
         # we need to check if the installed setuptools
         # is from Distribute or from setuptools
         if not hasattr(setuptools, '_distribute'):
-            # we have a setuptools distribution, we need to get out
-            # of our way. This is done by removing all references
-            # of setuptools egg from .pth files.
-
-            # removing setuptools distribution from easy_install.pth
-            # using the --multi-version option seems like the safest
-            # way to do this.
-            from setuptools.command.easy_install import main
-            main(['-q', '-m', 'setuptools'])
-
-            # now removing setuptool.pth manually so installing
-            # 'distribute' will re-create it. Notice that a -U call
-            # will have the same effect.
-            from setuptools.command.easy_install import easy_install
-            from setuptools.dist import Distribution
-            dist = Distribution()
-            cmd = easy_install(dist)
-            cmd.args = ['setuptools']
-            cmd.ensure_finalized()
-            pth_file = os.path.join(cmd.install_dir, 'setuptools.pth')
-            if os.path.exists(pth_file):
-                os.remove(pth_file)
-
             # now we are ready to install distribute
             raise ImportError
     except ImportError:
