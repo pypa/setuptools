@@ -2253,7 +2253,7 @@ class Distribution(object):
 
 
     def check_version_conflict(self):
-        if self.key=='setuptools':
+        if self.key=='distribute':
             return      # ignore the inevitable setuptools self-conflicts  :(
 
         nsp = dict.fromkeys(self._get_metadata('namespace_packages.txt'))
