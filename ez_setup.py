@@ -16,6 +16,12 @@ This file can also be run as a script to install or upgrade setuptools.
 import sys
 import os
 import shutil
+import time
+
+is_jython = sys.platform.startswith('java')
+if is_jython:
+    import subprocess
+
 try:
     from hashlib import md5
 except ImportError:
@@ -23,7 +29,7 @@ except ImportError:
 
 DEFAULT_VERSION = "0.6"
 #DEFAULT_URL     = "http://pypi.python.org/packages/%s/d/distribute/" % sys.version[:3]
-DEFAULT_URL     = "http://bitbucket.org/tarek/distribute/downloads/'
+DEFAULT_URL     = "http://bitbucket.org/tarek/distribute/downloads/"
 
 md5_data = {
     'distribute-0.6-py2.3.egg': '3fddec6a97c601112612f04d1bfdc3c4',
@@ -156,15 +162,32 @@ def fake_setuptools():
     setuptools_dist = ws.find(pkg_resources.Requirement.parse('setuptools'))
     if setuptools_dist is None:
         return
-    # let's create a fake egg replacing setuptools one
+    # detecting if it was already faked
     setuptools_location = setuptools_dist.location
-    os.rename(setuptools_location, setuptools_location+'.OLD')
+    pkg_info = os.path.join(setuptools_location, 'EGG-INFO', 'PKG-INFO')
+    if os.path.exists(pkg_info):
+        content = open(pkg_info).read()
+        if SETUPTOOLS_PKG_INFO == content:
+            # already patched
+            return
+
+    # let's create a fake egg replacing setuptools one
+    os.rename(setuptools_location, setuptools_location+'.OLD.%s' % time.time())
     os.mkdir(setuptools_location)
     os.mkdir(os.path.join(setuptools_location, 'EGG-INFO'))
     pkg_info = os.path.join(setuptools_location, 'EGG-INFO', 'PKG-INFO')
     f = open(pkg_info, 'w')
-    f.write(SETUPTOOLS_PKG_INFO)
-    f.write()
+    try:
+        f.write(SETUPTOOLS_PKG_INFO)
+    finally:
+        f.close()
+
+    # we have to relaunch the process
+    args = [sys.executable]  + sys.argv
+    if is_jython:
+        sys.exit(subprocess.Popen([sys.executable] + args).wait())
+    else:
+        sys.exit(os.spawnv(os.P_WAIT, sys.executable, args))
 
 def main(argv, version=DEFAULT_VERSION):
     """Install or upgrade setuptools and EasyInstall"""
@@ -183,9 +206,9 @@ def main(argv, version=DEFAULT_VERSION):
         egg = None
         try:
             egg = download_setuptools(version, delay=0)
-            sys.path.insert(0,egg)
-            from setuptools.command.easy_install import main
-            return main(list(argv)+[egg])   # we're done here
+            sys.path.insert(0, egg)
+            from setuptools.command import easy_install
+            return easy_install.main(list(argv)+['-v']+[egg])
         finally:
             if egg and os.path.exists(egg):
                 os.unlink(egg)
