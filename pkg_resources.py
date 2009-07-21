@@ -25,6 +25,15 @@ from os import utime, rename, unlink, mkdir
 from os import open as os_open
 from os.path import isdir, split
 
+# This marker is used to simplify the process that checks is the
+# setuptools package was installed by the Setuptools project
+# or by the Distribute project, in case Setuptools creates
+# a distribution with the same version.
+#
+# The ez_setup script for instance, will check if this
+# attribute is present to decide wether to reinstall the package
+_distribute = True
+
 def _bypass_ensure_directory(name, mode=0777):
     # Sandbox-bypassing version of ensure_directory()
     dirname, filename = split(name)
