@@ -63,6 +63,8 @@ def use_setuptools(
         import setuptools; setuptools.bootstrap_install_from = egg
     try:
         import pkg_resources
+        if not hasattr(pkg_resources, '_distribute'):
+            raise ImportError
     except ImportError:
         return do_download()
     try:
