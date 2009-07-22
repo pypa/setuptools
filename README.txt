@@ -23,20 +23,20 @@ are available at the PyPI page and here :
 http://bitbucket.org/tarek/distribute/downloads.
 
 It can be installed using easy_install or pip, with the source tarball, with the
-eggs distribution, or using the ``distribute.py`` script provided online.
+eggs distribution, or using the ``bootstrap.py`` script provided online.
 
-``distribute.py`` is the simplest and preferred way on all systems.
+``bootstrap.py`` is the simplest and preferred way on all systems.
 
-distribute.py
-=============
+bootstrap.py
+============
 
-Download ``distribute.py`` and execute it, using the Python interpreter of
+Download ``bootstrap.py`` and execute it, using the Python interpreter of
 your choice.
 
 If your shell has the `wget` programm you can do::
 
-    $ wget http://bitbucket.org/tarek/distribute/downloads/distribute.py
-    $ python distribute.py
+    $ wget http://bitbucket.org/tarek/distribute/downloads/bootstrap.py
+    $ python bootstrap.py
 
 easy_install or pip
 ===================
@@ -100,7 +100,7 @@ Windows
 -------
 
 Don't install Distribute trying to execute the egg, because it's aimed to 
-sh-based shells. Instead, use the ``distribute.py`` method, that will 
+sh-based shells. Instead, use the ``bootstrap.py`` method, that will 
 download the egg for you, then install the egg.
 
 ---------------------------
