@@ -153,24 +153,32 @@ Description: xxx
 """
 
 def fake_setuptools():
+    from distutils import log
+    log.warn('Scanning installed packages')
     try:
         import pkg_resources
     except ImportError:
         # we're cool
+        log.warn('Setuptools or Distribute does not seem to be installed.')
         return
     ws  = pkg_resources.working_set
     setuptools_dist = ws.find(pkg_resources.Requirement.parse('setuptools'))
     if setuptools_dist is None:
+        log.warn('No setuptools distribution found')
         return
+
     # detecting if it was already faked
     setuptools_location = setuptools_dist.location
+    log.warn('Setuptools installation detected at %s' % setuptools_location)
     pkg_info = os.path.join(setuptools_location, 'EGG-INFO', 'PKG-INFO')
     if os.path.exists(pkg_info):
         content = open(pkg_info).read()
         if SETUPTOOLS_PKG_INFO == content:
             # already patched
+            log.warn('Already patched.')
             return
 
+    log.warn('Patching...')
     # let's create a fake egg replacing setuptools one
     os.rename(setuptools_location, setuptools_location+'.OLD.%s' % time.time())
     os.mkdir(setuptools_location)
@@ -181,7 +189,8 @@ def fake_setuptools():
         f.write(SETUPTOOLS_PKG_INFO)
     finally:
         f.close()
-
+    log.warn('Patched done.')
+    log.warn('Relaunching...')
     # we have to relaunch the process
     args = [sys.executable]  + sys.argv
     if is_jython:

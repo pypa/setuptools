@@ -13,6 +13,12 @@ from setuptools import setup, find_packages
 import sys
 scripts = []
 
+# if we are installing Distribute using "python setup.py install"
+# we need to get setuptools out of the way
+if 'install' in sys.argv[1:]:
+    from ez_setup import fake_setuptools
+    fake_setuptools()
+
 setup(
     name="distribute",
     version=VERSION,
