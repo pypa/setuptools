@@ -115,6 +115,7 @@ Distribute can be removed like this:
 - run `easy_install -m Distribute`. This will remove the Distribute reference
   from `easy-install.pth` *or* edit the file and remove it yourself.
 - remove the distribute*.egg file located in your site-packages directory
+- remove the setuptools.pth file located in you site-packages directory
 - remove the easy_install script located in you sys.prefix/bin directory
 
 If Setuptools was installed before you installed Distribute:
