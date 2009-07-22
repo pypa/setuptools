@@ -23,8 +23,22 @@ else:
     os.spawnv(os.P_WAIT, sys.executable, args)
 
 # now checking if Distribute is installed
+script = """\
+import sys
+try:
+    import setuptools
+except ImportError:
+    sys.exit(0)
 
-args = [sys.executable]  + ['-c', 'import setuptools; import sys; sys.exit(hasattr(setuptools, "_distribute"))']
+sys.exit(hasattr(setuptools, "_distribute"))
+"""
+
+f = open('script.py', 'w')
+f.write(script)
+f.close()
+
+args = [sys.executable]  + ['script.py']
+
 if is_jython:
     res = subprocess.call([sys.executable] + args)
 else:
