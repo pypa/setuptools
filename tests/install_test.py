@@ -2,6 +2,10 @@ import urllib2
 import sys
 import os
 
+if os.path.exists('bootstrap.py'):
+    print 'bootstrap.py exists in the current dir, aborting'
+    sys.exit(2)
+
 print '**** Starting Test'
 print '\n\n'
 
@@ -33,20 +37,33 @@ except ImportError:
 sys.exit(hasattr(setuptools, "_distribute"))
 """
 
-f = open('script.py', 'w')
-f.write(script)
-f.close()
+root = 'script'
+seed = 0
+script_name = '%s%d.py' % (root, seed)
 
-args = [sys.executable]  + ['script.py']
+while os.path.exists(script_name):
+    seed += 1
+    script_name = '%s%d.py' % (root, seed)
 
-if is_jython:
-    res = subprocess.call([sys.executable] + args)
-else:
-    res = os.spawnv(os.P_WAIT, sys.executable, args)
+f = open(script_name, 'w')
+try:
+    f.write(script)
+finally:
+    f.close()
 
-print '\n\n'
-if res:
-    print '**** Test is OK'
-else:
-    print '**** Test failed, please send me the output at tarek@ziade.org'
+try:
+    args = [sys.executable]  + ['script.py']
+    if is_jython:
+        res = subprocess.call([sys.executable] + args)
+    else:
+        res = os.spawnv(os.P_WAIT, sys.executable, args)
+
+    print '\n\n'
+    if res:
+        print '**** Test is OK'
+    else:
+        print '**** Test failed, please send me the output at tarek@ziade.org'
+finally:
+    os.remove(script_name)
+    os.remove('bootstrap.py')
 
