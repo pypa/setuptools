@@ -181,7 +181,7 @@ def _rename_path(path):
 
 def _remove_flat_installation(placeholder):
     if not os.path.isdir(placeholder):
-        log.warn('Unkown installation')
+        log.warn('Unkown installation at %s' % placeholder)
         return False
     found = False
     for file in os.listdir(placeholder):
@@ -295,9 +295,10 @@ def main(argv, version=DEFAULT_VERSION):
             import setuptools
             if not hasattr(setuptools, '_distribute'):
                 placeholder = os.path.split(os.path.dirname(setuptools.__file__))[0]
-                res = _remove_flat_installation(placeholder)
-                if res:
-                    _relaunch()
+                if not placeholder.endswith('.egg'):
+                    res = _remove_flat_installation(placeholder)
+                    if res:
+                        _relaunch()
                 print >> sys.stderr, (
                 "The patch didn't work, Setuptools is still active.\n"
                 "Possible reason: your have a system-wide setuptools installed "

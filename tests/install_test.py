@@ -64,6 +64,7 @@ try:
     else:
         print '**** Test failed, please send me the output at tarek@ziade.org'
 finally:
-    os.remove(script_name)
+    if os.path.exists(script_name):
+        os.remove(script_name)
     os.remove('bootstrap.py')
 
