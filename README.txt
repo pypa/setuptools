@@ -4,15 +4,32 @@ Installing and Using Distribute
 
 .. contents:: **Table of Contents**
 
-----------
-Disclaimer
-----------
+-----------
+Disclaimers
+-----------
+
+About the fork
+==============
 
 `Distribute` is a friendly fork of the `Setuptools` project. The `Setuptools`
 maintainer, Phillip J. Eby is not responsible of any aspect of this fork.
 
 If you install `Distribute` and want to switch back for any reason to 
 `Setuptools`, get to the `Uninstallation instructions`_ section.
+
+About the installation process
+==============================
+
+The `Distribute` installer modifies your installation by de-activating an
+existing installation of `Setuptools` in a bootstrap process. This process 
+has been tested in various installation schemes and contexts but in case of a 
+bug during this process your Python installation might be left in a broken
+state. Since all modified files and directories are copied before the 
+installation, you will be able to get back to a normal state by reading
+the instructions in the `Uninstallation instructions`_ section.
+
+In any case, it is recommended to save you `site-packages` directory before 
+you start the installation of `Distribute`.
 
 -------------------------
 Installation Instructions
@@ -44,7 +61,7 @@ easy_install or pip
 Run easy_install or pip::
 
     $ easy_install Distribute
-    $ pip Distribute
+    $ pip install Distribute
 
 Source installation
 ===================
@@ -110,6 +127,12 @@ Uninstallation Instructions
 Like other distutils-based distributions, Distribute doesn't provide an 
 uninstaller yet. It's all manual !
 
+Distribute is installed in two steps::
+
+1- it gets out of the way an existing installation of Setuptools
+2- it installs a `fake` setuptools installation 
+3- it installs distribute
+
 Distribute can be removed like this:
 
 - run `easy_install -m Distribute`. This will remove the Distribute reference
@@ -117,22 +140,30 @@ Distribute can be removed like this:
 - remove the distribute*.egg file located in your site-packages directory
 - remove the setuptools.pth file located in you site-packages directory
 - remove the easy_install script located in you sys.prefix/bin directory
-
-If Setuptools was installed before you installed Distribute:
-
 - remove the setuptools*.egg directory located in your site-packages directory
-- remove the setuptools*.egg.OLD.* directory located in your site-packages directory
+  if any.
+
+If you want to get back to setuptools:
+
 - reinstall setuptools using its instruction.
+
+Last:
+
+- remove the *.OLD.* directory located in your site-packages directory if any,
+  **once you have checked everything was working correctly again**.
 
 -----------
 Install FAQ
 -----------
 
-- **Why Distribute turn my Setuptools egg installation into an empty egg ?**
+- **Why Distribute turn my Setuptools installation into an fake one ?**
 
    Since Distribute is a fork, and since it provides the same package and modules,
-   it fakes that the setuptools installation is still present, so all the programs
-   that where using setuptools still work.
+   it fakes that the Setuptools installation is still present, so all the programs
+   that where using Setuptools still work.
+
+   If it wasn't doing it, a program that would try to install Setuptools 
+   would overwrite in turn Distribute.
 
 - **How does Distribute interacts with virtualenv ?**
 
@@ -142,11 +173,21 @@ Install FAQ
 
   Once installed, your virtualenv will use Distribute transparently.
 
+  Although, if you have Setuptools installed in your system-wide Python,
+  and if the virtualenv you are in was generated without the `--no-site-packages`
+  option, the Distribute installation will stop.
+
+  You need in this case to build a virtualenv with the --no-site-packages option
+  or to install `Distribute` globally.
+
 - **How does in interacts with zc.buildout ?**
 
   Like virtualenv, Distribute has to be installed after setuptools. The simplest
   way is to add it in a `zc.recipe.egg` section so the job is done when you 
   build your buildout.
+
+  If you are combining zc.buildout and virtualenv, you might fail in the 
+  problem described in the previous FAQ entry.
 
 -------------
 Documentation
