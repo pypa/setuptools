@@ -22,7 +22,7 @@ f.close()
 # running it
 args = [sys.executable]  + ['bootstrap.py']
 if is_jython:
-    res = subprocess.call([sys.executable] + args)
+    res = subprocess.call(args)
 else:
     res = os.spawnv(os.P_WAIT, sys.executable, args)
 
@@ -59,7 +59,7 @@ finally:
 try:
     args = [sys.executable]  + [script_name]
     if is_jython:
-        res = subprocess.call([sys.executable] + args)
+        res = subprocess.call(args)
     else:
         res = os.spawnv(os.P_WAIT, sys.executable, args)
 

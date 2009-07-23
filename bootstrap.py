@@ -273,7 +273,7 @@ def _relaunch():
     # we have to relaunch the process
     args = [sys.executable]  + sys.argv
     if is_jython:
-        sys.exit(subprocess.Popen([sys.executable] + args).wait())
+        sys.exit(subprocess.call(args))
     else:
         sys.exit(os.spawnv(os.P_WAIT, sys.executable, args))
 
