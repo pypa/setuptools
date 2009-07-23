@@ -17,6 +17,8 @@ import sys
 import os
 import shutil
 import time
+import fnmatch
+from distutils import log
 
 is_jython = sys.platform.startswith('java')
 if is_jython:
@@ -152,8 +154,74 @@ License: xxx
 Description: xxx
 """
 
+def _patch_file(path, content):
+    """Will backup the file then patch it"""
+    existing_content = open(path).read()
+    if existing_content == content:
+        # already patched
+        log.warn('Already patched.')
+        return False
+    log.warn('Patching...')
+    os.rename(path, path +'.OLD.%s' % time.time())
+    f = open(path, 'w')
+    try:
+        f.write(content)
+    finally:
+        f.close()
+    return True
+
+def _same_content(path, content):
+    return open(path).read() == content
+
+def _rename_path(path):
+    new_name = path + '.OLD.%s' % time.time()
+    log.warn('Renaming %s into %s' % (path, new_name))
+    os.rename(path, new_name)
+    return new_name
+
+def _remove_flat_installation(placeholder):
+    if not os.path.isdir(placeholder):
+        log.warn('Unkown installation')
+        return False
+    found = False
+    for file in os.listdir(placeholder):
+        if fnmatch.fnmatch(file, 'setuptools*.egg-info'):
+            found = True
+            break
+    if not found:
+        log.warn('Could not locate setuptools*.egg-info')
+    else:
+        log.warn('Removing elements out of the way...')
+        pkg_info = os.path.join(placeholder, file)
+        if os.path.isdir(pkg_info):
+            _patch_egg_dir(pkg_info)
+        else:
+            patched = _patch_file(pkg_info, SETUPTOOLS_PKG_INFO)
+            if not patched:
+                log.warn('%s already patched.' % pkg_info)
+
+    # now let's move the files out of the way
+    for element in ('setuptools', 'pkg_resources.py', 'site.py'):
+        element = os.path.join(placeholder, element)
+        if os.path.exists(element):
+            _rename_path(element)
+        else:
+            log.warn('Could not find the %s element of the '
+                     'Setuptools distribution' % element)
+    return True
+
+def _patch_egg_dir(path):
+    _rename_path(path)
+    os.mkdir(path)
+    os.mkdir(os.path.join(path, 'EGG-INFO'))
+    pkg_info = os.path.join(path, 'EGG-INFO', 'PKG-INFO')
+    f = open(pkg_info, 'w')
+    try:
+        f.write(SETUPTOOLS_PKG_INFO)
+    finally:
+        f.close()
+
 def fake_setuptools():
-    from distutils import log
     log.warn('Scanning installed packages')
     try:
         import pkg_resources
@@ -166,30 +234,29 @@ def fake_setuptools():
     if setuptools_dist is None:
         log.warn('No setuptools distribution found')
         return
-
     # detecting if it was already faked
     setuptools_location = setuptools_dist.location
     log.warn('Setuptools installation detected at %s' % setuptools_location)
-    pkg_info = os.path.join(setuptools_location, 'EGG-INFO', 'PKG-INFO')
-    if os.path.exists(pkg_info):
-        content = open(pkg_info).read()
-        if SETUPTOOLS_PKG_INFO == content:
-            # already patched
+
+    # let's see if its an egg until this supports non-egg installation
+    if not setuptools_location.endswith('.egg'):
+        log.warn('Non-egg installation')
+        _remove_flat_installation(setuptools_location)
+    else:
+        log.warn('Egg installation')
+        pkg_info = os.path.join(setuptools_location, 'EGG-INFO', 'PKG-INFO')
+        if (os.path.exists(pkg_info) and
+            _same_content(pkg_info, SETUPTOOLS_PKG_INFO)):
             log.warn('Already patched.')
             return
+        log.warn('Patching...')
+        # let's create a fake egg replacing setuptools one
+        _patch_egg_dir(setuptools_location)
 
-    log.warn('Patching...')
-    # let's create a fake egg replacing setuptools one
-    os.rename(setuptools_location, setuptools_location+'.OLD.%s' % time.time())
-    os.mkdir(setuptools_location)
-    os.mkdir(os.path.join(setuptools_location, 'EGG-INFO'))
-    pkg_info = os.path.join(setuptools_location, 'EGG-INFO', 'PKG-INFO')
-    f = open(pkg_info, 'w')
-    try:
-        f.write(SETUPTOOLS_PKG_INFO)
-    finally:
-        f.close()
     log.warn('Patched done.')
+    _relaunch()
+
+def _relaunch():
     log.warn('Relaunching...')
     # we have to relaunch the process
     args = [sys.executable]  + sys.argv
@@ -200,10 +267,8 @@ def fake_setuptools():
 
 def main(argv, version=DEFAULT_VERSION):
     """Install or upgrade setuptools and EasyInstall"""
-
     # let's deactivate any existing setuptools installation first
     fake_setuptools()
-
     try:
         import setuptools
         # we need to check if the installed setuptools
@@ -216,6 +281,19 @@ def main(argv, version=DEFAULT_VERSION):
         try:
             egg = download_setuptools(version, delay=0)
             sys.path.insert(0, egg)
+            import setuptools
+            if not hasattr(setuptools, '_distribute'):
+                placeholder = os.path.split(os.path.dirname(setuptools.__file__))[0]
+                res = _remove_flat_installation(placeholder)
+                if res:
+                    _relaunch()
+                print >> sys.stderr, (
+                "The patch didn't work, Setuptools is still active.\n"
+                "Possible reason: your have a system-wide setuptools installed "
+                "and you are in a virtualenv.\n"
+                "If you are inside a virtualenv, make sure you used the --no-site-packages option"
+                )
+                sys.exit(2)
             from setuptools.command import easy_install
             return easy_install.main(list(argv)+['-v']+[egg])
         finally:
