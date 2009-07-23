@@ -34,10 +34,10 @@ DEFAULT_VERSION = "0.6"
 DEFAULT_URL     = "http://bitbucket.org/tarek/distribute/downloads/"
 
 md5_data = {
-    'distribute-0.6-py2.3.egg': '2bf26bffe3d8c910de396d45c0f0a24f',
-    'distribute-0.6-py2.4.egg': 'c01b1355a5f48344c1c78149f59f68a6',
-    'distribute-0.6-py2.5.egg': '2ac319d801bce820a370647916eec84c',
-    'distribute-0.6-py2.6.egg': 'fa7906f9caa2c1f0a56daf486bab1583',
+    'distribute-0.6-py2.3.egg': '83789f9a3b2f32c7088065f6fd3de930',
+    'distribute-0.6-py2.4.egg': '8d47e28f76d4b94de1568abed1ad585d',
+    'distribute-0.6-py2.5.egg': 'f4295ea6b57b67c30fc223c5fef229d2',
+    'distribute-0.6-py2.6.egg': 'c0d34cbce8cd509c33a788f4a5611466',
 }
 
 def _validate_md5(egg_name, data):
