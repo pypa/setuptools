@@ -194,12 +194,13 @@ def _remove_flat_installation(placeholder):
         log.warn('Removing elements out of the way...')
         pkg_info = os.path.join(placeholder, file)
         if os.path.isdir(pkg_info):
-            _patch_egg_dir(pkg_info)
+            patched = _patch_egg_dir(pkg_info)
         else:
             patched = _patch_file(pkg_info, SETUPTOOLS_PKG_INFO)
-            if not patched:
-                log.warn('%s already patched.' % pkg_info)
 
+    if not patched:
+        log.warn('%s already patched.' % pkg_info)
+        return False
     # now let's move the files out of the way
     for element in ('setuptools', 'pkg_resources.py', 'site.py'):
         element = os.path.join(placeholder, element)
@@ -211,6 +212,12 @@ def _remove_flat_installation(placeholder):
     return True
 
 def _patch_egg_dir(path):
+    # let's check if it's already patched
+    pkg_info = os.path.join(path, 'EGG-INFO', 'PKG-INFO')
+    if os.path.exists(pkg_info):
+        if _same_content(pkg_info, SETUPTOOLS_PKG_INFO):
+            log.warn('%s already patched.' % pkg_info)
+            return False
     _rename_path(path)
     os.mkdir(path)
     os.mkdir(os.path.join(path, 'EGG-INFO'))
@@ -220,6 +227,7 @@ def _patch_egg_dir(path):
         f.write(SETUPTOOLS_PKG_INFO)
     finally:
         f.close()
+    return True
 
 def fake_setuptools():
     log.warn('Scanning installed packages')
@@ -241,7 +249,9 @@ def fake_setuptools():
     # let's see if its an egg until this supports non-egg installation
     if not setuptools_location.endswith('.egg'):
         log.warn('Non-egg installation')
-        _remove_flat_installation(setuptools_location)
+        res = _remove_flat_installation(setuptools_location)
+        if not res:
+            return
     else:
         log.warn('Egg installation')
         pkg_info = os.path.join(setuptools_location, 'EGG-INFO', 'PKG-INFO')
@@ -251,8 +261,9 @@ def fake_setuptools():
             return
         log.warn('Patching...')
         # let's create a fake egg replacing setuptools one
-        _patch_egg_dir(setuptools_location)
-
+        res = _patch_egg_dir(setuptools_location)
+        if not res:
+            return
     log.warn('Patched done.')
     _relaunch()
 
