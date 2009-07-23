@@ -19,6 +19,7 @@ import shutil
 import time
 import fnmatch
 from distutils import log
+from distutils.errors import DistutilsError
 
 is_jython = sys.platform.startswith('java')
 if is_jython:
@@ -31,7 +32,7 @@ except ImportError:
 
 DEFAULT_VERSION = "0.6"
 #DEFAULT_URL     = "http://pypi.python.org/packages/%s/d/distribute/" % sys.version[:3]
-DEFAULT_URL     = "http://bitbucket.org/tarek/distribute/downloads/"
+DEFAULT_URL     = "http://nightly.ziade.org/"
 
 md5_data = {
     'distribute-0.6-py2.3.egg': '83789f9a3b2f32c7088065f6fd3de930',
@@ -307,7 +308,10 @@ def main(argv, version=DEFAULT_VERSION):
                 )
                 sys.exit(2)
             from setuptools.command import easy_install
-            return easy_install.main(list(argv)+['-v']+[egg])
+            try:
+                return easy_install.main(list(argv)+['-v']+[egg])
+            except DistutilsError:
+                return sys.exit(2)
         finally:
             if egg and os.path.exists(egg):
                 os.unlink(egg)

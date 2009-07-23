@@ -22,9 +22,14 @@ f.close()
 # running it
 args = [sys.executable]  + ['bootstrap.py']
 if is_jython:
-    subprocess.Popen([sys.executable] + args).wait()
+    res = subprocess.call([sys.executable] + args)
 else:
-    os.spawnv(os.P_WAIT, sys.executable, args)
+    res = os.spawnv(os.P_WAIT, sys.executable, args)
+
+if res != 0:
+    print '**** Test failed, please send me the output at tarek@ziade.org'
+    os.remove('bootstrap.py')
+    sys.exit(2)
 
 # now checking if Distribute is installed
 script = """\
@@ -52,7 +57,7 @@ finally:
     f.close()
 
 try:
-    args = [sys.executable]  + ['script.py']
+    args = [sys.executable]  + [script_name]
     if is_jython:
         res = subprocess.call([sys.executable] + args)
     else:
