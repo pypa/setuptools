@@ -16,10 +16,10 @@ scripts = []
 # if we are installing Distribute using "python setup.py install"
 # we need to get setuptools out of the way
 if 'install' in sys.argv[1:]:
-    from bootstrap import fake_setuptools
-    fake_setuptools()
+    from bootstrap import before_install
+    before_install()
 
-setup(
+dist = setup(
     name="distribute",
     version=VERSION,
     description="Download, build, install, upgrade, and uninstall Python "
@@ -99,3 +99,8 @@ setup(
     Topic :: Utilities""".splitlines() if f.strip()],
     scripts = scripts,
 )
+if 'install' in sys.argv[1:]:
+    from bootstrap import after_install
+    after_install(dist)
+
+

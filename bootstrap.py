@@ -212,6 +212,32 @@ def _remove_flat_installation(placeholder):
                      'Setuptools distribution' % element)
     return True
 
+def after_install(dist):
+    log.warn('After install bootstrap.')
+    placeholder = dist.get_command_obj('install').install_purelib
+    if not os.path.exists(placeholder):
+        log.warn('Could not find the install location')
+        return
+    pyver = '%s.%s' % (sys.version_info[0], sys.version_info[1])
+    setuptools_file = 'setuptools-0.6c9-py%s.egg' % pyver
+    pkg_info = os.path.join(placeholder, setuptools_file)
+    if os.path.exists(pkg_info):
+        log.warn('%s already exists' % pkg_info)
+        return
+    log.warn('Creating %s' % pkg_info)
+    f = open(pkg_info, 'w')
+    try:
+        f.write(SETUPTOOLS_PKG_INFO)
+    finally:
+        f.close()
+    pth_file = os.path.join(placeholder, 'setuptools.pth')
+    log.warn('Creating %s' % pth_file)
+    f = open(pth_file, 'w')
+    try:
+        f.write(os.path.join(os.curdir, setuptools_file))
+    finally:
+        f.close()
+
 def _patch_egg_dir(path):
     # let's check if it's already patched
     pkg_info = os.path.join(path, 'EGG-INFO', 'PKG-INFO')
@@ -230,6 +256,10 @@ def _patch_egg_dir(path):
         f.close()
     return True
 
+def before_install():
+    log.warn('Before install bootstrap.')
+    fake_setuptools()
+
 def fake_setuptools():
     log.warn('Scanning installed packages')
     try:
@@ -238,7 +268,7 @@ def fake_setuptools():
         # we're cool
         log.warn('Setuptools or Distribute does not seem to be installed.')
         return
-    ws  = pkg_resources.working_set
+    ws = pkg_resources.working_set
     setuptools_dist = ws.find(pkg_resources.Requirement.parse('setuptools'))
     if setuptools_dist is None:
         log.warn('No setuptools distribution found')
@@ -247,7 +277,7 @@ def fake_setuptools():
     setuptools_location = setuptools_dist.location
     log.warn('Setuptools installation detected at %s' % setuptools_location)
 
-    # let's see if its an egg until this supports non-egg installation
+    # let's see if its an egg
     if not setuptools_location.endswith('.egg'):
         log.warn('Non-egg installation')
         res = _remove_flat_installation(setuptools_location)
