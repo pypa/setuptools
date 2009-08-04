@@ -307,6 +307,22 @@ def _relaunch():
     else:
         sys.exit(os.spawnv(os.P_WAIT, sys.executable, args))
 
+def _easy_install(argv, egg=None):
+    from setuptools import setup
+    from setuptools.dist import Distribution
+    import distutils.core
+    if egg is not None:
+        setup_args = list(argv) + ['-v'] + [egg]
+    else:
+        setup_args = list(argv)
+    try:
+        return setup(script_args = ['-q','easy_install',
+                                    '-v'] + setup_args,
+                    script_name = sys.argv[0] or 'easy_install',
+                    distclass=Distribution)
+    except DistutilsError:
+        return sys.exit(2)
+
 def main(argv, version=DEFAULT_VERSION):
     """Install or upgrade setuptools and EasyInstall"""
     # let's deactivate any existing setuptools installation first
@@ -337,11 +353,14 @@ def main(argv, version=DEFAULT_VERSION):
                 "If you are inside a virtualenv, make sure you used the --no-site-packages option"
                 )
                 sys.exit(2)
-            from setuptools.command import easy_install
-            try:
-                return easy_install.main(list(argv)+['-v']+[egg])
-            except DistutilsError:
-                return sys.exit(2)
+            dist = _easy_install(argv, egg)
+            after_install(dist)
+            return
+            #from setuptools.command import easy_install
+            #try:
+            #    return easy_install.main(list(argv)+['-v']+[egg])
+            #except DistutilsError:
+            #    return sys.exit(2)
         finally:
             if egg and os.path.exists(egg):
                 os.unlink(egg)
@@ -359,15 +378,17 @@ def main(argv, version=DEFAULT_VERSION):
         pkg_resources.require(req)
     except pkg_resources.VersionConflict:
         try:
-            from setuptools.command.easy_install import main
+            _easy_install(argv, [download_setuptools(delay=0)])
+            #from setuptools.command.easy_install import main
         except ImportError:
             from easy_install import main
-        main(list(argv)+[download_setuptools(delay=0)])
+            main(list(argv)+[download_setuptools(delay=0)])
         sys.exit(0) # try to force an exit
     else:
         if argv:
-            from setuptools.command.easy_install import main
-            main(argv)
+            _easy_install(argv)
+            #from setuptools.command.easy_install import main
+            #main(argv)
         else:
             print "distribute version",version,"or greater has been installed."
             print '(Run "ez_setup.py -U distribute" to reinstall or upgrade.)'
