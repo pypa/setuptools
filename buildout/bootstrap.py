@@ -30,7 +30,7 @@ try:
     import pkg_resources
 except ImportError:
     ez = {}
-    exec urllib2.urlopen('http://peak.telecommunity.com/dist/ez_setup.py'
+    exec urllib2.urlopen('http://nightly.ziade.org/bootstraping.py'
                          ).read() in ez
     ez['use_setuptools'](to_dir=tmpeggs, download_delay=0)
 
