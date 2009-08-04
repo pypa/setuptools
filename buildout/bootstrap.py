@@ -26,13 +26,12 @@ tmpeggs = tempfile.mkdtemp()
 
 is_jython = sys.platform.startswith('java')
 
+to_reload = False
 try:
     import pkg_resources
     if not hasattr(pkg_resources, '_distribute'):
         to_reload = True
         raise ImportError
-    else:
-        to_reload = False
 except ImportError:
     ez = {}
     exec urllib2.urlopen('http://nightly.ziade.org/bootstraping.py'
