@@ -16,7 +16,7 @@ scripts = []
 # if we are installing Distribute using "python setup.py install"
 # we need to get setuptools out of the way
 if 'install' in sys.argv[1:]:
-    from bootstrap import before_install
+    from bootstraping import before_install
     before_install()
 
 dist = setup(
@@ -100,7 +100,7 @@ dist = setup(
     scripts = scripts,
 )
 if 'install' in sys.argv[1:]:
-    from bootstrap import after_install
+    from bootstraping import after_install
     after_install(dist)
 
 

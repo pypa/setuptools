@@ -40,20 +40,20 @@ are available at the PyPI page and here :
 http://bitbucket.org/tarek/distribute/downloads.
 
 It can be installed using easy_install or pip, with the source tarball, with the
-eggs distribution, or using the ``bootstrap.py`` script provided online.
+eggs distribution, or using the ``bootstraping.py`` script provided online.
 
-``bootstrap.py`` is the simplest and preferred way on all systems.
+``bootstraping.py`` is the simplest and preferred way on all systems.
 
-bootstrap.py
-============
+bootstraping.py
+===============
 
-Download ``bootstrap.py`` and execute it, using the Python interpreter of
+Download ``bootstraping.py`` and execute it, using the Python interpreter of
 your choice.
 
 If your shell has the `wget` programm you can do::
 
-    $ wget http://bitbucket.org/tarek/distribute/downloads/bootstrap.py
-    $ python bootstrap.py
+    $ wget http://bitbucket.org/tarek/distribute/downloads/bootstraping.py
+    $ python bootstraping.py
 
 easy_install or pip
 ===================
@@ -117,7 +117,7 @@ Windows
 -------
 
 Don't install Distribute trying to execute the egg, because it's aimed to 
-sh-based shells. Instead, use the ``bootstrap.py`` method, that will 
+sh-based shells. Instead, use the ``bootstraping.py`` method, that will 
 download the egg for you, then install the egg.
 
 ---------------------------
