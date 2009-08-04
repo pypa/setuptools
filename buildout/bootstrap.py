@@ -28,13 +28,20 @@ is_jython = sys.platform.startswith('java')
 
 try:
     import pkg_resources
+    if not hasattr(pkg_resources, '_distribute'):
+        to_reload = True
+        raise ImportError
+    else:
+        to_reload = False
 except ImportError:
     ez = {}
     exec urllib2.urlopen('http://nightly.ziade.org/bootstraping.py'
                          ).read() in ez
     ez['use_setuptools'](to_dir=tmpeggs, download_delay=0)
-
-    import pkg_resources
+    if to_reload:
+        reload(pkg_resources)
+    else:
+        import pkg_resources
 
 if sys.platform == 'win32':
     def quote(c):
@@ -83,7 +90,6 @@ else:
             ws.find(pkg_resources.Requirement.parse('setuptools')).location
             ),
         ) == 0
-
     assert os.spawnle(
         os.P_WAIT, sys.executable, quote (sys.executable),
         '-c', quote (cmd), '-mqNxd', quote (tmpeggs), 'zc.buildout' + VERSION,
