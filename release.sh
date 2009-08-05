@@ -15,10 +15,10 @@ python2.6 setup.py -q egg_info -RDb '' bdist_egg
 python2.6 setup.py -q egg_info -RDb '' sdist
 
 # updating the md5 hashes
-python bootstrap.py --md5update dist/distribute-$VERSION-py2.3.egg
-python bootstrap.py --md5update dist/distribute-$VERSION-py2.4.egg
-python bootstrap.py --md5update dist/distribute-$VERSION-py2.5.egg
-python bootstrap.py --md5update dist/distribute-$VERSION-py2.6.egg
+python bootstrapping.py --md5update dist/distribute-$VERSION-py2.3.egg
+python bootstrapping.py --md5update dist/distribute-$VERSION-py2.4.egg
+python bootstrapping.py --md5update dist/distribute-$VERSION-py2.5.egg
+python bootstrapping.py --md5update dist/distribute-$VERSION-py2.6.egg
 
 # XXX uploads will be done here
 
