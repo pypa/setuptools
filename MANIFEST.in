@@ -1,7 +1,7 @@
 recursive-include setuptools *.py *.txt *.exe
 recursive-include tests *.py *.c *.pyx
 recursive-include docs *.py *.txt Makefile
-recursive-include buildout *.py *.txt 
+recursive-include buildout *.py 
 include *.py
 include *.txt
 include MANIFEST.in
