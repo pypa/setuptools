@@ -189,6 +189,9 @@ Install FAQ
   If you are combining zc.buildout and virtualenv, you might fail in the 
   problem described in the previous FAQ entry.
 
+  Last, you will need to use the provided special `bootstrap.py` file,
+  located in the buildout directory.
+
 -------------
 Documentation
 -------------
