@@ -2263,7 +2263,8 @@ class Distribution(object):
                 or modname in _namespace_packages
             ):
                 continue
-
+            if modname in ('pkg_resources', 'setuptools', 'site'):
+                continue
             fn = getattr(sys.modules[modname], '__file__', None)
             if fn and normalize_path(fn).startswith(loc):
                 continue
