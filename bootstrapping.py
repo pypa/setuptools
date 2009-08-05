@@ -35,10 +35,10 @@ DEFAULT_VERSION = "0.6"
 DEFAULT_URL     = "http://nightly.ziade.org/"
 
 md5_data = {
-    'distribute-0.6-py2.3.egg': 'a321a3d3359f76214e1ba84fe5967a55',
-    'distribute-0.6-py2.4.egg': '52fe9eb6e7ef9409801b366a138547cc',
-    'distribute-0.6-py2.5.egg': '96b681ffaeac522d8e4705fe6100ba50',
-    'distribute-0.6-py2.6.egg': '21ba7266dfd32135408d3331df40f0f7',
+    'distribute-0.6-py2.3.egg': 'a9ba0aaf677b912a90e9fb485fa4db19',
+    'distribute-0.6-py2.4.egg': 'a7c8ccf5609bee803497de62960b698c',
+    'distribute-0.6-py2.5.egg': 'c624cd74c056757908a1cdafa288d03c',
+    'distribute-0.6-py2.6.egg': '7ab763a7c8261759c8d2215c5cd3ee26',
 }
 
 def _validate_md5(egg_name, data):
