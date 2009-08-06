@@ -4,7 +4,8 @@
 from distutils.util import convert_path
 
 d = {}
-execfile(convert_path('setuptools/command/__init__.py'), d)
+init_path = convert_path('setuptools/command/__init__.py')
+exec(open(init_path).read(), d)
 
 SETUP_COMMANDS = d['__all__']
 VERSION = "0.6"
@@ -16,7 +17,7 @@ scripts = []
 # if we are installing Distribute using "python setup.py install"
 # we need to get setuptools out of the way
 if 'install' in sys.argv[1:]:
-    from bootstraping import before_install
+    from bootstrapping import before_install
     before_install()
 
 dist = setup(
@@ -100,7 +101,7 @@ dist = setup(
     scripts = scripts,
 )
 if 'install' in sys.argv[1:]:
-    from bootstraping import after_install
+    from bootstrapping import after_install
     after_install(dist)
 
 
