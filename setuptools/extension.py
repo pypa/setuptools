@@ -1,5 +1,5 @@
 from distutils.core import Extension as _Extension
-from dist import _get_unpatched
+from setuptools.dist import _get_unpatched
 _Extension = _get_unpatched(_Extension)
 
 try:
