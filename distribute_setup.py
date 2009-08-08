@@ -34,10 +34,10 @@ DEFAULT_VERSION = "0.6"
 DEFAULT_URL     = "http://pypi.python.org/packages/%s/d/distribute/" % sys.version[:3]
 
 md5_data = {
-    'distribute-0.6-py2.3.egg': '13bc73069e91818142b608aad89f501a',
-    'distribute-0.6-py2.4.egg': 'bbbd92be263b436e2e7c73c8011f9674',
-    'distribute-0.6-py2.5.egg': '4033cda6bd930fa56711410212cd0c57',
-    'distribute-0.6-py2.6.egg': '029edd3dd972f7bc4bd15ff820f65b09',
+    'distribute-0.6-py2.3.egg': '66d06db7fc91227585f81b0b27b07bab',
+    'distribute-0.6-py2.4.egg': '8fc3eb887ee98c506c38838955f9eee2',
+    'distribute-0.6-py2.5.egg': 'd87f6492c53d192c62e0334859d18b59',
+    'distribute-0.6-py2.6.egg': '89c46c2ed0c756dd278acc1482aa12f1',
 }
 
 def _validate_md5(egg_name, data):
