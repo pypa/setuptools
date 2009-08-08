@@ -45,21 +45,21 @@ def main():
         return
 
     parser = optparse.OptionParser()
-    
+
     parser.add_option('-v', '--verbose', action='count', dest='verbose',
         default=0, help="Increase verbosity")
-        
+
     parser.add_option('--prefix', dest="prefix", default='~',
         help="The base directory to install to (default ~)")
-        
+
     parser.add_option('--clear', dest='clear', action='store_true',
         help="Clear out the non-root install and start from scratch")
-        
+
     parser.add_option('--no-site-packages', dest='no_site_packages',
         action='store_true',
         help="Don't copy the contents of the global site-packages dir to the "
              "non-root site-packages")
-    
+
     options, args = parser.parse_args()
     global verbose
 
@@ -74,7 +74,7 @@ def main():
 
     verbose = options.verbose
     assert not args, "No arguments allowed"
-        
+
     if options.clear:
         rmtree(lib_dir)
         rmtree(inc_dir)
@@ -115,9 +115,9 @@ def main():
         print 'Please make sure you remove any previous custom paths from'
         print "your", pydistutils, "file."
 
-    print "You're now ready to download bootstrapping.py, and run"
-    print py_executable, "bootstrapping.py"
-      
+    print "You're now ready to download distribute_setup.py, and run"
+    print py_executable, "distribute_setup.py"
+
 if __name__ == '__main__':
     main()
 

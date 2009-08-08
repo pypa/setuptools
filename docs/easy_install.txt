@@ -94,7 +94,7 @@ directory, you can also retarget the installation location for scripts so they
 go on a directory that's already on the ``PATH``.  For more information see the
 sections below on `Command-Line Options`_ and `Configuration Files`_.  You
 can pass command line options (such as ``--script-dir``) to
-``bootstrapping.py`` to control where ``easy_install.exe`` will be installed.
+``distribute_setup.py`` to control where ``easy_install.exe`` will be installed.
 
 
 
@@ -1111,7 +1111,7 @@ already have them::
     install_lib = ~/py-lib
     install_scripts = ~/bin
 
-Be sure to do this *before* you try to run the ``bootstrapping.py``
+Be sure to do this *before* you try to run the ``distribute_setup.py``
 installation script.  Then, follow the standard `installation instructions`_,
 but make sure that ``~/py-lib`` is listed in your ``PYTHONPATH`` environment
 variable.

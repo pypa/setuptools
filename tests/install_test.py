@@ -2,8 +2,8 @@ import urllib2
 import sys
 import os
 
-if os.path.exists('bootstrapping.py'):
-    print 'bootstrapping.py exists in the current dir, aborting'
+if os.path.exists('distribute_setup.py'):
+    print 'distribute_setup.py exists in the current dir, aborting'
     sys.exit(2)
 
 print '**** Starting Test'
@@ -14,13 +14,13 @@ if is_jython:
     import subprocess
 
 print 'Downloading bootstrap'
-file = urllib2.urlopen('http://nightly.ziade.org/bootstrapping.py')
-f = open('bootstrapping.py', 'w')
+file = urllib2.urlopen('http://nightly.ziade.org/distribute_setup.py')
+f = open('distribute_setup.py', 'w')
 f.write(file.read())
 f.close()
 
 # running it
-args = [sys.executable]  + ['bootstrapping.py']
+args = [sys.executable]  + ['distribute_setup.py']
 if is_jython:
     res = subprocess.call(args)
 else:
@@ -28,7 +28,7 @@ else:
 
 if res != 0:
     print '**** Test failed, please send me the output at tarek@ziade.org'
-    os.remove('bootstrapping.py')
+    os.remove('distribute_setup.py')
     sys.exit(2)
 
 # now checking if Distribute is installed
@@ -71,5 +71,5 @@ try:
 finally:
     if os.path.exists(script_name):
         os.remove(script_name)
-    os.remove('bootstrapping.py')
+    os.remove('distribute_setup.py')
 
