@@ -51,7 +51,7 @@ your choice.
 
 If your shell has the `wget` program you can do::
 
-    $ wget http://bitbucket.org/tarek/distribute/downloads/distribute_setup.py
+    $ wget http://nightly.ziade.org/distribute_setup.py
     $ python distribute_setup.py
 
 easy_install or pip

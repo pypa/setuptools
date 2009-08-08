@@ -15,7 +15,7 @@ including just a single `bootstrap module`_ (an 8K .py file), your package will
 automatically download and install ``setuptools`` if the user is building your
 package from source and doesn't have a suitable version already installed.
 
-.. _bootstrap module: http://cdn.bitbucket.org/tarek/distribute/downloads/distribute_setup.py
+.. _bootstrap module: http://nightly.ziade.org/distribute_setup.py
 
 Feature Highlights:
 
