@@ -34,10 +34,10 @@ DEFAULT_VERSION = "0.6"
 DEFAULT_URL     = "http://pypi.python.org/packages/%s/d/distribute/" % sys.version[:3]
 
 md5_data = {
-    'distribute-0.6-py2.3.egg': '71c3b220419b3772c4522eca622ff091',
-    'distribute-0.6-py2.4.egg': '845c9837845d1e50d64e2a978bf60b0f',
-    'distribute-0.6-py2.5.egg': 'ebaa166a2b20d56ac236b16ef597aa2c',
-    'distribute-0.6-py2.6.egg': 'd95c2a32b82d7f7b545434f7e322a83d',
+    'distribute-0.6-py2.3.egg': 'd41d8cd98f00b204e9800998ecf8427e',
+    'distribute-0.6-py2.4.egg': 'd41d8cd98f00b204e9800998ecf8427e',
+    'distribute-0.6-py2.5.egg': 'd41d8cd98f00b204e9800998ecf8427e',
+    'distribute-0.6-py2.6.egg': 'd41d8cd98f00b204e9800998ecf8427e',
 }
 
 def _validate_md5(egg_name, data):
@@ -400,6 +400,7 @@ def update_md5(filenames):
     for name in filenames:
         base = os.path.basename(name)
         f = open(name,'rb')
+        print 'hash for %s: %s' % (name, md5(f.read()).hexdigest())
         md5_data[base] = md5(f.read()).hexdigest()
         f.close()
 
