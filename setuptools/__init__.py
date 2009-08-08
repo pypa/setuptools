@@ -18,7 +18,7 @@ __all__ = [
 # or by the Distribute project, in case Setuptools creates
 # a distribution with the same version.
 #
-# The ez_setup script for instance, will check if this
+# The bootstrapping script for instance, will check if this
 # attribute is present to decide wether to reinstall the package
 _distribute = True
 
@@ -43,7 +43,7 @@ def find_packages(where='.', exclude=()):
                 os.path.isfile(os.path.join(fn,'__init__.py'))
             ):
                 out.append(prefix+name); stack.append((fn,prefix+name+'.'))
-    for pat in list(exclude)+['ez_setup']:
+    for pat in list(exclude)+['ez_setup', 'bootstrapping']:
         from fnmatch import fnmatchcase
         out = [item for item in out if not fnmatchcase(item,pat)]
     return out

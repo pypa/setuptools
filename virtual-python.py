@@ -115,8 +115,8 @@ def main():
         print 'Please make sure you remove any previous custom paths from'
         print "your", pydistutils, "file."
 
-    print "You're now ready to download ez_setup.py, and run"
-    print py_executable, "ez_setup.py"
+    print "You're now ready to download bootstrapping.py, and run"
+    print py_executable, "bootstrapping.py"
       
 if __name__ == '__main__':
     main()

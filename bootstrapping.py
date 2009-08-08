@@ -4,7 +4,7 @@
 If you want to use setuptools in your package's setup.py, just include this
 file in the same directory with it, and add this to the top of your setup.py::
 
-    from ez_setup import use_setuptools
+    from bootstrapping import use_setuptools
     use_setuptools()
 
 If you want to require a specific version of setuptools, set a download
@@ -391,7 +391,7 @@ def main(argv, version=DEFAULT_VERSION):
             #main(argv)
         else:
             print "distribute version",version,"or greater has been installed."
-            print '(Run "ez_setup.py -U distribute" to reinstall or upgrade.)'
+            print '(Run "bootstrapping.py -U distribute" to reinstall or upgrade.)'
 
 def update_md5(filenames):
     """Update our built-in md5 registry"""

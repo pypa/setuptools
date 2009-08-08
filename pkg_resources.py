@@ -30,7 +30,7 @@ from os.path import isdir, split
 # or by the Distribute project, in case Setuptools creates
 # a distribution with the same version.
 #
-# The ez_setup script for instance, will check if this
+# The bootstrapping script for instance, will check if this
 # attribute is present to decide wether to reinstall the package
 _distribute = True
 
