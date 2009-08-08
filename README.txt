@@ -36,8 +36,7 @@ Installation Instructions
 -------------------------
 
 Distribute comes in two flavors: in eggs or as a source distribution. Archives
-are available at the PyPI page and here : 
-http://bitbucket.org/tarek/distribute/downloads.
+are available at the PyPI page.
 
 It can be installed using easy_install or pip, with the source tarball, with the
 eggs distribution, or using the ``distribute_setup.py`` script provided online.
@@ -68,7 +67,7 @@ Source installation
 
 Download the source tarball, and uncompress it, then run the install command::
 
-    $ wget http://bitbucket.org/tarek/distribute/downloads/distribute-0.6.tar.gz
+    $ wget http://pypi.python.org/packages/source/d/distribute/distribute-0.6.tar.gz
     $ tar -xzvf distribute-0.6.tar.gz
     $ cd distribute-0.6
     $ python setup.py install
@@ -192,16 +191,12 @@ Install FAQ
   Last, you will need to use the provided special `bootstrap.py` file,
   located in the buildout directory.
 
--------------
-Documentation
--------------
-
-XXX will point to setuptools doc.
-
 -------
 Credits
 -------
 
-* More to add here I need to list (Hanno, me, other guys..)
+* Tarek Ziadé
+* Hanno Schlichting
+* Many other people that helped on Distutils-SIG (please add your name here)
 * Phillip Eby for the Setuptools project. 
  

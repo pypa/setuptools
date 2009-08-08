@@ -1214,7 +1214,7 @@ Creating System Packages
     this kind of patching to work with setuptools.
 
     If you or your users have a problem building a usable system package for
-    your project, please report the problem via the `mailing list`_ so that
+    your project, please report the problem via the mailing list so that
     either the "bdist" tool in question or setuptools can be modified to
     resolve the issue.
 
@@ -2585,7 +2585,7 @@ Reusing ``setuptools`` Code
 ===========================
 
 ``distribute_setup``
------------------
+--------------------
 
 XXX
 
