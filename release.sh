@@ -20,5 +20,3 @@ python distribute_setup.py --md5update dist/distribute-$VERSION-py2.4.egg
 python distribute_setup.py --md5update dist/distribute-$VERSION-py2.5.egg
 python distribute_setup.py --md5update dist/distribute-$VERSION-py2.6.egg
 
-# XXX uploads will be done here
-
