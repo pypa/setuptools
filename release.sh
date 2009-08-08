@@ -12,11 +12,14 @@ python2.5 setup.py -q egg_info -RDb '' bdist_egg register upload
 python2.6 setup.py -q egg_info -RDb '' bdist_egg register upload
 
 # updating the md5 hashes
-python2.6 distribute_setup.py --md5update dist/distribute-$VERSION-py2.3.egg \
-    dist/distribute-$VERSION-py2.4.egg \
-    dist/distribute-$VERSION-py2.5.egg \
-    dist/distribute-$VERSION-py2.6.egg
+python distribute_setup.py --md5update dist/distribute-$VERSION-py2.3.egg
+python distribute_setup.py --md5update dist/distribute-$VERSION-py2.4.egg
+python distribute_setup.py --md5update dist/distribute-$VERSION-py2.5.egg
+python distribute_setup.py --md5update dist/distribute-$VERSION-py2.6.egg
 
 # now preparing the source release
 python2.6 setup.py -q egg_info -RDb '' sdist register upload
+
+echo You need to commit the md5 changes
+
 
