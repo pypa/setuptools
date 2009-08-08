@@ -2,11 +2,12 @@
 CHANGES
 =======
 
+---
 0.6
-===
+---
 
 setuptools
-----------
+==========
 
 * Packages required at build time where not fully present at install time.
   This closes http://bitbucket.org/tarek/distribute/issue/12.
@@ -27,7 +28,7 @@ setuptools
   http://bitbucket.org/tarek/distribute/issue/1.
 
 pkg_resources
--------------
+=============
 
 * Avoid a call to /usr/bin/sw_vers on OSX and use the official platform API
   instead. Based on a patch from ronaldoussoren. This closes
@@ -46,7 +47,7 @@ pkg_resources
   http://bitbucket.org/tarek/distribute/issue/3.
 
 easy_install
-------------
+============
 
 * Immediately close all file handles. This closes
   http://bitbucket.org/tarek/distribute/issue/3.

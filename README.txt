@@ -126,7 +126,7 @@ Uninstallation Instructions
 Like other distutils-based distributions, Distribute doesn't provide an 
 uninstaller yet. It's all manual !
 
-Distribute is installed in three steps::
+Distribute is installed in three steps:
 
 1- it gets out of the way an existing installation of Setuptools
 2- it installs a `fake` setuptools installation 
