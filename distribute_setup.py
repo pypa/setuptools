@@ -311,7 +311,7 @@ def _easy_install(argv, egg=None):
     from setuptools.dist import Distribution
     import distutils.core
     if egg is not None:
-        setup_args = list(argv) + ['-v'] + [egg]
+        setup_args = list(argv) + [egg]
     else:
         setup_args = list(argv)
     try:
