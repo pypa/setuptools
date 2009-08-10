@@ -71,11 +71,12 @@ class easy_install(Command):
         ('no-deps', 'N', "don't install dependencies"),
         ('allow-hosts=', 'H', "pattern(s) that hostnames must match"),
         ('local-snapshots-ok', 'l', "allow building eggs from local checkouts"),
+        ('version', None, "print version information and exit"),
     ]
     boolean_options = [
         'zip-ok', 'multi-version', 'exclude-scripts', 'upgrade', 'always-copy',
         'delete-conflicting', 'ignore-conflicts-at-my-risk', 'editable',
-        'no-deps', 'local-snapshots-ok',
+        'no-deps', 'local-snapshots-ok', 'version'
     ]
     negative_opt = {'always-unzip': 'zip-ok'}
     create_index = PackageIndex
@@ -91,6 +92,7 @@ class easy_install(Command):
         self.upgrade = self.always_copy = self.multi_version = None
         self.editable = self.no_deps = self.allow_hosts = None
         self.root = self.prefix = self.no_report = None
+        self.version = None
 
         # Options not specifiable via command line
         self.package_index = None
@@ -122,6 +124,10 @@ class easy_install(Command):
                         os.unlink(filename)
 
     def finalize_options(self):
+        if self.version:
+            print 'distribute %s' % get_distribution('distribute').version
+            sys.exit()
+
         self._expand('install_dir','script_dir','build_directory','site_dirs')
         # If a non-default installation directory was specified, default the
         # script directory to match it.
