@@ -259,6 +259,20 @@ def before_install():
     log.warn('Before install bootstrap.')
     fake_setuptools()
 
+def _under_prefix(location):
+    args = sys.argv[sys.argv.index('install')+1:]
+
+    for index, arg in enumerate(args):
+        for option in ('--root', '--prefix'):
+            if arg.startswith('%s=' % option):
+                top_dir = arg.split('root=')[-1]
+                return location.startswith(top_dir)
+            elif arg == option:
+                if len(args) > index:
+                    top_dir = args[index+1]
+                    return location.startswith(top_dir)
+    return True
+
 def fake_setuptools():
     log.warn('Scanning installed packages')
     try:
@@ -275,6 +289,13 @@ def fake_setuptools():
     # detecting if it was already faked
     setuptools_location = setuptools_dist.location
     log.warn('Setuptools installation detected at %s' % setuptools_location)
+
+    # if --root or --preix was provided, and if
+    # setuptools is not located in them, we don't patch it
+    if not _under_prefix(setuptools_location):
+        log.warn('Not patching, --root or --prefix is installing Distribute'
+                 ' in another location')
+        return
 
     # let's see if its an egg
     if not setuptools_location.endswith('.egg'):
