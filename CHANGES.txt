@@ -2,6 +2,17 @@
 CHANGES
 =======
 
+-----
+0.6.1
+-----
+
+bootstraping
+============
+
+* The boostrap process leave setuptools alone if detected in the system
+  and --root or --prefix is provided, but is not in the same location.
+  This closes http://bitbucket.org/tarek/distribute/issue/10.
+
 ---
 0.6
 ---
