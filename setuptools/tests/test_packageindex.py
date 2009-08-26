@@ -18,6 +18,39 @@ class TestPackageIndex(unittest.TestCase):
         else:
             self.assert_(isinstance(v,urllib2.HTTPError))
 
+        # issue 16
+        # easy_install inquant.contentmirror.plone breaks because of a typo
+        # in its home URL
+        index = setuptools.package_index.PackageIndex(
+            hosts=('www.example.com',)
+        )
+
+        url = 'url:%20https://svn.plone.org/svn/collective/inquant.contentmirror.plone/trunk'
+        try:
+            v = index.open_url(url)
+        except Exception, v:
+            self.assert_(url in str(v))
+        else:
+            self.assert_(isinstance(v, urllib2.HTTPError))
+
+        def _urlopen(*args):
+            import httplib
+            raise httplib.BadStatusLine('line')
+
+        old_urlopen = urllib2.urlopen
+        urllib2.urlopen = _urlopen
+        url = 'http://example.com'
+        try:
+            try:
+                v = index.open_url(url)
+            except Exception, v:
+                self.assert_('line' in str(v))
+            else:
+                raise AssertionError('Should have raise here!')
+        finally:
+            urllib2.urlopen = old_urlopen
+
+
     def test_url_ok(self):
         index = setuptools.package_index.PackageIndex(
             hosts=('www.example.com',)

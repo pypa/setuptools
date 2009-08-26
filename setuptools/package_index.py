@@ -1,5 +1,6 @@
 """PyPI and direct package downloading"""
 import sys, os.path, re, urlparse, urllib2, shutil, random, socket, cStringIO
+import httplib
 from pkg_resources import *
 from distutils import log
 from distutils.errors import DistutilsError
@@ -577,13 +578,27 @@ class PackageIndex(Environment):
             return local_open(url)
         try:
             return open_with_auth(url)
+        except ValueError, v:
+            msg = ' '.join([str(arg) for arg in v.args])
+            if warning:
+                self.warn(warning, msg)
+            else:
+                raise DistutilsError('%s %s' % (url, msg))
         except urllib2.HTTPError, v:
             return v
         except urllib2.URLError, v:
-            if warning: self.warn(warning, v.reason)
+            if warning:
+                self.warn(warning, v.reason)
             else:
                 raise DistutilsError("Download error for %s: %s"
                                      % (url, v.reason))
+        except httplib.BadStatusLine, v:
+            if warning:
+                self.warn(warning, v.line)
+            else:
+                raise DistutilsError('%s returned a bad status line. '
+                                     'The server might be down, %s' % \
+                                             (url, v.line))
 
     def _download_url(self, scheme, url, tmpdir):
         # Determine download filename

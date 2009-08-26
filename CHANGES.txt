@@ -6,6 +6,13 @@ CHANGES
 0.6.1
 -----
 
+setuptools
+==========
+
+* package_index.urlopen now catches BadStatusLine and malformed url errors.
+  This closes http://bitbucket.org/tarek/distribute/issue/16 and
+  http://bitbucket.org/tarek/distribute/issue/18.
+
 bootstraping
 ============
 
