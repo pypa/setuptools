@@ -547,7 +547,7 @@ Please make the appropriate changes for your system and try again.
             return True
         if not dist.has_metadata('zip-safe'):
             return True
-        return False
+        return True
 
     def maybe_move(self, spec, dist_filename, setup_base):
         dst = os.path.join(self.build_directory, spec.key)

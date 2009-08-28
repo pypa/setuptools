@@ -13,6 +13,9 @@ setuptools
   This closes http://bitbucket.org/tarek/distribute/issue/16 and
   http://bitbucket.org/tarek/distribute/issue/18.
 
+* zip_ok is now True by default. This closes 
+  http://bugs.python.org/setuptools/issue33.
+
 bootstraping
 ============
 
