@@ -16,6 +16,8 @@ setuptools
 * zip_ok is now True by default. This closes 
   http://bugs.python.org/setuptools/issue33.
 
+* Fixed invalid URL error catching. http://bugs.python.org/setuptools/issue20.
+
 bootstraping
 ============
 

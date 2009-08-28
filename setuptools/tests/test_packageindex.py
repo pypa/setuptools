@@ -50,6 +50,12 @@ class TestPackageIndex(unittest.TestCase):
         finally:
             urllib2.urlopen = old_urlopen
 
+        # issue 20
+        url = 'http://http://svn.pythonpaste.org/Paste/wphp/trunk'
+        try:
+            index.open_url(url)
+        except Exception, v:
+            self.assert_('nonnumeric port' in str(v))
 
     def test_url_ok(self):
         index = setuptools.package_index.PackageIndex(

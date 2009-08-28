@@ -578,7 +578,7 @@ class PackageIndex(Environment):
             return local_open(url)
         try:
             return open_with_auth(url)
-        except ValueError, v:
+        except (ValueError, httplib.InvalidURL), v:
             msg = ' '.join([str(arg) for arg in v.args])
             if warning:
                 self.warn(warning, msg)
