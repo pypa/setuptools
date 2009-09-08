@@ -18,6 +18,9 @@ setuptools
 
 * Fixed invalid URL error catching. http://bugs.python.org/setuptools/issue20.
 
+* Fixed invalid bootstraping with easy_install installation
+  http://bitbucket.org/tarek/distribute/issue/40.
+
 bootstraping
 ============
 
