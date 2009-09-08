@@ -26,31 +26,8 @@ is_jython = sys.platform.startswith('java')
 if is_jython:
     import subprocess
 
-try:
-    from hashlib import md5
-except ImportError:
-    from md5 import md5
-
-DEFAULT_VERSION = "0.6"
+DEFAULT_VERSION = "0.6.1"
 DEFAULT_URL     = "http://pypi.python.org/packages/%s/d/distribute/" % sys.version[:3]
-
-md5_data = {
-    'distribute-0.6-py2.3.egg': '66d06db7fc91227585f81b0b27b07bab',
-    'distribute-0.6-py2.4.egg': '8fc3eb887ee98c506c38838955f9eee2',
-    'distribute-0.6-py2.5.egg': 'd87f6492c53d192c62e0334859d18b59',
-    'distribute-0.6-py2.6.egg': '89c46c2ed0c756dd278acc1482aa12f1',
-}
-
-def _validate_md5(egg_name, data):
-    if egg_name in md5_data:
-        digest = md5(data).hexdigest()
-        if digest != md5_data[egg_name]:
-            print >>sys.stderr, (
-                "md5 validation of %s failed!  (Possible download problem?)"
-                % egg_name
-            )
-            sys.exit(2)
-    return data
 
 def use_setuptools(
     version=DEFAULT_VERSION, download_base=DEFAULT_URL, to_dir=os.curdir,
@@ -135,7 +112,7 @@ and place it in this directory before rerunning this script.)
             src = urllib2.urlopen(url)
             # Read/write all in one block, so we don't create a corrupt file
             # if the download is interrupted.
-            data = _validate_md5(egg_name, src.read())
+            data = src.read()
             dst = open(saveto,"wb"); dst.write(data)
         finally:
             if src: src.close()
@@ -425,39 +402,6 @@ def main(argv, version=DEFAULT_VERSION):
             print "distribute version",version,"or greater has been installed."
             print '(Run "distribute_setup.py -U distribute" to reinstall or upgrade.)'
 
-def update_md5(filenames):
-    """Update our built-in md5 registry"""
-
-    import re
-
-    for name in filenames:
-        base = os.path.basename(name)
-        f = open(name,'rb')
-        md5_data[base] = md5(f.read()).hexdigest()
-        f.close()
-
-    data = ["    %r: %r,\n" % it for it in md5_data.items()]
-    data.sort()
-    repl = "".join(data)
-
-    import inspect
-    srcfile = inspect.getsourcefile(sys.modules[__name__])
-    f = open(srcfile, 'rb'); src = f.read(); f.close()
-
-    match = re.search("\nmd5_data = {\n([^}]+)}", src)
-    if not match:
-        print >>sys.stderr, "Internal error!"
-        sys.exit(2)
-
-    src = src[:match.start(1)] + repl + src[match.end(1):]
-    f = open(srcfile,'w')
-    f.write(src)
-    f.close()
-
-
 if __name__ == '__main__':
-    if len(sys.argv) > 2 and sys.argv[1] == '--md5update':
-        update_md5(sys.argv[2:])
-    else:
-        main(sys.argv[1:])
+    main(sys.argv[1:])
 

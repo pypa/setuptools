@@ -35,8 +35,7 @@ you start the installation of `Distribute`.
 Installation Instructions
 -------------------------
 
-Distribute comes in two flavors: in eggs or as a source distribution. Archives
-are available at the PyPI page.
+Distribute is only released as a source distribution.
 
 It can be installed using easy_install or pip, with the source tarball, with the
 eggs distribution, or using the ``distribute_setup.py`` script provided online.
@@ -67,57 +66,10 @@ Source installation
 
 Download the source tarball, and uncompress it, then run the install command::
 
-    $ wget http://pypi.python.org/packages/source/d/distribute/distribute-0.6.tar.gz
-    $ tar -xzvf distribute-0.6.tar.gz
+    $ wget http://pypi.python.org/packages/source/d/distribute/distribute-0.6.1.tar.gz
+    $ tar -xzvf distribute-0.6.1.tar.gz
     $ cd distribute-0.6
     $ python setup.py install
-
-Egg installation
-================
-
-An Egg is a zip file with a `sh` script inserted in its head so it can be 
-`executed` in the shell.
-
-Cygwin, Linux anc Mac OS/X
---------------------------
-
-1. Download the appropriate egg for your version of Python (e.g.
-   ``distribute-0.6-py2.4.egg``).  Do NOT rename it.
-
-2. Run it as if it were a shell script, e.g. ``sh distribute-0.6-py2.4.egg``.
-   Distutils will install itself using the matching version of Python (e.g.
-   ``python2.4``), and will place the ``easy_install`` executable in the
-   default location for installing Python scripts (as determined by the
-   standard distutils configuration files, or by the Python installation).
-
-If you want to install distribute to somewhere other than ``site-packages`` or
-your default distutils installation locations for libraries and scripts, you
-may include EasyInstall command-line options such as ``--prefix``,
-``--install-dir``, and so on, following the ``.egg`` filename on the same
-command line.  For example::
-
-    sh distribute-0.6-py2.4.egg --prefix=~
-
-Cygwin Note
------------
-
-If you are trying to install Distribute for the **Windows** version of Python
-(as opposed to the Cygwin version that lives in ``/usr/bin``), you must make
-sure that an appropriate executable (``python2.3``, ``python2.4``, or
-``python2.5``) is on your **Cygwin** ``PATH`` when invoking the egg.  For
-example, doing the following at a Cygwin bash prompt will install Distribute
-for the **Windows** Python found at ``C:\\Python24``::
-
-    ln -s /cygdrive/c/Python24/python.exe python2.4
-    PATH=.:$PATH sh distribute-0.6-py2.4.egg
-    rm python2.4
-
-Windows
--------
-
-Don't install Distribute trying to execute the egg, because it's aimed to 
-sh-based shells. Instead, use the ``distribute_setup.py`` method, that will 
-download the egg for you, then install the egg.
 
 ---------------------------
 Uninstallation Instructions
@@ -179,7 +131,7 @@ Install FAQ
   You need in this case to build a virtualenv with the --no-site-packages option
   or to install `Distribute` globally.
 
-- **How does in interacts with zc.buildout ?**
+- **How does Distribute interacts with zc.buildout ?**
 
   Like virtualenv, Distribute has to be installed after setuptools. The simplest
   way is to add it in a `zc.recipe.egg` section so the job is done when you 
