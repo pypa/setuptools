@@ -20,6 +20,11 @@ setuptools
 
 * Fixed invalid bootstraping with easy_install installation
   http://bitbucket.org/tarek/distribute/issue/40.
+  Thanks to Florian Shchulze for the help.
+
+* Removed buildout/bootstrap.py. A new repository will create a specific
+  bootstrap.py script.
+
 
 bootstraping
 ============
