@@ -13,7 +13,11 @@ the appropriate options to ``use_setuptools()``.
 
 This file can also be run as a script to install or upgrade setuptools.
 """
-from site import USER_SITE
+try:
+    from site import USER_SITE
+except ImportError:
+    USER_SITE = None
+
 import sys
 import os
 import time
@@ -199,7 +203,7 @@ def _under_prefix(location):
                 if len(args) > index:
                     top_dir = args[index+1]
                     return location.startswith(top_dir)
-            elif option == '--user':
+            elif option == '--user' and USER_SITE is not None:
                 return location.startswith(USER_SITE)
     return True
 
