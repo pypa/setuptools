@@ -13,6 +13,7 @@ the appropriate options to ``use_setuptools()``.
 
 This file can also be run as a script to install or upgrade setuptools.
 """
+from site import USER_SITE
 import sys
 import os
 import shutil
@@ -162,7 +163,7 @@ def _patch_file(path, content):
         log.warn('Already patched.')
         return False
     log.warn('Patching...')
-    os.rename(path, path +'.OLD.%s' % time.time())
+    _rename_path(path)
     f = open(path, 'w')
     try:
         f.write(content)
@@ -176,6 +177,14 @@ def _same_content(path, content):
 def _rename_path(path):
     new_name = path + '.OLD.%s' % time.time()
     log.warn('Renaming %s into %s' % (path, new_name))
+    try:
+        from setuptools.sandbox import DirectorySandbox
+        def _violation(*args):
+            pass
+        DirectorySandbox._violation = _violation
+    except ImportError:
+        pass
+
     os.rename(path, new_name)
     return new_name
 
@@ -260,8 +269,9 @@ def before_install():
     fake_setuptools()
 
 def _under_prefix(location):
+    if 'install' not in sys.argv:
+        return True
     args = sys.argv[sys.argv.index('install')+1:]
-
     for index, arg in enumerate(args):
         for option in ('--root', '--prefix'):
             if arg.startswith('%s=' % option):
@@ -271,6 +281,8 @@ def _under_prefix(location):
                 if len(args) > index:
                     top_dir = args[index+1]
                     return location.startswith(top_dir)
+            elif option == '--user':
+                return location.startswith(USER_SITE)
     return True
 
 def fake_setuptools():
