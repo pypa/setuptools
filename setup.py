@@ -8,7 +8,7 @@ init_path = convert_path('setuptools/command/__init__.py')
 exec(open(init_path).read(), d)
 
 SETUP_COMMANDS = d['__all__']
-VERSION = "0.6.1"
+VERSION = "0.6.2"
 
 from setuptools import setup, find_packages
 import sys

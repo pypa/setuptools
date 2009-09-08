@@ -1,5 +1,5 @@
 #!/bin/sh
-export VERSION="0.6.1"
+export VERSION="0.6.2"
 
 # creating the releases
 rm -rf dist
