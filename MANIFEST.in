@@ -1,5 +1,5 @@
 recursive-include setuptools *.py *.txt *.exe
-recursive-include tests *.py *.c *.pyx
+recursive-include tests *.py *.c *.pyx *.txt
 recursive-include docs *.py *.txt Makefile
 include *.py
 include *.txt
