@@ -1,5 +1,6 @@
 [distutils.commands]
 bdist_rpm = setuptools.command.bdist_rpm:bdist_rpm
+install_scripts = setuptools.command.install_scripts:install_scripts
 rotate = setuptools.command.rotate:rotate
 develop = setuptools.command.develop:develop
 setopt = setuptools.command.setopt:setopt
@@ -10,11 +11,11 @@ register = setuptools.command.register:register
 install_egg_info = setuptools.command.install_egg_info:install_egg_info
 alias = setuptools.command.alias:alias
 easy_install = setuptools.command.easy_install:easy_install
-install_scripts = setuptools.command.install_scripts:install_scripts
+test = setuptools.command.test:test
 bdist_wininst = setuptools.command.bdist_wininst:bdist_wininst
 bdist_egg = setuptools.command.bdist_egg:bdist_egg
 install = setuptools.command.install:install
-test = setuptools.command.test:test
+sdist3 = setuptools.command.sdist3:sdist3
 install_lib = setuptools.command.install_lib:install_lib
 build_ext = setuptools.command.build_ext:build_ext
 sdist = setuptools.command.sdist:sdist

@@ -1,7 +1,7 @@
 __all__ = [
     'alias', 'bdist_egg', 'bdist_rpm', 'build_ext', 'build_py', 'develop',
     'easy_install', 'egg_info', 'install', 'install_lib', 'rotate', 'saveopts',
-    'sdist', 'setopt', 'test', 'upload', 'install_egg_info', 'install_scripts',
+    'sdist', 'sdist3', 'setopt', 'test', 'upload', 'install_egg_info', 'install_scripts',
     'register', 'bdist_wininst',
 ]
 
