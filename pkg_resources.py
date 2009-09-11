@@ -1239,7 +1239,7 @@ class DefaultProvider(EggProvider):
         return open(self._fn(self.module_path, resource_name), 'rb')
 
     def _get(self, path):
-        stream = open(path, 'rb')
+        stream = open(path, 'rU')
         try:
             return stream.read()
         finally:
