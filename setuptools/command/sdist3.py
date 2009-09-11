@@ -1,3 +1,4 @@
+import os
 from distutils import log
 from sdist import sdist
 from lib2to3.refactor import RefactoringTool, get_fixers_from_package
@@ -31,4 +32,4 @@ class sdist3(sdist):
         if fixer_names is None:
             fixer_names = get_fixers_from_package('lib2to3.fixes')
         r = _RefactoringTool(fixer_names)
-        r.refactor([f for f in files if f.endswith(".py")], write=True)
+        r.refactor([os.path.join(base_dir, f) for f in files if f.endswith(".py")], write=True)
