@@ -13,7 +13,7 @@ The package resource API is designed to work with normal filesystem packages,
 method.
 """
 
-import sys, os, zipimport, time, re, imp, new
+import sys, os, zipimport, time, re, imp, types
 
 try:
     frozenset
@@ -1707,7 +1707,7 @@ def _handle_ns(packageName, path_item):
         return None
     module = sys.modules.get(packageName)
     if module is None:
-        module = sys.modules[packageName] = new.module(packageName)
+        module = sys.modules[packageName] = types.ModuleType(packageName)
         module.__path__ = []; _set_parent_ns(packageName)
     elif not hasattr(module,'__path__'):
         raise TypeError("Not a package:", packageName)
