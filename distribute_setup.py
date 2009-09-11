@@ -26,7 +26,7 @@ from distutils import log
 import subprocess
 
 IS_JYTHON = sys.platform.startswith('java')
-DEFAULT_VERSION = "0.6.2"
+DEFAULT_VERSION = "0.6.1"
 DEFAULT_URL     = "http://pypi.python.org/packages/source/d/distribute/"
 
 def quote(c):
@@ -60,7 +60,8 @@ def _install(tarball):
         log.warn('Now working in %s' % subdir)
 
         # installing
-        assert python_cmd('setup.py -q install')
+        log.warn('Installing Distribute')
+        assert python_cmd('setup.py install')
     finally:
         os.chdir(old_wd)
 
@@ -81,7 +82,8 @@ def _build_egg(tarball, to_dir=os.curdir):
         log.warn('Now working in %s' % subdir)
 
         # building an egg
-        python_cmd('setup.py -v -q bdist_egg --dist-dir %s' % to_dir)
+        log.warn('Building a Distribute egg in %s' % to_dir)
+        python_cmd('setup.py -q bdist_egg --dist-dir %s' % to_dir)
 
         # returning the result
         for file in os.listdir(to_dir):
