@@ -1,6 +1,9 @@
 import os, sys, __builtin__, tempfile, operator
 _os = sys.modules[os.name]
-_file = file
+try:
+    _file = file
+except NameError:
+    _file = None
 _open = open
 from distutils.errors import DistutilsError
 __all__ = [
@@ -60,13 +63,15 @@ class AbstractSandbox:
         """Run 'func' under os sandboxing"""
         try:
             self._copy(self)
-            __builtin__.file = self._file
+            if _file:
+                __builtin__.file = self._file
             __builtin__.open = self._open
             self._active = True
             return func()
         finally:
             self._active = False
-            __builtin__.file = _file
+            if _file:
+                __builtin__.file = _file
             __builtin__.open = _open
             self._copy(_os)
 
@@ -92,7 +97,8 @@ class AbstractSandbox:
             return original(path,*args,**kw)
         return wrap
 
-    _file = _mk_single_path_wrapper('file', _file)
+    if _file:
+        _file = _mk_single_path_wrapper('file', _file)
     _open = _mk_single_path_wrapper('open', _open)
     for name in [
         "stat", "listdir", "chdir", "open", "chmod", "chown", "mkdir",
