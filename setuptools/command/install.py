@@ -18,9 +18,6 @@ class install(_install):
         ('install_scripts',  lambda self: True),
     ]
     _nc = dict(new_commands)
-    sub_commands = [
-        cmd for cmd in _install.sub_commands if cmd[0] not in _nc
-    ] + new_commands
 
     def initialize_options(self):
         _install.initialize_options(self)
@@ -104,6 +101,10 @@ class install(_install):
         cmd.run()
         setuptools.bootstrap_install_from = None
 
+# XXX Python 3.1 doesn't see _nc if this is inside the class
+install.sub_commands = [
+        cmd for cmd in _install.sub_commands if cmd[0] not in install._nc
+    ] + install.new_commands
 
 
 
