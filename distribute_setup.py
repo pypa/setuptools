@@ -26,7 +26,7 @@ from distutils import log
 import subprocess
 
 IS_JYTHON = sys.platform.startswith('java')
-DEFAULT_VERSION = "0.6.1"
+DEFAULT_VERSION = "0.6.2"
 DEFAULT_URL     = "http://pypi.python.org/packages/source/d/distribute/"
 
 def quote(c):
