@@ -6,6 +6,7 @@ from glob import glob
 try:
     from distutils.util import Mixin2to3 as _Mixin2to3
     # add support for converting doctests that is missing in 3.1 distutils
+    from distutils import log
     from lib2to3.refactor import RefactoringTool, get_fixers_from_package
     import setuptools
     class DistutilsRefactoringTool(RefactoringTool):
@@ -21,15 +22,14 @@ try:
     class Mixin2to3(_Mixin2to3):
         def run_2to3(self, files):
             if not setuptools.run_2to3:
-                return files
-            files = _Mixin2to3.run_2to3(files)
+                return
+            _Mixin2to3.run_2to3(self, files)
             if setuptools.run_2to3_on_doctests:
                 fixer_names = self.fixer_names
                 if fixer_names is None:
                     fixer_names = get_fixers_from_package('lib2to3.fixes')
                 r = DistutilsRefactoringTool(fixer_names)
                 r.refactor(files, write=True, doctests_only=True)
-            return files
 
 except ImportError:
     class Mixin2to3:
