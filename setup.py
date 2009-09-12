@@ -1,6 +1,27 @@
 #!/usr/bin/env python
 """Distutils setup file, used to install or test 'setuptools'"""
 
+import sys, os
+
+src_root = None
+if sys.version_info >= (3,):
+    tmp_src = os.path.join("build", "src")
+    from distutils.filelist import FileList
+    from distutils import dir_util, file_util, util, log
+    log.set_verbosity(1)
+    fl = FileList()
+    for line in open("MANIFEST.in"):
+        fl.process_template_line(line)
+    dir_util.create_tree(tmp_src, fl.files)
+    outfiles_2to3 = []
+    for f in fl.files:
+        outf, copied = file_util.copy_file(f, os.path.join(tmp_src, f), update=1)
+        if copied and outf.endswith(".py"):
+            outfiles_2to3.append(outf)
+    util.run_2to3(outfiles_2to3)
+    sys.path.insert(0, tmp_src)
+    src_root = tmp_src
+
 from distutils.util import convert_path
 
 d = {}
@@ -39,6 +60,7 @@ dist = setup(
     keywords = "CPAN PyPI distutils eggs package management",
     url = "http://pypi.python.org/pypi/distribute",
     test_suite = 'setuptools.tests',
+    src_root = src_root,
     packages = find_packages(),
     package_data = {'setuptools':['*.exe']},
 
