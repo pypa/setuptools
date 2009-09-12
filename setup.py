@@ -19,6 +19,12 @@ if sys.version_info >= (3,):
         if copied and outf.endswith(".py"):
             outfiles_2to3.append(outf)
     util.run_2to3(outfiles_2to3)
+
+    # XXX support this in distutils as well
+    from lib2to3.main import main
+    main('lib2to3.fixes', ['-wd', os.path.join(tmp_src, 'tests', 'api_tests.txt')])
+
+    # arrange setup to use the copy
     sys.path.insert(0, tmp_src)
     src_root = tmp_src
 
