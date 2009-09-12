@@ -2466,8 +2466,9 @@ class Requirement:
         elif isinstance(item,basestring):
             item = parse_version(item)
         last = None
+        compare = lambda a, b: (a > b) - (a < b) # -1, 0, 1
         for parsed,trans,op,ver in self.index:
-            action = trans[cmp(item,parsed)]
+            action = trans[compare(item,parsed)] # Indexing: 0, 1, -1
             if action=='F':     return False
             elif action=='T':   return True
             elif action=='+':   last = True
