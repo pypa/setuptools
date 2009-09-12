@@ -1126,10 +1126,16 @@ class NullProvider:
     def has_metadata(self, name):
         return self.egg_info and self._has(self._fn(self.egg_info,name))
 
-    def get_metadata(self, name):
-        if not self.egg_info:
-            return ""
-        return self._get(self._fn(self.egg_info,name))
+    if sys.version_info <= (3,):
+        def get_metadata(self, name):
+            if not self.egg_info:
+                return ""
+            return self._get(self._fn(self.egg_info,name))
+    else:
+        def get_metadata(self, name):
+            if not self.egg_info:
+                return ""
+            return self._get(self._fn(self.egg_info,name)).decode("utf-8")
 
     def get_metadata_lines(self, name):
         return yield_lines(self.get_metadata(name))
@@ -1239,7 +1245,7 @@ class DefaultProvider(EggProvider):
         return open(self._fn(self.module_path, resource_name), 'rb')
 
     def _get(self, path):
-        stream = open(path, 'rU')
+        stream = open(path, 'rb')
         try:
             return stream.read()
         finally:
