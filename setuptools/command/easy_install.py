@@ -39,6 +39,13 @@ def samefile(p1,p2):
         os.path.normpath(os.path.normcase(p2))
     )
 
+if sys.version_info <= (3,):
+    def _to_ascii(s):
+        return s
+else:
+    def _to_ascii(s):
+        return s.encode('ascii')
+
 class easy_install(Command):
     """Manage a download/build/install process"""
     description = "Find/get/install Python packages"
@@ -599,7 +606,7 @@ Please make the appropriate changes for your system and try again.
                 "import pkg_resources\n"
                 "pkg_resources.run_script(%(spec)r, %(script_name)r)\n"
             ) % locals()
-        self.write_script(script_name, script_text, 'b')
+        self.write_script(script_name, _to_ascii(script_text), 'b')
 
     def write_script(self, script_name, contents, mode="t", blockers=()):
         """Write an executable file to the scripts directory"""
@@ -1381,7 +1388,7 @@ class PthDistributions(Environment):
 
             if os.path.islink(self.filename):
                 os.unlink(self.filename)
-            f = open(self.filename,'wb')
+            f = open(self.filename,'wt')
             f.write(data); f.close()
 
         elif os.path.exists(self.filename):
