@@ -51,13 +51,13 @@ class build_py(_build_py, Mixin2to3):
         self.package_data = self.distribution.package_data
         self.exclude_package_data = self.distribution.exclude_package_data or {}
         if 'data_files' in self.__dict__: del self.__dict__['data_files']
+        self.__updated_files = []
 
     def run(self):
         """Build modules, packages, and copy data files to build directory"""
         if not self.py_modules and not self.packages:
             return
 
-        self.__updated_files = []
         if self.py_modules:
             self.build_modules()
 
