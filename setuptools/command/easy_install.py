@@ -42,9 +42,21 @@ def samefile(p1,p2):
 if sys.version_info <= (3,):
     def _to_ascii(s):
         return s
+    def isascii(s):
+        try:
+            unicode(s, 'ascii')
+            return True
+        except UnicodeError:
+            return False
 else:
     def _to_ascii(s):
         return s.encode('ascii')
+    def isascii(s):
+        try:
+            s.encode('ascii')
+            return True
+        except UnicodeError:
+            return False
 
 class easy_install(Command):
     """Manage a download/build/install process"""
@@ -1439,7 +1451,7 @@ def get_script_header(script_text, executable=sys_executable, wininst=False):
     else:
         executable = nt_quote_arg(executable)
     hdr = "#!%(executable)s%(options)s\n" % locals()
-    if unicode(hdr,'ascii','ignore').encode('ascii') != hdr:
+    if not isascii(hdr):
         # Non-ascii path to sys.executable, use -x to prevent warnings
         if options:
             if options.strip().startswith('-'):
