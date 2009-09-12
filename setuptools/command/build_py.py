@@ -157,9 +157,11 @@ class build_py(_build_py):
         _build_py.initialize_options(self)
 
 
-
-
-
+    def get_package_dir(self, package):
+        res = _build_py.get_package_dir(self, package)
+        if self.distribution.src_root is not None:
+            return os.path.join(self.distribution.src_root, res)
+        return res
 
 
     def exclude_data_files(self, package, src_dir, files):
