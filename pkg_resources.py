@@ -2050,8 +2050,20 @@ class Distribution(object):
             self.platform
         )
     )
-    def __cmp__(self, other): return cmp(self.hashcmp, other)
     def __hash__(self): return hash(self.hashcmp)
+    def __lt__(self, other):
+        return self.hashcmp < other.hashcmp
+    def __le__(self, other):
+        return self.hashcmp <= other.hashcmp
+    def __gt__(self, other):
+        return self.hashcmp > other.hashcmp
+    def __ge__(self, other):
+        return self.hashcmp >= other.hashcmp
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            # It's not a Distribution, so they are not equal
+            return False
+        return self.hashcmp == other.hashcmp
 
     # These properties have to be lazy so that we don't have to load any
     # metadata until/unless it's actually needed.  (i.e., some distributions
