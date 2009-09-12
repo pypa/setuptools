@@ -3,7 +3,7 @@
 Create a distribution's .egg-info directory and contents"""
 
 # This module should be kept compatible with Python 2.3
-import os, re
+import os, re, sys
 from setuptools import Command
 from distutils.errors import *
 from distutils import log
@@ -148,6 +148,8 @@ class egg_info(Command):
         to the file.
         """
         log.info("writing %s to %s", what, filename)
+        if sys.version_info >= (3,):
+            data = data.encode("utf-8")
         if not self.dry_run:
             f = open(filename, 'wb')
             f.write(data)
@@ -351,8 +353,11 @@ def write_file (filename, contents):
     """Create a file with the specified name and write 'contents' (a
     sequence of strings without line terminators) to it.
     """
+    contents = "\n".join(contents)
+    if sys.version_info >= (3,):
+        contents = contents.encode("utf-8")
     f = open(filename, "wb")        # always write POSIX-style manifest
-    f.write("\n".join(contents))
+    f.write(contents)
     f.close()
 
 
