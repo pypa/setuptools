@@ -401,7 +401,7 @@ def write_safety_flag(egg_dir, safe):
             if safe is None or bool(safe)<>flag:
                 os.unlink(fn)
         elif safe is not None and bool(safe)==flag:
-            f=open(fn,'wb'); f.write('\n'); f.close()
+            f=open(fn,'wt'); f.write('\n'); f.close()
 
 safety_flags = {
     True: 'zip-safe',
