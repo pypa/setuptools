@@ -60,7 +60,7 @@ def _default_revctrl(dirname=''):
 def externals_finder(dirname, filename):
     """Find any 'svn:externals' directories"""
     found = False
-    f = open(filename,'rb')
+    f = open(filename,'rt')
     for line in iter(f.readline, ''):    # can't use direct iter!
         parts = line.split()
         if len(parts)==2:
