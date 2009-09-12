@@ -32,7 +32,7 @@ depends.txt = setuptools.command.egg_info:warn_depends_obsolete
 
 [console_scripts]
 easy_install = setuptools.command.easy_install:main
-easy_install-3.1 = setuptools.command.easy_install:main
+easy_install-2.6 = setuptools.command.easy_install:main
 
 [setuptools.file_finders]
 svn_cvs = setuptools.command.sdist:_default_revctrl
