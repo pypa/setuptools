@@ -3,7 +3,41 @@ from distutils.command.build_py import build_py as _build_py
 from distutils.util import convert_path
 from glob import glob
 
-class build_py(_build_py):
+try:
+    from distutils.util import Mixin2to3 as _Mixin2to3
+    # add support for converting doctests that is missing in 3.1 distutils
+    from lib2to3.refactor import RefactoringTool, get_fixers_from_package
+    import setuptools
+    class DistutilsRefactoringTool(RefactoringTool):
+        def log_error(self, msg, *args, **kw):
+            log.error(msg, *args)
+
+        def log_message(self, msg, *args):
+            log.info(msg, *args)
+
+        def log_debug(self, msg, *args):
+            log.debug(msg, *args)
+
+    class Mixin2to3(_Mixin2to3):
+        def run_2to3(self, files):
+            if not setuptools.run_2to3:
+                return files
+            files = _Mixin2to3.run_2to3(files)
+            if setuptools.run_2to3_on_doctests:
+                fixer_names = self.fixer_names
+                if fixer_names is None:
+                    fixer_names = get_fixers_from_package('lib2to3.fixes')
+                r = DistutilsRefactoringTool(fixer_names)
+                r.refactor(files, write=True, doctests_only=True)
+            return files
+
+except ImportError:
+    class Mixin2to3:
+        def run_2to3(self, files):
+            # Nothing done in 2.x
+            pass
+
+class build_py(_build_py, Mixin2to3):
     """Enhanced 'build_py' command that includes data files with packages
 
     The data files are specified via a 'package_data' argument to 'setup()'.
@@ -23,12 +57,15 @@ class build_py(_build_py):
         if not self.py_modules and not self.packages:
             return
 
+        self.__updated_files = []
         if self.py_modules:
             self.build_modules()
 
         if self.packages:
             self.build_packages()
             self.build_package_data()
+
+        self.run_2to3(self.__updated_files)
 
         # Only compile actual .py files, using our base class' idea of what our
         # output files are.
@@ -38,6 +75,12 @@ class build_py(_build_py):
         if attr=='data_files':  # lazily compute data files
             self.data_files = files = self._get_data_files(); return files
         return _build_py.__getattr__(self,attr)
+
+    def build_module(self, module, module_file, package):
+        outfile, copied = _build_py.build_module(self, module, module_file, package)
+        if copied:
+            self.__updated_files.append(outfile)
+        return outfile, copied
 
     def _get_data_files(self):
         """Generate list of '(package,src_dir,build_dir,filenames)' tuples"""
