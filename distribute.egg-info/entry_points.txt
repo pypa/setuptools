@@ -15,7 +15,6 @@ test = setuptools.command.test:test
 bdist_wininst = setuptools.command.bdist_wininst:bdist_wininst
 bdist_egg = setuptools.command.bdist_egg:bdist_egg
 install = setuptools.command.install:install
-sdist3 = setuptools.command.sdist3:sdist3
 install_lib = setuptools.command.install_lib:install_lib
 build_ext = setuptools.command.build_ext:build_ext
 sdist = setuptools.command.sdist:sdist
