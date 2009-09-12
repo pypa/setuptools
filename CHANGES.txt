@@ -6,6 +6,12 @@ CHANGES
 0.6.2
 -----
 
+setuptools
+==========
+
+* Fixed invalid usage of requirement.parse, that broke develop -d.
+  closed http://bugs.python.org/setuptools/issue44.
+
 
 -----
 0.6.1
@@ -18,7 +24,7 @@ setuptools
   This closes http://bitbucket.org/tarek/distribute/issue/16 and
   http://bitbucket.org/tarek/distribute/issue/18.
 
-* zip_ok is now True by default. This closes 
+* zip_ok is now False by default. This closes 
   http://bugs.python.org/setuptools/issue33.
 
 * Fixed invalid URL error catching. http://bugs.python.org/setuptools/issue20.
