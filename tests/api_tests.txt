@@ -119,7 +119,7 @@ editing are also a Distribution.  (And, with a little attention to the
 directory names used,  and including some additional metadata, such a
 "development distribution" can be made pluggable as well.)
 
-    >>> from pkg_resources import WorkingSet
+    >>> from pkg_resources import WorkingSet, VersionConflict
 
 A working set's entries are the sys.path entries that correspond to the active
 distributions.  By default, the working set's entries are the items on
@@ -208,11 +208,11 @@ You can ask a WorkingSet to ``find()`` a distribution matching a requirement::
 Note that asking for a conflicting version of a distribution already in a
 working set triggers a ``pkg_resources.VersionConflict`` error:
 
-    >>> ws.find(Requirement.parse("Bar==1.0")) # doctest: +NORMALIZE_WHITESPACE
-    Traceback (most recent call last):
-      ...
-    VersionConflict: (Bar 0.9 (http://example.com/something),
-                      Requirement.parse('Bar==1.0'))
+    >>> try:
+    ...     ws.find(Requirement.parse("Bar==1.0"))
+    ... except VersionConflict:
+    ...     print 'ok'
+    ok
 
 You can subscribe a callback function to receive notifications whenever a new
 distribution is added to a working set.  The callback is immediately invoked
