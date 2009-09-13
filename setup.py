@@ -96,7 +96,7 @@ dist = setup(
             "include_package_data = setuptools.dist:assert_bool",
             "dependency_links     = setuptools.dist:assert_string_list",
             "test_loader          = setuptools.dist:check_importable",
-            "convert_doctests_2to3= setuptools.dist:convert_doctests_2to3"
+            "convert_doctests_2to3= setuptools.dist:assert_string_list"
         ],
 
         "egg_info.writers": [
