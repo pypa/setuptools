@@ -23,6 +23,9 @@ try:
         def run_2to3(self, files, doctests = False):
             if not setuptools.run_2to3:
                 return
+            if not files:
+                return
+            log.info("Fixing "+" ".join(files))
             if not self.fixer_names:
                 self.fixer_names = []
                 for p in setuptools.lib2to3_fixer_packages:
@@ -126,8 +129,10 @@ class build_py(_build_py, Mixin2to3):
             for filename in filenames:
                 target = os.path.join(build_dir, filename)
                 self.mkpath(os.path.dirname(target))
-                outf, copied = self.copy_file(os.path.join(src_dir, filename), target)
-                if copied and filename in setuptools.convert_doctests_2to3:
+                srcfile = os.path.join(src_dir, filename)
+                outf, copied = self.copy_file(srcfile, target)
+                srcfile = os.path.abspath(srcfile)
+                if copied and srcfile in self.distribution.convert_doctests_2to3:
                     self.__doctests_2to3.append(outf)
 
 
