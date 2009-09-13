@@ -44,12 +44,13 @@ scripts = []
 
 # if we are installing Distribute using "python setup.py install"
 # we need to get setuptools out of the way
+def _easy_install_marker():
+    return (len(sys.argv) == 5 and sys.argv[2] == 'bdist_egg' and
+            sys.argv[3] == '--dist-dir' and 'egg-dist-tmp-' in sys.argv[-1])
+
 def _being_installed():
     # easy_install marker
-    if (len(sys.argv) == 5 and sys.argv[2] == 'bdist_egg' and
-            sys.argv[3] == '--dist-dir'):
-        return True
-    return 'install' in sys.argv[1:]
+    return 'install' in sys.argv[1:] or _easy_install_marker()
 
 if _being_installed():
     from distribute_setup import before_install
