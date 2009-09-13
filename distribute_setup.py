@@ -23,17 +23,117 @@ import os
 import time
 import fnmatch
 from distutils import log
+import subprocess
 
-is_jython = sys.platform.startswith('java')
-if is_jython:
-    import subprocess
-
-
-DEFAULT_VERSION = "0.6.1"
+IS_JYTHON = sys.platform.startswith('java')
+DEFAULT_VERSION = "0.6.2"
 DEFAULT_URL     = "http://pypi.python.org/packages/source/d/distribute/"
+
+def quote(c):
+    if sys.platform == 'win32':
+        if ' ' in c:
+            return '"%s"' % c
+    return c
+
+def python_cmd(cmd):
+    python = quote(sys.executable)
+    cmd = quote(cmd)
+    if IS_JYTHON:
+        return subprocess.Popen([python, cmd]).wait() == 0
+    args = [os.P_WAIT, python, python] + cmd.split() + [os.environ]
+    return os.spawnle(*args) == 0
+
+def _install(tarball):
+    # extracting the tarball
+    tmpdir = tempfile.mkdtemp()
+    log.warn('Extracting in %s' % tmpdir)
+    old_wd = os.getcwd()
+    try:
+        os.chdir(tmpdir)
+        tar = tarfile.open(tarball)
+        extractall(tar)
+        tar.close()
+
+        # going in the directory
+        subdir = os.path.join(tmpdir, os.listdir(tmpdir)[0])
+        os.chdir(subdir)
+        log.warn('Now working in %s' % subdir)
+
+        # installing
+        log.warn('Installing Distribute')
+        assert python_cmd('setup.py install')
+    finally:
+        os.chdir(old_wd)
+
+def _build_egg(tarball, to_dir=os.curdir):
+    # extracting the tarball
+    tmpdir = tempfile.mkdtemp()
+    log.warn('Extracting in %s' % tmpdir)
+    old_wd = os.getcwd()
+    try:
+        os.chdir(tmpdir)
+        tar = tarfile.open(tarball)
+        extractall(tar)
+        tar.close()
+
+        # going in the directory
+        subdir = os.path.join(tmpdir, os.listdir(tmpdir)[0])
+        os.chdir(subdir)
+        log.warn('Now working in %s' % subdir)
+
+        # building an egg
+        log.warn('Building a Distribute egg in %s' % to_dir)
+        python_cmd('setup.py -q bdist_egg --dist-dir %s' % to_dir)
+
+        # returning the result
+        for file in os.listdir(to_dir):
+            if fnmatch.fnmatch(file, 'distribute-%s*.egg' % DEFAULT_VERSION):
+                return os.path.join(to_dir, file)
+
+        raise IOError('Could not build the egg.')
+    finally:
+        os.chdir(old_wd)
+
+def _do_download(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
+                 to_dir=os.curdir, download_delay=15):
+    tarball = download_setuptools(version, download_base,
+                                  to_dir, download_delay)
+    egg = _build_egg(tarball, to_dir)
+    sys.path.insert(0, egg)
+    import setuptools
+    setuptools.bootstrap_install_from = egg
+
+def use_setuptools(
+    version=DEFAULT_VERSION, download_base=DEFAULT_URL, to_dir=os.curdir,
+    download_delay=15
+):
+    was_imported = 'pkg_resources' in sys.modules or 'setuptools' in sys.modules
+    try:
+        import pkg_resources
+        if not hasattr(pkg_resources, '_distribute'):
+            raise ImportError
+    except ImportError:
+        return _do_download(version, download_base, to_dir, download_delay)
+    try:
+        pkg_resources.require("distribute>="+version); return
+    except pkg_resources.VersionConflict, e:
+        if was_imported:
+            print >>sys.stderr, (
+            "The required version of distribute (>=%s) is not available, and\n"
+            "can't be installed while this script is running. Please install\n"
+            " a more recent version first, using 'easy_install -U distribute'."
+            "\n\n(Currently using %r)"
+            ) % (version, e.args[0])
+            sys.exit(2)
+        else:
+            del pkg_resources, sys.modules['pkg_resources']    # reload ok
+            return _do_download(version, download_base, to_dir, download_delay)
+    except pkg_resources.DistributionNotFound:
+        return _do_download(version, download_base, to_dir, download_delay)
 
 def download_setuptools(
     version=DEFAULT_VERSION, download_base=DEFAULT_URL, to_dir=os.curdir,
+    delay=15,
 ):
     """Download distribute from a specified location and return its filename
 
@@ -256,7 +356,7 @@ def _relaunch():
     log.warn('Relaunching...')
     # we have to relaunch the process
     args = [sys.executable]  + sys.argv
-    if is_jython:
+    if IS_JYTHON:
         sys.exit(subprocess.call(args))
     else:
         sys.exit(os.spawnv(os.P_WAIT, sys.executable, args))
@@ -303,27 +403,6 @@ def extractall(self, path=".", members=None):
                     raise
                 else:
                     self._dbg(1, "tarfile: %s" % e)
-
-def _install(tarball):
-    # extracting the tarball
-    tmpdir = tempfile.mkdtemp()
-    log.warn('Extracting in %s' % tmpdir)
-    old_wd = os.getcwd()
-    try:
-        os.chdir(tmpdir)
-        tar = tarfile.open(tarball)
-        extractall(tar)
-        tar.close()
-
-        # going in the directory
-        subdir = os.path.join(tmpdir, os.listdir(tmpdir)[0])
-        os.chdir(subdir)
-        log.warn('Now working in %s' % subdir)
-
-        # installing distribute
-        os.system('%s setup.py install' % sys.executable)
-    finally:
-        os.chdir(old_wd)
 
 def main(argv, version=DEFAULT_VERSION):
     """Install or upgrade setuptools and EasyInstall"""
