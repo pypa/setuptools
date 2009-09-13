@@ -20,21 +20,23 @@ try:
             log.debug(msg, *args)
 
     class Mixin2to3(_Mixin2to3):
-        def run_2to3(self, files):
+        def run_2to3(self, files, doctests = False):
             if not setuptools.run_2to3:
                 return
             if not self.fixer_names:
                 self.fixer_names = []
                 for p in setuptools.lib2to3_fixer_packages:
                     self.fixer_names.extend(get_fixers_from_package(p))
-            _Mixin2to3.run_2to3(self, files)
-            if setuptools.run_2to3_on_doctests:
-                r = DistutilsRefactoringTool(self.fixer_names)
-                r.refactor(files, write=True, doctests_only=True)
+            if doctests:
+                if setuptools.run_2to3_on_doctests:
+                    r = DistutilsRefactoringTool(self.fixer_names)
+                    r.refactor(files, write=True, doctests_only=True)
+            else:
+                _Mixin2to3.run_2to3(self, files)
 
 except ImportError:
     class Mixin2to3:
-        def run_2to3(self, files):
+        def run_2to3(self, files, doctests=True):
             # Nothing done in 2.x
             pass
 
@@ -53,6 +55,7 @@ class build_py(_build_py, Mixin2to3):
         self.exclude_package_data = self.distribution.exclude_package_data or {}
         if 'data_files' in self.__dict__: del self.__dict__['data_files']
         self.__updated_files = []
+        self.__doctests_2to3 = []
 
     def run(self):
         """Build modules, packages, and copy data files to build directory"""
@@ -66,7 +69,9 @@ class build_py(_build_py, Mixin2to3):
             self.build_packages()
             self.build_package_data()
 
-        self.run_2to3(self.__updated_files)
+        self.run_2to3(self.__updated_files, False)
+        self.run_2to3(self.__updated_files, True)
+        self.run_2to3(self.__doctests_2to3, True)
 
         # Only compile actual .py files, using our base class' idea of what our
         # output files are.
@@ -121,7 +126,9 @@ class build_py(_build_py, Mixin2to3):
             for filename in filenames:
                 target = os.path.join(build_dir, filename)
                 self.mkpath(os.path.dirname(target))
-                self.copy_file(os.path.join(src_dir, filename), target)
+                outf, copied = self.copy_file(os.path.join(src_dir, filename), target)
+                if copied and filename in setuptools.convert_doctests_2to3:
+                    self.__doctests_2to3.append(outf)
 
 
     def analyze_manifest(self):
