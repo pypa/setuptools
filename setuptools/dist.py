@@ -210,7 +210,7 @@ class Distribution(_Distribution):
         self.require_features = []
         self.features = {}
         self.dist_files = []
-        self.src_root = attrs.pop("src_root", None)
+        self.src_root = attrs and attrs.pop("src_root", None)
         self.patch_missing_pkg_info(attrs)
         # Make sure we have any eggs needed to interpret 'attrs'
         if attrs is not None:
