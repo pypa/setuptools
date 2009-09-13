@@ -255,7 +255,7 @@ class Distribution(_Distribution):
             if value is not None:
                 ep.require(installer=self.fetch_build_egg)
                 ep.load()(self, ep.name, value)
-        if self.convert_doctests_2to3:
+        if getattr(self, 'convert_doctests_2to3', None):
             # XXX may convert to set here when we can rely on set being builtin
             self.convert_doctests_2to3 = [os.path.abspath(p) for p in self.convert_doctests_2to3]
         else:
