@@ -197,6 +197,8 @@ class PackageIndex(Environment):
 
         base = f.url     # handle redirects
         page = f.read()
+        charset = f.headers.get_param('charset') or 'latin-1'
+        page = page.decode(charset, "ignore")
         f.close()
         if url.startswith(self.index_url) and getattr(f,'code',None)!=404:
             page = self.process_index(url, page)
