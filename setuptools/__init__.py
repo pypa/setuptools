@@ -31,6 +31,8 @@ run_2to3 = False
 # If we run 2to3 on .py files, should we also convert docstrings?
 # Default: yes; assume that we can detect doctests reliably
 run_2to3_on_doctests = True
+# Package names for fixer packages
+lib2to3_fixer_packages = ['lib2to3.fixes']
 
 def find_packages(where='.', exclude=()):
     """Return a list all Python packages found within directory 'where'

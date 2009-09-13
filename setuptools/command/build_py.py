@@ -23,12 +23,13 @@ try:
         def run_2to3(self, files):
             if not setuptools.run_2to3:
                 return
+            if not self.fixer_names:
+                self.fixer_names = []
+                for p in setuptools.lib2to3_fixer_packages:
+                    self.fixer_names.extend(get_fixers_from_package(p))
             _Mixin2to3.run_2to3(self, files)
             if setuptools.run_2to3_on_doctests:
-                fixer_names = self.fixer_names
-                if fixer_names is None:
-                    fixer_names = get_fixers_from_package('lib2to3.fixes')
-                r = DistutilsRefactoringTool(fixer_names)
+                r = DistutilsRefactoringTool(self.fixer_names)
                 r.refactor(files, write=True, doctests_only=True)
 
 except ImportError:
