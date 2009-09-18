@@ -21,7 +21,9 @@ try:
 
     class Mixin2to3(_Mixin2to3):
         def run_2to3(self, files, doctests = False):
-            if not setuptools.run_2to3:
+            # See of the distribution option has been set, otherwise check the
+            # setuptools default.
+            if self.distribution.run_2to3 is not True and setuptools.run_2to3 is False:
                 return
             if not files:
                 return
@@ -29,6 +31,8 @@ try:
             if not self.fixer_names:
                 self.fixer_names = []
                 for p in setuptools.lib2to3_fixer_packages:
+                    self.fixer_names.extend(get_fixers_from_package(p))
+                for p in self.distribution.additional_2to3_fixers:
                     self.fixer_names.extend(get_fixers_from_package(p))
             if doctests:
                 if setuptools.run_2to3_on_doctests:

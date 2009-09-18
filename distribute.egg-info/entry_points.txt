@@ -1,6 +1,5 @@
 [distutils.commands]
 bdist_rpm = setuptools.command.bdist_rpm:bdist_rpm
-install_scripts = setuptools.command.install_scripts:install_scripts
 rotate = setuptools.command.rotate:rotate
 develop = setuptools.command.develop:develop
 setopt = setuptools.command.setopt:setopt
@@ -11,10 +10,11 @@ register = setuptools.command.register:register
 install_egg_info = setuptools.command.install_egg_info:install_egg_info
 alias = setuptools.command.alias:alias
 easy_install = setuptools.command.easy_install:easy_install
-test = setuptools.command.test:test
+install_scripts = setuptools.command.install_scripts:install_scripts
 bdist_wininst = setuptools.command.bdist_wininst:bdist_wininst
 bdist_egg = setuptools.command.bdist_egg:bdist_egg
 install = setuptools.command.install:install
+test = setuptools.command.test:test
 install_lib = setuptools.command.install_lib:install_lib
 build_ext = setuptools.command.build_ext:build_ext
 sdist = setuptools.command.sdist:sdist
@@ -31,15 +31,17 @@ depends.txt = setuptools.command.egg_info:warn_depends_obsolete
 
 [console_scripts]
 easy_install = setuptools.command.easy_install:main
-easy_install-2.6 = setuptools.command.easy_install:main
+easy_install-3.1 = setuptools.command.easy_install:main
 
 [setuptools.file_finders]
 svn_cvs = setuptools.command.sdist:_default_revctrl
 
 [distutils.setup_keywords]
+additional_2to3_fixers = setuptools.dist:assert_string_list
 dependency_links = setuptools.dist:assert_string_list
 entry_points = setuptools.dist:check_entry_points
 extras_require = setuptools.dist:check_extras
+run_2to3 = setuptools.dist:assert_bool
 package_data = setuptools.dist:check_package_data
 install_requires = setuptools.dist:check_requirements
 include_package_data = setuptools.dist:assert_bool
@@ -49,6 +51,7 @@ test_suite = setuptools.dist:check_test_suite
 eager_resources = setuptools.dist:assert_string_list
 zip_safe = setuptools.dist:assert_bool
 test_loader = setuptools.dist:check_importable
+convert_doctests_2to3 = setuptools.dist:assert_string_list
 tests_require = setuptools.dist:check_requirements
 
 [setuptools.installation]
