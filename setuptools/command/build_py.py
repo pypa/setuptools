@@ -32,8 +32,9 @@ try:
                 self.fixer_names = []
                 for p in setuptools.lib2to3_fixer_packages:
                     self.fixer_names.extend(get_fixers_from_package(p))
-                for p in self.distribution.additional_2to3_fixers:
-                    self.fixer_names.extend(get_fixers_from_package(p))
+                if self.distribution.additional_2to3_fixers is not None:
+                    for p in self.distribution.additional_2to3_fixers:
+                        self.fixer_names.extend(get_fixers_from_package(p))
             if doctests:
                 if setuptools.run_2to3_on_doctests:
                     r = DistutilsRefactoringTool(self.fixer_names)
