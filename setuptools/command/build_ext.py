@@ -82,6 +82,8 @@ class build_ext(_build_ext):
 
     def get_ext_filename(self, fullname):
         filename = _build_ext.get_ext_filename(self,fullname)
+        if fullname not in self.ext_map:
+            return filename
         ext = self.ext_map[fullname]
         if isinstance(ext,Library):
             fn, ext = os.path.splitext(filename)

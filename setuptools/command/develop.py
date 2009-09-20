@@ -46,7 +46,7 @@ class develop(easy_install):
             "Please rename %r to %r before using 'develop'"
             % (ei.egg_info, ei.broken_egg_info)
             )
-        self.args = [ei.egg_name]       
+        self.args = [ei.egg_name]
         easy_install.finalize_options(self)
         # pick up setup-dir .egg files only: no .egg-info
         self.package_index.scan(glob.glob('*.egg'))
@@ -62,7 +62,7 @@ class develop(easy_install):
                 "--egg-path must be a relative path from the install"
                 " directory to "+target
         )
-        
+
         # Make a distribution for the package's source
         self.dist = Distribution(
             target,
@@ -129,7 +129,7 @@ class develop(easy_install):
         # create wrapper scripts in the script dir, pointing to dist.scripts
 
         # new-style...
-        self.install_wrapper_scripts(dist)  
+        self.install_wrapper_scripts(dist)
 
         # ...and old-style
         for script_name in self.distribution.scripts or []:
