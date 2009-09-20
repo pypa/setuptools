@@ -13,7 +13,7 @@ The package resource API is designed to work with normal filesystem packages,
 method.
 """
 
-import sys, os, zipimport, time, re, imp, new
+import sys, os, zipimport, time, re, imp, types
 
 try:
     frozenset
@@ -1126,10 +1126,16 @@ class NullProvider:
     def has_metadata(self, name):
         return self.egg_info and self._has(self._fn(self.egg_info,name))
 
-    def get_metadata(self, name):
-        if not self.egg_info:
-            return ""
-        return self._get(self._fn(self.egg_info,name))
+    if sys.version_info <= (3,):
+        def get_metadata(self, name):
+            if not self.egg_info:
+                return ""
+            return self._get(self._fn(self.egg_info,name))
+    else:
+        def get_metadata(self, name):
+            if not self.egg_info:
+                return ""
+            return self._get(self._fn(self.egg_info,name)).decode("utf-8")
 
     def get_metadata_lines(self, name):
         return yield_lines(self.get_metadata(name))
@@ -1707,7 +1713,7 @@ def _handle_ns(packageName, path_item):
         return None
     module = sys.modules.get(packageName)
     if module is None:
-        module = sys.modules[packageName] = new.module(packageName)
+        module = sys.modules[packageName] = types.ModuleType(packageName)
         module.__path__ = []; _set_parent_ns(packageName)
     elif not hasattr(module,'__path__'):
         raise TypeError("Not a package:", packageName)
@@ -2044,8 +2050,20 @@ class Distribution(object):
             self.platform
         )
     )
-    def __cmp__(self, other): return cmp(self.hashcmp, other)
     def __hash__(self): return hash(self.hashcmp)
+    def __lt__(self, other):
+        return self.hashcmp < other.hashcmp
+    def __le__(self, other):
+        return self.hashcmp <= other.hashcmp
+    def __gt__(self, other):
+        return self.hashcmp > other.hashcmp
+    def __ge__(self, other):
+        return self.hashcmp >= other.hashcmp
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            # It's not a Distribution, so they are not equal
+            return False
+        return self.hashcmp == other.hashcmp
 
     # These properties have to be lazy so that we don't have to load any
     # metadata until/unless it's actually needed.  (i.e., some distributions
@@ -2448,8 +2466,9 @@ class Requirement:
         elif isinstance(item,basestring):
             item = parse_version(item)
         last = None
+        compare = lambda a, b: (a > b) - (a < b) # -1, 0, 1
         for parsed,trans,op,ver in self.index:
-            action = trans[cmp(item,parsed)]
+            action = trans[compare(item,parsed)] # Indexing: 0, 1, -1
             if action=='F':     return False
             elif action=='T':   return True
             elif action=='+':   last = True

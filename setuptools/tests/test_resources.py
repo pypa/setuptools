@@ -517,12 +517,12 @@ class ScriptHeaderTests(TestCase):
 
             # Ensure we generate what is basically a broken shebang line
             # when there's options, with a warning emitted
-            sys.stdout = StringIO.StringIO()
+            sys.stdout = sys.stderr = StringIO.StringIO()
             self.assertEqual(get_script_header('#!/usr/bin/python -x',
                                                executable=exe),
                              '#!%s  -x\n' % exe)
             self.assert_('Unable to adapt shebang line' in sys.stdout.getvalue())
-            sys.stdout = StringIO.StringIO()
+            sys.stdout = sys.stderr = StringIO.StringIO()
             self.assertEqual(get_script_header('#!/usr/bin/python',
                                                executable=self.non_ascii_exe),
                              '#!%s -x\n' % self.non_ascii_exe)

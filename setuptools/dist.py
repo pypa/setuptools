@@ -210,6 +210,7 @@ class Distribution(_Distribution):
         self.require_features = []
         self.features = {}
         self.dist_files = []
+        self.src_root = attrs and attrs.pop("src_root", None)
         self.patch_missing_pkg_info(attrs)
         # Make sure we have any eggs needed to interpret 'attrs'
         if attrs is not None:
@@ -254,6 +255,11 @@ class Distribution(_Distribution):
             if value is not None:
                 ep.require(installer=self.fetch_build_egg)
                 ep.load()(self, ep.name, value)
+        if getattr(self, 'convert_doctests_2to3', None):
+            # XXX may convert to set here when we can rely on set being builtin
+            self.convert_doctests_2to3 = [os.path.abspath(p) for p in self.convert_doctests_2to3]
+        else:
+            self.convert_doctests_2to3 = []
 
     def fetch_build_egg(self, req):
         """Fetch an egg needed for building"""

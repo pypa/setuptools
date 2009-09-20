@@ -404,6 +404,10 @@ unless you need the associated ``setuptools`` feature.
     mess with it.  For more details on how this argument works, see the section
     below on `Automatic Resource Extraction`_.
 
+``convert_doctests_2to3``
+    List of doctest source files that need to be converted with 2to3. See
+    `Converting with 2to3`_ below for more details.
+
 
 Using ``find_packages()``
 -------------------------
@@ -445,6 +449,26 @@ argument to ``setup()``, and so is usually the easiest way to set that
 argument in your setup script.  Especially since it frees you from having to
 remember to modify your setup script whenever your project grows additional
 top-level packages or subpackages.
+
+Converting with 2to3
+--------------------
+
+When run under Python 3.x, setuptools will automatically run 2to3 on
+all Python source files, if ``setuptools.run_2to3`` is set to True; by
+default, this variable is False. It will also convert doctests inside
+all Python source files, unless ``setuptools.run_2to3_on_doctests`` is
+False; by default, this setting is True. If additional files
+containing doctests need to be converted, the
+``convert_doctests_2to3``setup option should provide a list of all
+such files.
+
+By default, this conversion uses all fixers in the ``lib2to3.fixes``
+package. To use additional fixes, the list
+``setuptools.lib2to3_fixer_packages`` must be extended with names
+of packages containing fixes. If certain fixes are to be suppressed,
+this again can be overridden with the list 
+``setuptools.commands.build_py.build_py.fixers``, which then contains
+the list of all fixer class names.
 
 
 Automatic Script Creation

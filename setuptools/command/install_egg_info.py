@@ -97,12 +97,12 @@ class install_egg_info(Command):
                         % ('.'.join(pth[:-1]), pth[-1])
                     )
                 f.write(
-                    "import sys,new,os; "
+                    "import sys,types,os; "
                     "p = os.path.join(sys._getframe(1).f_locals['sitedir'], "
                         "*%(pth)r); "
                     "ie = os.path.exists(os.path.join(p,'__init__.py')); "
                     "m = not ie and "
-                        "sys.modules.setdefault(%(pkg)r,new.module(%(pkg)r)); "
+                        "sys.modules.setdefault(%(pkg)r,types.ModuleType(%(pkg)r)); "
                     "mp = (m or []) and m.__dict__.setdefault('__path__',[]); "
                     "(p not in mp) and mp.append(p)%(trailer)s"
                     % locals()

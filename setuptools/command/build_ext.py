@@ -113,6 +113,11 @@ class build_ext(_build_ext):
         for ext in self.extensions:
             fullname = ext._full_name
             self.ext_map[fullname] = ext
+
+            # distutils 3.1 will also ask for module names
+            # XXX what to do with conflicts?
+            self.ext_map[fullname.split('.')[-1]] = ext
+
             ltd = ext._links_to_dynamic = \
                 self.shlibs and self.links_to_dynamic(ext) or False
             ext._needs_stub = ltd and use_stubs and not isinstance(ext,Library)

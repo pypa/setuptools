@@ -31,15 +31,17 @@ depends.txt = setuptools.command.egg_info:warn_depends_obsolete
 
 [console_scripts]
 easy_install = setuptools.command.easy_install:main
-easy_install-2.7 = setuptools.command.easy_install:main
+easy_install-2.6 = setuptools.command.easy_install:main
 
 [setuptools.file_finders]
 svn_cvs = setuptools.command.sdist:_default_revctrl
 
 [distutils.setup_keywords]
+additional_2to3_fixers = setuptools.dist:assert_string_list
 dependency_links = setuptools.dist:assert_string_list
 entry_points = setuptools.dist:check_entry_points
 extras_require = setuptools.dist:check_extras
+run_2to3 = setuptools.dist:assert_bool
 package_data = setuptools.dist:check_package_data
 install_requires = setuptools.dist:check_requirements
 include_package_data = setuptools.dist:assert_bool
@@ -49,6 +51,7 @@ test_suite = setuptools.dist:check_test_suite
 eager_resources = setuptools.dist:assert_string_list
 zip_safe = setuptools.dist:assert_bool
 test_loader = setuptools.dist:check_importable
+convert_doctests_2to3 = setuptools.dist:assert_string_list
 tests_require = setuptools.dist:check_requirements
 
 [setuptools.installation]

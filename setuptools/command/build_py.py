@@ -3,7 +3,52 @@ from distutils.command.build_py import build_py as _build_py
 from distutils.util import convert_path
 from glob import glob
 
-class build_py(_build_py):
+try:
+    from distutils.util import Mixin2to3 as _Mixin2to3
+    # add support for converting doctests that is missing in 3.1 distutils
+    from distutils import log
+    from lib2to3.refactor import RefactoringTool, get_fixers_from_package
+    import setuptools
+    class DistutilsRefactoringTool(RefactoringTool):
+        def log_error(self, msg, *args, **kw):
+            log.error(msg, *args)
+
+        def log_message(self, msg, *args):
+            log.info(msg, *args)
+
+        def log_debug(self, msg, *args):
+            log.debug(msg, *args)
+
+    class Mixin2to3(_Mixin2to3):
+        def run_2to3(self, files, doctests = False):
+            # See of the distribution option has been set, otherwise check the
+            # setuptools default.
+            if self.distribution.run_2to3 is not True and setuptools.run_2to3 is False:
+                return
+            if not files:
+                return
+            log.info("Fixing "+" ".join(files))
+            if not self.fixer_names:
+                self.fixer_names = []
+                for p in setuptools.lib2to3_fixer_packages:
+                    self.fixer_names.extend(get_fixers_from_package(p))
+                if self.distribution.additional_2to3_fixers is not None:
+                    for p in self.distribution.additional_2to3_fixers:
+                        self.fixer_names.extend(get_fixers_from_package(p))
+            if doctests:
+                if setuptools.run_2to3_on_doctests:
+                    r = DistutilsRefactoringTool(self.fixer_names)
+                    r.refactor(files, write=True, doctests_only=True)
+            else:
+                _Mixin2to3.run_2to3(self, files)
+
+except ImportError:
+    class Mixin2to3:
+        def run_2to3(self, files, doctests=True):
+            # Nothing done in 2.x
+            pass
+
+class build_py(_build_py, Mixin2to3):
     """Enhanced 'build_py' command that includes data files with packages
 
     The data files are specified via a 'package_data' argument to 'setup()'.
@@ -17,6 +62,8 @@ class build_py(_build_py):
         self.package_data = self.distribution.package_data
         self.exclude_package_data = self.distribution.exclude_package_data or {}
         if 'data_files' in self.__dict__: del self.__dict__['data_files']
+        self.__updated_files = []
+        self.__doctests_2to3 = []
 
     def run(self):
         """Build modules, packages, and copy data files to build directory"""
@@ -30,6 +77,10 @@ class build_py(_build_py):
             self.build_packages()
             self.build_package_data()
 
+        self.run_2to3(self.__updated_files, False)
+        self.run_2to3(self.__updated_files, True)
+        self.run_2to3(self.__doctests_2to3, True)
+
         # Only compile actual .py files, using our base class' idea of what our
         # output files are.
         self.byte_compile(_build_py.get_outputs(self, include_bytecode=0))
@@ -38,6 +89,12 @@ class build_py(_build_py):
         if attr=='data_files':  # lazily compute data files
             self.data_files = files = self._get_data_files(); return files
         return _build_py.__getattr__(self,attr)
+
+    def build_module(self, module, module_file, package):
+        outfile, copied = _build_py.build_module(self, module, module_file, package)
+        if copied:
+            self.__updated_files.append(outfile)
+        return outfile, copied
 
     def _get_data_files(self):
         """Generate list of '(package,src_dir,build_dir,filenames)' tuples"""
@@ -77,7 +134,11 @@ class build_py(_build_py):
             for filename in filenames:
                 target = os.path.join(build_dir, filename)
                 self.mkpath(os.path.dirname(target))
-                self.copy_file(os.path.join(src_dir, filename), target)
+                srcfile = os.path.join(src_dir, filename)
+                outf, copied = self.copy_file(srcfile, target)
+                srcfile = os.path.abspath(srcfile)
+                if copied and srcfile in self.distribution.convert_doctests_2to3:
+                    self.__doctests_2to3.append(outf)
 
 
     def analyze_manifest(self):
@@ -157,9 +218,11 @@ class build_py(_build_py):
         _build_py.initialize_options(self)
 
 
-
-
-
+    def get_package_dir(self, package):
+        res = _build_py.get_package_dir(self, package)
+        if self.distribution.src_root is not None:
+            return os.path.join(self.distribution.src_root, res)
+        return res
 
 
     def exclude_data_files(self, package, src_dir, files):

@@ -1,6 +1,34 @@
 #!/usr/bin/env python
 """Distutils setup file, used to install or test 'setuptools'"""
 
+import sys, os
+
+src_root = None
+if sys.version_info >= (3,):
+    tmp_src = os.path.join("build", "src")
+    from distutils.filelist import FileList
+    from distutils import dir_util, file_util, util, log
+    log.set_verbosity(1)
+    fl = FileList()
+    for line in open("MANIFEST.in"):
+        fl.process_template_line(line)
+    dir_util.create_tree(tmp_src, fl.files)
+    outfiles_2to3 = []
+    for f in fl.files:
+        outf, copied = file_util.copy_file(f, os.path.join(tmp_src, f), update=1)
+        if copied and outf.endswith(".py"):
+            outfiles_2to3.append(outf)
+        if copied and outf.endswith('api_tests.txt'):
+            # XXX support this in distutils as well
+            from lib2to3.main import main
+            main('lib2to3.fixes', ['-wd', os.path.join(tmp_src, 'tests', 'api_tests.txt')])
+
+    util.run_2to3(outfiles_2to3)
+
+    # arrange setup to use the copy
+    sys.path.insert(0, tmp_src)
+    src_root = tmp_src
+
 from distutils.util import convert_path
 
 d = {}
@@ -40,6 +68,7 @@ dist = setup(
     keywords = "CPAN PyPI distutils eggs package management",
     url = "http://pypi.python.org/pypi/distribute",
     test_suite = 'setuptools.tests',
+    src_root = src_root,
     packages = find_packages(),
     package_data = {'setuptools':['*.exe']},
 
@@ -55,19 +84,22 @@ dist = setup(
         ],
 
         "distutils.setup_keywords": [
-            "eager_resources      = setuptools.dist:assert_string_list",
-            "namespace_packages   = setuptools.dist:check_nsp",
-            "extras_require       = setuptools.dist:check_extras",
-            "install_requires     = setuptools.dist:check_requirements",
-            "tests_require        = setuptools.dist:check_requirements",
-            "entry_points         = setuptools.dist:check_entry_points",
-            "test_suite           = setuptools.dist:check_test_suite",
-            "zip_safe             = setuptools.dist:assert_bool",
-            "package_data         = setuptools.dist:check_package_data",
-            "exclude_package_data = setuptools.dist:check_package_data",
-            "include_package_data = setuptools.dist:assert_bool",
-            "dependency_links     = setuptools.dist:assert_string_list",
-            "test_loader          = setuptools.dist:check_importable",
+            "eager_resources        = setuptools.dist:assert_string_list",
+            "namespace_packages     = setuptools.dist:check_nsp",
+            "extras_require         = setuptools.dist:check_extras",
+            "install_requires       = setuptools.dist:check_requirements",
+            "tests_require          = setuptools.dist:check_requirements",
+            "entry_points           = setuptools.dist:check_entry_points",
+            "test_suite             = setuptools.dist:check_test_suite",
+            "zip_safe               = setuptools.dist:assert_bool",
+            "package_data           = setuptools.dist:check_package_data",
+            "exclude_package_data   = setuptools.dist:check_package_data",
+            "include_package_data   = setuptools.dist:assert_bool",
+            "dependency_links       = setuptools.dist:assert_string_list",
+            "test_loader            = setuptools.dist:check_importable",
+            "run_2to3               = setuptools.dist:assert_bool",
+            "convert_doctests_2to3  = setuptools.dist:assert_string_list",
+            "additional_2to3_fixers = setuptools.dist:assert_string_list",
         ],
 
         "egg_info.writers": [

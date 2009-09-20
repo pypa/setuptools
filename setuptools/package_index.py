@@ -143,7 +143,7 @@ def find_external_links(url, page):
                 yield urlparse.urljoin(url, htmldecode(match.group(1)))
 
 user_agent = "Python-urllib/%s distribute/%s" % (
-    urllib2.__version__, require('distribute')[0].version
+    sys.version[:3], require('distribute')[0].version
 )
 
 
@@ -197,6 +197,9 @@ class PackageIndex(Environment):
 
         base = f.url     # handle redirects
         page = f.read()
+        if sys.version_info >= (3,):
+            charset = f.headers.get_param('charset') or 'latin-1'
+            page = page.decode(charset, "ignore")
         f.close()
         if url.startswith(self.index_url) and getattr(f,'code',None)!=404:
             page = self.process_index(url, page)

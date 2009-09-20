@@ -401,7 +401,7 @@ def write_safety_flag(egg_dir, safe):
             if safe is None or bool(safe)<>flag:
                 os.unlink(fn)
         elif safe is not None and bool(safe)==flag:
-            f=open(fn,'wb'); f.write('\n'); f.close()
+            f=open(fn,'wt'); f.write('\n'); f.close()
 
 safety_flags = {
     True: 'zip-safe',
@@ -525,9 +525,11 @@ def make_zipfile(zip_filename, base_dir, verbose=0, dry_run=0, compress=None,
     compression = [zipfile.ZIP_STORED, zipfile.ZIP_DEFLATED][bool(compress)]
     if not dry_run:
         z = zipfile.ZipFile(zip_filename, mode, compression=compression)
-        os.path.walk(base_dir, visit, z)
+        for dirname, dirs, files in os.walk(base_dir):
+            visit(z, dirname, files)
         z.close()
     else:
-        os.path.walk(base_dir, visit, None)
+        for dirname, dirs, files in os.walk(base_dir):
+            visit(None, dirname, file)
     return zip_filename
 #
