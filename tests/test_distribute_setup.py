@@ -45,7 +45,6 @@ class TestSetup(unittest.TestCase):
         self.assert_(setuptools.__file__.startswith(egg))
 
     def test_do_download(self):
-
         tmpdir = tempfile.mkdtemp()
         _do_download(to_dir=tmpdir)
         import setuptools
