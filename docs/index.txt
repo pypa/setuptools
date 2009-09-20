@@ -9,6 +9,7 @@ Contents:
    setuptools
    easy_install
    pkg_resources
+   python3
 
 
 Indices and tables
