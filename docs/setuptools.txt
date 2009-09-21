@@ -406,7 +406,7 @@ unless you need the associated ``setuptools`` feature.
 
 ``run_2to3``
     Convert the source code from Python 2 to Python 3 with 2to3 during the 
-    build process. 
+    build process. See :doc:`python3` for more details.
 
 ``convert_doctests_2to3``
     List of doctest source files that need to be converted with 2to3. 
