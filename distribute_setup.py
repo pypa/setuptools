@@ -28,7 +28,6 @@ import subprocess
 from distutils import log
 
 
-IS_JYTHON = sys.platform.startswith('java')
 DEFAULT_VERSION = "0.6.2"
 DEFAULT_URL = "http://pypi.python.org/packages/source/d/distribute/"
 SETUPTOOLS_PKG_INFO = """\
@@ -54,10 +53,7 @@ def quote(c):
 def python_cmd(cmd):
     python = quote(sys.executable)
     cmd = quote(cmd)
-    if IS_JYTHON:
-        return subprocess.Popen([python, cmd]).wait() == 0
-    args = [os.P_WAIT, python, python] + cmd.split() + [os.environ]
-    return os.spawnle(*args) == 0
+    return subprocess.call([python, cmd])
 
 
 def _install(tarball):
@@ -371,10 +367,7 @@ def _relaunch():
     log.warn('Relaunching...')
     # we have to relaunch the process
     args = [sys.executable] + sys.argv
-    if IS_JYTHON:
-        sys.exit(subprocess.call(args))
-    else:
-        sys.exit(os.spawnv(os.P_WAIT, sys.executable, args))
+    sys.exit(subprocess.call(args))
 
 
 def extractall(self, path=".", members=None):
