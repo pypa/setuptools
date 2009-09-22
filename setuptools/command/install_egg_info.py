@@ -87,7 +87,7 @@ class install_egg_info(Command):
         filename += '-nspkg.pth'; self.outputs.append(filename)
         log.info("Installing %s",filename)
         if not self.dry_run:
-            f = open(filename,'wb')
+            f = open(filename,'wt')
             for pkg in nsp:
                 pth = tuple(pkg.split('.'))
                 trailer = '\n'
