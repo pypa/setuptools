@@ -245,7 +245,7 @@ def _remove_flat_installation(placeholder):
 def after_install(dist):
     log.warn('After install bootstrap.')
     placeholder = dist.get_command_obj('install').install_purelib
-    if not os.path.exists(placeholder):
+    if not placeholder or not os.path.exists(placeholder):
         log.warn('Could not find the install location')
         return
     pyver = '%s.%s' % (sys.version_info[0], sys.version_info[1])
