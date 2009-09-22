@@ -255,11 +255,11 @@ class Distribution(_Distribution):
             if value is not None:
                 ep.require(installer=self.fetch_build_egg)
                 ep.load()(self, ep.name, value)
-        if getattr(self, 'convert_doctests_2to3', None):
+        if getattr(self, 'convert_2to3_doctests', None):
             # XXX may convert to set here when we can rely on set being builtin
-            self.convert_doctests_2to3 = [os.path.abspath(p) for p in self.convert_doctests_2to3]
+            self.convert_2to3_doctests = [os.path.abspath(p) for p in self.convert_2to3_doctests]
         else:
-            self.convert_doctests_2to3 = []
+            self.convert_2to3_doctests = []
 
     def fetch_build_egg(self, req):
         """Fetch an egg needed for building"""

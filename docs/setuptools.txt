@@ -404,16 +404,16 @@ unless you need the associated ``setuptools`` feature.
     mess with it.  For more details on how this argument works, see the section
     below on `Automatic Resource Extraction`_.
 
-``run_2to3``
+``use_2to3``
     Convert the source code from Python 2 to Python 3 with 2to3 during the 
     build process. See :doc:`python3` for more details.
 
-``convert_doctests_2to3``
+``convert_2to3_doctests``
     List of doctest source files that need to be converted with 2to3. 
     See :doc:`python3` for more details.
     
-``additional_2to3_fixers``
-    A list of modules to serach for additional fixers to be used during
+``use_2to3_fixers``
+    A list of modules to search for additional fixers to be used during
     the 2to3 conversion. See :doc:`python3` for more details.
 
 

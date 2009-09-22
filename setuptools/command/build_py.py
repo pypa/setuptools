@@ -23,7 +23,7 @@ try:
         def run_2to3(self, files, doctests = False):
             # See of the distribution option has been set, otherwise check the
             # setuptools default.
-            if self.distribution.run_2to3 is not True and setuptools.run_2to3 is False:
+            if self.distribution.use_2to3 is not True:
                 return
             if not files:
                 return
@@ -32,8 +32,8 @@ try:
                 self.fixer_names = []
                 for p in setuptools.lib2to3_fixer_packages:
                     self.fixer_names.extend(get_fixers_from_package(p))
-                if self.distribution.additional_2to3_fixers is not None:
-                    for p in self.distribution.additional_2to3_fixers:
+                if self.distribution.use_2to3_fixers is not None:
+                    for p in self.distribution.use_2to3_fixers:
                         self.fixer_names.extend(get_fixers_from_package(p))
             if doctests:
                 if setuptools.run_2to3_on_doctests:
@@ -137,7 +137,7 @@ class build_py(_build_py, Mixin2to3):
                 srcfile = os.path.join(src_dir, filename)
                 outf, copied = self.copy_file(srcfile, target)
                 srcfile = os.path.abspath(srcfile)
-                if copied and srcfile in self.distribution.convert_doctests_2to3:
+                if copied and srcfile in self.distribution.convert_2to3_doctests:
                     self.__doctests_2to3.append(outf)
 
 
