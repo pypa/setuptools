@@ -63,7 +63,7 @@ def python_cmd(cmd):
 def _install(tarball):
     # extracting the tarball
     tmpdir = tempfile.mkdtemp()
-    log.warn('Extracting in %s' % tmpdir)
+    log.warn('Extracting in %s', tmpdir)
     old_wd = os.getcwd()
     try:
         os.chdir(tmpdir)
@@ -74,7 +74,7 @@ def _install(tarball):
         # going in the directory
         subdir = os.path.join(tmpdir, os.listdir(tmpdir)[0])
         os.chdir(subdir)
-        log.warn('Now working in %s' % subdir)
+        log.warn('Now working in %s', subdir)
 
         # installing
         log.warn('Installing Distribute')
@@ -86,7 +86,7 @@ def _install(tarball):
 def _build_egg(tarball, to_dir=os.curdir):
     # extracting the tarball
     tmpdir = tempfile.mkdtemp()
-    log.warn('Extracting in %s' % tmpdir)
+    log.warn('Extracting in %s', tmpdir)
     old_wd = os.getcwd()
     try:
         os.chdir(tmpdir)
@@ -97,10 +97,10 @@ def _build_egg(tarball, to_dir=os.curdir):
         # going in the directory
         subdir = os.path.join(tmpdir, os.listdir(tmpdir)[0])
         os.chdir(subdir)
-        log.warn('Now working in %s' % subdir)
+        log.warn('Now working in %s', subdir)
 
         # building an egg
-        log.warn('Building a Distribute egg in %s' % to_dir)
+        log.warn('Building a Distribute egg in %s', to_dir)
         python_cmd('setup.py -q bdist_egg --dist-dir %s' % to_dir)
 
         # returning the result
@@ -206,7 +206,7 @@ def _same_content(path, content):
 
 def _rename_path(path):
     new_name = path + '.OLD.%s' % time.time()
-    log.warn('Renaming %s into %s' % (path, new_name))
+    log.warn('Renaming %s into %s', path, new_name)
     try:
         from setuptools.sandbox import DirectorySandbox
         def _violation(*args):
@@ -221,7 +221,7 @@ def _rename_path(path):
 
 def _remove_flat_installation(placeholder):
     if not os.path.isdir(placeholder):
-        log.warn('Unkown installation at %s' % placeholder)
+        log.warn('Unkown installation at %s', placeholder)
         return False
     found = False
     for file in os.listdir(placeholder):
@@ -239,7 +239,7 @@ def _remove_flat_installation(placeholder):
             patched = _patch_file(pkg_info, SETUPTOOLS_PKG_INFO)
 
     if not patched:
-        log.warn('%s already patched.' % pkg_info)
+        log.warn('%s already patched.', pkg_info)
         return False
     # now let's move the files out of the way
     for element in ('setuptools', 'pkg_resources.py', 'site.py'):
@@ -248,7 +248,7 @@ def _remove_flat_installation(placeholder):
             _rename_path(element)
         else:
             log.warn('Could not find the %s element of the '
-                     'Setuptools distribution' % element)
+                     'Setuptools distribution', element)
     return True
 
 
@@ -262,16 +262,16 @@ def after_install(dist):
     setuptools_file = 'setuptools-0.6c9-py%s.egg-info' % pyver
     pkg_info = os.path.join(placeholder, setuptools_file)
     if os.path.exists(pkg_info):
-        log.warn('%s already exists' % pkg_info)
+        log.warn('%s already exists', pkg_info)
         return
-    log.warn('Creating %s' % pkg_info)
+    log.warn('Creating %s', pkg_info)
     f = open(pkg_info, 'w')
     try:
         f.write(SETUPTOOLS_PKG_INFO)
     finally:
         f.close()
     pth_file = os.path.join(placeholder, 'setuptools.pth')
-    log.warn('Creating %s' % pth_file)
+    log.warn('Creating %s', pth_file)
     f = open(pth_file, 'w')
     try:
         f.write(os.path.join(os.curdir, setuptools_file))
@@ -284,7 +284,7 @@ def _patch_egg_dir(path):
     pkg_info = os.path.join(path, 'EGG-INFO', 'PKG-INFO')
     if os.path.exists(pkg_info):
         if _same_content(pkg_info, SETUPTOOLS_PKG_INFO):
-            log.warn('%s already patched.' % pkg_info)
+            log.warn('%s already patched.', pkg_info)
             return False
     _rename_path(path)
     os.mkdir(path)
@@ -336,7 +336,7 @@ def fake_setuptools():
         return
     # detecting if it was already faked
     setuptools_location = setuptools_dist.location
-    log.warn('Setuptools installation detected at %s' % setuptools_location)
+    log.warn('Setuptools installation detected at %s', setuptools_location)
 
     # if --root or --preix was provided, and if
     # setuptools is not located in them, we don't patch it
