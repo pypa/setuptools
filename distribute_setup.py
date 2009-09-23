@@ -43,17 +43,9 @@ Description: xxx
 """
 
 
-def quote(c):
-    if sys.platform == 'win32':
-        if ' ' in c:
-            return '"%s"' % c
-    return c
-
-
-def python_cmd(cmd):
-    python = quote(sys.executable)
-    cmd = quote(cmd)
-    return subprocess.call([python, cmd])
+def python_cmd(*args):
+    args = (sys.executable,) + args
+    return subprocess.call(args) == 0
 
 
 def _install(tarball):
@@ -74,7 +66,7 @@ def _install(tarball):
 
         # installing
         log.warn('Installing Distribute')
-        assert python_cmd('setup.py install')
+        assert python_cmd('setup.py', 'install')
     finally:
         os.chdir(old_wd)
 
