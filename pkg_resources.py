@@ -2064,6 +2064,8 @@ class Distribution(object):
             # It's not a Distribution, so they are not equal
             return False
         return self.hashcmp == other.hashcmp
+    def __ne__(self, other):
+        return not self == other
 
     # These properties have to be lazy so that we don't have to load any
     # metadata until/unless it's actually needed.  (i.e., some distributions
