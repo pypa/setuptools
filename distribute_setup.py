@@ -13,20 +13,38 @@ the appropriate options to ``use_setuptools()``.
 
 This file can also be run as a script to install or upgrade setuptools.
 """
+import os
+import sys
+import time
+import fnmatch
+import tempfile
+import tarfile
+from distutils import log
+
 try:
     from site import USER_SITE
 except ImportError:
     USER_SITE = None
 
-import sys
-import os
-import time
-import fnmatch
-import tempfile
-import tarfile
-import subprocess
-from distutils import log
+try:
+    import subprocess
 
+    def python_cmd(*args):
+        args = (sys.executable,) + args
+        return subprocess.call(args) == 0
+
+except ImportError:
+    # will be used for python 2.3
+    def python_cmd(*args):
+        args = (sys.executable,) + args
+        # quoting arguments if windows
+        if sys.platform == 'win32':
+            def quote(arg):
+                if ' ' in arg:
+                    return '"%s"' % arg
+                return arg
+            args = [quote(arg) for arg in args]
+        return os.spawnl(os.P_WAIT, sys.executable, *args) == 0
 
 DEFAULT_VERSION = "0.6.2"
 DEFAULT_URL = "http://pypi.python.org/packages/source/d/distribute/"
@@ -41,11 +59,6 @@ Author-email: xxx
 License: xxx
 Description: xxx
 """
-
-
-def python_cmd(*args):
-    args = (sys.executable,) + args
-    return subprocess.call(args) == 0
 
 
 def _install(tarball):
@@ -386,7 +399,9 @@ def extractall(self, path=".", members=None):
         self.extract(tarinfo, path)
 
     # Reverse sort directories.
-    directories.sort(key=operator.attrgetter('name'))
+    def sorter(dir1, dir2):
+        return cmp(dir1.name, dir2.name)
+    directories.sort(sorter)
     directories.reverse()
 
     # Set correct owner, mtime and filemode on directories.
