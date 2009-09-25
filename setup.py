@@ -59,8 +59,8 @@ if _being_installed():
 dist = setup(
     name="distribute",
     version=VERSION,
-    description="Download, build, install, upgrade, and uninstall Python "
-        "packages -- easily!",
+    description="Easily download, build, install, upgrade, and uninstall "
+                "Python packages",
     author="The fellowship of the packaging",
     author_email="distutils-sig@python.org",
     license="PSF or ZPL",
