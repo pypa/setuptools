@@ -25,8 +25,9 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
+#include <process.h>
 #include <fcntl.h>
+#include "tchar.h"
 #include "windows.h"
 
 int fail(char *format, char *data) {
@@ -236,11 +237,18 @@ int run(int argc, char **argv, int is_gui) {
     }
 
     /* We *do* need to wait for a CLI to finish, so use spawn */
-    return spawnv(P_WAIT, ptr, (const char * const *)(newargs));
+    return _spawnv(_P_WAIT, ptr, (const char * const *)(newargs));
 }
 
-
+/*
 int WINAPI WinMain(HINSTANCE hI, HINSTANCE hP, LPSTR lpCmd, int nShow) {
     return run(__argc, __argv, GUI);
+}
+
+*/
+
+int _tmain(int argc, _TCHAR* argv[])
+{
+	return run(argc, argv, GUI);
 }
 

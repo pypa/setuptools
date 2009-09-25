@@ -1603,13 +1603,14 @@ def get_script_args(dist, executable=sys_executable, wininst=False):
                 ")\n"
             ) % locals()
             if sys.platform=='win32' or wininst:
+                word_size = [32, 64]['amd64' in sys.version.lower()]
                 # On Windows/wininst, add a .py extension and an .exe launcher
                 if group=='gui_scripts':
-                    ext, launcher = '-script.pyw', 'gui.exe'
+                    ext, launcher = '-script.pyw', 'gui-%d.exe' % word_size
                     old = ['.pyw']
                     new_header = re.sub('(?i)python.exe','pythonw.exe',header)
                 else:
-                    ext, launcher = '-script.py', 'cli.exe'
+                    ext, launcher = '-script.py', 'cli-%d.exe' % word_size
                     old = ['.py','.pyc','.pyo']
                     new_header = re.sub('(?i)pythonw.exe','python.exe',header)
 
