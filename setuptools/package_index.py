@@ -241,7 +241,7 @@ class PackageIndex(Environment):
                         self.scan_egg_link(item, entry)
 
     def scan_egg_link(self, path, entry):
-        lines = filter(None, map(str.strip, file(os.path.join(path, entry))))
+        lines = filter(None, map(str.strip, open(os.path.join(path, entry))))
         if len(lines)==2:
             for dist in find_distributions(os.path.join(path, lines[0])):
                 dist.location = os.path.join(path, *lines)
