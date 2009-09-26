@@ -9,9 +9,24 @@ CHANGES
 setuptools
 ==========
 
-* Fixed invalid usage of requirement.parse, that broke develop -d.
-  closed http://bugs.python.org/setuptools/issue44.
+* Added Python 3 support.
+  This closes http://bugs.python.org/setuptools/issue39.
 
+* Added option to run 2to3 automatically when installing on Python 3.
+  This closes http://bitbucket.org/tarek/distribute/issue/31.
+
+* Fixed invalid usage of requirement.parse, that broke develop -d.
+  This closes http://bugs.python.org/setuptools/issue44.
+
+* Fixed script launcher for 64-bit Windows.
+  This closes http://bugs.python.org/setuptools/issue2.
+
+
+bootstraping
+============
+
+* Fixed bootstrap not working on Windows.
+  This closes http://bitbucket.org/tarek/distribute/issue/49.
 
 -----
 0.6.1
