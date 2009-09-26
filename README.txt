@@ -18,18 +18,31 @@ for working with Python module distributions.
 
 The fork has two goals:
 
-- Provides a backward compatible version to replace Setuptools 
+- Providing a backward compatible version to replace Setuptools 
   and make all distributions that depend on Setuptools work as
-  before, but with less bugs and behavior issues.
-  This version is also compatible with Python 3.
+  before, but with less bugs and behaviorial issues.
 
   This work is done in the 0.6.x series
 
-- Refactor the code, and release it in several distributions.
-  This work is done in the 0.7.x series but not yet released.
+  Starting with version 0.6.2, Distribute supports Python 3. 
+  Installing and using distribute for Python 3 code works exactly 
+  the same as for Python 2 code, but Distribute also helps you to support 
+  Python 2 and Python 3 from the same source code by letting you run 2to3 
+  on the code as a part of the build process, by setting the keyword parameter 
+  ``use_2to3`` to True. See docs/python3.txt for more information.
+
+- Refactoring the code, and releasing it in several distributions.
+  This work is being done in the 0.7.x series but not yet released.
 
 If you install `Distribute` and want to switch back for any reason to
 `Setuptools`, get to the `Uninstallation instructions`_ section.
+
+More documentation
+==================
+
+You can get more information in the Sphinx-based documentation, located
+in the archive in `docs`. This documentation includes the old Setuptools
+documentation that is slowly replaced, and brand new content.
 
 About the installation process
 ==============================

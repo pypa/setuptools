@@ -9,7 +9,7 @@ CHANGES
 setuptools
 ==========
 
-* Added Python 3 support.
+* Added Python 3 support. see docs/python3.txt
   This closes http://bugs.python.org/setuptools/issue39.
 
 * Added option to run 2to3 automatically when installing on Python 3.
