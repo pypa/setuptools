@@ -21,12 +21,20 @@ setuptools
 * Fixed script launcher for 64-bit Windows.
   This closes http://bugs.python.org/setuptools/issue2.
 
+* KeyError when compiling extensions.
+  This closes http://bugs.python.org/setuptools/issue41.
 
 bootstrapping
 =============
 
 * Fixed bootstrap not working on Windows.
   This closes http://bitbucket.org/tarek/distribute/issue/49.
+
+* Fixed 2.6 dependencies.
+  This closes http://bitbucket.org/tarek/distribute/issue/50.
+
+* Make sure setuptools is patched when running through easy_install
+  This closes http://bugs.python.org/setuptools/issue40.
 
 -----
 0.6.1
