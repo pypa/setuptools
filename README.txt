@@ -162,15 +162,12 @@ Install FAQ
 - **How does Distribute interact with zc.buildout?**
 
   Some work is being done on zc.buildout side to make its bootstrap
-  work with Distribute. Until then, using Distribute in zc.buildout is a bit 
-  tricky.
+  work with Distribute. Until then, using Distribute in zc.buildout is a bit
+  tricky because the bootstrap process of zc.buildout hardcodes the 
+  installation of Setuptools.
 
-  Like virtualenv, Distribute has to be installed after setuptools. The simplest
-  way is to add it in a ``zc.recipe.egg`` section so the job is done when you 
-  build your buildout.
-
-  If you are combining zc.buildout and virtualenv, you might fail in the 
-  problem described in the previous FAQ entry.
+  The plan is to come with a working bootstrap.py for zc.buildout for the
+  0.6.3 release.
 
 -----------------------------
 Feedback and getting involved
