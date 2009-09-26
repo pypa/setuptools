@@ -159,15 +159,16 @@ Install FAQ
   You need in this case to build a virtualenv with the --no-site-packages option
   or to install `Distribute` globally.
 
-- **How does Distribute interact with zc.buildout?**
+- **How does Distribute interacts with zc.buildout?**
 
   Some work is being done on zc.buildout side to make its bootstrap
   work with Distribute. Until then, using Distribute in zc.buildout is a bit
-  tricky because the bootstrap process of zc.buildout hardcodes the 
+  tricky because the bootstrap process of zc.buildout hardcodes the
   installation of Setuptools.
 
-  The plan is to come with a working bootstrap.py for zc.buildout for the
-  0.6.3 release.
+  The plan is to come with a custom bootstrap.py for zc.buildout for the
+  0.6.3 release, together with some small changes on zc.buildout side.
+
 
 -----------------------------
 Feedback and getting involved
