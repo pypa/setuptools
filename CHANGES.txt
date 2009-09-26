@@ -22,8 +22,8 @@ setuptools
   This closes http://bugs.python.org/setuptools/issue2.
 
 
-bootstraping
-============
+bootstrapping
+=============
 
 * Fixed bootstrap not working on Windows.
   This closes http://bitbucket.org/tarek/distribute/issue/49.
@@ -52,8 +52,8 @@ setuptools
   bootstrap.py script.
 
 
-bootstraping
-============
+bootstrapping
+=============
 
 * The boostrap process leave setuptools alone if detected in the system
   and --root or --prefix is provided, but is not in the same location.
