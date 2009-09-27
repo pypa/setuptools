@@ -81,6 +81,11 @@ If your shell has the ``wget`` program you can do::
     $ wget http://nightly.ziade.org/distribute_setup.py
     $ python distribute_setup.py
 
+If you are under Python 3, use ``distribute_setup_3k.py``::
+
+    $ wget http://nightly.ziade.org/distribute_setup_3k.py
+    $ python distribute_setup_3k.py
+
 easy_install or pip
 ===================
 
