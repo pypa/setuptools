@@ -9,8 +9,9 @@ CURDIR = os.path.abspath(os.path.dirname(__file__))
 TOPDIR = os.path.split(CURDIR)[0]
 sys.path.insert(0, TOPDIR)
 
-from distribute_setup import (use_setuptools, _build_egg, python_cmd,
-                              _do_download, _install)
+from distribute_setup import (use_setuptools, _build_egg, _python_cmd,
+                              _do_download, _install, DEFAULT_URL,
+                              DEFAULT_VERSION)
 import distribute_setup
 
 class TestSetup(unittest.TestCase):
@@ -23,8 +24,8 @@ class TestSetup(unittest.TestCase):
         self.cwd = os.getcwd()
         self.tmpdir = tempfile.mkdtemp()
         os.chdir(TOPDIR)
-        python_cmd("setup.py -q egg_info -RDb '' sdist --dist-dir %s" % \
-                self.tmpdir)
+        _python_cmd("setup.py", "-q", "egg_info", "-RDb", "''", "sdist",
+                    "--dist-dir", "%s" % self.tmpdir)
         tarball = os.listdir(self.tmpdir)[0]
         self.tarball = os.path.join(self.tmpdir, tarball)
         import urllib2
@@ -46,7 +47,7 @@ class TestSetup(unittest.TestCase):
 
     def test_do_download(self):
         tmpdir = tempfile.mkdtemp()
-        _do_download(to_dir=tmpdir)
+        _do_download(DEFAULT_VERSION, DEFAULT_URL, tmpdir, 1)
         import setuptools
         self.assert_(setuptools.bootstrap_install_from.startswith(tmpdir))
 
