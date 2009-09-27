@@ -102,12 +102,12 @@ def _build_egg(tarball, to_dir=os.curdir):
 
         # building an egg
         log.warn('Building a Distribute egg in %s', to_dir)
-        python_cmd('setup.py -q bdist_egg --dist-dir %s' % to_dir)
+        python_cmd('setup.py', '-q', 'bdist_egg', '--dist-dir', to_dir)
 
         # returning the result
         for file in os.listdir(to_dir):
             if fnmatch.fnmatch(file, 'distribute-%s*.egg' % DEFAULT_VERSION):
-                return os.path.join(to_dir, file)
+                return os.path.join(subdir, file)
 
         raise IOError('Could not build the egg.')
     finally:
