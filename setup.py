@@ -53,8 +53,8 @@ def _being_installed():
     return 'install' in sys.argv[1:] or _easy_install_marker()
 
 if _being_installed():
-    from distribute_setup import before_install
-    before_install()
+    from distribute_setup import _before_install
+    _before_install()
 
 dist = setup(
     name="distribute",
@@ -142,7 +142,7 @@ dist = setup(
 )
 
 if _being_installed():
-    from distribute_setup import after_install
-    after_install(dist)
+    from distribute_setup import _after_install
+    _after_install(dist)
 
 

@@ -29,13 +29,13 @@ except ImportError:
 try:
     import subprocess
 
-    def python_cmd(*args):
+    def _python_cmd(*args):
         args = (sys.executable,) + args
         return subprocess.call(args) == 0
 
 except ImportError:
     # will be used for python 2.3
-    def python_cmd(*args):
+    def _python_cmd(*args):
         args = (sys.executable,) + args
         # quoting arguments if windows
         if sys.platform == 'win32':
@@ -69,7 +69,7 @@ def _install(tarball):
     try:
         os.chdir(tmpdir)
         tar = tarfile.open(tarball)
-        extractall(tar)
+        _extractall(tar)
         tar.close()
 
         # going in the directory
@@ -79,12 +79,12 @@ def _install(tarball):
 
         # installing
         log.warn('Installing Distribute')
-        assert python_cmd('setup.py', 'install')
+        assert _python_cmd('setup.py', 'install')
     finally:
         os.chdir(old_wd)
 
 
-def _build_egg(tarball, to_dir=os.curdir):
+def _build_egg(tarball, to_dir):
     # extracting the tarball
     tmpdir = tempfile.mkdtemp()
     log.warn('Extracting in %s', tmpdir)
@@ -92,7 +92,7 @@ def _build_egg(tarball, to_dir=os.curdir):
     try:
         os.chdir(tmpdir)
         tar = tarfile.open(tarball)
-        extractall(tar)
+        _extractall(tar)
         tar.close()
 
         # going in the directory
@@ -102,20 +102,19 @@ def _build_egg(tarball, to_dir=os.curdir):
 
         # building an egg
         log.warn('Building a Distribute egg in %s', to_dir)
-        python_cmd('setup.py', '-q', 'bdist_egg', '--dist-dir', to_dir)
+        _python_cmd('setup.py', '-q', 'bdist_egg', '--dist-dir', to_dir)
 
         # returning the result
         for file in os.listdir(to_dir):
             if fnmatch.fnmatch(file, 'distribute-%s*.egg' % DEFAULT_VERSION):
-                return os.path.join(subdir, file)
+                return os.path.join(to_dir, file)
 
         raise IOError('Could not build the egg.')
     finally:
         os.chdir(old_wd)
 
 
-def _do_download(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
-                 to_dir=os.curdir, download_delay=15):
+def _do_download(version, download_base, to_dir, download_delay):
     tarball = download_setuptools(version, download_base,
                                   to_dir, download_delay)
     egg = _build_egg(tarball, to_dir)
@@ -126,6 +125,8 @@ def _do_download(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
 
 def use_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
                    to_dir=os.curdir, download_delay=15):
+    # making sure we use the absolute path
+    to_dir = os.path.abspath(to_dir)
     was_imported = 'pkg_resources' in sys.modules or \
         'setuptools' in sys.modules
     try:
@@ -162,6 +163,8 @@ def download_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
     `delay` is the number of seconds to pause before an actual download
     attempt.
     """
+    # making sure we use the absolute path
+    to_dir = os.path.abspath(to_dir)
     import urllib2
     tgz_name = "distribute-%s.tar.gz" % version
     url = download_base + tgz_name
@@ -253,7 +256,7 @@ def _remove_flat_installation(placeholder):
     return True
 
 
-def after_install(dist):
+def _after_install(dist):
     log.warn('After install bootstrap.')
     placeholder = dist.get_command_obj('install').install_purelib
     if not placeholder or not os.path.exists(placeholder):
@@ -299,7 +302,7 @@ def _patch_egg_dir(path):
     return True
 
 
-def before_install():
+def _before_install():
     log.warn('Before install bootstrap.')
     fake_setuptools()
 
@@ -375,7 +378,7 @@ def _relaunch():
     sys.exit(subprocess.call(args))
 
 
-def extractall(self, path=".", members=None):
+def _extractall(self, path=".", members=None):
     """Extract all members from the archive to the current working
        directory and set owner, modification time and permissions on
        directories afterwards. `path' specifies a different directory
