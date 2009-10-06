@@ -76,14 +76,14 @@ distribute_setup.py
 Download ``distribute_setup.py`` and execute it, using the Python interpreter of
 your choice.
 
-If your shell has the ``wget`` program you can do::
+If your shell has the ``curl`` program you can do::
 
-    $ wget http://nightly.ziade.org/distribute_setup.py
+    $ curl -O http://nightly.ziade.org/distribute_setup.py
     $ python distribute_setup.py
 
 If you are under Python 3, use ``distribute_setup_3k.py``::
 
-    $ wget http://nightly.ziade.org/distribute_setup_3k.py
+    $ curl -O http://nightly.ziade.org/distribute_setup_3k.py
     $ python distribute_setup_3k.py
 
 easy_install or pip
@@ -99,7 +99,7 @@ Source installation
 
 Download the source tarball, uncompress it, then run the install command::
 
-    $ wget http://pypi.python.org/packages/source/d/distribute/distribute-0.6.4.tar.gz
+    $ curl -O http://pypi.python.org/packages/source/d/distribute/distribute-0.6.4.tar.gz
     $ tar -xzvf distribute-0.6.4.tar.gz
     $ cd distribute-0.6
     $ python setup.py install
