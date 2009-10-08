@@ -18,21 +18,25 @@ for working with Python module distributions.
 
 The fork has two goals:
 
-- Providing a backward compatible version to replace Setuptools 
+- Providing a backward compatible version to replace Setuptools
   and make all distributions that depend on Setuptools work as
   before, but with less bugs and behaviorial issues.
 
   This work is done in the 0.6.x series
 
-  Starting with version 0.6.2, Distribute supports Python 3. 
-  Installing and using distribute for Python 3 code works exactly 
-  the same as for Python 2 code, but Distribute also helps you to support 
-  Python 2 and Python 3 from the same source code by letting you run 2to3 
-  on the code as a part of the build process, by setting the keyword parameter 
-  ``use_2to3`` to True. See docs/python3.txt for more information.
+  Starting with version 0.6.2, Distribute supports Python 3.
+  Installing and using distribute for Python 3 code works exactly
+  the same as for Python 2 code, but Distribute also helps you to support
+  Python 2 and Python 3 from the same source code by letting you run 2to3
+  on the code as a part of the build process, by setting the keyword parameter
+  ``use_2to3`` to True. See XXX REPLACE WITH PYPI DOC XXXX
+  for more information.
 
 - Refactoring the code, and releasing it in several distributions.
   This work is being done in the 0.7.x series but not yet released.
+
+The roadmap is still evolving, and the page that is up-to-date is
+located at : `http://bitbucket.org/tarek/distribute/wiki/roadmap`.
 
 If you install `Distribute` and want to switch back for any reason to
 `Setuptools`, get to the `Uninstallation instructions`_ section.
@@ -41,21 +45,21 @@ More documentation
 ==================
 
 You can get more information in the Sphinx-based documentation, located
-in the archive in `docs`. This documentation includes the old Setuptools
+at XXX REPLACE WITH PYPI DOC XXXX. This documentation includes the old Setuptools
 documentation that is slowly replaced, and brand new content.
 
 About the installation process
 ==============================
 
 The `Distribute` installer modifies your installation by de-activating an
-existing installation of `Setuptools` in a bootstrap process. This process 
-has been tested in various installation schemes and contexts but in case of a 
+existing installation of `Setuptools` in a bootstrap process. This process
+has been tested in various installation schemes and contexts but in case of a
 bug during this process your Python installation might be left in a broken
-state. Since all modified files and directories are copied before the 
-installation, you will be able to get back to a normal state by reading
+state. Since all modified files and directories are copied before the
+installation starts, you will be able to get back to a normal state by reading
 the instructions in the `Uninstallation instructions`_ section.
 
-In any case, it is recommended to save you `site-packages` directory before 
+In any case, it is recommended to save you `site-packages` directory before
 you start the installation of `Distribute`.
 
 -------------------------
@@ -74,7 +78,7 @@ distribute_setup.py
 ===================
 
 Download ``distribute_setup.py`` and execute it, using the Python interpreter of
-your choice. 
+your choice.
 
 If your shell has the ``wget`` program you can do::
 
@@ -110,13 +114,14 @@ Download the source tarball, uncompress it, then run the install command::
 Uninstallation Instructions
 ---------------------------
 
-Like other distutils-based distributions, Distribute doesn't provide an 
-uninstaller yet. It's all done manually!
+Like other distutils-based distributions, Distribute doesn't provide an
+uninstaller yet. It's all done manually! We are all waiting for PEP 376 
+support in Python.
 
 Distribute is installed in three steps:
 
 1. it gets out of the way an existing installation of Setuptools
-2. it installs a `fake` setuptools installation 
+2. it installs a `fake` setuptools installation
 3. it installs distribute
 
 Distribute can be removed like this:
@@ -148,7 +153,7 @@ Install FAQ
    it fakes that the Setuptools installation is still present, so all the programs
    that where using Setuptools still work.
 
-   If it wasn't doing it, a program that would try to install Setuptools 
+   If it wasn't doing it, a program that would try to install Setuptools
    would overwrite in turn Distribute.
 
 - **How does Distribute interacts with virtualenv?**
@@ -156,6 +161,7 @@ Install FAQ
   Everytime you create a virtualenv it will install setuptools, so you need to
   re-install Distribute in it right after. The Distribute project will not
   attempt to patch virtualenv so it uses it when globally installed.
+  We will just wait for virtualenv to eventually switch to Distribute.
 
   Once installed, your virtualenv will use Distribute transparently.
 
@@ -163,18 +169,15 @@ Install FAQ
   and if the virtualenv you are in was generated without the `--no-site-packages`
   option, the Distribute installation will stop.
 
-  You need in this case to build a virtualenv with the --no-site-packages option
-  or to install `Distribute` globally.
+  You need in this case to build a virtualenv with the `--no-site-packages` 
+  option or to install `Distribute` globally.
 
 - **How does Distribute interacts with zc.buildout?**
 
-  Some work is being done on zc.buildout side to make its bootstrap
-  work with Distribute. Until then, using Distribute in zc.buildout is a bit
-  tricky because the bootstrap process of zc.buildout hardcodes the
-  installation of Setuptools.
-
-  The plan is to come with a custom bootstrap.py for zc.buildout for the
-  0.6.4 release, together with some small changes on zc.buildout side.
+  Starting at zc.buildout 1.4.0, you can use Distribute in your buildouts.
+  Although you have to run a specific `bootstrap.py` file that is available
+  at `http://nightly.ziade.org/bootstrap.py`. The code is located at
+  `http://bitbucket.org/tarek/buildout-distribute`.
 
 
 -----------------------------
