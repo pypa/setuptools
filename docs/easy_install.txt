@@ -330,7 +330,9 @@ to restrict downloading to hosts in your own intranet.  See the section below
 on `Command-Line Options`_ for more details on the ``--allow-hosts`` option.
 
 By default, there are no host restrictions in effect, but you can change this
-default by editing the appropriate `configuration files`_ and adding::
+default by editing the appropriate `configuration files`_ and adding:
+
+.. code-block:: ini
 
     [easy_install]
     allow_hosts = *.myintranet.example.com,*.python.org
@@ -411,7 +413,9 @@ generated directory listing (such as the Apache web server provides).
 
 If you are setting up an intranet site for package downloads, you may want to
 configure the target machines to use your download site by default, adding
-something like this to their `configuration files`_::
+something like this to their `configuration files`_:
+
+.. code-block:: ini
 
     [easy_install]
     find_links = http://mypackages.example.com/somedir/
@@ -445,7 +449,9 @@ Controlling Build Options
 EasyInstall respects standard distutils `Configuration Files`_, so you can use
 them to configure build options for packages that it installs from source.  For
 example, if you are on Windows using the MinGW compiler, you can configure the
-default compiler by putting something like this::
+default compiler by putting something like this:
+
+.. code-block:: ini
 
     [build]
     compiler = mingw32
@@ -593,7 +599,9 @@ distutils configuration files, under the command heading ``easy_install``.
 EasyInstall will look first for a ``setup.cfg`` file in the current directory,
 then a ``~/.pydistutils.cfg`` or ``$HOME\\pydistutils.cfg`` (on Unix-like OSes
 and Windows, respectively), and finally a ``distutils.cfg`` file in the
-``distutils`` package directory.  Here's a simple example::
+``distutils`` package directory.  Here's a simple example:
+
+.. code-block:: ini
 
     [easy_install]
 
@@ -986,7 +994,9 @@ The next step is to create or modify ``distutils.cfg`` in the ``distutils``
 directory of your Python library.  The correct directory will be something like
 ``/usr/lib/python2.X/distutils`` on most Posix systems and something like
 ``C:\\Python2X\Lib\distutils`` on Windows machines.  Add the following lines
-to the file, substituting the correct Python version if necessary::
+to the file, substituting the correct Python version if necessary:
+
+.. code-block:: ini
 
     [install]
     install_lib = ~/lib/python2.3
@@ -1031,7 +1041,9 @@ location, because it is already configured to process ``.pth`` files, and
 EasyInstall already knows this.
 
 Before installing EasyInstall/setuptools, just create a ``~/.pydistutils.cfg``
-file with the following contents (or add this to the existing contents)::
+file with the following contents (or add this to the existing contents):
+
+.. code-block:: ini
 
     [install]
     install_lib = ~/Library/Python/$py_version_short/site-packages
@@ -1105,7 +1117,9 @@ Assuming that you want to install packages in a directory called ``~/py-lib``,
 and scripts in ``~/bin``, here's what you need to do:
 
 First, edit ``~/.pydistutils.cfg`` to include these settings, if you don't
-already have them::
+already have them:
+
+.. code-block:: ini
 
     [install]
     install_lib = ~/py-lib

@@ -36,20 +36,21 @@ to a list of names of packages containing fixers.
 
 A typical setup.py can look something like this::
 
-      from setuptools import setup
-      
-      setup(name='your.module',
-            version = '1.0',
-            description='This is your awesome module',
-            author='You',
-            author_email='your@email',
-            package_dir = {'': 'src'},
-            packages = ['your', 'you.module'],
-            test_suite = 'your.module.tests',
-            use_2to3 = True,
-            convert_2to3_doctests = ['src/your/module/README.txt'],
-            use_2to3_fixers = ['your.fixers']
-            )
+    from setuptools import setup
+    
+    setup(
+        name='your.module',
+        version = '1.0',
+        description='This is your awesome module',
+        author='You',
+        author_email='your@email',
+        package_dir = {'': 'src'},
+        packages = ['your', 'you.module'],
+        test_suite = 'your.module.tests',
+        use_2to3 = True,
+        convert_2to3_doctests = ['src/your/module/README.txt'],
+        use_2to3_fixers = ['your.fixers']
+    )
 
 Differential conversion
 -----------------------
@@ -96,25 +97,26 @@ install process will continue as normal, but if you want to get rid of that
 error this is easy. Simply conditionally add the new parameters into an extra 
 dict and pass that dict into setup()::
 
-      from setuptools import setup
-      import sys
-      
-      extra = {}
-      if sys.version_info >= (3,):
-          extra['use_2to3'] = True
-          extra['convert_2to3_doctests'] = ['src/your/module/README.txt']
-          extra['use_2to3_fixers'] = ['your.fixers']
-      
-      setup(name='your.module',
-            version = '1.0',
-            description='This is your awesome module',
-            author='You',
-            author_email='your@email',
-            package_dir = {'': 'src'},
-            packages = ['your', 'you.module'],
-            test_suite = 'your.module.tests',
-            **extra
-            )
+    from setuptools import setup
+    import sys
+    
+    extra = {}
+    if sys.version_info >= (3,):
+        extra['use_2to3'] = True
+        extra['convert_2to3_doctests'] = ['src/your/module/README.txt']
+        extra['use_2to3_fixers'] = ['your.fixers']
+    
+    setup(
+        name='your.module',
+        version = '1.0',
+        description='This is your awesome module',
+        author='You',
+        author_email='your@email',
+        package_dir = {'': 'src'},
+        packages = ['your', 'you.module'],
+        test_suite = 'your.module.tests',
+        **extra
+    )
 
 This way the parameters will only be used under Python 3, where you have to
 use Distribute.
