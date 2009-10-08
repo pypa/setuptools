@@ -74,7 +74,7 @@ distribute_setup.py
 ===================
 
 Download ``distribute_setup.py`` and execute it, using the Python interpreter of
-your choice.
+your choice. 
 
 If your shell has the ``wget`` program you can do::
 
@@ -85,6 +85,8 @@ If you are under Python 3, use ``distribute_setup_3k.py``::
 
     $ wget http://nightly.ziade.org/distribute_setup_3k.py
     $ python distribute_setup_3k.py
+
+Notice that both files are provided in the source release.
 
 easy_install or pip
 ===================

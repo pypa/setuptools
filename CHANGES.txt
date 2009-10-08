@@ -6,6 +6,7 @@ CHANGES
 0.6.4
 -----
 
+* Added the generation of distribute_setup_3k.py during the release.
 
 
 -----
