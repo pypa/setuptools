@@ -13,8 +13,8 @@ rm -rf ./temp
 # creating the releases
 rm -rf ./dist
 
-# now preparing the source release
-python2.6 setup.py -q egg_info -RDb '' sdist register upload
+# now preparing the source release, pushing it and its doc
+python2.6 setup.py -q egg_info -RDb '' sdist register upload sphinx_build upload_doc
 
 # pushing the bootstrap scripts
 scp distribute_setup.py ziade.org:nightly/build/
