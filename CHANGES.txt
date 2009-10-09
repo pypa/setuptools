@@ -7,9 +7,11 @@ CHANGES
 -----
 
 * Added the generation of `distribute_setup_3k.py` during the release.
+  This close http://bitbucket.org/tarek/distribute/issue/52.
 
 * Added an upload_docs command to easily upload project documentation to
   PyPI's http://packages.python.org.
+  This close http://bitbucket.org/tarek/distribute/issue/56.
 
 -----
 0.6.3
