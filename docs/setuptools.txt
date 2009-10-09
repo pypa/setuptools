@@ -141,7 +141,7 @@ dependencies, and perhaps some data files and scripts::
             '': ['*.txt', '*.rst'],
             # And include any *.msg files found in the 'hello' package, too:
             'hello': ['*.msg'],
-        }
+        },
 
         # metadata for upload to PyPI
         author = "Me",
@@ -1117,7 +1117,9 @@ if they do, it might not be the right version.  Fixing this is easy; just
 download `distribute_setup.py`_, and put it in the same directory as your ``setup.py``
 script.  (Be sure to add it to your revision control system, too.)  Then add
 these two lines to the very top of your setup script, before the script imports
-anything from setuptools::
+anything from setuptools:
+
+.. code-block:: python
 
     import distribute_setup
     distribute_setup.use_setuptools()
@@ -1573,7 +1575,9 @@ Managing "Continuous Releases" Using Subversion
 If you expect your users to track in-development versions of your project via
 Subversion, there are a few additional steps you should take to ensure that
 things work smoothly with EasyInstall.  First, you should add the following
-to your project's ``setup.cfg`` file::
+to your project's ``setup.cfg`` file:
+
+.. code-block:: ini
 
     [egg_info]
     tag_build = .dev
@@ -1603,7 +1607,9 @@ their checkout URL (as described in the previous section) with an
 to download ``projectname==dev`` in order to get the latest in-development
 code.  Note that if your project depends on such in-progress code, you may wish
 to specify your ``install_requires`` (or other requirements) to include
-``==dev``, e.g.::
+``==dev``, e.g.:
+
+.. code-block:: python
 
     install_requires = ["OtherProject>=0.2a1.dev-r143,==dev"]
 
@@ -2369,6 +2375,63 @@ The ``upload`` command has a few options worth noting:
     The URL of the repository to upload to.  Defaults to
     http://pypi.python.org/pypi (i.e., the main PyPI installation).
 
+.. _upload_docs:
+
+``upload_docs`` - Upload package documentation to PyPI
+======================================================
+
+PyPI now supports uploading project documentation to the dedicated URL
+http://packages.python.org/<project>/.
+
+The ``upload_docs`` command will create the necessary zip file out of a
+documentation directory and will post to the repository.
+
+Note that to upload the documentation of a project, the corresponding version
+must already be registered with PyPI, using the distutils ``register``
+command -- just like the ``upload`` command.
+
+Assuming there is an ``Example`` project with documentation in the
+subdirectory ``docs``, e.g.::
+
+  Example/
+  |-- example.py
+  |-- setup.cfg
+  |-- setup.py
+  |-- docs
+  |   |-- build
+  |   |   `-- html
+  |   |   |   |-- index.html
+  |   |   |   `-- tips_tricks.html
+  |   |-- conf.py
+  |   |-- index.txt
+  |   `-- tips_tricks.txt
+
+You can simply pass the documentation directory path to the ``upload_docs``
+command::
+
+    python setup.py upload_docs --upload-dir=docs/build/html
+
+As with any other ``setuptools`` based command, you can define useful
+defaults in the ``setup.cfg`` of your Python project, e.g.:
+
+.. code-block:: ini
+
+    [upload_docs]
+    upload-dir = docs/build/html
+
+The ``upload_docs`` command has the following options:
+
+``--upload-dir``
+    The directory to be uploaded to the repository.
+
+``--show-response``
+    Display the full response text from server; this is useful for debugging
+    PyPI problems.
+
+``--repository=URL, -r URL``
+    The URL of the repository to upload to.  Defaults to
+    http://pypi.python.org/pypi (i.e., the main PyPI installation).
+
 
 ------------------------------------
 Extending and Reusing ``setuptools``
@@ -2539,7 +2602,9 @@ all the filenames within that directory (and any subdirectories thereof) that
 are under revision control.
 
 For example, if you were going to create a plugin for a revision control system
-called "foobar", you would write a function something like this::
+called "foobar", you would write a function something like this:
+
+.. code-block:: python
 
     def find_files_for_foobar(dirname):
         # loop to yield paths that start with `dirname`

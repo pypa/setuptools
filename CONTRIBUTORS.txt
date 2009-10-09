@@ -4,6 +4,7 @@ Contributors
 
 * Alex Grönholm
 * Hanno Schlichting
+* Jannis Leidel
 * Lennart Regebro
 * Martin von Loewis
 * Philip Envey

@@ -6,8 +6,10 @@ CHANGES
 0.6.4
 -----
 
-* Added the generation of distribute_setup_3k.py during the release.
+* Added the generation of `distribute_setup_3k.py` during the release.
 
+* Added an upload_docs command to easily upload project documentation to
+  PyPI's http://packages.python.org.
 
 -----
 0.6.3
