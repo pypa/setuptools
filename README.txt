@@ -36,7 +36,7 @@ The fork has two goals:
   This work is being done in the 0.7.x series but not yet released.
 
 The roadmap is still evolving, and the page that is up-to-date is
-located at : `http://bitbucket.org/tarek/distribute/wiki/roadmap`.
+located at : `http://packages.python.org/distribute/roadmap`.
 
 If you install `Distribute` and want to switch back for any reason to
 `Setuptools`, get to the `Uninstallation instructions`_ section.
