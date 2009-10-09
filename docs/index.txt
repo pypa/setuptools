@@ -6,11 +6,11 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   roadmap
+   python3
    setuptools
    easy_install
    pkg_resources
-   python3
-
 
 Indices and tables
 ==================

@@ -1,8 +1,8 @@
-======================================================
-Building and Distributing Packages with ``setuptools``
-======================================================
+==================================================
+Building and Distributing Packages with Distribute
+==================================================
 
-``setuptools`` is a collection of enhancements to the Python ``distutils``
+``Distribute`` is a collection of enhancements to the Python ``distutils``
 (for Python 2.3.5 and up on most platforms; 64-bit platforms require a minimum
 of Python 2.4) that allow you to more easily build and distribute Python
 packages, especially ones that have dependencies on other packages.
@@ -2433,9 +2433,9 @@ The ``upload_docs`` command has the following options:
     http://pypi.python.org/pypi (i.e., the main PyPI installation).
 
 
-------------------------------------
-Extending and Reusing ``setuptools``
-------------------------------------
+--------------------------------
+Extending and Reusing Distribute
+--------------------------------
 
 Creating ``distutils`` Extensions
 =================================
