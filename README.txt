@@ -29,8 +29,8 @@ The fork has two goals:
   the same as for Python 2 code, but Distribute also helps you to support
   Python 2 and Python 3 from the same source code by letting you run 2to3
   on the code as a part of the build process, by setting the keyword parameter
-  ``use_2to3`` to True. See XXX REPLACE WITH PYPI DOC XXXX
-  for more information.
+  ``use_2to3`` to True. See http://packages.python.org/distribute for more 
+  information.
 
 - Refactoring the code, and releasing it in several distributions.
   This work is being done in the 0.7.x series but not yet released.
@@ -45,8 +45,8 @@ More documentation
 ==================
 
 You can get more information in the Sphinx-based documentation, located
-at XXX REPLACE WITH PYPI DOC XXXX. This documentation includes the old Setuptools
-documentation that is slowly replaced, and brand new content.
+at http://packages.python.org/distribute. This documentation includes the old 
+Setuptools documentation that is slowly replaced, and brand new content.
 
 About the installation process
 ==============================
