@@ -143,6 +143,26 @@ Lastly:
 - remove the *.OLD.* directory located in your site-packages directory if any,
   **once you have checked everything was working correctly again**.
 
+-------------------------
+Quick help for developers
+-------------------------
+
+To use Distribute in your package, the recommended way is to ship
+`distribute_setup.py` alongside your `setup.py` script and call 
+it at the very begining of `setup.py` like this::
+
+    from distribute_setup import use_setuptools
+    use_setuptools()
+
+
+Another way is to add ``Distribute`` in the ``install_requires`` option::
+
+    from setuptools import setup
+
+    setup(...
+          install_requires=['distribute']
+    )
+
 -----------
 Install FAQ
 -----------

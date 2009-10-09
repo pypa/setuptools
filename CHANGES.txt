@@ -13,6 +13,8 @@ CHANGES
   PyPI's http://packages.python.org.
   This close http://bitbucket.org/tarek/distribute/issue/56.
 
+* Fixed a bootstrap bug on the use_setuptools() API.
+
 -----
 0.6.3
 -----
