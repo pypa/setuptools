@@ -240,13 +240,14 @@ def _remove_flat_installation(placeholder):
             break
     if not found:
         log.warn('Could not locate setuptools*.egg-info')
+        return
+
+    log.warn('Removing elements out of the way...')
+    pkg_info = os.path.join(placeholder, file)
+    if os.path.isdir(pkg_info):
+        patched = _patch_egg_dir(pkg_info)
     else:
-        log.warn('Removing elements out of the way...')
-        pkg_info = os.path.join(placeholder, file)
-        if os.path.isdir(pkg_info):
-            patched = _patch_egg_dir(pkg_info)
-        else:
-            patched = _patch_file(pkg_info, SETUPTOOLS_PKG_INFO)
+        patched = _patch_file(pkg_info, SETUPTOOLS_PKG_INFO)
 
     if not patched:
         log.warn('%s already patched.', pkg_info)
