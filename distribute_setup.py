@@ -130,29 +130,34 @@ def use_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
     was_imported = 'pkg_resources' in sys.modules or \
         'setuptools' in sys.modules
     try:
-        import pkg_resources
-        if not hasattr(pkg_resources, '_distribute'):
-            fake_setuptools()
-            raise ImportError
-    except ImportError:
-        return _do_download(version, download_base, to_dir, download_delay)
-    try:
-        pkg_resources.require("distribute>="+version)
-        return
-    except pkg_resources.VersionConflict, e:
-        if was_imported:
-            print >>sys.stderr, (
-            "The required version of distribute (>=%s) is not available, and\n"
-            "can't be installed while this script is running. Please install\n"
-            " a more recent version first, using 'easy_install -U distribute'."
-            "\n\n(Currently using %r)") % (version, e.args[0])
-            sys.exit(2)
-        else:
-            del pkg_resources, sys.modules['pkg_resources']    # reload ok
+        try:
+            import pkg_resources
+            if not hasattr(pkg_resources, '_distribute'):
+                fake_setuptools()
+                raise ImportError
+        except ImportError:
             return _do_download(version, download_base, to_dir, download_delay)
-    except pkg_resources.DistributionNotFound:
-        return _do_download(version, download_base, to_dir, download_delay)
-
+        try:
+            pkg_resources.require("distribute>="+version)
+            return
+        except pkg_resources.VersionConflict, e:
+            if was_imported:
+                print >>sys.stderr, (
+                "The required version of distribute (>=%s) is not available,\n"
+                "and can't be installed while this script is running. Please\n"
+                "install a more recent version first, using\n"
+                "'easy_install -U distribute'."
+                "\n\n(Currently using %r)") % (version, e.args[0])
+                sys.exit(2)
+            else:
+                del pkg_resources, sys.modules['pkg_resources']    # reload ok
+                return _do_download(version, download_base, to_dir,
+                                    download_delay)
+        except pkg_resources.DistributionNotFound:
+            return _do_download(version, download_base, to_dir,
+                                download_delay)
+    finally:
+        _create_fake_setuptools_pkg_info(to_dir)
 
 def download_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
                         to_dir=os.curdir, delay=15):
@@ -260,6 +265,9 @@ def _remove_flat_installation(placeholder):
 def _after_install(dist):
     log.warn('After install bootstrap.')
     placeholder = dist.get_command_obj('install').install_purelib
+    _create_fake_setuptools_pkg_info(placeholder)
+
+def _create_fake_setuptools_pkg_info(placeholder):
     if not placeholder or not os.path.exists(placeholder):
         log.warn('Could not find the install location')
         return

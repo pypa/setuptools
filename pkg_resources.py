@@ -2486,6 +2486,19 @@ class Requirement:
 
     #@staticmethod
     def parse(s):
+        # if asked for setuptools distribution
+        # and if distribute is installed, we want to give
+        # distribute instead
+        stripped_s = s.replace(' ', '')
+        stripped_s = stripped_s.strip()
+        if stripped_s in ('setuptools', 'setuptools==0.6c9',
+                          'setuptools>0.6c9', 'setuptools>=0.6c9'):
+            reqs = list(parse_requirements('distribute'))
+            if reqs:
+                if len(reqs)==1:
+                    # ok we can replace the requirement
+                    return reqs[0]
+
         reqs = list(parse_requirements(s))
         if reqs:
             if len(reqs)==1:
