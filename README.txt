@@ -199,6 +199,10 @@ Install FAQ
   at `http://nightly.ziade.org/bootstrap.py`. The code is located at
   `http://bitbucket.org/tarek/buildout-distribute`.
 
+  Beware that if you use a shared eggs folder with buildout, you need to 
+  switch all buildouts that use it to distribute. This is due to the fact
+  that the setuptools eggs located in the shared folder will be replaced
+  by a fake one, alongside distribute.
 
 -----------------------------
 Feedback and getting involved
