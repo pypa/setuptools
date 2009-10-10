@@ -194,7 +194,8 @@ Install FAQ
 
 - **How does Distribute interacts with zc.buildout?**
 
-  Starting at zc.buildout 1.4.2, you can use Distribute in your buildouts.
+  You can use Distribute in your zc.buildout.
+
   Although you have to run a specific `bootstrap.py` file that is available
   at `http://nightly.ziade.org/bootstrap.py`. The code is located at
   `http://bitbucket.org/tarek/buildout-distribute`.
