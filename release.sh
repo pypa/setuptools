@@ -1,6 +1,10 @@
 #!/bin/sh
 export VERSION="0.6.5"
 
+# tagging
+hg tag $VERSION
+hg ci -m "bumped revision"
+
 # creating the 3k script
 mkdir ./temp
 cp distribute_setup.py ./temp/distribute_setup.py
@@ -20,4 +24,6 @@ python2.6 setup.py build_sphinx upload_docs
 # pushing the bootstrap scripts
 scp distribute_setup.py ziade.org:nightly/build/
 scp distribute_setup_3k.py ziade.org:nightly/build/
+
+# starting the new dev
 
