@@ -1590,12 +1590,53 @@ def get_script_args(dist, executable=sys_executable, wininst=False):
                 yield (name+ext, hdr+script_text, 't', [name+x for x in old])
                 yield (
                     name+'.exe', resource_string('setuptools', launcher),
-                    'b' # write in binary mode
-                )
+                    'b') # write in binary mode
+                yield (name+'.exe.manifest', _launcher_manifest % (name,), 't')
             else:
                 # On other platforms, we assume the right thing to do is to
                 # just write the stub with no extension.
                 yield (name, header+script_text)
+
+_launcher_manifest = """
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+ <assemblyIdentity version="1.0.0.0"
+ processorArchitecture="X86"
+ name="%s.exe"
+ type="win32"/>
+
+ <!-- Identify the application security requirements. -->
+ <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
+ <security>
+ <requestedPrivileges>
+ <requestedExecutionLevel level="asInvoker" uiAccess="false"/>
+ </requestedPrivileges>
+ </security>
+ </trustInfo>
+</assembly>"""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def rmtree(path, ignore_errors=False, onerror=auto_chmod):
     """Recursively delete a directory tree.
