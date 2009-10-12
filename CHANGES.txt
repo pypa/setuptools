@@ -6,6 +6,8 @@ CHANGES
 0.6.5
 -----
 
+* Fixed a hole in sandboxing allowing builtin file to write outside of
+  the sandbox.
 
 -----
 0.6.4
