@@ -1,14 +1,46 @@
-import os, sys, __builtin__, tempfile, operator
+import os, sys, __builtin__, tempfile, operator, pkg_resources
 _os = sys.modules[os.name]
 _open = open
+_file = file
+
 from distutils.errors import DistutilsError
+from pkg_resources import working_set
+
 __all__ = [
     "AbstractSandbox", "DirectorySandbox", "SandboxViolation", "run_setup",
 ]
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def run_setup(setup_script, args):
     """Run a distutils setup script, sandboxed in its directory"""
-
     old_dir = os.getcwd()
     save_argv = sys.argv[:]
     save_path = sys.path[:]
@@ -16,13 +48,16 @@ def run_setup(setup_script, args):
     temp_dir = os.path.join(setup_dir,'temp')
     if not os.path.isdir(temp_dir): os.makedirs(temp_dir)
     save_tmp = tempfile.tempdir
-
+    save_modules = sys.modules.copy()
+    pr_state = pkg_resources.__getstate__()
     try:
-        tempfile.tempdir = temp_dir
-        os.chdir(setup_dir)
+        tempfile.tempdir = temp_dir; os.chdir(setup_dir)
         try:
             sys.argv[:] = [setup_script]+list(args)
             sys.path.insert(0, setup_dir)
+            # reset to include setup dir, w/clean callback list
+            working_set.__init__()  
+            working_set.callbacks.append(lambda dist:dist.activate())
             DirectorySandbox(setup_dir).run(
                 lambda: execfile(
                     "setup.py",
@@ -34,10 +69,16 @@ def run_setup(setup_script, args):
                 raise
             # Normal exit, just return
     finally:
+        pkg_resources.__setstate__(pr_state)
+        sys.modules.update(save_modules)
+        for key in list(sys.modules):
+            if key not in save_modules: del sys.modules[key]
         os.chdir(old_dir)
         sys.path[:] = save_path
         sys.argv[:] = save_argv
         tempfile.tempdir = save_tmp
+
+
 
 class AbstractSandbox:
     """Wrap 'os' module and 'open()' builtin for virtualizing setup scripts"""
@@ -58,14 +99,15 @@ class AbstractSandbox:
         """Run 'func' under os sandboxing"""
         try:
             self._copy(self)
-            __builtin__.open = __builtin__.file = self._open
+            __builtin__.file = self._file
+            __builtin__.open = self._open
             self._active = True
             return func()
         finally:
             self._active = False
-            __builtin__.open = __builtin__.file = _open
+            __builtin__.open = _file
+            __builtin__.file = _open
             self._copy(_os)
-
 
     def _mk_dual_path_wrapper(name):
         original = getattr(_os,name)
@@ -74,7 +116,6 @@ class AbstractSandbox:
                 src,dst = self._remap_pair(name,src,dst,*args,**kw)
             return original(src,dst,*args,**kw)
         return wrap
-
 
     for name in ["rename", "link", "symlink"]:
         if hasattr(_os,name): locals()[name] = _mk_dual_path_wrapper(name)
@@ -88,14 +129,14 @@ class AbstractSandbox:
             return original(path,*args,**kw)
         return wrap
 
-    _open = _mk_single_path_wrapper('file', _open)
+    _open = _mk_single_path_wrapper('open', _open)
+    _file = _mk_single_path_wrapper('file', _file)
     for name in [
         "stat", "listdir", "chdir", "open", "chmod", "chown", "mkdir",
         "remove", "unlink", "rmdir", "utime", "lchown", "chroot", "lstat",
         "startfile", "mkfifo", "mknod", "pathconf", "access"
     ]:
         if hasattr(_os,name): locals()[name] = _mk_single_path_wrapper(name)
-
 
     def _mk_single_with_return(name):
         original = getattr(_os,name)
@@ -187,21 +228,21 @@ class DirectorySandbox(AbstractSandbox):
             self._violation(operation, src, dst, *args, **kw)
         return (src,dst)
 
+    def _file(self, path, mode='r', *args, **kw):
+        if mode not in ('r', 'rt', 'rb', 'rU', 'U') and not self._ok(path):
+            self._violation("file", path, mode, *args, **kw)
+        return _file(path,mode,*args,**kw)
+
     def open(self, file, flags, mode=0777):
         """Called for low-level os.open()"""
         if flags & WRITE_FLAGS and not self._ok(file):
             self._violation("os.open", file, flags, mode)
         return _os.open(file,flags,mode)
 
-
 WRITE_FLAGS = reduce(
-    operator.or_,
-    [getattr(_os, a, 0) for a in
+    operator.or_, [getattr(_os, a, 0) for a in
         "O_WRONLY O_RDWR O_APPEND O_CREAT O_TRUNC O_TEMPORARY".split()]
 )
-
-
-
 
 class SandboxViolation(DistutilsError):
     """A setup script attempted to modify the filesystem outside the sandbox"""

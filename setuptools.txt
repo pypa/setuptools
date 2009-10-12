@@ -2569,6 +2569,27 @@ A few important points for writing revision control file finders:
   inform the user of the missing program(s).
 
 
+A Note Regarding Dependencies
+-----------------------------
+
+If the project *containing* your distutils/setuptools extension(s) depends on
+any projects other than setuptools, you *must* also declare those dependencies
+as part of your project's  ``setup_requires`` keyword, so that they will
+already be built (and at least temprorarily installed) before your extension
+project is built.
+
+So, if for example you create a project Foo that includes a new file finder
+plugin, and Foo depends on Bar, then you *must* list Bar in both the
+``install_requires`` **and** ``setup_requires`` arguments to ``setup()``.
+
+If you don't do this, then in certain edge cases you may cause setuptools to
+try to go into infinite recursion, trying to build your dependencies to resolve
+your dependencies, while still building your dependencies.  (It probably won't
+happen on your development machine, but it *will* happen in a full build
+pulling everything from revision control on a clean machine, and then you or
+your users will be scratching their heads trying to figure it out!)
+
+
 Subclassing ``Command``
 -----------------------
 
@@ -2611,7 +2632,15 @@ XXX
 Release Notes/Change History
 ----------------------------
 
-0.6final
+0.6c10
+ * Fix for the Python 2.6.3 build_ext API change
+
+ * Ensure C libraries (as opposed to extensions) are also built when doing
+   bdist_egg
+
+ * Support for SVN 1.6
+
+0.6c9
  * Fixed a missing files problem when using Windows source distributions on
    non-Windows platforms, due to distutils not handling manifest file line
    endings correctly.

@@ -8,7 +8,7 @@ from setuptools.command.install_lib import install_lib
 from distutils.errors import DistutilsOptionError, DistutilsPlatformError
 from distutils.errors import DistutilsSetupError
 import setuptools, pkg_resources, distutils.core, distutils.dist, distutils.cmd
-import os, distutils.log
+import os, distutils.log, re
 
 def _get_unpatched(cls):
     """Protect against re-patching the distutils if reloaded
@@ -61,8 +61,8 @@ def check_nsp(dist, attr, value):
             parent = '.'.join(nsp.split('.')[:-1])
             if parent not in value:
                 distutils.log.warn(
-                    "%r is declared as a package namespace, but %r is not:"
-                    " please correct this in setup.py", nsp, parent
+                    "WARNING: %r is declared as a package namespace, but %r"
+                    " is not: please correct this in setup.py", nsp, parent
                 )
 
 def check_extras(dist, attr, value):
@@ -120,6 +120,47 @@ def check_package_data(dist, attr, value):
         attr+" must be a dictionary mapping package names to lists of "
         "wildcard patterns"
     )
+
+def check_packages(dist, attr, value):
+    for pkgname in value:
+        if not re.match(r'\w+(\.\w+)*', pkgname):
+            distutils.log.warn(
+                "WARNING: %r not a valid package name; please use only"
+                ".-separated package names in setup.py", pkgname
+            )
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 class Distribution(_Distribution):
     """Distribution with support for features, tests, and package data
@@ -415,19 +456,19 @@ class Distribution(_Distribution):
         if self.packages:
             self.packages = [
                 p for p in self.packages
-                    if p<>package and not p.startswith(pfx)
+                    if p!=package and not p.startswith(pfx)
             ]
 
         if self.py_modules:
             self.py_modules = [
                 p for p in self.py_modules
-                    if p<>package and not p.startswith(pfx)
+                    if p!=package and not p.startswith(pfx)
             ]
 
         if self.ext_modules:
             self.ext_modules = [
                 p for p in self.ext_modules
-                    if p.name<>package and not p.name.startswith(pfx)
+                    if p.name!=package and not p.name.startswith(pfx)
             ]
 
 

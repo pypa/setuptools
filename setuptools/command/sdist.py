@@ -1,6 +1,7 @@
 from distutils.command.sdist import sdist as _sdist
 from distutils.util import convert_path
 from distutils import log
+from glob import glob
 import os, re, sys, pkg_resources
 
 entities = [
@@ -29,7 +30,6 @@ def joinpath(prefix,suffix):
     if not prefix:
         return suffix
     return os.path.join(prefix,suffix)
-
 
 
 
@@ -86,17 +86,21 @@ def entries_finder(dirname, filename):
     f = open(filename,'rU')
     data = f.read()
     f.close()
-    if data.startswith('9') or data.startswith('8'):    # subversion 1.5/1.4
+    if data.startswith('<?xml'):
+        for match in entries_pattern.finditer(data):
+            yield joinpath(dirname,unescape(match.group(1)))
+    else:
+        svnver=-1
+        try: svnver = int(data.splitlines()[0])
+        except: pass
+        if svnver<8:
+            log.warn("unrecognized .svn/entries format in %s", dirname)
+            return           
         for record in map(str.splitlines, data.split('\n\x0c\n')[1:]):
             if not record or len(record)>=6 and record[5]=="delete":
                 continue    # skip deleted
             yield joinpath(dirname, record[0])
-    elif data.startswith('<?xml'):
-        for match in entries_pattern.finditer(data):
-            yield joinpath(dirname,unescape(match.group(1)))
-    else:
-        log.warn("unrecognized .svn/entries format in %s", dirname)
-
+        
 
 finders = [
     (convert_path('CVS/Entries'),
@@ -105,10 +109,6 @@ finders = [
     (convert_path('.svn/dir-props'), externals_finder),
     (convert_path('.svn/dir-prop-base'), externals_finder),  # svn 1.4
 ]
-
-
-
-
 
 
 
@@ -162,6 +162,56 @@ class sdist(_sdist):
             sys.exc_info()[2].tb_next.tb_frame.f_locals['template'].close()
             raise
 
+    # Cribbed from old distutils code, to work around new distutils code
+    # that tries to do some of the same stuff as we do, in a way that makes
+    # us loop.
+    
+    def add_defaults (self):
+        standards = [('README', 'README.txt'), self.distribution.script_name]
+
+        for fn in standards:
+            if type(fn) is tuple:
+                alts = fn
+                got_it = 0
+                for fn in alts:
+                    if os.path.exists(fn):
+                        got_it = 1
+                        self.filelist.append(fn)
+                        break
+
+                if not got_it:
+                    self.warn("standard file not found: should have one of " +
+                              string.join(alts, ', '))
+            else:
+                if os.path.exists(fn):
+                    self.filelist.append(fn)
+                else:
+                    self.warn("standard file '%s' not found" % fn)
+
+        optional = ['test/test*.py', 'setup.cfg']
+        
+        for pattern in optional:
+            files = filter(os.path.isfile, glob(pattern))
+            if files:
+                self.filelist.extend(files)
+
+        if self.distribution.has_pure_modules():
+            build_py = self.get_finalized_command('build_py')
+            self.filelist.extend(build_py.get_source_files())
+
+        if self.distribution.has_ext_modules():
+            build_ext = self.get_finalized_command('build_ext')
+            self.filelist.extend(build_ext.get_source_files())
+
+        if self.distribution.has_c_libraries():
+            build_clib = self.get_finalized_command('build_clib')
+            self.filelist.extend(build_clib.get_source_files())
+
+        if self.distribution.has_scripts():
+            build_scripts = self.get_finalized_command('build_scripts')
+            self.filelist.extend(build_scripts.get_source_files())
+
+
     def check_readme(self):
         alts = ("README", "README.txt")
         for f in alts:
@@ -185,15 +235,6 @@ class sdist(_sdist):
             self.copy_file('setup.cfg', dest)
 
         self.get_finalized_command('egg_info').save_version_info(dest)
-
-
-
-
-
-
-
-
-
 
 
 

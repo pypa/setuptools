@@ -49,6 +49,7 @@ test_suite = setuptools.dist:check_test_suite
 eager_resources = setuptools.dist:assert_string_list
 zip_safe = setuptools.dist:assert_bool
 test_loader = setuptools.dist:check_importable
+packages = setuptools.dist:check_packages
 tests_require = setuptools.dist:check_requirements
 
 [setuptools.installation]

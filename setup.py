@@ -7,7 +7,7 @@ d = {}
 execfile(convert_path('setuptools/command/__init__.py'), d)
 
 SETUP_COMMANDS = d['__all__']
-VERSION = "0.6c9"
+VERSION = "0.6c10"
 
 from setuptools import setup, find_packages
 import sys
@@ -53,8 +53,8 @@ setup(
             "include_package_data = setuptools.dist:assert_bool",
             "dependency_links     = setuptools.dist:assert_string_list",
             "test_loader          = setuptools.dist:check_importable",
+            "packages             = setuptools.dist:check_packages",
         ],
-
         "egg_info.writers": [
             "PKG-INFO = setuptools.command.egg_info:write_pkg_info",
             "requires.txt = setuptools.command.egg_info:write_requirements",

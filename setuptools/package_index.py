@@ -1,5 +1,6 @@
 """PyPI and direct package downloading"""
 import sys, os.path, re, urlparse, urllib2, shutil, random, socket, cStringIO
+import httplib
 from pkg_resources import *
 from distutils import log
 from distutils.errors import DistutilsError
@@ -8,7 +9,6 @@ try:
 except ImportError:
     from md5 import md5
 from fnmatch import translate
-
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.]+)$')
 HREF = re.compile("""href\\s*=\\s*['"]?([^'"> ]+)""", re.I)
 # this is here to fix emacs' cruddy broken syntax highlighting
@@ -42,6 +42,8 @@ def parse_bdist_wininst(name):
 def egg_info_for_url(url):
     scheme, server, path, parameters, query, fragment = urlparse.urlparse(url)
     base = urllib2.unquote(path.split('/')[-1])
+    if server=='sourceforge.net' and base=='download':    # XXX Yuck
+        base = urllib2.unquote(path.split('/')[-2])
     if '#' in base: base, fragment = base.split('#',1)
     return base,fragment
 
@@ -64,14 +66,12 @@ def distros_for_location(location, basename, metadata=None):
     if basename.endswith('.egg') and '-' in basename:
         # only one, unambiguous interpretation
         return [Distribution.from_location(location, basename, metadata)]
-
     if basename.endswith('.exe'):
         win_base, py_ver = parse_bdist_wininst(basename)
         if win_base is not None:
             return interpret_distro_name(
                 location, win_base, metadata, py_ver, BINARY_DIST, "win32"
             )
-
     # Try source distro extensions (.zip, .tgz, etc.)
     #
     for ext in EXTENSIONS:
@@ -186,10 +186,10 @@ class PackageIndex(Environment):
             return
 
         self.info("Reading %s", url)
+        self.fetched_urls[url] = True   # prevent multiple fetch attempts
         f = self.open_url(url, "Download error: %s -- Some packages may not be found!")
         if f is None: return
-        self.fetched_urls[url] = self.fetched_urls[f.url] = True
-
+        self.fetched_urls[f.url] = True
         if 'html' not in f.headers.get('content-type', '').lower():
             f.close()   # not html, we can't process it
             return
@@ -329,7 +329,7 @@ class PackageIndex(Environment):
     def check_md5(self, cs, info, filename, tfp):
         if re.match('md5=[0-9a-f]{32}$', info):
             self.debug("Validating md5 checksum for %s", filename)
-            if cs.hexdigest()<>info[4:]:
+            if cs.hexdigest()!=info[4:]:
                 tfp.close()
                 os.unlink(filename)
                 raise DistutilsError(
@@ -409,7 +409,8 @@ class PackageIndex(Environment):
 
 
     def fetch_distribution(self,
-        requirement, tmpdir, force_scan=False, source=False, develop_ok=False
+        requirement, tmpdir, force_scan=False, source=False, develop_ok=False,
+        local_index=None, 
     ):
         """Obtain a distribution suitable for fulfilling `requirement`
 
@@ -427,15 +428,15 @@ class PackageIndex(Environment):
         set, development and system eggs (i.e., those using the ``.egg-info``
         format) will be ignored.
         """
-
         # process a Requirement
         self.info("Searching for %s", requirement)
         skipped = {}
+        dist = None
 
-        def find(req):
+        def find(env, req):
             # Find a matching distribution; may be called more than once
 
-            for dist in self[req.key]:
+            for dist in env[req.key]:
 
                 if dist.precedence==DEVELOP_DIST and not develop_ok:
                     if dist not in skipped:
@@ -444,23 +445,25 @@ class PackageIndex(Environment):
                     continue
 
                 if dist in req and (dist.precedence<=SOURCE_DIST or not source):
-                    self.info("Best match: %s", dist)
-                    return dist.clone(
-                        location=self.download(dist.location, tmpdir)
-                    )
+                    return dist
+
+
 
         if force_scan:
             self.prescan()
             self.find_packages(requirement)
+            dist = find(self, requirement)
+            
+        if local_index is not None:
+            dist = dist or find(local_index, requirement)
 
-        dist = find(requirement)
         if dist is None and self.to_scan is not None:
             self.prescan()
-            dist = find(requirement)
+            dist = find(self, requirement)
 
         if dist is None and not force_scan:
             self.find_packages(requirement)
-            dist = find(requirement)
+            dist = find(self, requirement)
 
         if dist is None:
             self.warn(
@@ -468,7 +471,9 @@ class PackageIndex(Environment):
                 (source and "a source distribution of " or ""),
                 requirement,
             )
-        return dist
+        self.info("Best match: %s", dist)
+        return dist.clone(location=self.download(dist.location, tmpdir))
+
 
     def fetch(self, requirement, tmpdir, force_scan=False, source=False):
         """Obtain a file suitable for fulfilling `requirement`
@@ -482,11 +487,6 @@ class PackageIndex(Environment):
         if dist is not None:
             return dist.location
         return None
-
-
-
-
-
 
 
 
@@ -573,17 +573,19 @@ class PackageIndex(Environment):
 
 
     def open_url(self, url, warning=None):
-        if url.startswith('file:'):
-            return local_open(url)
+        if url.startswith('file:'): return local_open(url)
         try:
             return open_with_auth(url)
         except urllib2.HTTPError, v:
             return v
         except urllib2.URLError, v:
-            if warning: self.warn(warning, v.reason)
-            else:
-                raise DistutilsError("Download error for %s: %s"
-                                     % (url, v.reason))
+            reason = v.reason
+        except httplib.HTTPException, v: 
+            reason = "%s: %s" % (v.__doc__ or v.__class__.__name__, v)
+        if warning:
+            self.warn(warning, reason)
+        else:
+            raise DistutilsError("Download error for %s: %s" % (url, reason))
 
     def _download_url(self, scheme, url, tmpdir):
         # Determine download filename
@@ -610,8 +612,6 @@ class PackageIndex(Environment):
         else:
             self.url_ok(url, True)   # raises error if not allowed
             return self._attempt_download(url, filename)
-
-
 
     def scan_url(self, url):
         self.process_url(url, True)

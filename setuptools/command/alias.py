@@ -9,7 +9,7 @@ def shquote(arg):
     """Quote an argument for later parsing by shlex.split()"""
     for c in '"', "'", "\\", "#":
         if c in arg: return repr(arg)
-    if arg.split()<>[arg]:
+    if arg.split()!=[arg]:
         return repr(arg)
     return arg        
 
@@ -33,7 +33,7 @@ class alias(option_base):
 
     def finalize_options(self):
         option_base.finalize_options(self)
-        if self.remove and len(self.args)<>1:
+        if self.remove and len(self.args)!=1:
             raise DistutilsOptionError(
                 "Must specify exactly one argument (the alias name) when "
                 "using --remove"

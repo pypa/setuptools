@@ -269,7 +269,7 @@ instance:
     the global ``working_set`` to reflect the change.  This method is also
     called by the ``WorkingSet()`` constructor during initialization.
 
-    This method uses ``find_distributions(entry,False)`` to find distributions
+    This method uses ``find_distributions(entry, True)`` to find distributions
     corresponding to the path entry, and then ``add()`` them.  `entry` is
     always appended to the ``entries`` attribute, even if it is already
     present, however. (This is because ``sys.path`` can contain the same value
@@ -1661,14 +1661,10 @@ PEP 302 Utilities
     for obtaining an "importer" object.  It first checks for an importer for
     the path item in ``sys.path_importer_cache``, and if not found it calls
     each of the ``sys.path_hooks`` and caches the result if a good importer is
-    found.  If no importer is found, this routine returns an ``ImpWrapper``
-    instance that wraps the builtin import machinery as a PEP 302-compliant
-    "importer" object.  This ``ImpWrapper`` is *not* cached; instead a new
-    instance is returned each time.
-
-    (Note: When run under Python 2.5, this function is simply an alias for
-    ``pkgutil.get_importer()``, and instead of ``pkg_resources.ImpWrapper``
-    instances, it may return ``pkgutil.ImpImporter`` instances.)
+    found.  If no importer is found, this routine returns a wrapper object
+    that wraps the builtin import machinery as a PEP 302-compliant "importer"
+    object.  This wrapper object is *not* cached; instead a new instance is
+    returned each time.
 
 
 File/Path Utilities
@@ -1692,7 +1688,11 @@ File/Path Utilities
 Release Notes/Change History
 ----------------------------
 
-0.6final
+0.6c10
+ * Prevent lots of spurious "already imported from another path" warnings (e.g.
+   when pkg_resources is imported late).
+
+0.6c9
  * Fix ``resource_listdir('')`` always returning an empty list for zipped eggs.
  
 0.6c7

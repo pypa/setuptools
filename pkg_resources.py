@@ -13,7 +13,7 @@ The package resource API is designed to work with normal filesystem packages,
 method.
 """
 
-import sys, os, zipimport, time, re, imp, new
+import sys, os, zipimport, time, re, imp
 
 try:
     frozenset
@@ -33,6 +33,47 @@ from os import open as os_open
 
 
 
+
+
+
+
+
+
+_state_vars = {}
+
+def _declare_state(vartype, **kw):
+    g = globals()
+    for name, val in kw.iteritems():
+        g[name] = val
+        _state_vars[name] = vartype
+
+def __getstate__():
+    state = {}
+    g = globals()
+    for k, v in _state_vars.iteritems():
+        state[k] = g['_sget_'+v](g[k])
+    return state
+
+def __setstate__(state):
+    g = globals()
+    for k, v in state.iteritems():
+        g['_sset_'+_state_vars[k]](k, g[k], v)
+    return state
+
+def _sget_dict(val):
+    return val.copy()
+
+def _sset_dict(key, ob, state):
+    ob.clear()
+    ob.update(state)
+
+def _sget_object(val):
+    return val.__getstate__()
+
+def _sset_object(key, ob, state):
+    ob.__setstate__(state)
+
+_sget_none = _sset_none = lambda *args: None
 
 
 
@@ -164,14 +205,8 @@ def get_provider(moduleOrReq):
 
 def _macosx_vers(_cache=[]):
     if not _cache:
-        info = os.popen('/usr/bin/sw_vers').read().splitlines()
-        for line in info:
-            key, value = line.split(None, 1)
-            if key == 'ProductVersion:':
-                _cache.append(value.strip().split("."))
-                break
-        else:
-            raise ValueError, "What?!"
+        from platform import mac_ver
+        _cache.append(mac_ver()[0].split('.'))
     return _cache[0]
 
 def _macosx_arch(machine):
@@ -200,6 +235,12 @@ def get_build_platform():
 macosVersionString = re.compile(r"macosx-(\d+)\.(\d+)-(.*)")
 darwinVersionString = re.compile(r"darwin-(\d+)\.(\d+)\.(\d+)-(.*)")
 get_platform = get_build_platform   # XXX backward compat
+
+
+
+
+
+
 
 
 
@@ -387,7 +428,7 @@ class WorkingSet(object):
     def add_entry(self, entry):
         """Add a path item to ``.entries``, finding any distributions on it
 
-        ``find_distributions(entry,False)`` is used to find distributions
+        ``find_distributions(entry, True)`` is used to find distributions
         corresponding to the path entry, and they are added.  `entry` is
         always appended to ``.entries``, even if it is already present.
         (This is because ``sys.path`` can contain the same value more than
@@ -622,14 +663,12 @@ class WorkingSet(object):
         activated to fulfill the requirements; all relevant distributions are
         included, even if they were already activated in this working set.
         """
-
         needed = self.resolve(parse_requirements(requirements))
 
         for dist in needed:
             self.add(dist)
 
         return needed
-
 
     def subscribe(self, callback):
         """Invoke `callback` for all distributions (including existing ones)"""
@@ -639,19 +678,21 @@ class WorkingSet(object):
         for dist in self:
             callback(dist)
 
-
     def _added_new(self, dist):
         for callback in self.callbacks:
             callback(dist)
 
+    def __getstate__(self):
+        return (
+            self.entries[:], self.entry_keys.copy(), self.by_key.copy(),
+            self.callbacks[:]
+        )
 
-
-
-
-
-
-
-
+    def __setstate__(self, (entries, keys, by_key, callbacks)):
+        self.entries = entries[:]
+        self.entry_keys = keys.copy()
+        self.by_key = by_key.copy()
+        self.callbacks = callbacks[:]
 
 
 class Environment(object):
@@ -1597,7 +1638,7 @@ else:
 
 
 
-_distribution_finders = {}
+_declare_state('dict', _distribution_finders = {})
 
 def register_finder(importer_type, distribution_finder):
     """Register `distribution_finder` to find distributions in sys.path items
@@ -1646,7 +1687,7 @@ def find_on_path(importer, path_item, only=False):
     """Yield distributions accessible on a sys.path directory"""
     path_item = _normalize_cached(path_item)
 
-    if os.path.isdir(path_item):
+    if os.path.isdir(path_item) and os.access(path_item, os.R_OK):
         if path_item.lower().endswith('.egg'):
             # unpacked egg
             yield Distribution.from_filename(
@@ -1679,8 +1720,8 @@ def find_on_path(importer, path_item, only=False):
                         break
 register_finder(ImpWrapper,find_on_path)
 
-_namespace_handlers = {}
-_namespace_packages = {}
+_declare_state('dict', _namespace_handlers = {})
+_declare_state('dict', _namespace_packages = {})
 
 def register_namespace_handler(importer_type, namespace_handler):
     """Register `namespace_handler` to declare namespace packages
@@ -1709,7 +1750,7 @@ def _handle_ns(packageName, path_item):
         return None
     module = sys.modules.get(packageName)
     if module is None:
-        module = sys.modules[packageName] = new.module(packageName)
+        module = sys.modules[packageName] = imp.new_module(packageName)
         module.__path__ = []; _set_parent_ns(packageName)
     elif not hasattr(module,'__path__'):
         raise TypeError("Not a package:", packageName)
@@ -2220,12 +2261,9 @@ class Distribution(object):
         if not loc:
             return
 
-        if path is sys.path:
-            self.check_version_conflict()
-
         nloc = _normalize_cached(loc)
         bdir = os.path.dirname(nloc)
-        npath= map(_normalize_cached, path)
+        npath= [(p and _normalize_cached(p) or p) for p in path]
 
         bp = None
         for p, item in enumerate(npath):
@@ -2233,10 +2271,14 @@ class Distribution(object):
                 break
             elif item==bdir and self.precedence==EGG_DIST:
                 # if it's an .egg, give it precedence over its directory
+                if path is sys.path:
+                    self.check_version_conflict()
                 path.insert(p, loc)
                 npath.insert(p, nloc)
                 break
         else:
+            if path is sys.path:
+                self.check_version_conflict()
             path.append(loc)
             return
 
@@ -2253,7 +2295,6 @@ class Distribution(object):
         return
 
 
-
     def check_version_conflict(self):
         if self.key=='setuptools':
             return      # ignore the inevitable setuptools self-conflicts  :(
@@ -2267,7 +2308,7 @@ class Distribution(object):
                 continue
 
             fn = getattr(sys.modules[modname], '__file__', None)
-            if fn and normalize_path(fn).startswith(loc):
+            if fn and (normalize_path(fn).startswith(loc) or fn.startswith(loc)):
                 continue
             issue_warning(
                 "Module %s was already imported from %s, but %s is being added"
@@ -2444,7 +2485,7 @@ class Requirement:
 
     def __contains__(self,item):
         if isinstance(item,Distribution):
-            if item.key <> self.key: return False
+            if item.key != self.key: return False
             if self.index: item = item.parsed_version  # only get if we need it
         elif isinstance(item,basestring):
             item = parse_version(item)
@@ -2541,7 +2582,7 @@ def _mkstemp(*args,**kw):
         os.open = old_open  # and then put it back
 
 
-# Set up global resource manager
+# Set up global resource manager (deliberately not state-saved)
 _manager = ResourceManager()
 def _initialize(g):
     for name in dir(_manager):
@@ -2550,7 +2591,7 @@ def _initialize(g):
 _initialize(globals())
 
 # Prepare the master working set and make the ``require()`` API available
-working_set = WorkingSet()
+_declare_state('object', working_set = WorkingSet())
 try:
     # Does the main program list any requirements?
     from __main__ import __requires__
