@@ -20,18 +20,18 @@ try:
 except NameError:
     from sets import ImmutableSet as frozenset
 
-from os import utime, rename, unlink    # capture these to bypass sandboxing
+# capture these to bypass sandboxing
+from os import utime, rename, unlink, mkdir
 from os import open as os_open
+from os.path import isdir, split
 
 
-
-
-
-
-
-
-
-
+def _bypass_ensure_directory(name, mode=0777):
+    # Sandbox-bypassing version of ensure_directory()
+    dirname, filename = split(name)
+    if dirname and filename and not isdir(dirname):
+        _bypass_ensure_directory(dirname)
+        mkdir(dirname, mode)
 
 
 
@@ -957,7 +957,7 @@ variable to point to an accessible directory.
         extract_path = self.extraction_path or get_default_cache()
         target_path = os.path.join(extract_path, archive_name+'-tmp', *names)
         try:
-            ensure_directory(target_path)
+            _bypass_ensure_directory(target_path)
         except:
             self.extraction_error()
 
