@@ -1218,6 +1218,10 @@ Release Notes/Change History
 ============================
 
 0.6c10
+ * Fix easy_install.exe giving UAC errors on Windows Vista
+
+ * Fix installed script .exe files not working with 64-bit Python on Windows
+ 
  * Support for the most recent Sourceforge download link insanity
 
  * Stop crashing on certain types of HTTP error
