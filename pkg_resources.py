@@ -504,10 +504,7 @@ class WorkingSet(object):
 
         while requirements:
             req = requirements.pop(0)   # process dependencies breadth-first
-            project_name = req.project_name.strip()
-            project_name = project_name.replace(' ', '')
-            if project_name in ('setuptools', 'setuptools>=0.6c9',
-                                'setuptools==0.6c9'):
+            if req.project_name == 'setuptools':
                 req = Requirement.parse('distribute')
 
             if req in processed:
@@ -2492,23 +2489,18 @@ class Requirement:
 
     #@staticmethod
     def parse(s):
-        # if asked for setuptools distribution
-        # and if distribute is installed, we want to give
-        # distribute instead
-        stripped_s = s.replace(' ', '')
-        stripped_s = stripped_s.strip()
-        if stripped_s in ('setuptools', 'setuptools==0.6c9',
-                          'setuptools>0.6c9', 'setuptools>=0.6c9'):
-            reqs = list(parse_requirements('distribute'))
-            if reqs:
-                if len(reqs)==1:
-                    # ok we can replace the requirement
-                    return reqs[0]
-
         reqs = list(parse_requirements(s))
         if reqs:
-            if len(reqs)==1:
-                return reqs[0]
+            if len(reqs) == 1:
+                founded_req = reqs[0]
+                # if asked for setuptools distribution
+                # and if distribute is installed, we want to give
+                # distribute instead
+                if founded_req.project_name == 'setuptools':
+                    try:
+                        return self.parse('distribute')
+                    except ValueError:
+                        return founded_req
             raise ValueError("Expected only one requirement", s)
         raise ValueError("No requirements found", s)
 
