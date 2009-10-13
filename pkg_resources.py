@@ -504,6 +504,12 @@ class WorkingSet(object):
 
         while requirements:
             req = requirements.pop(0)   # process dependencies breadth-first
+            project_name = req.project_name.strip()
+            project_name = project_name.replace(' ', '')
+            if project_name in ('setuptools', 'setuptools>=0.6c9',
+                                'setuptools==0.6c9'):
+                req = Requirement.parse('distribute')
+
             if req in processed:
                 # Ignore cyclic or redundant dependencies
                 continue
