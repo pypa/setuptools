@@ -143,7 +143,7 @@ class DistroTests(TestCase):
         self.assertRaises(VersionConflict, ws.resolve,
             parse_requirements("Foo==0.9"), ad)
         ws = WorkingSet([]) # reset
-        
+
         # Request an extra that causes an unresolved dependency for "Baz"
         self.assertRaises(
             DistributionNotFound, ws.resolve,parse_requirements("Foo[bar]"), ad
@@ -161,7 +161,7 @@ class DistroTests(TestCase):
         self.assertRaises( VersionConflict,
             ws.resolve, parse_requirements("Foo==1.2\nFoo!=1.2"), ad
         )
-        
+
     def testDistroDependsOptions(self):
         d = self.distRequires("""
             Twisted>=1.5
@@ -341,18 +341,18 @@ class RequirementsTests(TestCase):
         )
 
     def testVersionEquality(self):
-        r1 = Requirement.parse("setuptools==0.3a2")
-        r2 = Requirement.parse("setuptools!=0.3a4")
+        r1 = Requirement.parse("foo==0.3a2")
+        r2 = Requirement.parse("foo!=0.3a4")
         d = Distribution.from_filename
 
-        self.failIf(d("setuptools-0.3a4.egg") in r1)
-        self.failIf(d("setuptools-0.3a1.egg") in r1)
-        self.failIf(d("setuptools-0.3a4.egg") in r2)
+        self.failIf(d("foo-0.3a4.egg") in r1)
+        self.failIf(d("foo-0.3a1.egg") in r1)
+        self.failIf(d("foo-0.3a4.egg") in r2)
 
-        self.failUnless(d("setuptools-0.3a2.egg") in r1)
-        self.failUnless(d("setuptools-0.3a2.egg") in r2)
-        self.failUnless(d("setuptools-0.3a3.egg") in r2)
-        self.failUnless(d("setuptools-0.3a5.egg") in r2)
+        self.failUnless(d("foo-0.3a2.egg") in r1)
+        self.failUnless(d("foo-0.3a2.egg") in r2)
+        self.failUnless(d("foo-0.3a3.egg") in r2)
+        self.failUnless(d("foo-0.3a5.egg") in r2)
 
 
 

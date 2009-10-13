@@ -2497,11 +2497,12 @@ class Requirement:
                 # and if distribute is installed, we want to give
                 # distribute instead
                 if founded_req.project_name == 'setuptools':
-                    try:
-                        return self.parse('distribute')
-                    except ValueError:
-                        return founded_req
-                return founded_req
+                    distribute = list(parse_requirements('distribute'))
+                    if len(distribute) == 1:
+                        return distribute[0]
+                    return founded_req
+                else:
+                    return founded_req
 
             raise ValueError("Expected only one requirement", s)
         raise ValueError("No requirements found", s)
