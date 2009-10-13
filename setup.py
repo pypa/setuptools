@@ -39,6 +39,7 @@ SETUP_COMMANDS = d['__all__']
 VERSION = "0.6.5"
 
 from setuptools import setup, find_packages
+import os
 import sys
 scripts = []
 
@@ -48,7 +49,15 @@ def _easy_install_marker():
     return (len(sys.argv) == 5 and sys.argv[2] == 'bdist_egg' and
             sys.argv[3] == '--dist-dir' and 'egg-dist-tmp-' in sys.argv[-1])
 
+def _buildout_marker():
+    command = os.environ.get('_')
+    if command:
+        return 'buildout' in os.path.basename(command)
+
 def _being_installed():
+    if _buildout_marker():
+        # Installed by buildout, don't mess with a global setuptools.
+        return False
     # easy_install marker
     return 'install' in sys.argv[1:] or _easy_install_marker()
 

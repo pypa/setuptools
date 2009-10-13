@@ -22,7 +22,7 @@ The fork has two goals:
   and make all distributions that depend on Setuptools work as
   before, but with less bugs and behaviorial issues.
 
-  This work is done in the 0.6.x series
+  This work is done in the 0.6.x series.
 
   Starting with version 0.6.2, Distribute supports Python 3.
   Installing and using distribute for Python 3 code works exactly
@@ -77,17 +77,19 @@ provided online.
 distribute_setup.py
 ===================
 
-Download ``distribute_setup.py`` and execute it, using the Python interpreter of
-your choice.
+Download
+`distribute_setup.py <http://python-distribute.org/distribute_setup.py>`_
+and execute it, using the Python interpreter of your choice.
 
 If your shell has the ``curl`` program you can do::
 
-    $ curl -O http://nightly.ziade.org/distribute_setup.py
+    $ curl -O http://python-distribute.org/distribute_setup.py
     $ python distribute_setup.py
 
-If you are under Python 3, use ``distribute_setup_3k.py``::
+If you are under Python 3, use
+`distribute_setup_3k.py <http://python-distribute.org/distribute_setup_3k.py>`_::
 
-    $ curl -O http://nightly.ziade.org/distribute_setup_3k.py
+    $ curl -O http://python-distribute.org/distribute_setup_3k.py
     $ python distribute_setup_3k.py
 
 Notice that both files are provided in the source release.
@@ -197,7 +199,7 @@ Install FAQ
   You can use Distribute in your zc.buildout.
 
   Although you have to run a specific `bootstrap.py` file that is available
-  at `http://nightly.ziade.org/bootstrap.py`. The code is located at
+  at `http://python-distribute.org/bootstrap.py`. The code is located at
   `http://bitbucket.org/tarek/buildout-distribute`.
 
   Beware that if you use a shared eggs folder with buildout, you need to 

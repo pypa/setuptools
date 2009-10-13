@@ -6,6 +6,11 @@ CHANGES
 0.6.5
 -----
 
+* When run from within buildout, no attempt is made to modify an existing
+  setuptools egg, whether in a shared egg directory or a system setuptools.
+
+* Fixed a hole in sandboxing allowing builtin file to write outside of
+  the sandbox.
 
 -----
 0.6.4

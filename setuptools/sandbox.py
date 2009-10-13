@@ -168,6 +168,12 @@ class DirectorySandbox(AbstractSandbox):
     def _violation(self, operation, *args, **kw):
         raise SandboxViolation(operation, args, kw)
 
+    if _file:
+        def _file(self, path, mode='r', *args, **kw):
+            if mode not in ('r', 'rt', 'rb', 'rU', 'U') and not self._ok(path):
+                self._violation("file", path, mode, *args, **kw)
+            return _file(path,mode,*args,**kw)
+
     def _open(self, path, mode='r', *args, **kw):
         if mode not in ('r', 'rt', 'rb', 'rU', 'U') and not self._ok(path):
             self._violation("open", path, mode, *args, **kw)
