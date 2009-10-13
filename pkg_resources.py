@@ -2501,6 +2501,8 @@ class Requirement:
                         return self.parse('distribute')
                     except ValueError:
                         return founded_req
+                return founded_req
+
             raise ValueError("Expected only one requirement", s)
         raise ValueError("No requirements found", s)
 
