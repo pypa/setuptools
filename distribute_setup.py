@@ -124,7 +124,7 @@ def _do_download(version, download_base, to_dir, download_delay):
 
 
 def use_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
-                   to_dir=os.curdir, download_delay=15):
+                   to_dir=os.curdir, download_delay=15, no_fake=False):
     # making sure we use the absolute path
     to_dir = os.path.abspath(to_dir)
     was_imported = 'pkg_resources' in sys.modules or \
@@ -133,7 +133,8 @@ def use_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
         try:
             import pkg_resources
             if not hasattr(pkg_resources, '_distribute'):
-                fake_setuptools()
+                if not no_fake:
+                    fake_setuptools()
                 raise ImportError
         except ImportError:
             return _do_download(version, download_base, to_dir, download_delay)
