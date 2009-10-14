@@ -6,6 +6,9 @@ CHANGES
 0.6.5
 -----
 
+* Distribute no longer shadows setuptools if we require a 0.7-series
+  setuptools. 
+
 * When run from within buildout, no attempt is made to modify an existing
   setuptools egg, whether in a shared egg directory or a system setuptools.
 

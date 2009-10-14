@@ -504,8 +504,7 @@ class WorkingSet(object):
 
         while requirements:
             req = requirements.pop(0)   # process dependencies breadth-first
-            if req.project_name == 'setuptools':
-                # TODO: only return distribute if setuptools < 0.7
+            if _override_setuptools(req):
                 req = Requirement.parse('distribute')
 
             if req in processed:
@@ -2501,8 +2500,7 @@ class Requirement:
                 # if asked for setuptools distribution
                 # and if distribute is installed, we want to give
                 # distribute instead
-                if founded_req.project_name == 'setuptools':
-                    # TODO: only return distribute if setuptools < 0.7
+                if _override_setuptools(founded_req):
                     distribute = list(parse_requirements('distribute'))
                     if len(distribute) == 1:
                         return distribute[0]
@@ -2524,6 +2522,26 @@ state_machine = {
     '==':  'T..',
     '!=':  'F++',
 }
+
+
+def _override_setuptools(req):
+    """Return True when distribute wants to override a setuptools dependency.
+
+    We want to override when the requirement is setuptools and the version is
+    a variant of 0.6.
+
+    """
+    if req.project_name == 'setuptools':
+        if not len(req.specs):
+            # Just setuptools: ok
+            return True
+        for comparator, version in req.specs:
+            if comparator in ['==', '>=', '>']:
+                if '0.7' in version:
+                    # We want some setuptools not from the 0.6 series.
+                    return False
+        return True
+    return False
 
 
 def _get_mro(cls):

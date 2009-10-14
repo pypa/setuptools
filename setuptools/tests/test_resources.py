@@ -354,8 +354,28 @@ class RequirementsTests(TestCase):
         self.failUnless(d("foo-0.3a3.egg") in r2)
         self.failUnless(d("foo-0.3a5.egg") in r2)
 
-
-
+    def testDistributeSetuptoolsOverride(self):
+        # Plain setuptools or distribute mean we return distribute.
+        self.assertEqual(
+            Requirement.parse('setuptools').project_name, 'distribute')
+        self.assertEqual(
+            Requirement.parse('distribute').project_name, 'distribute')
+        # setuptools lower than 0.7 means distribute
+        self.assertEqual(
+            Requirement.parse('setuptools==0.6c9').project_name, 'distribute')
+        self.assertEqual(
+            Requirement.parse('setuptools==0.6c10').project_name, 'distribute')
+        self.assertEqual(
+            Requirement.parse('setuptools>=0.6').project_name, 'distribute')
+        self.assertEqual(
+            Requirement.parse('setuptools < 0.7').project_name, 'distribute')
+        # setuptools 0.7 and higher means setuptools.
+        self.assertEqual(
+            Requirement.parse('setuptools == 0.7').project_name, 'setuptools')
+        self.assertEqual(
+            Requirement.parse('setuptools == 0.7a1').project_name, 'setuptools')
+        self.assertEqual(
+            Requirement.parse('setuptools >= 0.7').project_name, 'setuptools')
 
 
 
