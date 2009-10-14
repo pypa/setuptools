@@ -187,10 +187,21 @@ class DistroTests(TestCase):
         )
         self.assertRaises(UnknownExtra, d.requires, ["foo"])
 
-
-
-
-
+    def testSetuptoolsDistributeCombination(self):
+        # Ensure that installing a 0.7-series setuptools fails.  PJE says that
+        # it will not co-exist.
+        ws = WorkingSet([])
+        d = Distribution(
+            "/some/path",
+            project_name="setuptools",
+            version="0.7a1")
+        self.assertRaises(ValueError, ws.add, d)
+        # A 0.6-series is no problem
+        d2 = Distribution(
+            "/some/path",
+            project_name="setuptools",
+            version="0.6c9")
+        ws.add(d2)
 
 
 

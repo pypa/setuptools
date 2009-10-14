@@ -7,7 +7,8 @@ CHANGES
 -----
 
 * Distribute no longer shadows setuptools if we require a 0.7-series
-  setuptools. 
+  setuptools.  And an error is raised when installing a 0.7 setuptools with
+  distribute.
 
 * When run from within buildout, no attempt is made to modify an existing
   setuptools egg, whether in a shared egg directory or a system setuptools.

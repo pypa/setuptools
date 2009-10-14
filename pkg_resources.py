@@ -2239,8 +2239,11 @@ class Distribution(object):
 
         loc = loc or self.location
 
-        # TODO: raise error if we're adding setuptools >= 0.7 as that is
-        # guaranteed to be incompatible with distribute.
+        if self.project_name == 'setuptools':
+            if '0.7' in self.version:
+                raise ValueError(
+                    "A 0.7-series setuptools cannot be installed "
+                    "with distribute")
 
         if not loc:
             return
