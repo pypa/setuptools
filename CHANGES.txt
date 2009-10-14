@@ -6,6 +6,8 @@ CHANGES
 0.6.5
 -----
 
+* Issue 67: Fixed doc typo (PEP 381/382) 
+
 * Distribute no longer shadows setuptools if we require a 0.7-series
   setuptools.  And an error is raised when installing a 0.7 setuptools with
   distribute.

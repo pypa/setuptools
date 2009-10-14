@@ -59,7 +59,7 @@ we've done a lot already)
 - no more custom site.py (that is: if something misses in Python's
   site.py we'll add it there instead of patching it)
 
-- no more namespaced packages system, if PEP 381 (namespaces package
+- no more namespaced packages system, if PEP 382 (namespaces package
   support) makes it to 2.7
 
 - The code is splitted in many packages and might be distributed under
