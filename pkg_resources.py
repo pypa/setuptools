@@ -540,7 +540,7 @@ class WorkingSet(object):
                 Environment(plugin_dirlist)
             )
             map(working_set.add, distributions)  # add plugins+libs to sys.path
-            print "Couldn't load", errors        # display errors
+            print 'Could not load', errors        # display errors
 
         The `plugin_env` should be an ``Environment`` instance that contains
         only distributions that are in the project's "plugin directory" or
