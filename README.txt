@@ -90,7 +90,7 @@ Downloads
 All setuptools downloads can be found at `the project's home page in the Python
 Package Index`_.  Scroll to the very bottom of the page to find the links.
 
-.. _the project's home page in the Python Package Index: http://pypi.python.org/pypi/setuptools
+.. _the project's home page in the Python Package Index: http://pypi.python.org/pypi/setuptools#files
 
 In addition to the PyPI downloads, the development version of ``setuptools``   
 is available from the `Python SVN sandbox`_, and in-development versions of the 
@@ -159,3 +159,4 @@ Credits
   "Code Bear" Taylor) contributed their time and stress as guinea pigs for the
   use of eggs and setuptools, even before eggs were "cool".  (Thanks, guys!)
 
+.. _files:
