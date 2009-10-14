@@ -6,6 +6,9 @@ CHANGES
 0.6.5
 -----
 
+* Issue 65: cli.exe and gui.exe are not generated at build time,
+  depending on the platform in use.
+
 * Issue 67: Fixed doc typo (PEP 381/382) 
 
 * Distribute no longer shadows setuptools if we require a 0.7-series
