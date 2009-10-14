@@ -505,6 +505,7 @@ class WorkingSet(object):
         while requirements:
             req = requirements.pop(0)   # process dependencies breadth-first
             if req.project_name == 'setuptools':
+                # TODO: only return distribute if setuptools < 0.7
                 req = Requirement.parse('distribute')
 
             if req in processed:
@@ -2497,6 +2498,7 @@ class Requirement:
                 # and if distribute is installed, we want to give
                 # distribute instead
                 if founded_req.project_name == 'setuptools':
+                    # TODO: only return distribute if setuptools < 0.7
                     distribute = list(parse_requirements('distribute'))
                     if len(distribute) == 1:
                         return distribute[0]
