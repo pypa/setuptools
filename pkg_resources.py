@@ -2239,6 +2239,10 @@ class Distribution(object):
         """Insert self.location in path before its nearest parent directory"""
 
         loc = loc or self.location
+
+        # TODO: raise error if we're adding setuptools >= 0.7 as that is
+        # guaranteed to be incompatible with distribute.
+
         if not loc:
             return
 
