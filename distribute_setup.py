@@ -141,14 +141,15 @@ def use_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
         try:
             pkg_resources.require("distribute>="+version)
             return
-        except pkg_resources.VersionConflict, e:
+        except pkg_resources.VersionConflict:
+            e = sys.exc_info()[1]
             if was_imported:
-                print >>sys.stderr, (
+                sys.stderr.write(
                 "The required version of distribute (>=%s) is not available,\n"
                 "and can't be installed while this script is running. Please\n"
                 "install a more recent version first, using\n"
                 "'easy_install -U distribute'."
-                "\n\n(Currently using %r)") % (version, e.args[0])
+                "\n\n(Currently using %r)\n" % (version, e.args[0]))
                 sys.exit(2)
             else:
                 del pkg_resources, sys.modules['pkg_resources']    # reload ok
@@ -172,7 +173,10 @@ def download_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
     """
     # making sure we use the absolute path
     to_dir = os.path.abspath(to_dir)
-    import urllib2
+    try:
+        from urllib.request import urlopen
+    except ImportError:
+        from urllib2 import urlopen
     tgz_name = "distribute-%s.tar.gz" % version
     url = download_base + tgz_name
     saveto = os.path.join(to_dir, tgz_name)
@@ -180,7 +184,7 @@ def download_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
     if not os.path.exists(saveto):  # Avoid repeated downloads
         try:
             log.warn("Downloading %s", url)
-            src = urllib2.urlopen(url)
+            src = urlopen(url)
             # Read/write all in one block, so we don't create a corrupt file
             # if the download is interrupted.
             data = src.read()
@@ -410,7 +414,7 @@ def _extractall(self, path=".", members=None):
             # Extract directories with a safe mode.
             directories.append(tarinfo)
             tarinfo = copy.copy(tarinfo)
-            tarinfo.mode = 0700
+            tarinfo.mode = 448 # decimal for oct 0700
         self.extract(tarinfo, path)
 
     # Reverse sort directories.
@@ -429,7 +433,8 @@ def _extractall(self, path=".", members=None):
             self.chown(tarinfo, dirpath)
             self.utime(tarinfo, dirpath)
             self.chmod(tarinfo, dirpath)
-        except ExtractError, e:
+        except ExtractError:
+            e = sys.exc_info()[1]
             if self.errorlevel > 1:
                 raise
             else:
