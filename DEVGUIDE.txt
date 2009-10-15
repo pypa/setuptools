@@ -11,8 +11,7 @@ Grab the code at bitbucket::
     
 If you want to work in the 0.6 branch, you have to switch to it::
 
-    $ hg branch 0.6-maintenance
-    marked working directory as branch 0.6-maintenance
+    $ hg update 0.6-maintenance
     
     $ hg branch
     0.6-maintenance
