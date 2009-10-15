@@ -6,7 +6,8 @@ CHANGES
 0.6.6
 -----
 
-
+* Unified the bootstrap file so it works on both py2.x and py3k without 2to3
+  (patch by Holger Krekel)
 
 -----
 0.6.5
