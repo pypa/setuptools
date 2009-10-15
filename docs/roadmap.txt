@@ -54,7 +54,7 @@ we've done a lot already)
 - the version system will be deprecated, in favor of the one in Distutils
 
 - no more Distutils monkey-patch that happens once you use the code
- (things like 'from distutils import cmd; cmd.Command = CustomCommand')
+  (things like 'from distutils import cmd; cmd.Command = CustomCommand')
 
 - no more custom site.py (that is: if something misses in Python's
   site.py we'll add it there instead of patching it)
