@@ -345,7 +345,8 @@ def fake_setuptools():
         log.warn('Setuptools or Distribute does not seem to be installed.')
         return
     ws = pkg_resources.working_set
-    setuptools_dist = ws.find(pkg_resources.Requirement.parse('setuptools'))
+    setuptools_dist = ws.find(pkg_resources.Requirement.parse('setuptools',
+                              replacement=False))
     if setuptools_dist is None:
         log.warn('No setuptools distribution found')
         return

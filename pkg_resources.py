@@ -485,7 +485,7 @@ class WorkingSet(object):
             keys2.append(dist.key)
         self._added_new(dist)
 
-    def resolve(self, requirements, env=None, installer=None):
+    def resolve(self, requirements, env=None, installer=None, replacement=True):
         """List all distributions needed to (recursively) meet `requirements`
 
         `requirements` must be a sequence of ``Requirement`` objects.  `env`,
@@ -504,7 +504,7 @@ class WorkingSet(object):
 
         while requirements:
             req = requirements.pop(0)   # process dependencies breadth-first
-            if _override_setuptools(req):
+            if _override_setuptools(req) and replacement:
                 req = Requirement.parse('distribute')
 
             if req in processed:
@@ -2495,7 +2495,7 @@ class Requirement:
     def __repr__(self): return "Requirement.parse(%r)" % str(self)
 
     #@staticmethod
-    def parse(s):
+    def parse(s, replacement=True):
         reqs = list(parse_requirements(s))
         if reqs:
             if len(reqs) == 1:
@@ -2503,7 +2503,7 @@ class Requirement:
                 # if asked for setuptools distribution
                 # and if distribute is installed, we want to give
                 # distribute instead
-                if _override_setuptools(founded_req):
+                if _override_setuptools(founded_req) and replacement:
                     distribute = list(parse_requirements('distribute'))
                     if len(distribute) == 1:
                         return distribute[0]
