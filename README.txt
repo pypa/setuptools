@@ -92,7 +92,7 @@ If you are under Python 3, use
     $ curl -O http://python-distribute.org/distribute_setup_3k.py
     $ python distribute_setup_3k.py
 
-Notice that both files are provided in the source release.
+Notice this file is also provided in the source release.
 
 easy_install or pip
 ===================
