@@ -196,16 +196,21 @@ Install FAQ
 
 - **How does Distribute interacts with zc.buildout?**
 
-  You can use Distribute in your zc.buildout.
+  You can use Distribute in your zc.buildout.  *The only thing* you need to do
+  is use the bootstrap at `http://python-distribute.org/bootstrap.py`.  Run
+  that bootstrap and ``bin/buildout`` (and all other buildout-generated
+  scripts) will transparently use distribute instead of setuptools.  You do
+  not need a specific buildout release.
 
-  Although you have to run a specific `bootstrap.py` file that is available
-  at `http://python-distribute.org/bootstrap.py`. The code is located at
+  A shared eggs directory is no problem (since 0.6.6): the setuptools egg is
+  left in place unmodified.  So other buildouts that do not yet use the new
+  bootstrap continue to work just fine.  And there is no need to list
+  ``distribute`` somewhere in your eggs: using the bootstrap is enough.
+
+  The source code for the bootstrap script is located at
   `http://bitbucket.org/tarek/buildout-distribute`.
 
-  Beware that if you use a shared eggs folder with buildout, you need to 
-  switch all buildouts that use it to distribute. This is due to the fact
-  that the setuptools eggs located in the shared folder will be replaced
-  by a fake one, alongside distribute.
+
 
 -----------------------------
 Feedback and getting involved
