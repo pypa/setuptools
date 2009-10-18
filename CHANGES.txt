@@ -7,6 +7,7 @@ CHANGES
 -----
 
 * Issue 74: no_fake should be True by default.
+* Issue 72: avoid a bootstrapping issue with easy_install -U
 
 -----
 0.6.6
