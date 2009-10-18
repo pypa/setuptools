@@ -104,11 +104,12 @@ def _build_egg(egg, tarball, to_dir):
         log.warn('Building a Distribute egg in %s', to_dir)
         _python_cmd('setup.py', '-q', 'bdist_egg', '--dist-dir', to_dir)
 
-        # returning the result
-        if not os.path.exists(egg):
-            raise IOError('Could not build the egg.')
     finally:
         os.chdir(old_wd)
+    # returning the result
+    log.warn(egg)
+    if not os.path.exists(egg):
+        raise IOError('Could not build the egg.')
 
 
 def _do_download(version, download_base, to_dir, download_delay):
