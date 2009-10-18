@@ -84,7 +84,7 @@ def _install(tarball):
         os.chdir(old_wd)
 
 
-def _build_egg(tarball, to_dir):
+def _build_egg(egg, tarball, to_dir):
     # extracting the tarball
     tmpdir = tempfile.mkdtemp()
     log.warn('Extracting in %s', tmpdir)
@@ -105,11 +105,8 @@ def _build_egg(tarball, to_dir):
         _python_cmd('setup.py', '-q', 'bdist_egg', '--dist-dir', to_dir)
 
         # returning the result
-        for file in os.listdir(to_dir):
-            if fnmatch.fnmatch(file, 'distribute-%s*.egg' % DEFAULT_VERSION):
-                return os.path.join(to_dir, file)
-
-        raise IOError('Could not build the egg.')
+        if not os.path.exists(egg):
+            raise IOError('Could not build the egg.')
     finally:
         os.chdir(old_wd)
 
@@ -120,7 +117,7 @@ def _do_download(version, download_base, to_dir, download_delay):
     if not os.path.exists(egg):
         tarball = download_setuptools(version, download_base,
                                       to_dir, download_delay)
-        egg = _build_egg(tarball, to_dir)
+        _build_egg(egg, tarball, to_dir)
     sys.path.insert(0, egg)
     import setuptools
     setuptools.bootstrap_install_from = egg
