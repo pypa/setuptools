@@ -113,8 +113,8 @@ def _build_egg(egg, tarball, to_dir):
 
 
 def _do_download(version, download_base, to_dir, download_delay):
-    egg = 'distribute-%s-py%d.%d.egg' % (version, sys.version_info[0], 
-                                         sys.version_info[1])
+    egg = os.path.join(to_dir, 'distribute-%s-py%d.%d.egg' 
+                       % (version, sys.version_info[0], sys.version_info[1]))
     if not os.path.exists(egg):
         tarball = download_setuptools(version, download_base,
                                       to_dir, download_delay)
