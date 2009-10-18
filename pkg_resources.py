@@ -21,7 +21,14 @@ except NameError:
     from sets import ImmutableSet as frozenset
 
 # capture these to bypass sandboxing
-from os import utime, rename, unlink, mkdir
+from os import utime
+try:
+    from os import mkdir, rename, unlink
+    WRITE_SUPPORT = True
+except ImportError:
+    # no write support, probably under GAE
+    WRITE_SUPPORT = False
+
 from os import open as os_open
 from os.path import isdir, split
 
@@ -36,6 +43,8 @@ _distribute = True
 
 def _bypass_ensure_directory(name, mode=0777):
     # Sandbox-bypassing version of ensure_directory()
+    if not WRITE_SUPPORT:
+        raise IOError('"os.mkdir" not supported on this platform.')
     dirname, filename = split(name)
     if dirname and filename and not isdir(dirname):
         _bypass_ensure_directory(dirname)
@@ -1332,6 +1341,10 @@ class ZipProvider(EggProvider):
         timestamp = time.mktime(date_time)
 
         try:
+            if not WRITE_SUPPORT:
+                raise IOError('"os.rename" and "os.unlink" are not supported '
+                              'on this platform')
+
             real_path = manager.get_cache_path(
                 self.egg_name, self._parts(zip_path)
             )
