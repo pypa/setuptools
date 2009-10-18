@@ -46,7 +46,7 @@ except ImportError:
             args = [quote(arg) for arg in args]
         return os.spawnl(os.P_WAIT, sys.executable, *args) == 0
 
-DEFAULT_VERSION = "0.6.7"
+DEFAULT_VERSION = "0.6.6"
 DEFAULT_URL = "http://pypi.python.org/packages/source/d/distribute/"
 SETUPTOOLS_PKG_INFO = """\
 Metadata-Version: 1.0
@@ -115,9 +115,12 @@ def _build_egg(tarball, to_dir):
 
 
 def _do_download(version, download_base, to_dir, download_delay):
-    tarball = download_setuptools(version, download_base,
-                                  to_dir, download_delay)
-    egg = _build_egg(tarball, to_dir)
+    egg = 'distribute-%s-py%d.%d.egg' % (version, sys.version_info[0], 
+                                         sys.version_info[1])
+    if not os.path.exists(egg):
+        tarball = download_setuptools(version, download_base,
+                                      to_dir, download_delay)
+        egg = _build_egg(tarball, to_dir)
     sys.path.insert(0, egg)
     import setuptools
     setuptools.bootstrap_install_from = egg
