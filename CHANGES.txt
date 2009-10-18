@@ -6,6 +6,7 @@ CHANGES
 0.6.7
 -----
 
+* Issue 74: no_fake should be True by default.
 
 -----
 0.6.6
