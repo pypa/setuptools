@@ -25,9 +25,8 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <process.h>
+#include <unistd.h>
 #include <fcntl.h>
-#include "tchar.h"
 #include "windows.h"
 
 int fail(char *format, char *data) {
@@ -82,17 +81,18 @@ char *quoted(char *data) {
 
 
 char *loadable_exe(char *exename) {
-    HINSTANCE hPython;  /* DLL handle for python executable */
+    /* HINSTANCE hPython;  DLL handle for python executable */
     char *result;
 
-    hPython = LoadLibraryEx(exename, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
-    if (!hPython) return NULL;
+    /* hPython = LoadLibraryEx(exename, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
+    if (!hPython) return NULL; */
 
     /* Return the absolute filename for spawnv */
     result = calloc(MAX_PATH, sizeof(char));
-    if (result) GetModuleFileName(hPython, result, MAX_PATH);
+    strncpy(result, exename, MAX_PATH);
+    /*if (result) GetModuleFileName(hPython, result, MAX_PATH);
 
-    FreeLibrary(hPython);
+    FreeLibrary(hPython); */
     return result;
 }
 
@@ -237,18 +237,11 @@ int run(int argc, char **argv, int is_gui) {
     }
 
     /* We *do* need to wait for a CLI to finish, so use spawn */
-    return _spawnv(_P_WAIT, ptr, (const char * const *)(newargs));
+    return spawnv(P_WAIT, ptr, (const char * const *)(newargs));
 }
 
-/*
+
 int WINAPI WinMain(HINSTANCE hI, HINSTANCE hP, LPSTR lpCmd, int nShow) {
     return run(__argc, __argv, GUI);
-}
-
-*/
-
-int _tmain(int argc, _TCHAR* argv[])
-{
-	return run(argc, argv, GUI);
 }
 

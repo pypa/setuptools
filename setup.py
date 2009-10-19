@@ -2,7 +2,6 @@
 """Distutils setup file, used to install or test 'setuptools'"""
 import sys
 import os
-import platform
 
 src_root = None
 if sys.version_info >= (3,):
@@ -40,35 +39,7 @@ SETUP_COMMANDS = d['__all__']
 VERSION = "0.6.6"
 
 from setuptools import setup, find_packages
-from setuptools.command.build_py import build_py as _build_py
 scripts = []
-
-# specific command that is used to generate windows .exe files
-class build_py(_build_py):
-    def build_package_data(self):
-        """Copy data files into build directory"""
-        lastdir = None
-        is_64 =  platform.architecture()[0] == '64bit'
-
-        for package, src_dir, build_dir, filenames in self.data_files:
-            for filename in filenames:
-                target = os.path.join(build_dir, filename)
-                self.mkpath(os.path.dirname(target))
-                srcfile = os.path.join(src_dir, filename)
-                outf, copied = self.copy_file(srcfile, target)
-
-                # creating cli.exe and gui.exe
-                if filename in ('gui-32.exe', 'cli-32.exe') and not is_64:
-                    exe_target = os.path.join(build_dir, filename.replace('-32.exe', '.exe'))
-                    self.copy_file(srcfile, exe_target)
-
-                if filename in ('gui-64.exe', 'cli-64.exe') and is_64:
-                    exe_target = os.path.join(build_dir, filename.replace('-64.exe', '.exe'))
-                    self.copy_file(srcfile, exe_target)
-
-                srcfile = os.path.abspath(srcfile)
-                if copied and srcfile in self.distribution.convert_2to3_doctests:
-                    self.__doctests_2to3.append(outf)
 
 # if we are installing Distribute using "python setup.py install"
 # we need to get setuptools out of the way
@@ -176,7 +147,6 @@ dist = setup(
     Topic :: System :: Systems Administration
     Topic :: Utilities""".splitlines() if f.strip()],
     scripts = scripts,
-    cmdclass = {'build_py': build_py}
 )
 
 if _being_installed():
