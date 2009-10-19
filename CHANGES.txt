@@ -11,6 +11,8 @@ CHANGES
 * use_setuptools now properly respects the requested version
 * use_setuptools will no longer try to import a distribute egg for the
   wrong Python version
+* Issue 74: no_fake should be True by default.
+* Issue 72: avoid a bootstrapping issue with easy_install -U
 
 -----
 0.6.6

@@ -67,6 +67,12 @@ class build_py(_build_py):
                     self.copy_file(srcfile, exe_target)
 
                 srcfile = os.path.abspath(srcfile)
+
+                # avoid a bootstrapping issue with easy_install -U (when the
+                # previous version doesn't have convert_2to3_doctests)
+                if not hasattr(self.distribution, 'convert_2to3_doctests'):
+                    return
+
                 if copied and srcfile in self.distribution.convert_2to3_doctests:
                     self.__doctests_2to3.append(outf)
 

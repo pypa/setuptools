@@ -125,7 +125,7 @@ def _do_download(version, download_base, to_dir, download_delay):
 
 
 def use_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
-                   to_dir=os.curdir, download_delay=15, no_fake=False):
+                   to_dir=os.curdir, download_delay=15, no_fake=True):
     # making sure we use the absolute path
     to_dir = os.path.abspath(to_dir)
     was_imported = 'pkg_resources' in sys.modules or \
@@ -135,7 +135,7 @@ def use_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
             import pkg_resources
             if not hasattr(pkg_resources, '_distribute'):
                 if not no_fake:
-                    fake_setuptools()
+                    _fake_setuptools()
                 raise ImportError
         except ImportError:
             return _do_download(version, download_base, to_dir, download_delay)
@@ -160,7 +160,8 @@ def use_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
             return _do_download(version, download_base, to_dir,
                                 download_delay)
     finally:
-        _create_fake_setuptools_pkg_info(to_dir)
+        if not no_fake:
+            _create_fake_setuptools_pkg_info(to_dir)
 
 def download_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
                         to_dir=os.curdir, delay=15):
@@ -320,7 +321,7 @@ def _patch_egg_dir(path):
 
 def _before_install():
     log.warn('Before install bootstrap.')
-    fake_setuptools()
+    _fake_setuptools()
 
 
 def _under_prefix(location):
@@ -341,7 +342,7 @@ def _under_prefix(location):
     return True
 
 
-def fake_setuptools():
+def _fake_setuptools():
     log.warn('Scanning installed packages')
     try:
         import pkg_resources

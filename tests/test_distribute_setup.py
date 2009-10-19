@@ -57,5 +57,17 @@ class TestSetup(unittest.TestCase):
         distribute_setup.python_cmd = _faked
         _install(self.tarball)
 
+    def test_use_setuptools(self):
+        self.assertEquals(use_setuptools(), None)
+
+        # make sure fake_setuptools is not called by default
+        import pkg_resources
+        del pkg_resources._distribute
+        def fake_setuptools(*args):
+            raise AssertionError
+
+        pkg_resources._fake_setuptools = fake_setuptools
+        use_setuptools()
+
 if __name__ == '__main__':
     unittest.main()
