@@ -39,7 +39,29 @@ SETUP_COMMANDS = d['__all__']
 VERSION = "0.6.7"
 
 from setuptools import setup, find_packages
+from setuptools.command.build_py import build_py as _build_py
 scripts = []
+
+# specific command that is used to generate windows .exe files
+class build_py(_build_py):
+    def build_package_data(self):
+        """Copy data files into build directory"""
+        lastdir = None
+        for package, src_dir, build_dir, filenames in self.data_files:
+            for filename in filenames:
+                target = os.path.join(build_dir, filename)
+                self.mkpath(os.path.dirname(target))
+                srcfile = os.path.join(src_dir, filename)
+                outf, copied = self.copy_file(srcfile, target)
+                srcfile = os.path.abspath(srcfile)
+
+                # avoid a bootstrapping issue with easy_install -U (when the
+                # previous version doesn't have convert_2to3_doctests)
+                if not hasattr(self.distribution, 'convert_2to3_doctests'):
+                    continue
+
+                if copied and srcfile in self.distribution.convert_2to3_doctests:
+                    self.__doctests_2to3.append(outf)
 
 # if we are installing Distribute using "python setup.py install"
 # we need to get setuptools out of the way
