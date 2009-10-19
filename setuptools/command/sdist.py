@@ -181,7 +181,7 @@ class sdist(_sdist):
 
                 if not got_it:
                     self.warn("standard file not found: should have one of " +
-                              string.join(alts, ', '))
+                              ', '.join(alts))
             else:
                 if os.path.exists(fn):
                     self.filelist.append(fn)
