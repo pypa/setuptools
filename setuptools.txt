@@ -2632,6 +2632,9 @@ XXX
 Release Notes/Change History
 ----------------------------
 
+0.6c11
+ * Fix "bdist_wininst upload" trying to upload same file twice
+
 0.6c10
  * Fix for the Python 2.6.3 build_ext API change
 
