@@ -6,6 +6,8 @@ CHANGES
 0.6.7
 -----
 
+* Removed virtual-python.py from this distribution and updated documentation
+  to point to the actively maintained virtualenv instead.
 * Issue 64: use_setuptools no longer rebuilds the distribute egg every
   time it is run
 * use_setuptools now properly respects the requested version

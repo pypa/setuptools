@@ -1073,34 +1073,10 @@ system, but don't have root access, you can create your own "virtual"
 Python installation, which uses its own library directories and some symlinks
 to the site-wide Python.
 
-In the simplest case, your virtual Python installation will live under the
-``~/lib/python2.x``, ``~/include/python2.x``, and ``~/bin`` directories.  Just
-download `virtual-python.py`_ and run it using the site-wide Python.  If you
-want to customize the location, you can use the ``--prefix`` option to specify
-an installation base directory in place of ``~``.  (Use ``--help`` to get the
-complete list of options.)
+Please refer to the `virtualenv`_ documentation for creating such an
+environment.
 
-.. _virtual-python.py: http://peak.telecommunity.com/dist/virtual-python.py
-
-When you're done, you'll have a ``~/bin/python`` executable that's linked to
-the local Python installation and inherits all its current libraries, but which
-allows you to add as many new libraries as you want.  Simply use this new
-Python in place of your system-defined one, and you can modify it as you like
-without breaking anything that relies on the system Python.  You'll also still
-need to follow the standard `installation instructions`_ to install setuptools
-and EasyInstall, using your new ``~/bin/python`` executable in place of the
-system Python.
-
-Note that if you were previously setting a ``PYTHONPATH`` and/or had other
-special configuration options in your ``~/.pydistutils.cfg``, you may need to
-remove these settings *before* running ``virtual-python.py``.  This is because
-your new Python executable will not need *any* custom configuration for the
-distutils or EasyInstall; everything will go to the correct ``~/lib`` and
-``~/bin`` directories automatically.
-
-You should, however, also make sure that the ``bin`` subdirectory of your
-installation prefix (e.g. ``~/bin``) is on your ``PATH``, because that is where
-EasyInstall and the distutils will install new Python scripts.
+.. _virtualenv: http://pypi.python.org/pypi/virtualenv
 
 
 "Traditional" ``PYTHONPATH``-based Installation
