@@ -86,12 +86,6 @@ If your shell has the ``curl`` program you can do::
     $ curl -O http://python-distribute.org/distribute_setup.py
     $ python distribute_setup.py
 
-If you are under Python 3, use
-`distribute_setup_3k.py <http://python-distribute.org/distribute_setup_3k.py>`_::
-
-    $ curl -O http://python-distribute.org/distribute_setup_3k.py
-    $ python distribute_setup_3k.py
-
 Notice this file is also provided in the source release.
 
 easy_install or pip
