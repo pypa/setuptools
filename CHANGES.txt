@@ -6,6 +6,8 @@ CHANGES
 0.6.7
 -----
 
+* Issue 21: Allow PackageIndex.open_url to gracefully handle all cases of a
+  httplib.HTTPException instead of just InvalidURL and BadStatusLine.
 * Removed virtual-python.py from this distribution and updated documentation
   to point to the actively maintained virtualenv instead.
 * Issue 64: use_setuptools no longer rebuilds the distribute egg every

@@ -602,6 +602,12 @@ class PackageIndex(Environment):
                 raise DistutilsError('%s returned a bad status line. '
                                      'The server might be down, %s' % \
                                              (url, v.line))
+        except httplib.HTTPException, v:
+            if warning:
+                self.warn(warning, v)
+            else:
+                raise DistutilsError("Download error for %s: %s"
+                                     % (url, v))
 
     def _download_url(self, scheme, url, tmpdir):
         # Determine download filename
