@@ -3,11 +3,13 @@ Contributors
 ============
 
 * Alex Grönholm
+* Daniel Stutzbach
 * Hanno Schlichting
 * Jannis Leidel
 * Lennart Regebro
-* Martin von Loewis
-* Philip Envey
+* Martin von Löwis
+* Philip Jenvey
+* Reinout van Rees
 * Tarek Ziadé
 
 If you think you name is missing, please add it (alpha order by first name)
