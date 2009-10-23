@@ -2,17 +2,16 @@
 Quick notes for contributors
 ============================
 
-Distribute is using Mercurial. 
+Distribute is using Mercurial.
 
 Grab the code at bitbucket::
 
-
     $ hg clone https://tarek@bitbucket.org/tarek/distribute distribute
-    
+
 If you want to work in the 0.6 branch, you have to switch to it::
 
     $ hg update 0.6-maintenance
-    
+
     $ hg branch
     0.6-maintenance
 
@@ -24,4 +23,6 @@ If you make some changes, don't forget to:
 And remember that 0.6 is only bug fixes, and the APIs should
 be fully backward compatible with Setuptools.
 
+You can run the tests via::
 
+    $ python setup.py test
