@@ -6,6 +6,10 @@ CHANGES
 0.6.7
 -----
 
+* Reviewed unladen-swallow specific change from
+  http://code.google.com/p/unladen-swallow/source/detail?spec=svn875&r=719
+  and determined that it no longer applies. Distribute should work fine with
+  Unladen Swallow 2009Q3.
 * Issue 21: Allow PackageIndex.open_url to gracefully handle all cases of a
   httplib.HTTPException instead of just InvalidURL and BadStatusLine.
 * Removed virtual-python.py from this distribution and updated documentation
