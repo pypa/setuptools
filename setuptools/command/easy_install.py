@@ -1591,16 +1591,18 @@ def get_script_args(dist, executable=sys_executable, wininst=False):
     spec = str(dist.as_requirement())
     header = get_script_header("", executable, wininst)
     for group in 'console_scripts', 'gui_scripts':
-        for name,ep in dist.get_entry_map(group).items():
+        for name, ep in dist.get_entry_map(group).items():
             script_text = (
                 "# EASY-INSTALL-ENTRY-SCRIPT: %(spec)r,%(group)r,%(name)r\n"
                 "__requires__ = %(spec)r\n"
                 "import sys\n"
                 "from pkg_resources import load_entry_point\n"
                 "\n"
-                "sys.exit(\n"
-                "   load_entry_point(%(spec)r, %(group)r, %(name)r)()\n"
-                ")\n"
+                "if __name__ == '__main__':"
+                "\n"
+                "    sys.exit(\n"
+                "        load_entry_point(%(spec)r, %(group)r, %(name)r)()\n"
+                "    )\n"
             ) % locals()
             if sys.platform=='win32' or wininst:
                 # On Windows/wininst, add a .py extension and an .exe launcher
