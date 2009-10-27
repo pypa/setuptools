@@ -6,7 +6,7 @@ CHANGES
 0.6.7
 -----
 
-* Issue 58: Added --user support to the deveop command
+* Issue 58: Added --user support to the develop command
 * Issue 11: Generated scripts now wrap their call to the script entry point
   in the standard "if name == 'main'"
 * Added the 'DONT_PATCH_SETUPTOOLS' environment variable, so virtualenv
