@@ -75,6 +75,8 @@ def _buildout_marker():
         return 'buildout' in os.path.basename(command)
 
 def _being_installed():
+    if os.environ.get('DONT_PATCH_SETUPTOOLS') is not None:
+        return True
     if _buildout_marker():
         # Installed by buildout, don't mess with a global setuptools.
         return False
