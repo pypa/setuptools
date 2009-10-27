@@ -11,7 +11,7 @@ class install_scripts(_install_scripts):
     def initialize_options(self):
         _install_scripts.initialize_options(self)
         self.no_ep = False
-   
+
     def run(self):
         self.run_command("egg_info")
         if self.distribution.scripts:
@@ -20,9 +20,9 @@ class install_scripts(_install_scripts):
             self.outfiles = []
         if self.no_ep:
             # don't install entry point scripts into .egg file!
-            return  
+            return
 
-        ei_cmd = self.get_finalized_command("egg_info")       
+        ei_cmd = self.get_finalized_command("egg_info")
         dist = Distribution(
             ei_cmd.egg_base, PathMetadata(ei_cmd.egg_base, ei_cmd.egg_info),
             ei_cmd.egg_name, ei_cmd.egg_version,
@@ -34,10 +34,6 @@ class install_scripts(_install_scripts):
         )
         for args in get_script_args(dist, executable, is_wininst):
             self.write_script(*args)
-
-
-
-
 
     def write_script(self, script_name, contents, mode="t", *ignored):
         """Write an executable file to the scripts directory"""
@@ -51,32 +47,4 @@ class install_scripts(_install_scripts):
             f.write(contents)
             f.close()
             chmod(target,0755)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
