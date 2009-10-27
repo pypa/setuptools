@@ -6,6 +6,8 @@ CHANGES
 0.6.7
 -----
 
+* Added the 'DONT_PATCH_SETUPTOOLS' environment variable, so virtualenv
+  can drive an installation that doesn't patch a global setuptools.
 * Reviewed unladen-swallow specific change from
   http://code.google.com/p/unladen-swallow/source/detail?spec=svn875&r=719
   and determined that it no longer applies. Distribute should work fine with
