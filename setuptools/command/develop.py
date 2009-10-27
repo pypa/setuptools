@@ -34,11 +34,6 @@ class develop(easy_install):
         self.setup_path = None
         self.always_copy_from = '.'   # always copy eggs installed in curdir
 
-
-
-
-
-
     def finalize_options(self):
         ei = self.get_finalized_command("egg_info")
         if ei.broken_egg_info:
@@ -117,10 +112,6 @@ class develop(easy_install):
             # XXX should also check for entry point scripts!
             log.warn("Note: you must uninstall or replace scripts manually!")
 
-
-
-
-
     def install_egg_scripts(self, dist):
         if dist is not self.dist:
             # Installing a dependency, so fall back to normal behavior
@@ -139,26 +130,4 @@ class develop(easy_install):
             script_text = f.read()
             f.close()
             self.install_script(dist, script_name, script_text, script_path)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
