@@ -108,7 +108,7 @@ class develop(easy_install):
             % (ei.egg_info, ei.broken_egg_info)
             )
         self.args = [ei.egg_name]
-        easy_install.finalize_options(self)
+
 
         py_version = sys.version.split()[0]
         prefix, exec_prefix = get_config_vars('prefix', 'exec_prefix')
@@ -147,6 +147,7 @@ class develop(easy_install):
             self.install_dir = self.install_purelib
             self.script_dir = self.install_scripts
 
+        easy_install.finalize_options(self)
         # pick up setup-dir .egg files only: no .egg-info
         self.package_index.scan(glob.glob('*.egg'))
 

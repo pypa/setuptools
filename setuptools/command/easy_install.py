@@ -1211,7 +1211,12 @@ def get_site_dirs():
         site_lib = get_python_lib(plat_specific)
         if site_lib not in sitedirs: sitedirs.append(site_lib)
 
+    if sys.version >= "2.6":
+        import site
+        sitedirs.append(site.USER_SITE)
+
     sitedirs = map(normalize_path, sitedirs)
+
     return sitedirs
 
 

@@ -59,5 +59,6 @@ class TestDevelopTest(unittest.TestCase):
 
         # let's see if we got our egg link at the right place
         content = os.listdir(site.USER_SITE)
-        self.assertEquals(content, ['UNKNOWN.egg-link'])
+        content.sort()
+        self.assertEquals(content, ['UNKNOWN.egg-link', 'easy-install.pth'])
 
