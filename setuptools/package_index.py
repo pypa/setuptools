@@ -1,6 +1,6 @@
 """PyPI and direct package downloading"""
 import sys, os.path, re, urlparse, urllib2, shutil, random, socket, cStringIO
-import httplib
+import httplib, urllib
 from pkg_resources import *
 from distutils import log
 from distutils.errors import DistutilsError
@@ -701,7 +701,7 @@ def open_with_auth(url):
     scheme, netloc, path, params, query, frag = urlparse.urlparse(url)
 
     if scheme in ('http', 'https'):
-        auth, host = urllib2.splituser(netloc)
+        auth, host = urllib.splituser(netloc)
     else:
         auth = None
 

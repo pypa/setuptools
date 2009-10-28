@@ -1217,6 +1217,10 @@ displayed MD5 info (broken onto two lines for readability)::
 Release Notes/Change History
 ============================
 
+0.6final
+ * Fixed AttributeError under Python 2.3 when processing "HTTP authentication"
+   URLs (i.e., ones with a ``user:password@host``).
+
 0.6c11
  * Fix installed script .exe files not working with 64-bit Python on Windows
    (wasn't actually released in 0.6c10 due to a lost checkin)
