@@ -196,7 +196,12 @@ Install FAQ
 
 - **How does Distribute interacts with zc.buildout?**
 
-  You can use Distribute in your zc.buildout.  *The only thing* you need to do
+  You can use Distribute in your zc.buildout, with the --distribute option,
+  starting at zc.buildout 1.4.2::
+
+  $ python bootstrap.py --distribute
+
+  For previous zc.buildout versions, *the only thing* you need to do
   is use the bootstrap at `http://python-distribute.org/bootstrap.py`.  Run
   that bootstrap and ``bin/buildout`` (and all other buildout-generated
   scripts) will transparently use distribute instead of setuptools.  You do
