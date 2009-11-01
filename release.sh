@@ -16,4 +16,5 @@ python2.6 setup.py build_sphinx upload_docs
 scp distribute_setup.py ziade.org:nightly/build/
 
 # starting the new dev
+hg push
 
