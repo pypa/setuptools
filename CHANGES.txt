@@ -6,6 +6,9 @@ CHANGES
 0.6.8
 -----
 
+* Added "check_packages" in dist. (added in Setuptools 0.6c11)
+*
+
 -----
 0.6.7
 -----
