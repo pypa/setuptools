@@ -93,8 +93,14 @@ easy_install or pip
 
 Run easy_install or pip::
 
-    $ easy_install Distribute
-    $ pip install Distribute
+    $ easy_install -U distribute
+    $ pip install distribute
+
+If you want to install the latest dev version, you can also run::
+
+    $ easy_install -U distribute==dev
+
+This will get the latest development version at: http://bitbucket.org/tarek/distribute/get/0.6-maintenance.zip#egg=distribute-dev
 
 Source installation
 ===================
