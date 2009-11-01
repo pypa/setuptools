@@ -7,7 +7,7 @@ CHANGES
 -----
 
 * Added "check_packages" in dist. (added in Setuptools 0.6c11)
-*
+* Fixed the DONT_PATCH_SETUPTOOLS state.
 
 -----
 0.6.7
