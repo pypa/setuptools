@@ -178,12 +178,11 @@ Install FAQ
    If it wasn't doing it, a program that would try to install Setuptools
    would overwrite in turn Distribute.
 
-- **How does Distribute interacts with virtualenv?**
+- **How does Distribute interact with virtualenv?**
 
-  Everytime you create a virtualenv it will install setuptools, so you need to
-  re-install Distribute in it right after. The Distribute project will not
-  attempt to patch virtualenv so it uses it when globally installed.
-  We will just wait for virtualenv to eventually switch to Distribute.
+  Everytime you create a virtualenv it will install setuptools by default.
+  You either need to re-install Distribute in it right after or pass the
+  ``--distribute`` option when creating it.
 
   Once installed, your virtualenv will use Distribute transparently.
 
