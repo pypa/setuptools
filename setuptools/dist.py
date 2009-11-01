@@ -1,5 +1,6 @@
 __all__ = ['Distribution']
 
+import re
 from distutils.core import Distribution as _Distribution
 from setuptools.depends import Require
 from setuptools.command.install import install
@@ -421,19 +422,19 @@ class Distribution(_Distribution):
         if self.packages:
             self.packages = [
                 p for p in self.packages
-                    if p<>package and not p.startswith(pfx)
+                    if p != package and not p.startswith(pfx)
             ]
 
         if self.py_modules:
             self.py_modules = [
                 p for p in self.py_modules
-                    if p<>package and not p.startswith(pfx)
+                    if p != package and not p.startswith(pfx)
             ]
 
         if self.ext_modules:
             self.ext_modules = [
                 p for p in self.ext_modules
-                    if p.name<>package and not p.name.startswith(pfx)
+                    if p.name != package and not p.name.startswith(pfx)
             ]
 
 
@@ -805,22 +806,11 @@ class Feature:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+def check_packages(dist, attr, value):
+    for pkgname in value:
+        if not re.match(r'\w+(\.\w+)*', pkgname):
+            distutils.log.warn(
+                "WARNING: %r not a valid package name; please use only"
+                ".-separated package names in setup.py", pkgname
+            )
 
