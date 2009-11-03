@@ -126,6 +126,7 @@ dist = setup(
             "package_data           = setuptools.dist:check_package_data",
             "exclude_package_data   = setuptools.dist:check_package_data",
             "include_package_data   = setuptools.dist:assert_bool",
+            "packages               = setuptools.dist:check_packages",
             "dependency_links       = setuptools.dist:assert_string_list",
             "test_loader            = setuptools.dist:check_importable",
             "use_2to3               = setuptools.dist:assert_bool",
