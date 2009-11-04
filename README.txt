@@ -149,21 +149,37 @@ Lastly:
 Quick help for developers
 -------------------------
 
-To use Distribute in your package, the recommended way is to ship
-`distribute_setup.py` alongside your `setup.py` script and call 
-it at the very begining of `setup.py` like this::
+To create an egg which is compatible with Distribute, use the same
+practice as with Setuptools, e.g.:
 
-    from distribute_setup import use_setuptools
-    use_setuptools()
+{{{
+from setuptools import setup
 
+setup(...
+)
+}}}
 
-Another way is to add ``Distribute`` in the ``install_requires`` option::
+To use `pkg_resources` to access data files in the egg, you should
+require the Setuptools distribution explicitly:
 
-    from setuptools import setup
+{{{
+from setuptools import setup
 
-    setup(...
-          install_requires=['distribute']
-    )
+setup(...
+     install_requires=['setuptools']
+)
+}}}
+
+Only if you need Distribute-specific functionality should you depend
+on it explicitly. In this case, replace the Setuptools dependency:
+
+{{{
+from setuptools import setup
+
+setup(...
+     install_requires=['distribute']
+)
+}}}
 
 -----------
 Install FAQ
