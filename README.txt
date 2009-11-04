@@ -169,14 +169,16 @@ Another way is to add ``Distribute`` in the ``install_requires`` option::
 Install FAQ
 -----------
 
-- **Why Distribute turn my Setuptools installation into an fake one?**
+- **Why is Distribute wrapping my Setuptools installation?**
 
-   Since Distribute is a fork, and since it provides the same package and modules,
-   it fakes that the Setuptools installation is still present, so all the programs
-   that where using Setuptools still work.
+   Since Distribute is a fork, and since it provides the same package
+   and modules, it renames the existing Setuptools egg and inserts a
+   new one which merely wraps the Distribute code. This way, full
+   backwards compatibility is kept for packages which rely on the
+   Setuptools modules.
 
-   If it wasn't doing it, a program that would try to install Setuptools
-   would overwrite in turn Distribute.
+   At the same time, packages can meet their dependency on Setuptools
+   without actually installing it (which would disable Distribute).
 
 - **How does Distribute interact with virtualenv?**
 
