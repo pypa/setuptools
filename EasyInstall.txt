@@ -1221,6 +1221,9 @@ Release Notes/Change History
  * Fixed AttributeError under Python 2.3 when processing "HTTP authentication"
    URLs (i.e., ones with a ``user:password@host``).
 
+ * Fixed bogus AttributeError when no local or downloadable packages are
+   available
+
 0.6c11
  * Fix installed script .exe files not working with 64-bit Python on Windows
    (wasn't actually released in 0.6c10 due to a lost checkin)

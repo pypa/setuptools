@@ -471,8 +471,9 @@ class PackageIndex(Environment):
                 (source and "a source distribution of " or ""),
                 requirement,
             )
-        self.info("Best match: %s", dist)
-        return dist.clone(location=self.download(dist.location, tmpdir))
+        else:
+            self.info("Best match: %s", dist)
+            return dist.clone(location=self.download(dist.location, tmpdir))
 
 
     def fetch(self, requirement, tmpdir, force_scan=False, source=False):
@@ -487,7 +488,6 @@ class PackageIndex(Environment):
         if dist is not None:
             return dist.location
         return None
-
 
 
     def gen_setup(self, filename, fragment, tmpdir):
