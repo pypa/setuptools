@@ -48,17 +48,19 @@ except ImportError:
 
 DEFAULT_VERSION = "0.6.9"
 DEFAULT_URL = "http://pypi.python.org/packages/source/d/distribute/"
+SETUPTOOLS_FAKED_VERSION = "0.6c11"
+
 SETUPTOOLS_PKG_INFO = """\
 Metadata-Version: 1.0
 Name: setuptools
-Version: 0.6c9
+Version: %s
 Summary: xxxx
 Home-page: xxx
 Author: xxx
 Author-email: xxx
 License: xxx
 Description: xxx
-"""
+""" % SETUPTOOLS_FAKED_VERSION
 
 
 def _install(tarball):
@@ -280,7 +282,8 @@ def _create_fake_setuptools_pkg_info(placeholder):
         log.warn('Could not find the install location')
         return
     pyver = '%s.%s' % (sys.version_info[0], sys.version_info[1])
-    setuptools_file = 'setuptools-0.6c9-py%s.egg-info' % pyver
+    setuptools_file = 'setuptools-%s-py%s.egg-info' % \
+            (SETUPTOOLS_FAKED_VERSION, pyver)
     pkg_info = os.path.join(placeholder, setuptools_file)
     if os.path.exists(pkg_info):
         log.warn('%s already exists', pkg_info)
