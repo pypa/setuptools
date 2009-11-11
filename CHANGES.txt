@@ -10,6 +10,7 @@ CHANGES
 * Issue 87: setupt.py doesn't try to convert distribute_setup.py anymore
   Initial Patch by arfrever.
 * Issue 89: added a side bar with a download link to the doc.
+* Issue 86: fixed missing sentence in pkg_resources doc.
 
 -----
 0.6.8
