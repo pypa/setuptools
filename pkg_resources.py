@@ -2253,7 +2253,11 @@ class Distribution(object):
         loc = loc or self.location
 
         if self.project_name == 'setuptools':
-            if '0.7' in self.version:
+            try:
+                version = self.version
+            except ValueError:
+                version = ''
+            if '0.7' in version:
                 raise ValueError(
                     "A 0.7-series setuptools cannot be installed "
                     "with distribute")

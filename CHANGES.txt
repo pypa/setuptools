@@ -3,6 +3,13 @@ CHANGES
 =======
 
 -----
+0.6.9
+-----
+
+* Issue 90: unknown setuptools version can be added in the working set
+*
+
+-----
 0.6.8
 -----
 

@@ -203,15 +203,12 @@ class DistroTests(TestCase):
             version="0.6c9")
         ws.add(d2)
 
-
-
-
-
-
-
-
-
-
+        # a unexisting version needs to work
+        ws = WorkingSet([])
+        d3 = Distribution(
+            "/some/path",
+            project_name="setuptools")
+        ws.add(d3)
 
 
 class EntryPointTests(TestCase):
