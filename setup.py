@@ -14,9 +14,10 @@ if sys.version_info >= (3,):
         fl.process_template_line(line)
     dir_util.create_tree(tmp_src, fl.files)
     outfiles_2to3 = []
+    dist_script = os.path.join("build", "src", "distribute_setup.py")
     for f in fl.files:
         outf, copied = file_util.copy_file(f, os.path.join(tmp_src, f), update=1)
-        if copied and outf.endswith(".py"):
+        if copied and outf.endswith(".py") and outf != dist_script:
             outfiles_2to3.append(outf)
         if copied and outf.endswith('api_tests.txt'):
             # XXX support this in distutils as well
