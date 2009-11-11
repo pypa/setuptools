@@ -1594,8 +1594,9 @@ Parsing Utilities
     ``Requirement`` string, as a distribution name, or a PyPI project name.
     All non-alphanumeric runs are condensed to single "-" characters, such that
     a name like "The $$$ Tree" becomes "The-Tree".  Note that if you are
-    generating a filename from this value you should replace the "-" characters
-    with underscores ("_") because setuptools and the distutils
+    generating a filename from this value you should combine it with a call to
+    ``to_filename()`` so all dashes ("-") are replaced by underscores ("_").
+    See ``to_filename()``.
 
 ``safe_version(version)``
     Similar to ``safe_name()`` except that spaces in the input become dots, and
@@ -1708,7 +1709,7 @@ History
 
  * Fix cache dir defaults on Windows when multiple environment vars are needed
    to construct a path.
- 
+
 0.6c4
  * Fix "dev" versions being considered newer than release candidates.
 
