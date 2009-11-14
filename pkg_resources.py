@@ -528,7 +528,9 @@ class WorkingSet(object):
                         env = Environment(self.entries)
                     dist = best[req.key] = env.best_match(req, self, installer)
                     if dist is None:
-                        raise DistributionNotFound(req)  # XXX put more info here
+                        msg = ("The '%s' distribution was not found on this "
+                               "system, and is required by this application.")
+                        raise DistributionNotFound(msg % req)
                 to_activate.append(dist)
             if dist not in req:
                 # Oops, the "best" so far conflicts with a dependency

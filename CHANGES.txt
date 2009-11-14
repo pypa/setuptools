@@ -11,6 +11,7 @@ CHANGES
   Initial Patch by arfrever.
 * Issue 89: added a side bar with a download link to the doc.
 * Issue 86: fixed missing sentence in pkg_resources doc.
+* Added a nicer error message when a DistributionNotFound is raised.
 
 -----
 0.6.8
