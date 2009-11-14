@@ -1,6 +1,5 @@
 from distutils.command.install_scripts import install_scripts \
      as _install_scripts
-from easy_install import get_script_args, sys_executable, chmod
 from pkg_resources import Distribution, PathMetadata, ensure_directory
 import os
 from distutils import log
@@ -13,6 +12,9 @@ class install_scripts(_install_scripts):
         self.no_ep = False
 
     def run(self):
+        from setuptools.command.easy_install import (get_script_args,
+                                                     sys_executable)
+
         self.run_command("egg_info")
         if self.distribution.scripts:
             _install_scripts.run(self)  # run first to set up self.outfiles
@@ -37,6 +39,7 @@ class install_scripts(_install_scripts):
 
     def write_script(self, script_name, contents, mode="t", *ignored):
         """Write an executable file to the scripts directory"""
+        from setuptools.command.easy_install import chmod
         log.info("Installing %s script to %s", script_name, self.install_dir)
         target = os.path.join(self.install_dir, script_name)
         self.outfiles.append(target)

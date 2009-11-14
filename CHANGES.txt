@@ -12,6 +12,7 @@ CHANGES
 * Issue 89: added a side bar with a download link to the doc.
 * Issue 86: fixed missing sentence in pkg_resources doc.
 * Added a nicer error message when a DistributionNotFound is raised.
+* Issue 80: test_develop now works with Python 3.1
 
 -----
 0.6.8
