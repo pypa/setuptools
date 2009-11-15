@@ -50,7 +50,7 @@ class upload_docs(upload):
         tmp_file = os.path.join(tmp_dir, "%s.zip" % name)
         zip_file = zipfile.ZipFile(tmp_file, "w")
         for root, dirs, files in os.walk(self.upload_dir):
-            if not files:
+            if root == self.upload_dir and not files:
                 raise DistutilsOptionError(
                     "no files found in upload directory '%s'"
                     % self.upload_dir)
