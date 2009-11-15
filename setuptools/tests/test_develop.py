@@ -20,7 +20,7 @@ class TestDevelopTest(unittest.TestCase):
 
     def setUp(self):
         self.dir = tempfile.mkdtemp()
-        setup = os.path.join(self.dir, SETUP_PY)
+        setup = os.path.join(self.dir, 'setup.py')
         f = open(setup, 'w')
         f.write(SETUP_PY)
         f.close()
