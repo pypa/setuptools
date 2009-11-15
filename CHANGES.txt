@@ -13,6 +13,7 @@ CHANGES
 * Issue 86: fixed missing sentence in pkg_resources doc.
 * Added a nicer error message when a DistributionNotFound is raised.
 * Issue 80: test_develop now works with Python 3.1
+* Issue 93: upload_docs now works if there is an empty sub-directory.
 
 -----
 0.6.8

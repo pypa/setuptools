@@ -3,6 +3,7 @@ Contributors
 ============
 
 * Alex Grönholm
+* Alice Bevan-McGregor
 * Daniel Stutzbach
 * Hanno Schlichting
 * Jannis Leidel
