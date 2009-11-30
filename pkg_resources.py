@@ -2262,7 +2262,7 @@ class Distribution(object):
             if '0.7' in version:
                 raise ValueError(
                     "A 0.7-series setuptools cannot be installed "
-                    "with distribute")
+                    "with distribute. Found one at %s" % str(self.location))
 
         if not loc:
             return
