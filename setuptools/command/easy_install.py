@@ -1674,7 +1674,6 @@ def bootstrap():
     import setuptools; argv0 = os.path.dirname(setuptools.__path__[0])
     sys.argv[0] = argv0; sys.argv.append(argv0); main()
 
-
 def main(argv=None, **kw):
     from setuptools import setup
     from setuptools.dist import Distribution
@@ -1699,8 +1698,15 @@ usage: %(script)s [options] requirement_or_url ...
 
     class DistributionWithoutHelpCommands(Distribution):
         common_usage = ""
+
         def _show_help(self,*args,**kw):
             with_ei_usage(lambda: Distribution._show_help(self,*args,**kw))
+
+        def find_config_files(self):
+            files = Distribution.find_config_files(self)
+            if 'setup.cfg' in files:
+                files.remove('setup.cfg')
+            return files
 
     if argv is None:
         argv = sys.argv[1:]
