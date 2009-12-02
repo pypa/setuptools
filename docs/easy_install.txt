@@ -628,6 +628,9 @@ until and unless you override them explicitly in an ``[easy_install]`` section.
 For more information, see also the current Python documentation on the `use and
 location of distutils configuration files <http://docs.python.org/inst/config-syntax.html>`_.
 
+Notice that ``easy_install`` will use the ``setup.cfg`` from the current
+working directory only if it was triggered from ``setup.py`` through the
+``install_requires`` option. The standalone command will not use that file.
 
 Command-Line Options
 --------------------
@@ -904,7 +907,7 @@ Command-Line Options
     projects, not in-development ones, because such projects may not
     have a currently-valid version number.  So, it usually only installs them
     when their ``setup.py`` directory is explicitly passed on the command line.
-    
+
     However, if this option is used, then any in-development projects that were
     installed using the ``setup.py develop`` command, will be used to build
     eggs, effectively upgrading the "in-development" project to a snapshot
@@ -1257,7 +1260,7 @@ History
    installed using ``setup.py develop``.
 
  * Fixed not HTML-decoding URLs scraped from web pages
-  
+
 0.6c5
  * Fixed ``.dll`` files on Cygwin not having executable permisions when an egg
    is installed unzipped.
