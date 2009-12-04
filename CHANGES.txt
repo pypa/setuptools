@@ -19,6 +19,7 @@ CHANGES
   "setup.cfg" if any exists in the working directory. It will use it
   only if triggered by ``install_requires`` from a setup.py call
   (install, develop, etc).
+* Issue 101: Allowing ``os.devnull`` in Sandbox
 
 -----
 0.6.8

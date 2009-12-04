@@ -152,6 +152,8 @@ class AbstractSandbox:
         )
 
 
+_EXCEPTIONS = [os.devnull,]
+
 class DirectorySandbox(AbstractSandbox):
     """Restrict operations to a single subdirectory - pseudo-chroot"""
 
@@ -160,9 +162,10 @@ class DirectorySandbox(AbstractSandbox):
         "utime", "lchown", "chroot", "mkfifo", "mknod", "tempnam",
     ])
 
-    def __init__(self,sandbox):
+    def __init__(self, sandbox, exceptions=_EXCEPTIONS):
         self._sandbox = os.path.normcase(os.path.realpath(sandbox))
         self._prefix = os.path.join(self._sandbox,'')
+        self._exceptions = exceptions
         AbstractSandbox.__init__(self)
 
     def _violation(self, operation, *args, **kw):
@@ -187,7 +190,8 @@ class DirectorySandbox(AbstractSandbox):
         try:
             self._active = False
             realpath = os.path.normcase(os.path.realpath(path))
-            if realpath==self._sandbox or realpath.startswith(self._prefix):
+            if (realpath in self._exceptions or realpath == self._sandbox
+                or realpath.startswith(self._prefix)):
                 return True
         finally:
             self._active = active
