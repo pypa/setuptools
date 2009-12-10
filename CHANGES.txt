@@ -20,6 +20,8 @@ CHANGES
   only if triggered by ``install_requires`` from a setup.py call
   (install, develop, etc).
 * Issue 101: Allowing ``os.devnull`` in Sandbox
+* Issue 92: Fixed the "no eggs" found error with MacPort
+  (platform.mac_ver() fails)
 
 -----
 0.6.8

@@ -186,6 +186,16 @@ def _macosx_vers(_cache=[]):
     if not _cache:
         import platform
         version = platform.mac_ver()[0]
+        # fallback for MacPorts
+        if version == '':
+            import re
+            version_file = '/System/Library/CoreServices/SystemVersion.plist'
+            version_regexp = r'<key>ProductVersion</key>\n\t<string>(.*?)</string>'
+            if os.path.exists(version_file):
+                osx_version = open(version_file).read()
+                osx_version = re.findall(version_regexp, osx_version, re.M)
+                if len(osx_version) > 0:
+                    version = osx_version[0]
         _cache.append(version.split('.'))
     return _cache[0]
 
