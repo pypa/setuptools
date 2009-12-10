@@ -22,6 +22,8 @@ CHANGES
 * Issue 101: Allowing ``os.devnull`` in Sandbox
 * Issue 92: Fixed the "no eggs" found error with MacPort
   (platform.mac_ver() fails)
+* Issue 103: test_get_script_header_jython_workaround not run
+  anymore under py3 with C or POSIX local. Contributed by Arfrever.
 
 -----
 0.6.8

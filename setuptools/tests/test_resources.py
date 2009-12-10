@@ -533,6 +533,10 @@ class ScriptHeaderTests(TestCase):
                              '#!%s -x\n' % self.non_ascii_exe)
 
     def test_get_script_header_jython_workaround(self):
+        # This test doesn't work with Python 3 in some locales
+        if (sys.version_info >= (3,) and os.environ.get("LC_CTYPE")
+            in (None, "C", "POSIX")):
+            return
         platform = sys.platform
         sys.platform = 'java1.5.0_13'
         stdout = sys.stdout
