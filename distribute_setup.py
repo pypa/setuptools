@@ -81,7 +81,9 @@ def _install(tarball):
 
         # installing
         log.warn('Installing Distribute')
-        assert _python_cmd('setup.py', 'install')
+        if not _python_cmd('setup.py', 'install'):
+            log.warn('Something went wrong during the installation.')
+            log.warn('See the error message above.')
     finally:
         os.chdir(old_wd)
 

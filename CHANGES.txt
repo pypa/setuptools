@@ -24,6 +24,8 @@ CHANGES
   (platform.mac_ver() fails)
 * Issue 103: test_get_script_header_jython_workaround not run
   anymore under py3 with C or POSIX local. Contributed by Arfrever.
+* Issue 104: remvoved the assertion when the installation fails,
+  with a nicer message for the end user.
 
 -----
 0.6.8
