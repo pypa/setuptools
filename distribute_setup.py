@@ -224,21 +224,33 @@ def _patch_file(path, content):
 def _same_content(path, content):
     return open(path).read() == content
 
+def _no_sandbox(function):
+    def __no_sandbox(*args, **kw):
+        try:
+            from setuptools.sandbox import DirectorySandbox
+            def violation(*args):
+                pass
+            DirectorySandbox._old = DirectorySandbox._violation
+            DirectorySandbox._violation = violation
+            patched = True
+        except ImportError:
+            patched = False
 
+        try:
+            return function(*args, **kw)
+        finally:
+            if patched:
+                DirectorySandbox._violation = DirectorySandbox._old
+                del DirectorySandbox._old
+
+    return __no_sandbox
+
+@_no_sandbox
 def _rename_path(path):
     new_name = path + '.OLD.%s' % time.time()
     log.warn('Renaming %s into %s', path, new_name)
-    try:
-        from setuptools.sandbox import DirectorySandbox
-        def _violation(*args):
-            pass
-        DirectorySandbox._violation = _violation
-    except ImportError:
-        pass
-
     os.rename(path, new_name)
     return new_name
-
 
 def _remove_flat_installation(placeholder):
     if not os.path.isdir(placeholder):
@@ -279,6 +291,7 @@ def _after_install(dist):
     placeholder = dist.get_command_obj('install').install_purelib
     _create_fake_setuptools_pkg_info(placeholder)
 
+@_no_sandbox
 def _create_fake_setuptools_pkg_info(placeholder):
     if not placeholder or not os.path.exists(placeholder):
         log.warn('Could not find the install location')
@@ -290,12 +303,14 @@ def _create_fake_setuptools_pkg_info(placeholder):
     if os.path.exists(pkg_info):
         log.warn('%s already exists', pkg_info)
         return
+
     log.warn('Creating %s', pkg_info)
     f = open(pkg_info, 'w')
     try:
         f.write(SETUPTOOLS_PKG_INFO)
     finally:
         f.close()
+
     pth_file = os.path.join(placeholder, 'setuptools.pth')
     log.warn('Creating %s', pth_file)
     f = open(pth_file, 'w')
@@ -303,7 +318,6 @@ def _create_fake_setuptools_pkg_info(placeholder):
         f.write(os.path.join(os.curdir, setuptools_file))
     finally:
         f.close()
-
 
 def _patch_egg_dir(path):
     # let's check if it's already patched

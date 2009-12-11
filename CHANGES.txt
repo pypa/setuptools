@@ -26,6 +26,8 @@ CHANGES
   anymore under py3 with C or POSIX local. Contributed by Arfrever.
 * Issue 104: remvoved the assertion when the installation fails,
   with a nicer message for the end user.
+* Issue 100: making sure there's no SandboxViolation when
+  the setup script patches setuptools.
 
 -----
 0.6.8
