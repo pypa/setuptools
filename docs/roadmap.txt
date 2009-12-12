@@ -4,7 +4,7 @@ Roadmap
 
 Distribute has two branches:
 
-- 0.6.x : provides a Setuptools-0.6c9 compatible version
+- 0.6.x : provides a Setuptools-0.6cX compatible version
 - 0.7.x : will provide a refactoring
 
 0.6.x
@@ -69,7 +69,7 @@ we've done a lot already)
    reorganized in clean, pep-8 modules. This package will
    only contain the query APIs and will focus on being PEP 376
    compatible. We will promote its usage and see if Pip wants
-   to use it as a basis. 
+   to use it as a basis.
    It will probably shrink a lot though, once the stdlib provides PEP 376 support.
 
  - distribute.entrypoints: that's the old pkg_resources entry points

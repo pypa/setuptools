@@ -3,10 +3,10 @@ Welcome to Distribute's documentation!
 
 `Distribute` is a fork of the `Setuptools` project.
 
-Distribute is intended to replace Setuptools as the standard method for 
+Distribute is intended to replace Setuptools as the standard method for
 working with Python module distributions.
 
-For those who may wonder why they should switch to Distribute over Setuptools, it’s quite simple: 
+For those who may wonder why they should switch to Distribute over Setuptools, it’s quite simple:
 
 - Distribute is a drop-in replacement for Setuptools
 - The code is actively maintained, and has over 10 commiters
