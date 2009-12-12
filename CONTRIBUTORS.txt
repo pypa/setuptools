@@ -4,6 +4,7 @@ Contributors
 
 * Alex Grönholm
 * Alice Bevan-McGregor
+* Arfrever Frehtes Taifersar Arahesis
 * Daniel Stutzbach
 * Hanno Schlichting
 * Jannis Leidel
