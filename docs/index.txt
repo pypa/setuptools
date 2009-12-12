@@ -14,6 +14,8 @@ For those who may wonder why they should switch to Distribute over Setuptools, i
 
 .. image:: http://python-distribute.org/pip_distribute.png
 
+Design done by Idan Gazit (http://pixane.com) - License: cc-by-3.0
+
 
 Documentation content:
 
