@@ -2,6 +2,14 @@
 CHANGES
 =======
 
+------
+0.6.10
+------
+
+* Reverted change made for the DistributionNotFound exception because
+  zc.buildout uses the exception message to get the name of the
+  distribution.
+
 -----
 0.6.9
 -----
