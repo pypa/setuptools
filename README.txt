@@ -29,7 +29,7 @@ The fork has two goals:
   the same as for Python 2 code, but Distribute also helps you to support
   Python 2 and Python 3 from the same source code by letting you run 2to3
   on the code as a part of the build process, by setting the keyword parameter
-  ``use_2to3`` to True. See http://packages.python.org/distribute for more 
+  ``use_2to3`` to True. See http://packages.python.org/distribute for more
   information.
 
 - Refactoring the code, and releasing it in several distributions.
@@ -45,7 +45,7 @@ More documentation
 ==================
 
 You can get more information in the Sphinx-based documentation, located
-at http://packages.python.org/distribute. This documentation includes the old 
+at http://packages.python.org/distribute. This documentation includes the old
 Setuptools documentation that is slowly replaced, and brand new content.
 
 About the installation process
@@ -117,7 +117,7 @@ Uninstallation Instructions
 ---------------------------
 
 Like other distutils-based distributions, Distribute doesn't provide an
-uninstaller yet. It's all done manually! We are all waiting for PEP 376 
+uninstaller yet. It's all done manually! We are all waiting for PEP 376
 support in Python.
 
 Distribute is installed in three steps:
@@ -150,36 +150,30 @@ Quick help for developers
 -------------------------
 
 To create an egg which is compatible with Distribute, use the same
-practice as with Setuptools, e.g.:
+practice as with Setuptools, e.g.::
 
-{{{
-from setuptools import setup
+    from setuptools import setup
 
-setup(...
-)
-}}}
+    setup(...
+    )
 
 To use `pkg_resources` to access data files in the egg, you should
-require the Setuptools distribution explicitly:
+require the Setuptools distribution explicitly::
 
-{{{
-from setuptools import setup
+    from setuptools import setup
 
-setup(...
-     install_requires=['setuptools']
-)
-}}}
+    setup(...
+        install_requires=['setuptools']
+    )
 
 Only if you need Distribute-specific functionality should you depend
-on it explicitly. In this case, replace the Setuptools dependency:
+on it explicitly. In this case, replace the Setuptools dependency::
 
-{{{
-from setuptools import setup
+    from setuptools import setup
 
-setup(...
-     install_requires=['distribute']
-)
-}}}
+    setup(...
+        install_requires=['distribute']
+    )
 
 -----------
 Install FAQ
@@ -208,7 +202,7 @@ Install FAQ
   and if the virtualenv you are in was generated without the `--no-site-packages`
   option, the Distribute installation will stop.
 
-  You need in this case to build a virtualenv with the `--no-site-packages` 
+  You need in this case to build a virtualenv with the `--no-site-packages`
   option or to install `Distribute` globally.
 
 - **How does Distribute interacts with zc.buildout?**
