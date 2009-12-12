@@ -5,7 +5,7 @@ __all__ = [
     'register', 'bdist_wininst', 'upload_docs',
 ]
 
-from setuptools.command.install_scripts import install_scripts
+from setuptools.command import install_scripts
 import sys
 
 if sys.version>='2.5':
