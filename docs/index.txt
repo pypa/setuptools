@@ -12,11 +12,6 @@ For those who may wonder why they should switch to Distribute over Setuptools, i
 - The code is actively maintained, and has over 10 commiters
 - Distribute offers Python 3 support !
 
-.. image:: http://python-distribute.org/pip_distribute.png
-
-Design done by Idan Gazit (http://pixane.com) - License: cc-by-3.0
-
-
 Documentation content:
 
 .. toctree::
@@ -28,3 +23,8 @@ Documentation content:
    setuptools
    easy_install
    pkg_resources
+
+
+.. image:: http://python-distribute.org/pip_distribute.png
+
+Design done by Idan Gazit (http://pixane.com) - License: cc-by-3.0
