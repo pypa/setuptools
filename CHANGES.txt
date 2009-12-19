@@ -7,7 +7,7 @@ CHANGES
 ------
 
 * Found another case of SandboxViolation - fixed
-
+* Issue 48: Introduced a socket timeout of 15 seconds on url openings
 
 ------
 0.6.10

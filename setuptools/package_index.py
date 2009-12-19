@@ -25,6 +25,8 @@ __all__ = [
     'interpret_distro_name',
 ]
 
+_SOCKET_TIMEOUT = 15
+
 def parse_bdist_wininst(name):
     """Return (base,pyversion) or (None,None) for possible .exe name"""
 
@@ -717,6 +719,17 @@ def htmldecode(text):
 
 
 
+def socket_timeout(timeout=15):
+    def _socket_timeout(func):
+        def _socket_timeout(*args, **kwargs):
+            old_timeout = socket.getdefaulttimeout()
+            socket.setdefaulttimeout(timeout)
+            try:
+                return func(*args, **kwargs)
+            finally:
+                socket.setdefaulttimeout(old_timeout)
+        return _socket_timeout
+    return _socket_timeout
 
 
 def open_with_auth(url):
@@ -749,6 +762,8 @@ def open_with_auth(url):
 
     return fp
 
+# adding a timeout to avoid freezing package_index
+open_with_auth = socket_timeout(_SOCKET_TIMEOUT)(open_with_auth)
 
 
 
