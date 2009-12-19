@@ -6,6 +6,7 @@ CHANGES
 0.6.11
 ------
 
+* Found another case of SandboxViolation - fixed
 
 
 ------

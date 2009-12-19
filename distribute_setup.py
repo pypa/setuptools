@@ -203,7 +203,31 @@ def download_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
                 dst.close()
     return os.path.realpath(saveto)
 
+def _no_sandbox(function):
+    def __no_sandbox(*args, **kw):
+        try:
+            from setuptools.sandbox import DirectorySandbox
+            if not hasattr(DirectorySandbox, '_old'):
+                def violation(*args):
+                    pass
+                DirectorySandbox._old = DirectorySandbox._violation
+                DirectorySandbox._violation = violation
+                patched = True
+            else:
+                patched = False
+        except ImportError:
+            patched = False
 
+        try:
+            return function(*args, **kw)
+        finally:
+            if patched:
+                DirectorySandbox._violation = DirectorySandbox._old
+                del DirectorySandbox._old
+
+    return __no_sandbox
+
+@_no_sandbox
 def _patch_file(path, content):
     """Will backup the file then patch it"""
     existing_content = open(path).read()
@@ -224,34 +248,13 @@ def _patch_file(path, content):
 def _same_content(path, content):
     return open(path).read() == content
 
-def _no_sandbox(function):
-    def __no_sandbox(*args, **kw):
-        try:
-            from setuptools.sandbox import DirectorySandbox
-            def violation(*args):
-                pass
-            DirectorySandbox._old = DirectorySandbox._violation
-            DirectorySandbox._violation = violation
-            patched = True
-        except ImportError:
-            patched = False
-
-        try:
-            return function(*args, **kw)
-        finally:
-            if patched:
-                DirectorySandbox._violation = DirectorySandbox._old
-                del DirectorySandbox._old
-
-    return __no_sandbox
-
-@_no_sandbox
 def _rename_path(path):
     new_name = path + '.OLD.%s' % time.time()
     log.warn('Renaming %s into %s', path, new_name)
     os.rename(path, new_name)
     return new_name
 
+@_no_sandbox
 def _remove_flat_installation(placeholder):
     if not os.path.isdir(placeholder):
         log.warn('Unkown installation at %s', placeholder)
@@ -319,6 +322,7 @@ def _create_fake_setuptools_pkg_info(placeholder):
     finally:
         f.close()
 
+@_no_sandbox
 def _patch_egg_dir(path):
     # let's check if it's already patched
     pkg_info = os.path.join(path, 'EGG-INFO', 'PKG-INFO')
