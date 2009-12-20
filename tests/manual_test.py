@@ -2,9 +2,13 @@
 import os
 import shutil
 import tempfile
-import urllib2
 import subprocess
 import sys
+
+if sys.version_info[0] < 3:
+    from urllib2 import urlopen
+else:
+    from urllib.request import urlopen
 
 def tempdir(func):
     def _tempdir(*args, **kwargs):
@@ -61,7 +65,7 @@ def test_full():
         f.write(SIMPLE_BUILDOUT)
 
     with open('bootstrap.py', 'w') as f:
-        f.write(urllib2.urlopen(BOOTSTRAP).read())
+        f.write(urlopen(BOOTSTRAP).read())
 
     os.system('bin/python bootstrap.py --distribute')
     os.system('bin/buildout -q')
