@@ -75,5 +75,5 @@ def test_full():
 
 if __name__ == '__main__':
     test_virtualenv()
-
+    test_full()
 
