@@ -4,6 +4,8 @@ import shutil
 import tempfile
 import subprocess
 import sys
+from distutils.command.install import INSTALL_SCHEMES
+from string import Template
 
 if sys.version_info[0] < 3:
     from urllib2 import urlopen
@@ -37,17 +39,27 @@ eggs =
 BOOTSTRAP = 'http://python-distribute.org/bootstrap.py'
 PYVER = sys.version.split()[0][:3]
 
+
+_VARS = {'base': '.',
+         'py_version_short': PYVER}
+
+if sys.platform == 'win32':
+    PURELIB = INSTALL_SCHEMES['nt']['purelib']
+else:
+    PURELIB = INSTALL_SCHEMES['unix_prefix']['purelib']
+
+
 @tempdir
 def test_virtualenv():
     """virtualenv with distribute"""
+    purelib = os.path.abspath(Template(PURELIB).substitute(**_VARS))
     os.system('virtualenv --no-site-packages . --distribute')
     os.system('bin/easy_install -q distribute==dev')
     # linux specific
-    site_pkg = os.listdir(os.path.join('.', 'lib', 'python'+PYVER, 'site-packages'))
+    site_pkg = os.listdir(purelib)
     site_pkg.sort()
     assert 'distribute' in site_pkg[0]
-    easy_install = os.path.join('.', 'lib', 'python'+PYVER, 'site-packages',
-                                'easy-install.pth')
+    easy_install = os.path.join(purelib, 'easy-install.pth')
     with open(easy_install) as f:
         res = f.read()
     assert 'distribute' in res
@@ -74,7 +86,7 @@ def test_full():
     assert len(eggs) == 3
     assert eggs[0].startswith('distribute')
     assert eggs[1:] == ['extensions-0.3-py2.6.egg',
-                    'zc.recipe.egg-1.2.2-py2.6.egg']
+                        'zc.recipe.egg-1.2.2-py2.6.egg']
 
 
 if __name__ == '__main__':
