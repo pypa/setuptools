@@ -11,6 +11,7 @@ import subprocess
 from distutils.command.install import INSTALL_SCHEMES
 from string import Template
 from urllib2 import urlopen
+import subprocess
 
 def tempdir(func):
     def _tempdir(*args, **kwargs):
@@ -48,13 +49,15 @@ if sys.platform == 'win32':
 else:
     PURELIB = INSTALL_SCHEMES['unix_prefix']['purelib']
 
+def _system_call(*args):
+    assert subprocess.call(args) == 0
 
 @tempdir
 def test_virtualenv():
     """virtualenv with distribute"""
     purelib = os.path.abspath(Template(PURELIB).substitute(**_VARS))
-    os.system('virtualenv --no-site-packages . --distribute')
-    os.system('bin/easy_install distribute==dev')
+    _system_call('virtualenv', '--no-site-packages', '.', '--distribute')
+    _system_call('bin/easy_install', 'distribute==dev')
     # linux specific
     site_pkg = os.listdir(purelib)
     site_pkg.sort()
@@ -68,19 +71,20 @@ def test_virtualenv():
 @tempdir
 def test_full():
     """virtualenv + pip + buildout"""
-    os.system('virtualenv --no-site-packages .')
-    os.system('bin/easy_install -q distribute==dev')
-    os.system('bin/easy_install -qU distribute==dev')
-    os.system('bin/easy_install -q pip')
-    os.system('bin/pip install -q zc.buildout')
+    _system_call('virtualenv', '--no-site-packages', '.')
+    _system_call('bin/easy_install', '-q', 'distribute==dev')
+    _system_call('bin/easy_install', '-qU', 'distribute==dev')
+    _system_call('bin/easy_install', '-q', 'pip')
+    _system_call('bin/pip', 'install', '-q', 'zc.buildout')
+
     with open('buildout.cfg', 'w') as f:
         f.write(SIMPLE_BUILDOUT)
 
     with open('bootstrap.py', 'w') as f:
         f.write(urlopen(BOOTSTRAP).read())
 
-    os.system('bin/python bootstrap.py --distribute')
-    os.system('bin/buildout -q')
+    _system_call('bin/python', 'bootstrap.py', '--distribute')
+    _system_call('bin/buildout', '-q')
     eggs = os.listdir('eggs')
     eggs.sort()
     assert len(eggs) == 3
