@@ -1,16 +1,16 @@
 #!/usr/bin/env python
+import sys
+
+if sys.version_info[0] >= 3:
+    raise NotImplementedError('Py3 not supported in this test yet')
+
 import os
 import shutil
 import tempfile
 import subprocess
-import sys
 from distutils.command.install import INSTALL_SCHEMES
 from string import Template
-
-if sys.version_info[0] < 3:
-    from urllib2 import urlopen
-else:
-    from urllib.request import urlopen
+from urllib2 import urlopen
 
 def tempdir(func):
     def _tempdir(*args, **kwargs):
@@ -38,7 +38,7 @@ eggs =
 
 BOOTSTRAP = 'http://python-distribute.org/bootstrap.py'
 PYVER = sys.version.split()[0][:3]
-
+DEV_URL = 'http://bitbucket.org/tarek/distribute/get/0.6-maintenance.zip#egg=distribute-dev'
 
 _VARS = {'base': '.',
          'py_version_short': PYVER}
@@ -54,7 +54,7 @@ def test_virtualenv():
     """virtualenv with distribute"""
     purelib = os.path.abspath(Template(PURELIB).substitute(**_VARS))
     os.system('virtualenv --no-site-packages . --distribute')
-    os.system('bin/easy_install -q distribute==dev')
+    os.system('bin/easy_install distribute==dev')
     # linux specific
     site_pkg = os.listdir(purelib)
     site_pkg.sort()
@@ -87,7 +87,6 @@ def test_full():
     assert eggs[0].startswith('distribute')
     assert eggs[1:] == ['extensions-0.3-py2.6.egg',
                         'zc.recipe.egg-1.2.2-py2.6.egg']
-
 
 if __name__ == '__main__':
     test_virtualenv()
