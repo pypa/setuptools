@@ -7,11 +7,25 @@ if sys.version_info[0] >= 3:
 import os
 import shutil
 import tempfile
-import subprocess
 from distutils.command.install import INSTALL_SCHEMES
 from string import Template
 from urllib2 import urlopen
-import subprocess
+
+try:
+    import subprocess
+    def _system_call(*args):
+        assert subprocess.call(args) == 0
+except ImportError:
+    # Python 2.3
+    def _system_call(*args):
+        # quoting arguments if windows
+        if sys.platform == 'win32':
+            def quote(arg):
+                if ' ' in arg:
+                    return '"%s"' % arg
+                return arg
+            args = [quote(arg) for arg in args]
+        assert os.system(' '.join(args)) == 0
 
 def tempdir(func):
     def _tempdir(*args, **kwargs):
@@ -49,8 +63,6 @@ if sys.platform == 'win32':
 else:
     PURELIB = INSTALL_SCHEMES['unix_prefix']['purelib']
 
-def _system_call(*args):
-    assert subprocess.call(args) == 0
 
 @tempdir
 def test_virtualenv():
