@@ -9,6 +9,7 @@ CHANGES
 * Found another case of SandboxViolation - fixed
 * Issue 15 and 48: Introduced a socket timeout of 15 seconds on url openings
 * Added indexsidebar.html into MANIFEST.in
+* Issue 108: Fixed TypeError with Python3.1
 
 ------
 0.6.10

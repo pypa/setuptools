@@ -1104,6 +1104,10 @@ Please make the appropriate changes for your system and try again.""" % (
             log.debug("Checking existing site.py in %s", self.install_dir)
             f = open(sitepy,'rb')
             current = f.read()
+            # we want str, not bytes
+            if sys.version_info >= (3,):
+                current = current.decode()
+
             f.close()
             if not current.startswith('def __boot():'):
                 raise DistutilsError(
