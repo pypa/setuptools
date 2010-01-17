@@ -75,8 +75,14 @@ class upload_docs(upload):
             'content': (os.path.basename(filename), content),
         }
         # set up the authentication
-        auth = "Basic " + base64.encodestring(
-            self.username + ":" + self.password).strip()
+        credentials = self.username + ':' + self.password
+        try:  # base64 only works with bytes in Python 3.
+            encoded_creds = base64.encodebytes(credentials.encode('utf8'))
+            auth = b"Basic"
+        except AttributeError:
+            encoded_creds = base64.encodestring(credentials)
+            auth = "Basic"
+        auth += encoded_creds.strip()
 
         # Build up the MIME payload for the POST data
         boundary = '--------------GHSKFJDLGDS7543FJKLFHRE75642756743254'
