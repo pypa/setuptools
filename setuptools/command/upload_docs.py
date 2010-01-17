@@ -121,28 +121,28 @@ class upload_docs(upload):
             urlparse.urlparse(self.repository)
         assert not params and not query and not fragments
         if schema == 'http':
-            http = httplib.HTTPConnection(netloc)
+            conn = httplib.HTTPConnection(netloc)
         elif schema == 'https':
-            http = httplib.HTTPSConnection(netloc)
+            conn = httplib.HTTPSConnection(netloc)
         else:
             raise AssertionError("unsupported schema "+schema)
 
         data = ''
         loglevel = log.INFO
         try:
-            http.connect()
-            http.putrequest("POST", url)
-            http.putheader('Content-type',
+            conn.connect()
+            conn.putrequest("POST", url)
+            conn.putheader('Content-type',
                            'multipart/form-data; boundary=%s'%boundary)
-            http.putheader('Content-length', str(len(body)))
-            http.putheader('Authorization', auth)
-            http.endheaders()
-            http.send(body)
+            conn.putheader('Content-length', str(len(body)))
+            conn.putheader('Authorization', auth)
+            conn.endheaders()
+            conn.send(body)
         except socket.error, e:
             self.announce(str(e), log.ERROR)
             return
 
-        r = http.getresponse()
+        r = conn.getresponse()
         if r.status == 200:
             self.announce('Server response (%s): %s' % (r.status, r.reason),
                           log.INFO)
