@@ -12,11 +12,24 @@ import httplib
 import base64
 import urlparse
 import tempfile
-import cStringIO as StringIO
 
 from distutils import log
 from distutils.errors import DistutilsOptionError
 from distutils.command.upload import upload
+
+try:
+    bytes
+except NameError:
+    bytes = str
+
+def b(str_or_bytes):
+    """Return bytes by either encoding the argument as ASCII or simply return
+    the argument as-is."""
+    if not isinstance(str_or_bytes, bytes):
+        return str_or_bytes.encode('ascii')
+    else:
+        return str_or_bytes
+
 
 class upload_docs(upload):
 
@@ -85,31 +98,30 @@ class upload_docs(upload):
         auth += encoded_creds.strip()
 
         # Build up the MIME payload for the POST data
-        boundary = '--------------GHSKFJDLGDS7543FJKLFHRE75642756743254'
-        sep_boundary = '\n--' + boundary
-        end_boundary = sep_boundary + '--'
-        body = StringIO.StringIO()
+        boundary = b('--------------GHSKFJDLGDS7543FJKLFHRE75642756743254')
+        sep_boundary = b('\n--') + boundary
+        end_boundary = sep_boundary + b('--')
+        body = []
         for key, values in data.items():
             # handle multiple entries for the same name
             if type(values) != type([]):
                 values = [values]
             for value in values:
                 if type(value) is tuple:
-                    fn = ';filename="%s"' % value[0]
+                    fn = b(';filename="%s"' % value[0])
                     value = value[1]
                 else:
-                    fn = ""
-                value = str(value)
-                body.write(sep_boundary)
-                body.write('\nContent-Disposition: form-data; name="%s"'%key)
-                body.write(fn)
-                body.write("\n\n")
-                body.write(value)
-                if value and value[-1] == '\r':
-                    body.write('\n')  # write an extra newline (lurve Macs)
-        body.write(end_boundary)
-        body.write("\n")
-        body = body.getvalue()
+                    fn = b("")
+                body.append(sep_boundary)
+                body.append(b('\nContent-Disposition: form-data; name="%s"'%key))
+                body.append(fn)
+                body.append(b("\n\n"))
+                body.append(b(value))
+                if value and value[-1] == b('\r'):
+                    body.append(b('\n'))  # write an extra newline (lurve Macs)
+        body.append(end_boundary)
+        body.append(b("\n"))
+        body = b('').join(body)
 
         self.announce("Submitting documentation to %s" % (self.repository),
                       log.INFO)
