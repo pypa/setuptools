@@ -89,11 +89,11 @@ class upload_docs(upload):
         sep_boundary = '\n--' + boundary
         end_boundary = sep_boundary + '--'
         body = StringIO.StringIO()
-        for key, value in data.items():
+        for key, values in data.items():
             # handle multiple entries for the same name
-            if type(value) != type([]):
-                value = [value]
-            for value in value:
+            if type(values) != type([]):
+                values = [values]
+            for value in values:
                 if type(value) is tuple:
                     fn = ';filename="%s"' % value[0]
                     value = value[1]
