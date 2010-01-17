@@ -1,6 +1,7 @@
 syntax: glob
 *.pyc
 *~
+*.swp
 .coverage
 distribute.egg-info
 build
