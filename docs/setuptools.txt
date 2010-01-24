@@ -405,13 +405,13 @@ unless you need the associated ``setuptools`` feature.
     below on `Automatic Resource Extraction`_.
 
 ``use_2to3``
-    Convert the source code from Python 2 to Python 3 with 2to3 during the 
+    Convert the source code from Python 2 to Python 3 with 2to3 during the
     build process. See :doc:`python3` for more details.
 
 ``convert_2to3_doctests``
-    List of doctest source files that need to be converted with 2to3. 
+    List of doctest source files that need to be converted with 2to3.
     See :doc:`python3` for more details.
-    
+
 ``use_2to3_fixers``
     A list of modules to search for additional fixers to be used during
     the 2to3 conversion. See :doc:`python3` for more details.
@@ -2726,7 +2726,7 @@ History
    C-based module, instead of getting a ``NameError``).
 
 0.6c7
- * Fixed ``distutils.filelist.findall()`` crashing on broken symlinks, and 
+ * Fixed ``distutils.filelist.findall()`` crashing on broken symlinks, and
    ``egg_info`` command failing on new, uncommitted SVN directories.
 
  * Fix import problems with nested namespace packages installed via
@@ -2753,7 +2753,7 @@ History
 
  * Fix ``find_packages()`` treating ``ez_setup`` and directories with ``.`` in
    their names as packages.
- 
+
 0.6c5
  * Fix uploaded ``bdist_rpm`` packages being described as ``bdist_egg``
    packages under Python versions less than 2.5.

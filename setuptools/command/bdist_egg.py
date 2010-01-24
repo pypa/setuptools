@@ -6,7 +6,12 @@ Build .egg distributions"""
 import sys, os, marshal
 from setuptools import Command
 from distutils.dir_util import remove_tree, mkpath
-from distutils.sysconfig import get_python_version, get_python_lib
+try:
+    from distutils.sysconfig import get_python_version, get_python_lib
+except ImportError:
+    from sysconfig import get_python_version
+    from distutils.sysconfig import get_python_lib
+
 from distutils import log
 from distutils.errors import DistutilsSetupError
 from pkg_resources import get_build_platform, Distribution, ensure_directory
