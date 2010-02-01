@@ -1224,6 +1224,8 @@ Release Notes/Change History
  * Fixed bogus AttributeError when no local or downloadable packages are
    available
 
+ * Fix for recent Sourceforge downloading changes
+
 0.6c11
  * Fix installed script .exe files not working with 64-bit Python on Windows
    (wasn't actually released in 0.6c10 due to a lost checkin)

@@ -590,9 +590,8 @@ class PackageIndex(Environment):
     def _download_url(self, scheme, url, tmpdir):
         # Determine download filename
         #
-        name = filter(None,urlparse.urlparse(url)[2].split('/'))
+        name, fragment = egg_info_for_url(url)
         if name:
-            name = name[-1]
             while '..' in name:
                 name = name.replace('..','.').replace('\\','_')
         else:
@@ -612,6 +611,7 @@ class PackageIndex(Environment):
         else:
             self.url_ok(url, True)   # raises error if not allowed
             return self._attempt_download(url, filename)
+
 
     def scan_url(self, url):
         self.process_url(url, True)
