@@ -14,9 +14,11 @@ from glob import glob
 from setuptools import Command
 from setuptools.sandbox import run_setup
 from distutils import log, dir_util
-from distutils.sysconfig import get_python_lib
+from distutils.util import convert_path, subst_vars
+from distutils.sysconfig import get_python_lib, get_config_vars
 from distutils.errors import DistutilsArgError, DistutilsOptionError, \
     DistutilsError
+from distutils.command.install import INSTALL_SCHEMES, SCHEME_KEYS
 from setuptools.archive_util import unpack_archive
 from setuptools.package_index import PackageIndex, parse_bdist_wininst
 from setuptools.package_index import URL_SCHEME
@@ -28,6 +30,16 @@ __all__ = [
     'samefile', 'easy_install', 'PthDistributions', 'extract_wininst_cfg',
     'main', 'get_exe_prefixes',
 ]
+
+
+if sys.version < "2.6":
+    USER_BASE = None
+    USER_SITE = None
+    HAS_USER_SITE = False
+else:
+    from site import USER_BASE
+    from site import USER_SITE
+    HAS_USER_SITE = True
 
 def samefile(p1,p2):
     if hasattr(os.path,'samefile') and (
@@ -97,10 +109,18 @@ class easy_install(Command):
         'delete-conflicting', 'ignore-conflicts-at-my-risk', 'editable',
         'no-deps', 'local-snapshots-ok', 'version'
     ]
+
+    if HAS_USER_SITE:
+        user_options.append(('user', None,
+                             "install in user site-package '%s'" % USER_SITE))
+        boolean_options.append('user')
+
+
     negative_opt = {'always-unzip': 'zip-ok'}
     create_index = PackageIndex
 
     def initialize_options(self):
+        self.user = 0
         self.zip_ok = self.local_snapshots_ok = None
         self.install_dir = self.script_dir = self.exclude_scripts = None
         self.index_url = None
@@ -112,6 +132,16 @@ class easy_install(Command):
         self.editable = self.no_deps = self.allow_hosts = None
         self.root = self.prefix = self.no_report = None
         self.version = None
+        self.install_purelib = None     # for pure module distributions
+        self.install_platlib = None     # non-pure (dists w/ extensions)
+        self.install_headers = None     # for C/C++ headers
+        self.install_lib = None         # set to either purelib or platlib
+        self.install_scripts = None
+        self.install_data = None
+        self.install_base = None
+        self.install_platbase = None
+        self.install_userbase = USER_BASE
+        self.install_usersite = USER_SITE
 
         # Options not specifiable via command line
         self.package_index = None
@@ -146,6 +176,42 @@ class easy_install(Command):
         if self.version:
             print 'distribute %s' % get_distribution('distribute').version
             sys.exit()
+
+        py_version = sys.version.split()[0]
+        prefix, exec_prefix = get_config_vars('prefix', 'exec_prefix')
+
+        self.config_vars = {'dist_name': self.distribution.get_name(),
+                            'dist_version': self.distribution.get_version(),
+                            'dist_fullname': self.distribution.get_fullname(),
+                            'py_version': py_version,
+                            'py_version_short': py_version[0:3],
+                            'py_version_nodot': py_version[0] + py_version[2],
+                            'sys_prefix': prefix,
+                            'prefix': prefix,
+                            'sys_exec_prefix': exec_prefix,
+                            'exec_prefix': exec_prefix,
+                           }
+
+        if HAS_USER_SITE:
+            self.config_vars['userbase'] = self.install_userbase
+            self.config_vars['usersite'] = self.install_usersite
+
+        # fix the install_dir if "--user" was used
+        #XXX: duplicate of the code in the setup command
+        if self.user:
+            self.create_home_path()
+            if self.install_userbase is None:
+                raise DistutilsPlatformError(
+                    "User base directory is not specified")
+            self.install_base = self.install_platbase = self.install_userbase
+            if os.name == 'posix':
+                self.select_scheme("unix_user")
+            else:
+                self.select_scheme(os.name + "_user")
+
+        if self.user and self.install_purelib:
+            self.install_dir = self.install_purelib
+            self.script_dir = self.install_scripts
 
         self._expand('install_dir','script_dir','build_directory','site_dirs')
         # If a non-default installation directory was specified, default the
@@ -511,6 +577,15 @@ Please make the appropriate changes for your system and try again.
                     return dist
 
 
+
+    def select_scheme(self, name):
+        """Sets the install directories by applying the install schemes."""
+        # it's the caller's problem if they supply a bad name!
+        scheme = INSTALL_SCHEMES[name]
+        for key in SCHEME_KEYS:
+            attrname = 'install_' + key
+            if getattr(self, attrname) is None:
+                setattr(self, attrname, scheme[key])
 
 
 
@@ -1129,7 +1204,15 @@ Please make the appropriate changes for your system and try again.""" % (
 
 
 
-
+    def create_home_path(self):
+        """Create directories under ~."""
+        if not self.user:
+            return
+        home = convert_path(os.path.expanduser("~"))
+        for name, path in self.config_vars.iteritems():
+            if path.startswith(home) and not os.path.isdir(path):
+                self.debug_print("os.makedirs('%s', 0700)" % path)
+                os.makedirs(path, 0700)
 
 
 
