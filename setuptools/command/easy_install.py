@@ -17,13 +17,19 @@ from distutils import log, dir_util
 from distutils.util import convert_path, subst_vars
 from distutils.sysconfig import get_python_lib, get_config_vars
 from distutils.errors import DistutilsArgError, DistutilsOptionError, \
-    DistutilsError
+    DistutilsError, DistutilsPlatformError
 from distutils.command.install import INSTALL_SCHEMES, SCHEME_KEYS
 from setuptools.archive_util import unpack_archive
-from setuptools.package_index import PackageIndex, parse_bdist_wininst
+from setuptools.package_index import PackageIndex
 from setuptools.package_index import URL_SCHEME
 from setuptools.command import bdist_egg, egg_info
-from pkg_resources import *
+from pkg_resources import yield_lines, normalize_path, resource_string, \
+        ensure_directory, get_distribution, find_distributions, \
+        Environment, Requirement, Distribution, \
+        PathMetadata, EggMetadata, WorkingSet, \
+         DistributionNotFound, VersionConflict, \
+        DEVELOP_DIST
+
 sys_executable = os.path.normpath(sys.executable)
 
 __all__ = [
@@ -31,15 +37,8 @@ __all__ = [
     'main', 'get_exe_prefixes',
 ]
 
-
-if sys.version < "2.6":
-    USER_BASE = None
-    USER_SITE = None
-    HAS_USER_SITE = False
-else:
-    from site import USER_BASE
-    from site import USER_SITE
-    HAS_USER_SITE = True
+import site
+HAS_USER_SITE = not sys.version < "2.6"
 
 def samefile(p1,p2):
     if hasattr(os.path,'samefile') and (
@@ -112,7 +111,7 @@ class easy_install(Command):
 
     if HAS_USER_SITE:
         user_options.append(('user', None,
-                             "install in user site-package '%s'" % USER_SITE))
+                             "install in user site-package '%s'" % site.USER_SITE))
         boolean_options.append('user')
 
 
@@ -140,8 +139,8 @@ class easy_install(Command):
         self.install_data = None
         self.install_base = None
         self.install_platbase = None
-        self.install_userbase = USER_BASE
-        self.install_usersite = USER_SITE
+        self.install_userbase = site.USER_BASE
+        self.install_usersite = site.USER_SITE
 
         # Options not specifiable via command line
         self.package_index = None
@@ -209,10 +208,9 @@ class easy_install(Command):
             else:
                 self.select_scheme(os.name + "_user")
 
-        if self.user and self.install_purelib:
-            self.install_dir = self.install_purelib
-            self.script_dir = self.install_scripts
-
+        self.expand_basedirs()
+        self.expand_dirs()
+        
         self._expand('install_dir','script_dir','build_directory','site_dirs')
         # If a non-default installation directory was specified, default the
         # script directory to match it.
@@ -229,6 +227,10 @@ class easy_install(Command):
         self.set_undefined_options('install_scripts',
             ('install_dir', 'script_dir')
         )
+
+        if self.user and self.install_purelib:
+            self.install_dir = self.install_purelib
+            self.script_dir = self.install_scripts
         # default --record from the install command
         self.set_undefined_options('install', ('record', 'record'))
         normpath = map(normalize_path, sys.path)
@@ -294,6 +296,27 @@ class easy_install(Command):
 
         self.outputs = []
 
+
+    def _expand_attrs(self, attrs):
+        for attr in attrs:
+            val = getattr(self, attr)
+            if val is not None:
+                if os.name == 'posix' or os.name == 'nt':
+                    val = os.path.expanduser(val)
+                val = subst_vars(val, self.config_vars)
+                setattr(self, attr, val)
+
+    def expand_basedirs(self):
+        """Calls `os.path.expanduser` on install_base, install_platbase and
+        root."""
+        self._expand_attrs(['install_base', 'install_platbase', 'root'])
+
+    def expand_dirs(self):
+        """Calls `os.path.expanduser` on install dirs."""
+        self._expand_attrs(['install_purelib', 'install_platlib',
+                            'install_lib', 'install_headers',
+                            'install_scripts', 'install_data',])
+
     def run(self):
         if self.verbose<>self.distribution.verbose:
             log.set_verbosity(self.verbose)
@@ -337,6 +360,7 @@ class easy_install(Command):
 
     def check_site_dir(self):
         """Verify that self.install_dir is .pth-capable dir, if needed"""
+        print 'install_dir', self.install_dir
         instdir = normalize_path(self.install_dir)
         pth_file = os.path.join(instdir,'easy-install.pth')
 

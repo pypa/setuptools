@@ -28,9 +28,9 @@ class TestDevelopTest(unittest.TestCase):
         os.chdir(self.dir)
         if sys.version >= "2.6":
             self.old_base = site.USER_BASE
-            site.USER_BASE = easy_install_pkg.USER_BASE = tempfile.mkdtemp()
+            site.USER_BASE = tempfile.mkdtemp()
             self.old_site = site.USER_SITE
-            site.USER_SITE = easy_install_pkg.USER_SITE = tempfile.mkdtemp()
+            site.USER_SITE = tempfile.mkdtemp()
 
     def tearDown(self): 
         os.chdir(self.old_cwd)
@@ -38,8 +38,8 @@ class TestDevelopTest(unittest.TestCase):
         if sys.version >= "2.6":
             shutil.rmtree(site.USER_BASE)
             shutil.rmtree(site.USER_SITE)
-            easy_install_pkg.USER_BASE = site.USER_BASE = self.old_base
-            easy_install_pkg.USER_SITE = site.USER_SITE = self.old_site
+            site.USER_BASE = self.old_base
+            site.USER_SITE = self.old_site
 
     def test_develop(self):
         if sys.version < "2.6":
@@ -49,6 +49,7 @@ class TestDevelopTest(unittest.TestCase):
         cmd = develop(dist)
         cmd.user = 1
         cmd.ensure_finalized()
+        cmd.install_dir = site.USER_SITE
         cmd.user = 1
         old_stdout = sys.stdout
         sys.stdout = StringIO()

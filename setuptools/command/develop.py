@@ -35,25 +35,6 @@ class develop(easy_install):
         self.always_copy_from = '.'   # always copy eggs installed in curdir
 
 
-    def _expand_attrs(self, attrs):
-        for attr in attrs:
-            val = getattr(self, attr)
-            if val is not None:
-                if os.name == 'posix' or os.name == 'nt':
-                    val = os.path.expanduser(val)
-                val = subst_vars(val, self.config_vars)
-                setattr(self, attr, val)
-
-    def expand_basedirs(self):
-        """Calls `os.path.expanduser` on install_base, install_platbase and
-        root."""
-        self._expand_attrs(['install_base', 'install_platbase', 'root'])
-
-    def expand_dirs(self):
-        """Calls `os.path.expanduser` on install dirs."""
-        self._expand_attrs(['install_purelib', 'install_platlib',
-                            'install_lib', 'install_headers',
-                            'install_scripts', 'install_data',])
 
     def finalize_options(self):
         ei = self.get_finalized_command("egg_info")
