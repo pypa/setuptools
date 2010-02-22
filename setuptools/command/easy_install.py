@@ -9,7 +9,7 @@ file, or visit the `EasyInstall home page`__.
 
 __ http://peak.telecommunity.com/DevCenter/EasyInstall
 """
-import sys, os.path, zipimport, shutil, tempfile, zipfile, re, stat, random
+import sys, os, os.path, zipimport, shutil, tempfile, zipfile, re, stat, random
 from glob import glob
 from setuptools import Command
 from setuptools.sandbox import run_setup
@@ -360,6 +360,7 @@ Please make the appropriate changes for your system and try again.
         ok_exists = os.path.exists(ok_file)
         try:
             if ok_exists: os.unlink(ok_file)
+            os.makedirs(os.path.dirname(ok_file))
             f = open(pth_file,'w')
         except (OSError,IOError):
             self.cant_write_to_target()
