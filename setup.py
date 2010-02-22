@@ -82,7 +82,9 @@ def _being_installed():
         # Installed by buildout, don't mess with a global setuptools.
         return False
     # easy_install marker
-    return 'install' in sys.argv[1:] or _easy_install_marker()
+    if "--help" in sys.argv[1:] or "-h" in sys.argv[1:]: # Don't bother doing anything if they're just asking for help
+        return False
+    return  'install' in sys.argv[1:] or _easy_install_marker()
 
 if _being_installed():
     from distribute_setup import _before_install

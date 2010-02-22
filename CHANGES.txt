@@ -10,6 +10,7 @@ CHANGES
 * Issue 15 and 48: Introduced a socket timeout of 15 seconds on url openings
 * Added indexsidebar.html into MANIFEST.in
 * Issue 108: Fixed TypeError with Python3.1
+* Issue 121: Fixed --help install command trying to actually install.
 
 ------
 0.6.10
