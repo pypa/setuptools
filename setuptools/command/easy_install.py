@@ -9,7 +9,7 @@ file, or visit the `EasyInstall home page`__.
 
 __ http://peak.telecommunity.com/DevCenter/EasyInstall
 """
-import sys, os, os.path, zipimport, shutil, tempfile, zipfile, re, stat, random
+import sys, os.path, zipimport, shutil, tempfile, zipfile, re, stat, random
 from glob import glob
 from setuptools import Command
 from setuptools.sandbox import run_setup
@@ -18,7 +18,7 @@ from distutils.sysconfig import get_python_lib
 from distutils.errors import DistutilsArgError, DistutilsOptionError, \
     DistutilsError
 from setuptools.archive_util import unpack_archive
-from setuptools.package_index import PackageIndex, parse_bdist_wininst
+from setuptools.package_index import PackageIndex
 from setuptools.package_index import URL_SCHEME
 from setuptools.command import bdist_egg, egg_info
 from pkg_resources import *
