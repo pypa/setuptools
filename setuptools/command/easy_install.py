@@ -7,7 +7,8 @@ A tool for doing automatic download/extract/build of distutils-based Python
 packages.  For detailed documentation, see the accompanying EasyInstall.txt
 file, or visit the `EasyInstall home page`__.
 
-__ http://peak.telecommunity.com/DevCenter/EasyInstall
+__ http://packages.python.org/distribute/easy_install.html
+
 """
 import sys, os.path, zipimport, shutil, tempfile, zipfile, re, stat, random
 from glob import glob
@@ -102,6 +103,8 @@ class easy_install(Command):
         ('allow-hosts=', 'H', "pattern(s) that hostnames must match"),
         ('local-snapshots-ok', 'l', "allow building eggs from local checkouts"),
         ('version', None, "print version information and exit"),
+        ('no-find-links', None,
+         "Don't load find-links defined in packages being installed")
     ]
     boolean_options = [
         'zip-ok', 'multi-version', 'exclude-scripts', 'upgrade', 'always-copy',
@@ -141,6 +144,7 @@ class easy_install(Command):
         self.install_platbase = None
         self.install_userbase = site.USER_BASE
         self.install_usersite = site.USER_SITE
+        self.no_find_links = None
 
         # Options not specifiable via command line
         self.package_index = None
@@ -217,6 +221,9 @@ class easy_install(Command):
         if self.script_dir is None:
             self.script_dir = self.install_dir
 
+        if self.no_find_links is None:
+            self.no_find_links = False
+
         # Let install_dir get set by install_lib command, which in turn
         # gets its info from the install command, and takes into account
         # --prefix and --home and all that other crud.
@@ -272,7 +279,8 @@ class easy_install(Command):
             self.find_links = []
         if self.local_snapshots_ok:
             self.package_index.scan_egg_links(self.shadow_path+sys.path)
-        self.package_index.add_find_links(self.find_links)
+        if not self.no_find_links:
+            self.package_index.add_find_links(self.find_links)
         self.set_undefined_options('install_lib', ('optimize','optimize'))
         if not isinstance(self.optimize,int):
             try:
@@ -318,7 +326,7 @@ class easy_install(Command):
                             'install_scripts', 'install_data',])
 
     def run(self):
-        if self.verbose<>self.distribution.verbose:
+        if self.verbose != self.distribution.verbose:
             log.set_verbosity(self.verbose)
         try:
             for spec in self.args:
@@ -432,7 +440,7 @@ variable.
 For information on other options, you may wish to consult the
 documentation at:
 
-  http://peak.telecommunity.com/EasyInstall.html
+  http://packages.python.org/distribute/easy_install.html
 
 Please make the appropriate changes for your system and try again.
 """
@@ -450,6 +458,7 @@ Please make the appropriate changes for your system and try again.
         ok_exists = os.path.exists(ok_file)
         try:
             if ok_exists: os.unlink(ok_file)
+            os.makedirs(os.path.dirname(ok_file))
             f = open(pth_file,'w')
         except (OSError,IOError):
             self.cant_write_to_target()
@@ -621,7 +630,8 @@ Please make the appropriate changes for your system and try again.
         self.install_egg_scripts(dist)
         self.installed_projects[dist.key] = dist
         log.info(self.installation_report(requirement, dist, *info))
-        if dist.has_metadata('dependency_links.txt'):
+        if (dist.has_metadata('dependency_links.txt') and
+            not self.no_find_links):
             self.package_index.add_find_links(
                 dist.get_metadata_lines('dependency_links.txt')
             )
@@ -1174,7 +1184,7 @@ Here are some of your options for correcting the problem:
 * You can set up the installation directory to support ".pth" files by
   using one of the approaches described here:
 
-  http://peak.telecommunity.com/EasyInstall.html#custom-installation-locations
+  http://packages.python.org/distribute/easy_install.html#custom-installation-locations
 
 Please make the appropriate changes for your system and try again.""" % (
         self.install_dir, os.environ.get('PYTHONPATH','')

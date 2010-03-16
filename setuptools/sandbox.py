@@ -154,6 +154,12 @@ class AbstractSandbox:
 
 _EXCEPTIONS = [os.devnull,]
 
+try:
+	gen_py = os.path.dirname(__import__('win32com.gen_py', fromlist=['__name__']).__file__)
+	_EXCEPTIONS.append(gen_py)
+except ImportError:
+	pass
+
 class DirectorySandbox(AbstractSandbox):
     """Restrict operations to a single subdirectory - pseudo-chroot"""
 
@@ -165,7 +171,7 @@ class DirectorySandbox(AbstractSandbox):
     def __init__(self, sandbox, exceptions=_EXCEPTIONS):
         self._sandbox = os.path.normcase(os.path.realpath(sandbox))
         self._prefix = os.path.join(self._sandbox,'')
-        self._exceptions = exceptions
+        self._exceptions = [os.path.normcase(os.path.realpath(path)) for path in exceptions]
         AbstractSandbox.__init__(self)
 
     def _violation(self, operation, *args, **kw):
@@ -190,11 +196,15 @@ class DirectorySandbox(AbstractSandbox):
         try:
             self._active = False
             realpath = os.path.normcase(os.path.realpath(path))
-            if (realpath in self._exceptions or realpath == self._sandbox
+            if (self._exempted(realpath) or realpath == self._sandbox
                 or realpath.startswith(self._prefix)):
                 return True
         finally:
             self._active = active
+
+    def _exempted(self, filepath):
+        exception_matches = map(filepath.startswith, self._exceptions)
+        return any(exception_matches)
 
     def _remap_input(self,operation,path,*args,**kw):
         """Called for path inputs"""

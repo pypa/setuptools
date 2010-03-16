@@ -95,6 +95,31 @@ class TestEasyInstallTest(unittest.TestCase):
             os.chdir(old_wd)
             shutil.rmtree(dir)
 
+    def test_no_find_links(self):
+        # new option '--no-find-links', that blocks find-links added at
+        # the project level
+        dist = Distribution()
+        cmd = easy_install(dist)
+        cmd.check_pth_processing = lambda : True
+        cmd.no_find_links = True
+        cmd.find_links = ['link1', 'link2']
+        cmd.install_dir = os.path.join(tempfile.mkdtemp(), 'ok')
+        cmd.args = ['ok']
+        cmd.ensure_finalized()
+        self.assertEquals(cmd.package_index.scanned_urls, {})
+
+        # let's try without it (default behavior)
+        cmd = easy_install(dist)
+        cmd.check_pth_processing = lambda : True
+        cmd.find_links = ['link1', 'link2']
+        cmd.install_dir = os.path.join(tempfile.mkdtemp(), 'ok')
+        cmd.args = ['ok']
+        cmd.ensure_finalized()
+        keys = cmd.package_index.scanned_urls.keys()
+        keys.sort()
+        self.assertEquals(keys, ['link1', 'link2'])
+
+
 class TestPTHFileWriter(unittest.TestCase):
     def test_add_from_cwd_site_sets_dirty(self):
         '''a pth file manager should set dirty 
@@ -110,7 +135,6 @@ class TestPTHFileWriter(unittest.TestCase):
         self.assertFalse(pth.dirty)
         pth.add(PRDistribution('/test/location/does-not-have-to-exist'))
         self.assertFalse(pth.dirty)
-
 
 
 class TestUserInstallTest(unittest.TestCase):
