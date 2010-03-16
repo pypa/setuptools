@@ -7,7 +7,8 @@ A tool for doing automatic download/extract/build of distutils-based Python
 packages.  For detailed documentation, see the accompanying EasyInstall.txt
 file, or visit the `EasyInstall home page`__.
 
-__ http://peak.telecommunity.com/DevCenter/EasyInstall
+__ http://packages.python.org/distribute/easy_install.html
+
 """
 import sys, os.path, zipimport, shutil, tempfile, zipfile, re, stat, random
 from glob import glob
@@ -349,7 +350,7 @@ variable.
 For information on other options, you may wish to consult the
 documentation at:
 
-  http://peak.telecommunity.com/EasyInstall.html
+  http://packages.python.org/distribute/easy_install.html
 
 Please make the appropriate changes for your system and try again.
 """
@@ -1084,7 +1085,7 @@ Here are some of your options for correcting the problem:
 * You can set up the installation directory to support ".pth" files by
   using one of the approaches described here:
 
-  http://peak.telecommunity.com/EasyInstall.html#custom-installation-locations
+  http://packages.python.org/distribute/easy_install.html#custom-installation-locations
 
 Please make the appropriate changes for your system and try again.""" % (
         self.install_dir, os.environ.get('PYTHONPATH','')
