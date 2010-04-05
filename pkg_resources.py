@@ -2332,7 +2332,8 @@ class Distribution(object):
             if modname in ('pkg_resources', 'setuptools', 'site'):
                 continue
             fn = getattr(sys.modules[modname], '__file__', None)
-            if fn and normalize_path(fn).startswith(loc):
+            if fn and (normalize_path(fn).startswith(loc) or
+                       fn.startswith(self.location)):
                 continue
             issue_warning(
                 "Module %s was already imported from %s, but %s is being added"

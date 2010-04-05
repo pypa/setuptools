@@ -15,6 +15,7 @@ CHANGES
 * Issue 133: Added --no-find-links to easy_install
 * Added easy_install --user
 * Issue 100: Fixed develop --user not taking '.' in PYTHONPATH into account
+* Issue 134: removed spurious UserWarnings. Patch by VanLindberg
 
 ------
 0.6.10
