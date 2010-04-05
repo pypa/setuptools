@@ -12,10 +12,13 @@ import httplib
 import base64
 import urlparse
 import tempfile
+import sys
 
 from distutils import log
 from distutils.errors import DistutilsOptionError
 from distutils.command.upload import upload
+
+_IS_PYTHON3 = sys.version > '3'
 
 try:
     bytes
@@ -89,10 +92,10 @@ class upload_docs(upload):
         }
         # set up the authentication
         credentials = self.username + ':' + self.password
-        try:  # base64 only works with bytes in Python 3.
+        if _IS_PYTHON3:  # base64 only works with bytes in Python 3.
             encoded_creds = base64.encodebytes(credentials.encode('utf8'))
             auth = bytes("Basic ")
-        except AttributeError:
+        else:
             encoded_creds = base64.encodestring(credentials)
             auth = "Basic "
         auth += encoded_creds.strip()
