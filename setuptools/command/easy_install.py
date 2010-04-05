@@ -142,8 +142,12 @@ class easy_install(Command):
         self.install_data = None
         self.install_base = None
         self.install_platbase = None
-        self.install_userbase = site.USER_BASE
-        self.install_usersite = site.USER_SITE
+        if HAS_USER_SITE:
+            self.install_userbase = site.USER_BASE
+            self.install_usersite = site.USER_SITE
+        else:
+            self.install_userbase = None
+            self.install_usersite = None
         self.no_find_links = None
 
         # Options not specifiable via command line
@@ -201,7 +205,7 @@ class easy_install(Command):
 
         # fix the install_dir if "--user" was used
         #XXX: duplicate of the code in the setup command
-        if self.user:
+        if self.user and HAS_USER_SITE:
             self.create_home_path()
             if self.install_userbase is None:
                 raise DistutilsPlatformError(
@@ -214,7 +218,7 @@ class easy_install(Command):
 
         self.expand_basedirs()
         self.expand_dirs()
-        
+
         self._expand('install_dir','script_dir','build_directory','site_dirs')
         # If a non-default installation directory was specified, default the
         # script directory to match it.
