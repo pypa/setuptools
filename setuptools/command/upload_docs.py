@@ -92,7 +92,7 @@ class upload_docs(upload):
         try:  # base64 only works with bytes in Python 3.
             encoded_creds = base64.encodebytes(credentials.encode('utf8'))
             auth = b"Basic "
-        except AttributeError:
+        except (AttributeError, SyntaxError):
             encoded_creds = base64.encodestring(credentials)
             auth = "Basic "
         auth += encoded_creds.strip()
