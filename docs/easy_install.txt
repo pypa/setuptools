@@ -144,6 +144,10 @@ and Viewing Source Packages`_ below for more info.)::
 
     easy_install --editable --build-directory ~/projects SQLObject
 
+**Example 7**. (New in 0.6.11) Install a distribution within your home dir::
+
+    easy_install --user SQLAlchemy
+
 Easy Install accepts URLs, filenames, PyPI package names (i.e., ``distutils``
 "distribution" names), and package+version specifiers.  In each case, it will
 attempt to locate the latest available version that meets your criteria.
@@ -715,6 +719,10 @@ Command-Line Options
     Don't install scripts.  This is useful if you need to install multiple
     versions of a package, but do not want to reset the version that will be
     run by scripts that are already installed.
+
+``--user`` (New in 0.6.11)
+    Use the the user-site-packages as specified in :pep:`370`
+    instead of the global site-packages.
 
 ``--always-copy, -a``   (New in 0.5a4)
     Copy all needed distributions to the installation directory, even if they

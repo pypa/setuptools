@@ -19,7 +19,8 @@ __all__ = [
 # a distribution with the same version.
 #
 # The distribute_setup script for instance, will check if this
-# attribute is present to decide wether to reinstall the package
+# attribute is present to decide whether to reinstall the package
+# or not.
 _distribute = True
 
 bootstrap_install_from = None

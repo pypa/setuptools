@@ -7,7 +7,7 @@ import site
 from StringIO import StringIO
 
 from setuptools.command.develop import develop
-from setuptools.command import develop as develop_pkg
+from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
 
 SETUP_PY = """\
@@ -18,7 +18,7 @@ setup(name='foo')
 
 class TestDevelopTest(unittest.TestCase):
 
-    def setUp(self):
+    def setUp(self): 
         self.dir = tempfile.mkdtemp()
         setup = os.path.join(self.dir, 'setup.py')
         f = open(setup, 'w')
@@ -28,11 +28,11 @@ class TestDevelopTest(unittest.TestCase):
         os.chdir(self.dir)
         if sys.version >= "2.6":
             self.old_base = site.USER_BASE
-            site.USER_BASE = develop_pkg.USER_BASE = tempfile.mkdtemp()
+            site.USER_BASE = tempfile.mkdtemp()
             self.old_site = site.USER_SITE
-            site.USER_SITE = develop_pkg.USER_SITE = tempfile.mkdtemp()
+            site.USER_SITE = tempfile.mkdtemp()
 
-    def tearDown(self):
+    def tearDown(self): 
         os.chdir(self.old_cwd)
         shutil.rmtree(self.dir)
         if sys.version >= "2.6":
@@ -49,6 +49,7 @@ class TestDevelopTest(unittest.TestCase):
         cmd = develop(dist)
         cmd.user = 1
         cmd.ensure_finalized()
+        cmd.install_dir = site.USER_SITE
         cmd.user = 1
         old_stdout = sys.stdout
         sys.stdout = StringIO()

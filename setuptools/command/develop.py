@@ -2,19 +2,8 @@ from setuptools.command.easy_install import easy_install
 from distutils.util import convert_path, subst_vars
 from pkg_resources import Distribution, PathMetadata, normalize_path
 from distutils import log
-from distutils.errors import *
-import sys, os, setuptools, glob
-from distutils.sysconfig import get_config_vars
-from distutils.command.install import INSTALL_SCHEMES, SCHEME_KEYS
-
-if sys.version < "2.6":
-    USER_BASE = None
-    USER_SITE = None
-    HAS_USER_SITE = False
-else:
-    from site import USER_BASE
-    from site import USER_SITE
-    HAS_USER_SITE = True
+from distutils.errors import DistutilsError, DistutilsOptionError
+import os, setuptools, glob
 
 class develop(easy_install):
     """Set up package for development"""
@@ -27,11 +16,6 @@ class develop(easy_install):
     ]
 
     boolean_options = easy_install.boolean_options + ['uninstall']
-
-    if HAS_USER_SITE:
-        user_options.append(('user', None,
-                             "install in user site-package '%s'" % USER_SITE))
-        boolean_options.append('user')
 
     command_consumes_arguments = False  # override base
 
@@ -49,56 +33,8 @@ class develop(easy_install):
         easy_install.initialize_options(self)
         self.setup_path = None
         self.always_copy_from = '.'   # always copy eggs installed in curdir
-        self.user = 0
-        self.install_purelib = None     # for pure module distributions
-        self.install_platlib = None     # non-pure (dists w/ extensions)
-        self.install_headers = None     # for C/C++ headers
-        self.install_lib = None         # set to either purelib or platlib
-        self.install_scripts = None
-        self.install_data = None
-        self.install_base = None
-        self.install_platbase = None
-        self.install_userbase = USER_BASE
-        self.install_usersite = USER_SITE
 
-    def select_scheme(self, name):
-        """Sets the install directories by applying the install schemes."""
-        # it's the caller's problem if they supply a bad name!
-        scheme = INSTALL_SCHEMES[name]
-        for key in SCHEME_KEYS:
-            attrname = 'install_' + key
-            if getattr(self, attrname) is None:
-                setattr(self, attrname, scheme[key])
 
-    def create_home_path(self):
-        """Create directories under ~."""
-        if not self.user:
-            return
-        home = convert_path(os.path.expanduser("~"))
-        for name, path in self.config_vars.iteritems():
-            if path.startswith(home) and not os.path.isdir(path):
-                self.debug_print("os.makedirs('%s', 0700)" % path)
-                os.makedirs(path, 0700)
-
-    def _expand_attrs(self, attrs):
-        for attr in attrs:
-            val = getattr(self, attr)
-            if val is not None:
-                if os.name == 'posix' or os.name == 'nt':
-                    val = os.path.expanduser(val)
-                val = subst_vars(val, self.config_vars)
-                setattr(self, attr, val)
-
-    def expand_basedirs(self):
-        """Calls `os.path.expanduser` on install_base, install_platbase and
-        root."""
-        self._expand_attrs(['install_base', 'install_platbase', 'root'])
-
-    def expand_dirs(self):
-        """Calls `os.path.expanduser` on install dirs."""
-        self._expand_attrs(['install_purelib', 'install_platlib',
-                            'install_lib', 'install_headers',
-                            'install_scripts', 'install_data',])
 
     def finalize_options(self):
         ei = self.get_finalized_command("egg_info")
@@ -110,44 +46,11 @@ class develop(easy_install):
         self.args = [ei.egg_name]
 
 
-        py_version = sys.version.split()[0]
-        prefix, exec_prefix = get_config_vars('prefix', 'exec_prefix')
-        self.config_vars = {'dist_name': self.distribution.get_name(),
-                            'dist_version': self.distribution.get_version(),
-                            'dist_fullname': self.distribution.get_fullname(),
-                            'py_version': py_version,
-                            'py_version_short': py_version[0:3],
-                            'py_version_nodot': py_version[0] + py_version[2],
-                            'sys_prefix': prefix,
-                            'prefix': prefix,
-                            'sys_exec_prefix': exec_prefix,
-                            'exec_prefix': exec_prefix,
-                           }
 
-        if HAS_USER_SITE:
-            self.config_vars['userbase'] = self.install_userbase
-            self.config_vars['usersite'] = self.install_usersite
-
-        # fix the install_dir if "--user" was used
-        if self.user:
-            self.create_home_path()
-            if self.install_userbase is None:
-                raise DistutilsPlatformError(
-                    "User base directory is not specified")
-            self.install_base = self.install_platbase = self.install_userbase
-            if os.name == 'posix':
-                self.select_scheme("unix_user")
-            else:
-                self.select_scheme(os.name + "_user")
-
-        self.expand_basedirs()
-        self.expand_dirs()
-
-        if self.user and self.install_purelib:
-            self.install_dir = self.install_purelib
-            self.script_dir = self.install_scripts
 
         easy_install.finalize_options(self)
+        self.expand_basedirs()
+        self.expand_dirs()
         # pick up setup-dir .egg files only: no .egg-info
         self.package_index.scan(glob.glob('*.egg'))
 

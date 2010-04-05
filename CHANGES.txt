@@ -13,6 +13,8 @@ CHANGES
 * Issue 121: Fixed --help install command trying to actually install.
 * Issue 112: Added an os.makedirs so that Tarek's solution will work.
 * Issue 133: Added --no-find-links to easy_install
+* Added easy_install --user
+* Issue 100: Fixed develop --user not taking '.' in PYTHONPATH into account
 
 ------
 0.6.10
