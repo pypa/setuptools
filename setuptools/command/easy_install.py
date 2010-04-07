@@ -462,7 +462,9 @@ Please make the appropriate changes for your system and try again.
         ok_exists = os.path.exists(ok_file)
         try:
             if ok_exists: os.unlink(ok_file)
-            os.makedirs(os.path.dirname(ok_file))
+            dirname = os.path.dirname(ok_file)
+            if not os.path.exists(dirname):
+                os.makedirs(dirname)
             f = open(pth_file,'w')
         except (OSError,IOError):
             self.cant_write_to_target()

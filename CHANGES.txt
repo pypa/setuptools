@@ -16,6 +16,7 @@ CHANGES
 * Added easy_install --user
 * Issue 100: Fixed develop --user not taking '.' in PYTHONPATH into account
 * Issue 134: removed spurious UserWarnings. Patch by VanLindberg
+* Issue 138: cant_write_to_target error when setup_requires is used.
 
 ------
 0.6.10
