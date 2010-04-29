@@ -122,7 +122,13 @@ class easy_install(Command):
     create_index = PackageIndex
 
     def initialize_options(self):
-        self.user = 0
+        if HAS_USER_SITE:
+            whereami = os.path.abspath(__file__)
+            self.user = (whereami.startswith(site.USER_SITE)
+                         or whereami.startswith(site.USER_BASE))
+        else:
+            self.user = 0
+
         self.zip_ok = self.local_snapshots_ok = None
         self.install_dir = self.script_dir = self.exclude_scripts = None
         self.index_url = None
