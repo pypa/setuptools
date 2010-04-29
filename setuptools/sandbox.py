@@ -105,8 +105,8 @@ class AbstractSandbox:
             return func()
         finally:
             self._active = False
-            __builtin__.open = _file
-            __builtin__.file = _open
+            __builtin__.open = _open
+            __builtin__.file = _file
             self._copy(_os)
 
     def _mk_dual_path_wrapper(name):
@@ -203,10 +203,10 @@ class DirectorySandbox(AbstractSandbox):
             self._violation("open", path, mode, *args, **kw)
         return _open(path,mode,*args,**kw)
 
-    def tmpnam(self):
-        self._violation("tmpnam")
+    def tmpnam(self): self._violation("tmpnam")
 
     def _ok(self,path):
+        if hasattr(_os,'devnull') and path==_os.devnull: return True
         active = self._active
         try:
             self._active = False
