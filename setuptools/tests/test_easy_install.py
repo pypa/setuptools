@@ -148,10 +148,12 @@ class TestUserInstallTest(unittest.TestCase):
         self.old_cwd = os.getcwd()
         os.chdir(self.dir)
         if sys.version >= "2.6":
+            self.old_file = easy_install_pkg.__file__
             self.old_base = site.USER_BASE
             site.USER_BASE = tempfile.mkdtemp()
             self.old_site = site.USER_SITE
             site.USER_SITE = tempfile.mkdtemp()
+            easy_install_pkg.__file__ = site.USER_SITE
 
     def tearDown(self):
         os.chdir(self.old_cwd)
@@ -161,19 +163,21 @@ class TestUserInstallTest(unittest.TestCase):
             shutil.rmtree(site.USER_SITE)
             site.USER_BASE = self.old_base
             site.USER_SITE = self.old_site
+            easy_install_pkg.__file__ = self.old_file
 
     def test_install(self):
         #XXX: replace with something meaningfull
-        return
         if sys.version < "2.6":
-            return
+            return #SKIP
         dist = Distribution()
         dist.script_name = 'setup.py'
         cmd = easy_install(dist)
-        cmd.user = 1
         cmd.args = ['py']
         cmd.ensure_finalized()
-        cmd.user = 1
+        self.assertTrue(cmd.user, 'user should be implied')
+
+        return
+        # this part is disabled it currently fails
         old_stdout = sys.stdout
         sys.stdout = StringIO()
         try:
