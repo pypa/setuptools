@@ -16,7 +16,11 @@ import sys
 
 from distutils import log
 from distutils.errors import DistutilsOptionError
-from distutils.command.upload import upload
+
+try:
+    from distutils.command.upload import upload
+except ImportError:
+    from setuptools.command.upload import upload
 
 _IS_PYTHON3 = sys.version > '3'
 

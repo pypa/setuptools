@@ -152,13 +152,18 @@ class AbstractSandbox:
         )
 
 
-_EXCEPTIONS = [os.devnull,]
+if hasattr(os, 'devnull'):
+    _EXCEPTIONS = [os.devnull,]
+else:
+    _EXCEPTIONS = []
 
-try:
-	gen_py = os.path.dirname(__import__('win32com.gen_py', fromlist=['__name__']).__file__)
-	_EXCEPTIONS.append(gen_py)
-except ImportError:
-	pass
+if not sys.version < '2.5':
+    try:
+        gen_py = os.path.dirname(__import__('win32com.gen_py',
+                                            fromlist=['__name__']).__file__)
+        _EXCEPTIONS.append(gen_py)
+    except ImportError:
+        pass
 
 class DirectorySandbox(AbstractSandbox):
     """Restrict operations to a single subdirectory - pseudo-chroot"""
@@ -204,7 +209,7 @@ class DirectorySandbox(AbstractSandbox):
 
     def _exempted(self, filepath):
         exception_matches = map(filepath.startswith, self._exceptions)
-        return any(exception_matches)
+        return False not in exception_matches
 
     def _remap_input(self,operation,path,*args,**kw):
         """Called for path inputs"""

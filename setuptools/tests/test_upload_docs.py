@@ -19,24 +19,24 @@ class TestUploadDocsTest(unittest.TestCase):
         f.close()
         self.old_cwd = os.getcwd()
         os.chdir(self.dir)
-        
+
         self.upload_dir = os.path.join(self.dir, 'build')
         os.mkdir(self.upload_dir)
-        
+
         # A test document.
         f = open(os.path.join(self.upload_dir, 'index.html'), 'w')
         f.write("Hello world.")
         f.close()
-        
+
         # An empty folder.
         os.mkdir(os.path.join(self.upload_dir, 'empty'))
-        
+
         if sys.version >= "2.6":
             self.old_base = site.USER_BASE
             site.USER_BASE = upload_docs.USER_BASE = tempfile.mkdtemp()
             self.old_site = site.USER_SITE
             site.USER_SITE = upload_docs.USER_SITE = tempfile.mkdtemp()
-    
+
     def tearDown(self):
         os.chdir(self.old_cwd)
         shutil.rmtree(self.dir)
@@ -49,17 +49,17 @@ class TestUploadDocsTest(unittest.TestCase):
     def test_create_zipfile(self):
         # Test to make sure zipfile creation handles common cases.
         # This explicitly includes a folder containing an empty folder.
-        
+
         dist = Distribution()
-        
+
         cmd = upload_docs(dist)
         cmd.upload_dir = self.upload_dir
         zip_file = cmd.create_zipfile()
-        
+
         assert zipfile.is_zipfile(zip_file)
-        
+
         zip_f = zipfile.ZipFile(zip_file) # woh...
-        
+
         assert zip_f.namelist() == ['index.html']
-        
+
 

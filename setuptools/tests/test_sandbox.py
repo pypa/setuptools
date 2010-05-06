@@ -30,10 +30,11 @@ class TestSandbox(unittest.TestCase):
         shutil.rmtree(self.dir)
 
     def test_devnull(self):
+        if sys.version < '2.4':
+            return
         sandbox = DirectorySandbox(self.dir)
         sandbox.run(self._file_writer(os.devnull))
 
-    @staticmethod
     def _file_writer(path):
         def do_write():
             f = open(path, 'w')
@@ -41,6 +42,7 @@ class TestSandbox(unittest.TestCase):
             f.close()
         return do_write
 
+    _file_writer = staticmethod(_file_writer)
 
     if has_win32com():
         def test_win32com(self):
@@ -53,9 +55,10 @@ class TestSandbox(unittest.TestCase):
             target = os.path.join(gen_py, 'test_write')
             sandbox = DirectorySandbox(self.dir)
             try:
-                sandbox.run(self._file_writer(target))
-            except SandboxViolation:
-                self.fail("Could not create gen_py file due to SandboxViolation")
+                try:
+                    sandbox.run(self._file_writer(target))
+                except SandboxViolation:
+                    self.fail("Could not create gen_py file due to SandboxViolation")
             finally:
                 if os.path.exists(target): os.remove(target)
 

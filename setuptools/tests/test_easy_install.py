@@ -122,19 +122,19 @@ class TestEasyInstallTest(unittest.TestCase):
 
 class TestPTHFileWriter(unittest.TestCase):
     def test_add_from_cwd_site_sets_dirty(self):
-        '''a pth file manager should set dirty 
+        '''a pth file manager should set dirty
         if a distribution is in site but also the cwd
         '''
         pth = PthDistributions('does-not_exist', [os.getcwd()])
-        self.assertFalse(pth.dirty)
+        self.assert_(not pth.dirty)
         pth.add(PRDistribution(os.getcwd()))
-        self.assertTrue(pth.dirty)
+        self.assert_(pth.dirty)
 
     def test_add_from_site_is_ignored(self):
         pth = PthDistributions('does-not_exist', ['/test/location/does-not-have-to-exist'])
-        self.assertFalse(pth.dirty)
+        self.assert_(not pth.dirty)
         pth.add(PRDistribution('/test/location/does-not-have-to-exist'))
-        self.assertFalse(pth.dirty)
+        self.assert_(not pth.dirty)
 
 
 class TestUserInstallTest(unittest.TestCase):
