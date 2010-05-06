@@ -148,10 +148,13 @@ class TestUserInstallTest(unittest.TestCase):
         self.old_cwd = os.getcwd()
         os.chdir(self.dir)
         if sys.version >= "2.6":
+            self.old_enable = site.ENABLE_USER_SITE
+            self.old_file = easy_install_pkg.__file__
             self.old_base = site.USER_BASE
             site.USER_BASE = tempfile.mkdtemp()
             self.old_site = site.USER_SITE
             site.USER_SITE = tempfile.mkdtemp()
+            easy_install_pkg.__file__ = site.USER_SITE
 
     def tearDown(self):
         os.chdir(self.old_cwd)
@@ -161,28 +164,29 @@ class TestUserInstallTest(unittest.TestCase):
             shutil.rmtree(site.USER_SITE)
             site.USER_BASE = self.old_base
             site.USER_SITE = self.old_site
+            site.ENABLE_USER_SITE = self.old_enable
+            easy_install_pkg.__file__ = self.old_file
 
-    def test_install(self):
+    def test_user_install_implied(self):
+        site.ENABLE_USER_SITE = True # disabled sometimes
         #XXX: replace with something meaningfull
-        return
         if sys.version < "2.6":
-            return
+            return #SKIP
         dist = Distribution()
         dist.script_name = 'setup.py'
         cmd = easy_install(dist)
-        cmd.user = 1
         cmd.args = ['py']
         cmd.ensure_finalized()
-        cmd.user = 1
-        old_stdout = sys.stdout
-        sys.stdout = StringIO()
-        try:
-            cmd.run()
-        finally:
-            sys.stdout = old_stdout
+        self.assertTrue(cmd.user, 'user should be implied')
 
-        # let's see if we got our egg link at the right place
-        content = os.listdir(site.USER_SITE)
-        content.sort()
-        self.assertEquals(content, ['UNKNOWN.egg-link', 'easy-install.pth'])
-
+    def test_user_install_not_implied_without_usersite_enabled(self):
+        site.ENABLE_USER_SITE = False # disabled sometimes
+        #XXX: replace with something meaningfull
+        if sys.version < "2.6":
+            return #SKIP
+        dist = Distribution()
+        dist.script_name = 'setup.py'
+        cmd = easy_install(dist)
+        cmd.args = ['py']
+        cmd.initialize_options()
+        self.assertFalse(cmd.user, 'NOT user should be implied')
