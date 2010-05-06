@@ -31,11 +31,7 @@ class ScanningLoader(TestLoader):
                         submodule = module.__name__+'.'+file
                     else:
                         continue
-                try:
-                    tests.append(self.loadTestsFromName(submodule))
-                except Exception, e:
-                    import pdb; pdb.set_trace()
-                    self.loadTestsFromName(submodule)
+                tests.append(self.loadTestsFromName(submodule))
 
         if len(tests)!=1:
             return self.suiteClass(tests)
