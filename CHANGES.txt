@@ -17,6 +17,7 @@ CHANGES
 * Issue 100: Fixed develop --user not taking '.' in PYTHONPATH into account
 * Issue 134: removed spurious UserWarnings. Patch by VanLindberg
 * Issue 138: cant_write_to_target error when setup_requires is used.
+* Issue 147: respect the sys.dont_write_bytecode flag
 
 ------
 0.6.10
