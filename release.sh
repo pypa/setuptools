@@ -16,7 +16,7 @@ cd ..
 python2.6 setup.py upload_docs
 
 # pushing the bootstrap script
-scp distribute_setup.py ziade.org:nightly/build/
+scp distribute_setup.py ziade.org:websites/python-distribute.org/
 
 # starting the new dev
 hg push
