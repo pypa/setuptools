@@ -209,7 +209,7 @@ class DirectorySandbox(AbstractSandbox):
 
     def _exempted(self, filepath):
         exception_matches = map(filepath.startswith, self._exceptions)
-        return False not in exception_matches
+        return True in exception_matches
 
     def _remap_input(self,operation,path,*args,**kw):
         """Called for path inputs"""
