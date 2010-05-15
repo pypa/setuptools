@@ -144,6 +144,10 @@ and Viewing Source Packages`_ below for more info.)::
 
     easy_install --editable --build-directory ~/projects SQLObject
 
+**Example 7**. (New in 0.6.11) Install a distribution within your home dir::
+
+    easy_install --user SQLAlchemy
+
 Easy Install accepts URLs, filenames, PyPI package names (i.e., ``distutils``
 "distribution" names), and package+version specifiers.  In each case, it will
 attempt to locate the latest available version that meets your criteria.
@@ -716,6 +720,10 @@ Command-Line Options
     versions of a package, but do not want to reset the version that will be
     run by scripts that are already installed.
 
+``--user`` (New in 0.6.11)
+    Use the the user-site-packages as specified in :pep:`370`
+    instead of the global site-packages.
+
 ``--always-copy, -a``   (New in 0.5a4)
     Copy all needed distributions to the installation directory, even if they
     are already present in a directory on sys.path.  In older versions of
@@ -767,6 +775,11 @@ Command-Line Options
     retrieved unless a package search was already going to go online due to a
     package not being available locally, or due to the use of the ``--update``
     or ``-U`` option.
+
+``--no-find-links`` Blocks the addition of any link. (New in Distribute 0.6.11)
+    This is useful if you want to avoid adding links defined in a project
+    easy_install is installing (wether it's a requested project or a
+    dependency.). When used, ``--find-links`` is ignored.
 
 ``--delete-conflicting, -D`` (Removed in 0.6a11)
     (As of 0.6a11, this option is no longer necessary; please do not use it!)

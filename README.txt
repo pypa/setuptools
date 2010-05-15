@@ -68,9 +68,8 @@ Installation Instructions
 
 Distribute is only released as a source distribution.
 
-It can be installed using easy_install or pip, and can be done so with the source
-tarball, the eggs distribution, or by using the ``distribute_setup.py`` script
-provided online.
+It can be installed using pip, and can be done so with the source tarball,
+or by using the ``distribute_setup.py`` script provided online.
 
 ``distribute_setup.py`` is the simplest and preferred way on all systems.
 
@@ -88,28 +87,21 @@ If your shell has the ``curl`` program you can do::
 
 Notice this file is also provided in the source release.
 
-easy_install or pip
-===================
+pip
+===
 
 Run easy_install or pip::
 
-    $ easy_install -U distribute
     $ pip install distribute
-
-If you want to install the latest dev version, you can also run::
-
-    $ easy_install -U distribute==dev
-
-This will get the latest development version at: http://bitbucket.org/tarek/distribute/get/0.6-maintenance.zip#egg=distribute-dev
 
 Source installation
 ===================
 
 Download the source tarball, uncompress it, then run the install command::
 
-    $ curl -O http://pypi.python.org/packages/source/d/distribute/distribute-0.6.11.tar.gz
-    $ tar -xzvf distribute-0.6.11.tar.gz
-    $ cd distribute-0.6.11
+    $ curl -O http://pypi.python.org/packages/source/d/distribute/distribute-0.6.13.tar.gz
+    $ tar -xzvf distribute-0.6.13.tar.gz
+    $ cd distribute-0.6.13
     $ python setup.py install
 
 ---------------------------
@@ -128,8 +120,6 @@ Distribute is installed in three steps:
 
 Distribute can be removed like this:
 
-- run ``easy_install -m Distribute``. This will remove the Distribute reference
-  from ``easy-install.pth``. Otherwise, edit the file and remove it yourself.
 - remove the ``distribute*.egg`` file located in your site-packages directory
 - remove the ``setuptools.pth`` file located in you site-packages directory
 - remove the easy_install script located in you ``sys.prefix/bin`` directory

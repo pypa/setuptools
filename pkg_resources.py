@@ -191,9 +191,10 @@ def _macosx_vers(_cache=[]):
             import plistlib
             plist = '/System/Library/CoreServices/SystemVersion.plist'
             if os.path.exists(plist):
-                plist_content = plistlib.readPlist(plist)
-                if 'ProductVersion' in plist_content:
-                    version = plist_content['ProductVersion']
+                if hasattr(plistlib, 'readPlist'):
+                    plist_content = plistlib.readPlist(plist)
+                    if 'ProductVersion' in plist_content:
+                        version = plist_content['ProductVersion']
 
         _cache.append(version.split('.'))
     return _cache[0]
@@ -2332,7 +2333,8 @@ class Distribution(object):
             if modname in ('pkg_resources', 'setuptools', 'site'):
                 continue
             fn = getattr(sys.modules[modname], '__file__', None)
-            if fn and normalize_path(fn).startswith(loc):
+            if fn and (normalize_path(fn).startswith(loc) or
+                       fn.startswith(self.location)):
                 continue
             issue_warning(
                 "Module %s was already imported from %s, but %s is being added"

@@ -152,7 +152,10 @@ class AbstractSandbox:
         )
 
 
-_EXCEPTIONS = [os.devnull,]
+if hasattr(os, 'devnull'):
+    _EXCEPTIONS = [os.devnull,]
+else:
+    _EXCEPTIONS = []
 
 try:
 	win32com_pkg = os.path.dirname(__import__('win32com').__file__)
@@ -209,7 +212,7 @@ class DirectorySandbox(AbstractSandbox):
 
     def _exempted(self, filepath):
         exception_matches = map(filepath.startswith, self._exceptions)
-        return any(exception_matches)
+        return True in exception_matches
 
     def _remap_input(self,operation,path,*args,**kw):
         """Called for path inputs"""

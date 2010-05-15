@@ -7,27 +7,39 @@ A tool for doing automatic download/extract/build of distutils-based Python
 packages.  For detailed documentation, see the accompanying EasyInstall.txt
 file, or visit the `EasyInstall home page`__.
 
-__ http://peak.telecommunity.com/DevCenter/EasyInstall
+__ http://packages.python.org/distribute/easy_install.html
+
 """
-import sys, os, os.path, zipimport, shutil, tempfile, zipfile, re, stat, random
+import sys, os.path, zipimport, shutil, tempfile, zipfile, re, stat, random
 from glob import glob
-from setuptools import Command
+from setuptools import Command, _dont_write_bytecode
 from setuptools.sandbox import run_setup
 from distutils import log, dir_util
-from distutils.sysconfig import get_python_lib
+from distutils.util import convert_path, subst_vars
+from distutils.sysconfig import get_python_lib, get_config_vars
 from distutils.errors import DistutilsArgError, DistutilsOptionError, \
-    DistutilsError
+    DistutilsError, DistutilsPlatformError
+from distutils.command.install import INSTALL_SCHEMES, SCHEME_KEYS
 from setuptools.archive_util import unpack_archive
-from setuptools.package_index import PackageIndex, parse_bdist_wininst
+from setuptools.package_index import PackageIndex
 from setuptools.package_index import URL_SCHEME
 from setuptools.command import bdist_egg, egg_info
-from pkg_resources import *
+from pkg_resources import yield_lines, normalize_path, resource_string, \
+        ensure_directory, get_distribution, find_distributions, \
+        Environment, Requirement, Distribution, \
+        PathMetadata, EggMetadata, WorkingSet, \
+         DistributionNotFound, VersionConflict, \
+        DEVELOP_DIST
+
 sys_executable = os.path.normpath(sys.executable)
 
 __all__ = [
     'samefile', 'easy_install', 'PthDistributions', 'extract_wininst_cfg',
     'main', 'get_exe_prefixes',
 ]
+
+import site
+HAS_USER_SITE = not sys.version < "2.6"
 
 def samefile(p1,p2):
     if hasattr(os.path,'samefile') and (
@@ -91,16 +103,32 @@ class easy_install(Command):
         ('allow-hosts=', 'H', "pattern(s) that hostnames must match"),
         ('local-snapshots-ok', 'l', "allow building eggs from local checkouts"),
         ('version', None, "print version information and exit"),
+        ('no-find-links', None,
+         "Don't load find-links defined in packages being installed")
     ]
     boolean_options = [
         'zip-ok', 'multi-version', 'exclude-scripts', 'upgrade', 'always-copy',
         'delete-conflicting', 'ignore-conflicts-at-my-risk', 'editable',
         'no-deps', 'local-snapshots-ok', 'version'
     ]
+
+    if HAS_USER_SITE:
+        user_options.append(('user', None,
+                             "install in user site-package '%s'" % site.USER_SITE))
+        boolean_options.append('user')
+
+
     negative_opt = {'always-unzip': 'zip-ok'}
     create_index = PackageIndex
 
     def initialize_options(self):
+        if HAS_USER_SITE:
+            whereami = os.path.abspath(__file__)
+            self.user = (whereami.startswith(site.USER_SITE)
+                         or whereami.startswith(site.USER_BASE))
+        else:
+            self.user = 0
+
         self.zip_ok = self.local_snapshots_ok = None
         self.install_dir = self.script_dir = self.exclude_scripts = None
         self.index_url = None
@@ -112,6 +140,21 @@ class easy_install(Command):
         self.editable = self.no_deps = self.allow_hosts = None
         self.root = self.prefix = self.no_report = None
         self.version = None
+        self.install_purelib = None     # for pure module distributions
+        self.install_platlib = None     # non-pure (dists w/ extensions)
+        self.install_headers = None     # for C/C++ headers
+        self.install_lib = None         # set to either purelib or platlib
+        self.install_scripts = None
+        self.install_data = None
+        self.install_base = None
+        self.install_platbase = None
+        if HAS_USER_SITE:
+            self.install_userbase = site.USER_BASE
+            self.install_usersite = site.USER_SITE
+        else:
+            self.install_userbase = None
+            self.install_usersite = None
+        self.no_find_links = None
 
         # Options not specifiable via command line
         self.package_index = None
@@ -147,11 +190,49 @@ class easy_install(Command):
             print 'distribute %s' % get_distribution('distribute').version
             sys.exit()
 
+        py_version = sys.version.split()[0]
+        prefix, exec_prefix = get_config_vars('prefix', 'exec_prefix')
+
+        self.config_vars = {'dist_name': self.distribution.get_name(),
+                            'dist_version': self.distribution.get_version(),
+                            'dist_fullname': self.distribution.get_fullname(),
+                            'py_version': py_version,
+                            'py_version_short': py_version[0:3],
+                            'py_version_nodot': py_version[0] + py_version[2],
+                            'sys_prefix': prefix,
+                            'prefix': prefix,
+                            'sys_exec_prefix': exec_prefix,
+                            'exec_prefix': exec_prefix,
+                           }
+
+        if HAS_USER_SITE:
+            self.config_vars['userbase'] = self.install_userbase
+            self.config_vars['usersite'] = self.install_usersite
+
+        # fix the install_dir if "--user" was used
+        #XXX: duplicate of the code in the setup command
+        if self.user and HAS_USER_SITE:
+            self.create_home_path()
+            if self.install_userbase is None:
+                raise DistutilsPlatformError(
+                    "User base directory is not specified")
+            self.install_base = self.install_platbase = self.install_userbase
+            if os.name == 'posix':
+                self.select_scheme("unix_user")
+            else:
+                self.select_scheme(os.name + "_user")
+
+        self.expand_basedirs()
+        self.expand_dirs()
+
         self._expand('install_dir','script_dir','build_directory','site_dirs')
         # If a non-default installation directory was specified, default the
         # script directory to match it.
         if self.script_dir is None:
             self.script_dir = self.install_dir
+
+        if self.no_find_links is None:
+            self.no_find_links = False
 
         # Let install_dir get set by install_lib command, which in turn
         # gets its info from the install command, and takes into account
@@ -163,6 +244,10 @@ class easy_install(Command):
         self.set_undefined_options('install_scripts',
             ('install_dir', 'script_dir')
         )
+
+        if self.user and self.install_purelib:
+            self.install_dir = self.install_purelib
+            self.script_dir = self.install_scripts
         # default --record from the install command
         self.set_undefined_options('install', ('record', 'record'))
         normpath = map(normalize_path, sys.path)
@@ -204,7 +289,8 @@ class easy_install(Command):
             self.find_links = []
         if self.local_snapshots_ok:
             self.package_index.scan_egg_links(self.shadow_path+sys.path)
-        self.package_index.add_find_links(self.find_links)
+        if not self.no_find_links:
+            self.package_index.add_find_links(self.find_links)
         self.set_undefined_options('install_lib', ('optimize','optimize'))
         if not isinstance(self.optimize,int):
             try:
@@ -228,8 +314,29 @@ class easy_install(Command):
 
         self.outputs = []
 
+
+    def _expand_attrs(self, attrs):
+        for attr in attrs:
+            val = getattr(self, attr)
+            if val is not None:
+                if os.name == 'posix' or os.name == 'nt':
+                    val = os.path.expanduser(val)
+                val = subst_vars(val, self.config_vars)
+                setattr(self, attr, val)
+
+    def expand_basedirs(self):
+        """Calls `os.path.expanduser` on install_base, install_platbase and
+        root."""
+        self._expand_attrs(['install_base', 'install_platbase', 'root'])
+
+    def expand_dirs(self):
+        """Calls `os.path.expanduser` on install dirs."""
+        self._expand_attrs(['install_purelib', 'install_platlib',
+                            'install_lib', 'install_headers',
+                            'install_scripts', 'install_data',])
+
     def run(self):
-        if self.verbose<>self.distribution.verbose:
+        if self.verbose != self.distribution.verbose:
             log.set_verbosity(self.verbose)
         try:
             for spec in self.args:
@@ -271,6 +378,7 @@ class easy_install(Command):
 
     def check_site_dir(self):
         """Verify that self.install_dir is .pth-capable dir, if needed"""
+        print 'install_dir', self.install_dir
         instdir = normalize_path(self.install_dir)
         pth_file = os.path.join(instdir,'easy-install.pth')
 
@@ -342,7 +450,7 @@ variable.
 For information on other options, you may wish to consult the
 documentation at:
 
-  http://peak.telecommunity.com/EasyInstall.html
+  http://packages.python.org/distribute/easy_install.html
 
 Please make the appropriate changes for your system and try again.
 """
@@ -360,7 +468,9 @@ Please make the appropriate changes for your system and try again.
         ok_exists = os.path.exists(ok_file)
         try:
             if ok_exists: os.unlink(ok_file)
-            os.makedirs(os.path.dirname(ok_file))
+            dirname = os.path.dirname(ok_file)
+            if not os.path.exists(dirname):
+                os.makedirs(dirname)
             f = open(pth_file,'w')
         except (OSError,IOError):
             self.cant_write_to_target()
@@ -513,6 +623,15 @@ Please make the appropriate changes for your system and try again.
 
 
 
+    def select_scheme(self, name):
+        """Sets the install directories by applying the install schemes."""
+        # it's the caller's problem if they supply a bad name!
+        scheme = INSTALL_SCHEMES[name]
+        for key in SCHEME_KEYS:
+            attrname = 'install_' + key
+            if getattr(self, attrname) is None:
+                setattr(self, attrname, scheme[key])
+
 
 
 
@@ -523,7 +642,8 @@ Please make the appropriate changes for your system and try again.
         self.install_egg_scripts(dist)
         self.installed_projects[dist.key] = dist
         log.info(self.installation_report(requirement, dist, *info))
-        if dist.has_metadata('dependency_links.txt'):
+        if (dist.has_metadata('dependency_links.txt') and
+            not self.no_find_links):
             self.package_index.add_find_links(
                 dist.get_metadata_lines('dependency_links.txt')
             )
@@ -1029,6 +1149,10 @@ See the setuptools documentation for the "develop" command for more info.
                 chmod(f, mode)
 
     def byte_compile(self, to_compile):
+        if _dont_write_bytecode:
+            self.warn('byte-compiling is disabled, skipping.')
+            return
+
         from distutils.util import byte_compile
         try:
             # try to make the byte compile messages quieter
@@ -1076,7 +1200,7 @@ Here are some of your options for correcting the problem:
 * You can set up the installation directory to support ".pth" files by
   using one of the approaches described here:
 
-  http://peak.telecommunity.com/EasyInstall.html#custom-installation-locations
+  http://packages.python.org/distribute/easy_install.html#custom-installation-locations
 
 Please make the appropriate changes for your system and try again.""" % (
         self.install_dir, os.environ.get('PYTHONPATH','')
@@ -1130,7 +1254,15 @@ Please make the appropriate changes for your system and try again.""" % (
 
 
 
-
+    def create_home_path(self):
+        """Create directories under ~."""
+        if not self.user:
+            return
+        home = convert_path(os.path.expanduser("~"))
+        for name, path in self.config_vars.iteritems():
+            if path.startswith(home) and not os.path.isdir(path):
+                self.debug_print("os.makedirs('%s', 0700)" % path)
+                os.makedirs(path, 0700)
 
 
 
@@ -1421,8 +1553,12 @@ class PthDistributions(Environment):
 
     def add(self,dist):
         """Add `dist` to the distribution map"""
-        if dist.location not in self.paths and dist.location not in self.sitedirs:
-            self.paths.append(dist.location); self.dirty = True
+        if (dist.location not in self.paths and (
+                dist.location not in self.sitedirs or
+                dist.location == os.getcwd() #account for '.' being in PYTHONPATH
+                )):
+            self.paths.append(dist.location)
+            self.dirty = True
         Environment.add(self,dist)
 
     def remove(self,dist):

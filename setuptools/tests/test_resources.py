@@ -35,7 +35,7 @@ class DistroTests(TestCase):
         ad.add(Distribution.from_filename("FooPkg-1.2-py2.4.egg"))
 
         # Name is in there now
-        self.failUnless(ad['FooPkg'])
+        self.assertTrue(ad['FooPkg'])
         # But only 1 package
         self.assertEqual(list(ad), ['foopkg'])
 
@@ -218,7 +218,7 @@ class EntryPointTests(TestCase):
         self.assertEqual(ep.module_name,"setuptools.tests.test_resources")
         self.assertEqual(ep.attrs, ("EntryPointTests",))
         self.assertEqual(ep.extras, ("x",))
-        self.failUnless(ep.load() is EntryPointTests)
+        self.assertTrue(ep.load() is EntryPointTests)
         self.assertEqual(
             str(ep),
             "foo = setuptools.tests.test_resources:EntryPointTests [x]"
@@ -318,20 +318,20 @@ class RequirementsTests(TestCase):
         foo_dist = Distribution.from_filename("FooPkg-1.3_1.egg")
         twist11  = Distribution.from_filename("Twisted-1.1.egg")
         twist12  = Distribution.from_filename("Twisted-1.2.egg")
-        self.failUnless(parse_version('1.2') in r)
-        self.failUnless(parse_version('1.1') not in r)
-        self.failUnless('1.2' in r)
-        self.failUnless('1.1' not in r)
-        self.failUnless(foo_dist not in r)
-        self.failUnless(twist11 not in r)
-        self.failUnless(twist12 in r)
+        self.assertTrue(parse_version('1.2') in r)
+        self.assertTrue(parse_version('1.1') not in r)
+        self.assertTrue('1.2' in r)
+        self.assertTrue('1.1' not in r)
+        self.assertTrue(foo_dist not in r)
+        self.assertTrue(twist11 not in r)
+        self.assertTrue(twist12 in r)
 
     def testAdvancedContains(self):
         r, = parse_requirements("Foo>=1.2,<=1.3,==1.9,>2.0,!=2.5,<3.0,==4.5")
         for v in ('1.2','1.2.2','1.3','1.9','2.0.1','2.3','2.6','3.0c1','4.5'):
-            self.failUnless(v in r, (v,r))
+            self.assertTrue(v in r, (v,r))
         for v in ('1.2c1','1.3.1','1.5','1.9.1','2.0','2.5','3.0','4.0'):
-            self.failUnless(v not in r, (v,r))
+            self.assertTrue(v not in r, (v,r))
 
 
     def testOptionsAndHashing(self):
@@ -353,14 +353,14 @@ class RequirementsTests(TestCase):
         r2 = Requirement.parse("foo!=0.3a4")
         d = Distribution.from_filename
 
-        self.failIf(d("foo-0.3a4.egg") in r1)
-        self.failIf(d("foo-0.3a1.egg") in r1)
-        self.failIf(d("foo-0.3a4.egg") in r2)
+        self.assertFalse(d("foo-0.3a4.egg") in r1)
+        self.assertFalse(d("foo-0.3a1.egg") in r1)
+        self.assertFalse(d("foo-0.3a4.egg") in r2)
 
-        self.failUnless(d("foo-0.3a2.egg") in r1)
-        self.failUnless(d("foo-0.3a2.egg") in r2)
-        self.failUnless(d("foo-0.3a3.egg") in r2)
-        self.failUnless(d("foo-0.3a5.egg") in r2)
+        self.assertTrue(d("foo-0.3a2.egg") in r1)
+        self.assertTrue(d("foo-0.3a2.egg") in r2)
+        self.assertTrue(d("foo-0.3a3.egg") in r2)
+        self.assertTrue(d("foo-0.3a5.egg") in r2)
 
     def testDistributeSetuptoolsOverride(self):
         # Plain setuptools or distribute mean we return distribute.
@@ -480,7 +480,7 @@ class ParseTests(TestCase):
     def testVersionOrdering(self):
         def c(s1,s2):
             p1, p2 = parse_version(s1),parse_version(s2)
-            self.failUnless(p1<p2, (s1,s2,p1,p2))
+            self.assertTrue(p1<p2, (s1,s2,p1,p2))
 
         c('2.1','2.1.1')
         c('2a1','2b0')

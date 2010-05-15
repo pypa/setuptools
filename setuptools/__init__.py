@@ -5,7 +5,8 @@ import distutils.core, setuptools.command
 from setuptools.depends import Require
 from distutils.core import Command as _Command
 from distutils.util import convert_path
-import os.path
+import os
+import sys
 
 __version__ = '0.6'
 __all__ = [
@@ -19,7 +20,8 @@ __all__ = [
 # a distribution with the same version.
 #
 # The distribute_setup script for instance, will check if this
-# attribute is present to decide wether to reinstall the package
+# attribute is present to decide whether to reinstall the package
+# or not.
 _distribute = True
 
 bootstrap_install_from = None
@@ -94,4 +96,9 @@ def findall(dir = os.curdir):
 import distutils.filelist
 distutils.filelist.findall = findall    # fix findall bug in distutils.
 
-
+# sys.dont_write_bytecode was introduced in Python 2.6.
+if ((hasattr(sys, "dont_write_bytecode") and sys.dont_write_bytecode) or
+    (not hasattr(sys, "dont_write_bytecode") and os.environ.get("PYTHONDONTWRITEBYTECODE"))):
+    _dont_write_bytecode = True
+else:
+    _dont_write_bytecode = False

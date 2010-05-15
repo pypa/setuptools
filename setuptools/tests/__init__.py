@@ -94,21 +94,21 @@ class DependsTests(TestCase):
 
         from email import __version__
         self.assertEqual(req.get_version(), __version__)
-        self.failUnless(req.version_ok('1.0.9'))
-        self.failIf(req.version_ok('0.9.1'))
-        self.failIf(req.version_ok('unknown'))
+        self.assertTrue(req.version_ok('1.0.9'))
+        self.assertFalse(req.version_ok('0.9.1'))
+        self.assertFalse(req.version_ok('unknown'))
 
-        self.failUnless(req.is_present())
-        self.failUnless(req.is_current())
+        self.assertTrue(req.is_present())
+        self.assertTrue(req.is_current())
 
         req = Require('Email 3000','03000','email',format=LooseVersion)
-        self.failUnless(req.is_present())
-        self.failIf(req.is_current())
-        self.failIf(req.version_ok('unknown'))
+        self.assertTrue(req.is_present())
+        self.assertFalse(req.is_current())
+        self.assertFalse(req.version_ok('unknown'))
 
         req = Require('Do-what-I-mean','1.0','d-w-i-m')
-        self.failIf(req.is_present())
-        self.failIf(req.is_current())
+        self.assertFalse(req.is_present())
+        self.assertFalse(req.is_current())
 
         req = Require('Tests', None, 'tests', homepage="http://example.com")
         self.assertEqual(req.format, None)
@@ -118,8 +118,8 @@ class DependsTests(TestCase):
         self.assertEqual(req.homepage, 'http://example.com')
 
         paths = [os.path.dirname(p) for p in __path__]
-        self.failUnless(req.is_present(paths))
-        self.failUnless(req.is_current(paths))
+        self.assertTrue(req.is_present(paths))
+        self.assertTrue(req.is_current(paths))
 
 
 class DistroTests(TestCase):
@@ -137,7 +137,7 @@ class DistroTests(TestCase):
 
 
     def testDistroType(self):
-        self.failUnless(isinstance(self.dist,setuptools.dist.Distribution))
+        self.assertTrue(isinstance(self.dist,setuptools.dist.Distribution))
 
 
     def testExcludePackage(self):
@@ -189,17 +189,17 @@ class DistroTests(TestCase):
         dist.exclude(packages=['a'], py_modules=['b'], ext_modules=[self.e2])
 
     def testContents(self):
-        self.failUnless(self.dist.has_contents_for('a'))
+        self.assertTrue(self.dist.has_contents_for('a'))
         self.dist.exclude_package('a')
-        self.failIf(self.dist.has_contents_for('a'))
+        self.assertFalse(self.dist.has_contents_for('a'))
 
-        self.failUnless(self.dist.has_contents_for('b'))
+        self.assertTrue(self.dist.has_contents_for('b'))
         self.dist.exclude_package('b')
-        self.failIf(self.dist.has_contents_for('b'))
+        self.assertFalse(self.dist.has_contents_for('b'))
 
-        self.failUnless(self.dist.has_contents_for('c'))
+        self.assertTrue(self.dist.has_contents_for('c'))
         self.dist.exclude_package('c')
-        self.failIf(self.dist.has_contents_for('c'))
+        self.assertFalse(self.dist.has_contents_for('c'))
 
 
 
@@ -269,12 +269,12 @@ class FeatureTests(TestCase):
         )
 
     def testDefaults(self):
-        self.failIf(
+        self.assertFalse(
             Feature(
                 "test",standard=True,remove='x',available=False
             ).include_by_default()
         )
-        self.failUnless(
+        self.assertTrue(
             Feature("test",standard=True,remove='x').include_by_default()
         )
         # Feature must have either kwargs, removes, or require_features
@@ -288,33 +288,33 @@ class FeatureTests(TestCase):
 
     def testFeatureOptions(self):
         dist = self.dist
-        self.failUnless(
+        self.assertTrue(
             ('with-dwim',None,'include DWIM') in dist.feature_options
         )
-        self.failUnless(
+        self.assertTrue(
             ('without-dwim',None,'exclude DWIM (default)') in dist.feature_options
         )
-        self.failUnless(
+        self.assertTrue(
             ('with-bar',None,'include bar (default)') in dist.feature_options
         )
-        self.failUnless(
+        self.assertTrue(
             ('without-bar',None,'exclude bar') in dist.feature_options
         )
         self.assertEqual(dist.feature_negopt['without-foo'],'with-foo')
         self.assertEqual(dist.feature_negopt['without-bar'],'with-bar')
         self.assertEqual(dist.feature_negopt['without-dwim'],'with-dwim')
-        self.failIf('without-baz' in dist.feature_negopt)
+        self.assertFalse('without-baz' in dist.feature_negopt)
 
     def testUseFeatures(self):
         dist = self.dist
         self.assertEqual(dist.with_foo,1)
         self.assertEqual(dist.with_bar,0)
         self.assertEqual(dist.with_baz,1)
-        self.failIf('bar_et' in dist.py_modules)
-        self.failIf('pkg.bar' in dist.packages)
-        self.failUnless('pkg.baz' in dist.packages)
-        self.failUnless('scripts/baz_it' in dist.scripts)
-        self.failUnless(('libfoo','foo/foofoo.c') in dist.libraries)
+        self.assertFalse('bar_et' in dist.py_modules)
+        self.assertFalse('pkg.bar' in dist.packages)
+        self.assertTrue('pkg.baz' in dist.packages)
+        self.assertTrue('scripts/baz_it' in dist.scripts)
+        self.assertTrue(('libfoo','foo/foofoo.c') in dist.libraries)
         self.assertEqual(dist.ext_modules,[])
         self.assertEqual(dist.require_features, [self.req])
 
@@ -331,7 +331,7 @@ class TestCommandTests(TestCase):
 
     def testTestIsCommand(self):
         test_cmd = makeSetup().get_command_obj('test')
-        self.failUnless(isinstance(test_cmd, distutils.cmd.Command))
+        self.assertTrue(isinstance(test_cmd, distutils.cmd.Command))
 
     def testLongOptSuiteWNoDefault(self):
         ts1 = makeSetup(script_args=['test','--test-suite=foo.tests.suite'])

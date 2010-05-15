@@ -12,8 +12,8 @@ class install_scripts(_install_scripts):
         self.no_ep = False
 
     def run(self):
-        from setuptools.command.easy_install import (get_script_args,
-                                                     sys_executable)
+        from setuptools.command.easy_install import get_script_args
+        from setuptools.command.easy_install import sys_executable
 
         self.run_command("egg_info")
         if self.distribution.scripts:

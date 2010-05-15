@@ -6,8 +6,9 @@ import tempfile
 import site
 from StringIO import StringIO
 
+from distutils.errors import DistutilsError
 from setuptools.command.develop import develop
-from setuptools.command import develop as develop_pkg
+from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
 
 SETUP_PY = """\
@@ -28,9 +29,9 @@ class TestDevelopTest(unittest.TestCase):
         os.chdir(self.dir)
         if sys.version >= "2.6":
             self.old_base = site.USER_BASE
-            site.USER_BASE = develop_pkg.USER_BASE = tempfile.mkdtemp()
+            site.USER_BASE = tempfile.mkdtemp()
             self.old_site = site.USER_SITE
-            site.USER_SITE = develop_pkg.USER_SITE = tempfile.mkdtemp()
+            site.USER_SITE = tempfile.mkdtemp()
 
     def tearDown(self):
         os.chdir(self.old_cwd)
@@ -49,6 +50,7 @@ class TestDevelopTest(unittest.TestCase):
         cmd = develop(dist)
         cmd.user = 1
         cmd.ensure_finalized()
+        cmd.install_dir = site.USER_SITE
         cmd.user = 1
         old_stdout = sys.stdout
         sys.stdout = StringIO()
@@ -61,4 +63,20 @@ class TestDevelopTest(unittest.TestCase):
         content = os.listdir(site.USER_SITE)
         content.sort()
         self.assertEquals(content, ['UNKNOWN.egg-link', 'easy-install.pth'])
+
+    def test_develop_with_setup_requires(self):
+
+        wanted = ("Could not find suitable distribution for "
+                  "Requirement.parse('I-DONT-EXIST')")
+        old_dir = os.getcwd()
+        os.chdir(self.dir)
+        try:
+            try:
+                dist = Distribution({'setup_requires': ['I_DONT_EXIST']})
+            except DistutilsError, e:
+                error = str(e)
+                if error ==  wanted:
+                    pass
+        finally:
+            os.chdir(old_dir)
 

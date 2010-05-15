@@ -3,6 +3,18 @@ CHANGES
 =======
 
 ------
+0.6.13
+------
+
+*
+
+------
+0.6.12
+------
+
+* Issue 149: Fixed various failures on 2.3/2.4
+
+------
 0.6.11
 ------
 
@@ -11,7 +23,13 @@ CHANGES
 * Added indexsidebar.html into MANIFEST.in
 * Issue 108: Fixed TypeError with Python3.1
 * Issue 121: Fixed --help install command trying to actually install.
-* Issue 112: Added an os.makedirs so that Tarek's solution will work. 
+* Issue 112: Added an os.makedirs so that Tarek's solution will work.
+* Issue 133: Added --no-find-links to easy_install
+* Added easy_install --user
+* Issue 100: Fixed develop --user not taking '.' in PYTHONPATH into account
+* Issue 134: removed spurious UserWarnings. Patch by VanLindberg
+* Issue 138: cant_write_to_target error when setup_requires is used.
+* Issue 147: respect the sys.dont_write_bytecode flag
 
 ------
 0.6.10
