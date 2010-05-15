@@ -158,13 +158,11 @@ else:
     _EXCEPTIONS = []
 
 try:
-	import win32com
-	_EXCEPTIONS.append(win32com.__gen_path__)
+	from win32com.client.gencache import GetGeneratePath
+	_EXCEPTIONS.append(GetGeneratePath())
+	del GetGeneratePath
 except ImportError:
 	# it appears pywin32 is not installed, so no need to exclude.
-	pass
-except AttributeError:
-	# it appears __gen_path__ is not available, so fail silently
 	pass
 
 class DirectorySandbox(AbstractSandbox):
