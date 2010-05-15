@@ -158,14 +158,13 @@ else:
     _EXCEPTIONS = []
 
 try:
-	win32com_pkg = os.path.dirname(__import__('win32com').__file__)
-	gen_py_pkg = os.path.join(win32com_pkg, 'gen_py')
-	_EXCEPTIONS.append(gen_py_pkg)
+	import win32com
+	_EXCEPTIONS.append(win32com.__gen_path__)
 except ImportError:
 	# it appears pywin32 is not installed, so no need to exclude.
 	pass
 except AttributeError:
-	# unexpected error getting __file__ from win32com
+	# it appears __gen_path__ is not available, so fail silently
 	pass
 
 class DirectorySandbox(AbstractSandbox):
