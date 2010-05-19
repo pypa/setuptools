@@ -10,7 +10,7 @@ class TestPackageIndex(unittest.TestCase):
 
     def test_bad_urls(self):
         index = setuptools.package_index.PackageIndex()
-        url = 'http://127.0.0.1/nonesuch/test_package_index'
+        url = 'http://127.0.0.1:0/nonesuch/test_package_index'
         try:
             v = index.open_url(url)
         except Exception, v:
