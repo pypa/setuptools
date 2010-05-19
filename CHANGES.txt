@@ -7,7 +7,7 @@ CHANGES
 ------
 
 * Issue 160: 2.7 gives ValueError("Invalid IPv6 URL")
-*
+* Issue 150: Fixed using ~/.local even in a --no-site-packages virtualenv
 
 ------
 0.6.12
