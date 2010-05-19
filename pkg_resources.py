@@ -2081,8 +2081,11 @@ class Distribution(object):
 
     hashcmp = property(
         lambda self: (
-            getattr(self,'parsed_version',()), self.precedence, self.key,
-            -len(self.location or ''), self.location, self.py_version,
+            getattr(self,'parsed_version',()),
+            self.precedence,
+            self.key,
+            (self.location or '').split('#md5=')[0],
+            self.py_version,
             self.platform
         )
     )

@@ -103,12 +103,10 @@ class TestPackageIndex(unittest.TestCase):
 
         # the distribution has been found
         self.assert_('foobar' in pi)
-        # we have two links
-        self.assert_(len(pi['foobar'])==2)
-        # the first link should be from the index
+        # we have only one link, because links are compared without md5
+        self.assert_(len(pi['foobar'])==1)
+        # the link should be from the index
         self.assert_('correct_md5' in pi['foobar'][0].location)
-        # the second link should be the external one
-        self.assert_('bad_md5' in pi['foobar'][1].location)
 
 
 
