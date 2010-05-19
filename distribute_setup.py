@@ -227,7 +227,6 @@ def _no_sandbox(function):
 
     return __no_sandbox
 
-@_no_sandbox
 def _patch_file(path, content):
     """Will backup the file then patch it"""
     existing_content = open(path).read()
@@ -244,6 +243,7 @@ def _patch_file(path, content):
         f.close()
     return True
 
+_patch_file = _no_sandbox(_patch_file)
 
 def _same_content(path, content):
     return open(path).read() == content
@@ -254,7 +254,6 @@ def _rename_path(path):
     os.rename(path, new_name)
     return new_name
 
-@_no_sandbox
 def _remove_flat_installation(placeholder):
     if not os.path.isdir(placeholder):
         log.warn('Unkown installation at %s', placeholder)
@@ -288,13 +287,13 @@ def _remove_flat_installation(placeholder):
                      'Setuptools distribution', element)
     return True
 
+_remove_flat_installation = _no_sandbox(_remove_flat_installation)
 
 def _after_install(dist):
     log.warn('After install bootstrap.')
     placeholder = dist.get_command_obj('install').install_purelib
     _create_fake_setuptools_pkg_info(placeholder)
 
-@_no_sandbox
 def _create_fake_setuptools_pkg_info(placeholder):
     if not placeholder or not os.path.exists(placeholder):
         log.warn('Could not find the install location')
@@ -322,7 +321,8 @@ def _create_fake_setuptools_pkg_info(placeholder):
     finally:
         f.close()
 
-@_no_sandbox
+_create_fake_setuptools_pkg_info = _no_sandbox(_create_fake_setuptools_pkg_info)
+
 def _patch_egg_dir(path):
     # let's check if it's already patched
     pkg_info = os.path.join(path, 'EGG-INFO', 'PKG-INFO')
@@ -341,6 +341,7 @@ def _patch_egg_dir(path):
         f.close()
     return True
 
+_patch_egg_dir = _no_sandbox(_patch_egg_dir)
 
 def _before_install():
     log.warn('Before install bootstrap.')
