@@ -32,9 +32,9 @@ class IndexServer(HTTPServer):
     def stop(self):
         """self.shutdown is not supported on python < 2.6"""
         self._run = False
-        urllib2.urlopen('http://127.0.0.1:%s/' % self.server_address[1])
+        urllib2.urlopen('http://127.0.0.1:%s/' % self.server_port)
         self.thread.join()
 
     def base_url(self):
-        port = self.server_address[1]
+        port = self.server_port
         return 'http://127.0.0.1:%s/setuptools/tests/indexes/' % port
