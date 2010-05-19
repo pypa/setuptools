@@ -10,6 +10,16 @@ from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
 from pkg_resources import Distribution as PRDistribution
 
+try:
+    import multiprocessing
+    import logging
+    _LOG = logging.getLogger('test_easy_install')
+    logging.basicConfig(level=logging.INFO, stream=sys.stderr)
+    _MULTIPROC = True
+except ImportError:
+    _MULTIPROC = False
+    _LOG = None
+
 class FakeDist(object):
     def get_entry_map(self, group):
         if group != 'console_scripts':
@@ -185,4 +195,9 @@ class TestUserInstallTest(unittest.TestCase):
         content = os.listdir(site.USER_SITE)
         content.sort()
         self.assertEquals(content, ['UNKNOWN.egg-link', 'easy-install.pth'])
+
+    def test_multiproc_atexit(self):
+        if not _MULTIPROC:
+            return
+        _LOG.info('this should not break')
 
