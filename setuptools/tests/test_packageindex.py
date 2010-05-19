@@ -1,7 +1,7 @@
 """Package Index Tests
 """
 # More would be better!
-
+import sys
 import os, shutil, tempfile, unittest, urllib2
 import pkg_resources
 import setuptools.package_index
@@ -56,6 +56,16 @@ class TestPackageIndex(unittest.TestCase):
             index.open_url(url)
         except Exception, v:
             self.assert_('nonnumeric port' in str(v))
+
+
+        # issue #160
+        if sys.version_info[0] == 2 and sys.version_info[1] == 7:
+            # this should not fail
+            url = 'http://example.com'
+            page = ('<a href="http://www.famfamfam.com]('
+                    'http://www.famfamfam.com/">')
+            index.process_index(url, page)
+
 
     def test_url_ok(self):
         index = setuptools.package_index.PackageIndex(

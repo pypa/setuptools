@@ -6,6 +6,7 @@ CHANGES
 0.6.13
 ------
 
+* Issue 160: 2.7 gives ValueError("Invalid IPv6 URL")
 *
 
 ------
