@@ -10,3 +10,4 @@ lib
 bin
 include
 \.Python
+*.swp

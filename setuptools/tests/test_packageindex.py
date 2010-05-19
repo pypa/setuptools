@@ -5,6 +5,7 @@ import sys
 import os, shutil, tempfile, unittest, urllib2
 import pkg_resources
 import setuptools.package_index
+from server import IndexServer
 
 class TestPackageIndex(unittest.TestCase):
 
@@ -73,4 +74,41 @@ class TestPackageIndex(unittest.TestCase):
         )
         url = 'file:///tmp/test_package_index'
         self.assert_(index.url_ok(url, True))
+
+    def test_links_priority(self):
+        """
+        Download links from the pypi simple index should be used before
+        external download links.
+        http://bitbucket.org/tarek/distribute/issue/163/md5-validation-error
+
+        Usecase :
+        - someone uploads a package on pypi, a md5 is generated
+        - someone manually copies this link (with the md5 in the url) onto an
+          external page accessible from the package page.
+        - someone reuploads the package (with a different md5)
+        - while easy_installing, an MD5 error occurs because the external link
+          is used
+        -> Distribute should use the link from pypi, not the external one.
+        """
+        # start an index server
+        server = IndexServer()
+        server.start()
+        index_url = server.base_url() + 'test_links_priority/simple/'
+
+        # scan a test index
+        pi = setuptools.package_index.PackageIndex(index_url)
+        requirement = pkg_resources.Requirement.parse('foobar')
+        pi.find_packages(requirement)
+        server.stop()
+
+        # the distribution has been found
+        self.assert_('foobar' in pi)
+        # we have two links
+        self.assert_(len(pi['foobar'])==2)
+        # the first link should be from the index
+        self.assert_('correct_md5' in pi['foobar'][0].location)
+        # the second link should be the external one
+        self.assert_('bad_md5' in pi['foobar'][1].location)
+
+
 
