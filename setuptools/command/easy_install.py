@@ -122,10 +122,9 @@ class easy_install(Command):
     create_index = PackageIndex
 
     def initialize_options(self):
-        if HAS_USER_SITE:
+        if HAS_USER_SITE and site.ENABLE_USER_SITE:
             whereami = os.path.abspath(__file__)
-            self.user = (whereami.startswith(site.USER_SITE)
-                         or whereami.startswith(site.USER_BASE))
+            self.user = whereami.startswith(site.USER_SITE)
         else:
             self.user = 0
 
