@@ -39,7 +39,7 @@ __all__ = [
 ]
 
 import site
-HAS_USER_SITE = not sys.version < "2.6"
+HAS_USER_SITE = not sys.version < "2.6" and site.ENABLE_USER_SITE
 
 def samefile(p1,p2):
     if hasattr(os.path,'samefile') and (
@@ -122,7 +122,7 @@ class easy_install(Command):
     create_index = PackageIndex
 
     def initialize_options(self):
-        if HAS_USER_SITE and site.ENABLE_USER_SITE:
+        if HAS_USER_SITE:
             whereami = os.path.abspath(__file__)
             self.user = whereami.startswith(site.USER_SITE)
         else:
@@ -1347,8 +1347,7 @@ def get_site_dirs():
         site_lib = get_python_lib(plat_specific)
         if site_lib not in sitedirs: sitedirs.append(site_lib)
 
-    if sys.version >= "2.6":
-        import site
+    if HAS_USER_SITE:
         sitedirs.append(site.USER_SITE)
 
     sitedirs = map(normalize_path, sitedirs)
