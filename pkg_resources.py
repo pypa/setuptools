@@ -2049,7 +2049,7 @@ def _remove_md5_fragment(location):
     if not location:
         return ''
     parsed = urlparse(location)
-    if 'md5' in parsed[-1]:
+    if parsed[-1].startswith('md5='):
         return urlunparse(parsed[:-1] + ('',))
     return location
 
