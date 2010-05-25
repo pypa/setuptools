@@ -14,6 +14,7 @@ method.
 """
 
 import sys, os, zipimport, time, re, imp, types
+from urlparse import urlparse, urlunparse
 
 try:
     frozenset
@@ -2044,8 +2045,13 @@ class EntryPoint(object):
     parse_map = classmethod(parse_map)
 
 
-
-
+def _remove_md5_fragment(location):
+    if not location:
+        return ''
+    parsed = urlparse(location)
+    if 'md5' in parsed[-1]:
+        return urlunparse(parsed[:-1] + ('',))
+    return location
 
 
 class Distribution(object):
@@ -2079,12 +2085,13 @@ class Distribution(object):
         )
     from_location = classmethod(from_location)
 
+
     hashcmp = property(
         lambda self: (
             getattr(self,'parsed_version',()),
             self.precedence,
             self.key,
-            (self.location or '').split('#md5=')[0],
+            _remove_md5_fragment(self.location),
             self.py_version,
             self.platform
         )
