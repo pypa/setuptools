@@ -203,11 +203,11 @@ class PackageIndex(Environment):
             charset = f.headers.get_param('charset') or 'latin-1'
             page = page.decode(charset, "ignore")
         f.close()
-        if url.startswith(self.index_url) and getattr(f,'code',None)!=404:
-            page = self.process_index(url, page)
         for match in HREF.finditer(page):
             link = urlparse.urljoin(base, htmldecode(match.group(1)))
             self.process_url(link)
+        if url.startswith(self.index_url) and getattr(f,'code',None)!=404:
+            page = self.process_index(url, page)
 
     def process_filename(self, fn, nested=False):
         # process filenames or directories
