@@ -8,6 +8,8 @@ CHANGES
 
 * Issue 160: 2.7 gives ValueError("Invalid IPv6 URL")
 * Issue 150: Fixed using ~/.local even in a --no-site-packages virtualenv
+* Issue 163: scan index links before external links, and don't use the md5 when
+  comparing two distributions
 
 ------
 0.6.12

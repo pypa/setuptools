@@ -13,6 +13,7 @@ class IndexServer(HTTPServer):
         s.start()
         index_url = s.base_url() + 'mytestindex'
         # do some test requests to the index
+        # The index files should be located in setuptools/tests/indexes
         s.stop()
     """
     def __init__(self):
