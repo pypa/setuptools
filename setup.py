@@ -41,6 +41,8 @@ VERSION = "0.6.13"
 
 from setuptools import setup, find_packages
 from setuptools.command.build_py import build_py as _build_py
+from setuptools.command.test import test as _test
+
 scripts = []
 
 # specific command that is used to generate windows .exe files
@@ -63,6 +65,36 @@ class build_py(_build_py):
 
                 if copied and srcfile in self.distribution.convert_2to3_doctests:
                     self.__doctests_2to3.append(outf)
+
+class test(_test):
+    """Specific test class to avoid rewriting the entry_points.txt"""
+    def run(self):
+        entry_points = os.path.join('distribute.egg-info', 'entry_points.txt')
+
+        if not os.path.exists(entry_points):
+            try:
+                _test.run(self)
+            finally:
+                return
+
+        f = open(entry_points)
+
+        # running the test
+        try:
+            ep_content = f.read()
+        finally:
+            f.close()
+
+        try:
+            _test.run(self)
+        finally:
+            # restoring the file
+            f = open(entry_points, 'w')
+            try:
+                f.write(ep_content)
+            finally:
+                f.close()
+
 
 # if we are installing Distribute using "python setup.py install"
 # we need to get setuptools out of the way
@@ -90,6 +122,7 @@ if _being_installed():
     from distribute_setup import _before_install
     _before_install()
 
+
 dist = setup(
     name="distribute",
     version=VERSION,
@@ -110,6 +143,7 @@ dist = setup(
 
     zip_safe = (sys.version>="2.5"),   # <2.5 needs unzipped for -m to work
 
+    cmdclass = {'test': test},
     entry_points = {
 
         "distutils.commands" : [
