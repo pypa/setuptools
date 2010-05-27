@@ -361,8 +361,8 @@ def _under_prefix(location):
                 if len(args) > index:
                     top_dir = args[index+1]
                     return location.startswith(top_dir)
-            elif option == '--user' and USER_SITE is not None:
-                return location.startswith(USER_SITE)
+        if arg == '--user' and USER_SITE is not None:
+            return location.startswith(USER_SITE)
     return True
 
 
