@@ -37,7 +37,7 @@ init_path = convert_path('setuptools/command/__init__.py')
 exec(open(init_path).read(), d)
 
 SETUP_COMMANDS = d['__all__']
-VERSION = "0.6.13"
+VERSION = "0.6.14"
 
 from setuptools import setup, find_packages
 from setuptools.command.build_py import build_py as _build_py
