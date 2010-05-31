@@ -421,6 +421,9 @@ def _fake_setuptools():
 def _relaunch():
     log.warn('Relaunching...')
     # we have to relaunch the process
+    # pip marker to avoid a relaunch bug
+    if sys.argv[:3] == ['-c', 'install', '--single-version-externally-managed']:
+        sys.argv[0] = 'setup.py'
     args = [sys.executable] + sys.argv
     sys.exit(subprocess.call(args))
 
