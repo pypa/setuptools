@@ -8,6 +8,8 @@ CHANGES
 
 * Issue 170: Fixed unittest failure. Thanks to Toshio.
 * Issue 171: Fixed race condition in unittests cause deadlocks in test suite.
+* Issue 143: Fixed a lookup issue with easy_install.
+  Thanks to David and Zooko.
 
 ------
 0.6.13

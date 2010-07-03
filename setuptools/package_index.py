@@ -418,7 +418,8 @@ class PackageIndex(Environment):
 
 
     def fetch_distribution(self,
-        requirement, tmpdir, force_scan=False, source=False, develop_ok=False
+        requirement, tmpdir, force_scan=False, source=False, develop_ok=False,
+        local_index=None
     ):
         """Obtain a distribution suitable for fulfilling `requirement`
 
@@ -440,11 +441,14 @@ class PackageIndex(Environment):
         # process a Requirement
         self.info("Searching for %s", requirement)
         skipped = {}
+        dist = None
 
-        def find(req):
+        def find(req, env=None):
+            if env is None:
+                env = self
             # Find a matching distribution; may be called more than once
 
-            for dist in self[req.key]:
+            for dist in env[req.key]:
 
                 if dist.precedence==DEVELOP_DIST and not develop_ok:
                     if dist not in skipped:
@@ -461,8 +465,11 @@ class PackageIndex(Environment):
         if force_scan:
             self.prescan()
             self.find_packages(requirement)
+            dist = find(requirement)
 
-        dist = find(requirement)
+        if local_index is not None:
+            dist = dist or find(requirement, local_index)
+
         if dist is None and self.to_scan is not None:
             self.prescan()
             dist = find(requirement)

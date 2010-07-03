@@ -565,7 +565,8 @@ Please make the appropriate changes for your system and try again.
 
             self.check_editable(spec)
             dist = self.package_index.fetch_distribution(
-                spec, tmpdir, self.upgrade, self.editable, not self.always_copy
+                spec, tmpdir, self.upgrade, self.editable, not self.always_copy,
+                self.local_index
             )
 
             if dist is None:
