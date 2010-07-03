@@ -15,6 +15,7 @@ Contributors
 * Philip Jenvey
 * Reinout van Rees
 * Tarek Ziadé
+* Toshio Kuratomi
 
 If you think you name is missing, please add it (alpha order by first name)
 
