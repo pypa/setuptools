@@ -6,7 +6,8 @@ CHANGES
 0.6.14
 ------
 
-* Issue 170: fixed unittest failure. Thanks to Toshio.
+* Issue 170: Fixed unittest failure. Thanks to Toshio.
+* Issue 171: Fixed race condition in unittests cause deadlocks in test suite.
 
 ------
 0.6.13
