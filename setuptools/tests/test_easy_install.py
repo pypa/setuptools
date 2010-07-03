@@ -205,3 +205,39 @@ class TestUserInstallTest(unittest.TestCase):
         cmd.args = ['py']
         cmd.initialize_options()
         self.assertFalse(cmd.user, 'NOT user should be implied')
+
+    def test_local_index(self):
+        # make sure the local index is used
+        # when easy_install looks for installed
+        # packages
+        new_location = tempfile.mkdtemp()
+        target = tempfile.mkdtemp()
+        egg_file = os.path.join(new_location, 'foo-1.0.egg-info')
+        f = open(egg_file, 'w')
+        try:
+            f.write('Name: foo\n')
+        except:
+            f.close()
+
+        sys.path.append(target)
+        old_ppath = os.environ.get('PYTHONPATH')
+        os.environ['PYTHONPATH'] = ':'.join(sys.path)
+        try:
+            dist = Distribution()
+            dist.script_name = 'setup.py'
+            cmd = easy_install(dist)
+            cmd.install_dir = target
+            cmd.args = ['foo']
+            cmd.ensure_finalized()
+            cmd.local_index.scan([new_location])
+            res = cmd.easy_install('foo')
+            self.assertEquals(res.location, new_location)
+        finally:
+            sys.path.remove(target)
+            shutil.rmtree(new_location)
+            shutil.rmtree(target)
+            if old_ppath is not None:
+                os.environ['PYTHONPATH'] = old_ppath
+            else:
+                del os.environ['PYTHONPATH']
+
