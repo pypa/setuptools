@@ -639,7 +639,8 @@ Please make the appropriate changes for your system and try again.
         self.update_pth(dist)
         self.package_index.add(dist)
         self.local_index.add(dist)
-        self.install_egg_scripts(dist)
+        if not self.editable:
+            self.install_egg_scripts(dist)
         self.installed_projects[dist.key] = dist
         log.info(self.installation_report(requirement, dist, *info))
         if (dist.has_metadata('dependency_links.txt') and

@@ -10,6 +10,7 @@ CHANGES
 * Issue 171: Fixed race condition in unittests cause deadlocks in test suite.
 * Issue 143: Fixed a lookup issue with easy_install.
   Thanks to David and Zooko.
+* Issue 174: Fixed the edit mode when its used with setuptools itself
 
 ------
 0.6.13
