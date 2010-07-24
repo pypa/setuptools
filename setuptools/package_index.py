@@ -1,5 +1,5 @@
 """PyPI and direct package downloading"""
-import sys, os.path, re, urlparse, urllib2, shutil, random, socket, cStringIO
+import sys, os.path, re, urlparse, urllib, urllib2, shutil, random, socket, cStringIO
 import httplib
 from pkg_resources import *
 from distutils import log
@@ -642,7 +642,7 @@ class PackageIndex(Environment):
         if scheme=='svn' or scheme.startswith('svn+'):
             return self._download_svn(url, filename)
         elif scheme=='file':
-            return urllib2.url2pathname(urlparse.urlparse(url)[2])
+            return urllib.url2pathname(urlparse.urlparse(url)[2])
         else:
             self.url_ok(url, True)   # raises error if not allowed
             return self._attempt_download(url, filename)
@@ -791,7 +791,7 @@ def fix_sf_url(url):
 def local_open(url):
     """Read a local path, with special support for directories"""
     scheme, server, path, param, query, frag = urlparse.urlparse(url)
-    filename = urllib2.url2pathname(path)
+    filename = urllib.url2pathname(path)
     if os.path.isfile(filename):
         return urllib2.urlopen(url)
     elif path.endswith('/') and os.path.isdir(filename):
