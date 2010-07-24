@@ -199,7 +199,7 @@ class PackageIndex(Environment):
 
         base = f.url     # handle redirects
         page = f.read()
-        if sys.version_info >= (3,):
+        if sys.version_info >= (3,) and not isinstance(f, urllib2.HTTPError):
             charset = f.headers.get_param('charset') or 'latin-1'
             page = page.decode(charset, "ignore")
         f.close()
