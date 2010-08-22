@@ -1583,7 +1583,7 @@ def get_script_args(dist, executable=sys_executable, wininst=False):
                     old = ['.py','.pyc','.pyo']
                     new_header = re.sub('(?i)pythonw.exe','python.exe',header)
 
-                if os.path.exists(new_header[2:-1]) or sys.platform!='win32':
+                if os.path.exists(new_header[2:-1].strip('"')) or sys.platform!='win32':
                     hdr = new_header
                 else:
                     hdr = header
