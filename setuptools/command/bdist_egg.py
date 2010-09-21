@@ -535,6 +535,6 @@ def make_zipfile(zip_filename, base_dir, verbose=0, dry_run=0, compress=None,
         z.close()
     else:
         for dirname, dirs, files in os.walk(base_dir):
-            visit(None, dirname, file)
+            visit(None, dirname, files)
     return zip_filename
 #
