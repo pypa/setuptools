@@ -180,11 +180,15 @@ def unpack_tarfile(filename, extract_dir, progress_filter=default_filter):
     try:
         tarobj.chown = lambda *args: None   # don't do any chowning!
         for member in tarobj:
-            if member.isfile() or member.isdir():
-                name = member.name
-                # don't extract absolute paths or ones with .. in them
-                if not name.startswith('/') and '..' not in name:
-                    dst = os.path.join(extract_dir, *name.split('/'))                
+            name = member.name
+            # don't extract absolute paths or ones with .. in them
+            if not name.startswith('/') and '..' not in name:
+                dst = os.path.join(extract_dir, *name.split('/'))
+
+                while member.islnk() or member.issym():
+                    member = tarobj._getmember(member.linkname, member)
+    
+                if member.isfile() or member.isdir():
                     dst = progress_filter(name, dst)
                     if dst:
                         if dst.endswith(os.sep):
@@ -198,8 +202,4 @@ def unpack_tarfile(filename, extract_dir, progress_filter=default_filter):
         tarobj.close()
 
 
-
-
 extraction_drivers = unpack_directory, unpack_zipfile, unpack_tarfile
-
-
