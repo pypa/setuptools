@@ -185,10 +185,10 @@ def unpack_tarfile(filename, extract_dir, progress_filter=default_filter):
             if not name.startswith('/') and '..' not in name:
                 dst = os.path.join(extract_dir, *name.split('/'))
 
-                while member is not None and member.islnk() or member.issym():
+                while member is not None and (member.islnk() or member.issym()):
                     member = tarobj._getmember(member.linkname, member)
     
-                if member is not None and member.isfile() or member.isdir():
+                if member is not None and (member.isfile() or member.isdir()):
                     dst = progress_filter(name, dst)
                     if dst:
                         if dst.endswith(os.sep):
