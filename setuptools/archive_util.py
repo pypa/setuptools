@@ -6,7 +6,7 @@ __all__ = [
     "UnrecognizedFormat", "extraction_drivers", "unpack_directory",
 ]
 
-import zipfile, tarfile, os, shutil
+import zipfile, tarfile, os, shutil, posixpath
 from pkg_resources import ensure_directory
 from distutils.errors import DistutilsError
 
@@ -169,14 +169,12 @@ def unpack_tarfile(filename, extract_dir, progress_filter=default_filter):
     by ``tarfile.open()``).  See ``unpack_archive()`` for an explanation
     of the `progress_filter` argument.
     """
-
     try:
         tarobj = tarfile.open(filename)
     except tarfile.TarError:
         raise UnrecognizedFormat(
             "%s is not a compressed or uncompressed tar file" % (filename,)
         )
-
     try:
         tarobj.chown = lambda *args: None   # don't do any chowning!
         for member in tarobj:
@@ -184,9 +182,12 @@ def unpack_tarfile(filename, extract_dir, progress_filter=default_filter):
             # don't extract absolute paths or ones with .. in them
             if not name.startswith('/') and '..' not in name:
                 dst = os.path.join(extract_dir, *name.split('/'))
-
                 while member is not None and (member.islnk() or member.issym()):
-                    member = tarobj._getmember(member.linkname, member)
+                    linkpath = member.linkname
+                    if member.issym():
+                        linkpath = posixpath.join(posixpath.dirname(member.name), linkpath)
+                        linkpath = posixpath.normpath(linkpath)
+                    member = tarobj._getmember(linkpath)
     
                 if member is not None and (member.isfile() or member.isdir()):
                     dst = progress_filter(name, dst)
@@ -200,6 +201,5 @@ def unpack_tarfile(filename, extract_dir, progress_filter=default_filter):
         return True
     finally:
         tarobj.close()
-
 
 extraction_drivers = unpack_directory, unpack_zipfile, unpack_tarfile
