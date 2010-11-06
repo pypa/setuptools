@@ -377,7 +377,7 @@ class easy_install(Command):
 
     def check_site_dir(self):
         """Verify that self.install_dir is .pth-capable dir, if needed"""
-        print 'install_dir', self.install_dir
+
         instdir = normalize_path(self.install_dir)
         pth_file = os.path.join(instdir,'easy-install.pth')
 
