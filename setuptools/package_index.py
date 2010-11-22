@@ -199,8 +199,12 @@ class PackageIndex(Environment):
 
         base = f.url     # handle redirects
         page = f.read()
-        if sys.version_info >= (3,) and not isinstance(f, urllib2.HTTPError):
-            charset = f.headers.get_param('charset') or 'latin-1'
+        if not isinstance(page, str): # We are in Python 3 and got bytes. We want str.
+            if isinstance(f, urllib2.HTTPError):
+                # Errors have no charset, assume latin1:
+                charset = 'latin-1'
+            else:
+                charset = f.headers.get_param('charset') or 'latin-1'
             page = page.decode(charset, "ignore")
         f.close()
         for match in HREF.finditer(page):
