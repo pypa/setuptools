@@ -7,6 +7,7 @@ CHANGES
 ------
 
 * Fixed typo in bdist_egg
+* Several issues under Python 3 has been solved.
 
 ------
 0.6.14
