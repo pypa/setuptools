@@ -1445,7 +1445,8 @@ def get_exe_prefixes(exe_filename):
     prefixes = [
         ('PURELIB/', ''), ('PLATLIB/pywin32_system32', ''),
         ('PLATLIB/', ''),
-        ('SCRIPTS/', 'EGG-INFO/scripts/')
+        ('SCRIPTS/', 'EGG-INFO/scripts/'),
+        ('DATA/LIB/site-packages', ''),
     ]
     z = zipfile.ZipFile(exe_filename)
     try:
