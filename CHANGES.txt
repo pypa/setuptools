@@ -8,6 +8,7 @@ CHANGES
 
 * Fixed typo in bdist_egg
 * Several issues under Python 3 has been solved.
+* Issue 146: Fixed missing DLL files after easy_install of windows exe package.
 
 ------
 0.6.14
