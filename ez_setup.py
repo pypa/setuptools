@@ -18,16 +18,6 @@ DEFAULT_VERSION = "0.6c12"
 DEFAULT_URL     = "http://pypi.python.org/packages/%s/s/setuptools/" % sys.version[:3]
 
 md5_data = {
-    'setuptools-0.6b1-py2.3.egg': '8822caf901250d848b996b7f25c6e6ca',
-    'setuptools-0.6b1-py2.4.egg': 'b79a8a403e4502fbb85ee3f1941735cb',
-    'setuptools-0.6b2-py2.3.egg': '5657759d8a6d8fc44070a9d07272d99b',
-    'setuptools-0.6b2-py2.4.egg': '4996a8d169d2be661fa32a6e52e4f82a',
-    'setuptools-0.6b3-py2.3.egg': 'bb31c0fc7399a63579975cad9f5a0618',
-    'setuptools-0.6b3-py2.4.egg': '38a8c6b3d6ecd22247f179f7da669fac',
-    'setuptools-0.6b4-py2.3.egg': '62045a24ed4e1ebc77fe039aa4e6f7e5',
-    'setuptools-0.6b4-py2.4.egg': '4cb2a185d228dacffb2d17f103b3b1c4',
-    'setuptools-0.6c1-py2.3.egg': 'b3f2b5539d65cb7f74ad79127f1a908c',
-    'setuptools-0.6c1-py2.4.egg': 'b45adeda0667d2d2ffe14009364f2a4b',
     'setuptools-0.6c10-py2.3.egg': 'ce1e2ab5d3a0256456d9fc13800a7090',
     'setuptools-0.6c10-py2.4.egg': '57d6d9d6e9b80772c59a53a8433a5dd4',
     'setuptools-0.6c10-py2.5.egg': 'de46ac8b1c97c895572e5e8596aeb8c7',
@@ -36,23 +26,6 @@ md5_data = {
     'setuptools-0.6c11-py2.4.egg': 'bd639f9b0eac4c42497034dec2ec0c2b',
     'setuptools-0.6c11-py2.5.egg': '64c94f3bf7a72a13ec83e0b24f2749b2',
     'setuptools-0.6c11-py2.6.egg': 'bfa92100bd772d5a213eedd356d64086',
-    'setuptools-0.6c2-py2.3.egg': 'f0064bf6aa2b7d0f3ba0b43f20817c27',
-    'setuptools-0.6c2-py2.4.egg': '616192eec35f47e8ea16cd6a122b7277',
-    'setuptools-0.6c3-py2.3.egg': 'f181fa125dfe85a259c9cd6f1d7b78fa',
-    'setuptools-0.6c3-py2.4.egg': 'e0ed74682c998bfb73bf803a50e7b71e',
-    'setuptools-0.6c3-py2.5.egg': 'abef16fdd61955514841c7c6bd98965e',
-    'setuptools-0.6c4-py2.3.egg': 'b0b9131acab32022bfac7f44c5d7971f',
-    'setuptools-0.6c4-py2.4.egg': '2a1f9656d4fbf3c97bf946c0a124e6e2',
-    'setuptools-0.6c4-py2.5.egg': '8f5a052e32cdb9c72bcf4b5526f28afc',
-    'setuptools-0.6c5-py2.3.egg': 'ee9fd80965da04f2f3e6b3576e9d8167',
-    'setuptools-0.6c5-py2.4.egg': 'afe2adf1c01701ee841761f5bcd8aa64',
-    'setuptools-0.6c5-py2.5.egg': 'a8d3f61494ccaa8714dfed37bccd3d5d',
-    'setuptools-0.6c6-py2.3.egg': '35686b78116a668847237b69d549ec20',
-    'setuptools-0.6c6-py2.4.egg': '3c56af57be3225019260a644430065ab',
-    'setuptools-0.6c6-py2.5.egg': 'b2f8a7520709a5b34f80946de5f02f53',
-    'setuptools-0.6c7-py2.3.egg': '209fdf9adc3a615e5115b725658e13e2',
-    'setuptools-0.6c7-py2.4.egg': '5a8f954807d46a0fb67cf1f26c55a82e',
-    'setuptools-0.6c7-py2.5.egg': '45d2ad28f9750e7434111fde831e8372',
     'setuptools-0.6c8-py2.3.egg': '50759d29b349db8cfd807ba8303f1902',
     'setuptools-0.6c8-py2.4.egg': 'cba38d74f7d483c06e9daa6070cce6de',
     'setuptools-0.6c8-py2.5.egg': '1721747ee329dc150590a58b3e1ac95b',
@@ -112,11 +85,11 @@ def use_setuptools(
             "\n\n(Currently using %r)"
             ) % (version, e.args[0])
             sys.exit(2)
-        else:
-            del pkg_resources, sys.modules['pkg_resources']    # reload ok
-            return do_download()
     except pkg_resources.DistributionNotFound:
-        return do_download()
+        pass
+
+    del pkg_resources, sys.modules['pkg_resources']    # reload ok
+    return do_download()
 
 def download_setuptools(
     version=DEFAULT_VERSION, download_base=DEFAULT_URL, to_dir=os.curdir,
