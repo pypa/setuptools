@@ -204,6 +204,12 @@ class easy_install(Command):
                             'exec_prefix': exec_prefix,
                            }
 
+        try:
+            self.config_vars['abiflags'] = sys.abiflags
+        except AttributeError:
+            # Only python-3.2+ has sys.abiflags
+            self.config_vars['abiflags'] = ''
+
         if HAS_USER_SITE:
             self.config_vars['userbase'] = self.install_userbase
             self.config_vars['usersite'] = self.install_usersite
