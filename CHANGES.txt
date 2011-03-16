@@ -7,6 +7,8 @@ CHANGES
 ------
 
 * Builds sdist gztar even on Windows (avoiding Issue 193).
+* Fix for Issue 192 - metadata omitted on Windows when package_dir
+  specified with forward-slash.
 
 ------
 0.6.15
