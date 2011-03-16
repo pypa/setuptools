@@ -3,6 +3,12 @@ CHANGES
 =======
 
 ------
+0.6.16
+------
+
+* Builds sdist gztar even on Windows (avoiding Issue 193).
+
+------
 0.6.15
 ------
 
