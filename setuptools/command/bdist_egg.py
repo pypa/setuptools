@@ -332,7 +332,11 @@ class bdist_egg(Command):
 
 
     def copy_metadata_to(self, target_dir):
-        prefix = os.path.join(self.egg_info,'')
+        "Copy metadata (egg info) to the target_dir"
+        # normalize the path (so that a forward-slash in egg_info will
+        # match using startswith below)
+        norm_egg_info = os.path.normpath(self.egg_info)
+        prefix = os.path.join(norm_egg_info,'')
         for path in self.ei_cmd.filelist.files:
             if path.startswith(prefix):
                 target = os.path.join(target_dir, path[len(prefix):])
