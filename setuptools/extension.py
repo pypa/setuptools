@@ -3,8 +3,16 @@ from setuptools.dist import _get_unpatched
 _Extension = _get_unpatched(_Extension)
 
 try:
-    from Pyrex.Distutils.build_ext import build_ext
+    # testing Cython first as it is supposed to replace pyrex
+    from Cython.Distutils.build_ext import build_ext
 except ImportError:
+    try:
+        from Pyrex.Distutils.build_ext import build_ext
+    except:
+        have_pyrex = False
+    else:
+        has_pyrex = True
+
     have_pyrex = False
 else:
     have_pyrex = True
