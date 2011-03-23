@@ -138,7 +138,7 @@ def unpack_zipfile(filename, extract_dir, progress_filter=default_filter):
             name = info.filename
 
             # don't extract absolute paths or ones with .. in them
-            if name.startswith('/') or '..' in name:
+            if name.startswith('/') or '..' in name.split('/'):
                 continue
 
             target = os.path.join(extract_dir, *name.split('/'))
@@ -180,7 +180,7 @@ def unpack_tarfile(filename, extract_dir, progress_filter=default_filter):
         for member in tarobj:
             name = member.name
             # don't extract absolute paths or ones with .. in them
-            if not name.startswith('/') and '..' not in name:
+            if not name.startswith('/') and '..' not in name.split('/'):
                 dst = os.path.join(extract_dir, *name.split('/'))
                 while member is not None and (member.islnk() or member.issym()):
                     linkpath = member.linkname

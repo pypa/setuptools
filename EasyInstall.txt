@@ -1235,6 +1235,12 @@ Release Notes/Change History
 
  * Support user/password credentials in Subversion (svnserve) URLs
 
+ * Fixed problems accessing /dev/null inside the script sandbox, and the sandbox
+   swapping the ``open`` and file`` builtins.
+
+ * Fixed skipping extraction of files or directories containing '..' in their
+   names
+
 0.6c11
  * Fix installed script .exe files not working with 64-bit Python on Windows
    (wasn't actually released in 0.6c10 due to a lost checkin)
