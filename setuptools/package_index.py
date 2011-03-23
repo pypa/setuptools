@@ -550,7 +550,7 @@ class PackageIndex(Environment):
             bs = self.dl_blocksize
             size = -1
             if "content-length" in headers:
-                size = int(headers["Content-Length"])
+                size = max(map(int,headers.getheaders("Content-Length")))
                 self.reporthook(url, filename, blocknum, bs, size)
             tfp = open(filename,'wb')
             while True:
@@ -639,10 +639,39 @@ class PackageIndex(Environment):
         os.unlink(filename)
         raise DistutilsError("Unexpected HTML page found at "+url)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     def _download_svn(self, url, filename):
         url = url.split('#',1)[0]   # remove any fragment for svn's sake
+        creds = ''
+        if url.lower().startswith('svn:') and '@' in url:
+            scheme, netloc, path, p, q, f = urlparse.urlparse(url)
+            if not netloc and path.startswith('//') and '/' in path[2:]:
+                netloc, path = path[2:].split('/',1)
+                auth, host = urllib.splituser(netloc)
+                if auth:
+                    if ':' in auth:
+                        user, pw = auth.split(':',1)
+                        creds = " --username=%s --password=%s" % (user, pw)
+                    else:
+                        creds = " --username="+auth
+                    netloc = host
+                    url = urlparse.urlunparse((scheme, netloc, url, p, q, f))
         self.info("Doing subversion checkout from %s to %s", url, filename)
-        os.system("svn checkout -q %s %s" % (url, filename))
+        os.system("svn checkout%s -q %s %s" % (creds, url, filename))
         return filename
 
     def debug(self, msg, *args):
@@ -653,6 +682,18 @@ class PackageIndex(Environment):
 
     def warn(self, msg, *args):
         log.warn(msg, *args)
+
+
+
+
+
+
+
+
+
+
+
+
 
 # This pattern matches a character entity reference (a decimal numeric
 # references, a hexadecimal numeric reference, or a named reference).

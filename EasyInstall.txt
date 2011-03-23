@@ -1231,6 +1231,10 @@ Release Notes/Change History
  * Extract copies of hardlinked and symlinked files in tarballs when extracting
    source
 
+ * Support HTTP servers that return multiple 'Content-Length' headers
+
+ * Support user/password credentials in Subversion (svnserve) URLs
+
 0.6c11
  * Fix installed script .exe files not working with 64-bit Python on Windows
    (wasn't actually released in 0.6c10 due to a lost checkin)
