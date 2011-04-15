@@ -31,16 +31,25 @@ def parse_bdist_wininst(name):
     """Return (base,pyversion) or (None,None) for possible .exe name"""
 
     lower = name.lower()
-    base, py_ver = None, None
+    base, py_ver, plat = None, None, None
 
     if lower.endswith('.exe'):
         if lower.endswith('.win32.exe'):
             base = name[:-10]
+            plat = 'win32'
         elif lower.startswith('.win32-py',-16):
             py_ver = name[-7:-4]
             base = name[:-16]
+            plat = 'win32'
+        elif lower.endswith('.win-amd64.exe'):
+            base = name[:-14]
+            plat = 'win-amd64'
+        elif lower.startswith('.win-amd64-py',-20):
+            py_ver = name[-7:-4]
+            base = name[:-20]
+            plat = 'win-amd64'
+    return base,py_ver,plat
 
-    return base,py_ver
 
 def egg_info_for_url(url):
     scheme, server, path, parameters, query, fragment = urlparse.urlparse(url)
@@ -69,10 +78,10 @@ def distros_for_location(location, basename, metadata=None):
         return [Distribution.from_location(location, basename, metadata)]
 
     if basename.endswith('.exe'):
-        win_base, py_ver = parse_bdist_wininst(basename)
+        win_base, py_ver, platform = parse_bdist_wininst(basename)
         if win_base is not None:
             return interpret_distro_name(
-                location, win_base, metadata, py_ver, BINARY_DIST, "win32"
+                location, win_base, metadata, py_ver, BINARY_DIST, platform
             )
 
     # Try source distro extensions (.zip, .tgz, etc.)

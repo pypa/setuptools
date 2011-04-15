@@ -108,5 +108,14 @@ class TestPackageIndex(unittest.TestCase):
         # the link should be from the index
         self.assert_('correct_md5' in pi['foobar'][0].location)
 
+    def test_parse_bdist_wininst(self):
+        self.assertEqual(setuptools.package_index.parse_bdist_wininst(
+            'reportlab-2.5.win32-py2.4.exe'), ('reportlab-2.5', '2.4', 'win32'))
+        self.assertEqual(setuptools.package_index.parse_bdist_wininst(
+            'reportlab-2.5.win32.exe'), ('reportlab-2.5', None, 'win32'))
+        self.assertEqual(setuptools.package_index.parse_bdist_wininst(
+            'reportlab-2.5.win-amd64-py2.7.exe'), ('reportlab-2.5', '2.7', 'win-amd64'))
+        self.assertEqual(setuptools.package_index.parse_bdist_wininst(
+            'reportlab-2.5.win-amd64.exe'), ('reportlab-2.5', None, 'win-amd64'))
 
 

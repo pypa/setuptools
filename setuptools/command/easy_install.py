@@ -15,6 +15,7 @@ from glob import glob
 from setuptools import Command, _dont_write_bytecode
 from setuptools.sandbox import run_setup
 from distutils import log, dir_util
+from distutils.util import get_platform
 from distutils.util import convert_path, subst_vars
 from distutils.sysconfig import get_python_lib, get_config_vars
 from distutils.errors import DistutilsArgError, DistutilsOptionError, \
@@ -854,7 +855,7 @@ Please make the appropriate changes for your system and try again.
         # Create a dummy distribution object until we build the real distro
         dist = Distribution(None,
             project_name=cfg.get('metadata','name'),
-            version=cfg.get('metadata','version'), platform="win32"
+            version=cfg.get('metadata','version'), platform=get_platform()
         )
 
         # Convert the .exe to an unpacked egg
