@@ -7,9 +7,10 @@ CHANGES
 ------
 
 * Builds sdist gztar even on Windows (avoiding Issue 193).
-* Fix for Issue 192 - metadata omitted on Windows when package_dir
+* Issue 192: Fixed metadata omitted on Windows when package_dir
   specified with forward-slash.
 * Issue 195: Cython build support.
+* Issue 200: Issues with recognizing 64-bit packages on Windows.
 
 ------
 0.6.15
