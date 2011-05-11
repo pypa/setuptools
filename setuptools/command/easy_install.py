@@ -1590,6 +1590,11 @@ class PthDistributions(Environment):
 def get_script_header(script_text, executable=sys_executable, wininst=False):
     """Create a #! line, getting options (if any) from script_text"""
     from distutils.command.build_scripts import first_line_re
+
+    # first_line_re in Python >=3.1.4 and >=3.2.1 is a bytes pattern.
+    if not isinstance(first_line_re.pattern, str):
+        first_line_re = re.compile(first_line_re.pattern.decode())
+
     first = (script_text+'\n').splitlines()[0]
     match = first_line_re.match(first)
     options = ''
