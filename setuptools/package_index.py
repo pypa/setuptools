@@ -579,7 +579,9 @@ class PackageIndex(Environment):
             bs = self.dl_blocksize
             size = -1
             if "content-length" in headers:
-                size = int(headers["Content-Length"])
+                # Some servers return multiple Content-Length headers :(
+                content_length = headers.getheaders("Content-Length")[0]
+                size = int(content_length)
                 self.reporthook(url, filename, blocknum, bs, size)
             tfp = open(filename,'wb')
             while True:
