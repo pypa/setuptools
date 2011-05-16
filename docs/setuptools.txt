@@ -2519,7 +2519,7 @@ a non-None value.  Here's an example validation function::
 
 Your function should accept three arguments: the ``Distribution`` object,
 the attribute name, and the attribute value.  It should raise a
-``DistutilsSetupError`` (from the ``distutils.error`` module) if the argument
+``DistutilsSetupError`` (from the ``distutils.errors`` module) if the argument
 is invalid.  Remember, your function will only be called with non-None values,
 and the default value of arguments defined this way is always None.  So, your
 commands should always be prepared for the possibility that the attribute will
