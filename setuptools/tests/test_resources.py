@@ -3,7 +3,7 @@
 # NOTE: the shebang and encoding lines are for ScriptHeaderTests; do not remove
 from unittest import TestCase, makeSuite; from pkg_resources import *
 from setuptools.command.easy_install import get_script_header, is_sh
-import os, pkg_resources, sys, StringIO
+import os, pkg_resources, sys, StringIO, tempfile, shutil
 try: frozenset
 except NameError:
     from sets import ImmutableSet as frozenset
@@ -562,4 +562,30 @@ class ScriptHeaderTests(TestCase):
         finally:
             sys.platform = platform
             sys.stdout = stdout
+
+
+
+
+class NamespaceTests(TestCase):
+
+    def setUp(self):
+        self._ns_pkgs = pkg_resources._namespace_packages.copy()
+        self._tmpdir = tempfile.mkdtemp(prefix="tests-distribute-")
+        sys.path.append(self._tmpdir)
+
+    def tearDown(self):
+        shutil.rmtree(self._tmpdir)
+        pkg_resources._namespace_packages = self._ns_pkgs.copy()
+        sys.path.remove(self._tmpdir)
+
+    def test_two_levels_deep(self):
+        os.makedirs(os.path.join(self._tmpdir, "pkg1", "pkg2"))
+        declare_namespace("pkg1")
+        self.assertTrue("pkg1" in pkg_resources._namespace_packages.keys())
+        try:
+            declare_namespace("pkg1.pkg2")
+        except ImportError, e:
+            self.fail("Distribute tried to import the parent namespace package")
+        self.assertTrue("pkg1.pkg2" in pkg_resources._namespace_packages.keys())
+        self.assertEqual(pkg_resources._namespace_packages["pkg1"], ["pkg1.pkg2"])
 
