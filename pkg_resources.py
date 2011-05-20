@@ -52,9 +52,41 @@ def _bypass_ensure_directory(name, mode=0777):
         mkdir(dirname, mode)
 
 
+_state_vars = {}
 
+def _declare_state(vartype, **kw):
+    g = globals()
+    for name, val in kw.iteritems():
+        g[name] = val
+        _state_vars[name] = vartype
 
+def __getstate__():
+    state = {}
+    g = globals()
+    for k, v in _state_vars.iteritems():
+        state[k] = g['_sget_'+v](g[k])
+    return state
 
+def __setstate__(state):
+    g = globals()
+    for k, v in state.iteritems():
+        g['_sset_'+_state_vars[k]](k, g[k], v)
+    return state
+
+def _sget_dict(val):
+    return val.copy()
+
+def _sset_dict(key, ob, state):
+    ob.clear()
+    ob.update(state)
+
+def _sget_object(val):
+    return val.__getstate__()
+
+def _sset_object(key, ob, state):
+    ob.__setstate__(state)
+
+_sget_none = _sset_none = lambda *args: None
 
 
 
@@ -672,12 +704,14 @@ class WorkingSet(object):
         for callback in self.callbacks:
             callback(dist)
 
+    def __getstate__(self):
+        return (self.entries[:], self.entry_keys.copy(), self.by_key.copy(),
+                self.callbacks[:])
 
-
-
-
-
-
+    def __setstate__(self, (entries, keys, by_key, callbacks)):
+        self.entries = entries[:]
+        self.by_key = by_key.copy()
+        self.callbacks = callbacks[:]
 
 
 
@@ -1638,7 +1672,7 @@ else:
 
 
 
-_distribution_finders = {}
+_declare_state('dict', _distribution_finders = {})
 
 def register_finder(importer_type, distribution_finder):
     """Register `distribution_finder` to find distributions in sys.path items
@@ -1720,8 +1754,9 @@ def find_on_path(importer, path_item, only=False):
                         break
 register_finder(ImpWrapper,find_on_path)
 
-_namespace_handlers = {}
-_namespace_packages = {}
+_declare_state('dict', _namespace_handlers={})
+_declare_state('dict', _namespace_packages={})
+
 
 def register_namespace_handler(importer_type, namespace_handler):
     """Register `namespace_handler` to declare namespace packages
@@ -2651,7 +2686,7 @@ def _mkstemp(*args,**kw):
         os.open = old_open  # and then put it back
 
 
-# Set up global resource manager
+# Set up global resource manager (deliberately not state-saved)
 _manager = ResourceManager()
 def _initialize(g):
     for name in dir(_manager):
@@ -2660,7 +2695,8 @@ def _initialize(g):
 _initialize(globals())
 
 # Prepare the master working set and make the ``require()`` API available
-working_set = WorkingSet()
+_declare_state('object', working_set = WorkingSet())
+
 try:
     # Does the main program list any requirements?
     from __main__ import __requires__
