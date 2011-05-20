@@ -710,6 +710,7 @@ class WorkingSet(object):
 
     def __setstate__(self, (entries, keys, by_key, callbacks)):
         self.entries = entries[:]
+        self.entry_keys = keys.copy()
         self.by_key = by_key.copy()
         self.callbacks = callbacks[:]
 

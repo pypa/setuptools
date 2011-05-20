@@ -1,4 +1,4 @@
-import os, sys, __builtin__, tempfile, operator
+import os, sys, __builtin__, tempfile, operator, pkg_resources
 _os = sys.modules[os.name]
 try:
     _file = file
@@ -19,6 +19,7 @@ def run_setup(setup_script, args):
     if not os.path.isdir(temp_dir): os.makedirs(temp_dir)
     save_tmp = tempfile.tempdir
     save_modules = sys.modules.copy()
+    pr_state = pkg_resources.__getstate__()
     try:
         tempfile.tempdir = temp_dir
         os.chdir(setup_dir)
@@ -36,6 +37,7 @@ def run_setup(setup_script, args):
                 raise
             # Normal exit, just return
     finally:
+        pkg_resources.__setstate__(pr_state)
         sys.modules.update(save_modules)
         for key in list(sys.modules):
             if key not in save_modules: del sys.modules[key]
