@@ -45,6 +45,10 @@ from setuptools.command.test import test as _test
 
 scripts = []
 
+console_scripts = ["easy_install = setuptools.command.easy_install:main"]
+if os.environ.get("DISTRIBUTE_DISABLE_VERSIONED_EASY_INSTALL_SCRIPT") is None:
+    console_scripts.append("easy_install-%s = setuptools.command.easy_install:main" % sys.version[:3])
+
 # specific command that is used to generate windows .exe files
 class build_py(_build_py):
     def build_package_data(self):
@@ -182,11 +186,7 @@ dist = setup(
             "dependency_links.txt = setuptools.command.egg_info:overwrite_arg",
         ],
 
-        "console_scripts": [
-             "easy_install = setuptools.command.easy_install:main",
-             "easy_install-%s = setuptools.command.easy_install:main"
-                % sys.version[:3]
-        ],
+        "console_scripts": console_scripts,
 
         "setuptools.file_finders":
             ["svn_cvs = setuptools.command.sdist:_default_revctrl"],

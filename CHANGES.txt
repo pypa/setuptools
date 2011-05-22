@@ -6,6 +6,8 @@ CHANGES
 0.6.17
 ------
 
+* Support 'DISTRIBUTE_DISABLE_VERSIONED_EASY_INSTALL_SCRIPT' environment
+  variable to allow to disable installation of easy_install-${version} script.
 * Support Python >=3.1.4 and >=3.2.1.
 
 ------
