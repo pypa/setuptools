@@ -28,3 +28,9 @@ Documentation content:
 .. image:: http://python-distribute.org/pip_distribute.png
 
 Design done by Idan Gazit (http://pixane.com) - License: cc-by-3.0
+
+Copy & paste::
+
+ curl -O http://python-distribute.org/distribute_setup.py
+ python distribute_setup.py
+ easy_install pip
