@@ -266,6 +266,7 @@ class Distribution(_Distribution):
         """Fetch an egg needed for building"""
         try:
             cmd = self._egg_fetcher
+            cmd.package_index.to_scan = []
         except AttributeError:
             from setuptools.command.easy_install import easy_install
             dist = self.__class__({'script_args':['easy_install']})
