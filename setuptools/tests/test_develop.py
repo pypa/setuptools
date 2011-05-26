@@ -43,7 +43,7 @@ class TestDevelopTest(unittest.TestCase):
             site.USER_SITE = self.old_site
 
     def test_develop(self):
-        if sys.version < "2.6":
+        if sys.version < "2.6" or hasattr(sys, 'real_prefix'):
             return
         dist = Distribution()
         dist.script_name = 'setup.py'
