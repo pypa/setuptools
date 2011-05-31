@@ -12,7 +12,17 @@ Installation Instructions
 Windows
 =======
 
-Install setuptools using the provided ``.exe`` installer.  If you've previously
+32-bit version of Python
+    Install setuptools using the provided ``.exe`` installer.
+
+64-bit versions of Python
+    Download `ez_setup.py`_ and run it; it will download the appropriate .egg file and install it for you.  (Currently, the provided ``.exe`` installer does not support 64-bit versions of Python for Windows, due to a `distutils installer compatibility issue`_
+
+.. _ez_setup.py: http://peak.telecommunity.com/dist/ez_setup.py
+.. _distutils installer compatibility issue: http://bugs.python.org/issue6792
+
+
+NOTE: Regardless of what sort of Python you're using, if you've previously
 installed older versions of setuptools, please delete all ``setuptools*.egg``
 and ``setuptools.pth`` files from your system's ``site-packages`` directory
 (and any other ``sys.path`` directories) FIRST.
