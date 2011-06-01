@@ -1811,10 +1811,10 @@ def declare_namespace(packageName):
             declare_namespace(parent)
             if parent not in _namespace_packages:
                 __import__(parent)
-                try:
-                    path = sys.modules[parent].__path__
-                except AttributeError:
-                    raise TypeError("Not a package:", parent)
+            try:
+                path = sys.modules[parent].__path__
+            except AttributeError:
+                raise TypeError("Not a package:", parent)
 
         # Track what packages are namespaces, so when new path items are added,
         # they can be updated

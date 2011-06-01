@@ -571,21 +571,48 @@ class NamespaceTests(TestCase):
     def setUp(self):
         self._ns_pkgs = pkg_resources._namespace_packages.copy()
         self._tmpdir = tempfile.mkdtemp(prefix="tests-distribute-")
-        sys.path.append(self._tmpdir)
+        os.makedirs(os.path.join(self._tmpdir, "site-pkgs"))
+        self._prev_sys_path = sys.path[:]
+        sys.path.append(os.path.join(self._tmpdir, "site-pkgs"))
 
     def tearDown(self):
         shutil.rmtree(self._tmpdir)
         pkg_resources._namespace_packages = self._ns_pkgs.copy()
-        sys.path.remove(self._tmpdir)
+        sys.path = self._prev_sys_path[:]
 
     def test_two_levels_deep(self):
-        os.makedirs(os.path.join(self._tmpdir, "pkg1", "pkg2"))
-        declare_namespace("pkg1")
+        """
+        Test nested namespace packages
+        Create namespace packages in the following tree :
+            site-packages-1/pkg1/pkg2
+            site-packages-2/pkg1/pkg2
+        Check both are in the _namespace_packages dict and that their __path__
+        is correct
+        """
+        sys.path.append(os.path.join(self._tmpdir, "site-pkgs2"))
+        os.makedirs(os.path.join(self._tmpdir, "site-pkgs", "pkg1", "pkg2"))
+        os.makedirs(os.path.join(self._tmpdir, "site-pkgs2", "pkg1", "pkg2"))
+        ns_str = "__import__('pkg_resources').declare_namespace(__name__)\n"
+        for site in ["site-pkgs", "site-pkgs2"]:
+            pkg1_init = open(os.path.join(self._tmpdir, site,
+                             "pkg1", "__init__.py"), "w")
+            pkg1_init.write(ns_str)
+            pkg1_init.close()
+            pkg2_init = open(os.path.join(self._tmpdir, site,
+                             "pkg1", "pkg2", "__init__.py"), "w")
+            pkg2_init.write(ns_str)
+            pkg2_init.close()
+        import pkg1
         self.assertTrue("pkg1" in pkg_resources._namespace_packages.keys())
         try:
-            declare_namespace("pkg1.pkg2")
+            import pkg1.pkg2
         except ImportError, e:
             self.fail("Distribute tried to import the parent namespace package")
+        # check the _namespace_packages dict
         self.assertTrue("pkg1.pkg2" in pkg_resources._namespace_packages.keys())
         self.assertEqual(pkg_resources._namespace_packages["pkg1"], ["pkg1.pkg2"])
+        # check the __path__ attribute contains both paths
+        self.assertEqual(pkg1.pkg2.__path__, [
+                os.path.join(self._tmpdir, "site-pkgs", "pkg1", "pkg2"),
+                os.path.join(self._tmpdir, "site-pkgs2", "pkg1", "pkg2") ])
 
