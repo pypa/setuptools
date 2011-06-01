@@ -3,6 +3,12 @@ CHANGES
 =======
 
 ------
+0.6.18
+------
+
+* Issue 210: Fixed a regression introduced by Issue 204 fix.
+
+------
 0.6.17
 ------
 
