@@ -3,11 +3,16 @@ CHANGES
 =======
 
 ------
+0.6.20
+------
+
+* ADD STUFF HERE
+
+------
 0.6.19
 ------
 
 * Issue 206: AttributeError: 'HTTPMessage' object has no attribute 'getheaders'
-
 
 ------
 0.6.18
