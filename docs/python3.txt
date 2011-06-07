@@ -81,8 +81,10 @@ Advanced features
 =================
 
 If certain fixers are to be suppressed, this again can be overridden with the
-list ``setuptools.commands.build_py.build_py.fixers``, which then contains the
-list of all fixer class names.
+list ``setuptools.command.build_py.build_py.fixer_names``, which at some
+point contains the list of all fixer class names. For an example of how this
+can be done, see the `jaraco.util <https://bitbucket.org/jaraco/jaraco.util>`_
+project.
 
 If you don't want to run the 2to3 conversion on the doctests in Python files,
 you can turn that off by setting ``setuptools.use_2to3_on_doctests = False``.
