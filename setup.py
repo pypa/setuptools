@@ -4,7 +4,8 @@ import sys
 import os
 
 src_root = None
-if sys.version_info >= (3,):
+do_2to3 = False
+if sys.version_info >= (3,) and do_2to3:
     tmp_src = os.path.join("build", "src")
     from distutils.filelist import FileList
     from distutils import dir_util, file_util, util, log
@@ -66,7 +67,8 @@ class build_py(_build_py):
                 # previous version doesn't have convert_2to3_doctests)
                 if not hasattr(self.distribution, 'convert_2to3_doctests'):
                     continue
-
+                if not do_2to3:
+                    continue
                 if copied and srcfile in self.distribution.convert_2to3_doctests:
                     self.__doctests_2to3.append(outf)
 

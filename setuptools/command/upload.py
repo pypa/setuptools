@@ -11,13 +11,12 @@ try:
 except ImportError:
     from md5 import md5
 import os
+import sys
 import socket
 import platform
-import ConfigParser
-import httplib
 import base64
-import urlparse
-import cStringIO as StringIO
+
+from setuptools.compat import urlparse, StringIO, httplib, ConfigParser
 
 class upload(Command):
 
@@ -49,7 +48,7 @@ class upload(Command):
             raise DistutilsOptionError(
                 "Must use --sign for --identity to have meaning"
             )
-        if os.environ.has_key('HOME'):
+        if 'HOME' in os.environ:
             rc = os.path.join(os.environ['HOME'], '.pypirc')
             if os.path.exists(rc):
                 self.announce('Using PyPI login from %s' % rc)
@@ -148,14 +147,14 @@ class upload(Command):
         # We can't use urllib2 since we need to send the Basic
         # auth right with the first request
         schema, netloc, url, params, query, fragments = \
-            urlparse.urlparse(self.repository)
+            urlparse(self.repository)
         assert not params and not query and not fragments
         if schema == 'http':
             http = httplib.HTTPConnection(netloc)
         elif schema == 'https':
             http = httplib.HTTPSConnection(netloc)
         else:
-            raise AssertionError, "unsupported schema "+schema
+            raise AssertionError("unsupported schema " + schema)
 
         data = ''
         loglevel = log.INFO
@@ -168,7 +167,8 @@ class upload(Command):
             http.putheader('Authorization', auth)
             http.endheaders()
             http.send(body)
-        except socket.error, e:
+        except socket.error:
+            e = sys.exc_info()[1]
             self.announce(str(e), log.ERROR)
             return
 
@@ -180,4 +180,4 @@ class upload(Command):
             self.announce('Upload failed (%s): %s' % (r.status, r.reason),
                           log.ERROR)
         if self.show_response:
-            print '-'*75, r.read(), '-'*75
+            print('-'*75, r.read(), '-'*75)

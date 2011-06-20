@@ -8,9 +8,7 @@ PyPI's packages.python.org).
 import os
 import socket
 import zipfile
-import httplib
 import base64
-import urlparse
 import tempfile
 import sys
 
@@ -21,6 +19,8 @@ try:
     from distutils.command.upload import upload
 except ImportError:
     from setuptools.command.upload import upload
+
+from setuptools.compat import httplib, urlparse
 
 _IS_PYTHON3 = sys.version > '3'
 
@@ -137,7 +137,7 @@ class upload_docs(upload):
         # We can't use urllib2 since we need to send the Basic
         # auth right with the first request
         schema, netloc, url, params, query, fragments = \
-            urlparse.urlparse(self.repository)
+            urlparse(self.repository)
         assert not params and not query and not fragments
         if schema == 'http':
             conn = httplib.HTTPConnection(netloc)
@@ -157,7 +157,8 @@ class upload_docs(upload):
             conn.putheader('Authorization', auth)
             conn.endheaders()
             conn.send(body)
-        except socket.error, e:
+        except socket.error:
+            e = sys.exc_info()[1]
             self.announce(str(e), log.ERROR)
             return
 
@@ -175,4 +176,4 @@ class upload_docs(upload):
             self.announce('Upload failed (%s): %s' % (r.status, r.reason),
                           log.ERROR)
         if self.show_response:
-            print '-'*75, r.read(), '-'*75
+            print('-'*75, r.read(), '-'*75)

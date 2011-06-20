@@ -7,6 +7,7 @@ import setuptools, setuptools.dist
 from setuptools import Feature
 from distutils.core import Extension
 extract_constant, get_module_constant = None, None
+from setuptools.compat import func_code
 from setuptools.depends import *
 from distutils.version import StrictVersion, LooseVersion
 from distutils.util import convert_path
@@ -50,17 +51,18 @@ class DependsTests(TestCase):
             x = "test"
             y = z
 
+        fc = func_code(f1)
         # unrecognized name
-        self.assertEqual(extract_constant(f1.func_code,'q', -1), None)
+        self.assertEqual(extract_constant(fc,'q', -1), None)
 
         # constant assigned
-        self.assertEqual(extract_constant(f1.func_code,'x', -1), "test")
+        self.assertEqual(extract_constant(fc,'x', -1), "test")
 
         # expression assigned
-        self.assertEqual(extract_constant(f1.func_code,'y', -1), -1)
+        self.assertEqual(extract_constant(fc,'y', -1), -1)
 
         # recognized name, not assigned
-        self.assertEqual(extract_constant(f1.func_code,'z', -1), None)
+        self.assertEqual(extract_constant(fc,'z', -1), None)
 
 
     def testFindModule(self):

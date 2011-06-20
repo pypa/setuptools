@@ -4,11 +4,11 @@ import sys
 import os, shutil, tempfile, unittest
 import tempfile
 import site
-from StringIO import StringIO
 
 from distutils.errors import DistutilsError
 from setuptools.command.develop import develop
 from setuptools.command import easy_install as easy_install_pkg
+from setuptools.compat import StringIO
 from setuptools.dist import Distribution
 
 SETUP_PY = """\
@@ -73,7 +73,8 @@ class TestDevelopTest(unittest.TestCase):
         try:
             try:
                 dist = Distribution({'setup_requires': ['I_DONT_EXIST']})
-            except DistutilsError, e:
+            except DistutilsError:
+                e = sys.exc_info()[1]
                 error = str(e)
                 if error ==  wanted:
                     pass

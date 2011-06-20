@@ -8,11 +8,12 @@ from setuptools import Command
 from distutils.errors import *
 from distutils import log
 from setuptools.command.sdist import sdist
+from setuptools.compat import basestring
 from distutils.util import convert_path
 from distutils.filelist import FileList
 from pkg_resources import parse_requirements, safe_name, parse_version, \
     safe_version, yield_lines, EntryPoint, iter_entry_points, to_filename
-from sdist import walk_revctrl
+from setuptools.command.sdist import walk_revctrl
 
 class egg_info(Command):
     description = "create a distribution's .egg-info directory"
@@ -51,7 +52,7 @@ class egg_info(Command):
         self.vtags = None
 
     def save_version_info(self, filename):
-        from setopt import edit_config
+        from setuptools.command.setopt import edit_config
         edit_config(
             filename,
             {'egg_info':
@@ -220,7 +221,7 @@ class egg_info(Command):
             f.close()
 
             if data.startswith('10') or data.startswith('9') or data.startswith('8'):
-                data = map(str.splitlines,data.split('\n\x0c\n'))
+                data = list(map(str.splitlines,data.split('\n\x0c\n')))
                 del data[0][0]  # get rid of the '8' or '9' or '10'
                 dirurl = data[0][3]
                 localrev = max([int(d[9]) for d in data if len(d)>9 and d[9]]+[0])
@@ -386,7 +387,8 @@ def write_pkg_info(cmd, basename, filename):
             metadata.name, metadata.version = oldname, oldver
 
         safe = getattr(cmd.distribution,'zip_safe',None)
-        import bdist_egg; bdist_egg.write_safety_flag(cmd.egg_info, safe)
+        from setuptools.command import bdist_egg
+        bdist_egg.write_safety_flag(cmd.egg_info, safe)
 
 def warn_depends_obsolete(cmd, basename, filename):
     if os.path.exists(filename):

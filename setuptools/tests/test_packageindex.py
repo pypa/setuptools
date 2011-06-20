@@ -2,10 +2,11 @@
 """
 # More would be better!
 import sys
-import os, shutil, tempfile, unittest, urllib2
+import os, shutil, tempfile, unittest
 import pkg_resources
+from setuptools.compat import urllib2, httplib, HTTPError
 import setuptools.package_index
-from server import IndexServer
+from tests.server import IndexServer
 
 class TestPackageIndex(unittest.TestCase):
 
@@ -14,10 +15,11 @@ class TestPackageIndex(unittest.TestCase):
         url = 'http://127.0.0.1:0/nonesuch/test_package_index'
         try:
             v = index.open_url(url)
-        except Exception, v:
+        except Exception:
+            v = sys.exc_info()[1]
             self.assert_(url in str(v))
         else:
-            self.assert_(isinstance(v,urllib2.HTTPError))
+            self.assert_(isinstance(v, HTTPError))
 
         # issue 16
         # easy_install inquant.contentmirror.plone breaks because of a typo
@@ -29,13 +31,13 @@ class TestPackageIndex(unittest.TestCase):
         url = 'url:%20https://svn.plone.org/svn/collective/inquant.contentmirror.plone/trunk'
         try:
             v = index.open_url(url)
-        except Exception, v:
+        except Exception:
+            v = sys.exc_info()[1]
             self.assert_(url in str(v))
         else:
-            self.assert_(isinstance(v, urllib2.HTTPError))
+            self.assert_(isinstance(v, HTTPError))
 
         def _urlopen(*args):
-            import httplib
             raise httplib.BadStatusLine('line')
 
         old_urlopen = urllib2.urlopen
@@ -44,7 +46,8 @@ class TestPackageIndex(unittest.TestCase):
         try:
             try:
                 v = index.open_url(url)
-            except Exception, v:
+            except Exception:
+                v = sys.exc_info()[1]
                 self.assert_('line' in str(v))
             else:
                 raise AssertionError('Should have raise here!')
@@ -55,7 +58,8 @@ class TestPackageIndex(unittest.TestCase):
         url = 'http://http://svn.pythonpaste.org/Paste/wphp/trunk'
         try:
             index.open_url(url)
-        except Exception, v:
+        except Exception:
+            v = sys.exc_info()[1]
             self.assert_('nonnumeric port' in str(v))
 
 

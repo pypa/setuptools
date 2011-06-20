@@ -1,19 +1,19 @@
-import urllib2
 import sys
 import os
+from setuptools.compat import urllib2
 
 if os.path.exists('distribute_setup.py'):
-    print 'distribute_setup.py exists in the current dir, aborting'
+    print('distribute_setup.py exists in the current dir, aborting')
     sys.exit(2)
 
-print '**** Starting Test'
-print '\n\n'
+print('**** Starting Test')
+print('\n\n')
 
 is_jython = sys.platform.startswith('java')
 if is_jython:
     import subprocess
 
-print 'Downloading bootstrap'
+print('Downloading bootstrap')
 file = urllib2.urlopen('http://nightly.ziade.org/distribute_setup.py')
 f = open('distribute_setup.py', 'w')
 f.write(file.read())
@@ -27,7 +27,7 @@ else:
     res = os.spawnv(os.P_WAIT, sys.executable, args)
 
 if res != 0:
-    print '**** Test failed, please send me the output at tarek@ziade.org'
+    print('**** Test failed, please send me the output at tarek@ziade.org')
     os.remove('distribute_setup.py')
     sys.exit(2)
 
@@ -63,11 +63,11 @@ try:
     else:
         res = os.spawnv(os.P_WAIT, sys.executable, args)
 
-    print '\n\n'
+    print('\n\n')
     if res:
-        print '**** Test is OK'
+        print('**** Test is OK')
     else:
-        print '**** Test failed, please send me the output at tarek@ziade.org'
+        print('**** Test failed, please send me the output at tarek@ziade.org')
 finally:
     if os.path.exists(script_name):
         os.remove(script_name)

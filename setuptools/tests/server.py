@@ -1,10 +1,9 @@
 """Basic http server for tests to simulate PyPI or custom indexes
 """
-import urllib2
 import sys
 from threading import Thread
-from BaseHTTPServer import HTTPServer
-from SimpleHTTPServer import SimpleHTTPRequestHandler
+from setuptools.compat import (urllib2, URLError, HTTPServer,
+                               SimpleHTTPRequestHandler)
 
 class IndexServer(HTTPServer):
     """Basic single-threaded http server simulating a package index
@@ -39,7 +38,7 @@ class IndexServer(HTTPServer):
                                 None, 5)
             else:
                 urllib2.urlopen('http://127.0.0.1:%s/' % self.server_port)
-        except urllib2.URLError:
+        except URLError:
             pass
         self.thread.join()
 

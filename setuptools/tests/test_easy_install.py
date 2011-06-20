@@ -3,7 +3,7 @@
 import sys
 import os, shutil, tempfile, unittest
 import site
-from StringIO import StringIO
+from setuptools.compat import StringIO, next
 from setuptools.command.easy_install import easy_install, get_script_args, main
 from setuptools.command.easy_install import  PthDistributions
 from setuptools.command import easy_install as easy_install_pkg
@@ -67,7 +67,7 @@ class TestEasyInstallTest(unittest.TestCase):
 
         old_platform = sys.platform
         try:
-            name, script = get_script_args(dist).next()
+            name, script = next(get_script_args(dist))
         finally:
             sys.platform = old_platform
 
@@ -125,8 +125,7 @@ class TestEasyInstallTest(unittest.TestCase):
         cmd.install_dir = os.path.join(tempfile.mkdtemp(), 'ok')
         cmd.args = ['ok']
         cmd.ensure_finalized()
-        keys = cmd.package_index.scanned_urls.keys()
-        keys.sort()
+        keys = sorted(cmd.package_index.scanned_urls.keys())
         self.assertEquals(keys, ['link1', 'link2'])
 
 

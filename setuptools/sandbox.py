@@ -1,4 +1,4 @@
-import os, sys, __builtin__, tempfile, operator, pkg_resources
+import os, sys, tempfile, operator, pkg_resources
 _os = sys.modules[os.name]
 try:
     _file = file
@@ -6,6 +6,8 @@ except NameError:
     _file = None
 _open = open
 from distutils.errors import DistutilsError
+from setuptools.compat import builtins, execfile, reduce
+
 __all__ = [
     "AbstractSandbox", "DirectorySandbox", "SandboxViolation", "run_setup",
 ]
@@ -32,7 +34,8 @@ def run_setup(setup_script, args):
                     {'__file__':setup_script, '__name__':'__main__'}
                 )
             )
-        except SystemExit, v:
+        except SystemExit:
+            v = sys.exc_info()[1]
             if v.args and v.args[0]:
                 raise
             # Normal exit, just return
@@ -66,15 +69,15 @@ class AbstractSandbox:
         try:
             self._copy(self)
             if _file:
-                __builtin__.file = self._file
-            __builtin__.open = self._open
+                builtins.file = self._file
+            builtins.open = self._open
             self._active = True
             return func()
         finally:
             self._active = False
             if _file:
-                __builtin__.file = _file
-            __builtin__.open = _open
+                builtins.file = _file
+            builtins.open = _open
             self._copy(_os)
 
 
@@ -225,7 +228,7 @@ class DirectorySandbox(AbstractSandbox):
             self._violation(operation, src, dst, *args, **kw)
         return (src,dst)
 
-    def open(self, file, flags, mode=0777):
+    def open(self, file, flags, mode=0x1FF):    # 0777
         """Called for low-level os.open()"""
         if flags & WRITE_FLAGS and not self._ok(file):
             self._violation("os.open", file, flags, mode)

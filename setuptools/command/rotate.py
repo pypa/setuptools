@@ -1,5 +1,6 @@
 import distutils, os
 from setuptools import Command
+from setuptools.compat import basestring
 from distutils.util import convert_path
 from distutils import log
 from distutils.errors import *
