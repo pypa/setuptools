@@ -6,7 +6,7 @@ import os, shutil, tempfile, unittest
 import pkg_resources
 from setuptools.compat import urllib2, httplib, HTTPError
 import setuptools.package_index
-from tests.server import IndexServer
+from setuptools.tests.server import IndexServer
 
 class TestPackageIndex(unittest.TestCase):
 

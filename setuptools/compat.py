@@ -16,7 +16,7 @@ if sys.version_info[0] < 3:
     import httplib
     from BaseHTTPServer import HTTPServer
     from SimpleHTTPServer import SimpleHTTPRequestHandler
-    iteritems = lambda o: o.iteritems
+    iteritems = lambda o: o.iteritems()
     long_type = long
     maxsize = sys.maxint
     next = lambda o: o.next()
@@ -55,7 +55,7 @@ else:
     from html.entities import name2codepoint
     import http.client as httplib
     from http.server import HTTPServer, SimpleHTTPRequestHandler
-    iteritems = lambda o: o.items
+    iteritems = lambda o: o.items()
     long_type = int
     maxsize = sys.maxsize
     next = next
