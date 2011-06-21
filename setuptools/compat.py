@@ -6,7 +6,7 @@ if sys.version_info[0] < 3:
     basestring = basestring
     import __builtin__ as builtins
     import ConfigParser
-    from cStringIO import StringIO
+    from StringIO import StringIO
     BytesIO = StringIO
     execfile = execfile
     func_code = lambda o: o.func_code

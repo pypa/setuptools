@@ -219,7 +219,7 @@ distribution is added to a working set.  The callback is immediately invoked
 once for each existing distribution in the working set, and then is called
 again for new distributions added thereafter::
 
-    >>> def added(dist): print("Added", dist)
+    >>> def added(dist): print("Added %s" % dist)
     >>> ws.subscribe(added)
     Added Bar 0.9
     >>> foo12 = Distribution(project_name="Foo", version="1.2", location="f12") 
