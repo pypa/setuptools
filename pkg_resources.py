@@ -41,7 +41,11 @@ except NameError:
     basestring = str
     from io import StringIO
     exec_ = eval("exec")
-    def execfile(fn, globs, locs):
+    def execfile(fn, globs=None, locs=None):
+        if globs is None:
+            globs = globals()
+        if locs is None:
+            locs = globs
         exec_(compile(open(fn).read(), fn, 'exec'), globs, locs)
 
 # capture these to bypass sandboxing
