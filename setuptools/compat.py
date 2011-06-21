@@ -69,5 +69,10 @@ else:
     from urllib.parse import urlparse, urlunparse, unquote, splituser, urljoin
     xrange = range
 
-    def execfile(fn, globs, locs):
+    def execfile(fn, globs=None, locs=None):
+        if globs is None:
+            globs = globals()
+        if locs is None:
+            locs = globs
         exec_(compile(open(fn).read(), fn, 'exec'), globs, locs)
+
