@@ -1425,7 +1425,16 @@ def extract_wininst_cfg(dist_filename):
         f.seek(prepended-(12+cfglen))
         cfg = ConfigParser.RawConfigParser({'version':'','target_version':''})
         try:
-            cfg.readfp(StringIO.StringIO(f.read(cfglen).split(chr(0),1)[0]))
+            part = f.read(cfglen)
+            # part is in bytes, but we need to read up to the first null
+            #  byte.
+            null_byte = bytes([0]) if sys.version_info >= (2,6) else chr(0)
+            config, = part.split(null_byte, 1)
+            # Now the config is in bytes, but on Python 3, it must be
+            #  unicode for the RawConfigParser, so decode it. Is this the
+            #  right encoding?
+            config = config.decode('ascii')
+            cfg.readfp(StringIO.StringIO(config))
         except ConfigParser.Error:
             return None
         if not cfg.has_section('metadata') or not cfg.has_section('Setup'):
