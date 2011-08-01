@@ -1429,7 +1429,7 @@ def extract_wininst_cfg(dist_filename):
             # part is in bytes, but we need to read up to the first null
             #  byte.
             null_byte = bytes([0]) if sys.version_info >= (2,6) else chr(0)
-            config, = part.split(null_byte, 1)
+            config = part.split(null_byte, 1)[0]
             # Now the config is in bytes, but on Python 3, it must be
             #  unicode for the RawConfigParser, so decode it. Is this the
             #  right encoding?
