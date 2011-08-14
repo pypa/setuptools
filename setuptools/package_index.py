@@ -198,7 +198,7 @@ class PackageIndex(Environment):
             return
 
         self.info("Reading %s", url)
-        f = self.open_url(url, "Download error: %s -- Some packages may not be found!")
+        f = self.open_url(url)
         if f is None: return
         self.fetched_urls[url] = self.fetched_urls[f.url] = True
 
