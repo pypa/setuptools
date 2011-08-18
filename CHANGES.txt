@@ -6,7 +6,9 @@ CHANGES
 0.6.20
 ------
 
-* ADD STUFF HERE
+* Issue #135: Include url in warning when processing URLs in package_index.
+* Issue #212: Fix issue where easy_instal fails on Python 3 on windows installer.
+* Issue #213: Fix typo in documentation.
 
 ------
 0.6.19
