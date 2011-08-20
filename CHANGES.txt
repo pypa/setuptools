@@ -6,7 +6,7 @@ CHANGES
 0.6.22
 ------
 
-* ADD STUFF HERE
+* Issue #225: Fixed a NameError on Python 2.5, 2.4
 
 ------
 0.6.21
