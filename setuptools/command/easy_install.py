@@ -1431,7 +1431,7 @@ def extract_wininst_cfg(dist_filename):
             if sys.version_info >= (2,6):
                 null_byte = bytes([0])
             else:
-                chr(0)
+                null_byte = chr(0)
             config = part.split(null_byte, 1)[0]
             # Now the config is in bytes, but on Python 3, it must be
             #  unicode for the RawConfigParser, so decode it. Is this the
