@@ -6,7 +6,7 @@ CHANGES
 0.6.21
 ------
 
-* ADD STUFF HERE
+* Issue #225: FIxed a regression on py2.4
 
 ------
 0.6.20
