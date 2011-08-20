@@ -1,5 +1,5 @@
 #!/bin/sh
-export VERSION="0.6.21"
+export VERSION="0.6.22"
 
 # tagging
 hg tag $VERSION
