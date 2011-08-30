@@ -267,7 +267,8 @@ class easy_install(Command):
                     )
                 else:
                     self.all_site_dirs.append(normalize_path(d))
-        if not self.editable: self.check_site_dir()
+        if not self.editable and self.args != ['-']:
+            self.check_site_dir()
         self.index_url = self.index_url or "http://pypi.python.org/simple"
         self.shadow_path = self.all_site_dirs[:]
         for path_item in self.install_dir, normalize_path(self.script_dir):
@@ -338,6 +339,11 @@ class easy_install(Command):
                             'install_scripts', 'install_data',])
 
     def run(self):
+        if self.args == ['-']:
+            # A single dash as an argument means 'do nothing' and is just a way
+            # to pass arguments to the easy_install command without running it
+            return
+
         if self.verbose != self.distribution.verbose:
             log.set_verbosity(self.verbose)
         try:
@@ -1079,6 +1085,20 @@ See the setuptools documentation for the "develop" command for more info.
         )
         try:
             args.append(dist_dir)
+            ei_opts = self.distribution.get_option_dict('easy_install').copy()
+            keep = (
+                'find_links', 'site_dirs', 'index_url', 'optimize',
+                'site_dirs', 'allow_hosts'
+            )
+            for key in ei_opts.keys():
+                if key not in keep:
+                    del ei_opts[key]
+            if ei_opts:
+                args.append('easy_install')
+                for key, val in ei_opts.iteritems():
+                    args.append('--%s=%s' % (key.replace('_', '-'), val[1]))
+                args.append('-')
+
             self.run_setup(setup_script, setup_base, args)
             all_eggs = Environment([dist_dir])
             eggs = []

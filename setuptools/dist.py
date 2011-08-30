@@ -269,8 +269,9 @@ class Distribution(_Distribution):
             cmd.package_index.to_scan = []
         except AttributeError:
             from setuptools.command.easy_install import easy_install
-            dist = self.__class__({'script_args':['easy_install']})
+            dist = self.__class__()
             dist.parse_config_files()
+            dist.parse_command_line()
             opts = dist.get_option_dict('easy_install')
             keep = (
                 'find_links', 'site_dirs', 'index_url', 'optimize',
