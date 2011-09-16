@@ -8,6 +8,16 @@ try: frozenset
 except NameError:
     from sets import ImmutableSet as frozenset
 
+def safe_repr(obj, short=False):
+    """ copied from Python2.7"""
+    try:
+        result = repr(obj)
+    except Exception:
+        result = object.__repr__(obj)
+    if not short or len(result) < _MAX_LENGTH:
+        return result
+    return result[:_MAX_LENGTH] + ' [truncated]...'
+
 class Metadata(EmptyProvider):
     """Mock object to return metadata as if from an on-disk distribution"""
 
@@ -580,6 +590,13 @@ class NamespaceTests(TestCase):
         pkg_resources._namespace_packages = self._ns_pkgs.copy()
         sys.path = self._prev_sys_path[:]
 
+    def _assertIn(self, member, container):
+        """ assertIn and assertTrue does not exist in Python2.3"""
+        if member not in container:
+            standardMsg = '%s not found in %s' % (safe_repr(member),
+                                                  safe_repr(container))
+            self.fail(self._formatMessage(msg, standardMsg))
+
     def test_two_levels_deep(self):
         """
         Test nested namespace packages
@@ -603,13 +620,13 @@ class NamespaceTests(TestCase):
             pkg2_init.write(ns_str)
             pkg2_init.close()
         import pkg1
-        self.assertTrue("pkg1" in pkg_resources._namespace_packages.keys())
+        self._assertIn("pkg1", pkg_resources._namespace_packages.keys())
         try:
             import pkg1.pkg2
         except ImportError, e:
             self.fail("Distribute tried to import the parent namespace package")
         # check the _namespace_packages dict
-        self.assertTrue("pkg1.pkg2" in pkg_resources._namespace_packages.keys())
+        self._assertIn("pkg1.pkg2", pkg_resources._namespace_packages.keys())
         self.assertEqual(pkg_resources._namespace_packages["pkg1"], ["pkg1.pkg2"])
         # check the __path__ attribute contains both paths
         self.assertEqual(pkg1.pkg2.__path__, [
