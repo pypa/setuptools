@@ -67,7 +67,7 @@ class TestEasyInstallTest(unittest.TestCase):
 
         old_platform = sys.platform
         try:
-            name, script = get_script_args(dist).next()[0:2]
+            name, script = [i for i in get_script_args(dist).next()][0:2]
         finally:
             sys.platform = old_platform
 
