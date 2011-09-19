@@ -42,6 +42,10 @@ __all__ = [
 import site
 HAS_USER_SITE = not sys.version < "2.6" and site.ENABLE_USER_SITE
 
+import struct
+def is_64bit():
+    return struct.calcsize("P") == 8
+
 def samefile(p1,p2):
     if hasattr(os.path,'samefile') and (
         os.path.exists(p1) and os.path.exists(p2)
@@ -1781,7 +1785,10 @@ def get_script_args(dist, executable=sys_executable, wininst=False):
                     ext, launcher = '-script.py', 'cli.exe'
                     old = ['.py','.pyc','.pyo']
                     new_header = re.sub('(?i)pythonw.exe','python.exe',header)
-
+                if is_64bit():
+                    launcher = launcher.replace(".", "-64.")
+                else:
+                    launcher = launcher.replace(".", "-32.")
                 if os.path.exists(new_header[2:-1]) or sys.platform!='win32':
                     hdr = new_header
                 else:
