@@ -2,7 +2,7 @@
 export VERSION="0.6.23"
 
 # tagging
-hg tag $VERSION
+hg tag $VERSION -f
 hg ci -m "bumped revision"
 
 # creating the releases
@@ -11,6 +11,7 @@ rm -rf ./dist
 # now preparing the source release, pushing it and its doc
 python2.6 setup.py -q egg_info -RDb '' sdist register upload
 cd docs/
+make clean
 make html
 cd ..
 python2.6 setup.py upload_docs
