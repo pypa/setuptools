@@ -172,7 +172,8 @@ dist = setup(
             "test_loader            = setuptools.dist:check_importable",
             "use_2to3               = setuptools.dist:assert_bool",
             "convert_2to3_doctests  = setuptools.dist:assert_string_list",
-            "use_2to3_fixers = setuptools.dist:assert_string_list",
+            "use_2to3_fixers        = setuptools.dist:assert_string_list",
+            "use_2to3_exclude_fixers = setuptools.dist:assert_string_list",
         ],
 
         "egg_info.writers": [

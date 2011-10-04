@@ -16,6 +16,7 @@ CHANGES
 * Issue #208: Fixed parsed_versions, it now honors post-releases as noted in the documentation
 * Issue #207: Windows cli and gui wrappers pass CTRL-C to child python process
 * Issue #227: easy_install now passe its arguments to setup.py bdist_egg
+* Issue #249: Added options to exclude 2to3 fixers
 
 ------
 0.6.22
