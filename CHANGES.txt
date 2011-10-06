@@ -21,12 +21,7 @@ CHANGES
 * Issue #238: easy_install now uses 64bit executable wrappers on 64bit Python
 * Issue #208: Fixed parsed_versions, it now honors post-releases as noted in the documentation
 * Issue #207: Windows cli and gui wrappers pass CTRL-C to child python process
-* Issue #227: easy_install now passe its arguments to setup.py bdist_egg
-
-------
-0.6.22
-------
-
+* Issue #227: easy_install now passes its arguments to setup.py bdist_egg
 * Issue #225: Fixed a NameError on Python 2.5, 2.4
 
 ------
