@@ -228,10 +228,7 @@ if sys.version >= "2.5":
                                 current[key] = config.get(server, key)
                             else:
                                 current[key] = default
-                        # Issue #246, handling url ambiguity
-                        if (current['server'] == repository or
-                            current['repository'] == repository or
-                            (current['repository'] == "http://www.python.org/pypi" and repository == self.DEFAULT_REPOSITORY)):
+                                if (current['server'] == repository:
                             return current
                 elif 'server-login' in sections:
                     # old format
