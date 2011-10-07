@@ -2,7 +2,6 @@
 
 Implements the Distutils 'upload' subcommand (upload package to PyPI)."""
 
-
 from distutils.errors import *
 from distutils.core import Command
 from distutils.spawn import spawn
@@ -12,7 +11,6 @@ try:
 except ImportError:
     from md5 import md5
 import os
-import sys
 import socket
 import platform
 import ConfigParser
@@ -21,7 +19,7 @@ import base64
 import urlparse
 import cStringIO as StringIO
 
-class _upload(Command):
+class upload(Command):
 
     description = "upload binary package to PyPI"
 
@@ -67,7 +65,7 @@ class _upload(Command):
                 if not self.password:
                     self.password = config.get('server-login', 'password')
         if not self.repository:
-            raise ValueError('%s is missing a repository value in .pypirc' % self._section_name)
+            self.repository = self.DEFAULT_REPOSITORY
 
     def run(self):
         if not self.distribution.dist_files:
@@ -183,74 +181,4 @@ class _upload(Command):
                           log.ERROR)
         if self.show_response:
             print '-'*75, r.read(), '-'*75
-
-if sys.version >= "2.5":
-    from distutils.command.upload import upload as distutils_upload
-    class upload(distutils_upload):
-
-        def run(self):
-            self._section_name = self.repository
-            distutils_upload.run(self)
-
-        def _read_pypirc(self):
-            """Reads the .pypirc file."""
-            self._section_name = self.repository
-            rc = self._get_rc_file()
-            if os.path.exists(rc):
-                repository = self.repository
-                config = ConfigParser.ConfigParser()
-                config.read(rc)
-                sections = config.sections()
-                if 'distutils' in sections:
-                    # let's get the list of servers
-                    index_servers = config.get('distutils', 'index-servers')
-                    _servers = [server.strip() for server in
-                                index_servers.split('\n')
-                                if server.strip() != '']
-                    if _servers == []:
-                        # nothing set, let's try to get the default pypi
-                        if 'pypi' in sections:
-                            _servers = ['pypi']
-                        else:
-                            # the file is not properly defined, returning
-                            # an empty dict
-                            return {}
-                    for server in _servers:
-                        current = {'server': server}
-                        current['username'] = config.get(server, 'username')
-
-                        # optional params
-                        for key, default in (('repository',
-                                              None),
-                                             ('realm', self.DEFAULT_REALM),
-                                             ('password', None)):
-                            if config.has_option(server, key):
-                                current[key] = config.get(server, key)
-                            else:
-                                current[key] = default
-                                if (current['server'] == repository:
-                            return current
-                elif 'server-login' in sections:
-                    # old format
-                    server = 'server-login'
-                    if config.has_option(server, 'repository'):
-                        repository = config.get(server, 'repository')
-                    else:
-                        repository = None
-                    return {'username': config.get(server, 'username'),
-                            'password': config.get(server, 'password'),
-                            'repository': repository,
-                            'server': server,
-                            'realm': self.DEFAULT_REALM}
-
-            return {}
-
-        def finalize_options(self):
-            distutils_upload.finalize_options(self)
-            if not self.repository:
-                raise ValueError('%s is missing a repository value in .pypirc' % self._section_name)
-
-
-else:
-    upload = _upload
 
