@@ -659,6 +659,8 @@ class PackageIndex(Environment):
             return self._download_svn(url, filename)
         elif scheme=='git' or scheme.startswith('git+'):
             return self._download_git(url, filename)
+        elif scheme.startswith('hg+'):
+            return self._download_hg(url, filename)
         elif scheme=='file':
             return urllib.url2pathname(urlparse.urlparse(url)[2])
         else:
@@ -706,6 +708,15 @@ class PackageIndex(Environment):
         filename = filename.split('#',1)[0]   # remove any fragment to get a decent name.
         self.info("Doing git clone from %s to %s", url, filename)
         os.system("git clone -q %s %s" % (url, filename))
+        return filename
+
+    def _download_hg(self, url, filename):
+        if url.startswith('hg+'):
+            url = url[3:]
+        url = url.split('#',1)[0]   # remove any fragment for svn's sake
+        filename = filename.split('#',1)[0]   # remove any fragment to get a decent name.
+        self.info("Doing hg clone from %s to %s", url, filename)
+        os.system("hg clone --quiet %s %s" % (url, filename))
         return filename
 
     def debug(self, msg, *args):
