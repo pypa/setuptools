@@ -657,6 +657,8 @@ class PackageIndex(Environment):
         #
         if scheme=='svn' or scheme.startswith('svn+'):
             return self._download_svn(url, filename)
+        elif scheme=='git' or scheme.startswith('git+'):
+            return self._download_git(url, filename)
         elif scheme=='file':
             return urllib.url2pathname(urlparse.urlparse(url)[2])
         else:
@@ -695,6 +697,15 @@ class PackageIndex(Environment):
         url = url.split('#',1)[0]   # remove any fragment for svn's sake
         self.info("Doing subversion checkout from %s to %s", url, filename)
         os.system("svn checkout -q %s %s" % (url, filename))
+        return filename
+
+    def _download_git(self, url, filename):
+        if url.startswith('git+'):
+            url = url[4:]
+        url = url.split('#',1)[0]   # remove any fragment for svn's sake
+        filename = filename.split('#',1)[0]   # remove any fragment to get a decent name.
+        self.info("Doing git clone from %s to %s", url, filename)
+        os.system("git clone -q %s %s" % (url, filename))
         return filename
 
     def debug(self, msg, *args):
