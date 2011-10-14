@@ -19,6 +19,8 @@ def get_next_version():
 	digits[-1] += 1
 	return '.'.join(map(str, digits))
 
+NEXT_VERSION = get_next_version()
+
 def bump_versions():
 	files_with_versions = ('docs/conf.py', 'setup.py', 'release.py',
 		'release.sh', 'README.txt', 'distribute_setup.py')
@@ -26,7 +28,7 @@ def bump_versions():
 
 def bump_version(filename):
 	with open(filename, 'rb') as f:
-		lines = [line.replace(VERSION, get_next_version()) for line in f]
+		lines = [line.replace(VERSION, NEXT_VERSION) for line in f]
 	with open(filename, 'wb') as f:
 		f.writelines(lines)
 
@@ -53,7 +55,8 @@ def do_release():
 	# we just tagged the current version, bump for the next release.
 	bump_versions()
 	subprocess.check_call(['hg', 'ci', '-m',
-		'Bumped to {VERSION} in preparation for next release.'.format(**globals())])
+		'Bumped to {NEXT_VERSION} in preparation for next '
+		'release.'.format(**globals())])
 
 	# push the changes
 	subprocess.check_call(['hg', 'push'])
