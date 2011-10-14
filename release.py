@@ -48,7 +48,7 @@ def do_release():
 	subprocess.check_call([sys.executable, 'setup.py',
 		'-q', 'egg_info', '-RD', '-b', '""', 'sdist', 'register',
 		'upload', 'upload_docs'])
-	upload_boostrap_script()
+	upload_bootstrap_script()
 
 	# we just tagged the current version, bump for the next release.
 	bump_versions()
