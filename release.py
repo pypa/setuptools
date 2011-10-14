@@ -34,10 +34,10 @@ def do_release():
 	res = raw_input('Have you read through the SCM changelog and '
 		'confirmed the changelog is current for releasing {VERSION}? '
 		.format(**globals()))
-	if not res.lower.startswith('y'):
+	if not res.lower().startswith('y'):
 		print("Please do that")
 		raise SystemExit(1)
-	
+
 	subprocess.check_call(['hg', 'tag', VERSION])
 
 	subprocess.check_call(['hg', 'update', VERSION])
