@@ -43,7 +43,8 @@ def do_release():
 	subprocess.check_call(['hg', 'update', VERSION])
 
 	build_docs()
-	shutil.rmtree('./dist')
+	if os.path.isdir('./dist'):
+		shutil.rmtree('./dist')
 	subprocess.check_call([sys.executable, 'setup.py',
 		'-q', 'egg_info', '-RD', '-b', '""', 'sdist', 'register',
 		'upload', 'upload_docs'])
@@ -58,7 +59,8 @@ def do_release():
 	subprocess.check_call(['hg', 'push'])
 
 def build_docs():
-	shutil.rmtree('docs/build')
+	if os.path.isdir('docs/build'):
+		shutil.rmtree('docs/build')
 	subprocess.check_call([
 		'sphinx-build',
 		'-b', 'html',
