@@ -64,6 +64,8 @@ def build_docs():
 	subprocess.check_call([
 		'sphinx-build',
 		'-b', 'html',
+		'-d', 'build/doctrees',
+		'.',
 		'build/html',
 		],
 		cwd='docs')
