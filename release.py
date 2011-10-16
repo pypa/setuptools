@@ -46,7 +46,7 @@ def do_release():
 	if os.path.isdir('./dist'):
 		shutil.rmtree('./dist')
 	subprocess.check_call([sys.executable, 'setup.py',
-		'-q', 'egg_info', '-RD', '-b', '""', 'sdist', 'register',
+		'-q', 'egg_info', '-RD', '-b', '', 'sdist', 'register',
 		'upload', 'upload_docs'])
 	upload_boostrap_script()
 
