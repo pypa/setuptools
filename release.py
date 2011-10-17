@@ -67,6 +67,8 @@ def do_release():
 	# push the changes
 	subprocess.check_call(['hg', 'push'])
 
+	# TODO: update bitbucket milestones and versions
+
 def build_docs():
 	if os.path.isdir('docs/build'):
 		shutil.rmtree('docs/build')
