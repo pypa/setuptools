@@ -40,6 +40,12 @@ def do_release():
 		print("Please do that")
 		raise SystemExit(1)
 
+	res = raw_input('Have you or has someone verified that the tests '
+		'pass on this revision? ')
+	if not res.lower().startswith('y'):
+		print("Please do that")
+		raise SystemExit(2)
+
 	subprocess.check_call(['hg', 'tag', VERSION])
 
 	subprocess.check_call(['hg', 'update', VERSION])
