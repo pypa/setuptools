@@ -85,7 +85,7 @@ def upload_bootstrap_script():
 	scp_command = 'pscp' if sys.platform.startswith('win') else 'scp'
 	try:
 		subprocess.check_call([scp_command, 'distribute_setup.py',
-			'ziade.org:websites/python-distribute.org/'])
+			'pypi@ziade.org:python-distribute.org/'])
 	except:
 		print("Unable to upload bootstrap script. Ask Tarek to do it.")
 
