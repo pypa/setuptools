@@ -3,11 +3,16 @@ CHANGES
 =======
 
 ------
+0.6.25
+------
+
+* Issue #258: Workaround a cache issue
+
+------
 0.6.24
 ------
 
 * Issue #249: Added options to exclude 2to3 fixers
-* Issue #258: Workaround a cache issue
 
 ------
 0.6.23
