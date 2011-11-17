@@ -508,6 +508,10 @@ class WorkingSet(object):
         """
         seen = {}
         for item in self.entries:
+            if item not in self.entry_keys:
+                # workaround a cache issue
+                continue
+
             for key in self.entry_keys[item]:
                 if key not in seen:
                     seen[key]=1
