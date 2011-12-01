@@ -58,6 +58,9 @@ def do_release():
 		'upload', 'upload_docs'])
 	upload_bootstrap_script()
 
+	# update to the tip for the next operation
+	subprocess.check_call(['hg', 'update'])
+
 	# we just tagged the current version, bump for the next release.
 	bump_versions()
 	subprocess.check_call(['hg', 'ci', '-m',
