@@ -9,6 +9,8 @@ CHANGES
 * Issue #258: Workaround a cache issue
 * Issue #260: distribute_setup.py now accepts the --user parameter for
   Python 2.6 and later.
+* Issue #262: package_index.open_with_auth no longer throws LookupError
+  on Python 3.
 
 ------
 0.6.24
