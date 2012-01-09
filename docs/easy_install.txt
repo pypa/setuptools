@@ -875,9 +875,6 @@ Command-Line Options
     judgment and force an installation directory to be treated as if it
     supported ``.pth`` files.
 
-    (If you want to *make* a non-``PYTHONPATH`` directory support ``.pth``
-    files, please see the `Administrator Installation`_ section below.)
-
 ``--no-deps, -N``  (New in 0.6a6)
     Don't install any dependencies.  This is intended as a convenience for
     tools that wrap eggs in a platform-specific packaging system.  (We don't
@@ -940,25 +937,25 @@ Command-Line Options
 Custom Installation Locations
 -----------------------------
 
-By default, EasyInstall installs python packages into Python's main ``site-packages`` directory, 
+By default, EasyInstall installs python packages into Python's main ``site-packages`` directory,
 and manages them using a custom ``.pth`` file in that same directory.
 
-Very often though, a user or developer wants ``easy_install`` to install and manage python packages 
+Very often though, a user or developer wants ``easy_install`` to install and manage python packages
 in an alternative location, usually for one of 3 reasons:
 
 1. They don't have access to write to the main Python site-packages directory.
 
 2. They want a user-specific stash of packages, that is not visible to other users.
 
-3. They want to isolate a set of packages to a specific python application, usually to minimize 
-   the possibility of version conflicts. 
+3. They want to isolate a set of packages to a specific python application, usually to minimize
+   the possibility of version conflicts.
 
-Historically, there have been many approaches to achieve custom installation. 
-The following section lists only the easiest and most relevant approaches [1]_. 
+Historically, there have been many approaches to achieve custom installation.
+The following section lists only the easiest and most relevant approaches [1]_.
 
 `Use the "--user" option`_
-    
-`Use the "--user" option and customize "PYTHONUSERBASE"`_  
+
+`Use the "--user" option and customize "PYTHONUSERBASE"`_
 
 `Use "virtualenv"`_
 
@@ -968,22 +965,22 @@ The following section lists only the easiest and most relevant approaches [1]_.
 
 
 Use the "--user" option
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-With Python 2.6 came the User scheme for installation, which means that all 
+~~~~~~~~~~~~~~~~~~~~~~~
+With Python 2.6 came the User scheme for installation, which means that all
 python distributions support an alternative install location that is specific to a user [2]_ [3]_.
-The Default location for each OS is explained in the python documentation 
+The Default location for each OS is explained in the python documentation
 for the ``site.USER_BASE`` variable.  This mode of installation can be turned on by
 specifying the ``--user`` option to ``setup.py install`` or ``easy_install``.
 This approach serves the need to have a user-specific stash of packages.
 
 .. [2] Prior to Python2.6, Mac OS X offered a form of the User scheme. That is now subsumed into the User scheme introduced in Python 2.6.
 .. [3] Prior to the User scheme, there was the Home scheme, which is still available, but requires more effort than the User scheme to get packages recognized.
-    
+
 Use the "--user" option and customize "PYTHONUSERBASE"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The User scheme install location can be customized by setting the ``PYTHONUSERBASE`` environment
 variable, which updates the value of ``site.USER_BASE``.  To isolate packages to a specific
-application, simply set the OS environment of that application to a specific value of       
+application, simply set the OS environment of that application to a specific value of
 ``PYTHONUSERBASE``, that contains just those packages.
 
 Use "virtualenv"
