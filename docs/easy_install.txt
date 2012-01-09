@@ -940,193 +940,64 @@ Command-Line Options
 Custom Installation Locations
 -----------------------------
 
-EasyInstall manages what packages are active using Python ``.pth`` files, which
-are normally only usable in Python's main ``site-packages`` directory.  On some
-platforms (such as Mac OS X), there are additional ``site-packages``
-directories that you can use besides the main one, but usually there is only
-one directory on the system where you can install packages without extra steps.
+By default, EasyInstall installs python packages into Python's main ``site-packages`` directory, 
+and manages them using a custom ``.pth`` file in that same directory.
 
-There are many reasons, however, why you might want to install packages
-somewhere other than the ``site-packages`` directory.  For example, you might
-not have write access to that directory.  You may be working with unstable
-versions of packages that you don't want to install system-wide.  And so on.
+Very often though, a user or developer wants ``easy_install`` to install and manage python packages 
+in an alternative location, usually for one of 3 reasons:
 
-The following sections describe various approaches to custom installation; feel
-free to choose which one best suits your system and needs.
+1. They don't have access to write to the main Python site-packages directory.
 
-`Administrator Installation`_
-    This approach is for when you have write access to ``site-packages`` (or
-    another directory where ``.pth`` files are processed), but don't want to
-    install packages there.  This can also be used by a system administrator
-    to enable each user having their own private directories that EasyInstall
-    will use to install packages.
+2. They want a user-specific stash of packages, that is not visible to other users.
 
-`Mac OS X "User" Installation`_
-    This approach produces a result similar to an administrator installation
-    that gives each user their own private package directory, but on Mac OS X
-    the hard part has already been done for you.  This is probably the best
-    approach for Mac OS X users.
+3. They want to isolate a set of packages to a specific python application, usually to minimize 
+   the possibility of version conflicts. 
 
-`Creating a "Virtual" Python`_
-    This approach is for when you don't have "root" or access to write to the
-    ``site-packages`` directory, and would like to be able to set up one or
-    more "virtual python" executables for your projects.  This approach
-    gives you the benefits of multiple Python installations, but without having
-    to actually install Python more than once and use up lots of disk space.
-    (Only the Python executable is copied; the libraries will be symlinked
-    from the systemwide Python.)
+Historically, there have been many approaches to achieve custom installation. 
+The following section lists only the easiest and most relevant approaches [1]_. 
 
-    If you don't already have any ``PYTHONPATH`` customization or
-    special distutils configuration, and you can't use either of the preceding
-    approaches, this is probably the best one for you.
+`Use the "--user" option`_
+    
+`Use the "--user" option and customize "PYTHONUSERBASE"`_  
 
-`"Traditional" PYTHONPATH-based Installation`_
-    If you already have a custom ``PYTHONPATH``, and/or a custom distutils
-    configuration, and don't want to change any of your existing setup, you may
-    be interested in this approach.  (If you're using a custom ``.pth`` file to
-    point to your custom installation location, however, you should use
-    `Administrator Installation`_ to enable ``.pth`` processing in the custom
-    location instead, as that is easier and more flexible than this approach.)
+`Use "virtualenv"`_
+
+.. [1] There are older ways to achieve custom installation using various ``easy_install`` and ``setup.py install`` options, combined with ``PYTHONPATH`` and/or ``PYTHONUSERBASE`` alterations, but all of these are effectively deprecated by the User scheme brought in by `PEP-370`_ in Python 2.6.
+
+.. _PEP-370: http://www.python.org/dev/peps/pep-0370/
 
 
-Administrator Installation
+Use the "--user" option
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
+With Python 2.6 came the User scheme for installation, which means that all 
+python distributions support an alternative install location that is specific to a user [2]_ [3]_.
+The Default location for each OS is explained in the python documentation 
+for the ``site.USER_BASE`` variable.  This mode of installation can be turned on by
+specifying the ``--user`` option to ``setup.py install`` or ``easy_install``.
+This approach serves the need to have a user-specific stash of packages.
 
-If you have root access to your machine, you can easily configure it to allow
-each user to have their own directory where Python packages can be installed
-and managed by EasyInstall.
+.. [2] Prior to Python2.6, Mac OS X offered a form of the User scheme. That is now subsumed into the User scheme introduced in Python 2.6.
+.. [3] Prior to the User scheme, there was the Home scheme, which is still available, but requires more effort than the User scheme to get packages recognized.
+    
+Use the "--user" option and customize "PYTHONUSERBASE"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The User scheme install location can be customized by setting the ``PYTHONUSERBASE`` environment
+variable, which updates the value of ``site.USER_BASE``.  To isolate packages to a specific
+application, simply set the OS environment of that application to a specific value of       
+``PYTHONUSERBASE``, that contains just those packages.
 
-First, create an ``altinstall.pth`` file in Python's ``site-packages``
-directory,  containing the following line (substituting the correct Python
-version)::
+Use "virtualenv"
+~~~~~~~~~~~~~~~~
+"virtualenv" is a 3rd-party python package that effectively "clones" a python installation, thereby
+creating an isolated location to intall packages.  The evolution of "virtualenv" started before the existence
+of the User installation scheme.  "virtualenv" provides a version of ``easy_install`` that is
+scoped to the cloned python install and is used in the normal way. "virtualenv" does offer various features
+that the User installation scheme alone does not provide, e.g. the ability to hide the main python site-packages.
 
-    import os, site; site.addsitedir(os.path.expanduser('~/lib/python2.3'))
-
-This will automatically add each user's ``~/lib/python2.X`` directory to
-``sys.path`` (if it exists), *and* it will process any ``.pth`` files in that
-directory -- which is what makes it usable with EasyInstall.
-
-The next step is to create or modify ``distutils.cfg`` in the ``distutils``
-directory of your Python library.  The correct directory will be something like
-``/usr/lib/python2.X/distutils`` on most Posix systems and something like
-``C:\\Python2X\Lib\distutils`` on Windows machines.  Add the following lines
-to the file, substituting the correct Python version if necessary:
-
-.. code-block:: ini
-
-    [install]
-    install_lib = ~/lib/python2.3
-
-    # This next line is optional but often quite useful; it directs EasyInstall
-    # and the distutils to install scripts in the user's "bin" directory.  For
-    # Mac OS X framework Python builds, you should use /usr/local/bin instead,
-    # because neither ~/bin nor the default script installation location are on
-    # the system PATH.
-    #
-    install_scripts = ~/bin
-
-This will configure the distutils and EasyInstall to install packages to the
-user's home directory by default.
-
-Of course, you aren't limited to using a ``~/lib/python2.X`` directory with
-this approach.  You can substitute a specific systemwide directory if you like.
-You can also edit ``~/.pydistutils.cfg`` (or ``~/pydistutils.cfg`` on Windows)
-instead of changing the master ``distutils.cfg`` file.  The true keys of this
-approach are simply that:
-
-1. any custom installation directory must be added to ``sys.path`` using a
-   ``site.addsitedir()`` call from a working ``.pth`` file or
-   ``sitecustomize.py``.
-
-2. The active distutils configuration file(s) or ``easy_install`` command line
-   should include the custom directory in the ``--site-dirs`` option, so that
-   EasyInstall knows that ``.pth`` files will work in that location.  (This is
-   because Python does not keep track of what directories are or aren't enabled
-   for ``.pth`` processing, in any way that EasyInstall can find out.)
-
-As long as both of these things have been done, your custom installation
-location is good to go.
-
-
-Mac OS X "User" Installation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If you are on a Mac OS X machine, you should just use the
-``~/Library/Python/2.x/site-packages`` directory as your custom installation
-location, because it is already configured to process ``.pth`` files, and
-EasyInstall already knows this.
-
-Before installing EasyInstall/setuptools, just create a ``~/.pydistutils.cfg``
-file with the following contents (or add this to the existing contents):
-
-.. code-block:: ini
-
-    [install]
-    install_lib = ~/Library/Python/$py_version_short/site-packages
-    install_scripts = ~/bin
-
-This will tell the distutils and EasyInstall to always install packages in
-your personal ``site-packages`` directory, and scripts to ``~/bin``.  (Note: do
-*not* replace ``$py_version_short`` with an actual Python version in the
-configuration file!  The distutils will substitute the correct value at
-runtime, so that the above configuration file should work correctly no matter
-what Python version you use, now or in the future.)
-
-Once you have done this, you can follow the normal `installation instructions`_
-and use ``easy_install`` without any other special options or steps.
-
-(Note, however, that ``~/bin`` is not in the default ``PATH``, so you may have
-to refer to scripts by their full location.  You may want to modify your shell
-startup script (likely ``.bashrc`` or ``.profile``) or your
-``~/.MacOSX/environment.plist`` to include ``~/bin`` in your ``PATH``.
-
-
-Creating a "Virtual" Python
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If you are on a Linux, BSD, Cygwin, or other similar Unix-like operating
-system, but don't have root access, you can create your own "virtual"
-Python installation, which uses its own library directories and some symlinks
-to the site-wide Python.
-
-Please refer to the `virtualenv`_ documentation for creating such an
-environment.
+Please refer to the `virtualenv`_ documentation for more details.
 
 .. _virtualenv: http://pypi.python.org/pypi/virtualenv
 
-
-"Traditional" ``PYTHONPATH``-based Installation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-This installation method is not as robust or as flexible as `creating a
-"virtual" python`_ installation, as it uses various tricks to fool Python into
-processing ``.pth`` files where it normally wouldn't.  We suggest you at least
-consider using one of the other approaches, as they will generally result in
-a cleaner, more usable Python configuration.  However, if for some reason you
-can't or won't use one of the other approaches, here's how to do it.
-
-Assuming that you want to install packages in a directory called ``~/py-lib``,
-and scripts in ``~/bin``, here's what you need to do:
-
-First, edit ``~/.pydistutils.cfg`` to include these settings, if you don't
-already have them:
-
-.. code-block:: ini
-
-    [install]
-    install_lib = ~/py-lib
-    install_scripts = ~/bin
-
-Be sure to do this *before* you try to run the ``distribute_setup.py``
-installation script.  Then, follow the standard `installation instructions`_,
-but make sure that ``~/py-lib`` is listed in your ``PYTHONPATH`` environment
-variable.
-
-Your library installation directory *must* be in listed in ``PYTHONPATH``,
-not only when you install packages with EasyInstall, but also when you use
-any packages that are installed using EasyInstall.  You will probably want to
-edit your ``~/.profile`` or other configuration file(s) to ensure that it is
-set, if you haven't already got this set up on your machine.
 
 
 Package Index "API"
