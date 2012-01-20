@@ -11,6 +11,8 @@ CHANGES
   Python 2.6 and later.
 * Issue #262: package_index.open_with_auth no longer throws LookupError
   on Python 3.
+* Issue #269: AttributeError when an exception occurs reading Manifest.in
+  on late releases of Python.
 
 ------
 0.6.24
