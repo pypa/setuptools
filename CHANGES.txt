@@ -13,6 +13,9 @@ CHANGES
   on Python 3.
 * Issue #269: AttributeError when an exception occurs reading Manifest.in
   on late releases of Python.
+* Issue #272: Prevent TypeError when namespace package names are unicode
+  and single-install-externally-managed is used. Also fixes PIP issue
+  449.
 
 ------
 0.6.24
