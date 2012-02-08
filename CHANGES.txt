@@ -16,6 +16,7 @@ CHANGES
 * Issue #272: Prevent TypeError when namespace package names are unicode
   and single-install-externally-managed is used. Also fixes PIP issue
   449.
+* Issue #273: Legacy script launchers now install with Python2/3 support.
 
 ------
 0.6.24
