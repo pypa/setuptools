@@ -186,6 +186,14 @@ class sdist(_sdist):
         if self.distribution.has_pure_modules():
             build_py = self.get_finalized_command('build_py')
             self.filelist.extend(build_py.get_source_files())
+            # This functionality is incompatible with include_package_data, and
+            # will in fact create an infinite recursion if include_package_data
+            # is True.  Use of include_package_data will imply that
+            # distutils-style automatic handling of package_data is disabled
+            if not self.distribution.include_package_data:
+                for _, src_dir, _, filenames in build_py.data_files:
+                    self.filelist.extend([os.path.join(src_dir, filename)
+                                          for filename in filenames])
 
         if self.distribution.has_ext_modules():
             build_ext = self.get_finalized_command('build_ext')
