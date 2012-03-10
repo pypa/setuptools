@@ -12,7 +12,7 @@ import shutil
 import os
 import sys
 
-VERSION='0.6.25'
+VERSION = '0.6.25'
 
 def get_next_version():
 	digits = map(int, VERSION.split('.'))
@@ -21,9 +21,10 @@ def get_next_version():
 
 NEXT_VERSION = get_next_version()
 
+files_with_versions = ('docs/conf.py', 'setup.py', 'release.py',
+	'README.txt', 'distribute_setup.py')
+
 def bump_versions():
-	files_with_versions = ('docs/conf.py', 'setup.py', 'release.py',
-		'release.sh', 'README.txt', 'distribute_setup.py')
 	list(map(bump_version, files_with_versions))
 
 def bump_version(filename):
@@ -33,6 +34,8 @@ def bump_version(filename):
 		f.writelines(lines)
 
 def do_release():
+	assert all(map(os.path.exists, files_with_versions)), (
+		"Expected file(s) missing")
 	res = raw_input('Have you read through the SCM changelog and '
 		'confirmed the changelog is current for releasing {VERSION}? '
 		.format(**globals()))
