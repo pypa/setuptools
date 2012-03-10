@@ -12,7 +12,7 @@ import shutil
 import os
 import sys
 
-VERSION = '0.6.25'
+VERSION = '0.6.26'
 
 def get_next_version():
 	digits = map(int, VERSION.split('.'))
