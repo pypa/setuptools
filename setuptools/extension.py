@@ -1,6 +1,10 @@
-from distutils.core import Extension as _Extension
+import sys
+import distutils.core
+import distutils.extension
+
 from setuptools.dist import _get_unpatched
-_Extension = _get_unpatched(_Extension)
+
+_Extension = _get_unpatched(distutils.core.Extension)
 
 # Prefer Cython to Pyrex
 pyrex_impls = 'Cython.Distutils.build_ext', 'Pyrex.Distutils.build_ext'
@@ -19,12 +23,12 @@ class Extension(_Extension):
 
     if not have_pyrex:
         # convert .pyx extensions to .c
-        def __init__(self,*args,**kw):
-            _Extension.__init__(self,*args,**kw)
+        def __init__(self, *args, **kw):
+            _Extension.__init__(self, *args, **kw)
             sources = []
             for s in self.sources:
                 if s.endswith('.pyx'):
-                    sources.append(s[:-3]+'c')
+                    sources.append(s[:-3] + 'c')
                 else:
                     sources.append(s)
             self.sources = sources
@@ -32,9 +36,7 @@ class Extension(_Extension):
 class Library(Extension):
     """Just like a regular Extension, but built as a library instead"""
 
-import sys, distutils.core, distutils.extension
 distutils.core.Extension = Extension
 distutils.extension.Extension = Extension
 if 'distutils.command.build_ext' in sys.modules:
     sys.modules['distutils.command.build_ext'].Extension = Extension
-
