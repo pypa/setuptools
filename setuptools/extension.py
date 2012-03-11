@@ -21,17 +21,15 @@ have_pyrex = 'build_ext' in globals()
 class Extension(_Extension):
     """Extension that uses '.c' files in place of '.pyx' files"""
 
-    if not have_pyrex:
-        # convert .pyx extensions to .c
-        def __init__(self, *args, **kw):
-            _Extension.__init__(self, *args, **kw)
-            sources = []
-            for s in self.sources:
-                if s.endswith('.pyx'):
-                    sources.append(s[:-3] + 'c')
-                else:
-                    sources.append(s)
-            self.sources = sources
+    def __init__(self, *args, **kw):
+        _Extension.__init__(self, *args, **kw)
+        if not have_pyrex:
+            self._convert_pyx_sources_to_c()
+
+    def _convert_pyx_sources_to_c(self):
+        "convert .pyx extensions to .c"
+        self.sources = [source[:-3] + 'c' for source in self.sources
+            if source.endswith('.pyx')]
 
 class Library(Extension):
     """Just like a regular Extension, but built as a library instead"""
