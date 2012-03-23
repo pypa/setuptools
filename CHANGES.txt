@@ -3,6 +3,12 @@ CHANGES
 =======
 
 ------
+0.6.26
+------
+
+* Issue #183: Symlinked files are now extracted from source distributions.
+
+------
 0.6.25
 ------
 
