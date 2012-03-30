@@ -1,5 +1,6 @@
 """PyPI and direct package downloading"""
 import sys, os.path, re, urlparse, urllib, urllib2, shutil, random, socket, cStringIO
+import base64
 import httplib
 from pkg_resources import *
 from distutils import log
@@ -756,6 +757,22 @@ def socket_timeout(timeout=15):
         return _socket_timeout
     return _socket_timeout
 
+def _encode_auth(auth):
+    """
+    A function compatible with Python 2.3-3.3 that will encode
+    auth from a URL suitable for an HTTP header.
+    >>> _encode_auth('username%3Apassword')
+    u'dXNlcm5hbWU6cGFzc3dvcmQ='
+    """
+    auth_s = urllib2.unquote(auth)
+    # convert to bytes
+    auth_bytes = auth_s.encode()
+    # use the legacy interface for Python 2.3 support
+    encoded_bytes = base64.encodestring(auth_bytes)
+    # convert back to a string
+    encoded = encoded_bytes.decode()
+    # strip the trailing carriage return
+    return encoded.rstrip()
 
 def open_with_auth(url):
     """Open a urllib2 request, handling HTTP authentication"""
@@ -768,7 +785,7 @@ def open_with_auth(url):
         auth = None
 
     if auth:
-        auth = "Basic " + urllib2.unquote(auth).encode('base64').strip()
+        auth = "Basic " + _encode_auth(auth)
         new_url = urlparse.urlunparse((scheme,host,path,params,query,frag))
         request = urllib2.Request(new_url)
         request.add_header("Authorization", auth)

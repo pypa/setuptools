@@ -3,9 +3,47 @@ CHANGES
 =======
 
 ------
-0.6.22
+0.6.26
 ------
 
+* Issue #183: Symlinked files are now extracted from source distributions.
+
+------
+0.6.25
+------
+
+* Issue #258: Workaround a cache issue
+* Issue #260: distribute_setup.py now accepts the --user parameter for
+  Python 2.6 and later.
+* Issue #262: package_index.open_with_auth no longer throws LookupError
+  on Python 3.
+* Issue #269: AttributeError when an exception occurs reading Manifest.in
+  on late releases of Python.
+* Issue #272: Prevent TypeError when namespace package names are unicode
+  and single-install-externally-managed is used. Also fixes PIP issue
+  449.
+* Issue #273: Legacy script launchers now install with Python2/3 support.
+
+------
+0.6.24
+------
+
+* Issue #249: Added options to exclude 2to3 fixers
+
+------
+0.6.23
+------
+
+* Issue #244: Fixed a test
+* Issue #243: Fixed a test
+* Issue #239: Fixed a test
+* Issue #240: Fixed a test
+* Issue #241: Fixed a test
+* Issue #237: Fixed a test
+* Issue #238: easy_install now uses 64bit executable wrappers on 64bit Python
+* Issue #208: Fixed parsed_versions, it now honors post-releases as noted in the documentation
+* Issue #207: Windows cli and gui wrappers pass CTRL-C to child python process
+* Issue #227: easy_install now passes its arguments to setup.py bdist_egg
 * Issue #225: Fixed a NameError on Python 2.5, 2.4
 
 ------

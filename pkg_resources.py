@@ -508,6 +508,10 @@ class WorkingSet(object):
         """
         seen = {}
         for item in self.entries:
+            if item not in self.entry_keys:
+                # workaround a cache issue
+                continue
+
             for key in self.entry_keys[item]:
                 if key not in seen:
                     seen[key]=1
@@ -1912,7 +1916,7 @@ replace = {'pre':'c', 'preview':'c','-':'final-','rc':'c','dev':'@'}.get
 def _parse_version_parts(s):
     for part in component_re.split(s):
         part = replace(part,part)
-        if not part or part=='.':
+        if part in ['', '.']:
             continue
         if part[:1] in '0123456789':
             yield part.zfill(8)    # pad for numeric comparison
@@ -1955,8 +1959,6 @@ def parse_version(s):
     parts = []
     for part in _parse_version_parts(s.lower()):
         if part.startswith('*'):
-            if part<'*final':   # remove '-' before a prerelease tag
-                while parts and parts[-1]=='*final-': parts.pop()
             # remove trailing zeros from each series of numeric parts
             while parts and parts[-1]=='00000000':
                 parts.pop()

@@ -42,6 +42,10 @@ __all__ = [
 import site
 HAS_USER_SITE = not sys.version < "2.6" and site.ENABLE_USER_SITE
 
+import struct
+def is_64bit():
+    return struct.calcsize("P") == 8
+
 def samefile(p1,p2):
     if hasattr(os.path,'samefile') and (
         os.path.exists(p1) and os.path.exists(p2)
@@ -733,22 +737,26 @@ Please make the appropriate changes for your system and try again.
         spec = str(dist.as_requirement())
         is_script = is_python_script(script_text, script_name)
 
-        if is_script and dev_path:
-            script_text = get_script_header(script_text) + (
-                "# EASY-INSTALL-DEV-SCRIPT: %(spec)r,%(script_name)r\n"
-                "__requires__ = %(spec)r\n"
-                "from pkg_resources import require; require(%(spec)r)\n"
-                "del require\n"
-                "__file__ = %(dev_path)r\n"
-                "execfile(__file__)\n"
-            ) % locals()
-        elif is_script:
-            script_text = get_script_header(script_text) + (
-                "# EASY-INSTALL-SCRIPT: %(spec)r,%(script_name)r\n"
-                "__requires__ = %(spec)r\n"
-                "import pkg_resources\n"
-                "pkg_resources.run_script(%(spec)r, %(script_name)r)\n"
-            ) % locals()
+        def get_template(filename):
+            """
+            There are a couple of template scripts in the package. This
+            function loads one of them and prepares it for use.
+
+            These templates use triple-quotes to escape variable
+            substitutions so the scripts get the 2to3 treatment when build
+            on Python 3. The templates cannot use triple-quotes naturally.
+            """
+            raw_bytes = resource_string('setuptools', template_name)
+            template_str = raw_bytes.decode('utf-8')
+            clean_template = template_str.replace('"""', '')
+            return clean_template
+
+        if is_script:
+            template_name = 'script template.py'
+            if dev_path:
+                template_name = template_name.replace('.py', ' (dev).py')
+            script_text = (get_script_header(script_text) +
+                get_template(template_name) % locals())
         self.write_script(script_name, _to_ascii(script_text), 'b')
 
     def write_script(self, script_name, contents, mode="t", blockers=()):
@@ -1801,7 +1809,10 @@ def get_script_args(dist, executable=sys_executable, wininst=False):
                     ext, launcher = '-script.py', 'cli.exe'
                     old = ['.py','.pyc','.pyo']
                     new_header = re.sub('(?i)pythonw.exe','python.exe',header)
-
+                if is_64bit():
+                    launcher = launcher.replace(".", "-64.")
+                else:
+                    launcher = launcher.replace(".", "-32.")
                 if os.path.exists(new_header[2:-1]) or sys.platform!='win32':
                     hdr = new_header
                 else:

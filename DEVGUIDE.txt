@@ -6,22 +6,16 @@ Distribute is using Mercurial.
 
 Grab the code at bitbucket::
 
-    $ hg clone https://tarek@bitbucket.org/tarek/distribute distribute
+    $ hg clone https://bitbucket.org/tarek/distribute
 
-If you want to work in the 0.6 branch, you have to switch to it::
+If you want to contribute changes, we recommend you fork the repository on
+bitbucket, commit the changes to your repository, and then make a pull request
+on bitbucket. If you make some changes, don't forget to:
 
-    $ hg update 0.6-maintenance
-
-    $ hg branch
-    0.6-maintenance
-
-If you make some changes, don't forget to:
-
-- backport it to the 0.7 branch
 - add a note in CHANGES.txt
 
-And remember that 0.6 is only bug fixes, and the APIs should
-be fully backward compatible with Setuptools.
+And remember that 0.6 (the only development line) is only bug fixes, and the
+APIs should be fully backward compatible with Setuptools.
 
 You can run the tests via::
 

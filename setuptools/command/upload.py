@@ -181,3 +181,4 @@ class upload(Command):
                           log.ERROR)
         if self.show_response:
             print '-'*75, r.read(), '-'*75
+

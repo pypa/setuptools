@@ -67,7 +67,7 @@ class TestEasyInstallTest(unittest.TestCase):
 
         old_platform = sys.platform
         try:
-            name, script = get_script_args(dist).next()
+            name, script = [i for i in get_script_args(dist).next()][0:2]
         finally:
             sys.platform = old_platform
 
@@ -141,9 +141,13 @@ class TestPTHFileWriter(unittest.TestCase):
         self.assert_(pth.dirty)
 
     def test_add_from_site_is_ignored(self):
-        pth = PthDistributions('does-not_exist', ['/test/location/does-not-have-to-exist'])
+        if os.name != 'nt':
+            location = '/test/location/does-not-have-to-exist'
+        else:
+            location = 'c:\\does_not_exist'
+        pth = PthDistributions('does-not_exist', [location, ])
         self.assert_(not pth.dirty)
-        pth.add(PRDistribution('/test/location/does-not-have-to-exist'))
+        pth.add(PRDistribution(location))
         self.assert_(not pth.dirty)
 
 
@@ -221,7 +225,7 @@ class TestUserInstallTest(unittest.TestCase):
 
         sys.path.append(target)
         old_ppath = os.environ.get('PYTHONPATH')
-        os.environ['PYTHONPATH'] = ':'.join(sys.path)
+        os.environ['PYTHONPATH'] = os.path.pathsep.join(sys.path)
         try:
             dist = Distribution()
             dist.script_name = 'setup.py'
@@ -234,8 +238,13 @@ class TestUserInstallTest(unittest.TestCase):
             self.assertEquals(res.location, new_location)
         finally:
             sys.path.remove(target)
-            shutil.rmtree(new_location)
-            shutil.rmtree(target)
+            for basedir in [new_location, target, ]:
+                if not os.path.exists(basedir) or not os.path.isdir(basedir):
+                    continue
+                try:
+                    shutil.rmtree(basedir)
+                except:
+                    pass
             if old_ppath is not None:
                 os.environ['PYTHONPATH'] = old_ppath
             else:

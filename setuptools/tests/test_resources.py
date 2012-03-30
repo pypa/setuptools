@@ -8,6 +8,16 @@ try: frozenset
 except NameError:
     from sets import ImmutableSet as frozenset
 
+def safe_repr(obj, short=False):
+    """ copied from Python2.7"""
+    try:
+        result = repr(obj)
+    except Exception:
+        result = object.__repr__(obj)
+    if not short or len(result) < _MAX_LENGTH:
+        return result
+    return result[:_MAX_LENGTH] + ' [truncated]...'
+
 class Metadata(EmptyProvider):
     """Mock object to return metadata as if from an on-disk distribution"""
 
@@ -467,14 +477,13 @@ class ParseTests(TestCase):
             p1, p2 = parse_version(s1),parse_version(s2)
             self.assertEqual(p1,p2, (s1,s2,p1,p2))
 
-        c('1.2-rc1', '1.2rc1')
         c('0.4', '0.4.0')
         c('0.4.0.0', '0.4.0')
         c('0.4.0-0', '0.4-0')
         c('0pl1', '0.0pl1')
         c('0pre1', '0.0c1')
         c('0.0.0preview1', '0c1')
-        c('0.0c1', '0-rc1')
+        c('0.0c1', '0rc1')
         c('1.2a1', '1.2.a.1'); c('1.2...a', '1.2a')
 
     def testVersionOrdering(self):
@@ -483,11 +492,14 @@ class ParseTests(TestCase):
             self.assert_(p1<p2, (s1,s2,p1,p2))
 
         c('2.1','2.1.1')
+        c('2.1.0','2.10')
         c('2a1','2b0')
+        c('2b1','2c0')
         c('2a1','2.1')
         c('2.3a1', '2.3')
         c('2.1-1', '2.1-2')
         c('2.1-1', '2.1.1')
+        c('2.1', '2.1.1-1')
         c('2.1', '2.1pl4')
         c('2.1a0-20040501', '2.1')
         c('1.1', '02.1')
@@ -498,8 +510,20 @@ class ParseTests(TestCase):
         c('0.4', '4.0')
         c('0.0.4', '0.4.0')
         c('0pl1', '0.4pl1')
-        c('2.1.0-rc1','2.1.0')
         c('2.1dev','2.1a0')
+        c('2.1.0rc1','2.1.0')
+        c('2.1.0','2.1.0-rc0')
+        c('2.1.0','2.1.0-a')
+        c('2.1.0','2.1.0-alpha')
+        c('2.1.0','2.1.0-foo')
+        c('1.0','1.0-1')
+        c('1.0-1','1.0.1')
+        c('1.0a','1.0b')
+        c('1.0dev','1.0rc1')
+        c('1.0pre','1.0')
+        c('1.0pre','1.0')
+        c('1.0a','1.0-a')
+        c('1.0rc1','1.0-rc1')
 
         torture ="""
         0.80.1-3 0.80.1-2 0.80.1-1 0.79.9999+0.80.0pre4-1
@@ -580,6 +604,13 @@ class NamespaceTests(TestCase):
         pkg_resources._namespace_packages = self._ns_pkgs.copy()
         sys.path = self._prev_sys_path[:]
 
+    def _assertIn(self, member, container):
+        """ assertIn and assertTrue does not exist in Python2.3"""
+        if member not in container:
+            standardMsg = '%s not found in %s' % (safe_repr(member),
+                                                  safe_repr(container))
+            self.fail(self._formatMessage(msg, standardMsg))
+
     def test_two_levels_deep(self):
         """
         Test nested namespace packages
@@ -603,13 +634,13 @@ class NamespaceTests(TestCase):
             pkg2_init.write(ns_str)
             pkg2_init.close()
         import pkg1
-        self.assertTrue("pkg1" in pkg_resources._namespace_packages.keys())
+        self._assertIn("pkg1", pkg_resources._namespace_packages.keys())
         try:
             import pkg1.pkg2
         except ImportError, e:
             self.fail("Distribute tried to import the parent namespace package")
         # check the _namespace_packages dict
-        self.assertTrue("pkg1.pkg2" in pkg_resources._namespace_packages.keys())
+        self._assertIn("pkg1.pkg2", pkg_resources._namespace_packages.keys())
         self.assertEqual(pkg_resources._namespace_packages["pkg1"], ["pkg1.pkg2"])
         # check the __path__ attribute contains both paths
         self.assertEqual(pkg1.pkg2.__path__, [

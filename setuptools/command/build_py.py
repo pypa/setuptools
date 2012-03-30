@@ -28,19 +28,33 @@ try:
             if not files:
                 return
             log.info("Fixing "+" ".join(files))
-            if not self.fixer_names:
-                self.fixer_names = []
-                for p in setuptools.lib2to3_fixer_packages:
-                    self.fixer_names.extend(get_fixers_from_package(p))
-                if self.distribution.use_2to3_fixers is not None:
-                    for p in self.distribution.use_2to3_fixers:
-                        self.fixer_names.extend(get_fixers_from_package(p))
+            self.__build_fixer_names()
+            self.__exclude_fixers()
             if doctests:
                 if setuptools.run_2to3_on_doctests:
                     r = DistutilsRefactoringTool(self.fixer_names)
                     r.refactor(files, write=True, doctests_only=True)
             else:
                 _Mixin2to3.run_2to3(self, files)
+
+        def __build_fixer_names(self):
+            if self.fixer_names: return
+            self.fixer_names = []
+            for p in setuptools.lib2to3_fixer_packages:
+                self.fixer_names.extend(get_fixers_from_package(p))
+            if self.distribution.use_2to3_fixers is not None:
+                for p in self.distribution.use_2to3_fixers:
+                    self.fixer_names.extend(get_fixers_from_package(p))
+
+        def __exclude_fixers(self):
+            excluded_fixers = getattr(self, 'exclude_fixers', [])
+            if self.distribution.use_2to3_exclude_fixers is not None:
+                excluded_fixers.extend(self.distribution.use_2to3_exclude_fixers)
+            for fixer_name in excluded_fixers:
+                if fixer_name not in self.fixer_names:
+                    log.warn("Excluded fixer %s not found", fixer_name)
+                    continue
+                self.fixer_names.remove(fixer_name)
 
 except ImportError:
     class Mixin2to3:

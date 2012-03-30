@@ -199,15 +199,25 @@ class sdist(_sdist):
             build_scripts = self.get_finalized_command('build_scripts')
             self.filelist.extend(build_scripts.get_source_files())
 
-    def read_template(self):
+    def __read_template_hack(self):
+        # This grody hack closes the template file (MANIFEST.in) if an
+        #  exception occurs during read_template.
+        # Doing so prevents an error when easy_install attempts to delete the
+        #  file.
         try:
             _sdist.read_template(self)
         except:
-            # grody hack to close the template file (MANIFEST.in)
-            # this prevents easy_install's attempt at deleting the file from
-            # dying and thus masking the real error
             sys.exc_info()[2].tb_next.tb_frame.f_locals['template'].close()
             raise
+    # Beginning with Python 2.7.2, 3.1.4, and 3.2.1, this leaky file handle
+    #  has been fixed, so only override the method if we're using an earlier
+    #  Python.
+    if (
+            sys.version_info < (2,7,2)
+            or (3,0) <= sys.version_info < (3,1,4)
+            or (3,2) <= sys.version_info < (3,2,1)
+        ):
+        read_template = __read_template_hack
 
     def check_readme(self):
         alts = ("README", "README.txt")
