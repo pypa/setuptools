@@ -1081,29 +1081,27 @@ See the setuptools documentation for the "develop" command for more info.
             raise DistutilsError("Setup script exited with %s" % (v.args[0],))
 
     def build_and_install(self, setup_script, setup_base):
-        args = ['bdist_egg', '--dist-dir']
+        args = []
+
+        # first pass along any install directives using setopt
+        ei_opts = self.distribution.get_option_dict('easy_install').copy()
+        install_directives = (
+            'find_links', 'site_dirs', 'index_url', 'optimize',
+            'site_dirs', 'allow_hosts'
+        )
+        for key, val in ei_opts.iteritems():
+            if key not in install_directives: continue
+            args.extend(['setopt', '--command', 'easy_install',
+                '--option', key.replace('_', '-'),
+                '--set-value', val[1]])
+
+        args.extend(['bdist_egg', '--dist-dir'])
+
         dist_dir = tempfile.mkdtemp(
             prefix='egg-dist-tmp-', dir=os.path.dirname(setup_script)
         )
         try:
             args.append(dist_dir)
-            ei_opts = self.distribution.get_option_dict('easy_install').copy()
-            keep = (
-                'find_links', 'site_dirs', 'index_url', 'optimize',
-                'site_dirs', 'allow_hosts'
-            )
-            for key in ei_opts.keys():
-                if key not in keep:
-                    del ei_opts[key]
-            if ei_opts:
-                for key, val in ei_opts.iteritems():
-                    args.append('setopt')
-                    args.append('--command')
-                    args.append('easy_install')
-                    args.append('--option')
-                    args.append(key.replace('_', '-'))
-                    args.append('--set-value')
-                    args.append(val[1])
 
             self.run_setup(setup_script, setup_base, args)
             all_eggs = Environment([dist_dir])
