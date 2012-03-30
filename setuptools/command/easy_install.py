@@ -21,6 +21,7 @@ from distutils.sysconfig import get_python_lib, get_config_vars
 from distutils.errors import DistutilsArgError, DistutilsOptionError, \
     DistutilsError, DistutilsPlatformError
 from distutils.command.install import INSTALL_SCHEMES, SCHEME_KEYS
+from setuptools.command import setopt
 from setuptools.archive_util import unpack_archive
 from setuptools.package_index import PackageIndex
 from setuptools.package_index import URL_SCHEME
@@ -1081,26 +1082,13 @@ See the setuptools documentation for the "develop" command for more info.
             raise DistutilsError("Setup script exited with %s" % (v.args[0],))
 
     def build_and_install(self, setup_script, setup_base):
-        args = []
-
-        # first pass along any install directives using setopt
-        ei_opts = self.distribution.get_option_dict('easy_install').copy()
-        install_directives = (
-            'find_links', 'site_dirs', 'index_url', 'optimize',
-            'site_dirs', 'allow_hosts'
-        )
-        for key, val in ei_opts.iteritems():
-            if key not in install_directives: continue
-            args.extend(['setopt', '--command', 'easy_install',
-                '--option', key.replace('_', '-'),
-                '--set-value', val[1]])
-
-        args.extend(['bdist_egg', '--dist-dir'])
+        args = ['bdist_egg', '--dist-dir']
 
         dist_dir = tempfile.mkdtemp(
             prefix='egg-dist-tmp-', dir=os.path.dirname(setup_script)
         )
         try:
+            self._set_fetcher_options(os.path.dirname(setup_script))
             args.append(dist_dir)
 
             self.run_setup(setup_script, setup_base, args)
@@ -1116,6 +1104,30 @@ See the setuptools documentation for the "develop" command for more info.
         finally:
             rmtree(dist_dir)
             log.set_verbosity(self.verbose) # restore our log verbosity
+
+    def _set_fetcher_options(self, base):
+        """
+        When easy_install is about to run bdist_egg on a source dist, that
+        source dist might have 'setup_requires' directives, requiring
+        additional fetching. Ensure the fetcher options given to easy_install
+        are available to that command as well.
+        """
+        # find the fetch options from easy_install and write them out
+        #  to the setup.cfg file.
+        ei_opts = self.distribution.get_option_dict('easy_install').copy()
+        fetch_directives = (
+            'find_links', 'site_dirs', 'index_url', 'optimize',
+            'site_dirs', 'allow_hosts',
+        )
+        fetch_options = {}
+        for key, val in ei_opts.iteritems():
+            if key not in fetch_directives: continue
+            fetch_options[key.replace('_', '-')] = val[1]
+        # create a settings dictionary suitable for `edit_config`
+        settings = dict(easy_install=fetch_options)
+        cfg_filename = os.path.join(base, 'setup.cfg')
+        setopt.edit_config(cfg_filename, settings)
+
 
     def update_pth(self,dist):
         if self.pth_file is None:
