@@ -1,9 +1,12 @@
 """Easy install Tests
 """
 import sys
-import os, shutil, tempfile, unittest
+import os
+import shutil
+import tempfile
+import unittest
 import site
-from StringIO import StringIO
+
 from setuptools.command.easy_install import easy_install, get_script_args, main
 from setuptools.command.easy_install import  PthDistributions
 from setuptools.command import easy_install as easy_install_pkg
@@ -11,7 +14,8 @@ from setuptools.dist import Distribution
 from pkg_resources import Distribution as PRDistribution
 
 try:
-    import multiprocessing
+    # import multiprocessing solely for the purpose of testing its existence
+    __import__('multiprocessing')
     import logging
     _LOG = logging.getLogger('test_easy_install')
     logging.basicConfig(level=logging.INFO, stream=sys.stderr)
@@ -110,7 +114,7 @@ class TestEasyInstallTest(unittest.TestCase):
         # the project level
         dist = Distribution()
         cmd = easy_install(dist)
-        cmd.check_pth_processing = lambda : True
+        cmd.check_pth_processing = lambda: True
         cmd.no_find_links = True
         cmd.find_links = ['link1', 'link2']
         cmd.install_dir = os.path.join(tempfile.mkdtemp(), 'ok')
@@ -120,7 +124,7 @@ class TestEasyInstallTest(unittest.TestCase):
 
         # let's try without it (default behavior)
         cmd = easy_install(dist)
-        cmd.check_pth_processing = lambda : True
+        cmd.check_pth_processing = lambda: True
         cmd.find_links = ['link1', 'link2']
         cmd.install_dir = os.path.join(tempfile.mkdtemp(), 'ok')
         cmd.args = ['ok']
@@ -173,7 +177,7 @@ class TestUserInstallTest(unittest.TestCase):
     def tearDown(self):
         os.chdir(self.old_cwd)
         shutil.rmtree(self.dir)
-        if sys.version >=  "2.6":
+        if sys.version >= "2.6":
             shutil.rmtree(site.USER_BASE)
             shutil.rmtree(site.USER_SITE)
             site.USER_BASE = self.old_base
@@ -249,4 +253,3 @@ class TestUserInstallTest(unittest.TestCase):
                 os.environ['PYTHONPATH'] = old_ppath
             else:
                 del os.environ['PYTHONPATH']
-
