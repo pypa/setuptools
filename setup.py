@@ -2,6 +2,7 @@
 """Distutils setup file, used to install or test 'setuptools'"""
 import sys
 import os
+import textwrap
 
 src_root = None
 if sys.version_info >= (3,):
@@ -197,23 +198,22 @@ dist = setup(
         },
 
 
-    classifiers = [f.strip() for f in """
-    Development Status :: 5 - Production/Stable
-    Intended Audience :: Developers
-    License :: OSI Approved :: Python Software Foundation License
-    License :: OSI Approved :: Zope Public License
-    Operating System :: OS Independent
-    Programming Language :: Python
-    Programming Language :: Python :: 3
-    Topic :: Software Development :: Libraries :: Python Modules
-    Topic :: System :: Archiving :: Packaging
-    Topic :: System :: Systems Administration
-    Topic :: Utilities""".splitlines() if f.strip()],
+    classifiers = textwrap.dedent("""
+        Development Status :: 5 - Production/Stable
+        Intended Audience :: Developers
+        License :: OSI Approved :: Python Software Foundation License
+        License :: OSI Approved :: Zope Public License
+        Operating System :: OS Independent
+        Programming Language :: Python
+        Programming Language :: Python :: 3
+        Topic :: Software Development :: Libraries :: Python Modules
+        Topic :: System :: Archiving :: Packaging
+        Topic :: System :: Systems Administration
+        Topic :: Utilities
+        """).strip().splitlines(),
     scripts = scripts,
 )
 
 if _being_installed():
     from distribute_setup import _after_install
     _after_install(dist)
-
-
