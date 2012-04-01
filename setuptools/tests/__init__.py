@@ -40,15 +40,13 @@ def makeSetup(**args):
         distutils.core_setup_stop_after = None
 
 
-
-
 class DependsTests(unittest.TestCase):
 
     def testExtractConst(self):
         if not extract_constant: return  # skip on non-bytecode platforms
 
         def f1():
-            global x,y,z
+            global x, y, z
             x = "test"
             y = z
 
@@ -64,11 +62,11 @@ class DependsTests(unittest.TestCase):
         # recognized name, not assigned
         self.assertEqual(extract_constant(f1.func_code,'z', -1), None)
 
-
     def testFindModule(self):
         self.assertRaises(ImportError, find_module, 'no-such.-thing')
         self.assertRaises(ImportError, find_module, 'setuptools.non-existent')
-        f,p,i = find_module('setuptools.tests'); f.close()
+        f,p,i = find_module('setuptools.tests')
+        f.close()
 
     def testModuleExtract(self):
         if not get_module_constant: return  # skip on non-bytecode platforms
@@ -137,10 +135,8 @@ class DistroTests(unittest.TestCase):
             package_dir = {},
         )
 
-
     def testDistroType(self):
         self.assert_(isinstance(self.dist,setuptools.dist.Distribution))
-
 
     def testExcludePackage(self):
         self.dist.exclude_package('a')
@@ -158,12 +154,6 @@ class DistroTests(unittest.TestCase):
 
         # test removals from unspecified options
         makeSetup().exclude_package('x')
-
-
-
-
-
-
 
     def testIncludeExclude(self):
         # remove an extension
@@ -203,9 +193,6 @@ class DistroTests(unittest.TestCase):
         self.dist.exclude_package('c')
         self.assert_(not self.dist.has_contents_for('c'))
 
-
-
-
     def testInvalidIncludeExclude(self):
         self.assertRaises(DistutilsSetupError,
             self.dist.include, nonexistent_option='x'
@@ -232,19 +219,6 @@ class DistroTests(unittest.TestCase):
         self.assertRaises(DistutilsSetupError,
             self.dist.exclude, package_dir=['q']
         )
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 class FeatureTests(unittest.TestCase):
@@ -365,8 +339,3 @@ class TestCommandTests(unittest.TestCase):
         ts5 = makeSetup().get_command_obj('test')
         ts5.ensure_finalized()
         self.assertEqual(ts5.test_suite, None)
-
-
-
-
-
