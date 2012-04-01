@@ -2,7 +2,7 @@
 """
 import urllib2
 import sys
-from threading import Thread
+import threading
 from BaseHTTPServer import HTTPServer
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 
@@ -17,29 +17,36 @@ class IndexServer(HTTPServer):
         # The index files should be located in setuptools/tests/indexes
         s.stop()
     """
-    def __init__(self):
-        HTTPServer.__init__(self, ('', 0), SimpleHTTPRequestHandler)
+    def __init__(self, server_address=('', 0),
+            RequestHandlerClass=SimpleHTTPRequestHandler,
+            bind_and_activate=True):
+        HTTPServer.__init__(self, server_address, RequestHandlerClass,
+            bind_and_activate)
         self._run = True
 
     def serve(self):
-        while True:
+        while self._run:
             self.handle_request()
-            if not self._run: break
 
     def start(self):
-        self.thread = Thread(target=self.serve)
+        self.thread = threading.Thread(target=self.serve)
         self.thread.start()
 
     def stop(self):
-        """self.shutdown is not supported on python < 2.6"""
+        "Stop the server"
+
+        # self.shutdown is not supported on python < 2.6, so just
+        #  set _run to false, and make a request, causing it to
+        #  terminate.
         self._run = False
+        url = 'http://127.0.0.1:%(server_port)s/' % vars(self)
         try:
-            if sys.version > '2.6':
-                urllib2.urlopen('http://127.0.0.1:%s/' % self.server_port,
-                                None, 5)
+            if sys.version_info >= (2, 6):
+                urllib2.urlopen(url, timeout=5)
             else:
-                urllib2.urlopen('http://127.0.0.1:%s/' % self.server_port)
+                urllib2.urlopen(url)
         except urllib2.URLError:
+            # ignore any errors; all that's important is the request
             pass
         self.thread.join()
 
