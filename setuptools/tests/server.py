@@ -3,6 +3,7 @@
 import urllib2
 import sys
 import threading
+import BaseHTTPServer
 from BaseHTTPServer import HTTPServer
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 
@@ -53,3 +54,19 @@ class IndexServer(HTTPServer):
     def base_url(self):
         port = self.server_port
         return 'http://127.0.0.1:%s/setuptools/tests/indexes/' % port
+
+class RequestRecorder(BaseHTTPServer.BaseHTTPRequestHandler):
+    def do_GET(self):
+        requests = vars(self.server).setdefault('requests', [])
+        requests.append(self)
+        self.send_response(200, 'OK')
+
+class MockServer(HTTPServer):
+    """
+    A simple HTTP Server that records the requests made to it.
+    """
+    def __init__(self, server_address=('', 0),
+            RequestHandlerClass=RequestRecorder,
+            bind_and_activate=True):
+        HTTPServer.__init__(self, server_address, RequestHandlerClass,
+            bind_and_activate)
