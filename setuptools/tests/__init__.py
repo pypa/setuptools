@@ -1,19 +1,21 @@
 """Tests for the 'setuptools' package"""
-from unittest import TestSuite, TestCase, makeSuite, defaultTestLoader
-import distutils.core, distutils.cmd
+import sys
+import os
+import doctest
+import distutils.core
+import distutils.cmd
 from distutils.errors import DistutilsOptionError, DistutilsPlatformError
 from distutils.errors import DistutilsSetupError
-import setuptools, setuptools.dist
-from setuptools import Feature
 from distutils.core import Extension
-extract_constant, get_module_constant = None, None
-from setuptools.depends import *
-from distutils.version import StrictVersion, LooseVersion
-from distutils.util import convert_path
-import sys, os.path
+from distutils.version import LooseVersion
+
+import unittest
+
+import setuptools.dist
+from setuptools import Feature
+from setuptools.depends import Require, find_module, get_module_constant, extract_constant
 
 def additional_tests():
-    import doctest, unittest
     suite = unittest.TestSuite((
         doctest.DocFileSuite(
             os.path.join('tests', 'api_tests.txt'),
@@ -40,7 +42,7 @@ def makeSetup(**args):
 
 
 
-class DependsTests(TestCase):
+class DependsTests(unittest.TestCase):
 
     def testExtractConst(self):
         if not extract_constant: return  # skip on non-bytecode platforms
@@ -122,7 +124,7 @@ class DependsTests(TestCase):
         self.assert_(req.is_current(paths))
 
 
-class DistroTests(TestCase):
+class DistroTests(unittest.TestCase):
 
     def setUp(self):
         self.e1 = Extension('bar.ext',['bar.c'])
@@ -245,7 +247,7 @@ class DistroTests(TestCase):
 
 
 
-class FeatureTests(TestCase):
+class FeatureTests(unittest.TestCase):
 
     def setUp(self):
         self.req = Require('Distutils','1.0.3','distutils')
@@ -327,7 +329,7 @@ class FeatureTests(TestCase):
             SystemExit, makeSetup, features = {'x':Feature('x', remove='y')}
         )
 
-class TestCommandTests(TestCase):
+class TestCommandTests(unittest.TestCase):
 
     def testTestIsCommand(self):
         test_cmd = makeSetup().get_command_obj('test')
