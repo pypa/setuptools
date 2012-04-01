@@ -70,3 +70,12 @@ class MockServer(HTTPServer):
             bind_and_activate=True):
         HTTPServer.__init__(self, server_address, RequestHandlerClass,
             bind_and_activate)
+        self.threads = []
+
+    def handle_request_in_thread(self):
+        self.threads.append(threading.Thread(target = self.handle_request))
+        # todo: ensure that threads are closed.
+
+    def url(self):
+        return 'http://localhost:%(server_port)s/' % vars(self)
+    url = property(url)

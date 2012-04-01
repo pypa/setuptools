@@ -6,12 +6,14 @@ import shutil
 import tempfile
 import unittest
 import site
+import contextlib
 
 from setuptools.command.easy_install import easy_install, get_script_args, main
 from setuptools.command.easy_install import  PthDistributions
 from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
 from pkg_resources import Distribution as PRDistribution
+import setuptools.tests.server
 
 try:
     # import multiprocessing solely for the purpose of testing its existence
@@ -253,3 +255,52 @@ class TestUserInstallTest(unittest.TestCase):
                 os.environ['PYTHONPATH'] = old_ppath
             else:
                 del os.environ['PYTHONPATH']
+
+
+class TestSetupRequires(unittest.TestCase):
+
+    def test_setup_requires_honors_fetch_params(self):
+        """
+        When easy_install installs a source distribution which specifies
+        setup_requires, it should honor the fetch parameters (such as
+        allow-hosts, index-url, and find-links).
+        """
+        # set up a server which will simulate an alternate package index.
+        p_index = setuptools.tests.server.MockServer()
+        p_index.handle_request_in_thread()
+        # create an sdist that has a build-time dependency.
+        dist_file = self.create_sdist()
+        with tempdir_context() as temp_install_dir:
+            with environment_context(PYTHONPATH=temp_install_dir):
+                ei_params = ['--index-url', p_index.url,
+                    '--allow-hosts', 'localhost',
+                    '--exclude-scripts', '--install-dir', temp_install_dir,
+                    dist_file]
+                easy_install_pkg.main(ei_params)
+            self.assertTrue(os.listdir(temp_install_dir))
+        self.assertEqual(len(p_index.requests), 1)
+        self.assertEqual(p_index.requests[0].path, 'x')
+
+    def create_sdist(self):
+        # for now, just use a known dist
+        return ('http://pypi.python.org/packages/source/j/jaraco.util/'
+            'jaraco.util-5.3.zip')
+
+@contextlib.contextmanager
+def tempdir_context():
+    temp_dir = tempfile.mkdtemp()
+    try:
+        yield temp_dir
+    finally:
+        shutil.rmtree(temp_dir)
+
+@contextlib.contextmanager
+def environment_context(**updates):
+    old_env = os.environ.copy()
+    os.environ.update(updates)
+    try:
+        yield
+    finally:
+        for key in updates:
+            del os.environ[key]
+        os.environ.update(old_env)
