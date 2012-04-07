@@ -61,7 +61,7 @@ class RequestRecorder(BaseHTTPServer.BaseHTTPRequestHandler):
         requests.append(self)
         self.send_response(200, 'OK')
 
-class MockServer(HTTPServer):
+class MockServer(HTTPServer, threading.Thread):
     """
     A simple HTTP Server that records the requests made to it.
     """
@@ -70,11 +70,11 @@ class MockServer(HTTPServer):
             bind_and_activate=True):
         HTTPServer.__init__(self, server_address, RequestHandlerClass,
             bind_and_activate)
-        self.threads = []
+        threading.Thread.__init__(self)
+        self.daemon = True
 
-    def handle_request_in_thread(self):
-        self.threads.append(threading.Thread(target = self.handle_request))
-        # todo: ensure that threads are closed.
+    def run(self):
+        self.serve_forever()
 
     def url(self):
         return 'http://localhost:%(server_port)s/' % vars(self)
