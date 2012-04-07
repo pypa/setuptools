@@ -7,6 +7,9 @@ CHANGES
 ------
 
 * Issue #183: Symlinked files are now extracted from source distributions.
+* Issue #227: Easy_install fetch parameters are now passed during the
+  installation of a source distribution; now fulfillment of setup_requires
+  dependencies will honor the parameters passed to easy_install.
 
 ------
 0.6.25
