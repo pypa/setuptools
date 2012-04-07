@@ -10,6 +10,7 @@ import contextlib
 import textwrap
 import tarfile
 import urlparse
+import StringIO
 
 from setuptools.command.easy_install import easy_install, get_script_args, main
 from setuptools.command.easy_install import  PthDistributions
@@ -296,18 +297,19 @@ class TestSetupRequires(unittest.TestCase):
         doesn't exist)
         """
         with tempdir_context() as d:
-            with open('setup.py', 'wb') as setup_script:
-                setup_script.write(textwrap.dedent("""
-                    import setuptools
-                    setuptools.setup(
-                        name="distribute-test-fetcher",
-                        version="1.0",
-                        setup_requires = ['does-not-exist'],
-                    )
-                    """).lstrip())
+            setup_py = tarfile.TarInfo(name="setup.py")
+            setup_py_bytes = StringIO.StringIO(textwrap.dedent("""
+                import setuptools
+                setuptools.setup(
+                    name="distribute-test-fetcher",
+                    version="1.0",
+                    setup_requires = ['does-not-exist'],
+                )
+                """).lstrip())
+            setup_py.size = len(setup_py_bytes.buf)
             dist_path = os.path.join(d, 'distribute-test-fetcher-1.0.tar.gz')
             with tarfile.open(dist_path, 'w:gz') as dist:
-                dist.add('setup.py')
+                dist.addfile(setup_py, fileobj=setup_py_bytes)
             yield dist_path
 
 @contextlib.contextmanager
