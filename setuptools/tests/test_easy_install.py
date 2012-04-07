@@ -277,12 +277,10 @@ class TestSetupRequires(unittest.TestCase):
                         '--allow-hosts', 'localhost',
                         '--exclude-scripts', '--install-dir', temp_install_dir,
                         dist_file]
-                    # attempt to install the dist. It will fail because
+                    # attempt to install the dist. It should fail because
                     #  our fake server can't actually supply the dependency
-                    try:
-                        easy_install_pkg.main(ei_params)
-                    except Exception:
-                        pass
+                    self.assertRaises(SystemExit,
+                        easy_install_pkg.main, ei_params)
                 #self.assertTrue(os.listdir(temp_install_dir))
         self.assertEqual(len(p_index.requests), 1)
         self.assertEqual(p_index.requests[0].path, 'x')
