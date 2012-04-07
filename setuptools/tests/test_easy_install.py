@@ -281,11 +281,11 @@ class TestSetupRequires(unittest.TestCase):
                         '--allow-hosts', p_index_loc,
                         '--exclude-scripts', '--install-dir', temp_install_dir,
                         dist_file]
-                    # attempt to install the dist. It should fail because
-                    #  our fake server can't actually supply the dependency
-                    self.assertRaises(SystemExit,
-                        easy_install_pkg.main, ei_params)
-                #self.assertTrue(os.listdir(temp_install_dir))
+                    with argv_context(['easy_install']):
+                        # attempt to install the dist. It should fail because
+                        #  it doesn't exist.
+                        self.assertRaises(SystemExit,
+                            easy_install_pkg.main, ei_params)
         self.assertEqual(len(p_index.requests), 2)
         self.assertEqual(p_index.requests[0].path, '/does-not-exist/')
 
@@ -333,3 +333,10 @@ def environment_context(**updates):
         for key in updates:
             del os.environ[key]
         os.environ.update(old_env)
+
+@contextlib.contextmanager
+def argv_context(repl):
+    old_argv = sys.argv[:]
+    sys.argv[:] = repl
+    yield
+    sys.argv[:] = old_argv
