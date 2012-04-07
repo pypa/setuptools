@@ -11,6 +11,7 @@ import textwrap
 import tarfile
 import urlparse
 import StringIO
+import distutils.core
 
 from setuptools.command.easy_install import easy_install, get_script_args, main
 from setuptools.command.easy_install import  PthDistributions
@@ -281,11 +282,12 @@ class TestSetupRequires(unittest.TestCase):
                         '--allow-hosts', p_index_loc,
                         '--exclude-scripts', '--install-dir', temp_install_dir,
                         dist_file]
-                    with argv_context(['easy_install']):
-                        # attempt to install the dist. It should fail because
-                        #  it doesn't exist.
-                        self.assertRaises(SystemExit,
-                            easy_install_pkg.main, ei_params)
+                    with reset_setup_stop_context():
+                        with argv_context(['easy_install']):
+                            # attempt to install the dist. It should fail because
+                            #  it doesn't exist.
+                            self.assertRaises(SystemExit,
+                                easy_install_pkg.main, ei_params)
         self.assertEqual(len(p_index.requests), 2)
         self.assertEqual(p_index.requests[0].path, '/does-not-exist/')
 
@@ -340,3 +342,16 @@ def argv_context(repl):
     sys.argv[:] = repl
     yield
     sys.argv[:] = old_argv
+
+@contextlib.contextmanager
+def reset_setup_stop_context():
+    """
+    When the distribute tests are run using setup.py test, and then
+    one wants to invoke another setup() command (such as easy_install)
+    within those tests, it's necessary to reset the global variable
+    in distutils.core so that the setup() command will run naturally.
+    """
+    setup_stop_after = distutils.core._setup_stop_after
+    distutils.core._setup_stop_after = None
+    yield
+    distutils.core._setup_stop_after = setup_stop_after
