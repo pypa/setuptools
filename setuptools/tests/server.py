@@ -72,6 +72,7 @@ class MockServer(HTTPServer, threading.Thread):
             bind_and_activate)
         threading.Thread.__init__(self)
         self.daemon = True
+        self.requests = []
 
     def run(self):
         self.serve_forever()
