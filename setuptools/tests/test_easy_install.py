@@ -103,7 +103,7 @@ class TestEasyInstallTest(unittest.TestCase):
             opts = self.command_options
             if 'easy_install' in opts:
                 assert 'find_links' not in opts['easy_install'], msg
-            return self._old_parse_command_line
+            return self._old_parse_command_line()
 
         Distribution._old_parse_command_line = Distribution.parse_command_line
         Distribution.parse_command_line = _parse_command_line
@@ -115,6 +115,7 @@ class TestEasyInstallTest(unittest.TestCase):
         finally:
             os.chdir(old_wd)
             shutil.rmtree(dir)
+            Distribution.parse_command_line = Distribution._old_parse_command_line
 
     def test_no_find_links(self):
         # new option '--no-find-links', that blocks find-links added at
