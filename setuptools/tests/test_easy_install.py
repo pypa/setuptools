@@ -6,7 +6,6 @@ import shutil
 import tempfile
 import unittest
 import site
-import contextlib
 import textwrap
 import tarfile
 import urlparse
