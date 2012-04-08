@@ -273,7 +273,8 @@ class TestSetupRequires(unittest.TestCase):
         # set up a server which will simulate an alternate package index.
         p_index = setuptools.tests.server.MockServer()
         p_index.start()
-        p_index_loc = urlparse.urlparse(p_index.url).netloc
+        netloc = 1
+        p_index_loc = urlparse.urlparse(p_index.url)[netloc]
 
         # I realize this is all-but-impossible to read, because it was
         #  ported from some well-factored, safe code using 'with'. If you
