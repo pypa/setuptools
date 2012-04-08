@@ -275,31 +275,43 @@ class TestSetupRequires(unittest.TestCase):
         p_index = setuptools.tests.server.MockServer()
         p_index.start()
         p_index_loc = urlparse.urlparse(p_index.url).netloc
-        # create an sdist that has a build-time dependency.
-        with TestSetupRequires.create_sdist() as dist_file:
-            with tempdir_context() as temp_install_dir:
-                with environment_context(PYTHONPATH=temp_install_dir):
+
+        # I realize this is all-but-impossible to read, because it was
+        #  ported from some well-factored, safe code using 'with'. If you
+        #  need to maintain this code, consider making the changes in
+        #  the parent revision (of this comment) and then port the changes
+        #  back for Python 2.4 (or deprecate Python 2.4).
+
+        def install(dist_file):
+            def install_at(temp_install_dir):
+                def install_env():
                     ei_params = ['--index-url', p_index.url,
                         '--allow-hosts', p_index_loc,
                         '--exclude-scripts', '--install-dir', temp_install_dir,
                         dist_file]
-                    with reset_setup_stop_context():
-                        with argv_context(['easy_install']):
+                    def install_clean_reset():
+                        def install_clean_argv():
                             # attempt to install the dist. It should fail because
                             #  it doesn't exist.
                             self.assertRaises(SystemExit,
                                 easy_install_pkg.main, ei_params)
+                        argv_context(install_clean_argv, ['easy_install'])
+                    reset_setup_stop_context(install_clean_reset)
+                environment_context(install_env, PYTHONPATH=temp_install_dir)
+            tempdir_context(install_at)
+
+        # create an sdist that has a build-time dependency.
+        self.create_sdist(install)
+
         self.assertEqual(len(p_index.requests), 2)
         self.assertEqual(p_index.requests[0].path, '/does-not-exist/')
 
-    @staticmethod
-    @contextlib.contextmanager
-    def create_sdist():
+    def create_sdist(self, installer):
         """
-        Return an sdist with a setup_requires dependency (of something that
-        doesn't exist)
+        Create an sdist with a setup_requires dependency (of something that
+        doesn't exist) and invoke installer on it.
         """
-        with tempdir_context() as d:
+        def build_sdist(dir):
             setup_py = tarfile.TarInfo(name="setup.py")
             setup_py_bytes = StringIO.StringIO(textwrap.dedent("""
                 import setuptools
@@ -310,42 +322,53 @@ class TestSetupRequires(unittest.TestCase):
                 )
                 """).lstrip())
             setup_py.size = len(setup_py_bytes.buf)
-            dist_path = os.path.join(d, 'distribute-test-fetcher-1.0.tar.gz')
-            with tarfile.open(dist_path, 'w:gz') as dist:
+            dist_path = os.path.join(dir, 'distribute-test-fetcher-1.0.tar.gz')
+            dist = tarfile.open(dist_path, 'w:gz')
+            try:
                 dist.addfile(setup_py, fileobj=setup_py_bytes)
-            yield dist_path
+            finally:
+                dist.close()
+            installer(dist_path)
+        tempdir_context(build_sdist)
 
-@contextlib.contextmanager
-def tempdir_context(cd=lambda dir:None):
+def tempdir_context(f, cd=lambda dir:None):
+    """
+    Invoke f in the context
+    """
     temp_dir = tempfile.mkdtemp()
     orig_dir = os.getcwd()
     try:
         cd(temp_dir)
-        yield temp_dir
+        f(temp_dir)
     finally:
         cd(orig_dir)
         shutil.rmtree(temp_dir)
 
-@contextlib.contextmanager
-def environment_context(**updates):
+def environment_context(f, **updates):
+    """
+    Invoke f in the context
+    """
     old_env = os.environ.copy()
     os.environ.update(updates)
     try:
-        yield
+        f()
     finally:
         for key in updates:
             del os.environ[key]
         os.environ.update(old_env)
 
-@contextlib.contextmanager
-def argv_context(repl):
+def argv_context(f, repl):
+    """
+    Invoke f in the context
+    """
     old_argv = sys.argv[:]
     sys.argv[:] = repl
-    yield
-    sys.argv[:] = old_argv
+    try:
+        f()
+    finally:
+        sys.argv[:] = old_argv
 
-@contextlib.contextmanager
-def reset_setup_stop_context():
+def reset_setup_stop_context(f):
     """
     When the distribute tests are run using setup.py test, and then
     one wants to invoke another setup() command (such as easy_install)
@@ -354,5 +377,7 @@ def reset_setup_stop_context():
     """
     setup_stop_after = distutils.core._setup_stop_after
     distutils.core._setup_stop_after = None
-    yield
-    distutils.core._setup_stop_after = setup_stop_after
+    try:
+        f()
+    finally:
+        distutils.core._setup_stop_after = setup_stop_after
