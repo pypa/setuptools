@@ -19,10 +19,8 @@ class IndexServer(HTTPServer):
         s.stop()
     """
     def __init__(self, server_address=('', 0),
-            RequestHandlerClass=SimpleHTTPRequestHandler,
-            bind_and_activate=True):
-        HTTPServer.__init__(self, server_address, RequestHandlerClass,
-            bind_and_activate)
+            RequestHandlerClass=SimpleHTTPRequestHandler):
+        HTTPServer.__init__(self, server_address, RequestHandlerClass)
         self._run = True
 
     def serve(self):
@@ -66,10 +64,8 @@ class MockServer(HTTPServer, threading.Thread):
     A simple HTTP Server that records the requests made to it.
     """
     def __init__(self, server_address=('', 0),
-            RequestHandlerClass=RequestRecorder,
-            bind_and_activate=True):
-        HTTPServer.__init__(self, server_address, RequestHandlerClass,
-            bind_and_activate)
+            RequestHandlerClass=RequestRecorder):
+        HTTPServer.__init__(self, server_address, RequestHandlerClass)
         threading.Thread.__init__(self)
         self.daemon = True
         self.requests = []
