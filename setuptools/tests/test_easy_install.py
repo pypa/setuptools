@@ -321,7 +321,7 @@ class TestSetupRequires(unittest.TestCase):
                     setup_requires = ['does-not-exist'],
                 )
                 """).lstrip())
-            setup_py.size = len(setup_py_bytes.buf)
+            setup_py.size = len(setup_py_bytes.getvalue())
             dist_path = os.path.join(dir, 'distribute-test-fetcher-1.0.tar.gz')
             dist = tarfile.open(dist_path, 'w:gz')
             try:
