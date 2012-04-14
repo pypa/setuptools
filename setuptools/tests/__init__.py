@@ -1,6 +1,7 @@
 """Tests for the 'setuptools' package"""
 import sys
 import os
+import unittest
 import doctest
 import distutils.core
 import distutils.cmd
@@ -9,13 +10,12 @@ from distutils.errors import DistutilsSetupError
 from distutils.core import Extension
 from distutils.version import LooseVersion
 
-import unittest
-
 import setuptools.dist
 from setuptools import Feature
 from setuptools.depends import Require, find_module, get_module_constant, extract_constant
 
 def additional_tests():
+    import doctest, unittest
     suite = unittest.TestSuite((
         doctest.DocFileSuite(
             os.path.join('tests', 'api_tests.txt'),
