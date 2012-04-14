@@ -313,14 +313,19 @@ class TestSetupRequires(unittest.TestCase):
         """
         def build_sdist(dir):
             setup_py = tarfile.TarInfo(name="setup.py")
-            setup_py_bytes = StringIO.StringIO(textwrap.dedent("""
+            try:
+                # Python 3 (StringIO gets converted to io module)
+                MemFile = StringIO.BytesIO
+            except AttributeError:
+                MemFile = StringIO.StringIO
+            setup_py_bytes = MemFile(textwrap.dedent("""
                 import setuptools
                 setuptools.setup(
                     name="distribute-test-fetcher",
                     version="1.0",
                     setup_requires = ['does-not-exist'],
                 )
-                """).lstrip())
+                """).lstrip().encode('utf-8'))
             setup_py.size = len(setup_py_bytes.getvalue())
             dist_path = os.path.join(dir, 'distribute-test-fetcher-1.0.tar.gz')
             dist = tarfile.open(dist_path, 'w:gz')
