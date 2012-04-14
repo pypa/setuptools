@@ -12,8 +12,9 @@ from distutils.version import LooseVersion
 import unittest
 
 import setuptools.dist
+import setuptools.depends as dep
 from setuptools import Feature
-from setuptools.depends import Require, find_module, get_module_constant, extract_constant
+from setuptools.depends import Require
 
 def additional_tests():
     suite = unittest.TestSuite((
@@ -43,7 +44,9 @@ def makeSetup(**args):
 class DependsTests(unittest.TestCase):
 
     def testExtractConst(self):
-        if not extract_constant: return  # skip on non-bytecode platforms
+        if not hasattr(dep, 'extract_constant'):
+            # skip on non-bytecode platforms
+            return
 
         def f1():
             global x, y, z
@@ -51,38 +54,43 @@ class DependsTests(unittest.TestCase):
             y = z
 
         # unrecognized name
-        self.assertEqual(extract_constant(f1.func_code,'q', -1), None)
+        self.assertEqual(dep.extract_constant(f1.func_code,'q', -1), None)
 
         # constant assigned
-        self.assertEqual(extract_constant(f1.func_code,'x', -1), "test")
+        self.assertEqual(dep.extract_constant(f1.func_code,'x', -1), "test")
 
         # expression assigned
-        self.assertEqual(extract_constant(f1.func_code,'y', -1), -1)
+        self.assertEqual(dep.extract_constant(f1.func_code,'y', -1), -1)
 
         # recognized name, not assigned
-        self.assertEqual(extract_constant(f1.func_code,'z', -1), None)
+        self.assertEqual(dep.extract_constant(f1.func_code,'z', -1), None)
 
     def testFindModule(self):
-        self.assertRaises(ImportError, find_module, 'no-such.-thing')
-        self.assertRaises(ImportError, find_module, 'setuptools.non-existent')
-        f,p,i = find_module('setuptools.tests')
+        self.assertRaises(ImportError, dep.find_module, 'no-such.-thing')
+        self.assertRaises(ImportError, dep.find_module, 'setuptools.non-existent')
+        f,p,i = dep.find_module('setuptools.tests')
         f.close()
 
     def testModuleExtract(self):
-        if not get_module_constant: return  # skip on non-bytecode platforms
+        if not hasattr(dep, 'get_module_constant'):
+            # skip on non-bytecode platforms
+            return
+
         from email import __version__
         self.assertEqual(
-            get_module_constant('email','__version__'), __version__
+            dep.get_module_constant('email','__version__'), __version__
         )
         self.assertEqual(
-            get_module_constant('sys','version'), sys.version
+            dep.get_module_constant('sys','version'), sys.version
         )
         self.assertEqual(
-            get_module_constant('setuptools.tests','__doc__'),__doc__
+            dep.get_module_constant('setuptools.tests','__doc__'),__doc__
         )
 
     def testRequire(self):
-        if not extract_constant: return  # skip on non-bytecode platforms
+        if not hasattr(dep, 'extract_constant'):
+            # skip on non-bytecode platformsh
+            return
 
         req = Require('Email','1.0.3','email')
 
