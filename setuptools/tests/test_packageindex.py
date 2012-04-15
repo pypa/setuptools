@@ -1,15 +1,15 @@
 """Package Index Tests
 """
-# More would be better!
 import sys
-import os, shutil, tempfile, unittest, urllib2
+import unittest
+import urllib2
 import pkg_resources
 import setuptools.package_index
 from server import IndexServer
 
 class TestPackageIndex(unittest.TestCase):
 
-    def test_bad_urls(self):
+    def test_bad_url_bad_port(self):
         index = setuptools.package_index.PackageIndex()
         url = 'http://127.0.0.1:0/nonesuch/test_package_index'
         try:
@@ -19,6 +19,7 @@ class TestPackageIndex(unittest.TestCase):
         else:
             self.assert_(isinstance(v,urllib2.HTTPError))
 
+    def test_bad_url_typo(self):
         # issue 16
         # easy_install inquant.contentmirror.plone breaks because of a typo
         # in its home URL
@@ -33,6 +34,11 @@ class TestPackageIndex(unittest.TestCase):
             self.assert_(url in str(v))
         else:
             self.assert_(isinstance(v, urllib2.HTTPError))
+
+    def test_bad_url_bad_status_line(self):
+        index = setuptools.package_index.PackageIndex(
+            hosts=('www.example.com',)
+        )
 
         def _urlopen(*args):
             import httplib
@@ -51,6 +57,11 @@ class TestPackageIndex(unittest.TestCase):
         finally:
             urllib2.urlopen = old_urlopen
 
+    def test_bad_url_double_scheme(self):
+        index = setuptools.package_index.PackageIndex(
+            hosts=('www.example.com',)
+        )
+
         # issue 20
         url = 'http://http://svn.pythonpaste.org/Paste/wphp/trunk'
         try:
@@ -58,6 +69,10 @@ class TestPackageIndex(unittest.TestCase):
         except Exception, v:
             self.assert_('nonnumeric port' in str(v))
 
+    def test_bad_url_screwy_href(self):
+        index = setuptools.package_index.PackageIndex(
+            hosts=('www.example.com',)
+        )
 
         # issue #160
         if sys.version_info[0] == 2 and sys.version_info[1] == 7:
@@ -66,7 +81,6 @@ class TestPackageIndex(unittest.TestCase):
             page = ('<a href="http://www.famfamfam.com]('
                     'http://www.famfamfam.com/">')
             index.process_index(url, page)
-
 
     def test_url_ok(self):
         index = setuptools.package_index.PackageIndex(
