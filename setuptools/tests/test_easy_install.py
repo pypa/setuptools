@@ -307,7 +307,9 @@ class TestSetupRequires(unittest.TestCase):
         # create an sdist that has a build-time dependency.
         self.create_sdist(install)
 
-        self.assertEqual(len(p_index.requests), 2)
+        # there should have been two or three requests to the server
+        #  (three happens on Python 3.3a)
+        self.assert_(2 <= len(p_index.requests) <= 3)
         self.assertEqual(p_index.requests[0].path, '/does-not-exist/')
 
     def create_sdist(self, installer):
