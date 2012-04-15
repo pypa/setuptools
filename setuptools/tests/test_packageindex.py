@@ -104,6 +104,10 @@ class TestPackageIndex(unittest.TestCase):
           is used
         -> Distribute should use the link from pypi, not the external one.
         """
+        if sys.platform.startswith('java'):
+            # Skip this test on jython because binding to :0 fails
+            return
+
         # start an index server
         server = IndexServer()
         server.start()
