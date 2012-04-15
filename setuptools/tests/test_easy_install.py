@@ -275,6 +275,10 @@ class TestSetupRequires(unittest.TestCase):
         p_index.start()
         netloc = 1
         p_index_loc = urlparse.urlparse(p_index.url)[netloc]
+        if p_index_loc.endswith(':0'):
+            # Some platforms (Jython) don't find a port to which to bind,
+            #  so skip this test for them.
+            return
 
         # I realize this is all-but-impossible to read, because it was
         #  ported from some well-factored, safe code using 'with'. If you
