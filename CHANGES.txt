@@ -3,6 +3,12 @@ CHANGES
 =======
 
 ------
+0.6.27
+------
+
+* Distribute now recognizes README.rst as a standard, default readme file.
+
+------
 0.6.26
 ------
 
