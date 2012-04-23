@@ -155,7 +155,7 @@ class sdist(_sdist):
                 dist_files.append(data)
 
     def add_defaults(self):
-        standards = [('README', 'README.txt'),
+        standards = [('README', 'README.rst', 'README.txt'),
                      self.distribution.script_name]
         for fn in standards:
             if isinstance(fn, tuple):
