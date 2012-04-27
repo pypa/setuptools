@@ -11,6 +11,14 @@ import subprocess
 import shutil
 import os
 import sys
+import urllib2
+import getpass
+import collections
+
+try:
+	import keyring
+except Exception:
+	pass
 
 VERSION = '0.6.27'
 
@@ -23,6 +31,40 @@ NEXT_VERSION = get_next_version()
 
 files_with_versions = ('docs/conf.py', 'setup.py', 'release.py',
 	'README.txt', 'distribute_setup.py')
+
+def get_mercurial_creds(system='https://bitbucket.org', username=None):
+	"""
+	Return named tuple of username,password in much the same way that
+	Mercurial would (from the keyring).
+	"""
+	# todo: consider getting this from .hgrc
+	username = username or getpass.getuser()
+	keyring_username = '@@'.join((username, system))
+	system = '@'.join((keyring_username, 'Mercurial'))
+	password = (
+		keyring.get_password(system, keyring_username)
+		if 'keyring' in globals()
+		else None
+	)
+	if not password:
+		password = getpass.getpass()
+	Credential = collections.namedtuple('Credential', 'username password')
+	return Credential(username, password)
+
+def add_milestone(version=NEXT_VERSION):
+	auth = 'Basic ' + ':'.join(get_mercurial_creds()).encode('base64').strip()
+	headers = {
+		'Authorization': auth,
+		}
+	base = 'https://api.bitbucket.org'
+	url = (base + '/1.0/repositories/'
+		'{repo}/issues/milestones'.format(repo = 'tarek/distribute'))
+	req = urllib2.Request(url = url, headers = headers,
+		data='name='+version)
+	try:
+		urllib2.urlopen(req)
+	except Exception as e:
+		print(e.fp.read())
 
 def bump_versions():
 	list(map(bump_version, files_with_versions))
@@ -73,7 +115,7 @@ def do_release():
 	# push the changes
 	subprocess.check_call(['hg', 'push'])
 
-	# TODO: update bitbucket milestones and versions
+	add_milestone()
 
 def build_docs():
 	if os.path.isdir('docs/build'):
