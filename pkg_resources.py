@@ -1874,6 +1874,14 @@ def file_ns_handler(importer, path_item, packageName, module):
 register_namespace_handler(ImpWrapper,file_ns_handler)
 register_namespace_handler(zipimport.zipimporter,file_ns_handler)
 
+try:
+    # CPython >=3.3
+    import _frozen_importlib
+except ImportError:
+    pass
+else:
+    register_namespace_handler(_frozen_importlib.FileFinder, file_ns_handler)
+
 
 def null_ns_handler(importer, path_item, packageName, module):
     return None
