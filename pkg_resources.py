@@ -1325,6 +1325,14 @@ class DefaultProvider(EggProvider):
 
 register_loader_type(type(None), DefaultProvider)
 
+try:
+    # CPython >=3.3
+    import _frozen_importlib
+except ImportError:
+    pass
+else:
+    register_loader_type(_frozen_importlib.SourceFileLoader, DefaultProvider)
+
 
 class EmptyProvider(NullProvider):
     """Provider that returns nothing for all requests"""
@@ -1758,6 +1766,14 @@ def find_on_path(importer, path_item, only=False):
                             yield item
                         break
 register_finder(ImpWrapper,find_on_path)
+
+try:
+    # CPython >=3.3
+    import _frozen_importlib
+except ImportError:
+    pass
+else:
+    register_finder(_frozen_importlib.FileFinder, find_on_path)
 
 _declare_state('dict', _namespace_handlers={})
 _declare_state('dict', _namespace_packages={})
