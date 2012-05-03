@@ -6,6 +6,7 @@ CHANGES
 0.6.27
 ------
 
+* Support current snapshots of CPython 3.3.
 * Distribute now recognizes README.rst as a standard, default readme file.
 
 ------
