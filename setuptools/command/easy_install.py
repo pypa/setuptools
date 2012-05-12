@@ -10,7 +10,7 @@ file, or visit the `EasyInstall home page`__.
 __ http://packages.python.org/distribute/easy_install.html
 
 """
-import sys, os.path, zipimport, shutil, tempfile, zipfile, re, stat, random
+import sys, os, os.path, zipimport, shutil, tempfile, zipfile, re, stat, random
 from glob import glob
 from setuptools import Command, _dont_write_bytecode
 from setuptools.sandbox import run_setup
@@ -762,12 +762,13 @@ Please make the appropriate changes for your system and try again.
         target = os.path.join(self.script_dir, script_name)
         self.add_output(target)
 
+        mask = current_umask()
         if not self.dry_run:
             ensure_directory(target)
             f = open(target,"w"+mode)
             f.write(contents)
             f.close()
-            chmod(target,0755)
+            chmod(target, 0777-mask)
 
 
 
@@ -1869,6 +1870,11 @@ def rmtree(path, ignore_errors=False, onerror=auto_chmod):
         os.rmdir(path)
     except os.error:
         onerror(os.rmdir, path, sys.exc_info())
+
+def current_umask():
+    tmp = os.umask(022)
+    os.umask(tmp)
+    return tmp
 
 def bootstrap():
     # This function is called when setuptools*.egg is run using /bin/sh
