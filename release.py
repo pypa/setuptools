@@ -51,20 +51,21 @@ def get_mercurial_creds(system='https://bitbucket.org', username=None):
 	Credential = collections.namedtuple('Credential', 'username password')
 	return Credential(username, password)
 
-def add_milestone(version=NEXT_VERSION):
+def add_milestone_and_version(version=NEXT_VERSION):
 	auth = 'Basic ' + ':'.join(get_mercurial_creds()).encode('base64').strip()
 	headers = {
 		'Authorization': auth,
 		}
 	base = 'https://api.bitbucket.org'
-	url = (base + '/1.0/repositories/'
-		'{repo}/issues/milestones'.format(repo = 'tarek/distribute'))
-	req = urllib2.Request(url = url, headers = headers,
-		data='name='+version)
-	try:
-		urllib2.urlopen(req)
-	except Exception as e:
-		print(e.fp.read())
+	for type in 'milestones', 'versions':
+		url = (base + '/1.0/repositories/{repo}/issues/{type}'
+			.format(repo = 'tarek/distribute', type=type))
+		req = urllib2.Request(url = url, headers = headers,
+			data='name='+version)
+		try:
+			urllib2.urlopen(req)
+		except Exception as e:
+			print(e.fp.read())
 
 def bump_versions():
 	list(map(bump_version, files_with_versions))
