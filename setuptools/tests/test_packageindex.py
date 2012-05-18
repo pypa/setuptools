@@ -4,6 +4,8 @@ import sys
 import unittest
 import urllib2
 import pkg_resources
+import httplib
+import distutils.errors
 import setuptools.package_index
 from server import IndexServer
 
@@ -66,8 +68,12 @@ class TestPackageIndex(unittest.TestCase):
         url = 'http://http://svn.pythonpaste.org/Paste/wphp/trunk'
         try:
             index.open_url(url)
-        except Exception, v:
-            self.assert_('nonnumeric port' in str(v))
+        except distutils.errors.DistutilsError, error:
+            # Python 2.7.3
+            self.assert_('getaddrinfo failed' in str(error))
+        except httplib.InvalidURL, error:
+            # Python 2.7.2 and earlier
+            self.assert_('nonnumeric port' in str(error))
 
     def test_bad_url_screwy_href(self):
         index = setuptools.package_index.PackageIndex(
