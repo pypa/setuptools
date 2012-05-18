@@ -116,7 +116,7 @@ def do_release():
 	# push the changes
 	subprocess.check_call(['hg', 'push'])
 
-	add_milestone()
+	add_milestone_and_version()
 
 def build_docs():
 	if os.path.isdir('docs/build'):
