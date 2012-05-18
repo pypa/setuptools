@@ -8,6 +8,8 @@ CHANGES
 
 * Support current snapshots of CPython 3.3.
 * Distribute now recognizes README.rst as a standard, default readme file.
+* Exclude 'encodings' modules when removing modules from sys.modules.
+  Workaround for #285.
 
 ------
 0.6.26

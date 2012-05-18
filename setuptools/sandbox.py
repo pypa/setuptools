@@ -39,8 +39,14 @@ def run_setup(setup_script, args):
     finally:
         pkg_resources.__setstate__(pr_state)
         sys.modules.update(save_modules)
-        for key in list(sys.modules):
-            if key not in save_modules: del sys.modules[key]
+        # remove any modules imported within the sandbox
+        del_modules = [
+            mod_name for mod_name in sys.modules
+            if mod_name not in save_modules
+            # exclude any encodings modules. See #285
+            and not mod_name.startswith('encodings.')
+        ]
+        map(sys.modules.__delitem__, del_modules)
         os.chdir(old_dir)
         sys.path[:] = save_path
         sys.argv[:] = save_argv
