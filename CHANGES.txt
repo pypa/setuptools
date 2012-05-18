@@ -10,6 +10,8 @@ CHANGES
 * Distribute now recognizes README.rst as a standard, default readme file.
 * Exclude 'encodings' modules when removing modules from sys.modules.
   Workaround for #285.
+* Issue #231: Don't fiddle with system python when used with buildout
+  (bootstrap.py)
 
 ------
 0.6.26
