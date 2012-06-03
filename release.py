@@ -32,6 +32,16 @@ NEXT_VERSION = get_next_version()
 files_with_versions = ('docs/conf.py', 'setup.py', 'release.py',
 	'README.txt', 'distribute_setup.py')
 
+def get_repo_name():
+	"""
+	Get the repo name from the hgrc default path.
+	"""
+	default = subprocess.check_output('hg paths default').strip()
+	parts = default.split('/')
+	if parts[-1] == '':
+		parts.pop()
+	return '/'.join(parts[-2:])
+
 def get_mercurial_creds(system='https://bitbucket.org', username=None):
 	"""
 	Return named tuple of username,password in much the same way that
@@ -59,12 +69,12 @@ def add_milestone_and_version(version=NEXT_VERSION):
 	base = 'https://api.bitbucket.org'
 	for type in 'milestones', 'versions':
 		url = (base + '/1.0/repositories/{repo}/issues/{type}'
-			.format(repo = 'tarek/distribute', type=type))
+			.format(repo = get_repo_name(), type=type))
 		req = urllib2.Request(url = url, headers = headers,
 			data='name='+version)
 		try:
 			urllib2.urlopen(req)
-		except Exception as e:
+		except urllib2.HTTPError as e:
 			print(e.fp.read())
 
 def bump_versions():
@@ -96,12 +106,14 @@ def do_release():
 
 	subprocess.check_call(['hg', 'update', VERSION])
 
-	build_docs()
+	has_docs = build_docs()
 	if os.path.isdir('./dist'):
 		shutil.rmtree('./dist')
-	subprocess.check_call([sys.executable, 'setup.py',
-		'-q', 'egg_info', '-RD', '-b', '', 'sdist', 'register',
-		'upload', 'upload_docs'])
+	cmd = [sys.executable, 'setup.py', '-q', 'egg_info', '-RD', '-b', '',
+		'sdist', 'register', 'upload']
+	if has_docs:
+		cmd.append('upload_docs')
+	subprocess.check_call(cmd)
 	upload_bootstrap_script()
 
 	# update to the tip for the next operation
@@ -119,6 +131,8 @@ def do_release():
 	add_milestone_and_version()
 
 def build_docs():
+	if not os.path.isdir('docs'):
+		return
 	if os.path.isdir('docs/build'):
 		shutil.rmtree('docs/build')
 	subprocess.check_call([
@@ -129,6 +143,7 @@ def build_docs():
 		'build/html',
 		],
 		cwd='docs')
+	return True
 
 def upload_bootstrap_script():
 	scp_command = 'pscp' if sys.platform.startswith('win') else 'scp'
