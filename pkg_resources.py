@@ -15,6 +15,7 @@ method.
 
 import sys, os, zipimport, time, re, imp, types
 from urlparse import urlparse, urlunparse
+from email.parser import Parser
 
 try:
     frozenset
@@ -1746,7 +1747,7 @@ def find_on_path(importer, path_item, only=False):
             # scan for .egg and .egg-info in directory
             for entry in os.listdir(path_item):
                 lower = entry.lower()
-                if lower.endswith('.egg-info'):
+                if lower.endswith('.egg-info') or lower.endswith('.dist-info'):
                     fullpath = os.path.join(path_item, entry)
                     if os.path.isdir(fullpath):
                         # egg-info directory, allow getting metadata
@@ -2119,6 +2120,8 @@ def _remove_md5_fragment(location):
 
 class Distribution(object):
     """Wrap an actual or potential sys.path entry w/metadata"""
+    PKG_INFO = 'PKG-INFO'
+    
     def __init__(self,
         location=None, metadata=None, project_name=None, version=None,
         py_version=PY_MAJOR, platform=None, precedence = EGG_DIST
@@ -2136,12 +2139,14 @@ class Distribution(object):
     def from_location(cls,location,basename,metadata=None,**kw):
         project_name, version, py_version, platform = [None]*4
         basename, ext = os.path.splitext(basename)
-        if ext.lower() in (".egg",".egg-info"):
+        if ext.lower() in _distributionImpl:
+            # .dist-info gets much metadata differently
             match = EGG_NAME(basename)
             if match:
                 project_name, version, py_version, platform = match.group(
                     'name','ver','pyver','plat'
                 )
+            cls = _distributionImpl[ext.lower()]
         return cls(
             location, metadata, project_name=project_name, version=version,
             py_version=py_version, platform=platform, **kw
@@ -2204,13 +2209,13 @@ class Distribution(object):
         try:
             return self._version
         except AttributeError:
-            for line in self._get_metadata('PKG-INFO'):
+            for line in self._get_metadata(self.PKG_INFO):
                 if line.lower().startswith('version:'):
                     self._version = safe_version(line.split(':',1)[1].strip())
                     return self._version
             else:
                 raise ValueError(
-                    "Missing 'Version:' header and/or PKG-INFO file", self
+                    "Missing 'Version:' header and/or %s file" % self.PKG_INFO, self
                 )
     version = property(version)
 
@@ -2439,6 +2444,54 @@ class Distribution(object):
     def extras(self):
         return [dep for dep in self._dep_map if dep]
     extras = property(extras)
+
+
+class DistInfoDistribution(Distribution):
+    """Wrap an actual or potential sys.path entry w/metadata, .dist-info style"""
+    PKG_INFO = 'METADATA'
+
+    @property
+    def _parsed_pkg_info(self):
+        """Parse and cache metadata"""
+        try:
+            return self._pkg_info
+        except AttributeError:
+            self._pkg_info = Parser().parsestr(self.get_metadata(self.PKG_INFO))
+            return self._pkg_info
+    
+    @property
+    def _dep_map(self):
+        try:
+            return self.__dep_map
+        except AttributeError:
+            dm = self.__dep_map = {None: []}
+            # Including condition expressions
+            # XXX parse condition expressions, extras
+            reqs = self._parsed_pkg_info.get_all('Requires-Dist')
+#            extras = self._parsed_pkg_info.get_all('Provides-Extra') or []
+#            for extra,reqs in split_sections(self._get_metadata(name)):
+#                if extra: extra = safe_extra(extra)
+            dm.setdefault(None,[]).extend(parse_requirements(reqs))
+            return dm
+
+    def requires(self,extras=()):
+        """List of Requirements needed for this distro if `extras` are used"""
+        dm = self._dep_map
+        deps = []
+        deps.extend(dm.get(None,()))
+        for ext in extras:
+            try:
+                deps.extend(dm[safe_extra(ext)])
+            except KeyError:
+                raise UnknownExtra(
+                    "%s has no such extra feature %r" % (self, ext)
+                )
+        return deps
+
+
+_distributionImpl = {'.egg': Distribution,
+                     '.egg-info': Distribution,
+                     '.dist-info': DistInfoDistribution }
 
 
 def issue_warning(*args,**kw):
