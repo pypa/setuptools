@@ -2474,7 +2474,7 @@ class DistInfoDistribution(Distribution):
                 return True
             return marker_fn
         try:
-            from wheel.markers import as_function
+            from markerlib import as_function
         except ImportError:
             as_function = dummy_marker
         dm = self.__dep_map = {None: []}
