@@ -2466,12 +2466,36 @@ class DistInfoDistribution(Distribution):
         except AttributeError:
             self.__dep_map = self._compute_dependencies()
             return self.__dep_map
+
+    def _preparse_requirement(self, requires_dist):
+        """Return (dist, versions, marker).
+        Add == prefix to version specifiers as necessary.
+        """
+        m = re.compile(r"^(?P<d>.*?)\s*(\((?P<v>.*?)\))?\s*(;\s*(?P<m>.*))?$")
+        match = m.match(requires_dist)
+        if not match:
+            raise ValueError("Unexpected Requires-Dist: %s" % requires_dist)
+        dist = match.group('d')
+        if match.group('v'):
+            vers = match.group('v').split(',')
+        else:
+            vers = []
+        mark = match.group('m') or ''
+        for i, v in enumerate(vers):
+            if not VERSION(v):
+                v = "==%s" % v
+                if not VERSION(v):
+                    raise ValueError("Unexpected version: (%s)" % 
+                                     match.group('v'))
+                vers[i] = v
+        return (dist, ', '.join(vers), mark)
             
     def _compute_dependencies(self):
         """Recompute this distribution's dependencies."""
         def dummy_marker(marker):
             def marker_fn(environment=None, override=None):
                 return True
+            marker_fn.__doc__ = marker
             return marker_fn
         try:
             from markerlib import as_function
@@ -2481,10 +2505,10 @@ class DistInfoDistribution(Distribution):
 
         reqs = []
         # Including any condition expressions
-        for req in self._parsed_pkg_info.get_all('Requires-Dist'):                
-            rs = req.split(';', 1) + ['']
-            parsed = parse_requirements(rs[0]).next()
-            parsed.marker_fn = as_function(rs[1].strip())
+        for req in self._parsed_pkg_info.get_all('Requires-Dist'):
+            dist, vers, mark = self._preparse_requirement(req)
+            parsed = parse_requirements("%s %s" % (dist, vers)).next()
+            parsed.marker_fn = as_function(mark)
             reqs.append(parsed)
             
         def reqs_for_extra(extra):
@@ -2492,11 +2516,12 @@ class DistInfoDistribution(Distribution):
                 if req.marker_fn(override={'extra':extra}):
                     yield req
 
-        common = set(reqs_for_extra(None))                        
+        common = set(reqs_for_extra(None))
         dm[None].extend(common)
             
         for extra in self._parsed_pkg_info.get_all('Provides-Extra'):
-            dm[extra] = list(set(reqs_for_extra(extra)) - common)                
+            extra = safe_extra(extra.strip())
+            dm[extra] = list(set(reqs_for_extra(extra)) - common)
 
         return dm
 
