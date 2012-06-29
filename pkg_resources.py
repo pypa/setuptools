@@ -15,7 +15,6 @@ method.
 
 import sys, os, zipimport, time, re, imp, types
 from urlparse import urlparse, urlunparse
-from email.parser import Parser
 
 try:
     frozenset
@@ -2456,6 +2455,7 @@ class DistInfoDistribution(Distribution):
         try:
             return self._pkg_info
         except AttributeError:
+            from email.parser import Parser
             self._pkg_info = Parser().parsestr(self.get_metadata(self.PKG_INFO))
             return self._pkg_info
     
@@ -2464,15 +2464,41 @@ class DistInfoDistribution(Distribution):
         try:
             return self.__dep_map
         except AttributeError:
-            dm = self.__dep_map = {None: []}
-            # Including condition expressions
-            # XXX parse condition expressions, extras
-            reqs = self._parsed_pkg_info.get_all('Requires-Dist')
-#            extras = self._parsed_pkg_info.get_all('Provides-Extra') or []
-#            for extra,reqs in split_sections(self._get_metadata(name)):
-#                if extra: extra = safe_extra(extra)
-            dm.setdefault(None,[]).extend(parse_requirements(reqs))
-            return dm
+            self.__dep_map = self._compute_dependencies()
+            return self.__dep_map
+            
+    def _compute_dependencies(self):
+        """Recompute this distribution's dependencies."""
+        def dummy_marker(marker):
+            def marker_fn(environment=None, override=None):
+                return True
+            return marker_fn
+        try:
+            from wheel.markers import as_function
+        except ImportError:
+            as_function = dummy_marker
+        dm = self.__dep_map = {None: []}
+
+        reqs = []
+        # Including any condition expressions
+        for req in self._parsed_pkg_info.get_all('Requires-Dist'):                
+            rs = req.split(';', 1) + ['']
+            parsed = parse_requirements(rs[0]).next()
+            parsed.marker_fn = as_function(rs[1].strip())
+            reqs.append(parsed)
+            
+        def reqs_for_extra(extra):
+            for req in reqs:
+                if req.marker_fn(override={'extra':extra}):
+                    yield req
+
+        common = set(reqs_for_extra(None))                        
+        dm[None].extend(common)
+            
+        for extra in self._parsed_pkg_info.get_all('Provides-Extra'):
+            dm[extra] = list(set(reqs_for_extra(extra)) - common)                
+
+        return dm
 
     def requires(self,extras=()):
         """List of Requirements needed for this distro if `extras` are used"""
