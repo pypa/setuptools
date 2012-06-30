@@ -2469,8 +2469,9 @@ class DistInfoDistribution(Distribution):
             return self.__dep_map
 
     def _preparse_requirement(self, requires_dist):
-        """Return (dist, versions, marker).
-        Add == prefix to version specifiers as necessary.
+        """Convert 'Foobar (1); baz' to ('Foobar ==1', 'baz')
+        Split environment marker, add == prefix to version specifiers as 
+        necessary, and remove parenthesis.
         """
         parts = requires_dist.split(';', 1) + ['']
         distvers = parts[0].strip()
