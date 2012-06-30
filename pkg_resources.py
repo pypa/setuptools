@@ -2448,6 +2448,7 @@ class Distribution(object):
 class DistInfoDistribution(Distribution):
     """Wrap an actual or potential sys.path entry w/metadata, .dist-info style"""
     PKG_INFO = 'METADATA'
+    EQEQ = re.compile(r"([\(,])\s*(\d.*?)\s*([,\)])")
 
     @property
     def _parsed_pkg_info(self):
@@ -2471,24 +2472,12 @@ class DistInfoDistribution(Distribution):
         """Return (dist, versions, marker).
         Add == prefix to version specifiers as necessary.
         """
-        m = re.compile(r"^(?P<d>.*?)\s*(\((?P<v>.*?)\))?\s*(;\s*(?P<m>.*))?$")
-        match = m.match(requires_dist)
-        if not match:
-            raise ValueError("Unexpected Requires-Dist: %s" % requires_dist)
-        dist = match.group('d')
-        if match.group('v'):
-            vers = match.group('v').split(',')
-        else:
-            vers = []
-        mark = match.group('m') or ''
-        for i, v in enumerate(vers):
-            if not VERSION(v):
-                v = "==%s" % v
-                if not VERSION(v):
-                    raise ValueError("Unexpected version: (%s)" % 
-                                     match.group('v'))
-                vers[i] = v
-        return (dist, ', '.join(vers), mark)
+        parts = requires_dist.split(';', 1) + ['']
+        distvers = parts[0].strip()
+        mark = parts[1].strip()
+        distvers = re.sub(self.EQEQ, r"\1==\2\3", distvers)
+        distvers = distvers.replace('(', '').replace(')', '')
+        return (distvers, mark)
             
     def _compute_dependencies(self):
         """Recompute this distribution's dependencies."""
@@ -2506,8 +2495,8 @@ class DistInfoDistribution(Distribution):
         reqs = []
         # Including any condition expressions
         for req in self._parsed_pkg_info.get_all('Requires-Dist'):
-            dist, vers, mark = self._preparse_requirement(req)
-            parsed = parse_requirements("%s %s" % (dist, vers)).next()
+            distvers, mark = self._preparse_requirement(req)
+            parsed = parse_requirements(distvers).next()
             parsed.marker_fn = as_function(mark)
             reqs.append(parsed)
             
