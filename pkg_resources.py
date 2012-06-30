@@ -2495,7 +2495,7 @@ class DistInfoDistribution(Distribution):
 
         reqs = []
         # Including any condition expressions
-        for req in self._parsed_pkg_info.get_all('Requires-Dist'):
+        for req in self._parsed_pkg_info.get_all('Requires-Dist') or []:
             distvers, mark = self._preparse_requirement(req)
             parsed = parse_requirements(distvers).next()
             parsed.marker_fn = as_function(mark)
@@ -2509,7 +2509,7 @@ class DistInfoDistribution(Distribution):
         common = set(reqs_for_extra(None))
         dm[None].extend(common)
             
-        for extra in self._parsed_pkg_info.get_all('Provides-Extra'):
+        for extra in self._parsed_pkg_info.get_all('Provides-Extra') or []:
             extra = safe_extra(extra.strip())
             dm[extra] = list(set(reqs_for_extra(extra)) - common)
 
