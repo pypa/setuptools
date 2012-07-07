@@ -4,6 +4,9 @@ import sys
 import os
 import textwrap
 
+# Allow to run setup.py from another directory.
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
 src_root = None
 if sys.version_info >= (3,):
     tmp_src = os.path.join("build", "src")
