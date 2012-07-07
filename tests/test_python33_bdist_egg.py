@@ -18,7 +18,7 @@ class TestPython33BdistEgg(unittest.TestCase):
 
     def test_build_egg(self):
         os.chdir(os.path.join(CURDIR, 'python3.3_bdist_egg_test'))
-        _python_cmd("setup.py", "bdist_egg")
+        self.assertTrue(_python_cmd("setup.py", "bdist_egg"))
 
 
 if __name__ == '__main__':
