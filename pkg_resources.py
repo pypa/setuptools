@@ -2514,21 +2514,7 @@ class DistInfoDistribution(Distribution):
             dm[extra] = list(set(reqs_for_extra(extra)) - common)
 
         return dm
-
-    def requires(self,extras=()):
-        """List of Requirements needed for this distro if `extras` are used"""
-        dm = self._dep_map
-        deps = []
-        deps.extend(dm.get(None,()))
-        for ext in extras:
-            try:
-                deps.extend(dm[safe_extra(ext)])
-            except KeyError:
-                raise UnknownExtra(
-                    "%s has no such extra feature %r" % (self, ext)
-                )
-        return deps
-
+    
 
 _distributionImpl = {'.egg': Distribution,
                      '.egg-info': Distribution,
