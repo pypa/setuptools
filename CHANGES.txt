@@ -3,6 +3,12 @@ CHANGES
 =======
 
 ------
+0.6.28
+------
+
+* Issue #283 bdist_egg issues with python 3.3.0aX
+
+------
 0.6.27
 ------
 
