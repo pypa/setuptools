@@ -11,6 +11,7 @@ Contributors
 * Hanno Schlichting
 * Jannis Leidel
 * Jason R. Coombs
+* Jim Fulton
 * Justin Azoff
 * Lennart Regebro
 * Martin von Löwis
