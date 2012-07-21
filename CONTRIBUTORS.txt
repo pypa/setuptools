@@ -7,8 +7,11 @@ Contributors
 * Arfrever Frehtes Taifersar Arahesis
 * Christophe Combelles
 * Daniel Stutzbach
+* David Hoth
 * Hanno Schlichting
 * Jannis Leidel
+* Jason R. Coombs
+* Justin Azoff
 * Lennart Regebro
 * Martin von Löwis
 * Noufal Ibrahim

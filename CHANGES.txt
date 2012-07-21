@@ -8,6 +8,7 @@ CHANGES
 
 * Issue 294: setup.py can now be invoked from any directory.
 * Scripts are now installed honoring the umask.
+* Added support for .dist-info directories.
 
 ------
 0.6.27
