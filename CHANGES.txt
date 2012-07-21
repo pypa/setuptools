@@ -7,7 +7,7 @@ CHANGES
 ------
 
 * Issue 294: setup.py can now be invoked from any directory.
-
+* Scripts are now installed honoring the umask.
 
 ------
 0.6.27
