@@ -1746,7 +1746,7 @@ def find_on_path(importer, path_item, only=False):
             # scan for .egg and .egg-info in directory
             for entry in os.listdir(path_item):
                 lower = entry.lower()
-                if lower.endswith('.egg-info'):
+                if lower.endswith('.egg-info') or lower.endswith('.dist-info'):
                     fullpath = os.path.join(path_item, entry)
                     if os.path.isdir(fullpath):
                         # egg-info directory, allow getting metadata
@@ -2119,6 +2119,8 @@ def _remove_md5_fragment(location):
 
 class Distribution(object):
     """Wrap an actual or potential sys.path entry w/metadata"""
+    PKG_INFO = 'PKG-INFO'
+    
     def __init__(self,
         location=None, metadata=None, project_name=None, version=None,
         py_version=PY_MAJOR, platform=None, precedence = EGG_DIST
@@ -2136,12 +2138,14 @@ class Distribution(object):
     def from_location(cls,location,basename,metadata=None,**kw):
         project_name, version, py_version, platform = [None]*4
         basename, ext = os.path.splitext(basename)
-        if ext.lower() in (".egg",".egg-info"):
+        if ext.lower() in _distributionImpl:
+            # .dist-info gets much metadata differently
             match = EGG_NAME(basename)
             if match:
                 project_name, version, py_version, platform = match.group(
                     'name','ver','pyver','plat'
                 )
+            cls = _distributionImpl[ext.lower()]
         return cls(
             location, metadata, project_name=project_name, version=version,
             py_version=py_version, platform=platform, **kw
@@ -2204,13 +2208,13 @@ class Distribution(object):
         try:
             return self._version
         except AttributeError:
-            for line in self._get_metadata('PKG-INFO'):
+            for line in self._get_metadata(self.PKG_INFO):
                 if line.lower().startswith('version:'):
                     self._version = safe_version(line.split(':',1)[1].strip())
                     return self._version
             else:
                 raise ValueError(
-                    "Missing 'Version:' header and/or PKG-INFO file", self
+                    "Missing 'Version:' header and/or %s file" % self.PKG_INFO, self
                 )
     version = property(version)
 
@@ -2439,6 +2443,82 @@ class Distribution(object):
     def extras(self):
         return [dep for dep in self._dep_map if dep]
     extras = property(extras)
+
+
+class DistInfoDistribution(Distribution):
+    """Wrap an actual or potential sys.path entry w/metadata, .dist-info style"""
+    PKG_INFO = 'METADATA'
+    EQEQ = re.compile(r"([\(,])\s*(\d.*?)\s*([,\)])")
+
+    @property
+    def _parsed_pkg_info(self):
+        """Parse and cache metadata"""
+        try:
+            return self._pkg_info
+        except AttributeError:
+            from email.parser import Parser
+            self._pkg_info = Parser().parsestr(self.get_metadata(self.PKG_INFO))
+            return self._pkg_info
+    
+    @property
+    def _dep_map(self):
+        try:
+            return self.__dep_map
+        except AttributeError:
+            self.__dep_map = self._compute_dependencies()
+            return self.__dep_map
+
+    def _preparse_requirement(self, requires_dist):
+        """Convert 'Foobar (1); baz' to ('Foobar ==1', 'baz')
+        Split environment marker, add == prefix to version specifiers as 
+        necessary, and remove parenthesis.
+        """
+        parts = requires_dist.split(';', 1) + ['']
+        distvers = parts[0].strip()
+        mark = parts[1].strip()
+        distvers = re.sub(self.EQEQ, r"\1==\2\3", distvers)
+        distvers = distvers.replace('(', '').replace(')', '')
+        return (distvers, mark)
+            
+    def _compute_dependencies(self):
+        """Recompute this distribution's dependencies."""
+        def dummy_marker(marker):
+            def marker_fn(environment=None, override=None):
+                return True
+            marker_fn.__doc__ = marker
+            return marker_fn
+        try:
+            from markerlib import as_function
+        except ImportError:
+            as_function = dummy_marker
+        dm = self.__dep_map = {None: []}
+
+        reqs = []
+        # Including any condition expressions
+        for req in self._parsed_pkg_info.get_all('Requires-Dist') or []:
+            distvers, mark = self._preparse_requirement(req)
+            parsed = parse_requirements(distvers).next()
+            parsed.marker_fn = as_function(mark)
+            reqs.append(parsed)
+            
+        def reqs_for_extra(extra):
+            for req in reqs:
+                if req.marker_fn(override={'extra':extra}):
+                    yield req
+
+        common = set(reqs_for_extra(None))
+        dm[None].extend(common)
+            
+        for extra in self._parsed_pkg_info.get_all('Provides-Extra') or []:
+            extra = safe_extra(extra.strip())
+            dm[extra] = list(set(reqs_for_extra(extra)) - common)
+
+        return dm
+    
+
+_distributionImpl = {'.egg': Distribution,
+                     '.egg-info': Distribution,
+                     '.dist-info': DistInfoDistribution }
 
 
 def issue_warning(*args,**kw):
