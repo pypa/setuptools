@@ -9,6 +9,7 @@ CHANGES
 * Issue 294: setup.py can now be invoked from any directory.
 * Scripts are now installed honoring the umask.
 * Added support for .dist-info directories.
+* Issue #283 bdist_egg issues with python 3.3.0aX
 
 ------
 0.6.27
