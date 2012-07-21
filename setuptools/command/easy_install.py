@@ -10,7 +10,15 @@ file, or visit the `EasyInstall home page`__.
 __ http://packages.python.org/distribute/easy_install.html
 
 """
-import sys, os, os.path, zipimport, shutil, tempfile, zipfile, re, stat, random
+import sys
+import os
+import zipimport
+import shutil
+import tempfile
+import zipfile
+import re
+import stat
+import random
 from glob import glob
 from setuptools import Command, _dont_write_bytecode
 from setuptools.sandbox import run_setup
