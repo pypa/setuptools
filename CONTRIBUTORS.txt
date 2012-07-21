@@ -14,6 +14,7 @@ Contributors
 * Jim Fulton
 * Justin Azoff
 * Lennart Regebro
+* Marc Abramowitz
 * Martin von Löwis
 * Noufal Ibrahim
 * Philip Jenvey
