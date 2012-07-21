@@ -3,6 +3,13 @@ CHANGES
 =======
 
 ------
+0.6.28
+------
+
+* Issue 294: setup.py can now be invoked from any directory.
+
+
+------
 0.6.27
 ------
 
