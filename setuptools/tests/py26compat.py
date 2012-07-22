@@ -11,3 +11,4 @@ except AttributeError:
 			if condition:
 				return skip
 			return func
+		return skipper
