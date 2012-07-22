@@ -70,10 +70,12 @@ class TestPackageIndex(unittest.TestCase):
             index.open_url(url)
         except distutils.errors.DistutilsError, error:
             # Python 2.7.3
-            self.assert_('getaddrinfo failed' in str(error))
+            self.assertTrue('getaddrinfo failed' in str(error), "error was " +
+                str(error))
         except httplib.InvalidURL, error:
             # Python 2.7.2 and earlier
-            self.assert_('nonnumeric port' in str(error))
+            self.assertTrue('nonnumeric port' in str(error), "error was " +
+                str(error))
 
     def test_bad_url_screwy_href(self):
         index = setuptools.package_index.PackageIndex(
@@ -141,5 +143,3 @@ class TestPackageIndex(unittest.TestCase):
             'reportlab-2.5.win-amd64-py2.7.exe'), ('reportlab-2.5', '2.7', 'win-amd64'))
         self.assertEqual(setuptools.package_index.parse_bdist_wininst(
             'reportlab-2.5.win-amd64.exe'), ('reportlab-2.5', None, 'win-amd64'))
-
-
