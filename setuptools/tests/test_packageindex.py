@@ -74,6 +74,7 @@ class TestPackageIndex(unittest.TestCase):
         except distutils.errors.DistutilsError, error:
             msg = unicode(error)
             assert 'nonnumeric port' in msg or 'getaddrinfo failed' in msg
+            return
         raise RuntimeError("Did not raise")
 
     def test_bad_url_screwy_href(self):
