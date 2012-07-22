@@ -89,6 +89,9 @@ def bump_version(filename):
 def do_release():
 	assert all(map(os.path.exists, files_with_versions)), (
 		"Expected file(s) missing")
+
+	assert has_sphinx(), "You must have Sphinx installed to release"
+
 	res = raw_input('Have you read through the SCM changelog and '
 		'confirmed the changelog is current for releasing {VERSION}? '
 		.format(**globals()))
@@ -130,6 +133,15 @@ def do_release():
 	subprocess.check_call(['hg', 'push'])
 
 	add_milestone_and_version()
+
+def has_sphinx():
+	try:
+		devnull = open(os.path.devnull, 'wb')
+		subprocess.Popen(['sphinx-build', '--version'], stdout=devnull,
+			stderr=subprocess.STDOUT).wait()
+	except Exception:
+		return False
+	return True
 
 def build_docs():
 	if not os.path.isdir('docs'):
