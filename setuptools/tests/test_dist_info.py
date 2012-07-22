@@ -4,14 +4,18 @@ import os
 import shutil
 import tempfile
 import unittest
+import textwrap
 
-import pkg_resources
-from pkg_resources import Requirement
 try:
     import markerlib
-    has_markerlib = True
 except:
-    has_markerlib = False
+    pass
+
+import pkg_resources
+
+def DALS(s):
+    "dedent and left-strip"
+    return textwrap.dedent(s).lstrip()
 
 class TestDistInfo(unittest.TestCase):
 
@@ -28,11 +32,11 @@ class TestDistInfo(unittest.TestCase):
         assert versioned.version == '2.718' # from filename
         assert unversioned.version == '0.3' # from METADATA
 
-    @unittest.skipIf(not has_markerlib,
+    @unittest.skipIf('markerlib' not in globals(),
                      "install markerlib to test conditional dependencies")
     def test_conditional_dependencies(self):
-        requires = [Requirement.parse('splort==4'),
-                    Requirement.parse('quux>=1.1')]
+        requires = [pkg_resources.Requirement.parse('splort==4'),
+                    pkg_resources.Requirement.parse('quux>=1.1')]
 
         for d in pkg_resources.find_distributions(self.tmpdir):
             self.assertEquals(d.requires(), requires[:1])
@@ -44,25 +48,25 @@ class TestDistInfo(unittest.TestCase):
         versioned = os.path.join(self.tmpdir,
                                  'VersionedDistribution-2.718.dist-info')
         os.mkdir(versioned)
-        open(os.path.join(versioned, 'METADATA'), 'w+').write(
-"""Metadata-Version: 1.2
-Name: VersionedDistribution
-Requires-Dist: splort (4)
-Provides-Extra: baz
-Requires-Dist: quux (>=1.1); extra == 'baz'
-""")
+        open(os.path.join(versioned, 'METADATA'), 'w+').write(DALS(
+            """Metadata-Version: 1.2
+            Name: VersionedDistribution
+            Requires-Dist: splort (4)
+            Provides-Extra: baz
+            Requires-Dist: quux (>=1.1); extra == 'baz'
+            """))
 
         unversioned = os.path.join(self.tmpdir,
                                    'UnversionedDistribution.dist-info')
         os.mkdir(unversioned)
-        open(os.path.join(unversioned, 'METADATA'), 'w+').write(
-"""Metadata-Version: 1.2
-Name: UnversionedDistribution
-Version: 0.3
-Requires-Dist: splort (==4)
-Provides-Extra: baz
-Requires-Dist: quux (>=1.1); extra == 'baz'
-""")
+        open(os.path.join(unversioned, 'METADATA'), 'w+').write(DALS(
+            """Metadata-Version: 1.2
+            Name: UnversionedDistribution
+            Version: 0.3
+            Requires-Dist: splort (==4)
+            Provides-Extra: baz
+            Requires-Dist: quux (>=1.1); extra == 'baz'
+            """))
 
     def tearDown(self):
         shutil.rmtree(self.tmpdir)
