@@ -60,6 +60,9 @@ class TestPackageIndex(unittest.TestCase):
             urllib2.urlopen = old_urlopen
 
     def test_bad_url_double_scheme(self):
+        """
+        A bad URL with a double scheme should raise a DistutilsError.
+        """
         index = setuptools.package_index.PackageIndex(
             hosts=('www.example.com',)
         )
@@ -69,11 +72,9 @@ class TestPackageIndex(unittest.TestCase):
         try:
             index.open_url(url)
         except distutils.errors.DistutilsError, error:
-            # Python 2.7.3
-            self.assert_('getaddrinfo failed' in str(error))
-        except httplib.InvalidURL, error:
-            # Python 2.7.2 and earlier
-            self.assert_('nonnumeric port' in str(error))
+            msg = unicode(error)
+            assert 'nonnumeric port' in msg or 'getaddrinfo failed' in msg
+        raise RuntimeError("Did not raise")
 
     def test_bad_url_screwy_href(self):
         index = setuptools.package_index.PackageIndex(
