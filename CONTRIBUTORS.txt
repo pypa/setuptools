@@ -7,7 +7,7 @@ Contributors
 * Arfrever Frehtes Taifersar Arahesis
 * Christophe Combelles
 * Daniel Stutzbach
-* David Hoth
+* Daniel Holth
 * Hanno Schlichting
 * Jannis Leidel
 * Jason R. Coombs
