@@ -34,8 +34,8 @@ class TestDistInfo(unittest.TestCase):
         assert versioned.version == '2.718' # from filename
         assert unversioned.version == '0.3' # from METADATA
 
-    @unittest.skipIf('markerlib' not in globals(),
-                     "install markerlib to test conditional dependencies")
+    @skipIf('markerlib' not in globals(),
+        "install markerlib to test conditional dependencies")
     def test_conditional_dependencies(self):
         requires = [pkg_resources.Requirement.parse('splort==4'),
                     pkg_resources.Requirement.parse('quux>=1.1')]
