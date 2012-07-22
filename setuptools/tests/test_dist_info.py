@@ -13,6 +13,8 @@ except:
 
 import pkg_resources
 
+from setuptools.tests.py26compat import skipIf
+
 def DALS(s):
     "dedent and left-strip"
     return textwrap.dedent(s).lstrip()
