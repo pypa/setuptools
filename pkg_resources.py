@@ -2484,7 +2484,8 @@ class DistInfoDistribution(Distribution):
         """Recompute this distribution's dependencies."""
         def dummy_marker(marker):
             def marker_fn(environment=None, override=None):
-                return True
+                # 'empty markers are True' heuristic won't install extra deps.
+                return not marker.strip()
             marker_fn.__doc__ = marker
             return marker_fn
         try:
@@ -2506,12 +2507,12 @@ class DistInfoDistribution(Distribution):
                 if req.marker_fn(override={'extra':extra}):
                     yield req
 
-        common = set(reqs_for_extra(None))
+        common = frozenset(reqs_for_extra(None))
         dm[None].extend(common)
             
         for extra in self._parsed_pkg_info.get_all('Provides-Extra') or []:
             extra = safe_extra(extra.strip())
-            dm[extra] = list(set(reqs_for_extra(extra)) - common)
+            dm[extra] = list(frozenset(reqs_for_extra(extra)) - common)
 
         return dm
     
