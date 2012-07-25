@@ -463,8 +463,6 @@ def iter_symbols(code):
                 yield name
 
 def can_scan():
-    if sys.version_info > (3, 3):
-        return False # Can't scan recent formats
     if not sys.platform.startswith('java') and sys.platform != 'cli':
         # CPython, PyPy, etc.
         return True

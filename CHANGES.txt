@@ -3,14 +3,19 @@ CHANGES
 =======
 
 ------
+0.6.29
+------
+
+* Issue #283: Reenable scanning of *.pyc / *.pyo files on Python 3.3.
+
+------
 0.6.28
 ------
 
-* Issue 294: setup.py can now be invoked from any directory.
+* Issue #294: setup.py can now be invoked from any directory.
 * Scripts are now installed honoring the umask.
 * Added support for .dist-info directories.
-* Issue #283 bdist_egg issues with python 3.3.0aX.
-* Test and fix for marshal.load of .pyc files on Python 3.3.
+* Issue #283: Fix and disable scanning of *.pyc / *.pyo files on Python 3.3.
 
 ------
 0.6.27
