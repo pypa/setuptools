@@ -158,6 +158,7 @@ def unpack_zipfile(filename, extract_dir, progress_filter=default_filter):
                 finally:
                     f.close()
                     del data
+            os.chmod(target, info.external_attr >> 16)
     finally:
         z.close()
 
