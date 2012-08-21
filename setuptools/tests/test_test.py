@@ -112,5 +112,3 @@ class TestTestTest(unittest.TestCase):
             pass
         finally:
             sys.stdout = old_stdout
-
-test_suite = unittest.makeSuite(TestTestTest)
