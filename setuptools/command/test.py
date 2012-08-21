@@ -141,9 +141,10 @@ class test(Command):
         import unittest
         loader_ep = EntryPoint.parse("x="+self.test_loader)
         loader_class = loader_ep.load(require=False)
+        cks = loader_class()
         unittest.main(
             None, None, [unittest.__file__]+self.test_args,
-            testLoader = loader_class()
+            testLoader = cks
         )
 
 
