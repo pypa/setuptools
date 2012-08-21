@@ -7,6 +7,10 @@ CHANGES
 ------
 
 * Issue #283: Reenable scanning of *.pyc / *.pyo files on Python 3.3.
+* Issue #299: The develop command didn't work on Python 3, when using 2to3,
+  as the egg link would go to the Python 2 source. Linking to the 2to3'd code
+  in build/lib makes it work, although you will have to rebuild the module
+  before testing it.
 
 ------
 0.6.28
