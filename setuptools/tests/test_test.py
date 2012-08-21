@@ -107,8 +107,9 @@ class TestTestTest(unittest.TestCase):
         old_stdout = sys.stdout
         sys.stdout = StringIO()
         try:
-            cmd.run()
-        except SystemExit: # The test runner calls sys.exit, stop that making an error.
-            pass
+            try: # try/except/finally doesn't work in Python 2.4, so we need nested try-statements.
+                cmd.run()
+            except SystemExit: # The test runner calls sys.exit, stop that making an error.
+                pass
         finally:
             sys.stdout = old_stdout
