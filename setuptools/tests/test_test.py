@@ -14,10 +14,15 @@ from setuptools.dist import Distribution
 SETUP_PY = """\
 from setuptools import setup
 
-setup(name='foo')
+setup(name='foo',
+    packages=['name', 'name.space', 'name.space.tests'],
+    namespace_packages=['name'],
+    test_suite='name.space.tests.test_suite',
+)
 """
 
-NS_INIT = """try:
+NS_INIT = """
+try:
     __import__('pkg_resources').declare_namespace(__name__)
 except ImportError:
     from pkgutil import extend_path
@@ -87,12 +92,11 @@ class TestTestTest(unittest.TestCase):
             return
         
         dist = Distribution(dict(
-            script_name='setup.py',
-            script_args=['bdist_egg'],
             name='foo',
-            py_modules=['name'],
+            packages=['name', 'name.space', 'name.space.tests'],
             namespace_packages=['name'],
             test_suite='name.space.tests.test_suite',
+            use_2to3=True,
             ))
         dist.script_name = 'setup.py'
         cmd = test(dist)
