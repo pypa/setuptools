@@ -147,7 +147,17 @@ class sdist(_sdist):
         self.filelist = ei_cmd.filelist
         self.filelist.append(os.path.join(ei_cmd.egg_info,'SOURCES.txt'))
         self.check_readme()
-        self.check_metadata()
+
+        # Run sub commands
+        for cmd_name in self.get_sub_commands():
+            self.run_command(cmd_name)
+
+        # Call check_metadata only if no 'check' command
+        # (distutils <= 2.6)
+        import distutils.command
+        if 'check' not in distutils.command.__all__:
+            self.check_metadata()
+            
         self.make_distribution()
 
         dist_files = getattr(self.distribution,'dist_files',[])
