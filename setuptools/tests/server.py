@@ -35,7 +35,7 @@ class IndexServer(HTTPServer):
     def stop(self):
         "Stop the server"
 
-        # Let the server finish the last request adn wait for a new one.
+        # Let the server finish the last request and wait for a new one.
         time.sleep(0.1)
 
         # self.shutdown is not supported on python < 2.6, so just
