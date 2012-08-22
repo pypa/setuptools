@@ -4,6 +4,8 @@ from distutils import log
 import os, re, sys, pkg_resources
 from glob import glob
 
+READMES = ('README', 'README.rst', 'README.txt')
+
 entities = [
     ("&lt;","<"), ("&gt;", ">"), ("&quot;", '"'), ("&apos;", "'"),
     ("&amp;", "&")
@@ -155,7 +157,7 @@ class sdist(_sdist):
                 dist_files.append(data)
 
     def add_defaults(self):
-        standards = [('README', 'README.rst', 'README.txt'),
+        standards = [READMES,
                      self.distribution.script_name]
         for fn in standards:
             if isinstance(fn, tuple):
@@ -220,13 +222,12 @@ class sdist(_sdist):
         read_template = __read_template_hack
 
     def check_readme(self):
-        alts = ("README", "README.txt")
-        for f in alts:
+        for f in READMES:
             if os.path.exists(f):
                 return
         else:
             self.warn(
-                "standard file not found: should have one of " +', '.join(alts)
+                "standard file not found: should have one of " +', '.join(READMES)
             )
 
 
