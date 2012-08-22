@@ -14,6 +14,7 @@ CHANGES
 * Issue #306: Even if 2to3 is used, we build in-place under Python 2.
 * Issue #307: Prints the full path when .svn/entries is broken.
 * Issue #313: Support for sdist subcommands (Python 2.7)
+* Issue #314: test_local_index() would fail an OS X.
 
 ------
 0.6.28
