@@ -215,8 +215,8 @@ class build_py(_build_py, Mixin2to3):
         else:
             return init_py
 
-        f = open(init_py,'rU')
-        if 'declare_namespace' not in f.read():
+        f = open(init_py,'rbU')
+        if 'declare_namespace'.encode() not in f.read():
             from distutils import log
             log.warn(
                "WARNING: %s is a namespace package, but its __init__.py does\n"

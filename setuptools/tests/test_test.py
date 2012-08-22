@@ -1,3 +1,5 @@
+# -*- coding: UTF-8 -*- 
+
 """develop tests
 """
 import sys
@@ -21,13 +23,19 @@ setup(name='foo',
 )
 """
 
-NS_INIT = """
+NS_INIT = """# -*- coding: Latin-1 -*- 
+# Söme Arbiträry Ünicode to test Issüé 310
 try:
     __import__('pkg_resources').declare_namespace(__name__)
 except ImportError:
     from pkgutil import extend_path
     __path__ = extend_path(__path__, __name__)
 """
+# Make sure this is Latin-1 binary, before writing:
+if sys.version_info < (3,):
+    NS_INIT = NS_INIT.decode('UTF-8')
+NS_INIT = NS_INIT.encode('Latin-1')
+
 TEST_PY = """import unittest
 
 class TestTest(unittest.TestCase):
@@ -50,23 +58,23 @@ class TestTestTest(unittest.TestCase):
         os.mkdir(os.path.join(self.dir, 'name', 'space', 'tests'))
         # setup.py
         setup = os.path.join(self.dir, 'setup.py')
-        f = open(setup, 'w')
+        f = open(setup, 'wt')
         f.write(SETUP_PY)
         f.close()
         self.old_cwd = os.getcwd()
         # name/__init__.py
         init = os.path.join(self.dir, 'name', '__init__.py')
-        f = open(init, 'w')
+        f = open(init, 'wb')
         f.write(NS_INIT)
         f.close()
         # name/space/__init__.py
         init = os.path.join(self.dir, 'name', 'space', '__init__.py')
-        f = open(init, 'w')
+        f = open(init, 'wt')
         f.write('#empty\n')
         f.close()
         # name/space/tests/__init__.py
         init = os.path.join(self.dir, 'name', 'space', 'tests', '__init__.py')
-        f = open(init, 'w')
+        f = open(init, 'wt')
         f.write(TEST_PY)
         f.close()
         
@@ -105,7 +113,7 @@ class TestTestTest(unittest.TestCase):
         cmd.install_dir = site.USER_SITE
         cmd.user = 1
         old_stdout = sys.stdout
-        sys.stdout = StringIO()
+        #sys.stdout = StringIO()
         try:
             try: # try/except/finally doesn't work in Python 2.4, so we need nested try-statements.
                 cmd.run()
@@ -113,3 +121,4 @@ class TestTestTest(unittest.TestCase):
                 pass
         finally:
             sys.stdout = old_stdout
+            
