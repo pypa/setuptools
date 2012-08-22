@@ -43,13 +43,13 @@ class TestSetup(unittest.TestCase):
         # now trying to import it
         sys.path[0] = egg
         import setuptools
-        self.assert_(setuptools.__file__.startswith(egg))
+        self.assertTrue(setuptools.__file__.startswith(egg))
 
     def test_do_download(self):
         tmpdir = tempfile.mkdtemp()
         _do_download(DEFAULT_VERSION, DEFAULT_URL, tmpdir, 1)
         import setuptools
-        self.assert_(setuptools.bootstrap_install_from.startswith(tmpdir))
+        self.assertTrue(setuptools.bootstrap_install_from.startswith(tmpdir))
 
     def test_install(self):
         def _faked(*args):
@@ -58,7 +58,7 @@ class TestSetup(unittest.TestCase):
         _install(self.tarball)
 
     def test_use_setuptools(self):
-        self.assertEquals(use_setuptools(), None)
+        self.assertEqual(use_setuptools(), None)
 
         # make sure fake_setuptools is not called by default
         import pkg_resources

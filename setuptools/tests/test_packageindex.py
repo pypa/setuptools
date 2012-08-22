@@ -17,9 +17,9 @@ class TestPackageIndex(unittest.TestCase):
         try:
             v = index.open_url(url)
         except Exception, v:
-            self.assert_(url in str(v))
+            self.assertTrue(url in str(v))
         else:
-            self.assert_(isinstance(v,urllib2.HTTPError))
+            self.assertTrue(isinstance(v,urllib2.HTTPError))
 
     def test_bad_url_typo(self):
         # issue 16
@@ -33,9 +33,9 @@ class TestPackageIndex(unittest.TestCase):
         try:
             v = index.open_url(url)
         except Exception, v:
-            self.assert_(url in str(v))
+            self.assertTrue(url in str(v))
         else:
-            self.assert_(isinstance(v, urllib2.HTTPError))
+            self.assertTrue(isinstance(v, urllib2.HTTPError))
 
     def test_bad_url_bad_status_line(self):
         index = setuptools.package_index.PackageIndex(
@@ -53,7 +53,7 @@ class TestPackageIndex(unittest.TestCase):
             try:
                 v = index.open_url(url)
             except Exception, v:
-                self.assert_('line' in str(v))
+                self.assertTrue('line' in str(v))
             else:
                 raise AssertionError('Should have raise here!')
         finally:
@@ -95,7 +95,7 @@ class TestPackageIndex(unittest.TestCase):
             hosts=('www.example.com',)
         )
         url = 'file:///tmp/test_package_index'
-        self.assert_(index.url_ok(url, True))
+        self.assertTrue(index.url_ok(url, True))
 
     def test_links_priority(self):
         """
@@ -128,11 +128,11 @@ class TestPackageIndex(unittest.TestCase):
         server.stop()
 
         # the distribution has been found
-        self.assert_('foobar' in pi)
+        self.assertTrue('foobar' in pi)
         # we have only one link, because links are compared without md5
-        self.assert_(len(pi['foobar'])==1)
+        self.assertTrue(len(pi['foobar'])==1)
         # the link should be from the index
-        self.assert_('correct_md5' in pi['foobar'][0].location)
+        self.assertTrue('correct_md5' in pi['foobar'][0].location)
 
     def test_parse_bdist_wininst(self):
         self.assertEqual(setuptools.package_index.parse_bdist_wininst(

@@ -86,15 +86,15 @@ class TestDevelopTest(unittest.TestCase):
         # let's see if we got our egg link at the right place
         content = os.listdir(site.USER_SITE)
         content.sort()
-        self.assertEquals(content, ['easy-install.pth', 'foo.egg-link'])
+        self.assertEqual(content, ['easy-install.pth', 'foo.egg-link'])
 
         # Check that we are using the right code.
         path = open(os.path.join(site.USER_SITE, 'foo.egg-link'), 'rt').read().split()[0].strip()
         init = open(os.path.join(path, 'foo', '__init__.py'), 'rt').read().strip()
         if sys.version < "3":
-            self.assertEquals(init, 'print "foo"')
+            self.assertEqual(init, 'print "foo"')
         else:
-            self.assertEquals(init, 'print("foo")')
+            self.assertEqual(init, 'print("foo")')
 
     def notest_develop_with_setup_requires(self):
 

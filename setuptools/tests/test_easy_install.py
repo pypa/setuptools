@@ -68,7 +68,7 @@ class TestEasyInstallTest(unittest.TestCase):
         try:
             cmd.install_site_py()
             sitepy = os.path.join(cmd.install_dir, 'site.py')
-            self.assert_(os.path.exists(sitepy))
+            self.assertTrue(os.path.exists(sitepy))
         finally:
             shutil.rmtree(cmd.install_dir)
 
@@ -81,7 +81,7 @@ class TestEasyInstallTest(unittest.TestCase):
         finally:
             sys.platform = old_platform
 
-        self.assertEquals(script, WANTED)
+        self.assertEqual(script, WANTED)
 
     def test_no_setup_cfg(self):
         # makes sure easy_install as a command (main)
@@ -127,7 +127,7 @@ class TestEasyInstallTest(unittest.TestCase):
         cmd.install_dir = os.path.join(tempfile.mkdtemp(), 'ok')
         cmd.args = ['ok']
         cmd.ensure_finalized()
-        self.assertEquals(cmd.package_index.scanned_urls, {})
+        self.assertEqual(cmd.package_index.scanned_urls, {})
 
         # let's try without it (default behavior)
         cmd = easy_install(dist)
@@ -138,7 +138,7 @@ class TestEasyInstallTest(unittest.TestCase):
         cmd.ensure_finalized()
         keys = cmd.package_index.scanned_urls.keys()
         keys.sort()
-        self.assertEquals(keys, ['link1', 'link2'])
+        self.assertEqual(keys, ['link1', 'link2'])
 
 
 class TestPTHFileWriter(unittest.TestCase):
@@ -147,9 +147,9 @@ class TestPTHFileWriter(unittest.TestCase):
         if a distribution is in site but also the cwd
         '''
         pth = PthDistributions('does-not_exist', [os.getcwd()])
-        self.assert_(not pth.dirty)
+        self.assertTrue(not pth.dirty)
         pth.add(PRDistribution(os.getcwd()))
-        self.assert_(pth.dirty)
+        self.assertTrue(pth.dirty)
 
     def test_add_from_site_is_ignored(self):
         if os.name != 'nt':
@@ -157,9 +157,9 @@ class TestPTHFileWriter(unittest.TestCase):
         else:
             location = 'c:\\does_not_exist'
         pth = PthDistributions('does-not_exist', [location, ])
-        self.assert_(not pth.dirty)
+        self.assertTrue(not pth.dirty)
         pth.add(PRDistribution(location))
-        self.assert_(not pth.dirty)
+        self.assertTrue(not pth.dirty)
 
 
 class TestUserInstallTest(unittest.TestCase):
@@ -246,7 +246,7 @@ class TestUserInstallTest(unittest.TestCase):
             cmd.ensure_finalized()
             cmd.local_index.scan([new_location])
             res = cmd.easy_install('foo')
-            self.assertEquals(res.location, new_location)
+            self.assertEqual(res.location, new_location)
         finally:
             sys.path.remove(target)
             for basedir in [new_location, target, ]:
@@ -309,7 +309,7 @@ class TestSetupRequires(unittest.TestCase):
 
         # there should have been two or three requests to the server
         #  (three happens on Python 3.3a)
-        self.assert_(2 <= len(p_index.requests) <= 3)
+        self.assertTrue(2 <= len(p_index.requests) <= 3)
         self.assertEqual(p_index.requests[0].path, '/does-not-exist/')
 
     def create_sdist(self, installer):

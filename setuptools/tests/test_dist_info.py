@@ -41,9 +41,9 @@ class TestDistInfo(unittest.TestCase):
                     pkg_resources.Requirement.parse('quux>=1.1')]
 
         for d in pkg_resources.find_distributions(self.tmpdir):
-            self.assertEquals(d.requires(), requires[:1])
-            self.assertEquals(d.requires(extras=('baz',)), requires)
-            self.assertEquals(d.extras, ['baz'])
+            self.assertEqual(d.requires(), requires[:1])
+            self.assertEqual(d.requires(extras=('baz',)), requires)
+            self.assertEqual(d.extras, ['baz'])
 
     def setUp(self):
         self.tmpdir = tempfile.mkdtemp()
