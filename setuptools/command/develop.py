@@ -3,7 +3,7 @@ from distutils.util import convert_path, subst_vars
 from pkg_resources import Distribution, PathMetadata, normalize_path
 from distutils import log
 from distutils.errors import DistutilsError, DistutilsOptionError
-import os, setuptools, glob
+import os, sys, setuptools, glob
 
 class develop(easy_install):
     """Set up package for development"""
@@ -84,7 +84,7 @@ class develop(easy_install):
                 " installation directory", p, normalize_path(os.curdir))
 
     def install_for_development(self):
-        if getattr(self.distribution, 'use_2to3', False):
+        if sys.version_info >= (3,) and getattr(self.distribution, 'use_2to3', False):
             # If we run 2to3 we can not do this inplace:
 
             # Ensure metadata is up-to-date

@@ -81,7 +81,7 @@ class test(Command):
 
 
     def with_project_on_sys_path(self, func):
-        if getattr(self.distribution, 'use_2to3', False):
+        if sys.version_info >= (3,) and getattr(self.distribution, 'use_2to3', False):
             # If we run 2to3 we can not do this inplace:
 
             # Ensure metadata is up-to-date
