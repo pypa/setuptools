@@ -31,7 +31,7 @@ if sys.version_info >= (3,):
     util.run_2to3(outfiles_2to3)
 
     # arrange setup to use the copy
-    sys.path.insert(0, tmp_src)
+    sys.path.insert(0, os.path.abspath(tmp_src))
     src_root = tmp_src
 
 from distutils.util import convert_path
