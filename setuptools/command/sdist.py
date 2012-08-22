@@ -97,7 +97,7 @@ def entries_finder(dirname, filename):
         for match in entries_pattern.finditer(data):
             yield joinpath(dirname,unescape(match.group(1)))
     else:
-        log.warn("unrecognized .svn/entries format in %s", dirname)
+        log.warn("unrecognized .svn/entries format in %s", os.path.abspath(dirname))
 
 
 finders = [

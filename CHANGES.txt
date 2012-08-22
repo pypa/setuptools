@@ -12,6 +12,7 @@ CHANGES
   in build/lib makes it work, although you will have to rebuild the module
   before testing it.
 * Issue #306: Even if 2to3 is used, we build in-place under Python 2.
+* Issue #307: Prints the full path when .svn/entries is broken.
 
 ------
 0.6.28
