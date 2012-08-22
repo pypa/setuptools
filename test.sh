@@ -55,3 +55,13 @@ else
     echo "Success"
 fi
 
+rm -rf build
+echo -n "Running tests for Python 3.3..."
+python3.3 setup.py -q test > /dev/null 2> /dev/null
+if [ $? -ne 0 ];then
+    echo "Failed"
+    exit $1
+else
+    echo "Success"
+fi
+
