@@ -113,7 +113,7 @@ class TestTestTest(unittest.TestCase):
         cmd.install_dir = site.USER_SITE
         cmd.user = 1
         old_stdout = sys.stdout
-        #sys.stdout = StringIO()
+        sys.stdout = StringIO()
         try:
             try: # try/except/finally doesn't work in Python 2.4, so we need nested try-statements.
                 cmd.run()
