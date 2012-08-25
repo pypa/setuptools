@@ -1,8 +1,6 @@
 import os
 import unittest
-import pkg_resources
 from setuptools.tests.py26compat import skipIf
-from unittest import expectedFailure
 
 try:
     import _ast
@@ -11,6 +9,8 @@ except ImportError:
 
 class TestMarkerlib(unittest.TestCase):
 
+    @skipIf('_ast' not in globals(),
+        "ast not available (Python < 2.5?)")
     def test_markers(self):
         from _markerlib import interpret, default_environment, compile
         
@@ -39,15 +39,23 @@ class TestMarkerlib(unittest.TestCase):
         self.assert_(interpret("extra == 'test'", environment))
         self.assertFalse(interpret("extra == 'doc'", environment))
         
-        @expectedFailure(NameError)
         def raises_nameError():
-            interpret("python.version == '42'")
+            try:
+                interpret("python.version == '42'")
+            except NameError:
+                pass
+            else:
+                raise Exception("Expected NameError")
         
         raises_nameError()
         
-        @expectedFailure(SyntaxError)
         def raises_syntaxError():
-            interpret("(x for x in (4,))")
+            try:
+                interpret("(x for x in (4,))")
+            except SyntaxError:
+                pass
+            else:
+                raise Exception("Expected SyntaxError")
             
         raises_syntaxError()
         
