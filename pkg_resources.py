@@ -1746,7 +1746,7 @@ def find_on_path(importer, path_item, only=False):
             # scan for .egg and .egg-info in directory
             for entry in os.listdir(path_item):
                 lower = entry.lower()
-                if lower.endswith('.egg-info') or lower.endswith('.dist-info'):
+                if lower.endswith(('.egg-info', '.dist-info')):
                     fullpath = os.path.join(path_item, entry)
                     if os.path.isdir(fullpath):
                         # egg-info directory, allow getting metadata
@@ -2489,7 +2489,7 @@ class DistInfoDistribution(Distribution):
             marker_fn.__doc__ = marker
             return marker_fn
         try:
-            from markerlib import as_function
+            from _markerlib import as_function
         except ImportError:
             as_function = dummy_marker
         dm = self.__dep_map = {None: []}

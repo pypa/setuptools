@@ -7,7 +7,7 @@ import unittest
 import textwrap
 
 try:
-    import markerlib
+    import _markerlib
 except:
     pass
 
@@ -34,8 +34,8 @@ class TestDistInfo(unittest.TestCase):
         assert versioned.version == '2.718' # from filename
         assert unversioned.version == '0.3' # from METADATA
 
-    @skipIf('markerlib' not in globals(),
-        "install markerlib to test conditional dependencies")
+    @skipIf('_markerlib' not in globals(),
+        "_markerlib is used to test conditional dependencies (Python >= 2.5)")
     def test_conditional_dependencies(self):
         requires = [pkg_resources.Requirement.parse('splort==4'),
                     pkg_resources.Requirement.parse('quux>=1.1')]
@@ -51,7 +51,8 @@ class TestDistInfo(unittest.TestCase):
                                  'VersionedDistribution-2.718.dist-info')
         os.mkdir(versioned)
         open(os.path.join(versioned, 'METADATA'), 'w+').write(DALS(
-            """Metadata-Version: 1.2
+            """
+            Metadata-Version: 1.2
             Name: VersionedDistribution
             Requires-Dist: splort (4)
             Provides-Extra: baz
@@ -62,7 +63,8 @@ class TestDistInfo(unittest.TestCase):
                                    'UnversionedDistribution.dist-info')
         os.mkdir(unversioned)
         open(os.path.join(unversioned, 'METADATA'), 'w+').write(DALS(
-            """Metadata-Version: 1.2
+            """
+            Metadata-Version: 1.2
             Name: UnversionedDistribution
             Version: 0.3
             Requires-Dist: splort (==4)
