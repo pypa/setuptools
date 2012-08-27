@@ -2482,16 +2482,7 @@ class DistInfoDistribution(Distribution):
             
     def _compute_dependencies(self):
         """Recompute this distribution's dependencies."""
-        def dummy_marker(marker):
-            def marker_fn(environment=None, override=None):
-                # 'empty markers are True' heuristic won't install extra deps.
-                return not marker.strip()
-            marker_fn.__doc__ = marker
-            return marker_fn
-        try:
-            from _markerlib import compile as compile_marker
-        except ImportError:
-            compile_marker = dummy_marker
+        from _markerlib import compile as compile_marker
         dm = self.__dep_map = {None: []}
 
         reqs = []
