@@ -12,17 +12,13 @@ where EXPR belongs to any of those:
     platform.version = platform.version()
     platform.machine = platform.machine()
     platform.python_implementation = platform.python_implementation()
-    a free string, like '2.4', or 'win32'
+    a free string, like '2.6', or 'win32'
 """
 
 __all__ = ['default_environment', 'compile', 'interpret']
 
-# Would import from ast but for Python 2.5
-from _ast import Compare, BoolOp, Attribute, Name, Load, Str, cmpop, boolop
-try:
-    from ast import parse, copy_location, NodeTransformer
-except ImportError: # pragma no coverage
-    from markerlib._markers_ast import parse, copy_location, NodeTransformer
+from ast import Compare, BoolOp, Attribute, Name, Load, Str, cmpop, boolop
+from ast import parse, copy_location, NodeTransformer
 
 import os
 import platform
@@ -103,8 +99,6 @@ def compile(marker):
     marker_fn.__doc__ = marker
     _cache[marker] = marker_fn
     return _cache[marker]
-
-as_function = compile # bw compat
 
 def interpret(marker, environment=None):
     return compile(marker)(environment)

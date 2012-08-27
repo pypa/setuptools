@@ -2489,9 +2489,9 @@ class DistInfoDistribution(Distribution):
             marker_fn.__doc__ = marker
             return marker_fn
         try:
-            from _markerlib import as_function
+            from _markerlib import compile as compile_marker
         except ImportError:
-            as_function = dummy_marker
+            compile_marker = dummy_marker
         dm = self.__dep_map = {None: []}
 
         reqs = []
@@ -2499,7 +2499,7 @@ class DistInfoDistribution(Distribution):
         for req in self._parsed_pkg_info.get_all('Requires-Dist') or []:
             distvers, mark = self._preparse_requirement(req)
             parsed = parse_requirements(distvers).next()
-            parsed.marker_fn = as_function(mark)
+            parsed.marker_fn = compile_marker(mark)
             reqs.append(parsed)
             
         def reqs_for_extra(extra):
