@@ -513,8 +513,12 @@ def main(version=DEFAULT_VERSION):
     parser.add_option(
         '--user', dest='user_install', action='store_true', default=False,
         help='install in user site package (requires Python 2.6 or later)')
+    parser.add_option(
+        '--download-base', dest='download_base', metavar="URL",
+        default=DEFAULT_URL,
+        help='alternative URL from where to download the distribute package')
     options, args = parser.parse_args()
-    tarball = download_setuptools()
+    tarball = download_setuptools(download_base=options.download_base)
     _install(tarball, _build_install_args(options.user_install))
 
 
