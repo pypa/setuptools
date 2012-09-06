@@ -19,6 +19,8 @@ CHANGES
 * Issue #218: Improved documentation on behavior of `package_data` and
   `include_package_data`. Files indicated by `package_data` are now included
   in the manifest.
+* `distribute_setup.py` now allows a `--download-base` argument for retrieving
+  distribute from a specified location.
 
 ------
 0.6.28
