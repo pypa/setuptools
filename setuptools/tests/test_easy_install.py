@@ -12,6 +12,7 @@ import urlparse
 import StringIO
 import distutils.core
 
+from setuptools.sandbox import run_setup, SandboxViolation
 from setuptools.command.easy_install import easy_install, get_script_args, main
 from setuptools.command.easy_install import  PthDistributions
 from setuptools.command import easy_install as easy_install_pkg
@@ -110,7 +111,9 @@ class TestEasyInstallTest(unittest.TestCase):
         old_wd = os.getcwd()
         try:
             os.chdir(dir)
-            main([])
+            reset_setup_stop_context(
+                lambda: self.assertRaises(SystemExit, main, [])
+            )
         finally:
             os.chdir(old_wd)
             shutil.rmtree(dir)
@@ -247,7 +250,7 @@ class TestUserInstallTest(unittest.TestCase):
             cmd.local_index.scan([new_location])
             res = cmd.easy_install('foo')
             self.assertEqual(os.path.realpath(res.location),
-                             os.path.realpath(new_location))            
+                             os.path.realpath(new_location))
         finally:
             sys.path.remove(target)
             for basedir in [new_location, target, ]:
@@ -261,6 +264,50 @@ class TestUserInstallTest(unittest.TestCase):
                 os.environ['PYTHONPATH'] = old_ppath
             else:
                 del os.environ['PYTHONPATH']
+
+    def test_setup_requires(self):
+        """Regression test for issue #318
+
+        Ensures that a package with setup_requires can be installed when
+        distribute is installed in the user site-packages without causing a
+        SandboxViolation.
+        """
+
+        test_setup_attrs = {
+            'name': 'test_pkg', 'version': '0.0',
+            'setup_requires': ['foobar'],
+            'dependency_links': [os.path.abspath(self.dir)]
+        }
+
+        test_pkg = os.path.join(self.dir, 'test_pkg')
+        test_setup_py = os.path.join(test_pkg, 'setup.py')
+        test_setup_cfg = os.path.join(test_pkg, 'setup.cfg')
+        os.mkdir(test_pkg)
+
+        f = open(test_setup_py, 'w')
+        f.write(textwrap.dedent("""\
+            import setuptools
+            setuptools.setup(**%r)
+        """ % test_setup_attrs))
+        f.close()
+
+        foobar_path = os.path.join(self.dir, 'foobar-0.1.tar.gz')
+        make_trivial_sdist(
+            foobar_path,
+            textwrap.dedent("""\
+                import setuptools
+                setuptools.setup(
+                    name='foobar',
+                    version='0.1'
+                )
+            """))
+
+        try:
+            reset_setup_stop_context(
+                lambda: run_setup(test_setup_py, ['install'])
+            )
+        except SandboxViolation:
+            self.fail('Installation caused SandboxViolation')
 
 
 class TestSetupRequires(unittest.TestCase):
@@ -319,29 +366,40 @@ class TestSetupRequires(unittest.TestCase):
         doesn't exist) and invoke installer on it.
         """
         def build_sdist(dir):
-            setup_py = tarfile.TarInfo(name="setup.py")
-            try:
-                # Python 3 (StringIO gets converted to io module)
-                MemFile = StringIO.BytesIO
-            except AttributeError:
-                MemFile = StringIO.StringIO
-            setup_py_bytes = MemFile(textwrap.dedent("""
-                import setuptools
-                setuptools.setup(
-                    name="distribute-test-fetcher",
-                    version="1.0",
-                    setup_requires = ['does-not-exist'],
-                )
-                """).lstrip().encode('utf-8'))
-            setup_py.size = len(setup_py_bytes.getvalue())
             dist_path = os.path.join(dir, 'distribute-test-fetcher-1.0.tar.gz')
-            dist = tarfile.open(dist_path, 'w:gz')
-            try:
-                dist.addfile(setup_py, fileobj=setup_py_bytes)
-            finally:
-                dist.close()
+            make_trivial_sdist(
+                dist_path,
+                textwrap.dedent("""
+                    import setuptools
+                    setuptools.setup(
+                        name="distribute-test-fetcher",
+                        version="1.0",
+                        setup_requires = ['does-not-exist'],
+                    )
+                """).lstrip())
             installer(dist_path)
         tempdir_context(build_sdist)
+
+
+def make_trivial_sdist(dist_path, setup_py):
+    """Create a simple sdist tarball at dist_path, containing just a
+    setup.py, the contents of which are provided by the setup_py string.
+    """
+
+    setup_py_file = tarfile.TarInfo(name='setup.py')
+    try:
+        # Python 3 (StringIO gets converted to io module)
+        MemFile = StringIO.BytesIO
+    except AttributeError:
+        MemFile = StringIO.StringIO
+    setup_py_bytes = MemFile(setup_py.encode('utf-8'))
+    setup_py_file.size = len(setup_py_bytes.getvalue())
+    dist = tarfile.open(dist_path, 'w:gz')
+    try:
+        dist.addfile(setup_py_file, fileobj=setup_py_bytes)
+    finally:
+        dist.close()
+
 
 def tempdir_context(f, cd=lambda dir:None):
     """
