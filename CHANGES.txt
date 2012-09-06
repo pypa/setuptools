@@ -16,6 +16,9 @@ CHANGES
 * Issue #313: Support for sdist subcommands (Python 2.7)
 * Issue #314: test_local_index() would fail an OS X.
 * Issue #310: Non-ascii characters in a namespace __init__.py causes errors.
+* Issue #218: Improved documentation on behavior of `package_data` and
+  `include_package_data`. Files indicated by `package_data` are now included
+  in the manifest.
 
 ------
 0.6.28
