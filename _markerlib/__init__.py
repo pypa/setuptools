@@ -1,2 +1,2 @@
 """Used by pkg_resources to interpret PEP 345 environment markers."""
-from _markerlib.markers import default_environment, compile, interpret, as_function
+from _markerlib.markers import default_environment, compile, interpret
