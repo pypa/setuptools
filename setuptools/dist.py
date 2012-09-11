@@ -242,9 +242,10 @@ class Distribution(_Distribution):
         """Resolve pre-setup requirements"""
         from pkg_resources import working_set, parse_requirements
         for dist in working_set.resolve(
-            parse_requirements(requires), installer=self.fetch_build_egg
+            parse_requirements(requires), installer=self.fetch_build_egg,
+            replace_conflicting=True
         ):
-            working_set.add(dist)
+            working_set.add(dist, replace=True)
 
     def finalize_options(self):
         _Distribution.finalize_options(self)
