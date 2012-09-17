@@ -7,7 +7,7 @@ import unittest
 import textwrap
 
 try:
-    import _markerlib
+    import ast
 except:
     pass
 
@@ -34,8 +34,8 @@ class TestDistInfo(unittest.TestCase):
         assert versioned.version == '2.718' # from filename
         assert unversioned.version == '0.3' # from METADATA
 
-    @skipIf('_markerlib' not in globals(),
-        "_markerlib is used to test conditional dependencies (Python >= 2.5)")
+    @skipIf('ast' not in globals(),
+        "ast is used to test conditional dependencies (Python >= 2.6)")
     def test_conditional_dependencies(self):
         requires = [pkg_resources.Requirement.parse('splort==4'),
                     pkg_resources.Requirement.parse('quux>=1.1')]
