@@ -38,7 +38,7 @@ def makeSetup(**args):
     try:
         return setuptools.setup(**args)
     finally:
-        distutils.core_setup_stop_after = None
+        distutils.core._setup_stop_after = None
 
 
 class DependsTests(unittest.TestCase):

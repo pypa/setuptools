@@ -19,6 +19,8 @@ import time
 import fnmatch
 import tempfile
 import tarfile
+import optparse
+
 from distutils import log
 
 try:
@@ -495,22 +497,39 @@ def _extractall(self, path=".", members=None):
                 self._dbg(1, "tarfile: %s" % e)
 
 
-def _build_install_args(argv):
+def _build_install_args(options):
+    """
+    Build the arguments to 'python setup.py install' on the distribute package
+    """
     install_args = []
-    user_install = '--user' in argv
-    if user_install and sys.version_info < (2, 6):
-        log.warn("--user requires Python 2.6 or later")
-        raise SystemExit(1)
-    if user_install:
+    if options.user_install:
+        if sys.version_info < (2, 6):
+            log.warn("--user requires Python 2.6 or later")
+            raise SystemExit(1)
         install_args.append('--user')
     return install_args
 
+def _parse_args():
+    """
+    Parse the command line for options
+    """
+    parser = optparse.OptionParser()
+    parser.add_option(
+        '--user', dest='user_install', action='store_true', default=False,
+        help='install in user site package (requires Python 2.6 or later)')
+    parser.add_option(
+        '--download-base', dest='download_base', metavar="URL",
+        default=DEFAULT_URL,
+        help='alternative URL from where to download the distribute package')
+    options, args = parser.parse_args()
+    # positional arguments are ignored
+    return options
 
-def main(argv, version=DEFAULT_VERSION):
+def main(version=DEFAULT_VERSION):
     """Install or upgrade setuptools and EasyInstall"""
-    tarball = download_setuptools()
-    _install(tarball, _build_install_args(argv))
-
+    options = _parse_args()
+    tarball = download_setuptools(download_base=options.download_base)
+    _install(tarball, _build_install_args(options))
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()

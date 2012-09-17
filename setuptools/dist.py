@@ -264,6 +264,7 @@ class Distribution(_Distribution):
 
     def fetch_build_egg(self, req):
         """Fetch an egg needed for building"""
+
         try:
             cmd = self._egg_fetcher
             cmd.package_index.to_scan = []
@@ -287,7 +288,7 @@ class Distribution(_Distribution):
             cmd = easy_install(
                 dist, args=["x"], install_dir=os.curdir, exclude_scripts=True,
                 always_copy=False, build_directory=None, editable=False,
-                upgrade=False, multi_version=True, no_report = True
+                upgrade=False, multi_version=True, no_report=True, user=False
             )
             cmd.ensure_finalized()
             self._egg_fetcher = cmd
