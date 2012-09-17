@@ -1,6 +1,6 @@
 try:
     import ast
-    from markerlib.markers import default_environment, compile, interpret
+    from _markerlib.markers import default_environment, compile, interpret
 except ImportError:
     if 'ast' in globals():
         raise
