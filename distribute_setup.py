@@ -257,7 +257,7 @@ def _same_content(path, content):
 
 def _rename_path(path):
     new_name = path + '.OLD.%s' % time.time()
-    log.warn('Renaming %s into %s', path, new_name)
+    log.warn('Renaming %s to %s', path, new_name)
     os.rename(path, new_name)
     return new_name
 
@@ -275,7 +275,7 @@ def _remove_flat_installation(placeholder):
         log.warn('Could not locate setuptools*.egg-info')
         return
 
-    log.warn('Removing elements out of the way...')
+    log.warn('Moving elements out of the way...')
     pkg_info = os.path.join(placeholder, file)
     if os.path.isdir(pkg_info):
         patched = _patch_egg_dir(pkg_info)
@@ -435,7 +435,7 @@ def _fake_setuptools():
         res = _patch_egg_dir(setuptools_location)
         if not res:
             return
-    log.warn('Patched done.')
+    log.warn('Patching complete.')
     _relaunch()
 
 
