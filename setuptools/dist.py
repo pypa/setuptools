@@ -640,6 +640,38 @@ class Distribution(_Distribution):
                 name = name[:-6]
             yield name
 
+
+    def handle_display_options(self, option_order):
+        """If there were any non-global "display-only" options
+        (--help-commands or the metadata display options) on the command
+        line, display the requested info and return true; else return
+        false.
+        """
+        import sys
+
+        if sys.version_info < (3,) or self.help_commands:
+            return _Distribution.handle_display_options(self, option_order)
+
+        # Stdout may be StringIO (e.g. in tests)
+        import io
+        if not isinstance(sys.stdout, io.TextIOWrapper):
+            return _Distribution.handle_display_options(self, option_order)
+
+        # Print metadata in UTF-8 no matter the platform
+        encoding = sys.stdout.encoding
+        errors = sys.stdout.errors
+        newline = sys.platform != 'win32' and '\n' or None
+        line_buffering = sys.stdout.line_buffering
+
+        sys.stdout = io.TextIOWrapper(
+            sys.stdout.detach(), 'utf-8', errors, newline, line_buffering)
+        try:
+            return _Distribution.handle_display_options(self, option_order)
+        finally:
+            sys.stdout = io.TextIOWrapper(
+                sys.stdout.detach(), encoding, errors, newline, line_buffering)
+
+
 # Install it throughout the distutils
 for module in distutils.dist, distutils.core, distutils.cmd:
     module.Distribution = Distribution
