@@ -1,5 +1,5 @@
 def __boot():
-    import sys, imp, os, os.path   
+    import sys, os, os.path
     PYTHONPATH = os.environ.get('PYTHONPATH')
     if PYTHONPATH is None or (sys.platform=='win32' and not PYTHONPATH):
         PYTHONPATH = []
@@ -23,6 +23,7 @@ def __boot():
                 break
         else:
             try:
+                import imp # Avoid import loop in Python >= 3.3
                 stream, path, descr = imp.find_module('site',[item])
             except ImportError:
                 continue
