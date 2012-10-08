@@ -20,6 +20,7 @@ Contributors
 * Philip Jenvey
 * Reinout van Rees
 * Robert Myers
+* Stefan H. Holek
 * Tarek Ziadé
 * Toshio Kuratomi
 
