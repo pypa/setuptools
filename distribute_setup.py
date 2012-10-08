@@ -316,12 +316,12 @@ def _create_fake_setuptools_pkg_info(placeholder):
         log.warn('%s already exists', pkg_info)
         return
 
-    if not os.access(pkg_info, os.W_OK):
+    log.warn('Creating %s', pkg_info)
+    try:
+        f = open(pkg_info, 'w')
+    except EnvironmentError:
         log.warn("Don't have permissions to write %s, skipping", pkg_info)
         return
-
-    log.warn('Creating %s', pkg_info)
-    f = open(pkg_info, 'w')
     try:
         f.write(SETUPTOOLS_PKG_INFO)
     finally:
