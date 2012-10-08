@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """sdist tests"""
 
 
@@ -74,6 +75,36 @@ class TestSdistTest(unittest.TestCase):
 
         manifest = cmd.filelist.files
 
-        self.assert_(os.path.join('sdist_test', 'a.txt') in manifest)
-        self.assert_(os.path.join('sdist_test', 'b.txt') in manifest)
-        self.assert_(os.path.join('sdist_test', 'c.rst') not in manifest)
+        self.assertTrue(os.path.join('sdist_test', 'a.txt') in manifest)
+        self.assertTrue(os.path.join('sdist_test', 'b.txt') in manifest)
+        self.assertTrue(os.path.join('sdist_test', 'c.rst') not in manifest)
+
+    def test_filelist_is_fully_composed(self):
+        # Test for #303. Requires HFS Plus to fail.
+
+        # Add file with non-ASCII filename
+        filename = os.path.join('sdist_test', 'smörbröd.py')
+        open(filename, 'w').close()
+
+        dist = Distribution(SETUP_ATTRS)
+        dist.script_name = 'setup.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+
+        # squelch output
+        old_stdout = sys.stdout
+        old_stderr = sys.stderr
+        sys.stdout = StringIO()
+        sys.stderr = StringIO()
+        try:
+            cmd.run()
+        finally:
+            sys.stdout = old_stdout
+            sys.stderr = old_stderr
+
+        self.assertTrue(filename in cmd.filelist.files)
+
+
+def test_suite():
+    return unittest.defaultTestLoader.loadTestsFromName(__name__)
+
