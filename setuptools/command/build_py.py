@@ -51,10 +51,8 @@ try:
             if self.distribution.use_2to3_exclude_fixers is not None:
                 excluded_fixers.extend(self.distribution.use_2to3_exclude_fixers)
             for fixer_name in excluded_fixers:
-                if fixer_name not in self.fixer_names:
-                    log.warn("Excluded fixer %s not found", fixer_name)
-                    continue
-                self.fixer_names.remove(fixer_name)
+                if fixer_name in self.fixer_names:
+                    self.fixer_names.remove(fixer_name)
 
 except ImportError:
     class Mixin2to3:
