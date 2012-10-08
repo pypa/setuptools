@@ -425,12 +425,12 @@ def scan_module(egg_dir, base, name, stubs):
         return True     # Extension module
     pkg = base[len(egg_dir)+1:].replace(os.sep,'.')
     module = pkg+(pkg and '.' or '')+os.path.splitext(name)[0]
-    f = open(filename,'rb'); f.read(8)   # skip magic & date
-    try:
-        code = marshal.load(f); f.close()
-    except ValueError:
-        f.seek(0); f.read(12)  # skip magic & date & file size; file size added in Python 3.3
-        code = marshal.load(f); f.close()
+    if sys.version_info < (3, 3):
+        skip = 8   # skip magic & date
+    else:
+        skip = 12  # skip magic & date & file size
+    f = open(filename,'rb'); f.read(skip)
+    code = marshal.load(f); f.close()
     safe = True
     symbols = dict.fromkeys(iter_symbols(code))
     for bad in ['__file__', '__path__']:
