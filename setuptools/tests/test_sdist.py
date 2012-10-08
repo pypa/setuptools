@@ -104,6 +104,66 @@ class TestSdistTest(unittest.TestCase):
 
         self.assertTrue(filename in cmd.filelist.files)
 
+    def test_manifest_is_written_in_utf8(self):
+        # Test for #303.
+
+        # Add file with non-ASCII filename
+        filename = os.path.join('sdist_test', 'smörbröd.py')
+        open(filename, 'w').close()
+
+        dist = Distribution(SETUP_ATTRS)
+        dist.script_name = 'setup.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+
+        # squelch output
+        old_stdout = sys.stdout
+        old_stderr = sys.stderr
+        sys.stdout = StringIO()
+        sys.stderr = StringIO()
+        try:
+            cmd.run()
+        finally:
+            sys.stdout = old_stdout
+            sys.stderr = old_stderr
+
+        manifest = open(os.path.join('sdist_test.egg-info', 'SOURCES.txt'), 'rbU')
+        contents = manifest.read()
+        manifest.close()
+        self.assertTrue(len(contents))
+
+        # This must not fail:
+        contents.decode('UTF-8')
+
+    def test_manifest_is_read_in_utf8(self):
+        # Test for #303.
+
+        # Add file with non-ASCII filename
+        filename = os.path.join('sdist_test', 'smörbröd.py')
+        open(filename, 'w').close()
+
+        dist = Distribution(SETUP_ATTRS)
+        dist.script_name = 'setup.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+
+        # squelch output
+        old_stdout = sys.stdout
+        old_stderr = sys.stderr
+        sys.stdout = StringIO()
+        sys.stderr = StringIO()
+        try:
+            cmd.run()
+        finally:
+            sys.stdout = old_stdout
+            sys.stderr = old_stderr
+
+        cmd.filelist.files = []
+        cmd.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
+        cmd.read_manifest()
+
+        self.assertTrue(filename in cmd.filelist.files)
+
 
 def test_suite():
     return unittest.defaultTestLoader.loadTestsFromName(__name__)
