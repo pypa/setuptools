@@ -162,7 +162,12 @@ class egg_info(Command):
             os.unlink(filename)
 
     def tagged_version(self):
-        return safe_version(self.distribution.get_version() + self.vtags)
+        version = self.distribution.get_version()
+        # egg_info may be called more than once for a distribution,
+        # in which case the version string already contains all tags.
+        if self.vtags and version.endswith(self.vtags):
+            return safe_version(version)
+        return safe_version(version + self.vtags)
 
     def run(self):
         self.mkpath(self.egg_info)
