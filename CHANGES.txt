@@ -6,6 +6,12 @@ CHANGES
 0.6.29
 ------
 
+* Issue #320: Fix check for "createable" in distribute_setup.py.
+* Issue #305: Remove a warning that was triggered during normal operations.
+* Issue #311: Print metadata in UTF-8 independent of platform.
+* Issue #303: Read manifest file with UTF-8 encoding under Python 3.
+* Issue #301: Allow to run tests of namespace packages when using 2to3.
+* Issue #304: Prevent import loop in site.py under Python 3.3.
 * Issue #283: Reenable scanning of *.pyc / *.pyo files on Python 3.3.
 * Issue #299: The develop command didn't work on Python 3, when using 2to3,
   as the egg link would go to the Python 2 source. Linking to the 2to3'd code
