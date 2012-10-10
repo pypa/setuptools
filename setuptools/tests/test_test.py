@@ -6,9 +6,9 @@ import sys
 import os, shutil, tempfile, unittest
 import tempfile
 import site
-from StringIO import StringIO
 
 from distutils.errors import DistutilsError
+from setuptools.compat import StringIO
 from setuptools.command.test import test
 from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution

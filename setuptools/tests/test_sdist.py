@@ -7,9 +7,8 @@ import shutil
 import sys
 import tempfile
 import unittest
-from StringIO import StringIO
 
-
+from setuptools.compat import StringIO
 from setuptools.command.sdist import sdist
 from setuptools.dist import Distribution
 

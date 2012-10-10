@@ -41,6 +41,8 @@ if sys.version_info[0] < 3:
             locs = globs
         exec("""exec code in globs, locs""")
 
+    exec_("""def reraise(tp, value, tb=None):
+    raise tp, value, tb""")
 else:
     PY3 = True
 
@@ -75,4 +77,9 @@ else:
         if locs is None:
             locs = globs
         exec_(compile(open(fn).read(), fn, 'exec'), globs, locs)
+
+    def reraise(tp, value, tb=None):
+        if value.__traceback__ is not tb:
+            raise value.with_traceback(tb)
+        raise value
 

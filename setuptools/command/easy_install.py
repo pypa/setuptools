@@ -34,7 +34,8 @@ from setuptools.archive_util import unpack_archive
 from setuptools.package_index import PackageIndex
 from setuptools.package_index import URL_SCHEME
 from setuptools.command import bdist_egg, egg_info
-from setuptools.compat import iteritems, maxsize, xrange, basestring, unicode
+from setuptools.compat import (iteritems, maxsize, xrange, basestring, unicode,
+                               reraise)
 from pkg_resources import yield_lines, normalize_path, resource_string, \
         ensure_directory, get_distribution, find_distributions, \
         Environment, Requirement, Distribution, \
@@ -1133,7 +1134,7 @@ See the setuptools documentation for the "develop" command for more info.
             'site_dirs', 'allow_hosts',
         )
         fetch_options = {}
-        for key, val in ei_opts.iteritems():
+        for key, val in ei_opts.items():
             if key not in fetch_directives: continue
             fetch_options[key.replace('_', '-')] = val[1]
         # create a settings dictionary suitable for `edit_config`
@@ -1686,8 +1687,8 @@ def auto_chmod(func, arg, exc):
     if func is os.remove and os.name=='nt':
         chmod(arg, stat.S_IWRITE)
         return func(arg)
-    exc = sys.exc_info()
-    raise exc[0](exc[1][0], exc[1][1] + (" %s %s" % (func,arg)))
+    et, ev, _ = sys.exc_info()
+    reraise(et, (ev[0], ev[1] + (" %s %s" % (func,arg))))
 
 def uncache_zipdir(path):
     """Ensure that the importer caches dont have stale info for `path`"""
@@ -1888,7 +1889,7 @@ def rmtree(path, ignore_errors=False, onerror=auto_chmod):
         onerror(os.rmdir, path, sys.exc_info())
 
 def current_umask():
-    tmp = os.umask(022)
+    tmp = os.umask(0x12)    # 022
     os.umask(tmp)
     return tmp
 

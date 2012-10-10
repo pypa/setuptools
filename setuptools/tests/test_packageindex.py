@@ -3,7 +3,7 @@
 import sys
 import unittest
 import pkg_resources
-from setuptools.compat import urllib2, httplib, HTTPError
+from setuptools.compat import urllib2, httplib, HTTPError, unicode
 import distutils.errors
 import setuptools.package_index
 from setuptools.tests.server import IndexServer

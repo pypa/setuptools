@@ -2518,7 +2518,7 @@ class DistInfoDistribution(Distribution):
         # Including any condition expressions
         for req in self._parsed_pkg_info.get_all('Requires-Dist') or []:
             distvers, mark = self._preparse_requirement(req)
-            parsed = parse_requirements(distvers).next()
+            parsed = next(parse_requirements(distvers))
             parsed.marker_fn = compile_marker(mark)
             reqs.append(parsed)
             
