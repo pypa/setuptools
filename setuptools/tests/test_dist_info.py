@@ -50,27 +50,34 @@ class TestDistInfo(unittest.TestCase):
         versioned = os.path.join(self.tmpdir,
                                  'VersionedDistribution-2.718.dist-info')
         os.mkdir(versioned)
-        open(os.path.join(versioned, 'METADATA'), 'w+').write(DALS(
-            """
-            Metadata-Version: 1.2
-            Name: VersionedDistribution
-            Requires-Dist: splort (4)
-            Provides-Extra: baz
-            Requires-Dist: quux (>=1.1); extra == 'baz'
-            """))
-
+        f = open(os.path.join(versioned, 'METADATA'), 'w+')
+        try:
+            f.write(DALS(
+                """
+                Metadata-Version: 1.2
+                Name: VersionedDistribution
+                Requires-Dist: splort (4)
+                Provides-Extra: baz
+                Requires-Dist: quux (>=1.1); extra == 'baz'
+                """))
+        finally:
+            f.close()
         unversioned = os.path.join(self.tmpdir,
                                    'UnversionedDistribution.dist-info')
         os.mkdir(unversioned)
-        open(os.path.join(unversioned, 'METADATA'), 'w+').write(DALS(
-            """
-            Metadata-Version: 1.2
-            Name: UnversionedDistribution
-            Version: 0.3
-            Requires-Dist: splort (==4)
-            Provides-Extra: baz
-            Requires-Dist: quux (>=1.1); extra == 'baz'
-            """))
+        f = open(os.path.join(unversioned, 'METADATA'), 'w+')
+        try:
+            f.write(DALS(
+                """
+                Metadata-Version: 1.2
+                Name: UnversionedDistribution
+                Version: 0.3
+                Requires-Dist: splort (==4)
+                Provides-Extra: baz
+                Requires-Dist: quux (>=1.1); extra == 'baz'
+                """))
+        finally:
+            f.close()
 
     def tearDown(self):
         shutil.rmtree(self.tmpdir)

@@ -233,7 +233,7 @@ class TestUserInstallTest(unittest.TestCase):
         f = open(egg_file, 'w')
         try:
             f.write('Name: foo\n')
-        except:
+        finally:
             f.close()
 
         sys.path.append(target)

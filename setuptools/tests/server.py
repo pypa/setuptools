@@ -51,6 +51,7 @@ class IndexServer(HTTPServer):
             # ignore any errors; all that's important is the request
             pass
         self.thread.join()
+        self.socket.close()
 
     def base_url(self):
         port = self.server_port

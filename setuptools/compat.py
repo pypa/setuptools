@@ -78,10 +78,14 @@ else:
             globs = globals()
         if locs is None:
             locs = globs
-        exec_(compile(open(fn).read(), fn, 'exec'), globs, locs)
+        f = open(fn)
+        try:
+            source = f.read()
+        finally:
+            f.close()
+        exec_(compile(source, fn, 'exec'), globs, locs)
 
     def reraise(tp, value, tb=None):
         if value.__traceback__ is not tb:
             raise value.with_traceback(tb)
         raise value
-
