@@ -29,6 +29,17 @@ setup(**%r)
 """ % SETUP_ATTRS
 
 
+def compose(path):
+    # HFS Plus returns decomposed UTF-8
+    if sys.platform == 'darwin':
+        from unicodedata import normalize
+        if sys.version_info >= (3,):
+            path = normalize('NFC', path)
+        else:
+            path = normalize('NFC', path.decode('utf-8')).encode('utf-8')
+    return path
+
+
 class TestSdistTest(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
@@ -78,31 +89,6 @@ class TestSdistTest(unittest.TestCase):
         self.assertTrue(os.path.join('sdist_test', 'a.txt') in manifest)
         self.assertTrue(os.path.join('sdist_test', 'b.txt') in manifest)
         self.assertTrue(os.path.join('sdist_test', 'c.rst') not in manifest)
-
-    def test_filelist_is_fully_composed(self):
-        # Test for #303. Requires HFS Plus to fail.
-
-        # Add file with non-ASCII filename
-        filename = os.path.join('sdist_test', 'smörbröd.py')
-        open(filename, 'w').close()
-
-        dist = Distribution(SETUP_ATTRS)
-        dist.script_name = 'setup.py'
-        cmd = sdist(dist)
-        cmd.ensure_finalized()
-
-        # squelch output
-        old_stdout = sys.stdout
-        old_stderr = sys.stderr
-        sys.stdout = StringIO()
-        sys.stderr = StringIO()
-        try:
-            cmd.run()
-        finally:
-            sys.stdout = old_stdout
-            sys.stderr = old_stderr
-
-        self.assertTrue(filename in cmd.filelist.files)
 
     def test_manifest_is_written_in_utf8(self):
         # Test for #303.
@@ -162,7 +148,7 @@ class TestSdistTest(unittest.TestCase):
         cmd.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
         cmd.read_manifest()
 
-        self.assertTrue(filename in cmd.filelist.files)
+        self.assertTrue(filename in [compose(x) for x in cmd.filelist.files])
 
 
 def test_suite():

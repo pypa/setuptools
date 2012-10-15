@@ -292,19 +292,6 @@ class FileList(FileList):
 
 
 
-def compose(path):
-    # Apple's HFS Plus returns decomposed UTF-8. Since just about
-    # everyone else chokes on it, we must make sure to return fully
-    # composed UTF-8 only.
-    if sys.getfilesystemencoding().lower() == 'utf-8':
-        from unicodedata import normalize
-        if sys.version_info >= (3,):
-            path = normalize('NFC', path)
-        else:
-            path = normalize('NFC', path.decode('utf-8')).encode('utf-8')
-    return path
-
-
 class manifest_maker(sdist):
 
     template = "MANIFEST.in"
@@ -329,7 +316,6 @@ class manifest_maker(sdist):
         self.prune_file_list()
         self.filelist.sort()
         self.filelist.remove_duplicates()
-        self.filelist.files = [compose(path) for path in self.filelist.files]
         self.write_manifest()
 
     def write_manifest (self):
