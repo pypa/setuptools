@@ -9,7 +9,7 @@ from distutils.errors import *
 from distutils import log
 from setuptools.command.sdist import sdist
 from distutils.util import convert_path
-from distutils.filelist import FileList
+from distutils.filelist import FileList as _FileList
 from pkg_resources import parse_requirements, safe_name, parse_version, \
     safe_version, yield_lines, EntryPoint, iter_entry_points, to_filename
 from sdist import walk_revctrl
@@ -274,7 +274,7 @@ class egg_info(Command):
             self.broken_egg_info = self.egg_info
             self.egg_info = bei     # make it work for now
 
-class FileList(FileList):
+class FileList(_FileList):
     """File list that accepts only existing, platform-independent paths"""
 
     def append(self, item):
