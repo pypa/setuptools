@@ -7,10 +7,13 @@ import shutil
 import sys
 import tempfile
 import unittest
+import urllib
+import unicodedata
 from StringIO import StringIO
 
 
 from setuptools.command.sdist import sdist
+from setuptools.command.egg_info import manifest_maker
 from setuptools.dist import Distribution
 
 
@@ -29,18 +32,58 @@ setup(**%r)
 """ % SETUP_ATTRS
 
 
-def compose(path):
-    # HFS Plus returns decomposed UTF-8
-    if sys.platform == 'darwin':
-        from unicodedata import normalize
+if sys.version_info >= (3,):
+    LATIN1_FILENAME = 'smörbröd.py'.encode('latin-1')
+else:
+    LATIN1_FILENAME = 'sm\xf6rbr\xf6d.py'
+
+
+# Cannot use context manager because of Python 2.4
+def quiet():
+    global old_stdout, old_stderr
+    old_stdout, old_stderr = sys.stdout, sys.stderr
+    sys.stdout, sys.stderr = StringIO(), StringIO()
+
+def unquiet():
+    sys.stdout, sys.stderr = old_stdout, old_stderr
+
+
+# Fake byte literals to shut up Python <= 2.5
+def b(s, encoding='utf-8'):
+    if sys.version_info >= (3,):
+        return s.encode(encoding)
+    return s
+
+
+# HFS Plus returns decomposed UTF-8
+def decompose(path):
+    if isinstance(path, unicode):
+        return unicodedata.normalize('NFD', path)
+    try:
+        path = path.decode('utf-8')
+        path = unicodedata.normalize('NFD', path)
+        path = path.encode('utf-8')
+    except UnicodeError:
+        pass # Not UTF-8
+    return path
+
+
+# HFS Plus quotes unknown bytes like so: %F6
+def hfs_quote(path):
+    if isinstance(path, unicode):
+        raise TypeError('bytes are required')
+    try:
+        u = path.decode('utf-8')
+    except UnicodeDecodeError:
+        path = urllib.quote(path) # Not UTF-8
+    else:
         if sys.version_info >= (3,):
-            path = normalize('NFC', path)
-        else:
-            path = normalize('NFC', path.decode('utf-8')).encode('utf-8')
+            path = u
     return path
 
 
 class TestSdistTest(unittest.TestCase):
+
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
         f = open(os.path.join(self.temp_dir, 'setup.py'), 'w')
@@ -74,81 +117,206 @@ class TestSdistTest(unittest.TestCase):
         cmd.ensure_finalized()
 
         # squelch output
-        old_stdout = sys.stdout
-        old_stderr = sys.stderr
-        sys.stdout = StringIO()
-        sys.stderr = StringIO()
+        quiet()
         try:
             cmd.run()
         finally:
-            sys.stdout = old_stdout
-            sys.stderr = old_stderr
+            unquiet()
 
         manifest = cmd.filelist.files
-
         self.assertTrue(os.path.join('sdist_test', 'a.txt') in manifest)
         self.assertTrue(os.path.join('sdist_test', 'b.txt') in manifest)
         self.assertTrue(os.path.join('sdist_test', 'c.rst') not in manifest)
 
-    def test_manifest_is_written_in_utf8(self):
+    def test_manifest_is_written_with_utf8_encoding(self):
         # Test for #303.
-
-        # Add file with non-ASCII filename
-        filename = os.path.join('sdist_test', 'smörbröd.py')
-        open(filename, 'w').close()
-
         dist = Distribution(SETUP_ATTRS)
         dist.script_name = 'setup.py'
-        cmd = sdist(dist)
-        cmd.ensure_finalized()
+        mm = manifest_maker(dist)
+        mm.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
+        os.mkdir('sdist_test.egg-info')
 
-        # squelch output
-        old_stdout = sys.stdout
-        old_stderr = sys.stderr
-        sys.stdout = StringIO()
-        sys.stderr = StringIO()
+        # UTF-8 filename
+        filename = os.path.join('sdist_test', 'smörbröd.py')
+
+        # Add UTF-8 filename and write manifest
+        quiet()
         try:
-            cmd.run()
+            mm.run()
+            mm.filelist.files.append(filename)
+            mm.write_manifest()
         finally:
-            sys.stdout = old_stdout
-            sys.stderr = old_stderr
+            unquiet()
 
-        manifest = open(os.path.join('sdist_test.egg-info', 'SOURCES.txt'), 'rbU')
+        manifest = open(mm.manifest, 'rbU')
         contents = manifest.read()
         manifest.close()
-        self.assertTrue(len(contents))
 
-        # This must not fail:
-        contents.decode('UTF-8')
+        # The manifest should be UTF-8 encoded
+        try:
+            u = contents.decode('UTF-8')
+        except UnicodeDecodeError, e:
+            self.fail(e)
 
-    def test_manifest_is_read_in_utf8(self):
+        # The manifest should contain the UTF-8 filename
+        if sys.version_info >= (3,):
+            self.assertTrue(filename in u)
+        else:
+            self.assertTrue(filename in contents)
+
+    def test_manifest_is_written_with_surrogateescape_error_handler(self):
         # Test for #303.
+        dist = Distribution(SETUP_ATTRS)
+        dist.script_name = 'setup.py'
+        mm = manifest_maker(dist)
+        mm.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
+        os.mkdir('sdist_test.egg-info')
 
-        # Add file with non-ASCII filename
-        filename = os.path.join('sdist_test', 'smörbröd.py')
-        open(filename, 'w').close()
+        # Latin-1 filename
+        filename = os.path.join(b('sdist_test'), LATIN1_FILENAME)
 
+        # Add filename with surrogates and write manifest
+        quiet()
+        try:
+            mm.run()
+            if sys.version_info >= (3,):
+                u = filename.decode('utf-8', 'surrogateescape')
+                mm.filelist.files.append(u)
+            else:
+                mm.filelist.files.append(filename)
+            mm.write_manifest()
+        finally:
+            unquiet()
+
+        manifest = open(mm.manifest, 'rbU')
+        contents = manifest.read()
+        manifest.close()
+
+        # The manifest should contain the Latin-1 filename
+        self.assertTrue(filename in contents)
+
+    def test_manifest_is_read_with_utf8_encoding(self):
+        # Test for #303.
         dist = Distribution(SETUP_ATTRS)
         dist.script_name = 'setup.py'
         cmd = sdist(dist)
         cmd.ensure_finalized()
 
-        # squelch output
-        old_stdout = sys.stdout
-        old_stderr = sys.stderr
-        sys.stdout = StringIO()
-        sys.stderr = StringIO()
+        # UTF-8 filename
+        filename = os.path.join('sdist_test', 'smörbröd.py')
+        open(filename, 'w').close()
+
+        quiet()
         try:
             cmd.run()
         finally:
-            sys.stdout = old_stdout
-            sys.stderr = old_stderr
+            unquiet()
 
-        cmd.filelist.files = []
-        cmd.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
-        cmd.read_manifest()
+        # The filelist should contain the UTF-8 filename
+        if sys.platform == 'darwin':
+            filename = decompose(filename)
+        self.assertTrue(filename in cmd.filelist.files)
 
-        self.assertTrue(filename in [compose(x) for x in cmd.filelist.files])
+    def test_manifest_is_read_with_surrogateescape_error_handler(self):
+        # Test for #303.
+
+        # This is hard to test on HFS Plus because it quotes unknown
+        # bytes (see previous test). Furthermore, egg_info.FileList
+        # only appends filenames that os.path.exist.
+
+        # We therefore write the manifest file by hand and check whether
+        # read_manifest produces a UnicodeDecodeError.
+        dist = Distribution(SETUP_ATTRS)
+        dist.script_name = 'setup.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+
+        filename = os.path.join(b('sdist_test'), LATIN1_FILENAME)
+
+        quiet()
+        try:
+            cmd.run()
+            # Add Latin-1 filename to manifest
+            cmd.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
+            manifest = open(cmd.manifest, 'ab')
+            manifest.write(filename+b('\n'))
+            manifest.close()
+            # Re-read manifest
+            try:
+                cmd.read_manifest()
+            except UnicodeDecodeError, e:
+                self.fail(e)
+        finally:
+            unquiet()
+
+    def test_sdist_with_utf8_encoded_filename(self):
+        # Test for #303.
+        dist = Distribution(SETUP_ATTRS)
+        dist.script_name = 'setup.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+
+        # UTF-8 filename
+        filename = os.path.join(b('sdist_test'), b('smörbröd.py'))
+        open(filename, 'w').close()
+
+        quiet()
+        try:
+            cmd.run()
+        finally:
+            unquiet()
+
+        # The filelist should contain the UTF-8 filename
+        # (in one representation or other)
+        if sys.version_info >= (3,):
+            filename = filename.decode(sys.getfilesystemencoding(), 'surrogateescape')
+        if sys.platform == 'darwin':
+            filename = decompose(filename)
+        self.assertTrue(filename in cmd.filelist.files)
+
+    def test_sdist_with_latin1_encoded_filename(self):
+        # Test for #303.
+        dist = Distribution(SETUP_ATTRS)
+        dist.script_name = 'setup.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+
+        # Latin-1 filename
+        filename = os.path.join(b('sdist_test'), LATIN1_FILENAME)
+        open(filename, 'w').close()
+
+        quiet()
+        try:
+            cmd.run()
+        finally:
+            unquiet()
+
+        # The filelist should contain the Latin-1 filename
+        # (in one representation or other)
+        if sys.platform == 'darwin':
+            filename = hfs_quote(filename)
+        elif sys.version_info >= (3,):
+            filename = filename.decode(sys.getfilesystemencoding(), 'surrogateescape')
+        self.assertTrue(filename in cmd.filelist.files)
+
+    def test_decompose(self):
+        self.assertNotEqual('smörbröd.py', decompose('smörbröd.py'))
+
+        if sys.version_info >= (3,):
+            self.assertEqual(len('smörbröd.py'), 11)
+            self.assertEqual(len(decompose('smörbröd.py')), 13)
+        else:
+            self.assertEqual(len('smörbröd.py'), 13)
+            self.assertEqual(len(decompose('smörbröd.py')), 15)
+
+    def test_hfs_quote(self):
+        self.assertEqual(hfs_quote(LATIN1_FILENAME), 'sm%F6rbr%F6d.py')
+
+        # Bytes are required
+        if sys.version_info >= (3,):
+            self.assertRaises(TypeError, hfs_quote, 'smörbröd.py')
+        else:
+            self.assertRaises(TypeError, hfs_quote, 'smörbröd.py'.decode('utf-8'))
 
 
 def test_suite():

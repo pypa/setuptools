@@ -360,7 +360,7 @@ def write_file (filename, contents):
     """
     contents = "\n".join(contents)
     if sys.version_info >= (3,):
-        contents = contents.encode("utf-8")
+        contents = contents.encode("utf-8", "surrogateescape")
     f = open(filename, "wb")        # always write POSIX-style manifest
     f.write(contents)
     f.close()
