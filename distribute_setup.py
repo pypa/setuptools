@@ -86,6 +86,8 @@ def _install(tarball, install_args=()):
         if not _python_cmd('setup.py', 'install', *install_args):
             log.warn('Something went wrong during the installation.')
             log.warn('See the error message above.')
+            # exitcode will be 2
+            return 2
     finally:
         os.chdir(old_wd)
 
@@ -529,7 +531,7 @@ def main(version=DEFAULT_VERSION):
     """Install or upgrade setuptools and EasyInstall"""
     options = _parse_args()
     tarball = download_setuptools(download_base=options.download_base)
-    _install(tarball, _build_install_args(options))
+    return _install(tarball, _build_install_args(options))
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
