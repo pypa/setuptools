@@ -446,7 +446,8 @@ def _relaunch():
     # we have to relaunch the process
     # pip marker to avoid a relaunch bug
     _cmd = ['-c', 'install', '--single-version-externally-managed']
-    if sys.argv[:3] == _cmd:
+    _cmd2 = ['-c', 'install', '--record']
+    if sys.argv[:3] == _cmd1 or sys.argv[:3] == _cmd2:
         sys.argv[0] = 'setup.py'
     args = [sys.executable] + sys.argv
     sys.exit(subprocess.call(args))
