@@ -6,6 +6,9 @@ CHANGES
 0.6.29
 ------
 
+* If Sphinx is installed, the `upload_docs` command now runs `build_sphinx`
+  to produce uploadable documentation.
+* Issue #326: `upload_docs` provided mangled auth credentials under Python 3.
 * Issue #320: Fix check for "createable" in distribute_setup.py.
 * Issue #305: Remove a warning that was triggered during normal operations.
 * Issue #311: Print metadata in UTF-8 independent of platform.

@@ -2423,7 +2423,12 @@ command::
 
     python setup.py upload_docs --upload-dir=docs/build/html
 
-As with any other ``setuptools`` based command, you can define useful
+If no ``--upload-dir`` is given, ``upload_docs`` will attempt to run the
+``build_sphinx`` command to generate uploadable documentation.
+For the command to become available, `Sphinx <http://sphinx.pocoo.org/>`_
+must be installed in the same environment as distribute.
+
+As with other ``setuptools``-based commands, you can define useful
 defaults in the ``setup.cfg`` of your Python project, e.g.:
 
 .. code-block:: ini
