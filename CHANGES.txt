@@ -6,6 +6,8 @@ CHANGES
 0.6.29
 ------
 
+* Issue #327: Merged pull request #24 to fix a dependency problem with pip.
+* Merged pull request #23 to fix https://github.com/pypa/virtualenv/issues/301.
 * If Sphinx is installed, the `upload_docs` command now runs `build_sphinx`
   to produce uploadable documentation.
 * Issue #326: `upload_docs` provided mangled auth credentials under Python 3.
