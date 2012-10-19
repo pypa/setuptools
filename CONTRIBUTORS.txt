@@ -12,6 +12,7 @@ Contributors
 * Jannis Leidel
 * Jason R. Coombs
 * Jim Fulton
+* Jonathan Lange
 * Justin Azoff
 * Lennart Regebro
 * Marc Abramowitz

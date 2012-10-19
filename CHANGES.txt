@@ -6,6 +6,7 @@ CHANGES
 0.6.29
 ------
 
+* Pull Request #14: Honor file permissions in zip files.
 * Issue #327: Merged pull request #24 to fix a dependency problem with pip.
 * Merged pull request #23 to fix https://github.com/pypa/virtualenv/issues/301.
 * If Sphinx is installed, the `upload_docs` command now runs `build_sphinx`
