@@ -65,6 +65,8 @@ class TestUploadDocsTest(unittest.TestCase):
             zip_file = zipfile.ZipFile(tmp_file) # woh...
 
             assert zip_file.namelist() == ['index.html']
+
+            zip_file.close()
         finally:
             shutil.rmtree(tmp_dir)
 
