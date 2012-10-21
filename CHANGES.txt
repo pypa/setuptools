@@ -18,7 +18,7 @@ CHANGES
 * Issue #303: Read manifest file with UTF-8 encoding under Python 3.
 * Issue #301: Allow to run tests of namespace packages when using 2to3.
 * Issue #304: Prevent import loop in site.py under Python 3.3.
-* Issue #283: Reenable scanning of *.pyc / *.pyo files on Python 3.3.
+* Issue #283: Reenable scanning of `*.pyc` / `*.pyo` files on Python 3.3.
 * Issue #299: The develop command didn't work on Python 3, when using 2to3,
   as the egg link would go to the Python 2 source. Linking to the 2to3'd code
   in build/lib makes it work, although you will have to rebuild the module
@@ -41,7 +41,8 @@ CHANGES
 * Issue #294: setup.py can now be invoked from any directory.
 * Scripts are now installed honoring the umask.
 * Added support for .dist-info directories.
-* Issue #283: Fix and disable scanning of *.pyc / *.pyo files on Python 3.3.
+* Issue #283: Fix and disable scanning of `*.pyc` / `*.pyo` files on
+  Python 3.3.
 
 ------
 0.6.27
