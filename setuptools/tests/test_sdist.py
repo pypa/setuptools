@@ -9,6 +9,7 @@ import tempfile
 import unittest
 import urllib
 import unicodedata
+import posixpath
 from StringIO import StringIO
 
 
@@ -137,7 +138,7 @@ class TestSdistTest(unittest.TestCase):
         os.mkdir('sdist_test.egg-info')
 
         # UTF-8 filename
-        filename = os.path.join('sdist_test', 'smörbröd.py')
+        filename = posixpath.join('sdist_test', 'smörbröd.py')
 
         # Add UTF-8 filename and write manifest
         quiet()
@@ -173,7 +174,7 @@ class TestSdistTest(unittest.TestCase):
         os.mkdir('sdist_test.egg-info')
 
         # Latin-1 filename
-        filename = os.path.join(b('sdist_test'), LATIN1_FILENAME)
+        filename = posixpath.join(b('sdist_test'), LATIN1_FILENAME)
 
         # Add filename with surrogates and write manifest
         quiet()
