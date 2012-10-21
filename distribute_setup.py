@@ -445,7 +445,7 @@ def _relaunch():
     log.warn('Relaunching...')
     # we have to relaunch the process
     # pip marker to avoid a relaunch bug
-    _cmd = ['-c', 'install', '--single-version-externally-managed']
+    _cmd1 = ['-c', 'install', '--single-version-externally-managed']
     _cmd2 = ['-c', 'install', '--record']
     if sys.argv[:3] == _cmd1 or sys.argv[:3] == _cmd2:
         sys.argv[0] = 'setup.py'
