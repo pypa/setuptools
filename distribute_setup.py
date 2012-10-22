@@ -14,6 +14,7 @@ the appropriate options to ``use_setuptools()``.
 This file can also be run as a script to install or upgrade setuptools.
 """
 import os
+import shutil
 import sys
 import time
 import fnmatch
@@ -90,6 +91,7 @@ def _install(tarball, install_args=()):
             return 2
     finally:
         os.chdir(old_wd)
+        shutil.rmtree(tmpdir)
 
 
 def _build_egg(egg, tarball, to_dir):
@@ -114,6 +116,7 @@ def _build_egg(egg, tarball, to_dir):
 
     finally:
         os.chdir(old_wd)
+        shutil.rmtree(tmpdir)
     # returning the result
     log.warn(egg)
     if not os.path.exists(egg):
