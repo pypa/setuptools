@@ -20,7 +20,7 @@ try:
 except Exception:
 	pass
 
-VERSION = '0.6.30'
+VERSION = '0.6.31'
 
 def get_next_version():
 	digits = map(int, VERSION.split('.'))
