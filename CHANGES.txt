@@ -306,11 +306,10 @@ CHANGES
 -----
 
 * Added the generation of `distribute_setup_3k.py` during the release.
-  This close http://bitbucket.org/tarek/distribute/issue/52.
+  This closes issue #52.
 
 * Added an upload_docs command to easily upload project documentation to
-  PyPI's http://packages.python.org.
-  This close http://bitbucket.org/tarek/distribute/issue/56.
+  PyPI's http://packages.python.org. This close issue #56.
 
 * Fixed a bootstrap bug on the use_setuptools() API.
 
@@ -339,7 +338,7 @@ setuptools
   This closes http://bugs.python.org/setuptools/issue39.
 
 * Added option to run 2to3 automatically when installing on Python 3.
-  This closes http://bitbucket.org/tarek/distribute/issue/31.
+  This closes issue #31.
 
 * Fixed invalid usage of requirement.parse, that broke develop -d.
   This closes http://bugs.python.org/setuptools/issue44.
@@ -353,11 +352,9 @@ setuptools
 bootstrapping
 =============
 
-* Fixed bootstrap not working on Windows.
-  This closes http://bitbucket.org/tarek/distribute/issue/49.
+* Fixed bootstrap not working on Windows. This closes issue #49.
 
-* Fixed 2.6 dependencies.
-  This closes http://bitbucket.org/tarek/distribute/issue/50.
+* Fixed 2.6 dependencies. This closes issue #50.
 
 * Make sure setuptools is patched when running through easy_install
   This closes http://bugs.python.org/setuptools/issue40.
@@ -370,16 +367,14 @@ setuptools
 ==========
 
 * package_index.urlopen now catches BadStatusLine and malformed url errors.
-  This closes http://bitbucket.org/tarek/distribute/issue/16 and
-  http://bitbucket.org/tarek/distribute/issue/18.
+  This closes issue #16 and issue #18.
 
 * zip_ok is now False by default. This closes
   http://bugs.python.org/setuptools/issue33.
 
 * Fixed invalid URL error catching. http://bugs.python.org/setuptools/issue20.
 
-* Fixed invalid bootstraping with easy_install installation
-  http://bitbucket.org/tarek/distribute/issue/40.
+* Fixed invalid bootstraping with easy_install installation (issue #40).
   Thanks to Florian Schulze for the help.
 
 * Removed buildout/bootstrap.py. A new repository will create a specific
@@ -391,7 +386,7 @@ bootstrapping
 
 * The boostrap process leave setuptools alone if detected in the system
   and --root or --prefix is provided, but is not in the same location.
-  This closes http://bitbucket.org/tarek/distribute/issue/10.
+  This closes issue #10.
 
 ---
 0.6
@@ -401,45 +396,38 @@ setuptools
 ==========
 
 * Packages required at build time where not fully present at install time.
-  This closes http://bitbucket.org/tarek/distribute/issue/12.
+  This closes issue #12.
 
-* Protected against failures in tarfile extraction. This closes
-  http://bitbucket.org/tarek/distribute/issue/10.
+* Protected against failures in tarfile extraction. This closes issue #10.
 
-* Made Jython api_tests.txt doctest compatible. This closes
-  http://bitbucket.org/tarek/distribute/issue/7.
+* Made Jython api_tests.txt doctest compatible. This closes issue #7.
 
 * sandbox.py replaced builtin type file with builtin function open. This
-  closes http://bitbucket.org/tarek/distribute/issue/6.
+  closes issue #6.
 
-* Immediately close all file handles. This closes
-  http://bitbucket.org/tarek/distribute/issue/3.
+* Immediately close all file handles. This closes issue #3.
 
-* Added compatibility with Subversion 1.6. This references
-  http://bitbucket.org/tarek/distribute/issue/1.
+* Added compatibility with Subversion 1.6. This references issue #1.
 
 pkg_resources
 =============
 
 * Avoid a call to /usr/bin/sw_vers on OSX and use the official platform API
-  instead. Based on a patch from ronaldoussoren. This closes
-  http://bitbucket.org/tarek/distribute/issue/5.
+  instead. Based on a patch from ronaldoussoren. This closes issue #5.
 
 * Fixed a SandboxViolation for mkdir that could occur in certain cases.
-  This closes http://bitbucket.org/tarek/distribute/issue/13.
+  This closes issue #13.
 
 * Allow to find_on_path on systems with tight permissions to fail gracefully.
-  This closes http://bitbucket.org/tarek/distribute/issue/9.
+  This closes issue #9.
 
 * Corrected inconsistency between documentation and code of add_entry.
-  This closes http://bitbucket.org/tarek/distribute/issue/8.
+  This closes issue #8.
 
-* Immediately close all file handles. This closes
-  http://bitbucket.org/tarek/distribute/issue/3.
+* Immediately close all file handles. This closes issue #3.
 
 easy_install
 ============
 
-* Immediately close all file handles. This closes
-  http://bitbucket.org/tarek/distribute/issue/3.
+* Immediately close all file handles. This closes issue #3.
 
