@@ -3,6 +3,13 @@ CHANGES
 =======
 
 ------
+0.6.30
+------
+
+* Issue #328: Clean up temporary directories in distribute_setup.py.
+* Fix fatal bug in distribute_setup.py.
+
+------
 0.6.29
 ------
 
