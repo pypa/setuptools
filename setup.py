@@ -3,6 +3,7 @@
 import sys
 import os
 import textwrap
+import re
 
 # Allow to run setup.py from another directory.
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -130,6 +131,22 @@ if _being_installed():
     from distribute_setup import _before_install
     _before_install()
 
+# return contents of reStructureText file with linked issue references
+def _linkified(rstfile):
+    bitroot = 'http://bitbucket.org/tarek/distribute'
+    revision = re.compile(r'\b(issue\s*#?\d+)\b', re.M | re.I)
+
+    rstext = open(rstfile).read()    
+
+    anchors = revision.findall(rstext) # ['Issue #43', ...]
+    anchors = sorted(set(anchors))
+    rstext = revision.sub(r'`\1`_', rstext)
+    rstext += "\n"
+    for x in anchors:
+        issue = re.findall(r'\d+', x)[0]
+        rstext += '.. _`%s`: %s/issue/%s\n' % (x, bitroot, issue)
+    rstext += "\n"
+    return rstext
 
 dist = setup(
     name="distribute",
@@ -139,7 +156,7 @@ dist = setup(
     author="The fellowship of the packaging",
     author_email="distutils-sig@python.org",
     license="PSF or ZPL",
-    long_description = open('README.txt').read() + open('CHANGES.txt').read(),
+    long_description = open('README.txt').read() + _linkified('CHANGES.txt'),
     keywords = "CPAN PyPI distutils eggs package management",
     url = "http://packages.python.org/distribute",
     test_suite = 'setuptools.tests',
