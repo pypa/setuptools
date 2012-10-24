@@ -50,7 +50,8 @@ class TestDistInfo(unittest.TestCase):
         versioned = os.path.join(self.tmpdir,
                                  'VersionedDistribution-2.718.dist-info')
         os.mkdir(versioned)
-        open(os.path.join(versioned, 'METADATA'), 'w+').write(DALS(
+        metadata_file = open(os.path.join(versioned, 'METADATA'), 'w+')
+        metadata_file.write(DALS(
             """
             Metadata-Version: 1.2
             Name: VersionedDistribution
@@ -58,11 +59,13 @@ class TestDistInfo(unittest.TestCase):
             Provides-Extra: baz
             Requires-Dist: quux (>=1.1); extra == 'baz'
             """))
+        metadata_file.close()
 
         unversioned = os.path.join(self.tmpdir,
                                    'UnversionedDistribution.dist-info')
         os.mkdir(unversioned)
-        open(os.path.join(unversioned, 'METADATA'), 'w+').write(DALS(
+        metadata_file = open(os.path.join(unversioned, 'METADATA'), 'w+')
+        metadata_file.write(DALS(
             """
             Metadata-Version: 1.2
             Name: UnversionedDistribution
@@ -71,6 +74,7 @@ class TestDistInfo(unittest.TestCase):
             Provides-Extra: baz
             Requires-Dist: quux (>=1.1); extra == 'baz'
             """))
+        metadata_file.close()
 
     def tearDown(self):
         shutil.rmtree(self.tmpdir)

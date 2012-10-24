@@ -3,6 +3,12 @@ CHANGES
 =======
 
 ------
+0.6.31
+------
+
+* Issue #329: Properly close files created by tests for compatibility with Jython.
+
+------
 0.6.30
 ------
 
