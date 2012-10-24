@@ -657,6 +657,10 @@ class PackageIndex(Environment):
         #
         if scheme=='svn' or scheme.startswith('svn+'):
             return self._download_svn(url, filename)
+        elif scheme=='git' or scheme.startswith('git+'):
+            return self._download_git(url, filename)
+        elif scheme.startswith('hg+'):
+            return self._download_hg(url, filename)
         elif scheme=='file':
             return urllib.url2pathname(urlparse.urlparse(url)[2])
         else:
@@ -695,6 +699,55 @@ class PackageIndex(Environment):
         url = url.split('#',1)[0]   # remove any fragment for svn's sake
         self.info("Doing subversion checkout from %s to %s", url, filename)
         os.system("svn checkout -q %s %s" % (url, filename))
+        return filename
+
+    def _vcs_split_rev_from_url(self, url, pop_prefix=False):
+        scheme, netloc, path, query, frag = urlparse.urlsplit(url)
+
+        scheme = scheme.split('+', 1)[-1]
+
+        # Some fragment identification fails
+        path = path.split('#',1)[0]
+
+        rev = None
+        if '@' in path:
+            path, rev = path.rsplit('@', 1)
+
+        # Also, discard fragment
+        url = urlparse.urlunsplit((scheme, netloc, path, query, ''))
+
+        return url, rev
+
+    def _download_git(self, url, filename):
+        filename = filename.split('#',1)[0]
+        url, rev = self._vcs_split_rev_from_url(url, pop_prefix=True)
+
+        self.info("Doing git clone from %s to %s", url, filename)
+        os.system("git clone --quiet %s %s" % (url, filename))
+
+        if rev is not None:
+            self.info("Checking out %s", rev)
+            os.system("(cd %s && git checkout --quiet %s)" % (
+                filename,
+                rev,
+            ))
+
+        return filename
+
+    def _download_hg(self, url, filename):
+        filename = filename.split('#',1)[0]
+        url, rev = self._vcs_split_rev_from_url(url, pop_prefix=True)
+
+        self.info("Doing hg clone from %s to %s", url, filename)
+        os.system("hg clone --quiet %s %s" % (url, filename))
+
+        if rev is not None:
+            self.info("Updating to %s", rev)
+            os.system("(cd %s && hg up -C -r %s >&-)" % (
+                filename,
+                rev,
+            ))
+
         return filename
 
     def debug(self, msg, *args):
