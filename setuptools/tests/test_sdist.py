@@ -308,12 +308,19 @@ class TestSdistTest(unittest.TestCase):
         finally:
             unquiet()
 
-        # The filelist should contain the UTF-8 filename
-        if sys.version_info >= (3,):
-            filename = filename.decode('utf-8')
         if sys.platform == 'darwin':
             filename = decompose(filename)
-        self.assertTrue(filename in cmd.filelist.files)
+
+        if sys.version_info >= (3,):
+            if sys.platform == 'win32':
+                # Python 3 mangles the UTF-8 filename
+                filename = filename.decode('cp1252')
+                self.assertTrue(filename in cmd.filelist.files)
+            else:
+                filename = filename.decode('utf-8')
+                self.assertTrue(filename in cmd.filelist.files)
+        else:
+            self.assertTrue(filename in cmd.filelist.files)
 
     def test_sdist_with_latin1_encoded_filename(self):
         # Test for #303.
@@ -332,13 +339,17 @@ class TestSdistTest(unittest.TestCase):
         finally:
             unquiet()
 
-        # The Latin-1 filename should have been skipped
         if sys.version_info >= (3,):
             filename = filename.decode('latin-1')
-            self.assertFalse(filename in cmd.filelist.files)
+            if sys.platform == 'win32':
+                # Latin-1 is similar to Windows-1252
+                self.assertTrue(filename in cmd.filelist.files)
+            else:
+                # The Latin-1 filename should have been skipped
+                self.assertFalse(filename in cmd.filelist.files)
         else:
-            # No conversion takes place under Python 2 and the
-            # filename is included. We shall keep it that way for BBB.
+            # No conversion takes place under Python 2 and the file
+            # is included. We shall keep it that way for BBB.
             self.assertTrue(filename in cmd.filelist.files)
 
 
