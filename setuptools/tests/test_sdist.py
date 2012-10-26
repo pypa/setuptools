@@ -262,7 +262,7 @@ class TestSdistTest(unittest.TestCase):
     # Python 3 only
     if sys.version_info >= (3,):
 
-        def test_read_manifest_rejects_surrogates(self):
+        def test_manifest_is_read_with_surrogateescape_error_handler(self):
             # Test for #303.
 
             # This is hard to test on HFS Plus because it quotes unknown
@@ -286,10 +286,13 @@ class TestSdistTest(unittest.TestCase):
                 manifest = open(cmd.manifest, 'ab')
                 manifest.write(filename+b('\n'))
                 manifest.close()
+                # Re-read manifest
+                try:
+                    cmd.read_manifest()
+                except UnicodeDecodeError, e:
+                    self.fail(e)
             finally:
                 unquiet()
-
-            self.assertRaises(UnicodeDecodeError, cmd.read_manifest)
 
     def test_sdist_with_utf8_encoded_filename(self):
         # Test for #303.
