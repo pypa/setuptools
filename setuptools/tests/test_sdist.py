@@ -262,7 +262,7 @@ class TestSdistTest(unittest.TestCase):
     # Python 3 only
     if sys.version_info >= (3,):
 
-        def test_manifest_is_read_with_surrogateescape_error_handler(self):
+        def test_read_manifest_skips_non_utf8_filenames(self):
             # Test for #303.
 
             # This is hard to test on HFS Plus because it quotes unknown
@@ -277,6 +277,7 @@ class TestSdistTest(unittest.TestCase):
             cmd.ensure_finalized()
 
             filename = os.path.join(b('sdist_test'), LATIN1_FILENAME)
+            u_filename = filename.decode('latin-1')
 
             quiet()
             try:
@@ -284,7 +285,7 @@ class TestSdistTest(unittest.TestCase):
                 # Add Latin-1 filename to manifest
                 cmd.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
                 manifest = open(cmd.manifest, 'ab')
-                manifest.write(filename+b('\n'))
+                manifest.write(b('\n')+filename)
                 manifest.close()
                 # Re-read manifest
                 try:
@@ -293,6 +294,9 @@ class TestSdistTest(unittest.TestCase):
                     self.fail(e)
             finally:
                 unquiet()
+
+            # The Latin-1 filename should have been skipped
+            self.assertFalse(u_filename in cmd.filelist.files)
 
     def test_sdist_with_utf8_encoded_filename(self):
         # Test for #303.

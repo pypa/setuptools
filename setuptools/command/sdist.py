@@ -283,8 +283,11 @@ class sdist(_sdist):
         manifest = open(self.manifest, 'rbU')
         for line in manifest:
             if sys.version_info >= (3,):
-                # Don't break if surrogates have crept into the manifest
-                line = line.decode('UTF-8', 'surrogateescape')
+                try:
+                    line = line.decode('UTF-8')
+                except UnicodeDecodeError:
+                    log.warn("%r not UTF-8 decodable -- skipping" % line)
+                    continue
             # ignore comments and blank lines
             line = line.strip()
             if line.startswith('#') or not line:
