@@ -7,6 +7,7 @@ CHANGES
 ------
 
 * Issue #329: Properly close files created by tests for compatibility with Jython.
+* Work around Jython bugs #1980 and #1981.
 
 ------
 0.6.30
