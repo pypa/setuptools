@@ -269,8 +269,6 @@ class TestSdistTest(unittest.TestCase):
             unquiet()
 
         # The filelist should contain the UTF-8 filename
-        if sys.platform == 'darwin':
-            filename = decompose(filename)
         if sys.version_info >= (3,):
             filename = filename.decode('utf-8')
         self.assertTrue(filename in cmd.filelist.files)
