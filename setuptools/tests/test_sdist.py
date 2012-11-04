@@ -57,7 +57,7 @@ def b(s, encoding='utf-8'):
 
 # Convert to POSIX path
 def posix(path):
-    if sys.version_info >= (3,) and not isinstance(path, str):
+    if sys.version_info >= (3,) and not isinstance(path, unicode):
         return path.replace(os.sep.encode('ascii'), b('/'))
     else:
         return path.replace(os.sep, '/')
@@ -244,19 +244,35 @@ class TestSdistTest(unittest.TestCase):
         cmd = sdist(dist)
         cmd.ensure_finalized()
 
-        # UTF-8 filename
-        filename = os.path.join('sdist_test', 'smörbröd.py')
-        open(filename, 'w').close()
-
+        # Create manifest
         quiet()
         try:
             cmd.run()
         finally:
             unquiet()
 
+        # Add UTF-8 filename to manifest
+        filename = os.path.join(b('sdist_test'), b('smörbröd.py'))
+        cmd.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
+        manifest = open(cmd.manifest, 'ab')
+        manifest.write(b('\n')+filename)
+        manifest.close()
+
+        # The file must exist to be included in the filelist
+        open(filename, 'w').close()
+
+        # Re-read manifest
+        quiet()
+        try:
+            cmd.read_manifest()
+        finally:
+            unquiet()
+
         # The filelist should contain the UTF-8 filename
         if sys.platform == 'darwin':
             filename = decompose(filename)
+        if sys.version_info >= (3,):
+            filename = filename.decode('utf-8')
         self.assertTrue(filename in cmd.filelist.files)
 
     # Python 3 only
@@ -264,30 +280,31 @@ class TestSdistTest(unittest.TestCase):
 
         def test_read_manifest_skips_non_utf8_filenames(self):
             # Test for #303.
-
-            # This is hard to test on HFS Plus because it quotes unknown
-            # bytes (see previous test). Furthermore, egg_info.FileList
-            # only appends filenames that os.path.exist.
-
-            # We therefore write the manifest file by hand and check whether
-            # read_manifest produces a UnicodeDecodeError.
             dist = Distribution(SETUP_ATTRS)
             dist.script_name = 'setup.py'
             cmd = sdist(dist)
             cmd.ensure_finalized()
 
-            filename = os.path.join(b('sdist_test'), LATIN1_FILENAME)
-            u_filename = filename.decode('latin-1')
-
+            # Create manifest
             quiet()
             try:
                 cmd.run()
-                # Add Latin-1 filename to manifest
-                cmd.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
-                manifest = open(cmd.manifest, 'ab')
-                manifest.write(b('\n')+filename)
-                manifest.close()
-                # Re-read manifest
+            finally:
+                unquiet()
+
+            # Add Latin-1 filename to manifest
+            filename = os.path.join(b('sdist_test'), LATIN1_FILENAME)
+            cmd.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
+            manifest = open(cmd.manifest, 'ab')
+            manifest.write(b('\n')+filename)
+            manifest.close()
+
+            # The file must exist to be included in the filelist
+            open(filename, 'w').close()
+
+            # Re-read manifest
+            quiet()
+            try:
                 try:
                     cmd.read_manifest()
                 except UnicodeDecodeError, e:
@@ -296,7 +313,8 @@ class TestSdistTest(unittest.TestCase):
                 unquiet()
 
             # The Latin-1 filename should have been skipped
-            self.assertFalse(u_filename in cmd.filelist.files)
+            filename = filename.decode('latin-1')
+            self.assertFalse(filename in cmd.filelist.files)
 
     def test_sdist_with_utf8_encoded_filename(self):
         # Test for #303.
