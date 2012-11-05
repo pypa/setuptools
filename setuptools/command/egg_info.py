@@ -284,7 +284,7 @@ class FileList(_FileList):
         try:
             if os.path.exists(path):
                 self.files.append(path)
-            else:
+            elif path != manifest_maker.template:
                 log.warn("%r not found -- skipping", path)
         except UnicodeEncodeError:
             log.warn("%r not %s encodable -- skipping", path,
