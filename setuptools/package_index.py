@@ -834,9 +834,8 @@ def open_with_auth(url):
 
     # Double scheme does not raise on Mac OS X as revealed by a
     # failing test. We would expect "nonnumeric port". Refs #20.
-    if sys.platform == 'darwin':
-        if netloc.endswith(':'):
-            raise httplib.InvalidURL("nonnumeric port: ''")
+    if netloc.endswith(':'):
+        raise httplib.InvalidURL("nonnumeric port: ''")
 
     if scheme in ('http', 'https'):
         auth, host = urllib2.splituser(netloc)

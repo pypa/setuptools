@@ -25,7 +25,7 @@ try:
 except ImportError:
     from setuptools.command.upload import upload
 
-if sys.version_info >= (3,):
+if sys.version_info >= (3, 1):
     errors = 'surrogateescape'
 else:
     errors = 'strict'
