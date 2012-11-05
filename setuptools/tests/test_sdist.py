@@ -262,6 +262,7 @@ class TestSdistTest(unittest.TestCase):
         open(filename, 'w').close()
 
         # Re-read manifest
+        cmd.filelist.files = []
         quiet()
         try:
             cmd.read_manifest()
@@ -301,6 +302,7 @@ class TestSdistTest(unittest.TestCase):
             open(filename, 'w').close()
 
             # Re-read manifest
+            cmd.filelist.files = []
             quiet()
             try:
                 try:

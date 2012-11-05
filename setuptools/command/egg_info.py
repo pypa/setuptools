@@ -281,8 +281,14 @@ class FileList(_FileList):
         if item.endswith('\r'):     # Fix older sdists built on Windows
             item = item[:-1]
         path = convert_path(item)
-        if os.path.exists(path):
-            self.files.append(path)
+        try:
+            if os.path.exists(path):
+                self.files.append(path)
+            else:
+                log.warn("%r not found -- skipping", path)
+        except UnicodeEncodeError:
+            log.warn("%r not %s encodable -- skipping", path,
+                sys.getfilesystemencoding())
 
 
 
