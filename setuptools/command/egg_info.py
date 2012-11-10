@@ -281,17 +281,18 @@ class FileList(_FileList):
         if item.endswith('\r'):     # Fix older sdists built on Windows
             item = item[:-1]
         path = convert_path(item)
+
         if sys.version_info >= (3,):
             try:
-                if os.path.exists(path):
+                if os.path.exists(path) or os.path.exists(path.encode('utf-8')):
                     self.files.append(path)
-                elif sys.platform == 'win32':
-                    # NTFS can store UTF-8 filenames as is
-                    if os.path.exists(path.encode('utf-8')):
-                        self.files.append(path)
             except UnicodeEncodeError:
-                log.warn("%r not %s encodable -- skipping", path,
-                    sys.getfilesystemencoding())
+                # Support UTF-8 filenames even if LANG=C
+                if os.path.exists(path.encode('utf-8')):
+                    self.files.append(path)
+                else:
+                    log.warn("%r not %s encodable -- skipping", path,
+                        sys.getfilesystemencoding())
         else:
             if os.path.exists(path):
                 self.files.append(path)
