@@ -281,15 +281,19 @@ class FileList(_FileList):
         if item.endswith('\r'):     # Fix older sdists built on Windows
             item = item[:-1]
         path = convert_path(item)
-        try:
+        if sys.version_info >= (3,):
+            try:
+                if os.path.exists(path):
+                    self.files.append(path)
+                elif sys.platform == 'win32':
+                    if os.path.exists(path.encode('utf-8')):
+                        self.files.append(path)
+            except UnicodeEncodeError:
+                log.warn("%r not %s encodable -- skipping", path,
+                    sys.getfilesystemencoding())
+        else:
             if os.path.exists(path):
                 self.files.append(path)
-            elif path != manifest_maker.template:
-                log.debug("%r not found -- skipping", path)
-        except UnicodeEncodeError:
-            log.warn("%r not %s encodable -- skipping", path,
-                sys.getfilesystemencoding())
-
 
 
 
