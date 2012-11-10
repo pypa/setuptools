@@ -286,6 +286,7 @@ class FileList(_FileList):
                 if os.path.exists(path):
                     self.files.append(path)
                 elif sys.platform == 'win32':
+                    # NTFS can store UTF-8 filenames as is
                     if os.path.exists(path.encode('utf-8')):
                         self.files.append(path)
             except UnicodeEncodeError:

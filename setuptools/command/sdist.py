@@ -282,6 +282,7 @@ class sdist(_sdist):
         log.info("reading manifest file '%s'", self.manifest)
         manifest = open(self.manifest, 'rbU')
         for line in manifest:
+            # The manifest must contain UTF-8. See #303.
             if sys.version_info >= (3,):
                 try:
                     line = line.decode('UTF-8')
