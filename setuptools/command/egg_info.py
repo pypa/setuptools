@@ -281,15 +281,14 @@ class FileList(_FileList):
         if item.endswith('\r'):     # Fix older sdists built on Windows
             item = item[:-1]
         path = convert_path(item)
-        # Filter unused template files all of which have ASCII names
         try:
-            if sys.version_info >= (3,):
-                path.encode('ascii')
-        except UnicodeEncodeError:
-            self.files.append(path)
-        else:
             if os.path.exists(path):
                 self.files.append(path)
+            elif path != manifest_maker.template:
+                log.warn("%r not found -- skipping", path)
+        except UnicodeEncodeError:
+            log.warn("%r not %s encodable -- skipping", path,
+                sys.getfilesystemencoding())
 
 
 
