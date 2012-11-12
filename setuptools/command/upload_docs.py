@@ -18,7 +18,6 @@ from base64 import standard_b64encode
 from pkg_resources import iter_entry_points
 
 from distutils import log
-from distutils.errors import DistutilsError
 from distutils.errors import DistutilsOptionError
 
 try:
