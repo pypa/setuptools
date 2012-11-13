@@ -6,6 +6,7 @@ CHANGES
 0.6.31
 ------
 
+* Issue #303: Make sure the manifest only ever contains UTF-8 in Python 3.
 * Issue #329: Properly close files created by tests for compatibility with Jython.
 * Work around Jython bugs #1980 and #1981.
 
