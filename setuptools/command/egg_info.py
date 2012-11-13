@@ -287,7 +287,7 @@ class FileList(_FileList):
                 if os.path.exists(path) or os.path.exists(path.encode('utf-8')):
                     self.files.append(path)
             except UnicodeEncodeError:
-                # Support UTF-8 filenames even if LANG=C
+                # Accept UTF-8 filenames even if LANG=C
                 if os.path.exists(path.encode('utf-8')):
                     self.files.append(path)
                 else:
