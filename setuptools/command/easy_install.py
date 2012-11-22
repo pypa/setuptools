@@ -1522,7 +1522,10 @@ def get_exe_prefixes(exe_filename):
             if name.endswith('-nspkg.pth'):
                 continue
             if parts[0].upper() in ('PURELIB','PLATLIB'):
-                for pth in yield_lines(z.read(name)):
+                contents = z.read(name)
+                if sys.version_info >= (3,):
+                    contents = contents.decode()
+                for pth in yield_lines(contents):
                     pth = pth.strip().replace('\\','/')
                     if not pth.startswith('import'):
                         prefixes.append((('%s/%s/' % (parts[0],pth)), ''))
