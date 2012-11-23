@@ -657,6 +657,9 @@ class Distribution(_Distribution):
         if not isinstance(sys.stdout, io.TextIOWrapper):
             return _Distribution.handle_display_options(self, option_order)
 
+        if sys.stdout.encoding.lower() in ('utf-8', 'utf8'):
+            return _Distribution.handle_display_options(self, option_order)
+
         # Print metadata in UTF-8 no matter the platform
         encoding = sys.stdout.encoding
         errors = sys.stdout.errors
