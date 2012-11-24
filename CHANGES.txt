@@ -10,6 +10,13 @@ CHANGES
 * Issue #329: Properly close files created by tests for compatibility with
   Jython.
 * Work around Jython bugs #1980 and #1981.
+* Issue #334: Provide workaround for packages that reference `sys.__stdout__`
+  such as numpy does. This change should address
+  `virtualenv #359 <https://github.com/pypa/virtualenv/issues/359>`_ as long
+  as the system encoding is UTF-8 or the IO encoding is specified in the
+  environment, i.e.::
+
+     PYTHONIOENCODING=utf8 pip install numpy
 
 ------
 0.6.30

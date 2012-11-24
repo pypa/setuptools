@@ -657,6 +657,8 @@ class Distribution(_Distribution):
         if not isinstance(sys.stdout, io.TextIOWrapper):
             return _Distribution.handle_display_options(self, option_order)
 
+        # Don't wrap stdout if utf-8 is already the encoding. Provides
+        #  workaround for #334.
         if sys.stdout.encoding.lower() in ('utf-8', 'utf8'):
             return _Distribution.handle_display_options(self, option_order)
 
