@@ -18,6 +18,7 @@ Contributors
 * Marc Abramowitz
 * Martin von Löwis
 * Noufal Ibrahim
+* Pete Hollobon
 * Philip Jenvey
 * Reinout van Rees
 * Robert Myers

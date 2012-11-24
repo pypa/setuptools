@@ -19,6 +19,8 @@ CHANGES
 
      PYTHONIOENCODING=utf8 pip install numpy
 
+* Fix for encoding issue when installing from Windows executable on Python 3.
+
 ------
 0.6.30
 ------
