@@ -10,7 +10,7 @@ CHANGES
 * Issue #329: Properly close files created by tests for compatibility with
   Jython.
 * Work around Jython bugs `#1980 <http://bugs.jython.org/issue1980>`_ and
-  `#1981 <http://bugs.jython.org/issue1981`_.
+  `#1981 <http://bugs.jython.org/issue1981>`_.
 * Issue #334: Provide workaround for packages that reference `sys.__stdout__`
   such as numpy does. This change should address
   `virtualenv #359 <https://github.com/pypa/virtualenv/issues/359>`_ as long
