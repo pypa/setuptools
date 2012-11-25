@@ -20,6 +20,13 @@ CHANGES
      PYTHONIOENCODING=utf8 pip install numpy
 
 * Fix for encoding issue when installing from Windows executable on Python 3.
+* Issue #323: Allow `setup_requires` requirements to supercede installed
+  requirements. Added some new keyword arguments to existing pkg_resources
+  methods. Also had to updated how __path__ is handled for namespace packages
+  to ensure that when a new egg distribution containing a namespace package is
+  placed on sys.path, the entries in __path__ are found in the same order they
+  would have been in had that egg been on the path when pkg_resources was
+  first imported.
 
 ------
 0.6.30
