@@ -236,7 +236,7 @@ class TestUserInstallTest(unittest.TestCase):
         f = open(egg_file, 'w')
         try:
             f.write('Name: foo\n')
-        except:
+        finally:
             f.close()
 
         sys.path.append(target)
@@ -387,7 +387,7 @@ class TestSetupRequires(unittest.TestCase):
 
             lines = stdout.splitlines()
             self.assertTrue(len(lines) > 0)
-            self.assert_(lines[-1].strip(), 'test_pkg')
+            self.assertTrue(lines[-1].strip(), 'test_pkg')
 
         try:
             tempdir_context(setup_and_run)

@@ -15,8 +15,10 @@ if sys.version_info >= (3,):
     from distutils import dir_util, file_util, util, log
     log.set_verbosity(1)
     fl = FileList()
-    for line in open("MANIFEST.in"):
+    manifest_file = open("MANIFEST.in")
+    for line in manifest_file:
         fl.process_template_line(line)
+    manifest_file.close()
     dir_util.create_tree(tmp_src, fl.files)
     outfiles_2to3 = []
     dist_script = os.path.join("build", "src", "distribute_setup.py")
@@ -39,7 +41,9 @@ from distutils.util import convert_path
 
 d = {}
 init_path = convert_path('setuptools/command/__init__.py')
-exec(open(init_path).read(), d)
+init_file = open(init_path)
+exec(init_file.read(), d)
+init_file.close()
 
 SETUP_COMMANDS = d['__all__']
 VERSION = "0.6.32"
@@ -132,21 +136,27 @@ if _being_installed():
     _before_install()
 
 # return contents of reStructureText file with linked issue references
-def _linkified(rstfile):
+def _linkified(rst_path):
     bitroot = 'http://bitbucket.org/tarek/distribute'
     revision = re.compile(r'\b(issue\s*#?\d+)\b', re.M | re.I)
 
-    rstext = open(rstfile).read()    
+    rst_file = open(rst_path)
+    rst_content = rst_file.read()
+    rst_file.close()
 
-    anchors = revision.findall(rstext) # ['Issue #43', ...]
+    anchors = revision.findall(rst_content) # ['Issue #43', ...]
     anchors = sorted(set(anchors))
-    rstext = revision.sub(r'`\1`_', rstext)
-    rstext += "\n"
+    rst_content = revision.sub(r'`\1`_', rst_content)
+    rst_content += "\n"
     for x in anchors:
         issue = re.findall(r'\d+', x)[0]
-        rstext += '.. _`%s`: %s/issue/%s\n' % (x, bitroot, issue)
-    rstext += "\n"
-    return rstext
+        rst_content += '.. _`%s`: %s/issue/%s\n' % (x, bitroot, issue)
+    rst_content += "\n"
+    return rst_content
+
+readme_file = open('README.txt')
+long_description = readme_file.read() + _linkified('CHANGES.txt')
+readme_file.close()
 
 dist = setup(
     name="distribute",
@@ -156,7 +166,7 @@ dist = setup(
     author="The fellowship of the packaging",
     author_email="distutils-sig@python.org",
     license="PSF or ZPL",
-    long_description = open('README.txt').read() + _linkified('CHANGES.txt'),
+    long_description = long_description,
     keywords = "CPAN PyPI distutils eggs package management",
     url = "http://packages.python.org/distribute",
     test_suite = 'setuptools.tests',
