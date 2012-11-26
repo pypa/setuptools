@@ -561,6 +561,15 @@ class ScriptHeaderTests(TestCase):
         if (sys.version_info >= (3,) and os.environ.get("LC_CTYPE")
             in (None, "C", "POSIX")):
             return
+
+        class java:
+            class lang:
+                class System:
+                    @staticmethod
+                    def getProperty(property):
+                        return ""
+        sys.modules["java"] = java
+
         platform = sys.platform
         sys.platform = 'java1.5.0_13'
         stdout = sys.stdout
@@ -584,6 +593,7 @@ class ScriptHeaderTests(TestCase):
                              '#!%s -x\n' % self.non_ascii_exe)
             self.assertTrue('Unable to adapt shebang line' in sys.stdout.getvalue())
         finally:
+            del sys.modules["java"]
             sys.platform = platform
             sys.stdout = stdout
 

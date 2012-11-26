@@ -1788,6 +1788,11 @@ def chmod(path, mode):
 
 def fix_jython_executable(executable, options):
     if sys.platform.startswith('java') and is_sh(executable):
+        # Workaround for Jython is not needed on Linux systems.
+        import java
+        if java.lang.System.getProperty("os.name") == "Linux":
+            return executable
+
         # Workaround Jython's sys.executable being a .sh (an invalid
         # shebang line interpreter)
         if options:

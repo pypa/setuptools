@@ -8,6 +8,7 @@ CHANGES
 
 * Fix 2 errors with Jython 2.5.
 * Fix 1 failure with Jython 2.5 and 2.7.
+* Disable workaround for Jython scripts on Linux systems.
 
 ------
 0.6.32
