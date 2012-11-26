@@ -25,7 +25,16 @@ import weakref
 
 _builtin_compile = compile
 
-from platform import python_implementation
+try:
+    from platform import python_implementation
+except ImportError:
+    if os.name == "java":
+        # Jython 2.5 has ast module, but not platform.python_implementation() function.
+        def python_implementation():
+            return "Jython"
+    else:
+        raise
+
 
 # restricted set of variables
 _VARS = {'sys.platform': sys.platform,
