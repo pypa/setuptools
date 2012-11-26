@@ -386,7 +386,7 @@ class TestSetupRequires(unittest.TestCase):
                           'VersionConflict')
 
             lines = stdout.splitlines()
-            self.assertGreater(len(lines), 0)
+            self.assertTrue(len(lines) > 0)
             self.assert_(lines[-1].strip(), 'test_pkg')
 
         try:
