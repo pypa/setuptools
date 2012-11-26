@@ -17,10 +17,8 @@ from setuptools.command.easy_install import easy_install, get_script_args, main
 from setuptools.command.easy_install import  PthDistributions
 from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
-from pkg_resources import working_set, VersionConflict
 from pkg_resources import Distribution as PRDistribution
 import setuptools.tests.server
-import pkg_resources
 
 try:
     # import multiprocessing solely for the purpose of testing its existence
@@ -275,16 +273,48 @@ class TestUserInstallTest(unittest.TestCase):
         SandboxViolation.
         """
 
-        test_pkg = create_setup_requires_package(self.dir)
-        test_setup_py = os.path.join(test_pkg, 'setup.py')
+        test_setup_attrs = {
+            'name': 'test_pkg', 'version': '0.0',
+            'setup_requires': ['foobar'],
+            'dependency_links': [os.path.abspath(self.dir)]
+        }
 
+        test_pkg = os.path.join(self.dir, 'test_pkg')
+        test_setup_py = os.path.join(test_pkg, 'setup.py')
+        test_setup_cfg = os.path.join(test_pkg, 'setup.cfg')
+        os.mkdir(test_pkg)
+
+        f = open(test_setup_py, 'w')
+        f.write(textwrap.dedent("""\
+            import setuptools
+            setuptools.setup(**%r)
+        """ % test_setup_attrs))
+        f.close()
+
+        foobar_path = os.path.join(self.dir, 'foobar-0.1.tar.gz')
+        make_trivial_sdist(
+            foobar_path,
+            textwrap.dedent("""\
+                import setuptools
+                setuptools.setup(
+                    name='foobar',
+                    version='0.1'
+                )
+            """))
+
+        old_stdout = sys.stdout
+        old_stderr = sys.stderr
+        sys.stdout = StringIO.StringIO()
+        sys.stderr = StringIO.StringIO()
         try:
-            quiet_context(
-                lambda: reset_setup_stop_context(
-                    lambda: run_setup(test_setup_py, ['install'])
-            ))
+            reset_setup_stop_context(
+                lambda: run_setup(test_setup_py, ['install'])
+            )
         except SandboxViolation:
             self.fail('Installation caused SandboxViolation')
+        finally:
+            sys.stdout = old_stdout
+            sys.stderr = old_stderr
 
 
 class TestSetupRequires(unittest.TestCase):
@@ -330,7 +360,7 @@ class TestSetupRequires(unittest.TestCase):
             tempdir_context(install_at)
 
         # create an sdist that has a build-time dependency.
-        quiet_context(lambda: self.create_sdist(install))
+        self.create_sdist(install)
 
         # there should have been two or three requests to the server
         #  (three happens on Python 3.3a)
@@ -356,81 +386,6 @@ class TestSetupRequires(unittest.TestCase):
                 """).lstrip())
             installer(dist_path)
         tempdir_context(build_sdist)
-
-    def test_setup_requires_overrides_version_conflict(self):
-        """
-        Regression test for issue #323.
-
-        Ensures that a distribution's setup_requires requirements can still be
-        installed and used locally even if a conflicting version of that
-        requirement is already on the path.
-        """
-
-        pr_state = pkg_resources.__getstate__()
-        fake_dist = PRDistribution('does-not-matter', project_name='foobar',
-                                   version='0.0')
-        working_set.add(fake_dist)
-
-        def setup_and_run(temp_dir):
-            test_pkg = create_setup_requires_package(temp_dir)
-            test_setup_py = os.path.join(test_pkg, 'setup.py')
-            try:
-                stdout, stderr = quiet_context(
-                    lambda: reset_setup_stop_context(
-                        # Don't even need to install the package, just running
-                        # the setup.py at all is sufficient
-                        lambda: run_setup(test_setup_py, ['--name'])
-                ))
-            except VersionConflict:
-                self.fail('Installing setup.py requirements caused '
-                          'VersionConflict')
-
-            lines = stdout.splitlines()
-            self.assertTrue(len(lines) > 0)
-            self.assertTrue(lines[-1].strip(), 'test_pkg')
-
-        try:
-            tempdir_context(setup_and_run)
-        finally:
-            pkg_resources.__setstate__(pr_state)
-
-
-def create_setup_requires_package(path):
-    """Creates a source tree under path for a trivial test package that has a
-    single requirement in setup_requires--a tarball for that requirement is
-    also created and added to the dependency_links argument.
-    """
-
-    test_setup_attrs = {
-        'name': 'test_pkg', 'version': '0.0',
-        'setup_requires': ['foobar==0.1'],
-        'dependency_links': [os.path.abspath(path)]
-    }
-
-    test_pkg = os.path.join(path, 'test_pkg')
-    test_setup_py = os.path.join(test_pkg, 'setup.py')
-    test_setup_cfg = os.path.join(test_pkg, 'setup.cfg')
-    os.mkdir(test_pkg)
-
-    f = open(test_setup_py, 'w')
-    f.write(textwrap.dedent("""\
-        import setuptools
-        setuptools.setup(**%r)
-    """ % test_setup_attrs))
-    f.close()
-
-    foobar_path = os.path.join(path, 'foobar-0.1.tar.gz')
-    make_trivial_sdist(
-        foobar_path,
-        textwrap.dedent("""\
-            import setuptools
-            setuptools.setup(
-                name='foobar',
-                version='0.1'
-            )
-        """))
-
-    return test_pkg
 
 
 def make_trivial_sdist(dist_path, setup_py):
@@ -466,7 +421,6 @@ def tempdir_context(f, cd=lambda dir:None):
         cd(orig_dir)
         shutil.rmtree(temp_dir)
 
-
 def environment_context(f, **updates):
     """
     Invoke f in the context
@@ -480,7 +434,6 @@ def environment_context(f, **updates):
             del os.environ[key]
         os.environ.update(old_env)
 
-
 def argv_context(f, repl):
     """
     Invoke f in the context
@@ -491,7 +444,6 @@ def argv_context(f, repl):
         f()
     finally:
         sys.argv[:] = old_argv
-
 
 def reset_setup_stop_context(f):
     """
@@ -506,21 +458,3 @@ def reset_setup_stop_context(f):
         f()
     finally:
         distutils.core._setup_stop_after = setup_stop_after
-
-
-def quiet_context(f):
-    """
-    Redirect stdout/stderr to StringIO objects to prevent console output from
-    distutils commands.
-    """
-
-    old_stdout = sys.stdout
-    old_stderr = sys.stderr
-    new_stdout = sys.stdout = StringIO.StringIO()
-    new_stderr = sys.stderr = StringIO.StringIO()
-    try:
-        f()
-    finally:
-        sys.stdout = old_stdout
-        sys.stderr = old_stderr
-    return new_stdout.getvalue(), new_stderr.getvalue()

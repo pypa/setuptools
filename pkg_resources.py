@@ -517,7 +517,7 @@ class WorkingSet(object):
                     seen[key]=1
                     yield self.by_key[key]
 
-    def add(self, dist, entry=None, insert=True, replace=False):
+    def add(self, dist, entry=None, insert=True):
         """Add `dist` to working set, associated with `entry`
 
         If `entry` is unspecified, it defaults to the ``.location`` of `dist`.
@@ -525,9 +525,8 @@ class WorkingSet(object):
         set's ``.entries`` (if it wasn't already present).
 
         `dist` is only added to the working set if it's for a project that
-        doesn't already have a distribution in the set, unless `replace=True`.
-        If it's added, any callbacks registered with the ``subscribe()`` method
-        will be called.
+        doesn't already have a distribution in the set.  If it's added, any
+        callbacks registered with the ``subscribe()`` method will be called.
         """
         if insert:
             dist.insert_on(self.entries, entry)
@@ -536,7 +535,7 @@ class WorkingSet(object):
             entry = dist.location
         keys = self.entry_keys.setdefault(entry,[])
         keys2 = self.entry_keys.setdefault(dist.location,[])
-        if not replace and dist.key in self.by_key:
+        if dist.key in self.by_key:
             return      # ignore hidden distros
 
         self.by_key[dist.key] = dist
@@ -546,8 +545,7 @@ class WorkingSet(object):
             keys2.append(dist.key)
         self._added_new(dist)
 
-    def resolve(self, requirements, env=None, installer=None,
-                replacement=True, replace_conflicting=False):
+    def resolve(self, requirements, env=None, installer=None, replacement=True):
         """List all distributions needed to (recursively) meet `requirements`
 
         `requirements` must be a sequence of ``Requirement`` objects.  `env`,
@@ -557,12 +555,6 @@ class WorkingSet(object):
         will be invoked with each requirement that cannot be met by an
         already-installed distribution; it should return a ``Distribution`` or
         ``None``.
-
-        Unless `replace_conflicting=True`, raises a VersionConflict exception if
-        any requirements are found on the path that have the correct name but
-        the wrong version.  Otherwise, if an `installer` is supplied it will be
-        invoked to obtain the correct version of the requirement and activate
-        it.
         """
 
         requirements = list(requirements)[::-1]  # set up the stack
@@ -582,18 +574,10 @@ class WorkingSet(object):
             if dist is None:
                 # Find the best distribution and add it to the map
                 dist = self.by_key.get(req.key)
-                if dist is None or (dist not in req and replace_conflicting):
-                    ws = self
+                if dist is None:
                     if env is None:
-                        if dist is None:
-                            env = Environment(self.entries)
-                        else:
-                            # Use an empty environment and workingset to avoid
-                            # any further conflicts with the conflicting
-                            # distribution
-                            env = Environment([])
-                            ws = WorkingSet([])
-                    dist = best[req.key] = env.best_match(req, ws, installer)
+                        env = Environment(self.entries)
+                    dist = best[req.key] = env.best_match(req, self, installer)
                     if dist is None:
                         #msg = ("The '%s' distribution was not found on this "
                         #       "system, and is required by this application.")
@@ -1814,7 +1798,6 @@ def register_namespace_handler(importer_type, namespace_handler):
 
 def _handle_ns(packageName, path_item):
     """Ensure that named package includes a subpath of path_item (if needed)"""
-
     importer = get_importer(path_item)
     if importer is None:
         return None
@@ -1824,19 +1807,14 @@ def _handle_ns(packageName, path_item):
     module = sys.modules.get(packageName)
     if module is None:
         module = sys.modules[packageName] = types.ModuleType(packageName)
-        module.__path__ = []
-        _set_parent_ns(packageName)
+        module.__path__ = []; _set_parent_ns(packageName)
     elif not hasattr(module,'__path__'):
         raise TypeError("Not a package:", packageName)
     handler = _find_adapter(_namespace_handlers, importer)
-    subpath = handler(importer, path_item, packageName, module)
+    subpath = handler(importer,path_item,packageName,module)
     if subpath is not None:
-        path = module.__path__
-        path.append(subpath)
-        loader.load_module(packageName)
-        for path_item in path:
-            if path_item not in module.__path__:
-                module.__path__.append(path_item)
+        path = module.__path__; path.append(subpath)
+        loader.load_module(packageName); module.__path__ = path
     return subpath
 
 def declare_namespace(packageName):
@@ -2142,7 +2120,7 @@ def _remove_md5_fragment(location):
 class Distribution(object):
     """Wrap an actual or potential sys.path entry w/metadata"""
     PKG_INFO = 'PKG-INFO'
-
+    
     def __init__(self,
         location=None, metadata=None, project_name=None, version=None,
         py_version=PY_MAJOR, platform=None, precedence = EGG_DIST
@@ -2481,7 +2459,7 @@ class DistInfoDistribution(Distribution):
             from email.parser import Parser
             self._pkg_info = Parser().parsestr(self.get_metadata(self.PKG_INFO))
             return self._pkg_info
-
+    
     @property
     def _dep_map(self):
         try:
@@ -2492,7 +2470,7 @@ class DistInfoDistribution(Distribution):
 
     def _preparse_requirement(self, requires_dist):
         """Convert 'Foobar (1); baz' to ('Foobar ==1', 'baz')
-        Split environment marker, add == prefix to version specifiers as
+        Split environment marker, add == prefix to version specifiers as 
         necessary, and remove parenthesis.
         """
         parts = requires_dist.split(';', 1) + ['']
@@ -2501,7 +2479,7 @@ class DistInfoDistribution(Distribution):
         distvers = re.sub(self.EQEQ, r"\1==\2\3", distvers)
         distvers = distvers.replace('(', '').replace(')', '')
         return (distvers, mark)
-
+            
     def _compute_dependencies(self):
         """Recompute this distribution's dependencies."""
         from _markerlib import compile as compile_marker
@@ -2514,7 +2492,7 @@ class DistInfoDistribution(Distribution):
             parsed = parse_requirements(distvers).next()
             parsed.marker_fn = compile_marker(mark)
             reqs.append(parsed)
-
+            
         def reqs_for_extra(extra):
             for req in reqs:
                 if req.marker_fn(override={'extra':extra}):
@@ -2522,13 +2500,13 @@ class DistInfoDistribution(Distribution):
 
         common = frozenset(reqs_for_extra(None))
         dm[None].extend(common)
-
+            
         for extra in self._parsed_pkg_info.get_all('Provides-Extra') or []:
             extra = safe_extra(extra.strip())
             dm[extra] = list(frozenset(reqs_for_extra(extra)) - common)
 
         return dm
-
+    
 
 _distributionImpl = {'.egg': Distribution,
                      '.egg-info': Distribution,
