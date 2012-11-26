@@ -8,6 +8,8 @@ CHANGES
 
 * Fix test suite with Python 2.6.
 * Fix some DeprecationWarnings and ResourceWarnings.
+* Issue #335: Backed out `setup_requires` superceding installed requirements
+  until regression can be addressed.
 
 ------
 0.6.31
