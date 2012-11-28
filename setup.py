@@ -85,10 +85,8 @@ class test(_test):
         entry_points = os.path.join('distribute.egg-info', 'entry_points.txt')
 
         if not os.path.exists(entry_points):
-            try:
-                _test.run(self)
-            finally:
-                return
+            _test.run(self)
+            return # even though _test.run will raise SystemExit
 
         f = open(entry_points)
 
