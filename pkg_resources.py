@@ -1325,6 +1325,9 @@ class DefaultProvider(EggProvider):
 
 register_loader_type(type(None), DefaultProvider)
 
+# Python 3.3 also supplies the SourceFileLoader.
+# Don't be tempted to do a try/except block here - it will break Mercurial
+#  hooks due to the demandimport functionality.
 if sys.version_info[:2] >= (3,3):
     import _frozen_importlib
     register_loader_type(_frozen_importlib.SourceFileLoader, DefaultProvider)
