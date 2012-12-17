@@ -1325,7 +1325,7 @@ class DefaultProvider(EggProvider):
 
 register_loader_type(type(None), DefaultProvider)
 
-if sys.version_info[:2] >= 3.3:
+if sys.version_info[:2] >= (3,3):
     import _frozen_importlib
     register_loader_type(_frozen_importlib.SourceFileLoader, DefaultProvider)
 
