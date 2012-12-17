@@ -2116,7 +2116,7 @@ def _remove_md5_fragment(location):
 class Distribution(object):
     """Wrap an actual or potential sys.path entry w/metadata"""
     PKG_INFO = 'PKG-INFO'
-    
+
     def __init__(self,
         location=None, metadata=None, project_name=None, version=None,
         py_version=PY_MAJOR, platform=None, precedence = EGG_DIST
@@ -2455,7 +2455,7 @@ class DistInfoDistribution(Distribution):
             from email.parser import Parser
             self._pkg_info = Parser().parsestr(self.get_metadata(self.PKG_INFO))
             return self._pkg_info
-    
+
     @property
     def _dep_map(self):
         try:
@@ -2466,7 +2466,7 @@ class DistInfoDistribution(Distribution):
 
     def _preparse_requirement(self, requires_dist):
         """Convert 'Foobar (1); baz' to ('Foobar ==1', 'baz')
-        Split environment marker, add == prefix to version specifiers as 
+        Split environment marker, add == prefix to version specifiers as
         necessary, and remove parenthesis.
         """
         parts = requires_dist.split(';', 1) + ['']
@@ -2475,7 +2475,7 @@ class DistInfoDistribution(Distribution):
         distvers = re.sub(self.EQEQ, r"\1==\2\3", distvers)
         distvers = distvers.replace('(', '').replace(')', '')
         return (distvers, mark)
-            
+
     def _compute_dependencies(self):
         """Recompute this distribution's dependencies."""
         from _markerlib import compile as compile_marker
@@ -2488,7 +2488,7 @@ class DistInfoDistribution(Distribution):
             parsed = parse_requirements(distvers).next()
             parsed.marker_fn = compile_marker(mark)
             reqs.append(parsed)
-            
+
         def reqs_for_extra(extra):
             for req in reqs:
                 if req.marker_fn(override={'extra':extra}):
@@ -2496,13 +2496,13 @@ class DistInfoDistribution(Distribution):
 
         common = frozenset(reqs_for_extra(None))
         dm[None].extend(common)
-            
+
         for extra in self._parsed_pkg_info.get_all('Provides-Extra') or []:
             extra = safe_extra(extra.strip())
             dm[extra] = list(frozenset(reqs_for_extra(extra)) - common)
 
         return dm
-    
+
 
 _distributionImpl = {'.egg': Distribution,
                      '.egg-info': Distribution,
