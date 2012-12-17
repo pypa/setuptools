@@ -1325,12 +1325,8 @@ class DefaultProvider(EggProvider):
 
 register_loader_type(type(None), DefaultProvider)
 
-try:
-    # CPython >=3.3
+if sys.version_info[:2] >= 3.3:
     import _frozen_importlib
-except ImportError:
-    pass
-else:
     register_loader_type(_frozen_importlib.SourceFileLoader, DefaultProvider)
 
 
