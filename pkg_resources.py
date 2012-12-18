@@ -33,6 +33,12 @@ except ImportError:
 from os import open as os_open
 from os.path import isdir, split
 
+# Avoid try/except due to potential problems with delayed import mechanisms.
+if sys.version_info >= (3, 3) and sys.implementation.name == "cpython":
+    import importlib._bootstrap as importlib_bootstrap
+else:
+    importlib_bootstrap = None
+
 # This marker is used to simplify the process that checks is the
 # setuptools package was installed by the Setuptools project
 # or by the Distribute project, in case Setuptools creates
@@ -1325,12 +1331,8 @@ class DefaultProvider(EggProvider):
 
 register_loader_type(type(None), DefaultProvider)
 
-# Python 3.3 also supplies the SourceFileLoader.
-# Don't be tempted to do a try/except block here - it will break Mercurial
-#  hooks due to the demandimport functionality.
-if sys.version_info[:2] >= (3,3):
-    import _frozen_importlib
-    register_loader_type(_frozen_importlib.SourceFileLoader, DefaultProvider)
+if importlib_bootstrap is not None:
+    register_loader_type(importlib_bootstrap.SourceFileLoader, DefaultProvider)
 
 
 class EmptyProvider(NullProvider):
@@ -1766,13 +1768,8 @@ def find_on_path(importer, path_item, only=False):
                         break
 register_finder(ImpWrapper,find_on_path)
 
-try:
-    # CPython >=3.3
-    import _frozen_importlib
-except ImportError:
-    pass
-else:
-    register_finder(_frozen_importlib.FileFinder, find_on_path)
+if importlib_bootstrap is not None:
+    register_finder(importlib_bootstrap.FileFinder, find_on_path)
 
 _declare_state('dict', _namespace_handlers={})
 _declare_state('dict', _namespace_packages={})
@@ -1873,13 +1870,8 @@ def file_ns_handler(importer, path_item, packageName, module):
 register_namespace_handler(ImpWrapper,file_ns_handler)
 register_namespace_handler(zipimport.zipimporter,file_ns_handler)
 
-try:
-    # CPython >=3.3
-    import _frozen_importlib
-except ImportError:
-    pass
-else:
-    register_namespace_handler(_frozen_importlib.FileFinder, file_ns_handler)
+if importlib_bootstrap is not None:
+    register_namespace_handler(importlib_bootstrap.FileFinder, file_ns_handler)
 
 
 def null_ns_handler(importer, path_item, packageName, module):
