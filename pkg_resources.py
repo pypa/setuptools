@@ -1762,12 +1762,14 @@ def find_on_path(importer, path_item, only=False):
                         yield dist
                 elif not only and lower.endswith('.egg-link'):
                     entry_file = open(os.path.join(path_item, entry))
-                    for line in entry_file:
-                        if not line.strip(): continue
-                        for item in find_distributions(os.path.join(path_item,line.rstrip())):
-                            yield item
-                        break
-                    entry_file.close()
+                    try:
+                        for line in entry_file:
+                            if not line.strip(): continue
+                            for item in find_distributions(os.path.join(path_item,line.rstrip())):
+                                yield item
+                            break
+                    finally:
+                        entry_file.close()
 register_finder(ImpWrapper,find_on_path)
 
 if importlib_bootstrap is not None:
