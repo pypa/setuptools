@@ -12,6 +12,7 @@ CHANGES
 * Fix issue in pkg_resources where try/except around a platform-dependent
   import would trigger hook load failures on Mercurial. See pull request 32
   for details.
+* Issue #341: Fix a ResourceWarning.
 
 ------
 0.6.32
