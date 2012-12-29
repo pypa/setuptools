@@ -9,6 +9,7 @@ CHANGES
 * Fix 2 errors with Jython 2.5.
 * Fix 1 failure with Jython 2.5 and 2.7.
 * Disable workaround for Jython scripts on Linux systems.
+* Issue #336: `setup.py` no longer masks failure exit code when tests fail.
 * Fix issue in pkg_resources where try/except around a platform-dependent
   import would trigger hook load failures on Mercurial. See pull request 32
   for details.
