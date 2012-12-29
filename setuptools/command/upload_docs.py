@@ -105,7 +105,9 @@ class upload_docs(upload):
             shutil.rmtree(tmp_dir)
 
     def upload_file(self, filename):
-        content = open(filename, 'rb').read()
+        f = open(filename, 'rb')
+        content = f.read()
+        f.close()
         meta = self.distribution.metadata
         data = {
             ':action': 'doc_upload',

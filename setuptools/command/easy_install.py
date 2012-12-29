@@ -491,7 +491,7 @@ Please make the appropriate changes for your system and try again.
             self.cant_write_to_target()
         else:
             try:
-                f.write("import os;open(%r,'w').write('OK')\n" % (ok_file,))
+                f.write("import os; f = open(%r, 'w'); f.write('OK'); f.close()\n" % (ok_file,))
                 f.close(); f=None
                 executable = sys.executable
                 if os.name=='nt':
