@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+----------
+Unreleased
+----------
+
++ Issue #341: 0.6.33 fails to build under python 2.4
+
 ------
 0.6.33
 ------
