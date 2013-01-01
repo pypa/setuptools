@@ -136,7 +136,7 @@ if _being_installed():
 # return contents of reStructureText file with linked issue references
 def _linkified(rst_path):
     bitroot = 'http://bitbucket.org/tarek/distribute'
-    revision = re.compile(r'\b(issue\s*#?\d+)\b', re.M | re.I)
+    revision = re.compile(r'\b(issue\s+#?\d+)\b', re.M | re.I)
 
     rst_file = open(rst_path)
     rst_content = rst_file.read()
