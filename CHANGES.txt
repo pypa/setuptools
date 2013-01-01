@@ -2,11 +2,15 @@
 CHANGES
 =======
 
-----------
-Unreleased
-----------
+------
+0.6.35
+------
 
-+ Issue #341: 0.6.33 fails to build under python 2.4
+------
+0.6.34
+------
+
+* Issue #341: 0.6.33 fails to build under Python 2.4.
 
 ------
 0.6.33
