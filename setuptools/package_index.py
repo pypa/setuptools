@@ -139,20 +139,26 @@ REL = re.compile("""<([^>]*\srel\s*=\s*['"]?([^'">]+)[^>]*)>""", re.I)
 
 def find_external_links(url, page):
     """Find rel="homepage" and rel="download" links in `page`, yielding URLs"""
+    seen = set()
 
     for match in REL.finditer(page):
         tag, rel = match.groups()
         rels = map(str.strip, rel.lower().split(','))
         if 'homepage' in rels or 'download' in rels:
             for match in HREF.finditer(tag):
-                yield urlparse.urljoin(url, htmldecode(match.group(1)))
+                url = urlparse.urljoin(url, htmldecode(match.group(1)))
+                if not url in seen:
+                    yield url
 
     for tag in ("<th>Home Page", "<th>Download URL"):
         pos = page.find(tag)
         if pos!=-1:
             match = HREF.search(page,pos)
             if match:
-                yield urlparse.urljoin(url, htmldecode(match.group(1)))
+                url = urlparse.urljoin(url, htmldecode(match.group(1)))
+                if not url in seen:
+                    yield url
+
 
 user_agent = "Python-urllib/%s distribute/%s" % (
     sys.version[:3], require('distribute')[0].version
