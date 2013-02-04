@@ -148,6 +148,7 @@ def find_external_links(url, page):
             for match in HREF.finditer(tag):
                 link = urlparse.urljoin(url, htmldecode(match.group(1)))
                 if not link in seen_links:
+                    seen_links.add(link)
                     yield link
 
     for tag in ("<th>Home Page", "<th>Download URL"):
@@ -157,6 +158,7 @@ def find_external_links(url, page):
             if match:
                 link = urlparse.urljoin(url, htmldecode(match.group(1)))
                 if not link in seen_links:
+                    seen_links.add(link)
                     yield link
 
 
