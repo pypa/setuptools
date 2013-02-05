@@ -21,11 +21,11 @@ Let's create a simple script, foo-script.py:
     ... """#!%(python_exe)s
     ... import sys
     ... input = repr(sys.stdin.read())
-    ... print sys.argv[0][-14:]
-    ... print sys.argv[1:]
-    ... print input
+    ... print(sys.argv[0][-14:])
+    ... print(sys.argv[1:])
+    ... print(input)
     ... if __debug__:
-    ...     print 'non-optimized'
+    ...     print('non-optimized')
     ... """ % dict(python_exe=nt_quote_arg(sys.executable)))
     >>> f.close()
 
@@ -54,7 +54,7 @@ the wrapper:
     ...               + r' arg1 "arg 2" "arg \"2\\\"" "arg 4\\" "arg5 a\\b"')
     >>> input.write('hello\nworld\n')
     >>> input.close()
-    >>> print output.read(),
+    >>> print(output.read(),)
     \foo-script.py
     ['arg1', 'arg 2', 'arg "2\\"', 'arg 4\\', 'arg5 a\\\\b']
     'hello\nworld\n'
@@ -86,18 +86,18 @@ enter the interpreter after running the script, you could use -Oi:
     ... """#!%(python_exe)s  -Oi
     ... import sys
     ... input = repr(sys.stdin.read())
-    ... print sys.argv[0][-14:]
-    ... print sys.argv[1:]
-    ... print input
+    ... print(sys.argv[0][-14:])
+    ... print(sys.argv[1:])
+    ... print(input)
     ... if __debug__:
-    ...     print 'non-optimized'
+    ...     print('non-optimized')
     ... sys.ps1 = '---'
     ... """ % dict(python_exe=nt_quote_arg(sys.executable)))
     >>> f.close()
 
     >>> input, output = os.popen4(nt_quote_arg(os.path.join(sample_directory, 'foo.exe')))
     >>> input.close()
-    >>> print output.read(),
+    >>> print(output.read(),)
     \foo-script.py
     []
     ''
@@ -136,10 +136,10 @@ Finally, we'll run the script and check the result:
     >>> input, output = os.popen4('"'+nt_quote_arg(os.path.join(sample_directory, 'bar.exe'))
     ...               + r' "%s" "Test Argument"' % os.path.join(sample_directory, 'test_output.txt'))
     >>> input.close()
-    >>> print output.read()
+    >>> print(output.read())
     <BLANKLINE>
     >>> f = open(os.path.join(sample_directory, 'test_output.txt'), 'rb')
-    >>> print f.read()
+    >>> print(f.read())
     'Test Argument'
     >>> f.close()
 
