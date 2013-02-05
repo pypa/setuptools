@@ -1349,6 +1349,7 @@ class EmptyProvider(NullProvider):
 
 empty_provider = EmptyProvider()
 
+
 def build_zipmanifest(path):
     """
     This builds a similar dictionary to the zipimport directory
@@ -1363,9 +1364,9 @@ def build_zipmanifest(path):
       * [3] - zipinfo.file_size
       * [4] - len(utf-8 encoding of filename) if zipinfo & 0x800
               len(ascii encoding of filename) otherwise
-      * [5] - (zipinfo.date_time[0] - 1980) << 9 | 
+      * [5] - (zipinfo.date_time[0] - 1980) << 9 |
                zipinfo.date_time[1] << 5 | zipinfo.date_time[2]
-      * [6] - (zipinfo.date_time[3] - 1980) << 11 | 
+      * [6] - (zipinfo.date_time[3] - 1980) << 11 |
                zipinfo.date_time[4] << 5 | (zipinfo.date_time[5] // 2)
       * [7] - zipinfo.CRC
     """
@@ -1422,7 +1423,7 @@ class ZipProvider(EggProvider):
     @staticmethod
     def _get_date_and_size(zip_stat):
         size = zip_stat.file_size
-        date_time = zip_stat.date_time + (0, 0, -1) #ymdhms+wday, yday, dst
+        date_time = zip_stat.date_time + (0, 0, -1) # ymdhms+wday, yday, dst
         #1980 offset already done
         timestamp = time.mktime(date_time)
         return timestamp, size
