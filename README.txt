@@ -99,9 +99,9 @@ Source installation
 
 Download the source tarball, uncompress it, then run the install command::
 
-    $ curl -O http://pypi.python.org/packages/source/d/distribute/distribute-0.6.35.tar.gz
-    $ tar -xzvf distribute-0.6.35.tar.gz
-    $ cd distribute-0.6.35
+    $ curl -O http://pypi.python.org/packages/source/d/distribute/distribute-0.6.36.tar.gz
+    $ tar -xzvf distribute-0.6.36.tar.gz
+    $ cd distribute-0.6.36
     $ python setup.py install
 
 ---------------------------
