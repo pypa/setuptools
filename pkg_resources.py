@@ -13,7 +13,7 @@ The package resource API is designed to work with normal filesystem packages,
 method.
 """
 
-import sys, os, zipimport, time, re, imp, types
+import sys, os, time, re, imp, types, zipfile, zipimport
 from urlparse import urlparse, urlunparse
 
 try:
@@ -1349,6 +1349,37 @@ class EmptyProvider(NullProvider):
 empty_provider = EmptyProvider()
 
 
+def build_zipmanifest(path):
+    """
+    This builds a similar dictionary to the zipimport directory
+    caches.  However instead of tuples, ZipInfo objects are stored.
+
+    The translation of the tuple is as follows:
+      * [0] - zipinfo.filename on stock pythons this needs "/" --> os.sep
+              on pypy it is the same (one reason why distribute did work
+              in some cases on pypy and win32).
+      * [1] - zipinfo.compress_type
+      * [2] - zipinfo.compress_size
+      * [3] - zipinfo.file_size
+      * [4] - len(utf-8 encoding of filename) if zipinfo & 0x800
+              len(ascii encoding of filename) otherwise
+      * [5] - (zipinfo.date_time[0] - 1980) << 9 |
+               zipinfo.date_time[1] << 5 | zipinfo.date_time[2]
+      * [6] - (zipinfo.date_time[3] - 1980) << 11 |
+               zipinfo.date_time[4] << 5 | (zipinfo.date_time[5] // 2)
+      * [7] - zipinfo.CRC
+    """
+    zipinfo = dict()
+    zfile = zipfile.ZipFile(path)
+    #Got ZipFile has not __exit__ on python 3.1
+    try:
+        for zitem in zfile.namelist():
+            zpath = zitem.replace('/', os.sep)
+            zipinfo[zpath] = zfile.getinfo(zitem)
+            assert zipinfo[zpath] is not None
+    finally:
+        zfile.close()
+    return zipinfo
 
 
 class ZipProvider(EggProvider):
@@ -1358,7 +1389,7 @@ class ZipProvider(EggProvider):
 
     def __init__(self, module):
         EggProvider.__init__(self,module)
-        self.zipinfo = zipimport._zip_directory_cache[self.loader.archive]
+        self.zipinfo = build_zipmanifest(self.load.archive)
         self.zip_pre = self.loader.archive+os.sep
 
     def _zipinfo_name(self, fspath):
@@ -1394,11 +1425,9 @@ class ZipProvider(EggProvider):
 
     @staticmethod
     def _get_date_and_size(zip_stat):
-        t,d,size = zip_stat[5], zip_stat[6], zip_stat[3]
-        date_time = (
-            (d>>9)+1980, (d>>5)&0xF, d&0x1F,                      # ymd
-            (t&0xFFFF)>>11, (t>>5)&0x3F, (t&0x1F) * 2, 0, 0, -1   # hms, etc.
-        )
+        size = zip_stat.file_size
+        date_time = zip_stat.date_time + (0, 0, -1)  # ymdhms+wday, yday, dst
+        #1980 offset already done
         timestamp = time.mktime(date_time)
         return timestamp, size
 
@@ -1610,7 +1639,7 @@ class EggMetadata(ZipProvider):
     def __init__(self, importer):
         """Create a metadata provider from a zipimporter"""
 
-        self.zipinfo = zipimport._zip_directory_cache[importer.archive]
+        self.zipinfo = build_zipmanifest(importer.archive)
         self.zip_pre = importer.archive+os.sep
         self.loader = importer
         if importer.prefix:
@@ -2840,4 +2869,5 @@ run_main = run_script   # backward compatibility
 # calling ``require()``) will get activated as well.
 add_activation_listener(lambda dist: dist.activate())
 working_set.entries=[]; map(working_set.add_entry,sys.path) # match order
+
 
