@@ -337,10 +337,16 @@ class TestSdistTest(unittest.TestCase):
             filename = decompose(filename)
 
         if sys.version_info >= (3,):
-            if sys.platform == 'win32':
-                # Python 3 mangles the UTF-8 filename
-                filename = filename.decode('cp1252')
-                self.assertTrue(filename in cmd.filelist.files)
+            fs_enc = sys.getfilesystemencoding()
+
+            if sys.platform == 'win32': 
+                if fs_enc == 'cp1252':
+                    # Python 3 mangles the UTF-8 filename
+                    filename = filename.decode('cp1252')
+                    self.assertTrue(filename in cmd.filelist.files)
+                else:
+                    filename = filename.decode('mbcs')
+                    self.assertTrue(filename in cmd.filelist.files)
             else:
                 filename = filename.decode('utf-8')
                 self.assertTrue(filename in cmd.filelist.files)
@@ -357,6 +363,7 @@ class TestSdistTest(unittest.TestCase):
         # Latin-1 filename
         filename = os.path.join(b('sdist_test'), LATIN1_FILENAME)
         open(filename, 'w').close()
+        self.assertTrue(os.path.isfile(filename))
 
         quiet()
         try:
@@ -365,16 +372,27 @@ class TestSdistTest(unittest.TestCase):
             unquiet()
 
         if sys.version_info >= (3,):
-            filename = filename.decode('latin-1')
+            fs_enc = sys.getfilesystemencoding()
+
+
+            #not all windows systems have a default FS encoding of cp1252
             if sys.platform == 'win32':
-                # Latin-1 is similar to Windows-1252
+                # Latin-1 is similar to Windows-1252 however 
+                # on mbcs filesys it is not in latin-1 encoding
+                if fs_enc == 'mbcs':
+                    filename = filename.decode('mbcs')
+                else:
+                    filename = filename.decode('latin-1')
+                    
                 self.assertTrue(filename in cmd.filelist.files)
             else:
                 # The Latin-1 filename should have been skipped
+                filename = filename.decode('latin-1')
                 self.assertFalse(filename in cmd.filelist.files)
         else:
             # No conversion takes place under Python 2 and the file
             # is included. We shall keep it that way for BBB.
+            filename = filename.decode('latin-1')
             self.assertTrue(filename in cmd.filelist.files)
 
 
