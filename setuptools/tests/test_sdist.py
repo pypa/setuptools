@@ -372,13 +372,11 @@ class TestSdistTest(unittest.TestCase):
             unquiet()
 
         if sys.version_info >= (3,):
-            fs_enc = sys.getfilesystemencoding()
-
-
             #not all windows systems have a default FS encoding of cp1252
             if sys.platform == 'win32':
                 # Latin-1 is similar to Windows-1252 however 
                 # on mbcs filesys it is not in latin-1 encoding
+                fs_enc = sys.getfilesystemencoding()
                 if fs_enc == 'mbcs':
                     filename = filename.decode('mbcs')
                 else:
@@ -392,7 +390,6 @@ class TestSdistTest(unittest.TestCase):
         else:
             # No conversion takes place under Python 2 and the file
             # is included. We shall keep it that way for BBB.
-            filename = filename.decode('latin-1')
             self.assertTrue(filename in cmd.filelist.files)
 
 
