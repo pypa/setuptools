@@ -50,7 +50,7 @@ def get_mercurial_creds(system='https://bitbucket.org', username=None):
 	# todo: consider getting this from .hgrc
 	username = username or getpass.getuser()
 	keyring_username = '@@'.join((username, system))
-	system = '@'.join((keyring_username, 'Mercurial'))
+	system = 'Mercurial'
 	password = (
 		keyring.get_password(system, keyring_username)
 		if 'keyring' in globals()
