@@ -6,6 +6,13 @@ CHANGES
 0.6.35
 ------
 
+Note this release is backward-incompatible with distribute 0.6.23-0.6.34 in
+how it parses version numbers.
+
+* Issue #278: Restored compatibility with distribute 0.6.22 and setuptools
+  0.6. Updated the documentation to match more closely with the version
+  parsing as intended in setuptools 0.6.
+
 ------
 0.6.34
 ------

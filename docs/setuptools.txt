@@ -187,10 +187,11 @@ than ``2.4.1`` (which has a higher release number).
 
 A pre-release tag is a series of letters that are alphabetically before
 "final".  Some examples of prerelease tags would include ``alpha``, ``beta``,
-``a``, ``c``, ``dev``, and so on.  You do not have to place a dot before
-the prerelease tag if it's immediately after a number, but it's okay to do
-so if you prefer.  Thus, ``2.4c1`` and ``2.4.c1`` both represent release
-candidate 1 of version ``2.4``, and are treated as identical by setuptools.
+``a``, ``c``, ``dev``, and so on.  You do not have to place a dot or dash
+before the prerelease tag if it's immediately after a number, but it's okay to
+do so if you prefer.  Thus, ``2.4c1`` and ``2.4.c1`` and ``2.4-c1`` all
+represent release candidate 1 of version ``2.4``, and are treated as identical
+by setuptools.
 
 In addition, there are three special prerelease tags that are treated as if
 they were the letter ``c``: ``pre``, ``preview``, and ``rc``.  So, version
@@ -216,13 +217,6 @@ a post-release tag, so this version is *newer* than ``0.6a9.dev``.
 For the most part, setuptools' interpretation of version numbers is intuitive,
 but here are a few tips that will keep you out of trouble in the corner cases:
 
-* Don't use ``-`` or any other character than ``.`` as a separator, unless you
-  really want a post-release.  Remember that ``2.1-rc2`` means you've
-  *already* released ``2.1``, whereas ``2.1rc2`` and ``2.1.c2`` are candidates
-  you're putting out *before* ``2.1``.  If you accidentally distribute copies
-  of a post-release that you meant to be a pre-release, the only safe fix is to
-  bump your main release number (e.g. to ``2.1.1``) and re-release the project.
-
 * Don't stick adjoining pre-release tags together without a dot or number
   between them.  Version ``1.9adev`` is the ``adev`` prerelease of ``1.9``,
   *not* a development pre-release of ``1.9a``.  Use ``.dev`` instead, as in
@@ -239,7 +233,7 @@ but here are a few tips that will keep you out of trouble in the corner cases:
     >>> parse_version('1.9.a.dev') == parse_version('1.9a0dev')
     True
     >>> parse_version('2.1-rc2') < parse_version('2.1')
-    False
+    True
     >>> parse_version('0.6a9dev-r41475') < parse_version('0.6a9')
     True
 
