@@ -54,11 +54,12 @@ the wrapper:
     ...               + r' arg1 "arg 2" "arg \"2\\\"" "arg 4\\" "arg5 a\\b"')
     >>> input.write('hello\nworld\n')
     >>> input.close()
-    >>> print(output.read(),)
+    >>> print(output.read())
     \foo-script.py
     ['arg1', 'arg 2', 'arg "2\\"', 'arg 4\\', 'arg5 a\\\\b']
     'hello\nworld\n'
     non-optimized
+    <BLANKLINE>
 
 This example was a little pathological in that it exercised windows
 (MS C runtime) quoting rules:
@@ -97,11 +98,12 @@ enter the interpreter after running the script, you could use -Oi:
 
     >>> input, output = os.popen4(nt_quote_arg(os.path.join(sample_directory, 'foo.exe')))
     >>> input.close()
-    >>> print(output.read(),)
+    >>> print(output.read())
     \foo-script.py
     []
     ''
     ---
+    <BLANKLINE>
 
 Testing the GUI Version
 -----------------------
