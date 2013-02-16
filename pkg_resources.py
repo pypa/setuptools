@@ -1371,11 +1371,15 @@ def build_zipmanifest(path):
       * [7] - zipinfo.CRC
     """
     zipinfo = dict()
-    with zipfile.ZipFile(path) as zfile:
+    zfile = zipfile.ZipFile(path)
+    #Got ZipFile has not __exit__ on python 3.1
+    try:
         for zitem in zfile.namelist():
             zpath = zitem.replace('/', os.sep)
             zipinfo[zpath] = zfile.getinfo(zitem)
             assert zipinfo[zpath] is not None
+    finally:
+        zfile.close()
     return zipinfo
 
 
