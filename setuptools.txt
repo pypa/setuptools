@@ -217,11 +217,7 @@ For the most part, setuptools' interpretation of version numbers is intuitive,
 but here are a few tips that will keep you out of trouble in the corner cases:
 
 * Don't use ``-`` or any other character than ``.`` as a separator, unless you
-  really want a post-release.  Remember that ``2.1-rc2`` means you've
-  *already* released ``2.1``, whereas ``2.1rc2`` and ``2.1.c2`` are candidates
-  you're putting out *before* ``2.1``.  If you accidentally distribute copies
-  of a post-release that you meant to be a pre-release, the only safe fix is to
-  bump your main release number (e.g. to ``2.1.1``) and re-release the project.
+  really want a post-release.
 
 * Don't stick adjoining pre-release tags together without a dot or number
   between them.  Version ``1.9adev`` is the ``adev`` prerelease of ``1.9``,
@@ -239,7 +235,7 @@ but here are a few tips that will keep you out of trouble in the corner cases:
     >>> parse_version('1.9.a.dev') == parse_version('1.9a0dev')
     True
     >>> parse_version('2.1-rc2') < parse_version('2.1')
-    False
+    True
     >>> parse_version('0.6a9dev-r41475') < parse_version('0.6a9')
     True
 
