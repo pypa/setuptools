@@ -19,6 +19,7 @@ Contributors
 * Martin von Löwis
 * Noufal Ibrahim
 * Pete Hollobon
+* Philip J. Eby
 * Philip Jenvey
 * Reinout van Rees
 * Robert Myers
