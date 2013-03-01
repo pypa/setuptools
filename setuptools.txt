@@ -2628,6 +2628,10 @@ XXX
 Release Notes/Change History
 ----------------------------
 
+0.6c12
+ * Fix documentation describing incorrect pre/post release version comparison
+   logic.
+ 
 0.6c11
  * Fix "bdist_wininst upload" trying to upload same file twice
 
