@@ -157,7 +157,7 @@ long_description = readme_file.read() + _linkified('CHANGES.txt')
 readme_file.close()
 
 dist = setup(
-    name="distribute",
+    name="setuptools",
     version=VERSION,
     description="Easily download, build, install, upgrade, and uninstall "
                 "Python packages",
@@ -166,7 +166,7 @@ dist = setup(
     license="PSF or ZPL",
     long_description = long_description,
     keywords = "CPAN PyPI distutils eggs package management",
-    url = "http://packages.python.org/distribute",
+    url = "http://pypi.python.org/pypi/setuptools",
     test_suite = 'setuptools.tests',
     src_root = src_root,
     packages = find_packages(),
