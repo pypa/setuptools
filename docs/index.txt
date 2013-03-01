@@ -1,16 +1,15 @@
-Welcome to Distribute's documentation!
-======================================
+Welcome to Setuptools' documentation!
+=====================================
 
-`Distribute` is a fork of the `Setuptools` project.
+Setuptools is a fully-featured, actively-maintained, and stable library
+designed to facilitate packaging Python projects, where packaging includes:
 
-Distribute is intended to replace Setuptools as the standard method for
-working with Python module distributions.
-
-For those who may wonder why they should switch to Distribute over Setuptools, it’s quite simple:
-
-- Distribute is a drop-in replacement for Setuptools
-- The code is actively maintained, and has over 10 commiters
-- Distribute offers Python 3 support !
+ - Python package and module definitions
+ - Distribution package metadata
+ - Test hooks
+ - Project installation
+ - Platform-specific details
+ - Python 3 support
 
 Documentation content:
 
@@ -23,14 +22,3 @@ Documentation content:
    setuptools
    easy_install
    pkg_resources
-
-
-.. image:: http://python-distribute.org/pip_distribute.png
-
-Design done by Idan Gazit (http://pixane.com) - License: cc-by-3.0
-
-Copy & paste::
-
- curl -O http://python-distribute.org/distribute_setup.py
- python distribute_setup.py
- easy_install pip

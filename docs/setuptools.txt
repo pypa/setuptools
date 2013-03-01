@@ -1,8 +1,8 @@
 ==================================================
-Building and Distributing Packages with Distribute
+Building and Distributing Packages with Setuptools
 ==================================================
 
-``Distribute`` is a collection of enhancements to the Python ``distutils``
+``Setuptools`` is a collection of enhancements to the Python ``distutils``
 (for Python 2.3.5 and up on most platforms; 64-bit platforms require a minimum
 of Python 2.4) that allow you to more easily build and distribute Python
 packages, especially ones that have dependencies on other packages.
@@ -15,7 +15,7 @@ including just a single `bootstrap module`_ (an 8K .py file), your package will
 automatically download and install ``setuptools`` if the user is building your
 package from source and doesn't have a suitable version already installed.
 
-.. _bootstrap module: http://nightly.ziade.org/distribute_setup.py
+.. _bootstrap module: http://bitbucket.org/jaraco/setuptools/downloads/ez_setup.py
 
 Feature Highlights:
 

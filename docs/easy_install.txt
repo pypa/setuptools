@@ -94,7 +94,7 @@ directory, you can also retarget the installation location for scripts so they
 go on a directory that's already on the ``PATH``.  For more information see the
 sections below on `Command-Line Options`_ and `Configuration Files`_.  You
 can pass command line options (such as ``--script-dir``) to
-``distribute_setup.py`` to control where ``easy_install.exe`` will be installed.
+``ez_setup.py`` to control where ``easy_install.exe`` will be installed.
 
 
 
@@ -776,10 +776,12 @@ Command-Line Options
     package not being available locally, or due to the use of the ``--update``
     or ``-U`` option.
 
-``--no-find-links`` Blocks the addition of any link. (New in Distribute 0.6.11)
-    This is useful if you want to avoid adding links defined in a project
-    easy_install is installing (wether it's a requested project or a
-    dependency.). When used, ``--find-links`` is ignored.
+``--no-find-links`` Blocks the addition of any link.
+    This parameter is useful if you want to avoid adding links defined in a
+    project easy_install is installing (whether it's a requested project or a
+    dependency). When used, ``--find-links`` is ignored.
+
+    Added in Distribute 0.6.11 and Setuptools 0.7.
 
 ``--delete-conflicting, -D`` (Removed in 0.6a11)
     (As of 0.6a11, this option is no longer necessary; please do not use it!)
