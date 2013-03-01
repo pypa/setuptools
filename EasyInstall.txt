@@ -1217,7 +1217,9 @@ displayed MD5 info (broken onto two lines for readability)::
 Release Notes/Change History
 ============================
 
-0.6final
+0.6c12
+ * Default --index-URL to SSL version of PyPI
+
  * Fixed AttributeError under Python 2.3 when processing "HTTP authentication"
    URLs (i.e., ones with a ``user:password@host``).
 
