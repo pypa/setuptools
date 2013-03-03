@@ -14,16 +14,6 @@ __all__ = [
     'find_packages'
 ]
 
-# This marker is used to simplify the process that checks is the
-# setuptools package was installed by the Setuptools project
-# or by the Distribute project, in case Setuptools creates
-# a distribution with the same version.
-#
-# The distribute_setup script for instance, will check if this
-# attribute is present to decide whether to reinstall the package
-# or not.
-_distribute = True
-
 bootstrap_install_from = None
 
 # If we run 2to3 on .py files, should we also convert docstrings?
@@ -51,7 +41,7 @@ def find_packages(where='.', exclude=()):
                 os.path.isfile(os.path.join(fn,'__init__.py'))
             ):
                 out.append(prefix+name); stack.append((fn,prefix+name+'.'))
-    for pat in list(exclude)+['ez_setup', 'distribute_setup']:
+    for pat in list(exclude)+['ez_setup']:
         from fnmatch import fnmatchcase
         out = [item for item in out if not fnmatchcase(item,pat)]
     return out
