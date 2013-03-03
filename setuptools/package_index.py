@@ -154,8 +154,8 @@ def find_external_links(url, page):
             if match:
                 yield urlparse.urljoin(url, htmldecode(match.group(1)))
 
-user_agent = "Python-urllib/%s distribute/%s" % (
-    sys.version[:3], require('distribute')[0].version
+user_agent = "Python-urllib/%s setuptools/%s" % (
+    sys.version[:3], require('setuptools')[0].version
 )
 
 
