@@ -39,15 +39,6 @@ if sys.version_info >= (3, 3) and sys.implementation.name == "cpython":
 else:
     importlib_bootstrap = None
 
-# This marker is used to simplify the process that checks is the
-# setuptools package was installed by the Setuptools project
-# or by the Distribute project, in case Setuptools creates
-# a distribution with the same version.
-#
-# The bootstrapping script for instance, will check if this
-# attribute is present to decide wether to reinstall the package
-_distribute = True
-
 def _bypass_ensure_directory(name, mode=0777):
     # Sandbox-bypassing version of ensure_directory()
     if not WRITE_SUPPORT:
@@ -551,7 +542,7 @@ class WorkingSet(object):
             keys2.append(dist.key)
         self._added_new(dist)
 
-    def resolve(self, requirements, env=None, installer=None, replacement=True):
+    def resolve(self, requirements, env=None, installer=None):
         """List all distributions needed to (recursively) meet `requirements`
 
         `requirements` must be a sequence of ``Requirement`` objects.  `env`,
@@ -570,9 +561,6 @@ class WorkingSet(object):
 
         while requirements:
             req = requirements.pop(0)   # process dependencies breadth-first
-            if _override_setuptools(req) and replacement:
-                req = Requirement.parse('distribute')
-
             if req in processed:
                 # Ignore cyclic or redundant dependencies
                 continue
@@ -2346,17 +2334,6 @@ class Distribution(object):
         """Insert self.location in path before its nearest parent directory"""
 
         loc = loc or self.location
-
-        if self.project_name == 'setuptools':
-            try:
-                version = self.version
-            except ValueError:
-                version = ''
-            if '0.7' in version:
-                raise ValueError(
-                    "A 0.7-series setuptools cannot be installed "
-                    "with distribute. Found one at %s" % str(self.location))
-
         if not loc:
             return
 
@@ -2395,7 +2372,7 @@ class Distribution(object):
 
 
     def check_version_conflict(self):
-        if self.key=='distribute':
+        if self.key=='setuptools':
             return      # ignore the inevitable setuptools self-conflicts  :(
 
         nsp = dict.fromkeys(self._get_metadata('namespace_packages.txt'))
@@ -2676,22 +2653,11 @@ class Requirement:
     def __repr__(self): return "Requirement.parse(%r)" % str(self)
 
     #@staticmethod
-    def parse(s, replacement=True):
+    def parse(s):
         reqs = list(parse_requirements(s))
         if reqs:
-            if len(reqs) == 1:
-                founded_req = reqs[0]
-                # if asked for setuptools distribution
-                # and if distribute is installed, we want to give
-                # distribute instead
-                if _override_setuptools(founded_req) and replacement:
-                    distribute = list(parse_requirements('distribute'))
-                    if len(distribute) == 1:
-                        return distribute[0]
-                    return founded_req
-                else:
-                    return founded_req
-
+            if len(reqs)==1:
+                return reqs[0]
             raise ValueError("Expected only one requirement", s)
         raise ValueError("No requirements found", s)
 
@@ -2706,26 +2672,6 @@ state_machine = {
     '==':  'T..',
     '!=':  'F++',
 }
-
-
-def _override_setuptools(req):
-    """Return True when distribute wants to override a setuptools dependency.
-
-    We want to override when the requirement is setuptools and the version is
-    a variant of 0.6.
-
-    """
-    if req.project_name == 'setuptools':
-        if not len(req.specs):
-            # Just setuptools: ok
-            return True
-        for comparator, version in req.specs:
-            if comparator in ['==', '>=', '>']:
-                if '0.7' in version:
-                    # We want some setuptools not from the 0.6 series.
-                    return False
-        return True
-    return False
 
 
 def _get_mro(cls):
