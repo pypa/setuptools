@@ -7,7 +7,7 @@ A tool for doing automatic download/extract/build of distutils-based Python
 packages.  For detailed documentation, see the accompanying EasyInstall.txt
 file, or visit the `EasyInstall home page`__.
 
-__ http://packages.python.org/distribute/easy_install.html
+__ http://packages.python.org/setuptools/easy_install.html
 
 """
 import sys
@@ -200,7 +200,7 @@ class easy_install(Command):
 
     def finalize_options(self):
         if self.version:
-            print 'distribute %s' % get_distribution('distribute').version
+            print 'setuptools %s' % get_distribution('setuptools').version
             sys.exit()
 
         py_version = sys.version.split()[0]
@@ -465,7 +465,7 @@ variable.
 For information on other options, you may wish to consult the
 documentation at:
 
-  http://packages.python.org/distribute/easy_install.html
+  http://packages.python.org/setuptools/easy_install.html
 
 Please make the appropriate changes for your system and try again.
 """
@@ -1164,7 +1164,8 @@ See the setuptools documentation for the "develop" command for more info.
         if not self.dry_run:
 
             self.pth_file.save()
-            if dist.key=='distribute':
+
+            if dist.key=='setuptools':
                 # Ensure that setuptools itself never becomes unavailable!
                 # XXX should this check for latest version?
                 filename = os.path.join(self.install_dir,'setuptools.pth')
@@ -1249,7 +1250,7 @@ Here are some of your options for correcting the problem:
 * You can set up the installation directory to support ".pth" files by
   using one of the approaches described here:
 
-  http://packages.python.org/distribute/easy_install.html#custom-installation-locations
+  http://packages.python.org/setuptools/easy_install.html#custom-installation-locations
 
 Please make the appropriate changes for your system and try again.""" % (
         self.install_dir, os.environ.get('PYTHONPATH','')
@@ -1271,7 +1272,7 @@ Please make the appropriate changes for your system and try again.""" % (
             return  # already did it, or don't need to
 
         sitepy = os.path.join(self.install_dir, "site.py")
-        source = resource_string(Requirement.parse("distribute"), "site.py")
+        source = resource_string(Requirement.parse("setuptools"), "site.py")
         current = ""
 
         if os.path.exists(sitepy):
