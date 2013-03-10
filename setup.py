@@ -107,21 +107,6 @@ class test(_test):
                 f.close()
 
 
-def _buildout_marker():
-    command = os.environ.get('_')
-    if command:
-        return 'buildout' in os.path.basename(command)
-
-def _being_installed():
-    if _buildout_marker():
-        # Installed by buildout, don't mess with a global setuptools.
-        return False
-    return 'install' in sys.argv[1:]
-
-if _being_installed():
-    from ez_setup import _before_install
-    _before_install()
-
 # return contents of reStructureText file with linked issue references
 def _linkified(rst_path):
     bitroot = 'http://bitbucket.org/tarek/distribute'
@@ -236,7 +221,3 @@ dist = setup(
         """).strip().splitlines(),
     scripts = scripts,
 )
-
-if _being_installed():
-    from ez_setup import _after_install
-    _after_install(dist)
