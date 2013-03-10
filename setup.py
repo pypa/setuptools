@@ -21,7 +21,7 @@ if sys.version_info >= (3,):
     manifest_file.close()
     dir_util.create_tree(tmp_src, fl.files)
     outfiles_2to3 = []
-    dist_script = os.path.join("build", "src", "distribute_setup.py")
+    dist_script = os.path.join("build", "src", "ez_setup.py")
     for f in fl.files:
         outf, copied = file_util.copy_file(f, os.path.join(tmp_src, f), update=1)
         if copied and outf.endswith(".py") and outf != dist_script:
@@ -82,7 +82,7 @@ class build_py(_build_py):
 class test(_test):
     """Specific test class to avoid rewriting the entry_points.txt"""
     def run(self):
-        entry_points = os.path.join('distribute.egg-info', 'entry_points.txt')
+        entry_points = os.path.join('setuptools.egg-info', 'entry_points.txt')
 
         if not os.path.exists(entry_points):
             _test.run(self)
@@ -130,7 +130,7 @@ def _being_installed():
     return  'install' in sys.argv[1:] or _easy_install_marker()
 
 if _being_installed():
-    from distribute_setup import _before_install
+    from ez_setup import _before_install
     _before_install()
 
 # return contents of reStructureText file with linked issue references
@@ -249,5 +249,5 @@ dist = setup(
 )
 
 if _being_installed():
-    from distribute_setup import _after_install
+    from ez_setup import _after_install
     _after_install(dist)
