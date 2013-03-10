@@ -107,27 +107,16 @@ class test(_test):
                 f.close()
 
 
-# if we are installing Distribute using "python setup.py install"
-# we need to get setuptools out of the way
-def _easy_install_marker():
-    return (len(sys.argv) == 5 and sys.argv[2] == 'bdist_egg' and
-            sys.argv[3] == '--dist-dir' and 'egg-dist-tmp-' in sys.argv[-1])
-
 def _buildout_marker():
     command = os.environ.get('_')
     if command:
         return 'buildout' in os.path.basename(command)
 
 def _being_installed():
-    if os.environ.get('DONT_PATCH_SETUPTOOLS') is not None:
-        return False
     if _buildout_marker():
         # Installed by buildout, don't mess with a global setuptools.
         return False
-    # easy_install marker
-    if "--help" in sys.argv[1:] or "-h" in sys.argv[1:]: # Don't bother doing anything if they're just asking for help
-        return False
-    return  'install' in sys.argv[1:] or _easy_install_marker()
+    return 'install' in sys.argv[1:]
 
 if _being_installed():
     from ez_setup import _before_install
