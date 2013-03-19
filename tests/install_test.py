@@ -2,8 +2,10 @@ import urllib2
 import sys
 import os
 
-if os.path.exists('distribute_setup.py'):
-    print 'distribute_setup.py exists in the current dir, aborting'
+bootstrap_name = 'ez_setup.py'
+
+if os.path.exists(bootstrap_name):
+    print bootstrap_name + ' exists in the current dir, aborting'
     sys.exit(2)
 
 print '**** Starting Test'
@@ -14,24 +16,28 @@ if is_jython:
     import subprocess
 
 print 'Downloading bootstrap'
-file = urllib2.urlopen('http://nightly.ziade.org/distribute_setup.py')
-f = open('distribute_setup.py', 'w')
+file = urllib2.urlopen('https://bitbucket.org/jaraco/setuptools-private'
+    '/src/tip/' + bootstrap_name)
+f = open(bootstrap_name, 'w')
 f.write(file.read())
 f.close()
 
 # running it
-args = [sys.executable]  + ['distribute_setup.py']
+args = [sys.executable, bootstrap_name]
 if is_jython:
     res = subprocess.call(args)
 else:
     res = os.spawnv(os.P_WAIT, sys.executable, args)
 
+fail_message = ('**** Test failed; please report the output to the '
+    'setuptools bugtracker.')
+
 if res != 0:
-    print '**** Test failed, please send me the output at tarek@ziade.org'
-    os.remove('distribute_setup.py')
+    print(fail_message)
+    os.remove(bootstrap_name)
     sys.exit(2)
 
-# now checking if Distribute is installed
+# now checking if Setuptools is installed
 script = """\
 import sys
 try:
@@ -67,9 +73,9 @@ try:
     if res:
         print '**** Test is OK'
     else:
-        print '**** Test failed, please send me the output at tarek@ziade.org'
+        print(fail_message)
 finally:
     if os.path.exists(script_name):
         os.remove(script_name)
-    os.remove('distribute_setup.py')
+    os.remove(bootstrap_name)
 
