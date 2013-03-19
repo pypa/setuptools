@@ -9,10 +9,9 @@ CURDIR = os.path.abspath(os.path.dirname(__file__))
 TOPDIR = os.path.split(CURDIR)[0]
 sys.path.insert(0, TOPDIR)
 
-from distribute_setup import (use_setuptools, _build_egg, _python_cmd,
-                              _do_download, _install, DEFAULT_URL,
-                              DEFAULT_VERSION)
-import distribute_setup
+from ez_setup import (use_setuptools, _build_egg, _python_cmd, _do_download,
+    _install, DEFAULT_URL, DEFAULT_VERSION)
+import ez_setup
 
 class TestSetup(unittest.TestCase):
 
@@ -54,20 +53,11 @@ class TestSetup(unittest.TestCase):
     def test_install(self):
         def _faked(*args):
             return True
-        distribute_setup.python_cmd = _faked
+        ez_setup.python_cmd = _faked
         _install(self.tarball)
 
     def test_use_setuptools(self):
         self.assertEqual(use_setuptools(), None)
-
-        # make sure fake_setuptools is not called by default
-        import pkg_resources
-        del pkg_resources._distribute
-        def fake_setuptools(*args):
-            raise AssertionError
-
-        pkg_resources._fake_setuptools = fake_setuptools
-        use_setuptools()
 
 if __name__ == '__main__':
     unittest.main()
