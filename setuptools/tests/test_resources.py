@@ -559,7 +559,7 @@ class NamespaceTests(TestCase):
 
     def setUp(self):
         self._ns_pkgs = pkg_resources._namespace_packages.copy()
-        self._tmpdir = tempfile.mkdtemp(prefix="tests-distribute-")
+        self._tmpdir = tempfile.mkdtemp(prefix="tests-setuptools-")
         os.makedirs(os.path.join(self._tmpdir, "site-pkgs"))
         self._prev_sys_path = sys.path[:]
         sys.path.append(os.path.join(self._tmpdir, "site-pkgs"))
@@ -603,7 +603,7 @@ class NamespaceTests(TestCase):
         try:
             import pkg1.pkg2
         except ImportError, e:
-            self.fail("Distribute tried to import the parent namespace package")
+            self.fail("Setuptools tried to import the parent namespace package")
         # check the _namespace_packages dict
         self._assertIn("pkg1.pkg2", pkg_resources._namespace_packages.keys())
         self.assertEqual(pkg_resources._namespace_packages["pkg1"], ["pkg1.pkg2"])
