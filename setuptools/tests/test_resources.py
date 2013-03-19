@@ -197,29 +197,6 @@ class DistroTests(TestCase):
         )
         self.assertRaises(UnknownExtra, d.requires, ["foo"])
 
-    def testSetuptoolsDistributeCombination(self):
-        # Ensure that installing a 0.7-series setuptools fails.  PJE says that
-        # it will not co-exist.
-        ws = WorkingSet([])
-        d = Distribution(
-            "/some/path",
-            project_name="setuptools",
-            version="0.7a1")
-        self.assertRaises(ValueError, ws.add, d)
-        # A 0.6-series is no problem
-        d2 = Distribution(
-            "/some/path",
-            project_name="setuptools",
-            version="0.6c9")
-        ws.add(d2)
-
-        # a unexisting version needs to work
-        ws = WorkingSet([])
-        d3 = Distribution(
-            "/some/path",
-            project_name="setuptools")
-        ws.add(d3)
-
 
 class EntryPointTests(TestCase):
 
@@ -372,21 +349,13 @@ class RequirementsTests(TestCase):
         self.assertTrue(d("foo-0.3a3.egg") in r2)
         self.assertTrue(d("foo-0.3a5.egg") in r2)
 
-    def testDistributeSetuptoolsOverride(self):
-        # Plain setuptools or distribute mean we return distribute.
+    def testSetuptoolsProjectName(self):
+        """
+        The setuptools project should implement the setuptools package.
+        """
+
         self.assertEqual(
-            Requirement.parse('setuptools').project_name, 'distribute')
-        self.assertEqual(
-            Requirement.parse('distribute').project_name, 'distribute')
-        # setuptools lower than 0.7 means distribute
-        self.assertEqual(
-            Requirement.parse('setuptools==0.6c9').project_name, 'distribute')
-        self.assertEqual(
-            Requirement.parse('setuptools==0.6c10').project_name, 'distribute')
-        self.assertEqual(
-            Requirement.parse('setuptools>=0.6').project_name, 'distribute')
-        self.assertEqual(
-            Requirement.parse('setuptools < 0.7').project_name, 'distribute')
+            Requirement.parse('setuptools').project_name, 'setuptools')
         # setuptools 0.7 and higher means setuptools.
         self.assertEqual(
             Requirement.parse('setuptools == 0.7').project_name, 'setuptools')
