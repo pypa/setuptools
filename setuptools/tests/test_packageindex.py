@@ -110,7 +110,7 @@ class TestPackageIndex(unittest.TestCase):
         - someone reuploads the package (with a different md5)
         - while easy_installing, an MD5 error occurs because the external link
           is used
-        -> Distribute should use the link from pypi, not the external one.
+        -> Setuptools should use the link from pypi, not the external one.
         """
         if sys.platform.startswith('java'):
             # Skip this test on jython because binding to :0 fails

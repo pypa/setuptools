@@ -266,10 +266,10 @@ class TestUserInstallTest(unittest.TestCase):
                 del os.environ['PYTHONPATH']
 
     def test_setup_requires(self):
-        """Regression test for issue #318
+        """Regression test for Distribute issue #318
 
-        Ensures that a package with setup_requires can be installed when
-        distribute is installed in the user site-packages without causing a
+        Ensure that a package with setup_requires can be installed when
+        setuptools is installed in the user site-packages without causing a
         SandboxViolation.
         """
 
@@ -373,13 +373,13 @@ class TestSetupRequires(unittest.TestCase):
         doesn't exist) and invoke installer on it.
         """
         def build_sdist(dir):
-            dist_path = os.path.join(dir, 'distribute-test-fetcher-1.0.tar.gz')
+            dist_path = os.path.join(dir, 'setuptools-test-fetcher-1.0.tar.gz')
             make_trivial_sdist(
                 dist_path,
                 textwrap.dedent("""
                     import setuptools
                     setuptools.setup(
-                        name="distribute-test-fetcher",
+                        name="setuptools-test-fetcher",
                         version="1.0",
                         setup_requires = ['does-not-exist'],
                     )
@@ -447,7 +447,7 @@ def argv_context(f, repl):
 
 def reset_setup_stop_context(f):
     """
-    When the distribute tests are run using setup.py test, and then
+    When the setuptools tests are run using setup.py test, and then
     one wants to invoke another setup() command (such as easy_install)
     within those tests, it's necessary to reset the global variable
     in distutils.core so that the setup() command will run naturally.
