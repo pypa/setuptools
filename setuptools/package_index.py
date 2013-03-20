@@ -1,7 +1,7 @@
 """PyPI and direct package downloading"""
-import sys, os.path, re, urlparse, urllib, urllib2, shutil, random, socket, cStringIO
+import sys, os.path, re, urlparse, urllib2, shutil, random, socket, cStringIO
 import base64
-import httplib
+import httplib, urllib
 from pkg_resources import *
 from distutils import log
 from distutils.errors import DistutilsError
@@ -10,7 +10,6 @@ try:
 except ImportError:
     from md5 import md5
 from fnmatch import translate
-
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.]+)$')
 HREF = re.compile("""href\\s*=\\s*['"]?([^'"> ]+)""", re.I)
 # this is here to fix emacs' cruddy broken syntax highlighting
@@ -55,6 +54,8 @@ def parse_bdist_wininst(name):
 def egg_info_for_url(url):
     scheme, server, path, parameters, query, fragment = urlparse.urlparse(url)
     base = urllib2.unquote(path.split('/')[-1])
+    if server=='sourceforge.net' and base=='download':    # XXX Yuck
+        base = urllib2.unquote(path.split('/')[-2])
     if '#' in base: base, fragment = base.split('#',1)
     return base,fragment
 
@@ -77,14 +78,12 @@ def distros_for_location(location, basename, metadata=None):
     if basename.endswith('.egg') and '-' in basename:
         # only one, unambiguous interpretation
         return [Distribution.from_location(location, basename, metadata)]
-
     if basename.endswith('.exe'):
         win_base, py_ver, platform = parse_bdist_wininst(basename)
         if win_base is not None:
             return interpret_distro_name(
                 location, win_base, metadata, py_ver, BINARY_DIST, platform
             )
-
     # Try source distro extensions (.zip, .tgz, etc.)
     #
     for ext in EXTENSIONS:
@@ -199,10 +198,10 @@ class PackageIndex(Environment):
             return
 
         self.info("Reading %s", url)
+        self.fetched_urls[url] = True   # prevent multiple fetch attempts
         f = self.open_url(url, "Download error on %s: %%s -- Some packages may not be found!" % url)
         if f is None: return
-        self.fetched_urls[url] = self.fetched_urls[f.url] = True
-
+        self.fetched_urls[f.url] = True
         if 'html' not in f.headers.get('content-type', '').lower():
             f.close()   # not html, we can't process it
             return
@@ -352,7 +351,7 @@ class PackageIndex(Environment):
     def check_md5(self, cs, info, filename, tfp):
         if re.match('md5=[0-9a-f]{32}$', info):
             self.debug("Validating md5 checksum for %s", filename)
-            if cs.hexdigest()<>info[4:]:
+            if cs.hexdigest()!=info[4:]:
                 tfp.close()
                 os.unlink(filename)
                 raise DistutilsError(
@@ -451,7 +450,6 @@ class PackageIndex(Environment):
         set, development and system eggs (i.e., those using the ``.egg-info``
         format) will be ignored.
         """
-
         # process a Requirement
         self.info("Searching for %s", requirement)
         skipped = {}
@@ -471,10 +469,9 @@ class PackageIndex(Environment):
                     continue
 
                 if dist in req and (dist.precedence<=SOURCE_DIST or not source):
-                    self.info("Best match: %s", dist)
-                    return dist.clone(
-                        location=self.download(dist.location, tmpdir)
-                    )
+                    return dist
+
+
 
         if force_scan:
             self.prescan()
@@ -498,7 +495,10 @@ class PackageIndex(Environment):
                 (source and "a source distribution of " or ""),
                 requirement,
             )
-        return dist
+        else:
+            self.info("Best match: %s", dist)
+            return dist.clone(location=self.download(dist.location, tmpdir))
+
 
     def fetch(self, requirement, tmpdir, force_scan=False, source=False):
         """Obtain a file suitable for fulfilling `requirement`
@@ -512,12 +512,6 @@ class PackageIndex(Environment):
         if dist is not None:
             return dist.location
         return None
-
-
-
-
-
-
 
 
     def gen_setup(self, filename, fragment, tmpdir):
@@ -581,8 +575,7 @@ class PackageIndex(Environment):
             size = -1
             if "content-length" in headers:
                 # Some servers return multiple Content-Length headers :(
-                content_length = headers.get("Content-Length")
-                size = int(content_length)
+                size = max(map(int,headers.getheaders("Content-Length")))
                 self.reporthook(url, filename, blocknum, bs, size)
             tfp = open(filename,'wb')
             while True:
@@ -640,9 +633,8 @@ class PackageIndex(Environment):
     def _download_url(self, scheme, url, tmpdir):
         # Determine download filename
         #
-        name = filter(None,urlparse.urlparse(url)[2].split('/'))
+        name, fragment = egg_info_for_url(url)
         if name:
-            name = name[-1]
             while '..' in name:
                 name = name.replace('..','.').replace('\\','_')
         else:
@@ -666,7 +658,6 @@ class PackageIndex(Environment):
         else:
             self.url_ok(url, True)   # raises error if not allowed
             return self._attempt_download(url, filename)
-
 
 
     def scan_url(self, url):
@@ -695,10 +686,39 @@ class PackageIndex(Environment):
         os.unlink(filename)
         raise DistutilsError("Unexpected HTML page found at "+url)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     def _download_svn(self, url, filename):
         url = url.split('#',1)[0]   # remove any fragment for svn's sake
+        creds = ''
+        if url.lower().startswith('svn:') and '@' in url:
+            scheme, netloc, path, p, q, f = urlparse.urlparse(url)
+            if not netloc and path.startswith('//') and '/' in path[2:]:
+                netloc, path = path[2:].split('/',1)
+                auth, host = urllib.splituser(netloc)
+                if auth:
+                    if ':' in auth:
+                        user, pw = auth.split(':',1)
+                        creds = " --username=%s --password=%s" % (user, pw)
+                    else:
+                        creds = " --username="+auth
+                    netloc = host
+                    url = urlparse.urlunparse((scheme, netloc, url, p, q, f))
         self.info("Doing subversion checkout from %s to %s", url, filename)
-        os.system("svn checkout -q %s %s" % (url, filename))
+        os.system("svn checkout%s -q %s %s" % (creds, url, filename))
         return filename
 
     def _vcs_split_rev_from_url(self, url, pop_prefix=False):
@@ -758,6 +778,18 @@ class PackageIndex(Environment):
 
     def warn(self, msg, *args):
         log.warn(msg, *args)
+
+
+
+
+
+
+
+
+
+
+
+
 
 # This pattern matches a character entity reference (a decimal numeric
 # references, a hexadecimal numeric reference, or a named reference).
@@ -838,7 +870,7 @@ def open_with_auth(url):
         raise httplib.InvalidURL("nonnumeric port: ''")
 
     if scheme in ('http', 'https'):
-        auth, host = urllib2.splituser(netloc)
+        auth, host = urllib.splituser(netloc)
     else:
         auth = None
 
