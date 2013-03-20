@@ -13,7 +13,7 @@ The package resource API is designed to work with normal filesystem packages,
 method.
 """
 
-import sys, os, zipimport, time, re, imp, types
+import sys, os, zipimport, time, re, imp
 from urlparse import urlparse, urlunparse
 
 try:
@@ -84,6 +84,7 @@ def _sset_object(key, ob, state):
     ob.__setstate__(state)
 
 _sget_none = _sset_none = lambda *args: None
+
 
 
 
@@ -260,6 +261,12 @@ macosVersionString = re.compile(r"macosx-(\d+)\.(\d+)-(.*)")
 darwinVersionString = re.compile(r"darwin-(\d+)\.(\d+)\.(\d+)-(.*)")
 get_platform = get_build_platform   # XXX backward compat
 
+
+
+
+
+
+
 def compatible_platforms(provided,required):
     """Can code for the `provided` platform run on the `required` platform?
 
@@ -435,7 +442,7 @@ class WorkingSet(object):
     def add_entry(self, entry):
         """Add a path item to ``.entries``, finding any distributions on it
 
-        ``find_distributions(entry,True)`` is used to find distributions
+        ``find_distributions(entry, True)`` is used to find distributions
         corresponding to the path entry, and they are added.  `entry` is
         always appended to ``.entries``, even if it is already present.
         (This is because ``sys.path`` can contain the same value more than
@@ -680,14 +687,12 @@ class WorkingSet(object):
         activated to fulfill the requirements; all relevant distributions are
         included, even if they were already activated in this working set.
         """
-
         needed = self.resolve(parse_requirements(requirements))
 
         for dist in needed:
             self.add(dist)
 
         return needed
-
 
     def subscribe(self, callback):
         """Invoke `callback` for all distributions (including existing ones)"""
@@ -697,22 +702,21 @@ class WorkingSet(object):
         for dist in self:
             callback(dist)
 
-
     def _added_new(self, dist):
         for callback in self.callbacks:
             callback(dist)
 
     def __getstate__(self):
-        return (self.entries[:], self.entry_keys.copy(), self.by_key.copy(),
-                self.callbacks[:])
+        return (
+            self.entries[:], self.entry_keys.copy(), self.by_key.copy(),
+            self.callbacks[:]
+        )
 
     def __setstate__(self, (entries, keys, by_key, callbacks)):
         self.entries = entries[:]
         self.entry_keys = keys.copy()
         self.by_key = by_key.copy()
         self.callbacks = callbacks[:]
-
-
 
 
 class Environment(object):
@@ -1795,7 +1799,7 @@ def _handle_ns(packageName, path_item):
         return None
     module = sys.modules.get(packageName)
     if module is None:
-        module = sys.modules[packageName] = types.ModuleType(packageName)
+        module = sys.modules[packageName] = imp.new_module(packageName)
         module.__path__ = []; _set_parent_ns(packageName)
     elif not hasattr(module,'__path__'):
         raise TypeError("Not a package:", packageName)
@@ -2337,12 +2341,9 @@ class Distribution(object):
         if not loc:
             return
 
-        if path is sys.path:
-            self.check_version_conflict()
-
         nloc = _normalize_cached(loc)
         bdir = os.path.dirname(nloc)
-        npath= map(_normalize_cached, path)
+        npath= [(p and _normalize_cached(p) or p) for p in path]
 
         bp = None
         for p, item in enumerate(npath):
@@ -2350,10 +2351,14 @@ class Distribution(object):
                 break
             elif item==bdir and self.precedence==EGG_DIST:
                 # if it's an .egg, give it precedence over its directory
+                if path is sys.path:
+                    self.check_version_conflict()
                 path.insert(p, loc)
                 npath.insert(p, nloc)
                 break
         else:
+            if path is sys.path:
+                self.check_version_conflict()
             path.append(loc)
             return
 
@@ -2368,7 +2373,6 @@ class Distribution(object):
                 p = np  # ha!
 
         return
-
 
 
     def check_version_conflict(self):
@@ -2631,7 +2635,7 @@ class Requirement:
 
     def __contains__(self,item):
         if isinstance(item,Distribution):
-            if item.key <> self.key: return False
+            if item.key != self.key: return False
             if self.index: item = item.parsed_version  # only get if we need it
         elif isinstance(item,basestring):
             item = parse_version(item)
@@ -2739,7 +2743,6 @@ _initialize(globals())
 
 # Prepare the master working set and make the ``require()`` API available
 _declare_state('object', working_set = WorkingSet())
-
 try:
     # Does the main program list any requirements?
     from __main__ import __requires__
