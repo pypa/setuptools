@@ -34,11 +34,6 @@ def _bypass_ensure_directory(name, mode=0777):
         mkdir(dirname, mode)
 
 
-
-
-
-
-
 _state_vars = {}
 
 def _declare_state(vartype, **kw):
