@@ -1,228 +1,202 @@
 ===============================
-Installing and Using Distribute
+Installing and Using Setuptools
 ===============================
 
 .. contents:: **Table of Contents**
 
------------
-Disclaimers
------------
 
-About the fork
-==============
+----------------------------------
+Security Issues - Read this First!
+----------------------------------
 
-`Distribute` is a fork of the `Setuptools` project.
+Setuptools and ``easy_install`` currently default to allowing automated
+download and execution of code from anywhere on the internet, without actually
+verifying the owners of the websites or the authors of the code.  If you want
+your installation to be more secure, you will need to:
 
-Distribute is intended to replace Setuptools as the standard method
-for working with Python module distributions.
+ 1. Manually install the `requests <https://pypi.python.org/pypi/requests>`_
+    library **after** installing setuptools, using an SSL-enabled browser or
+    other tool.  (This will enable SSL certificate verification.)
 
-The fork has two goals:
+ 2. Configure your default ``--allow-hosts`` setting so that ``easy_install``
+    will only download from sites you trust.  (E.g., to only download from
+    ``pypi.python.org`` or some other trusted package index.)
 
-- Providing a backward compatible version to replace Setuptools
-  and make all distributions that depend on Setuptools work as
-  before, but with less bugs and behaviorial issues.
+ 3. If you are using a Python version less than 2.6, you will also need to
+    install the `SSL backport module <https://pypi.python.org/pypi/requests>`_
+    to enable SSL downloads from PyPI.  (Unfortunately, the ``requests``
+    package does not support older versions of Python at this time, so SSL
+    certificate verification will not be enabled.  But at least you'll still be
+    able to use PyPI, which is in the process of switching to an all-SSL policy
+    for downloads.
+    
+For more information on how to do all of the above, and for other security-
+related information, please see the full `setuptools security documentation
+<http://peak.telecommunity.com/DevCenter/SetuptoolsSecurity>`_.
 
-  This work is done in the 0.6.x series.
-
-  Starting with version 0.6.2, Distribute supports Python 3.
-  Installing and using distribute for Python 3 code works exactly
-  the same as for Python 2 code, but Distribute also helps you to support
-  Python 2 and Python 3 from the same source code by letting you run 2to3
-  on the code as a part of the build process, by setting the keyword parameter
-  ``use_2to3`` to True. See http://packages.python.org/distribute for more
-  information.
-
-- Refactoring the code, and releasing it in several distributions.
-  This work is being done in the 0.7.x series but not yet released.
-
-The roadmap is still evolving, and the page that is up-to-date is
-located at : `http://packages.python.org/distribute/roadmap`.
-
-If you install `Distribute` and want to switch back for any reason to
-`Setuptools`, get to the `Uninstallation instructions`_ section.
-
-More documentation
-==================
-
-You can get more information in the Sphinx-based documentation, located
-at http://packages.python.org/distribute. This documentation includes the old
-Setuptools documentation that is slowly replaced, and brand new content.
-
-About the installation process
-==============================
-
-The `Distribute` installer modifies your installation by de-activating an
-existing installation of `Setuptools` in a bootstrap process. This process
-has been tested in various installation schemes and contexts but in case of a
-bug during this process your Python installation might be left in a broken
-state. Since all modified files and directories are copied before the
-installation starts, you will be able to get back to a normal state by reading
-the instructions in the `Uninstallation instructions`_ section.
-
-In any case, it is recommended to save you `site-packages` directory before
-you start the installation of `Distribute`.
 
 -------------------------
 Installation Instructions
 -------------------------
 
-Distribute is only released as a source distribution.
+Windows
+=======
 
-It can be installed using pip, and can be done so with the source tarball,
-or by using the ``distribute_setup.py`` script provided online.
+32-bit version of Python
+    Install setuptools using the provided ``.exe`` installer.
 
-``distribute_setup.py`` is the simplest and preferred way on all systems.
+64-bit versions of Python
+    Download `ez_setup.py`_ and run it; it will download the appropriate .egg file and install it for you.  (Currently, the provided ``.exe`` installer does not support 64-bit versions of Python for Windows, due to a `distutils installer compatibility issue`_
 
-distribute_setup.py
-===================
+.. _ez_setup.py: http://peak.telecommunity.com/dist/ez_setup.py
+.. _distutils installer compatibility issue: http://bugs.python.org/issue6792
 
-Download
-`distribute_setup.py <http://python-distribute.org/distribute_setup.py>`_
-and execute it, using the Python interpreter of your choice.
 
-If your shell has the ``curl`` program you can do::
+NOTE: Regardless of what sort of Python you're using, if you've previously
+installed older versions of setuptools, please delete all ``setuptools*.egg``
+and ``setuptools.pth`` files from your system's ``site-packages`` directory
+(and any other ``sys.path`` directories) FIRST.
 
-    $ curl -O http://python-distribute.org/distribute_setup.py
-    $ python distribute_setup.py
+If you are upgrading a previous version of setuptools that was installed using
+an ``.exe`` installer, please be sure to also *uninstall that older version*
+via your system's "Add/Remove Programs" feature, BEFORE installing the newer
+version.
 
-Notice this file is also provided in the source release.
+Once installation is complete, you will find an ``easy_install.exe`` program in
+your Python ``Scripts`` subdirectory.  Be sure to add this directory to your
+``PATH`` environment variable, if you haven't already done so.
 
-pip
-===
 
-Run easy_install or pip::
+RPM-Based Systems
+=================
 
-    $ pip install distribute
+Install setuptools using the provided source RPM.  The included ``.spec`` file
+assumes you are installing using the default ``python`` executable, and is not
+specific to a particular Python version.  The ``easy_install`` executable will
+be installed to a system ``bin`` directory such as ``/usr/bin``.
 
-Source installation
-===================
+If you wish to install to a location other than the default Python
+installation's default ``site-packages`` directory (and ``$prefix/bin`` for
+scripts), please use the ``.egg``-based installation approach described in the
+following section.
 
-Download the source tarball, uncompress it, then run the install command::
 
-    $ curl -O http://pypi.python.org/packages/source/d/distribute/distribute-0.6.36.tar.gz
-    $ tar -xzvf distribute-0.6.36.tar.gz
-    $ cd distribute-0.6.36
-    $ python setup.py install
+Cygwin, Mac OS X, Linux, Other
+==============================
 
----------------------------
-Uninstallation Instructions
----------------------------
+1. Download the appropriate egg for your version of Python (e.g.
+   ``setuptools-0.6c9-py2.4.egg``).  Do NOT rename it.
 
-Like other distutils-based distributions, Distribute doesn't provide an
-uninstaller yet. It's all done manually! We are all waiting for PEP 376
-support in Python.
+2. Run it as if it were a shell script, e.g. ``sh setuptools-0.6c9-py2.4.egg``.
+   Setuptools will install itself using the matching version of Python (e.g.
+   ``python2.4``), and will place the ``easy_install`` executable in the
+   default location for installing Python scripts (as determined by the
+   standard distutils configuration files, or by the Python installation).
 
-Distribute is installed in three steps:
+If you want to install setuptools to somewhere other than ``site-packages`` or
+your default distutils installation locations for libraries and scripts, you
+may include EasyInstall command-line options such as ``--prefix``,
+``--install-dir``, and so on, following the ``.egg`` filename on the same
+command line.  For example::
 
-1. it gets out of the way an existing installation of Setuptools
-2. it installs a `fake` setuptools installation
-3. it installs distribute
+    sh setuptools-0.6c9-py2.4.egg --prefix=~
 
-Distribute can be removed like this:
+You can use ``--help`` to get a full options list, but we recommend consulting
+the `EasyInstall manual`_ for detailed instructions, especially `the section
+on custom installation locations`_.
 
-- remove the ``distribute*.egg`` file located in your site-packages directory
-- remove the ``setuptools.pth`` file located in you site-packages directory
-- remove the easy_install script located in you ``sys.prefix/bin`` directory
-- remove the ``setuptools*.egg`` directory located in your site-packages directory,
-  if any.
+.. _EasyInstall manual: http://peak.telecommunity.com/DevCenter/EasyInstall
+.. _the section on custom installation locations: http://peak.telecommunity.com/DevCenter/EasyInstall#custom-installation-locations
 
-If you want to get back to setuptools:
 
-- reinstall setuptools using its instruction.
-
-Lastly:
-
-- remove the *.OLD.* directory located in your site-packages directory if any,
-  **once you have checked everything was working correctly again**.
-
--------------------------
-Quick help for developers
--------------------------
-
-To create an egg which is compatible with Distribute, use the same
-practice as with Setuptools, e.g.::
-
-    from setuptools import setup
-
-    setup(...
-    )
-
-To use `pkg_resources` to access data files in the egg, you should
-require the Setuptools distribution explicitly::
-
-    from setuptools import setup
-
-    setup(...
-        install_requires=['setuptools']
-    )
-
-Only if you need Distribute-specific functionality should you depend
-on it explicitly. In this case, replace the Setuptools dependency::
-
-    from setuptools import setup
-
-    setup(...
-        install_requires=['distribute']
-    )
-
------------
-Install FAQ
+Cygwin Note
 -----------
 
-- **Why is Distribute wrapping my Setuptools installation?**
+If you are trying to install setuptools for the **Windows** version of Python
+(as opposed to the Cygwin version that lives in ``/usr/bin``), you must make
+sure that an appropriate executable (``python2.3``, ``python2.4``, or
+``python2.5``) is on your **Cygwin** ``PATH`` when invoking the egg.  For
+example, doing the following at a Cygwin bash prompt will install setuptools
+for the **Windows** Python found at ``C:\\Python24``::
 
-   Since Distribute is a fork, and since it provides the same package
-   and modules, it renames the existing Setuptools egg and inserts a
-   new one which merely wraps the Distribute code. This way, full
-   backwards compatibility is kept for packages which rely on the
-   Setuptools modules.
-
-   At the same time, packages can meet their dependency on Setuptools
-   without actually installing it (which would disable Distribute).
-
-- **How does Distribute interact with virtualenv?**
-
-  Everytime you create a virtualenv it will install setuptools by default.
-  You either need to re-install Distribute in it right after or pass the
-  ``--distribute`` option when creating it.
-
-  Once installed, your virtualenv will use Distribute transparently.
-
-  Although, if you have Setuptools installed in your system-wide Python,
-  and if the virtualenv you are in was generated without the `--no-site-packages`
-  option, the Distribute installation will stop.
-
-  You need in this case to build a virtualenv with the `--no-site-packages`
-  option or to install `Distribute` globally.
-
-- **How does Distribute interacts with zc.buildout?**
-
-  You can use Distribute in your zc.buildout, with the --distribute option,
-  starting at zc.buildout 1.4.2::
-
-  $ python bootstrap.py --distribute
-
-  For previous zc.buildout versions, *the only thing* you need to do
-  is use the bootstrap at `http://python-distribute.org/bootstrap.py`.  Run
-  that bootstrap and ``bin/buildout`` (and all other buildout-generated
-  scripts) will transparently use distribute instead of setuptools.  You do
-  not need a specific buildout release.
-
-  A shared eggs directory is no problem (since 0.6.6): the setuptools egg is
-  left in place unmodified.  So other buildouts that do not yet use the new
-  bootstrap continue to work just fine.  And there is no need to list
-  ``distribute`` somewhere in your eggs: using the bootstrap is enough.
-
-  The source code for the bootstrap script is located at
-  `http://bitbucket.org/tarek/buildout-distribute`.
+    ln -s /cygdrive/c/Python24/python.exe python2.4
+    PATH=.:$PATH sh setuptools-0.6c9-py2.4.egg
+    rm python2.4
 
 
+Downloads
+=========
 
------------------------------
-Feedback and getting involved
------------------------------
+All setuptools downloads can be found at `the project's home page in the Python
+Package Index`_.  Scroll to the very bottom of the page to find the links.
 
-- Mailing list: http://mail.python.org/mailman/listinfo/distutils-sig
-- Issue tracker: http://bitbucket.org/tarek/distribute/issues/
-- Code Repository: http://bitbucket.org/tarek/distribute
+.. _the project's home page in the Python Package Index: http://pypi.python.org/pypi/setuptools#files
 
+In addition to the PyPI downloads, the development version of ``setuptools``   
+is available from the `Python SVN sandbox`_, and in-development versions of the 
+`0.6 branch`_ are available as well.
+
+.. _0.6 branch: http://svn.python.org/projects/sandbox/branches/setuptools-0.6/#egg=setuptools-dev06
+
+.. _Python SVN sandbox: http://svn.python.org/projects/sandbox/trunk/setuptools/#egg=setuptools-dev
+
+--------------------------------
+Using Setuptools and EasyInstall
+--------------------------------
+
+Here are some of the available manuals, tutorials, and other resources for
+learning about Setuptools, Python Eggs, and EasyInstall:
+
+* `The EasyInstall user's guide and reference manual`_
+* `The setuptools Developer's Guide`_
+* `The pkg_resources API reference`_
+* `Package Compatibility Notes`_ (user-maintained)
+* `The Internal Structure of Python Eggs`_
+
+Questions, comments, and bug reports should be directed to the `distutils-sig
+mailing list`_.  If you have written (or know of) any tutorials, documentation,
+plug-ins, or other resources for setuptools users, please let us know about
+them there, so this reference list can be updated.  If you have working,
+*tested* patches to correct problems or add features, you may submit them to
+the `setuptools bug tracker`_.
+
+.. _setuptools bug tracker: http://bugs.python.org/setuptools/
+.. _Package Compatibility Notes: http://peak.telecommunity.com/DevCenter/PackageNotes
+.. _The Internal Structure of Python Eggs: http://peak.telecommunity.com/DevCenter/EggFormats
+.. _The setuptools Developer's Guide: http://peak.telecommunity.com/DevCenter/setuptools
+.. _The pkg_resources API reference: http://peak.telecommunity.com/DevCenter/PkgResources
+.. _The EasyInstall user's guide and reference manual: http://peak.telecommunity.com/DevCenter/EasyInstall
+.. _distutils-sig mailing list: http://mail.python.org/pipermail/distutils-sig/
+
+
+-------
+Credits
+-------
+
+* The original design for the ``.egg`` format and the ``pkg_resources`` API was
+  co-created by Phillip Eby and Bob Ippolito.  Bob also implemented the first
+  version of ``pkg_resources``, and supplied the OS X operating system version
+  compatibility algorithm.
+
+* Ian Bicking implemented many early "creature comfort" features of
+  easy_install, including support for downloading via Sourceforge and
+  Subversion repositories.  Ian's comments on the Web-SIG about WSGI
+  application deployment also inspired the concept of "entry points" in eggs,
+  and he has given talks at PyCon and elsewhere to inform and educate the
+  community about eggs and setuptools.
+
+* Jim Fulton contributed time and effort to build automated tests of various
+  aspects of ``easy_install``, and supplied the doctests for the command-line
+  ``.exe`` wrappers on Windows.
+
+* Phillip J. Eby is the principal author and maintainer of setuptools, and
+  first proposed the idea of an importable binary distribution format for
+  Python application plug-ins.
+
+* Significant parts of the implementation of setuptools were funded by the Open
+  Source Applications Foundation, to provide a plug-in infrastructure for the
+  Chandler PIM application.  In addition, many OSAF staffers (such as Mike
+  "Code Bear" Taylor) contributed their time and stress as guinea pigs for the
+  use of eggs and setuptools, even before eggs were "cool".  (Thanks, guys!)
+
+.. _files:
