@@ -9,9 +9,40 @@ except NameError:
     _file = None
 _open = open
 from distutils.errors import DistutilsError
+from pkg_resources import working_set
+
 __all__ = [
     "AbstractSandbox", "DirectorySandbox", "SandboxViolation", "run_setup",
 ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def run_setup(setup_script, args):
     """Run a distutils setup script, sandboxed in its directory"""
     old_dir = os.getcwd()
@@ -29,6 +60,9 @@ def run_setup(setup_script, args):
         try:
             sys.argv[:] = [setup_script]+list(args)
             sys.path.insert(0, setup_dir)
+            # reset to include setup dir, w/clean callback list
+            working_set.__init__()  
+            working_set.callbacks.append(lambda dist:dist.activate())
             DirectorySandbox(setup_dir).run(
                 lambda: execfile(
                     "setup.py",
@@ -54,6 +88,8 @@ def run_setup(setup_script, args):
         sys.path[:] = save_path
         sys.argv[:] = save_argv
         tempfile.tempdir = save_tmp
+
+
 
 class AbstractSandbox:
     """Wrap 'os' module and 'open()' builtin for virtualizing setup scripts"""
@@ -86,7 +122,6 @@ class AbstractSandbox:
             __builtin__.open = _open
             self._copy(_os)
 
-
     def _mk_dual_path_wrapper(name):
         original = getattr(_os,name)
         def wrap(self,src,dst,*args,**kw):
@@ -94,7 +129,6 @@ class AbstractSandbox:
                 src,dst = self._remap_pair(name,src,dst,*args,**kw)
             return original(src,dst,*args,**kw)
         return wrap
-
 
     for name in ["rename", "link", "symlink"]:
         if hasattr(_os,name): locals()[name] = _mk_dual_path_wrapper(name)
@@ -117,7 +151,6 @@ class AbstractSandbox:
         "startfile", "mkfifo", "mknod", "pathconf", "access"
     ]:
         if hasattr(_os,name): locals()[name] = _mk_single_path_wrapper(name)
-
 
     def _mk_single_with_return(name):
         original = getattr(_os,name)
@@ -208,6 +241,7 @@ class DirectorySandbox(AbstractSandbox):
         self._violation("tmpnam")
 
     def _ok(self,path):
+        if hasattr(_os,'devnull') and path==_os.devnull: return True
         active = self._active
         try:
             self._active = False
@@ -240,15 +274,10 @@ class DirectorySandbox(AbstractSandbox):
             self._violation("os.open", file, flags, mode)
         return _os.open(file,flags,mode)
 
-
 WRITE_FLAGS = reduce(
-    operator.or_,
-    [getattr(_os, a, 0) for a in
+    operator.or_, [getattr(_os, a, 0) for a in
         "O_WRONLY O_RDWR O_APPEND O_CREAT O_TRUNC O_TEMPORARY".split()]
 )
-
-
-
 
 class SandboxViolation(DistutilsError):
     """A setup script attempted to modify the filesystem outside the sandbox"""
