@@ -1,0 +1,25 @@
+With the merge of Setuptools and Distribute, the following concessions were
+made:
+
+Differences from setuptools 0.6c12:
+
+Major Changes
+-------------
+
+* Python 3 support.
+* Improved support for GAE.
+* Sort order of Distributions in pkg_resources now prefers PyPI to external
+  links (Distribute issue 163).
+
+Minor Changes
+-------------
+
+* Wording of some output has changed to replace contractions with their
+  canonical form (i.e. prefer "could not" to "couldn't").
+
+Differences from Distribute 0.6.35:
+
+Major Changes
+-------------
+
+* The _distribute property of the setuptools module has been removed.
