@@ -1835,7 +1835,7 @@ def get_script_args(dist, executable=sys_executable, wininst=False):
                     ext, launcher = '-script.py', 'cli.exe'
                     old = ['.py','.pyc','.pyo']
                     new_header = re.sub('(?i)pythonw.exe','python.exe',header)
-                if platform.machine().lower() == 'arm':
+                if platform.machine().lower()=='arm':
                     launcher = launcher.replace(".", "-arm.")
                 if is_64bit():
                     launcher = launcher.replace(".", "-64.")
