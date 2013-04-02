@@ -14,6 +14,14 @@
        gcc -DGUI=0           -mno-cygwin -O -s -o setuptools/cli.exe launcher.c
        gcc -DGUI=1 -mwindows -mno-cygwin -O -s -o setuptools/gui.exe launcher.c
 
+    To build for Windows RT, install both Visual Studio Express for Windows 8
+    and for Windows Desktop (both freeware), create "win32" application using
+    "Windows Desktop" version, create new "ARM" target via
+    "Configuration Manager" menu and modify ".vcxproj" file by adding
+    "<WindowsSDKDesktopARMSupport>true</WindowsSDKDesktopARMSupport>" tag
+    as child of "PropertyGroup" tags that has "Debug|ARM" and "Release|ARM"
+    properties.
+
     It links to msvcrt.dll, but this shouldn't be a problem since it doesn't
     actually run Python in the same process.  Note that using 'exec' instead
     of 'spawn' doesn't work, because on Windows this leads to the Python
