@@ -2,12 +2,16 @@
 CHANGES
 =======
 
-------------
-Next version
-------------
+------
+0.6.36
+------
 
-- Fix for distutils scripts installation on Python 3, related to
-  ``__pycache__`` directories.
+* Pull Request #35: In `Buildout issue 64
+  <https://github.com/buildout/buildout/issues/64>`_, it was reported that
+  under Python 3, installation of distutils scripts could attempt to copy
+  the ``__pycache__`` directory as a file, causing an error, apparently only
+  under Windows. Easy_install now skips all directories when processing
+  metadata scripts.
 
 ------
 0.6.35
