@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """sdist tests"""
 
-
+import locale
 import os
 import shutil
 import sys
@@ -10,6 +10,7 @@ import unittest
 import unicodedata
 
 from setuptools.compat import StringIO, unicode
+from setuptools.tests.py26compat import skipIf
 from setuptools.command.sdist import sdist
 from setuptools.command.egg_info import manifest_maker
 from setuptools.dist import Distribution
@@ -318,6 +319,8 @@ class TestSdistTest(unittest.TestCase):
             filename = filename.decode('latin-1')
             self.assertFalse(filename in cmd.filelist.files)
 
+    @skipIf(sys.version_info >= (3,) and locale.getpreferredencoding() != 'UTF-8',
+            'Unittest fails if locale is not utf-8 but the manifests is recorded correctly')
     def test_sdist_with_utf8_encoded_filename(self):
         # Test for #303.
         dist = Distribution(SETUP_ATTRS)

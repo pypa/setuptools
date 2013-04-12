@@ -10,6 +10,8 @@ CHANGES
   launcher for 'develop' installs).
 * ``ez_setup.py`` now ensures partial downloads are cleaned up following
   a failed download.
+* Distribute #363 and Issue #55: Skip an sdist test that fails on locales
+  other than UTF-8.
 
 -----
 1.1.6
