@@ -507,7 +507,7 @@ class ScriptHeaderTests(TestCase):
     def test_get_script_header_jython_workaround(self):
         platform = sys.platform
         sys.platform = 'java1.5.0_13'
-        stdout = sys.stdout
+        stdout, stderr = sys.stdout, sys.stderr
         try:
             # A mock sys.executable that uses a shebang line (this file)
             exe = os.path.normpath(os.path.splitext(__file__)[0] + '.py')
@@ -517,17 +517,17 @@ class ScriptHeaderTests(TestCase):
 
             # Ensure we generate what is basically a broken shebang line
             # when there's options, with a warning emitted
-            sys.stdout = StringIO.StringIO()
+            sys.stdout = sys.stderr = StringIO.StringIO()
             self.assertEqual(get_script_header('#!/usr/bin/python -x',
                                                executable=exe),
                              '#!%s  -x\n' % exe)
             self.assert_('Unable to adapt shebang line' in sys.stdout.getvalue())
-            sys.stdout = StringIO.StringIO()
+            sys.stdout = sys.stderr = StringIO.StringIO()
             self.assertEqual(get_script_header('#!/usr/bin/python',
                                                executable=self.non_ascii_exe),
                              '#!%s -x\n' % self.non_ascii_exe)
             self.assert_('Unable to adapt shebang line' in sys.stdout.getvalue())
         finally:
             sys.platform = platform
-            sys.stdout = stdout
+            sys.stdout, sys.stderr = stdout, stderr
 
