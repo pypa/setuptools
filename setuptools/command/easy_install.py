@@ -1925,12 +1925,6 @@ usage: %(script)s [options] requirement_or_url ...
         def _show_help(self,*args,**kw):
             with_ei_usage(lambda: Distribution._show_help(self,*args,**kw))
 
-        def find_config_files(self):
-            files = Distribution.find_config_files(self)
-            if 'setup.cfg' in files:
-                files.remove('setup.cfg')
-            return files
-
     if argv is None:
         argv = sys.argv[1:]
 

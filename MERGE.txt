@@ -35,3 +35,7 @@ Minor Changes
 * The patch for `#174 <https://bitbucket.org/tarek/distribute/issue/174>`_
   has been rolled-back, as the comment on the ticket indicates that the patch
   addressed a symptom and not the fundamental issue.
+* ``easy_install`` (the command) once again honors setup.cfg if found in the
+  current directory. The "mis-behavior" characterized in `#99
+  <https://bitbucket.org/tarek/distribute/issue/99>`_ is actually intended
+  behavior, and no substantial rationale was given for the deviation.

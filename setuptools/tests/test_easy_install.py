@@ -13,7 +13,7 @@ import StringIO
 import distutils.core
 
 from setuptools.sandbox import run_setup, SandboxViolation
-from setuptools.command.easy_install import easy_install, fix_jython_executable, get_script_args, main
+from setuptools.command.easy_install import easy_install, fix_jython_executable, get_script_args
 from setuptools.command.easy_install import  PthDistributions
 from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
@@ -83,41 +83,6 @@ class TestEasyInstallTest(unittest.TestCase):
             sys.platform = old_platform
 
         self.assertEqual(script, WANTED)
-
-    def test_no_setup_cfg(self):
-        # makes sure easy_install as a command (main)
-        # doesn't use a setup.cfg file that is located
-        # in the current working directory
-        dir = tempfile.mkdtemp()
-        setup_cfg = open(os.path.join(dir, 'setup.cfg'), 'w')
-        setup_cfg.write('[easy_install]\nfind_links = http://example.com')
-        setup_cfg.close()
-        setup_py = open(os.path.join(dir, 'setup.py'), 'w')
-        setup_py.write(SETUP_PY)
-        setup_py.close()
-
-        from setuptools.dist import Distribution
-
-        def _parse_command_line(self):
-            msg = 'Error: a local setup.cfg was used'
-            opts = self.command_options
-            if 'easy_install' in opts:
-                assert 'find_links' not in opts['easy_install'], msg
-            return self._old_parse_command_line()
-
-        Distribution._old_parse_command_line = Distribution.parse_command_line
-        Distribution.parse_command_line = _parse_command_line
-
-        old_wd = os.getcwd()
-        try:
-            os.chdir(dir)
-            reset_setup_stop_context(
-                lambda: self.assertRaises(SystemExit, main, [])
-            )
-        finally:
-            os.chdir(old_wd)
-            shutil.rmtree(dir)
-            Distribution.parse_command_line = Distribution._old_parse_command_line
 
     def test_no_find_links(self):
         # new option '--no-find-links', that blocks find-links added at
