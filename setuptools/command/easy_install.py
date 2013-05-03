@@ -204,7 +204,7 @@ class easy_install(Command):
         self.outputs = []
 
     def run(self):
-        if self.verbose<>self.distribution.verbose:
+        if self.verbose!=self.distribution.verbose:
             log.set_verbosity(self.verbose)
         try:
             for spec in self.args:
@@ -252,7 +252,7 @@ class easy_install(Command):
         # Is it a configured, PYTHONPATH, implicit, or explicit site dir?
         is_site_dir = instdir in self.all_site_dirs
 
-        if not is_site_dir:
+        if not is_site_dir and not self.multi_version:
             # No?  Then directly test whether it does .pth file processing
             is_site_dir = self.check_pth_processing()
         else:
@@ -430,9 +430,9 @@ Please make the appropriate changes for your system and try again.
 
             self.check_editable(spec)
             dist = self.package_index.fetch_distribution(
-                spec, tmpdir, self.upgrade, self.editable, not self.always_copy
+                spec, tmpdir, self.upgrade, self.editable, not self.always_copy,
+                self.local_index
             )
-
             if dist is None:
                 msg = "Could not find suitable distribution for %r" % spec
                 if self.always_copy:
@@ -722,7 +722,7 @@ Please make the appropriate changes for your system and try again.
             f = open(pkg_inf,'w')
             f.write('Metadata-Version: 1.0\n')
             for k,v in cfg.items('metadata'):
-                if k<>'target_version':
+                if k!='target_version':
                     f.write('%s: %s\n' % (k.replace('_','-').title(), v))
             f.close()
         script_dir = os.path.join(egg_info,'scripts')
@@ -988,7 +988,6 @@ See the setuptools documentation for the "develop" command for more info.
         def pf(src,dst):
             if dst.endswith('.py') and not src.startswith('EGG-INFO/'):
                 to_compile.append(dst)
-                to_chmod.append(dst)
             elif dst.endswith('.dll') or dst.endswith('.so'):
                 to_chmod.append(dst)
             self.unpack_progress(src,dst)
@@ -1015,6 +1014,7 @@ See the setuptools documentation for the "develop" command for more info.
                 )
         finally:
             log.set_verbosity(self.verbose)     # restore original verbosity
+
 
 
 
@@ -1274,7 +1274,7 @@ def get_exe_prefixes(exe_filename):
 
     prefixes = [
         ('PURELIB/', ''), ('PLATLIB/pywin32_system32', ''),
-        ('PLATLIB/', ''),
+        ('PLATLIB/', ''), ('DATA/lib/site-packages/', ''),
         ('SCRIPTS/', 'EGG-INFO/scripts/')
     ]
     z = zipfile.ZipFile(exe_filename)
@@ -1286,7 +1286,7 @@ def get_exe_prefixes(exe_filename):
                 if parts[1].endswith('.egg-info'):
                     prefixes.insert(0,('/'.join(parts[:2]), 'EGG-INFO/'))
                     break
-            if len(parts)<>2 or not name.endswith('.pth'):
+            if len(parts)!=2 or not name.endswith('.pth'):
                 continue
             if name.endswith('-nspkg.pth'):
                 continue
@@ -1583,19 +1583,60 @@ def get_script_args(dist, executable=sys_executable, wininst=False):
                     old = ['.py','.pyc','.pyo']
                     new_header = re.sub('(?i)pythonw.exe','python.exe',header)
 
-                if os.path.exists(new_header[2:-1]) or sys.platform!='win32':
+                if os.path.exists(new_header[2:-1].strip('"')) or sys.platform!='win32':
                     hdr = new_header
                 else:
                     hdr = header
                 yield (name+ext, hdr+script_text, 't', [name+x for x in old])
                 yield (
                     name+'.exe', resource_string('setuptools', launcher),
-                    'b' # write in binary mode
-                )
+                    'b') # write in binary mode
+                yield (name+'.exe.manifest', _launcher_manifest % (name,), 't')
             else:
                 # On other platforms, we assume the right thing to do is to
                 # just write the stub with no extension.
                 yield (name, header+script_text)
+
+_launcher_manifest = """
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+ <assemblyIdentity version="1.0.0.0"
+ processorArchitecture="X86"
+ name="%s.exe"
+ type="win32"/>
+
+ <!-- Identify the application security requirements. -->
+ <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
+ <security>
+ <requestedPrivileges>
+ <requestedExecutionLevel level="asInvoker" uiAccess="false"/>
+ </requestedPrivileges>
+ </security>
+ </trustInfo>
+</assembly>"""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def rmtree(path, ignore_errors=False, onerror=auto_chmod):
     """Recursively delete a directory tree.
