@@ -36,7 +36,7 @@ class Require:
     def version_ok(self,version):
         """Is 'version' sufficiently up-to-date?"""
         return self.attribute is None or self.format is None or \
-            str(version)<>"unknown" and version >= self.requested_version
+            str(version)!="unknown" and version >= self.requested_version
 
 
     def get_version(self, paths=None, default="unknown"):
