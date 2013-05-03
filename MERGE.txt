@@ -23,3 +23,8 @@ Major Changes
 -------------
 
 * The _distribute property of the setuptools module has been removed.
+* Distributions are once again installed as zipped eggs by default, per the
+  rationale given in `the seminal bug report
+  <http://bugs.python.org/setuptools/issue33>`_ indicates that the feature
+  should remain and no substantial justification was given in the `Distribute
+  report <https://bitbucket.org/tarek/distribute/issue/19/>`_.
