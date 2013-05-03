@@ -62,8 +62,8 @@ def check_nsp(dist, attr, value):
             parent = '.'.join(nsp.split('.')[:-1])
             if parent not in value:
                 distutils.log.warn(
-                    "%r is declared as a package namespace, but %r is not:"
-                    " please correct this in setup.py", nsp, parent
+                    "WARNING: %r is declared as a package namespace, but %r"
+                    " is not: please correct this in setup.py", nsp, parent
                 )
 
 def check_extras(dist, attr, value):
@@ -121,6 +121,47 @@ def check_package_data(dist, attr, value):
         attr+" must be a dictionary mapping package names to lists of "
         "wildcard patterns"
     )
+
+def check_packages(dist, attr, value):
+    for pkgname in value:
+        if not re.match(r'\w+(\.\w+)*', pkgname):
+            distutils.log.warn(
+                "WARNING: %r not a valid package name; please use only"
+                ".-separated package names in setup.py", pkgname
+            )
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 class Distribution(_Distribution):
     """Distribution with support for features, tests, and package data
@@ -845,11 +886,4 @@ class Feature:
 
 
 
-def check_packages(dist, attr, value):
-    for pkgname in value:
-        if not re.match(r'\w+(\.\w+)*', pkgname):
-            distutils.log.warn(
-                "WARNING: %r not a valid package name; please use only"
-                ".-separated package names in setup.py", pkgname
-            )
 
