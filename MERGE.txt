@@ -8,6 +8,8 @@ Major Changes
 
 * Python 3 support.
 * Improved support for GAE.
+* Support `PEP-370 <http://www.python.org/dev/peps/pep-0370/>`_ per-user site
+  packages.
 * Sort order of Distributions in pkg_resources now prefers PyPI to external
   links (Distribute issue 163).
 
@@ -16,6 +18,9 @@ Minor Changes
 
 * Wording of some output has changed to replace contractions with their
   canonical form (i.e. prefer "could not" to "couldn't").
+* Manifest files are no longer written for .exe launchers. The
+  Distribute-based script launchers are used and they launch Python as a
+  subprocess, rather than loading the Python DLL in-process.
 
 Differences from Distribute 0.6.35:
 
