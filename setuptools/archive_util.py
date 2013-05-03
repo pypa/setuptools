@@ -6,7 +6,7 @@ __all__ = [
     "UnrecognizedFormat", "extraction_drivers", "unpack_directory",
 ]
 
-import zipfile, tarfile, os, shutil
+import zipfile, tarfile, os, shutil, posixpath
 from pkg_resources import ensure_directory
 from distutils.errors import DistutilsError
 
@@ -138,7 +138,7 @@ def unpack_zipfile(filename, extract_dir, progress_filter=default_filter):
             name = info.filename
 
             # don't extract absolute paths or ones with .. in them
-            if name.startswith('/') or '..' in name:
+            if name.startswith('/') or '..' in name.split('/'):
                 continue
 
             target = os.path.join(extract_dir, *name.split('/'))
@@ -169,37 +169,37 @@ def unpack_tarfile(filename, extract_dir, progress_filter=default_filter):
     by ``tarfile.open()``).  See ``unpack_archive()`` for an explanation
     of the `progress_filter` argument.
     """
-
     try:
         tarobj = tarfile.open(filename)
     except tarfile.TarError:
         raise UnrecognizedFormat(
             "%s is not a compressed or uncompressed tar file" % (filename,)
         )
-
     try:
         tarobj.chown = lambda *args: None   # don't do any chowning!
         for member in tarobj:
-            if member.isfile() or member.isdir():
-                name = member.name
-                # don't extract absolute paths or ones with .. in them
-                if not name.startswith('/') and '..' not in name:
-                    dst = os.path.join(extract_dir, *name.split('/'))                
+            name = member.name
+            # don't extract absolute paths or ones with .. in them
+            if not name.startswith('/') and '..' not in name.split('/'):
+                dst = os.path.join(extract_dir, *name.split('/'))
+                while member is not None and (member.islnk() or member.issym()):
+                    linkpath = member.linkname
+                    if member.issym():
+                        linkpath = posixpath.join(posixpath.dirname(member.name), linkpath)
+                        linkpath = posixpath.normpath(linkpath)
+                    member = tarobj._getmember(linkpath)
+    
+                if member is not None and (member.isfile() or member.isdir()):
                     dst = progress_filter(name, dst)
                     if dst:
                         if dst.endswith(os.sep):
                             dst = dst[:-1]
-                        tarobj._extract_member(member,dst)  # XXX Ugh
+                        try:
+                            tarobj._extract_member(member,dst)  # XXX Ugh
+                        except tarfile.ExtractError:
+                            pass    # chown/chmod/mkfifo/mknode/makedev failed
         return True
     finally:
         tarobj.close()
 
-
-
-
 extraction_drivers = unpack_directory, unpack_zipfile, unpack_tarfile
-
-
-
-
-
