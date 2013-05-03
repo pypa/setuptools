@@ -28,3 +28,10 @@ Major Changes
   <http://bugs.python.org/setuptools/issue33>`_ indicates that the feature
   should remain and no substantial justification was given in the `Distribute
   report <https://bitbucket.org/tarek/distribute/issue/19/>`_.
+
+Minor Changes
+-------------
+
+* The patch for `#174 <https://bitbucket.org/tarek/distribute/issue/174>`_
+  has been rolled-back, as the comment on the ticket indicates that the patch
+  addressed a symptom and not the fundamental issue.
