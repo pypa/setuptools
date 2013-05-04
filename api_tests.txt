@@ -328,3 +328,94 @@ setuptools is provided as well::
     >>> cp("darwin-8.2.0-Power_Macintosh", "macosx-10.3-ppc")
     False
 
+
+Environment Markers
+-------------------
+
+    >>> from pkg_resources import invalid_marker as im, evaluate_marker as em
+    >>> import os
+
+    >>> print(im("sys_platform"))
+    Comparison or logical expression expected
+
+    >>> print(im("sys_platform=="))
+    unexpected EOF while parsing (line 1)
+    
+    >>> print(im("sys_platform=='win32'"))
+    False
+
+    >>> print(im("sys=='x'"))
+    Unknown name 'sys'
+
+    >>> print(im("(extra)"))
+    Comparison or logical expression expected
+
+    >>> print(im("(extra"))
+    unexpected EOF while parsing (line 1)
+
+    >>> print(im("os.open('foo')=='y'"))
+    Language feature not supported in environment markers
+    
+    >>> print(im("'x'=='y' and os.open('foo')=='y'"))   # no short-circuit!
+    Language feature not supported in environment markers
+
+    >>> print(im("'x'=='x' or os.open('foo')=='y'"))   # no short-circuit!
+    Language feature not supported in environment markers
+
+    >>> print(im("'x' < 'y'"))
+    '<' operator not allowed in environment markers
+    
+    >>> print(im("'x' < 'y' < 'z'"))
+    Chained comparison not allowed in environment markers
+
+    >>> print(im("r'x'=='x'"))
+    Only plain strings allowed in environment markers
+    
+    >>> print(im("'''x'''=='x'"))
+    Only plain strings allowed in environment markers
+    
+    >>> print(im('"""x"""=="x"'))
+    Only plain strings allowed in environment markers
+    
+    >>> print(im(r"'x\n'=='x'"))
+    Only plain strings allowed in environment markers
+
+    >>> print(im("os.open=='y'"))
+    Language feature not supported in environment markers
+    
+    >>> em('"x"=="x"')
+    True
+
+    >>> em('"x"=="y"')
+    False
+
+    >>> em('"x"=="y" and "x"=="x"')
+    False
+
+    >>> em('"x"=="y" or "x"=="x"')
+    True
+
+    >>> em('"x"=="y" and "x"=="q" or "z"=="z"')
+    True
+
+    >>> em('"x"=="y" and ("x"=="q" or "z"=="z")')
+    False
+
+    >>> em('"x"=="y" and "z"=="z" or "x"=="q"')
+    False
+
+    >>> em('"x"=="x" and "z"=="z" or "x"=="q"')
+    True
+
+    >>> em("sys_platform=='win32'") == (sys.platform=='win32')
+    True
+
+    >>> em("'x' in 'yx'")
+    True
+
+    >>> em("'yx' in 'x'")
+    False
+
+
+
+
