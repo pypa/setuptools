@@ -217,18 +217,21 @@ class egg_info(Command):
             data = f.read()
             f.close()
 
-            if data.startswith('9') or data.startswith('8'):
+            if data.startswith('<?xml'):
+                dirurl = urlre.search(data).group(1)    # get repository URL
+                localrev = max([int(m.group(1)) for m in revre.finditer(data)]+[0])
+            else:
+                try: svnver = int(data.splitlines()[0])
+                except: svnver=-1
+                if data<8:
+                    log.warn("unrecognized .svn/entries format; skipping %s", base)
+                    dirs[:] = []
+                    continue
+                   
                 data = map(str.splitlines,data.split('\n\x0c\n'))
                 del data[0][0]  # get rid of the '8' or '9'
                 dirurl = data[0][3]
                 localrev = max([int(d[9]) for d in data if len(d)>9 and d[9]]+[0])
-            elif data.startswith('<?xml'):
-                dirurl = urlre.search(data).group(1)    # get repository URL
-                localrev = max([int(m.group(1)) for m in revre.finditer(data)]+[0])
-            else:
-                log.warn("unrecognized .svn/entries format; skipping %s", base)
-                dirs[:] = []
-                continue
             if base==os.curdir:
                 base_url = dirurl+'/'   # save the root url
             elif not dirurl.startswith(base_url):
@@ -237,9 +240,6 @@ class egg_info(Command):
             revision = max(revision, localrev)
 
         return str(revision or get_pkg_info_revision())
-
-
-
 
 
 

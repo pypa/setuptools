@@ -82,15 +82,15 @@ class build_ext(_build_ext):
 
     def get_ext_filename(self, fullname):
         filename = _build_ext.get_ext_filename(self,fullname)
-        ext = self.ext_map[fullname]
-        if isinstance(ext,Library):
-            fn, ext = os.path.splitext(filename)
-            return self.shlib_compiler.library_filename(fn,libtype)
-        elif use_stubs and ext._links_to_dynamic:
-            d,fn = os.path.split(filename)
-            return os.path.join(d,'dl-'+fn)
-        else:
-            return filename
+        if fullname in self.ext_map:
+            ext = self.ext_map[fullname]
+            if isinstance(ext,Library):
+                fn, ext = os.path.splitext(filename)
+                return self.shlib_compiler.library_filename(fn,libtype)
+            elif use_stubs and ext._links_to_dynamic:
+                d,fn = os.path.split(filename)
+                return os.path.join(d,'dl-'+fn)
+        return filename
 
     def initialize_options(self):
         _build_ext.initialize_options(self)
