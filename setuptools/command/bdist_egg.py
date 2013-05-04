@@ -170,12 +170,13 @@ class bdist_egg(Command):
     def run(self):
         # Generate metadata first
         self.run_command("egg_info")
-
         # We run install_lib before install_data, because some data hacks
         # pull their data path from the install_lib command.
         log.info("installing library code to %s" % self.bdist_dir)
         instcmd = self.get_finalized_command('install')
         old_root = instcmd.root; instcmd.root = None
+        if self.distribution.has_c_libraries() and not self.skip_build:
+            self.run_command('build_clib')
         cmd = self.call_command('install_lib', warn_dir=0)
         instcmd.root = old_root
 
@@ -195,7 +196,6 @@ class bdist_egg(Command):
         to_compile.extend(self.make_init_files())
         if to_compile:
             cmd.byte_compile(to_compile)
-
         if self.distribution.data_files:
             self.do_install_data()
 
@@ -407,7 +407,7 @@ def write_safety_flag(egg_dir, safe):
     for flag,fn in safety_flags.items():
         fn = os.path.join(egg_dir, fn)
         if os.path.exists(fn):
-            if safe is None or bool(safe)<>flag:
+            if safe is None or bool(safe)!=flag:
                 os.unlink(fn)
         elif safe is not None and bool(safe)==flag:
             f=open(fn,'wt'); f.write('\n'); f.close()

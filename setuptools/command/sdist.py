@@ -1,6 +1,7 @@
 from distutils.command.sdist import sdist as _sdist
 from distutils.util import convert_path
 from distutils import log
+from glob import glob
 import os, re, sys, pkg_resources
 from glob import glob
 
@@ -32,7 +33,6 @@ def joinpath(prefix,suffix):
     if not prefix:
         return suffix
     return os.path.join(prefix,suffix)
-
 
 
 
@@ -89,18 +89,22 @@ def entries_finder(dirname, filename):
     f = open(filename,'rU')
     data = f.read()
     f.close()
-    if data.startswith('10') or data.startswith('9') or data.startswith('8'):
+    if data.startswith('<?xml'):
+        for match in entries_pattern.finditer(data):
+            yield joinpath(dirname,unescape(match.group(1)))
+    else:
+        svnver=-1
+        try: svnver = int(data.splitlines()[0])
+        except: pass
+        if svnver<8:
+            log.warn("unrecognized .svn/entries format in %s", os.path.abspath(dirname))
+            return           
         for record in map(str.splitlines, data.split('\n\x0c\n')[1:]):
             # subversion 1.6/1.5/1.4
             if not record or len(record)>=6 and record[5]=="delete":
                 continue    # skip deleted
             yield joinpath(dirname, record[0])
-    elif data.startswith('<?xml'):
-        for match in entries_pattern.finditer(data):
-            yield joinpath(dirname,unescape(match.group(1)))
-    else:
-        log.warn("unrecognized .svn/entries format in %s", os.path.abspath(dirname))
-
+        
 
 finders = [
     (convert_path('CVS/Entries'),
@@ -109,10 +113,6 @@ finders = [
     (convert_path('.svn/dir-props'), externals_finder),
     (convert_path('.svn/dir-prop-base'), externals_finder),  # svn 1.4
 ]
-
-
-
-
 
 
 
@@ -295,15 +295,6 @@ class sdist(_sdist):
                 continue
             self.filelist.append(line)
         manifest.close()
-
-
-
-
-
-
-
-
-
 
 
 
