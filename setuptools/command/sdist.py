@@ -157,7 +157,7 @@ class sdist(_sdist):
         import distutils.command
         if 'check' not in distutils.command.__all__:
             self.check_metadata()
-            
+
         self.make_distribution()
 
         dist_files = getattr(self.distribution,'dist_files',[])
@@ -165,6 +165,26 @@ class sdist(_sdist):
             data = ('sdist', '', file)
             if data not in dist_files:
                 dist_files.append(data)
+
+    def __read_template_hack(self):
+        # This grody hack closes the template file (MANIFEST.in) if an
+        #  exception occurs during read_template.
+        # Doing so prevents an error when easy_install attempts to delete the
+        #  file.
+        try:
+            _sdist.read_template(self)
+        except:
+            sys.exc_info()[2].tb_next.tb_frame.f_locals['template'].close()
+            raise
+    # Beginning with Python 2.7.2, 3.1.4, and 3.2.1, this leaky file handle
+    #  has been fixed, so only override the method if we're using an earlier
+    #  Python.
+    if (
+            sys.version_info < (2,7,2)
+            or (3,0) <= sys.version_info < (3,1,4)
+            or (3,2) <= sys.version_info < (3,2,1)
+        ):
+        read_template = __read_template_hack
 
     def add_defaults(self):
         standards = [READMES,
@@ -218,26 +238,6 @@ class sdist(_sdist):
         if self.distribution.has_scripts():
             build_scripts = self.get_finalized_command('build_scripts')
             self.filelist.extend(build_scripts.get_source_files())
-
-    def __read_template_hack(self):
-        # This grody hack closes the template file (MANIFEST.in) if an
-        #  exception occurs during read_template.
-        # Doing so prevents an error when easy_install attempts to delete the
-        #  file.
-        try:
-            _sdist.read_template(self)
-        except:
-            sys.exc_info()[2].tb_next.tb_frame.f_locals['template'].close()
-            raise
-    # Beginning with Python 2.7.2, 3.1.4, and 3.2.1, this leaky file handle
-    #  has been fixed, so only override the method if we're using an earlier
-    #  Python.
-    if (
-            sys.version_info < (2,7,2)
-            or (3,0) <= sys.version_info < (3,1,4)
-            or (3,2) <= sys.version_info < (3,2,1)
-        ):
-        read_template = __read_template_hack
 
     def check_readme(self):
         for f in READMES:
