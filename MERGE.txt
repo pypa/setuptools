@@ -76,9 +76,7 @@ Minor Changes
 
 * Wording of some output has changed to replace contractions with their
   canonical form (i.e. prefer "could not" to "couldn't").
-* Manifest files are no longer written for .exe launchers. The
-  Distribute-based script launchers are used and they launch Python as a
-  subprocess, rather than loading the Python DLL in-process.
+* Manifest files are only written for 32-bit .exe launchers.
 
 Differences from Distribute 0.6.36:
 
