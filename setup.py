@@ -142,18 +142,45 @@ def _linkified(rst_path):
     return _linkified_text(rst_content)
 
 def _linkified_text(rst_content):
-    bitroot = 'http://bitbucket.org/tarek/distribute'
-    revision = re.compile(r'\b(issue\s+#?\d+)\b', re.M | re.I)
+    # first identify any existing HREFs so they're not changed
+    HREF_pattern = re.compile('`.*?`_', re.MULTILINE | re.DOTALL)
 
-    anchors = revision.findall(rst_content) # ['Issue #43', ...]
-    anchors = sorted(set(anchors))
-    rst_content = revision.sub(r'`\1`_', rst_content)
+    # split on the HREF pattern, returning the parts to be linkified
+    plain_text_parts = HREF_pattern.split(rst_content)
+    anchors = []
+    linkified_parts = [_linkified_part(part, anchors)
+        for part in plain_text_parts]
+    pairs = itertools.izip_longest(
+        linkified_parts,
+        HREF_pattern.findall(rst_content),
+        fillvalue='',
+    )
+    rst_content = ''.join(flatten(pairs))
+
+    anchors = sorted(anchors)
+
+    bitroot = 'http://bitbucket.org/tarek/distribute'
     rst_content += "\n"
     for x in anchors:
         issue = re.findall(r'\d+', x)[0]
         rst_content += '.. _`%s`: %s/issue/%s\n' % (x, bitroot, issue)
     rst_content += "\n"
     return rst_content
+
+import itertools
+def flatten(listOfLists):
+    "Flatten one level of nesting"
+    return itertools.chain.from_iterable(listOfLists)
+
+
+def _linkified_part(text, anchors):
+    """
+    Linkify a part and collect any anchors generated
+    """
+    revision = re.compile(r'\b(issue\s+#?\d+)\b', re.M | re.I)
+
+    anchors.extend(revision.findall(text)) # ['Issue #43', ...]
+    return revision.sub(r'`\1`_', text)
 
 readme_file = open('README.txt')
 long_description = readme_file.read() + _linkified('CHANGES.txt')
