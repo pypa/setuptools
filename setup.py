@@ -134,7 +134,12 @@ if _being_installed():
     _before_install()
 
 readme_file = open('README.txt')
-changes_file = open('CHANGES (links).txt')
+# the release script adds hyperlinks to issues
+if os.path.exists('CHANGES (links).txt'):
+    changes_file = open('CHANGES (links).txt')
+else:
+    # but if the release script has not run, fall back to the source file
+    changes_file = open('CHANGES.txt')
 long_description = readme_file.read() + changes_file.read()
 readme_file.close()
 changes_file.close()
