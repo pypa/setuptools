@@ -3,6 +3,16 @@ CHANGES
 =======
 
 ------
+0.6.37
+------
+
+* Issue #143: Launcher scripts, including easy_install itself, are now
+  accompanied by a manifest on 32-bit Windows environments to avoid the
+  Installer Detection Technology and thus undesirable UAC elevation described
+  in `this Microsoft article
+  <http://technet.microsoft.com/en-us/library/cc709628%28WS.10%29.aspx>`_.
+
+------
 0.6.36
 ------
 

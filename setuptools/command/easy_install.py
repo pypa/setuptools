@@ -20,6 +20,7 @@ import re
 import stat
 import random
 from glob import glob
+import pkg_resources
 from setuptools import Command, _dont_write_bytecode
 from setuptools.sandbox import run_setup
 from distutils import log, dir_util
@@ -1851,10 +1852,22 @@ def get_script_args(dist, executable=sys_executable, wininst=False):
                     name+'.exe', resource_string('setuptools', launcher),
                     'b' # write in binary mode
                 )
+                if not is_64bit():
+                    # install a manifest for the launcher to prevent Windows
+                    #  from detecting it as an installer (which it will for
+                    #  launchers like easy_install.exe). Consider only
+                    #  adding a manifest for launchers detected as installers.
+                    #  See Distribute #143 for details.
+                    m_name = name + '.exe.manifest'
+                    yield (m_name, load_launcher_manifest(name), 't')
             else:
                 # On other platforms, we assume the right thing to do is to
                 # just write the stub with no extension.
                 yield (name, header+script_text)
+
+def load_launcher_manifest(name):
+    manifest = pkg_resources.resource_string(__name__, 'launcher manifest.xml')
+    return manifest % vars()
 
 def rmtree(path, ignore_errors=False, onerror=auto_chmod):
     """Recursively delete a directory tree.
