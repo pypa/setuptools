@@ -1867,7 +1867,10 @@ def get_script_args(dist, executable=sys_executable, wininst=False):
 
 def load_launcher_manifest(name):
     manifest = pkg_resources.resource_string(__name__, 'launcher manifest.xml')
-    return manifest % vars()
+    if sys.version_info[0] < 3:
+        return manifest % vars()
+    else:
+        return manifest.decode('utf-8') % vars()
 
 def rmtree(path, ignore_errors=False, onerror=auto_chmod):
     """Recursively delete a directory tree.
