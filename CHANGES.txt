@@ -3,6 +3,12 @@ CHANGES
 =======
 
 ------
+0.6.38
+------
+
+* Issue #371: The launcher manifest file is now installed properly.
+
+------
 0.6.37
 ------
 
