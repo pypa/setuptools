@@ -3,6 +3,9 @@
 [ssl:sys_platform=='win32']
 wincertstore==0.1
 
+[certs]
+certifi==0.0.8
+
 [ssl:sys_platform=='win32' and python_version in '2.3, 2.4']
 ctypes==1.0.2
 

@@ -1,4 +1,5 @@
 import sys, os, socket, urllib2, atexit, re
+from pkg_resources import ResolutionError, ExtractionError
 
 try:
     import ssl
@@ -33,7 +34,6 @@ for what, where in (
             pass
 
 is_available = ssl is not None and object not in (HTTPSHandler, HTTPSConnection)
-
 
 
 
@@ -225,7 +225,8 @@ def get_win_certfile():
 
     _wincerts = MyCertFile(stores=['CA', 'ROOT'])
     return _wincerts.name
-    
+
+
 def find_ca_bundle():
     """Return an existing CA bundle path, or None"""
     if os.name=='nt':
@@ -234,11 +235,10 @@ def find_ca_bundle():
         for cert_path in cert_paths:
             if os.path.isfile(cert_path):
                 return cert_path
-
-
-
-
-
+    try:
+        return pkg_resources.resource_filename('certifi', 'cacert.pem')
+    except (ImportError, ResolutionError, ExtractionError):
+        return None
 
 
 
