@@ -170,7 +170,7 @@ dist = setup(
     test_suite = 'setuptools.tests',
     src_root = src_root,
     packages = find_packages(),
-    package_data = {'setuptools':['*.exe']},
+    package_data = {'setuptools':['*.exe'], 'setuptools.command':['*.xml']},
 
     py_modules = ['pkg_resources', 'easy_install', 'site'],
 
