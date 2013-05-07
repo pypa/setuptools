@@ -11,8 +11,8 @@ set PATH=C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC;%PATH%
 REM set up the environment to compile to x86
 call VCVARSALL x86 >nul 2>&1
 if "%ERRORLEVEL%"=="0" (
-  cl /D "GUI=0" /D "WIN32_LEAN_AND_MEAN" launcher.c /O2 /link /MACHINE:x86 /out:setuptools/cli-32.exe
-  cl /D "GUI=1" /D "WIN32_LEAN_AND_MEAN" launcher.c /O2 /link /MACHINE:x86 /out:setuptools/gui-32.exe
+  cl /D "GUI=0" /D "WIN32_LEAN_AND_MEAN" launcher.c /O2 /link /MACHINE:x86 /SUBSYSTEM:CONSOLE /out:setuptools/cli-32.exe
+  cl /D "GUI=1" /D "WIN32_LEAN_AND_MEAN" launcher.c /O2 /link /MACHINE:x86 /SUBSYSTEM:WINDOWS /out:setuptools/gui-32.exe
 ) else (
   echo Visual Studio ^(Express^) 2008 not found to build Windows 32-bit version
 )
@@ -20,8 +20,8 @@ if "%ERRORLEVEL%"=="0" (
 REM now for 64-bit
 call VCVARSALL x86_amd64 >nul 2>&1
 if "%ERRORLEVEL%"=="0" (
-  cl /D "GUI=0" /D "WIN32_LEAN_AND_MEAN" launcher.c /O2 /link /MACHINE:x64 /out:setuptools/cli-64.exe
-  cl /D "GUI=1" /D "WIN32_LEAN_AND_MEAN" launcher.c /O2 /link /MACHINE:x64 /out:setuptools/gui-64.exe
+  cl /D "GUI=0" /D "WIN32_LEAN_AND_MEAN" launcher.c /O2 /link /MACHINE:x64 /SUBSYSTEM:CONSOLE /out:setuptools/cli-64.exe
+  cl /D "GUI=1" /D "WIN32_LEAN_AND_MEAN" launcher.c /O2 /link /MACHINE:x64 /SUBSYSTEM:WINDOWS /out:setuptools/gui-64.exe
 ) else (
   echo Visual Studio ^(Express^) 2008 not found to build Windows 64-bit version
 )
