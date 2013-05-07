@@ -26,5 +26,21 @@ if "%ERRORLEVEL%"=="0" (
   echo Visual Studio ^(Express^) 2008 not found to build Windows 64-bit version
 )
 
+REM Windows RT ARM build requires both freeware
+REM "Visual Studio Express 2012 for Windows 8" and
+REM "Visual Studio Express 2012 for Windows Desktop" to be installed from
+REM http://www.microsoft.com/visualstudio/eng/products/visual-studio-express-products
+set PATH=%PATH_OLD%
+set PATH=C:\Program Files\Microsoft Visual Studio 11.0\VC;%PATH%
+set PATH=C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC;%PATH%
+call VCVARSALL x86_arm >nul 2>&1
+if "%ERRORLEVEL%"=="0" (
+  echo Building Windows RT Version ...
+  cl /D "GUI=0" /D "WIN32_LEAN_AND_MEAN" /D _ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE launcher.c /O2 /link /MACHINE:ARM /SUBSYSTEM:CONSOLE /out:setuptools/cli-arm-32.exe
+  cl /D "GUI=1" /D "WIN32_LEAN_AND_MEAN" /D _ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE launcher.c /O2 /link /MACHINE:ARM /SUBSYSTEM:WINDOWS /out:setuptools/gui-arm-32.exe
+) else (
+  echo Visual Studio ^(Express^) 2012 not found to build Windows RT Version
+)
+
 set PATH=%PATH_OLD%
 
