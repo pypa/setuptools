@@ -18,12 +18,15 @@ if "%ERRORLEVEL%"=="0" (
 )
 
 REM now for 64-bit
+REM Visual Studio 2008 Express can't create 64-bit executable without
+REM modifications. Either use higher edition or search google how to
+REM modify Express installation.
 call VCVARSALL x86_amd64 >nul 2>&1
 if "%ERRORLEVEL%"=="0" (
   cl /D "GUI=0" /D "WIN32_LEAN_AND_MEAN" launcher.c /O2 /link /MACHINE:x64 /SUBSYSTEM:CONSOLE /out:setuptools/cli-64.exe
   cl /D "GUI=1" /D "WIN32_LEAN_AND_MEAN" launcher.c /O2 /link /MACHINE:x64 /SUBSYSTEM:WINDOWS /out:setuptools/gui-64.exe
 ) else (
-  echo Visual Studio ^(Express^) 2008 not found to build Windows 64-bit version
+  echo Visual Studio 2008 not found to build Windows 64-bit version
 )
 
 REM Windows RT ARM build requires both freeware
