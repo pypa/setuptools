@@ -1,32 +1,30 @@
 @echo off
 
 REM VCVARSALL may be in Program Files or Program Files (x86)
-REM Use old Visual Studio 2008 so created .exe will be compatible with
-REM old Windows versions. Free express edition can be downloaded via:
-REM http://download.microsoft.com/download/8/B/5/8B5804AD-4990-40D0-A6AA-CE894CBBB3DC/VS2008ExpressENUX1397868.iso
+REM Use old Windows SDK 6.1 so created .exe will be compatible with
+REM old Windows versions.
+REM Windows SDK 6.1 may be downloaded at:
+REM  http://www.microsoft.com/en-us/download/details.aspx?id=11310
 set PATH_OLD=%PATH%
-set PATH=C:\Program Files\Microsoft Visual Studio 9.0\VC;%PATH%
-set PATH=C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC;%PATH%
+set PATH=C:\Program Files\Microsoft Visual Studio 9.0\VC\bin;%PATH%
+set PATH=C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\bin;%PATH%
 
 REM set up the environment to compile to x86
-call VCVARSALL x86 >nul 2>&1
+call VCVARS32
 if "%ERRORLEVEL%"=="0" (
   cl /D "GUI=0" /D "WIN32_LEAN_AND_MEAN" launcher.c /O2 /link /MACHINE:x86 /SUBSYSTEM:CONSOLE /out:setuptools/cli-32.exe
   cl /D "GUI=1" /D "WIN32_LEAN_AND_MEAN" launcher.c /O2 /link /MACHINE:x86 /SUBSYSTEM:WINDOWS /out:setuptools/gui-32.exe
 ) else (
-  echo Visual Studio ^(Express^) 2008 not found to build Windows 32-bit version
+  echo Windows SDK 6.1 not found to build Windows 32-bit version
 )
 
 REM now for 64-bit
-REM Visual Studio 2008 Express can't create 64-bit executable without
-REM modifications. Either use higher edition or search google how to
-REM modify Express installation.
-call VCVARSALL x86_amd64 >nul 2>&1
+call VCVARS64
 if "%ERRORLEVEL%"=="0" (
   cl /D "GUI=0" /D "WIN32_LEAN_AND_MEAN" launcher.c /O2 /link /MACHINE:x64 /SUBSYSTEM:CONSOLE /out:setuptools/cli-64.exe
   cl /D "GUI=1" /D "WIN32_LEAN_AND_MEAN" launcher.c /O2 /link /MACHINE:x64 /SUBSYSTEM:WINDOWS /out:setuptools/gui-64.exe
 ) else (
-  echo Visual Studio 2008 not found to build Windows 64-bit version
+  echo Windows SDK 6.1 not found to build Windows 64-bit version
 )
 
 REM Windows RT ARM build requires both freeware
