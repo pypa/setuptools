@@ -1,11 +1,12 @@
 @echo off
 
-REM VCVARSALL may be in Program Files or Program Files (x86)
 REM Use old Windows SDK 6.1 so created .exe will be compatible with
 REM old Windows versions.
 REM Windows SDK 6.1 may be downloaded at:
 REM  http://www.microsoft.com/en-us/download/details.aspx?id=11310
 set PATH_OLD=%PATH%
+
+REM The SDK creates a false install of Visual Studio at one of these locations
 set PATH=C:\Program Files\Microsoft Visual Studio 9.0\VC\bin;%PATH%
 set PATH=C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\bin;%PATH%
 
