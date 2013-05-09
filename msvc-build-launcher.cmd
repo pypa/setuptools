@@ -20,7 +20,8 @@ if "%ERRORLEVEL%"=="0" (
 )
 
 REM now for 64-bit
-call VCVARS64
+REM Use the x86_amd64 profile, which is the 32-bit cross compiler for amd64
+call VCVARSx86_amd64
 if "%ERRORLEVEL%"=="0" (
   cl /D "GUI=0" /D "WIN32_LEAN_AND_MEAN" launcher.c /O2 /link /MACHINE:x64 /SUBSYSTEM:CONSOLE /out:setuptools/cli-64.exe
   cl /D "GUI=1" /D "WIN32_LEAN_AND_MEAN" launcher.c /O2 /link /MACHINE:x64 /SUBSYSTEM:WINDOWS /out:setuptools/gui-64.exe
