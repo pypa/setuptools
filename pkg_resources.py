@@ -1409,10 +1409,10 @@ class ZipProvider(EggProvider):
         )
         timestamp = time.mktime(date_time)
 
+        if not WRITE_SUPPORT:
+            raise IOError('"os.rename" and "os.unlink" are not supported '
+                          'on this platform')
         try:
-            if not WRITE_SUPPORT:
-                raise IOError('"os.rename" and "os.unlink" are not supported '
-                              'on this platform')
 
             real_path = manager.get_cache_path(
                 self.egg_name, self._parts(zip_path)
