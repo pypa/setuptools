@@ -1459,7 +1459,14 @@ class ZipProvider(EggProvider):
         if not os.path.isfile(file_path):
             return False
         stat = os.stat(file_path)
-        return stat.st_size==size and stat.st_mtime==timestamp
+        if stat.st_size!=size or stat.st_mtime!=timestamp:
+            return False
+        # check that the contents match
+        zip_contents = self.loader.get_data(zip_path)
+        f = open(file_path, 'rb')
+        file_contents = f.read()
+        f.close()
+        return zip_contents == file_contents
 
     def _get_eager_resources(self):
         if self.eagers is None:
