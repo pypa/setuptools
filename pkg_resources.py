@@ -1392,6 +1392,16 @@ class ZipProvider(EggProvider):
                 self._extract_resource(manager, self._eager_to_zip(name))
         return self._extract_resource(manager, zip_path)
 
+    @staticmethod
+    def _get_date_and_size(zip_stat):
+        t,d,size = zip_stat[5], zip_stat[6], zip_stat[3]
+        date_time = (
+            (d>>9)+1980, (d>>5)&0xF, d&0x1F,                      # ymd
+            (t&0xFFFF)>>11, (t>>5)&0x3F, (t&0x1F) * 2, 0, 0, -1   # hms, etc.
+        )
+        timestamp = time.mktime(date_time)
+        return timestamp, size
+
     def _extract_resource(self, manager, zip_path):
 
         if zip_path in self._index():
@@ -1401,13 +1411,7 @@ class ZipProvider(EggProvider):
                 )
             return os.path.dirname(last)  # return the extracted directory name
 
-        zip_stat = self.zipinfo[zip_path]
-        t,d,size = zip_stat[5], zip_stat[6], zip_stat[3]
-        date_time = (
-            (d>>9)+1980, (d>>5)&0xF, d&0x1F,                      # ymd
-            (t&0xFFFF)>>11, (t>>5)&0x3F, (t&0x1F) * 2, 0, 0, -1   # hms, etc.
-        )
-        timestamp = time.mktime(date_time)
+        timestamp, size = self._get_date_and_size(self.zipinfo[zip_path])
 
         if not WRITE_SUPPORT:
             raise IOError('"os.rename" and "os.unlink" are not supported '
