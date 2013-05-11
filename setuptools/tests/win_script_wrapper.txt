@@ -38,7 +38,7 @@ We'll also copy cli.exe to the sample-directory with the name foo.exe:
     >>> import pkg_resources
     >>> f = open(os.path.join(sample_directory, 'foo.exe'), 'wb')
     >>> f.write(
-    ...     pkg_resources.resource_string('setuptools', 'cli.exe')
+    ...     pkg_resources.resource_string('setuptools', 'cli-32.exe')
     ...     )
     >>> f.close()
 
@@ -83,7 +83,7 @@ enter the interpreter after running the script, you could use -Oi:
 
     >>> f = open(os.path.join(sample_directory, 'foo-script.py'), 'w')
     >>> f.write(
-    ... """#!%(python_exe)s  -Oi  
+    ... """#!%(python_exe)s  -Oi
     ... import sys
     ... input = repr(sys.stdin.read())
     ... print sys.argv[0][-14:]
@@ -126,7 +126,7 @@ We'll also copy gui.exe to the sample-directory with the name bar.exe:
     >>> import pkg_resources
     >>> f = open(os.path.join(sample_directory, 'bar.exe'), 'wb')
     >>> f.write(
-    ...     pkg_resources.resource_string('setuptools', 'gui.exe')
+    ...     pkg_resources.resource_string('setuptools', 'gui-32.exe')
     ...     )
     >>> f.close()
 

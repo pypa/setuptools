@@ -3,6 +3,14 @@ CHANGES
 =======
 
 ------
+0.6.39
+------
+
+* Add support for console launchers on ARM platforms.
+* Fix possible issue in GUI launchers where the subsystem was not supplied to
+  the linker.
+* Launcher build script now refactored for robustness.
+
 0.6.38
 ------
 

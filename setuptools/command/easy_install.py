@@ -19,6 +19,7 @@ import zipfile
 import re
 import stat
 import random
+import platform
 from glob import glob
 import pkg_resources
 from setuptools import Command, _dont_write_bytecode
@@ -1839,6 +1840,8 @@ def get_script_args(dist, executable=sys_executable, wininst=False):
                     ext, launcher = '-script.py', 'cli.exe'
                     old = ['.py','.pyc','.pyo']
                     new_header = re.sub('(?i)pythonw.exe','python.exe',header)
+                if platform.machine().lower()=='arm':
+                    launcher = launcher.replace(".", "-arm.")
                 if is_64bit():
                     launcher = launcher.replace(".", "-64.")
                 else:
