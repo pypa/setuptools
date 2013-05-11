@@ -1422,11 +1422,8 @@ class ZipProvider(EggProvider):
                 self.egg_name, self._parts(zip_path)
             )
 
-            if os.path.isfile(real_path):
-                stat = os.stat(real_path)
-                if stat.st_size==size and stat.st_mtime==timestamp:
-                    # size and stamp match, don't bother extracting
-                    return real_path
+            if self.is_current(real_path, zip_path):
+                return real_path
 
             outf, tmpnam = _mkstemp(".$extract", dir=os.path.dirname(real_path))
             os.write(outf, self.loader.get_data(zip_path))
@@ -1439,11 +1436,9 @@ class ZipProvider(EggProvider):
 
             except os.error:
                 if os.path.isfile(real_path):
-                    stat = os.stat(real_path)
-
-                    if stat.st_size==size and stat.st_mtime==timestamp:
-                        # size and stamp match, somebody did it just ahead of
-                        # us, so we're done
+                    if self._is_current(real_path, zip_path):
+                        # the file became current since it was checked above,
+                        #  so proceed.
                         return real_path
                     elif os.name=='nt':     # Windows, del old file and retry
                         unlink(real_path)
@@ -1455,6 +1450,16 @@ class ZipProvider(EggProvider):
             manager.extraction_error()  # report a user-friendly error
 
         return real_path
+
+    def _is_current(self, file_path, zip_path):
+        """
+        Return True if the file_path is current for this zip_path
+        """
+        timestamp, size = self._get_date_and_size(self.zipinfo[zip_path])
+        if not os.path.isfile(file_path):
+            return False
+        stat = os.stat(file_path)
+        return stat.st_size==size and stat.st_mtime==timestamp
 
     def _get_eager_resources(self):
         if self.eagers is None:
