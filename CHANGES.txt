@@ -10,6 +10,9 @@ CHANGES
 * Fix possible issue in GUI launchers where the subsystem was not supplied to
   the linker.
 * Launcher build script now refactored for robustness.
+* Issue #375: Resources extracted from a zip egg to the file system now also
+  check the contents of the file against the zip contents during each
+  invocation of get_resource_filename.
 
 0.6.38
 ------

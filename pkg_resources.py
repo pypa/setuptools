@@ -1392,6 +1392,16 @@ class ZipProvider(EggProvider):
                 self._extract_resource(manager, self._eager_to_zip(name))
         return self._extract_resource(manager, zip_path)
 
+    @staticmethod
+    def _get_date_and_size(zip_stat):
+        t,d,size = zip_stat[5], zip_stat[6], zip_stat[3]
+        date_time = (
+            (d>>9)+1980, (d>>5)&0xF, d&0x1F,                      # ymd
+            (t&0xFFFF)>>11, (t>>5)&0x3F, (t&0x1F) * 2, 0, 0, -1   # hms, etc.
+        )
+        timestamp = time.mktime(date_time)
+        return timestamp, size
+
     def _extract_resource(self, manager, zip_path):
 
         if zip_path in self._index():
@@ -1401,28 +1411,19 @@ class ZipProvider(EggProvider):
                 )
             return os.path.dirname(last)  # return the extracted directory name
 
-        zip_stat = self.zipinfo[zip_path]
-        t,d,size = zip_stat[5], zip_stat[6], zip_stat[3]
-        date_time = (
-            (d>>9)+1980, (d>>5)&0xF, d&0x1F,                      # ymd
-            (t&0xFFFF)>>11, (t>>5)&0x3F, (t&0x1F) * 2, 0, 0, -1   # hms, etc.
-        )
-        timestamp = time.mktime(date_time)
+        timestamp, size = self._get_date_and_size(self.zipinfo[zip_path])
 
+        if not WRITE_SUPPORT:
+            raise IOError('"os.rename" and "os.unlink" are not supported '
+                          'on this platform')
         try:
-            if not WRITE_SUPPORT:
-                raise IOError('"os.rename" and "os.unlink" are not supported '
-                              'on this platform')
 
             real_path = manager.get_cache_path(
                 self.egg_name, self._parts(zip_path)
             )
 
-            if os.path.isfile(real_path):
-                stat = os.stat(real_path)
-                if stat.st_size==size and stat.st_mtime==timestamp:
-                    # size and stamp match, don't bother extracting
-                    return real_path
+            if self._is_current(real_path, zip_path):
+                return real_path
 
             outf, tmpnam = _mkstemp(".$extract", dir=os.path.dirname(real_path))
             os.write(outf, self.loader.get_data(zip_path))
@@ -1435,11 +1436,9 @@ class ZipProvider(EggProvider):
 
             except os.error:
                 if os.path.isfile(real_path):
-                    stat = os.stat(real_path)
-
-                    if stat.st_size==size and stat.st_mtime==timestamp:
-                        # size and stamp match, somebody did it just ahead of
-                        # us, so we're done
+                    if self._is_current(real_path, zip_path):
+                        # the file became current since it was checked above,
+                        #  so proceed.
                         return real_path
                     elif os.name=='nt':     # Windows, del old file and retry
                         unlink(real_path)
@@ -1451,6 +1450,23 @@ class ZipProvider(EggProvider):
             manager.extraction_error()  # report a user-friendly error
 
         return real_path
+
+    def _is_current(self, file_path, zip_path):
+        """
+        Return True if the file_path is current for this zip_path
+        """
+        timestamp, size = self._get_date_and_size(self.zipinfo[zip_path])
+        if not os.path.isfile(file_path):
+            return False
+        stat = os.stat(file_path)
+        if stat.st_size!=size or stat.st_mtime!=timestamp:
+            return False
+        # check that the contents match
+        zip_contents = self.loader.get_data(zip_path)
+        f = open(file_path, 'rb')
+        file_contents = f.read()
+        f.close()
+        return zip_contents == file_contents
 
     def _get_eager_resources(self):
         if self.eagers is None:
