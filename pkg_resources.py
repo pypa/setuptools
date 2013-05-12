@@ -1422,7 +1422,7 @@ class ZipProvider(EggProvider):
                 self.egg_name, self._parts(zip_path)
             )
 
-            if self.is_current(real_path, zip_path):
+            if self._is_current(real_path, zip_path):
                 return real_path
 
             outf, tmpnam = _mkstemp(".$extract", dir=os.path.dirname(real_path))
