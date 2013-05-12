@@ -22,7 +22,8 @@ try:
 except Exception:
 	pass
 
-VERSION = '0.6.39'
+VERSION = '0.6.40'
+PACKAGE_INDEX = 'https://pypi.python.org/pypi'
 
 def get_next_version():
 	digits = map(int, VERSION.split('.'))
@@ -118,9 +119,9 @@ def do_release():
 	if os.path.isdir('./dist'):
 		shutil.rmtree('./dist')
 	cmd = [sys.executable, 'setup.py', '-q', 'egg_info', '-RD', '-b', '',
-		'sdist', 'register', 'upload']
+		'sdist', 'register', 'upload', '-r', PACKAGE_INDEX]
 	if has_docs:
-		cmd.append('upload_docs')
+		cmd.extend(['upload_docs', '-r', PACKAGE_INDEX])
 	subprocess.check_call(cmd)
 	upload_bootstrap_script()
 
