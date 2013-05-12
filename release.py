@@ -24,6 +24,7 @@ except Exception:
 
 VERSION = '0.6.40'
 PACKAGE_INDEX = 'https://pypi.python.org/pypi'
+PACKAGE_INDEX = 'https://pypi.python.org/pypi'
 
 def get_next_version():
 	digits = map(int, VERSION.split('.'))
@@ -118,8 +119,13 @@ def do_release():
 	has_docs = build_docs()
 	if os.path.isdir('./dist'):
 		shutil.rmtree('./dist')
-	cmd = [sys.executable, 'setup.py', '-q', 'egg_info', '-RD', '-b', '',
-		'sdist', 'register', 'upload', '-r', PACKAGE_INDEX]
+	cmd = [
+		sys.executable, 'setup.py', '-q',
+		'egg_info', '-RD', '-b', '',
+		'sdist',
+		'register', '-r', PACKAGE_INDEX,
+		'upload', '-r', PACKAGE_INDEX,
+	]
 	if has_docs:
 		cmd.extend(['upload_docs', '-r', PACKAGE_INDEX])
 	subprocess.check_call(cmd)
