@@ -31,27 +31,34 @@ There were both technical and philosophical differences between Setuptools
 and Distribute. To reconcile these differences in a manageable way, the
 following technique was undertaken:
 
-In the 'distribute' branch, first remove code that is no longer relevant to
-setuptools (such as the setuptools patching code).
+Create a 'Setuptools-Distribute merge' branch, based on a late release of
+Distribute (0.6.35). This was done with a00b441856c4.
 
-Next, in the 'distribute' branch, at the point where the fork occurred (such
-that the code is still essentially pristine setuptools), copy changes for a
+In that branch, first remove code that is no longer relevant to
+Setuptools (such as the setuptools patching code).
+
+Next, in the the merge branch, create another base from at the point where the
+fork occurred (such that the code is still essentially an older but pristine
+setuptools). This base can be found as 955792b069d0. This creates two heads
+in the merge branch, each with a basis in the fork.
+
+Then, repeatedly copy changes for a
 single file or small group of files from a late revision of that file in the
-'setuptools-0.6' branch (1aae1efe5733 was used) and commit those changes. This
-step creates a new head. That head is then merged. It is in this Mercurial
+'setuptools-0.6' branch (1aae1efe5733 was used) and commit those changes on
+the setuptools-only head. That head is then merged with the head with
+Distribute changes. It is in this Mercurial
 merge operation that the fundamental differences between Distribute and
 Setuptools are reconciled, but since only a single file or small set of files
 are used, the scope is limited.
 
 Finally, once all files have been reconciled and merged, the tip of the
-'distribute' branch represents the merged code. It is then merged with the
-'setuptools-0.6' branch, deferring to the 'distribute' branch::
+merge branch represents the merged code.
 
-    hg update null
-    hg merge 1aae1efe5733
-    hg ci -m "New beginning in a default branch"
-    hg merge distribute --tool internal:other
-    hg ci -m "Merge with Distribute"
+Originally, jaraco attempted all of this using anonymous heads in the
+Distribute branch, but later realized this technique made for a somewhat
+unclear merge process, so the changes were re-committed as described above
+for clarity. In this way, the "distribute" and "setuptools" branches can
+continue to track the official "distribute" changesets.
 
 Concessions
 ===========
