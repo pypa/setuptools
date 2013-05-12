@@ -6,7 +6,7 @@ CHANGES
 0.6.39
 ------
 
-* Issue ####: Resources extracted from a zip egg to the file system now also
+* Issue #375: Resources extracted from a zip egg to the file system now also
   check the contents of the file against the zip contents during each
   invocation of get_resource_filename.
 
