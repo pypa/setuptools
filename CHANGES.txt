@@ -14,6 +14,7 @@ CHANGES
   check the contents of the file against the zip contents during each
   invocation of get_resource_filename.
 
+------
 0.6.38
 ------
 
