@@ -256,7 +256,7 @@ or directory (found in the installation directory).
 If you want to delete the currently installed version of a package (or all
 versions of a package), you should first run::
 
-    easy_install -m PackageName
+    easy_install -mxN PackageName
 
 This will ensure that Python doesn't continue to search for a package you're
 planning to remove. After you've done this, you can safely delete the .egg
@@ -427,7 +427,7 @@ below, and also the section on the `Package Index "API"`_.
 
 
 Password-Protected Sites
-------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 If a site you want to download from is password-protected using HTTP "Basic"
 authentication, you can specify your credentials in the URL, like so::
@@ -1218,6 +1218,48 @@ Release Notes/Change History
 ============================
 
 0.6final
+ * Fixed AttributeError under Python 2.3 when processing "HTTP authentication"
+   URLs (i.e., ones with a ``user:password@host``).
+
+ * Fixed bogus AttributeError when no local or downloadable packages are
+   available
+
+ * Fix for recent Sourceforge downloading changes
+
+ * Handle .exe's containing .pyd or .dll files installed as "data" on win32
+
+ * Extract copies of hardlinked and symlinked files in tarballs when extracting
+   source
+
+ * Support HTTP servers that return multiple 'Content-Length' headers
+
+ * Support user/password credentials in Subversion (svnserve) URLs
+
+ * Fixed problems accessing /dev/null inside the script sandbox, and the sandbox
+   swapping the ``open`` and file`` builtins.
+
+ * Fixed skipping extraction of files or directories containing '..' in their
+   names
+
+0.6c11
+ * Fix installed script .exe files not working with 64-bit Python on Windows
+   (wasn't actually released in 0.6c10 due to a lost checkin)
+
+0.6c10
+ * Fix easy_install.exe giving UAC errors on Windows Vista
+
+ * Support for the most recent Sourceforge download link insanity
+
+ * Stop crashing on certain types of HTTP error
+
+ * Stop re-trying URLs that already failed retrieval once
+
+ * Fixes for various dependency management problems such as looping builds,
+   re-downloading packages already present on sys.path (but not in a registered
+   "site" directory), and semi-randomly preferring local "-f" packages over
+   local installed packages
+
+0.6c9
  * Fixed ``win32.exe`` support for .pth files, so unnecessary directory nesting
    is flattened out in the resulting egg.  (There was a case-sensitivity
    problem that affected some distributions, notably ``pywin32``.)

@@ -81,17 +81,18 @@ char *quoted(char *data) {
 
 
 char *loadable_exe(char *exename) {
-    HINSTANCE hPython;  /* DLL handle for python executable */
+    /* HINSTANCE hPython;  DLL handle for python executable */
     char *result;
 
-    hPython = LoadLibraryEx(exename, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
-    if (!hPython) return NULL;
+    /* hPython = LoadLibraryEx(exename, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
+    if (!hPython) return NULL; */
 
     /* Return the absolute filename for spawnv */
     result = calloc(MAX_PATH, sizeof(char));
-    if (result) GetModuleFileName(hPython, result, MAX_PATH);
+    strncpy(result, exename, MAX_PATH);
+    /*if (result) GetModuleFileName(hPython, result, MAX_PATH);
 
-    FreeLibrary(hPython);
+    FreeLibrary(hPython); */
     return result;
 }
 
