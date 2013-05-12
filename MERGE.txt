@@ -51,14 +51,15 @@ merge operation that the fundamental differences between Distribute and
 Setuptools are reconciled, but since only a single file or small set of files
 are used, the scope is limited.
 
-Finally, once all files have been reconciled and merged, the tip of the
-merge branch represents the merged code.
+Finally, once all the challenging files have been reconciled and merged, the
+remaining changes from the setuptools-0.6 branch are merged, deferring to the
+reconciled changes (a1fa855a5a62 and 160ccaa46be0).
 
 Originally, jaraco attempted all of this using anonymous heads in the
 Distribute branch, but later realized this technique made for a somewhat
 unclear merge process, so the changes were re-committed as described above
 for clarity. In this way, the "distribute" and "setuptools" branches can
-continue to track the official "distribute" changesets.
+continue to track the official Distribute changesets.
 
 Concessions
 ===========
