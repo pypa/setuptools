@@ -11,3 +11,4 @@ bin
 include
 \.Python
 *.swp
+CHANGES (links).txt

@@ -3,6 +3,45 @@ CHANGES
 =======
 
 ------
+0.6.39
+------
+
+* Add support for console launchers on ARM platforms.
+* Fix possible issue in GUI launchers where the subsystem was not supplied to
+  the linker.
+* Launcher build script now refactored for robustness.
+* Issue #375: Resources extracted from a zip egg to the file system now also
+  check the contents of the file against the zip contents during each
+  invocation of get_resource_filename.
+
+------
+0.6.38
+------
+
+* Issue #371: The launcher manifest file is now installed properly.
+
+------
+0.6.37
+------
+
+* Issue #143: Launcher scripts, including easy_install itself, are now
+  accompanied by a manifest on 32-bit Windows environments to avoid the
+  Installer Detection Technology and thus undesirable UAC elevation described
+  in `this Microsoft article
+  <http://technet.microsoft.com/en-us/library/cc709628%28WS.10%29.aspx>`_.
+
+------
+0.6.36
+------
+
+* Pull Request #35: In `Buildout issue 64
+  <https://github.com/buildout/buildout/issues/64>`_, it was reported that
+  under Python 3, installation of distutils scripts could attempt to copy
+  the ``__pycache__`` directory as a file, causing an error, apparently only
+  under Windows. Easy_install now skips all directories when processing
+  metadata scripts.
+
+------
 0.6.35
 ------
 

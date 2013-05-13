@@ -19,7 +19,9 @@ import zipfile
 import re
 import stat
 import random
+import platform
 from glob import glob
+import pkg_resources
 from setuptools import Command, _dont_write_bytecode
 from setuptools.sandbox import run_setup
 from distutils import log, dir_util
@@ -522,6 +524,10 @@ Please make the appropriate changes for your system and try again.
         """Write all the scripts for `dist`, unless scripts are excluded"""
         if not self.exclude_scripts and dist.metadata_isdir('scripts'):
             for script_name in dist.metadata_listdir('scripts'):
+                if dist.metadata_isdir('scripts/' + script_name):
+                    # The "script" is a directory, likely a Python 3
+                    # __pycache__ directory, so skip it.
+                    continue
                 self.install_script(
                     dist, script_name,
                     dist.get_metadata('scripts/'+script_name)
@@ -1833,6 +1839,8 @@ def get_script_args(dist, executable=sys_executable, wininst=False):
                     ext, launcher = '-script.py', 'cli.exe'
                     old = ['.py','.pyc','.pyo']
                     new_header = re.sub('(?i)pythonw.exe','python.exe',header)
+                if platform.machine().lower()=='arm':
+                    launcher = launcher.replace(".", "-arm.")
                 if is_64bit():
                     launcher = launcher.replace(".", "-64.")
                 else:
@@ -1846,10 +1854,25 @@ def get_script_args(dist, executable=sys_executable, wininst=False):
                     name+'.exe', resource_string('setuptools', launcher),
                     'b' # write in binary mode
                 )
+                if not is_64bit():
+                    # install a manifest for the launcher to prevent Windows
+                    #  from detecting it as an installer (which it will for
+                    #  launchers like easy_install.exe). Consider only
+                    #  adding a manifest for launchers detected as installers.
+                    #  See Distribute #143 for details.
+                    m_name = name + '.exe.manifest'
+                    yield (m_name, load_launcher_manifest(name), 't')
             else:
                 # On other platforms, we assume the right thing to do is to
                 # just write the stub with no extension.
                 yield (name, header+script_text)
+
+def load_launcher_manifest(name):
+    manifest = pkg_resources.resource_string(__name__, 'launcher manifest.xml')
+    if sys.version_info[0] < 3:
+        return manifest % vars()
+    else:
+        return manifest.decode('utf-8') % vars()
 
 def rmtree(path, ignore_errors=False, onerror=auto_chmod):
     """Recursively delete a directory tree.

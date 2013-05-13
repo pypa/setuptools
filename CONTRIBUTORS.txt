@@ -8,6 +8,7 @@ Contributors
 * Christophe Combelles
 * Daniel Stutzbach
 * Daniel Holth
+* Grigory Petrov
 * Hanno Schlichting
 * Jannis Leidel
 * Jason R. Coombs

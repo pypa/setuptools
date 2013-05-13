@@ -46,7 +46,7 @@ exec(init_file.read(), d)
 init_file.close()
 
 SETUP_COMMANDS = d['__all__']
-VERSION = "0.6.36"
+VERSION = "0.6.40"
 
 from setuptools import setup, find_packages
 from setuptools.command.build_py import build_py as _build_py
@@ -107,28 +107,16 @@ class test(_test):
                 f.close()
 
 
-# return contents of reStructureText file with linked issue references
-def _linkified(rst_path):
-    bitroot = 'http://bitbucket.org/tarek/distribute'
-    revision = re.compile(r'\b(issue\s+#?\d+)\b', re.M | re.I)
-
-    rst_file = open(rst_path)
-    rst_content = rst_file.read()
-    rst_file.close()
-
-    anchors = revision.findall(rst_content) # ['Issue #43', ...]
-    anchors = sorted(set(anchors))
-    rst_content = revision.sub(r'`\1`_', rst_content)
-    rst_content += "\n"
-    for x in anchors:
-        issue = re.findall(r'\d+', x)[0]
-        rst_content += '.. _`%s`: %s/issue/%s\n' % (x, bitroot, issue)
-    rst_content += "\n"
-    return rst_content
-
 readme_file = open('README.txt')
-long_description = readme_file.read() + _linkified('CHANGES.txt')
+# the release script adds hyperlinks to issues
+if os.path.exists('CHANGES (links).txt'):
+    changes_file = open('CHANGES (links).txt')
+else:
+    # but if the release script has not run, fall back to the source file
+    changes_file = open('CHANGES.txt')
+long_description = readme_file.read() + changes_file.read()
 readme_file.close()
+changes_file.close()
 
 dist = setup(
     name="setuptools",
@@ -144,7 +132,7 @@ dist = setup(
     test_suite = 'setuptools.tests',
     src_root = src_root,
     packages = find_packages(),
-    package_data = {'setuptools':['*.exe']},
+    package_data = {'setuptools':['*.exe'], 'setuptools.command':['*.xml']},
 
     py_modules = ['pkg_resources', 'easy_install', 'site'],
 
