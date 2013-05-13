@@ -7,7 +7,6 @@ build_py = setuptools.command.build_py:build_py
 saveopts = setuptools.command.saveopts:saveopts
 egg_info = setuptools.command.egg_info:egg_info
 register = setuptools.command.register:register
-upload = setuptools.command.upload:upload
 upload_docs = setuptools.command.upload_docs:upload_docs
 install_egg_info = setuptools.command.install_egg_info:install_egg_info
 alias = setuptools.command.alias:alias
