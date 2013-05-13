@@ -48,7 +48,6 @@ def assert_string_list(dist, attr, value):
         raise DistutilsSetupError(
             "%r must be a list of strings (got %r)" % (attr,value)
         )
-
 def check_nsp(dist, attr, value):
     """Verify that namespace packages are valid"""
     assert_string_list(dist,attr,value)
@@ -70,6 +69,10 @@ def check_extras(dist, attr, value):
     """Verify that extras_require mapping is valid"""
     try:
         for k,v in value.items():
+            if ':' in k:
+                k,m = k.split(':',1)
+                if pkg_resources.invalid_marker(m):
+                    raise DistutilsSetupError("Invalid environment marker: "+m)
             list(pkg_resources.parse_requirements(v))
     except (TypeError,ValueError,AttributeError):
         raise DistutilsSetupError(
@@ -77,9 +80,6 @@ def check_extras(dist, attr, value):
             "strings or lists of strings containing valid project/version "
             "requirement specifiers."
         )
-
-
-
 
 def assert_bool(dist, attr, value):
     """Verify that value is True, False, 0, or 1"""

@@ -527,7 +527,7 @@ class ScriptHeaderTests(TestCase):
 
         platform = sys.platform
         sys.platform = 'java1.5.0_13'
-        stdout = sys.stdout
+        stdout, stderr = sys.stdout, sys.stderr
         try:
             # A mock sys.executable that uses a shebang line (this file)
             exe = os.path.normpath(os.path.splitext(__file__)[0] + '.py')
@@ -550,7 +550,7 @@ class ScriptHeaderTests(TestCase):
         finally:
             del sys.modules["java"]
             sys.platform = platform
-            sys.stdout = stdout
+            sys.stdout, sys.stderr = stdout, stderr
 
 
 

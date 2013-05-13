@@ -2,6 +2,21 @@
 CHANGES
 =======
 
+---
+0.7
+---
+
+* Merged Setuptools and Distribute. See MERGE.txt for details.
+
+Added several features that were slated for setuptools 0.6c12:
+
+* Index URL now defaults to HTTPS.
+* Added environment marker support. Now clients may designate a PEP-426
+  environment marker for "extra" dependencies. For an example, see the
+  Setuptools ``setup.py`` script.
+* Added support for SSL certificate validation when installing packages from
+  an HTTPS service.
+
 ------
 0.6.39
 ------

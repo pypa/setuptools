@@ -152,7 +152,7 @@ __all__ = [
     # Parsing functions and string utilities
     'parse_requirements', 'parse_version', 'safe_name', 'safe_version',
     'get_platform', 'compatible_platforms', 'yield_lines', 'split_sections',
-    'safe_extra', 'to_filename',
+    'safe_extra', 'to_filename', 'invalid_marker', 'evaluate_marker',
 
     # filesystem utilities
     'ensure_directory', 'normalize_path',
@@ -1170,6 +1170,129 @@ def to_filename(name):
 
 
 
+_marker_names = {
+    'os': ['name'], 'sys': ['platform'],
+    'platform': ['version','machine','python_implementation'],
+    'python_version': [], 'python_full_version': [], 'extra':[],
+}
+
+_marker_values = {
+    'os_name': lambda: os.name,
+    'sys_platform': lambda: sys.platform,
+    'python_full_version': lambda: sys.version.split()[0],
+    'python_version': lambda:'%s.%s' % (sys.version_info[0], sys.version_info[1]),
+    'platform_version': lambda: _platinfo('version'),
+    'platform_machine': lambda: _platinfo('machine'),
+    'python_implementation': lambda: _platinfo('python_implementation') or _pyimp(),
+}
+
+def _platinfo(attr):
+    try:
+        import platform
+    except ImportError:
+        return ''
+    return getattr(platform, attr, lambda:'')()
+
+def _pyimp():
+    if sys.platform=='cli':
+        return 'IronPython'
+    elif sys.platform.startswith('java'):
+        return 'Jython'
+    elif '__pypy__' in sys.builtin_module_names:
+        return 'PyPy'
+    else:
+        return 'CPython'                
+
+def invalid_marker(text):
+    """Validate text as a PEP 426 environment marker; return exception or False"""
+    try:
+        evaluate_marker(text)
+    except SyntaxError:
+        return sys.exc_info()[1]            
+    return False
+
+def evaluate_marker(text, extra=None, _ops={}):
+    """Evaluate a PEP 426 environment marker; SyntaxError if marker is invalid"""
+
+    if not _ops:
+
+        from token import NAME, STRING
+        import token, symbol, operator
+        
+        def and_test(nodelist):
+            # MUST NOT short-circuit evaluation, or invalid syntax can be skipped!
+            return reduce(operator.and_, [interpret(nodelist[i]) for i in range(1,len(nodelist),2)])
+        
+        def test(nodelist):
+            # MUST NOT short-circuit evaluation, or invalid syntax can be skipped!
+            return reduce(operator.or_, [interpret(nodelist[i]) for i in range(1,len(nodelist),2)])
+        
+        def atom(nodelist):
+            t = nodelist[1][0]
+            if t == token.LPAR:
+                if nodelist[2][0] == token.RPAR:
+                    raise SyntaxError("Empty parentheses")
+                return interpret(nodelist[2])
+            raise SyntaxError("Language feature not supported in environment markers")
+        
+        def comparison(nodelist):
+            if len(nodelist)>4:
+                raise SyntaxError("Chained comparison not allowed in environment markers")
+            comp = nodelist[2][1]
+            cop = comp[1]
+            if comp[0] == NAME:
+                if len(nodelist[2]) == 3:
+                    if cop == 'not':
+                        cop = 'not in'
+                    else:
+                        cop = 'is not'
+            try:
+                cop = _ops[cop]
+            except KeyError:
+                raise SyntaxError(repr(cop)+" operator not allowed in environment markers")
+            return cop(evaluate(nodelist[1]), evaluate(nodelist[3]))
+        
+        _ops.update({
+            symbol.test: test, symbol.and_test: and_test, symbol.atom: atom,
+            symbol.comparison: comparison, 'not in': lambda x,y: x not in y,
+            'in': lambda x,y: x in y, '==': operator.eq, '!=': operator.ne,
+        })
+        if hasattr(symbol,'or_test'):
+            _ops[symbol.or_test] = test
+
+    def interpret(nodelist):
+        while len(nodelist)==2: nodelist = nodelist[1]
+        try:
+            op = _ops[nodelist[0]]
+        except KeyError:
+            raise SyntaxError("Comparison or logical expression expected")
+            raise SyntaxError("Language feature not supported in environment markers: "+symbol.sym_name[nodelist[0]])
+        return op(nodelist)
+        
+    def evaluate(nodelist):
+        while len(nodelist)==2: nodelist = nodelist[1]
+        kind = nodelist[0]
+        name = nodelist[1]
+        #while len(name)==2: name = name[1]
+        if kind==NAME:
+            try:
+                op = _marker_values[name]
+            except KeyError:
+                raise SyntaxError("Unknown name %r" % name)
+            return op()
+        if kind==STRING:
+            s = nodelist[1]
+            if s[:1] not in "'\"" or s.startswith('"""') or s.startswith("'''") \
+            or '\\' in s:
+                raise SyntaxError(
+                    "Only plain strings allowed in environment markers")
+            return s[1:-1]
+        raise SyntaxError("Language feature not supported in environment markers")
+
+    import parser        
+    return interpret(parser.expr(text).totuple(1)[1])
+
+
 class NullProvider:
     """Try to implement resources and metadata for arbitrary PEP 302 loaders"""
 
@@ -1994,7 +2117,6 @@ def parse_version(s):
                 parts.pop()
         parts.append(part)
     return tuple(parts)
-
 class EntryPoint(object):
     """Object representing an advertised importable object"""
 
@@ -2235,7 +2357,14 @@ class Distribution(object):
             dm = self.__dep_map = {None: []}
             for name in 'requires.txt', 'depends.txt':
                 for extra,reqs in split_sections(self._get_metadata(name)):
-                    if extra: extra = safe_extra(extra)
+                    if extra:
+                        if ':' in extra:
+                            extra, marker = extra.split(':',1)
+                            if invalid_marker(marker):
+                                reqs=[] # XXX warn
+                            elif not evaluate_marker(marker):
+                                reqs=[]
+                        extra = safe_extra(extra) or None                                                            
                     dm.setdefault(extra,[]).extend(parse_requirements(reqs))
             return dm
     _dep_map = property(_dep_map)
@@ -2258,6 +2387,8 @@ class Distribution(object):
         if self.has_metadata(name):
             for line in self.get_metadata_lines(name):
                 yield line
+
+
 
     def activate(self,path=None):
         """Ensure distribution is importable on `path` (default=sys.path)"""
@@ -2297,6 +2428,9 @@ class Distribution(object):
             raise AttributeError,attr
         return getattr(self._provider, attr)
 
+
+
+
     #@classmethod
     def from_filename(cls,filename,metadata=None, **kw):
         return cls.from_location(
@@ -2331,18 +2465,6 @@ class Distribution(object):
     def get_entry_info(self, group, name):
         """Return the EntryPoint object for `group`+`name`, or ``None``"""
         return self.get_entry_map(group).get(name)
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

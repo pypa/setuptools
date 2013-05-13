@@ -2,6 +2,7 @@
 import sys, os.path, re, urlparse, urllib2, shutil, random, socket, cStringIO
 import base64
 import httplib, urllib
+from setuptools import ssl_support
 from pkg_resources import *
 from distutils import log
 from distutils.errors import DistutilsError
@@ -157,12 +158,11 @@ user_agent = "Python-urllib/%s setuptools/%s" % (
     sys.version[:3], require('setuptools')[0].version
 )
 
-
 class PackageIndex(Environment):
     """A distribution index that scans web pages for download URLs"""
 
-    def __init__(self, index_url="http://pypi.python.org/simple", hosts=('*',),
-        *args, **kw
+    def __init__(self, index_url="https://pypi.python.org/simple", hosts=('*',),
+        ca_bundle=None, verify_ssl=True, *args, **kw
     ):
         Environment.__init__(self,*args,**kw)
         self.index_url = index_url + "/"[:not index_url.endswith('/')]
@@ -171,8 +171,9 @@ class PackageIndex(Environment):
         self.package_pages = {}
         self.allows = re.compile('|'.join(map(translate,hosts))).match
         self.to_scan = []
-
-
+        if verify_ssl and ssl_support.is_available and (ca_bundle or ssl_support.find_ca_bundle()):
+            self.opener = ssl_support.opener_for(ca_bundle)
+        else: self.opener = urllib2.urlopen
 
     def process_url(self, url, retrieve=False):
         """Evaluate a URL as a possible download, and maybe retrieve it"""
@@ -601,7 +602,7 @@ class PackageIndex(Environment):
         if url.startswith('file:'):
             return local_open(url)
         try:
-            return open_with_auth(url)
+            return open_with_auth(url, self.opener)
         except (ValueError, httplib.InvalidURL), v:
             msg = ' '.join([str(arg) for arg in v.args])
             if warning:
@@ -658,7 +659,6 @@ class PackageIndex(Environment):
         else:
             self.url_ok(url, True)   # raises error if not allowed
             return self._attempt_download(url, filename)
-
 
     def scan_url(self, url):
         self.process_url(url, True)
@@ -859,7 +859,7 @@ def _encode_auth(auth):
     # strip the trailing carriage return
     return encoded.rstrip()
 
-def open_with_auth(url):
+def open_with_auth(url, opener=urllib2.urlopen):
     """Open a urllib2 request, handling HTTP authentication"""
 
     scheme, netloc, path, params, query, frag = urlparse.urlparse(url)
@@ -883,7 +883,7 @@ def open_with_auth(url):
         request = urllib2.Request(url)
 
     request.add_header('User-Agent', user_agent)
-    fp = urllib2.urlopen(request)
+    fp = opener(request)
 
     if auth:
         # Put authentication info back into request URL if same host,
