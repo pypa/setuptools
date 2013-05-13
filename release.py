@@ -22,8 +22,7 @@ try:
 except Exception:
 	pass
 
-VERSION = '0.6.40'
-PACKAGE_INDEX = 'https://pypi.python.org/pypi'
+VERSION = '0.7b1'
 PACKAGE_INDEX = 'https://pypi.python.org/pypi'
 
 def get_next_version():
@@ -33,8 +32,7 @@ def get_next_version():
 
 NEXT_VERSION = get_next_version()
 
-files_with_versions = ('docs/conf.py', 'setup.py', 'release.py',
-	'README.txt', 'distribute_setup.py')
+files_with_versions = 'docs/conf.py', 'setup.py', 'release.py', 'ez_setup.py'
 
 def get_repo_name():
 	"""

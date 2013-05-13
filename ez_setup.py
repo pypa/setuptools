@@ -47,7 +47,7 @@ except ImportError:
             args = [quote(arg) for arg in args]
         return os.spawnl(os.P_WAIT, sys.executable, *args) == 0
 
-DEFAULT_VERSION = "0.6.40"
+DEFAULT_VERSION = "0.7b1"
 DEFAULT_URL = "http://pypi.python.org/packages/source/s/setuptools/"
 
 
