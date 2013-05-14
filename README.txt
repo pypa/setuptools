@@ -16,7 +16,10 @@ Windows
     Install setuptools using the provided ``.exe`` installer.
 
 64-bit versions of Python
-    Download `ez_setup.py`_ and run it; it will download the appropriate .egg file and install it for you.  (Currently, the provided ``.exe`` installer does not support 64-bit versions of Python for Windows, due to a `distutils installer compatibility issue`_
+    Download `ez_setup.py`_ and run it; it will download the appropriate .egg
+    file and install it for you.  (Currently, the provided ``.exe`` installer
+    does not support 64-bit versions of Python for Windows, due to a
+    `distutils installer compatibility issue`_
 
 .. _ez_setup.py: http://peak.telecommunity.com/dist/ez_setup.py
 .. _distutils installer compatibility issue: http://bugs.python.org/issue6792
