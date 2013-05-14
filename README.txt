@@ -21,7 +21,7 @@ Windows
     does not support 64-bit versions of Python for Windows, due to a
     `distutils installer compatibility issue`_
 
-.. _ez_setup.py: http://peak.telecommunity.com/dist/ez_setup.py
+.. _ez_setup.py: https://bitbucket.org/pypa/setuptools/raw/default/ez_setup.py
 .. _distutils installer compatibility issue: http://bugs.python.org/issue6792
 
 
