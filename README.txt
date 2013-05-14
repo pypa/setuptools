@@ -134,12 +134,12 @@ them there, so this reference list can be updated.  If you have working,
 *tested* patches to correct problems or add features, you may submit them to
 the `setuptools bug tracker`_.
 
-.. _setuptools bug tracker: http://bugs.python.org/setuptools/
-.. _Package Compatibility Notes: http://peak.telecommunity.com/DevCenter/PackageNotes
-.. _The Internal Structure of Python Eggs: http://peak.telecommunity.com/DevCenter/EggFormats
-.. _The setuptools Developer's Guide: http://peak.telecommunity.com/DevCenter/setuptools
-.. _The pkg_resources API reference: http://peak.telecommunity.com/DevCenter/PkgResources
-.. _The EasyInstall user's guide and reference manual: http://peak.telecommunity.com/DevCenter/EasyInstall
+.. _setuptools bug tracker: https://bitbucket.org/pypa/setuptools/issues
+.. _Package Compatibility Notes: https://pythonhosted.org/setuptools/PackageNotes
+.. _The Internal Structure of Python Eggs: https://pythonhosted.org/setuptools/formats.html
+.. _The setuptools Developer's Guide: https://pythonhosted.org/setuptools/setuptools.html
+.. _The pkg_resources API reference: https://pythonhosted.org/setuptools/pkg_resources.html
+.. _The EasyInstall user's guide and reference manual: https://pythonhosted.org/setuptools/easy_install.html
 .. _distutils-sig mailing list: http://mail.python.org/pipermail/distutils-sig/
 
 
