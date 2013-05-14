@@ -5,36 +5,6 @@ Installing and Using Setuptools
 .. contents:: **Table of Contents**
 
 
-----------------------------------
-Security Issues - Read this First!
-----------------------------------
-
-Setuptools and ``easy_install`` currently default to allowing automated
-download and execution of code from anywhere on the internet, without actually
-verifying the owners of the websites or the authors of the code.  If you want
-your installation to be more secure, you will need to:
-
- 1. Manually install the `requests <https://pypi.python.org/pypi/requests>`_
-    library **after** installing setuptools, using an SSL-enabled browser or
-    other tool.  (This will enable SSL certificate verification.)
-
- 2. Configure your default ``--allow-hosts`` setting so that ``easy_install``
-    will only download from sites you trust.  (E.g., to only download from
-    ``pypi.python.org`` or some other trusted package index.)
-
- 3. If you are using a Python version less than 2.6, you will also need to
-    install the `SSL backport module <https://pypi.python.org/pypi/requests>`_
-    to enable SSL downloads from PyPI.  (Unfortunately, the ``requests``
-    package does not support older versions of Python at this time, so SSL
-    certificate verification will not be enabled.  But at least you'll still be
-    able to use PyPI, which is in the process of switching to an all-SSL policy
-    for downloads.
-    
-For more information on how to do all of the above, and for other security-
-related information, please see the full `setuptools security documentation
-<http://peak.telecommunity.com/DevCenter/SetuptoolsSecurity>`_.
-
-
 -------------------------
 Installation Instructions
 -------------------------
