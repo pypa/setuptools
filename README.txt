@@ -23,8 +23,9 @@ Windows
 
 
 NOTE: Regardless of what sort of Python you're using, if you've previously
-installed older versions of setuptools, please delete all ``setuptools*.egg``
-and ``setuptools.pth`` files from your system's ``site-packages`` directory
+installed older versions of setuptools or distribute, please delete all
+``setuptools*.egg``, ``distribute*.egg``, and ``setuptools.pth`` files and
+directories from your system's ``site-packages`` directory
 (and any other ``sys.path`` directories) FIRST.
 
 If you are upgrading a previous version of setuptools that was installed using
@@ -102,8 +103,8 @@ Package Index`_.  Scroll to the very bottom of the page to find the links.
 
 .. _the project's home page in the Python Package Index: http://pypi.python.org/pypi/setuptools#files
 
-In addition to the PyPI downloads, the development version of ``setuptools``   
-is available from the `Python SVN sandbox`_, and in-development versions of the 
+In addition to the PyPI downloads, the development version of ``setuptools``
+is available from the `Python SVN sandbox`_, and in-development versions of the
 `0.6 branch`_ are available as well.
 
 .. _0.6 branch: http://svn.python.org/projects/sandbox/branches/setuptools-0.6/#egg=setuptools-dev06
