@@ -11,9 +11,12 @@ CHANGES
 Added several features that were slated for setuptools 0.6c12:
 
 * Index URL now defaults to HTTPS.
-* Added environment marker support. Now clients may designate a PEP-426
-  environment marker for "extra" dependencies. For an example, see the
-  Setuptools ``setup.py`` script.
+* Added experimental environment marker support. Now clients may designate a
+  PEP-426 environment marker for "extra" dependencies. Setuptools uses this
+  feature in ``setup.py`` for optional SSL and certificate validation support
+  on older platforms. Based on Distutils-SIG discussions, the syntax is
+  somewhat tentative. There should probably be a PEP with a firmer spec before
+  the feature should be considered suitable for use.
 * Added support for SSL certificate validation when installing packages from
   an HTTPS service.
 
