@@ -61,7 +61,7 @@ def run_setup(setup_script, args):
             sys.argv[:] = [setup_script]+list(args)
             sys.path.insert(0, setup_dir)
             # reset to include setup dir, w/clean callback list
-            working_set.__init__()  
+            working_set.__init__()
             working_set.callbacks.append(lambda dist:dist.activate())
             DirectorySandbox(setup_dir).run(
                 lambda: execfile(
@@ -241,7 +241,6 @@ class DirectorySandbox(AbstractSandbox):
         self._violation("tmpnam")
 
     def _ok(self,path):
-        if hasattr(_os,'devnull') and path==_os.devnull: return True
         active = self._active
         try:
             self._active = False
