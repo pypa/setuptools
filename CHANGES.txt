@@ -6,8 +6,9 @@ CHANGES
 0.6.40
 ------
 
-* Issue #376: brought back cli.exe and gui.exe that were deleted in the previous release;
-  
+* Issue #376: brought back cli.exe and gui.exe that were deleted in the
+  previous release.
+
 ------
 0.6.39
 ------
