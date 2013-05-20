@@ -46,18 +46,14 @@ class TestPackageIndex(unittest.TestCase):
             import httplib
             raise httplib.BadStatusLine('line')
 
-        old_urlopen = urllib2.urlopen
-        urllib2.urlopen = _urlopen
+        index.opener = _urlopen
         url = 'http://example.com'
         try:
-            try:
-                v = index.open_url(url)
-            except Exception, v:
-                self.assertTrue('line' in str(v))
-            else:
-                raise AssertionError('Should have raise here!')
-        finally:
-            urllib2.urlopen = old_urlopen
+            v = index.open_url(url)
+        except Exception, v:
+            self.assertTrue('line' in str(v))
+        else:
+            raise AssertionError('Should have raise here!')
 
     def test_bad_url_double_scheme(self):
         """
