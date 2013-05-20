@@ -208,11 +208,14 @@ You can ask a WorkingSet to ``find()`` a distribution matching a requirement::
 Note that asking for a conflicting version of a distribution already in a
 working set triggers a ``pkg_resources.VersionConflict`` error:
 
-    >>> ws.find(Requirement.parse("Bar==1.0")) # doctest: +NORMALIZE_WHITESPACE
-    Traceback (most recent call last):
-      ...
-    pkg_resources.VersionConflict: (Bar 0.9 (http://example.com/something),
-                                    Requirement.parse('Bar==1.0'))
+    >>> try:
+    ...     ws.find(Requirement.parse("Bar==1.0"))
+    ... except pkg_resources.VersionConflict:
+    ...     exc = sys.exc_info()[1]
+    ...     print(str(exc))
+    ... else:
+    ...     raise AssertionError("VersionConflict was not raised")
+    (Bar 0.9 (http://examples.com/something), Requirement.parse('Bar==1.0'))
 
 You can subscribe a callback function to receive notifications whenever a new
 distribution is added to a working set.  The callback is immediately invoked
