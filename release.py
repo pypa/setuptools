@@ -103,7 +103,7 @@ def do_release():
 		print("Please do that")
 		raise SystemExit(1)
 
-	print("Travis-CI tests: http://travis-ci.org/#!/jaraco/distribute")
+	print("Travis-CI tests: http://travis-ci.org/#!/jaraco/setuptools")
 	res = raw_input('Have you or has someone verified that the tests '
 		'pass on this revision? ')
 	if not res.lower().startswith('y'):
