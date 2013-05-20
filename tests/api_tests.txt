@@ -211,8 +211,8 @@ working set triggers a ``pkg_resources.VersionConflict`` error:
     >>> ws.find(Requirement.parse("Bar==1.0")) # doctest: +NORMALIZE_WHITESPACE
     Traceback (most recent call last):
       ...
-    VersionConflict: (Bar 0.9 (http://example.com/something),
-                      Requirement.parse('Bar==1.0'))
+    pkg_resources.VersionConflict: (Bar 0.9 (http://example.com/something),
+                                    Requirement.parse('Bar==1.0'))
 
 You can subscribe a callback function to receive notifications whenever a new
 distribution is added to a working set.  The callback is immediately invoked
@@ -222,14 +222,14 @@ again for new distributions added thereafter::
     >>> def added(dist): print "Added", dist
     >>> ws.subscribe(added)
     Added Bar 0.9
-    >>> foo12 = Distribution(project_name="Foo", version="1.2", location="f12") 
+    >>> foo12 = Distribution(project_name="Foo", version="1.2", location="f12")
     >>> ws.add(foo12)
     Added Foo 1.2
 
 Note, however, that only the first distribution added for a given project name
 will trigger a callback, even during the initial ``subscribe()`` callback::
 
-    >>> foo14 = Distribution(project_name="Foo", version="1.4", location="f14") 
+    >>> foo14 = Distribution(project_name="Foo", version="1.4", location="f14")
     >>> ws.add(foo14)   # no callback, because Foo 1.2 is already active
 
     >>> ws = WorkingSet([])
@@ -237,7 +237,7 @@ will trigger a callback, even during the initial ``subscribe()`` callback::
     >>> ws.add(foo14)
     >>> ws.subscribe(added)
     Added Foo 1.2
-    
+
 And adding a callback more than once has no effect, either::
 
     >>> ws.subscribe(added)     # no callbacks
@@ -260,7 +260,7 @@ Finding Plugins
     >>> plugins.add(foo12)
     >>> plugins.add(foo14)
     >>> plugins.add(just_a_test)
-    
+
 In the simplest case, we just get the newest version of each distribution in
 the plugin environment::
 
@@ -318,7 +318,7 @@ number does not matter::
     >>> cp("macosx-9.5-ppc", reqd)
     False
 
-Backwards compatibility for packages made via earlier versions of 
+Backwards compatibility for packages made via earlier versions of
 setuptools is provided as well::
 
     >>> cp("darwin-8.2.0-Power_Macintosh", reqd)
@@ -340,7 +340,7 @@ Environment Markers
 
     >>> print(im("sys_platform=="))
     unexpected EOF while parsing (line 1)
-    
+
     >>> print(im("sys_platform=='win32'"))
     False
 
@@ -355,7 +355,7 @@ Environment Markers
 
     >>> print(im("os.open('foo')=='y'"))
     Language feature not supported in environment markers
-    
+
     >>> print(im("'x'=='y' and os.open('foo')=='y'"))   # no short-circuit!
     Language feature not supported in environment markers
 
@@ -364,25 +364,25 @@ Environment Markers
 
     >>> print(im("'x' < 'y'"))
     '<' operator not allowed in environment markers
-    
+
     >>> print(im("'x' < 'y' < 'z'"))
     Chained comparison not allowed in environment markers
 
     >>> print(im("r'x'=='x'"))
     Only plain strings allowed in environment markers
-    
+
     >>> print(im("'''x'''=='x'"))
     Only plain strings allowed in environment markers
-    
+
     >>> print(im('"""x"""=="x"'))
     Only plain strings allowed in environment markers
-    
+
     >>> print(im(r"'x\n'=='x'"))
     Only plain strings allowed in environment markers
 
     >>> print(im("os.open=='y'"))
     Language feature not supported in environment markers
-    
+
     >>> em('"x"=="x"')
     True
 
