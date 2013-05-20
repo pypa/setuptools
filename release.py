@@ -69,7 +69,7 @@ def add_milestone_and_version(version=NEXT_VERSION):
 	auth = 'Basic ' + ':'.join(get_mercurial_creds()).encode('base64').strip()
 	headers = {
 		'Authorization': auth,
-		}
+	}
 	base = 'https://api.bitbucket.org'
 	for type in 'milestones', 'versions':
 		url = (base + '/1.0/repositories/{repo}/issues/{type}'
@@ -159,14 +159,14 @@ def build_docs():
 		return
 	if os.path.isdir('docs/build'):
 		shutil.rmtree('docs/build')
-	subprocess.check_call([
+	cmd = [
 		'sphinx-build',
 		'-b', 'html',
 		'-d', 'build/doctrees',
 		'.',
 		'build/html',
-		],
-		cwd='docs')
+	]
+	subprocess.check_call(cmd, cwd='docs')
 	return True
 
 def upload_bootstrap_script():
