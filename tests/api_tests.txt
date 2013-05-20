@@ -215,7 +215,7 @@ working set triggers a ``pkg_resources.VersionConflict`` error:
     ...     print(str(exc))
     ... else:
     ...     raise AssertionError("VersionConflict was not raised")
-    (Bar 0.9 (http://examples.com/something), Requirement.parse('Bar==1.0'))
+    (Bar 0.9 (http://example.com/something), Requirement.parse('Bar==1.0'))
 
 You can subscribe a callback function to receive notifications whenever a new
 distribution is added to a working set.  The callback is immediately invoked
