@@ -25,12 +25,32 @@ except Exception:
 VERSION = '0.7b1'
 PACKAGE_INDEX = 'https://pypi.python.org/pypi'
 
-def get_next_version():
-	digits = map(int, VERSION.split('.'))
-	digits[-1] += 1
-	return '.'.join(map(str, digits))
+def get_next_version(version):
+	"""
+	Infer a next version from the current version by incrementing the last
+	number or appending a number.
 
-NEXT_VERSION = get_next_version()
+	>>> get_next_version('1.0')
+	'1.1'
+
+	>>> get_next_version('1.0b')
+	'1.0b1'
+
+	>>> get_next_version('1.0.9')
+	'1.0.10'
+
+	>>> get_next_version('1')
+	'2'
+
+	>>> get_next_version('')
+	'1'
+	"""
+	def incr(match):
+		ver = int(match.group(0) or '0')
+		return str(ver + 1)
+	return re.sub('\d*$', incr, version)
+
+NEXT_VERSION = get_next_version(VERSION)
 
 files_with_versions = 'docs/conf.py', 'setup.py', 'release.py', 'ez_setup.py'
 
