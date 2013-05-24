@@ -224,5 +224,4 @@ Feedback and getting involved
 
 - Mailing list: http://mail.python.org/mailman/listinfo/distutils-sig
 - Issue tracker: http://bitbucket.org/tarek/distribute/issues/
-- Code Repository: http://bitbucket.org/tarek/distribute
-
+- Code Repository: http://bitbucket.org/pypa/setuptools?at=distribute
