@@ -12,6 +12,8 @@ except ImportError:
     from md5 import md5
 from fnmatch import translate
 
+from .py24compat import wraps
+
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.]+)$')
 HREF = re.compile("""href\\s*=\\s*['"]?([^'"> ]+)""", re.I)
 # this is here to fix emacs' cruddy broken syntax highlighting
@@ -153,32 +155,36 @@ def unique_everseen(iterable, key=None):
                 seen_add(k)
                 yield element
 
+def unique_values(func):
+    """
+    Wrap a function returning an iterable such that the resulting iterable
+    only ever yields unique items.
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        return unique_everseen(func(*args, **kwargs))
+    return wrapper
+
 REL = re.compile("""<([^>]*\srel\s*=\s*['"]?([^'">]+)[^>]*)>""", re.I)
 # this line is here to fix emacs' cruddy broken syntax highlighting
 
+@unique_values
 def find_external_links(url, page):
     """Find rel="homepage" and rel="download" links in `page`, yielding URLs"""
-    seen_links = set()
 
     for match in REL.finditer(page):
         tag, rel = match.groups()
         rels = map(str.strip, rel.lower().split(','))
         if 'homepage' in rels or 'download' in rels:
             for match in HREF.finditer(tag):
-                link = urlparse.urljoin(url, htmldecode(match.group(1)))
-                if not link in seen_links:
-                    seen_links.add(link)
-                    yield link
+                yield urlparse.urljoin(url, htmldecode(match.group(1)))
 
     for tag in ("<th>Home Page", "<th>Download URL"):
         pos = page.find(tag)
         if pos!=-1:
             match = HREF.search(page,pos)
             if match:
-                link = urlparse.urljoin(url, htmldecode(match.group(1)))
-                if not link in seen_links:
-                    seen_links.add(link)
-                    yield link
+                yield urlparse.urljoin(url, htmldecode(match.group(1)))
 
 
 user_agent = "Python-urllib/%s distribute/%s" % (
