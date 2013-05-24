@@ -11,35 +11,14 @@ Disclaimers
 About the fork
 ==============
 
-`Distribute` is a fork of the `Setuptools` project.
+`Distribute` is a now deprecated fork of the `Setuptools` project.
 
-Distribute is intended to replace Setuptools as the standard method
-for working with Python module distributions.
+Distribute was intended to replace Setuptools as the standard method
+for working with Python module distributions. The code has since been merged
+back into the parent project as is being maintained by the community at large.
 
-The fork has two goals:
-
-- Providing a backward compatible version to replace Setuptools
-  and make all distributions that depend on Setuptools work as
-  before, but with less bugs and behaviorial issues.
-
-  This work is done in the 0.6.x series.
-
-  Starting with version 0.6.2, Distribute supports Python 3.
-  Installing and using distribute for Python 3 code works exactly
-  the same as for Python 2 code, but Distribute also helps you to support
-  Python 2 and Python 3 from the same source code by letting you run 2to3
-  on the code as a part of the build process, by setting the keyword parameter
-  ``use_2to3`` to True. See http://packages.python.org/distribute for more
-  information.
-
-- Refactoring the code, and releasing it in several distributions.
-  This work is being done in the 0.7.x series but not yet released.
-
-The roadmap is still evolving, and the page that is up-to-date is
-located at : `http://packages.python.org/distribute/roadmap`.
-
-If you install `Distribute` and want to switch back for any reason to
-`Setuptools`, get to the `Uninstallation instructions`_ section.
+`Distribute` is now being maintained as a branch in the `Setuptools
+repository <https://bitbucket.org/pypa/setuptools>`_.
 
 More documentation
 ==================
