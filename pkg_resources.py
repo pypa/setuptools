@@ -1389,7 +1389,7 @@ class ZipProvider(EggProvider):
 
     def __init__(self, module):
         EggProvider.__init__(self,module)
-        self.zipinfo = build_zipmanifest(self.load.archive)
+        self.zipinfo = build_zipmanifest(self.loader.archive)
         self.zip_pre = self.loader.archive+os.sep
 
     def _zipinfo_name(self, fspath):
