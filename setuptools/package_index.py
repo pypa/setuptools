@@ -1,5 +1,6 @@
 """PyPI and direct package downloading"""
 import sys, os.path, re, urlparse, urllib2, shutil, random, socket, cStringIO
+import itertools
 import base64
 import httplib, urllib
 from setuptools import ssl_support
@@ -11,6 +12,8 @@ try:
 except ImportError:
     from md5 import md5
 from fnmatch import translate
+from .py24compat import wraps
+
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.]+)$')
 HREF = re.compile("""href\\s*=\\s*['"]?([^'"> ]+)""", re.I)
 # this is here to fix emacs' cruddy broken syntax highlighting
@@ -134,9 +137,38 @@ def interpret_distro_name(location, basename, metadata,
             platform = platform
         )
 
+# From Python 2.7 docs
+def unique_everseen(iterable, key=None):
+    "List unique elements, preserving order. Remember all elements ever seen."
+    # unique_everseen('AAAABBBCCDAABBB') --> A B C D
+    # unique_everseen('ABBCcAD', str.lower) --> A B C D
+    seen = set()
+    seen_add = seen.add
+    if key is None:
+        for element in itertools.ifilterfalse(seen.__contains__, iterable):
+            seen_add(element)
+            yield element
+    else:
+        for element in iterable:
+            k = key(element)
+            if k not in seen:
+                seen_add(k)
+                yield element
+
+def unique_values(func):
+    """
+    Wrap a function returning an iterable such that the resulting iterable
+    only ever yields unique items.
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        return unique_everseen(func(*args, **kwargs))
+    return wrapper
+
 REL = re.compile("""<([^>]*\srel\s*=\s*['"]?([^'">]+)[^>]*)>""", re.I)
 # this line is here to fix emacs' cruddy broken syntax highlighting
 
+@unique_values
 def find_external_links(url, page):
     """Find rel="homepage" and rel="download" links in `page`, yielding URLs"""
 
