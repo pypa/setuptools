@@ -132,21 +132,7 @@ def do_release():
 
 	subprocess.check_call(['hg', 'update', VERSION])
 
-	linkify('CHANGES.txt', 'CHANGES (links).txt')
-
-	has_docs = build_docs()
-	if os.path.isdir('./dist'):
-		shutil.rmtree('./dist')
-	cmd = [
-		sys.executable, 'setup.py', '-q',
-		'egg_info', '-RD', '-b', '',
-		'sdist',
-		'register', '-r', PACKAGE_INDEX,
-		'upload', '-r', PACKAGE_INDEX,
-	]
-	if has_docs:
-		cmd.extend(['upload_docs', '-r', PACKAGE_INDEX])
-	subprocess.check_call(cmd)
+	upload_to_pypi()
 	upload_bootstrap_script()
 
 	# update to the tip for the next operation
@@ -162,6 +148,23 @@ def do_release():
 	subprocess.check_call(['hg', 'push'])
 
 	add_milestone_and_version()
+
+def upload_to_pypi():
+	linkify('CHANGES.txt', 'CHANGES (links).txt')
+
+	has_docs = build_docs()
+	if os.path.isdir('./dist'):
+		shutil.rmtree('./dist')
+	cmd = [
+		sys.executable, 'setup.py', '-q',
+		'egg_info', '-RD', '-b', '',
+		'sdist',
+		'register', '-r', PACKAGE_INDEX,
+		'upload', '-r', PACKAGE_INDEX,
+	]
+	if has_docs:
+		cmd.extend(['upload_docs', '-r', PACKAGE_INDEX])
+	subprocess.check_call(cmd)
 
 def has_sphinx():
 	try:
