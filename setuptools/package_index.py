@@ -1,5 +1,6 @@
 """PyPI and direct package downloading"""
 import sys, os.path, re, urlparse, urllib, urllib2, shutil, random, socket, cStringIO
+import itertools
 import base64
 import httplib
 from pkg_resources import *
@@ -133,6 +134,24 @@ def interpret_distro_name(location, basename, metadata,
             py_version=py_version, precedence = precedence,
             platform = platform
         )
+
+# From Python 2.7 docs
+def unique_everseen(iterable, key=None):
+    "List unique elements, preserving order. Remember all elements ever seen."
+    # unique_everseen('AAAABBBCCDAABBB') --> A B C D
+    # unique_everseen('ABBCcAD', str.lower) --> A B C D
+    seen = set()
+    seen_add = seen.add
+    if key is None:
+        for element in itertools.ifilterfalse(seen.__contains__, iterable):
+            seen_add(element)
+            yield element
+    else:
+        for element in iterable:
+            k = key(element)
+            if k not in seen:
+                seen_add(k)
+                yield element
 
 REL = re.compile("""<([^>]*\srel\s*=\s*['"]?([^'">]+)[^>]*)>""", re.I)
 # this line is here to fix emacs' cruddy broken syntax highlighting
