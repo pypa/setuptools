@@ -22,6 +22,7 @@ Contributors
 * Pete Hollobon
 * Phillip J. Eby
 * Philip Jenvey
+* Philip Thiem
 * Reinout van Rees
 * Robert Myers
 * Stefan H. Holek

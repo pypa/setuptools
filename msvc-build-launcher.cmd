@@ -19,6 +19,12 @@ if "%ERRORLEVEL%"=="0" (
   echo Windows SDK 6.1 not found to build Windows 32-bit version
 )
 
+REM buildout (and possibly other implementations) currently depend on
+REM the 32-bit launcher scripts without the -32 in the filename, so copy them
+REM there for now.
+copy setuptools/cli-32.exe setuptools/cli.exe
+copy setuptools/gui-32.exe setuptools/gui.exe
+
 REM now for 64-bit
 REM Use the x86_amd64 profile, which is the 32-bit cross compiler for amd64
 call VCVARSx86_amd64

@@ -21,6 +21,22 @@ Added several features that were slated for setuptools 0.6c12:
   an HTTPS service.
 
 ------
+0.6.41
+------
+
+* Issue #27: Use public api for loading resources from zip files rather than
+  the private method `_zip_directory_cache`.
+* Added a new function ``easy_install.get_win_launcher`` which may be used by
+  third-party libraries such as buildout to get a suitable script launcher.
+
+------
+0.6.40
+------
+
+* Issue #376: brought back cli.exe and gui.exe that were deleted in the
+  previous release.
+
+------
 0.6.39
 ------
 

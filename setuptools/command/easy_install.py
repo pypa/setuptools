@@ -1832,26 +1832,22 @@ def get_script_args(dist, executable=sys_executable, wininst=False):
             if sys.platform=='win32' or wininst:
                 # On Windows/wininst, add a .py extension and an .exe launcher
                 if group=='gui_scripts':
-                    ext, launcher = '-script.pyw', 'gui.exe'
+                    launcher_type = 'gui'
+                    ext = '-script.pyw'
                     old = ['.pyw']
                     new_header = re.sub('(?i)python.exe','pythonw.exe',header)
                 else:
-                    ext, launcher = '-script.py', 'cli.exe'
+                    launcher_type = 'cli'
+                    ext = '-script.py'
                     old = ['.py','.pyc','.pyo']
                     new_header = re.sub('(?i)pythonw.exe','python.exe',header)
-                if platform.machine().lower()=='arm':
-                    launcher = launcher.replace(".", "-arm.")
-                if is_64bit():
-                    launcher = launcher.replace(".", "-64.")
-                else:
-                    launcher = launcher.replace(".", "-32.")
                 if os.path.exists(new_header[2:-1].strip('"')) or sys.platform!='win32':
                     hdr = new_header
                 else:
                     hdr = header
                 yield (name+ext, hdr+script_text, 't', [name+x for x in old])
                 yield (
-                    name+'.exe', resource_string('setuptools', launcher),
+                    name+'.exe', get_win_launcher(launcher_type),
                     'b' # write in binary mode
                 )
                 if not is_64bit():
@@ -1866,6 +1862,23 @@ def get_script_args(dist, executable=sys_executable, wininst=False):
                 # On other platforms, we assume the right thing to do is to
                 # just write the stub with no extension.
                 yield (name, header+script_text)
+
+def get_win_launcher(type):
+    """
+    Load the Windows launcher (executable) suitable for launching a script.
+
+    `type` should be either 'cli' or 'gui'
+
+    Returns the executable as a byte string.
+    """
+    launcher_fn = '%s.exe' % type
+    if platform.machine().lower()=='arm':
+        launcher_fn = launcher_fn.replace(".", "-arm.")
+    if is_64bit():
+        launcher_fn = launcher_fn.replace(".", "-64.")
+    else:
+        launcher_fn = launcher_fn.replace(".", "-32.")
+    return resource_string('setuptools', launcher_fn)
 
 def load_launcher_manifest(name):
     manifest = pkg_resources.resource_string(__name__, 'launcher manifest.xml')

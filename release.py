@@ -67,7 +67,7 @@ def add_milestone_and_version(version=NEXT_VERSION):
 	auth = 'Basic ' + ':'.join(get_mercurial_creds()).encode('base64').strip()
 	headers = {
 		'Authorization': auth,
-		}
+	}
 	base = 'https://api.bitbucket.org'
 	for type in 'milestones', 'versions':
 		url = (base + '/1.0/repositories/{repo}/issues/{type}'
@@ -101,7 +101,7 @@ def do_release():
 		print("Please do that")
 		raise SystemExit(1)
 
-	print("Travis-CI tests: http://travis-ci.org/#!/jaraco/distribute")
+	print("Travis-CI tests: http://travis-ci.org/#!/jaraco/setuptools")
 	res = raw_input('Have you or has someone verified that the tests '
 		'pass on this revision? ')
 	if not res.lower().startswith('y'):
@@ -157,14 +157,14 @@ def build_docs():
 		return
 	if os.path.isdir('docs/build'):
 		shutil.rmtree('docs/build')
-	subprocess.check_call([
+	cmd = [
 		'sphinx-build',
 		'-b', 'html',
 		'-d', 'build/doctrees',
 		'.',
 		'build/html',
-		],
-		cwd='docs')
+	]
+	subprocess.check_call(cmd, cwd='docs')
 	return True
 
 def upload_bootstrap_script():

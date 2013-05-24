@@ -17,15 +17,15 @@ Let's create a simple script, foo-script.py:
     >>> from setuptools.command.easy_install import nt_quote_arg
     >>> sample_directory = tempfile.mkdtemp()
     >>> f = open(os.path.join(sample_directory, 'foo-script.py'), 'w')
-    >>> f.write(
+    >>> bytes_written = f.write(
     ... """#!%(python_exe)s
     ... import sys
     ... input = repr(sys.stdin.read())
-    ... print sys.argv[0][-14:]
-    ... print sys.argv[1:]
-    ... print input
+    ... print(sys.argv[0][-14:])
+    ... print(sys.argv[1:])
+    ... print(input)
     ... if __debug__:
-    ...     print 'non-optimized'
+    ...     print('non-optimized')
     ... """ % dict(python_exe=nt_quote_arg(sys.executable)))
     >>> f.close()
 
@@ -37,7 +37,7 @@ We'll also copy cli.exe to the sample-directory with the name foo.exe:
 
     >>> import pkg_resources
     >>> f = open(os.path.join(sample_directory, 'foo.exe'), 'wb')
-    >>> f.write(
+    >>> bytes_written = f.write(
     ...     pkg_resources.resource_string('setuptools', 'cli-32.exe')
     ...     )
     >>> f.close()
@@ -49,16 +49,37 @@ GUI programs, the suffix '-script-pyw' is added.)  This is why we
 named out script the way we did.  Now we can run out script by running
 the wrapper:
 
-    >>> import os
-    >>> input, output = os.popen4('"'+nt_quote_arg(os.path.join(sample_directory, 'foo.exe'))
-    ...               + r' arg1 "arg 2" "arg \"2\\\"" "arg 4\\" "arg5 a\\b"')
-    >>> input.write('hello\nworld\n')
+    >>> from subprocess import Popen, PIPE, STDOUT
+    >>> try:
+    ...     unicode=unicode
+    ... except:
+    ...     unicode=str
+    >>> def popen4(cmd, *args):
+    ...     if hasattr(os, 'popen4'):
+    ...         input, output = os.popen4(cmd + " ".join(args))
+    ...         return input, output
+    ...     else:
+    ...         #emulate popen4 in python 3
+    ...         if cmd[0] == '"' and cmd[-1] != '"':
+    ...             cmd = cmd[1:]
+    ...         cmd += " ".join(args)
+    ...         p = Popen(cmd, shell=True, bufsize=0,
+    ...                               stdin=PIPE, stdout=PIPE, stderr=STDOUT)
+    ...         return p.stdin, p.stdout
+    
+    >>> input, output = popen4('"' + nt_quote_arg(os.path.join(sample_directory, 'foo.exe')), 
+    ...                        r' arg1', r'"arg 2"', r'"arg \"2\\\""', r'"arg 4\\"', r'"arg5 a\\b"')
+    >>> bytes_written = input.write('hello\nworld\n'.encode('utf-8'))
     >>> input.close()
-    >>> print output.read(),
+    >>> # This is needed for line ending differences between py2 and py3 on win32
+    >>> msg = unicode(output.read(), encoding='utf-8').split("\n")
+    >>> for line in msg:
+    ...     print(line.strip()) 
     \foo-script.py
     ['arg1', 'arg 2', 'arg "2\\"', 'arg 4\\', 'arg5 a\\\\b']
     'hello\nworld\n'
     non-optimized
+    <BLANKLINE>
 
 This example was a little pathological in that it exercised windows
 (MS C runtime) quoting rules:
@@ -82,26 +103,30 @@ options as usual. For example, to run in optimized mode and
 enter the interpreter after running the script, you could use -Oi:
 
     >>> f = open(os.path.join(sample_directory, 'foo-script.py'), 'w')
-    >>> f.write(
+    >>> bytes_written = f.write(
     ... """#!%(python_exe)s  -Oi
     ... import sys
     ... input = repr(sys.stdin.read())
-    ... print sys.argv[0][-14:]
-    ... print sys.argv[1:]
-    ... print input
+    ... print(sys.argv[0][-14:])
+    ... print(sys.argv[1:])
+    ... print(input)
     ... if __debug__:
-    ...     print 'non-optimized'
+    ...     print('non-optimized')
     ... sys.ps1 = '---'
     ... """ % dict(python_exe=nt_quote_arg(sys.executable)))
     >>> f.close()
 
-    >>> input, output = os.popen4(nt_quote_arg(os.path.join(sample_directory, 'foo.exe')))
+    >>> input, output = popen4(nt_quote_arg(os.path.join(sample_directory, 'foo.exe')))
     >>> input.close()
-    >>> print output.read(),
+    >>> # This is needed for line ending differences between py2 and py3 on win32
+    >>> msg = unicode(output.read(), encoding='utf-8').split("\n")
+    >>> for line in msg:
+    ...     print(line.strip()) 
     \foo-script.py
     []
     ''
     ---
+    <BLANKLINE>
 
 Testing the GUI Version
 -----------------------
@@ -112,11 +137,11 @@ Now let's test the GUI version with the simple scipt, bar-script.py:
     >>> from setuptools.command.easy_install import nt_quote_arg
     >>> sample_directory = tempfile.mkdtemp()
     >>> f = open(os.path.join(sample_directory, 'bar-script.pyw'), 'w')
-    >>> f.write(
+    >>> bytes_written = f.write(
     ... """#!%(python_exe)s
     ... import sys
     ... f = open(sys.argv[1], 'wb')
-    ... f.write(repr(sys.argv[2]))
+    ... bytes_written = f.write(repr(sys.argv[2]).encode('utf-8'))
     ... f.close()
     ... """ % dict(python_exe=nt_quote_arg(sys.executable)))
     >>> f.close()
@@ -125,21 +150,23 @@ We'll also copy gui.exe to the sample-directory with the name bar.exe:
 
     >>> import pkg_resources
     >>> f = open(os.path.join(sample_directory, 'bar.exe'), 'wb')
-    >>> f.write(
+    >>> bytes_written = f.write(
     ...     pkg_resources.resource_string('setuptools', 'gui-32.exe')
     ...     )
     >>> f.close()
 
 Finally, we'll run the script and check the result:
 
-    >>> import os
-    >>> input, output = os.popen4('"'+nt_quote_arg(os.path.join(sample_directory, 'bar.exe'))
-    ...               + r' "%s" "Test Argument"' % os.path.join(sample_directory, 'test_output.txt'))
+    >>> input, output = popen4('"'+nt_quote_arg(os.path.join(sample_directory, 'bar.exe')),
+    ...               r' "%s" "Test Argument"' % os.path.join(sample_directory, 'test_output.txt'))
     >>> input.close()
-    >>> print output.read()
+    >>> # This is needed for line ending differences between py2 and py3 on win32
+    >>> msg = unicode(output.read(), encoding='utf-8').split("\n")
+    >>> for line in msg:
+    ...     print(line.strip()) 
     <BLANKLINE>
     >>> f = open(os.path.join(sample_directory, 'test_output.txt'), 'rb')
-    >>> print f.read()
+    >>> print(unicode(f.read(), encoding='utf-8'))
     'Test Argument'
     >>> f.close()
 
