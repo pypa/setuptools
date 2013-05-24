@@ -7,6 +7,8 @@ CHANGES
 ------
 
 * External links finder no longer yields duplicate links.
+* Issue #337: Moved site.py to setuptools/site-patch.py (graft of very old
+  patch from setuptools trunk which inspired PR #31).
 
 ------
 0.6.41
