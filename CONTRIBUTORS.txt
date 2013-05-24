@@ -21,6 +21,7 @@ Contributors
 * Noufal Ibrahim
 * Pete Hollobon
 * Philip Jenvey
+* Philip Thiem
 * Reinout van Rees
 * Robert Myers
 * Stefan H. Holek

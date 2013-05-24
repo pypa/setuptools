@@ -6,6 +6,8 @@ CHANGES
 0.6.41
 ------
 
+* Issue #27: Use public api for loading resources from zip files rather than
+  the private method `_zip_directory_cache`.
 * Added a new function ``easy_install.get_win_launcher`` which may be used by
   third-party libraries such as buildout to get a suitable script launcher.
 
