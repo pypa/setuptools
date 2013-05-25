@@ -13,6 +13,7 @@ except ImportError:
     from md5 import md5
 from fnmatch import translate
 from .py24compat import wraps
+from setuptools.py27compat import get_all_headers
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.]+)$')
 HREF = re.compile("""href\\s*=\\s*['"]?([^'"> ]+)""", re.I)
@@ -608,10 +609,8 @@ class PackageIndex(Environment):
             size = -1
             if "content-length" in headers:
                 # Some servers return multiple Content-Length headers :(
-                if not hasattr(headers, 'get_all'):
-                    # Older versions of Python don't have the get_all method
-                    headers.get_all = headers.getheaders
-                size = max(map(int,headers.get_all("Content-Length")))
+                sizes = get_all_headers(headers, 'Content-Length')
+                size = max(map(int, sizes))
                 self.reporthook(url, filename, blocknum, bs, size)
             tfp = open(filename,'wb')
             while True:
