@@ -3,6 +3,12 @@ CHANGES
 =======
 
 ------
+0.6.43
+------
+
+* Issue #378: Restore support for Python 2.4 Syntax (regression in 0.6.42).
+
+------
 0.6.42
 ------
 
