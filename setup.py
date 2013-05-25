@@ -46,7 +46,7 @@ exec(init_file.read(), d)
 init_file.close()
 
 SETUP_COMMANDS = d['__all__']
-VERSION = "0.6.43"
+VERSION = "0.6.44"
 
 from setuptools import setup, find_packages
 from setuptools.command.build_py import build_py as _build_py
