@@ -12,7 +12,7 @@ except ImportError:
     from md5 import md5
 from fnmatch import translate
 
-from .py24compat import wraps
+from setuptools.py24compat import wraps
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.]+)$')
 HREF = re.compile("""href\\s*=\\s*['"]?([^'"> ]+)""", re.I)
