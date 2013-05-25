@@ -608,7 +608,10 @@ class PackageIndex(Environment):
             size = -1
             if "content-length" in headers:
                 # Some servers return multiple Content-Length headers :(
-                size = max(map(int,headers.getheaders("Content-Length")))
+                if not hasattr(headers, 'get_all'):
+                    # Older versions of Python don't have the get_all method
+                    headers.get_all = headers.getheaders
+                size = max(map(int,headers.get_all("Content-Length")))
                 self.reporthook(url, filename, blocknum, bs, size)
             tfp = open(filename,'wb')
             while True:
