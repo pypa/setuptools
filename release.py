@@ -22,7 +22,7 @@ try:
 except Exception:
 	pass
 
-VERSION = '0.7b4'
+VERSION = '0.7b5'
 PACKAGE_INDEX = 'https://pypi.python.org/pypi'
 
 def get_next_version(version):
