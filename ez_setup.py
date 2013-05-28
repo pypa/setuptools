@@ -19,6 +19,7 @@ import sys
 import tempfile
 import tarfile
 import optparse
+import subprocess
 
 from distutils import log
 
@@ -27,29 +28,12 @@ try:
 except ImportError:
     USER_SITE = None
 
-try:
-    import subprocess
-
-    def _python_cmd(*args):
-        args = (sys.executable,) + args
-        return subprocess.call(args) == 0
-
-except ImportError:
-    # will be used for python 2.3
-    def _python_cmd(*args):
-        args = (sys.executable,) + args
-        # quoting arguments if windows
-        if sys.platform == 'win32':
-            def quote(arg):
-                if ' ' in arg:
-                    return '"%s"' % arg
-                return arg
-            args = [quote(arg) for arg in args]
-        return os.spawnl(os.P_WAIT, sys.executable, *args) == 0
-
 DEFAULT_VERSION = "0.7b4"
 DEFAULT_URL = "http://pypi.python.org/packages/source/s/setuptools/"
 
+def _python_cmd(*args):
+    args = (sys.executable,) + args
+    return subprocess.call(args) == 0
 
 def _install(tarball, install_args=()):
     # extracting the tarball
