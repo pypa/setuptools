@@ -21,6 +21,13 @@ Added several features that were slated for setuptools 0.6c12:
   an HTTPS service.
 
 ------
+0.6.44
+------
+
+* ``distribute_setup.py`` has been updated to allow Setuptools 0.7 to
+  satisfy use_setuptools.
+
+------
 0.6.43
 ------
 
