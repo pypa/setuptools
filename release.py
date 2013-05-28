@@ -22,7 +22,7 @@ try:
 except Exception:
 	pass
 
-VERSION = '0.6.44'
+VERSION = '0.6.45'
 PACKAGE_INDEX = 'https://pypi.python.org/pypi'
 PACKAGE_INDEX = 'https://pypi.python.org/pypi'
 
