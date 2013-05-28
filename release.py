@@ -133,7 +133,6 @@ def do_release():
 	subprocess.check_call(['hg', 'update', VERSION])
 
 	upload_to_pypi()
-	upload_bootstrap_script()
 
 	# update to the tip for the next operation
 	subprocess.check_call(['hg', 'update'])
@@ -191,14 +190,6 @@ def build_docs():
 	]
 	subprocess.check_call(cmd, cwd='docs')
 	return True
-
-def upload_bootstrap_script():
-	scp_command = 'pscp' if sys.platform.startswith('win') else 'scp'
-	try:
-		subprocess.check_call([scp_command, 'distribute_setup.py',
-			'pypi@ziade.org:python-distribute.org/'])
-	except:
-		print("Unable to upload bootstrap script. Ask Tarek to do it.")
 
 def linkify(source, dest):
 	with open(source) as source:
