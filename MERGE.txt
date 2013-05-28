@@ -78,6 +78,7 @@ Major Changes
   packages.
 * Sort order of Distributions in pkg_resources now prefers PyPI to external
   links (Distribute issue 163).
+* Python 2.4 or greater is required (drop support for Python 2.3).
 
 Minor Changes
 -------------
