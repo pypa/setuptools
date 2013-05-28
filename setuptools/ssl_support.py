@@ -46,7 +46,7 @@ except ImportError:
     def create_connection(address, timeout=_GLOBAL_DEFAULT_TIMEOUT,
                           source_address=None):
         """Connect to *address* and return the socket object.
-    
+
         Convenience function.  Connect to *address* (a 2-tuple ``(host,
         port)``) and return the socket object.  Passing the optional
         *timeout* parameter will set the timeout on the socket instance
@@ -55,7 +55,7 @@ except ImportError:
         is used.  If *source_address* is set it must be a tuple of (host, port)
         for the socket to bind as a source address before making the connection.
         An host of '' or port 0 tells the OS to use the default.
-        """   
+        """
         host, port = address
         err = None
         for res in socket.getaddrinfo(host, port, 0, socket.SOCK_STREAM):
@@ -73,7 +73,7 @@ except ImportError:
             except error:
                 err = True
                 if sock is not None:
-                    sock.close()    
+                    sock.close()
         if err:
             raise
         else:
@@ -85,7 +85,7 @@ try:
 except ImportError:
     class CertificateError(ValueError):
         pass
-       
+
     def _dnsname_to_pat(dn):
         pats = []
         for frag in dn.split(r'.'):
@@ -98,12 +98,12 @@ except ImportError:
                 frag = re.escape(frag)
                 pats.append(frag.replace(r'\*', '[^.]*'))
         return re.compile(r'\A' + r'\.'.join(pats) + r'\Z', re.IGNORECASE)
-       
+
     def match_hostname(cert, hostname):
         """Verify that *cert* (in decoded format as returned by
         SSLSocket.getpeercert()) matches the *hostname*.  RFC 2818 rules
         are mostly followed, but IP addresses are not accepted for *hostname*.
-    
+
         CertificateError is raised on failure. On success, the function
         returns nothing.
         """
@@ -177,7 +177,7 @@ class VerifyingHTTPSHandler(HTTPSHandler):
 
 class VerifyingHTTPSConn(HTTPSConnection):
     """Simple verifying connection: no auth, subclasses, timeouts, etc."""
-    def __init__(self, host, ca_bundle, **kw):         
+    def __init__(self, host, ca_bundle, **kw):
         HTTPSConnection.__init__(self, host, **kw)
         self.ca_bundle = ca_bundle
 
@@ -187,7 +187,7 @@ class VerifyingHTTPSConn(HTTPSConnection):
         )
         self.sock = ssl.wrap_socket(
             sock, cert_reqs=ssl.CERT_REQUIRED, ca_certs=self.ca_bundle
-        )               
+        )
         try:
             match_hostname(self.sock.getpeercert(), self.host)
         except CertificateError:
@@ -201,7 +201,7 @@ def opener_for(ca_bundle=None):
         VerifyingHTTPSHandler(ca_bundle or find_ca_bundle())
     ).open
 
-        
+
 
 _wincerts = None
 
@@ -210,7 +210,7 @@ def get_win_certfile():
     if _wincerts is not None:
         return _wincerts.name
 
-    try:        
+    try:
         from wincertstore import CertFile
     except ImportError:
         return None
@@ -221,7 +221,7 @@ def get_win_certfile():
             for store in stores:
                 self.addstore(store)
             self.addcerts(certs)
-            atexit.register(self.close)            
+            atexit.register(self.close)
 
     _wincerts = MyCertFile(stores=['CA', 'ROOT'])
     return _wincerts.name
