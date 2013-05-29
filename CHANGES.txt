@@ -3,6 +3,13 @@ CHANGES
 =======
 
 ------
+0.6.45
+------
+
+* Issue #379: ``distribute_setup.py`` now traps VersionConflict as well,
+  restoring ability to upgrade from an older setuptools version.
+
+------
 0.6.44
 ------
 

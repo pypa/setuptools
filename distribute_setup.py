@@ -150,7 +150,8 @@ def use_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
             try:
                 pkg_resources.require("setuptools>=0.7b")
                 return
-            except pkg_resources.DistributionNotFound:
+            except (pkg_resources.DistributionNotFound,
+                    pkg_resources.VersionConflict):
                 pass
 
             if not hasattr(pkg_resources, '_distribute'):
