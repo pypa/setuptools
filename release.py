@@ -52,7 +52,9 @@ def get_next_version(version):
 
 NEXT_VERSION = get_next_version(VERSION)
 
-files_with_versions = 'docs/conf.py', 'setup.py', 'release.py', 'ez_setup.py'
+files_with_versions = (
+	'docs/conf.py', 'setup.py', 'release.py', 'ez_setup.py', 'README.txt',
+)
 
 def get_repo_name():
 	"""
