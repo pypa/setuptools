@@ -25,32 +25,36 @@ except Exception:
 VERSION = '0.7b5'
 PACKAGE_INDEX = 'https://pypi.python.org/pypi'
 
-def get_next_version(version):
+def set_versions():
+	global VERSION
+	version = raw_input("Release as version [%s]> " % VERSION)
+	if version != VERSION:
+		VERSION = bump_versions(version)
+
+def infer_next_version(version):
 	"""
 	Infer a next version from the current version by incrementing the last
 	number or appending a number.
 
-	>>> get_next_version('1.0')
+	>>> infer_next_version('1.0')
 	'1.1'
 
-	>>> get_next_version('1.0b')
+	>>> infer_next_version('1.0b')
 	'1.0b1'
 
-	>>> get_next_version('1.0.9')
+	>>> infer_next_version('1.0.9')
 	'1.0.10'
 
-	>>> get_next_version('1')
+	>>> infer_next_version('1')
 	'2'
 
-	>>> get_next_version('')
+	>>> infer_next_version('')
 	'1'
 	"""
 	def incr(match):
 		ver = int(match.group(0) or '0')
 		return str(ver + 1)
 	return re.sub('\d*$', incr, version)
-
-NEXT_VERSION = get_next_version(VERSION)
 
 files_with_versions = (
 	'docs/conf.py', 'setup.py', 'release.py', 'ez_setup.py', 'README.txt',
@@ -85,7 +89,7 @@ def get_mercurial_creds(system='https://bitbucket.org', username=None):
 	Credential = collections.namedtuple('Credential', 'username password')
 	return Credential(username, password)
 
-def add_milestone_and_version(version=NEXT_VERSION):
+def add_milestone_and_version(version):
 	auth = 'Basic ' + ':'.join(get_mercurial_creds()).encode('base64').strip()
 	headers = {
 		'Authorization': auth,
@@ -101,12 +105,17 @@ def add_milestone_and_version(version=NEXT_VERSION):
 		except urllib2.HTTPError as e:
 			print(e.fp.read())
 
-def bump_versions():
-	list(map(bump_version, files_with_versions))
+def bump_versions(target_ver):
+	for filename in files_with_versions:
+		bump_version(filename, target_ver)
+	subprocess.check_call(['hg', 'ci', '-m',
+		'Bumped to {target_ver} in preparation for next '
+		'release.'.format(**vars())])
+	return target_ver
 
-def bump_version(filename):
+def bump_version(filename, target_ver):
 	with open(filename, 'rb') as f:
-		lines = [line.replace(VERSION, NEXT_VERSION) for line in f]
+		lines = [line.replace(VERSION, target_ver) for line in f]
 	with open(filename, 'wb') as f:
 		f.writelines(lines)
 
@@ -115,6 +124,8 @@ def do_release():
 		"Expected file(s) missing")
 
 	assert has_sphinx(), "You must have Sphinx installed to release"
+
+	set_versions()
 
 	res = raw_input('Have you read through the SCM changelog and '
 		'confirmed the changelog is current for releasing {VERSION}? '
@@ -140,15 +151,12 @@ def do_release():
 	subprocess.check_call(['hg', 'update'])
 
 	# we just tagged the current version, bump for the next release.
-	bump_versions()
-	subprocess.check_call(['hg', 'ci', '-m',
-		'Bumped to {NEXT_VERSION} in preparation for next '
-		'release.'.format(**globals())])
+	next_ver = bump_versions(infer_next_version(VERSION))
 
 	# push the changes
 	subprocess.check_call(['hg', 'push'])
 
-	add_milestone_and_version()
+	add_milestone_and_version(next_ver)
 
 def upload_to_pypi():
 	linkify('CHANGES.txt', 'CHANGES (links).txt')
