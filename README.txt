@@ -9,25 +9,33 @@ Installing and Using Setuptools
 Installation Instructions
 -------------------------
 
+Upgrading from Distribute
+=========================
+
+Currently, Distribute disallows installing Setuptools 0.7 over Distribute.
+You must first uninstall any active version of Distribute first. One way to
+do this is to remove all ``setuptools*`` and ``distribute*`` from your
+``site-packgaes`` directory.
+
+
+Upgrading from Setuptools 0.6
+=============================
+
+Upgrading from prior versions of Setuptools is supported. Initial reports
+good success in this regard.
+
 Windows
 =======
 
-32-bit version of Python
-    Install setuptools using the provided ``.exe`` installer.
+The recommended way to install setuptools on Windows is to download
+`ez_setup.py`_ and run it. The script will download the appropriate .egg
+file and install it for you.
 
-64-bit versions of Python
-    Download `ez_setup.py`_ and run it; it will download the appropriate .egg
-    file and install it for you.  (Currently, the provided ``.exe`` installer
-    does not support 64-bit versions of Python for Windows, due to a
-    `distutils installer compatibility issue`_
+.. _ez_setup.py: https://bitbucket.org/pypa/setuptools/raw/0.7b5/ez_setup.py
 
-.. _ez_setup.py: https://bitbucket.org/pypa/setuptools/raw/default/ez_setup.py
-.. _distutils installer compatibility issue: http://bugs.python.org/issue6792
-
-
-NOTE: Regardless of what sort of Python you're using, if you've previously
-installed older versions of setuptools or distribute, please delete all
-``setuptools*.egg``, ``distribute*.egg``, and ``setuptools.pth`` files and
+For best results, regardless of what sort of Python you're using, if you've
+previously installed older versions of setuptools or distribute, please delete
+all ``setuptools*.egg``, ``distribute*.egg``, and ``setuptools.pth`` files and
 directories from your system's ``site-packages`` directory
 (and any other ``sys.path`` directories) FIRST.
 
@@ -37,65 +45,46 @@ via your system's "Add/Remove Programs" feature, BEFORE installing the newer
 version.
 
 Once installation is complete, you will find an ``easy_install.exe`` program in
-your Python ``Scripts`` subdirectory.  Be sure to add this directory to your
-``PATH`` environment variable, if you haven't already done so.
+your Python ``Scripts`` subdirectory.  For simple invocation and best results,
+add this directory to your ``PATH`` environment variable, if it is not already
+present.
 
 
-RPM-Based Systems
-=================
+Unix-based Systems including Mac OS X
+=====================================
 
-Install setuptools using the provided source RPM.  The included ``.spec`` file
-assumes you are installing using the default ``python`` executable, and is not
-specific to a particular Python version.  The ``easy_install`` executable will
-be installed to a system ``bin`` directory such as ``/usr/bin``.
+Download `ez_setup.py`_ and run it using the target Python version. The script
+will download the appropriate version and install it for you::
 
-If you wish to install to a location other than the default Python
-installation's default ``site-packages`` directory (and ``$prefix/bin`` for
-scripts), please use the ``.egg``-based installation approach described in the
-following section.
+    > wget https://bitbucket.org/pypa/setuptools/raw/0.7b5/ez_setup.py -O - | python
+
+Note that you will may need to invoke the command with superuser privileges to
+install to the system Python.
+
+Alternatively, on Python 2.6 and later, Setuptools may be installed to a
+user-local path::
+
+    > wget https://bitbucket.org/pypa/setuptools/raw/0.7b5/ez_setup.py
+    > python ez_setup.py --user
 
 
-Cygwin, Mac OS X, Linux, Other
-==============================
+Advanced Installation
+=====================
 
-1. Download the appropriate egg for your version of Python (e.g.
-   ``setuptools-0.6c9-py2.4.egg``).  Do NOT rename it.
+For more advanced installation options, such as installing to custom
+locations or prefixes, download and extract the source
+tarball from `Setuptools on PyPI <https://pypi.python.org/pypi/setuptools>`_
+and run setup.py with any supported distutils and Setuptools options.
+For example::
 
-2. Run it as if it were a shell script, e.g. ``sh setuptools-0.6c9-py2.4.egg``.
-   Setuptools will install itself using the matching version of Python (e.g.
-   ``python2.4``), and will place the ``easy_install`` executable in the
-   default location for installing Python scripts (as determined by the
-   standard distutils configuration files, or by the Python installation).
+    setuptools-0.7$ python setup.py --prefix=/opt/setuptools
 
-If you want to install setuptools to somewhere other than ``site-packages`` or
-your default distutils installation locations for libraries and scripts, you
-may include EasyInstall command-line options such as ``--prefix``,
-``--install-dir``, and so on, following the ``.egg`` filename on the same
-command line.  For example::
-
-    sh setuptools-0.6c9-py2.4.egg --prefix=~
-
-You can use ``--help`` to get a full options list, but we recommend consulting
+Use ``--help`` to get a full options list, but we recommend consulting
 the `EasyInstall manual`_ for detailed instructions, especially `the section
 on custom installation locations`_.
 
-.. _EasyInstall manual: http://peak.telecommunity.com/DevCenter/EasyInstall
-.. _the section on custom installation locations: http://peak.telecommunity.com/DevCenter/EasyInstall#custom-installation-locations
-
-
-Cygwin Note
------------
-
-If you are trying to install setuptools for the **Windows** version of Python
-(as opposed to the Cygwin version that lives in ``/usr/bin``), you must make
-sure that an appropriate executable (``python2.3``, ``python2.4``, or
-``python2.5``) is on your **Cygwin** ``PATH`` when invoking the egg.  For
-example, doing the following at a Cygwin bash prompt will install setuptools
-for the **Windows** Python found at ``C:\\Python24``::
-
-    ln -s /cygdrive/c/Python24/python.exe python2.4
-    PATH=.:$PATH sh setuptools-0.6c9-py2.4.egg
-    rm python2.4
+.. _EasyInstall manual: https://pythonhosted.org/setuptools/EasyInstall
+.. _the section on custom installation locations: https://pythonhosted.org/setuptools/EasyInstall#custom-installation-locations
 
 
 Downloads
@@ -107,12 +96,11 @@ Package Index`_.  Scroll to the very bottom of the page to find the links.
 .. _the project's home page in the Python Package Index: http://pypi.python.org/pypi/setuptools#files
 
 In addition to the PyPI downloads, the development version of ``setuptools``
-is available from the `Python SVN sandbox`_, and in-development versions of the
+is available from the `Bitbucket repo`_, and in-development versions of the
 `0.6 branch`_ are available as well.
 
-.. _0.6 branch: http://svn.python.org/projects/sandbox/branches/setuptools-0.6/#egg=setuptools-dev06
-
-.. _Python SVN sandbox: http://svn.python.org/projects/sandbox/trunk/setuptools/#egg=setuptools-dev
+.. _Bitbucket repo: https://bitbucket.org/pypa/setuptools/get/default.tar.gz#egg=setuptools-dev
+.. _0.6 branch: https://bitbucket.org/pypa/setuptools/get/setuptools-0.6.tar.gz#egg=setuptools-dev06
 
 --------------------------------
 Using Setuptools and EasyInstall
