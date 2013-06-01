@@ -237,7 +237,7 @@ def find_ca_bundle():
             if os.path.isfile(cert_path):
                 return cert_path
     try:
-        return pkg_resources.resource_filename('certifi', 'cacert.pem')
+        return resource_filename('certifi', 'cacert.pem')
     except (ImportError, ResolutionError, ExtractionError):
         return None
 
