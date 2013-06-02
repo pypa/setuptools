@@ -13,7 +13,8 @@ Upgrading from Distribute
 =========================
 
 Currently, Distribute disallows installing Setuptools 0.7 over Distribute.
-You must first uninstall any active version of Distribute first.
+You must first uninstall any active version of Distribute first (see
+`Uninstalling`_).
 
 Upgrading from Setuptools 0.6
 =============================
@@ -30,7 +31,7 @@ file and install it for you.
 
 .. _ez_setup.py: https://bitbucket.org/pypa/setuptools/raw/0.7b5/ez_setup.py
 
-For best results, uninstall previous versions FIRST.
+For best results, uninstall previous versions FIRST (see `Uninstalling`_).
 
 Once installation is complete, you will find an ``easy_install.exe`` program in
 your Python ``Scripts`` subdirectory.  For simple invocation and best results,
