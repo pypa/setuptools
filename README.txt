@@ -13,10 +13,7 @@ Upgrading from Distribute
 =========================
 
 Currently, Distribute disallows installing Setuptools 0.7 over Distribute.
-You must first uninstall any active version of Distribute first. One way to
-do this is to remove all ``setuptools*`` and ``distribute*`` from your
-``site-packgaes`` directory.
-
+You must first uninstall any active version of Distribute first.
 
 Upgrading from Setuptools 0.6
 =============================
@@ -33,16 +30,7 @@ file and install it for you.
 
 .. _ez_setup.py: https://bitbucket.org/pypa/setuptools/raw/0.7b5/ez_setup.py
 
-For best results, regardless of what sort of Python you're using, if you've
-previously installed older versions of setuptools or distribute, please delete
-all ``setuptools*.egg``, ``distribute*.egg``, and ``setuptools.pth`` files and
-directories from your system's ``site-packages`` directory
-(and any other ``sys.path`` directories) FIRST.
-
-If you are upgrading a previous version of setuptools that was installed using
-an ``.exe`` installer, please be sure to also *uninstall that older version*
-via your system's "Add/Remove Programs" feature, BEFORE installing the newer
-version.
+For best results, uninstall previous versions FIRST.
 
 Once installation is complete, you will find an ``easy_install.exe`` program in
 your Python ``Scripts`` subdirectory.  For simple invocation and best results,
@@ -101,6 +89,23 @@ is available from the `Bitbucket repo`_, and in-development versions of the
 
 .. _Bitbucket repo: https://bitbucket.org/pypa/setuptools/get/default.tar.gz#egg=setuptools-dev
 .. _0.6 branch: https://bitbucket.org/pypa/setuptools/get/setuptools-0.6.tar.gz#egg=setuptools-dev06
+
+Uninstalling
+============
+
+On Windows, if Setuptools was installed using an ``.exe`` or ``.msi``
+installer, simply use the uninstall feature of "Add/Remove Programs" in the
+Control Panel.
+
+Otherwise, to uninstall Setuptools or Distribute, regardless of the Python
+version, delete all ``setuptools*`` and ``distribute*`` files and
+directories from your system's ``site-packages`` directory
+(and any other ``sys.path`` directories) FIRST.
+
+If you are upgrading or otherwise plan to re-install Setuptools or Distribute,
+nothing further needs to be done. If you want to completely remove Setuptools,
+you may also want to remove the 'easy_install' and 'easy_install-x.x' scripts
+and associated executables installed to the Python scripts directory.
 
 --------------------------------
 Using Setuptools and EasyInstall
