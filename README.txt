@@ -88,7 +88,7 @@ is available from the `Bitbucket repo`_, and in-development versions of the
 `0.6 branch`_ are available as well.
 
 .. _Bitbucket repo: https://bitbucket.org/pypa/setuptools/get/default.tar.gz#egg=setuptools-dev
-.. _0.6 branch: https://bitbucket.org/pypa/setuptools/get/setuptools-0.6.tar.gz#egg=setuptools-dev06
+.. _0.6 branch: http://svn.python.org/projects/sandbox/branches/setuptools-0.6/#egg=setuptools-dev06
 
 Uninstalling
 ============
