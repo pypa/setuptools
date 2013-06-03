@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+-----
+0.7.1
+-----
+
+* Fix NameError (Issue #3) again - broken in bad merge.
+
 ---
 0.7
 ---
