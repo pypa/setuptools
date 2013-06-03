@@ -1,4 +1,4 @@
-import sys, os, socket, urllib2, atexit
+import sys, os, socket, urllib2, atexit, re
 from pkg_resources import ResolutionError, ExtractionError, resource_filename
 
 try:
