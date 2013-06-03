@@ -3,6 +3,12 @@ CHANGES
 =======
 
 -----
+0.7.2
+-----
+
+* Issue #10: ``ez_setup.py`` now uses HTTPS to download setuptools from PyPI.
+
+-----
 0.7.1
 -----
 
