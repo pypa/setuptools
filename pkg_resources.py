@@ -1211,8 +1211,104 @@ def invalid_marker(text):
         return sys.exc_info()[1]
     return False
 
+def _evaluate_marker_legacy(text, extra=None, _ops={}):
+    """
+    Evaluate a PEP 426 environment marker on CPython 2.4+.
+    Return a boolean indicating the marker result in this environment.
+    Raise SyntaxError if marker is invalid.
+
+    This implementation uses the 'parser' module, which is not implemented on
+    Jython and has been superseded by the 'ast' module in Python 2.6 and
+    later.
+    """
+
+    if not _ops:
+
+        from token import NAME, STRING
+        import token, symbol, operator
+
+        def and_test(nodelist):
+            # MUST NOT short-circuit evaluation, or invalid syntax can be skipped!
+            return reduce(operator.and_, [interpret(nodelist[i]) for i in range(1,len(nodelist),2)])
+
+        def test(nodelist):
+            # MUST NOT short-circuit evaluation, or invalid syntax can be skipped!
+            return reduce(operator.or_, [interpret(nodelist[i]) for i in range(1,len(nodelist),2)])
+
+        def atom(nodelist):
+            t = nodelist[1][0]
+            if t == token.LPAR:
+                if nodelist[2][0] == token.RPAR:
+                    raise SyntaxError("Empty parentheses")
+                return interpret(nodelist[2])
+            raise SyntaxError("Language feature not supported in environment markers")
+
+        def comparison(nodelist):
+            if len(nodelist)>4:
+                raise SyntaxError("Chained comparison not allowed in environment markers")
+            comp = nodelist[2][1]
+            cop = comp[1]
+            if comp[0] == NAME:
+                if len(nodelist[2]) == 3:
+                    if cop == 'not':
+                        cop = 'not in'
+                    else:
+                        cop = 'is not'
+            try:
+                cop = _ops[cop]
+            except KeyError:
+                raise SyntaxError(repr(cop)+" operator not allowed in environment markers")
+            return cop(evaluate(nodelist[1]), evaluate(nodelist[3]))
+
+        _ops.update({
+            symbol.test: test, symbol.and_test: and_test, symbol.atom: atom,
+            symbol.comparison: comparison, 'not in': lambda x,y: x not in y,
+            'in': lambda x,y: x in y, '==': operator.eq, '!=': operator.ne,
+        })
+        if hasattr(symbol,'or_test'):
+            _ops[symbol.or_test] = test
+
+    def interpret(nodelist):
+        while len(nodelist)==2: nodelist = nodelist[1]
+        try:
+            op = _ops[nodelist[0]]
+        except KeyError:
+            raise SyntaxError("Comparison or logical expression expected")
+            raise SyntaxError("Language feature not supported in environment markers: "+symbol.sym_name[nodelist[0]])
+        return op(nodelist)
+
+    def evaluate(nodelist):
+        while len(nodelist)==2: nodelist = nodelist[1]
+        kind = nodelist[0]
+        name = nodelist[1]
+        #while len(name)==2: name = name[1]
+        if kind==NAME:
+            try:
+                op = _marker_values[name]
+            except KeyError:
+                raise SyntaxError("Unknown name %r" % name)
+            return op()
+        if kind==STRING:
+            s = nodelist[1]
+            if s[:1] not in "'\"" or s.startswith('"""') or s.startswith("'''") \
+            or '\\' in s:
+                raise SyntaxError(
+                    "Only plain strings allowed in environment markers")
+            return s[1:-1]
+        raise SyntaxError("Language feature not supported in environment markers")
+
+    import parser
+    return interpret(parser.expr(text).totuple(1)[1])
+
 def evaluate_marker(text):
-    """Evaluate a PEP 426 environment marker; SyntaxError if marker is invalid"""
+    """
+    Evaluate a PEP 426 environment marker.
+    Return a boolean indicating the marker result in this environment.
+    Raise SyntaxError if marker is invalid.
+
+    Note the implementation is incomplete as it does not support parentheses
+    for grouping.
+    """
     import _markerlib
     # markerlib implements Metadata 1.2 (PEP 345) environment markers.
     # Translate the variables to Metadata 2.0 (PEP 426).
@@ -1222,6 +1318,9 @@ def evaluate_marker(text):
         env[new_key] = env.pop(key)
     return _markerlib.interpret(text, env)
 
+# support marker evaluation on Python 2.4+
+if sys.version_info < (2,6) and _pyimp() == 'CPython':
+    evaluate_marker = _evaluate_marker_legacy
 
 class NullProvider:
     """Try to implement resources and metadata for arbitrary PEP 302 loaders"""
