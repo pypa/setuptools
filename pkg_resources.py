@@ -1201,14 +1201,14 @@ def _pyimp():
     elif '__pypy__' in sys.builtin_module_names:
         return 'PyPy'
     else:
-        return 'CPython'                
+        return 'CPython'
 
 def invalid_marker(text):
     """Validate text as a PEP 426 environment marker; return exception or False"""
     try:
         evaluate_marker(text)
     except SyntaxError:
-        return sys.exc_info()[1]            
+        return sys.exc_info()[1]
     return False
 
 def evaluate_marker(text, extra=None, _ops={}):
@@ -1218,15 +1218,15 @@ def evaluate_marker(text, extra=None, _ops={}):
 
         from token import NAME, STRING
         import token, symbol, operator
-        
+
         def and_test(nodelist):
             # MUST NOT short-circuit evaluation, or invalid syntax can be skipped!
             return reduce(operator.and_, [interpret(nodelist[i]) for i in range(1,len(nodelist),2)])
-        
+
         def test(nodelist):
             # MUST NOT short-circuit evaluation, or invalid syntax can be skipped!
             return reduce(operator.or_, [interpret(nodelist[i]) for i in range(1,len(nodelist),2)])
-        
+
         def atom(nodelist):
             t = nodelist[1][0]
             if t == token.LPAR:
@@ -1234,7 +1234,7 @@ def evaluate_marker(text, extra=None, _ops={}):
                     raise SyntaxError("Empty parentheses")
                 return interpret(nodelist[2])
             raise SyntaxError("Language feature not supported in environment markers")
-        
+
         def comparison(nodelist):
             if len(nodelist)>4:
                 raise SyntaxError("Chained comparison not allowed in environment markers")
@@ -1251,7 +1251,7 @@ def evaluate_marker(text, extra=None, _ops={}):
             except KeyError:
                 raise SyntaxError(repr(cop)+" operator not allowed in environment markers")
             return cop(evaluate(nodelist[1]), evaluate(nodelist[3]))
-        
+
         _ops.update({
             symbol.test: test, symbol.and_test: and_test, symbol.atom: atom,
             symbol.comparison: comparison, 'not in': lambda x,y: x not in y,
@@ -1268,7 +1268,7 @@ def evaluate_marker(text, extra=None, _ops={}):
             raise SyntaxError("Comparison or logical expression expected")
             raise SyntaxError("Language feature not supported in environment markers: "+symbol.sym_name[nodelist[0]])
         return op(nodelist)
-        
+
     def evaluate(nodelist):
         while len(nodelist)==2: nodelist = nodelist[1]
         kind = nodelist[0]
@@ -1289,7 +1289,7 @@ def evaluate_marker(text, extra=None, _ops={}):
             return s[1:-1]
         raise SyntaxError("Language feature not supported in environment markers")
 
-    import parser        
+    import parser
     return interpret(parser.expr(text).totuple(1)[1])
 
 
@@ -2393,7 +2393,7 @@ class Distribution(object):
                                 reqs=[] # XXX warn
                             elif not evaluate_marker(marker):
                                 reqs=[]
-                        extra = safe_extra(extra) or None                                                            
+                        extra = safe_extra(extra) or None
                     dm.setdefault(extra,[]).extend(parse_requirements(reqs))
             return dm
     _dep_map = property(_dep_map)
