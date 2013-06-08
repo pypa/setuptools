@@ -6,6 +6,7 @@ CHANGES
 0.7.2
 -----
 
+* Issue #14: Prefer markerlib for evaluation of marker expressions in extras.
 * Issue #10: ``ez_setup.py`` now uses HTTPS to download setuptools from PyPI.
 
 -----
