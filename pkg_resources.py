@@ -1211,8 +1211,16 @@ def invalid_marker(text):
         return sys.exc_info()[1]
     return False
 
-def evaluate_marker(text, extra=None, _ops={}):
-    """Evaluate a PEP 426 environment marker; SyntaxError if marker is invalid"""
+def _evaluate_marker_legacy(text, extra=None, _ops={}):
+    """
+    Evaluate a PEP 426 environment marker on CPython 2.4+.
+    Return a boolean indicating the marker result in this environment.
+    Raise SyntaxError if marker is invalid.
+
+    This implementation uses the 'parser' module, which is not implemented on
+    Jython and has been superseded by the 'ast' module in Python 2.6 and
+    later.
+    """
 
     if not _ops:
 
@@ -1292,6 +1300,7 @@ def evaluate_marker(text, extra=None, _ops={}):
     import parser
     return interpret(parser.expr(text).totuple(1)[1])
 
+evaluate_marker = _evaluate_marker_legacy
 
 class NullProvider:
     """Try to implement resources and metadata for arbitrary PEP 302 loaders"""
