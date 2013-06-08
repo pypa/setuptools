@@ -1316,7 +1316,12 @@ def evaluate_marker(text):
     for key in env.keys():
         new_key = key.replace('.', '_')
         env[new_key] = env.pop(key)
-    return _markerlib.interpret(text, env)
+    try:
+        result = _markerlib.interpret(text, env)
+    except NameError:
+        e = sys.exc_info()[1]
+        raise SyntaxError(e.args[0])
+    return result
 
 # support marker evaluation on Python 2.4+
 if sys.version_info < (2,6) and _pyimp() == 'CPython':
