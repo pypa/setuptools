@@ -27,7 +27,7 @@ PACKAGE_INDEX = 'https://pypi.python.org/pypi'
 
 def set_versions():
 	global VERSION
-	version = raw_input("Release as version [%s]> " % VERSION)
+	version = raw_input("Release as version [%s]> " % VERSION) or VERSION
 	if version != VERSION:
 		VERSION = bump_versions(version)
 
