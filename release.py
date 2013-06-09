@@ -173,7 +173,7 @@ def upload_to_pypi():
 	]
 	if has_docs:
 		cmd.extend([
-			#'upload_docs', '-r', PACKAGE_INDEX
+			'upload_docs', '-r', PACKAGE_INDEX
 		])
 	subprocess.check_call(cmd)
 
