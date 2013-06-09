@@ -39,6 +39,11 @@ if sys.version_info >= (3, 3) and sys.implementation.name == "cpython":
 else:
     importlib_bootstrap = None
 
+try:
+    import parser
+except ImportError:
+    pass
+
 def _bypass_ensure_directory(name, mode=0777):
     # Sandbox-bypassing version of ensure_directory()
     if not WRITE_SUPPORT:
@@ -1211,7 +1216,7 @@ def invalid_marker(text):
         return sys.exc_info()[1]
     return False
 
-def _evaluate_marker_legacy(text, extra=None, _ops={}):
+def evaluate_marker(text, extra=None, _ops={}):
     """
     Evaluate a PEP 426 environment marker on CPython 2.4+.
     Return a boolean indicating the marker result in this environment.
@@ -1297,17 +1302,13 @@ def _evaluate_marker_legacy(text, extra=None, _ops={}):
             return s[1:-1]
         raise SyntaxError("Language feature not supported in environment markers")
 
-    import parser
     return interpret(parser.expr(text).totuple(1)[1])
 
-def evaluate_marker(text):
+def _markerlib_evaluate(text):
     """
-    Evaluate a PEP 426 environment marker.
+    Evaluate a PEP 426 environment marker using markerlib.
     Return a boolean indicating the marker result in this environment.
     Raise SyntaxError if marker is invalid.
-
-    Note the implementation is incomplete as it does not support parentheses
-    for grouping.
     """
     import _markerlib
     # markerlib implements Metadata 1.2 (PEP 345) environment markers.
@@ -1323,9 +1324,10 @@ def evaluate_marker(text):
         raise SyntaxError(e.args[0])
     return result
 
-# support marker evaluation on Python 2.4+
-if sys.version_info < (2,6) and _pyimp() == 'CPython':
-    evaluate_marker = _evaluate_marker_legacy
+if 'parser' not in globals():
+    # fallback to less-complete _markerlib implementation if 'parser' module
+    #  is not available.
+    evaluate_marker = _markerlib_evaluate
 
 class NullProvider:
     """Try to implement resources and metadata for arbitrary PEP 302 loaders"""

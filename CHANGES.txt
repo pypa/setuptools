@@ -6,9 +6,7 @@ CHANGES
 0.7.2
 -----
 
-* Issue #14: Prefer markerlib for evaluation of marker expressions in extras.
-  Fall back to implementation based on 'parser' for Python 2.5 and 2.4
-  clients.
+* Issue #14: Use markerlib when the `parser` module is not available.
 * Issue #10: ``ez_setup.py`` now uses HTTPS to download setuptools from PyPI.
 
 -----
