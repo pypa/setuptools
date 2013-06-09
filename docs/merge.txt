@@ -1,3 +1,9 @@
+Merge with Distribute
+~~~~~~~~~~~~~~~~~~~~~
+
+In 2013, the fork of Distribute was merged back into Setuptools. This
+document describes some of the details of the merge.
+
 Process
 =======
 

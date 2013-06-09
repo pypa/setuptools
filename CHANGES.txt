@@ -19,7 +19,7 @@ CHANGES
 0.7
 ---
 
-* Merged Setuptools and Distribute. See MERGE.txt for details.
+* Merged Setuptools and Distribute. See docs/merge.txt for details.
 
 Added several features that were slated for setuptools 0.6c12:
 
