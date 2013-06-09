@@ -1,5 +1,29 @@
 Setuptools/Distribute Merge FAQ
--------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+How do I upgrade from Distribute?
+=================================
+
+Distribute specifically prohibits installation of Setuptools 0.7 from Distribute 0.6. There are then two options for upgrading.
+
+Note that after upgrading using either technique, the only option to downgrade to either version is to completely uninstall Distribute and Setuptools 0.7 versions before reinstalling an 0.6 release.
+
+Use Distribute 0.7
+------------------
+
+The PYPA has put together a compatibility wrapper, a new release of Distribute version 0.7. This package will install over Distribute 0.6.x installations and will replace Distribute with a simple wrapper that requires Setuptools 0.7 or later. This technique is experimental, but initial results indicate this technique is the easiest upgrade path.
+
+
+Uninstall
+---------
+
+First, completely uninstall Distribute. Since Distribute does not have an automated installation routine, this process is manual. Follow the instructions in the README for uninstalling.
+
+
+How do I upgrade from Setuptools 0.6?
+=====================================
+
+There are no special instructions for upgrading over older versions of Setuptools. Simply use `easy_install -U` or run the latest `ez_setup.py`.
 
 Where does the merge occur?
 ========================================================
