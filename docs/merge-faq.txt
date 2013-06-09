@@ -1,3 +1,6 @@
+Setuptools/Distribute Merge FAQ
+-------------------------------
+
 Where does the merge occur?
 ========================================================
 
