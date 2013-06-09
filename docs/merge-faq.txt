@@ -1,0 +1,44 @@
+#Where does the merge occur?#
+
+The merge is occurring between the heads of the default branch of Distribute and the setuptools-0.6 branch of Setuptools. The Setuptools SVN repo has been converted to a Mercurial repo hosted on Bitbucket. The work is still underway, so the exact changesets included may change, although the anticipated merge targets are Setuptools at 0.6c12 and Distribute at 0.6.35.
+
+#What happens to other branches?#
+
+Distribute 0.7 was abandoned long ago and won't be included in the resulting code tree, but may be retained for posterity in the original repo.
+Setuptools default branch (also 0.7 development) may also be abandoned or may be incorporated into the new merged line if desirable (and as resources allow).
+
+#What history is lost/changed?#
+
+As setuptools was not on Mercurial when the fork occurred and as Distribute did not include the full setuptools history (prior to the creation of the setuptools-0.6 branch), the two source trees were not compatible. In order to most effectively communicate the code history, the Distribute code was grafted onto the (originally private) setuptools Mercurial repo. Although this grafting maintained the full code history with names, dates, and changes, it did lose the original hashes of those changes. Therefore, references to changes by hash (including tags) are lost.
+Additionally, any heads that were not actively merged into the Distribute 0.6.35 release were also omitted. As a result, the changesets included in the merge repo are those from the original setuptools repo and all changesets ancestral to the Distribute 0.6.35 release.
+
+#What features will be in the merged code base?#
+
+In general, all "features" added in distribute will be included in setuptools. Where there exist conflicts or undesirable features, we will be explicit about what these limitations are. Changes that are  backward-incompatible from setuptools 0.6 to distribute will likely be  removed, and these also will be well documented.
+Bootstrapping scripts (ez_setup/distribute_setup) and docs, as with  distribute, will be maintained in the repository and built as part of  the release process. Documentation and bootstrapping scripts will be  hosted at python.org, as they are with distribute now. Documentation at  telecommunity will be updated to refer or redirect to the new, merged  docs.
+On  the whole, the merged setuptools should be largely compatible with the  latest releases of both setuptools and distribute and will be an easy  transition for users of either library.
+
+#Who is invited to contribute? Who is excluded?#
+
+While we've worked privately to initiate this merge due to the potential sensitivity of the topic, no one is excluded from this effort. We invite all members of the  community, especially those most familiar with Python packaging and its challenges to join us in the effort.
+
+We have lots of  ideas for how we'd like to improve the codebase, release process,  everything.  Like distribute, the post-merge setuptools will have its  source hosted on bitbucket.  (So if you're currently a distribute  contributor, about the only thing that's going to change is the URL of  the repository you follow.)  Also like distribute, it'll support Python  3, and hopefully we'll soon merge Vinay Sajip's patches to make it run  on Python 3 without needing 2to3 to be run on the code first.
+While we've worked privately to initiate this merge due to the potential sensitivity of the topic, no one is excluded from this effort. We invite all members of the community, especially those most familiar with Python packaging and its challenges to join us in the effort.
+
+#Why Setuptools and not Distribute or another name?#
+
+We do, however,  understand that this announcement might be unsettling for some.  The  setuptools name has been subjected to a lot of deprecation in recent  years, so the idea that it will now be the preferred name instead of distribute might be somewhat difficult or disorienting for some.   We considered use of another name (Distribute or an entirely new name),  but that would serve to only complicate matters further. Instead, our goal is to simplify the packaging landscape but without losing any hard-won advancements.  We hope  that the people who worked to spread the first message will be equally  enthusiastic about spreading the new one, and we especially look forward to seeing the new posters and slogans celebrating setuptools.
+
+#What is the timeframe of release?#
+
+There are no hard timeframes for any of this effort, although progress is underway and a draft merge is underway and being tested privately.   As an unfunded volunteer effort, our time to put in on it is limited,  and we've both had some recent health and other challenges that have  made working on this difficult, which in part explains why we haven't met our original deadline of a completed merge before PyCon.
+
+The final Setuptools 0.7 was cut on June 1, 2013 and will be released to PyPI shortly thereafter.
+
+#What version number can I expect for the new release?#
+
+The new release will roughly follow the previous trend for setuptools and release the new release as 0.7. This number is somewhat arbitrary, but we wanted something other than 0.6 to distinguish it from its ancestor forks but not 1.0 to avoid putting too much emphasis on the release itself and to focus on merging the functionality. In the future, the project will likely adopt a versioning scheme similar to semver to convey semantic meaning about the release in the version number.
+
+#How specifically was the merge enacted?#
+
+Details about the actual merge process are included in the repository as MERGE.txt.
