@@ -58,6 +58,7 @@ def infer_next_version(version):
 
 files_with_versions = (
 	'docs/conf.py', 'setup.py', 'release.py', 'ez_setup.py', 'README.txt',
+	'setuptools/__init__.py',
 )
 
 def get_repo_name():
