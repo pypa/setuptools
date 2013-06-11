@@ -2414,7 +2414,7 @@ The ``upload`` command has a few options worth noting:
 ======================================================
 
 PyPI now supports uploading project documentation to the dedicated URL
-http://packages.python.org/<project>/.
+https://pythonhosted.org/<project>/.
 
 The ``upload_docs`` command will create the necessary zip file out of a
 documentation directory and will post to the repository.

@@ -7,7 +7,7 @@ A tool for doing automatic download/extract/build of distutils-based Python
 packages.  For detailed documentation, see the accompanying EasyInstall.txt
 file, or visit the `EasyInstall home page`__.
 
-__ http://packages.python.org/setuptools/easy_install.html
+__ https://pythonhosted.org/setuptools/easy_install.html
 
 """
 import sys
@@ -467,7 +467,7 @@ variable.
 For information on other options, you may wish to consult the
 documentation at:
 
-  http://packages.python.org/setuptools/easy_install.html
+  https://pythonhosted.org/setuptools/easy_install.html
 
 Please make the appropriate changes for your system and try again.
 """
@@ -1254,7 +1254,7 @@ Here are some of your options for correcting the problem:
 * You can set up the installation directory to support ".pth" files by
   using one of the approaches described here:
 
-  http://packages.python.org/setuptools/easy_install.html#custom-installation-locations
+  https://pythonhosted.org/setuptools/easy_install.html#custom-installation-locations
 
 Please make the appropriate changes for your system and try again.""" % (
         self.install_dir, os.environ.get('PYTHONPATH','')

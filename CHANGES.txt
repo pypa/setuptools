@@ -495,7 +495,7 @@ how it parses version numbers.
   This closes issue #52.
 
 * Added an upload_docs command to easily upload project documentation to
-  PyPI's http://packages.python.org. This close issue #56.
+  PyPI's https://pythonhosted.org. This close issue #56.
 
 * Fixed a bootstrap bug on the use_setuptools() API.
 
