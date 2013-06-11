@@ -3,6 +3,13 @@ CHANGES
 =======
 
 -----
+0.7.3
+-----
+
+* Rename DISTRIBUTE_DISABLE_VERSIONED_EASY_INSTALL_SCRIPT environment
+  variable to SETUPTOOLS_DISABLE_VERSIONED_EASY_INSTALL_SCRIPT.
+
+-----
 0.7.2
 -----
 
