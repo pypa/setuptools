@@ -6,7 +6,7 @@ Setuptools is developed using the DVCS Mercurial.
 
 Grab the code at bitbucket::
 
-    $ hg clone https://bitbucket.org/jaraco/setuptools
+    $ hg clone https://bitbucket.org/pypa/setuptools
 
 If you want to contribute changes, we recommend you fork the repository on
 bitbucket, commit the changes to your repository, and then make a pull request

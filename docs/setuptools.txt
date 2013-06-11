@@ -15,7 +15,7 @@ including just a single `bootstrap module`_ (an 8K .py file), your package will
 automatically download and install ``setuptools`` if the user is building your
 package from source and doesn't have a suitable version already installed.
 
-.. _bootstrap module: http://bitbucket.org/jaraco/setuptools/downloads/ez_setup.py
+.. _bootstrap module: https://bitbucket.org/pypa/setuptools/downloads/ez_setup.py
 
 Feature Highlights:
 
@@ -2406,7 +2406,7 @@ The ``upload`` command has a few options worth noting:
 
 ``--repository=URL, -r URL``
     The URL of the repository to upload to.  Defaults to
-    http://pypi.python.org/pypi (i.e., the main PyPI installation).
+    https://pypi.python.org/pypi (i.e., the main PyPI installation).
 
 .. _upload_docs:
 
@@ -2468,7 +2468,7 @@ The ``upload_docs`` command has the following options:
 
 ``--repository=URL, -r URL``
     The URL of the repository to upload to.  Defaults to
-    http://pypi.python.org/pypi (i.e., the main PyPI installation).
+    https://pypi.python.org/pypi (i.e., the main PyPI installation).
 
 
 --------------------------------

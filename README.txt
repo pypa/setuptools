@@ -82,7 +82,7 @@ Downloads
 All setuptools downloads can be found at `the project's home page in the Python
 Package Index`_.  Scroll to the very bottom of the page to find the links.
 
-.. _the project's home page in the Python Package Index: http://pypi.python.org/pypi/setuptools#files
+.. _the project's home page in the Python Package Index: https://pypi.python.org/pypi/setuptools
 
 In addition to the PyPI downloads, the development version of ``setuptools``
 is available from the `Bitbucket repo`_, and in-development versions of the

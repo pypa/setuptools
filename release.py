@@ -234,7 +234,7 @@ def _linkified_text(rst_content):
 
 	anchors = sorted(anchors)
 
-	bitroot = 'http://bitbucket.org/tarek/distribute'
+	bitroot = 'https://bitbucket.org/tarek/distribute'
 	rst_content += "\n"
 	for x in anchors:
 		issue = re.findall(r'\d+', x)[0]

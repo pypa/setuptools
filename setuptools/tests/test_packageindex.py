@@ -97,7 +97,7 @@ class TestPackageIndex(unittest.TestCase):
         """
         Download links from the pypi simple index should be used before
         external download links.
-        http://bitbucket.org/tarek/distribute/issue/163/md5-validation-error
+        https://bitbucket.org/tarek/distribute/issue/163
 
         Usecase :
         - someone uploads a package on pypi, a md5 is generated
