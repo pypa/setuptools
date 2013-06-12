@@ -245,9 +245,10 @@ def get_build_platform():
     needs some hacks for Linux and Mac OS X.
     """
     try:
-        from distutils.util import get_platform
-    except ImportError:
+        # Python 2.7 or >=3.2
         from sysconfig import get_platform
+    except ImportError:
+        from distutils.util import get_platform
 
     plat = get_platform()
     if sys.platform == "darwin" and not plat.startswith('macosx-'):

@@ -25,9 +25,22 @@ import pkg_resources
 from setuptools import Command, _dont_write_bytecode
 from setuptools.sandbox import run_setup
 from distutils import log, dir_util
+try:
+    # Python 2.7 or >=3.2
+    from sysconfig import get_config_vars, get_path
+    def _get_platlib():
+        return get_path("platlib")
+    def _get_purelib():
+        return get_path("purelib")
+except ImportError:
+    from distutils.sysconfig import get_config_vars, get_python_lib
+    def _get_platlib():
+        return get_python_lib(True)
+    def _get_purelib():
+        return get_python_lib(False)
+
 from distutils.util import get_platform
 from distutils.util import convert_path, subst_vars
-from distutils.sysconfig import get_python_lib, get_config_vars
 from distutils.errors import DistutilsArgError, DistutilsOptionError, \
     DistutilsError, DistutilsPlatformError
 from distutils.command.install import INSTALL_SCHEMES, SCHEME_KEYS
@@ -1398,8 +1411,7 @@ def get_site_dirs():
                                          'Python',
                                          sys.version[:3],
                                          'site-packages'))
-    for plat_specific in (0,1):
-        site_lib = get_python_lib(plat_specific)
+    for site_lib in (_get_purelib(), _get_platlib()):
         if site_lib not in sitedirs: sitedirs.append(site_lib)
 
     if HAS_USER_SITE:

@@ -7,10 +7,14 @@ import sys, os, marshal
 from setuptools import Command
 from distutils.dir_util import remove_tree, mkpath
 try:
-    from distutils.sysconfig import get_python_version, get_python_lib
+    # Python 2.7 or >=3.2
+    from sysconfig import get_path, get_python_version
+    def _get_purelib():
+        return get_path("purelib")
 except ImportError:
-    from sysconfig import get_python_version
-    from distutils.sysconfig import get_python_lib
+    from distutils.sysconfig import get_python_lib, get_python_version
+    def _get_purelib():
+        return get_python_lib(False)
 
 from distutils import log
 from distutils.errors import DistutilsSetupError
@@ -130,7 +134,7 @@ class bdist_egg(Command):
         # Hack for packages that install data to install's --install-lib
         self.get_finalized_command('install').install_lib = self.bdist_dir
 
-        site_packages = os.path.normcase(os.path.realpath(get_python_lib()))
+        site_packages = os.path.normcase(os.path.realpath(_get_purelib()))
         old, self.distribution.data_files = self.distribution.data_files,[]
 
         for item in old:

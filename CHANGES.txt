@@ -9,6 +9,7 @@ CHANGES
 * Rename DISTRIBUTE_DISABLE_VERSIONED_EASY_INSTALL_SCRIPT environment
   variable to SETUPTOOLS_DISABLE_VERSIONED_EASY_INSTALL_SCRIPT.
 * Issue #1: Disable installation of Windows-specific files on non-Windows systems.
+* Use new sysconfig module with Python 2.7 or >=3.2.
 
 -----
 0.7.2

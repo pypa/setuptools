@@ -9,9 +9,15 @@ import os, sys
 from distutils.file_util import copy_file
 from setuptools.extension import Library
 from distutils.ccompiler import new_compiler
-from distutils.sysconfig import customize_compiler, get_config_var
-get_config_var("LDSHARED")  # make sure _config_vars is initialized
-from distutils.sysconfig import _config_vars
+from distutils.sysconfig import customize_compiler
+try:
+    # Python 2.7 or >=3.2
+    from sysconfig import _CONFIG_VARS
+except ImportError:
+    from distutils.sysconfig import get_config_var
+    get_config_var("LDSHARED")  # make sure _config_vars is initialized
+    del get_config_var
+    from distutils.sysconfig import _config_vars as _CONFIG_VARS
 from distutils import log
 from distutils.errors import *
 
@@ -131,16 +137,16 @@ class build_ext(_build_ext):
             compiler=self.compiler, dry_run=self.dry_run, force=self.force
         )
         if sys.platform == "darwin":
-            tmp = _config_vars.copy()
+            tmp = _CONFIG_VARS.copy()
             try:
                 # XXX Help!  I don't have any idea whether these are right...
-                _config_vars['LDSHARED'] = "gcc -Wl,-x -dynamiclib -undefined dynamic_lookup"
-                _config_vars['CCSHARED'] = " -dynamiclib"
-                _config_vars['SO'] = ".dylib"
+                _CONFIG_VARS['LDSHARED'] = "gcc -Wl,-x -dynamiclib -undefined dynamic_lookup"
+                _CONFIG_VARS['CCSHARED'] = " -dynamiclib"
+                _CONFIG_VARS['SO'] = ".dylib"
                 customize_compiler(compiler)
             finally:
-                _config_vars.clear()
-                _config_vars.update(tmp)
+                _CONFIG_VARS.clear()
+                _CONFIG_VARS.update(tmp)
         else:
             customize_compiler(compiler)
 
