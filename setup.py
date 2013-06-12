@@ -118,6 +118,11 @@ long_description = readme_file.read() + '\n' + changes_file.read()
 readme_file.close()
 changes_file.close()
 
+package_data = {'setuptools': ['site-patch.py']}
+if sys.platform == 'win32':
+    package_data.setdefault('setuptools', []).extend(['*.exe'])
+    package_data.setdefault('setuptools.command', []).extend(['*.xml'])
+
 dist = setup(
     name="setuptools",
     version=VERSION,
@@ -132,7 +137,7 @@ dist = setup(
     test_suite = 'setuptools.tests',
     src_root = src_root,
     packages = find_packages(),
-    package_data = {'setuptools':['*.exe', 'site-patch.py'], 'setuptools.command':['*.xml']},
+    package_data = package_data,
 
     py_modules = ['pkg_resources', 'easy_install'],
 
