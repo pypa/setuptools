@@ -43,10 +43,10 @@ class alias(option_base):
         aliases = self.distribution.get_option_dict('aliases')
 
         if not self.args:
-            print "Command Aliases"
-            print "---------------"
+            print("Command Aliases")
+            print("---------------")
             for alias in aliases:
-                print "setup.py alias", format_alias(alias, aliases)
+                print("setup.py alias", format_alias(alias, aliases))
             return
 
         elif len(self.args)==1:
@@ -54,10 +54,10 @@ class alias(option_base):
             if self.remove:
                 command = None
             elif alias in aliases:
-                print "setup.py alias", format_alias(alias, aliases)
+                print("setup.py alias", format_alias(alias, aliases))
                 return
             else:
-                print "No alias definition found for %r" % alias
+                print("No alias definition found for %r" % alias)
                 return
         else:
             alias = self.args[0]

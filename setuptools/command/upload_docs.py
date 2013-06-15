@@ -8,8 +8,6 @@ PyPI's pythonhosted.org).
 import os
 import socket
 import zipfile
-import httplib
-import urlparse
 import tempfile
 import sys
 import shutil
@@ -25,12 +23,19 @@ try:
 except ImportError:
     from setuptools.command.upload import upload
 
+from setuptools.compat import httplib, urlparse
+
+if sys.version_info >= (3,):
+    errors = 'surrogateescape'
+else:
+    errors = 'strict'
+
 
 # This is not just a replacement for byte literals
 # but works as a general purpose encoder
 def b(s, encoding='utf-8'):
     if isinstance(s, unicode):
-        return s.encode(encoding)
+        return s.encode(encoding, errors)
     return s
 
 
@@ -154,7 +159,7 @@ class upload_docs(upload):
         # We can't use urllib2 since we need to send the Basic
         # auth right with the first request
         schema, netloc, url, params, query, fragments = \
-            urlparse.urlparse(self.repository)
+            urlparse(self.repository)
         assert not params and not query and not fragments
         if schema == 'http':
             conn = httplib.HTTPConnection(netloc)
@@ -174,7 +179,8 @@ class upload_docs(upload):
             conn.putheader('Authorization', auth)
             conn.endheaders()
             conn.send(body)
-        except socket.error, e:
+        except socket.error:
+            e = sys.exc_info()[1]
             self.announce(str(e), log.ERROR)
             return
 
@@ -192,4 +198,4 @@ class upload_docs(upload):
             self.announce('Upload failed (%s): %s' % (r.status, r.reason),
                           log.ERROR)
         if self.show_response:
-            print '-'*75, r.read(), '-'*75
+            print('-'*75, r.read(), '-'*75)

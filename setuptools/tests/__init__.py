@@ -10,6 +10,7 @@ from distutils.errors import DistutilsSetupError
 from distutils.core import Extension
 from distutils.version import LooseVersion
 
+from setuptools.compat import func_code
 import setuptools.dist
 import setuptools.depends as dep
 from setuptools import Feature
@@ -53,17 +54,18 @@ class DependsTests(unittest.TestCase):
             x = "test"
             y = z
 
+        fc = func_code(f1)
         # unrecognized name
-        self.assertEqual(dep.extract_constant(f1.func_code,'q', -1), None)
+        self.assertEqual(dep.extract_constant(fc,'q', -1), None)
 
         # constant assigned
-        self.assertEqual(dep.extract_constant(f1.func_code,'x', -1), "test")
+        self.assertEqual(dep.extract_constant(fc,'x', -1), "test")
 
         # expression assigned
-        self.assertEqual(dep.extract_constant(f1.func_code,'y', -1), -1)
+        self.assertEqual(dep.extract_constant(fc,'y', -1), -1)
 
         # recognized name, not assigned
-        self.assertEqual(dep.extract_constant(f1.func_code,'z', -1), None)
+        self.assertEqual(dep.extract_constant(fc,'z', -1), None)
 
     def testFindModule(self):
         self.assertRaises(ImportError, dep.find_module, 'no-such.-thing')

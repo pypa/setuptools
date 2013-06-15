@@ -39,7 +39,7 @@ Distributions have various introspectable attributes::
     >>> dist.py_version == sys.version[:3]
     True
 
-    >>> print dist.platform
+    >>> print(dist.platform)
     None
 
 Including various computed attributes::
@@ -199,7 +199,7 @@ shows up once when iterating the working set:
 You can ask a WorkingSet to ``find()`` a distribution matching a requirement::
 
     >>> from pkg_resources import Requirement
-    >>> print ws.find(Requirement.parse("Foo==1.0"))    # no match, return None
+    >>> print(ws.find(Requirement.parse("Foo==1.0")))   # no match, return None
     None
 
     >>> ws.find(Requirement.parse("Bar==0.9"))  # match, return distribution
@@ -222,7 +222,7 @@ distribution is added to a working set.  The callback is immediately invoked
 once for each existing distribution in the working set, and then is called
 again for new distributions added thereafter::
 
-    >>> def added(dist): print "Added", dist
+    >>> def added(dist): print("Added %s" % dist)
     >>> ws.subscribe(added)
     Added Bar 0.9
     >>> foo12 = Distribution(project_name="Foo", version="1.2", location="f12")

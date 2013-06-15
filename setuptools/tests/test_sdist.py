@@ -7,11 +7,10 @@ import shutil
 import sys
 import tempfile
 import unittest
-import urllib
 import unicodedata
-from StringIO import StringIO
 
 
+from setuptools.compat import StringIO, quote, unicode
 from setuptools.command.sdist import sdist
 from setuptools.command.egg_info import manifest_maker
 from setuptools.dist import Distribution
@@ -149,7 +148,8 @@ class TestSdistTest(unittest.TestCase):
         # The manifest should be UTF-8 encoded
         try:
             u_contents = contents.decode('UTF-8')
-        except UnicodeDecodeError, e:
+        except UnicodeDecodeError:
+            e = sys.exc_info()[1]
             self.fail(e)
 
         # The manifest should contain the UTF-8 filename
@@ -190,7 +190,8 @@ class TestSdistTest(unittest.TestCase):
             # The manifest should be UTF-8 encoded
             try:
                 contents.decode('UTF-8')
-            except UnicodeDecodeError, e:
+            except UnicodeDecodeError:
+                e = sys.exc_info()[1]
                 self.fail(e)
 
             # The manifest should contain the UTF-8 filename
@@ -228,7 +229,8 @@ class TestSdistTest(unittest.TestCase):
             # The manifest should be UTF-8 encoded
             try:
                 contents.decode('UTF-8')
-            except UnicodeDecodeError, e:
+            except UnicodeDecodeError:
+                e = sys.exc_info()[1]
                 self.fail(e)
 
             # The Latin-1 filename should have been skipped
@@ -307,7 +309,8 @@ class TestSdistTest(unittest.TestCase):
             try:
                 try:
                     cmd.read_manifest()
-                except UnicodeDecodeError, e:
+                except UnicodeDecodeError:
+                    e = sys.exc_info()[1]
                     self.fail(e)
             finally:
                 unquiet()

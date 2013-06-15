@@ -1,12 +1,14 @@
 """PyPI and direct package downloading"""
-import sys, os.path, re, urlparse, urllib2, shutil, random, socket, cStringIO
-import itertools
-import base64
-import httplib, urllib
-from setuptools import ssl_support
+import sys, os.path, re, shutil, random, socket
 from pkg_resources import *
 from distutils import log
 from distutils.errors import DistutilsError
+
+from setuptools import ssl_support
+from setuptools.compat import (urllib2, httplib, StringIO, HTTPError,
+                               urlparse, urlunparse, unquote, splituser,
+                               url2pathname, name2codepoint, ifilterfalse,
+                               unichr, urljoin)
 try:
     from hashlib import md5
 except ImportError:
@@ -57,7 +59,7 @@ def parse_bdist_wininst(name):
 
 
 def egg_info_for_url(url):
-    scheme, server, path, parameters, query, fragment = urlparse.urlparse(url)
+    scheme, server, path, parameters, query, fragment = urlparse(url)
     base = urllib2.unquote(path.split('/')[-1])
     if server=='sourceforge.net' and base=='download':    # XXX Yuck
         base = urllib2.unquote(path.split('/')[-2])
@@ -146,7 +148,7 @@ def unique_everseen(iterable, key=None):
     seen = set()
     seen_add = seen.add
     if key is None:
-        for element in itertools.ifilterfalse(seen.__contains__, iterable):
+        for element in ifilterfalse(seen.__contains__, iterable):
             seen_add(element)
             yield element
     else:
@@ -178,14 +180,14 @@ def find_external_links(url, page):
         rels = map(str.strip, rel.lower().split(','))
         if 'homepage' in rels or 'download' in rels:
             for match in HREF.finditer(tag):
-                yield urlparse.urljoin(url, htmldecode(match.group(1)))
+                yield urljoin(url, htmldecode(match.group(1)))
 
     for tag in ("<th>Home Page", "<th>Download URL"):
         pos = page.find(tag)
         if pos!=-1:
             match = HREF.search(page,pos)
             if match:
-                yield urlparse.urljoin(url, htmldecode(match.group(1)))
+                yield urljoin(url, htmldecode(match.group(1)))
 
 user_agent = "Python-urllib/%s setuptools/%s" % (
     sys.version[:3], require('setuptools')[0].version
@@ -224,7 +226,7 @@ class PackageIndex(Environment):
                 self.debug("Found link: %s", url)
 
         if dists or not retrieve or url in self.fetched_urls:
-            map(self.add, dists)
+            list(map(self.add, dists))
             return  # don't need the actual page
 
         if not self.url_ok(url):
@@ -243,7 +245,7 @@ class PackageIndex(Environment):
         base = f.url     # handle redirects
         page = f.read()
         if not isinstance(page, str): # We are in Python 3 and got bytes. We want str.
-            if isinstance(f, urllib2.HTTPError):
+            if isinstance(f, HTTPError):
                 # Errors have no charset, assume latin1:
                 charset = 'latin-1'
             else:
@@ -251,7 +253,7 @@ class PackageIndex(Environment):
             page = page.decode(charset, "ignore")
         f.close()
         for match in HREF.finditer(page):
-            link = urlparse.urljoin(base, htmldecode(match.group(1)))
+            link = urljoin(base, htmldecode(match.group(1)))
             self.process_url(link)
         if url.startswith(self.index_url) and getattr(f,'code',None)!=404:
             page = self.process_index(url, page)
@@ -270,11 +272,11 @@ class PackageIndex(Environment):
         dists = distros_for_filename(fn)
         if dists:
             self.debug("Found: %s", fn)
-            map(self.add, dists)
+            list(map(self.add, dists))
 
     def url_ok(self, url, fatal=False):
         s = URL_SCHEME(url)
-        if (s and s.group(1).lower()=='file') or self.allows(urlparse.urlparse(url)[1]):
+        if (s and s.group(1).lower()=='file') or self.allows(urlparse(url)[1]):
             return True
         msg = "\nLink to % s ***BLOCKED*** by --allow-hosts\n"
         if fatal:
@@ -290,7 +292,7 @@ class PackageIndex(Environment):
                         self.scan_egg_link(item, entry)
 
     def scan_egg_link(self, path, entry):
-        lines = filter(None, map(str.strip, open(os.path.join(path, entry))))
+        lines = list(filter(None, map(str.strip, open(os.path.join(path, entry)))))
         if len(lines)==2:
             for dist in find_distributions(os.path.join(path, lines[0])):
                 dist.location = os.path.join(path, *lines)
@@ -302,9 +304,9 @@ class PackageIndex(Environment):
         def scan(link):
             # Process a URL to see if it's for a package page
             if link.startswith(self.index_url):
-                parts = map(
-                    urllib2.unquote, link[len(self.index_url):].split('/')
-                )
+                parts = list(map(
+                    unquote, link[len(self.index_url):].split('/')
+                ))
                 if len(parts)==2 and '#' not in parts[1]:
                     # it's a package page, sanitize and index it
                     pkg = safe_name(parts[0])
@@ -316,7 +318,7 @@ class PackageIndex(Environment):
         # process an index page into the package-page index
         for match in HREF.finditer(page):
             try:
-                scan( urlparse.urljoin(url, htmldecode(match.group(1))) )
+                scan( urljoin(url, htmldecode(match.group(1))) )
             except ValueError:
                 pass
 
@@ -411,7 +413,7 @@ class PackageIndex(Environment):
     def prescan(self):
         """Scan urls scheduled for prescanning (e.g. --find-links)"""
         if self.to_scan:
-            map(self.scan_url, self.to_scan)
+            list(map(self.scan_url, self.to_scan))
         self.to_scan = None     # from now on, go ahead and process immediately
 
     def not_found_in_index(self, requirement):
@@ -598,7 +600,7 @@ class PackageIndex(Environment):
             if '#' in url:
                 url, info = url.split('#', 1)
             fp = self.open_url(url)
-            if isinstance(fp, urllib2.HTTPError):
+            if isinstance(fp, HTTPError):
                 raise DistutilsError(
                     "Can't download %s: %s %s" % (url, fp.code,fp.msg)
                 )
@@ -637,28 +639,33 @@ class PackageIndex(Environment):
             return local_open(url)
         try:
             return open_with_auth(url, self.opener)
-        except (ValueError, httplib.InvalidURL), v:
+        except (ValueError, httplib.InvalidURL):
+            v = sys.exc_info()[1]
             msg = ' '.join([str(arg) for arg in v.args])
             if warning:
                 self.warn(warning, msg)
             else:
                 raise DistutilsError('%s %s' % (url, msg))
-        except urllib2.HTTPError, v:
+        except urllib2.HTTPError:
+            v = sys.exc_info()[1]
             return v
-        except urllib2.URLError, v:
+        except urllib2.URLError:
+            v = sys.exc_info()[1]
             if warning:
                 self.warn(warning, v.reason)
             else:
                 raise DistutilsError("Download error for %s: %s"
                                      % (url, v.reason))
-        except httplib.BadStatusLine, v:
+        except httplib.BadStatusLine:
+            v = sys.exc_info()[1]
             if warning:
                 self.warn(warning, v.line)
             else:
                 raise DistutilsError('%s returned a bad status line. '
                                      'The server might be down, %s' % \
                                              (url, v.line))
-        except httplib.HTTPException, v:
+        except httplib.HTTPException:
+            v = sys.exc_info()[1]
             if warning:
                 self.warn(warning, v)
             else:
@@ -689,7 +696,7 @@ class PackageIndex(Environment):
         elif scheme.startswith('hg+'):
             return self._download_hg(url, filename)
         elif scheme=='file':
-            return urllib.url2pathname(urlparse.urlparse(url)[2])
+            return url2pathname(urlparse(url)[2])
         else:
             self.url_ok(url, True)   # raises error if not allowed
             return self._attempt_download(url, filename)
@@ -739,7 +746,7 @@ class PackageIndex(Environment):
         url = url.split('#',1)[0]   # remove any fragment for svn's sake
         creds = ''
         if url.lower().startswith('svn:') and '@' in url:
-            scheme, netloc, path, p, q, f = urlparse.urlparse(url)
+            scheme, netloc, path, p, q, f = urlparse(url)
             if not netloc and path.startswith('//') and '/' in path[2:]:
                 netloc, path = path[2:].split('/',1)
                 auth, host = urllib.splituser(netloc)
@@ -750,13 +757,13 @@ class PackageIndex(Environment):
                     else:
                         creds = " --username="+auth
                     netloc = host
-                    url = urlparse.urlunparse((scheme, netloc, url, p, q, f))
+                    url = urlunparse((scheme, netloc, url, p, q, f))
         self.info("Doing subversion checkout from %s to %s", url, filename)
         os.system("svn checkout%s -q %s %s" % (creds, url, filename))
         return filename
 
     def _vcs_split_rev_from_url(self, url, pop_prefix=False):
-        scheme, netloc, path, query, frag = urlparse.urlsplit(url)
+        scheme, netloc, path, query, frag = urlsplit(url)
 
         scheme = scheme.split('+', 1)[-1]
 
@@ -768,7 +775,7 @@ class PackageIndex(Environment):
             path, rev = path.rsplit('@', 1)
 
         # Also, discard fragment
-        url = urlparse.urlunsplit((scheme, netloc, path, query, ''))
+        url = urlunsplit((scheme, netloc, path, query, ''))
 
         return url, rev
 
@@ -842,7 +849,6 @@ def decode_entity(match):
     elif what.startswith('#'):
         what = int(what[1:])
     else:
-        from htmlentitydefs import name2codepoint
         what = name2codepoint.get(what, match.group(0))
     return uchr(what)
 
@@ -896,7 +902,7 @@ def _encode_auth(auth):
 def open_with_auth(url, opener=urllib2.urlopen):
     """Open a urllib2 request, handling HTTP authentication"""
 
-    scheme, netloc, path, params, query, frag = urlparse.urlparse(url)
+    scheme, netloc, path, params, query, frag = urlparse(url)
 
     # Double scheme does not raise on Mac OS X as revealed by a
     # failing test. We would expect "nonnumeric port". Refs #20.
@@ -904,13 +910,13 @@ def open_with_auth(url, opener=urllib2.urlopen):
         raise httplib.InvalidURL("nonnumeric port: ''")
 
     if scheme in ('http', 'https'):
-        auth, host = urllib.splituser(netloc)
+        auth, host = splituser(netloc)
     else:
         auth = None
 
     if auth:
         auth = "Basic " + _encode_auth(auth)
-        new_url = urlparse.urlunparse((scheme,host,path,params,query,frag))
+        new_url = urlunparse((scheme,host,path,params,query,frag))
         request = urllib2.Request(new_url)
         request.add_header("Authorization", auth)
     else:
@@ -922,9 +928,9 @@ def open_with_auth(url, opener=urllib2.urlopen):
     if auth:
         # Put authentication info back into request URL if same host,
         # so that links found on the page will work
-        s2, h2, path2, param2, query2, frag2 = urlparse.urlparse(fp.url)
+        s2, h2, path2, param2, query2, frag2 = urlparse(fp.url)
         if s2==scheme and h2==host:
-            fp.url = urlparse.urlunparse((s2,netloc,path2,param2,query2,frag2))
+            fp.url = urlunparse((s2,netloc,path2,param2,query2,frag2))
 
     return fp
 
@@ -946,8 +952,8 @@ def fix_sf_url(url):
 
 def local_open(url):
     """Read a local path, with special support for directories"""
-    scheme, server, path, param, query, frag = urlparse.urlparse(url)
-    filename = urllib.url2pathname(path)
+    scheme, server, path, param, query, frag = urlparse(url)
+    filename = url2pathname(path)
     if os.path.isfile(filename):
         return urllib2.urlopen(url)
     elif path.endswith('/') and os.path.isdir(filename):
@@ -968,8 +974,8 @@ def local_open(url):
     else:
         status, message, body = 404, "Path not found", "Not found"
 
-    return urllib2.HTTPError(url, status, message,
-            {'content-type':'text/html'}, cStringIO.StringIO(body))
+    return HTTPError(url, status, message,
+            {'content-type':'text/html'}, StringIO(body))
 
 
 

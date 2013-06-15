@@ -8,11 +8,12 @@ from setuptools import Command
 from distutils.errors import *
 from distutils import log
 from setuptools.command.sdist import sdist
+from setuptools.compat import basestring, PY3
 from distutils.util import convert_path
 from distutils.filelist import FileList as _FileList
 from pkg_resources import parse_requirements, safe_name, parse_version, \
     safe_version, yield_lines, EntryPoint, iter_entry_points, to_filename
-from sdist import walk_revctrl
+from setuptools.command.sdist import walk_revctrl
 
 class egg_info(Command):
     description = "create a distribution's .egg-info directory"
@@ -51,7 +52,7 @@ class egg_info(Command):
         self.vtags = None
 
     def save_version_info(self, filename):
-        from setopt import edit_config
+        from setuptools.command.setopt import edit_config
         edit_config(
             filename,
             {'egg_info':
@@ -282,7 +283,7 @@ class FileList(_FileList):
             item = item[:-1]
         path = convert_path(item)
 
-        if sys.version_info >= (3,):
+        if PY3:
             try:
                 if os.path.exists(path) or os.path.exists(path.encode('utf-8')):
                     self.files.append(path)
@@ -336,7 +337,7 @@ class manifest_maker(sdist):
         named by 'self.manifest'.
         """
         # The manifest must be UTF-8 encodable. See #303.
-        if sys.version_info >= (3,):
+        if PY3:
             files = []
             for file in self.filelist.files:
                 try:
@@ -415,7 +416,7 @@ def write_pkg_info(cmd, basename, filename):
             metadata.name, metadata.version = oldname, oldver
 
         safe = getattr(cmd.distribution,'zip_safe',None)
-        import bdist_egg; bdist_egg.write_safety_flag(cmd.egg_info, safe)
+        from setuptools.command import bdist_egg; bdist_egg.write_safety_flag(cmd.egg_info, safe)
 
 def warn_depends_obsolete(cmd, basename, filename):
     if os.path.exists(filename):

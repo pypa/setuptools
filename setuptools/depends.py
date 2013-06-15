@@ -103,7 +103,7 @@ def _iter_code(code):
             ptr += 3
 
             if op==EXTENDED_ARG:
-                extended_arg = arg * 65536L
+                extended_arg = arg * long_type(65536)
                 continue
 
         else:

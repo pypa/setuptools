@@ -4,11 +4,11 @@ import sys
 import os, shutil, tempfile, unittest
 import tempfile
 import site
-from StringIO import StringIO
 
 from distutils.errors import DistutilsError
 from setuptools.command.develop import develop
 from setuptools.command import easy_install as easy_install_pkg
+from setuptools.compat import StringIO
 from setuptools.dist import Distribution
 
 SETUP_PY = """\
@@ -43,7 +43,7 @@ class TestDevelopTest(unittest.TestCase):
         f = open(init, 'w')
         f.write(INIT_PY)
         f.close()
-        
+
         os.chdir(self.dir)
         self.old_base = site.USER_BASE
         site.USER_BASE = tempfile.mkdtemp()
@@ -51,9 +51,9 @@ class TestDevelopTest(unittest.TestCase):
         site.USER_SITE = tempfile.mkdtemp()
 
     def tearDown(self):
-        if sys.version < "2.6" or hasattr(sys, 'real_prefix'):
+        if sys.version < "2.6" or hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
             return
-        
+
         os.chdir(self.old_cwd)
         shutil.rmtree(self.dir)
         shutil.rmtree(site.USER_BASE)
@@ -109,7 +109,8 @@ class TestDevelopTest(unittest.TestCase):
         try:
             try:
                 dist = Distribution({'setup_requires': ['I_DONT_EXIST']})
-            except DistutilsError, e:
+            except DistutilsError:
+                e = sys.exc_info()[1]
                 error = str(e)
                 if error ==  wanted:
                     pass

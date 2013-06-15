@@ -1,12 +1,11 @@
 """Basic http server for tests to simulate PyPI or custom indexes
 """
-import urllib2
 import sys
 import time
-import threading
-import BaseHTTPServer
-from BaseHTTPServer import HTTPServer
-from SimpleHTTPServer import SimpleHTTPRequestHandler
+from threading import Thread
+from setuptools.compat import (urllib2, URLError, HTTPServer,
+                               SimpleHTTPRequestHandler,
+                               BaseHTTPRequestHandler)
 
 class IndexServer(HTTPServer):
     """Basic single-threaded http server simulating a package index
@@ -29,7 +28,7 @@ class IndexServer(HTTPServer):
             self.handle_request()
 
     def start(self):
-        self.thread = threading.Thread(target=self.serve)
+        self.thread = Thread(target=self.serve)
         self.thread.start()
 
     def stop(self):
@@ -52,25 +51,26 @@ class IndexServer(HTTPServer):
             # ignore any errors; all that's important is the request
             pass
         self.thread.join()
+        self.socket.close()
 
     def base_url(self):
         port = self.server_port
         return 'http://127.0.0.1:%s/setuptools/tests/indexes/' % port
 
-class RequestRecorder(BaseHTTPServer.BaseHTTPRequestHandler):
+class RequestRecorder(BaseHTTPRequestHandler):
     def do_GET(self):
         requests = vars(self.server).setdefault('requests', [])
         requests.append(self)
         self.send_response(200, 'OK')
 
-class MockServer(HTTPServer, threading.Thread):
+class MockServer(HTTPServer, Thread):
     """
     A simple HTTP Server that records the requests made to it.
     """
     def __init__(self, server_address=('', 0),
             RequestHandlerClass=RequestRecorder):
         HTTPServer.__init__(self, server_address, RequestHandlerClass)
-        threading.Thread.__init__(self)
+        Thread.__init__(self)
         self.setDaemon(True)
         self.requests = []
 

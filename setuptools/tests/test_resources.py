@@ -3,7 +3,8 @@
 # NOTE: the shebang and encoding lines are for ScriptHeaderTests; do not remove
 from unittest import TestCase, makeSuite; from pkg_resources import *
 from setuptools.command.easy_install import get_script_header, is_sh
-import os, pkg_resources, sys, StringIO, tempfile, shutil
+from setuptools.compat import StringIO, iteritems
+import os, pkg_resources, sys, tempfile, shutil
 try: frozenset
 except NameError:
     from sets import ImmutableSet as frozenset
@@ -149,7 +150,7 @@ class DistroTests(TestCase):
         for i in range(3):
             targets = list(ws.resolve(parse_requirements("Foo"), ad))
             self.assertEqual(targets, [Foo])
-            map(ws.add,targets)
+            list(map(ws.add,targets))
         self.assertRaises(VersionConflict, ws.resolve,
             parse_requirements("Foo==0.9"), ad)
         ws = WorkingSet([]) # reset
@@ -249,7 +250,7 @@ class EntryPointTests(TestCase):
 
     def checkSubMap(self, m):
         self.assertEqual(len(m), len(self.submap_expect))
-        for key, ep in self.submap_expect.iteritems():
+        for key, ep in iteritems(self.submap_expect):
             self.assertEqual(repr(m.get(key)), repr(ep))
 
     submap_expect = dict(
@@ -273,10 +274,10 @@ class EntryPointTests(TestCase):
     def testParseMap(self):
         m = EntryPoint.parse_map({'xyz':self.submap_str})
         self.checkSubMap(m['xyz'])
-        self.assertEqual(m.keys(),['xyz'])
+        self.assertEqual(list(m.keys()),['xyz'])
         m = EntryPoint.parse_map("[xyz]\n"+self.submap_str)
         self.checkSubMap(m['xyz'])
-        self.assertEqual(m.keys(),['xyz'])
+        self.assertEqual(list(m.keys()),['xyz'])
         self.assertRaises(ValueError, EntryPoint.parse_map, ["[xyz]", "[xyz]"])
         self.assertRaises(ValueError, EntryPoint.parse_map, self.submap_str)
 
@@ -537,12 +538,12 @@ class ScriptHeaderTests(TestCase):
 
             # Ensure we generate what is basically a broken shebang line
             # when there's options, with a warning emitted
-            sys.stdout = sys.stderr = StringIO.StringIO()
+            sys.stdout = sys.stderr = StringIO()
             self.assertEqual(get_script_header('#!/usr/bin/python -x',
                                                executable=exe),
                              '#!%s  -x\n' % exe)
             self.assertTrue('Unable to adapt shebang line' in sys.stdout.getvalue())
-            sys.stdout = sys.stderr = StringIO.StringIO()
+            sys.stdout = sys.stderr = StringIO()
             self.assertEqual(get_script_header('#!/usr/bin/python',
                                                executable=self.non_ascii_exe),
                              '#!%s -x\n' % self.non_ascii_exe)
@@ -602,7 +603,7 @@ class NamespaceTests(TestCase):
         self._assertIn("pkg1", pkg_resources._namespace_packages.keys())
         try:
             import pkg1.pkg2
-        except ImportError, e:
+        except ImportError:
             self.fail("Setuptools tried to import the parent namespace package")
         # check the _namespace_packages dict
         self._assertIn("pkg1.pkg2", pkg_resources._namespace_packages.keys())
