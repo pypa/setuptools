@@ -177,7 +177,7 @@ def find_external_links(url, page):
 
     for match in REL.finditer(page):
         tag, rel = match.groups()
-        rels = map(str.strip, rel.lower().split(','))
+        rels = set(map(str.strip, rel.lower().split(',')))
         if 'homepage' in rels or 'download' in rels:
             for match in HREF.finditer(tag):
                 yield urljoin(url, htmldecode(match.group(1)))
@@ -749,7 +749,7 @@ class PackageIndex(Environment):
             scheme, netloc, path, p, q, f = urlparse(url)
             if not netloc and path.startswith('//') and '/' in path[2:]:
                 netloc, path = path[2:].split('/',1)
-                auth, host = urllib.splituser(netloc)
+                auth, host = splituser(netloc)
                 if auth:
                     if ':' in auth:
                         user, pw = auth.split(':',1)

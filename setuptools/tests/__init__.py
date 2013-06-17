@@ -2,7 +2,7 @@
 import sys
 import os
 import unittest
-import doctest
+from setuptools.tests import doctest
 import distutils.core
 import distutils.cmd
 from distutils.errors import DistutilsOptionError, DistutilsPlatformError

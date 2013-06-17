@@ -11,6 +11,7 @@ try:
 except ImportError:
     from md5 import md5
 import os
+import sys
 import socket
 import platform
 import base64
@@ -167,7 +168,8 @@ class upload(Command):
             http.putheader('Authorization', auth)
             http.endheaders()
             http.send(body)
-        except socket.error, e:
+        except socket.error:
+            e = sys.exc_info()[1]
             self.announce(str(e), log.ERROR)
             return
 

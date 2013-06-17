@@ -27,7 +27,10 @@ class TestSetup(unittest.TestCase):
                     "--dist-dir", "%s" % self.tmpdir)
         tarball = os.listdir(self.tmpdir)[0]
         self.tarball = os.path.join(self.tmpdir, tarball)
-        import urllib2
+        try:
+            import urllib2
+        except ImportError:
+            import urllib.request as urllib2
         urllib2.urlopen = self.urlopen
 
     def tearDown(self):

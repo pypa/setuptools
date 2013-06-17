@@ -23,7 +23,7 @@ try:
 except ImportError:
     from setuptools.command.upload import upload
 
-from setuptools.compat import httplib, urlparse
+from setuptools.compat import httplib, urlparse, unicode, iteritems
 
 if sys.version_info >= (3,):
     errors = 'surrogateescape'
@@ -131,7 +131,7 @@ class upload_docs(upload):
         sep_boundary = b('\n--') + b(boundary)
         end_boundary = sep_boundary + b('--')
         body = []
-        for key, values in data.iteritems():
+        for key, values in iteritems(data):
             title = '\nContent-Disposition: form-data; name="%s"' % key
             # handle multiple entries for the same name
             if type(values) != type([]):

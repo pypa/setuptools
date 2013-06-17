@@ -40,8 +40,8 @@ source_suffix = '.txt'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Setuptools'
-copyright = u'2009-2013, The fellowship of the packaging'
+project = 'Setuptools'
+copyright = '2009-2013, The fellowship of the packaging'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -175,8 +175,8 @@ htmlhelp_basename = 'Setuptoolsdoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'Setuptools.tex', ur'Setuptools Documentation',
-   ur'The fellowship of the packaging', 'manual'),
+  ('index', 'Setuptools.tex', 'Setuptools Documentation',
+   'The fellowship of the packaging', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

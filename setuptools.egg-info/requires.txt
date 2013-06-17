@@ -1,10 +1,10 @@
 
 
-[certs]
-certifi==0.0.8
-
 [ssl:sys_platform=='win32']
 wincertstore==0.1
+
+[certs]
+certifi==0.0.8
 
 [ssl:python_version in '2.4, 2.5']
 ssl==1.16

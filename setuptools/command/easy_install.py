@@ -285,6 +285,8 @@ class easy_install(Command):
             self.script_dir = self.install_scripts
         # default --record from the install command
         self.set_undefined_options('install', ('record', 'record'))
+        # Should this be moved to the if statement below? It's not used
+        # elsewhere
         normpath = map(normalize_path, sys.path)
         self.all_site_dirs = get_site_dirs()
         if self.site_dirs is not None:

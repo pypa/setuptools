@@ -154,7 +154,7 @@ class test(Command):
                 for name in sys.modules:
                     if name.startswith(module):
                         del_modules.append(name)
-                map(sys.modules.__delitem__, del_modules)
+                list(map(sys.modules.__delitem__, del_modules))
 
         loader_ep = EntryPoint.parse("x="+self.test_loader)
         loader_class = loader_ep.load(require=False)

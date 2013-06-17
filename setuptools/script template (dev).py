@@ -3,4 +3,7 @@ __requires__ = """%(spec)r"""
 from pkg_resources import require; require("""%(spec)r""")
 del require
 __file__ = """%(dev_path)r"""
-execfile(__file__)
+try:
+    execfile(__file__)
+except NameError:
+    exec(compile(open(__file__).read(), __file__, 'exec'))

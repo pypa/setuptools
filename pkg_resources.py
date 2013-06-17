@@ -2492,7 +2492,8 @@ class Distribution(object):
         self.insert_on(path)
         if path is sys.path:
             fixup_namespace_packages(self.location)
-            map(declare_namespace, self._get_metadata('namespace_packages.txt'))
+            list(map(declare_namespace,
+                     self._get_metadata('namespace_packages.txt')))
 
 
     def egg_name(self):

@@ -235,8 +235,8 @@ class egg_info(Command):
                     log.warn("unrecognized .svn/entries format; skipping %s", base)
                     dirs[:] = []
                     continue
-                   
-                data = map(str.splitlines,data.split('\n\x0c\n'))
+
+                data = list(map(str.splitlines,data.split('\n\x0c\n')))
                 del data[0][0]  # get rid of the '8' or '9' or '10'
                 dirurl = data[0][3]
                 localrev = max([int(d[9]) for d in data if len(d)>9 and d[9]]+[0])
