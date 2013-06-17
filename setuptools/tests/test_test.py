@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*- 
+# -*- coding: UTF-8 -*-
 
 """develop tests
 """
@@ -23,7 +23,7 @@ setup(name='foo',
 )
 """
 
-NS_INIT = """# -*- coding: Latin-1 -*- 
+NS_INIT = """# -*- coding: Latin-1 -*-
 # Söme Arbiträry Ünicode to test Issüé 310
 try:
     __import__('pkg_resources').declare_namespace(__name__)
@@ -77,7 +77,7 @@ class TestTestTest(unittest.TestCase):
         f = open(init, 'wt')
         f.write(TEST_PY)
         f.close()
-        
+
         os.chdir(self.dir)
         self.old_base = site.USER_BASE
         site.USER_BASE = tempfile.mkdtemp()
@@ -87,7 +87,7 @@ class TestTestTest(unittest.TestCase):
     def tearDown(self):
         if sys.version < "2.6" or hasattr(sys, 'real_prefix'):
             return
-        
+
         os.chdir(self.old_cwd)
         shutil.rmtree(self.dir)
         shutil.rmtree(site.USER_BASE)
@@ -98,7 +98,7 @@ class TestTestTest(unittest.TestCase):
     def test_test(self):
         if sys.version < "2.6" or hasattr(sys, 'real_prefix'):
             return
-        
+
         dist = Distribution(dict(
             name='foo',
             packages=['name', 'name.space', 'name.space.tests'],
@@ -121,4 +121,4 @@ class TestTestTest(unittest.TestCase):
                 pass
         finally:
             sys.stdout = old_stdout
-            
+
