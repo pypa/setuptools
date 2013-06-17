@@ -1,6 +1,5 @@
 """PyPI and direct package downloading"""
 import sys, os.path, re, shutil, random, socket
-import itertools
 import base64
 from pkg_resources import *
 from distutils import log
@@ -9,6 +8,7 @@ from setuptools.compat import (urllib2, httplib, StringIO, HTTPError,
                                urlparse, urlunparse, unquote, splituser,
                                url2pathname, name2codepoint,
                                unichr, urljoin)
+from setuptools.compat import filterfalse
 try:
     from hashlib import md5
 except ImportError:
@@ -148,7 +148,7 @@ def unique_everseen(iterable, key=None):
     seen = set()
     seen_add = seen.add
     if key is None:
-        for element in itertools.ifilterfalse(seen.__contains__, iterable):
+        for element in filterfalse(seen.__contains__, iterable):
             seen_add(element)
             yield element
     else:

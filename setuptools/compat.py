@@ -1,4 +1,5 @@
 import sys
+import itertools
 
 if sys.version_info[0] < 3:
     PY3 = False
@@ -30,6 +31,7 @@ if sys.version_info[0] < 3:
     from urllib2 import urlopen, HTTPError, URLError, unquote, splituser
     from urlparse import urlparse, urlunparse, urljoin
     xrange = xrange
+    filterfalse = itertools.ifilterfalse
 
     def exec_(code, globs=None, locs=None):
         if globs is None:
@@ -72,6 +74,7 @@ else:
     from urllib.request import urlopen, url2pathname
     from urllib.parse import urlparse, urlunparse, unquote, splituser, urljoin
     xrange = range
+    filterfalse = itertools.filterfalse
 
     def execfile(fn, globs=None, locs=None):
         if globs is None:
