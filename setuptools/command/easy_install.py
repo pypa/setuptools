@@ -49,6 +49,8 @@ from setuptools.archive_util import unpack_archive
 from setuptools.package_index import PackageIndex
 from setuptools.package_index import URL_SCHEME
 from setuptools.command import bdist_egg, egg_info
+from setuptools.compat import (iteritems, maxsize, xrange, basestring, unicode,
+                               reraise)
 from pkg_resources import yield_lines, normalize_path, resource_string, \
         ensure_directory, get_distribution, find_distributions, \
         Environment, Requirement, Distribution, \
@@ -215,7 +217,7 @@ class easy_install(Command):
 
     def finalize_options(self):
         if self.version:
-            print 'setuptools %s' % get_distribution('setuptools').version
+            print('setuptools %s' % get_distribution('setuptools').version)
             sys.exit()
 
         py_version = sys.version.split()[0]
@@ -395,7 +397,7 @@ class easy_install(Command):
         try:
             pid = os.getpid()
         except:
-            pid = random.randint(0,sys.maxint)
+            pid = random.randint(0, maxsize)
         return os.path.join(self.install_dir, "test-easy-install-%s" % pid)
 
     def warn_deprecated_options(self):
@@ -440,7 +442,7 @@ class easy_install(Command):
             self.pth_file = None
 
         PYTHONPATH = os.environ.get('PYTHONPATH','').split(os.pathsep)
-        if instdir not in map(normalize_path, filter(None,PYTHONPATH)):
+        if instdir not in map(normalize_path, [_f for _f in PYTHONPATH if _f]):
             # only PYTHONPATH dirs need a site.py, so pretend it's there
             self.sitepy_installed = True
         elif self.multi_version and not os.path.exists(pth_file):
@@ -698,11 +700,13 @@ Please make the appropriate changes for your system and try again.
             distros = WorkingSet([]).resolve(
                 [requirement], self.local_index, self.easy_install
             )
-        except DistributionNotFound, e:
+        except DistributionNotFound:
+            e = sys.exc_info()[1]
             raise DistutilsError(
                 "Could not find required distribution %s" % e.args
             )
-        except VersionConflict, e:
+        except VersionConflict:
+            e = sys.exc_info()[1]
             raise DistutilsError(
                 "Installed distribution %s conflicts with requirement %s"
                 % e.args
@@ -793,7 +797,7 @@ Please make the appropriate changes for your system and try again.
             f = open(target,"w"+mode)
             f.write(contents)
             f.close()
-            chmod(target, 0777-mask)
+            chmod(target, 0x1FF-mask) # 0777
 
 
 
@@ -907,7 +911,7 @@ Please make the appropriate changes for your system and try again.
             f = open(pkg_inf,'w')
             f.write('Metadata-Version: 1.0\n')
             for k,v in cfg.items('metadata'):
-                if k!='target_version':
+                if k != 'target_version':
                     f.write('%s: %s\n' % (k.replace('_','-').title(), v))
             f.close()
         script_dir = os.path.join(egg_info,'scripts')
@@ -1104,7 +1108,8 @@ See the setuptools documentation for the "develop" command for more info.
         )
         try:
             run_setup(setup_script, args)
-        except SystemExit, v:
+        except SystemExit:
+            v = sys.exc_info()[1]
             raise DistutilsError("Setup script exited with %s" % (v.args[0],))
 
     def build_and_install(self, setup_script, setup_base):
@@ -1146,7 +1151,7 @@ See the setuptools documentation for the "develop" command for more info.
             'site_dirs', 'allow_hosts',
         )
         fetch_options = {}
-        for key, val in ei_opts.iteritems():
+        for key, val in ei_opts.items():
             if key not in fetch_directives: continue
             fetch_options[key.replace('_', '-')] = val[1]
         # create a settings dictionary suitable for `edit_config`
@@ -1211,7 +1216,7 @@ See the setuptools documentation for the "develop" command for more info.
         self.byte_compile(to_compile)
         if not self.dry_run:
             for f in to_chmod:
-                mode = ((os.stat(f)[stat.ST_MODE]) | 0555) & 07755
+                mode = ((os.stat(f)[stat.ST_MODE]) | 0x16D) & 0xFED  # 0555, 07755
                 chmod(f, mode)
 
     def byte_compile(self, to_compile):
@@ -1326,10 +1331,10 @@ Please make the appropriate changes for your system and try again.""" % (
         if not self.user:
             return
         home = convert_path(os.path.expanduser("~"))
-        for name, path in self.config_vars.iteritems():
+        for name, path in iteritems(self.config_vars):
             if path.startswith(home) and not os.path.isdir(path):
                 self.debug_print("os.makedirs('%s', 0700)" % path)
-                os.makedirs(path, 0700)
+                os.makedirs(path, 0x1C0)    # 0700
 
 
 
@@ -1380,7 +1385,8 @@ Please make the appropriate changes for your system and try again.""" % (
 
 def get_site_dirs():
     # return a list of 'site' dirs
-    sitedirs = filter(None,os.environ.get('PYTHONPATH','').split(os.pathsep))
+    sitedirs = [_f for _f in os.environ.get('PYTHONPATH',
+                                            '').split(os.pathsep) if _f]
     prefixes = [sys.prefix]
     if sys.exec_prefix != sys.prefix:
         prefixes.append(sys.exec_prefix)
@@ -1417,7 +1423,7 @@ def get_site_dirs():
     if HAS_USER_SITE:
         sitedirs.append(site.USER_SITE)
 
-    sitedirs = map(normalize_path, sitedirs)
+    sitedirs = list(map(normalize_path, sitedirs))
 
     return sitedirs
 
@@ -1479,7 +1485,8 @@ def extract_wininst_cfg(dist_filename):
             return None
         f.seek(prepended-12)
 
-        import struct, StringIO, ConfigParser
+        from setuptools.compat import StringIO, ConfigParser
+        import struct
         tag, cfglen, bmlen = struct.unpack("<iii",f.read(12))
         if tag not in (0x1234567A, 0x1234567B):
             return None     # not a valid tag
@@ -1499,7 +1506,7 @@ def extract_wininst_cfg(dist_filename):
             #  unicode for the RawConfigParser, so decode it. Is this the
             #  right encoding?
             config = config.decode('ascii')
-            cfg.readfp(StringIO.StringIO(config))
+            cfg.readfp(StringIO(config))
         except ConfigParser.Error:
             return None
         if not cfg.has_section('metadata') or not cfg.has_section('Setup'):
@@ -1534,7 +1541,7 @@ def get_exe_prefixes(exe_filename):
                 if parts[1].endswith('.egg-info'):
                     prefixes.insert(0,('/'.join(parts[:2]), 'EGG-INFO/'))
                     break
-            if len(parts)!=2 or not name.endswith('.pth'):
+            if len(parts) != 2 or not name.endswith('.pth'):
                 continue
             if name.endswith('-nspkg.pth'):
                 continue
@@ -1567,11 +1574,12 @@ class PthDistributions(Environment):
     dirty = False
 
     def __init__(self, filename, sitedirs=()):
-        self.filename = filename; self.sitedirs=map(normalize_path, sitedirs)
+        self.filename = filename
+        self.sitedirs = list(map(normalize_path, sitedirs))
         self.basedir = normalize_path(os.path.dirname(self.filename))
         self._load(); Environment.__init__(self, [], None, None)
         for path in yield_lines(self.paths):
-            map(self.add, find_distributions(path, True))
+            list(map(self.add, find_distributions(path, True)))
 
     def _load(self):
         self.paths = []
@@ -1699,8 +1707,8 @@ def auto_chmod(func, arg, exc):
     if func is os.remove and os.name=='nt':
         chmod(arg, stat.S_IWRITE)
         return func(arg)
-    exc = sys.exc_info()
-    raise exc[0], (exc[1][0], exc[1][1] + (" %s %s" % (func,arg)))
+    et, ev, _ = sys.exc_info()
+    reraise(et, (ev[0], ev[1] + (" %s %s" % (func,arg))))
 
 def uncache_zipdir(path):
     """Ensure that the importer caches dont have stale info for `path`"""
@@ -1800,7 +1808,8 @@ def chmod(path, mode):
     log.debug("changing mode of %s to %o", path, mode)
     try:
         _chmod(path, mode)
-    except os.error, e:
+    except os.error:
+        e = sys.exc_info()[1]
         log.debug("chmod failed: %s", e)
 
 def fix_jython_executable(executable, options):
@@ -1914,7 +1923,7 @@ def rmtree(path, ignore_errors=False, onerror=auto_chmod):
     names = []
     try:
         names = os.listdir(path)
-    except os.error, err:
+    except os.error:
         onerror(os.listdir, path, sys.exc_info())
     for name in names:
         fullname = os.path.join(path, name)
@@ -1927,7 +1936,7 @@ def rmtree(path, ignore_errors=False, onerror=auto_chmod):
         else:
             try:
                 os.remove(fullname)
-            except os.error, err:
+            except os.error:
                 onerror(os.remove, fullname, sys.exc_info())
     try:
         os.rmdir(path)
@@ -1935,7 +1944,7 @@ def rmtree(path, ignore_errors=False, onerror=auto_chmod):
         onerror(os.rmdir, path, sys.exc_info())
 
 def current_umask():
-    tmp = os.umask(022)
+    tmp = os.umask(0x12)    # 022
     os.umask(tmp)
     return tmp
 

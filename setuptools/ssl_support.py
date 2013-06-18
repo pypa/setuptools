@@ -1,6 +1,7 @@
-import sys, os, socket, urllib2, atexit, re
+import sys, os, socket, atexit, re
 import pkg_resources
 from pkg_resources import ResolutionError, ExtractionError
+from setuptools.compat import urllib2
 
 try:
     import ssl

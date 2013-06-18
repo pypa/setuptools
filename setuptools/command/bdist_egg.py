@@ -21,6 +21,7 @@ from distutils.errors import DistutilsSetupError
 from pkg_resources import get_build_platform, Distribution, ensure_directory
 from pkg_resources import EntryPoint
 from types import CodeType
+from setuptools.compat import basestring, next
 from setuptools.extension import Library
 
 def strip_module(filename):
@@ -383,7 +384,7 @@ NATIVE_EXTENSIONS = dict.fromkeys('.dll .so .dylib .pyd'.split())
 def walk_egg(egg_dir):
     """Walk an unpacked egg's contents, skipping the metadata directory"""
     walker = os.walk(egg_dir)
-    base,dirs,files = walker.next()
+    base,dirs,files = next(walker)
     if 'EGG-INFO' in dirs:
         dirs.remove('EGG-INFO')
     yield base,dirs,files
@@ -411,7 +412,7 @@ def write_safety_flag(egg_dir, safe):
     for flag,fn in safety_flags.items():
         fn = os.path.join(egg_dir, fn)
         if os.path.exists(fn):
-            if safe is None or bool(safe)!=flag:
+            if safe is None or bool(safe) != flag:
                 os.unlink(fn)
         elif safe is not None and bool(safe)==flag:
             f=open(fn,'wt'); f.write('\n'); f.close()

@@ -36,7 +36,7 @@ class Require:
     def version_ok(self,version):
         """Is 'version' sufficiently up-to-date?"""
         return self.attribute is None or self.format is None or \
-            str(version)!="unknown" and version >= self.requested_version
+            str(version) != "unknown" and version >= self.requested_version
 
 
     def get_version(self, paths=None, default="unknown"):
@@ -103,7 +103,7 @@ def _iter_code(code):
             ptr += 3
 
             if op==EXTENDED_ARG:
-                extended_arg = arg * 65536L
+                extended_arg = arg * long_type(65536)
                 continue
 
         else:

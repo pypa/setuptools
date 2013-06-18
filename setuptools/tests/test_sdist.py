@@ -7,11 +7,9 @@ import shutil
 import sys
 import tempfile
 import unittest
-import urllib
 import unicodedata
-from StringIO import StringIO
 
-
+from setuptools.compat import StringIO, unicode
 from setuptools.command.sdist import sdist
 from setuptools.command.egg_info import manifest_maker
 from setuptools.dist import Distribution
@@ -57,7 +55,7 @@ def b(s, encoding='utf-8'):
 
 # Convert to POSIX path
 def posix(path):
-    if sys.version_info >= (3,) and not isinstance(path, unicode):
+    if sys.version_info >= (3,) and not isinstance(path, str):
         return path.replace(os.sep.encode('ascii'), b('/'))
     else:
         return path.replace(os.sep, '/')
@@ -149,7 +147,8 @@ class TestSdistTest(unittest.TestCase):
         # The manifest should be UTF-8 encoded
         try:
             u_contents = contents.decode('UTF-8')
-        except UnicodeDecodeError, e:
+        except UnicodeDecodeError:
+            e = sys.exc_info()[1]
             self.fail(e)
 
         # The manifest should contain the UTF-8 filename
@@ -190,7 +189,8 @@ class TestSdistTest(unittest.TestCase):
             # The manifest should be UTF-8 encoded
             try:
                 contents.decode('UTF-8')
-            except UnicodeDecodeError, e:
+            except UnicodeDecodeError:
+                e = sys.exc_info()[1]
                 self.fail(e)
 
             # The manifest should contain the UTF-8 filename
@@ -228,7 +228,8 @@ class TestSdistTest(unittest.TestCase):
             # The manifest should be UTF-8 encoded
             try:
                 contents.decode('UTF-8')
-            except UnicodeDecodeError, e:
+            except UnicodeDecodeError:
+                e = sys.exc_info()[1]
                 self.fail(e)
 
             # The Latin-1 filename should have been skipped
@@ -307,7 +308,8 @@ class TestSdistTest(unittest.TestCase):
             try:
                 try:
                     cmd.read_manifest()
-                except UnicodeDecodeError, e:
+                except UnicodeDecodeError:
+                    e = sys.exc_info()[1]
                     self.fail(e)
             finally:
                 unquiet()
@@ -339,7 +341,7 @@ class TestSdistTest(unittest.TestCase):
         if sys.version_info >= (3,):
             fs_enc = sys.getfilesystemencoding()
 
-            if sys.platform == 'win32': 
+            if sys.platform == 'win32':
                 if fs_enc == 'cp1252':
                     # Python 3 mangles the UTF-8 filename
                     filename = filename.decode('cp1252')
@@ -374,14 +376,14 @@ class TestSdistTest(unittest.TestCase):
         if sys.version_info >= (3,):
             #not all windows systems have a default FS encoding of cp1252
             if sys.platform == 'win32':
-                # Latin-1 is similar to Windows-1252 however 
+                # Latin-1 is similar to Windows-1252 however
                 # on mbcs filesys it is not in latin-1 encoding
                 fs_enc = sys.getfilesystemencoding()
                 if fs_enc == 'mbcs':
                     filename = filename.decode('mbcs')
                 else:
                     filename = filename.decode('latin-1')
-                    
+
                 self.assertTrue(filename in cmd.filelist.files)
             else:
                 # The Latin-1 filename should have been skipped

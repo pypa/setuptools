@@ -49,37 +49,16 @@ GUI programs, the suffix '-script-pyw' is added.)  This is why we
 named out script the way we did.  Now we can run out script by running
 the wrapper:
 
-    >>> from subprocess import Popen, PIPE, STDOUT
-    >>> try:
-    ...     unicode=unicode
-    ... except:
-    ...     unicode=str
-    >>> def popen4(cmd, *args):
-    ...     if hasattr(os, 'popen4'):
-    ...         input, output = os.popen4(cmd + " ".join(args))
-    ...         return input, output
-    ...     else:
-    ...         #emulate popen4 in python 3
-    ...         if cmd[0] == '"' and cmd[-1] != '"':
-    ...             cmd = cmd[1:]
-    ...         cmd += " ".join(args)
-    ...         p = Popen(cmd, shell=True, bufsize=0,
-    ...                               stdin=PIPE, stdout=PIPE, stderr=STDOUT)
-    ...         return p.stdin, p.stdout
-    
-    >>> input, output = popen4('"' + nt_quote_arg(os.path.join(sample_directory, 'foo.exe')), 
-    ...                        r' arg1', r'"arg 2"', r'"arg \"2\\\""', r'"arg 4\\"', r'"arg5 a\\b"')
-    >>> bytes_written = input.write('hello\nworld\n'.encode('utf-8'))
-    >>> input.close()
-    >>> # This is needed for line ending differences between py2 and py3 on win32
-    >>> msg = unicode(output.read(), encoding='utf-8').split("\n")
-    >>> for line in msg:
-    ...     print(line.strip()) 
+    >>> import subprocess
+    >>> cmd = [os.path.join(sample_directory, 'foo.exe'), 'arg1', 'arg 2',
+    ...     'arg "2\\"', 'arg 4\\', 'arg5 a\\\\b']
+    >>> proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+    >>> stdout, stderr = proc.communicate('hello\nworld\n'.encode('ascii'))
+    >>> bytes = sys.stdout.write(stdout.decode('ascii').replace('\r\n', '\n'))
     \foo-script.py
     ['arg1', 'arg 2', 'arg "2\\"', 'arg 4\\', 'arg5 a\\\\b']
     'hello\nworld\n'
     non-optimized
-    <BLANKLINE>
 
 This example was a little pathological in that it exercised windows
 (MS C runtime) quoting rules:
@@ -115,18 +94,14 @@ enter the interpreter after running the script, you could use -Oi:
     ... sys.ps1 = '---'
     ... """ % dict(python_exe=nt_quote_arg(sys.executable)))
     >>> f.close()
-
-    >>> input, output = popen4(nt_quote_arg(os.path.join(sample_directory, 'foo.exe')))
-    >>> input.close()
-    >>> # This is needed for line ending differences between py2 and py3 on win32
-    >>> msg = unicode(output.read(), encoding='utf-8').split("\n")
-    >>> for line in msg:
-    ...     print(line.strip()) 
+    >>> cmd = [os.path.join(sample_directory, 'foo.exe')]
+    >>> proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT)
+    >>> stdout, stderr = proc.communicate()
+    >>> bytes = sys.stdout.write(stdout.decode('ascii').replace('\r\n', '\n'))
     \foo-script.py
     []
     ''
     ---
-    <BLANKLINE>
 
 Testing the GUI Version
 -----------------------
@@ -157,18 +132,19 @@ We'll also copy gui.exe to the sample-directory with the name bar.exe:
 
 Finally, we'll run the script and check the result:
 
-    >>> input, output = popen4('"'+nt_quote_arg(os.path.join(sample_directory, 'bar.exe')),
-    ...               r' "%s" "Test Argument"' % os.path.join(sample_directory, 'test_output.txt'))
-    >>> input.close()
-    >>> # This is needed for line ending differences between py2 and py3 on win32
-    >>> msg = unicode(output.read(), encoding='utf-8').split("\n")
-    >>> for line in msg:
-    ...     print(line.strip()) 
+    >>> cmd = [
+    ...     os.path.join(sample_directory, 'bar.exe'),
+    ...     os.path.join(sample_directory, 'test_output.txt'),
+    ...     'Test Argument',
+    ... ]
+    >>> proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT)
+    >>> stdout, stderr = proc.communicate()
+    >>> print(stdout.decode('ascii'))
     <BLANKLINE>
-    >>> f = open(os.path.join(sample_directory, 'test_output.txt'), 'rb')
-    >>> print(unicode(f.read(), encoding='utf-8'))
+    >>> f_out = open(os.path.join(sample_directory, 'test_output.txt'), 'rb')
+    >>> print(f_out.read().decode('ascii'))
     'Test Argument'
-    >>> f.close()
+    >>> f_out.close()
 
 
 We're done with the sample_directory:

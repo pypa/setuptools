@@ -210,7 +210,7 @@ class sdist(_sdist):
 
         optional = ['test/test*.py', 'setup.cfg']
         for pattern in optional:
-            files = filter(os.path.isfile, glob(pattern))
+            files = list(filter(os.path.isfile, glob(pattern)))
             if files:
                 self.filelist.extend(files)
 

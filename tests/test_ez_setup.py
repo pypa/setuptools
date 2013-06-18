@@ -16,7 +16,7 @@ import ez_setup
 class TestSetup(unittest.TestCase):
 
     def urlopen(self, url):
-        return open(self.tarball)
+        return open(self.tarball, 'rb')
 
     def setUp(self):
         self.old_sys_path = copy.copy(sys.path)
@@ -27,7 +27,7 @@ class TestSetup(unittest.TestCase):
                     "--dist-dir", "%s" % self.tmpdir)
         tarball = os.listdir(self.tmpdir)[0]
         self.tarball = os.path.join(self.tmpdir, tarball)
-        import urllib2
+        from setuptools.compat import urllib2
         urllib2.urlopen = self.urlopen
 
     def tearDown(self):
@@ -37,7 +37,7 @@ class TestSetup(unittest.TestCase):
 
     def test_build_egg(self):
         # making it an egg
-        egg = _build_egg(self.tarball, self.tmpdir)
+        egg = _build_egg('Egg to be built', self.tarball, self.tmpdir)
 
         # now trying to import it
         sys.path[0] = egg
