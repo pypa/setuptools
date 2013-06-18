@@ -16,16 +16,18 @@ Let's create a simple script, foo-script.py:
     >>> import os, sys, tempfile
     >>> from setuptools.command.easy_install import nt_quote_arg
     >>> sample_directory = tempfile.mkdtemp()
-    >>> open(os.path.join(sample_directory, 'foo-script.py'), 'w').write(
+    >>> f = open(os.path.join(sample_directory, 'foo-script.py'), 'w')
+    >>> bytes = f.write(
     ... """#!%(python_exe)s
     ... import sys
     ... input = repr(sys.stdin.read())
-    ... print sys.argv[0][-14:]
-    ... print sys.argv[1:]
-    ... print input
+    ... print(sys.argv[0][-14:])
+    ... print(sys.argv[1:])
+    ... print(input)
     ... if __debug__:
-    ...     print 'non-optimized'
+    ...     print('non-optimized')
     ... """ % dict(python_exe=nt_quote_arg(sys.executable)))
+    >>> f.close()
 
 Note that the script starts with a Unix-style '#!' line saying which
 Python executable to run.  The wrapper will use this to find the
@@ -34,9 +36,11 @@ correct Python executable.
 We'll also copy cli.exe to the sample-directory with the name foo.exe:
 
     >>> import pkg_resources
-    >>> open(os.path.join(sample_directory, 'foo.exe'), 'wb').write(
+    >>> f = open(os.path.join(sample_directory, 'foo.exe'), 'wb')
+    >>> bytes = f.write(
     ...     pkg_resources.resource_string('setuptools', 'cli.exe')
     ...     )
+    >>> f.close()
 
 When the copy of cli.exe, foo.exe in this example, runs, it examines
 the path name it was run with and computes a Python script path name
@@ -45,12 +49,12 @@ GUI programs, the suffix '-script-pyw' is added.)  This is why we
 named out script the way we did.  Now we can run out script by running
 the wrapper:
 
-    >>> import os
-    >>> input, output = os.popen4('"'+nt_quote_arg(os.path.join(sample_directory, 'foo.exe'))
-    ...               + r' arg1 "arg 2" "arg \"2\\\"" "arg 4\\" "arg5 a\\b"')
-    >>> input.write('hello\nworld\n')
-    >>> input.close()
-    >>> print output.read(),
+    >>> import subprocess
+    >>> cmd = [os.path.join(sample_directory, 'foo.exe'), 'arg1', 'arg 2',
+    ...     'arg "2\\"', 'arg 4\\', 'arg5 a\\\\b']
+    >>> proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+    >>> stdout, stderr = proc.communicate('hello\nworld\n'.encode('ascii'))
+    >>> bytes = sys.stdout.write(stdout.decode('ascii').replace('\r\n', '\n'))
     \foo-script.py
     ['arg1', 'arg 2', 'arg "2\\"', 'arg 4\\', 'arg5 a\\\\b']
     'hello\nworld\n'
@@ -77,21 +81,23 @@ to start the interactive interpreter.  You can combine multiple
 options as usual. For example, to run in optimized mode and
 enter the interpreter after running the script, you could use -Oi:
 
-    >>> open(os.path.join(sample_directory, 'foo-script.py'), 'w').write(
-    ... """#!%(python_exe)s  -Oi  
+    >>> f = open(os.path.join(sample_directory, 'foo-script.py'), 'w')
+    >>> bytes = f.write(
+    ... """#!%(python_exe)s  -Oi
     ... import sys
     ... input = repr(sys.stdin.read())
-    ... print sys.argv[0][-14:]
-    ... print sys.argv[1:]
-    ... print input
+    ... print(sys.argv[0][-14:])
+    ... print(sys.argv[1:])
+    ... print(input)
     ... if __debug__:
-    ...     print 'non-optimized'
+    ...     print('non-optimized')
     ... sys.ps1 = '---'
     ... """ % dict(python_exe=nt_quote_arg(sys.executable)))
-
-    >>> input, output = os.popen4(nt_quote_arg(os.path.join(sample_directory, 'foo.exe')))
-    >>> input.close()
-    >>> print output.read(),
+    >>> f.close()
+    >>> cmd = [os.path.join(sample_directory, 'foo.exe')]
+    >>> proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT)
+    >>> stdout, stderr = proc.communicate()
+    >>> bytes = sys.stdout.write(stdout.decode('ascii').replace('\r\n', '\n'))
     \foo-script.py
     []
     ''
@@ -105,29 +111,38 @@ Now let's test the GUI version with the simple scipt, bar-script.py:
     >>> import os, sys, tempfile
     >>> from setuptools.command.easy_install import nt_quote_arg
     >>> sample_directory = tempfile.mkdtemp()
-    >>> open(os.path.join(sample_directory, 'bar-script.pyw'), 'w').write(
+    >>> f = open(os.path.join(sample_directory, 'bar-script.pyw'), 'w')
+    >>> bytes = f.write(
     ... """#!%(python_exe)s
     ... import sys
-    ... open(sys.argv[1], 'wb').write(repr(sys.argv[2]))
+    ... open(sys.argv[1], 'wb').write(repr(sys.argv[2]).encode('ascii'))
     ... """ % dict(python_exe=nt_quote_arg(sys.executable)))
+    >>> f.close()
 
 We'll also copy gui.exe to the sample-directory with the name bar.exe:
 
     >>> import pkg_resources
-    >>> open(os.path.join(sample_directory, 'bar.exe'), 'wb').write(
+    >>> f = open(os.path.join(sample_directory, 'bar.exe'), 'wb')
+    >>> bytes = f.write(
     ...     pkg_resources.resource_string('setuptools', 'gui.exe')
     ...     )
+    >>> f.close()
 
 Finally, we'll run the script and check the result:
 
-    >>> import os
-    >>> input, output = os.popen4('"'+nt_quote_arg(os.path.join(sample_directory, 'bar.exe'))
-    ...               + r' "%s" "Test Argument"' % os.path.join(sample_directory, 'test_output.txt'))
-    >>> input.close()
-    >>> print output.read()
+    >>> cmd = [
+    ...     os.path.join(sample_directory, 'bar.exe'),
+    ...     os.path.join(sample_directory, 'test_output.txt'),
+    ...     'Test Argument',
+    ... ]
+    >>> proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT)
+    >>> stdout, stderr = proc.communicate()
+    >>> print(stdout.decode('ascii'))
     <BLANKLINE>
-    >>> print open(os.path.join(sample_directory, 'test_output.txt'), 'rb').read()
+    >>> f_out = open(os.path.join(sample_directory, 'test_output.txt'), 'rb')
+    >>> print(f_out.read().decode('ascii'))
     'Test Argument'
+    >>> f_out.close()
 
 
 We're done with the sample_directory:
