@@ -12,7 +12,7 @@ Installation Instructions
 Upgrading from Distribute
 =========================
 
-Currently, Distribute disallows installing Setuptools 0.7.4 over Distribute.
+Currently, Distribute disallows installing Setuptools 0.7+ over Distribute.
 You must first uninstall any active version of Distribute first (see
 `Uninstalling`_).
 
