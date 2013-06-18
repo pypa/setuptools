@@ -91,7 +91,7 @@ class upload(Command):
             comment = "built on %s" % platform.platform(terse=1)
         data = {
             ':action':'file_upload',
-            'protcol_version':'1',
+            'protocol_version':'1',
             'name':self.distribution.get_name(),
             'version':self.distribution.get_version(),
             'content':(basename,content),

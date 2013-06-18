@@ -1,17 +1,20 @@
 """Tests for the 'setuptools' package"""
-from unittest import TestSuite, TestCase, makeSuite, defaultTestLoader
-import distutils.core, distutils.cmd
+import sys
+import os
+import unittest
+import doctest
+import distutils.core
+import distutils.cmd
 from distutils.errors import DistutilsOptionError, DistutilsPlatformError
 from distutils.errors import DistutilsSetupError
-import setuptools, setuptools.dist
-from setuptools import Feature
 from distutils.core import Extension
-extract_constant, get_module_constant = None, None
+from distutils.version import LooseVersion
 from setuptools.compat import func_code
-from setuptools.depends import *
-from distutils.version import StrictVersion, LooseVersion
-from distutils.util import convert_path
-import sys, os.path
+
+import setuptools.dist
+import setuptools.depends as dep
+from setuptools import Feature
+from setuptools.depends import Require
 
 def additional_tests():
     import doctest, unittest
@@ -36,55 +39,60 @@ def makeSetup(**args):
     try:
         return setuptools.setup(**args)
     finally:
-        distutils.core_setup_stop_after = None
+        distutils.core._setup_stop_after = None
 
 
-
-
-class DependsTests(TestCase):
+class DependsTests(unittest.TestCase):
 
     def testExtractConst(self):
-        if not extract_constant: return  # skip on non-bytecode platforms
+        if not hasattr(dep, 'extract_constant'):
+            # skip on non-bytecode platforms
+            return
 
         def f1():
-            global x,y,z
+            global x, y, z
             x = "test"
             y = z
 
         fc = func_code(f1)
         # unrecognized name
-        self.assertEqual(extract_constant(fc,'q', -1), None)
+        self.assertEqual(dep.extract_constant(fc,'q', -1), None)
 
         # constant assigned
-        self.assertEqual(extract_constant(fc,'x', -1), "test")
+        self.assertEqual(dep.extract_constant(fc,'x', -1), "test")
 
         # expression assigned
-        self.assertEqual(extract_constant(fc,'y', -1), -1)
+        self.assertEqual(dep.extract_constant(fc,'y', -1), -1)
 
         # recognized name, not assigned
-        self.assertEqual(extract_constant(fc,'z', -1), None)
-
+        self.assertEqual(dep.extract_constant(fc,'z', -1), None)
 
     def testFindModule(self):
-        self.assertRaises(ImportError, find_module, 'no-such.-thing')
-        self.assertRaises(ImportError, find_module, 'setuptools.non-existent')
-        f,p,i = find_module('setuptools.tests'); f.close()
+        self.assertRaises(ImportError, dep.find_module, 'no-such.-thing')
+        self.assertRaises(ImportError, dep.find_module, 'setuptools.non-existent')
+        f,p,i = dep.find_module('setuptools.tests')
+        f.close()
 
     def testModuleExtract(self):
-        if not get_module_constant: return  # skip on non-bytecode platforms
+        if not hasattr(dep, 'get_module_constant'):
+            # skip on non-bytecode platforms
+            return
+
         from email import __version__
         self.assertEqual(
-            get_module_constant('email','__version__'), __version__
+            dep.get_module_constant('email','__version__'), __version__
         )
         self.assertEqual(
-            get_module_constant('sys','version'), sys.version
+            dep.get_module_constant('sys','version'), sys.version
         )
         self.assertEqual(
-            get_module_constant('setuptools.tests','__doc__'),__doc__
+            dep.get_module_constant('setuptools.tests','__doc__'),__doc__
         )
 
     def testRequire(self):
-        if not extract_constant: return  # skip on non-bytecode platforms
+        if not hasattr(dep, 'extract_constant'):
+            # skip on non-bytecode platformsh
+            return
 
         req = Require('Email','1.0.3','email')
 
@@ -96,21 +104,21 @@ class DependsTests(TestCase):
 
         from email import __version__
         self.assertEqual(req.get_version(), __version__)
-        self.assert_(req.version_ok('1.0.9'))
-        self.assert_(not req.version_ok('0.9.1'))
-        self.assert_(not req.version_ok('unknown'))
+        self.assertTrue(req.version_ok('1.0.9'))
+        self.assertTrue(not req.version_ok('0.9.1'))
+        self.assertTrue(not req.version_ok('unknown'))
 
-        self.assert_(req.is_present())
-        self.assert_(req.is_current())
+        self.assertTrue(req.is_present())
+        self.assertTrue(req.is_current())
 
         req = Require('Email 3000','03000','email',format=LooseVersion)
-        self.assert_(req.is_present())
-        self.assert_(not req.is_current())
-        self.assert_(not req.version_ok('unknown'))
+        self.assertTrue(req.is_present())
+        self.assertTrue(not req.is_current())
+        self.assertTrue(not req.version_ok('unknown'))
 
         req = Require('Do-what-I-mean','1.0','d-w-i-m')
-        self.assert_(not req.is_present())
-        self.assert_(not req.is_current())
+        self.assertTrue(not req.is_present())
+        self.assertTrue(not req.is_current())
 
         req = Require('Tests', None, 'tests', homepage="http://example.com")
         self.assertEqual(req.format, None)
@@ -120,11 +128,11 @@ class DependsTests(TestCase):
         self.assertEqual(req.homepage, 'http://example.com')
 
         paths = [os.path.dirname(p) for p in __path__]
-        self.assert_(req.is_present(paths))
-        self.assert_(req.is_current(paths))
+        self.assertTrue(req.is_present(paths))
+        self.assertTrue(req.is_current(paths))
 
 
-class DistroTests(TestCase):
+class DistroTests(unittest.TestCase):
 
     def setUp(self):
         self.e1 = Extension('bar.ext',['bar.c'])
@@ -137,10 +145,8 @@ class DistroTests(TestCase):
             package_dir = {},
         )
 
-
     def testDistroType(self):
-        self.assert_(isinstance(self.dist,setuptools.dist.Distribution))
-
+        self.assertTrue(isinstance(self.dist,setuptools.dist.Distribution))
 
     def testExcludePackage(self):
         self.dist.exclude_package('a')
@@ -158,12 +164,6 @@ class DistroTests(TestCase):
 
         # test removals from unspecified options
         makeSetup().exclude_package('x')
-
-
-
-
-
-
 
     def testIncludeExclude(self):
         # remove an extension
@@ -191,20 +191,17 @@ class DistroTests(TestCase):
         dist.exclude(packages=['a'], py_modules=['b'], ext_modules=[self.e2])
 
     def testContents(self):
-        self.assert_(self.dist.has_contents_for('a'))
+        self.assertTrue(self.dist.has_contents_for('a'))
         self.dist.exclude_package('a')
-        self.assert_(not self.dist.has_contents_for('a'))
+        self.assertTrue(not self.dist.has_contents_for('a'))
 
-        self.assert_(self.dist.has_contents_for('b'))
+        self.assertTrue(self.dist.has_contents_for('b'))
         self.dist.exclude_package('b')
-        self.assert_(not self.dist.has_contents_for('b'))
+        self.assertTrue(not self.dist.has_contents_for('b'))
 
-        self.assert_(self.dist.has_contents_for('c'))
+        self.assertTrue(self.dist.has_contents_for('c'))
         self.dist.exclude_package('c')
-        self.assert_(not self.dist.has_contents_for('c'))
-
-
-
+        self.assertTrue(not self.dist.has_contents_for('c'))
 
     def testInvalidIncludeExclude(self):
         self.assertRaises(DistutilsSetupError,
@@ -234,20 +231,7 @@ class DistroTests(TestCase):
         )
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-class FeatureTests(TestCase):
+class FeatureTests(unittest.TestCase):
 
     def setUp(self):
         self.req = Require('Distutils','1.0.3','distutils')
@@ -271,12 +255,12 @@ class FeatureTests(TestCase):
         )
 
     def testDefaults(self):
-        self.assert_(not
+        self.assertTrue(not
             Feature(
                 "test",standard=True,remove='x',available=False
             ).include_by_default()
         )
-        self.assert_(
+        self.assertTrue(
             Feature("test",standard=True,remove='x').include_by_default()
         )
         # Feature must have either kwargs, removes, or require_features
@@ -290,33 +274,33 @@ class FeatureTests(TestCase):
 
     def testFeatureOptions(self):
         dist = self.dist
-        self.assert_(
+        self.assertTrue(
             ('with-dwim',None,'include DWIM') in dist.feature_options
         )
-        self.assert_(
+        self.assertTrue(
             ('without-dwim',None,'exclude DWIM (default)') in dist.feature_options
         )
-        self.assert_(
+        self.assertTrue(
             ('with-bar',None,'include bar (default)') in dist.feature_options
         )
-        self.assert_(
+        self.assertTrue(
             ('without-bar',None,'exclude bar') in dist.feature_options
         )
         self.assertEqual(dist.feature_negopt['without-foo'],'with-foo')
         self.assertEqual(dist.feature_negopt['without-bar'],'with-bar')
         self.assertEqual(dist.feature_negopt['without-dwim'],'with-dwim')
-        self.assert_(not 'without-baz' in dist.feature_negopt)
+        self.assertTrue(not 'without-baz' in dist.feature_negopt)
 
     def testUseFeatures(self):
         dist = self.dist
         self.assertEqual(dist.with_foo,1)
         self.assertEqual(dist.with_bar,0)
         self.assertEqual(dist.with_baz,1)
-        self.assert_(not 'bar_et' in dist.py_modules)
-        self.assert_(not 'pkg.bar' in dist.packages)
-        self.assert_('pkg.baz' in dist.packages)
-        self.assert_('scripts/baz_it' in dist.scripts)
-        self.assert_(('libfoo','foo/foofoo.c') in dist.libraries)
+        self.assertTrue(not 'bar_et' in dist.py_modules)
+        self.assertTrue(not 'pkg.bar' in dist.packages)
+        self.assertTrue('pkg.baz' in dist.packages)
+        self.assertTrue('scripts/baz_it' in dist.scripts)
+        self.assertTrue(('libfoo','foo/foofoo.c') in dist.libraries)
         self.assertEqual(dist.ext_modules,[])
         self.assertEqual(dist.require_features, [self.req])
 
@@ -329,11 +313,11 @@ class FeatureTests(TestCase):
             SystemExit, makeSetup, features = {'x':Feature('x', remove='y')}
         )
 
-class TestCommandTests(TestCase):
+class TestCommandTests(unittest.TestCase):
 
     def testTestIsCommand(self):
         test_cmd = makeSetup().get_command_obj('test')
-        self.assert_(isinstance(test_cmd, distutils.cmd.Command))
+        self.assertTrue(isinstance(test_cmd, distutils.cmd.Command))
 
     def testLongOptSuiteWNoDefault(self):
         ts1 = makeSetup(script_args=['test','--test-suite=foo.tests.suite'])
@@ -365,8 +349,3 @@ class TestCommandTests(TestCase):
         ts5 = makeSetup().get_command_obj('test')
         ts5.ensure_finalized()
         self.assertEqual(ts5.test_suite, None)
-
-
-
-
-

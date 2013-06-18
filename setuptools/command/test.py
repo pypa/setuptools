@@ -2,6 +2,7 @@ from setuptools import Command
 from distutils.errors import DistutilsOptionError
 import sys
 from pkg_resources import *
+from pkg_resources import _namespace_packages
 from unittest import TestLoader, main
 
 class ScanningLoader(TestLoader):
@@ -81,7 +82,7 @@ class test(Command):
 
 
     def with_project_on_sys_path(self, func):
-        if getattr(self.distribution, 'use_2to3', False):
+        if sys.version_info >= (3,) and getattr(self.distribution, 'use_2to3', False):
             # If we run 2to3 we can not do this inplace:
 
             # Ensure metadata is up-to-date
@@ -139,11 +140,28 @@ class test(Command):
 
     def run_tests(self):
         import unittest
+
+        # Purge modules under test from sys.modules. The test loader will
+        # re-import them from the build location. Required when 2to3 is used
+        # with namespace packages.
+        if sys.version_info >= (3,) and getattr(self.distribution, 'use_2to3', False):
+            module = self.test_args[-1].split('.')[0]
+            if module in _namespace_packages:
+                del_modules = []
+                if module in sys.modules:
+                    del_modules.append(module)
+                module += '.'
+                for name in sys.modules:
+                    if name.startswith(module):
+                        del_modules.append(name)
+                map(sys.modules.__delitem__, del_modules)
+
         loader_ep = EntryPoint.parse("x="+self.test_loader)
         loader_class = loader_ep.load(require=False)
+        cks = loader_class()
         unittest.main(
             None, None, [unittest.__file__]+self.test_args,
-            testLoader = loader_class()
+            testLoader = cks
         )
 
 

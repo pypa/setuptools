@@ -535,6 +535,10 @@ class WorkingSet(object):
         """
         seen = {}
         for item in self.entries:
+            if item not in self.entry_keys:
+                # workaround a cache issue
+                continue
+
             for key in self.entry_keys[item]:
                 if key not in seen:
                     seen[key]=1
@@ -1350,6 +1354,14 @@ class DefaultProvider(EggProvider):
 
 register_loader_type(type(None), DefaultProvider)
 
+try:
+    # CPython >=3.3
+    import _frozen_importlib
+except ImportError:
+    pass
+else:
+    register_loader_type(_frozen_importlib.SourceFileLoader, DefaultProvider)
+
 
 class EmptyProvider(NullProvider):
     """Provider that returns nothing for all requests"""
@@ -1763,7 +1775,7 @@ def find_on_path(importer, path_item, only=False):
             # scan for .egg and .egg-info in directory
             for entry in os.listdir(path_item):
                 lower = entry.lower()
-                if lower.endswith('.egg-info'):
+                if lower.endswith('.egg-info') or lower.endswith('.dist-info'):
                     fullpath = os.path.join(path_item, entry)
                     if os.path.isdir(fullpath):
                         # egg-info directory, allow getting metadata
@@ -1783,6 +1795,14 @@ def find_on_path(importer, path_item, only=False):
                             yield item
                         break
 register_finder(ImpWrapper,find_on_path)
+
+try:
+    # CPython >=3.3
+    import _frozen_importlib
+except ImportError:
+    pass
+else:
+    register_finder(_frozen_importlib.FileFinder, find_on_path)
 
 _declare_state('dict', _namespace_handlers={})
 _declare_state('dict', _namespace_packages={})
@@ -1883,6 +1903,14 @@ def file_ns_handler(importer, path_item, packageName, module):
 register_namespace_handler(ImpWrapper,file_ns_handler)
 register_namespace_handler(zipimport.zipimporter,file_ns_handler)
 
+try:
+    # CPython >=3.3
+    import _frozen_importlib
+except ImportError:
+    pass
+else:
+    register_namespace_handler(_frozen_importlib.FileFinder, file_ns_handler)
+
 
 def null_ns_handler(importer, path_item, packageName, module):
     return None
@@ -1941,7 +1969,7 @@ replace = {'pre':'c', 'preview':'c','-':'final-','rc':'c','dev':'@'}.get
 def _parse_version_parts(s):
     for part in component_re.split(s):
         part = replace(part,part)
-        if not part or part=='.':
+        if part in ['', '.']:
             continue
         if part[:1] in '0123456789':
             yield part.zfill(8)    # pad for numeric comparison
@@ -1984,8 +2012,6 @@ def parse_version(s):
     parts = []
     for part in _parse_version_parts(s.lower()):
         if part.startswith('*'):
-            if part<'*final':   # remove '-' before a prerelease tag
-                while parts and parts[-1]=='*final-': parts.pop()
             # remove trailing zeros from each series of numeric parts
             while parts and parts[-1]=='00000000':
                 parts.pop()
@@ -2122,6 +2148,8 @@ def _remove_md5_fragment(location):
 
 class Distribution(object):
     """Wrap an actual or potential sys.path entry w/metadata"""
+    PKG_INFO = 'PKG-INFO'
+    
     def __init__(self,
         location=None, metadata=None, project_name=None, version=None,
         py_version=PY_MAJOR, platform=None, precedence = EGG_DIST
@@ -2139,12 +2167,14 @@ class Distribution(object):
     def from_location(cls,location,basename,metadata=None,**kw):
         project_name, version, py_version, platform = [None]*4
         basename, ext = os.path.splitext(basename)
-        if ext.lower() in (".egg",".egg-info"):
+        if ext.lower() in _distributionImpl:
+            # .dist-info gets much metadata differently
             match = EGG_NAME(basename)
             if match:
                 project_name, version, py_version, platform = match.group(
                     'name','ver','pyver','plat'
                 )
+            cls = _distributionImpl[ext.lower()]
         return cls(
             location, metadata, project_name=project_name, version=version,
             py_version=py_version, platform=platform, **kw
@@ -2207,13 +2237,13 @@ class Distribution(object):
         try:
             return self._version
         except AttributeError:
-            for line in self._get_metadata('PKG-INFO'):
+            for line in self._get_metadata(self.PKG_INFO):
                 if line.lower().startswith('version:'):
                     self._version = safe_version(line.split(':',1)[1].strip())
                     return self._version
             else:
                 raise ValueError(
-                    "Missing 'Version:' header and/or PKG-INFO file", self
+                    "Missing 'Version:' header and/or %s file" % self.PKG_INFO, self
                 )
     version = property(version)
 
@@ -2442,6 +2472,74 @@ class Distribution(object):
     def extras(self):
         return [dep for dep in self._dep_map if dep]
     extras = property(extras)
+
+
+class DistInfoDistribution(Distribution):
+    """Wrap an actual or potential sys.path entry w/metadata, .dist-info style"""
+    PKG_INFO = 'METADATA'
+    EQEQ = re.compile(r"([\(,])\s*(\d.*?)\s*([,\)])")
+
+    @property
+    def _parsed_pkg_info(self):
+        """Parse and cache metadata"""
+        try:
+            return self._pkg_info
+        except AttributeError:
+            from email.parser import Parser
+            self._pkg_info = Parser().parsestr(self.get_metadata(self.PKG_INFO))
+            return self._pkg_info
+    
+    @property
+    def _dep_map(self):
+        try:
+            return self.__dep_map
+        except AttributeError:
+            self.__dep_map = self._compute_dependencies()
+            return self.__dep_map
+
+    def _preparse_requirement(self, requires_dist):
+        """Convert 'Foobar (1); baz' to ('Foobar ==1', 'baz')
+        Split environment marker, add == prefix to version specifiers as 
+        necessary, and remove parenthesis.
+        """
+        parts = requires_dist.split(';', 1) + ['']
+        distvers = parts[0].strip()
+        mark = parts[1].strip()
+        distvers = re.sub(self.EQEQ, r"\1==\2\3", distvers)
+        distvers = distvers.replace('(', '').replace(')', '')
+        return (distvers, mark)
+            
+    def _compute_dependencies(self):
+        """Recompute this distribution's dependencies."""
+        from _markerlib import compile as compile_marker
+        dm = self.__dep_map = {None: []}
+
+        reqs = []
+        # Including any condition expressions
+        for req in self._parsed_pkg_info.get_all('Requires-Dist') or []:
+            distvers, mark = self._preparse_requirement(req)
+            parsed = parse_requirements(distvers).next()
+            parsed.marker_fn = compile_marker(mark)
+            reqs.append(parsed)
+            
+        def reqs_for_extra(extra):
+            for req in reqs:
+                if req.marker_fn(override={'extra':extra}):
+                    yield req
+
+        common = frozenset(reqs_for_extra(None))
+        dm[None].extend(common)
+            
+        for extra in self._parsed_pkg_info.get_all('Provides-Extra') or []:
+            extra = safe_extra(extra.strip())
+            dm[extra] = list(frozenset(reqs_for_extra(extra)) - common)
+
+        return dm
+    
+
+_distributionImpl = {'.egg': Distribution,
+                     '.egg-info': Distribution,
+                     '.dist-info': DistInfoDistribution }
 
 
 def issue_warning(*args,**kw):

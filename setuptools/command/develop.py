@@ -3,7 +3,7 @@ from distutils.util import convert_path, subst_vars
 from pkg_resources import Distribution, PathMetadata, normalize_path
 from distutils import log
 from distutils.errors import DistutilsError, DistutilsOptionError
-import os, setuptools, glob
+import os, sys, setuptools, glob
 
 class develop(easy_install):
     """Set up package for development"""
@@ -84,11 +84,35 @@ class develop(easy_install):
                 " installation directory", p, normalize_path(os.curdir))
 
     def install_for_development(self):
-        # Ensure metadata is up-to-date
-        self.run_command('egg_info')
-        # Build extensions in-place
-        self.reinitialize_command('build_ext', inplace=1)
-        self.run_command('build_ext')
+        if sys.version_info >= (3,) and getattr(self.distribution, 'use_2to3', False):
+            # If we run 2to3 we can not do this inplace:
+
+            # Ensure metadata is up-to-date
+            self.reinitialize_command('build_py', inplace=0)
+            self.run_command('build_py')
+            bpy_cmd = self.get_finalized_command("build_py")
+            build_path = normalize_path(bpy_cmd.build_lib)
+
+            # Build extensions
+            self.reinitialize_command('egg_info', egg_base=build_path)
+            self.run_command('egg_info')
+
+            self.reinitialize_command('build_ext', inplace=0)
+            self.run_command('build_ext')
+            
+            # Fixup egg-link and easy-install.pth
+            ei_cmd = self.get_finalized_command("egg_info")
+            self.egg_path = build_path
+            self.dist.location = build_path
+            self.dist._provider = PathMetadata(build_path, ei_cmd.egg_info)    # XXX
+        else:
+            # Without 2to3 inplace works fine:
+            self.run_command('egg_info')
+
+            # Build extensions in-place
+            self.reinitialize_command('build_ext', inplace=1)
+            self.run_command('build_ext')
+        
         self.install_site_py()  # ensure that target dir is site-safe
         if setuptools.bootstrap_install_from:
             self.easy_install(setuptools.bootstrap_install_from)

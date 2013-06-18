@@ -7,14 +7,20 @@ Contributors
 * Arfrever Frehtes Taifersar Arahesis
 * Christophe Combelles
 * Daniel Stutzbach
+* Daniel Holth
 * Hanno Schlichting
 * Jannis Leidel
+* Jason R. Coombs
+* Jim Fulton
+* Justin Azoff
 * Lennart Regebro
+* Marc Abramowitz
 * Martin von Löwis
 * Noufal Ibrahim
 * Philip Jenvey
 * Reinout van Rees
 * Robert Myers
+* Stefan H. Holek
 * Tarek Ziadé
 * Toshio Kuratomi
 

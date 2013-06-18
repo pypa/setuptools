@@ -756,17 +756,18 @@ e.g.::
         include_package_data = True
     )
 
-This tells setuptools to install any data files it finds in your packages.  The
-data files must be under CVS or Subversion control, or else they must be
+This tells setuptools to install any data files it finds in your packages.
+The data files must be under CVS or Subversion control, or else they must be
 specified via the distutils' ``MANIFEST.in`` file.  (They can also be tracked
 by another revision control system, using an appropriate plugin.  See the
 section below on `Adding Support for Other Revision Control Systems`_ for
 information on how to write such plugins.)
 
-If you want finer-grained control over what files are included (for example, if
-you have documentation files in your package directories and want to exclude
-them from installation), then you can also use the ``package_data`` keyword,
-e.g.::
+If the data files are not under version control, or are not in a supported
+version control system, or if you want finer-grained control over what files
+are included (for example, if you have documentation files in your package
+directories and want to exclude them from installation), then you can also use
+the ``package_data`` keyword, e.g.::
 
     from setuptools import setup, find_packages
     setup(
@@ -822,7 +823,10 @@ converts slashes to appropriate platform-specific separators at build time.
 (Note: although the ``package_data`` argument was previously only available in
 ``setuptools``, it was also added to the Python ``distutils`` package as of
 Python 2.4; there is `some documentation for the feature`__ available on the
-python.org website.)
+python.org website.  If using the setuptools-specific ``include_package_data``
+argument, files specified by ``package_data`` will *not* be automatically
+added to the manifest unless they are tracked by a supported version control
+system, or are listed in the MANIFEST.in file.)
 
 __ http://docs.python.org/dist/node11.html
 
@@ -1081,6 +1085,14 @@ deployment directory is Python's ``site-packages`` directory, it will also
 update the ``easy-install.pth`` file to include your project's source code,
 thereby making it available on ``sys.path`` for all programs using that Python
 installation.
+
+If you have enabled the ``use_2to3`` flag, then of course the ``.egg-link``
+will not link directly to your source code when run under Python 3, since
+that source code would be made for Python 2 and not work under Python 3.
+Instead the ``setup.py develop`` will build Python 3 code under the ``build``
+directory, and link there. This means that after doing code changes you will
+have to run ``setup.py build`` before these changes are picked up by your
+Python 3 installation.
 
 In addition, the ``develop`` command creates wrapper scripts in the target
 script directory that will run your in-development scripts after ensuring that

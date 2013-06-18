@@ -1,5 +1,6 @@
 """PyPI and direct package downloading"""
 import sys, os.path, re, shutil, random, socket
+import base64
 from pkg_resources import *
 from distutils import log
 from distutils.errors import DistutilsError
@@ -201,7 +202,7 @@ class PackageIndex(Environment):
             return
 
         self.info("Reading %s", url)
-        f = self.open_url(url, "Download error: %s -- Some packages may not be found!")
+        f = self.open_url(url, "Download error on %s: %%s -- Some packages may not be found!" % url)
         if f is None: return
         self.fetched_urls[url] = self.fetched_urls[f.url] = True
 
@@ -764,11 +765,33 @@ def socket_timeout(timeout=15):
         return _socket_timeout
     return _socket_timeout
 
+def _encode_auth(auth):
+    """
+    A function compatible with Python 2.3-3.3 that will encode
+    auth from a URL suitable for an HTTP header.
+    >>> _encode_auth('username%3Apassword')
+    u'dXNlcm5hbWU6cGFzc3dvcmQ='
+    """
+    auth_s = unquote(auth)
+    # convert to bytes
+    auth_bytes = auth_s.encode()
+    # use the legacy interface for Python 2.3 support
+    encoded_bytes = base64.encodestring(auth_bytes)
+    # convert back to a string
+    encoded = encoded_bytes.decode()
+    # strip the trailing carriage return
+    return encoded.rstrip()
 
 def open_with_auth(url):
     """Open a urllib2 request, handling HTTP authentication"""
 
     scheme, netloc, path, params, query, frag = urlparse(url)
+
+    # Double scheme does not raise on Mac OS X as revealed by a
+    # failing test. We would expect "nonnumeric port". Refs #20.
+    if sys.platform == 'darwin':
+        if netloc.endswith(':'):
+            raise httplib.InvalidURL("nonnumeric port: ''")
 
     if scheme in ('http', 'https'):
         auth, host = splituser(netloc)
@@ -776,7 +799,7 @@ def open_with_auth(url):
         auth = None
 
     if auth:
-        auth = "Basic " + unquote(auth).encode('base64').strip()
+        auth = "Basic " + _encode_auth(auth)
         new_url = urlunparse((scheme,host,path,params,query,frag))
         request = urllib2.Request(new_url)
         request.add_header("Authorization", auth)

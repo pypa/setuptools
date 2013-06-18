@@ -1,26 +1,27 @@
 """Package Index Tests
 """
-# More would be better!
 import sys
-import os, shutil, tempfile, unittest
+import unittest
 import pkg_resources
 from setuptools.compat import urllib2, httplib, HTTPError
+import distutils.errors
 import setuptools.package_index
 from setuptools.tests.server import IndexServer
 
 class TestPackageIndex(unittest.TestCase):
 
-    def test_bad_urls(self):
+    def test_bad_url_bad_port(self):
         index = setuptools.package_index.PackageIndex()
         url = 'http://127.0.0.1:0/nonesuch/test_package_index'
         try:
             v = index.open_url(url)
         except Exception:
             v = sys.exc_info()[1]
-            self.assert_(url in str(v))
+            self.assertTrue(url in str(v))
         else:
-            self.assert_(isinstance(v, HTTPError))
+            self.assertTrue(isinstance(v, HTTPError))
 
+    def test_bad_url_typo(self):
         # issue 16
         # easy_install inquant.contentmirror.plone breaks because of a typo
         # in its home URL
@@ -33,9 +34,14 @@ class TestPackageIndex(unittest.TestCase):
             v = index.open_url(url)
         except Exception:
             v = sys.exc_info()[1]
-            self.assert_(url in str(v))
+            self.assertTrue(url in str(v))
         else:
-            self.assert_(isinstance(v, HTTPError))
+            self.assertTrue(isinstance(v, HTTPError))
+
+    def test_bad_url_bad_status_line(self):
+        index = setuptools.package_index.PackageIndex(
+            hosts=('www.example.com',)
+        )
 
         def _urlopen(*args):
             raise httplib.BadStatusLine('line')
@@ -48,20 +54,35 @@ class TestPackageIndex(unittest.TestCase):
                 v = index.open_url(url)
             except Exception:
                 v = sys.exc_info()[1]
-                self.assert_('line' in str(v))
+                self.assertTrue('line' in str(v))
             else:
                 raise AssertionError('Should have raise here!')
         finally:
             urllib2.urlopen = old_urlopen
 
+    def test_bad_url_double_scheme(self):
+        """
+        A bad URL with a double scheme should raise a DistutilsError.
+        """
+        index = setuptools.package_index.PackageIndex(
+            hosts=('www.example.com',)
+        )
+
         # issue 20
         url = 'http://http://svn.pythonpaste.org/Paste/wphp/trunk'
         try:
             index.open_url(url)
-        except Exception:
-            v = sys.exc_info()[1]
-            self.assert_('nonnumeric port' in str(v))
+        except distutils.errors.DistutilsError:
+            error = sys.exc_info()[1]
+            msg = unicode(error)
+            assert 'nonnumeric port' in msg or 'getaddrinfo failed' in msg or 'Name or service not known' in msg
+            return
+        raise RuntimeError("Did not raise")
 
+    def test_bad_url_screwy_href(self):
+        index = setuptools.package_index.PackageIndex(
+            hosts=('www.example.com',)
+        )
 
         # issue #160
         if sys.version_info[0] == 2 and sys.version_info[1] == 7:
@@ -71,13 +92,12 @@ class TestPackageIndex(unittest.TestCase):
                     'http://www.famfamfam.com/">')
             index.process_index(url, page)
 
-
     def test_url_ok(self):
         index = setuptools.package_index.PackageIndex(
             hosts=('www.example.com',)
         )
         url = 'file:///tmp/test_package_index'
-        self.assert_(index.url_ok(url, True))
+        self.assertTrue(index.url_ok(url, True))
 
     def test_links_priority(self):
         """
@@ -94,6 +114,10 @@ class TestPackageIndex(unittest.TestCase):
           is used
         -> Distribute should use the link from pypi, not the external one.
         """
+        if sys.platform.startswith('java'):
+            # Skip this test on jython because binding to :0 fails
+            return
+
         # start an index server
         server = IndexServer()
         server.start()
@@ -106,11 +130,11 @@ class TestPackageIndex(unittest.TestCase):
         server.stop()
 
         # the distribution has been found
-        self.assert_('foobar' in pi)
+        self.assertTrue('foobar' in pi)
         # we have only one link, because links are compared without md5
-        self.assert_(len(pi['foobar'])==1)
+        self.assertTrue(len(pi['foobar'])==1)
         # the link should be from the index
-        self.assert_('correct_md5' in pi['foobar'][0].location)
+        self.assertTrue('correct_md5' in pi['foobar'][0].location)
 
     def test_parse_bdist_wininst(self):
         self.assertEqual(setuptools.package_index.parse_bdist_wininst(
@@ -121,5 +145,3 @@ class TestPackageIndex(unittest.TestCase):
             'reportlab-2.5.win-amd64-py2.7.exe'), ('reportlab-2.5', '2.7', 'win-amd64'))
         self.assertEqual(setuptools.package_index.parse_bdist_wininst(
             'reportlab-2.5.win-amd64.exe'), ('reportlab-2.5', None, 'win-amd64'))
-
-

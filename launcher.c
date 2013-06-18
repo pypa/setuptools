@@ -25,19 +25,18 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
+#include <string.h>
+#include <windows.h>
+#include <tchar.h>
 #include <fcntl.h>
-#include "windows.h"
+
+int child_pid=0;
 
 int fail(char *format, char *data) {
     /* Print error message to stderr and return 2 */
     fprintf(stderr, format, data);
     return 2;
 }
-
-
-
-
 
 char *quoted(char *data) {
     int i, ln = strlen(data), nb;
@@ -90,7 +89,7 @@ char *loadable_exe(char *exename) {
     /* Return the absolute filename for spawnv */
     result = calloc(MAX_PATH, sizeof(char));
     strncpy(result, exename, MAX_PATH);
-    /*if (result) GetModuleFileName(hPython, result, MAX_PATH);
+    /*if (result) GetModuleFileNameA(hPython, result, MAX_PATH);
 
     FreeLibrary(hPython); */
     return result;
@@ -160,8 +159,82 @@ char **parse_argv(char *cmdline, int *argc)
     } while (1);
 }
 
+void pass_control_to_child(DWORD control_type) {
+    /*
+     * distribute-issue207
+     * passes the control event to child process (Python)
+     */
+    if (!child_pid) {
+        return;
+    }
+    GenerateConsoleCtrlEvent(child_pid,0);
+}
 
+BOOL control_handler(DWORD control_type) {
+    /* 
+     * distribute-issue207
+     * control event handler callback function
+     */
+    switch (control_type) {
+        case CTRL_C_EVENT:
+            pass_control_to_child(0);
+            break;
+    }
+    return TRUE;
+}
 
+int create_and_wait_for_subprocess(char* command) {
+    /*
+     * distribute-issue207
+     * launches child process (Python)
+     */
+    DWORD return_value = 0;
+    LPSTR commandline = command;
+    STARTUPINFOA s_info;
+    PROCESS_INFORMATION p_info;
+    ZeroMemory(&p_info, sizeof(p_info));
+    ZeroMemory(&s_info, sizeof(s_info));
+    s_info.cb = sizeof(STARTUPINFO);
+    // set-up control handler callback funciotn
+    SetConsoleCtrlHandler((PHANDLER_ROUTINE) control_handler, TRUE);
+    if (!CreateProcessA(NULL, commandline, NULL, NULL, TRUE, 0, NULL, NULL, &s_info, &p_info)) {
+        fprintf(stderr, "failed to create process.\n");
+        return 0;
+    }   
+    child_pid = p_info.dwProcessId;
+    // wait for Python to exit
+    WaitForSingleObject(p_info.hProcess, INFINITE);
+    if (!GetExitCodeProcess(p_info.hProcess, &return_value)) {
+        fprintf(stderr, "failed to get exit code from process.\n");
+        return 0;
+    }
+    return return_value;
+}
+
+char* join_executable_and_args(char *executable, char **args, int argc)
+{
+    /*
+     * distribute-issue207
+     * CreateProcess needs a long string of the executable and command-line arguments,
+     * so we need to convert it from the args that was built
+     */
+    int len,counter;
+    char* cmdline;
+    
+    len=strlen(executable)+2;
+    for (counter=1; counter<argc; counter++) {
+        len+=strlen(args[counter])+1;
+    }
+
+    cmdline = (char*)calloc(len, sizeof(char));
+    sprintf(cmdline, "%s", executable);
+    len=strlen(executable);
+    for (counter=1; counter<argc; counter++) {
+        sprintf(cmdline+len, " %s", args[counter]);
+        len+=strlen(args[counter])+1;
+    }
+    return cmdline;
+}
 
 int run(int argc, char **argv, int is_gui) {
 
@@ -173,10 +246,11 @@ int run(int argc, char **argv, int is_gui) {
 
     char **newargs, **newargsp, **parsedargs; /* argument array for exec */
     char *ptr, *end;    /* working pointers for string manipulation */
+    char *cmdline;
     int i, parsedargc;              /* loop counter */
 
     /* compute script name from our .exe name*/
-    GetModuleFileName(NULL, script, sizeof(script));
+    GetModuleFileNameA(NULL, script, sizeof(script));
     end = script + strlen(script);
     while( end>script && *end != '.')
         *end-- = '\0';
@@ -236,12 +310,18 @@ int run(int argc, char **argv, int is_gui) {
         return fail("Could not exec %s", ptr);   /* shouldn't get here! */
     }
 
-    /* We *do* need to wait for a CLI to finish, so use spawn */
-    return spawnv(P_WAIT, ptr, (const char * const *)(newargs));
+    /*
+     * distribute-issue207: using CreateProcessA instead of spawnv
+     */
+    cmdline = join_executable_and_args(ptr, newargs, parsedargc + argc);
+    return create_and_wait_for_subprocess(cmdline);
 }
-
 
 int WINAPI WinMain(HINSTANCE hI, HINSTANCE hP, LPSTR lpCmd, int nShow) {
     return run(__argc, __argv, GUI);
+}
+
+int main(int argc, char** argv) {
+    return run(argc, argv, GUI);
 }
 

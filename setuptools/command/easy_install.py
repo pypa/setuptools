@@ -10,7 +10,15 @@ file, or visit the `EasyInstall home page`__.
 __ http://packages.python.org/distribute/easy_install.html
 
 """
-import sys, os.path, zipimport, shutil, tempfile, zipfile, re, stat, random
+import sys
+import os
+import zipimport
+import shutil
+import tempfile
+import zipfile
+import re
+import stat
+import random
 from glob import glob
 from setuptools import Command, _dont_write_bytecode
 from setuptools.sandbox import run_setup
@@ -21,6 +29,7 @@ from distutils.sysconfig import get_python_lib, get_config_vars
 from distutils.errors import DistutilsArgError, DistutilsOptionError, \
     DistutilsError, DistutilsPlatformError
 from distutils.command.install import INSTALL_SCHEMES, SCHEME_KEYS
+from setuptools.command import setopt
 from setuptools.archive_util import unpack_archive
 from setuptools.package_index import PackageIndex
 from setuptools.package_index import URL_SCHEME
@@ -42,6 +51,10 @@ __all__ = [
 
 import site
 HAS_USER_SITE = not sys.version < "2.6" and site.ENABLE_USER_SITE
+
+import struct
+def is_64bit():
+    return struct.calcsize("P") == 8
 
 def samefile(p1,p2):
     if hasattr(os.path,'samefile') and (
@@ -730,22 +743,26 @@ Please make the appropriate changes for your system and try again.
         spec = str(dist.as_requirement())
         is_script = is_python_script(script_text, script_name)
 
-        if is_script and dev_path:
-            script_text = get_script_header(script_text) + (
-                "# EASY-INSTALL-DEV-SCRIPT: %(spec)r,%(script_name)r\n"
-                "__requires__ = %(spec)r\n"
-                "from pkg_resources import require; require(%(spec)r)\n"
-                "del require\n"
-                "__file__ = %(dev_path)r\n"
-                "execfile(__file__)\n"
-            ) % locals()
-        elif is_script:
-            script_text = get_script_header(script_text) + (
-                "# EASY-INSTALL-SCRIPT: %(spec)r,%(script_name)r\n"
-                "__requires__ = %(spec)r\n"
-                "import pkg_resources\n"
-                "pkg_resources.run_script(%(spec)r, %(script_name)r)\n"
-            ) % locals()
+        def get_template(filename):
+            """
+            There are a couple of template scripts in the package. This
+            function loads one of them and prepares it for use.
+
+            These templates use triple-quotes to escape variable
+            substitutions so the scripts get the 2to3 treatment when build
+            on Python 3. The templates cannot use triple-quotes naturally.
+            """
+            raw_bytes = resource_string('setuptools', template_name)
+            template_str = raw_bytes.decode('utf-8')
+            clean_template = template_str.replace('"""', '')
+            return clean_template
+
+        if is_script:
+            template_name = 'script template.py'
+            if dev_path:
+                template_name = template_name.replace('.py', ' (dev).py')
+            script_text = (get_script_header(script_text) +
+                get_template(template_name) % locals())
         self.write_script(script_name, _to_ascii(script_text), 'b')
 
     def write_script(self, script_name, contents, mode="t", blockers=()):
@@ -756,12 +773,13 @@ Please make the appropriate changes for your system and try again.
         target = os.path.join(self.script_dir, script_name)
         self.add_output(target)
 
+        mask = current_umask()
         if not self.dry_run:
             ensure_directory(target)
             f = open(target,"w"+mode)
             f.write(contents)
             f.close()
-            chmod(target,0x1ED) # 0755
+            chmod(target, 0x1FF-mask) # 0777
 
 
 
@@ -1078,11 +1096,14 @@ See the setuptools documentation for the "develop" command for more info.
 
     def build_and_install(self, setup_script, setup_base):
         args = ['bdist_egg', '--dist-dir']
+
         dist_dir = tempfile.mkdtemp(
             prefix='egg-dist-tmp-', dir=os.path.dirname(setup_script)
         )
         try:
+            self._set_fetcher_options(os.path.dirname(setup_script))
             args.append(dist_dir)
+
             self.run_setup(setup_script, setup_base, args)
             all_eggs = Environment([dist_dir])
             eggs = []
@@ -1096,6 +1117,30 @@ See the setuptools documentation for the "develop" command for more info.
         finally:
             rmtree(dist_dir)
             log.set_verbosity(self.verbose) # restore our log verbosity
+
+    def _set_fetcher_options(self, base):
+        """
+        When easy_install is about to run bdist_egg on a source dist, that
+        source dist might have 'setup_requires' directives, requiring
+        additional fetching. Ensure the fetcher options given to easy_install
+        are available to that command as well.
+        """
+        # find the fetch options from easy_install and write them out
+        #  to the setup.cfg file.
+        ei_opts = self.distribution.get_option_dict('easy_install').copy()
+        fetch_directives = (
+            'find_links', 'site_dirs', 'index_url', 'optimize',
+            'site_dirs', 'allow_hosts',
+        )
+        fetch_options = {}
+        for key, val in ei_opts.iteritems():
+            if key not in fetch_directives: continue
+            fetch_options[key.replace('_', '-')] = val[1]
+        # create a settings dictionary suitable for `edit_config`
+        settings = dict(easy_install=fetch_options)
+        cfg_filename = os.path.join(base, 'setup.cfg')
+        setopt.edit_config(cfg_filename, settings)
+
 
     def update_pth(self,dist):
         if self.pth_file is None:
@@ -1431,7 +1476,19 @@ def extract_wininst_cfg(dist_filename):
         f.seek(prepended-(12+cfglen))
         cfg = ConfigParser.RawConfigParser({'version':'','target_version':''})
         try:
-            cfg.readfp(StringIO(f.read(cfglen).split(chr(0),1)[0]))
+            part = f.read(cfglen)
+            # part is in bytes, but we need to read up to the first null
+            #  byte.
+            if sys.version_info >= (2,6):
+                null_byte = bytes([0])
+            else:
+                null_byte = chr(0)
+            config = part.split(null_byte, 1)[0]
+            # Now the config is in bytes, but on Python 3, it must be
+            #  unicode for the RawConfigParser, so decode it. Is this the
+            #  right encoding?
+            config = config.decode('ascii')
+            cfg.readfp(StringIO(config))
         except ConfigParser.Error:
             return None
         if not cfg.has_section('metadata') or not cfg.has_section('Setup'):
@@ -1777,7 +1834,10 @@ def get_script_args(dist, executable=sys_executable, wininst=False):
                     ext, launcher = '-script.py', 'cli.exe'
                     old = ['.py','.pyc','.pyo']
                     new_header = re.sub('(?i)pythonw.exe','python.exe',header)
-
+                if is_64bit():
+                    launcher = launcher.replace(".", "-64.")
+                else:
+                    launcher = launcher.replace(".", "-32.")
                 if os.path.exists(new_header[2:-1]) or sys.platform!='win32':
                     hdr = new_header
                 else:
@@ -1826,6 +1886,11 @@ def rmtree(path, ignore_errors=False, onerror=auto_chmod):
         os.rmdir(path)
     except os.error:
         onerror(os.rmdir, path, sys.exc_info())
+
+def current_umask():
+    tmp = os.umask(022)
+    os.umask(tmp)
+    return tmp
 
 def bootstrap():
     # This function is called when setuptools*.egg is run using /bin/sh

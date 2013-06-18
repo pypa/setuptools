@@ -180,19 +180,22 @@ def unpack_tarfile(filename, extract_dir, progress_filter=default_filter):
     try:
         tarobj.chown = lambda *args: None   # don't do any chowning!
         for member in tarobj:
-            if member.isfile() or member.isdir():
-                name = member.name
-                # don't extract absolute paths or ones with .. in them
-                if not name.startswith('/') and '..' not in name:
-                    dst = os.path.join(extract_dir, *name.split('/'))                
-                    dst = progress_filter(name, dst)
-                    if dst:
-                        if dst.endswith(os.sep):
-                            dst = dst[:-1]
-                        try:
-                            tarobj._extract_member(member,dst)  # XXX Ugh
-                        except tarfile.ExtractError:
-                            pass    # chown/chmod/mkfifo/mknode/makedev failed
+            name = member.name
+            # don't extract absolute paths or ones with .. in them
+            if not name.startswith('/') and '..' not in name:
+                prelim_dst = os.path.join(extract_dir, *name.split('/'))
+                final_dst = progress_filter(name, prelim_dst)
+                # If progress_filter returns None, then we do not extract
+                # this file
+                # TODO: Do we really need to limit to just these file types?
+                # tarobj.extract() will handle all files on all platforms,
+                # turning file types that aren't allowed on that platform into
+                # regular files.
+                if final_dst and (member.isfile() or member.isdir() or
+                        member.islnk() or member.issym()):
+                    tarobj.extract(member, extract_dir)
+                    if final_dst != prelim_dst:
+                        shutil.move(prelim_dst, final_dst)
         return True
     finally:
         tarobj.close()

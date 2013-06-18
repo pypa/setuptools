@@ -26,18 +26,20 @@ directory, as opposed from the source directory as is normally done.
 
 Distribute will convert all Python files, and also all doctests in Python
 files. However, if you have doctests located in separate text files, these
-will not automatically be converted. By adding them to the 
-``convert_2to3_doctests`` keyword parameter Distrubute will convert them as 
-well. 
+will not automatically be converted. By adding them to the
+``convert_2to3_doctests`` keyword parameter Distrubute will convert them as
+well.
 
 By default, the conversion uses all fixers in the ``lib2to3.fixers`` package.
-To use additional fixes, the parameter ``use_2to3_fixers`` can be set
-to a list of names of packages containing fixers.
+To use additional fixers, the parameter ``use_2to3_fixers`` can be set
+to a list of names of packages containing fixers. To exclude fixers, the
+parameter ``use_2to3_exclude_fixers`` can be set to fixer names to be
+skipped.
 
 A typical setup.py can look something like this::
 
     from setuptools import setup
-    
+
     setup(
         name='your.module',
         version = '1.0',
@@ -49,7 +51,8 @@ A typical setup.py can look something like this::
         test_suite = 'your.module.tests',
         use_2to3 = True,
         convert_2to3_doctests = ['src/your/module/README.txt'],
-        use_2to3_fixers = ['your.fixers']
+        use_2to3_fixers = ['your.fixers'],
+        use_2to3_exclude_fixers = ['lib2to3.fixes.fix_import'],
     )
 
 Differential conversion
@@ -58,10 +61,10 @@ Differential conversion
 Note that a file will only be copied and converted during the build process
 if the source file has been changed. If you add a file to the doctests
 that should be converted, it will not be converted the next time you run
-the tests, since it hasn't been modified. You need to remove it from the 
+the tests, since it hasn't been modified. You need to remove it from the
 build directory. Also if you run the build, install or test commands before
 adding the use_2to3 parameter, you will have to remove the build directory
-before you run the test command, as the files otherwise will seem updated, 
+before you run the test command, as the files otherwise will seem updated,
 and no conversion will happen.
 
 In general, if code doesn't seem to be converted, deleting the build directory
@@ -80,12 +83,6 @@ already converted code, and hence no 2to3 conversion is needed during install.
 Advanced features
 =================
 
-If certain fixers are to be suppressed, this again can be overridden with the
-list ``setuptools.command.build_py.build_py.fixer_names``, which at some
-point contains the list of all fixer class names. For an example of how this
-can be done, see the `jaraco.util <https://bitbucket.org/jaraco/jaraco.util>`_
-project.
-
 If you don't want to run the 2to3 conversion on the doctests in Python files,
 you can turn that off by setting ``setuptools.use_2to3_on_doctests = False``.
 
@@ -96,18 +93,18 @@ Setuptools do not know about the new keyword parameters to support Python 3.
 As a result it will warn about the unknown keyword parameters if you use
 setuptools instead of Distribute under Python 2. This is not an error, and
 install process will continue as normal, but if you want to get rid of that
-error this is easy. Simply conditionally add the new parameters into an extra 
+error this is easy. Simply conditionally add the new parameters into an extra
 dict and pass that dict into setup()::
 
     from setuptools import setup
     import sys
-    
+
     extra = {}
     if sys.version_info >= (3,):
         extra['use_2to3'] = True
         extra['convert_2to3_doctests'] = ['src/your/module/README.txt']
         extra['use_2to3_fixers'] = ['your.fixers']
-    
+
     setup(
         name='your.module',
         version = '1.0',

@@ -1,7 +1,9 @@
 """Basic http server for tests to simulate PyPI or custom indexes
 """
 import sys
-from threading import Thread
+import time
+import threading
+import BaseHTTPServer
 from setuptools.compat import (urllib2, URLError, HTTPServer,
                                SimpleHTTPRequestHandler)
 
@@ -16,32 +18,64 @@ class IndexServer(HTTPServer):
         # The index files should be located in setuptools/tests/indexes
         s.stop()
     """
-    def __init__(self):
-        HTTPServer.__init__(self, ('', 0), SimpleHTTPRequestHandler)
+    def __init__(self, server_address=('', 0),
+            RequestHandlerClass=SimpleHTTPRequestHandler):
+        HTTPServer.__init__(self, server_address, RequestHandlerClass)
         self._run = True
 
     def serve(self):
-        while True:
+        while self._run:
             self.handle_request()
-            if not self._run: break
 
     def start(self):
-        self.thread = Thread(target=self.serve)
+        self.thread = threading.Thread(target=self.serve)
         self.thread.start()
 
     def stop(self):
-        """self.shutdown is not supported on python < 2.6"""
+        "Stop the server"
+
+        # Let the server finish the last request and wait for a new one.
+        time.sleep(0.1)
+
+        # self.shutdown is not supported on python < 2.6, so just
+        #  set _run to false, and make a request, causing it to
+        #  terminate.
         self._run = False
+        url = 'http://127.0.0.1:%(server_port)s/' % vars(self)
         try:
-            if sys.version > '2.6':
-                urllib2.urlopen('http://127.0.0.1:%s/' % self.server_port,
-                                None, 5)
+            if sys.version_info >= (2, 6):
+                urllib2.urlopen(url, timeout=5)
             else:
-                urllib2.urlopen('http://127.0.0.1:%s/' % self.server_port)
+                urllib2.urlopen(url)
         except URLError:
+            # ignore any errors; all that's important is the request
             pass
         self.thread.join()
 
     def base_url(self):
         port = self.server_port
         return 'http://127.0.0.1:%s/setuptools/tests/indexes/' % port
+
+class RequestRecorder(BaseHTTPServer.BaseHTTPRequestHandler):
+    def do_GET(self):
+        requests = vars(self.server).setdefault('requests', [])
+        requests.append(self)
+        self.send_response(200, 'OK')
+
+class MockServer(HTTPServer, threading.Thread):
+    """
+    A simple HTTP Server that records the requests made to it.
+    """
+    def __init__(self, server_address=('', 0),
+            RequestHandlerClass=RequestRecorder):
+        HTTPServer.__init__(self, server_address, RequestHandlerClass)
+        threading.Thread.__init__(self)
+        self.setDaemon(True)
+        self.requests = []
+
+    def run(self):
+        self.serve_forever()
+
+    def url(self):
+        return 'http://localhost:%(server_port)s/' % vars(self)
+    url = property(url)

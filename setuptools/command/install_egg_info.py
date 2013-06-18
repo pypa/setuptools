@@ -89,6 +89,8 @@ class install_egg_info(Command):
         if not self.dry_run:
             f = open(filename,'wt')
             for pkg in nsp:
+                # ensure pkg is not a unicode string under Python 2.7
+                pkg = str(pkg)
                 pth = tuple(pkg.split('.'))
                 trailer = '\n'
                 if '.' in pkg:

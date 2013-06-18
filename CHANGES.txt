@@ -3,10 +3,111 @@ CHANGES
 =======
 
 ------
+0.6.29
+------
+
+* Issue #320: Fix check for "createable" in distribute_setup.py.
+* Issue #305: Remove a warning that was triggered during normal operations.
+* Issue #311: Print metadata in UTF-8 independent of platform.
+* Issue #303: Read manifest file with UTF-8 encoding under Python 3.
+* Issue #301: Allow to run tests of namespace packages when using 2to3.
+* Issue #304: Prevent import loop in site.py under Python 3.3.
+* Issue #283: Reenable scanning of *.pyc / *.pyo files on Python 3.3.
+* Issue #299: The develop command didn't work on Python 3, when using 2to3,
+  as the egg link would go to the Python 2 source. Linking to the 2to3'd code
+  in build/lib makes it work, although you will have to rebuild the module
+  before testing it.
+* Issue #306: Even if 2to3 is used, we build in-place under Python 2.
+* Issue #307: Prints the full path when .svn/entries is broken.
+* Issue #313: Support for sdist subcommands (Python 2.7)
+* Issue #314: test_local_index() would fail an OS X.
+* Issue #310: Non-ascii characters in a namespace __init__.py causes errors.
+* Issue #218: Improved documentation on behavior of `package_data` and
+  `include_package_data`. Files indicated by `package_data` are now included
+  in the manifest.
+* `distribute_setup.py` now allows a `--download-base` argument for retrieving
+  distribute from a specified location.
+
+------
+0.6.28
+------
+
+* Issue #294: setup.py can now be invoked from any directory.
+* Scripts are now installed honoring the umask.
+* Added support for .dist-info directories.
+* Issue #283: Fix and disable scanning of *.pyc / *.pyo files on Python 3.3.
+
+------
+0.6.27
+------
+
+* Support current snapshots of CPython 3.3.
+* Distribute now recognizes README.rst as a standard, default readme file.
+* Exclude 'encodings' modules when removing modules from sys.modules.
+  Workaround for #285.
+* Issue #231: Don't fiddle with system python when used with buildout
+  (bootstrap.py)
+
+------
+0.6.26
+------
+
+* Issue #183: Symlinked files are now extracted from source distributions.
+* Issue #227: Easy_install fetch parameters are now passed during the
+  installation of a source distribution; now fulfillment of setup_requires
+  dependencies will honor the parameters passed to easy_install.
+
+------
+0.6.25
+------
+
+* Issue #258: Workaround a cache issue
+* Issue #260: distribute_setup.py now accepts the --user parameter for
+  Python 2.6 and later.
+* Issue #262: package_index.open_with_auth no longer throws LookupError
+  on Python 3.
+* Issue #269: AttributeError when an exception occurs reading Manifest.in
+  on late releases of Python.
+* Issue #272: Prevent TypeError when namespace package names are unicode
+  and single-install-externally-managed is used. Also fixes PIP issue
+  449.
+* Issue #273: Legacy script launchers now install with Python2/3 support.
+
+------
+0.6.24
+------
+
+* Issue #249: Added options to exclude 2to3 fixers
+
+------
+0.6.23
+------
+
+* Issue #244: Fixed a test
+* Issue #243: Fixed a test
+* Issue #239: Fixed a test
+* Issue #240: Fixed a test
+* Issue #241: Fixed a test
+* Issue #237: Fixed a test
+* Issue #238: easy_install now uses 64bit executable wrappers on 64bit Python
+* Issue #208: Fixed parsed_versions, it now honors post-releases as noted in the documentation
+* Issue #207: Windows cli and gui wrappers pass CTRL-C to child python process
+* Issue #227: easy_install now passes its arguments to setup.py bdist_egg
+* Issue #225: Fixed a NameError on Python 2.5, 2.4
+
+------
+0.6.21
+------
+
+* Issue #225: FIxed a regression on py2.4
+
+------
 0.6.20
 ------
 
-* ADD STUFF HERE
+* Issue #135: Include url in warning when processing URLs in package_index.
+* Issue #212: Fix issue where easy_instal fails on Python 3 on windows installer.
+* Issue #213: Fix typo in documentation.
 
 ------
 0.6.19

@@ -14,38 +14,62 @@ from setuptools.dist import Distribution
 SETUP_PY = """\
 from setuptools import setup
 
-setup(name='foo')
+setup(name='foo',
+    packages=['foo'],
+    use_2to3=True,
+)
+"""
+
+INIT_PY = """print "foo"
 """
 
 class TestDevelopTest(unittest.TestCase):
 
     def setUp(self):
+        if sys.version < "2.6" or hasattr(sys, 'real_prefix'):
+            return
+
+        # Directory structure
         self.dir = tempfile.mkdtemp()
+        os.mkdir(os.path.join(self.dir, 'foo'))
+        # setup.py
         setup = os.path.join(self.dir, 'setup.py')
         f = open(setup, 'w')
         f.write(SETUP_PY)
         f.close()
         self.old_cwd = os.getcwd()
+        # foo/__init__.py
+        init = os.path.join(self.dir, 'foo', '__init__.py')
+        f = open(init, 'w')
+        f.write(INIT_PY)
+        f.close()
+        
         os.chdir(self.dir)
-        if sys.version >= "2.6":
-            self.old_base = site.USER_BASE
-            site.USER_BASE = tempfile.mkdtemp()
-            self.old_site = site.USER_SITE
-            site.USER_SITE = tempfile.mkdtemp()
+        self.old_base = site.USER_BASE
+        site.USER_BASE = tempfile.mkdtemp()
+        self.old_site = site.USER_SITE
+        site.USER_SITE = tempfile.mkdtemp()
 
     def tearDown(self):
+        if sys.version < "2.6" or hasattr(sys, 'real_prefix'):
+            return
+        
         os.chdir(self.old_cwd)
         shutil.rmtree(self.dir)
-        if sys.version >= "2.6":
-            shutil.rmtree(site.USER_BASE)
-            shutil.rmtree(site.USER_SITE)
-            site.USER_BASE = self.old_base
-            site.USER_SITE = self.old_site
+        shutil.rmtree(site.USER_BASE)
+        shutil.rmtree(site.USER_SITE)
+        site.USER_BASE = self.old_base
+        site.USER_SITE = self.old_site
 
     def test_develop(self):
         if sys.version < "2.6" or hasattr(sys, 'real_prefix'):
             return
-        dist = Distribution()
+        dist = Distribution(
+            dict(name='foo',
+                 packages=['foo'],
+                 use_2to3=True,
+                 version='0.0',
+                 ))
         dist.script_name = 'setup.py'
         cmd = develop(dist)
         cmd.user = 1
@@ -53,7 +77,7 @@ class TestDevelopTest(unittest.TestCase):
         cmd.install_dir = site.USER_SITE
         cmd.user = 1
         old_stdout = sys.stdout
-        sys.stdout = StringIO()
+        #sys.stdout = StringIO()
         try:
             cmd.run()
         finally:
@@ -62,9 +86,17 @@ class TestDevelopTest(unittest.TestCase):
         # let's see if we got our egg link at the right place
         content = os.listdir(site.USER_SITE)
         content.sort()
-        self.assertEquals(content, ['UNKNOWN.egg-link', 'easy-install.pth'])
+        self.assertEqual(content, ['easy-install.pth', 'foo.egg-link'])
 
-    def test_develop_with_setup_requires(self):
+        # Check that we are using the right code.
+        path = open(os.path.join(site.USER_SITE, 'foo.egg-link'), 'rt').read().split()[0].strip()
+        init = open(os.path.join(path, 'foo', '__init__.py'), 'rt').read().strip()
+        if sys.version < "3":
+            self.assertEqual(init, 'print "foo"')
+        else:
+            self.assertEqual(init, 'print("foo")')
+
+    def notest_develop_with_setup_requires(self):
 
         wanted = ("Could not find suitable distribution for "
                   "Requirement.parse('I-DONT-EXIST')")

@@ -2,6 +2,10 @@
 """Distutils setup file, used to install or test 'setuptools'"""
 import sys
 import os
+import textwrap
+
+# Allow to run setup.py from another directory.
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 src_root = None
 do_2to3 = False
@@ -28,7 +32,7 @@ if sys.version_info >= (3,) and do_2to3:
     util.run_2to3(outfiles_2to3)
 
     # arrange setup to use the copy
-    sys.path.insert(0, tmp_src)
+    sys.path.insert(0, os.path.abspath(tmp_src))
     src_root = tmp_src
 
 from distutils.util import convert_path
@@ -38,7 +42,7 @@ init_path = convert_path('setuptools/command/__init__.py')
 exec(open(init_path).read(), d)
 
 SETUP_COMMANDS = d['__all__']
-VERSION = "0.6.20"
+VERSION = "0.6.29"
 
 from setuptools import setup, find_packages
 from setuptools.command.build_py import build_py as _build_py
@@ -174,7 +178,8 @@ dist = setup(
             "test_loader            = setuptools.dist:check_importable",
             "use_2to3               = setuptools.dist:assert_bool",
             "convert_2to3_doctests  = setuptools.dist:assert_string_list",
-            "use_2to3_fixers = setuptools.dist:assert_string_list",
+            "use_2to3_fixers        = setuptools.dist:assert_string_list",
+            "use_2to3_exclude_fixers = setuptools.dist:assert_string_list",
         ],
 
         "egg_info.writers": [
@@ -198,23 +203,28 @@ dist = setup(
         },
 
 
-    classifiers = [f.strip() for f in """
-    Development Status :: 5 - Production/Stable
-    Intended Audience :: Developers
-    License :: OSI Approved :: Python Software Foundation License
-    License :: OSI Approved :: Zope Public License
-    Operating System :: OS Independent
-    Programming Language :: Python
-    Programming Language :: Python :: 3
-    Topic :: Software Development :: Libraries :: Python Modules
-    Topic :: System :: Archiving :: Packaging
-    Topic :: System :: Systems Administration
-    Topic :: Utilities""".splitlines() if f.strip()],
+    classifiers = textwrap.dedent("""
+        Development Status :: 5 - Production/Stable
+        Intended Audience :: Developers
+        License :: OSI Approved :: Python Software Foundation License
+        License :: OSI Approved :: Zope Public License
+        Operating System :: OS Independent
+        Programming Language :: Python :: 2.4
+        Programming Language :: Python :: 2.5
+        Programming Language :: Python :: 2.6
+        Programming Language :: Python :: 2.7
+        Programming Language :: Python :: 3
+        Programming Language :: Python :: 3.1
+        Programming Language :: Python :: 3.2
+        Programming Language :: Python :: 3.3
+        Topic :: Software Development :: Libraries :: Python Modules
+        Topic :: System :: Archiving :: Packaging
+        Topic :: System :: Systems Administration
+        Topic :: Utilities
+        """).strip().splitlines(),
     scripts = scripts,
 )
 
 if _being_installed():
     from distribute_setup import _after_install
     _after_install(dist)
-
-
