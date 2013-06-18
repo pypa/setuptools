@@ -3,7 +3,7 @@
 import sys
 import time
 import threading
-import BaseHTTPServer
+from setuptools.compat import BaseHTTPRequestHandler
 from setuptools.compat import (urllib2, URLError, HTTPServer,
                                SimpleHTTPRequestHandler)
 
@@ -56,7 +56,7 @@ class IndexServer(HTTPServer):
         port = self.server_port
         return 'http://127.0.0.1:%s/setuptools/tests/indexes/' % port
 
-class RequestRecorder(BaseHTTPServer.BaseHTTPRequestHandler):
+class RequestRecorder(BaseHTTPRequestHandler):
     def do_GET(self):
         requests = vars(self.server).setdefault('requests', [])
         requests.append(self)
