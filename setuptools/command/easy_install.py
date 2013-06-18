@@ -19,7 +19,9 @@ import zipfile
 import re
 import stat
 import random
+import platform
 from glob import glob
+import pkg_resources
 from setuptools import Command, _dont_write_bytecode
 from setuptools.sandbox import run_setup
 from distutils import log, dir_util
@@ -493,7 +495,7 @@ Please make the appropriate changes for your system and try again.
             self.cant_write_to_target()
         else:
             try:
-                f.write("import os;open(%r,'w').write('OK')\n" % (ok_file,))
+                f.write("import os; f = open(%r, 'w'); f.write('OK'); f.close()\n" % (ok_file,))
                 f.close(); f=None
                 executable = sys.executable
                 if os.name=='nt':
@@ -524,6 +526,10 @@ Please make the appropriate changes for your system and try again.
         """Write all the scripts for `dist`, unless scripts are excluded"""
         if not self.exclude_scripts and dist.metadata_isdir('scripts'):
             for script_name in dist.metadata_listdir('scripts'):
+                if dist.metadata_isdir('scripts/' + script_name):
+                    # The "script" is a directory, likely a Python 3
+                    # __pycache__ directory, so skip it.
+                    continue
                 self.install_script(
                     dist, script_name,
                     dist.get_metadata('scripts/'+script_name)
@@ -1276,7 +1282,7 @@ Please make the appropriate changes for your system and try again.""" % (
             return  # already did it, or don't need to
 
         sitepy = os.path.join(self.install_dir, "site.py")
-        source = resource_string(Requirement.parse("distribute"), "site.py")
+        source = resource_string("setuptools", "site-patch.py")
         current = ""
 
         if os.path.exists(sitepy):
@@ -1529,7 +1535,10 @@ def get_exe_prefixes(exe_filename):
             if name.endswith('-nspkg.pth'):
                 continue
             if parts[0].upper() in ('PURELIB','PLATLIB'):
-                for pth in yield_lines(z.read(name)):
+                contents = z.read(name)
+                if sys.version_info >= (3,):
+                    contents = contents.decode()
+                for pth in yield_lines(contents):
                     pth = pth.strip().replace('\\','/')
                     if not pth.startswith('import'):
                         prefixes.append((('%s/%s/' % (parts[0],pth)), ''))
@@ -1794,6 +1803,11 @@ def chmod(path, mode):
 
 def fix_jython_executable(executable, options):
     if sys.platform.startswith('java') and is_sh(executable):
+        # Workaround for Jython is not needed on Linux systems.
+        import java
+        if java.lang.System.getProperty("os.name") == "Linux":
+            return executable
+
         # Workaround Jython's sys.executable being a .sh (an invalid
         # shebang line interpreter)
         if options:
@@ -1828,30 +1842,60 @@ def get_script_args(dist, executable=sys_executable, wininst=False):
             if sys.platform=='win32' or wininst:
                 # On Windows/wininst, add a .py extension and an .exe launcher
                 if group=='gui_scripts':
-                    ext, launcher = '-script.pyw', 'gui.exe'
+                    launcher_type = 'gui'
+                    ext = '-script.pyw'
                     old = ['.pyw']
                     new_header = re.sub('(?i)python.exe','pythonw.exe',header)
                 else:
-                    ext, launcher = '-script.py', 'cli.exe'
+                    launcher_type = 'cli'
+                    ext = '-script.py'
                     old = ['.py','.pyc','.pyo']
                     new_header = re.sub('(?i)pythonw.exe','python.exe',header)
-                if is_64bit():
-                    launcher = launcher.replace(".", "-64.")
-                else:
-                    launcher = launcher.replace(".", "-32.")
                 if os.path.exists(new_header[2:-1]) or sys.platform!='win32':
                     hdr = new_header
                 else:
                     hdr = header
                 yield (name+ext, hdr+script_text, 't', [name+x for x in old])
                 yield (
-                    name+'.exe', resource_string('setuptools', launcher),
+                    name+'.exe', get_win_launcher(launcher_type),
                     'b' # write in binary mode
                 )
+                if not is_64bit():
+                    # install a manifest for the launcher to prevent Windows
+                    #  from detecting it as an installer (which it will for
+                    #  launchers like easy_install.exe). Consider only
+                    #  adding a manifest for launchers detected as installers.
+                    #  See Distribute #143 for details.
+                    m_name = name + '.exe.manifest'
+                    yield (m_name, load_launcher_manifest(name), 't')
             else:
                 # On other platforms, we assume the right thing to do is to
                 # just write the stub with no extension.
                 yield (name, header+script_text)
+
+def get_win_launcher(type):
+    """
+    Load the Windows launcher (executable) suitable for launching a script.
+
+    `type` should be either 'cli' or 'gui'
+
+    Returns the executable as a byte string.
+    """
+    launcher_fn = '%s.exe' % type
+    if platform.machine().lower()=='arm':
+        launcher_fn = launcher_fn.replace(".", "-arm.")
+    if is_64bit():
+        launcher_fn = launcher_fn.replace(".", "-64.")
+    else:
+        launcher_fn = launcher_fn.replace(".", "-32.")
+    return resource_string('setuptools', launcher_fn)
+
+def load_launcher_manifest(name):
+    manifest = pkg_resources.resource_string(__name__, 'launcher manifest.xml')
+    if sys.version_info[0] < 3:
+        return manifest % vars()
+    else:
+        return manifest.decode('utf-8') % vars()
 
 def rmtree(path, ignore_errors=False, onerror=auto_chmod):
     """Recursively delete a directory tree.

@@ -1968,7 +1968,9 @@ def testfile(filename, module_relative=True, name=None, package=None,
         runner = DocTestRunner(verbose=verbose, optionflags=optionflags)
 
     # Read the file, convert it to a test, and run it.
-    s = open(filename).read()
+    f = open(filename)
+    s = f.read()
+    f.close()
     test = parser.get_doctest(s, globs, name, filename, 0)
     runner.run(test)
 
@@ -2353,7 +2355,9 @@ def DocFileTest(path, module_relative=True, package=None,
 
     # Find the file and read it.
     name = os.path.basename(path)
-    doc = open(path).read()
+    f = open(path)
+    doc = f.read()
+    f.close()
 
     # Convert it to a test, and wrap it in a DocFileCase.
     test = parser.get_doctest(doc, globs, name, path, 0)

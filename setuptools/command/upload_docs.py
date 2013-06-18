@@ -8,9 +8,12 @@ PyPI's packages.python.org).
 import os
 import socket
 import zipfile
-import base64
 import tempfile
 import sys
+import shutil
+
+from base64 import standard_b64encode
+from pkg_resources import iter_entry_points
 
 from distutils import log
 from distutils.errors import DistutilsOptionError
@@ -24,18 +27,12 @@ from setuptools.compat import httplib, urlparse
 
 _IS_PYTHON3 = sys.version > '3'
 
-try:
-    bytes
-except NameError:
-    bytes = str
-
-def b(str_or_bytes):
-    """Return bytes by either encoding the argument as ASCII or simply return
-    the argument as-is."""
-    if not isinstance(str_or_bytes, bytes):
-        return str_or_bytes.encode('ascii')
-    else:
-        return str_or_bytes
+# This is not just a replacement for byte literals
+# but works as a general purpose encoder
+def b(s, encoding='utf-8'):
+    if isinstance(s, unicode):
+        return s.encode(encoding)
+    return s
 
 
 class upload_docs(upload):
@@ -51,43 +48,67 @@ class upload_docs(upload):
         ]
     boolean_options = upload.boolean_options
 
+    def has_sphinx(self):
+        if self.upload_dir is None:
+            for ep in iter_entry_points('distutils.commands', 'build_sphinx'):
+                return True
+
+    sub_commands = [('build_sphinx', has_sphinx)]
+
     def initialize_options(self):
         upload.initialize_options(self)
         self.upload_dir = None
+        self.target_dir = None
 
     def finalize_options(self):
         upload.finalize_options(self)
         if self.upload_dir is None:
-            build = self.get_finalized_command('build')
-            self.upload_dir = os.path.join(build.build_base, 'docs')
-            self.mkpath(self.upload_dir)
-        self.ensure_dirname('upload_dir')
-        self.announce('Using upload directory %s' % self.upload_dir)
+            if self.has_sphinx():
+                build_sphinx = self.get_finalized_command('build_sphinx')
+                self.target_dir = build_sphinx.builder_target_dir
+            else:
+                build = self.get_finalized_command('build')
+                self.target_dir = os.path.join(build.build_base, 'docs')
+        else:
+            self.ensure_dirname('upload_dir')
+            self.target_dir = self.upload_dir
+        self.announce('Using upload directory %s' % self.target_dir)
 
-    def create_zipfile(self):
-        name = self.distribution.metadata.get_name()
-        tmp_dir = tempfile.mkdtemp()
-        tmp_file = os.path.join(tmp_dir, "%s.zip" % name)
-        zip_file = zipfile.ZipFile(tmp_file, "w")
-        for root, dirs, files in os.walk(self.upload_dir):
-            if root == self.upload_dir and not files:
-                raise DistutilsOptionError(
-                    "no files found in upload directory '%s'"
-                    % self.upload_dir)
-            for name in files:
-                full = os.path.join(root, name)
-                relative = root[len(self.upload_dir):].lstrip(os.path.sep)
-                dest = os.path.join(relative, name)
-                zip_file.write(full, dest)
-        zip_file.close()
-        return tmp_file
+    def create_zipfile(self, filename):
+        zip_file = zipfile.ZipFile(filename, "w")
+        try:
+            self.mkpath(self.target_dir)  # just in case
+            for root, dirs, files in os.walk(self.target_dir):
+                if root == self.target_dir and not files:
+                    raise DistutilsOptionError(
+                        "no files found in upload directory '%s'"
+                        % self.target_dir)
+                for name in files:
+                    full = os.path.join(root, name)
+                    relative = root[len(self.target_dir):].lstrip(os.path.sep)
+                    dest = os.path.join(relative, name)
+                    zip_file.write(full, dest)
+        finally:
+            zip_file.close()
 
     def run(self):
-        zip_file = self.create_zipfile()
-        self.upload_file(zip_file)
+        # Run sub commands
+        for cmd_name in self.get_sub_commands():
+            self.run_command(cmd_name)
+
+        tmp_dir = tempfile.mkdtemp()
+        name = self.distribution.metadata.get_name()
+        zip_file = os.path.join(tmp_dir, "%s.zip" % name)
+        try:
+            self.create_zipfile(zip_file)
+            self.upload_file(zip_file)
+        finally:
+            shutil.rmtree(tmp_dir)
 
     def upload_file(self, filename):
-        content = open(filename, 'rb').read()
+        f = open(filename, 'rb')
+        content = f.read()
+        f.close()
         meta = self.distribution.metadata
         data = {
             ':action': 'doc_upload',
@@ -95,36 +116,33 @@ class upload_docs(upload):
             'content': (os.path.basename(filename), content),
         }
         # set up the authentication
-        credentials = self.username + ':' + self.password
-        if _IS_PYTHON3:  # base64 only works with bytes in Python 3.
-            encoded_creds = base64.encodebytes(credentials.encode('utf8'))
-            auth = bytes("Basic ")
-        else:
-            encoded_creds = base64.encodestring(credentials)
-            auth = "Basic "
-        auth += encoded_creds.strip()
+        credentials = b(self.username + ':' + self.password)
+        credentials = standard_b64encode(credentials)
+        if sys.version_info >= (3,):
+            credentials = credentials.decode('ascii')
+        auth = "Basic " + credentials
 
         # Build up the MIME payload for the POST data
-        boundary = b('--------------GHSKFJDLGDS7543FJKLFHRE75642756743254')
-        sep_boundary = b('\n--') + boundary
+        boundary = '--------------GHSKFJDLGDS7543FJKLFHRE75642756743254'
+        sep_boundary = b('\n--') + b(boundary)
         end_boundary = sep_boundary + b('--')
         body = []
-        for key, values in data.items():
+        for key, values in data.iteritems():
+            title = '\nContent-Disposition: form-data; name="%s"' % key
             # handle multiple entries for the same name
             if type(values) != type([]):
                 values = [values]
             for value in values:
                 if type(value) is tuple:
-                    fn = b(';filename="%s"' % value[0])
+                    title += '; filename="%s"' % value[0]
                     value = value[1]
                 else:
-                    fn = b("")
+                    value = b(value)
                 body.append(sep_boundary)
-                body.append(b('\nContent-Disposition: form-data; name="%s"'%key))
-                body.append(fn)
+                body.append(b(title))
                 body.append(b("\n\n"))
-                body.append(b(value))
-                if value and value[-1] == b('\r'):
+                body.append(value)
+                if value and value[-1:] == b('\r'):
                     body.append(b('\n'))  # write an extra newline (lurve Macs)
         body.append(end_boundary)
         body.append(b("\n"))

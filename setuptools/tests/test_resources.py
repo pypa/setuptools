@@ -478,13 +478,14 @@ class ParseTests(TestCase):
             p1, p2 = parse_version(s1),parse_version(s2)
             self.assertEqual(p1,p2, (s1,s2,p1,p2))
 
+        c('1.2-rc1', '1.2rc1')
         c('0.4', '0.4.0')
         c('0.4.0.0', '0.4.0')
         c('0.4.0-0', '0.4-0')
         c('0pl1', '0.0pl1')
         c('0pre1', '0.0c1')
         c('0.0.0preview1', '0c1')
-        c('0.0c1', '0rc1')
+        c('0.0c1', '0-rc1')
         c('1.2a1', '1.2.a.1'); c('1.2...a', '1.2a')
 
     def testVersionOrdering(self):
@@ -493,14 +494,11 @@ class ParseTests(TestCase):
             self.assertTrue(p1<p2, (s1,s2,p1,p2))
 
         c('2.1','2.1.1')
-        c('2.1.0','2.10')
         c('2a1','2b0')
-        c('2b1','2c0')
         c('2a1','2.1')
         c('2.3a1', '2.3')
         c('2.1-1', '2.1-2')
         c('2.1-1', '2.1.1')
-        c('2.1', '2.1.1-1')
         c('2.1', '2.1pl4')
         c('2.1a0-20040501', '2.1')
         c('1.1', '02.1')
@@ -511,20 +509,8 @@ class ParseTests(TestCase):
         c('0.4', '4.0')
         c('0.0.4', '0.4.0')
         c('0pl1', '0.4pl1')
+        c('2.1.0-rc1','2.1.0')
         c('2.1dev','2.1a0')
-        c('2.1.0rc1','2.1.0')
-        c('2.1.0','2.1.0-rc0')
-        c('2.1.0','2.1.0-a')
-        c('2.1.0','2.1.0-alpha')
-        c('2.1.0','2.1.0-foo')
-        c('1.0','1.0-1')
-        c('1.0-1','1.0.1')
-        c('1.0a','1.0b')
-        c('1.0dev','1.0rc1')
-        c('1.0pre','1.0')
-        c('1.0pre','1.0')
-        c('1.0a','1.0-a')
-        c('1.0rc1','1.0-rc1')
 
         torture ="""
         0.80.1-3 0.80.1-2 0.80.1-1 0.79.9999+0.80.0pre4-1
@@ -562,6 +548,15 @@ class ScriptHeaderTests(TestCase):
         if (sys.version_info >= (3,) and os.environ.get("LC_CTYPE")
             in (None, "C", "POSIX")):
             return
+
+        class java:
+            class lang:
+                class System:
+                    @staticmethod
+                    def getProperty(property):
+                        return ""
+        sys.modules["java"] = java
+
         platform = sys.platform
         sys.platform = 'java1.5.0_13'
         stdout = sys.stdout
@@ -585,6 +580,7 @@ class ScriptHeaderTests(TestCase):
                              '#!%s -x\n' % self.non_ascii_exe)
             self.assertTrue('Unable to adapt shebang line' in sys.stdout.getvalue())
         finally:
+            del sys.modules["java"]
             sys.platform = platform
             sys.stdout = stdout
 

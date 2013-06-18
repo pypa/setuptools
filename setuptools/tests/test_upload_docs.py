@@ -54,12 +54,19 @@ class TestUploadDocsTest(unittest.TestCase):
 
         cmd = upload_docs(dist)
         cmd.upload_dir = self.upload_dir
-        zip_file = cmd.create_zipfile()
+        cmd.target_dir = self.upload_dir
+        tmp_dir = tempfile.mkdtemp()
+        tmp_file = os.path.join(tmp_dir, 'foo.zip')
+        try:
+            zip_file = cmd.create_zipfile(tmp_file)
 
-        assert zipfile.is_zipfile(zip_file)
+            assert zipfile.is_zipfile(tmp_file)
 
-        zip_f = zipfile.ZipFile(zip_file) # woh...
+            zip_file = zipfile.ZipFile(tmp_file) # woh...
 
-        assert zip_f.namelist() == ['index.html']
+            assert zip_file.namelist() == ['index.html']
 
+            zip_file.close()
+        finally:
+            shutil.rmtree(tmp_dir)
 

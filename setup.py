@@ -3,6 +3,7 @@
 import sys
 import os
 import textwrap
+import re
 
 # Allow to run setup.py from another directory.
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -15,8 +16,10 @@ if sys.version_info >= (3,) and do_2to3:
     from distutils import dir_util, file_util, util, log
     log.set_verbosity(1)
     fl = FileList()
-    for line in open("MANIFEST.in"):
+    manifest_file = open("MANIFEST.in")
+    for line in manifest_file:
         fl.process_template_line(line)
+    manifest_file.close()
     dir_util.create_tree(tmp_src, fl.files)
     outfiles_2to3 = []
     dist_script = os.path.join("build", "src", "distribute_setup.py")
@@ -39,10 +42,12 @@ from distutils.util import convert_path
 
 d = {}
 init_path = convert_path('setuptools/command/__init__.py')
-exec(open(init_path).read(), d)
+init_file = open(init_path)
+exec(init_file.read(), d)
+init_file.close()
 
 SETUP_COMMANDS = d['__all__']
-VERSION = "0.6.29"
+VERSION = "0.6.46"
 
 from setuptools import setup, find_packages
 from setuptools.command.build_py import build_py as _build_py
@@ -82,10 +87,8 @@ class test(_test):
         entry_points = os.path.join('distribute.egg-info', 'entry_points.txt')
 
         if not os.path.exists(entry_points):
-            try:
-                _test.run(self)
-            finally:
-                return
+            _test.run(self)
+            return # even though _test.run will raise SystemExit
 
         f = open(entry_points)
 
@@ -132,6 +135,16 @@ if _being_installed():
     from distribute_setup import _before_install
     _before_install()
 
+readme_file = open('README.txt')
+# the release script adds hyperlinks to issues
+if os.path.exists('CHANGES (links).txt'):
+    changes_file = open('CHANGES (links).txt')
+else:
+    # but if the release script has not run, fall back to the source file
+    changes_file = open('CHANGES.txt')
+long_description = readme_file.read() + changes_file.read()
+readme_file.close()
+changes_file.close()
 
 dist = setup(
     name="distribute",
@@ -141,26 +154,24 @@ dist = setup(
     author="The fellowship of the packaging",
     author_email="distutils-sig@python.org",
     license="PSF or ZPL",
-    long_description = open('README.txt').read() + open('CHANGES.txt').read(),
+    long_description = long_description,
     keywords = "CPAN PyPI distutils eggs package management",
     url = "http://packages.python.org/distribute",
     test_suite = 'setuptools.tests',
     src_root = src_root,
     packages = find_packages(),
-    package_data = {'setuptools':['*.exe']},
+    package_data = {'setuptools':['*.exe', 'site-patch.py'], 'setuptools.command':['*.xml']},
 
-    py_modules = ['pkg_resources', 'easy_install', 'site'],
+    py_modules = ['pkg_resources', 'easy_install'],
 
     zip_safe = (sys.version>="2.5"),   # <2.5 needs unzipped for -m to work
 
     cmdclass = {'test': test},
     entry_points = {
-
         "distutils.commands" : [
             "%(cmd)s = setuptools.command.%(cmd)s:%(cmd)s" % locals()
             for cmd in SETUP_COMMANDS
         ],
-
         "distutils.setup_keywords": [
             "eager_resources        = setuptools.dist:assert_string_list",
             "namespace_packages     = setuptools.dist:check_nsp",
@@ -181,7 +192,6 @@ dist = setup(
             "use_2to3_fixers        = setuptools.dist:assert_string_list",
             "use_2to3_exclude_fixers = setuptools.dist:assert_string_list",
         ],
-
         "egg_info.writers": [
             "PKG-INFO = setuptools.command.egg_info:write_pkg_info",
             "requires.txt = setuptools.command.egg_info:write_requirements",
@@ -192,7 +202,6 @@ dist = setup(
             "depends.txt = setuptools.command.egg_info:warn_depends_obsolete",
             "dependency_links.txt = setuptools.command.egg_info:overwrite_arg",
         ],
-
         "console_scripts": console_scripts,
 
         "setuptools.file_finders":
@@ -200,7 +209,7 @@ dist = setup(
 
         "setuptools.installation":
             ['eggsecutable = setuptools.command.easy_install:bootstrap'],
-        },
+    },
 
 
     classifiers = textwrap.dedent("""

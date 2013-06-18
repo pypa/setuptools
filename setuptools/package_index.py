@@ -1,5 +1,6 @@
 """PyPI and direct package downloading"""
 import sys, os.path, re, shutil, random, socket
+import itertools
 import base64
 from pkg_resources import *
 from distutils import log
@@ -13,6 +14,8 @@ try:
 except ImportError:
     from md5 import md5
 from fnmatch import translate
+
+from setuptools.py24compat import wraps
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.]+)$')
 HREF = re.compile("""href\\s*=\\s*['"]?([^'"> ]+)""", re.I)
@@ -137,9 +140,38 @@ def interpret_distro_name(location, basename, metadata,
             platform = platform
         )
 
+# From Python 2.7 docs
+def unique_everseen(iterable, key=None):
+    "List unique elements, preserving order. Remember all elements ever seen."
+    # unique_everseen('AAAABBBCCDAABBB') --> A B C D
+    # unique_everseen('ABBCcAD', str.lower) --> A B C D
+    seen = set()
+    seen_add = seen.add
+    if key is None:
+        for element in itertools.ifilterfalse(seen.__contains__, iterable):
+            seen_add(element)
+            yield element
+    else:
+        for element in iterable:
+            k = key(element)
+            if k not in seen:
+                seen_add(k)
+                yield element
+
+def unique_values(func):
+    """
+    Wrap a function returning an iterable such that the resulting iterable
+    only ever yields unique items.
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        return unique_everseen(func(*args, **kwargs))
+    return wrapper
+
 REL = re.compile("""<([^>]*\srel\s*=\s*['"]?([^'">]+)[^>]*)>""", re.I)
 # this line is here to fix emacs' cruddy broken syntax highlighting
 
+@unique_values
 def find_external_links(url, page):
     """Find rel="homepage" and rel="download" links in `page`, yielding URLs"""
 
@@ -156,6 +188,7 @@ def find_external_links(url, page):
             match = HREF.search(page,pos)
             if match:
                 yield urljoin(url, htmldecode(match.group(1)))
+
 
 user_agent = "Python-urllib/%s distribute/%s" % (
     sys.version[:3], require('distribute')[0].version
@@ -666,6 +699,10 @@ class PackageIndex(Environment):
         #
         if scheme=='svn' or scheme.startswith('svn+'):
             return self._download_svn(url, filename)
+        elif scheme=='git' or scheme.startswith('git+'):
+            return self._download_git(url, filename)
+        elif scheme.startswith('hg+'):
+            return self._download_hg(url, filename)
         elif scheme=='file':
             return url2pathname(urlparse.urlparse(url)[2])
         else:
@@ -704,6 +741,55 @@ class PackageIndex(Environment):
         url = url.split('#',1)[0]   # remove any fragment for svn's sake
         self.info("Doing subversion checkout from %s to %s", url, filename)
         os.system("svn checkout -q %s %s" % (url, filename))
+        return filename
+
+    def _vcs_split_rev_from_url(self, url, pop_prefix=False):
+        scheme, netloc, path, query, frag = urlparse.urlsplit(url)
+
+        scheme = scheme.split('+', 1)[-1]
+
+        # Some fragment identification fails
+        path = path.split('#',1)[0]
+
+        rev = None
+        if '@' in path:
+            path, rev = path.rsplit('@', 1)
+
+        # Also, discard fragment
+        url = urlparse.urlunsplit((scheme, netloc, path, query, ''))
+
+        return url, rev
+
+    def _download_git(self, url, filename):
+        filename = filename.split('#',1)[0]
+        url, rev = self._vcs_split_rev_from_url(url, pop_prefix=True)
+
+        self.info("Doing git clone from %s to %s", url, filename)
+        os.system("git clone --quiet %s %s" % (url, filename))
+
+        if rev is not None:
+            self.info("Checking out %s", rev)
+            os.system("(cd %s && git checkout --quiet %s)" % (
+                filename,
+                rev,
+            ))
+
+        return filename
+
+    def _download_hg(self, url, filename):
+        filename = filename.split('#',1)[0]
+        url, rev = self._vcs_split_rev_from_url(url, pop_prefix=True)
+
+        self.info("Doing hg clone from %s to %s", url, filename)
+        os.system("hg clone --quiet %s %s" % (url, filename))
+
+        if rev is not None:
+            self.info("Updating to %s", rev)
+            os.system("(cd %s && hg up -C -r %s >&-)" % (
+                filename,
+                rev,
+            ))
+
         return filename
 
     def debug(self, msg, *args):
@@ -789,9 +875,8 @@ def open_with_auth(url):
 
     # Double scheme does not raise on Mac OS X as revealed by a
     # failing test. We would expect "nonnumeric port". Refs #20.
-    if sys.platform == 'darwin':
-        if netloc.endswith(':'):
-            raise httplib.InvalidURL("nonnumeric port: ''")
+    if netloc.endswith(':'):
+        raise httplib.InvalidURL("nonnumeric port: ''")
 
     if scheme in ('http', 'https'):
         auth, host = splituser(netloc)

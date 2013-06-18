@@ -13,7 +13,7 @@ import tarfile
 import distutils.core
 
 from setuptools.sandbox import run_setup, SandboxViolation
-from setuptools.command.easy_install import easy_install, get_script_args, main
+from setuptools.command.easy_install import easy_install, fix_jython_executable, get_script_args, main
 from setuptools.command.easy_install import  PthDistributions
 from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
@@ -51,7 +51,7 @@ if __name__ == '__main__':
     sys.exit(
         load_entry_point('spec', 'console_scripts', 'name')()
     )
-""" % sys.executable
+""" % fix_jython_executable(sys.executable, "")
 
 SETUP_PY = """\
 from setuptools import setup

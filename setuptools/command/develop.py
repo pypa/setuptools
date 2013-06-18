@@ -132,7 +132,9 @@ class develop(easy_install):
     def uninstall_link(self):
         if os.path.exists(self.egg_link):
             log.info("Removing %s (link to %s)", self.egg_link, self.egg_base)
-            contents = [line.rstrip() for line in open(self.egg_link)]
+            egg_link_file = open(self.egg_link)
+            contents = [line.rstrip() for line in egg_link_file]
+            egg_link_file.close()
             if contents not in ([self.egg_path], [self.egg_path, self.setup_path]):
                 log.warn("Link points to %s: uninstall aborted", contents)
                 return

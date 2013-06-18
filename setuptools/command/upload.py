@@ -108,8 +108,9 @@ class upload(Command):
         data['comment'] = comment
 
         if self.sign:
-            data['gpg_signature'] = (os.path.basename(filename) + ".asc",
-                                     open(filename+".asc").read())
+            asc_file = open(filename + ".asc")
+            data['gpg_signature'] = (os.path.basename(filename) + ".asc", asc_file.read())
+            asc_file.close()
 
         # set up the authentication
         auth = "Basic " + base64.encodestring(self.username + ":" + self.password).strip()

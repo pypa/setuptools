@@ -1,5 +1,8 @@
 import os, sys, tempfile, operator, pkg_resources
-_os = sys.modules[os.name]
+if os.name == "java":
+    import org.python.modules.posix.PosixModule as _os
+else:
+    _os = sys.modules[os.name]
 try:
     _file = file
 except NameError:

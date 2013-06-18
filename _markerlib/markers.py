@@ -17,9 +17,7 @@ where EXPR belongs to any of those:
 
 __all__ = ['default_environment', 'compile', 'interpret']
 
-from ast import Compare, BoolOp, Attribute, Name, Load, Str, cmpop, boolop
-from ast import parse, copy_location, NodeTransformer
-
+import ast
 import os
 import platform
 import sys
@@ -27,7 +25,16 @@ import weakref
 
 _builtin_compile = compile
 
-from platform import python_implementation
+try:
+    from platform import python_implementation
+except ImportError:
+    if os.name == "java":
+        # Jython 2.5 has ast module, but not platform.python_implementation() function.
+        def python_implementation():
+            return "Jython"
+    else:
+        raise
+
 
 # restricted set of variables
 _VARS = {'sys.platform': sys.platform,
@@ -46,27 +53,31 @@ def default_environment():
     """Return copy of default PEP 385 globals dictionary."""
     return dict(_VARS)
 
-class ASTWhitelist(NodeTransformer):
+class ASTWhitelist(ast.NodeTransformer):
     def __init__(self, statement):
         self.statement = statement # for error messages
-    
-    ALLOWED = (Compare, BoolOp, Attribute, Name, Load, Str, cmpop, boolop)
-    
+
+    ALLOWED = (ast.Compare, ast.BoolOp, ast.Attribute, ast.Name, ast.Load, ast.Str)
+    # Bool operations
+    ALLOWED += (ast.And, ast.Or)
+    # Comparison operations
+    ALLOWED += (ast.Eq, ast.Gt, ast.GtE, ast.In, ast.Is, ast.IsNot, ast.Lt, ast.LtE, ast.NotEq, ast.NotIn)
+
     def visit(self, node):
         """Ensure statement only contains allowed nodes."""
         if not isinstance(node, self.ALLOWED):
             raise SyntaxError('Not allowed in environment markers.\n%s\n%s' %
-                               (self.statement, 
+                               (self.statement,
                                (' ' * node.col_offset) + '^'))
-        return NodeTransformer.visit(self, node)
-    
+        return ast.NodeTransformer.visit(self, node)
+
     def visit_Attribute(self, node):
         """Flatten one level of attribute access."""
-        new_node = Name("%s.%s" % (node.value.id, node.attr), node.ctx)
-        return copy_location(new_node, node)
+        new_node = ast.Name("%s.%s" % (node.value.id, node.attr), node.ctx)
+        return ast.copy_location(new_node, node)
 
 def parse_marker(marker):
-    tree = parse(marker, mode='eval')
+    tree = ast.parse(marker, mode='eval')
     new_tree = ASTWhitelist(marker).generic_visit(tree)
     return new_tree
 

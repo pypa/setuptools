@@ -187,10 +187,11 @@ than ``2.4.1`` (which has a higher release number).
 
 A pre-release tag is a series of letters that are alphabetically before
 "final".  Some examples of prerelease tags would include ``alpha``, ``beta``,
-``a``, ``c``, ``dev``, and so on.  You do not have to place a dot before
-the prerelease tag if it's immediately after a number, but it's okay to do
-so if you prefer.  Thus, ``2.4c1`` and ``2.4.c1`` both represent release
-candidate 1 of version ``2.4``, and are treated as identical by setuptools.
+``a``, ``c``, ``dev``, and so on.  You do not have to place a dot or dash
+before the prerelease tag if it's immediately after a number, but it's okay to
+do so if you prefer.  Thus, ``2.4c1`` and ``2.4.c1`` and ``2.4-c1`` all
+represent release candidate 1 of version ``2.4``, and are treated as identical
+by setuptools.
 
 In addition, there are three special prerelease tags that are treated as if
 they were the letter ``c``: ``pre``, ``preview``, and ``rc``.  So, version
@@ -216,13 +217,6 @@ a post-release tag, so this version is *newer* than ``0.6a9.dev``.
 For the most part, setuptools' interpretation of version numbers is intuitive,
 but here are a few tips that will keep you out of trouble in the corner cases:
 
-* Don't use ``-`` or any other character than ``.`` as a separator, unless you
-  really want a post-release.  Remember that ``2.1-rc2`` means you've
-  *already* released ``2.1``, whereas ``2.1rc2`` and ``2.1.c2`` are candidates
-  you're putting out *before* ``2.1``.  If you accidentally distribute copies
-  of a post-release that you meant to be a pre-release, the only safe fix is to
-  bump your main release number (e.g. to ``2.1.1``) and re-release the project.
-
 * Don't stick adjoining pre-release tags together without a dot or number
   between them.  Version ``1.9adev`` is the ``adev`` prerelease of ``1.9``,
   *not* a development pre-release of ``1.9a``.  Use ``.dev`` instead, as in
@@ -239,7 +233,7 @@ but here are a few tips that will keep you out of trouble in the corner cases:
     >>> parse_version('1.9.a.dev') == parse_version('1.9a0dev')
     True
     >>> parse_version('2.1-rc2') < parse_version('2.1')
-    False
+    True
     >>> parse_version('0.6a9dev-r41475') < parse_version('0.6a9')
     True
 
@@ -616,14 +610,20 @@ Dependencies that aren't in PyPI
 
 If your project depends on packages that aren't registered in PyPI, you may
 still be able to depend on them, as long as they are available for download
-as an egg, in the standard distutils ``sdist`` format, or as a single ``.py``
-file.  You just need to add some URLs to the ``dependency_links`` argument to
+as:
+
+- an egg, in the standard distutils ``sdist`` format,
+- a single ``.py`` file, or
+- a VCS repository (Subversion, Mercurial, or Git).
+
+You just need to add some URLs to the ``dependency_links`` argument to
 ``setup()``.
 
 The URLs must be either:
 
-1. direct download URLs, or
-2. the URLs of web pages that contain direct download links
+1. direct download URLs,
+2. the URLs of web pages that contain direct download links, or
+3. the repository's URL
 
 In general, it's better to link to web pages, because it is usually less
 complex to update a web page than to release a new version of your project.
@@ -636,6 +636,27 @@ name and version number.  (Be sure to escape any dashes in the name or version
 by replacing them with underscores.)  EasyInstall will recognize this suffix
 and automatically create a trivial ``setup.py`` to wrap the single ``.py`` file
 as an egg.
+
+In the case of a VCS checkout, you should also append ``#egg=project-version``
+in order to identify for what package that checkout should be used. You can
+append ``@REV`` to the URL's path (before the fragment) to specify a revision.
+Additionally, you can also force the VCS being used by prepending the URL with
+a certain prefix. Currently available are:
+
+-  ``svn+URL`` for Subversion,
+-  ``git+URL`` for Git, and
+-  ``hg+URL`` for Mercurial
+
+A more complete example would be:
+
+    ``vcs+proto://host/path@revision#egg=project-version``
+
+Be careful with the version. It should match the one inside the project files.
+If you want do disregard the version, you have to omit it both in the
+``requires`` and in the URL's fragment.
+
+This will do a checkout (or a clone, in Git and Mercurial parlance) to a
+temporary folder and run ``setup.py bdist_egg``.
 
 The ``dependency_links`` option takes the form of a list of URL strings.  For
 example, the below will cause EasyInstall to search the specified page for
@@ -2423,7 +2444,12 @@ command::
 
     python setup.py upload_docs --upload-dir=docs/build/html
 
-As with any other ``setuptools`` based command, you can define useful
+If no ``--upload-dir`` is given, ``upload_docs`` will attempt to run the
+``build_sphinx`` command to generate uploadable documentation.
+For the command to become available, `Sphinx <http://sphinx.pocoo.org/>`_
+must be installed in the same environment as distribute.
+
+As with other ``setuptools``-based commands, you can define useful
 defaults in the ``setup.cfg`` of your Python project, e.g.:
 
 .. code-block:: ini

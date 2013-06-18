@@ -13,7 +13,7 @@ The package resource API is designed to work with normal filesystem packages,
 method.
 """
 
-import sys, os, zipimport, time, re, imp, types
+import sys, os, time, re, imp, types, zipfile, zipimport
 try:
     from urlparse import urlparse, urlunparse
 except ImportError:
@@ -59,6 +59,12 @@ except ImportError:
 
 from os import open as os_open
 from os.path import isdir, split
+
+# Avoid try/except due to potential problems with delayed import mechanisms.
+if sys.version_info >= (3, 3) and sys.implementation.name == "cpython":
+    import importlib._bootstrap as importlib_bootstrap
+else:
+    importlib_bootstrap = None
 
 # This marker is used to simplify the process that checks is the
 # setuptools package was installed by the Setuptools project
@@ -1354,13 +1360,8 @@ class DefaultProvider(EggProvider):
 
 register_loader_type(type(None), DefaultProvider)
 
-try:
-    # CPython >=3.3
-    import _frozen_importlib
-except ImportError:
-    pass
-else:
-    register_loader_type(_frozen_importlib.SourceFileLoader, DefaultProvider)
+if importlib_bootstrap is not None:
+    register_loader_type(importlib_bootstrap.SourceFileLoader, DefaultProvider)
 
 
 class EmptyProvider(NullProvider):
@@ -1377,6 +1378,37 @@ class EmptyProvider(NullProvider):
 empty_provider = EmptyProvider()
 
 
+def build_zipmanifest(path):
+    """
+    This builds a similar dictionary to the zipimport directory
+    caches.  However instead of tuples, ZipInfo objects are stored.
+
+    The translation of the tuple is as follows:
+      * [0] - zipinfo.filename on stock pythons this needs "/" --> os.sep
+              on pypy it is the same (one reason why distribute did work
+              in some cases on pypy and win32).
+      * [1] - zipinfo.compress_type
+      * [2] - zipinfo.compress_size
+      * [3] - zipinfo.file_size
+      * [4] - len(utf-8 encoding of filename) if zipinfo & 0x800
+              len(ascii encoding of filename) otherwise
+      * [5] - (zipinfo.date_time[0] - 1980) << 9 |
+               zipinfo.date_time[1] << 5 | zipinfo.date_time[2]
+      * [6] - (zipinfo.date_time[3] - 1980) << 11 |
+               zipinfo.date_time[4] << 5 | (zipinfo.date_time[5] // 2)
+      * [7] - zipinfo.CRC
+    """
+    zipinfo = dict()
+    zfile = zipfile.ZipFile(path)
+    #Got ZipFile has not __exit__ on python 3.1
+    try:
+        for zitem in zfile.namelist():
+            zpath = zitem.replace('/', os.sep)
+            zipinfo[zpath] = zfile.getinfo(zitem)
+            assert zipinfo[zpath] is not None
+    finally:
+        zfile.close()
+    return zipinfo
 
 
 class ZipProvider(EggProvider):
@@ -1386,7 +1418,7 @@ class ZipProvider(EggProvider):
 
     def __init__(self, module):
         EggProvider.__init__(self,module)
-        self.zipinfo = zipimport._zip_directory_cache[self.loader.archive]
+        self.zipinfo = build_zipmanifest(self.loader.archive)
         self.zip_pre = self.loader.archive+os.sep
 
     def _zipinfo_name(self, fspath):
@@ -1420,6 +1452,14 @@ class ZipProvider(EggProvider):
                 self._extract_resource(manager, self._eager_to_zip(name))
         return self._extract_resource(manager, zip_path)
 
+    @staticmethod
+    def _get_date_and_size(zip_stat):
+        size = zip_stat.file_size
+        date_time = zip_stat.date_time + (0, 0, -1)  # ymdhms+wday, yday, dst
+        #1980 offset already done
+        timestamp = time.mktime(date_time)
+        return timestamp, size
+
     def _extract_resource(self, manager, zip_path):
 
         if zip_path in self._index():
@@ -1429,28 +1469,19 @@ class ZipProvider(EggProvider):
                 )
             return os.path.dirname(last)  # return the extracted directory name
 
-        zip_stat = self.zipinfo[zip_path]
-        t,d,size = zip_stat[5], zip_stat[6], zip_stat[3]
-        date_time = (
-            (d>>9)+1980, (d>>5)&0xF, d&0x1F,                      # ymd
-            (t&0xFFFF)>>11, (t>>5)&0x3F, (t&0x1F) * 2, 0, 0, -1   # hms, etc.
-        )
-        timestamp = time.mktime(date_time)
+        timestamp, size = self._get_date_and_size(self.zipinfo[zip_path])
 
+        if not WRITE_SUPPORT:
+            raise IOError('"os.rename" and "os.unlink" are not supported '
+                          'on this platform')
         try:
-            if not WRITE_SUPPORT:
-                raise IOError('"os.rename" and "os.unlink" are not supported '
-                              'on this platform')
 
             real_path = manager.get_cache_path(
                 self.egg_name, self._parts(zip_path)
             )
 
-            if os.path.isfile(real_path):
-                stat = os.stat(real_path)
-                if stat.st_size==size and stat.st_mtime==timestamp:
-                    # size and stamp match, don't bother extracting
-                    return real_path
+            if self._is_current(real_path, zip_path):
+                return real_path
 
             outf, tmpnam = _mkstemp(".$extract", dir=os.path.dirname(real_path))
             os.write(outf, self.loader.get_data(zip_path))
@@ -1463,11 +1494,9 @@ class ZipProvider(EggProvider):
 
             except os.error:
                 if os.path.isfile(real_path):
-                    stat = os.stat(real_path)
-
-                    if stat.st_size==size and stat.st_mtime==timestamp:
-                        # size and stamp match, somebody did it just ahead of
-                        # us, so we're done
+                    if self._is_current(real_path, zip_path):
+                        # the file became current since it was checked above,
+                        #  so proceed.
                         return real_path
                     elif os.name=='nt':     # Windows, del old file and retry
                         unlink(real_path)
@@ -1479,6 +1508,23 @@ class ZipProvider(EggProvider):
             manager.extraction_error()  # report a user-friendly error
 
         return real_path
+
+    def _is_current(self, file_path, zip_path):
+        """
+        Return True if the file_path is current for this zip_path
+        """
+        timestamp, size = self._get_date_and_size(self.zipinfo[zip_path])
+        if not os.path.isfile(file_path):
+            return False
+        stat = os.stat(file_path)
+        if stat.st_size!=size or stat.st_mtime!=timestamp:
+            return False
+        # check that the contents match
+        zip_contents = self.loader.get_data(zip_path)
+        f = open(file_path, 'rb')
+        file_contents = f.read()
+        f.close()
+        return zip_contents == file_contents
 
     def _get_eager_resources(self):
         if self.eagers is None:
@@ -1622,7 +1668,7 @@ class EggMetadata(ZipProvider):
     def __init__(self, importer):
         """Create a metadata provider from a zipimporter"""
 
-        self.zipinfo = zipimport._zip_directory_cache[importer.archive]
+        self.zipinfo = build_zipmanifest(importer.archive)
         self.zip_pre = importer.archive+os.sep
         self.loader = importer
         if importer.prefix:
@@ -1789,20 +1835,20 @@ def find_on_path(importer, path_item, only=False):
                     for dist in find_distributions(os.path.join(path_item, entry)):
                         yield dist
                 elif not only and lower.endswith('.egg-link'):
-                    for line in open(os.path.join(path_item, entry)):
+                    entry_file = open(os.path.join(path_item, entry))
+                    try:
+                        entry_lines = entry_file.readlines()
+                    finally:
+                        entry_file.close()
+                    for line in entry_lines:
                         if not line.strip(): continue
                         for item in find_distributions(os.path.join(path_item,line.rstrip())):
                             yield item
                         break
 register_finder(ImpWrapper,find_on_path)
 
-try:
-    # CPython >=3.3
-    import _frozen_importlib
-except ImportError:
-    pass
-else:
-    register_finder(_frozen_importlib.FileFinder, find_on_path)
+if importlib_bootstrap is not None:
+    register_finder(importlib_bootstrap.FileFinder, find_on_path)
 
 _declare_state('dict', _namespace_handlers={})
 _declare_state('dict', _namespace_packages={})
@@ -1903,13 +1949,8 @@ def file_ns_handler(importer, path_item, packageName, module):
 register_namespace_handler(ImpWrapper,file_ns_handler)
 register_namespace_handler(zipimport.zipimporter,file_ns_handler)
 
-try:
-    # CPython >=3.3
-    import _frozen_importlib
-except ImportError:
-    pass
-else:
-    register_namespace_handler(_frozen_importlib.FileFinder, file_ns_handler)
+if importlib_bootstrap is not None:
+    register_namespace_handler(importlib_bootstrap.FileFinder, file_ns_handler)
 
 
 def null_ns_handler(importer, path_item, packageName, module):
@@ -1969,7 +2010,7 @@ replace = {'pre':'c', 'preview':'c','-':'final-','rc':'c','dev':'@'}.get
 def _parse_version_parts(s):
     for part in component_re.split(s):
         part = replace(part,part)
-        if part in ['', '.']:
+        if not part or part=='.':
             continue
         if part[:1] in '0123456789':
             yield part.zfill(8)    # pad for numeric comparison
@@ -2012,6 +2053,8 @@ def parse_version(s):
     parts = []
     for part in _parse_version_parts(s.lower()):
         if part.startswith('*'):
+            if part<'*final':   # remove '-' before a prerelease tag
+                while parts and parts[-1]=='*final-': parts.pop()
             # remove trailing zeros from each series of numeric parts
             while parts and parts[-1]=='00000000':
                 parts.pop()
@@ -2149,7 +2192,7 @@ def _remove_md5_fragment(location):
 class Distribution(object):
     """Wrap an actual or potential sys.path entry w/metadata"""
     PKG_INFO = 'PKG-INFO'
-    
+
     def __init__(self,
         location=None, metadata=None, project_name=None, version=None,
         py_version=PY_MAJOR, platform=None, precedence = EGG_DIST
@@ -2488,7 +2531,7 @@ class DistInfoDistribution(Distribution):
             from email.parser import Parser
             self._pkg_info = Parser().parsestr(self.get_metadata(self.PKG_INFO))
             return self._pkg_info
-    
+
     @property
     def _dep_map(self):
         try:
@@ -2499,7 +2542,7 @@ class DistInfoDistribution(Distribution):
 
     def _preparse_requirement(self, requires_dist):
         """Convert 'Foobar (1); baz' to ('Foobar ==1', 'baz')
-        Split environment marker, add == prefix to version specifiers as 
+        Split environment marker, add == prefix to version specifiers as
         necessary, and remove parenthesis.
         """
         parts = requires_dist.split(';', 1) + ['']
@@ -2508,7 +2551,7 @@ class DistInfoDistribution(Distribution):
         distvers = re.sub(self.EQEQ, r"\1==\2\3", distvers)
         distvers = distvers.replace('(', '').replace(')', '')
         return (distvers, mark)
-            
+
     def _compute_dependencies(self):
         """Recompute this distribution's dependencies."""
         from _markerlib import compile as compile_marker
@@ -2521,7 +2564,7 @@ class DistInfoDistribution(Distribution):
             parsed = next(parse_requirements(distvers))
             parsed.marker_fn = compile_marker(mark)
             reqs.append(parsed)
-            
+
         def reqs_for_extra(extra):
             for req in reqs:
                 if req.marker_fn(override={'extra':extra}):
@@ -2529,13 +2572,13 @@ class DistInfoDistribution(Distribution):
 
         common = frozenset(reqs_for_extra(None))
         dm[None].extend(common)
-            
+
         for extra in self._parsed_pkg_info.get_all('Provides-Extra') or []:
             extra = safe_extra(extra.strip())
             dm[extra] = list(frozenset(reqs_for_extra(extra)) - common)
 
         return dm
-    
+
 
 _distributionImpl = {'.egg': Distribution,
                      '.egg-info': Distribution,
@@ -2855,4 +2898,5 @@ run_main = run_script   # backward compatibility
 # calling ``require()``) will get activated as well.
 add_activation_listener(lambda dist: dist.activate())
 working_set.entries=[]; list(map(working_set.add_entry,sys.path)) # match order
+
 

@@ -17,7 +17,7 @@ Let's create a simple script, foo-script.py:
     >>> from setuptools.command.easy_install import nt_quote_arg
     >>> sample_directory = tempfile.mkdtemp()
     >>> f = open(os.path.join(sample_directory, 'foo-script.py'), 'w')
-    >>> bytes = f.write(
+    >>> bytes_written = f.write(
     ... """#!%(python_exe)s
     ... import sys
     ... input = repr(sys.stdin.read())
@@ -37,8 +37,8 @@ We'll also copy cli.exe to the sample-directory with the name foo.exe:
 
     >>> import pkg_resources
     >>> f = open(os.path.join(sample_directory, 'foo.exe'), 'wb')
-    >>> bytes = f.write(
-    ...     pkg_resources.resource_string('setuptools', 'cli.exe')
+    >>> bytes_written = f.write(
+    ...     pkg_resources.resource_string('setuptools', 'cli-32.exe')
     ...     )
     >>> f.close()
 
@@ -82,7 +82,7 @@ options as usual. For example, to run in optimized mode and
 enter the interpreter after running the script, you could use -Oi:
 
     >>> f = open(os.path.join(sample_directory, 'foo-script.py'), 'w')
-    >>> bytes = f.write(
+    >>> bytes_written = f.write(
     ... """#!%(python_exe)s  -Oi
     ... import sys
     ... input = repr(sys.stdin.read())
@@ -112,10 +112,12 @@ Now let's test the GUI version with the simple scipt, bar-script.py:
     >>> from setuptools.command.easy_install import nt_quote_arg
     >>> sample_directory = tempfile.mkdtemp()
     >>> f = open(os.path.join(sample_directory, 'bar-script.pyw'), 'w')
-    >>> bytes = f.write(
+    >>> bytes_written = f.write(
     ... """#!%(python_exe)s
     ... import sys
-    ... open(sys.argv[1], 'wb').write(repr(sys.argv[2]).encode('ascii'))
+    ... f = open(sys.argv[1], 'wb')
+    ... bytes_written = f.write(repr(sys.argv[2]).encode('utf-8'))
+    ... f.close()
     ... """ % dict(python_exe=nt_quote_arg(sys.executable)))
     >>> f.close()
 
@@ -123,8 +125,8 @@ We'll also copy gui.exe to the sample-directory with the name bar.exe:
 
     >>> import pkg_resources
     >>> f = open(os.path.join(sample_directory, 'bar.exe'), 'wb')
-    >>> bytes = f.write(
-    ...     pkg_resources.resource_string('setuptools', 'gui.exe')
+    >>> bytes_written = f.write(
+    ...     pkg_resources.resource_string('setuptools', 'gui-32.exe')
     ...     )
     >>> f.close()
 

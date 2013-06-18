@@ -10,7 +10,7 @@ from distutils import log
 from setuptools.command.sdist import sdist
 from setuptools.compat import basestring
 from distutils.util import convert_path
-from distutils.filelist import FileList
+from distutils.filelist import FileList as _FileList
 from pkg_resources import parse_requirements, safe_name, parse_version, \
     safe_version, yield_lines, EntryPoint, iter_entry_points, to_filename
 from setuptools.command.sdist import walk_revctrl
@@ -275,35 +275,34 @@ class egg_info(Command):
             self.broken_egg_info = self.egg_info
             self.egg_info = bei     # make it work for now
 
-class FileList(FileList):
+class FileList(_FileList):
     """File list that accepts only existing, platform-independent paths"""
 
     def append(self, item):
         if item.endswith('\r'):     # Fix older sdists built on Windows
             item = item[:-1]
         path = convert_path(item)
-        if os.path.exists(path):
-            self.files.append(path)
 
-
-
-
-
-
-
-
-
-def compose(path):
-    # Apple's HFS Plus returns decomposed UTF-8. Since just about
-    # everyone else chokes on it, we must make sure to return fully
-    # composed UTF-8 only.
-    if sys.getfilesystemencoding().lower() == 'utf-8':
-        from unicodedata import normalize
         if sys.version_info >= (3,):
-            path = normalize('NFC', path)
+            try:
+                if os.path.exists(path) or os.path.exists(path.encode('utf-8')):
+                    self.files.append(path)
+            except UnicodeEncodeError:
+                # Accept UTF-8 filenames even if LANG=C
+                if os.path.exists(path.encode('utf-8')):
+                    self.files.append(path)
+                else:
+                    log.warn("'%s' not %s encodable -- skipping", path,
+                        sys.getfilesystemencoding())
         else:
-            path = normalize('NFC', path.decode('utf-8')).encode('utf-8')
-    return path
+            if os.path.exists(path):
+                self.files.append(path)
+
+
+
+
+
+
 
 
 class manifest_maker(sdist):
@@ -330,7 +329,6 @@ class manifest_maker(sdist):
         self.prune_file_list()
         self.filelist.sort()
         self.filelist.remove_duplicates()
-        self.filelist.files = [compose(path) for path in self.filelist.files]
         self.write_manifest()
 
     def write_manifest (self):
@@ -338,6 +336,18 @@ class manifest_maker(sdist):
         by 'add_defaults()' and 'read_template()') to the manifest file
         named by 'self.manifest'.
         """
+        # The manifest must be UTF-8 encodable. See #303.
+        if sys.version_info >= (3,):
+            files = []
+            for file in self.filelist.files:
+                try:
+                    file.encode("utf-8")
+                except UnicodeEncodeError:
+                    log.warn("'%s' not UTF-8 encodable -- skipping" % file)
+                else:
+                    files.append(file)
+            self.filelist.files = files
+
         files = self.filelist.files
         if os.sep!='/':
             files = [f.replace(os.sep,'/') for f in files]

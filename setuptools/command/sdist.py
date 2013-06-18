@@ -282,8 +282,13 @@ class sdist(_sdist):
         log.info("reading manifest file '%s'", self.manifest)
         manifest = open(self.manifest, 'rbU')
         for line in manifest:
+            # The manifest must contain UTF-8. See #303.
             if sys.version_info >= (3,):
-                line = line.decode('UTF-8')
+                try:
+                    line = line.decode('UTF-8')
+                except UnicodeDecodeError:
+                    log.warn("%r not UTF-8 decodable -- skipping" % line)
+                    continue
             # ignore comments and blank lines
             line = line.strip()
             if line.startswith('#') or not line:

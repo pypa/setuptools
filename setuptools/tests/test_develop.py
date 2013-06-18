@@ -89,16 +89,16 @@ class TestDevelopTest(unittest.TestCase):
         self.assertEqual(content, ['easy-install.pth', 'foo.egg-link'])
 
         # Check that we are using the right code.
-        f = open(os.path.join(site.USER_SITE, 'foo.egg-link'), 'rt')
+        egg_link_file = open(os.path.join(site.USER_SITE, 'foo.egg-link'), 'rt')
         try:
-            path = f.read().split()[0].strip()
+            path = egg_link_file.read().split()[0].strip()
         finally:
-            f.close()
-        f = open(os.path.join(path, 'foo', '__init__.py'), 'rt')
+            egg_link_file.close()
+        init_file = open(os.path.join(path, 'foo', '__init__.py'), 'rt')
         try:
-            init = f.read().strip()
+            init = init_file.read().strip()
         finally:
-            f.close()
+            init_file.close()
         if sys.version < "3":
             self.assertEqual(init, 'print "foo"')
         else:

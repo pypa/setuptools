@@ -3,16 +3,178 @@ CHANGES
 =======
 
 ------
+0.6.45
+------
+
+* Issue #379: ``distribute_setup.py`` now traps VersionConflict as well,
+  restoring ability to upgrade from an older setuptools version.
+
+------
+0.6.44
+------
+
+* ``distribute_setup.py`` has been updated to allow Setuptools 0.7 to
+  satisfy use_setuptools.
+
+------
+0.6.43
+------
+
+* Issue #378: Restore support for Python 2.4 Syntax (regression in 0.6.42).
+
+------
+0.6.42
+------
+
+* External links finder no longer yields duplicate links.
+* Issue #337: Moved site.py to setuptools/site-patch.py (graft of very old
+  patch from setuptools trunk which inspired PR #31).
+
+------
+0.6.41
+------
+
+* Issue #27: Use public api for loading resources from zip files rather than
+  the private method `_zip_directory_cache`.
+* Added a new function ``easy_install.get_win_launcher`` which may be used by
+  third-party libraries such as buildout to get a suitable script launcher.
+
+------
+0.6.40
+------
+
+* Issue #376: brought back cli.exe and gui.exe that were deleted in the
+  previous release.
+
+------
+0.6.39
+------
+
+* Add support for console launchers on ARM platforms.
+* Fix possible issue in GUI launchers where the subsystem was not supplied to
+  the linker.
+* Launcher build script now refactored for robustness.
+* Issue #375: Resources extracted from a zip egg to the file system now also
+  check the contents of the file against the zip contents during each
+  invocation of get_resource_filename.
+
+------
+0.6.38
+------
+
+* Issue #371: The launcher manifest file is now installed properly.
+
+------
+0.6.37
+------
+
+* Issue #143: Launcher scripts, including easy_install itself, are now
+  accompanied by a manifest on 32-bit Windows environments to avoid the
+  Installer Detection Technology and thus undesirable UAC elevation described
+  in `this Microsoft article
+  <http://technet.microsoft.com/en-us/library/cc709628%28WS.10%29.aspx>`_.
+
+------
+0.6.36
+------
+
+* Pull Request #35: In `Buildout issue 64
+  <https://github.com/buildout/buildout/issues/64>`_, it was reported that
+  under Python 3, installation of distutils scripts could attempt to copy
+  the ``__pycache__`` directory as a file, causing an error, apparently only
+  under Windows. Easy_install now skips all directories when processing
+  metadata scripts.
+
+------
+0.6.35
+------
+
+
+Note this release is backward-incompatible with distribute 0.6.23-0.6.34 in
+how it parses version numbers.
+
+* Issue #278: Restored compatibility with distribute 0.6.22 and setuptools
+  0.6. Updated the documentation to match more closely with the version
+  parsing as intended in setuptools 0.6.
+
+------
+0.6.34
+------
+
+* Issue #341: 0.6.33 fails to build under Python 2.4.
+
+------
+0.6.33
+------
+
+* Fix 2 errors with Jython 2.5.
+* Fix 1 failure with Jython 2.5 and 2.7.
+* Disable workaround for Jython scripts on Linux systems.
+* Issue #336: `setup.py` no longer masks failure exit code when tests fail.
+* Fix issue in pkg_resources where try/except around a platform-dependent
+  import would trigger hook load failures on Mercurial. See pull request 32
+  for details.
+* Issue #341: Fix a ResourceWarning.
+
+------
+0.6.32
+------
+
+* Fix test suite with Python 2.6.
+* Fix some DeprecationWarnings and ResourceWarnings.
+* Issue #335: Backed out `setup_requires` superceding installed requirements
+  until regression can be addressed.
+
+------
+0.6.31
+------
+
+* Issue #303: Make sure the manifest only ever contains UTF-8 in Python 3.
+* Issue #329: Properly close files created by tests for compatibility with
+  Jython.
+* Work around Jython bugs `#1980 <http://bugs.jython.org/issue1980>`_ and
+  `#1981 <http://bugs.jython.org/issue1981>`_.
+* Issue #334: Provide workaround for packages that reference `sys.__stdout__`
+  such as numpy does. This change should address
+  `virtualenv #359 <https://github.com/pypa/virtualenv/issues/359>`_ as long
+  as the system encoding is UTF-8 or the IO encoding is specified in the
+  environment, i.e.::
+
+     PYTHONIOENCODING=utf8 pip install numpy
+
+* Fix for encoding issue when installing from Windows executable on Python 3.
+* Issue #323: Allow `setup_requires` requirements to supercede installed
+  requirements. Added some new keyword arguments to existing pkg_resources
+  methods. Also had to updated how __path__ is handled for namespace packages
+  to ensure that when a new egg distribution containing a namespace package is
+  placed on sys.path, the entries in __path__ are found in the same order they
+  would have been in had that egg been on the path when pkg_resources was
+  first imported.
+
+------
+0.6.30
+------
+
+* Issue #328: Clean up temporary directories in distribute_setup.py.
+* Fix fatal bug in distribute_setup.py.
+
+------
 0.6.29
 ------
 
+* Pull Request #14: Honor file permissions in zip files.
+* Issue #327: Merged pull request #24 to fix a dependency problem with pip.
+* Merged pull request #23 to fix https://github.com/pypa/virtualenv/issues/301.
+* If Sphinx is installed, the `upload_docs` command now runs `build_sphinx`
+  to produce uploadable documentation.
+* Issue #326: `upload_docs` provided mangled auth credentials under Python 3.
 * Issue #320: Fix check for "createable" in distribute_setup.py.
 * Issue #305: Remove a warning that was triggered during normal operations.
 * Issue #311: Print metadata in UTF-8 independent of platform.
 * Issue #303: Read manifest file with UTF-8 encoding under Python 3.
 * Issue #301: Allow to run tests of namespace packages when using 2to3.
 * Issue #304: Prevent import loop in site.py under Python 3.3.
-* Issue #283: Reenable scanning of *.pyc / *.pyo files on Python 3.3.
+* Issue #283: Reenable scanning of `*.pyc` / `*.pyo` files on Python 3.3.
 * Issue #299: The develop command didn't work on Python 3, when using 2to3,
   as the egg link would go to the Python 2 source. Linking to the 2to3'd code
   in build/lib makes it work, although you will have to rebuild the module
@@ -35,7 +197,8 @@ CHANGES
 * Issue #294: setup.py can now be invoked from any directory.
 * Scripts are now installed honoring the umask.
 * Added support for .dist-info directories.
-* Issue #283: Fix and disable scanning of *.pyc / *.pyo files on Python 3.3.
+* Issue #283: Fix and disable scanning of `*.pyc` / `*.pyo` files on
+  Python 3.3.
 
 ------
 0.6.27
@@ -292,11 +455,10 @@ CHANGES
 -----
 
 * Added the generation of `distribute_setup_3k.py` during the release.
-  This close http://bitbucket.org/tarek/distribute/issue/52.
+  This closes issue #52.
 
 * Added an upload_docs command to easily upload project documentation to
-  PyPI's http://packages.python.org.
-  This close http://bitbucket.org/tarek/distribute/issue/56.
+  PyPI's http://packages.python.org. This close issue #56.
 
 * Fixed a bootstrap bug on the use_setuptools() API.
 
@@ -325,7 +487,7 @@ setuptools
   This closes http://bugs.python.org/setuptools/issue39.
 
 * Added option to run 2to3 automatically when installing on Python 3.
-  This closes http://bitbucket.org/tarek/distribute/issue/31.
+  This closes issue #31.
 
 * Fixed invalid usage of requirement.parse, that broke develop -d.
   This closes http://bugs.python.org/setuptools/issue44.
@@ -339,11 +501,9 @@ setuptools
 bootstrapping
 =============
 
-* Fixed bootstrap not working on Windows.
-  This closes http://bitbucket.org/tarek/distribute/issue/49.
+* Fixed bootstrap not working on Windows. This closes issue #49.
 
-* Fixed 2.6 dependencies.
-  This closes http://bitbucket.org/tarek/distribute/issue/50.
+* Fixed 2.6 dependencies. This closes issue #50.
 
 * Make sure setuptools is patched when running through easy_install
   This closes http://bugs.python.org/setuptools/issue40.
@@ -356,16 +516,14 @@ setuptools
 ==========
 
 * package_index.urlopen now catches BadStatusLine and malformed url errors.
-  This closes http://bitbucket.org/tarek/distribute/issue/16 and
-  http://bitbucket.org/tarek/distribute/issue/18.
+  This closes issue #16 and issue #18.
 
 * zip_ok is now False by default. This closes
   http://bugs.python.org/setuptools/issue33.
 
 * Fixed invalid URL error catching. http://bugs.python.org/setuptools/issue20.
 
-* Fixed invalid bootstraping with easy_install installation
-  http://bitbucket.org/tarek/distribute/issue/40.
+* Fixed invalid bootstraping with easy_install installation (issue #40).
   Thanks to Florian Schulze for the help.
 
 * Removed buildout/bootstrap.py. A new repository will create a specific
@@ -377,7 +535,7 @@ bootstrapping
 
 * The boostrap process leave setuptools alone if detected in the system
   and --root or --prefix is provided, but is not in the same location.
-  This closes http://bitbucket.org/tarek/distribute/issue/10.
+  This closes issue #10.
 
 ---
 0.6
@@ -387,45 +545,38 @@ setuptools
 ==========
 
 * Packages required at build time where not fully present at install time.
-  This closes http://bitbucket.org/tarek/distribute/issue/12.
+  This closes issue #12.
 
-* Protected against failures in tarfile extraction. This closes
-  http://bitbucket.org/tarek/distribute/issue/10.
+* Protected against failures in tarfile extraction. This closes issue #10.
 
-* Made Jython api_tests.txt doctest compatible. This closes
-  http://bitbucket.org/tarek/distribute/issue/7.
+* Made Jython api_tests.txt doctest compatible. This closes issue #7.
 
 * sandbox.py replaced builtin type file with builtin function open. This
-  closes http://bitbucket.org/tarek/distribute/issue/6.
+  closes issue #6.
 
-* Immediately close all file handles. This closes
-  http://bitbucket.org/tarek/distribute/issue/3.
+* Immediately close all file handles. This closes issue #3.
 
-* Added compatibility with Subversion 1.6. This references
-  http://bitbucket.org/tarek/distribute/issue/1.
+* Added compatibility with Subversion 1.6. This references issue #1.
 
 pkg_resources
 =============
 
 * Avoid a call to /usr/bin/sw_vers on OSX and use the official platform API
-  instead. Based on a patch from ronaldoussoren. This closes
-  http://bitbucket.org/tarek/distribute/issue/5.
+  instead. Based on a patch from ronaldoussoren. This closes issue #5.
 
 * Fixed a SandboxViolation for mkdir that could occur in certain cases.
-  This closes http://bitbucket.org/tarek/distribute/issue/13.
+  This closes issue #13.
 
 * Allow to find_on_path on systems with tight permissions to fail gracefully.
-  This closes http://bitbucket.org/tarek/distribute/issue/9.
+  This closes issue #9.
 
 * Corrected inconsistency between documentation and code of add_entry.
-  This closes http://bitbucket.org/tarek/distribute/issue/8.
+  This closes issue #8.
 
-* Immediately close all file handles. This closes
-  http://bitbucket.org/tarek/distribute/issue/3.
+* Immediately close all file handles. This closes issue #3.
 
 easy_install
 ============
 
-* Immediately close all file handles. This closes
-  http://bitbucket.org/tarek/distribute/issue/3.
+* Immediately close all file handles. This closes issue #3.
 

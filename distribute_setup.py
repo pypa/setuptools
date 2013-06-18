@@ -14,6 +14,7 @@ the appropriate options to ``use_setuptools()``.
 This file can also be run as a script to install or upgrade setuptools.
 """
 import os
+import shutil
 import sys
 import time
 import fnmatch
@@ -48,7 +49,7 @@ except ImportError:
             args = [quote(arg) for arg in args]
         return os.spawnl(os.P_WAIT, sys.executable, *args) == 0
 
-DEFAULT_VERSION = "0.6.29"
+DEFAULT_VERSION = "0.6.46"
 DEFAULT_URL = "http://pypi.python.org/packages/source/d/distribute/"
 SETUPTOOLS_FAKED_VERSION = "0.6c11"
 
@@ -86,8 +87,11 @@ def _install(tarball, install_args=()):
         if not _python_cmd('setup.py', 'install', *install_args):
             log.warn('Something went wrong during the installation.')
             log.warn('See the error message above.')
+            # exitcode will be 2
+            return 2
     finally:
         os.chdir(old_wd)
+        shutil.rmtree(tmpdir)
 
 
 def _build_egg(egg, tarball, to_dir):
@@ -112,6 +116,7 @@ def _build_egg(egg, tarball, to_dir):
 
     finally:
         os.chdir(old_wd)
+        shutil.rmtree(tmpdir)
     # returning the result
     log.warn(egg)
     if not os.path.exists(egg):
@@ -139,6 +144,16 @@ def use_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
     try:
         try:
             import pkg_resources
+
+            # Setuptools 0.7b and later is a suitable (and preferable)
+            # substitute for any Distribute version.
+            try:
+                pkg_resources.require("setuptools>=0.7b")
+                return
+            except (pkg_resources.DistributionNotFound,
+                    pkg_resources.VersionConflict):
+                pass
+
             if not hasattr(pkg_resources, '_distribute'):
                 if not no_fake:
                     _fake_setuptools()
@@ -234,7 +249,9 @@ def _no_sandbox(function):
 
 def _patch_file(path, content):
     """Will backup the file then patch it"""
-    existing_content = open(path).read()
+    f = open(path)
+    existing_content = f.read()
+    f.close()
     if existing_content == content:
         # already patched
         log.warn('Already patched.')
@@ -252,7 +269,10 @@ _patch_file = _no_sandbox(_patch_file)
 
 
 def _same_content(path, content):
-    return open(path).read() == content
+    f = open(path)
+    existing_content = f.read()
+    f.close()
+    return existing_content == content
 
 
 def _rename_path(path):
@@ -443,8 +463,9 @@ def _relaunch():
     log.warn('Relaunching...')
     # we have to relaunch the process
     # pip marker to avoid a relaunch bug
-    _cmd = ['-c', 'install', '--single-version-externally-managed']
-    if sys.argv[:3] == _cmd:
+    _cmd1 = ['-c', 'install', '--single-version-externally-managed']
+    _cmd2 = ['-c', 'install', '--record']
+    if sys.argv[:3] == _cmd1 or sys.argv[:3] == _cmd2:
         sys.argv[0] = 'setup.py'
     args = [sys.executable] + sys.argv
     sys.exit(subprocess.call(args))
@@ -529,7 +550,7 @@ def main(version=DEFAULT_VERSION):
     """Install or upgrade setuptools and EasyInstall"""
     options = _parse_args()
     tarball = download_setuptools(download_base=options.download_base)
-    _install(tarball, _build_install_args(options))
+    return _install(tarball, _build_install_args(options))
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())

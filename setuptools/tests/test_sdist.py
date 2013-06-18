@@ -7,9 +7,11 @@ import shutil
 import sys
 import tempfile
 import unittest
+import unicodedata
 
-from setuptools.compat import StringIO
+from setuptools.compat import StringIO, urllib
 from setuptools.command.sdist import sdist
+from setuptools.command.egg_info import manifest_maker
 from setuptools.dist import Distribution
 
 
@@ -28,7 +30,52 @@ setup(**%r)
 """ % SETUP_ATTRS
 
 
+if sys.version_info >= (3,):
+    LATIN1_FILENAME = 'smörbröd.py'.encode('latin-1')
+else:
+    LATIN1_FILENAME = 'sm\xf6rbr\xf6d.py'
+
+
+# Cannot use context manager because of Python 2.4
+def quiet():
+    global old_stdout, old_stderr
+    old_stdout, old_stderr = sys.stdout, sys.stderr
+    sys.stdout, sys.stderr = StringIO(), StringIO()
+
+def unquiet():
+    sys.stdout, sys.stderr = old_stdout, old_stderr
+
+
+# Fake byte literals for Python <= 2.5
+def b(s, encoding='utf-8'):
+    if sys.version_info >= (3,):
+        return s.encode(encoding)
+    return s
+
+
+# Convert to POSIX path
+def posix(path):
+    if sys.version_info >= (3,) and not isinstance(path, unicode):
+        return path.replace(os.sep.encode('ascii'), b('/'))
+    else:
+        return path.replace(os.sep, '/')
+
+
+# HFS Plus uses decomposed UTF-8
+def decompose(path):
+    if isinstance(path, unicode):
+        return unicodedata.normalize('NFD', path)
+    try:
+        path = path.decode('utf-8')
+        path = unicodedata.normalize('NFD', path)
+        path = path.encode('utf-8')
+    except UnicodeError:
+        pass # Not UTF-8
+    return path
+
+
 class TestSdistTest(unittest.TestCase):
+
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
         f = open(os.path.join(self.temp_dir, 'setup.py'), 'w')
@@ -62,106 +109,286 @@ class TestSdistTest(unittest.TestCase):
         cmd.ensure_finalized()
 
         # squelch output
-        old_stdout = sys.stdout
-        old_stderr = sys.stderr
-        sys.stdout = StringIO()
-        sys.stderr = StringIO()
+        quiet()
         try:
             cmd.run()
         finally:
-            sys.stdout = old_stdout
-            sys.stderr = old_stderr
+            unquiet()
 
         manifest = cmd.filelist.files
-
         self.assertTrue(os.path.join('sdist_test', 'a.txt') in manifest)
         self.assertTrue(os.path.join('sdist_test', 'b.txt') in manifest)
         self.assertTrue(os.path.join('sdist_test', 'c.rst') not in manifest)
 
-    def test_filelist_is_fully_composed(self):
-        # Test for #303. Requires HFS Plus to fail.
-
-        # Add file with non-ASCII filename
-        filename = os.path.join('sdist_test', 'smörbröd.py')
-        open(filename, 'w').close()
-
-        dist = Distribution(SETUP_ATTRS)
-        dist.script_name = 'setup.py'
-        cmd = sdist(dist)
-        cmd.ensure_finalized()
-
-        # squelch output
-        old_stdout = sys.stdout
-        old_stderr = sys.stderr
-        sys.stdout = StringIO()
-        sys.stderr = StringIO()
-        try:
-            cmd.run()
-        finally:
-            sys.stdout = old_stdout
-            sys.stderr = old_stderr
-
-        self.assertTrue(filename in cmd.filelist.files)
-
-    def test_manifest_is_written_in_utf8(self):
+    def test_manifest_is_written_with_utf8_encoding(self):
         # Test for #303.
-
-        # Add file with non-ASCII filename
-        filename = os.path.join('sdist_test', 'smörbröd.py')
-        open(filename, 'w').close()
-
         dist = Distribution(SETUP_ATTRS)
         dist.script_name = 'setup.py'
-        cmd = sdist(dist)
-        cmd.ensure_finalized()
+        mm = manifest_maker(dist)
+        mm.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
+        os.mkdir('sdist_test.egg-info')
 
-        # squelch output
-        old_stdout = sys.stdout
-        old_stderr = sys.stderr
-        sys.stdout = StringIO()
-        sys.stderr = StringIO()
+        # UTF-8 filename
+        filename = os.path.join('sdist_test', 'smörbröd.py')
+
+        # Add UTF-8 filename and write manifest
+        quiet()
         try:
-            cmd.run()
+            mm.run()
+            mm.filelist.files.append(filename)
+            mm.write_manifest()
         finally:
-            sys.stdout = old_stdout
-            sys.stderr = old_stderr
+            unquiet()
 
-        manifest = open(os.path.join('sdist_test.egg-info', 'SOURCES.txt'), 'rbU')
+        manifest = open(mm.manifest, 'rbU')
         contents = manifest.read()
         manifest.close()
-        self.assertTrue(len(contents))
 
-        # This must not fail:
-        contents.decode('UTF-8')
+        # The manifest should be UTF-8 encoded
+        try:
+            u_contents = contents.decode('UTF-8')
+        except UnicodeDecodeError, e:
+            self.fail(e)
 
-    def test_manifest_is_read_in_utf8(self):
+        # The manifest should contain the UTF-8 filename
+        if sys.version_info >= (3,):
+            self.assertTrue(posix(filename) in u_contents)
+        else:
+            self.assertTrue(posix(filename) in contents)
+
+    # Python 3 only
+    if sys.version_info >= (3,):
+
+        def test_write_manifest_allows_utf8_filenames(self):
+            # Test for #303.
+            dist = Distribution(SETUP_ATTRS)
+            dist.script_name = 'setup.py'
+            mm = manifest_maker(dist)
+            mm.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
+            os.mkdir('sdist_test.egg-info')
+
+            # UTF-8 filename
+            filename = os.path.join(b('sdist_test'), b('smörbröd.py'))
+
+            # Add filename and write manifest
+            quiet()
+            try:
+                mm.run()
+                u_filename = filename.decode('utf-8')
+                mm.filelist.files.append(u_filename)
+                # Re-write manifest
+                mm.write_manifest()
+            finally:
+                unquiet()
+
+            manifest = open(mm.manifest, 'rbU')
+            contents = manifest.read()
+            manifest.close()
+
+            # The manifest should be UTF-8 encoded
+            try:
+                contents.decode('UTF-8')
+            except UnicodeDecodeError, e:
+                self.fail(e)
+
+            # The manifest should contain the UTF-8 filename
+            self.assertTrue(posix(filename) in contents)
+
+            # The filelist should have been updated as well
+            self.assertTrue(u_filename in mm.filelist.files)
+
+        def test_write_manifest_skips_non_utf8_filenames(self):
+            # Test for #303.
+            dist = Distribution(SETUP_ATTRS)
+            dist.script_name = 'setup.py'
+            mm = manifest_maker(dist)
+            mm.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
+            os.mkdir('sdist_test.egg-info')
+
+            # Latin-1 filename
+            filename = os.path.join(b('sdist_test'), LATIN1_FILENAME)
+
+            # Add filename with surrogates and write manifest
+            quiet()
+            try:
+                mm.run()
+                u_filename = filename.decode('utf-8', 'surrogateescape')
+                mm.filelist.files.append(u_filename)
+                # Re-write manifest
+                mm.write_manifest()
+            finally:
+                unquiet()
+
+            manifest = open(mm.manifest, 'rbU')
+            contents = manifest.read()
+            manifest.close()
+
+            # The manifest should be UTF-8 encoded
+            try:
+                contents.decode('UTF-8')
+            except UnicodeDecodeError, e:
+                self.fail(e)
+
+            # The Latin-1 filename should have been skipped
+            self.assertFalse(posix(filename) in contents)
+
+            # The filelist should have been updated as well
+            self.assertFalse(u_filename in mm.filelist.files)
+
+    def test_manifest_is_read_with_utf8_encoding(self):
         # Test for #303.
-
-        # Add file with non-ASCII filename
-        filename = os.path.join('sdist_test', 'smörbröd.py')
-        open(filename, 'w').close()
-
         dist = Distribution(SETUP_ATTRS)
         dist.script_name = 'setup.py'
         cmd = sdist(dist)
         cmd.ensure_finalized()
 
-        # squelch output
-        old_stdout = sys.stdout
-        old_stderr = sys.stderr
-        sys.stdout = StringIO()
-        sys.stderr = StringIO()
+        # Create manifest
+        quiet()
         try:
             cmd.run()
         finally:
-            sys.stdout = old_stdout
-            sys.stderr = old_stderr
+            unquiet()
 
-        cmd.filelist.files = []
+        # Add UTF-8 filename to manifest
+        filename = os.path.join(b('sdist_test'), b('smörbröd.py'))
         cmd.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
-        cmd.read_manifest()
+        manifest = open(cmd.manifest, 'ab')
+        manifest.write(b('\n')+filename)
+        manifest.close()
 
+        # The file must exist to be included in the filelist
+        open(filename, 'w').close()
+
+        # Re-read manifest
+        cmd.filelist.files = []
+        quiet()
+        try:
+            cmd.read_manifest()
+        finally:
+            unquiet()
+
+        # The filelist should contain the UTF-8 filename
+        if sys.version_info >= (3,):
+            filename = filename.decode('utf-8')
         self.assertTrue(filename in cmd.filelist.files)
+
+    # Python 3 only
+    if sys.version_info >= (3,):
+
+        def test_read_manifest_skips_non_utf8_filenames(self):
+            # Test for #303.
+            dist = Distribution(SETUP_ATTRS)
+            dist.script_name = 'setup.py'
+            cmd = sdist(dist)
+            cmd.ensure_finalized()
+
+            # Create manifest
+            quiet()
+            try:
+                cmd.run()
+            finally:
+                unquiet()
+
+            # Add Latin-1 filename to manifest
+            filename = os.path.join(b('sdist_test'), LATIN1_FILENAME)
+            cmd.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
+            manifest = open(cmd.manifest, 'ab')
+            manifest.write(b('\n')+filename)
+            manifest.close()
+
+            # The file must exist to be included in the filelist
+            open(filename, 'w').close()
+
+            # Re-read manifest
+            cmd.filelist.files = []
+            quiet()
+            try:
+                try:
+                    cmd.read_manifest()
+                except UnicodeDecodeError, e:
+                    self.fail(e)
+            finally:
+                unquiet()
+
+            # The Latin-1 filename should have been skipped
+            filename = filename.decode('latin-1')
+            self.assertFalse(filename in cmd.filelist.files)
+
+    def test_sdist_with_utf8_encoded_filename(self):
+        # Test for #303.
+        dist = Distribution(SETUP_ATTRS)
+        dist.script_name = 'setup.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+
+        # UTF-8 filename
+        filename = os.path.join(b('sdist_test'), b('smörbröd.py'))
+        open(filename, 'w').close()
+
+        quiet()
+        try:
+            cmd.run()
+        finally:
+            unquiet()
+
+        if sys.platform == 'darwin':
+            filename = decompose(filename)
+
+        if sys.version_info >= (3,):
+            fs_enc = sys.getfilesystemencoding()
+
+            if sys.platform == 'win32': 
+                if fs_enc == 'cp1252':
+                    # Python 3 mangles the UTF-8 filename
+                    filename = filename.decode('cp1252')
+                    self.assertTrue(filename in cmd.filelist.files)
+                else:
+                    filename = filename.decode('mbcs')
+                    self.assertTrue(filename in cmd.filelist.files)
+            else:
+                filename = filename.decode('utf-8')
+                self.assertTrue(filename in cmd.filelist.files)
+        else:
+            self.assertTrue(filename in cmd.filelist.files)
+
+    def test_sdist_with_latin1_encoded_filename(self):
+        # Test for #303.
+        dist = Distribution(SETUP_ATTRS)
+        dist.script_name = 'setup.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+
+        # Latin-1 filename
+        filename = os.path.join(b('sdist_test'), LATIN1_FILENAME)
+        open(filename, 'w').close()
+        self.assertTrue(os.path.isfile(filename))
+
+        quiet()
+        try:
+            cmd.run()
+        finally:
+            unquiet()
+
+        if sys.version_info >= (3,):
+            #not all windows systems have a default FS encoding of cp1252
+            if sys.platform == 'win32':
+                # Latin-1 is similar to Windows-1252 however 
+                # on mbcs filesys it is not in latin-1 encoding
+                fs_enc = sys.getfilesystemencoding()
+                if fs_enc == 'mbcs':
+                    filename = filename.decode('mbcs')
+                else:
+                    filename = filename.decode('latin-1')
+                    
+                self.assertTrue(filename in cmd.filelist.files)
+            else:
+                # The Latin-1 filename should have been skipped
+                filename = filename.decode('latin-1')
+                self.assertFalse(filename in cmd.filelist.files)
+        else:
+            # No conversion takes place under Python 2 and the file
+            # is included. We shall keep it that way for BBB.
+            self.assertTrue(filename in cmd.filelist.files)
 
 
 def test_suite():

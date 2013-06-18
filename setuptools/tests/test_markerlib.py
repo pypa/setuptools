@@ -16,15 +16,15 @@ class TestMarkerlib(unittest.TestCase):
         
         os_name = os.name
         
-        self.assert_(interpret(""))
+        self.assertTrue(interpret(""))
         
-        self.assert_(interpret("os.name != 'buuuu'"))
-        self.assert_(interpret("python_version > '1.0'"))
-        self.assert_(interpret("python_version < '5.0'"))
-        self.assert_(interpret("python_version <= '5.0'"))
-        self.assert_(interpret("python_version >= '1.0'"))
-        self.assert_(interpret("'%s' in os.name" % os_name))
-        self.assert_(interpret("'buuuu' not in os.name"))
+        self.assertTrue(interpret("os.name != 'buuuu'"))
+        self.assertTrue(interpret("python_version > '1.0'"))
+        self.assertTrue(interpret("python_version < '5.0'"))
+        self.assertTrue(interpret("python_version <= '5.0'"))
+        self.assertTrue(interpret("python_version >= '1.0'"))
+        self.assertTrue(interpret("'%s' in os.name" % os_name))
+        self.assertTrue(interpret("'buuuu' not in os.name"))
         
         self.assertFalse(interpret("os.name == 'buuuu'"))
         self.assertFalse(interpret("python_version < '1.0'"))
@@ -36,7 +36,7 @@ class TestMarkerlib(unittest.TestCase):
         
         environment = default_environment()
         environment['extra'] = 'test'
-        self.assert_(interpret("extra == 'test'", environment))
+        self.assertTrue(interpret("extra == 'test'", environment))
         self.assertFalse(interpret("extra == 'doc'", environment))
         
         def raises_nameError():
