@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+---
+0.8
+---
+
+* Code base now runs on Python 2.4 - Python 3.3 without Python 2to3
+  conversion.
+
 -----
 0.7.3
 -----
