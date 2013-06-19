@@ -40,7 +40,6 @@ try:
 except NameError:
     basestring = str
     from io import StringIO
-    from functools import reduce
     exec_ = eval("exec")
     def execfile(fn, globs=None, locs=None):
         if globs is None:
@@ -48,6 +47,8 @@ except NameError:
         if locs is None:
             locs = globs
         exec_(compile(open(fn).read(), fn, 'exec'), globs, locs)
+    import functools
+    reduce = functools.reduce
 
 # capture these to bypass sandboxing
 from os import utime
