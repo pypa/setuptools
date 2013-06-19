@@ -4,11 +4,6 @@ from pkg_resources import ResolutionError, ExtractionError
 from setuptools.compat import urllib2
 
 try:
-    import urllib2
-except ImportError:
-    import urllib.request as urllib2
-
-try:
     import ssl
 except ImportError:
     ssl = None

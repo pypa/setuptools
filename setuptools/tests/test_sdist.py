@@ -9,7 +9,6 @@ import tempfile
 import unittest
 import unicodedata
 
-
 from setuptools.compat import StringIO, unicode
 from setuptools.command.sdist import sdist
 from setuptools.command.egg_info import manifest_maker
@@ -56,7 +55,7 @@ def b(s, encoding='utf-8'):
 
 # Convert to POSIX path
 def posix(path):
-    if sys.version_info >= (3,) and not isinstance(path, unicode):
+    if sys.version_info >= (3,) and not isinstance(path, str):
         return path.replace(os.sep.encode('ascii'), b('/'))
     else:
         return path.replace(os.sep, '/')
