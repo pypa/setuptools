@@ -210,7 +210,8 @@ class egg_info(Command):
 
 
 
-    def get_svn_revision(self):
+    @staticmethod
+    def get_svn_revision():
         revision = 0
         urlre = re.compile('url="([^"]+)"')
         revre = re.compile('committed-rev="(\d+)"')
@@ -234,7 +235,7 @@ class egg_info(Command):
                     log.warn("unrecognized .svn/entries format; skipping %s", base)
                     dirs[:] = []
                     continue
-                   
+
                 data = map(str.splitlines,data.split('\n\x0c\n'))
                 del data[0][0]  # get rid of the '8' or '9' or '10'
                 dirurl = data[0][3]
