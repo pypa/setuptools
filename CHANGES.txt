@@ -3,6 +3,12 @@ CHANGES
 =======
 
 -----
+0.7.5
+-----
+
+* Issue #21: Restore Python 2.4 compatibility in ``test_easy_install``.
+
+-----
 0.7.4
 -----
 
