@@ -4,6 +4,7 @@ syntax: glob
 *.swp
 .coverage
 distribute.egg-info
+setuptools.egg-info
 build
 dist
 lib

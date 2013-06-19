@@ -179,7 +179,7 @@ def find_external_links(url, page):
 
     for match in REL.finditer(page):
         tag, rel = match.groups()
-        rels = map(str.strip, rel.lower().split(','))
+        rels = set(map(str.strip, rel.lower().split(',')))
         if 'homepage' in rels or 'download' in rels:
             for match in HREF.finditer(tag):
                 yield urljoin(url, htmldecode(match.group(1)))
@@ -699,7 +699,7 @@ class PackageIndex(Environment):
         elif scheme.startswith('hg+'):
             return self._download_hg(url, filename)
         elif scheme=='file':
-            return url2pathname(urlparse.urlparse(url)[2])
+            return url2pathname(urlparse(url)[2])
         else:
             self.url_ok(url, True)   # raises error if not allowed
             return self._attempt_download(url, filename)
@@ -749,10 +749,10 @@ class PackageIndex(Environment):
         url = url.split('#',1)[0]   # remove any fragment for svn's sake
         creds = ''
         if url.lower().startswith('svn:') and '@' in url:
-            scheme, netloc, path, p, q, f = urlparse.urlparse(url)
+            scheme, netloc, path, p, q, f = urlparse(url)
             if not netloc and path.startswith('//') and '/' in path[2:]:
                 netloc, path = path[2:].split('/',1)
-                auth, host = urllib.splituser(netloc)
+                auth, host = splituser(netloc)
                 if auth:
                     if ':' in auth:
                         user, pw = auth.split(':',1)
@@ -760,13 +760,13 @@ class PackageIndex(Environment):
                     else:
                         creds = " --username="+auth
                     netloc = host
-                    url = urlparse.urlunparse((scheme, netloc, url, p, q, f))
+                    url = urlunparse((scheme, netloc, url, p, q, f))
         self.info("Doing subversion checkout from %s to %s", url, filename)
         os.system("svn checkout%s -q %s %s" % (creds, url, filename))
         return filename
 
     def _vcs_split_rev_from_url(self, url, pop_prefix=False):
-        scheme, netloc, path, query, frag = urlparse.urlsplit(url)
+        scheme, netloc, path, query, frag = urlsplit(url)
 
         scheme = scheme.split('+', 1)[-1]
 
@@ -778,7 +778,7 @@ class PackageIndex(Environment):
             path, rev = path.rsplit('@', 1)
 
         # Also, discard fragment
-        url = urlparse.urlunsplit((scheme, netloc, path, query, ''))
+        url = urlunsplit((scheme, netloc, path, query, ''))
 
         return url, rev
 

@@ -2315,7 +2315,7 @@ class EntryPoint(object):
     def parse_map(cls, data, dist=None):
         """Parse a map of entry point groups"""
         if isinstance(data,dict):
-            data = list(data.items())
+            data = data.items()
         else:
             data = split_sections(data)
         maps = {}
@@ -3008,5 +3008,4 @@ run_main = run_script   # backward compatibility
 # calling ``require()``) will get activated as well.
 add_activation_listener(lambda dist: dist.activate())
 working_set.entries=[]; list(map(working_set.add_entry,sys.path)) # match order
-
 

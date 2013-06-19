@@ -35,7 +35,7 @@ class Extension(_Extension):
             if source.endswith('.pyx'):
                 source = source[:-4] + '.c'
             return source
-        self.sources = map(pyx_to_c, self.sources)
+        self.sources = list(map(pyx_to_c, self.sources))
 
 class Library(Extension):
     """Just like a regular Extension, but built as a library instead"""

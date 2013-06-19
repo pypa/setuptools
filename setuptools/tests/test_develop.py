@@ -51,7 +51,7 @@ class TestDevelopTest(unittest.TestCase):
         site.USER_SITE = tempfile.mkdtemp()
 
     def tearDown(self):
-        if sys.version < "2.6" or hasattr(sys, 'real_prefix'):
+        if sys.version < "2.6" or hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
             return
 
         os.chdir(self.old_cwd)

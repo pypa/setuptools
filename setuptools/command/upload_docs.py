@@ -23,15 +23,21 @@ try:
 except ImportError:
     from setuptools.command.upload import upload
 
-from setuptools.compat import httplib, urlparse
+from setuptools.compat import httplib, urlparse, unicode, iteritems
 
 _IS_PYTHON3 = sys.version > '3'
+
+if _IS_PYTHON3:
+    errors = 'surrogateescape'
+else:
+    errors = 'strict'
+
 
 # This is not just a replacement for byte literals
 # but works as a general purpose encoder
 def b(s, encoding='utf-8'):
     if isinstance(s, unicode):
-        return s.encode(encoding)
+        return s.encode(encoding, errors)
     return s
 
 
@@ -127,7 +133,7 @@ class upload_docs(upload):
         sep_boundary = b('\n--') + b(boundary)
         end_boundary = sep_boundary + b('--')
         body = []
-        for key, values in data.iteritems():
+        for key, values in iteritems(data):
             title = '\nContent-Disposition: form-data; name="%s"' % key
             # handle multiple entries for the same name
             if type(values) != type([]):

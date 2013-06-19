@@ -86,7 +86,7 @@ def run_setup(setup_script, args):
             # exclude any encodings modules. See #285
             and not mod_name.startswith('encodings.')
         ]
-        map(sys.modules.__delitem__, del_modules)
+        list(map(sys.modules.__delitem__, del_modules))
         os.chdir(old_dir)
         sys.path[:] = save_path
         sys.argv[:] = save_argv
