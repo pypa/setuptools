@@ -1491,6 +1491,7 @@ def extract_wininst_cfg(dist_filename):
         f.seek(prepended-12)
 
         from setuptools.compat import StringIO, ConfigParser
+        import struct
         tag, cfglen, bmlen = struct.unpack("<iii",f.read(12))
         if tag not in (0x1234567A, 0x1234567B):
             return None     # not a valid tag
