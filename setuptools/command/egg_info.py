@@ -231,7 +231,7 @@ class egg_info(Command):
             else:
                 try: svnver = int(data.splitlines()[0])
                 except: svnver=-1
-                if data<8:
+                if svnver<8:
                     log.warn("unrecognized .svn/entries format; skipping %s", base)
                     dirs[:] = []
                     continue
