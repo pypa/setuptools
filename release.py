@@ -11,32 +11,32 @@ import subprocess
 import shutil
 import os
 import sys
-import urllib2
 import getpass
 import collections
 import itertools
 import re
 
 try:
-    from urllib2 import urlopen, Request, HTTPError
-    from itertools import izip_longest
+	import urllib.request as urllib_request
 except ImportError:
-    from urllib.request import urlopen, Request
-    from urllib.error import HTTPError
-    raw_input = input
-    from itertools import zip_longest as izip_longest
+	import urllib2 as urllib_request
+
+try:
+	input = raw_input
+except NameError:
+	pass
 
 try:
 	import keyring
 except Exception:
 	pass
 
-VERSION = '0.7.3'
+VERSION = '0.8'
 PACKAGE_INDEX = 'https://pypi.python.org/pypi'
 
 def set_versions():
 	global VERSION
-	version = raw_input("Release as version [%s]> " % VERSION) or VERSION
+	version = input("Release as version [%s]> " % VERSION) or VERSION
 	if version != VERSION:
 		VERSION = bump_versions(version)
 
@@ -108,11 +108,11 @@ def add_milestone_and_version(version):
 	for type in 'milestones', 'versions':
 		url = (base + '/1.0/repositories/{repo}/issues/{type}'
 			.format(repo = get_repo_name(), type=type))
-		req = Request(url = url, headers = headers,
+		req = urllib_request.Request(url = url, headers = headers,
 			data='name='+version)
 		try:
-			urlopen(req)
-		except HTTPError as e:
+			urllib_request.urlopen(req)
+		except urllib_request.HTTPError as e:
 			print(e.fp.read())
 
 def bump_versions(target_ver):
@@ -125,7 +125,10 @@ def bump_versions(target_ver):
 
 def bump_version(filename, target_ver):
 	with open(filename, 'rb') as f:
-		lines = [line.replace(VERSION, target_ver) for line in f]
+		lines = [
+			line.replace(VERSION.encode('ascii'), target_ver.encode('ascii'))
+			for line in f
+		]
 	with open(filename, 'wb') as f:
 		f.writelines(lines)
 
@@ -234,7 +237,7 @@ def _linkified_text(rst_content):
 	anchors = []
 	linkified_parts = [_linkified_part(part, anchors)
 		for part in plain_text_parts]
-	pairs = izip_longest(
+	pairs = itertools.izip_longest(
 		linkified_parts,
 		HREF_pattern.findall(rst_content),
 		fillvalue='',

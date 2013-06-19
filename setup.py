@@ -47,7 +47,7 @@ exec(init_file.read(), d)
 init_file.close()
 
 SETUP_COMMANDS = d['__all__']
-VERSION = "0.7.3"
+VERSION = "0.8"
 
 from setuptools import setup, find_packages
 from setuptools.command.build_py import build_py as _build_py
@@ -56,7 +56,7 @@ from setuptools.command.test import test as _test
 scripts = []
 
 console_scripts = ["easy_install = setuptools.command.easy_install:main"]
-if os.environ.get("SETUPTOOLS_DISABLE_VERSIONED_EASY_INSTALL_SCRIPT") is None:
+if os.environ.get("DISTRIBUTE_DISABLE_VERSIONED_EASY_INSTALL_SCRIPT") is None:
     console_scripts.append("easy_install-%s = setuptools.command.easy_install:main" % sys.version[:3])
 
 # specific command that is used to generate windows .exe files

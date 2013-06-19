@@ -2,10 +2,10 @@
 """
 import sys
 import time
-from threading import Thread
+import threading
+from setuptools.compat import BaseHTTPRequestHandler
 from setuptools.compat import (urllib2, URLError, HTTPServer,
-                               SimpleHTTPRequestHandler,
-                               BaseHTTPRequestHandler)
+                               SimpleHTTPRequestHandler)
 
 class IndexServer(HTTPServer):
     """Basic single-threaded http server simulating a package index
@@ -28,7 +28,7 @@ class IndexServer(HTTPServer):
             self.handle_request()
 
     def start(self):
-        self.thread = Thread(target=self.serve)
+        self.thread = threading.Thread(target=self.serve)
         self.thread.start()
 
     def stop(self):
@@ -47,7 +47,7 @@ class IndexServer(HTTPServer):
                 urllib2.urlopen(url, timeout=5)
             else:
                 urllib2.urlopen(url)
-        except urllib2.URLError:
+        except URLError:
             # ignore any errors; all that's important is the request
             pass
         self.thread.join()
@@ -63,14 +63,14 @@ class RequestRecorder(BaseHTTPRequestHandler):
         requests.append(self)
         self.send_response(200, 'OK')
 
-class MockServer(HTTPServer, Thread):
+class MockServer(HTTPServer, threading.Thread):
     """
     A simple HTTP Server that records the requests made to it.
     """
     def __init__(self, server_address=('', 0),
             RequestHandlerClass=RequestRecorder):
         HTTPServer.__init__(self, server_address, RequestHandlerClass)
-        Thread.__init__(self)
+        threading.Thread.__init__(self)
         self.setDaemon(True)
         self.requests = []
 

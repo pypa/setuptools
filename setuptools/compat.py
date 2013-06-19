@@ -1,4 +1,5 @@
 import sys
+import itertools
 
 if sys.version_info[0] < 3:
     PY3 = False
@@ -14,8 +15,9 @@ if sys.version_info[0] < 3:
     im_func = lambda o: o.im_func
     from htmlentitydefs import name2codepoint
     import httplib
-    from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+    from BaseHTTPServer import HTTPServer
     from SimpleHTTPServer import SimpleHTTPRequestHandler
+    from BaseHTTPServer import BaseHTTPRequestHandler
     iteritems = lambda o: o.iteritems()
     long_type = long
     maxsize = sys.maxint
@@ -29,7 +31,7 @@ if sys.version_info[0] < 3:
     from urllib2 import urlopen, HTTPError, URLError, unquote, splituser
     from urlparse import urlparse, urlunparse, urljoin
     xrange = xrange
-    from itertools import ifilterfalse
+    filterfalse = itertools.ifilterfalse
 
     def exec_(code, globs=None, locs=None):
         if globs is None:
@@ -57,7 +59,8 @@ else:
     im_func = lambda o: o.__func__
     from html.entities import name2codepoint
     import http.client as httplib
-    from http.server import HTTPServer, SimpleHTTPRequestHandler, BaseHTTPRequestHandler
+    from http.server import HTTPServer, SimpleHTTPRequestHandler
+    from http.server import BaseHTTPRequestHandler
     iteritems = lambda o: o.items()
     long_type = int
     maxsize = sys.maxsize
@@ -71,7 +74,7 @@ else:
     from urllib.request import urlopen, url2pathname
     from urllib.parse import urlparse, urlunparse, quote, unquote, splituser, urljoin
     xrange = range
-    from itertools import filterfalse as ifilterfalse
+    filterfalse = itertools.filterfalse
 
     def execfile(fn, globs=None, locs=None):
         if globs is None:

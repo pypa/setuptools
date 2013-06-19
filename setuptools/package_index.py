@@ -1,14 +1,16 @@
 """PyPI and direct package downloading"""
 import sys, os.path, re, shutil, random, socket
+import itertools
+import base64
+from setuptools import ssl_support
 from pkg_resources import *
 from distutils import log
 from distutils.errors import DistutilsError
-
-from setuptools import ssl_support
 from setuptools.compat import (urllib2, httplib, StringIO, HTTPError,
                                urlparse, urlunparse, unquote, splituser,
-                               url2pathname, name2codepoint, ifilterfalse,
+                               url2pathname, name2codepoint,
                                unichr, urljoin)
+from setuptools.compat import filterfalse
 try:
     from hashlib import md5
 except ImportError:
@@ -60,9 +62,9 @@ def parse_bdist_wininst(name):
 
 def egg_info_for_url(url):
     scheme, server, path, parameters, query, fragment = urlparse(url)
-    base = urllib2.unquote(path.split('/')[-1])
+    base = unquote(path.split('/')[-1])
     if server=='sourceforge.net' and base=='download':    # XXX Yuck
-        base = urllib2.unquote(path.split('/')[-2])
+        base = unquote(path.split('/')[-2])
     if '#' in base: base, fragment = base.split('#',1)
     return base,fragment
 
@@ -148,7 +150,7 @@ def unique_everseen(iterable, key=None):
     seen = set()
     seen_add = seen.add
     if key is None:
-        for element in ifilterfalse(seen.__contains__, iterable):
+        for element in filterfalse(seen.__contains__, iterable):
             seen_add(element)
             yield element
     else:
@@ -292,7 +294,8 @@ class PackageIndex(Environment):
                         self.scan_egg_link(item, entry)
 
     def scan_egg_link(self, path, entry):
-        lines = list(filter(None, map(str.strip, open(os.path.join(path, entry)))))
+        lines = [_f for _f in map(str.strip,
+                                  open(os.path.join(path, entry))) if _f]
         if len(lines)==2:
             for dist in find_distributions(os.path.join(path, lines[0])):
                 dist.location = os.path.join(path, *lines)
@@ -387,7 +390,7 @@ class PackageIndex(Environment):
     def check_md5(self, cs, info, filename, tfp):
         if re.match('md5=[0-9a-f]{32}$', info):
             self.debug("Validating md5 checksum for %s", filename)
-            if cs.hexdigest()!=info[4:]:
+            if cs.hexdigest() != info[4:]:
                 tfp.close()
                 os.unlink(filename)
                 raise DistutilsError(
@@ -889,7 +892,7 @@ def _encode_auth(auth):
     >>> _encode_auth('username%3Apassword')
     u'dXNlcm5hbWU6cGFzc3dvcmQ='
     """
-    auth_s = urllib2.unquote(auth)
+    auth_s = unquote(auth)
     # convert to bytes
     auth_bytes = auth_s.encode()
     # use the legacy interface for Python 2.3 support

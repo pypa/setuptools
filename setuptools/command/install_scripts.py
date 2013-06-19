@@ -50,5 +50,5 @@ class install_scripts(_install_scripts):
             f = open(target,"w"+mode)
             f.write(contents)
             f.close()
-            chmod(target,0x1FF - mask)  # 0777
+            chmod(target, 0x1FF-mask)  # 0777
 

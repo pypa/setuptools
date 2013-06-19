@@ -6,6 +6,8 @@ import shutil
 import tempfile
 import unittest
 import site
+from setuptools.compat import StringIO, BytesIO, next
+from setuptools.compat import urlparse
 import textwrap
 import tarfile
 import distutils.core

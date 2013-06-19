@@ -69,7 +69,8 @@ class TestPackageIndex(unittest.TestCase):
         try:
             index.open_url(url)
         except distutils.errors.DistutilsError:
-            msg = unicode(sys.exc_info()[1])
+            error = sys.exc_info()[1]
+            msg = unicode(error)
             assert 'nonnumeric port' in msg or 'getaddrinfo failed' in msg or 'Name or service not known' in msg
             return
         raise RuntimeError("Did not raise")

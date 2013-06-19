@@ -90,11 +90,15 @@ class TestDevelopTest(unittest.TestCase):
 
         # Check that we are using the right code.
         egg_link_file = open(os.path.join(site.USER_SITE, 'foo.egg-link'), 'rt')
-        path = egg_link_file.read().split()[0].strip()
-        egg_link_file.close()
+        try:
+            path = egg_link_file.read().split()[0].strip()
+        finally:
+            egg_link_file.close()
         init_file = open(os.path.join(path, 'foo', '__init__.py'), 'rt')
-        init = init_file.read().strip()
-        init_file.close()
+        try:
+            init = init_file.read().strip()
+        finally:
+            init_file.close()
         if sys.version < "3":
             self.assertEqual(init, 'print "foo"')
         else:
@@ -116,4 +120,3 @@ class TestDevelopTest(unittest.TestCase):
                     pass
         finally:
             os.chdir(old_dir)
-

@@ -12,6 +12,8 @@ from distutils.errors import DistutilsError
 from setuptools.compat import builtins, execfile, reduce
 from pkg_resources import working_set
 
+from setuptools.compat import builtins, execfile, reduce
+
 __all__ = [
     "AbstractSandbox", "DirectorySandbox", "SandboxViolation", "run_setup",
 ]

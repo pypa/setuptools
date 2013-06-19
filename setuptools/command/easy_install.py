@@ -447,7 +447,7 @@ class easy_install(Command):
             self.pth_file = None
 
         PYTHONPATH = os.environ.get('PYTHONPATH','').split(os.pathsep)
-        if instdir not in map(normalize_path, filter(None,PYTHONPATH)):
+        if instdir not in map(normalize_path, [_f for _f in PYTHONPATH if _f]):
             # only PYTHONPATH dirs need a site.py, so pretend it's there
             self.sitepy_installed = True
         elif self.multi_version and not os.path.exists(pth_file):
@@ -802,7 +802,7 @@ Please make the appropriate changes for your system and try again.
             f = open(target,"w"+mode)
             f.write(contents)
             f.close()
-            chmod(target,0x1FF - mask) # 0777
+            chmod(target, 0x1FF-mask) # 0777
 
 
 
@@ -916,7 +916,7 @@ Please make the appropriate changes for your system and try again.
             f = open(pkg_inf,'w')
             f.write('Metadata-Version: 1.0\n')
             for k,v in cfg.items('metadata'):
-                if k!='target_version':
+                if k != 'target_version':
                     f.write('%s: %s\n' % (k.replace('_','-').title(), v))
             f.close()
         script_dir = os.path.join(egg_info,'scripts')
@@ -1156,7 +1156,7 @@ See the setuptools documentation for the "develop" command for more info.
             'site_dirs', 'allow_hosts',
         )
         fetch_options = {}
-        for key, val in iteritems(ei_opts):
+        for key, val in ei_opts.items():
             if key not in fetch_directives: continue
             fetch_options[key.replace('_', '-')] = val[1]
         # create a settings dictionary suitable for `edit_config`
@@ -1390,7 +1390,8 @@ Please make the appropriate changes for your system and try again.""" % (
 
 def get_site_dirs():
     # return a list of 'site' dirs
-    sitedirs = list(filter(None,os.environ.get('PYTHONPATH','').split(os.pathsep)))
+    sitedirs = [_f for _f in os.environ.get('PYTHONPATH',
+                                            '').split(os.pathsep) if _f]
     prefixes = [sys.prefix]
     if sys.exec_prefix != sys.prefix:
         prefixes.append(sys.exec_prefix)
@@ -1509,7 +1510,7 @@ def extract_wininst_cfg(dist_filename):
             #  unicode for the RawConfigParser, so decode it. Is this the
             #  right encoding?
             config = config.decode('ascii')
-            cfg.readfp(StringIO.StringIO(config))
+            cfg.readfp(StringIO(config))
         except ConfigParser.Error:
             return None
         if not cfg.has_section('metadata') or not cfg.has_section('Setup'):
@@ -1544,7 +1545,7 @@ def get_exe_prefixes(exe_filename):
                 if parts[1].endswith('.egg-info'):
                     prefixes.insert(0,('/'.join(parts[:2]), 'EGG-INFO/'))
                     break
-            if len(parts)!=2 or not name.endswith('.pth'):
+            if len(parts) != 2 or not name.endswith('.pth'):
                 continue
             if name.endswith('-nspkg.pth'):
                 continue
@@ -1577,7 +1578,8 @@ class PthDistributions(Environment):
     dirty = False
 
     def __init__(self, filename, sitedirs=()):
-        self.filename = filename; self.sitedirs = list(map(normalize_path, sitedirs))
+        self.filename = filename
+        self.sitedirs = list(map(normalize_path, sitedirs))
         self.basedir = normalize_path(os.path.dirname(self.filename))
         self._load(); Environment.__init__(self, [], None, None)
         for path in yield_lines(self.paths):

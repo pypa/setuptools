@@ -25,7 +25,9 @@ except ImportError:
 
 from setuptools.compat import httplib, urlparse, unicode, iteritems
 
-if sys.version_info >= (3,):
+_IS_PYTHON3 = sys.version > '3'
+
+if _IS_PYTHON3:
     errors = 'surrogateescape'
 else:
     errors = 'strict'

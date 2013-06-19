@@ -8,7 +8,7 @@ from setuptools import Command
 from distutils.errors import *
 from distutils import log
 from setuptools.command.sdist import sdist
-from setuptools.compat import basestring, PY3
+from setuptools.compat import basestring
 from distutils.util import convert_path
 from distutils.filelist import FileList as _FileList
 from pkg_resources import parse_requirements, safe_name, parse_version, \
@@ -416,7 +416,8 @@ def write_pkg_info(cmd, basename, filename):
             metadata.name, metadata.version = oldname, oldver
 
         safe = getattr(cmd.distribution,'zip_safe',None)
-        from setuptools.command import bdist_egg; bdist_egg.write_safety_flag(cmd.egg_info, safe)
+        from setuptools.command import bdist_egg
+        bdist_egg.write_safety_flag(cmd.egg_info, safe)
 
 def warn_depends_obsolete(cmd, basename, filename):
     if os.path.exists(filename):

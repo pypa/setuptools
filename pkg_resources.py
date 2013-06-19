@@ -13,7 +13,7 @@ The package resource API is designed to work with normal filesystem packages,
 method.
 """
 
-import sys, os, zipfile, zipimport, time, re, imp, types
+import sys, os, time, re, imp, types, zipfile, zipimport
 try:
     from urlparse import urlparse, urlunparse
 except ImportError:
