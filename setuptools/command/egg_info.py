@@ -283,7 +283,7 @@ class FileList(_FileList):
             item = item[:-1]
         path = convert_path(item)
 
-        if PY3:
+        if sys.version_info >= (3,):
             try:
                 if os.path.exists(path) or os.path.exists(path.encode('utf-8')):
                     self.files.append(path)
@@ -337,7 +337,7 @@ class manifest_maker(sdist):
         named by 'self.manifest'.
         """
         # The manifest must be UTF-8 encodable. See #303.
-        if PY3:
+        if sys.version_info >= (3,):
             files = []
             for file in self.filelist.files:
                 try:
