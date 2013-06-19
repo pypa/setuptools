@@ -26,7 +26,7 @@ if sys.version_info[0] < 3:
     reduce = reduce
     unichr = unichr
     unicode = unicode
-    from urllib import url2pathname, quote # Python 2.4 has no quote in urllib2
+    from urllib import url2pathname
     import urllib2
     from urllib2 import urlopen, HTTPError, URLError, unquote, splituser
     from urlparse import urlparse, urlunparse, urljoin
@@ -72,7 +72,7 @@ else:
     from urllib.error import HTTPError, URLError
     import urllib.request as urllib2
     from urllib.request import urlopen, url2pathname
-    from urllib.parse import urlparse, urlunparse, quote, unquote, splituser, urljoin
+    from urllib.parse import urlparse, urlunparse, unquote, splituser, urljoin
     xrange = range
     filterfalse = itertools.filterfalse
 

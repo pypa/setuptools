@@ -10,7 +10,7 @@ import unittest
 import unicodedata
 
 
-from setuptools.compat import StringIO, quote, unicode
+from setuptools.compat import StringIO, unicode
 from setuptools.command.sdist import sdist
 from setuptools.command.egg_info import manifest_maker
 from setuptools.dist import Distribution

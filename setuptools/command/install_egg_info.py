@@ -1,6 +1,5 @@
 from setuptools import Command
 from setuptools.archive_util import unpack_archive
-from setuptools.compat import PY3
 from distutils import log, dir_util
 import os, shutil, pkg_resources
 
