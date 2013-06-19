@@ -272,11 +272,12 @@ class TestUserInstallTest(unittest.TestCase):
         sys.stdout = StringIO.StringIO()
         sys.stderr = StringIO.StringIO()
         try:
-            reset_setup_stop_context(
-                lambda: run_setup(test_setup_py, ['install'])
-            )
-        except SandboxViolation:
-            self.fail('Installation caused SandboxViolation')
+            try:
+                reset_setup_stop_context(
+                    lambda: run_setup(test_setup_py, ['install'])
+                )
+            except SandboxViolation:
+                self.fail('Installation caused SandboxViolation')
         finally:
             sys.stdout = old_stdout
             sys.stderr = old_stderr
