@@ -188,7 +188,9 @@ def upload_to_pypi():
 		cmd.extend([
 			'upload_docs', '-r', PACKAGE_INDEX
 		])
-	subprocess.check_call(cmd)
+	env = os.environ.copy()
+	env["SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES"] = "1"
+	subprocess.check_call(cmd, env=env)
 
 def has_sphinx():
 	try:

@@ -121,7 +121,7 @@ readme_file.close()
 changes_file.close()
 
 package_data = {'setuptools': ['site-patch.py']}
-if sys.platform == 'win32':
+if sys.platform == 'win32' or os.environ.get("SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES") not in (None, "", "0"):
     package_data.setdefault('setuptools', []).extend(['*.exe'])
     package_data.setdefault('setuptools.command', []).extend(['*.xml'])
 
