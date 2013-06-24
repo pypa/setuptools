@@ -1015,8 +1015,9 @@ variable to point to an accessible directory.
             #  bypass the warning.
             return
         mode = os.stat(path).st_mode
-        if mode & stat.S_IWOTH:
-            msg = ("%s is writable by others and vulnerable to attack when "
+        if mode & stat.S_IWOTH or mode & stat.S_IWGRP:
+            msg = ("%s is writable by group/others and vulnerable to attack "
+                "when "
                 "used with get_resource_filename. Consider a more secure "
                 "location (set with .set_extraction_path or the "
                 "PYTHON_EGG_CACHE environment variable)." % path)
