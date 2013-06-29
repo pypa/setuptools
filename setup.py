@@ -55,6 +55,10 @@ from setuptools.command.test import test as _test
 scripts = []
 
 console_scripts = ["easy_install = setuptools.command.easy_install:main"]
+
+# Gentoo distributions manage the python-version-specific scripts themselves,
+# so they define an environment variable to suppress the creation of the
+# version-specific scripts.
 if os.environ.get("SETUPTOOLS_DISABLE_VERSIONED_EASY_INSTALL_SCRIPT") in (None, "", "0") and \
     os.environ.get("DISTRIBUTE_DISABLE_VERSIONED_EASY_INSTALL_SCRIPT") in (None, "", "0"):
     console_scripts.append("easy_install-%s = setuptools.command.easy_install:main" % sys.version[:3])
