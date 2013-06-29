@@ -7,6 +7,10 @@ CHANGES
 -----
 
 * Issue #21: Restore Python 2.4 compatibility in ``test_easy_install``.
+* Distribute #375: Merged additional warning from Distribute 0.6.46.
+* Now honor the environment variable
+  ``SETUPTOOLS_DISABLE_VERSIONED_EASY_INSTALL_SCRIPT`` in addition to the now
+  deprecated ``DISTRIBUTE_DISABLE_VERSIONED_EASY_INSTALL_SCRIPT``.
 
 -----
 0.7.4
