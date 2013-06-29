@@ -9,7 +9,7 @@ def shquote(arg):
     """Quote an argument for later parsing by shlex.split()"""
     for c in '"', "'", "\\", "#":
         if c in arg: return repr(arg)
-    if arg.split()<>[arg]:
+    if arg.split() != [arg]:
         return repr(arg)
     return arg        
 
@@ -33,7 +33,7 @@ class alias(option_base):
 
     def finalize_options(self):
         option_base.finalize_options(self)
-        if self.remove and len(self.args)<>1:
+        if self.remove and len(self.args) != 1:
             raise DistutilsOptionError(
                 "Must specify exactly one argument (the alias name) when "
                 "using --remove"
@@ -43,10 +43,10 @@ class alias(option_base):
         aliases = self.distribution.get_option_dict('aliases')
 
         if not self.args:
-            print "Command Aliases"
-            print "---------------"
+            print("Command Aliases")
+            print("---------------")
             for alias in aliases:
-                print "setup.py alias", format_alias(alias, aliases)
+                print("setup.py alias", format_alias(alias, aliases))
             return
 
         elif len(self.args)==1:
@@ -54,10 +54,10 @@ class alias(option_base):
             if self.remove:
                 command = None
             elif alias in aliases:
-                print "setup.py alias", format_alias(alias, aliases)
+                print("setup.py alias", format_alias(alias, aliases))
                 return
             else:
-                print "No alias definition found for %r" % alias
+                print("No alias definition found for %r" % alias)
                 return
         else:
             alias = self.args[0]

@@ -9,10 +9,9 @@ class saveopts(option_base):
 
     def run(self):
         dist = self.distribution
-        commands = dist.command_options.keys()
         settings = {}
 
-        for cmd in commands:
+        for cmd in dist.command_options:
 
             if cmd=='saveopts':
                 continue    # don't save our own options!

@@ -9,7 +9,7 @@ import shutil
 import tempfile
 from distutils.command.install import INSTALL_SCHEMES
 from string import Template
-from urllib2 import urlopen
+from setuptools.compat import urlopen
 
 try:
     import subprocess

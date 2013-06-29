@@ -2,12 +2,11 @@
 """
 import sys
 import unittest
-import urllib2
 import pkg_resources
-import httplib
+from setuptools.compat import urllib2, httplib, HTTPError, unicode
 import distutils.errors
 import setuptools.package_index
-from server import IndexServer
+from setuptools.tests.server import IndexServer
 
 class TestPackageIndex(unittest.TestCase):
 
@@ -16,10 +15,11 @@ class TestPackageIndex(unittest.TestCase):
         url = 'http://127.0.0.1:0/nonesuch/test_package_index'
         try:
             v = index.open_url(url)
-        except Exception, v:
+        except Exception:
+            v = sys.exc_info()[1]
             self.assertTrue(url in str(v))
         else:
-            self.assertTrue(isinstance(v,urllib2.HTTPError))
+            self.assertTrue(isinstance(v, HTTPError))
 
     def test_bad_url_typo(self):
         # issue 16
@@ -32,10 +32,11 @@ class TestPackageIndex(unittest.TestCase):
         url = 'url:%20https://svn.plone.org/svn/collective/inquant.contentmirror.plone/trunk'
         try:
             v = index.open_url(url)
-        except Exception, v:
+        except Exception:
+            v = sys.exc_info()[1]
             self.assertTrue(url in str(v))
         else:
-            self.assertTrue(isinstance(v, urllib2.HTTPError))
+            self.assertTrue(isinstance(v, HTTPError))
 
     def test_bad_url_bad_status_line(self):
         index = setuptools.package_index.PackageIndex(
@@ -43,7 +44,6 @@ class TestPackageIndex(unittest.TestCase):
         )
 
         def _urlopen(*args):
-            import httplib
             raise httplib.BadStatusLine('line')
 
         old_urlopen = urllib2.urlopen
@@ -52,7 +52,8 @@ class TestPackageIndex(unittest.TestCase):
         try:
             try:
                 v = index.open_url(url)
-            except Exception, v:
+            except Exception:
+                v = sys.exc_info()[1]
                 self.assertTrue('line' in str(v))
             else:
                 raise AssertionError('Should have raise here!')
@@ -71,7 +72,8 @@ class TestPackageIndex(unittest.TestCase):
         url = 'http://http://svn.pythonpaste.org/Paste/wphp/trunk'
         try:
             index.open_url(url)
-        except distutils.errors.DistutilsError, error:
+        except distutils.errors.DistutilsError:
+            error = sys.exc_info()[1]
             msg = unicode(error)
             assert 'nonnumeric port' in msg or 'getaddrinfo failed' in msg or 'Name or service not known' in msg
             return

@@ -1,11 +1,13 @@
 __all__ = ['Distribution']
 
 import re
+import sys
 from distutils.core import Distribution as _Distribution
 from setuptools.depends import Require
 from setuptools.command.install import install
 from setuptools.command.sdist import sdist
 from setuptools.command.install_lib import install_lib
+from setuptools.compat import numeric_types, basestring
 from distutils.errors import DistutilsOptionError, DistutilsPlatformError
 from distutils.errors import DistutilsSetupError
 import setuptools, pkg_resources, distutils.core, distutils.dist, distutils.cmd
@@ -100,7 +102,8 @@ def check_entry_points(dist, attr, value):
     """Verify that entry_points map is parseable"""
     try:
         pkg_resources.EntryPoint.parse_map(value)
-    except ValueError, e:
+    except ValueError:
+        e = sys.exc_info()[1]
         raise DistutilsSetupError(e)
 
 def check_test_suite(dist, attr, value):
@@ -223,7 +226,7 @@ class Distribution(_Distribution):
             if not hasattr(self,ep.name):
                 setattr(self,ep.name,None)
         _Distribution.__init__(self,attrs)
-        if isinstance(self.metadata.version, (int,long,float)):
+        if isinstance(self.metadata.version, numeric_types):
             # Some people apparently take "version number" too literally :)
             self.metadata.version = str(self.metadata.version)
 
@@ -527,7 +530,7 @@ class Distribution(_Distribution):
             raise DistutilsSetupError(
                 "packages: setting must be a list or tuple (%r)" % (packages,)
             )
-        map(self.exclude_package, packages)
+        list(map(self.exclude_package, packages))
 
 
 

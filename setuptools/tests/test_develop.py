@@ -4,11 +4,11 @@ import sys
 import os, shutil, tempfile, unittest
 import tempfile
 import site
-from StringIO import StringIO
 
 from distutils.errors import DistutilsError
 from setuptools.command.develop import develop
 from setuptools.command import easy_install as easy_install_pkg
+from setuptools.compat import StringIO
 from setuptools.dist import Distribution
 
 SETUP_PY = """\
@@ -43,7 +43,7 @@ class TestDevelopTest(unittest.TestCase):
         f = open(init, 'w')
         f.write(INIT_PY)
         f.close()
-        
+
         os.chdir(self.dir)
         self.old_base = site.USER_BASE
         site.USER_BASE = tempfile.mkdtemp()
@@ -53,7 +53,7 @@ class TestDevelopTest(unittest.TestCase):
     def tearDown(self):
         if sys.version < "2.6" or hasattr(sys, 'real_prefix'):
             return
-        
+
         os.chdir(self.old_cwd)
         shutil.rmtree(self.dir)
         shutil.rmtree(site.USER_BASE)
@@ -90,11 +90,15 @@ class TestDevelopTest(unittest.TestCase):
 
         # Check that we are using the right code.
         egg_link_file = open(os.path.join(site.USER_SITE, 'foo.egg-link'), 'rt')
-        path = egg_link_file.read().split()[0].strip()
-        egg_link_file.close()
+        try:
+            path = egg_link_file.read().split()[0].strip()
+        finally:
+            egg_link_file.close()
         init_file = open(os.path.join(path, 'foo', '__init__.py'), 'rt')
-        init = init_file.read().strip()
-        init_file.close()
+        try:
+            init = init_file.read().strip()
+        finally:
+            init_file.close()
         if sys.version < "3":
             self.assertEqual(init, 'print "foo"')
         else:
@@ -109,10 +113,10 @@ class TestDevelopTest(unittest.TestCase):
         try:
             try:
                 dist = Distribution({'setup_requires': ['I_DONT_EXIST']})
-            except DistutilsError, e:
+            except DistutilsError:
+                e = sys.exc_info()[1]
                 error = str(e)
                 if error ==  wanted:
                     pass
         finally:
             os.chdir(old_dir)
-

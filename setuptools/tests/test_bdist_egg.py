@@ -4,9 +4,9 @@ import sys
 import os, re, shutil, tempfile, unittest
 import tempfile
 import site
-from StringIO import StringIO
 
 from distutils.errors import DistutilsError
+from setuptools.compat import StringIO
 from setuptools.command.bdist_egg import bdist_egg
 from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution

@@ -6,10 +6,10 @@ import shutil
 import tempfile
 import unittest
 import site
+from setuptools.compat import StringIO, BytesIO, next
+from setuptools.compat import urlparse
 import textwrap
 import tarfile
-import urlparse
-import StringIO
 import distutils.core
 
 from setuptools.sandbox import run_setup, SandboxViolation
@@ -78,7 +78,7 @@ class TestEasyInstallTest(unittest.TestCase):
 
         old_platform = sys.platform
         try:
-            name, script = [i for i in get_script_args(dist).next()][0:2]
+            name, script = [i for i in next(get_script_args(dist))][0:2]
         finally:
             sys.platform = old_platform
 
@@ -139,8 +139,7 @@ class TestEasyInstallTest(unittest.TestCase):
         cmd.install_dir = os.path.join(tempfile.mkdtemp(), 'ok')
         cmd.args = ['ok']
         cmd.ensure_finalized()
-        keys = cmd.package_index.scanned_urls.keys()
-        keys.sort()
+        keys = sorted(cmd.package_index.scanned_urls.keys())
         self.assertEqual(keys, ['link1', 'link2'])
 
 
@@ -304,8 +303,8 @@ class TestUserInstallTest(unittest.TestCase):
 
         old_stdout = sys.stdout
         old_stderr = sys.stderr
-        sys.stdout = StringIO.StringIO()
-        sys.stderr = StringIO.StringIO()
+        sys.stdout = StringIO()
+        sys.stderr = StringIO()
         try:
             reset_setup_stop_context(
                 lambda: run_setup(test_setup_py, ['install'])
@@ -329,7 +328,7 @@ class TestSetupRequires(unittest.TestCase):
         p_index = setuptools.tests.server.MockServer()
         p_index.start()
         netloc = 1
-        p_index_loc = urlparse.urlparse(p_index.url)[netloc]
+        p_index_loc = urlparse(p_index.url)[netloc]
         if p_index_loc.endswith(':0'):
             # Some platforms (Jython) don't find a port to which to bind,
             #  so skip this test for them.
@@ -396,9 +395,9 @@ def make_trivial_sdist(dist_path, setup_py):
     setup_py_file = tarfile.TarInfo(name='setup.py')
     try:
         # Python 3 (StringIO gets converted to io module)
-        MemFile = StringIO.BytesIO
+        MemFile = BytesIO
     except AttributeError:
-        MemFile = StringIO.StringIO
+        MemFile = StringIO
     setup_py_bytes = MemFile(setup_py.encode('utf-8'))
     setup_py_file.size = len(setup_py_bytes.getvalue())
     dist = tarfile.open(dist_path, 'w:gz')
