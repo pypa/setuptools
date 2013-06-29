@@ -14,6 +14,8 @@ method.
 """
 
 import sys, os, time, re, imp, types, zipfile, zipimport
+import warnings
+import stat
 from urlparse import urlparse, urlunparse
 
 try:
@@ -987,6 +989,7 @@ variable to point to an accessible directory.
         extract, as it tracks the generated names for possible cleanup later.
         """
         extract_path = self.extraction_path or get_default_cache()
+        self._warn_unsafe_extraction(extract_path)
         target_path = os.path.join(extract_path, archive_name+'-tmp', *names)
         try:
             _bypass_ensure_directory(target_path)
@@ -996,6 +999,29 @@ variable to point to an accessible directory.
         self.cached_files[target_path] = 1
         return target_path
 
+    @staticmethod
+    def warn_unsafe_extraction_path(path):
+        """
+        If the default extraction path is overridden and set to an insecure
+        location, such as /tmp, it opens up an opportunity for an attacker to
+        replace an extracted file with an unauthorized payload. Warn the user
+        if a known insecure location is used.
+
+        See Distribute #375 for more details.
+        """
+        if os.name == 'nt' and not path.startswith(os.environ['windir']):
+            # On Windows, permissions are generally restrictive by default
+            #  and temp directories are not writable by other users, so
+            #  bypass the warning.
+            return
+        mode = os.stat(path).st_mode
+        if mode & stat.S_IWOTH or mode & stat.S_IWGRP:
+            msg = ("%s is writable by group/others and vulnerable to attack "
+                "when "
+                "used with get_resource_filename. Consider a more secure "
+                "location (set with .set_extraction_path or the "
+                "PYTHON_EGG_CACHE environment variable)." % path)
+            warnings.warn(msg, UserWarning)
 
 
 
