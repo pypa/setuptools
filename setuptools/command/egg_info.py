@@ -15,6 +15,9 @@ from pkg_resources import parse_requirements, safe_name, parse_version, \
     safe_version, yield_lines, EntryPoint, iter_entry_points, to_filename
 from setuptools.command.sdist import walk_revctrl
 
+#requires python >= 2.4
+from subprocess import Popen as _Popen, PIPE as _PIPE
+
 class egg_info(Command):
     description = "create a distribution's .egg-info directory"
 
@@ -216,6 +219,8 @@ class egg_info(Command):
         revision = 0
         urlre = re.compile('url="([^"]+)"')
         revre = re.compile('committed-rev="(\d+)"')
+        urlre11 = re.compile('<url>([^<>]+)</url>')
+        revre11 = re.compile('<commit\s+[^>]*revision="(\d+)"')
 
         for base,dirs,files in os.walk(os.curdir):
             if '.svn' not in dirs:
@@ -236,11 +241,17 @@ class egg_info(Command):
                     log.warn("unrecognized .svn/entries format; skipping %s", base)
                     dirs[:] = []
                     continue
+                elif svnver > 10:
+                    p = _Popen(['svn', 'info', '--xml'], stdout=_PIPE, shell=(sys.platform=='win32'))
+                    data =  unicode(p.communicate()[0], encoding='utf-8')
+                    dirurl = urlre11.search(data).group(1)
+                    localrev = max([int(m.group(1)) for m in revre11.finditer(data)]+[0])
+                else:
+                    data = list(map(str.splitlines,data.split('\n\x0c\n')))
+                    del data[0][0]  # get rid of the '8' or '9' or '10'
+                    dirurl = data[0][3]
+                    localrev = max([int(d[9]) for d in data if len(d)>9 and d[9]]+[0])
 
-                data = list(map(str.splitlines,data.split('\n\x0c\n')))
-                del data[0][0]  # get rid of the '8' or '9' or '10'
-                dirurl = data[0][3]
-                localrev = max([int(d[9]) for d in data if len(d)>9 and d[9]]+[0])
             if base==os.curdir:
                 base_url = dirurl+'/'   # save the root url
             elif not dirurl.startswith(base_url):
@@ -249,6 +260,8 @@ class egg_info(Command):
             revision = max(revision, localrev)
 
         return str(revision or get_pkg_info_revision())
+
+
 
 
 
