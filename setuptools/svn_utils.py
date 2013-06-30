@@ -15,95 +15,39 @@ def get_entries_files(base, recurse=True):
         yield f.read()
         f.close()
 
-class SVNEntries(object):
-    known_svn_versions = {
-        '1.4.x': 8,
-        '1.5.x': 9,
-        '1.6.x': 10,
-        #11 didn't exist (maybe 1.7-dev)
-        #12 is the number in the file there is another
-        #number in .svn/wb.db that is at larger so
-        #looks like they won't be updating it any longer.
-        '1.7.x+': 12,
-        }
+#It would seem that svn info --xml and svn list --xml were fully supported by 1.3.x
+#the special casing of the entry files seem to start at 1.4.x, so if we check
+#for xml in entries and then fall back to the command line, this should catch everything.
 
-    def __init__(self, data):
+class SVNEntries(object):
+
+    def __init__(self, path, data):
+        self.path = path
         self.data = data
 
     @classmethod
     def load(class_, base):
         filename = os.path.join(base, '.svn', 'entries')
         f = open(filename)
-        result = SVNEntries.read(f)
+        result = SVNEntries.read(f, None)
         f.close()
         return result
 
     @classmethod
-    def read(class_, file):
+    def read(class_, file, path=None):
         data = file.read()
 
         if data.startswith('<?xml'):
             #entries were originally xml so pre-1.4.x
-            return SVNEntriesXML(data)
+            return SVNEntriesXML(data, path)
+        else if path is None:
+            raise ValueError('Must have path to call svn')
         else:
-            try:
-                eol = data.index('\n')
-                svn_version = int(data[:eol])
-                data = data[eol+1:]  # remove the revision number and newline
-            except ValueError:
-                log.warn('Unable to parse SVN entries file starting with %r' % data[:20])
-                svn_version = None
-
-            version_known = svn_version in class_.known_svn_versions
-            if version_known and svn_version <= 10:
-                return SVNEntriesText(data)
-            else:
-                if not version_known:
-                    log.warn("Unknown subversion verson %d", svn_version)
-                class_ = SVNEntriesCmd
-
-        return class_(data)
+            return SVNEntriesCMD(data, path)
 
     def parse_revision(self):
         all_revs = self.parse_revision_numbers() + [0]
         return max(all_revs)
-
-class SVNEntriesText(SVNEntries):
-
-    def __get_cached_sections(self):
-        return self.sections
-        
-    def get_sections(self):
-        SECTION_DIVIDER = '\f\n'
-        sections = self.data.split(SECTION_DIVIDER)
-        self.sections = map(str.splitlines, sections)
-        self.get_sections = self.__get_cached_sections
-        return self.sections
-
-    def is_valid(self):
-        return bool(self.get_sections())
-    
-    def get_url(self):
-        return self.get_sections()[0][4]
-
-    def parse_revision_numbers(self):
-        revision_line_number = 9
-        rev_numbers = [
-            int(section[revision_line_number])
-            for section in self.get_sections()
-            if len(section)>revision_line_number
-                and section[revision_line_number]
-            ]
-        return rev_numbers
-    
-    def get_undeleted_records(self):
-        undeleted = lambda s: s and s[0] and (len(s) < 6 or s[5] != 'delete')
-        result = [
-            section[0]
-            for section in self.get_sections()
-            if undeleted(section)
-            ]
-        return result
 
 class SVNEntriesXML(SVNEntries):
     def is_valid(self):
@@ -171,7 +115,7 @@ class SVNEntriesCMD(SVNEntries):
         return self.urlre.search(self.get_sections()[0]).group(1)
 
     def parse_revision_numbers(self):
-        #NOTE: if one has recently commited, the new revision doesn't get updated until svn update
+        #NOTE: if one has recently committed, the new revision doesn't get updated until SVN update
         if not self.is_valid():
             return list()
         else:
@@ -182,7 +126,7 @@ class SVNEntriesCMD(SVNEntries):
             ]
     
     def get_undeleted_records(self):
-        #NOTE: Need to pars enteries?
+        #NOTE: Need to parse entities?
         if not self.is_valid():
             return list()
         else:
