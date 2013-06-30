@@ -49,6 +49,28 @@ class SVNEntries(object):
         all_revs = self.parse_revision_numbers() + [0]
         return max(all_revs)
 
+    def __get_cached_external_dirs(self):
+        return self.external_dirs
+
+    def get_external_dirs(self):
+        #regard the shell argument, see: http://bugs.python.org/issue8557
+        #       and http://stackoverflow.com/questions/5658622/python-subprocess-popen-environment-path
+        proc = _Popen(['svn', 'propget', self.path], 
+                      stdout=_PIPE, shell=(sys.platform=='win32'))
+        data = unicode(proc.communicate()[0], encoding='utf-8').splitlines()
+        data = [line.split() for line in data]
+
+        # http://svnbook.red-bean.com/en/1.6/svn.advanced.externals.html
+        #there appears to be three possible formats for externals since 1.5
+        #but looks like we only need the local relative path names so it's just
+        #2 either the first column or the last (of 2 or 3)
+        index = -1
+        if all("://" in line[-1] for line in data):
+            index = 0
+        
+        self.external_dirs = [line[index] for line in data]
+        return self.dir_data
+
 class SVNEntriesXML(SVNEntries):
     def is_valid(self):
         return True
