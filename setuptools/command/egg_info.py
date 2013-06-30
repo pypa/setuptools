@@ -9,6 +9,7 @@ from distutils.errors import *
 from distutils import log
 from setuptools.command.sdist import sdist
 from setuptools.compat import basestring
+from setuptools import svn_util
 from distutils.util import convert_path
 from distutils.filelist import FileList as _FileList
 from pkg_resources import parse_requirements, safe_name, parse_version, \
@@ -217,40 +218,21 @@ class egg_info(Command):
     @staticmethod
     def get_svn_revision():
         revision = 0
-        urlre = re.compile('url="([^"]+)"')
-        revre = re.compile('committed-rev="(\d+)"')
-        urlre11 = re.compile('<url>([^<>]+)</url>')
-        revre11 = re.compile('<commit\s+[^>]*revision="(\d+)"')
 
         for base,dirs,files in os.walk(os.curdir):
             if '.svn' not in dirs:
                 dirs[:] = []
                 continue    # no sense walking uncontrolled subdirs
             dirs.remove('.svn')
-            f = open(os.path.join(base,'.svn','entries'))
-            data = f.read()
-            f.close()
 
-            if data.startswith('<?xml'):
-                dirurl = urlre.search(data).group(1)    # get repository URL
-                localrev = max([int(m.group(1)) for m in revre.finditer(data)]+[0])
-            else:
-                try: svnver = int(data.splitlines()[0])
-                except: svnver=-1
-                if svnver<8:
-                    log.warn("unrecognized .svn/entries format; skipping %s", base)
-                    dirs[:] = []
-                    continue
-                elif svnver > 10:
-                    p = _Popen(['svn', 'info', '--xml'], stdout=_PIPE, shell=(sys.platform=='win32'))
-                    data =  unicode(p.communicate()[0], encoding='utf-8')
-                    dirurl = urlre11.search(data).group(1)
-                    localrev = max([int(m.group(1)) for m in revre11.finditer(data)]+[0])
-                else:
-                    data = list(map(str.splitlines,data.split('\n\x0c\n')))
-                    del data[0][0]  # get rid of the '8' or '9' or '10'
-                    dirurl = data[0][3]
-                    localrev = max([int(d[9]) for d in data if len(d)>9 and d[9]]+[0])
+            enteries = svn_util.SVNEntries.load(base)
+            if not entries.is_valid:
+                log.warn(" get_svn_revision: Cannot determine how to read enteries.")
+                dirs[:] = []
+                continue
+
+            localrev = entries.parse_revsion()
+            dirurl = entries.get_url()
 
             if base==os.curdir:
                 base_url = dirurl+'/'   # save the root url

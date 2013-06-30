@@ -4,6 +4,7 @@ from distutils import log
 from glob import glob
 import os, re, sys, pkg_resources
 from glob import glob
+from setuptools.svn_util import SVNEntries
 
 READMES = ('README', 'README.rst', 'README.txt')
 
@@ -61,49 +62,13 @@ def _default_revctrl(dirname=''):
 
 def externals_finder(dirname, filename):
     """Find any 'svn:externals' directories"""
-    found = False
-    f = open(filename,'rt')
-    for line in iter(f.readline, ''):    # can't use direct iter!
-        parts = line.split()
-        if len(parts)==2:
-            kind,length = parts
-            data = f.read(int(length))
-            if kind=='K' and data=='svn:externals':
-                found = True
-            elif kind=='V' and found:
-                f.close()
-                break
-    else:
-        f.close()
-        return
+    for name in SVNEntries.load(dirname).get_external_dirs(filename):
+        yield joinpath(dirname, name)
 
-    for line in data.splitlines():
-        parts = line.split()
-        if parts:
-            yield joinpath(dirname, parts[0])
-
-
-entries_pattern = re.compile(r'name="([^"]+)"(?![^>]+deleted="true")', re.I)
 
 def entries_finder(dirname, filename):
-    f = open(filename,'rU')
-    data = f.read()
-    f.close()
-    if data.startswith('<?xml'):
-        for match in entries_pattern.finditer(data):
-            yield joinpath(dirname,unescape(match.group(1)))
-    else:
-        svnver=-1
-        try: svnver = int(data.splitlines()[0])
-        except: pass
-        if svnver<8:
-            log.warn("unrecognized .svn/entries format in %s", os.path.abspath(dirname))
-            return           
-        for record in map(str.splitlines, data.split('\n\x0c\n')[1:]):
-            # subversion 1.6/1.5/1.4
-            if not record or len(record)>=6 and record[5]=="delete":
-                continue    # skip deleted
-            yield joinpath(dirname, record[0])
+    for record in SVNEntries.load(dirname).get_undeleted_records():
+        yield joinpath(dirname, record)
         
 
 finders = [
