@@ -9,7 +9,7 @@ from distutils.errors import *
 from distutils import log
 from setuptools.command.sdist import sdist
 from setuptools.compat import basestring
-from setuptools import svn_util
+from setuptools import svn_utils
 from distutils.util import convert_path
 from distutils.filelist import FileList as _FileList
 from pkg_resources import parse_requirements, safe_name, parse_version, \
@@ -225,7 +225,7 @@ class egg_info(Command):
                 continue    # no sense walking uncontrolled subdirs
             dirs.remove('.svn')
 
-            enteries = svn_util.SVNEntries.load(base)
+            entries = svn_utils.SVNEntries.load_dir(base)
             if not entries.is_valid:
                 log.warn(" get_svn_revision: Cannot determine how to read enteries.")
                 dirs[:] = []
