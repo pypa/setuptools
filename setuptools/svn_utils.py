@@ -1,6 +1,7 @@
 import os
 import re
 import sys
+import codecs
 from distutils import log
 from xml.sax.saxutils import unescape
 
@@ -8,15 +9,6 @@ from xml.sax.saxutils import unescape
 from subprocess import Popen as _Popen, PIPE as _PIPE
 
 
-def get_entries_files(base, recurse=True):
-    for base, dirs, _ in os.walk(os.curdir):
-        if '.svn' not in dirs:
-            dirs[:] = []
-            continue    # no sense walking uncontrolled subdirs
-        dirs.remove('.svn')
-        f = open(os.path.join(base, '.svn', 'entries'))
-        yield f.read()
-        f.close()
 
 #It would seem that svn info --xml and svn list --xml were fully
 #supported by 1.3.x the special casing of the entry files seem to start at
@@ -28,7 +20,19 @@ def get_entries_files(base, recurse=True):
 #       http://bugs.python.org/issue8557
 #       http://stackoverflow.com/questions/5658622/
 #              python-subprocess-popen-environment-path
+def _run_command(args, stdout=_PIPE, stderr=_PIPE):
+        #regarding the shell argument, see: http://bugs.python.org/issue8557
+        proc = _Popen(args, stdout=stdout, stderr=stderr,
+                      shell=(sys.platform=='win32'))
 
+        data = proc.communicate()[0]
+        #TODO: this is probably NOT always utf-8
+        try:
+            data = unicode(data, encoding='utf-8')
+        except NameError:
+            data = str(data, encoding='utf-8')
+
+        return proc.returncode, data
 
 #TODO add the text entry back, and make its use dependent on the
 #     non existence of svn?
@@ -44,10 +48,7 @@ class SVNEntries(object):
 
     @staticmethod
     def get_svn_tool_version():
-        proc = _Popen(['svn', '--version', '--quiet'],
-                      stdout=_PIPE, stderr=_PIPE,
-                      shell=(sys.platform=='win32'))
-        data = unicode(proc.communicate()[0], encoding='utf-8')
+        _, data = _run_command(['svn', '--version', '--quiet'])
         if data:
             return data.strip()
         else:
@@ -234,18 +235,14 @@ class SVNEntriesCMD(SVNEntries):
 
     def get_dir_data(self):
         #regarding the shell argument, see: http://bugs.python.org/issue8557
-        proc = _Popen(['svn', 'info', '--xml', self.path],
-                      stdout=_PIPE, shell=(sys.platform=='win32'))
-        data =  unicode(proc.communicate()[0], encoding='utf-8')
+        _, data = _run_command(['svn', 'info', '--xml', self.path])
         self.dir_data = self.entryre.findall(data)
         self.get_dir_data = self.__get_cached_dir_data
         return self.dir_data
 
     def get_entries(self):
         #regarding the shell argument, see: http://bugs.python.org/issue8557
-        proc = _Popen(['svn', 'list', '--xml', self.path],
-                      stdout=_PIPE, shell=(sys.platform=='win32'))
-        data =  unicode(proc.communicate()[0], encoding='utf-8')
+        _, data = _run_command(['svn', 'list', '--xml', self.path])
         self.entries = self.entryre.findall(data)
         self.get_entries = self.__get_cached_entries
         return self.entries
@@ -285,11 +282,9 @@ class SVNEntriesCMD(SVNEntries):
         if os.path.basename(filename).lower() != 'dir-props':
             return ''
 
-        #regard the shell argument, see: http://bugs.python.org/issue8557
-        proc = _Popen(['svn', 'propget', 'svn:externals', self.path],
-                  stdout=_PIPE, shell=(sys.platform=='win32'))
         try:
-            lines = unicode(proc.communicate()[0], encoding='utf-8')
+            _, lines = _run_command(['svn',
+                                     'propget', 'svn:externals', self.path])
             lines = [line for line in lines.splitlines() if line]
             return lines
         except ValueError:
