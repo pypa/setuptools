@@ -68,7 +68,7 @@ class SVNEntries(object):
             #entries were originally xml so pre-1.4.x
             return SVNEntriesXML(data, path)
         elif path is None:
-            result = SVNEntriesText(data, path)
+            return SVNEntriesText(data, path)
         else:
             class_.svn_tool_version = class_.get_svn_tool_version()
             result = SVNEntriesText(data, path)
