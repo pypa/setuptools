@@ -1,25 +1,37 @@
 import os
 import re
+import sys
+from distutils import log
+from xml.sax.saxutils import unescape
 
 #requires python >= 2.4
 from subprocess import Popen as _Popen, PIPE as _PIPE
 
 
 def get_entries_files(base, recurse=True):
-    for base,dirs,files in os.walk(os.curdir):
+    for base, dirs, _ in os.walk(os.curdir):
         if '.svn' not in dirs:
             dirs[:] = []
             continue    # no sense walking uncontrolled subdirs
         dirs.remove('.svn')
-        f = open(os.path.join(base,'.svn','entries'))
+        f = open(os.path.join(base, '.svn', 'entries'))
         yield f.read()
         f.close()
 
-#It would seem that svn info --xml and svn list --xml were fully supported by 1.3.x
-#the special casing of the entry files seem to start at 1.4.x, so if we check
-#for xml in entries and then fall back to the command line, this should catch everything.
+#It would seem that svn info --xml and svn list --xml were fully
+#supported by 1.3.x the special casing of the entry files seem to start at
+#1.4.x, so if we check for xml in entries and then fall back to the command
+#line, this should catch everything.
 
-#TODO add the text entry back, and make its use dependent on the non existence of svn?
+#subprocess is called several times with shell=(sys.platform=='win32')
+#see the follow for more information:
+#       http://bugs.python.org/issue8557
+#       http://stackoverflow.com/questions/5658622/
+#              python-subprocess-popen-environment-path
+
+
+#TODO add the text entry back, and make its use dependent on the
+#     non existence of svn?
 
 class SVNEntries(object):
     svn_tool_version = ''
@@ -30,12 +42,12 @@ class SVNEntries(object):
         if not self.svn_tool_version:
             self.svn_tool_version = self.get_svn_tool_version()
 
-    @staticmethod 
+    @staticmethod
     def get_svn_tool_version():
-        proc = _Popen(['svn', 'propget', self.path], 
+        proc = _Popen(['svn', '--version', '--quiet'],
                       stdout=_PIPE, shell=(sys.platform=='win32'))
         data = unicode(proc.communicate()[0], encoding='utf-8')
-        if data is not not:
+        if data:
             return data.strip()
         else:
             return ''
@@ -55,13 +67,13 @@ class SVNEntries(object):
         if data.startswith('<?xml'):
             #entries were originally xml so pre-1.4.x
             return SVNEntriesXML(data, path)
-        else if path is None:
+        elif path is None:
             result = SVNEntriesText(data, path)
         else:
             class_.svn_tool_version = class_.get_svn_tool_version()
             result = SVNEntriesText(data, path)
             if result.is_valid():
-                return svnentriescmd(data, path)
+                return SVNEntriesCMD(data, path)
             else:
                 return result
 
@@ -78,11 +90,11 @@ class SVNEntries(object):
         for line in iter(f.readline, ''):    # can't use direct iter!
             parts = line.split()
             if len(parts)==2:
-                kind,length = parts
+                kind, length = parts
                 data = f.read(int(length))
-                if kind=='K' and data=='svn:externals':
+                if kind == 'K' and data == 'svn:externals':
                     found = True
-                elif kind=='V' and found:
+                elif kind == 'V' and found:
                     f.close()
                     break
         else:
@@ -95,19 +107,26 @@ class SVNEntries(object):
         if not data:
             return
 
-        data = [line.split() for line in data]
-
         # http://svnbook.red-bean.com/en/1.6/svn.advanced.externals.html
         #there appears to be three possible formats for externals since 1.5
         #but looks like we only need the local relative path names so it's just
-        #2 either the first column or the last (of 2 or 3)
-        index = -1
-        if all("://" in line[-1] or not line[-1] for line in data):
-            index = 0
+        #2 either the first column or the last (of 2 or 3) Looks like
+        #mix and matching is allowed.
+        data = list()
+        for line in data:
+            line = line.split()
+            if not line:
+                continue
 
-        self.external_dirs = [line[index] for line in data if line[index]]
+            #TODO: urlparse?
+            if "://" in line[-1] or ":\\\\" in line[-1]:
+                data.append(line[-1])
+            else:
+                data.append(line[0])
+
+        self.external_dirs = data
         self.get_external_dirs = self.__get_cached_external_dirs
-        return self.external_dirs                
+        return self.external_dirs
 
 class SVNEntriesText(SVNEntries):
     known_svn_versions = {
@@ -122,7 +141,7 @@ class SVNEntriesText(SVNEntries):
     def get_sections(self):
         SECTION_DIVIDER = '\f\n' # or '\n\x0c\n'?
         sections = self.data.split(SECTION_DIVIDER)
-        sections = list(map(str.splitlines, sections))
+        sections = [section.splitlines() for section in sections]
         try:
             # remove the SVN version number from the first line
             svn_version = int(sections[0].pop(0))
@@ -136,7 +155,7 @@ class SVNEntriesText(SVNEntries):
 
     def is_valid(self):
         return bool(self.get_sections())
-    
+
     def get_url(self):
         return self.get_sections()[0][4]
 
@@ -149,7 +168,7 @@ class SVNEntriesText(SVNEntries):
                 and section[revision_line_number]
             ]
         return rev_numbers
-    
+
     def get_undeleted_records(self):
         undeleted = lambda s: s and s[0] and (len(s) < 6 or s[5] != 'delete')
         result = [
@@ -166,23 +185,24 @@ class SVNEntriesXML(SVNEntries):
 
     def get_url(self):
         "Get repository URL"
-        urlre = re.compile('url="([^"]+)"')
+        urlre = re.compile(r'url="([^"]+)"')
         return urlre.search(self.data).group(1)
 
     def parse_revision_numbers(self):
-        revre = re.compile('committed-rev="(\d+)"')
+        revre = re.compile(r'committed-rev="(\d+)"')
         return [
             int(m.group(1))
             for m in revre.finditer(self.data)
             if m.group(1)
             ]
-    
+
     def get_undeleted_records(self):
-        entries_pattern = re.compile(r'name="([^"]+)"(?![^>]+deleted="true")', re.I)
+        entries_pattern = re.compile(r'name="([^"]+)"(?![^>]+deleted="true")',
+                                     re.I)
         results = [
             unescape(match.group(1))
             for match in entries_pattern.finditer(self.data)
-            if m.group(1)
+            if match.group(1)
             ]
         return results
 
@@ -190,9 +210,9 @@ class SVNEntriesXML(SVNEntries):
 class SVNEntriesCMD(SVNEntries):
     entrypathre = re.compile(r'<entry\s+[^>]*path="(\.+)">', re.I)
     entryre = re.compile(r'<entry.*?</entry>', re.M or re.I)
-    urlre = re.compile('<root>(.*?)</root>', re.I)
-    revre = re.compile('<commit\s+[^>]*revision="(\d+)"', re.I)
-    namere = re.compile('<name>(.*?)</name>', re.I)
+    urlre = re.compile(r'<root>(.*?)</root>', re.I)
+    revre = re.compile(r'<commit\s+[^>]*revision="(\d+)"', re.I)
+    namere = re.compile(r'<name>(.*?)</name>', re.I)
 
     def __get_cached_dir_data(self):
         return self.dir_data
@@ -204,9 +224,8 @@ class SVNEntriesCMD(SVNEntries):
         return bool(self.get_dir_data())
 
     def get_dir_data(self):
-        #regard the shell argument, see: http://bugs.python.org/issue8557
-        #       and http://stackoverflow.com/questions/5658622/python-subprocess-popen-environment-path
-        proc = _Popen(['svn', 'info', '--xml', self.path], 
+        #regarding the shell argument, see: http://bugs.python.org/issue8557
+        proc = _Popen(['svn', 'info', '--xml', self.path],
                       stdout=_PIPE, shell=(sys.platform=='win32'))
         data =  unicode(proc.communicate()[0], encoding='utf-8')
         self.dir_data = self.entryre.findall(data)
@@ -214,39 +233,39 @@ class SVNEntriesCMD(SVNEntries):
         return self.dir_data
 
     def get_entries(self):
-        #regard the shell argument, see: http://bugs.python.org/issue8557
-        #       and http://stackoverflow.com/questions/5658622/python-subprocess-popen-environment-path
-        proc = _Popen(['svn', 'list', '--xml', self.path], 
+        #regarding the shell argument, see: http://bugs.python.org/issue8557
+        proc = _Popen(['svn', 'list', '--xml', self.path],
                       stdout=_PIPE, shell=(sys.platform=='win32'))
         data =  unicode(proc.communicate()[0], encoding='utf-8')
-        self.dir_data = self.entryre.findall(data)
+        self.entries = self.entryre.findall(data)
         self.get_dir_data = self.__get_cached_dir_data
-        return self.dir_data
+        return self.entries
 
     def get_url(self):
         "Get repository URL"
-        return self.urlre.search(self.get_sections()[0]).group(1)
+        return self.urlre.search(self.get_entries()[0]).group(1)
 
     def parse_revision_numbers(self):
-        #NOTE: if one has recently committed, the new revision doesn't get updated until SVN update
+        #NOTE: if one has recently committed,
+        #      the new revision doesn't get updated until SVN update
         if not self.is_valid():
             return list()
         else:
             return [
-                int(m.group(1)) 
-                for entry in self.get_enteries()
+                int(m.group(1))
+                for entry in self.get_enries()
                 for m in self.revre.finditer(entry)
                 if m.group(1)
             ]
-    
+
     def get_undeleted_records(self):
         #NOTE: Need to parse entities?
         if not self.is_valid():
             return list()
         else:
             return [
-                m.group(1))
-                for entry in self.get_enteries()
+                m.group(1)
+                for entry in self.get_entries()
                 for m in self.namere.finditer(entry)
                 if m.group(1)
             ]
@@ -258,8 +277,7 @@ class SVNEntriesCMD(SVNEntries):
             return ''
 
         #regard the shell argument, see: http://bugs.python.org/issue8557
-        #       and http://stackoverflow.com/questions/5658622/python-subprocess-popen-environment-path
-        proc = _Popen(['svn', 'propget', self.path], 
+        proc = _Popen(['svn', 'propget', self.path],
                   stdout=_PIPE, shell=(sys.platform=='win32'))
         try:
             return unicode(proc.communicate()[0], encoding='utf-8').splitlines()
