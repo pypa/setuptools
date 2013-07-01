@@ -4,7 +4,7 @@ from distutils import log
 from glob import glob
 import os, re, sys, pkg_resources
 from glob import glob
-from setuptools.svn_util import SVNEntries
+from setuptools.svn_utils import SVNEntries
 
 READMES = ('README', 'README.rst', 'README.txt')
 
@@ -62,7 +62,7 @@ def _default_revctrl(dirname=''):
 
 def externals_finder(dirname, filename):
     """Find any 'svn:externals' directories"""
-    for name in SVNEntries.load(dirname).get_external_dirs(filename):
+    for name in SVNEnteries.load(dirname).get_external_dirs(filename):
         yield joinpath(dirname, name)
 
 
