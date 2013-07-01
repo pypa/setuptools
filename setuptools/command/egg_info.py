@@ -231,7 +231,7 @@ class egg_info(Command):
                 dirs[:] = []
                 continue
 
-            localrev = entries.parse_revsion()
+            localrev = entries.parse_revision()
             dirurl = entries.get_url()
 
             if base==os.curdir:

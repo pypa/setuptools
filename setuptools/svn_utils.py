@@ -45,7 +45,8 @@ class SVNEntries(object):
     @staticmethod
     def get_svn_tool_version():
         proc = _Popen(['svn', '--version', '--quiet'],
-                      stdout=_PIPE, shell=(sys.platform=='win32'))
+                      stdout=_PIPE, stderr=_PIPE,
+                      shell=(sys.platform=='win32'))
         data = unicode(proc.communicate()[0], encoding='utf-8')
         if data:
             return data.strip()
@@ -56,7 +57,7 @@ class SVNEntries(object):
     def load_dir(class_, base):
         filename = os.path.join(base, '.svn', 'entries')
         f = open(filename)
-        result = SVNEntries.read(f, None)
+        result = SVNEntries.read(f, base)
         f.close()
         return result
 
@@ -66,16 +67,15 @@ class SVNEntries(object):
 
         if data.startswith('<?xml'):
             #entries were originally xml so pre-1.4.x
-            return SVNEntriesXML(data, path)
+            return SVNEntriesXML(path, data)
         elif path is None:
-            return SVNEntriesText(data, path)
+            return SVNEntriesText(path, data)
         else:
-            class_.svn_tool_version = class_.get_svn_tool_version()
-            result = SVNEntriesText(data, path)
+            result = SVNEntriesText(path, data)
             if result.is_valid():
-                return SVNEntriesCMD(data, path)
-            else:
                 return result
+            else:
+                return SVNEntriesCMD(path, data)
 
     def parse_revision(self):
         all_revs = self.parse_revision_numbers() + [0]
@@ -84,8 +84,11 @@ class SVNEntries(object):
     def __get_cached_external_dirs(self):
         return self.external_dirs
 
-    def __get_externals_data(self, filename):
+    def _get_externals_data(self, filename):
         found = False
+        if not os.path.isfile(filename):
+            return
+
         f = open(filename,'rt')
         for line in iter(f.readline, ''):    # can't use direct iter!
             parts = line.split()
@@ -102,7 +105,9 @@ class SVNEntries(object):
             return ''
 
     def get_external_dirs(self, filename):
-        data = self.__get_externals_data(filename)
+        filename = os.path.join(self.path, '.svn', filename)
+
+        data = self._get_externals_data(filename)
 
         if not data:
             return
@@ -112,7 +117,7 @@ class SVNEntries(object):
         #but looks like we only need the local relative path names so it's just
         #2 either the first column or the last (of 2 or 3) Looks like
         #mix and matching is allowed.
-        data = list()
+        externals = list()
         for line in data:
             line = line.split()
             if not line:
@@ -120,11 +125,11 @@ class SVNEntries(object):
 
             #TODO: urlparse?
             if "://" in line[-1] or ":\\\\" in line[-1]:
-                data.append(line[-1])
+                externals.append(line[0])
             else:
-                data.append(line[0])
+                externals.append(line[-1])
 
-        self.external_dirs = data
+        self.external_dirs = externals
         self.get_external_dirs = self.__get_cached_external_dirs
         return self.external_dirs
 
@@ -139,16 +144,20 @@ class SVNEntriesText(SVNEntries):
         return self.sections
 
     def get_sections(self):
-        SECTION_DIVIDER = '\f\n' # or '\n\x0c\n'?
-        sections = self.data.split(SECTION_DIVIDER)
-        sections = [section.splitlines() for section in sections]
+        # remove the SVN version number from the first line
+        svn_version, _, sections = self.data.partition("\n")
         try:
-            # remove the SVN version number from the first line
-            svn_version = int(sections[0].pop(0))
+            svn_version = int(svn_version)
             if not svn_version in self.known_svn_versions.values():
-                log.warn("Unknown subversion verson %d", svn_version)
+                log.warn("SVNEntriesText: Unknown subversion verson %d."
+                         "  Maybe another parser will work,", svn_version)
         except ValueError:
             return
+
+        SECTION_DIVIDER = '\f\n' # or '\n\x0c\n'?
+        sections = sections.split(SECTION_DIVIDER)
+        sections = [section.splitlines() for section in sections if section]
+
         self.sections = sections
         self.get_sections = self.__get_cached_sections
         return self.sections
@@ -209,8 +218,8 @@ class SVNEntriesXML(SVNEntries):
 
 class SVNEntriesCMD(SVNEntries):
     entrypathre = re.compile(r'<entry\s+[^>]*path="(\.+)">', re.I)
-    entryre = re.compile(r'<entry.*?</entry>', re.M or re.I)
-    urlre = re.compile(r'<root>(.*?)</root>', re.I)
+    entryre = re.compile(r'<entry.*?</entry>', re.DOTALL or re.I)
+    urlre = re.compile(r'<url>(.*?)</url>', re.I)
     revre = re.compile(r'<commit\s+[^>]*revision="(\d+)"', re.I)
     namere = re.compile(r'<name>(.*?)</name>', re.I)
 
@@ -238,12 +247,12 @@ class SVNEntriesCMD(SVNEntries):
                       stdout=_PIPE, shell=(sys.platform=='win32'))
         data =  unicode(proc.communicate()[0], encoding='utf-8')
         self.entries = self.entryre.findall(data)
-        self.get_dir_data = self.__get_cached_dir_data
+        self.get_entries = self.__get_cached_entries
         return self.entries
 
     def get_url(self):
         "Get repository URL"
-        return self.urlre.search(self.get_entries()[0]).group(1)
+        return self.urlre.search(self.get_dir_data()[0]).group(1)
 
     def parse_revision_numbers(self):
         #NOTE: if one has recently committed,
@@ -253,7 +262,7 @@ class SVNEntriesCMD(SVNEntries):
         else:
             return [
                 int(m.group(1))
-                for entry in self.get_enries()
+                for entry in self.get_entries()
                 for m in self.revre.finditer(entry)
                 if m.group(1)
             ]
@@ -270,16 +279,18 @@ class SVNEntriesCMD(SVNEntries):
                 if m.group(1)
             ]
 
-    def __get_externals_data(self, filename):
+    def _get_externals_data(self, filename):
 
         #othewise will be called twice.
-        if filename.lower() != 'dir-props':
+        if os.path.basename(filename).lower() != 'dir-props':
             return ''
 
         #regard the shell argument, see: http://bugs.python.org/issue8557
-        proc = _Popen(['svn', 'propget', self.path],
+        proc = _Popen(['svn', 'propget', 'svn:externals', self.path],
                   stdout=_PIPE, shell=(sys.platform=='win32'))
         try:
-            return unicode(proc.communicate()[0], encoding='utf-8').splitlines()
+            lines = unicode(proc.communicate()[0], encoding='utf-8')
+            lines = [line for line in lines.splitlines() if line]
+            return lines
         except ValueError:
             return ''
