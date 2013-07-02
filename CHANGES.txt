@@ -3,6 +3,13 @@ CHANGES
 =======
 
 ------
+0.6.48
+------
+
+* Correct AttributeError in ``ResourceManager.get_cache_path`` introduced in
+  0.6.46 (redo).
+
+------
 0.6.47
 ------
 
