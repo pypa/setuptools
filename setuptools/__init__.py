@@ -8,7 +8,7 @@ from distutils.util import convert_path
 import os
 import sys
 
-__version__ = '0.7.6'
+__version__ = '0.7.7'
 __all__ = [
     'setup', 'Distribution', 'Feature', 'Command', 'Extension', 'Require',
     'find_packages'
