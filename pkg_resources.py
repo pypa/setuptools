@@ -1029,7 +1029,7 @@ variable to point to an accessible directory.
         return target_path
 
     @staticmethod
-    def warn_unsafe_extraction_path(path):
+    def _warn_unsafe_extraction_path(path):
         """
         If the default extraction path is overridden and set to an insecure
         location, such as /tmp, it opens up an opportunity for an attacker to
