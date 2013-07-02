@@ -59,3 +59,11 @@ class TestZipProvider(object):
 		f = open(filename)
 		assert f.read() == 'hello, world!'
 		manager.cleanup_resources()
+
+class TestResourceManager(object):
+	def test_get_cache_path(self):
+		mgr = pkg_resources.ResourceManager()
+		path = mgr.get_cache_path('foo')
+		type_ = str(type(path))
+		message = "Unexpected type from get_cache_path: " + type_
+		assert isinstance(path, (unicode, str)), message
