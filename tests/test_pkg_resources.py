@@ -56,7 +56,7 @@ class TestZipProvider(object):
         zp = pkg_resources.ZipProvider(mod)
         filename = zp.get_resource_filename(manager, 'data.dat')
         assert os.stat(filename).st_mtime == 1368379500
-        f = open(filename, 'wb')
+        f = open(filename, 'w')
         f.write('hello, world?')
         f.close()
         os.utime(filename, (1368379500, 1368379500))
