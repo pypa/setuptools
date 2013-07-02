@@ -63,6 +63,13 @@ Added several features that were slated for setuptools 0.6c12:
 * Issue #3: Fixed NameError in SSL support.
 
 ------
+0.6.47
+------
+
+* Correct AttributeError in ``ResourceManager.get_cache_path`` introduced in
+  0.6.46.
+
+------
 0.6.46
 ------
 

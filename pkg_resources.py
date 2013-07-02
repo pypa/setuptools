@@ -987,7 +987,7 @@ variable to point to an accessible directory.
         extract, as it tracks the generated names for possible cleanup later.
         """
         extract_path = self.extraction_path or get_default_cache()
-        self._warn_unsafe_extraction(extract_path)
+        self._warn_unsafe_extraction_path(extract_path)
         target_path = os.path.join(extract_path, archive_name+'-tmp', *names)
         try:
             _bypass_ensure_directory(target_path)
