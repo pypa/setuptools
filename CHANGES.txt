@@ -91,14 +91,6 @@ Added several features that were slated for setuptools 0.6c12:
   world-writable.
 
 ------
-0.6.46
-------
-
-* Issue #375: Issue a warning if the PYTHON_EGG_CACHE or otherwise
-  customized egg cache location specifies a directory that's group- or
-  world-writable.
-
-------
 0.6.45
 ------
 
