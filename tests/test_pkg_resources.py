@@ -5,6 +5,11 @@ import zipfile
 
 import pkg_resources
 
+try:
+	unicode
+except NameError:
+	unicode = str
+
 class EggRemover(unicode):
 	def __call__(self):
 		if self in sys.path:
