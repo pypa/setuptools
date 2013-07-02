@@ -3,6 +3,12 @@ CHANGES
 =======
 
 -----
+0.7.6
+-----
+
+* Distribute #375: Repair AttributeError created in last release.
+
+-----
 0.7.5
 -----
 
