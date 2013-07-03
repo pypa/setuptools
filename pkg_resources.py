@@ -1972,15 +1972,6 @@ def find_in_zip(importer, path_item, only=False):
 
 register_finder(zipimport.zipimporter, find_in_zip)
 
-def StringIO(*args, **kw):
-    """Thunk to load the real StringIO on demand"""
-    global StringIO
-    try:
-        from cStringIO import StringIO
-    except ImportError:
-        from io import StringIO
-    return StringIO(*args,**kw)
-
 def find_nothing(importer, path_item, only=False):
     return ()
 register_finder(object,find_nothing)
