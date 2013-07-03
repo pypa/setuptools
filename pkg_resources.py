@@ -28,7 +28,7 @@ except NameError:
 try:
     basestring
     next = lambda o: o.next()
-    from cStringIO import StringIO
+    from cStringIO import StringIO as BytesIO
     def exec_(code, globs=None, locs=None):
         if globs is None:
             frame = sys._getframe(1)
@@ -41,7 +41,7 @@ try:
         exec("""exec code in globs, locs""")
 except NameError:
     basestring = str
-    from io import StringIO
+    from io import BytesIO
     exec_ = eval("exec")
     def execfile(fn, globs=None, locs=None):
         if globs is None:
@@ -1402,7 +1402,7 @@ class NullProvider:
         return self._fn(self.module_path, resource_name)
 
     def get_resource_stream(self, manager, resource_name):
-        return StringIO(self.get_resource_string(manager, resource_name))
+        return BytesIO(self.get_resource_string(manager, resource_name))
 
     def get_resource_string(self, manager, resource_name):
         return self._get(self._fn(self.module_path, resource_name))
