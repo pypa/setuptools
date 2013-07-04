@@ -277,6 +277,8 @@ class SVNEntriesCMD(SVNEntries):
         "Get repository URL"
         return self.urlre.search(self.get_dir_data()[0]).group(1)
 
+    def __get_cached_revision(self):
+        return self.revision
 
     def parse_revision(self):
         _, data = _run_command(['svnversion', self.path])
@@ -285,11 +287,12 @@ class SVNEntriesCMD(SVNEntries):
             log.warn('Parsed!')
             try:
                 #No max needed this command summarizes working copy since 1.0
-                return int(parsed.group(2))
+                self.revision = int(parsed.group(2))
+                self.parse_revision = self.__get_cached_revision
+                return self.revision
             except ValueError:
                 #This should only happen if the revision is WAY too big.
                 pass
-        log.warn(repr(data))
         return 0
 
     def get_undeleted_records(self):
