@@ -94,7 +94,7 @@ def _get_entry_schedule(entry):
 #-R without --xml parses a bit funny
 def parse_externals(path):
     try:
-        _, lines = _run_command(['svn',
+        code, lines = _run_command(['svn',
                                  'propget', 'svn:externals', path])
 
         if code:

@@ -63,7 +63,7 @@ def _default_revctrl(dirname=''):
 
 def externals_finder(dirname, filename):
     """Find any 'svn:externals' directories"""
-    for name in SVNEnteries.load(dirname).get_external_dirs(filename):
+    for name in svn_utils.parse_externals(dirname):
         yield joinpath(dirname, name)
 
 

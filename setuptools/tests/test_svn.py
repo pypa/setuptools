@@ -91,9 +91,17 @@ class TestSvn_1_7(unittest.TestCase):
         expected = set([
             os.path.join('.', 'readme.txt'),
             os.path.join('.', 'other'),
-            os.path.join('.', 'other', 'test.py'),
             ])
         self.assertEqual(set(x for x in sdist.entries_finder('.', '')),
+                         expected)
+
+    def test_external_iterator(self):
+        expected = set([
+            os.path.join('.', 'third_party'),
+            os.path.join('.', 'third_party2'),
+            os.path.join('.', 'third_party3'),
+            ])
+        self.assertEqual(set(x for x in sdist.externals_finder('.', '')),
                          expected)
 
 def test_suite():
