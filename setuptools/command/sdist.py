@@ -4,7 +4,6 @@ from distutils import log
 from glob import glob
 import os, re, sys, pkg_resources
 from glob import glob
-from setuptools.svn_utils import SVNEntries
 from setuptools import svn_utils
 
 READMES = ('README', 'README.rst', 'README.txt')

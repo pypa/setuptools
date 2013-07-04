@@ -32,13 +32,13 @@ class TestSvnVersion(unittest.TestCase):
         old_path = os.environ['path']
         os.environ['path'] = ''
         try:
-            version = svn_utils.SVNEntries.get_svn_tool_version()
+            version = svn_utils.get_svn_tool_version()
             self.assertEqual(version, '')
         finally:
             os.environ['path'] = old_path
 
     def test_svn_should_exist(self):
-        version = svn_utils.SVNEntries.get_svn_tool_version()
+        version = svn_utils.get_svn_tool_version()
         self.assertNotEqual(version, '')
 
 
@@ -63,25 +63,6 @@ class TestSvn_1_7(unittest.TestCase):
     def tearDown(self):
         os.chdir(self.old_cwd)
         _remove_dir(self.temp_dir)
-
-    def test_svnentrycmd_is_valid(self):
-        entries = svn_utils.SVNEntries.load_dir('.')
-        self.assertIsInstance(entries, svn_utils.SVNEntriesCMD)
-        self.assertTrue(entries.is_valid())
-
-    def test_svnentrycmd_is_valid(self):
-        entries = svn_utils.SVNEntries.load_dir('.')
-        self.assertIsInstance(entries, svn_utils.SVNEntriesCMD)
-        self.assertTrue(entries.is_valid())
-
-    def test_svnentrycmd_enteries(self):
-        entries = svn_utils.SVNEntries.load_dir('.')
-        self.assertIsInstance(entries, svn_utils.SVNEntriesCMD)
-        self.assertEqual(entries.parse_revision(), 4)
-        self.assertEqual(set(entries.get_undeleted_records()),
-                         set([u'readme.txt', u'other']))
-        self.assertEqual(set(entries.get_external_dirs('dir-props')),
-            set([u'third_party3', u'third_party2', u'third_party']))
 
     def test_egg_info(self):
         rev = egg_info.egg_info.get_svn_revision()
