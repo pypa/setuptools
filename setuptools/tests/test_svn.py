@@ -11,6 +11,7 @@ import shutil
 import stat
 
 from setuptools import svn_utils
+from setuptools.command import egg_info
 
 #requires python >= 2.4
 from subprocess import call as _call
@@ -83,6 +84,9 @@ class TestSvn_1_7(unittest.TestCase):
         self.assertEqual(set(entries.get_external_dirs('dir-props')),
             set([u'third_party3', u'third_party2', u'third_party']))
 
+    def test_egg_info(self):
+        rev = egg_info.egg_info.get_svn_revision()
+        self.assertEqual(rev, '4')
 
 
 def test_suite():

@@ -34,6 +34,25 @@ def _run_command(args, stdout=_PIPE, stderr=_PIPE):
 
         return proc.returncode, data
 
+#svnversion return values (previous implementations return max revision)
+#   4123:4168     mixed revision working copy
+#   4168M         modified working copy
+#   4123S         switched working copy
+#   4123:4168MS   mixed revision, modified, switched working copy
+_SVN_VER_RE = re.compile(r'(?:(\d+):)?(\d+)([a-z]*)\s*$', re.I)
+
+def parse_revision(path):
+    _, data = _run_command(['svnversion', path])
+    parsed = _SVN_VER_RE.match(data)
+    if parsed:
+        try:
+            #No max needed this command summarizes working copy since 1.0
+            return int(parsed.group(2))
+        except ValueError:
+            #This should only happen if the revision is WAY too big.
+            pass
+    return 0
+
 #TODO add the text entry back, and make its use dependent on the
 #     non existence of svn?
 
@@ -242,13 +261,6 @@ class SVNEntriesCMD(SVNEntries):
     entryre = re.compile(r'<entry.*?</entry>', re.DOTALL or re.I)
     namere = re.compile(r'<name>(.*?)</name>', re.I)
 
-    #svnversion return values (previous implementations return max revision)
-    #   4123:4168     mixed revision working copy
-    #   4168M         modified working copy
-    #   4123S         switched working copy
-    #   4123:4168MS   mixed revision, modified, switched working copy
-    svnverre = re.compile(r'(?:(\d+):)?(\d+)([a-z]*)\s*$', re.I)
-
     def __get_cached_dir_data(self):
         return self.dir_data
 
@@ -294,18 +306,9 @@ class SVNEntriesCMD(SVNEntries):
         return self.revision
 
     def parse_revision(self):
-        _, data = _run_command(['svnversion', self.path])
-        parsed = self.svnverre.match(data)
-        if parsed:
-            try:
-                #No max needed this command summarizes working copy since 1.0
-                self.revision = int(parsed.group(2))
-                self.parse_revision = self.__get_cached_revision
-                return self.revision
-            except ValueError:
-                #This should only happen if the revision is WAY too big.
-                pass
-        return 0
+        self.revision = parse_revision(self.path)
+        self.parse_revision = self.__get_cached_revision
+        return self.revision
 
     def get_undeleted_records(self):
         #NOTE: Need to parse entities?

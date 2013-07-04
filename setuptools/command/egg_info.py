@@ -217,31 +217,7 @@ class egg_info(Command):
 
     @staticmethod
     def get_svn_revision():
-        revision = 0
-
-        for base,dirs,files in os.walk(os.curdir):
-            if '.svn' not in dirs:
-                dirs[:] = []
-                continue    # no sense walking uncontrolled subdirs
-            dirs.remove('.svn')
-
-            entries = svn_utils.SVNEntries.load_dir(base)
-            if not entries.is_valid:
-                log.warn(" get_svn_revision: Cannot determine how to read enteries.")
-                dirs[:] = []
-                continue
-
-            localrev = entries.parse_revision()
-            dirurl = entries.get_url()
-
-            if base==os.curdir:
-                base_url = dirurl+'/'   # save the root url
-            elif not dirurl.startswith(base_url):
-                dirs[:] = []
-                continue    # not part of the same svn tree, skip it
-            revision = max(revision, localrev)
-
-        return str(revision or get_pkg_info_revision())
+        return str(svn_utils.parse_revision(os.curdir))
 
 
 
