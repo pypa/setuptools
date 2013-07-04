@@ -4,10 +4,10 @@ import sys
 import codecs
 from distutils import log
 from xml.sax.saxutils import unescape
+import xml.dom.pulldom
 
 #requires python >= 2.4
 from subprocess import Popen as _Popen, PIPE as _PIPE
-
 
 
 #It would seem that svn info --xml and svn list --xml were fully
@@ -180,6 +180,7 @@ class SVNEntriesText(SVNEntries):
         return rev_numbers
 
     def get_undeleted_records(self):
+        #Note for self this skip and only returns the children
         undeleted = lambda s: s and s[0] and (len(s) < 6 or s[5] != 'delete')
         result = [
             section[0]
@@ -239,8 +240,6 @@ class SVNEntriesCMD(SVNEntries):
     #</info>
     entrypathre = re.compile(r'<entry\s+[^>]*path="(\.+)">', re.I)
     entryre = re.compile(r'<entry.*?</entry>', re.DOTALL or re.I)
-    urlre = re.compile(r'<url>(.*?)</url>', re.I)
-    revre = re.compile(r'<commit\s+[^>]*revision="(\d+)"', re.I)
     namere = re.compile(r'<name>(.*?)</name>', re.I)
 
     #svnversion return values (previous implementations return max revision)
@@ -257,13 +256,22 @@ class SVNEntriesCMD(SVNEntries):
         return self.entries
 
     def is_valid(self):
-        return bool(self.get_dir_data())
+        return self.get_dir_data() is not None
 
     def get_dir_data(self):
-        #regarding the shell argument, see: http://bugs.python.org/issue8557
+        #This returns the info entry for the directory ONLY
         _, data = _run_command(['svn', 'info', '--xml', self.path])
-        self.dir_data = self.entryre.findall(data)
-        self.get_dir_data = self.__get_cached_dir_data
+
+        doc = xml.dom.pulldom.parseString(data)
+        self.dir_data = None
+        for event, node in doc:
+            if event=='START_ELEMENT' and node.nodeName=='entry':
+                doc.expandNode(node)
+                self.dir_data = node
+                break
+
+        if self.dir_data:
+            self.get_dir_data = self.__get_cached_dir_data
         return self.dir_data
 
     def get_entries(self):
@@ -273,9 +281,14 @@ class SVNEntriesCMD(SVNEntries):
         self.get_entries = self.__get_cached_entries
         return self.entries
 
+
+
     def get_url(self):
         "Get repository URL"
-        return self.urlre.search(self.get_dir_data()[0]).group(1)
+        url_element = self.get_dir_data().getElementsByTagName("url")[0]
+        url_text = [t.nodeValue for t in url_element.childNodes
+                                if t.nodeType == t.TEXT_NODE]
+        return "".join(url_text)
 
     def __get_cached_revision(self):
         return self.revision
