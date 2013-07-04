@@ -77,7 +77,7 @@ class TestSvn_1_7(unittest.TestCase):
     def test_svnentrycmd_enteries(self):
         entries = svn_utils.SVNEntries.load_dir('.')
         self.assertIsInstance(entries, svn_utils.SVNEntriesCMD)
-        self.assertEqual(entries.parse_revision(), 3)
+        self.assertEqual(entries.parse_revision(), 4)
         self.assertEqual(set(entries.get_undeleted_records()),
                          set([u'readme.txt', u'other']))
         self.assertEqual(set(entries.get_external_dirs('dir-props')),

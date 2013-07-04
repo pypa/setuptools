@@ -216,13 +216,39 @@ class SVNEntriesXML(SVNEntries):
             ]
         return results
 
+import xml.dom.pulldom
 
 class SVNEntriesCMD(SVNEntries):
+    #<info>
+    #  <entry path=''      //Entry Path
+    #         revision=''
+    #         kind=''>
+    #    <url>
+    #    <repository>
+    #       <root>...</root>
+    #       <uuid>...</uuid>
+    #    </repository>
+    #    <wc-info>
+    #       ...
+    #    </wc-info>
+    #    <commit revision=''>
+    #       ...
+    #    </commit>
+    #  </entry>
+    #  ...
+    #</info>
     entrypathre = re.compile(r'<entry\s+[^>]*path="(\.+)">', re.I)
     entryre = re.compile(r'<entry.*?</entry>', re.DOTALL or re.I)
     urlre = re.compile(r'<url>(.*?)</url>', re.I)
     revre = re.compile(r'<commit\s+[^>]*revision="(\d+)"', re.I)
     namere = re.compile(r'<name>(.*?)</name>', re.I)
+
+    #svnversion return values (previous implementations return max revision)
+    #   4123:4168     mixed revision working copy
+    #   4168M         modified working copy
+    #   4123S         switched working copy
+    #   4123:4168MS   mixed revision, modified, switched working copy
+    svnverre = re.compile(r'(?:(\d+):)?(\d+)([a-z]*)\s*$', re.I)
 
     def __get_cached_dir_data(self):
         return self.dir_data
@@ -251,18 +277,20 @@ class SVNEntriesCMD(SVNEntries):
         "Get repository URL"
         return self.urlre.search(self.get_dir_data()[0]).group(1)
 
-    def parse_revision_numbers(self):
-        #NOTE: if one has recently committed,
-        #      the new revision doesn't get updated until SVN update
-        if not self.is_valid():
-            return list()
-        else:
-            return [
-                int(m.group(1))
-                for entry in self.get_entries()
-                for m in self.revre.finditer(entry)
-                if m.group(1)
-            ]
+
+    def parse_revision(self):
+        _, data = _run_command(['svnversion', self.path])
+        parsed = self.svnverre.match(data)
+        if parsed:
+            log.warn('Parsed!')
+            try:
+                #No max needed this command summarizes working copy since 1.0
+                return int(parsed.group(2))
+            except ValueError:
+                #This should only happen if the revision is WAY too big.
+                pass
+        log.warn(repr(data))
+        return 0
 
     def get_undeleted_records(self):
         #NOTE: Need to parse entities?
