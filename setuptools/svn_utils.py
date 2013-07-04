@@ -185,9 +185,6 @@ class SVNEntriesText(SVNEntries):
     def is_valid(self):
         return bool(self.get_sections())
 
-    def get_url(self):
-        return self.get_sections()[0][4]
-
     def parse_revision_numbers(self):
         revision_line_number = 9
         rev_numbers = [
@@ -212,11 +209,6 @@ class SVNEntriesText(SVNEntries):
 class SVNEntriesXML(SVNEntries):
     def is_valid(self):
         return True
-
-    def get_url(self):
-        "Get repository URL"
-        urlre = re.compile(r'url="([^"]+)"')
-        return urlre.search(self.data).group(1)
 
     def parse_revision_numbers(self):
         revre = re.compile(r'committed-rev="(\d+)"')
@@ -294,13 +286,6 @@ class SVNEntriesCMD(SVNEntries):
         return self.entries
 
 
-
-    def get_url(self):
-        "Get repository URL"
-        url_element = self.get_dir_data().getElementsByTagName("url")[0]
-        url_text = [t.nodeValue for t in url_element.childNodes
-                                if t.nodeType == t.TEXT_NODE]
-        return "".join(url_text)
 
     def __get_cached_revision(self):
         return self.revision

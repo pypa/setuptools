@@ -5,6 +5,7 @@ from glob import glob
 import os, re, sys, pkg_resources
 from glob import glob
 from setuptools.svn_utils import SVNEntries
+from setuptools import svn_utils
 
 READMES = ('README', 'README.rst', 'README.txt')
 
@@ -69,7 +70,7 @@ def externals_finder(dirname, filename):
 def entries_finder(dirname, filename):
     for record in SVNEntries.load(dirname).get_undeleted_records():
         yield joinpath(dirname, record)
-        
+
 
 finders = [
     (convert_path('CVS/Entries'),
