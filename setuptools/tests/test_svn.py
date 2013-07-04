@@ -72,8 +72,6 @@ class TestSvn_1_7(unittest.TestCase):
         entries = svn_utils.SVNEntries.load_dir('.')
         self.assertIsInstance(entries, svn_utils.SVNEntriesCMD)
         self.assertTrue(entries.is_valid())
-        self.assertEqual(entries.get_url(),
-                         'file:///C:/development/svn_example/repo1')
 
     def test_svnentrycmd_enteries(self):
         entries = svn_utils.SVNEntries.load_dir('.')
