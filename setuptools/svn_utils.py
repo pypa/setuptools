@@ -3,8 +3,8 @@ import re
 import sys
 import codecs
 from distutils import log
-from xml.sax.saxutils import unescape
 import xml.dom.pulldom
+import urlparse
 
 #requires python >= 2.4
 from subprocess import Popen as _Popen, PIPE as _PIPE
@@ -82,8 +82,10 @@ def parse_dir_entries(path):
     else:
         return []
 
+
 def _get_entry_name(entry):
     return entry.getAttribute('path')
+
 
 def _get_entry_schedule(entry):
     schedule = entry.getElementsByTagName('schedule')[0]
@@ -111,13 +113,13 @@ def parse_externals(path):
         if not line:
             continue
 
-        #TODO: urlparse?
-        if "://" in line[-1] or ":\\\\" in line[-1]:
+        if urlparse.urlsplit(line[-1])[0]:
             externals.append(line[0])
         else:
             externals.append(line[-1])
 
     return externals
+
 
 def get_svn_tool_version():
     _, data = _run_command(['svn', '--version', '--quiet'])
