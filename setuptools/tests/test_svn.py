@@ -12,6 +12,7 @@ import stat
 
 from setuptools import svn_utils
 from setuptools.command import egg_info
+from setuptools.command import sdist
 
 #requires python >= 2.4
 from subprocess import call as _call
@@ -86,6 +87,14 @@ class TestSvn_1_7(unittest.TestCase):
         rev = egg_info.egg_info.get_svn_revision()
         self.assertEqual(rev, '4')
 
+    def test_entry_iterator(self):
+        expected = set([
+            os.path.join('.', 'readme.txt'),
+            os.path.join('.', 'other'),
+            os.path.join('.', 'other', 'test.py'),
+            ])
+        self.assertEqual(set(x for x in sdist.entries_finder('.', '')),
+                         expected)
 
 def test_suite():
     return unittest.defaultTestLoader.loadTestsFromName(__name__)

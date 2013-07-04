@@ -53,6 +53,36 @@ def parse_revision(path):
             pass
     return 0
 
+#svn list returns relative o
+def parse_manifest(path):
+    #NOTE: Need to parse entities?
+    _, data = _run_command(['svn', 'info', '-R', '--xml', path])
+
+    doc = xml.dom.pulldom.parseString(data)
+    entries = list()
+    for event, node in doc:
+        if event=='START_ELEMENT' and node.nodeName=='entry':
+            doc.expandNode(node)
+            entries.append(node)
+
+    if entries:
+        return [
+            _get_entry_name(element)
+            for element in entries[1:]
+            if _get_entry_schedule(element).lower() != 'deleted'
+            ]
+    else:
+        return []
+
+def _get_entry_name(entry):
+    return entry.getAttribute('path')
+
+def _get_entry_schedule(entry):
+    schedule = entry.getElementsByTagName('schedule')[0]
+    return "".join([t.nodeValue for t in schedule.childNodes
+                                if t.nodeType == t.TEXT_NODE])
+
+
 #TODO add the text entry back, and make its use dependent on the
 #     non existence of svn?
 
@@ -253,35 +283,28 @@ class SVNEntriesCMD(SVNEntries):
     entryre = re.compile(r'<entry.*?</entry>', re.DOTALL or re.I)
     namere = re.compile(r'<name>(.*?)</name>', re.I)
 
-    def __get_cached_dir_data(self):
-        return self.dir_data
-
     def __get_cached_entries(self):
         return self.entries
 
     def is_valid(self):
-        return self.get_dir_data() is not None
+        return bool(self.get_entries())
 
     def get_dir_data(self):
         #This returns the info entry for the directory ONLY
-        _, data = _run_command(['svn', 'info', '--xml', self.path])
-
-        doc = xml.dom.pulldom.parseString(data)
-        self.dir_data = None
-        for event, node in doc:
-            if event=='START_ELEMENT' and node.nodeName=='entry':
-                doc.expandNode(node)
-                self.dir_data = node
-                break
-
-        if self.dir_data:
-            self.get_dir_data = self.__get_cached_dir_data
-        return self.dir_data
+        return self.get_entries()[0]
 
     def get_entries(self):
         #regarding the shell argument, see: http://bugs.python.org/issue8557
-        _, data = _run_command(['svn', 'list', '--xml', self.path])
-        self.entries = self.entryre.findall(data)
+        _, data = _run_command(['svn', 'info',
+                                '--depth', 'immediates', '--xml', self.path])
+
+        doc = xml.dom.pulldom.parseString(data)
+        self.entries = list()
+        for event, node in doc:
+            if event=='START_ELEMENT' and node.nodeName=='entry':
+                doc.expandNode(node)
+                self.entries.append(node)
+
         self.get_entries = self.__get_cached_entries
         return self.entries
 
@@ -301,10 +324,9 @@ class SVNEntriesCMD(SVNEntries):
             return list()
         else:
             return [
-                m.group(1)
-                for entry in self.get_entries()
-                for m in self.namere.finditer(entry)
-                if m.group(1)
+                _get_entry_name(element)
+                for element in self.get_entries()[1:]
+                if _get_entry_schedule(element).lower() != 'deleted'
             ]
 
     def _get_externals_data(self, filename):

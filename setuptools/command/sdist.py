@@ -68,7 +68,7 @@ def externals_finder(dirname, filename):
 
 
 def entries_finder(dirname, filename):
-    for record in SVNEntries.load(dirname).get_undeleted_records():
+    for record in svn_utils.parse_manifest(dirname):
         yield joinpath(dirname, record)
 
 
