@@ -9,11 +9,10 @@ import xml.dom.pulldom
 #requires python >= 2.4
 from subprocess import Popen as _Popen, PIPE as _PIPE
 
-
-#It would seem that svn info --xml and svn list --xml were fully
-#supported by 1.3.x the special casing of the entry files seem to start at
-#1.4.x, so if we check for xml in entries and then fall back to the command
-#line, this should catch everything.
+#NOTE: Use of the command line options
+#      require SVN 1.3 or newer (December 2005)
+#      and SVN 1.3 hsan't been supported by the
+#      developers since mid 2008.
 
 #subprocess is called several times with shell=(sys.platform=='win32')
 #see the follow for more information:
@@ -42,7 +41,12 @@ def _run_command(args, stdout=_PIPE, stderr=_PIPE):
 _SVN_VER_RE = re.compile(r'(?:(\d+):)?(\d+)([a-z]*)\s*$', re.I)
 
 def parse_revision(path):
-    _, data = _run_command(['svnversion', path])
+    code, data = _run_command(['svnversion', path])
+
+    if code:
+        log.warn("svnversion failed")
+        return []
+
     parsed = _SVN_VER_RE.match(data)
     if parsed:
         try:
@@ -53,10 +57,14 @@ def parse_revision(path):
             pass
     return 0
 
-#svn list returns relative o
-def parse_manifest(path):
-    #NOTE: Need to parse entities?
-    _, data = _run_command(['svn', 'info', '-R', '--xml', path])
+
+def parse_dir_entries(path):
+    code, data = _run_command(['svn', 'info',
+                            '--depth', 'immediates', '--xml', path])
+
+    if code:
+        log.warn("svn info failed")
+        return []
 
     doc = xml.dom.pulldom.parseString(data)
     entries = list()
@@ -81,6 +89,38 @@ def _get_entry_schedule(entry):
     schedule = entry.getElementsByTagName('schedule')[0]
     return "".join([t.nodeValue for t in schedule.childNodes
                                 if t.nodeType == t.TEXT_NODE])
+
+#--xml wasn't supported until 1.5.x
+#-R without --xml parses a bit funny
+def parse_externals(path):
+    try:
+        _, lines = _run_command(['svn',
+                                 'propget', 'svn:externals', path])
+
+        if code:
+            log.warn("svn propget failed")
+            return []
+
+        lines = [line for line in lines.splitlines() if line]
+    except ValueError:
+        lines = []
+
+    externals = []
+    for line in lines:
+        line = line.split()
+        if not line:
+            continue
+
+        #TODO: urlparse?
+        if "://" in line[-1] or ":\\\\" in line[-1]:
+            externals.append(line[0])
+        else:
+            externals.append(line[-1])
+
+    return externals
+
+
+
 
 
 #TODO add the text entry back, and make its use dependent on the
@@ -155,33 +195,7 @@ class SVNEntries(object):
             return ''
 
     def get_external_dirs(self, filename):
-        filename = os.path.join(self.path, '.svn', filename)
-
-        data = self._get_externals_data(filename)
-
-        if not data:
-            return
-
-        # http://svnbook.red-bean.com/en/1.6/svn.advanced.externals.html
-        #there appears to be three possible formats for externals since 1.5
-        #but looks like we only need the local relative path names so it's just
-        #2 either the first column or the last (of 2 or 3) Looks like
-        #mix and matching is allowed.
-        externals = list()
-        for line in data:
-            line = line.split()
-            if not line:
-                continue
-
-            #TODO: urlparse?
-            if "://" in line[-1] or ":\\\\" in line[-1]:
-                externals.append(line[0])
-            else:
-                externals.append(line[-1])
-
-        self.external_dirs = externals
-        self.get_external_dirs = self.__get_cached_external_dirs
-        return self.external_dirs
+        return parse_externals(self.path)
 
 class SVNEntriesText(SVNEntries):
     known_svn_versions = {
