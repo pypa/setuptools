@@ -60,23 +60,21 @@ def _default_revctrl(dirname=''):
                     for item in _default_revctrl(path):
                         yield item
 
-def externals_finder(dirname, filename):
-    """Find any 'svn:externals' directories"""
-    for name in svn_utils.parse_externals(dirname):
-        yield joinpath(dirname, name)
 
-
-def entries_finder(dirname, filename):
+def entries_externals_finder(dirname, filename):
     for record in svn_utils.parse_dir_entries(dirname):
         yield joinpath(dirname, record)
+
+    for name in svn_utils.parse_externals(dirname):
+        yield joinpath(dirname, name)
 
 
 finders = [
     (convert_path('CVS/Entries'),
         re_finder(re.compile(r"^\w?/([^/]+)/", re.M))),
-    (convert_path('.svn/entries'), entries_finder),
-    (convert_path('.svn/dir-props'), externals_finder),
-    (convert_path('.svn/dir-prop-base'), externals_finder),  # svn 1.4
+    #combined externals due to common interface
+    #combined externals and enteries due to lack of dir_props in 1.7
+    (convert_path('.svn/entries'), entries_externals_finder),
 ]
 
 

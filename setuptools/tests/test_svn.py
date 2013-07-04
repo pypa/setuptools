@@ -17,6 +17,7 @@ from setuptools.command import sdist
 #requires python >= 2.4
 from subprocess import call as _call
 
+
 def _remove_dir(target):
 
     #on windows this seems to a problem
@@ -25,6 +26,7 @@ def _remove_dir(target):
         for filename in files:
             os.chmod(os.path.join(dir_path, filename), stat.S_IWRITE)
     shutil.rmtree(target)
+
 
 class TestSvnVersion(unittest.TestCase):
 
@@ -68,21 +70,16 @@ class TestSvn_1_7(unittest.TestCase):
         rev = egg_info.egg_info.get_svn_revision()
         self.assertEqual(rev, '4')
 
-    def test_entry_iterator(self):
+    def test_iterator(self):
         expected = set([
             os.path.join('.', 'readme.txt'),
             os.path.join('.', 'other'),
-            ])
-        self.assertEqual(set(x for x in sdist.entries_finder('.', '')),
-                         expected)
-
-    def test_external_iterator(self):
-        expected = set([
             os.path.join('.', 'third_party'),
             os.path.join('.', 'third_party2'),
             os.path.join('.', 'third_party3'),
             ])
-        self.assertEqual(set(x for x in sdist.externals_finder('.', '')),
+        self.assertEqual(set(x for x
+                               in sdist.entries_externals_finder('.', '')),
                          expected)
 
 def test_suite():

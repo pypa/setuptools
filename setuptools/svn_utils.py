@@ -14,6 +14,15 @@ from subprocess import Popen as _Popen, PIPE as _PIPE
 #      and SVN 1.3 hsan't been supported by the
 #      developers since mid 2008.
 
+
+#svnversion return values (previous implementations return max revision)
+#   4123:4168     mixed revision working copy
+#   4168M         modified working copy
+#   4123S         switched working copy
+#   4123:4168MS   mixed revision, modified, switched working copy
+_SVN_VER_RE = re.compile(r'(?:(\d+):)?(\d+)([a-z]*)\s*$', re.I)
+
+
 #subprocess is called several times with shell=(sys.platform=='win32')
 #see the follow for more information:
 #       http://bugs.python.org/issue8557
@@ -22,7 +31,7 @@ from subprocess import Popen as _Popen, PIPE as _PIPE
 def _run_command(args, stdout=_PIPE, stderr=_PIPE):
         #regarding the shell argument, see: http://bugs.python.org/issue8557
         proc = _Popen(args, stdout=stdout, stderr=stderr,
-                      shell=(sys.platform=='win32'))
+                      shell=(sys.platform == 'win32'))
 
         data = proc.communicate()[0]
         #TODO: this is probably NOT always utf-8
@@ -33,12 +42,17 @@ def _run_command(args, stdout=_PIPE, stderr=_PIPE):
 
         return proc.returncode, data
 
-#svnversion return values (previous implementations return max revision)
-#   4123:4168     mixed revision working copy
-#   4168M         modified working copy
-#   4123S         switched working copy
-#   4123:4168MS   mixed revision, modified, switched working copy
-_SVN_VER_RE = re.compile(r'(?:(\d+):)?(\d+)([a-z]*)\s*$', re.I)
+
+def _get_entry_name(entry):
+    return entry.getAttribute('path')
+
+
+def _get_entry_schedule(entry):
+    schedule = entry.getElementsByTagName('schedule')[0]
+    return "".join([t.nodeValue
+                    for t in schedule.childNodes
+                    if t.nodeType == t.TEXT_NODE])
+
 
 def parse_revision(path):
     code, data = _run_command(['svnversion', path])
@@ -60,7 +74,7 @@ def parse_revision(path):
 
 def parse_dir_entries(path):
     code, data = _run_command(['svn', 'info',
-                            '--depth', 'immediates', '--xml', path])
+                               '--depth', 'immediates', '--xml', path])
 
     if code:
         log.warn("svn info failed")
@@ -69,7 +83,7 @@ def parse_dir_entries(path):
     doc = xml.dom.pulldom.parseString(data)
     entries = list()
     for event, node in doc:
-        if event=='START_ELEMENT' and node.nodeName=='entry':
+        if event == 'START_ELEMENT' and node.nodeName == 'entry':
             doc.expandNode(node)
             entries.append(node)
 
@@ -78,26 +92,17 @@ def parse_dir_entries(path):
             _get_entry_name(element)
             for element in entries[1:]
             if _get_entry_schedule(element).lower() != 'deleted'
-            ]
+        ]
     else:
         return []
 
-
-def _get_entry_name(entry):
-    return entry.getAttribute('path')
-
-
-def _get_entry_schedule(entry):
-    schedule = entry.getElementsByTagName('schedule')[0]
-    return "".join([t.nodeValue for t in schedule.childNodes
-                                if t.nodeType == t.TEXT_NODE])
 
 #--xml wasn't supported until 1.5.x
 #-R without --xml parses a bit funny
 def parse_externals(path):
     try:
         code, lines = _run_command(['svn',
-                                 'propget', 'svn:externals', path])
+                                    'propget', 'svn:externals', path])
 
         if code:
             log.warn("svn propget failed")
@@ -127,4 +132,3 @@ def get_svn_tool_version():
         return data.strip()
     else:
         return ''
-
