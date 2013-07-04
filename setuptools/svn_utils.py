@@ -284,7 +284,6 @@ class SVNEntriesCMD(SVNEntries):
         _, data = _run_command(['svnversion', self.path])
         parsed = self.svnverre.match(data)
         if parsed:
-            log.warn('Parsed!')
             try:
                 #No max needed this command summarizes working copy since 1.0
                 self.revision = int(parsed.group(2))
