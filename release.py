@@ -16,10 +16,7 @@ import collections
 import itertools
 import re
 
-try:
-	import urllib.request as urllib_request
-except ImportError:
-	import urllib2 as urllib_request
+import requests
 
 try:
 	input = raw_input
@@ -79,7 +76,7 @@ def get_repo_name():
 	"""
 	Get the repo name from the hgrc default path.
 	"""
-	default = subprocess.check_output('hg paths default').strip()
+	default = subprocess.check_output('hg paths default').strip().decode('utf-8')
 	parts = default.split('/')
 	if parts[-1] == '':
 		parts.pop()
@@ -105,20 +102,13 @@ def get_mercurial_creds(system='https://bitbucket.org', username=None):
 	return Credential(username, password)
 
 def add_milestone_and_version(version):
-	auth = 'Basic ' + ':'.join(get_mercurial_creds()).encode('base64').strip()
-	headers = {
-		'Authorization': auth,
-	}
 	base = 'https://api.bitbucket.org'
 	for type in 'milestones', 'versions':
 		url = (base + '/1.0/repositories/{repo}/issues/{type}'
 			.format(repo = get_repo_name(), type=type))
-		req = urllib_request.Request(url = url, headers = headers,
-			data='name='+version)
-		try:
-			urllib_request.urlopen(req)
-		except urllib_request.HTTPError as e:
-			print(e.fp.read())
+		resp = requests.post(url=url,
+			data='name='+version, auth=get_mercurial_creds())
+		resp.raise_for_status()
 
 def bump_versions(target_ver):
 	for filename in files_with_versions:
