@@ -27,6 +27,11 @@ except NameError:
 	pass
 
 try:
+	zip_longest = itertools.zip_longest
+except AttributeError:
+	zip_longest = itertools.izip_longest
+
+try:
 	import keyring
 except Exception:
 	pass
@@ -239,7 +244,7 @@ def _linkified_text(rst_content):
 	anchors = []
 	linkified_parts = [_linkified_part(part, anchors)
 		for part in plain_text_parts]
-	pairs = itertools.izip_longest(
+	pairs = zip_longest(
 		linkified_parts,
 		HREF_pattern.findall(rst_content),
 		fillvalue='',
