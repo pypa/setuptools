@@ -140,7 +140,7 @@ def do_release():
 
 	set_versions()
 
-	res = raw_input('Have you read through the SCM changelog and '
+	res = input('Have you read through the SCM changelog and '
 		'confirmed the changelog is current for releasing {VERSION}? '
 		.format(**globals()))
 	if not res.lower().startswith('y'):
@@ -148,7 +148,7 @@ def do_release():
 		raise SystemExit(1)
 
 	print("Travis-CI tests: http://travis-ci.org/#!/jaraco/setuptools")
-	res = raw_input('Have you or has someone verified that the tests '
+	res = input('Have you or has someone verified that the tests '
 		'pass on this revision? ')
 	if not res.lower().startswith('y'):
 		print("Please do that")
