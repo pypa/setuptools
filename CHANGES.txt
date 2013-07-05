@@ -3,6 +3,14 @@ CHANGES
 =======
 
 ------
+0.6.49
+------
+
+* Move warning check in ``get_cache_path`` to follow the directory creation
+  to avoid errors when the cache path does not yet exist. Fixes the error
+  reported in #375.
+
+------
 0.6.48
 ------
 
