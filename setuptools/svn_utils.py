@@ -24,7 +24,7 @@ from subprocess import Popen as _Popen, PIPE as _PIPE
 #   4168M         modified working copy
 #   4123S         switched working copy
 #   4123:4168MS   mixed revision, modified, switched working copy
-_SVN_VER_RE = re.compile(r'(?:(\d+):)?(\d+)([a-z]*)\s*$', re.I)
+_SVN_VER_RE = re.compile(r'(?:([\-0-9]+):)?(\d+)([a-z]*)\s*$', re.I)
 
 
 #subprocess is called several times with shell=(sys.platform=='win32')
@@ -91,6 +91,8 @@ def parse_dir_entries(path):
         log.warn("svn info failed")
         return []
 
+    data = codecs.encode(data, 'UTF-8')
+
     doc = xml.dom.pulldom.parseString(data)
     entries = list()
     for event, node in doc:
@@ -143,3 +145,14 @@ def get_svn_tool_version():
         return data.strip()
     else:
         return ''
+
+if __name__ == '__main__':
+    def entries_externals_finder(dirname):
+        for record in parse_dir_entries(dirname):
+            yield os.path.join(dirname, record)
+
+        for name in parse_externals(dirname):
+            yield os.path.join(dirname, name)
+
+    for name in entries_externals_finder(sys.argv[1]):
+        print(name)
