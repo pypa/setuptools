@@ -34,10 +34,14 @@ _SVN_VER_RE = re.compile(r'(?:(\d+):)?(\d+)([a-z]*)\s*$', re.I)
 #              python-subprocess-popen-environment-path
 def _run_command(args, stdout=_PIPE, stderr=_PIPE):
         #regarding the shell argument, see: http://bugs.python.org/issue8557
-        proc = _Popen(args, stdout=stdout, stderr=stderr,
-                      shell=(sys.platform == 'win32'))
+        try:
+            proc = _Popen(args, stdout=stdout, stderr=stderr,
+                          shell=(sys.platform == 'win32'))
 
-        data = proc.communicate()[0]
+            data = proc.communicate()[0]
+        except OSError:
+            return 1, ''
+
         #TODO: this is probably NOT always utf-8
         try:
             data = unicode(data, encoding='utf-8')
@@ -60,11 +64,13 @@ def _get_entry_schedule(entry):
 
 
 def parse_revision(path):
-    code, data = _run_command(['svnversion', path])
+    code, data = _run_command(['svnversion', '-c', path])
 
     if code:
         log.warn("svnversion failed")
-        return []
+        return 0
+    else:
+        log.warn('Version: %s' % data.strip())
 
     parsed = _SVN_VER_RE.match(data)
     if parsed:

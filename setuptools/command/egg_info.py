@@ -9,7 +9,7 @@ from distutils.errors import *
 from distutils import log
 from setuptools.command.sdist import sdist
 from setuptools.compat import basestring
-from .. import svn_utils
+from setuptools import svn_utils
 from distutils.util import convert_path
 from distutils.filelist import FileList as _FileList
 from pkg_resources import parse_requirements, safe_name, parse_version, \
