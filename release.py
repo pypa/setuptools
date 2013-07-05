@@ -181,8 +181,8 @@ def upload_to_pypi():
 		sys.executable, 'setup.py', '-q',
 		'egg_info', '-RD', '-b', '',
 		'sdist',
-		#'register', '-r', PACKAGE_INDEX,
-		#'upload', '-r', PACKAGE_INDEX,
+		'register', '-r', PACKAGE_INDEX,
+		'upload', '-r', PACKAGE_INDEX,
 	]
 	if has_docs:
 		cmd.extend([
