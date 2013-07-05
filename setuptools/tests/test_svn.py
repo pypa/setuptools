@@ -127,8 +127,12 @@ class TestSvn_1_7(unittest.TestCase):
         os.chdir(os.path.join(self.temp_dir, 'svn17_example'))
 
     def tearDown(self):
-        os.chdir(self.old_cwd)
-        _remove_dir(self.temp_dir)
+        try:
+            os.chdir(self.old_cwd)
+            _remove_dir(self.temp_dir)
+        except OSError:
+            #sigh?
+            pass
 
     def _chk_skip(self):
         if self.version_err is not None:
