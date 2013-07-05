@@ -4,7 +4,11 @@ import sys
 import codecs
 from distutils import log
 import xml.dom.pulldom
-import urlparse
+
+try:
+    import urlparse
+except ImportError:
+    import urllib.parse as urlparse
 
 #requires python >= 2.4
 from subprocess import Popen as _Popen, PIPE as _PIPE
@@ -40,6 +44,7 @@ def _run_command(args, stdout=_PIPE, stderr=_PIPE):
         except NameError:
             data = str(data, encoding='utf-8')
 
+        #communciate calls wait()
         return proc.returncode, data
 
 
