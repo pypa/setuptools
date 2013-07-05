@@ -3,6 +3,12 @@ CHANGES
 =======
 
 -----
+0.7.8
+-----
+
+* Distribute #375: Yet another fix for yet another regression.
+
+-----
 0.7.7
 -----
 
