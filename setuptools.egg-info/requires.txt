@@ -1,10 +1,10 @@
 
 
-[ssl:sys_platform=='win32' and python_version=='2.4']
-ctypes==1.0.2
-
 [ssl:sys_platform=='win32']
 wincertstore==0.1
+
+[ssl:sys_platform=='win32' and python_version=='2.4']
+ctypes==1.0.2
 
 [certs]
 certifi==0.0.8

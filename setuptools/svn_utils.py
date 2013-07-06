@@ -82,7 +82,7 @@ def parse_revision(path):
             pass
     return 0
 
-
+#TODO: Need to do this with the -R because only root has .svn in 1.7.x
 def parse_dir_entries(path):
     code, data = _run_command(['svn', 'info',
                                '--depth', 'immediates', '--xml', path])
@@ -110,7 +110,16 @@ def parse_dir_entries(path):
         return []
 
 
-#--xml wasn't supported until 1.5.x
+#--xml wasn't supported until 1.5.x need to do -R
+#TODO: -R looks like directories are seperated by blank lines
+#      with dir - prepened to first directory
+#      what about directories with spaces?
+#          put quotes around them
+#      what about the URL's?
+#          same
+#      convert to UTF-8 and use csv
+#         delimiter = space
+#
 #-R without --xml parses a bit funny
 def parse_externals(path):
     try:
