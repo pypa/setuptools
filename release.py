@@ -68,7 +68,7 @@ def infer_next_version(version):
 	return re.sub('\d*$', incr, version)
 
 files_with_versions = (
-	'docs/conf.py', 'setup.py', 'release.py', 'ez_setup.py', 'README.txt',
+	'docs/conf.py', 'setup.py', 'release.py', 'ez_setup.py',
 	'setuptools/__init__.py',
 )
 

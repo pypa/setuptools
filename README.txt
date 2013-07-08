@@ -29,7 +29,7 @@ The recommended way to install setuptools on Windows is to download
 `ez_setup.py`_ and run it. The script will download the appropriate .egg
 file and install it for you.
 
-.. _ez_setup.py: https://bitbucket.org/pypa/setuptools/raw/0.9/ez_setup.py
+.. _ez_setup.py: https://bitbucket.org/pypa/setuptools/downloads/ez_setup.py
 
 For best results, uninstall previous versions FIRST (see `Uninstalling`_).
 
@@ -45,7 +45,7 @@ Unix-based Systems including Mac OS X
 Download `ez_setup.py`_ and run it using the target Python version. The script
 will download the appropriate version and install it for you::
 
-    > wget https://bitbucket.org/pypa/setuptools/raw/0.9/ez_setup.py -O - | python
+    > wget https://bitbucket.org/pypa/setuptools/downloads/ez_setup.py -O - | python
 
 Note that you will may need to invoke the command with superuser privileges to
 install to the system Python.
@@ -53,7 +53,7 @@ install to the system Python.
 Alternatively, on Python 2.6 and later, Setuptools may be installed to a
 user-local path::
 
-    > wget https://bitbucket.org/pypa/setuptools/raw/0.9/ez_setup.py
+    > wget https://bitbucket.org/pypa/setuptools/downloads/ez_setup.py
     > python ez_setup.py --user
 
 
@@ -66,7 +66,7 @@ tarball from `Setuptools on PyPI <https://pypi.python.org/pypi/setuptools>`_
 and run setup.py with any supported distutils and Setuptools options.
 For example::
 
-    setuptools-0.9$ python setup.py --prefix=/opt/setuptools
+    setuptools-x.x$ python setup.py --prefix=/opt/setuptools
 
 Use ``--help`` to get a full options list, but we recommend consulting
 the `EasyInstall manual`_ for detailed instructions, especially `the section
