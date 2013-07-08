@@ -154,6 +154,7 @@ def do_release():
 	subprocess.check_call(['hg', 'update', VERSION])
 
 	upload_to_pypi()
+	upload_ez_setup()
 
 	# update to the tip for the next operation
 	subprocess.check_call(['hg', 'update'])
@@ -186,6 +187,13 @@ def upload_to_pypi():
 	env = os.environ.copy()
 	env["SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES"] = "1"
 	subprocess.check_call(cmd, env=env)
+
+def upload_ez_setup():
+	"""
+	TODO: upload ez_setup.py to a permalinked location. Currently, this
+	location is https://bitbucket.org/pypa/setuptools/downloads/ez_setup.py .
+	In the long term, it should be on PyPI.
+	"""
 
 def has_sphinx():
 	try:
