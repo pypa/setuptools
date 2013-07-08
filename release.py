@@ -19,259 +19,259 @@ import re
 import requests
 
 try:
-	input = raw_input
+    input = raw_input
 except NameError:
-	pass
+    pass
 
 try:
-	zip_longest = itertools.zip_longest
+    zip_longest = itertools.zip_longest
 except AttributeError:
-	zip_longest = itertools.izip_longest
+    zip_longest = itertools.izip_longest
 
 try:
-	import keyring
+    import keyring
 except Exception:
-	pass
+    pass
 
 VERSION = '0.9'
 PACKAGE_INDEX = 'https://pypi.python.org/pypi'
 
 def set_versions():
-	global VERSION
-	version = input("Release as version [%s]> " % VERSION) or VERSION
-	if version != VERSION:
-		VERSION = bump_versions(version)
+    global VERSION
+    version = input("Release as version [%s]> " % VERSION) or VERSION
+    if version != VERSION:
+        VERSION = bump_versions(version)
 
 def infer_next_version(version):
-	"""
-	Infer a next version from the current version by incrementing the last
-	number or appending a number.
+    """
+    Infer a next version from the current version by incrementing the last
+    number or appending a number.
 
-	>>> infer_next_version('1.0')
-	'1.1'
+    >>> infer_next_version('1.0')
+    '1.1'
 
-	>>> infer_next_version('1.0b')
-	'1.0b1'
+    >>> infer_next_version('1.0b')
+    '1.0b1'
 
-	>>> infer_next_version('1.0.9')
-	'1.0.10'
+    >>> infer_next_version('1.0.9')
+    '1.0.10'
 
-	>>> infer_next_version('1')
-	'2'
+    >>> infer_next_version('1')
+    '2'
 
-	>>> infer_next_version('')
-	'1'
-	"""
-	def incr(match):
-		ver = int(match.group(0) or '0')
-		return str(ver + 1)
-	return re.sub('\d*$', incr, version)
+    >>> infer_next_version('')
+    '1'
+    """
+    def incr(match):
+        ver = int(match.group(0) or '0')
+        return str(ver + 1)
+    return re.sub('\d*$', incr, version)
 
 files_with_versions = (
-	'docs/conf.py', 'setup.py', 'release.py', 'ez_setup.py',
-	'setuptools/__init__.py',
+    'docs/conf.py', 'setup.py', 'release.py', 'ez_setup.py',
+    'setuptools/__init__.py',
 )
 
 def get_repo_name():
-	"""
-	Get the repo name from the hgrc default path.
-	"""
-	default = subprocess.check_output('hg paths default').strip().decode('utf-8')
-	parts = default.split('/')
-	if parts[-1] == '':
-		parts.pop()
-	return '/'.join(parts[-2:])
+    """
+    Get the repo name from the hgrc default path.
+    """
+    default = subprocess.check_output('hg paths default').strip().decode('utf-8')
+    parts = default.split('/')
+    if parts[-1] == '':
+        parts.pop()
+    return '/'.join(parts[-2:])
 
 def get_mercurial_creds(system='https://bitbucket.org', username=None):
-	"""
-	Return named tuple of username,password in much the same way that
-	Mercurial would (from the keyring).
-	"""
-	# todo: consider getting this from .hgrc
-	username = username or getpass.getuser()
-	keyring_username = '@@'.join((username, system))
-	system = 'Mercurial'
-	password = (
-		keyring.get_password(system, keyring_username)
-		if 'keyring' in globals()
-		else None
-	)
-	if not password:
-		password = getpass.getpass()
-	Credential = collections.namedtuple('Credential', 'username password')
-	return Credential(username, password)
+    """
+    Return named tuple of username,password in much the same way that
+    Mercurial would (from the keyring).
+    """
+    # todo: consider getting this from .hgrc
+    username = username or getpass.getuser()
+    keyring_username = '@@'.join((username, system))
+    system = 'Mercurial'
+    password = (
+        keyring.get_password(system, keyring_username)
+        if 'keyring' in globals()
+        else None
+    )
+    if not password:
+        password = getpass.getpass()
+    Credential = collections.namedtuple('Credential', 'username password')
+    return Credential(username, password)
 
 def add_milestone_and_version(version):
-	base = 'https://api.bitbucket.org'
-	for type in 'milestones', 'versions':
-		url = (base + '/1.0/repositories/{repo}/issues/{type}'
-			.format(repo = get_repo_name(), type=type))
-		resp = requests.post(url=url,
-			data='name='+version, auth=get_mercurial_creds())
-		resp.raise_for_status()
+    base = 'https://api.bitbucket.org'
+    for type in 'milestones', 'versions':
+        url = (base + '/1.0/repositories/{repo}/issues/{type}'
+            .format(repo = get_repo_name(), type=type))
+        resp = requests.post(url=url,
+            data='name='+version, auth=get_mercurial_creds())
+        resp.raise_for_status()
 
 def bump_versions(target_ver):
-	for filename in files_with_versions:
-		bump_version(filename, target_ver)
-	subprocess.check_call(['hg', 'ci', '-m',
-		'Bumped to {target_ver} in preparation for next '
-		'release.'.format(**vars())])
-	return target_ver
+    for filename in files_with_versions:
+        bump_version(filename, target_ver)
+    subprocess.check_call(['hg', 'ci', '-m',
+        'Bumped to {target_ver} in preparation for next '
+        'release.'.format(**vars())])
+    return target_ver
 
 def bump_version(filename, target_ver):
-	with open(filename, 'rb') as f:
-		lines = [
-			line.replace(VERSION.encode('ascii'), target_ver.encode('ascii'))
-			for line in f
-		]
-	with open(filename, 'wb') as f:
-		f.writelines(lines)
+    with open(filename, 'rb') as f:
+        lines = [
+            line.replace(VERSION.encode('ascii'), target_ver.encode('ascii'))
+            for line in f
+        ]
+    with open(filename, 'wb') as f:
+        f.writelines(lines)
 
 def do_release():
-	assert all(map(os.path.exists, files_with_versions)), (
-		"Expected file(s) missing")
+    assert all(map(os.path.exists, files_with_versions)), (
+        "Expected file(s) missing")
 
-	assert has_sphinx(), "You must have Sphinx installed to release"
+    assert has_sphinx(), "You must have Sphinx installed to release"
 
-	set_versions()
+    set_versions()
 
-	res = input('Have you read through the SCM changelog and '
-		'confirmed the changelog is current for releasing {VERSION}? '
-		.format(**globals()))
-	if not res.lower().startswith('y'):
-		print("Please do that")
-		raise SystemExit(1)
+    res = input('Have you read through the SCM changelog and '
+        'confirmed the changelog is current for releasing {VERSION}? '
+        .format(**globals()))
+    if not res.lower().startswith('y'):
+        print("Please do that")
+        raise SystemExit(1)
 
-	print("Travis-CI tests: http://travis-ci.org/#!/jaraco/setuptools")
-	res = input('Have you or has someone verified that the tests '
-		'pass on this revision? ')
-	if not res.lower().startswith('y'):
-		print("Please do that")
-		raise SystemExit(2)
+    print("Travis-CI tests: http://travis-ci.org/#!/jaraco/setuptools")
+    res = input('Have you or has someone verified that the tests '
+        'pass on this revision? ')
+    if not res.lower().startswith('y'):
+        print("Please do that")
+        raise SystemExit(2)
 
-	subprocess.check_call(['hg', 'tag', VERSION])
+    subprocess.check_call(['hg', 'tag', VERSION])
 
-	subprocess.check_call(['hg', 'update', VERSION])
+    subprocess.check_call(['hg', 'update', VERSION])
 
-	upload_to_pypi()
-	upload_ez_setup()
+    upload_to_pypi()
+    upload_ez_setup()
 
-	# update to the tip for the next operation
-	subprocess.check_call(['hg', 'update'])
+    # update to the tip for the next operation
+    subprocess.check_call(['hg', 'update'])
 
-	# we just tagged the current version, bump for the next release.
-	next_ver = bump_versions(infer_next_version(VERSION))
+    # we just tagged the current version, bump for the next release.
+    next_ver = bump_versions(infer_next_version(VERSION))
 
-	# push the changes
-	subprocess.check_call(['hg', 'push'])
+    # push the changes
+    subprocess.check_call(['hg', 'push'])
 
-	add_milestone_and_version(next_ver)
+    add_milestone_and_version(next_ver)
 
 def upload_to_pypi():
-	linkify('CHANGES.txt', 'CHANGES (links).txt')
+    linkify('CHANGES.txt', 'CHANGES (links).txt')
 
-	has_docs = build_docs()
-	if os.path.isdir('./dist'):
-		shutil.rmtree('./dist')
-	cmd = [
-		sys.executable, 'setup.py', '-q',
-		'egg_info', '-RD', '-b', '',
-		'sdist',
-		'register', '-r', PACKAGE_INDEX,
-		'upload', '-r', PACKAGE_INDEX,
-	]
-	if has_docs:
-		cmd.extend([
-			'upload_docs', '-r', PACKAGE_INDEX
-		])
-	env = os.environ.copy()
-	env["SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES"] = "1"
-	subprocess.check_call(cmd, env=env)
+    has_docs = build_docs()
+    if os.path.isdir('./dist'):
+        shutil.rmtree('./dist')
+    cmd = [
+        sys.executable, 'setup.py', '-q',
+        'egg_info', '-RD', '-b', '',
+        'sdist',
+        'register', '-r', PACKAGE_INDEX,
+        'upload', '-r', PACKAGE_INDEX,
+    ]
+    if has_docs:
+        cmd.extend([
+            'upload_docs', '-r', PACKAGE_INDEX
+        ])
+    env = os.environ.copy()
+    env["SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES"] = "1"
+    subprocess.check_call(cmd, env=env)
 
 def upload_ez_setup():
-	"""
-	TODO: upload ez_setup.py to a permalinked location. Currently, this
-	location is https://bitbucket.org/pypa/setuptools/downloads/ez_setup.py .
-	In the long term, it should be on PyPI.
-	"""
+    """
+    TODO: upload ez_setup.py to a permalinked location. Currently, this
+    location is https://bitbucket.org/pypa/setuptools/downloads/ez_setup.py .
+    In the long term, it should be on PyPI.
+    """
 
 def has_sphinx():
-	try:
-		devnull = open(os.path.devnull, 'wb')
-		subprocess.Popen(['sphinx-build', '--version'], stdout=devnull,
-			stderr=subprocess.STDOUT).wait()
-	except Exception:
-		return False
-	return True
+    try:
+        devnull = open(os.path.devnull, 'wb')
+        subprocess.Popen(['sphinx-build', '--version'], stdout=devnull,
+            stderr=subprocess.STDOUT).wait()
+    except Exception:
+        return False
+    return True
 
 def build_docs():
-	if not os.path.isdir('docs'):
-		return
-	if os.path.isdir('docs/build'):
-		shutil.rmtree('docs/build')
-	cmd = [
-		'sphinx-build',
-		'-b', 'html',
-		'-d', 'build/doctrees',
-		'.',
-		'build/html',
-	]
-	subprocess.check_call(cmd, cwd='docs')
-	return True
+    if not os.path.isdir('docs'):
+        return
+    if os.path.isdir('docs/build'):
+        shutil.rmtree('docs/build')
+    cmd = [
+        'sphinx-build',
+        '-b', 'html',
+        '-d', 'build/doctrees',
+        '.',
+        'build/html',
+    ]
+    subprocess.check_call(cmd, cwd='docs')
+    return True
 
 def linkify(source, dest):
-	with open(source) as source:
-		out = _linkified_text(source.read())
-	with open(dest, 'w') as dest:
-		dest.write(out)
+    with open(source) as source:
+        out = _linkified_text(source.read())
+    with open(dest, 'w') as dest:
+        dest.write(out)
 
 def _linkified(rst_path):
-	"return contents of reStructureText file with linked issue references"
-	rst_file = open(rst_path)
-	rst_content = rst_file.read()
-	rst_file.close()
+    "return contents of reStructureText file with linked issue references"
+    rst_file = open(rst_path)
+    rst_content = rst_file.read()
+    rst_file.close()
 
-	return _linkified_text(rst_content)
+    return _linkified_text(rst_content)
 
 def _linkified_text(rst_content):
-	# first identify any existing HREFs so they're not changed
-	HREF_pattern = re.compile('`.*?`_', re.MULTILINE | re.DOTALL)
+    # first identify any existing HREFs so they're not changed
+    HREF_pattern = re.compile('`.*?`_', re.MULTILINE | re.DOTALL)
 
-	# split on the HREF pattern, returning the parts to be linkified
-	plain_text_parts = HREF_pattern.split(rst_content)
-	anchors = []
-	linkified_parts = [_linkified_part(part, anchors)
-		for part in plain_text_parts]
-	pairs = zip_longest(
-		linkified_parts,
-		HREF_pattern.findall(rst_content),
-		fillvalue='',
-	)
-	rst_content = ''.join(flatten(pairs))
+    # split on the HREF pattern, returning the parts to be linkified
+    plain_text_parts = HREF_pattern.split(rst_content)
+    anchors = []
+    linkified_parts = [_linkified_part(part, anchors)
+        for part in plain_text_parts]
+    pairs = zip_longest(
+        linkified_parts,
+        HREF_pattern.findall(rst_content),
+        fillvalue='',
+    )
+    rst_content = ''.join(flatten(pairs))
 
-	anchors = sorted(anchors)
+    anchors = sorted(anchors)
 
-	bitroot = 'https://bitbucket.org/tarek/distribute'
-	rst_content += "\n"
-	for x in anchors:
-		issue = re.findall(r'\d+', x)[0]
-		rst_content += '.. _`%s`: %s/issue/%s\n' % (x, bitroot, issue)
-	rst_content += "\n"
-	return rst_content
+    bitroot = 'https://bitbucket.org/tarek/distribute'
+    rst_content += "\n"
+    for x in anchors:
+        issue = re.findall(r'\d+', x)[0]
+        rst_content += '.. _`%s`: %s/issue/%s\n' % (x, bitroot, issue)
+    rst_content += "\n"
+    return rst_content
 
 def flatten(listOfLists):
-	"Flatten one level of nesting"
-	return itertools.chain.from_iterable(listOfLists)
+    "Flatten one level of nesting"
+    return itertools.chain.from_iterable(listOfLists)
 
 
 def _linkified_part(text, anchors):
-	"""
-	Linkify a part and collect any anchors generated
-	"""
-	revision = re.compile(r'\b(issue\s+#?\d+)\b', re.M | re.I)
+    """
+    Linkify a part and collect any anchors generated
+    """
+    revision = re.compile(r'\b(issue\s+#?\d+)\b', re.M | re.I)
 
-	anchors.extend(revision.findall(text)) # ['Issue #43', ...]
-	return revision.sub(r'`\1`_', text)
+    anchors.extend(revision.findall(text)) # ['Issue #43', ...]
+    return revision.sub(r'`\1`_', text)
 
 if __name__ == '__main__':
-	do_release()
+    do_release()
