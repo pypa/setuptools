@@ -9,3 +9,9 @@ except ImportError:
     def wraps(func):
         "Just return the function unwrapped"
         return lambda x: x
+
+
+try:
+    import hashlib
+except ImportError:
+    from setuptools._backport import hashlib
