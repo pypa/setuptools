@@ -11,11 +11,8 @@ from setuptools.compat import (urllib2, httplib, StringIO, HTTPError,
                                url2pathname, name2codepoint,
                                unichr, urljoin)
 from setuptools.compat import filterfalse
-try:
-    from hashlib import md5
-except ImportError:
-    from md5 import md5
 from fnmatch import translate
+from setuptools.py24compat import hashlib
 from setuptools.py24compat import wraps
 from setuptools.py27compat import get_all_headers
 
@@ -28,6 +25,7 @@ PYPI_MD5 = re.compile(
 )
 URL_SCHEME = re.compile('([-+.a-z0-9]{2,}):',re.I).match
 EXTENSIONS = ".tar.gz .tar.bz2 .tar .zip .tgz".split()
+_HASH_RE = re.compile(r'(sha1|sha224|sha384|sha256|sha512|md5)=([a-f0-9]+)')
 
 __all__ = [
     'PackageIndex', 'distros_for_url', 'parse_bdist_wininst',
@@ -387,15 +385,19 @@ class PackageIndex(Environment):
 
 
 
-    def check_md5(self, cs, info, filename, tfp):
-        if re.match('md5=[0-9a-f]{32}$', info):
-            self.debug("Validating md5 checksum for %s", filename)
-            if cs.hexdigest() != info[4:]:
+    def check_hash(self, cs, info, filename, tfp):
+        match = _HASH_RE.search(info)
+        if match:
+            hash_name = match.group(1)
+            hash_data = match.group(2)
+            self.debug("Validating %s checksum for %s", hash_name, filename)
+            if cs.hexdigest() != hash_data:
                 tfp.close()
                 os.unlink(filename)
                 raise DistutilsError(
-                    "MD5 validation failed for "+os.path.basename(filename)+
-                    "; possible download problem?"
+                    "%s validation failed for %s; "
+                    "possible download problem?" % (
+                                    hash_name, os.path.basename(filename))
                 )
 
     def add_find_links(self, urls):
@@ -598,16 +600,19 @@ class PackageIndex(Environment):
     def _download_to(self, url, filename):
         self.info("Downloading %s", url)
         # Download the file
-        fp, tfp, info = None, None, None
+        fp, tfp, cs, info = None, None, None, None
         try:
             if '#' in url:
                 url, info = url.split('#', 1)
+                hmatch = _HASH_RE.search(info)
+                hash_name = hmatch.group(1)
+                hash_data = hmatch.group(2)
+                cs = hashlib.new(hash_name)
             fp = self.open_url(url)
             if isinstance(fp, HTTPError):
                 raise DistutilsError(
                     "Can't download %s: %s %s" % (url, fp.code,fp.msg)
                 )
-            cs = md5()
             headers = fp.info()
             blocknum = 0
             bs = self.dl_blocksize
@@ -621,13 +626,14 @@ class PackageIndex(Environment):
             while True:
                 block = fp.read(bs)
                 if block:
-                    cs.update(block)
+                    if cs is not None:
+                        cs.update(block)
                     tfp.write(block)
                     blocknum += 1
                     self.reporthook(url, filename, blocknum, bs, size)
                 else:
                     break
-            if info: self.check_md5(cs, info, filename, tfp)
+            if info: self.check_hash(cs, info, filename, tfp)
             return headers
         finally:
             if fp: fp.close()
