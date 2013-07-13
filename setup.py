@@ -92,7 +92,7 @@ if sys.platform == 'win32' or os.environ.get("SETUPTOOLS_INSTALL_WINDOWS_SPECIFI
     package_data.setdefault('setuptools', []).extend(['*.exe'])
     package_data.setdefault('setuptools.command', []).extend(['*.xml'])
 
-dist = setup(
+setup_params = dict(
     name="setuptools",
     version=VERSION,
     description="Easily download, build, install, upgrade, and uninstall "
@@ -194,3 +194,6 @@ dist = setup(
     scripts = [],
     # tests_require = "setuptools[ssl]",
 )
+
+if __name__ == '__main__':
+    dist = setup(**setup_params)
