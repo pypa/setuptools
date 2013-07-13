@@ -3,6 +3,12 @@ CHANGES
 =======
 
 ---
+0.9
+---
+
+* `package_index` now validates hashes other than MD5 in download links.
+
+---
 0.8
 ---
 
