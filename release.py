@@ -15,11 +15,8 @@ except AttributeError:
 def before_upload():
     _linkify('CHANGES.txt', 'CHANGES (linked).txt')
 
-version = '0.10'
-
 files_with_versions = (
-    'docs/conf.py', 'setup.py', 'release.py', 'ez_setup.py',
-    'setuptools/__init__.py',
+    'docs/conf.py', 'setup.py', 'ez_setup.py', 'setuptools/__init__.py',
 )
 
 test_info = "Travis-CI tests: http://travis-ci.org/#!/jaraco/setuptools"
