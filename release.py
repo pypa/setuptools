@@ -33,7 +33,7 @@ try:
 except Exception:
     pass
 
-VERSION = '0.9'
+VERSION = '0.10'
 PACKAGE_INDEX = 'https://pypi.python.org/pypi'
 
 def set_versions():
@@ -53,7 +53,7 @@ def infer_next_version(version):
     >>> infer_next_version('1.0b')
     '1.0b1'
 
-    >>> infer_next_version('1.0.9')
+    >>> infer_next_version('1.0.10')
     '1.0.10'
 
     >>> infer_next_version('1')

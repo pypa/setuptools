@@ -47,7 +47,7 @@ exec(init_file.read(), d)
 init_file.close()
 
 SETUP_COMMANDS = d['__all__']
-VERSION = "0.9"
+VERSION = "0.10"
 
 from setuptools import setup, find_packages
 from setuptools.command.build_py import build_py as _build_py
@@ -219,10 +219,10 @@ dist = setup(
         "ssl:sys_platform=='win32'": "wincertstore==0.1",
         "ssl:sys_platform=='win32' and python_version=='2.4'": "ctypes==1.0.2",
         "ssl:python_version in '2.4, 2.5'":"ssl==1.16",
-        "certs": "certifi==0.0.9",
+        "certs": "certifi==0.0.10",
     },
     dependency_links = [
-        'https://pypi.python.org/packages/source/c/certifi/certifi-0.0.9.tar.gz#md5=dc5f5e7f0b5fc08d27654b17daa6ecec',
+        'https://pypi.python.org/packages/source/c/certifi/certifi-0.0.10.tar.gz#md5=dc5f5e7f0b5fc08d27654b17daa6ecec',
         'https://pypi.python.org/packages/source/s/ssl/ssl-1.16.tar.gz#md5=fb12d335d56f3c8c7c1fefc1c06c4bfb',
         'https://pypi.python.org/packages/source/w/wincertstore/wincertstore-0.1.zip#md5=2f9accbebe8f7b4c06ac7aa83879b81c',
         'https://bitbucket.org/pypa/setuptools/downloads/ctypes-1.0.2.win32-py2.4.exe#md5=9092a0ad5a3d79fa2d980f1ddc5e9dbc',
