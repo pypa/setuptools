@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+-----
+0.9.1
+-----
+
+* Distribute #386: Allow other positional and keyword arguments to os.open.
+
 ---
 0.9
 ---
