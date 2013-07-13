@@ -3,7 +3,6 @@
 import sys
 import os
 import textwrap
-import re
 
 # Allow to run setup.py from another directory.
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
