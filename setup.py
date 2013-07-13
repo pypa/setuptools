@@ -8,34 +8,6 @@ import textwrap
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 src_root = None
-do_2to3 = False
-if sys.version_info >= (3,) and do_2to3:
-    tmp_src = os.path.join("build", "src")
-    from distutils.filelist import FileList
-    from distutils import dir_util, file_util, util, log
-    log.set_verbosity(1)
-    fl = FileList()
-    manifest_file = open("MANIFEST.in")
-    for line in manifest_file:
-        fl.process_template_line(line)
-    manifest_file.close()
-    dir_util.create_tree(tmp_src, fl.files)
-    outfiles_2to3 = []
-    dist_script = os.path.join("build", "src", "ez_setup.py")
-    for f in fl.files:
-        outf, copied = file_util.copy_file(f, os.path.join(tmp_src, f), update=1)
-        if copied and outf.endswith(".py") and outf != dist_script:
-            outfiles_2to3.append(outf)
-        if copied and outf.endswith('api_tests.txt'):
-            # XXX support this in distutils as well
-            from lib2to3.main import main
-            main('lib2to3.fixes', ['-wd', os.path.join(tmp_src, 'tests', 'api_tests.txt')])
-
-    util.run_2to3(outfiles_2to3)
-
-    # arrange setup to use the copy
-    sys.path.insert(0, os.path.abspath(tmp_src))
-    src_root = tmp_src
 
 from distutils.util import convert_path
 
@@ -75,15 +47,6 @@ class build_py(_build_py):
                 srcfile = os.path.join(src_dir, filename)
                 outf, copied = self.copy_file(srcfile, target)
                 srcfile = os.path.abspath(srcfile)
-
-                # avoid a bootstrapping issue with easy_install -U (when the
-                # previous version doesn't have convert_2to3_doctests)
-                if not hasattr(self.distribution, 'convert_2to3_doctests'):
-                    continue
-                if not do_2to3:
-                    continue
-                if copied and srcfile in self.distribution.convert_2to3_doctests:
-                    self.__doctests_2to3.append(outf)
 
 class test(_test):
     """Specific test class to avoid rewriting the entry_points.txt"""
