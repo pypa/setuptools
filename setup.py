@@ -18,9 +18,8 @@ exec(init_file.read(), d)
 init_file.close()
 
 SETUP_COMMANDS = d['__all__']
-VERSION = "0.9.1"
 
-from setuptools import setup, find_packages
+import setuptools
 from setuptools.command.build_py import build_py as _build_py
 from setuptools.command.test import test as _test
 
@@ -94,7 +93,7 @@ if sys.platform == 'win32' or os.environ.get("SETUPTOOLS_INSTALL_WINDOWS_SPECIFI
 
 setup_params = dict(
     name="setuptools",
-    version=VERSION,
+    version=setuptools.__version__,
     description="Easily download, build, install, upgrade, and uninstall "
                 "Python packages",
     author="The fellowship of the packaging",
@@ -105,7 +104,7 @@ setup_params = dict(
     url = "https://pypi.python.org/pypi/setuptools",
     test_suite = 'setuptools.tests',
     src_root = src_root,
-    packages = find_packages(),
+    packages = setuptools.find_packages(),
     package_data = package_data,
 
     py_modules = ['pkg_resources', 'easy_install'],
@@ -196,4 +195,4 @@ setup_params = dict(
 )
 
 if __name__ == '__main__':
-    dist = setup(**setup_params)
+    dist = setuptools.setup(**setup_params)
