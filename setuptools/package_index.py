@@ -202,7 +202,7 @@ class ContentChecker(object):
         """
         return
 
-    def check(self):
+    def is_valid(self):
         """
         Check the hash. Return False if validation fails.
         """
@@ -239,7 +239,7 @@ class HashChecker(ContentChecker):
     def feed(self, block):
         self.hash.update(block)
 
-    def check(self):
+    def is_valid(self):
         return self.hash.hexdigest() == self.expected
 
     def report(self, reporter, template):
@@ -445,7 +445,7 @@ class PackageIndex(Environment):
         """
         checker.report(self.debug,
             "Validating %%s checksum for %s" % filename)
-        if not checker.valid():
+        if not checker.is_valid():
             tfp.close()
             os.unlink(filename)
             raise DistutilsError(

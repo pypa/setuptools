@@ -151,18 +151,18 @@ class TestContentCheckers(unittest.TestCase):
         checker.feed('You should probably not be using MD5'.encode('ascii'))
         self.assertEqual(checker.hash.hexdigest(),
             'f12895fdffbd45007040d2e44df98478')
-        self.assertTrue(checker.check())
+        self.assertTrue(checker.is_valid())
 
     def test_other_fragment(self):
         "Content checks should succeed silently if no hash is present"
         checker = setuptools.package_index.HashChecker.from_url(
             'http://foo/bar#something%20completely%20different')
         checker.feed('anything'.encode('ascii'))
-        self.assertTrue(checker.check())
+        self.assertTrue(checker.is_valid())
 
     def test_blank_md5(self):
         "Content checks should succeed if a hash is empty"
         checker = setuptools.package_index.HashChecker.from_url(
             'http://foo/bar#md5=')
         checker.feed('anything'.encode('ascii'))
-        self.assertTrue(checker.check())
+        self.assertTrue(checker.is_valid())
