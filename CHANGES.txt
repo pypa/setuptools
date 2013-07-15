@@ -3,6 +3,13 @@ CHANGES
 =======
 
 -----
+0.9.4
+-----
+
+* Issue #43: Fix issue (introduced in 0.9.1) with version resolution when
+  upgrading over other releases of Setuptools.
+
+-----
 0.9.3
 -----
 

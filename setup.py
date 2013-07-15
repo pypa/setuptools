@@ -19,6 +19,12 @@ init_file.close()
 
 SETUP_COMMANDS = command_ns['__all__']
 
+main_ns = {}
+init_path = convert_path('setuptools/__init__.py')
+init_file = open(init_path)
+exec(init_file.read(), main_ns)
+init_file.close()
+
 import setuptools
 from setuptools.command.build_py import build_py as _build_py
 from setuptools.command.test import test as _test
@@ -93,7 +99,7 @@ if sys.platform == 'win32' or os.environ.get("SETUPTOOLS_INSTALL_WINDOWS_SPECIFI
 
 setup_params = dict(
     name="setuptools",
-    version=setuptools.__version__,
+    version=main_ns['__version__'],
     description="Easily download, build, install, upgrade, and uninstall "
                 "Python packages",
     author="The fellowship of the packaging",
