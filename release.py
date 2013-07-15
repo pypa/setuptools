@@ -29,6 +29,7 @@ link_patterns = [
     r"Buildout #(?P<buildout>\d+)",
     r"Old Setuptools #(?P<old_setuptools>\d+)",
     r"Jython #(?P<jython>\d+)",
+    r"Python #(?P<python>\d+)",
 ]
 
 issue_urls = dict(
@@ -37,6 +38,7 @@ issue_urls = dict(
     buildout='https://github.com/buildout/buildout/issues/{buildout}',
     old_setuptools='http://bugs.python.org/setuptools/issue{old_setuptools}',
     jython='http://bugs.jython.org/issue{jython}',
+    python='http://bugs.python.org/issue{python}',
 )
 
 def _linkify(source, dest):

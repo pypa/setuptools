@@ -3,6 +3,12 @@ CHANGES
 =======
 
 -----
+0.9.5
+-----
+
+* Python #17980: Fix security vulnerability in SSL certificate validation.
+
+-----
 0.9.4
 -----
 
