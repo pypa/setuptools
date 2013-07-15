@@ -141,3 +141,14 @@ class TestPackageIndex(unittest.TestCase):
             'reportlab-2.5.win-amd64-py2.7.exe'), ('reportlab-2.5', '2.7', 'win-amd64'))
         self.assertEqual(setuptools.package_index.parse_bdist_wininst(
             'reportlab-2.5.win-amd64.exe'), ('reportlab-2.5', None, 'win-amd64'))
+
+class TestContentCheckers(unittest.TestCase):
+
+    def test_md5(self):
+        checker = setuptools.package_index.HashChecker.from_url(
+            'http://foo/bar#md5=f12895fdffbd45007040d2e44df98478')
+        self.assertEqual(checker.hash.name, 'md5')
+        checker.feed('You should probably not be using MD5'.encode('ascii'))
+        self.assertEqual(checker.hash.hexdigest(),
+            'f12895fdffbd45007040d2e44df98478')
+        self.assertTrue(checker.check())
