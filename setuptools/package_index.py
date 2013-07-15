@@ -25,7 +25,6 @@ PYPI_MD5 = re.compile(
 )
 URL_SCHEME = re.compile('([-+.a-z0-9]{2,}):',re.I).match
 EXTENSIONS = ".tar.gz .tar.bz2 .tar .zip .tgz".split()
-_HASH_RE = re.compile(r'(sha1|sha224|sha384|sha256|sha512|md5)=([a-f0-9]+)')
 
 __all__ = [
     'PackageIndex', 'distros_for_url', 'parse_bdist_wininst',
@@ -192,6 +191,61 @@ def find_external_links(url, page):
 user_agent = "Python-urllib/%s setuptools/%s" % (
     sys.version[:3], require('setuptools')[0].version
 )
+
+class ContentChecker(object):
+    """
+    A null content checker that defines the interface for checking content
+    """
+    def feed(self, block):
+        """
+        Feed a block of data to the hash.
+        """
+        return
+
+    def check(self):
+        """
+        Check the hash. Return False if validation fails.
+        """
+        return True
+
+    def report(self, reporter, template):
+        """
+        Call reporter with information about the checker (hash name)
+        substituted into the template.
+        """
+        return
+
+class HashChecker(ContentChecker):
+    pattern = re.compile(
+        r'(?P<hash_name>sha1|sha224|sha384|sha256|sha512|md5)='
+        r'(?P<expected>[a-f0-9]+)'
+    )
+
+    def __init__(self, hash_name, expected):
+        self.hash = hashlib.new(hash_name)
+        self.expected = expected
+
+    @classmethod
+    def from_url(cls, url):
+        "Construct a (possibly null) ContentChecker from a URL"
+        fragment = urlparse(url)[-1]
+        if not fragment:
+            return ContentChecker()
+        match = cls.pattern.search(fragment)
+        if not match:
+            return ContentChecker()
+        return cls(**match.groupdict())
+
+    def feed(self, block):
+        self.hash.update(block)
+
+    def check(self):
+        return self.hash.hexdigest() == self.expected
+
+    def report(self, reporter, template):
+        msg = template % self.hash.name
+        return reporter(msg)
+
 
 class PackageIndex(Environment):
     """A distribution index that scans web pages for download URLs"""
@@ -385,20 +439,20 @@ class PackageIndex(Environment):
 
 
 
-    def check_hash(self, cs, info, filename, tfp):
-        match = _HASH_RE.search(info)
-        if match:
-            hash_name = match.group(1)
-            hash_data = match.group(2)
-            self.debug("Validating %s checksum for %s", hash_name, filename)
-            if cs.hexdigest() != hash_data:
-                tfp.close()
-                os.unlink(filename)
-                raise DistutilsError(
-                    "%s validation failed for %s; "
-                    "possible download problem?" % (
-                                    hash_name, os.path.basename(filename))
-                )
+    def check_hash(self, checker, filename, tfp):
+        """
+        checker is a ContentChecker
+        """
+        checker.report(self.debug,
+            "Validating %%s checksum for %s" % filename)
+        if not checker.valid():
+            tfp.close()
+            os.unlink(filename)
+            raise DistutilsError(
+                "%s validation failed for %s; "
+                "possible download problem?" % (
+                                checker.hash.name, os.path.basename(filename))
+            )
 
     def add_find_links(self, urls):
         """Add `urls` to the list that will be prescanned for searches"""
@@ -600,14 +654,9 @@ class PackageIndex(Environment):
     def _download_to(self, url, filename):
         self.info("Downloading %s", url)
         # Download the file
-        fp, tfp, cs, info = None, None, None, None
+        fp, tfp, info = None, None, None
         try:
-            if '#' in url:
-                url, info = url.split('#', 1)
-                hmatch = _HASH_RE.search(info)
-                hash_name = hmatch.group(1)
-                hash_data = hmatch.group(2)
-                cs = hashlib.new(hash_name)
+            checker = HashChecker.from_url(url)
             fp = self.open_url(url)
             if isinstance(fp, HTTPError):
                 raise DistutilsError(
@@ -626,14 +675,13 @@ class PackageIndex(Environment):
             while True:
                 block = fp.read(bs)
                 if block:
-                    if cs is not None:
-                        cs.update(block)
+                    checker.feed(block)
                     tfp.write(block)
                     blocknum += 1
                     self.reporthook(url, filename, blocknum, bs, size)
                 else:
                     break
-            if info: self.check_hash(cs, info, filename, tfp)
+            self.check_hash(checker, filename, tfp)
             return headers
         finally:
             if fp: fp.close()
@@ -641,7 +689,6 @@ class PackageIndex(Environment):
 
     def reporthook(self, url, filename, blocknum, blksize, size):
         pass    # no-op
-
 
     def open_url(self, url, warning=None):
         if url.startswith('file:'):
