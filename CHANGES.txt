@@ -3,6 +3,13 @@ CHANGES
 =======
 
 -----
+0.9.2
+-----
+
+* Issue #42: Fix regression where blank checksums would trigger an
+  ``AttributeError``.
+
+-----
 0.9.1
 -----
 
