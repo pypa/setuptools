@@ -242,8 +242,23 @@ class HashChecker(ContentChecker):
     def is_valid(self):
         return self.hash.hexdigest() == self.expected
 
+    def _get_hash_name(self):
+        """
+        Python 2.4 implementation of MD5 doesn't supply a .name attribute
+        so provide that name.
+
+        When Python 2.4 is no longer required, replace invocations of this
+        method with simply 'self.hash.name'.
+        """
+        try:
+            return self.hash.name
+        except AttributeError:
+            if 'md5' in str(type(self.hash)):
+                return 'md5'
+            raise
+
     def report(self, reporter, template):
-        msg = template % self.hash.name
+        msg = template % self._get_hash_name()
         return reporter(msg)
 
 

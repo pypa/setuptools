@@ -3,6 +3,13 @@ CHANGES
 =======
 
 -----
+0.9.6
+-----
+
+* Issue #44: Test failure on Python 2.4 when MD5 hash doesn't have a `.name`
+  attribute.
+
+-----
 0.9.5
 -----
 

@@ -147,7 +147,6 @@ class TestContentCheckers(unittest.TestCase):
     def test_md5(self):
         checker = setuptools.package_index.HashChecker.from_url(
             'http://foo/bar#md5=f12895fdffbd45007040d2e44df98478')
-        self.assertEqual(checker.hash.name, 'md5')
         checker.feed('You should probably not be using MD5'.encode('ascii'))
         self.assertEqual(checker.hash.hexdigest(),
             'f12895fdffbd45007040d2e44df98478')
@@ -166,3 +165,18 @@ class TestContentCheckers(unittest.TestCase):
             'http://foo/bar#md5=')
         checker.feed('anything'.encode('ascii'))
         self.assertTrue(checker.is_valid())
+
+    def test_get_hash_name_md5(self):
+        checker = setuptools.package_index.HashChecker.from_url(
+            'http://foo/bar#md5=f12895fdffbd45007040d2e44df98478')
+        if sys.version_info >= (2,5):
+            self.assertEqual(checker.hash.name, 'md5')
+        else:
+            # Python 2.4 compatability
+            self.assertEqual(checker._get_hash_name(), 'md5')
+
+    def test_report(self):
+        checker = setuptools.package_index.HashChecker.from_url(
+            'http://foo/bar#md5=f12895fdffbd45007040d2e44df98478')
+        rep = checker.report(lambda x: x, 'My message about %s')
+        self.assertEqual(rep, 'My message about md5')
