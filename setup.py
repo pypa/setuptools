@@ -119,7 +119,7 @@ setup_params = dict(
 
     cmdclass = {'test': test},
     entry_points = {
-        "distutils.commands" : [
+        "distutils.commands": [
             "%(cmd)s = setuptools.command.%(cmd)s:%(cmd)s" % locals()
             for cmd in SETUP_COMMANDS
         ],
