@@ -157,7 +157,7 @@ Credits
   aspects of ``easy_install``, and supplied the doctests for the command-line
   ``.exe`` wrappers on Windows.
 
-* Phillip J. Eby is the principal author and maintainer of setuptools, and
+* Phillip J. Eby is the seminal author of setuptools, and
   first proposed the idea of an importable binary distribution format for
   Python application plug-ins.
 
@@ -166,5 +166,9 @@ Credits
   Chandler PIM application.  In addition, many OSAF staffers (such as Mike
   "Code Bear" Taylor) contributed their time and stress as guinea pigs for the
   use of eggs and setuptools, even before eggs were "cool".  (Thanks, guys!)
+
+* Since the merge with Distribute, Jason R. Coombs is the
+  maintainer of setuptools.  The project is maintained in coordination with
+  the Python Packaging Authority (PyPA) and the larger Python community.
 
 .. _files:

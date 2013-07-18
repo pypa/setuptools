@@ -102,7 +102,7 @@ setup_params = dict(
     version=main_ns['__version__'],
     description="Easily download, build, install, upgrade, and uninstall "
                 "Python packages",
-    author="The fellowship of the packaging",
+    author="Python Packaging Authority",
     author_email="distutils-sig@python.org",
     license="PSF or ZPL",
     long_description = long_description,
