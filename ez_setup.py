@@ -28,7 +28,7 @@ try:
 except ImportError:
     USER_SITE = None
 
-DEFAULT_VERSION = "0.8"
+DEFAULT_VERSION = "0.9.7"
 DEFAULT_URL = "https://pypi.python.org/packages/source/s/setuptools/"
 
 def _python_cmd(*args):
@@ -100,6 +100,12 @@ def _do_download(version, download_base, to_dir, download_delay):
                                       to_dir, download_delay)
         _build_egg(egg, tarball, to_dir)
     sys.path.insert(0, egg)
+
+    # Remove previously-imported pkg_resources if present (see
+    # https://bitbucket.org/pypa/setuptools/pull-request/7/ for details).
+    if 'pkg_resources' in sys.modules:
+        del sys.modules['pkg_resources']
+
     import setuptools
     setuptools.bootstrap_install_from = egg
 

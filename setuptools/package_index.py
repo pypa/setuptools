@@ -11,11 +11,8 @@ from setuptools.compat import (urllib2, httplib, StringIO, HTTPError,
                                url2pathname, name2codepoint,
                                unichr, urljoin)
 from setuptools.compat import filterfalse
-try:
-    from hashlib import md5
-except ImportError:
-    from md5 import md5
 from fnmatch import translate
+from setuptools.py24compat import hashlib
 from setuptools.py24compat import wraps
 from setuptools.py27compat import get_all_headers
 
@@ -194,6 +191,76 @@ def find_external_links(url, page):
 user_agent = "Python-urllib/%s setuptools/%s" % (
     sys.version[:3], require('setuptools')[0].version
 )
+
+class ContentChecker(object):
+    """
+    A null content checker that defines the interface for checking content
+    """
+    def feed(self, block):
+        """
+        Feed a block of data to the hash.
+        """
+        return
+
+    def is_valid(self):
+        """
+        Check the hash. Return False if validation fails.
+        """
+        return True
+
+    def report(self, reporter, template):
+        """
+        Call reporter with information about the checker (hash name)
+        substituted into the template.
+        """
+        return
+
+class HashChecker(ContentChecker):
+    pattern = re.compile(
+        r'(?P<hash_name>sha1|sha224|sha384|sha256|sha512|md5)='
+        r'(?P<expected>[a-f0-9]+)'
+    )
+
+    def __init__(self, hash_name, expected):
+        self.hash = hashlib.new(hash_name)
+        self.expected = expected
+
+    @classmethod
+    def from_url(cls, url):
+        "Construct a (possibly null) ContentChecker from a URL"
+        fragment = urlparse(url)[-1]
+        if not fragment:
+            return ContentChecker()
+        match = cls.pattern.search(fragment)
+        if not match:
+            return ContentChecker()
+        return cls(**match.groupdict())
+
+    def feed(self, block):
+        self.hash.update(block)
+
+    def is_valid(self):
+        return self.hash.hexdigest() == self.expected
+
+    def _get_hash_name(self):
+        """
+        Python 2.4 implementation of MD5 doesn't supply a .name attribute
+        so provide that name.
+
+        When Python 2.4 is no longer required, replace invocations of this
+        method with simply 'self.hash.name'.
+        """
+        try:
+            return self.hash.name
+        except AttributeError:
+            if 'md5' in str(type(self.hash)):
+                return 'md5'
+            raise
+
+    def report(self, reporter, template):
+        msg = template % self._get_hash_name()
+        return reporter(msg)
+
 
 class PackageIndex(Environment):
     """A distribution index that scans web pages for download URLs"""
@@ -387,16 +454,20 @@ class PackageIndex(Environment):
 
 
 
-    def check_md5(self, cs, info, filename, tfp):
-        if re.match('md5=[0-9a-f]{32}$', info):
-            self.debug("Validating md5 checksum for %s", filename)
-            if cs.hexdigest() != info[4:]:
-                tfp.close()
-                os.unlink(filename)
-                raise DistutilsError(
-                    "MD5 validation failed for "+os.path.basename(filename)+
-                    "; possible download problem?"
-                )
+    def check_hash(self, checker, filename, tfp):
+        """
+        checker is a ContentChecker
+        """
+        checker.report(self.debug,
+            "Validating %%s checksum for %s" % filename)
+        if not checker.is_valid():
+            tfp.close()
+            os.unlink(filename)
+            raise DistutilsError(
+                "%s validation failed for %s; "
+                "possible download problem?" % (
+                                checker.hash.name, os.path.basename(filename))
+            )
 
     def add_find_links(self, urls):
         """Add `urls` to the list that will be prescanned for searches"""
@@ -600,14 +671,12 @@ class PackageIndex(Environment):
         # Download the file
         fp, tfp, info = None, None, None
         try:
-            if '#' in url:
-                url, info = url.split('#', 1)
+            checker = HashChecker.from_url(url)
             fp = self.open_url(url)
             if isinstance(fp, HTTPError):
                 raise DistutilsError(
                     "Can't download %s: %s %s" % (url, fp.code,fp.msg)
                 )
-            cs = md5()
             headers = fp.info()
             blocknum = 0
             bs = self.dl_blocksize
@@ -621,13 +690,13 @@ class PackageIndex(Environment):
             while True:
                 block = fp.read(bs)
                 if block:
-                    cs.update(block)
+                    checker.feed(block)
                     tfp.write(block)
                     blocknum += 1
                     self.reporthook(url, filename, blocknum, bs, size)
                 else:
                     break
-            if info: self.check_md5(cs, info, filename, tfp)
+            self.check_hash(checker, filename, tfp)
             return headers
         finally:
             if fp: fp.close()
@@ -635,7 +704,6 @@ class PackageIndex(Environment):
 
     def reporthook(self, url, filename, blocknum, blksize, size):
         pass    # no-op
-
 
     def open_url(self, url, warning=None):
         if url.startswith('file:'):

@@ -56,7 +56,7 @@ class TestZipProvider(object):
         zp = pkg_resources.ZipProvider(mod)
         filename = zp.get_resource_filename(manager, 'data.dat')
         assert os.stat(filename).st_mtime == 1368379500
-        f = open(filename, 'wb')
+        f = open(filename, 'w')
         f.write('hello, world?')
         f.close()
         os.utime(filename, (1368379500, 1368379500))
@@ -64,3 +64,11 @@ class TestZipProvider(object):
         f = open(filename)
         assert f.read() == 'hello, world!'
         manager.cleanup_resources()
+
+class TestResourceManager(object):
+    def test_get_cache_path(self):
+        mgr = pkg_resources.ResourceManager()
+        path = mgr.get_cache_path('foo')
+        type_ = str(type(path))
+        message = "Unexpected type from get_cache_path: " + type_
+        assert isinstance(path, (unicode, str)), message

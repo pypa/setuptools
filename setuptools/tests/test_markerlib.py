@@ -19,20 +19,24 @@ class TestMarkerlib(unittest.TestCase):
         self.assertTrue(interpret(""))
         
         self.assertTrue(interpret("os.name != 'buuuu'"))
+        self.assertTrue(interpret("os_name != 'buuuu'"))
         self.assertTrue(interpret("python_version > '1.0'"))
         self.assertTrue(interpret("python_version < '5.0'"))
         self.assertTrue(interpret("python_version <= '5.0'"))
         self.assertTrue(interpret("python_version >= '1.0'"))
         self.assertTrue(interpret("'%s' in os.name" % os_name))
+        self.assertTrue(interpret("'%s' in os_name" % os_name))
         self.assertTrue(interpret("'buuuu' not in os.name"))
         
         self.assertFalse(interpret("os.name == 'buuuu'"))
+        self.assertFalse(interpret("os_name == 'buuuu'"))
         self.assertFalse(interpret("python_version < '1.0'"))
         self.assertFalse(interpret("python_version > '5.0'"))
         self.assertFalse(interpret("python_version >= '5.0'"))
         self.assertFalse(interpret("python_version <= '1.0'"))
         self.assertFalse(interpret("'%s' not in os.name" % os_name))
         self.assertFalse(interpret("'buuuu' in os.name and python_version >= '5.0'"))    
+        self.assertFalse(interpret("'buuuu' in os_name and python_version >= '5.0'"))    
         
         environment = default_environment()
         environment['extra'] = 'test'

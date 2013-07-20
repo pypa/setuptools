@@ -141,3 +141,42 @@ class TestPackageIndex(unittest.TestCase):
             'reportlab-2.5.win-amd64-py2.7.exe'), ('reportlab-2.5', '2.7', 'win-amd64'))
         self.assertEqual(setuptools.package_index.parse_bdist_wininst(
             'reportlab-2.5.win-amd64.exe'), ('reportlab-2.5', None, 'win-amd64'))
+
+class TestContentCheckers(unittest.TestCase):
+
+    def test_md5(self):
+        checker = setuptools.package_index.HashChecker.from_url(
+            'http://foo/bar#md5=f12895fdffbd45007040d2e44df98478')
+        checker.feed('You should probably not be using MD5'.encode('ascii'))
+        self.assertEqual(checker.hash.hexdigest(),
+            'f12895fdffbd45007040d2e44df98478')
+        self.assertTrue(checker.is_valid())
+
+    def test_other_fragment(self):
+        "Content checks should succeed silently if no hash is present"
+        checker = setuptools.package_index.HashChecker.from_url(
+            'http://foo/bar#something%20completely%20different')
+        checker.feed('anything'.encode('ascii'))
+        self.assertTrue(checker.is_valid())
+
+    def test_blank_md5(self):
+        "Content checks should succeed if a hash is empty"
+        checker = setuptools.package_index.HashChecker.from_url(
+            'http://foo/bar#md5=')
+        checker.feed('anything'.encode('ascii'))
+        self.assertTrue(checker.is_valid())
+
+    def test_get_hash_name_md5(self):
+        checker = setuptools.package_index.HashChecker.from_url(
+            'http://foo/bar#md5=f12895fdffbd45007040d2e44df98478')
+        if sys.version_info >= (2,5):
+            self.assertEqual(checker.hash.name, 'md5')
+        else:
+            # Python 2.4 compatability
+            self.assertEqual(checker._get_hash_name(), 'md5')
+
+    def test_report(self):
+        checker = setuptools.package_index.HashChecker.from_url(
+            'http://foo/bar#md5=f12895fdffbd45007040d2e44df98478')
+        rep = checker.report(lambda x: x, 'My message about %s')
+        self.assertEqual(rep, 'My message about md5')

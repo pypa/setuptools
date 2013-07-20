@@ -9,6 +9,7 @@ Contributors
 * Daniel Stutzbach
 * Daniel Holth
 * Dirley Rodrigues
+* Donald Stufft
 * Grigory Petrov
 * Hanno Schlichting
 * Jannis Leidel

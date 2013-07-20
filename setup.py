@@ -3,59 +3,39 @@
 import sys
 import os
 import textwrap
-import re
 
 # Allow to run setup.py from another directory.
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 src_root = None
-do_2to3 = False
-if sys.version_info >= (3,) and do_2to3:
-    tmp_src = os.path.join("build", "src")
-    from distutils.filelist import FileList
-    from distutils import dir_util, file_util, util, log
-    log.set_verbosity(1)
-    fl = FileList()
-    manifest_file = open("MANIFEST.in")
-    for line in manifest_file:
-        fl.process_template_line(line)
-    manifest_file.close()
-    dir_util.create_tree(tmp_src, fl.files)
-    outfiles_2to3 = []
-    dist_script = os.path.join("build", "src", "ez_setup.py")
-    for f in fl.files:
-        outf, copied = file_util.copy_file(f, os.path.join(tmp_src, f), update=1)
-        if copied and outf.endswith(".py") and outf != dist_script:
-            outfiles_2to3.append(outf)
-        if copied and outf.endswith('api_tests.txt'):
-            # XXX support this in distutils as well
-            from lib2to3.main import main
-            main('lib2to3.fixes', ['-wd', os.path.join(tmp_src, 'tests', 'api_tests.txt')])
-
-    util.run_2to3(outfiles_2to3)
-
-    # arrange setup to use the copy
-    sys.path.insert(0, os.path.abspath(tmp_src))
-    src_root = tmp_src
 
 from distutils.util import convert_path
 
-d = {}
+command_ns = {}
 init_path = convert_path('setuptools/command/__init__.py')
 init_file = open(init_path)
-exec(init_file.read(), d)
+exec(init_file.read(), command_ns)
 init_file.close()
 
-SETUP_COMMANDS = d['__all__']
-VERSION = "0.8"
+SETUP_COMMANDS = command_ns['__all__']
 
-from setuptools import setup, find_packages
+main_ns = {}
+init_path = convert_path('setuptools/__init__.py')
+init_file = open(init_path)
+exec(init_file.read(), main_ns)
+init_file.close()
+
+import setuptools
 from setuptools.command.build_py import build_py as _build_py
 from setuptools.command.test import test as _test
 
 scripts = []
 
 console_scripts = ["easy_install = setuptools.command.easy_install:main"]
+
+# Gentoo distributions manage the python-version-specific scripts themselves,
+# so they define an environment variable to suppress the creation of the
+# version-specific scripts.
 if os.environ.get("SETUPTOOLS_DISABLE_VERSIONED_EASY_INSTALL_SCRIPT") in (None, "", "0") and \
     os.environ.get("DISTRIBUTE_DISABLE_VERSIONED_EASY_INSTALL_SCRIPT") in (None, "", "0"):
     console_scripts.append("easy_install-%s = setuptools.command.easy_install:main" % sys.version[:3])
@@ -72,15 +52,6 @@ class build_py(_build_py):
                 srcfile = os.path.join(src_dir, filename)
                 outf, copied = self.copy_file(srcfile, target)
                 srcfile = os.path.abspath(srcfile)
-
-                # avoid a bootstrapping issue with easy_install -U (when the
-                # previous version doesn't have convert_2to3_doctests)
-                if not hasattr(self.distribution, 'convert_2to3_doctests'):
-                    continue
-                if not do_2to3:
-                    continue
-                if copied and srcfile in self.distribution.convert_2to3_doctests:
-                    self.__doctests_2to3.append(outf)
 
 class test(_test):
     """Specific test class to avoid rewriting the entry_points.txt"""
@@ -126,12 +97,12 @@ if sys.platform == 'win32' or os.environ.get("SETUPTOOLS_INSTALL_WINDOWS_SPECIFI
     package_data.setdefault('setuptools', []).extend(['*.exe'])
     package_data.setdefault('setuptools.command', []).extend(['*.xml'])
 
-dist = setup(
+setup_params = dict(
     name="setuptools",
-    version=VERSION,
+    version=main_ns['__version__'],
     description="Easily download, build, install, upgrade, and uninstall "
                 "Python packages",
-    author="The fellowship of the packaging",
+    author="Python Packaging Authority",
     author_email="distutils-sig@python.org",
     license="PSF or ZPL",
     long_description = long_description,
@@ -139,7 +110,7 @@ dist = setup(
     url = "https://pypi.python.org/pypi/setuptools",
     test_suite = 'setuptools.tests',
     src_root = src_root,
-    packages = find_packages(),
+    packages = setuptools.find_packages(),
     package_data = package_data,
 
     py_modules = ['pkg_resources', 'easy_install'],
@@ -148,7 +119,7 @@ dist = setup(
 
     cmdclass = {'test': test},
     entry_points = {
-        "distutils.commands" : [
+        "distutils.commands": [
             "%(cmd)s = setuptools.command.%(cmd)s:%(cmd)s" % locals()
             for cmd in SETUP_COMMANDS
         ],
@@ -228,3 +199,6 @@ dist = setup(
     scripts = [],
     # tests_require = "setuptools[ssl]",
 )
+
+if __name__ == '__main__':
+    dist = setuptools.setup(**setup_params)

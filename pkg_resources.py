@@ -14,6 +14,8 @@ method.
 """
 
 import sys, os, time, re, imp, types, zipfile, zipimport
+import warnings
+import stat
 try:
     from urlparse import urlparse, urlunparse
 except ImportError:
@@ -26,7 +28,7 @@ except NameError:
 try:
     basestring
     next = lambda o: o.next()
-    from cStringIO import StringIO
+    from cStringIO import StringIO as BytesIO
     def exec_(code, globs=None, locs=None):
         if globs is None:
             frame = sys._getframe(1)
@@ -39,7 +41,7 @@ try:
         exec("""exec code in globs, locs""")
 except NameError:
     basestring = str
-    from io import StringIO
+    from io import BytesIO
     exec_ = eval("exec")
     def execfile(fn, globs=None, locs=None):
         if globs is None:
@@ -1022,9 +1024,34 @@ variable to point to an accessible directory.
         except:
             self.extraction_error()
 
+        self._warn_unsafe_extraction_path(extract_path)
+
         self.cached_files[target_path] = 1
         return target_path
 
+    @staticmethod
+    def _warn_unsafe_extraction_path(path):
+        """
+        If the default extraction path is overridden and set to an insecure
+        location, such as /tmp, it opens up an opportunity for an attacker to
+        replace an extracted file with an unauthorized payload. Warn the user
+        if a known insecure location is used.
+
+        See Distribute #375 for more details.
+        """
+        if os.name == 'nt' and not path.startswith(os.environ['windir']):
+            # On Windows, permissions are generally restrictive by default
+            #  and temp directories are not writable by other users, so
+            #  bypass the warning.
+            return
+        mode = os.stat(path).st_mode
+        if mode & stat.S_IWOTH or mode & stat.S_IWGRP:
+            msg = ("%s is writable by group/others and vulnerable to attack "
+                "when "
+                "used with get_resource_filename. Consider a more secure "
+                "location (set with .set_extraction_path or the "
+                "PYTHON_EGG_CACHE environment variable)." % path)
+            warnings.warn(msg, UserWarning)
 
 
 
@@ -1376,7 +1403,7 @@ class NullProvider:
         return self._fn(self.module_path, resource_name)
 
     def get_resource_stream(self, manager, resource_name):
-        return StringIO(self.get_resource_string(manager, resource_name))
+        return BytesIO(self.get_resource_string(manager, resource_name))
 
     def get_resource_string(self, manager, resource_name):
         return self._get(self._fn(self.module_path, resource_name))
@@ -1945,15 +1972,6 @@ def find_in_zip(importer, path_item, only=False):
                 yield dist
 
 register_finder(zipimport.zipimporter, find_in_zip)
-
-def StringIO(*args, **kw):
-    """Thunk to load the real StringIO on demand"""
-    global StringIO
-    try:
-        from cStringIO import StringIO
-    except ImportError:
-        from io import StringIO
-    return StringIO(*args,**kw)
 
 def find_nothing(importer, path_item, only=False):
     return ()
