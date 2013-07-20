@@ -13,3 +13,5 @@ include
 \.Python
 *.swp
 CHANGES (links).txt
+.git2
+.gitignore
