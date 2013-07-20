@@ -6,6 +6,7 @@ install jaraco.packaging and run 'python -m jaraco.packaging.release'
 import re
 import os
 import itertools
+import subprocess
 
 try:
     zip_longest = itertools.zip_longest
@@ -14,6 +15,7 @@ except AttributeError:
 
 def before_upload():
     _linkify('CHANGES.txt', 'CHANGES (links).txt')
+    _add_bootstrap_bookmark()
 
 files_with_versions = (
     'ez_setup.py', 'setuptools/__init__.py',
@@ -55,3 +57,8 @@ def replacer(match):
         if match_dict[key]:
             url = issue_urls[key].format(**match_dict)
             return "`{text} <{url}>`_".format(text=text, url=url)
+
+
+def _add_bootstrap_bookmark():
+    cmd = ['hg', 'bookmark', '-i', 'bootstrap', '-f']
+    subprocess.Popen(cmd)
