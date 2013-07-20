@@ -5,13 +5,7 @@ install jaraco.packaging and run 'python -m jaraco.packaging.release'
 
 import re
 import os
-import itertools
 import subprocess
-
-try:
-    zip_longest = itertools.zip_longest
-except AttributeError:
-    zip_longest = itertools.izip_longest
 
 
 def before_upload():
