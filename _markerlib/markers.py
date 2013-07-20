@@ -49,6 +49,10 @@ _VARS = {'sys.platform': sys.platform,
          'extra': None # wheel extension
         }
 
+for var in list(_VARS.keys()):
+    if '.' in var:
+        _VARS[var.replace('.', '_')] = _VARS[var]
+
 def default_environment():
     """Return copy of default PEP 385 globals dictionary."""
     return dict(_VARS)
