@@ -1,0 +1,125 @@
+<?xml version="1.0"?>
+<info>
+<entry
+   kind="dir"
+   path="svn16_example"
+   revision="6">
+<url>file:///C:/development/svn_example/repos/svn16/main</url>
+<repository>
+<root>file:///C:/development/svn_example/repos/svn16/main</root>
+<uuid>bd8d2cfc-1a74-de45-b166-262010c17c0a</uuid>
+</repository>
+<wc-info>
+<schedule>normal</schedule>
+<depth>infinity</depth>
+</wc-info>
+<commit
+   revision="6">
+<author>ptt</author>
+<date>2013-07-13T15:35:17.390625Z</date>
+</commit>
+</entry>
+<entry
+   kind="file"
+   path="svn16_example\a file"
+   revision="6">
+<url>file:///C:/development/svn_example/repos/svn16/main/a%20file</url>
+<repository>
+<root>file:///C:/development/svn_example/repos/svn16/main</root>
+<uuid>bd8d2cfc-1a74-de45-b166-262010c17c0a</uuid>
+</repository>
+<wc-info>
+<schedule>normal</schedule>
+<depth>infinity</depth>
+<text-updated>2013-07-13T15:35:14.578125Z</text-updated>
+<checksum>a6166e5e98a5a503089cde9bc8031293</checksum>
+</wc-info>
+<commit
+   revision="3">
+<author>ptt</author>
+<date>2013-07-13T15:35:14.906250Z</date>
+</commit>
+</entry>
+<entry
+   kind="file"
+   path="svn16_example\to_delete"
+   revision="6">
+<url>file:///C:/development/svn_example/repos/svn16/main/to_delete</url>
+<repository>
+<root>file:///C:/development/svn_example/repos/svn16/main</root>
+<uuid>bd8d2cfc-1a74-de45-b166-262010c17c0a</uuid>
+</repository>
+<wc-info>
+<schedule>delete</schedule>
+<depth>infinity</depth>
+<text-updated>2013-07-13T15:35:17.046875Z</text-updated>
+<checksum>d41d8cd98f00b204e9800998ecf8427e</checksum>
+</wc-info>
+<commit
+   revision="6">
+<author>ptt</author>
+<date>2013-07-13T15:35:17.390625Z</date>
+</commit>
+</entry>
+<entry
+   kind="dir"
+   path="svn16_example\folder"
+   revision="6">
+<url>file:///C:/development/svn_example/repos/svn16/main/folder</url>
+<repository>
+<root>file:///C:/development/svn_example/repos/svn16/main</root>
+<uuid>bd8d2cfc-1a74-de45-b166-262010c17c0a</uuid>
+</repository>
+<wc-info>
+<schedule>normal</schedule>
+<depth>infinity</depth>
+</wc-info>
+<commit
+   revision="5">
+<author>ptt</author>
+<date>2013-07-13T15:35:16.406250Z</date>
+</commit>
+</entry>
+<entry
+   kind="file"
+   path="svn16_example\folder\quest.txt"
+   revision="6">
+<url>file:///C:/development/svn_example/repos/svn16/main/folder/quest.txt</url>
+<repository>
+<root>file:///C:/development/svn_example/repos/svn16/main</root>
+<uuid>bd8d2cfc-1a74-de45-b166-262010c17c0a</uuid>
+</repository>
+<wc-info>
+<schedule>normal</schedule>
+<depth>infinity</depth>
+<text-updated>2013-07-13T15:35:14.078125Z</text-updated>
+<checksum>795240c6a830c14f83961e57e07dad12</checksum>
+</wc-info>
+<commit
+   revision="2">
+<author>ptt</author>
+<date>2013-07-13T15:35:14.421875Z</date>
+</commit>
+</entry>
+<entry
+   kind="file"
+   path="svn16_example\folder\lalala.txt"
+   revision="6">
+<url>file:///C:/development/svn_example/repos/svn16/main/folder/lalala.txt</url>
+<repository>
+<root>file:///C:/development/svn_example/repos/svn16/main</root>
+<uuid>bd8d2cfc-1a74-de45-b166-262010c17c0a</uuid>
+</repository>
+<wc-info>
+<schedule>normal</schedule>
+<depth>infinity</depth>
+<text-updated>2013-07-13T15:35:12.171875Z</text-updated>
+<checksum>d41d8cd98f00b204e9800998ecf8427e</checksum>
+</wc-info>
+<commit
+   revision="1">
+<author>ptt</author>
+<date>2013-07-13T15:35:13.906250Z</date>
+</commit>
+</entry>
+</info>

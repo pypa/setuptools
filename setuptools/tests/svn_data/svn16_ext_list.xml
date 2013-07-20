@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<properties>
+<target
+   path="C:/development/svn_example/svn16_example/folder">
+<property
+   name="svn:externals">"third party3" file:///C:/development/svn_example/repos/svn16/extra2 
+-r3 file:///C:/development/svn_example/repos/svn16/extra2 third\ party2
+file:///C:/development/svn_example/repos/svn16/extra2@r1 third_party大介
+</property>
+</target>
+<target
+   path="C:/development/svn_example/svn16_example">
+<property
+   name="svn:externals">"third party3" file:///C:/development/svn_example/repos/svn16/extra1 
+-r3 file:///C:/development/svn_example/repos/svn16/extra1 third\ party2
+file:///C:/development/svn_example/repos/svn16/extra1@r1 third_party大介
+</property>
+</target>
+</properties>

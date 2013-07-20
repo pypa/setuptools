@@ -3,77 +3,20 @@
 
 
 import os
-import zipfile
 import sys
-import tempfile
 import unittest
-import shutil
-import stat
+import codecs
+from setuptools.tests import environment
+from setuptools.svn_utils import fsencode
+from setuptools.compat import unicode, unichr
 
 from setuptools import svn_utils
-from setuptools.command import egg_info
-from setuptools.command import sdist
 
 #requires python >= 2.4
 from subprocess import call as _call
 
-def _extract(self, member, path=None, pwd=None):
-    """for zipfile py2.5 borrowed from cpython"""
-    if not isinstance(member, zipfile.ZipInfo):
-        member = self.getinfo(member)
+from distutils import log
 
-    if path is None:
-        path = os.getcwd()
-
-    return _extract_member(self, member, path, pwd)
-
-def _extract_from_zip(self, name, dest_path):
-    dest_file = open(dest_path, 'wb')
-    try:
-        dest_file.write(self.read(name))
-    finally:
-        dest_file.close()
-
-def _extract_member(self, member, targetpath, pwd):
-    """for zipfile py2.5 borrowed from cpython"""
-    # build the destination pathname, replacing
-    # forward slashes to platform specific separators.
-    # Strip trailing path separator, unless it represents the root.
-    if (targetpath[-1:] in (os.path.sep, os.path.altsep)
-        and len(os.path.splitdrive(targetpath)[1]) > 1):
-        targetpath = targetpath[:-1]
-
-    # don't include leading "/" from file name if present
-    if member.filename[0] == '/':
-        targetpath = os.path.join(targetpath, member.filename[1:])
-    else:
-        targetpath = os.path.join(targetpath, member.filename)
-
-    targetpath = os.path.normpath(targetpath)
-
-    # Create all upper directories if necessary.
-    upperdirs = os.path.dirname(targetpath)
-    if upperdirs and not os.path.exists(upperdirs):
-        os.makedirs(upperdirs)
-
-    if member.filename[-1] == '/':
-        if not os.path.isdir(targetpath):
-            os.mkdir(targetpath)
-        return targetpath
-
-    _extract_from_zip(self, member.filename, targetpath)
-
-    return targetpath
-
-
-def _remove_dir(target):
-
-    #on windows this seems to a problem
-    for dir_path, dirs, files in os.walk(target):
-        os.chmod(dir_path, stat.S_IWRITE)
-        for filename in files:
-            os.chmod(os.path.join(dir_path, filename), stat.S_IWRITE)
-    shutil.rmtree(target)
 
 
 class TestSvnVersion(unittest.TestCase):
@@ -90,80 +33,206 @@ class TestSvnVersion(unittest.TestCase):
         old_path = os.environ[path_variable]
         os.environ[path_variable] = ''
         try:
-            version = svn_utils.get_svn_tool_version()
+            version = svn_utils.SvnInfo.get_svn_version()
             self.assertEqual(version, '')
         finally:
             os.environ[path_variable] = old_path
 
     def test_svn_should_exist(self):
-        version = svn_utils.get_svn_tool_version()
+        version = svn_utils.SvnInfo.get_svn_version()
         self.assertNotEqual(version, '')
 
+def _read_utf8_file(path):
+    fileobj = None
+    try:
+        fileobj = codecs.open(path, 'r', 'utf-8')
+        data = fileobj.read()
+        return data
+    finally:
+        if fileobj:
+            fileobj.close()
 
-class TestSvn_1_7(unittest.TestCase):
 
-    def setUp(self):
-        version = svn_utils.get_svn_tool_version()
-        ver_list = [int(x) for x in version.split('.')]
-        if ver_list < [1,7,0]:
-            self.version_err = 'Insufficent Subversion (%s)' % version
+class ParserInfoXML(unittest.TestCase):
+
+    def parse_tester(self, svn_name, ext_spaces):
+        path = os.path.join('setuptools', 'tests',
+                            'svn_data', svn_name + '_info.xml')
+        #Remember these are pre-generated to test XML parsing
+        #  so these paths might not valid on your system
+        example_base = "%s_example" % svn_name
+
+        data = _read_utf8_file(path)
+
+        if ext_spaces:
+            folder2 = 'third party2'
+            folder3 = 'third party3'
         else:
-            self.version_err = None
-
-
-        self.temp_dir = tempfile.mkdtemp()
-        zip_file, source, target = [None, None, None]
-        try:
-            zip_file = zipfile.ZipFile(os.path.join('setuptools', 'tests',
-                                                    'svn17_example.zip'))
-            for files in zip_file.namelist():
-                _extract(zip_file, files, self.temp_dir)
-        finally:
-            if zip_file:
-                zip_file.close()
-            del zip_file
-
-        self.old_cwd = os.getcwd()
-        os.chdir(os.path.join(self.temp_dir, 'svn17_example'))
-
-    def tearDown(self):
-        try:
-            os.chdir(self.old_cwd)
-            _remove_dir(self.temp_dir)
-        except OSError:
-            #sigh?
-            pass
-
-    def _chk_skip(self):
-        if self.version_err is not None:
-            if hasattr(self, 'skipTest'):
-                self.skipTest(self.version_err)
-            else:
-                sys.stderr.write(self.version_error + "\n")
-                return True
-        return False
-
-    def test_egg_info(self):
-        if self._chk_skip:
-            return
-
-        rev = egg_info.egg_info.get_svn_revision()
-        self.assertEqual(rev, '4')
-
-    def test_iterator(self):
-        if self._chk_skip:
-            return
+            folder2 = 'third_party2'
+            folder3 = 'third_party3'
 
         expected = set([
-            os.path.join('.', 'readme.txt'),
-            os.path.join('.', 'other'),
-            os.path.join('.', 'third_party'),
-            os.path.join('.', 'third_party2'),
-            os.path.join('.', 'third_party3'),
+            ("\\".join((example_base, 'a file')), 'file'),
+            ("\\".join((example_base, 'folder')), 'dir'),
+            ("\\".join((example_base, 'folder', 'lalala.txt')), 'file'),
+            ("\\".join((example_base, 'folder', 'quest.txt')), 'file'),
             ])
-        self.assertEqual(set(x for x
-                               in sdist.entries_externals_finder('.', '')),
+        self.assertEqual(set(x for x in svn_utils.parse_dir_entries(data)),
                          expected)
+
+    def test_svn13(self):
+        self.parse_tester('svn13', False)
+
+    def test_svn14(self):
+        self.parse_tester('svn14', False)
+
+    def test_svn15(self):
+        self.parse_tester('svn15', False)
+
+    def test_svn16(self):
+        self.parse_tester('svn16', True)
+
+    def test_svn17(self):
+        self.parse_tester('svn17', True)
+
+    def test_svn18(self):
+        self.parse_tester('svn18', True)
+
+class ParserExternalXML(unittest.TestCase):
+
+    def parse_tester(self, svn_name, ext_spaces):
+        path = os.path.join('setuptools', 'tests',
+                            'svn_data', svn_name + '_ext_list.xml')
+        example_base = svn_name + '_example'
+        data = _read_utf8_file(path)
+
+        if ext_spaces:
+            folder2 = 'third party2'
+            folder3 = 'third party3'
+        else:
+            folder2 = 'third_party2'
+            folder3 = 'third_party3'
+
+        expected = set([
+            "\\".join((example_base, folder2)),
+            "\\".join((example_base, folder3)),
+                                     #third_party大介
+            "\\".join((example_base,
+                       unicode('third_party') +
+                       unichr(0x5927) + unichr(0x4ecb))),
+            "\\".join((example_base, 'folder', folder2)),
+            "\\".join((example_base, 'folder', folder3)),
+            "\\".join((example_base, 'folder',
+                       unicode('third_party') +
+                       unichr(0x5927) + unichr(0x4ecb))),
+            ])
+
+        dir_base = r'c:\development\svn_example'
+        self.assertEqual(set(x for x \
+            in svn_utils.parse_externals_xml(data, dir_base)), expected)
+
+    def test_svn15(self):
+        self.parse_tester('svn15', False)
+
+    def test_svn16(self):
+        self.parse_tester('svn16', True)
+
+    def test_svn17(self):
+        self.parse_tester('svn17', True)
+
+    def test_svn18(self):
+        self.parse_tester('svn18', True)
+
+
+class ParseExternal(unittest.TestCase):
+
+    def parse_tester(self, svn_name, ext_spaces):
+        path = os.path.join('setuptools', 'tests',
+                            'svn_data', svn_name + '_ext_list.txt')
+        example_base = svn_name + '_example'
+        data = _read_utf8_file(path)
+
+        if ext_spaces:
+            expected = set(['third party2', 'third party3',
+                            'third party3b', 'third_party'])
+        else:
+            expected = set(['third_party2', 'third_party3', 'third_party'])
+
+        self.assertEqual(set(x for x in svn_utils.parse_external_prop(data)),
+                         expected)
+
+    def test_svn13(self):
+        self.parse_tester('svn13', False)
+
+    def test_svn14(self):
+        self.parse_tester('svn14', False)
+
+    def test_svn15(self):
+        self.parse_tester('svn15', False)
+
+    def test_svn16(self):
+        self.parse_tester('svn16', True)
+
+    def test_svn17(self):
+        self.parse_tester('svn17', True)
+
+    def test_svn18(self):
+        self.parse_tester('svn18', True)
+
+
+class TestSvn(environment.ZippedEnvironment):
+
+    def setUp(self):
+        version = svn_utils.SvnInfo.get_svn_version()
+        self.base_version = tuple([int(x) for x in version.split('.')[:2]])
+
+        if not self.base_version:
+            raise ValueError('No SVN tools installed')
+        elif self.base_version < (1,3):
+            raise ValueError('Insufficient SVN Version %s' % version)
+        elif self.base_version >= (1,9):
+            #trying the latest version
+            self.base_version = (1,8)
+
+        self.dataname = "svn%i%i_example" % self.base_version
+        self.datafile = os.path.join('setuptools', 'tests',
+                                     'svn_data', self.dataname + ".zip")
+        super(TestSvn, self).setUp()
+
+    def test_revision(self):
+        rev = svn_utils.SvnInfo.load('.').get_revision()
+        self.assertEqual(rev, 6)
+
+    def test_entries(self):
+        expected = set([
+            (os.path.join('a file'), 'file'),
+            (os.path.join('folder'), 'dir'),
+            (os.path.join('folder', 'lalala.txt'), 'file'),
+            (os.path.join('folder', 'quest.txt'), 'file'),
+            #The example will have a deleted file (or should)
+            #but shouldn't return it
+            ])
+        info = svn_utils.SvnInfo.load('.')
+        self.assertEqual(set(x for x in info.entries), expected)
+
+    def test_externals(self):
+        if self.base_version >= (1,6):
+            folder2 = 'third party2'
+            folder3 = 'third party3'
+        else:
+            folder2 = 'third_party2'
+            folder3 = 'third_party3'
+
+        expected = set([
+            os.path.join(folder2),
+            os.path.join(folder3),
+            os.path.join('third_party'),
+            os.path.join('folder', folder2),
+            os.path.join('folder', folder3),
+            os.path.join('folder', 'third_party'),
+            ])
+        info = svn_utils.SvnInfo.load('.')
+        self.assertEqual(set([x for x in info.externals]), expected)
 
 def test_suite():
     return unittest.defaultTestLoader.loadTestsFromName(__name__)

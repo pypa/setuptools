@@ -1,0 +1,4 @@
+third_party3 file:///C:/development/svn_example/repos/svn13/extra1
+third_party2 -r3 file:///C:/development/svn_example/repos/svn13/extra1
+third_party -r1 file:///C:/development/svn_example/repos/svn13/extra1
+

@@ -217,7 +217,7 @@ class egg_info(Command):
 
     @staticmethod
     def get_svn_revision():
-        return str(svn_utils.parse_revision(os.curdir))
+        return str(svn_utils.SvnInfo.load(os.curdir).get_revision())
 
 
 

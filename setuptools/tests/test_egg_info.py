@@ -1,10 +1,12 @@
 import os
+import sys
 import tempfile
 import shutil
 import unittest
 
 import pkg_resources
 from setuptools.command import egg_info
+from setuptools import svn_utils
 
 ENTRIES_V10 = pkg_resources.resource_string(__name__, 'entries-v10')
 "An entries file generated with svn 1.6.17 against the legacy Setuptools repo"
@@ -31,6 +33,17 @@ class TestEggInfo(unittest.TestCase):
     def test_version_10_format(self):
         """
         """
+        #keeping this set for 1.6 is a good check on the get_svn_revision
+        #to ensure I return using svnversion what would had been returned
+        version_str = svn_utils.SvnInfo.get_svn_version()
+        version = [int(x) for x in version_str.split('.')[:2]]
+        if version != [1,6]:
+            if hasattr(self, 'skipTest'):
+                self.skipTest('')
+            else:
+                sys.stderr.write('\n   Skipping due to SVN Version\n')
+                return
+
         self._write_entries(ENTRIES_V10)
         rev = egg_info.egg_info.get_svn_revision()
         self.assertEqual(rev, '89000')

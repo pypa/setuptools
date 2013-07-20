@@ -8,40 +8,6 @@ from setuptools import svn_utils
 
 READMES = ('README', 'README.rst', 'README.txt')
 
-entities = [
-    ("&lt;","<"), ("&gt;", ">"), ("&quot;", '"'), ("&apos;", "'"),
-    ("&amp;", "&")
-]
-
-def unescape(data):
-    for old,new in entities:
-        data = data.replace(old,new)
-    return data
-
-def re_finder(pattern, postproc=None):
-    def find(dirname, filename):
-        f = open(filename,'rU')
-        data = f.read()
-        f.close()
-        for match in pattern.finditer(data):
-            path = match.group(1)
-            if postproc:
-                path = postproc(path)
-            yield joinpath(dirname,path)
-    return find
-
-def joinpath(prefix,suffix):
-    if not prefix:
-        return suffix
-    return os.path.join(prefix,suffix)
-
-
-
-
-
-
-
-
 
 def walk_revctrl(dirname=''):
     """Find all files under revision control"""
@@ -49,33 +15,53 @@ def walk_revctrl(dirname=''):
         for item in ep.load()(dirname):
             yield item
 
-def _default_revctrl(dirname=''):
-    for path, finder in finders:
-        path = joinpath(dirname,path)
+
+#TODO will need test case
+class re_finder(object):
+
+    def __init__(self, path, pattern, postproc=None):
+        self.pattern = pattern
+        self.postproc = postproc
+        self.path = convert_path(path)
+
+    def _finder(self, dirname, filename):
+        f = open(filename,'rU')
+        try:
+            data = f.read()
+        finally:
+            f.close()
+        for match in self.pattern.finditer(data):
+            path = match.group(1)
+            if postproc:
+                #postproc used to be used when the svn finder
+                #was an re_finder for calling unescape
+                path = postproc(path)
+            yield svn_utils.joinpath(dirname,path)
+
+    def __call__(self, dirname=''):
+        path = svn_utils.joinpath(dirname, self.path)
+
         if os.path.isfile(path):
-            for path in finder(dirname,path):
+            for path in self._finder(dirname,path):
                 if os.path.isfile(path):
                     yield path
                 elif os.path.isdir(path):
-                    for item in _default_revctrl(path):
+                    for item in self.find(path):
                         yield item
 
 
-def entries_externals_finder(dirname, filename):
-    for record in svn_utils.parse_dir_entries(dirname):
-        yield joinpath(dirname, record)
-
-    for name in svn_utils.parse_externals(dirname):
-        yield joinpath(dirname, name)
+def _default_revctrl(dirname=''):
+    'Primary svn_cvs entry point'
+    for finder in finders:
+        for item in finder(dirname):
+            yield item
 
 
 finders = [
-    (convert_path('CVS/Entries'),
-        re_finder(re.compile(r"^\w?/([^/]+)/", re.M))),
-    #combined externals due to common interface
-    #combined externals and enteries due to lack of dir_props in 1.7
-    (convert_path('.svn/entries'), entries_externals_finder),
+    re_finder('CVS/Entries', re.compile(r"^\w?/([^/]+)/", re.M)),
+    svn_utils.svn_finder,
 ]
+
 
 
 
