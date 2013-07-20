@@ -13,6 +13,7 @@ try:
 except AttributeError:
     zip_longest = itertools.izip_longest
 
+
 def before_upload():
     _linkify('CHANGES.txt', 'CHANGES (links).txt')
     _add_bootstrap_bookmark()
@@ -43,12 +44,14 @@ issue_urls = dict(
     python='http://bugs.python.org/issue{python}',
 )
 
+
 def _linkify(source, dest):
     pattern = '|'.join(link_patterns)
     with open(source) as source:
         out = re.sub(pattern, replacer, source.read())
     with open(dest, 'w') as dest:
         dest.write(out)
+
 
 def replacer(match):
     text = match.group(0)
