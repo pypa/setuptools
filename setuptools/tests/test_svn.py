@@ -114,20 +114,21 @@ class ParserExternalXML(unittest.TestCase):
             folder3 = 'third_party3'
 
         expected = set([
-            "\\".join((example_base, folder2)),
-            "\\".join((example_base, folder3)),
+            os.sep.join((example_base, folder2)),
+            os.sep.join((example_base, folder3)),
                                      #third_party大介
-            "\\".join((example_base,
+            os.sep.join((example_base,
                        unicode('third_party') +
                        unichr(0x5927) + unichr(0x4ecb))),
-            "\\".join((example_base, 'folder', folder2)),
-            "\\".join((example_base, 'folder', folder3)),
-            "\\".join((example_base, 'folder',
+            os.sep.join((example_base, 'folder', folder2)),
+            os.sep.join((example_base, 'folder', folder3)),
+            os.sep.join((example_base, 'folder',
                        unicode('third_party') +
                        unichr(0x5927) + unichr(0x4ecb))),
             ])
 
-        dir_base = r'c:\development\svn_example'
+        expected = set(os.path.normpath(x) for x in expected)
+        dir_base = os.sep.join(('C:', 'development', 'svn_example'))
         self.assertEqual(set(x for x \
             in svn_utils.parse_externals_xml(data, dir_base)), expected)
 

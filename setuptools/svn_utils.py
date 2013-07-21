@@ -121,6 +121,7 @@ def parse_dir_entries(decoded_str):
 def parse_externals_xml(decoded_str, prefix=''):
     '''Parse a propget svn:externals xml'''
     prefix = os.path.normpath(prefix)
+    prefix = os.path.normcase(prefix)
 
     doc = xml.dom.pulldom.parseString(_get_xml_data(decoded_str))
     externals = list()
@@ -129,6 +130,9 @@ def parse_externals_xml(decoded_str, prefix=''):
         if event == 'START_ELEMENT' and node.nodeName == 'target':
             doc.expandNode(node)
             path = os.path.normpath(node.getAttribute('path'))
+            log.warn('')
+            log.warn('PRE: %s' % prefix)
+            log.warn('PTH: %s' % path)
             if os.path.normcase(path).startswith(prefix):
                 path = path[len(prefix)+1:]
 
