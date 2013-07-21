@@ -16,8 +16,6 @@ from pkg_resources import parse_requirements, safe_name, parse_version, \
     safe_version, yield_lines, EntryPoint, iter_entry_points, to_filename
 from setuptools.command.sdist import walk_revctrl
 
-#requires python >= 2.4
-from subprocess import Popen as _Popen, PIPE as _PIPE
 
 class egg_info(Command):
     description = "create a distribution's .egg-info directory"
