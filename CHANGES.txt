@@ -3,6 +3,13 @@ CHANGES
 =======
 
 -----
+0.9.7
+-----
+
+* Issue #49: Correct AttributeError on PyPy where a hashlib.HASH object does
+  not have a `.name` attribute.
+
+-----
 0.9.6
 -----
 
