@@ -8,6 +8,9 @@ CHANGES
 
 * Issue #49: Correct AttributeError on PyPy where a hashlib.HASH object does
   not have a `.name` attribute.
+* Issue #34: Documentation now refers to bootstrap script in code repository
+  referenced by bookmark.
+* Add underscore-separated keys to environment markers (markerlib).
 
 -----
 0.9.6
