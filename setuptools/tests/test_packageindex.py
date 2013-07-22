@@ -169,11 +169,7 @@ class TestContentCheckers(unittest.TestCase):
     def test_get_hash_name_md5(self):
         checker = setuptools.package_index.HashChecker.from_url(
             'http://foo/bar#md5=f12895fdffbd45007040d2e44df98478')
-        if sys.version_info >= (2,5):
-            self.assertEqual(checker.hash.name, 'md5')
-        else:
-            # Python 2.4 compatability
-            self.assertEqual(checker._get_hash_name(), 'md5')
+        self.assertEqual(checker.hash_name, 'md5')
 
     def test_report(self):
         checker = setuptools.package_index.HashChecker.from_url(
