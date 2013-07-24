@@ -806,7 +806,8 @@ class PackageIndex(Environment):
         os.system("svn checkout%s -q %s %s" % (creds, url, filename))
         return filename
 
-    def _vcs_split_rev_from_url(self, url, pop_prefix=False):
+    @staticmethod
+    def _vcs_split_rev_from_url(url, pop_prefix=False):
         scheme, netloc, path, query, frag = urlsplit(url)
 
         scheme = scheme.split('+', 1)[-1]
