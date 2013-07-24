@@ -17,7 +17,7 @@ from distutils.errors import DistutilsError
 from setuptools.compat import (urllib2, httplib, StringIO, HTTPError,
                                urlparse, urlunparse, unquote, splituser,
                                url2pathname, name2codepoint,
-                               unichr, urljoin)
+                               unichr, urljoin, urlsplit, urlunsplit)
 from setuptools.compat import filterfalse
 from fnmatch import translate
 from setuptools.py24compat import hashlib
