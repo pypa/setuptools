@@ -1,6 +1,11 @@
 """PyPI and direct package downloading"""
-import sys, os.path, re, shutil, socket
+import sys
+import os
+import re
+import shutil
+import socket
 import base64
+
 from setuptools import ssl_support
 from pkg_resources import *
 from distutils import log
