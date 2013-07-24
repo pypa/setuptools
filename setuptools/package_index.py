@@ -6,8 +6,12 @@ import shutil
 import socket
 import base64
 
+from pkg_resources import (
+    CHECKOUT_DIST, Distribution, BINARY_DIST, normalize_path, SOURCE_DIST,
+    require, Environment, find_distributions, safe_name, safe_version,
+    to_filename, Requirement, DEVELOP_DIST,
+)
 from setuptools import ssl_support
-from pkg_resources import *
 from distutils import log
 from distutils.errors import DistutilsError
 from setuptools.compat import (urllib2, httplib, StringIO, HTTPError,
