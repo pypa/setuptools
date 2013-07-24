@@ -142,6 +142,15 @@ class TestPackageIndex(unittest.TestCase):
         self.assertEqual(setuptools.package_index.parse_bdist_wininst(
             'reportlab-2.5.win-amd64.exe'), ('reportlab-2.5', None, 'win-amd64'))
 
+    def test__vcs_split_rev_from_url(self):
+        """
+        Test the basic usage of _vcs_split_rev_from_url
+        """
+        vsrfu = setuptools.package_index.PackageIndex._vcs_split_rev_from_url
+        url, rev = vsrfu('https://example.com/bar@2995')
+        self.assertEqual(url, 'https://example.com/bar')
+        self.assertEqual(rev, '2995')
+
 class TestContentCheckers(unittest.TestCase):
 
     def test_md5(self):
