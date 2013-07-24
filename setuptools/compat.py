@@ -29,7 +29,7 @@ if sys.version_info[0] < 3:
     from urllib import url2pathname
     import urllib2
     from urllib2 import urlopen, HTTPError, URLError, unquote, splituser
-    from urlparse import urlparse, urlunparse, urljoin
+    from urlparse import urlparse, urlunparse, urljoin, urlsplit, urlunsplit
     xrange = xrange
     filterfalse = itertools.ifilterfalse
 
@@ -72,7 +72,10 @@ else:
     from urllib.error import HTTPError, URLError
     import urllib.request as urllib2
     from urllib.request import urlopen, url2pathname
-    from urllib.parse import urlparse, urlunparse, unquote, splituser, urljoin
+    from urllib.parse import (
+        urlparse, urlunparse, unquote, splituser, urljoin, urlsplit,
+        urlunsplit,
+    )
     xrange = range
     filterfalse = itertools.filterfalse
 
