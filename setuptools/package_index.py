@@ -403,8 +403,6 @@ class PackageIndex(Environment):
         else:
             return ""   # no sense double-scanning non-package pages
 
-
-
     def need_version_info(self, url):
         self.scan_all(
             "Page at %s links to .py file(s) without version info; an index "
@@ -435,16 +433,13 @@ class PackageIndex(Environment):
             self.scan_url(url)
 
     def obtain(self, requirement, installer=None):
-        self.prescan(); self.find_packages(requirement)
+        self.prescan()
+        self.find_packages(requirement)
         for dist in self[requirement.key]:
             if dist in requirement:
                 return dist
             self.debug("%s does not match %s", requirement, dist)
         return super(PackageIndex, self).obtain(requirement,installer)
-
-
-
-
 
     def check_hash(self, checker, filename, tfp):
         """
@@ -531,7 +526,6 @@ class PackageIndex(Environment):
                     )
         return getattr(self.fetch_distribution(spec, tmpdir),'location',None)
 
-
     def fetch_distribution(
             self, requirement, tmpdir, force_scan=False, source=False,
             develop_ok=False, local_index=None
@@ -573,8 +567,6 @@ class PackageIndex(Environment):
                 if dist in req and (dist.precedence<=SOURCE_DIST or not source):
                     return dist
 
-
-
         if force_scan:
             self.prescan()
             self.find_packages(requirement)
@@ -601,7 +593,6 @@ class PackageIndex(Environment):
             self.info("Best match: %s", dist)
             return dist.clone(location=self.download(dist.location, tmpdir))
 
-
     def fetch(self, requirement, tmpdir, force_scan=False, source=False):
         """Obtain a file suitable for fulfilling `requirement`
 
@@ -614,7 +605,6 @@ class PackageIndex(Environment):
         if dist is not None:
             return dist.location
         return None
-
 
     def gen_setup(self, filename, fragment, tmpdir):
         match = EGG_FRAGMENT.match(fragment)
@@ -770,7 +760,6 @@ class PackageIndex(Environment):
     def scan_url(self, url):
         self.process_url(url, True)
 
-
     def _attempt_download(self, url, filename):
         headers = self._download_to(url, filename)
         if 'html' in headers.get('content-type','').lower():
@@ -792,21 +781,6 @@ class PackageIndex(Environment):
         file.close()
         os.unlink(filename)
         raise DistutilsError("Unexpected HTML page found at "+url)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     def _download_svn(self, url, filename):
         url = url.split('#',1)[0]   # remove any fragment for svn's sake
@@ -886,18 +860,6 @@ class PackageIndex(Environment):
     def warn(self, msg, *args):
         log.warn(msg, *args)
 
-
-
-
-
-
-
-
-
-
-
-
-
 # This pattern matches a character entity reference (a decimal numeric
 # references, a hexadecimal numeric reference, or a named reference).
 entity_sub = re.compile(r'&(#(\d+|x[\da-fA-F]+)|[\w.:-]+);?').sub
@@ -921,20 +883,6 @@ def decode_entity(match):
 def htmldecode(text):
     """Decode HTML entities in the given text."""
     return entity_sub(decode_entity, text)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 def socket_timeout(timeout=15):
     def _socket_timeout(func):
@@ -1004,15 +952,6 @@ def open_with_auth(url, opener=urllib2.urlopen):
 open_with_auth = socket_timeout(_SOCKET_TIMEOUT)(open_with_auth)
 
 
-
-
-
-
-
-
-
-
-
 def fix_sf_url(url):
     return url      # backward compatibility
 
@@ -1042,17 +981,3 @@ def local_open(url):
 
     return HTTPError(url, status, message,
             {'content-type':'text/html'}, StringIO(body))
-
-
-
-
-
-
-
-
-
-
-
-
-
-# this line is a kludge to keep the trailing blank lines for pje's editor
