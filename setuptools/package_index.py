@@ -1,6 +1,5 @@
 """PyPI and direct package downloading"""
-import sys, os.path, re, shutil, random, socket
-import itertools
+import sys, os.path, re, shutil, socket
 import base64
 from setuptools import ssl_support
 from pkg_resources import *
@@ -223,7 +222,7 @@ class HashChecker(ContentChecker):
 
     def __init__(self, hash_name, expected):
         self.hash_name = hash_name
-        self.hash = hashlib.new(hash_name)        
+        self.hash = hashlib.new(hash_name)
         self.expected = expected
 
     @classmethod
