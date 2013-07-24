@@ -109,9 +109,10 @@ def distros_for_filename(filename, metadata=None):
     )
 
 
-def interpret_distro_name(location, basename, metadata,
-    py_version=None, precedence=SOURCE_DIST, platform=None
-):
+def interpret_distro_name(
+        location, basename, metadata, py_version=None, precedence=SOURCE_DIST,
+        platform=None
+        ):
     """Generate alternative interpretations of a source distro name
 
     Note: if `location` is a filesystem filename, you should call
@@ -255,9 +256,10 @@ class HashChecker(ContentChecker):
 class PackageIndex(Environment):
     """A distribution index that scans web pages for download URLs"""
 
-    def __init__(self, index_url="https://pypi.python.org/simple", hosts=('*',),
-        ca_bundle=None, verify_ssl=True, *args, **kw
-    ):
+    def __init__(
+            self, index_url="https://pypi.python.org/simple", hosts=('*',),
+            ca_bundle=None, verify_ssl=True, *args, **kw
+            ):
         Environment.__init__(self,*args,**kw)
         self.index_url = index_url + "/"[:not index_url.endswith('/')]
         self.scanned_urls = {}
@@ -378,7 +380,7 @@ class PackageIndex(Environment):
         # process an index page into the package-page index
         for match in HREF.finditer(page):
             try:
-                scan( urljoin(url, htmldecode(match.group(1))) )
+                scan(urljoin(url, htmldecode(match.group(1))))
             except ValueError:
                 pass
 
@@ -530,10 +532,10 @@ class PackageIndex(Environment):
         return getattr(self.fetch_distribution(spec, tmpdir),'location',None)
 
 
-    def fetch_distribution(self,
-        requirement, tmpdir, force_scan=False, source=False, develop_ok=False,
-        local_index=None
-    ):
+    def fetch_distribution(
+            self, requirement, tmpdir, force_scan=False, source=False,
+            develop_ok=False, local_index=None
+            ):
         """Obtain a distribution suitable for fulfilling `requirement`
 
         `requirement` must be a ``pkg_resources.Requirement`` instance.
@@ -616,7 +618,8 @@ class PackageIndex(Environment):
 
     def gen_setup(self, filename, fragment, tmpdir):
         match = EGG_FRAGMENT.match(fragment)
-        dists = match and [d for d in
+        dists = match and [
+            d for d in
             interpret_distro_name(filename, match.group(1), None) if d.version
         ] or []
 
@@ -722,9 +725,11 @@ class PackageIndex(Environment):
             if warning:
                 self.warn(warning, v.line)
             else:
-                raise DistutilsError('%s returned a bad status line. '
-                                     'The server might be down, %s' % \
-                                             (url, v.line))
+                raise DistutilsError(
+                    '%s returned a bad status line. The server might be '
+                    'down, %s' %
+                    (url, v.line)
+                )
         except httplib.HTTPException:
             v = sys.exc_info()[1]
             if warning:
