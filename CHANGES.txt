@@ -3,6 +3,12 @@ CHANGES
 =======
 
 -----
+0.9.8
+-----
+
+* Issue #53: Fix NameErrors in `_vcs_split_rev_from_url`.
+
+-----
 0.9.7
 -----
 
