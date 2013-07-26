@@ -7,6 +7,9 @@ import re
 import os
 import subprocess
 
+import pkg_resources
+
+pkg_resources.require('jaraco.packaging>=1.1')
 
 def before_upload():
     _linkify('CHANGES.txt', 'CHANGES (links).txt')
@@ -19,6 +22,9 @@ files_with_versions = (
 test_info = "Travis-CI tests: http://travis-ci.org/#!/jaraco/setuptools"
 
 os.environ["SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES"] = "1"
+
+# override the push command to include the bootstrap bookmark.
+push_command = ['hg', 'push', '-B', 'bootstrap']
 
 link_patterns = [
     r"(Issue )?#(?P<issue>\d+)",
