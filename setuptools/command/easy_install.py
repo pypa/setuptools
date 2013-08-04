@@ -799,6 +799,8 @@ Please make the appropriate changes for your system and try again.
         mask = current_umask()
         if not self.dry_run:
             ensure_directory(target)
+            if os.path.exists(target):
+                os.unlink(target)
             f = open(target,"w"+mode)
             f.write(contents)
             f.close()
