@@ -20,10 +20,10 @@ init_file.close()
 SETUP_COMMANDS = command_ns['__all__']
 
 main_ns = {}
-init_path = convert_path('setuptools/__init__.py')
-init_file = open(init_path)
-exec(init_file.read(), main_ns)
-init_file.close()
+ver_path = convert_path('setuptools/version.py')
+ver_file = open(ver_path)
+exec(ver_file.read(), main_ns)
+ver_file.close()
 
 import setuptools
 from setuptools.command.build_py import build_py as _build_py
