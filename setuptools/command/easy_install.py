@@ -1798,12 +1798,13 @@ def get_script_args(dist, executable=sys_executable, wininst=False):
     """Yield write_script() argument tuples for a distribution's entrypoints"""
     spec = str(dist.as_requirement())
     header = get_script_header("", executable, wininst)
-    for group in 'console_scripts', 'gui_scripts':
+    for type_ in 'console', 'gui':
+        group = type_ + '_scripts'
         for name, ep in dist.get_entry_map(group).items():
             script_text = ScriptWriter.template % locals()
             if sys.platform=='win32' or wininst:
                 # On Windows/wininst, add a .py extension and an .exe launcher
-                if group=='gui_scripts':
+                if type_=='gui':
                     launcher_type = 'gui'
                     ext = '-script.pyw'
                     old = ['.pyw']
