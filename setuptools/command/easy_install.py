@@ -1842,7 +1842,8 @@ class WindowsScriptWriter(ScriptWriter):
             hdr = new_header
         else:
             hdr = header
-        yield (name+ext, hdr+script_text, 't', [name+x for x in old])
+        blockers = [name+x for x in old]
+        yield (name+ext, hdr+script_text, 't', blockers)
         yield (
             name+'.exe', get_win_launcher(launcher_type),
             'b' # write in binary mode
