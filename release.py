@@ -16,7 +16,7 @@ def before_upload():
     _add_bootstrap_bookmark()
 
 files_with_versions = (
-    'ez_setup.py', 'setuptools/__init__.py',
+    'ez_setup.py', 'setuptools/version.py',
 )
 
 test_info = "Travis-CI tests: http://travis-ci.org/#!/jaraco/setuptools"
