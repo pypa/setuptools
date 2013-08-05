@@ -1832,16 +1832,11 @@ class WindowsScriptWriter(ScriptWriter):
             launcher_type = 'gui'
             ext = '-script.pyw'
             old = ['.pyw']
-            new_header = re.sub('(?i)python.exe','pythonw.exe',header)
         else:
             launcher_type = 'cli'
             ext = '-script.py'
             old = ['.py','.pyc','.pyo']
-            new_header = re.sub('(?i)pythonw.exe','python.exe',header)
-        if os.path.exists(new_header[2:-1].strip('"')) or sys.platform!='win32':
-            hdr = new_header
-        else:
-            hdr = header
+        hdr = cls._adjust_header(type_, header)
         blockers = [name+x for x in old]
         yield (name+ext, hdr+script_text, 't', blockers)
         yield (
@@ -1857,6 +1852,23 @@ class WindowsScriptWriter(ScriptWriter):
             m_name = name + '.exe.manifest'
             yield (m_name, load_launcher_manifest(name), 't')
 
+    @staticmethod
+    def _adjust_header(type_, orig_header):
+        """
+        Make sure 'pythonw' is used for gui and and 'python' is used for
+        console (regardless of what sys.executable is).
+        """
+        pattern = 'pythonw.exe'
+        repl = 'python.exe'
+        if type_ == 'gui':
+            pattern, repl = repl, pattern
+        new_header = re.sub(string=orig_header, pattern=re.escape(pattern),
+            repl=repl, flags=re.IGNORECASE)
+        clean_header = new_header[2:-1].strip('"')
+        if sys.platform == 'win32' and not os.path.exists(clean_header):
+            # the adjusted version doesn't exist, so return the original
+            return orig_header
+        return new_header
 
 # for backward-compatibility
 get_script_args = ScriptWriter.get_script_args
