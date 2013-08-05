@@ -1794,47 +1794,51 @@ class ScriptWriter(object):
         "    )\n"
     )
 
-def get_script_args(dist, executable=sys_executable, wininst=False):
-    """Yield write_script() argument tuples for a distribution's entrypoints"""
-    spec = str(dist.as_requirement())
-    header = get_script_header("", executable, wininst)
-    for type_ in 'console', 'gui':
-        group = type_ + '_scripts'
-        for name, ep in dist.get_entry_map(group).items():
-            script_text = ScriptWriter.template % locals()
-            if sys.platform=='win32' or wininst:
-                # On Windows/wininst, add a .py extension and an .exe launcher
-                if type_=='gui':
-                    launcher_type = 'gui'
-                    ext = '-script.pyw'
-                    old = ['.pyw']
-                    new_header = re.sub('(?i)python.exe','pythonw.exe',header)
+    @classmethod
+    def get_script_args(cls, dist, executable=sys_executable, wininst=False):
+        """Yield write_script() argument tuples for a distribution's entrypoints"""
+        spec = str(dist.as_requirement())
+        header = get_script_header("", executable, wininst)
+        for type_ in 'console', 'gui':
+            group = type_ + '_scripts'
+            for name, ep in dist.get_entry_map(group).items():
+                script_text = cls.template % locals()
+                if sys.platform=='win32' or wininst:
+                    # On Windows/wininst, add a .py extension and an .exe launcher
+                    if type_=='gui':
+                        launcher_type = 'gui'
+                        ext = '-script.pyw'
+                        old = ['.pyw']
+                        new_header = re.sub('(?i)python.exe','pythonw.exe',header)
+                    else:
+                        launcher_type = 'cli'
+                        ext = '-script.py'
+                        old = ['.py','.pyc','.pyo']
+                        new_header = re.sub('(?i)pythonw.exe','python.exe',header)
+                    if os.path.exists(new_header[2:-1].strip('"')) or sys.platform!='win32':
+                        hdr = new_header
+                    else:
+                        hdr = header
+                    yield (name+ext, hdr+script_text, 't', [name+x for x in old])
+                    yield (
+                        name+'.exe', get_win_launcher(launcher_type),
+                        'b' # write in binary mode
+                    )
+                    if not is_64bit():
+                        # install a manifest for the launcher to prevent Windows
+                        #  from detecting it as an installer (which it will for
+                        #  launchers like easy_install.exe). Consider only
+                        #  adding a manifest for launchers detected as installers.
+                        #  See Distribute #143 for details.
+                        m_name = name + '.exe.manifest'
+                        yield (m_name, load_launcher_manifest(name), 't')
                 else:
-                    launcher_type = 'cli'
-                    ext = '-script.py'
-                    old = ['.py','.pyc','.pyo']
-                    new_header = re.sub('(?i)pythonw.exe','python.exe',header)
-                if os.path.exists(new_header[2:-1].strip('"')) or sys.platform!='win32':
-                    hdr = new_header
-                else:
-                    hdr = header
-                yield (name+ext, hdr+script_text, 't', [name+x for x in old])
-                yield (
-                    name+'.exe', get_win_launcher(launcher_type),
-                    'b' # write in binary mode
-                )
-                if not is_64bit():
-                    # install a manifest for the launcher to prevent Windows
-                    #  from detecting it as an installer (which it will for
-                    #  launchers like easy_install.exe). Consider only
-                    #  adding a manifest for launchers detected as installers.
-                    #  See Distribute #143 for details.
-                    m_name = name + '.exe.manifest'
-                    yield (m_name, load_launcher_manifest(name), 't')
-            else:
-                # On other platforms, we assume the right thing to do is to
-                # just write the stub with no extension.
-                yield (name, header+script_text)
+                    # On other platforms, we assume the right thing to do is to
+                    # just write the stub with no extension.
+                    yield (name, header+script_text)
+
+# for backward-compatibility
+get_script_args = ScriptWriter.get_script_args
 
 def get_win_launcher(type):
     """
