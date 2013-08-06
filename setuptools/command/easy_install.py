@@ -1862,8 +1862,8 @@ class WindowsScriptWriter(ScriptWriter):
         repl = 'python.exe'
         if type_ == 'gui':
             pattern, repl = repl, pattern
-        new_header = re.sub(string=orig_header, pattern=re.escape(pattern),
-            repl=repl, flags=re.IGNORECASE)
+        pattern_ob = re.compile(re.escape(pattern), re.IGNORECASE)
+        new_header = pattern_ob.sub(string=orig_header, repl=repl)
         clean_header = new_header[2:-1].strip('"')
         if sys.platform == 'win32' and not os.path.exists(clean_header):
             # the adjusted version doesn't exist, so return the original
