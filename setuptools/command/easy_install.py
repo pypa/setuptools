@@ -1781,6 +1781,11 @@ def fix_jython_executable(executable, options):
 
 
 class ScriptWriter(object):
+    """
+    Encapsulates behavior around writing entry point scripts for console and
+    gui apps.
+    """
+
     template = (
         "# EASY-INSTALL-ENTRY-SCRIPT: %(spec)r,%(group)r,%(name)r\n"
         "__requires__ = %(spec)r\n"
