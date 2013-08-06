@@ -22,6 +22,7 @@ import re
 import stat
 import random
 import platform
+import textwrap
 from glob import glob
 from distutils import log, dir_util
 
@@ -1786,18 +1787,17 @@ class ScriptWriter(object):
     gui apps.
     """
 
-    template = (
-        "# EASY-INSTALL-ENTRY-SCRIPT: %(spec)r,%(group)r,%(name)r\n"
-        "__requires__ = %(spec)r\n"
-        "import sys\n"
-        "from pkg_resources import load_entry_point\n"
-        "\n"
-        "if __name__ == '__main__':"
-        "\n"
-        "    sys.exit(\n"
-        "        load_entry_point(%(spec)r, %(group)r, %(name)r)()\n"
-        "    )\n"
-    )
+    template = textwrap.dedent("""
+        # EASY-INSTALL-ENTRY-SCRIPT: %(spec)r,%(group)r,%(name)r
+        __requires__ = %(spec)r
+        import sys
+        from pkg_resources import load_entry_point
+
+        if __name__ == '__main__':
+            sys.exit(
+                load_entry_point(%(spec)r, %(group)r, %(name)r)()
+            )
+    """).lstrip()
 
     @classmethod
     def get_script_args(cls, dist, executable=sys_executable, wininst=False):
