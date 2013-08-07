@@ -88,9 +88,9 @@ current stable version of setuptools.  In particular, be sure to read the
 section on `Custom Installation Locations`_ if you are installing anywhere
 other than Python's ``site-packages`` directory.
 
-.. _EasyInstall Installation Instructions: http://peak.telecommunity.com/DevCenter/EasyInstall#installation-instructions
+.. _EasyInstall Installation Instructions: easy_install.html#installation-instructions
 
-.. _Custom Installation Locations: http://peak.telecommunity.com/DevCenter/EasyInstall#custom-installation-locations
+.. _Custom Installation Locations: easy_install.html#custom-installation-locations
 
 If you want the current in-development version of setuptools, you should first
 install a stable version, and then run::
