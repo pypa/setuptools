@@ -72,7 +72,7 @@ is available from the `Python SVN sandbox`_, and in-development versions of the
 
 .. contents:: **Table of Contents**
 
-.. _distribute_setup.py: `bootstrap module`_
+.. _ez_setup.py: `bootstrap module`_
 
 
 -----------------
@@ -95,7 +95,7 @@ other than Python's ``site-packages`` directory.
 If you want the current in-development version of setuptools, you should first
 install a stable version, and then run::
 
-    distribute_setup.py setuptools==dev
+    ez_setup.py setuptools==dev
 
 This will download and install the latest development (i.e. unstable) version
 of setuptools from the Python Subversion sandbox.
@@ -529,7 +529,7 @@ Python must be available via the ``PATH`` environment variable, under its
 "long" name.  That is, if the egg is built for Python 2.3, there must be a
 ``python2.3`` executable present in a directory on ``PATH``.
 
-This feature is primarily intended to support distribute_setup the installation of
+This feature is primarily intended to support ez_setup the installation of
 setuptools itself on non-Windows platforms, but may also be useful for other
 projects as well.
 
@@ -1148,20 +1148,20 @@ Using ``setuptools``...  Without bundling it!
 
 Your users might not have ``setuptools`` installed on their machines, or even
 if they do, it might not be the right version.  Fixing this is easy; just
-download `distribute_setup.py`_, and put it in the same directory as your ``setup.py``
+download `ez_setup.py`_, and put it in the same directory as your ``setup.py``
 script.  (Be sure to add it to your revision control system, too.)  Then add
 these two lines to the very top of your setup script, before the script imports
 anything from setuptools:
 
 .. code-block:: python
 
-    import distribute_setup
-    distribute_setup.use_setuptools()
+    import ez_setup
+    ez_setup.use_setuptools()
 
-That's it.  The ``distribute_setup`` module will automatically download a matching
+That's it.  The ``ez_setup`` module will automatically download a matching
 version of ``setuptools`` from PyPI, if it isn't present on the target system.
 Whenever you install an updated version of setuptools, you should also update
-your projects' ``distribute_setup.py`` files, so that a matching version gets installed
+your projects' ``ez_setup.py`` files, so that a matching version gets installed
 on the target machine(s).
 
 By the way, setuptools supports the new PyPI "upload" command, so you can use
@@ -1191,7 +1191,7 @@ relevant to your project and your target audience isn't already familiar with
 setuptools and ``easy_install``.
 
 Network Access
-    If your project is using ``distribute_setup``, you should inform users of the
+    If your project is using ``ez_setup``, you should inform users of the
     need to either have network access, or to preinstall the correct version of
     setuptools using the `EasyInstall installation instructions`_.  Those
     instructions also have tips for dealing with firewalls as well as how to
@@ -1271,27 +1271,27 @@ Creating System Packages
 Managing Multiple Projects
 --------------------------
 
-If you're managing several projects that need to use ``distribute_setup``, and you
+If you're managing several projects that need to use ``ez_setup``, and you
 are using Subversion as your revision control system, you can use the
-"svn:externals" property to share a single copy of ``distribute_setup`` between
+"svn:externals" property to share a single copy of ``ez_setup`` between
 projects, so that it will always be up-to-date whenever you check out or update
 an individual project, without having to manually update each project to use
 a new version.
 
 However, because Subversion only supports using directories as externals, you
-have to turn ``distribute_setup.py`` into ``distribute_setup/__init__.py`` in order
-to do this, then create "externals" definitions that map the ``distribute_setup``
+have to turn ``ez_setup.py`` into ``ez_setup/__init__.py`` in order
+to do this, then create "externals" definitions that map the ``ez_setup``
 directory into each project.  Also, if any of your projects use
 ``find_packages()`` on their setup directory, you will need to exclude the
-resulting ``distribute_setup`` package, to keep it from being included in your
+resulting ``ez_setup`` package, to keep it from being included in your
 distributions, e.g.::
 
     setup(
         ...
-        packages = find_packages(exclude=['distribute_setup']),
+        packages = find_packages(exclude=['ez_setup']),
     )
 
-Of course, the ``distribute_setup`` package will still be included in your
+Of course, the ``ez_setup`` package will still be included in your
 packages' source distributions, as it needs to be.
 
 For your convenience, you may use the following external definition, which will
@@ -2700,8 +2700,8 @@ XXX
 Reusing ``setuptools`` Code
 ===========================
 
-``distribute_setup``
---------------------
+``ez_setup``
+------------
 
 XXX
 
