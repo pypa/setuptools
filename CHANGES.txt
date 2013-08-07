@@ -755,3 +755,587 @@ easy_install
 
 * Immediately close all file handles. This closes Distribute #3.
 
+-----
+0.6c9
+-----
+
+ * Fixed a missing files problem when using Windows source distributions on
+   non-Windows platforms, due to distutils not handling manifest file line
+   endings correctly.
+
+ * Updated Pyrex support to work with Pyrex 0.9.6 and higher.
+
+ * Minor changes for Jython compatibility, including skipping tests that can't
+   work on Jython.
+
+ * Fixed not installing eggs in ``install_requires`` if they were also used for
+   ``setup_requires`` or ``tests_require``.
+
+ * Fixed not fetching eggs in ``install_requires`` when running tests.
+
+ * Allow ``ez_setup.use_setuptools()`` to upgrade existing setuptools
+   installations when called from a standalone ``setup.py``.
+
+ * Added a warning if a namespace package is declared, but its parent package
+   is not also declared as a namespace.
+
+ * Support Subversion 1.5
+
+ * Removed use of deprecated ``md5`` module if ``hashlib`` is available
+
+ * Fixed ``bdist_wininst upload`` trying to upload the ``.exe`` twice
+
+ * Fixed ``bdist_egg`` putting a ``native_libs.txt`` in the source package's
+   ``.egg-info``, when it should only be in the built egg's ``EGG-INFO``.
+
+ * Ensure that _full_name is set on all shared libs before extensions are
+   checked for shared lib usage.  (Fixes a bug in the experimental shared
+   library build support.)
+
+ * Fix to allow unpacked eggs containing native libraries to fail more
+   gracefully under Google App Engine (with an ``ImportError`` loading the
+   C-based module, instead of getting a ``NameError``).
+
+-----
+0.6c7
+-----
+
+ * Fixed ``distutils.filelist.findall()`` crashing on broken symlinks, and
+   ``egg_info`` command failing on new, uncommitted SVN directories.
+
+ * Fix import problems with nested namespace packages installed via
+   ``--root`` or ``--single-version-externally-managed``, due to the
+   parent package not having the child package as an attribute.
+
+-----
+0.6c6
+-----
+
+ * Added ``--egg-path`` option to ``develop`` command, allowing you to force
+   ``.egg-link`` files to use relative paths (allowing them to be shared across
+   platforms on a networked drive).
+
+ * Fix not building binary RPMs correctly.
+
+ * Fix "eggsecutables" (such as setuptools' own egg) only being runnable with
+   bash-compatible shells.
+
+ * Fix ``#!`` parsing problems in Windows ``.exe`` script wrappers, when there
+   was whitespace inside a quoted argument or at the end of the ``#!`` line
+   (a regression introduced in 0.6c4).
+
+ * Fix ``test`` command possibly failing if an older version of the project
+   being tested was installed on ``sys.path`` ahead of the test source
+   directory.
+
+ * Fix ``find_packages()`` treating ``ez_setup`` and directories with ``.`` in
+   their names as packages.
+
+-----
+0.6c5
+-----
+
+ * Fix uploaded ``bdist_rpm`` packages being described as ``bdist_egg``
+   packages under Python versions less than 2.5.
+
+ * Fix uploaded ``bdist_wininst`` packages being described as suitable for
+   "any" version by Python 2.5, even if a ``--target-version`` was specified.
+
+-----
+0.6c4
+-----
+
+ * Overhauled Windows script wrapping to support ``bdist_wininst`` better.
+   Scripts installed with ``bdist_wininst`` will always use ``#!python.exe`` or
+   ``#!pythonw.exe`` as the executable name (even when built on non-Windows
+   platforms!), and the wrappers will look for the executable in the script's
+   parent directory (which should find the right version of Python).
+
+ * Fix ``upload`` command not uploading files built by ``bdist_rpm`` or
+   ``bdist_wininst`` under Python 2.3 and 2.4.
+
+ * Add support for "eggsecutable" headers: a ``#!/bin/sh`` script that is
+   prepended to an ``.egg`` file to allow it to be run as a script on Unix-ish
+   platforms.  (This is mainly so that setuptools itself can have a single-file
+   installer on Unix, without doing multiple downloads, dealing with firewalls,
+   etc.)
+
+ * Fix problem with empty revision numbers in Subversion 1.4 ``entries`` files
+
+ * Use cross-platform relative paths in ``easy-install.pth`` when doing
+   ``develop`` and the source directory is a subdirectory of the installation
+   target directory.
+
+ * Fix a problem installing eggs with a system packaging tool if the project
+   contained an implicit namespace package; for example if the ``setup()``
+   listed a namespace package ``foo.bar`` without explicitly listing ``foo``
+   as a namespace package.
+
+-----
+0.6c3
+-----
+
+ * Fixed breakages caused by Subversion 1.4's new "working copy" format
+
+-----
+0.6c2
+-----
+
+ * The ``ez_setup`` module displays the conflicting version of setuptools (and
+   its installation location) when a script requests a version that's not
+   available.
+
+ * Running ``setup.py develop`` on a setuptools-using project will now install
+   setuptools if needed, instead of only downloading the egg.
+
+-----
+0.6c1
+-----
+
+ * Fixed ``AttributeError`` when trying to download a ``setup_requires``
+   dependency when a distribution lacks a ``dependency_links`` setting.
+
+ * Made ``zip-safe`` and ``not-zip-safe`` flag files contain a single byte, so
+   as to play better with packaging tools that complain about zero-length
+   files.
+
+ * Made ``setup.py develop`` respect the ``--no-deps`` option, which it
+   previously was ignoring.
+
+ * Support ``extra_path`` option to ``setup()`` when ``install`` is run in
+   backward-compatibility mode.
+
+ * Source distributions now always include a ``setup.cfg`` file that explicitly
+   sets ``egg_info`` options such that they produce an identical version number
+   to the source distribution's version number.  (Previously, the default
+   version number could be different due to the use of ``--tag-date``, or if
+   the version was overridden on the command line that built the source
+   distribution.)
+
+-----
+0.6b4
+-----
+
+ * Fix ``register`` not obeying name/version set by ``egg_info`` command, if
+   ``egg_info`` wasn't explicitly run first on the same command line.
+
+ * Added ``--no-date`` and ``--no-svn-revision`` options to ``egg_info``
+   command, to allow suppressing tags configured in ``setup.cfg``.
+
+ * Fixed redundant warnings about missing ``README`` file(s); it should now
+   appear only if you are actually a source distribution.
+
+-----
+0.6b3
+-----
+
+ * Fix ``bdist_egg`` not including files in subdirectories of ``.egg-info``.
+
+ * Allow ``.py`` files found by the ``include_package_data`` option to be
+   automatically included.  Remove duplicate data file matches if both
+   ``include_package_data`` and ``package_data`` are used to refer to the same
+   files.
+
+-----
+0.6b1
+-----
+
+ * Strip ``module`` from the end of compiled extension modules when computing
+   the name of a ``.py`` loader/wrapper.  (Python's import machinery ignores
+   this suffix when searching for an extension module.)
+
+------
+0.6a11
+------
+
+ * Added ``test_loader`` keyword to support custom test loaders
+
+ * Added ``setuptools.file_finders`` entry point group to allow implementing
+   revision control plugins.
+
+ * Added ``--identity`` option to ``upload`` command.
+
+ * Added ``dependency_links`` to allow specifying URLs for ``--find-links``.
+
+ * Enhanced test loader to scan packages as well as modules, and call
+   ``additional_tests()`` if present to get non-unittest tests.
+
+ * Support namespace packages in conjunction with system packagers, by omitting
+   the installation of any ``__init__.py`` files for namespace packages, and
+   adding a special ``.pth`` file to create a working package in
+   ``sys.modules``.
+
+ * Made ``--single-version-externally-managed`` automatic when ``--root`` is
+   used, so that most system packagers won't require special support for
+   setuptools.
+
+ * Fixed ``setup_requires``, ``tests_require``, etc. not using ``setup.cfg`` or
+   other configuration files for their option defaults when installing, and
+   also made the install use ``--multi-version`` mode so that the project
+   directory doesn't need to support .pth files.
+
+ * ``MANIFEST.in`` is now forcibly closed when any errors occur while reading
+   it.  Previously, the file could be left open and the actual error would be
+   masked by problems trying to remove the open file on Windows systems.
+
+------
+0.6a10
+------
+
+ * Fixed the ``develop`` command ignoring ``--find-links``.
+
+-----
+0.6a9
+-----
+
+ * The ``sdist`` command no longer uses the traditional ``MANIFEST`` file to
+   create source distributions.  ``MANIFEST.in`` is still read and processed,
+   as are the standard defaults and pruning.  But the manifest is built inside
+   the project's ``.egg-info`` directory as ``SOURCES.txt``, and it is rebuilt
+   every time the ``egg_info`` command is run.
+
+ * Added the ``include_package_data`` keyword to ``setup()``, allowing you to
+   automatically include any package data listed in revision control or
+   ``MANIFEST.in``
+
+ * Added the ``exclude_package_data`` keyword to ``setup()``, allowing you to
+   trim back files included via the ``package_data`` and
+   ``include_package_data`` options.
+
+ * Fixed ``--tag-svn-revision`` not working when run from a source
+   distribution.
+
+ * Added warning for namespace packages with missing ``declare_namespace()``
+
+ * Added ``tests_require`` keyword to ``setup()``, so that e.g. packages
+   requiring ``nose`` to run unit tests can make this dependency optional
+   unless the ``test`` command is run.
+
+ * Made all commands that use ``easy_install`` respect its configuration
+   options, as this was causing some problems with ``setup.py install``.
+
+ * Added an ``unpack_directory()`` driver to ``setuptools.archive_util``, so
+   that you can process a directory tree through a processing filter as if it
+   were a zipfile or tarfile.
+
+ * Added an internal ``install_egg_info`` command to use as part of old-style
+   ``install`` operations, that installs an ``.egg-info`` directory with the
+   package.
+
+ * Added a ``--single-version-externally-managed`` option to the ``install``
+   command so that you can more easily wrap a "flat" egg in a system package.
+
+ * Enhanced ``bdist_rpm`` so that it installs single-version eggs that
+   don't rely on a ``.pth`` file.  The ``--no-egg`` option has been removed,
+   since all RPMs are now built in a more backwards-compatible format.
+
+ * Support full roundtrip translation of eggs to and from ``bdist_wininst``
+   format.  Running ``bdist_wininst`` on a setuptools-based package wraps the
+   egg in an .exe that will safely install it as an egg (i.e., with metadata
+   and entry-point wrapper scripts), and ``easy_install`` can turn the .exe
+   back into an ``.egg`` file or directory and install it as such.
+
+
+-----
+0.6a8
+-----
+
+ * Fixed some problems building extensions when Pyrex was installed, especially
+   with Python 2.4 and/or packages using SWIG.
+
+ * Made ``develop`` command accept all the same options as ``easy_install``,
+   and use the ``easy_install`` command's configuration settings as defaults.
+
+ * Made ``egg_info --tag-svn-revision`` fall back to extracting the revision
+   number from ``PKG-INFO`` in case it is being run on a source distribution of
+   a snapshot taken from a Subversion-based project.
+
+ * Automatically detect ``.dll``, ``.so`` and ``.dylib`` files that are being
+   installed as data, adding them to ``native_libs.txt`` automatically.
+
+ * Fixed some problems with fresh checkouts of projects that don't include
+   ``.egg-info/PKG-INFO`` under revision control and put the project's source
+   code directly in the project directory.  If such a package had any
+   requirements that get processed before the ``egg_info`` command can be run,
+   the setup scripts would fail with a "Missing 'Version:' header and/or
+   PKG-INFO file" error, because the egg runtime interpreted the unbuilt
+   metadata in a directory on ``sys.path`` (i.e. the current directory) as
+   being a corrupted egg.  Setuptools now monkeypatches the distribution
+   metadata cache to pretend that the egg has valid version information, until
+   it has a chance to make it actually be so (via the ``egg_info`` command).
+
+-----
+0.6a5
+-----
+
+ * Fixed missing gui/cli .exe files in distribution.  Fixed bugs in tests.
+
+-----
+0.6a3
+-----
+
+ * Added ``gui_scripts`` entry point group to allow installing GUI scripts
+   on Windows and other platforms.  (The special handling is only for Windows;
+   other platforms are treated the same as for ``console_scripts``.)
+
+-----
+0.6a2
+-----
+
+ * Added ``console_scripts`` entry point group to allow installing scripts
+   without the need to create separate script files.  On Windows, console
+   scripts get an ``.exe`` wrapper so you can just type their name.  On other
+   platforms, the scripts are written without a file extension.
+
+-----
+0.6a1
+-----
+
+ * Added support for building "old-style" RPMs that don't install an egg for
+   the target package, using a ``--no-egg`` option.
+
+ * The ``build_ext`` command now works better when using the ``--inplace``
+   option and multiple Python versions.  It now makes sure that all extensions
+   match the current Python version, even if newer copies were built for a
+   different Python version.
+
+ * The ``upload`` command no longer attaches an extra ``.zip`` when uploading
+   eggs, as PyPI now supports egg uploads without trickery.
+
+ * The ``ez_setup`` script/module now displays a warning before downloading
+   the setuptools egg, and attempts to check the downloaded egg against an
+   internal MD5 checksum table.
+
+ * Fixed the ``--tag-svn-revision`` option of ``egg_info`` not finding the
+   latest revision number; it was using the revision number of the directory
+   containing ``setup.py``, not the highest revision number in the project.
+
+ * Added ``eager_resources`` setup argument
+
+ * The ``sdist`` command now recognizes Subversion "deleted file" entries and
+   does not include them in source distributions.
+
+ * ``setuptools`` now embeds itself more thoroughly into the distutils, so that
+   other distutils extensions (e.g. py2exe, py2app) will subclass setuptools'
+   versions of things, rather than the native distutils ones.
+
+ * Added ``entry_points`` and ``setup_requires`` arguments to ``setup()``;
+   ``setup_requires`` allows you to automatically find and download packages
+   that are needed in order to *build* your project (as opposed to running it).
+
+ * ``setuptools`` now finds its commands, ``setup()`` argument validators, and
+   metadata writers using entry points, so that they can be extended by
+   third-party packages.  See `Creating distutils Extensions`_ above for more
+   details.
+
+ * The vestigial ``depends`` command has been removed.  It was never finished
+   or documented, and never would have worked without EasyInstall - which it
+   pre-dated and was never compatible with.
+
+------
+0.5a12
+------
+
+ * The zip-safety scanner now checks for modules that might be used with
+   ``python -m``, and marks them as unsafe for zipping, since Python 2.4 can't
+   handle ``-m`` on zipped modules.
+
+------
+0.5a11
+------
+
+ * Fix breakage of the "develop" command that was caused by the addition of
+   ``--always-unzip`` to the ``easy_install`` command.
+
+-----
+0.5a9
+-----
+
+ * Include ``svn:externals`` directories in source distributions as well as
+   normal subversion-controlled files and directories.
+
+ * Added ``exclude=patternlist`` option to ``setuptools.find_packages()``
+
+ * Changed --tag-svn-revision to include an "r" in front of the revision number
+   for better readability.
+
+ * Added ability to build eggs without including source files (except for any
+   scripts, of course), using the ``--exclude-source-files`` option to
+   ``bdist_egg``.
+
+ * ``setup.py install`` now automatically detects when an "unmanaged" package
+   or module is going to be on ``sys.path`` ahead of a package being installed,
+   thereby preventing the newer version from being imported.  If this occurs,
+   a warning message is output to ``sys.stderr``, but installation proceeds
+   anyway.  The warning message informs the user what files or directories
+   need deleting, and advises them they can also use EasyInstall (with the
+   ``--delete-conflicting`` option) to do it automatically.
+
+ * The ``egg_info`` command now adds a ``top_level.txt`` file to the metadata
+   directory that lists all top-level modules and packages in the distribution.
+   This is used by the ``easy_install`` command to find possibly-conflicting
+   "unmanaged" packages when installing the distribution.
+
+ * Added ``zip_safe`` and ``namespace_packages`` arguments to ``setup()``.
+   Added package analysis to determine zip-safety if the ``zip_safe`` flag
+   is not given, and advise the author regarding what code might need changing.
+
+ * Fixed the swapped ``-d`` and ``-b`` options of ``bdist_egg``.
+
+-----
+0.5a8
+-----
+
+ * The "egg_info" command now always sets the distribution metadata to "safe"
+   forms of the distribution name and version, so that distribution files will
+   be generated with parseable names (i.e., ones that don't include '-' in the
+   name or version).  Also, this means that if you use the various ``--tag``
+   options of "egg_info", any distributions generated will use the tags in the
+   version, not just egg distributions.
+
+ * Added support for defining command aliases in distutils configuration files,
+   under the "[aliases]" section.  To prevent recursion and to allow aliases to
+   call the command of the same name, a given alias can be expanded only once
+   per command-line invocation.  You can define new aliases with the "alias"
+   command, either for the local, global, or per-user configuration.
+
+ * Added "rotate" command to delete old distribution files, given a set of
+   patterns to match and the number of files to keep.  (Keeps the most
+   recently-modified distribution files matching each pattern.)
+
+ * Added "saveopts" command that saves all command-line options for the current
+   invocation to the local, global, or per-user configuration file.  Useful for
+   setting defaults without having to hand-edit a configuration file.
+
+ * Added a "setopt" command that sets a single option in a specified distutils
+   configuration file.
+
+-----
+0.5a7
+-----
+
+ * Added "upload" support for egg and source distributions, including a bug
+   fix for "upload" and a temporary workaround for lack of .egg support in
+   PyPI.
+
+-----
+0.5a6
+-----
+
+ * Beefed up the "sdist" command so that if you don't have a MANIFEST.in, it
+   will include all files under revision control (CVS or Subversion) in the
+   current directory, and it will regenerate the list every time you create a
+   source distribution, not just when you tell it to.  This should make the
+   default "do what you mean" more often than the distutils' default behavior
+   did, while still retaining the old behavior in the presence of MANIFEST.in.
+
+ * Fixed the "develop" command always updating .pth files, even if you
+   specified ``-n`` or ``--dry-run``.
+
+ * Slightly changed the format of the generated version when you use
+   ``--tag-build`` on the "egg_info" command, so that you can make tagged
+   revisions compare *lower* than the version specified in setup.py (e.g. by
+   using ``--tag-build=dev``).
+
+-----
+0.5a5
+-----
+
+ * Added ``develop`` command to ``setuptools``-based packages.  This command
+   installs an ``.egg-link`` pointing to the package's source directory, and
+   script wrappers that ``execfile()`` the source versions of the package's
+   scripts.  This lets you put your development checkout(s) on sys.path without
+   having to actually install them.  (To uninstall the link, use
+   use ``setup.py develop --uninstall``.)
+
+ * Added ``egg_info`` command to ``setuptools``-based packages.  This command
+   just creates or updates the "projectname.egg-info" directory, without
+   building an egg.  (It's used by the ``bdist_egg``, ``test``, and ``develop``
+   commands.)
+
+ * Enhanced the ``test`` command so that it doesn't install the package, but
+   instead builds any C extensions in-place, updates the ``.egg-info``
+   metadata, adds the source directory to ``sys.path``, and runs the tests
+   directly on the source.  This avoids an "unmanaged" installation of the
+   package to ``site-packages`` or elsewhere.
+
+ * Made ``easy_install`` a standard ``setuptools`` command, moving it from
+   the ``easy_install`` module to ``setuptools.command.easy_install``.  Note
+   that if you were importing or extending it, you must now change your imports
+   accordingly.  ``easy_install.py`` is still installed as a script, but not as
+   a module.
+
+-----
+0.5a4
+-----
+
+ * Setup scripts using setuptools can now list their dependencies directly in
+   the setup.py file, without having to manually create a ``depends.txt`` file.
+   The ``install_requires`` and ``extras_require`` arguments to ``setup()``
+   are used to create a dependencies file automatically.  If you are manually
+   creating ``depends.txt`` right now, please switch to using these setup
+   arguments as soon as practical, because ``depends.txt`` support will be
+   removed in the 0.6 release cycle.  For documentation on the new arguments,
+   see the ``setuptools.dist.Distribution`` class.
+
+ * Setup scripts using setuptools now always install using ``easy_install``
+   internally, for ease of uninstallation and upgrading.
+
+-----
+0.5a1
+-----
+
+ * Added support for "self-installation" bootstrapping.  Packages can now
+   include ``ez_setup.py`` in their source distribution, and add the following
+   to their ``setup.py``, in order to automatically bootstrap installation of
+   setuptools as part of their setup process::
+
+    from ez_setup import use_setuptools
+    use_setuptools()
+
+    from setuptools import setup
+    # etc...
+
+-----
+0.4a2
+-----
+
+ * Added ``ez_setup.py`` installer/bootstrap script to make initial setuptools
+   installation easier, and to allow distributions using setuptools to avoid
+   having to include setuptools in their source distribution.
+
+ * All downloads are now managed by the ``PackageIndex`` class (which is now
+   subclassable and replaceable), so that embedders can more easily override
+   download logic, give download progress reports, etc.  The class has also
+   been moved to the new ``setuptools.package_index`` module.
+
+ * The ``Installer`` class no longer handles downloading, manages a temporary
+   directory, or tracks the ``zip_ok`` option.  Downloading is now handled
+   by ``PackageIndex``, and ``Installer`` has become an ``easy_install``
+   command class based on ``setuptools.Command``.
+
+ * There is a new ``setuptools.sandbox.run_setup()`` API to invoke a setup
+   script in a directory sandbox, and a new ``setuptools.archive_util`` module
+   with an ``unpack_archive()`` API.  These were split out of EasyInstall to
+   allow reuse by other tools and applications.
+
+ * ``setuptools.Command`` now supports reinitializing commands using keyword
+   arguments to set/reset options.  Also, ``Command`` subclasses can now set
+   their ``command_consumes_arguments`` attribute to ``True`` in order to
+   receive an ``args`` option containing the rest of the command line.
+
+-----
+0.3a2
+-----
+
+ * Added new options to ``bdist_egg`` to allow tagging the egg's version number
+   with a subversion revision number, the current date, or an explicit tag
+   value.  Run ``setup.py bdist_egg --help`` to get more information.
+
+ * Misc. bug fixes
+
+-----
+0.3a1
+-----
+
+ * Initial release.
