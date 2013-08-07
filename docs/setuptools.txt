@@ -1267,45 +1267,6 @@ Creating System Packages
     resolve the issue.
 
 
-
-Managing Multiple Projects
---------------------------
-
-If you're managing several projects that need to use ``ez_setup``, and you
-are using Subversion as your revision control system, you can use the
-"svn:externals" property to share a single copy of ``ez_setup`` between
-projects, so that it will always be up-to-date whenever you check out or update
-an individual project, without having to manually update each project to use
-a new version.
-
-However, because Subversion only supports using directories as externals, you
-have to turn ``ez_setup.py`` into ``ez_setup/__init__.py`` in order
-to do this, then create "externals" definitions that map the ``ez_setup``
-directory into each project.  Also, if any of your projects use
-``find_packages()`` on their setup directory, you will need to exclude the
-resulting ``ez_setup`` package, to keep it from being included in your
-distributions, e.g.::
-
-    setup(
-        ...
-        packages = find_packages(exclude=['ez_setup']),
-    )
-
-Of course, the ``ez_setup`` package will still be included in your
-packages' source distributions, as it needs to be.
-
-For your convenience, you may use the following external definition, which will
-track the latest version of setuptools::
-
-    ez_setup svn://svn.eby-sarna.com/svnroot/ez_setup
-
-You can set this by executing this command in your project directory::
-
-    svn propedit svn:externals .
-
-And then adding the line shown above to the file that comes up for editing.
-
-
 Setting the ``zip_safe`` flag
 -----------------------------
 
