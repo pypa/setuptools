@@ -1378,20 +1378,21 @@ other copies will ever be loaded!)
 TRANSITIONAL NOTE
 ~~~~~~~~~~~~~~~~~
 
-Setuptools 0.6a automatically calls ``declare_namespace()`` for you at runtime,
-but the 0.7a versions will *not*.  This is because the automatic declaration
+Setuptools automatically calls ``declare_namespace()`` for you at runtime,
+but future versions may *not*.  This is because the automatic declaration
 feature has some negative side effects, such as needing to import all namespace
 packages during the initialization of the ``pkg_resources`` runtime, and also
 the need for ``pkg_resources`` to be explicitly imported before any namespace
-packages work at all.  Beginning with the 0.7a releases, you'll be responsible
+packages work at all.  In some future releases, you'll be responsible
 for including your own declaration lines, and the automatic declaration feature
 will be dropped to get rid of the negative side effects.
 
-During the remainder of the 0.6 development cycle, therefore, setuptools will
-warn you about missing ``declare_namespace()`` calls in your ``__init__.py``
-files, and you should correct these as soon as possible before setuptools 0.7a1
-is released.  Namespace packages without declaration lines will not work
-correctly once a user has upgraded to setuptools 0.7a1, so it's important that
+During the remainder of the current development cycle, therefore, setuptools
+will warn you about missing ``declare_namespace()`` calls in your
+``__init__.py`` files, and you should correct these as soon as possible
+before the compatibility support is removed.
+Namespace packages without declaration lines will not work
+correctly once a user has upgraded to a later version, so it's important that
 you make this change now in order to avoid having your code break in the field.
 Our apologies for the inconvenience, and thank you for your patience.
 
