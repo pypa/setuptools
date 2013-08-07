@@ -3226,5 +3226,5 @@ confirmed via the list are actual bugs, and which you have reduced to a minimal
 set of steps to reproduce.
 
 .. _distutils-sig mailing list: http://mail.python.org/pipermail/distutils-sig/
-.. _setuptools bug tracker: http://bugs.python.org/setuptools/
+.. _setuptools bug tracker: https://bitbucket.org/pypa/setuptools/
 
