@@ -20,7 +20,7 @@ package from source and doesn't have a suitable version already installed.
 Feature Highlights:
 
 * Automatically find/download/install/upgrade dependencies at build time using
-  the `EasyInstall tool <http://peak.telecommunity.com/DevCenter/EasyInstall>`_,
+  the `EasyInstall tool <easy_install.html>`_,
   which supports downloading via HTTP, FTP, Subversion, and SourceForge, and
   automatically scans web pages linked from PyPI to find download links.  (It's
   the closest thing to CPAN currently available for Python.)
@@ -1947,7 +1947,7 @@ them in a ``[develop]`` section or on the command line.
 ============================================
 
 This command runs the `EasyInstall tool
-<http://peak.telecommunity.com/DevCenter/EasyInstall>`_ for you.  It is exactly
+<easy_install.html>`_ for you.  It is exactly
 equivalent to running the ``easy_install`` command.  All command line arguments
 following this command are consumed and not processed further by the distutils,
 so this must be the last command listed on the command line.  Please see
