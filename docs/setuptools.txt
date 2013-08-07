@@ -652,7 +652,7 @@ A more complete example would be:
     ``vcs+proto://host/path@revision#egg=project-version``
 
 Be careful with the version. It should match the one inside the project files.
-If you want do disregard the version, you have to omit it both in the
+If you want to disregard the version, you have to omit it both in the
 ``requires`` and in the URL's fragment.
 
 This will do a checkout (or a clone, in Git and Mercurial parlance) to a
