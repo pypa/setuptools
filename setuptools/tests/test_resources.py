@@ -9,7 +9,9 @@ import shutil
 from unittest import TestCase
 
 import pkg_resources
-from pkg_resources import *
+from pkg_resources import (parse_requirements, VersionConflict, parse_version,
+    Distribution, EntryPoint, Requirement, safe_version, safe_name,
+    WorkingSet)
 
 from setuptools.command.easy_install import get_script_header, is_sh
 from setuptools.compat import StringIO, iteritems
@@ -25,11 +27,11 @@ def safe_repr(obj, short=False):
         result = repr(obj)
     except Exception:
         result = object.__repr__(obj)
-    if not short or len(result) < _MAX_LENGTH:
+    if not short or len(result) < pkg_resources._MAX_LENGTH:
         return result
-    return result[:_MAX_LENGTH] + ' [truncated]...'
+    return result[:pkg_resources._MAX_LENGTH] + ' [truncated]...'
 
-class Metadata(EmptyProvider):
+class Metadata(pkg_resources.EmptyProvider):
     """Mock object to return metadata as if from an on-disk distribution"""
 
     def __init__(self,*pairs):
@@ -42,18 +44,20 @@ class Metadata(EmptyProvider):
         return self.metadata[name]
 
     def get_metadata_lines(self,name):
-        return yield_lines(self.get_metadata(name))
+        return pkg_resources.yield_lines(self.get_metadata(name))
+
+dist_from_fn = pkg_resources.Distribution.from_filename
 
 class DistroTests(TestCase):
 
     def testCollection(self):
         # empty path should produce no distributions
-        ad = Environment([], platform=None, python=None)
+        ad = pkg_resources.Environment([], platform=None, python=None)
         self.assertEqual(list(ad), [])
         self.assertEqual(ad['FooPkg'],[])
-        ad.add(Distribution.from_filename("FooPkg-1.3_1.egg"))
-        ad.add(Distribution.from_filename("FooPkg-1.4-py2.4-win32.egg"))
-        ad.add(Distribution.from_filename("FooPkg-1.2-py2.4.egg"))
+        ad.add(dist_from_fn("FooPkg-1.3_1.egg"))
+        ad.add(dist_from_fn("FooPkg-1.4-py2.4-win32.egg"))
+        ad.add(dist_from_fn("FooPkg-1.2-py2.4.egg"))
 
         # Name is in there now
         self.assertTrue(ad['FooPkg'])
@@ -70,14 +74,14 @@ class DistroTests(TestCase):
             [dist.version for dist in ad['FooPkg']], ['1.4','1.2']
         )
         # And inserting adds them in order
-        ad.add(Distribution.from_filename("FooPkg-1.9.egg"))
+        ad.add(dist_from_fn("FooPkg-1.9.egg"))
         self.assertEqual(
             [dist.version for dist in ad['FooPkg']], ['1.9','1.4','1.2']
         )
 
         ws = WorkingSet([])
-        foo12 = Distribution.from_filename("FooPkg-1.2-py2.4.egg")
-        foo14 = Distribution.from_filename("FooPkg-1.4-py2.4-win32.egg")
+        foo12 = dist_from_fn("FooPkg-1.2-py2.4.egg")
+        foo14 = dist_from_fn("FooPkg-1.4-py2.4-win32.egg")
         req, = parse_requirements("FooPkg>=1.3")
 
         # Nominal case: no distros on path, should yield all applicable
@@ -119,9 +123,9 @@ class DistroTests(TestCase):
         self.assertEqual(d.platform, None)
 
     def testDistroParse(self):
-        d = Distribution.from_filename("FooPkg-1.3_1-py2.4-win32.egg")
+        d = dist_from_fn("FooPkg-1.3_1-py2.4-win32.egg")
         self.checkFooPkg(d)
-        d = Distribution.from_filename("FooPkg-1.3_1-py2.4-win32.egg-info")
+        d = dist_from_fn("FooPkg-1.3_1-py2.4-win32.egg-info")
         self.checkFooPkg(d)
 
     def testDistroMetadata(self):
@@ -147,13 +151,13 @@ class DistroTests(TestCase):
             self.checkRequires(self.distRequires(v), v)
 
     def testResolve(self):
-        ad = Environment([])
+        ad = pkg_resources.Environment([])
         ws = WorkingSet([])
         # Resolving no requirements -> nothing to install
         self.assertEqual(list(ws.resolve([],ad)), [])
         # Request something not in the collection -> DistributionNotFound
         self.assertRaises(
-            DistributionNotFound, ws.resolve, parse_requirements("Foo"), ad
+            pkg_resources.DistributionNotFound, ws.resolve, parse_requirements("Foo"), ad
         )
         Foo = Distribution.from_filename(
             "/foo_dir/Foo-1.2.egg",
@@ -173,7 +177,7 @@ class DistroTests(TestCase):
 
         # Request an extra that causes an unresolved dependency for "Baz"
         self.assertRaises(
-            DistributionNotFound, ws.resolve,parse_requirements("Foo[bar]"), ad
+            pkg_resources.DistributionNotFound, ws.resolve,parse_requirements("Foo[bar]"), ad
         )
         Baz = Distribution.from_filename(
             "/foo_dir/Baz-2.1.egg", metadata=Metadata(('depends.txt', "Foo"))
@@ -211,7 +215,7 @@ class DistroTests(TestCase):
             d,"Twisted>=1.5 fcgiapp>=0.1 ZConfig>=2.0 docutils>=0.3".split(),
             ["fastcgi", "docgen"]
         )
-        self.assertRaises(UnknownExtra, d.requires, ["foo"])
+        self.assertRaises(pkg_resources.UnknownExtra, d.requires, ["foo"])
 
 
 class EntryPointTests(TestCase):
