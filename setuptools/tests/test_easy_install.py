@@ -14,7 +14,7 @@ import distutils.core
 
 from setuptools.compat import StringIO, BytesIO, next, urlparse
 from setuptools.sandbox import run_setup, SandboxViolation
-from setuptools.command.easy_install import easy_install, fix_jython_executable, get_script_args
+from setuptools.command.easy_install import easy_install, fix_jython_executable, get_script_args, nt_quote_arg
 from setuptools.command.easy_install import  PthDistributions
 from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     sys.exit(
         load_entry_point('spec', 'console_scripts', 'name')()
     )
-""" % fix_jython_executable(sys.executable, "")
+""" % nt_quote_arg(fix_jython_executable(sys.executable, ""))
 
 SETUP_PY = """\
 from setuptools import setup
