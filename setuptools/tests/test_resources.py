@@ -13,7 +13,8 @@ from pkg_resources import (parse_requirements, VersionConflict, parse_version,
     Distribution, EntryPoint, Requirement, safe_version, safe_name,
     WorkingSet)
 
-from setuptools.command.easy_install import get_script_header, is_sh
+from setuptools.command.easy_install import (get_script_header, is_sh,
+    nt_quote_arg)
 from setuptools.compat import StringIO, iteritems
 
 try:
@@ -505,10 +506,12 @@ class ScriptHeaderTests(TestCase):
     def test_get_script_header(self):
         if not sys.platform.startswith('java') or not is_sh(sys.executable):
             # This test is for non-Jython platforms
+            expected = '#!%s\n' % nt_quote_arg(os.path.normpath(sys.executable))
             self.assertEqual(get_script_header('#!/usr/local/bin/python'),
-                             '#!%s\n' % os.path.normpath(sys.executable))
+                expected)
+            expected = '#!%s  -x\n' % nt_quote_arg(os.path.normpath(sys.executable))
             self.assertEqual(get_script_header('#!/usr/bin/python -x'),
-                             '#!%s  -x\n' % os.path.normpath(sys.executable))
+                expected)
             self.assertEqual(get_script_header('#!/usr/bin/python',
                                                executable=self.non_ascii_exe),
                              '#!%s -x\n' % self.non_ascii_exe)
