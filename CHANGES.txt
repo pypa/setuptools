@@ -2,6 +2,16 @@
 CHANGES
 =======
 
+---
+1.0
+---
+
+* Issue #50: Normalized API of environment marker support. Specifically,
+  removed line number and filename from SyntaxErrors when returned from
+  `pkg_resources.invalid_marker`. Any clients depending on the specific
+  string representation of exceptions returned by that function may need to
+  be updated to account for this change.
+
 -----
 0.9.8
 -----

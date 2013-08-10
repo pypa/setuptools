@@ -1267,12 +1267,22 @@ def _pyimp():
     else:
         return 'CPython'
 
+def normalize_exception(exc):
+    """
+    Given a SyntaxError from a marker evaluation, normalize the error message:
+     - Remove indications of filename and line number.
+    """
+    exc.filename = None
+    exc.lineno = None
+    return exc
+
+
 def invalid_marker(text):
     """Validate text as a PEP 426 environment marker; return exception or False"""
     try:
         evaluate_marker(text)
     except SyntaxError:
-        return sys.exc_info()[1]
+        return normalize_exception(sys.exc_info()[1])
     return False
 
 def evaluate_marker(text, extra=None, _ops={}):

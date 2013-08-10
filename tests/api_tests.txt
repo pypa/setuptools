@@ -341,8 +341,8 @@ Environment Markers
     >>> print(im("sys_platform"))
     Comparison or logical expression expected
 
-    >>> print(im("sys_platform=="))  # doctest: +ELLIPSIS
-    unexpected EOF while parsing (...line 1)
+    >>> print(im("sys_platform=="))
+    unexpected EOF while parsing
 
     >>> print(im("sys_platform=='win32'"))
     False
@@ -353,8 +353,8 @@ Environment Markers
     >>> print(im("(extra)"))
     Comparison or logical expression expected
 
-    >>> print(im("(extra"))  # doctest: +ELLIPSIS
-    unexpected EOF while parsing (...line 1)
+    >>> print(im("(extra"))
+    unexpected EOF while parsing
 
     >>> print(im("os.open('foo')=='y'"))
     Language feature not supported in environment markers
