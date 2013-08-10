@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-# NOTE: the shebang and encoding lines are for ScriptHeaderTests; do not remove
+# NOTE: the shebang and encoding lines are for ScriptHeaderTests do not remove
 
 import os
 import sys
@@ -83,14 +83,20 @@ class DistroTests(TestCase):
         # Nominal case: no distros on path, should yield all applicable
         self.assertEqual(ad.best_match(req,ws).version, '1.9')
         # If a matching distro is already installed, should return only that
-        ws.add(foo14); self.assertEqual(ad.best_match(req,ws).version, '1.4')
+        ws.add(foo14)
+        self.assertEqual(ad.best_match(req,ws).version, '1.4')
 
         # If the first matching distro is unsuitable, it's a version conflict
-        ws = WorkingSet([]); ws.add(foo12); ws.add(foo14)
+        ws = WorkingSet([])
+        ws.add(foo12)
+        ws.add(foo14)
         self.assertRaises(VersionConflict, ad.best_match, req, ws)
 
         # If more than one match on the path, the first one takes precedence
-        ws = WorkingSet([]); ws.add(foo14); ws.add(foo12); ws.add(foo14);
+        ws = WorkingSet([])
+        ws.add(foo14)
+        ws.add(foo12)
+        ws.add(foo14)
         self.assertEqual(ad.best_match(req,ws).version, '1.4')
 
     def checkFooPkg(self,d):
@@ -127,7 +133,6 @@ class DistroTests(TestCase):
         )
         self.checkFooPkg(d)
 
-
     def distRequires(self, txt):
         return Distribution("/foo", metadata=Metadata(('depends.txt', txt)))
 
@@ -141,11 +146,11 @@ class DistroTests(TestCase):
         for v in "Twisted>=1.5", "Twisted>=1.5\nZConfig>=2.0":
             self.checkRequires(self.distRequires(v), v)
 
-
     def testResolve(self):
-        ad = Environment([]); ws = WorkingSet([])
+        ad = Environment([])
+        ws = WorkingSet([])
         # Resolving no requirements -> nothing to install
-        self.assertEqual( list(ws.resolve([],ad)), [] )
+        self.assertEqual(list(ws.resolve([],ad)), [])
         # Request something not in the collection -> DistributionNotFound
         self.assertRaises(
             DistributionNotFound, ws.resolve, parse_requirements("Foo"), ad
@@ -154,7 +159,8 @@ class DistroTests(TestCase):
             "/foo_dir/Foo-1.2.egg",
             metadata=Metadata(('depends.txt', "[bar]\nBaz>=2.0"))
         )
-        ad.add(Foo); ad.add(Distribution.from_filename("Foo-0.9.egg"))
+        ad.add(Foo)
+        ad.add(Distribution.from_filename("Foo-0.9.egg"))
 
         # Request thing(s) that are available -> list to activate
         for i in range(3):
@@ -179,9 +185,8 @@ class DistroTests(TestCase):
             list(ws.resolve(parse_requirements("Foo[bar]"), ad)), [Foo,Baz]
         )
         # Requests for conflicting versions produce VersionConflict
-        self.assertRaises( VersionConflict,
-            ws.resolve, parse_requirements("Foo==1.2\nFoo!=1.2"), ad
-        )
+        self.assertRaises(VersionConflict,
+            ws.resolve, parse_requirements("Foo==1.2\nFoo!=1.2"), ad)
 
     def testDistroDependsOptions(self):
         d = self.distRequires("""
@@ -314,8 +319,8 @@ class RequirementsTests(TestCase):
     def testBasicContains(self):
         r = Requirement("Twisted", [('>=','1.2')], ())
         foo_dist = Distribution.from_filename("FooPkg-1.3_1.egg")
-        twist11  = Distribution.from_filename("Twisted-1.1.egg")
-        twist12  = Distribution.from_filename("Twisted-1.2.egg")
+        twist11 = Distribution.from_filename("Twisted-1.1.egg")
+        twist12 = Distribution.from_filename("Twisted-1.2.egg")
         self.assertTrue(parse_version('1.2') in r)
         self.assertTrue(parse_version('1.1') not in r)
         self.assertTrue('1.2' in r)
@@ -330,7 +335,6 @@ class RequirementsTests(TestCase):
             self.assertTrue(v in r, (v,r))
         for v in ('1.2c1','1.3.1','1.5','1.9.1','2.0','2.5','3.0','4.0'):
             self.assertTrue(v not in r, (v,r))
-
 
     def testOptionsAndHashing(self):
         r1 = Requirement.parse("Twisted[foo,bar]>=1.2")
@@ -376,15 +380,6 @@ class RequirementsTests(TestCase):
             Requirement.parse('setuptools >= 0.7').project_name, 'setuptools')
 
 
-
-
-
-
-
-
-
-
-
 class ParseTests(TestCase):
 
     def testEmptyParse(self):
@@ -398,9 +393,7 @@ class ParseTests(TestCase):
             self.assertEqual(list(pkg_resources.yield_lines(inp)),out)
 
     def testSplitting(self):
-        self.assertEqual(
-            list(
-                pkg_resources.split_sections("""
+        sample = """
                     x
                     [Y]
                     z
@@ -413,8 +406,7 @@ class ParseTests(TestCase):
                     [q]
                     v
                     """
-                )
-            ),
+        self.assertEqual(list(pkg_resources.split_sections(sample)),
             [(None,["x"]), ("Y",["z","a"]), ("b",["c"]), ("d",[]), ("q",["v"])]
         )
         self.assertRaises(ValueError,list,pkg_resources.split_sections("[foo"))
@@ -465,7 +457,8 @@ class ParseTests(TestCase):
         c('0pre1', '0.0c1')
         c('0.0.0preview1', '0c1')
         c('0.0c1', '0-rc1')
-        c('1.2a1', '1.2.a.1'); c('1.2...a', '1.2a')
+        c('1.2a1', '1.2.a.1')
+        c('1.2...a', '1.2a')
 
     def testVersionOrdering(self):
         def c(s1,s2):
@@ -502,12 +495,6 @@ class ParseTests(TestCase):
                 c(v2,v1)
 
 
-
-
-
-
-
-
 class ScriptHeaderTests(TestCase):
     non_ascii_exe = '/Users/José/bin/python'
 
@@ -525,7 +512,7 @@ class ScriptHeaderTests(TestCase):
     def test_get_script_header_jython_workaround(self):
         # This test doesn't work with Python 3 in some locales
         if (sys.version_info >= (3,) and os.environ.get("LC_CTYPE")
-            in (None, "C", "POSIX")):
+                in (None, "C", "POSIX")):
             return
 
         class java:
@@ -562,8 +549,6 @@ class ScriptHeaderTests(TestCase):
             del sys.modules["java"]
             sys.platform = platform
             sys.stdout, sys.stderr = stdout, stderr
-
-
 
 
 class NamespaceTests(TestCase):
@@ -620,6 +605,5 @@ class NamespaceTests(TestCase):
         self.assertEqual(pkg_resources._namespace_packages["pkg1"], ["pkg1.pkg2"])
         # check the __path__ attribute contains both paths
         self.assertEqual(pkg1.pkg2.__path__, [
-                os.path.join(self._tmpdir, "site-pkgs", "pkg1", "pkg2"),
-                os.path.join(self._tmpdir, "site-pkgs2", "pkg1", "pkg2") ])
-
+            os.path.join(self._tmpdir, "site-pkgs", "pkg1", "pkg2"),
+            os.path.join(self._tmpdir, "site-pkgs2", "pkg1", "pkg2")])
