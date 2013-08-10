@@ -159,6 +159,20 @@ download_file_powershell.viable = (
     lambda: platform.name() == 'Windows' and platform.win32_ver()[1] >= '6'
 )
 
+def download_file_curl(url, target):
+    cmd = ['curl %(url)r -o %(target)s']
+    subprocess.check_call(cmd)
+
+def has_curl():
+    cmd = ['curl --version']
+    try:
+        subprocess.check_call(cmd)
+    except:
+        return False
+    return True
+
+download_file_curl.viable = has_curl
+
 def download_file_insecure(url, target):
     """
     Use Python to download the file, even though it cannot authenticate the
@@ -187,7 +201,7 @@ download_file_insecure.viable = lambda: True
 def get_best_downloader():
     downloaders = [
         download_file_powershell,
-        #download_file_curl,
+        download_file_curl,
         #download_file_wget,
         download_file_insecure,
     ]
