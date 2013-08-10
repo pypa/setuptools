@@ -1,11 +1,21 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 # NOTE: the shebang and encoding lines are for ScriptHeaderTests; do not remove
-from unittest import TestCase, makeSuite; from pkg_resources import *
+
+import os
+import sys
+import tempfile
+import shutil
+from unittest import TestCase
+
+import pkg_resources
+from pkg_resources import *
+
 from setuptools.command.easy_install import get_script_header, is_sh
 from setuptools.compat import StringIO, iteritems
-import os, pkg_resources, sys, tempfile, shutil
-try: frozenset
+
+try:
+    frozenset
 except NameError:
     from sets import ImmutableSet as frozenset
 
