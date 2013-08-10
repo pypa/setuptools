@@ -6,6 +6,8 @@ import shutil
 import socket
 import base64
 
+import ConfigParser
+
 from pkg_resources import (
     CHECKOUT_DIST, Distribution, BINARY_DIST, normalize_path, SOURCE_DIST,
     require, Environment, find_distributions, safe_name, safe_version,
@@ -918,6 +920,37 @@ def _encode_auth(auth):
     # strip the trailing carriage return
     return encoded.rstrip()
 
+class PyPirc:
+
+    def __init__(self):
+        """
+            Extract pypirc authentication information from home directory
+        """
+        self.dict_ = {}
+
+        if os.environ.has_key('HOME'):
+            rc = os.path.join(os.environ['HOME'], '.pypirc')
+            if os.path.exists(rc):
+                config = ConfigParser.ConfigParser({
+                        'username' : '',
+                        'password' : '',
+                        'repository' : ''})
+                config.read(rc)
+
+                for section in config.sections():
+                    if config.get(section, 'repository').strip():
+                        value = '%s:%s'%(config.get(section, 'username').strip(),
+                                         config.get(section, 'password').strip())
+                        self.dict_[config.get(section, 'repository').strip()] = value
+                        
+    def __call__(self, url):
+        """ """
+        for base_url, auth in self.dict_.items():
+            if url.startswith(base_url):
+                return auth
+
+
+
 def open_with_auth(url, opener=urllib2.urlopen):
     """Open a urllib2 request, handling HTTP authentication"""
 
@@ -932,6 +965,10 @@ def open_with_auth(url, opener=urllib2.urlopen):
         auth, host = splituser(netloc)
     else:
         auth = None
+
+    if not auth:
+        auth = PyPirc()(url)
+        log.info('Authentication found for URL: %s'%url)
 
     if auth:
         auth = "Basic " + _encode_auth(auth)
