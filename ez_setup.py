@@ -156,7 +156,7 @@ def download_file_powershell(url, target):
     subprocess.check_call(cmd)
 
 download_file_powershell.viable = (
-    lambda: platform.name() == 'Windows' and platform.win32_ver()[1] >= '6'
+    lambda: platform.system() == 'Windows' and platform.win32_ver()[1] >= '6'
 )
 
 def download_file_curl(url, target):
@@ -165,10 +165,13 @@ def download_file_curl(url, target):
 
 def has_curl():
     cmd = ['curl', '--version']
+    devnull = open(os.path.devnull, 'wb')
     try:
-        subprocess.check_call(cmd)
+        subprocess.check_call(cmd, stdout=devnull, stderr=devnull)
     except:
         return False
+    finally:
+        devnull.close()
     return True
 
 download_file_curl.viable = has_curl
@@ -179,13 +182,16 @@ def download_file_wget(url, target):
 
 def has_wget():
     cmd = ['wget', '--version']
+    devnull = open(os.path.devnull, 'wb')
     try:
-        subprocess.check_call(cmd)
+        subprocess.check_call(cmd, stdout=devnull, stderr=devnull)
     except:
         return False
+    finally:
+        devnull.close()
     return True
 
-download_file_curl.viable = has_wget
+download_file_wget.viable = has_wget
 
 def download_file_insecure(url, target):
     """
