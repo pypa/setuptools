@@ -160,7 +160,7 @@ download_file_powershell.viable = (
 )
 
 def download_file_curl(url, target):
-    cmd = ['curl', url, '-o', target]
+    cmd = ['curl', url, '--silent', '--output', target]
     subprocess.check_call(cmd)
 
 def has_curl():
@@ -174,7 +174,7 @@ def has_curl():
 download_file_curl.viable = has_curl
 
 def download_file_wget(url, target):
-    cmd = ['wget', url, '-q', '-O', target]
+    cmd = ['wget', url, '--quiet', '--output-document', target]
     subprocess.check_call(cmd)
 
 def has_wget():
