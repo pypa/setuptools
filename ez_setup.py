@@ -160,11 +160,11 @@ download_file_powershell.viable = (
 )
 
 def download_file_curl(url, target):
-    cmd = ['curl %(url)r -o %(target)s']
+    cmd = ['curl', url, '-o', target]
     subprocess.check_call(cmd)
 
 def has_curl():
-    cmd = ['curl --version']
+    cmd = ['curl', '--version']
     try:
         subprocess.check_call(cmd)
     except:
@@ -172,6 +172,20 @@ def has_curl():
     return True
 
 download_file_curl.viable = has_curl
+
+def download_file_wget(url, target):
+    cmd = ['wget', url, '-q', '-O', target]
+    subprocess.check_call(cmd)
+
+def has_wget():
+    cmd = ['wget', '--version']
+    try:
+        subprocess.check_call(cmd)
+    except:
+        return False
+    return True
+
+download_file_curl.viable = has_wget
 
 def download_file_insecure(url, target):
     """
@@ -202,7 +216,7 @@ def get_best_downloader():
     downloaders = [
         download_file_powershell,
         download_file_curl,
-        #download_file_wget,
+        download_file_wget,
         download_file_insecure,
     ]
 
