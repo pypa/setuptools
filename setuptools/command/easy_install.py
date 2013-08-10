@@ -1818,7 +1818,7 @@ class ScriptWriter(object):
     @classmethod
     def get_writer(cls, force_windows):
         if force_windows or sys.platform=='win32':
-            return WindowsScriptWriter
+            return WindowsScriptWriter.get_writer()
         return cls
 
     @classmethod
@@ -1828,6 +1828,49 @@ class ScriptWriter(object):
 
 
 class WindowsScriptWriter(ScriptWriter):
+    @classmethod
+    def get_writer(cls):
+        """
+        Get a script writer suitable for Windows
+        """
+        # for compatibility, return the writer that creates exe launchers
+        #  unless the SETUPTOOLS_USE_PYLAUNCHER is set, indicating
+        #  future behavior.
+        use_legacy = 'SETUPTOOLS_USE_PYLAUNCHER' not in os.environ
+        if use_legacy:
+            return WindowsLauncherScriptWriter
+        return cls
+
+    @classmethod
+    def _get_script_args(cls, type_, name, header, script_text):
+        "For Windows, add a .py extension"
+        ext = dict(console='.py', gui='.pyw')[type_]
+        old = ['.py', '.pyc', '.pyo', '.pyw', '.exe']
+        old.remove(ext)
+        header = cls._adjust_header(type_, header)
+        blockers = [name+x for x in old]
+        yield name+ext, header+script_text, 't', blockers
+
+    @staticmethod
+    def _adjust_header(type_, orig_header):
+        """
+        Make sure 'pythonw' is used for gui and and 'python' is used for
+        console (regardless of what sys.executable is).
+        """
+        pattern = 'pythonw.exe'
+        repl = 'python.exe'
+        if type_ == 'gui':
+            pattern, repl = repl, pattern
+        pattern_ob = re.compile(re.escape(pattern), re.IGNORECASE)
+        new_header = pattern_ob.sub(string=orig_header, repl=repl)
+        clean_header = new_header[2:-1].strip('"')
+        if sys.platform == 'win32' and not os.path.exists(clean_header):
+            # the adjusted version doesn't exist, so return the original
+            return orig_header
+        return new_header
+
+
+class WindowsLauncherScriptWriter(WindowsScriptWriter):
     @classmethod
     def _get_script_args(cls, type_, name, header, script_text):
         """
@@ -1856,24 +1899,6 @@ class WindowsScriptWriter(ScriptWriter):
             #  See Distribute #143 for details.
             m_name = name + '.exe.manifest'
             yield (m_name, load_launcher_manifest(name), 't')
-
-    @staticmethod
-    def _adjust_header(type_, orig_header):
-        """
-        Make sure 'pythonw' is used for gui and and 'python' is used for
-        console (regardless of what sys.executable is).
-        """
-        pattern = 'pythonw.exe'
-        repl = 'python.exe'
-        if type_ == 'gui':
-            pattern, repl = repl, pattern
-        pattern_ob = re.compile(re.escape(pattern), re.IGNORECASE)
-        new_header = pattern_ob.sub(string=orig_header, repl=repl)
-        clean_header = new_header[2:-1].strip('"')
-        if sys.platform == 'win32' and not os.path.exists(clean_header):
-            # the adjusted version doesn't exist, so return the original
-            return orig_header
-        return new_header
 
 # for backward-compatibility
 get_script_args = ScriptWriter.get_script_args

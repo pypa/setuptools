@@ -96,6 +96,15 @@ sections below on `Command-Line Options`_ and `Configuration Files`_.  You
 can pass command line options (such as ``--script-dir``) to
 ``ez_setup.py`` to control where ``easy_install.exe`` will be installed.
 
+Setuptools also supports deferring to an external launcher such as
+`pylauncher <https://bitbucket.org/pypa/pylauncher>`_ for launching scripts.
+Enable this experimental functionality by setting the
+``SETUPTOOLS_USE_PYLAUNCHER`` environment variable. Setuptools will then not
+install its own launcher executable, but will install scripts as simple
+scripts with a .py (or .pyw) extension appended. If these extensions are
+associated with the pylauncher and listed in the PATHEXT environment variable,
+these scripts can then be invoked simply and directly just like any other
+executable.
 
 
 Downloading and Installing a Package

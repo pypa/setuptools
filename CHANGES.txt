@@ -6,6 +6,13 @@ CHANGES
 1.0
 ---
 
+* On Windows, Setuptools supports deferring to Vinay Sajip's `pylauncher
+  <https://bitbucket.org/pypa/pylauncher>`_ (included with Python 3.3) to
+  launch console and GUI scripts and not install its own launcher
+  executables. This experimental functionality is currently only enabled if
+  the ``SETUPTOOLS_USE_PYLAUNCHER`` environment variable is set (to anything).
+  In the future, this behavior may become default, but only after it has
+  matured and seen substantial adoption.
 * Issue #50: Normalized API of environment marker support. Specifically,
   removed line number and filename from SyntaxErrors when returned from
   `pkg_resources.invalid_marker`. Any clients depending on the specific
