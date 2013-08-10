@@ -502,6 +502,7 @@ class ParseTests(TestCase):
 
 class ScriptHeaderTests(TestCase):
     non_ascii_exe = '/Users/José/bin/python'
+    exe_with_spaces = r'C:\Program Files\Python33\python.exe'
 
     def test_get_script_header(self):
         if not sys.platform.startswith('java') or not is_sh(sys.executable):
@@ -515,6 +516,9 @@ class ScriptHeaderTests(TestCase):
             self.assertEqual(get_script_header('#!/usr/bin/python',
                                                executable=self.non_ascii_exe),
                              '#!%s -x\n' % self.non_ascii_exe)
+            candidate = get_script_header('#!/usr/bin/python',
+                executable=self.exe_with_spaces)
+            self.assertEqual(candidate, '#!"%s"\n' % self.exe_with_spaces)
 
     def test_get_script_header_jython_workaround(self):
         # This test doesn't work with Python 3 in some locales
