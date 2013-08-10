@@ -1271,9 +1271,15 @@ def normalize_exception(exc):
     """
     Given a SyntaxError from a marker evaluation, normalize the error message:
      - Remove indications of filename and line number.
+     - Replace platform-specific error messages with standard error messages.
     """
+    subs = {
+        'unexpected EOF while parsing': 'invalid syntax',
+        'parenthesis is never closed': 'invalid syntax',
+    }
     exc.filename = None
     exc.lineno = None
+    exc.msg = subs.get(exc.msg, exc.msg)
     return exc
 
 

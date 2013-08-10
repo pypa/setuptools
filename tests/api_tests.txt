@@ -342,7 +342,7 @@ Environment Markers
     Comparison or logical expression expected
 
     >>> print(im("sys_platform=="))
-    unexpected EOF while parsing
+    invalid syntax
 
     >>> print(im("sys_platform=='win32'"))
     False
@@ -354,7 +354,7 @@ Environment Markers
     Comparison or logical expression expected
 
     >>> print(im("(extra"))
-    unexpected EOF while parsing
+    invalid syntax
 
     >>> print(im("os.open('foo')=='y'"))
     Language feature not supported in environment markers
