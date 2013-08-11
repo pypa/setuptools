@@ -194,6 +194,12 @@ class VerifyingHTTPSConn(HTTPSConnection):
         sock = create_connection(
             (self.host, self.port), getattr(self,'source_address',None)
         )
+
+        # Handle the socket if a (proxy) tunnel is present
+        if hasattr(self, '_tunnel') and getattr(self, '_tunnel_host', None):
+            self.sock = sock
+            self._tunnel()
+
         self.sock = ssl.wrap_socket(
             sock, cert_reqs=ssl.CERT_REQUIRED, ca_certs=self.ca_bundle
         )
