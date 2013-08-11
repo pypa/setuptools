@@ -254,7 +254,8 @@ class Distribution(_Distribution):
         have_package_data = hasattr(self, "package_data")
         if not have_package_data:
             self.package_data = {}
-        if 'features' in attrs or 'require_features' in attrs:
+        _attrs_dict = attrs or {}
+        if 'features' in _attrs_dict or 'require_features' in _attrs_dict:
             Feature.warn_deprecated()
         self.require_features = []
         self.features = {}
