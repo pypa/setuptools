@@ -24,6 +24,7 @@ CHANGES
   wget for retrieving the Setuptools tarball for improved security of the
   install. The script will still fall back to a simple ``urlopen`` on
   platforms that do not have these tools.
+* Issue #65: Deprecated the ``Features`` functionality.
 
 -----
 0.9.8

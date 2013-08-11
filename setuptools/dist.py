@@ -2,6 +2,7 @@ __all__ = ['Distribution']
 
 import re
 import sys
+import warnings
 from distutils.core import Distribution as _Distribution
 from setuptools.depends import Require
 from setuptools.command.install import install
@@ -132,7 +133,7 @@ def check_packages(dist, attr, value):
                 "WARNING: %r not a valid package name; please use only"
                 ".-separated package names in setup.py", pkgname
             )
-            
+
 
 
 
@@ -194,7 +195,8 @@ class Distribution(_Distribution):
         EasyInstall and requests one of your extras, the corresponding
         additional requirements will be installed if needed.
 
-     'features' -- a dictionary mapping option names to 'setuptools.Feature'
+     'features' **deprecated** -- a dictionary mapping option names to
+        'setuptools.Feature'
         objects.  Features are a portion of the distribution that can be
         included or excluded based on user options, inter-feature dependencies,
         and availability on the current system.  Excluded features are omitted
@@ -252,6 +254,8 @@ class Distribution(_Distribution):
         have_package_data = hasattr(self, "package_data")
         if not have_package_data:
             self.package_data = {}
+        if 'features' in attrs or 'require_features' in attrs:
+            Feature.warn_deprecated()
         self.require_features = []
         self.features = {}
         self.dist_files = []
@@ -745,7 +749,13 @@ for module in distutils.dist, distutils.core, distutils.cmd:
 
 
 class Feature:
-    """A subset of the distribution that can be excluded if unneeded/wanted
+    """
+    **deprecated** -- The `Feature` facility was never completely implemented
+    or supported, `has reported issues
+    <https://bitbucket.org/pypa/setuptools/issue/58>`_ and will be removed in
+    a future version.
+
+    A subset of the distribution that can be excluded if unneeded/wanted
 
     Features are created using these keyword arguments:
 
@@ -794,9 +804,17 @@ class Feature:
     Aside from the methods, the only feature attributes that distributions look
     at are 'description' and 'optional'.
     """
+
+    @staticmethod
+    def warn_deprecated():
+        warnings.warn("Features are deprecated and will be removed in "
+            "a future version. See http://bitbucket.org/pypa/setuptools/65.",
+            DeprecationWarning)
+
     def __init__(self, description, standard=False, available=True,
         optional=True, require_features=(), remove=(), **extras
     ):
+        self.warn_deprecated()
 
         self.description = description
         self.standard = standard
