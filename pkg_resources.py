@@ -13,7 +13,14 @@ The package resource API is designed to work with normal filesystem packages,
 method.
 """
 
-import sys, os, time, re, imp, types, zipfile, zipimport
+import sys
+import os
+import time
+import re
+import imp
+import types
+import zipfile
+import zipimport
 import warnings
 import stat
 try:
