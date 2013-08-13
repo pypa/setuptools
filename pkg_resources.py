@@ -18,7 +18,6 @@ import os
 import time
 import re
 import imp
-import types
 import zipfile
 import zipimport
 import warnings
