@@ -1845,7 +1845,7 @@ class WindowsScriptWriter(ScriptWriter):
     def _get_script_args(cls, type_, name, header, script_text):
         "For Windows, add a .py extension"
         ext = dict(console='.py', gui='.pyw')[type_]
-        old = ['.py', '.pyc', '.pyo', '.pyw', '.exe']
+        old = ['.py', '-script.py', '.pyc', '.pyo', '.pyw', '.exe']
         old.remove(ext)
         header = cls._adjust_header(type_, header)
         blockers = [name+x for x in old]
