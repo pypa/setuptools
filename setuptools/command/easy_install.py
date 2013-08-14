@@ -23,6 +23,7 @@ import stat
 import random
 import platform
 import textwrap
+import warnings
 from glob import glob
 from distutils import log, dir_util
 
@@ -1845,6 +1846,9 @@ class WindowsScriptWriter(ScriptWriter):
     def _get_script_args(cls, type_, name, header, script_text):
         "For Windows, add a .py extension"
         ext = dict(console='.pya', gui='.pyw')[type_]
+        if ext not in os.environ['PATHEXT'].lower().split(';'):
+            warnings.warn("%s not listed in PATHEXT; scripts will not be "
+                "recognized as executables." % ext, UserWarning)
         old = ['.pya', '.py', '-script.py', '.pyc', '.pyo', '.pyw', '.exe']
         old.remove(ext)
         header = cls._adjust_header(type_, header)
