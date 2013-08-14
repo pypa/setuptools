@@ -1262,7 +1262,7 @@ Here are some of your options for correcting the problem:
   https://pythonhosted.org/setuptools/easy_install.html#custom-installation-locations
 
 Please make the appropriate changes for your system and try again."""
-        return template % self.install_dir, os.environ.get('PYTHONPATH','')
+        return template % (self.install_dir, os.environ.get('PYTHONPATH',''))
 
     def install_site_py(self):
         """Make sure there's a site.py in the target dir, if needed"""
