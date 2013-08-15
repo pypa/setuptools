@@ -808,9 +808,12 @@ class Feature:
 
     @staticmethod
     def warn_deprecated():
-        warnings.warn("Features are deprecated and will be removed in "
-            "a future version. See http://bitbucket.org/pypa/setuptools/65.",
-            DeprecationWarning)
+        warnings.warn(
+            "Features are deprecated and will be removed in a future "
+                "version. See http://bitbucket.org/pypa/setuptools/65.",
+            DeprecationWarning,
+            stacklevel=3,
+        )
 
     def __init__(self, description, standard=False, available=True,
         optional=True, require_features=(), remove=(), **extras
