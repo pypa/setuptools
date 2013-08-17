@@ -76,36 +76,10 @@ section on `Custom Installation Locations`_ for more details.
 Windows Notes
 ~~~~~~~~~~~~~
 
-On Windows, an ``easy_install.exe`` launcher will also be installed, so that
-you can just type ``easy_install`` as long as it's on your ``PATH``.  If typing
-``easy_install`` at the command prompt doesn't work, check to make sure your
-``PATH`` includes the appropriate ``C:\\Python2X\\Scripts`` directory.  On
-most current versions of Windows, you can change the ``PATH`` by right-clicking
-"My Computer", choosing "Properties" and selecting the "Advanced" tab, then
-clicking the "Environment Variables" button.  ``PATH`` will be in the "System
-Variables" section, and you will need to exit and restart your command shell
-(command.com, cmd.exe, bash, or other) for the change to take effect.  Be sure
-to add a ``;`` after the last item on ``PATH`` before adding the scripts
-directory to it.
-
-Note that instead of changing your ``PATH`` to include the Python scripts
-directory, you can also retarget the installation location for scripts so they
-go on a directory that's already on the ``PATH``.  For more information see the
-sections below on `Command-Line Options`_ and `Configuration Files`_.  You
-can pass command line options (such as ``--script-dir``) to
-``ez_setup.py`` to control where ``easy_install.exe`` will be installed.
-
-Setuptools also supports deferring to an external launcher such as
-`pylauncher <https://bitbucket.org/pypa/pylauncher>`_ for launching scripts.
-Enable this experimental functionality by setting the
-``SETUPTOOLS_LAUNCHER`` environment variable to "natural". Setuptools will
-then not
-install its own launcher executable, but will install scripts as simple
-scripts with a .pya (or .pyw) extension appended. If these extensions are
-associated with the pylauncher and listed in the PATHEXT environment variable,
-these scripts can then be invoked simply and directly just like any other
-executable. This behavior may become default in a future version. To force
-the use of executable launchers, set ``SETUPTOOLS_LAUNCHER`` to "executable".
+Installing setuptools will provide an ``easy_install`` command according to
+the techniques described in `Executables and Launchers`_. If the
+``easy_install`` command is not available after installation, that section
+provides details on how to configure Windows to make the commands available.
 
 
 Downloading and Installing a Package
@@ -314,6 +288,64 @@ different version of the package.  (Notice that we used ``-m`` for both
 installations, so that Python won't lock us out of using anything but the most
 recently-installed version of the package.)
 
+
+Executables and Launchers
+-------------------------
+
+On Unix systems, scripts are installed with as natural files with a "#!"
+header and no extension and they launch under the Python version indicated in
+the header.
+
+On Windows, there is no mechanism to "execute" files without extensions, so
+EasyInstall provides two techniques to mirror the Unix behavior. The behavior
+is indicated by the SETUPTOOLS_LAUNCHER environment variable, which may be
+"executable" (default) or "natural".
+
+Regardless of the technique used, the script(s) will be installed to a Scripts
+directory (by default in the Python installation directory). It is recommended
+for EasyInstall that you ensure this directory is in the PATH environment
+variable. The easiest way to ensure the Scripts directory is in the PATH is
+to run ``Tools\Scripts\win_add2path.py`` from the Python directory (requires
+Python 2.6 or later).
+
+Note that instead of changing your ``PATH`` to include the Python scripts
+directory, you can also retarget the installation location for scripts so they
+go on a directory that's already on the ``PATH``.  For more information see
+`Command-Line Options`_ and `Configuration Files`_.  During installation,
+pass command line options (such as ``--script-dir``) to
+``ez_setup.py`` to control where ``easy_install.exe`` will be installed.
+
+
+Windows Executable Launcher
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the "executable" launcher is used, EasyInstall will create a '.exe'
+launcher of the same name beside each installed script (including
+``easy_install`` itself). These small .exe files launch the script of the
+same name using the Python version indicated in the '#!' header.
+
+This behavior is currently default. To force
+the use of executable launchers, set ``SETUPTOOLS_LAUNCHER`` to "executable".
+
+Natural Script Launcher
+~~~~~~~~~~~~~~~~~~~~~~~
+
+EasyInstall also supports deferring to an external launcher such as
+`pylauncher <https://bitbucket.org/pypa/pylauncher>`_ for launching scripts.
+Enable this experimental functionality by setting the
+``SETUPTOOLS_LAUNCHER`` environment variable to "natural". EasyInstall will
+then install scripts as simple
+scripts with a .pya (or .pyw) extension appended. If these extensions are
+associated with the pylauncher and listed in the PATHEXT environment variable,
+these scripts can then be invoked simply and directly just like any other
+executable. This behavior may become default in a future version.
+
+EasyInstall uses the .pya extension instead of simply
+the typical '.py' extension. This distinct extension is necessary to prevent
+Python
+from treating the scripts as importable modules (where name conflicts exist).
+Current releases of pylauncher do not yet associate with .pya files by
+default, but future versions should do so.
 
 
 Tips & Techniques
