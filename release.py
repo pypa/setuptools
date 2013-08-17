@@ -15,6 +15,9 @@ def before_upload():
     _linkify('CHANGES.txt', 'CHANGES (links).txt')
     _add_bootstrap_bookmark()
 
+def after_push():
+    _push_bootstrap_bookmark()
+
 files_with_versions = (
     'ez_setup.py', 'setuptools/version.py',
 )
@@ -22,17 +25,6 @@ files_with_versions = (
 test_info = "Travis-CI tests: http://travis-ci.org/#!/jaraco/setuptools"
 
 os.environ["SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES"] = "1"
-
-# override the push command to include the bootstrap bookmark.
-def after_push():
-    """
-    Push the bootstrap bookmark
-    """
-    push_command = ['hg', 'push', '-B', 'bootstrap']
-    # don't use check_call here because mercurial will return a non-zero
-    # code even if it succeeds at pushing the bookmark (because there are
-    # no changesets to be pushed). !dm mercurial
-    subprocess.call(push_command)
 
 link_patterns = [
     r"(Issue )?#(?P<issue>\d+)",
@@ -73,3 +65,13 @@ def replacer(match):
 def _add_bootstrap_bookmark():
     cmd = ['hg', 'bookmark', '-i', 'bootstrap', '-f']
     subprocess.Popen(cmd)
+
+def _push_bootstrap_bookmark():
+    """
+    Push the bootstrap bookmark
+    """
+    push_command = ['hg', 'push', '-B', 'bootstrap']
+    # don't use check_call here because mercurial will return a non-zero
+    # code even if it succeeds at pushing the bookmark (because there are
+    # no changesets to be pushed). !dm mercurial
+    subprocess.call(push_command)
