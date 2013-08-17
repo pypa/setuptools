@@ -13,10 +13,10 @@ pkg_resources.require('jaraco.packaging>=2.0')
 
 def before_upload():
     _linkify('CHANGES.txt', 'CHANGES (links).txt')
-    _add_bootstrap_bookmark()
+    BootstrapBookmark.add()
 
 def after_push():
-    _push_bootstrap_bookmark()
+    BootstrapBookmark.push()
 
 files_with_versions = (
     'ez_setup.py', 'setuptools/version.py',
@@ -61,17 +61,19 @@ def replacer(match):
             url = issue_urls[key].format(**match_dict)
             return "`{text} <{url}>`_".format(text=text, url=url)
 
+class BootstrapBookmark:
+    @staticmethod
+    def add():
+        cmd = ['hg', 'bookmark', '-i', 'bootstrap', '-f']
+        subprocess.Popen(cmd)
 
-def _add_bootstrap_bookmark():
-    cmd = ['hg', 'bookmark', '-i', 'bootstrap', '-f']
-    subprocess.Popen(cmd)
-
-def _push_bootstrap_bookmark():
-    """
-    Push the bootstrap bookmark
-    """
-    push_command = ['hg', 'push', '-B', 'bootstrap']
-    # don't use check_call here because mercurial will return a non-zero
-    # code even if it succeeds at pushing the bookmark (because there are
-    # no changesets to be pushed). !dm mercurial
-    subprocess.call(push_command)
+    @staticmethod
+    def push():
+        """
+        Push the bootstrap bookmark
+        """
+        push_command = ['hg', 'push', '-B', 'bootstrap']
+        # don't use check_call here because mercurial will return a non-zero
+        # code even if it succeeds at pushing the bookmark (because there are
+        # no changesets to be pushed). !dm mercurial
+        subprocess.call(push_command)
