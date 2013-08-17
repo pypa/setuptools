@@ -125,9 +125,6 @@ class easy_install(Command):
         ("always-copy", "a", "Copy all needed packages to install dir"),
         ("index-url=", "i", "base URL of Python Package Index"),
         ("find-links=", "f", "additional URL(s) to search for packages"),
-        ("delete-conflicting", "D", "no longer needed; don't use this"),
-        ("ignore-conflicts-at-my-risk", None,
-            "no longer needed; don't use this"),
         ("build-directory=", "b",
             "download/extract/build in DIR; keep the results"),
         ('optimize=', 'O',
@@ -148,7 +145,7 @@ class easy_install(Command):
     ]
     boolean_options = [
         'zip-ok', 'multi-version', 'exclude-scripts', 'upgrade', 'always-copy',
-        'delete-conflicting', 'ignore-conflicts-at-my-risk', 'editable',
+        'editable',
         'no-deps', 'local-snapshots-ok', 'version'
     ]
 
@@ -197,8 +194,6 @@ class easy_install(Command):
         # Options not specifiable via command line
         self.package_index = None
         self.pth_file = self.always_copy_from = None
-        self.delete_conflicting = None
-        self.ignore_conflicts_at_my_risk = None
         self.site_dirs = None
         self.installed_projects = {}
         self.sitepy_installed = False
@@ -342,11 +337,6 @@ class easy_install(Command):
             except ValueError:
                 raise DistutilsOptionError("--optimize must be 0, 1, or 2")
 
-        if self.delete_conflicting and self.ignore_conflicts_at_my_risk:
-            raise DistutilsOptionError(
-                "Can't use both --delete-conflicting and "
-                "--ignore-conflicts-at-my-risk at the same time"
-            )
         if self.editable and not self.build_directory:
             raise DistutilsArgError(
                 "Must specify a build directory (-b) when using --editable"
@@ -411,12 +401,7 @@ class easy_install(Command):
         return os.path.join(self.install_dir, "test-easy-install-%s" % pid)
 
     def warn_deprecated_options(self):
-        if self.delete_conflicting or self.ignore_conflicts_at_my_risk:
-            log.warn(
-                "Note: The -D, --delete-conflicting and"
-                " --ignore-conflicts-at-my-risk no longer have any purpose"
-                " and should not be used."
-            )
+        pass
 
     def check_site_dir(self):
         """Verify that self.install_dir is .pth-capable dir, if needed"""
@@ -1005,10 +990,6 @@ Please make the appropriate changes for your system and try again.
         return dist
 
     def found_conflicts(self, dist, blockers):
-        if self.delete_conflicting:
-            log.warn("Attempting to delete conflicting packages:")
-            return self.delete_blockers(blockers)
-
         msg = """\
 -------------------------------------------------------------------------
 CONFLICT WARNING:
@@ -1021,29 +1002,12 @@ installing:
 
    %s
 
+-------------------------------------------------------------------------
 """ % '\n   '.join(blockers)
 
-        if self.ignore_conflicts_at_my_risk:
-            msg += """\
-(Note: you can run EasyInstall on '%s' with the
---delete-conflicting option to attempt deletion of the above files
-and/or directories.)
-""" % dist.project_name
-        else:
-            msg += """\
-Note: you can attempt this installation again with EasyInstall, and use
-either the --delete-conflicting (-D) option or the
---ignore-conflicts-at-my-risk option, to either delete the above files
-and directories, or to ignore the conflicts, respectively.  Note that if
-you ignore the conflicts, the installed package(s) may not work.
-"""
-        msg += """\
--------------------------------------------------------------------------
-"""
         sys.stderr.write(msg)
         sys.stderr.flush()
-        if not self.ignore_conflicts_at_my_risk:
-            raise DistutilsError("Installation aborted due to conflicts")
+        raise DistutilsError("Installation aborted due to conflicts")
 
     def installation_report(self, req, dist, what="Installed"):
         """Helpful installation message for display to package users"""

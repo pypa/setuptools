@@ -572,14 +572,12 @@ install``, becuase the ``distutils`` just install new packages on top of old
 ones, possibly combining two unrelated packages or leaving behind modules that
 have been deleted in the newer version of the package.)
 
-By default, EasyInstall will stop the installation if it detects a conflict
+EasyInstall will stop the installation if it detects a conflict
 between an existing, "unmanaged" package, and a module or package in any of
 the distributions you're installing.  It will display a list of all of the
 existing files and directories that would need to be deleted for the new
-package to be able to function correctly.  You can then either delete these
-conflicting files and directories yourself and re-run EasyInstall, or you can
-just use the ``--delete-conflicting`` or ``--ignore-conflicts-at-my-risk``
-options, as described under `Command-Line Options`_, below.
+package to be able to function correctly.  To proceed, you must manually
+delete these conflicting files and directories and re-run EasyInstall.
 
 Of course, once you've replaced all of your existing "unmanaged" packages with
 versions managed by EasyInstall, you won't have any more conflicts to worry
@@ -822,27 +820,6 @@ Command-Line Options
     dependency). When used, ``--find-links`` is ignored.
 
     Added in Distribute 0.6.11 and Setuptools 0.7.
-
-``--delete-conflicting, -D`` (Removed in 0.6a11)
-    (As of 0.6a11, this option is no longer necessary; please do not use it!)
-
-    If you are replacing a package that was previously installed *without*
-    using EasyInstall, the old version may end up on ``sys.path`` before the
-    version being installed with EasyInstall.  EasyInstall will normally abort
-    the installation of a package if it detects such a conflict, and ask you to
-    manually remove the conflicting files or directories.  If you specify this
-    option, however, EasyInstall will attempt to delete the files or
-    directories itself, and then proceed with the installation.
-
-``--ignore-conflicts-at-my-risk`` (Removed in 0.6a11)
-    (As of 0.6a11, this option is no longer necessary; please do not use it!)
-
-    Ignore conflicting packages and proceed with installation anyway, even
-    though it means the package probably won't work properly.  If the
-    conflicting package is in a directory you can't write to, this may be your
-    only option, but you will need to take more invasive measures to get the
-    installed package to work, like manually adding it to ``PYTHONPATH`` or to
-    ``sys.path`` at runtime.
 
 ``--index-url=URL, -i URL`` (New in 0.4a1; default changed in 0.6c7)
     Specifies the base URL of the Python Package Index.  The default is
