@@ -351,20 +351,18 @@ default, but future versions should do so.
 Tips & Techniques
 -----------------
 
-
 Multiple Python Versions
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-As of version 0.6a11, EasyInstall installs itself under two names:
+EasyInstall installs itself under two names:
 ``easy_install`` and ``easy_install-N.N``, where ``N.N`` is the Python version
-used to install it.  Thus, if you install EasyInstall for both Python 2.3 and
-2.4, you can use the ``easy_install-2.3`` or ``easy_install-2.4`` scripts to
-install packages for Python 2.3 or 2.4, respectively.
+used to install it.  Thus, if you install EasyInstall for both Python 3.2 and
+2.7, you can use the ``easy_install-3.2`` or ``easy_install-2.7`` scripts to
+install packages for the respective Python version.
 
-Also, if you're working with Python version 2.4 or higher, you can run Python
-with ``-m easy_install`` to run that particular Python version's
-``easy_install`` command.
-
+Setuptools also supplies easy_install as a runnable module which may be
+invoked using ``python -m easy_install`` for any Python with Setuptools
+installed.
 
 Restricting Downloads with ``--allow-hosts``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
