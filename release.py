@@ -62,17 +62,19 @@ def replacer(match):
             return "`{text} <{url}>`_".format(text=text, url=url)
 
 class BootstrapBookmark:
-    @staticmethod
-    def add():
-        cmd = ['hg', 'bookmark', '-i', 'bootstrap', '-f']
+    name = 'bootstrap'
+
+    @classmethod
+    def add(cls):
+        cmd = ['hg', 'bookmark', '-i', cls.name, '-f']
         subprocess.Popen(cmd)
 
-    @staticmethod
-    def push():
+    @classmethod
+    def push(cls):
         """
         Push the bootstrap bookmark
         """
-        push_command = ['hg', 'push', '-B', 'bootstrap']
+        push_command = ['hg', 'push', '-B', cls.name]
         # don't use check_call here because mercurial will return a non-zero
         # code even if it succeeds at pushing the bookmark (because there are
         # no changesets to be pushed). !dm mercurial
