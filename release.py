@@ -11,11 +11,14 @@ import pkg_resources
 
 pkg_resources.require('jaraco.packaging>=2.0')
 
+
 def before_upload():
     _linkify('CHANGES.txt', 'CHANGES (links).txt')
     BootstrapBookmark.add()
 
+
 def after_push():
+    os.remove('CHANGES (links).txt')
     BootstrapBookmark.push()
 
 files_with_versions = (
