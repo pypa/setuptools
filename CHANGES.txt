@@ -10,9 +10,11 @@ CHANGES
   <https://bitbucket.org/pypa/pylauncher>`_ (included with Python 3.3) to
   launch console and GUI scripts and not install its own launcher
   executables. This experimental functionality is currently only enabled if
-  the ``SETUPTOOLS_USE_PYLAUNCHER`` environment variable is set (to anything).
+  the ``SETUPTOOLS_LAUNCHER`` environment variable is set to "natural".
   In the future, this behavior may become default, but only after it has
-  matured and seen substantial adoption.
+  matured and seen substantial adoption. The ``SETUPTOOLS_LAUNCHER`` also
+  accepts "executable" to force the default behavior of creating launcher
+  executables.
 * Issue #63: Bootstrap script (ez_setup.py) now prefers Powershell, curl, or
   wget for retrieving the Setuptools tarball for improved security of the
   install. The script will still fall back to a simple ``urlopen`` on

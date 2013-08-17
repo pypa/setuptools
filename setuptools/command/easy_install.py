@@ -1834,13 +1834,13 @@ class WindowsScriptWriter(ScriptWriter):
         """
         Get a script writer suitable for Windows
         """
-        # for compatibility, return the writer that creates exe launchers
-        #  unless the SETUPTOOLS_USE_PYLAUNCHER is set, indicating
-        #  future behavior.
-        use_legacy = 'SETUPTOOLS_USE_PYLAUNCHER' not in os.environ
-        if use_legacy:
-            return WindowsLauncherScriptWriter
-        return cls
+        writer_lookup = dict(
+            executable=WindowsExecutableLauncherWriter,
+            natural=cls,
+        )
+        # for compatibility, use the executable launcher by default
+        launcher = os.environ.get('SETUPTOOLS_LAUNCHER', 'executable')
+        return writer_lookup[launcher]
 
     @classmethod
     def _get_script_args(cls, type_, name, header, script_text):
@@ -1874,7 +1874,7 @@ class WindowsScriptWriter(ScriptWriter):
         return new_header
 
 
-class WindowsLauncherScriptWriter(WindowsScriptWriter):
+class WindowsExecutableLauncherWriter(WindowsScriptWriter):
     @classmethod
     def _get_script_args(cls, type_, name, header, script_text):
         """
