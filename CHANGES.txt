@@ -21,7 +21,11 @@ CHANGES
 * Issue #52: In ``VerifyingHTTPSConn``, handle a tunnelled (proxied)
   connection.
 
-Backward-incompatible changes:
+Backward-Incompatible Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This release includes a couple of backward-incompatible changes, but most if
+not all users will find 1.0 a drop-in replacement for 0.9.
 
 * Issue #50: Normalized API of environment marker support. Specifically,
   removed line number and filename from SyntaxErrors when returned from
