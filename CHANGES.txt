@@ -24,7 +24,7 @@ CHANGES
   connection.
 
 Backward-Incompatible Changes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+=============================
 
 This release includes a couple of backward-incompatible changes, but most if
 not all users will find 1.0 a drop-in replacement for 0.9.
@@ -1162,8 +1162,9 @@ easy_install
 
  * ``setuptools`` now finds its commands, ``setup()`` argument validators, and
    metadata writers using entry points, so that they can be extended by
-   third-party packages.  See `Creating distutils Extensions`_ above for more
-   details.
+   third-party packages.  See `Creating distutils Extensions
+   <http://pythonhosted.org/setuptools/setuptools.html#creating-distutils-extensions>`_
+   for more details.
 
  * The vestigial ``depends`` command has been removed.  It was never finished
    or documented, and never would have worked without EasyInstall - which it
