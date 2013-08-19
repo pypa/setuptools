@@ -164,9 +164,20 @@ def download_file_powershell(url, target):
     ]
     subprocess.check_call(cmd)
 
-download_file_powershell.viable = (
-    lambda: platform.system() == 'Windows' and platform.win32_ver()[1] >= '6'
-)
+def has_powershell():
+    if platform.system() != 'Windows':
+        return False
+    cmd = ['powershell', '-Command', 'echo test']
+    devnull = open(os.path.devnull, 'wb')
+    try:
+        subprocess.check_call(cmd, stdout=devnull, stderr=devnull)
+    except:
+        return False
+    finally:
+        devnull.close()
+    return True
+
+download_file_powershell.viable = has_powershell
 
 def download_file_curl(url, target):
     cmd = ['curl', url, '--silent', '--output', target]
