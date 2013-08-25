@@ -12,11 +12,7 @@ from distutils.errors import (DistutilsOptionError, DistutilsPlatformError,
     DistutilsSetupError)
 
 from setuptools.depends import Require
-from setuptools.command.install import install
-from setuptools.command.sdist import sdist
-from setuptools.command.install_lib import install_lib
 from setuptools.compat import numeric_types, basestring
-import setuptools
 import pkg_resources
 
 def _get_unpatched(cls):
