@@ -136,38 +136,6 @@ def check_packages(dist, attr, value):
             )
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class Distribution(_Distribution):
     """Distribution with support for features, tests, and package data
 
@@ -251,7 +219,7 @@ class Distribution(_Distribution):
             dist._version = pkg_resources.safe_version(str(attrs['version']))
             self._patched_dist = dist
 
-    def __init__ (self, attrs=None):
+    def __init__(self, attrs=None):
         have_package_data = hasattr(self, "package_data")
         if not have_package_data:
             self.package_data = {}
@@ -368,23 +336,6 @@ class Distribution(_Distribution):
         self.global_options = self.feature_options = go + self.global_options
         self.negative_opt = self.feature_negopt = no
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     def _finalize_features(self):
         """Add/remove features and resolve dependencies between them"""
 
@@ -401,7 +352,6 @@ class Distribution(_Distribution):
             if not self.feature_is_included(name):
                 feature.exclude_from(self)
                 self._set_feature(name,0)
-
 
     def get_command_class(self, command):
         """Pluggable version of get_command_class()"""
@@ -422,10 +372,6 @@ class Distribution(_Distribution):
                 self.cmdclass[ep.name] = cmdclass
         return _Distribution.print_commands(self)
 
-
-
-
-
     def _set_feature(self,name,status):
         """Set feature's inclusion status"""
         setattr(self,self._feature_attrname(name),status)
@@ -440,8 +386,8 @@ class Distribution(_Distribution):
         if self.feature_is_included(name)==0:
             descr = self.features[name].description
             raise DistutilsOptionError(
-               descr + " is required, but was excluded or is not available"
-           )
+                descr + " is required, but was excluded or is not available"
+            )
         self.features[name].include_in(self)
         self._set_feature(name,1)
 
@@ -489,7 +435,6 @@ class Distribution(_Distribution):
                     if p.name != package and not p.name.startswith(pfx)
             ]
 
-
     def has_contents_for(self,package):
         """Return true if 'exclude_package(package)' would do something"""
 
@@ -498,15 +443,6 @@ class Distribution(_Distribution):
         for p in self.iter_distribution_names():
             if p==package or p.startswith(pfx):
                 return True
-
-
-
-
-
-
-
-
-
 
     def _exclude_misc(self,name,value):
         """Handle 'exclude()' for list/tuple attrs without a special handler"""
@@ -579,17 +515,6 @@ class Distribution(_Distribution):
             )
         list(map(self.exclude_package, packages))
 
-
-
-
-
-
-
-
-
-
-
-
     def _parse_command_opts(self, parser, args):
         # Remove --with-X/--without-X options when processing command args
         self.global_options = self.__class__.global_options
@@ -615,21 +540,6 @@ class Distribution(_Distribution):
                 return []
 
         return nargs
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     def get_cmdline_options(self):
         """Return a '{cmd: {opt:val}}' map of all command-line options
@@ -671,7 +581,6 @@ class Distribution(_Distribution):
 
         return d
 
-
     def iter_distribution_names(self):
         """Yield all packages, modules, and extension names in distribution"""
 
@@ -689,7 +598,6 @@ class Distribution(_Distribution):
             if name.endswith('module'):
                 name = name[:-6]
             yield name
-
 
     def handle_display_options(self, option_order):
         """If there were any non-global "display-only" options
@@ -730,24 +638,6 @@ class Distribution(_Distribution):
 # Install it throughout the distutils
 for module in distutils.dist, distutils.core, distutils.cmd:
     module.Distribution = Distribution
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 class Feature:
@@ -817,8 +707,7 @@ class Feature:
         )
 
     def __init__(self, description, standard=False, available=True,
-        optional=True, require_features=(), remove=(), **extras
-    ):
+            optional=True, require_features=(), remove=(), **extras):
         self.warn_deprecated()
 
         self.description = description
@@ -870,8 +759,6 @@ class Feature:
         for f in self.require_features:
             dist.include_feature(f)
 
-
-
     def exclude_from(self,dist):
 
         """Ensure feature is excluded from distribution
@@ -887,8 +774,6 @@ class Feature:
         if self.remove:
             for item in self.remove:
                 dist.exclude_package(item)
-
-
 
     def validate(self,dist):
 
@@ -909,7 +794,3 @@ class Feature:
                     " doesn't contain any packages or modules under %s"
                     % (self.description, item, item)
                 )
-
-
-
-
