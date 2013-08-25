@@ -1,18 +1,23 @@
 __all__ = ['Distribution']
 
 import re
+import os
 import sys
 import warnings
+import distutils.log
+import distutils.core
+import distutils.cmd
 from distutils.core import Distribution as _Distribution
+from distutils.errors import (DistutilsOptionError, DistutilsPlatformError,
+    DistutilsSetupError)
+
 from setuptools.depends import Require
 from setuptools.command.install import install
 from setuptools.command.sdist import sdist
 from setuptools.command.install_lib import install_lib
 from setuptools.compat import numeric_types, basestring
-from distutils.errors import DistutilsOptionError, DistutilsPlatformError
-from distutils.errors import DistutilsSetupError
-import setuptools, pkg_resources, distutils.core, distutils.dist, distutils.cmd
-import os, distutils.log
+import setuptools
+import pkg_resources
 
 def _get_unpatched(cls):
     """Protect against re-patching the distutils if reloaded
