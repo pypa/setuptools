@@ -1,16 +1,13 @@
 Welcome to Distribute's documentation!
 ======================================
 
-`Distribute` is a fork of the `Setuptools` project.
+`Distribute` is a deprecated fork of the `Setuptools` project.
 
-Distribute is intended to replace Setuptools as the standard method for
-working with Python module distributions.
-
-For those who may wonder why they should switch to Distribute over Setuptools, it’s quite simple:
-
-- Distribute is a drop-in replacement for Setuptools
-- The code is actively maintained, and has over 10 commiters
-- Distribute offers Python 3 support !
+Since the Setuptools 0.7 release, Setuptools and Distribute have merged
+and Distribute is no longer being maintained. This documentation is kept here
+for posterity, but all ongoing effort should reference the
+`Setuptools project <https://bitbucket.org/pypa/setuptools>`_ and the
+`Setuptools documentation <https://pythonhosted.org/setuptools>`_.
 
 Documentation content:
 
@@ -23,14 +20,3 @@ Documentation content:
    setuptools
    easy_install
    pkg_resources
-
-
-.. image:: http://python-distribute.org/pip_distribute.png
-
-Design done by Idan Gazit (http://pixane.com) - License: cc-by-3.0
-
-Copy & paste::
-
- curl -O http://python-distribute.org/distribute_setup.py
- python distribute_setup.py
- easy_install pip
