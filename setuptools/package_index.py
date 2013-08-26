@@ -343,7 +343,8 @@ class PackageIndex(Environment):
         s = URL_SCHEME(url)
         if (s and s.group(1).lower()=='file') or self.allows(urlparse(url)[1]):
             return True
-        msg = "\nLink to % s ***BLOCKED*** by --allow-hosts\n"
+        msg = ("\nNote: Bypassing %s (disallowed host; see "
+            "http://bit.ly/1dg9ijs for details).\n")
         if fatal:
             raise DistutilsError(msg % url)
         else:
