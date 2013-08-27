@@ -170,9 +170,10 @@ def has_powershell():
     cmd = ['powershell', '-Command', 'echo test']
     devnull = open(os.path.devnull, 'wb')
     try:
-        subprocess.check_call(cmd, stdout=devnull, stderr=devnull)
-    except:
-        return False
+        try:
+            subprocess.check_call(cmd, stdout=devnull, stderr=devnull)
+        except:
+            return False
     finally:
         devnull.close()
     return True
@@ -187,9 +188,10 @@ def has_curl():
     cmd = ['curl', '--version']
     devnull = open(os.path.devnull, 'wb')
     try:
-        subprocess.check_call(cmd, stdout=devnull, stderr=devnull)
-    except:
-        return False
+        try:
+            subprocess.check_call(cmd, stdout=devnull, stderr=devnull)
+        except:
+            return False
     finally:
         devnull.close()
     return True
@@ -204,9 +206,10 @@ def has_wget():
     cmd = ['wget', '--version']
     devnull = open(os.path.devnull, 'wb')
     try:
-        subprocess.check_call(cmd, stdout=devnull, stderr=devnull)
-    except:
-        return False
+        try:
+            subprocess.check_call(cmd, stdout=devnull, stderr=devnull)
+        except:
+            return False
     finally:
         devnull.close()
     return True
