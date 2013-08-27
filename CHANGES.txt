@@ -6,7 +6,7 @@ CHANGES
 1.1
 ---
 
-* Issue #71 (Distribute Issue #333): EasyInstall now puts less emphasis on the
+* Issue #71 (Distribute #333): EasyInstall now puts less emphasis on the
   condition when a host is blocked via ``--allow-hosts``.
 * Issue #72: Restored Python 2.4 compatibility in ``ez_setup.py``.
 
