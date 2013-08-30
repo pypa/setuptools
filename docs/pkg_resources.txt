@@ -26,6 +26,21 @@ zip archive or subdirectory), while others (such as plugin discovery) will
 work correctly so long as "egg-info" metadata directories are available for
 relevant distributions.
 
+Eggs are a distribution format for Python modules, similar in concept to
+Java's "jars" or Ruby's "gems", or the "wheel" format defined in PEP 427.
+However, unlike a pure distribution format, egg can also be installed and
+added directly to ``sys.path`` as an import location. When installed in
+this way, eggs are *discoverable*, meaning that they carry metadata that
+unambiguously identifies their contents and dependencies. This means that
+an installed egg can be *automatically* found and added to ``sys.path`` in
+response to simple requests of the form, "get me everything I need to use
+docutils' PDF support". This feature allows mutually conflicting versions of
+a distribution to co-exist in the same Python installation, with individual
+applications activating the desired version at runtime by manipulating the
+contents of ``sys.path`` (this differs from the virtual environment
+approach, which involves creating isolated environments for each
+application).
+
 The following terms are needed in order to explain the capabilities offered
 by this module:
 
