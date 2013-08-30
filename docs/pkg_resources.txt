@@ -28,7 +28,7 @@ relevant distributions.
 
 Eggs are a distribution format for Python modules, similar in concept to
 Java's "jars" or Ruby's "gems", or the "wheel" format defined in PEP 427.
-However, unlike a pure distribution format, egg can also be installed and
+However, unlike a pure distribution format, eggs can also be installed and
 added directly to ``sys.path`` as an import location. When installed in
 this way, eggs are *discoverable*, meaning that they carry metadata that
 unambiguously identifies their contents and dependencies. This means that
