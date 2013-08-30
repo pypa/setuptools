@@ -18,19 +18,31 @@ packages.
 Overview
 --------
 
-Eggs are a distribution format for Python modules, similar in concept to Java's
-"jars" or Ruby's "gems".  They differ from previous Python distribution formats
-in that they are importable (i.e. they can be added to ``sys.path``), and they
-are *discoverable*, meaning that they carry metadata that unambiguously
-identifies their contents and dependencies, and thus can be *automatically*
-found and added to ``sys.path`` in response to simple requests of the form,
-"get me everything I need to use docutils' PDF support".
-
 The ``pkg_resources`` module provides runtime facilities for finding,
-introspecting, activating and using eggs and other "pluggable" distribution
-formats.  Because these are new concepts in Python (and not that well-
-established in other languages either), it helps to have a few special terms
-for talking about eggs and how they can be used:
+introspecting, activating and using installed Python distributions. Some
+of the more advanced features (notably the support for parallel installation
+of multiple versions) rely specifically on the "egg" format (either as a
+zip archive or subdirectory), while others (such as plugin discovery) will
+work correctly so long as "egg-info" metadata directories are available for
+relevant distributions.
+
+Eggs are a distribution format for Python modules, similar in concept to
+Java's "jars" or Ruby's "gems", or the "wheel" format defined in PEP 427.
+However, unlike a pure distribution format, eggs can also be installed and
+added directly to ``sys.path`` as an import location. When installed in
+this way, eggs are *discoverable*, meaning that they carry metadata that
+unambiguously identifies their contents and dependencies. This means that
+an installed egg can be *automatically* found and added to ``sys.path`` in
+response to simple requests of the form, "get me everything I need to use
+docutils' PDF support". This feature allows mutually conflicting versions of
+a distribution to co-exist in the same Python installation, with individual
+applications activating the desired version at runtime by manipulating the
+contents of ``sys.path`` (this differs from the virtual environment
+approach, which involves creating isolated environments for each
+application).
+
+The following terms are needed in order to explain the capabilities offered
+by this module:
 
 project
     A library, framework, script, plugin, application, or collection of data
@@ -79,9 +91,13 @@ eggs
     with ``.egg`` and follows the egg naming conventions, and contain an
     ``EGG-INFO`` subdirectory (zipped or otherwise).  Development eggs are
     normal directories of Python code with one or more ``ProjectName.egg-info``
-    subdirectories.  And egg links are ``*.egg-link`` files that contain the
-    name of a built or development egg, to support symbolic linking on
-    platforms that do not have native symbolic links.
+    subdirectories. The development egg format is also used to provide a
+    default version of a distribution that is available to software that
+    doesn't use ``pkg_resources`` to request specific versions. Egg links
+    are ``*.egg-link`` files that contain the name of a built or
+    development egg, to support symbolic linking on platforms that do not
+    have native symbolic links (or where the symbolic link support is
+    limited).
 
 (For more information about these terms and concepts, see also this
 `architectural overview`_ of ``pkg_resources`` and Python Eggs in general.)
@@ -189,6 +205,17 @@ not provide any way to detect arbitrary changes to a list object like
     ``working_set`` instance.  For the most part, the ``pkg_resources`` API
     is designed so that the ``working_set`` is used by default, such that you
     don't have to explicitly refer to it most of the time.
+
+All distributions available directly on ``sys.path`` will be activated
+automatically when ``pkg_resources`` is imported. This behaviour can cause
+version conflicts for applications which require non-default versions of
+those distributions. To handle this situation, ``pkg_resources`` checks for a
+``__requires__`` attribute in the ``__main__`` module when initializing the
+default working set, and uses this to ensure a suitable version of each
+affected distribution is activated. For example::
+
+    __requires__ = ["CherryPy < 3"] # Must be set before pkg_resources import
+    import pkg_resources
 
 
 Basic ``WorkingSet`` Methods
