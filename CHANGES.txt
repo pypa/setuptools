@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+----
+next
+----
+
+* Issue #75: Add ``--insecure`` option to ez_setup.py to accommodate
+  environments where a trusted SSL connection cannot be validated.
+
 ---
 1.1
 ---
