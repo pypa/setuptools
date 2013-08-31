@@ -21,6 +21,7 @@ Contributors
 * Marc Abramowitz
 * Martin von Löwis
 * Noufal Ibrahim
+* Pedro Algarvio
 * Pete Hollobon
 * Phillip J. Eby
 * Philip Jenvey
