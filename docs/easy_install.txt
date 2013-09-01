@@ -454,6 +454,30 @@ You can do this with both index page URLs and direct download URLs.  As long
 as any HTML pages read by easy_install use *relative* links to point to the
 downloads, the same user ID and password will be used to do the downloading.
 
+Authentication against privat repository
+----------------------------------------
+
+To get these things running. You need a .pypirc file in your home directory. The file should has the following format.
+
+Example
+
+::
+
+    [distutils]
+    index-servers = myrepos
+
+    [myrepos]
+    repository: http://myrepos.com
+    username:MY_USER
+    password:MY_PASSORD
+
+In your buildout.cfg you have to add the eggserver url under find-links. The example is for an mypypi egg server. /eggs provides a flat package list.
+
+Example
+
+::
+
+    find-links = http://myrepos.com/eggs
 
 Controlling Build Options
 ~~~~~~~~~~~~~~~~~~~~~~~~~
