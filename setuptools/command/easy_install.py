@@ -24,6 +24,8 @@ import random
 import platform
 import textwrap
 import warnings
+import site
+import struct
 from glob import glob
 from distutils import log, dir_util
 
@@ -73,10 +75,8 @@ __all__ = [
     'main', 'get_exe_prefixes',
 ]
 
-import site
 HAS_USER_SITE = not sys.version < "2.6" and site.ENABLE_USER_SITE
 
-import struct
 def is_64bit():
     return struct.calcsize("P") == 8
 
