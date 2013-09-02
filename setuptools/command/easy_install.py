@@ -962,7 +962,6 @@ Please make the appropriate changes for your system and try again.
 
         return dist     # XXX temporarily disable until new strategy is stable
         from imp import find_module, get_suffixes
-        from glob import glob
 
         blockers = []
         names = dict.fromkeys(dist._get_metadata('top_level.txt')) # XXX private attr
