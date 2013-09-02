@@ -1,7 +1,7 @@
 """Extensions to the 'distutils' for large or complex distributions"""
 from setuptools.extension import Extension
 from setuptools.dist import Distribution, Feature, _get_unpatched
-import distutils.core, setuptools.command
+import distutils.core
 from setuptools.depends import Require
 from distutils.core import Command as _Command
 from distutils.util import convert_path
