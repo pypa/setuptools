@@ -94,8 +94,10 @@ def findall(dir = os.curdir):
 distutils.filelist.findall = findall    # fix findall bug in distutils.
 
 # sys.dont_write_bytecode was introduced in Python 2.6.
-if ((hasattr(sys, "dont_write_bytecode") and sys.dont_write_bytecode) or
-    (not hasattr(sys, "dont_write_bytecode") and os.environ.get("PYTHONDONTWRITEBYTECODE"))):
-    _dont_write_bytecode = True
-else:
-    _dont_write_bytecode = False
+_dont_write_bytecode = (
+    (hasattr(sys, "dont_write_bytecode") and sys.dont_write_bytecode)
+    or (
+        not hasattr(sys, "dont_write_bytecode")
+        and os.environ.get("PYTHONDONTWRITEBYTECODE")
+    )
+)
