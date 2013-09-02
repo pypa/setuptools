@@ -640,7 +640,7 @@ Please make the appropriate changes for your system and try again.
             for dist in dists:
                 self.process_distribution(spec, dist, deps)
         else:
-            dists = [self.check_conflicts(self.egg_distribution(download))]
+            dists = [self.egg_distribution(download)]
             self.process_distribution(spec, dists[0], deps, "Using")
 
         if spec is not None:
@@ -838,7 +838,6 @@ Please make the appropriate changes for your system and try again.
             ensure_directory(destination)
 
         dist = self.egg_distribution(egg_path)
-        self.check_conflicts(dist)
         if not samefile(egg_path, destination):
             if os.path.isdir(destination) and not os.path.islink(destination):
                 dir_util.remove_tree(destination, dry_run=self.dry_run)
@@ -956,60 +955,6 @@ Please make the appropriate changes for your system and try again.
                     f = open(txt,'w')
                     f.write('\n'.join(locals()[name])+'\n')
                     f.close()
-
-    def check_conflicts(self, dist):
-        """Verify that there are no conflicting "old-style" packages"""
-
-        return dist     # XXX temporarily disable until new strategy is stable
-        from imp import find_module, get_suffixes
-
-        blockers = []
-        names = dict.fromkeys(dist._get_metadata('top_level.txt')) # XXX private attr
-
-        exts = {'.pyc':1, '.pyo':1}     # get_suffixes() might leave one out
-        for ext,mode,typ in get_suffixes():
-            exts[ext] = 1
-
-        for path,files in expand_paths([self.install_dir]+self.all_site_dirs):
-            for filename in files:
-                base,ext = os.path.splitext(filename)
-                if base in names:
-                    if not ext:
-                        # no extension, check for package
-                        try:
-                            f, filename, descr = find_module(base, [path])
-                        except ImportError:
-                            continue
-                        else:
-                            if f: f.close()
-                            if filename not in blockers:
-                                blockers.append(filename)
-                    elif ext in exts and base!='site':  # XXX ugh
-                        blockers.append(os.path.join(path,filename))
-        if blockers:
-            self.found_conflicts(dist, blockers)
-
-        return dist
-
-    def found_conflicts(self, dist, blockers):
-        msg = """\
--------------------------------------------------------------------------
-CONFLICT WARNING:
-
-The following modules or packages have the same names as modules or
-packages being installed, and will be *before* the installed packages in
-Python's search path.  You MUST remove all of the relevant files and
-directories before you will be able to use the package(s) you are
-installing:
-
-   %s
-
--------------------------------------------------------------------------
-""" % '\n   '.join(blockers)
-
-        sys.stderr.write(msg)
-        sys.stderr.flush()
-        raise DistutilsError("Installation aborted due to conflicts")
 
     def installation_report(self, req, dist, what="Installed"):
         """Helpful installation message for display to package users"""
