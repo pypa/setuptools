@@ -1,18 +1,22 @@
 """Extensions to the 'distutils' for large or complex distributions"""
-from setuptools.extension import Extension
-from setuptools.dist import Distribution, Feature, _get_unpatched
-import distutils.core
-from setuptools.depends import Require
-from distutils.core import Command as _Command
-from distutils.util import convert_path
+
 import os
 import sys
-from setuptools.version import __version__
+import distutils.core
+from distutils.core import Command as _Command
+from distutils.util import convert_path
+
+import setuptools.version
+from setuptools.extension import Extension
+from setuptools.dist import Distribution, Feature, _get_unpatched
+from setuptools.depends import Require
 
 __all__ = [
     'setup', 'Distribution', 'Feature', 'Command', 'Extension', 'Require',
     'find_packages'
 ]
+
+__version__ = setuptools.version.__version__
 
 bootstrap_install_from = None
 
