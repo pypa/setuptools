@@ -502,7 +502,8 @@ Please make the appropriate changes for your system and try again.
         else:
             try:
                 f.write("import os; f = open(%r, 'w'); f.write('OK'); f.close()\n" % (ok_file,))
-                f.close(); f=None
+                f.close()
+                f=None
                 executable = sys.executable
                 if os.name=='nt':
                     dirname,basename = os.path.split(executable)
@@ -521,9 +522,12 @@ Please make the appropriate changes for your system and try again.
                     )
                     return True
             finally:
-                if f: f.close()
-                if os.path.exists(ok_file): os.unlink(ok_file)
-                if os.path.exists(pth_file): os.unlink(pth_file)
+                if f:
+                    f.close()
+                if os.path.exists(ok_file):
+                    os.unlink(ok_file)
+                if os.path.exists(pth_file):
+                    os.unlink(pth_file)
         if not self.multi_version:
             log.warn("TEST FAILED: %s does NOT support .pth files", instdir)
         return False
