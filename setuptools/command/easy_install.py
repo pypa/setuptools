@@ -882,10 +882,10 @@ Please make the appropriate changes for your system and try again.
         # Convert the .exe to an unpacked egg
         egg_path = dist.location = os.path.join(tmpdir, dist.egg_name()+'.egg')
         egg_tmp = egg_path + '.tmp'
-        egg_info = os.path.join(egg_tmp, 'EGG-INFO')
-        pkg_inf = os.path.join(egg_info, 'PKG-INFO')
+        _egg_info = os.path.join(egg_tmp, 'EGG-INFO')
+        pkg_inf = os.path.join(_egg_info, 'PKG-INFO')
         ensure_directory(pkg_inf)   # make sure EGG-INFO dir exists
-        dist._provider = PathMetadata(egg_tmp, egg_info)    # XXX
+        dist._provider = PathMetadata(egg_tmp, _egg_info)    # XXX
         self.exe_to_egg(dist_filename, egg_tmp)
 
         # Write EGG-INFO/PKG-INFO
@@ -896,7 +896,7 @@ Please make the appropriate changes for your system and try again.
                 if k != 'target_version':
                     f.write('%s: %s\n' % (k.replace('_','-').title(), v))
             f.close()
-        script_dir = os.path.join(egg_info,'scripts')
+        script_dir = os.path.join(_egg_info,'scripts')
         self.delete_blockers(   # delete entry-point scripts to avoid duping
             [os.path.join(script_dir,args[0]) for args in get_script_args(dist)]
         )
