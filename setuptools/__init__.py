@@ -3,6 +3,7 @@
 import os
 import sys
 import distutils.core
+import distutils.filelist
 from distutils.core import Command as _Command
 from distutils.util import convert_path
 
@@ -44,11 +45,11 @@ def find_packages(where='.', exclude=()):
             looks_like_package = (
                 '.' not in name
                 and os.path.isdir(fn)
-                and os.path.isfile(os.path.join(fn,'__init__.py'))
+                and os.path.isfile(os.path.join(fn, '__init__.py'))
             )
             if looks_like_package:
                 out.append(prefix+name)
-                stack.append((fn,prefix+name+'.'))
+                stack.append((fn, prefix+name+'.'))
     for pat in list(exclude)+['ez_setup']:
         from fnmatch import fnmatchcase
         out = [item for item in out if not fnmatchcase(item,pat)]
@@ -75,7 +76,6 @@ class Command(_Command):
             setattr(cmd,k,v)    # update command with keywords
         return cmd
 
-import distutils.core
 distutils.core.Command = Command    # we can't patch distutils.cmd, alas
 
 def findall(dir = os.curdir):
@@ -91,7 +91,6 @@ def findall(dir = os.curdir):
         all_files.extend(filter(os.path.isfile, files))
     return all_files
 
-import distutils.filelist
 distutils.filelist.findall = findall    # fix findall bug in distutils.
 
 # sys.dont_write_bytecode was introduced in Python 2.6.
