@@ -158,7 +158,6 @@ class upload(Command):
             raise AssertionError("unsupported schema " + schema)
 
         data = ''
-        loglevel = log.INFO
         try:
             http.connect()
             http.putrequest("POST", url)
