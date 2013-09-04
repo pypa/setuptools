@@ -2,12 +2,13 @@
 CHANGES
 =======
 
-----
-next
-----
+-----
+1.1.1
+-----
 
 * Issue #75: Add ``--insecure`` option to ez_setup.py to accommodate
   environments where a trusted SSL connection cannot be validated.
+* Issue #76: Fix AttributeError in upload command with Python 2.4.
 
 ---
 1.1
