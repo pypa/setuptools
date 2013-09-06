@@ -3,6 +3,12 @@ CHANGES
 =======
 
 -----
+1.1.3
+-----
+
+* Fix NameError in previous patch.
+
+-----
 1.1.2
 -----
 

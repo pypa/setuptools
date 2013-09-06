@@ -22,6 +22,7 @@ from setuptools.compat import filterfalse
 from fnmatch import translate
 from setuptools.py24compat import hashlib
 from setuptools.py24compat import wraps
+from setuptools.py26compat import strip_fragment
 from setuptools.py27compat import get_all_headers
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.]+)$')
