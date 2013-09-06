@@ -3,6 +3,13 @@ CHANGES
 =======
 
 -----
+1.1.2
+-----
+
+* Issue #69: Correct issue where 404 errors are returned for URLs with
+  fragments in them (such as #egg=).
+
+-----
 1.1.1
 -----
 
