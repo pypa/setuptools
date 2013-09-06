@@ -26,7 +26,7 @@ if sys.version_info[0] < 3:
     reduce = reduce
     unichr = unichr
     unicode = unicode
-    from urllib import url2pathname
+    from urllib import url2pathname, splittag
     import urllib2
     from urllib2 import urlopen, HTTPError, URLError, unquote, splituser
     from urlparse import urlparse, urlunparse, urljoin
@@ -72,7 +72,8 @@ else:
     from urllib.error import HTTPError, URLError
     import urllib.request as urllib2
     from urllib.request import urlopen, url2pathname
-    from urllib.parse import urlparse, urlunparse, unquote, splituser, urljoin
+    from urllib.parse import (urlparse, urlunparse, unquote, splituser,
+        urljoin, splittag)
     xrange = range
     filterfalse = itertools.filterfalse
 
