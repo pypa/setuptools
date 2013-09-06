@@ -660,7 +660,7 @@ class PackageIndex(Environment):
         fp, tfp, info = None, None, None
         try:
             checker = HashChecker.from_url(url)
-            fp = self.open_url(url)
+            fp = self.open_url(strip_fragment(url))
             if isinstance(fp, HTTPError):
                 raise DistutilsError(
                     "Can't download %s: %s %s" % (url, fp.code,fp.msg)
