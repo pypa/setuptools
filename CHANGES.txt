@@ -3,6 +3,12 @@ CHANGES
 =======
 
 -----
+1.1.4
+-----
+
+* Issue #77: Fix error in upload command (Python 2.4).
+
+-----
 1.1.3
 -----
 

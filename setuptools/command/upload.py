@@ -122,7 +122,7 @@ class upload(Command):
         body = StringIO()
         for key, value in data.items():
             # handle multiple entries for the same name
-            if isinstance(value, list):
+            if not isinstance(value, list):
                 value = [value]
             for value in value:
                 if type(value) is tuple:
