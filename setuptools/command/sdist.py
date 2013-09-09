@@ -1,9 +1,12 @@
+import os
+import re
+import sys
+from glob import glob
+
+import pkg_resources
 from distutils.command.sdist import sdist as _sdist
 from distutils.util import convert_path
 from distutils import log
-from glob import glob
-import os, re, sys, pkg_resources
-from glob import glob
 
 READMES = ('README', 'README.rst', 'README.txt')
 
@@ -98,13 +101,13 @@ def entries_finder(dirname, filename):
         except: pass
         if svnver<8:
             log.warn("unrecognized .svn/entries format in %s", os.path.abspath(dirname))
-            return           
+            return
         for record in map(str.splitlines, data.split('\n\x0c\n')[1:]):
             # subversion 1.6/1.5/1.4
             if not record or len(record)>=6 and record[5]=="delete":
                 continue    # skip deleted
             yield joinpath(dirname, record[0])
-        
+
 
 finders = [
     (convert_path('CVS/Entries'),
