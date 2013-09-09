@@ -37,14 +37,6 @@ def joinpath(prefix,suffix):
         return suffix
     return os.path.join(prefix,suffix)
 
-
-
-
-
-
-
-
-
 def walk_revctrl(dirname=''):
     """Find all files under revision control"""
     for ep in pkg_resources.iter_entry_points('setuptools.file_finders'):
@@ -118,16 +110,6 @@ finders = [
 ]
 
 
-
-
-
-
-
-
-
-
-
-
 class sdist(_sdist):
     """Smart sdist that finds anything supported by revision control"""
 
@@ -182,11 +164,12 @@ class sdist(_sdist):
     # Beginning with Python 2.7.2, 3.1.4, and 3.2.1, this leaky file handle
     #  has been fixed, so only override the method if we're using an earlier
     #  Python.
-    if (
-            sys.version_info < (2,7,2)
-            or (3,0) <= sys.version_info < (3,1,4)
-            or (3,2) <= sys.version_info < (3,2,1)
-        ):
+    has_leaky_handle = (
+        sys.version_info < (2,7,2)
+        or (3,0) <= sys.version_info < (3,1,4)
+        or (3,2) <= sys.version_info < (3,2,1)
+    )
+    if has_leaky_handle:
         read_template = __read_template_hack
 
     def add_defaults(self):
@@ -251,7 +234,6 @@ class sdist(_sdist):
                 "standard file not found: should have one of " +', '.join(READMES)
             )
 
-
     def make_release_tree(self, base_dir, files):
         _sdist.make_release_tree(self, base_dir, files)
 
@@ -298,10 +280,3 @@ class sdist(_sdist):
                 continue
             self.filelist.append(line)
         manifest.close()
-
-
-
-
-
-
-#
