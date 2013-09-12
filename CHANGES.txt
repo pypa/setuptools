@@ -3,6 +3,12 @@ CHANGES
 =======
 
 -----
+1.1.5
+-----
+
+* Issue #69: Second attempt at fix (logic was reversed).
+
+-----
 1.1.4
 -----
 
