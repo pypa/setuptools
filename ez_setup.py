@@ -200,7 +200,11 @@ download_file_curl.viable = has_curl
 
 def download_file_wget(url, target):
     cmd = ['wget', url, '--quiet', '--output-document', target]
-    subprocess.check_call(cmd)
+    try:
+        subprocess.check_call(cmd)
+    except subprocess.CalledProcessError:
+        os.unlink(target)
+        raise
 
 def has_wget():
     cmd = ['wget', '--version']
