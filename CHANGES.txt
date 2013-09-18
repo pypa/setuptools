@@ -3,6 +3,13 @@ CHANGES
 =======
 
 -----
+1.1.6
+-----
+
+* Distribute #349: ``sandbox.execfile`` now opens the target file in binary
+  mode, thus honoring a BOM in the file when compiled.
+
+-----
 1.1.5
 -----
 

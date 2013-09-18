@@ -84,7 +84,7 @@ else:
             globs = globals()
         if locs is None:
             locs = globs
-        f = open(fn)
+        f = open(fn, 'rb')
         try:
             source = f.read()
         finally:
