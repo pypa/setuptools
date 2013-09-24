@@ -162,7 +162,12 @@ def download_file_powershell(url, target):
         '-Command',
         "(new-object System.Net.WebClient).DownloadFile(%(url)r, %(target)r)" % vars(),
     ]
-    subprocess.check_call(cmd)
+    try:
+        subprocess.check_call(cmd)
+    except subprocess.CalledProcessError:
+        if os.access(target, os.F_OK):
+            os.unlink(target)
+        raise
 
 def has_powershell():
     if platform.system() != 'Windows':
@@ -182,7 +187,12 @@ download_file_powershell.viable = has_powershell
 
 def download_file_curl(url, target):
     cmd = ['curl', url, '--silent', '--output', target]
-    subprocess.check_call(cmd)
+    try:
+        subprocess.check_call(cmd)
+    except subprocess.CalledProcessError:
+        if os.access(target, os.F_OK):
+            os.unlink(target)
+        raise
 
 def has_curl():
     cmd = ['curl', '--version']
@@ -200,7 +210,12 @@ download_file_curl.viable = has_curl
 
 def download_file_wget(url, target):
     cmd = ['wget', url, '--quiet', '--output-document', target]
-    subprocess.check_call(cmd)
+    try:
+        subprocess.check_call(cmd)
+    except subprocess.CalledProcessError:
+        if os.access(target, os.F_OK):
+            os.unlink(target)
+        raise
 
 def has_wget():
     cmd = ['wget', '--version']
