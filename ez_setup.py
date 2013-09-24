@@ -151,6 +151,18 @@ def use_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
         return _do_download(version, download_base, to_dir,
                             download_delay)
 
+def _clean_check(cmd, target):
+    """
+    Run the command to download target. If the command fails, clean up before
+    re-raising the error.
+    """
+    try:
+        subprocess.check_call(cmd)
+    except subprocess.CalledProcessError:
+        if os.access(target, os.F_OK):
+            os.unlink(target)
+        raise
+
 def download_file_powershell(url, target):
     """
     Download the file at url to target using Powershell (which will validate
@@ -162,12 +174,7 @@ def download_file_powershell(url, target):
         '-Command',
         "(new-object System.Net.WebClient).DownloadFile(%(url)r, %(target)r)" % vars(),
     ]
-    try:
-        subprocess.check_call(cmd)
-    except subprocess.CalledProcessError:
-        if os.access(target, os.F_OK):
-            os.unlink(target)
-        raise
+    _clean_check(cmd, target)
 
 def has_powershell():
     if platform.system() != 'Windows':
@@ -187,12 +194,7 @@ download_file_powershell.viable = has_powershell
 
 def download_file_curl(url, target):
     cmd = ['curl', url, '--silent', '--output', target]
-    try:
-        subprocess.check_call(cmd)
-    except subprocess.CalledProcessError:
-        if os.access(target, os.F_OK):
-            os.unlink(target)
-        raise
+    _clean_check(cmd, target)
 
 def has_curl():
     cmd = ['curl', '--version']
@@ -210,12 +212,7 @@ download_file_curl.viable = has_curl
 
 def download_file_wget(url, target):
     cmd = ['wget', url, '--quiet', '--output-document', target]
-    try:
-        subprocess.check_call(cmd)
-    except subprocess.CalledProcessError:
-        if os.access(target, os.F_OK):
-            os.unlink(target)
-        raise
+    _clean_check(cmd, target)
 
 def has_wget():
     cmd = ['wget', '--version']
