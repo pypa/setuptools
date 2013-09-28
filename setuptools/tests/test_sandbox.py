@@ -5,7 +5,10 @@ import os
 import shutil
 import unittest
 import tempfile
+import types
 
+import pkg_resources
+import setuptools.sandbox
 from setuptools.sandbox import DirectorySandbox, SandboxViolation
 
 def has_win32com():
@@ -61,6 +64,16 @@ class TestSandbox(unittest.TestCase):
                     self.fail("Could not create gen_py file due to SandboxViolation")
             finally:
                 if os.path.exists(target): os.remove(target)
+
+    def test_setup_py_with_BOM(self):
+        """
+        It should be possible to execute a setup.py with a Byte Order Mark
+        """
+        target = pkg_resources.resource_filename(__name__,
+            'script-with-bom.py')
+        namespace = types.ModuleType('namespace')
+        setuptools.sandbox.execfile(target, vars(namespace))
+        assert namespace.result == 'passed'
 
 if __name__ == '__main__':
     unittest.main()

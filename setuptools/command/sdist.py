@@ -1,9 +1,12 @@
+import os
+import re
+import sys
+from glob import glob
+
+import pkg_resources
 from distutils.command.sdist import sdist as _sdist
 from distutils.util import convert_path
 from distutils import log
-from glob import glob
-import os, re, sys, pkg_resources
-from glob import glob
 from setuptools import svn_utils
 
 READMES = ('README', 'README.rst', 'README.txt')
@@ -37,7 +40,6 @@ class re_finder(object):
                 #was an re_finder for calling unescape
                 path = postproc(path)
             yield svn_utils.joinpath(dirname,path)
-
     def __call__(self, dirname=''):
         path = svn_utils.joinpath(dirname, self.path)
 
@@ -61,16 +63,6 @@ finders = [
     re_finder('CVS/Entries', re.compile(r"^\w?/([^/]+)/", re.M)),
     svn_utils.svn_finder,
 ]
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -128,11 +120,12 @@ class sdist(_sdist):
     # Beginning with Python 2.7.2, 3.1.4, and 3.2.1, this leaky file handle
     #  has been fixed, so only override the method if we're using an earlier
     #  Python.
-    if (
-            sys.version_info < (2,7,2)
-            or (3,0) <= sys.version_info < (3,1,4)
-            or (3,2) <= sys.version_info < (3,2,1)
-        ):
+    has_leaky_handle = (
+        sys.version_info < (2,7,2)
+        or (3,0) <= sys.version_info < (3,1,4)
+        or (3,2) <= sys.version_info < (3,2,1)
+    )
+    if has_leaky_handle:
         read_template = __read_template_hack
 
     def add_defaults(self):
@@ -197,7 +190,6 @@ class sdist(_sdist):
                 "standard file not found: should have one of " +', '.join(READMES)
             )
 
-
     def make_release_tree(self, base_dir, files):
         _sdist.make_release_tree(self, base_dir, files)
 
@@ -244,10 +236,3 @@ class sdist(_sdist):
                 continue
             self.filelist.append(line)
         manifest.close()
-
-
-
-
-
-
-#

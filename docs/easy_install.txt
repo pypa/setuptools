@@ -35,9 +35,8 @@ Please see the `setuptools PyPI page <https://pypi.python.org/pypi/setuptools>`_
 for download links and basic installation instructions for each of the
 supported platforms.
 
-You will need at least Python 2.3.5, or if you are on a 64-bit platform, Python
-2.4.  An ``easy_install`` script will be installed in the normal location for
-Python scripts on your platform.
+You will need at least Python 2.4.  An ``easy_install`` script will be
+installed in the normal location for Python scripts on your platform.
 
 Note that the instructions on the setuptools PyPI page assume that you are
 are installling to Python's primary ``site-packages`` directory.  If this is
@@ -77,25 +76,10 @@ section on `Custom Installation Locations`_ for more details.
 Windows Notes
 ~~~~~~~~~~~~~
 
-On Windows, an ``easy_install.exe`` launcher will also be installed, so that
-you can just type ``easy_install`` as long as it's on your ``PATH``.  If typing
-``easy_install`` at the command prompt doesn't work, check to make sure your
-``PATH`` includes the appropriate ``C:\\Python2X\\Scripts`` directory.  On
-most current versions of Windows, you can change the ``PATH`` by right-clicking
-"My Computer", choosing "Properties" and selecting the "Advanced" tab, then
-clicking the "Environment Variables" button.  ``PATH`` will be in the "System
-Variables" section, and you will need to exit and restart your command shell
-(command.com, cmd.exe, bash, or other) for the change to take effect.  Be sure
-to add a ``;`` after the last item on ``PATH`` before adding the scripts
-directory to it.
-
-Note that instead of changing your ``PATH`` to include the Python scripts
-directory, you can also retarget the installation location for scripts so they
-go on a directory that's already on the ``PATH``.  For more information see the
-sections below on `Command-Line Options`_ and `Configuration Files`_.  You
-can pass command line options (such as ``--script-dir``) to
-``ez_setup.py`` to control where ``easy_install.exe`` will be installed.
-
+Installing setuptools will provide an ``easy_install`` command according to
+the techniques described in `Executables and Launchers`_. If the
+``easy_install`` command is not available after installation, that section
+provides details on how to configure Windows to make the commands available.
 
 
 Downloading and Installing a Package
@@ -305,24 +289,80 @@ installations, so that Python won't lock us out of using anything but the most
 recently-installed version of the package.)
 
 
+Executables and Launchers
+-------------------------
+
+On Unix systems, scripts are installed with as natural files with a "#!"
+header and no extension and they launch under the Python version indicated in
+the header.
+
+On Windows, there is no mechanism to "execute" files without extensions, so
+EasyInstall provides two techniques to mirror the Unix behavior. The behavior
+is indicated by the SETUPTOOLS_LAUNCHER environment variable, which may be
+"executable" (default) or "natural".
+
+Regardless of the technique used, the script(s) will be installed to a Scripts
+directory (by default in the Python installation directory). It is recommended
+for EasyInstall that you ensure this directory is in the PATH environment
+variable. The easiest way to ensure the Scripts directory is in the PATH is
+to run ``Tools\Scripts\win_add2path.py`` from the Python directory (requires
+Python 2.6 or later).
+
+Note that instead of changing your ``PATH`` to include the Python scripts
+directory, you can also retarget the installation location for scripts so they
+go on a directory that's already on the ``PATH``.  For more information see
+`Command-Line Options`_ and `Configuration Files`_.  During installation,
+pass command line options (such as ``--script-dir``) to
+``ez_setup.py`` to control where ``easy_install.exe`` will be installed.
+
+
+Windows Executable Launcher
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the "executable" launcher is used, EasyInstall will create a '.exe'
+launcher of the same name beside each installed script (including
+``easy_install`` itself). These small .exe files launch the script of the
+same name using the Python version indicated in the '#!' header.
+
+This behavior is currently default. To force
+the use of executable launchers, set ``SETUPTOOLS_LAUNCHER`` to "executable".
+
+Natural Script Launcher
+~~~~~~~~~~~~~~~~~~~~~~~
+
+EasyInstall also supports deferring to an external launcher such as
+`pylauncher <https://bitbucket.org/pypa/pylauncher>`_ for launching scripts.
+Enable this experimental functionality by setting the
+``SETUPTOOLS_LAUNCHER`` environment variable to "natural". EasyInstall will
+then install scripts as simple
+scripts with a .pya (or .pyw) extension appended. If these extensions are
+associated with the pylauncher and listed in the PATHEXT environment variable,
+these scripts can then be invoked simply and directly just like any other
+executable. This behavior may become default in a future version.
+
+EasyInstall uses the .pya extension instead of simply
+the typical '.py' extension. This distinct extension is necessary to prevent
+Python
+from treating the scripts as importable modules (where name conflicts exist).
+Current releases of pylauncher do not yet associate with .pya files by
+default, but future versions should do so.
+
 
 Tips & Techniques
 -----------------
 
-
 Multiple Python Versions
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-As of version 0.6a11, EasyInstall installs itself under two names:
+EasyInstall installs itself under two names:
 ``easy_install`` and ``easy_install-N.N``, where ``N.N`` is the Python version
-used to install it.  Thus, if you install EasyInstall for both Python 2.3 and
-2.4, you can use the ``easy_install-2.3`` or ``easy_install-2.4`` scripts to
-install packages for Python 2.3 or 2.4, respectively.
+used to install it.  Thus, if you install EasyInstall for both Python 3.2 and
+2.7, you can use the ``easy_install-3.2`` or ``easy_install-2.7`` scripts to
+install packages for the respective Python version.
 
-Also, if you're working with Python version 2.4 or higher, you can run Python
-with ``-m easy_install`` to run that particular Python version's
-``easy_install`` command.
-
+Setuptools also supplies easy_install as a runnable module which may be
+invoked using ``python -m easy_install`` for any Python with Setuptools
+installed.
 
 Restricting Downloads with ``--allow-hosts``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -532,14 +572,12 @@ install``, becuase the ``distutils`` just install new packages on top of old
 ones, possibly combining two unrelated packages or leaving behind modules that
 have been deleted in the newer version of the package.)
 
-By default, EasyInstall will stop the installation if it detects a conflict
+EasyInstall will stop the installation if it detects a conflict
 between an existing, "unmanaged" package, and a module or package in any of
 the distributions you're installing.  It will display a list of all of the
 existing files and directories that would need to be deleted for the new
-package to be able to function correctly.  You can then either delete these
-conflicting files and directories yourself and re-run EasyInstall, or you can
-just use the ``--delete-conflicting`` or ``--ignore-conflicts-at-my-risk``
-options, as described under `Command-Line Options`_, below.
+package to be able to function correctly.  To proceed, you must manually
+delete these conflicting files and directories and re-run EasyInstall.
 
 Of course, once you've replaced all of your existing "unmanaged" packages with
 versions managed by EasyInstall, you won't have any more conflicts to worry
@@ -782,27 +820,6 @@ Command-Line Options
     dependency). When used, ``--find-links`` is ignored.
 
     Added in Distribute 0.6.11 and Setuptools 0.7.
-
-``--delete-conflicting, -D`` (Removed in 0.6a11)
-    (As of 0.6a11, this option is no longer necessary; please do not use it!)
-
-    If you are replacing a package that was previously installed *without*
-    using EasyInstall, the old version may end up on ``sys.path`` before the
-    version being installed with EasyInstall.  EasyInstall will normally abort
-    the installation of a package if it detects such a conflict, and ask you to
-    manually remove the conflicting files or directories.  If you specify this
-    option, however, EasyInstall will attempt to delete the files or
-    directories itself, and then proceed with the installation.
-
-``--ignore-conflicts-at-my-risk`` (Removed in 0.6a11)
-    (As of 0.6a11, this option is no longer necessary; please do not use it!)
-
-    Ignore conflicting packages and proceed with installation anyway, even
-    though it means the package probably won't work properly.  If the
-    conflicting package is in a directory you can't write to, this may be your
-    only option, but you will need to take more invasive measures to get the
-    installed package to work, like manually adding it to ``PYTHONPATH`` or to
-    ``sys.path`` at runtime.
 
 ``--index-url=URL, -i URL`` (New in 0.4a1; default changed in 0.6c7)
     Specifies the base URL of the Python Package Index.  The default is

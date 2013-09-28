@@ -1,0 +1,18 @@
+===============
+Release Process
+===============
+
+In order to allow for rapid, predictable releases, Setuptools uses a
+mechanical technique for releases. The release script, ``release.py`` in the
+repository, defines the details of the releases, and is executed by the
+`jaraco.packaging <https://bitbucket.org/jaraco/jaraco.packaging>`_ release
+module. The script does some checks (some interactive) and fully automates
+the release process.
+
+A Setuptools release manager must have maintainer access on PyPI to the
+project and administrative access to the BitBucket project.
+
+Release Managers
+----------------
+
+Currently, the project has one release manager, Jason R. Coombs.

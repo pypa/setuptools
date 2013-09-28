@@ -27,10 +27,10 @@ if sys.version_info[0] < 3:
     unichr = unichr
     unicode = unicode
     bytes = str
-    from urllib import url2pathname
+    from urllib import url2pathname, splittag
     import urllib2
     from urllib2 import urlopen, HTTPError, URLError, unquote, splituser
-    from urlparse import urlparse, urlunparse, urljoin
+    from urlparse import urlparse, urlunparse, urljoin, urlsplit, urlunsplit
     xrange = xrange
     filterfalse = itertools.ifilterfalse
 
@@ -74,7 +74,10 @@ else:
     from urllib.error import HTTPError, URLError
     import urllib.request as urllib2
     from urllib.request import urlopen, url2pathname
-    from urllib.parse import urlparse, urlunparse, unquote, splituser, urljoin
+    from urllib.parse import (
+        urlparse, urlunparse, unquote, splituser, urljoin, urlsplit,
+        urlunsplit, splittag,
+    )
     xrange = range
     filterfalse = itertools.filterfalse
 
@@ -83,7 +86,7 @@ else:
             globs = globals()
         if locs is None:
             locs = globs
-        f = open(fn)
+        f = open(fn, 'rb')
         try:
             source = f.read()
         finally:

@@ -2,10 +2,10 @@
 
 Implements the Distutils 'upload' subcommand (upload package to PyPI)."""
 
-from distutils.errors import *
+from distutils import errors
+from distutils import log
 from distutils.core import Command
 from distutils.spawn import spawn
-from distutils import log
 try:
     from hashlib import md5
 except ImportError:
@@ -45,7 +45,7 @@ class upload(Command):
 
     def finalize_options(self):
         if self.identity and not self.sign:
-            raise DistutilsOptionError(
+            raise errors.DistutilsOptionError(
                 "Must use --sign for --identity to have meaning"
             )
         if 'HOME' in os.environ:
@@ -68,7 +68,7 @@ class upload(Command):
 
     def run(self):
         if not self.distribution.dist_files:
-            raise DistutilsOptionError("No dist file created in earlier command")
+            raise errors.DistutilsOptionError("No dist file created in earlier command")
         for command, pyversion, filename in self.distribution.dist_files:
             self.upload_file(command, pyversion, filename)
 
@@ -119,10 +119,10 @@ class upload(Command):
         boundary = '--------------GHSKFJDLGDS7543FJKLFHRE75642756743254'
         sep_boundary = '\n--' + boundary
         end_boundary = sep_boundary + '--'
-        body = StringIO.StringIO()
+        body = StringIO()
         for key, value in data.items():
             # handle multiple entries for the same name
-            if type(value) != type([]):
+            if not isinstance(value, list):
                 value = [value]
             for value in value:
                 if type(value) is tuple:
@@ -158,7 +158,6 @@ class upload(Command):
             raise AssertionError("unsupported schema " + schema)
 
         data = ''
-        loglevel = log.INFO
         try:
             http.connect()
             http.putrequest("POST", url)

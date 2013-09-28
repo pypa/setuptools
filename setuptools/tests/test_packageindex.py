@@ -142,6 +142,15 @@ class TestPackageIndex(unittest.TestCase):
         self.assertEqual(setuptools.package_index.parse_bdist_wininst(
             'reportlab-2.5.win-amd64.exe'), ('reportlab-2.5', None, 'win-amd64'))
 
+    def test__vcs_split_rev_from_url(self):
+        """
+        Test the basic usage of _vcs_split_rev_from_url
+        """
+        vsrfu = setuptools.package_index.PackageIndex._vcs_split_rev_from_url
+        url, rev = vsrfu('https://example.com/bar@2995')
+        self.assertEqual(url, 'https://example.com/bar')
+        self.assertEqual(rev, '2995')
+
 class TestContentCheckers(unittest.TestCase):
 
     def test_md5(self):
@@ -169,11 +178,7 @@ class TestContentCheckers(unittest.TestCase):
     def test_get_hash_name_md5(self):
         checker = setuptools.package_index.HashChecker.from_url(
             'http://foo/bar#md5=f12895fdffbd45007040d2e44df98478')
-        if sys.version_info >= (2,5):
-            self.assertEqual(checker.hash.name, 'md5')
-        else:
-            # Python 2.4 compatability
-            self.assertEqual(checker._get_hash_name(), 'md5')
+        self.assertEqual(checker.hash_name, 'md5')
 
     def test_report(self):
         checker = setuptools.package_index.HashChecker.from_url(

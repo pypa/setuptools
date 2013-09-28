@@ -4,7 +4,7 @@ Using Setuptools in your project
 
 To use Setuptools in your project, the recommended way is to ship
 `ez_setup.py` alongside your `setup.py` script and call
-it at the very begining of `setup.py` like this::
+it at the very beginning of `setup.py` like this::
 
     from ez_setup import use_setuptools
     use_setuptools()

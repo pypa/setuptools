@@ -7,13 +7,22 @@ import re
 import os
 import subprocess
 
+import pkg_resources
+
+pkg_resources.require('jaraco.packaging>=2.0')
+
 
 def before_upload():
     _linkify('CHANGES.txt', 'CHANGES (links).txt')
-    _add_bootstrap_bookmark()
+    BootstrapBookmark.add()
+
+
+def after_push():
+    os.remove('CHANGES (links).txt')
+    BootstrapBookmark.push()
 
 files_with_versions = (
-    'ez_setup.py', 'setuptools/__init__.py',
+    'ez_setup.py', 'setuptools/version.py',
 )
 
 test_info = "Travis-CI tests: http://travis-ci.org/#!/jaraco/setuptools"
@@ -55,7 +64,21 @@ def replacer(match):
             url = issue_urls[key].format(**match_dict)
             return "`{text} <{url}>`_".format(text=text, url=url)
 
+class BootstrapBookmark:
+    name = 'bootstrap'
 
-def _add_bootstrap_bookmark():
-    cmd = ['hg', 'bookmark', '-i', 'bootstrap', '-f']
-    subprocess.Popen(cmd)
+    @classmethod
+    def add(cls):
+        cmd = ['hg', 'bookmark', '-i', cls.name, '-f']
+        subprocess.Popen(cmd)
+
+    @classmethod
+    def push(cls):
+        """
+        Push the bootstrap bookmark
+        """
+        push_command = ['hg', 'push', '-B', cls.name]
+        # don't use check_call here because mercurial will return a non-zero
+        # code even if it succeeds at pushing the bookmark (because there are
+        # no changesets to be pushed). !dm mercurial
+        subprocess.call(push_command)

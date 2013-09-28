@@ -1,19 +1,28 @@
 """PyPI and direct package downloading"""
-import sys, os.path, re, shutil, random, socket
-import itertools
+import sys
+import os
+import re
+import shutil
+import socket
 import base64
+
+from pkg_resources import (
+    CHECKOUT_DIST, Distribution, BINARY_DIST, normalize_path, SOURCE_DIST,
+    require, Environment, find_distributions, safe_name, safe_version,
+    to_filename, Requirement, DEVELOP_DIST,
+)
 from setuptools import ssl_support
-from pkg_resources import *
 from distutils import log
 from distutils.errors import DistutilsError
 from setuptools.compat import (urllib2, httplib, StringIO, HTTPError,
                                urlparse, urlunparse, unquote, splituser,
                                url2pathname, name2codepoint,
-                               unichr, urljoin)
+                               unichr, urljoin, urlsplit, urlunsplit)
 from setuptools.compat import filterfalse
 from fnmatch import translate
 from setuptools.py24compat import hashlib
 from setuptools.py24compat import wraps
+from setuptools.py26compat import strip_fragment
 from setuptools.py27compat import get_all_headers
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.]+)$')
@@ -105,9 +114,10 @@ def distros_for_filename(filename, metadata=None):
     )
 
 
-def interpret_distro_name(location, basename, metadata,
-    py_version=None, precedence=SOURCE_DIST, platform=None
-):
+def interpret_distro_name(
+        location, basename, metadata, py_version=None, precedence=SOURCE_DIST,
+        platform=None
+        ):
     """Generate alternative interpretations of a source distro name
 
     Note: if `location` is a filesystem filename, you should call
@@ -222,6 +232,7 @@ class HashChecker(ContentChecker):
     )
 
     def __init__(self, hash_name, expected):
+        self.hash_name = hash_name
         self.hash = hashlib.new(hash_name)
         self.expected = expected
 
@@ -242,32 +253,18 @@ class HashChecker(ContentChecker):
     def is_valid(self):
         return self.hash.hexdigest() == self.expected
 
-    def _get_hash_name(self):
-        """
-        Python 2.4 implementation of MD5 doesn't supply a .name attribute
-        so provide that name.
-
-        When Python 2.4 is no longer required, replace invocations of this
-        method with simply 'self.hash.name'.
-        """
-        try:
-            return self.hash.name
-        except AttributeError:
-            if 'md5' in str(type(self.hash)):
-                return 'md5'
-            raise
-
     def report(self, reporter, template):
-        msg = template % self._get_hash_name()
+        msg = template % self.hash_name
         return reporter(msg)
 
 
 class PackageIndex(Environment):
     """A distribution index that scans web pages for download URLs"""
 
-    def __init__(self, index_url="https://pypi.python.org/simple", hosts=('*',),
-        ca_bundle=None, verify_ssl=True, *args, **kw
-    ):
+    def __init__(
+            self, index_url="https://pypi.python.org/simple", hosts=('*',),
+            ca_bundle=None, verify_ssl=True, *args, **kw
+            ):
         Environment.__init__(self,*args,**kw)
         self.index_url = index_url + "/"[:not index_url.endswith('/')]
         self.scanned_urls = {}
@@ -347,7 +344,8 @@ class PackageIndex(Environment):
         s = URL_SCHEME(url)
         if (s and s.group(1).lower()=='file') or self.allows(urlparse(url)[1]):
             return True
-        msg = "\nLink to % s ***BLOCKED*** by --allow-hosts\n"
+        msg = ("\nNote: Bypassing %s (disallowed host; see "
+            "http://bit.ly/1dg9ijs for details).\n")
         if fatal:
             raise DistutilsError(msg % url)
         else:
@@ -388,7 +386,7 @@ class PackageIndex(Environment):
         # process an index page into the package-page index
         for match in HREF.finditer(page):
             try:
-                scan( urljoin(url, htmldecode(match.group(1))) )
+                scan(urljoin(url, htmldecode(match.group(1))))
             except ValueError:
                 pass
 
@@ -410,8 +408,6 @@ class PackageIndex(Environment):
             )
         else:
             return ""   # no sense double-scanning non-package pages
-
-
 
     def need_version_info(self, url):
         self.scan_all(
@@ -443,16 +439,13 @@ class PackageIndex(Environment):
             self.scan_url(url)
 
     def obtain(self, requirement, installer=None):
-        self.prescan(); self.find_packages(requirement)
+        self.prescan()
+        self.find_packages(requirement)
         for dist in self[requirement.key]:
             if dist in requirement:
                 return dist
             self.debug("%s does not match %s", requirement, dist)
         return super(PackageIndex, self).obtain(requirement,installer)
-
-
-
-
 
     def check_hash(self, checker, filename, tfp):
         """
@@ -539,11 +532,10 @@ class PackageIndex(Environment):
                     )
         return getattr(self.fetch_distribution(spec, tmpdir),'location',None)
 
-
-    def fetch_distribution(self,
-        requirement, tmpdir, force_scan=False, source=False, develop_ok=False,
-        local_index=None
-    ):
+    def fetch_distribution(
+            self, requirement, tmpdir, force_scan=False, source=False,
+            develop_ok=False, local_index=None
+            ):
         """Obtain a distribution suitable for fulfilling `requirement`
 
         `requirement` must be a ``pkg_resources.Requirement`` instance.
@@ -581,8 +573,6 @@ class PackageIndex(Environment):
                 if dist in req and (dist.precedence<=SOURCE_DIST or not source):
                     return dist
 
-
-
         if force_scan:
             self.prescan()
             self.find_packages(requirement)
@@ -609,7 +599,6 @@ class PackageIndex(Environment):
             self.info("Best match: %s", dist)
             return dist.clone(location=self.download(dist.location, tmpdir))
 
-
     def fetch(self, requirement, tmpdir, force_scan=False, source=False):
         """Obtain a file suitable for fulfilling `requirement`
 
@@ -623,10 +612,10 @@ class PackageIndex(Environment):
             return dist.location
         return None
 
-
     def gen_setup(self, filename, fragment, tmpdir):
         match = EGG_FRAGMENT.match(fragment)
-        dists = match and [d for d in
+        dists = match and [
+            d for d in
             interpret_distro_name(filename, match.group(1), None) if d.version
         ] or []
 
@@ -672,7 +661,7 @@ class PackageIndex(Environment):
         fp, tfp, info = None, None, None
         try:
             checker = HashChecker.from_url(url)
-            fp = self.open_url(url)
+            fp = self.open_url(strip_fragment(url))
             if isinstance(fp, HTTPError):
                 raise DistutilsError(
                     "Can't download %s: %s %s" % (url, fp.code,fp.msg)
@@ -732,9 +721,11 @@ class PackageIndex(Environment):
             if warning:
                 self.warn(warning, v.line)
             else:
-                raise DistutilsError('%s returned a bad status line. '
-                                     'The server might be down, %s' % \
-                                             (url, v.line))
+                raise DistutilsError(
+                    '%s returned a bad status line. The server might be '
+                    'down, %s' %
+                    (url, v.line)
+                )
         except httplib.HTTPException:
             v = sys.exc_info()[1]
             if warning:
@@ -775,7 +766,6 @@ class PackageIndex(Environment):
     def scan_url(self, url):
         self.process_url(url, True)
 
-
     def _attempt_download(self, url, filename):
         headers = self._download_to(url, filename)
         if 'html' in headers.get('content-type','').lower():
@@ -798,21 +788,6 @@ class PackageIndex(Environment):
         os.unlink(filename)
         raise DistutilsError("Unexpected HTML page found at "+url)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     def _download_svn(self, url, filename):
         url = url.split('#',1)[0]   # remove any fragment for svn's sake
         creds = ''
@@ -833,7 +808,8 @@ class PackageIndex(Environment):
         os.system("svn checkout%s -q %s %s" % (creds, url, filename))
         return filename
 
-    def _vcs_split_rev_from_url(self, url, pop_prefix=False):
+    @staticmethod
+    def _vcs_split_rev_from_url(url, pop_prefix=False):
         scheme, netloc, path, query, frag = urlsplit(url)
 
         scheme = scheme.split('+', 1)[-1]
@@ -891,18 +867,6 @@ class PackageIndex(Environment):
     def warn(self, msg, *args):
         log.warn(msg, *args)
 
-
-
-
-
-
-
-
-
-
-
-
-
 # This pattern matches a character entity reference (a decimal numeric
 # references, a hexadecimal numeric reference, or a named reference).
 entity_sub = re.compile(r'&(#(\d+|x[\da-fA-F]+)|[\w.:-]+);?').sub
@@ -926,20 +890,6 @@ def decode_entity(match):
 def htmldecode(text):
     """Decode HTML entities in the given text."""
     return entity_sub(decode_entity, text)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 def socket_timeout(timeout=15):
     def _socket_timeout(func):
@@ -1009,15 +959,6 @@ def open_with_auth(url, opener=urllib2.urlopen):
 open_with_auth = socket_timeout(_SOCKET_TIMEOUT)(open_with_auth)
 
 
-
-
-
-
-
-
-
-
-
 def fix_sf_url(url):
     return url      # backward compatibility
 
@@ -1047,17 +988,3 @@ def local_open(url):
 
     return HTTPError(url, status, message,
             {'content-type':'text/html'}, StringIO(body))
-
-
-
-
-
-
-
-
-
-
-
-
-
-# this line is a kludge to keep the trailing blank lines for pje's editor

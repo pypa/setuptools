@@ -1,18 +1,23 @@
 """Extensions to the 'distutils' for large or complex distributions"""
-from setuptools.extension import Extension, Library
-from setuptools.dist import Distribution, Feature, _get_unpatched
-import distutils.core, setuptools.command
-from setuptools.depends import Require
-from distutils.core import Command as _Command
-from distutils.util import convert_path
+
 import os
 import sys
+import distutils.core
+import distutils.filelist
+from distutils.core import Command as _Command
+from distutils.util import convert_path
 
-__version__ = '0.9.7'
+import setuptools.version
+from setuptools.extension import Extension
+from setuptools.dist import Distribution, Feature, _get_unpatched
+from setuptools.depends import Require
+
 __all__ = [
     'setup', 'Distribution', 'Feature', 'Command', 'Extension', 'Require',
     'find_packages'
 ]
+
+__version__ = setuptools.version.__version__
 
 bootstrap_install_from = None
 
@@ -37,10 +42,14 @@ def find_packages(where='.', exclude=()):
         where,prefix = stack.pop(0)
         for name in os.listdir(where):
             fn = os.path.join(where,name)
-            if ('.' not in name and os.path.isdir(fn) and
-                os.path.isfile(os.path.join(fn,'__init__.py'))
-            ):
-                out.append(prefix+name); stack.append((fn,prefix+name+'.'))
+            looks_like_package = (
+                '.' not in name
+                and os.path.isdir(fn)
+                and os.path.isfile(os.path.join(fn, '__init__.py'))
+            )
+            if looks_like_package:
+                out.append(prefix+name)
+                stack.append((fn, prefix+name+'.'))
     for pat in list(exclude)+['ez_setup']:
         from fnmatch import fnmatchcase
         out = [item for item in out if not fnmatchcase(item,pat)]
@@ -67,7 +76,6 @@ class Command(_Command):
             setattr(cmd,k,v)    # update command with keywords
         return cmd
 
-import distutils.core
 distutils.core.Command = Command    # we can't patch distutils.cmd, alas
 
 def findall(dir = os.curdir):
@@ -83,12 +91,8 @@ def findall(dir = os.curdir):
         all_files.extend(filter(os.path.isfile, files))
     return all_files
 
-import distutils.filelist
 distutils.filelist.findall = findall    # fix findall bug in distutils.
 
 # sys.dont_write_bytecode was introduced in Python 2.6.
-if ((hasattr(sys, "dont_write_bytecode") and sys.dont_write_bytecode) or
-    (not hasattr(sys, "dont_write_bytecode") and os.environ.get("PYTHONDONTWRITEBYTECODE"))):
-    _dont_write_bytecode = True
-else:
-    _dont_write_bytecode = False
+_dont_write_bytecode = getattr(sys, 'dont_write_bytecode',
+    bool(os.environ.get("PYTHONDONTWRITEBYTECODE")))

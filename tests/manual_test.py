@@ -1,31 +1,16 @@
 #!/usr/bin/env python
+
 import sys
-
-if sys.version_info[0] >= 3:
-    raise NotImplementedError('Py3 not supported in this test yet')
-
 import os
 import shutil
 import tempfile
+import subprocess
 from distutils.command.install import INSTALL_SCHEMES
 from string import Template
 from setuptools.compat import urlopen
 
-try:
-    import subprocess
-    def _system_call(*args):
-        assert subprocess.call(args) == 0
-except ImportError:
-    # Python 2.3
-    def _system_call(*args):
-        # quoting arguments if windows
-        if sys.platform == 'win32':
-            def quote(arg):
-                if ' ' in arg:
-                    return '"%s"' % arg
-                return arg
-            args = [quote(arg) for arg in args]
-        assert os.system(' '.join(args)) == 0
+def _system_call(*args):
+    assert subprocess.call(args) == 0
 
 def tempdir(func):
     def _tempdir(*args, **kwargs):
