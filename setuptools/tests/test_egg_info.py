@@ -48,6 +48,27 @@ class TestEggInfo(unittest.TestCase):
         rev = egg_info.egg_info.get_svn_revision()
         self.assertEqual(rev, '89000')
 
+    def test_version_10_format_legacy_parser(self):
+        """
+        """
+        path_variable = None
+        for env in os.environ:
+            if env.lower() == 'path':
+                path_variable = env
+
+        if path_variable is None:
+            self.skipTest('Cannot figure out how to modify path')
+
+        old_path = os.environ[path_variable]
+        os.environ[path_variable] = ''
+        try:
+            self._write_entries(ENTRIES_V10)
+            rev = egg_info.egg_info.get_svn_revision()
+        finally:
+            os.environ[path_variable] = old_path
+
+        self.assertEqual(rev, '89000')
+
 
 def test_suite():
     return unittest.defaultTestLoader.loadTestsFromName(__name__)
