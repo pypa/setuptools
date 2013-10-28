@@ -44,6 +44,7 @@ is_available = ssl is not None and object not in (HTTPSHandler, HTTPSConnection)
 try:
     from socket import create_connection
 except ImportError:
+    from socket import error
     _GLOBAL_DEFAULT_TIMEOUT = getattr(socket, '_GLOBAL_DEFAULT_TIMEOUT', object())
     def create_connection(address, timeout=_GLOBAL_DEFAULT_TIMEOUT,
                           source_address=None):
