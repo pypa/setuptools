@@ -85,9 +85,18 @@ except ImportError:
 try:
     from ssl import CertificateError, match_hostname
 except ImportError:
+    try:
+        from backports.ssl_match_hostname import CertificateError
+        from backports.ssl_match_hostname import match_hostname
+    except ImportError:
+        CertificateError = None
+        match_hostname = None
+
+if not CertificateError:
     class CertificateError(ValueError):
         pass
 
+if not match_hostname:
     def _dnsname_match(dn, hostname, max_wildcards=1):
         """Matching according to RFC 6125, section 6.4.3
 
