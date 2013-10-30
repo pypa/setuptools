@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+---
+1.2
+---
+
+* Issue #26: Add support for SVN 1.7. Special thanks to Philip Thiem for the
+  contribution.
+
 -----
 1.1.7
 -----
