@@ -918,7 +918,7 @@ def _encode_auth(auth):
     # convert back to a string
     encoded = encoded_bytes.decode()
     # strip the trailing carriage return
-    return encoded.rstrip()
+    return encoded.replace('\n','')
 
 def open_with_auth(url, opener=urllib2.urlopen):
     """Open a urllib2 request, handling HTTP authentication"""
