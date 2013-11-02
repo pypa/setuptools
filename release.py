@@ -25,6 +25,8 @@ files_with_versions = (
     'ez_setup.py', 'setuptools/version.py',
 )
 
+dist_commands = 'sdist', 'bdist_wheel'
+
 test_info = "Travis-CI tests: http://travis-ci.org/#!/jaraco/setuptools"
 
 os.environ["SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES"] = "1"
