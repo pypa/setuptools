@@ -8,6 +8,9 @@ CHANGES
 
 * Issue #26: Add support for SVN 1.7. Special thanks to Philip Thiem for the
   contribution.
+* Issue #94: Wheels are now distributed with every release.
+* Setuptools "natural" launcher support, introduced in 1.0, is now officially
+  supported.
 
 -----
 1.1.7
