@@ -3,6 +3,16 @@ CHANGES
 =======
 
 ---
+1.3
+---
+
+* Address security vulnerability in SSL match_hostname check as reported in
+  Python #17997.
+* Prefer `backports.ssl_match_hostname
+  <https://pypi.python.org/pypi/backports.ssl_match_hostname>`_ for backport
+  implementation if present.
+
+---
 1.2
 ---
 
