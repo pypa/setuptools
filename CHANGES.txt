@@ -11,6 +11,7 @@ CHANGES
 * Prefer `backports.ssl_match_hostname
   <https://pypi.python.org/pypi/backports.ssl_match_hostname>`_ for backport
   implementation if present.
+* Correct NameError in ``ssl_support`` module (``socket.error``).
 
 ---
 1.2
