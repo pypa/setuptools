@@ -4,19 +4,7 @@ Welcome to Distribute's documentation!
 `Distribute` is a deprecated fork of the `Setuptools` project.
 
 Since the Setuptools 0.7 release, Setuptools and Distribute have merged
-and Distribute is no longer being maintained. This documentation is kept here
-for posterity, but all ongoing effort should reference the
+and Distribute is no longer being maintained. All ongoing effort should
+reference the
 `Setuptools project <https://bitbucket.org/pypa/setuptools>`_ and the
 `Setuptools documentation <https://pythonhosted.org/setuptools>`_.
-
-Documentation content:
-
-.. toctree::
-   :maxdepth: 2
-
-   roadmap
-   python3
-   using
-   setuptools
-   easy_install
-   pkg_resources
