@@ -244,7 +244,6 @@ class SvnInfo(object):
                            "on pre 1.7 .svn parsing"), DeprecationWarning)
             return SvnFileInfo(dirname)
         elif not has_svn:
-            log.warn('Not SVN Repository')
             return SvnInfo(dirname)
         elif base_svn_version < (1, 5):
             return Svn13Info(dirname)
