@@ -3,20 +3,12 @@
 
 
 import os
-import sys
 import unittest
 import codecs
 from setuptools.tests import environment
-from setuptools.svn_utils import fsencode
 from setuptools.compat import unicode, unichr
 
 from setuptools import svn_utils
-
-#requires python >= 2.4
-from subprocess import call as _call
-
-from distutils import log
-
 
 
 class TestSvnVersion(unittest.TestCase):
@@ -64,13 +56,6 @@ class ParserInfoXML(unittest.TestCase):
 
         data = _read_utf8_file(path)
 
-        if ext_spaces:
-            folder2 = 'third party2'
-            folder3 = 'third party3'
-        else:
-            folder2 = 'third_party2'
-            folder3 = 'third_party3'
-
         expected = set([
             ("\\".join((example_base, 'a file')), 'file'),
             ("\\".join((example_base, 'folder')), 'dir'),
@@ -116,7 +101,7 @@ class ParserExternalXML(unittest.TestCase):
         expected = set([
             os.sep.join((example_base, folder2)),
             os.sep.join((example_base, folder3)),
-                                     #third_party大介
+            # folder is third_party大介
             os.sep.join((example_base,
                        unicode('third_party') +
                        unichr(0x5927) + unichr(0x4ecb))),
@@ -129,7 +114,7 @@ class ParserExternalXML(unittest.TestCase):
 
         expected = set(os.path.normpath(x) for x in expected)
         dir_base = os.sep.join(('C:', 'development', 'svn_example'))
-        self.assertEqual(set(x for x \
+        self.assertEqual(set(x for x
             in svn_utils.parse_externals_xml(data, dir_base)), expected)
 
     def test_svn15(self):
@@ -150,7 +135,6 @@ class ParseExternal(unittest.TestCase):
     def parse_tester(self, svn_name, ext_spaces):
         path = os.path.join('setuptools', 'tests',
                             'svn_data', svn_name + '_ext_list.txt')
-        example_base = svn_name + '_example'
         data = _read_utf8_file(path)
 
         if ext_spaces:
@@ -237,4 +221,3 @@ class TestSvn(environment.ZippedEnvironment):
 
 def test_suite():
     return unittest.defaultTestLoader.loadTestsFromName(__name__)
-
