@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """sdist tests"""
 
+from __future__ import with_statement
 import locale
 import os
 import shutil
@@ -8,6 +9,7 @@ import sys
 import tempfile
 import unittest
 import unicodedata
+import re
 from setuptools.tests import environment
 
 from setuptools.compat import StringIO, unicode
@@ -16,7 +18,6 @@ from setuptools.command.sdist import sdist, walk_revctrl
 from setuptools.command.egg_info import manifest_maker
 from setuptools.dist import Distribution
 from setuptools import svn_utils
-from setuptools.svn_utils import fsencode
 
 SETUP_ATTRS = {
     'name': 'sdist_test',
@@ -400,6 +401,83 @@ class TestSdistTest(unittest.TestCase):
             self.assertTrue(filename in cmd.filelist.files)
 
 
+def soruce_test(self):
+    code, data = svn_utils._run_command([sys.executable, "setup.py", "egg_info"], stream=1)
+        
+    if code:
+        raise AssertionError(data)
+
+    sources = os.path.join('dummy.egg-info', 'SOURCES.txt')
+    contents = """CHANGES.txt
+CONTRIBUTORS.txt
+HISTORY.txt
+LICENSE
+MANIFEST.in
+README.txt
+setup.py
+dummy/__init__.py
+dummy/test.txt
+dummy.egg-info/PKG-INFO
+dummy.egg-info/SOURCES.txt
+dummy.egg-info/dependency_links.txt
+dummy.egg-info/top_level.txt"""
+
+    with open(sources, 'r') as infile:
+        read_contents = infile.read()
+
+    self.assertEqual(contents, read_contents)
+
+
+class TestSvnDummy(environment.ZippedEnvironment):
+
+    def setUp(self):
+        version = svn_utils.SvnInfo.get_svn_version()
+        self.base_version = tuple([int(x) for x in version.split('.')][:2])
+
+        if not self.base_version:
+            raise ValueError('No SVN tools installed')
+        elif self.base_version < (1,3):
+            raise ValueError('Insufficient SVN Version %s' % version)
+        elif self.base_version >= (1,9):
+            #trying the latest version
+            self.base_version = (1,8)
+
+        self.dataname = "dummy%i%i" % self.base_version
+        self.datafile = os.path.join('setuptools', 'tests',
+                                     'svn_data', self.dataname + ".zip")
+        super(TestSvnDummy, self).setUp()
+            
+    def test_sources(self):
+        soruce_test(self)
+
+
+class TestSvnDummyLegacy(environment.ZippedEnvironment):
+
+    def setUp(self):
+        self.base_version = (1,6)
+        self.path_variable = None
+        for env in os.environ:
+            if env.lower() == 'path':
+                self.path_variable = env
+        self.old_path = os.environ[self.path_variable]
+        os.environ[self.path_variable] = ''
+
+        if self.path_variable is None:
+            self.skipTest('Cannot figure out how to modify path')
+
+        self.dataname = "dummy%i%i" % self.base_version
+        self.datafile = os.path.join('setuptools', 'tests',
+                                     'svn_data', self.dataname + ".zip")
+        super(TestSvnDummyLegacy, self).setUp()
+
+    def tearDown(self):
+        os.environ[self.path_variable] = self.old_path
+        super(TestSvnDummyLegacy, self).tearDown()
+
+    def test_sources(self):
+        soruce_test(self)
+
+
 class TestSvn(environment.ZippedEnvironment):
 
     def setUp(self):
@@ -453,9 +531,7 @@ class TestSvn(environment.ZippedEnvironment):
             os.path.join('folder', 'quest.txt'),
             #The example will have a deleted file (or should) but shouldn't return it
             ])
-        expected = set(fsencode(x) for x in expected)
         self.assertEqual(set(x for x in walk_revctrl()), expected)
-
 
 
 def test_suite():
