@@ -7,7 +7,6 @@ import sys
 import unittest
 import codecs
 from setuptools.tests import environment
-from setuptools.svn_utils import fsencode
 from setuptools.compat import unicode, unichr
 
 from setuptools import svn_utils
