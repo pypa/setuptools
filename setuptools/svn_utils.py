@@ -27,18 +27,18 @@ from subprocess import Popen as _Popen, PIPE as _PIPE
 #              python-subprocess-popen-environment-path
 
 
-def _run_command(args, stdout=_PIPE, stderr=_PIPE):
+def _run_command(args, stdout=_PIPE, stderr=_PIPE, encoding=None, stream=0):
     #regarding the shell argument, see: http://bugs.python.org/issue8557
     try:
-        args = [fsdecode(x) for x in args]
         proc = _Popen(args, stdout=stdout, stderr=stderr,
                       shell=(sys.platform == 'win32'))
 
-        data = proc.communicate()[0]
+        data = proc.communicate()[stream]
     except OSError:
         return 1, ''
 
-    data = consoledecode(data)
+    #doubled checked and 
+    data = decode_as_string(data, encoding)
 
     #communciate calls wait()
     return proc.returncode, data
@@ -73,40 +73,28 @@ def joinpath(prefix, *suffix):
     return os.path.join(prefix, *suffix)
 
 
-def fsencode(path):
-    "Path must be unicode or in file system encoding already"
-    encoding = sys.getfilesystemencoding()
+def decode_as_string(text, encoding=None):
+    """
+    Decode the console or file output explicitly using getpreferredencoding.
+    The text paraemeter should be a encoded string, if not no decode occurs
+    If no encoding is given, getpreferredencoding is used.  If encoding is 
+    specified, that is used instead.  This would be needed for SVN --xml 
+    output.  Unicode is explicitly put in composed NFC form.
+    
+    --xml should be UTF-8 (SVN Issue 2938) the discussion on the Subversion 
+    DEV List from 2007 seems to indicate the same.
+    """
+    #text should be a byte string    
 
-    if isinstance(path, unicode):
-        path = path.encode()
-    elif not isinstance(path, bytes):
-        raise TypeError('%s is not a string or byte type'
-                        % type(path).__name__)
+    if encoding is None:
+        encoding = locale.getpreferredencoding()
 
-    #getfilessystemencoding doesn't have the mac-roman issue
-    if encoding == 'utf-8' and sys.platform == 'darwin':
-        path = path.decode('utf-8')
-        path = unicodedata.normalize('NFD', path)
-        path = path.encode('utf-8')
-
-    return path
-
-
-def fsdecode(path):
-    "Path must be unicode or in file system encoding already"
-    encoding = sys.getfilesystemencoding()
-    if isinstance(path, bytes):
-        path = path.decode(encoding)
-    elif not isinstance(path, unicode):
-        raise TypeError('%s is not a byte type'
-                        % type(path).__name__)
-
-    return unicodedata.normalize('NFC', path)
-
-
-def consoledecode(text):
-    encoding = locale.getpreferredencoding()
-    return text.decode(encoding)
+    if not isinstance(text, unicode):
+        text = text.decode(encoding)
+    
+    text = unicodedata.normalize('NFC', text)
+    
+    return text
 
 
 def parse_dir_entries(decoded_str):
@@ -141,6 +129,7 @@ def parse_externals_xml(decoded_str, prefix=''):
                 path = path[len(prefix)+1:]
 
             data = _get_target_property(node)
+            #data should be decoded already 
             for external in parse_external_prop(data):
                 externals.append(joinpath(path, external))
 
@@ -177,6 +166,7 @@ def parse_external_prop(lines):
         else:
             external = line[-1]
 
+        external = decode_as_string(external, encoding="utf-8")
         externals.append(os.path.normpath(external))
 
     return externals
@@ -214,9 +204,9 @@ class SvnInfo(object):
     def get_svn_version():
         code, data = _run_command(['svn', '--version', '--quiet'])
         if code == 0 and data:
-            return unicode(data).strip()
+            return data.strip()
         else:
-            return unicode('')
+            return ''
 
     #svnversion return values (previous implementations return max revision)
     #   4123:4168     mixed revision working copy
@@ -314,7 +304,8 @@ class SvnInfo(object):
 
 class Svn13Info(SvnInfo):
     def get_entries(self):
-        code, data = _run_command(['svn', 'info', '-R', '--xml', self.path])
+        code, data = _run_command(['svn', 'info', '-R', '--xml', self.path],
+                                  encoding="utf-8")
 
         if code:
             log.debug("svn info failed")
@@ -328,10 +319,11 @@ class Svn13Info(SvnInfo):
         cmd = ['svn', 'propget', 'svn:externals']
         result = []
         for folder in self.iter_dirs():
-            code, lines = _run_command(cmd + [folder])
+            code, lines = _run_command(cmd + [folder], encoding="utf-8")
             if code != 0:
                 log.warn("svn propget failed")
                 return []
+            #lines should a str
             for external in parse_external_prop(lines):
                 if folder:
                     external = os.path.join(folder, external)
@@ -343,7 +335,7 @@ class Svn13Info(SvnInfo):
 class Svn15Info(Svn13Info):
     def get_externals(self):
         cmd = ['svn', 'propget', 'svn:externals', self.path, '-R', '--xml']
-        code, lines = _run_command(cmd)
+        code, lines = _run_command(cmd, encoding="utf-8")
         if code:
             log.debug("svn propget failed")
             return []
@@ -363,6 +355,7 @@ class SvnFileInfo(SvnInfo):
             entries = SVNEntriesFile.load(base)
             yield (base, False, entries.parse_revision())
             for path in entries.get_undeleted_records():
+                path = decode_as_string(path)
                 path = joinpath(base, path)
                 if os.path.isfile(path):
                     yield (path, True, None)
@@ -371,18 +364,17 @@ class SvnFileInfo(SvnInfo):
                         yield item
 
     def _build_entries(self):
-        dirs = list()
-        files = list()
+        entries = list()
+
         rev = 0
         for path, isfile, dir_rev in self._walk_svn(self.path):
             if isfile:
-                files.append(path)
+                entries.append((path, 'file'))
             else:
-                dirs.append(path)
+                entries.append((path, 'dir'))
                 rev = max(rev, dir_rev)
 
-        self._directories = dirs
-        self._entries = files
+        self._entries = entries
         self._revision = rev
 
     def get_entries(self):
@@ -396,14 +388,11 @@ class SvnFileInfo(SvnInfo):
         return self._revision
 
     def get_externals(self):
-        if self._directories is None:
-            self._build_entries()
-
         prop_files = [['.svn', 'dir-prop-base'],
                       ['.svn', 'dir-props']]
         externals = []
 
-        for dirname in self._directories:
+        for dirname in self.iter_dirs():
             prop_file = None
             for rel_parts in prop_files:
                 filename = joinpath(dirname, *rel_parts)
@@ -412,6 +401,8 @@ class SvnFileInfo(SvnInfo):
 
             if prop_file is not None:
                 ext_prop = parse_prop_file(prop_file, 'svn:externals')
+                #ext_prop should be utf-8 coming from svn:externals
+                ext_prop = decode_as_string(ext_prop, encoding="utf-8")
                 externals.extend(parse_external_prop(ext_prop))
 
         return externals
@@ -422,12 +413,12 @@ def svn_finder(dirname=''):
     #combined externals and entries due to lack of dir_props in 1.7
     info = SvnInfo.load(dirname)
     for path in info.iter_files():
-        yield fsencode(path)
+        yield path
 
     for path in info.iter_externals():
         sub_info = SvnInfo.load(path)
         for sub_path in sub_info.iter_files():
-            yield fsencode(sub_path)
+            yield sub_path
 
 
 class SVNEntriesFile(object):
