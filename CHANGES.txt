@@ -3,6 +3,12 @@ CHANGES
 =======
 
 -----
+1.3.2
+-----
+
+* Issue #99: Fix filename encoding issues in SVN support.
+
+-----
 1.3.1
 -----
 
