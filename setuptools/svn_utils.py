@@ -219,7 +219,13 @@ class SvnInfo(object):
     def load(cls, dirname=''):
         normdir = os.path.normpath(dirname)
         code, data = _run_command(['svn', 'info', normdir])
-        has_svn = os.path.isdir(os.path.join(normdir, '.svn'))
+        # Must check for some contents, as some use empty directories
+        # in testcases
+        svn_dir = os.path.join(normdir, '.svn')
+        has_svn = (os.path.isfile(os.path.join(svn_dir, 'entries')) or
+                   os.path.isfile(os.path.join(svn_dir, 'dir-props')) or
+                   os.path.isfile(os.path.join(svn_dir, 'dir-prop-base')))
+
         svn_version = tuple(cls.get_svn_version().split('.'))
 
         try:
@@ -229,7 +235,6 @@ class SvnInfo(object):
 
         if has_svn and (code or not base_svn_version 
                              or base_svn_version < (1, 3)):
-            log.warn('Fallback onto .svn parsing')
             warnings.warn(("No SVN 1.3+ command found: falling back "
                            "on pre 1.7 .svn parsing"), DeprecationWarning)
             return SvnFileInfo(dirname)

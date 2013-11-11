@@ -5,6 +5,9 @@ import tempfile
 import unittest
 import shutil
 import stat
+import unicodedata
+
+from subprocess import Popen as _Popen, PIPE as _PIPE
 
 
 def _extract(self, member, path=None, pwd=None):
@@ -25,13 +28,14 @@ def _extract_from_zip(self, name, dest_path):
     finally:
         dest_file.close()
 
+
 def _extract_member(self, member, targetpath, pwd):
     """for zipfile py2.5 borrowed from cpython"""
     # build the destination pathname, replacing
     # forward slashes to platform specific separators.
     # Strip trailing path separator, unless it represents the root.
     if (targetpath[-1:] in (os.path.sep, os.path.altsep)
-        and len(os.path.splitdrive(targetpath)[1]) > 1):
+            and len(os.path.splitdrive(targetpath)[1]) > 1):
         targetpath = targetpath[:-1]
 
     # don't include leading "/" from file name if present
@@ -102,3 +106,47 @@ class ZippedEnvironment(unittest.TestCase):
             #sigh?
             pass
 
+
+def run_setup_py(cmd, pypath=None, path=None,
+                 data_stream=0, env=None):
+    """
+    Execution command for tests, separate from those used by the
+    code directly to prevent accidental behavior issues
+    """
+    if env is None:
+        env = dict()
+
+    #override the python path if needed
+    if pypath is None:
+        env["PYTHONPATH"] = os.environ.get("PYTHONPATH", "")
+    else:
+        env["PYTHONPATH"] = pypath
+
+    #oeride the execution path if needed
+    if path is None:
+        env["PATH"] = os.environ.get("PATH", "")
+    else:
+        env["PATH"] = pypath
+
+    #Apparently this might be needed in windows platforms
+    if "SYSTEMROOT" in os.environ:
+        env["SYSTEMROOT"] = os.environ["SYSTEMROOT"]
+
+    cmd = [sys.executable, "setup.py"] + list(cmd)
+
+    #regarding the shell argument, see: http://bugs.python.org/issue8557
+    try:
+        proc = _Popen(cmd, stdout=_PIPE, stderr=_PIPE,
+                      shell=(sys.platform == 'win32'), env=env)
+
+        data = proc.communicate()[data_stream]
+    except OSError:
+        return 1, ''
+
+    #decode the console string if needed
+    if hasattr(data,  "decode"):
+        data = data.decode()  # should use the preffered encoding
+        data = unicodedata.normalize('NFC', data)
+
+    #communciate calls wait()
+    return proc.returncode, data
