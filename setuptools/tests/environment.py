@@ -107,6 +107,15 @@ class ZippedEnvironment(unittest.TestCase):
             pass
 
 
+def _which_dirs(cmd):
+    result = set()
+    for path in os.environ.get('PATH', '').split(os.pathsep):
+        filename = os.path.join(path, cmd)
+        if os.access(filename, os.X_OK):
+            result.add(path)
+    return result
+
+
 def run_setup_py(cmd, pypath=None, path=None,
                  data_stream=0, env=None):
     """
@@ -115,22 +124,19 @@ def run_setup_py(cmd, pypath=None, path=None,
     """
     if env is None:
         env = dict()
+        for envname in os.environ:
+            env[envname] = os.environ[envname]
 
     #override the python path if needed
-    if pypath is None:
-        env["PYTHONPATH"] = os.environ.get("PYTHONPATH", "")
-    else:
+    if pypath is not None:
         env["PYTHONPATH"] = pypath
 
-    #oeride the execution path if needed
-    if path is None:
-        env["PATH"] = os.environ.get("PATH", "")
-    else:
-        env["PATH"] = pypath
-
-    #Apparently this might be needed in windows platforms
-    if "SYSTEMROOT" in os.environ:
-        env["SYSTEMROOT"] = os.environ["SYSTEMROOT"]
+    #overide the execution path if needed
+    if path is not None:
+        env["PATH"] = path
+    if not env.get("PATH", ""):
+        env["PATH"] = _which_dirs("tar").union(_which_dirs("gzip"))
+        env["PATH"] = os.pathsep.join(env["PATH"])
 
     cmd = [sys.executable, "setup.py"] + list(cmd)
 
