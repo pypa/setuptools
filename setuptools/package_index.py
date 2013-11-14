@@ -949,20 +949,19 @@ class PyPirc(ConfigParser.ConfigParser):
 
     @property
     def creds_by_repository(self):
-        creds = {}
         sections_with_repositories = [
             section for section in self.sections()
             if self.get(section, 'repository').strip()
         ]
 
-        for section in sections_with_repositories:
-            cred = Credential(
-                self.get(section, 'username').strip(),
-                self.get(section, 'password').strip(),
-            )
-            repo = self.get(section, 'repository').strip()
-            creds[repo] = cred
-        return creds
+        return dict(map(self._get_repo_cred, sections_with_repositories))
+
+    def _get_repo_cred(self, section):
+        repo = self.get(section, 'repository').strip()
+        return repo, Credential(
+            self.get(section, 'username').strip(),
+            self.get(section, 'password').strip(),
+        )
 
     def find_credential(self, url):
         """
