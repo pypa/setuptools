@@ -949,8 +949,8 @@ class PyPirc(ConfigParser.ConfigParser):
             self.read(rc)
 
     @property
-    def dict_(self):
-        dict_ = {}
+    def creds_by_repository(self):
+        creds = {}
         sections_with_repositories = [
             section for section in self.sections()
             if self.get(section, 'repository').strip()
@@ -962,14 +962,17 @@ class PyPirc(ConfigParser.ConfigParser):
                 self.get(section, 'password').strip(),
             )
             repo = self.get(section, 'repository').strip()
-            dict_[repo] = cred
-        return dict_
+            creds[repo] = cred
+        return creds
 
-    def __call__(self, url):
-        """ """
-        for base_url, auth in self.dict_.items():
-            if url.startswith(base_url):
-                return auth
+    def find_credential(self, url):
+        """
+        If the URL indicated appears to be a repository defined in this
+        config, return the credential for that repository.
+        """
+        for repository, cred in self.creds_by_repository.items():
+            if url.startswith(repository):
+                return cred
 
 
 def open_with_auth(url, opener=urllib2.urlopen):
@@ -988,8 +991,10 @@ def open_with_auth(url, opener=urllib2.urlopen):
         auth = None
 
     if not auth:
-        auth = str(PyPirc()(url))
-        log.info('Authentication found for URL: %s' % url)
+        cred = PyPirc().find_credential(url)
+        if cred:
+            auth = str(cred)
+            log.info('Authentication found for URL: %s' % url)
 
     if auth:
         auth = "Basic " + _encode_auth(auth)
