@@ -8,6 +8,8 @@ CHANGES
 
 * Issue #27: ``easy_install`` will now use credentials from .pypirc if
   present for connecting to the package index.
+* Pull Request #21: Omit unwanted newlines in ``package_index._encode_auth``
+  when the username/password pair length indicates wrapping.
 
 -----
 1.3.2
