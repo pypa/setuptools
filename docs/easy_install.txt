@@ -486,6 +486,15 @@ You can do this with both index page URLs and direct download URLs.  As long
 as any HTML pages read by easy_install use *relative* links to point to the
 downloads, the same user ID and password will be used to do the downloading.
 
+Using .pypirc Credentials
+-------------------------
+
+In additional to supplying credentials in the URL, ``easy_install`` will also
+honor credentials if present in the .pypirc file. Teams maintaining a private
+repository of packages may already have defined access credentials for
+uploading packages according to the distutils documentation. ``easy_install``
+will attempt to honor those if present. Refer to the distutils documentation
+for Python 2.5 or later for details on the syntax.
 
 Controlling Build Options
 ~~~~~~~~~~~~~~~~~~~~~~~~~

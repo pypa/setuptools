@@ -17,7 +17,8 @@ from distutils.errors import DistutilsError
 from setuptools.compat import (urllib2, httplib, StringIO, HTTPError,
                                urlparse, urlunparse, unquote, splituser,
                                url2pathname, name2codepoint,
-                               unichr, urljoin, urlsplit, urlunsplit)
+                               unichr, urljoin, urlsplit, urlunsplit,
+                               ConfigParser)
 from setuptools.compat import filterfalse
 from fnmatch import translate
 from setuptools.py24compat import hashlib
@@ -920,6 +921,60 @@ def _encode_auth(auth):
     # strip the trailing carriage return
     return encoded.rstrip()
 
+class Credential(object):
+    """
+    A username/password pair. Use like a namedtuple.
+    """
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+
+    def __iter__(self):
+        yield self.username
+        yield self.password
+
+    def __str__(self):
+        return '%(username)s:%(password)s' % vars(self)
+
+class PyPIConfig(ConfigParser.ConfigParser):
+
+    def __init__(self):
+        """
+        Load from ~/.pypirc
+        """
+        defaults = dict.fromkeys(['username', 'password', 'repository'], '')
+        super(PyPIConfig, self).__init__(defaults)
+
+        rc = os.path.join(os.path.expanduser('~'), '.pypirc')
+        if os.path.exists(rc):
+            self.read(rc)
+
+    @property
+    def creds_by_repository(self):
+        sections_with_repositories = [
+            section for section in self.sections()
+            if self.get(section, 'repository').strip()
+        ]
+
+        return dict(map(self._get_repo_cred, sections_with_repositories))
+
+    def _get_repo_cred(self, section):
+        repo = self.get(section, 'repository').strip()
+        return repo, Credential(
+            self.get(section, 'username').strip(),
+            self.get(section, 'password').strip(),
+        )
+
+    def find_credential(self, url):
+        """
+        If the URL indicated appears to be a repository defined in this
+        config, return the credential for that repository.
+        """
+        for repository, cred in self.creds_by_repository.items():
+            if url.startswith(repository):
+                return cred
+
+
 def open_with_auth(url, opener=urllib2.urlopen):
     """Open a urllib2 request, handling HTTP authentication"""
 
@@ -934,6 +989,13 @@ def open_with_auth(url, opener=urllib2.urlopen):
         auth, host = splituser(netloc)
     else:
         auth = None
+
+    if not auth:
+        cred = PyPIConfig().find_credential(url)
+        if cred:
+            auth = str(cred)
+            info = cred.username, url
+            log.info('Authenticating as %s for %s (from .pypirc)' % info)
 
     if auth:
         auth = "Basic " + _encode_auth(auth)
