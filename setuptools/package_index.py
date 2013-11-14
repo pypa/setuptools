@@ -943,7 +943,7 @@ class PyPIConfig(ConfigParser.ConfigParser):
         Load from ~/.pypirc
         """
         defaults = dict.fromkeys(['username', 'password', 'repository'], '')
-        super(PyPIConfig, self).__init__(defaults)
+        ConfigParser.ConfigParser.__init__(self, defaults)
 
         rc = os.path.join(os.path.expanduser('~'), '.pypirc')
         if os.path.exists(rc):
