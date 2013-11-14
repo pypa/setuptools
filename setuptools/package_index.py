@@ -935,34 +935,35 @@ class Credential(object):
     def __str__(self):
         return '%(username)s:%(password)s' % vars(self)
 
-class PyPirc(object):
+class PyPirc(ConfigParser.ConfigParser):
 
     def __init__(self):
         """
-        Extract pypirc authentication information from home directory
+        Load from ~/.pypirc
         """
-        self.dict_ = {}
+        defaults = dict.fromkeys(['username', 'password', 'repository'], '')
+        super(PyPirc, self).__init__(defaults)
 
         rc = os.path.join(os.path.expanduser('~'), '.pypirc')
-        if not os.path.exists(rc):
-            return
+        if os.path.exists(rc):
+            self.read(rc)
 
-        initial = dict.fromkeys(['username', 'password', 'repository'], '')
-        config = ConfigParser.ConfigParser(initial)
-        config.read(rc)
-
+    @property
+    def dict_(self):
+        dict_ = {}
         sections_with_repositories = [
-            section for section in config.sections()
-            if config.get(section, 'repository').strip()
+            section for section in self.sections()
+            if self.get(section, 'repository').strip()
         ]
 
         for section in sections_with_repositories:
             cred = Credential(
-                config.get(section, 'username').strip(),
-                config.get(section, 'password').strip(),
+                self.get(section, 'username').strip(),
+                self.get(section, 'password').strip(),
             )
-            repo = config.get(section, 'repository').strip()
-            self.dict_[repo] = cred
+            repo = self.get(section, 'repository').strip()
+            dict_[repo] = cred
+        return dict_
 
     def __call__(self, url):
         """ """
