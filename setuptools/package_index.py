@@ -943,10 +943,7 @@ class PyPirc(object):
         """
         self.dict_ = {}
 
-        if 'HOME' not in os.environ:
-            return
-
-        rc = os.path.join(os.environ['HOME'], '.pypirc')
+        rc = os.path.join(os.path.expanduser('~'), '.pypirc')
         if not os.path.exists(rc):
             return
 
