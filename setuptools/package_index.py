@@ -6,8 +6,6 @@ import shutil
 import socket
 import base64
 
-import ConfigParser
-
 from pkg_resources import (
     CHECKOUT_DIST, Distribution, BINARY_DIST, normalize_path, SOURCE_DIST,
     require, Environment, find_distributions, safe_name, safe_version,
@@ -19,7 +17,8 @@ from distutils.errors import DistutilsError
 from setuptools.compat import (urllib2, httplib, StringIO, HTTPError,
                                urlparse, urlunparse, unquote, splituser,
                                url2pathname, name2codepoint,
-                               unichr, urljoin, urlsplit, urlunsplit)
+                               unichr, urljoin, urlsplit, urlunsplit,
+                               ConfigParser)
 from setuptools.compat import filterfalse
 from fnmatch import translate
 from setuptools.py24compat import hashlib
