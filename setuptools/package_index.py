@@ -928,20 +928,30 @@ class PyPirc(object):
         """
         self.dict_ = {}
 
-        if 'HOME' in os.environ:
-            rc = os.path.join(os.environ['HOME'], '.pypirc')
-            if os.path.exists(rc):
-                config = ConfigParser.ConfigParser({
-                        'username': '',
-                        'password': '',
-                        'repository': ''})
-                config.read(rc)
+        if 'HOME' not in os.environ:
+            return
 
-                for section in config.sections():
-                    if config.get(section, 'repository').strip():
-                        value = '%s:%s' % (config.get(section, 'username').strip(),
-                                         config.get(section, 'password').strip())
-                        self.dict_[config.get(section, 'repository').strip()] = value
+        rc = os.path.join(os.environ['HOME'], '.pypirc')
+        if not os.path.exists(rc):
+            return
+
+        initial = dict.fromkeys(['username', 'password', 'repository'], '')
+        config = ConfigParser.ConfigParser(initial)
+        config.read(rc)
+
+        sections_with_repositories = [
+            section for section in config.sections()
+            if config.get(section, 'repository').strip()
+        ]
+
+        for section in sections_with_repositories:
+            auth = (
+                config.get(section, 'username').strip(),
+                config.get(section, 'password').strip(),
+            )
+            value = '%s:%s' % auth
+            repo = config.get(section, 'repository').strip()
+            self.dict_[repo] = value
 
     def __call__(self, url):
         """ """
