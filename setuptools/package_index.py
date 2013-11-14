@@ -920,35 +920,34 @@ def _encode_auth(auth):
     # strip the trailing carriage return
     return encoded.rstrip()
 
-class PyPirc:
+class PyPirc(object):
 
     def __init__(self):
         """
-            Extract pypirc authentication information from home directory
+        Extract pypirc authentication information from home directory
         """
         self.dict_ = {}
 
-        if os.environ.has_key('HOME'):
+        if 'HOME' in os.environ:
             rc = os.path.join(os.environ['HOME'], '.pypirc')
             if os.path.exists(rc):
                 config = ConfigParser.ConfigParser({
-                        'username' : '',
-                        'password' : '',
-                        'repository' : ''})
+                        'username': '',
+                        'password': '',
+                        'repository': ''})
                 config.read(rc)
 
                 for section in config.sections():
                     if config.get(section, 'repository').strip():
-                        value = '%s:%s'%(config.get(section, 'username').strip(),
+                        value = '%s:%s' % (config.get(section, 'username').strip(),
                                          config.get(section, 'password').strip())
                         self.dict_[config.get(section, 'repository').strip()] = value
-                        
+
     def __call__(self, url):
         """ """
         for base_url, auth in self.dict_.items():
             if url.startswith(base_url):
                 return auth
-
 
 
 def open_with_auth(url, opener=urllib2.urlopen):
@@ -968,7 +967,7 @@ def open_with_auth(url, opener=urllib2.urlopen):
 
     if not auth:
         auth = PyPirc()(url)
-        log.info('Authentication found for URL: %s'%url)
+        log.info('Authentication found for URL: %s' % url)
 
     if auth:
         auth = "Basic " + _encode_auth(auth)
