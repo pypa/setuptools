@@ -33,6 +33,7 @@ os.environ["SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES"] = "1"
 
 link_patterns = [
     r"(Issue )?#(?P<issue>\d+)",
+    r"Pull Request ?#(?P<pull_request>\d+)",
     r"Distribute #(?P<distribute>\d+)",
     r"Buildout #(?P<buildout>\d+)",
     r"Old Setuptools #(?P<old_setuptools>\d+)",
@@ -41,6 +42,8 @@ link_patterns = [
 ]
 
 issue_urls = dict(
+    pull_request='https://bitbucket.org'
+        '/pypa/setuptools/pull-request/{pull_request}',
     issue='https://bitbucket.org/pypa/setuptools/issue/{issue}',
     distribute='https://bitbucket.org/tarek/distribute/issue/{distribute}',
     buildout='https://github.com/buildout/buildout/issues/{buildout}',
