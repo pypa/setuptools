@@ -924,7 +924,7 @@ def _encode_auth(auth):
     # convert back to a string
     encoded = encoded_bytes.decode()
     # strip the trailing carriage return
-    return encoded.rstrip()
+    return encoded.replace('\n','')
 
 class Credential(object):
     """
