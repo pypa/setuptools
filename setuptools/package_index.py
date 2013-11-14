@@ -920,6 +920,21 @@ def _encode_auth(auth):
     # strip the trailing carriage return
     return encoded.rstrip()
 
+class Credential(object):
+    """
+    A username/password pair. Use like a namedtuple.
+    """
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+
+    def __iter__(self):
+        yield self.username
+        yield self.password
+
+    def __str__(self):
+        return '%(username)s:%(password)s' % vars(self)
+
 class PyPirc(object):
 
     def __init__(self):
@@ -945,13 +960,12 @@ class PyPirc(object):
         ]
 
         for section in sections_with_repositories:
-            auth = (
+            cred = Credential(
                 config.get(section, 'username').strip(),
                 config.get(section, 'password').strip(),
             )
-            value = '%s:%s' % auth
             repo = config.get(section, 'repository').strip()
-            self.dict_[repo] = value
+            self.dict_[repo] = cred
 
     def __call__(self, url):
         """ """
@@ -976,7 +990,7 @@ def open_with_auth(url, opener=urllib2.urlopen):
         auth = None
 
     if not auth:
-        auth = PyPirc()(url)
+        auth = str(PyPirc()(url))
         log.info('Authentication found for URL: %s' % url)
 
     if auth:
