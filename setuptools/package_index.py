@@ -934,14 +934,14 @@ class Credential(object):
     def __str__(self):
         return '%(username)s:%(password)s' % vars(self)
 
-class PyPirc(ConfigParser.ConfigParser):
+class PyPIConfig(ConfigParser.ConfigParser):
 
     def __init__(self):
         """
         Load from ~/.pypirc
         """
         defaults = dict.fromkeys(['username', 'password', 'repository'], '')
-        super(PyPirc, self).__init__(defaults)
+        super(PyPIConfig, self).__init__(defaults)
 
         rc = os.path.join(os.path.expanduser('~'), '.pypirc')
         if os.path.exists(rc):
@@ -989,7 +989,7 @@ def open_with_auth(url, opener=urllib2.urlopen):
         auth = None
 
     if not auth:
-        cred = PyPirc().find_credential(url)
+        cred = PyPIConfig().find_credential(url)
         if cred:
             auth = str(cred)
             log.info('Authentication found for URL: %s' % url)
