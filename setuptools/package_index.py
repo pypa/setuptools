@@ -908,8 +908,13 @@ def _encode_auth(auth):
     """
     A function compatible with Python 2.3-3.3 that will encode
     auth from a URL suitable for an HTTP header.
-    >>> _encode_auth('username%3Apassword')
-    u'dXNlcm5hbWU6cGFzc3dvcmQ='
+    >>> str(_encode_auth('username%3Apassword'))
+    'dXNlcm5hbWU6cGFzc3dvcmQ='
+
+    Long auth strings should not cause a newline to be inserted.
+    >>> long_auth = 'username:' + 'password'*10
+    >>> chr(10) in str(_encode_auth(long_auth))
+    False
     """
     auth_s = unquote(auth)
     # convert to bytes
