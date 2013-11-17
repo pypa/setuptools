@@ -40,7 +40,10 @@ CHANGES
 
 * Issue #26: Add support for SVN 1.7. Special thanks to Philip Thiem for the
   contribution.
-* Issue #93: Wheels are now distributed with every release.
+* Issue #93: Wheels are now distributed with every release. Note that as
+  reported in Issue #108, as of Pip 1.4, scripts aren't installed properly
+  from wheels. Therefore, if using Pip to install setuptools from a wheel,
+  the ``easy_install`` command will not be available.
 * Setuptools "natural" launcher support, introduced in 1.0, is now officially
   supported.
 
