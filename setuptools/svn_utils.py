@@ -87,7 +87,7 @@ def determine_console_encoding():
         if encoding:
             codecs.lookup(encoding)  # make sure a lookup error is not made
             
-    except locale.Error, LookupError:
+    except (locale.Error, LookupError):
         encoding = None
         
     #olders pythons defaulted to this
