@@ -91,9 +91,12 @@ def determine_console_encoding():
         encoding = None
         
     #olders pythons defaulted to this
+    is_osx = sys.platform == "darwin"
     if not encoding:
-        return "US-ASCII"
-    elif encoding.startswith("mac-") and os.platform == "darwin":
+        return ["utf-8", "US-ASCII"][is_osx]
+    elif encoding.startswith("mac-") and is_osx:
+        #certain version of pythons would return mac-roman as default
+        #OSX as a left over of earlier mac versions.
         return "utf-8"
     else:
         return encoding
