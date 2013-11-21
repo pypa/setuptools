@@ -5,6 +5,7 @@ from distutils import log
 import xml.dom.pulldom
 import shlex
 import locale
+import codecs
 import unicodedata
 import warnings
 from setuptools.compat import unicode, bytes
@@ -72,6 +73,32 @@ def joinpath(prefix, *suffix):
         return os.path.join(*suffix)
     return os.path.join(prefix, *suffix)
 
+def determine_console_encoding():
+    try:
+        #try for the preferred encoding
+        encoding = locale.getpreferredencoding()
+    
+        #see if the locale.getdefaultlocale returns null
+        #some versions of python\platforms return US-ASCII
+        #when it cannot determine an encoding
+        if not encoding or encoding == "US-ASCII":
+            encoding = locale.getdefaultlocale()[1]
+        
+        if encoding:
+            codecs.lookup(encoding)  # make sure a lookup error is not made
+            
+    except locale.Error, LookupError:
+        encoding = None
+        
+    #olders pythons defaulted to this
+    if not encoding:
+        return "US-ASCII"
+    elif encoding.startswith("mac-") and os.platform == "darwin":
+        return "utf-8"
+    else:
+        return encoding
+    
+_console_encoding = determine_console_encoding()
 
 def decode_as_string(text, encoding=None):
     """
@@ -87,7 +114,7 @@ def decode_as_string(text, encoding=None):
     #text should be a byte string    
 
     if encoding is None:
-        encoding = locale.getpreferredencoding()
+        encoding = _console_encoding
 
     if not isinstance(text, unicode):
         text = text.decode(encoding)
