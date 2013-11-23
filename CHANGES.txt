@@ -9,6 +9,29 @@ CHANGES
 * Issue #114: Use ``sys.getfilesystemencoding`` for decoding config in
   ``bdist_wininst`` distributions.
 
+* Issue #105 and Issue #113: Establish a more robust technique for
+  determining the terminal encoding::
+
+    1. Try ``getpreferredencoding``
+    2. If that returns US_ASCII or None, try the encoding from
+       ``getdefaultlocale``. If that encoding was a "fallback" because Python
+       could not figure it out from the environment or OS, encoding remains
+       unresolved.
+    3. If the encoding is resolved, then make sure Python actually implements
+       the encoding.
+    4. On the event of an error or unknown codec, revert to fallbacks
+       (UTF-8 on Darwin, ASCII on everything else).
+    5. On the encoding is 'mac-roman' on Darwin, use UTF-8 as 'mac-roman' was
+       a bug on older Python releases.
+
+    On a side note, it would seem that the encoding only matters for when SVN
+    does not yet support ``--xml`` and when getting repository and svn version
+    numbers. The ``--xml`` technique should yield UTF-8 according to some
+    messages on the SVN mailing lists. So if the version numbers are always
+    7-bit ASCII clean, it may be best to only support the file parsing methods
+    for legacy SVN releases and support for SVN without the subprocess command
+    would simple go away as support for the older SVNs does.
+
 ---
 1.4
 ---
