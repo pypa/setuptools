@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+-----
+1.4.1
+-----
+
+* Issue #114: Use ``sys.getfilesystemencoding`` for decoding config in
+  ``bdist_wininst`` distributions.
+
 ---
 1.4
 ---

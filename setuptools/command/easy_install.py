@@ -1373,10 +1373,9 @@ def extract_wininst_cfg(dist_filename):
             else:
                 null_byte = chr(0)
             config = part.split(null_byte, 1)[0]
-            # Now the config is in bytes, but on Python 3, it must be
-            #  unicode for the RawConfigParser, so decode it. Is this the
-            #  right encoding?
-            config = config.decode('ascii')
+            # Now the config is in bytes, but for RawConfigParser, it should
+            #  be text, so decode it.
+            config = config.decode(sys.getfilesystemencoding())
             cfg.readfp(StringIO(config))
         except ConfigParser.Error:
             return None
