@@ -41,47 +41,6 @@ for what, where in (
 
 is_available = ssl is not None and object not in (HTTPSHandler, HTTPSConnection)
 
-try:
-    from socket import create_connection
-except ImportError:
-    from socket import error
-    _GLOBAL_DEFAULT_TIMEOUT = getattr(socket, '_GLOBAL_DEFAULT_TIMEOUT', object())
-    def create_connection(address, timeout=_GLOBAL_DEFAULT_TIMEOUT,
-                          source_address=None):
-        """Connect to *address* and return the socket object.
-
-        Convenience function.  Connect to *address* (a 2-tuple ``(host,
-        port)``) and return the socket object.  Passing the optional
-        *timeout* parameter will set the timeout on the socket instance
-        before attempting to connect.  If no *timeout* is supplied, the
-        global default timeout setting returned by :func:`getdefaulttimeout`
-        is used.  If *source_address* is set it must be a tuple of (host, port)
-        for the socket to bind as a source address before making the connection.
-        An host of '' or port 0 tells the OS to use the default.
-        """
-        host, port = address
-        err = None
-        for res in socket.getaddrinfo(host, port, 0, socket.SOCK_STREAM):
-            af, socktype, proto, canonname, sa = res
-            sock = None
-            try:
-                sock = socket.socket(af, socktype, proto)
-                if timeout is not _GLOBAL_DEFAULT_TIMEOUT:
-                    sock.settimeout(timeout)
-                if source_address:
-                    sock.bind(source_address)
-                sock.connect(sa)
-                return sock
-
-            except error:
-                err = True
-                if sock is not None:
-                    sock.close()
-        if err:
-            raise
-        else:
-            raise error("getaddrinfo returns an empty list")
-
 
 try:
     from ssl import CertificateError, match_hostname
@@ -211,8 +170,8 @@ class VerifyingHTTPSConn(HTTPSConnection):
         self.ca_bundle = ca_bundle
 
     def connect(self):
-        sock = create_connection(
-            (self.host, self.port), getattr(self,'source_address',None)
+        sock = socket.create_connection(
+            (self.host, self.port), getattr(self, 'source_address', None)
         )
 
         # Handle the socket if a (proxy) tunnel is present
