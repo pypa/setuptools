@@ -11,11 +11,11 @@ Packages built and distributed using ``setuptools`` look to the user like
 ordinary Python packages based on the ``distutils``.  Your users don't need to
 install or even know about setuptools in order to use them, and you don't
 have to include the entire setuptools package in your distributions.  By
-including just a single `bootstrap module`_ (an 8K .py file), your package will
+including just a single `bootstrap module`_ (a 12K .py file), your package will
 automatically download and install ``setuptools`` if the user is building your
 package from source and doesn't have a suitable version already installed.
 
-.. _bootstrap module: https://bitbucket.org/pypa/setuptools/downloads/ez_setup.py
+.. _bootstrap module: https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py
 
 Feature Highlights:
 
