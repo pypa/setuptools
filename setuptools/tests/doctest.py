@@ -109,7 +109,7 @@ import __future__
 import sys, traceback, inspect, linecache, os, re, types
 import unittest, difflib, pdb, tempfile
 import warnings
-from setuptools.compat import StringIO, execfile, exec_, func_code, im_func
+from setuptools.compat import StringIO, execfile, func_code, im_func
 
 # Don't whine about the deprecated is_private function in this
 # module's tests.
