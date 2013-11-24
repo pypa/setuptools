@@ -44,7 +44,6 @@ if os.environ.get("SETUPTOOLS_DISABLE_VERSIONED_EASY_INSTALL_SCRIPT") in (None, 
 class build_py(_build_py):
     def build_package_data(self):
         """Copy data files into build directory"""
-        lastdir = None
         for package, src_dir, build_dir, filenames in self.data_files:
             for filename in filenames:
                 target = os.path.join(build_dir, filename)
