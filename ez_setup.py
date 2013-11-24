@@ -135,7 +135,7 @@ def use_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
         return
     except pkg_resources.DistributionNotFound:
         return _do_download(version, download_base, to_dir, download_delay)
-    except pkg_resources.VersionConflict:
+    except pkg_resources.VersionConflict as VC_err:
         if was_imported:
             msg = textwrap.dedent("""
                 The required version of setuptools (>={version}) is not available,
@@ -144,7 +144,7 @@ def use_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
                 'easy_install -U setuptools'.
 
                 (Currently using {VC_err.args[0]!r})
-                """).format(VC_err = sys.exc_info()[1], version=version)
+                """).format(VC_err=VC_err, version=version)
             sys.stderr.write(msg)
             sys.exit(2)
 
@@ -325,8 +325,7 @@ def _extractall(self, path=".", members=None):
             self.chown(tarinfo, dirpath)
             self.utime(tarinfo, dirpath)
             self.chmod(tarinfo, dirpath)
-        except ExtractError:
-            e = sys.exc_info()[1]
+        except ExtractError as e:
             if self.errorlevel > 1:
                 raise
             else:
