@@ -41,10 +41,6 @@ for what, where in (
 
 is_available = ssl is not None and object not in (HTTPSHandler, HTTPSConnection)
 
-
-
-
-
 try:
     from socket import create_connection
 except ImportError:
@@ -195,28 +191,6 @@ if not match_hostname:
                 "subjectAltName fields were found")
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class VerifyingHTTPSHandler(HTTPSHandler):
     """Simple verifying handler: no auth, subclasses, timeouts, etc."""
 
@@ -263,7 +237,6 @@ def opener_for(ca_bundle=None):
     ).open
 
 
-
 _wincerts = None
 
 def get_win_certfile():
@@ -300,8 +273,3 @@ def find_ca_bundle():
         return pkg_resources.resource_filename('certifi', 'cacert.pem')
     except (ImportError, ResolutionError, ExtractionError):
         return None
-
-
-
-
-
