@@ -1,5 +1,11 @@
-import os, sys, tempfile, operator, pkg_resources
+import os
+import sys
+import tempfile
+import operator
 import functools
+
+import pkg_resources
+
 if os.name == "java":
     import org.python.modules.posix.PosixModule as _os
 else:
@@ -17,34 +23,6 @@ from setuptools.compat import builtins, execfile
 __all__ = [
     "AbstractSandbox", "DirectorySandbox", "SandboxViolation", "run_setup",
 ]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 def run_setup(setup_script, args):
     """Run a distutils setup script, sandboxed in its directory"""
@@ -94,7 +72,6 @@ def run_setup(setup_script, args):
         tempfile.tempdir = save_tmp
 
 
-
 class AbstractSandbox:
     """Wrap 'os' module and 'open()' builtin for virtualizing setup scripts"""
 
@@ -136,7 +113,6 @@ class AbstractSandbox:
 
     for name in ["rename", "link", "symlink"]:
         if hasattr(_os,name): locals()[name] = _mk_dual_path_wrapper(name)
-
 
     def _mk_single_path_wrapper(name, original=None):
         original = original or getattr(_os,name)
@@ -250,7 +226,7 @@ class DirectorySandbox(AbstractSandbox):
             self._active = False
             realpath = os.path.normcase(os.path.realpath(path))
             if (self._exempted(realpath) or realpath == self._sandbox
-                or realpath.startswith(self._prefix)):
+                    or realpath.startswith(self._prefix)):
                 return True
         finally:
             self._active = active
