@@ -145,13 +145,12 @@ def use_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
                 """).format(VC_err = sys.exc_info()[1], version=version)
             sys.stderr.write(msg)
             sys.exit(2)
-        else:
-            del pkg_resources, sys.modules['pkg_resources']    # reload ok
-            return _do_download(version, download_base, to_dir,
-                                download_delay)
+
+        # otherwise, reload ok
+        del pkg_resources, sys.modules['pkg_resources']
+        return _do_download(version, download_base, to_dir, download_delay)
     except pkg_resources.DistributionNotFound:
-        return _do_download(version, download_base, to_dir,
-                            download_delay)
+        return _do_download(version, download_base, to_dir, download_delay)
 
 def _clean_check(cmd, target):
     """
