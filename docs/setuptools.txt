@@ -3,9 +3,9 @@ Building and Distributing Packages with Setuptools
 ==================================================
 
 ``Setuptools`` is a collection of enhancements to the Python ``distutils``
-(for Python 2.3.5 and up on most platforms; 64-bit platforms require a minimum
-of Python 2.4) that allow you to more easily build and distribute Python
-packages, especially ones that have dependencies on other packages.
+(for Python 2.6 and up) that allow developers to more easily build and
+distribute Python packages, especially ones that have dependencies on other
+packages.
 
 Packages built and distributed using ``setuptools`` look to the user like
 ordinary Python packages based on the ``distutils``.  Your users don't need to

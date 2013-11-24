@@ -35,7 +35,7 @@ Please see the `setuptools PyPI page <https://pypi.python.org/pypi/setuptools>`_
 for download links and basic installation instructions for each of the
 supported platforms.
 
-You will need at least Python 2.4.  An ``easy_install`` script will be
+You will need at least Python 2.6.  An ``easy_install`` script will be
 installed in the normal location for Python scripts on your platform.
 
 Note that the instructions on the setuptools PyPI page assume that you are

@@ -716,7 +716,7 @@ class Environment(object):
         `platform` is an optional string specifying the name of the platform
         that platform-specific distributions must be compatible with.  If
         unspecified, it defaults to the current platform.  `python` is an
-        optional string naming the desired version of Python (e.g. ``'2.4'``);
+        optional string naming the desired version of Python (e.g. ``'3.3'``);
         it defaults to the current version.
 
         You may explicitly set `platform` (and/or `python`) to ``None`` if you

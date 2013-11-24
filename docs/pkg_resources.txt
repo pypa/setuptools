@@ -975,7 +975,7 @@ parsed_version
 
 py_version
     The major/minor Python version the distribution supports, as a string.
-    For example, "2.3" or "2.4".  The default is the current version of Python.
+    For example, "2.7" or "3.4".  The default is the current version of Python.
 
 platform
     A string representing the platform the distribution is intended for, or
