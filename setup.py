@@ -93,7 +93,11 @@ with readme_file:
         long_description = readme_file.read() + '\n' + changes_file.read()
 
 package_data = {'setuptools': ['site-patch.py']}
-if sys.platform == 'win32' or os.environ.get("SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES") not in (None, "", "0"):
+force_windows_specific_files = (
+    os.environ.get("SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES")
+    not in (None, "", "0")
+)
+if sys.platform == 'win32' or force_windows_specific_files:
     package_data.setdefault('setuptools', []).extend(['*.exe'])
     package_data.setdefault('setuptools.command', []).extend(['*.xml'])
 
