@@ -28,10 +28,7 @@ Feature Highlights:
 * Create `Python Eggs <http://peak.telecommunity.com/DevCenter/PythonEggs>`_ -
   a single-file importable distribution format
 
-* Include data files inside your package directories, where your code can
-  actually use them.  (Python 2.4 distutils also supports this feature, but
-  setuptools provides the feature for Python 2.3 packages also, and supports
-  accessing data files in zipped packages too.)
+* Enhanced support for accessing data files hosted in zipped packages.
 
 * Automatically include all packages in your source tree, without listing them
   individually in setup.py
