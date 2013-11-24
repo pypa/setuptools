@@ -35,20 +35,9 @@ try:
     basestring
     next = lambda o: o.next()
     from cStringIO import StringIO as BytesIO
-    def exec(code, globs=None, locs=None):
-        if globs is None:
-            frame = sys._getframe(1)
-            globs = frame.f_globals
-            if locs is None:
-                locs = frame.f_locals
-            del frame
-        elif locs is None:
-            locs = globs
-        exec("""exec code in globs, locs""")
 except NameError:
     basestring = str
     from io import BytesIO
-    exec_ = eval("exec")
     def execfile(fn, globs=None, locs=None):
         if globs is None:
             globs = globals()
