@@ -13,17 +13,15 @@ from distutils.util import convert_path
 
 command_ns = {}
 init_path = convert_path('setuptools/command/__init__.py')
-init_file = open(init_path)
-exec(init_file.read(), command_ns)
-init_file.close()
+with open(init_path) as init_file:
+    exec(init_file.read(), command_ns)
 
 SETUP_COMMANDS = command_ns['__all__']
 
 main_ns = {}
 ver_path = convert_path('setuptools/version.py')
-ver_file = open(ver_path)
-exec(ver_file.read(), main_ns)
-ver_file.close()
+with open(ver_path) as ver_file:
+    exec(ver_file.read(), main_ns)
 
 import setuptools
 from setuptools.command.build_py import build_py as _build_py
@@ -70,23 +68,17 @@ class test(_test):
             _test.run(self)
             return # even though _test.run will raise SystemExit
 
-        f = open(entry_points)
-
-        # running the test
-        try:
+        # save the content
+        with open(entry_points) as f:
             ep_content = f.read()
-        finally:
-            f.close()
 
+        # run the test
         try:
             _test.run(self)
         finally:
-            # restoring the file
-            f = open(entry_points, 'w')
-            try:
+            # restore the file
+            with open(entry_points, 'w') as f:
                 f.write(ep_content)
-            finally:
-                f.close()
 
 
 readme_file = open('README.txt')
@@ -96,9 +88,9 @@ if os.path.exists('CHANGES (links).txt'):
 else:
     # but if the release script has not run, fall back to the source file
     changes_file = open('CHANGES.txt')
-long_description = readme_file.read() + '\n' + changes_file.read()
-readme_file.close()
-changes_file.close()
+with readme_file:
+    with changes_file:
+        long_description = readme_file.read() + '\n' + changes_file.read()
 
 package_data = {'setuptools': ['site-patch.py']}
 if sys.platform == 'win32' or os.environ.get("SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES") not in (None, "", "0"):
