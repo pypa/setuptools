@@ -1,4 +1,5 @@
 import os, sys, tempfile, operator, pkg_resources
+import functools
 if os.name == "java":
     import org.python.modules.posix.PosixModule as _os
 else:
@@ -11,7 +12,7 @@ _open = open
 from distutils.errors import DistutilsError
 from pkg_resources import working_set
 
-from setuptools.compat import builtins, execfile, reduce
+from setuptools.compat import builtins, execfile
 
 __all__ = [
     "AbstractSandbox", "DirectorySandbox", "SandboxViolation", "run_setup",
@@ -276,7 +277,7 @@ class DirectorySandbox(AbstractSandbox):
             self._violation("os.open", file, flags, mode, *args, **kw)
         return _os.open(file,flags,mode, *args, **kw)
 
-WRITE_FLAGS = reduce(
+WRITE_FLAGS = functools.reduce(
     operator.or_, [getattr(_os, a, 0) for a in
         "O_WRONLY O_RDWR O_APPEND O_CREAT O_TRUNC O_TEMPORARY".split()]
 )

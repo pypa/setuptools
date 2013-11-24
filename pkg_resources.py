@@ -22,6 +22,8 @@ import zipfile
 import zipimport
 import warnings
 import stat
+import functools
+
 try:
     from urlparse import urlparse, urlunparse
 except ImportError:
@@ -44,8 +46,6 @@ except NameError:
         if locs is None:
             locs = globs
         exec(compile(open(fn).read(), fn, 'exec'), globs, locs)
-    import functools
-    reduce = functools.reduce
 
 # capture these to bypass sandboxing
 from os import utime
@@ -1178,11 +1178,11 @@ def evaluate_marker(text, extra=None, _ops={}):
 
         def and_test(nodelist):
             # MUST NOT short-circuit evaluation, or invalid syntax can be skipped!
-            return reduce(operator.and_, [interpret(nodelist[i]) for i in range(1,len(nodelist),2)])
+            return functools.reduce(operator.and_, [interpret(nodelist[i]) for i in range(1,len(nodelist),2)])
 
         def test(nodelist):
             # MUST NOT short-circuit evaluation, or invalid syntax can be skipped!
-            return reduce(operator.or_, [interpret(nodelist[i]) for i in range(1,len(nodelist),2)])
+            return functools.reduce(operator.or_, [interpret(nodelist[i]) for i in range(1,len(nodelist),2)])
 
         def atom(nodelist):
             t = nodelist[1][0]
