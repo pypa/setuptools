@@ -1,4 +1,8 @@
-import sys, os, socket, atexit, re
+import os
+import socket
+import atexit
+import re
+
 import pkg_resources
 from pkg_resources import ResolutionError, ExtractionError
 from setuptools.compat import urllib2
