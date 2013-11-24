@@ -31,14 +31,23 @@ from setuptools.command.test import test as _test
 
 scripts = []
 
-console_scripts = ["easy_install = setuptools.command.easy_install:main"]
+def _gen_console_scripts():
+    yield "easy_install = setuptools.command.easy_install:main"
 
-# Gentoo distributions manage the python-version-specific scripts themselves,
-# so they define an environment variable to suppress the creation of the
-# version-specific scripts.
-if os.environ.get("SETUPTOOLS_DISABLE_VERSIONED_EASY_INSTALL_SCRIPT") in (None, "", "0") and \
-    os.environ.get("DISTRIBUTE_DISABLE_VERSIONED_EASY_INSTALL_SCRIPT") in (None, "", "0"):
-    console_scripts.append("easy_install-%s = setuptools.command.easy_install:main" % sys.version[:3])
+    # Gentoo distributions manage the python-version-specific scripts
+    # themselves, so those platforms define an environment variable to
+    # suppress the creation of the version-specific scripts.
+    var_names = (
+        'SETUPTOOLS_DISABLE_VERSIONED_EASY_INSTALL_SCRIPT',
+        'DISTRIBUTE_DISABLE_VERSIONED_EASY_INSTALL_SCRIPT',
+    )
+    if any(os.environ.get(var) not in (None, "", "0") for var in var_names):
+        return
+    yield ("easy_install-{shortver} = setuptools.command.easy_install:main"
+        .format(shortver=sys.version[:3]))
+
+console_scripts = list(_gen_console_scripts())
+
 
 # specific command that is used to generate windows .exe files
 class build_py(_build_py):
