@@ -23,7 +23,6 @@ if sys.version_info[0] < 3:
     maxsize = sys.maxint
     next = lambda o: o.next()
     numeric_types = (int, long, float)
-    reduce = reduce
     unichr = unichr
     unicode = unicode
     bytes = str
@@ -54,7 +53,6 @@ else:
     maxsize = sys.maxsize
     next = next
     numeric_types = (int, float)
-    from functools import reduce
     unichr = chr
     unicode = str
     bytes = bytes
