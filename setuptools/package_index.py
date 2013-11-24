@@ -5,6 +5,8 @@ import re
 import shutil
 import socket
 import base64
+import hashlib
+from functools import wraps
 
 from pkg_resources import (
     CHECKOUT_DIST, Distribution, BINARY_DIST, normalize_path, SOURCE_DIST,
@@ -21,8 +23,6 @@ from setuptools.compat import (urllib2, httplib, StringIO, HTTPError,
                                ConfigParser)
 from setuptools.compat import filterfalse
 from fnmatch import translate
-from setuptools.py24compat import hashlib
-from setuptools.py24compat import wraps
 from setuptools.py26compat import strip_fragment
 from setuptools.py27compat import get_all_headers
 
