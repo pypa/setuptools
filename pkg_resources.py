@@ -35,7 +35,7 @@ try:
     basestring
     next = lambda o: o.next()
     from cStringIO import StringIO as BytesIO
-    def exec_(code, globs=None, locs=None):
+    def exec(code, globs=None, locs=None):
         if globs is None:
             frame = sys._getframe(1)
             globs = frame.f_globals
@@ -54,7 +54,7 @@ except NameError:
             globs = globals()
         if locs is None:
             locs = globs
-        exec_(compile(open(fn).read(), fn, 'exec'), globs, locs)
+        exec(compile(open(fn).read(), fn, 'exec'), globs, locs)
     import functools
     reduce = functools.reduce
 
@@ -1354,7 +1354,7 @@ class NullProvider:
                 len(script_text), 0, script_text.split('\n'), script_filename
             )
             script_code = compile(script_text,script_filename,'exec')
-            exec_(script_code, namespace, namespace)
+            exec(script_code, namespace, namespace)
 
     def _has(self, path):
         raise NotImplementedError(

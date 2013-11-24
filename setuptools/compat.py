@@ -33,18 +33,7 @@ if sys.version_info[0] < 3:
     from urlparse import urlparse, urlunparse, urljoin, urlsplit, urlunsplit
     filterfalse = itertools.ifilterfalse
 
-    def exec_(code, globs=None, locs=None):
-        if globs is None:
-            frame = sys._getframe(1)
-            globs = frame.f_globals
-            if locs is None:
-                locs = frame.f_locals
-            del frame
-        elif locs is None:
-            locs = globs
-        exec("""exec code in globs, locs""")
-
-    exec_("""def reraise(tp, value, tb=None):
+    exec("""def reraise(tp, value, tb=None):
     raise tp, value, tb""")
 else:
     PY3 = True
@@ -52,7 +41,6 @@ else:
     basestring = str
     import builtins
     import configparser as ConfigParser
-    exec_ = eval('exec')
     from io import StringIO, BytesIO
     func_code = lambda o: o.__code__
     func_globals = lambda o: o.__globals__
@@ -89,7 +77,7 @@ else:
             source = f.read()
         finally:
             f.close()
-        exec_(compile(source, fn, 'exec'), globs, locs)
+        exec(compile(source, fn, 'exec'), globs, locs)
 
     def reraise(tp, value, tb=None):
         if value.__traceback__ is not tb:
