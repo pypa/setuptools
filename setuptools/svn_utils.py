@@ -8,7 +8,7 @@ import locale
 import codecs
 import unicodedata
 import warnings
-from setuptools.compat import unicode, bytes
+from setuptools.compat import unicode
 from xml.sax.saxutils import unescape
 
 try:
