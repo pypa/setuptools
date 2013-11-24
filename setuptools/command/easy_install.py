@@ -56,7 +56,7 @@ from setuptools.archive_util import unpack_archive
 from setuptools.package_index import PackageIndex
 from setuptools.package_index import URL_SCHEME
 from setuptools.command import bdist_egg, egg_info
-from setuptools.compat import (iteritems, maxsize, xrange, basestring, unicode,
+from setuptools.compat import (iteritems, maxsize, basestring, unicode,
                                reraise)
 from pkg_resources import (
     yield_lines, normalize_path, resource_string, ensure_directory,
@@ -376,7 +376,7 @@ class easy_install(Command):
                 outputs = self.outputs
                 if self.root:               # strip any package prefix
                     root_len = len(self.root)
-                    for counter in xrange(len(outputs)):
+                    for counter in range(len(outputs)):
                         outputs[counter] = outputs[counter][root_len:]
                 from distutils import file_util
                 self.execute(

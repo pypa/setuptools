@@ -31,7 +31,6 @@ if sys.version_info[0] < 3:
     import urllib2
     from urllib2 import urlopen, HTTPError, URLError, unquote, splituser
     from urlparse import urlparse, urlunparse, urljoin, urlsplit, urlunsplit
-    xrange = xrange
     filterfalse = itertools.ifilterfalse
 
     def exec_(code, globs=None, locs=None):
@@ -78,7 +77,6 @@ else:
         urlparse, urlunparse, unquote, splituser, urljoin, urlsplit,
         urlunsplit, splittag,
     )
-    xrange = range
     filterfalse = itertools.filterfalse
 
     def execfile(fn, globs=None, locs=None):
