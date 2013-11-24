@@ -133,6 +133,8 @@ def use_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
     try:
         pkg_resources.require("setuptools>=" + version)
         return
+    except pkg_resources.DistributionNotFound:
+        return _do_download(version, download_base, to_dir, download_delay)
     except pkg_resources.VersionConflict:
         if was_imported:
             msg = textwrap.dedent("""
@@ -148,8 +150,6 @@ def use_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
 
         # otherwise, reload ok
         del pkg_resources, sys.modules['pkg_resources']
-        return _do_download(version, download_base, to_dir, download_delay)
-    except pkg_resources.DistributionNotFound:
         return _do_download(version, download_base, to_dir, download_delay)
 
 def _clean_check(cmd, target):
