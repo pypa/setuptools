@@ -262,17 +262,18 @@ class SvnInfo(object):
         except ValueError:
             base_svn_version = tuple()
 
-        if has_svn and (code or not base_svn_version
-                             or base_svn_version < (1, 3)):
+        if not has_svn:
+            return SvnInfo(dirname)
+
+        if code or not base_svn_version or base_svn_version < (1, 3):
             warnings.warn(("No SVN 1.3+ command found: falling back "
                            "on pre 1.7 .svn parsing"), DeprecationWarning)
             return SvnFileInfo(dirname)
-        elif not has_svn:
-            return SvnInfo(dirname)
-        elif base_svn_version < (1, 5):
+
+        if base_svn_version < (1, 5):
             return Svn13Info(dirname)
-        else:
-            return Svn15Info(dirname)
+
+        return Svn15Info(dirname)
 
     def __init__(self, path=''):
         self.path = path
