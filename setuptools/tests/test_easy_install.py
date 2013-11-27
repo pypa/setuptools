@@ -140,31 +140,29 @@ class TestUserInstallTest(unittest.TestCase):
         f.close()
         self.old_cwd = os.getcwd()
         os.chdir(self.dir)
-        if sys.version >= "2.6":
-            self.old_enable_site = site.ENABLE_USER_SITE
-            self.old_file = easy_install_pkg.__file__
-            self.old_base = site.USER_BASE
-            site.USER_BASE = tempfile.mkdtemp()
-            self.old_site = site.USER_SITE
-            site.USER_SITE = tempfile.mkdtemp()
-            easy_install_pkg.__file__ = site.USER_SITE
+
+        self.old_enable_site = site.ENABLE_USER_SITE
+        self.old_file = easy_install_pkg.__file__
+        self.old_base = site.USER_BASE
+        site.USER_BASE = tempfile.mkdtemp()
+        self.old_site = site.USER_SITE
+        site.USER_SITE = tempfile.mkdtemp()
+        easy_install_pkg.__file__ = site.USER_SITE
 
     def tearDown(self):
         os.chdir(self.old_cwd)
         shutil.rmtree(self.dir)
-        if sys.version >= "2.6":
-            shutil.rmtree(site.USER_BASE)
-            shutil.rmtree(site.USER_SITE)
-            site.USER_BASE = self.old_base
-            site.USER_SITE = self.old_site
-            site.ENABLE_USER_SITE = self.old_enable_site
-            easy_install_pkg.__file__ = self.old_file
+
+        shutil.rmtree(site.USER_BASE)
+        shutil.rmtree(site.USER_SITE)
+        site.USER_BASE = self.old_base
+        site.USER_SITE = self.old_site
+        site.ENABLE_USER_SITE = self.old_enable_site
+        easy_install_pkg.__file__ = self.old_file
 
     def test_user_install_implied(self):
         site.ENABLE_USER_SITE = True # disabled sometimes
         #XXX: replace with something meaningfull
-        if sys.version < "2.6":
-            return #SKIP
         dist = Distribution()
         dist.script_name = 'setup.py'
         cmd = easy_install(dist)
@@ -180,8 +178,6 @@ class TestUserInstallTest(unittest.TestCase):
     def test_user_install_not_implied_without_usersite_enabled(self):
         site.ENABLE_USER_SITE = False # usually enabled
         #XXX: replace with something meaningfull
-        if sys.version < "2.6":
-            return #SKIP
         dist = Distribution()
         dist.script_name = 'setup.py'
         cmd = easy_install(dist)
