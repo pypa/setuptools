@@ -130,7 +130,7 @@ class upload_docs(upload):
         for key, values in iteritems(data):
             title = '\nContent-Disposition: form-data; name="%s"' % key
             # handle multiple entries for the same name
-            if type(values) != type([]):
+            if isinstance(values, list):
                 values = [values]
             for value in values:
                 if type(value) is tuple:
@@ -165,12 +165,11 @@ class upload_docs(upload):
             raise AssertionError("unsupported schema "+schema)
 
         data = ''
-        loglevel = log.INFO
         try:
             conn.connect()
             conn.putrequest("POST", url)
-            conn.putheader('Content-type',
-                           'multipart/form-data; boundary=%s'%boundary)
+            content_type = 'multipart/form-data; boundary=%s' % boundary
+            conn.putheader('Content-type', content_type)
             conn.putheader('Content-length', str(len(body)))
             conn.putheader('Authorization', auth)
             conn.endheaders()
