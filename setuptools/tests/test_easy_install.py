@@ -6,6 +6,7 @@ import shutil
 import tempfile
 import unittest
 import site
+import contextlib
 from setuptools.compat import StringIO, BytesIO, next
 from setuptools.compat import urlparse
 import textwrap
@@ -269,9 +270,8 @@ class TestUserInstallTest(unittest.TestCase):
         sys.stderr = StringIO()
         try:
             try:
-                reset_setup_stop_context(
-                    lambda: run_setup(test_setup_py, ['install'])
-                )
+                with reset_setup_stop_context():
+                    run_setup(test_setup_py, ['install'])
             except SandboxViolation:
                 self.fail('Installation caused SandboxViolation')
         finally:
@@ -296,45 +296,33 @@ class TestSetupRequires(unittest.TestCase):
             # Some platforms (Jython) don't find a port to which to bind,
             #  so skip this test for them.
             return
-
-        # I realize this is all-but-impossible to read, because it was
-        #  ported from some well-factored, safe code using 'with'. If you
-        #  need to maintain this code, consider making the changes in
-        #  the parent revision (of this comment) and then port the changes
-        #  back for Python 2.4 (or deprecate Python 2.4).
-
-        def install(dist_file):
-            def install_at(temp_install_dir):
-                def install_env():
+        # create an sdist that has a build-time dependency.
+        with TestSetupRequires.create_sdist() as dist_file:
+            with tempdir_context() as temp_install_dir:
+                with environment_context(PYTHONPATH=temp_install_dir):
                     ei_params = ['--index-url', p_index.url,
                         '--allow-hosts', p_index_loc,
                         '--exclude-scripts', '--install-dir', temp_install_dir,
                         dist_file]
-                    def install_clean_reset():
-                        def install_clean_argv():
+                    with reset_setup_stop_context():
+                        with argv_context(['easy_install']):
                             # attempt to install the dist. It should fail because
                             #  it doesn't exist.
                             self.assertRaises(SystemExit,
                                 easy_install_pkg.main, ei_params)
-                        argv_context(install_clean_argv, ['easy_install'])
-                    reset_setup_stop_context(install_clean_reset)
-                environment_context(install_env, PYTHONPATH=temp_install_dir)
-            tempdir_context(install_at)
-
-        # create an sdist that has a build-time dependency.
-        self.create_sdist(install)
-
         # there should have been two or three requests to the server
         #  (three happens on Python 3.3a)
         self.assertTrue(2 <= len(p_index.requests) <= 3)
         self.assertEqual(p_index.requests[0].path, '/does-not-exist/')
 
-    def create_sdist(self, installer):
+    @staticmethod
+    @contextlib.contextmanager
+    def create_sdist():
         """
-        Create an sdist with a setup_requires dependency (of something that
-        doesn't exist) and invoke installer on it.
+        Return an sdist with a setup_requires dependency (of something that
+        doesn't exist)
         """
-        def build_sdist(dir):
+        with tempdir_context() as dir:
             dist_path = os.path.join(dir, 'setuptools-test-fetcher-1.0.tar.gz')
             make_trivial_sdist(
                 dist_path,
@@ -346,8 +334,7 @@ class TestSetupRequires(unittest.TestCase):
                         setup_requires = ['does-not-exist'],
                     )
                 """).lstrip())
-            installer(dist_path)
-        tempdir_context(build_sdist)
+            yield dist_path
 
 
 def make_trivial_sdist(dist_path, setup_py):
@@ -370,44 +357,37 @@ def make_trivial_sdist(dist_path, setup_py):
         dist.close()
 
 
-def tempdir_context(f, cd=lambda dir:None):
-    """
-    Invoke f in the context
-    """
+@contextlib.contextmanager
+def tempdir_context(cd=lambda dir:None):
     temp_dir = tempfile.mkdtemp()
     orig_dir = os.getcwd()
     try:
         cd(temp_dir)
-        f(temp_dir)
+        yield temp_dir
     finally:
         cd(orig_dir)
         shutil.rmtree(temp_dir)
 
-def environment_context(f, **updates):
-    """
-    Invoke f in the context
-    """
+@contextlib.contextmanager
+def environment_context(**updates):
     old_env = os.environ.copy()
     os.environ.update(updates)
     try:
-        f()
+        yield
     finally:
         for key in updates:
             del os.environ[key]
         os.environ.update(old_env)
 
-def argv_context(f, repl):
-    """
-    Invoke f in the context
-    """
+@contextlib.contextmanager
+def argv_context(repl):
     old_argv = sys.argv[:]
     sys.argv[:] = repl
-    try:
-        f()
-    finally:
-        sys.argv[:] = old_argv
+    yield
+    sys.argv[:] = old_argv
 
-def reset_setup_stop_context(f):
+@contextlib.contextmanager
+def reset_setup_stop_context():
     """
     When the setuptools tests are run using setup.py test, and then
     one wants to invoke another setup() command (such as easy_install)
@@ -416,7 +396,5 @@ def reset_setup_stop_context(f):
     """
     setup_stop_after = distutils.core._setup_stop_after
     distutils.core._setup_stop_after = None
-    try:
-        f()
-    finally:
-        distutils.core._setup_stop_after = setup_stop_after
+    yield
+    distutils.core._setup_stop_after = setup_stop_after
