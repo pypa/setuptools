@@ -8,7 +8,7 @@ import re
 import sys
 
 from setuptools import Command
-from distutils.errors import *
+import distutils.errors
 from distutils import log
 from setuptools.command.sdist import sdist
 from setuptools.compat import basestring
@@ -71,7 +71,7 @@ class egg_info(Command):
                 parse_requirements('%s==%s' % (self.egg_name,self.egg_version))
             )
         except ValueError:
-            raise DistutilsOptionError(
+            raise distutils.errors.DistutilsOptionError(
                 "Invalid distribution name or version syntax: %s-%s" %
                 (self.egg_name,self.egg_version)
             )
