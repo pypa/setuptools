@@ -17,11 +17,7 @@ from pkg_resources import iter_entry_points
 
 from distutils import log
 from distutils.errors import DistutilsOptionError
-
-try:
-    from distutils.command.upload import upload
-except ImportError:
-    from setuptools.command.upload import upload
+from distutils.command.upload import upload
 
 from setuptools.compat import httplib, urlparse, unicode, iteritems
 
