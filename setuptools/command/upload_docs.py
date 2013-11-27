@@ -21,10 +21,7 @@ from distutils.command.upload import upload
 
 from setuptools.compat import httplib, urlparse, unicode, iteritems, PY3
 
-if PY3:
-    errors = 'surrogateescape'
-else:
-    errors = 'strict'
+errors = 'surrogateescape' if PY3 else 'strict'
 
 
 # This is not just a replacement for byte literals
