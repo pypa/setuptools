@@ -16,7 +16,7 @@ import distutils.core
 from setuptools.compat import StringIO, BytesIO, next, urlparse
 from setuptools.sandbox import run_setup, SandboxViolation
 from setuptools.command.easy_install import easy_install, fix_jython_executable, get_script_args, nt_quote_arg
-from setuptools.command.easy_install import  PthDistributions
+from setuptools.command.easy_install import PthDistributions
 from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
 from pkg_resources import Distribution as PRDistribution
@@ -243,7 +243,6 @@ class TestUserInstallTest(unittest.TestCase):
 
         test_pkg = os.path.join(self.dir, 'test_pkg')
         test_setup_py = os.path.join(test_pkg, 'setup.py')
-        test_setup_cfg = os.path.join(test_pkg, 'setup.cfg')
         os.mkdir(test_pkg)
 
         f = open(test_setup_py, 'w')
