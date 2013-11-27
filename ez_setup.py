@@ -37,15 +37,6 @@ def _python_cmd(*args):
     args = (sys.executable,) + args
     return subprocess.call(args) == 0
 
-def _check_call_py24(cmd, *args, **kwargs):
-    res = subprocess.call(cmd, *args, **kwargs)
-    class CalledProcessError(Exception):
-        pass
-    if not res == 0:
-        msg = "Command '%s' return non-zero exit status %d" % (cmd, res)
-        raise CalledProcessError(msg)
-vars(subprocess).setdefault('check_call', _check_call_py24)
-
 def _install(tarball, install_args=()):
     # extracting the tarball
     tmpdir = tempfile.mkdtemp()
