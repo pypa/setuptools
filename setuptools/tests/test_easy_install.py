@@ -9,6 +9,7 @@ import site
 import contextlib
 import textwrap
 import tarfile
+import logging
 import distutils.core
 
 from setuptools.compat import StringIO, BytesIO, next, urlparse
@@ -20,17 +21,6 @@ from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
 from pkg_resources import Distribution as PRDistribution
 import setuptools.tests.server
-
-try:
-    # import multiprocessing solely for the purpose of testing its existence
-    __import__('multiprocessing')
-    import logging
-    _LOG = logging.getLogger('test_easy_install')
-    logging.basicConfig(level=logging.INFO, stream=sys.stderr)
-    _MULTIPROC = True
-except ImportError:
-    _MULTIPROC = False
-    _LOG = None
 
 class FakeDist(object):
     def get_entry_map(self, group):
@@ -171,9 +161,15 @@ class TestUserInstallTest(unittest.TestCase):
         self.assertTrue(cmd.user, 'user should be implied')
 
     def test_multiproc_atexit(self):
-        if not _MULTIPROC:
+        try:
+            __import__('multiprocessing')
+        except ImportError:
+            # skip the test if multiprocessing is not available
             return
-        _LOG.info('this should not break')
+
+        log = logging.getLogger('test_easy_install')
+        logging.basicConfig(level=logging.INFO, stream=sys.stderr)
+        log.info('this should not break')
 
     def test_user_install_not_implied_without_usersite_enabled(self):
         site.ENABLE_USER_SITE = False # usually enabled
