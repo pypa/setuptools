@@ -7,8 +7,6 @@ import tempfile
 import unittest
 import site
 import contextlib
-from setuptools.compat import StringIO, BytesIO, next
-from setuptools.compat import urlparse
 import textwrap
 import tarfile
 import distutils.core
