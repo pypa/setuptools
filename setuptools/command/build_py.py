@@ -1,6 +1,7 @@
 import os
 import sys
 import fnmatch
+import textwrap
 from distutils.command.build_py import build_py as _build_py
 from distutils.util import convert_path
 from glob import glob
@@ -49,9 +50,10 @@ class build_py(_build_py, Mixin2to3):
         # output files are.
         self.byte_compile(_build_py.get_outputs(self, include_bytecode=0))
 
-    def __getattr__(self,attr):
+    def __getattr__(self, attr):
         if attr=='data_files':  # lazily compute data files
-            self.data_files = files = self._get_data_files(); return files
+            self.data_files = files = self._get_data_files()
+            return files
         return _build_py.__getattr__(self,attr)
 
     def build_module(self, module, module_file, package):
@@ -78,7 +80,7 @@ class build_py(_build_py, Mixin2to3):
             filenames = [
                 file[plen:] for file in self.find_data_files(package, src_dir)
                 ]
-            data.append( (package, src_dir, build_dir, filenames) )
+            data.append((package, src_dir, build_dir, filenames))
         return data
 
     def find_data_files(self, package, src_dir):
@@ -93,7 +95,6 @@ class build_py(_build_py, Mixin2to3):
 
     def build_package_data(self):
         """Copy data files into build directory"""
-        lastdir = None
         for package, src_dir, build_dir, filenames in self.data_files:
             for filename in filenames:
                 target = os.path.join(build_dir, filename)
@@ -103,7 +104,6 @@ class build_py(_build_py, Mixin2to3):
                 srcfile = os.path.abspath(srcfile)
                 if copied and srcfile in self.distribution.convert_2to3_doctests:
                     self.__doctests_2to3.append(outf)
-
 
     def analyze_manifest(self):
         self.manifest_files = mf = {}
@@ -169,10 +169,10 @@ class build_py(_build_py, Mixin2to3):
         if 'declare_namespace'.encode() not in f.read():
             from distutils import log
             log.warn(
-               "WARNING: %s is a namespace package, but its __init__.py does\n"
-               "not declare_namespace(); setuptools 0.7 will REQUIRE this!\n"
-               '(See the setuptools manual under "Namespace Packages" for '
-               "details.)\n", package
+                "WARNING: %s is a namespace package, but its __init__.py does\n"
+                "not declare_namespace(); setuptools 0.7 will REQUIRE this!\n"
+                '(See the setuptools manual under "Namespace Packages" for '
+                "details.)\n", package
             )
         f.close()
         return init_py
@@ -181,13 +181,11 @@ class build_py(_build_py, Mixin2to3):
         self.packages_checked={}
         _build_py.initialize_options(self)
 
-
     def get_package_dir(self, package):
         res = _build_py.get_package_dir(self, package)
         if self.distribution.src_root is not None:
             return os.path.join(self.distribution.src_root, res)
         return res
-
 
     def exclude_data_files(self, package, src_dir, files):
         """Filter filenames for package's data files in 'src_dir'"""
@@ -212,21 +210,12 @@ def assert_relative(path):
     if not os.path.isabs(path):
         return path
     from distutils.errors import DistutilsSetupError
-    raise DistutilsSetupError(
-"""Error: setup script specifies an absolute path:
+    msg = textwrap.dedent("""
+        Error: setup script specifies an absolute path:
 
-    %s
+            %s
 
-setup() arguments must *always* be /-separated paths relative to the
-setup.py directory, *never* absolute paths.
-""" % path
-    )
-
-
-
-
-
-
-
-
-
+        setup() arguments must *always* be /-separated paths relative to the
+        setup.py directory, *never* absolute paths.
+        """).lstrip() % path
+    raise DistutilsSetupError(msg)
