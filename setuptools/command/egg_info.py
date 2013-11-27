@@ -15,8 +15,8 @@ from setuptools.compat import basestring
 from setuptools import svn_utils
 from distutils.util import convert_path
 from distutils.filelist import FileList as _FileList
-from pkg_resources import parse_requirements, safe_name, parse_version, \
-    safe_version, yield_lines, EntryPoint, iter_entry_points, to_filename
+from pkg_resources import (parse_requirements, safe_name, parse_version,
+    safe_version, yield_lines, EntryPoint, iter_entry_points, to_filename)
 from setuptools.command.sdist import walk_revctrl
 
 
