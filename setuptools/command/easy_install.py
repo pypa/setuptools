@@ -61,8 +61,6 @@ __all__ = [
     'main', 'get_exe_prefixes',
 ]
 
-HAS_USER_SITE = not sys.version < "2.6" and site.ENABLE_USER_SITE
-
 def is_64bit():
     return struct.calcsize("P") == 8
 
@@ -134,7 +132,7 @@ class easy_install(Command):
         'no-deps', 'local-snapshots-ok', 'version'
     ]
 
-    if HAS_USER_SITE:
+    if site.ENABLE_USER_SITE:
         help_msg = "install in user site-package '%s'" % site.USER_SITE
         user_options.append(('user', None, help_msg))
         boolean_options.append('user')
@@ -143,7 +141,7 @@ class easy_install(Command):
     create_index = PackageIndex
 
     def initialize_options(self):
-        if HAS_USER_SITE:
+        if site.ENABLE_USER_SITE:
             whereami = os.path.abspath(__file__)
             self.user = whereami.startswith(site.USER_SITE)
         else:
@@ -168,7 +166,7 @@ class easy_install(Command):
         self.install_data = None
         self.install_base = None
         self.install_platbase = None
-        if HAS_USER_SITE:
+        if site.ENABLE_USER_SITE:
             self.install_userbase = site.USER_BASE
             self.install_usersite = site.USER_SITE
         else:
@@ -226,13 +224,13 @@ class easy_install(Command):
             'abiflags': getattr(sys, 'abiflags', ''),
         }
 
-        if HAS_USER_SITE:
+        if site.ENABLE_USER_SITE:
             self.config_vars['userbase'] = self.install_userbase
             self.config_vars['usersite'] = self.install_usersite
 
         # fix the install_dir if "--user" was used
         #XXX: duplicate of the code in the setup command
-        if self.user and HAS_USER_SITE:
+        if self.user and site.ENABLE_USER_SITE:
             self.create_home_path()
             if self.install_userbase is None:
                 raise DistutilsPlatformError(
@@ -1278,7 +1276,7 @@ def get_site_dirs():
     for site_lib in lib_paths:
         if site_lib not in sitedirs: sitedirs.append(site_lib)
 
-    if HAS_USER_SITE:
+    if site.ENABLE_USER_SITE:
         sitedirs.append(site.USER_SITE)
 
     sitedirs = list(map(normalize_path, sitedirs))

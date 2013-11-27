@@ -141,7 +141,7 @@ class TestUserInstallTest(unittest.TestCase):
         self.old_cwd = os.getcwd()
         os.chdir(self.dir)
         if sys.version >= "2.6":
-            self.old_has_site = easy_install_pkg.HAS_USER_SITE
+            self.old_enable_site = site.ENABLE_USER_SITE
             self.old_file = easy_install_pkg.__file__
             self.old_base = site.USER_BASE
             site.USER_BASE = tempfile.mkdtemp()
@@ -157,11 +157,11 @@ class TestUserInstallTest(unittest.TestCase):
             shutil.rmtree(site.USER_SITE)
             site.USER_BASE = self.old_base
             site.USER_SITE = self.old_site
-            easy_install_pkg.HAS_USER_SITE = self.old_has_site
+            site.ENABLE_USER_SITE = self.old_enable_site
             easy_install_pkg.__file__ = self.old_file
 
     def test_user_install_implied(self):
-        easy_install_pkg.HAS_USER_SITE = True # disabled sometimes
+        site.ENABLE_USER_SITE = True # disabled sometimes
         #XXX: replace with something meaningfull
         if sys.version < "2.6":
             return #SKIP
@@ -178,7 +178,7 @@ class TestUserInstallTest(unittest.TestCase):
         _LOG.info('this should not break')
 
     def test_user_install_not_implied_without_usersite_enabled(self):
-        easy_install_pkg.HAS_USER_SITE = False # usually enabled
+        site.ENABLE_USER_SITE = False # usually enabled
         #XXX: replace with something meaningfull
         if sys.version < "2.6":
             return #SKIP
