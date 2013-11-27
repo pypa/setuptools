@@ -1,4 +1,6 @@
-import os.path, sys, fnmatch
+import os
+import sys
+import fnmatch
 from distutils.command.build_py import build_py as _build_py
 from distutils.util import convert_path
 from glob import glob
