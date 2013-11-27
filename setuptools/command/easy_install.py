@@ -53,10 +53,8 @@ from pkg_resources import (
     VersionConflict, DEVELOP_DIST,
 )
 
-if '__VENV_LAUNCHER__' in os.environ:
-    sys_executable = os.environ['__VENV_LAUNCHER__']
-else:
-    sys_executable = os.path.normpath(sys.executable)
+sys_executable = os.environ.get('__VENV_LAUNCHER__',
+    os.path.normpath(sys.executable))
 
 __all__ = [
     'samefile', 'easy_install', 'PthDistributions', 'extract_wininst_cfg',
