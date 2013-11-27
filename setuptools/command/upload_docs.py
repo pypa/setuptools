@@ -118,7 +118,7 @@ class upload_docs(upload):
         # set up the authentication
         credentials = b(self.username + ':' + self.password)
         credentials = standard_b64encode(credentials)
-        if sys.version_info >= (3,):
+        if PY3:
             credentials = credentials.decode('ascii')
         auth = "Basic " + credentials
 
