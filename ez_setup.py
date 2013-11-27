@@ -115,8 +115,8 @@ def _do_download(version, download_base, to_dir, download_delay):
 def use_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
                    to_dir=os.curdir, download_delay=15):
     to_dir = os.path.abspath(to_dir)
-    was_imported = 'pkg_resources' in sys.modules or \
-        'setuptools' in sys.modules
+    rep_modules = 'pkg_resources', 'setuptools'
+    imported = set(sys.modules).intersection(rep_modules)
     try:
         import pkg_resources
     except ImportError:
@@ -127,7 +127,7 @@ def use_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
     except pkg_resources.DistributionNotFound:
         return _do_download(version, download_base, to_dir, download_delay)
     except pkg_resources.VersionConflict as VC_err:
-        if was_imported:
+        if imported:
             msg = textwrap.dedent("""
                 The required version of setuptools (>={version}) is not available,
                 and can't be installed while this script is running. Please
