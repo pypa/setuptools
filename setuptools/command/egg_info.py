@@ -2,7 +2,6 @@
 
 Create a distribution's .egg-info directory and contents"""
 
-# This module should be kept compatible with Python 2.3
 import os
 import re
 import sys
