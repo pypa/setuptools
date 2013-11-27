@@ -19,11 +19,9 @@ from distutils import log
 from distutils.errors import DistutilsOptionError
 from distutils.command.upload import upload
 
-from setuptools.compat import httplib, urlparse, unicode, iteritems
+from setuptools.compat import httplib, urlparse, unicode, iteritems, PY3
 
-_IS_PYTHON3 = sys.version > '3'
-
-if _IS_PYTHON3:
+if PY3:
     errors = 'surrogateescape'
 else:
     errors = 'strict'
