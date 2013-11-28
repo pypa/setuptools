@@ -2,13 +2,5 @@
 Roadmap
 =======
 
-Setuptools has merged with Distribute and to provide a unified codebase for
-ongoing development.
-
-This new effort will draw from the resources of both projects to leverage
-community contribution for ongoing advancement but also maintain stability
-for the user base.
-
-An initial release of Setuptools 0.7 will attempt to be compatible both with
-Setuptools 0.6c11 and Distribute 0.6.36. Where compatibility cannot be
-achieved, the changes should be well-documented.
+Setuptools is primarily in maintenance mode. The project attempts to address
+user issues, concerns, and feature requests in a timely fashion.
