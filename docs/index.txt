@@ -16,7 +16,6 @@ Documentation content:
 .. toctree::
    :maxdepth: 2
 
-   merge
    roadmap
    python3
    using
@@ -24,3 +23,4 @@ Documentation content:
    easy_install
    pkg_resources
    development
+   merge
