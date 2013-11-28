@@ -33,7 +33,7 @@ file and install it for you.
 
 For best results, uninstall previous versions FIRST (see `Uninstalling`_).
 
-Once installation is complete, you will find an ``easy_install.exe`` program in
+Once installation is complete, you will find an ``easy_install`` program in
 your Python ``Scripts`` subdirectory.  For simple invocation and best results,
 add this directory to your ``PATH`` environment variable, if it is not already
 present.
@@ -48,13 +48,23 @@ will download the appropriate version and install it for you::
     > wget https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py -O - | python
 
 Note that you will may need to invoke the command with superuser privileges to
-install to the system Python.
+install to the system Python::
+
+    > wget https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py -O - | sudo python
 
 Alternatively, on Python 2.6 and later, Setuptools may be installed to a
 user-local path::
 
     > wget https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py
     > python ez_setup.py --user
+
+
+Python 2.4 and Python 2.5 support
+=================================
+
+Setuptools 2.0 and later requires Python 2.6 or later. To install setuptools
+on Python 2.4 or Python 2.5, use the bootstrap script for Setuptools 1.x:
+https://bitbucket.org/pypa/setuptools/raw/bootstrap-py24/ez_setup.py.
 
 
 Advanced Installation
