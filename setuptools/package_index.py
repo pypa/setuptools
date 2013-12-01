@@ -1053,5 +1053,5 @@ def local_open(url):
     else:
         status, message, body = 404, "Path not found", "Not found"
 
-    return HTTPError(url, status, message,
-            {'content-type':'text/html'}, StringIO(body))
+    headers = {'content-type': 'text/html'}
+    return HTTPError(url, status, message, headers, StringIO(body))
