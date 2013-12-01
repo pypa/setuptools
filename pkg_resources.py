@@ -23,7 +23,8 @@ import zipimport
 import warnings
 import stat
 import functools
-from pkgutil import get_importer, ImpImporter as ImpWrapper
+import pkgutil
+from pkgutil import get_importer
 
 try:
     from urlparse import urlparse, urlunparse
@@ -1778,7 +1779,7 @@ def find_on_path(importer, path_item, only=False):
                         for item in find_distributions(os.path.join(path_item,line.rstrip())):
                             yield item
                         break
-register_finder(ImpWrapper,find_on_path)
+register_finder(pkgutil.ImpImporter,find_on_path)
 
 if importlib_bootstrap is not None:
     register_finder(importlib_bootstrap.FileFinder, find_on_path)
@@ -1882,7 +1883,7 @@ def file_ns_handler(importer, path_item, packageName, module):
         # Only return the path if it's not already there
         return subpath
 
-register_namespace_handler(ImpWrapper,file_ns_handler)
+register_namespace_handler(pkgutil.ImpImporter,file_ns_handler)
 register_namespace_handler(zipimport.zipimporter,file_ns_handler)
 
 if importlib_bootstrap is not None:

@@ -11,6 +11,8 @@ CHANGES
 * Removed ``setuptools.command.easy_install.HAS_USER_SITE``. Clients
   expecting this boolean variable should use ``site.ENABLE_USER_SITE``
   instead.
+* Removed ``pkg_resources.ImpWrapper``. Clients that expected this class
+  should use ``pkgutil.ImpImporter`` instead.
 
 -----
 1.4.1
