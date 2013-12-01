@@ -3,6 +3,13 @@ CHANGES
 =======
 
 -----
+1.4.2
+-----
+
+* Issue #116: Correct TypeError when reading a local package index on Python
+  3.
+
+-----
 1.4.1
 -----
 
