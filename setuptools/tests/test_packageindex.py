@@ -151,6 +151,20 @@ class TestPackageIndex(unittest.TestCase):
         self.assertEqual(url, 'https://example.com/bar')
         self.assertEqual(rev, '2995')
 
+    def test_local_index(self):
+        f = open('index.html', 'w')
+        f.write('<div>content</div>')
+        f.close()
+        try:
+            import urllib.request
+            import os
+            url = 'file:' + urllib.request.pathname2url(os.getcwd()) + '/'
+            res = setuptools.package_index.local_open(url)
+        finally:
+            os.remove('index.html')
+        assert 'content' in res.read()
+
+
 class TestContentCheckers(unittest.TestCase):
 
     def test_md5(self):
