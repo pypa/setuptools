@@ -23,6 +23,7 @@ import zipimport
 import warnings
 import stat
 import functools
+from pkgutil import get_importer, ImpImporter as ImpWrapper
 
 try:
     from urlparse import urlparse, urlunparse
@@ -1700,9 +1701,6 @@ class EggMetadata(ZipProvider):
         else:
             self.module_path = importer.archive
         self._setup_prefix()
-
-from pkgutil import get_importer, ImpImporter as ImpWrapper
-
 
 _declare_state('dict', _distribution_finders = {})
 
