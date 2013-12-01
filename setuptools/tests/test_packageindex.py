@@ -1,9 +1,10 @@
 """Package Index Tests
 """
 import sys
+import os
 import unittest
 import pkg_resources
-from setuptools.compat import urllib2, httplib, HTTPError, unicode
+from setuptools.compat import urllib2, httplib, HTTPError, unicode, pathname2url
 import distutils.errors
 import setuptools.package_index
 from setuptools.tests.server import IndexServer
@@ -152,13 +153,14 @@ class TestPackageIndex(unittest.TestCase):
         self.assertEqual(rev, '2995')
 
     def test_local_index(self):
+        """
+        local_open should be able to read an index from the file system.
+        """
         f = open('index.html', 'w')
         f.write('<div>content</div>')
         f.close()
         try:
-            import urllib.request
-            import os
-            url = 'file:' + urllib.request.pathname2url(os.getcwd()) + '/'
+            url = 'file:' + pathname2url(os.getcwd()) + '/'
             res = setuptools.package_index.local_open(url)
         finally:
             os.remove('index.html')

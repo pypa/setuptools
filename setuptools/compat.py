@@ -27,7 +27,7 @@ if sys.version_info[0] < 3:
     unichr = unichr
     unicode = unicode
     bytes = str
-    from urllib import url2pathname, splittag
+    from urllib import url2pathname, splittag, pathname2url
     import urllib2
     from urllib2 import urlopen, HTTPError, URLError, unquote, splituser
     from urlparse import urlparse, urlunparse, urljoin, urlsplit, urlunsplit
@@ -73,7 +73,7 @@ else:
     bytes = bytes
     from urllib.error import HTTPError, URLError
     import urllib.request as urllib2
-    from urllib.request import urlopen, url2pathname
+    from urllib.request import urlopen, url2pathname, pathname2url
     from urllib.parse import (
         urlparse, urlunparse, unquote, splituser, urljoin, urlsplit,
         urlunsplit, splittag,
