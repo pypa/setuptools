@@ -1039,7 +1039,7 @@ def local_open(url):
         files = []
         for f in os.listdir(filename):
             if f=='index.html':
-                fp = open(os.path.join(filename,f),'rb')
+                fp = open(os.path.join(filename,f),'r')
                 body = fp.read()
                 fp.close()
                 break
@@ -1053,5 +1053,5 @@ def local_open(url):
     else:
         status, message, body = 404, "Path not found", "Not found"
 
-    return HTTPError(url, status, message,
-            {'content-type':'text/html'}, StringIO(body))
+    headers = {'content-type': 'text/html'}
+    return HTTPError(url, status, message, headers, StringIO(body))
