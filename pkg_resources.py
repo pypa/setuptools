@@ -1891,14 +1891,17 @@ def _handle_ns(packageName, path_item):
     module = sys.modules.get(packageName)
     if module is None:
         module = sys.modules[packageName] = imp.new_module(packageName)
-        module.__path__ = []; _set_parent_ns(packageName)
+        module.__path__ = []
+        _set_parent_ns(packageName)
     elif not hasattr(module,'__path__'):
         raise TypeError("Not a package:", packageName)
     handler = _find_adapter(_namespace_handlers, importer)
     subpath = handler(importer,path_item,packageName,module)
     if subpath is not None:
-        path = module.__path__; path.append(subpath)
-        loader.load_module(packageName); module.__path__ = path
+        path = module.__path__
+        path.append(subpath)
+        loader.load_module(packageName)
+        module.__path__ = path
     return subpath
 
 def declare_namespace(packageName):
@@ -2409,7 +2412,6 @@ class Distribution(object):
         bdir = os.path.dirname(nloc)
         npath= [(p and _normalize_cached(p) or p) for p in path]
 
-        bp = None
         for p, item in enumerate(npath):
             if item==nloc:
                 break
