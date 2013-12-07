@@ -237,11 +237,11 @@ class DirectorySandbox(AbstractSandbox):
             self._active = active
 
     def _exempted(self, filepath):
-        exception_matches = any(
+        exception_matches = (
             filepath.startswith(exception)
             for exception in self._exceptions
         )
-        return exception_matches
+        return any(exception_matches)
 
     def _remap_input(self, operation, path, *args, **kw):
         """Called for path inputs"""
