@@ -3,6 +3,8 @@ import sys
 import tempfile
 import operator
 import functools
+import itertools
+import re
 
 import pkg_resources
 
@@ -197,6 +199,9 @@ class DirectorySandbox(AbstractSandbox):
         "utime", "lchown", "chroot", "mkfifo", "mknod", "tempnam",
     ])
 
+    _exception_patterns = []
+    "allow writing to paths that match the pattern"
+
     def __init__(self, sandbox, exceptions=_EXCEPTIONS):
         self._sandbox = os.path.normcase(os.path.realpath(sandbox))
         self._prefix = os.path.join(self._sandbox,'')
@@ -237,11 +242,16 @@ class DirectorySandbox(AbstractSandbox):
             self._active = active
 
     def _exempted(self, filepath):
-        exception_matches = (
+        start_matches = (
             filepath.startswith(exception)
             for exception in self._exceptions
         )
-        return any(exception_matches)
+        pattern_matches = (
+            re.match(pattern, filepath)
+            for pattern in self._exception_patterns
+        )
+        candidates = itertools.chain(start_matches, pattern_matches)
+        return any(candidates)
 
     def _remap_input(self, operation, path, *args, **kw):
         """Called for path inputs"""
