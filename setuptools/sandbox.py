@@ -220,7 +220,7 @@ class DirectorySandbox(AbstractSandbox):
     def tmpnam(self):
         self._violation("tmpnam")
 
-    def _ok(self,path):
+    def _ok(self, path):
         active = self._active
         try:
             self._active = False
@@ -235,13 +235,13 @@ class DirectorySandbox(AbstractSandbox):
         exception_matches = map(filepath.startswith, self._exceptions)
         return True in exception_matches
 
-    def _remap_input(self,operation,path,*args,**kw):
+    def _remap_input(self, operation, path, *args, **kw):
         """Called for path inputs"""
         if operation in self.write_ops and not self._ok(path):
             self._violation(operation, os.path.realpath(path), *args, **kw)
         return path
 
-    def _remap_pair(self,operation,src,dst,*args,**kw):
+    def _remap_pair(self, operation, src, dst, *args, **kw):
         """Called for path pairs like rename, link, and symlink operations"""
         if not self._ok(src) or not self._ok(dst):
             self._violation(operation, src, dst, *args, **kw)
