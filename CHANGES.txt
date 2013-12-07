@@ -6,6 +6,7 @@ CHANGES
 2.0
 ---
 
+* Issue #121: Exempt lib2to3 pickled grammars from DirectorySandbox.
 * Issue #41: Dropped support for Python 2.4 and Python 2.5. Clients requiring
   setuptools for those versions of Python should use setuptools 1.x.
 * Removed ``setuptools.command.easy_install.HAS_USER_SITE``. Clients
