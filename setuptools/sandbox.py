@@ -200,7 +200,10 @@ class DirectorySandbox(AbstractSandbox):
     def __init__(self, sandbox, exceptions=_EXCEPTIONS):
         self._sandbox = os.path.normcase(os.path.realpath(sandbox))
         self._prefix = os.path.join(self._sandbox,'')
-        self._exceptions = [os.path.normcase(os.path.realpath(path)) for path in exceptions]
+        self._exceptions = [
+            os.path.normcase(os.path.realpath(path))
+            for path in exceptions
+        ]
         AbstractSandbox.__init__(self)
 
     def _violation(self, operation, *args, **kw):
@@ -225,9 +228,11 @@ class DirectorySandbox(AbstractSandbox):
         try:
             self._active = False
             realpath = os.path.normcase(os.path.realpath(path))
-            if (self._exempted(realpath) or realpath == self._sandbox
-                    or realpath.startswith(self._prefix)):
-                return True
+            return (
+                self._exempted(realpath)
+                or realpath == self._sandbox
+                or realpath.startswith(self._prefix)
+            )
         finally:
             self._active = active
 
