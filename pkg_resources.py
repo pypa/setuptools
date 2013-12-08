@@ -27,6 +27,7 @@ import pkgutil
 import token
 import symbol
 import operator
+import platform
 from pkgutil import get_importer
 
 try:
@@ -1106,23 +1107,6 @@ def to_filename(name):
     """
     return name.replace('-','_')
 
-def _platinfo(attr):
-    try:
-        import platform
-    except ImportError:
-        return ''
-    return getattr(platform, attr, lambda:'')()
-
-def _pyimp():
-    if sys.platform=='cli':
-        return 'IronPython'
-    elif sys.platform.startswith('java'):
-        return 'Jython'
-    elif '__pypy__' in sys.builtin_module_names:
-        return 'PyPy'
-    else:
-        return 'CPython'
-
 
 class MarkerEvaluation(object):
     values = {
@@ -1130,9 +1114,9 @@ class MarkerEvaluation(object):
         'sys_platform': lambda: sys.platform,
         'python_full_version': lambda: sys.version.split()[0],
         'python_version': lambda:'%s.%s' % (sys.version_info[0], sys.version_info[1]),
-        'platform_version': lambda: _platinfo('version'),
-        'platform_machine': lambda: _platinfo('machine'),
-        'python_implementation': lambda: _platinfo('python_implementation') or _pyimp(),
+        'platform_version': platform.version,
+        'platform_machine': platform.machine,
+        'python_implementation': platform.python_implementation,
     }
 
     @classmethod
