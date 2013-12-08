@@ -1103,12 +1103,6 @@ def to_filename(name):
     """
     return name.replace('-','_')
 
-_marker_names = {
-    'os': ['name'], 'sys': ['platform'],
-    'platform': ['version','machine','python_implementation'],
-    'python_version': [], 'python_full_version': [], 'extra':[],
-}
-
 _marker_values = {
     'os_name': lambda: os.name,
     'sys_platform': lambda: sys.platform,
