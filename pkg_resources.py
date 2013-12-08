@@ -1231,7 +1231,6 @@ def evaluate_marker(text, extra=None, _ops={}):
         while len(nodelist)==2: nodelist = nodelist[1]
         kind = nodelist[0]
         name = nodelist[1]
-        #while len(name)==2: name = name[1]
         if kind==NAME:
             try:
                 op = _marker_values[name]
