@@ -1225,7 +1225,6 @@ def evaluate_marker(text, extra=None, _ops={}):
             op = _ops[nodelist[0]]
         except KeyError:
             raise SyntaxError("Comparison or logical expression expected")
-            raise SyntaxError("Language feature not supported in environment markers: "+symbol.sym_name[nodelist[0]])
         return op(nodelist)
 
     def evaluate(nodelist):
