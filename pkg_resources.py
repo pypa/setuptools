@@ -24,6 +24,9 @@ import warnings
 import stat
 import functools
 import pkgutil
+import token
+import symbol
+import operator
 from pkgutil import get_importer
 
 try:
@@ -1103,16 +1106,6 @@ def to_filename(name):
     """
     return name.replace('-','_')
 
-_marker_values = {
-    'os_name': lambda: os.name,
-    'sys_platform': lambda: sys.platform,
-    'python_full_version': lambda: sys.version.split()[0],
-    'python_version': lambda:'%s.%s' % (sys.version_info[0], sys.version_info[1]),
-    'platform_version': lambda: _platinfo('version'),
-    'platform_machine': lambda: _platinfo('machine'),
-    'python_implementation': lambda: _platinfo('python_implementation') or _pyimp(),
-}
-
 def _platinfo(attr):
     try:
         import platform
@@ -1130,108 +1123,133 @@ def _pyimp():
     else:
         return 'CPython'
 
-def normalize_exception(exc):
-    """
-    Given a SyntaxError from a marker evaluation, normalize the error message:
-     - Remove indications of filename and line number.
-     - Replace platform-specific error messages with standard error messages.
-    """
-    subs = {
-        'unexpected EOF while parsing': 'invalid syntax',
-        'parenthesis is never closed': 'invalid syntax',
+
+class MarkerEvaluation(object):
+    values = {
+        'os_name': lambda: os.name,
+        'sys_platform': lambda: sys.platform,
+        'python_full_version': lambda: sys.version.split()[0],
+        'python_version': lambda:'%s.%s' % (sys.version_info[0], sys.version_info[1]),
+        'platform_version': lambda: _platinfo('version'),
+        'platform_machine': lambda: _platinfo('machine'),
+        'python_implementation': lambda: _platinfo('python_implementation') or _pyimp(),
     }
-    exc.filename = None
-    exc.lineno = None
-    exc.msg = subs.get(exc.msg, exc.msg)
-    return exc
 
+    @classmethod
+    def is_invalid_marker(cls, text):
+        """
+        Validate text as a PEP 426 environment marker; return an exception
+        if invalid or False otherwise.
+        """
+        try:
+            cls.evaluate_marker(text)
+        except SyntaxError:
+            return cls.normalize_exception(sys.exc_info()[1])
+        return False
 
-def invalid_marker(text):
-    """Validate text as a PEP 426 environment marker; return exception or False"""
-    try:
-        evaluate_marker(text)
-    except SyntaxError:
-        return normalize_exception(sys.exc_info()[1])
-    return False
+    @staticmethod
+    def normalize_exception(exc):
+        """
+        Given a SyntaxError from a marker evaluation, normalize the error message:
+         - Remove indications of filename and line number.
+         - Replace platform-specific error messages with standard error messages.
+        """
+        subs = {
+            'unexpected EOF while parsing': 'invalid syntax',
+            'parenthesis is never closed': 'invalid syntax',
+        }
+        exc.filename = None
+        exc.lineno = None
+        exc.msg = subs.get(exc.msg, exc.msg)
+        return exc
 
-def evaluate_marker(text, extra=None, _ops={}):
-    """
-    Evaluate a PEP 426 environment marker on CPython 2.4+.
-    Return a boolean indicating the marker result in this environment.
-    Raise SyntaxError if marker is invalid.
+    @classmethod
+    def and_test(cls, nodelist):
+        # MUST NOT short-circuit evaluation, or invalid syntax can be skipped!
+        return functools.reduce(operator.and_, [cls.interpret(nodelist[i]) for i in range(1,len(nodelist),2)])
 
-    This implementation uses the 'parser' module, which is not implemented on
-    Jython and has been superseded by the 'ast' module in Python 2.6 and
-    later.
-    """
+    @classmethod
+    def test(cls, nodelist):
+        # MUST NOT short-circuit evaluation, or invalid syntax can be skipped!
+        return functools.reduce(operator.or_, [cls.interpret(nodelist[i]) for i in range(1,len(nodelist),2)])
 
-    if not _ops:
+    @classmethod
+    def atom(cls, nodelist):
+        t = nodelist[1][0]
+        if t == token.LPAR:
+            if nodelist[2][0] == token.RPAR:
+                raise SyntaxError("Empty parentheses")
+            return cls.interpret(nodelist[2])
+        raise SyntaxError("Language feature not supported in environment markers")
 
-        from token import NAME, STRING
-        import token
-        import symbol
-        import operator
+    @classmethod
+    def comparison(cls, nodelist):
+        if len(nodelist)>4:
+            raise SyntaxError("Chained comparison not allowed in environment markers")
+        comp = nodelist[2][1]
+        cop = comp[1]
+        if comp[0] == token.NAME:
+            if len(nodelist[2]) == 3:
+                if cop == 'not':
+                    cop = 'not in'
+                else:
+                    cop = 'is not'
+        try:
+            cop = cls.get_op(cop)
+        except KeyError:
+            raise SyntaxError(repr(cop)+" operator not allowed in environment markers")
+        return cop(cls.evaluate(nodelist[1]), cls.evaluate(nodelist[3]))
 
-        def and_test(nodelist):
-            # MUST NOT short-circuit evaluation, or invalid syntax can be skipped!
-            return functools.reduce(operator.and_, [interpret(nodelist[i]) for i in range(1,len(nodelist),2)])
+    @classmethod
+    def get_op(cls, op):
+        ops = {
+            symbol.test: cls.test,
+            symbol.and_test: cls.and_test,
+            symbol.atom: cls.atom,
+            symbol.comparison: cls.comparison,
+            'not in': lambda x, y: x not in y,
+            'in': lambda x, y: x in y,
+            '==': operator.eq,
+            '!=': operator.ne,
+        }
+        if hasattr(symbol, 'or_test'):
+            ops[symbol.or_test] = cls.test
+        return ops[op]
 
-        def test(nodelist):
-            # MUST NOT short-circuit evaluation, or invalid syntax can be skipped!
-            return functools.reduce(operator.or_, [interpret(nodelist[i]) for i in range(1,len(nodelist),2)])
+    @classmethod
+    def evaluate_marker(cls, text, extra=None):
+        """
+        Evaluate a PEP 426 environment marker on CPython 2.4+.
+        Return a boolean indicating the marker result in this environment.
+        Raise SyntaxError if marker is invalid.
 
-        def atom(nodelist):
-            t = nodelist[1][0]
-            if t == token.LPAR:
-                if nodelist[2][0] == token.RPAR:
-                    raise SyntaxError("Empty parentheses")
-                return interpret(nodelist[2])
-            raise SyntaxError("Language feature not supported in environment markers")
+        This implementation uses the 'parser' module, which is not implemented on
+        Jython and has been superseded by the 'ast' module in Python 2.6 and
+        later.
+        """
+        return cls.interpret(parser.expr(text).totuple(1)[1])
 
-        def comparison(nodelist):
-            if len(nodelist)>4:
-                raise SyntaxError("Chained comparison not allowed in environment markers")
-            comp = nodelist[2][1]
-            cop = comp[1]
-            if comp[0] == NAME:
-                if len(nodelist[2]) == 3:
-                    if cop == 'not':
-                        cop = 'not in'
-                    else:
-                        cop = 'is not'
-            try:
-                cop = _ops[cop]
-            except KeyError:
-                raise SyntaxError(repr(cop)+" operator not allowed in environment markers")
-            return cop(evaluate(nodelist[1]), evaluate(nodelist[3]))
-
-        _ops.update({
-            symbol.test: test, symbol.and_test: and_test, symbol.atom: atom,
-            symbol.comparison: comparison, 'not in': lambda x,y: x not in y,
-            'in': lambda x,y: x in y, '==': operator.eq, '!=': operator.ne,
-        })
-        if hasattr(symbol,'or_test'):
-            _ops[symbol.or_test] = test
-
-    def interpret(nodelist):
+    @classmethod
+    def interpret(cls, nodelist):
         while len(nodelist)==2: nodelist = nodelist[1]
         try:
-            op = _ops[nodelist[0]]
+            op = cls.get_op(nodelist[0])
         except KeyError:
             raise SyntaxError("Comparison or logical expression expected")
         return op(nodelist)
 
-    def evaluate(nodelist):
+    @classmethod
+    def evaluate(cls, nodelist):
         while len(nodelist)==2: nodelist = nodelist[1]
         kind = nodelist[0]
         name = nodelist[1]
-        if kind==NAME:
+        if kind==token.NAME:
             try:
-                op = _marker_values[name]
+                op = cls.values[name]
             except KeyError:
                 raise SyntaxError("Unknown name %r" % name)
             return op()
-        if kind==STRING:
+        if kind==token.STRING:
             s = nodelist[1]
             if s[:1] not in "'\"" or s.startswith('"""') or s.startswith("'''") \
                     or '\\' in s:
@@ -1239,8 +1257,6 @@ def evaluate_marker(text, extra=None, _ops={}):
                     "Only plain strings allowed in environment markers")
             return s[1:-1]
         raise SyntaxError("Language feature not supported in environment markers")
-
-    return interpret(parser.expr(text).totuple(1)[1])
 
 def _markerlib_evaluate(text):
     """
@@ -1262,7 +1278,11 @@ def _markerlib_evaluate(text):
         raise SyntaxError(e.args[0])
     return result
 
-if 'parser' not in globals():
+invalid_marker = MarkerEvaluation.is_invalid_marker
+
+if 'parser' in globals():
+    evaluate_marker = MarkerEvaluation.evaluate_marker
+else:
     # fallback to less-complete _markerlib implementation if 'parser' module
     #  is not available.
     evaluate_marker = _markerlib_evaluate
