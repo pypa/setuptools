@@ -10,6 +10,7 @@ import subprocess
 import pkg_resources
 
 pkg_resources.require('jaraco.packaging>=2.0')
+pkg_resources.require('wheel')
 
 
 def before_upload():
