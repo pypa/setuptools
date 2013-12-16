@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+-----
+2.0.1
+-----
+
+* Issue #124: Fixed error in list detection in upload_docs.
+
 ---
 2.0
 ---

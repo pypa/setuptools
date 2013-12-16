@@ -127,7 +127,7 @@ class upload_docs(upload):
         for key, values in iteritems(data):
             title = '\nContent-Disposition: form-data; name="%s"' % key
             # handle multiple entries for the same name
-            if isinstance(values, list):
+            if not isinstance(values, list):
                 values = [values]
             for value in values:
                 if type(value) is tuple:
