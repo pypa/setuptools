@@ -8,8 +8,9 @@ import unittest
 import pkg_resources
 import warnings
 from setuptools.command import egg_info
-from setuptools.tests import environment
 from setuptools import svn_utils
+from setuptools.tests import environment, test_svn
+from setuptools.tests.py26compat import skipIf
 
 ENTRIES_V10 = pkg_resources.resource_string(__name__, 'entries-v10')
 "An entries file generated with svn 1.6.17 against the legacy Setuptools repo"
@@ -33,7 +34,8 @@ class TestEggInfo(unittest.TestCase):
         entries_f = open(fn, 'wb')
         entries_f.write(entries)
         entries_f.close()
-
+   
+    @skipIf(not test_svn._svn_check, "No SVN to text, in the first place")
     def test_version_10_format(self):
         """
         """
@@ -60,11 +62,9 @@ class TestEggInfo(unittest.TestCase):
             if env.lower() == 'path':
                 path_variable = env
 
-        if path_variable is None:
-            self.skipTest('Cannot figure out how to modify path')
-
-        old_path = os.environ[path_variable]
-        os.environ[path_variable] = ''
+        if path_variable:
+            old_path = os.environ[path_variable]
+            os.environ[path_variable] = ''
         #catch_warnings not available until py26
         warning_filters = warnings.filters
         warnings.filters = warning_filters[:]
@@ -76,7 +76,8 @@ class TestEggInfo(unittest.TestCase):
             #restore the warning filters
             warnings.filters = warning_filters
             #restore the os path
-            os.environ[path_variable] = old_path
+            if path_variable:
+                os.environ[path_variable] = old_path
 
         self.assertEqual(rev, '89000')
 
@@ -99,6 +100,9 @@ class TestSvnDummy(environment.ZippedEnvironment):
 
     def setUp(self):
         version = svn_utils.SvnInfo.get_svn_version()
+        if not version:  # None or Empty
+            return None
+
         self.base_version = tuple([int(x) for x in version.split('.')][:2])
 
         if not self.base_version:
@@ -114,6 +118,7 @@ class TestSvnDummy(environment.ZippedEnvironment):
                                      'svn_data', self.dataname + ".zip")
         super(TestSvnDummy, self).setUp()
 
+    @skipIf(not test_svn._svn_check, "No SVN to text, in the first place")
     def test_sources(self):
         code, data = environment.run_setup_py(["sdist"],
                                               pypath=self.old_cwd,

@@ -9,7 +9,8 @@ import tempfile
 import unittest
 import unicodedata
 import re
-from setuptools.tests import environment
+from setuptools.tests import environment, test_svn
+from setuptools.tests.py26compat import skipIf
 
 from setuptools.compat import StringIO, unicode
 from setuptools.tests.py26compat import skipIf
@@ -473,6 +474,9 @@ class TestSvn(environment.ZippedEnvironment):
 
     def setUp(self):
         version = svn_utils.SvnInfo.get_svn_version()
+        if not version:  # None or Empty
+            return
+
         self.base_version = tuple([int(x) for x in version.split('.')][:2])
 
         if not self.base_version:
@@ -488,6 +492,7 @@ class TestSvn(environment.ZippedEnvironment):
                                      'svn_data', self.dataname + ".zip")
         super(TestSvn, self).setUp()
 
+    @skipIf(not test_svn._svn_check, "No SVN to text, in the first place")
     def test_walksvn(self):
         if self.base_version >= (1, 6):
             folder2 = 'third party2'

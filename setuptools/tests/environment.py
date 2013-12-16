@@ -78,6 +78,9 @@ class ZippedEnvironment(unittest.TestCase):
     old_cwd = None
 
     def setUp(self):
+        if self.datafile is None or self.dataname is None:
+            return
+
         if not os.path.isfile(self.datafile):
             self.old_cwd = None
             return
@@ -98,6 +101,10 @@ class ZippedEnvironment(unittest.TestCase):
         os.chdir(os.path.join(self.temp_dir, self.dataname))
 
     def tearDown(self):
+        #Assume setUp was never completed
+        if self.dataname is None or self.datafile is None:
+            return
+
         try:
             if self.old_cwd:
                 os.chdir(self.old_cwd)
