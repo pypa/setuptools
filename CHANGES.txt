@@ -3,6 +3,13 @@ CHANGES
 =======
 
 -----
+2.0.2
+-----
+
+* Fix NameError during installation with Python implementations (e.g. Jython)
+  not containing parser module.
+
+-----
 2.0.1
 -----
 

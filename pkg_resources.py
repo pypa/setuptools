@@ -1214,6 +1214,32 @@ class MarkerEvaluation(object):
         return cls.interpret(parser.expr(text).totuple(1)[1])
 
     @classmethod
+    def _markerlib_evaluate(cls, text):
+        """
+        Evaluate a PEP 426 environment marker using markerlib.
+        Return a boolean indicating the marker result in this environment.
+        Raise SyntaxError if marker is invalid.
+        """
+        import _markerlib
+        # markerlib implements Metadata 1.2 (PEP 345) environment markers.
+        # Translate the variables to Metadata 2.0 (PEP 426).
+        env = _markerlib.default_environment()
+        for key in env.keys():
+            new_key = key.replace('.', '_')
+            env[new_key] = env.pop(key)
+        try:
+            result = _markerlib.interpret(text, env)
+        except NameError:
+            e = sys.exc_info()[1]
+            raise SyntaxError(e.args[0])
+        return result
+
+    if 'parser' not in globals():
+        # Fall back to less-complete _markerlib implementation if 'parser' module
+        # is not available.
+        evaluate_marker = _markerlib_evaluate
+
+    @classmethod
     def interpret(cls, nodelist):
         while len(nodelist)==2: nodelist = nodelist[1]
         try:
@@ -1242,34 +1268,8 @@ class MarkerEvaluation(object):
             return s[1:-1]
         raise SyntaxError("Language feature not supported in environment markers")
 
-def _markerlib_evaluate(text):
-    """
-    Evaluate a PEP 426 environment marker using markerlib.
-    Return a boolean indicating the marker result in this environment.
-    Raise SyntaxError if marker is invalid.
-    """
-    import _markerlib
-    # markerlib implements Metadata 1.2 (PEP 345) environment markers.
-    # Translate the variables to Metadata 2.0 (PEP 426).
-    env = _markerlib.default_environment()
-    for key in env.keys():
-        new_key = key.replace('.', '_')
-        env[new_key] = env.pop(key)
-    try:
-        result = _markerlib.interpret(text, env)
-    except NameError:
-        e = sys.exc_info()[1]
-        raise SyntaxError(e.args[0])
-    return result
-
 invalid_marker = MarkerEvaluation.is_invalid_marker
-
-if 'parser' in globals():
-    evaluate_marker = MarkerEvaluation.evaluate_marker
-else:
-    # fallback to less-complete _markerlib implementation if 'parser' module
-    #  is not available.
-    evaluate_marker = _markerlib_evaluate
+evaluate_marker = MarkerEvaluation.evaluate_marker
 
 class NullProvider:
     """Try to implement resources and metadata for arbitrary PEP 302 loaders"""
