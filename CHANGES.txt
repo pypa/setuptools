@@ -8,6 +8,7 @@ CHANGES
 
 * Fix NameError during installation with Python implementations (e.g. Jython)
   not containing parser module.
+* Fix NameError in ``sdist:re_finder``.
 
 -----
 2.0.1
