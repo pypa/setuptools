@@ -295,7 +295,7 @@ class Distribution(_Distribution):
                 'find_links', 'site_dirs', 'index_url', 'optimize',
                 'site_dirs', 'allow_hosts'
             )
-            for key in opts.keys():
+            for key in list(opts):
                 if key not in keep:
                     del opts[key]   # don't use any other settings
             if self.dependency_links:

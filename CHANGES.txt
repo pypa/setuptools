@@ -3,6 +3,12 @@ CHANGES
 =======
 
 -----
+2.0.3
+-----
+
+* Issue #131: Fix RuntimeError when constructing an egg fetcher.
+
+-----
 2.0.2
 -----
 
