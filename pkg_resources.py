@@ -1717,7 +1717,14 @@ def find_distributions(path_item, only=False):
     finder = _find_adapter(_distribution_finders, importer)
     return finder(importer, path_item, only)
 
-def find_in_zip(importer, path_item, only=False):
+def find_eggs_in_zip(importer, path_item, only=False):
+    """
+    Find eggs in zip files; possibly multiple nested eggs.
+    """
+    if importer.archive.endswith('.whl'):
+        # wheels are not supported with this finder
+        # they don't have PKG-INFO metadata, and won't ever contain eggs
+        return
     metadata = EggMetadata(importer)
     if metadata.has_metadata('PKG-INFO'):
         yield Distribution.from_filename(path_item, metadata=metadata)
@@ -1726,10 +1733,10 @@ def find_in_zip(importer, path_item, only=False):
     for subitem in metadata.resource_listdir('/'):
         if subitem.endswith('.egg'):
             subpath = os.path.join(path_item, subitem)
-            for dist in find_in_zip(zipimport.zipimporter(subpath), subpath):
+            for dist in find_eggs_in_zip(zipimport.zipimporter(subpath), subpath):
                 yield dist
 
-register_finder(zipimport.zipimporter, find_in_zip)
+register_finder(zipimport.zipimporter, find_eggs_in_zip)
 
 def find_nothing(importer, path_item, only=False):
     return ()
