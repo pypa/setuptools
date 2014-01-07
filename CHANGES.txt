@@ -6,7 +6,7 @@ CHANGES
 2.1
 ---
 
-* Issue #129: Suppress inspection of '*.whl' files when searching for files
+* Issue #129: Suppress inspection of ``*.whl`` files when searching for files
   in a zip-imported file.
 * Issue #131: Fix RuntimeError when constructing an egg fetcher.
 
