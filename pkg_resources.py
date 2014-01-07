@@ -1,4 +1,5 @@
-"""Package resource API
+"""
+Package resource API
 --------------------
 
 A resource is a logical file contained within a package, or a logical
@@ -2039,7 +2040,7 @@ class EntryPoint(object):
         list(map(working_set.add,
             working_set.resolve(self.dist.requires(self.extras),env,installer)))
 
-    #@classmethod
+    @classmethod
     def parse(cls, src, dist=None):
         """Parse a single entry point from string `src`
 
@@ -2071,9 +2072,7 @@ class EntryPoint(object):
         else:
             return cls(name.strip(), value.strip(), attrs, extras, dist)
 
-    parse = classmethod(parse)
-
-    #@classmethod
+    @classmethod
     def parse_group(cls, group, lines, dist=None):
         """Parse an entry point group"""
         if not MODULE(group):
@@ -2086,9 +2085,7 @@ class EntryPoint(object):
             this[ep.name]=ep
         return this
 
-    parse_group = classmethod(parse_group)
-
-    #@classmethod
+    @classmethod
     def parse_map(cls, data, dist=None):
         """Parse a map of entry point groups"""
         if isinstance(data,dict):
@@ -2106,8 +2103,6 @@ class EntryPoint(object):
                 raise ValueError("Duplicate group name", group)
             maps[group] = cls.parse_group(group, lines, dist)
         return maps
-
-    parse_map = classmethod(parse_map)
 
 
 def _remove_md5_fragment(location):
@@ -2135,7 +2130,7 @@ class Distribution(object):
         self.precedence = precedence
         self._provider = metadata or empty_provider
 
-    #@classmethod
+    @classmethod
     def from_location(cls,location,basename,metadata=None,**kw):
         project_name, version, py_version, platform = [None]*4
         basename, ext = os.path.splitext(basename)
@@ -2151,7 +2146,6 @@ class Distribution(object):
             location, metadata, project_name=project_name, version=version,
             py_version=py_version, platform=platform, **kw
         )
-    from_location = classmethod(from_location)
 
     hashcmp = property(
         lambda self: (
@@ -2184,16 +2178,15 @@ class Distribution(object):
     # metadata until/unless it's actually needed.  (i.e., some distributions
     # may not know their name or version without loading PKG-INFO)
 
-    #@property
+    @property
     def key(self):
         try:
             return self._key
         except AttributeError:
             self._key = key = self.project_name.lower()
             return key
-    key = property(key)
 
-    #@property
+    @property
     def parsed_version(self):
         try:
             return self._parsed_version
@@ -2201,9 +2194,7 @@ class Distribution(object):
             self._parsed_version = pv = parse_version(self.version)
             return pv
 
-    parsed_version = property(parsed_version)
-
-    #@property
+    @property
     def version(self):
         try:
             return self._version
@@ -2216,9 +2207,8 @@ class Distribution(object):
                 raise ValueError(
                     "Missing 'Version:' header and/or %s file" % self.PKG_INFO, self
                 )
-    version = property(version)
 
-    #@property
+    @property
     def _dep_map(self):
         try:
             return self.__dep_map
@@ -2236,7 +2226,6 @@ class Distribution(object):
                         extra = safe_extra(extra) or None
                     dm.setdefault(extra,[]).extend(parse_requirements(reqs))
             return dm
-    _dep_map = property(_dep_map)
 
     def requires(self,extras=()):
         """List of Requirements needed for this distro if `extras` are used"""
@@ -2294,13 +2283,12 @@ class Distribution(object):
             raise AttributeError(attr)
         return getattr(self._provider, attr)
 
-    #@classmethod
+    @classmethod
     def from_filename(cls,filename,metadata=None, **kw):
         return cls.from_location(
             _normalize_cached(filename), os.path.basename(filename), metadata,
             **kw
         )
-    from_filename = classmethod(from_filename)
 
     def as_requirement(self):
         """Return a ``Requirement`` that matches this distribution exactly"""
@@ -2407,10 +2395,9 @@ class Distribution(object):
         kw.setdefault('metadata', self._provider)
         return self.__class__(**kw)
 
-    #@property
+    @property
     def extras(self):
         return [dep for dep in self._dep_map if dep]
-    extras = property(extras)
 
 
 class DistInfoDistribution(Distribution):
@@ -2614,7 +2601,7 @@ class Requirement:
 
     def __repr__(self): return "Requirement.parse(%r)" % str(self)
 
-    #@staticmethod
+    @staticmethod
     def parse(s):
         reqs = list(parse_requirements(s))
         if reqs:
@@ -2622,8 +2609,6 @@ class Requirement:
                 return reqs[0]
             raise ValueError("Expected only one requirement", s)
         raise ValueError("No requirements found", s)
-
-    parse = staticmethod(parse)
 
 state_machine = {
     #       =><
