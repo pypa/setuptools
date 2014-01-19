@@ -177,6 +177,10 @@ Credits
   "Code Bear" Taylor) contributed their time and stress as guinea pigs for the
   use of eggs and setuptools, even before eggs were "cool".  (Thanks, guys!)
 
+* Tarek Ziadé is the principal author of the Distribute fork, which
+  re-invigorated the community on the project, encouraged renewed innovation,
+  and addressed many defects.
+
 * Since the merge with Distribute, Jason R. Coombs is the
   maintainer of setuptools.  The project is maintained in coordination with
   the Python Packaging Authority (PyPA) and the larger Python community.
