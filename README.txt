@@ -76,7 +76,7 @@ tarball from `Setuptools on PyPI <https://pypi.python.org/pypi/setuptools>`_
 and run setup.py with any supported distutils and Setuptools options.
 For example::
 
-    setuptools-x.x$ python setup.py --prefix=/opt/setuptools
+    setuptools-x.x$ python setup.py install --prefix=/opt/setuptools
 
 Use ``--help`` to get a full options list, but we recommend consulting
 the `EasyInstall manual`_ for detailed instructions, especially `the section
