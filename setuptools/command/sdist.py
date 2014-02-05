@@ -22,7 +22,7 @@ def walk_revctrl(dirname=''):
 #TODO will need test case
 class re_finder(object):
 
-    def __init__(self, path, pattern, postproc=None):
+    def __init__(self, path, pattern, postproc=lambda x: x):
         self.pattern = pattern
         self.postproc = postproc
         self.path = convert_path(path)
@@ -35,10 +35,9 @@ class re_finder(object):
             f.close()
         for match in self.pattern.finditer(data):
             path = match.group(1)
-            if self.postproc:
-                #postproc used to be used when the svn finder
-                #was an re_finder for calling unescape
-                path = self.postproc(path)
+            # postproc was formerly used when the svn finder
+            # was an re_finder for calling unescape
+            path = self.postproc(path)
             yield svn_utils.joinpath(dirname,path)
 
     def __call__(self, dirname=''):
