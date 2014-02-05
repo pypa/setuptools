@@ -38,7 +38,7 @@ class re_finder(object):
                 path = postproc(path)
             yield svn_utils.joinpath(dirname,path)
 
-    def __call__(self, dirname=''):
+    def find(self, dirname=''):
         path = svn_utils.joinpath(dirname, self.path)
 
         if os.path.isfile(path):
@@ -48,6 +48,7 @@ class re_finder(object):
                 elif os.path.isdir(path):
                     for item in self.find(path):
                         yield item
+    __call__ = find
 
 
 def _default_revctrl(dirname=''):
