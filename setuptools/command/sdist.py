@@ -40,6 +40,7 @@ class re_finder(object):
                 #was an re_finder for calling unescape
                 path = self.postproc(path)
             yield svn_utils.joinpath(dirname,path)
+
     def __call__(self, dirname=''):
         path = svn_utils.joinpath(dirname, self.path)
 
@@ -63,7 +64,6 @@ finders = [
     re_finder('CVS/Entries', re.compile(r"^\w?/([^/]+)/", re.M)),
     svn_utils.svn_finder,
 ]
-
 
 
 class sdist(_sdist):
