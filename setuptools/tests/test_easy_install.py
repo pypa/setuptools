@@ -261,21 +261,20 @@ class TestSetupRequires(unittest.TestCase):
             #  so skip this test for them.
             return
         with quiet_context():
-          # TODO: correct indentation here
-          # create an sdist that has a build-time dependency.
-          with TestSetupRequires.create_sdist() as dist_file:
-            with tempdir_context() as temp_install_dir:
-                with environment_context(PYTHONPATH=temp_install_dir):
-                    ei_params = ['--index-url', p_index.url,
-                        '--allow-hosts', p_index_loc,
-                        '--exclude-scripts', '--install-dir', temp_install_dir,
-                        dist_file]
-                    with reset_setup_stop_context():
-                        with argv_context(['easy_install']):
-                            # attempt to install the dist. It should fail because
-                            #  it doesn't exist.
-                            self.assertRaises(SystemExit,
-                                easy_install_pkg.main, ei_params)
+            # create an sdist that has a build-time dependency.
+            with TestSetupRequires.create_sdist() as dist_file:
+                with tempdir_context() as temp_install_dir:
+                    with environment_context(PYTHONPATH=temp_install_dir):
+                        ei_params = ['--index-url', p_index.url,
+                            '--allow-hosts', p_index_loc,
+                            '--exclude-scripts', '--install-dir', temp_install_dir,
+                            dist_file]
+                        with reset_setup_stop_context():
+                            with argv_context(['easy_install']):
+                                # attempt to install the dist. It should fail because
+                                #  it doesn't exist.
+                                self.assertRaises(SystemExit,
+                                    easy_install_pkg.main, ei_params)
         # there should have been two or three requests to the server
         #  (three happens on Python 3.3a)
         self.assertTrue(2 <= len(p_index.requests) <= 3)
