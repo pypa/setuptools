@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+-----
+2.1.1
+-----
+
+* Issue #139: Fix regression in re_finder for CVS repos (and maybe Git repos
+  as well).
+
 ---
 2.1
 ---
