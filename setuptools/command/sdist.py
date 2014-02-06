@@ -21,11 +21,15 @@ def walk_revctrl(dirname=''):
 
 #TODO will need test case
 class re_finder(object):
+    """
+    Finder that locates files based on entries in a file matched by a
+    regular expression.
+    """
 
     def __init__(self, path, pattern, postproc=lambda x: x):
         self.pattern = pattern
         self.postproc = postproc
-        self.path = convert_path(path)
+        self.entries_path = convert_path(path)
 
     def _finder(self, dirname, filename):
         f = open(filename,'rU')
@@ -38,18 +42,20 @@ class re_finder(object):
             # postproc was formerly used when the svn finder
             # was an re_finder for calling unescape
             path = self.postproc(path)
-            yield svn_utils.joinpath(dirname,path)
+            yield svn_utils.joinpath(dirname, path)
 
     def find(self, dirname=''):
-        path = svn_utils.joinpath(dirname, self.path)
+        path = svn_utils.joinpath(dirname, self.entries_path)
 
-        if os.path.isfile(path):
-            for path in self._finder(dirname,path):
-                if os.path.isfile(path):
-                    yield path
-                elif os.path.isdir(path):
-                    for item in self.find(path):
-                        yield item
+        if not os.path.isfile(path):
+            # entries file doesn't exist
+            return
+        for path in self._finder(dirname,path):
+            if os.path.isfile(path):
+                yield path
+            elif os.path.isdir(path):
+                for item in self.find(path):
+                    yield item
     __call__ = find
 
 
