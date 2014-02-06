@@ -10,6 +10,13 @@ CHANGES
   override installed dependencies during setup.
 
 -----
+2.1.2
+-----
+
+* Issue #144: Read long_description using codecs module to avoid errors
+  installing on systems where LANG=C.
+
+-----
 2.1.1
 -----
 
