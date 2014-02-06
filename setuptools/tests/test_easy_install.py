@@ -353,7 +353,6 @@ def create_setup_requires_package(path):
 
     test_pkg = os.path.join(path, 'test_pkg')
     test_setup_py = os.path.join(test_pkg, 'setup.py')
-    test_setup_cfg = os.path.join(test_pkg, 'setup.cfg')
     os.mkdir(test_pkg)
 
     f = open(test_setup_py, 'w')
