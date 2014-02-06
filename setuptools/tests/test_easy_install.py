@@ -329,7 +329,7 @@ class TestSetupRequires(unittest.TestCase):
                             self.fail('Installing setup.py requirements '
                                 'caused a VersionConflict')
 
-                lines = stdout.splitlines()
+                lines = stdout.readlines()
                 self.assertTrue(len(lines) > 0)
                 self.assertTrue(lines[-1].strip(), 'test_pkg')
         finally:
@@ -450,5 +450,7 @@ def quiet_context():
     try:
         yield new_stdout, new_stderr
     finally:
+        new_stdout.seek(0)
+        new_stderr.seek(0)
         sys.stdout = old_stdout
         sys.stderr = old_stderr
