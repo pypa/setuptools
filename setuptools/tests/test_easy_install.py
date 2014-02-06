@@ -315,26 +315,23 @@ class TestSetupRequires(unittest.TestCase):
                                    version='0.0')
         working_set.add(fake_dist)
 
-        def setup_and_run(temp_dir):
-            test_pkg = create_setup_requires_package(temp_dir)
-            test_setup_py = os.path.join(test_pkg, 'setup.py')
-            try:
-                stdout, stderr = quiet_context(
-                    lambda: reset_setup_stop_context(
-                        # Don't even need to install the package, just running
-                        # the setup.py at all is sufficient
-                        lambda: run_setup(test_setup_py, ['--name'])
-                ))
-            except VersionConflict:
-                self.fail('Installing setup.py requirements caused '
-                          'VersionConflict')
-
-            lines = stdout.splitlines()
-            self.assertTrue(len(lines) > 0)
-            self.assertTrue(lines[-1].strip(), 'test_pkg')
-
         try:
-            tempdir_context(setup_and_run)
+            with tempdir_context() as temp_dir:
+                test_pkg = create_setup_requires_package(temp_dir)
+                test_setup_py = os.path.join(test_pkg, 'setup.py')
+                with quiet_context() as (stdout, stderr):
+                    with reset_setup_stop_context():
+                        try:
+                            # Don't even need to install the package, just
+                            # running the setup.py at all is sufficient
+                            run_setup(test_setup_py, ['--name'])
+                        except VersionConflict:
+                            self.fail('Installing setup.py requirements '
+                                'caused a VersionConflict')
+
+                lines = stdout.splitlines()
+                self.assertTrue(len(lines) > 0)
+                self.assertTrue(lines[-1].strip(), 'test_pkg')
         finally:
             pkg_resources.__setstate__(pr_state)
 
