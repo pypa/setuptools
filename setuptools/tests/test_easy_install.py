@@ -450,8 +450,8 @@ def quiet_context():
 
     old_stdout = sys.stdout
     old_stderr = sys.stderr
-    new_stdout = sys.stdout = StringIO.StringIO()
-    new_stderr = sys.stderr = StringIO.StringIO()
+    new_stdout = sys.stdout = StringIO()
+    new_stderr = sys.stderr = StringIO()
     try:
         yield new_stdout, new_stderr
     finally:
