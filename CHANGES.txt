@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+---
+2.2
+---
+
+* Issue #141: Restored fix for allowing setup_requires dependencies to
+  override installed dependencies.
+
 -----
 2.1.1
 -----
