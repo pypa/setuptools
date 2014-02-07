@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 """Distutils setup file, used to install or test 'setuptools'"""
-import sys
+import io
 import os
+import sys
 import textwrap
-import codecs
 
 # Allow to run setup.py from another directory.
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -82,7 +82,7 @@ class test(_test):
                 f.write(ep_content)
 
 
-readme_file = codecs.open('README.txt', encoding='utf-8')
+readme_file = io.open('README.txt', encoding='utf-8')
 
 # the release script adds hyperlinks to issues
 if os.path.exists('CHANGES (links).txt'):
