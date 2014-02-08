@@ -3,6 +3,14 @@ CHANGES
 =======
 
 ---
+2.3
+---
+
+* Pull Request #28: Remove backport of ``_bytecode_filenames`` which is
+  available in Python 2.6 and later, but also has better compatibility with
+  Python 3 environments.
+
+---
 2.2
 ---
 
