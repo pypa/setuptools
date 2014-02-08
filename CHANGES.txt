@@ -8,6 +8,8 @@ CHANGES
 
 * Issue #141: Restored fix for allowing setup_requires dependencies to
   override installed dependencies during setup.
+* Issue #128: Fixed issue where only the first dependency link was honored
+  in a distribution where multiple dependency links were supplied.
 
 -----
 2.1.2
