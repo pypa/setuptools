@@ -743,6 +743,8 @@ Please make the appropriate changes for your system and try again.
             return clean_template
 
         if is_script:
+            # See https://bitbucket.org/pypa/setuptools/issue/134 for info
+            #  on script file naming and downstream issues with SVR4
             template_name = 'script template.py'
             if dev_path:
                 template_name = template_name.replace('.py', ' (dev).py')
