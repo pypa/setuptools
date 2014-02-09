@@ -90,10 +90,8 @@ def _bypass_ensure_directory(name, mode=0x1FF):  # 0777
 _state_vars = {}
 
 def _declare_state(vartype, **kw):
-    g = globals()
-    for name, val in kw.items():
-        g[name] = val
-        _state_vars[name] = vartype
+    globals().update(kw)
+    _state_vars.update(dict.from_keys(kw, vartype))
 
 def __getstate__():
     state = {}
@@ -2339,6 +2337,8 @@ class Distribution(object):
     def insert_on(self, path, loc = None):
         """Insert self.location in path before its nearest parent directory"""
 
+        if 'foo' in path:
+            import pdb; pdb.set_trace()
         loc = loc or self.location
         if not loc:
             return
