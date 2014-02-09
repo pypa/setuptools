@@ -1,9 +1,9 @@
-import distutils, os
+import os
 from setuptools import Command
 from setuptools.compat import basestring
 from distutils.util import convert_path
 from distutils import log
-from distutils.errors import *
+from distutils.errors import DistutilsOptionError
 
 class rotate(Command):
     """Delete older distributions"""
@@ -29,7 +29,7 @@ class rotate(Command):
                 "(e.g. '.zip' or '.egg')"
             )
         if self.keep is None:
-            raise DistutilsOptionError("Must specify number of files to keep")           
+            raise DistutilsOptionError("Must specify number of files to keep")
         try:
             self.keep = int(self.keep)
         except ValueError:
@@ -56,28 +56,3 @@ class rotate(Command):
                 log.info("Deleting %s", f)
                 if not self.dry_run:
                     os.unlink(f)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
