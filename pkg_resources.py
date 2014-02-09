@@ -2704,26 +2704,33 @@ def _initialize(g):
 _initialize(globals())
 
 # Prepare the master working set and make the ``require()`` API available
-_declare_state('object', working_set = WorkingSet())
+_declare_state('object', working_set=WorkingSet())
 try:
     # Does the main program list any requirements?
     from __main__ import __requires__
 except ImportError:
-    pass # No: just use the default working set based on sys.path
+    # No: just use the default working set based on sys.path
+    pass
 else:
     # Yes: ensure the requirements are met, by prefixing sys.path if necessary
     try:
         working_set.require(__requires__)
-    except VersionConflict:     # try it without defaults already on sys.path
-        working_set = WorkingSet([])    # by starting with an empty path
+    except VersionConflict:
+        # try it without defaults already on sys.path
+        # by starting with an empty path
+        working_set = WorkingSet([])
         for dist in working_set.resolve(
             parse_requirements(__requires__), Environment()
         ):
             working_set.add(dist)
-        for entry in sys.path:  # add any missing entries from sys.path
+
+        # add any missing entries from sys.path
+        for entry in sys.path:
             if entry not in working_set.entries:
                 working_set.add_entry(entry)
-        sys.path[:] = working_set.entries   # then copy back to sys.path
+
+        # then copy back to sys.path
+        sys.path[:] = working_set.entries
 
 require = working_set.require
 iter_entry_points = working_set.iter_entry_points
