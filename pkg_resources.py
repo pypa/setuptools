@@ -2379,8 +2379,6 @@ class Distribution(object):
     def insert_on(self, path, loc = None):
         """Insert self.location in path before its nearest parent directory"""
 
-        if 'foo' in path:
-            import pdb; pdb.set_trace()
         loc = loc or self.location
         if not loc:
             return
