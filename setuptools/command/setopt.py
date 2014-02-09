@@ -1,8 +1,9 @@
-import distutils, os
+import os
+import distutils
 from setuptools import Command
 from distutils.util import convert_path
 from distutils import log
-from distutils.errors import *
+from distutils.errors import DistutilsOptionError
 
 __all__ = ['config_file', 'edit_config', 'option_base', 'setopt']
 
@@ -24,20 +25,6 @@ def config_file(kind="local"):
     raise ValueError(
         "config_file() type must be 'local', 'global', or 'user'", kind
     )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 def edit_config(filename, settings, dry_run=False):
     """Edit a configuration file to include `settings`
@@ -61,13 +48,14 @@ def edit_config(filename, settings, dry_run=False):
                 opts.add_section(section)
             for option,value in options.items():
                 if value is None:
-                    log.debug("Deleting %s.%s from %s",
+                    log.debug(
+                        "Deleting %s.%s from %s",
                         section, option, filename
                     )
                     opts.remove_option(section,option)
                     if not opts.options(section):
                         log.info("Deleting empty [%s] section from %s",
-                                  section, filename)
+                            section, filename)
                         opts.remove_section(section)
                 else:
                     log.debug(
@@ -78,27 +66,28 @@ def edit_config(filename, settings, dry_run=False):
 
     log.info("Writing %s", filename)
     if not dry_run:
-        f = open(filename,'w'); opts.write(f); f.close()
+        with open(filename, 'w') as f:
+            opts.write(f)
 
 class option_base(Command):
     """Abstract base class for commands that mess with config files"""
-    
+
     user_options = [
         ('global-config', 'g',
-                 "save options to the site-wide distutils.cfg file"),
+            "save options to the site-wide distutils.cfg file"),
         ('user-config', 'u',
-                 "save options to the current user's pydistutils.cfg file"),
+            "save options to the current user's pydistutils.cfg file"),
         ('filename=', 'f',
-                 "configuration file to use (default=setup.cfg)"),
+            "configuration file to use (default=setup.cfg)"),
     ]
 
     boolean_options = [
         'global-config', 'user-config',
-    ]    
+    ]
 
     def initialize_options(self):
         self.global_config = None
-        self.user_config   = None
+        self.user_config = None
         self.filename = None
 
     def finalize_options(self):
@@ -116,9 +105,7 @@ class option_base(Command):
                 "Must specify only one configuration file option",
                 filenames
             )
-        self.filename, = filenames    
-
-
+        self.filename, = filenames
 
 
 class setopt(option_base):
@@ -130,7 +117,7 @@ class setopt(option_base):
         ('command=', 'c', 'command to set an option for'),
         ('option=',  'o',  'option to set'),
         ('set-value=',   's', 'value of the option'),
-        ('remove',   'r', 'remove (unset) the value'), 
+        ('remove',   'r', 'remove (unset) the value'),
     ] + option_base.user_options
 
     boolean_options = option_base.boolean_options + ['remove']
@@ -156,9 +143,3 @@ class setopt(option_base):
             },
             self.dry_run
         )
-
-
-
-
-
-
