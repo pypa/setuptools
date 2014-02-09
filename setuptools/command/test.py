@@ -3,7 +3,7 @@ from distutils.errors import DistutilsOptionError
 import sys
 from pkg_resources import *
 from pkg_resources import _namespace_packages
-from unittest import TestLoader, main
+from unittest import TestLoader
 
 class ScanningLoader(TestLoader):
 
@@ -57,7 +57,6 @@ class test(Command):
         self.test_module = None
         self.test_loader = None
 
-
     def finalize_options(self):
 
         if self.test_suite is None:
@@ -78,8 +77,6 @@ class test(Command):
             self.test_loader = getattr(self.distribution,'test_loader',None)
         if self.test_loader is None:
             self.test_loader = "setuptools.command.test:ScanningLoader"
-
-
 
     def with_project_on_sys_path(self, func):
         if sys.version_info >= (3,) and getattr(self.distribution, 'use_2to3', False):
@@ -122,7 +119,6 @@ class test(Command):
             sys.modules.update(old_modules)
             working_set.__init__()
 
-
     def run(self):
         if self.distribution.install_requires:
             self.distribution.fetch_build_eggs(self.distribution.install_requires)
@@ -136,7 +132,6 @@ class test(Command):
             else:
                 self.announce('running "unittest %s"' % cmd)
                 self.with_project_on_sys_path(self.run_tests)
-
 
     def run_tests(self):
         import unittest
@@ -163,36 +158,3 @@ class test(Command):
             None, None, [unittest.__file__]+self.test_args,
             testLoader = cks
         )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
