@@ -456,7 +456,7 @@ class WorkingSet(object):
         # by starting with an empty path
         ws = cls([])
         reqs = parse_requirements(req_spec)
-        dists = working_set.resolve(reqs, Environment())
+        dists = ws.resolve(reqs, Environment())
         for dist in dists:
             ws.add(dist)
 
