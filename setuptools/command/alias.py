@@ -1,7 +1,3 @@
-import distutils, os
-from setuptools import Command
-from distutils.util import convert_path
-from distutils import log
 from distutils.errors import *
 from setuptools.command.setopt import edit_config, option_base, config_file
 
@@ -11,17 +7,17 @@ def shquote(arg):
         if c in arg: return repr(arg)
     if arg.split() != [arg]:
         return repr(arg)
-    return arg        
+    return arg
 
 
 class alias(option_base):
     """Define a shortcut that invokes one or more commands"""
-    
+
     description = "define a shortcut to invoke one or more commands"
     command_consumes_arguments = True
 
     user_options = [
-        ('remove',   'r', 'remove (unset) the alias'), 
+        ('remove',  'r', 'remove (unset) the alias'),
     ] + option_base.user_options
 
     boolean_options = option_base.boolean_options + ['remove']
@@ -77,6 +73,3 @@ def format_alias(name, aliases):
     else:
         source = '--filename=%r' % source
     return source+name+' '+command
-            
-
-
