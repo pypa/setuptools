@@ -5,7 +5,8 @@ try:
 except ImportError:
     _build_ext = _du_build_ext
 
-import os, sys
+import os
+import sys
 from distutils.file_util import copy_file
 from setuptools.extension import Library
 from distutils.ccompiler import new_compiler
@@ -41,10 +42,6 @@ def if_dl(s):
     return ''
 
 
-
-
-
-
 class build_ext(_build_ext):
     def run(self):
         """Build extensions in build directory, then copy if --inplace"""
@@ -75,7 +72,6 @@ class build_ext(_build_ext):
             if ext._needs_stub:
                 self.write_stub(package_dir or os.curdir, ext, True)
 
-
     if _build_ext is not _du_build_ext and not hasattr(_build_ext,'pyrex_sources'):
         # Workaround for problems using some Pyrex versions w/SWIG and/or 2.4
         def swig_sources(self, sources, *otherargs):
@@ -83,8 +79,6 @@ class build_ext(_build_ext):
             sources = _build_ext.swig_sources(self, sources) or sources
             # Then do any actual SWIG stuff on the remainder
             return _du_build_ext.swig_sources(self, sources, *otherargs)
-
-
 
     def get_ext_filename(self, fullname):
         filename = _build_ext.get_ext_filename(self,fullname)
@@ -109,7 +103,7 @@ class build_ext(_build_ext):
         self.extensions = self.extensions or []
         self.check_extensions_list(self.extensions)
         self.shlibs = [ext for ext in self.extensions
-                        if isinstance(ext,Library)]
+            if isinstance(ext, Library)]
         if self.shlibs:
             self.setup_shlib_compiler()
         for ext in self.extensions:
@@ -171,8 +165,6 @@ class build_ext(_build_ext):
         # hack so distutils' build_extension() builds a library instead
         compiler.link_shared_object = link_shared_object.__get__(compiler)
 
-
-
     def get_export_symbols(self, ext):
         if isinstance(ext,Library):
             return ext.export_symbols
@@ -221,27 +213,29 @@ class build_ext(_build_ext):
             raise DistutilsError(stub_file+" already exists! Please delete.")
         if not self.dry_run:
             f = open(stub_file,'w')
-            f.write('\n'.join([
-                "def __bootstrap__():",
-                "   global __bootstrap__, __file__, __loader__",
-                "   import sys, os, pkg_resources, imp"+if_dl(", dl"),
-                "   __file__ = pkg_resources.resource_filename(__name__,%r)"
-                   % os.path.basename(ext._file_name),
-                "   del __bootstrap__",
-                "   if '__loader__' in globals():",
-                "       del __loader__",
-                if_dl("   old_flags = sys.getdlopenflags()"),
-                "   old_dir = os.getcwd()",
-                "   try:",
-                "     os.chdir(os.path.dirname(__file__))",
-                if_dl("     sys.setdlopenflags(dl.RTLD_NOW)"),
-                "     imp.load_dynamic(__name__,__file__)",
-                "   finally:",
-                if_dl("     sys.setdlopenflags(old_flags)"),
-                "     os.chdir(old_dir)",
-                "__bootstrap__()",
-                "" # terminal \n
-            ]))
+            f.write(
+                '\n'.join([
+                    "def __bootstrap__():",
+                    "   global __bootstrap__, __file__, __loader__",
+                    "   import sys, os, pkg_resources, imp"+if_dl(", dl"),
+                    "   __file__ = pkg_resources.resource_filename(__name__,%r)"
+                        % os.path.basename(ext._file_name),
+                    "   del __bootstrap__",
+                    "   if '__loader__' in globals():",
+                    "       del __loader__",
+                    if_dl("   old_flags = sys.getdlopenflags()"),
+                    "   old_dir = os.getcwd()",
+                    "   try:",
+                    "     os.chdir(os.path.dirname(__file__))",
+                    if_dl("     sys.setdlopenflags(dl.RTLD_NOW)"),
+                    "     imp.load_dynamic(__name__,__file__)",
+                    "   finally:",
+                    if_dl("     sys.setdlopenflags(old_flags)"),
+                    "     os.chdir(old_dir)",
+                    "__bootstrap__()",
+                    "" # terminal \n
+                ])
+            )
             f.close()
         if compile:
             from distutils.util import byte_compile
@@ -259,10 +253,10 @@ if use_stubs or os.name=='nt':
     # Build shared libraries
     #
     def link_shared_object(self, objects, output_libname, output_dir=None,
-        libraries=None, library_dirs=None, runtime_library_dirs=None,
-        export_symbols=None, debug=0, extra_preargs=None,
-        extra_postargs=None, build_temp=None, target_lang=None
-    ):  self.link(
+            libraries=None, library_dirs=None, runtime_library_dirs=None,
+            export_symbols=None, debug=0, extra_preargs=None,
+            extra_postargs=None, build_temp=None, target_lang=None):
+        self.link(
             self.SHARED_LIBRARY, objects, output_libname,
             output_dir, libraries, library_dirs, runtime_library_dirs,
             export_symbols, debug, extra_preargs, extra_postargs,
@@ -273,10 +267,9 @@ else:
     libtype = 'static'
 
     def link_shared_object(self, objects, output_libname, output_dir=None,
-        libraries=None, library_dirs=None, runtime_library_dirs=None,
-        export_symbols=None, debug=0, extra_preargs=None,
-        extra_postargs=None, build_temp=None, target_lang=None
-    ):
+            libraries=None, library_dirs=None, runtime_library_dirs=None,
+            export_symbols=None, debug=0, extra_preargs=None,
+            extra_postargs=None, build_temp=None, target_lang=None):
         # XXX we need to either disallow these attrs on Library instances,
         #     or warn/abort here if set, or something...
         #libraries=None, library_dirs=None, runtime_library_dirs=None,
@@ -294,5 +287,3 @@ else:
         self.create_static_lib(
             objects, basename, output_dir, debug, target_lang
         )
-
-
