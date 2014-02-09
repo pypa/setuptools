@@ -9,38 +9,56 @@ Installing and Using Setuptools
 Installation Instructions
 -------------------------
 
-Upgrading from Distribute
-=========================
+The recommended way to bootstrap setuptools on any system is to download
+`ez_setup.py`_ and run it using the target Python environment. Different
+operating systems have different recommended techniques to accomplish this
+basic routine, so here are some examples to get you started.
 
-Currently, Distribute disallows installing Setuptools 0.7+ over Distribute.
-You must first uninstall any active version of Distribute first (see
-`Uninstalling`_).
+.. _ez_setup.py: https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py
 
-Upgrading from Setuptools 0.6
-=============================
+Windows 8 (Powershell)
+======================
 
-Upgrading from prior versions of Setuptools is supported. Initial reports
-good success in this regard.
+For best results, uninstall previous versions FIRST (see `Uninstalling`_).
 
-Windows
-=======
+Using Windows 8 or later, it's possible to install with one simple Powershell
+command. Start up Powershell and paste this command::
+
+    > (Invoke-WebRequest https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py).Content | python -
+
+You must start the Powershell with Administrative privileges or you may choose
+to install a user-local installation::
+
+    > (Invoke-WebRequest https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py).Content | python - --user
+
+If you have Python 3.3 or later, you can use the ``py`` command to install to
+different Python versions. For example, to install to Python 3.3 if you have
+Python 2.7 installed::
+
+    > (Invoke-WebRequest https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py).Content | py -3 -
 
 The recommended way to install setuptools on Windows is to download
 `ez_setup.py`_ and run it. The script will download the appropriate .egg
 file and install it for you.
 
-.. _ez_setup.py: https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py
-
-For best results, uninstall previous versions FIRST (see `Uninstalling`_).
-
 Once installation is complete, you will find an ``easy_install`` program in
 your Python ``Scripts`` subdirectory.  For simple invocation and best results,
 add this directory to your ``PATH`` environment variable, if it is not already
-present.
+present. If you did a user-local install, the ``Scripts`` subdirectory is
+``$env:APPDATA\Python\Scripts``.
 
 
-Unix-based Systems including Mac OS X
-=====================================
+Windows 7 (or graphical install)
+================================
+
+For Windows 7 and earlier, download `ez_setup.py`_ using your favorite web
+browser or other technique and "run" that file.
+
+
+Unix (wget)
+===========
+
+Most Linux distributions come with wget.
 
 Download `ez_setup.py`_ and run it using the target Python version. The script
 will download the appropriate version and install it for you::
@@ -55,9 +73,13 @@ install to the system Python::
 Alternatively, on Python 2.6 and later, Setuptools may be installed to a
 user-local path::
 
-    > wget https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py
-    > python ez_setup.py --user
+    > wget https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py -O - | python - --user
 
+Unix including Mac OS X (curl)
+==============================
+
+If your system has curl installed, follow the ``wget`` instructions but
+replace ``wget`` with ``curl`` and ``-O`` with ``-o``.
 
 Python 2.4 and Python 2.5 support
 =================================
