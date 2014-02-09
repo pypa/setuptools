@@ -3,15 +3,12 @@ __all__ = ['Distribution']
 import re
 import os
 import sys
-import warnings
 import distutils.log
 import distutils.core
 import distutils.cmd
 from distutils.core import Distribution as _Distribution
-from distutils.errors import (DistutilsOptionError, DistutilsPlatformError,
-    DistutilsSetupError)
+from distutils.errors import DistutilsSetupError
 
-from setuptools.depends import Require
 from setuptools.compat import numeric_types, basestring
 import pkg_resources
 
@@ -137,7 +134,7 @@ def check_packages(dist, attr, value):
 
 
 class Distribution(_Distribution):
-    """Distribution with support for features, tests, and package data
+    """Distribution with support for tests and package data
 
     This is an enhanced version of 'distutils.dist.Distribution' that
     effectively adds the following new optional keyword arguments to 'setup()':
@@ -164,21 +161,6 @@ class Distribution(_Distribution):
         EasyInstall and requests one of your extras, the corresponding
         additional requirements will be installed if needed.
 
-     'features' **deprecated** -- a dictionary mapping option names to
-        'setuptools.Feature'
-        objects.  Features are a portion of the distribution that can be
-        included or excluded based on user options, inter-feature dependencies,
-        and availability on the current system.  Excluded features are omitted
-        from all setup commands, including source and binary distributions, so
-        you can create multiple distributions from the same source tree.
-        Feature names should be valid Python identifiers, except that they may
-        contain the '-' (minus) sign.  Features can be included or excluded
-        via the command line options '--with-X' and '--without-X', where 'X' is
-        the name of the feature.  Whether a feature is included by default, and
-        whether you are allowed to control this from the command line, is
-        determined by the Feature object.  See the 'Feature' class for more
-        information.
-
      'test_suite' -- the name of a test suite to run for the 'test' command.
         If the user runs 'python setup.py test', the package will be installed,
         and the named test suite will be run.  The format is the same as
@@ -200,8 +182,7 @@ class Distribution(_Distribution):
     for manipulating the distribution's contents.  For example, the 'include()'
     and 'exclude()' methods can be thought of as in-place add and subtract
     commands that add or remove packages, modules, extensions, and so on from
-    the distribution.  They are used by the feature subsystem to configure the
-    distribution for the included and excluded features.
+    the distribution.
     """
 
     _patched_dist = None
@@ -223,11 +204,6 @@ class Distribution(_Distribution):
         have_package_data = hasattr(self, "package_data")
         if not have_package_data:
             self.package_data = {}
-        _attrs_dict = attrs or {}
-        if 'features' in _attrs_dict or 'require_features' in _attrs_dict:
-            Feature.warn_deprecated()
-        self.require_features = []
-        self.features = {}
         self.dist_files = []
         self.src_root = attrs and attrs.pop("src_root", None)
         self.patch_missing_pkg_info(attrs)
@@ -245,17 +221,6 @@ class Distribution(_Distribution):
             # Some people apparently take "version number" too literally :)
             self.metadata.version = str(self.metadata.version)
 
-    def parse_command_line(self):
-        """Process features after parsing command line options"""
-        result = _Distribution.parse_command_line(self)
-        if self.features:
-            self._finalize_features()
-        return result
-
-    def _feature_attrname(self,name):
-        """Convert feature name to corresponding option attribute name"""
-        return 'with_'+name.replace('-','_')
-
     def fetch_build_eggs(self, requires):
         """Resolve pre-setup requirements"""
         from pkg_resources import working_set, parse_requirements
@@ -267,8 +232,6 @@ class Distribution(_Distribution):
 
     def finalize_options(self):
         _Distribution.finalize_options(self)
-        if self.features:
-            self._set_global_opts_from_features()
 
         for ep in pkg_resources.iter_entry_points('distutils.setup_keywords'):
             value = getattr(self,ep.name,None)
@@ -313,47 +276,6 @@ class Distribution(_Distribution):
             self._egg_fetcher = cmd
         return cmd.easy_install(req)
 
-    def _set_global_opts_from_features(self):
-        """Add --with-X/--without-X options based on optional features"""
-
-        go = []
-        no = self.negative_opt.copy()
-
-        for name,feature in self.features.items():
-            self._set_feature(name,None)
-            feature.validate(self)
-
-            if feature.optional:
-                descr = feature.description
-                incdef = ' (default)'
-                excdef=''
-                if not feature.include_by_default():
-                    excdef, incdef = incdef, excdef
-
-                go.append(('with-'+name, None, 'include '+descr+incdef))
-                go.append(('without-'+name, None, 'exclude '+descr+excdef))
-                no['without-'+name] = 'with-'+name
-
-        self.global_options = self.feature_options = go + self.global_options
-        self.negative_opt = self.feature_negopt = no
-
-    def _finalize_features(self):
-        """Add/remove features and resolve dependencies between them"""
-
-        # First, flag all the enabled items (and thus their dependencies)
-        for name,feature in self.features.items():
-            enabled = self.feature_is_included(name)
-            if enabled or (enabled is None and feature.include_by_default()):
-                feature.include_in(self)
-                self._set_feature(name,1)
-
-        # Then disable the rest, so that off-by-default features don't
-        # get flagged as errors when they're required by an enabled feature
-        for name,feature in self.features.items():
-            if not self.feature_is_included(name):
-                feature.exclude_from(self)
-                self._set_feature(name,0)
-
     def get_command_class(self, command):
         """Pluggable version of get_command_class()"""
         if command in self.cmdclass:
@@ -372,25 +294,6 @@ class Distribution(_Distribution):
                 cmdclass = ep.load(False) # don't require extras, we're not running
                 self.cmdclass[ep.name] = cmdclass
         return _Distribution.print_commands(self)
-
-    def _set_feature(self,name,status):
-        """Set feature's inclusion status"""
-        setattr(self,self._feature_attrname(name),status)
-
-    def feature_is_included(self,name):
-        """Return 1 if feature is included, 0 if excluded, 'None' if unknown"""
-        return getattr(self,self._feature_attrname(name))
-
-    def include_feature(self,name):
-        """Request inclusion of feature named 'name'"""
-
-        if self.feature_is_included(name)==0:
-            descr = self.features[name].description
-            raise DistutilsOptionError(
-                descr + " is required, but was excluded or is not available"
-            )
-        self.features[name].include_in(self)
-        self._set_feature(name,1)
 
     def include(self,**attrs):
         """Add items to distribution that are named in keyword arguments
@@ -639,159 +542,3 @@ class Distribution(_Distribution):
 # Install it throughout the distutils
 for module in distutils.dist, distutils.core, distutils.cmd:
     module.Distribution = Distribution
-
-
-class Feature:
-    """
-    **deprecated** -- The `Feature` facility was never completely implemented
-    or supported, `has reported issues
-    <https://bitbucket.org/pypa/setuptools/issue/58>`_ and will be removed in
-    a future version.
-
-    A subset of the distribution that can be excluded if unneeded/wanted
-
-    Features are created using these keyword arguments:
-
-      'description' -- a short, human readable description of the feature, to
-         be used in error messages, and option help messages.
-
-      'standard' -- if true, the feature is included by default if it is
-         available on the current system.  Otherwise, the feature is only
-         included if requested via a command line '--with-X' option, or if
-         another included feature requires it.  The default setting is 'False'.
-
-      'available' -- if true, the feature is available for installation on the
-         current system.  The default setting is 'True'.
-
-      'optional' -- if true, the feature's inclusion can be controlled from the
-         command line, using the '--with-X' or '--without-X' options.  If
-         false, the feature's inclusion status is determined automatically,
-         based on 'availabile', 'standard', and whether any other feature
-         requires it.  The default setting is 'True'.
-
-      'require_features' -- a string or sequence of strings naming features
-         that should also be included if this feature is included.  Defaults to
-         empty list.  May also contain 'Require' objects that should be
-         added/removed from the distribution.
-
-      'remove' -- a string or list of strings naming packages to be removed
-         from the distribution if this feature is *not* included.  If the
-         feature *is* included, this argument is ignored.  This argument exists
-         to support removing features that "crosscut" a distribution, such as
-         defining a 'tests' feature that removes all the 'tests' subpackages
-         provided by other features.  The default for this argument is an empty
-         list.  (Note: the named package(s) or modules must exist in the base
-         distribution when the 'setup()' function is initially called.)
-
-      other keywords -- any other keyword arguments are saved, and passed to
-         the distribution's 'include()' and 'exclude()' methods when the
-         feature is included or excluded, respectively.  So, for example, you
-         could pass 'packages=["a","b"]' to cause packages 'a' and 'b' to be
-         added or removed from the distribution as appropriate.
-
-    A feature must include at least one 'requires', 'remove', or other
-    keyword argument.  Otherwise, it can't affect the distribution in any way.
-    Note also that you can subclass 'Feature' to create your own specialized
-    feature types that modify the distribution in other ways when included or
-    excluded.  See the docstrings for the various methods here for more detail.
-    Aside from the methods, the only feature attributes that distributions look
-    at are 'description' and 'optional'.
-    """
-
-    @staticmethod
-    def warn_deprecated():
-        warnings.warn(
-            "Features are deprecated and will be removed in a future "
-                "version. See http://bitbucket.org/pypa/setuptools/65.",
-            DeprecationWarning,
-            stacklevel=3,
-        )
-
-    def __init__(self, description, standard=False, available=True,
-            optional=True, require_features=(), remove=(), **extras):
-        self.warn_deprecated()
-
-        self.description = description
-        self.standard = standard
-        self.available = available
-        self.optional = optional
-        if isinstance(require_features,(str,Require)):
-            require_features = require_features,
-
-        self.require_features = [
-            r for r in require_features if isinstance(r,str)
-        ]
-        er = [r for r in require_features if not isinstance(r,str)]
-        if er: extras['require_features'] = er
-
-        if isinstance(remove,str):
-            remove = remove,
-        self.remove = remove
-        self.extras = extras
-
-        if not remove and not require_features and not extras:
-            raise DistutilsSetupError(
-                "Feature %s: must define 'require_features', 'remove', or at least one"
-                " of 'packages', 'py_modules', etc."
-            )
-
-    def include_by_default(self):
-        """Should this feature be included by default?"""
-        return self.available and self.standard
-
-    def include_in(self,dist):
-
-        """Ensure feature and its requirements are included in distribution
-
-        You may override this in a subclass to perform additional operations on
-        the distribution.  Note that this method may be called more than once
-        per feature, and so should be idempotent.
-
-        """
-
-        if not self.available:
-            raise DistutilsPlatformError(
-                self.description+" is required,"
-                "but is not available on this platform"
-            )
-
-        dist.include(**self.extras)
-
-        for f in self.require_features:
-            dist.include_feature(f)
-
-    def exclude_from(self,dist):
-
-        """Ensure feature is excluded from distribution
-
-        You may override this in a subclass to perform additional operations on
-        the distribution.  This method will be called at most once per
-        feature, and only after all included features have been asked to
-        include themselves.
-        """
-
-        dist.exclude(**self.extras)
-
-        if self.remove:
-            for item in self.remove:
-                dist.exclude_package(item)
-
-    def validate(self,dist):
-
-        """Verify that feature makes sense in context of distribution
-
-        This method is called by the distribution just before it parses its
-        command line.  It checks to ensure that the 'remove' attribute, if any,
-        contains only valid package/module names that are present in the base
-        distribution when 'setup()' is called.  You may override it in a
-        subclass to perform any other required validation of the feature
-        against a target distribution.
-        """
-
-        for item in self.remove:
-            if not dist.has_contents_for(item):
-                raise DistutilsSetupError(
-                    "%s wants to be able to remove %s, but the distribution"
-                    " doesn't contain any packages or modules under %s"
-                    % (self.description, item, item)
-                )

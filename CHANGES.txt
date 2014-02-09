@@ -18,6 +18,7 @@ CHANGES
   tarball. This approach avoids the potential security vulnerabilities
   presented by use of tar files. It also leverages the security features added
   to ZipFile.extract in Python 2.7.4.
+* Issue #65: Removed deprecated Features functionality.
 
 ---
 2.3
