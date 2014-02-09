@@ -91,7 +91,7 @@ _state_vars = {}
 
 def _declare_state(vartype, **kw):
     globals().update(kw)
-    _state_vars.update(dict.from_keys(kw, vartype))
+    _state_vars.update(dict.fromkeys(kw, vartype))
 
 def __getstate__():
     state = {}
