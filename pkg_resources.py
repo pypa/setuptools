@@ -2719,9 +2719,9 @@ else:
         # try it without defaults already on sys.path
         # by starting with an empty path
         working_set = WorkingSet([])
-        for dist in working_set.resolve(
-            parse_requirements(__requires__), Environment()
-        ):
+        reqs = parse_requirements(__requires__)
+        dists = working_set.resolve(reqs, Environment())
+        for dist in dists:
             working_set.add(dist)
 
         # add any missing entries from sys.path
