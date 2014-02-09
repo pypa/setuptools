@@ -14,6 +14,10 @@ CHANGES
   handled properly at runtime.  In 2.x it was possible to get away without
   including the declaration, but only at the cost of forcing namespace
   packages to be imported early, which 3.0 no longer does.
+* Issue #7: Setuptools itself is now distributed as a zipfile instead of a
+  tarball. This approach avoids the potential security vulnerabilities
+  presented by use of tar files. It also leverages the security features added
+  to ZipFile.extract in Python 2.7.4.
 
 ---
 2.3

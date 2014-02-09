@@ -17,7 +17,7 @@ import os
 import shutil
 import sys
 import tempfile
-import tarfile
+import zipfile
 import optparse
 import subprocess
 import platform
@@ -40,16 +40,15 @@ def _python_cmd(*args):
     args = (sys.executable,) + args
     return subprocess.call(args) == 0
 
-def _install(tarball, install_args=()):
-    # extracting the tarball
+def _install(archive_filename, install_args=()):
+    # extracting the archive
     tmpdir = tempfile.mkdtemp()
     log.warn('Extracting in %s', tmpdir)
     old_wd = os.getcwd()
     try:
         os.chdir(tmpdir)
-        tar = tarfile.open(tarball)
-        tar.extractall()
-        tar.close()
+        with zipfile.ZipFile(archive_filename) as archive:
+            archive.extractall()
 
         # going in the directory
         subdir = os.path.join(tmpdir, os.listdir(tmpdir)[0])
@@ -68,16 +67,15 @@ def _install(tarball, install_args=()):
         shutil.rmtree(tmpdir)
 
 
-def _build_egg(egg, tarball, to_dir):
-    # extracting the tarball
+def _build_egg(egg, archive_filename, to_dir):
+    # extracting the archive
     tmpdir = tempfile.mkdtemp()
     log.warn('Extracting in %s', tmpdir)
     old_wd = os.getcwd()
     try:
         os.chdir(tmpdir)
-        tar = tarfile.open(tarball)
-        tar.extractall()
-        tar.close()
+        with zipfile.ZipFile(archive_filename) as archive:
+            archive.extractall()
 
         # going in the directory
         subdir = os.path.join(tmpdir, os.listdir(tmpdir)[0])
@@ -101,9 +99,9 @@ def _do_download(version, download_base, to_dir, download_delay):
     egg = os.path.join(to_dir, 'setuptools-%s-py%d.%d.egg'
                        % (version, sys.version_info[0], sys.version_info[1]))
     if not os.path.exists(egg):
-        tarball = download_setuptools(version, download_base,
+        archive = download_setuptools(version, download_base,
                                       to_dir, download_delay)
-        _build_egg(egg, tarball, to_dir)
+        _build_egg(egg, archive, to_dir)
     sys.path.insert(0, egg)
 
     # Remove previously-imported pkg_resources if present (see
@@ -276,9 +274,9 @@ def download_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
     """
     # making sure we use the absolute path
     to_dir = os.path.abspath(to_dir)
-    tgz_name = "setuptools-%s.tar.gz" % version
-    url = download_base + tgz_name
-    saveto = os.path.join(to_dir, tgz_name)
+    zip_name = "setuptools-%s.zip" % version
+    url = download_base + zip_name
+    saveto = os.path.join(to_dir, zip_name)
     if not os.path.exists(saveto):  # Avoid repeated downloads
         log.warn("Downloading %s", url)
         downloader = downloader_factory()
@@ -315,9 +313,9 @@ def _parse_args():
 def main(version=DEFAULT_VERSION):
     """Install or upgrade setuptools and EasyInstall"""
     options = _parse_args()
-    tarball = download_setuptools(download_base=options.download_base,
+    archive = download_setuptools(download_base=options.download_base,
         downloader_factory=options.downloader_factory)
-    return _install(tarball, _build_install_args(options))
+    return _install(archive, _build_install_args(options))
 
 if __name__ == '__main__':
     sys.exit(main())
