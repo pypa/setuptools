@@ -14,6 +14,10 @@ The recommended way to bootstrap setuptools on any system is to download
 operating systems have different recommended techniques to accomplish this
 basic routine, so here are some examples to get you started.
 
+Setuptools requires Python 2.6 or later. To install setuptools
+on Python 2.4 or Python 2.5, use the `bootstrap script for Setuptools 1.x
+<https://bitbucket.org/pypa/setuptools/raw/bootstrap-py24/ez_setup.py>`_.
+
 .. _ez_setup.py: https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py
 
 Windows 8 (Powershell)
@@ -80,13 +84,6 @@ Unix including Mac OS X (curl)
 
 If your system has curl installed, follow the ``wget`` instructions but
 replace ``wget`` with ``curl`` and ``-O`` with ``-o``.
-
-Python 2.4 and Python 2.5 support
-=================================
-
-Setuptools 2.0 and later requires Python 2.6 or later. To install setuptools
-on Python 2.4 or Python 2.5, use the bootstrap script for Setuptools 1.x:
-https://bitbucket.org/pypa/setuptools/raw/bootstrap-py24/ez_setup.py.
 
 
 Advanced Installation
