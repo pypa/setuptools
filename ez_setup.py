@@ -116,7 +116,7 @@ def _do_download(version, download_base, to_dir, download_delay):
 
 
 def use_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
-                   to_dir=os.curdir, download_delay=15):
+        to_dir=os.curdir, download_delay=15):
     to_dir = os.path.abspath(to_dir)
     rep_modules = 'pkg_resources', 'setuptools'
     imported = set(sys.modules).intersection(rep_modules)
@@ -261,9 +261,9 @@ def get_best_downloader():
             return dl
 
 def download_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
-                        to_dir=os.curdir, delay=15,
-                        downloader_factory=get_best_downloader):
-    """Download setuptools from a specified location and return its filename
+        to_dir=os.curdir, delay=15, downloader_factory=get_best_downloader):
+    """
+    Download setuptools from a specified location and return its filename
 
     `version` should be a valid setuptools version number that is available
     as an egg for download under the `download_base` URL (which should end
@@ -287,11 +287,12 @@ def download_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
 
 
 def _extractall(self, path=".", members=None):
-    """Extract all members from the archive to the current working
-       directory and set owner, modification time and permissions on
-       directories afterwards. `path' specifies a different directory
-       to extract to. `members' is optional and must be a subset of the
-       list returned by getmembers().
+    """
+    Extract all members from the archive to the current working
+    directory and set owner, modification time and permissions on
+    directories afterwards. `path' specifies a different directory
+    to extract to. `members' is optional and must be a subset of the
+    list returned by getmembers().
     """
     import copy
     import operator
