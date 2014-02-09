@@ -14,7 +14,6 @@ from setuptools.compat import func_code
 from setuptools.compat import func_code
 import setuptools.dist
 import setuptools.depends as dep
-from setuptools import Feature
 from setuptools.depends import Require
 
 def additional_tests():
