@@ -20,7 +20,7 @@ except ImportError:
     del get_config_var
     from distutils.sysconfig import _config_vars as _CONFIG_VARS
 from distutils import log
-from distutils.errors import *
+from distutils.errors import DistutilsError
 
 have_rtld = False
 use_stubs = False
