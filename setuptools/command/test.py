@@ -1,8 +1,9 @@
 from setuptools import Command
 from distutils.errors import DistutilsOptionError
 import sys
-from pkg_resources import *
-from pkg_resources import _namespace_packages
+from pkg_resources import (resource_listdir, resource_exists,
+    normalize_path, working_set, _namespace_packages, add_activation_listener,
+    require, EntryPoint)
 from unittest import TestLoader
 
 class ScanningLoader(TestLoader):
