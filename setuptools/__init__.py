@@ -38,7 +38,7 @@ def find_packages(where='.', exclude=()):
     """
     out = []
     stack=[(convert_path(where), '')]
-    exclude = list(exclude) + ['ez_setup']
+    exclude = list(exclude) + ['ez_setup', '*__pycache__']
     while stack:
         where,prefix = stack.pop(0)
         for name in os.listdir(where):
