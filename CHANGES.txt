@@ -3,6 +3,12 @@ CHANGES
 =======
 
 ---
+3.3
+---
+
+* Add ``include`` parameter to ``setuptools.find_packages()``.
+
+---
 3.2
 ---
 
