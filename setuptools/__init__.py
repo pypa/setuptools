@@ -56,7 +56,10 @@ def find_packages(where='.', exclude=(), include=()):
             looks_like_package = (
                 '.' not in name
                 and os.path.isdir(fn)
-                and os.path.isfile(os.path.join(fn, '__init__.py'))
+                and (
+                    os.path.isfile(os.path.join(fn, '__init__.py'))
+                    or sys.version_info[:2] >= (3, 3)  # PEP 420
+                )
             )
             if looks_like_package:
                 pkg_name = prefix + name

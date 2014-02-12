@@ -3,6 +3,15 @@ CHANGES
 =======
 
 ---
+4.0
+---
+
+* Issue #97: ``find_packages()`` now supports PEP 420 namespace packages. It
+  does so by considering all subdirectories of the start directory that
+  aren't regular packages to be PEP 420 namespace packages (on Python 3.3+
+  only).
+
+---
 3.3
 ---
 
