@@ -27,7 +27,7 @@ run_2to3_on_doctests = True
 # Standard package names for fixer packages
 lib2to3_fixer_packages = ['lib2to3.fixes']
 
-def find_packages(where='.', exclude=()):
+def find_packages(where='.', exclude=(), include=()):
     """Return a list all Python packages found within directory 'where'
 
     'where' should be supplied as a "cross-platform" (i.e. URL-style) path; it
@@ -35,7 +35,19 @@ def find_packages(where='.', exclude=()):
     sequence of package names to exclude; '*' can be used as a wildcard in the
     names, such that 'foo.*' will exclude all subpackages of 'foo' (but not
     'foo' itself).
+
+    'include' is a sequence of package names to include.  If it's specified,
+    only the named packages will be included.  If it's not specified, all found
+    packages will be included.  'include' can contain shell style wildcard
+    patterns just like 'exclude'.
+
+    The list of included packages is built up first and then any explicitly
+    excluded packages are removed from it.
+
     """
+    from fnmatch import fnmatchcase
+    include = list(include)
+    exclude = list(exclude) + ['ez_setup', '*__pycache__']
     out = []
     stack=[(convert_path(where), '')]
     while stack:
@@ -45,13 +57,18 @@ def find_packages(where='.', exclude=()):
             looks_like_package = (
                 '.' not in name
                 and os.path.isdir(fn)
-                and os.path.isfile(os.path.join(fn, '__init__.py'))
+                and (
+                    os.path.isfile(os.path.join(fn, '__init__.py'))
+                    or sys.version_info[:2] >= (3, 3)  # PEP 420
+                )
             )
             if looks_like_package:
-                out.append(prefix+name)
-                stack.append((fn, prefix+name+'.'))
-    for pat in list(exclude)+['ez_setup']:
-        from fnmatch import fnmatchcase
+                pkg_name = prefix + name
+                if (not include or
+                        any(fnmatchcase(pkg_name, pat) for pat in include)):
+                    out.append(pkg_name)
+                    stack.append((fn, pkg_name + '.'))
+    for pat in exclude:
         out = [item for item in out if not fnmatchcase(item,pat)]
     return out
 

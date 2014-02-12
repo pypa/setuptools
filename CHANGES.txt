@@ -23,6 +23,11 @@ CHANGES
   security vulnerabilities presented by use of tar archives in ez_setup.py.
   It also leverages the security features added to ZipFile.extract in Python 2.7.4.
 * Issue #65: Removed deprecated Features functionality.
+* Issue #97: ``find_packages()`` now supports PEP 420 namespace packages. It
+  does so by considering all subdirectories of the start directory that
+  aren't regular packages to be PEP 420 namespace packages (on Python 3.3+
+  only). Also, a list of packages to include can be now be specified; this
+  provides an easy way to narrow the list of candidate directories.
 
 ---
 2.3
