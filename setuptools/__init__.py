@@ -38,6 +38,7 @@ def find_packages(where='.', exclude=()):
     """
     out = []
     stack=[(convert_path(where), '')]
+    exclude = list(exclude) + ['ez_setup']
     while stack:
         where,prefix = stack.pop(0)
         for name in os.listdir(where):
@@ -50,7 +51,7 @@ def find_packages(where='.', exclude=()):
             if looks_like_package:
                 out.append(prefix+name)
                 stack.append((fn, prefix+name+'.'))
-    for pat in list(exclude)+['ez_setup']:
+    for pat in exclude:
         from fnmatch import fnmatchcase
         out = [item for item in out if not fnmatchcase(item,pat)]
     return out
