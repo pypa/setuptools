@@ -14,6 +14,10 @@ CHANGES
   handled properly at runtime.  In 2.x it was possible to get away without
   including the declaration, but only at the cost of forcing namespace
   packages to be imported early, which 3.0 no longer does.
+* Issue #148: When building (bdist_egg), setuptools no longer adds
+  ``__init__.py`` files to namespace packages. Any packages that rely on this
+  behavior will need to create ``__init__.py`` files and include the
+  ``declare_namespace()``.
 * Issue #7: Setuptools itself is now distributed as a zip archive in addition to
   tar archive. ez_setup.py now uses zip archive. This approach avoids the potential
   security vulnerabilities presented by use of tar archives in ez_setup.py.
