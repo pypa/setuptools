@@ -23,11 +23,6 @@ CHANGES
   security vulnerabilities presented by use of tar archives in ez_setup.py.
   It also leverages the security features added to ZipFile.extract in Python 2.7.4.
 * Issue #65: Removed deprecated Features functionality.
-
----
-2.3
----
-
 * Pull Request #28: Remove backport of ``_bytecode_filenames`` which is
   available in Python 2.6 and later, but also has better compatibility with
   Python 3 environments.
