@@ -5,12 +5,12 @@ from distutils import log
 import xml.dom.pulldom
 import shlex
 import shutil
-import tempfile
 import locale
 import codecs
 import unicodedata
 import warnings
 from setuptools.compat import unicode
+from setuptools.py31compat import TemporaryDirectory
 from xml.sax.saxutils import unescape
 
 try:
@@ -28,26 +28,6 @@ from subprocess import Popen as _Popen, PIPE as _PIPE
 #       http://bugs.python.org/issue8557
 #       http://stackoverflow.com/questions/5658622/
 #              python-subprocess-popen-environment-path
-
-class TempDir(object):
-    """"
-    Very simple temporary directory context manager.
-    Will try to delete afterward, but will also ignore OS and similar
-    errors on deletion.
-    """
-    def __init__(self):
-        self.path = None
-
-    def __enter__(self):
-        self.path = tempfile.mkdtemp()
-        return self
-
-    def __exit__(self, exctype, excvalue, exctrace):
-        try:
-            shutil.rmtree(self.path, True)
-        except OSError: #removal errors are not the only possible
-            pass
-        self.path = None
 
 def _run_command(args, stdout=_PIPE, stderr=_PIPE, encoding=None, stream=0):
     #regarding the shell argument, see: http://bugs.python.org/issue8557
@@ -256,9 +236,9 @@ class SvnInfo(object):
         # This is needed because .svn always creates .subversion and 
         # some operating systems do not handle dot directory correctly.
         # Real queries in real svn repos with be concerned with it creation
-        with TempDir() as tempdir:
+        with TemporaryDirectory() as tempdir:
             code, data = _run_command(['svn', 
-                                       '--config-dir', tempdir.path,
+                                       '--config-dir', tempdir,
                                        '--version', 
                                        '--quiet'])
 
@@ -282,9 +262,9 @@ class SvnInfo(object):
         # This is needed because .svn always creates .subversion and 
         # some operating systems do not handle dot directory correctly.
         # Real queries in real svn repos with be concerned with it creation
-        with TempDir() as tempdir:
+        with TemporaryDirectory() as tempdir:
             code, data = _run_command(['svn', 
-                                       '--config-dir', tempdir.path,
+                                       '--config-dir', tempdir,
                                        'info', normdir])
 
         # Must check for some contents, as some use empty directories
