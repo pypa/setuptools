@@ -4,7 +4,6 @@ import sys
 from distutils import log
 import xml.dom.pulldom
 import shlex
-import shutil
 import locale
 import codecs
 import unicodedata

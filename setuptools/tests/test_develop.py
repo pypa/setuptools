@@ -1,9 +1,11 @@
 """develop tests
 """
-import sys
-import os, shutil, tempfile, unittest
-import tempfile
+import os
+import shutil
 import site
+import sys
+import tempfile
+import unittest
 
 from distutils.errors import DistutilsError
 from setuptools.command.develop import develop

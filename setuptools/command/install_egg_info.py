@@ -1,7 +1,7 @@
 from setuptools import Command
 from setuptools.archive_util import unpack_archive
 from distutils import log, dir_util
-import os, shutil, pkg_resources
+import os, pkg_resources
 
 class install_egg_info(Command):
     """Install an .egg-info directory for the package"""
