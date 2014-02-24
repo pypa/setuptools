@@ -6,6 +6,8 @@ CHANGES
 3.0
 ---
 
+* Issue #125: Prevent Subversion support from creating a ~/.subversion
+  directory just for checking the presence of a Subversion repository.
 * Issue #12: Namespace packages are now imported lazily.  That is, the mere
   declaration of a namespace package in an egg on ``sys.path`` no longer
   causes it to be imported when ``pkg_resources`` is imported.  Note that this
