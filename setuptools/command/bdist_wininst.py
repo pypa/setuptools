@@ -1,12 +1,12 @@
+import os
 from distutils.command.bdist_wininst import bdist_wininst as _bdist_wininst
-import os, sys
 
 class bdist_wininst(_bdist_wininst):
     _good_upload = _bad_upload = None
 
     def create_exe(self, arcname, fullname, bitmap=None):
         _bdist_wininst.create_exe(self, arcname, fullname, bitmap)
-        installer_name = self.get_installer_filename(fullname) 
+        installer_name = self.get_installer_filename(fullname)
         if self.target_version:
             pyversion = self.target_version
             # fix 2.5+ bdist_wininst ignoring --target-version spec
@@ -14,7 +14,7 @@ class bdist_wininst(_bdist_wininst):
         else:
             pyversion = 'any'
         self._good_upload = ('bdist_wininst', pyversion, installer_name)
-        
+
     def _fix_upload_names(self):
         good, bad = self._good_upload, self._bad_upload
         dist_files = getattr(self.distribution, 'dist_files', [])
@@ -23,7 +23,7 @@ class bdist_wininst(_bdist_wininst):
         if good not in dist_files:
             dist_files.append(good)
 
-    def reinitialize_command (self, command, reinit_subcommands=0):
+    def reinitialize_command(self, command, reinit_subcommands=0):
         cmd = self.distribution.reinitialize_command(
             command, reinit_subcommands)
         if command in ('install', 'install_lib'):
@@ -38,7 +38,6 @@ class bdist_wininst(_bdist_wininst):
         finally:
             self._is_running = False
 
-
     if not hasattr(_bdist_wininst, 'get_installer_filename'):
         def get_installer_filename(self, fullname):
             # Factored out to allow overriding in subclasses
@@ -47,36 +46,9 @@ class bdist_wininst(_bdist_wininst):
                 # it's better to include this in the name
                 installer_name = os.path.join(self.dist_dir,
                                               "%s.win32-py%s.exe" %
-                                               (fullname, self.target_version))
+                                              (fullname, self.target_version))
             else:
                 installer_name = os.path.join(self.dist_dir,
                                               "%s.win32.exe" % fullname)
             return installer_name
     # get_installer_filename()
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
