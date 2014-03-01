@@ -37,18 +37,3 @@ class bdist_wininst(_bdist_wininst):
             self._fix_upload_names()
         finally:
             self._is_running = False
-
-    if not hasattr(_bdist_wininst, 'get_installer_filename'):
-        def get_installer_filename(self, fullname):
-            # Factored out to allow overriding in subclasses
-            if self.target_version:
-                # if we create an installer for a specific python version,
-                # it's better to include this in the name
-                installer_name = os.path.join(self.dist_dir,
-                                              "%s.win32-py%s.exe" %
-                                              (fullname, self.target_version))
-            else:
-                installer_name = os.path.join(self.dist_dir,
-                                              "%s.win32.exe" % fullname)
-            return installer_name
-    # get_installer_filename()
