@@ -51,4 +51,3 @@ class install_scripts(_install_scripts):
             f.write(contents)
             f.close()
             chmod(target, 0x1FF-mask)  # 0777
-
