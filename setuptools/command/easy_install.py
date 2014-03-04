@@ -53,7 +53,7 @@ from pkg_resources import (
     VersionConflict, DEVELOP_DIST,
 )
 
-sys_executable = os.environ.get('__VENV_LAUNCHER__',
+sys_executable = os.environ.get('__PYVENV_LAUNCHER__',
     os.path.normpath(sys.executable))
 
 __all__ = [

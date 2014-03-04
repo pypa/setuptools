@@ -28,6 +28,7 @@ CHANGES
 * Pull Request #28: Remove backport of ``_bytecode_filenames`` which is
   available in Python 2.6 and later, but also has better compatibility with
   Python 3 environments.
+* Issue #156: Fix spelling of __PYVENV_LAUNCHER__ variable.
 
 ---
 2.2
