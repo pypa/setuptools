@@ -310,15 +310,22 @@ def _parse_args():
         const=lambda: download_file_insecure, default=get_best_downloader,
         help='Use internal, non-validating downloader'
     )
+    parser.add_option(
+        '--version', help="Specify which version to download",
+        default=DEFAULT_VERSION,
+    )
     options, args = parser.parse_args()
     # positional arguments are ignored
     return options
 
-def main(version=DEFAULT_VERSION):
+def main():
     """Install or upgrade setuptools and EasyInstall"""
     options = _parse_args()
-    archive = download_setuptools(download_base=options.download_base,
-        downloader_factory=options.downloader_factory)
+    archive = download_setuptools(
+        version=options.version,
+        download_base=options.download_base,
+        downloader_factory=options.downloader_factory,
+    )
     return _install(archive, _build_install_args(options))
 
 if __name__ == '__main__':
