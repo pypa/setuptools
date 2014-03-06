@@ -8,4 +8,4 @@ python:
 # command to run tests
 script:
  - python setup.py test
- - python ez_setup.py --version 3.0.2 --user
+ - python ez_setup.py --version 3.0.2
