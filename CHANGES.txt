@@ -3,6 +3,12 @@ CHANGES
 =======
 
 -----
+3.0.2
+-----
+
+* Correct typo in previous bugfix.
+
+-----
 3.0.1
 -----
 
