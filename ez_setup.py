@@ -64,6 +64,19 @@ def _build_egg(egg, archive_filename, to_dir):
         raise IOError('Could not build the egg.')
 
 
+def get_zip_class():
+    """
+    Supplement ZipFile class to support context manager for Python 2.6
+    """
+    class ContextualZipFile(zipfile.ZipFile):
+        def __enter__(self):
+            return self
+        def __exit__(self, type, value, traceback):
+            self.close
+    return zipfile.Zipfile if hasattr(zipfile.ZipFile, '__exit__') else \
+        ContextualZipFile
+
+
 @contextlib.contextmanager
 def archive_context(filename):
     # extracting the archive
@@ -72,7 +85,7 @@ def archive_context(filename):
     old_wd = os.getcwd()
     try:
         os.chdir(tmpdir)
-        with zipfile.ZipFile(filename) as archive:
+        with get_zip_class()(filename) as archive:
             archive.extractall()
 
         # going in the directory

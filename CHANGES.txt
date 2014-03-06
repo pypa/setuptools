@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+-----
+3.0.1
+-----
+
+* Issue #157: Restore support for Python 2.6 in bootstrap script where
+  ``zipfile.ZipFile`` does not yet have support for context managers.
+
 ---
 3.0
 ---
