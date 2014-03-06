@@ -18,6 +18,9 @@ Setuptools requires Python 2.6 or later. To install setuptools
 on Python 2.4 or Python 2.5, use the `bootstrap script for Setuptools 1.x
 <https://bitbucket.org/pypa/setuptools/raw/bootstrap-py24/ez_setup.py>`_.
 
+The link provided to ez_setup.py is a bookmark to bootstrap script for the
+latest known stable release.
+
 .. _ez_setup.py: https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py
 
 Windows 8 (Powershell)
