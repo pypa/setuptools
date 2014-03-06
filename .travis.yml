@@ -8,4 +8,4 @@ python:
 # command to run tests
 script:
  - python setup.py test
- - python ez_setup.py --user
+ - python -c "import ez_setup; ez_setup.main('3.0.2')" --user
