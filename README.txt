@@ -12,7 +12,7 @@ Installation Instructions
 The recommended way to bootstrap setuptools on any system is to download
 `ez_setup.py`_ and run it using the target Python environment. Different
 operating systems have different recommended techniques to accomplish this
-basic routine, so here are some examples to get you started.
+basic routine, so below are some examples to get you started.
 
 Setuptools requires Python 2.6 or later. To install setuptools
 on Python 2.4 or Python 2.5, use the `bootstrap script for Setuptools 1.x
@@ -77,8 +77,7 @@ install to the system Python::
 
     > wget https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py -O - | sudo python
 
-Alternatively, on Python 2.6 and later, Setuptools may be installed to a
-user-local path::
+Alternatively, Setuptools may be installed to a user-local path::
 
     > wget https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py -O - | python - --user
 
@@ -86,7 +85,9 @@ Unix including Mac OS X (curl)
 ==============================
 
 If your system has curl installed, follow the ``wget`` instructions but
-replace ``wget`` with ``curl`` and ``-O`` with ``-o``.
+replace ``wget`` with ``curl`` and ``-O`` with ``-o``. For example::
+
+    > curl https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py -o - | python
 
 
 Advanced Installation
