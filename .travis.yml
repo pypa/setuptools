@@ -6,4 +6,6 @@ python:
   - 3.3
   - pypy
 # command to run tests
-script: python setup.py test
+script:
+ - python setup.py test
+ - python ez_setup.py --user
