@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+---
+3.1
+---
+
+* Issue #161: Restore Features functionality to allow backward compatibility
+  (for Features) until the uses of that functionality is sufficiently removed.
+
 -----
 3.0.2
 -----
