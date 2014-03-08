@@ -9,11 +9,11 @@ from distutils.util import convert_path
 
 import setuptools.version
 from setuptools.extension import Extension
-from setuptools.dist import Distribution, _get_unpatched
+from setuptools.dist import Distribution, Feature, _get_unpatched
 from setuptools.depends import Require
 
 __all__ = [
-    'setup', 'Distribution', 'Command', 'Extension', 'Require',
+    'setup', 'Distribution', 'Feature', 'Command', 'Extension', 'Require',
     'find_packages'
 ]
 
