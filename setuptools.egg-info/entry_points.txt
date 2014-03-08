@@ -1,62 +1,62 @@
 [egg_info.writers]
-dependency_links.txt = setuptools.command.egg_info:overwrite_arg
-eager_resources.txt = setuptools.command.egg_info:overwrite_arg
-top_level.txt = setuptools.command.egg_info:write_toplevel_names
 PKG-INFO = setuptools.command.egg_info:write_pkg_info
+namespace_packages.txt = setuptools.command.egg_info:overwrite_arg
+top_level.txt = setuptools.command.egg_info:write_toplevel_names
 depends.txt = setuptools.command.egg_info:warn_depends_obsolete
 requires.txt = setuptools.command.egg_info:write_requirements
+dependency_links.txt = setuptools.command.egg_info:overwrite_arg
 entry_points.txt = setuptools.command.egg_info:write_entries
-namespace_packages.txt = setuptools.command.egg_info:overwrite_arg
-
-[distutils.setup_keywords]
-namespace_packages = setuptools.dist:check_nsp
-use_2to3 = setuptools.dist:assert_bool
-test_suite = setuptools.dist:check_test_suite
-convert_2to3_doctests = setuptools.dist:assert_string_list
-include_package_data = setuptools.dist:assert_bool
-zip_safe = setuptools.dist:assert_bool
-exclude_package_data = setuptools.dist:check_package_data
-test_loader = setuptools.dist:check_importable
-tests_require = setuptools.dist:check_requirements
-dependency_links = setuptools.dist:assert_string_list
-packages = setuptools.dist:check_packages
-install_requires = setuptools.dist:check_requirements
-package_data = setuptools.dist:check_package_data
-use_2to3_exclude_fixers = setuptools.dist:assert_string_list
-entry_points = setuptools.dist:check_entry_points
-use_2to3_fixers = setuptools.dist:assert_string_list
-eager_resources = setuptools.dist:assert_string_list
-extras_require = setuptools.dist:check_extras
-
-[console_scripts]
-easy_install = setuptools.command.easy_install:main
-easy_install-3.4 = setuptools.command.easy_install:main
+eager_resources.txt = setuptools.command.egg_info:overwrite_arg
 
 [setuptools.file_finders]
 svn_cvs = setuptools.command.sdist:_default_revctrl
 
+[distutils.setup_keywords]
+package_data = setuptools.dist:check_package_data
+use_2to3 = setuptools.dist:assert_bool
+eager_resources = setuptools.dist:assert_string_list
+use_2to3_fixers = setuptools.dist:assert_string_list
+dependency_links = setuptools.dist:assert_string_list
+entry_points = setuptools.dist:check_entry_points
+test_suite = setuptools.dist:check_test_suite
+exclude_package_data = setuptools.dist:check_package_data
+install_requires = setuptools.dist:check_requirements
+packages = setuptools.dist:check_packages
+test_loader = setuptools.dist:check_importable
+zip_safe = setuptools.dist:assert_bool
+convert_2to3_doctests = setuptools.dist:assert_string_list
+tests_require = setuptools.dist:check_requirements
+use_2to3_exclude_fixers = setuptools.dist:assert_string_list
+include_package_data = setuptools.dist:assert_bool
+extras_require = setuptools.dist:check_extras
+namespace_packages = setuptools.dist:check_nsp
+
 [distutils.commands]
+bdist_egg = setuptools.command.bdist_egg:bdist_egg
+easy_install = setuptools.command.easy_install:easy_install
+upload_docs = setuptools.command.upload_docs:upload_docs
+alias = setuptools.command.alias:alias
+register = setuptools.command.register:register
+install_lib = setuptools.command.install_lib:install_lib
 test = setuptools.command.test:test
+build_py = setuptools.command.build_py:build_py
+install_egg_info = setuptools.command.install_egg_info:install_egg_info
+bdist_wininst = setuptools.command.bdist_wininst:bdist_wininst
+sdist = setuptools.command.sdist:sdist
 develop = setuptools.command.develop:develop
 build_ext = setuptools.command.build_ext:build_ext
-rotate = setuptools.command.rotate:rotate
-easy_install = setuptools.command.easy_install:easy_install
-install = setuptools.command.install:install
-bdist_rpm = setuptools.command.bdist_rpm:bdist_rpm
-install_lib = setuptools.command.install_lib:install_lib
-upload_docs = setuptools.command.upload_docs:upload_docs
-install_egg_info = setuptools.command.install_egg_info:install_egg_info
-saveopts = setuptools.command.saveopts:saveopts
-sdist = setuptools.command.sdist:sdist
-bdist_wininst = setuptools.command.bdist_wininst:bdist_wininst
-alias = setuptools.command.alias:alias
-bdist_egg = setuptools.command.bdist_egg:bdist_egg
-register = setuptools.command.register:register
 egg_info = setuptools.command.egg_info:egg_info
-setopt = setuptools.command.setopt:setopt
+rotate = setuptools.command.rotate:rotate
 install_scripts = setuptools.command.install_scripts:install_scripts
-build_py = setuptools.command.build_py:build_py
+setopt = setuptools.command.setopt:setopt
+saveopts = setuptools.command.saveopts:saveopts
+bdist_rpm = setuptools.command.bdist_rpm:bdist_rpm
+install = setuptools.command.install:install
 
 [setuptools.installation]
 eggsecutable = setuptools.command.easy_install:bootstrap
+
+[console_scripts]
+easy_install = setuptools.command.easy_install:main
+easy_install-3.4 = setuptools.command.easy_install:main
 
