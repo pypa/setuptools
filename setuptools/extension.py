@@ -27,7 +27,18 @@ class Extension(_Extension):
     def __init__(self, *args, **kw):
         _Extension.__init__(self, *args, **kw)
         if not have_pyrex():
-            self._convert_pyx_sources_to_c()
+            if self.language.lower() == 'c++':
+                self._convert_pyx_sources_to_cpp()
+            else:
+                self._convert_pyx_sources_to_c()
+
+    def _convert_pyx_sources_to_cpp(self):
+        "convert .pyx extensions to .cpp"
+        def pyx_to_c(source):
+            if source.endswith('.pyx'):
+                source = source[:-4] + '.cpp'
+            return source
+        self.sources = list(map(pyx_to_c, self.sources))
 
     def _convert_pyx_sources_to_c(self):
         "convert .pyx extensions to .c"
