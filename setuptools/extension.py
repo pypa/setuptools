@@ -38,7 +38,8 @@ class Extension(_Extension):
             # the build has Cython, so allow it to compile the .pyx files
             return
         def pyx_to_target(source):
-            target_ext = '.cpp' if self.language.lower() == 'c++' else '.c'
+            lang = self.language or ''
+            target_ext = '.cpp' if lang.lower() == 'c++' else '.c'
             if source.endswith('.pyx'):
                 source = source[:-4] + target_ext
             return source
