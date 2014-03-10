@@ -1,4 +1,6 @@
 import sys
+import re
+import functools
 import distutils.core
 import distutils.extension
 
@@ -37,13 +39,10 @@ class Extension(_Extension):
         if have_pyrex():
             # the build has Cython, so allow it to compile the .pyx files
             return
-        def pyx_to_target(source):
-            lang = self.language or ''
-            target_ext = '.cpp' if lang.lower() == 'c++' else '.c'
-            if source.endswith('.pyx'):
-                source = source[:-4] + target_ext
-            return source
-        self.sources = list(map(pyx_to_target, self.sources))
+        lang = self.language or ''
+        target_ext = '.cpp' if lang.lower() == 'c++' else '.c'
+        sub = functools.partial(re.sub, '.pyx$', target_ext)
+        self.sources = list(map(sub, self.sources))
 
 class Library(Extension):
     """Just like a regular Extension, but built as a library instead"""
