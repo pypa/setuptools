@@ -3,6 +3,12 @@ CHANGES
 =======
 
 ---
+3.2
+---
+
+* Pull Request #39: Add support for C++ targets from Cython ``.pyx`` files.
+
+---
 3.1
 ---
 

@@ -26,27 +26,23 @@ class Extension(_Extension):
 
     def __init__(self, *args, **kw):
         _Extension.__init__(self, *args, **kw)
-        if not have_pyrex():
-            if self.language.lower() == 'c++':
-                self._convert_pyx_sources_to_cpp()
-            else:
-                self._convert_pyx_sources_to_c()
+        self._convert_pyx_sources_to_lang()
 
-    def _convert_pyx_sources_to_cpp(self):
-        "convert .pyx extensions to .cpp"
-        def pyx_to_c(source):
+    def _convert_pyx_sources_to_lang(self):
+        """
+        Replace sources with .pyx extensions to sources with the target
+        language extension. This mechanism allows language authors to supply
+        pre-converted sources but to prefer the .pyx sources.
+        """
+        if have_pyrex():
+            # the build has Cython, so allow it to compile the .pyx files
+            return
+        def pyx_to_target(source):
+            target_ext = '.cpp' if self.language.lower() == 'c++' else '.c'
             if source.endswith('.pyx'):
-                source = source[:-4] + '.cpp'
+                source = source[:-4] + target_ext
             return source
-        self.sources = list(map(pyx_to_c, self.sources))
-
-    def _convert_pyx_sources_to_c(self):
-        "convert .pyx extensions to .c"
-        def pyx_to_c(source):
-            if source.endswith('.pyx'):
-                source = source[:-4] + '.c'
-            return source
-        self.sources = list(map(pyx_to_c, self.sources))
+        self.sources = list(map(pyx_to_target, self.sources))
 
 class Library(Extension):
     """Just like a regular Extension, but built as a library instead"""
