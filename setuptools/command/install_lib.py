@@ -14,10 +14,9 @@ class install_lib(_install_lib):
     def get_exclusions(self):
         exclude = {}
         nsp = self.distribution.namespace_packages
-
-        if (nsp and self.get_finalized_command('install')
-               .single_version_externally_managed
-        ):
+        svem = (nsp and self.get_finalized_command('install')
+            .single_version_externally_managed)
+        if svem:
             for pkg in nsp:
                 parts = pkg.split('.')
                 while parts:
@@ -62,9 +61,3 @@ class install_lib(_install_lib):
         if exclude:
             return [f for f in outputs if f not in exclude]
         return outputs
-
-
-
-
-
-
