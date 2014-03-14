@@ -4,4 +4,4 @@
 wincertstore==0.1
 
 [certs]
-certifi==0.0.8
+certifi==1.0.1
