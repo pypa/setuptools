@@ -25,7 +25,6 @@ class install(_install):
         _install.initialize_options(self)
         self.old_and_unmanageable = None
         self.single_version_externally_managed = None
-        self.no_compile = None  # make DISTUTILS_DEBUG work right!
 
     def finalize_options(self):
         _install.finalize_options(self)
