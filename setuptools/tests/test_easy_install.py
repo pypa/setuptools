@@ -208,8 +208,9 @@ class TestUserInstallTest(unittest.TestCase):
             cmd.ensure_finalized()
             cmd.local_index.scan([new_location])
             res = cmd.easy_install('foo')
-            self.assertEqual(os.path.realpath(res.location),
-                             os.path.realpath(new_location))
+            actual = os.path.normcase(os.path.realpath(res.location))
+            expected = os.path.normcase(os.path.realpath(new_location))
+            self.assertEqual(actual, expected)
         finally:
             sys.path.remove(target)
             for basedir in [new_location, target, ]:
