@@ -1,7 +1,7 @@
 
 
-[ssl:sys_platform=='win32']
-wincertstore==0.1
-
 [certs]
 certifi==1.0.1
+
+[ssl:sys_platform=='win32']
+wincertstore==0.2
