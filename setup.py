@@ -121,7 +121,7 @@ setup_params = dict(
 
     py_modules = ['pkg_resources', 'easy_install'],
 
-    zip_safe = (sys.version>="2.5"),   # <2.5 needs unzipped for -m to work
+    zip_safe = True,
 
     cmdclass = {'test': test},
     entry_points = {
