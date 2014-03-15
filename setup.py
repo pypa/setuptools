@@ -188,12 +188,12 @@ setup_params = dict(
         Topic :: Utilities
         """).strip().splitlines(),
     extras_require = {
-        "ssl:sys_platform=='win32'": "wincertstore==0.1",
+        "ssl:sys_platform=='win32'": "wincertstore==0.2",
         "certs": "certifi==1.0.1",
     },
     dependency_links = [
         'https://pypi.python.org/packages/source/c/certifi/certifi-1.0.1.tar.gz#md5=45f5cb94b8af9e1df0f9450a8f61b790',
-        'https://pypi.python.org/packages/source/w/wincertstore/wincertstore-0.1.zip#md5=2f9accbebe8f7b4c06ac7aa83879b81c',
+        'https://pypi.python.org/packages/source/w/wincertstore/wincertstore-0.2.zip#md5=ae728f2f007185648d0c7a8679b361e2',
     ],
     scripts = [],
     # tests_require = "setuptools[ssl]",

@@ -8,6 +8,7 @@ CHANGES
 
 * Pull Request #39: Add support for C++ targets from Cython ``.pyx`` files.
 * Issue #162: Update dependency on certifi to 1.0.1.
+* Issue #164: Update dependency on wincertstore to 0.2.
 
 ---
 3.1
