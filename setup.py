@@ -4,6 +4,7 @@ import io
 import os
 import sys
 import textwrap
+import contextlib
 
 # Allow to run setup.py from another directory.
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -63,19 +64,24 @@ class build_py(_build_py):
 class test(_test):
     """Specific test class to avoid rewriting the entry_points.txt"""
     def run(self):
+        with self._save_entry_points():
+            _test.run(self)
+
+    @contextlib.contextmanager
+    def _save_entry_points(self):
         entry_points = os.path.join('setuptools.egg-info', 'entry_points.txt')
 
         if not os.path.exists(entry_points):
-            _test.run(self)
-            return # even though _test.run will raise SystemExit
+            yield
+            return
 
         # save the content
         with open(entry_points, 'rb') as f:
             ep_content = f.read()
 
-        # run the test
+        # run the tests
         try:
-            _test.run(self)
+            yield
         finally:
             # restore the file
             with open(entry_points, 'wb') as f:
