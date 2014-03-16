@@ -6,6 +6,7 @@ import tempfile
 import unittest
 
 from setuptools import find_packages
+from setuptools.tests.py26compat import skipIf
 
 
 PEP420 = sys.version_info[:2] >= (3, 3)
@@ -62,7 +63,7 @@ class TestFindPackages(unittest.TestCase):
         fp.close()
         return path
 
-    @unittest.skipIf(PEP420, 'Not a PEP 420 env')
+    @skipIf(PEP420, 'Not a PEP 420 env')
     def test_regular_package(self):
         self._touch('__init__.py', self.pkg_dir)
         packages = find_packages(self.dist_dir)
@@ -86,33 +87,33 @@ class TestFindPackages(unittest.TestCase):
         packages = find_packages(self.dist_dir)
         self.assertTrue('pkg.some.data' not in packages)
 
-    @unittest.skipIf(not PEP420, 'PEP 420 only')
+    @skipIf(not PEP420, 'PEP 420 only')
     def test_pep420_ns_package(self):
         packages = find_packages(
             self.dist_dir, include=['pkg*'], exclude=['pkg.subpkg.assets'])
         self.assertEqual(packages, ['pkg', 'pkg.nspkg', 'pkg.subpkg'])
 
-    @unittest.skipIf(not PEP420, 'PEP 420 only')
+    @skipIf(not PEP420, 'PEP 420 only')
     def test_pep420_ns_package_no_includes(self):
         packages = find_packages(
             self.dist_dir, exclude=['pkg.subpkg.assets'])
         self.assertEqual(packages, ['docs', 'pkg', 'pkg.nspkg', 'pkg.subpkg'])
 
-    @unittest.skipIf(not PEP420, 'PEP 420 only')
+    @skipIf(not PEP420, 'PEP 420 only')
     def test_pep420_ns_package_no_includes_or_excludes(self):
         packages = find_packages(self.dist_dir)
         expected = [
             'docs', 'pkg', 'pkg.nspkg', 'pkg.subpkg', 'pkg.subpkg.assets']
         self.assertEqual(packages, expected)
 
-    @unittest.skipIf(not PEP420, 'PEP 420 only')
+    @skipIf(not PEP420, 'PEP 420 only')
     def test_regular_package_with_nested_pep420_ns_packages(self):
         self._touch('__init__.py', self.pkg_dir)
         packages = find_packages(
             self.dist_dir, exclude=['docs', 'pkg.subpkg.assets'])
         self.assertEqual(packages, ['pkg', 'pkg.nspkg', 'pkg.subpkg'])
 
-    @unittest.skipIf(not PEP420, 'PEP 420 only')
+    @skipIf(not PEP420, 'PEP 420 only')
     def test_pep420_ns_package_no_non_package_dirs(self):
         shutil.rmtree(self.docs_dir)
         shutil.rmtree(os.path.join(self.dist_dir, 'pkg/subpkg/assets'))
