@@ -416,19 +416,22 @@ the ``packages`` argument of ``setup()``.  However, for very large projects
 (Twisted, PEAK, Zope, Chandler, etc.), it can be a big burden to keep the
 package list updated.  That's what ``setuptools.find_packages()`` is for.
 
-``find_packages()`` takes a source directory, and a list of package names or
-patterns to exclude.  If omitted, the source directory defaults to the same
+``find_packages()`` takes a source directory and two lists of package name
+patterns to exclude and include.  If omitted, the source directory defaults to
+the same
 directory as the setup script.  Some projects use a ``src`` or ``lib``
 directory as the root of their source tree, and those projects would of course
 use ``"src"`` or ``"lib"`` as the first argument to ``find_packages()``.  (And
 such projects also need something like ``package_dir = {'':'src'}`` in their
 ``setup()`` arguments, but that's just a normal distutils thing.)
 
-Anyway, ``find_packages()`` walks the target directory, and finds Python
+Anyway, ``find_packages()`` walks the target directory, filtering by inclusion
+patterns, and finds Python
 packages by looking for ``__init__.py`` files.  It then filters the list of
 packages using the exclusion patterns.
 
-Exclusion patterns are package names, optionally including wildcards.  For
+Inclusion and exclusion patterns are package names, optionally including
+wildcards.  For
 example, ``find_packages(exclude=["*.tests"])`` will exclude all packages whose
 last name part is ``tests``.   Or, ``find_packages(exclude=["*.tests",
 "*.tests.*"])`` will also exclude any subpackages of packages named ``tests``,
@@ -442,7 +445,7 @@ in order to cover all the bases.  Really, the exclusion patterns are intended
 to cover simpler use cases than this, like excluding a single, specified
 package and its subpackages.
 
-Regardless of the target directory or exclusions, the ``find_packages()``
+Regardless of the parameters, the ``find_packages()``
 function returns a list of package names suitable for use as the ``packages``
 argument to ``setup()``, and so is usually the easiest way to set that
 argument in your setup script.  Especially since it frees you from having to
