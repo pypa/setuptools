@@ -6,6 +6,7 @@ import distutils.core
 import distutils.filelist
 from distutils.core import Command as _Command
 from distutils.util import convert_path
+from fnmatch import fnmatchcase
 
 import setuptools.version
 from setuptools.extension import Extension
@@ -52,7 +53,6 @@ def find_packages(where='.', exclude=()):
                 out.append(prefix+name)
                 stack.append((fn, prefix+name+'.'))
     for pat in exclude:
-        from fnmatch import fnmatchcase
         out = [item for item in out if not fnmatchcase(item,pat)]
     return out
 
