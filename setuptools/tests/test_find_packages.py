@@ -63,6 +63,16 @@ class TestFindPackages(unittest.TestCase):
         packages = find_packages(self.dist_dir)
         self.assertEqual(packages, ['pkg', 'pkg.subpkg'])
 
+    def test_include_excludes_other(self):
+        """
+        If include is specified, other packages should be excluded.
+        """
+        self._touch('__init__.py', self.pkg_dir)
+        alt_dir = self._mkdir('other_pkg', self.dist_dir)
+        self._touch('__init__.py', alt_dir)
+        packages = find_packages(self.dist_dir, include=['other_pkg'])
+        self.assertEqual(packages, ['other_pkg'])
+
     def test_dir_with_dot_is_skipped(self):
         shutil.rmtree(os.path.join(self.dist_dir, 'pkg/subpkg/assets'))
         data_dir = self._mkdir('some.data', self.pkg_dir)
