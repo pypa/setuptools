@@ -426,9 +426,9 @@ such projects also need something like ``package_dir = {'':'src'}`` in their
 ``setup()`` arguments, but that's just a normal distutils thing.)
 
 Anyway, ``find_packages()`` walks the target directory, filtering by inclusion
-patterns, and finds Python
-packages by looking for ``__init__.py`` files.  It then filters the list of
-packages using the exclusion patterns.
+patterns, and finds Python packages (any directory). On Python 3.2 and
+earlier, packages are only recognized if they include an ``__init__.py`` file.
+Finally, exclusion patterns are applied to remove matching packages.
 
 Inclusion and exclusion patterns are package names, optionally including
 wildcards.  For
