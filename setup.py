@@ -70,7 +70,7 @@ class test(_test):
             return # even though _test.run will raise SystemExit
 
         # save the content
-        with open(entry_points) as f:
+        with open(entry_points, 'rb') as f:
             ep_content = f.read()
 
         # run the test
@@ -78,7 +78,7 @@ class test(_test):
             _test.run(self)
         finally:
             # restore the file
-            with open(entry_points, 'w') as f:
+            with open(entry_points, 'wb') as f:
                 f.write(ep_content)
 
 
