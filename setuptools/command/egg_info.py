@@ -369,10 +369,10 @@ def write_entries(cmd, basename, filename):
         data = ep
     elif ep is not None:
         data = []
-        for section, contents in ep.items():
+        for section, contents in sorted(ep.items()):
             if not isinstance(contents,basestring):
                 contents = EntryPoint.parse_group(section, contents)
-                contents = '\n'.join(map(str,contents.values()))
+                contents = '\n'.join(sorted(map(str,contents.values())))
             data.append('[%s]\n%s\n\n' % (section,contents))
         data = ''.join(data)
 
