@@ -79,4 +79,4 @@ class TestFindPackages(unittest.TestCase):
         self._touch('__init__.py', data_dir)
         self._touch('file.dat', data_dir)
         packages = find_packages(self.dist_dir)
-        self.assertNotIn('pkg.some.data', packages)
+        self.assertTrue('pkg.some.data' not in packages)
