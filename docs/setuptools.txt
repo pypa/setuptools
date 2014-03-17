@@ -276,7 +276,7 @@ unless you need the associated ``setuptools`` feature.
     A boolean (True or False) flag specifying whether the project can be
     safely installed and run from a zip file.  If this argument is not
     supplied, the ``bdist_egg`` command will have to analyze all of your
-    project's contents for possible problems each time it buids an egg.
+    project's contents for possible problems each time it builds an egg.
 
 ``install_requires``
     A string or list of strings specifying what other distributions need to
