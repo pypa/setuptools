@@ -63,9 +63,10 @@ def find_packages(where='.', exclude=(), include=('*',)):
             )
             if looks_like_package:
                 pkg_name = prefix + name
-                if any(fnmatchcase(pkg_name, pat) for pat in include):
-                    out.append(pkg_name)
-                    stack.append((fn, pkg_name + '.'))
+                out.append(pkg_name)
+                stack.append((fn, pkg_name + '.'))
+    for pat in include:
+        out = [item for item in out if fnmatchcase(item,pat)]
     for pat in exclude:
         out = [item for item in out if not fnmatchcase(item,pat)]
     return out
