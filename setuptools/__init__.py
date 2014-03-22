@@ -29,61 +29,70 @@ run_2to3_on_doctests = True
 # Standard package names for fixer packages
 lib2to3_fixer_packages = ['lib2to3.fixes']
 
-def find_packages(where='.', exclude=(), include=('*',)):
-    """Return a list all Python packages found within directory 'where'
 
-    'where' should be supplied as a "cross-platform" (i.e. URL-style) path; it
-    will be converted to the appropriate local path syntax.  'exclude' is a
-    sequence of package names to exclude; '*' can be used as a wildcard in the
-    names, such that 'foo.*' will exclude all subpackages of 'foo' (but not
-    'foo' itself).
+class PackageFinder(object):
+    @classmethod
+    def find(cls, where='.', exclude=(), include=('*',)):
+        """Return a list all Python packages found within directory 'where'
 
-    'include' is a sequence of package names to include.  If it's specified,
-    only the named packages will be included.  If it's not specified, all found
-    packages will be included.  'include' can contain shell style wildcard
-    patterns just like 'exclude'.
+        'where' should be supplied as a "cross-platform" (i.e. URL-style) path; it
+        will be converted to the appropriate local path syntax.  'exclude' is a
+        sequence of package names to exclude; '*' can be used as a wildcard in the
+        names, such that 'foo.*' will exclude all subpackages of 'foo' (but not
+        'foo' itself).
 
-    The list of included packages is built up first and then any explicitly
-    excluded packages are removed from it.
-    """
-    out = _find_packages_iter(convert_path(where))
-    includes = _build_filter(*include)
-    excludes = _build_filter('ez_setup', '*__pycache__', *exclude)
-    out = filter(includes, out)
-    out = filterfalse(excludes, out)
-    return list(out)
+        'include' is a sequence of package names to include.  If it's specified,
+        only the named packages will be included.  If it's not specified, all found
+        packages will be included.  'include' can contain shell style wildcard
+        patterns just like 'exclude'.
 
-def _all_dirs(base_path):
-    """
-    Return all dirs in base_path, relative to base_path
-    """
-    for root, dirs, files in os.walk(base_path):
-        for dir in dirs:
-            yield os.path.relpath(os.path.join(root, dir), base_path)
+        The list of included packages is built up first and then any explicitly
+        excluded packages are removed from it.
+        """
+        out = cls._find_packages_iter(convert_path(where))
+        includes = cls._build_filter(*include)
+        excludes = cls._build_filter('ez_setup', '*__pycache__', *exclude)
+        out = filter(includes, out)
+        out = filterfalse(excludes, out)
+        return list(out)
 
-def _find_packages_iter(base_path):
-    dirs = _all_dirs(base_path)
-    suitable = filterfalse(lambda n: '.' in n, dirs)
-    packages = (
-        path
-        for path in suitable
-        if _looks_like_package(os.path.join(base_path, path))
-    )
-    for pkg_path in packages:
-        yield pkg_path.replace(os.path.sep, '.')
+    @staticmethod
+    def _all_dirs(base_path):
+        """
+        Return all dirs in base_path, relative to base_path
+        """
+        for root, dirs, files in os.walk(base_path):
+            for dir in dirs:
+                yield os.path.relpath(os.path.join(root, dir), base_path)
 
-def _looks_like_package(path):
-    return (
-        os.path.isfile(os.path.join(path, '__init__.py'))
-        or sys.version_info[:2] >= (3, 3)  # PEP 420
-    )
+    @classmethod
+    def _find_packages_iter(cls, base_path):
+        dirs = cls._all_dirs(base_path)
+        suitable = filterfalse(lambda n: '.' in n, dirs)
+        packages = (
+            path
+            for path in suitable
+            if cls._looks_like_package(os.path.join(base_path, path))
+        )
+        for pkg_path in packages:
+            yield pkg_path.replace(os.path.sep, '.')
 
-def _build_filter(*patterns):
-    """
-    Given a list of patterns, return a callable that will be true only if
-    the input matches one of the patterns.
-    """
-    return lambda name: any(fnmatchcase(name, pat=pat) for pat in patterns)
+    @staticmethod
+    def _looks_like_package(path):
+        return (
+            os.path.isfile(os.path.join(path, '__init__.py'))
+            or sys.version_info[:2] >= (3, 3)  # PEP 420
+        )
+
+    @staticmethod
+    def _build_filter(*patterns):
+        """
+        Given a list of patterns, return a callable that will be true only if
+        the input matches one of the patterns.
+        """
+        return lambda name: any(fnmatchcase(name, pat=pat) for pat in patterns)
+
+find_packages = PackageFinder.find
 
 setup = distutils.core.setup
 
