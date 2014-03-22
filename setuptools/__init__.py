@@ -28,7 +28,7 @@ run_2to3_on_doctests = True
 # Standard package names for fixer packages
 lib2to3_fixer_packages = ['lib2to3.fixes']
 
-def find_packages(where='.', exclude=(), include=()):
+def find_packages(where='.', exclude=(), include=('*',)):
     """Return a list all Python packages found within directory 'where'
 
     'where' should be supplied as a "cross-platform" (i.e. URL-style) path; it
@@ -63,8 +63,7 @@ def find_packages(where='.', exclude=(), include=()):
             )
             if looks_like_package:
                 pkg_name = prefix + name
-                if (not include or
-                        any(fnmatchcase(pkg_name, pat) for pat in include)):
+                if any(fnmatchcase(pkg_name, pat) for pat in include):
                     out.append(pkg_name)
                     stack.append((fn, pkg_name + '.'))
     for pat in exclude:
