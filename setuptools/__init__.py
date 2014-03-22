@@ -46,8 +46,16 @@ def find_packages(where='.', exclude=(), include=('*',)):
     The list of included packages is built up first and then any explicitly
     excluded packages are removed from it.
     """
+    out = _find_packages_iter(convert_path(where))
+    includes = _build_filter(*include)
+    excludes = _build_filter('ez_setup', '*__pycache__', *exclude)
+    out = filter(includes, out)
+    out = filterfalse(excludes, out)
+    return list(out)
+
+def _find_packages_iter(where):
     out = []
-    stack=[(convert_path(where), '')]
+    stack=[(where, '')]
     while stack:
         where,prefix = stack.pop(0)
         dirs = _dirs(where)
@@ -59,11 +67,7 @@ def find_packages(where='.', exclude=(), include=('*',)):
             pkg_name = prefix + name
             out.append(pkg_name)
             stack.append((path, pkg_name + '.'))
-    includes = _build_filter(*include)
-    excludes = _build_filter('ez_setup', '*__pycache__', *exclude)
-    out = filter(includes, out)
-    out = filterfalse(excludes, out)
-    return list(out)
+    return out
 
 def _looks_like_package(path):
     return (
