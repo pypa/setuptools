@@ -12,6 +12,7 @@ import setuptools.version
 from setuptools.extension import Extension
 from setuptools.dist import Distribution, Feature, _get_unpatched
 from setuptools.depends import Require
+from setuptools.compat import filterfalse
 
 __all__ = [
     'setup', 'Distribution', 'Feature', 'Command', 'Extension', 'Require',
@@ -47,8 +48,6 @@ def find_packages(where='.', exclude=(), include=('*',)):
     """
     out = []
     stack=[(convert_path(where), '')]
-    include = list(include)
-    exclude = list(exclude) + ['ez_setup', '*__pycache__']
     while stack:
         where,prefix = stack.pop(0)
         for name in os.listdir(where):
@@ -65,11 +64,18 @@ def find_packages(where='.', exclude=(), include=('*',)):
                 pkg_name = prefix + name
                 out.append(pkg_name)
                 stack.append((fn, pkg_name + '.'))
-    for pat in include:
-        out = [item for item in out if fnmatchcase(item,pat)]
-    for pat in exclude:
-        out = [item for item in out if not fnmatchcase(item,pat)]
-    return out
+    includes = _build_filter(*include)
+    excludes = _build_filter('ez_setup', '*__pycache__', *exclude)
+    out = filter(includes, out)
+    out = filterfalse(excludes, out)
+    return list(out)
+
+def _build_filter(*patterns):
+    """
+    Given a list of patterns, return a callable that will be true only if
+    the input matches one of the patterns.
+    """
+    return lambda name: any(fnmatchcase(name, pat=pat) for pat in patterns)
 
 setup = distutils.core.setup
 
