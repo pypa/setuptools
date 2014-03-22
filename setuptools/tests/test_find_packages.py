@@ -65,6 +65,11 @@ class TestFindPackages(unittest.TestCase):
         packages = find_packages(self.dist_dir)
         self.assertEqual(packages, ['pkg', 'pkg.subpkg'])
 
+    def test_exclude(self):
+        self._touch('__init__.py', self.pkg_dir)
+        packages = find_packages(self.dist_dir, exclude=('pkg.*',))
+        assert packages == ['pkg']
+
     def test_include_excludes_other(self):
         """
         If include is specified, other packages should be excluded.
