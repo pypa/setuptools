@@ -35,19 +35,19 @@ class PackageFinder(object):
     def find(cls, where='.', exclude=(), include=('*',)):
         """Return a list all Python packages found within directory 'where'
 
-        'where' should be supplied as a "cross-platform" (i.e. URL-style) path; it
-        will be converted to the appropriate local path syntax.  'exclude' is a
-        sequence of package names to exclude; '*' can be used as a wildcard in the
-        names, such that 'foo.*' will exclude all subpackages of 'foo' (but not
-        'foo' itself).
+        'where' should be supplied as a "cross-platform" (i.e. URL-style)
+        path; it will be converted to the appropriate local path syntax.
+        'exclude' is a sequence of package names to exclude; '*' can be used
+        as a wildcard in the names, such that 'foo.*' will exclude all
+        subpackages of 'foo' (but not 'foo' itself).
 
-        'include' is a sequence of package names to include.  If it's specified,
-        only the named packages will be included.  If it's not specified, all found
-        packages will be included.  'include' can contain shell style wildcard
-        patterns just like 'exclude'.
+        'include' is a sequence of package names to include.  If it's
+        specified, only the named packages will be included.  If it's not
+        specified, all found packages will be included.  'include' can contain
+        shell style wildcard patterns just like 'exclude'.
 
-        The list of included packages is built up first and then any explicitly
-        excluded packages are removed from it.
+        The list of included packages is built up first and then any
+        explicitly excluded packages are removed from it.
         """
         out = cls._find_packages_iter(convert_path(where))
         includes = cls._build_filter(*include)
