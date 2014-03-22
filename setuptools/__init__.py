@@ -79,10 +79,7 @@ class PackageFinder(object):
 
     @staticmethod
     def _looks_like_package(path):
-        return (
-            os.path.isfile(os.path.join(path, '__init__.py'))
-            or sys.version_info[:2] >= (3, 3)  # PEP 420
-        )
+        return os.path.isfile(os.path.join(path, '__init__.py'))
 
     @staticmethod
     def _build_filter(*patterns):
@@ -91,6 +88,11 @@ class PackageFinder(object):
         the input matches one of the patterns.
         """
         return lambda name: any(fnmatchcase(name, pat=pat) for pat in patterns)
+
+class PEP420PackageFinder(PackageFinder):
+    @staticmethod
+    def _looks_like_package(path):
+        return True
 
 find_packages = PackageFinder.find
 
