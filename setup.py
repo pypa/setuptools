@@ -122,10 +122,7 @@ setup_params = dict(
     url = "https://pypi.python.org/pypi/setuptools",
     test_suite = 'setuptools.tests',
     src_root = src_root,
-    packages = setuptools.find_packages(
-        include=['setuptools*', '_markerlib'],
-        exclude=['setuptools.tests*.*'],
-    ),
+    packages = setuptools.find_packages(),
     package_data = package_data,
 
     py_modules = ['pkg_resources', 'easy_install'],
