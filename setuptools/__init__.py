@@ -50,15 +50,13 @@ def find_packages(where='.', exclude=(), include=('*',)):
     stack=[(convert_path(where), '')]
     while stack:
         where,prefix = stack.pop(0)
-        for name in os.listdir(where):
+        dirs = _dirs(where)
+        suitable = filterfalse(lambda n: '.' in n, dirs)
+        for name in suitable:
             fn = os.path.join(where,name)
             looks_like_package = (
-                '.' not in name
-                and os.path.isdir(fn)
-                and (
-                    os.path.isfile(os.path.join(fn, '__init__.py'))
-                    or sys.version_info[:2] >= (3, 3)  # PEP 420
-                )
+                os.path.isfile(os.path.join(fn, '__init__.py'))
+                or sys.version_info[:2] >= (3, 3)  # PEP 420
             )
             if looks_like_package:
                 pkg_name = prefix + name
@@ -69,6 +67,16 @@ def find_packages(where='.', exclude=(), include=('*',)):
     out = filter(includes, out)
     out = filterfalse(excludes, out)
     return list(out)
+
+def _dirs(target):
+    """
+    Return all directories in target
+    """
+    return (
+        fn
+        for fn in os.listdir(target)
+        if os.path.isdir(os.path.join(target, fn))
+    )
 
 def _build_filter(*patterns):
     """
