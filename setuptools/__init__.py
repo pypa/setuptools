@@ -53,36 +53,29 @@ def find_packages(where='.', exclude=(), include=('*',)):
     out = filterfalse(excludes, out)
     return list(out)
 
-def _find_packages_iter(where):
-    out = []
-    stack=[(where, '')]
-    while stack:
-        where,prefix = stack.pop(0)
-        dirs = _dirs(where)
-        suitable = filterfalse(lambda n: '.' in n, dirs)
-        paths = (os.path.join(where, name) for name in suitable)
-        packages = filter(_looks_like_package, paths)
-        for path in packages:
-            name = os.path.basename(path)
-            pkg_name = prefix + name
-            out.append(pkg_name)
-            stack.append((path, pkg_name + '.'))
-    return out
+def _all_dirs(base_path):
+    """
+    Return all dirs in base_path, relative to base_path
+    """
+    for root, dirs, files in os.walk(base_path):
+        for dir in dirs:
+            yield os.path.relpath(os.path.join(root, dir), base_path)
+
+def _find_packages_iter(base_path):
+    dirs = _all_dirs(base_path)
+    suitable = filterfalse(lambda n: '.' in n, dirs)
+    packages = (
+        path
+        for path in suitable
+        if _looks_like_package(os.path.join(base_path, path))
+    )
+    for pkg_path in packages:
+        yield pkg_path.replace(os.path.sep, '.')
 
 def _looks_like_package(path):
     return (
         os.path.isfile(os.path.join(path, '__init__.py'))
         or sys.version_info[:2] >= (3, 3)  # PEP 420
-    )
-
-def _dirs(target):
-    """
-    Return all directories in target
-    """
-    return (
-        fn
-        for fn in os.listdir(target)
-        if os.path.isdir(os.path.join(target, fn))
     )
 
 def _build_filter(*patterns):
