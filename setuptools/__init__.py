@@ -52,16 +52,17 @@ def find_packages(where='.', exclude=(), include=('*',)):
         where,prefix = stack.pop(0)
         dirs = _dirs(where)
         suitable = filterfalse(lambda n: '.' in n, dirs)
-        for name in suitable:
-            fn = os.path.join(where,name)
+        paths = (os.path.join(where, name) for name in suitable)
+        for path in paths:
+            name = os.path.basename(path)
             looks_like_package = (
-                os.path.isfile(os.path.join(fn, '__init__.py'))
+                os.path.isfile(os.path.join(path, '__init__.py'))
                 or sys.version_info[:2] >= (3, 3)  # PEP 420
             )
             if looks_like_package:
                 pkg_name = prefix + name
                 out.append(pkg_name)
-                stack.append((fn, pkg_name + '.'))
+                stack.append((path, pkg_name + '.'))
     includes = _build_filter(*include)
     excludes = _build_filter('ez_setup', '*__pycache__', *exclude)
     out = filter(includes, out)
