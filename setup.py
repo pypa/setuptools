@@ -202,7 +202,9 @@ setup_params = dict(
         'https://pypi.python.org/packages/source/w/wincertstore/wincertstore-0.2.zip#md5=ae728f2f007185648d0c7a8679b361e2',
     ],
     scripts = [],
-    # tests_require = "setuptools[ssl]",
+    tests_require = [
+        'setuptools[ssl]',
+    ],
 )
 
 if __name__ == '__main__':
