@@ -109,6 +109,8 @@ if sys.platform == 'win32' or force_windows_specific_files:
     package_data.setdefault('setuptools', []).extend(['*.exe'])
     package_data.setdefault('setuptools.command', []).extend(['*.xml'])
 
+pytest_runner = ['pytest-runner'] if 'ptr' in sys.argv else []
+
 setup_params = dict(
     name="setuptools",
     version=main_ns['__version__'],
@@ -204,7 +206,10 @@ setup_params = dict(
     scripts = [],
     tests_require = [
         'setuptools[ssl]',
+        'pytest',
     ],
+    setup_requires = [
+    ] + pytest_runner,
 )
 
 if __name__ == '__main__':
