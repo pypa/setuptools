@@ -2435,7 +2435,7 @@ The ``upload_docs`` command has the following options:
 
 
 --------------------------------
-Extending and Reusing Distribute
+Extending and Reusing Setuptools
 --------------------------------
 
 Creating ``distutils`` Extensions
