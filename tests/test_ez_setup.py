@@ -24,9 +24,9 @@ class TestSetup(unittest.TestCase):
         self.tmpdir = tempfile.mkdtemp()
         os.chdir(TOPDIR)
         _python_cmd("setup.py", "-q", "egg_info", "-RDb", "", "sdist",
-                    "--dist-dir", "%s" % self.tmpdir)
-        tarball = os.listdir(self.tmpdir)[0]
-        self.tarball = os.path.join(self.tmpdir, tarball)
+            "--formats", "zip", "--dist-dir", self.tmpdir)
+        zipball = os.listdir(self.tmpdir)[0]
+        self.zipball = os.path.join(self.tmpdir, zipball)
         from setuptools.compat import urllib2
         urllib2.urlopen = self.urlopen
 
@@ -37,7 +37,7 @@ class TestSetup(unittest.TestCase):
 
     def test_build_egg(self):
         # making it an egg
-        egg = _build_egg('Egg to be built', self.tarball, self.tmpdir)
+        egg = _build_egg('Egg to be built', self.zipball, self.tmpdir)
 
         # now trying to import it
         sys.path[0] = egg
@@ -54,7 +54,7 @@ class TestSetup(unittest.TestCase):
         def _faked(*args):
             return True
         ez_setup.python_cmd = _faked
-        _install(self.tarball)
+        _install(self.zipball)
 
     def test_use_setuptools(self):
         self.assertEqual(use_setuptools(), None)
