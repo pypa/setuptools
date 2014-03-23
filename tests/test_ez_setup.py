@@ -23,7 +23,7 @@ class TestSetup(unittest.TestCase):
         self.cwd = os.getcwd()
         self.tmpdir = tempfile.mkdtemp()
         os.chdir(TOPDIR)
-        _python_cmd("setup.py", "-q", "egg_info", "-RDb", "''", "sdist",
+        _python_cmd("setup.py", "-q", "egg_info", "-RDb", "", "sdist",
                     "--dist-dir", "%s" % self.tmpdir)
         tarball = os.listdir(self.tmpdir)[0]
         self.tarball = os.path.join(self.tmpdir, tarball)
