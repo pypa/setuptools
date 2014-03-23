@@ -69,13 +69,11 @@ class PackageFinder(object):
     def _find_packages_iter(cls, base_path):
         dirs = cls._all_dirs(base_path)
         suitable = filterfalse(lambda n: '.' in n, dirs)
-        packages = (
-            path
+        return (
+            path.replace(os.path.sep, '.')
             for path in suitable
             if cls._looks_like_package(os.path.join(base_path, path))
         )
-        for pkg_path in packages:
-            yield pkg_path.replace(os.path.sep, '.')
 
     @staticmethod
     def _looks_like_package(path):
