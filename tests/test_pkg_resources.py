@@ -29,19 +29,6 @@ class EggRemover(unicode):
         if os.path.exists(self):
             os.remove(self)
 
-ZERO = datetime.timedelta(0)
-class UTC(datetime.tzinfo):
-    """UTC"""
-
-    def utcoffset(self, dt):
-        return ZERO
-
-    def tzname(self, dt):
-        return "UTC"
-
-    def dst(self, dt):
-        return ZERO
-
 class TestZipProvider(object):
     finalizers = []
 
