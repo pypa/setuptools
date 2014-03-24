@@ -37,7 +37,7 @@ class TestSetup(unittest.TestCase):
     def test_install(self):
         def _faked(*args):
             return True
-        ez_setup.python_cmd = _faked
+        ez_setup._python_cmd = _faked
         _install(self.zipball)
 
     def test_use_setuptools(self):
