@@ -2,6 +2,7 @@ import sys
 import tempfile
 import os
 import zipfile
+import datetime
 
 import pkg_resources
 
@@ -17,8 +18,24 @@ class EggRemover(unicode):
         if os.path.exists(self):
             os.remove(self)
 
+ZERO = datetime.timedelta(0)
+class UTC(datetime.tzinfo):
+    """UTC"""
+
+    def utcoffset(self, dt):
+        return ZERO
+
+    def tzname(self, dt):
+        return "UTC"
+
+    def dst(self, dt):
+        return ZERO
+
 class TestZipProvider(object):
     finalizers = []
+
+    ref_time = datetime.datetime(2013, 5, 12, 13, 25, 0)
+    "A reference time for a file modification"
 
     @classmethod
     def setup_class(cls):
@@ -27,11 +44,11 @@ class TestZipProvider(object):
         zip_egg = zipfile.ZipFile(egg, 'w')
         zip_info = zipfile.ZipInfo()
         zip_info.filename = 'mod.py'
-        zip_info.date_time = 2013, 5, 12, 13, 25, 0
+        zip_info.date_time = cls.ref_time.timetuple()
         zip_egg.writestr(zip_info, 'x = 3\n')
         zip_info = zipfile.ZipInfo()
         zip_info.filename = 'data.dat'
-        zip_info.date_time = 2013, 5, 12, 13, 25, 0
+        zip_info.date_time = cls.ref_time.timetuple()
         zip_egg.writestr(zip_info, 'hello, world!')
         zip_egg.close()
         egg.close()
@@ -55,11 +72,13 @@ class TestZipProvider(object):
         manager = pkg_resources.ResourceManager()
         zp = pkg_resources.ZipProvider(mod)
         filename = zp.get_resource_filename(manager, 'data.dat')
-        assert os.stat(filename).st_mtime == 1368379500
+        actual = datetime.datetime.fromtimestamp(os.stat(filename).st_mtime)
+        assert actual == self.ref_time
         f = open(filename, 'w')
         f.write('hello, world?')
         f.close()
-        os.utime(filename, (1368379500, 1368379500))
+        ts = self.ref_time.timestamp()
+        os.utime(filename, (ts, ts))
         filename = zp.get_resource_filename(manager, 'data.dat')
         f = open(filename)
         assert f.read() == 'hello, world!'
