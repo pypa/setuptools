@@ -9,8 +9,7 @@ CURDIR = os.path.abspath(os.path.dirname(__file__))
 TOPDIR = os.path.split(CURDIR)[0]
 sys.path.insert(0, TOPDIR)
 
-from ez_setup import (use_setuptools, _build_egg, _python_cmd, _do_download,
-    _install, DEFAULT_URL, DEFAULT_VERSION)
+from ez_setup import (use_setuptools, _python_cmd, _install)
 import ez_setup
 
 class TestSetup(unittest.TestCase):
@@ -34,12 +33,6 @@ class TestSetup(unittest.TestCase):
         shutil.rmtree(self.tmpdir)
         os.chdir(self.cwd)
         sys.path = copy.copy(self.old_sys_path)
-
-    def test_do_download(self):
-        tmpdir = tempfile.mkdtemp()
-        _do_download(DEFAULT_VERSION, DEFAULT_URL, tmpdir, 1)
-        import setuptools
-        self.assertTrue(setuptools.bootstrap_install_from.startswith(tmpdir))
 
     def test_install(self):
         def _faked(*args):
