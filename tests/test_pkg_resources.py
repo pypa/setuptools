@@ -3,6 +3,7 @@ import tempfile
 import os
 import zipfile
 import datetime
+import time
 
 import pkg_resources
 
@@ -10,6 +11,16 @@ try:
     unicode
 except NameError:
     unicode = str
+
+def timestamp(dt):
+    """
+    Return a timestamp for a local, naive datetime instance.
+    """
+    try:
+        return dt.timestamp()
+    except AttributeError:
+        # Python 3.2 and earlier
+        return time.mktime(dt.timetuple())
 
 class EggRemover(unicode):
     def __call__(self):
@@ -77,7 +88,7 @@ class TestZipProvider(object):
         f = open(filename, 'w')
         f.write('hello, world?')
         f.close()
-        ts = self.ref_time.timestamp()
+        ts = timestamp(self.ref_time)
         os.utime(filename, (ts, ts))
         filename = zp.get_resource_filename(manager, 'data.dat')
         f = open(filename)
