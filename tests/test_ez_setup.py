@@ -9,7 +9,7 @@ CURDIR = os.path.abspath(os.path.dirname(__file__))
 TOPDIR = os.path.split(CURDIR)[0]
 sys.path.insert(0, TOPDIR)
 
-from ez_setup import (use_setuptools, _python_cmd, _install)
+from ez_setup import _python_cmd, _install
 import ez_setup
 
 class TestSetup(unittest.TestCase):
@@ -39,9 +39,6 @@ class TestSetup(unittest.TestCase):
             return True
         ez_setup._python_cmd = _faked
         _install(self.zipball)
-
-    def test_use_setuptools(self):
-        self.assertEqual(use_setuptools(), None)
 
 if __name__ == '__main__':
     unittest.main()
