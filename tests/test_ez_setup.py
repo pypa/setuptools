@@ -35,15 +35,6 @@ class TestSetup(unittest.TestCase):
         os.chdir(self.cwd)
         sys.path = copy.copy(self.old_sys_path)
 
-    def test_build_egg(self):
-        # making it an egg
-        egg = _build_egg('Egg to be built', self.zipball, self.tmpdir)
-
-        # now trying to import it
-        sys.path[0] = egg
-        import setuptools
-        self.assertTrue(setuptools.__file__.startswith(egg))
-
     def test_do_download(self):
         tmpdir = tempfile.mkdtemp()
         _do_download(DEFAULT_VERSION, DEFAULT_URL, tmpdir, 1)
