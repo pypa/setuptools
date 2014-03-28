@@ -9,6 +9,8 @@ CHANGES
 * Issue #97: Added experimental support for PEP 420 namespace package
   discovery via the ``PEP420PackageFinder.find`` method. This new method will
   discover packages for directories lacking an __init__.py module.
+* Issue #176: Add parameter to the test command to support a custom test
+  runner: --test-runner or -r.
 
 ---
 3.3

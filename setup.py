@@ -152,6 +152,7 @@ setup_params = dict(
             "packages               = setuptools.dist:check_packages",
             "dependency_links       = setuptools.dist:assert_string_list",
             "test_loader            = setuptools.dist:check_importable",
+            "test_runner            = setuptools.dist:check_importable",
             "use_2to3               = setuptools.dist:assert_bool",
             "convert_2to3_doctests  = setuptools.dist:assert_string_list",
             "use_2to3_fixers        = setuptools.dist:assert_string_list",

@@ -51,12 +51,14 @@ class test(Command):
         ('test-module=','m', "Run 'test_suite' in specified module"),
         ('test-suite=','s',
             "Test suite to run (e.g. 'some_module.test_suite')"),
+        ('test-runner=', 'r', "Test runner to use"),
     ]
 
     def initialize_options(self):
         self.test_suite = None
         self.test_module = None
         self.test_loader = None
+        self.test_runner = None
 
     def finalize_options(self):
 
@@ -78,6 +80,8 @@ class test(Command):
             self.test_loader = getattr(self.distribution,'test_loader',None)
         if self.test_loader is None:
             self.test_loader = "setuptools.command.test:ScanningLoader"
+        if self.test_runner is None:
+            self.test_runner = getattr(self.distribution, 'test_runner', None)
 
     def with_project_on_sys_path(self, func):
         if sys.version_info >= (3,) and getattr(self.distribution, 'use_2to3', False):
@@ -154,8 +158,10 @@ class test(Command):
 
         loader_ep = EntryPoint.parse("x="+self.test_loader)
         loader_class = loader_ep.load(require=False)
-        cks = loader_class()
+        runner_ep = EntryPoint.parse("x=" + self.test_runner)
+        runner_class = runner_ep.load(require=False)
         unittest.main(
             None, None, [unittest.__file__]+self.test_args,
-            testLoader = cks
+            testLoader=loader_class(),
+            testRunner=runner_class(),
         )
