@@ -16,26 +16,24 @@ class ScanningLoader(TestLoader):
         the return value to the tests.
         """
         tests = []
-        if module.__name__!='setuptools.tests.doctest':  # ugh
-            tests.append(TestLoader.loadTestsFromModule(self,module))
+        if module.__name__ != 'setuptools.tests.doctest':  # ugh
+            tests.append(TestLoader.loadTestsFromModule(self, module))
 
         if hasattr(module, "additional_tests"):
             tests.append(module.additional_tests())
 
         if hasattr(module, '__path__'):
             for file in resource_listdir(module.__name__, ''):
-                if file.endswith('.py') and file!='__init__.py':
-                    submodule = module.__name__+'.'+file[:-3]
+                if file.endswith('.py') and file != '__init__.py':
+                    submodule = module.__name__ + '.' + file[:-3]
                 else:
-                    if resource_exists(
-                        module.__name__, file+'/__init__.py'
-                    ):
+                    if resource_exists(module.__name__, file + '/__init__.py'):
                         submodule = module.__name__+'.'+file
                     else:
                         continue
                 tests.append(self.loadTestsFromName(submodule))
 
-        if len(tests)!=1:
+        if len(tests) != 1:
             return self.suiteClass(tests)
         else:
             return tests[0] # don't create a nested suite for only one return
@@ -66,7 +64,7 @@ class test(Command):
             if self.test_module is None:
                 self.test_suite = self.distribution.test_suite
             else:
-                self.test_suite = self.test_module+".test_suite"
+                self.test_suite = self.test_module + ".test_suite"
         elif self.test_module:
             raise DistutilsOptionError(
                 "You may specify a module or a suite, but not both"
@@ -77,14 +75,18 @@ class test(Command):
         if self.verbose:
             self.test_args.insert(0,'--verbose')
         if self.test_loader is None:
-            self.test_loader = getattr(self.distribution,'test_loader',None)
+            self.test_loader = getattr(self.distribution, 'test_loader', None)
         if self.test_loader is None:
             self.test_loader = "setuptools.command.test:ScanningLoader"
         if self.test_runner is None:
             self.test_runner = getattr(self.distribution, 'test_runner', None)
 
     def with_project_on_sys_path(self, func):
-        if sys.version_info >= (3,) and getattr(self.distribution, 'use_2to3', False):
+        with_2to3 = (
+            sys.version_info >= (3,)
+            and getattr(self.distribution, 'use_2to3', False)
+        )
+        if with_2to3:
             # If we run 2to3 we can not do this inplace:
 
             # Ensure metadata is up-to-date
