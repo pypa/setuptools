@@ -3,8 +3,9 @@
 # them, another kludge to allow you to build old-style non-egg RPMs, and
 # finally, a kludge to track .rpm files for uploading when run on Python <2.5.
 
+import sys
+import os
 from distutils.command.bdist_rpm import bdist_rpm as _bdist_rpm
-import sys, os
 
 class bdist_rpm(_bdist_rpm):
 
@@ -27,25 +28,13 @@ class bdist_rpm(_bdist_rpm):
         self.run_command('egg_info')    # ensure distro name is up-to-date
         _bdist_rpm.run(self)
 
-
-
-
-
-
-
-
-
-
-
-
-
     def _make_spec_file(self):
         version = self.distribution.get_version()
         rpmversion = version.replace('-','_')
         spec = _bdist_rpm._make_spec_file(self)
         line23 = '%define version '+version
         line24 = '%define version '+rpmversion
-        spec  = [
+        spec = [
             line.replace(
                 "Source0: %{name}-%{version}.tar",
                 "Source0: %{name}-%{unmangled_version}.tar"
@@ -60,23 +49,3 @@ class bdist_rpm(_bdist_rpm):
         ]
         spec.insert(spec.index(line24)+1, "%define unmangled_version "+version)
         return spec
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
