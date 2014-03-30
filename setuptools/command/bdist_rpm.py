@@ -11,15 +11,17 @@ class bdist_rpm(_bdist_rpm):
         self.no_egg = None
 
     def run(self):
-        self.run_command('egg_info')    # ensure distro name is up-to-date
+        # ensure distro name is up-to-date
+        self.run_command('egg_info')
+
         _bdist_rpm.run(self)
 
     def _make_spec_file(self):
         version = self.distribution.get_version()
         rpmversion = version.replace('-','_')
         spec = _bdist_rpm._make_spec_file(self)
-        line23 = '%define version '+version
-        line24 = '%define version '+rpmversion
+        line23 = '%define version ' + version
+        line24 = '%define version ' + rpmversion
         spec = [
             line.replace(
                 "Source0: %{name}-%{version}.tar",
@@ -30,8 +32,10 @@ class bdist_rpm(_bdist_rpm):
             ).replace(
                 "%setup",
                 "%setup -n %{name}-%{unmangled_version}"
-            ).replace(line23,line24)
+            ).replace(line23, line24)
             for line in spec
         ]
-        spec.insert(spec.index(line24)+1, "%define unmangled_version "+version)
+        insert_loc = spec.index(line24) + 1
+        unmangled_version = "%define unmangled_version " + version
+        spec.insert(insert_loc, unmangled_version)
         return spec
