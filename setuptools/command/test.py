@@ -158,12 +158,19 @@ class test(Command):
                         del_modules.append(name)
                 list(map(sys.modules.__delitem__, del_modules))
 
-        loader_ep = EntryPoint.parse("x="+self.test_loader)
-        loader_class = loader_ep.load(require=False)
-        runner_ep = EntryPoint.parse("x=" + self.test_runner)
-        runner_class = runner_ep.load(require=False)
         unittest.main(
             None, None, [unittest.__file__]+self.test_args,
-            testLoader=loader_class(),
-            testRunner=runner_class(),
+            testLoader=self._resolve_as_ep(self.test_loader),
+            testRunner=self._resolve_as_ep(self.test_runner),
         )
+
+    @staticmethod
+    def _resolve_as_ep(val):
+        """
+        Load the indicated attribute value, called, as a as if it were
+        specified as an entry point.
+        """
+        if val is None:
+            return
+        parsed = EntryPoint.parse("x=" + val)
+        return parsed.load(require=False)()

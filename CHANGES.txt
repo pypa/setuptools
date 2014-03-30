@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+-----
+3.4.1
+-----
+
+* Issue #180: Fix regression in test command not caught by py.test-run tests.
+
 ---
 3.4
 ---
