@@ -44,9 +44,8 @@ def write_stub(resource, pyfile):
             imp.load_dynamic(__name__,__file__)
         __bootstrap__()
         """).lstrip()
-    f = open(pyfile,'w')
-    f.write(_stub_template % resource)
-    f.close()
+    with open(pyfile, 'w') as f:
+        f.write(_stub_template % resource)
 
 
 class bdist_egg(Command):
