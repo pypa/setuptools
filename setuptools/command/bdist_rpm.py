@@ -1,10 +1,15 @@
-# This is just a kludge so that bdist_rpm doesn't guess wrong about the
-# distribution name and version, if the egg_info command is going to alter
-# them, another kludge to allow you to build old-style non-egg RPMs.
-
 from distutils.command.bdist_rpm import bdist_rpm as _bdist_rpm
 
 class bdist_rpm(_bdist_rpm):
+    """
+    Override the default bdist_rpm behavior to do the following:
+
+    1. Run egg_info to ensure the name and version are properly calculated.
+    2. Always run 'install' using --single-version-externally-managed to
+       disable eggs in RPM distributions.
+    3. Replace dash with underscore in the version numbers for better RPM
+       compatibility.
+    """
 
     def run(self):
         # ensure distro name is up-to-date
