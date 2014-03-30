@@ -3,7 +3,9 @@
 Build .egg distributions"""
 
 # This module should be kept compatible with Python 2.3
-import sys, os, marshal
+import sys
+import os
+import marshal
 from setuptools import Command
 from distutils.dir_util import remove_tree, mkpath
 try:
@@ -33,20 +35,19 @@ def strip_module(filename):
 
 def write_stub(resource, pyfile):
     f = open(pyfile,'w')
-    f.write('\n'.join([
-        "def __bootstrap__():",
-        "   global __bootstrap__, __loader__, __file__",
-        "   import sys, pkg_resources, imp",
-        "   __file__ = pkg_resources.resource_filename(__name__,%r)"
-            % resource,
-        "   __loader__ = None; del __bootstrap__, __loader__",
-        "   imp.load_dynamic(__name__,__file__)",
-        "__bootstrap__()",
-        "" # terminal \n
-    ]))
+    f.write(
+        '\n'.join([
+            "def __bootstrap__():",
+            "   global __bootstrap__, __loader__, __file__",
+            "   import sys, pkg_resources, imp",
+            "   __file__ = pkg_resources.resource_filename(__name__,%r)"
+                % resource,
+            "   __loader__ = None; del __bootstrap__, __loader__",
+            "   imp.load_dynamic(__name__,__file__)",
+            "__bootstrap__()",
+            "" # terminal \n
+        ]))
     f.close()
-
-
 
 
 class bdist_egg(Command):
@@ -56,41 +57,24 @@ class bdist_egg(Command):
     user_options = [
         ('bdist-dir=', 'b',
             "temporary directory for creating the distribution"),
-        ('plat-name=', 'p',
-                     "platform name to embed in generated filenames "
-                     "(default: %s)" % get_build_platform()),
+        ('plat-name=', 'p', "platform name to embed in generated filenames "
+            "(default: %s)" % get_build_platform()),
         ('exclude-source-files', None,
-                     "remove all .py files from the generated egg"),
+            "remove all .py files from the generated egg"),
         ('keep-temp', 'k',
-                     "keep the pseudo-installation tree around after " +
-                     "creating the distribution archive"),
+            "keep the pseudo-installation tree around after " +
+            "creating the distribution archive"),
         ('dist-dir=', 'd',
-                     "directory to put final built distributions in"),
+            "directory to put final built distributions in"),
         ('skip-build', None,
-                     "skip rebuilding everything (for testing/debugging)"),
+            "skip rebuilding everything (for testing/debugging)"),
     ]
 
     boolean_options = [
         'keep-temp', 'skip-build', 'exclude-source-files'
     ]
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    def initialize_options (self):
+    def initialize_options(self):
         self.bdist_dir = None
         self.plat_name = None
         self.keep_temp = 0
@@ -98,7 +82,6 @@ class bdist_egg(Command):
         self.skip_build = 0
         self.egg_output = None
         self.exclude_source_files = None
-
 
     def finalize_options(self):
         ei_cmd = self.ei_cmd = self.get_finalized_command("egg_info")
@@ -123,13 +106,6 @@ class bdist_egg(Command):
             ).egg_name()
 
             self.egg_output = os.path.join(self.dist_dir, basename+'.egg')
-
-
-
-
-
-
-
 
     def do_install_data(self):
         # Hack for packages that install data to install's --install-lib
@@ -156,10 +132,8 @@ class bdist_egg(Command):
         finally:
             self.distribution.data_files = old
 
-
     def get_outputs(self):
         return [self.egg_output]
-
 
     def call_command(self,cmdname,**kw):
         """Invoke reinitialized command `cmdname` with keyword args"""
@@ -171,7 +145,6 @@ class bdist_egg(Command):
         self.run_command(cmdname)
         return cmd
 
-
     def run(self):
         # Generate metadata first
         self.run_command("egg_info")
@@ -179,7 +152,8 @@ class bdist_egg(Command):
         # pull their data path from the install_lib command.
         log.info("installing library code to %s" % self.bdist_dir)
         instcmd = self.get_finalized_command('install')
-        old_root = instcmd.root; instcmd.root = None
+        old_root = instcmd.root
+        instcmd.root = None
         if self.distribution.has_c_libraries() and not self.skip_build:
             self.run_command('build_clib')
         cmd = self.call_command('install_lib', warn_dir=0)
@@ -242,16 +216,13 @@ class bdist_egg(Command):
 
         # Make the archive
         make_zipfile(self.egg_output, archive_root, verbose=self.verbose,
-                          dry_run=self.dry_run, mode=self.gen_header())
+            dry_run=self.dry_run, mode=self.gen_header())
         if not self.keep_temp:
             remove_tree(self.bdist_dir, dry_run=self.dry_run)
 
         # Add to 'Distribution.dist_files' so that the "upload" command works
         getattr(self.distribution,'dist_files',[]).append(
             ('bdist_egg',get_python_version(),self.egg_output))
-
-
-
 
     def zap_pyfiles(self):
         log.info("Removing .py files from temporary directory")
@@ -268,8 +239,6 @@ class bdist_egg(Command):
             return safe
         log.warn("zip_safe flag not set; analyzing archive contents...")
         return analyze_egg(self.bdist_dir, self.stubs)
-
-
 
     def gen_header(self):
         epm = EntryPoint.parse_map(self.distribution.entry_points or '')
@@ -310,7 +279,6 @@ class bdist_egg(Command):
             f.write(header)
             f.close()
         return 'a'
-
 
     def copy_metadata_to(self, target_dir):
         "Copy metadata (egg info) to the target_dir"
@@ -355,8 +323,6 @@ class bdist_egg(Command):
 NATIVE_EXTENSIONS = dict.fromkeys('.dll .so .dylib .pyd'.split())
 
 
-
-
 def walk_egg(egg_dir):
     """Walk an unpacked egg's contents, skipping the metadata directory"""
     walker = os.walk(egg_dir)
@@ -391,7 +357,9 @@ def write_safety_flag(egg_dir, safe):
             if safe is None or bool(safe) != flag:
                 os.unlink(fn)
         elif safe is not None and bool(safe)==flag:
-            f=open(fn,'wt'); f.write('\n'); f.close()
+            f = open(fn,'wt')
+            f.write('\n')
+            f.close()
 
 safety_flags = {
     True: 'zip-safe',
@@ -410,8 +378,10 @@ def scan_module(egg_dir, base, name, stubs):
         skip = 8   # skip magic & date
     else:
         skip = 12  # skip magic & date & file size
-    f = open(filename,'rb'); f.read(skip)
-    code = marshal.load(f); f.close()
+    f = open(filename,'rb')
+    f.read(skip)
+    code = marshal.load(f)
+    f.close()
     safe = True
     symbols = dict.fromkeys(iter_symbols(code))
     for bad in ['__file__', '__path__']:
@@ -451,39 +421,6 @@ def can_scan():
     log.warn("Please ask the author to include a 'zip_safe'"
              " setting (either True or False) in the package's setup.py")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # Attribute names of options for commands that might need to be convinced to
 # install to the egg build directory
 
@@ -492,8 +429,7 @@ INSTALL_DIRECTORY_ATTRS = [
 ]
 
 def make_zipfile(zip_filename, base_dir, verbose=0, dry_run=0, compress=None,
-    mode='w'
-):
+        mode='w'):
     """Create a zip file from all the files under 'base_dir'.  The output
     zip file will be named 'base_dir' + ".zip".  Uses either the "zipfile"
     Python module (if available) or the InfoZIP "zip" utility (if installed
@@ -526,4 +462,3 @@ def make_zipfile(zip_filename, base_dir, verbose=0, dry_run=0, compress=None,
         for dirname, dirs, files in os.walk(base_dir):
             visit(None, dirname, files)
     return zip_filename
-#
