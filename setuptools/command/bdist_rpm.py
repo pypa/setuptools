@@ -6,10 +6,6 @@ from distutils.command.bdist_rpm import bdist_rpm as _bdist_rpm
 
 class bdist_rpm(_bdist_rpm):
 
-    def initialize_options(self):
-        _bdist_rpm.initialize_options(self)
-        self.no_egg = None
-
     def run(self):
         # ensure distro name is up-to-date
         self.run_command('egg_info')
