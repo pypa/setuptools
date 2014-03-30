@@ -54,9 +54,7 @@ class install(_install):
 
         called_from_setup = self._called_from_setup(inspect.currentframe())
         if not called_from_setup:
-            # We weren't called from the command line or setup(), so we
-            # should run in backward-compatibility mode to support bdist_*
-            # commands.
+            # Run in backward-compatibility mode to support bdist_* commands.
             _install.run(self)
         else:
             self.do_egg_install()
