@@ -1,10 +1,7 @@
 # This is just a kludge so that bdist_rpm doesn't guess wrong about the
 # distribution name and version, if the egg_info command is going to alter
-# them, another kludge to allow you to build old-style non-egg RPMs, and
-# finally, a kludge to track .rpm files for uploading when run on Python <2.5.
+# them, another kludge to allow you to build old-style non-egg RPMs.
 
-import sys
-import os
 from distutils.command.bdist_rpm import bdist_rpm as _bdist_rpm
 
 class bdist_rpm(_bdist_rpm):
@@ -12,17 +9,6 @@ class bdist_rpm(_bdist_rpm):
     def initialize_options(self):
         _bdist_rpm.initialize_options(self)
         self.no_egg = None
-
-    if sys.version<"2.5":
-        # Track for uploading any .rpm file(s) moved to self.dist_dir
-        def move_file(self, src, dst, level=1):
-            _bdist_rpm.move_file(self, src, dst, level)
-            if dst==self.dist_dir and src.endswith('.rpm'):
-                getattr(self.distribution,'dist_files',[]).append(
-                    ('bdist_rpm',
-                    src.endswith('.src.rpm') and 'any' or sys.version[:3],
-                     os.path.join(dst, os.path.basename(src)))
-                )
 
     def run(self):
         self.run_command('egg_info')    # ensure distro name is up-to-date
