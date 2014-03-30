@@ -7,5 +7,6 @@ python:
   - pypy
 # command to run tests
 script:
+ - python setup.py test
  - python setup.py ptr
  - python ez_setup.py --version 3.0.2
