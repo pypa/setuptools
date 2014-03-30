@@ -23,6 +23,7 @@ from pkg_resources import working_set, VersionConflict
 from pkg_resources import Distribution as PRDistribution
 import setuptools.tests.server
 import pkg_resources
+from .py26compat import skipIf
 
 class FakeDist(object):
     def get_entry_map(self, group):
@@ -225,6 +226,9 @@ class TestUserInstallTest(unittest.TestCase):
             else:
                 del os.environ['PYTHONPATH']
 
+    @skipIf(sys.version_info < (3, 4),
+        "Test fails on Python 3.3 and earlier due to bug in inspect but only "
+        "when run under setup.py test")
     def test_setup_requires(self):
         """Regression test for Distribute issue #318
 
