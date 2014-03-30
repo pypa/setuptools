@@ -52,8 +52,7 @@ class install(_install):
         if self.old_and_unmanageable or self.single_version_externally_managed:
             return _install.run(self)
 
-        called_from_setup = self._called_from_setup(inspect.currentframe())
-        if not called_from_setup:
+        if not self._called_from_setup(inspect.currentframe()):
             # Run in backward-compatibility mode to support bdist_* commands.
             _install.run(self)
         else:
