@@ -1,5 +1,5 @@
 import setuptools
-import sys
+import inspect
 import glob
 from distutils.command.install import install as _install
 from distutils.errors import DistutilsArgError
@@ -52,7 +52,7 @@ class install(_install):
         if self.old_and_unmanageable or self.single_version_externally_managed:
             return _install.run(self)
 
-        called_from_setup = self._called_from_setup(sys._getframe(2))
+        called_from_setup = self._called_from_setup(inspect.currentframe())
         if not called_from_setup:
             # We weren't called from the command line or setup(), so we
             # should run in backward-compatibility mode to support bdist_*
@@ -62,7 +62,7 @@ class install(_install):
             self.do_egg_install()
 
     @staticmethod
-    def _called_from_setup(run_parent_parent):
+    def _called_from_setup(run_frame):
         """
         Attempt to detect whether we were called from setup() or by another
         command.  If we were called by setup(), our caller will be the
@@ -72,12 +72,13 @@ class install(_install):
         called by 'run_commands'.  This is slightly kludgy, but seems to
         work.
         """
-        caller = run_parent_parent
-        caller_module = caller.f_globals.get('__name__','')
-        caller_name = caller.f_code.co_name
+        res = inspect.getouterframes(run_frame)[2]
+        caller, = res[:1]
+        info = inspect.getframeinfo(caller)
+        caller_module = caller.f_globals.get('__name__', '')
         return (
             caller_module == 'distutils.dist'
-            and caller_name == 'run_commands'
+            and info.function == 'run_commands'
         )
 
     def do_egg_install(self):
