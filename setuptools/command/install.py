@@ -1,6 +1,8 @@
 import setuptools
 import inspect
 import glob
+import warnings
+import platform
 from distutils.command.install import install as _install
 from distutils.errors import DistutilsArgError
 
@@ -66,8 +68,16 @@ class install(_install):
         'run_command' method in 'distutils.dist', and *its* caller will be
         the 'run_commands' method.  If called any other way, the
         immediate caller *might* be 'run_command', but it won't have been
-        called by 'run_commands'. Return True in that case or False otherwise.
+        called by 'run_commands'. Return True in that case or if a call stack
+        is unavailable. Return False otherwise.
         """
+        if run_frame is None:
+            msg = "Call stack not available. bdist_* commands may fail."
+            warnings.warn(msg)
+            if platform.python_implementation() == 'IronPython':
+                msg = "For best results, pass -X:Frames to enable call stack."
+                warnings.warn(msg)
+            return True
         res = inspect.getouterframes(run_frame)[2]
         caller, = res[:1]
         info = inspect.getframeinfo(caller)

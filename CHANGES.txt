@@ -8,6 +8,10 @@ CHANGES
 
 * Issue #176: Add parameter to the test command to support a custom test
   runner: --test-runner or -r.
+* Issue #177: Now assume most common invocation to install command on
+  platforms/environments without stack support (issuing a warning). Setuptools
+  now installs naturally on IronPython. Behavior on CPython should be
+  unchanged.
 
 ---
 3.3
