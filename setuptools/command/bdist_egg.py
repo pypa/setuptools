@@ -6,6 +6,7 @@ Build .egg distributions"""
 import sys
 import os
 import marshal
+import textwrap
 from setuptools import Command
 from distutils.dir_util import remove_tree, mkpath
 try:
@@ -34,19 +35,17 @@ def strip_module(filename):
     return filename
 
 def write_stub(resource, pyfile):
+    _stub_template = textwrap.dedent("""
+        def __bootstrap__():
+            global __bootstrap__, __loader__, __file__
+            import sys, pkg_resources, imp
+            __file__ = pkg_resources.resource_filename(__name__, %r)
+            __loader__ = None; del __bootstrap__, __loader__
+            imp.load_dynamic(__name__,__file__)
+        __bootstrap__()
+        """).lstrip()
     f = open(pyfile,'w')
-    f.write(
-        '\n'.join([
-            "def __bootstrap__():",
-            "   global __bootstrap__, __loader__, __file__",
-            "   import sys, pkg_resources, imp",
-            "   __file__ = pkg_resources.resource_filename(__name__,%r)"
-                % resource,
-            "   __loader__ = None; del __bootstrap__, __loader__",
-            "   imp.load_dynamic(__name__,__file__)",
-            "__bootstrap__()",
-            "" # terminal \n
-        ]))
+    f.write(_stub_template % resource)
     f.close()
 
 
