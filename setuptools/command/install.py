@@ -64,13 +64,12 @@ class install(_install):
     @staticmethod
     def _called_from_setup(run_frame):
         """
-        Attempt to detect whether we were called from setup() or by another
-        command.  If we were called by setup(), our caller will be the
+        Attempt to detect whether run() was called from setup() or by another
+        command.  If called by setup(), the parent caller will be the
         'run_command' method in 'distutils.dist', and *its* caller will be
-        the 'run_commands' method.  If we were called any other way, our
+        the 'run_commands' method.  If called any other way, the
         immediate caller *might* be 'run_command', but it won't have been
-        called by 'run_commands'.  This is slightly kludgy, but seems to
-        work.
+        called by 'run_commands'. Return True in that case or False otherwise.
         """
         res = inspect.getouterframes(run_frame)[2]
         caller, = res[:1]
