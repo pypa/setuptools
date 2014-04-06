@@ -1,10 +1,15 @@
+import unittest
+from unittest import TestLoader
+
 from setuptools import Command
 from distutils.errors import DistutilsOptionError
 import sys
 from pkg_resources import (resource_listdir, resource_exists,
     normalize_path, working_set, _namespace_packages, add_activation_listener,
     require, EntryPoint)
-from unittest import TestLoader
+
+from setuptools.py31compat import unittest_main
+
 
 class ScanningLoader(TestLoader):
 
@@ -141,8 +146,6 @@ class test(Command):
                 self.with_project_on_sys_path(self.run_tests)
 
     def run_tests(self):
-        import unittest
-
         # Purge modules under test from sys.modules. The test loader will
         # re-import them from the build location. Required when 2to3 is used
         # with namespace packages.
@@ -158,7 +161,7 @@ class test(Command):
                         del_modules.append(name)
                 list(map(sys.modules.__delitem__, del_modules))
 
-        unittest.main(
+        unittest_main(
             None, None, [unittest.__file__]+self.test_args,
             testLoader=self._resolve_as_ep(self.test_loader),
             testRunner=self._resolve_as_ep(self.test_runner),

@@ -1,3 +1,6 @@
+import sys
+import unittest
+
 __all__ = ['get_config_vars', 'get_path']
 
 try:
@@ -35,3 +38,15 @@ except ImportError:
             except OSError: #removal errors are not the only possible
                 pass
             self.name = None
+
+
+unittest_main = unittest.main
+
+_PY31 = (3, 1) <= sys.version_info[:2] < (3, 2)
+if _PY31:
+    # on Python 3.1, translate testRunner==None to defaultTestLoader
+    # for compatibility with Python 2.6, 2.7, and 3.2+
+    def unittest_main(*args, **kwargs):
+        if 'testRunner' in kwargs and kwargs['testRunner'] is None:
+            kwargs['testRunner'] = unittest.defaultTestLoader
+        return unittest.main(*args, **kwargs)
