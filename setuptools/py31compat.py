@@ -44,9 +44,9 @@ unittest_main = unittest.main
 
 _PY31 = (3, 1) <= sys.version_info[:2] < (3, 2)
 if _PY31:
-    # on Python 3.1, translate testRunner==None to defaultTestLoader
+    # on Python 3.1, translate testRunner==None to TextTestRunner
     # for compatibility with Python 2.6, 2.7, and 3.2+
     def unittest_main(*args, **kwargs):
         if 'testRunner' in kwargs and kwargs['testRunner'] is None:
-            kwargs['testRunner'] = unittest.defaultTestLoader
+            kwargs['testRunner'] = unittest.TextTestRunner
         return unittest.main(*args, **kwargs)
