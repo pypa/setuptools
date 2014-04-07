@@ -88,6 +88,17 @@ class TestFindPackages(unittest.TestCase):
         packages = find_packages(self.dist_dir)
         self.assertTrue('pkg.some.data' not in packages)
 
+    def test_dir_with_packages_in_subdir_is_excluded(self):
+        """
+        Ensure that a package in a non-package such as build/pkg/__init__.py
+        is excluded.
+        """
+        build_dir = self._mkdir('build', self.dist_dir)
+        build_pkg_dir = self._mkdir('pkg', build_dir)
+        self._touch('__init__.py', build_pkg_dir)
+        packages = find_packages(self.dist_dir)
+        self.assertTrue('build.pkg' not in packages)
+
     def _assert_packages(self, actual, expected):
         self.assertEqual(set(actual), set(expected))
 
