@@ -50,11 +50,28 @@ class PackageFinder(object):
         explicitly excluded packages are removed from it.
         """
         out = cls._find_packages_iter(convert_path(where))
+        out = cls.require_parents(out)
         includes = cls._build_filter(*include)
         excludes = cls._build_filter('ez_setup', '*__pycache__', *exclude)
         out = filter(includes, out)
         out = filterfalse(excludes, out)
         return list(out)
+
+    @staticmethod
+    def require_parents(packages):
+        """
+        Exclude any apparent package that apparently doesn't include its
+        parent.
+
+        For example, exclude 'foo.bar' if 'foo' is not present.
+        """
+        found = []
+        for pkg in packages:
+            base, sep, child = pkg.rpartition('.')
+            if base and base not in found:
+                continue
+            found.append(pkg)
+            yield pkg
 
     @staticmethod
     def _all_dirs(base_path):

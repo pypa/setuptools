@@ -3,6 +3,13 @@ CHANGES
 =======
 
 -----
+3.4.4
+-----
+
+* Issue #184: Correct failure where find_package over-matched packages
+  when directory traversal isn't short-circuited.
+
+-----
 3.4.3
 -----
 
