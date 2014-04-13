@@ -397,7 +397,7 @@ and how it works, as well as the `Zip File Issues`_ section below.
 
 These are zero-length files, and either one or the other should exist.
 If ``zip-safe`` exists, it means that the project will work properly
-when installedas an ``.egg`` zipfile, and conversely the existence of
+when installed as an ``.egg`` zipfile, and conversely the existence of
 ``not-zip-safe`` means the project should not be installed as an
 ``.egg`` file.  The ``zip_safe`` option to setuptools' ``setup()``
 determines which file will be written. If the option isn't provided,
