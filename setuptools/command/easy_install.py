@@ -1583,18 +1583,30 @@ def auto_chmod(func, arg, exc):
     reraise(et, (ev[0], ev[1] + (" %s %s" % (func,arg))))
 
 def uncache_zipdir(path):
-    """Ensure that the importer caches dont have stale info for `path`"""
-    from zipimport import _zip_directory_cache as zdc
-    _uncache(path, zdc)
+    """
+    Remove any globally cached zip file related data for `path`
+
+    Stale zipimport.zipimporter objects need to be removed when a zip file is
+    replaced as they contain cached zip file directory information. If they are
+    asked to get data from their zip file, they will use that cached
+    information to calculate the data location in the zip file. This calculated
+    location may be incorrect for the replaced zip file, which may in turn
+    cause the read operation to either fail or return incorrect data.
+
+    Note we have no way to clear any local caches from here. That is left up to
+    whomever is in charge of maintaining that cache.
+
+    """
+    _uncache(path, zipimport._zip_directory_cache)
     _uncache(path, sys.path_importer_cache)
 
 def _uncache(path, cache):
     if path in cache:
         del cache[path]
     else:
-        path = normalize_path(path)
+        normalized_path = normalize_path(path)
         for p in cache:
-            if normalize_path(p)==path:
+            if normalize_path(p) == normalized_path:
                 del cache[p]
                 return
 
