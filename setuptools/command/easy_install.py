@@ -1597,18 +1597,20 @@ def uncache_zipdir(path):
     whomever is in charge of maintaining that cache.
 
     """
-    _uncache(path, zipimport._zip_directory_cache)
-    _uncache(path, sys.path_importer_cache)
+    normalized_path = normalize_path(path)
+    _uncache(normalized_path, zipimport._zip_directory_cache)
+    _uncache(normalized_path, sys.path_importer_cache)
 
-def _uncache(path, cache):
-    if path in cache:
-        del cache[path]
-    else:
-        normalized_path = normalize_path(path)
-        for p in cache:
-            if normalize_path(p) == normalized_path:
-                del cache[p]
-                return
+def _uncache(normalized_path, cache):
+    to_remove = []
+    prefix_len = len(normalized_path)
+    for p in cache:
+        np = normalize_path(p)
+        if (np.startswith(normalized_path) and
+                np[prefix_len:prefix_len + 1] in (os.sep, '')):
+            to_remove.append(p)
+    for p in to_remove:
+        del cache[p]
 
 def is_python(text, filename='<string>'):
     "Is this string a valid Python script?"
