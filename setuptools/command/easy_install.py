@@ -646,6 +646,15 @@ Please make the appropriate changes for your system and try again.
     def process_distribution(self, requirement, dist, deps=True, *info):
         self.update_pth(dist)
         self.package_index.add(dist)
+        # First remove the dist from self.local_index, to avoid problems using
+        # old cached data in case its underlying file has been replaced.
+        #
+        # This is a quick-fix for a zipimporter caching issue in case the dist
+        # has been implemented as and already loaded from a zip file that got
+        # replaced later on. For more detailed information see setuptools issue
+        # #168 at 'http://bitbucket.org/pypa/setuptools/issue/168'.
+        if dist in self.local_index[dist.key]:
+            self.local_index.remove(dist)
         self.local_index.add(dist)
         self.install_egg_scripts(dist)
         self.installed_projects[dist.key] = dist
