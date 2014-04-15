@@ -28,6 +28,8 @@ import site
 import struct
 from glob import glob
 from distutils import log, dir_util
+from distutils.command.build_scripts import first_line_re
+
 
 import pkg_resources
 from setuptools import Command, _dont_write_bytecode
@@ -1528,8 +1530,6 @@ class PthDistributions(Environment):
 
 
 def _first_line_re():
-    from distutils.command.build_scripts import first_line_re
-
     # first_line_re in Python >=3.1.4 and >=3.2.1 is a bytes pattern.
     if not isinstance(first_line_re.pattern, str):
         return re.compile(first_line_re.pattern.decode())
