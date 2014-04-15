@@ -1526,16 +1526,21 @@ class PthDistributions(Environment):
         else:
             return path
 
-def get_script_header(script_text, executable=sys_executable, wininst=False):
-    """Create a #! line, getting options (if any) from script_text"""
+
+def _first_line_re():
     from distutils.command.build_scripts import first_line_re
 
     # first_line_re in Python >=3.1.4 and >=3.2.1 is a bytes pattern.
     if not isinstance(first_line_re.pattern, str):
-        first_line_re = re.compile(first_line_re.pattern.decode())
+        return re.compile(first_line_re.pattern.decode())
 
+    return first_line_re
+
+
+def get_script_header(script_text, executable=sys_executable, wininst=False):
+    """Create a #! line, getting options (if any) from script_text"""
     first = (script_text+'\n').splitlines()[0]
-    match = first_line_re.match(first)
+    match = _first_line_re().match(first)
     options = ''
     if match:
         options = match.group(1) or ''
