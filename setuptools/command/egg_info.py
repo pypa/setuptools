@@ -168,9 +168,10 @@ class egg_info(Command):
         version = ''
         if self.tag_build:
             version+=self.tag_build
-        if self.tag_svn_revision and (
-            os.path.exists('.svn') or os.path.exists('PKG-INFO')
-        ):  version += '-r%s' % self.get_svn_revision()
+        if self.tag_svn_revision:
+            rev = self.get_svn_revision()
+            if rev:     # is 0 if it's not an svn working copy
+                version += '-r%s' % rev
         if self.tag_date:
             import time
             version += time.strftime("-%Y%m%d")
