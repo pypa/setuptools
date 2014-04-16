@@ -1530,33 +1530,48 @@ class EmptyProvider(NullProvider):
 empty_provider = EmptyProvider()
 
 
-def build_zipmanifest(path):
-    """
-    This builds a similar dictionary to the zipimport directory
-    caches.  However instead of tuples, ZipInfo objects are stored.
+class ZipManifests(object):
 
-    The translation of the tuple is as follows:
-      * [0] - zipinfo.filename on stock pythons this needs "/" --> os.sep
-              on pypy it is the same (one reason why distribute did work
-              in some cases on pypy and win32).
-      * [1] - zipinfo.compress_type
-      * [2] - zipinfo.compress_size
-      * [3] - zipinfo.file_size
-      * [4] - len(utf-8 encoding of filename) if zipinfo & 0x800
-              len(ascii encoding of filename) otherwise
-      * [5] - (zipinfo.date_time[0] - 1980) << 9 |
-               zipinfo.date_time[1] << 5 | zipinfo.date_time[2]
-      * [6] - (zipinfo.date_time[3] - 1980) << 11 |
-               zipinfo.date_time[4] << 5 | (zipinfo.date_time[5] // 2)
-      * [7] - zipinfo.CRC
-    """
-    zipinfo = dict()
-    with ContextualZipFile(path) as zfile:
-        for zitem in zfile.namelist():
-            zpath = zitem.replace('/', os.sep)
-            zipinfo[zpath] = zfile.getinfo(zitem)
-            assert zipinfo[zpath] is not None
-    return zipinfo
+    def __init__(self):
+        self.known = dict()
+
+    def __call__(self, path):
+        path = os.path.normpath(path)
+        stat = os.stat(path)
+
+        if path not in self.known or self.known[path][0] != stat.st_mtime:
+            self.known[path] = (stat.st_mtime, self.build_manifest(path))
+
+        return self.known[path][1]
+
+    def build_manifest(self, path):
+        """
+        This builds a similar dictionary to the zipimport directory
+        caches.  However instead of tuples, ZipInfo objects are stored.
+    
+        The translation of the tuple is as follows:
+          * [0] - zipinfo.filename on stock pythons this needs "/" --> os.sep
+                  on pypy it is the same (one reason why distribute did work
+                  in some cases on pypy and win32).
+          * [1] - zipinfo.compress_type
+          * [2] - zipinfo.compress_size
+          * [3] - zipinfo.file_size
+          * [4] - len(utf-8 encoding of filename) if zipinfo & 0x800
+                  len(ascii encoding of filename) otherwise
+          * [5] - (zipinfo.date_time[0] - 1980) << 9 |
+                   zipinfo.date_time[1] << 5 | zipinfo.date_time[2]
+          * [6] - (zipinfo.date_time[3] - 1980) << 11 |
+                   zipinfo.date_time[4] << 5 | (zipinfo.date_time[5] // 2)
+          * [7] - zipinfo.CRC
+        """
+        zipinfo = dict()
+        with ContextualZipFile(path) as zfile:
+            for zitem in zfile.namelist():
+                zpath = zitem.replace('/', os.sep)
+                zipinfo[zpath] = zfile.getinfo(zitem)
+                assert zipinfo[zpath] is not None
+        return zipinfo
+build_zipmanifest = ZipManifests()
 
 
 class ContextualZipFile(zipfile.ZipFile):
@@ -1586,7 +1601,6 @@ class ZipProvider(EggProvider):
 
     def __init__(self, module):
         EggProvider.__init__(self, module)
-        self.zipinfo = build_zipmanifest(self.loader.archive)
         self.zip_pre = self.loader.archive+os.sep
 
     def _zipinfo_name(self, fspath):
@@ -1802,7 +1816,6 @@ class EggMetadata(ZipProvider):
     def __init__(self, importer):
         """Create a metadata provider from a zipimporter"""
 
-        self.zipinfo = build_zipmanifest(importer.archive)
         self.zip_pre = importer.archive+os.sep
         self.loader = importer
         if importer.prefix:
