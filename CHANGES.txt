@@ -41,6 +41,13 @@ CHANGES
   https://bootstrap.pypa.io/ez_setup.py (mirrored from former location).
 
 -----
+3.4.5
+-----
+
+* Issue #185: Applied patch and added regression tests for making
+  svn tagging work on the new style SVN metadata.
+
+-----
 3.4.4
 -----
 
