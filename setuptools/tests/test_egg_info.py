@@ -138,6 +138,43 @@ class TestSvnDummy(environment.ZippedEnvironment):
 
         return data
 
+    @skipIf(not test_svn._svn_check, "No SVN to text, in the first place")
+    def test_svn_tags(self):
+        code, data = environment.run_setup_py(["egg_info", 
+                                               "--tag-svn-revision"],
+                                              pypath=self.old_cwd,
+                                              data_stream=1)
+        if code:
+            raise AssertionError(data)
+
+        pkginfo = os.path.join('dummy.egg-info', 'PKG-INFO')
+        infile = open(pkginfo, 'r')
+        try:
+            read_contents = infile.readlines()
+        finally:
+            infile.close()
+            del infile
+
+        self.assertIn("Version: 0.1.1-r1\n", read_contents)
+
+    @skipIf(not test_svn._svn_check, "No SVN to text, in the first place")
+    def test_no_tags(self):
+        code, data = environment.run_setup_py(["egg_info"],
+                                              pypath=self.old_cwd,
+                                              data_stream=1)
+        if code:
+            raise AssertionError(data)
+
+        pkginfo = os.path.join('dummy.egg-info', 'PKG-INFO')
+        infile = open(pkginfo, 'r')
+        try:
+            read_contents = infile.readlines()
+        finally:
+            infile.close()
+            del infile
+
+        self.assertIn("Version: 0.1.1\n", read_contents)
+
 
 class TestSvnDummyLegacy(environment.ZippedEnvironment):
 
