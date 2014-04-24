@@ -169,7 +169,7 @@ def download_file_powershell(url, target):
     cmd = [
         'powershell',
         '-Command',
-        "(new-object System.Net.WebClient).DownloadFile(%(url)r, %(target)r)" % vars(),
+        "[System.Net.WebRequest]::DefaultWebProxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials;  (new-object System.Net.WebClient).DownloadFile(%(url)r, %(target)r)" % vars(),
     ]
     _clean_check(cmd, target)
 
