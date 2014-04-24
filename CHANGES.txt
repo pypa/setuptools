@@ -46,6 +46,8 @@ CHANGES
 
 * Issue #185: Applied patch and added regression tests for making
   svn tagging work on the new style SVN metadata.
+* Prune revision control directories (e.g .svn) from base path
+  as well as subfolders.
 
 -----
 3.4.4
