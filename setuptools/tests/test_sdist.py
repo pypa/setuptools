@@ -156,10 +156,11 @@ class TestSdistTest(unittest.TestCase):
             self.fail(e)
 
         # The manifest should contain the UTF-8 filename
-        if sys.version_info >= (3,):
-            self.assertTrue(posix(filename) in u_contents)
-        else:
-            self.assertTrue(posix(filename) in contents)
+        if sys.version_info < (3,):
+            fs_enc = sys.getfilesystemencoding()
+            filename = filename.decode(fs_enc)
+
+        self.assertTrue(posix(filename) in u_contents)
 
     # Python 3 only
     if sys.version_info >= (3,):

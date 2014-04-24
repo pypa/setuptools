@@ -10,7 +10,7 @@ from setuptools import Command
 import distutils.errors
 from distutils import log
 from setuptools.command.sdist import sdist
-from setuptools.compat import basestring
+from setuptools.compat import basestring, unicode
 from setuptools import svn_utils
 from distutils.util import convert_path
 from distutils.filelist import FileList as _FileList
@@ -256,22 +256,37 @@ class manifest_maker(sdist):
         by 'add_defaults()' and 'read_template()') to the manifest file
         named by 'self.manifest'.
         """
-        # The manifest must be UTF-8 encodable. See #303.
-        if sys.version_info >= (3,):
-            files = []
-            for file in self.filelist.files:
-                try:
-                    file.encode("utf-8")
-                except UnicodeEncodeError:
-                    log.warn("'%s' not UTF-8 encodable -- skipping" % file)
-                else:
-                    files.append(file)
-            self.filelist.files = files
 
-        files = self.filelist.files
+        #if files are byte codes they should be filesystem encoded
+        fs_enc = sys.getfilesystemencoding()
+        files = []
+        contents = []
+        for file in self.filelist.files:
+            #In order to ensure the encode behaves, must explicitly
+            #decode non-unicode strings, yet retain original for
+            #filelist cleanup
+            if not isinstance(file, unicode):
+                try:
+                    u_file = file.decode(fs_enc)
+                except UnicodeDecodeError:
+                    log.warn("'%s' in unexpected encoding -- skipping" % file)
+                    continue
+            else:
+                u_file = file
+
+            # The manifest must be UTF-8 encodable. See #303.
+            try:
+                u_file.encode("utf-8")
+            except UnicodeEncodeError:
+                log.warn("'%s' not UTF-8 encodable -- skipping" % file)
+            else:
+                files.append(file)  # possibily byte encoded
+                contents.append(u_file)  # unicode only
+        self.filelist.files = files
+
         if os.sep!='/':
-            files = [f.replace(os.sep,'/') for f in files]
-        self.execute(write_file, (self.manifest, files),
+            contents = [f.replace(os.sep,'/') for f in contents]
+        self.execute(write_file, (self.manifest, contents),
                      "writing manifest file '%s'" % self.manifest)
 
     def warn(self, msg):    # suppress missing-file warnings from sdist
