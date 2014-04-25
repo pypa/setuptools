@@ -397,9 +397,20 @@ class TestSdistTest(unittest.TestCase):
                 filename = filename.decode('latin-1')
                 self.assertFalse(filename in cmd.filelist.files)
         else:
-            # No conversion takes place under Python 2 and the file
-            # is included. We shall keep it that way for BBB.
-            self.assertTrue(filename in cmd.filelist.files)
+            # Under Python 2 there seems to be no decoding of the
+            # filelist.  However, due to decode and encoding of the
+            # file name to utf-8 
+            try:
+                #This seems a bit iffy, but not really what else
+                #since cmd.filelist.files is not encoded, but
+                #want to write out the manifest as UTF-8/
+
+                #This is how one expected the filename to be decoded
+                fs_enc = sys.getfilesystemencoding() 
+                filename.decode(fs_enc)
+                self.assertTrue(filename in cmd.filelist.files)
+            except UnicodeDecodeError:
+                self.assertFalse(filename in cmd.filelist.files)
 
 
 class TestDummyOutput(environment.ZippedEnvironment):
