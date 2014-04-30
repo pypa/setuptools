@@ -1,6 +1,6 @@
-from distutils.command.bdist_rpm import bdist_rpm as _bdist_rpm
+import distutils.command.bdist_rpm as orig
 
-class bdist_rpm(_bdist_rpm):
+class bdist_rpm(orig.bdist_rpm):
     """
     Override the default bdist_rpm behavior to do the following:
 
@@ -15,12 +15,12 @@ class bdist_rpm(_bdist_rpm):
         # ensure distro name is up-to-date
         self.run_command('egg_info')
 
-        _bdist_rpm.run(self)
+        orig.bdist_rpm.run(self)
 
     def _make_spec_file(self):
         version = self.distribution.get_version()
         rpmversion = version.replace('-','_')
-        spec = _bdist_rpm._make_spec_file(self)
+        spec = orig.bdist_rpm._make_spec_file(self)
         line23 = '%define version ' + version
         line24 = '%define version ' + rpmversion
         spec = [

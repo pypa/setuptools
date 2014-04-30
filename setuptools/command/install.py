@@ -3,18 +3,18 @@ import inspect
 import glob
 import warnings
 import platform
-from distutils.command.install import install as _install
+import distutils.command.install as orig
 from distutils.errors import DistutilsArgError
 
-class install(_install):
+class install(orig.install):
     """Use easy_install to install the package, w/dependencies"""
 
-    user_options = _install.user_options + [
+    user_options = orig.install.user_options + [
         ('old-and-unmanageable', None, "Try not to use this!"),
         ('single-version-externally-managed', None,
             "used by system package builders to create 'flat' eggs"),
     ]
-    boolean_options = _install.boolean_options + [
+    boolean_options = orig.install.boolean_options + [
         'old-and-unmanageable', 'single-version-externally-managed',
     ]
     new_commands = [
@@ -24,12 +24,12 @@ class install(_install):
     _nc = dict(new_commands)
 
     def initialize_options(self):
-        _install.initialize_options(self)
+        orig.install.initialize_options(self)
         self.old_and_unmanageable = None
         self.single_version_externally_managed = None
 
     def finalize_options(self):
-        _install.finalize_options(self)
+        orig.install.finalize_options(self)
         if self.root:
             self.single_version_externally_managed = True
         elif self.single_version_externally_managed:
@@ -42,7 +42,7 @@ class install(_install):
     def handle_extra_path(self):
         if self.root or self.single_version_externally_managed:
             # explicit backward-compatibility mode, allow extra_path to work
-            return _install.handle_extra_path(self)
+            return orig.install.handle_extra_path(self)
 
         # Ignore extra_path when installing an egg (or being run by another
         # command without --root or --single-version-externally-managed
@@ -52,11 +52,11 @@ class install(_install):
     def run(self):
         # Explicit request for old-style install?  Just do it
         if self.old_and_unmanageable or self.single_version_externally_managed:
-            return _install.run(self)
+            return orig.install.run(self)
 
         if not self._called_from_setup(inspect.currentframe()):
             # Run in backward-compatibility mode to support bdist_* commands.
-            _install.run(self)
+            orig.install.run(self)
         else:
             self.do_egg_install()
 
@@ -113,5 +113,5 @@ class install(_install):
 
 # XXX Python 3.1 doesn't see _nc if this is inside the class
 install.sub_commands = [
-        cmd for cmd in _install.sub_commands if cmd[0] not in install._nc
+        cmd for cmd in orig.install.sub_commands if cmd[0] not in install._nc
     ] + install.new_commands

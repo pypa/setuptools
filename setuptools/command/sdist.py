@@ -4,7 +4,7 @@ import sys
 from glob import glob
 
 import pkg_resources
-from distutils.command.sdist import sdist as _sdist
+import distutils.command.sdist as orig
 from distutils.util import convert_path
 from distutils import log
 from setuptools import svn_utils
@@ -72,7 +72,7 @@ finders = [
 ]
 
 
-class sdist(_sdist):
+class sdist(orig.sdist):
     """Smart sdist that finds anything supported by revision control"""
 
     user_options = [
@@ -119,7 +119,7 @@ class sdist(_sdist):
         # Doing so prevents an error when easy_install attempts to delete the
         #  file.
         try:
-            _sdist.read_template(self)
+            orig.sdist.read_template(self)
         except:
             sys.exc_info()[2].tb_next.tb_frame.f_locals['template'].close()
             raise
@@ -197,7 +197,7 @@ class sdist(_sdist):
             )
 
     def make_release_tree(self, base_dir, files):
-        _sdist.make_release_tree(self, base_dir, files)
+        orig.sdist.make_release_tree(self, base_dir, files)
 
         # Save any egg_info command line options used to create this sdist
         dest = os.path.join(base_dir, 'setup.cfg')

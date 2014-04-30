@@ -1,6 +1,6 @@
-from distutils.command.bdist_wininst import bdist_wininst as _bdist_wininst
+import distutils.command.bdist_wininst as orig
 
-class bdist_wininst(_bdist_wininst):
+class bdist_wininst(orig.bdist_wininst):
     def reinitialize_command(self, command, reinit_subcommands=0):
         """
         Supplement reinitialize_command to work around
@@ -15,6 +15,6 @@ class bdist_wininst(_bdist_wininst):
     def run(self):
         self._is_running = True
         try:
-            _bdist_wininst.run(self)
+            orig.bdist_wininst.run(self)
         finally:
             self._is_running = False

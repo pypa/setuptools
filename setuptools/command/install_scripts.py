@@ -1,14 +1,13 @@
-from distutils.command.install_scripts import install_scripts \
-     as _install_scripts
+import distutils.command.install_scripts as orig
 from pkg_resources import Distribution, PathMetadata, ensure_directory
 import os
 from distutils import log
 
-class install_scripts(_install_scripts):
+class install_scripts(orig.install_scripts):
     """Do normal script install, plus any egg_info wrapper scripts"""
 
     def initialize_options(self):
-        _install_scripts.initialize_options(self)
+        orig.install_scripts.initialize_options(self)
         self.no_ep = False
 
     def run(self):
@@ -17,7 +16,7 @@ class install_scripts(_install_scripts):
 
         self.run_command("egg_info")
         if self.distribution.scripts:
-            _install_scripts.run(self)  # run first to set up self.outfiles
+            orig.install_scripts.run(self)  # run first to set up self.outfiles
         else:
             self.outfiles = []
         if self.no_ep:

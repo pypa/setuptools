@@ -1,7 +1,7 @@
-from distutils.command.install_lib import install_lib as _install_lib
+import distutils.command.install_lib as orig
 import os
 
-class install_lib(_install_lib):
+class install_lib(orig.install_lib):
     """Don't add compiled flags to filenames of non-Python files"""
 
     def run(self):
@@ -34,7 +34,7 @@ class install_lib(_install_lib):
         exclude = self.get_exclusions()
 
         if not exclude:
-            return _install_lib.copy_tree(self, infile, outfile)
+            return orig.install_lib.copy_tree(self, infile, outfile)
 
         # Exclude namespace package __init__.py* files from the output
 
@@ -56,7 +56,7 @@ class install_lib(_install_lib):
         return outfiles
 
     def get_outputs(self):
-        outputs = _install_lib.get_outputs(self)
+        outputs = orig.install_lib.get_outputs(self)
         exclude = self.get_exclusions()
         if exclude:
             return [f for f in outputs if f not in exclude]

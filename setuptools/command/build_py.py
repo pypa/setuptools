@@ -2,7 +2,7 @@ import os
 import sys
 import fnmatch
 import textwrap
-from distutils.command.build_py import build_py as _build_py
+import distutils.command.build_py as orig
 from distutils.util import convert_path
 from glob import glob
 
@@ -13,7 +13,7 @@ except ImportError:
         def run_2to3(self, files, doctests=True):
             "do nothing"
 
-class build_py(_build_py, Mixin2to3):
+class build_py(orig.build_py, Mixin2to3):
     """Enhanced 'build_py' command that includes data files with packages
 
     The data files are specified via a 'package_data' argument to 'setup()'.
@@ -23,7 +23,7 @@ class build_py(_build_py, Mixin2to3):
     'py_modules' and 'packages' in the same setup operation.
     """
     def finalize_options(self):
-        _build_py.finalize_options(self)
+        orig.build_py.finalize_options(self)
         self.package_data = self.distribution.package_data
         self.exclude_package_data = self.distribution.exclude_package_data or {}
         if 'data_files' in self.__dict__: del self.__dict__['data_files']
@@ -48,16 +48,16 @@ class build_py(_build_py, Mixin2to3):
 
         # Only compile actual .py files, using our base class' idea of what our
         # output files are.
-        self.byte_compile(_build_py.get_outputs(self, include_bytecode=0))
+        self.byte_compile(orig.build_py.get_outputs(self, include_bytecode=0))
 
     def __getattr__(self, attr):
         if attr=='data_files':  # lazily compute data files
             self.data_files = files = self._get_data_files()
             return files
-        return _build_py.__getattr__(self,attr)
+        return orig.build_py.__getattr__(self,attr)
 
     def build_module(self, module, module_file, package):
-        outfile, copied = _build_py.build_module(self, module, module_file, package)
+        outfile, copied = orig.build_py.build_module(self, module, module_file, package)
         if copied:
             self.__updated_files.append(outfile)
         return outfile, copied
@@ -140,7 +140,7 @@ class build_py(_build_py, Mixin2to3):
             needed for the 'install_lib' command to do its job properly, and to
             generate a correct installation manifest.)
             """
-            return _build_py.get_outputs(self, include_bytecode) + [
+            return orig.build_py.get_outputs(self, include_bytecode) + [
                 os.path.join(build_dir, filename)
                 for package, src_dir, build_dir,filenames in self.data_files
                 for filename in filenames
@@ -153,7 +153,7 @@ class build_py(_build_py, Mixin2to3):
         except KeyError:
             pass
 
-        init_py = _build_py.check_package(self, package, package_dir)
+        init_py = orig.build_py.check_package(self, package, package_dir)
         self.packages_checked[package] = init_py
 
         if not init_py or not self.distribution.namespace_packages:
@@ -179,10 +179,10 @@ class build_py(_build_py, Mixin2to3):
 
     def initialize_options(self):
         self.packages_checked={}
-        _build_py.initialize_options(self)
+        orig.build_py.initialize_options(self)
 
     def get_package_dir(self, package):
-        res = _build_py.get_package_dir(self, package)
+        res = orig.build_py.get_package_dir(self, package)
         if self.distribution.src_root is not None:
             return os.path.join(self.distribution.src_root, res)
         return res
