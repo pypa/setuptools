@@ -15,7 +15,7 @@ including just a single `bootstrap module`_ (a 12K .py file), your package will
 automatically download and install ``setuptools`` if the user is building your
 package from source and doesn't have a suitable version already installed.
 
-.. _bootstrap module: https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py
+.. _bootstrap module: https://bootstrap.pypa.io/ez_setup.py
 
 Feature Highlights:
 

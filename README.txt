@@ -21,7 +21,7 @@ on Python 2.4 or Python 2.5, use the `bootstrap script for Setuptools 1.x
 The link provided to ez_setup.py is a bookmark to bootstrap script for the
 latest known stable release.
 
-.. _ez_setup.py: https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py
+.. _ez_setup.py: https://bootstrap.pypa.io/ez_setup.py
 
 Windows 8 (Powershell)
 ======================
@@ -31,18 +31,18 @@ For best results, uninstall previous versions FIRST (see `Uninstalling`_).
 Using Windows 8 or later, it's possible to install with one simple Powershell
 command. Start up Powershell and paste this command::
 
-    > (Invoke-WebRequest https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py).Content | python -
+    > (Invoke-WebRequest https://bootstrap.pypa.io/ez_setup.py).Content | python -
 
 You must start the Powershell with Administrative privileges or you may choose
 to install a user-local installation::
 
-    > (Invoke-WebRequest https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py).Content | python - --user
+    > (Invoke-WebRequest https://bootstrap.pypa.io/ez_setup.py).Content | python - --user
 
 If you have Python 3.3 or later, you can use the ``py`` command to install to
 different Python versions. For example, to install to Python 3.3 if you have
 Python 2.7 installed::
 
-    > (Invoke-WebRequest https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py).Content | py -3 -
+    > (Invoke-WebRequest https://bootstrap.pypa.io/ez_setup.py).Content | py -3 -
 
 The recommended way to install setuptools on Windows is to download
 `ez_setup.py`_ and run it. The script will download the appropriate .egg
@@ -70,16 +70,16 @@ Most Linux distributions come with wget.
 Download `ez_setup.py`_ and run it using the target Python version. The script
 will download the appropriate version and install it for you::
 
-    > wget https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py -O - | python
+    > wget https://bootstrap.pypa.io/ez_setup.py -O - | python
 
 Note that you will may need to invoke the command with superuser privileges to
 install to the system Python::
 
-    > wget https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py -O - | sudo python
+    > wget https://bootstrap.pypa.io/ez_setup.py -O - | sudo python
 
 Alternatively, Setuptools may be installed to a user-local path::
 
-    > wget https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py -O - | python - --user
+    > wget https://bootstrap.pypa.io/ez_setup.py -O - | python - --user
 
 Unix including Mac OS X (curl)
 ==============================
@@ -87,7 +87,7 @@ Unix including Mac OS X (curl)
 If your system has curl installed, follow the ``wget`` instructions but
 replace ``wget`` with ``curl`` and ``-O`` with ``-o``. For example::
 
-    > curl https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py -o - | python
+    > curl https://bootstrap.pypa.io/ez_setup.py -o - | python
 
 
 Advanced Installation
