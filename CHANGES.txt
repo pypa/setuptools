@@ -6,8 +6,12 @@ CHANGES
 3.5
 ---
 
+* Issue #195: Follow symbolic links in find_packages (restoring behavior
+  broken in 3.4).
 * Issue #197: On Python 3.1, PKG-INFO is now saved in a UTF-8 encoding instead
   of ``sys.getpreferredencoding`` to match the behavior on Python 2.6-3.4.
+* Issue #192: Preferred bootstrap location is now
+  https://bootstrap.pypa.io/ez_setup.py (mirrored from former location).
 
 -----
 3.4.4
