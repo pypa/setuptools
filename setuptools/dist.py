@@ -7,6 +7,7 @@ import warnings
 import distutils.log
 import distutils.core
 import distutils.cmd
+import distutils.dist
 from distutils.core import Distribution as _Distribution
 from distutils.errors import (DistutilsOptionError, DistutilsPlatformError,
     DistutilsSetupError)
@@ -30,6 +31,26 @@ def _get_unpatched(cls):
     return cls
 
 _Distribution = _get_unpatched(_Distribution)
+
+def _patch_distribution_metadata_write_pkg_info():
+    """
+    Workaround issue #197 - Python 3.1 uses an environment-local encoding to
+    save the pkg_info. Monkey-patch its write_pkg_info method to correct
+    this undesirable behavior.
+    """
+    if sys.version_info[:2] != (3,1):
+        return
+
+    # from Python 3.4
+    def write_pkg_info(self, base_dir):
+        """Write the PKG-INFO file into the release tree.
+        """
+        with open(os.path.join(base_dir, 'PKG-INFO'), 'w',
+                  encoding='UTF-8') as pkg_info:
+            self.write_pkg_file(pkg_info)
+
+    distutils.dist.DistributionMetadata.write_pkg_info = write_pkg_info
+_patch_distribution_metadata_write_pkg_info()
 
 sequence = tuple, list
 

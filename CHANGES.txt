@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+---
+3.5
+---
+
+* Issue #197: On Python 3.1, PKG-INFO is now saved in a UTF-8 encoding instead
+  of ``sys.getpreferredencoding`` to match the behavior on Python 2.6-3.4.
+
 -----
 3.4.4
 -----
