@@ -1,13 +1,23 @@
 """Tests for setuptools.find_packages()."""
 import os
+import sys
 import shutil
 import tempfile
 import unittest
+import platform
 
 import setuptools
 from setuptools import find_packages
+from setuptools.tests.py26compat import skipIf
 
 find_420_packages = setuptools.PEP420PackageFinder.find
+
+def has_symlink():
+    bad_symlink = (
+        # Windows symlink directory detection is broken on Python 3.2
+        platform.system() == 'Windows' and sys.version_info[:2] == (3,2)
+    )
+    return hasattr(os, 'symlink') and not bad_symlink
 
 class TestFindPackages(unittest.TestCase):
 
@@ -98,6 +108,21 @@ class TestFindPackages(unittest.TestCase):
         self._touch('__init__.py', build_pkg_dir)
         packages = find_packages(self.dist_dir)
         self.assertTrue('build.pkg' not in packages)
+
+    @skipIf(not has_symlink(), 'Symlink support required')
+    def test_symlinked_packages_are_included(self):
+        """
+        A symbolically-linked directory should be treated like any other
+        directory when matched as a package.
+
+        Create a link from lpkg -> pkg.
+        """
+        self._touch('__init__.py', self.pkg_dir)
+        linked_pkg = os.path.join(self.dist_dir, 'lpkg')
+        os.symlink('pkg', linked_pkg)
+        assert os.path.isdir(linked_pkg)
+        packages = find_packages(self.dist_dir)
+        self.assertTrue('lpkg' in packages)
 
     def _assert_packages(self, actual, expected):
         self.assertEqual(set(actual), set(expected))
