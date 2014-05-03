@@ -304,7 +304,8 @@ def write_file(filename, contents):
     sequence of strings without line terminators) to it.
     """
     contents = "\n".join(contents)
-    contents = contents.encode("utf-8")
+    if sys.version_info >= (3,):
+        contents = contents.encode("utf-8")
     f = open(filename, "wb")        # always write POSIX-style manifest
     f.write(contents)
     f.close()
