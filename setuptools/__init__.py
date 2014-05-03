@@ -78,7 +78,7 @@ class PackageFinder(object):
         """
         Return all dirs in base_path, relative to base_path
         """
-        for root, dirs, files in os.walk(base_path):
+        for root, dirs, files in os.walk(base_path, followlinks=True):
             for dir in dirs:
                 yield os.path.relpath(os.path.join(root, dir), base_path)
 
