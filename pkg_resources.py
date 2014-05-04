@@ -29,6 +29,7 @@ import token
 import symbol
 import operator
 import platform
+import bisect
 from pkgutil import get_importer
 
 try:
@@ -776,7 +777,6 @@ class Environment(object):
         running platform or Python version.
         """
         self._distmap = {}
-        self._cache = {}
         self.platform = platform
         self.python = python
         self.scan(search_path)
@@ -819,46 +819,8 @@ class Environment(object):
         lowercase as their key.
 
         """
-        # Result caching here serves two purposes:
-        #  1. Speed up the project_name --> distribution list lookup.
-        #  2. 'First access' flag indicating the distribution list requires
-        #     sorting before it can be returned to the user.
-        #TODO: This caching smells like premature optimization. It could be
-        # that the distribution list lookup speed is not really affected by
-        # this, in which case the whole cache could be removed and replaced
-        # with a single 'dist_list_sorted' flag. This seems strongly indicated
-        # by the fact that this function does not really cache the distribution
-        # list under the given project name but only under its canonical
-        # distribution key variant. That means that repeated access using a non
-        # canonical project name does not get any speedup at all.
-        try:
-            return self._cache[project_name]
-        except KeyError:
-            pass
-
-        # We expect all distribution keys to contain lower-case characters
-        # only.
-        #TODO: See if this expectation can be implemented better, e.g. by using
-        # some sort of a name --> key conversion function on the Distribution
-        # class or something similar.
-        #TODO: This requires all classes derived from Distribution to use
-        # lower-case only keys even if they do not calculate them from the
-        # project's name. It might be better to make this function simpler by
-        # passing it the the exact distribution key as a parameter and have the
-        # caller convert a `project_name` to its corresponding distribution key
-        # as needed.
         distribution_key = project_name.lower()
-        try:
-            dists = self._distmap[distribution_key]
-        except KeyError:
-            return []
-
-        # Sort the project's distribution list lazily on first access.
-        if distribution_key not in self._cache:
-            self._cache[distribution_key] = dists
-            _sort_dists(dists)
-
-        return dists
+        return self._distmap.get(distribution_key, [])
 
     def add(self, dist):
         """Add `dist` if we ``can_add()`` it and it has not already been added
@@ -866,15 +828,7 @@ class Environment(object):
         if self.can_add(dist) and dist.has_version():
             dists = self._distmap.setdefault(dist.key, [])
             if dist not in dists:
-                dists.append(dist)
-                cached_dists = self._cache.get(dist.key)
-                if cached_dists:
-                    # The distribution list has been cached on first access,
-                    # therefore we know it has already been sorted lazily and
-                    # we are expected to keep it in sorted order.
-                    _sort_dists(dists)
-                    assert cached_dists is dists,  \
-                        "Distribution list cache corrupt."
+                bisect.insort(dists, dist)
 
     def best_match(self, req, working_set, installer=None):
         """Find distribution best matching `req` and usable on `working_set`
