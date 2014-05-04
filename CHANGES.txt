@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+-----
+3.5.1
+-----
+
+* Issue #199: Restored ``install._install`` for compatibility with earlier
+  NumPy versions.
+
 ---
 3.5
 ---

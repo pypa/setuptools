@@ -6,6 +6,10 @@ import platform
 import distutils.command.install as orig
 from distutils.errors import DistutilsArgError
 
+# Prior to numpy 1.9, NumPy relies on the '_install' name, so provide it for
+#  now. See https://bitbucket.org/pypa/setuptools/issue/199/
+_install = orig.install
+
 class install(orig.install):
     """Use easy_install to install the package, w/dependencies"""
 
