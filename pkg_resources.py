@@ -1164,8 +1164,8 @@ class MarkerEvaluation(object):
     values = {
         'os_name': lambda: os.name,
         'sys_platform': lambda: sys.platform,
-        'python_full_version': lambda: sys.version.split()[0],
-        'python_version': lambda:'%s.%s' % (sys.version_info[0], sys.version_info[1]),
+        'python_full_version': platform.python_version,
+        'python_version': lambda: platform.python_version()[:3],
         'platform_version': platform.version,
         'platform_machine': platform.machine,
         'python_implementation': platform.python_implementation,
