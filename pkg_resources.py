@@ -2601,12 +2601,6 @@ def parse_requirements(strs):
         yield Requirement(project_name, specs, extras)
 
 
-def _sort_dists(dists):
-    tmp = [(dist.hashcmp,dist) for dist in dists]
-    tmp.sort()
-    dists[::-1] = [d for hc,d in tmp]
-
-
 class Requirement:
     def __init__(self, project_name, specs, extras):
         """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
