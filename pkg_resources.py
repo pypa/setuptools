@@ -2200,16 +2200,17 @@ class Distribution(object):
             py_version=py_version, platform=platform, **kw
         )
 
-    hashcmp = property(
-        lambda self: (
-            getattr(self,'parsed_version',()),
+    @property
+    def hashcmp(self):
+        return (
+            getattr(self, 'parsed_version', ()),
             self.precedence,
             self.key,
             _remove_md5_fragment(self.location),
             self.py_version,
-            self.platform
+            self.platform,
         )
-    )
+
     def __hash__(self): return hash(self.hashcmp)
     def __lt__(self, other):
         return self.hashcmp < other.hashcmp
