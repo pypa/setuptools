@@ -2655,10 +2655,10 @@ class Requirement:
         self.index, self.extras = index, tuple(map(safe_extra, extras))
         self.hashCmp = (
             self.key,
-            tuple([
+            tuple(
                 (op, parsed)
                 for parsed, trans, op, ver in index
-            ]),
+            ),
             frozenset(self.extras),
         )
         self.__hash = hash(self.hashCmp)
