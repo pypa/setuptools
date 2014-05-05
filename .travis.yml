@@ -4,9 +4,10 @@ python:
   - 2.7
   - 3.2
   - 3.3
+  - 3.4
   - pypy
 # command to run tests
 script:
  - python setup.py test
  - python setup.py ptr
- - python ez_setup.py --version 3.0.2
+ - python ez_setup.py --version 3.5.1
