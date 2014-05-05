@@ -147,7 +147,8 @@ def get_supported_platform():
 __all__ = [
     # Basic resource access and distribution/entry point discovery
     'require', 'run_script', 'get_provider',  'get_distribution',
-    'load_entry_point', 'get_entry_map', 'get_entry_info', 'iter_entry_points',
+    'load_entry_point', 'get_entry_map', 'get_entry_info',
+    'iter_entry_points',
     'resource_string', 'resource_stream', 'resource_filename',
     'resource_listdir', 'resource_exists', 'resource_isdir',
 
@@ -161,8 +162,8 @@ __all__ = [
     'Distribution', 'Requirement', 'EntryPoint',
 
     # Exceptions
-    'ResolutionError','VersionConflict','DistributionNotFound','UnknownExtra',
-    'ExtractionError',
+    'ResolutionError', 'VersionConflict', 'DistributionNotFound',
+    'UnknownExtra', 'ExtractionError',
 
     # Parsing functions and string utilities
     'parse_requirements', 'parse_version', 'safe_name', 'safe_version',
