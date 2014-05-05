@@ -1844,7 +1844,8 @@ def find_on_path(importer, path_item, only=False):
                         path_item, entry, metadata, precedence=DEVELOP_DIST
                     )
                 elif not only and lower.endswith('.egg'):
-                    for dist in find_distributions(os.path.join(path_item, entry)):
+                    dists = find_distributions(os.path.join(path_item, entry))
+                    for dist in dists:
                         yield dist
                 elif not only and lower.endswith('.egg-link'):
                     entry_file = open(os.path.join(path_item, entry))
@@ -1853,8 +1854,11 @@ def find_on_path(importer, path_item, only=False):
                     finally:
                         entry_file.close()
                     for line in entry_lines:
-                        if not line.strip(): continue
-                        for item in find_distributions(os.path.join(path_item, line.rstrip())):
+                        if not line.strip():
+                            continue
+                        path = os.path.join(path_item, line.rstrip())
+                        dists = find_distributions(path)
+                        for item in dists:
                             yield item
                         break
 register_finder(pkgutil.ImpImporter, find_on_path)
@@ -2103,7 +2107,8 @@ class EntryPoint(object):
 
     def load(self, require=True, env=None, installer=None):
         if require: self.require(env, installer)
-        entry = __import__(self.module_name, globals(), globals(), ['__name__'])
+        entry = __import__(self.module_name, globals(), globals(),
+            ['__name__'])
         for attr in self.attrs:
             try:
                 entry = getattr(entry, attr)
@@ -2114,8 +2119,9 @@ class EntryPoint(object):
     def require(self, env=None, installer=None):
         if self.extras and not self.dist:
             raise UnknownExtra("Can't require() without a distribution", self)
-        list(map(working_set.add,
-            working_set.resolve(self.dist.requires(self.extras), env, installer)))
+        reqs = self.dist.requires(self.extras)
+        items = working_set.resolve(reqs, env, installer)
+        list(map(working_set.add, items))
 
     @classmethod
     def parse(cls, src, dist=None):
@@ -2289,9 +2295,8 @@ class Distribution(object):
                     self._version = safe_version(line.split(':',1)[1].strip())
                     return self._version
             else:
-                raise ValueError(
-                    "Missing 'Version:' header and/or %s file" % self.PKG_INFO, self
-                )
+                tmpl = "Missing 'Version:' header and/or %s file"
+                raise ValueError(tmpl % self.PKG_INFO, self)
 
     @property
     def _dep_map(self):
@@ -2499,7 +2504,8 @@ class DistInfoDistribution(Distribution):
             return self._pkg_info
         except AttributeError:
             from email.parser import Parser
-            self._pkg_info = Parser().parsestr(self.get_metadata(self.PKG_INFO))
+            metadata = self.get_metadata(self.PKG_INFO)
+            self._pkg_info = Parser().parsestr(metadata)
             return self._pkg_info
 
     @property
@@ -2596,18 +2602,19 @@ def parse_requirements(strs):
 
             match = ITEM(line, p)
             if not match:
-                raise ValueError("Expected "+item_name+" in",line,"at",line[p:])
+                msg = "Expected " + item_name + " in"
+                raise ValueError(msg, line, "at", line[p:])
 
             items.append(match.group(*groups))
             p = match.end()
 
             match = COMMA(line, p)
             if match:
-                p = match.end() # skip the comma
+                # skip the comma
+                p = match.end()
             elif not TERMINATOR(line, p):
-                raise ValueError(
-                    "Expected ',' or end-of-list in",line,"at",line[p:]
-                )
+                msg = "Expected ',' or end-of-list in"
+                raise ValueError(msg, line, "at", line[p:])
 
         match = TERMINATOR(line, p)
         if match: p = match.end()   # skip the terminator, if any
@@ -2628,7 +2635,8 @@ def parse_requirements(strs):
                 DISTRO, CBRACKET, line, p, (1,), "'extra' name"
             )
 
-        line, p, specs = scan_list(VERSION, LINE_END, line, p, (1, 2),"version spec")
+        line, p, specs = scan_list(VERSION, LINE_END, line, p, (1, 2),
+            "version spec")
         specs = [(op, safe_version(val)) for op, val in specs]
         yield Requirement(project_name, specs, extras)
 
@@ -2638,13 +2646,20 @@ class Requirement:
         """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
         self.unsafe_name, project_name = project_name, safe_name(project_name)
         self.project_name, self.key = project_name, project_name.lower()
-        index = [(parse_version(v), state_machine[op], op, v) for op, v in specs]
+        index = [
+            (parse_version(v), state_machine[op], op, v)
+            for op, v in specs
+        ]
         index.sort()
         self.specs = [(op, ver) for parsed, trans, op, ver in index]
         self.index, self.extras = index, tuple(map(safe_extra, extras))
         self.hashCmp = (
-            self.key, tuple([(op, parsed) for parsed, trans, op, ver in index]),
-            frozenset(self.extras)
+            self.key,
+            tuple([
+                (op, parsed)
+                for parsed, trans, op, ver in index
+            ]),
+            frozenset(self.extras),
         )
         self.__hash = hash(self.hashCmp)
 
@@ -2659,8 +2674,11 @@ class Requirement:
 
     def __contains__(self, item):
         if isinstance(item, Distribution):
-            if item.key != self.key: return False
-            if self.index: item = item.parsed_version  # only get if we need it
+            if item.key != self.key:
+                return False
+            # only get if we need it
+            if self.index:
+                item = item.parsed_version
         elif isinstance(item, basestring):
             item = parse_version(item)
         last = None
