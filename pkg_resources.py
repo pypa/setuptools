@@ -141,7 +141,8 @@ def get_supported_platform():
         try:
             plat = 'macosx-%s-%s' % ('.'.join(_macosx_vers()[:2]), m.group(3))
         except ValueError:
-            pass    # not Mac OS X
+            # not Mac OS X
+            pass
     return plat
 
 __all__ = [
@@ -248,7 +249,7 @@ def _macosx_vers(_cache=[]):
     return _cache[0]
 
 def _macosx_arch(machine):
-    return {'PowerPC':'ppc', 'Power_Macintosh':'ppc'}.get(machine, machine)
+    return {'PowerPC': 'ppc', 'Power_Macintosh': 'ppc'}.get(machine, machine)
 
 def get_build_platform():
     """Return this platform's string for platform-specific distributions
@@ -277,7 +278,8 @@ def get_build_platform():
 
 macosVersionString = re.compile(r"macosx-(\d+)\.(\d+)-(.*)")
 darwinVersionString = re.compile(r"darwin-(\d+)\.(\d+)\.(\d+)-(.*)")
-get_platform = get_build_platform   # XXX backward compat
+# XXX backward compat
+get_platform = get_build_platform
 
 
 def compatible_platforms(provided, required):
@@ -288,7 +290,8 @@ def compatible_platforms(provided, required):
     XXX Needs compatibility checks for Linux and other unixy OSes.
     """
     if provided is None or required is None or provided==required:
-        return True     # easy case
+        # easy case
+        return True
 
     # Mac OS X special cases
     reqMac = macosVersionString.match(required)
@@ -337,7 +340,8 @@ def run_script(dist_spec, script_name):
     ns['__name__'] = name
     require(dist_spec)[0].run_script(script_name, ns)
 
-run_main = run_script   # backward compatibility
+# backward compatibility
+run_main = run_script
 
 def get_distribution(dist):
     """Return a current distribution object for a Requirement or string"""
@@ -501,7 +505,8 @@ class WorkingSet(object):
         """
         dist = self.by_key.get(req.key)
         if dist is not None and dist not in req:
-            raise VersionConflict(dist, req)     # XXX add more info
+            # XXX add more info
+            raise VersionConflict(dist, req)
         else:
             return dist
 
@@ -565,7 +570,8 @@ class WorkingSet(object):
         keys = self.entry_keys.setdefault(entry,[])
         keys2 = self.entry_keys.setdefault(dist.location,[])
         if not replace and dist.key in self.by_key:
-            return      # ignore hidden distros
+            # ignore hidden distros
+            return
 
         self.by_key[dist.key] = dist
         if dist.key not in keys:
@@ -593,13 +599,17 @@ class WorkingSet(object):
         it.
         """
 
-        requirements = list(requirements)[::-1]  # set up the stack
-        processed = {}  # set of processed requirements
-        best = {}  # key -> dist
+        # set up the stack
+        requirements = list(requirements)[::-1]
+        # set of processed requirements
+        processed = {}
+        # key -> dist
+        best = {}
         to_activate = []
 
         while requirements:
-            req = requirements.pop(0)   # process dependencies breadth-first
+            # process dependencies breadth-first
+            req = requirements.pop(0)
             if req in processed:
                 # Ignore cyclic or redundant dependencies
                 continue
@@ -634,7 +644,8 @@ class WorkingSet(object):
             requirements.extend(dist.requires(req.extras)[::-1])
             processed[req] = True
 
-        return to_activate    # return list of distros to activate
+        # return list of distros to activate
+        return to_activate
 
     def find_plugins(self, plugin_env, full_env=None, installer=None,
             fallback=True):
@@ -671,7 +682,8 @@ class WorkingSet(object):
         """
 
         plugin_projects = list(plugin_env)
-        plugin_projects.sort()  # scan project names in alphabetic order
+        # scan project names in alphabetic order
+        plugin_projects.sort()
 
         error_info = {}
         distributions = {}
@@ -683,7 +695,8 @@ class WorkingSet(object):
             env = full_env + plugin_env
 
         shadow_set = self.__class__([])
-        list(map(shadow_set.add, self))   # put all our entries in shadow_set
+        # put all our entries in shadow_set
+        list(map(shadow_set.add, self))
 
         for project_name in plugin_projects:
 
@@ -696,11 +709,14 @@ class WorkingSet(object):
 
                 except ResolutionError:
                     v = sys.exc_info()[1]
-                    error_info[dist] = v    # save error info
+                    # save error info
+                    error_info[dist] = v
                     if fallback:
-                        continue    # try the next older version of project
+                        # try the next older version of project
+                        continue
                     else:
-                        break       # give up on this project, keep going
+                        # give up on this project, keep going
+                        break
 
                 else:
                     list(map(shadow_set.add, resolvees))
@@ -851,7 +867,8 @@ class Environment(object):
         for dist in self[req.key]:
             if dist in req:
                 return dist
-        return self.obtain(req, installer) # try and download/install
+        # try to download/install
+        return self.obtain(req, installer)
 
     def obtain(self, requirement, installer=None):
         """Obtain a distribution matching `requirement` (e.g. via download)
@@ -890,7 +907,8 @@ class Environment(object):
         return new
 
 
-AvailableDistributions = Environment    # XXX backward compatibility
+# XXX backward compatibility
+AvailableDistributions = Environment
 
 
 class ExtractionError(RuntimeError):
@@ -1100,14 +1118,17 @@ def get_default_cache():
     if os.name!='nt':
         return os.path.expanduser('~/.python-eggs')
 
-    app_data = 'Application Data'   # XXX this may be locale-specific!
+    # XXX this may be locale-specific!
+    app_data = 'Application Data'
     app_homes = [
-        (('APPDATA',), None),       # best option, should be locale-safe
+        # best option, should be locale-safe
+        (('APPDATA',), None),
         (('USERPROFILE',), app_data),
         (('HOMEDRIVE','HOMEPATH'), app_data),
         (('HOMEPATH',), app_data),
         (('HOME',), None),
-        (('WINDIR',), app_data),    # 95/98/ME
+        # 95/98/ME
+        (('WINDIR',), app_data),
     ]
 
     for keys, subdir in app_homes:
@@ -1589,8 +1610,9 @@ class ZipProvider(EggProvider):
     @staticmethod
     def _get_date_and_size(zip_stat):
         size = zip_stat.file_size
-        date_time = zip_stat.date_time + (0, 0, -1)  # ymdhms+wday, yday, dst
-        #1980 offset already done
+        # ymdhms+wday, yday, dst
+        date_time = zip_stat.date_time + (0, 0, -1)
+        # 1980 offset already done
         timestamp = time.mktime(date_time)
         return timestamp, size
 
@@ -1601,7 +1623,8 @@ class ZipProvider(EggProvider):
                 last = self._extract_resource(
                     manager, os.path.join(zip_path, name)
                 )
-            return os.path.dirname(last)  # return the extracted directory name
+            # return the extracted directory name
+            return os.path.dirname(last)
 
         timestamp, size = self._get_date_and_size(self.zipinfo[zip_path])
 
@@ -1632,14 +1655,16 @@ class ZipProvider(EggProvider):
                         # the file became current since it was checked above,
                         #  so proceed.
                         return real_path
-                    elif os.name=='nt':     # Windows, del old file and retry
+                    # Windows, del old file and retry
+                    elif os.name=='nt':
                         unlink(real_path)
                         rename(tmpnam, real_path)
                         return real_path
                 raise
 
         except os.error:
-            manager.extraction_error()  # report a user-friendly error
+            # report a user-friendly error
+            manager.extraction_error()
 
         return real_path
 
@@ -1805,7 +1830,8 @@ def find_eggs_in_zip(importer, path_item, only=False):
     if metadata.has_metadata('PKG-INFO'):
         yield Distribution.from_filename(path_item, metadata=metadata)
     if only:
-        return  # don't yield nested distros
+        # don't yield nested distros
+        return
     for subitem in metadata.resource_listdir('/'):
         if subitem.endswith('.egg'):
             subpath = os.path.join(path_item, subitem)
@@ -2006,18 +2032,24 @@ def yield_lines(strs):
     if isinstance(strs, basestring):
         for s in strs.splitlines():
             s = s.strip()
-            if s and not s.startswith('#'):     # skip blank lines/comments
+            # skip blank lines/comments
+            if s and not s.startswith('#'):
                 yield s
     else:
         for ss in strs:
             for s in yield_lines(ss):
                 yield s
 
-LINE_END = re.compile(r"\s*(#.*)?$").match         # whitespace and comment
-CONTINUE = re.compile(r"\s*\\\s*(#.*)?$").match    # line continuation
-DISTRO = re.compile(r"\s*((\w|[-.])+)").match    # Distribution or extra
-VERSION = re.compile(r"\s*(<=?|>=?|==|!=)\s*((\w|[-.])+)").match  # ver. info
-COMMA = re.compile(r"\s*,").match               # comma between items
+# whitespace and comment
+LINE_END = re.compile(r"\s*(#.*)?$").match
+# line continuation
+CONTINUE = re.compile(r"\s*\\\s*(#.*)?$").match
+# Distribution or extra
+DISTRO = re.compile(r"\s*((\w|[-.])+)").match
+# ver. info
+VERSION = re.compile(r"\s*(<=?|>=?|==|!=)\s*((\w|[-.])+)").match
+# comma between items
+COMMA = re.compile(r"\s*,").match
 OBRACKET = re.compile(r"\s*\[").match
 CBRACKET = re.compile(r"\s*\]").match
 MODULE = re.compile(r"\w+(\.\w+)*$").match
@@ -2036,11 +2068,13 @@ def _parse_version_parts(s):
         if not part or part=='.':
             continue
         if part[:1] in '0123456789':
-            yield part.zfill(8)    # pad for numeric comparison
+            # pad for numeric comparison
+            yield part.zfill(8)
         else:
             yield '*'+part
 
-    yield '*final'  # ensure that alpha/beta/candidate are before final
+    # ensure that alpha/beta/candidate are before final
+    yield '*final'
 
 def parse_version(s):
     """Convert a version string to a chronologically-sortable key
@@ -2076,7 +2110,8 @@ def parse_version(s):
     parts = []
     for part in _parse_version_parts(s.lower()):
         if part.startswith('*'):
-            if part<'*final':   # remove '-' before a prerelease tag
+            # remove '-' before a prerelease tag
+            if part<'*final':
                 while parts and parts[-1]=='*final-': parts.pop()
             # remove trailing zeros from each series of numeric parts
             while parts and parts[-1]=='00000000':
@@ -2311,7 +2346,8 @@ class Distribution(object):
                         if ':' in extra:
                             extra, marker = extra.split(':',1)
                             if invalid_marker(marker):
-                                reqs=[] # XXX warn
+                                # XXX warn
+                                reqs=[]
                             elif not evaluate_marker(marker):
                                 reqs=[]
                         extra = safe_extra(extra) or None
@@ -2445,13 +2481,15 @@ class Distribution(object):
                 break
             else:
                 del npath[np], path[np]
-                p = np  # ha!
+                # ha!
+                p = np
 
         return
 
     def check_version_conflict(self):
         if self.key=='setuptools':
-            return      # ignore the inevitable setuptools self-conflicts  :(
+            # ignore the inevitable setuptools self-conflicts  :(
+            return
 
         nsp = dict.fromkeys(self._get_metadata('namespace_packages.txt'))
         loc = normalize_path(self.location)
@@ -2680,17 +2718,21 @@ class Requirement:
         elif isinstance(item, basestring):
             item = parse_version(item)
         last = None
-        compare = lambda a, b: (a > b) - (a < b) # -1, 0, 1
+        # -1, 0, 1
+        compare = lambda a, b: (a > b) - (a < b)
         for parsed, trans, op, ver in self.index:
-            action = trans[compare(item, parsed)] # Indexing: 0, 1, -1
+            # Indexing: 0, 1, -1
+            action = trans[compare(item, parsed)]
             if action=='F':
                 return False
             elif action=='T':
                 return True
             elif action=='+':
                 last = True
-            elif action=='-' or last is None:   last = False
-        if last is None: last = True    # no rules encountered
+            elif action=='-' or last is None:
+                last = False
+        # no rules encountered
+        if last is None: last = True
         return last
 
     def __hash__(self):
@@ -2767,10 +2809,12 @@ def _mkstemp(*args,**kw):
     from tempfile import mkstemp
     old_open = os.open
     try:
-        os.open = os_open   # temporarily bypass sandboxing
+        # temporarily bypass sandboxing
+        os.open = os_open
         return mkstemp(*args,**kw)
     finally:
-        os.open = old_open  # and then put it back
+        # and then put it back
+        os.open = old_open
 
 
 # Set up global resource manager (deliberately not state-saved)
@@ -2789,7 +2833,8 @@ require = working_set.require
 iter_entry_points = working_set.iter_entry_points
 add_activation_listener = working_set.subscribe
 run_script = working_set.run_script
-run_main = run_script   # backward compatibility
+# backward compatibility
+run_main = run_script
 # Activate all distributions already on sys.path, and ensure that
 # all distributions added to the working set in the future (e.g. by
 # calling ``require()``) will get activated as well.
