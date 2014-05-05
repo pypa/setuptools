@@ -776,7 +776,6 @@ class Environment(object):
         running platform or Python version.
         """
         self._distmap = {}
-        self._cache = {}
         self.platform = platform
         self.python = python
         self.scan(search_path)
@@ -813,28 +812,23 @@ class Environment(object):
 
     def __getitem__(self, project_name):
         """Return a newest-to-oldest list of distributions for `project_name`
+
+        Uses case-insensitive `project_name` comparison, assuming all the
+        project's distributions use their project's name converted to all
+        lowercase as their key.
+
         """
-        try:
-            return self._cache[project_name]
-        except KeyError:
-            project_name = project_name.lower()
-            if project_name not in self._distmap:
-                return []
-
-        if project_name not in self._cache:
-            dists = self._cache[project_name] = self._distmap[project_name]
-            _sort_dists(dists)
-
-        return self._cache[project_name]
+        distribution_key = project_name.lower()
+        return self._distmap.get(distribution_key, [])
 
     def add(self, dist):
-        """Add `dist` if we ``can_add()`` it and it isn't already added"""
+        """Add `dist` if we ``can_add()`` it and it has not already been added
+        """
         if self.can_add(dist) and dist.has_version():
-            dists = self._distmap.setdefault(dist.key,[])
+            dists = self._distmap.setdefault(dist.key, [])
             if dist not in dists:
                 dists.append(dist)
-                if dist.key in self._cache:
-                    _sort_dists(self._cache[dist.key])
+                dists.sort(key=operator.attrgetter('hashcmp'), reverse=True)
 
     def best_match(self, req, working_set, installer=None):
         """Find distribution best matching `req` and usable on `working_set`
@@ -2605,12 +2599,6 @@ def parse_requirements(strs):
         line, p, specs = scan_list(VERSION, LINE_END, line, p, (1, 2),"version spec")
         specs = [(op, safe_version(val)) for op, val in specs]
         yield Requirement(project_name, specs, extras)
-
-
-def _sort_dists(dists):
-    tmp = [(dist.hashcmp, dist) for dist in dists]
-    tmp.sort()
-    dists[::-1] = [d for hc, d in tmp]
 
 
 class Requirement:
