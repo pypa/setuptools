@@ -2211,20 +2211,27 @@ class Distribution(object):
             self.platform,
         )
 
-    def __hash__(self): return hash(self.hashcmp)
+    def __hash__(self):
+        return hash(self.hashcmp)
+
     def __lt__(self, other):
         return self.hashcmp < other.hashcmp
+
     def __le__(self, other):
         return self.hashcmp <= other.hashcmp
+
     def __gt__(self, other):
         return self.hashcmp > other.hashcmp
+
     def __ge__(self, other):
         return self.hashcmp >= other.hashcmp
+
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
             # It's not a Distribution, so they are not equal
             return False
         return self.hashcmp == other.hashcmp
+
     def __ne__(self, other):
         return not self == other
 
