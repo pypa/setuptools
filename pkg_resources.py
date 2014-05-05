@@ -77,7 +77,7 @@ try:
 except ImportError:
     pass
 
-def _bypass_ensure_directory(name, mode=0x1FF):  # 0777
+def _bypass_ensure_directory(name, mode=0o777):
     # Sandbox-bypassing version of ensure_directory()
     if not WRITE_SUPPORT:
         raise IOError('"os.mkdir" not supported on this platform.')
@@ -1061,7 +1061,7 @@ variable to point to an accessible directory.
 
         if os.name == 'posix':
             # Make the resource executable
-            mode = ((os.stat(tempname).st_mode) | 0x16D) & 0xFFF # 0555, 07777
+            mode = ((os.stat(tempname).st_mode) | 0o555) & 0o7777
             os.chmod(tempname, mode)
 
     def set_extraction_path(self, path):

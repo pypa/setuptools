@@ -770,7 +770,7 @@ Please make the appropriate changes for your system and try again.
             f = open(target,"w"+mode)
             f.write(contents)
             f.close()
-            chmod(target, 0x1FF-mask) # 0777
+            chmod(target, 0o777-mask)
 
     def install_eggs(self, spec, dist_filename, tmpdir):
         # .egg dirs or files are already built, so just return them
@@ -1110,7 +1110,7 @@ See the setuptools documentation for the "develop" command for more info.
         self.byte_compile(to_compile)
         if not self.dry_run:
             for f in to_chmod:
-                mode = ((os.stat(f)[stat.ST_MODE]) | 0x16D) & 0xFED  # 0555, 07755
+                mode = ((os.stat(f)[stat.ST_MODE]) | 0o555) & 0o7755
                 chmod(f, mode)
 
     def byte_compile(self, to_compile):
@@ -1206,8 +1206,8 @@ Please make the appropriate changes for your system and try again."""
         home = convert_path(os.path.expanduser("~"))
         for name, path in iteritems(self.config_vars):
             if path.startswith(home) and not os.path.isdir(path):
-                self.debug_print("os.makedirs('%s', 0700)" % path)
-                os.makedirs(path, 0x1C0)    # 0700
+                self.debug_print("os.makedirs('%s', 0o700)" % path)
+                os.makedirs(path, 0o700)
 
     INSTALL_SCHEMES = dict(
         posix = dict(
@@ -1873,7 +1873,7 @@ def rmtree(path, ignore_errors=False, onerror=auto_chmod):
         onerror(os.rmdir, path, sys.exc_info())
 
 def current_umask():
-    tmp = os.umask(0x12)    # 022
+    tmp = os.umask(0o022)
     os.umask(tmp)
     return tmp
 
