@@ -758,7 +758,8 @@ class WorkingSet(object):
 class Environment(object):
     """Searchable snapshot of distributions on a search path"""
 
-    def __init__(self, search_path=None, platform=get_supported_platform(), python=PY_MAJOR):
+    def __init__(self, search_path=None, platform=get_supported_platform(),
+            python=PY_MAJOR):
         """Snapshot distributions available on a search path
 
         Any distributions found on `search_path` are added to the environment.
