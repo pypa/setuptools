@@ -1186,9 +1186,11 @@ class MarkerEvaluation(object):
     @staticmethod
     def normalize_exception(exc):
         """
-        Given a SyntaxError from a marker evaluation, normalize the error message:
+        Given a SyntaxError from a marker evaluation, normalize the error
+        message:
          - Remove indications of filename and line number.
-         - Replace platform-specific error messages with standard error messages.
+         - Replace platform-specific error messages with standard error
+           messages.
         """
         subs = {
             'unexpected EOF while parsing': 'invalid syntax',
@@ -1202,12 +1204,20 @@ class MarkerEvaluation(object):
     @classmethod
     def and_test(cls, nodelist):
         # MUST NOT short-circuit evaluation, or invalid syntax can be skipped!
-        return functools.reduce(operator.and_, [cls.interpret(nodelist[i]) for i in range(1, len(nodelist),2)])
+        items = [
+            cls.interpret(nodelist[i])
+            for i in range(1, len(nodelist), 2)
+        ]
+        return functools.reduce(operator.and_, items)
 
     @classmethod
     def test(cls, nodelist):
         # MUST NOT short-circuit evaluation, or invalid syntax can be skipped!
-        return functools.reduce(operator.or_, [cls.interpret(nodelist[i]) for i in range(1, len(nodelist),2)])
+        items = [
+            cls.interpret(nodelist[i])
+            for i in range(1, len(nodelist), 2)
+        ]
+        return functools.reduce(operator.or_, items)
 
     @classmethod
     def atom(cls, nodelist):
@@ -1216,12 +1226,14 @@ class MarkerEvaluation(object):
             if nodelist[2][0] == token.RPAR:
                 raise SyntaxError("Empty parentheses")
             return cls.interpret(nodelist[2])
-        raise SyntaxError("Language feature not supported in environment markers")
+        msg = "Language feature not supported in environment markers"
+        raise SyntaxError(msg)
 
     @classmethod
     def comparison(cls, nodelist):
-        if len(nodelist)>4:
-            raise SyntaxError("Chained comparison not allowed in environment markers")
+        if len(nodelist) > 4:
+            msg = "Chained comparison not allowed in environment markers"
+            raise SyntaxError(msg)
         comp = nodelist[2][1]
         cop = comp[1]
         if comp[0] == token.NAME:
@@ -1233,7 +1245,8 @@ class MarkerEvaluation(object):
         try:
             cop = cls.get_op(cop)
         except KeyError:
-            raise SyntaxError(repr(cop)+" operator not allowed in environment markers")
+            msg = repr(cop) + " operator not allowed in environment markers"
+            raise SyntaxError(msg)
         return cop(cls.evaluate(nodelist[1]), cls.evaluate(nodelist[3]))
 
     @classmethod
@@ -1259,7 +1272,8 @@ class MarkerEvaluation(object):
         Return a boolean indicating the marker result in this environment.
         Raise SyntaxError if marker is invalid.
 
-        This implementation uses the 'parser' module, which is not implemented on
+        This implementation uses the 'parser' module, which is not implemented
+        on
         Jython and has been superseded by the 'ast' module in Python 2.6 and
         later.
         """
@@ -1313,12 +1327,21 @@ class MarkerEvaluation(object):
             return op()
         if kind==token.STRING:
             s = nodelist[1]
-            if s[:1] not in "'\"" or s.startswith('"""') or s.startswith("'''") \
-                    or '\\' in s:
+            if not cls._safe_string(s):
                 raise SyntaxError(
                     "Only plain strings allowed in environment markers")
             return s[1:-1]
-        raise SyntaxError("Language feature not supported in environment markers")
+        msg = "Language feature not supported in environment markers"
+        raise SyntaxError(msg)
+
+    @staticmethod
+    def _safe_string(cand):
+        return (
+            cand[:1] in "'\"" and
+            not cand.startswith('"""') and
+            not cand.startswith("'''") and
+            '\\' not in cand
+        )
 
 invalid_marker = MarkerEvaluation.is_invalid_marker
 evaluate_marker = MarkerEvaluation.evaluate_marker
