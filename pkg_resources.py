@@ -29,7 +29,6 @@ import token
 import symbol
 import operator
 import platform
-import bisect
 from pkgutil import get_importer
 
 try:
@@ -828,7 +827,8 @@ class Environment(object):
         if self.can_add(dist) and dist.has_version():
             dists = self._distmap.setdefault(dist.key, [])
             if dist not in dists:
-                bisect.insort(dists, dist)
+                dists.append(dist)
+                dists.sort(key=operator.attrgetter('hashcmp'), reverse=True)
 
     def best_match(self, req, working_set, installer=None):
         """Find distribution best matching `req` and usable on `working_set`
