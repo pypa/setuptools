@@ -646,6 +646,15 @@ Please make the appropriate changes for your system and try again.
     def process_distribution(self, requirement, dist, deps=True, *info):
         self.update_pth(dist)
         self.package_index.add(dist)
+        # First remove the dist from self.local_index, to avoid problems using
+        # old cached data in case its underlying file has been replaced.
+        #
+        # This is a quick-fix for a zipimporter caching issue in case the dist
+        # has been implemented as and already loaded from a zip file that got
+        # replaced later on. For more detailed information see setuptools issue
+        # #168 at 'http://bitbucket.org/pypa/setuptools/issue/168'.
+        if dist in self.local_index[dist.key]:
+            self.local_index.remove(dist)
         self.local_index.add(dist)
         self.install_egg_scripts(dist)
         self.installed_projects[dist.key] = dist
@@ -1574,20 +1583,34 @@ def auto_chmod(func, arg, exc):
     reraise(et, (ev[0], ev[1] + (" %s %s" % (func,arg))))
 
 def uncache_zipdir(path):
-    """Ensure that the importer caches dont have stale info for `path`"""
-    from zipimport import _zip_directory_cache as zdc
-    _uncache(path, zdc)
-    _uncache(path, sys.path_importer_cache)
+    """
+    Remove any globally cached zip file related data for `path`
 
-def _uncache(path, cache):
-    if path in cache:
-        del cache[path]
-    else:
-        path = normalize_path(path)
-        for p in cache:
-            if normalize_path(p)==path:
-                del cache[p]
-                return
+    Stale zipimport.zipimporter objects need to be removed when a zip file is
+    replaced as they contain cached zip file directory information. If they are
+    asked to get data from their zip file, they will use that cached
+    information to calculate the data location in the zip file. This calculated
+    location may be incorrect for the replaced zip file, which may in turn
+    cause the read operation to either fail or return incorrect data.
+
+    Note we have no way to clear any local caches from here. That is left up to
+    whomever is in charge of maintaining that cache.
+
+    """
+    normalized_path = normalize_path(path)
+    _uncache(normalized_path, zipimport._zip_directory_cache)
+    _uncache(normalized_path, sys.path_importer_cache)
+
+def _uncache(normalized_path, cache):
+    to_remove = []
+    prefix_len = len(normalized_path)
+    for p in cache:
+        np = normalize_path(p)
+        if (np.startswith(normalized_path) and
+                np[prefix_len:prefix_len + 1] in (os.sep, '')):
+            to_remove.append(p)
+    for p in to_remove:
+        del cache[p]
 
 def is_python(text, filename='<string>'):
     "Is this string a valid Python script?"
