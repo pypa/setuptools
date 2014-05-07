@@ -3,6 +3,13 @@ CHANGES
 =======
 
 -----
+3.5.2
+-----
+
+* Issue #168: More robust handling of replaced zip files and stale caches.
+  Fixes ZipImportError complaining about a 'bad local header'.
+
+-----
 3.4.4
 -----
 
