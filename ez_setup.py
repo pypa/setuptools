@@ -166,10 +166,16 @@ def download_file_powershell(url, target):
     trust). Raise an exception if the command cannot complete.
     """
     target = os.path.abspath(target)
+    ps_cmd = (
+        "[System.Net.WebRequest]::DefaultWebProxy.Credentials = "
+        "[System.Net.CredentialCache]::DefaultCredentials; "
+        "(new-object System.Net.WebClient).DownloadFile(%(url)r, %(target)r)"
+        % vars()
+    )
     cmd = [
         'powershell',
         '-Command',
-        "[System.Net.WebRequest]::DefaultWebProxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials;  (new-object System.Net.WebClient).DownloadFile(%(url)r, %(target)r)" % vars(),
+        ps_cmd,
     ]
     _clean_check(cmd, target)
 
