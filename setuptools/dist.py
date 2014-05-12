@@ -34,11 +34,11 @@ _Distribution = _get_unpatched(_Distribution)
 
 def _patch_distribution_metadata_write_pkg_info():
     """
-    Workaround issue #197 - Python 3.1 uses an environment-local encoding to
-    save the pkg_info. Monkey-patch its write_pkg_info method to correct
-    this undesirable behavior.
+    Workaround issue #197 - Python [3.0 - 3.2.2> uses an environment-local
+    encoding to save the pkg_info. Monkey-patch its write_pkg_info method to
+    correct this undesirable behavior.
     """
-    if sys.version_info[:2] != (3,1):
+    if not ((3,) <= sys.version_info[:3] < (3, 2, 2)):
         return
 
     # from Python 3.4
