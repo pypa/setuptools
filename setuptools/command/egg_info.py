@@ -213,16 +213,15 @@ class FileList(_FileList):
             self.files.append(path)
 
     def _safe_path(self, path):
-        if PY3:
-            try:
-                if os.path.exists(path) or os.path.exists(path.encode('utf-8')):
-                    return True
-            except UnicodeEncodeError:
-                log.warn("'%s' not %s encodable -- skipping", path,
-                    sys.getfilesystemencoding())
-        else:
-            if os.path.exists(path):
+        if not PY3:
+            return os.path.exists(path)
+
+        try:
+            if os.path.exists(path) or os.path.exists(path.encode('utf-8')):
                 return True
+        except UnicodeEncodeError:
+            log.warn("'%s' not %s encodable -- skipping", path,
+                sys.getfilesystemencoding())
 
 class manifest_maker(sdist):
 
