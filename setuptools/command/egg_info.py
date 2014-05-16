@@ -215,6 +215,16 @@ class FileList(_FileList):
     def extend(self, paths):
         self.files.extend(filter(self._safe_path, paths))
 
+    def _repair(self):
+        """
+        Replace self.files with only safe paths
+
+        Because some owners of FileList manipulate the underlying
+        ``files`` attribute directly, this method must be called to
+        repair those paths.
+        """
+        self.files = list(filter(self._safe_path, self.files))
+
     def _safe_path(self, path):
         if not PY3:
             return os.path.exists(path)
@@ -257,6 +267,8 @@ class manifest_maker(sdist):
         Write the file list in 'self.filelist' to the manifest file
         named by 'self.manifest'.
         """
+        self.filelist._repair()
+
         files = [f.replace(os.sep, '/') for f in self.filelist.files]
         msg = "writing manifest file '%s'" % self.manifest
         self.execute(write_file, (self.manifest, files), msg)
