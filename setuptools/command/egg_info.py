@@ -212,6 +212,9 @@ class FileList(_FileList):
         if self._safe_path(path):
             self.files.append(path)
 
+    def extend(self, paths):
+        self.files.extend(filter(self._safe_path, paths))
+
     def _safe_path(self, path):
         if not PY3:
             return os.path.exists(path)
