@@ -253,8 +253,8 @@ class manifest_maker(sdist):
         named by 'self.manifest'.
         """
         files = [f.replace(os.sep, '/') for f in self.filelist.files]
-        self.execute(write_file, (self.manifest, files),
-                     "writing manifest file '%s'" % self.manifest)
+        msg = "writing manifest file '%s'" % self.manifest
+        self.execute(write_file, (self.manifest, files), msg)
 
     def warn(self, msg):    # suppress missing-file warnings from sdist
         if not msg.startswith("standard file not found:"):
