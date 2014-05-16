@@ -214,8 +214,8 @@ class FileList(_FileList):
                 if os.path.exists(path) or os.path.exists(path.encode('utf-8')):
                     self.files.append(path)
             except UnicodeEncodeError:
-                    log.warn("'%s' not %s encodable -- skipping", path,
-                        sys.getfilesystemencoding())
+                log.warn("'%s' not %s encodable -- skipping", path,
+                    sys.getfilesystemencoding())
         else:
             if os.path.exists(path):
                 self.files.append(path)
