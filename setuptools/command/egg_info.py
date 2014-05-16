@@ -252,8 +252,7 @@ class manifest_maker(sdist):
         Write the file list in 'self.filelist' to the manifest file
         named by 'self.manifest'.
         """
-        if os.sep!='/':
-            files = [f.replace(os.sep,'/') for f in self.filelist.files]
+        files = [f.replace(os.sep, '/') for f in self.filelist.files]
         self.execute(write_file, (self.manifest, files),
                      "writing manifest file '%s'" % self.manifest)
 
