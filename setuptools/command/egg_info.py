@@ -252,21 +252,8 @@ class manifest_maker(sdist):
         Write the file list in 'self.filelist' to the manifest file
         named by 'self.manifest'.
         """
-        # The manifest must be UTF-8 encodable. See #303.
-        if sys.version_info >= (3,):
-            files = []
-            for file in self.filelist.files:
-                try:
-                    file.encode("utf-8")
-                except UnicodeEncodeError:
-                    log.warn("'%s' not UTF-8 encodable -- skipping" % file)
-                else:
-                    files.append(file)
-            self.filelist.files = files
-
-        files = self.filelist.files
         if os.sep!='/':
-            files = [f.replace(os.sep,'/') for f in files]
+            files = [f.replace(os.sep,'/') for f in self.filelist.files]
         self.execute(write_file, (self.manifest, files),
                      "writing manifest file '%s'" % self.manifest)
 
