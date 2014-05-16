@@ -10,7 +10,7 @@ from setuptools import Command
 import distutils.errors
 from distutils import log
 from setuptools.command.sdist import sdist
-from setuptools.compat import basestring
+from setuptools.compat import basestring, PY3
 from setuptools import svn_utils
 from distutils.util import convert_path
 from distutils.filelist import FileList as _FileList
@@ -213,7 +213,7 @@ class FileList(_FileList):
             self.files.append(path)
 
     def _safe_path(self, path):
-        if sys.version_info >= (3,):
+        if PY3:
             try:
                 if os.path.exists(path) or os.path.exists(path.encode('utf-8')):
                     return True
