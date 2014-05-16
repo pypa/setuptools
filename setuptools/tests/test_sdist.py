@@ -204,7 +204,12 @@ class TestSdistTest(unittest.TestCase):
             self.assertTrue(u_filename in mm.filelist.files)
 
         def test_write_manifest_skips_non_utf8_filenames(self):
-            # Test for #303.
+            """
+            Files that cannot be encoded to UTF-8 (specifically, those that
+            weren't originally successfully decoded and have surrogate
+            escapes) should be omitted from the manifest.
+            See https://bitbucket.org/tarek/distribute/issue/303 for history.
+            """
             dist = Distribution(SETUP_ATTRS)
             dist.script_name = 'setup.py'
             mm = manifest_maker(dist)
