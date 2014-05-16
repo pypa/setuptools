@@ -252,8 +252,8 @@ class manifest_maker(sdist):
         self.write_manifest()
 
     def write_manifest(self):
-        """Write the file list in 'self.filelist' (presumably as filled in
-        by 'add_defaults()' and 'read_template()') to the manifest file
+        """
+        Write the file list in 'self.filelist' to the manifest file
         named by 'self.manifest'.
         """
         # The manifest must be UTF-8 encodable. See #303.
