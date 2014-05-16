@@ -224,7 +224,7 @@ class TestSdistTest(unittest.TestCase):
             try:
                 mm.run()
                 u_filename = filename.decode('utf-8', 'surrogateescape')
-                mm.filelist.files.append(u_filename)
+                mm.filelist.append(u_filename)
                 # Re-write manifest
                 mm.write_manifest()
             finally:
