@@ -209,17 +209,20 @@ class FileList(_FileList):
             item = item[:-1]
         path = convert_path(item)
 
+        if self._safe_path(path):
+            self.files.append(path)
+
+    def _safe_path(self, path):
         if sys.version_info >= (3,):
             try:
                 if os.path.exists(path) or os.path.exists(path.encode('utf-8')):
-                    self.files.append(path)
+                    return True
             except UnicodeEncodeError:
                 log.warn("'%s' not %s encodable -- skipping", path,
                     sys.getfilesystemencoding())
         else:
             if os.path.exists(path):
-                self.files.append(path)
-
+                return True
 
 class manifest_maker(sdist):
 
