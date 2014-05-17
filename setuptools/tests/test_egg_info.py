@@ -155,7 +155,7 @@ class TestSvnDummy(environment.ZippedEnvironment):
             infile.close()
             del infile
 
-        self.assertIn("Version: 0.1.1-r1\n", read_contents)
+        self.assertTrue("Version: 0.1.1-r1\n" in read_contents)
 
     @skipIf(not test_svn._svn_check, "No SVN to text, in the first place")
     def test_no_tags(self):
@@ -173,7 +173,7 @@ class TestSvnDummy(environment.ZippedEnvironment):
             infile.close()
             del infile
 
-        self.assertIn("Version: 0.1.1\n", read_contents)
+        self.assertTrue("Version: 0.1.1\n" in read_contents)
 
 
 class TestSvnDummyLegacy(environment.ZippedEnvironment):
