@@ -1,6 +1,7 @@
 """setuptools.command.egg_info
 
 Create a distribution's .egg-info directory and contents"""
+from __future__ import with_statement
 
 import os
 import re
@@ -10,7 +11,7 @@ from setuptools import Command
 import distutils.errors
 from distutils import log
 from setuptools.command.sdist import sdist
-from setuptools.compat import basestring, PY3
+from setuptools.compat import basestring, PY3, unicode
 from setuptools import svn_utils
 from distutils.util import convert_path
 from distutils.filelist import FileList as _FileList
@@ -303,11 +304,13 @@ def write_file(filename, contents):
     sequence of strings without line terminators) to it.
     """
     contents = "\n".join(contents)
-    if sys.version_info >= (3,):
-        contents = contents.encode("utf-8")
-    f = open(filename, "wb")        # always write POSIX-style manifest
-    f.write(contents)
-    f.close()
+
+    #assuming the contents has been vetted for utf-8 encoding
+    contents = contents.encode("utf-8")
+    
+    with open(filename, "wb") as f:        # always write POSIX-style manifest
+        f.write(contents)
+
 
 def write_pkg_info(cmd, basename, filename):
     log.info("writing %s", filename)
