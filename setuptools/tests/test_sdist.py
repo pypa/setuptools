@@ -173,7 +173,7 @@ class TestSdistTest(unittest.TestCase):
             # UTF-8 filename
             filename = os.path.join(b('sdist_test'), b('smörbröd.py'))
 
-            #Must touch the file or risk removal
+            # Must touch the file or risk removal
             open(filename, "w").close()
 
             # Add filename and write manifest
