@@ -2,8 +2,9 @@ import sys
 import itertools
 
 PY3 = sys.version_info >= (3,)
+PY2 = not PY3
 
-if not PY3:
+if PY2:
     basestring = basestring
     import __builtin__ as builtins
     import ConfigParser
