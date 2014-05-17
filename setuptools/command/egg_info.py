@@ -5,6 +5,7 @@ Create a distribution's .egg-info directory and contents"""
 import os
 import re
 import sys
+import io
 
 from setuptools import Command
 import distutils.errors
@@ -355,14 +356,21 @@ def warn_depends_obsolete(cmd, basename, filename):
         )
 
 
+def _write_requirements(stream, reqs):
+    lines = yield_lines(reqs or ())
+    append_cr = lambda line: line + '\n'
+    lines = map(append_cr, lines)
+    stream.writelines(lines)
+
 def write_requirements(cmd, basename, filename):
     dist = cmd.distribution
-    data = ['\n'.join(yield_lines(dist.install_requires or ()))]
+    data = io.StringIO()
+    _write_requirements(data, dist.install_requires)
     extras_require = dist.extras_require or {}
     for extra in sorted(extras_require):
-        reqs = extras_require[extra]
-        data.append('\n\n[%s]\n%s' % (extra, '\n'.join(yield_lines(reqs))))
-    cmd.write_or_delete_file("requirements", filename, ''.join(data))
+        data.write('\n[{extra}]\n'.format(**vars()))
+        _write_requirements(data, extras_require[extra])
+    cmd.write_or_delete_file("requirements", filename, data.getvalue())
 
 def write_toplevel_names(cmd, basename, filename):
     pkgs = dict.fromkeys(
