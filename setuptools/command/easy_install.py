@@ -47,7 +47,7 @@ from setuptools.package_index import PackageIndex
 from setuptools.package_index import URL_SCHEME
 from setuptools.command import bdist_egg, egg_info
 from setuptools.compat import (iteritems, maxsize, basestring, unicode,
-                               reraise)
+                               reraise, PY2, PY3)
 from pkg_resources import (
     yield_lines, normalize_path, resource_string, ensure_directory,
     get_distribution, find_distributions, Environment, Requirement,
@@ -75,7 +75,7 @@ def samefile(p1, p2):
     norm_p2 = os.path.normpath(os.path.normcase(p2))
     return norm_p1 == norm_p2
 
-if sys.version_info <= (3,):
+if PY2:
     def _to_ascii(s):
         return s
     def isascii(s):
@@ -1187,7 +1187,7 @@ Please make the appropriate changes for your system and try again."""
             f = open(sitepy,'rb')
             current = f.read()
             # we want str, not bytes
-            if sys.version_info >= (3,):
+            if PY3:
                 current = current.decode()
 
             f.close()
@@ -1409,7 +1409,7 @@ def get_exe_prefixes(exe_filename):
                 continue
             if parts[0].upper() in ('PURELIB','PLATLIB'):
                 contents = z.read(name)
-                if sys.version_info >= (3,):
+                if PY3:
                     contents = contents.decode()
                 for pth in yield_lines(contents):
                     pth = pth.strip().replace('\\','/')
@@ -1855,7 +1855,7 @@ def get_win_launcher(type):
 
 def load_launcher_manifest(name):
     manifest = pkg_resources.resource_string(__name__, 'launcher manifest.xml')
-    if sys.version_info[0] < 3:
+    if PY2:
         return manifest % vars()
     else:
         return manifest.decode('utf-8') % vars()

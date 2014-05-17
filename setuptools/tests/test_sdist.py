@@ -12,7 +12,7 @@ import re
 from setuptools.tests import environment, test_svn
 from setuptools.tests.py26compat import skipIf
 
-from setuptools.compat import StringIO, unicode
+from setuptools.compat import StringIO, unicode, PY3, PY2
 from setuptools.tests.py26compat import skipIf
 from setuptools.command.sdist import sdist, walk_revctrl
 from setuptools.command.egg_info import manifest_maker
@@ -34,7 +34,7 @@ setup(**%r)
 """ % SETUP_ATTRS
 
 
-if sys.version_info >= (3,):
+if PY3:
     LATIN1_FILENAME = 'smörbröd.py'.encode('latin-1')
 else:
     LATIN1_FILENAME = 'sm\xf6rbr\xf6d.py'
@@ -52,14 +52,14 @@ def unquiet():
 
 # Fake byte literals for Python <= 2.5
 def b(s, encoding='utf-8'):
-    if sys.version_info >= (3,):
+    if PY3:
         return s.encode(encoding)
     return s
 
 
 # Convert to POSIX path
 def posix(path):
-    if sys.version_info >= (3,) and not isinstance(path, str):
+    if PY3 and not isinstance(path, str):
         return path.replace(os.sep.encode('ascii'), b('/'))
     else:
         return path.replace(os.sep, '/')
@@ -156,14 +156,14 @@ class TestSdistTest(unittest.TestCase):
             self.fail(e)
 
         # The manifest should contain the UTF-8 filename
-        if sys.version_info < (3,):
+        if PY2:
             fs_enc = sys.getfilesystemencoding()
             filename = filename.decode(fs_enc)
 
         self.assertTrue(posix(filename) in u_contents)
 
     # Python 3 only
-    if sys.version_info >= (3,):
+    if PY3:
 
         def test_write_manifest_allows_utf8_filenames(self):
             # Test for #303.
@@ -281,12 +281,12 @@ class TestSdistTest(unittest.TestCase):
             unquiet()
 
         # The filelist should contain the UTF-8 filename
-        if sys.version_info >= (3,):
+        if PY3:
             filename = filename.decode('utf-8')
         self.assertTrue(filename in cmd.filelist.files)
 
     # Python 3 only
-    if sys.version_info >= (3,):
+    if PY3:
 
         def test_read_manifest_skips_non_utf8_filenames(self):
             # Test for #303.
@@ -328,7 +328,7 @@ class TestSdistTest(unittest.TestCase):
             filename = filename.decode('latin-1')
             self.assertFalse(filename in cmd.filelist.files)
 
-    @skipIf(sys.version_info >= (3,) and locale.getpreferredencoding() != 'UTF-8',
+    @skipIf(PY3 and locale.getpreferredencoding() != 'UTF-8',
             'Unittest fails if locale is not utf-8 but the manifests is recorded correctly')
     def test_sdist_with_utf8_encoded_filename(self):
         # Test for #303.
@@ -350,7 +350,7 @@ class TestSdistTest(unittest.TestCase):
         if sys.platform == 'darwin':
             filename = decompose(filename)
 
-        if sys.version_info >= (3,):
+        if PY3:
             fs_enc = sys.getfilesystemencoding()
 
             if sys.platform == 'win32':
@@ -385,7 +385,7 @@ class TestSdistTest(unittest.TestCase):
         finally:
             unquiet()
 
-        if sys.version_info >= (3,):
+        if PY3:
             #not all windows systems have a default FS encoding of cp1252
             if sys.platform == 'win32':
                 # Latin-1 is similar to Windows-1252 however
@@ -408,7 +408,7 @@ class TestSdistTest(unittest.TestCase):
             try:
                 # fs_enc should match how one is expect the decoding to
                 # be proformed for the manifest output.
-                fs_enc = sys.getfilesystemencoding() 
+                fs_enc = sys.getfilesystemencoding()
                 filename.decode(fs_enc)
                 self.assertTrue(filename in cmd.filelist.files)
             except UnicodeDecodeError:

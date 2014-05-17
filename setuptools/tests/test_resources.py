@@ -15,7 +15,7 @@ from pkg_resources import (parse_requirements, VersionConflict, parse_version,
 
 from setuptools.command.easy_install import (get_script_header, is_sh,
     nt_quote_arg)
-from setuptools.compat import StringIO, iteritems
+from setuptools.compat import StringIO, iteritems, PY3
 
 try:
     frozenset
@@ -522,8 +522,7 @@ class ScriptHeaderTests(TestCase):
 
     def test_get_script_header_jython_workaround(self):
         # This test doesn't work with Python 3 in some locales
-        if (sys.version_info >= (3,) and os.environ.get("LC_CTYPE")
-                in (None, "C", "POSIX")):
+        if PY3 and os.environ.get("LC_CTYPE") in (None, "C", "POSIX"):
             return
 
         class java:

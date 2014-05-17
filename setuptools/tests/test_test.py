@@ -10,7 +10,7 @@ import tempfile
 import unittest
 
 from distutils.errors import DistutilsError
-from setuptools.compat import StringIO
+from setuptools.compat import StringIO, PY2
 from setuptools.command.test import test
 from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
@@ -34,7 +34,7 @@ except ImportError:
     __path__ = extend_path(__path__, __name__)
 """
 # Make sure this is Latin-1 binary, before writing:
-if sys.version_info < (3,):
+if PY2:
     NS_INIT = NS_INIT.decode('UTF-8')
 NS_INIT = NS_INIT.encode('Latin-1')
 

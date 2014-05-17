@@ -128,7 +128,7 @@ class egg_info(Command):
         to the file.
         """
         log.info("writing %s to %s", what, filename)
-        if sys.version_info >= (3,):
+        if PY3:
             data = data.encode("utf-8")
         if not self.dry_run:
             f = open(filename, 'wb')

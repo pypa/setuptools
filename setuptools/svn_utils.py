@@ -8,7 +8,7 @@ import locale
 import codecs
 import unicodedata
 import warnings
-from setuptools.compat import unicode
+from setuptools.compat import unicode, PY2
 from setuptools.py31compat import TemporaryDirectory
 from xml.sax.saxutils import unescape
 
@@ -60,7 +60,7 @@ def _get_target_property(target):
 
 
 def _get_xml_data(decoded_str):
-    if sys.version_info < (3, 0):
+    if PY2:
         #old versions want an encoded string
         data = decoded_str.encode('utf-8')
     else:
@@ -180,12 +180,12 @@ def parse_external_prop(lines):
         if not line:
             continue
 
-        if sys.version_info < (3, 0):
+        if PY2:
             #shlex handles NULLs just fine and shlex in 2.7 tries to encode
             #as ascii automatiically
             line = line.encode('utf-8')
         line = shlex.split(line)
-        if sys.version_info < (3, 0):
+        if PY2:
             line = [x.decode('utf-8') for x in line]
 
         #EXT_FOLDERNAME is either the first or last depending on where
@@ -232,13 +232,13 @@ class SvnInfo(object):
     @staticmethod
     def get_svn_version():
         # Temp config directory should be enough to check for repository
-        # This is needed because .svn always creates .subversion and 
+        # This is needed because .svn always creates .subversion and
         # some operating systems do not handle dot directory correctly.
         # Real queries in real svn repos with be concerned with it creation
         with TemporaryDirectory() as tempdir:
-            code, data = _run_command(['svn', 
+            code, data = _run_command(['svn',
                                        '--config-dir', tempdir,
-                                       '--version', 
+                                       '--version',
                                        '--quiet'])
 
         if code == 0 and data:
@@ -258,11 +258,11 @@ class SvnInfo(object):
         normdir = os.path.normpath(dirname)
 
         # Temp config directory should be enough to check for repository
-        # This is needed because .svn always creates .subversion and 
+        # This is needed because .svn always creates .subversion and
         # some operating systems do not handle dot directory correctly.
         # Real queries in real svn repos with be concerned with it creation
         with TemporaryDirectory() as tempdir:
-            code, data = _run_command(['svn', 
+            code, data = _run_command(['svn',
                                        '--config-dir', tempdir,
                                        'info', normdir])
 

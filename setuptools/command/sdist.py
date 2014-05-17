@@ -8,6 +8,7 @@ import distutils.command.sdist as orig
 from distutils.util import convert_path
 from distutils import log
 from setuptools import svn_utils
+from setuptools.compat import PY3
 
 READMES = ('README', 'README.rst', 'README.txt')
 
@@ -230,7 +231,7 @@ class sdist(orig.sdist):
         manifest = open(self.manifest, 'rbU')
         for line in manifest:
             # The manifest must contain UTF-8. See #303.
-            if sys.version_info >= (3,):
+            if PY3:
                 try:
                     line = line.decode('UTF-8')
                 except UnicodeDecodeError:

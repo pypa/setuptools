@@ -13,7 +13,7 @@ from distutils.errors import (DistutilsOptionError, DistutilsPlatformError,
     DistutilsSetupError)
 
 from setuptools.depends import Require
-from setuptools.compat import numeric_types, basestring
+from setuptools.compat import numeric_types, basestring, PY2
 import pkg_resources
 
 def _get_unpatched(cls):
@@ -629,7 +629,7 @@ class Distribution(_Distribution):
         """
         import sys
 
-        if sys.version_info < (3,) or self.help_commands:
+        if PY2 or self.help_commands:
             return _Distribution.handle_display_options(self, option_order)
 
         # Stdout may be StringIO (e.g. in tests)

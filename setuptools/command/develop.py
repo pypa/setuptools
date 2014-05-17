@@ -5,6 +5,8 @@ from distutils import log
 from distutils.errors import DistutilsError, DistutilsOptionError
 import os, sys, setuptools, glob
 
+from setuptools.compat import PY3
+
 class develop(easy_install):
     """Set up package for development"""
 
@@ -84,7 +86,7 @@ class develop(easy_install):
                 " installation directory", p, normalize_path(os.curdir))
 
     def install_for_development(self):
-        if sys.version_info >= (3,) and getattr(self.distribution, 'use_2to3', False):
+        if PY3 and getattr(self.distribution, 'use_2to3', False):
             # If we run 2to3 we can not do this inplace:
 
             # Ensure metadata is up-to-date
@@ -99,7 +101,7 @@ class develop(easy_install):
 
             self.reinitialize_command('build_ext', inplace=0)
             self.run_command('build_ext')
-            
+
             # Fixup egg-link and easy-install.pth
             ei_cmd = self.get_finalized_command("egg_info")
             self.egg_path = build_path
@@ -112,7 +114,7 @@ class develop(easy_install):
             # Build extensions in-place
             self.reinitialize_command('build_ext', inplace=1)
             self.run_command('build_ext')
-        
+
         self.install_site_py()  # ensure that target dir is site-safe
         if setuptools.bootstrap_install_from:
             self.easy_install(setuptools.bootstrap_install_from)
