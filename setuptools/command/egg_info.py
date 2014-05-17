@@ -358,7 +358,8 @@ def warn_depends_obsolete(cmd, basename, filename):
 def write_requirements(cmd, basename, filename):
     dist = cmd.distribution
     data = ['\n'.join(yield_lines(dist.install_requires or ()))]
-    for extra,reqs in (dist.extras_require or {}).items():
+    extras_require = dist.extras_require or {}
+    for extra,reqs in extras_require.items():
         data.append('\n\n[%s]\n%s' % (extra, '\n'.join(yield_lines(reqs))))
     cmd.write_or_delete_file("requirements", filename, ''.join(data))
 
