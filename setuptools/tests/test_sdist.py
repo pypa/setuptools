@@ -75,7 +75,7 @@ def decompose(path):
         path = unicodedata.normalize('NFD', path)
         path = path.encode('utf-8')
     except UnicodeError:
-        pass # Not UTF-8
+        pass  # Not UTF-8
     return path
 
 
@@ -131,6 +131,9 @@ class TestSdistTest(unittest.TestCase):
 
         # UTF-8 filename
         filename = os.path.join('sdist_test', 'smörbröd.py')
+
+        # Must create the file or it will get stripped.
+        open(filename, 'w').close()
 
         # Add UTF-8 filename and write manifest
         with quiet():
@@ -251,7 +254,7 @@ class TestSdistTest(unittest.TestCase):
         filename = os.path.join(b('sdist_test'), b('smörbröd.py'))
         cmd.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
         manifest = open(cmd.manifest, 'ab')
-        manifest.write(b('\n')+filename)
+        manifest.write(b('\n') + filename)
         manifest.close()
 
         # The file must exist to be included in the filelist
@@ -285,7 +288,7 @@ class TestSdistTest(unittest.TestCase):
             filename = os.path.join(b('sdist_test'), LATIN1_FILENAME)
             cmd.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
             manifest = open(cmd.manifest, 'ab')
-            manifest.write(b('\n')+filename)
+            manifest.write(b('\n') + filename)
             manifest.close()
 
             # The file must exist to be included in the filelist
@@ -356,7 +359,7 @@ class TestSdistTest(unittest.TestCase):
             cmd.run()
 
         if PY3:
-            #not all windows systems have a default FS encoding of cp1252
+            # not all windows systems have a default FS encoding of cp1252
             if sys.platform == 'win32':
                 # Latin-1 is similar to Windows-1252 however
                 # on mbcs filesys it is not in latin-1 encoding
@@ -467,7 +470,7 @@ class TestSvn(environment.ZippedEnvironment):
         elif self.base_version < (1, 3):
             raise ValueError('Insufficient SVN Version %s' % version)
         elif self.base_version >= (1, 9):
-            #trying the latest version
+            # trying the latest version
             self.base_version = (1, 8)
 
         self.dataname = "svn%i%i_example" % self.base_version
@@ -484,7 +487,7 @@ class TestSvn(environment.ZippedEnvironment):
             folder2 = 'third_party2'
             folder3 = 'third_party3'
 
-        #TODO is this right
+        # TODO is this right
         expected = set([
             os.path.join('a file'),
             os.path.join(folder2, 'Changes.txt'),
