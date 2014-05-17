@@ -135,7 +135,7 @@ class TestSdistTest(unittest.TestCase):
         # Add UTF-8 filename and write manifest
         with quiet():
             mm.run()
-            mm.filelist.files.append(filename)
+            mm.filelist.append(filename)
             mm.write_manifest()
 
         manifest = open(mm.manifest, 'rbU')
