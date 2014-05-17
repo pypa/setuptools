@@ -1621,6 +1621,10 @@ class ZipProvider(EggProvider):
             "%s is not a subpath of %s" % (fspath, self.egg_root)
         )
 
+    @property
+    def zipinfo(self):
+        return build_zipmanifest(self.loader.archive)  # memoized
+
     def get_resource_filename(self, manager, resource_name):
         if not self.egg_name:
             raise NotImplementedError(
