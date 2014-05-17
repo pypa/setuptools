@@ -9,6 +9,7 @@ import tempfile
 import unittest
 import unicodedata
 import re
+import contextlib
 from setuptools.tests import environment, test_svn
 from setuptools.tests.py26compat import skipIf
 
@@ -41,13 +42,14 @@ else:
 
 
 # Cannot use context manager because of Python 2.4
+@contextlib.contextmanager
 def quiet():
-    global old_stdout, old_stderr
     old_stdout, old_stderr = sys.stdout, sys.stderr
     sys.stdout, sys.stderr = StringIO(), StringIO()
-
-def unquiet():
-    sys.stdout, sys.stderr = old_stdout, old_stderr
+    try:
+        yield
+    finally:
+        sys.stdout, sys.stderr = old_stdout, old_stderr
 
 
 # Fake byte literals for Python <= 2.5
@@ -112,12 +114,8 @@ class TestSdistTest(unittest.TestCase):
         cmd = sdist(dist)
         cmd.ensure_finalized()
 
-        # squelch output
-        quiet()
-        try:
+        with quiet():
             cmd.run()
-        finally:
-            unquiet()
 
         manifest = cmd.filelist.files
         self.assertTrue(os.path.join('sdist_test', 'a.txt') in manifest)
@@ -136,13 +134,10 @@ class TestSdistTest(unittest.TestCase):
         filename = os.path.join('sdist_test', 'smörbröd.py')
 
         # Add UTF-8 filename and write manifest
-        quiet()
-        try:
+        with quiet():
             mm.run()
             mm.filelist.files.append(filename)
             mm.write_manifest()
-        finally:
-            unquiet()
 
         manifest = open(mm.manifest, 'rbU')
         contents = manifest.read()
@@ -177,15 +172,12 @@ class TestSdistTest(unittest.TestCase):
             filename = os.path.join(b('sdist_test'), b('smörbröd.py'))
 
             # Add filename and write manifest
-            quiet()
-            try:
+            with quiet():
                 mm.run()
                 u_filename = filename.decode('utf-8')
                 mm.filelist.files.append(u_filename)
                 # Re-write manifest
                 mm.write_manifest()
-            finally:
-                unquiet()
 
             manifest = open(mm.manifest, 'rbU')
             contents = manifest.read()
@@ -221,15 +213,12 @@ class TestSdistTest(unittest.TestCase):
             filename = os.path.join(b('sdist_test'), LATIN1_FILENAME)
 
             # Add filename with surrogates and write manifest
-            quiet()
-            try:
+            with quiet():
                 mm.run()
                 u_filename = filename.decode('utf-8', 'surrogateescape')
                 mm.filelist.append(u_filename)
                 # Re-write manifest
                 mm.write_manifest()
-            finally:
-                unquiet()
 
             manifest = open(mm.manifest, 'rbU')
             contents = manifest.read()
@@ -256,11 +245,8 @@ class TestSdistTest(unittest.TestCase):
         cmd.ensure_finalized()
 
         # Create manifest
-        quiet()
-        try:
+        with quiet():
             cmd.run()
-        finally:
-            unquiet()
 
         # Add UTF-8 filename to manifest
         filename = os.path.join(b('sdist_test'), b('smörbröd.py'))
@@ -274,11 +260,8 @@ class TestSdistTest(unittest.TestCase):
 
         # Re-read manifest
         cmd.filelist.files = []
-        quiet()
-        try:
+        with quiet():
             cmd.read_manifest()
-        finally:
-            unquiet()
 
         # The filelist should contain the UTF-8 filename
         if PY3:
@@ -296,11 +279,8 @@ class TestSdistTest(unittest.TestCase):
             cmd.ensure_finalized()
 
             # Create manifest
-            quiet()
-            try:
+            with quiet():
                 cmd.run()
-            finally:
-                unquiet()
 
             # Add Latin-1 filename to manifest
             filename = os.path.join(b('sdist_test'), LATIN1_FILENAME)
@@ -314,15 +294,12 @@ class TestSdistTest(unittest.TestCase):
 
             # Re-read manifest
             cmd.filelist.files = []
-            quiet()
-            try:
+            with quiet():
                 try:
                     cmd.read_manifest()
                 except UnicodeDecodeError:
                     e = sys.exc_info()[1]
                     self.fail(e)
-            finally:
-                unquiet()
 
             # The Latin-1 filename should have been skipped
             filename = filename.decode('latin-1')
@@ -341,11 +318,8 @@ class TestSdistTest(unittest.TestCase):
         filename = os.path.join(b('sdist_test'), b('smörbröd.py'))
         open(filename, 'w').close()
 
-        quiet()
-        try:
+        with quiet():
             cmd.run()
-        finally:
-            unquiet()
 
         if sys.platform == 'darwin':
             filename = decompose(filename)
@@ -379,11 +353,8 @@ class TestSdistTest(unittest.TestCase):
         open(filename, 'w').close()
         self.assertTrue(os.path.isfile(filename))
 
-        quiet()
-        try:
+        with quiet():
             cmd.run()
-        finally:
-            unquiet()
 
         if PY3:
             #not all windows systems have a default FS encoding of cp1252
