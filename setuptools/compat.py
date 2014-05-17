@@ -1,9 +1,9 @@
 import sys
 import itertools
 
-if sys.version_info[0] < 3:
-    PY3 = False
+PY3 = sys.version_info >= (3,)
 
+if not PY3:
     basestring = basestring
     import __builtin__ as builtins
     import ConfigParser
@@ -34,9 +34,8 @@ if sys.version_info[0] < 3:
 
     exec("""def reraise(tp, value, tb=None):
     raise tp, value, tb""")
-else:
-    PY3 = True
 
+if PY3:
     basestring = str
     import builtins
     import configparser as ConfigParser
