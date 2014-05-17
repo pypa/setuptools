@@ -359,7 +359,8 @@ def write_requirements(cmd, basename, filename):
     dist = cmd.distribution
     data = ['\n'.join(yield_lines(dist.install_requires or ()))]
     extras_require = dist.extras_require or {}
-    for extra,reqs in extras_require.items():
+    for extra in sorted(extras_require):
+        reqs = extras_require[extra]
         data.append('\n\n[%s]\n%s' % (extra, '\n'.join(yield_lines(reqs))))
     cmd.write_or_delete_file("requirements", filename, ''.join(data))
 
