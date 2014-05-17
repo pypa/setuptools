@@ -18,6 +18,7 @@ from distutils.filelist import FileList as _FileList
 from pkg_resources import (parse_requirements, safe_name, parse_version,
     safe_version, yield_lines, EntryPoint, iter_entry_points, to_filename)
 from setuptools.command.sdist import walk_revctrl
+import setuptools.unicode_utils as unicode_utils
 
 
 class egg_info(Command):
@@ -227,15 +228,28 @@ class FileList(_FileList):
         self.files = list(filter(self._safe_path, self.files))
 
     def _safe_path(self, path):
-        if not PY3:
-            return os.path.exists(path)
+        enc_warn = "'%s' not %s encodable -- skipping"
+
+        #To avoid accidental trans-codings errors, first to unicode
+        u_path = unicode_utils.filesys_decode(path)
+        if u_path is None:
+            log.warn("'%s' in unexpected encoding -- skipping" % path)
+            return False
+
+        #Must ensure utf-8 encodability
+        utf8_path = unicode_utils.try_encode(u_path, "utf-8")
+        if utf8_path is None: 
+            log.warn(enc_warn, path, 'utf-8')
+            return False
 
         try:
-            if os.path.exists(path) or os.path.exists(path.encode('utf-8')):
+            #accept is either way checks out
+            if os.path.exists(u_path) or os.path.exists(utf8_path):
                 return True
+        #this will catch any encode errors decoding u_path
         except UnicodeEncodeError:
-            log.warn("'%s' not %s encodable -- skipping", path,
-                sys.getfilesystemencoding())
+            log.warn(enc_warn, path, sys.getfilesystemencoding())
+
 
 class manifest_maker(sdist):
 
@@ -263,6 +277,10 @@ class manifest_maker(sdist):
         self.filelist.remove_duplicates()
         self.write_manifest()
 
+    def _manifest_normalize(self, path):
+        path = unicode_utils.filesys_decode(path)
+        return path.replace(os.sep, '/')
+
     def write_manifest(self):
         """
         Write the file list in 'self.filelist' to the manifest file
@@ -270,7 +288,8 @@ class manifest_maker(sdist):
         """
         self.filelist._repair()
 
-        files = [f.replace(os.sep, '/') for f in self.filelist.files]
+        #Now _repairs should encodability, but not unicode
+        files = [self._manifest_normalize(f) for f in self.filelist.files]
         msg = "writing manifest file '%s'" % self.manifest
         self.execute(write_file, (self.manifest, files), msg)
 
