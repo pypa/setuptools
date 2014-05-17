@@ -414,7 +414,6 @@ class TestSdistTest(unittest.TestCase):
             except UnicodeDecodeError:
                 self.assertFalse(filename in cmd.filelist.files)
 
-
 class TestDummyOutput(environment.ZippedEnvironment):
 
     def setUp(self):
