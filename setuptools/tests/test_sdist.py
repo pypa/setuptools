@@ -14,7 +14,6 @@ from setuptools.tests import environment, test_svn
 from setuptools.tests.py26compat import skipIf
 
 from setuptools.compat import StringIO, unicode, PY3, PY2
-from setuptools.tests.py26compat import skipIf
 from setuptools.command.sdist import sdist, walk_revctrl
 from setuptools.command.egg_info import manifest_maker
 from setuptools.dist import Distribution
