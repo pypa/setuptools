@@ -364,7 +364,7 @@ def _write_requirements(stream, reqs):
 
 def write_requirements(cmd, basename, filename):
     dist = cmd.distribution
-    data = io.StringIO()
+    data = io.StringIO() if PY3 else io.BytesIO()
     _write_requirements(data, dist.install_requires)
     extras_require = dist.extras_require or {}
     for extra in sorted(extras_require):
