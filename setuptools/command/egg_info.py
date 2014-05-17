@@ -1,7 +1,6 @@
 """setuptools.command.egg_info
 
 Create a distribution's .egg-info directory and contents"""
-from __future__ import with_statement
 
 import os
 import re
@@ -238,7 +237,7 @@ class FileList(_FileList):
 
         #Must ensure utf-8 encodability
         utf8_path = unicode_utils.try_encode(u_path, "utf-8")
-        if utf8_path is None: 
+        if utf8_path is None:
             log.warn(enc_warn, path, 'utf-8')
             return False
 
@@ -326,7 +325,7 @@ def write_file(filename, contents):
 
     #assuming the contents has been vetted for utf-8 encoding
     contents = contents.encode("utf-8")
-    
+
     with open(filename, "wb") as f:        # always write POSIX-style manifest
         f.write(contents)
 
