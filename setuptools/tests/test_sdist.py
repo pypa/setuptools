@@ -156,10 +156,11 @@ class TestSdistTest(unittest.TestCase):
             self.fail(e)
 
         # The manifest should contain the UTF-8 filename
-        if sys.version_info >= (3,):
-            self.assertTrue(posix(filename) in u_contents)
-        else:
-            self.assertTrue(posix(filename) in contents)
+        if sys.version_info < (3,):
+            fs_enc = sys.getfilesystemencoding()
+            filename = filename.decode(fs_enc)
+
+        self.assertTrue(posix(filename) in u_contents)
 
     # Python 3 only
     if sys.version_info >= (3,):
@@ -401,10 +402,17 @@ class TestSdistTest(unittest.TestCase):
                 filename = filename.decode('latin-1')
                 self.assertFalse(filename in cmd.filelist.files)
         else:
-            # No conversion takes place under Python 2 and the file
-            # is included. We shall keep it that way for BBB.
-            self.assertTrue(filename in cmd.filelist.files)
-
+            # Under Python 2 there seems to be no decoded string in the
+            # filelist.  However, due to decode and encoding of the
+            # file name to get utf-8 Manifest the latin1 maybe excluded
+            try:
+                # fs_enc should match how one is expect the decoding to
+                # be proformed for the manifest output.
+                fs_enc = sys.getfilesystemencoding() 
+                filename.decode(fs_enc)
+                self.assertTrue(filename in cmd.filelist.files)
+            except UnicodeDecodeError:
+                self.assertFalse(filename in cmd.filelist.files)
 
 class TestDummyOutput(environment.ZippedEnvironment):
 
