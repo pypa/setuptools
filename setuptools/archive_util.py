@@ -6,7 +6,11 @@ __all__ = [
     "UnrecognizedFormat", "extraction_drivers", "unpack_directory",
 ]
 
-import zipfile, tarfile, os, shutil, posixpath
+import zipfile
+import tarfile
+import os
+import shutil
+import posixpath
 from pkg_resources import ensure_directory
 from distutils.errors import DistutilsError
 
@@ -14,34 +18,12 @@ class UnrecognizedFormat(DistutilsError):
     """Couldn't recognize the archive type"""
 
 def default_filter(src,dst):
-    """The default progress/filter callback; returns True for all files"""   
+    """The default progress/filter callback; returns True for all files"""
     return dst
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def unpack_archive(filename, extract_dir, progress_filter=default_filter,
-    drivers=None
-):
+        drivers=None):
     """Unpack `filename` to `extract_dir`, or raise ``UnrecognizedFormat``
 
     `progress_filter` is a function taking two arguments: a source path
@@ -75,11 +57,6 @@ def unpack_archive(filename, extract_dir, progress_filter=default_filter,
         )
 
 
-
-
-
-
-
 def unpack_directory(filename, extract_dir, progress_filter=default_filter):
     """"Unpack" a directory, using the same interface as for archives
 
@@ -94,7 +71,6 @@ def unpack_directory(filename, extract_dir, progress_filter=default_filter):
         for d in dirs:
             paths[os.path.join(base,d)] = src+d+'/', os.path.join(dst,d)
         for f in files:
-            name = src+f
             target = os.path.join(dst,f)
             target = progress_filter(src+f, target)
             if not target:
@@ -103,22 +79,6 @@ def unpack_directory(filename, extract_dir, progress_filter=default_filter):
             f = os.path.join(base,f)
             shutil.copyfile(f, target)
             shutil.copystat(f, target)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def unpack_zipfile(filename, extract_dir, progress_filter=default_filter):
