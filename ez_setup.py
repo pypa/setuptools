@@ -78,8 +78,8 @@ def get_zip_class():
             return self
         def __exit__(self, type, value, traceback):
             self.close()
-    return zipfile.ZipFile if hasattr(zipfile.ZipFile, '__exit__') else \
-        ContextualZipFile
+    zf_has_exit = hasattr(zipfile.ZipFile, '__exit__')
+    return zipfile.ZipFile if zf_has_exit else ContextualZipFile
 
 
 @contextlib.contextmanager
