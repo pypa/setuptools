@@ -1507,11 +1507,8 @@ class DefaultProvider(EggProvider):
         return open(self._fn(self.module_path, resource_name), 'rb')
 
     def _get(self, path):
-        stream = open(path, 'rb')
-        try:
+        with open(path, 'rb') as stream:
             return stream.read()
-        finally:
-            stream.close()
 
 register_loader_type(type(None), DefaultProvider)
 
