@@ -1694,9 +1694,8 @@ class ZipProvider(EggProvider):
             return False
         # check that the contents match
         zip_contents = self.loader.get_data(zip_path)
-        f = open(file_path, 'rb')
-        file_contents = f.read()
-        f.close()
+        with open(file_path, 'rb') as f:
+            file_contents = f.read()
         return zip_contents == file_contents
 
     def _get_eager_resources(self):
@@ -1764,9 +1763,8 @@ class FileMetadata(EmptyProvider):
 
     def get_metadata(self, name):
         if name=='PKG-INFO':
-            f = open(self.path,'rU')
-            metadata = f.read()
-            f.close()
+            with open(self.path,'rU') as f:
+                metadata = f.read()
             return metadata
         raise KeyError("No metadata except PKG-INFO is available")
 
@@ -1889,11 +1887,8 @@ def find_on_path(importer, path_item, only=False):
                     for dist in dists:
                         yield dist
                 elif not only and lower.endswith('.egg-link'):
-                    entry_file = open(os.path.join(path_item, entry))
-                    try:
+                    with open(os.path.join(path_item, entry)) as entry_file:
                         entry_lines = entry_file.readlines()
-                    finally:
-                        entry_file.close()
                     for line in entry_lines:
                         if not line.strip():
                             continue
