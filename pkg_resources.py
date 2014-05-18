@@ -1551,7 +1551,7 @@ def build_zipmanifest(path):
       * [7] - zipinfo.CRC
     """
     zipinfo = dict()
-    with ContextualZipFile.compat(path) as zfile:
+    with ContextualZipFile(path) as zfile:
         for zitem in zfile.namelist():
             zpath = zitem.replace('/', os.sep)
             zipinfo[zpath] = zfile.getinfo(zitem)
@@ -1570,14 +1570,13 @@ class ContextualZipFile(zipfile.ZipFile):
     def __exit__(self, type, value, traceback):
         self.close()
 
-    @classmethod
-    def compat(cls, *args, **kwargs):
+    def __new__(cls, *args, **kwargs):
         """
         Construct a ZipFile or ContextualZipFile as appropriate
         """
-        zf_has_exit = hasattr(zipfile.ZipFile, '__exit__')
-        class_ = zipfile.ZipFile if zf_has_exit else cls
-        return class_(*args, **kwargs)
+        if hasattr(zipfile.ZipFile, '__exit__'):
+            return zipfile.ZipFile(*args, **kwargs)
+        return super(ContextualZipFile, cls).__new__(cls, *args, **kwargs)
 
 
 class ZipProvider(EggProvider):

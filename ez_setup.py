@@ -80,14 +80,13 @@ class ContextualZipFile(zipfile.ZipFile):
     def __exit__(self, type, value, traceback):
         self.close()
 
-    @classmethod
-    def compat(cls, *args, **kwargs):
+    def __new__(cls, *args, **kwargs):
         """
         Construct a ZipFile or ContextualZipFile as appropriate
         """
-        zf_has_exit = hasattr(zipfile.ZipFile, '__exit__')
-        class_ = zipfile.ZipFile if zf_has_exit else cls
-        return class_(*args, **kwargs)
+        if hasattr(zipfile.ZipFile, '__exit__'):
+            return zipfile.ZipFile(*args, **kwargs)
+        return super(ContextualZipFile, cls).__new__(cls, *args, **kwargs)
 
 
 @contextlib.contextmanager
@@ -98,7 +97,7 @@ def archive_context(filename):
     old_wd = os.getcwd()
     try:
         os.chdir(tmpdir)
-        with ContextualZipFile.compat(filename) as archive:
+        with ContextualZipFile(filename) as archive:
             archive.extractall()
 
         # going in the directory
