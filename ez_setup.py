@@ -246,16 +246,14 @@ def download_file_insecure(url, target):
 download_file_insecure.viable = lambda: True
 
 def get_best_downloader():
-    downloaders = [
+    downloaders = (
         download_file_powershell,
         download_file_curl,
         download_file_wget,
         download_file_insecure,
-    ]
-
-    for dl in downloaders:
-        if dl.viable():
-            return dl
+    )
+    viable_downloaders = (dl for dl in downloaders if dl.viable())
+    return next(viable_downloaders, None)
 
 def download_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
         to_dir=os.curdir, delay=15, downloader_factory=get_best_downloader):
