@@ -1551,16 +1551,33 @@ def build_zipmanifest(path):
       * [7] - zipinfo.CRC
     """
     zipinfo = dict()
-    zfile = zipfile.ZipFile(path)
-    #Got ZipFile has not __exit__ on python 3.1
-    try:
+    with ContextualZipFile.compat(path) as zfile:
         for zitem in zfile.namelist():
             zpath = zitem.replace('/', os.sep)
             zipinfo[zpath] = zfile.getinfo(zitem)
             assert zipinfo[zpath] is not None
-    finally:
-        zfile.close()
     return zipinfo
+
+
+class ContextualZipFile(zipfile.ZipFile):
+    """
+    Supplement ZipFile class to support context manager for Python 2.6
+    """
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.close()
+
+    @classmethod
+    def compat(cls, *args, **kwargs):
+        """
+        Construct a ZipFile or ContextualZipFile as appropriate
+        """
+        zf_has_exit = hasattr(zipfile.ZipFile, '__exit__')
+        class_ = zipfile.ZipFile if zf_has_exit else cls
+        return class_(*args, **kwargs)
 
 
 class ZipProvider(EggProvider):
