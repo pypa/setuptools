@@ -632,16 +632,15 @@ class PackageIndex(Environment):
                     shutil.copy2(filename, dst)
                     filename=dst
 
-            file = open(os.path.join(tmpdir, 'setup.py'), 'w')
-            file.write(
-                "from setuptools import setup\n"
-                "setup(name=%r, version=%r, py_modules=[%r])\n"
-                % (
-                    dists[0].project_name, dists[0].version,
-                    os.path.splitext(basename)[0]
+            with open(os.path.join(tmpdir, 'setup.py'), 'w') as file:
+                file.write(
+                    "from setuptools import setup\n"
+                    "setup(name=%r, version=%r, py_modules=[%r])\n"
+                    % (
+                        dists[0].project_name, dists[0].version,
+                        os.path.splitext(basename)[0]
+                    )
                 )
-            )
-            file.close()
             return filename
 
         elif match:
@@ -660,7 +659,7 @@ class PackageIndex(Environment):
     def _download_to(self, url, filename):
         self.info("Downloading %s", url)
         # Download the file
-        fp, tfp, info = None, None, None
+        fp, info = None, None
         try:
             checker = HashChecker.from_url(url)
             fp = self.open_url(strip_fragment(url))
@@ -677,21 +676,20 @@ class PackageIndex(Environment):
                 sizes = get_all_headers(headers, 'Content-Length')
                 size = max(map(int, sizes))
                 self.reporthook(url, filename, blocknum, bs, size)
-            tfp = open(filename,'wb')
-            while True:
-                block = fp.read(bs)
-                if block:
-                    checker.feed(block)
-                    tfp.write(block)
-                    blocknum += 1
-                    self.reporthook(url, filename, blocknum, bs, size)
-                else:
-                    break
-            self.check_hash(checker, filename, tfp)
+            with open(filename,'wb') as tfp:
+                while True:
+                    block = fp.read(bs)
+                    if block:
+                        checker.feed(block)
+                        tfp.write(block)
+                        blocknum += 1
+                        self.reporthook(url, filename, blocknum, bs, size)
+                    else:
+                        break
+                self.check_hash(checker, filename, tfp)
             return headers
         finally:
             if fp: fp.close()
-            if tfp: tfp.close()
 
     def reporthook(self, url, filename, blocknum, blksize, size):
         pass    # no-op
@@ -1040,9 +1038,8 @@ def local_open(url):
         files = []
         for f in os.listdir(filename):
             if f=='index.html':
-                fp = open(os.path.join(filename,f),'r')
-                body = fp.read()
-                fp.close()
+                with open(os.path.join(filename,f),'r') as fp:
+                    body = fp.read()
                 break
             elif os.path.isdir(os.path.join(filename,f)):
                 f+='/'
