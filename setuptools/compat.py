@@ -70,11 +70,8 @@ if PY3:
             globs = globals()
         if locs is None:
             locs = globs
-        f = open(fn, 'rb')
-        try:
+        with open(fn, 'rb') as f:
             source = f.read()
-        finally:
-            f.close()
         exec(compile(source, fn, 'exec'), globs, locs)
 
     def reraise(tp, value, tb=None):
