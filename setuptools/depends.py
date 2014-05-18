@@ -197,8 +197,19 @@ def extract_constant(code, symbol, default=-1):
         else:
             const = default
 
-if sys.platform.startswith('java') or sys.platform == 'cli':
-    # XXX it'd be better to test assertions about bytecode instead...
-    del extract_constant, get_module_constant
-    __all__.remove('extract_constant')
-    __all__.remove('get_module_constant')
+
+def _update_globals():
+    """
+    Patch the globals to remove the objects not available on some platforms.
+
+    XXX it'd be better to test assertions about bytecode instead.
+    """
+
+    if not sys.platform.startswith('java') and sys.platform != 'cli':
+        return
+    incompatible = 'extract_constant', 'get_module_constant'
+    for name in incompatible:
+        del globals()[name]
+        __all__.remove(name)
+
+_update_globals()
