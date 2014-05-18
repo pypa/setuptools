@@ -183,14 +183,11 @@ def has_powershell():
     if platform.system() != 'Windows':
         return False
     cmd = ['powershell', '-Command', 'echo test']
-    devnull = open(os.path.devnull, 'wb')
-    try:
+    with open(os.path.devnull, 'wb') as devnull:
         try:
             subprocess.check_call(cmd, stdout=devnull, stderr=devnull)
         except Exception:
             return False
-    finally:
-        devnull.close()
     return True
 
 download_file_powershell.viable = has_powershell
@@ -201,14 +198,11 @@ def download_file_curl(url, target):
 
 def has_curl():
     cmd = ['curl', '--version']
-    devnull = open(os.path.devnull, 'wb')
-    try:
+    with open(os.path.devnull, 'wb') as devnull:
         try:
             subprocess.check_call(cmd, stdout=devnull, stderr=devnull)
         except Exception:
             return False
-    finally:
-        devnull.close()
     return True
 
 download_file_curl.viable = has_curl
@@ -219,14 +213,11 @@ def download_file_wget(url, target):
 
 def has_wget():
     cmd = ['wget', '--version']
-    devnull = open(os.path.devnull, 'wb')
-    try:
+    with open(os.path.devnull, 'wb') as devnull:
         try:
             subprocess.check_call(cmd, stdout=devnull, stderr=devnull)
         except Exception:
             return False
-    finally:
-        devnull.close()
     return True
 
 download_file_wget.viable = has_wget
@@ -240,19 +231,16 @@ def download_file_insecure(url, target):
         from urllib.request import urlopen
     except ImportError:
         from urllib2 import urlopen
-    src = dst = None
+    src = urlopen(url)
     try:
-        src = urlopen(url)
-        # Read/write all in one block, so we don't create a corrupt file
-        # if the download is interrupted.
+        # Read all the data in one block.
         data = src.read()
-        dst = open(target, "wb")
-        dst.write(data)
     finally:
-        if src:
-            src.close()
-        if dst:
-            dst.close()
+        src.close()
+
+    # Write all the data in one block to avoid creating a partial file.
+    with open(target, "wb") as dst:
+        dst.write(data)
 
 download_file_insecure.viable = lambda: True
 
