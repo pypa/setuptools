@@ -77,7 +77,7 @@ def get_zip_class():
         def __enter__(self):
             return self
         def __exit__(self, type, value, traceback):
-            self.close
+            self.close()
     return zipfile.ZipFile if hasattr(zipfile.ZipFile, '__exit__') else \
         ContextualZipFile
 
