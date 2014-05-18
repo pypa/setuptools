@@ -11,7 +11,8 @@ import tarfile
 import os
 import shutil
 import posixpath
-from pkg_resources import ensure_directory
+import contextlib
+from pkg_resources import ensure_directory, ContextualZipFile
 from distutils.errors import DistutilsError
 
 class UnrecognizedFormat(DistutilsError):
@@ -92,8 +93,7 @@ def unpack_zipfile(filename, extract_dir, progress_filter=default_filter):
     if not zipfile.is_zipfile(filename):
         raise UnrecognizedFormat("%s is not a zip file" % (filename,))
 
-    z = zipfile.ZipFile(filename)
-    try:
+    with ContextualZipFile(filename) as z:
         for info in z.infolist():
             name = info.filename
 
@@ -121,8 +121,6 @@ def unpack_zipfile(filename, extract_dir, progress_filter=default_filter):
             unix_attributes = info.external_attr >> 16
             if unix_attributes:
                 os.chmod(target, unix_attributes)
-    finally:
-        z.close()
 
 
 def unpack_tarfile(filename, extract_dir, progress_filter=default_filter):
@@ -138,7 +136,7 @@ def unpack_tarfile(filename, extract_dir, progress_filter=default_filter):
         raise UnrecognizedFormat(
             "%s is not a compressed or uncompressed tar file" % (filename,)
         )
-    try:
+    with contextlib.closing(tarobj):
         tarobj.chown = lambda *args: None   # don't do any chowning!
         for member in tarobj:
             name = member.name
@@ -164,7 +162,5 @@ def unpack_tarfile(filename, extract_dir, progress_filter=default_filter):
                         except tarfile.ExtractError:
                             pass    # chown/chmod/mkfifo/mknode/makedev failed
         return True
-    finally:
-        tarobj.close()
 
 extraction_drivers = unpack_directory, unpack_zipfile, unpack_tarfile
