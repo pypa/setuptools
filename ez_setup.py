@@ -27,6 +27,11 @@ import contextlib
 from distutils import log
 
 try:
+    from urllib.request import urlopen
+except ImportError:
+    from urllib2 import urlopen
+
+try:
     from site import USER_SITE
 except ImportError:
     USER_SITE = None
@@ -227,10 +232,6 @@ def download_file_insecure(url, target):
     Use Python to download the file, even though it cannot authenticate the
     connection.
     """
-    try:
-        from urllib.request import urlopen
-    except ImportError:
-        from urllib2 import urlopen
     src = urlopen(url)
     try:
         # Read all the data in one block.
