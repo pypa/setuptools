@@ -8,3 +8,4 @@ include *.py
 include *.txt
 include MANIFEST.in
 include launcher.c
+include msvc-build-launcher.cmd
