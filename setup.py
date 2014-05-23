@@ -119,20 +119,20 @@ setup_params = dict(
     author="Python Packaging Authority",
     author_email="distutils-sig@python.org",
     license="PSF or ZPL",
-    long_description = long_description,
-    keywords = "CPAN PyPI distutils eggs package management",
-    url = "https://pypi.python.org/pypi/setuptools",
-    test_suite = 'setuptools.tests',
-    src_root = src_root,
-    packages = setuptools.find_packages(),
-    package_data = package_data,
+    long_description=long_description,
+    keywords="CPAN PyPI distutils eggs package management",
+    url="https://pypi.python.org/pypi/setuptools",
+    test_suite='setuptools.tests',
+    src_root=src_root,
+    packages=setuptools.find_packages(),
+    package_data=package_data,
 
-    py_modules = ['pkg_resources', 'easy_install'],
+    py_modules=['pkg_resources', 'easy_install'],
 
-    zip_safe = True,
+    zip_safe=True,
 
-    cmdclass = {'test': test},
-    entry_points = {
+    cmdclass={'test': test},
+    entry_points={
         "distutils.commands": [
             "%(cmd)s = setuptools.command.%(cmd)s:%(cmd)s" % locals()
             for cmd in SETUP_COMMANDS
@@ -178,7 +178,7 @@ setup_params = dict(
     },
 
 
-    classifiers = textwrap.dedent("""
+    classifiers=textwrap.dedent("""
         Development Status :: 5 - Production/Stable
         Intended Audience :: Developers
         License :: OSI Approved :: Python Software Foundation License
@@ -196,20 +196,20 @@ setup_params = dict(
         Topic :: System :: Systems Administration
         Topic :: Utilities
         """).strip().splitlines(),
-    extras_require = {
+    extras_require={
         "ssl:sys_platform=='win32'": "wincertstore==0.2",
         "certs": "certifi==1.0.1",
     },
-    dependency_links = [
+    dependency_links=[
         'https://pypi.python.org/packages/source/c/certifi/certifi-1.0.1.tar.gz#md5=45f5cb94b8af9e1df0f9450a8f61b790',
         'https://pypi.python.org/packages/source/w/wincertstore/wincertstore-0.2.zip#md5=ae728f2f007185648d0c7a8679b361e2',
     ],
-    scripts = [],
-    tests_require = [
+    scripts=[],
+    tests_require=[
         'setuptools[ssl]',
         'pytest',
     ],
-    setup_requires = [
+    setup_requires=[
     ] + pytest_runner,
 )
 
