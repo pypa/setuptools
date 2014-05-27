@@ -3,6 +3,12 @@ CHANGES
 =======
 
 ---
+3.7
+---
+
+* Issue #193: Improved handling of Unicode filenames when building manifests.
+
+---
 3.6
 ---
 
