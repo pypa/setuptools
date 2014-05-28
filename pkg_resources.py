@@ -1576,7 +1576,7 @@ class ContextualZipFile(zipfile.ZipFile):
         """
         if hasattr(zipfile.ZipFile, '__exit__'):
             return zipfile.ZipFile(*args, **kwargs)
-        return super(ContextualZipFile, cls).__new__(cls, *args, **kwargs)
+        return super(ContextualZipFile, cls).__new__(cls)
 
 
 class ZipProvider(EggProvider):
