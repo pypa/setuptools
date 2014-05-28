@@ -71,22 +71,19 @@ def _build_egg(egg, archive_filename, to_dir):
 
 class ContextualZipFile(zipfile.ZipFile):
     """
-    Supplement ZipFile class to support context manager for Python 2.6
+    Supplement ZipFile context manager class supporting all Python versions.
+
+    ZipFile supports a context manager interface only in versions [2.7, 3.0> &
+    3.2+.
+
     """
 
-    def __enter__(self):
-        return self
+    if not hasattr(zipfile.ZipFile, '__exit__'):
+        def __enter__(self):
+            return self
 
-    def __exit__(self, type, value, traceback):
-        self.close()
-
-    def __new__(cls, *args, **kwargs):
-        """
-        Construct a ZipFile or ContextualZipFile as appropriate
-        """
-        if hasattr(zipfile.ZipFile, '__exit__'):
-            return zipfile.ZipFile(*args, **kwargs)
-        return super(ContextualZipFile, cls).__new__(cls, *args, **kwargs)
+        def __exit__(self, type, value, traceback):
+            self.close()
 
 
 @contextlib.contextmanager
