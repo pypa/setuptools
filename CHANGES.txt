@@ -2,6 +2,15 @@
 CHANGES
 =======
 
+-----
+3.7.?
+-----
+
+* Issue #185: Make svn tagging work on the new style SVN metadata. 
+  Thanks cazabon!
+* Prune revision control directories (e.g .svn) from base path
+  as well as sub-directories.
+
 ---
 3.7
 ---
@@ -39,15 +48,6 @@ CHANGES
   of ``sys.getpreferredencoding`` to match the behavior on Python 2.6-3.4.
 * Issue #192: Preferred bootstrap location is now
   https://bootstrap.pypa.io/ez_setup.py (mirrored from former location).
-
------
-3.4.5
------
-
-* Issue #185: Applied patch and added regression tests for making
-  svn tagging work on the new style SVN metadata.
-* Prune revision control directories (e.g .svn) from base path
-  as well as subfolders.
 
 -----
 3.4.4
