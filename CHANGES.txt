@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+---
+3.9
+---
+
+* Issue #154: Cache the reading of the zip file index for cases where the
+  same zip-file is used for multiple packages (like PEX).
+
 ---------------
 3.7.1 and 3.8.1
 ---------------
