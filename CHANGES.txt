@@ -3,6 +3,12 @@ CHANGES
 =======
 
 ---
+4.1
+---
+
+* Issue #202: Implemented even more robust ZipImporter cache invalidation.
+
+---
 4.0
 ---
 
