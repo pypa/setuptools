@@ -418,7 +418,3 @@ Environment Markers
 
     >>> em("'yx' in 'x'")
     False
-
-
-
-
