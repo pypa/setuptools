@@ -3,6 +3,13 @@ CHANGES
 =======
 
 ---
+4.0
+---
+
+* Issue #210: ``setup.py develop`` now copies scripts in binary mode rather
+  than text mode, matching the behavior of the ``install`` command.
+
+---
 3.8
 ---
 
