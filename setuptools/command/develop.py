@@ -162,7 +162,7 @@ class develop(easy_install):
         for script_name in self.distribution.scripts or []:
             script_path = os.path.abspath(convert_path(script_name))
             script_name = os.path.basename(script_path)
-            f = open(script_path,'rU')
+            f = open(script_path,'rb')
             script_text = f.read()
             f.close()
             self.install_script(dist, script_name, script_text, script_path)
