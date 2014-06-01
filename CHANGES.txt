@@ -3,6 +3,13 @@ CHANGES
 =======
 
 ---
+3.8
+---
+
+* Extend Issue #197 workaround to include all Python 3 versions prior to
+  3.2.2.
+
+---
 3.7
 ---
 
