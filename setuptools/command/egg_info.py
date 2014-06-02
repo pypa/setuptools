@@ -5,13 +5,12 @@ Create a distribution's .egg-info directory and contents"""
 import os
 import re
 import sys
-import io
 
 from setuptools import Command
 import distutils.errors
 from distutils import log
 from setuptools.command.sdist import sdist
-from setuptools.compat import basestring, PY3, unicode
+from setuptools.compat import basestring, PY3, StringIO
 from setuptools import svn_utils
 from distutils.util import convert_path
 from distutils.filelist import FileList as _FileList
@@ -364,7 +363,7 @@ def _write_requirements(stream, reqs):
 
 def write_requirements(cmd, basename, filename):
     dist = cmd.distribution
-    data = io.StringIO() if PY3 else io.BytesIO()
+    data = StringIO()
     _write_requirements(data, dist.install_requires)
     extras_require = dist.extras_require or {}
     for extra in sorted(extras_require):
