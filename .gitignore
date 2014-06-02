@@ -1,3 +1,18 @@
+*.pyc
+*~
+*.swp
+.coverage
 .tox
+distribute.egg-info
+setuptools.egg-info
+build
+dist
+lib
+bin
+include
+\.Python
+*.swp
+CHANGES (links).txt
+.git*
 py-*.egg
 pytest-*.egg
