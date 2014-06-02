@@ -1678,7 +1678,14 @@ def _replace_zip_directory_cache_data(normalized_path):
     # documented anywhere and could in theory change with new Python releases)
     # for no significant benefit.
     for p in to_update:
-        old_entry = cache.pop(p)
+        # N.B. pypy uses a custom zipimport._zip_directory_cache implementation
+        # class that does not support the complete dict interface, e.g. it does
+        # not support the dict.pop() method. For more detailed information see
+        # the following links:
+        #   https://bitbucket.org/pypa/setuptools/issue/202/more-robust-zipimporter-cache-invalidation#comment-10495960
+        #   https://bitbucket.org/pypy/pypy/src/dd07756a34a41f674c0cacfbc8ae1d4cc9ea2ae4/pypy/module/zipimport/interp_zipimport.py#cl-99
+        old_entry = cache[p]
+        del cache[p]
         zipimport.zipimporter(p)
         old_entry.clear()
         old_entry.update(cache[p])
