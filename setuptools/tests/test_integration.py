@@ -74,14 +74,14 @@ def test_stevedore(install_context):
     _install_one('stevedore', install_context,
                  'stevedore', 'extension.py')
 
-# def test_virtualenvwrapper(install_context):
-#     _install_one('virtualenvwrapper', install_context,
-#                  'virtualenvwrapper', 'hook_loader.py')
+def test_virtualenvwrapper(install_context):
+    _install_one('virtualenvwrapper', install_context,
+                 'virtualenvwrapper', 'hook_loader.py')
 
-# def test_pbr(install_context):
-#     _install_one('pbr', install_context,
-#                  'pbr', 'core.py')
+def test_pbr(install_context):
+    _install_one('pbr', install_context,
+                 'pbr', 'core.py')
 
-# def test_python_novaclient(install_context):
-#     _install_one('python-novaclient', install_context,
-#                  'novaclient', 'base.py')
+def test_python_novaclient(install_context):
+    _install_one('python-novaclient', install_context,
+                 'novaclient', 'base.py')
