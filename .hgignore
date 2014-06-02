@@ -3,6 +3,7 @@ syntax: glob
 *~
 *.swp
 .coverage
+.tox
 distribute.egg-info
 setuptools.egg-info
 build
