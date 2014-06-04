@@ -1657,33 +1657,38 @@ def update_dist_caches(dist_path, fix_zipimporter_caches):
         # really needed.
         _uncache(normalized_path, zipimport._zip_directory_cache)
 
-def _uncache(normalized_path, cache):
-    to_remove = []
+def _collect_zipimporter_cache_entries(normalized_path, cache):
+    """
+    Return zipimporter cache entry keys related to a given normalized path.
+
+    Alternative path spellings (e.g. those using different character case or
+    those using alternative path separators) related to the same path are
+    included. Any sub-path entries are included as well, i.e. those
+    corresponding to zip archives embedded in other zip archives.
+
+    """
+    result = []
     prefix_len = len(normalized_path)
     for p in cache:
         np = normalize_path(p)
         if (np.startswith(normalized_path) and
                 np[prefix_len:prefix_len + 1] in (os.sep, '')):
-            to_remove.append(p)
-    for p in to_remove:
+            result.append(p)
+    return result
+
+def _uncache(normalized_path, cache):
+    for p in _collect_zipimporter_cache_entries(normalized_path, cache):
         del cache[p]
 
 def _replace_zip_directory_cache_data(normalized_path):
-    cache = zipimport._zip_directory_cache
-    to_update = []
-    prefix_len = len(normalized_path)
-    for p in cache:
-        np = normalize_path(p)
-        if (np.startswith(normalized_path) and
-                np[prefix_len:prefix_len + 1] in (os.sep, '')):
-            to_update.append(p)
     # N.B. In theory, we could load the zip directory information just once for
     # all updated path spellings, and then copy it locally and update its
     # contained path strings to contain the correct spelling, but that seems
     # like a way too invasive move (this cache structure is not officially
     # documented anywhere and could in theory change with new Python releases)
     # for no significant benefit.
-    for p in to_update:
+    cache = zipimport._zip_directory_cache
+    for p in _collect_zipimporter_cache_entries(normalized_path, cache):
         # N.B. pypy's custom zipimport._zip_directory_cache implementation does
         # not support the complete dict interface, e.g. it does not support the
         # dict.pop() method. For more detailed information see the following
