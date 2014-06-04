@@ -1646,16 +1646,21 @@ def update_dist_caches(dist_path, fix_zipimporter_caches):
     if fix_zipimporter_caches:
         _replace_zip_directory_cache_data(normalized_path)
     else:
-        # Clear the relevant zipimport._zip_directory_cache data. This will not
-        # remove related zipimport.zipimporter instances but should at least
-        # not leave the old zip archive directory data behind to be reused by
-        # some newly created zipimport.zipimporter loaders. This whole stale
-        # data removal step does not seem strictly necessary, but has been left
-        # in because it was done before we started replacing the zip archive
-        # directory information cache content if possible, and there are no
-        # relevant unit tests that we can depend on to tell us if this is
-        # really needed.
-        _uncache(normalized_path, zipimport._zip_directory_cache)
+        # Here, even though we do not want to fix existing and now stale
+        # zipimporter cache information, we still want to remove it. Related to
+        # Python's zip archive directory information cache, we clear each of
+        # its stale entries in two phases:
+        #   1. Clear the entry so attempting to access zip archive information
+        #      via any existing stale zipimport.zipimporter instances fails.
+        #   2. Remove the entry from the cache so any newly constructed
+        #      zipimport.zipimporter instances do not end up using old stale
+        #      zip archive directory information.
+        # This whole stale data removal step does not seem strictly necessary,
+        # but has been left in because it was done before we started replacing
+        # the zip archive directory information cache content if possible, and
+        # there are no relevant unit tests that we can depend on to tell us if
+        # this is really needed.
+        _remove_and_clear_zip_directory_cache_data(normalized_path)
 
 def _collect_zipimporter_cache_entries(normalized_path, cache):
     """
@@ -1722,6 +1727,13 @@ def _replace_zip_directory_cache_data(normalized_path):
     _update_zipimporter_cache(normalized_path,
         zipimport._zip_directory_cache,
         updater=replace_cached_zip_archive_directory_data)
+
+def _remove_and_clear_zip_directory_cache_data(normalized_path):
+    def clear_and_remove_cached_zip_archive_directory_data(path, old_entry):
+        old_entry.clear()
+    _update_zipimporter_cache(normalized_path,
+        zipimport._zip_directory_cache,
+        updater=clear_and_remove_cached_zip_archive_directory_data)
 
 def is_python(text, filename='<string>'):
     "Is this string a valid Python script?"
