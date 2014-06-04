@@ -1608,22 +1608,39 @@ def update_dist_caches(dist_path, fix_zipimporter_caches):
     read a 'bad local file header', or even worse, it may fail silently &
     return invalid data.
 
+    zipimport._zip_directory_cache contains cached zip archive directory
+    information for all existing zipimport.zipimporter instances and all such
+    instances connected to the same archive share the same cached directory
+    information.
+
     If asked, we can fix all existing zipimport.zipimporter instances instead
     of having to track them down and remove them one by one, by updating their
     shared cached zip archive directory information. This, of course, assumes
     that the replacement distribution is packaged as a zipped egg.
 
-    If not asked to fix existing zipimport.zipimporter instances, we do our
-    best to clear any remaining zipimport.zipimporter related cached data that
-    might somehow later get used when attempting to load data from the new
+    If not asked to fix existing zipimport.zipimporter instances, we still do
+    our best to clear any remaining zipimport.zipimporter related cached data
+    that might somehow later get used when attempting to load data from the new
     distribution and thus cause such load operations to fail. Note that when
-    tracking down such remaining stale data, we can not catch every possible
+    tracking down such remaining stale data, we can not catch every conceivable
     usage from here, and we clear only those that we know of and have found to
     cause problems if left alive. Any remaining caches should be updated by
     whomever is in charge of maintaining them, i.e. they should be ready to
     handle us replacing their zip archives with new distributions at runtime.
 
     """
+    # There are several other known sources of stale zipimport.zipimporter
+    # instances that we do not clear here, but might if ever given a reason to
+    # do so:
+    # * Global setuptools pkg_resources.working_set (a.k.a. 'master working
+    #   set') may contain distributions which may in turn contain their
+    #   zipimport.zipimporter loaders.
+    # * Several zipimport.zipimporter loaders held by local variables further
+    #   up the function call stack when running the setuptools installation.
+    # * Already loaded modules may have their __loader__ attribute set to the
+    #   exact loader instance used when importing them. Python 3.4 docs state
+    #   that this information is intended mostly for introspection and so is
+    #   not expected to cause us problems.
     normalized_path = normalize_path(dist_path)
     _uncache(normalized_path, sys.path_importer_cache)
     if fix_zipimporter_caches:
@@ -1632,24 +1649,13 @@ def update_dist_caches(dist_path, fix_zipimporter_caches):
         # Clear the relevant zipimport._zip_directory_cache data. This will not
         # remove related zipimport.zipimporter instances but should at least
         # not leave the old zip archive directory data behind to be reused by
-        # some newly created zipimport.zipimporter loaders. Not strictly
-        # necessary, but left in because this cache clearing was done before
-        # we started replacing the zipimport._zip_directory_cache if possible,
-        # and there are no relevent unit tests that we can depend on to tell us
-        # if this is really needed.
+        # some newly created zipimport.zipimporter loaders. This whole stale
+        # data removal step does not seem strictly necessary, but has been left
+        # in because it was done before we started replacing the zip archive
+        # directory information cache content if possible, and there are no
+        # relevant unit tests that we can depend on to tell us if this is
+        # really needed.
         _uncache(normalized_path, zipimport._zip_directory_cache)
-        # N.B. Other known sources of stale zipimport.zipimporter instances
-        # that we do not clear here, but might if ever given a reason to do so.
-        # * Global setuptools pkg_resources.working_set (a.k.a. 'master working
-        #   set') may contain distributions which may in turn contain their
-        #   zipimport.zipimporter loaders.
-        # * Several zipimport.zipimporter loaders held by local variables
-        #   further up the function call stack when running the setuptools
-        #   installation.
-        # * Already loaded modules may have their __loader__ attribute set to
-        #   the exact loader instance used when importing them. Python 3.4 docs
-        #   state that this information is intended mostly for introspection
-        #   and so is not expected to cause us problems.
 
 def _uncache(normalized_path, cache):
     to_remove = []
@@ -1678,10 +1684,10 @@ def _replace_zip_directory_cache_data(normalized_path):
     # documented anywhere and could in theory change with new Python releases)
     # for no significant benefit.
     for p in to_update:
-        # N.B. pypy uses a custom zipimport._zip_directory_cache implementation
-        # class that does not support the complete dict interface, e.g. it does
-        # not support the dict.pop() method. For more detailed information see
-        # the following links:
+        # N.B. pypy's custom zipimport._zip_directory_cache implementation does
+        # not support the complete dict interface, e.g. it does not support the
+        # dict.pop() method. For more detailed information see the following
+        # links:
         #   https://bitbucket.org/pypa/setuptools/issue/202/more-robust-zipimporter-cache-invalidation#comment-10495960
         #   https://bitbucket.org/pypy/pypy/src/dd07756a34a41f674c0cacfbc8ae1d4cc9ea2ae4/pypy/module/zipimport/interp_zipimport.py#cl-99
         old_entry = cache[p]
