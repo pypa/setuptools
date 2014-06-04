@@ -1676,18 +1676,21 @@ def _collect_zipimporter_cache_entries(normalized_path, cache):
             result.append(p)
     return result
 
-def _uncache(normalized_path, cache):
-    for p in _collect_zipimporter_cache_entries(normalized_path, cache):
-        del cache[p]
+def _update_zipimporter_cache(normalized_path, cache, updater=None):
+    """
+    Update zipimporter cache data for a given normalized path.
 
-def _replace_zip_directory_cache_data(normalized_path):
-    # N.B. In theory, we could load the zip directory information just once for
-    # all updated path spellings, and then copy it locally and update its
-    # contained path strings to contain the correct spelling, but that seems
-    # like a way too invasive move (this cache structure is not officially
-    # documented anywhere and could in theory change with new Python releases)
-    # for no significant benefit.
-    cache = zipimport._zip_directory_cache
+    Any sub-path entries are processed as well, i.e. those corresponding to zip
+    archives embedded in other zip archives.
+
+    Given updater is a callable taking a cache entry key and the original entry
+    (after already removing the entry from the cache), and expected to update
+    the entry and possibly return a new one to be inserted in its place.
+    Returning None indicates that the entry should not be replaced with a new
+    one. If no updater is given, the cache entries are simply removed without
+    any additional processing, the same as if the updater simply returned None.
+
+    """
     for p in _collect_zipimporter_cache_entries(normalized_path, cache):
         # N.B. pypy's custom zipimport._zip_directory_cache implementation does
         # not support the complete dict interface, e.g. it does not support the
@@ -1697,10 +1700,28 @@ def _replace_zip_directory_cache_data(normalized_path):
         #   https://bitbucket.org/pypy/pypy/src/dd07756a34a41f674c0cacfbc8ae1d4cc9ea2ae4/pypy/module/zipimport/interp_zipimport.py#cl-99
         old_entry = cache[p]
         del cache[p]
-        zipimport.zipimporter(p)
+        new_entry = updater and updater(p, old_entry)
+        if new_entry is not None:
+            cache[p] = new_entry
+
+def _uncache(normalized_path, cache):
+    _update_zipimporter_cache(normalized_path, cache)
+
+def _replace_zip_directory_cache_data(normalized_path):
+    def replace_cached_zip_archive_directory_data(path, old_entry):
+        # N.B. In theory, we could load the zip directory information just once
+        # for all updated path spellings, and then copy it locally and update
+        # its contained path strings to contain the correct spelling, but that
+        # seems like a way too invasive move (this cache structure is not
+        # officially documented anywhere and could in theory change with new
+        # Python releases) for no significant benefit.
         old_entry.clear()
-        old_entry.update(cache[p])
-        cache[p] = old_entry
+        zipimport.zipimporter(path)
+        old_entry.update(zipimport._zip_directory_cache[path])
+        return old_entry
+    _update_zipimporter_cache(normalized_path,
+        zipimport._zip_directory_cache,
+        updater=replace_cached_zip_archive_directory_data)
 
 def is_python(text, filename='<string>'):
     "Is this string a valid Python script?"
