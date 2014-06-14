@@ -750,9 +750,9 @@ Please make the appropriate changes for your system and try again.
         if is_script:
             # See https://bitbucket.org/pypa/setuptools/issue/134 for info
             #  on script file naming and downstream issues with SVR4
-            template_name = 'script template.py'
+            template_name = 'script.tmpl'
             if dev_path:
-                template_name = template_name.replace('.py', ' (dev).py')
+                template_name = template_name.replace('.tmpl', ' (dev).tmpl')
             script_text = (get_script_header(script_text) +
                 get_template(template_name) % locals())
         self.write_script(script_name, _to_ascii(script_text), 'b')

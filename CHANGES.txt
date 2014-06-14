@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+-----
+5.0.1
+-----
+
+* Renamed script templates to end with .tmpl now that they no longer need
+  to be processed by 2to3. Fixes spurious syntax errors during build/install.
+
 ---
 5.0
 ---
