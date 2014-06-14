@@ -1540,10 +1540,10 @@ class ZipManifests(dict):
         Load a manifest at path or return a suitable manifest already loaded.
         """
         path = os.path.normpath(path)
-        stat = os.stat(path)
+        mtime = os.stat(path).st_mtime
 
-        if path not in self or self[path][0] != stat.st_mtime:
-            self[path] = (stat.st_mtime, self.build(path))
+        if path not in self or self[path][0] != mtime:
+            self[path] = (mtime, self.build(path))
 
         return self[path][1]
 
