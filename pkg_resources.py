@@ -1551,8 +1551,8 @@ class ZipManifests(dict):
     @classmethod
     def build(cls, path):
         """
-        This builds a similar dictionary to the zipimport directory
-        caches.  However instead of tuples, ZipInfo objects are stored.
+        Build a dictionary similar to the zipimport directory
+        caches, except instead of tuples, store ZipInfo objects.
 
         The translation of the tuple is as follows:
           * [0] - zipinfo.filename on stock pythons this needs "/" --> os.sep
