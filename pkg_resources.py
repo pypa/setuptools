@@ -29,6 +29,7 @@ import token
 import symbol
 import operator
 import platform
+import collections
 from pkgutil import get_importer
 
 try:
@@ -1534,6 +1535,7 @@ class ZipManifests(dict):
     """
     Memoized zipfile manifests.
     """
+    manifest_mod = collections.namedtuple('manifest_mod', 'manifest mtime')
 
     def load(self, path):
         """
@@ -1542,10 +1544,11 @@ class ZipManifests(dict):
         path = os.path.normpath(path)
         mtime = os.stat(path).st_mtime
 
-        if path not in self or self[path][0] != mtime:
-            self[path] = (mtime, self.build(path))
+        if path not in self or self[path].mtime != mtime:
+            manifest = self.build(path)
+            self[path] = self.manifest_mod(manifest, mtime)
 
-        return self[path][1]
+        return self[path].manifest
 
     @classmethod
     def build(cls, path):
