@@ -1543,12 +1543,13 @@ class ZipManifests(dict):
         stat = os.stat(path)
 
         if path not in self or self[path][0] != stat.st_mtime:
-            self[path] = (stat.st_mtime, self.build_manifest(path))
+            self[path] = (stat.st_mtime, self.build(path))
 
         return self[path][1]
     __call__ = load
 
-    def build_manifest(self, path):
+    @classmethod
+    def build(cls, path):
         """
         This builds a similar dictionary to the zipimport directory
         caches.  However instead of tuples, ZipInfo objects are stored.
