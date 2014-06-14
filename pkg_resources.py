@@ -1554,20 +1554,8 @@ class ZipManifests(dict):
         Build a dictionary similar to the zipimport directory
         caches, except instead of tuples, store ZipInfo objects.
 
-        The translation of the tuple is as follows:
-          * [0] - zipinfo.filename on stock pythons this needs "/" --> os.sep
-                  on pypy it is the same (one reason why distribute did work
-                  in some cases on pypy and win32).
-          * [1] - zipinfo.compress_type
-          * [2] - zipinfo.compress_size
-          * [3] - zipinfo.file_size
-          * [4] - len(utf-8 encoding of filename) if zipinfo & 0x800
-                  len(ascii encoding of filename) otherwise
-          * [5] - (zipinfo.date_time[0] - 1980) << 9 |
-                   zipinfo.date_time[1] << 5 | zipinfo.date_time[2]
-          * [6] - (zipinfo.date_time[3] - 1980) << 11 |
-                   zipinfo.date_time[4] << 5 | (zipinfo.date_time[5] // 2)
-          * [7] - zipinfo.CRC
+        Use a platform-specific path separator (os.sep) for the path keys
+        for compatibility with pypy on Windows.
         """
         with ContextualZipFile(path) as zfile:
             items = (
