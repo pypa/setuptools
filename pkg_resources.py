@@ -1530,19 +1530,16 @@ class EmptyProvider(NullProvider):
 empty_provider = EmptyProvider()
 
 
-class ZipManifests(object):
-
-    def __init__(self):
-        self.known = dict()
+class ZipManifests(dict):
 
     def __call__(self, path):
         path = os.path.normpath(path)
         stat = os.stat(path)
 
-        if path not in self.known or self.known[path][0] != stat.st_mtime:
-            self.known[path] = (stat.st_mtime, self.build_manifest(path))
+        if path not in self or self[path][0] != stat.st_mtime:
+            self[path] = (stat.st_mtime, self.build_manifest(path))
 
-        return self.known[path][1]
+        return self[path][1]
 
     def build_manifest(self, path):
         """
