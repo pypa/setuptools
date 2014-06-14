@@ -743,15 +743,9 @@ Please make the appropriate changes for your system and try again.
             """
             There are a couple of template scripts in the package. This
             function loads one of them and prepares it for use.
-
-            These templates use triple-quotes to escape variable
-            substitutions so the scripts get the 2to3 treatment when build
-            on Python 3. The templates cannot use triple-quotes naturally.
             """
             raw_bytes = resource_string('setuptools', template_name)
-            template_str = raw_bytes.decode('utf-8')
-            clean_template = template_str.replace('"""', '')
-            return clean_template
+            return raw_bytes.decode('utf-8')
 
         if is_script:
             # See https://bitbucket.org/pypa/setuptools/issue/134 for info
