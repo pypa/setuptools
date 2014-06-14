@@ -1,10 +1,12 @@
-from setuptools.command.easy_install import easy_install
-from distutils.util import convert_path, subst_vars
-from pkg_resources import Distribution, PathMetadata, normalize_path
+import os
+import glob
+from distutils.util import convert_path
 from distutils import log
 from distutils.errors import DistutilsError, DistutilsOptionError
-import os, sys, setuptools, glob
 
+import setuptools
+from pkg_resources import Distribution, PathMetadata, normalize_path
+from setuptools.command.easy_install import easy_install
 from setuptools.compat import PY3
 
 class develop(easy_install):
@@ -166,4 +168,3 @@ class develop(easy_install):
             script_text = f.read()
             f.close()
             self.install_script(dist, script_name, script_text, script_path)
-
