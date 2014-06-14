@@ -38,19 +38,13 @@ class develop(easy_install):
         self.setup_path = None
         self.always_copy_from = '.'   # always copy eggs installed in curdir
 
-
-
     def finalize_options(self):
         ei = self.get_finalized_command("egg_info")
         if ei.broken_egg_info:
-            raise DistutilsError(
-            "Please rename %r to %r before using 'develop'"
-            % (ei.egg_info, ei.broken_egg_info)
-            )
+            template = "Please rename %r to %r before using 'develop'"
+            args = ei.egg_info, ei.broken_egg_info
+            raise DistutilsError(template % args)
         self.args = [ei.egg_name]
-
-
-
 
         easy_install.finalize_options(self)
         self.expand_basedirs()
@@ -64,11 +58,12 @@ class develop(easy_install):
             self.egg_path = os.path.abspath(ei.egg_base)
 
         target = normalize_path(self.egg_base)
-        if normalize_path(os.path.join(self.install_dir, self.egg_path)) != target:
+        egg_path = normalize_path(os.path.join(self.install_dir, self.egg_path))
+        if egg_path != target:
             raise DistutilsOptionError(
                 "--egg-path must be a relative path from the install"
                 " directory to "+target
-        )
+            )
 
         # Make a distribution for the package's source
         self.dist = Distribution(
@@ -82,7 +77,7 @@ class develop(easy_install):
             p = '../' * (p.count('/')+1)
         self.setup_path = p
         p = normalize_path(os.path.join(self.install_dir, self.egg_path, p))
-        if  p != normalize_path(os.curdir):
+        if p != normalize_path(os.curdir):
             raise DistutilsOptionError(
                 "Can't get a consistent path to setup script from"
                 " installation directory", p, normalize_path(os.curdir))
@@ -131,7 +126,6 @@ class develop(easy_install):
         # postprocess the installed distro, fixing up .pth, installing scripts,
         # and handling requirements
         self.process_distribution(None, self.dist, not self.no_deps)
-
 
     def uninstall_link(self):
         if os.path.exists(self.egg_link):
