@@ -1531,8 +1531,14 @@ empty_provider = EmptyProvider()
 
 
 class ZipManifests(dict):
+    """
+    Memoized zipfile manifests.
+    """
 
-    def __call__(self, path):
+    def load(self, path):
+        """
+        Load a manifest at path or return a suitable manifest already loaded.
+        """
         path = os.path.normpath(path)
         stat = os.stat(path)
 
@@ -1540,6 +1546,7 @@ class ZipManifests(dict):
             self[path] = (stat.st_mtime, self.build_manifest(path))
 
         return self[path][1]
+    __call__ = load
 
     def build_manifest(self, path):
         """
