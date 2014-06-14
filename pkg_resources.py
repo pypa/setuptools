@@ -1548,7 +1548,7 @@ class ZipManifests(object):
         """
         This builds a similar dictionary to the zipimport directory
         caches.  However instead of tuples, ZipInfo objects are stored.
-    
+
         The translation of the tuple is as follows:
           * [0] - zipinfo.filename on stock pythons this needs "/" --> os.sep
                   on pypy it is the same (one reason why distribute did work
