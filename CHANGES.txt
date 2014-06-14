@@ -2,13 +2,26 @@
 CHANGES
 =======
 
----------------
-3.7.1 and 3.8.1
----------------
+---
+5.0
+---
+
+* Issue #218: Re-release of 3.8.1 to signal that it supersedes 4.x.
+
+-------------------------
+3.7.1 and 3.8.1 and 4.0.1
+-------------------------
 
 * Issue #213: Use legacy StringIO behavior for compatibility under pbr.
 * Issue #218: Setuptools 3.8.1 superseded 4.0.1, and 4.x was removed
   from the available versions to install.
+
+---
+4.0
+---
+
+* Issue #210: ``setup.py develop`` now copies scripts in binary mode rather
+  than text mode, matching the behavior of the ``install`` command.
 
 ---
 3.8
