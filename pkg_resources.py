@@ -1569,13 +1569,15 @@ class ZipManifests(dict):
                    zipinfo.date_time[4] << 5 | (zipinfo.date_time[5] // 2)
           * [7] - zipinfo.CRC
         """
-        zipinfo = dict()
         with ContextualZipFile(path) as zfile:
-            for zitem in zfile.namelist():
-                zpath = zitem.replace('/', os.sep)
-                zipinfo[zpath] = zfile.getinfo(zitem)
-                assert zipinfo[zpath] is not None
-        return zipinfo
+            items = (
+                (
+                    name.replace('/', os.sep),
+                    zfile.getinfo(name),
+                )
+                for name in zfile.namelist()
+            )
+            return dict(items)
 build_zipmanifest = ZipManifests()
 
 
