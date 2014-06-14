@@ -7,6 +7,8 @@ CHANGES
 ---------------
 
 * Issue #213: Use legacy StringIO behavior for compatibility under pbr.
+* Issue #218: Setuptools 3.8.1 superseded 4.0.1, and 4.x was removed
+  from the available versions to install.
 
 ---
 3.8
