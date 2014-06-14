@@ -1546,7 +1546,6 @@ class ZipManifests(dict):
             self[path] = (stat.st_mtime, self.build(path))
 
         return self[path][1]
-    __call__ = load
 
     @classmethod
     def build(cls, path):
@@ -1566,7 +1565,7 @@ class ZipManifests(dict):
                 for name in zfile.namelist()
             )
             return dict(items)
-build_zipmanifest = ZipManifests()
+zip_manifests = ZipManifests()
 
 
 class ContextualZipFile(zipfile.ZipFile):
@@ -1618,7 +1617,7 @@ class ZipProvider(EggProvider):
 
     @property
     def zipinfo(self):
-        return build_zipmanifest(self.loader.archive)  # memoized
+        return zip_manifests.load(self.loader.archive)
 
     def get_resource_filename(self, manager, resource_name):
         if not self.egg_name:
