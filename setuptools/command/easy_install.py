@@ -646,13 +646,6 @@ Please make the appropriate changes for your system and try again.
     def process_distribution(self, requirement, dist, deps=True, *info):
         self.update_pth(dist)
         self.package_index.add(dist)
-        # First remove the dist from self.local_index, to avoid problems using
-        # old cached data in case its underlying file has been replaced.
-        #
-        # This is a quick-fix for a zipimporter caching issue in case the dist
-        # has been implemented as and already loaded from a zip file that got
-        # replaced later on. For more detailed information see setuptools issue
-        # #168 at 'http://bitbucket.org/pypa/setuptools/issue/168'.
         if dist in self.local_index[dist.key]:
             self.local_index.remove(dist)
         self.local_index.add(dist)
@@ -834,23 +827,30 @@ Please make the appropriate changes for your system and try again.
                 dir_util.remove_tree(destination, dry_run=self.dry_run)
             elif os.path.exists(destination):
                 self.execute(os.unlink,(destination,),"Removing "+destination)
-            uncache_zipdir(destination)
-            if os.path.isdir(egg_path):
-                if egg_path.startswith(tmpdir):
-                    f,m = shutil.move, "Moving"
+            try:
+                new_dist_is_zipped = False
+                if os.path.isdir(egg_path):
+                    if egg_path.startswith(tmpdir):
+                        f,m = shutil.move, "Moving"
+                    else:
+                        f,m = shutil.copytree, "Copying"
+                elif self.should_unzip(dist):
+                    self.mkpath(destination)
+                    f,m = self.unpack_and_compile, "Extracting"
                 else:
-                    f,m = shutil.copytree, "Copying"
-            elif self.should_unzip(dist):
-                self.mkpath(destination)
-                f,m = self.unpack_and_compile, "Extracting"
-            elif egg_path.startswith(tmpdir):
-                f,m = shutil.move, "Moving"
-            else:
-                f,m = shutil.copy2, "Copying"
-
-            self.execute(f, (egg_path, destination),
-                (m+" %s to %s") %
-                (os.path.basename(egg_path),os.path.dirname(destination)))
+                    new_dist_is_zipped = True
+                    if egg_path.startswith(tmpdir):
+                        f,m = shutil.move, "Moving"
+                    else:
+                        f,m = shutil.copy2, "Copying"
+                self.execute(f, (egg_path, destination),
+                    (m+" %s to %s") %
+                    (os.path.basename(egg_path),os.path.dirname(destination)))
+                update_dist_caches(destination,
+                    fix_zipimporter_caches=new_dist_is_zipped)
+            except:
+                update_dist_caches(destination, fix_zipimporter_caches=False)
+                raise
 
         self.add_output(destination)
         return self.egg_distribution(destination)
@@ -1576,35 +1576,175 @@ def auto_chmod(func, arg, exc):
     et, ev, _ = sys.exc_info()
     reraise(et, (ev[0], ev[1] + (" %s %s" % (func,arg))))
 
-def uncache_zipdir(path):
+def update_dist_caches(dist_path, fix_zipimporter_caches):
     """
-    Remove any globally cached zip file related data for `path`
+    Fix any globally cached `dist_path` related data
 
-    Stale zipimport.zipimporter objects need to be removed when a zip file is
-    replaced as they contain cached zip file directory information. If they are
-    asked to get data from their zip file, they will use that cached
-    information to calculate the data location in the zip file. This calculated
-    location may be incorrect for the replaced zip file, which may in turn
-    cause the read operation to either fail or return incorrect data.
+    `dist_path` should be a path of a newly installed egg distribution (zipped
+    or unzipped).
 
-    Note we have no way to clear any local caches from here. That is left up to
-    whomever is in charge of maintaining that cache.
+    sys.path_importer_cache contains finder objects that have been cached when
+    importing data from the original distribution. Any such finders need to be
+    cleared since the replacement distribution might be packaged differently,
+    e.g. a zipped egg distribution might get replaced with an unzipped egg
+    folder or vice versa. Having the old finders cached may then cause Python
+    to attempt loading modules from the replacement distribution using an
+    incorrect loader.
+
+    zipimport.zipimporter objects are Python loaders charged with importing
+    data packaged inside zip archives. If stale loaders referencing the
+    original distribution, are left behind, they can fail to load modules from
+    the replacement distribution. E.g. if an old zipimport.zipimporter instance
+    is used to load data from a new zipped egg archive, it may cause the
+    operation to attempt to locate the requested data in the wrong location -
+    one indicated by the original distribution's zip archive directory
+    information. Such an operation may then fail outright, e.g. report having
+    read a 'bad local file header', or even worse, it may fail silently &
+    return invalid data.
+
+    zipimport._zip_directory_cache contains cached zip archive directory
+    information for all existing zipimport.zipimporter instances and all such
+    instances connected to the same archive share the same cached directory
+    information.
+
+    If asked, and the underlying Python implementation allows it, we can fix
+    all existing zipimport.zipimporter instances instead of having to track
+    them down and remove them one by one, by updating their shared cached zip
+    archive directory information. This, of course, assumes that the
+    replacement distribution is packaged as a zipped egg.
+
+    If not asked to fix existing zipimport.zipimporter instances, we still do
+    our best to clear any remaining zipimport.zipimporter related cached data
+    that might somehow later get used when attempting to load data from the new
+    distribution and thus cause such load operations to fail. Note that when
+    tracking down such remaining stale data, we can not catch every conceivable
+    usage from here, and we clear only those that we know of and have found to
+    cause problems if left alive. Any remaining caches should be updated by
+    whomever is in charge of maintaining them, i.e. they should be ready to
+    handle us replacing their zip archives with new distributions at runtime.
 
     """
-    normalized_path = normalize_path(path)
-    _uncache(normalized_path, zipimport._zip_directory_cache)
+    # There are several other known sources of stale zipimport.zipimporter
+    # instances that we do not clear here, but might if ever given a reason to
+    # do so:
+    # * Global setuptools pkg_resources.working_set (a.k.a. 'master working
+    #   set') may contain distributions which may in turn contain their
+    #   zipimport.zipimporter loaders.
+    # * Several zipimport.zipimporter loaders held by local variables further
+    #   up the function call stack when running the setuptools installation.
+    # * Already loaded modules may have their __loader__ attribute set to the
+    #   exact loader instance used when importing them. Python 3.4 docs state
+    #   that this information is intended mostly for introspection and so is
+    #   not expected to cause us problems.
+    normalized_path = normalize_path(dist_path)
     _uncache(normalized_path, sys.path_importer_cache)
+    if fix_zipimporter_caches:
+        _replace_zip_directory_cache_data(normalized_path)
+    else:
+        # Here, even though we do not want to fix existing and now stale
+        # zipimporter cache information, we still want to remove it. Related to
+        # Python's zip archive directory information cache, we clear each of
+        # its stale entries in two phases:
+        #   1. Clear the entry so attempting to access zip archive information
+        #      via any existing stale zipimport.zipimporter instances fails.
+        #   2. Remove the entry from the cache so any newly constructed
+        #      zipimport.zipimporter instances do not end up using old stale
+        #      zip archive directory information.
+        # This whole stale data removal step does not seem strictly necessary,
+        # but has been left in because it was done before we started replacing
+        # the zip archive directory information cache content if possible, and
+        # there are no relevant unit tests that we can depend on to tell us if
+        # this is really needed.
+        _remove_and_clear_zip_directory_cache_data(normalized_path)
 
-def _uncache(normalized_path, cache):
-    to_remove = []
+def _collect_zipimporter_cache_entries(normalized_path, cache):
+    """
+    Return zipimporter cache entry keys related to a given normalized path.
+
+    Alternative path spellings (e.g. those using different character case or
+    those using alternative path separators) related to the same path are
+    included. Any sub-path entries are included as well, i.e. those
+    corresponding to zip archives embedded in other zip archives.
+
+    """
+    result = []
     prefix_len = len(normalized_path)
     for p in cache:
         np = normalize_path(p)
         if (np.startswith(normalized_path) and
                 np[prefix_len:prefix_len + 1] in (os.sep, '')):
-            to_remove.append(p)
-    for p in to_remove:
+            result.append(p)
+    return result
+
+def _update_zipimporter_cache(normalized_path, cache, updater=None):
+    """
+    Update zipimporter cache data for a given normalized path.
+
+    Any sub-path entries are processed as well, i.e. those corresponding to zip
+    archives embedded in other zip archives.
+
+    Given updater is a callable taking a cache entry key and the original entry
+    (after already removing the entry from the cache), and expected to update
+    the entry and possibly return a new one to be inserted in its place.
+    Returning None indicates that the entry should not be replaced with a new
+    one. If no updater is given, the cache entries are simply removed without
+    any additional processing, the same as if the updater simply returned None.
+
+    """
+    for p in _collect_zipimporter_cache_entries(normalized_path, cache):
+        # N.B. pypy's custom zipimport._zip_directory_cache implementation does
+        # not support the complete dict interface:
+        #  * Does not support item assignment, thus not allowing this function
+        #    to be used only for removing existing cache entries.
+        #  * Does not support the dict.pop() method, forcing us to use the
+        #    get/del patterns instead. For more detailed information see the
+        #    following links:
+        #      https://bitbucket.org/pypa/setuptools/issue/202/more-robust-zipimporter-cache-invalidation#comment-10495960
+        #      https://bitbucket.org/pypy/pypy/src/dd07756a34a41f674c0cacfbc8ae1d4cc9ea2ae4/pypy/module/zipimport/interp_zipimport.py#cl-99
+        old_entry = cache[p]
         del cache[p]
+        new_entry = updater and updater(p, old_entry)
+        if new_entry is not None:
+            cache[p] = new_entry
+
+def _uncache(normalized_path, cache):
+    _update_zipimporter_cache(normalized_path, cache)
+
+def _remove_and_clear_zip_directory_cache_data(normalized_path):
+    def clear_and_remove_cached_zip_archive_directory_data(path, old_entry):
+        old_entry.clear()
+    _update_zipimporter_cache(normalized_path,
+        zipimport._zip_directory_cache,
+        updater=clear_and_remove_cached_zip_archive_directory_data)
+
+# PyPy Python implementation does not allow directly writing to the
+# zipimport._zip_directory_cache and so prevents us from attempting to correct
+# its content. The best we can do there is clear the problematic cache content
+# and have PyPy repopulate it as needed. The downside is that if there are any
+# stale zipimport.zipimporter instances laying around, attempting to use them
+# will fail due to not having its zip archive directory information available
+# instead of being automatically corrected to use the new correct zip archive
+# directory information.
+if '__pypy__' in sys.builtin_module_names:
+    _replace_zip_directory_cache_data =  \
+        _remove_and_clear_zip_directory_cache_data
+else:
+    def _replace_zip_directory_cache_data(normalized_path):
+        def replace_cached_zip_archive_directory_data(path, old_entry):
+            # N.B. In theory, we could load the zip directory information just
+            # once for all updated path spellings, and then copy it locally and
+            # update its contained path strings to contain the correct
+            # spelling, but that seems like a way too invasive move (this cache
+            # structure is not officially documented anywhere and could in
+            # theory change with new Python releases) for no significant
+            # benefit.
+            old_entry.clear()
+            zipimport.zipimporter(path)
+            old_entry.update(zipimport._zip_directory_cache[path])
+            return old_entry
+        _update_zipimporter_cache(normalized_path,
+            zipimport._zip_directory_cache,
+            updater=replace_cached_zip_archive_directory_data)
 
 def is_python(text, filename='<string>'):
     "Is this string a valid Python script?"
