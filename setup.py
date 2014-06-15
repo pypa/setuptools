@@ -100,7 +100,8 @@ with readme_file:
     with changes_file:
         long_description = readme_file.read() + '\n' + changes_file.read()
 
-package_data = {'setuptools': ['site-patch.py']}
+package_data = {
+        'setuptools': ['script (dev).tmpl', 'script.tmpl', 'site-patch.py']}
 force_windows_specific_files = (
     os.environ.get("SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES")
     not in (None, "", "0")
