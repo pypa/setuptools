@@ -1613,10 +1613,11 @@ def update_dist_caches(dist_path, fix_zipimporter_caches):
     instances connected to the same archive share the same cached directory
     information.
 
-    If asked, we can fix all existing zipimport.zipimporter instances instead
-    of having to track them down and remove them one by one, by updating their
-    shared cached zip archive directory information. This, of course, assumes
-    that the replacement distribution is packaged as a zipped egg.
+    If asked, and the underlying Python implementation allows it, we can fix
+    all existing zipimport.zipimporter instances instead of having to track
+    them down and remove them one by one, by updating their shared cached zip
+    archive directory information. This, of course, assumes that the
+    replacement distribution is packaged as a zipped egg.
 
     If not asked to fix existing zipimport.zipimporter instances, we still do
     our best to clear any remaining zipimport.zipimporter related cached data
@@ -1698,11 +1699,14 @@ def _update_zipimporter_cache(normalized_path, cache, updater=None):
     """
     for p in _collect_zipimporter_cache_entries(normalized_path, cache):
         # N.B. pypy's custom zipimport._zip_directory_cache implementation does
-        # not support the complete dict interface, e.g. it does not support the
-        # dict.pop() method. For more detailed information see the following
-        # links:
-        #   https://bitbucket.org/pypa/setuptools/issue/202/more-robust-zipimporter-cache-invalidation#comment-10495960
-        #   https://bitbucket.org/pypy/pypy/src/dd07756a34a41f674c0cacfbc8ae1d4cc9ea2ae4/pypy/module/zipimport/interp_zipimport.py#cl-99
+        # not support the complete dict interface:
+        #  * Does not support item assignment, thus not allowing this function
+        #    to be used only for removing existing cache entries.
+        #  * Does not support the dict.pop() method, forcing us to use the
+        #    get/del patterns instead. For more detailed information see the
+        #    following links:
+        #      https://bitbucket.org/pypa/setuptools/issue/202/more-robust-zipimporter-cache-invalidation#comment-10495960
+        #      https://bitbucket.org/pypy/pypy/src/dd07756a34a41f674c0cacfbc8ae1d4cc9ea2ae4/pypy/module/zipimport/interp_zipimport.py#cl-99
         old_entry = cache[p]
         del cache[p]
         new_entry = updater and updater(p, old_entry)
@@ -1712,28 +1716,41 @@ def _update_zipimporter_cache(normalized_path, cache, updater=None):
 def _uncache(normalized_path, cache):
     _update_zipimporter_cache(normalized_path, cache)
 
-def _replace_zip_directory_cache_data(normalized_path):
-    def replace_cached_zip_archive_directory_data(path, old_entry):
-        # N.B. In theory, we could load the zip directory information just once
-        # for all updated path spellings, and then copy it locally and update
-        # its contained path strings to contain the correct spelling, but that
-        # seems like a way too invasive move (this cache structure is not
-        # officially documented anywhere and could in theory change with new
-        # Python releases) for no significant benefit.
-        old_entry.clear()
-        zipimport.zipimporter(path)
-        old_entry.update(zipimport._zip_directory_cache[path])
-        return old_entry
-    _update_zipimporter_cache(normalized_path,
-        zipimport._zip_directory_cache,
-        updater=replace_cached_zip_archive_directory_data)
-
 def _remove_and_clear_zip_directory_cache_data(normalized_path):
     def clear_and_remove_cached_zip_archive_directory_data(path, old_entry):
         old_entry.clear()
     _update_zipimporter_cache(normalized_path,
         zipimport._zip_directory_cache,
         updater=clear_and_remove_cached_zip_archive_directory_data)
+
+# PyPy Python implementation does not allow directly writing to the
+# zipimport._zip_directory_cache and so prevents us from attempting to correct
+# its content. The best we can do there is clear the problematic cache content
+# and have PyPy repopulate it as needed. The downside is that if there are any
+# stale zipimport.zipimporter instances laying around, attempting to use them
+# will fail due to not having its zip archive directory information available
+# instead of being automatically corrected to use the new correct zip archive
+# directory information.
+if '__pypy__' in sys.builtin_module_names:
+    _replace_zip_directory_cache_data =  \
+        _remove_and_clear_zip_directory_cache_data
+else:
+    def _replace_zip_directory_cache_data(normalized_path):
+        def replace_cached_zip_archive_directory_data(path, old_entry):
+            # N.B. In theory, we could load the zip directory information just
+            # once for all updated path spellings, and then copy it locally and
+            # update its contained path strings to contain the correct
+            # spelling, but that seems like a way too invasive move (this cache
+            # structure is not officially documented anywhere and could in
+            # theory change with new Python releases) for no significant
+            # benefit.
+            old_entry.clear()
+            zipimport.zipimporter(path)
+            old_entry.update(zipimport._zip_directory_cache[path])
+            return old_entry
+        _update_zipimporter_cache(normalized_path,
+            zipimport._zip_directory_cache,
+            updater=replace_cached_zip_archive_directory_data)
 
 def is_python(text, filename='<string>'):
     "Is this string a valid Python script?"
