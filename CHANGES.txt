@@ -2,6 +2,14 @@
 CHANGES
 =======
 
+---
+5.1
+---
+
+* Issue #202: Implemented more robust cache invalidation for the ZipImporter,
+  building on the work in Issue #168. Special thanks to Jurko Gospodnetić and
+  PJE.
+
 -----
 5.0.2
 -----
