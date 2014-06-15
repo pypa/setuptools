@@ -739,14 +739,6 @@ Please make the appropriate changes for your system and try again.
         spec = str(dist.as_requirement())
         is_script = is_python_script(script_text, script_name)
 
-        def get_template(filename):
-            """
-            There are a couple of template scripts in the package. This
-            function loads one of them and prepares it for use.
-            """
-            raw_bytes = resource_string('setuptools', template_name)
-            return raw_bytes.decode('utf-8')
-
         if is_script:
             # See https://bitbucket.org/pypa/setuptools/issue/134 for info
             #  on script file naming and downstream issues with SVR4
@@ -754,8 +746,17 @@ Please make the appropriate changes for your system and try again.
             if dev_path:
                 template_name = template_name.replace('.tmpl', ' (dev).tmpl')
             script_text = (get_script_header(script_text) +
-                get_template(template_name) % locals())
+                self._load_template(template_name) % locals())
         self.write_script(script_name, _to_ascii(script_text), 'b')
+
+    @staticmethod
+    def _load_template(name):
+        """
+        There are a couple of template scripts in the package. This
+        function loads one of them and prepares it for use.
+        """
+        raw_bytes = resource_string('setuptools', name)
+        return raw_bytes.decode('utf-8')
 
     def write_script(self, script_name, contents, mode="t", blockers=()):
         """Write an executable file to the scripts directory"""
