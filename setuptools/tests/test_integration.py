@@ -9,7 +9,6 @@ import shutil
 import site
 import sys
 import tempfile
-import unittest
 
 import pytest
 
@@ -54,7 +53,6 @@ def install_context(request):
     os.environ['PYTHONPATH'] = os.path.pathsep.join(sys.path)
 
     # Set up the command for performing the installation.
-    values = {}
     dist = Distribution()
     cmd = easy_install(dist)
     cmd.install_dir = install_dir
