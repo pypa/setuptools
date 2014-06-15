@@ -3,6 +3,12 @@ CHANGES
 =======
 
 -----
+5.0.2
+-----
+
+* Issue #220: Restored script templates.
+
+-----
 5.0.1
 -----
 
