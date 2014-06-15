@@ -93,7 +93,7 @@ readme_file = io.open('README.txt', encoding='utf-8')
 # The release script adds hyperlinks to issues,
 # but if the release script has not run, fall back to the source file
 changes_names = 'CHANGES (links).txt', 'CHANGES.txt'
-changes_fn = next(filter(os.path.exists, changes_names))
+changes_fn = next(iter(filter(os.path.exists, changes_names)))
 changes_file = io.open(changes_fn, encoding='utf-8')
 
 with readme_file:
