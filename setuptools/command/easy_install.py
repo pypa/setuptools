@@ -740,21 +740,22 @@ Please make the appropriate changes for your system and try again.
         is_script = is_python_script(script_text, script_name)
 
         if is_script:
-            # See https://bitbucket.org/pypa/setuptools/issue/134 for info
-            #  on script file naming and downstream issues with SVR4
-            template_name = 'script.tmpl'
-            if dev_path:
-                template_name = template_name.replace('.tmpl', ' (dev).tmpl')
             script_text = (get_script_header(script_text) +
-                self._load_template(template_name) % locals())
+                self._load_template(dev_path) % locals())
         self.write_script(script_name, _to_ascii(script_text), 'b')
 
     @staticmethod
-    def _load_template(name):
+    def _load_template(dev_path):
         """
         There are a couple of template scripts in the package. This
         function loads one of them and prepares it for use.
         """
+        # See https://bitbucket.org/pypa/setuptools/issue/134 for info
+        #  on script file naming and downstream issues with SVR4
+        name = 'script.tmpl'
+        if dev_path:
+            name = name.replace('.tmpl', ' (dev).tmpl')
+
         raw_bytes = resource_string('setuptools', name)
         return raw_bytes.decode('utf-8')
 
