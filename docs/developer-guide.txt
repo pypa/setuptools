@@ -1,0 +1,41 @@
+================================
+Developer's Guide for Setuptools
+================================
+
+If you want to know more about contributing on Setuptools, this is the place.
+
+
+.. contents:: **Table of Contents**
+
+
+----------------------
+Repository and Tracker
+----------------------
+
+...
+
+.. git mirror
+
+-----------------
+Authoring Tickets
+-----------------
+
+...
+
+------------------------
+Submitting Pull Requests
+------------------------
+
+Use Mercurial bookmarks or Git branches. Use incremental commits. Minimize
+stylistic changes.
+
+-------------------
+Semantic Versioning
+-------------------
+
+Setuptools follows ``semver`` with some exceptions:
+
+- Uses two-segment version when three segment version ends in zero
+- Omits 'v' prefix for tags.
+
+.. explain value of reflecting meaning in versions.

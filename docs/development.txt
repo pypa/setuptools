@@ -30,6 +30,7 @@ setuptools changes.  You have been warned.
 .. toctree::
    :maxdepth: 1
 
+   .. developer-guide
    formats
    releases
 
