@@ -280,10 +280,12 @@ class Distribution(_Distribution):
 
     def fetch_build_eggs(self, requires):
         """Resolve pre-setup requirements"""
-        for dist in pkg_resources.working_set.resolve(
-            pkg_resources.parse_requirements(requires), installer=self.fetch_build_egg,
-            replace_conflicting=True
-        ):
+        resolved_dists = pkg_resources.working_set.resolve(
+            pkg_resources.parse_requirements(requires),
+            installer=self.fetch_build_egg,
+            replace_conflicting=True,
+        )
+        for dist in resolved_dists:
             pkg_resources.working_set.add(dist, replace=True)
 
     def finalize_options(self):
