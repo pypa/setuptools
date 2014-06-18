@@ -2,10 +2,12 @@ from distutils.errors import DistutilsOptionError
 
 from setuptools.command.setopt import edit_config, option_base, config_file
 
+
 def shquote(arg):
     """Quote an argument for later parsing by shlex.split()"""
     for c in '"', "'", "\\", "#":
-        if c in arg: return repr(arg)
+        if c in arg:
+            return repr(arg)
     if arg.split() != [arg]:
         return repr(arg)
     return arg
@@ -18,7 +20,7 @@ class alias(option_base):
     command_consumes_arguments = True
 
     user_options = [
-        ('remove',  'r', 'remove (unset) the alias'),
+        ('remove', 'r', 'remove (unset) the alias'),
     ] + option_base.user_options
 
     boolean_options = option_base.boolean_options + ['remove']
@@ -46,7 +48,7 @@ class alias(option_base):
                 print("setup.py alias", format_alias(alias, aliases))
             return
 
-        elif len(self.args)==1:
+        elif len(self.args) == 1:
             alias, = self.args
             if self.remove:
                 command = None
@@ -58,9 +60,9 @@ class alias(option_base):
                 return
         else:
             alias = self.args[0]
-            command = ' '.join(map(shquote,self.args[1:]))
+            command = ' '.join(map(shquote, self.args[1:]))
 
-        edit_config(self.filename, {'aliases': {alias:command}}, self.dry_run)
+        edit_config(self.filename, {'aliases': {alias: command}}, self.dry_run)
 
 
 def format_alias(name, aliases):
@@ -73,4 +75,4 @@ def format_alias(name, aliases):
         source = ''
     else:
         source = '--filename=%r' % source
-    return source+name+' '+command
+    return source + name + ' ' + command

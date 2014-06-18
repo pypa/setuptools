@@ -1,19 +1,17 @@
-import unittest
-from unittest import TestLoader
-
-from setuptools import Command
 from distutils.errors import DistutilsOptionError
+from unittest import TestLoader
+import unittest
 import sys
-from pkg_resources import (resource_listdir, resource_exists,
-    normalize_path, working_set, _namespace_packages, add_activation_listener,
-    require, EntryPoint)
 
+from pkg_resources import (resource_listdir, resource_exists, normalize_path,
+                           working_set, _namespace_packages,
+                           add_activation_listener, require, EntryPoint)
+from setuptools import Command
 from setuptools.compat import PY3
 from setuptools.py31compat import unittest_main
 
 
 class ScanningLoader(TestLoader):
-
     def loadTestsFromModule(self, module):
         """Return a suite of all tests cases contained in the given module
 
@@ -34,7 +32,7 @@ class ScanningLoader(TestLoader):
                     submodule = module.__name__ + '.' + file[:-3]
                 else:
                     if resource_exists(module.__name__, file + '/__init__.py'):
-                        submodule = module.__name__+'.'+file
+                        submodule = module.__name__ + '.' + file
                     else:
                         continue
                 tests.append(self.loadTestsFromName(submodule))
@@ -42,19 +40,18 @@ class ScanningLoader(TestLoader):
         if len(tests) != 1:
             return self.suiteClass(tests)
         else:
-            return tests[0] # don't create a nested suite for only one return
+            return tests[0]  # don't create a nested suite for only one return
 
 
 class test(Command):
-
     """Command to run unit tests after in-place build"""
 
     description = "run unit tests after in-place build"
 
     user_options = [
-        ('test-module=','m', "Run 'test_suite' in specified module"),
-        ('test-suite=','s',
-            "Test suite to run (e.g. 'some_module.test_suite')"),
+        ('test-module=', 'm', "Run 'test_suite' in specified module"),
+        ('test-suite=', 's',
+         "Test suite to run (e.g. 'some_module.test_suite')"),
         ('test-runner=', 'r', "Test runner to use"),
     ]
 
@@ -79,7 +76,7 @@ class test(Command):
         self.test_args = [self.test_suite]
 
         if self.verbose:
-            self.test_args.insert(0,'--verbose')
+            self.test_args.insert(0, '--verbose')
         if self.test_loader is None:
             self.test_loader = getattr(self.distribution, 'test_loader', None)
         if self.test_loader is None:
@@ -132,7 +129,8 @@ class test(Command):
 
     def run(self):
         if self.distribution.install_requires:
-            self.distribution.fetch_build_eggs(self.distribution.install_requires)
+            self.distribution.fetch_build_eggs(
+                self.distribution.install_requires)
         if self.distribution.tests_require:
             self.distribution.fetch_build_eggs(self.distribution.tests_require)
 
@@ -161,7 +159,7 @@ class test(Command):
                 list(map(sys.modules.__delitem__, del_modules))
 
         unittest_main(
-            None, None, [unittest.__file__]+self.test_args,
+            None, None, [unittest.__file__] + self.test_args,
             testLoader=self._resolve_as_ep(self.test_loader),
             testRunner=self._resolve_as_ep(self.test_runner),
         )

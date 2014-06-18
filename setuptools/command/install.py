@@ -1,14 +1,16 @@
-import setuptools
+from distutils.errors import DistutilsArgError
 import inspect
 import glob
 import warnings
 import platform
 import distutils.command.install as orig
-from distutils.errors import DistutilsArgError
+
+import setuptools
 
 # Prior to numpy 1.9, NumPy relies on the '_install' name, so provide it for
-#  now. See https://bitbucket.org/pypa/setuptools/issue/199/
+# now. See https://bitbucket.org/pypa/setuptools/issue/199/
 _install = orig.install
+
 
 class install(orig.install):
     """Use easy_install to install the package, w/dependencies"""
@@ -16,7 +18,7 @@ class install(orig.install):
     user_options = orig.install.user_options + [
         ('old-and-unmanageable', None, "Try not to use this!"),
         ('single-version-externally-managed', None,
-            "used by system package builders to create 'flat' eggs"),
+         "used by system package builders to create 'flat' eggs"),
     ]
     boolean_options = orig.install.boolean_options + [
         'old-and-unmanageable', 'single-version-externally-managed',
@@ -115,7 +117,9 @@ class install(orig.install):
         cmd.run()
         setuptools.bootstrap_install_from = None
 
+
 # XXX Python 3.1 doesn't see _nc if this is inside the class
-install.sub_commands = [
-        cmd for cmd in orig.install.sub_commands if cmd[0] not in install._nc
-    ] + install.new_commands
+install.sub_commands = (
+    [cmd for cmd in orig.install.sub_commands if cmd[0] not in install._nc] +
+    install.new_commands
+)
