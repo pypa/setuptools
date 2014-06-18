@@ -1,17 +1,16 @@
 syntax: glob
-*.pyc
-*~
-*.swp
-.coverage
-.tox
-distribute.egg-info
-setuptools.egg-info
+bin
 build
 dist
-lib
-bin
 include
-\.Python
-*.swp
+lib
+distribute.egg-info
+setuptools.egg-info
+.coverage
+.tox
 CHANGES (links).txt
+*.egg
+*.py[cod]
+*.swp
+*~
 .git*
