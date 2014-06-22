@@ -1,10 +1,10 @@
+from glob import glob
+from distutils.util import convert_path
+import distutils.command.build_py as orig
 import os
 import sys
 import fnmatch
 import textwrap
-import distutils.command.build_py as orig
-from distutils.util import convert_path
-from glob import glob
 
 try:
     from setuptools.lib2to3_ex import Mixin2to3
@@ -12,6 +12,7 @@ except ImportError:
     class Mixin2to3:
         def run_2to3(self, files, doctests=True):
             "do nothing"
+
 
 class build_py(orig.build_py, Mixin2to3):
     """Enhanced 'build_py' command that includes data files with packages
@@ -22,11 +23,14 @@ class build_py(orig.build_py, Mixin2to3):
     Also, this version of the 'build_py' command allows you to specify both
     'py_modules' and 'packages' in the same setup operation.
     """
+
     def finalize_options(self):
         orig.build_py.finalize_options(self)
         self.package_data = self.distribution.package_data
-        self.exclude_package_data = self.distribution.exclude_package_data or {}
-        if 'data_files' in self.__dict__: del self.__dict__['data_files']
+        self.exclude_package_data = (self.distribution.exclude_package_data or
+                                     {})
+        if 'data_files' in self.__dict__:
+            del self.__dict__['data_files']
         self.__updated_files = []
         self.__doctests_2to3 = []
 
@@ -51,13 +55,14 @@ class build_py(orig.build_py, Mixin2to3):
         self.byte_compile(orig.build_py.get_outputs(self, include_bytecode=0))
 
     def __getattr__(self, attr):
-        if attr=='data_files':  # lazily compute data files
+        if attr == 'data_files':  # lazily compute data files
             self.data_files = files = self._get_data_files()
             return files
-        return orig.build_py.__getattr__(self,attr)
+        return orig.build_py.__getattr__(self, attr)
 
     def build_module(self, module, module_file, package):
-        outfile, copied = orig.build_py.build_module(self, module, module_file, package)
+        outfile, copied = orig.build_py.build_module(self, module, module_file,
+                                                     package)
         if copied:
             self.__updated_files.append(outfile)
         return outfile, copied
@@ -74,12 +79,12 @@ class build_py(orig.build_py, Mixin2to3):
             build_dir = os.path.join(*([self.build_lib] + package.split('.')))
 
             # Length of path to strip from found files
-            plen = len(src_dir)+1
+            plen = len(src_dir) + 1
 
             # Strip directory from globbed filenames
             filenames = [
                 file[plen:] for file in self.find_data_files(package, src_dir)
-                ]
+            ]
             data.append((package, src_dir, build_dir, filenames))
         return data
 
@@ -102,7 +107,8 @@ class build_py(orig.build_py, Mixin2to3):
                 srcfile = os.path.join(src_dir, filename)
                 outf, copied = self.copy_file(srcfile, target)
                 srcfile = os.path.abspath(srcfile)
-                if copied and srcfile in self.distribution.convert_2to3_doctests:
+                if (copied and
+                        srcfile in self.distribution.convert_2to3_doctests):
                     self.__doctests_2to3.append(outf)
 
     def analyze_manifest(self):
@@ -117,21 +123,22 @@ class build_py(orig.build_py, Mixin2to3):
         self.run_command('egg_info')
         ei_cmd = self.get_finalized_command('egg_info')
         for path in ei_cmd.filelist.files:
-            d,f = os.path.split(assert_relative(path))
+            d, f = os.path.split(assert_relative(path))
             prev = None
             oldf = f
-            while d and d!=prev and d not in src_dirs:
+            while d and d != prev and d not in src_dirs:
                 prev = d
                 d, df = os.path.split(d)
                 f = os.path.join(df, f)
             if d in src_dirs:
-                if path.endswith('.py') and f==oldf:
-                    continue    # it's a module, not data
-                mf.setdefault(src_dirs[d],[]).append(path)
+                if path.endswith('.py') and f == oldf:
+                    continue  # it's a module, not data
+                mf.setdefault(src_dirs[d], []).append(path)
 
-    def get_data_files(self): pass  # kludge 2.4 for lazy computation
+    def get_data_files(self):
+        pass  # kludge 2.4 for lazy computation
 
-    if sys.version<"2.4":    # Python 2.4 already has this code
+    if sys.version < "2.4":  # Python 2.4 already has this code
         def get_outputs(self, include_bytecode=1):
             """Return complete list of files copied to the build directory
 
@@ -142,9 +149,9 @@ class build_py(orig.build_py, Mixin2to3):
             """
             return orig.build_py.get_outputs(self, include_bytecode) + [
                 os.path.join(build_dir, filename)
-                for package, src_dir, build_dir,filenames in self.data_files
+                for package, src_dir, build_dir, filenames in self.data_files
                 for filename in filenames
-                ]
+            ]
 
     def check_package(self, package, package_dir):
         """Check namespace packages' __init__ for declare_namespace"""
@@ -160,25 +167,26 @@ class build_py(orig.build_py, Mixin2to3):
             return init_py
 
         for pkg in self.distribution.namespace_packages:
-            if pkg==package or pkg.startswith(package+'.'):
+            if pkg == package or pkg.startswith(package + '.'):
                 break
         else:
             return init_py
 
-        f = open(init_py,'rbU')
+        f = open(init_py, 'rbU')
         if 'declare_namespace'.encode() not in f.read():
             from distutils.errors import DistutilsError
+
             raise DistutilsError(
-                "Namespace package problem: %s is a namespace package, but its\n"
-                "__init__.py does not call declare_namespace()! Please fix it.\n"
-                '(See the setuptools manual under "Namespace Packages" for '
-                "details.)\n" % (package,)
+                "Namespace package problem: %s is a namespace package, but "
+                "its\n__init__.py does not call declare_namespace()! Please "
+                'fix it.\n(See the setuptools manual under '
+                '"Namespace Packages" for details.)\n"' % (package,)
             )
         f.close()
         return init_py
 
     def initialize_options(self):
-        self.packages_checked={}
+        self.packages_checked = {}
         orig.build_py.initialize_options(self)
 
     def get_package_dir(self, package):
@@ -202,7 +210,7 @@ class build_py(orig.build_py, Mixin2to3):
         seen = {}
         return [
             f for f in files if f not in bad
-                and f not in seen and seen.setdefault(f,1)  # ditch dupes
+            and f not in seen and seen.setdefault(f, 1)  # ditch dupes
         ]
 
 
@@ -210,6 +218,7 @@ def assert_relative(path):
     if not os.path.isabs(path):
         return path
     from distutils.errors import DistutilsSetupError
+
     msg = textwrap.dedent("""
         Error: setup script specifies an absolute path:
 

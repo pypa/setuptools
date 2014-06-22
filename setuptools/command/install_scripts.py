@@ -1,7 +1,9 @@
-import distutils.command.install_scripts as orig
-from pkg_resources import Distribution, PathMetadata, ensure_directory
-import os
 from distutils import log
+import distutils.command.install_scripts as orig
+import os
+
+from pkg_resources import Distribution, PathMetadata, ensure_directory
+
 
 class install_scripts(orig.install_scripts):
     """Do normal script install, plus any egg_info wrapper scripts"""
@@ -29,7 +31,7 @@ class install_scripts(orig.install_scripts):
             ei_cmd.egg_name, ei_cmd.egg_version,
         )
         bs_cmd = self.get_finalized_command('build_scripts')
-        executable = getattr(bs_cmd,'executable',sys_executable)
+        executable = getattr(bs_cmd, 'executable', sys_executable)
         is_wininst = getattr(
             self.get_finalized_command("bdist_wininst"), '_is_running', False
         )
@@ -39,6 +41,7 @@ class install_scripts(orig.install_scripts):
     def write_script(self, script_name, contents, mode="t", *ignored):
         """Write an executable file to the scripts directory"""
         from setuptools.command.easy_install import chmod, current_umask
+
         log.info("Installing %s script to %s", script_name, self.install_dir)
         target = os.path.join(self.install_dir, script_name)
         self.outfiles.append(target)
@@ -46,7 +49,7 @@ class install_scripts(orig.install_scripts):
         mask = current_umask()
         if not self.dry_run:
             ensure_directory(target)
-            f = open(target,"w"+mode)
+            f = open(target, "w" + mode)
             f.write(contents)
             f.close()
-            chmod(target, 0o777-mask)
+            chmod(target, 0o777 - mask)

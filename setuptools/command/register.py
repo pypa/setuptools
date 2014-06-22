@@ -1,5 +1,6 @@
 import distutils.command.register as orig
 
+
 class register(orig.register):
     __doc__ = orig.register.__doc__
 

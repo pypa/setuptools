@@ -1,5 +1,6 @@
 import distutils.command.bdist_rpm as orig
 
+
 class bdist_rpm(orig.bdist_rpm):
     """
     Override the default bdist_rpm behavior to do the following:
@@ -19,7 +20,7 @@ class bdist_rpm(orig.bdist_rpm):
 
     def _make_spec_file(self):
         version = self.distribution.get_version()
-        rpmversion = version.replace('-','_')
+        rpmversion = version.replace('-', '_')
         spec = orig.bdist_rpm._make_spec_file(self)
         line23 = '%define version ' + version
         line24 = '%define version ' + rpmversion

@@ -1,9 +1,9 @@
+from distutils import log, dir_util
 import os
 
-import pkg_resources
 from setuptools import Command
 from setuptools.archive_util import unpack_archive
-from distutils import log, dir_util
+import pkg_resources
 
 
 class install_egg_info(Command):
@@ -24,7 +24,7 @@ class install_egg_info(Command):
         ei_cmd = self.get_finalized_command("egg_info")
         basename = pkg_resources.Distribution(
             None, None, ei_cmd.egg_name, ei_cmd.egg_version
-        ).egg_name()+'.egg-info'
+        ).egg_name() + '.egg-info'
         self.source = ei_cmd.egg_info
         self.target = os.path.join(self.install_dir, basename)
         self.outputs = [self.target]
@@ -34,12 +34,11 @@ class install_egg_info(Command):
         if os.path.isdir(self.target) and not os.path.islink(self.target):
             dir_util.remove_tree(self.target, dry_run=self.dry_run)
         elif os.path.exists(self.target):
-            self.execute(os.unlink, (self.target, ), "Removing " + self.target)
+            self.execute(os.unlink, (self.target,), "Removing " + self.target)
         if not self.dry_run:
             pkg_resources.ensure_directory(self.target)
         self.execute(
-            self.copytree, (),
-            "Copying %s to %s" % (self.source, self.target)
+            self.copytree, (), "Copying %s to %s" % (self.source, self.target)
         )
         self.install_namespaces()
 
@@ -58,6 +57,7 @@ class install_egg_info(Command):
             self.outputs.append(dst)
             log.debug("Copying %s to %s", src, dst)
             return dst
+
         unpack_archive(self.source, self.target, skimmer)
 
     def install_namespaces(self):
@@ -103,3 +103,4 @@ class install_egg_info(Command):
                 nsp.add('.'.join(pkg))
                 pkg.pop()
         return sorted(nsp)
+
