@@ -60,6 +60,16 @@ class install_egg_info(Command):
 
         unpack_archive(self.source, self.target, skimmer)
 
+    _nspkg_tmpl = [
+        "import sys, types, os",
+        "p = os.path.join(sys._getframe(1).f_locals['sitedir'], *%(pth)r)",
+        "ie = os.path.exists(os.path.join(p,'__init__.py'))",
+        "m = not ie and sys.modules.setdefault(%(pkg)r, types.ModuleType(%(pkg)r))",
+        "mp = (m or []) and m.__dict__.setdefault('__path__',[])",
+        "(p not in mp) and mp.append(p)%(trailer)s",
+    ]
+    "lines for the namespace installer"
+
     def install_namespaces(self):
         nsp = self._get_all_ns_packages()
         if not nsp:
@@ -80,18 +90,8 @@ class install_egg_info(Command):
                         "; m and setattr(sys.modules[%r], %r, m)\n"
                         % ('.'.join(pth[:-1]), pth[-1])
                     )
-                f.write(
-                    "import sys,types,os; "
-                    "p = os.path.join(sys._getframe(1).f_locals['sitedir'], "
-                    "*%(pth)r); "
-                    "ie = os.path.exists(os.path.join(p,'__init__.py')); "
-                    "m = not ie and "
-                    "sys.modules.setdefault(%(pkg)r, "
-                    "types.ModuleType(%(pkg)r)); "
-                    "mp = (m or []) and m.__dict__.setdefault('__path__',[]); "
-                    "(p not in mp) and mp.append(p)%(trailer)s"
-                    % locals()
-                )
+                dat = ';'.join(self._nspkg_tmpl) % locals()
+                f.write(dat)
             f.close()
 
     def _get_all_ns_packages(self):
