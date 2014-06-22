@@ -103,4 +103,3 @@ class install_egg_info(Command):
                 nsp.add('.'.join(pkg))
                 pkg.pop()
         return sorted(nsp)
-
