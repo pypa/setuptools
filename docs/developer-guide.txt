@@ -69,9 +69,14 @@ mirror.
 Testing
 -------
 
-You can run the tests via::
+The primary tests are run using py.test. To run the tests::
 
-    $ python setup.py test
+    $ python setup.py ptr
+
+Or install py.test into your environment and run ``py.test``.
+
+Under continuous integration, additional tests may be run. See the
+``.travis.yml`` file for full details on the tests run under Travis-CI.
 
 -----------------
 Authoring Tickets
