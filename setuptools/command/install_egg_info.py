@@ -60,6 +60,22 @@ class install_egg_info(Command):
 
         unpack_archive(self.source, self.target, skimmer)
 
+    def install_namespaces(self):
+        nsp = self._get_all_ns_packages()
+        if not nsp:
+            return
+        filename, ext = os.path.splitext(self.target)
+        filename += '-nspkg.pth'
+        self.outputs.append(filename)
+        log.info("Installing %s", filename)
+        if self.dry_run:
+            return
+
+        lines = map(self._gen_nspkg_line, nsp)
+
+        with open(filename, 'wt') as f:
+            list(map(f.write, lines))
+
     _nspkg_tmpl = (
         "import sys, types, os",
         "p = os.path.join(sys._getframe(1).f_locals['sitedir'], *%(pth)r)",
@@ -76,29 +92,16 @@ class install_egg_info(Command):
     )
     "additional line(s) when a parent package is indicated"
 
-    def install_namespaces(self):
-        nsp = self._get_all_ns_packages()
-        if not nsp:
-            return
-        filename, ext = os.path.splitext(self.target)
-        filename += '-nspkg.pth'
-        self.outputs.append(filename)
-        log.info("Installing %s", filename)
-        if self.dry_run:
-            return
-
-        for pkg in nsp:
-            # ensure pkg is not a unicode string under Python 2.7
-            pkg = str(pkg)
-            pth = tuple(pkg.split('.'))
-            tmpl_lines = self._nspkg_tmpl
-            parent, sep, child = pkg.rpartition('.')
-            if parent:
-                tmpl_lines += self._nspkg_tmpl_multi
-            dat = ';'.join(tmpl_lines) % locals() + '\n'
-
-        with open(filename, 'wt') as f:
-            f.write(dat)
+    @classmethod
+    def _gen_nspkg_line(cls, pkg):
+        # ensure pkg is not a unicode string under Python 2.7
+        pkg = str(pkg)
+        pth = tuple(pkg.split('.'))
+        tmpl_lines = cls._nspkg_tmpl
+        parent, sep, child = pkg.rpartition('.')
+        if parent:
+            tmpl_lines += cls._nspkg_tmpl_multi
+        return ';'.join(tmpl_lines) % locals() + '\n'
 
     def _get_all_ns_packages(self):
         """Return sorted list of all package namespaces"""
