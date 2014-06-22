@@ -60,15 +60,20 @@ class install_egg_info(Command):
 
         unpack_archive(self.source, self.target, skimmer)
 
-    _nspkg_tmpl = [
+    _nspkg_tmpl = (
         "import sys, types, os",
         "p = os.path.join(sys._getframe(1).f_locals['sitedir'], *%(pth)r)",
         "ie = os.path.exists(os.path.join(p,'__init__.py'))",
         "m = not ie and sys.modules.setdefault(%(pkg)r, types.ModuleType(%(pkg)r))",
         "mp = (m or []) and m.__dict__.setdefault('__path__',[])",
-        "(p not in mp) and mp.append(p)%(trailer)s",
-    ]
+        "(p not in mp) and mp.append(p)",
+    )
     "lines for the namespace installer"
+
+    _nspkg_tmpl_multi = (
+        'm and setattr(sys.modules[%(parent)r], %(child)r, m)',
+    )
+    "additional line(s) when a parent package is indicated"
 
     def install_namespaces(self):
         nsp = self._get_all_ns_packages()
@@ -84,13 +89,11 @@ class install_egg_info(Command):
                 # ensure pkg is not a unicode string under Python 2.7
                 pkg = str(pkg)
                 pth = tuple(pkg.split('.'))
-                trailer = '\n'
-                if '.' in pkg:
-                    trailer = (
-                        "; m and setattr(sys.modules[%r], %r, m)\n"
-                        % ('.'.join(pth[:-1]), pth[-1])
-                    )
-                dat = ';'.join(self._nspkg_tmpl) % locals()
+                tmpl_lines = self._nspkg_tmpl
+                parent, sep, child = pkg.rpartition('.')
+                if parent:
+                    tmpl_lines += self._nspkg_tmpl_multi
+                dat = ';'.join(tmpl_lines) % locals() + '\n'
                 f.write(dat)
             f.close()
 
