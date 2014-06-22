@@ -35,6 +35,27 @@ issues, through the distutils-sig mailing list, or on IRC (Freenode) at
 Discussions about development happen on the pypa-dev mailing list or on IRC
 (Freenode) at #pypa-dev.
 
+-----------------
+Authoring Tickets
+-----------------
+
+Before authoring any source code, it's often prudent to file a ticket
+describing the motivation behind making changes. First search to see if a
+ticket already exists for your issue. If not, create one. Try to think from
+the perspective of the reader. Explain what behavior you expected, what you
+got instead, and what factors might have contributed to the unexpected
+behavior. In Bitbucket, surround a block of code or traceback with the triple
+backtick "```" so that it is formatted nicely.
+
+Filing a ticket provides a forum for justification, discussion, and
+clarification. The ticket provides a record of the purpose for the change and
+any hard decisions that were made. It provides a single place for others to
+reference when trying to understand why the software operates the way it does
+or why certain changes were made.
+
+Setuptools makes extensive use of hyperlinks to tickets in the changelog so
+that system integrators and other users can get a quick summary, but then
+jump to the in-depth discussion about any subject referenced.
 
 -----------
 Source Code
@@ -77,12 +98,6 @@ Or install py.test into your environment and run ``py.test``.
 
 Under continuous integration, additional tests may be run. See the
 ``.travis.yml`` file for full details on the tests run under Travis-CI.
-
------------------
-Authoring Tickets
------------------
-
-...
 
 -------------------
 Semantic Versioning
