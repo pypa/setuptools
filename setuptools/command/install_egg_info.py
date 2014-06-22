@@ -86,7 +86,6 @@ class install_egg_info(Command):
         if self.dry_run:
             return
 
-        f = open(filename, 'wt')
         for pkg in nsp:
             # ensure pkg is not a unicode string under Python 2.7
             pkg = str(pkg)
@@ -96,8 +95,9 @@ class install_egg_info(Command):
             if parent:
                 tmpl_lines += self._nspkg_tmpl_multi
             dat = ';'.join(tmpl_lines) % locals() + '\n'
+
+        with open(filename, 'wt') as f:
             f.write(dat)
-        f.close()
 
     def _get_all_ns_packages(self):
         """Return sorted list of all package namespaces"""
