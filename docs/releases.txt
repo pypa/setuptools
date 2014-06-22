@@ -12,6 +12,11 @@ the release process.
 A Setuptools release manager must have maintainer access on PyPI to the
 project and administrative access to the BitBucket project.
 
+To make a release, run the following from a Mercurial checkout at the
+revision slated for release::
+
+    python -m jaraco.packaging.release
+
 Release Managers
 ----------------
 
