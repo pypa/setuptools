@@ -74,7 +74,7 @@ class install_egg_info(Command):
         lines = map(self._gen_nspkg_line, nsp)
 
         with open(filename, 'wt') as f:
-            list(map(f.write, lines))
+            f.writelines(lines)
 
     _nspkg_tmpl = (
         "import sys, types, os",
