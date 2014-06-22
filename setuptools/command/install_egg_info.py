@@ -83,19 +83,21 @@ class install_egg_info(Command):
         filename += '-nspkg.pth'
         self.outputs.append(filename)
         log.info("Installing %s", filename)
-        if not self.dry_run:
-            f = open(filename, 'wt')
-            for pkg in nsp:
-                # ensure pkg is not a unicode string under Python 2.7
-                pkg = str(pkg)
-                pth = tuple(pkg.split('.'))
-                tmpl_lines = self._nspkg_tmpl
-                parent, sep, child = pkg.rpartition('.')
-                if parent:
-                    tmpl_lines += self._nspkg_tmpl_multi
-                dat = ';'.join(tmpl_lines) % locals() + '\n'
-                f.write(dat)
-            f.close()
+        if self.dry_run:
+            return
+
+        f = open(filename, 'wt')
+        for pkg in nsp:
+            # ensure pkg is not a unicode string under Python 2.7
+            pkg = str(pkg)
+            pth = tuple(pkg.split('.'))
+            tmpl_lines = self._nspkg_tmpl
+            parent, sep, child = pkg.rpartition('.')
+            if parent:
+                tmpl_lines += self._nspkg_tmpl_multi
+            dat = ';'.join(tmpl_lines) % locals() + '\n'
+            f.write(dat)
+        f.close()
 
     def _get_all_ns_packages(self):
         """Return sorted list of all package namespaces"""
