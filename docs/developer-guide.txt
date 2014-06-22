@@ -50,27 +50,34 @@ on Bitbucket. If you make some changes, don't forget to:
 
 - add a note in CHANGES.txt
 
-Please commit bug-fixes against the current maintenance branch and new
-features to the default branch.
+Please commit all changes in the 'default' branch against the latest available
+commit or for bug-fixes, against an earlier commit or release in which the
+bug occurred.
+
+If you find yourself working on more than one issue at a time, Setuptools
+generally prefers Git-style branches, so use Mercurial bookmarks or Git
+branches or multiple forks to maintain separate efforts.
+
+Setuptools also maintains an unofficial `Git mirror in Github
+<https://github.com/jaraco/setuptools>`_. Contributors are welcome to submit
+pull requests here, but because they are not integrated with the Bitbucket
+Issue tracker, linking pull requests to tickets is more difficult. The
+Continuous Integration tests that validate every release are run from this
+mirror.
+
+-------
+Testing
+-------
 
 You can run the tests via::
 
     $ python setup.py test
-
-.. git mirror
 
 -----------------
 Authoring Tickets
 -----------------
 
 ...
-
-------------------------
-Submitting Pull Requests
-------------------------
-
-Use Mercurial bookmarks or Git branches. Use incremental commits. Minimize
-stylistic changes or at least submit them as separate commits.
 
 -------------------
 Semantic Versioning
