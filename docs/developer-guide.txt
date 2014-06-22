@@ -19,19 +19,34 @@ is not authoritative, it was authored by the maintainer of Setuptools, so
 reflects his opinions and will improve the likelihood of acceptance and
 quality of contribution.
 
-----------------------
-Repository and Tracker
-----------------------
+------------------
+Project Management
+------------------
 
-Setuptools is developed using the DVCS Mercurial.
+Setuptools is maintained primarily in Bitbucket at `this home
+<https://bitbucket.org/pypa/setuptools>`_. Setuptools is maintained under the
+Python Packaging Authority (PyPA) with several core contributors. All bugs
+for Setuptools are filed and the canonical source is maintained in Bitbucket.
 
-Grab the code at bitbucket::
+User support and discussions are done through the issue tracker (for specific)
+issues, through the distutils-sig mailing list, or on IRC (Freenode) at
+#pypa.
+
+Discussions about development happen on the pypa-dev mailing list or on IRC
+(Freenode) at #pypa-dev.
+
+
+-----------
+Source Code
+-----------
+
+Grab the code at Bitbucket::
 
     $ hg clone https://bitbucket.org/pypa/setuptools
 
 If you want to contribute changes, we recommend you fork the repository on
-bitbucket, commit the changes to your repository, and then make a pull request
-on bitbucket. If you make some changes, don't forget to:
+Bitbucket, commit the changes to your repository, and then make a pull request
+on Bitbucket. If you make some changes, don't forget to:
 
 - add a note in CHANGES.txt
 
