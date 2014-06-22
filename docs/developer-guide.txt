@@ -8,6 +8,17 @@ If you want to know more about contributing on Setuptools, this is the place.
 .. contents:: **Table of Contents**
 
 
+-------------------
+Recommended Reading
+-------------------
+
+Please read `How to write the perfect pull request
+<http://blog.jaraco.com/2014/04/how-to-write-perfect-pull-request.html>`_
+for some tips on contributing to open source projects. Although the article
+is not authoritative, it was authored by the maintainer of Setuptools, so
+reflects his opinions and will improve the likelihood of acceptance and
+quality of contribution.
+
 ----------------------
 Repository and Tracker
 ----------------------
