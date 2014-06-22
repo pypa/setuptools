@@ -28,6 +28,8 @@ CHANGES
 ---
 
 * Issue #218: Re-release of 3.8.1 to signal that it supersedes 4.x.
+* Incidentally, script templates were updated not to include the triple-quote
+  escaping.
 
 -------------------------
 3.7.1 and 3.8.1 and 4.0.1
