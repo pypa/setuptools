@@ -3,6 +3,14 @@ CHANGES
 =======
 
 ---
+5.2
+---
+
+* Added a `Developer Guide
+  <https://pythonhosted.org/setuptools/developer-guide.html>`_ to the official
+  documentation.
+
+---
 5.1
 ---
 
