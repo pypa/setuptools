@@ -15,4 +15,7 @@ project and administrative access to the BitBucket project.
 Release Managers
 ----------------
 
-Currently, the project has one release manager, Jason R. Coombs.
+Jason R. Coombs is the primary release manager. Additionally, the following
+people have access to create releases:
+
+- Matthew Iversen (Ivoz)
