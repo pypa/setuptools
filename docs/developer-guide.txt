@@ -44,7 +44,7 @@ Submitting Pull Requests
 ------------------------
 
 Use Mercurial bookmarks or Git branches. Use incremental commits. Minimize
-stylistic changes.
+stylistic changes or at least submit them as separate commits.
 
 -------------------
 Semantic Versioning
