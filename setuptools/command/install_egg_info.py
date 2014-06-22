@@ -95,12 +95,11 @@ class install_egg_info(Command):
             f.close()
 
     def _get_all_ns_packages(self):
-        nsp = {}
+        """Return sorted list of all package namespaces"""
+        nsp = set()
         for pkg in self.distribution.namespace_packages or []:
             pkg = pkg.split('.')
             while pkg:
-                nsp['.'.join(pkg)] = 1
+                nsp.add('.'.join(pkg))
                 pkg.pop()
-        nsp = list(nsp)
-        nsp.sort()  # set up shorter names first
-        return nsp
+        return sorted(nsp)
