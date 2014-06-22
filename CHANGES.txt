@@ -11,6 +11,8 @@ CHANGES
   documentation.
 * Some code refactoring and cleanup was done with no intended behavioral
   changes.
+* During install_egg_info, the generated lines for namespace package .pth
+  files are now processed even during a dry run.
 
 ---
 5.1

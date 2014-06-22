@@ -68,10 +68,12 @@ class install_egg_info(Command):
         filename += '-nspkg.pth'
         self.outputs.append(filename)
         log.info("Installing %s", filename)
-        if self.dry_run:
-            return
-
         lines = map(self._gen_nspkg_line, nsp)
+
+        if self.dry_run:
+            # always generate the lines, even in dry run
+            list(lines)
+            return
 
         with open(filename, 'wt') as f:
             f.writelines(lines)
