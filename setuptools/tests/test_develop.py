@@ -9,8 +9,6 @@ import unittest
 
 from distutils.errors import DistutilsError
 from setuptools.command.develop import develop
-from setuptools.command import easy_install as easy_install_pkg
-from setuptools.compat import StringIO
 from setuptools.dist import Distribution
 
 SETUP_PY = """\
@@ -114,11 +112,11 @@ class TestDevelopTest(unittest.TestCase):
         os.chdir(self.dir)
         try:
             try:
-                dist = Distribution({'setup_requires': ['I_DONT_EXIST']})
+                Distribution({'setup_requires': ['I_DONT_EXIST']})
             except DistutilsError:
                 e = sys.exc_info()[1]
                 error = str(e)
-                if error ==  wanted:
+                if error == wanted:
                     pass
         finally:
             os.chdir(old_dir)
