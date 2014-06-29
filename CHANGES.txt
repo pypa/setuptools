@@ -3,6 +3,15 @@ CHANGES
 =======
 
 ---
+5.3
+---
+
+* Issue #185: Make svn tagging work on the new style SVN metadata.
+  Thanks cazabon!
+* Prune revision control directories (e.g .svn) from base path
+  as well as sub-directories.
+
+---
 5.2
 ---
 
