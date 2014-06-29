@@ -349,7 +349,7 @@ of the project's "traditional" scripts (i.e., those specified using the
 ``scripts`` keyword to ``setup()``).  This is so that they can be
 reconstituted when an ``.egg`` file is installed.
 
-The scripts are placed here using the disutils' standard
+The scripts are placed here using the distutils' standard
 ``install_scripts`` command, so any ``#!`` lines reflect the Python
 installation where the egg was built.  But instead of copying the
 scripts to the local script installation directory, EasyInstall writes
@@ -595,7 +595,7 @@ order to one another that is defined by their ``PYTHONPATH`` and
 The net result of these changes is that ``sys.path`` order will be
 as follows at runtime:
 
-1. The ``sys.argv[0]`` directory, or an emtpy string if no script
+1. The ``sys.argv[0]`` directory, or an empty string if no script
    is being executed.
 
 2. All eggs installed by EasyInstall in any ``.pth`` file in each

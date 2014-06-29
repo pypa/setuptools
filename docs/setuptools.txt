@@ -520,7 +520,7 @@ as the following::
         }
     )
 
-Any eggs built from the above setup script will include a short excecutable
+Any eggs built from the above setup script will include a short executable
 prelude that imports and calls ``main_func()`` from ``my_package.some_module``.
 The prelude can be run on Unix-like platforms (including Mac and Linux) by
 invoking the egg with ``/bin/sh``, or by enabling execute permissions on the
@@ -2180,7 +2180,7 @@ for future builds (even those run implicitly by the ``install`` command)::
 
     setup.py build --compiler=mingw32 saveopts
 
-The ``saveopts`` command saves all options for every commmand specified on the
+The ``saveopts`` command saves all options for every command specified on the
 command line to the project's local ``setup.cfg`` file, unless you use one of
 the `configuration file options`_ to change where the options are saved.  For
 example, this command does the same as above, but saves the compiler setting
@@ -2350,7 +2350,7 @@ Note, by the way, that the metadata in your ``setup()`` call determines what
 will be listed in PyPI for your package.  Try to fill out as much of it as
 possible, as it will save you a lot of trouble manually adding and updating
 your PyPI listings.  Just put it in ``setup.py`` and use the ``register``
-comamnd to keep PyPI up to date.
+command to keep PyPI up to date.
 
 The ``upload`` command has a few options worth noting:
 
