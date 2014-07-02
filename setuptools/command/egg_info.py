@@ -320,7 +320,7 @@ class manifest_maker(sdist):
         self.filelist.exclude_pattern(None, prefix=build.build_base)
         self.filelist.exclude_pattern(None, prefix=base_dir)
         sep = re.escape(os.sep)
-        self.filelist.exclude_pattern(r'(^|' + sep + r')(RCS|CVS|\.svn)' + sep, 
+        self.filelist.exclude_pattern(r'(^|' + sep + r')(RCS|CVS|\.svn)' + sep,
                                       is_regex=1)
 
 
