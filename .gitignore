@@ -1,4 +1,4 @@
-syntax: glob
+# syntax: glob
 bin
 build
 dist
@@ -13,4 +13,4 @@ CHANGES (links).txt
 *.py[cod]
 *.swp
 *~
-.git*
+.hg*

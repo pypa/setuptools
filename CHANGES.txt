@@ -3,19 +3,76 @@ CHANGES
 =======
 
 ---
-3.9
+5.4
 ---
 
 * Issue #154: Cache the reading of the zip file index for cases where the
   same zip-file is used for multiple packages (like PEX).
 
----------------
-3.7.1 and 3.8.1
----------------
+---
+5.3
+---
+
+* Issue #185: Make svn tagging work on the new style SVN metadata.
+  Thanks cazabon!
+* Prune revision control directories (e.g .svn) from base path
+  as well as sub-directories.
+
+---
+5.2
+---
+
+* Added a `Developer Guide
+  <https://pythonhosted.org/setuptools/developer-guide.html>`_ to the official
+  documentation.
+* Some code refactoring and cleanup was done with no intended behavioral
+  changes.
+* During install_egg_info, the generated lines for namespace package .pth
+  files are now processed even during a dry run.
+
+---
+5.1
+---
+
+* Issue #202: Implemented more robust cache invalidation for the ZipImporter,
+  building on the work in Issue #168. Special thanks to Jurko Gospodnetic and
+  PJE.
+
+-----
+5.0.2
+-----
+
+* Issue #220: Restored script templates.
+
+-----
+5.0.1
+-----
+
+* Renamed script templates to end with .tmpl now that they no longer need
+  to be processed by 2to3. Fixes spurious syntax errors during build/install.
+
+---
+5.0
+---
+
+* Issue #218: Re-release of 3.8.1 to signal that it supersedes 4.x.
+* Incidentally, script templates were updated not to include the triple-quote
+  escaping.
+
+-------------------------
+3.7.1 and 3.8.1 and 4.0.1
+-------------------------
 
 * Issue #213: Use legacy StringIO behavior for compatibility under pbr.
 * Issue #218: Setuptools 3.8.1 superseded 4.0.1, and 4.x was removed
   from the available versions to install.
+
+---
+4.0
+---
+
+* Issue #210: ``setup.py develop`` now copies scripts in binary mode rather
+  than text mode, matching the behavior of the ``install`` command.
 
 ---
 3.8

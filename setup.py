@@ -90,17 +90,18 @@ class test(_test):
 
 readme_file = io.open('README.txt', encoding='utf-8')
 
-# the release script adds hyperlinks to issues
-if os.path.exists('CHANGES (links).txt'):
-    changes_file = open('CHANGES (links).txt')
-else:
-    # but if the release script has not run, fall back to the source file
-    changes_file = open('CHANGES.txt')
+# The release script adds hyperlinks to issues,
+# but if the release script has not run, fall back to the source file
+changes_names = 'CHANGES (links).txt', 'CHANGES.txt'
+changes_fn = next(iter(filter(os.path.exists, changes_names)))
+changes_file = io.open(changes_fn, encoding='utf-8')
+
 with readme_file:
     with changes_file:
         long_description = readme_file.read() + '\n' + changes_file.read()
 
-package_data = {'setuptools': ['site-patch.py']}
+package_data = {
+        'setuptools': ['script (dev).tmpl', 'script.tmpl', 'site-patch.py']}
 force_windows_specific_files = (
     os.environ.get("SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES")
     not in (None, "", "0")

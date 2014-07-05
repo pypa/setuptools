@@ -1,5 +1,6 @@
 import distutils.command.bdist_wininst as orig
 
+
 class bdist_wininst(orig.bdist_wininst):
     def reinitialize_command(self, command, reinit_subcommands=0):
         """
