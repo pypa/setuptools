@@ -21,7 +21,6 @@ if PY2:
     iteritems = lambda o: o.iteritems()
     long_type = long
     maxsize = sys.maxint
-    next = lambda o: o.next()
     unichr = unichr
     unicode = unicode
     bytes = str
@@ -49,7 +48,6 @@ if PY3:
     iteritems = lambda o: o.items()
     long_type = int
     maxsize = sys.maxsize
-    next = next
     unichr = chr
     unicode = str
     bytes = bytes
