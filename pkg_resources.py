@@ -311,11 +311,6 @@ def compatible_platforms(provided, required):
                 macosversion = "%s.%s" % (reqMac.group(1), reqMac.group(2))
                 if dversion == 7 and macosversion >= "10.3" or \
                         dversion == 8 and macosversion >= "10.4":
-
-                    #import warnings
-                    #warnings.warn("Mac eggs should be rebuilt to "
-                    #    "use the macosx designation instead of darwin.",
-                    #    category=DeprecationWarning)
                     return True
             return False    # egg isn't macosx or legacy darwin
 
