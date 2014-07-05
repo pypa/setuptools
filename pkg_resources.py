@@ -30,6 +30,9 @@ import symbol
 import operator
 import platform
 import collections
+import plistlib
+import email.parser
+import tempfile
 from pkgutil import get_importer
 
 try:
@@ -234,11 +237,9 @@ def get_provider(moduleOrReq):
 
 def _macosx_vers(_cache=[]):
     if not _cache:
-        import platform
         version = platform.mac_ver()[0]
         # fallback for MacPorts
         if version == '':
-            import plistlib
             plist = '/System/Library/CoreServices/SystemVersion.plist'
             if os.path.exists(plist):
                 if hasattr(plistlib, 'readPlist'):
@@ -2576,9 +2577,8 @@ class DistInfoDistribution(Distribution):
         try:
             return self._pkg_info
         except AttributeError:
-            from email.parser import Parser
             metadata = self.get_metadata(self.PKG_INFO)
-            self._pkg_info = Parser().parsestr(metadata)
+            self._pkg_info = email.parser.Parser().parsestr(metadata)
             return self._pkg_info
 
     @property
@@ -2646,8 +2646,7 @@ def issue_warning(*args,**kw):
             level += 1
     except ValueError:
         pass
-    from warnings import warn
-    warn(stacklevel = level+1, *args, **kw)
+    warnings.warn(stacklevel = level+1, *args, **kw)
 
 
 def parse_requirements(strs):
@@ -2840,12 +2839,11 @@ def split_sections(s):
     yield section, content
 
 def _mkstemp(*args,**kw):
-    from tempfile import mkstemp
     old_open = os.open
     try:
         # temporarily bypass sandboxing
         os.open = os_open
-        return mkstemp(*args,**kw)
+        return tempfile.mkstemp(*args,**kw)
     finally:
         # and then put it back
         os.open = old_open
