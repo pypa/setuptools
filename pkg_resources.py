@@ -1568,7 +1568,6 @@ class ZipManifests(dict):
                 for name in zfile.namelist()
             )
             return dict(items)
-zip_manifests = ZipManifests()
 
 
 class ContextualZipFile(zipfile.ZipFile):
@@ -1595,6 +1594,7 @@ class ZipProvider(EggProvider):
     """Resource support for zips and eggs"""
 
     eagers = None
+    _zip_manifests = ZipManifests()
 
     def __init__(self, module):
         EggProvider.__init__(self, module)
@@ -1620,7 +1620,7 @@ class ZipProvider(EggProvider):
 
     @property
     def zipinfo(self):
-        return zip_manifests.load(self.loader.archive)
+        return self._zip_manifests.load(self.loader.archive)
 
     def get_resource_filename(self, manager, resource_name):
         if not self.egg_name:
