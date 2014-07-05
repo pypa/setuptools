@@ -3,9 +3,12 @@
 import sys
 import os
 import unittest
-import pkg_resources
-from setuptools.compat import urllib2, httplib, HTTPError, unicode, pathname2url
 import distutils.errors
+
+import six
+from six.moves import urllib, http_client
+
+import pkg_resources
 import setuptools.package_index
 from setuptools.tests.server import IndexServer
 
@@ -20,7 +23,7 @@ class TestPackageIndex(unittest.TestCase):
             v = sys.exc_info()[1]
             self.assertTrue(url in str(v))
         else:
-            self.assertTrue(isinstance(v, HTTPError))
+            self.assertTrue(isinstance(v, urllib.error.HTTPError))
 
     def test_bad_url_typo(self):
         # issue 16
@@ -37,7 +40,7 @@ class TestPackageIndex(unittest.TestCase):
             v = sys.exc_info()[1]
             self.assertTrue(url in str(v))
         else:
-            self.assertTrue(isinstance(v, HTTPError))
+            self.assertTrue(isinstance(v, urllib.error.HTTPError))
 
     def test_bad_url_bad_status_line(self):
         index = setuptools.package_index.PackageIndex(
@@ -45,7 +48,7 @@ class TestPackageIndex(unittest.TestCase):
         )
 
         def _urlopen(*args):
-            raise httplib.BadStatusLine('line')
+            raise http_client.BadStatusLine('line')
 
         index.opener = _urlopen
         url = 'http://example.com'
@@ -71,7 +74,7 @@ class TestPackageIndex(unittest.TestCase):
             index.open_url(url)
         except distutils.errors.DistutilsError:
             error = sys.exc_info()[1]
-            msg = unicode(error)
+            msg = six.text_type(error)
             assert 'nonnumeric port' in msg or 'getaddrinfo failed' in msg or 'Name or service not known' in msg
             return
         raise RuntimeError("Did not raise")
@@ -160,7 +163,7 @@ class TestPackageIndex(unittest.TestCase):
         f.write('<div>content</div>')
         f.close()
         try:
-            url = 'file:' + pathname2url(os.getcwd()) + '/'
+            url = 'file:' + urllib.request.pathname2url(os.getcwd()) + '/'
             res = setuptools.package_index.local_open(url)
         finally:
             os.remove('index.html')

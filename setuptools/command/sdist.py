@@ -6,8 +6,9 @@ import os
 import re
 import sys
 
+import six
+
 from setuptools import svn_utils
-from setuptools.compat import PY3
 import pkg_resources
 
 READMES = ('README', 'README.rst', 'README.txt')
@@ -236,7 +237,7 @@ class sdist(orig.sdist):
         manifest = open(self.manifest, 'rbU')
         for line in manifest:
             # The manifest must contain UTF-8. See #303.
-            if PY3:
+            if six.PY3:
                 try:
                     line = line.decode('UTF-8')
                 except UnicodeDecodeError:

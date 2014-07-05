@@ -35,6 +35,9 @@ import warnings
 import site
 import struct
 
+import six
+from six.moves import configparser
+
 from setuptools import Command, _dont_write_bytecode
 from setuptools.sandbox import run_setup
 from setuptools.py31compat import get_path, get_config_vars
@@ -43,8 +46,6 @@ from setuptools.archive_util import unpack_archive
 from setuptools.package_index import PackageIndex
 from setuptools.package_index import URL_SCHEME
 from setuptools.command import bdist_egg, egg_info
-from setuptools.compat import (iteritems, maxsize, basestring, unicode,
-                               reraise, PY2, PY3)
 from pkg_resources import (
     yield_lines, normalize_path, resource_string, ensure_directory,
     get_distribution, find_distributions, Environment, Requirement,
@@ -77,13 +78,13 @@ def samefile(p1, p2):
     return norm_p1 == norm_p2
 
 
-if PY2:
+if six.PY2:
     def _to_ascii(s):
         return s
 
     def isascii(s):
         try:
-            unicode(s, 'ascii')
+            six.text_type(s, 'ascii')
             return True
         except UnicodeError:
             return False
@@ -315,7 +316,7 @@ class easy_install(Command):
         self.local_index = Environment(self.shadow_path + sys.path)
 
         if self.find_links is not None:
-            if isinstance(self.find_links, basestring):
+            if isinstance(self.find_links, six.string_types):
                 self.find_links = self.find_links.split()
         else:
             self.find_links = []
@@ -393,7 +394,7 @@ class easy_install(Command):
         try:
             pid = os.getpid()
         except:
-            pid = random.randint(0, maxsize)
+            pid = random.randint(0, sys.maxsize)
         return os.path.join(self.install_dir, "test-easy-install-%s" % pid)
 
     def warn_deprecated_options(self):
@@ -1217,7 +1218,7 @@ Please make the appropriate changes for your system and try again."""
             f = open(sitepy, 'rb')
             current = f.read()
             # we want str, not bytes
-            if PY3:
+            if six.PY3:
                 current = current.decode()
 
             f.close()
@@ -1243,7 +1244,7 @@ Please make the appropriate changes for your system and try again."""
         if not self.user:
             return
         home = convert_path(os.path.expanduser("~"))
-        for name, path in iteritems(self.config_vars):
+        for name, path in six.iteritems(self.config_vars):
             if path.startswith(home) and not os.path.isdir(path):
                 self.debug_print("os.makedirs('%s', 0o700)" % path)
                 os.makedirs(path, 0o700)
@@ -1374,7 +1375,7 @@ def expand_paths(inputs):
 def extract_wininst_cfg(dist_filename):
     """Extract configuration data from a bdist_wininst .exe
 
-    Returns a ConfigParser.RawConfigParser, or None
+    Returns a configparser.RawConfigParser, or None
     """
     f = open(dist_filename, 'rb')
     try:
@@ -1387,15 +1388,12 @@ def extract_wininst_cfg(dist_filename):
             return None
         f.seek(prepended - 12)
 
-        from setuptools.compat import StringIO, ConfigParser
-        import struct
-
         tag, cfglen, bmlen = struct.unpack("<iii", f.read(12))
         if tag not in (0x1234567A, 0x1234567B):
             return None  # not a valid tag
 
         f.seek(prepended - (12 + cfglen))
-        cfg = ConfigParser.RawConfigParser(
+        cfg = configparser.RawConfigParser(
             {'version': '', 'target_version': ''})
         try:
             part = f.read(cfglen)
@@ -1409,8 +1407,8 @@ def extract_wininst_cfg(dist_filename):
             # Now the config is in bytes, but for RawConfigParser, it should
             #  be text, so decode it.
             config = config.decode(sys.getfilesystemencoding())
-            cfg.readfp(StringIO(config))
-        except ConfigParser.Error:
+            cfg.readfp(six.StringIO(config))
+        except configparser.Error:
             return None
         if not cfg.has_section('metadata') or not cfg.has_section('Setup'):
             return None
@@ -1444,7 +1442,7 @@ def get_exe_prefixes(exe_filename):
                 continue
             if parts[0].upper() in ('PURELIB', 'PLATLIB'):
                 contents = z.read(name)
-                if PY3:
+                if six.PY3:
                     contents = contents.decode()
                 for pth in yield_lines(contents):
                     pth = pth.strip().replace('\\', '/')
@@ -1618,7 +1616,7 @@ def auto_chmod(func, arg, exc):
         chmod(arg, stat.S_IWRITE)
         return func(arg)
     et, ev, _ = sys.exc_info()
-    reraise(et, (ev[0], ev[1] + (" %s %s" % (func, arg))))
+    six.reraise(et, (ev[0], ev[1] + (" %s %s" % (func, arg))))
 
 
 def update_dist_caches(dist_path, fix_zipimporter_caches):
@@ -2053,7 +2051,7 @@ def get_win_launcher(type):
 
 def load_launcher_manifest(name):
     manifest = pkg_resources.resource_string(__name__, 'launcher manifest.xml')
-    if PY2:
+    if six.PY2:
         return manifest % vars()
     else:
         return manifest.decode('utf-8') % vars()

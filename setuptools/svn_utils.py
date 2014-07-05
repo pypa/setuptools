@@ -8,14 +8,11 @@ import locale
 import codecs
 import unicodedata
 import warnings
-from setuptools.compat import unicode, PY2
 from setuptools.py31compat import TemporaryDirectory
 from xml.sax.saxutils import unescape
 
-try:
-    import urlparse
-except ImportError:
-    import urllib.parse as urlparse
+import six
+from six.moves import urllib
 
 from subprocess import Popen as _Popen, PIPE as _PIPE
 
@@ -60,7 +57,7 @@ def _get_target_property(target):
 
 
 def _get_xml_data(decoded_str):
-    if PY2:
+    if six.PY2:
         #old versions want an encoded string
         data = decoded_str.encode('utf-8')
     else:
@@ -118,7 +115,7 @@ def decode_as_string(text, encoding=None):
     if encoding is None:
         encoding = _console_encoding
 
-    if not isinstance(text, unicode):
+    if not isinstance(text, six.text_type):
         text = text.decode(encoding)
 
     text = unicodedata.normalize('NFC', text)
@@ -180,17 +177,17 @@ def parse_external_prop(lines):
         if not line:
             continue
 
-        if PY2:
+        if six.PY2:
             #shlex handles NULLs just fine and shlex in 2.7 tries to encode
             #as ascii automatiically
             line = line.encode('utf-8')
         line = shlex.split(line)
-        if PY2:
+        if six.PY2:
             line = [x.decode('utf-8') for x in line]
 
         #EXT_FOLDERNAME is either the first or last depending on where
         #the URL falls
-        if urlparse.urlsplit(line[-1])[0]:
+        if urllib.parse.urlsplit(line[-1])[0]:
             external = line[0]
         else:
             external = line[-1]

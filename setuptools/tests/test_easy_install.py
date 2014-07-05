@@ -11,8 +11,11 @@ import textwrap
 import tarfile
 import logging
 import distutils.core
+import io
 
-from setuptools.compat import StringIO, BytesIO, urlparse
+import six
+from six.moves import urllib
+
 from setuptools.sandbox import run_setup, SandboxViolation
 from setuptools.command.easy_install import (
     easy_install, fix_jython_executable, get_script_args, nt_quote_arg)
@@ -261,7 +264,7 @@ class TestSetupRequires(unittest.TestCase):
         p_index = setuptools.tests.server.MockServer()
         p_index.start()
         netloc = 1
-        p_index_loc = urlparse(p_index.url)[netloc]
+        p_index_loc = urllib.parse.urlparse(p_index.url)[netloc]
         if p_index_loc.endswith(':0'):
             # Some platforms (Jython) don't find a port to which to bind,
             #  so skip this test for them.
@@ -385,12 +388,7 @@ def make_trivial_sdist(dist_path, setup_py):
     """
 
     setup_py_file = tarfile.TarInfo(name='setup.py')
-    try:
-        # Python 3 (StringIO gets converted to io module)
-        MemFile = BytesIO
-    except AttributeError:
-        MemFile = StringIO
-    setup_py_bytes = MemFile(setup_py.encode('utf-8'))
+    setup_py_bytes = io.BytesIO(setup_py.encode('utf-8'))
     setup_py_file.size = len(setup_py_bytes.getvalue())
     dist = tarfile.open(dist_path, 'w:gz')
     try:
@@ -451,8 +449,8 @@ def quiet_context():
 
     old_stdout = sys.stdout
     old_stderr = sys.stderr
-    new_stdout = sys.stdout = StringIO()
-    new_stderr = sys.stderr = StringIO()
+    new_stdout = sys.stdout = six.StringIO()
+    new_stderr = sys.stderr = six.StringIO()
     try:
         yield new_stdout, new_stderr
     finally:

@@ -13,8 +13,9 @@ from distutils.core import Distribution as _Distribution
 from distutils.errors import (DistutilsOptionError, DistutilsPlatformError,
     DistutilsSetupError)
 
+import six
+
 from setuptools.depends import Require
-from setuptools.compat import basestring, PY2
 import pkg_resources
 
 def _get_unpatched(cls):
@@ -132,7 +133,7 @@ def check_entry_points(dist, attr, value):
         raise DistutilsSetupError(e)
 
 def check_test_suite(dist, attr, value):
-    if not isinstance(value,basestring):
+    if not isinstance(value, six.string_types):
         raise DistutilsSetupError("test_suite must be a string")
 
 def check_package_data(dist, attr, value):
@@ -632,7 +633,7 @@ class Distribution(_Distribution):
         """
         import sys
 
-        if PY2 or self.help_commands:
+        if six.PY2 or self.help_commands:
             return _Distribution.handle_display_options(self, option_order)
 
         # Stdout may be StringIO (e.g. in tests)

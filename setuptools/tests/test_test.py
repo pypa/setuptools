@@ -8,9 +8,10 @@ import site
 import sys
 import tempfile
 import unittest
-
 from distutils.errors import DistutilsError
-from setuptools.compat import StringIO, PY2
+
+import six
+
 from setuptools.command.test import test
 from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
@@ -34,7 +35,7 @@ except ImportError:
     __path__ = extend_path(__path__, __name__)
 """
 # Make sure this is Latin-1 binary, before writing:
-if PY2:
+if six.PY2:
     NS_INIT = NS_INIT.decode('UTF-8')
 NS_INIT = NS_INIT.encode('Latin-1')
 
@@ -115,7 +116,7 @@ class TestTestTest(unittest.TestCase):
         cmd.install_dir = site.USER_SITE
         cmd.user = 1
         old_stdout = sys.stdout
-        sys.stdout = StringIO()
+        sys.stdout = six.StringIO()
         try:
             try: # try/except/finally doesn't work in Python 2.4, so we need nested try-statements.
                 cmd.run()

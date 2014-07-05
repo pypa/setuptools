@@ -10,9 +10,10 @@ import os
 import re
 import sys
 
+import six
+
 from setuptools import Command
 from setuptools.command.sdist import sdist
-from setuptools.compat import basestring, PY3, StringIO
 from setuptools import svn_utils
 from setuptools.command.sdist import walk_revctrl
 from pkg_resources import (
@@ -132,7 +133,7 @@ class egg_info(Command):
         to the file.
         """
         log.info("writing %s to %s", what, filename)
-        if PY3:
+        if six.PY3:
             data = data.encode("utf-8")
         if not self.dry_run:
             f = open(filename, 'wb')
@@ -373,7 +374,7 @@ def _write_requirements(stream, reqs):
 
 def write_requirements(cmd, basename, filename):
     dist = cmd.distribution
-    data = StringIO()
+    data = six.StringIO()
     _write_requirements(data, dist.install_requires)
     extras_require = dist.extras_require or {}
     for extra in sorted(extras_require):
@@ -407,12 +408,12 @@ def write_arg(cmd, basename, filename, force=False):
 def write_entries(cmd, basename, filename):
     ep = cmd.distribution.entry_points
 
-    if isinstance(ep, basestring) or ep is None:
+    if isinstance(ep, six.string_types) or ep is None:
         data = ep
     elif ep is not None:
         data = []
         for section, contents in sorted(ep.items()):
-            if not isinstance(contents, basestring):
+            if not isinstance(contents, six.string_types):
                 contents = EntryPoint.parse_group(section, contents)
                 contents = '\n'.join(sorted(map(str, contents.values())))
             data.append('[%s]\n%s\n\n' % (section, contents))

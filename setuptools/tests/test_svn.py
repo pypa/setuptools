@@ -6,9 +6,10 @@ import os
 import subprocess
 import sys
 import unittest
-from setuptools.tests import environment
-from setuptools.compat import unicode, unichr
 
+import six
+
+from setuptools.tests import environment
 from setuptools import svn_utils
 from setuptools.tests.py26compat import skipIf
 
@@ -119,13 +120,13 @@ class ParserExternalXML(unittest.TestCase):
             os.sep.join((example_base, folder3)),
             # folder is third_party大介
             os.sep.join((example_base,
-                       unicode('third_party') +
-                       unichr(0x5927) + unichr(0x4ecb))),
+                       six.text_type('third_party') +
+                       six.unichr(0x5927) + six.unichr(0x4ecb))),
             os.sep.join((example_base, 'folder', folder2)),
             os.sep.join((example_base, 'folder', folder3)),
             os.sep.join((example_base, 'folder',
-                       unicode('third_party') +
-                       unichr(0x5927) + unichr(0x4ecb))),
+                       six.text_type('third_party') +
+                       six.unichr(0x5927) + six.unichr(0x4ecb))),
             ])
 
         expected = set(os.path.normpath(x) for x in expected)

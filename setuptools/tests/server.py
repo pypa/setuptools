@@ -3,11 +3,10 @@
 import sys
 import time
 import threading
-from setuptools.compat import BaseHTTPRequestHandler
-from setuptools.compat import (urllib2, URLError, HTTPServer,
-                               SimpleHTTPRequestHandler)
 
-class IndexServer(HTTPServer):
+from six.moves import BaseHTTPServer, SimpleHTTPServer, urllib
+
+class IndexServer(BaseHTTPServer.HTTPServer):
     """Basic single-threaded http server simulating a package index
 
     You can use this server in unittest like this::
@@ -19,8 +18,9 @@ class IndexServer(HTTPServer):
         s.stop()
     """
     def __init__(self, server_address=('', 0),
-            RequestHandlerClass=SimpleHTTPRequestHandler):
-        HTTPServer.__init__(self, server_address, RequestHandlerClass)
+            RequestHandlerClass=SimpleHTTPServer.SimpleHTTPRequestHandler):
+        BaseHTTPServer.HTTPServer.__init__(self, server_address,
+            RequestHandlerClass)
         self._run = True
 
     def serve(self):
@@ -44,10 +44,10 @@ class IndexServer(HTTPServer):
         url = 'http://127.0.0.1:%(server_port)s/' % vars(self)
         try:
             if sys.version_info >= (2, 6):
-                urllib2.urlopen(url, timeout=5)
+                urllib.request.urlopen(url, timeout=5)
             else:
-                urllib2.urlopen(url)
-        except URLError:
+                urllib.request.urlopen(url)
+        except urllib.error.URLError:
             # ignore any errors; all that's important is the request
             pass
         self.thread.join()
@@ -57,19 +57,20 @@ class IndexServer(HTTPServer):
         port = self.server_port
         return 'http://127.0.0.1:%s/setuptools/tests/indexes/' % port
 
-class RequestRecorder(BaseHTTPRequestHandler):
+class RequestRecorder(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_GET(self):
         requests = vars(self.server).setdefault('requests', [])
         requests.append(self)
         self.send_response(200, 'OK')
 
-class MockServer(HTTPServer, threading.Thread):
+class MockServer(BaseHTTPServer.HTTPServer, threading.Thread):
     """
     A simple HTTP Server that records the requests made to it.
     """
     def __init__(self, server_address=('', 0),
             RequestHandlerClass=RequestRecorder):
-        HTTPServer.__init__(self, server_address, RequestHandlerClass)
+        BaseHTTPServer.HTTPServer.__init__(self, server_address,
+            RequestHandlerClass)
         threading.Thread.__init__(self)
         self.setDaemon(True)
         self.requests = []

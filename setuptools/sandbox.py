@@ -6,6 +6,8 @@ import functools
 import itertools
 import re
 
+from six.moves import builtins
+
 import pkg_resources
 
 if os.name == "java":
@@ -19,8 +21,6 @@ except NameError:
 _open = open
 from distutils.errors import DistutilsError
 from pkg_resources import working_set
-
-from setuptools.compat import builtins
 
 __all__ = [
     "AbstractSandbox", "DirectorySandbox", "SandboxViolation", "run_setup",

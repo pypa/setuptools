@@ -15,7 +15,8 @@ from pkg_resources import (parse_requirements, VersionConflict, parse_version,
 
 from setuptools.command.easy_install import (get_script_header, is_sh,
     nt_quote_arg)
-from setuptools.compat import StringIO, iteritems, PY3
+
+import six
 
 try:
     frozenset
@@ -270,7 +271,7 @@ class EntryPointTests(TestCase):
 
     def checkSubMap(self, m):
         self.assertEqual(len(m), len(self.submap_expect))
-        for key, ep in iteritems(self.submap_expect):
+        for key, ep in six.iteritems(self.submap_expect):
             self.assertEqual(repr(m.get(key)), repr(ep))
 
     submap_expect = dict(
@@ -522,7 +523,7 @@ class ScriptHeaderTests(TestCase):
 
     def test_get_script_header_jython_workaround(self):
         # This test doesn't work with Python 3 in some locales
-        if PY3 and os.environ.get("LC_CTYPE") in (None, "C", "POSIX"):
+        if six.PY3 and os.environ.get("LC_CTYPE") in (None, "C", "POSIX"):
             return
 
         class java:
@@ -545,12 +546,12 @@ class ScriptHeaderTests(TestCase):
 
             # Ensure we generate what is basically a broken shebang line
             # when there's options, with a warning emitted
-            sys.stdout = sys.stderr = StringIO()
+            sys.stdout = sys.stderr = six.StringIO()
             self.assertEqual(get_script_header('#!/usr/bin/python -x',
                                                executable=exe),
                              '#!%s  -x\n' % exe)
             self.assertTrue('Unable to adapt shebang line' in sys.stdout.getvalue())
-            sys.stdout = sys.stderr = StringIO()
+            sys.stdout = sys.stderr = six.StringIO()
             self.assertEqual(get_script_header('#!/usr/bin/python',
                                                executable=self.non_ascii_exe),
                              '#!%s -x\n' % self.non_ascii_exe)

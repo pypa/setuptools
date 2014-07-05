@@ -3,11 +3,12 @@ from unittest import TestLoader
 import unittest
 import sys
 
+import six
+
 from pkg_resources import (resource_listdir, resource_exists, normalize_path,
                            working_set, _namespace_packages,
                            add_activation_listener, require, EntryPoint)
 from setuptools import Command
-from setuptools.compat import PY3
 from setuptools.py31compat import unittest_main
 
 
@@ -84,7 +85,7 @@ class test(Command):
             self.test_runner = getattr(self.distribution, 'test_runner', None)
 
     def with_project_on_sys_path(self, func):
-        with_2to3 = PY3 and getattr(self.distribution, 'use_2to3', False)
+        with_2to3 = six.PY3 and getattr(self.distribution, 'use_2to3', False)
 
         if with_2to3:
             # If we run 2to3 we can not do this inplace:
@@ -145,7 +146,7 @@ class test(Command):
         # Purge modules under test from sys.modules. The test loader will
         # re-import them from the build location. Required when 2to3 is used
         # with namespace packages.
-        if PY3 and getattr(self.distribution, 'use_2to3', False):
+        if six.PY3 and getattr(self.distribution, 'use_2to3', False):
             module = self.test_args[-1].split('.')[0]
             if module in _namespace_packages:
                 del_modules = []

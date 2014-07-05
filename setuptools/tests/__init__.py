@@ -9,9 +9,9 @@ from distutils.errors import DistutilsOptionError, DistutilsPlatformError
 from distutils.errors import DistutilsSetupError
 from distutils.core import Extension
 from distutils.version import LooseVersion
-from setuptools.compat import func_code
 
-from setuptools.compat import func_code
+import six
+
 import setuptools.dist
 import setuptools.depends as dep
 from setuptools import Feature
@@ -54,7 +54,7 @@ class DependsTests(unittest.TestCase):
             x = "test"
             y = z
 
-        fc = func_code(f1)
+        fc = six.get_function_code(f1)
         # unrecognized name
         self.assertEqual(dep.extract_constant(fc,'q', -1), None)
 

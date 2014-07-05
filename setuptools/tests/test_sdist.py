@@ -10,10 +10,11 @@ import unittest
 import unicodedata
 import re
 import contextlib
+
+import six
+
 from setuptools.tests import environment, test_svn
 from setuptools.tests.py26compat import skipIf
-
-from setuptools.compat import StringIO, unicode, PY3, PY2
 from setuptools.command.sdist import sdist, walk_revctrl
 from setuptools.command.egg_info import manifest_maker
 from setuptools.dist import Distribution
@@ -34,7 +35,7 @@ setup(**%r)
 """ % SETUP_ATTRS
 
 
-if PY3:
+if six.PY3:
     LATIN1_FILENAME = 'smörbröd.py'.encode('latin-1')
 else:
     LATIN1_FILENAME = 'sm\xf6rbr\xf6d.py'
@@ -44,7 +45,7 @@ else:
 @contextlib.contextmanager
 def quiet():
     old_stdout, old_stderr = sys.stdout, sys.stderr
-    sys.stdout, sys.stderr = StringIO(), StringIO()
+    sys.stdout, sys.stderr = six.StringIO(), six.StringIO()
     try:
         yield
     finally:
@@ -53,14 +54,14 @@ def quiet():
 
 # Fake byte literals for Python <= 2.5
 def b(s, encoding='utf-8'):
-    if PY3:
+    if six.PY3:
         return s.encode(encoding)
     return s
 
 
 # Convert to POSIX path
 def posix(path):
-    if PY3 and not isinstance(path, str):
+    if six.PY3 and not isinstance(path, str):
         return path.replace(os.sep.encode('ascii'), b('/'))
     else:
         return path.replace(os.sep, '/')
@@ -68,7 +69,7 @@ def posix(path):
 
 # HFS Plus uses decomposed UTF-8
 def decompose(path):
-    if isinstance(path, unicode):
+    if isinstance(path, six.text_type):
         return unicodedata.normalize('NFD', path)
     try:
         path = path.decode('utf-8')
@@ -153,14 +154,14 @@ class TestSdistTest(unittest.TestCase):
             self.fail(e)
 
         # The manifest should contain the UTF-8 filename
-        if PY2:
+        if six.PY2:
             fs_enc = sys.getfilesystemencoding()
             filename = filename.decode(fs_enc)
 
         self.assertTrue(posix(filename) in u_contents)
 
     # Python 3 only
-    if PY3:
+    if six.PY3:
 
         def test_write_manifest_allows_utf8_filenames(self):
             # Test for #303.
@@ -269,12 +270,12 @@ class TestSdistTest(unittest.TestCase):
             cmd.read_manifest()
 
         # The filelist should contain the UTF-8 filename
-        if PY3:
+        if six.PY3:
             filename = filename.decode('utf-8')
         self.assertTrue(filename in cmd.filelist.files)
 
     # Python 3 only
-    if PY3:
+    if six.PY3:
 
         def test_read_manifest_skips_non_utf8_filenames(self):
             # Test for #303.
@@ -310,7 +311,7 @@ class TestSdistTest(unittest.TestCase):
             filename = filename.decode('latin-1')
             self.assertFalse(filename in cmd.filelist.files)
 
-    @skipIf(PY3 and locale.getpreferredencoding() != 'UTF-8',
+    @skipIf(six.PY3 and locale.getpreferredencoding() != 'UTF-8',
             'Unittest fails if locale is not utf-8 but the manifests is recorded correctly')
     def test_sdist_with_utf8_encoded_filename(self):
         # Test for #303.
@@ -329,7 +330,7 @@ class TestSdistTest(unittest.TestCase):
         if sys.platform == 'darwin':
             filename = decompose(filename)
 
-        if PY3:
+        if six.PY3:
             fs_enc = sys.getfilesystemencoding()
 
             if sys.platform == 'win32':
@@ -361,7 +362,7 @@ class TestSdistTest(unittest.TestCase):
         with quiet():
             cmd.run()
 
-        if PY3:
+        if six.PY3:
             # not all windows systems have a default FS encoding of cp1252
             if sys.platform == 'win32':
                 # Latin-1 is similar to Windows-1252 however

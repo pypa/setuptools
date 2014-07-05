@@ -4,9 +4,10 @@ from distutils.errors import DistutilsError, DistutilsOptionError
 import os
 import glob
 
+import six
+
 from pkg_resources import Distribution, PathMetadata, normalize_path
 from setuptools.command.easy_install import easy_install
-from setuptools.compat import PY3
 import setuptools
 
 
@@ -86,7 +87,7 @@ class develop(easy_install):
                 " installation directory", p, normalize_path(os.curdir))
 
     def install_for_development(self):
-        if PY3 and getattr(self.distribution, 'use_2to3', False):
+        if six.PY3 and getattr(self.distribution, 'use_2to3', False):
             # If we run 2to3 we can not do this inplace:
 
             # Ensure metadata is up-to-date
