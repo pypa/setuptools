@@ -23,7 +23,6 @@ if PY2:
     long_type = long
     maxsize = sys.maxint
     next = lambda o: o.next()
-    numeric_types = (int, long, float)
     unichr = unichr
     unicode = unicode
     bytes = str
@@ -52,7 +51,6 @@ if PY3:
     long_type = int
     maxsize = sys.maxsize
     next = next
-    numeric_types = (int, float)
     unichr = chr
     unicode = str
     bytes = bytes

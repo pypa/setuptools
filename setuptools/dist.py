@@ -4,6 +4,7 @@ import re
 import os
 import sys
 import warnings
+import numbers
 import distutils.log
 import distutils.core
 import distutils.cmd
@@ -13,7 +14,7 @@ from distutils.errors import (DistutilsOptionError, DistutilsPlatformError,
     DistutilsSetupError)
 
 from setuptools.depends import Require
-from setuptools.compat import numeric_types, basestring, PY2
+from setuptools.compat import basestring, PY2
 import pkg_resources
 
 def _get_unpatched(cls):
@@ -263,7 +264,7 @@ class Distribution(_Distribution):
             if not hasattr(self,ep.name):
                 setattr(self,ep.name,None)
         _Distribution.__init__(self,attrs)
-        if isinstance(self.metadata.version, numeric_types):
+        if isinstance(self.metadata.version, numbers.Number):
             # Some people apparently take "version number" too literally :)
             self.metadata.version = str(self.metadata.version)
 
