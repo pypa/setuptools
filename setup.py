@@ -197,6 +197,9 @@ setup_params = dict(
         Topic :: System :: Systems Administration
         Topic :: Utilities
         """).strip().splitlines(),
+    install_requires=[
+        'six>=1.5',
+    ],
     extras_require={
         "ssl:sys_platform=='win32'": "wincertstore==0.2",
         "certs": "certifi==1.0.1",
