@@ -6,8 +6,12 @@ CHANGES
 5.4
 ---
 
-* Issue #154: Cache the reading of the zip file index for cases where the
-  same zip-file is used for multiple packages (like PEX).
+* Issue #154: ``pkg_resources`` will now cache the zip manifests rather than
+  re-processing the same file from disk multiple times, but only if the
+  environment variable ``PKG_RESOURCES_CACHE_ZIP_MANIFESTS`` is set. Clients
+  that package many modules in the same zip file will see some improvement
+  in startup time by enabling this feature. This feature is not enabled by
+  default because it causes a substantial increase in memory usage.
 
 ---
 5.3

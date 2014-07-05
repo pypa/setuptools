@@ -1602,7 +1602,11 @@ class ZipProvider(EggProvider):
     """Resource support for zips and eggs"""
 
     eagers = None
-    _zip_manifests = ZipManifests()
+    _zip_manifests = (
+        MemoizedZipManifests()
+        if os.environ.get('PKG_RESOURCES_CACHE_ZIP_MANIFESTS') else
+        ZipManifests()
+    )
 
     def __init__(self, module):
         EggProvider.__init__(self, module)
