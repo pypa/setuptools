@@ -312,7 +312,8 @@ def compatible_platforms(provided, required):
                 if dversion == 7 and macosversion >= "10.3" or \
                         dversion == 8 and macosversion >= "10.4":
                     return True
-            return False    # egg isn't macosx or legacy darwin
+            # egg isn't macosx or legacy darwin
+            return False
 
         # are they the same major version and machine type?
         if provMac.group(1) != reqMac.group(1) or \
@@ -637,7 +638,8 @@ class WorkingSet(object):
                 to_activate.append(dist)
             if dist not in req:
                 # Oops, the "best" so far conflicts with a dependency
-                raise VersionConflict(dist, req) # XXX put more info here
+                # XXX put more info here
+                raise VersionConflict(dist, req)
             requirements.extend(dist.requires(req.extras)[::-1])
             processed[req] = True
 
@@ -653,8 +655,10 @@ class WorkingSet(object):
             distributions, errors = working_set.find_plugins(
                 Environment(plugin_dirlist)
             )
-            map(working_set.add, distributions)  # add plugins+libs to sys.path
-            print 'Could not load', errors        # display errors
+            # add plugins+libs to sys.path
+            map(working_set.add, distributions)
+            # display errors
+            print('Could not load', errors)
 
         The `plugin_env` should be an ``Environment`` instance that contains
         only distributions that are in the project's "plugin directory" or
@@ -1618,8 +1622,9 @@ class ZipProvider(EggProvider):
         )
 
     def _parts(self, zip_path):
-        # Convert a zipfile subpath into an egg-relative path part list
-        fspath = self.zip_pre+zip_path  # pseudo-fs path
+        # Convert a zipfile subpath into an egg-relative path part list.
+        # pseudo-fs path
+        fspath = self.zip_pre+zip_path
         if fspath.startswith(self.egg_root+os.sep):
             return fspath[len(self.egg_root)+1:].split(os.sep)
         raise AssertionError(
@@ -2684,7 +2689,8 @@ def parse_requirements(strs):
                 raise ValueError(msg, line, "at", line[p:])
 
         match = TERMINATOR(line, p)
-        if match: p = match.end()   # skip the terminator, if any
+        # skip the terminator, if any
+        if match: p = match.end()
         return line, p, items
 
     for line in lines:
@@ -2867,4 +2873,5 @@ run_main = run_script
 # calling ``require()``) will get activated as well.
 add_activation_listener(lambda dist: dist.activate())
 working_set.entries=[]
-list(map(working_set.add_entry, sys.path)) # match order
+# match order
+list(map(working_set.add_entry, sys.path))
