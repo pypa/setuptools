@@ -18,7 +18,7 @@ class install_lib(orig.install_lib):
                 .single_version_externally_managed)
         exclude_names = ['__init__.py', '__init__.pyc', '__init__.pyo']
         if hasattr(imp, 'get_tag') :
-            exclude_names.extend(
+            exclude_names.extend((
                 os.path.join(
                     '__pycache__',
                     '__init__.' + imp.get_tag() + '.pyc'
@@ -27,7 +27,7 @@ class install_lib(orig.install_lib):
                     '__pycache__',
                     '__init__.' + imp.get_tag() + '.pyo'
                 ),
-            )
+            ))
         if svem:
             for pkg in nsp:
                 parts = pkg.split('.')
