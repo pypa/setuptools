@@ -109,7 +109,8 @@ import __future__
 import sys, traceback, inspect, linecache, os, re, types
 import unittest, difflib, pdb, tempfile
 import warnings
-from setuptools.compat import StringIO, execfile, func_code, im_func
+from setuptools.compat import StringIO, func_code, im_func
+from setuptools import sandbox
 
 # Don't whine about the deprecated is_private function in this
 # module's tests.
@@ -2554,14 +2555,15 @@ def debug_script(src, pm=False, globs=None):
 
         if pm:
             try:
-                execfile(srcfilename, globs, globs)
+                sandbox._execfile(srcfilename, globs)
             except:
                 print(sys.exc_info()[1])
                 pdb.post_mortem(sys.exc_info()[2])
         else:
             # Note that %r is vital here.  '%s' instead can, e.g., cause
             # backslashes to get treated as metacharacters on Windows.
-            pdb.run("execfile(%r)" % srcfilename, globs, globs)
+            cmd = "sandbox._execfile(%r, globals())" % srcfilename
+            pdb.run(cmd, globs, globs)
 
     finally:
         os.remove(srcfilename)

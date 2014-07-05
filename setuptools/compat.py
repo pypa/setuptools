@@ -10,7 +10,6 @@ if PY2:
     import ConfigParser
     from StringIO import StringIO
     BytesIO = StringIO
-    execfile = execfile
     func_code = lambda o: o.func_code
     func_globals = lambda o: o.func_globals
     im_func = lambda o: o.im_func
@@ -62,15 +61,6 @@ if PY3:
         urlunsplit, splittag,
     )
     filterfalse = itertools.filterfalse
-
-    def execfile(fn, globs=None, locs=None):
-        if globs is None:
-            globs = globals()
-        if locs is None:
-            locs = globs
-        with open(fn, 'rb') as f:
-            source = f.read()
-        exec(compile(source, fn, 'exec'), globs, locs)
 
     def reraise(tp, value, tb=None):
         if value.__traceback__ is not tb:

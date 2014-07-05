@@ -72,7 +72,7 @@ class TestSandbox(unittest.TestCase):
         target = pkg_resources.resource_filename(__name__,
             'script-with-bom.py')
         namespace = types.ModuleType('namespace')
-        setuptools.sandbox.execfile(target, vars(namespace))
+        setuptools.sandbox._execfile(target, vars(namespace))
         assert namespace.result == 'passed'
 
 if __name__ == '__main__':
