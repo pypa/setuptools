@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+-----
+5.4.1
+-----
+
+* Python #7776: (ssl_support) Correct usage of host for validation when
+  tunneling for HTTPS.
+
 ---
 5.4
 ---
