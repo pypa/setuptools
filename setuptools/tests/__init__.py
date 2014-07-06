@@ -2,7 +2,7 @@
 import sys
 import os
 import unittest
-from setuptools.tests import doctest
+import doctest
 import distutils.core
 import distutils.cmd
 from distutils.errors import DistutilsOptionError, DistutilsPlatformError
@@ -18,7 +18,6 @@ from setuptools import Feature
 from setuptools.depends import Require
 
 def additional_tests():
-    import doctest, unittest
     suite = unittest.TestSuite((
         doctest.DocFileSuite(
             os.path.join('tests', 'api_tests.txt'),
