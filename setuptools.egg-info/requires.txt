@@ -1,3 +1,4 @@
+six>=1.5
 
 [certs]
 certifi==1.0.1
