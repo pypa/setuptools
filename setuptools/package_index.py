@@ -315,7 +315,7 @@ class PackageIndex(Environment):
         base = f.url     # handle redirects
         page = f.read()
         if not isinstance(page, str): # We are in Python 3 and got bytes. We want str.
-            if isinstance(f, urllib.request.HTTPError):
+            if isinstance(f, urllib.error.HTTPError):
                 # Errors have no charset, assume latin1:
                 charset = 'latin-1'
             else:
@@ -666,7 +666,7 @@ class PackageIndex(Environment):
         try:
             checker = HashChecker.from_url(url)
             fp = self.open_url(strip_fragment(url))
-            if isinstance(fp, urllib.request.HTTPError):
+            if isinstance(fp, urllib.error.HTTPError):
                 raise DistutilsError(
                     "Can't download %s: %s %s" % (url, fp.code,fp.msg)
                 )
@@ -709,10 +709,10 @@ class PackageIndex(Environment):
                 self.warn(warning, msg)
             else:
                 raise DistutilsError('%s %s' % (url, msg))
-        except urllib.request.HTTPError:
+        except urllib.error.HTTPError:
             v = sys.exc_info()[1]
             return v
-        except urllib.request.URLError:
+        except urllib.error.URLError:
             v = sys.exc_info()[1]
             if warning:
                 self.warn(warning, v.reason)
