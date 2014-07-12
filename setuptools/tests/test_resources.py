@@ -605,8 +605,10 @@ class NamespaceTests(TestCase):
             self.fail("Setuptools tried to import the parent namespace package")
         # check the _namespace_packages dict
         assert "pkg1.pkg2" in pkg_resources._namespace_packages
-        self.assertEqual(pkg_resources._namespace_packages["pkg1"], ["pkg1.pkg2"])
+        assert pkg_resources._namespace_packages["pkg1"] == ["pkg1.pkg2"]
         # check the __path__ attribute contains both paths
-        self.assertEqual(pkg1.pkg2.__path__, [
+        expected = [
             os.path.join(self._tmpdir, "site-pkgs", "pkg1", "pkg2"),
-            os.path.join(self._tmpdir, "site-pkgs2", "pkg1", "pkg2")])
+            os.path.join(self._tmpdir, "site-pkgs2", "pkg1", "pkg2"),
+        ]
+        assert pkg1.pkg2.__path__ == expected
