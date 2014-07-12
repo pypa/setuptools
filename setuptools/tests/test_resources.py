@@ -16,6 +16,7 @@ from pkg_resources import (parse_requirements, VersionConflict, parse_version,
 from setuptools.command.easy_install import (get_script_header, is_sh,
     nt_quote_arg)
 from setuptools.compat import StringIO, iteritems, PY3
+from .py26compat import skipIf
 
 try:
     frozenset
@@ -575,6 +576,8 @@ class NamespaceTests(TestCase):
         pkg_resources._namespace_packages = self._ns_pkgs.copy()
         sys.path = self._prev_sys_path[:]
 
+    msg = "Test fails when /tmp is a symlink. See #231"
+    @skipIf(os.path.islink(tempfile.gettempdir()), msg)
     def test_two_levels_deep(self):
         """
         Test nested namespace packages
