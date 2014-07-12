@@ -18,11 +18,6 @@ from setuptools.command.easy_install import (get_script_header, is_sh,
 from setuptools.compat import StringIO, iteritems, PY3
 from .py26compat import skipIf
 
-try:
-    frozenset
-except NameError:
-    from sets import ImmutableSet as frozenset
-
 def safe_repr(obj, short=False):
     """ copied from Python2.7"""
     try:
