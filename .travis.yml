@@ -10,4 +10,4 @@ python:
 script:
  - python setup.py test
  - python setup.py ptr
- - python ez_setup.py --version 3.5.1
+ - python ez_setup.py --version 5.4.1
