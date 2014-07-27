@@ -58,7 +58,7 @@ Who is invited to contribute? Who is excluded?
 
 While we've worked privately to initiate this merge due to the potential sensitivity of the topic, no one is excluded from this effort. We invite all members of the  community, especially those most familiar with Python packaging and its challenges to join us in the effort.
 
-We have lots of  ideas for how we'd like to improve the codebase, release process,  everything.  Like distribute, the post-merge setuptools will have its  source hosted on bitbucket.  (So if you're currently a distribute  contributor, about the only thing that's going to change is the URL of  the repository you follow.)  Also like distribute, it'll support Python  3, and hopefully we'll soon merge Vinay Sajip's patches to make it run  on Python 3 without needing 2to3 to be run on the code first.
+We have lots of  ideas for how we'd like to improve the codebase, release process,  everything.  Like distribute, the post-merge setuptools will have its  source hosted on Bitbucket.  (So if you're currently a distribute  contributor, about the only thing that's going to change is the URL of  the repository you follow.)  Also like distribute, it'll support Python  3, and hopefully we'll soon merge Vinay Sajip's patches to make it run  on Python 3 without needing 2to3 to be run on the code first.
 
 While we've worked privately to initiate this merge due to the potential sensitivity of the topic, no one is excluded from this effort. We invite all members of the community, especially those most familiar with Python packaging and its challenges to join us in the effort.
 
