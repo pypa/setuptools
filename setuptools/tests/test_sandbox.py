@@ -73,5 +73,11 @@ class TestSandbox(unittest.TestCase):
         setuptools.sandbox._execfile(target, vars(namespace))
         assert namespace.result == 'passed'
 
+    def test_setup_py_with_CRLF(self):
+        setup_py = os.path.join(self.dir, 'setup.py')
+        with open(setup_py, 'wb') as stream:
+            stream.write(b'"degenerate script"\r\n')
+        setuptools.sandbox._execfile(setup_py, globals())
+
 if __name__ == '__main__':
     unittest.main()
