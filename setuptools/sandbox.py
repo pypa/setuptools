@@ -31,6 +31,10 @@ def _execfile(filename, globals, locals=None):
     Python 3 implementation of execfile.
     """
     mode = 'rb'
+    # Python 2.6 compile requires LF for newlines, so use deprecated
+    #  Universal newlines support.
+    if sys.version_info < (2, 7):
+        mode += 'U'
     with open(filename, mode) as stream:
         script = stream.read()
     if locals is None:

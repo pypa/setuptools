@@ -3,6 +3,12 @@ CHANGES
 =======
 
 -----
+5.4.2
+-----
+
+* Issue #236: Corrected regression in execfile implementation for Python 2.6.
+
+-----
 5.4.1
 -----
 
