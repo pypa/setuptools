@@ -33,8 +33,6 @@ class TestSandbox(unittest.TestCase):
         shutil.rmtree(self.dir)
 
     def test_devnull(self):
-        if sys.version < '2.4':
-            return
         sandbox = DirectorySandbox(self.dir)
         sandbox.run(self._file_writer(os.devnull))
 
