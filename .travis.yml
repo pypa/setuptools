@@ -9,7 +9,7 @@ python:
 # command to run tests
 script:
  # work around https://bitbucket.org/hpk42/pytest/issue/555
- - sudo python -m easy_install 'pytest<2.6'
+ - pushd /tmp; sudo python -m easy_install 'pytest<2.6'; popd
  - python setup.py test
  - python setup.py ptr
  - python ez_setup.py --version 5.4.1
