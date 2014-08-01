@@ -19,7 +19,7 @@ def has_win32com():
     if not sys.platform.startswith('win32'):
         return False
     try:
-        mod = __import__('win32com')
+        __import__('win32com')
     except ImportError:
         return False
     return True
