@@ -30,7 +30,8 @@ def _execfile(filename, globals, locals=None):
     """
     Python 3 implementation of execfile.
     """
-    with open(filename, 'rb') as stream:
+    mode = 'rb'
+    with open(filename, mode) as stream:
         script = stream.read()
     if locals is None:
         locals = globals
