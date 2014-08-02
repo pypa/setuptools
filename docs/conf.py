@@ -13,6 +13,9 @@
 #
 # All configuration values have a default; values that are commented out
 # serve to show the default.
+import sys, os
+
+sys.path.append(os.path.abspath('..'))
 
 import setup as setup_script
 
@@ -195,3 +198,4 @@ latex_documents = [
 
 # If false, no module index is generated.
 #latex_use_modindex = True
+
