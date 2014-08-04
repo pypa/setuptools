@@ -479,7 +479,7 @@ script called ``baz``, you might do something like this::
                 'bar = other_module:some_func',
             ],
             'gui_scripts': [
-                'baz = my_package_gui.start_func',
+                'baz = my_package_gui:start_func',
             ]
         }
     )
