@@ -8,8 +8,8 @@ python:
   - pypy
 # command to run tests
 script:
- # work around https://bitbucket.org/hpk42/pytest/issue/555
- - pushd /tmp; python -m easy_install 'pytest<2.6'; popd
+ # testing fix for https://bitbucket.org/hpk42/pytest/issue/555
+ - pip install --pre -i https://devpi.net/hpk/dev/ pytest
  - python setup.py test
  - python setup.py ptr
  - python ez_setup.py --version 5.4.1
