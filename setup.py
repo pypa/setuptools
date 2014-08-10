@@ -144,6 +144,7 @@ setup_params = dict(
             "extras_require         = setuptools.dist:check_extras",
             "install_requires       = setuptools.dist:check_requirements",
             "tests_require          = setuptools.dist:check_requirements",
+            "setup_reqires          = setuptools.dist:check_requirements",
             "entry_points           = setuptools.dist:check_entry_points",
             "test_suite             = setuptools.dist:check_test_suite",
             "zip_safe               = setuptools.dist:assert_bool",

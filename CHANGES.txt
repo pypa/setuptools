@@ -2,6 +2,14 @@
 CHANGES
 =======
 
+---
+5.5
+---
+
+* Issue #239: Setuptools now includes the setup_requires directive on
+  Distribution objects and validates the syntax just like install_requires
+  and tests_require directives.
+
 -----
 5.4.2
 -----
