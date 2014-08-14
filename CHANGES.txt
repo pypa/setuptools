@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+---
+5.6
+---
+
+* Issue #242: Use absolute imports in svn_utils to avoid issues if the
+  installing package adds an xml module to the path.
+
 -----
 5.5.1
 -----
