@@ -3,6 +3,17 @@ CHANGES
 =======
 
 ---
+5.7
+---
+
+* Issue #240: Based on real-world performance measures against 5.4, zip
+  manifests are now cached in all circumstances. The
+  ``PKG_RESOURCES_CACHE_ZIP_MANIFESTS`` environment variable is no longer
+  relevant. The observed "memory increase" referenced in the 5.4 release
+  notes and detailed in Issue #154 was likely not an increase over the status
+  quo, but rather only an increase over not storing the zip info at all.
+
+---
 5.6
 ---
 
