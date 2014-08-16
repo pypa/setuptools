@@ -20,8 +20,7 @@ class ScanningLoader(TestLoader):
         the return value to the tests.
         """
         tests = []
-        if module.__name__ != 'setuptools.tests.doctest':  # ugh
-            tests.append(TestLoader.loadTestsFromModule(self, module))
+        tests.append(TestLoader.loadTestsFromModule(self, module))
 
         if hasattr(module, "additional_tests"):
             tests.append(module.additional_tests())

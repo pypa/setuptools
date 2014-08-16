@@ -12,7 +12,7 @@ import tarfile
 import logging
 import distutils.core
 
-from setuptools.compat import StringIO, BytesIO, next, urlparse
+from setuptools.compat import StringIO, BytesIO, urlparse
 from setuptools.sandbox import run_setup, SandboxViolation
 from setuptools.command.easy_install import (
     easy_install, fix_jython_executable, get_script_args, nt_quote_arg)

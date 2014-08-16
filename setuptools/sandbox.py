@@ -20,11 +20,27 @@ _open = open
 from distutils.errors import DistutilsError
 from pkg_resources import working_set
 
-from setuptools.compat import builtins, execfile
+from setuptools.compat import builtins
 
 __all__ = [
     "AbstractSandbox", "DirectorySandbox", "SandboxViolation", "run_setup",
 ]
+
+def _execfile(filename, globals, locals=None):
+    """
+    Python 3 implementation of execfile.
+    """
+    mode = 'rb'
+    # Python 2.6 compile requires LF for newlines, so use deprecated
+    #  Universal newlines support.
+    if sys.version_info < (2, 7):
+        mode += 'U'
+    with open(filename, mode) as stream:
+        script = stream.read()
+    if locals is None:
+        locals = globals
+    code = compile(script, filename, 'exec')
+    exec(code, globals, locals)
 
 def run_setup(setup_script, args):
     """Run a distutils setup script, sandboxed in its directory"""
@@ -46,12 +62,10 @@ def run_setup(setup_script, args):
             # reset to include setup dir, w/clean callback list
             working_set.__init__()
             working_set.callbacks.append(lambda dist:dist.activate())
-            DirectorySandbox(setup_dir).run(
-                lambda: execfile(
-                    "setup.py",
-                    {'__file__':setup_script, '__name__':'__main__'}
-                )
-            )
+            def runner():
+                ns = dict(__file__=setup_script, __name__='__main__')
+                _execfile(setup_script, ns)
+            DirectorySandbox(setup_dir).run(runner)
         except SystemExit:
             v = sys.exc_info()[1]
             if v.args and v.args[0]:

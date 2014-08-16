@@ -14,7 +14,7 @@ import textwrap
 
 from pkg_resources import get_build_platform, Distribution, ensure_directory
 from pkg_resources import EntryPoint
-from setuptools.compat import basestring, next
+from setuptools.compat import basestring
 from setuptools.extension import Library
 from setuptools import Command
 

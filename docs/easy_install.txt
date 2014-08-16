@@ -39,7 +39,7 @@ You will need at least Python 2.6.  An ``easy_install`` script will be
 installed in the normal location for Python scripts on your platform.
 
 Note that the instructions on the setuptools PyPI page assume that you are
-are installling to Python's primary ``site-packages`` directory.  If this is
+are installing to Python's primary ``site-packages`` directory.  If this is
 not the case, you should consult the section below on `Custom Installation
 Locations`_ before installing.  (And, on Windows, you should not use the
 ``.exe`` installer when installing to an alternate location.)
@@ -915,7 +915,7 @@ Command-Line Options
     domain.  The glob patterns must match the *entire* user/host/port section of
     the target URL(s).  For example, ``*.python.org`` will NOT accept a URL
     like ``http://python.org/foo`` or ``http://www.python.org:8080/``.
-    Multiple patterns can be specified by separting them with commas.  The
+    Multiple patterns can be specified by separating them with commas.  The
     default pattern is ``*``, which matches anything.
 
     In general, this option is mainly useful for blocking EasyInstall's web
@@ -1014,7 +1014,7 @@ application, simply set the OS environment of that application to a specific val
 Use "virtualenv"
 ~~~~~~~~~~~~~~~~
 "virtualenv" is a 3rd-party python package that effectively "clones" a python installation, thereby
-creating an isolated location to intall packages.  The evolution of "virtualenv" started before the existence
+creating an isolated location to install packages.  The evolution of "virtualenv" started before the existence
 of the User installation scheme.  "virtualenv" provides a version of ``easy_install`` that is
 scoped to the cloned python install and is used in the normal way. "virtualenv" does offer various features
 that the User installation scheme alone does not provide, e.g. the ability to hide the main python site-packages.
@@ -1171,7 +1171,7 @@ History
  * Fixed not HTML-decoding URLs scraped from web pages
 
 0.6c5
- * Fixed ``.dll`` files on Cygwin not having executable permisions when an egg
+ * Fixed ``.dll`` files on Cygwin not having executable permissions when an egg
    is installed unzipped.
 
 0.6c4

@@ -29,6 +29,10 @@ import token
 import symbol
 import operator
 import platform
+import collections
+import plistlib
+import email.parser
+import tempfile
 from pkgutil import get_importer
 
 try:
@@ -233,11 +237,9 @@ def get_provider(moduleOrReq):
 
 def _macosx_vers(_cache=[]):
     if not _cache:
-        import platform
         version = platform.mac_ver()[0]
         # fallback for MacPorts
         if version == '':
-            import plistlib
             plist = '/System/Library/CoreServices/SystemVersion.plist'
             if os.path.exists(plist):
                 if hasattr(plistlib, 'readPlist'):
@@ -309,13 +311,9 @@ def compatible_platforms(provided, required):
                 macosversion = "%s.%s" % (reqMac.group(1), reqMac.group(2))
                 if dversion == 7 and macosversion >= "10.3" or \
                         dversion == 8 and macosversion >= "10.4":
-
-                    #import warnings
-                    #warnings.warn("Mac eggs should be rebuilt to "
-                    #    "use the macosx designation instead of darwin.",
-                    #    category=DeprecationWarning)
                     return True
-            return False    # egg isn't macosx or legacy darwin
+            # egg isn't macosx or legacy darwin
+            return False
 
         # are they the same major version and machine type?
         if provMac.group(1) != reqMac.group(1) or \
@@ -345,8 +343,10 @@ run_main = run_script
 
 def get_distribution(dist):
     """Return a current distribution object for a Requirement or string"""
-    if isinstance(dist, basestring): dist = Requirement.parse(dist)
-    if isinstance(dist, Requirement): dist = get_provider(dist)
+    if isinstance(dist, basestring):
+        dist = Requirement.parse(dist)
+    if isinstance(dist, Requirement):
+        dist = get_provider(dist)
     if not isinstance(dist, Distribution):
         raise TypeError("Expected string, Requirement, or Distribution", dist)
     return dist
@@ -640,7 +640,8 @@ class WorkingSet(object):
                 to_activate.append(dist)
             if dist not in req:
                 # Oops, the "best" so far conflicts with a dependency
-                raise VersionConflict(dist, req) # XXX put more info here
+                # XXX put more info here
+                raise VersionConflict(dist, req)
             requirements.extend(dist.requires(req.extras)[::-1])
             processed[req] = True
 
@@ -656,8 +657,10 @@ class WorkingSet(object):
             distributions, errors = working_set.find_plugins(
                 Environment(plugin_dirlist)
             )
-            map(working_set.add, distributions)  # add plugins+libs to sys.path
-            print 'Could not load', errors        # display errors
+            # add plugins+libs to sys.path
+            map(working_set.add, distributions)
+            # display errors
+            print('Could not load', errors)
 
         The `plugin_env` should be an ``Environment`` instance that contains
         only distributions that are in the project's "plugin directory" or
@@ -885,7 +888,8 @@ class Environment(object):
     def __iter__(self):
         """Yield the unique project names of the available distributions"""
         for key in self._distmap.keys():
-            if self[key]: yield key
+            if self[key]:
+                yield key
 
     def __iadd__(self, other):
         """In-place addition of a distribution or environment"""
@@ -1530,33 +1534,51 @@ class EmptyProvider(NullProvider):
 empty_provider = EmptyProvider()
 
 
-def build_zipmanifest(path):
+class ZipManifests(dict):
     """
-    This builds a similar dictionary to the zipimport directory
-    caches.  However instead of tuples, ZipInfo objects are stored.
+    zip manifest builder
+    """
 
-    The translation of the tuple is as follows:
-      * [0] - zipinfo.filename on stock pythons this needs "/" --> os.sep
-              on pypy it is the same (one reason why distribute did work
-              in some cases on pypy and win32).
-      * [1] - zipinfo.compress_type
-      * [2] - zipinfo.compress_size
-      * [3] - zipinfo.file_size
-      * [4] - len(utf-8 encoding of filename) if zipinfo & 0x800
-              len(ascii encoding of filename) otherwise
-      * [5] - (zipinfo.date_time[0] - 1980) << 9 |
-               zipinfo.date_time[1] << 5 | zipinfo.date_time[2]
-      * [6] - (zipinfo.date_time[3] - 1980) << 11 |
-               zipinfo.date_time[4] << 5 | (zipinfo.date_time[5] // 2)
-      * [7] - zipinfo.CRC
+    @classmethod
+    def build(cls, path):
+        """
+        Build a dictionary similar to the zipimport directory
+        caches, except instead of tuples, store ZipInfo objects.
+
+        Use a platform-specific path separator (os.sep) for the path keys
+        for compatibility with pypy on Windows.
+        """
+        with ContextualZipFile(path) as zfile:
+            items = (
+                (
+                    name.replace('/', os.sep),
+                    zfile.getinfo(name),
+                )
+                for name in zfile.namelist()
+            )
+            return dict(items)
+
+    load = build
+
+
+class MemoizedZipManifests(ZipManifests):
     """
-    zipinfo = dict()
-    with ContextualZipFile(path) as zfile:
-        for zitem in zfile.namelist():
-            zpath = zitem.replace('/', os.sep)
-            zipinfo[zpath] = zfile.getinfo(zitem)
-            assert zipinfo[zpath] is not None
-    return zipinfo
+    Memoized zipfile manifests.
+    """
+    manifest_mod = collections.namedtuple('manifest_mod', 'manifest mtime')
+
+    def load(self, path):
+        """
+        Load a manifest at path or return a suitable manifest already loaded.
+        """
+        path = os.path.normpath(path)
+        mtime = os.stat(path).st_mtime
+
+        if path not in self or self[path].mtime != mtime:
+            manifest = self.build(path)
+            self[path] = self.manifest_mod(manifest, mtime)
+
+        return self[path].manifest
 
 
 class ContextualZipFile(zipfile.ZipFile):
@@ -1583,10 +1605,10 @@ class ZipProvider(EggProvider):
     """Resource support for zips and eggs"""
 
     eagers = None
+    _zip_manifests = MemoizedZipManifests()
 
     def __init__(self, module):
         EggProvider.__init__(self, module)
-        self.zipinfo = build_zipmanifest(self.loader.archive)
         self.zip_pre = self.loader.archive+os.sep
 
     def _zipinfo_name(self, fspath):
@@ -1599,13 +1621,18 @@ class ZipProvider(EggProvider):
         )
 
     def _parts(self, zip_path):
-        # Convert a zipfile subpath into an egg-relative path part list
-        fspath = self.zip_pre+zip_path  # pseudo-fs path
+        # Convert a zipfile subpath into an egg-relative path part list.
+        # pseudo-fs path
+        fspath = self.zip_pre+zip_path
         if fspath.startswith(self.egg_root+os.sep):
             return fspath[len(self.egg_root)+1:].split(os.sep)
         raise AssertionError(
             "%s is not a subpath of %s" % (fspath, self.egg_root)
         )
+
+    @property
+    def zipinfo(self):
+        return self._zip_manifests.load(self.loader.archive)
 
     def get_resource_filename(self, manager, resource_name):
         if not self.egg_name:
@@ -1802,7 +1829,6 @@ class EggMetadata(ZipProvider):
     def __init__(self, importer):
         """Create a metadata provider from a zipimporter"""
 
-        self.zipinfo = build_zipmanifest(importer.archive)
         self.zip_pre = importer.archive+os.sep
         self.loader = importer
         if importer.prefix:
@@ -1987,7 +2013,8 @@ def fixup_namespace_packages(path_item, parent=None):
     try:
         for package in _namespace_packages.get(parent,()):
             subpath = _handle_ns(package, path_item)
-            if subpath: fixup_namespace_packages(subpath, package)
+            if subpath:
+                fixup_namespace_packages(subpath, package)
     finally:
         imp.release_lock()
 
@@ -2119,13 +2146,16 @@ def parse_version(s):
     for part in _parse_version_parts(s.lower()):
         if part.startswith('*'):
             # remove '-' before a prerelease tag
-            if part<'*final':
-                while parts and parts[-1]=='*final-': parts.pop()
+            if part < '*final':
+                while parts and parts[-1] == '*final-':
+                    parts.pop()
             # remove trailing zeros from each series of numeric parts
             while parts and parts[-1]=='00000000':
                 parts.pop()
         parts.append(part)
     return tuple(parts)
+
+
 class EntryPoint(object):
     """Object representing an advertised importable object"""
 
@@ -2150,7 +2180,8 @@ class EntryPoint(object):
         return "EntryPoint.parse(%r)" % str(self)
 
     def load(self, require=True, env=None, installer=None):
-        if require: self.require(env, installer)
+        if require:
+            self.require(env, installer)
         entry = __import__(self.module_name, globals(), globals(),
             ['__name__'])
         for attr in self.attrs:
@@ -2180,22 +2211,21 @@ class EntryPoint(object):
         """
         try:
             attrs = extras = ()
-            name, value = src.split('=',1)
+            name, value = src.split('=', 1)
             if '[' in value:
-                value, extras = value.split('[',1)
-                req = Requirement.parse("x["+extras)
-                if req.specs: raise ValueError
+                value, extras = value.split('[', 1)
+                req = Requirement.parse("x[" + extras)
+                if req.specs:
+                    raise ValueError
                 extras = req.extras
             if ':' in value:
-                value, attrs = value.split(':',1)
+                value, attrs = value.split(':', 1)
                 if not MODULE(attrs.rstrip()):
                     raise ValueError
                 attrs = attrs.rstrip().split('.')
         except ValueError:
-            raise ValueError(
-                "EntryPoint must be in 'name=module:attrs [extras]' format",
-                src
-            )
+            msg = "EntryPoint must be in 'name=module:attrs [extras]' format"
+            raise ValueError(msg, src)
         else:
             return cls(name.strip(), value.strip(), attrs, extras, dist)
 
@@ -2352,7 +2382,7 @@ class Distribution(object):
                 for extra, reqs in split_sections(self._get_metadata(name)):
                     if extra:
                         if ':' in extra:
-                            extra, marker = extra.split(':',1)
+                            extra, marker = extra.split(':', 1)
                             if invalid_marker(marker):
                                 # XXX warn
                                 reqs=[]
@@ -2366,7 +2396,7 @@ class Distribution(object):
         """List of Requirements needed for this distro if `extras` are used"""
         dm = self._dep_map
         deps = []
-        deps.extend(dm.get(None,()))
+        deps.extend(dm.get(None, ()))
         for ext in extras:
             try:
                 deps.extend(dm[safe_extra(ext)])
@@ -2383,7 +2413,8 @@ class Distribution(object):
 
     def activate(self, path=None):
         """Ensure distribution is importable on `path` (default=sys.path)"""
-        if path is None: path = sys.path
+        if path is None:
+            path = sys.path
         self.insert_on(path)
         if path is sys.path:
             fixup_namespace_packages(self.location)
@@ -2399,7 +2430,7 @@ class Distribution(object):
         )
 
         if self.platform:
-            filename += '-'+self.platform
+            filename += '-' + self.platform
         return filename
 
     def __repr__(self):
@@ -2409,8 +2440,10 @@ class Distribution(object):
             return str(self)
 
     def __str__(self):
-        try: version = getattr(self,'version',None)
-        except ValueError: version = None
+        try:
+            version = getattr(self, 'version', None)
+        except ValueError:
+            version = None
         version = version or "[unknown version]"
         return "%s %s" % (self.project_name, version)
 
@@ -2466,9 +2499,9 @@ class Distribution(object):
         npath= [(p and _normalize_cached(p) or p) for p in path]
 
         for p, item in enumerate(npath):
-            if item==nloc:
+            if item == nloc:
                 break
-            elif item==bdir and self.precedence==EGG_DIST:
+            elif item == bdir and self.precedence == EGG_DIST:
                 # if it's an .egg, give it precedence over its directory
                 if path is sys.path:
                     self.check_version_conflict()
@@ -2482,7 +2515,7 @@ class Distribution(object):
             return
 
         # p is the spot where we found or inserted loc; now remove duplicates
-        while 1:
+        while True:
             try:
                 np = npath.index(nloc, p+1)
             except ValueError:
@@ -2495,7 +2528,7 @@ class Distribution(object):
         return
 
     def check_version_conflict(self):
-        if self.key=='setuptools':
+        if self.key == 'setuptools':
             # ignore the inevitable setuptools self-conflicts  :(
             return
 
@@ -2520,16 +2553,14 @@ class Distribution(object):
         try:
             self.version
         except ValueError:
-            issue_warning("Unbuilt egg for "+repr(self))
+            issue_warning("Unbuilt egg for " + repr(self))
             return False
         return True
 
     def clone(self,**kw):
         """Copy this distribution, substituting in any changed keyword args"""
-        for attr in (
-            'project_name', 'version', 'py_version', 'platform', 'location',
-            'precedence'
-        ):
+        names = 'project_name version py_version platform location precedence'
+        for attr in names.split():
             kw.setdefault(attr, getattr(self, attr, None))
         kw.setdefault('metadata', self._provider)
         return self.__class__(**kw)
@@ -2550,9 +2581,8 @@ class DistInfoDistribution(Distribution):
         try:
             return self._pkg_info
         except AttributeError:
-            from email.parser import Parser
             metadata = self.get_metadata(self.PKG_INFO)
-            self._pkg_info = Parser().parsestr(metadata)
+            self._pkg_info = email.parser.Parser().parsestr(metadata)
             return self._pkg_info
 
     @property
@@ -2620,8 +2650,7 @@ def issue_warning(*args,**kw):
             level += 1
     except ValueError:
         pass
-    from warnings import warn
-    warn(stacklevel = level+1, *args, **kw)
+    warnings.warn(stacklevel=level + 1, *args, **kw)
 
 
 def parse_requirements(strs):
@@ -2664,7 +2693,9 @@ def parse_requirements(strs):
                 raise ValueError(msg, line, "at", line[p:])
 
         match = TERMINATOR(line, p)
-        if match: p = match.end()   # skip the terminator, if any
+        # skip the terminator, if any
+        if match:
+            p = match.end()
         return line, p, items
 
     for line in lines:
@@ -2710,11 +2741,15 @@ class Requirement:
     def __str__(self):
         specs = ','.join([''.join(s) for s in self.specs])
         extras = ','.join(self.extras)
-        if extras: extras = '[%s]' % extras
+        if extras:
+            extras = '[%s]' % extras
         return '%s%s%s' % (self.project_name, extras, specs)
 
     def __eq__(self, other):
-        return isinstance(other, Requirement) and self.hashCmp==other.hashCmp
+        return (
+            isinstance(other, Requirement) and
+            self.hashCmp == other.hashCmp
+        )
 
     def __contains__(self, item):
         if isinstance(item, Distribution):
@@ -2731,16 +2766,17 @@ class Requirement:
         for parsed, trans, op, ver in self.index:
             # Indexing: 0, 1, -1
             action = trans[compare(item, parsed)]
-            if action=='F':
+            if action == 'F':
                 return False
-            elif action=='T':
+            elif action == 'T':
                 return True
-            elif action=='+':
+            elif action == '+':
                 last = True
-            elif action=='-' or last is None:
+            elif action == '-' or last is None:
                 last = False
         # no rules encountered
-        if last is None: last = True
+        if last is None:
+            last = True
         return last
 
     def __hash__(self):
@@ -2752,7 +2788,7 @@ class Requirement:
     def parse(s):
         reqs = list(parse_requirements(s))
         if reqs:
-            if len(reqs)==1:
+            if len(reqs) == 1:
                 return reqs[0]
             raise ValueError("Expected only one requirement", s)
         raise ValueError("No requirements found", s)
@@ -2814,12 +2850,11 @@ def split_sections(s):
     yield section, content
 
 def _mkstemp(*args,**kw):
-    from tempfile import mkstemp
     old_open = os.open
     try:
         # temporarily bypass sandboxing
         os.open = os_open
-        return mkstemp(*args,**kw)
+        return tempfile.mkstemp(*args,**kw)
     finally:
         # and then put it back
         os.open = old_open
@@ -2848,4 +2883,5 @@ run_main = run_script
 # calling ``require()``) will get activated as well.
 add_activation_listener(lambda dist: dist.activate())
 working_set.entries=[]
-list(map(working_set.add_entry, sys.path)) # match order
+# match order
+list(map(working_set.add_entry, sys.path))

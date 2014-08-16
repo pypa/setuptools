@@ -69,7 +69,7 @@ before you run the test command, as the files otherwise will seem updated,
 and no conversion will happen.
 
 In general, if code doesn't seem to be converted, deleting the build directory
-and trying again is a good saferguard against the build directory getting
+and trying again is a good safeguard against the build directory getting
 "out of sync" with the source directory.
 
 Distributing Python 3 modules

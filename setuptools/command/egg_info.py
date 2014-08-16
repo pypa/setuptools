@@ -320,7 +320,7 @@ class manifest_maker(sdist):
         self.filelist.exclude_pattern(None, prefix=build.build_base)
         self.filelist.exclude_pattern(None, prefix=base_dir)
         sep = re.escape(os.sep)
-        self.filelist.exclude_pattern(r'(^|' + sep + r')(RCS|CVS|\.svn)' + sep, 
+        self.filelist.exclude_pattern(r'(^|' + sep + r')(RCS|CVS|\.svn)' + sep,
                                       is_regex=1)
 
 
@@ -389,7 +389,7 @@ def write_toplevel_names(cmd, basename, filename):
             for k in cmd.distribution.iter_distribution_names()
         ]
     )
-    cmd.write_file("top-level names", filename, '\n'.join(pkgs) + '\n')
+    cmd.write_file("top-level names", filename, '\n'.join(sorted(pkgs) + '\n')
 
 
 def overwrite_arg(cmd, basename, filename):

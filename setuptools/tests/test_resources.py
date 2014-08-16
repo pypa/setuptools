@@ -16,11 +16,7 @@ from pkg_resources import (parse_requirements, VersionConflict, parse_version,
 from setuptools.command.easy_install import (get_script_header, is_sh,
     nt_quote_arg)
 from setuptools.compat import StringIO, iteritems, PY3
-
-try:
-    frozenset
-except NameError:
-    from sets import ImmutableSet as frozenset
+from .py26compat import skipIf
 
 def safe_repr(obj, short=False):
     """ copied from Python2.7"""
@@ -575,13 +571,8 @@ class NamespaceTests(TestCase):
         pkg_resources._namespace_packages = self._ns_pkgs.copy()
         sys.path = self._prev_sys_path[:]
 
-    def _assertIn(self, member, container):
-        """ assertIn and assertTrue does not exist in Python2.3"""
-        if member not in container:
-            standardMsg = '%s not found in %s' % (safe_repr(member),
-                                                  safe_repr(container))
-            self.fail(self._formatMessage(msg, standardMsg))
-
+    msg = "Test fails when /tmp is a symlink. See #231"
+    @skipIf(os.path.islink(tempfile.gettempdir()), msg)
     def test_two_levels_deep(self):
         """
         Test nested namespace packages
@@ -605,15 +596,17 @@ class NamespaceTests(TestCase):
             pkg2_init.write(ns_str)
             pkg2_init.close()
         import pkg1
-        self._assertIn("pkg1", pkg_resources._namespace_packages.keys())
+        assert "pkg1" in pkg_resources._namespace_packages
         try:
             import pkg1.pkg2
         except ImportError:
             self.fail("Setuptools tried to import the parent namespace package")
         # check the _namespace_packages dict
-        self._assertIn("pkg1.pkg2", pkg_resources._namespace_packages.keys())
-        self.assertEqual(pkg_resources._namespace_packages["pkg1"], ["pkg1.pkg2"])
+        assert "pkg1.pkg2" in pkg_resources._namespace_packages
+        assert pkg_resources._namespace_packages["pkg1"] == ["pkg1.pkg2"]
         # check the __path__ attribute contains both paths
-        self.assertEqual(pkg1.pkg2.__path__, [
+        expected = [
             os.path.join(self._tmpdir, "site-pkgs", "pkg1", "pkg2"),
-            os.path.join(self._tmpdir, "site-pkgs2", "pkg1", "pkg2")])
+            os.path.join(self._tmpdir, "site-pkgs2", "pkg1", "pkg2"),
+        ]
+        assert pkg1.pkg2.__path__ == expected

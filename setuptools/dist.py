@@ -4,6 +4,7 @@ import re
 import os
 import sys
 import warnings
+import numbers
 import distutils.log
 import distutils.core
 import distutils.cmd
@@ -13,7 +14,7 @@ from distutils.errors import (DistutilsOptionError, DistutilsPlatformError,
     DistutilsSetupError)
 
 from setuptools.depends import Require
-from setuptools.compat import numeric_types, basestring, PY2
+from setuptools.compat import basestring, PY2
 import pkg_resources
 
 def _get_unpatched(cls):
@@ -258,12 +259,12 @@ class Distribution(_Distribution):
             self.dependency_links = attrs.pop('dependency_links', [])
             assert_string_list(self,'dependency_links',self.dependency_links)
         if attrs and 'setup_requires' in attrs:
-            self.fetch_build_eggs(attrs.pop('setup_requires'))
+            self.fetch_build_eggs(attrs['setup_requires'])
         for ep in pkg_resources.iter_entry_points('distutils.setup_keywords'):
             if not hasattr(self,ep.name):
                 setattr(self,ep.name,None)
         _Distribution.__init__(self,attrs)
-        if isinstance(self.metadata.version, numeric_types):
+        if isinstance(self.metadata.version, numbers.Number):
             # Some people apparently take "version number" too literally :)
             self.metadata.version = str(self.metadata.version)
 
