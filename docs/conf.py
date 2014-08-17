@@ -14,16 +14,15 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default
 
-# Allow Sphinx to find the setup command that is imported below.
+# If extensions (or modules to document with autodoc) are in another directory,
+# add these directories to sys.path here. If the directory is relative to the
+# documentation root, use os.path.abspath to make it absolute, like shown here.
+
+# Allow Sphinx to find the setup command that is imported below, as referenced above.
 import sys, os
 sys.path.append(os.path.abspath('..'))
 
 import setup as setup_script
-
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.append(os.path.abspath('.'))
 
 # -- General configuration -----------------------------------------------------
 
