@@ -15,6 +15,7 @@ from setuptools.command.sdist import sdist
 from setuptools.compat import basestring, PY3, StringIO
 from setuptools import svn_utils
 from setuptools.command.sdist import walk_revctrl
+from setuptools._vendor.packaging.version import Version
 from pkg_resources import (
     parse_requirements, safe_name, parse_version,
     safe_version, yield_lines, EntryPoint, iter_entry_points, to_filename)
@@ -68,9 +69,14 @@ class egg_info(Command):
         self.vtags = self.tags()
         self.egg_version = self.tagged_version()
 
+        parsed_version = parse_version(self.egg_version)
+
         try:
+            spec = (
+                "%s==%s" if isinstance(parsed_version, Version) else "%s===%s"
+            )
             list(
-                parse_requirements('%s==%s' % (self.egg_name,
+                parse_requirements(spec % (self.egg_name,
                                                self.egg_version))
             )
         except ValueError:

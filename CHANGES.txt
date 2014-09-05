@@ -2,7 +2,6 @@
 CHANGES
 =======
 
----
 6.0
 ---
 
@@ -23,6 +22,9 @@ CHANGES
   Any users producing distributions with filenames that match those above
   case-insensitively, but not case-sensitively, should rename those files in
   their repository for better portability.
+
+* Implement PEP 440 within pkg_resources and setuptools. This will cause some
+  versions to no longer be installable without using the ``===`` escape hatch.
 
 ---
 5.8
