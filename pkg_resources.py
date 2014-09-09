@@ -81,15 +81,6 @@ try:
 except ImportError:
     pass
 
-def _bypass_ensure_directory(name, mode=0o777):
-    # Sandbox-bypassing version of ensure_directory()
-    if not WRITE_SUPPORT:
-        raise IOError('"os.mkdir" not supported on this platform.')
-    dirname, filename = split(name)
-    if dirname and filename and not isdir(dirname):
-        _bypass_ensure_directory(dirname)
-        mkdir(dirname, mode)
-
 
 _state_vars = {}
 
@@ -2823,6 +2814,17 @@ def ensure_directory(path):
     dirname = os.path.dirname(path)
     if not os.path.isdir(dirname):
         os.makedirs(dirname)
+
+
+def _bypass_ensure_directory(name, mode=0o777):
+    """Sandbox-bypassing version of ensure_directory()"""
+    if not WRITE_SUPPORT:
+        raise IOError('"os.mkdir" not supported on this platform.')
+    dirname, filename = split(name)
+    if dirname and filename and not isdir(dirname):
+        _bypass_ensure_directory(dirname)
+        mkdir(dirname, mode)
+
 
 def split_sections(s):
     """Split a string or iterable thereof into (section, content) pairs
