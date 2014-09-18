@@ -44,10 +44,6 @@ except ImportError:
     from urllib.parse import urlparse, urlunparse
 
 try:
-    frozenset
-except NameError:
-    from sets import ImmutableSet as frozenset
-try:
     basestring
     next = lambda o: o.next()
     from cStringIO import StringIO as BytesIO
