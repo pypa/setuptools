@@ -46,13 +46,15 @@ if PY2:
     from urlparse import urlparse, urlunparse
 
 if PY3:
-    basestring = str
+    string_types = str,
     def execfile(fn, globs=None, locs=None):
         if globs is None:
             globs = globals()
         if locs is None:
             locs = globs
         exec(compile(open(fn).read(), fn, 'exec'), globs, locs)
+else:
+    string_types = str, eval('unicode')
 
 # capture these to bypass sandboxing
 from os import utime
@@ -330,7 +332,7 @@ run_main = run_script
 
 def get_distribution(dist):
     """Return a current distribution object for a Requirement or string"""
-    if isinstance(dist, basestring):
+    if isinstance(dist, string_types):
         dist = Requirement.parse(dist)
     if isinstance(dist, Requirement):
         dist = get_provider(dist)
@@ -2050,8 +2052,8 @@ def _set_parent_ns(packageName):
 
 
 def yield_lines(strs):
-    """Yield non-empty/non-comment lines of a ``basestring`` or sequence"""
-    if isinstance(strs, basestring):
+    """Yield non-empty/non-comment lines of a string or sequence"""
+    if isinstance(strs, string_types):
         for s in strs.splitlines():
             s = s.strip()
             # skip blank lines/comments
@@ -2643,8 +2645,7 @@ def issue_warning(*args,**kw):
 def parse_requirements(strs):
     """Yield ``Requirement`` objects for each specification in `strs`
 
-    `strs` must be an instance of ``basestring``, or a (possibly-nested)
-    iterable thereof.
+    `strs` must be a string, or a (possibly-nested) iterable thereof.
     """
     # create a steppable iterator, so we can handle \-continuations
     lines = iter(yield_lines(strs))
@@ -2745,7 +2746,7 @@ class Requirement:
             # only get if we need it
             if self.index:
                 item = item.parsed_version
-        elif isinstance(item, basestring):
+        elif isinstance(item, string_types):
             item = parse_version(item)
         last = None
         # -1, 0, 1
