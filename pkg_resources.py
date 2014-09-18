@@ -16,6 +16,7 @@ method.
 
 import sys
 import os
+import io
 import time
 import re
 import imp
@@ -46,17 +47,12 @@ if PY2:
 
 if PY3:
     basestring = str
-    from io import BytesIO
     def execfile(fn, globs=None, locs=None):
         if globs is None:
             globs = globals()
         if locs is None:
             locs = globs
         exec(compile(open(fn).read(), fn, 'exec'), globs, locs)
-
-if PY2:
-    next = lambda o: o.next()
-    from cStringIO import StringIO as BytesIO
 
 # capture these to bypass sandboxing
 from os import utime
@@ -1378,7 +1374,7 @@ class NullProvider:
         return self._fn(self.module_path, resource_name)
 
     def get_resource_stream(self, manager, resource_name):
-        return BytesIO(self.get_resource_string(manager, resource_name))
+        return io.BytesIO(self.get_resource_string(manager, resource_name))
 
     def get_resource_string(self, manager, resource_name):
         return self._get(self._fn(self.module_path, resource_name))
