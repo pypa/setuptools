@@ -47,12 +47,6 @@ if PY2:
 
 if PY3:
     string_types = str,
-    def execfile(fn, globs=None, locs=None):
-        if globs is None:
-            globs = globals()
-        if locs is None:
-            locs = globs
-        exec(compile(open(fn).read(), fn, 'exec'), globs, locs)
 else:
     string_types = str, eval('unicode')
 
@@ -1424,7 +1418,9 @@ class NullProvider:
         script_filename = self._fn(self.egg_info, script)
         namespace['__file__'] = script_filename
         if os.path.exists(script_filename):
-            execfile(script_filename, namespace, namespace)
+            source = open(script_filename).read()
+            code = compile(source, script_filename, 'exec')
+            exec(code, namespace, namespace)
         else:
             from linecache import cache
             cache[script_filename] = (
