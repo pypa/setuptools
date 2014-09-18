@@ -3,6 +3,14 @@ CHANGES
 =======
 
 ---
+5.8
+---
+
+* Issue #237: ``pkg_resources`` now uses explicit detection of Python 2 vs.
+  Python 3, supporting environments where builtins have been patched to make
+  Python 3 look more like Python 2.
+
+---
 5.7
 ---
 

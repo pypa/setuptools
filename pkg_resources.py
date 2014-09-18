@@ -38,16 +38,13 @@ from pkgutil import get_importer
 PY3 = sys.version_info > (3,)
 PY2 = not PY3
 
-try:
-    from urlparse import urlparse, urlunparse
-except ImportError:
+if PY3:
     from urllib.parse import urlparse, urlunparse
 
-try:
-    basestring
-    next = lambda o: o.next()
-    from cStringIO import StringIO as BytesIO
-except NameError:
+if PY2:
+    from urlparse import urlparse, urlunparse
+
+if PY3:
     basestring = str
     from io import BytesIO
     def execfile(fn, globs=None, locs=None):
@@ -56,6 +53,10 @@ except NameError:
         if locs is None:
             locs = globs
         exec(compile(open(fn).read(), fn, 'exec'), globs, locs)
+
+if PY2:
+    next = lambda o: o.next()
+    from cStringIO import StringIO as BytesIO
 
 # capture these to bypass sandboxing
 from os import utime
