@@ -35,6 +35,9 @@ import email.parser
 import tempfile
 from pkgutil import get_importer
 
+PY3 = sys.version_info > (3,)
+PY2 = not PY3
+
 try:
     from urlparse import urlparse, urlunparse
 except ImportError:
