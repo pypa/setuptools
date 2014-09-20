@@ -86,6 +86,7 @@ class TestSdistTest(unittest.TestCase):
         f = open(os.path.join(self.temp_dir, 'setup.py'), 'w')
         f.write(SETUP_PY)
         f.close()
+
         # Set up the rest of the test package
         test_pkg = os.path.join(self.temp_dir, 'sdist_test')
         os.mkdir(test_pkg)
@@ -120,6 +121,33 @@ class TestSdistTest(unittest.TestCase):
         self.assertTrue(os.path.join('sdist_test', 'a.txt') in manifest)
         self.assertTrue(os.path.join('sdist_test', 'b.txt') in manifest)
         self.assertTrue(os.path.join('sdist_test', 'c.rst') not in manifest)
+
+
+    def test_defaults_case_sensitivity(self):
+        """
+            Make sure default files (README.*, etc.) are added in a case-sensitive
+            way to avoid problems with packages built on Windows.
+        """
+
+        open(os.path.join(self.temp_dir, 'readme.rst'), 'w').close()
+        open(os.path.join(self.temp_dir, 'SETUP.cfg'), 'w').close()
+
+        dist = Distribution(SETUP_ATTRS)
+        # the extension deliberately capitalized for this test
+        # to make sure the actual filename (not capitalized) gets added
+        # to the manifest
+        dist.script_name = 'setup.PY'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+
+        with quiet():
+            cmd.run()
+
+        # lowercase all names so we can test in a case-insensitive way to make sure the files are not included
+        manifest = map(lambda x: x.lower(), cmd.filelist.files)
+        self.assertFalse('readme.rst' in manifest, manifest)
+        self.assertFalse('setup.py' in manifest, manifest)
+        self.assertFalse('setup.cfg' in manifest, manifest)
 
     def test_manifest_is_written_with_utf8_encoding(self):
         # Test for #303.
