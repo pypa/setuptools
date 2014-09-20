@@ -166,8 +166,7 @@ class sdist(orig.sdist):
         for pattern in optional:
             files = list(filter(cs_path_exists, glob(pattern)))
             if files:
-                actual_fnames = map(os.path.normcase, files)
-                self.filelist.extend(actual_fnames)
+                self.filelist.extend(files)
 
         # getting python files
         if self.distribution.has_pure_modules():
