@@ -3,6 +3,28 @@ CHANGES
 =======
 
 ---
+6.0
+---
+
+* Issue #100: When building a distribution, Setuptools will no longer match
+  default files using platform-dependent case sensitivity, but rather will
+  only match the files if their case matches exactly. As a result, on Windows
+  and other case-insensitive file systems, files with names such as
+  'readme.txt' or 'README.TXT' will be omitted from the distribution and a
+  warning will be issued indicating that 'README.txt' was not found. Other
+  filenames affected are:
+
+    - README.rst
+    - README
+    - setup.cfg
+    - setup.py (or the script name)
+    - test/test*.py
+
+  Any users producing distributions with filenames that match those above
+  case-insensitively, but not case-sensitively, should rename those files in
+  their repository for better portability.
+
+---
 5.8
 ---
 
