@@ -17,18 +17,30 @@ class install_lib(orig.install_lib):
         excluded for single_version_externally_managed installations.
         """
         exclude = set()
-        nsp = self.distribution.namespace_packages
-        svem = (nsp and self.get_finalized_command('install')
-                .single_version_externally_managed)
-        if svem:
-            for pkg in nsp:
-                parts = pkg.split('.')
-                while parts:
-                    pkgdir = os.path.join(self.install_dir, *parts)
-                    for f in self._gen_exclude_names():
-                        exclude.add(os.path.join(pkgdir, f))
-                    parts.pop()
+        for pkg in self._get_SVEM_NSPs():
+            parts = pkg.split('.')
+            while parts:
+                pkgdir = os.path.join(self.install_dir, *parts)
+                for f in self._gen_exclude_names():
+                    exclude.add(os.path.join(pkgdir, f))
+                parts.pop()
         return exclude
+
+    def _get_SVEM_NSPs(self):
+        """
+        Get namespace packages (list) but only for
+        single_version_externally_managed installations and empty otherwise.
+        """
+        # TODO: is it necessary to short-circuit here? i.e. what's the cost
+        # if get_finalized_command is called even when namespace_packages is
+        # False?
+        if not self.distribution.namespace_packages:
+            return []
+
+        install_cmd = self.get_finalized_command('install')
+        svem = install_cmd.single_version_externally_managed
+
+        return self.distribution.namespace_packages if svem else []
 
     @staticmethod
     def _gen_exclude_names():
