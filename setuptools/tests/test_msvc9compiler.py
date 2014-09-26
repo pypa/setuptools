@@ -11,6 +11,7 @@ import sys
 import tempfile
 import unittest
 import distutils.errors
+import contextlib
 
 # importing only setuptools should apply the patch
 __import__('setuptools')
@@ -58,6 +59,25 @@ class MockReg:
         distutils.msvc9compiler.Reg.read_keys = self.original_read_keys
         distutils.msvc9compiler.Reg.read_values = self.original_read_values
 
+@contextlib.contextmanager
+def patch_env(**replacements):
+    saved = dict(
+        (key, os.environ['key'])
+        for key in replacements
+        if key in os.environ
+    )
+    os.environ.update(replacements)
+
+    # remove values that are null
+    null_keys = (key for (key, value) in replacements if value is None)
+    list(map(os.environ.pop, (null_keys)))
+
+    yield
+
+    for key in replacements:
+        os.environ.pop(key, None)
+    os.environ.update(saved)
+
 class TestMSVC9Compiler(unittest.TestCase):
 
     def test_find_vcvarsall_patch(self):
@@ -76,8 +96,7 @@ class TestMSVC9Compiler(unittest.TestCase):
 
         # No registry entries or environment variable means we should
         # not find anything
-        old_value = os.environ.pop("VS90COMNTOOLS", None)
-        try:
+        with patch_env(VS90COMNTOOLS=None):
             with MockReg():
                 self.assertIsNone(find_vcvarsall(9.0))
 
@@ -87,9 +106,6 @@ class TestMSVC9Compiler(unittest.TestCase):
                 except distutils.errors.DistutilsPlatformError:
                     exc_message = str(sys.exc_info()[1])
                 self.assertIn('aka.ms/vcpython27', exc_message)
-        finally:
-            if old_value:
-                os.environ["VS90COMNTOOLS"] = old_value
 
         key_32 = r'software\microsoft\devdiv\vcforpython\9.0\installdir'
         key_64 = r'software\wow6432node\microsoft\devdiv\vcforpython\9.0\installdir'
