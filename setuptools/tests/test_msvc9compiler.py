@@ -27,20 +27,20 @@ class MockReg:
     with an instance of this class that mocks out the
     functions that access the registry.
     """
-    
+
     def __init__(self, hkey_local_machine={}, hkey_current_user={}):
         self.hklm = hkey_local_machine
         self.hkcu = hkey_current_user
-    
+
     def __enter__(self):
         self.original_read_keys = distutils.msvc9compiler.Reg.read_keys
         self.original_read_values = distutils.msvc9compiler.Reg.read_values
-        
+
         hives = {
             HKEY_CURRENT_USER: self.hkcu,
             HKEY_LOCAL_MACHINE: self.hklm,
         }
-        
+
         def read_keys(cls, base, key):
             """Return list of registry keys."""
             hive = hives.get(base, {})
@@ -52,12 +52,12 @@ class MockReg:
             hive = hives.get(base, {})
             return dict((k.rpartition('\\')[2], hive[k])
                         for k in hive if k.startswith(key.lower()))
-        
+
         distutils.msvc9compiler.Reg.read_keys = classmethod(read_keys)
         distutils.msvc9compiler.Reg.read_values = classmethod(read_values)
-        
+
         return self
-    
+
     def __exit__(self, exc_type, exc_value, exc_tb):
         distutils.msvc9compiler.Reg.read_keys = self.original_read_keys
         distutils.msvc9compiler.Reg.read_values = self.original_read_values
@@ -80,7 +80,7 @@ class TestMSVC9Compiler(unittest.TestCase):
         try:
             with MockReg():
                 self.assertIsNone(find_vcvarsall(9.0))
-                
+
                 try:
                     query_vcvarsall(9.0)
                     self.fail('Expected DistutilsPlatformError from query_vcvarsall()')
@@ -90,10 +90,10 @@ class TestMSVC9Compiler(unittest.TestCase):
         finally:
             if old_value:
                 os.environ["VS90COMNTOOLS"] = old_value
-        
+
         key_32 = r'software\microsoft\devdiv\vcforpython\9.0\installdir'
         key_64 = r'software\wow6432node\microsoft\devdiv\vcforpython\9.0\installdir'
-        
+
         # Make two mock files so we can tell whether HCKU entries are
         # preferred to HKLM entries.
         mock_installdir_1 = tempfile.mkdtemp()
@@ -105,7 +105,7 @@ class TestMSVC9Compiler(unittest.TestCase):
         try:
             # Ensure we get the current user's setting first
             with MockReg(
-                hkey_current_user={ key_32: mock_installdir_1 },
+                hkey_current_user={key_32: mock_installdir_1},
                 hkey_local_machine={
                     key_32: mock_installdir_2,
                     key_64: mock_installdir_2,
@@ -114,7 +114,7 @@ class TestMSVC9Compiler(unittest.TestCase):
                 self.assertEqual(mock_vcvarsall_bat_1, find_vcvarsall(9.0))
 
             # Ensure we get the local machine value if it's there
-            with MockReg(hkey_local_machine={ key_32: mock_installdir_2 }):
+            with MockReg(hkey_local_machine={key_32: mock_installdir_2}):
                 self.assertEqual(mock_vcvarsall_bat_2, find_vcvarsall(9.0))
 
             # Ensure we prefer the 64-bit local machine key
@@ -131,5 +131,3 @@ class TestMSVC9Compiler(unittest.TestCase):
         finally:
             shutil.rmtree(mock_installdir_1)
             shutil.rmtree(mock_installdir_2)
-
-    
