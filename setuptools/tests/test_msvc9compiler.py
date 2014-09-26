@@ -12,11 +12,6 @@ import tempfile
 import unittest
 import distutils.errors
 
-try:
-    from winreg import HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE
-except ImportError:
-    from _winreg import HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE
-
 import distutils.msvc9compiler
 
 # importing only setuptools should apply the patch
@@ -36,9 +31,12 @@ class MockReg:
         self.original_read_keys = distutils.msvc9compiler.Reg.read_keys
         self.original_read_values = distutils.msvc9compiler.Reg.read_values
 
+        _winreg = getattr(distutils.msvc9compiler, '_winreg', None)
+        winreg = getattr(distutils.msvc9compiler, 'winreg', _winreg)
+
         hives = {
-            HKEY_CURRENT_USER: self.hkcu,
-            HKEY_LOCAL_MACHINE: self.hklm,
+            winreg.HKEY_CURRENT_USER: self.hkcu,
+            winreg.HKEY_LOCAL_MACHINE: self.hklm,
         }
 
         def read_keys(cls, base, key):
