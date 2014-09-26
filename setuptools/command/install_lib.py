@@ -12,7 +12,7 @@ class install_lib(orig.install_lib):
             self.byte_compile(outfiles)
 
     def get_exclusions(self):
-        exclude = {}
+        exclude = set()
         nsp = self.distribution.namespace_packages
         svem = (nsp and self.get_finalized_command('install')
                 .single_version_externally_managed)
@@ -22,9 +22,9 @@ class install_lib(orig.install_lib):
                 while parts:
                     pkgdir = os.path.join(self.install_dir, *parts)
                     for f in self._gen_exclude_names():
-                        exclude[os.path.join(pkgdir, f)] = 1
+                        exclude.add(os.path.join(pkgdir, f))
                     parts.pop()
-        return exclude
+        return dict.fromkeys(exclude, 1)
 
     @staticmethod
     def _gen_exclude_names():
