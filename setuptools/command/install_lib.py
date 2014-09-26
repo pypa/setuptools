@@ -18,22 +18,22 @@ class install_lib(orig.install_lib):
         Return a collections.Sized collections.Container of paths to be
         excluded for single_version_externally_managed installations.
         """
-        def _exclude(pkg, exclusion_path):
-            """
-            Given a package name and exclusion path within that package,
-            compute the full exclusion path.
-            """
-            parts = pkg.split('.') + [exclusion_path]
-            return os.path.join(self.install_dir, *parts)
-
         all_packages = (
             pkg
             for ns_pkg in self._get_SVEM_NSPs()
             for pkg in self._all_packages(ns_pkg)
         )
 
-        excl_specs = product(all_packages, self._gen_exclude_names())
-        return set(starmap(_exclude, excl_specs))
+        excl_specs = product(all_packages, self._gen_exclusion_paths())
+        return set(starmap(self._exclude_pkg_path, excl_specs))
+
+    def _exclude_pkg_path(self, pkg, exclusion_path):
+        """
+        Given a package name and exclusion path within that package,
+        compute the full exclusion path.
+        """
+        parts = pkg.split('.') + [exclusion_path]
+        return os.path.join(self.install_dir, *parts)
 
     @staticmethod
     def _all_packages(pkg_name):
@@ -62,7 +62,7 @@ class install_lib(orig.install_lib):
         return self.distribution.namespace_packages if svem else []
 
     @staticmethod
-    def _gen_exclude_names():
+    def _gen_exclusion_paths():
         """
         Generate file paths to be excluded for namespace packages (bytecode
         cache files).
