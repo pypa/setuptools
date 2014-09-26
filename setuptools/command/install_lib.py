@@ -16,6 +16,22 @@ class install_lib(orig.install_lib):
         nsp = self.distribution.namespace_packages
         svem = (nsp and self.get_finalized_command('install')
                 .single_version_externally_managed)
+        if svem:
+            for pkg in nsp:
+                parts = pkg.split('.')
+                while parts:
+                    pkgdir = os.path.join(self.install_dir, *parts)
+                    for f in self._gen_exclude_names():
+                        exclude[os.path.join(pkgdir, f)] = 1
+                    parts.pop()
+        return exclude
+
+    @staticmethod
+    def _gen_exclude_names():
+        """
+        Generate the list of file paths to be excluded for namespace
+        packages (bytecode cache files).
+        """
         exclude_names = ['__init__.py', '__init__.pyc', '__init__.pyo']
         if hasattr(imp, 'get_tag'):
             exclude_names.extend((
@@ -28,15 +44,7 @@ class install_lib(orig.install_lib):
                     '__init__.' + imp.get_tag() + '.pyo'
                 ),
             ))
-        if svem:
-            for pkg in nsp:
-                parts = pkg.split('.')
-                while parts:
-                    pkgdir = os.path.join(self.install_dir, *parts)
-                    for f in exclude_names:
-                        exclude[os.path.join(pkgdir, f)] = 1
-                    parts.pop()
-        return exclude
+        return exclude_names
 
     def copy_tree(
             self, infile, outfile,
