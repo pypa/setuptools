@@ -25,6 +25,8 @@ CHANGES
   their repository for better portability.
 * Pull Request #72: When using ``single_version_externally_managed``, the
   exclusion list now includes Python 3.2 ``__pycache__`` entries.
+* Pull Request #76 and Pull Request #78: lines in top_level.txt are now
+  ordered deterministically.
 
 ---
 5.8
