@@ -18,8 +18,12 @@ class install_lib(orig.install_lib):
         """
         exclude = set()
         pkg_path = lambda pkg: os.path.join(self.install_dir, *pkg.split('.'))
-        for ns_pkg in self._get_SVEM_NSPs():
-            for pkg in self._all_packages(ns_pkg):
+        all_packages = (
+            pkg
+            for ns_pkg in self._get_SVEM_NSPs()
+            for pkg in self._all_packages(ns_pkg)
+        )
+        for pkg in all_packages:
                 for f in self._gen_exclude_names():
                     exclude.add(os.path.join(pkg_path(pkg), f))
         return exclude
