@@ -23,6 +23,8 @@ CHANGES
   Any users producing distributions with filenames that match those above
   case-insensitively, but not case-sensitively, should rename those files in
   their repository for better portability.
+* Pull Request #72: When using ``single_version_externally_managed``, the
+  exclusion list now includes Python 3.2 ``__pycache__`` entries.
 
 ---
 5.8
