@@ -1,6 +1,7 @@
-import distutils.command.install_lib as orig
-import os, imp
+import os
+import imp
 from itertools import product
+import distutils.command.install_lib as orig
 
 class install_lib(orig.install_lib):
     """Don't add compiled flags to filenames of non-Python files"""
