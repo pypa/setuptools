@@ -39,8 +39,9 @@ class install_lib(orig.install_lib):
         if not hasattr(imp, 'get_tag'):
             return
 
-        yield os.path.join('__pycache__', '__init__.' + imp.get_tag() + '.pyc')
-        yield os.path.join('__pycache__', '__init__.' + imp.get_tag() + '.pyo')
+        base = os.path.join('__pycache__', '__init__.' + imp.get_tag())
+        yield base + '.pyc'
+        yield base + '.pyo'
 
     def copy_tree(
             self, infile, outfile,
