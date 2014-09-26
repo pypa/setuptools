@@ -17,7 +17,7 @@ class install_lib(orig.install_lib):
         svem = (nsp and self.get_finalized_command('install')
                 .single_version_externally_managed)
         exclude_names = ['__init__.py', '__init__.pyc', '__init__.pyo']
-        if hasattr(imp, 'get_tag') :
+        if hasattr(imp, 'get_tag'):
             exclude_names.extend((
                 os.path.join(
                     '__pycache__',
@@ -33,7 +33,7 @@ class install_lib(orig.install_lib):
                 parts = pkg.split('.')
                 while parts:
                     pkgdir = os.path.join(self.install_dir, *parts)
-                    for f in exclude_names :
+                    for f in exclude_names:
                         exclude[os.path.join(pkgdir, f)] = 1
                     parts.pop()
         return exclude
