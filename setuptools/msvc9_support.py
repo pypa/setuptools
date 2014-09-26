@@ -1,6 +1,10 @@
 import sys
 
-distutils = None
+try:
+    import distutils.msvc9compiler
+except ImportError:
+    pass
+
 unpatched = dict()
 
 def patch_for_specialized_compiler():
@@ -9,10 +13,7 @@ def patch_for_specialized_compiler():
     build for Python (Windows only). Fall back to original behavior when the
     standalone compiler is not available.
     """
-    global distutils
-    try:
-        distutils = __import__('distutils.msvc9compiler')
-    except ImportError:
+    if 'distutils' not in globals():
         # The module isn't available to be patched
         return
 
