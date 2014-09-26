@@ -21,7 +21,7 @@ def _patch_msvc9compiler_find_vcvarsall():
     if find_vcvarsall and find_vcvarsall.__module__.startswith('setuptools.'):
         # Already patched
         return
-    
+
     def _find_vcvarsall(version):
         Reg = distutils.msvc9compiler.Reg
         try:
@@ -33,15 +33,15 @@ def _patch_msvc9compiler_find_vcvarsall():
                 productdir = Reg.get_value(VC_BASE % ('Wow6432Node\\', version), "installdir")
             except KeyError:
                 productdir = None
-        
+
         if productdir:
             import os
             vcvarsall = os.path.join(productdir, "vcvarsall.bat")
             if os.path.isfile(vcvarsall):
                 return vcvarsall
-        
+
         return find_vcvarsall(version)
-    
+
     def _query_vcvarsall(version, *args, **kwargs):
         try:
             return query_vcvarsall(version, *args, **kwargs)
