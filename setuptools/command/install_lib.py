@@ -12,6 +12,10 @@ class install_lib(orig.install_lib):
             self.byte_compile(outfiles)
 
     def get_exclusions(self):
+        """
+        Return a collections.Sized collections.Container of paths to be
+        excluded for single_version_externally_managed installations.
+        """
         exclude = set()
         nsp = self.distribution.namespace_packages
         svem = (nsp and self.get_finalized_command('install')
@@ -24,7 +28,7 @@ class install_lib(orig.install_lib):
                     for f in self._gen_exclude_names():
                         exclude.add(os.path.join(pkgdir, f))
                     parts.pop()
-        return dict.fromkeys(exclude, 1)
+        return exclude
 
     @staticmethod
     def _gen_exclude_names():
