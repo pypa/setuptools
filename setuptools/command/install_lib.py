@@ -19,14 +19,18 @@ class install_lib(orig.install_lib):
         excluded for single_version_externally_managed installations.
         """
         exclude = set()
-        pkg_path = lambda pkg: os.path.join(self.install_dir, *pkg.split('.'))
+
+        def _exclude(pkg, exclusion_path):
+            parts = pkg.split('.') + [exclusion_path]
+            return os.path.join(self.install_dir, *parts)
+
         all_packages = (
             pkg
             for ns_pkg in self._get_SVEM_NSPs()
             for pkg in self._all_packages(ns_pkg)
         )
         for pkg, f in product(all_packages, self._gen_exclude_names()):
-            exclude.add(os.path.join(pkg_path(pkg), f))
+            exclude.add(_exclude(pkg, f))
         return exclude
 
     @staticmethod
