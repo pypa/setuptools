@@ -1,13 +1,17 @@
 import sys
 
-import distutils.msvc9compiler
-
 def patch_for_specialized_compiler():
     """
     Patch functions in distutils.msvc9compiler to use the standalone compiler
     build for Python (Windows only). Fall back to original behavior when the
     standalone compiler is not available.
     """
+    try:
+        distutils = __import__('distutils.msvc9compiler')
+    except ImportError:
+        # The module isn't available to be patched
+        return
+
     VC_BASE = r'Software\%sMicrosoft\DevDiv\VCForPython\%0.1f'
     find_vcvarsall = distutils.msvc9compiler.find_vcvarsall
     query_vcvarsall = distutils.msvc9compiler.query_vcvarsall
