@@ -69,7 +69,7 @@ def patch_env(**replacements):
     os.environ.update(replacements)
 
     # remove values that are null
-    null_keys = (key for (key, value) in replacements if value is None)
+    null_keys = (key for (key, value) in replacements.items() if value is None)
     list(map(os.environ.pop, (null_keys)))
 
     yield
