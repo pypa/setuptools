@@ -27,6 +27,8 @@ CHANGES
   exclusion list now includes Python 3.2 ``__pycache__`` entries.
 * Pull Request #76 and Pull Request #78: lines in top_level.txt are now
   ordered deterministically.
+* Issue #118: The egg-info directory is now no longer included in the list
+  of outputs.
 
 ---
 5.8
