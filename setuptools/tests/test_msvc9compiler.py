@@ -20,7 +20,7 @@ import distutils.msvc9compiler
 from distutils.errors import DistutilsPlatformError
 
 # importing only setuptools should apply the patch
-import setuptools
+__import__('setuptools')
 
 class MockReg:
     """Mock for distutils.msvc9compiler.Reg. We patch it
