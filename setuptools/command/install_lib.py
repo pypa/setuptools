@@ -29,22 +29,18 @@ class install_lib(orig.install_lib):
     @staticmethod
     def _gen_exclude_names():
         """
-        Generate the list of file paths to be excluded for namespace
-        packages (bytecode cache files).
+        Generate file paths to be excluded for namespace packages (bytecode
+        cache files).
         """
-        exclude_names = ['__init__.py', '__init__.pyc', '__init__.pyo']
-        if hasattr(imp, 'get_tag'):
-            exclude_names.extend((
-                os.path.join(
-                    '__pycache__',
-                    '__init__.' + imp.get_tag() + '.pyc'
-                ),
-                os.path.join(
-                    '__pycache__',
-                    '__init__.' + imp.get_tag() + '.pyo'
-                ),
-            ))
-        return exclude_names
+        yield '__init__.py'
+        yield '__init__.pyc'
+        yield '__init__.pyo'
+
+        if not hasattr(imp, 'get_tag'):
+            return
+
+        yield os.path.join('__pycache__', '__init__.' + imp.get_tag() + '.pyc')
+        yield os.path.join('__pycache__', '__init__.' + imp.get_tag() + '.pyo')
 
     def copy_tree(
             self, infile, outfile,
