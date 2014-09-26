@@ -86,7 +86,7 @@ class TestMSVC9Compiler(unittest.TestCase):
             return
 
         self.assertEqual(
-            "setuptools.extension",
+            "setuptools.msvc9_support",
             distutils.msvc9compiler.find_vcvarsall.__module__,
             "find_vcvarsall was not patched"
         )
