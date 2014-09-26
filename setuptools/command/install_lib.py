@@ -24,8 +24,8 @@ class install_lib(orig.install_lib):
             for pkg in self._all_packages(ns_pkg)
         )
         for pkg in all_packages:
-                for f in self._gen_exclude_names():
-                    exclude.add(os.path.join(pkg_path(pkg), f))
+            for f in self._gen_exclude_names():
+                exclude.add(os.path.join(pkg_path(pkg), f))
         return exclude
 
     @staticmethod
