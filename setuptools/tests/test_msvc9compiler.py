@@ -12,8 +12,6 @@ import tempfile
 import unittest
 import distutils.errors
 
-import distutils.msvc9compiler
-
 # importing only setuptools should apply the patch
 __import__('setuptools')
 
@@ -63,6 +61,10 @@ class MockReg:
 class TestMSVC9Compiler(unittest.TestCase):
 
     def test_find_vcvarsall_patch(self):
+        if not hasattr(distutils, 'msvc9compiler'):
+            # skip
+            return
+
         self.assertEqual(
             "setuptools.extension",
             distutils.msvc9compiler.find_vcvarsall.__module__,
