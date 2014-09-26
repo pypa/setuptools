@@ -17,14 +17,23 @@ class install_lib(orig.install_lib):
         excluded for single_version_externally_managed installations.
         """
         exclude = set()
-        for pkg in self._get_SVEM_NSPs():
-            parts = pkg.split('.')
-            while parts:
+        for ns_pkg in self._get_SVEM_NSPs():
+            for pkg in self._all_packages(ns_pkg):
+                parts = pkg.split('.')
                 pkgdir = os.path.join(self.install_dir, *parts)
                 for f in self._gen_exclude_names():
                     exclude.add(os.path.join(pkgdir, f))
-                parts.pop()
         return exclude
+
+    @staticmethod
+    def _all_packages(pkg_name):
+        """
+        >>> list(install_lib._all_packages('foo.bar.baz'))
+        ['foo.bar.baz', 'foo.bar', 'foo']
+        """
+        while pkg_name:
+            yield pkg_name
+            pkg_name, sep, child = pkg_name.partition('.')
 
     def _get_SVEM_NSPs(self):
         """
