@@ -1,5 +1,6 @@
 import distutils.command.install_lib as orig
 import os, imp
+from itertools import product
 
 class install_lib(orig.install_lib):
     """Don't add compiled flags to filenames of non-Python files"""
@@ -23,9 +24,8 @@ class install_lib(orig.install_lib):
             for ns_pkg in self._get_SVEM_NSPs()
             for pkg in self._all_packages(ns_pkg)
         )
-        for pkg in all_packages:
-            for f in self._gen_exclude_names():
-                exclude.add(os.path.join(pkg_path(pkg), f))
+        for pkg, f in product(all_packages, self._gen_exclude_names()):
+            exclude.add(os.path.join(pkg_path(pkg), f))
         return exclude
 
     @staticmethod
