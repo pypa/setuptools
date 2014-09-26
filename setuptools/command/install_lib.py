@@ -32,7 +32,9 @@ class install_lib(orig.install_lib):
         Generate file paths to be excluded for namespace packages (bytecode
         cache files).
         """
+        # always exclude the package module itself
         yield '__init__.py'
+
         yield '__init__.pyc'
         yield '__init__.pyo'
 
