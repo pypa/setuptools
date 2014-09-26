@@ -61,6 +61,10 @@ class MockReg:
 
 @contextlib.contextmanager
 def patch_env(**replacements):
+    """
+    In a context, patch the environment with replacements. Pass None values
+    to clear the values.
+    """
     saved = dict(
         (key, os.environ['key'])
         for key in replacements
