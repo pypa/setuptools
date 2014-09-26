@@ -10,6 +10,7 @@ import shutil
 import sys
 import tempfile
 import unittest
+import distutils.errors
 
 try:
     from winreg import HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE
@@ -17,7 +18,6 @@ except ImportError:
     from _winreg import HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE
 
 import distutils.msvc9compiler
-from distutils.errors import DistutilsPlatformError
 
 # importing only setuptools should apply the patch
 __import__('setuptools')
@@ -84,7 +84,7 @@ class TestMSVC9Compiler(unittest.TestCase):
                 try:
                     query_vcvarsall(9.0)
                     self.fail('Expected DistutilsPlatformError from query_vcvarsall()')
-                except DistutilsPlatformError:
+                except distutils.errors.DistutilsPlatformError:
                     exc_message = str(sys.exc_info()[1])
                 self.assertIn('aka.ms/vcpython27', exc_message)
         finally:
