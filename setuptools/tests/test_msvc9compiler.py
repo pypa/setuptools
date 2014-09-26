@@ -79,11 +79,12 @@ def patch_env(**replacements):
 
     os.environ.update(replacements)
 
-    yield saved
-
-    for key in replacements:
-        os.environ.pop(key, None)
-    os.environ.update(saved)
+    try:
+        yield saved
+    finally:
+        for key in replacements:
+            os.environ.pop(key, None)
+        os.environ.update(saved)
 
 class TestMSVC9Compiler(unittest.TestCase):
 
