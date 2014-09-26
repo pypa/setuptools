@@ -1,6 +1,6 @@
 import os
 import imp
-from itertools import product
+from itertools import product, starmap
 import distutils.command.install_lib as orig
 
 class install_lib(orig.install_lib):
@@ -18,9 +18,11 @@ class install_lib(orig.install_lib):
         Return a collections.Sized collections.Container of paths to be
         excluded for single_version_externally_managed installations.
         """
-        exclude = set()
-
         def _exclude(pkg, exclusion_path):
+            """
+            Given a package name and exclusion path within that package,
+            compute the full exclusion path.
+            """
             parts = pkg.split('.') + [exclusion_path]
             return os.path.join(self.install_dir, *parts)
 
@@ -29,9 +31,9 @@ class install_lib(orig.install_lib):
             for ns_pkg in self._get_SVEM_NSPs()
             for pkg in self._all_packages(ns_pkg)
         )
-        for pkg, f in product(all_packages, self._gen_exclude_names()):
-            exclude.add(_exclude(pkg, f))
-        return exclude
+
+        excl_specs = product(all_packages, self._gen_exclude_names())
+        return set(starmap(_exclude, excl_specs))
 
     @staticmethod
     def _all_packages(pkg_name):
