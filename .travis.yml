@@ -11,5 +11,6 @@ script:
  # testing fix for https://bitbucket.org/hpk42/pytest/issue/555
  - pip install --pre -i https://devpi.net/hpk/dev/ --upgrade pytest
  - python setup.py test
- - python setup.py ptr --addopts='--doctest-modules --ignore release.py'
+ - python setup.py ptr --addopts='--doctest-modules --ignore release.py
+ --ignore setuptools/lib2to3_ex.py'
  - python ez_setup.py --version 5.4.1
