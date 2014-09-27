@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+-----
+6.0.1
+-----
+
+* Issue #259: Fixed regression with namespace package handling on ``single
+  version, externally managed`` installs.
+
 ---
 6.0
 ---
