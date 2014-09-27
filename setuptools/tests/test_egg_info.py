@@ -34,7 +34,7 @@ class TestEggInfo(unittest.TestCase):
         entries_f = open(fn, 'wb')
         entries_f.write(entries)
         entries_f.close()
-   
+
     @skipIf(not test_svn._svn_check, "No SVN to text, in the first place")
     def test_version_10_format(self):
         """
@@ -140,7 +140,7 @@ class TestSvnDummy(environment.ZippedEnvironment):
 
     @skipIf(not test_svn._svn_check, "No SVN to text, in the first place")
     def test_svn_tags(self):
-        code, data = environment.run_setup_py(["egg_info", 
+        code, data = environment.run_setup_py(["egg_info",
                                                "--tag-svn-revision"],
                                               pypath=self.old_cwd,
                                               data_stream=1)
@@ -155,7 +155,7 @@ class TestSvnDummy(environment.ZippedEnvironment):
             infile.close()
             del infile
 
-        self.assertTrue("Version: 0.1.1-r1\n" in read_contents)
+        self.assertTrue("Version: 0.1.1.post1\n" in read_contents)
 
     @skipIf(not test_svn._svn_check, "No SVN to text, in the first place")
     def test_no_tags(self):

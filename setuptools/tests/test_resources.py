@@ -16,6 +16,7 @@ from pkg_resources import (parse_requirements, VersionConflict, parse_version,
 from setuptools.command.easy_install import (get_script_header, is_sh,
     nt_quote_arg)
 from setuptools.compat import StringIO, iteritems, PY3
+from setuptools._vendor.packaging.version import Specifier
 from .py26compat import skipIf
 
 def safe_repr(obj, short=False):
@@ -103,7 +104,7 @@ class DistroTests(TestCase):
     def checkFooPkg(self,d):
         self.assertEqual(d.project_name, "FooPkg")
         self.assertEqual(d.key, "foopkg")
-        self.assertEqual(d.version, "1.3-1")
+        self.assertEqual(d.version, "1.3.post1")
         self.assertEqual(d.py_version, "2.4")
         self.assertEqual(d.platform, "win32")
         self.assertEqual(d.parsed_version, parse_version("1.3-1"))
@@ -120,9 +121,9 @@ class DistroTests(TestCase):
         self.assertEqual(d.platform, None)
 
     def testDistroParse(self):
-        d = dist_from_fn("FooPkg-1.3_1-py2.4-win32.egg")
+        d = dist_from_fn("FooPkg-1.3.post1-py2.4-win32.egg")
         self.checkFooPkg(d)
-        d = dist_from_fn("FooPkg-1.3_1-py2.4-win32.egg-info")
+        d = dist_from_fn("FooPkg-1.3.post1-py2.4-win32.egg-info")
         self.checkFooPkg(d)
 
     def testDistroMetadata(self):
@@ -330,24 +331,15 @@ class RequirementsTests(TestCase):
         self.assertTrue(twist11 not in r)
         self.assertTrue(twist12 in r)
 
-    def testAdvancedContains(self):
-        r, = parse_requirements("Foo>=1.2,<=1.3,==1.9,>2.0,!=2.5,<3.0,==4.5")
-        for v in ('1.2','1.2.2','1.3','1.9','2.0.1','2.3','2.6','3.0c1','4.5'):
-            self.assertTrue(v in r, (v,r))
-        for v in ('1.2c1','1.3.1','1.5','1.9.1','2.0','2.5','3.0','4.0'):
-            self.assertTrue(v not in r, (v,r))
-
     def testOptionsAndHashing(self):
         r1 = Requirement.parse("Twisted[foo,bar]>=1.2")
         r2 = Requirement.parse("Twisted[bar,FOO]>=1.2")
-        r3 = Requirement.parse("Twisted[BAR,FOO]>=1.2.0")
         self.assertEqual(r1,r2)
-        self.assertEqual(r1,r3)
         self.assertEqual(r1.extras, ("foo","bar"))
         self.assertEqual(r2.extras, ("bar","foo"))  # extras are normalized
         self.assertEqual(hash(r1), hash(r2))
         self.assertEqual(
-            hash(r1), hash(("twisted", ((">=",parse_version("1.2")),),
+            hash(r1), hash(("twisted", Specifier(">=1.2"),
                             frozenset(["foo","bar"])))
         )
 
@@ -420,7 +412,7 @@ class ParseTests(TestCase):
         self.assertNotEqual(safe_name("peak.web"), "peak-web")
 
     def testSafeVersion(self):
-        self.assertEqual(safe_version("1.2-1"), "1.2-1")
+        self.assertEqual(safe_version("1.2-1"), "1.2.post1")
         self.assertEqual(safe_version("1.2 alpha"),  "1.2.alpha")
         self.assertEqual(safe_version("2.3.4 20050521"), "2.3.4.20050521")
         self.assertEqual(safe_version("Money$$$Maker"), "Money-Maker")
@@ -454,12 +446,12 @@ class ParseTests(TestCase):
         c('0.4', '0.4.0')
         c('0.4.0.0', '0.4.0')
         c('0.4.0-0', '0.4-0')
-        c('0pl1', '0.0pl1')
+        c('0post1', '0.0post1')
         c('0pre1', '0.0c1')
         c('0.0.0preview1', '0c1')
         c('0.0c1', '0-rc1')
         c('1.2a1', '1.2.a.1')
-        c('1.2...a', '1.2a')
+        c('1.2.a', '1.2a')
 
     def testVersionOrdering(self):
         def c(s1,s2):
@@ -472,16 +464,14 @@ class ParseTests(TestCase):
         c('2.3a1', '2.3')
         c('2.1-1', '2.1-2')
         c('2.1-1', '2.1.1')
-        c('2.1', '2.1pl4')
+        c('2.1', '2.1post4')
         c('2.1a0-20040501', '2.1')
         c('1.1', '02.1')
-        c('A56','B27')
-        c('3.2', '3.2.pl0')
-        c('3.2-1', '3.2pl1')
-        c('3.2pl1', '3.2pl1-1')
+        c('3.2', '3.2.post0')
+        c('3.2post1', '3.2post2')
         c('0.4', '4.0')
         c('0.0.4', '0.4.0')
-        c('0pl1', '0.4pl1')
+        c('0post1', '0.4post1')
         c('2.1.0-rc1','2.1.0')
         c('2.1dev','2.1a0')
 

@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+---
+7.0
+---
+
+* Implement PEP 440 within pkg_resources and setuptools. This will cause some
+  versions to no longer be installable without using the ``===`` escape hatch.
+
 -----
 6.0.1
 -----
