@@ -29,7 +29,7 @@ CHANGES
   ordered deterministically.
 * Issue #118: The egg-info directory is now no longer included in the list
   of outputs.
-* Pull Request #83: Setuptools now patches distutils msvc9compiler to
+* Issue #258: Setuptools now patches distutils msvc9compiler to
   recognize the specially-packaged compiler package for easy extension module
   support on Python 2.6, 2.7, and 3.2.
 
