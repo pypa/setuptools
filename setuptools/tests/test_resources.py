@@ -8,6 +8,13 @@ import tempfile
 import shutil
 from unittest import TestCase
 
+try:
+    import packaging.version
+except ImportError:
+    # fallback to vendored version
+    import setuptools._vendor.packaging.version
+    packaging = setuptools._vendor.packaging
+
 import pkg_resources
 from pkg_resources import (parse_requirements, VersionConflict, parse_version,
     Distribution, EntryPoint, Requirement, safe_version, safe_name,
@@ -16,7 +23,6 @@ from pkg_resources import (parse_requirements, VersionConflict, parse_version,
 from setuptools.command.easy_install import (get_script_header, is_sh,
     nt_quote_arg)
 from setuptools.compat import StringIO, iteritems, PY3
-from setuptools._vendor.packaging.version import Specifier
 from .py26compat import skipIf
 
 def safe_repr(obj, short=False):
@@ -339,7 +345,7 @@ class RequirementsTests(TestCase):
         self.assertEqual(r2.extras, ("bar","foo"))  # extras are normalized
         self.assertEqual(hash(r1), hash(r2))
         self.assertEqual(
-            hash(r1), hash(("twisted", Specifier(">=1.2"),
+            hash(r1), hash(("twisted", packaging.version.Specifier(">=1.2"),
                             frozenset(["foo","bar"])))
         )
 

@@ -14,6 +14,8 @@ The package resource API is designed to work with normal filesystem packages,
 method.
 """
 
+from __future__ import absolute_import
+
 import sys
 import os
 import io
@@ -73,13 +75,15 @@ try:
 except ImportError:
     pass
 
-# Import packaging.version.parse as parse_version for a compat shim with the
-# old parse_version that used to be defined in this file.
-from setuptools._vendor.packaging.version import parse as parse_version
+try:
+    import packaging.version
+except ImportError:
+    # fallback to vendored version
+    import setuptools._vendor.packaging.version
+    packaging = setuptools._vendor.packaging
 
-from setuptools._vendor.packaging.version import (
-    Version, InvalidVersion, Specifier,
-)
+# For compatibility, expose packaging.version.parse as parse_version
+parse_version = packaging.version.parse
 
 
 _state_vars = {}
@@ -1156,8 +1160,8 @@ def safe_version(version):
     """
     try:
         # normalize the version
-        return str(Version(version))
-    except InvalidVersion:
+        return str(packaging.version.Version(version))
+    except packaging.version.InvalidVersion:
         version = version.replace(' ','.')
         return re.sub('[^A-Za-z0-9.]+', '-', version)
 
@@ -2395,7 +2399,7 @@ class Distribution(object):
 
     def as_requirement(self):
         """Return a ``Requirement`` that matches this distribution exactly"""
-        if isinstance(self.parsed_version, Version):
+        if isinstance(self.parsed_version, packaging.version.Version):
             spec = "%s==%s" % (self.project_name, self.parsed_version)
         else:
             spec = "%s===%s" % (self.project_name, self.parsed_version)
@@ -2661,7 +2665,7 @@ class Requirement:
         """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
         self.unsafe_name, project_name = project_name, safe_name(project_name)
         self.project_name, self.key = project_name, project_name.lower()
-        self.specifier = Specifier(
+        self.specifier = packaging.version.Specifier(
             ",".join(["".join([x, y]) for x, y in specs])
         )
         self.specs = specs

@@ -13,10 +13,17 @@ from distutils.core import Distribution as _Distribution
 from distutils.errors import (DistutilsOptionError, DistutilsPlatformError,
     DistutilsSetupError)
 
+try:
+    import packaging.version
+except ImportError:
+    # fallback to vendored version
+    import setuptools._vendor.packaging.version
+    packaging = setuptools._vendor.packaging
+
 from setuptools.depends import Require
 from setuptools.compat import basestring, PY2
-from setuptools._vendor.packaging.version import Version, InvalidVersion
 import pkg_resources
+
 
 def _get_unpatched(cls):
     """Protect against re-patching the distutils if reloaded
@@ -271,7 +278,8 @@ class Distribution(_Distribution):
 
         if self.metadata.version is not None:
             try:
-                normalized_version = str(Version(self.metadata.version))
+                ver = packaging.version.Version(self.metadata.version)
+                normalized_version = str(ver)
                 if self.metadata.version != normalized_version:
                     warnings.warn(
                         "The version specified requires normalization, "
@@ -281,7 +289,7 @@ class Distribution(_Distribution):
                         )
                     )
                     self.metadata.version = normalized_version
-            except (InvalidVersion, TypeError):
+            except (packaging.version.InvalidVersion, TypeError):
                 warnings.warn(
                     "The version specified (%r) is an invalid version, this "
                     "may not work as expected with newer versions of "

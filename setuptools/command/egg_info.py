@@ -10,12 +10,18 @@ import os
 import re
 import sys
 
+try:
+    import packaging.version
+except ImportError:
+    # fallback to vendored version
+    import setuptools._vendor.packaging.version
+    packaging = setuptools._vendor.packaging
+
 from setuptools import Command
 from setuptools.command.sdist import sdist
 from setuptools.compat import basestring, PY3, StringIO
 from setuptools import svn_utils
 from setuptools.command.sdist import walk_revctrl
-from setuptools._vendor.packaging.version import Version
 from pkg_resources import (
     parse_requirements, safe_name, parse_version,
     safe_version, yield_lines, EntryPoint, iter_entry_points, to_filename)
@@ -72,8 +78,9 @@ class egg_info(Command):
         parsed_version = parse_version(self.egg_version)
 
         try:
+            is_version = isinstance(parsed_version, packaging.version.Version)
             spec = (
-                "%s==%s" if isinstance(parsed_version, Version) else "%s===%s"
+                "%s==%s" if is_version else "%s===%s"
             )
             list(
                 parse_requirements(spec % (self.egg_name, self.egg_version))
