@@ -76,8 +76,7 @@ class egg_info(Command):
                 "%s==%s" if isinstance(parsed_version, Version) else "%s===%s"
             )
             list(
-                parse_requirements(spec % (self.egg_name,
-                                               self.egg_version))
+                parse_requirements(spec % (self.egg_name, self.egg_version))
             )
         except ValueError:
             raise distutils.errors.DistutilsOptionError(
