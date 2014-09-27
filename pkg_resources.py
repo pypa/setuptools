@@ -1155,7 +1155,8 @@ def safe_version(version):
     Convert an arbitrary string to a standard version string
     """
     try:
-        return str(Version(version))  # this will normalize the version
+        # normalize the version
+        return str(Version(version))
     except InvalidVersion:
         version = version.replace(' ','.')
         return re.sub('[^A-Za-z0-9.]+', '-', version)
