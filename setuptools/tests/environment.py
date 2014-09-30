@@ -96,10 +96,12 @@ def run_setup_py(cmd, pypath=None, path=None,
 
     cmd = [sys.executable, "setup.py"] + list(cmd)
 
-    #regarding the shell argument, see: http://bugs.python.org/issue8557
+    # http://bugs.python.org/issue8557
+    shell = sys.platform == 'win32'
+
     try:
         proc = _Popen(cmd, stdout=_PIPE, stderr=_PIPE,
-                      shell=(sys.platform == 'win32'), env=env)
+                      shell=shell, env=env)
 
         data = proc.communicate()[data_stream]
     except OSError:
