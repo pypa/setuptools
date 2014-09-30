@@ -100,8 +100,9 @@ def run_setup_py(cmd, pypath=None, path=None,
     shell = sys.platform == 'win32'
 
     try:
-        proc = _Popen(cmd, stdout=_PIPE, stderr=_PIPE,
-                      shell=shell, env=env)
+        proc = _Popen(
+            cmd, stdout=_PIPE, stderr=_PIPE, shell=shell, env=env,
+        )
 
         data = proc.communicate()[data_stream]
     except OSError:
@@ -109,7 +110,8 @@ def run_setup_py(cmd, pypath=None, path=None,
 
     #decode the console string if needed
     if hasattr(data,  "decode"):
-        data = data.decode()  # should use the preferred encoding
+        # use the default encoding
+        data = data.decode()
         data = unicodedata.normalize('NFC', data)
 
     #communciate calls wait()
