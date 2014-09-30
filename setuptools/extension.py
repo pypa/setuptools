@@ -2,11 +2,15 @@ import sys
 import re
 import functools
 import distutils.core
+import distutils.errors
 import distutils.extension
 
-from setuptools.dist import _get_unpatched
+from .dist import _get_unpatched
+from . import msvc9_support
 
 _Extension = _get_unpatched(distutils.core.Extension)
+
+msvc9_support.patch_for_specialized_compiler()
 
 def have_pyrex():
     """

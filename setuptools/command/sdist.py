@@ -9,6 +9,8 @@ import sys
 import six
 
 from setuptools import svn_utils
+from setuptools.utils import cs_path_exists
+
 import pkg_resources
 
 READMES = ('README', 'README.rst', 'README.txt')
@@ -147,7 +149,7 @@ class sdist(orig.sdist):
                 alts = fn
                 got_it = 0
                 for fn in alts:
-                    if os.path.exists(fn):
+                    if cs_path_exists(fn):
                         got_it = 1
                         self.filelist.append(fn)
                         break
@@ -156,14 +158,14 @@ class sdist(orig.sdist):
                     self.warn("standard file not found: should have one of " +
                               ', '.join(alts))
             else:
-                if os.path.exists(fn):
+                if cs_path_exists(fn):
                     self.filelist.append(fn)
                 else:
                     self.warn("standard file '%s' not found" % fn)
 
         optional = ['test/test*.py', 'setup.cfg']
         for pattern in optional:
-            files = list(filter(os.path.isfile, glob(pattern)))
+            files = list(filter(cs_path_exists, glob(pattern)))
             if files:
                 self.filelist.extend(files)
 

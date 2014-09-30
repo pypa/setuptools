@@ -390,7 +390,7 @@ def write_toplevel_names(cmd, basename, filename):
             for k in cmd.distribution.iter_distribution_names()
         ]
     )
-    cmd.write_file("top-level names", filename, '\n'.join(pkgs) + '\n')
+    cmd.write_file("top-level names", filename, '\n'.join(sorted(pkgs)) + '\n')
 
 
 def overwrite_arg(cmd, basename, filename):

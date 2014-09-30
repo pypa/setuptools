@@ -62,7 +62,7 @@ importable distribution
 
 pluggable distribution
     An importable distribution whose filename unambiguously identifies its
-    release (i.e. project and version), and whose contents unamabiguously
+    release (i.e. project and version), and whose contents unambiguously
     specify what releases of other projects will satisfy its runtime
     requirements.
 
@@ -1434,7 +1434,7 @@ shown here.  The `manager` argument to the methods below must be an object
 that supports the full `ResourceManager API`_ documented above.
 
 ``get_resource_filename(manager, resource_name)``
-    Return a true filesystem path for `resource_name`, co-ordinating the
+    Return a true filesystem path for `resource_name`, coordinating the
     extraction with `manager`, if the resource must be unpacked to the
     filesystem.
 
@@ -1586,7 +1586,7 @@ Parsing Utilities
     character is ``#`` are considered comment lines.)
 
     If `strs` is not an instance of ``basestring``, it is iterated over, and
-    each item is passed recursively to ``yield_lines()``, so that an arbitarily
+    each item is passed recursively to ``yield_lines()``, so that an arbitrarily
     nested sequence of strings, or sequences of sequences of strings can be
     flattened out to the lines contained therein.  So for example, passing
     a file object or a list of strings to ``yield_lines`` will both work.

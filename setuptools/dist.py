@@ -260,7 +260,7 @@ class Distribution(_Distribution):
             self.dependency_links = attrs.pop('dependency_links', [])
             assert_string_list(self,'dependency_links',self.dependency_links)
         if attrs and 'setup_requires' in attrs:
-            self.fetch_build_eggs(attrs.pop('setup_requires'))
+            self.fetch_build_eggs(attrs['setup_requires'])
         for ep in pkg_resources.iter_entry_points('distutils.setup_keywords'):
             if not hasattr(self,ep.name):
                 setattr(self,ep.name,None)

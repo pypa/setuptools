@@ -1,6 +1,7 @@
-import distutils.command.install_lib as orig
 import os
-
+import imp
+from itertools import product, starmap
+import distutils.command.install_lib as orig
 
 class install_lib(orig.install_lib):
     """Don't add compiled flags to filenames of non-Python files"""
@@ -13,19 +14,71 @@ class install_lib(orig.install_lib):
             self.byte_compile(outfiles)
 
     def get_exclusions(self):
-        exclude = {}
-        nsp = self.distribution.namespace_packages
-        svem = (nsp and self.get_finalized_command('install')
-                .single_version_externally_managed)
-        if svem:
-            for pkg in nsp:
-                parts = pkg.split('.')
-                while parts:
-                    pkgdir = os.path.join(self.install_dir, *parts)
-                    for f in '__init__.py', '__init__.pyc', '__init__.pyo':
-                        exclude[os.path.join(pkgdir, f)] = 1
-                    parts.pop()
-        return exclude
+        """
+        Return a collections.Sized collections.Container of paths to be
+        excluded for single_version_externally_managed installations.
+        """
+        all_packages = (
+            pkg
+            for ns_pkg in self._get_SVEM_NSPs()
+            for pkg in self._all_packages(ns_pkg)
+        )
+
+        excl_specs = product(all_packages, self._gen_exclusion_paths())
+        return set(starmap(self._exclude_pkg_path, excl_specs))
+
+    def _exclude_pkg_path(self, pkg, exclusion_path):
+        """
+        Given a package name and exclusion path within that package,
+        compute the full exclusion path.
+        """
+        parts = pkg.split('.') + [exclusion_path]
+        return os.path.join(self.install_dir, *parts)
+
+    @staticmethod
+    def _all_packages(pkg_name):
+        """
+        >>> list(install_lib._all_packages('foo.bar.baz'))
+        ['foo.bar.baz', 'foo.bar', 'foo']
+        """
+        while pkg_name:
+            yield pkg_name
+            pkg_name, sep, child = pkg_name.rpartition('.')
+
+    def _get_SVEM_NSPs(self):
+        """
+        Get namespace packages (list) but only for
+        single_version_externally_managed installations and empty otherwise.
+        """
+        # TODO: is it necessary to short-circuit here? i.e. what's the cost
+        # if get_finalized_command is called even when namespace_packages is
+        # False?
+        if not self.distribution.namespace_packages:
+            return []
+
+        install_cmd = self.get_finalized_command('install')
+        svem = install_cmd.single_version_externally_managed
+
+        return self.distribution.namespace_packages if svem else []
+
+    @staticmethod
+    def _gen_exclusion_paths():
+        """
+        Generate file paths to be excluded for namespace packages (bytecode
+        cache files).
+        """
+        # always exclude the package module itself
+        yield '__init__.py'
+
+        yield '__init__.pyc'
+        yield '__init__.pyo'
+
+        if not hasattr(imp, 'get_tag'):
+            return
+
+        base = os.path.join('__pycache__', '__init__.' + imp.get_tag())
+        yield base + '.pyc'
+        yield base + '.pyo'
 
     def copy_tree(
             self, infile, outfile,

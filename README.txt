@@ -23,13 +23,14 @@ latest known stable release.
 
 .. _ez_setup.py: https://bootstrap.pypa.io/ez_setup.py
 
-Windows 8 (Powershell)
-======================
+Windows (Powershell 3 or later)
+===============================
 
 For best results, uninstall previous versions FIRST (see `Uninstalling`_).
 
-Using Windows 8 or later, it's possible to install with one simple Powershell
-command. Start up Powershell and paste this command::
+Using Windows 8 (which includes PowerShell 3) or earlier versions of Windows
+with PowerShell 3 installed, it's possible to install with one simple
+Powershell command. Start up Powershell and paste this command::
 
     > (Invoke-WebRequest https://bootstrap.pypa.io/ez_setup.py).Content | python -
 
@@ -45,8 +46,8 @@ Python 2.7 installed::
     > (Invoke-WebRequest https://bootstrap.pypa.io/ez_setup.py).Content | py -3 -
 
 The recommended way to install setuptools on Windows is to download
-`ez_setup.py`_ and run it. The script will download the appropriate .egg
-file and install it for you.
+`ez_setup.py`_ and run it. The script will download the appropriate
+distribution file and install it for you.
 
 Once installation is complete, you will find an ``easy_install`` program in
 your Python ``Scripts`` subdirectory.  For simple invocation and best results,
@@ -55,11 +56,12 @@ present. If you did a user-local install, the ``Scripts`` subdirectory is
 ``$env:APPDATA\Python\Scripts``.
 
 
-Windows 7 (or graphical install)
-================================
+Windows (simplified)
+====================
 
-For Windows 7 and earlier, download `ez_setup.py`_ using your favorite web
-browser or other technique and "run" that file.
+For Windows without PowerShell 3 or for installation without a command-line,
+download `ez_setup.py`_ using your preferred web browser or other technique
+and "run" that file.
 
 
 Unix (wget)

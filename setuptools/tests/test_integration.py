@@ -25,6 +25,9 @@ def install_context(request, tmpdir, monkeypatch):
     install_dir = tmpdir.mkdir('install_dir')
 
     def fin():
+        # undo the monkeypatch, particularly needed under
+        # windows because of kept handle on cwd
+        monkeypatch.undo() 
         new_cwd.remove()
         user_base.remove()
         user_site.remove()

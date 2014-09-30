@@ -16,6 +16,7 @@ method.
 
 import sys
 import os
+import io
 import time
 import re
 import imp
@@ -35,28 +36,19 @@ import email.parser
 import tempfile
 from pkgutil import get_importer
 
-try:
-    from urlparse import urlparse, urlunparse
-except ImportError:
+PY3 = sys.version_info > (3,)
+PY2 = not PY3
+
+if PY3:
     from urllib.parse import urlparse, urlunparse
 
-try:
-    frozenset
-except NameError:
-    from sets import ImmutableSet as frozenset
-try:
-    basestring
-    next = lambda o: o.next()
-    from cStringIO import StringIO as BytesIO
-except NameError:
-    basestring = str
-    from io import BytesIO
-    def execfile(fn, globs=None, locs=None):
-        if globs is None:
-            globs = globals()
-        if locs is None:
-            locs = globs
-        exec(compile(open(fn).read(), fn, 'exec'), globs, locs)
+if PY2:
+    from urlparse import urlparse, urlunparse
+
+if PY3:
+    string_types = str,
+else:
+    string_types = str, eval('unicode')
 
 # capture these to bypass sandboxing
 from os import utime
@@ -80,15 +72,6 @@ try:
     import parser
 except ImportError:
     pass
-
-def _bypass_ensure_directory(name, mode=0o777):
-    # Sandbox-bypassing version of ensure_directory()
-    if not WRITE_SUPPORT:
-        raise IOError('"os.mkdir" not supported on this platform.')
-    dirname, filename = split(name)
-    if dirname and filename and not isdir(dirname):
-        _bypass_ensure_directory(dirname)
-        mkdir(dirname, mode)
 
 
 _state_vars = {}
@@ -343,7 +326,7 @@ run_main = run_script
 
 def get_distribution(dist):
     """Return a current distribution object for a Requirement or string"""
-    if isinstance(dist, basestring):
+    if isinstance(dist, string_types):
         dist = Requirement.parse(dist)
     if isinstance(dist, Requirement):
         dist = get_provider(dist)
@@ -1387,7 +1370,7 @@ class NullProvider:
         return self._fn(self.module_path, resource_name)
 
     def get_resource_stream(self, manager, resource_name):
-        return BytesIO(self.get_resource_string(manager, resource_name))
+        return io.BytesIO(self.get_resource_string(manager, resource_name))
 
     def get_resource_string(self, manager, resource_name):
         return self._get(self._fn(self.module_path, resource_name))
@@ -1435,7 +1418,9 @@ class NullProvider:
         script_filename = self._fn(self.egg_info, script)
         namespace['__file__'] = script_filename
         if os.path.exists(script_filename):
-            execfile(script_filename, namespace, namespace)
+            source = open(script_filename).read()
+            code = compile(source, script_filename, 'exec')
+            exec(code, namespace, namespace)
         else:
             from linecache import cache
             cache[script_filename] = (
@@ -1605,11 +1590,7 @@ class ZipProvider(EggProvider):
     """Resource support for zips and eggs"""
 
     eagers = None
-    _zip_manifests = (
-        MemoizedZipManifests()
-        if os.environ.get('PKG_RESOURCES_CACHE_ZIP_MANIFESTS') else
-        ZipManifests()
-    )
+    _zip_manifests = MemoizedZipManifests()
 
     def __init__(self, module):
         EggProvider.__init__(self, module)
@@ -2067,8 +2048,8 @@ def _set_parent_ns(packageName):
 
 
 def yield_lines(strs):
-    """Yield non-empty/non-comment lines of a ``basestring`` or sequence"""
-    if isinstance(strs, basestring):
+    """Yield non-empty/non-comment lines of a string or sequence"""
+    if isinstance(strs, string_types):
         for s in strs.splitlines():
             s = s.strip()
             # skip blank lines/comments
@@ -2660,8 +2641,7 @@ def issue_warning(*args,**kw):
 def parse_requirements(strs):
     """Yield ``Requirement`` objects for each specification in `strs`
 
-    `strs` must be an instance of ``basestring``, or a (possibly-nested)
-    iterable thereof.
+    `strs` must be a string, or a (possibly-nested) iterable thereof.
     """
     # create a steppable iterator, so we can handle \-continuations
     lines = iter(yield_lines(strs))
@@ -2762,7 +2742,7 @@ class Requirement:
             # only get if we need it
             if self.index:
                 item = item.parsed_version
-        elif isinstance(item, basestring):
+        elif isinstance(item, string_types):
             item = parse_version(item)
         last = None
         # -1, 0, 1
@@ -2827,6 +2807,17 @@ def ensure_directory(path):
     dirname = os.path.dirname(path)
     if not os.path.isdir(dirname):
         os.makedirs(dirname)
+
+
+def _bypass_ensure_directory(path, mode=0o777):
+    """Sandbox-bypassing version of ensure_directory()"""
+    if not WRITE_SUPPORT:
+        raise IOError('"os.mkdir" not supported on this platform.')
+    dirname, filename = split(path)
+    if dirname and filename and not isdir(dirname):
+        _bypass_ensure_directory(dirname)
+        mkdir(dirname, mode)
+
 
 def split_sections(s):
     """Split a string or iterable thereof into (section, content) pairs

@@ -19,7 +19,7 @@ def has_win32com():
     if not sys.platform.startswith('win32'):
         return False
     try:
-        mod = __import__('win32com')
+        __import__('win32com')
     except ImportError:
         return False
     return True
@@ -33,8 +33,6 @@ class TestSandbox(unittest.TestCase):
         shutil.rmtree(self.dir)
 
     def test_devnull(self):
-        if sys.version < '2.4':
-            return
         sandbox = DirectorySandbox(self.dir)
         sandbox.run(self._file_writer(os.devnull))
 
@@ -74,6 +72,12 @@ class TestSandbox(unittest.TestCase):
         namespace = types.ModuleType('namespace')
         setuptools.sandbox._execfile(target, vars(namespace))
         assert namespace.result == 'passed'
+
+    def test_setup_py_with_CRLF(self):
+        setup_py = os.path.join(self.dir, 'setup.py')
+        with open(setup_py, 'wb') as stream:
+            stream.write(b'"degenerate script"\r\n')
+        setuptools.sandbox._execfile(setup_py, globals())
 
 if __name__ == '__main__':
     unittest.main()

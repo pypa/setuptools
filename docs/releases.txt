@@ -10,7 +10,7 @@ module. The script does some checks (some interactive) and fully automates
 the release process.
 
 A Setuptools release manager must have maintainer access on PyPI to the
-project and administrative access to the BitBucket project.
+project and administrative access to the Bitbucket project.
 
 To make a release, run the following from a Mercurial checkout at the
 revision slated for release::
