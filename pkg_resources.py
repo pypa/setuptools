@@ -626,7 +626,6 @@ class WorkingSet(object):
                 to_activate.append(dist)
             if dist not in req:
                 # Oops, the "best" so far conflicts with a dependency
-                # XXX put more info here
                 raise VersionConflict(
                     "%s is installed but %s is required by %s"
                     % (dist, req, list(required_by.get(req))))
