@@ -589,8 +589,9 @@ class WorkingSet(object):
         # key -> dist
         best = {}
         to_activate = []
-        # key with req -> set of things that required it
-        # useful for reporting info about conflicts
+
+        # Mapping of requirement to set of distributions that required it;
+        # useful for reporting info about conflicts.
         required_by = collections.defaultdict(set)
 
         while requirements:
