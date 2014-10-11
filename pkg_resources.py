@@ -630,10 +630,15 @@ class WorkingSet(object):
                 tmpl = "%s is installed but %s is required by %s"
                 args = dist, req, list(required_by.get(req))
                 raise VersionConflict(tmpl % args)
+
+            # push the new requirements onto the stack
             new_requirements = dist.requires(req.extras)[::-1]
             requirements.extend(new_requirements)
+
+            # Register the new requirements needed by req
             for new_requirement in new_requirements:
                 required_by[new_requirement].add(req.project_name)
+
             processed[req] = True
 
         # return list of distros to activate
