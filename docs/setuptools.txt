@@ -473,7 +473,7 @@ script called ``baz``, you might do something like this::
 
     setup(
         # other arguments here...
-        entry_points = {
+        entry_points={
             'console_scripts': [
                 'foo = my_package.some_module:main_func',
                 'bar = other_module:some_func',
