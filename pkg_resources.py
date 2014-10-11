@@ -628,7 +628,7 @@ class WorkingSet(object):
             if dist not in req:
                 # Oops, the "best" so far conflicts with a dependency
                 tmpl = "%s is installed but %s is required by %s"
-                args = dist, req, list(required_by.get(req))
+                args = dist, req, list(required_by.get(req, []))
                 raise VersionConflict(tmpl % args)
 
             # push the new requirements onto the stack
