@@ -626,9 +626,9 @@ class WorkingSet(object):
                 to_activate.append(dist)
             if dist not in req:
                 # Oops, the "best" so far conflicts with a dependency
-                raise VersionConflict(
-                    "%s is installed but %s is required by %s"
-                    % (dist, req, list(required_by.get(req))))
+                tmpl = "%s is installed but %s is required by %s"
+                args = dist, req, list(required_by.get(req))
+                raise VersionConflict(tmpl % args)
             new_requirements = dist.requires(req.extras)[::-1]
             requirements.extend(new_requirements)
             for new_requirement in new_requirements:
