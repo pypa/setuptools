@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+---
+6.1
+---
+
+* Issue #268: When resolving package versions, a VersionConflict now reports
+  which package previously required the conflicting version.
+
 -----
 6.0.2
 -----
