@@ -2,6 +2,18 @@
 CHANGES
 =======
 
+----------
+Unreleased
+----------
+
+* Issue #80, #209: Eggs that are downloaded for ``setup_requires``,
+  ``test_requires``, etc. are now placed in a ``.eggs`` directory instead of
+  the package root directory. This is a better place for them as it doesn't
+  cause later phases of setuptools to think that the package is already
+  installed and then not install the package permanently in the environment
+  (See #209).
+
+
 ---
 6.1
 ---
