@@ -326,10 +326,27 @@ class manifest_maker(sdist):
             self.read_manifest()
         ei_cmd = self.get_finalized_command('egg_info')
         if ei_cmd.egg_base != os.curdir:
-            self.filelist.allfiles.extend([
-                os.path.join(ei_cmd.egg_base, path)
-                for path in distutils.filelist.findall(ei_cmd.egg_base)])
+            self._add_egg_info(cmd=ei_cmd)
         self.filelist.include_pattern("*", prefix=ei_cmd.egg_info)
+
+    def _add_egg_info(self, cmd):
+        """Add paths for egg-info files for an external egg-base.
+
+        The egg-info files are written to egg-base.  If egg-base is
+        outside the current working directory, we need a separate step
+        (this method) to search the egg-base directory when creating
+        the manifest.  We use distutils.filelist.findall (which is
+        really the version monkeypatched in by setuptools/__init__.py)
+        to perform the search.
+
+        Since findall records relative paths, prefix the returned
+        paths with cmd.egg_base, so add_default's include_pattern call
+        (which is looking for the absolute cmd.egg_info) will match
+        them.
+        """
+        self.filelist.allfiles.extend([
+            os.path.join(cmd.egg_base, path)
+            for path in distutils.filelist.findall(cmd.egg_base)])
 
     def prune_file_list(self):
         build = self.get_finalized_command('build')
