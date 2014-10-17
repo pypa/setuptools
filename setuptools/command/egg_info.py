@@ -6,6 +6,7 @@ from distutils.filelist import FileList as _FileList
 from distutils.util import convert_path
 from distutils import log
 import distutils.errors
+import distutils.filelist
 import os
 import re
 import sys
@@ -324,6 +325,10 @@ class manifest_maker(sdist):
         elif os.path.exists(self.manifest):
             self.read_manifest()
         ei_cmd = self.get_finalized_command('egg_info')
+        if ei_cmd.egg_base != os.curdir:
+            self.filelist.allfiles.extend([
+                os.path.join(ei_cmd.egg_base, path)
+                for path in distutils.filelist.findall(ei_cmd.egg_base)])
         self.filelist.include_pattern("*", prefix=ei_cmd.egg_info)
 
     def prune_file_list(self):
