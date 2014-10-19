@@ -1,4 +1,4 @@
-import ctypes
+import ctypes.wintypes
 
 
 def hide_file(path):
@@ -9,11 +9,12 @@ def hide_file(path):
 
     `path` must be text.
     """
-
-    SetFileAttributesW = ctypes.windll.kernel32.SetFileAttributesW
+    SetFileAttributes = ctypes.windll.kernel32.SetFileAttributesW
+    SetFileAttributes.argtypes = ctypes.wintypes.LPWSTR, ctypes.wintypes.DWORD
+    SetFileAttributes.restype = ctypes.wintypes.BOOL
 
     FILE_ATTRIBUTE_HIDDEN = 0x02
 
-    ret = SetFileAttributesW(path, FILE_ATTRIBUTE_HIDDEN)
+    ret = SetFileAttributes(path, FILE_ATTRIBUTE_HIDDEN)
     if not ret:
         raise ctypes.WinError()
