@@ -1,13 +1,13 @@
-# From http://stackoverflow.com/questions/19622133/python-set-hide-attribute-on-folders-in-windows-os
-
 import ctypes
 
 
 def hide_file(path):
-    """Sets the hidden attribute on a file or directory
+    """
+    Set the hidden attribute on a file or directory.
 
-    `path` must be unicode; be careful that you escape backslashes or use raw
-    string literals - e.g.: `u'G:\\Dir\\folder1'` or `ur'G:\Dir\folder1'`.
+    From http://stackoverflow.com/questions/19622133/
+
+    `path` must be text.
     """
 
     SetFileAttributesW = ctypes.windll.kernel32.SetFileAttributesW
