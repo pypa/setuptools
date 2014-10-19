@@ -1,6 +1,14 @@
+import platform
 import ctypes.wintypes
 
 
+def windows_only(func):
+    if platform.system() != 'Windows':
+        return lambda *args, **kwargs: None
+    return func
+
+
+@windows_only
 def hide_file(path):
     """
     Set the hidden attribute on a file or directory.
