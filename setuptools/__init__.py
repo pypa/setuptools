@@ -139,7 +139,7 @@ def findall(dir = os.curdir):
     (relative to 'dir').
     """
     all_files = []
-    for base, dirs, files in os.walk(dir):
+    for base, dirs, files in os.walk(dir, followlinks=True):
         if base==os.curdir or base.startswith(os.curdir+os.sep):
             base = base[2:]
         if base:
