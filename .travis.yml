@@ -8,6 +8,7 @@ python:
   - pypy
 # command to run tests
 script:
+ - python setup.py egg_info
  # testing fix for https://bitbucket.org/hpk42/pytest/issue/555
  - pip install --pre -i https://devpi.net/hpk/dev/ --upgrade pytest
  - python setup.py test
