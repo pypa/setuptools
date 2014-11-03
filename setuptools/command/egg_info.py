@@ -382,6 +382,12 @@ def write_requirements(cmd, basename, filename):
     cmd.write_or_delete_file("requirements", filename, data.getvalue())
 
 
+def write_setup_requirements(cmd, basename, filename):
+    data = StringIO()
+    _write_requirements(data, cmd.distribution.setup_requires)
+    cmd.write_or_delete_file("setup-requirements", filename, data.getvalue())
+
+
 def write_toplevel_names(cmd, basename, filename):
     pkgs = dict.fromkeys(
         [
