@@ -1,5 +1,7 @@
 """Extensions to the 'distutils' for large or complex distributions"""
 
+__import__('setuptools.bootstrap').bootstrap.ensure_deps()
+
 import os
 import sys
 import distutils.core

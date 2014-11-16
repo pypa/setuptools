@@ -6,8 +6,6 @@ import sys
 import textwrap
 import contextlib
 
-sys.path.append('six-1.7.3.egg')
-
 # Allow to run setup.py from another directory.
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
