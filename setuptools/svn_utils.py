@@ -299,7 +299,7 @@ class SvnInfo(object):
         self._externals = None
 
     def get_revision(self):
-        'Retrieve the directory revision informatino using svnversion'
+        'Retrieve the directory revision information using svnversion'
         code, data = _run_command(['svnversion', '-c', self.path])
         if code:
             log.warn("svnversion failed")

@@ -153,7 +153,6 @@ learning about Setuptools, Python Eggs, and EasyInstall:
 * `The EasyInstall user's guide and reference manual`_
 * `The setuptools Developer's Guide`_
 * `The pkg_resources API reference`_
-* `Package Compatibility Notes`_ (user-maintained)
 * `The Internal Structure of Python Eggs`_
 
 Questions, comments, and bug reports should be directed to the `distutils-sig
@@ -164,7 +163,6 @@ them there, so this reference list can be updated.  If you have working,
 the `setuptools bug tracker`_.
 
 .. _setuptools bug tracker: https://bitbucket.org/pypa/setuptools/issues
-.. _Package Compatibility Notes: https://pythonhosted.org/setuptools/PackageNotes
 .. _The Internal Structure of Python Eggs: https://pythonhosted.org/setuptools/formats.html
 .. _The setuptools Developer's Guide: https://pythonhosted.org/setuptools/setuptools.html
 .. _The pkg_resources API reference: https://pythonhosted.org/setuptools/pkg_resources.html

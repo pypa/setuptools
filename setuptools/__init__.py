@@ -140,7 +140,7 @@ def findall(dir = os.curdir):
     (relative to 'dir').
     """
     all_files = []
-    for base, dirs, files in os.walk(dir):
+    for base, dirs, files in os.walk(dir, followlinks=True):
         if base==os.curdir or base.startswith(os.curdir+os.sep):
             base = base[2:]
         if base:
@@ -149,7 +149,3 @@ def findall(dir = os.curdir):
     return all_files
 
 distutils.filelist.findall = findall    # fix findall bug in distutils.
-
-# sys.dont_write_bytecode was introduced in Python 2.6.
-_dont_write_bytecode = getattr(sys, 'dont_write_bytecode',
-    bool(os.environ.get("PYTHONDONTWRITEBYTECODE")))

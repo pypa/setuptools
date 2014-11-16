@@ -2,6 +2,30 @@
 CHANGES
 =======
 
+---
+7.0
+---
+
+* Issue #80, Issue #209: Eggs that are downloaded for ``setup_requires``,
+  ``test_requires``, etc. are now placed in a ``./.eggs`` directory instead of
+  directly in the current directory. This choice of location means the files
+  can be readily managed (removed, ignored). Additionally,
+  later phases or invocations of setuptools will not detect the package as
+  already installed and ignore it for permanent install (See #209).
+
+  This change is indicated as backward-incompatible as installations that
+  depend on the installation in the current directory will need to account for
+  the new location. Systems that ignore ``*.egg`` will probably need to be
+  adapted to ignore ``.eggs``. The files will need to be manually moved or
+  will be retrieved again. Most use cases will require no attention.
+
+---
+6.1
+---
+
+* Issue #268: When resolving package versions, a VersionConflict now reports
+  which package previously required the conflicting version.
+
 -----
 6.0.2
 -----
