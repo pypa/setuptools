@@ -35,7 +35,7 @@ import warnings
 import site
 import struct
 
-from setuptools import Command, _dont_write_bytecode
+from setuptools import Command
 from setuptools.sandbox import run_setup
 from setuptools.py31compat import get_path, get_config_vars
 from setuptools.command import setopt
@@ -1152,7 +1152,7 @@ See the setuptools documentation for the "develop" command for more info.
                 chmod(f, mode)
 
     def byte_compile(self, to_compile):
-        if _dont_write_bytecode:
+        if sys.dont_write_bytecode:
             self.warn('byte-compiling is disabled, skipping.')
             return
 

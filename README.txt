@@ -83,6 +83,18 @@ Alternatively, Setuptools may be installed to a user-local path::
 
     > wget https://bootstrap.pypa.io/ez_setup.py -O - | python - --user
 
+Note that on some older systems (noted on Debian 6 and CentOS 5 installations), 
+`wget` may refuse to download `ez_setup.py`, complaining that the certificate common name `*.c.ssl.fastly.net` 
+does not match the host name `bootstrap.pypa.io`. In addition, the `ez_setup.py` script may then encounter similar problems using
+`wget` internally to download `setuptools-x.y.zip`, complaining that the certificate common name of `www.python.org` does not match the 
+host name `pypi.python.org`. Those are known issues, related to a bug in the older versions of `wget` 
+(see `Issue 59 <https://bitbucket.org/pypa/pypi/issue/59#comment-5881915>`_). If you happen to encounter them, 
+install Setuptools as follows::
+
+    > wget --no-check-certificate https://bootstrap.pypa.io/ez_setup.py
+    > python ez_setup.py --insecure
+
+
 Unix including Mac OS X (curl)
 ==============================
 
@@ -153,7 +165,6 @@ learning about Setuptools, Python Eggs, and EasyInstall:
 * `The EasyInstall user's guide and reference manual`_
 * `The setuptools Developer's Guide`_
 * `The pkg_resources API reference`_
-* `Package Compatibility Notes`_ (user-maintained)
 * `The Internal Structure of Python Eggs`_
 
 Questions, comments, and bug reports should be directed to the `distutils-sig
@@ -164,7 +175,6 @@ them there, so this reference list can be updated.  If you have working,
 the `setuptools bug tracker`_.
 
 .. _setuptools bug tracker: https://bitbucket.org/pypa/setuptools/issues
-.. _Package Compatibility Notes: https://pythonhosted.org/setuptools/PackageNotes
 .. _The Internal Structure of Python Eggs: https://pythonhosted.org/setuptools/formats.html
 .. _The setuptools Developer's Guide: https://pythonhosted.org/setuptools/setuptools.html
 .. _The pkg_resources API reference: https://pythonhosted.org/setuptools/pkg_resources.html

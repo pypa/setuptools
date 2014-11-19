@@ -22,6 +22,7 @@ except ImportError:
 
 from setuptools.depends import Require
 from setuptools.compat import basestring, PY2
+from setuptools import windows_support
 import pkg_resources
 
 
@@ -334,6 +335,21 @@ class Distribution(_Distribution):
         else:
             self.convert_2to3_doctests = []
 
+    def get_egg_cache_dir(self):
+        egg_cache_dir = os.path.join(os.curdir, '.eggs')
+        if not os.path.exists(egg_cache_dir):
+            os.mkdir(egg_cache_dir)
+            windows_support.hide_file(egg_cache_dir)
+            readme_txt_filename = os.path.join(egg_cache_dir, 'README.txt')
+            with open(readme_txt_filename, 'w') as f:
+                f.write('This directory contains eggs that were downloaded '
+                        'by setuptools to build, test, and run plug-ins.\n\n')
+                f.write('This directory caches those eggs to prevent '
+                        'repeated downloads.\n\n')
+                f.write('However, it is safe to delete this directory.\n\n')
+
+        return egg_cache_dir
+
     def fetch_build_egg(self, req):
         """Fetch an egg needed for building"""
 
@@ -357,8 +373,9 @@ class Distribution(_Distribution):
                 if 'find_links' in opts:
                     links = opts['find_links'][1].split() + links
                 opts['find_links'] = ('setup', links)
+            install_dir = self.get_egg_cache_dir()
             cmd = easy_install(
-                dist, args=["x"], install_dir=os.curdir, exclude_scripts=True,
+                dist, args=["x"], install_dir=install_dir, exclude_scripts=True,
                 always_copy=False, build_directory=None, editable=False,
                 upgrade=False, multi_version=True, no_report=True, user=False
             )

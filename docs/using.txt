@@ -8,3 +8,6 @@ it at the very beginning of `setup.py` like this::
 
     from ez_setup import use_setuptools
     use_setuptools()
+
+More info on `ez_setup.py` can be found at `the project home page
+<https://pypy.python.org/pypi/setuptools>`_.

@@ -602,6 +602,10 @@ class WorkingSet(object):
         best = {}
         to_activate = []
 
+        # Mapping of requirement to set of distributions that required it;
+        # useful for reporting info about conflicts.
+        required_by = collections.defaultdict(set)
+
         while requirements:
             # process dependencies breadth-first
             req = requirements.pop(0)
@@ -635,9 +639,18 @@ class WorkingSet(object):
                 to_activate.append(dist)
             if dist not in req:
                 # Oops, the "best" so far conflicts with a dependency
-                # XXX put more info here
-                raise VersionConflict(dist, req)
-            requirements.extend(dist.requires(req.extras)[::-1])
+                tmpl = "%s is installed but %s is required by %s"
+                args = dist, req, list(required_by.get(req, []))
+                raise VersionConflict(tmpl % args)
+
+            # push the new requirements onto the stack
+            new_requirements = dist.requires(req.extras)[::-1]
+            requirements.extend(new_requirements)
+
+            # Register the new requirements needed by req
+            for new_requirement in new_requirements:
+                required_by[new_requirement].add(req.project_name)
+
             processed[req] = True
 
         # return list of distros to activate
