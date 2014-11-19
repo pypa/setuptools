@@ -342,7 +342,7 @@ class RequirementsTests(TestCase):
         self.assertEqual(r2.extras, ("bar","foo"))  # extras are normalized
         self.assertEqual(hash(r1), hash(r2))
         self.assertEqual(
-            hash(r1), hash(("twisted", packaging.version.Specifier(">=1.2"),
+            hash(r1), hash(("twisted", packaging.specifiers.SpecifierSet(">=1.2"),
                             frozenset(["foo","bar"])))
         )
 
