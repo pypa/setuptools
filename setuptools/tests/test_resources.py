@@ -8,12 +8,9 @@ import tempfile
 import shutil
 from unittest import TestCase
 
-try:
-    import packaging.version
-except ImportError:
-    # fallback to vendored version
-    import setuptools._vendor.packaging.version
-    packaging = setuptools._vendor.packaging
+import setuptools._vendor.packaging.version
+import setuptools._vendor.packaging.specifiers
+packaging = setuptools._vendor.packaging
 
 import pkg_resources
 from pkg_resources import (parse_requirements, VersionConflict, parse_version,

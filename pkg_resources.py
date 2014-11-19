@@ -75,14 +75,9 @@ try:
 except ImportError:
     pass
 
-try:
-    import packaging.version
-    import packaging.specifiers
-except ImportError:
-    # fallback to vendored version
-    import setuptools._vendor.packaging.version
-    import setuptools._vendor.packaging.specifiers
-    packaging = setuptools._vendor.packaging
+import setuptools._vendor.packaging.version
+import setuptools._vendor.packaging.specifiers
+packaging = setuptools._vendor.packaging
 
 # For compatibility, expose packaging.version.parse as parse_version
 parse_version = packaging.version.parse
