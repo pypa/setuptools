@@ -77,9 +77,11 @@ except ImportError:
 
 try:
     import packaging.version
+    import packaging.specifiers
 except ImportError:
     # fallback to vendored version
     import setuptools._vendor.packaging.version
+    import setuptools._vendor.packaging.specifiers
     packaging = setuptools._vendor.packaging
 
 # For compatibility, expose packaging.version.parse as parse_version
@@ -2678,7 +2680,7 @@ class Requirement:
         """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
         self.unsafe_name, project_name = project_name, safe_name(project_name)
         self.project_name, self.key = project_name, project_name.lower()
-        self.specifier = packaging.version.Specifier(
+        self.specifier = packaging.specifiers.SpecifierSet(
             ",".join(["".join([x, y]) for x, y in specs])
         )
         self.specs = specs
