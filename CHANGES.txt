@@ -45,7 +45,6 @@ CHANGES
 
 * Issue #262: Fixed regression in pip install due to egg-info directories
   being omitted. Re-opens Issue #118.
->>>>>>> master
 
 -----
 6.0.1
