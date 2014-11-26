@@ -9,6 +9,5 @@ python:
 # command to run tests
 script:
  - python setup.py egg_info
- - python setup.py test
  - python setup.py ptr
  - python ez_setup.py --version 5.4.1
