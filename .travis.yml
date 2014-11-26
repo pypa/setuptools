@@ -10,4 +10,4 @@ python:
 script:
  - python setup.py egg_info
  - python setup.py ptr
- - python ez_setup.py --version 5.4.1
+ - python ez_setup.py --version 7.0
