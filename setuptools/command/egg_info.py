@@ -345,9 +345,9 @@ class manifest_maker(sdist):
         (which is looking for the absolute cmd.egg_info) will match
         them.
         """
-        self.filelist.allfiles.extend(
-            os.path.join(cmd.egg_base, path)
-            for path in distutils.filelist.findall(cmd.egg_base))
+        discovered = distutils.filelist.findall(cmd.egg_base)
+        resolved = (os.path.join(cmd.egg_base, path) for path in discovered)
+        self.filelist.allfiles.extend(resolved)
 
     def prune_file_list(self):
         build = self.get_finalized_command('build')
