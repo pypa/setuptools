@@ -2413,6 +2413,17 @@ class Distribution(object):
     def parsed_version(self):
         if not hasattr(self, "_parsed_version"):
             self._parsed_version = parse_version(self.version)
+            if isinstance(
+                    self._parsed_version, packaging.version.LegacyVersion):
+                warnings.warn(
+                    "'%s (%s)' is being parsed as a legacy, non PEP 440, "
+                    "version. You may find odd behavior and sort order. In "
+                    "particular it will be sorted as less than 0.0. It is "
+                    "recommend to migrate to PEP 440 compatible versions." % (
+                        self.project_name, self.version,
+                    ),
+                    RuntimeWarning,
+                )
 
         return self._parsed_version
 
