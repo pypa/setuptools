@@ -3,6 +3,12 @@ CHANGES
 =======
 
 ---
+8.1
+---
+
+* Pull Request #85: Search egg-base when adding egg-info to manifest.
+
+---
 8.0
 ---
 
