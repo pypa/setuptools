@@ -330,12 +330,13 @@ class manifest_maker(sdist):
         self.filelist.include_pattern("*", prefix=ei_cmd.egg_info)
 
     def _add_egg_info(self, cmd):
-        """Add paths for egg-info files for an external egg-base.
+        """
+        Add paths for egg-info files for an external egg-base.
 
-        The egg-info files are written to egg-base.  If egg-base is
-        outside the current working directory, we need a separate step
-        (this method) to search the egg-base directory when creating
-        the manifest.  We use distutils.filelist.findall (which is
+        The egg-info files are written to egg-base. If egg-base is
+        outside the current working directory, this method
+        searchs the egg-base directory for files to include
+        in the manifest. Uses distutils.filelist.findall (which is
         really the version monkeypatched in by setuptools/__init__.py)
         to perform the search.
 
