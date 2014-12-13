@@ -118,7 +118,7 @@ class TestEggInfo(unittest.TestCase):
                     '--install-lib', paths['lib'],
                     '--install-scripts', paths['scripts'],
                     '--install-data', paths['data']],
-                pypath=':'.join([paths['lib'], self.old_cwd]),
+                pypath=os.pathsep.join([paths['lib'], self.old_cwd]),
                 data_stream=1,
                 env=environ)
             if code:
