@@ -325,8 +325,7 @@ class manifest_maker(sdist):
         elif os.path.exists(self.manifest):
             self.read_manifest()
         ei_cmd = self.get_finalized_command('egg_info')
-        if ei_cmd.egg_base != os.curdir:
-            self._add_egg_info(cmd=ei_cmd)
+        self._add_egg_info(cmd=ei_cmd)
         self.filelist.include_pattern("*", prefix=ei_cmd.egg_info)
 
     def _add_egg_info(self, cmd):
@@ -345,6 +344,10 @@ class manifest_maker(sdist):
         (which is looking for the absolute cmd.egg_info) will match
         them.
         """
+        if cmd.egg_base == os.curdir:
+            # egg-info files were already added by something else
+            return
+
         discovered = distutils.filelist.findall(cmd.egg_base)
         resolved = (os.path.join(cmd.egg_base, path) for path in discovered)
         self.filelist.allfiles.extend(resolved)
