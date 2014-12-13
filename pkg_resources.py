@@ -14,6 +14,8 @@ The package resource API is designed to work with normal filesystem packages,
 method.
 """
 
+from __future__ import absolute_import
+
 import sys
 import os
 import io
@@ -72,6 +74,13 @@ try:
     import parser
 except ImportError:
     pass
+
+import setuptools._vendor.packaging.version
+import setuptools._vendor.packaging.specifiers
+packaging = setuptools._vendor.packaging
+
+# For compatibility, expose packaging.version.parse as parse_version
+parse_version = packaging.version.parse
 
 
 _state_vars = {}
@@ -1156,13 +1165,15 @@ def safe_name(name):
 
 
 def safe_version(version):
-    """Convert an arbitrary string to a standard version string
-
-    Spaces become dots, and all other non-alphanumeric characters become
-    dashes, with runs of multiple dashes condensed to a single dash.
     """
-    version = version.replace(' ','.')
-    return re.sub('[^A-Za-z0-9.]+', '-', version)
+    Convert an arbitrary string to a standard version string
+    """
+    try:
+        # normalize the version
+        return str(packaging.version.Version(version))
+    except packaging.version.InvalidVersion:
+        version = version.replace(' ','.')
+        return re.sub('[^A-Za-z0-9.]+', '-', version)
 
 
 def safe_extra(extra):
@@ -2080,7 +2091,7 @@ CONTINUE = re.compile(r"\s*\\\s*(#.*)?$").match
 # Distribution or extra
 DISTRO = re.compile(r"\s*((\w|[-.])+)").match
 # ver. info
-VERSION = re.compile(r"\s*(<=?|>=?|==|!=)\s*((\w|[-.])+)").match
+VERSION = re.compile(r"\s*(<=?|>=?|===?|!=|~=)\s*((\w|[-.*_!+])+)").match
 # comma between items
 COMMA = re.compile(r"\s*,").match
 OBRACKET = re.compile(r"\s*\[").match
@@ -2091,67 +2102,6 @@ EGG_NAME = re.compile(
     r"( -(?P<ver>[^-]+) (-py(?P<pyver>[^-]+) (-(?P<plat>.+))? )? )?",
     re.VERBOSE | re.IGNORECASE
 ).match
-
-component_re = re.compile(r'(\d+ | [a-z]+ | \.| -)', re.VERBOSE)
-replace = {'pre':'c', 'preview':'c','-':'final-','rc':'c','dev':'@'}.get
-
-def _parse_version_parts(s):
-    for part in component_re.split(s):
-        part = replace(part, part)
-        if not part or part=='.':
-            continue
-        if part[:1] in '0123456789':
-            # pad for numeric comparison
-            yield part.zfill(8)
-        else:
-            yield '*'+part
-
-    # ensure that alpha/beta/candidate are before final
-    yield '*final'
-
-def parse_version(s):
-    """Convert a version string to a chronologically-sortable key
-
-    This is a rough cross between distutils' StrictVersion and LooseVersion;
-    if you give it versions that would work with StrictVersion, then it behaves
-    the same; otherwise it acts like a slightly-smarter LooseVersion. It is
-    *possible* to create pathological version coding schemes that will fool
-    this parser, but they should be very rare in practice.
-
-    The returned value will be a tuple of strings.  Numeric portions of the
-    version are padded to 8 digits so they will compare numerically, but
-    without relying on how numbers compare relative to strings.  Dots are
-    dropped, but dashes are retained.  Trailing zeros between alpha segments
-    or dashes are suppressed, so that e.g. "2.4.0" is considered the same as
-    "2.4". Alphanumeric parts are lower-cased.
-
-    The algorithm assumes that strings like "-" and any alpha string that
-    alphabetically follows "final"  represents a "patch level".  So, "2.4-1"
-    is assumed to be a branch or patch of "2.4", and therefore "2.4.1" is
-    considered newer than "2.4-1", which in turn is newer than "2.4".
-
-    Strings like "a", "b", "c", "alpha", "beta", "candidate" and so on (that
-    come before "final" alphabetically) are assumed to be pre-release versions,
-    so that the version "2.4" is considered newer than "2.4a1".
-
-    Finally, to handle miscellaneous cases, the strings "pre", "preview", and
-    "rc" are treated as if they were "c", i.e. as though they were release
-    candidates, and therefore are not as new as a version string that does not
-    contain them, and "dev" is replaced with an '@' so that it sorts lower than
-    than any other pre-release tag.
-    """
-    parts = []
-    for part in _parse_version_parts(s.lower()):
-        if part.startswith('*'):
-            # remove '-' before a prerelease tag
-            if part < '*final':
-                while parts and parts[-1] == '*final-':
-                    parts.pop()
-            # remove trailing zeros from each series of numeric parts
-            while parts and parts[-1]=='00000000':
-                parts.pop()
-        parts.append(part)
-    return tuple(parts)
 
 
 class EntryPoint(object):
@@ -2305,7 +2255,7 @@ class Distribution(object):
     @property
     def hashcmp(self):
         return (
-            getattr(self, 'parsed_version', ()),
+            self.parsed_version,
             self.precedence,
             self.key,
             _remove_md5_fragment(self.location),
@@ -2351,11 +2301,10 @@ class Distribution(object):
 
     @property
     def parsed_version(self):
-        try:
-            return self._parsed_version
-        except AttributeError:
-            self._parsed_version = pv = parse_version(self.version)
-            return pv
+        if not hasattr(self, "_parsed_version"):
+            self._parsed_version = parse_version(self.version)
+
+        return self._parsed_version
 
     @property
     def version(self):
@@ -2460,7 +2409,12 @@ class Distribution(object):
 
     def as_requirement(self):
         """Return a ``Requirement`` that matches this distribution exactly"""
-        return Requirement.parse('%s==%s' % (self.project_name, self.version))
+        if isinstance(self.parsed_version, packaging.version.Version):
+            spec = "%s==%s" % (self.project_name, self.parsed_version)
+        else:
+            spec = "%s===%s" % (self.project_name, self.parsed_version)
+
+        return Requirement.parse(spec)
 
     def load_entry_point(self, group, name):
         """Return the `name` entry point of `group` or raise ImportError"""
@@ -2712,7 +2666,7 @@ def parse_requirements(strs):
 
         line, p, specs = scan_list(VERSION, LINE_END, line, p, (1, 2),
             "version spec")
-        specs = [(op, safe_version(val)) for op, val in specs]
+        specs = [(op, val) for op, val in specs]
         yield Requirement(project_name, specs, extras)
 
 
@@ -2721,26 +2675,23 @@ class Requirement:
         """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
         self.unsafe_name, project_name = project_name, safe_name(project_name)
         self.project_name, self.key = project_name, project_name.lower()
-        index = [
-            (parse_version(v), state_machine[op], op, v)
-            for op, v in specs
-        ]
-        index.sort()
-        self.specs = [(op, ver) for parsed, trans, op, ver in index]
-        self.index, self.extras = index, tuple(map(safe_extra, extras))
+        self.specifier = packaging.specifiers.SpecifierSet(
+            ",".join(["".join([x, y]) for x, y in specs])
+        )
+        self.specs = specs
+        self.extras = tuple(map(safe_extra, extras))
         self.hashCmp = (
             self.key,
-            tuple((op, parsed) for parsed, trans, op, ver in index),
+            self.specifier,
             frozenset(self.extras),
         )
         self.__hash = hash(self.hashCmp)
 
     def __str__(self):
-        specs = ','.join([''.join(s) for s in self.specs])
         extras = ','.join(self.extras)
         if extras:
             extras = '[%s]' % extras
-        return '%s%s%s' % (self.project_name, extras, specs)
+        return '%s%s%s' % (self.project_name, extras, self.specifier)
 
     def __eq__(self, other):
         return (
@@ -2752,29 +2703,13 @@ class Requirement:
         if isinstance(item, Distribution):
             if item.key != self.key:
                 return False
-            # only get if we need it
-            if self.index:
-                item = item.parsed_version
-        elif isinstance(item, string_types):
-            item = parse_version(item)
-        last = None
-        # -1, 0, 1
-        compare = lambda a, b: (a > b) - (a < b)
-        for parsed, trans, op, ver in self.index:
-            # Indexing: 0, 1, -1
-            action = trans[compare(item, parsed)]
-            if action == 'F':
-                return False
-            elif action == 'T':
-                return True
-            elif action == '+':
-                last = True
-            elif action == '-' or last is None:
-                last = False
-        # no rules encountered
-        if last is None:
-            last = True
-        return last
+
+            item = item.version
+
+        # Allow prereleases always in order to match the previous behavior of
+        # this method. In the future this should be smarter and follow PEP 440
+        # more accurately.
+        return self.specifier.contains(item, prereleases=True)
 
     def __hash__(self):
         return self.__hash
@@ -2789,16 +2724,6 @@ class Requirement:
                 return reqs[0]
             raise ValueError("Expected only one requirement", s)
         raise ValueError("No requirements found", s)
-
-state_machine = {
-    #       =><
-    '<': '--T',
-    '<=': 'T-T',
-    '>': 'F+F',
-    '>=': 'T+F',
-    '==': 'T..',
-    '!=': 'F++',
-}
 
 
 def _get_mro(cls):

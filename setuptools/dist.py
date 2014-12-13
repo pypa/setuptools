@@ -13,10 +13,18 @@ from distutils.core import Distribution as _Distribution
 from distutils.errors import (DistutilsOptionError, DistutilsPlatformError,
     DistutilsSetupError)
 
+try:
+    import packaging.version
+except ImportError:
+    # fallback to vendored version
+    import setuptools._vendor.packaging.version
+    packaging = setuptools._vendor.packaging
+
 from setuptools.depends import Require
 from setuptools.compat import basestring, PY2
 from setuptools import windows_support
 import pkg_resources
+
 
 def _get_unpatched(cls):
     """Protect against re-patching the distutils if reloaded
@@ -268,6 +276,27 @@ class Distribution(_Distribution):
         if isinstance(self.metadata.version, numbers.Number):
             # Some people apparently take "version number" too literally :)
             self.metadata.version = str(self.metadata.version)
+
+        if self.metadata.version is not None:
+            try:
+                ver = packaging.version.Version(self.metadata.version)
+                normalized_version = str(ver)
+                if self.metadata.version != normalized_version:
+                    warnings.warn(
+                        "The version specified requires normalization, "
+                        "consider using '%s' instead of '%s'." % (
+                            normalized_version,
+                            self.metadata.version,
+                        )
+                    )
+                    self.metadata.version = normalized_version
+            except (packaging.version.InvalidVersion, TypeError):
+                warnings.warn(
+                    "The version specified (%r) is an invalid version, this "
+                    "may not work as expected with newer versions of "
+                    "setuptools, pip, and PyPI. Please see PEP 440 for more "
+                    "details." % self.metadata.version
+                )
 
     def parse_command_line(self):
         """Process features after parsing command line options"""

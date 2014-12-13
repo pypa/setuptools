@@ -10,6 +10,13 @@ import os
 import re
 import sys
 
+try:
+    import packaging.version
+except ImportError:
+    # fallback to vendored version
+    import setuptools._vendor.packaging.version
+    packaging = setuptools._vendor.packaging
+
 from setuptools import Command
 from setuptools.command.sdist import sdist
 from setuptools.compat import basestring, PY3, StringIO
@@ -68,10 +75,15 @@ class egg_info(Command):
         self.vtags = self.tags()
         self.egg_version = self.tagged_version()
 
+        parsed_version = parse_version(self.egg_version)
+
         try:
+            is_version = isinstance(parsed_version, packaging.version.Version)
+            spec = (
+                "%s==%s" if is_version else "%s===%s"
+            )
             list(
-                parse_requirements('%s==%s' % (self.egg_name,
-                                               self.egg_version))
+                parse_requirements(spec % (self.egg_name, self.egg_version))
             )
         except ValueError:
             raise distutils.errors.DistutilsOptionError(
