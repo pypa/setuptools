@@ -488,6 +488,25 @@ class ParseTests(TestCase):
             for v2 in torture[p+1:]:
                 c(v2,v1)
 
+    def testVersionBuildout(self):
+        """
+        Buildout has a function in it's bootstrap.py that inspected the return
+        value of parse_version. The new parse_version returns a Version class
+        which needs to support this behavior, at least for now.
+        """
+        def buildout(parsed_version):
+            _final_parts = '*final-', '*final'
+
+            def _final_version(parsed_version):
+                for part in parsed_version:
+                    if (part[:1] == '*') and (part not in _final_parts):
+                        return False
+                return True
+            return _final_version(parsed_version)
+
+        self.assertTrue(buildout(parse_version("1.0")))
+        self.assertFalse(buildout(parse_version("1.0a1")))
+
 
 class ScriptHeaderTests(TestCase):
     non_ascii_exe = '/Users/José/bin/python'
