@@ -8,6 +8,13 @@ CHANGES
 
 * Pull Request #85: Search egg-base when adding egg-info to manifest.
 
+-----
+8.0.1
+-----
+
+* Issue #296: Restore support for iteration over parse_version result, but
+  deprecated that usage with a warning. Fixes failure with buildout.
+
 ---
 8.0
 ---
