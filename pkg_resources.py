@@ -79,8 +79,75 @@ import setuptools._vendor.packaging.version
 import setuptools._vendor.packaging.specifiers
 packaging = setuptools._vendor.packaging
 
-# For compatibility, expose packaging.version.parse as parse_version
-parse_version = packaging.version.parse
+
+class _SetuptoolsVersionMixin(object):
+    def __iter__(self):
+        component_re = re.compile(r'(\d+ | [a-z]+ | \.| -)', re.VERBOSE)
+        replace = {
+            'pre': 'c',
+            'preview': 'c',
+            '-': 'final-',
+            'rc': 'c',
+            'dev': '@',
+        }.get
+
+        def _parse_version_parts(s):
+            for part in component_re.split(s):
+                part = replace(part, part)
+                if not part or part == '.':
+                    continue
+                if part[:1] in '0123456789':
+                    # pad for numeric comparison
+                    yield part.zfill(8)
+                else:
+                    yield '*'+part
+
+            # ensure that alpha/beta/candidate are before final
+            yield '*final'
+
+        def old_parse_version(s):
+            parts = []
+            for part in _parse_version_parts(s.lower()):
+                if part.startswith('*'):
+                    # remove '-' before a prerelease tag
+                    if part < '*final':
+                        while parts and parts[-1] == '*final-':
+                            parts.pop()
+                    # remove trailing zeros from each series of numeric parts
+                    while parts and parts[-1] == '00000000':
+                        parts.pop()
+                parts.append(part)
+            return tuple(parts)
+
+        # Warn for use of this function
+        warnings.warn(
+            "You have iterated over the result of "
+            "pkg_resources.parse_version. This is a legacy behavior which is "
+            "inconsistent with the new version class introduced in setuptools "
+            "8.0. That class should be used directly instead of attempting to "
+            "iterate over the result.",
+            RuntimeWarning,
+            stacklevel=1,
+        )
+
+        for part in old_parse_version(str(self)):
+            yield part
+
+
+class SetuptoolsVersion(_SetuptoolsVersionMixin, packaging.version.Version):
+    pass
+
+
+class SetuptoolsLegacyVersion(_SetuptoolsVersionMixin,
+                              packaging.version.LegacyVersion):
+    pass
+
+
+def parse_version(v):
+    try:
+        return SetuptoolsVersion(v)
+    except packaging.version.InvalidVersion:
+        return SetuptoolsLegacyVersion(v)
 
 
 _state_vars = {}
