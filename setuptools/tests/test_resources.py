@@ -507,6 +507,27 @@ class ParseTests(TestCase):
         self.assertTrue(buildout(parse_version("1.0")))
         self.assertFalse(buildout(parse_version("1.0a1")))
 
+    def testVersionIndexable(self):
+        """
+        Some projects were doing things like parse_version("v")[0], so we'll
+        support indexing the same as we support iterating.
+        """
+        self.assertEqual(parse_version("1.0")[0], "00000001")
+
+    def testVersionTupleSort(self):
+        """
+        Some projects expected to be able to sort tuples against the return
+        value of parse_version. So again we'll add a warning enabled shim to
+        make this possible.
+        """
+        self.assertTrue(parse_version("1.0") < tuple(parse_version("2.0")))
+        self.assertTrue(parse_version("1.0") <= tuple(parse_version("2.0")))
+        self.assertTrue(parse_version("1.0") == tuple(parse_version("1.0")))
+        self.assertTrue(parse_version("3.0") > tuple(parse_version("2.0")))
+        self.assertTrue(parse_version("3.0") >= tuple(parse_version("2.0")))
+        self.assertTrue(parse_version("3.0") != tuple(parse_version("2.0")))
+        self.assertFalse(parse_version("3.0") != tuple(parse_version("3.0")))
+
 
 class ScriptHeaderTests(TestCase):
     non_ascii_exe = '/Users/José/bin/python'
