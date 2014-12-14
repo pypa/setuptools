@@ -81,6 +81,46 @@ packaging = setuptools._vendor.packaging
 
 
 class _SetuptoolsVersionMixin(object):
+
+    def __lt__(self, other):
+        if isinstance(other, tuple):
+            return tuple(self) < other
+        else:
+            return super(_SetuptoolsVersionMixin, self).__lt__(other)
+
+    def __le__(self, other):
+        if isinstance(other, tuple):
+            return tuple(self) <= other
+        else:
+            return super(_SetuptoolsVersionMixin, self).__le__(other)
+
+    def __eq__(self, other):
+        if isinstance(other, tuple):
+            return tuple(self) == other
+        else:
+            return super(_SetuptoolsVersionMixin, self).__eq__(other)
+
+    def __ge__(self, other):
+        if isinstance(other, tuple):
+            return tuple(self) >= other
+        else:
+            return super(_SetuptoolsVersionMixin, self).__ge__(other)
+
+    def __gt__(self, other):
+        if isinstance(other, tuple):
+            return tuple(self) > other
+        else:
+            return super(_SetuptoolsVersionMixin, self).__gt__(other)
+
+    def __ne__(self, other):
+        if isinstance(other, tuple):
+            return tuple(self) != other
+        else:
+            return super(_SetuptoolsVersionMixin, self).__ne__(other)
+
+    def __getitem__(self, key):
+        return tuple(self)[key]
+
     def __iter__(self):
         component_re = re.compile(r'(\d+ | [a-z]+ | \.| -)', re.VERBOSE)
         replace = {
