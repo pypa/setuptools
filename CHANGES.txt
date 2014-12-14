@@ -3,6 +3,13 @@ CHANGES
 =======
 
 -----
+8.0.2
+-----
+
+* Issue #296: Restored support for ``__getitem__`` and sort operations on
+  parse_version result.
+
+-----
 8.0.1
 -----
 
