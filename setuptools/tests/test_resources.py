@@ -528,6 +528,16 @@ class ParseTests(TestCase):
         self.assertTrue(parse_version("3.0") != tuple(parse_version("2.0")))
         self.assertFalse(parse_version("3.0") != tuple(parse_version("3.0")))
 
+    def testVersionHashable(self):
+        """
+        Ensure that our versions stay hashable even though we've subclassed
+        them and added some shim code to them.
+        """
+        self.assertEqual(
+            hash(parse_version("1.0")),
+            hash(parse_version("1.0")),
+        )
+
 
 class ScriptHeaderTests(TestCase):
     non_ascii_exe = '/Users/José/bin/python'
