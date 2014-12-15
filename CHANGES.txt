@@ -9,6 +9,16 @@ CHANGES
 * Pull Request #85: Search egg-base when adding egg-info to manifest.
 
 -----
+8.0.4
+-----
+
+* Upgrade ``packaging`` to 14.4, fixing an error where there is a
+  different result for if 2.0.5 is contained within >2.0dev and >2.0.dev even
+  though normalization rules should have made them equal.
+* Issue #296: Add warning when a version is parsed as legacy. This warning will
+  make it easier for developers to recognize deprecated version numbers.
+
+-----
 8.0.3
 -----
 
