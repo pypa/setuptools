@@ -82,6 +82,9 @@ packaging = setuptools._vendor.packaging
 
 class _SetuptoolsVersionMixin(object):
 
+    def __hash__(self):
+        return super(_SetuptoolsVersionMixin, self).__hash__()
+
     def __lt__(self, other):
         if isinstance(other, tuple):
             return tuple(self) < other
