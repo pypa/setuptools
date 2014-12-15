@@ -9,6 +9,12 @@ CHANGES
 * Pull Request #85: Search egg-base when adding egg-info to manifest.
 
 -----
+8.0.3
+-----
+
+* Issue #296: Restored support for ``__hash__`` on parse_version results.
+
+-----
 8.0.2
 -----
 
