@@ -3,6 +3,12 @@ CHANGES
 =======
 
 -----
+8.0.3
+-----
+
+* Issue #296: Restored support for ``__hash__`` on parse_version results.
+
+-----
 8.0.2
 -----
 
