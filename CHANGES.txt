@@ -2,6 +2,16 @@
 CHANGES
 =======
 
+---
+8.1
+---
+
+* Upgrade ``packaging`` to 14.5, giving preference to "rc" as designator for
+  release candidates over "c".
+* PEP-440 warnings are now raised as their own class,
+  ``pkg_resources.PEP440Warning``, instead of RuntimeWarning.
+* Disabled warnings on empty versions.
+
 -----
 8.0.4
 -----
