@@ -80,6 +80,13 @@ import setuptools._vendor.packaging.specifiers
 packaging = setuptools._vendor.packaging
 
 
+class PEP440Warning(RuntimeWarning):
+    """
+    Used when there is an issue with a version or specifier not complying with
+    PEP 440.
+    """
+
+
 class _SetuptoolsVersionMixin(object):
 
     def __hash__(self):
@@ -271,6 +278,9 @@ __all__ = [
     # Exceptions
     'ResolutionError', 'VersionConflict', 'DistributionNotFound',
     'UnknownExtra', 'ExtractionError',
+
+    # Warnings
+    'PEP440Warning',
 
     # Parsing functions and string utilities
     'parse_requirements', 'parse_version', 'safe_name', 'safe_version',
@@ -2430,7 +2440,7 @@ class Distribution(object):
                         "versions." % (
                             self.project_name, self.version,
                         ),
-                        RuntimeWarning,
+                        PEP440Warning,
                     )
 
         return self._parsed_version
