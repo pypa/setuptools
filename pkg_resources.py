@@ -2415,15 +2415,23 @@ class Distribution(object):
             self._parsed_version = parse_version(self.version)
             if isinstance(
                     self._parsed_version, packaging.version.LegacyVersion):
-                warnings.warn(
-                    "'%s (%s)' is being parsed as a legacy, non PEP 440, "
-                    "version. You may find odd behavior and sort order. In "
-                    "particular it will be sorted as less than 0.0. It is "
-                    "recommend to migrate to PEP 440 compatible versions." % (
-                        self.project_name, self.version,
-                    ),
-                    RuntimeWarning,
-                )
+                # While an empty version is techincally a legacy version and
+                # is not a valid PEP 440 version, it's also unlikely to
+                # actually come from someone and instead it is more likely that
+                # it comes from setuptools attempting to parse a filename and
+                # including it in the list. So for that we'll gate this warning
+                # on if the version is anything at all or not.
+                if self.version:
+                    warnings.warn(
+                        "'%s (%s)' is being parsed as a legacy, non PEP 440, "
+                        "version. You may find odd behavior and sort order. "
+                        "In particular it will be sorted as less than 0.0. It "
+                        "is recommend to migrate to PEP 440 compatible "
+                        "versions." % (
+                            self.project_name, self.version,
+                        ),
+                        RuntimeWarning,
+                    )
 
         return self._parsed_version
 
