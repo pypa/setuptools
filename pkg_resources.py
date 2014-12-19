@@ -2932,6 +2932,13 @@ def _mkstemp(*args,**kw):
         os.open = old_open
 
 
+# Silence the PEP440Warning by default, so that end users don't get hit by it
+# randomly just because they use pkg_resources. We want to append the rule
+# because we want earlier uses of filterwarnings to take precedence over this
+# one.
+warnings.filterwarnings("ignore", category=PEP440Warning, append=True)
+
+
 # Set up global resource manager (deliberately not state-saved)
 _manager = ResourceManager()
 def _initialize(g):

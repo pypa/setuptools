@@ -54,8 +54,13 @@ from pkg_resources import (
 import pkg_resources
 
 
+# Turn on PEP440Warnings
+warnings.filterwarnings("default", category=pkg_resources.PEP440Warning)
+
+
 sys_executable = os.environ.get('__PYVENV_LAUNCHER__',
                                 os.path.normpath(sys.executable))
+
 
 __all__ = [
     'samefile', 'easy_install', 'PthDistributions', 'extract_wininst_cfg',
