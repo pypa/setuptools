@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+-----
+8.2.1
+-----
+
+* Issue #306: Suppress warnings about Version format except in select scenarios
+  (such as installation).
+
 ---
 8.2
 ---
