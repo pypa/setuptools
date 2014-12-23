@@ -193,10 +193,7 @@ class build_ext(_build_ext):
         # XXX static-compiled version
         libnames = dict.fromkeys([lib._full_name for lib in self.shlibs])
         pkg = '.'.join(ext._full_name.split('.')[:-1] + [''])
-        for libname in ext.libraries:
-            if pkg + libname in libnames:
-                return True
-        return False
+        return any(pkg + libname in libnames for libname in ext.libraries)
 
     def get_outputs(self):
         outputs = _build_ext.get_outputs(self)
