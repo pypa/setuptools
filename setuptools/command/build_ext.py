@@ -6,6 +6,7 @@ from distutils.errors import DistutilsError
 from distutils import log
 import os
 import sys
+import itertools
 
 from setuptools.extension import Library
 
@@ -199,15 +200,16 @@ class build_ext(_build_ext):
         return _build_ext.get_outputs(self) + self.__get_stubs_outputs()
 
     def __get_stubs_outputs(self):
-        outputs = []
         fn_exts = ['.py', '.pyc']
         if self.get_finalized_command('build_py').optimize:
             fn_exts.append('.pyo')
         ns_ext = (ext for ext in self.extensions if ext._needs_stub)
-        for ext in ns_ext:
-            base = os.path.join(self.build_lib, *ext._full_name.split('.'))
-            outputs.extend(base + fnext for fnext in fn_exts)
-        return outputs
+        ns_ext_bases = (
+            os.path.join(self.build_lib, *ext._full_name.split('.'))
+            for ext in ns_ext
+        )
+        pairs = itertools.product(ns_ext_bases, fn_exts)
+        return (base + fnext for base, fnext in pairs)
 
     def write_stub(self, output_dir, ext, compile=False):
         log.info("writing stub loader for %s to %s", ext._full_name,
