@@ -203,10 +203,10 @@ class build_ext(_build_ext):
         fn_exts = ['.py', '.pyc']
         if self.get_finalized_command('build_py').optimize:
             fn_exts.append('.pyo')
-        ns_ext = (ext for ext in self.extensions if ext._needs_stub)
         ns_ext_bases = (
             os.path.join(self.build_lib, *ext._full_name.split('.'))
-            for ext in ns_ext
+            for ext in self.extensions
+            if ext._needs_stub
         )
         pairs = itertools.product(ns_ext_bases, fn_exts)
         return (base + fnext for base, fnext in pairs)
