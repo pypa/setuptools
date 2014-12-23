@@ -208,7 +208,7 @@ class build_ext(_build_ext):
         )
         # pair each base with the extension
         pairs = itertools.product(ns_ext_bases, self.__get_output_extensions())
-        return (base + fnext for base, fnext in pairs)
+        return list(base + fnext for base, fnext in pairs)
 
     def __get_output_extensions(self):
         yield '.py'
