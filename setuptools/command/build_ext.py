@@ -196,7 +196,10 @@ class build_ext(_build_ext):
         return any(pkg + libname in libnames for libname in ext.libraries)
 
     def get_outputs(self):
-        outputs = _build_ext.get_outputs(self)
+        return _build_ext.get_outputs(self) + self.__get_stubs_outputs()
+
+    def __get_stubs_outputs(self):
+        outputs = []
         fn_exts = ['.py', '.pyc']
         if self.get_finalized_command('build_py').optimize:
             fn_exts.append('.pyo')
