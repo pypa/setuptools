@@ -118,10 +118,10 @@ class build_ext(_build_ext):
             # XXX what to do with conflicts?
             self.ext_map[fullname.split('.')[-1]] = ext
 
-            ltd = ext._links_to_dynamic = \
-                self.shlibs and self.links_to_dynamic(ext) or False
-            ext._needs_stub = ltd and use_stubs and not isinstance(ext,
-                                                                   Library)
+            ltd = self.shlibs and self.links_to_dynamic(ext) or False
+            ns = ltd and use_stubs and not isinstance(ext, Library)
+            ext._links_to_dynamic = ltd
+            ext._needs_stub = ns
             filename = ext._file_name = self.get_ext_filename(fullname)
             libdir = os.path.dirname(os.path.join(self.build_lib, filename))
             if ltd and libdir not in ext.library_dirs:
