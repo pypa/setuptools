@@ -198,8 +198,8 @@ class build_ext(_build_ext):
     def get_outputs(self):
         outputs = _build_ext.get_outputs(self)
         optimize = self.get_finalized_command('build_py').optimize
-        for ext in self.extensions:
-            if ext._needs_stub:
+        ns_ext = (ext for ext in self.extensions if ext._needs_stub)
+        for ext in ns_ext:
                 base = os.path.join(self.build_lib, *ext._full_name.split('.'))
                 outputs.append(base + '.py')
                 outputs.append(base + '.pyc')
