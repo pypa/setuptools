@@ -181,9 +181,8 @@ class build_ext(_build_ext):
                 self.compiler = self.shlib_compiler
             _build_ext.build_extension(self, ext)
             if ext._needs_stub:
-                self.write_stub(
-                    self.get_finalized_command('build_py').build_lib, ext
-                )
+                cmd = self.get_finalized_command('build_py').build_lib
+                self.write_stub(cmd, ext)
         finally:
             self.compiler = _compiler
 
