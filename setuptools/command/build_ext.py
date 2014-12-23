@@ -39,10 +39,7 @@ elif os.name != 'nt':
         pass
 
 
-def if_dl(s):
-    if have_rtld:
-        return s
-    return ''
+if_dl = lambda s: s if have_rtld else ''
 
 
 class build_ext(_build_ext):
