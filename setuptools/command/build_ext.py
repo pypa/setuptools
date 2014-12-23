@@ -200,11 +200,13 @@ class build_ext(_build_ext):
         return _build_ext.get_outputs(self) + self.__get_stubs_outputs()
 
     def __get_stubs_outputs(self):
+        # assemble the base name for each extension that needs a stub
         ns_ext_bases = (
             os.path.join(self.build_lib, *ext._full_name.split('.'))
             for ext in self.extensions
             if ext._needs_stub
         )
+        # pair each base with the extension
         pairs = itertools.product(ns_ext_bases, self.__get_output_extensions())
         return (base + fnext for base, fnext in pairs)
 
