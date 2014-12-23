@@ -200,16 +200,19 @@ class build_ext(_build_ext):
         return _build_ext.get_outputs(self) + self.__get_stubs_outputs()
 
     def __get_stubs_outputs(self):
-        fn_exts = ['.py', '.pyc']
-        if self.get_finalized_command('build_py').optimize:
-            fn_exts.append('.pyo')
         ns_ext_bases = (
             os.path.join(self.build_lib, *ext._full_name.split('.'))
             for ext in self.extensions
             if ext._needs_stub
         )
-        pairs = itertools.product(ns_ext_bases, fn_exts)
+        pairs = itertools.product(ns_ext_bases, self.__get_output_extensions())
         return (base + fnext for base, fnext in pairs)
+
+    def __get_output_extensions(self):
+        yield '.py'
+        yield '.pyc'
+        if self.get_finalized_command('build_py').optimize:
+            yield '.pyo'
 
     def write_stub(self, output_dir, ext, compile=False):
         log.info("writing stub loader for %s to %s", ext._full_name,
