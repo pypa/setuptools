@@ -33,10 +33,8 @@ if sys.platform == "darwin":
     use_stubs = True
 elif os.name != 'nt':
     try:
-        from dl import RTLD_NOW
-
-        have_rtld = True
-        use_stubs = True
+        import dl
+        use_stubs = have_rtld = hasattr(dl, 'RTLD_NOW')
     except ImportError:
         pass
 
