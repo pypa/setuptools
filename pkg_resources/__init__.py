@@ -75,9 +75,9 @@ try:
 except ImportError:
     pass
 
-import setuptools._vendor.packaging.version
-import setuptools._vendor.packaging.specifiers
-packaging = setuptools._vendor.packaging
+import pkg_resources._vendor.packaging.version
+import pkg_resources._vendor.packaging.specifiers
+packaging = pkg_resources._vendor.packaging
 
 
 class PEP440Warning(RuntimeWarning):

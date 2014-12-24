@@ -17,8 +17,8 @@ try:
     import packaging.version
 except ImportError:
     # fallback to vendored version
-    import setuptools._vendor.packaging.version
-    packaging = setuptools._vendor.packaging
+    import pkg_resources._vendor.packaging.version
+    packaging = pkg_resources._vendor.packaging
 
 from setuptools.depends import Require
 from setuptools.compat import basestring, PY2

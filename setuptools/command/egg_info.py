@@ -15,8 +15,8 @@ try:
     import packaging.version
 except ImportError:
     # fallback to vendored version
-    import setuptools._vendor.packaging.version
-    packaging = setuptools._vendor.packaging
+    import pkg_resources._vendor.packaging.version
+    packaging = pkg_resources._vendor.packaging
 
 from setuptools import Command
 from setuptools.command.sdist import sdist
