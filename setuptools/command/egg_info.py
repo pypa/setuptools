@@ -11,10 +11,14 @@ import os
 import re
 import sys
 
+try:
+    from setuptools_svn import svn_utils
+except ImportError:
+    pass
+
 from setuptools import Command
 from setuptools.command.sdist import sdist
 from setuptools.compat import basestring, PY3, StringIO
-from setuptools import svn_utils
 from setuptools.command.sdist import walk_revctrl
 from pkg_resources import (
     parse_requirements, safe_name, parse_version,
@@ -190,6 +194,8 @@ class egg_info(Command):
 
     @staticmethod
     def get_svn_revision():
+        if 'svn_utils' not in globals():
+            return "0"
         return str(svn_utils.SvnInfo.load(os.curdir).get_revision())
 
     def find_sources(self):
