@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+---
+8.3
+---
+
+* Issue #311: Decoupled pkg_resources from setuptools once again.
+  ``pkg_resources`` is now a package instead of a module.
+
 -----
 8.2.1
 -----
