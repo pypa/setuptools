@@ -8,14 +8,12 @@ import tempfile
 import shutil
 from unittest import TestCase
 
-import pkg_resources._vendor.packaging.version
-import pkg_resources._vendor.packaging.specifiers
-packaging = pkg_resources._vendor.packaging
-
 import pkg_resources
 from pkg_resources import (parse_requirements, VersionConflict, parse_version,
     Distribution, EntryPoint, Requirement, safe_version, safe_name,
     WorkingSet)
+
+packaging = pkg_resources.packaging
 
 from setuptools.command.easy_install import (get_script_header, is_sh,
     nt_quote_arg)

@@ -11,13 +11,6 @@ import os
 import re
 import sys
 
-try:
-    import packaging.version
-except ImportError:
-    # fallback to vendored version
-    import pkg_resources._vendor.packaging.version
-    packaging = pkg_resources._vendor.packaging
-
 from setuptools import Command
 from setuptools.command.sdist import sdist
 from setuptools.compat import basestring, PY3, StringIO
@@ -28,6 +21,7 @@ from pkg_resources import (
     safe_version, yield_lines, EntryPoint, iter_entry_points, to_filename)
 import setuptools.unicode_utils as unicode_utils
 
+from pkg_resources import packaging
 
 class egg_info(Command):
     description = "create a distribution's .egg-info directory"

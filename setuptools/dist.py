@@ -13,17 +13,12 @@ from distutils.core import Distribution as _Distribution
 from distutils.errors import (DistutilsOptionError, DistutilsPlatformError,
     DistutilsSetupError)
 
-try:
-    import packaging.version
-except ImportError:
-    # fallback to vendored version
-    import pkg_resources._vendor.packaging.version
-    packaging = pkg_resources._vendor.packaging
-
 from setuptools.depends import Require
 from setuptools.compat import basestring, PY2
 from setuptools import windows_support
 import pkg_resources
+
+packaging = pkg_resources.packaging
 
 
 def _get_unpatched(cls):

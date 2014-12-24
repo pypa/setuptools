@@ -75,9 +75,14 @@ try:
 except ImportError:
     pass
 
-import pkg_resources._vendor.packaging.version
-import pkg_resources._vendor.packaging.specifiers
-packaging = pkg_resources._vendor.packaging
+try:
+    import packaging.version
+    import packaging.specifiers
+except ImportError:
+    # fallback to vendored version
+    import pkg_resources._vendor.packaging.version
+    import pkg_resources._vendor.packaging.specifiers
+    packaging = pkg_resources._vendor.packaging
 
 
 class PEP440Warning(RuntimeWarning):
