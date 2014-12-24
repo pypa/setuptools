@@ -128,7 +128,7 @@ setup_params = dict(
     packages=setuptools.find_packages(),
     package_data=package_data,
 
-    py_modules=['pkg_resources', 'easy_install'],
+    py_modules=['easy_install'],
 
     zip_safe=True,
 
