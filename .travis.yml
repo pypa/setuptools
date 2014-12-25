@@ -8,6 +8,9 @@ python:
   - pypy
 # command to run tests
 script:
+ # invoke bootstrap and override egg_info based on setup.py in checkout
+ - python bootstrap.py
  - python setup.py egg_info
+
  - python setup.py ptr
  - python ez_setup.py --version 7.0
