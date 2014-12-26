@@ -3,6 +3,12 @@ CHANGES
 =======
 
 ---
+8.4
+---
+
+* Pull Request #106: Now write ``setup_requires`` metadata.
+
+---
 8.3
 ---
 
