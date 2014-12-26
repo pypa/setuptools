@@ -20,7 +20,7 @@ from setuptools.depends import Require
 def additional_tests():
     suite = unittest.TestSuite((
         doctest.DocFileSuite(
-            os.path.join('tests', 'api_tests.txt'),
+            'api_tests.txt',
             optionflags=doctest.ELLIPSIS, package='pkg_resources',
             ),
         ))
