@@ -286,6 +286,12 @@ that can be used to obtain ``Requirement`` objects describing the
 project's core and optional dependencies.
 
 
+``setup_requires.txt``
+----------------------
+
+Much like ``requires.txt`` except represents the requirements
+specified by the ``setup_requires`` parameter to the Distribution.
+
 
 ``dependency_links.txt``
 ------------------------
