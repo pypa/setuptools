@@ -3,6 +3,13 @@ CHANGES
 =======
 
 ---
+9.0
+---
+
+* Issue #314: Disabled support for ``setup_requires`` metadata to avoid issue
+  where Setuptools was unable to upgrade over earlier versions.
+
+---
 8.4
 ---
 
