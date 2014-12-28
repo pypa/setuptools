@@ -98,13 +98,18 @@ def save_modules():
     finally:
         sys.modules.update(saved)
         # remove any modules imported since
-        del_modules = [
+        del_modules = (
             mod_name for mod_name in sys.modules
             if mod_name not in saved
             # exclude any encodings modules. See #285
             and not mod_name.startswith('encodings.')
-        ]
-        list(map(sys.modules.__delitem__, del_modules))
+        )
+        _clear_modules(del_modules)
+
+
+def _clear_modules(module_names):
+    for mod_name in list(module_names):
+        del sys.modules[mod_name]
 
 
 @contextlib.contextmanager
@@ -151,8 +156,8 @@ def hide_setuptools():
     necessary to avoid issues such as #315 where setuptools upgrading itself
     would fail to find a function declared in the metadata.
     """
-    modules = list(filter(_is_setuptools_module, sys.modules))
-    list(map(sys.modules.__delitem__, modules))
+    modules = filter(_is_setuptools_module, sys.modules)
+    _clear_modules(modules)
 
 
 def run_setup(setup_script, args):
