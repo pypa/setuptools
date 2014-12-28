@@ -136,15 +136,15 @@ def setup_context(setup_dir):
 
 def _is_setuptools_module(mod_name):
     """
-    >>> is_setuptools_module('setuptools')
+    >>> _is_setuptools_module('setuptools')
     True
-    >>> is_setuptools_module('pkg_resources')
+    >>> _is_setuptools_module('pkg_resources')
     True
-    >>> is_setuptools_module('setuptools_plugin')
+    >>> _is_setuptools_module('setuptools_plugin')
     False
-    >>> is_setuptools_module('setuptools.__init__')
+    >>> _is_setuptools_module('setuptools.__init__')
     True
-    >>> is_setuptools_module('distutils')
+    >>> _is_setuptools_module('distutils')
     True
     """
     pattern = re.compile('(setuptools|pkg_resources|distutils)(\.|$)')
