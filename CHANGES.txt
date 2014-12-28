@@ -8,6 +8,10 @@ CHANGES
 
 * Issue #314: Disabled support for ``setup_requires`` metadata to avoid issue
   where Setuptools was unable to upgrade over earlier versions.
+* Issue #315: Updated setuptools to hide its own loaded modules during
+  installation of another package. This change will enable setuptools to
+  upgrade (or downgrade) itself even when its own metadata and implementation
+  change.
 
 ---
 8.4
