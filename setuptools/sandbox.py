@@ -134,17 +134,17 @@ def setup_context(setup_dir):
                             yield
 
 
-def _is_setuptools_module(mod_name):
+def _needs_hiding(mod_name):
     """
-    >>> _is_setuptools_module('setuptools')
+    >>> _needs_hiding('setuptools')
     True
-    >>> _is_setuptools_module('pkg_resources')
+    >>> _needs_hiding('pkg_resources')
     True
-    >>> _is_setuptools_module('setuptools_plugin')
+    >>> _needs_hiding('setuptools_plugin')
     False
-    >>> _is_setuptools_module('setuptools.__init__')
+    >>> _needs_hiding('setuptools.__init__')
     True
-    >>> _is_setuptools_module('distutils')
+    >>> _needs_hiding('distutils')
     True
     """
     pattern = re.compile('(setuptools|pkg_resources|distutils)(\.|$)')
@@ -158,7 +158,7 @@ def hide_setuptools():
     necessary to avoid issues such as #315 where setuptools upgrading itself
     would fail to find a function declared in the metadata.
     """
-    modules = filter(_is_setuptools_module, sys.modules)
+    modules = filter(_needs_hiding, sys.modules)
     _clear_modules(modules)
 
 
