@@ -144,8 +144,10 @@ def _is_setuptools_module(mod_name):
     False
     >>> is_setuptools_module('setuptools.__init__')
     True
+    >>> is_setuptools_module('distutils')
+    True
     """
-    pattern = re.compile('(setuptools|pkg_resources)(\.|$)')
+    pattern = re.compile('(setuptools|pkg_resources|distutils)(\.|$)')
     return bool(pattern.match(mod_name))
 
 
