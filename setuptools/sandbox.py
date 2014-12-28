@@ -121,11 +121,38 @@ def setup_context(setup_dir):
     temp_dir = os.path.join(setup_dir, 'temp')
     with save_pkg_resources_state():
         with save_modules():
+            hide_setuptools()
             with save_path():
                 with save_argv():
                     with override_temp(temp_dir):
                         with pushd(setup_dir):
                             yield
+
+
+def _is_setuptools_module(mod_name):
+    """
+    >>> is_setuptools_module('setuptools')
+    True
+    >>> is_setuptools_module('pkg_resources')
+    True
+    >>> is_setuptools_module('setuptools_plugin')
+    False
+    >>> is_setuptools_module('setuptools.__init__')
+    True
+    """
+    pattern = re.compile('(setuptools|pkg_resources)(\.|$)')
+    return bool(pattern.match(mod_name))
+
+
+def hide_setuptools():
+    """
+    Remove references to setuptools' modules from sys.modules to allow the
+    invocation to import the most appropriate setuptools. This technique is
+    necessary to avoid issues such as #315 where setuptools upgrading itself
+    would fail to find a function declared in the metadata.
+    """
+    modules = list(filter(_is_setuptools_module, sys.modules))
+    list(map(sys.modules.__delitem__, modules))
 
 
 def run_setup(setup_script, args):
