@@ -23,7 +23,6 @@ from pkg_resources import working_set, VersionConflict
 from pkg_resources import Distribution as PRDistribution
 import setuptools.tests.server
 import pkg_resources
-from .py26compat import skipIf
 
 class FakeDist(object):
     def get_entry_map(self, group):
