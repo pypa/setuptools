@@ -2,14 +2,27 @@
 CHANGES
 =======
 
----
-9.0
----
+----
+10.0
+----
 
 * Issue #313: Removed built-in support for subversion. Projects wishing to
   retain support for subversion will need to use a third party library. The
   extant implementation is being ported to `setuptools_svn
   <https://pypi.python.org/pypi/setuptools_svn>`_.
+
+---
+9.0
+---
+
+* Issue #314: Disabled support for ``setup_requires`` metadata to avoid issue
+  where Setuptools was unable to upgrade over earlier versions.
+
+---
+8.4
+---
+
+* Pull Request #106: Now write ``setup_requires`` metadata.
 
 ---
 8.3

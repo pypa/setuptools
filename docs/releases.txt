@@ -17,6 +17,24 @@ revision slated for release::
 
     python -m jaraco.packaging.release
 
+Bootstrap Bookmark
+------------------
+
+Setuptools has a bootstrap script (ez_setup.py) which is hosted in the
+repository and must be updated with each release (to bump the default version).
+The "published" version of the script is the one indicated by the ``bootstrap``
+bookmark (Mercurial) or branch (Git).
+
+Therefore, the latest bootstrap script can be retrieved by checking out the
+repository at that bookmark. It's also possible to get the bootstrap script for
+any particular release by grabbing the script from that tagged release.
+
+The officially-published location of the bootstrap script is hosted on Python
+infrastructure (#python-infra on freenode) at https://bootstrap.pypa.io and
+is updated every fifteen minutes from the bootstrap script. Sometimes,
+especially when the bootstrap script is rolled back, this
+process doesn't work as expected and requires manual intervention.
+
 Release Frequency
 -----------------
 
