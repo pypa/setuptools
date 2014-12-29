@@ -2121,10 +2121,10 @@ def main(argv=None, **kw):
     from setuptools.dist import Distribution
     import distutils.core
 
-    USAGE = """\
-usage: %(script)s [options] requirement_or_url ...
-   or: %(script)s --help
-"""
+    USAGE = textwrap.dedent("""
+        usage: %(script)s [options] requirement_or_url ...
+           or: %(script)s --help
+        """).lstrip()
 
     def gen_usage(script_name):
         return USAGE % dict(
