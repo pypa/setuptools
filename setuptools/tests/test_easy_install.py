@@ -12,6 +12,8 @@ import tarfile
 import logging
 import distutils.core
 
+import pytest
+
 from setuptools.compat import StringIO, BytesIO, urlparse
 from setuptools.sandbox import run_setup, SandboxViolation
 from setuptools.command.easy_install import (
@@ -278,8 +280,8 @@ class TestSetupRequires(unittest.TestCase):
                             with argv_context(['easy_install']):
                                 # attempt to install the dist. It should fail because
                                 #  it doesn't exist.
-                                self.assertRaises(SystemExit,
-                                    easy_install_pkg.main, ei_params)
+                                with pytest.raises(SystemExit):
+                                    easy_install_pkg.main(ei_params)
         # there should have been two or three requests to the server
         #  (three happens on Python 3.3a)
         self.assertTrue(2 <= len(p_index.requests) <= 3)
