@@ -435,10 +435,10 @@ def reset_setup_stop_context():
     within those tests, it's necessary to reset the global variable
     in distutils.core so that the setup() command will run naturally.
     """
-    setup_stop_after = distutils.core._setup_stop_after
+    saved = distutils.core._setup_stop_after
     distutils.core._setup_stop_after = None
     yield
-    distutils.core._setup_stop_after = setup_stop_after
+    distutils.core._setup_stop_after = saved
 
 
 @contextlib.contextmanager
