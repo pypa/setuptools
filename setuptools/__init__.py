@@ -1,7 +1,6 @@
 """Extensions to the 'distutils' for large or complex distributions"""
 
 import os
-import sys
 import distutils.core
 import distutils.filelist
 from distutils.core import Command as _Command
