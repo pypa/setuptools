@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+-----
+9.0.1
+-----
+
+* Issue #312: Restored presence of pkg_resources API tests (doctest) to sdist.
+
 ---
 9.0
 ---
