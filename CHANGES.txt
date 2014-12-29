@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+---
+9.1
+---
+
+* Prefer vendored packaging library `as recommended
+  <https://github.com/jaraco/setuptools/commit/170657b68f4b92e7e1bf82f5e19a831f5744af67#commitcomment-9109448>`_.
+
 -----
 9.0.1
 -----
