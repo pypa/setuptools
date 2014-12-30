@@ -35,24 +35,24 @@ class FakeDist(object):
     def as_requirement(self):
         return 'spec'
 
-WANTED = """\
-#!%s
-# EASY-INSTALL-ENTRY-SCRIPT: 'spec','console_scripts','name'
-__requires__ = 'spec'
-import sys
-from pkg_resources import load_entry_point
+WANTED = textwrap.dedent("""
+    #!%s
+    # EASY-INSTALL-ENTRY-SCRIPT: 'spec','console_scripts','name'
+    __requires__ = 'spec'
+    import sys
+    from pkg_resources import load_entry_point
 
-if __name__ == '__main__':
-    sys.exit(
-        load_entry_point('spec', 'console_scripts', 'name')()
-    )
-""" % nt_quote_arg(fix_jython_executable(sys.executable, ""))
+    if __name__ == '__main__':
+        sys.exit(
+            load_entry_point('spec', 'console_scripts', 'name')()
+        )
+    """).lstrip() % nt_quote_arg(fix_jython_executable(sys.executable, ""))
 
-SETUP_PY = """\
-from setuptools import setup
+SETUP_PY = textwrap.dedent("""
+    from setuptools import setup
 
-setup(name='foo')
-"""
+    setup(name='foo')
+    """).lstrip()
 
 class TestEasyInstallTest(unittest.TestCase):
 
