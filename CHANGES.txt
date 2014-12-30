@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+------
+10.0.1
+------
+
+* Issue #319: Fixed issue installing pure distutils packages.
+
 ----
 10.0
 ----
