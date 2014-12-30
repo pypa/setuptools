@@ -126,9 +126,7 @@ def setup_context(setup_dir):
     temp_dir = os.path.join(setup_dir, 'temp')
     with save_pkg_resources_state():
         with save_modules():
-            # Disabled per
-            # https://bitbucket.org/pypa/setuptools/issue/315/setuptools-should-always-use-its-own#comment-14512075
-            # hide_setuptools()
+            hide_setuptools()
             with save_path():
                 with save_argv():
                     with override_temp(temp_dir):
