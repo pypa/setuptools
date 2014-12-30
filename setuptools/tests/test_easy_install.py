@@ -13,7 +13,9 @@ import logging
 import distutils.core
 
 import pytest
+import mock
 
+from setuptools import sandbox
 from setuptools.compat import StringIO, BytesIO, urlparse
 from setuptools.sandbox import run_setup, SandboxViolation
 from setuptools.command.easy_install import (
@@ -227,6 +229,27 @@ class TestUserInstallTest(unittest.TestCase):
             else:
                 del os.environ['PYTHONPATH']
 
+    @contextlib.contextmanager
+    def user_install_setup_context(self, *args, **kwargs):
+        """
+        Wrap sandbox.setup_context to patch easy_install in that context to
+        appear as user-installed.
+        """
+        with self.orig_context(*args, **kwargs):
+            import setuptools.command.easy_install as ei
+            ei.__file__ = site.USER_SITE
+            yield
+
+
+    def patched_setup_context(self):
+        self.orig_context = sandbox.setup_context
+
+        return mock.patch(
+            'setuptools.sandbox.setup_context',
+            self.user_install_setup_context,
+        )
+
+
     def test_setup_requires(self):
         """Regression test for Distribute issue #318
 
@@ -241,6 +264,7 @@ class TestUserInstallTest(unittest.TestCase):
         try:
             with quiet_context():
                 with reset_setup_stop_context():
+                  with self.patched_setup_context():
                     run_setup(test_setup_py, ['install'])
         except SandboxViolation:
             self.fail('Installation caused SandboxViolation')

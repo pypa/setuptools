@@ -210,6 +210,7 @@ setup_params = dict(
     tests_require=[
         'setuptools[ssl]',
         'pytest',
+        'mock',
     ],
     setup_requires=[
     ] + pytest_runner,
