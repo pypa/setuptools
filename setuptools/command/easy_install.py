@@ -1549,10 +1549,14 @@ class PthDistributions(Environment):
 
     def add(self, dist):
         """Add `dist` to the distribution map"""
-        if (dist.location not in self.paths and (
-            dist.location not in self.sitedirs or
-            dist.location == os.getcwd()  # account for '.' being in PYTHONPATH
-        )):
+        new_path = (
+            dist.location not in self.paths and (
+                dist.location not in self.sitedirs or
+                # account for '.' being in PYTHONPATH
+                dist.location == os.getcwd()
+            )
+        )
+        if new_path:
             self.paths.append(dist.location)
             self.dirty = True
         Environment.add(self, dist)
