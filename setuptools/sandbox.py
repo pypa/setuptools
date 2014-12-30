@@ -152,6 +152,8 @@ def setup_context(setup_dir):
                 with save_argv():
                     with override_temp(temp_dir):
                         with pushd(setup_dir):
+                            # ensure setuptools commands are available
+                            __import__('setuptools')
                             yield
 
 
