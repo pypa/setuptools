@@ -301,16 +301,18 @@ class TestSetupRequires(unittest.TestCase):
         """
         with tempdir_context() as dir:
             dist_path = os.path.join(dir, 'setuptools-test-fetcher-1.0.tar.gz')
-            make_trivial_sdist(
-                dist_path,
-                DALS("""
+            script = DALS("""
                     import setuptools
                     setuptools.setup(
                         name="setuptools-test-fetcher",
                         version="1.0",
                         setup_requires = ['does-not-exist'],
                     )
-                """))
+                """)
+            make_trivial_sdist(
+                dist_path,
+                script,
+            )
             yield dist_path
 
     def test_setup_requires_overrides_version_conflict(self):
