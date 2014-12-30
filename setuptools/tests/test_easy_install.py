@@ -128,9 +128,8 @@ class TestUserInstallTest(unittest.TestCase):
     def setUp(self):
         self.dir = tempfile.mkdtemp()
         setup = os.path.join(self.dir, 'setup.py')
-        f = open(setup, 'w')
-        f.write(SETUP_PY)
-        f.close()
+        with open(setup, 'w') as f:
+            f.write(SETUP_PY)
         self.old_cwd = os.getcwd()
         os.chdir(self.dir)
 
@@ -191,11 +190,8 @@ class TestUserInstallTest(unittest.TestCase):
         new_location = tempfile.mkdtemp()
         target = tempfile.mkdtemp()
         egg_file = os.path.join(new_location, 'foo-1.0.egg-info')
-        f = open(egg_file, 'w')
-        try:
+        with open(egg_file, 'w') as f:
             f.write('Name: foo\n')
-        finally:
-            f.close()
 
         sys.path.append(target)
         old_ppath = os.environ.get('PYTHONPATH')
@@ -358,12 +354,11 @@ def create_setup_requires_package(path):
     test_setup_py = os.path.join(test_pkg, 'setup.py')
     os.mkdir(test_pkg)
 
-    f = open(test_setup_py, 'w')
-    f.write(textwrap.dedent("""\
-        import setuptools
-        setuptools.setup(**%r)
-    """ % test_setup_attrs))
-    f.close()
+    with open(test_setup_py, 'w') as f:
+        f.write(textwrap.dedent("""\
+            import setuptools
+            setuptools.setup(**%r)
+        """ % test_setup_attrs))
 
     foobar_path = os.path.join(path, 'foobar-0.1.tar.gz')
     make_trivial_sdist(
@@ -392,11 +387,8 @@ def make_trivial_sdist(dist_path, setup_py):
         MemFile = StringIO
     setup_py_bytes = MemFile(setup_py.encode('utf-8'))
     setup_py_file.size = len(setup_py_bytes.getvalue())
-    dist = tarfile.open(dist_path, 'w:gz')
-    try:
+    with tarfile.open(dist_path, 'w:gz') as dist:
         dist.addfile(setup_py_file, fileobj=setup_py_bytes)
-    finally:
-        dist.close()
 
 
 @contextlib.contextmanager
