@@ -114,10 +114,9 @@ class TestPTHFileWriter(unittest.TestCase):
         self.assertTrue(pth.dirty)
 
     def test_add_from_site_is_ignored(self):
-        if os.name != 'nt':
-            location = '/test/location/does-not-have-to-exist'
-        else:
-            location = 'c:\\does_not_exist'
+        location = '/test/location/does-not-have-to-exist'
+        # PthDistributions expects all locations to be normalized
+        location = pkg_resources.normalize_path(location)
         pth = PthDistributions('does-not_exist', [location, ])
         self.assertTrue(not pth.dirty)
         pth.add(PRDistribution(location))
