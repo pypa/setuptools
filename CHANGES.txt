@@ -2,6 +2,15 @@
 CHANGES
 =======
 
+----
+10.0
+----
+
+* Issue #313: Removed built-in support for subversion. Projects wishing to
+  retain support for subversion will need to use a third party library. The
+  extant implementation is being ported to `setuptools_svn
+  <https://pypi.python.org/pypi/setuptools_svn>`_.
+
 ---
 future
 ---

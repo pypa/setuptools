@@ -172,9 +172,6 @@ setup_params = dict(
         ],
         "console_scripts": console_scripts,
 
-        "setuptools.file_finders":
-            ["svn_cvs = setuptools.command.sdist:_default_revctrl"],
-
         "setuptools.installation":
             ['eggsecutable = setuptools.command.easy_install:bootstrap'],
     },

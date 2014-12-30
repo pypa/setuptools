@@ -1,4 +1,0 @@
-"third party3" file:///C:/development/svn_example/repos/svn18/extra1 
-'third party3b' file:///C:/development/svn_example/repos/svn18/extra1 
--r3 file:///C:/development/svn_example/repos/svn18/extra1 third\ party2
-file:///C:/development/svn_example/repos/svn18/extra1@r1 third_party
