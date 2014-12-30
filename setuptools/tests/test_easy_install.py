@@ -245,7 +245,7 @@ class TestUserInstallTest(unittest.TestCase):
 
         try:
             with quiet_context():
-                    run_setup(test_setup_py, ['install'])
+                run_setup(test_setup_py, ['install'])
         except SandboxViolation:
             self.fail('Installation caused SandboxViolation')
         except IndexError:
@@ -281,10 +281,10 @@ class TestSetupRequires(unittest.TestCase):
                             '--exclude-scripts', '--install-dir', temp_install_dir,
                             dist_file]
                         with argv_context(['easy_install']):
-                                # attempt to install the dist. It should fail because
-                                #  it doesn't exist.
-                                with pytest.raises(SystemExit):
-                                    easy_install_pkg.main(ei_params)
+                            # attempt to install the dist. It should fail because
+                            #  it doesn't exist.
+                            with pytest.raises(SystemExit):
+                                easy_install_pkg.main(ei_params)
         # there should have been two or three requests to the server
         #  (three happens on Python 3.3a)
         self.assertTrue(2 <= len(p_index.requests) <= 3)
@@ -329,13 +329,13 @@ class TestSetupRequires(unittest.TestCase):
                 test_pkg = create_setup_requires_package(temp_dir)
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
                 with quiet_context() as (stdout, stderr):
-                        try:
-                            # Don't even need to install the package, just
-                            # running the setup.py at all is sufficient
-                            run_setup(test_setup_py, ['--name'])
-                        except VersionConflict:
-                            self.fail('Installing setup.py requirements '
-                                'caused a VersionConflict')
+                    try:
+                        # Don't even need to install the package, just
+                        # running the setup.py at all is sufficient
+                        run_setup(test_setup_py, ['--name'])
+                    except VersionConflict:
+                        self.fail('Installing setup.py requirements '
+                            'caused a VersionConflict')
 
                 lines = stdout.readlines()
                 self.assertTrue(len(lines) > 0)
@@ -425,21 +425,6 @@ def argv_context(repl):
     sys.argv[:] = repl
     yield
     sys.argv[:] = old_argv
-
-@contextlib.contextmanager
-def reset_setup_stop_context():
-    """
-    When the setuptools tests are run using setup.py test, and then
-    one wants to invoke another setup() command (such as easy_install)
-    within those tests, it's necessary to reset the global variable
-    in distutils.core so that the setup() command will run naturally.
-    """
-    saved = distutils.core._setup_stop_after
-    if saved is None:
-        raise ValueError("Not Needed")
-    distutils.core._setup_stop_after = None
-    yield
-    distutils.core._setup_stop_after = saved
 
 
 @contextlib.contextmanager
