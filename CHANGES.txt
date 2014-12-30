@@ -10,11 +10,6 @@ CHANGES
   retain support for subversion will need to use a third party library. The
   extant implementation is being ported to `setuptools_svn
   <https://pypi.python.org/pypi/setuptools_svn>`_.
-
----
-future
----
-
 * Issue #315: Updated setuptools to hide its own loaded modules during
   installation of another package. This change will enable setuptools to
   upgrade (or downgrade) itself even when its own metadata and implementation
