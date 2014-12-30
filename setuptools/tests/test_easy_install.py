@@ -275,10 +275,13 @@ class TestSetupRequires(unittest.TestCase):
             with TestSetupRequires.create_sdist() as dist_file:
                 with tempdir_context() as temp_install_dir:
                     with environment_context(PYTHONPATH=temp_install_dir):
-                        ei_params = ['--index-url', p_index.url,
+                        ei_params = [
+                            '--index-url', p_index.url,
                             '--allow-hosts', p_index_loc,
-                            '--exclude-scripts', '--install-dir', temp_install_dir,
-                            dist_file]
+                            '--exclude-scripts',
+                            '--install-dir', temp_install_dir,
+                            dist_file,
+                        ]
                         with argv_context(['easy_install']):
                             # attempt to install the dist. It should fail because
                             #  it doesn't exist.
