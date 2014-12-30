@@ -44,7 +44,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'Setuptools'
-copyright = '2009-2013, The fellowship of the packaging'
+copyright = '2009-2014, The fellowship of the packaging'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
