@@ -17,7 +17,6 @@ def before_upload():
 
 
 def after_push():
-    os.remove('CHANGES (links).txt')
     BootstrapBookmark.push()
 
 files_with_versions = (
