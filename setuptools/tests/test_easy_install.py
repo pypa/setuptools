@@ -10,7 +10,6 @@ import contextlib
 import textwrap
 import tarfile
 import logging
-import distutils.core
 
 import pytest
 
