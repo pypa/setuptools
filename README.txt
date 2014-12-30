@@ -83,12 +83,12 @@ Alternatively, Setuptools may be installed to a user-local path::
 
     > wget https://bootstrap.pypa.io/ez_setup.py -O - | python - --user
 
-Note that on some older systems (noted on Debian 6 and CentOS 5 installations), 
-`wget` may refuse to download `ez_setup.py`, complaining that the certificate common name `*.c.ssl.fastly.net` 
+Note that on some older systems (noted on Debian 6 and CentOS 5 installations),
+`wget` may refuse to download `ez_setup.py`, complaining that the certificate common name `*.c.ssl.fastly.net`
 does not match the host name `bootstrap.pypa.io`. In addition, the `ez_setup.py` script may then encounter similar problems using
-`wget` internally to download `setuptools-x.y.zip`, complaining that the certificate common name of `www.python.org` does not match the 
-host name `pypi.python.org`. Those are known issues, related to a bug in the older versions of `wget` 
-(see `Issue 59 <https://bitbucket.org/pypa/pypi/issue/59#comment-5881915>`_). If you happen to encounter them, 
+`wget` internally to download `setuptools-x.y.zip`, complaining that the certificate common name of `www.python.org` does not match the
+host name `pypi.python.org`. Those are known issues, related to a bug in the older versions of `wget`
+(see `Issue 59 <https://bitbucket.org/pypa/pypi/issue/59#comment-5881915>`_). If you happen to encounter them,
 install Setuptools as follows::
 
     > wget --no-check-certificate https://bootstrap.pypa.io/ez_setup.py
