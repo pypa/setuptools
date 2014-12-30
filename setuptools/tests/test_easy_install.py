@@ -26,6 +26,8 @@ from pkg_resources import Distribution as PRDistribution
 import setuptools.tests.server
 import pkg_resources
 
+from .py26compat import tarfile_open
+
 class FakeDist(object):
     def get_entry_map(self, group):
         if group != 'console_scripts':
@@ -387,7 +389,7 @@ def make_trivial_sdist(dist_path, setup_py):
         MemFile = StringIO
     setup_py_bytes = MemFile(setup_py.encode('utf-8'))
     setup_py_file.size = len(setup_py_bytes.getvalue())
-    with tarfile.open(dist_path, 'w:gz') as dist:
+    with tarfile_open(dist_path, 'w:gz') as dist:
         dist.addfile(setup_py_file, fileobj=setup_py_bytes)
 
 
