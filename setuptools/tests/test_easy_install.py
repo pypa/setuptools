@@ -10,6 +10,7 @@ import contextlib
 import textwrap
 import tarfile
 import logging
+import itertools
 
 import pytest
 
@@ -82,7 +83,8 @@ class TestEasyInstallTest(unittest.TestCase):
 
         old_platform = sys.platform
         try:
-            name, script = [i for i in next(get_script_args(dist))][0:2]
+            args = next(get_script_args(dist))
+            name, script = itertools.islice(args, 2)
         finally:
             sys.platform = old_platform
 
