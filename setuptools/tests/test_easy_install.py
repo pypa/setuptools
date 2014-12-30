@@ -264,8 +264,8 @@ class TestUserInstallTest(unittest.TestCase):
         try:
             with quiet_context():
                 with reset_setup_stop_context():
-                  with self.patched_setup_context():
-                    run_setup(test_setup_py, ['install'])
+                    with self.patched_setup_context():
+                        run_setup(test_setup_py, ['install'])
         except SandboxViolation:
             self.fail('Installation caused SandboxViolation')
         except IndexError:
