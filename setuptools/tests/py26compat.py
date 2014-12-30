@@ -17,10 +17,11 @@ except AttributeError:
 
 def _tarfile_open_ex(*args, **kwargs):
 	"""
-	Extend result with an __exit__ to close the file.
+	Extend result as a context manager.
 	"""
 	res = tarfile.open(*args, **kwargs)
 	res.__exit__ = lambda self: self.close()
+	res.__enter__ = lambda self: self
 	return res
 
 tarfile_open = _tarfile_open_ex if sys.version_info < (2,7) else  tarfile.open
