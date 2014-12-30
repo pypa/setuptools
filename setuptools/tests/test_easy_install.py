@@ -275,6 +275,23 @@ class TestUserInstallTest(unittest.TestCase):
             pass
 
 
+@pytest.yield_fixture
+def distutils_package():
+    distutils_setup_py = SETUP_PY.replace(
+        'from setuptools import setup',
+        'from distutils.core import setup',
+    )
+    with tempdir_context(cd=os.chdir):
+        with open('setup.py', 'w') as f:
+            f.write(distutils_setup_py)
+        yield
+
+
+class TestDistutilsPackage:
+    def test_bdist_egg_available_on_distutils_pkg(self, distutils_package):
+        run_setup('setup.py', ['bdist_egg'])
+
+
 class TestSetupRequires(unittest.TestCase):
 
     def test_setup_requires_honors_fetch_params(self):
