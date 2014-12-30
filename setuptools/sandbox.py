@@ -6,6 +6,7 @@ import functools
 import itertools
 import re
 import contextlib
+import pickle
 
 import pkg_resources
 
@@ -21,6 +22,7 @@ _open = open
 from distutils.errors import DistutilsError
 from pkg_resources import working_set
 
+from setuptools import compat
 from setuptools.compat import builtins
 
 __all__ = [
@@ -92,19 +94,38 @@ def pushd(target):
 
 @contextlib.contextmanager
 def save_modules():
+    """
+    Context in which imported modules are saved.
+
+    Translates exceptions internal to the context into the equivalent exception
+    outside the context.
+    """
     saved = sys.modules.copy()
     try:
-        yield saved
-    finally:
-        sys.modules.update(saved)
-        # remove any modules imported since
-        del_modules = (
-            mod_name for mod_name in sys.modules
-            if mod_name not in saved
-            # exclude any encodings modules. See #285
-            and not mod_name.startswith('encodings.')
-        )
-        _clear_modules(del_modules)
+        try:
+            yield saved
+        except:
+            # dump any exception
+            class_, exc, tb = sys.exc_info()
+            saved_cls = pickle.dumps(class_)
+            saved_exc = pickle.dumps(exc)
+            raise
+        finally:
+            sys.modules.update(saved)
+            # remove any modules imported since
+            del_modules = (
+                mod_name for mod_name in sys.modules
+                if mod_name not in saved
+                # exclude any encodings modules. See #285
+                and not mod_name.startswith('encodings.')
+            )
+            _clear_modules(del_modules)
+    except:
+        # reload and re-raise any exception, using restored modules
+        class_, exc, tb = sys.exc_info()
+        new_cls = pickle.loads(saved_cls)
+        new_exc = pickle.loads(saved_exc)
+        compat.reraise(new_cls, new_exc, tb)
 
 
 def _clear_modules(module_names):
