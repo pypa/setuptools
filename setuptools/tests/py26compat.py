@@ -1,4 +1,6 @@
+import sys
 import unittest
+import tarfile
 
 try:
 	# provide skipIf for Python 2.4-2.6
@@ -12,3 +14,14 @@ except AttributeError:
 				return skip
 			return func
 		return skipper
+
+def _tarfile_open_ex(*args, **kwargs):
+	"""
+	Extend result as a context manager.
+	"""
+	res = tarfile.open(*args, **kwargs)
+	res.__exit__ = lambda exc_type, exc_value, traceback: res.close()
+	res.__enter__ = lambda: res
+	return res
+
+tarfile_open = _tarfile_open_ex if sys.version_info < (2,7) else tarfile.open

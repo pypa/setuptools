@@ -10,7 +10,7 @@ import contextlib
 import textwrap
 import tarfile
 import logging
-import distutils.core
+import itertools
 
 import pytest
 import mock
@@ -28,6 +28,16 @@ from pkg_resources import Distribution as PRDistribution
 import setuptools.tests.server
 import pkg_resources
 
+from .py26compat import tarfile_open
+
+
+def DALS(input):
+    """
+    Dedent and left-strip
+    """
+    return textwrap.dedent(input).lstrip()
+
+
 class FakeDist(object):
     def get_entry_map(self, group):
         if group != 'console_scripts':
@@ -37,24 +47,24 @@ class FakeDist(object):
     def as_requirement(self):
         return 'spec'
 
-WANTED = """\
-#!%s
-# EASY-INSTALL-ENTRY-SCRIPT: 'spec','console_scripts','name'
-__requires__ = 'spec'
-import sys
-from pkg_resources import load_entry_point
+WANTED = DALS("""
+    #!%s
+    # EASY-INSTALL-ENTRY-SCRIPT: 'spec','console_scripts','name'
+    __requires__ = 'spec'
+    import sys
+    from pkg_resources import load_entry_point
 
-if __name__ == '__main__':
-    sys.exit(
-        load_entry_point('spec', 'console_scripts', 'name')()
-    )
-""" % nt_quote_arg(fix_jython_executable(sys.executable, ""))
+    if __name__ == '__main__':
+        sys.exit(
+            load_entry_point('spec', 'console_scripts', 'name')()
+        )
+    """) % nt_quote_arg(fix_jython_executable(sys.executable, ""))
 
-SETUP_PY = """\
-from setuptools import setup
+SETUP_PY = DALS("""
+    from setuptools import setup
 
-setup(name='foo')
-"""
+    setup(name='foo')
+    """)
 
 class TestEasyInstallTest(unittest.TestCase):
 
@@ -73,11 +83,8 @@ class TestEasyInstallTest(unittest.TestCase):
     def test_get_script_args(self):
         dist = FakeDist()
 
-        old_platform = sys.platform
-        try:
-            name, script = [i for i in next(get_script_args(dist))][0:2]
-        finally:
-            sys.platform = old_platform
+        args = next(get_script_args(dist))
+        name, script = itertools.islice(args, 2)
 
         self.assertEqual(script, WANTED)
 
@@ -116,10 +123,9 @@ class TestPTHFileWriter(unittest.TestCase):
         self.assertTrue(pth.dirty)
 
     def test_add_from_site_is_ignored(self):
-        if os.name != 'nt':
-            location = '/test/location/does-not-have-to-exist'
-        else:
-            location = 'c:\\does_not_exist'
+        location = '/test/location/does-not-have-to-exist'
+        # PthDistributions expects all locations to be normalized
+        location = pkg_resources.normalize_path(location)
         pth = PthDistributions('does-not_exist', [location, ])
         self.assertTrue(not pth.dirty)
         pth.add(PRDistribution(location))
@@ -131,9 +137,8 @@ class TestUserInstallTest(unittest.TestCase):
     def setUp(self):
         self.dir = tempfile.mkdtemp()
         setup = os.path.join(self.dir, 'setup.py')
-        f = open(setup, 'w')
-        f.write(SETUP_PY)
-        f.close()
+        with open(setup, 'w') as f:
+            f.write(SETUP_PY)
         self.old_cwd = os.getcwd()
         os.chdir(self.dir)
 
@@ -194,11 +199,8 @@ class TestUserInstallTest(unittest.TestCase):
         new_location = tempfile.mkdtemp()
         target = tempfile.mkdtemp()
         egg_file = os.path.join(new_location, 'foo-1.0.egg-info')
-        f = open(egg_file, 'w')
-        try:
+        with open(egg_file, 'w') as f:
             f.write('Name: foo\n')
-        finally:
-            f.close()
 
         sys.path.append(target)
         old_ppath = os.environ.get('PYTHONPATH')
@@ -263,9 +265,8 @@ class TestUserInstallTest(unittest.TestCase):
 
         try:
             with quiet_context():
-                with reset_setup_stop_context():
-                    with self.patched_setup_context():
-                        run_setup(test_setup_py, ['install'])
+                with self.patched_setup_context():
+                    run_setup(test_setup_py, ['install'])
         except SandboxViolation:
             self.fail('Installation caused SandboxViolation')
         except IndexError:
@@ -296,16 +297,18 @@ class TestSetupRequires(unittest.TestCase):
             with TestSetupRequires.create_sdist() as dist_file:
                 with tempdir_context() as temp_install_dir:
                     with environment_context(PYTHONPATH=temp_install_dir):
-                        ei_params = ['--index-url', p_index.url,
+                        ei_params = [
+                            '--index-url', p_index.url,
                             '--allow-hosts', p_index_loc,
-                            '--exclude-scripts', '--install-dir', temp_install_dir,
-                            dist_file]
-                        with reset_setup_stop_context():
-                            with argv_context(['easy_install']):
-                                # attempt to install the dist. It should fail because
-                                #  it doesn't exist.
-                                with pytest.raises(SystemExit):
-                                    easy_install_pkg.main(ei_params)
+                            '--exclude-scripts',
+                            '--install-dir', temp_install_dir,
+                            dist_file,
+                        ]
+                        with argv_context(['easy_install']):
+                            # attempt to install the dist. It should fail because
+                            #  it doesn't exist.
+                            with pytest.raises(SystemExit):
+                                easy_install_pkg.main(ei_params)
         # there should have been two or three requests to the server
         #  (three happens on Python 3.3a)
         self.assertTrue(2 <= len(p_index.requests) <= 3)
@@ -320,16 +323,15 @@ class TestSetupRequires(unittest.TestCase):
         """
         with tempdir_context() as dir:
             dist_path = os.path.join(dir, 'setuptools-test-fetcher-1.0.tar.gz')
-            make_trivial_sdist(
-                dist_path,
-                textwrap.dedent("""
-                    import setuptools
-                    setuptools.setup(
-                        name="setuptools-test-fetcher",
-                        version="1.0",
-                        setup_requires = ['does-not-exist'],
-                    )
-                """).lstrip())
+            script = DALS("""
+                import setuptools
+                setuptools.setup(
+                    name="setuptools-test-fetcher",
+                    version="1.0",
+                    setup_requires = ['does-not-exist'],
+                )
+                """)
+            make_trivial_sdist(dist_path, script)
             yield dist_path
 
     def test_setup_requires_overrides_version_conflict(self):
@@ -351,14 +353,13 @@ class TestSetupRequires(unittest.TestCase):
                 test_pkg = create_setup_requires_package(temp_dir)
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
                 with quiet_context() as (stdout, stderr):
-                    with reset_setup_stop_context():
-                        try:
-                            # Don't even need to install the package, just
-                            # running the setup.py at all is sufficient
-                            run_setup(test_setup_py, ['--name'])
-                        except VersionConflict:
-                            self.fail('Installing setup.py requirements '
-                                'caused a VersionConflict')
+                    try:
+                        # Don't even need to install the package, just
+                        # running the setup.py at all is sufficient
+                        run_setup(test_setup_py, ['--name'])
+                    except VersionConflict:
+                        self.fail('Installing setup.py requirements '
+                            'caused a VersionConflict')
 
                 lines = stdout.readlines()
                 self.assertTrue(len(lines) > 0)
@@ -383,17 +384,16 @@ def create_setup_requires_package(path):
     test_setup_py = os.path.join(test_pkg, 'setup.py')
     os.mkdir(test_pkg)
 
-    f = open(test_setup_py, 'w')
-    f.write(textwrap.dedent("""\
-        import setuptools
-        setuptools.setup(**%r)
-    """ % test_setup_attrs))
-    f.close()
+    with open(test_setup_py, 'w') as f:
+        f.write(DALS("""
+            import setuptools
+            setuptools.setup(**%r)
+        """ % test_setup_attrs))
 
     foobar_path = os.path.join(path, 'foobar-0.1.tar.gz')
     make_trivial_sdist(
         foobar_path,
-        textwrap.dedent("""\
+        DALS("""
             import setuptools
             setuptools.setup(
                 name='foobar',
@@ -417,11 +417,8 @@ def make_trivial_sdist(dist_path, setup_py):
         MemFile = StringIO
     setup_py_bytes = MemFile(setup_py.encode('utf-8'))
     setup_py_file.size = len(setup_py_bytes.getvalue())
-    dist = tarfile.open(dist_path, 'w:gz')
-    try:
+    with tarfile_open(dist_path, 'w:gz') as dist:
         dist.addfile(setup_py_file, fileobj=setup_py_bytes)
-    finally:
-        dist.close()
 
 
 @contextlib.contextmanager
@@ -452,19 +449,6 @@ def argv_context(repl):
     sys.argv[:] = repl
     yield
     sys.argv[:] = old_argv
-
-@contextlib.contextmanager
-def reset_setup_stop_context():
-    """
-    When the setuptools tests are run using setup.py test, and then
-    one wants to invoke another setup() command (such as easy_install)
-    within those tests, it's necessary to reset the global variable
-    in distutils.core so that the setup() command will run naturally.
-    """
-    saved = distutils.core._setup_stop_after
-    distutils.core._setup_stop_after = None
-    yield
-    distutils.core._setup_stop_after = saved
 
 
 @contextlib.contextmanager
