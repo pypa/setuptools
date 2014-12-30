@@ -245,7 +245,6 @@ class TestUserInstallTest(unittest.TestCase):
 
         try:
             with quiet_context():
-                with reset_setup_stop_context():
                     run_setup(test_setup_py, ['install'])
         except SandboxViolation:
             self.fail('Installation caused SandboxViolation')
@@ -281,8 +280,7 @@ class TestSetupRequires(unittest.TestCase):
                             '--allow-hosts', p_index_loc,
                             '--exclude-scripts', '--install-dir', temp_install_dir,
                             dist_file]
-                        with reset_setup_stop_context():
-                            with argv_context(['easy_install']):
+                        with argv_context(['easy_install']):
                                 # attempt to install the dist. It should fail because
                                 #  it doesn't exist.
                                 with pytest.raises(SystemExit):
@@ -331,7 +329,6 @@ class TestSetupRequires(unittest.TestCase):
                 test_pkg = create_setup_requires_package(temp_dir)
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
                 with quiet_context() as (stdout, stderr):
-                    with reset_setup_stop_context():
                         try:
                             # Don't even need to install the package, just
                             # running the setup.py at all is sufficient
@@ -438,6 +435,8 @@ def reset_setup_stop_context():
     in distutils.core so that the setup() command will run naturally.
     """
     saved = distutils.core._setup_stop_after
+    if saved is None:
+        raise ValueError("Not Needed")
     distutils.core._setup_stop_after = None
     yield
     distutils.core._setup_stop_after = saved
