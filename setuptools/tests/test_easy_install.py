@@ -28,6 +28,14 @@ import pkg_resources
 
 from .py26compat import tarfile_open
 
+
+def DALS(input):
+    """
+    Dedent and left-strip
+    """
+    return textwrap.dedent(input).lstrip()
+
+
 class FakeDist(object):
     def get_entry_map(self, group):
         if group != 'console_scripts':
@@ -37,7 +45,7 @@ class FakeDist(object):
     def as_requirement(self):
         return 'spec'
 
-WANTED = textwrap.dedent("""
+WANTED = DALS("""
     #!%s
     # EASY-INSTALL-ENTRY-SCRIPT: 'spec','console_scripts','name'
     __requires__ = 'spec'
@@ -48,13 +56,13 @@ WANTED = textwrap.dedent("""
         sys.exit(
             load_entry_point('spec', 'console_scripts', 'name')()
         )
-    """).lstrip() % nt_quote_arg(fix_jython_executable(sys.executable, ""))
+    """) % nt_quote_arg(fix_jython_executable(sys.executable, ""))
 
-SETUP_PY = textwrap.dedent("""
+SETUP_PY = DALS("""
     from setuptools import setup
 
     setup(name='foo')
-    """).lstrip()
+    """)
 
 class TestEasyInstallTest(unittest.TestCase):
 
@@ -295,14 +303,14 @@ class TestSetupRequires(unittest.TestCase):
             dist_path = os.path.join(dir, 'setuptools-test-fetcher-1.0.tar.gz')
             make_trivial_sdist(
                 dist_path,
-                textwrap.dedent("""
+                DALS("""
                     import setuptools
                     setuptools.setup(
                         name="setuptools-test-fetcher",
                         version="1.0",
                         setup_requires = ['does-not-exist'],
                     )
-                """).lstrip())
+                """))
             yield dist_path
 
     def test_setup_requires_overrides_version_conflict(self):
@@ -357,7 +365,7 @@ def create_setup_requires_package(path):
     os.mkdir(test_pkg)
 
     with open(test_setup_py, 'w') as f:
-        f.write(textwrap.dedent("""\
+        f.write(DALS("""
             import setuptools
             setuptools.setup(**%r)
         """ % test_setup_attrs))
@@ -365,7 +373,7 @@ def create_setup_requires_package(path):
     foobar_path = os.path.join(path, 'foobar-0.1.tar.gz')
     make_trivial_sdist(
         foobar_path,
-        textwrap.dedent("""\
+        DALS("""
             import setuptools
             setuptools.setup(
                 name='foobar',
