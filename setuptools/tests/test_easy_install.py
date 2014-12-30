@@ -81,12 +81,8 @@ class TestEasyInstallTest(unittest.TestCase):
     def test_get_script_args(self):
         dist = FakeDist()
 
-        old_platform = sys.platform
-        try:
-            args = next(get_script_args(dist))
-            name, script = itertools.islice(args, 2)
-        finally:
-            sys.platform = old_platform
+        args = next(get_script_args(dist))
+        name, script = itertools.islice(args, 2)
 
         self.assertEqual(script, WANTED)
 
