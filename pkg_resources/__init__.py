@@ -2258,11 +2258,10 @@ class EntryPoint(object):
             self.require(env, installer)
         entry = __import__(self.module_name, globals(), globals(),
             ['__name__'])
-        for attr in self.attrs:
-            try:
-                entry = getattr(entry, attr)
-            except AttributeError:
-                raise ImportError("%r has no %r attribute" % (entry, attr))
+        try:
+            entry = functools.reduce(getattr, self.attrs, entry)
+        except AttributeError as exc:
+            raise ImportError(str(exc))
         return entry
 
     def require(self, env=None, installer=None):
