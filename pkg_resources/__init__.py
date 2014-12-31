@@ -2272,6 +2272,14 @@ class EntryPoint(object):
         items = working_set.resolve(reqs, env, installer)
         list(map(working_set.add, items))
 
+    pattern = re.compile(
+        r'(?P<name>\w+)\s*'
+        r'=\s*'
+        r'(?P<module>[\w.]+)\s*'
+        r'(:\s*(?P<attr>[\w.]+))?\s*'
+        r'(?P<extras>\[.*\])?\s*$'
+    )
+
     @classmethod
     def parse(cls, src, dist=None):
         """Parse a single entry point from string `src`
@@ -2283,24 +2291,23 @@ class EntryPoint(object):
         The entry name and module name are required, but the ``:attrs`` and
         ``[extras]`` parts are optional
         """
-        try:
-            attrs = extras = ()
-            name, value = src.split('=', 1)
-            if '[' in value:
-                value, extras = value.split('[', 1)
-                req = Requirement.parse("x[" + extras)
-                if req.specs:
-                    raise ValueError
-                extras = req.extras
-            if ':' in value:
-                value, attrs = value.split(':', 1)
-                if not MODULE(attrs.rstrip()):
-                    raise ValueError
-                attrs = attrs.rstrip().split('.')
-        except ValueError:
+        m = cls.pattern.match(src)
+        if not m:
             msg = "EntryPoint must be in 'name=module:attrs [extras]' format"
             raise ValueError(msg, src)
-        return cls(name.strip(), value.strip(), attrs, extras, dist)
+        res = m.groupdict()
+        extras = cls._parse_extras(res['extras'])
+        attrs = (res['attr'] or '').split('.')
+        return cls(res['name'], res['module'], attrs, extras, dist)
+
+    @classmethod
+    def _parse_extras(cls, extras_spec):
+        if not extras_spec:
+            return ()
+        req = Requirement.parse('x' + extras_spec)
+        if req.specs:
+            raise ValueError()
+        return req.extras
 
     @classmethod
     def parse_group(cls, group, lines, dist=None):
