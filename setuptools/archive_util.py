@@ -115,12 +115,8 @@ def unpack_zipfile(filename, extract_dir, progress_filter=default_filter):
                 # file
                 ensure_directory(target)
                 data = z.read(info.filename)
-                f = open(target, 'wb')
-                try:
+                with open(target, 'wb') as f:
                     f.write(data)
-                finally:
-                    f.close()
-                    del data
             unix_attributes = info.external_attr >> 16
             if unix_attributes:
                 os.chmod(target, unix_attributes)
