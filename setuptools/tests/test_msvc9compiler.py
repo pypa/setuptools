@@ -7,11 +7,12 @@ finds the Visual C++ for Python package.
 
 import os
 import shutil
-import sys
 import tempfile
 import unittest
 import distutils.errors
 import contextlib
+
+import pytest
 
 # importing only setuptools should apply the patch
 __import__('setuptools')
@@ -93,11 +94,8 @@ class TestMSVC9Compiler(unittest.TestCase):
             # skip
             return
 
-        self.assertEqual(
-            "setuptools.msvc9_support",
-            distutils.msvc9compiler.find_vcvarsall.__module__,
-            "find_vcvarsall was not patched"
-        )
+        mod_name = distutils.msvc9compiler.find_vcvarsall.__module__
+        assert mod_name == "setuptools.msvc9_support", "find_vcvarsall unpatched"
 
         find_vcvarsall = distutils.msvc9compiler.find_vcvarsall
         query_vcvarsall = distutils.msvc9compiler.query_vcvarsall
@@ -108,12 +106,10 @@ class TestMSVC9Compiler(unittest.TestCase):
             with MockReg():
                 self.assertIsNone(find_vcvarsall(9.0))
 
-                try:
+                expected = distutils.errors.DistutilsPlatformError
+                with pytest.raises(expected) as exc:
                     query_vcvarsall(9.0)
-                    self.fail('Expected DistutilsPlatformError from query_vcvarsall()')
-                except distutils.errors.DistutilsPlatformError:
-                    exc_message = str(sys.exc_info()[1])
-                self.assertIn('aka.ms/vcpython27', exc_message)
+                assert 'aka.ms/vcpython27' in str(exc)
 
         key_32 = r'software\microsoft\devdiv\vcforpython\9.0\installdir'
         key_64 = r'software\wow6432node\microsoft\devdiv\vcforpython\9.0\installdir'
