@@ -2259,10 +2259,9 @@ class EntryPoint(object):
         entry = __import__(self.module_name, globals(), globals(),
             ['__name__'])
         try:
-            entry = functools.reduce(getattr, self.attrs, entry)
+            return functools.reduce(getattr, self.attrs, entry)
         except AttributeError as exc:
             raise ImportError(str(exc))
-        return entry
 
     def require(self, env=None, installer=None):
         if self.extras and not self.dist:
