@@ -12,5 +12,5 @@ script:
  - python bootstrap.py
  - python setup.py egg_info
 
- - python setup.py ptr
+ - python setup.py ptr --addopts='-rs'
  - python ez_setup.py --version 7.0
