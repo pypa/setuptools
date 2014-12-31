@@ -2273,7 +2273,8 @@ class EntryPoint(object):
         list(map(working_set.add, items))
 
     pattern = re.compile(
-        r'(?P<name>\w+)\s*'
+        r'\s*'
+        r'(?P<name>[\w. -]+?)\s*'
         r'=\s*'
         r'(?P<module>[\w.]+)\s*'
         r'(:\s*(?P<attr>[\w.]+))?\s*'
@@ -2297,7 +2298,7 @@ class EntryPoint(object):
             raise ValueError(msg, src)
         res = m.groupdict()
         extras = cls._parse_extras(res['extras'])
-        attrs = (res['attr'] or '').split('.')
+        attrs = res['attr'].split('.') if res['attr'] else ()
         return cls(res['name'], res['module'], attrs, extras, dist)
 
     @classmethod
