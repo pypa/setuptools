@@ -9,7 +9,7 @@ from setuptools.utils import cs_path_exists
 
 import pkg_resources
 
-READMES = ('README', 'README.rst', 'README.txt')
+READMES = 'README', 'README.rst', 'README.txt'
 
 _default_revctrl = list
 
