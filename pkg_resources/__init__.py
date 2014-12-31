@@ -2300,8 +2300,7 @@ class EntryPoint(object):
         except ValueError:
             msg = "EntryPoint must be in 'name=module:attrs [extras]' format"
             raise ValueError(msg, src)
-        else:
-            return cls(name.strip(), value.strip(), attrs, extras, dist)
+        return cls(name.strip(), value.strip(), attrs, extras, dist)
 
     @classmethod
     def parse_group(cls, group, lines, dist=None):
