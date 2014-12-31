@@ -17,6 +17,8 @@ import pytest
 # importing only setuptools should apply the patch
 __import__('setuptools')
 
+pytest.importorskip("distutils.msvc9compiler")
+
 class MockReg:
     """Mock for distutils.msvc9compiler.Reg. We patch it
     with an instance of this class that mocks out the
@@ -90,10 +92,6 @@ def patch_env(**replacements):
 class TestMSVC9Compiler(unittest.TestCase):
 
     def test_find_vcvarsall_patch(self):
-        if not hasattr(distutils, 'msvc9compiler'):
-            # skip
-            return
-
         mod_name = distutils.msvc9compiler.find_vcvarsall.__module__
         assert mod_name == "setuptools.msvc9_support", "find_vcvarsall unpatched"
 
