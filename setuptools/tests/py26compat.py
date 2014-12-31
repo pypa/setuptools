@@ -1,6 +1,7 @@
 import sys
 import unittest
 import tarfile
+import contextlib
 
 try:
 	# provide skipIf for Python 2.4-2.6
@@ -19,9 +20,6 @@ def _tarfile_open_ex(*args, **kwargs):
 	"""
 	Extend result as a context manager.
 	"""
-	res = tarfile.open(*args, **kwargs)
-	res.__exit__ = lambda exc_type, exc_value, traceback: res.close()
-	res.__enter__ = lambda: res
-	return res
+	return contextlib.closing(tarfile.open(*args, **kwargs))
 
 tarfile_open = _tarfile_open_ex if sys.version_info < (2,7) else tarfile.open
