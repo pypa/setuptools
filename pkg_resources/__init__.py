@@ -2256,10 +2256,10 @@ class EntryPoint(object):
     def load(self, require=True, env=None, installer=None):
         if require:
             self.require(env, installer)
-        entry = __import__(self.module_name, globals(), globals(),
+        module = __import__(self.module_name, globals(), globals(),
             ['__name__'])
         try:
-            return functools.reduce(getattr, self.attrs, entry)
+            return functools.reduce(getattr, self.attrs, module)
         except AttributeError as exc:
             raise ImportError(str(exc))
 
