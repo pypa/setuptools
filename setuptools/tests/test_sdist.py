@@ -430,7 +430,7 @@ def test_default_revctrl():
     """
     ep_def = 'svn_cvs = setuptools.command.sdist:_default_revctrl'
     ep = pkg_resources.EntryPoint.parse(ep_def)
-    res = ep.load(require=False)
+    res = ep._load()
     assert hasattr(res, '__iter__')
 
 

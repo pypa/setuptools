@@ -434,7 +434,8 @@ class Distribution(_Distribution):
     def print_commands(self):
         for ep in pkg_resources.iter_entry_points('distutils.commands'):
             if ep.name not in self.cmdclass:
-                cmdclass = ep.load(False) # don't require extras, we're not running
+                # don't require extras as the commands won't be invoked
+                cmdclass = ep._load()
                 self.cmdclass[ep.name] = cmdclass
         return _Distribution.print_commands(self)
 
