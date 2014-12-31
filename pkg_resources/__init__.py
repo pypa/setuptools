@@ -2256,6 +2256,12 @@ class EntryPoint(object):
     def load(self, require=True, env=None, installer=None):
         if require:
             self.require(env, installer)
+        else:
+            warnings.warn(
+                "`require` parameter is deprecated. Use "
+                "EntryPoint._load instead.",
+                DeprecationWarning,
+            )
         return self._load()
 
     def _load(self):
