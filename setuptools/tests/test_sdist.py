@@ -11,6 +11,7 @@ import unicodedata
 import contextlib
 from setuptools.tests.py26compat import skipIf
 
+import pkg_resources
 from setuptools.compat import StringIO, unicode, PY3, PY2
 from setuptools.command.sdist import sdist
 from setuptools.command.egg_info import manifest_maker
@@ -414,6 +415,23 @@ class TestSdistTest(unittest.TestCase):
                 self.assertTrue(filename in cmd.filelist.files)
             except UnicodeDecodeError:
                 self.assertFalse(filename in cmd.filelist.files)
+
+
+def test_default_revctrl():
+    """
+    When _default_revctrl was removed from the `setuptools.command.sdist`
+    module in 10.0, it broke some systems which keep an old install of
+    setuptools (Distribute) around. Those old versions require that the
+    setuptools package continue to implement that interface, so this
+    function provides that interface, stubbed. See #320 for details.
+
+    This interface must be maintained until Ubuntu 12.04 is no longer
+    supported (by Setuptools).
+    """
+    ep_def = 'svn_cvs = setuptools.command.sdist:_default_revctrl'
+    ep = pkg_resources.EntryPoint.parse(ep_def)
+    res = ep.load(require=False)
+    assert hasattr(res, '__iter__')
 
 
 def test_suite():
