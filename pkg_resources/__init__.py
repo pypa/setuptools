@@ -2256,6 +2256,9 @@ class EntryPoint(object):
     def load(self, require=True, env=None, installer=None):
         if require:
             self.require(env, installer)
+        return self._load()
+
+    def _load(self):
         module = __import__(self.module_name, globals(), globals(),
             ['__name__'])
         try:
