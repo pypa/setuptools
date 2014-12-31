@@ -6,7 +6,8 @@ CHANGES
 10.1
 ----
 
-* Issue #320: Added a compatibility implementation of `sdist._default_revctrl`
+* Issue #320: Added a compatibility implementation of
+  ``sdist._default_revctrl``
   so that systems relying on that interface do not fail (namely, Ubuntu 12.04
   and similar Debian releases).
 
