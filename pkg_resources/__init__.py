@@ -2259,8 +2259,7 @@ class EntryPoint(object):
         return self._load()
 
     def _load(self):
-        module = __import__(self.module_name, globals(), globals(),
-            ['__name__'])
+        module = __import__(self.module_name, fromlist=['__name__'], level=0)
         try:
             return functools.reduce(getattr, self.attrs, module)
         except AttributeError as exc:
