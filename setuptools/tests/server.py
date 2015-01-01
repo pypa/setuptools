@@ -61,6 +61,6 @@ class MockServer(HTTPServer, threading.Thread):
     def run(self):
         self.serve_forever()
 
+    @property
     def url(self):
         return 'http://localhost:%(server_port)s/' % vars(self)
-    url = property(url)
