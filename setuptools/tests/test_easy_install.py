@@ -29,6 +29,7 @@ import setuptools.tests.server
 import pkg_resources
 
 from .py26compat import tarfile_open
+from . import contexts
 
 
 def DALS(input):
@@ -264,7 +265,7 @@ class TestUserInstallTest(unittest.TestCase):
         test_setup_py = os.path.join(test_pkg, 'setup.py')
 
         try:
-            with quiet_context():
+            with contexts.quiet():
                 with self.patched_setup_context():
                     run_setup(test_setup_py, ['install'])
         except SandboxViolation:
@@ -281,7 +282,7 @@ def distutils_package():
         'from setuptools import setup',
         'from distutils.core import setup',
     )
-    with tempdir_context(cd=os.chdir):
+    with contexts.tempdir(cd=os.chdir):
         with open('setup.py', 'w') as f:
             f.write(distutils_setup_py)
         yield
@@ -309,11 +310,11 @@ class TestSetupRequires(unittest.TestCase):
             # Some platforms (Jython) don't find a port to which to bind,
             #  so skip this test for them.
             return
-        with quiet_context():
+        with contexts.quiet():
             # create an sdist that has a build-time dependency.
             with TestSetupRequires.create_sdist() as dist_file:
-                with tempdir_context() as temp_install_dir:
-                    with environment_context(PYTHONPATH=temp_install_dir):
+                with contexts.tempdir() as temp_install_dir:
+                    with contexts.environment(PYTHONPATH=temp_install_dir):
                         ei_params = [
                             '--index-url', p_index.url,
                             '--allow-hosts', p_index_loc,
@@ -321,7 +322,7 @@ class TestSetupRequires(unittest.TestCase):
                             '--install-dir', temp_install_dir,
                             dist_file,
                         ]
-                        with argv_context(['easy_install']):
+                        with contexts.argv(['easy_install']):
                             # attempt to install the dist. It should fail because
                             #  it doesn't exist.
                             with pytest.raises(SystemExit):
@@ -338,7 +339,7 @@ class TestSetupRequires(unittest.TestCase):
         Return an sdist with a setup_requires dependency (of something that
         doesn't exist)
         """
-        with tempdir_context() as dir:
+        with contexts.tempdir() as dir:
             dist_path = os.path.join(dir, 'setuptools-test-fetcher-1.0.tar.gz')
             script = DALS("""
                 import setuptools
@@ -366,10 +367,10 @@ class TestSetupRequires(unittest.TestCase):
         working_set.add(fake_dist)
 
         try:
-            with tempdir_context() as temp_dir:
+            with contexts.tempdir() as temp_dir:
                 test_pkg = create_setup_requires_package(temp_dir)
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
-                with quiet_context() as (stdout, stderr):
+                with contexts.quiet() as (stdout, stderr):
                     try:
                         # Don't even need to install the package, just
                         # running the setup.py at all is sufficient
@@ -436,53 +437,3 @@ def make_trivial_sdist(dist_path, setup_py):
     setup_py_file.size = len(setup_py_bytes.getvalue())
     with tarfile_open(dist_path, 'w:gz') as dist:
         dist.addfile(setup_py_file, fileobj=setup_py_bytes)
-
-
-@contextlib.contextmanager
-def tempdir_context(cd=lambda dir:None):
-    temp_dir = tempfile.mkdtemp()
-    orig_dir = os.getcwd()
-    try:
-        cd(temp_dir)
-        yield temp_dir
-    finally:
-        cd(orig_dir)
-        shutil.rmtree(temp_dir)
-
-@contextlib.contextmanager
-def environment_context(**updates):
-    old_env = os.environ.copy()
-    os.environ.update(updates)
-    try:
-        yield
-    finally:
-        for key in updates:
-            del os.environ[key]
-        os.environ.update(old_env)
-
-@contextlib.contextmanager
-def argv_context(repl):
-    old_argv = sys.argv[:]
-    sys.argv[:] = repl
-    yield
-    sys.argv[:] = old_argv
-
-
-@contextlib.contextmanager
-def quiet_context():
-    """
-    Redirect stdout/stderr to StringIO objects to prevent console output from
-    distutils commands.
-    """
-
-    old_stdout = sys.stdout
-    old_stderr = sys.stderr
-    new_stdout = sys.stdout = StringIO()
-    new_stderr = sys.stderr = StringIO()
-    try:
-        yield new_stdout, new_stderr
-    finally:
-        new_stdout.seek(0)
-        new_stderr.seek(0)
-        sys.stdout = old_stdout
-        sys.stderr = old_stderr
