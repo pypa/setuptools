@@ -1,7 +1,6 @@
 """Tests for the 'setuptools' package"""
 import sys
 import os
-import unittest
 import distutils.core
 import distutils.cmd
 from distutils.errors import DistutilsOptionError, DistutilsPlatformError
@@ -117,9 +116,9 @@ class TestDepends:
         assert req.is_current(paths)
 
 
-class DistroTests(unittest.TestCase):
+class TestDistro:
 
-    def setUp(self):
+    def setup_method(self, method):
         self.e1 = Extension('bar.ext',['bar.c'])
         self.e2 = Extension('c.y', ['y.c'])
 
@@ -131,21 +130,21 @@ class DistroTests(unittest.TestCase):
         )
 
     def testDistroType(self):
-        self.assertTrue(isinstance(self.dist,setuptools.dist.Distribution))
+        assert isinstance(self.dist,setuptools.dist.Distribution)
 
     def testExcludePackage(self):
         self.dist.exclude_package('a')
-        self.assertEqual(self.dist.packages, ['b','c'])
+        assert self.dist.packages == ['b','c']
 
         self.dist.exclude_package('b')
-        self.assertEqual(self.dist.packages, ['c'])
-        self.assertEqual(self.dist.py_modules, ['x'])
-        self.assertEqual(self.dist.ext_modules, [self.e1, self.e2])
+        assert self.dist.packages == ['c']
+        assert self.dist.py_modules == ['x']
+        assert self.dist.ext_modules == [self.e1, self.e2]
 
         self.dist.exclude_package('c')
-        self.assertEqual(self.dist.packages, [])
-        self.assertEqual(self.dist.py_modules, ['x'])
-        self.assertEqual(self.dist.ext_modules, [self.e1])
+        assert self.dist.packages == []
+        assert self.dist.py_modules == ['x']
+        assert self.dist.ext_modules == [self.e1]
 
         # test removals from unspecified options
         makeSetup().exclude_package('x')
@@ -153,21 +152,21 @@ class DistroTests(unittest.TestCase):
     def testIncludeExclude(self):
         # remove an extension
         self.dist.exclude(ext_modules=[self.e1])
-        self.assertEqual(self.dist.ext_modules, [self.e2])
+        assert self.dist.ext_modules == [self.e2]
 
         # add it back in
         self.dist.include(ext_modules=[self.e1])
-        self.assertEqual(self.dist.ext_modules, [self.e2, self.e1])
+        assert self.dist.ext_modules == [self.e2, self.e1]
 
         # should not add duplicate
         self.dist.include(ext_modules=[self.e1])
-        self.assertEqual(self.dist.ext_modules, [self.e2, self.e1])
+        assert self.dist.ext_modules == [self.e2, self.e1]
 
     def testExcludePackages(self):
         self.dist.exclude(packages=['c','b','a'])
-        self.assertEqual(self.dist.packages, [])
-        self.assertEqual(self.dist.py_modules, ['x'])
-        self.assertEqual(self.dist.ext_modules, [self.e1])
+        assert self.dist.packages == []
+        assert self.dist.py_modules == ['x']
+        assert self.dist.ext_modules == [self.e1]
 
     def testEmpty(self):
         dist = makeSetup()
@@ -176,49 +175,41 @@ class DistroTests(unittest.TestCase):
         dist.exclude(packages=['a'], py_modules=['b'], ext_modules=[self.e2])
 
     def testContents(self):
-        self.assertTrue(self.dist.has_contents_for('a'))
+        assert self.dist.has_contents_for('a')
         self.dist.exclude_package('a')
-        self.assertTrue(not self.dist.has_contents_for('a'))
+        assert not self.dist.has_contents_for('a')
 
-        self.assertTrue(self.dist.has_contents_for('b'))
+        assert self.dist.has_contents_for('b')
         self.dist.exclude_package('b')
-        self.assertTrue(not self.dist.has_contents_for('b'))
+        assert not self.dist.has_contents_for('b')
 
-        self.assertTrue(self.dist.has_contents_for('c'))
+        assert self.dist.has_contents_for('c')
         self.dist.exclude_package('c')
-        self.assertTrue(not self.dist.has_contents_for('c'))
+        assert not self.dist.has_contents_for('c')
 
     def testInvalidIncludeExclude(self):
-        self.assertRaises(DistutilsSetupError,
-            self.dist.include, nonexistent_option='x'
-        )
-        self.assertRaises(DistutilsSetupError,
-            self.dist.exclude, nonexistent_option='x'
-        )
-        self.assertRaises(DistutilsSetupError,
-            self.dist.include, packages={'x':'y'}
-        )
-        self.assertRaises(DistutilsSetupError,
-            self.dist.exclude, packages={'x':'y'}
-        )
-        self.assertRaises(DistutilsSetupError,
-            self.dist.include, ext_modules={'x':'y'}
-        )
-        self.assertRaises(DistutilsSetupError,
-            self.dist.exclude, ext_modules={'x':'y'}
-        )
+        with pytest.raises(DistutilsSetupError):
+            self.dist.include(nonexistent_option='x')
+        with pytest.raises(DistutilsSetupError):
+            self.dist.exclude(nonexistent_option='x')
+        with pytest.raises(DistutilsSetupError):
+            self.dist.include(packages={'x':'y'})
+        with pytest.raises(DistutilsSetupError):
+            self.dist.exclude(packages={'x':'y'})
+        with pytest.raises(DistutilsSetupError):
+            self.dist.include(ext_modules={'x':'y'})
+        with pytest.raises(DistutilsSetupError):
+            self.dist.exclude(ext_modules={'x':'y'})
 
-        self.assertRaises(DistutilsSetupError,
-            self.dist.include, package_dir=['q']
-        )
-        self.assertRaises(DistutilsSetupError,
-            self.dist.exclude, package_dir=['q']
-        )
+        with pytest.raises(DistutilsSetupError):
+            self.dist.include(package_dir=['q'])
+        with pytest.raises(DistutilsSetupError):
+            self.dist.exclude(package_dir=['q'])
 
 
-class FeatureTests(unittest.TestCase):
+class TestFeatures:
 
-    def setUp(self):
+    def setup_method(self, method):
         self.req = Require('Distutils','1.0.3','distutils')
         self.dist = makeSetup(
             features={
@@ -240,80 +231,75 @@ class FeatureTests(unittest.TestCase):
         )
 
     def testDefaults(self):
-        self.assertTrue(not
-            Feature(
-                "test",standard=True,remove='x',available=False
-            ).include_by_default()
-        )
-        self.assertTrue(
-            Feature("test",standard=True,remove='x').include_by_default()
-        )
+        assert not Feature(
+            "test",standard=True,remove='x',available=False
+        ).include_by_default()
+        assert Feature("test",standard=True,remove='x').include_by_default()
         # Feature must have either kwargs, removes, or require_features
-        self.assertRaises(DistutilsSetupError, Feature, "test")
+        with pytest.raises(DistutilsSetupError):
+            Feature("test")
 
     def testAvailability(self):
-        self.assertRaises(
-            DistutilsPlatformError,
-            self.dist.features['dwim'].include_in, self.dist
-        )
+        with pytest.raises(DistutilsPlatformError):
+            self.dist.features['dwim'].include_in(self.dist)
 
     def testFeatureOptions(self):
         dist = self.dist
-        self.assertTrue(
+        assert (
             ('with-dwim',None,'include DWIM') in dist.feature_options
         )
-        self.assertTrue(
+        assert (
             ('without-dwim',None,'exclude DWIM (default)') in dist.feature_options
         )
-        self.assertTrue(
+        assert (
             ('with-bar',None,'include bar (default)') in dist.feature_options
         )
-        self.assertTrue(
+        assert (
             ('without-bar',None,'exclude bar') in dist.feature_options
         )
-        self.assertEqual(dist.feature_negopt['without-foo'],'with-foo')
-        self.assertEqual(dist.feature_negopt['without-bar'],'with-bar')
-        self.assertEqual(dist.feature_negopt['without-dwim'],'with-dwim')
-        self.assertTrue(not 'without-baz' in dist.feature_negopt)
+        assert dist.feature_negopt['without-foo'] == 'with-foo'
+        assert dist.feature_negopt['without-bar'] == 'with-bar'
+        assert dist.feature_negopt['without-dwim'] == 'with-dwim'
+        assert (not 'without-baz' in dist.feature_negopt)
 
     def testUseFeatures(self):
         dist = self.dist
-        self.assertEqual(dist.with_foo,1)
-        self.assertEqual(dist.with_bar,0)
-        self.assertEqual(dist.with_baz,1)
-        self.assertTrue(not 'bar_et' in dist.py_modules)
-        self.assertTrue(not 'pkg.bar' in dist.packages)
-        self.assertTrue('pkg.baz' in dist.packages)
-        self.assertTrue('scripts/baz_it' in dist.scripts)
-        self.assertTrue(('libfoo','foo/foofoo.c') in dist.libraries)
-        self.assertEqual(dist.ext_modules,[])
-        self.assertEqual(dist.require_features, [self.req])
+        assert dist.with_foo == 1
+        assert dist.with_bar == 0
+        assert dist.with_baz == 1
+        assert (not 'bar_et' in dist.py_modules)
+        assert (not 'pkg.bar' in dist.packages)
+        assert ('pkg.baz' in dist.packages)
+        assert ('scripts/baz_it' in dist.scripts)
+        assert (('libfoo','foo/foofoo.c') in dist.libraries)
+        assert dist.ext_modules == []
+        assert dist.require_features == [self.req]
 
         # If we ask for bar, it should fail because we explicitly disabled
         # it on the command line
-        self.assertRaises(DistutilsOptionError, dist.include_feature, 'bar')
+        with pytest.raises(DistutilsOptionError):
+            dist.include_feature('bar')
 
     def testFeatureWithInvalidRemove(self):
-        self.assertRaises(
-            SystemExit, makeSetup, features = {'x':Feature('x', remove='y')}
-        )
+        with pytest.raises(SystemExit):
+            makeSetup(features={'x':Feature('x', remove='y')})
 
-class TestCommandTests(unittest.TestCase):
+class TestCommandTests:
 
     def testTestIsCommand(self):
         test_cmd = makeSetup().get_command_obj('test')
-        self.assertTrue(isinstance(test_cmd, distutils.cmd.Command))
+        assert (isinstance(test_cmd, distutils.cmd.Command))
 
     def testLongOptSuiteWNoDefault(self):
         ts1 = makeSetup(script_args=['test','--test-suite=foo.tests.suite'])
         ts1 = ts1.get_command_obj('test')
         ts1.ensure_finalized()
-        self.assertEqual(ts1.test_suite, 'foo.tests.suite')
+        assert ts1.test_suite == 'foo.tests.suite'
 
     def testDefaultSuite(self):
         ts2 = makeSetup(test_suite='bar.tests.suite').get_command_obj('test')
         ts2.ensure_finalized()
-        self.assertEqual(ts2.test_suite, 'bar.tests.suite')
+        assert ts2.test_suite == 'bar.tests.suite'
 
     def testDefaultWModuleOnCmdLine(self):
         ts3 = makeSetup(
@@ -321,16 +307,17 @@ class TestCommandTests(unittest.TestCase):
             script_args=['test','-m','foo.tests']
         ).get_command_obj('test')
         ts3.ensure_finalized()
-        self.assertEqual(ts3.test_module, 'foo.tests')
-        self.assertEqual(ts3.test_suite,  'foo.tests.test_suite')
+        assert ts3.test_module == 'foo.tests'
+        assert ts3.test_suite == 'foo.tests.test_suite'
 
     def testConflictingOptions(self):
         ts4 = makeSetup(
             script_args=['test','-m','bar.tests', '-s','foo.tests.suite']
         ).get_command_obj('test')
-        self.assertRaises(DistutilsOptionError, ts4.ensure_finalized)
+        with pytest.raises(DistutilsOptionError):
+            ts4.ensure_finalized()
 
     def testNoSuite(self):
         ts5 = makeSetup().get_command_obj('test')
         ts5.ensure_finalized()
-        self.assertEqual(ts5.test_suite, None)
+        assert ts5.test_suite == None
