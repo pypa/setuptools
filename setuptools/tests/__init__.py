@@ -10,6 +10,8 @@ from distutils.core import Extension
 from distutils.version import LooseVersion
 from setuptools.compat import func_code
 
+import pytest
+
 import setuptools.dist
 import setuptools.depends as dep
 from setuptools import Feature
@@ -29,7 +31,7 @@ def makeSetup(**args):
         distutils.core._setup_stop_after = None
 
 
-class DependsTests(unittest.TestCase):
+class TestDepends:
 
     def testExtractConst(self):
         if not hasattr(dep, 'extract_constant'):
@@ -42,21 +44,24 @@ class DependsTests(unittest.TestCase):
             y = z
 
         fc = func_code(f1)
+
         # unrecognized name
-        self.assertEqual(dep.extract_constant(fc,'q', -1), None)
+        assert dep.extract_constant(fc,'q', -1) is None
 
         # constant assigned
-        self.assertEqual(dep.extract_constant(fc,'x', -1), "test")
+        dep.extract_constant(fc,'x', -1) == "test"
 
         # expression assigned
-        self.assertEqual(dep.extract_constant(fc,'y', -1), -1)
+        dep.extract_constant(fc,'y', -1) == -1
 
         # recognized name, not assigned
-        self.assertEqual(dep.extract_constant(fc,'z', -1), None)
+        dep.extract_constant(fc,'z', -1) is None
 
     def testFindModule(self):
-        self.assertRaises(ImportError, dep.find_module, 'no-such.-thing')
-        self.assertRaises(ImportError, dep.find_module, 'setuptools.non-existent')
+        with pytest.raises(ImportError):
+            dep.find_module('no-such.-thing')
+        with pytest.raises(ImportError):
+            dep.find_module('setuptools.non-existent')
         f,p,i = dep.find_module('setuptools.tests')
         f.close()
 
@@ -66,15 +71,9 @@ class DependsTests(unittest.TestCase):
             return
 
         from email import __version__
-        self.assertEqual(
-            dep.get_module_constant('email','__version__'), __version__
-        )
-        self.assertEqual(
-            dep.get_module_constant('sys','version'), sys.version
-        )
-        self.assertEqual(
-            dep.get_module_constant('setuptools.tests','__doc__'),__doc__
-        )
+        assert dep.get_module_constant('email','__version__') == __version__
+        assert dep.get_module_constant('sys','version') == sys.version
+        assert dep.get_module_constant('setuptools.tests','__doc__') == __doc__
 
     def testRequire(self):
         if not hasattr(dep, 'extract_constant'):
@@ -83,40 +82,40 @@ class DependsTests(unittest.TestCase):
 
         req = Require('Email','1.0.3','email')
 
-        self.assertEqual(req.name, 'Email')
-        self.assertEqual(req.module, 'email')
-        self.assertEqual(req.requested_version, '1.0.3')
-        self.assertEqual(req.attribute, '__version__')
-        self.assertEqual(req.full_name(), 'Email-1.0.3')
+        assert req.name == 'Email'
+        assert req.module == 'email'
+        assert req.requested_version == '1.0.3'
+        assert req.attribute == '__version__'
+        assert req.full_name() == 'Email-1.0.3'
 
         from email import __version__
-        self.assertEqual(req.get_version(), __version__)
-        self.assertTrue(req.version_ok('1.0.9'))
-        self.assertTrue(not req.version_ok('0.9.1'))
-        self.assertTrue(not req.version_ok('unknown'))
+        assert req.get_version() == __version__
+        assert req.version_ok('1.0.9')
+        assert not req.version_ok('0.9.1')
+        assert not req.version_ok('unknown')
 
-        self.assertTrue(req.is_present())
-        self.assertTrue(req.is_current())
+        assert req.is_present()
+        assert req.is_current()
 
         req = Require('Email 3000','03000','email',format=LooseVersion)
-        self.assertTrue(req.is_present())
-        self.assertTrue(not req.is_current())
-        self.assertTrue(not req.version_ok('unknown'))
+        assert req.is_present()
+        assert not req.is_current()
+        assert not req.version_ok('unknown')
 
         req = Require('Do-what-I-mean','1.0','d-w-i-m')
-        self.assertTrue(not req.is_present())
-        self.assertTrue(not req.is_current())
+        assert not req.is_present()
+        assert not req.is_current()
 
         req = Require('Tests', None, 'tests', homepage="http://example.com")
-        self.assertEqual(req.format, None)
-        self.assertEqual(req.attribute, None)
-        self.assertEqual(req.requested_version, None)
-        self.assertEqual(req.full_name(), 'Tests')
-        self.assertEqual(req.homepage, 'http://example.com')
+        assert req.format is None
+        assert req.attribute is None
+        assert req.requested_version is None
+        assert req.full_name() == 'Tests'
+        assert req.homepage == 'http://example.com'
 
         paths = [os.path.dirname(p) for p in __path__]
-        self.assertTrue(req.is_present(paths))
-        self.assertTrue(req.is_current(paths))
+        assert req.is_present(paths)
+        assert req.is_current(paths)
 
 
 class DistroTests(unittest.TestCase):
