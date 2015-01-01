@@ -38,33 +38,36 @@ class TestDistInfo:
             assert d.requires(extras=('baz',)) == requires
             assert d.extras == ['baz']
 
+    metadata_template = DALS("""
+        Metadata-Version: 1.2
+        Name: {name}
+        {version}
+        Requires-Dist: splort (==4)
+        Provides-Extra: baz
+        Requires-Dist: quux (>=1.1); extra == 'baz'
+        """)
+
     def setup_method(self, method):
         self.tmpdir = tempfile.mkdtemp()
         versioned = os.path.join(self.tmpdir,
                                  'VersionedDistribution-2.718.dist-info')
         os.mkdir(versioned)
         with open(os.path.join(versioned, 'METADATA'), 'w+') as metadata_file:
-            metadata_file.write(DALS(
-                """
-                Metadata-Version: 1.2
-                Name: VersionedDistribution
-                Requires-Dist: splort (4)
-                Provides-Extra: baz
-                Requires-Dist: quux (>=1.1); extra == 'baz'
-                """))
+            metadata = self.metadata_template.format(
+                name='VersionedDistribution',
+                version='',
+            ).replace('\n\n', '\n')
+            metadata = metadata.replace('==4', '4')
+            metadata_file.write(metadata)
         unversioned = os.path.join(self.tmpdir,
                                    'UnversionedDistribution.dist-info')
         os.mkdir(unversioned)
         with open(os.path.join(unversioned, 'METADATA'), 'w+') as metadata_file:
-            metadata_file.write(DALS(
-                """
-                Metadata-Version: 1.2
-                Name: UnversionedDistribution
-                Version: 0.3
-                Requires-Dist: splort (==4)
-                Provides-Extra: baz
-                Requires-Dist: quux (>=1.1); extra == 'baz'
-                """))
+            metadata = self.metadata_template.format(
+                name='UnversionedDistribution',
+                version='Version: 0.3',
+            )
+            metadata_file.write(metadata)
 
     def teardown_method(self, method):
         shutil.rmtree(self.tmpdir)
