@@ -12,7 +12,7 @@ the script they are to wrap and with the same name as the script they
 are to wrap.
 """
 
-import os, sys
+import sys
 import textwrap
 import subprocess
 
@@ -33,7 +33,7 @@ class WrapperTester:
         return template % locals()
 
     @classmethod
-    def create_script(cls, tempdir):
+    def create_script(cls, tmpdir):
         """
         Create a simple script, foo-script.py
 
@@ -42,14 +42,13 @@ class WrapperTester:
         correct Python executable.
         """
 
-        sample_directory = tempdir
         script = cls.prep_script(cls.script_tmpl)
 
-        with open(os.path.join(sample_directory, cls.script_name), 'w') as f:
+        with (tmpdir / cls.script_name).open('w') as f:
             f.write(script)
 
         # also copy cli.exe to the sample directory
-        with open(os.path.join(sample_directory, cls.wrapper_name), 'wb') as f:
+        with (tmpdir / cls.wrapper_name).open('wb') as f:
             w = pkg_resources.resource_string('setuptools', cls.wrapper_source)
             f.write(w)
 
@@ -89,9 +88,8 @@ class TestCLI(WrapperTester):
         - One or more backslashes preceding double quotes need to be escaped
           by preceding each of them with back slashes.
         """
-        sample_directory = str(tmpdir)
-        self.create_script(sample_directory)
-        cmd = [os.path.join(sample_directory, 'foo.exe'), 'arg1', 'arg 2',
+        self.create_script(tmpdir)
+        cmd = [str(tmpdir / 'foo.exe'), 'arg1', 'arg 2',
             'arg "2\\"', 'arg 4\\', 'arg5 a\\\\b']
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
         stdout, stderr = proc.communicate('hello\nworld\n'.encode('ascii'))
@@ -115,8 +113,7 @@ class TestCLI(WrapperTester):
         options as usual. For example, to run in optimized mode and
         enter the interpreter after running the script, you could use -Oi:
         """
-        sample_directory = str(tmpdir)
-        self.create_script(sample_directory)
+        self.create_script(tmpdir)
         tmpl = textwrap.dedent("""
             #!%(python_exe)s  -Oi
             import sys
@@ -128,9 +125,9 @@ class TestCLI(WrapperTester):
                 print('non-optimized')
             sys.ps1 = '---'
             """).lstrip()
-        with open(os.path.join(sample_directory, 'foo-script.py'), 'w') as f:
+        with (tmpdir / 'foo-script.py').open('w') as f:
             f.write(self.prep_script(tmpl))
-        cmd = [os.path.join(sample_directory, 'foo.exe')]
+        cmd = [str(tmpdir / 'foo.exe')]
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT)
         stdout, stderr = proc.communicate()
         actual = stdout.decode('ascii').replace('\r\n', '\n')
@@ -162,18 +159,17 @@ class TestGUI(WrapperTester):
 
     def test_basic(self, tmpdir):
         """Test the GUI version with the simple scipt, bar-script.py"""
-        sample_directory = str(tmpdir)
-        self.create_script(sample_directory)
+        self.create_script(tmpdir)
 
         cmd = [
-            os.path.join(sample_directory, 'bar.exe'),
-            os.path.join(sample_directory, 'test_output.txt'),
+            str(tmpdir / 'bar.exe'),
+            str(tmpdir / 'test_output.txt'),
             'Test Argument',
         ]
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT)
         stdout, stderr = proc.communicate()
         assert not stdout
         assert not stderr
-        with open(os.path.join(sample_directory, 'test_output.txt'), 'rb') as f_out:
+        with (tmpdir / 'test_output.txt').open('rb') as f_out:
             actual = f_out.read().decode('ascii')
         assert actual == repr('Test Argument')
