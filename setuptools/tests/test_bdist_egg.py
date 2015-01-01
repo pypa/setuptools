@@ -23,12 +23,10 @@ class TestDevelopTest(unittest.TestCase):
         self.dir = tempfile.mkdtemp()
         self.old_cwd = os.getcwd()
         os.chdir(self.dir)
-        f = open('setup.py', 'w')
-        f.write(SETUP_PY)
-        f.close()
-        f = open('hi.py', 'w')
-        f.write('1\n')
-        f.close()
+        with open('setup.py', 'w') as f:
+            f.write(SETUP_PY)
+        with open('hi.py', 'w') as f:
+            f.write('1\n')
         if sys.version >= "2.6":
             self.old_base = site.USER_BASE
             site.USER_BASE = tempfile.mkdtemp()
