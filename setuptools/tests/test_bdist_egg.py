@@ -40,7 +40,7 @@ def setup_context(tmpdir):
         yield tmpdir
 
 
-class TestDevelopTest:
+class Test:
     def test_bdist_egg(self, setup_context, user_override):
         dist = Distribution(dict(
             script_name='setup.py',
