@@ -43,8 +43,7 @@ class TestDistInfo:
         versioned = os.path.join(self.tmpdir,
                                  'VersionedDistribution-2.718.dist-info')
         os.mkdir(versioned)
-        metadata_file = open(os.path.join(versioned, 'METADATA'), 'w+')
-        try:
+        with open(os.path.join(versioned, 'METADATA'), 'w+') as metadata_file:
             metadata_file.write(DALS(
                 """
                 Metadata-Version: 1.2
@@ -53,13 +52,10 @@ class TestDistInfo:
                 Provides-Extra: baz
                 Requires-Dist: quux (>=1.1); extra == 'baz'
                 """))
-        finally:
-            metadata_file.close()
         unversioned = os.path.join(self.tmpdir,
                                    'UnversionedDistribution.dist-info')
         os.mkdir(unversioned)
-        metadata_file = open(os.path.join(unversioned, 'METADATA'), 'w+')
-        try:
+        with open(os.path.join(unversioned, 'METADATA'), 'w+') as metadata_file:
             metadata_file.write(DALS(
                 """
                 Metadata-Version: 1.2
@@ -69,8 +65,6 @@ class TestDistInfo:
                 Provides-Extra: baz
                 Requires-Dist: quux (>=1.1); extra == 'baz'
                 """))
-        finally:
-            metadata_file.close()
 
     def teardown_method(self, method):
         shutil.rmtree(self.tmpdir)
