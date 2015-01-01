@@ -3,23 +3,17 @@
 import os
 import shutil
 import tempfile
-import unittest
 import textwrap
 
-try:
-    import ast
-except:
-    pass
+import pytest
 
 import pkg_resources
-
-from setuptools.tests.py26compat import skipIf
 
 def DALS(s):
     "dedent and left-strip"
     return textwrap.dedent(s).lstrip()
 
-class TestDistInfo(unittest.TestCase):
+class TestDistInfo:
 
     def test_distinfo(self):
         dists = {}
@@ -34,18 +28,17 @@ class TestDistInfo(unittest.TestCase):
         assert versioned.version == '2.718' # from filename
         assert unversioned.version == '0.3' # from METADATA
 
-    @skipIf('ast' not in globals(),
-        "ast is used to test conditional dependencies (Python >= 2.6)")
+    @pytest.mark.importorskip('ast')
     def test_conditional_dependencies(self):
         requires = [pkg_resources.Requirement.parse('splort==4'),
                     pkg_resources.Requirement.parse('quux>=1.1')]
 
         for d in pkg_resources.find_distributions(self.tmpdir):
-            self.assertEqual(d.requires(), requires[:1])
-            self.assertEqual(d.requires(extras=('baz',)), requires)
-            self.assertEqual(d.extras, ['baz'])
+            assert d.requires() == requires[:1]
+            assert d.requires(extras=('baz',)) == requires
+            assert d.extras == ['baz']
 
-    def setUp(self):
+    def setup_method(self, method):
         self.tmpdir = tempfile.mkdtemp()
         versioned = os.path.join(self.tmpdir,
                                  'VersionedDistribution-2.718.dist-info')
@@ -79,5 +72,5 @@ class TestDistInfo(unittest.TestCase):
         finally:
             metadata_file.close()
 
-    def tearDown(self):
+    def teardown_method(self, method):
         shutil.rmtree(self.tmpdir)
