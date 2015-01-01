@@ -37,20 +37,16 @@ class WrapperTester:
         """
 
         sample_directory = tempdir
-        script = cls.script_tmpl % dict(python_exe=nt_quote_arg
-            (sys.executable))
+        python_exe = nt_quote_arg(sys.executable)
+        script = cls.script_tmpl % locals()
 
-        f = open(os.path.join(sample_directory, cls.script_name), 'w')
-        f.write(script)
-        f.close()
+        with open(os.path.join(sample_directory, cls.script_name), 'w') as f:
+            f.write(script)
 
         # also copy cli.exe to the sample directory
-
-        f = open(os.path.join(sample_directory, cls.wrapper_name), 'wb')
-        f.write(
-            pkg_resources.resource_string('setuptools', cls.wrapper_source)
-            )
-        f.close()
+        with open(os.path.join(sample_directory, cls.wrapper_name), 'wb') as f:
+            w = pkg_resources.resource_string('setuptools', cls.wrapper_source)
+            f.write(w)
 
 
 class TestCLI(WrapperTester):
