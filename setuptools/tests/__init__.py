@@ -2,7 +2,6 @@
 import sys
 import os
 import unittest
-import doctest
 import distutils.core
 import distutils.cmd
 from distutils.errors import DistutilsOptionError, DistutilsPlatformError
@@ -15,17 +14,6 @@ import setuptools.dist
 import setuptools.depends as dep
 from setuptools import Feature
 from setuptools.depends import Require
-
-def additional_tests():
-    suite = unittest.TestSuite((
-        doctest.DocFileSuite(
-            'api_tests.txt',
-            optionflags=doctest.ELLIPSIS, package='pkg_resources',
-            ),
-        ))
-    if sys.platform == 'win32':
-        suite.addTest(doctest.DocFileSuite('win_script_wrapper.txt'))
-    return suite
 
 def makeSetup(**args):
     """Return distribution from 'setup(**args)', without executing commands"""
