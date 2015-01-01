@@ -1,11 +1,10 @@
 """Basic http server for tests to simulate PyPI or custom indexes
 """
-import sys
+
 import time
 import threading
 from setuptools.compat import BaseHTTPRequestHandler
-from setuptools.compat import (urllib2, URLError, HTTPServer,
-                               SimpleHTTPRequestHandler)
+from setuptools.compat import HTTPServer, SimpleHTTPRequestHandler
 
 class IndexServer(HTTPServer):
     """Basic single-threaded http server simulating a package index
