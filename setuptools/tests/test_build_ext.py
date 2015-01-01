@@ -9,9 +9,11 @@ from setuptools.dist import Distribution
 class TestBuildExtTest(unittest.TestCase):
 
     def test_get_ext_filename(self):
-        # setuptools needs to give back the same
-        # result than distutils, even if the fullname
-        # is not in ext_map
+        """
+        Setuptools needs to give back the same
+        result as distutils, even if the fullname
+        is not in ext_map.
+        """
         dist = Distribution()
         cmd = build_ext(dist)
         cmd.ext_map['foo/bar'] = ''
