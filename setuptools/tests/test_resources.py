@@ -8,6 +8,8 @@ import tempfile
 import shutil
 from unittest import TestCase
 
+import pytest
+
 import pkg_resources
 from pkg_resources import (parse_requirements, VersionConflict, parse_version,
     Distribution, EntryPoint, Requirement, safe_version, safe_name,
@@ -18,7 +20,6 @@ packaging = pkg_resources.packaging
 from setuptools.command.easy_install import (get_script_header, is_sh,
     nt_quote_arg)
 from setuptools.compat import StringIO, iteritems, PY3
-from .py26compat import skipIf
 
 def safe_repr(obj, short=False):
     """ copied from Python2.7"""
@@ -612,8 +613,8 @@ class NamespaceTests(TestCase):
         pkg_resources._namespace_packages = self._ns_pkgs.copy()
         sys.path = self._prev_sys_path[:]
 
-    msg = "Test fails when /tmp is a symlink. See #231"
-    @skipIf(os.path.islink(tempfile.gettempdir()), msg)
+    @pytest.mark.skipif(os.path.islink(tempfile.gettempdir()),
+        reason="Test fails when /tmp is a symlink. See #231")
     def test_two_levels_deep(self):
         """
         Test nested namespace packages

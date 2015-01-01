@@ -6,9 +6,10 @@ import tempfile
 import unittest
 import platform
 
+import pytest
+
 import setuptools
 from setuptools import find_packages
-from setuptools.tests.py26compat import skipIf
 
 find_420_packages = setuptools.PEP420PackageFinder.find
 
@@ -123,7 +124,7 @@ class TestFindPackages(unittest.TestCase):
         packages = find_packages(self.dist_dir)
         self.assertTrue('build.pkg' not in packages)
 
-    @skipIf(not has_symlink(), 'Symlink support required')
+    @pytest.mark.skipif(not has_symlink(), reason='Symlink support required')
     def test_symlinked_packages_are_included(self):
         """
         A symbolically-linked directory should be treated like any other

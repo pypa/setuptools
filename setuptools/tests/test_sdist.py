@@ -9,7 +9,8 @@ import tempfile
 import unittest
 import unicodedata
 import contextlib
-from setuptools.tests.py26compat import skipIf
+
+import pytest
 
 import pkg_resources
 from setuptools.compat import StringIO, unicode, PY3, PY2
@@ -336,8 +337,9 @@ class TestSdistTest(unittest.TestCase):
             filename = filename.decode('latin-1')
             self.assertFalse(filename in cmd.filelist.files)
 
-    @skipIf(PY3 and locale.getpreferredencoding() != 'UTF-8',
-            'Unittest fails if locale is not utf-8 but the manifests is recorded correctly')
+    @pytest.mark.skipif(PY3 and locale.getpreferredencoding() != 'UTF-8',
+        reason='Unittest fails if locale is not utf-8 but the manifests is '
+            'recorded correctly')
     def test_sdist_with_utf8_encoded_filename(self):
         # Test for #303.
         dist = Distribution(SETUP_ATTRS)
