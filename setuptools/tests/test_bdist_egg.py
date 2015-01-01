@@ -8,8 +8,10 @@ import sys
 import tempfile
 import unittest
 
-from setuptools.compat import StringIO
 from setuptools.dist import Distribution
+
+from . import contexts
+
 
 SETUP_PY = """\
 from setuptools import setup
@@ -50,13 +52,9 @@ class TestDevelopTest(unittest.TestCase):
             py_modules=['hi']
             ))
         os.makedirs(os.path.join('build', 'src'))
-        old_stdout = sys.stdout
-        sys.stdout = StringIO()
-        try:
+        with contexts.quiet():
             dist.parse_command_line()
             dist.run_commands()
-        finally:
-            sys.stdout = old_stdout
 
         # let's see if we got our egg link at the right place
         [content] = os.listdir('dist')
