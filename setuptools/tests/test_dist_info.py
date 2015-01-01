@@ -49,8 +49,8 @@ class TestDistInfo:
 
     def setup_method(self, method):
         self.tmpdir = tempfile.mkdtemp()
-        versioned = os.path.join(self.tmpdir,
-                                 'VersionedDistribution-2.718.dist-info')
+        dist_info_name = 'VersionedDistribution-2.718.dist-info'
+        versioned = os.path.join(self.tmpdir, dist_info_name)
         os.mkdir(versioned)
         with open(os.path.join(versioned, 'METADATA'), 'w+') as metadata_file:
             metadata = self.metadata_template.format(
@@ -58,8 +58,8 @@ class TestDistInfo:
                 version='',
             ).replace('\n\n', '\n')
             metadata_file.write(metadata)
-        unversioned = os.path.join(self.tmpdir,
-                                   'UnversionedDistribution.dist-info')
+        dist_info_name = 'UnversionedDistribution.dist-info'
+        unversioned = os.path.join(self.tmpdir, dist_info_name)
         os.mkdir(unversioned)
         with open(os.path.join(unversioned, 'METADATA'), 'w+') as metadata_file:
             metadata = self.metadata_template.format(
