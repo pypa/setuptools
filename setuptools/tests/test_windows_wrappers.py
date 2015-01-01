@@ -26,6 +26,12 @@ pytestmark = pytest.mark.skipif(sys.platform != 'win32', reason="Windows only")
 
 
 class WrapperTester:
+
+    @classmethod
+    def prep_script(cls, template):
+        python_exe = nt_quote_arg(sys.executable)
+        return template % locals()
+
     @classmethod
     def create_script(cls, tempdir):
         """
@@ -37,8 +43,7 @@ class WrapperTester:
         """
 
         sample_directory = tempdir
-        python_exe = nt_quote_arg(sys.executable)
-        script = cls.script_tmpl % locals()
+        script = cls.prep_script(cls.script_tmpl)
 
         with open(os.path.join(sample_directory, cls.script_name), 'w') as f:
             f.write(script)
@@ -124,7 +129,7 @@ class TestCLI(WrapperTester):
             sys.ps1 = '---'
             """).lstrip()
         with open(os.path.join(sample_directory, 'foo-script.py'), 'w') as f:
-            f.write(tmpl % dict(python_exe=nt_quote_arg(sys.executable)))
+            f.write(self.prep_script(tmpl))
         cmd = [os.path.join(sample_directory, 'foo.exe')]
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT)
         stdout, stderr = proc.communicate()
