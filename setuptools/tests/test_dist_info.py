@@ -57,7 +57,6 @@ class TestDistInfo:
                 name='VersionedDistribution',
                 version='',
             ).replace('\n\n', '\n')
-            metadata = metadata.replace('==4', '4')
             metadata_file.write(metadata)
         unversioned = os.path.join(self.tmpdir,
                                    'UnversionedDistribution.dist-info')
