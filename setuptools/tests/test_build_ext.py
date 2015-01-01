@@ -1,12 +1,9 @@
-"""build_ext tests
-"""
 import distutils.command.build_ext as orig
 
 from setuptools.command.build_ext import build_ext
 from setuptools.dist import Distribution
 
 class TestBuildExt:
-
     def test_get_ext_filename(self):
         """
         Setuptools needs to give back the same
