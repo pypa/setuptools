@@ -5,7 +5,6 @@ import shutil
 import site
 import sys
 import tempfile
-import unittest
 
 from distutils.errors import DistutilsError
 from setuptools.command.develop import develop
@@ -23,9 +22,9 @@ setup(name='foo',
 INIT_PY = """print "foo"
 """
 
-class TestDevelopTest(unittest.TestCase):
+class TestDevelopTest:
 
-    def setUp(self):
+    def setup_method(self, method):
         if sys.version < "2.6" or hasattr(sys, 'real_prefix'):
             return
 
@@ -50,7 +49,7 @@ class TestDevelopTest(unittest.TestCase):
         self.old_site = site.USER_SITE
         site.USER_SITE = tempfile.mkdtemp()
 
-    def tearDown(self):
+    def teardown_method(self, method):
         if sys.version < "2.6" or hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
             return
 
@@ -86,7 +85,7 @@ class TestDevelopTest(unittest.TestCase):
         # let's see if we got our egg link at the right place
         content = os.listdir(site.USER_SITE)
         content.sort()
-        self.assertEqual(content, ['easy-install.pth', 'foo.egg-link'])
+        assert content == ['easy-install.pth', 'foo.egg-link']
 
         # Check that we are using the right code.
         egg_link_file = open(os.path.join(site.USER_SITE, 'foo.egg-link'), 'rt')
@@ -100,9 +99,9 @@ class TestDevelopTest(unittest.TestCase):
         finally:
             init_file.close()
         if sys.version < "3":
-            self.assertEqual(init, 'print "foo"')
+            assert init == 'print "foo"'
         else:
-            self.assertEqual(init, 'print("foo")')
+            assert init == 'print("foo")'
 
     def notest_develop_with_setup_requires(self):
 
