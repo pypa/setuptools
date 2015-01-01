@@ -16,9 +16,10 @@ def DALS(s):
 class TestDistInfo:
 
     def test_distinfo(self):
-        dists = {}
-        for d in pkg_resources.find_distributions(self.tmpdir):
-            dists[d.project_name] = d
+        dists = dict(
+            (d.project_name, d)
+            for d in pkg_resources.find_distributions(self.tmpdir)
+        )
 
         assert len(dists) == 2, dists
 
