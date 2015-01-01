@@ -8,10 +8,7 @@ import sys
 import tempfile
 import unittest
 
-from distutils.errors import DistutilsError
 from setuptools.compat import StringIO
-from setuptools.command.bdist_egg import bdist_egg
-from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
 
 SETUP_PY = """\
@@ -56,7 +53,7 @@ class TestDevelopTest(unittest.TestCase):
             ))
         os.makedirs(os.path.join('build', 'src'))
         old_stdout = sys.stdout
-        sys.stdout = o = StringIO()
+        sys.stdout = StringIO()
         try:
             dist.parse_command_line()
             dist.run_commands()
