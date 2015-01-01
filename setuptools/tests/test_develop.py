@@ -25,7 +25,7 @@ INIT_PY = """print "foo"
 class TestDevelopTest:
 
     def setup_method(self, method):
-        if sys.version < "2.6" or hasattr(sys, 'real_prefix'):
+        if hasattr(sys, 'real_prefix'):
             return
 
         # Directory structure
@@ -50,7 +50,7 @@ class TestDevelopTest:
         site.USER_SITE = tempfile.mkdtemp()
 
     def teardown_method(self, method):
-        if sys.version < "2.6" or hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
+        if hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
             return
 
         os.chdir(self.old_cwd)
@@ -61,7 +61,7 @@ class TestDevelopTest:
         site.USER_SITE = self.old_site
 
     def test_develop(self):
-        if sys.version < "2.6" or hasattr(sys, 'real_prefix'):
+        if hasattr(sys, 'real_prefix'):
             return
         dist = Distribution(
             dict(name='foo',
