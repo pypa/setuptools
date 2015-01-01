@@ -3,7 +3,7 @@ Python Script Wrapper for Windows
 =================================
 
 setuptools includes wrappers for Python scripts that allows them to be
-executed like regular windows programs.  There are 2 wrappers, once
+executed like regular windows programs.  There are 2 wrappers, one
 for command-line programs, cli.exe, and one for graphical programs,
 gui.exe.  These programs are almost identical, function pretty much
 the same way, and are generated from the same source file.  The
@@ -69,7 +69,7 @@ class TestCLI(WrapperTester):
         When the copy of cli.exe, foo.exe in this example, runs, it examines
         the path name it was run with and computes a Python script path name
         by removing the '.exe' suffix and adding the '-script.py' suffix. (For
-        GUI programs, the suffix '-script-pyw' is added.)  This is why we
+        GUI programs, the suffix '-script.pyw' is added.)  This is why we
         named out script the way we did.  Now we can run out script by running
         the wrapper:
 
