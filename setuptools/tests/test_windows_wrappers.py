@@ -112,8 +112,7 @@ class TestCLI(WrapperTester):
         """
         sample_directory = str(tmpdir)
         self.create_script(sample_directory)
-        f = open(os.path.join(sample_directory, 'foo-script.py'), 'w')
-        f.write(textwrap.dedent("""
+        tmpl = textwrap.dedent("""
             #!%(python_exe)s  -Oi
             import sys
             input = repr(sys.stdin.read())
@@ -123,8 +122,9 @@ class TestCLI(WrapperTester):
             if __debug__:
                 print('non-optimized')
             sys.ps1 = '---'
-            """).lstrip() % dict(python_exe=nt_quote_arg(sys.executable)))
-        f.close()
+            """).lstrip()
+        with open(os.path.join(sample_directory, 'foo-script.py'), 'w') as f:
+            f.write(tmpl % dict(python_exe=nt_quote_arg(sys.executable)))
         cmd = [os.path.join(sample_directory, 'foo.exe')]
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT)
         stdout, stderr = proc.communicate()
@@ -169,6 +169,6 @@ class TestGUI(WrapperTester):
         stdout, stderr = proc.communicate()
         assert not stdout
         assert not stderr
-        f_out = open(os.path.join(sample_directory, 'test_output.txt'), 'rb')
-        assert f_out.read().decode('ascii') == repr('Test Argument')
-        f_out.close()
+        with open(os.path.join(sample_directory, 'test_output.txt'), 'rb') as f_out:
+            actual = f_out.read().decode('ascii')
+        assert actual == repr('Test Argument')
