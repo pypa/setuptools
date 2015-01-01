@@ -31,6 +31,11 @@ def makeSetup(**args):
         distutils.core._setup_stop_after = None
 
 
+needs_bytecode = pytest.mark.skipif(
+    not hasattr(dep, 'get_module_constant'),
+    reason="bytecode support not available",
+)
+
 class TestDepends:
 
     def testExtractConst(self):
@@ -65,21 +70,15 @@ class TestDepends:
         f,p,i = dep.find_module('setuptools.tests')
         f.close()
 
+    @needs_bytecode
     def testModuleExtract(self):
-        if not hasattr(dep, 'get_module_constant'):
-            # skip on non-bytecode platforms
-            return
-
         from email import __version__
         assert dep.get_module_constant('email','__version__') == __version__
         assert dep.get_module_constant('sys','version') == sys.version
         assert dep.get_module_constant('setuptools.tests','__doc__') == __doc__
 
+    @needs_bytecode
     def testRequire(self):
-        if not hasattr(dep, 'extract_constant'):
-            # skip on non-bytecode platformsh
-            return
-
         req = Require('Email','1.0.3','email')
 
         assert req.name == 'Email'
