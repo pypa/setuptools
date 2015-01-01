@@ -102,20 +102,3 @@ class TestDevelopTest:
             assert init == 'print "foo"'
         else:
             assert init == 'print("foo")'
-
-    def notest_develop_with_setup_requires(self):
-
-        wanted = ("Could not find suitable distribution for "
-                  "Requirement.parse('I-DONT-EXIST')")
-        old_dir = os.getcwd()
-        os.chdir(self.dir)
-        try:
-            try:
-                Distribution({'setup_requires': ['I_DONT_EXIST']})
-            except DistutilsError:
-                e = sys.exc_info()[1]
-                error = str(e)
-                if error == wanted:
-                    pass
-        finally:
-            os.chdir(old_dir)
