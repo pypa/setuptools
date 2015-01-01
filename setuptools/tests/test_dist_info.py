@@ -31,8 +31,8 @@ class TestDistInfo:
 
     @pytest.mark.importorskip('ast')
     def test_conditional_dependencies(self):
-        requires = [pkg_resources.Requirement.parse('splort==4'),
-                    pkg_resources.Requirement.parse('quux>=1.1')]
+        specs = 'splort==4', 'quux>=1.1'
+        requires = list(map(pkg_resources.Requirement.parse, specs))
 
         for d in pkg_resources.find_distributions(self.tmpdir):
             assert d.requires() == requires[:1]
