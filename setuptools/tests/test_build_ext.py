@@ -1,7 +1,8 @@
 """build_ext tests
 """
 import unittest
-from distutils.command.build_ext import build_ext as distutils_build_ext
+import distutils.command.build_ext as orig
+
 from setuptools.command.build_ext import build_ext
 from setuptools.dist import Distribution
 
@@ -15,5 +16,5 @@ class TestBuildExtTest(unittest.TestCase):
         cmd = build_ext(dist)
         cmd.ext_map['foo/bar'] = ''
         res = cmd.get_ext_filename('foo')
-        wanted = distutils_build_ext.get_ext_filename(cmd, 'foo')
+        wanted = orig.build_ext.get_ext_filename(cmd, 'foo')
         assert res == wanted
