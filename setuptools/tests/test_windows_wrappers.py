@@ -89,8 +89,14 @@ class TestCLI(WrapperTester):
           by preceding each of them with back slashes.
         """
         self.create_script(tmpdir)
-        cmd = [str(tmpdir / 'foo.exe'), 'arg1', 'arg 2',
-            'arg "2\\"', 'arg 4\\', 'arg5 a\\\\b']
+        cmd = [
+            str(tmpdir / 'foo.exe'),
+            'arg1',
+            'arg 2',
+            'arg "2\\"',
+            'arg 4\\',
+            'arg5 a\\\\b',
+        ]
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
         stdout, stderr = proc.communicate('hello\nworld\n'.encode('ascii'))
         actual = stdout.decode('ascii').replace('\r\n', '\n')
