@@ -9,10 +9,8 @@ import sys
 import tempfile
 import unittest
 
-from distutils.errors import DistutilsError
 from setuptools.compat import StringIO, PY2
 from setuptools.command.test import test
-from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
 
 SETUP_PY = """\
