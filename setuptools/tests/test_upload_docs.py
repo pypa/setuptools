@@ -1,5 +1,3 @@
-"""build_ext tests
-"""
 import sys
 import os
 import shutil
