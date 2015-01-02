@@ -4,7 +4,6 @@ import sys
 import os
 import shutil
 import tempfile
-import unittest
 import site
 import contextlib
 import textwrap
@@ -67,7 +66,7 @@ SETUP_PY = DALS("""
     setup(name='foo')
     """)
 
-class TestEasyInstallTest(unittest.TestCase):
+class TestEasyInstallTest:
 
     def test_install_site_py(self):
         dist = Distribution()
@@ -77,7 +76,7 @@ class TestEasyInstallTest(unittest.TestCase):
         try:
             cmd.install_site_py()
             sitepy = os.path.join(cmd.install_dir, 'site.py')
-            self.assertTrue(os.path.exists(sitepy))
+            assert os.path.exists(sitepy)
         finally:
             shutil.rmtree(cmd.install_dir)
 
@@ -87,7 +86,7 @@ class TestEasyInstallTest(unittest.TestCase):
         args = next(get_script_args(dist))
         name, script = itertools.islice(args, 2)
 
-        self.assertEqual(script, WANTED)
+        assert script == WANTED
 
     def test_no_find_links(self):
         # new option '--no-find-links', that blocks find-links added at
@@ -100,7 +99,7 @@ class TestEasyInstallTest(unittest.TestCase):
         cmd.install_dir = os.path.join(tempfile.mkdtemp(), 'ok')
         cmd.args = ['ok']
         cmd.ensure_finalized()
-        self.assertEqual(cmd.package_index.scanned_urls, {})
+        assert cmd.package_index.scanned_urls == {}
 
         # let's try without it (default behavior)
         cmd = easy_install(dist)
@@ -110,27 +109,27 @@ class TestEasyInstallTest(unittest.TestCase):
         cmd.args = ['ok']
         cmd.ensure_finalized()
         keys = sorted(cmd.package_index.scanned_urls.keys())
-        self.assertEqual(keys, ['link1', 'link2'])
+        assert keys == ['link1', 'link2']
 
 
-class TestPTHFileWriter(unittest.TestCase):
+class TestPTHFileWriter:
     def test_add_from_cwd_site_sets_dirty(self):
         '''a pth file manager should set dirty
         if a distribution is in site but also the cwd
         '''
         pth = PthDistributions('does-not_exist', [os.getcwd()])
-        self.assertTrue(not pth.dirty)
+        assert not pth.dirty
         pth.add(PRDistribution(os.getcwd()))
-        self.assertTrue(pth.dirty)
+        assert pth.dirty
 
     def test_add_from_site_is_ignored(self):
         location = '/test/location/does-not-have-to-exist'
         # PthDistributions expects all locations to be normalized
         location = pkg_resources.normalize_path(location)
         pth = PthDistributions('does-not_exist', [location, ])
-        self.assertTrue(not pth.dirty)
+        assert not pth.dirty
         pth.add(PRDistribution(location))
-        self.assertTrue(not pth.dirty)
+        assert not pth.dirty
 
 
 @pytest.yield_fixture
@@ -276,7 +275,7 @@ class TestDistutilsPackage:
         run_setup('setup.py', ['bdist_egg'])
 
 
-class TestSetupRequires(unittest.TestCase):
+class TestSetupRequires:
 
     def test_setup_requires_honors_fetch_params(self):
         """
@@ -312,8 +311,8 @@ class TestSetupRequires(unittest.TestCase):
                                 easy_install_pkg.main(ei_params)
         # there should have been two or three requests to the server
         #  (three happens on Python 3.3a)
-        self.assertTrue(2 <= len(p_index.requests) <= 3)
-        self.assertEqual(p_index.requests[0].path, '/does-not-exist/')
+        assert 2 <= len(p_index.requests) <= 3
+        assert p_index.requests[0].path == '/does-not-exist/'
 
     @staticmethod
     @contextlib.contextmanager
@@ -363,8 +362,8 @@ class TestSetupRequires(unittest.TestCase):
                             'caused a VersionConflict')
 
                 lines = stdout.readlines()
-                self.assertTrue(len(lines) > 0)
-                self.assertTrue(lines[-1].strip(), 'test_pkg')
+                assert len(lines) > 0
+                assert lines[-1].strip(), 'test_pkg'
         finally:
             pkg_resources.__setstate__(pr_state)
 
