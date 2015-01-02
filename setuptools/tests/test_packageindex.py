@@ -1,11 +1,11 @@
-"""Package Index Tests
-"""
 import sys
 import os
 import unittest
-import pkg_resources
-from setuptools.compat import httplib, HTTPError, unicode, pathname2url
 import distutils.errors
+
+from setuptools.compat import httplib, HTTPError, unicode, pathname2url
+
+import pkg_resources
 import setuptools.package_index
 from setuptools.tests.server import IndexServer
 
