@@ -8,6 +8,8 @@ import site
 import sys
 import tempfile
 
+import pytest
+
 from setuptools.compat import StringIO, PY2
 from setuptools.command.test import test
 from setuptools.dist import Distribution
@@ -50,12 +52,10 @@ TEST_PY = DALS("""
     """)
 
 
+@pytest.mark.skipif('hasattr(sys, "real_prefix")')
 class TestTestTest:
 
     def setup_method(self, method):
-        if hasattr(sys, 'real_prefix'):
-            return
-
         # Directory structure
         self.dir = tempfile.mkdtemp()
         os.mkdir(os.path.join(self.dir, 'name'))
@@ -90,9 +90,6 @@ class TestTestTest:
         site.USER_SITE = tempfile.mkdtemp()
 
     def teardown_method(self, method):
-        if hasattr(sys, 'real_prefix'):
-            return
-
         os.chdir(self.old_cwd)
         shutil.rmtree(self.dir)
         shutil.rmtree(site.USER_BASE)
@@ -101,9 +98,6 @@ class TestTestTest:
         site.USER_SITE = self.old_site
 
     def test_test(self):
-        if hasattr(sys, 'real_prefix'):
-            return
-
         dist = Distribution(dict(
             name='foo',
             packages=['name', 'name.space', 'name.space.tests'],
