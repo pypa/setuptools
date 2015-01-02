@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+------
+10.2.1
+------
+
+* Issue #323: Fix regression in entry point name parsing.
+
 ----
 10.2
 ----
