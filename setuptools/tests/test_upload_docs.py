@@ -1,5 +1,6 @@
 import os
 import zipfile
+import contextlib
 
 import pytest
 
@@ -54,5 +55,5 @@ class TestUploadDocsTest:
 
             assert zipfile.is_zipfile(tmp_file)
 
-            with zipfile.ZipFile(tmp_file) as zip_file:
+            with contextlib.closing(zipfile.ZipFile(tmp_file)) as zip_file:
                 assert zip_file.namelist() == ['index.html']
