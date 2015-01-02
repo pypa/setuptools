@@ -1,7 +1,6 @@
-recursive-include setuptools *.py *.txt *.exe *.xml
-recursive-include tests *.py *.c *.pyx *.txt
-recursive-include setuptools/tests *.html entries*
-recursive-include setuptools/tests/svn_data *.zip
+recursive-include setuptools *.py *.exe *.xml
+recursive-include tests *.py *.c *.pyx
+recursive-include setuptools/tests *.html
 recursive-include docs *.py *.txt *.conf *.css *.css_t Makefile indexsidebar.html
 recursive-include _markerlib *.py
 recursive-include pkg_resources *.py *.txt
