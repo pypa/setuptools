@@ -1,6 +1,4 @@
 import os
-import shutil
-import tempfile
 import zipfile
 
 import pytest
@@ -9,6 +7,7 @@ from setuptools.command.upload_docs import upload_docs
 from setuptools.dist import Distribution
 
 from .textwrap import DALS
+from . import contexts
 
 
 SETUP_PY = DALS(
@@ -49,9 +48,8 @@ class TestUploadDocsTest:
 
         cmd = upload_docs(dist)
         cmd.target_dir = cmd.upload_dir = 'build'
-        tmp_dir = tempfile.mkdtemp()
-        tmp_file = os.path.join(tmp_dir, 'foo.zip')
-        try:
+        with contexts.tempdir() as tmp_dir:
+            tmp_file = os.path.join(tmp_dir, 'foo.zip')
             zip_file = cmd.create_zipfile(tmp_file)
 
             assert zipfile.is_zipfile(tmp_file)
@@ -61,6 +59,3 @@ class TestUploadDocsTest:
             assert zip_file.namelist() == ['index.html']
 
             zip_file.close()
-        finally:
-            shutil.rmtree(tmp_dir)
-
