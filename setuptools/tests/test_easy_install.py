@@ -1,12 +1,13 @@
 """Easy install Tests
 """
+from __future__ import absolute_import
+
 import sys
 import os
 import shutil
 import tempfile
 import site
 import contextlib
-import textwrap
 import tarfile
 import logging
 import itertools
@@ -29,13 +30,7 @@ import pkg_resources
 
 from .py26compat import tarfile_open
 from . import contexts
-
-
-def DALS(input):
-    """
-    Dedent and left-strip
-    """
-    return textwrap.dedent(input).lstrip()
+from .textwrap import DALS
 
 
 class FakeDist(object):

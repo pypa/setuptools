@@ -3,15 +3,12 @@
 import os
 import shutil
 import tempfile
-import textwrap
 
 import pytest
 
 import pkg_resources
+from .textwrap import DALS
 
-def DALS(s):
-    "dedent and left-strip"
-    return textwrap.dedent(s).lstrip()
 
 class TestDistInfo:
 
