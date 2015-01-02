@@ -109,3 +109,11 @@ class TestIndependence:
         )
         cmd = [sys.executable, '-c', '; '.join(lines)]
         subprocess.check_call(cmd)
+
+
+class TestEntryPoint:
+    """Tests that ensure EntryPoint behaviour doesn't regress."""
+    def test_accepts_old_entry_points(self):
+        """https://bitbucket.org/pypa/setuptools/issue/323/install-issues-with-102"""
+        entry_point_string = 'html+mako = mako.ext.pygmentplugin:MakoHtmlLexer'
+        pkg_resources.EntryPoint.parse(entry_point_string)
