@@ -133,24 +133,23 @@ class TestPTHFileWriter(unittest.TestCase):
         self.assertTrue(not pth.dirty)
 
 
+@pytest.yield_fixture
+def setup_context(tmpdir):
+    with (tmpdir/'setup.py').open('w') as f:
+        f.write(SETUP_PY)
+    with tmpdir.as_cwd():
+        yield tmpdir
+
+
 @pytest.mark.usefixtures("user_override")
+@pytest.mark.usefixtures("setup_context")
 class TestUserInstallTest:
 
     def setup_method(self, method):
-        self.dir = tempfile.mkdtemp()
-        setup = os.path.join(self.dir, 'setup.py')
-        with open(setup, 'w') as f:
-            f.write(SETUP_PY)
-        self.old_cwd = os.getcwd()
-        os.chdir(self.dir)
-
         self.old_file = easy_install_pkg.__file__
         easy_install_pkg.__file__ = site.USER_SITE
 
     def teardown_method(self, method):
-        os.chdir(self.old_cwd)
-        shutil.rmtree(self.dir)
-
         easy_install_pkg.__file__ = self.old_file
 
     def test_user_install_implied(self):
@@ -251,7 +250,7 @@ class TestUserInstallTest:
         SandboxViolation.
         """
 
-        test_pkg = create_setup_requires_package(self.dir)
+        test_pkg = create_setup_requires_package(os.getcwd())
         test_setup_py = os.path.join(test_pkg, 'setup.py')
 
         try:
