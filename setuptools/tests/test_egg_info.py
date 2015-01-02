@@ -48,12 +48,15 @@ class TestEggInfo:
                 ))
             environ = os.environ.copy()
             environ['HOME'] = paths['home']
+            cmd = [
+                'install',
+                '--home', paths['home'],
+                '--install-lib', paths['lib'],
+                '--install-scripts', paths['scripts'],
+                '--install-data', paths['data'],
+            ]
             code, data = environment.run_setup_py(
-                cmd=[
-                    'install', '--home', paths['home'],
-                    '--install-lib', paths['lib'],
-                    '--install-scripts', paths['scripts'],
-                    '--install-data', paths['data']],
+                cmd=cmd,
                 pypath=os.pathsep.join([paths['lib'], str(tmpdir_cwd)]),
                 data_stream=1,
                 env=environ)
