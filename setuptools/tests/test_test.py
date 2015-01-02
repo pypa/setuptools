@@ -1,13 +1,12 @@
 # -*- coding: UTF-8 -*-
 
-"""develop tests
-"""
+from __future__ import unicode_literals
+
 import os
 import site
 
 import pytest
 
-from setuptools.compat import PY2
 from setuptools.command.test import test
 from setuptools.dist import Distribution
 
@@ -34,11 +33,6 @@ NS_INIT = DALS("""
         __path__ = extend_path(__path__, __name__)
     """)
 
-# Make sure this is Latin-1 binary, before writing:
-if PY2:
-    NS_INIT = NS_INIT.decode('UTF-8')
-NS_INIT = NS_INIT.encode('Latin-1')
-
 TEST_PY = DALS("""
     import unittest
 
@@ -60,7 +54,7 @@ def sample_test(tmpdir_cwd):
 
     # name/__init__.py
     with open('name/__init__.py', 'wb') as f:
-        f.write(NS_INIT)
+        f.write(NS_INIT.encode('Latin-1'))
 
     # name/space/__init__.py
     with open('name/space/__init__.py', 'wt') as f:
