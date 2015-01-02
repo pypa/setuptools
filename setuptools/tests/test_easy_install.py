@@ -133,9 +133,9 @@ class TestPTHFileWriter(unittest.TestCase):
         self.assertTrue(not pth.dirty)
 
 
-class TestUserInstallTest(unittest.TestCase):
+class TestUserInstallTest:
 
-    def setUp(self):
+    def setup_method(self, method):
         self.dir = tempfile.mkdtemp()
         setup = os.path.join(self.dir, 'setup.py')
         with open(setup, 'w') as f:
@@ -151,7 +151,7 @@ class TestUserInstallTest(unittest.TestCase):
         site.USER_SITE = tempfile.mkdtemp()
         easy_install_pkg.__file__ = site.USER_SITE
 
-    def tearDown(self):
+    def teardown_method(self, method):
         os.chdir(self.old_cwd)
         shutil.rmtree(self.dir)
 
@@ -170,7 +170,7 @@ class TestUserInstallTest(unittest.TestCase):
         cmd = easy_install(dist)
         cmd.args = ['py']
         cmd.ensure_finalized()
-        self.assertTrue(cmd.user, 'user should be implied')
+        assert cmd.user, 'user should be implied'
 
     def test_multiproc_atexit(self):
         try:
@@ -191,7 +191,7 @@ class TestUserInstallTest(unittest.TestCase):
         cmd = easy_install(dist)
         cmd.args = ['py']
         cmd.initialize_options()
-        self.assertFalse(cmd.user, 'NOT user should be implied')
+        assert not cmd.user, 'NOT user should be implied'
 
     def test_local_index(self):
         # make sure the local index is used
@@ -217,7 +217,7 @@ class TestUserInstallTest(unittest.TestCase):
             res = cmd.easy_install('foo')
             actual = os.path.normcase(os.path.realpath(res.location))
             expected = os.path.normcase(os.path.realpath(new_location))
-            self.assertEqual(actual, expected)
+            assert actual == expected
         finally:
             sys.path.remove(target)
             for basedir in [new_location, target, ]:
