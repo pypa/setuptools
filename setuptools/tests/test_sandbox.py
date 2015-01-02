@@ -1,6 +1,5 @@
 """develop tests
 """
-import sys
 import os
 import shutil
 import tempfile
@@ -25,14 +24,12 @@ class TestSandbox:
         sandbox = DirectorySandbox(self.dir)
         sandbox.run(self._file_writer(os.devnull))
 
+    @staticmethod
     def _file_writer(path):
         def do_write():
-            f = open(path, 'w')
-            f.write('xxx')
-            f.close()
+            with open(path, 'w') as f:
+                f.write('xxx')
         return do_write
-
-    _file_writer = staticmethod(_file_writer)
 
     def test_win32com(self):
         """
@@ -49,7 +46,8 @@ class TestSandbox:
             except SandboxViolation:
                 self.fail("Could not create gen_py file due to SandboxViolation")
         finally:
-            if os.path.exists(target): os.remove(target)
+            if os.path.exists(target):
+                os.remove(target)
 
     def test_setup_py_with_BOM(self):
         """
