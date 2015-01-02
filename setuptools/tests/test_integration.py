@@ -71,7 +71,6 @@ def test_virtualenvwrapper(install_context):
                  'virtualenvwrapper', 'hook_loader.py')
 
 
-@pytest.mark.xfail
 def test_pbr(install_context):
     _install_one('pbr', install_context,
                  'pbr', 'core.py')
