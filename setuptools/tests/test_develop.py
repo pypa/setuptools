@@ -6,7 +6,6 @@ import site
 import sys
 import tempfile
 
-from distutils.errors import DistutilsError
 from setuptools.command.develop import develop
 from setuptools.dist import Distribution
 
