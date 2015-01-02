@@ -250,6 +250,11 @@ class TestEntryPoints:
         assert ep.attrs == ("foo",)
         assert ep.extras == ()
 
+        # plus in the name
+        spec = "html+mako = mako.ext.pygmentplugin:MakoHtmlLexer"
+        ep = EntryPoint.parse(spec)
+        assert ep.name == 'html+mako'
+
     def testRejects(self):
         for ep in [
             "foo", "x=1=2", "x=a:b:c", "q=x/na", "fez=pish:tush-z", "x=f[a]>2",
