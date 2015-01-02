@@ -77,6 +77,8 @@ class TestMSVC9Compiler:
                     query_vcvarsall(9.0)
                 assert 'aka.ms/vcpython27' in str(exc)
 
+    def test_find_vcvarsall_patch_2(self):
+        find_vcvarsall = distutils.msvc9compiler.find_vcvarsall
         key_32 = r'software\microsoft\devdiv\vcforpython\9.0\installdir'
         key_64 = r'software\wow6432node\microsoft\devdiv\vcforpython\9.0\installdir'
 
