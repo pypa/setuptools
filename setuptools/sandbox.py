@@ -5,7 +5,10 @@ import operator
 import functools
 import itertools
 import re
+import contextlib
+import pickle
 
+import six
 from six.moves import builtins
 
 import pkg_resources
@@ -42,20 +45,150 @@ def _execfile(filename, globals, locals=None):
     code = compile(script, filename, 'exec')
     exec(code, globals, locals)
 
+
+@contextlib.contextmanager
+def save_argv():
+    saved = sys.argv[:]
+    try:
+        yield saved
+    finally:
+        sys.argv[:] = saved
+
+
+@contextlib.contextmanager
+def save_path():
+    saved = sys.path[:]
+    try:
+        yield saved
+    finally:
+        sys.path[:] = saved
+
+
+@contextlib.contextmanager
+def override_temp(replacement):
+    """
+    Monkey-patch tempfile.tempdir with replacement, ensuring it exists
+    """
+    if not os.path.isdir(replacement):
+        os.makedirs(replacement)
+
+    saved = tempfile.tempdir
+
+    tempfile.tempdir = replacement
+
+    try:
+        yield
+    finally:
+        tempfile.tempdir = saved
+
+
+@contextlib.contextmanager
+def pushd(target):
+    saved = os.getcwd()
+    os.chdir(target)
+    try:
+        yield saved
+    finally:
+        os.chdir(saved)
+
+
+@contextlib.contextmanager
+def save_modules():
+    """
+    Context in which imported modules are saved.
+
+    Translates exceptions internal to the context into the equivalent exception
+    outside the context.
+    """
+    saved = sys.modules.copy()
+    try:
+        try:
+            yield saved
+        except:
+            # dump any exception
+            class_, exc, tb = sys.exc_info()
+            saved_cls = pickle.dumps(class_)
+            saved_exc = pickle.dumps(exc)
+            raise
+        finally:
+            sys.modules.update(saved)
+            # remove any modules imported since
+            del_modules = (
+                mod_name for mod_name in sys.modules
+                if mod_name not in saved
+                # exclude any encodings modules. See #285
+                and not mod_name.startswith('encodings.')
+            )
+            _clear_modules(del_modules)
+    except:
+        # reload and re-raise any exception, using restored modules
+        class_, exc, tb = sys.exc_info()
+        new_cls = pickle.loads(saved_cls)
+        new_exc = pickle.loads(saved_exc)
+        six.reraise(new_cls, new_exc, tb)
+
+
+def _clear_modules(module_names):
+    for mod_name in list(module_names):
+        del sys.modules[mod_name]
+
+
+@contextlib.contextmanager
+def save_pkg_resources_state():
+    saved = pkg_resources.__getstate__()
+    try:
+        yield saved
+    finally:
+        pkg_resources.__setstate__(saved)
+
+
+@contextlib.contextmanager
+def setup_context(setup_dir):
+    temp_dir = os.path.join(setup_dir, 'temp')
+    with save_pkg_resources_state():
+        with save_modules():
+            hide_setuptools()
+            with save_path():
+                with save_argv():
+                    with override_temp(temp_dir):
+                        with pushd(setup_dir):
+                            # ensure setuptools commands are available
+                            __import__('setuptools')
+                            yield
+
+
+def _needs_hiding(mod_name):
+    """
+    >>> _needs_hiding('setuptools')
+    True
+    >>> _needs_hiding('pkg_resources')
+    True
+    >>> _needs_hiding('setuptools_plugin')
+    False
+    >>> _needs_hiding('setuptools.__init__')
+    True
+    >>> _needs_hiding('distutils')
+    True
+    """
+    pattern = re.compile('(setuptools|pkg_resources|distutils)(\.|$)')
+    return bool(pattern.match(mod_name))
+
+
+def hide_setuptools():
+    """
+    Remove references to setuptools' modules from sys.modules to allow the
+    invocation to import the most appropriate setuptools. This technique is
+    necessary to avoid issues such as #315 where setuptools upgrading itself
+    would fail to find a function declared in the metadata.
+    """
+    modules = filter(_needs_hiding, sys.modules)
+    _clear_modules(modules)
+
+
 def run_setup(setup_script, args):
     """Run a distutils setup script, sandboxed in its directory"""
-    old_dir = os.getcwd()
-    save_argv = sys.argv[:]
-    save_path = sys.path[:]
     setup_dir = os.path.abspath(os.path.dirname(setup_script))
-    temp_dir = os.path.join(setup_dir,'temp')
-    if not os.path.isdir(temp_dir): os.makedirs(temp_dir)
-    save_tmp = tempfile.tempdir
-    save_modules = sys.modules.copy()
-    pr_state = pkg_resources.__getstate__()
-    try:
-        tempfile.tempdir = temp_dir
-        os.chdir(setup_dir)
+    with setup_context(setup_dir):
         try:
             sys.argv[:] = [setup_script]+list(args)
             sys.path.insert(0, setup_dir)
@@ -71,21 +204,6 @@ def run_setup(setup_script, args):
             if v.args and v.args[0]:
                 raise
             # Normal exit, just return
-    finally:
-        pkg_resources.__setstate__(pr_state)
-        sys.modules.update(save_modules)
-        # remove any modules imported within the sandbox
-        del_modules = [
-            mod_name for mod_name in sys.modules
-            if mod_name not in save_modules
-            # exclude any encodings modules. See #285
-            and not mod_name.startswith('encodings.')
-        ]
-        list(map(sys.modules.__delitem__, del_modules))
-        os.chdir(old_dir)
-        sys.path[:] = save_path
-        sys.argv[:] = save_argv
-        tempfile.tempdir = save_tmp
 
 
 class AbstractSandbox:

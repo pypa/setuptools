@@ -14,6 +14,8 @@ The package resource API is designed to work with normal filesystem packages,
 method.
 """
 
+from __future__ import absolute_import
+
 import sys
 import os
 import io
@@ -72,6 +74,136 @@ try:
     import parser
 except ImportError:
     pass
+
+try:
+    import pkg_resources._vendor.packaging.version
+    import pkg_resources._vendor.packaging.specifiers
+    packaging = pkg_resources._vendor.packaging
+except ImportError:
+    # fallback to naturally-installed version; allows system packagers to
+    #  omit vendored packages.
+    import packaging.version
+    import packaging.specifiers
+
+
+class PEP440Warning(RuntimeWarning):
+    """
+    Used when there is an issue with a version or specifier not complying with
+    PEP 440.
+    """
+
+
+class _SetuptoolsVersionMixin(object):
+
+    def __hash__(self):
+        return super(_SetuptoolsVersionMixin, self).__hash__()
+
+    def __lt__(self, other):
+        if isinstance(other, tuple):
+            return tuple(self) < other
+        else:
+            return super(_SetuptoolsVersionMixin, self).__lt__(other)
+
+    def __le__(self, other):
+        if isinstance(other, tuple):
+            return tuple(self) <= other
+        else:
+            return super(_SetuptoolsVersionMixin, self).__le__(other)
+
+    def __eq__(self, other):
+        if isinstance(other, tuple):
+            return tuple(self) == other
+        else:
+            return super(_SetuptoolsVersionMixin, self).__eq__(other)
+
+    def __ge__(self, other):
+        if isinstance(other, tuple):
+            return tuple(self) >= other
+        else:
+            return super(_SetuptoolsVersionMixin, self).__ge__(other)
+
+    def __gt__(self, other):
+        if isinstance(other, tuple):
+            return tuple(self) > other
+        else:
+            return super(_SetuptoolsVersionMixin, self).__gt__(other)
+
+    def __ne__(self, other):
+        if isinstance(other, tuple):
+            return tuple(self) != other
+        else:
+            return super(_SetuptoolsVersionMixin, self).__ne__(other)
+
+    def __getitem__(self, key):
+        return tuple(self)[key]
+
+    def __iter__(self):
+        component_re = re.compile(r'(\d+ | [a-z]+ | \.| -)', re.VERBOSE)
+        replace = {
+            'pre': 'c',
+            'preview': 'c',
+            '-': 'final-',
+            'rc': 'c',
+            'dev': '@',
+        }.get
+
+        def _parse_version_parts(s):
+            for part in component_re.split(s):
+                part = replace(part, part)
+                if not part or part == '.':
+                    continue
+                if part[:1] in '0123456789':
+                    # pad for numeric comparison
+                    yield part.zfill(8)
+                else:
+                    yield '*'+part
+
+            # ensure that alpha/beta/candidate are before final
+            yield '*final'
+
+        def old_parse_version(s):
+            parts = []
+            for part in _parse_version_parts(s.lower()):
+                if part.startswith('*'):
+                    # remove '-' before a prerelease tag
+                    if part < '*final':
+                        while parts and parts[-1] == '*final-':
+                            parts.pop()
+                    # remove trailing zeros from each series of numeric parts
+                    while parts and parts[-1] == '00000000':
+                        parts.pop()
+                parts.append(part)
+            return tuple(parts)
+
+        # Warn for use of this function
+        warnings.warn(
+            "You have iterated over the result of "
+            "pkg_resources.parse_version. This is a legacy behavior which is "
+            "inconsistent with the new version class introduced in setuptools "
+            "8.0. That class should be used directly instead of attempting to "
+            "iterate over the result.",
+            RuntimeWarning,
+            stacklevel=1,
+        )
+
+        for part in old_parse_version(str(self)):
+            yield part
+
+
+class SetuptoolsVersion(_SetuptoolsVersionMixin, packaging.version.Version):
+    pass
+
+
+class SetuptoolsLegacyVersion(_SetuptoolsVersionMixin,
+                              packaging.version.LegacyVersion):
+    pass
+
+
+def parse_version(v):
+    try:
+        return SetuptoolsVersion(v)
+    except packaging.version.InvalidVersion:
+        return SetuptoolsLegacyVersion(v)
 
 
 _state_vars = {}
@@ -152,6 +284,9 @@ __all__ = [
     # Exceptions
     'ResolutionError', 'VersionConflict', 'DistributionNotFound',
     'UnknownExtra', 'ExtractionError',
+
+    # Warnings
+    'PEP440Warning',
 
     # Parsing functions and string utilities
     'parse_requirements', 'parse_version', 'safe_name', 'safe_version',
@@ -1156,13 +1291,15 @@ def safe_name(name):
 
 
 def safe_version(version):
-    """Convert an arbitrary string to a standard version string
-
-    Spaces become dots, and all other non-alphanumeric characters become
-    dashes, with runs of multiple dashes condensed to a single dash.
     """
-    version = version.replace(' ','.')
-    return re.sub('[^A-Za-z0-9.]+', '-', version)
+    Convert an arbitrary string to a standard version string
+    """
+    try:
+        # normalize the version
+        return str(packaging.version.Version(version))
+    except packaging.version.InvalidVersion:
+        version = version.replace(' ','.')
+        return re.sub('[^A-Za-z0-9.]+', '-', version)
 
 
 def safe_extra(extra):
@@ -2080,7 +2217,7 @@ CONTINUE = re.compile(r"\s*\\\s*(#.*)?$").match
 # Distribution or extra
 DISTRO = re.compile(r"\s*((\w|[-.])+)").match
 # ver. info
-VERSION = re.compile(r"\s*(<=?|>=?|==|!=)\s*((\w|[-.])+)").match
+VERSION = re.compile(r"\s*(<=?|>=?|===?|!=|~=)\s*((\w|[-.*_!+])+)").match
 # comma between items
 COMMA = re.compile(r"\s*,").match
 OBRACKET = re.compile(r"\s*\[").match
@@ -2091,67 +2228,6 @@ EGG_NAME = re.compile(
     r"( -(?P<ver>[^-]+) (-py(?P<pyver>[^-]+) (-(?P<plat>.+))? )? )?",
     re.VERBOSE | re.IGNORECASE
 ).match
-
-component_re = re.compile(r'(\d+ | [a-z]+ | \.| -)', re.VERBOSE)
-replace = {'pre':'c', 'preview':'c','-':'final-','rc':'c','dev':'@'}.get
-
-def _parse_version_parts(s):
-    for part in component_re.split(s):
-        part = replace(part, part)
-        if not part or part=='.':
-            continue
-        if part[:1] in '0123456789':
-            # pad for numeric comparison
-            yield part.zfill(8)
-        else:
-            yield '*'+part
-
-    # ensure that alpha/beta/candidate are before final
-    yield '*final'
-
-def parse_version(s):
-    """Convert a version string to a chronologically-sortable key
-
-    This is a rough cross between distutils' StrictVersion and LooseVersion;
-    if you give it versions that would work with StrictVersion, then it behaves
-    the same; otherwise it acts like a slightly-smarter LooseVersion. It is
-    *possible* to create pathological version coding schemes that will fool
-    this parser, but they should be very rare in practice.
-
-    The returned value will be a tuple of strings.  Numeric portions of the
-    version are padded to 8 digits so they will compare numerically, but
-    without relying on how numbers compare relative to strings.  Dots are
-    dropped, but dashes are retained.  Trailing zeros between alpha segments
-    or dashes are suppressed, so that e.g. "2.4.0" is considered the same as
-    "2.4". Alphanumeric parts are lower-cased.
-
-    The algorithm assumes that strings like "-" and any alpha string that
-    alphabetically follows "final"  represents a "patch level".  So, "2.4-1"
-    is assumed to be a branch or patch of "2.4", and therefore "2.4.1" is
-    considered newer than "2.4-1", which in turn is newer than "2.4".
-
-    Strings like "a", "b", "c", "alpha", "beta", "candidate" and so on (that
-    come before "final" alphabetically) are assumed to be pre-release versions,
-    so that the version "2.4" is considered newer than "2.4a1".
-
-    Finally, to handle miscellaneous cases, the strings "pre", "preview", and
-    "rc" are treated as if they were "c", i.e. as though they were release
-    candidates, and therefore are not as new as a version string that does not
-    contain them, and "dev" is replaced with an '@' so that it sorts lower than
-    than any other pre-release tag.
-    """
-    parts = []
-    for part in _parse_version_parts(s.lower()):
-        if part.startswith('*'):
-            # remove '-' before a prerelease tag
-            if part < '*final':
-                while parts and parts[-1] == '*final-':
-                    parts.pop()
-            # remove trailing zeros from each series of numeric parts
-            while parts and parts[-1]=='00000000':
-                parts.pop()
-        parts.append(part)
-    return tuple(parts)
 
 
 class EntryPoint(object):
@@ -2180,14 +2256,20 @@ class EntryPoint(object):
     def load(self, require=True, env=None, installer=None):
         if require:
             self.require(env, installer)
-        entry = __import__(self.module_name, globals(), globals(),
-            ['__name__'])
-        for attr in self.attrs:
-            try:
-                entry = getattr(entry, attr)
-            except AttributeError:
-                raise ImportError("%r has no %r attribute" % (entry, attr))
-        return entry
+        else:
+            warnings.warn(
+                "`require` parameter is deprecated. Use "
+                "EntryPoint._load instead.",
+                DeprecationWarning,
+            )
+        return self._load()
+
+    def _load(self):
+        module = __import__(self.module_name, fromlist=['__name__'], level=0)
+        try:
+            return functools.reduce(getattr, self.attrs, module)
+        except AttributeError as exc:
+            raise ImportError(str(exc))
 
     def require(self, env=None, installer=None):
         if self.extras and not self.dist:
@@ -2195,6 +2277,15 @@ class EntryPoint(object):
         reqs = self.dist.requires(self.extras)
         items = working_set.resolve(reqs, env, installer)
         list(map(working_set.add, items))
+
+    pattern = re.compile(
+        r'\s*'
+        r'(?P<name>[+\w. -]+?)\s*'
+        r'=\s*'
+        r'(?P<module>[\w.]+)\s*'
+        r'(:\s*(?P<attr>[\w.]+))?\s*'
+        r'(?P<extras>\[.*\])?\s*$'
+    )
 
     @classmethod
     def parse(cls, src, dist=None):
@@ -2207,25 +2298,23 @@ class EntryPoint(object):
         The entry name and module name are required, but the ``:attrs`` and
         ``[extras]`` parts are optional
         """
-        try:
-            attrs = extras = ()
-            name, value = src.split('=', 1)
-            if '[' in value:
-                value, extras = value.split('[', 1)
-                req = Requirement.parse("x[" + extras)
-                if req.specs:
-                    raise ValueError
-                extras = req.extras
-            if ':' in value:
-                value, attrs = value.split(':', 1)
-                if not MODULE(attrs.rstrip()):
-                    raise ValueError
-                attrs = attrs.rstrip().split('.')
-        except ValueError:
+        m = cls.pattern.match(src)
+        if not m:
             msg = "EntryPoint must be in 'name=module:attrs [extras]' format"
             raise ValueError(msg, src)
-        else:
-            return cls(name.strip(), value.strip(), attrs, extras, dist)
+        res = m.groupdict()
+        extras = cls._parse_extras(res['extras'])
+        attrs = res['attr'].split('.') if res['attr'] else ()
+        return cls(res['name'], res['module'], attrs, extras, dist)
+
+    @classmethod
+    def _parse_extras(cls, extras_spec):
+        if not extras_spec:
+            return ()
+        req = Requirement.parse('x' + extras_spec)
+        if req.specs:
+            raise ValueError()
+        return req.extras
 
     @classmethod
     def parse_group(cls, group, lines, dist=None):
@@ -2305,7 +2394,7 @@ class Distribution(object):
     @property
     def hashcmp(self):
         return (
-            getattr(self, 'parsed_version', ()),
+            self.parsed_version,
             self.precedence,
             self.key,
             _remove_md5_fragment(self.location),
@@ -2351,11 +2440,29 @@ class Distribution(object):
 
     @property
     def parsed_version(self):
-        try:
-            return self._parsed_version
-        except AttributeError:
-            self._parsed_version = pv = parse_version(self.version)
-            return pv
+        if not hasattr(self, "_parsed_version"):
+            self._parsed_version = parse_version(self.version)
+            if isinstance(
+                    self._parsed_version, packaging.version.LegacyVersion):
+                # While an empty version is techincally a legacy version and
+                # is not a valid PEP 440 version, it's also unlikely to
+                # actually come from someone and instead it is more likely that
+                # it comes from setuptools attempting to parse a filename and
+                # including it in the list. So for that we'll gate this warning
+                # on if the version is anything at all or not.
+                if self.version:
+                    warnings.warn(
+                        "'%s (%s)' is being parsed as a legacy, non PEP 440, "
+                        "version. You may find odd behavior and sort order. "
+                        "In particular it will be sorted as less than 0.0. It "
+                        "is recommend to migrate to PEP 440 compatible "
+                        "versions." % (
+                            self.project_name, self.version,
+                        ),
+                        PEP440Warning,
+                    )
+
+        return self._parsed_version
 
     @property
     def version(self):
@@ -2460,7 +2567,12 @@ class Distribution(object):
 
     def as_requirement(self):
         """Return a ``Requirement`` that matches this distribution exactly"""
-        return Requirement.parse('%s==%s' % (self.project_name, self.version))
+        if isinstance(self.parsed_version, packaging.version.Version):
+            spec = "%s==%s" % (self.project_name, self.parsed_version)
+        else:
+            spec = "%s===%s" % (self.project_name, self.parsed_version)
+
+        return Requirement.parse(spec)
 
     def load_entry_point(self, group, name):
         """Return the `name` entry point of `group` or raise ImportError"""
@@ -2712,7 +2824,7 @@ def parse_requirements(strs):
 
         line, p, specs = scan_list(VERSION, LINE_END, line, p, (1, 2),
             "version spec")
-        specs = [(op, safe_version(val)) for op, val in specs]
+        specs = [(op, val) for op, val in specs]
         yield Requirement(project_name, specs, extras)
 
 
@@ -2721,26 +2833,23 @@ class Requirement:
         """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
         self.unsafe_name, project_name = project_name, safe_name(project_name)
         self.project_name, self.key = project_name, project_name.lower()
-        index = [
-            (parse_version(v), state_machine[op], op, v)
-            for op, v in specs
-        ]
-        index.sort()
-        self.specs = [(op, ver) for parsed, trans, op, ver in index]
-        self.index, self.extras = index, tuple(map(safe_extra, extras))
+        self.specifier = packaging.specifiers.SpecifierSet(
+            ",".join(["".join([x, y]) for x, y in specs])
+        )
+        self.specs = specs
+        self.extras = tuple(map(safe_extra, extras))
         self.hashCmp = (
             self.key,
-            tuple((op, parsed) for parsed, trans, op, ver in index),
+            self.specifier,
             frozenset(self.extras),
         )
         self.__hash = hash(self.hashCmp)
 
     def __str__(self):
-        specs = ','.join([''.join(s) for s in self.specs])
         extras = ','.join(self.extras)
         if extras:
             extras = '[%s]' % extras
-        return '%s%s%s' % (self.project_name, extras, specs)
+        return '%s%s%s' % (self.project_name, extras, self.specifier)
 
     def __eq__(self, other):
         return (
@@ -2752,29 +2861,13 @@ class Requirement:
         if isinstance(item, Distribution):
             if item.key != self.key:
                 return False
-            # only get if we need it
-            if self.index:
-                item = item.parsed_version
-        elif isinstance(item, string_types):
-            item = parse_version(item)
-        last = None
-        # -1, 0, 1
-        compare = lambda a, b: (a > b) - (a < b)
-        for parsed, trans, op, ver in self.index:
-            # Indexing: 0, 1, -1
-            action = trans[compare(item, parsed)]
-            if action == 'F':
-                return False
-            elif action == 'T':
-                return True
-            elif action == '+':
-                last = True
-            elif action == '-' or last is None:
-                last = False
-        # no rules encountered
-        if last is None:
-            last = True
-        return last
+
+            item = item.version
+
+        # Allow prereleases always in order to match the previous behavior of
+        # this method. In the future this should be smarter and follow PEP 440
+        # more accurately.
+        return self.specifier.contains(item, prereleases=True)
 
     def __hash__(self):
         return self.__hash
@@ -2789,16 +2882,6 @@ class Requirement:
                 return reqs[0]
             raise ValueError("Expected only one requirement", s)
         raise ValueError("No requirements found", s)
-
-state_machine = {
-    #       =><
-    '<': '--T',
-    '<=': 'T-T',
-    '>': 'F+F',
-    '>=': 'T+F',
-    '==': 'T..',
-    '!=': 'F++',
-}
 
 
 def _get_mro(cls):
@@ -2866,6 +2949,13 @@ def _mkstemp(*args,**kw):
     finally:
         # and then put it back
         os.open = old_open
+
+
+# Silence the PEP440Warning by default, so that end users don't get hit by it
+# randomly just because they use pkg_resources. We want to append the rule
+# because we want earlier uses of filterwarnings to take precedence over this
+# one.
+warnings.filterwarnings("ignore", category=PEP440Warning, append=True)
 
 
 # Set up global resource manager (deliberately not state-saved)

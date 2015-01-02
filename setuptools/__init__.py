@@ -3,7 +3,6 @@
 __import__('setuptools.bootstrap').bootstrap.ensure_deps()
 
 import os
-import sys
 import distutils.core
 import distutils.filelist
 from distutils.core import Command as _Command

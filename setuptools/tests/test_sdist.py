@@ -6,19 +6,16 @@ import os
 import shutil
 import sys
 import tempfile
-import unittest
 import unicodedata
-import re
 import contextlib
 
 import six
+import pytest
 
-from setuptools.tests import environment, test_svn
-from setuptools.tests.py26compat import skipIf
-from setuptools.command.sdist import sdist, walk_revctrl
+import pkg_resources
+from setuptools.command.sdist import sdist
 from setuptools.command.egg_info import manifest_maker
 from setuptools.dist import Distribution
-from setuptools import svn_utils
 
 SETUP_ATTRS = {
     'name': 'sdist_test',
@@ -80,9 +77,9 @@ def decompose(path):
     return path
 
 
-class TestSdistTest(unittest.TestCase):
+class TestSdistTest:
 
-    def setUp(self):
+    def setup_method(self, method):
         self.temp_dir = tempfile.mkdtemp()
         f = open(os.path.join(self.temp_dir, 'setup.py'), 'w')
         f.write(SETUP_PY)
@@ -100,7 +97,7 @@ class TestSdistTest(unittest.TestCase):
         self.old_cwd = os.getcwd()
         os.chdir(self.temp_dir)
 
-    def tearDown(self):
+    def teardown_method(self, method):
         os.chdir(self.old_cwd)
         shutil.rmtree(self.temp_dir)
 
@@ -119,9 +116,9 @@ class TestSdistTest(unittest.TestCase):
             cmd.run()
 
         manifest = cmd.filelist.files
-        self.assertTrue(os.path.join('sdist_test', 'a.txt') in manifest)
-        self.assertTrue(os.path.join('sdist_test', 'b.txt') in manifest)
-        self.assertTrue(os.path.join('sdist_test', 'c.rst') not in manifest)
+        assert os.path.join('sdist_test', 'a.txt') in manifest
+        assert os.path.join('sdist_test', 'b.txt') in manifest
+        assert os.path.join('sdist_test', 'c.rst') not in manifest
 
 
     def test_defaults_case_sensitivity(self):
@@ -146,9 +143,9 @@ class TestSdistTest(unittest.TestCase):
 
         # lowercase all names so we can test in a case-insensitive way to make sure the files are not included
         manifest = map(lambda x: x.lower(), cmd.filelist.files)
-        self.assertFalse('readme.rst' in manifest, manifest)
-        self.assertFalse('setup.py' in manifest, manifest)
-        self.assertFalse('setup.cfg' in manifest, manifest)
+        assert 'readme.rst' not in manifest, manifest
+        assert 'setup.py' not in manifest, manifest
+        assert 'setup.cfg' not in manifest, manifest
 
     def test_manifest_is_written_with_utf8_encoding(self):
         # Test for #303.
@@ -186,7 +183,7 @@ class TestSdistTest(unittest.TestCase):
             fs_enc = sys.getfilesystemencoding()
             filename = filename.decode(fs_enc)
 
-        self.assertTrue(posix(filename) in u_contents)
+        assert posix(filename) in u_contents
 
     # Python 3 only
     if six.PY3:
@@ -225,10 +222,10 @@ class TestSdistTest(unittest.TestCase):
                 self.fail(e)
 
             # The manifest should contain the UTF-8 filename
-            self.assertTrue(posix(filename) in contents)
+            assert posix(filename) in contents
 
             # The filelist should have been updated as well
-            self.assertTrue(u_filename in mm.filelist.files)
+            assert u_filename in mm.filelist.files
 
         def test_write_manifest_skips_non_utf8_filenames(self):
             """
@@ -266,10 +263,10 @@ class TestSdistTest(unittest.TestCase):
                 self.fail(e)
 
             # The Latin-1 filename should have been skipped
-            self.assertFalse(posix(filename) in contents)
+            assert posix(filename) not in contents
 
             # The filelist should have been updated as well
-            self.assertFalse(u_filename in mm.filelist.files)
+            assert u_filename not in mm.filelist.files
 
     def test_manifest_is_read_with_utf8_encoding(self):
         # Test for #303.
@@ -300,7 +297,7 @@ class TestSdistTest(unittest.TestCase):
         # The filelist should contain the UTF-8 filename
         if six.PY3:
             filename = filename.decode('utf-8')
-        self.assertTrue(filename in cmd.filelist.files)
+        assert filename in cmd.filelist.files
 
     # Python 3 only
     if six.PY3:
@@ -337,10 +334,11 @@ class TestSdistTest(unittest.TestCase):
 
             # The Latin-1 filename should have been skipped
             filename = filename.decode('latin-1')
-            self.assertFalse(filename in cmd.filelist.files)
+            assert filename not in cmd.filelist.files
 
-    @skipIf(six.PY3 and locale.getpreferredencoding() != 'UTF-8',
-            'Unittest fails if locale is not utf-8 but the manifests is recorded correctly')
+    @pytest.mark.skipif(six.PY3 and locale.getpreferredencoding() != 'UTF-8',
+        reason='Unittest fails if locale is not utf-8 but the manifests is '
+            'recorded correctly')
     def test_sdist_with_utf8_encoded_filename(self):
         # Test for #303.
         dist = Distribution(SETUP_ATTRS)
@@ -365,15 +363,15 @@ class TestSdistTest(unittest.TestCase):
                 if fs_enc == 'cp1252':
                     # Python 3 mangles the UTF-8 filename
                     filename = filename.decode('cp1252')
-                    self.assertTrue(filename in cmd.filelist.files)
+                    assert filename in cmd.filelist.files
                 else:
                     filename = filename.decode('mbcs')
-                    self.assertTrue(filename in cmd.filelist.files)
+                    assert filename in cmd.filelist.files
             else:
                 filename = filename.decode('utf-8')
-                self.assertTrue(filename in cmd.filelist.files)
+                assert filename in cmd.filelist.files
         else:
-            self.assertTrue(filename in cmd.filelist.files)
+            assert filename in cmd.filelist.files
 
     def test_sdist_with_latin1_encoded_filename(self):
         # Test for #303.
@@ -385,7 +383,7 @@ class TestSdistTest(unittest.TestCase):
         # Latin-1 filename
         filename = os.path.join(b('sdist_test'), LATIN1_FILENAME)
         open(filename, 'w').close()
-        self.assertTrue(os.path.isfile(filename))
+        assert os.path.isfile(filename)
 
         with quiet():
             cmd.run()
@@ -401,11 +399,11 @@ class TestSdistTest(unittest.TestCase):
                 else:
                     filename = filename.decode('latin-1')
 
-                self.assertTrue(filename in cmd.filelist.files)
+                assert filename in cmd.filelist.files
             else:
                 # The Latin-1 filename should have been skipped
                 filename = filename.decode('latin-1')
-                self.assertFalse(filename in cmd.filelist.files)
+                filename not in cmd.filelist.files
         else:
             # Under Python 2 there seems to be no decoded string in the
             # filelist.  However, due to decode and encoding of the
@@ -415,139 +413,23 @@ class TestSdistTest(unittest.TestCase):
                 # be proformed for the manifest output.
                 fs_enc = sys.getfilesystemencoding()
                 filename.decode(fs_enc)
-                self.assertTrue(filename in cmd.filelist.files)
+                assert filename in cmd.filelist.files
             except UnicodeDecodeError:
-                self.assertFalse(filename in cmd.filelist.files)
-
-class TestDummyOutput(environment.ZippedEnvironment):
-
-    def setUp(self):
-        self.datafile = os.path.join('setuptools', 'tests',
-                                     'svn_data', "dummy.zip")
-        self.dataname = "dummy"
-        super(TestDummyOutput, self).setUp()
-
-    def _run(self):
-        code, data = environment.run_setup_py(["sdist"],
-                                              pypath=self.old_cwd,
-                                              data_stream=0)
-        if code:
-            info = "DIR: " + os.path.abspath('.')
-            info += "\n  SDIST RETURNED: %i\n\n" % code
-            info += data
-            raise AssertionError(info)
-
-        datalines = data.splitlines()
-
-        possible = (
-            "running sdist",
-            "running egg_info",
-            "creating dummy\.egg-info",
-            "writing dummy\.egg-info",
-            "writing top-level names to dummy\.egg-info",
-            "writing dependency_links to dummy\.egg-info",
-            "writing manifest file 'dummy\.egg-info",
-            "reading manifest file 'dummy\.egg-info",
-            "reading manifest template 'MANIFEST\.in'",
-            "writing manifest file 'dummy\.egg-info",
-            "creating dummy-0.1.1",
-            "making hard links in dummy-0\.1\.1",
-            "copying files to dummy-0\.1\.1",
-            "copying \S+ -> dummy-0\.1\.1",
-            "copying dummy",
-            "copying dummy\.egg-info",
-            "hard linking \S+ -> dummy-0\.1\.1",
-            "hard linking dummy",
-            "hard linking dummy\.egg-info",
-            "Writing dummy-0\.1\.1",
-            "creating dist",
-            "creating 'dist",
-            "Creating tar archive",
-            "running check",
-            "adding 'dummy-0\.1\.1",
-            "tar .+ dist/dummy-0\.1\.1\.tar dummy-0\.1\.1",
-            "gzip .+ dist/dummy-0\.1\.1\.tar",
-            "removing 'dummy-0\.1\.1' \\(and everything under it\\)",
-        )
-
-        print("    DIR: " + os.path.abspath('.'))
-        for line in datalines:
-            found = False
-            for pattern in possible:
-                if re.match(pattern, line):
-                    print("   READ: " + line)
-                    found = True
-                    break
-            if not found:
-                raise AssertionError("Unexpexected: %s\n-in-\n%s"
-                                     % (line, data))
-
-        return data
-
-    def test_sources(self):
-        self._run()
+                filename not in cmd.filelist.files
 
 
-class TestSvn(environment.ZippedEnvironment):
+def test_default_revctrl():
+    """
+    When _default_revctrl was removed from the `setuptools.command.sdist`
+    module in 10.0, it broke some systems which keep an old install of
+    setuptools (Distribute) around. Those old versions require that the
+    setuptools package continue to implement that interface, so this
+    function provides that interface, stubbed. See #320 for details.
 
-    def setUp(self):
-        version = svn_utils.SvnInfo.get_svn_version()
-        if not version:  # None or Empty
-            return
-
-        self.base_version = tuple([int(x) for x in version.split('.')][:2])
-
-        if not self.base_version:
-            raise ValueError('No SVN tools installed')
-        elif self.base_version < (1, 3):
-            raise ValueError('Insufficient SVN Version %s' % version)
-        elif self.base_version >= (1, 9):
-            # trying the latest version
-            self.base_version = (1, 8)
-
-        self.dataname = "svn%i%i_example" % self.base_version
-        self.datafile = os.path.join('setuptools', 'tests',
-                                     'svn_data', self.dataname + ".zip")
-        super(TestSvn, self).setUp()
-
-    @skipIf(not test_svn._svn_check, "No SVN to text, in the first place")
-    def test_walksvn(self):
-        if self.base_version >= (1, 6):
-            folder2 = 'third party2'
-            folder3 = 'third party3'
-        else:
-            folder2 = 'third_party2'
-            folder3 = 'third_party3'
-
-        # TODO is this right
-        expected = set([
-            os.path.join('a file'),
-            os.path.join(folder2, 'Changes.txt'),
-            os.path.join(folder2, 'MD5SUMS'),
-            os.path.join(folder2, 'README.txt'),
-            os.path.join(folder3, 'Changes.txt'),
-            os.path.join(folder3, 'MD5SUMS'),
-            os.path.join(folder3, 'README.txt'),
-            os.path.join(folder3, 'TODO.txt'),
-            os.path.join(folder3, 'fin'),
-            os.path.join('third_party', 'README.txt'),
-            os.path.join('folder', folder2, 'Changes.txt'),
-            os.path.join('folder', folder2, 'MD5SUMS'),
-            os.path.join('folder', folder2, 'WatashiNiYomimasu.txt'),
-            os.path.join('folder', folder3, 'Changes.txt'),
-            os.path.join('folder', folder3, 'fin'),
-            os.path.join('folder', folder3, 'MD5SUMS'),
-            os.path.join('folder', folder3, 'oops'),
-            os.path.join('folder', folder3, 'WatashiNiYomimasu.txt'),
-            os.path.join('folder', folder3, 'ZuMachen.txt'),
-            os.path.join('folder', 'third_party', 'WatashiNiYomimasu.txt'),
-            os.path.join('folder', 'lalala.txt'),
-            os.path.join('folder', 'quest.txt'),
-            # The example will have a deleted file
-            #  (or should) but shouldn't return it
-        ])
-        self.assertEqual(set(x for x in walk_revctrl()), expected)
-
-
-def test_suite():
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)
+    This interface must be maintained until Ubuntu 12.04 is no longer
+    supported (by Setuptools).
+    """
+    ep_def = 'svn_cvs = setuptools.command.sdist:_default_revctrl'
+    ep = pkg_resources.EntryPoint.parse(ep_def)
+    res = ep._load()
+    assert hasattr(res, '__iter__')

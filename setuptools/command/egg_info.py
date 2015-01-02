@@ -6,21 +6,27 @@ from distutils.filelist import FileList as _FileList
 from distutils.util import convert_path
 from distutils import log
 import distutils.errors
+import distutils.filelist
 import os
 import re
 import sys
 
 import six
 
+try:
+    from setuptools_svn import svn_utils
+except ImportError:
+    pass
+
 from setuptools import Command
 from setuptools.command.sdist import sdist
-from setuptools import svn_utils
 from setuptools.command.sdist import walk_revctrl
 from pkg_resources import (
     parse_requirements, safe_name, parse_version,
     safe_version, yield_lines, EntryPoint, iter_entry_points, to_filename)
 import setuptools.unicode_utils as unicode_utils
 
+from pkg_resources import packaging
 
 class egg_info(Command):
     description = "create a distribution's .egg-info directory"
@@ -69,10 +75,15 @@ class egg_info(Command):
         self.vtags = self.tags()
         self.egg_version = self.tagged_version()
 
+        parsed_version = parse_version(self.egg_version)
+
         try:
+            is_version = isinstance(parsed_version, packaging.version.Version)
+            spec = (
+                "%s==%s" if is_version else "%s===%s"
+            )
             list(
-                parse_requirements('%s==%s' % (self.egg_name,
-                                               self.egg_version))
+                parse_requirements(spec % (self.egg_name, self.egg_version))
             )
         except ValueError:
             raise distutils.errors.DistutilsOptionError(
@@ -184,6 +195,8 @@ class egg_info(Command):
 
     @staticmethod
     def get_svn_revision():
+        if 'svn_utils' not in globals():
+            return "0"
         return str(svn_utils.SvnInfo.load(os.curdir).get_revision())
 
     def find_sources(self):
@@ -313,7 +326,32 @@ class manifest_maker(sdist):
         elif os.path.exists(self.manifest):
             self.read_manifest()
         ei_cmd = self.get_finalized_command('egg_info')
+        self._add_egg_info(cmd=ei_cmd)
         self.filelist.include_pattern("*", prefix=ei_cmd.egg_info)
+
+    def _add_egg_info(self, cmd):
+        """
+        Add paths for egg-info files for an external egg-base.
+
+        The egg-info files are written to egg-base. If egg-base is
+        outside the current working directory, this method
+        searchs the egg-base directory for files to include
+        in the manifest. Uses distutils.filelist.findall (which is
+        really the version monkeypatched in by setuptools/__init__.py)
+        to perform the search.
+
+        Since findall records relative paths, prefix the returned
+        paths with cmd.egg_base, so add_default's include_pattern call
+        (which is looking for the absolute cmd.egg_info) will match
+        them.
+        """
+        if cmd.egg_base == os.curdir:
+            # egg-info files were already added by something else
+            return
+
+        discovered = distutils.filelist.findall(cmd.egg_base)
+        resolved = (os.path.join(cmd.egg_base, path) for path in discovered)
+        self.filelist.allfiles.extend(resolved)
 
     def prune_file_list(self):
         build = self.get_finalized_command('build')
@@ -381,6 +419,12 @@ def write_requirements(cmd, basename, filename):
         data.write('\n[{extra}]\n'.format(**vars()))
         _write_requirements(data, extras_require[extra])
     cmd.write_or_delete_file("requirements", filename, data.getvalue())
+
+
+def write_setup_requirements(cmd, basename, filename):
+    data = StringIO()
+    _write_requirements(data, cmd.distribution.setup_requires)
+    cmd.write_or_delete_file("setup-requirements", filename, data.getvalue())
 
 
 def write_toplevel_names(cmd, basename, filename):

@@ -8,7 +8,8 @@ python:
   - pypy
 # command to run tests
 script:
- - python setup.py egg_info
- - python setup.py test
- - python setup.py ptr
- - python ez_setup.py --version 5.4.1
+ # update egg_info based on setup.py in checkout
+ - python bootstrap.py
+
+ - python setup.py ptr --addopts='-rs'
+ - python ez_setup.py --version 10.2.1

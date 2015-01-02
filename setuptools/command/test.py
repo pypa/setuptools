@@ -173,4 +173,4 @@ class test(Command):
         if val is None:
             return
         parsed = EntryPoint.parse("x=" + val)
-        return parsed.load(require=False)()
+        return parsed._load()()

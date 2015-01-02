@@ -4,6 +4,7 @@ import os
 import zipfile
 import datetime
 import time
+import subprocess
 
 import pkg_resources
 
@@ -89,3 +90,22 @@ class TestResourceManager(object):
         type_ = str(type(path))
         message = "Unexpected type from get_cache_path: " + type_
         assert isinstance(path, (unicode, str)), message
+
+
+class TestIndependence:
+    """
+    Tests to ensure that pkg_resources runs independently from setuptools.
+    """
+    def test_setuptools_not_imported(self):
+        """
+        In a separate Python environment, import pkg_resources and assert
+        that action doesn't cause setuptools to be imported.
+        """
+        lines = (
+            'import pkg_resources',
+            'import sys',
+            'assert "setuptools" not in sys.modules, '
+                '"setuptools was imported"',
+        )
+        cmd = [sys.executable, '-c', '; '.join(lines)]
+        subprocess.check_call(cmd)

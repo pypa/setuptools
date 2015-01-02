@@ -34,6 +34,7 @@ import textwrap
 import warnings
 import site
 import struct
+import contextlib
 
 import six
 from six.moves import configparser
@@ -55,8 +56,13 @@ from pkg_resources import (
 import pkg_resources
 
 
+# Turn on PEP440Warnings
+warnings.filterwarnings("default", category=pkg_resources.PEP440Warning)
+
+
 sys_executable = os.environ.get('__PYVENV_LAUNCHER__',
                                 os.path.normpath(sys.executable))
+
 
 __all__ = [
     'samefile', 'easy_install', 'PthDistributions', 'extract_wininst_cfg',
@@ -1541,10 +1547,14 @@ class PthDistributions(Environment):
 
     def add(self, dist):
         """Add `dist` to the distribution map"""
-        if (dist.location not in self.paths and (
-            dist.location not in self.sitedirs or
-            dist.location == os.getcwd()  # account for '.' being in PYTHONPATH
-        )):
+        new_path = (
+            dist.location not in self.paths and (
+                dist.location not in self.sitedirs or
+                # account for '.' being in PYTHONPATH
+                dist.location == os.getcwd()
+            )
+        )
+        if new_path:
             self.paths.append(dist.location)
             self.dirty = True
         Environment.add(self, dist)
@@ -2112,39 +2122,42 @@ def bootstrap():
 def main(argv=None, **kw):
     from setuptools import setup
     from setuptools.dist import Distribution
-    import distutils.core
 
-    USAGE = """\
-usage: %(script)s [options] requirement_or_url ...
-   or: %(script)s --help
-"""
+    class DistributionWithoutHelpCommands(Distribution):
+        common_usage = ""
+
+        def _show_help(self, *args, **kw):
+            with _patch_usage():
+                Distribution._show_help(self, *args, **kw)
+
+    if argv is None:
+        argv = sys.argv[1:]
+
+    with _patch_usage():
+        setup(
+            script_args=['-q', 'easy_install', '-v'] + argv,
+            script_name=sys.argv[0] or 'easy_install',
+            distclass=DistributionWithoutHelpCommands, **kw
+        )
+
+
+@contextlib.contextmanager
+def _patch_usage():
+    import distutils.core
+    USAGE = textwrap.dedent("""
+        usage: %(script)s [options] requirement_or_url ...
+           or: %(script)s --help
+        """).lstrip()
 
     def gen_usage(script_name):
         return USAGE % dict(
             script=os.path.basename(script_name),
         )
 
-    def with_ei_usage(f):
-        old_gen_usage = distutils.core.gen_usage
-        try:
-            distutils.core.gen_usage = gen_usage
-            return f()
-        finally:
-            distutils.core.gen_usage = old_gen_usage
+    saved = distutils.core.gen_usage
+    distutils.core.gen_usage = gen_usage
+    try:
+        yield
+    finally:
+        distutils.core.gen_usage = saved
 
-    class DistributionWithoutHelpCommands(Distribution):
-        common_usage = ""
-
-        def _show_help(self, *args, **kw):
-            with_ei_usage(lambda: Distribution._show_help(self, *args, **kw))
-
-    if argv is None:
-        argv = sys.argv[1:]
-
-    with_ei_usage(
-        lambda: setup(
-            script_args=['-q', 'easy_install', '-v'] + argv,
-            script_name=sys.argv[0] or 'easy_install',
-            distclass=DistributionWithoutHelpCommands, **kw
-        )
-    )

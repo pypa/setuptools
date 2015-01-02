@@ -1,4 +1,0 @@
-third_party3 file:///C:/development/svn_example/repos/svn15/extra1
--r3 file:///C:/development/svn_example/repos/svn15/extra1 third_party2
-file:///C:/development/svn_example/repos/svn15/extra1@r1 third_party
-

@@ -17,6 +17,43 @@ revision slated for release::
 
     python -m jaraco.packaging.release
 
+Bootstrap Bookmark
+------------------
+
+Setuptools has a bootstrap script (ez_setup.py) which is hosted in the
+repository and must be updated with each release (to bump the default version).
+The "published" version of the script is the one indicated by the ``bootstrap``
+bookmark (Mercurial) or branch (Git).
+
+Therefore, the latest bootstrap script can be retrieved by checking out the
+repository at that bookmark. It's also possible to get the bootstrap script for
+any particular release by grabbing the script from that tagged release.
+
+The officially-published location of the bootstrap script is hosted on Python
+infrastructure (#python-infra on freenode) at https://bootstrap.pypa.io and
+is updated every fifteen minutes from the bootstrap script. Sometimes,
+especially when the bootstrap script is rolled back, this
+process doesn't work as expected and requires manual intervention.
+
+Release Frequency
+-----------------
+
+Some have asked why Setuptools is released so frequently. Because Setuptools
+uses a mechanical release process, it's very easy to make releases whenever the
+code is stable (tests are passing). As a result, the philosophy is to release
+early and often.
+
+While some find the frequent releases somewhat surprising, they only empower
+the user. Although releases are made frequently, users can choose the frequency
+at which they use those releases. If instead Setuptools contributions were only
+released in batches, the user would be constrained to only use Setuptools when
+those official releases were made. With frequent releases, the user can govern
+exactly how often he wishes to update.
+
+Frequent releases also then obviate the need for dev or beta releases in most
+cases. Because releases are made early and often, bugs are discovered and
+corrected quickly, in many cases before other users have yet to encounter them.
+
 Release Managers
 ----------------
 

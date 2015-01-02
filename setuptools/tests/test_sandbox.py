@@ -1,67 +1,45 @@
 """develop tests
 """
-import sys
 import os
-import shutil
-import unittest
-import tempfile
 import types
+
+import pytest
 
 import pkg_resources
 import setuptools.sandbox
 from setuptools.sandbox import DirectorySandbox, SandboxViolation
 
-def has_win32com():
-    """
-    Run this to determine if the local machine has win32com, and if it
-    does, include additional tests.
-    """
-    if not sys.platform.startswith('win32'):
-        return False
-    try:
-        __import__('win32com')
-    except ImportError:
-        return False
-    return True
 
-class TestSandbox(unittest.TestCase):
+class TestSandbox:
 
-    def setUp(self):
-        self.dir = tempfile.mkdtemp()
-
-    def tearDown(self):
-        shutil.rmtree(self.dir)
-
-    def test_devnull(self):
-        sandbox = DirectorySandbox(self.dir)
+    def test_devnull(self, tmpdir):
+        sandbox = DirectorySandbox(str(tmpdir))
         sandbox.run(self._file_writer(os.devnull))
 
+    @staticmethod
     def _file_writer(path):
         def do_write():
-            f = open(path, 'w')
-            f.write('xxx')
-            f.close()
+            with open(path, 'w') as f:
+                f.write('xxx')
         return do_write
 
-    _file_writer = staticmethod(_file_writer)
-
-    if has_win32com():
-        def test_win32com(self):
-            """
-            win32com should not be prevented from caching COM interfaces
-            in gen_py.
-            """
-            import win32com
-            gen_py = win32com.__gen_path__
-            target = os.path.join(gen_py, 'test_write')
-            sandbox = DirectorySandbox(self.dir)
+    def test_win32com(self, tmpdir):
+        """
+        win32com should not be prevented from caching COM interfaces
+        in gen_py.
+        """
+        win32com = pytest.importorskip('win32com')
+        gen_py = win32com.__gen_path__
+        target = os.path.join(gen_py, 'test_write')
+        sandbox = DirectorySandbox(str(tmpdir))
+        try:
             try:
-                try:
-                    sandbox.run(self._file_writer(target))
-                except SandboxViolation:
-                    self.fail("Could not create gen_py file due to SandboxViolation")
-            finally:
-                if os.path.exists(target): os.remove(target)
+                sandbox.run(self._file_writer(target))
+            except SandboxViolation:
+                self.fail("Could not create gen_py file due to SandboxViolation")
+        finally:
+            if os.path.exists(target):
+                os.remove(target)
 
     def test_setup_py_with_BOM(self):
         """
@@ -73,11 +51,8 @@ class TestSandbox(unittest.TestCase):
         setuptools.sandbox._execfile(target, vars(namespace))
         assert namespace.result == 'passed'
 
-    def test_setup_py_with_CRLF(self):
-        setup_py = os.path.join(self.dir, 'setup.py')
-        with open(setup_py, 'wb') as stream:
+    def test_setup_py_with_CRLF(self, tmpdir):
+        setup_py = tmpdir / 'setup.py'
+        with setup_py.open('wb') as stream:
             stream.write(b'"degenerate script"\r\n')
-        setuptools.sandbox._execfile(setup_py, globals())
-
-if __name__ == '__main__':
-    unittest.main()
+        setuptools.sandbox._execfile(str(setup_py), globals())

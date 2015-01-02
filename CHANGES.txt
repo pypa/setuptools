@@ -2,6 +2,147 @@
 CHANGES
 =======
 
+------
+10.2.1
+------
+
+* Issue #323: Fix regression in entry point name parsing.
+
+----
+10.2
+----
+
+* Deprecated use of EntryPoint.load(require=False).
+* Substantial refactoring of all unit tests. Tests are now much leaner and
+  re-use a lot of fixtures and contexts for better clarity of purpose.
+
+----
+10.1
+----
+
+* Issue #320: Added a compatibility implementation of
+  ``sdist._default_revctrl``
+  so that systems relying on that interface do not fail (namely, Ubuntu 12.04
+  and similar Debian releases).
+
+------
+10.0.1
+------
+
+* Issue #319: Fixed issue installing pure distutils packages.
+
+----
+10.0
+----
+
+* Issue #313: Removed built-in support for subversion. Projects wishing to
+  retain support for subversion will need to use a third party library. The
+  extant implementation is being ported to `setuptools_svn
+  <https://pypi.python.org/pypi/setuptools_svn>`_.
+* Issue #315: Updated setuptools to hide its own loaded modules during
+  installation of another package. This change will enable setuptools to
+  upgrade (or downgrade) itself even when its own metadata and implementation
+  change.
+
+---
+9.1
+---
+
+* Prefer vendored packaging library `as recommended
+  <https://github.com/jaraco/setuptools/commit/170657b68f4b92e7e1bf82f5e19a831f5744af67#commitcomment-9109448>`_.
+
+-----
+9.0.1
+-----
+
+* Issue #312: Restored presence of pkg_resources API tests (doctest) to sdist.
+
+---
+9.0
+---
+
+* Issue #314: Disabled support for ``setup_requires`` metadata to avoid issue
+  where Setuptools was unable to upgrade over earlier versions.
+
+---
+8.4
+---
+
+* Pull Request #106: Now write ``setup_requires`` metadata.
+
+---
+8.3
+---
+
+* Issue #311: Decoupled pkg_resources from setuptools once again.
+  ``pkg_resources`` is now a package instead of a module.
+
+-----
+8.2.1
+-----
+
+* Issue #306: Suppress warnings about Version format except in select scenarios
+  (such as installation).
+
+---
+8.2
+---
+
+* Pull Request #85: Search egg-base when adding egg-info to manifest.
+
+---
+8.1
+---
+
+* Upgrade ``packaging`` to 14.5, giving preference to "rc" as designator for
+  release candidates over "c".
+* PEP-440 warnings are now raised as their own class,
+  ``pkg_resources.PEP440Warning``, instead of RuntimeWarning.
+* Disabled warnings on empty versions.
+
+-----
+8.0.4
+-----
+
+* Upgrade ``packaging`` to 14.4, fixing an error where there is a
+  different result for if 2.0.5 is contained within >2.0dev and >2.0.dev even
+  though normalization rules should have made them equal.
+* Issue #296: Add warning when a version is parsed as legacy. This warning will
+  make it easier for developers to recognize deprecated version numbers.
+
+-----
+8.0.3
+-----
+
+* Issue #296: Restored support for ``__hash__`` on parse_version results.
+
+-----
+8.0.2
+-----
+
+* Issue #296: Restored support for ``__getitem__`` and sort operations on
+  parse_version result.
+
+-----
+8.0.1
+-----
+
+* Issue #296: Restore support for iteration over parse_version result, but
+  deprecated that usage with a warning. Fixes failure with buildout.
+
+---
+8.0
+---
+
+* Implement `PEP 440 <http://legacy.python.org/dev/peps/pep-0440/>`_ within
+  pkg_resources and setuptools. This change
+  deprecates some version numbers such that they will no longer be installable
+  without using the ``===`` escape hatch. See `the changes to test_resources
+  <https://bitbucket.org/pypa/setuptools/commits/dcd552da643c4448056de84c73d56da6d70769d5#chg-setuptools/tests/test_resources.py>`_
+  for specific examples of version numbers and specifiers that are no longer
+  supported. Setuptools now "vendors" the `packaging
+  <https://github.com/pypa/packaging>`_ library.
+
 ---
 7.0
 ---

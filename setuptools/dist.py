@@ -19,6 +19,9 @@ from setuptools.depends import Require
 from setuptools import windows_support
 import pkg_resources
 
+packaging = pkg_resources.packaging
+
+
 def _get_unpatched(cls):
     """Protect against re-patching the distutils if reloaded
 
@@ -270,6 +273,27 @@ class Distribution(_Distribution):
             # Some people apparently take "version number" too literally :)
             self.metadata.version = str(self.metadata.version)
 
+        if self.metadata.version is not None:
+            try:
+                ver = packaging.version.Version(self.metadata.version)
+                normalized_version = str(ver)
+                if self.metadata.version != normalized_version:
+                    warnings.warn(
+                        "The version specified requires normalization, "
+                        "consider using '%s' instead of '%s'." % (
+                            normalized_version,
+                            self.metadata.version,
+                        )
+                    )
+                    self.metadata.version = normalized_version
+            except (packaging.version.InvalidVersion, TypeError):
+                warnings.warn(
+                    "The version specified (%r) is an invalid version, this "
+                    "may not work as expected with newer versions of "
+                    "setuptools, pip, and PyPI. Please see PEP 440 for more "
+                    "details." % self.metadata.version
+                )
+
     def parse_command_line(self):
         """Process features after parsing command line options"""
         result = _Distribution.parse_command_line(self)
@@ -411,7 +435,8 @@ class Distribution(_Distribution):
     def print_commands(self):
         for ep in pkg_resources.iter_entry_points('distutils.commands'):
             if ep.name not in self.cmdclass:
-                cmdclass = ep.load(False) # don't require extras, we're not running
+                # don't require extras as the commands won't be invoked
+                cmdclass = ep._load()
                 self.cmdclass[ep.name] = cmdclass
         return _Distribution.print_commands(self)
 

@@ -1,21 +1,23 @@
 """Easy install Tests
 """
+from __future__ import absolute_import
+
 import sys
 import os
 import shutil
 import tempfile
-import unittest
 import site
 import contextlib
-import textwrap
 import tarfile
 import logging
-import distutils.core
+import itertools
 import io
 
-import six
 from six.moves import urllib
+import pytest
+import mock
 
+from setuptools import sandbox
 from setuptools.sandbox import run_setup, SandboxViolation
 from setuptools.command.easy_install import (
     easy_install, fix_jython_executable, get_script_args, nt_quote_arg)
@@ -26,7 +28,11 @@ from pkg_resources import working_set, VersionConflict
 from pkg_resources import Distribution as PRDistribution
 import setuptools.tests.server
 import pkg_resources
-from .py26compat import skipIf
+
+from .py26compat import tarfile_open
+from . import contexts
+from .textwrap import DALS
+
 
 class FakeDist(object):
     def get_entry_map(self, group):
@@ -37,26 +43,26 @@ class FakeDist(object):
     def as_requirement(self):
         return 'spec'
 
-WANTED = """\
-#!%s
-# EASY-INSTALL-ENTRY-SCRIPT: 'spec','console_scripts','name'
-__requires__ = 'spec'
-import sys
-from pkg_resources import load_entry_point
+WANTED = DALS("""
+    #!%s
+    # EASY-INSTALL-ENTRY-SCRIPT: 'spec','console_scripts','name'
+    __requires__ = 'spec'
+    import sys
+    from pkg_resources import load_entry_point
 
-if __name__ == '__main__':
-    sys.exit(
-        load_entry_point('spec', 'console_scripts', 'name')()
-    )
-""" % nt_quote_arg(fix_jython_executable(sys.executable, ""))
+    if __name__ == '__main__':
+        sys.exit(
+            load_entry_point('spec', 'console_scripts', 'name')()
+        )
+    """) % nt_quote_arg(fix_jython_executable(sys.executable, ""))
 
-SETUP_PY = """\
-from setuptools import setup
+SETUP_PY = DALS("""
+    from setuptools import setup
 
-setup(name='foo')
-"""
+    setup(name='foo')
+    """)
 
-class TestEasyInstallTest(unittest.TestCase):
+class TestEasyInstallTest:
 
     def test_install_site_py(self):
         dist = Distribution()
@@ -66,20 +72,17 @@ class TestEasyInstallTest(unittest.TestCase):
         try:
             cmd.install_site_py()
             sitepy = os.path.join(cmd.install_dir, 'site.py')
-            self.assertTrue(os.path.exists(sitepy))
+            assert os.path.exists(sitepy)
         finally:
             shutil.rmtree(cmd.install_dir)
 
     def test_get_script_args(self):
         dist = FakeDist()
 
-        old_platform = sys.platform
-        try:
-            name, script = [i for i in next(get_script_args(dist))][0:2]
-        finally:
-            sys.platform = old_platform
+        args = next(get_script_args(dist))
+        name, script = itertools.islice(args, 2)
 
-        self.assertEqual(script, WANTED)
+        assert script == WANTED
 
     def test_no_find_links(self):
         # new option '--no-find-links', that blocks find-links added at
@@ -92,7 +95,7 @@ class TestEasyInstallTest(unittest.TestCase):
         cmd.install_dir = os.path.join(tempfile.mkdtemp(), 'ok')
         cmd.args = ['ok']
         cmd.ensure_finalized()
-        self.assertEqual(cmd.package_index.scanned_urls, {})
+        assert cmd.package_index.scanned_urls == {}
 
         # let's try without it (default behavior)
         cmd = easy_install(dist)
@@ -102,61 +105,44 @@ class TestEasyInstallTest(unittest.TestCase):
         cmd.args = ['ok']
         cmd.ensure_finalized()
         keys = sorted(cmd.package_index.scanned_urls.keys())
-        self.assertEqual(keys, ['link1', 'link2'])
+        assert keys == ['link1', 'link2']
 
 
-class TestPTHFileWriter(unittest.TestCase):
+class TestPTHFileWriter:
     def test_add_from_cwd_site_sets_dirty(self):
         '''a pth file manager should set dirty
         if a distribution is in site but also the cwd
         '''
         pth = PthDistributions('does-not_exist', [os.getcwd()])
-        self.assertTrue(not pth.dirty)
+        assert not pth.dirty
         pth.add(PRDistribution(os.getcwd()))
-        self.assertTrue(pth.dirty)
+        assert pth.dirty
 
     def test_add_from_site_is_ignored(self):
-        if os.name != 'nt':
-            location = '/test/location/does-not-have-to-exist'
-        else:
-            location = 'c:\\does_not_exist'
+        location = '/test/location/does-not-have-to-exist'
+        # PthDistributions expects all locations to be normalized
+        location = pkg_resources.normalize_path(location)
         pth = PthDistributions('does-not_exist', [location, ])
-        self.assertTrue(not pth.dirty)
+        assert not pth.dirty
         pth.add(PRDistribution(location))
-        self.assertTrue(not pth.dirty)
+        assert not pth.dirty
 
 
-class TestUserInstallTest(unittest.TestCase):
-
-    def setUp(self):
-        self.dir = tempfile.mkdtemp()
-        setup = os.path.join(self.dir, 'setup.py')
-        f = open(setup, 'w')
+@pytest.yield_fixture
+def setup_context(tmpdir):
+    with (tmpdir/'setup.py').open('w') as f:
         f.write(SETUP_PY)
-        f.close()
-        self.old_cwd = os.getcwd()
-        os.chdir(self.dir)
+    with tmpdir.as_cwd():
+        yield tmpdir
 
-        self.old_enable_site = site.ENABLE_USER_SITE
-        self.old_file = easy_install_pkg.__file__
-        self.old_base = site.USER_BASE
-        site.USER_BASE = tempfile.mkdtemp()
-        self.old_site = site.USER_SITE
-        site.USER_SITE = tempfile.mkdtemp()
-        easy_install_pkg.__file__ = site.USER_SITE
 
-    def tearDown(self):
-        os.chdir(self.old_cwd)
-        shutil.rmtree(self.dir)
+@pytest.mark.usefixtures("user_override")
+@pytest.mark.usefixtures("setup_context")
+class TestUserInstallTest:
 
-        shutil.rmtree(site.USER_BASE)
-        shutil.rmtree(site.USER_SITE)
-        site.USER_BASE = self.old_base
-        site.USER_SITE = self.old_site
-        site.ENABLE_USER_SITE = self.old_enable_site
-        easy_install_pkg.__file__ = self.old_file
-
+    @mock.patch('setuptools.command.easy_install.__file__', None)
     def test_user_install_implied(self):
+        easy_install_pkg.__file__ = site.USER_SITE
         site.ENABLE_USER_SITE = True # disabled sometimes
         #XXX: replace with something meaningfull
         dist = Distribution()
@@ -164,7 +150,7 @@ class TestUserInstallTest(unittest.TestCase):
         cmd = easy_install(dist)
         cmd.args = ['py']
         cmd.ensure_finalized()
-        self.assertTrue(cmd.user, 'user should be implied')
+        assert cmd.user, 'user should be implied'
 
     def test_multiproc_atexit(self):
         try:
@@ -185,7 +171,7 @@ class TestUserInstallTest(unittest.TestCase):
         cmd = easy_install(dist)
         cmd.args = ['py']
         cmd.initialize_options()
-        self.assertFalse(cmd.user, 'NOT user should be implied')
+        assert not cmd.user, 'NOT user should be implied'
 
     def test_local_index(self):
         # make sure the local index is used
@@ -194,11 +180,8 @@ class TestUserInstallTest(unittest.TestCase):
         new_location = tempfile.mkdtemp()
         target = tempfile.mkdtemp()
         egg_file = os.path.join(new_location, 'foo-1.0.egg-info')
-        f = open(egg_file, 'w')
-        try:
+        with open(egg_file, 'w') as f:
             f.write('Name: foo\n')
-        finally:
-            f.close()
 
         sys.path.append(target)
         old_ppath = os.environ.get('PYTHONPATH')
@@ -214,7 +197,7 @@ class TestUserInstallTest(unittest.TestCase):
             res = cmd.easy_install('foo')
             actual = os.path.normcase(os.path.realpath(res.location))
             expected = os.path.normcase(os.path.realpath(new_location))
-            self.assertEqual(actual, expected)
+            assert actual == expected
         finally:
             sys.path.remove(target)
             for basedir in [new_location, target, ]:
@@ -229,6 +212,25 @@ class TestUserInstallTest(unittest.TestCase):
             else:
                 del os.environ['PYTHONPATH']
 
+    @contextlib.contextmanager
+    def user_install_setup_context(self, *args, **kwargs):
+        """
+        Wrap sandbox.setup_context to patch easy_install in that context to
+        appear as user-installed.
+        """
+        with self.orig_context(*args, **kwargs):
+            import setuptools.command.easy_install as ei
+            ei.__file__ = site.USER_SITE
+            yield
+
+    def patched_setup_context(self):
+        self.orig_context = sandbox.setup_context
+
+        return mock.patch(
+            'setuptools.sandbox.setup_context',
+            self.user_install_setup_context,
+        )
+
     def test_setup_requires(self):
         """Regression test for Distribute issue #318
 
@@ -237,12 +239,12 @@ class TestUserInstallTest(unittest.TestCase):
         SandboxViolation.
         """
 
-        test_pkg = create_setup_requires_package(self.dir)
+        test_pkg = create_setup_requires_package(os.getcwd())
         test_setup_py = os.path.join(test_pkg, 'setup.py')
 
         try:
-            with quiet_context():
-                with reset_setup_stop_context():
+            with contexts.quiet():
+                with self.patched_setup_context():
                     run_setup(test_setup_py, ['install'])
         except SandboxViolation:
             self.fail('Installation caused SandboxViolation')
@@ -252,7 +254,24 @@ class TestUserInstallTest(unittest.TestCase):
             pass
 
 
-class TestSetupRequires(unittest.TestCase):
+@pytest.yield_fixture
+def distutils_package():
+    distutils_setup_py = SETUP_PY.replace(
+        'from setuptools import setup',
+        'from distutils.core import setup',
+    )
+    with contexts.tempdir(cd=os.chdir):
+        with open('setup.py', 'w') as f:
+            f.write(distutils_setup_py)
+        yield
+
+
+class TestDistutilsPackage:
+    def test_bdist_egg_available_on_distutils_pkg(self, distutils_package):
+        run_setup('setup.py', ['bdist_egg'])
+
+
+class TestSetupRequires:
 
     def test_setup_requires_honors_fetch_params(self):
         """
@@ -269,25 +288,27 @@ class TestSetupRequires(unittest.TestCase):
             # Some platforms (Jython) don't find a port to which to bind,
             #  so skip this test for them.
             return
-        with quiet_context():
+        with contexts.quiet():
             # create an sdist that has a build-time dependency.
             with TestSetupRequires.create_sdist() as dist_file:
-                with tempdir_context() as temp_install_dir:
-                    with environment_context(PYTHONPATH=temp_install_dir):
-                        ei_params = ['--index-url', p_index.url,
+                with contexts.tempdir() as temp_install_dir:
+                    with contexts.environment(PYTHONPATH=temp_install_dir):
+                        ei_params = [
+                            '--index-url', p_index.url,
                             '--allow-hosts', p_index_loc,
-                            '--exclude-scripts', '--install-dir', temp_install_dir,
-                            dist_file]
-                        with reset_setup_stop_context():
-                            with argv_context(['easy_install']):
-                                # attempt to install the dist. It should fail because
-                                #  it doesn't exist.
-                                self.assertRaises(SystemExit,
-                                    easy_install_pkg.main, ei_params)
+                            '--exclude-scripts',
+                            '--install-dir', temp_install_dir,
+                            dist_file,
+                        ]
+                        with contexts.argv(['easy_install']):
+                            # attempt to install the dist. It should fail because
+                            #  it doesn't exist.
+                            with pytest.raises(SystemExit):
+                                easy_install_pkg.main(ei_params)
         # there should have been two or three requests to the server
         #  (three happens on Python 3.3a)
-        self.assertTrue(2 <= len(p_index.requests) <= 3)
-        self.assertEqual(p_index.requests[0].path, '/does-not-exist/')
+        assert 2 <= len(p_index.requests) <= 3
+        assert p_index.requests[0].path == '/does-not-exist/'
 
     @staticmethod
     @contextlib.contextmanager
@@ -296,18 +317,17 @@ class TestSetupRequires(unittest.TestCase):
         Return an sdist with a setup_requires dependency (of something that
         doesn't exist)
         """
-        with tempdir_context() as dir:
+        with contexts.tempdir() as dir:
             dist_path = os.path.join(dir, 'setuptools-test-fetcher-1.0.tar.gz')
-            make_trivial_sdist(
-                dist_path,
-                textwrap.dedent("""
-                    import setuptools
-                    setuptools.setup(
-                        name="setuptools-test-fetcher",
-                        version="1.0",
-                        setup_requires = ['does-not-exist'],
-                    )
-                """).lstrip())
+            script = DALS("""
+                import setuptools
+                setuptools.setup(
+                    name="setuptools-test-fetcher",
+                    version="1.0",
+                    setup_requires = ['does-not-exist'],
+                )
+                """)
+            make_trivial_sdist(dist_path, script)
             yield dist_path
 
     def test_setup_requires_overrides_version_conflict(self):
@@ -325,22 +345,21 @@ class TestSetupRequires(unittest.TestCase):
         working_set.add(fake_dist)
 
         try:
-            with tempdir_context() as temp_dir:
+            with contexts.tempdir() as temp_dir:
                 test_pkg = create_setup_requires_package(temp_dir)
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
-                with quiet_context() as (stdout, stderr):
-                    with reset_setup_stop_context():
-                        try:
-                            # Don't even need to install the package, just
-                            # running the setup.py at all is sufficient
-                            run_setup(test_setup_py, ['--name'])
-                        except VersionConflict:
-                            self.fail('Installing setup.py requirements '
-                                'caused a VersionConflict')
+                with contexts.quiet() as (stdout, stderr):
+                    try:
+                        # Don't even need to install the package, just
+                        # running the setup.py at all is sufficient
+                        run_setup(test_setup_py, ['--name'])
+                    except VersionConflict:
+                        self.fail('Installing setup.py requirements '
+                            'caused a VersionConflict')
 
                 lines = stdout.readlines()
-                self.assertTrue(len(lines) > 0)
-                self.assertTrue(lines[-1].strip(), 'test_pkg')
+                assert len(lines) > 0
+                assert lines[-1].strip(), 'test_pkg'
         finally:
             pkg_resources.__setstate__(pr_state)
 
@@ -361,17 +380,16 @@ def create_setup_requires_package(path):
     test_setup_py = os.path.join(test_pkg, 'setup.py')
     os.mkdir(test_pkg)
 
-    f = open(test_setup_py, 'w')
-    f.write(textwrap.dedent("""\
-        import setuptools
-        setuptools.setup(**%r)
-    """ % test_setup_attrs))
-    f.close()
+    with open(test_setup_py, 'w') as f:
+        f.write(DALS("""
+            import setuptools
+            setuptools.setup(**%r)
+        """ % test_setup_attrs))
 
     foobar_path = os.path.join(path, 'foobar-0.1.tar.gz')
     make_trivial_sdist(
         foobar_path,
-        textwrap.dedent("""\
+        DALS("""
             import setuptools
             setuptools.setup(
                 name='foobar',
@@ -390,71 +408,5 @@ def make_trivial_sdist(dist_path, setup_py):
     setup_py_file = tarfile.TarInfo(name='setup.py')
     setup_py_bytes = io.BytesIO(setup_py.encode('utf-8'))
     setup_py_file.size = len(setup_py_bytes.getvalue())
-    dist = tarfile.open(dist_path, 'w:gz')
-    try:
+    with tarfile_open(dist_path, 'w:gz') as dist:
         dist.addfile(setup_py_file, fileobj=setup_py_bytes)
-    finally:
-        dist.close()
-
-
-@contextlib.contextmanager
-def tempdir_context(cd=lambda dir:None):
-    temp_dir = tempfile.mkdtemp()
-    orig_dir = os.getcwd()
-    try:
-        cd(temp_dir)
-        yield temp_dir
-    finally:
-        cd(orig_dir)
-        shutil.rmtree(temp_dir)
-
-@contextlib.contextmanager
-def environment_context(**updates):
-    old_env = os.environ.copy()
-    os.environ.update(updates)
-    try:
-        yield
-    finally:
-        for key in updates:
-            del os.environ[key]
-        os.environ.update(old_env)
-
-@contextlib.contextmanager
-def argv_context(repl):
-    old_argv = sys.argv[:]
-    sys.argv[:] = repl
-    yield
-    sys.argv[:] = old_argv
-
-@contextlib.contextmanager
-def reset_setup_stop_context():
-    """
-    When the setuptools tests are run using setup.py test, and then
-    one wants to invoke another setup() command (such as easy_install)
-    within those tests, it's necessary to reset the global variable
-    in distutils.core so that the setup() command will run naturally.
-    """
-    setup_stop_after = distutils.core._setup_stop_after
-    distutils.core._setup_stop_after = None
-    yield
-    distutils.core._setup_stop_after = setup_stop_after
-
-
-@contextlib.contextmanager
-def quiet_context():
-    """
-    Redirect stdout/stderr to StringIO objects to prevent console output from
-    distutils commands.
-    """
-
-    old_stdout = sys.stdout
-    old_stderr = sys.stderr
-    new_stdout = sys.stdout = six.StringIO()
-    new_stderr = sys.stderr = six.StringIO()
-    try:
-        yield new_stdout, new_stderr
-    finally:
-        new_stdout.seek(0)
-        new_stderr.seek(0)
-        sys.stdout = old_stdout
-        sys.stderr = old_stderr

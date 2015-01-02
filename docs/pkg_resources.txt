@@ -594,7 +594,7 @@ Requirements Parsing
 
         requirement  ::= project_name versionspec? extras?
         versionspec  ::= comparison version (',' comparison version)*
-        comparison   ::= '<' | '<=' | '!=' | '==' | '>=' | '>'
+        comparison   ::= '<' | '<=' | '!=' | '==' | '>=' | '>' | '~=' | '==='
         extras       ::= '[' extralist? ']'
         extralist    ::= identifier (',' identifier)*
         project_name ::= identifier
@@ -646,13 +646,10 @@ Requirements Parsing
     The ``Requirement`` object's version specifiers (``.specs``) are internally
     sorted into ascending version order, and used to establish what ranges of
     versions are acceptable.  Adjacent redundant conditions are effectively
-    consolidated (e.g. ``">1, >2"`` produces the same results as ``">1"``, and
-    ``"<2,<3"`` produces the same results as``"<3"``). ``"!="`` versions are
+    consolidated (e.g. ``">1, >2"`` produces the same results as ``">2"``, and
+    ``"<2,<3"`` produces the same results as``"<2"``). ``"!="`` versions are
     excised from the ranges they fall within.  The version being tested for
     acceptability is then checked for membership in the resulting ranges.
-    (Note that providing conflicting conditions for the same version (e.g.
-    ``"<2,>=2"`` or ``"==2,!=2"``) is meaningless and may therefore produce
-    bizarre results when compared with actual version number(s).)
 
 ``__eq__(other_requirement)``
     A requirement compares equal to another requirement if they have
@@ -681,10 +678,7 @@ Requirements Parsing
 ``specs``
     A list of ``(op,version)`` tuples, sorted in ascending parsed-version
     order.  The `op` in each tuple is a comparison operator, represented as
-    a string.  The `version` is the (unparsed) version number.  The relative
-    order of tuples containing the same version numbers is undefined, since
-    having more than one operator for a given version is either redundant or
-    self-contradictory.
+    a string.  The `version` is the (unparsed) version number.
 
 
 Entry Points
@@ -967,7 +961,7 @@ version
     ``ValueError`` is raised.
 
 parsed_version
-    The ``parsed_version`` is a tuple representing a "parsed" form of the
+    The ``parsed_version`` is an object representing a "parsed" form of the
     distribution's ``version``.  ``dist.parsed_version`` is a shortcut for
     calling ``parse_version(dist.version)``.  It is used to compare or sort
     distributions by version.  (See the `Parsing Utilities`_ section below for
@@ -1541,40 +1535,12 @@ Parsing Utilities
 -----------------
 
 ``parse_version(version)``
-    Parse a project's version string, returning a value that can be used to
-    compare versions by chronological order.  Semantically, the format is a
-    rough cross between distutils' ``StrictVersion`` and ``LooseVersion``
-    classes; if you give it versions that would work with ``StrictVersion``,
-    then they will compare the same way.  Otherwise, comparisons are more like
-    a "smarter" form of ``LooseVersion``.  It is *possible* to create
-    pathological version coding schemes that will fool this parser, but they
-    should be very rare in practice.
-
-    The returned value will be a tuple of strings.  Numeric portions of the
-    version are padded to 8 digits so they will compare numerically, but
-    without relying on how numbers compare relative to strings.  Dots are
-    dropped, but dashes are retained.  Trailing zeros between alpha segments
-    or dashes are suppressed, so that e.g. "2.4.0" is considered the same as
-    "2.4". Alphanumeric parts are lower-cased.
-
-    The algorithm assumes that strings like "-" and any alpha string that
-    alphabetically follows "final"  represents a "patch level".  So, "2.4-1"
-    is assumed to be a branch or patch of "2.4", and therefore "2.4.1" is
-    considered newer than "2.4-1", which in turn is newer than "2.4".
-
-    Strings like "a", "b", "c", "alpha", "beta", "candidate" and so on (that
-    come before "final" alphabetically) are assumed to be pre-release versions,
-    so that the version "2.4" is considered newer than "2.4a1".  Any "-"
-    characters preceding a pre-release indicator are removed.  (In versions of
-    setuptools prior to 0.6a9, "-" characters were not removed, leading to the
-    unintuitive result that "0.2-rc1" was considered a newer version than
-    "0.2".)
-
-    Finally, to handle miscellaneous cases, the strings "pre", "preview", and
-    "rc" are treated as if they were "c", i.e. as though they were release
-    candidates, and therefore are not as new as a version string that does not
-    contain them.  And the string "dev" is treated as if it were an "@" sign;
-    that is, a version coming before even "a" or "alpha".
+    Parsed a project's version string as defined by PEP 440. The returned
+    value will be an object that represents the version. These objects may
+    be compared to each other and sorted. The sorting algorithm is as defined
+    by PEP 440 with the addition that any version which is not a valid PEP 440
+    version will be considered less than any valid PEP 440 version and the
+    invalid versions will continue sorting using the original algorithm.
 
 .. _yield_lines():
 
@@ -1629,10 +1595,12 @@ Parsing Utilities
     See ``to_filename()``.
 
 ``safe_version(version)``
-    Similar to ``safe_name()`` except that spaces in the input become dots, and
-    dots are allowed to exist in the output.  As with ``safe_name()``, if you
-    are generating a filename from this you should replace any "-" characters
-    in the output with underscores.
+    This will return the normalized form of any PEP 440 version, if the version
+    string is not PEP 440 compatible than it is similar to ``safe_name()``
+    except that spaces in the input become dots, and dots are allowed to exist
+    in the output.  As with ``safe_name()``, if you are generating a filename
+    from this you should replace any "-" characters in the output with
+    underscores.
 
 ``safe_extra(extra)``
     Return a "safe" form of an extra's name, suitable for use in a requirement

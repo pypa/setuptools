@@ -6,6 +6,7 @@ from distutils.errors import DistutilsError
 from distutils import log
 import os
 import sys
+import itertools
 
 from setuptools.extension import Library
 
@@ -33,18 +34,13 @@ if sys.platform == "darwin":
     use_stubs = True
 elif os.name != 'nt':
     try:
-        from dl import RTLD_NOW
-
-        have_rtld = True
-        use_stubs = True
+        import dl
+        use_stubs = have_rtld = hasattr(dl, 'RTLD_NOW')
     except ImportError:
         pass
 
 
-def if_dl(s):
-    if have_rtld:
-        return s
-    return ''
+if_dl = lambda s: s if have_rtld else ''
 
 
 class build_ext(_build_ext):
@@ -123,10 +119,10 @@ class build_ext(_build_ext):
             # XXX what to do with conflicts?
             self.ext_map[fullname.split('.')[-1]] = ext
 
-            ltd = ext._links_to_dynamic = \
-                self.shlibs and self.links_to_dynamic(ext) or False
-            ext._needs_stub = ltd and use_stubs and not isinstance(ext,
-                                                                   Library)
+            ltd = self.shlibs and self.links_to_dynamic(ext) or False
+            ns = ltd and use_stubs and not isinstance(ext, Library)
+            ext._links_to_dynamic = ltd
+            ext._needs_stub = ns
             filename = ext._file_name = self.get_ext_filename(fullname)
             libdir = os.path.dirname(os.path.join(self.build_lib, filename))
             if ltd and libdir not in ext.library_dirs:
@@ -186,9 +182,8 @@ class build_ext(_build_ext):
                 self.compiler = self.shlib_compiler
             _build_ext.build_extension(self, ext)
             if ext._needs_stub:
-                self.write_stub(
-                    self.get_finalized_command('build_py').build_lib, ext
-                )
+                cmd = self.get_finalized_command('build_py').build_lib
+                self.write_stub(cmd, ext)
         finally:
             self.compiler = _compiler
 
@@ -199,22 +194,27 @@ class build_ext(_build_ext):
         # XXX static-compiled version
         libnames = dict.fromkeys([lib._full_name for lib in self.shlibs])
         pkg = '.'.join(ext._full_name.split('.')[:-1] + [''])
-        for libname in ext.libraries:
-            if pkg + libname in libnames:
-                return True
-        return False
+        return any(pkg + libname in libnames for libname in ext.libraries)
 
     def get_outputs(self):
-        outputs = _build_ext.get_outputs(self)
-        optimize = self.get_finalized_command('build_py').optimize
-        for ext in self.extensions:
-            if ext._needs_stub:
-                base = os.path.join(self.build_lib, *ext._full_name.split('.'))
-                outputs.append(base + '.py')
-                outputs.append(base + '.pyc')
-                if optimize:
-                    outputs.append(base + '.pyo')
-        return outputs
+        return _build_ext.get_outputs(self) + self.__get_stubs_outputs()
+
+    def __get_stubs_outputs(self):
+        # assemble the base name for each extension that needs a stub
+        ns_ext_bases = (
+            os.path.join(self.build_lib, *ext._full_name.split('.'))
+            for ext in self.extensions
+            if ext._needs_stub
+        )
+        # pair each base with the extension
+        pairs = itertools.product(ns_ext_bases, self.__get_output_extensions())
+        return list(base + fnext for base, fnext in pairs)
+
+    def __get_output_extensions(self):
+        yield '.py'
+        yield '.pyc'
+        if self.get_finalized_command('build_py').optimize:
+            yield '.pyo'
 
     def write_stub(self, output_dir, ext, compile=False):
         log.info("writing stub loader for %s to %s", ext._full_name,

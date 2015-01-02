@@ -4,7 +4,6 @@ import io
 import os
 import sys
 import textwrap
-import contextlib
 
 # Allow to run setup.py from another directory.
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -27,7 +26,6 @@ with open(ver_path) as ver_file:
 
 import setuptools
 from setuptools.command.build_py import build_py as _build_py
-from setuptools.command.test import test as _test
 
 scripts = []
 
@@ -61,44 +59,11 @@ class build_py(_build_py):
                 outf, copied = self.copy_file(srcfile, target)
                 srcfile = os.path.abspath(srcfile)
 
-class test(_test):
-    """Specific test class to avoid rewriting the entry_points.txt"""
-    def run(self):
-        with self._save_entry_points():
-            _test.run(self)
-
-    @contextlib.contextmanager
-    def _save_entry_points(self):
-        entry_points = os.path.join('setuptools.egg-info', 'entry_points.txt')
-
-        if not os.path.exists(entry_points):
-            yield
-            return
-
-        # save the content
-        with open(entry_points, 'rb') as f:
-            ep_content = f.read()
-
-        # run the tests
-        try:
-            yield
-        finally:
-            # restore the file
-            with open(entry_points, 'wb') as f:
-                f.write(ep_content)
-
 
 readme_file = io.open('README.txt', encoding='utf-8')
 
-# The release script adds hyperlinks to issues,
-# but if the release script has not run, fall back to the source file
-changes_names = 'CHANGES (links).txt', 'CHANGES.txt'
-changes_fn = next(iter(filter(os.path.exists, changes_names)))
-changes_file = io.open(changes_fn, encoding='utf-8')
-
 with readme_file:
-    with changes_file:
-        long_description = readme_file.read() + '\n' + changes_file.read()
+    long_description = readme_file.read()
 
 package_data = {
         'setuptools': ['script (dev).tmpl', 'script.tmpl', 'site-patch.py']}
@@ -123,16 +88,14 @@ setup_params = dict(
     long_description=long_description,
     keywords="CPAN PyPI distutils eggs package management",
     url="https://bitbucket.org/pypa/setuptools",
-    test_suite='setuptools.tests',
     src_root=src_root,
     packages=setuptools.find_packages(),
     package_data=package_data,
 
-    py_modules=['pkg_resources', 'easy_install'],
+    py_modules=['easy_install'],
 
     zip_safe=True,
 
-    cmdclass={'test': test},
     entry_points={
         "distutils.commands": [
             "%(cmd)s = setuptools.command.%(cmd)s:%(cmd)s" % locals()
@@ -172,9 +135,6 @@ setup_params = dict(
         ],
         "console_scripts": console_scripts,
 
-        "setuptools.file_finders":
-            ["svn_cvs = setuptools.command.sdist:_default_revctrl"],
-
         "setuptools.installation":
             ['eggsecutable = setuptools.command.easy_install:bootstrap'],
     },
@@ -213,6 +173,7 @@ setup_params = dict(
     tests_require=[
         'setuptools[ssl]',
         'pytest',
+        'mock',
     ],
     setup_requires=[
     ] + pytest_runner,

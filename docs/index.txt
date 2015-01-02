@@ -16,6 +16,7 @@ Documentation content:
 .. toctree::
    :maxdepth: 2
 
+   history
    roadmap
    python3
    using
