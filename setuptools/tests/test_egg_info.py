@@ -4,23 +4,31 @@ import shutil
 import stat
 
 from . import environment
+from .textwrap import DALS
 
 
 class TestEggInfo:
 
+    setup_script = DALS("""
+        from setuptools import setup
+
+        setup(
+            name='foo',
+            py_modules=['hello'],
+            entry_points={'console_scripts': ['hi = hello.run']},
+            zip_safe=False,
+        )
+        """)
+
     def _create_project(self):
         with open('setup.py', 'w') as f:
-            f.write('from setuptools import setup\n')
-            f.write('\n')
-            f.write('setup(\n')
-            f.write("    name='foo',\n")
-            f.write("    py_modules=['hello'],\n")
-            f.write("    entry_points={'console_scripts': ['hi = hello.run']},\n")
-            f.write('    zip_safe=False,\n')
-            f.write('    )\n')
+            f.write(self.setup_script)
+
         with open('hello.py', 'w') as f:
-            f.write('def run():\n')
-            f.write("    print('hello')\n")
+            f.write(DALS("""
+                def run():
+                    print('hello')
+                """))
 
     def test_egg_base_installed_egg_info(self, tmpdir_cwd):
         self._create_project()
