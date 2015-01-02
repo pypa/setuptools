@@ -21,15 +21,31 @@ def tempdir(cd=lambda dir:None, **kwargs):
 
 
 @contextlib.contextmanager
-def environment(**updates):
-    old_env = os.environ.copy()
-    os.environ.update(updates)
+def environment(**replacements):
+    """
+    In a context, patch the environment with replacements. Pass None values
+    to clear the values.
+    """
+    saved = dict(
+        (key, os.environ['key'])
+        for key in replacements
+        if key in os.environ
+    )
+
+    # remove values that are null
+    remove = (key for (key, value) in replacements.items() if value is None)
+    for key in list(remove):
+        os.environ.pop(key, None)
+        replacements.pop(key)
+
+    os.environ.update(replacements)
+
     try:
-        yield
+        yield saved
     finally:
-        for key in updates:
-            del os.environ[key]
-        os.environ.update(old_env)
+        for key in replacements:
+            os.environ.pop(key, None)
+        os.environ.update(saved)
 
 
 @contextlib.contextmanager

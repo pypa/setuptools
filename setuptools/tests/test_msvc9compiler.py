@@ -10,9 +10,10 @@ import shutil
 import tempfile
 import unittest
 import distutils.errors
-import contextlib
 
 import pytest
+
+from . import contexts
 
 # importing only setuptools should apply the patch
 __import__('setuptools')
@@ -62,32 +63,6 @@ class MockReg:
         distutils.msvc9compiler.Reg.read_keys = self.original_read_keys
         distutils.msvc9compiler.Reg.read_values = self.original_read_values
 
-@contextlib.contextmanager
-def patch_env(**replacements):
-    """
-    In a context, patch the environment with replacements. Pass None values
-    to clear the values.
-    """
-    saved = dict(
-        (key, os.environ['key'])
-        for key in replacements
-        if key in os.environ
-    )
-
-    # remove values that are null
-    remove = (key for (key, value) in replacements.items() if value is None)
-    for key in list(remove):
-        os.environ.pop(key, None)
-        replacements.pop(key)
-
-    os.environ.update(replacements)
-
-    try:
-        yield saved
-    finally:
-        for key in replacements:
-            os.environ.pop(key, None)
-        os.environ.update(saved)
 
 class TestMSVC9Compiler(unittest.TestCase):
 
@@ -100,7 +75,7 @@ class TestMSVC9Compiler(unittest.TestCase):
 
         # No registry entries or environment variable means we should
         # not find anything
-        with patch_env(VS90COMNTOOLS=None):
+        with contexts.environment(VS90COMNTOOLS=None):
             with MockReg():
                 self.assertIsNone(find_vcvarsall(9.0))
 
