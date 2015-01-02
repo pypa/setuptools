@@ -1,6 +1,4 @@
 import sys
-import os
-import unittest
 import distutils.errors
 
 from setuptools.compat import httplib, HTTPError, unicode, pathname2url
@@ -174,7 +172,7 @@ class TestPackageIndex:
         assert 'content' in res.read()
 
 
-class TestContentCheckers(unittest.TestCase):
+class TestContentCheckers:
 
     def test_md5(self):
         checker = setuptools.package_index.HashChecker.from_url(
