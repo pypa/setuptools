@@ -6,7 +6,6 @@ import os
 import shutil
 import sys
 import tempfile
-import unittest
 import unicodedata
 import contextlib
 
@@ -78,9 +77,9 @@ def decompose(path):
     return path
 
 
-class TestSdistTest(unittest.TestCase):
+class TestSdistTest:
 
-    def setUp(self):
+    def setup_method(self, method):
         self.temp_dir = tempfile.mkdtemp()
         f = open(os.path.join(self.temp_dir, 'setup.py'), 'w')
         f.write(SETUP_PY)
@@ -98,7 +97,7 @@ class TestSdistTest(unittest.TestCase):
         self.old_cwd = os.getcwd()
         os.chdir(self.temp_dir)
 
-    def tearDown(self):
+    def teardown_method(self, method):
         os.chdir(self.old_cwd)
         shutil.rmtree(self.temp_dir)
 
@@ -117,9 +116,9 @@ class TestSdistTest(unittest.TestCase):
             cmd.run()
 
         manifest = cmd.filelist.files
-        self.assertTrue(os.path.join('sdist_test', 'a.txt') in manifest)
-        self.assertTrue(os.path.join('sdist_test', 'b.txt') in manifest)
-        self.assertTrue(os.path.join('sdist_test', 'c.rst') not in manifest)
+        assert os.path.join('sdist_test', 'a.txt') in manifest
+        assert os.path.join('sdist_test', 'b.txt') in manifest
+        assert os.path.join('sdist_test', 'c.rst') not in manifest
 
 
     def test_defaults_case_sensitivity(self):
@@ -144,9 +143,9 @@ class TestSdistTest(unittest.TestCase):
 
         # lowercase all names so we can test in a case-insensitive way to make sure the files are not included
         manifest = map(lambda x: x.lower(), cmd.filelist.files)
-        self.assertFalse('readme.rst' in manifest, manifest)
-        self.assertFalse('setup.py' in manifest, manifest)
-        self.assertFalse('setup.cfg' in manifest, manifest)
+        assert 'readme.rst' not in manifest, manifest
+        assert 'setup.py' not in manifest, manifest
+        assert 'setup.cfg' not in manifest, manifest
 
     def test_manifest_is_written_with_utf8_encoding(self):
         # Test for #303.
@@ -184,7 +183,7 @@ class TestSdistTest(unittest.TestCase):
             fs_enc = sys.getfilesystemencoding()
             filename = filename.decode(fs_enc)
 
-        self.assertTrue(posix(filename) in u_contents)
+        assert posix(filename) in u_contents
 
     # Python 3 only
     if PY3:
@@ -223,10 +222,10 @@ class TestSdistTest(unittest.TestCase):
                 self.fail(e)
 
             # The manifest should contain the UTF-8 filename
-            self.assertTrue(posix(filename) in contents)
+            assert posix(filename) in contents
 
             # The filelist should have been updated as well
-            self.assertTrue(u_filename in mm.filelist.files)
+            assert u_filename in mm.filelist.files
 
         def test_write_manifest_skips_non_utf8_filenames(self):
             """
@@ -264,10 +263,10 @@ class TestSdistTest(unittest.TestCase):
                 self.fail(e)
 
             # The Latin-1 filename should have been skipped
-            self.assertFalse(posix(filename) in contents)
+            assert posix(filename) not in contents
 
             # The filelist should have been updated as well
-            self.assertFalse(u_filename in mm.filelist.files)
+            assert u_filename not in mm.filelist.files
 
     def test_manifest_is_read_with_utf8_encoding(self):
         # Test for #303.
@@ -298,7 +297,7 @@ class TestSdistTest(unittest.TestCase):
         # The filelist should contain the UTF-8 filename
         if PY3:
             filename = filename.decode('utf-8')
-        self.assertTrue(filename in cmd.filelist.files)
+        assert filename in cmd.filelist.files
 
     # Python 3 only
     if PY3:
@@ -335,7 +334,7 @@ class TestSdistTest(unittest.TestCase):
 
             # The Latin-1 filename should have been skipped
             filename = filename.decode('latin-1')
-            self.assertFalse(filename in cmd.filelist.files)
+            assert filename not in cmd.filelist.files
 
     @pytest.mark.skipif(PY3 and locale.getpreferredencoding() != 'UTF-8',
         reason='Unittest fails if locale is not utf-8 but the manifests is '
@@ -364,15 +363,15 @@ class TestSdistTest(unittest.TestCase):
                 if fs_enc == 'cp1252':
                     # Python 3 mangles the UTF-8 filename
                     filename = filename.decode('cp1252')
-                    self.assertTrue(filename in cmd.filelist.files)
+                    assert filename in cmd.filelist.files
                 else:
                     filename = filename.decode('mbcs')
-                    self.assertTrue(filename in cmd.filelist.files)
+                    assert filename in cmd.filelist.files
             else:
                 filename = filename.decode('utf-8')
-                self.assertTrue(filename in cmd.filelist.files)
+                assert filename in cmd.filelist.files
         else:
-            self.assertTrue(filename in cmd.filelist.files)
+            assert filename in cmd.filelist.files
 
     def test_sdist_with_latin1_encoded_filename(self):
         # Test for #303.
@@ -384,7 +383,7 @@ class TestSdistTest(unittest.TestCase):
         # Latin-1 filename
         filename = os.path.join(b('sdist_test'), LATIN1_FILENAME)
         open(filename, 'w').close()
-        self.assertTrue(os.path.isfile(filename))
+        assert os.path.isfile(filename)
 
         with quiet():
             cmd.run()
@@ -400,11 +399,11 @@ class TestSdistTest(unittest.TestCase):
                 else:
                     filename = filename.decode('latin-1')
 
-                self.assertTrue(filename in cmd.filelist.files)
+                assert filename in cmd.filelist.files
             else:
                 # The Latin-1 filename should have been skipped
                 filename = filename.decode('latin-1')
-                self.assertFalse(filename in cmd.filelist.files)
+                filename not in cmd.filelist.files
         else:
             # Under Python 2 there seems to be no decoded string in the
             # filelist.  However, due to decode and encoding of the
@@ -414,9 +413,9 @@ class TestSdistTest(unittest.TestCase):
                 # be proformed for the manifest output.
                 fs_enc = sys.getfilesystemencoding()
                 filename.decode(fs_enc)
-                self.assertTrue(filename in cmd.filelist.files)
+                assert filename in cmd.filelist.files
             except UnicodeDecodeError:
-                self.assertFalse(filename in cmd.filelist.files)
+                filename not in cmd.filelist.files
 
 
 def test_default_revctrl():
@@ -434,7 +433,3 @@ def test_default_revctrl():
     ep = pkg_resources.EntryPoint.parse(ep_def)
     res = ep._load()
     assert hasattr(res, '__iter__')
-
-
-def test_suite():
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)
