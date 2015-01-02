@@ -63,10 +63,8 @@ class TestEggInfo:
             )
             if code:
                 raise AssertionError(data)
-            egg_info = None
-            for dirpath, dirnames, filenames in os.walk(paths['lib']):
-                if os.path.basename(dirpath) == 'EGG-INFO':
-                    egg_info = sorted(filenames)
+
+            actual = self._find_egg_info_files(paths['lib'])
 
             expected = [
                 'PKG-INFO',
@@ -76,4 +74,14 @@ class TestEggInfo:
                 'not-zip-safe',
                 'top_level.txt',
             ]
-            assert egg_info == expected
+            assert sorted(actual) == expected
+
+    def _find_egg_info_files(self, root):
+        results = (
+            filenames
+            for dirpath, dirnames, filenames in os.walk(root)
+            if os.path.basename(dirpath) == 'EGG-INFO'
+        )
+        # expect exactly one result
+        result, = results
+        return result
