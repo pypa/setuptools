@@ -133,6 +133,7 @@ class TestPTHFileWriter(unittest.TestCase):
         self.assertTrue(not pth.dirty)
 
 
+@pytest.mark.usefixtures("user_override")
 class TestUserInstallTest:
 
     def setup_method(self, method):
@@ -143,26 +144,17 @@ class TestUserInstallTest:
         self.old_cwd = os.getcwd()
         os.chdir(self.dir)
 
-        self.old_enable_site = site.ENABLE_USER_SITE
         self.old_file = easy_install_pkg.__file__
-        self.old_base = site.USER_BASE
-        site.USER_BASE = tempfile.mkdtemp()
-        self.old_site = site.USER_SITE
-        site.USER_SITE = tempfile.mkdtemp()
         easy_install_pkg.__file__ = site.USER_SITE
 
     def teardown_method(self, method):
         os.chdir(self.old_cwd)
         shutil.rmtree(self.dir)
 
-        shutil.rmtree(site.USER_BASE)
-        shutil.rmtree(site.USER_SITE)
-        site.USER_BASE = self.old_base
-        site.USER_SITE = self.old_site
-        site.ENABLE_USER_SITE = self.old_enable_site
         easy_install_pkg.__file__ = self.old_file
 
     def test_user_install_implied(self):
+        easy_install_pkg.__file__ = site.USER_SITE
         site.ENABLE_USER_SITE = True # disabled sometimes
         #XXX: replace with something meaningfull
         dist = Distribution()
