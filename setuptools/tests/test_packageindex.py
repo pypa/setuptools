@@ -162,18 +162,15 @@ class TestPackageIndex:
         assert url == 'https://example.com/bar'
         assert rev == '2995'
 
-    def test_local_index(self):
+    def test_local_index(self, tmpdir):
         """
         local_open should be able to read an index from the file system.
         """
-        f = open('index.html', 'w')
-        f.write('<div>content</div>')
-        f.close()
-        try:
-            url = 'file:' + pathname2url(os.getcwd()) + '/'
-            res = setuptools.package_index.local_open(url)
-        finally:
-            os.remove('index.html')
+        index_file = tmpdir / 'index.html'
+        with index_file.open('w') as f:
+            f.write('<div>content</div>')
+        url = 'file:' + pathname2url(str(tmpdir)) + '/'
+        res = setuptools.package_index.local_open(url)
         assert 'content' in res.read()
 
 
