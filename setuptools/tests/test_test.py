@@ -13,37 +13,43 @@ from setuptools.compat import StringIO, PY2
 from setuptools.command.test import test
 from setuptools.dist import Distribution
 
-SETUP_PY = """\
-from setuptools import setup
+from .textwrap import DALS
 
-setup(name='foo',
-    packages=['name', 'name.space', 'name.space.tests'],
-    namespace_packages=['name'],
-    test_suite='name.space.tests.test_suite',
-)
-"""
+SETUP_PY = DALS("""
+    from setuptools import setup
 
-NS_INIT = """# -*- coding: Latin-1 -*-
-# Söme Arbiträry Ünicode to test Issüé 310
-try:
-    __import__('pkg_resources').declare_namespace(__name__)
-except ImportError:
-    from pkgutil import extend_path
-    __path__ = extend_path(__path__, __name__)
-"""
+    setup(name='foo',
+        packages=['name', 'name.space', 'name.space.tests'],
+        namespace_packages=['name'],
+        test_suite='name.space.tests.test_suite',
+    )
+    """)
+
+NS_INIT = DALS("""
+    # -*- coding: Latin-1 -*-
+    # Söme Arbiträry Ünicode to test Issüé 310
+    try:
+        __import__('pkg_resources').declare_namespace(__name__)
+    except ImportError:
+        from pkgutil import extend_path
+        __path__ = extend_path(__path__, __name__)
+    """)
+
 # Make sure this is Latin-1 binary, before writing:
 if PY2:
     NS_INIT = NS_INIT.decode('UTF-8')
 NS_INIT = NS_INIT.encode('Latin-1')
 
-TEST_PY = """import unittest
+TEST_PY = DALS("""
+    import unittest
 
-class TestTest(unittest.TestCase):
-    def test_test(self):
-        print "Foo" # Should fail under Python 3 unless 2to3 is used
+    class TestTest(unittest.TestCase):
+        def test_test(self):
+            print "Foo" # Should fail under Python 3 unless 2to3 is used
 
-test_suite = unittest.makeSuite(TestTest)
-"""
+    test_suite = unittest.makeSuite(TestTest)
+    """)
+
 
 class TestTestTest(unittest.TestCase):
 
