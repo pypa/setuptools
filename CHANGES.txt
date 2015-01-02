@@ -3,7 +3,7 @@ CHANGES
 =======
 
 ----
-next
+10.2
 ----
 
 * Deprecated use of EntryPoint.load(require=False).
