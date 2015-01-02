@@ -9,8 +9,8 @@ from ..compat import StringIO
 
 
 @contextlib.contextmanager
-def tempdir(cd=lambda dir:None):
-    temp_dir = tempfile.mkdtemp()
+def tempdir(cd=lambda dir:None, **kwargs):
+    temp_dir = tempfile.mkdtemp(**kwargs)
     orig_dir = os.getcwd()
     try:
         cd(temp_dir)

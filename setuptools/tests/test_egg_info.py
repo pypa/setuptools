@@ -1,10 +1,9 @@
 import os
-import tempfile
-import shutil
 import stat
 
 from . import environment
 from .textwrap import DALS
+from . import contexts
 
 
 class TestEggInfo:
@@ -32,9 +31,8 @@ class TestEggInfo:
 
     def test_egg_base_installed_egg_info(self, tmpdir_cwd):
         self._create_project()
-        temp_dir = tempfile.mkdtemp(prefix='setuptools-test.')
-        os.chmod(temp_dir, stat.S_IRWXU)
-        try:
+        with contexts.tempdir(prefix='setuptools-test.') as temp_dir:
+            os.chmod(temp_dir, stat.S_IRWXU)
             paths = {}
             for dirname in ['home', 'lib', 'scripts', 'data', 'egg-base']:
                 paths[dirname] = os.path.join(temp_dir, dirname)
@@ -70,5 +68,3 @@ class TestEggInfo:
                 'top_level.txt',
             ]
             assert egg_info == expected
-        finally:
-            shutil.rmtree(temp_dir)
