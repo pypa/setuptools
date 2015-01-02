@@ -1,9 +1,9 @@
-import sys
 import os
 import shutil
 import tempfile
-import site
 import zipfile
+
+import pytest
 
 from setuptools.command.upload_docs import upload_docs
 from setuptools.dist import Distribution
@@ -19,41 +19,25 @@ SETUP_PY = DALS(
     """)
 
 
-class TestUploadDocsTest:
-    def setup_method(self, method):
-        self.dir = tempfile.mkdtemp()
-        setup = os.path.join(self.dir, 'setup.py')
-        f = open(setup, 'w')
+@pytest.fixture
+def sample_project(tmpdir_cwd):
+    # setup.py
+    with open('setup.py', 'wt') as f:
         f.write(SETUP_PY)
-        f.close()
-        self.old_cwd = os.getcwd()
-        os.chdir(self.dir)
 
-        self.upload_dir = os.path.join(self.dir, 'build')
-        os.mkdir(self.upload_dir)
+    os.mkdir('build')
 
-        # A test document.
-        f = open(os.path.join(self.upload_dir, 'index.html'), 'w')
+    # A test document.
+    with open('build/index.html', 'w') as f:
         f.write("Hello world.")
-        f.close()
 
-        # An empty folder.
-        os.mkdir(os.path.join(self.upload_dir, 'empty'))
+    # An empty folder.
+    os.mkdir('build/empty')
 
-        if sys.version >= "2.6":
-            self.old_base = site.USER_BASE
-            site.USER_BASE = upload_docs.USER_BASE = tempfile.mkdtemp()
-            self.old_site = site.USER_SITE
-            site.USER_SITE = upload_docs.USER_SITE = tempfile.mkdtemp()
 
-    def teardown_method(self, method):
-        os.chdir(self.old_cwd)
-        shutil.rmtree(self.dir)
-        if sys.version >= "2.6":
-            shutil.rmtree(site.USER_BASE)
-            shutil.rmtree(site.USER_SITE)
-            site.USER_BASE = self.old_base
-            site.USER_SITE = self.old_site
+@pytest.mark.usefixtures('sample_project')
+@pytest.mark.usefixtures('user_override')
+class TestUploadDocsTest:
 
     def test_create_zipfile(self):
         # Test to make sure zipfile creation handles common cases.
@@ -62,8 +46,7 @@ class TestUploadDocsTest:
         dist = Distribution()
 
         cmd = upload_docs(dist)
-        cmd.upload_dir = self.upload_dir
-        cmd.target_dir = self.upload_dir
+        cmd.target_dir = cmd.upload_dir = 'build'
         tmp_dir = tempfile.mkdtemp()
         tmp_file = os.path.join(tmp_dir, 'foo.zip')
         try:
