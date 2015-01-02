@@ -25,7 +25,7 @@ SETUP_PY = DALS("""
 
 NS_INIT = DALS("""
     # -*- coding: Latin-1 -*-
-    # Söme Arbiträry Ünicode to test Issüé 310
+    # Söme Arbiträry Ünicode to test Distribute Issüé 310
     try:
         __import__('pkg_resources').declare_namespace(__name__)
     except ImportError:
