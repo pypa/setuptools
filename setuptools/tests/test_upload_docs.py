@@ -4,7 +4,6 @@ import sys
 import os
 import shutil
 import tempfile
-import unittest
 import site
 import zipfile
 
@@ -22,8 +21,8 @@ SETUP_PY = DALS(
     """)
 
 
-class TestUploadDocsTest(unittest.TestCase):
-    def setUp(self):
+class TestUploadDocsTest:
+    def setup_method(self, method):
         self.dir = tempfile.mkdtemp()
         setup = os.path.join(self.dir, 'setup.py')
         f = open(setup, 'w')
@@ -49,7 +48,7 @@ class TestUploadDocsTest(unittest.TestCase):
             self.old_site = site.USER_SITE
             site.USER_SITE = upload_docs.USER_SITE = tempfile.mkdtemp()
 
-    def tearDown(self):
+    def teardown_method(self, method):
         os.chdir(self.old_cwd)
         shutil.rmtree(self.dir)
         if sys.version >= "2.6":
