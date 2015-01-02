@@ -83,3 +83,11 @@ def save_user_site_setting():
         yield saved
     finally:
         site.ENABLE_USER_SITE = saved
+
+
+@contextlib.contextmanager
+def suppress_exceptions(*excs):
+    try:
+        yield
+    except excs:
+        pass

@@ -91,9 +91,6 @@ class TestTestTest:
         cmd.install_dir = site.USER_SITE
         cmd.user = 1
         with contexts.quiet():
-            try:
+            # The test runner calls sys.exit
+            with contexts.suppress_exceptions(SystemExit):
                 cmd.run()
-            except SystemExit:
-                # The test runner calls sys.exit; suppress the exception
-                pass
-
