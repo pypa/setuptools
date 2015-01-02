@@ -46,8 +46,9 @@ class TestEggInfo:
                     egg-base = %(egg-base)s
                     """ % paths
                 ))
-            environ = os.environ.copy()
-            environ['HOME'] = paths['home']
+            environ = os.environ.copy().update(
+                HOME=paths['home'],
+            )
             cmd = [
                 'install',
                 '--home', paths['home'],
