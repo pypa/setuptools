@@ -1,8 +1,5 @@
-"""msvc9compiler monkey patch test
-
-This test ensures that importing setuptools is sufficient to replace
-the standard find_vcvarsall function with our patched version that
-finds the Visual C++ for Python package.
+"""
+Tests for msvc9compiler.
 """
 
 import os
@@ -57,6 +54,11 @@ def mock_reg(hkcu=None, hklm=None):
 
 
 class TestModulePatch:
+    """
+    Ensure that importing setuptools is sufficient to replace
+    the standard find_vcvarsall function with a version that
+    recognizes the "Visual C++ for Python" package.
+    """
 
     key_32 = r'software\microsoft\devdiv\vcforpython\9.0\installdir'
     key_64 = r'software\wow6432node\microsoft\devdiv\vcforpython\9.0\installdir'
