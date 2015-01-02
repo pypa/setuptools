@@ -53,6 +53,7 @@ TEST_PY = DALS("""
 
 
 @pytest.mark.skipif('hasattr(sys, "real_prefix")')
+@pytest.mark.usefixture('useroverride')
 class TestTestTest:
 
     def setup_method(self, method):
@@ -84,18 +85,10 @@ class TestTestTest:
             f.write(TEST_PY)
 
         os.chdir(self.dir)
-        self.old_base = site.USER_BASE
-        site.USER_BASE = tempfile.mkdtemp()
-        self.old_site = site.USER_SITE
-        site.USER_SITE = tempfile.mkdtemp()
 
     def teardown_method(self, method):
         os.chdir(self.old_cwd)
         shutil.rmtree(self.dir)
-        shutil.rmtree(site.USER_BASE)
-        shutil.rmtree(site.USER_SITE)
-        site.USER_BASE = self.old_base
-        site.USER_SITE = self.old_site
 
     def test_test(self):
         dist = Distribution(dict(
