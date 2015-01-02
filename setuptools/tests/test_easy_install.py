@@ -145,13 +145,7 @@ def setup_context(tmpdir):
 @pytest.mark.usefixtures("setup_context")
 class TestUserInstallTest:
 
-    def setup_method(self, method):
-        self.old_file = easy_install_pkg.__file__
-        easy_install_pkg.__file__ = site.USER_SITE
-
-    def teardown_method(self, method):
-        easy_install_pkg.__file__ = self.old_file
-
+    @mock.patch('setuptools.command.easy_install.__file__', None)
     def test_user_install_implied(self):
         easy_install_pkg.__file__ = site.USER_SITE
         site.ENABLE_USER_SITE = True # disabled sometimes
