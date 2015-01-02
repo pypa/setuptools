@@ -11,11 +11,16 @@ import zipfile
 from setuptools.command.upload_docs import upload_docs
 from setuptools.dist import Distribution
 
-SETUP_PY = """\
-from setuptools import setup
+from .textwrap import DALS
 
-setup(name='foo')
-"""
+
+SETUP_PY = DALS(
+    """
+    from setuptools import setup
+
+    setup(name='foo')
+    """)
+
 
 class TestUploadDocsTest(unittest.TestCase):
     def setUp(self):
