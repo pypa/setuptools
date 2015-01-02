@@ -235,7 +235,6 @@ class TestUserInstallTest:
             ei.__file__ = site.USER_SITE
             yield
 
-
     def patched_setup_context(self):
         self.orig_context = sandbox.setup_context
 
@@ -243,7 +242,6 @@ class TestUserInstallTest:
             'setuptools.sandbox.setup_context',
             self.user_install_setup_context,
         )
-
 
     def test_setup_requires(self):
         """Regression test for Distribute issue #318
