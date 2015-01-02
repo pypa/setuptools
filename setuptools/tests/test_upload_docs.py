@@ -54,8 +54,5 @@ class TestUploadDocsTest:
 
             assert zipfile.is_zipfile(tmp_file)
 
-            zip_file = zipfile.ZipFile(tmp_file)
-
-            assert zip_file.namelist() == ['index.html']
-
-            zip_file.close()
+            with zipfile.ZipFile(tmp_file) as zip_file:
+                assert zip_file.namelist() == ['index.html']
