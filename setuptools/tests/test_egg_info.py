@@ -41,8 +41,11 @@ class TestEggInfo:
             list(map(os.mkdir, paths.values()))
             config = os.path.join(paths['home'], '.pydistutils.cfg')
             with open(config, 'w') as f:
-                f.write('[egg_info]\n')
-                f.write('egg-base = %s\n' % paths['egg-base'])
+                f.write(DALS("""
+                    [egg_info]
+                    egg-base = %(egg-base)s
+                    """ % paths
+                ))
             environ = os.environ.copy()
             environ['HOME'] = paths['home']
             code, data = environment.run_setup_py(
