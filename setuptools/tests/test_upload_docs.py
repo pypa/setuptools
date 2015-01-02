@@ -1,6 +1,13 @@
 """build_ext tests
 """
-import sys, os, shutil, tempfile, unittest, site, zipfile
+import sys
+import os
+import shutil
+import tempfile
+import unittest
+import site
+import zipfile
+
 from setuptools.command.upload_docs import upload_docs
 from setuptools.dist import Distribution
 
