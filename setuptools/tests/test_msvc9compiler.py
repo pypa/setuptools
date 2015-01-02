@@ -8,7 +8,6 @@ finds the Visual C++ for Python package.
 import os
 import shutil
 import tempfile
-import unittest
 import distutils.errors
 
 import pytest
@@ -64,7 +63,7 @@ class MockReg:
         distutils.msvc9compiler.Reg.read_values = self.original_read_values
 
 
-class TestMSVC9Compiler(unittest.TestCase):
+class TestMSVC9Compiler:
 
     def test_find_vcvarsall_patch(self):
         mod_name = distutils.msvc9compiler.find_vcvarsall.__module__
@@ -77,7 +76,7 @@ class TestMSVC9Compiler(unittest.TestCase):
         # not find anything
         with contexts.environment(VS90COMNTOOLS=None):
             with MockReg():
-                self.assertIsNone(find_vcvarsall(9.0))
+                assert find_vcvarsall(9.0) is None
 
                 expected = distutils.errors.DistutilsPlatformError
                 with pytest.raises(expected) as exc:
@@ -104,11 +103,11 @@ class TestMSVC9Compiler(unittest.TestCase):
                     key_64: mock_installdir_2,
                 }
             ):
-                self.assertEqual(mock_vcvarsall_bat_1, find_vcvarsall(9.0))
+                assert mock_vcvarsall_bat_1 == find_vcvarsall(9.0)
 
             # Ensure we get the local machine value if it's there
             with MockReg(hkey_local_machine={key_32: mock_installdir_2}):
-                self.assertEqual(mock_vcvarsall_bat_2, find_vcvarsall(9.0))
+                assert mock_vcvarsall_bat_2 == find_vcvarsall(9.0)
 
             # Ensure we prefer the 64-bit local machine key
             # (*not* the Wow6432Node key)
@@ -120,7 +119,7 @@ class TestMSVC9Compiler(unittest.TestCase):
                     key_64: mock_installdir_2,
                 }
             ):
-                self.assertEqual(mock_vcvarsall_bat_1, find_vcvarsall(9.0))
+                assert mock_vcvarsall_bat_1 == find_vcvarsall(9.0)
         finally:
             shutil.rmtree(mock_installdir_1)
             shutil.rmtree(mock_installdir_2)
