@@ -4,31 +4,16 @@ import os
 import re
 
 import pytest
-import mock
 
 from setuptools.dist import Distribution
 
 from . import contexts
-
 
 SETUP_PY = """\
 from setuptools import setup
 
 setup(name='foo', py_modules=['hi'])
 """
-
-@pytest.yield_fixture
-def user_override():
-    """
-    Override site.USER_BASE and site.USER_SITE with temporary directories in
-    a context.
-    """
-    with contexts.tempdir() as user_base:
-        with mock.patch('site.USER_BASE', user_base):
-            with contexts.tempdir() as user_site:
-                with mock.patch('site.USER_SITE', user_site):
-                    yield
-
 
 @pytest.yield_fixture
 def setup_context(tmpdir):
