@@ -3,6 +3,7 @@ import os
 import shutil
 import sys
 import contextlib
+import site
 
 from ..compat import StringIO
 
@@ -57,3 +58,12 @@ def quiet():
         new_stderr.seek(0)
         sys.stdout = old_stdout
         sys.stderr = old_stderr
+
+
+@contextlib.contextmanager
+def save_user_site_setting():
+    saved = site.ENABLE_USER_SITE
+    try:
+        yield saved
+    finally:
+        site.ENABLE_USER_SITE = saved

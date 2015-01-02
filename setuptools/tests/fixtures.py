@@ -13,4 +13,5 @@ def user_override():
         with mock.patch('site.USER_BASE', user_base):
             with contexts.tempdir() as user_site:
                 with mock.patch('site.USER_SITE', user_site):
-                    yield
+                    with contexts.save_user_site_setting():
+                        yield
