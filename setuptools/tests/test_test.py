@@ -77,13 +77,14 @@ def sample_test(tmpdir_cwd):
 class TestTestTest:
 
     def test_test(self):
-        dist = Distribution(dict(
+        params = dict(
             name='foo',
             packages=['name', 'name.space', 'name.space.tests'],
             namespace_packages=['name'],
             test_suite='name.space.tests.test_suite',
             use_2to3=True,
-            ))
+        )
+        dist = Distribution(params)
         dist.script_name = 'setup.py'
         cmd = test(dist)
         cmd.user = 1
