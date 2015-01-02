@@ -57,17 +57,21 @@ def mock_reg(hkcu=None, hklm=None):
         read_keys=read_keys, read_values=read_values)
 
 
-class TestMSVC9Compiler:
+class TestModulePatch:
 
-    def test_find_vcvarsall_patch(self):
+    def test_patched(self):
+        "Test the module is actually patched"
         mod_name = distutils.msvc9compiler.find_vcvarsall.__module__
         assert mod_name == "setuptools.msvc9_support", "find_vcvarsall unpatched"
 
+    def test_no_registry_entryies_means_nothing_found(self):
+        """
+        No registry entries or environment variable should lead to an error
+        directing the user to download vcpython27.
+        """
         find_vcvarsall = distutils.msvc9compiler.find_vcvarsall
         query_vcvarsall = distutils.msvc9compiler.query_vcvarsall
 
-        # No registry entries or environment variable means we should
-        # not find anything
         with contexts.environment(VS90COMNTOOLS=None):
             with mock_reg():
                 assert find_vcvarsall(9.0) is None
