@@ -7,6 +7,8 @@ next
 ----
 
 * Deprecated use of EntryPoint.load(require=False).
+* Substantial refactoring of all unit tests. Tests are now much leaner and
+  re-use a lot of fixtures and contexts for better clarity of purpose.
 
 ----
 10.1
