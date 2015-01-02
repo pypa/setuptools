@@ -59,7 +59,8 @@ class TestEggInfo:
                 cmd=cmd,
                 pypath=os.pathsep.join([paths['lib'], str(tmpdir_cwd)]),
                 data_stream=1,
-                env=environ)
+                env=environ,
+            )
             if code:
                 raise AssertionError(data)
             egg_info = None
