@@ -53,7 +53,7 @@ TEST_PY = DALS("""
 class TestTestTest:
 
     def setup_method(self, method):
-        if sys.version < "2.6" or hasattr(sys, 'real_prefix'):
+        if hasattr(sys, 'real_prefix'):
             return
 
         # Directory structure
@@ -90,7 +90,7 @@ class TestTestTest:
         site.USER_SITE = tempfile.mkdtemp()
 
     def teardown_method(self, method):
-        if sys.version < "2.6" or hasattr(sys, 'real_prefix'):
+        if hasattr(sys, 'real_prefix'):
             return
 
         os.chdir(self.old_cwd)
@@ -101,7 +101,7 @@ class TestTestTest:
         site.USER_SITE = self.old_site
 
     def test_test(self):
-        if sys.version < "2.6" or hasattr(sys, 'real_prefix'):
+        if hasattr(sys, 'real_prefix'):
             return
 
         dist = Distribution(dict(
