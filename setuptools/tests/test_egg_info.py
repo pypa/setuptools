@@ -33,10 +33,12 @@ class TestEggInfo:
         self._create_project()
         with contexts.tempdir(prefix='setuptools-test.') as temp_dir:
             os.chmod(temp_dir, stat.S_IRWXU)
-            paths = {}
-            for dirname in ['home', 'lib', 'scripts', 'data', 'egg-base']:
-                paths[dirname] = os.path.join(temp_dir, dirname)
-                os.mkdir(paths[dirname])
+            subs = 'home', 'lib', 'scripts', 'data', 'egg-base'
+            paths = dict(
+                (dirname, os.path.join(temp_dir, dirname))
+                for dirname in subs
+            )
+            list(map(os.mkdir, paths.values()))
             config = os.path.join(paths['home'], '.pydistutils.cfg')
             with open(config, 'w') as f:
                 f.write('[egg_info]\n')
