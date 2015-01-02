@@ -3,7 +3,6 @@
 import sys
 import os
 import shutil
-import unittest
 import tempfile
 import types
 
@@ -24,12 +23,12 @@ def has_win32com():
         return False
     return True
 
-class TestSandbox(unittest.TestCase):
+class TestSandbox:
 
-    def setUp(self):
+    def setup_method(self, method):
         self.dir = tempfile.mkdtemp()
 
-    def tearDown(self):
+    def teardown_method(self, method):
         shutil.rmtree(self.dir)
 
     def test_devnull(self):
@@ -78,6 +77,3 @@ class TestSandbox(unittest.TestCase):
         with open(setup_py, 'wb') as stream:
             stream.write(b'"degenerate script"\r\n')
         setuptools.sandbox._execfile(setup_py, globals())
-
-if __name__ == '__main__':
-    unittest.main()
