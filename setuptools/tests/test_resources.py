@@ -1,12 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-# NOTE: the shebang and encoding lines are for ScriptHeaderTests do not remove
+# NOTE: the shebang and encoding lines are for TestScriptHeader do not remove
 
 import os
 import sys
 import tempfile
 import shutil
-from unittest import TestCase
 
 import pytest
 
@@ -48,36 +47,32 @@ class Metadata(pkg_resources.EmptyProvider):
 
 dist_from_fn = pkg_resources.Distribution.from_filename
 
-class DistroTests(TestCase):
+class TestDistro:
 
     def testCollection(self):
         # empty path should produce no distributions
         ad = pkg_resources.Environment([], platform=None, python=None)
-        self.assertEqual(list(ad), [])
-        self.assertEqual(ad['FooPkg'],[])
+        assert list(ad) == []
+        assert ad['FooPkg'] == []
         ad.add(dist_from_fn("FooPkg-1.3_1.egg"))
         ad.add(dist_from_fn("FooPkg-1.4-py2.4-win32.egg"))
         ad.add(dist_from_fn("FooPkg-1.2-py2.4.egg"))
 
         # Name is in there now
-        self.assertTrue(ad['FooPkg'])
+        assert ad['FooPkg']
         # But only 1 package
-        self.assertEqual(list(ad), ['foopkg'])
+        assert list(ad) == ['foopkg']
 
         # Distributions sort by version
-        self.assertEqual(
-            [dist.version for dist in ad['FooPkg']], ['1.4','1.3-1','1.2']
-        )
+        assert [dist.version for dist in ad['FooPkg']] == ['1.4','1.3-1','1.2']
+
         # Removing a distribution leaves sequence alone
         ad.remove(ad['FooPkg'][1])
-        self.assertEqual(
-            [dist.version for dist in ad['FooPkg']], ['1.4','1.2']
-        )
+        assert [dist.version for dist in ad['FooPkg']] == ['1.4','1.2']
+
         # And inserting adds them in order
         ad.add(dist_from_fn("FooPkg-1.9.egg"))
-        self.assertEqual(
-            [dist.version for dist in ad['FooPkg']], ['1.9','1.4','1.2']
-        )
+        assert [dist.version for dist in ad['FooPkg']] == ['1.9','1.4','1.2']
 
         ws = WorkingSet([])
         foo12 = dist_from_fn("FooPkg-1.2-py2.4.egg")
@@ -85,31 +80,32 @@ class DistroTests(TestCase):
         req, = parse_requirements("FooPkg>=1.3")
 
         # Nominal case: no distros on path, should yield all applicable
-        self.assertEqual(ad.best_match(req,ws).version, '1.9')
+        assert ad.best_match(req, ws).version == '1.9'
         # If a matching distro is already installed, should return only that
         ws.add(foo14)
-        self.assertEqual(ad.best_match(req,ws).version, '1.4')
+        assert ad.best_match(req, ws).version == '1.4'
 
         # If the first matching distro is unsuitable, it's a version conflict
         ws = WorkingSet([])
         ws.add(foo12)
         ws.add(foo14)
-        self.assertRaises(VersionConflict, ad.best_match, req, ws)
+        with pytest.raises(VersionConflict):
+            ad.best_match(req, ws)
 
         # If more than one match on the path, the first one takes precedence
         ws = WorkingSet([])
         ws.add(foo14)
         ws.add(foo12)
         ws.add(foo14)
-        self.assertEqual(ad.best_match(req,ws).version, '1.4')
+        assert ad.best_match(req, ws).version == '1.4'
 
     def checkFooPkg(self,d):
-        self.assertEqual(d.project_name, "FooPkg")
-        self.assertEqual(d.key, "foopkg")
-        self.assertEqual(d.version, "1.3.post1")
-        self.assertEqual(d.py_version, "2.4")
-        self.assertEqual(d.platform, "win32")
-        self.assertEqual(d.parsed_version, parse_version("1.3-1"))
+        assert d.project_name == "FooPkg"
+        assert d.key == "foopkg"
+        assert d.version == "1.3.post1"
+        assert d.py_version == "2.4"
+        assert d.platform == "win32"
+        assert d.parsed_version == parse_version("1.3-1")
 
     def testDistroBasics(self):
         d = Distribution(
@@ -119,8 +115,8 @@ class DistroTests(TestCase):
         self.checkFooPkg(d)
 
         d = Distribution("/some/path")
-        self.assertEqual(d.py_version, sys.version[:3])
-        self.assertEqual(d.platform, None)
+        assert d.py_version == sys.version[:3]
+        assert d.platform == None
 
     def testDistroParse(self):
         d = dist_from_fn("FooPkg-1.3.post1-py2.4-win32.egg")
@@ -141,10 +137,7 @@ class DistroTests(TestCase):
         return Distribution("/foo", metadata=Metadata(('depends.txt', txt)))
 
     def checkRequires(self, dist, txt, extras=()):
-        self.assertEqual(
-            list(dist.requires(extras)),
-            list(parse_requirements(txt))
-        )
+        assert list(dist.requires(extras)) == list(parse_requirements(txt))
 
     def testDistroDependsSimple(self):
         for v in "Twisted>=1.5", "Twisted>=1.5\nZConfig>=2.0":
@@ -154,11 +147,11 @@ class DistroTests(TestCase):
         ad = pkg_resources.Environment([])
         ws = WorkingSet([])
         # Resolving no requirements -> nothing to install
-        self.assertEqual(list(ws.resolve([],ad)), [])
+        assert list(ws.resolve([], ad)) == []
         # Request something not in the collection -> DistributionNotFound
-        self.assertRaises(
-            pkg_resources.DistributionNotFound, ws.resolve, parse_requirements("Foo"), ad
-        )
+        with pytest.raises(pkg_resources.DistributionNotFound):
+            ws.resolve(parse_requirements("Foo"), ad)
+
         Foo = Distribution.from_filename(
             "/foo_dir/Foo-1.2.egg",
             metadata=Metadata(('depends.txt', "[bar]\nBaz>=2.0"))
@@ -169,28 +162,25 @@ class DistroTests(TestCase):
         # Request thing(s) that are available -> list to activate
         for i in range(3):
             targets = list(ws.resolve(parse_requirements("Foo"), ad))
-            self.assertEqual(targets, [Foo])
+            assert targets == [Foo]
             list(map(ws.add,targets))
-        self.assertRaises(VersionConflict, ws.resolve,
-            parse_requirements("Foo==0.9"), ad)
+        with pytest.raises(VersionConflict):
+            ws.resolve(parse_requirements("Foo==0.9"), ad)
         ws = WorkingSet([]) # reset
 
         # Request an extra that causes an unresolved dependency for "Baz"
-        self.assertRaises(
-            pkg_resources.DistributionNotFound, ws.resolve,parse_requirements("Foo[bar]"), ad
-        )
+        with pytest.raises(pkg_resources.DistributionNotFound):
+            ws.resolve(parse_requirements("Foo[bar]"), ad)
         Baz = Distribution.from_filename(
             "/foo_dir/Baz-2.1.egg", metadata=Metadata(('depends.txt', "Foo"))
         )
         ad.add(Baz)
 
         # Activation list now includes resolved dependency
-        self.assertEqual(
-            list(ws.resolve(parse_requirements("Foo[bar]"), ad)), [Foo,Baz]
-        )
+        assert list(ws.resolve(parse_requirements("Foo[bar]"), ad)) ==[Foo,Baz]
         # Requests for conflicting versions produce VersionConflict
-        self.assertRaises(VersionConflict,
-            ws.resolve, parse_requirements("Foo==1.2\nFoo!=1.2"), ad)
+        with pytest.raises(VersionConflict):
+            ws.resolve(parse_requirements("Foo==1.2\nFoo!=1.2"), ad)
 
     def testDistroDependsOptions(self):
         d = self.distRequires("""
@@ -215,49 +205,50 @@ class DistroTests(TestCase):
             d,"Twisted>=1.5 fcgiapp>=0.1 ZConfig>=2.0 docutils>=0.3".split(),
             ["fastcgi", "docgen"]
         )
-        self.assertRaises(pkg_resources.UnknownExtra, d.requires, ["foo"])
+        with pytest.raises(pkg_resources.UnknownExtra):
+            d.requires(["foo"])
 
 
-class EntryPointTests(TestCase):
+class TestEntryPoints:
 
     def assertfields(self, ep):
-        self.assertEqual(ep.name,"foo")
-        self.assertEqual(ep.module_name,"setuptools.tests.test_resources")
-        self.assertEqual(ep.attrs, ("EntryPointTests",))
-        self.assertEqual(ep.extras, ("x",))
-        self.assertTrue(ep.load() is EntryPointTests)
-        self.assertEqual(
-            str(ep),
-            "foo = setuptools.tests.test_resources:EntryPointTests [x]"
+        assert ep.name == "foo"
+        assert ep.module_name == "setuptools.tests.test_resources"
+        assert ep.attrs == ("TestEntryPoints",)
+        assert ep.extras == ("x",)
+        assert ep.load() is TestEntryPoints
+        assert (
+            str(ep) ==
+            "foo = setuptools.tests.test_resources:TestEntryPoints [x]"
         )
 
-    def setUp(self):
+    def setup_method(self, method):
         self.dist = Distribution.from_filename(
             "FooPkg-1.2-py2.4.egg", metadata=Metadata(('requires.txt','[x]')))
 
     def testBasics(self):
         ep = EntryPoint(
-            "foo", "setuptools.tests.test_resources", ["EntryPointTests"],
+            "foo", "setuptools.tests.test_resources", ["TestEntryPoints"],
             ["x"], self.dist
         )
         self.assertfields(ep)
 
     def testParse(self):
-        s = "foo = setuptools.tests.test_resources:EntryPointTests [x]"
+        s = "foo = setuptools.tests.test_resources:TestEntryPoints [x]"
         ep = EntryPoint.parse(s, self.dist)
         self.assertfields(ep)
 
         ep = EntryPoint.parse("bar baz=  spammity[PING]")
-        self.assertEqual(ep.name,"bar baz")
-        self.assertEqual(ep.module_name,"spammity")
-        self.assertEqual(ep.attrs, ())
-        self.assertEqual(ep.extras, ("ping",))
+        assert ep.name == "bar baz"
+        assert ep.module_name == "spammity"
+        assert ep.attrs == ()
+        assert ep.extras == ("ping",)
 
         ep = EntryPoint.parse(" fizzly =  wocka:foo")
-        self.assertEqual(ep.name,"fizzly")
-        self.assertEqual(ep.module_name,"wocka")
-        self.assertEqual(ep.attrs, ("foo",))
-        self.assertEqual(ep.extras, ())
+        assert ep.name == "fizzly"
+        assert ep.module_name == "wocka"
+        assert ep.attrs == ("foo",)
+        assert ep.extras == ()
 
     def testRejects(self):
         for ep in [
@@ -268,9 +259,9 @@ class EntryPointTests(TestCase):
             else: raise AssertionError("Should've been bad", ep)
 
     def checkSubMap(self, m):
-        self.assertEqual(len(m), len(self.submap_expect))
+        assert len(m) == len(self.submap_expect)
         for key, ep in iteritems(self.submap_expect):
-            self.assertEqual(repr(m.get(key)), repr(ep))
+            assert repr(m.get(key)) == repr(ep)
 
     submap_expect = dict(
         feature1=EntryPoint('feature1', 'somemodule', ['somefunction']),
@@ -286,63 +277,71 @@ class EntryPointTests(TestCase):
 
     def testParseList(self):
         self.checkSubMap(EntryPoint.parse_group("xyz", self.submap_str))
-        self.assertRaises(ValueError, EntryPoint.parse_group, "x a", "foo=bar")
-        self.assertRaises(ValueError, EntryPoint.parse_group, "x",
-            ["foo=baz", "foo=bar"])
+        with pytest.raises(ValueError):
+            EntryPoint.parse_group("x a", "foo=bar")
+        with pytest.raises(ValueError):
+            EntryPoint.parse_group("x", ["foo=baz", "foo=bar"])
 
     def testParseMap(self):
         m = EntryPoint.parse_map({'xyz':self.submap_str})
         self.checkSubMap(m['xyz'])
-        self.assertEqual(list(m.keys()),['xyz'])
+        assert list(m.keys()) == ['xyz']
         m = EntryPoint.parse_map("[xyz]\n"+self.submap_str)
         self.checkSubMap(m['xyz'])
-        self.assertEqual(list(m.keys()),['xyz'])
-        self.assertRaises(ValueError, EntryPoint.parse_map, ["[xyz]", "[xyz]"])
-        self.assertRaises(ValueError, EntryPoint.parse_map, self.submap_str)
+        assert list(m.keys()) == ['xyz']
+        with pytest.raises(ValueError):
+            EntryPoint.parse_map(["[xyz]", "[xyz]"])
+        with pytest.raises(ValueError):
+            EntryPoint.parse_map(self.submap_str)
 
-class RequirementsTests(TestCase):
+class TestRequirements:
 
     def testBasics(self):
         r = Requirement.parse("Twisted>=1.2")
-        self.assertEqual(str(r),"Twisted>=1.2")
-        self.assertEqual(repr(r),"Requirement.parse('Twisted>=1.2')")
-        self.assertEqual(r, Requirement("Twisted", [('>=','1.2')], ()))
-        self.assertEqual(r, Requirement("twisTed", [('>=','1.2')], ()))
-        self.assertNotEqual(r, Requirement("Twisted", [('>=','2.0')], ()))
-        self.assertNotEqual(r, Requirement("Zope", [('>=','1.2')], ()))
-        self.assertNotEqual(r, Requirement("Zope", [('>=','3.0')], ()))
-        self.assertNotEqual(r, Requirement.parse("Twisted[extras]>=1.2"))
+        assert str(r) == "Twisted>=1.2"
+        assert repr(r) == "Requirement.parse('Twisted>=1.2')"
+        assert r == Requirement("Twisted", [('>=','1.2')], ())
+        assert r == Requirement("twisTed", [('>=','1.2')], ())
+        assert r != Requirement("Twisted", [('>=','2.0')], ())
+        assert r != Requirement("Zope", [('>=','1.2')], ())
+        assert r != Requirement("Zope", [('>=','3.0')], ())
+        assert r != Requirement.parse("Twisted[extras]>=1.2")
 
     def testOrdering(self):
         r1 = Requirement("Twisted", [('==','1.2c1'),('>=','1.2')], ())
         r2 = Requirement("Twisted", [('>=','1.2'),('==','1.2c1')], ())
-        self.assertEqual(r1,r2)
-        self.assertEqual(str(r1),str(r2))
-        self.assertEqual(str(r2),"Twisted==1.2c1,>=1.2")
+        assert r1 == r2
+        assert str(r1) == str(r2)
+        assert str(r2) == "Twisted==1.2c1,>=1.2"
 
     def testBasicContains(self):
         r = Requirement("Twisted", [('>=','1.2')], ())
         foo_dist = Distribution.from_filename("FooPkg-1.3_1.egg")
         twist11 = Distribution.from_filename("Twisted-1.1.egg")
         twist12 = Distribution.from_filename("Twisted-1.2.egg")
-        self.assertTrue(parse_version('1.2') in r)
-        self.assertTrue(parse_version('1.1') not in r)
-        self.assertTrue('1.2' in r)
-        self.assertTrue('1.1' not in r)
-        self.assertTrue(foo_dist not in r)
-        self.assertTrue(twist11 not in r)
-        self.assertTrue(twist12 in r)
+        assert parse_version('1.2') in r
+        assert parse_version('1.1') not in r
+        assert '1.2' in r
+        assert '1.1' not in r
+        assert foo_dist not in r
+        assert twist11 not in r
+        assert twist12 in r
 
     def testOptionsAndHashing(self):
         r1 = Requirement.parse("Twisted[foo,bar]>=1.2")
         r2 = Requirement.parse("Twisted[bar,FOO]>=1.2")
-        self.assertEqual(r1,r2)
-        self.assertEqual(r1.extras, ("foo","bar"))
-        self.assertEqual(r2.extras, ("bar","foo"))  # extras are normalized
-        self.assertEqual(hash(r1), hash(r2))
-        self.assertEqual(
-            hash(r1), hash(("twisted", packaging.specifiers.SpecifierSet(">=1.2"),
-                            frozenset(["foo","bar"])))
+        assert r1 == r2
+        assert r1.extras == ("foo","bar")
+        assert r2.extras == ("bar","foo")  # extras are normalized
+        assert hash(r1) == hash(r2)
+        assert (
+            hash(r1)
+            ==
+            hash((
+                "twisted",
+                packaging.specifiers.SpecifierSet(">=1.2"),
+                frozenset(["foo","bar"]),
+            ))
         )
 
     def testVersionEquality(self):
@@ -350,42 +349,42 @@ class RequirementsTests(TestCase):
         r2 = Requirement.parse("foo!=0.3a4")
         d = Distribution.from_filename
 
-        self.assertTrue(d("foo-0.3a4.egg") not in r1)
-        self.assertTrue(d("foo-0.3a1.egg") not in r1)
-        self.assertTrue(d("foo-0.3a4.egg") not in r2)
+        assert d("foo-0.3a4.egg") not in r1
+        assert d("foo-0.3a1.egg") not in r1
+        assert d("foo-0.3a4.egg") not in r2
 
-        self.assertTrue(d("foo-0.3a2.egg") in r1)
-        self.assertTrue(d("foo-0.3a2.egg") in r2)
-        self.assertTrue(d("foo-0.3a3.egg") in r2)
-        self.assertTrue(d("foo-0.3a5.egg") in r2)
+        assert d("foo-0.3a2.egg") in r1
+        assert d("foo-0.3a2.egg") in r2
+        assert d("foo-0.3a3.egg") in r2
+        assert d("foo-0.3a5.egg") in r2
 
     def testSetuptoolsProjectName(self):
         """
         The setuptools project should implement the setuptools package.
         """
 
-        self.assertEqual(
-            Requirement.parse('setuptools').project_name, 'setuptools')
+        assert (
+            Requirement.parse('setuptools').project_name == 'setuptools')
         # setuptools 0.7 and higher means setuptools.
-        self.assertEqual(
-            Requirement.parse('setuptools == 0.7').project_name, 'setuptools')
-        self.assertEqual(
-            Requirement.parse('setuptools == 0.7a1').project_name, 'setuptools')
-        self.assertEqual(
-            Requirement.parse('setuptools >= 0.7').project_name, 'setuptools')
+        assert (
+            Requirement.parse('setuptools == 0.7').project_name == 'setuptools')
+        assert (
+            Requirement.parse('setuptools == 0.7a1').project_name == 'setuptools')
+        assert (
+            Requirement.parse('setuptools >= 0.7').project_name == 'setuptools')
 
 
-class ParseTests(TestCase):
+class TestParsing:
 
     def testEmptyParse(self):
-        self.assertEqual(list(parse_requirements('')), [])
+        assert list(parse_requirements('')) == []
 
     def testYielding(self):
         for inp,out in [
             ([], []), ('x',['x']), ([[]],[]), (' x\n y', ['x','y']),
             (['x\n\n','y'], ['x','y']),
         ]:
-            self.assertEqual(list(pkg_resources.yield_lines(inp)),out)
+            assert list(pkg_resources.yield_lines(inp)) == out
 
     def testSplitting(self):
         sample = """
@@ -401,48 +400,65 @@ class ParseTests(TestCase):
                     [q]
                     v
                     """
-        self.assertEqual(list(pkg_resources.split_sections(sample)),
-            [(None,["x"]), ("Y",["z","a"]), ("b",["c"]), ("d",[]), ("q",["v"])]
+        assert (
+            list(pkg_resources.split_sections(sample))
+                ==
+            [
+                (None, ["x"]),
+                ("Y", ["z", "a"]),
+                ("b", ["c"]),
+                ("d", []),
+                ("q", ["v"]),
+            ]
         )
-        self.assertRaises(ValueError,list,pkg_resources.split_sections("[foo"))
+        with pytest.raises(ValueError):
+            list(pkg_resources.split_sections("[foo"))
 
     def testSafeName(self):
-        self.assertEqual(safe_name("adns-python"), "adns-python")
-        self.assertEqual(safe_name("WSGI Utils"),  "WSGI-Utils")
-        self.assertEqual(safe_name("WSGI  Utils"), "WSGI-Utils")
-        self.assertEqual(safe_name("Money$$$Maker"), "Money-Maker")
-        self.assertNotEqual(safe_name("peak.web"), "peak-web")
+        assert safe_name("adns-python") == "adns-python"
+        assert safe_name("WSGI Utils") == "WSGI-Utils"
+        assert safe_name("WSGI  Utils") == "WSGI-Utils"
+        assert safe_name("Money$$$Maker") == "Money-Maker"
+        assert safe_name("peak.web") != "peak-web"
 
     def testSafeVersion(self):
-        self.assertEqual(safe_version("1.2-1"), "1.2.post1")
-        self.assertEqual(safe_version("1.2 alpha"),  "1.2.alpha")
-        self.assertEqual(safe_version("2.3.4 20050521"), "2.3.4.20050521")
-        self.assertEqual(safe_version("Money$$$Maker"), "Money-Maker")
-        self.assertEqual(safe_version("peak.web"), "peak.web")
+        assert safe_version("1.2-1") == "1.2.post1"
+        assert safe_version("1.2 alpha") == "1.2.alpha"
+        assert safe_version("2.3.4 20050521") == "2.3.4.20050521"
+        assert safe_version("Money$$$Maker") == "Money-Maker"
+        assert safe_version("peak.web") == "peak.web"
 
     def testSimpleRequirements(self):
-        self.assertEqual(
-            list(parse_requirements('Twis-Ted>=1.2-1')),
+        assert (
+            list(parse_requirements('Twis-Ted>=1.2-1'))
+            ==
             [Requirement('Twis-Ted',[('>=','1.2-1')], ())]
         )
-        self.assertEqual(
-            list(parse_requirements('Twisted >=1.2, \ # more\n<2.0')),
+        assert (
+            list(parse_requirements('Twisted >=1.2, \ # more\n<2.0'))
+            ==
             [Requirement('Twisted',[('>=','1.2'),('<','2.0')], ())]
         )
-        self.assertEqual(
-            Requirement.parse("FooBar==1.99a3"),
+        assert (
+            Requirement.parse("FooBar==1.99a3")
+            ==
             Requirement("FooBar", [('==','1.99a3')], ())
         )
-        self.assertRaises(ValueError,Requirement.parse,">=2.3")
-        self.assertRaises(ValueError,Requirement.parse,"x\\")
-        self.assertRaises(ValueError,Requirement.parse,"x==2 q")
-        self.assertRaises(ValueError,Requirement.parse,"X==1\nY==2")
-        self.assertRaises(ValueError,Requirement.parse,"#")
+        with pytest.raises(ValueError):
+            Requirement.parse(">=2.3")
+        with pytest.raises(ValueError):
+            Requirement.parse("x\\")
+        with pytest.raises(ValueError):
+            Requirement.parse("x==2 q")
+        with pytest.raises(ValueError):
+            Requirement.parse("X==1\nY==2")
+        with pytest.raises(ValueError):
+            Requirement.parse("#")
 
     def testVersionEquality(self):
         def c(s1,s2):
             p1, p2 = parse_version(s1),parse_version(s2)
-            self.assertEqual(p1,p2, (s1,s2,p1,p2))
+            assert p1 == p2, (s1,s2,p1,p2)
 
         c('1.2-rc1', '1.2rc1')
         c('0.4', '0.4.0')
@@ -458,7 +474,7 @@ class ParseTests(TestCase):
     def testVersionOrdering(self):
         def c(s1,s2):
             p1, p2 = parse_version(s1),parse_version(s2)
-            self.assertTrue(p1<p2, (s1,s2,p1,p2))
+            assert p1<p2, (s1,s2,p1,p2)
 
         c('2.1','2.1.1')
         c('2a1','2b0')
@@ -503,15 +519,15 @@ class ParseTests(TestCase):
                 return True
             return _final_version(parsed_version)
 
-        self.assertTrue(buildout(parse_version("1.0")))
-        self.assertFalse(buildout(parse_version("1.0a1")))
+        assert buildout(parse_version("1.0"))
+        assert not buildout(parse_version("1.0a1"))
 
     def testVersionIndexable(self):
         """
         Some projects were doing things like parse_version("v")[0], so we'll
         support indexing the same as we support iterating.
         """
-        self.assertEqual(parse_version("1.0")[0], "00000001")
+        assert parse_version("1.0")[0] == "00000001"
 
     def testVersionTupleSort(self):
         """
@@ -519,26 +535,27 @@ class ParseTests(TestCase):
         value of parse_version. So again we'll add a warning enabled shim to
         make this possible.
         """
-        self.assertTrue(parse_version("1.0") < tuple(parse_version("2.0")))
-        self.assertTrue(parse_version("1.0") <= tuple(parse_version("2.0")))
-        self.assertTrue(parse_version("1.0") == tuple(parse_version("1.0")))
-        self.assertTrue(parse_version("3.0") > tuple(parse_version("2.0")))
-        self.assertTrue(parse_version("3.0") >= tuple(parse_version("2.0")))
-        self.assertTrue(parse_version("3.0") != tuple(parse_version("2.0")))
-        self.assertFalse(parse_version("3.0") != tuple(parse_version("3.0")))
+        assert parse_version("1.0") < tuple(parse_version("2.0"))
+        assert parse_version("1.0") <= tuple(parse_version("2.0"))
+        assert parse_version("1.0") == tuple(parse_version("1.0"))
+        assert parse_version("3.0") > tuple(parse_version("2.0"))
+        assert parse_version("3.0") >= tuple(parse_version("2.0"))
+        assert parse_version("3.0") != tuple(parse_version("2.0"))
+        assert not (parse_version("3.0") != tuple(parse_version("3.0")))
 
     def testVersionHashable(self):
         """
         Ensure that our versions stay hashable even though we've subclassed
         them and added some shim code to them.
         """
-        self.assertEqual(
-            hash(parse_version("1.0")),
-            hash(parse_version("1.0")),
+        assert (
+            hash(parse_version("1.0"))
+            ==
+            hash(parse_version("1.0"))
         )
 
 
-class ScriptHeaderTests(TestCase):
+class TestScriptHeader:
     non_ascii_exe = '/Users/José/bin/python'
     exe_with_spaces = r'C:\Program Files\Python33\python.exe'
 
@@ -546,17 +563,15 @@ class ScriptHeaderTests(TestCase):
         if not sys.platform.startswith('java') or not is_sh(sys.executable):
             # This test is for non-Jython platforms
             expected = '#!%s\n' % nt_quote_arg(os.path.normpath(sys.executable))
-            self.assertEqual(get_script_header('#!/usr/local/bin/python'),
-                expected)
+            assert get_script_header('#!/usr/local/bin/python') == expected
             expected = '#!%s  -x\n' % nt_quote_arg(os.path.normpath(sys.executable))
-            self.assertEqual(get_script_header('#!/usr/bin/python -x'),
-                expected)
-            self.assertEqual(get_script_header('#!/usr/bin/python',
-                                               executable=self.non_ascii_exe),
-                             '#!%s -x\n' % self.non_ascii_exe)
+            assert get_script_header('#!/usr/bin/python -x') == expected
+            candidate = get_script_header('#!/usr/bin/python',
+                executable=self.non_ascii_exe)
+            assert candidate == '#!%s -x\n' % self.non_ascii_exe
             candidate = get_script_header('#!/usr/bin/python',
                 executable=self.exe_with_spaces)
-            self.assertEqual(candidate, '#!"%s"\n' % self.exe_with_spaces)
+            assert candidate == '#!"%s"\n' % self.exe_with_spaces
 
     def test_get_script_header_jython_workaround(self):
         # This test doesn't work with Python 3 in some locales
@@ -577,38 +592,40 @@ class ScriptHeaderTests(TestCase):
         try:
             # A mock sys.executable that uses a shebang line (this file)
             exe = os.path.normpath(os.path.splitext(__file__)[0] + '.py')
-            self.assertEqual(
-                get_script_header('#!/usr/local/bin/python', executable=exe),
-                '#!/usr/bin/env %s\n' % exe)
+            assert (
+                get_script_header('#!/usr/local/bin/python', executable=exe)
+                ==
+                '#!/usr/bin/env %s\n' % exe
+            )
 
             # Ensure we generate what is basically a broken shebang line
             # when there's options, with a warning emitted
             sys.stdout = sys.stderr = StringIO()
-            self.assertEqual(get_script_header('#!/usr/bin/python -x',
-                                               executable=exe),
-                             '#!%s  -x\n' % exe)
-            self.assertTrue('Unable to adapt shebang line' in sys.stdout.getvalue())
+            candidate = get_script_header('#!/usr/bin/python -x',
+                executable=exe)
+            assert candidate == '#!%s  -x\n' % exe
+            assert 'Unable to adapt shebang line' in sys.stdout.getvalue()
             sys.stdout = sys.stderr = StringIO()
-            self.assertEqual(get_script_header('#!/usr/bin/python',
-                                               executable=self.non_ascii_exe),
-                             '#!%s -x\n' % self.non_ascii_exe)
-            self.assertTrue('Unable to adapt shebang line' in sys.stdout.getvalue())
+            candidate = get_script_header('#!/usr/bin/python',
+                executable=self.non_ascii_exe)
+            assert candidate == '#!%s -x\n' % self.non_ascii_exe
+            assert 'Unable to adapt shebang line' in sys.stdout.getvalue()
         finally:
             del sys.modules["java"]
             sys.platform = platform
             sys.stdout, sys.stderr = stdout, stderr
 
 
-class NamespaceTests(TestCase):
+class TestNamespaces:
 
-    def setUp(self):
+    def setup_method(self, method):
         self._ns_pkgs = pkg_resources._namespace_packages.copy()
         self._tmpdir = tempfile.mkdtemp(prefix="tests-setuptools-")
         os.makedirs(os.path.join(self._tmpdir, "site-pkgs"))
         self._prev_sys_path = sys.path[:]
         sys.path.append(os.path.join(self._tmpdir, "site-pkgs"))
 
-    def tearDown(self):
+    def teardown_method(self, method):
         shutil.rmtree(self._tmpdir)
         pkg_resources._namespace_packages = self._ns_pkgs.copy()
         sys.path = self._prev_sys_path[:]
