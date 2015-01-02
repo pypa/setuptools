@@ -1,8 +1,6 @@
 """develop tests
 """
 import os
-import shutil
-import tempfile
 import types
 
 import pytest
@@ -14,14 +12,8 @@ from setuptools.sandbox import DirectorySandbox, SandboxViolation
 
 class TestSandbox:
 
-    def setup_method(self, method):
-        self.dir = tempfile.mkdtemp()
-
-    def teardown_method(self, method):
-        shutil.rmtree(self.dir)
-
-    def test_devnull(self):
-        sandbox = DirectorySandbox(self.dir)
+    def test_devnull(self, tmpdir):
+        sandbox = DirectorySandbox(str(tmpdir))
         sandbox.run(self._file_writer(os.devnull))
 
     @staticmethod
@@ -31,7 +23,7 @@ class TestSandbox:
                 f.write('xxx')
         return do_write
 
-    def test_win32com(self):
+    def test_win32com(self, tmpdir):
         """
         win32com should not be prevented from caching COM interfaces
         in gen_py.
@@ -39,7 +31,7 @@ class TestSandbox:
         win32com = pytest.importorskip('win32com')
         gen_py = win32com.__gen_path__
         target = os.path.join(gen_py, 'test_write')
-        sandbox = DirectorySandbox(self.dir)
+        sandbox = DirectorySandbox(str(tmpdir))
         try:
             try:
                 sandbox.run(self._file_writer(target))
@@ -59,8 +51,8 @@ class TestSandbox:
         setuptools.sandbox._execfile(target, vars(namespace))
         assert namespace.result == 'passed'
 
-    def test_setup_py_with_CRLF(self):
-        setup_py = os.path.join(self.dir, 'setup.py')
-        with open(setup_py, 'wb') as stream:
+    def test_setup_py_with_CRLF(self, tmpdir):
+        setup_py = tmpdir / 'setup.py'
+        with setup_py.open('wb') as stream:
             stream.write(b'"degenerate script"\r\n')
-        setuptools.sandbox._execfile(setup_py, globals())
+        setuptools.sandbox._execfile(str(setup_py), globals())
