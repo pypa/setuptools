@@ -3,7 +3,6 @@ import os
 import sys
 import shutil
 import tempfile
-import unittest
 import platform
 
 import pytest
@@ -34,13 +33,13 @@ def has_symlink():
     )
     return can_symlink() and not bad_symlink
 
-class TestFindPackages(unittest.TestCase):
+class TestFindPackages:
 
-    def setUp(self):
+    def setup_method(self, method):
         self.dist_dir = tempfile.mkdtemp()
         self._make_pkg_structure()
 
-    def tearDown(self):
+    def teardown_method(self, method):
         shutil.rmtree(self.dist_dir)
 
     def _make_pkg_structure(self):
@@ -88,7 +87,7 @@ class TestFindPackages(unittest.TestCase):
     def test_regular_package(self):
         self._touch('__init__.py', self.pkg_dir)
         packages = find_packages(self.dist_dir)
-        self.assertEqual(packages, ['pkg', 'pkg.subpkg'])
+        assert packages == ['pkg', 'pkg.subpkg']
 
     def test_exclude(self):
         self._touch('__init__.py', self.pkg_dir)
@@ -103,7 +102,7 @@ class TestFindPackages(unittest.TestCase):
         alt_dir = self._mkdir('other_pkg', self.dist_dir)
         self._touch('__init__.py', alt_dir)
         packages = find_packages(self.dist_dir, include=['other_pkg'])
-        self.assertEqual(packages, ['other_pkg'])
+        assert packages == ['other_pkg']
 
     def test_dir_with_dot_is_skipped(self):
         shutil.rmtree(os.path.join(self.dist_dir, 'pkg/subpkg/assets'))
@@ -111,7 +110,7 @@ class TestFindPackages(unittest.TestCase):
         self._touch('__init__.py', data_dir)
         self._touch('file.dat', data_dir)
         packages = find_packages(self.dist_dir)
-        self.assertTrue('pkg.some.data' not in packages)
+        assert 'pkg.some.data' not in packages
 
     def test_dir_with_packages_in_subdir_is_excluded(self):
         """
@@ -122,7 +121,7 @@ class TestFindPackages(unittest.TestCase):
         build_pkg_dir = self._mkdir('pkg', build_dir)
         self._touch('__init__.py', build_pkg_dir)
         packages = find_packages(self.dist_dir)
-        self.assertTrue('build.pkg' not in packages)
+        assert 'build.pkg' not in packages
 
     @pytest.mark.skipif(not has_symlink(), reason='Symlink support required')
     def test_symlinked_packages_are_included(self):
@@ -137,10 +136,10 @@ class TestFindPackages(unittest.TestCase):
         os.symlink('pkg', linked_pkg)
         assert os.path.isdir(linked_pkg)
         packages = find_packages(self.dist_dir)
-        self.assertTrue('lpkg' in packages)
+        assert 'lpkg' in packages
 
     def _assert_packages(self, actual, expected):
-        self.assertEqual(set(actual), set(expected))
+        assert set(actual) == set(expected)
 
     def test_pep420_ns_package(self):
         packages = find_420_packages(
