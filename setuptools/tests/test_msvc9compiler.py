@@ -6,8 +6,7 @@ finds the Visual C++ for Python package.
 """
 
 import os
-import shutil
-import tempfile
+import contextlib
 import distutils.errors
 
 import pytest
@@ -59,6 +58,9 @@ def mock_reg(hkcu=None, hklm=None):
 
 class TestModulePatch:
 
+    key_32 = r'software\microsoft\devdiv\vcforpython\9.0\installdir'
+    key_64 = r'software\wow6432node\microsoft\devdiv\vcforpython\9.0\installdir'
+
     def test_patched(self):
         "Test the module is actually patched"
         mod_name = distutils.msvc9compiler.find_vcvarsall.__module__
@@ -81,49 +83,89 @@ class TestModulePatch:
                     query_vcvarsall(9.0)
                 assert 'aka.ms/vcpython27' in str(exc)
 
-    def test_find_vcvarsall_patch_2(self):
-        find_vcvarsall = distutils.msvc9compiler.find_vcvarsall
-        key_32 = r'software\microsoft\devdiv\vcforpython\9.0\installdir'
-        key_64 = r'software\wow6432node\microsoft\devdiv\vcforpython\9.0\installdir'
+    @pytest.yield_fixture
+    def user_preferred_setting(self):
+        """
+        Set up environment with different install dirs for user vs. system
+        and yield the user_install_dir for the expected result.
+        """
+        with self.mock_install_dir() as user_install_dir:
+            with self.mock_install_dir() as system_install_dir:
+                reg = mock_reg(
+                    hkcu={
+                        self.key_32: user_install_dir,
+                    },
+                    hklm={
+                        self.key_32: system_install_dir,
+                        self.key_64: system_install_dir,
+                    },
+                )
+                with reg:
+                    yield user_install_dir
 
-        # Make two mock files so we can tell whether HCKU entries are
-        # preferred to HKLM entries.
-        mock_installdir_1 = tempfile.mkdtemp()
-        mock_vcvarsall_bat_1 = os.path.join(mock_installdir_1, 'vcvarsall.bat')
-        open(mock_vcvarsall_bat_1, 'w').close()
-        mock_installdir_2 = tempfile.mkdtemp()
-        mock_vcvarsall_bat_2 = os.path.join(mock_installdir_2, 'vcvarsall.bat')
-        open(mock_vcvarsall_bat_2, 'w').close()
-        try:
-            # Ensure we get the current user's setting first
+    def test_prefer_current_user(self, user_preferred_setting):
+        """
+        Ensure user's settings are preferred.
+        """
+        result = distutils.msvc9compiler.find_vcvarsall(9.0)
+        assert user_preferred_setting == result
+
+    @pytest.yield_fixture
+    def local_machine_setting(self):
+        """
+        Set up environment with only the system environment configured.
+        """
+        with self.mock_install_dir() as system_install_dir:
             reg = mock_reg(
-                hkcu={
-                    key_32: mock_installdir_1,
-                },
                 hklm={
-                    key_32: mock_installdir_2,
-                    key_64: mock_installdir_2,
+                    self.key_32: system_install_dir,
                 },
             )
             with reg:
-                assert mock_vcvarsall_bat_1 == find_vcvarsall(9.0)
+                yield system_install_dir
 
-            # Ensure we get the local machine value if it's there
-            with mock_reg(hklm={key_32: mock_installdir_2}):
-                assert mock_vcvarsall_bat_2 == find_vcvarsall(9.0)
+    def test_local_machine_recognized(self, local_machine_setting):
+        """
+        Ensure machine setting is honored if user settings are not present.
+        """
+        result = distutils.msvc9compiler.find_vcvarsall(9.0)
+        assert local_machine_setting == result
 
-            # Ensure we prefer the 64-bit local machine key
-            # (*not* the Wow6432Node key)
-            reg = mock_reg(
-                hklm={
-                    # This *should* only exist on 32-bit machines
-                    key_32: mock_installdir_1,
-                    # This *should* only exist on 64-bit machines
-                    key_64: mock_installdir_2,
-                }
-            )
-            with reg:
-                assert mock_vcvarsall_bat_1 == find_vcvarsall(9.0)
-        finally:
-            shutil.rmtree(mock_installdir_1)
-            shutil.rmtree(mock_installdir_2)
+    @pytest.yield_fixture
+    def x64_preferred_setting(self):
+        """
+        Set up environment with 64-bit and 32-bit system settings configured
+        and yield the 64-bit location.
+        """
+        with self.mock_install_dir() as x32_dir:
+            with self.mock_install_dir() as x64_dir:
+                reg = mock_reg(
+                    hklm={
+                        # This *should* only exist on 32-bit machines
+                        self.key_32: x32_dir,
+                        # This *should* only exist on 64-bit machines
+                        self.key_64: x64_dir,
+                    },
+                )
+                with reg:
+                    yield x64_dir
+
+    def test_ensure_64_bit_preferred(self, x64_preferred_setting):
+        """
+        Ensure 64-bit system key is preferred.
+        """
+        result = distutils.msvc9compiler.find_vcvarsall(9.0)
+        assert x64_preferred_setting == result
+
+    @staticmethod
+    @contextlib.contextmanager
+    def mock_install_dir():
+        """
+        Make a mock install dir in a unique location so that tests can
+        distinguish which dir was detected in a given scenario.
+        """
+        with contexts.tempdir() as result:
+            vcvarsall = os.path.join(result, 'vcvarsall.bat')
+            with open(vcvarsall, 'w'):
+                pass
+            yield
