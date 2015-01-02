@@ -40,8 +40,10 @@ def sample_project(tmpdir_cwd):
 class TestUploadDocsTest:
 
     def test_create_zipfile(self):
-        # Test to make sure zipfile creation handles common cases.
-        # This explicitly includes a folder containing an empty folder.
+        """
+        Ensure zipfile creation handles common cases, including a folder
+        containing an empty folder.
+        """
 
         dist = Distribution()
 
