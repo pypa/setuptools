@@ -61,27 +61,27 @@ class TestTestTest:
         os.mkdir(os.path.join(self.dir, 'name'))
         os.mkdir(os.path.join(self.dir, 'name', 'space'))
         os.mkdir(os.path.join(self.dir, 'name', 'space', 'tests'))
+
         # setup.py
         setup = os.path.join(self.dir, 'setup.py')
-        f = open(setup, 'wt')
-        f.write(SETUP_PY)
-        f.close()
+        with open(setup, 'wt') as f:
+            f.write(SETUP_PY)
         self.old_cwd = os.getcwd()
+
         # name/__init__.py
         init = os.path.join(self.dir, 'name', '__init__.py')
-        f = open(init, 'wb')
-        f.write(NS_INIT)
-        f.close()
+        with open(init, 'wb') as f:
+            f.write(NS_INIT)
+
         # name/space/__init__.py
         init = os.path.join(self.dir, 'name', 'space', '__init__.py')
-        f = open(init, 'wt')
-        f.write('#empty\n')
-        f.close()
+        with open(init, 'wt') as f:
+            f.write('#empty\n')
+
         # name/space/tests/__init__.py
         init = os.path.join(self.dir, 'name', 'space', 'tests', '__init__.py')
-        f = open(init, 'wt')
-        f.write(TEST_PY)
-        f.close()
+        with open(init, 'wt') as f:
+            f.write(TEST_PY)
 
         os.chdir(self.dir)
         self.old_base = site.USER_BASE
