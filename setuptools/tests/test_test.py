@@ -7,7 +7,6 @@ import shutil
 import site
 import sys
 import tempfile
-import unittest
 
 from setuptools.compat import StringIO, PY2
 from setuptools.command.test import test
@@ -51,9 +50,9 @@ TEST_PY = DALS("""
     """)
 
 
-class TestTestTest(unittest.TestCase):
+class TestTestTest:
 
-    def setUp(self):
+    def setup_method(self, method):
         if sys.version < "2.6" or hasattr(sys, 'real_prefix'):
             return
 
@@ -90,7 +89,7 @@ class TestTestTest(unittest.TestCase):
         self.old_site = site.USER_SITE
         site.USER_SITE = tempfile.mkdtemp()
 
-    def tearDown(self):
+    def teardown_method(self, method):
         if sys.version < "2.6" or hasattr(sys, 'real_prefix'):
             return
 
