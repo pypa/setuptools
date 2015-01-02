@@ -4,15 +4,15 @@
 """
 import os
 import site
-import sys
 
 import pytest
 
-from setuptools.compat import StringIO, PY2
+from setuptools.compat import PY2
 from setuptools.command.test import test
 from setuptools.dist import Distribution
 
 from .textwrap import DALS
+from . import contexts
 
 SETUP_PY = DALS("""
     from setuptools import setup
@@ -90,13 +90,10 @@ class TestTestTest:
         cmd.ensure_finalized()
         cmd.install_dir = site.USER_SITE
         cmd.user = 1
-        old_stdout = sys.stdout
-        sys.stdout = StringIO()
-        try:
-            try: # try/except/finally doesn't work in Python 2.4, so we need nested try-statements.
+        with contexts.quiet():
+            try:
                 cmd.run()
-            except SystemExit: # The test runner calls sys.exit, stop that making an error.
+            except SystemExit:
+                # The test runner calls sys.exit; suppress the exception
                 pass
-        finally:
-            sys.stdout = old_stdout
 
