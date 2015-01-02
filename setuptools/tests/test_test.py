@@ -3,10 +3,8 @@
 """develop tests
 """
 import os
-import shutil
 import site
 import sys
-import tempfile
 
 import pytest
 
@@ -52,43 +50,31 @@ TEST_PY = DALS("""
     """)
 
 
+@pytest.fixture
+def sample_test(tmpdir_cwd):
+    os.makedirs('name/space/tests')
+
+    # setup.py
+    with open('setup.py', 'wt') as f:
+        f.write(SETUP_PY)
+
+    # name/__init__.py
+    with open('name/__init__.py', 'wb') as f:
+        f.write(NS_INIT)
+
+    # name/space/__init__.py
+    with open('name/space/__init__.py', 'wt') as f:
+        f.write('#empty\n')
+
+    # name/space/tests/__init__.py
+    with open('name/space/tests/__init__.py', 'wt') as f:
+        f.write(TEST_PY)
+
+
 @pytest.mark.skipif('hasattr(sys, "real_prefix")')
-@pytest.mark.usefixture('useroverride')
+@pytest.mark.usefixtures('user_override')
+@pytest.mark.usefixtures('sample_test')
 class TestTestTest:
-
-    def setup_method(self, method):
-        # Directory structure
-        self.dir = tempfile.mkdtemp()
-        os.mkdir(os.path.join(self.dir, 'name'))
-        os.mkdir(os.path.join(self.dir, 'name', 'space'))
-        os.mkdir(os.path.join(self.dir, 'name', 'space', 'tests'))
-
-        # setup.py
-        setup = os.path.join(self.dir, 'setup.py')
-        with open(setup, 'wt') as f:
-            f.write(SETUP_PY)
-        self.old_cwd = os.getcwd()
-
-        # name/__init__.py
-        init = os.path.join(self.dir, 'name', '__init__.py')
-        with open(init, 'wb') as f:
-            f.write(NS_INIT)
-
-        # name/space/__init__.py
-        init = os.path.join(self.dir, 'name', 'space', '__init__.py')
-        with open(init, 'wt') as f:
-            f.write('#empty\n')
-
-        # name/space/tests/__init__.py
-        init = os.path.join(self.dir, 'name', 'space', 'tests', '__init__.py')
-        with open(init, 'wt') as f:
-            f.write(TEST_PY)
-
-        os.chdir(self.dir)
-
-    def teardown_method(self, method):
-        os.chdir(self.old_cwd)
-        shutil.rmtree(self.dir)
 
     def test_test(self):
         dist = Distribution(dict(
