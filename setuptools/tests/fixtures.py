@@ -3,6 +3,7 @@ import pytest
 
 from . import contexts
 
+
 @pytest.yield_fixture
 def user_override():
     """
@@ -15,3 +16,9 @@ def user_override():
                 with mock.patch('site.USER_SITE', user_site):
                     with contexts.save_user_site_setting():
                         yield
+
+
+@pytest.yield_fixture
+def tmpdir_cwd(tmpdir):
+    with tmpdir.as_cwd() as orig:
+        yield orig
