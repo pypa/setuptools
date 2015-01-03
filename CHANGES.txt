@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+----
+11.0
+----
+
+* Interop #3: Upgrade to Packaging 15.0; updates to PEP 440 so that >1.7 does
+  not exclude 1.7.1 but does exclude 1.7.0 and 1.7.0.post1.
+
 ------
 10.2.1
 ------
