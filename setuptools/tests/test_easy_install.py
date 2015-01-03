@@ -462,16 +462,20 @@ class TestScriptHeader:
         header = get_script_header('#!/usr/local/bin/python', executable=exe)
         assert header == '#!/usr/bin/env %s\n' % exe
 
+        expect_out = 'stdout' if sys.version_info < (2,7) else 'stderr'
+
         with contexts.quiet() as (stdout, stderr):
             # When options are included, generate a broken shebang line
             # with a warning emitted
             candidate = get_script_header('#!/usr/bin/python -x',
                 executable=exe)
             assert candidate == '#!%s  -x\n' % exe
-            assert 'Unable to adapt shebang line' in stderr.getvalue()
+            output = locals()[expect_out]
+            assert 'Unable to adapt shebang line' in output.getvalue()
 
         with contexts.quiet() as (stdout, stderr):
             candidate = get_script_header('#!/usr/bin/python',
                 executable=self.non_ascii_exe)
             assert candidate == '#!%s -x\n' % self.non_ascii_exe
-            assert 'Unable to adapt shebang line' in stderr.getvalue()
+            output = locals()[expect_out]
+            assert 'Unable to adapt shebang line' in output.getvalue()
