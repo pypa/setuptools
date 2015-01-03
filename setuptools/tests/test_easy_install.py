@@ -423,58 +423,45 @@ class TestScriptHeader:
     non_ascii_exe = '/Users/José/bin/python'
     exe_with_spaces = r'C:\Program Files\Python33\python.exe'
 
+    @pytest.mark.skipif(
+        sys.platform.startswith('java') and is_sh(sys.executable),
+        reason="Test cannot run under java when executable is sh"
+    )
     def test_get_script_header(self):
-        if not sys.platform.startswith('java') or not is_sh(sys.executable):
-            # This test is for non-Jython platforms
-            expected = '#!%s\n' % nt_quote_arg(os.path.normpath(sys.executable))
-            assert get_script_header('#!/usr/local/bin/python') == expected
-            expected = '#!%s  -x\n' % nt_quote_arg(os.path.normpath(sys.executable))
-            assert get_script_header('#!/usr/bin/python -x') == expected
-            candidate = get_script_header('#!/usr/bin/python',
-                executable=self.non_ascii_exe)
-            assert candidate == '#!%s -x\n' % self.non_ascii_exe
-            candidate = get_script_header('#!/usr/bin/python',
-                executable=self.exe_with_spaces)
-            assert candidate == '#!"%s"\n' % self.exe_with_spaces
+        expected = '#!%s\n' % nt_quote_arg(os.path.normpath(sys.executable))
+        assert get_script_header('#!/usr/local/bin/python') == expected
+        expected = '#!%s  -x\n' % nt_quote_arg(os.path.normpath(sys.executable))
+        assert get_script_header('#!/usr/bin/python -x') == expected
+        candidate = get_script_header('#!/usr/bin/python',
+            executable=self.non_ascii_exe)
+        assert candidate == '#!%s -x\n' % self.non_ascii_exe
+        candidate = get_script_header('#!/usr/bin/python',
+            executable=self.exe_with_spaces)
+        assert candidate == '#!"%s"\n' % self.exe_with_spaces
 
+    @pytest.mark.xfail(
+        six.PY3 and os.environ.get("LC_CTYPE") in ("C", "POSIX"),
+        reason="Test fails in this locale on Python 3"
+    )
+    @mock.patch.dict(sys.modules, java=mock.Mock(lang=mock.Mock(System=
+        mock.Mock(getProperty=mock.Mock(return_value="")))))
+    @mock.patch('sys.platform', 'java1.5.0_13')
     def test_get_script_header_jython_workaround(self):
-        # This test doesn't work with Python 3 in some locales
-        if six.PY3 and os.environ.get("LC_CTYPE") in (None, "C", "POSIX"):
-            return
+        # A mock sys.executable that uses a shebang line (this file)
+        exe = os.path.normpath(os.path.splitext(__file__)[0] + '.py')
+        header = get_script_header('#!/usr/local/bin/python', executable=exe)
+        assert header == '#!/usr/bin/env %s\n' % exe
 
-        class java:
-            class lang:
-                class System:
-                    @staticmethod
-                    def getProperty(property):
-                        return ""
-        sys.modules["java"] = java
-
-        platform = sys.platform
-        sys.platform = 'java1.5.0_13'
-        stdout, stderr = sys.stdout, sys.stderr
-        try:
-            # A mock sys.executable that uses a shebang line (this file)
-            exe = os.path.normpath(os.path.splitext(__file__)[0] + '.py')
-            assert (
-                get_script_header('#!/usr/local/bin/python', executable=exe)
-                ==
-                '#!/usr/bin/env %s\n' % exe
-            )
-
-            # Ensure we generate what is basically a broken shebang line
-            # when there's options, with a warning emitted
-            sys.stdout = sys.stderr = six.StringIO()
+        with contexts.quiet() as (stdout, stderr):
+            # When options are included, generate a broken shebang line
+            # with a warning emitted
             candidate = get_script_header('#!/usr/bin/python -x',
                 executable=exe)
             assert candidate == '#!%s  -x\n' % exe
-            assert 'Unable to adapt shebang line' in sys.stdout.getvalue()
-            sys.stdout = sys.stderr = six.StringIO()
+            assert 'Unable to adapt shebang line' in stderr.getvalue()
+
+        with contexts.quiet() as (stdout, stderr):
             candidate = get_script_header('#!/usr/bin/python',
                 executable=self.non_ascii_exe)
             assert candidate == '#!%s -x\n' % self.non_ascii_exe
-            assert 'Unable to adapt shebang line' in sys.stdout.getvalue()
-        finally:
-            del sys.modules["java"]
-            sys.platform = platform
-            sys.stdout, sys.stderr = stdout, stderr
+            assert 'Unable to adapt shebang line' in stderr.getvalue()
