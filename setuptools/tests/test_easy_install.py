@@ -1,3 +1,7 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# NOTE: the shebang and encoding lines are for TestScriptHeader do not remove
+
 """Easy install Tests
 """
 from __future__ import absolute_import
@@ -13,6 +17,7 @@ import logging
 import itertools
 import io
 
+import six
 from six.moves import urllib
 import pytest
 import mock
@@ -20,7 +25,9 @@ import mock
 from setuptools import sandbox
 from setuptools.sandbox import run_setup, SandboxViolation
 from setuptools.command.easy_install import (
-    easy_install, fix_jython_executable, get_script_args, nt_quote_arg)
+    easy_install, fix_jython_executable, get_script_args, nt_quote_arg,
+    get_script_header, is_sh,
+)
 from setuptools.command.easy_install import PthDistributions
 from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
@@ -410,3 +417,64 @@ def make_trivial_sdist(dist_path, setup_py):
     setup_py_file.size = len(setup_py_bytes.getvalue())
     with tarfile_open(dist_path, 'w:gz') as dist:
         dist.addfile(setup_py_file, fileobj=setup_py_bytes)
+
+
+class TestScriptHeader:
+    non_ascii_exe = '/Users/José/bin/python'
+    exe_with_spaces = r'C:\Program Files\Python33\python.exe'
+
+    def test_get_script_header(self):
+        if not sys.platform.startswith('java') or not is_sh(sys.executable):
+            # This test is for non-Jython platforms
+            expected = '#!%s\n' % nt_quote_arg(os.path.normpath(sys.executable))
+            assert get_script_header('#!/usr/local/bin/python') == expected
+            expected = '#!%s  -x\n' % nt_quote_arg(os.path.normpath(sys.executable))
+            assert get_script_header('#!/usr/bin/python -x') == expected
+            candidate = get_script_header('#!/usr/bin/python',
+                executable=self.non_ascii_exe)
+            assert candidate == '#!%s -x\n' % self.non_ascii_exe
+            candidate = get_script_header('#!/usr/bin/python',
+                executable=self.exe_with_spaces)
+            assert candidate == '#!"%s"\n' % self.exe_with_spaces
+
+    def test_get_script_header_jython_workaround(self):
+        # This test doesn't work with Python 3 in some locales
+        if six.PY3 and os.environ.get("LC_CTYPE") in (None, "C", "POSIX"):
+            return
+
+        class java:
+            class lang:
+                class System:
+                    @staticmethod
+                    def getProperty(property):
+                        return ""
+        sys.modules["java"] = java
+
+        platform = sys.platform
+        sys.platform = 'java1.5.0_13'
+        stdout, stderr = sys.stdout, sys.stderr
+        try:
+            # A mock sys.executable that uses a shebang line (this file)
+            exe = os.path.normpath(os.path.splitext(__file__)[0] + '.py')
+            assert (
+                get_script_header('#!/usr/local/bin/python', executable=exe)
+                ==
+                '#!/usr/bin/env %s\n' % exe
+            )
+
+            # Ensure we generate what is basically a broken shebang line
+            # when there's options, with a warning emitted
+            sys.stdout = sys.stderr = six.StringIO()
+            candidate = get_script_header('#!/usr/bin/python -x',
+                executable=exe)
+            assert candidate == '#!%s  -x\n' % exe
+            assert 'Unable to adapt shebang line' in sys.stdout.getvalue()
+            sys.stdout = sys.stderr = six.StringIO()
+            candidate = get_script_header('#!/usr/bin/python',
+                executable=self.non_ascii_exe)
+            assert candidate == '#!%s -x\n' % self.non_ascii_exe
+            assert 'Unable to adapt shebang line' in sys.stdout.getvalue()
+        finally:
+            del sys.modules["java"]
+            sys.platform = platform
+            sys.stdout, sys.stderr = stdout, stderr

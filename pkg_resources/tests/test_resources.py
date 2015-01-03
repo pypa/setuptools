@@ -1,7 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-# NOTE: the shebang and encoding lines are for TestScriptHeader do not remove
-
 import os
 import sys
 import tempfile
@@ -16,8 +12,6 @@ from pkg_resources import (parse_requirements, VersionConflict, parse_version,
 
 packaging = pkg_resources.packaging
 
-from setuptools.command.easy_install import (get_script_header, is_sh,
-    nt_quote_arg)
 
 import six
 
@@ -214,13 +208,13 @@ class TestEntryPoints:
 
     def assertfields(self, ep):
         assert ep.name == "foo"
-        assert ep.module_name == "setuptools.tests.test_resources"
+        assert ep.module_name == "pkg_resources.tests.test_resources"
         assert ep.attrs == ("TestEntryPoints",)
         assert ep.extras == ("x",)
         assert ep.load() is TestEntryPoints
         assert (
             str(ep) ==
-            "foo = setuptools.tests.test_resources:TestEntryPoints [x]"
+            "foo = pkg_resources.tests.test_resources:TestEntryPoints [x]"
         )
 
     def setup_method(self, method):
@@ -229,13 +223,13 @@ class TestEntryPoints:
 
     def testBasics(self):
         ep = EntryPoint(
-            "foo", "setuptools.tests.test_resources", ["TestEntryPoints"],
+            "foo", "pkg_resources.tests.test_resources", ["TestEntryPoints"],
             ["x"], self.dist
         )
         self.assertfields(ep)
 
     def testParse(self):
-        s = "foo = setuptools.tests.test_resources:TestEntryPoints [x]"
+        s = "foo = pkg_resources.tests.test_resources:TestEntryPoints [x]"
         ep = EntryPoint.parse(s, self.dist)
         self.assertfields(ep)
 
@@ -559,67 +553,6 @@ class TestParsing:
             ==
             hash(parse_version("1.0"))
         )
-
-
-class TestScriptHeader:
-    non_ascii_exe = '/Users/José/bin/python'
-    exe_with_spaces = r'C:\Program Files\Python33\python.exe'
-
-    def test_get_script_header(self):
-        if not sys.platform.startswith('java') or not is_sh(sys.executable):
-            # This test is for non-Jython platforms
-            expected = '#!%s\n' % nt_quote_arg(os.path.normpath(sys.executable))
-            assert get_script_header('#!/usr/local/bin/python') == expected
-            expected = '#!%s  -x\n' % nt_quote_arg(os.path.normpath(sys.executable))
-            assert get_script_header('#!/usr/bin/python -x') == expected
-            candidate = get_script_header('#!/usr/bin/python',
-                executable=self.non_ascii_exe)
-            assert candidate == '#!%s -x\n' % self.non_ascii_exe
-            candidate = get_script_header('#!/usr/bin/python',
-                executable=self.exe_with_spaces)
-            assert candidate == '#!"%s"\n' % self.exe_with_spaces
-
-    def test_get_script_header_jython_workaround(self):
-        # This test doesn't work with Python 3 in some locales
-        if six.PY3 and os.environ.get("LC_CTYPE") in (None, "C", "POSIX"):
-            return
-
-        class java:
-            class lang:
-                class System:
-                    @staticmethod
-                    def getProperty(property):
-                        return ""
-        sys.modules["java"] = java
-
-        platform = sys.platform
-        sys.platform = 'java1.5.0_13'
-        stdout, stderr = sys.stdout, sys.stderr
-        try:
-            # A mock sys.executable that uses a shebang line (this file)
-            exe = os.path.normpath(os.path.splitext(__file__)[0] + '.py')
-            assert (
-                get_script_header('#!/usr/local/bin/python', executable=exe)
-                ==
-                '#!/usr/bin/env %s\n' % exe
-            )
-
-            # Ensure we generate what is basically a broken shebang line
-            # when there's options, with a warning emitted
-            sys.stdout = sys.stderr = six.StringIO()
-            candidate = get_script_header('#!/usr/bin/python -x',
-                executable=exe)
-            assert candidate == '#!%s  -x\n' % exe
-            assert 'Unable to adapt shebang line' in sys.stdout.getvalue()
-            sys.stdout = sys.stderr = six.StringIO()
-            candidate = get_script_header('#!/usr/bin/python',
-                executable=self.non_ascii_exe)
-            assert candidate == '#!%s -x\n' % self.non_ascii_exe
-            assert 'Unable to adapt shebang line' in sys.stdout.getvalue()
-        finally:
-            del sys.modules["java"]
-            sys.platform = platform
-            sys.stdout, sys.stderr = stdout, stderr
 
 
 class TestNamespaces:
