@@ -427,25 +427,27 @@ class TestScriptHeader:
     non_ascii_exe = '/Users/José/bin/python'
     exe_with_spaces = r'C:\Program Files\Python33\python.exe'
 
+    @pytest.mark.skipif(
+        sys.platform.startswith('java') and is_sh(sys.executable),
+        reason="Test cannot run under java when executable is sh"
+    )
     def test_get_script_header(self):
-        if not sys.platform.startswith('java') or not is_sh(sys.executable):
-            # This test is for non-Jython platforms
-            expected = '#!%s\n' % nt_quote_arg(os.path.normpath(sys.executable))
-            assert get_script_header('#!/usr/local/bin/python') == expected
-            expected = '#!%s  -x\n' % nt_quote_arg(os.path.normpath(sys.executable))
-            assert get_script_header('#!/usr/bin/python -x') == expected
-            candidate = get_script_header('#!/usr/bin/python',
-                executable=self.non_ascii_exe)
-            assert candidate == '#!%s -x\n' % self.non_ascii_exe
-            candidate = get_script_header('#!/usr/bin/python',
-                executable=self.exe_with_spaces)
-            assert candidate == '#!"%s"\n' % self.exe_with_spaces
+        expected = '#!%s\n' % nt_quote_arg(os.path.normpath(sys.executable))
+        assert get_script_header('#!/usr/local/bin/python') == expected
+        expected = '#!%s  -x\n' % nt_quote_arg(os.path.normpath(sys.executable))
+        assert get_script_header('#!/usr/bin/python -x') == expected
+        candidate = get_script_header('#!/usr/bin/python',
+            executable=self.non_ascii_exe)
+        assert candidate == '#!%s -x\n' % self.non_ascii_exe
+        candidate = get_script_header('#!/usr/bin/python',
+            executable=self.exe_with_spaces)
+        assert candidate == '#!"%s"\n' % self.exe_with_spaces
 
+    @pytest.mark.xfail(
+        compat.PY3 and os.environ.get("LC_CTYPE") in (None, "C", "POSIX"),
+        reason="Test fails in this locale on Python 3"
+    )
     def test_get_script_header_jython_workaround(self):
-        # This test doesn't work with Python 3 in some locales
-        if compat.PY3 and os.environ.get("LC_CTYPE") in (None, "C", "POSIX"):
-            return
-
         class java:
             class lang:
                 class System:
