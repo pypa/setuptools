@@ -25,7 +25,7 @@ from setuptools.compat import StringIO, BytesIO, urlparse
 from setuptools.sandbox import run_setup, SandboxViolation
 from setuptools.command.easy_install import (
     easy_install, fix_jython_executable, get_script_args, nt_quote_arg,
-    get_script_header,
+    get_script_header, is_sh,
 )
 from setuptools.command.easy_install import PthDistributions
 from setuptools.command import easy_install as easy_install_pkg
