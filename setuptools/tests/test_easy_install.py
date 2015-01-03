@@ -1,6 +1,4 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-# NOTE: the shebang and encoding lines are for TestScriptHeader do not remove
+#! -*- coding: utf-8 -*-
 
 """Easy install Tests
 """
@@ -450,9 +448,17 @@ class TestScriptHeader:
     @mock.patch.dict(sys.modules, java=mock.Mock(lang=mock.Mock(System=
         mock.Mock(getProperty=mock.Mock(return_value="")))))
     @mock.patch('sys.platform', 'java1.5.0_13')
-    def test_get_script_header_jython_workaround(self):
-        # A mock sys.executable that uses a shebang line (this file)
-        exe = os.path.normpath(os.path.splitext(__file__)[0] + '.py')
+    def test_get_script_header_jython_workaround(self, tmpdir):
+        # Create a mock sys.executable that uses a shebang line
+        header = DALS("""
+            #!/usr/bin/python
+            # -*- coding: utf-8 -*-
+            """)
+        exe = tmpdir / 'exe.py'
+        with exe.open('w') as f:
+            f.write(header)
+        exe = str(exe)
+
         header = get_script_header('#!/usr/local/bin/python', executable=exe)
         assert header == '#!/usr/bin/env %s\n' % exe
 
