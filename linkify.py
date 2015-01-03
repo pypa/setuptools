@@ -14,6 +14,7 @@ link_patterns = [
     r"Old Setuptools #(?P<old_setuptools>\d+)",
     r"Jython #(?P<jython>\d+)",
     r"Python #(?P<python>\d+)",
+    r"Interop #(?P<interop>\d+)",
 ]
 
 issue_urls = dict(
@@ -25,6 +26,7 @@ issue_urls = dict(
     old_setuptools='http://bugs.python.org/setuptools/issue{old_setuptools}',
     jython='http://bugs.jython.org/issue{jython}',
     python='http://bugs.python.org/issue{python}',
+    interop='https://github.com/pypa/interoperability/issues/{interop}',
 )
 
 
