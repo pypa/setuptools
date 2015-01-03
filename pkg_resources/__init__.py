@@ -52,6 +52,8 @@ if PY3:
 else:
     string_types = str, eval('unicode')
 
+iteritems = (lambda i: i.items()) if PY3 else lambda i: i.iteritems()
+
 # capture these to bypass sandboxing
 from os import utime
 try:

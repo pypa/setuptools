@@ -12,7 +12,6 @@ from pkg_resources import (parse_requirements, VersionConflict, parse_version,
 
 packaging = pkg_resources.packaging
 
-from setuptools.compat import iteritems
 
 def safe_repr(obj, short=False):
     """ copied from Python2.7"""
@@ -259,7 +258,7 @@ class TestEntryPoints:
 
     def checkSubMap(self, m):
         assert len(m) == len(self.submap_expect)
-        for key, ep in iteritems(self.submap_expect):
+        for key, ep in pkg_resources.iteritems(self.submap_expect):
             assert repr(m.get(key)) == repr(ep)
 
     submap_expect = dict(
