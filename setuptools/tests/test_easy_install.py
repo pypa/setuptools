@@ -453,11 +453,8 @@ class TestScriptHeader:
     def test_get_script_header_jython_workaround(self):
         # A mock sys.executable that uses a shebang line (this file)
         exe = os.path.normpath(os.path.splitext(__file__)[0] + '.py')
-        assert (
-            get_script_header('#!/usr/local/bin/python', executable=exe)
-            ==
-            '#!/usr/bin/env %s\n' % exe
-        )
+        header = get_script_header('#!/usr/local/bin/python', executable=exe)
+        assert header == '#!/usr/bin/env %s\n' % exe
 
         with contexts.quiet() as (stdout, stderr):
 
