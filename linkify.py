@@ -26,7 +26,7 @@ issue_urls = dict(
     old_setuptools='http://bugs.python.org/setuptools/issue{old_setuptools}',
     jython='http://bugs.jython.org/issue{jython}',
     python='http://bugs.python.org/issue{python}',
-    interop='https://github.com/pypa/interoperability/issues/{interop}',
+    interop='https://github.com/pypa/interoperability-peps/issues/{interop}',
 )
 
 
