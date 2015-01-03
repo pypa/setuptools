@@ -447,15 +447,9 @@ class TestScriptHeader:
         compat.PY3 and os.environ.get("LC_CTYPE") in ("C", "POSIX"),
         reason="Test fails in this locale on Python 3"
     )
+    @mock.patch.dict(sys.modules, java=mock.Mock(lang=mock.Mock(System=
+        mock.Mock(getProperty=mock.Mock(return_value="")))))
     def test_get_script_header_jython_workaround(self):
-        class java:
-            class lang:
-                class System:
-                    @staticmethod
-                    def getProperty(property):
-                        return ""
-        sys.modules["java"] = java
-
         platform = sys.platform
         sys.platform = 'java1.5.0_13'
         stdout, stderr = sys.stdout, sys.stderr
@@ -481,6 +475,5 @@ class TestScriptHeader:
             assert candidate == '#!%s -x\n' % self.non_ascii_exe
             assert 'Unable to adapt shebang line' in sys.stdout.getvalue()
         finally:
-            del sys.modules["java"]
             sys.platform = platform
             sys.stdout, sys.stderr = stdout, stderr
