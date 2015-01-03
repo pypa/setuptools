@@ -1,6 +1,4 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-# NOTE: the shebang and encoding lines are for TestScriptHeader do not remove
+#! -*- coding: utf-8 -*-
 
 """Easy install Tests
 """
@@ -446,11 +444,21 @@ class TestScriptHeader:
     @mock.patch.dict(sys.modules, java=mock.Mock(lang=mock.Mock(System=
         mock.Mock(getProperty=mock.Mock(return_value="")))))
     @mock.patch('sys.platform', 'java1.5.0_13')
-    def test_get_script_header_jython_workaround(self):
-        # A mock sys.executable that uses a shebang line (this file)
-        exe = os.path.normpath(os.path.splitext(__file__)[0] + '.py')
+    def test_get_script_header_jython_workaround(self, tmpdir):
+        # Create a mock sys.executable that uses a shebang line
+        header = DALS("""
+            #!/usr/bin/python
+            # -*- coding: utf-8 -*-
+            """)
+        exe = tmpdir / 'exe.py'
+        with exe.open('w') as f:
+            f.write(header)
+        exe = str(exe)
+
         header = get_script_header('#!/usr/local/bin/python', executable=exe)
         assert header == '#!/usr/bin/env %s\n' % exe
+
+        expect_out = 'stdout' if sys.version_info < (2,7) else 'stderr'
 
         with contexts.quiet() as (stdout, stderr):
             # When options are included, generate a broken shebang line
@@ -458,10 +466,12 @@ class TestScriptHeader:
             candidate = get_script_header('#!/usr/bin/python -x',
                 executable=exe)
             assert candidate == '#!%s  -x\n' % exe
-            assert 'Unable to adapt shebang line' in stderr.getvalue()
+            output = locals()[expect_out]
+            assert 'Unable to adapt shebang line' in output.getvalue()
 
         with contexts.quiet() as (stdout, stderr):
             candidate = get_script_header('#!/usr/bin/python',
                 executable=self.non_ascii_exe)
             assert candidate == '#!%s -x\n' % self.non_ascii_exe
-            assert 'Unable to adapt shebang line' in stderr.getvalue()
+            output = locals()[expect_out]
+            assert 'Unable to adapt shebang line' in output.getvalue()
