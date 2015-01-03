@@ -451,14 +451,15 @@ class TestScriptHeader:
         mock.Mock(getProperty=mock.Mock(return_value="")))))
     @mock.patch('sys.platform', 'java1.5.0_13')
     def test_get_script_header_jython_workaround(self):
+        # A mock sys.executable that uses a shebang line (this file)
+        exe = os.path.normpath(os.path.splitext(__file__)[0] + '.py')
+        assert (
+            get_script_header('#!/usr/local/bin/python', executable=exe)
+            ==
+            '#!/usr/bin/env %s\n' % exe
+        )
+
         with contexts.quiet() as (stdout, stderr):
-            # A mock sys.executable that uses a shebang line (this file)
-            exe = os.path.normpath(os.path.splitext(__file__)[0] + '.py')
-            assert (
-                get_script_header('#!/usr/local/bin/python', executable=exe)
-                ==
-                '#!/usr/bin/env %s\n' % exe
-            )
 
             # Ensure we generate what is basically a broken shebang line
             # when there's options, with a warning emitted
