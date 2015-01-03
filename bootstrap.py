@@ -28,8 +28,10 @@ minimal_egg_info = textwrap.dedent("""
     """)
 
 def ensure_egg_info():
-    if not os.path.exists('setuptools.egg-info'):
-        build_egg_info()
+    if os.path.exists('setuptools.egg-info'):
+        return
+    print("adding minimal entry_points")
+    build_egg_info()
 
 
 def build_egg_info():
