@@ -457,9 +457,8 @@ class TestScriptHeader:
         assert header == '#!/usr/bin/env %s\n' % exe
 
         with contexts.quiet() as (stdout, stderr):
-
-            # Ensure we generate what is basically a broken shebang line
-            # when there's options, with a warning emitted
+            # When options are included, generate a broken shebang line
+            # with a warning emitted
             candidate = get_script_header('#!/usr/bin/python -x',
                 executable=exe)
             assert candidate == '#!%s  -x\n' % exe
