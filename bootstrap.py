@@ -45,8 +45,11 @@ def build_egg_info():
 
 
 def run_egg_info():
+    cmd = [sys.executable, 'setup.py', 'egg_info']
     print("Regenerating egg_info")
-    subprocess.check_call([sys.executable, 'setup.py', 'egg_info'])
+    subprocess.check_call(cmd)
+    print("...and again.")
+    subprocess.check_call(cmd)
 
 
 if __name__ == '__main__':
