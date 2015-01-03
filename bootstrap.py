@@ -45,6 +45,7 @@ def build_egg_info():
 
 
 def run_egg_info():
+    print("Regenerating egg_info")
     subprocess.check_call([sys.executable, 'setup.py', 'egg_info'])
 
 
