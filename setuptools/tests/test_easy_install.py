@@ -449,9 +449,8 @@ class TestScriptHeader:
     )
     @mock.patch.dict(sys.modules, java=mock.Mock(lang=mock.Mock(System=
         mock.Mock(getProperty=mock.Mock(return_value="")))))
+    @mock.patch('sys.platform', 'java1.5.0_13')
     def test_get_script_header_jython_workaround(self):
-        platform = sys.platform
-        sys.platform = 'java1.5.0_13'
         stdout, stderr = sys.stdout, sys.stderr
         try:
             # A mock sys.executable that uses a shebang line (this file)
@@ -475,5 +474,4 @@ class TestScriptHeader:
             assert candidate == '#!%s -x\n' % self.non_ascii_exe
             assert 'Unable to adapt shebang line' in sys.stdout.getvalue()
         finally:
-            sys.platform = platform
             sys.stdout, sys.stderr = stdout, stderr
