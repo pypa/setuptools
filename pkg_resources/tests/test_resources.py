@@ -206,13 +206,13 @@ class TestEntryPoints:
 
     def assertfields(self, ep):
         assert ep.name == "foo"
-        assert ep.module_name == "setuptools.tests.test_resources"
+        assert ep.module_name == "pkg_resources.tests.test_resources"
         assert ep.attrs == ("TestEntryPoints",)
         assert ep.extras == ("x",)
         assert ep.load() is TestEntryPoints
         assert (
             str(ep) ==
-            "foo = setuptools.tests.test_resources:TestEntryPoints [x]"
+            "foo = pkg_resources.tests.test_resources:TestEntryPoints [x]"
         )
 
     def setup_method(self, method):
@@ -221,13 +221,13 @@ class TestEntryPoints:
 
     def testBasics(self):
         ep = EntryPoint(
-            "foo", "setuptools.tests.test_resources", ["TestEntryPoints"],
+            "foo", "pkg_resources.tests.test_resources", ["TestEntryPoints"],
             ["x"], self.dist
         )
         self.assertfields(ep)
 
     def testParse(self):
-        s = "foo = setuptools.tests.test_resources:TestEntryPoints [x]"
+        s = "foo = pkg_resources.tests.test_resources:TestEntryPoints [x]"
         ep = EntryPoint.parse(s, self.dist)
         self.assertfields(ep)
 
