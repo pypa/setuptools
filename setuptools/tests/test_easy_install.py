@@ -444,7 +444,7 @@ class TestScriptHeader:
         assert candidate == '#!"%s"\n' % self.exe_with_spaces
 
     @pytest.mark.xfail(
-        compat.PY3 and os.environ.get("LC_CTYPE") in (None, "C", "POSIX"),
+        compat.PY3 and os.environ.get("LC_CTYPE") in ("C", "POSIX"),
         reason="Test fails in this locale on Python 3"
     )
     def test_get_script_header_jython_workaround(self):
