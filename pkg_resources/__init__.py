@@ -627,8 +627,7 @@ class WorkingSet(object):
         if dist is not None and dist not in req:
             # XXX add more info
             raise VersionConflict(dist, req)
-        else:
-            return dist
+        return dist
 
     def iter_entry_points(self, group, name=None):
         """Yield entry point objects from `group` matching `name`
