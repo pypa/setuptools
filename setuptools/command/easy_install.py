@@ -1922,19 +1922,11 @@ class ScriptWriter(object):
             executable = nt_quote_arg(sys_executable)
 
         options = cls._extract_options(script_text)
+        options = cls._handle_non_ascii_exe(executable, options)
+        tmpl = '#!{executable} {options}\n' if options else '#!{executable}\n'
 
-        hdr = "#!%(executable)s%(options)s\n" % locals()
-        if not isascii(hdr):
-            # Non-ascii path to sys.executable, use -x to prevent warnings
-            if options:
-                if options.strip().startswith('-'):
-                    options = ' -x' + options.strip()[1:]
-                    # else: punt, we can't do it, let the warning happen anyway
-            else:
-                options = ' -x'
         executable = fix_jython_executable(executable, options)
-        hdr = "#!%(executable)s%(options)s\n" % locals()
-        return hdr
+        return tmpl.format(**locals())
 
     @classmethod
     def _extract_options(cls, orig_script):
@@ -1943,12 +1935,23 @@ class ScriptWriter(object):
         """
         first = (orig_script + '\n').splitlines()[0]
         match = _first_line_re().match(first)
-        options = ''
-        if match:
-            options = match.group(1) or ''
-            if options:
-                options = ' ' + options
-        return options
+        options = match.group(1) or '' if match else ''
+        return options.strip()
+
+    @classmethod
+    def _handle_non_ascii_exe(cls, executable, options):
+        if isascii(executable):
+            return options
+
+        # Non-ascii path to sys.executable, use -x to prevent warnings
+        if not options:
+            return '-x'
+
+        if not options.strip().startswith('-'):
+            # punt, we can't do it, let the warning happen anyway
+            return options
+
+        return '-x' + options.strip()[1:]
 
 
 class WindowsScriptWriter(ScriptWriter):

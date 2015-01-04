@@ -428,7 +428,7 @@ class TestScriptHeader:
         actual = ScriptWriter.get_script_header('#!/usr/local/bin/python')
         assert actual == expected
 
-        expected = '#!%s  -x\n' % nt_quote_arg(os.path.normpath(sys.executable))
+        expected = '#!%s -x\n' % nt_quote_arg(os.path.normpath(sys.executable))
         actual = ScriptWriter.get_script_header('#!/usr/bin/python -x')
         assert actual == expected
 
@@ -471,7 +471,7 @@ class TestScriptHeader:
             # with a warning emitted
             candidate = ScriptWriter.get_script_header('#!/usr/bin/python -x',
                 executable=exe)
-            assert candidate == '#!%s  -x\n' % exe
+            assert candidate == '#!%s -x\n' % exe
             output = locals()[expect_out]
             assert 'Unable to adapt shebang line' in output.getvalue()
 
