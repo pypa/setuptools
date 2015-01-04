@@ -918,7 +918,8 @@ Please make the appropriate changes for your system and try again.
                     f.write('%s: %s\n' % (k.replace('_', '-').title(), v))
             f.close()
         script_dir = os.path.join(_egg_info, 'scripts')
-        self.delete_blockers(  # delete entry-point scripts to avoid duping
+        # delete entry-point scripts to avoid duping
+        self.delete_blockers(
             [os.path.join(script_dir, args[0]) for args in
              get_script_args(dist)]
         )
