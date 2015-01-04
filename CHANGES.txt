@@ -3,6 +3,17 @@ CHANGES
 =======
 
 ----
+11.1
+----
+
+* Issue #281: Since Setuptools 6.1 (Issue #268), a ValueError would be raised
+  in certain cases where VersionConflict was raised with two arguments, which
+  occurred in ``pkg_resources.WorkingSet.find``. This release adds support
+  for indicating the dependent packages while maintaining support for
+  a VersionConflict when no dependent package context is known. New unit tests
+  now capture the expected interface.
+
+----
 11.0
 ----
 
