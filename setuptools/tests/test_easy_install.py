@@ -20,7 +20,7 @@ import mock
 from setuptools import sandbox
 from setuptools import compat
 from setuptools.compat import StringIO, BytesIO, urlparse
-from setuptools.sandbox import run_setup, SandboxViolation
+from setuptools.sandbox import run_setup
 from setuptools.command.easy_install import (
     easy_install, fix_jython_executable, nt_quote_arg,
     get_script_header, is_sh, ScriptWriter,
@@ -28,7 +28,7 @@ from setuptools.command.easy_install import (
 from setuptools.command.easy_install import PthDistributions
 from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
-from pkg_resources import working_set, VersionConflict
+from pkg_resources import working_set
 from pkg_resources import Distribution as PRDistribution
 import setuptools.tests.server
 import pkg_resources
