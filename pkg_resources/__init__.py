@@ -322,10 +322,11 @@ class VersionConflict(ResolutionError):
     """
     An already-installed version conflicts with the requested version.
 
-    Should be initialized with the installed Distribution, the requested
-    Requirement, and optionally a list of dists that required the installed
-    Distribution.
+    Should be initialized with the installed Distribution and the requested
+    Requirement.
     """
+
+    _template = "{self.dist} is installed but {self.req} is required"
 
     @property
     def dist(self):
@@ -335,15 +336,21 @@ class VersionConflict(ResolutionError):
     def req(self):
         return self.args[1]
 
+    def report(self):
+        return self._template.format(**locals())
+
+
+class ContextualVersionConflict(VersionConflict):
+    """
+    A VersionConflict that accepts a third parameter, the list of the
+    requirements that required the installed Distribution.
+    """
+
+    _template = VersionConflict._template + ' by {self.required_by}'
+
     @property
     def required_by(self):
-        return self.args[2] if len(self.args) > 2 else []
-
-    def report(self):
-        template = "{self.dist} is installed but {self.req} is required"
-        if self.required_by:
-            template += " by {self.required_by}"
-        return template.format(**locals())
+        return self.args[2]
 
 
 class DistributionNotFound(ResolutionError):
@@ -790,7 +797,7 @@ class WorkingSet(object):
             if dist not in req:
                 # Oops, the "best" so far conflicts with a dependency
                 dependent_req = list(required_by.get(req, []))
-                raise VersionConflict(dist, req, dependent_req)
+                raise ContextualVersionConflict(dist, req, dependent_req)
 
             # push the new requirements onto the stack
             new_requirements = dist.requires(req.extras)[::-1]
