@@ -1904,15 +1904,19 @@ class ScriptWriter(object):
         """
         Yield write_script() argument tuples for a distribution's entrypoints
         """
-        gen_class = cls.get_writer(wininst)
-        spec = str(dist.as_requirement())
+        writer = cls.get_writer(wininst)
         header = get_script_header("", executable, wininst)
+        return cls._gen_args(dist, writer, header)
+
+    @classmethod
+    def _gen_args(cls, dist, writer, header):
+        spec = str(dist.as_requirement())
         for type_ in 'console', 'gui':
             group = type_ + '_scripts'
             for name, ep in dist.get_entry_map(group).items():
-                script_text = gen_class.template % locals()
-                for res in gen_class._get_script_args(type_, name, header,
-                                                      script_text):
+                script_text = writer.template % locals()
+                for res in writer._get_script_args(type_, name, header,
+                        script_text):
                     yield res
 
     @classmethod
