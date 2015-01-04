@@ -175,8 +175,8 @@ class TestDistro:
         with pytest.raises(VersionConflict) as vc:
             ws.resolve(parse_requirements("Foo==1.2\nFoo!=1.2"), ad)
 
-        msg = 'Foo 0.9 is installed but Foo==1.2 is required by []'
-        assert str(vc).endswith(msg)
+        msg = 'Foo 0.9 is installed but Foo==1.2 is required'
+        assert vc.value.report() == msg
 
     def testDistroDependsOptions(self):
         d = self.distRequires("""
@@ -218,7 +218,7 @@ class TestWorkingSet:
             ws.find(req)
 
         msg = 'Foo 1.2 is installed but Foo<1.2 is required'
-        assert str(vc).endswith(msg)
+        assert vc.value.report() == msg
 
 
 class TestEntryPoints:

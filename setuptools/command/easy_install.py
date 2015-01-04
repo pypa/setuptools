@@ -703,10 +703,7 @@ Please make the appropriate changes for your system and try again.
                 "Could not find required distribution %s" % e.args
             )
         except VersionConflict as e:
-            raise DistutilsError(
-                "Installed distribution %s conflicts with requirement %s"
-                % e.args
-            )
+            raise DistutilsError(e.report())
         if self.always_copy or self.always_copy_from:
             # Force all the relevant distros to be copied or activated
             for dist in distros:

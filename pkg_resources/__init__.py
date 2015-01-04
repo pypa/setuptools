@@ -317,8 +317,34 @@ class ResolutionError(Exception):
     def __repr__(self):
         return self.__class__.__name__+repr(self.args)
 
+
 class VersionConflict(ResolutionError):
-    """An already-installed version conflicts with the requested version"""
+    """
+    An already-installed version conflicts with the requested version.
+
+    Should be initialized with the installed Distribution, the requested
+    Requirement, and optionally a list of dists that required the installed
+    Distribution.
+    """
+
+    @property
+    def dist(self):
+        return self.args[0]
+
+    @property
+    def req(self):
+        return self.args[1]
+
+    @property
+    def required_by(self):
+        return self.args[2] if len(self.args) > 2 else []
+
+    def report(self):
+        template = "{self.dist} is installed but {self.req} is required"
+        if self.required_by:
+            template += " by {self.required_by}"
+        return template.format(**locals())
+
 
 class DistributionNotFound(ResolutionError):
     """A requested distribution was not found"""
@@ -763,9 +789,8 @@ class WorkingSet(object):
                 to_activate.append(dist)
             if dist not in req:
                 # Oops, the "best" so far conflicts with a dependency
-                tmpl = "%s is installed but %s is required by %s"
-                args = dist, req, list(required_by.get(req, []))
-                raise VersionConflict(tmpl % args)
+                dependent_req = list(required_by.get(req, []))
+                raise VersionConflict(dist, req, dependent_req)
 
             # push the new requirements onto the stack
             new_requirements = dist.requires(req.extras)[::-1]
