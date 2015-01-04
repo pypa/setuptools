@@ -1592,11 +1592,6 @@ def _first_line_re():
     return re.compile(first_line_re.pattern.decode())
 
 
-def get_script_header(script_text, executable=sys_executable, wininst=False):
-    executable = "python.exe" if wininst else nt_quote_arg(executable)
-    return ScriptWriter.get_header(script_text, executable)
-
-
 def auto_chmod(func, arg, exc):
     if func is os.remove and os.name == 'nt':
         chmod(arg, stat.S_IWRITE)
@@ -1887,6 +1882,11 @@ class ScriptWriter(object):
         return writer._gen_args(dist, header)
 
     @classmethod
+    def get_script_header(cls, script_text, executable=sys_executable, wininst=False):
+        executable = "python.exe" if wininst else nt_quote_arg(executable)
+        return cls.get_header(script_text, executable)
+
+    @classmethod
     def _gen_args(cls, dist, header=None):
         """
         Yield write_script() argument tuples for a distribution's entrypoints
@@ -2016,6 +2016,7 @@ class WindowsExecutableLauncherWriter(WindowsScriptWriter):
 
 # for backward-compatibility
 get_script_args = ScriptWriter.get_script_args
+get_script_header = ScriptWriter.get_script_header
 
 
 def get_win_launcher(type):

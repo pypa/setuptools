@@ -23,7 +23,7 @@ from setuptools.compat import StringIO, BytesIO, urlparse
 from setuptools.sandbox import run_setup
 from setuptools.command.easy_install import (
     easy_install, fix_jython_executable, nt_quote_arg,
-    get_script_header, is_sh, ScriptWriter,
+    is_sh, ScriptWriter,
 )
 from setuptools.command.easy_install import PthDistributions
 from setuptools.command import easy_install as easy_install_pkg
@@ -425,15 +425,22 @@ class TestScriptHeader:
     )
     def test_get_script_header(self):
         expected = '#!%s\n' % nt_quote_arg(os.path.normpath(sys.executable))
-        assert get_script_header('#!/usr/local/bin/python') == expected
+        actual = ScriptWriter.get_script_header('#!/usr/local/bin/python')
+        assert actual == expected
+
         expected = '#!%s  -x\n' % nt_quote_arg(os.path.normpath(sys.executable))
-        assert get_script_header('#!/usr/bin/python -x') == expected
-        candidate = get_script_header('#!/usr/bin/python',
+        actual = ScriptWriter.get_script_header('#!/usr/bin/python -x')
+        assert actual == expected
+
+        actual = ScriptWriter.get_script_header('#!/usr/bin/python',
             executable=self.non_ascii_exe)
-        assert candidate == '#!%s -x\n' % self.non_ascii_exe
-        candidate = get_script_header('#!/usr/bin/python',
+        expected = '#!%s -x\n' % self.non_ascii_exe
+        assert actual == expected
+
+        actual = ScriptWriter.get_script_header('#!/usr/bin/python',
             executable=self.exe_with_spaces)
-        assert candidate == '#!"%s"\n' % self.exe_with_spaces
+        expected = '#!"%s"\n' % self.exe_with_spaces
+        assert actual == expected
 
     @pytest.mark.xfail(
         compat.PY3 and os.environ.get("LC_CTYPE") in ("C", "POSIX"),
@@ -453,7 +460,8 @@ class TestScriptHeader:
             f.write(header)
         exe = str(exe)
 
-        header = get_script_header('#!/usr/local/bin/python', executable=exe)
+        header = ScriptWriter.get_script_header('#!/usr/local/bin/python',
+            executable=exe)
         assert header == '#!/usr/bin/env %s\n' % exe
 
         expect_out = 'stdout' if sys.version_info < (2,7) else 'stderr'
@@ -461,14 +469,14 @@ class TestScriptHeader:
         with contexts.quiet() as (stdout, stderr):
             # When options are included, generate a broken shebang line
             # with a warning emitted
-            candidate = get_script_header('#!/usr/bin/python -x',
+            candidate = ScriptWriter.get_script_header('#!/usr/bin/python -x',
                 executable=exe)
             assert candidate == '#!%s  -x\n' % exe
             output = locals()[expect_out]
             assert 'Unable to adapt shebang line' in output.getvalue()
 
         with contexts.quiet() as (stdout, stderr):
-            candidate = get_script_header('#!/usr/bin/python',
+            candidate = ScriptWriter.get_script_header('#!/usr/bin/python',
                 executable=self.non_ascii_exe)
             assert candidate == '#!%s -x\n' % self.non_ascii_exe
             output = locals()[expect_out]
