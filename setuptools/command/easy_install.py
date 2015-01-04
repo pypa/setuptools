@@ -1593,30 +1593,8 @@ def _first_line_re():
 
 
 def get_script_header(script_text, executable=sys_executable, wininst=False):
-    """Create a #! line, getting options (if any) from script_text"""
-    first = (script_text + '\n').splitlines()[0]
-    match = _first_line_re().match(first)
-    options = ''
-    if match:
-        options = match.group(1) or ''
-        if options:
-            options = ' ' + options
-    if wininst:
-        executable = "python.exe"
-    else:
-        executable = nt_quote_arg(executable)
-    hdr = "#!%(executable)s%(options)s\n" % locals()
-    if not isascii(hdr):
-        # Non-ascii path to sys.executable, use -x to prevent warnings
-        if options:
-            if options.strip().startswith('-'):
-                options = ' -x' + options.strip()[1:]
-                # else: punt, we can't do it, let the warning happen anyway
-        else:
-            options = ' -x'
-    executable = fix_jython_executable(executable, options)
-    hdr = "#!%(executable)s%(options)s\n" % locals()
-    return hdr
+    executable = "python.exe" if wininst else nt_quote_arg(executable)
+    return ScriptWriter.get_header(script_text, executable)
 
 
 def auto_chmod(func, arg, exc):
@@ -1903,6 +1881,7 @@ class ScriptWriter(object):
     @classmethod
     def get_script_args(cls, dist, executable=sys_executable, wininst=False):
         # for backward compatibility
+        warnings.warn("Use _gen_args", DeprecationWarning)
         writer = cls.get_writer(wininst)
         header = get_script_header("", executable, wininst)
         return writer._gen_args(dist, header)
@@ -1933,6 +1912,29 @@ class ScriptWriter(object):
     def _get_script_args(cls, type_, name, header, script_text):
         # Simply write the stub with no extension.
         yield (name, header + script_text)
+
+    @classmethod
+    def get_header(cls, script_text, executable):
+        """Create a #! line, getting options (if any) from script_text"""
+        first = (script_text + '\n').splitlines()[0]
+        match = _first_line_re().match(first)
+        options = ''
+        if match:
+            options = match.group(1) or ''
+            if options:
+                options = ' ' + options
+        hdr = "#!%(executable)s%(options)s\n" % locals()
+        if not isascii(hdr):
+            # Non-ascii path to sys.executable, use -x to prevent warnings
+            if options:
+                if options.strip().startswith('-'):
+                    options = ' -x' + options.strip()[1:]
+                    # else: punt, we can't do it, let the warning happen anyway
+            else:
+                options = ' -x'
+        executable = fix_jython_executable(executable, options)
+        hdr = "#!%(executable)s%(options)s\n" % locals()
+        return hdr
 
 
 class WindowsScriptWriter(ScriptWriter):

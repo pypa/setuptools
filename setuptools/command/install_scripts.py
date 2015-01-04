@@ -35,8 +35,10 @@ class install_scripts(orig.install_scripts):
         is_wininst = getattr(
             self.get_finalized_command("bdist_wininst"), '_is_running', False
         )
+        if is_wininst:
+            executable = "python.exe"
         writer = ScriptWriter.get_writer(force_windows=is_wininst)
-        header = get_script_header("", executable, wininst=is_wininst)
+        header = get_script_header("", executable)
         for args in writer._gen_args(dist, header):
             self.write_script(*args)
 
