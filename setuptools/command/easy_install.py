@@ -35,6 +35,7 @@ import warnings
 import site
 import struct
 import contextlib
+import subprocess
 
 from setuptools import Command
 from setuptools.sandbox import run_setup
@@ -1825,36 +1826,7 @@ def is_sh(executable):
 
 def nt_quote_arg(arg):
     """Quote a command line argument according to Windows parsing rules"""
-
-    result = []
-    needquote = False
-    nb = 0
-
-    needquote = (" " in arg) or ("\t" in arg)
-    if needquote:
-        result.append('"')
-
-    for c in arg:
-        if c == '\\':
-            nb += 1
-        elif c == '"':
-            # double preceding backslashes, then add a \"
-            result.append('\\' * (nb * 2) + '\\"')
-            nb = 0
-        else:
-            if nb:
-                result.append('\\' * nb)
-                nb = 0
-            result.append(c)
-
-    if nb:
-        result.append('\\' * nb)
-
-    if needquote:
-        result.append('\\' * nb)  # double the trailing backslashes
-        result.append('"')
-
-    return ''.join(result)
+    return subprocess.list2cmdline([arg])
 
 
 def is_python_script(script_text, filename):
