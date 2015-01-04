@@ -205,6 +205,22 @@ class TestDistro:
             d.requires(["foo"])
 
 
+class TestWorkingSet:
+    def test_find_conflicting(self):
+        ws = WorkingSet([])
+        Foo = Distribution.from_filename("/foo_dir/Foo-1.2.egg")
+        ws.add(Foo)
+
+        # create a requirement that conflicts with Foo 1.2
+        req = next(parse_requirements("Foo<1.2"))
+
+        with pytest.raises(VersionConflict) as vc:
+            ws.find(req)
+
+        msg = 'Foo 1.2 is installed but Foo<1.2 is required'
+        assert str(vc).endswith(msg)
+
+
 class TestEntryPoints:
 
     def assertfields(self, ep):
