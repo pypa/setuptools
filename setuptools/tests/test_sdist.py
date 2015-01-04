@@ -172,10 +172,7 @@ class TestSdistTest:
         manifest.close()
 
         # The manifest should be UTF-8 encoded
-        try:
-            u_contents = contents.decode('UTF-8')
-        except UnicodeDecodeError as e:
-            self.fail(e)
+        u_contents = contents.decode('UTF-8')
 
         # The manifest should contain the UTF-8 filename
         if PY2:
@@ -214,10 +211,7 @@ class TestSdistTest:
             manifest.close()
 
             # The manifest should be UTF-8 encoded
-            try:
-                contents.decode('UTF-8')
-            except UnicodeDecodeError as e:
-                self.fail(e)
+            contents.decode('UTF-8')
 
             # The manifest should contain the UTF-8 filename
             assert posix(filename) in contents
@@ -254,10 +248,7 @@ class TestSdistTest:
             manifest.close()
 
             # The manifest should be UTF-8 encoded
-            try:
-                contents.decode('UTF-8')
-            except UnicodeDecodeError as e:
-                self.fail(e)
+            contents.decode('UTF-8')
 
             # The Latin-1 filename should have been skipped
             assert posix(filename) not in contents
@@ -323,10 +314,7 @@ class TestSdistTest:
             # Re-read manifest
             cmd.filelist.files = []
             with quiet():
-                try:
-                    cmd.read_manifest()
-                except UnicodeDecodeError as e:
-                    self.fail(e)
+                cmd.read_manifest()
 
             # The Latin-1 filename should have been skipped
             filename = filename.decode('latin-1')

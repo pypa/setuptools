@@ -33,10 +33,8 @@ class TestSandbox:
         target = os.path.join(gen_py, 'test_write')
         sandbox = DirectorySandbox(str(tmpdir))
         try:
-            try:
-                sandbox.run(self._file_writer(target))
-            except SandboxViolation:
-                self.fail("Could not create gen_py file due to SandboxViolation")
+            # attempt to create gen_py file
+            sandbox.run(self._file_writer(target))
         finally:
             if os.path.exists(target):
                 os.remove(target)

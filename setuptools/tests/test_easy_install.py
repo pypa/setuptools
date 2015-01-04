@@ -250,8 +250,6 @@ class TestUserInstallTest:
             with contexts.quiet():
                 with self.patched_setup_context():
                     run_setup(test_setup_py, ['install'])
-        except SandboxViolation:
-            self.fail('Installation caused SandboxViolation')
         except IndexError:
             # Test fails in some cases due to bugs in Python
             # See https://bitbucket.org/pypa/setuptools/issue/201
@@ -353,13 +351,9 @@ class TestSetupRequires:
                 test_pkg = create_setup_requires_package(temp_dir)
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
                 with contexts.quiet() as (stdout, stderr):
-                    try:
-                        # Don't even need to install the package, just
-                        # running the setup.py at all is sufficient
-                        run_setup(test_setup_py, ['--name'])
-                    except VersionConflict:
-                        self.fail('Installing setup.py requirements '
-                            'caused a VersionConflict')
+                    # Don't even need to install the package, just
+                    # running the setup.py at all is sufficient
+                    run_setup(test_setup_py, ['--name'])
 
                 lines = stdout.readlines()
                 assert len(lines) > 0

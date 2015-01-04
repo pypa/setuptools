@@ -593,10 +593,8 @@ class TestNamespaces:
             pkg2_init.close()
         import pkg1
         assert "pkg1" in pkg_resources._namespace_packages
-        try:
-            import pkg1.pkg2
-        except ImportError:
-            self.fail("Setuptools tried to import the parent namespace package")
+        # attempt to import pkg2 from site-pkgs2
+        import pkg1.pkg2
         # check the _namespace_packages dict
         assert "pkg1.pkg2" in pkg_resources._namespace_packages
         assert pkg_resources._namespace_packages["pkg1"] == ["pkg1.pkg2"]
