@@ -14,6 +14,17 @@ from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
 
 
+def setup_module(module):
+    packages = 'stevedore', 'virtualenvwrapper', 'pbr', 'novaclient'
+    for pkg in packages:
+        try:
+            __import__(pkg)
+            tmpl = "Integration tests cannot run when {pkg} is installed"
+            pytest.skip(tmpl.format(**locals()))
+        except ImportError:
+            pass
+
+
 @pytest.fixture
 def install_context(request, tmpdir, monkeypatch):
     """Fixture to set up temporary installation directory.
