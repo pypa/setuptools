@@ -342,7 +342,7 @@ class VersionConflict(ResolutionError):
 
 class ContextualVersionConflict(VersionConflict):
     """
-    A VersionConflict that accepts a third parameter, the list of the
+    A VersionConflict that accepts a third parameter, the set of the
     requirements that required the installed Distribution.
     """
 
@@ -796,7 +796,7 @@ class WorkingSet(object):
                 to_activate.append(dist)
             if dist not in req:
                 # Oops, the "best" so far conflicts with a dependency
-                dependent_req = list(required_by.get(req, []))
+                dependent_req = required_by[req]
                 raise ContextualVersionConflict(dist, req, dependent_req)
 
             # push the new requirements onto the stack
