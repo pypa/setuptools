@@ -13,9 +13,9 @@ class install_scripts(orig.install_scripts):
         self.no_ep = False
 
     def run(self):
-        from setuptools.command.easy_install import get_script_args
-        from setuptools.command.easy_install import sys_executable
-
+        from setuptools.command.easy_install import (
+            ScriptWriter, sys_executable, get_script_header,
+        )
         self.run_command("egg_info")
         if self.distribution.scripts:
             orig.install_scripts.run(self)  # run first to set up self.outfiles
@@ -35,7 +35,9 @@ class install_scripts(orig.install_scripts):
         is_wininst = getattr(
             self.get_finalized_command("bdist_wininst"), '_is_running', False
         )
-        for args in get_script_args(dist, executable, is_wininst):
+        writer = ScriptWriter.get_writer(force_windows=is_wininst)
+        header = get_script_header("", executable, wininst=is_wininst)
+        for args in writer._gen_args(dist, header):
             self.write_script(*args)
 
     def write_script(self, script_name, contents, mode="t", *ignored):

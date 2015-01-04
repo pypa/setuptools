@@ -745,7 +745,7 @@ Please make the appropriate changes for your system and try again.
 
     def install_wrapper_scripts(self, dist):
         if not self.exclude_scripts:
-            for args in get_script_args(dist):
+            for args in ScriptWriter._gen_args(dist):
                 self.write_script(*args)
 
     def install_script(self, dist, script_name, script_text, dev_path=None):
@@ -921,7 +921,7 @@ Please make the appropriate changes for your system and try again.
         # delete entry-point scripts to avoid duping
         self.delete_blockers(
             [os.path.join(script_dir, args[0]) for args in
-             get_script_args(dist)]
+             ScriptWriter._gen_args(dist)]
         )
         # Build .egg file from tmpdir
         bdist_egg.make_zipfile(
@@ -1902,15 +1902,18 @@ class ScriptWriter(object):
 
     @classmethod
     def get_script_args(cls, dist, executable=sys_executable, wininst=False):
-        """
-        Yield write_script() argument tuples for a distribution's entrypoints
-        """
+        # for backward compatibility
         writer = cls.get_writer(wininst)
         header = get_script_header("", executable, wininst)
         return writer._gen_args(dist, header)
 
     @classmethod
-    def _gen_args(cls, dist, header):
+    def _gen_args(cls, dist, header=None):
+        """
+        Yield write_script() argument tuples for a distribution's entrypoints
+        """
+        if header is None:
+            header = get_script_header("", sys_executable)
         spec = str(dist.as_requirement())
         for type_ in 'console', 'gui':
             group = type_ + '_scripts'
