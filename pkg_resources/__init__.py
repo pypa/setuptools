@@ -339,6 +339,16 @@ class VersionConflict(ResolutionError):
     def report(self):
         return self._template.format(**locals())
 
+    def with_context(self, required_by):
+        """
+        If required_by is non-empty, return a version of self that is a
+        ContextualVersionConflict.
+        """
+        if not required_by:
+            return self
+        args = self.args + (required_by,)
+        return ContextualVersionConflict(*args)
+
 
 class ContextualVersionConflict(VersionConflict):
     """
@@ -797,7 +807,7 @@ class WorkingSet(object):
             if dist not in req:
                 # Oops, the "best" so far conflicts with a dependency
                 dependent_req = required_by[req]
-                raise ContextualVersionConflict(dist, req, dependent_req)
+                raise VersionConflict(dist, req).with_context(dependent_req)
 
             # push the new requirements onto the stack
             new_requirements = dist.requires(req.extras)[::-1]
