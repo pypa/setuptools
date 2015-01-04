@@ -23,20 +23,22 @@ def safe_repr(obj, short=False):
         return result
     return result[:pkg_resources._MAX_LENGTH] + ' [truncated]...'
 
+
 class Metadata(pkg_resources.EmptyProvider):
     """Mock object to return metadata as if from an on-disk distribution"""
 
-    def __init__(self,*pairs):
+    def __init__(self, *pairs):
         self.metadata = dict(pairs)
 
-    def has_metadata(self,name):
+    def has_metadata(self, name):
         return name in self.metadata
 
-    def get_metadata(self,name):
+    def get_metadata(self, name):
         return self.metadata[name]
 
-    def get_metadata_lines(self,name):
+    def get_metadata_lines(self, name):
         return pkg_resources.yield_lines(self.get_metadata(name))
+
 
 dist_from_fn = pkg_resources.Distribution.from_filename
 
