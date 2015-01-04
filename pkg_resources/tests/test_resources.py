@@ -210,10 +210,8 @@ class TestEntryPoints:
         assert ep.attrs == ("TestEntryPoints",)
         assert ep.extras == ("x",)
         assert ep.load() is TestEntryPoints
-        assert (
-            str(ep) ==
-            "foo = pkg_resources.tests.test_resources:TestEntryPoints [x]"
-        )
+        expect = "foo = pkg_resources.tests.test_resources:TestEntryPoints [x]"
+        assert str(ep) == expect
 
     def setup_method(self, method):
         self.dist = Distribution.from_filename(
