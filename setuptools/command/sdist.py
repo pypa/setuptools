@@ -70,7 +70,8 @@ class sdist(orig.sdist):
         try:
             orig.sdist.read_template(self)
         except:
-            sys.exc_info()[2].tb_next.tb_frame.f_locals['template'].close()
+            _, _, tb = sys.exc_info()
+            tb.tb_next.tb_frame.f_locals['template'].close()
             raise
 
     # Beginning with Python 2.7.2, 3.1.4, and 3.2.1, this leaky file handle

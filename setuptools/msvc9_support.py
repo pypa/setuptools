@@ -50,8 +50,7 @@ def find_vcvarsall(version):
 def query_vcvarsall(version, *args, **kwargs):
     try:
         return unpatched['query_vcvarsall'](version, *args, **kwargs)
-    except distutils.errors.DistutilsPlatformError:
-        exc = sys.exc_info()[1]
+    except distutils.errors.DistutilsPlatformError as exc:
         if exc and "vcvarsall.bat" in exc.args[0]:
             message = 'Microsoft Visual C++ %0.1f is required (%s).' % (version, exc.args[0])
             if int(version) == 9:

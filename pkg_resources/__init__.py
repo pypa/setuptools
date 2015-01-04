@@ -843,8 +843,7 @@ class WorkingSet(object):
                 try:
                     resolvees = shadow_set.resolve(req, env, installer)
 
-                except ResolutionError:
-                    v = sys.exc_info()[1]
+                except ResolutionError as v:
                     # save error info
                     error_info[dist] = v
                     if fallback:
@@ -1340,8 +1339,8 @@ class MarkerEvaluation(object):
         """
         try:
             cls.evaluate_marker(text)
-        except SyntaxError:
-            return cls.normalize_exception(sys.exc_info()[1])
+        except SyntaxError as e:
+            return cls.normalize_exception(e)
         return False
 
     @staticmethod
@@ -1456,8 +1455,7 @@ class MarkerEvaluation(object):
             env[new_key] = env.pop(key)
         try:
             result = _markerlib.interpret(text, env)
-        except NameError:
-            e = sys.exc_info()[1]
+        except NameError as e:
             raise SyntaxError(e.args[0])
         return result
 

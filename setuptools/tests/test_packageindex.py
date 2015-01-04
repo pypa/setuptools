@@ -15,8 +15,7 @@ class TestPackageIndex:
         url = 'http://127.0.0.1:0/nonesuch/test_package_index'
         try:
             v = index.open_url(url)
-        except Exception:
-            v = sys.exc_info()[1]
+        except Exception as v:
             assert url in str(v)
         else:
             assert isinstance(v, HTTPError)
@@ -32,8 +31,7 @@ class TestPackageIndex:
         url = 'url:%20https://svn.plone.org/svn/collective/inquant.contentmirror.plone/trunk'
         try:
             v = index.open_url(url)
-        except Exception:
-            v = sys.exc_info()[1]
+        except Exception as v:
             assert url in str(v)
         else:
             assert isinstance(v, HTTPError)
@@ -50,8 +48,7 @@ class TestPackageIndex:
         url = 'http://example.com'
         try:
             v = index.open_url(url)
-        except Exception:
-            v = sys.exc_info()[1]
+        except Exception as v:
             assert 'line' in str(v)
         else:
             raise AssertionError('Should have raise here!')
@@ -68,8 +65,7 @@ class TestPackageIndex:
         url = 'http://http://svn.pythonpaste.org/Paste/wphp/trunk'
         try:
             index.open_url(url)
-        except distutils.errors.DistutilsError:
-            error = sys.exc_info()[1]
+        except distutils.errors.DistutilsError as error:
             msg = unicode(error)
             assert 'nonnumeric port' in msg or 'getaddrinfo failed' in msg or 'Name or service not known' in msg
             return

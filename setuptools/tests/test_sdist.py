@@ -174,8 +174,7 @@ class TestSdistTest:
         # The manifest should be UTF-8 encoded
         try:
             u_contents = contents.decode('UTF-8')
-        except UnicodeDecodeError:
-            e = sys.exc_info()[1]
+        except UnicodeDecodeError as e:
             self.fail(e)
 
         # The manifest should contain the UTF-8 filename
@@ -217,8 +216,7 @@ class TestSdistTest:
             # The manifest should be UTF-8 encoded
             try:
                 contents.decode('UTF-8')
-            except UnicodeDecodeError:
-                e = sys.exc_info()[1]
+            except UnicodeDecodeError as e:
                 self.fail(e)
 
             # The manifest should contain the UTF-8 filename
@@ -258,8 +256,7 @@ class TestSdistTest:
             # The manifest should be UTF-8 encoded
             try:
                 contents.decode('UTF-8')
-            except UnicodeDecodeError:
-                e = sys.exc_info()[1]
+            except UnicodeDecodeError as e:
                 self.fail(e)
 
             # The Latin-1 filename should have been skipped
@@ -328,8 +325,7 @@ class TestSdistTest:
             with quiet():
                 try:
                     cmd.read_manifest()
-                except UnicodeDecodeError:
-                    e = sys.exc_info()[1]
+                except UnicodeDecodeError as e:
                     self.fail(e)
 
             # The Latin-1 filename should have been skipped

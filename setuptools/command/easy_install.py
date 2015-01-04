@@ -698,13 +698,11 @@ Please make the appropriate changes for your system and try again.
             distros = WorkingSet([]).resolve(
                 [requirement], self.local_index, self.easy_install
             )
-        except DistributionNotFound:
-            e = sys.exc_info()[1]
+        except DistributionNotFound as e:
             raise DistutilsError(
                 "Could not find required distribution %s" % e.args
             )
-        except VersionConflict:
-            e = sys.exc_info()[1]
+        except VersionConflict as e:
             raise DistutilsError(
                 "Installed distribution %s conflicts with requirement %s"
                 % e.args
@@ -1044,8 +1042,7 @@ See the setuptools documentation for the "develop" command for more info.
         )
         try:
             run_setup(setup_script, args)
-        except SystemExit:
-            v = sys.exc_info()[1]
+        except SystemExit as v:
             raise DistutilsError("Setup script exited with %s" % (v.args[0],))
 
     def build_and_install(self, setup_script, setup_base):
@@ -1889,8 +1886,7 @@ def chmod(path, mode):
     log.debug("changing mode of %s to %o", path, mode)
     try:
         _chmod(path, mode)
-    except os.error:
-        e = sys.exc_info()[1]
+    except os.error as e:
         log.debug("chmod failed: %s", e)
 
 

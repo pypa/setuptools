@@ -199,8 +199,7 @@ def run_setup(setup_script, args):
                 ns = dict(__file__=setup_script, __name__='__main__')
                 _execfile(setup_script, ns)
             DirectorySandbox(setup_dir).run(runner)
-        except SystemExit:
-            v = sys.exc_info()[1]
+        except SystemExit as v:
             if v.args and v.args[0]:
                 raise
             # Normal exit, just return
