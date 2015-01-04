@@ -172,8 +172,11 @@ class TestDistro:
         # Activation list now includes resolved dependency
         assert list(ws.resolve(parse_requirements("Foo[bar]"), ad)) ==[Foo,Baz]
         # Requests for conflicting versions produce VersionConflict
-        with pytest.raises(VersionConflict):
+        with pytest.raises(VersionConflict) as vc:
             ws.resolve(parse_requirements("Foo==1.2\nFoo!=1.2"), ad)
+
+        msg = 'Foo 0.9 is installed but Foo==1.2 is required by []'
+        assert str(vc).endswith(msg)
 
     def testDistroDependsOptions(self):
         d = self.distRequires("""
