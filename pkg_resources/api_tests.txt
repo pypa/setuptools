@@ -210,8 +210,7 @@ working set triggers a ``pkg_resources.VersionConflict`` error:
 
     >>> try:
     ...     ws.find(Requirement.parse("Bar==1.0"))
-    ... except pkg_resources.VersionConflict:
-    ...     exc = sys.exc_info()[1]
+    ... except pkg_resources.VersionConflict as exc:
     ...     print(str(exc))
     ... else:
     ...     raise AssertionError("VersionConflict was not raised")
