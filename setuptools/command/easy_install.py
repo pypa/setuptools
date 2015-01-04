@@ -1920,13 +1920,9 @@ class ScriptWriter(object):
         """Create a #! line, getting options (if any) from script_text"""
         if executable is None:
             executable = nt_quote_arg(sys_executable)
-        first = (script_text + '\n').splitlines()[0]
-        match = _first_line_re().match(first)
-        options = ''
-        if match:
-            options = match.group(1) or ''
-            if options:
-                options = ' ' + options
+
+        options = cls._extract_options(script_text)
+
         hdr = "#!%(executable)s%(options)s\n" % locals()
         if not isascii(hdr):
             # Non-ascii path to sys.executable, use -x to prevent warnings
@@ -1939,6 +1935,20 @@ class ScriptWriter(object):
         executable = fix_jython_executable(executable, options)
         hdr = "#!%(executable)s%(options)s\n" % locals()
         return hdr
+
+    @classmethod
+    def _extract_options(cls, orig_script):
+        """
+        Extract any options from the first line of the script.
+        """
+        first = (orig_script + '\n').splitlines()[0]
+        match = _first_line_re().match(first)
+        options = ''
+        if match:
+            options = match.group(1) or ''
+            if options:
+                options = ' ' + options
+        return options
 
 
 class WindowsScriptWriter(ScriptWriter):
