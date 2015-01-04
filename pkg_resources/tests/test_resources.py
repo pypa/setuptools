@@ -222,6 +222,31 @@ class TestWorkingSet:
         msg = 'Foo 1.2 is installed but Foo<1.2 is required'
         assert vc.value.report() == msg
 
+    def test_resolve_conflicts_with_prior(self):
+        """
+        A ContextualVersionConflict should be raised when a requirement
+        conflicts with a prior requirement for a different package.
+        """
+        # Create installation where Foo depends on Baz 1.0 and Bar depends on
+        # Baz 2.0.
+        ws = WorkingSet([])
+        md = Metadata(('depends.txt', "Baz==1.0"))
+        Foo = Distribution.from_filename("/foo_dir/Foo-1.0.egg", metadata=md)
+        ws.add(Foo)
+        md = Metadata(('depends.txt', "Baz==2.0"))
+        Bar = Distribution.from_filename("/foo_dir/Bar-1.0.egg", metadata=md)
+        ws.add(Bar)
+        Baz = Distribution.from_filename("/foo_dir/Baz-1.0.egg")
+        ws.add(Baz)
+        Baz = Distribution.from_filename("/foo_dir/Baz-2.0.egg")
+        ws.add(Baz)
+
+        with pytest.raises(VersionConflict) as vc:
+            ws.resolve(parse_requirements("Foo\nBar\n"))
+
+        msg = "Baz 1.0 is installed but Baz==2.0 is required by {'Bar'}"
+        assert vc.value.report() == msg
+
 
 class TestEntryPoints:
 
