@@ -754,7 +754,7 @@ Please make the appropriate changes for your system and try again.
         is_script = is_python_script(script_text, script_name)
 
         if is_script:
-            script_text = (get_script_header(script_text) +
+            script_text = (ScriptWriter.get_header(script_text) +
                            self._load_template(dev_path) % locals())
         self.write_script(script_name, _to_ascii(script_text), 'b')
 
@@ -1878,11 +1878,13 @@ class ScriptWriter(object):
         # for backward compatibility
         warnings.warn("Use _gen_args", DeprecationWarning)
         writer = cls.get_writer(wininst)
-        header = get_script_header("", executable, wininst)
+        header = cls.get_script_header("", executable, wininst)
         return writer._gen_args(dist, header)
 
     @classmethod
     def get_script_header(cls, script_text, executable=sys_executable, wininst=False):
+        # for backward compatibility
+        warnings.warn("Use get_header", DeprecationWarning)
         executable = "python.exe" if wininst else nt_quote_arg(executable)
         return cls.get_header(script_text, executable)
 
@@ -1892,7 +1894,7 @@ class ScriptWriter(object):
         Yield write_script() argument tuples for a distribution's entrypoints
         """
         if header is None:
-            header = get_script_header("", sys_executable)
+            header = cls.get_header()
         spec = str(dist.as_requirement())
         for type_ in 'console', 'gui':
             group = type_ + '_scripts'
@@ -1914,8 +1916,10 @@ class ScriptWriter(object):
         yield (name, header + script_text)
 
     @classmethod
-    def get_header(cls, script_text, executable):
+    def get_header(cls, script_text="", executable=None):
         """Create a #! line, getting options (if any) from script_text"""
+        if executable is None:
+            executable = nt_quote_arg(sys_executable)
         first = (script_text + '\n').splitlines()[0]
         match = _first_line_re().match(first)
         options = ''

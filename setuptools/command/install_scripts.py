@@ -14,7 +14,7 @@ class install_scripts(orig.install_scripts):
 
     def run(self):
         from setuptools.command.easy_install import (
-            ScriptWriter, sys_executable, get_script_header,
+            ScriptWriter, sys_executable, nt_quote_arg,
         )
         self.run_command("egg_info")
         if self.distribution.scripts:
@@ -38,7 +38,7 @@ class install_scripts(orig.install_scripts):
         if is_wininst:
             executable = "python.exe"
         writer = ScriptWriter.get_writer(force_windows=is_wininst)
-        header = get_script_header("", executable)
+        header = ScriptWriter.get_header("", nt_quote_arg(executable))
         for args in writer._gen_args(dist, header):
             self.write_script(*args)
 
