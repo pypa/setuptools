@@ -39,7 +39,7 @@ class install_scripts(orig.install_scripts):
             executable = "python.exe"
         writer = ScriptWriter.get_writer(force_windows=is_wininst)
         header = ScriptWriter.get_header("", nt_quote_arg(executable))
-        for args in writer._gen_args(dist, header):
+        for args in writer.get_args(dist, header):
             self.write_script(*args)
 
     def write_script(self, script_name, contents, mode="t", *ignored):

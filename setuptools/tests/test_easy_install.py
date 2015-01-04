@@ -83,7 +83,7 @@ class TestEasyInstallTest:
     def test_get_script_args(self):
         dist = FakeDist()
 
-        args = next(ScriptWriter._gen_args(dist))
+        args = next(ScriptWriter.get_args(dist))
         name, script = itertools.islice(args, 2)
 
         assert script == WANTED
