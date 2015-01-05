@@ -438,7 +438,7 @@ class TestScriptHeader:
         assert actual == expected
 
         actual = ScriptWriter.get_script_header('#!/usr/bin/python',
-            executable=self.exe_with_spaces)
+            executable='"'+self.exe_with_spaces+'"')
         expected = '#!"%s"\n' % self.exe_with_spaces
         assert actual == expected
 
