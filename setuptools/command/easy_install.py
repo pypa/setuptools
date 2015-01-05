@@ -36,6 +36,7 @@ import site
 import struct
 import contextlib
 import subprocess
+import shlex
 
 from setuptools import Command
 from setuptools.sandbox import run_setup
@@ -1884,10 +1885,10 @@ class CommandSpec(list):
         Construct a command spec from a simple string, assumed to represent
         the full name to an executable.
         """
-        return cls._for_jython(string) or cls([string])
+        return JythonCommandSpec.from_string(string) or cls([string])
 
     def install_options(self, script_text):
-        self.options.extend(self._extract_options(script_text))
+        self.options = shlex.split(self._extract_options(script_text))
         cmdline = subprocess.list2cmdline(self)
         if not isascii(cmdline):
             self.options[:0] = ['-x']
@@ -1977,9 +1978,11 @@ class ScriptWriter(object):
     def get_script_header(cls, script_text, executable=None, wininst=False):
         # for backward compatibility
         warnings.warn("Use get_header", DeprecationWarning)
-        executable = executable or CommandSpec.launcher
-        executable = "python.exe" if wininst else nt_quote_arg(executable)
-        return cls.get_header(script_text, executable)
+        if wininst:
+            executable = "python.exe"
+        cmd = CommandSpec.from_param(executable)
+        cmd.install_options(script_text)
+        return cmd.as_header()
 
     @classmethod
     def get_args(cls, dist, header=None):
