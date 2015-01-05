@@ -1862,6 +1862,19 @@ class CommandSpec(list):
     launcher = os.environ.get('__PYVENV_LAUNCHER__', _default)
 
     @classmethod
+    def from_param(cls, param):
+        """
+        Construct a CommandSpec from a parameter to build_scripts, which may
+        be None.
+        """
+        if isinstance(param, cls):
+            return param
+        if param is None:
+            return cls.from_environment()
+        # otherwise, assume it's a string.
+        return cls.from_string(param)
+
+    @classmethod
     def from_environment(cls):
         return cls.from_string(cls.launcher)
 

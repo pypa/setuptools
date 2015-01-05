@@ -13,9 +13,8 @@ class install_scripts(orig.install_scripts):
         self.no_ep = False
 
     def run(self):
-        from setuptools.command.easy_install import (
-            ScriptWriter, sys_executable, nt_quote_arg,
-        )
+        from setuptools.command.easy_install import ScriptWriter, CommandSpec
+
         self.run_command("egg_info")
         if self.distribution.scripts:
             orig.install_scripts.run(self)  # run first to set up self.outfiles
@@ -31,15 +30,14 @@ class install_scripts(orig.install_scripts):
             ei_cmd.egg_name, ei_cmd.egg_version,
         )
         bs_cmd = self.get_finalized_command('build_scripts')
-        executable = getattr(bs_cmd, 'executable', sys_executable)
+        cmd = CommandSpec.from_param(getattr(bs_cmd, 'executable', None))
         is_wininst = getattr(
             self.get_finalized_command("bdist_wininst"), '_is_running', False
         )
         if is_wininst:
-            executable = "python.exe"
+            cmd = CommandSpec.from_string("python.exe")
         writer = ScriptWriter.get_writer(force_windows=is_wininst)
-        header = ScriptWriter.get_header("", nt_quote_arg(executable))
-        for args in writer.get_args(dist, header):
+        for args in writer.get_args(dist, cmd.as_header()):
             self.write_script(*args)
 
     def write_script(self, script_name, contents, mode="t", *ignored):
