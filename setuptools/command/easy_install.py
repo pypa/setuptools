@@ -1870,6 +1870,8 @@ class CommandSpec(list):
         """
         if isinstance(param, cls):
             return param
+        if isinstance(param, list):
+            return cls(param)
         if param is None:
             return cls.from_environment()
         # otherwise, assume it's a string.
