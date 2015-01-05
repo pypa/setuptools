@@ -2014,39 +2014,9 @@ class ScriptWriter(object):
     @classmethod
     def get_header(cls, script_text="", executable=None):
         """Create a #! line, getting options (if any) from script_text"""
-        executable = executable or nt_quote_arg(CommandSpec.launcher)
-
-        options = cls._extract_options(script_text)
-        options = cls._handle_non_ascii_exe(executable, options)
-        tmpl = '#!{executable} {options}\n' if options else '#!{executable}\n'
-
-        executable = fix_jython_executable(executable, options)
-        return tmpl.format(**locals())
-
-    @classmethod
-    def _extract_options(cls, orig_script):
-        """
-        Extract any options from the first line of the script.
-        """
-        first = (orig_script + '\n').splitlines()[0]
-        match = _first_line_re().match(first)
-        options = match.group(1) or '' if match else ''
-        return options.strip()
-
-    @classmethod
-    def _handle_non_ascii_exe(cls, executable, options):
-        if isascii(executable):
-            return options
-
-        # Non-ascii path to sys.executable, use -x to prevent warnings
-        if not options:
-            return '-x'
-
-        if not options.strip().startswith('-'):
-            # punt, we can't do it, let the warning happen anyway
-            return options
-
-        return '-x' + options.strip()[1:]
+        cmd = CommandSpec.from_param(executable)
+        cmd.install_options(script_text)
+        return cmd.as_header()
 
 
 class WindowsScriptWriter(ScriptWriter):
