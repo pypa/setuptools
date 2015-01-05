@@ -15,6 +15,7 @@ link_patterns = [
     r"Jython #(?P<jython>\d+)",
     r"Python #(?P<python>\d+)",
     r"Interop #(?P<interop>\d+)",
+    r"Pip #(?P<pip>\d+)",
 ]
 
 issue_urls = dict(
@@ -27,6 +28,7 @@ issue_urls = dict(
     jython='http://bugs.jython.org/issue{jython}',
     python='http://bugs.python.org/issue{python}',
     interop='https://github.com/pypa/interoperability-peps/issues/{interop}',
+    pip='https://github.com/pypa/pip/issues/{pip}',
 )
 
 
