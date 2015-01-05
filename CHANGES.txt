@@ -3,6 +3,12 @@ CHANGES
 =======
 
 ----
+11.2
+----
+
+* Pip #2326: Report deprecation warning at stacklevel 2 for easier diagnosis.
+
+----
 11.1
 ----
 
