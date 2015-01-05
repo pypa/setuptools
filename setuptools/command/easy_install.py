@@ -1859,8 +1859,11 @@ class CommandSpec(list):
     """
 
     options = []
-    _default = os.path.normpath(sys.executable)
-    launcher = os.environ.get('__PYVENV_LAUNCHER__', _default)
+
+    @classmethod
+    def _sys_executable(cls):
+        _default = os.path.normpath(sys.executable)
+        return os.environ.get('__PYVENV_LAUNCHER__', _default)
 
     @classmethod
     def from_param(cls, param):
@@ -1879,7 +1882,7 @@ class CommandSpec(list):
 
     @classmethod
     def from_environment(cls):
-        return cls.from_string(cls.launcher)
+        return cls.from_string(cls._sys_executable())
 
     @classmethod
     def from_string(cls, string):

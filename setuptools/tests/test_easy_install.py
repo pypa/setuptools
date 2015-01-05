@@ -499,3 +499,9 @@ class TestCommandSpec:
         cmd = CommandSpec(['python'])
         cmd_new = CommandSpec.from_param(cmd)
         assert cmd is cmd_new
+
+    def test_from_environment_with_spaces_in_executable(self):
+        with mock.patch('sys.executable', TestScriptHeader.exe_with_spaces):
+            cmd = CommandSpec.from_environment()
+        assert len(cmd) == 1
+        assert cmd.as_header().startswith('#!"')
