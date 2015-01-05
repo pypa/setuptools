@@ -2294,19 +2294,25 @@ class EntryPoint(object):
     def __repr__(self):
         return "EntryPoint.parse(%r)" % str(self)
 
-    def load(self, require=True, env=None, installer=None):
-        if require:
-            self.require(env, installer)
-        else:
+    def load(self, require=True, *args, **kwargs):
+        """
+        Require packages for this EntryPoint, then resolve it.
+        """
+        if not require or args or kwargs:
             warnings.warn(
-                "`require` parameter is deprecated. Use "
-                "EntryPoint._load instead.",
+                "Parameters to load are deprecated.  Call .resolve and "
+                ".require separately.",
                 DeprecationWarning,
                 stacklevel=2,
             )
-        return self._load()
+        if require:
+            self.require(*args, **kwargs)
+        return self.resolve()
 
-    def _load(self):
+    def resolve(self):
+        """
+        Resolve the entry point from its module and attrs.
+        """
         module = __import__(self.module_name, fromlist=['__name__'], level=0)
         try:
             return functools.reduce(getattr, self.attrs, module)

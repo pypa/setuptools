@@ -3,6 +3,20 @@ CHANGES
 =======
 
 ----
+11.3
+----
+
+* Expose ``EntryPoint.resolve`` in place of EntryPoint._load, implementing the
+  simple, non-requiring load. Deprecated all uses of ``EntryPoint._load``
+  except for calling with no parameters, which is just a shortcut for
+  ``ep.require(); ep.resolve();``.
+
+  Apps currently invoking ``ep.load(require=False)`` should instead do the
+  following if wanting to avoid the deprecating warning::
+
+    getattr(ep, "resolve", lambda: ep.load(require=False))()
+
+----
 11.2
 ----
 
