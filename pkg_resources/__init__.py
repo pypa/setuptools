@@ -2302,6 +2302,7 @@ class EntryPoint(object):
                 "`require` parameter is deprecated. Use "
                 "EntryPoint._load instead.",
                 DeprecationWarning,
+                stacklevel=2,
             )
         return self._load()
 
