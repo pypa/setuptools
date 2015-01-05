@@ -36,7 +36,9 @@ CHANGES
 10.2
 ----
 
-* Deprecated use of EntryPoint.load(require=False).
+* Deprecated use of EntryPoint.load(require=False). Passing a boolean to a
+  function to select behavior is an anti-pattern. Instead use
+  ``Entrypoint._load()``.
 * Substantial refactoring of all unit tests. Tests are now much leaner and
   re-use a lot of fixtures and contexts for better clarity of purpose.
 
