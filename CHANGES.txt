@@ -3,6 +3,15 @@ CHANGES
 =======
 
 ----
+12.0
+----
+
+* Issue #188: Setuptools now support multiple entities in the value for
+  ``build.executable``, such that an executable of "/usr/bin/env my-python" may
+  be specified. This means that systems with a specified executable whose name
+  has spaces in the path must be updated to escape or quote that value.
+
+----
 11.1
 ----
 
