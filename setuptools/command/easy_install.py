@@ -1969,7 +1969,6 @@ class ScriptWriter(object):
     def get_script_args(cls, dist, executable=None, wininst=False):
         # for backward compatibility
         warnings.warn("Use get_args", DeprecationWarning)
-        executable = executable or CommandSpec.launcher
         writer = cls.get_writer(wininst)
         header = cls.get_script_header("", executable, wininst)
         return writer.get_args(dist, header)
