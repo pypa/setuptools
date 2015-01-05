@@ -505,3 +505,12 @@ class TestCommandSpec:
             cmd = CommandSpec.from_environment()
         assert len(cmd) == 1
         assert cmd.as_header().startswith('#!"')
+
+    def test_from_simple_string_uses_shlex(self):
+        """
+        In order to support `executable = /usr/bin/env my-python`, make sure
+        from_param invokes shlex on that input.
+        """
+        cmd = CommandSpec.from_param('/usr/bin/env my-python')
+        assert len(cmd) == 2
+        assert '"' not in cmd.as_header()

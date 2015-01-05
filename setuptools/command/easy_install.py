@@ -1882,15 +1882,16 @@ class CommandSpec(list):
 
     @classmethod
     def from_environment(cls):
-        return cls.from_string(cls._sys_executable())
+        return cls.from_string('"' + cls._sys_executable() + '"')
 
     @classmethod
     def from_string(cls, string):
         """
-        Construct a command spec from a simple string, assumed to represent
-        the full name to an executable.
+        Construct a command spec from a simple string representing a command
+        line parseable by shlex.split.
         """
-        return JythonCommandSpec.from_string(string) or cls([string])
+        items = shlex.split(string)
+        return JythonCommandSpec.from_string(string) or cls(items)
 
     def install_options(self, script_text):
         self.options = shlex.split(self._extract_options(script_text))
