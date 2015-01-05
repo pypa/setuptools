@@ -60,10 +60,6 @@ import pkg_resources
 warnings.filterwarnings("default", category=pkg_resources.PEP440Warning)
 
 
-sys_executable = os.environ.get('__PYVENV_LAUNCHER__',
-                                os.path.normpath(sys.executable))
-
-
 __all__ = [
     'samefile', 'easy_install', 'PthDistributions', 'extract_wininst_cfg',
     'main', 'get_exe_prefixes',
@@ -1855,6 +1851,88 @@ def fix_jython_executable(executable, options):
     return executable
 
 
+class CommandSpec(list):
+    """
+    A command spec for a #! header, specified as a list of arguments akin to
+    those passed to Popen.
+    """
+
+    options = []
+    _default = os.path.normpath(sys.executable)
+    launcher = os.environ.get('__PYVENV_LAUNCHER__', _default)
+
+    @classmethod
+    def from_environment(cls):
+        return cls.from_string(cls.launcher)
+
+    @classmethod
+    def from_string(cls, string):
+        """
+        Construct a command spec from a simple string, assumed to represent
+        the full name to an executable.
+        """
+        return cls._for_jython(string) or cls([string])
+
+    def install_options(self, script_text):
+        self.options.extend(self._extract_options(script_text))
+        cmdline = subprocess.list2cmdline(self)
+        if not isascii(cmdline):
+            self.options[:0] = ['-x']
+
+    @staticmethod
+    def _extract_options(orig_script):
+        """
+        Extract any options from the first line of the script.
+        """
+        first = (orig_script + '\n').splitlines()[0]
+        match = _first_line_re().match(first)
+        options = match.group(1) or '' if match else ''
+        return options.strip()
+
+    def as_header(self):
+        return self._render(self + list(self.options))
+
+    @staticmethod
+    def _render(items):
+        cmdline = subprocess.list2cmdline(items)
+        return '#!' + cmdline + '\n'
+
+
+class JythonCommandSpec(CommandSpec):
+    @classmethod
+    def from_string(cls, string):
+        """
+        On Jython, construct an instance of this class.
+        On platforms other than Jython, return None.
+        """
+        needs_jython_spec = (
+            sys.platform.startswith('java')
+            and
+            __import__('java').lang.System.getProperty('os.name') != 'Linux'
+        )
+        return cls([string]) if needs_jython_spec else None
+
+    def as_header(self):
+        """
+        Workaround Jython's sys.executable being a .sh (an invalid
+        shebang line interpreter)
+        """
+        if not is_sh(self[0]):
+            return super(JythonCommandSpec, self).as_header()
+
+        if self.options:
+            # Can't apply the workaround, leave it broken
+            log.warn(
+                "WARNING: Unable to adapt shebang line for Jython,"
+                " the following script is NOT executable\n"
+                "         see http://bugs.jython.org/issue1112 for"
+                " more information.")
+            return super(JythonCommandSpec, self).as_header()
+
+        items = ['/usr/bin/env'] + self + list(self.options)
+        return self._render(items)
+
+
 class ScriptWriter(object):
     """
     Encapsulates behavior around writing entry point scripts for console and
@@ -1874,17 +1952,19 @@ class ScriptWriter(object):
     """).lstrip()
 
     @classmethod
-    def get_script_args(cls, dist, executable=sys_executable, wininst=False):
+    def get_script_args(cls, dist, executable=None, wininst=False):
         # for backward compatibility
         warnings.warn("Use get_args", DeprecationWarning)
+        executable = executable or CommandSpec.launcher
         writer = cls.get_writer(wininst)
         header = cls.get_script_header("", executable, wininst)
         return writer.get_args(dist, header)
 
     @classmethod
-    def get_script_header(cls, script_text, executable=sys_executable, wininst=False):
+    def get_script_header(cls, script_text, executable=None, wininst=False):
         # for backward compatibility
         warnings.warn("Use get_header", DeprecationWarning)
+        executable = executable or CommandSpec.launcher
         executable = "python.exe" if wininst else nt_quote_arg(executable)
         return cls.get_header(script_text, executable)
 
@@ -1918,8 +1998,7 @@ class ScriptWriter(object):
     @classmethod
     def get_header(cls, script_text="", executable=None):
         """Create a #! line, getting options (if any) from script_text"""
-        if executable is None:
-            executable = nt_quote_arg(sys_executable)
+        executable = executable or nt_quote_arg(CommandSpec.launcher)
 
         options = cls._extract_options(script_text)
         options = cls._handle_non_ascii_exe(executable, options)
