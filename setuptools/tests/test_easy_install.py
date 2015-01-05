@@ -23,7 +23,7 @@ from setuptools.compat import StringIO, BytesIO, urlparse
 from setuptools.sandbox import run_setup
 from setuptools.command.easy_install import (
     easy_install, fix_jython_executable, nt_quote_arg,
-    is_sh, ScriptWriter,
+    is_sh, ScriptWriter, CommandSpec,
 )
 from setuptools.command.easy_install import PthDistributions
 from setuptools.command import easy_install as easy_install_pkg
@@ -481,3 +481,21 @@ class TestScriptHeader:
             assert candidate == '#!%s -x\n' % self.non_ascii_exe
             output = locals()[expect_out]
             assert 'Unable to adapt shebang line' in output.getvalue()
+
+
+class TestCommandSpec:
+    def test_custom_launch_command(self):
+        """
+        Show how a custom CommandSpec could be used to specify a #! executable
+        which takes parameters.
+        """
+        cmd = CommandSpec(['/usr/bin/env', 'python3'])
+        assert cmd.as_header() == '#!/usr/bin/env python3\n'
+
+    def test_from_param_for_CommandSpec_is_passthrough(self):
+        """
+        from_param should return an instance of a CommandSpec
+        """
+        cmd = CommandSpec(['python'])
+        cmd_new = CommandSpec.from_param(cmd)
+        assert cmd is cmd_new
