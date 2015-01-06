@@ -2,6 +2,7 @@ import os
 import sys
 import tempfile
 import shutil
+import string
 
 import pytest
 
@@ -301,6 +302,16 @@ class TestEntryPoints:
             try: EntryPoint.parse(ep)
             except ValueError: pass
             else: raise AssertionError("Should've been bad", ep)
+
+    def test_printable_name(self):
+        """
+        Allow any printable character in the name.
+        """
+        # Create a name with all printable characters; strip the whitespace.
+        name = string.printable.strip()
+        spec = "{name} = module:attr".format(**locals())
+        ep = EntryPoint.parse(spec)
+        assert ep.name == name
 
     def checkSubMap(self, m):
         assert len(m) == len(self.submap_expect)

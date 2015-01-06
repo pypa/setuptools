@@ -2328,7 +2328,7 @@ class EntryPoint(object):
 
     pattern = re.compile(
         r'\s*'
-        r'(?P<name>[+\w. -]+?)\s*'
+        r'(?P<name>.+?)\s*'
         r'=\s*'
         r'(?P<module>[\w.]+)\s*'
         r'(:\s*(?P<attr>[\w.]+))?\s*'

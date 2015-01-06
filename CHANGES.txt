@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+------
+11.3.1
+------
+
+* Issue #327: Formalize and restore support for any printable character in an
+  entry point name.
+
 ----
 11.3
 ----
