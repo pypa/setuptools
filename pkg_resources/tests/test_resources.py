@@ -297,7 +297,7 @@ class TestEntryPoints:
 
     def testRejects(self):
         for ep in [
-            "foo", "x=1=2", "x=a:b:c", "q=x/na", "fez=pish:tush-z", "x=f[a]>2",
+            "foo", "x=a:b:c", "q=x/na", "fez=pish:tush-z", "x=f[a]>2",
         ]:
             try: EntryPoint.parse(ep)
             except ValueError: pass
