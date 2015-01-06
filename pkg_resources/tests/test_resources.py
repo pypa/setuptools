@@ -295,12 +295,12 @@ class TestEntryPoints:
         ep = EntryPoint.parse(spec)
         assert ep.name == 'html+mako'
 
-    def testRejects(self):
-        specs = "foo", "x=a:b:c", "q=x/na", "fez=pish:tush-z", "x=f[a]>2"
-        for ep in specs:
-            try: EntryPoint.parse(ep)
-            except ValueError: pass
-            else: raise AssertionError("Should've been bad", ep)
+    reject_specs = "foo", "x=a:b:c", "q=x/na", "fez=pish:tush-z", "x=f[a]>2"
+    @pytest.mark.parametrize("reject_spec", reject_specs)
+    def test_reject_spec(self, reject_spec):
+        try: EntryPoint.parse(reject_spec)
+        except ValueError: pass
+        else: raise AssertionError("Should've been bad", reject_spec)
 
     def test_printable_name(self):
         """
