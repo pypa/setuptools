@@ -296,9 +296,8 @@ class TestEntryPoints:
         assert ep.name == 'html+mako'
 
     def testRejects(self):
-        for ep in [
-            "foo", "x=a:b:c", "q=x/na", "fez=pish:tush-z", "x=f[a]>2",
-        ]:
+        specs = "foo", "x=a:b:c", "q=x/na", "fez=pish:tush-z", "x=f[a]>2"
+        for ep in specs:
             try: EntryPoint.parse(ep)
             except ValueError: pass
             else: raise AssertionError("Should've been bad", ep)
