@@ -2,6 +2,7 @@ import os
 import sys
 import tempfile
 import shutil
+import string
 
 import pytest
 
@@ -294,13 +295,21 @@ class TestEntryPoints:
         ep = EntryPoint.parse(spec)
         assert ep.name == 'html+mako'
 
-    def testRejects(self):
-        for ep in [
-            "foo", "x=1=2", "x=a:b:c", "q=x/na", "fez=pish:tush-z", "x=f[a]>2",
-        ]:
-            try: EntryPoint.parse(ep)
-            except ValueError: pass
-            else: raise AssertionError("Should've been bad", ep)
+    reject_specs = "foo", "x=a:b:c", "q=x/na", "fez=pish:tush-z", "x=f[a]>2"
+    @pytest.mark.parametrize("reject_spec", reject_specs)
+    def test_reject_spec(self, reject_spec):
+        with pytest.raises(ValueError):
+            EntryPoint.parse(reject_spec)
+
+    def test_printable_name(self):
+        """
+        Allow any printable character in the name.
+        """
+        # Create a name with all printable characters; strip the whitespace.
+        name = string.printable.strip()
+        spec = "{name} = module:attr".format(**locals())
+        ep = EntryPoint.parse(spec)
+        assert ep.name == name
 
     def checkSubMap(self, m):
         assert len(m) == len(self.submap_expect)

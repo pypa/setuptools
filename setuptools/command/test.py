@@ -172,4 +172,4 @@ class test(Command):
         if val is None:
             return
         parsed = EntryPoint.parse("x=" + val)
-        return parsed._load()()
+        return parsed.resolve()()

@@ -11,6 +11,33 @@ CHANGES
   be specified. This means that systems with a specified executable whose name
   has spaces in the path must be updated to escape or quote that value.
 
+------
+11.3.1
+------
+
+* Issue #327: Formalize and restore support for any printable character in an
+  entry point name.
+
+----
+11.3
+----
+
+* Expose ``EntryPoint.resolve`` in place of EntryPoint._load, implementing the
+  simple, non-requiring load. Deprecated all uses of ``EntryPoint._load``
+  except for calling with no parameters, which is just a shortcut for
+  ``ep.require(); ep.resolve();``.
+
+  Apps currently invoking ``ep.load(require=False)`` should instead do the
+  following if wanting to avoid the deprecating warning::
+
+    getattr(ep, "resolve", lambda: ep.load(require=False))()
+
+----
+11.2
+----
+
+* Pip #2326: Report deprecation warning at stacklevel 2 for easier diagnosis.
+
 ----
 11.1
 ----
@@ -39,7 +66,9 @@ CHANGES
 10.2
 ----
 
-* Deprecated use of EntryPoint.load(require=False).
+* Deprecated use of EntryPoint.load(require=False). Passing a boolean to a
+  function to select behavior is an anti-pattern. Instead use
+  ``Entrypoint._load()``.
 * Substantial refactoring of all unit tests. Tests are now much leaner and
   re-use a lot of fixtures and contexts for better clarity of purpose.
 
