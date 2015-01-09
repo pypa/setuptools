@@ -27,7 +27,7 @@ def environment(**replacements):
     to clear the values.
     """
     saved = dict(
-        (key, os.environ['key'])
+        (key, os.environ[key])
         for key in replacements
         if key in os.environ
     )
