@@ -105,9 +105,9 @@ class ExceptionSaver:
             return
 
         # dump the exception
-        self.saved_type = pickle.dumps(type)
-        self.saved_exc = pickle.dumps(exc)
-        self.tb = tb
+        self._type = pickle.dumps(type)
+        self._exc = pickle.dumps(exc)
+        self._tb = tb
 
         # suppress the exception
         return True
@@ -115,12 +115,12 @@ class ExceptionSaver:
     def resume(self):
         "restore and re-raise any exception"
 
-        if 'saved_exc' not in vars(self):
+        if '_exc' not in vars(self):
             return
 
-        type = pickle.loads(self.saved_type)
-        exc = pickle.loads(self.saved_exc)
-        compat.reraise(type, exc, self.tb)
+        type = pickle.loads(self._type)
+        exc = pickle.loads(self._exc)
+        compat.reraise(type, exc, self._tb)
 
 
 @contextlib.contextmanager
