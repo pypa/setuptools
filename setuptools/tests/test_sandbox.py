@@ -82,3 +82,9 @@ class TestExceptionSaver:
 
         assert isinstance(caught.value, ValueError)
         assert caught.value is not orig_exc
+
+    def test_no_exception_passes_quietly(self):
+        with setuptools.sandbox.ExceptionSaver() as saved_exc:
+            pass
+
+        saved_exc.resume()
