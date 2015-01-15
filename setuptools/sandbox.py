@@ -92,6 +92,37 @@ def pushd(target):
         os.chdir(saved)
 
 
+class ExceptionSaver:
+    """
+    A Context Manager that will save an exception, serialized, and restore it
+    later.
+    """
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, exc, tb):
+        if not exc:
+            return
+
+        # dump the exception
+        self.saved_type = pickle.dumps(type)
+        self.saved_exc = pickle.dumps(exc)
+        self.tb = tb
+
+        # suppress the exception
+        return True
+
+    def resume(self):
+        "restore and re-raise any exception"
+
+        if 'saved_exc' not in vars(self):
+            return
+
+        type = pickle.loads(self.saved_type)
+        exc = pickle.loads(self.saved_exc)
+        compat.reraise(type, exc, self.tb)
+
+
 @contextlib.contextmanager
 def save_modules():
     """
@@ -101,31 +132,20 @@ def save_modules():
     outside the context.
     """
     saved = sys.modules.copy()
-    try:
-        try:
-            yield saved
-        except:
-            # dump any exception
-            class_, exc, tb = sys.exc_info()
-            saved_cls = pickle.dumps(class_)
-            saved_exc = pickle.dumps(exc)
-            raise
-        finally:
-            sys.modules.update(saved)
-            # remove any modules imported since
-            del_modules = (
-                mod_name for mod_name in sys.modules
-                if mod_name not in saved
-                # exclude any encodings modules. See #285
-                and not mod_name.startswith('encodings.')
-            )
-            _clear_modules(del_modules)
-    except:
-        # reload and re-raise any exception, using restored modules
-        class_, exc, tb = sys.exc_info()
-        new_cls = pickle.loads(saved_cls)
-        new_exc = pickle.loads(saved_exc)
-        compat.reraise(new_cls, new_exc, tb)
+    with ExceptionSaver() as saved_exc:
+        yield saved
+
+    sys.modules.update(saved)
+    # remove any modules imported since
+    del_modules = (
+        mod_name for mod_name in sys.modules
+        if mod_name not in saved
+        # exclude any encodings modules. See #285
+        and not mod_name.startswith('encodings.')
+    )
+    _clear_modules(del_modules)
+
+    saved_exc.resume()
 
 
 def _clear_modules(module_names):
