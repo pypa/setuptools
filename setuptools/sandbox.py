@@ -92,6 +92,22 @@ def pushd(target):
         os.chdir(saved)
 
 
+class UnpickleableException(Exception):
+    """
+    An exception representing another Exception that could not be pickled.
+    """
+    @classmethod
+    def dump(cls, type, exc):
+        """
+        Always return a dumped (pickled) type and exc. If exc can't be pickled,
+        wrap it in UnpickleableException first.
+        """
+        try:
+            return pickle.dumps(type), pickle.dumps(exc)
+        except Exception:
+            return cls.dump(cls, cls(repr(exc)))
+
+
 class ExceptionSaver:
     """
     A Context Manager that will save an exception, serialized, and restore it
@@ -105,8 +121,7 @@ class ExceptionSaver:
             return
 
         # dump the exception
-        self._type = pickle.dumps(type)
-        self._exc = pickle.dumps(exc)
+        self._saved = UnpickleableException.dump(type, exc)
         self._tb = tb
 
         # suppress the exception
@@ -115,11 +130,10 @@ class ExceptionSaver:
     def resume(self):
         "restore and re-raise any exception"
 
-        if '_exc' not in vars(self):
+        if '_saved' not in vars(self):
             return
 
-        type = pickle.loads(self._type)
-        exc = pickle.loads(self._exc)
+        type, exc = map(pickle.loads, self._saved)
         compat.reraise(type, exc, self._tb)
 
 
