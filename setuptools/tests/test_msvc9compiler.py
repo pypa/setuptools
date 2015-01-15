@@ -7,7 +7,10 @@ import contextlib
 import distutils.errors
 
 import pytest
-import mock
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 
 from . import contexts
 

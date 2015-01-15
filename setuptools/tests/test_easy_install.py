@@ -15,7 +15,10 @@ import logging
 import itertools
 
 import pytest
-import mock
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 
 from setuptools import sandbox
 from setuptools import compat
