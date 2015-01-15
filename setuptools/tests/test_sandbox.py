@@ -88,3 +88,15 @@ class TestExceptionSaver:
             pass
 
         saved_exc.resume()
+
+    def test_unpickleable_exception(self):
+        class CantPickleThis(Exception):
+            "This Exception is unpickleable because it's not in globals"
+
+        with setuptools.sandbox.ExceptionSaver() as saved_exc:
+            raise CantPickleThis('detail')
+
+        with pytest.raises(setuptools.sandbox.UnpickleableException) as caught:
+            saved_exc.resume()
+
+        assert str(caught.value) == "CantPickleThis('detail',)"
