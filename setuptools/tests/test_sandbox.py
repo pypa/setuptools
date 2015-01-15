@@ -54,3 +54,31 @@ class TestSandbox:
         with setup_py.open('wb') as stream:
             stream.write(b'"degenerate script"\r\n')
         setuptools.sandbox._execfile(str(setup_py), globals())
+
+
+class TestExceptionSaver:
+    def test_exception_trapped(self):
+        with setuptools.sandbox.ExceptionSaver():
+            raise ValueError("details")
+
+    def test_exception_resumed(self):
+        with setuptools.sandbox.ExceptionSaver() as saved_exc:
+            raise ValueError("details")
+
+        with pytest.raises(ValueError) as caught:
+            saved_exc.resume()
+
+        assert isinstance(caught.value, ValueError)
+        assert str(caught.value) == 'details'
+
+    def test_exception_reconstructed(self):
+        orig_exc = ValueError("details")
+
+        with setuptools.sandbox.ExceptionSaver() as saved_exc:
+            raise orig_exc
+
+        with pytest.raises(ValueError) as caught:
+            saved_exc.resume()
+
+        assert isinstance(caught.value, ValueError)
+        assert caught.value is not orig_exc
