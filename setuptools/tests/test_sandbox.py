@@ -7,7 +7,7 @@ import pytest
 
 import pkg_resources
 import setuptools.sandbox
-from setuptools.sandbox import DirectorySandbox, SandboxViolation
+from setuptools.sandbox import DirectorySandbox
 
 
 class TestSandbox:
