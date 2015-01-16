@@ -742,7 +742,7 @@ Please make the appropriate changes for your system and try again.
 
     def install_wrapper_scripts(self, dist):
         if not self.exclude_scripts:
-            for args in ScriptWriter.get_args(dist):
+            for args in ScriptWriter.best().get_args(dist):
                 self.write_script(*args)
 
     def install_script(self, dist, script_name, script_text, dev_path=None):
@@ -1975,7 +1975,7 @@ class ScriptWriter(object):
     def get_script_args(cls, dist, executable=None, wininst=False):
         # for backward compatibility
         warnings.warn("Use get_args", DeprecationWarning)
-        writer = cls.get_writer(wininst)
+        writer = (WindowsScriptWriter if wininst else ScriptWriter).best()
         header = cls.get_script_header("", executable, wininst)
         return writer.get_args(dist, header)
 
@@ -2007,9 +2007,16 @@ class ScriptWriter(object):
 
     @classmethod
     def get_writer(cls, force_windows):
-        if force_windows or sys.platform == 'win32':
-            return WindowsScriptWriter.get_writer()
-        return cls
+        # for backward compatibility
+        warnings.warn("Use best", DeprecationWarning)
+        return WindowsScriptWriter.best() if force_windows else cls.best()
+
+    @classmethod
+    def best(cls):
+        """
+        Select the best ScriptWriter for this environment.
+        """
+        return WindowsScriptWriter.best() if sys.platform == 'win32' else cls
 
     @classmethod
     def _get_script_args(cls, type_, name, header, script_text):
@@ -2027,8 +2034,14 @@ class ScriptWriter(object):
 class WindowsScriptWriter(ScriptWriter):
     @classmethod
     def get_writer(cls):
+        # for backward compatibility
+        warnings.warn("Use best", DeprecationWarning)
+        return cls.best()
+
+    @classmethod
+    def best(cls):
         """
-        Get a script writer suitable for Windows
+        Select the best ScriptWriter suitable for Windows
         """
         writer_lookup = dict(
             executable=WindowsExecutableLauncherWriter,

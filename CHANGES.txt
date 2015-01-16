@@ -10,6 +10,8 @@ CHANGES
   ``build.executable``, such that an executable of "/usr/bin/env my-python" may
   be specified. This means that systems with a specified executable whose name
   has spaces in the path must be updated to escape or quote that value.
+* Deprecated ``easy_install.ScriptWriter.get_writer``, replaced by ``.best()``
+  with slightly different semantics (no force_windows flag).
 
 ------
 11.3.1
