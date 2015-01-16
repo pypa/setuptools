@@ -113,7 +113,8 @@ class TestModulePatch:
         Ensure user's settings are preferred.
         """
         result = distutils.msvc9compiler.find_vcvarsall(9.0)
-        assert user_preferred_setting == result
+        expected = os.path.join(user_preferred_setting, 'vcvarsall.bat')
+        assert expected == result
 
     @pytest.yield_fixture
     def local_machine_setting(self):
@@ -134,7 +135,8 @@ class TestModulePatch:
         Ensure machine setting is honored if user settings are not present.
         """
         result = distutils.msvc9compiler.find_vcvarsall(9.0)
-        assert local_machine_setting == result
+        expected = os.path.join(local_machine_setting, 'vcvarsall.bat')
+        assert expected == result
 
     @pytest.yield_fixture
     def x64_preferred_setting(self):
@@ -160,7 +162,8 @@ class TestModulePatch:
         Ensure 64-bit system key is preferred.
         """
         result = distutils.msvc9compiler.find_vcvarsall(9.0)
-        assert x64_preferred_setting == result
+        expected = os.path.join(x64_preferred_setting, 'vcvarsall.bat')
+        assert expected == result
 
     @staticmethod
     @contextlib.contextmanager
@@ -173,4 +176,4 @@ class TestModulePatch:
             vcvarsall = os.path.join(result, 'vcvarsall.bat')
             with open(vcvarsall, 'w'):
                 pass
-            yield vcvarsall
+            yield result
