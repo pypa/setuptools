@@ -173,4 +173,4 @@ class TestModulePatch:
             vcvarsall = os.path.join(result, 'vcvarsall.bat')
             with open(vcvarsall, 'w'):
                 pass
-            yield
+            yield vcvarsall
