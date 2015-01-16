@@ -12,6 +12,7 @@ import pytest
 from setuptools.command.easy_install import easy_install
 from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
+from setuptools.compat import urlopen
 
 
 def setup_module(module):
@@ -23,6 +24,11 @@ def setup_module(module):
             pytest.skip(tmpl.format(**locals()))
         except ImportError:
             pass
+
+    try:
+        urlopen('https://pypi.python.org/pypi')
+    except Exception as exc:
+        pytest.skip(reason=str(exc))
 
 
 @pytest.fixture
