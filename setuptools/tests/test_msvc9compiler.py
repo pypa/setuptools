@@ -142,7 +142,7 @@ class TestModulePatch:
     def x64_preferred_setting(self):
         """
         Set up environment with 64-bit and 32-bit system settings configured
-        and yield the 64-bit location.
+        and yield the canonical location.
         """
         with self.mock_install_dir() as x32_dir:
             with self.mock_install_dir() as x64_dir:
@@ -155,7 +155,7 @@ class TestModulePatch:
                     },
                 )
                 with reg:
-                    yield x64_dir
+                    yield x32_dir
 
     def test_ensure_64_bit_preferred(self, x64_preferred_setting):
         """
