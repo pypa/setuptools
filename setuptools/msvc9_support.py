@@ -1,5 +1,3 @@
-import sys
-
 try:
     import distutils.msvc9compiler
 except ImportError:
