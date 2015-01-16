@@ -2,6 +2,14 @@
 CHANGES
 =======
 
+------
+12.0.1
+------
+
+* Restore ``setuptools.command.easy_install.sys_executable`` for pbr
+  compatibility. For the future, tools should construct a CommandSpec
+  explicitly.
+
 ----
 12.0
 ----

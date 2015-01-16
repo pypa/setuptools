@@ -56,7 +56,6 @@ from pkg_resources import (
 )
 import pkg_resources
 
-
 # Turn on PEP440Warnings
 warnings.filterwarnings("default", category=pkg_resources.PEP440Warning)
 
@@ -1917,6 +1916,9 @@ class CommandSpec(list):
         cmdline = subprocess.list2cmdline(items)
         return '#!' + cmdline + '\n'
 
+# For pbr compat; will be removed in a future version.
+sys_executable = CommandSpec._sys_executable()
+
 
 class JythonCommandSpec(CommandSpec):
     @classmethod
@@ -2238,4 +2240,3 @@ def _patch_usage():
         yield
     finally:
         distutils.core.gen_usage = saved
-
