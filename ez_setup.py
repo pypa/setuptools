@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Bootstrap setuptools installation
+"""Bootstrap setuptools installation.
 
 To use setuptools in your package's setup.py, include this
 file in the same directory and add this to the top of your setup.py::
@@ -39,8 +39,11 @@ except ImportError:
 DEFAULT_VERSION = "12.0.5"
 DEFAULT_URL = "https://pypi.python.org/packages/source/s/setuptools/"
 
+
 def _python_cmd(*args):
     """
+    Execute a command.
+
     Return True if the command succeeded.
     """
     args = (sys.executable,) + args
@@ -48,6 +51,7 @@ def _python_cmd(*args):
 
 
 def _install(archive_filename, install_args=()):
+    """Install Setuptools."""
     with archive_context(archive_filename):
         # installing
         log.warn('Installing Setuptools')
@@ -59,6 +63,7 @@ def _install(archive_filename, install_args=()):
 
 
 def _build_egg(egg, archive_filename, to_dir):
+    """Build Setuptools egg."""
     with archive_context(archive_filename):
         # building an egg
         log.warn('Building a Setuptools egg in %s', to_dir)
@@ -70,20 +75,19 @@ def _build_egg(egg, archive_filename, to_dir):
 
 
 class ContextualZipFile(zipfile.ZipFile):
-    """
-    Supplement ZipFile class to support context manager for Python 2.6
-    """
+
+    """Supplement ZipFile class to support context manager for Python 2.6."""
 
     def __enter__(self):
+        """Context manager __enter__ hook."""
         return self
 
     def __exit__(self, type, value, traceback):
+        """Context manager __exit__ hook."""
         self.close()
 
     def __new__(cls, *args, **kwargs):
-        """
-        Construct a ZipFile or ContextualZipFile as appropriate
-        """
+        """Construct a ZipFile or ContextualZipFile as appropriate."""
         if hasattr(zipfile.ZipFile, '__exit__'):
             return zipfile.ZipFile(*args, **kwargs)
         return super(ContextualZipFile, cls).__new__(cls)
@@ -91,7 +95,7 @@ class ContextualZipFile(zipfile.ZipFile):
 
 @contextlib.contextmanager
 def archive_context(filename):
-    # extracting the archive
+    """Extract archive."""
     tmpdir = tempfile.mkdtemp()
     log.warn('Extracting in %s', tmpdir)
     old_wd = os.getcwd()
@@ -112,6 +116,7 @@ def archive_context(filename):
 
 
 def _do_download(version, download_base, to_dir, download_delay):
+    """Download Setuptools."""
     egg = os.path.join(to_dir, 'setuptools-%s-py%d.%d.egg'
                        % (version, sys.version_info[0], sys.version_info[1]))
     if not os.path.exists(egg):
@@ -129,8 +134,10 @@ def _do_download(version, download_base, to_dir, download_delay):
     setuptools.bootstrap_install_from = egg
 
 
-def use_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
+def use_setuptools(
+        version=DEFAULT_VERSION, download_base=DEFAULT_URL,
         to_dir=os.curdir, download_delay=15):
+    """Download, install and use Setuptools."""
     to_dir = os.path.abspath(to_dir)
     rep_modules = 'pkg_resources', 'setuptools'
     imported = set(sys.modules).intersection(rep_modules)
@@ -146,9 +153,9 @@ def use_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
     except pkg_resources.VersionConflict as VC_err:
         if imported:
             msg = textwrap.dedent("""
-                The required version of setuptools (>={version}) is not available,
-                and can't be installed while this script is running. Please
-                install a more recent version first, using
+                The required version of setuptools (>={version}) is not
+                available, and can't be installed while this script is running.
+                Please install a more recent version first, using
                 'easy_install -U setuptools'.
 
                 (Currently using {VC_err.args[0]!r})
@@ -160,10 +167,12 @@ def use_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
         del pkg_resources, sys.modules['pkg_resources']
         return _do_download(version, download_base, to_dir, download_delay)
 
+
 def _clean_check(cmd, target):
     """
-    Run the command to download target. If the command fails, clean up before
-    re-raising the error.
+    Run the command to download target.
+
+    If the command fails, clean up before re-raising the error.
     """
     try:
         subprocess.check_call(cmd)
@@ -172,10 +181,13 @@ def _clean_check(cmd, target):
             os.unlink(target)
         raise
 
+
 def download_file_powershell(url, target):
     """
-    Download the file at url to target using Powershell (which will validate
-    trust). Raise an exception if the command cannot complete.
+    Download the file at url to target using Powershell.
+    
+    Powershell will validate trust.
+    Raise an exception if the command cannot complete.
     """
     target = os.path.abspath(target)
     ps_cmd = (
@@ -191,7 +203,9 @@ def download_file_powershell(url, target):
     ]
     _clean_check(cmd, target)
 
+
 def has_powershell():
+    """Determine if Powershell is available."""
     if platform.system() != 'Windows':
         return False
     cmd = ['powershell', '-Command', 'echo test']
@@ -202,13 +216,18 @@ def has_powershell():
             return False
     return True
 
+
 download_file_powershell.viable = has_powershell
 
+
 def download_file_curl(url, target):
+    """Use curl to download the file."""
     cmd = ['curl', url, '--silent', '--output', target]
     _clean_check(cmd, target)
 
+
 def has_curl():
+    """Determine if curl is available."""
     cmd = ['curl', '--version']
     with open(os.path.devnull, 'wb') as devnull:
         try:
@@ -217,13 +236,18 @@ def has_curl():
             return False
     return True
 
+
 download_file_curl.viable = has_curl
 
+
 def download_file_wget(url, target):
+    """Use wget to download the file."""
     cmd = ['wget', url, '--quiet', '--output-document', target]
     _clean_check(cmd, target)
 
+
 def has_wget():
+    """Determine if wget is available."""
     cmd = ['wget', '--version']
     with open(os.path.devnull, 'wb') as devnull:
         try:
@@ -232,13 +256,12 @@ def has_wget():
             return False
     return True
 
+
 download_file_wget.viable = has_wget
 
+
 def download_file_insecure(url, target):
-    """
-    Use Python to download the file, even though it cannot authenticate the
-    connection.
-    """
+    """Use Python to download the file, without connection authentication."""
     src = urlopen(url)
     try:
         # Read all the data in one block.
@@ -250,9 +273,12 @@ def download_file_insecure(url, target):
     with open(target, "wb") as dst:
         dst.write(data)
 
+
 download_file_insecure.viable = lambda: True
 
+
 def get_best_downloader():
+    """Determine the best downloader."""
     downloaders = (
         download_file_powershell,
         download_file_curl,
@@ -262,10 +288,12 @@ def get_best_downloader():
     viable_downloaders = (dl for dl in downloaders if dl.viable())
     return next(viable_downloaders, None)
 
-def download_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
+
+def download_setuptools(
+        version=DEFAULT_VERSION, download_base=DEFAULT_URL,
         to_dir=os.curdir, delay=15, downloader_factory=get_best_downloader):
     """
-    Download setuptools from a specified location and return its filename
+    Download setuptools from a specified location and return its filename.
 
     `version` should be a valid setuptools version number that is available
     as an sdist for download under the `download_base` URL (which should end
@@ -287,16 +315,18 @@ def download_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
         downloader(url, saveto)
     return os.path.realpath(saveto)
 
+
 def _build_install_args(options):
     """
-    Build the arguments to 'python setup.py install' on the setuptools package
+    Build the arguments to 'python setup.py install' on the setuptools package.
+
+    Returns list of command line arguments.
     """
     return ['--user'] if options.user_install else []
 
+
 def _parse_args():
-    """
-    Parse the command line for options
-    """
+    """Parse the command line for options."""
     parser = optparse.OptionParser()
     parser.add_option(
         '--user', dest='user_install', action='store_true', default=False,
@@ -318,8 +348,9 @@ def _parse_args():
     # positional arguments are ignored
     return options
 
+
 def main():
-    """Install or upgrade setuptools and EasyInstall"""
+    """Install or upgrade setuptools and EasyInstall."""
     options = _parse_args()
     archive = download_setuptools(
         version=options.version,
