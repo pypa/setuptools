@@ -30,7 +30,8 @@ class install_scripts(orig.install_scripts):
             ei_cmd.egg_name, ei_cmd.egg_version,
         )
         bs_cmd = self.get_finalized_command('build_scripts')
-        cmd = ei.CommandSpec.from_param(getattr(bs_cmd, 'executable', None))
+        exec_param = getattr(bs_cmd, 'executable', None)
+        cmd = ei.CommandSpec.from_param(exec_param)
         bw_cmd = self.get_finalized_command("bdist_wininst")
         is_wininst = getattr(bw_cmd, '_is_running', False)
         writer = ei.ScriptWriter
