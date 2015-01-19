@@ -2004,7 +2004,7 @@ class ScriptWriter(object):
         warnings.warn("Use get_header", DeprecationWarning)
         if wininst:
             executable = "python.exe"
-        cmd = CommandSpec.from_param(executable)
+        cmd = cls.command_spec_class.from_param(executable)
         cmd.install_options(script_text)
         return cmd.as_header()
 
@@ -2045,7 +2045,7 @@ class ScriptWriter(object):
     @classmethod
     def get_header(cls, script_text="", executable=None):
         """Create a #! line, getting options (if any) from script_text"""
-        cmd = CommandSpec.from_param(executable)
+        cmd = cls.command_spec_class.from_param(executable)
         cmd.install_options(script_text)
         return cmd.as_header()
 
