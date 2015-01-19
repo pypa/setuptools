@@ -3,6 +3,13 @@ CHANGES
 =======
 
 ------
+12.0.2
+------
+
+* Issue #331: Fixed ``install_scripts`` command on Windows systems corrupting
+  the header.
+
+------
 12.0.1
 ------
 
