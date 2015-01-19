@@ -445,43 +445,49 @@ class easy_install(Command):
             self.pth_file = None  # and don't create a .pth file
         self.install_dir = instdir
 
+    __cant_write_msg = textwrap.dedent("""
+        can't create or remove files in install directory
+
+        The following error occurred while trying to add or remove files in the
+        installation directory:
+
+            %s
+
+        The installation directory you specified (via --install-dir, --prefix, or
+        the distutils default setting) was:
+
+            %s
+        """).lstrip()
+
+    __not_exists_id = textwrap.dedent("""
+        This directory does not currently exist.  Please create it and try again, or
+        choose a different installation directory (using the -d or --install-dir
+        option).
+        """).lstrip()
+
+    __access_msg = textwrap.dedent("""
+        Perhaps your account does not have write access to this directory?  If the
+        installation directory is a system-owned directory, you may need to sign in
+        as the administrator or "root" account.  If you do not have administrative
+        access to this machine, you may wish to choose a different installation
+        directory, preferably one that is listed in your PYTHONPATH environment
+        variable.
+
+        For information on other options, you may wish to consult the
+        documentation at:
+
+          https://pythonhosted.org/setuptools/easy_install.html
+
+        Please make the appropriate changes for your system and try again.
+        """).lstrip()
+
     def cant_write_to_target(self):
-        template = """can't create or remove files in install directory
-
-The following error occurred while trying to add or remove files in the
-installation directory:
-
-    %s
-
-The installation directory you specified (via --install-dir, --prefix, or
-the distutils default setting) was:
-
-    %s
-"""
-        msg = template % (sys.exc_info()[1], self.install_dir,)
+        msg = self._cant_write_msg % (sys.exc_info()[1], self.install_dir,)
 
         if not os.path.exists(self.install_dir):
-            msg += """
-This directory does not currently exist.  Please create it and try again, or
-choose a different installation directory (using the -d or --install-dir
-option).
-"""
+            msg += '\n' + self.__not_exists_id
         else:
-            msg += """
-Perhaps your account does not have write access to this directory?  If the
-installation directory is a system-owned directory, you may need to sign in
-as the administrator or "root" account.  If you do not have administrative
-access to this machine, you may wish to choose a different installation
-directory, preferably one that is listed in your PYTHONPATH environment
-variable.
-
-For information on other options, you may wish to consult the
-documentation at:
-
-  https://pythonhosted.org/setuptools/easy_install.html
-
-Please make the appropriate changes for your system and try again.
-"""
+            msg += '\n' + self.__access_msg
         raise DistutilsError(msg)
 
     def check_pth_processing(self):
@@ -979,46 +985,52 @@ Please make the appropriate changes for your system and try again.
                     f.write('\n'.join(locals()[name]) + '\n')
                     f.close()
 
+    __mv_warning = textwrap.dedent("""
+        Because this distribution was installed --multi-version, before you can
+        import modules from this package in an application, you will need to
+        'import pkg_resources' and then use a 'require()' call similar to one of
+        these examples, in order to select the desired version:
+
+            pkg_resources.require("%(name)s")  # latest installed version
+            pkg_resources.require("%(name)s==%(version)s")  # this exact version
+            pkg_resources.require("%(name)s>=%(version)s")  # this version or higher
+        """).lstrip()
+
+    __id_warning = textwrap.dedent("""
+        Note also that the installation directory must be on sys.path at runtime for
+        this to work.  (e.g. by being the application's script directory, by being on
+        PYTHONPATH, or by being added to sys.path by your code.)
+        """)
+
     def installation_report(self, req, dist, what="Installed"):
         """Helpful installation message for display to package users"""
         msg = "\n%(what)s %(eggloc)s%(extras)s"
         if self.multi_version and not self.no_report:
-            msg += """
-
-Because this distribution was installed --multi-version, before you can
-import modules from this package in an application, you will need to
-'import pkg_resources' and then use a 'require()' call similar to one of
-these examples, in order to select the desired version:
-
-    pkg_resources.require("%(name)s")  # latest installed version
-    pkg_resources.require("%(name)s==%(version)s")  # this exact version
-    pkg_resources.require("%(name)s>=%(version)s")  # this version or higher
-"""
+            msg += '\n' + self.__mv_warning
             if self.install_dir not in map(normalize_path, sys.path):
-                msg += """
+                msg += '\n' + self.__id_warning
 
-Note also that the installation directory must be on sys.path at runtime for
-this to work.  (e.g. by being the application's script directory, by being on
-PYTHONPATH, or by being added to sys.path by your code.)
-"""
         eggloc = dist.location
         name = dist.project_name
         version = dist.version
         extras = ''  # TODO: self.report_extras(req, dist)
         return msg % locals()
 
+    __editable_msg = textwrap.dedent("""
+        Extracted editable version of %(spec)s to %(dirname)s
+
+        If it uses setuptools in its setup script, you can activate it in
+        "development" mode by going to that directory and running::
+
+            %(python)s setup.py develop
+
+        See the setuptools documentation for the "develop" command for more info.
+        """).lstrip()
+
     def report_editable(self, spec, setup_script):
         dirname = os.path.dirname(setup_script)
         python = sys.executable
-        return """\nExtracted editable version of %(spec)s to %(dirname)s
-
-If it uses setuptools in its setup script, you can activate it in
-"development" mode by going to that directory and running::
-
-    %(python)s setup.py develop
-
-See the setuptools documentation for the "develop" command for more info.
-""" % locals()
+        return '\n' + self.__editable_msg % locals()
 
     def run_setup(self, setup_script, setup_base, args):
         sys.modules.setdefault('distutils.command.bdist_egg', bdist_egg)
@@ -1169,35 +1181,38 @@ See the setuptools documentation for the "develop" command for more info.
         finally:
             log.set_verbosity(self.verbose)  # restore original verbosity
 
+    __no_default_msg = textwrap.dedent("""
+        bad install directory or PYTHONPATH
+
+        You are attempting to install a package to a directory that is not
+        on PYTHONPATH and which Python does not read ".pth" files from.  The
+        installation directory you specified (via --install-dir, --prefix, or
+        the distutils default setting) was:
+
+            %s
+
+        and your PYTHONPATH environment variable currently contains:
+
+            %r
+
+        Here are some of your options for correcting the problem:
+
+        * You can choose a different installation directory, i.e., one that is
+          on PYTHONPATH or supports .pth files
+
+        * You can add the installation directory to the PYTHONPATH environment
+          variable.  (It must then also be on PYTHONPATH whenever you run
+          Python and want to use the package(s) you are installing.)
+
+        * You can set up the installation directory to support ".pth" files by
+          using one of the approaches described here:
+
+          https://pythonhosted.org/setuptools/easy_install.html#custom-installation-locations
+
+        Please make the appropriate changes for your system and try again.""").lstrip()
+
     def no_default_version_msg(self):
-        template = """bad install directory or PYTHONPATH
-
-You are attempting to install a package to a directory that is not
-on PYTHONPATH and which Python does not read ".pth" files from.  The
-installation directory you specified (via --install-dir, --prefix, or
-the distutils default setting) was:
-
-    %s
-
-and your PYTHONPATH environment variable currently contains:
-
-    %r
-
-Here are some of your options for correcting the problem:
-
-* You can choose a different installation directory, i.e., one that is
-  on PYTHONPATH or supports .pth files
-
-* You can add the installation directory to the PYTHONPATH environment
-  variable.  (It must then also be on PYTHONPATH whenever you run
-  Python and want to use the package(s) you are installing.)
-
-* You can set up the installation directory to support ".pth" files by
-  using one of the approaches described here:
-
-  https://pythonhosted.org/setuptools/easy_install.html#custom-installation-locations
-
-Please make the appropriate changes for your system and try again."""
+        template = self.__no_default_msg
         return template % (self.install_dir, os.environ.get('PYTHONPATH', ''))
 
     def install_site_py(self):
