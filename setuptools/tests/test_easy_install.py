@@ -517,3 +517,11 @@ class TestCommandSpec:
         cmd = CommandSpec.from_param('/usr/bin/env my-python')
         assert len(cmd) == 2
         assert '"' not in cmd.as_header()
+
+    def test_sys_executable(self):
+        """
+        CommandSpec.from_string(sys.executable) should contain just that param.
+        """
+        cmd = CommandSpec.from_string(sys.executable)
+        assert len(cmd) == 1
+        assert cmd[0] == sys.executable
