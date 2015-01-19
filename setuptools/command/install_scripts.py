@@ -31,13 +31,13 @@ class install_scripts(orig.install_scripts):
         )
         bs_cmd = self.get_finalized_command('build_scripts')
         exec_param = getattr(bs_cmd, 'executable', None)
-        cmd = ei.CommandSpec.from_param(exec_param)
         bw_cmd = self.get_finalized_command("bdist_wininst")
         is_wininst = getattr(bw_cmd, '_is_running', False)
         writer = ei.ScriptWriter
         if is_wininst:
-            cmd = ei.CommandSpec.from_string("python.exe")
+            exec_param = "python.exe"
             writer = ei.WindowsScriptWriter
+        cmd = ei.CommandSpec.from_param(exec_param)
         for args in writer.best().get_args(dist, cmd.as_header()):
             self.write_script(*args)
 
