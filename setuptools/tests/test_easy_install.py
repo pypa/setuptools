@@ -522,6 +522,7 @@ class TestCommandSpec:
         """
         CommandSpec.from_string(sys.executable) should contain just that param.
         """
-        cmd = CommandSpec.from_string(sys.executable)
+        writer = ScriptWriter.best()
+        cmd = writer.command_spec_class.from_string(sys.executable)
         assert len(cmd) == 1
         assert cmd[0] == sys.executable
