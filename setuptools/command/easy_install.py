@@ -1873,6 +1873,7 @@ class CommandSpec(list):
     """
 
     options = []
+    split_args = dict()
 
     @classmethod
     def _sys_executable(cls):
@@ -1904,7 +1905,7 @@ class CommandSpec(list):
         Construct a command spec from a simple string representing a command
         line parseable by shlex.split.
         """
-        items = shlex.split(string)
+        items = shlex.split(string, **cls.split_args)
         return JythonCommandSpec.from_string(string) or cls(items)
 
     def install_options(self, script_text):
@@ -1933,6 +1934,10 @@ class CommandSpec(list):
 
 # For pbr compat; will be removed in a future version.
 sys_executable = CommandSpec._sys_executable()
+
+
+class WindowsCommandSpec(CommandSpec):
+    split_args = dict(posix=False)
 
 
 class JythonCommandSpec(CommandSpec):
@@ -2051,6 +2056,8 @@ class ScriptWriter(object):
 
 
 class WindowsScriptWriter(ScriptWriter):
+    command_spec_class = WindowsCommandSpec
+
     @classmethod
     def get_writer(cls):
         # for backward compatibility
