@@ -3,6 +3,12 @@ CHANGES
 =======
 
 ------
+12.0.3
+------
+
+* Fixed incorrect class attribute in ``install_scripts``. Tests would be nice.
+
+------
 12.0.2
 ------
 
