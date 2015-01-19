@@ -31,9 +31,8 @@ class install_scripts(orig.install_scripts):
         )
         bs_cmd = self.get_finalized_command('build_scripts')
         cmd = ei.CommandSpec.from_param(getattr(bs_cmd, 'executable', None))
-        is_wininst = getattr(
-            self.get_finalized_command("bdist_wininst"), '_is_running', False
-        )
+        bw_cmd = self.get_finalized_command("bdist_wininst")
+        is_wininst = getattr(bw_cmd, '_is_running', False)
         writer = ei.ScriptWriter
         if is_wininst:
             cmd = ei.CommandSpec.from_string("python.exe")
