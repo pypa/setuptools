@@ -37,8 +37,10 @@ class install_scripts(orig.install_scripts):
         if is_wininst:
             exec_param = "python.exe"
             writer = ei.WindowsScriptWriter
+        # resolve the writer to the environment
+        writer = writer.best()
         cmd = ei.CommandSpec.from_param(exec_param)
-        for args in writer.best().get_args(dist, cmd.as_header()):
+        for args in writer.get_args(dist, cmd.as_header()):
             self.write_script(*args)
 
     def write_script(self, script_name, contents, mode="t", *ignored):
