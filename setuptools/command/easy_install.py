@@ -1988,6 +1988,8 @@ class ScriptWriter(object):
             )
     """).lstrip()
 
+    command_spec_class = CommandSpec
+
     @classmethod
     def get_script_args(cls, dist, executable=None, wininst=False):
         # for backward compatibility
