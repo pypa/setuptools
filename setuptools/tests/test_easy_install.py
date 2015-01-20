@@ -24,6 +24,7 @@ from setuptools import sandbox
 from setuptools import compat
 from setuptools.compat import StringIO, BytesIO, urlparse
 from setuptools.sandbox import run_setup
+import setuptools.command.easy_install as ei
 from setuptools.command.easy_install import (
     easy_install, fix_jython_executable, nt_quote_arg,
     is_sh, ScriptWriter, CommandSpec,
@@ -526,3 +527,14 @@ class TestCommandSpec:
         cmd = writer.command_spec_class.from_string(sys.executable)
         assert len(cmd) == 1
         assert cmd[0] == sys.executable
+
+
+class TestWindowsScriptWriter:
+    def test_header(self):
+        hdr = ei.WindowsScriptWriter.get_script_header('')
+        assert hdr.startswith('#!')
+        assert hdr.endswith('\n')
+        hdr = hdr.lstrip('#!')
+        hdr = hdr.rstrip('\n')
+        # header should not start with an escaped quote
+        assert not hdr.startswith('\\"')
