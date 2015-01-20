@@ -276,13 +276,6 @@ class Distribution(_Distribution):
                 ver = packaging.version.Version(self.metadata.version)
                 normalized_version = str(ver)
                 if self.metadata.version != normalized_version:
-                    warnings.warn(
-                        "The version specified requires normalization, "
-                        "consider using '%s' instead of '%s'." % (
-                            normalized_version,
-                            self.metadata.version,
-                        )
-                    )
                     self.metadata.version = normalized_version
             except (packaging.version.InvalidVersion, TypeError):
                 warnings.warn(
