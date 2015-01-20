@@ -1897,7 +1897,9 @@ class CommandSpec(list):
 
     @classmethod
     def from_environment(cls):
-        return cls.from_string('"' + cls._sys_executable() + '"')
+        string = '"' + cls._sys_executable() + '"'
+        jython_spec = JythonCommandSpec.from_string(string)
+        return jython_spec or cls([cls._sys_executable()])
 
     @classmethod
     def from_string(cls, string):
