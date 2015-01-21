@@ -25,10 +25,6 @@ from setuptools import compat
 from setuptools.compat import StringIO, BytesIO, urlparse
 from setuptools.sandbox import run_setup
 import setuptools.command.easy_install as ei
-from setuptools.command.easy_install import (
-    easy_install, nt_quote_arg,
-    is_sh, ScriptWriter, CommandSpec,
-)
 from setuptools.command.easy_install import PthDistributions
 from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
@@ -73,7 +69,7 @@ class TestEasyInstallTest:
 
     def test_install_site_py(self):
         dist = Distribution()
-        cmd = easy_install(dist)
+        cmd = ei.easy_install(dist)
         cmd.sitepy_installed = False
         cmd.install_dir = tempfile.mkdtemp()
         try:
@@ -86,7 +82,7 @@ class TestEasyInstallTest:
     def test_get_script_args(self):
         dist = FakeDist()
 
-        args = next(ScriptWriter.get_args(dist))
+        args = next(ei.ScriptWriter.get_args(dist))
         name, script = itertools.islice(args, 2)
 
         assert script == WANTED
@@ -95,7 +91,7 @@ class TestEasyInstallTest:
         # new option '--no-find-links', that blocks find-links added at
         # the project level
         dist = Distribution()
-        cmd = easy_install(dist)
+        cmd = ei.easy_install(dist)
         cmd.check_pth_processing = lambda: True
         cmd.no_find_links = True
         cmd.find_links = ['link1', 'link2']
@@ -105,7 +101,7 @@ class TestEasyInstallTest:
         assert cmd.package_index.scanned_urls == {}
 
         # let's try without it (default behavior)
-        cmd = easy_install(dist)
+        cmd = ei.easy_install(dist)
         cmd.check_pth_processing = lambda: True
         cmd.find_links = ['link1', 'link2']
         cmd.install_dir = os.path.join(tempfile.mkdtemp(), 'ok')
@@ -154,7 +150,7 @@ class TestUserInstallTest:
         #XXX: replace with something meaningfull
         dist = Distribution()
         dist.script_name = 'setup.py'
-        cmd = easy_install(dist)
+        cmd = ei.easy_install(dist)
         cmd.args = ['py']
         cmd.ensure_finalized()
         assert cmd.user, 'user should be implied'
@@ -175,7 +171,7 @@ class TestUserInstallTest:
         #XXX: replace with something meaningfull
         dist = Distribution()
         dist.script_name = 'setup.py'
-        cmd = easy_install(dist)
+        cmd = ei.easy_install(dist)
         cmd.args = ['py']
         cmd.initialize_options()
         assert not cmd.user, 'NOT user should be implied'
@@ -196,7 +192,7 @@ class TestUserInstallTest:
         try:
             dist = Distribution()
             dist.script_name = 'setup.py'
-            cmd = easy_install(dist)
+            cmd = ei.easy_install(dist)
             cmd.install_dir = target
             cmd.args = ['foo']
             cmd.ensure_finalized()
@@ -423,24 +419,25 @@ class TestScriptHeader:
     exe_with_spaces = r'C:\Program Files\Python33\python.exe'
 
     @pytest.mark.skipif(
-        sys.platform.startswith('java') and is_sh(sys.executable),
+        sys.platform.startswith('java') and ei.is_sh(sys.executable),
         reason="Test cannot run under java when executable is sh"
     )
     def test_get_script_header(self):
-        expected = '#!%s\n' % nt_quote_arg(os.path.normpath(sys.executable))
-        actual = ScriptWriter.get_script_header('#!/usr/local/bin/python')
+        expected = '#!%s\n' % ei.nt_quote_arg(os.path.normpath(sys.executable))
+        actual = ei.ScriptWriter.get_script_header('#!/usr/local/bin/python')
         assert actual == expected
 
-        expected = '#!%s -x\n' % nt_quote_arg(os.path.normpath(sys.executable))
-        actual = ScriptWriter.get_script_header('#!/usr/bin/python -x')
+        expected = '#!%s -x\n' % ei.nt_quote_arg(os.path.normpath
+            (sys.executable))
+        actual = ei.ScriptWriter.get_script_header('#!/usr/bin/python -x')
         assert actual == expected
 
-        actual = ScriptWriter.get_script_header('#!/usr/bin/python',
+        actual = ei.ScriptWriter.get_script_header('#!/usr/bin/python',
             executable=self.non_ascii_exe)
         expected = '#!%s -x\n' % self.non_ascii_exe
         assert actual == expected
 
-        actual = ScriptWriter.get_script_header('#!/usr/bin/python',
+        actual = ei.ScriptWriter.get_script_header('#!/usr/bin/python',
             executable='"'+self.exe_with_spaces+'"')
         expected = '#!"%s"\n' % self.exe_with_spaces
         assert actual == expected
@@ -463,7 +460,7 @@ class TestScriptHeader:
             f.write(header)
         exe = str(exe)
 
-        header = ScriptWriter.get_script_header('#!/usr/local/bin/python',
+        header = ei.ScriptWriter.get_script_header('#!/usr/local/bin/python',
             executable=exe)
         assert header == '#!/usr/bin/env %s\n' % exe
 
@@ -472,14 +469,14 @@ class TestScriptHeader:
         with contexts.quiet() as (stdout, stderr):
             # When options are included, generate a broken shebang line
             # with a warning emitted
-            candidate = ScriptWriter.get_script_header('#!/usr/bin/python -x',
+            candidate = ei.ScriptWriter.get_script_header('#!/usr/bin/python -x',
                 executable=exe)
             assert candidate == '#!%s -x\n' % exe
             output = locals()[expect_out]
             assert 'Unable to adapt shebang line' in output.getvalue()
 
         with contexts.quiet() as (stdout, stderr):
-            candidate = ScriptWriter.get_script_header('#!/usr/bin/python',
+            candidate = ei.ScriptWriter.get_script_header('#!/usr/bin/python',
                 executable=self.non_ascii_exe)
             assert candidate == '#!%s -x\n' % self.non_ascii_exe
             output = locals()[expect_out]
@@ -492,20 +489,20 @@ class TestCommandSpec:
         Show how a custom CommandSpec could be used to specify a #! executable
         which takes parameters.
         """
-        cmd = CommandSpec(['/usr/bin/env', 'python3'])
+        cmd = ei.CommandSpec(['/usr/bin/env', 'python3'])
         assert cmd.as_header() == '#!/usr/bin/env python3\n'
 
     def test_from_param_for_CommandSpec_is_passthrough(self):
         """
         from_param should return an instance of a CommandSpec
         """
-        cmd = CommandSpec(['python'])
-        cmd_new = CommandSpec.from_param(cmd)
+        cmd = ei.CommandSpec(['python'])
+        cmd_new = ei.CommandSpec.from_param(cmd)
         assert cmd is cmd_new
 
     def test_from_environment_with_spaces_in_executable(self):
         with mock.patch('sys.executable', TestScriptHeader.exe_with_spaces):
-            cmd = CommandSpec.from_environment()
+            cmd = ei.CommandSpec.from_environment()
         assert len(cmd) == 1
         assert cmd.as_header().startswith('#!"')
 
@@ -514,7 +511,7 @@ class TestCommandSpec:
         In order to support `executable = /usr/bin/env my-python`, make sure
         from_param invokes shlex on that input.
         """
-        cmd = CommandSpec.from_param('/usr/bin/env my-python')
+        cmd = ei.CommandSpec.from_param('/usr/bin/env my-python')
         assert len(cmd) == 2
         assert '"' not in cmd.as_header()
 
@@ -522,7 +519,7 @@ class TestCommandSpec:
         """
         CommandSpec.from_string(sys.executable) should contain just that param.
         """
-        writer = ScriptWriter.best()
+        writer = ei.ScriptWriter.best()
         cmd = writer.command_spec_class.from_string(sys.executable)
         assert len(cmd) == 1
         assert cmd[0] == sys.executable
