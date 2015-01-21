@@ -47,18 +47,6 @@ class FakeDist(object):
     def as_requirement(self):
         return 'spec'
 
-WANTED = ei.CommandSpec.best().from_environment().as_header() + DALS("""
-    # EASY-INSTALL-ENTRY-SCRIPT: 'spec','console_scripts','name'
-    __requires__ = 'spec'
-    import sys
-    from pkg_resources import load_entry_point
-
-    if __name__ == '__main__':
-        sys.exit(
-            load_entry_point('spec', 'console_scripts', 'name')()
-        )
-    """)
-
 SETUP_PY = DALS("""
     from setuptools import setup
 
@@ -80,12 +68,24 @@ class TestEasyInstallTest:
             shutil.rmtree(cmd.install_dir)
 
     def test_get_script_args(self):
+        header = ei.CommandSpec.best().from_environment().as_header()
+        expected = header + DALS("""
+            # EASY-INSTALL-ENTRY-SCRIPT: 'spec','console_scripts','name'
+            __requires__ = 'spec'
+            import sys
+            from pkg_resources import load_entry_point
+
+            if __name__ == '__main__':
+                sys.exit(
+                    load_entry_point('spec', 'console_scripts', 'name')()
+                )
+            """)
         dist = FakeDist()
 
         args = next(ei.ScriptWriter.get_args(dist))
         name, script = itertools.islice(args, 2)
 
-        assert script == WANTED
+        assert script == expected
 
     def test_no_find_links(self):
         # new option '--no-find-links', that blocks find-links added at
