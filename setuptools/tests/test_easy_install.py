@@ -26,7 +26,7 @@ from setuptools.compat import StringIO, BytesIO, urlparse
 from setuptools.sandbox import run_setup
 import setuptools.command.easy_install as ei
 from setuptools.command.easy_install import (
-    easy_install, fix_jython_executable, nt_quote_arg,
+    easy_install, nt_quote_arg,
     is_sh, ScriptWriter, CommandSpec,
 )
 from setuptools.command.easy_install import PthDistributions
@@ -51,8 +51,7 @@ class FakeDist(object):
     def as_requirement(self):
         return 'spec'
 
-WANTED = DALS("""
-    #!%s
+WANTED = ei.CommandSpec.best().from_environment().as_header() + DALS("""
     # EASY-INSTALL-ENTRY-SCRIPT: 'spec','console_scripts','name'
     __requires__ = 'spec'
     import sys
@@ -62,7 +61,7 @@ WANTED = DALS("""
         sys.exit(
             load_entry_point('spec', 'console_scripts', 'name')()
         )
-    """) % nt_quote_arg(fix_jython_executable(sys.executable, ""))
+    """)
 
 SETUP_PY = DALS("""
     from setuptools import setup
