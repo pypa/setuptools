@@ -39,7 +39,7 @@ class install_scripts(orig.install_scripts):
             writer = ei.WindowsScriptWriter
         # resolve the writer to the environment
         writer = writer.best()
-        cmd = writer.command_spec_class.from_param(exec_param)
+        cmd = writer.command_spec_class.best().from_param(exec_param)
         for args in writer.get_args(dist, cmd.as_header()):
             self.write_script(*args)
 

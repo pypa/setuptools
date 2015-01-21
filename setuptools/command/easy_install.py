@@ -1876,6 +1876,13 @@ class CommandSpec(list):
     split_args = dict()
 
     @classmethod
+    def best(cls):
+        """
+        Choose the best CommandSpec class based on environmental conditions.
+        """
+        return cls if not JythonCommandSpec.relevant() else JythonCommandSpec
+
+    @classmethod
     def _sys_executable(cls):
         _default = os.path.normpath(sys.executable)
         return os.environ.get('__PYVENV_LAUNCHER__', _default)
@@ -1897,9 +1904,7 @@ class CommandSpec(list):
 
     @classmethod
     def from_environment(cls):
-        string = '"' + cls._sys_executable() + '"'
-        jython_spec = JythonCommandSpec.from_string(string)
-        return jython_spec or cls([cls._sys_executable()])
+        return cls([cls._sys_executable()])
 
     @classmethod
     def from_string(cls, string):
@@ -1908,7 +1913,7 @@ class CommandSpec(list):
         line parseable by shlex.split.
         """
         items = shlex.split(string, **cls.split_args)
-        return JythonCommandSpec.from_string(string) or cls(items)
+        return cls(items)
 
     def install_options(self, script_text):
         self.options = shlex.split(self._extract_options(script_text))
@@ -1944,17 +1949,21 @@ class WindowsCommandSpec(CommandSpec):
 
 class JythonCommandSpec(CommandSpec):
     @classmethod
-    def from_string(cls, string):
-        """
-        On Jython, construct an instance of this class.
-        On platforms other than Jython, return None.
-        """
-        needs_jython_spec = (
+    def relevant(cls):
+        return (
             sys.platform.startswith('java')
             and
             __import__('java').lang.System.getProperty('os.name') != 'Linux'
         )
-        return cls([string]) if needs_jython_spec else None
+
+    @classmethod
+    def from_environment(cls):
+        string = '"' + cls._sys_executable() + '"'
+        return cls.from_string(string)
+
+    @classmethod
+    def from_string(cls, string):
+        return cls([string])
 
     def as_header(self):
         """
@@ -2011,7 +2020,7 @@ class ScriptWriter(object):
         warnings.warn("Use get_header", DeprecationWarning)
         if wininst:
             executable = "python.exe"
-        cmd = cls.command_spec_class.from_param(executable)
+        cmd = cls.command_spec_class.best().from_param(executable)
         cmd.install_options(script_text)
         return cmd.as_header()
 
@@ -2052,7 +2061,7 @@ class ScriptWriter(object):
     @classmethod
     def get_header(cls, script_text="", executable=None):
         """Create a #! line, getting options (if any) from script_text"""
-        cmd = cls.command_spec_class.from_param(executable)
+        cmd = cls.command_spec_class.best().from_param(executable)
         cmd.install_options(script_text)
         return cmd.as_header()
 
