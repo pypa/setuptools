@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 """Bootstrap setuptools installation.
 
 To use setuptools in your package's setup.py, include this
@@ -13,6 +14,7 @@ the appropriate options to ``use_setuptools()``.
 
 This file can also be run as a script to install or upgrade setuptools.
 """
+
 import os
 import shutil
 import sys
@@ -79,11 +81,9 @@ class ContextualZipFile(zipfile.ZipFile):
     """Supplement ZipFile class to support context manager for Python 2.6."""
 
     def __enter__(self):
-        """Context manager __enter__ hook."""
         return self
 
     def __exit__(self, type, value, traceback):
-        """Context manager __exit__ hook."""
         self.close()
 
     def __new__(cls, *args, **kwargs):
@@ -95,7 +95,11 @@ class ContextualZipFile(zipfile.ZipFile):
 
 @contextlib.contextmanager
 def archive_context(filename):
-    """Extract archive."""
+    """
+    Unzip filename to a temporary directory, set to the cwd.
+
+    The unzipped target is cleaned up after.
+    """
     tmpdir = tempfile.mkdtemp()
     log.warn('Extracting in %s', tmpdir)
     old_wd = os.getcwd()
@@ -137,10 +141,22 @@ def _do_download(version, download_base, to_dir, download_delay):
 def use_setuptools(
         version=DEFAULT_VERSION, download_base=DEFAULT_URL,
         to_dir=os.curdir, download_delay=15):
-    """Download, install and use Setuptools."""
+    """
+    Download, install, and import Setuptools.
+
+    Return None.
+    """
     to_dir = os.path.abspath(to_dir)
     rep_modules = 'pkg_resources', 'setuptools'
     imported = set(sys.modules).intersection(rep_modules)
+    conflict_tmpl = textwrap.dedent("""
+        The required version of setuptools (>={version}) is not available,
+        and can't be installed while this script is running. Please
+        install a more recent version first, using
+        'easy_install -U setuptools'.
+
+        (Currently using {VC_err.args[0]!r})
+        """)
     try:
         import pkg_resources
     except ImportError:
@@ -152,14 +168,7 @@ def use_setuptools(
         return _do_download(version, download_base, to_dir, download_delay)
     except pkg_resources.VersionConflict as VC_err:
         if imported:
-            msg = textwrap.dedent("""
-                The required version of setuptools (>={version}) is not
-                available, and can't be installed while this script is running.
-                Please install a more recent version first, using
-                'easy_install -U setuptools'.
-
-                (Currently using {VC_err.args[0]!r})
-                """).format(VC_err=VC_err, version=version)
+            msg = conflict_tmpl.format(VC_err=VC_err, version=version)
             sys.stderr.write(msg)
             sys.exit(2)
 
@@ -185,7 +194,7 @@ def _clean_check(cmd, target):
 def download_file_powershell(url, target):
     """
     Download the file at url to target using Powershell.
-    
+
     Powershell will validate trust.
     Raise an exception if the command cannot complete.
     """
@@ -215,19 +224,15 @@ def has_powershell():
         except Exception:
             return False
     return True
-
-
 download_file_powershell.viable = has_powershell
 
 
 def download_file_curl(url, target):
-    """Use curl to download the file."""
     cmd = ['curl', url, '--silent', '--output', target]
     _clean_check(cmd, target)
 
 
 def has_curl():
-    """Determine if curl is available."""
     cmd = ['curl', '--version']
     with open(os.path.devnull, 'wb') as devnull:
         try:
@@ -235,19 +240,15 @@ def has_curl():
         except Exception:
             return False
     return True
-
-
 download_file_curl.viable = has_curl
 
 
 def download_file_wget(url, target):
-    """Use wget to download the file."""
     cmd = ['wget', url, '--quiet', '--output-document', target]
     _clean_check(cmd, target)
 
 
 def has_wget():
-    """Determine if wget is available."""
     cmd = ['wget', '--version']
     with open(os.path.devnull, 'wb') as devnull:
         try:
@@ -255,8 +256,6 @@ def has_wget():
         except Exception:
             return False
     return True
-
-
 download_file_wget.viable = has_wget
 
 
@@ -272,13 +271,10 @@ def download_file_insecure(url, target):
     # Write all the data in one block to avoid creating a partial file.
     with open(target, "wb") as dst:
         dst.write(data)
-
-
 download_file_insecure.viable = lambda: True
 
 
 def get_best_downloader():
-    """Determine the best downloader."""
     downloaders = (
         download_file_powershell,
         download_file_curl,
