@@ -1844,25 +1844,14 @@ def chmod(path, mode):
 
 
 def fix_jython_executable(executable, options):
-    if sys.platform.startswith('java') and is_sh(executable):
-        # Workaround for Jython is not needed on Linux systems.
-        import java
+    warnings.warn("Use JythonCommandSpec", DeprecationWarning, stacklevel=2)
 
-        if java.lang.System.getProperty("os.name") == "Linux":
-            return executable
+    if not JythonCommandSpec.relevant():
+        return executable
 
-        # Workaround Jython's sys.executable being a .sh (an invalid
-        # shebang line interpreter)
-        if options:
-            # Can't apply the workaround, leave it broken
-            log.warn(
-                "WARNING: Unable to adapt shebang line for Jython,"
-                " the following script is NOT executable\n"
-                "         see http://bugs.jython.org/issue1112 for"
-                " more information.")
-        else:
-            return '/usr/bin/env %s' % executable
-    return executable
+    cmd = CommandSpec.best().from_param(executable)
+    cmd.install_options(options)
+    return cmd.as_header().lstrip('#!').rstrip('\n')
 
 
 class CommandSpec(list):
