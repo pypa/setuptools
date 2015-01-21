@@ -3,6 +3,12 @@ CHANGES
 =======
 
 ------
+12.0.4
+------
+
+* Issue #335: Fix script header generation on Windows.
+
+------
 12.0.3
 ------
 
