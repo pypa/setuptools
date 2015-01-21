@@ -1801,9 +1801,8 @@ def is_python(text, filename='<string>'):
 def is_sh(executable):
     """Determine if the specified executable is a .sh (contains a #! line)"""
     try:
-        fp = open(executable)
-        magic = fp.read(2)
-        fp.close()
+        with open(executable, encoding='latin-1') as fp:
+            magic = fp.read(2)
     except (OSError, IOError):
         return executable
     return magic == '#!'
