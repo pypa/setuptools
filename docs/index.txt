@@ -19,7 +19,6 @@ Documentation content:
    history
    roadmap
    python3
-   using
    setuptools
    easy_install
    pkg_resources
