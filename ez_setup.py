@@ -1,18 +1,9 @@
 #!/usr/bin/env python
 
-"""Bootstrap setuptools installation.
+"""
+Setuptools bootstrapping installer.
 
-To use setuptools in your package's setup.py, include this
-file in the same directory and add this to the top of your setup.py::
-
-    from ez_setup import use_setuptools
-    use_setuptools()
-
-To require a specific version of setuptools, set a download
-mirror, or use an alternate download directory, simply supply
-the appropriate options to ``use_setuptools()``.
-
-This file can also be run as a script to install or upgrade setuptools.
+Run this script to install or upgrade setuptools.
 """
 
 import os
@@ -25,6 +16,7 @@ import subprocess
 import platform
 import textwrap
 import contextlib
+import warnings
 
 from distutils import log
 
@@ -142,10 +134,15 @@ def use_setuptools(
         version=DEFAULT_VERSION, download_base=DEFAULT_URL,
         to_dir=os.curdir, download_delay=15):
     """
-    Download, install, and import Setuptools.
+    *deprecated* Download, install, and import Setuptools.
 
     Return None.
     """
+    warnings.warn(
+        "`use_setuptools` is deprecated. To enforce a specific "
+        "version of setuptools, use `pkg_resources.require`.",
+        DeprecationWarning,
+    )
     to_dir = os.path.abspath(to_dir)
     rep_modules = 'pkg_resources', 'setuptools'
     imported = set(sys.modules).intersection(rep_modules)
