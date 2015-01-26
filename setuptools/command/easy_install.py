@@ -483,7 +483,7 @@ class easy_install(Command):
         """).lstrip()
 
     def cant_write_to_target(self):
-        msg = self._cant_write_msg % (sys.exc_info()[1], self.install_dir,)
+        msg = self.__cant_write_msg % (sys.exc_info()[1], self.install_dir,)
 
         if not os.path.exists(self.install_dir):
             msg += '\n' + self.__not_exists_id
