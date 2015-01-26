@@ -13,6 +13,7 @@ import contextlib
 import tarfile
 import logging
 import itertools
+import distutils.errors
 
 import pytest
 try:
@@ -109,6 +110,16 @@ class TestEasyInstallTest:
         cmd.ensure_finalized()
         keys = sorted(cmd.package_index.scanned_urls.keys())
         assert keys == ['link1', 'link2']
+
+    def test_write_exception(self):
+        """
+        Test that `cant_write_to_target` is rendered as a DistutilsError.
+        """
+        dist = Distribution()
+        cmd = ei.easy_install(dist)
+        cmd.install_dir = os.getcwd()
+        with pytest.raises(distutils.errors.DistutilsError):
+            cmd.cant_write_to_target()
 
 
 class TestPTHFileWriter:
