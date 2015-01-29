@@ -182,8 +182,10 @@ class _SetuptoolsVersionMixin(object):
             "You have iterated over the result of "
             "pkg_resources.parse_version. This is a legacy behavior which is "
             "inconsistent with the new version class introduced in setuptools "
-            "8.0. That class should be used directly instead of attempting to "
-            "iterate over the result.",
+            "8.0. In most cases, conversion to a tuple is unnecessary. For "
+            "comparison of versions, sort the Version instances directly. If "
+            "you have another use case requiring the tuple, please file a "
+            "bug with the setuptools project describing that need.",
             RuntimeWarning,
             stacklevel=1,
         )
