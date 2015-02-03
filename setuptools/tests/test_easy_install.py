@@ -312,7 +312,7 @@ class TestSetupRequires:
                             '--install-dir', temp_install_dir,
                             dist_file,
                         ]
-                        with contexts.argv(['easy_install']):
+                        with sandbox.save_argv(['easy_install']):
                             # attempt to install the dist. It should fail because
                             #  it doesn't exist.
                             with pytest.raises(SystemExit):

@@ -49,14 +49,6 @@ def environment(**replacements):
 
 
 @contextlib.contextmanager
-def argv(repl):
-    old_argv = sys.argv[:]
-    sys.argv[:] = repl
-    yield
-    sys.argv[:] = old_argv
-
-
-@contextlib.contextmanager
 def quiet():
     """
     Redirect stdout/stderr to StringIO objects to prevent console output from

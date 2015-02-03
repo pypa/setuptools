@@ -47,8 +47,10 @@ def _execfile(filename, globals, locals=None):
 
 
 @contextlib.contextmanager
-def save_argv():
+def save_argv(repl=None):
     saved = sys.argv[:]
+    if repl is not None:
+        sys.argv[:] = repl
     try:
         yield saved
     finally:
