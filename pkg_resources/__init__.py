@@ -2448,8 +2448,8 @@ class Distribution(object):
             self.precedence,
             self.key,
             _remove_md5_fragment(self.location),
-            self.py_version,
-            self.platform,
+            self.py_version or '',
+            self.platform or '',
         )
 
     def __hash__(self):
