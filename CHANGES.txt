@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+----
+12.1
+----
+
+* Pull Request #118: Soften warning for non-normalized versions in
+  Distribution.
+
 ------
 12.0.5
 ------
