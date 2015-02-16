@@ -175,8 +175,13 @@ def use_setuptools(
 
         # otherwise, unload pkg_resources to allow the downloaded version to
         #  take precedence.
-        del pkg_resources, sys.modules['pkg_resources']
+        del pkg_resources
+        _unload_pkg_resources()
         return _do_download(version, download_base, to_dir, download_delay)
+
+
+def _unload_pkg_resources():
+    del sys.modules['pkg_resources']
 
 
 def _clean_check(cmd, target):
