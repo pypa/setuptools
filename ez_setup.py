@@ -156,12 +156,12 @@ def use_setuptools(
         """)
     try:
         import pkg_resources
-    except ImportError:
-        return _do_download(version, download_base, to_dir, download_delay)
-    try:
         pkg_resources.require("setuptools>=" + version)
         # a suitable version is already installed
         return
+    except ImportError:
+        # pkg_resources not available; setuptools is not installed; download
+        pass
     except pkg_resources.DistributionNotFound:
         # no version of setuptools was found; allow download
         pass
