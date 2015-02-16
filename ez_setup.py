@@ -144,8 +144,12 @@ def use_setuptools(
         DeprecationWarning,
     )
     to_dir = os.path.abspath(to_dir)
+
+    # prior to importing, capture the module state for
+    # representative modules.
     rep_modules = 'pkg_resources', 'setuptools'
     imported = set(sys.modules).intersection(rep_modules)
+
     try:
         import pkg_resources
         pkg_resources.require("setuptools>=" + version)
