@@ -3,6 +3,16 @@ CHANGES
 =======
 
 ----
+12.2
+----
+
+* Issue #345: Unload all modules under pkg_resources during
+  ``ez_setup.use_setuptools()``.
+* Issue #336: Removed deprecation from ``ez_setup.use_setuptools``,
+  as it is clearly still used by buildout's bootstrap. ``ez_setup``
+  remains deprecated for use by individual packages.
+
+----
 12.1
 ----
 
@@ -14,6 +24,7 @@ CHANGES
 ------
 
 * Issue #339: Correct Attribute reference in ``cant_write_to_target``.
+* Issue #336: Deprecated ``ez_setup.use_setuptools``.
 
 ------
 12.0.4

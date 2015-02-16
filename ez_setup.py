@@ -134,15 +134,11 @@ def use_setuptools(
         version=DEFAULT_VERSION, download_base=DEFAULT_URL,
         to_dir=os.curdir, download_delay=15):
     """
-    *deprecated* Download, install, and import Setuptools.
+    Ensure that a setuptools version is installed.
 
-    Return None.
+    Return None. Raise SystemExit if the requested version
+    or later cannot be installed.
     """
-    warnings.warn(
-        "`use_setuptools` is deprecated. To enforce a specific "
-        "version of setuptools, use `pkg_resources.require`.",
-        DeprecationWarning,
-    )
     to_dir = os.path.abspath(to_dir)
 
     # prior to importing, capture the module state for
