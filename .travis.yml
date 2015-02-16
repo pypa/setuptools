@@ -12,4 +12,4 @@ script:
  - python bootstrap.py
 
  - python setup.py ptr --addopts='-rs'
- - python ez_setup.py --version 10.2.1
+ - python ez_setup.py --version 12.2
