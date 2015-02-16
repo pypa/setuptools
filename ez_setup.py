@@ -181,7 +181,12 @@ def use_setuptools(
 
 
 def _unload_pkg_resources():
-    del sys.modules['pkg_resources']
+    del_modules = [
+        name for name in sys.modules
+        if name.startswith('pkg_resources')
+    ]
+    for mod_name in del_modules:
+        del sys.modules[mod_name]
 
 
 def _clean_check(cmd, target):
