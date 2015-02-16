@@ -11,6 +11,7 @@ CHANGES
 * Issue #336: Removed deprecation from ``ez_setup.use_setuptools``,
   as it is clearly still used by buildout's bootstrap. ``ez_setup``
   remains deprecated for use by individual packages.
+* Simplified implementation of ``ez_setup.use_setuptools``.
 
 ----
 12.1
