@@ -146,14 +146,6 @@ def use_setuptools(
     to_dir = os.path.abspath(to_dir)
     rep_modules = 'pkg_resources', 'setuptools'
     imported = set(sys.modules).intersection(rep_modules)
-    conflict_tmpl = textwrap.dedent("""
-        The required version of setuptools (>={version}) is not available,
-        and can't be installed while this script is running. Please
-        install a more recent version first, using
-        'easy_install -U setuptools'.
-
-        (Currently using {VC_err.args[0]!r})
-        """)
     try:
         import pkg_resources
         pkg_resources.require("setuptools>=" + version)
@@ -167,11 +159,7 @@ def use_setuptools(
         pass
     except pkg_resources.VersionConflict as VC_err:
         if imported:
-            # setuptools was imported prior to invocation of this function,
-            #  so it's not safe to unload it.
-            msg = conflict_tmpl.format(VC_err=VC_err, version=version)
-            sys.stderr.write(msg)
-            sys.exit(2)
+            _conflict_bail(VC_err, version)
 
         # otherwise, unload pkg_resources to allow the downloaded version to
         #  take precedence.
@@ -179,6 +167,24 @@ def use_setuptools(
         _unload_pkg_resources()
 
     return _do_download(version, download_base, to_dir, download_delay)
+
+
+def _conflict_bail(VC_err, version):
+    """
+    Setuptools was imported prior to invocation, so it is
+    unsafe to unload it. Bail out.
+    """
+    conflict_tmpl = textwrap.dedent("""
+        The required version of setuptools (>={version}) is not available,
+        and can't be installed while this script is running. Please
+        install a more recent version first, using
+        'easy_install -U setuptools'.
+
+        (Currently using {VC_err.args[0]!r})
+        """)
+    msg = conflict_tmpl.format(**locals())
+    sys.stderr.write(msg)
+    sys.exit(2)
 
 
 def _unload_pkg_resources():
