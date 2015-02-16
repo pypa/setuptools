@@ -163,8 +163,8 @@ def use_setuptools(
         # a suitable version is already installed
         return
     except pkg_resources.DistributionNotFound:
-        # no version of setuptools was found
-        return _do_download(version, download_base, to_dir, download_delay)
+        # no version of setuptools was found; allow download
+        pass
     except pkg_resources.VersionConflict as VC_err:
         if imported:
             # setuptools was imported prior to invocation of this function,
@@ -177,7 +177,8 @@ def use_setuptools(
         #  take precedence.
         del pkg_resources
         _unload_pkg_resources()
-        return _do_download(version, download_base, to_dir, download_delay)
+
+    return _do_download(version, download_base, to_dir, download_delay)
 
 
 def _unload_pkg_resources():
