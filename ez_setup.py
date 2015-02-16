@@ -160,16 +160,21 @@ def use_setuptools(
         return _do_download(version, download_base, to_dir, download_delay)
     try:
         pkg_resources.require("setuptools>=" + version)
+        # a suitable version is already installed
         return
     except pkg_resources.DistributionNotFound:
+        # no version of setuptools was found
         return _do_download(version, download_base, to_dir, download_delay)
     except pkg_resources.VersionConflict as VC_err:
         if imported:
+            # setuptools was imported prior to invocation of this function,
+            #  so it's not safe to unload it.
             msg = conflict_tmpl.format(VC_err=VC_err, version=version)
             sys.stderr.write(msg)
             sys.exit(2)
 
-        # otherwise, reload ok
+        # otherwise, unload pkg_resources to allow the downloaded version to
+        #  take precedence.
         del pkg_resources, sys.modules['pkg_resources']
         return _do_download(version, download_base, to_dir, download_delay)
 
