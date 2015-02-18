@@ -136,22 +136,7 @@ class build_py(orig.build_py, Mixin2to3):
                 mf.setdefault(src_dirs[d], []).append(path)
 
     def get_data_files(self):
-        pass  # kludge 2.4 for lazy computation
-
-    if sys.version < "2.4":  # Python 2.4 already has this code
-        def get_outputs(self, include_bytecode=1):
-            """Return complete list of files copied to the build directory
-
-            This includes both '.py' files and data files, as well as '.pyc'
-            and '.pyo' files if 'include_bytecode' is true.  (This method is
-            needed for the 'install_lib' command to do its job properly, and to
-            generate a correct installation manifest.)
-            """
-            return orig.build_py.get_outputs(self, include_bytecode) + [
-                os.path.join(build_dir, filename)
-                for package, src_dir, build_dir, filenames in self.data_files
-                for filename in filenames
-            ]
+        pass  # Lazily compute data files in _get_data_files() function.
 
     def check_package(self, package, package_dir):
         """Check namespace packages' __init__ for declare_namespace"""
