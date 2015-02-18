@@ -1413,13 +1413,8 @@ def extract_wininst_cfg(dist_filename):
             {'version': '', 'target_version': ''})
         try:
             part = f.read(cfglen)
-            # part is in bytes, but we need to read up to the first null
-            # byte.
-            if sys.version_info >= (2, 6):
-                null_byte = bytes([0])
-            else:
-                null_byte = chr(0)
-            config = part.split(null_byte, 1)[0]
+            # Read up to the first null byte.
+            config = part.split(b'\0', 1)[0]
             # Now the config is in bytes, but for RawConfigParser, it should
             #  be text, so decode it.
             config = config.decode(sys.getfilesystemencoding())
