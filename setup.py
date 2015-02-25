@@ -75,7 +75,7 @@ if sys.platform == 'win32' or force_windows_specific_files:
     package_data.setdefault('setuptools', []).extend(['*.exe'])
     package_data.setdefault('setuptools.command', []).extend(['*.xml'])
 
-needs_pytest = set(['ptr', 'pytest', 'test']) in sys.argv else []
+needs_pytest = set(['ptr', 'pytest', 'test']).intersection(sys.argv)
 pytest_runner = ['pytest-runner'] if needs_pytest else []
 needs_sphinx = set(['build_sphinx', 'upload_docs']).intersection(sys.argv)
 sphinx = ['sphinx', 'rst.linker'] if needs_sphinx else []
