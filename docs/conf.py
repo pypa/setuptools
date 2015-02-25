@@ -28,7 +28,7 @@ import setup as setup_script
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['linkify']
+extensions = ['rst.linker']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -198,3 +198,50 @@ latex_documents = [
 
 # If false, no module index is generated.
 #latex_use_modindex = True
+
+link_files = {
+	'CHANGES.txt': dict(
+		using=dict(
+			BB='https://bitbucket.org',
+			GH='https://github.com',
+		),
+		replace=[
+			dict(
+				pattern=r"(Issue )?#(?P<issue>\d+)",
+				url='{BB}/pypa/setuptools/issue/{issue}',
+			),
+			dict(
+				pattern=r"Pull Request ?#(?P<pull_request>\d+)",
+				url='{BB}/pypa/setuptools/pull-request/{pull_request}',
+			),
+			dict(
+				pattern=r"Distribute #(?P<distribute>\d+)",
+				url='{BB}/tarek/distribute/issue/{distribute}',
+			),
+			dict(
+				pattern=r"Buildout #(?P<buildout>\d+)",
+				url='{GH}/buildout/buildout/issues/{buildout}',
+			),
+			dict(
+				pattern=r"Old Setuptools #(?P<old_setuptools>\d+)",
+				url='http://bugs.python.org/setuptools/issue{old_setuptools}',
+			),
+			dict(
+				pattern=r"Jython #(?P<jython>\d+)",
+				url='http://bugs.jython.org/issue{jython}',
+			),
+			dict(
+				pattern=r"Python #(?P<python>\d+)",
+				url='http://bugs.python.org/issue{python}',
+			),
+			dict(
+				pattern=r"Interop #(?P<interop>\d+)",
+				url='{GH}/pypa/interoperability-peps/issues/{interop}',
+			),
+			dict(
+				pattern=r"Pip #(?P<pip>\d+)",
+				url='{GH}/pypa/pip/issues/{pip}',
+			),
+		],
+	),
+}

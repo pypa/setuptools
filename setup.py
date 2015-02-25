@@ -172,6 +172,7 @@ setup_params = dict(
         'pytest',
     ] + (['mock'] if sys.version_info[:2] < (3, 3) else []),
     setup_requires=[
+        'rst.linker',
     ] + pytest_runner,
 )
 
