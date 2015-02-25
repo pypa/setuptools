@@ -76,6 +76,8 @@ if sys.platform == 'win32' or force_windows_specific_files:
     package_data.setdefault('setuptools.command', []).extend(['*.xml'])
 
 pytest_runner = ['pytest-runner'] if 'ptr' in sys.argv else []
+needs_sphinx = set(['build_sphinx', 'upload_docs']).intersection(sys.argv)
+sphinx = ['sphinx', 'rst.linker'] if needs_sphinx else []
 
 setup_params = dict(
     name="setuptools",
@@ -172,8 +174,7 @@ setup_params = dict(
         'pytest',
     ] + (['mock'] if sys.version_info[:2] < (3, 3) else []),
     setup_requires=[
-        'rst.linker',
-    ] + pytest_runner,
+    ] + sphinx + pytest_runner,
 )
 
 if __name__ == '__main__':
