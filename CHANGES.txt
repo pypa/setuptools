@@ -3,6 +3,16 @@ CHANGES
 =======
 
 ----
+12.3
+----
+
+* Documentation is now linked using the rst.linker package.
+* Fix ``setuptools.command.easy_install.extract_wininst_cfg()``
+  with Python 2.6 and 2.7.
+* Issue #354. Added documentation on building setuptools
+  documentation.
+
+----
 12.2
 ----
 
