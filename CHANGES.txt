@@ -3,6 +3,13 @@ CHANGES
 =======
 
 ----
+12.4
+----
+
+* Pull Request #119: Restore writing of ``setup_requires`` to metadata
+  (previously added in 8.4 and removed in 9.0).
+
+----
 12.3
 ----
 
