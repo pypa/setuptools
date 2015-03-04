@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""Distutils setup file, used to install or test 'setuptools'"""
+"""
+Distutils setup file, used to install or test 'setuptools'
+"""
+
 import io
 import os
 import sys
