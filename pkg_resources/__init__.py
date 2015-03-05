@@ -2958,7 +2958,7 @@ def ensure_directory(path):
         os.makedirs(dirname)
 
 
-def _bypass_ensure_directory(path, mode=0o777):
+def _bypass_ensure_directory(path, mode=0o755):
     """Sandbox-bypassing version of ensure_directory()"""
     if not WRITE_SUPPORT:
         raise IOError('"os.mkdir" not supported on this platform.')
