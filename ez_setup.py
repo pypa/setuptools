@@ -30,7 +30,7 @@ try:
 except ImportError:
     USER_SITE = None
 
-DEFAULT_VERSION = "13.0"
+DEFAULT_VERSION = "13.0.1"
 DEFAULT_URL = "https://pypi.python.org/packages/source/s/setuptools/"
 
 
