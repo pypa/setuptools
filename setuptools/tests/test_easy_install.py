@@ -182,9 +182,10 @@ class TestUserInstallTest:
         log.info('this should not break')
 
     def test_local_index(self):
-        # make sure the local index is used
-        # when easy_install looks for installed
-        # packages
+        """
+        The local index must be used when easy_install locates installed
+        packages.
+        """
         new_location = tempfile.mkdtemp()
         target = tempfile.mkdtemp()
         egg_file = os.path.join(new_location, 'foo-1.0.egg-info')
