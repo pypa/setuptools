@@ -132,7 +132,6 @@ setup_params = dict(
         "egg_info.writers": [
             "PKG-INFO = setuptools.command.egg_info:write_pkg_info",
             "requires.txt = setuptools.command.egg_info:write_requirements",
-            "setup_requires.txt = setuptools.command.egg_info:write_setup_requirements",
             "entry_points.txt = setuptools.command.egg_info:write_entries",
             "eager_resources.txt = setuptools.command.egg_info:overwrite_arg",
             "namespace_packages.txt = setuptools.command.egg_info:overwrite_arg",
