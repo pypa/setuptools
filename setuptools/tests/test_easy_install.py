@@ -201,20 +201,17 @@ class TestUserInstallTest:
         The local index must be used when easy_install locates installed
         packages.
         """
-        try:
-            dist = Distribution()
-            dist.script_name = 'setup.py'
-            cmd = ei.easy_install(dist)
-            cmd.install_dir = install_target
-            cmd.args = ['foo']
-            cmd.ensure_finalized()
-            cmd.local_index.scan([foo_package])
-            res = cmd.easy_install('foo')
-            actual = os.path.normcase(os.path.realpath(res.location))
-            expected = os.path.normcase(os.path.realpath(foo_package))
-            assert actual == expected
-        finally:
-            pass
+        dist = Distribution()
+        dist.script_name = 'setup.py'
+        cmd = ei.easy_install(dist)
+        cmd.install_dir = install_target
+        cmd.args = ['foo']
+        cmd.ensure_finalized()
+        cmd.local_index.scan([foo_package])
+        res = cmd.easy_install('foo')
+        actual = os.path.normcase(os.path.realpath(res.location))
+        expected = os.path.normcase(os.path.realpath(foo_package))
+        assert actual == expected
 
     @contextlib.contextmanager
     def user_install_setup_context(self, *args, **kwargs):
