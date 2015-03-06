@@ -169,11 +169,7 @@ class TestUserInstallTest:
         assert not cmd.user, 'user should not be implied'
 
     def test_multiproc_atexit(self):
-        try:
-            __import__('multiprocessing')
-        except ImportError:
-            # skip the test if multiprocessing is not available
-            return
+        pytest.importorskip('multiprocessing')
 
         log = logging.getLogger('test_easy_install')
         logging.basicConfig(level=logging.INFO, stream=sys.stderr)
