@@ -160,6 +160,16 @@ class TestUserInstallTest:
         easy_install_pkg.__file__ = site.USER_SITE
         site.ENABLE_USER_SITE = True
 
+        self.assert_not_user_site()
+
+    def test_user_install_not_implied_user_site_disabled(self):
+        # ensure user-site not enabled
+        site.ENABLE_USER_SITE = False
+
+        self.assert_not_user_site()
+
+    @staticmethod
+    def assert_not_user_site():
         # create a finalized easy_install command
         dist = Distribution()
         dist.script_name = 'setup.py'
@@ -167,18 +177,6 @@ class TestUserInstallTest:
         cmd.args = ['py']
         cmd.ensure_finalized()
         assert not cmd.user, 'user should not be implied'
-
-    def test_user_install_not_implied_user_site_disabled(self):
-        # ensure user-site not enabled
-        site.ENABLE_USER_SITE = False
-
-        # create a finalized easy_install command
-        dist = Distribution()
-        dist.script_name = 'setup.py'
-        cmd = ei.easy_install(dist)
-        cmd.args = ['py']
-        cmd.initialize_options()
-        assert not cmd.user, 'NOT user should be implied'
 
     def test_multiproc_atexit(self):
         pytest.importorskip('multiprocessing')
