@@ -188,18 +188,19 @@ class TestUserInstallTest:
             f.write('Name: foo\n')
         return str(tmpdir)
 
-    @pytest.fixture()
+    @pytest.yield_fixture()
     def install_target(self, tmpdir):
-        return str(tmpdir)
+        target = str(tmpdir)
+        with mock.patch('sys.path', sys.path + [target]):
+            python_path = os.path.pathsep.join(sys.path)
+            with mock.patch.dict(os.environ, PYTHONPATH=python_path):
+                yield target
 
     def test_local_index(self, foo_package, install_target):
         """
         The local index must be used when easy_install locates installed
         packages.
         """
-        sys.path.append(install_target)
-        old_ppath = os.environ.get('PYTHONPATH')
-        os.environ['PYTHONPATH'] = os.path.pathsep.join(sys.path)
         try:
             dist = Distribution()
             dist.script_name = 'setup.py'
@@ -213,11 +214,7 @@ class TestUserInstallTest:
             expected = os.path.normcase(os.path.realpath(foo_package))
             assert actual == expected
         finally:
-            sys.path.remove(install_target)
-            if old_ppath is not None:
-                os.environ['PYTHONPATH'] = old_ppath
-            else:
-                del os.environ['PYTHONPATH']
+            pass
 
     @contextlib.contextmanager
     def user_install_setup_context(self, *args, **kwargs):
