@@ -364,14 +364,19 @@ def _parse_args():
     return options
 
 
+def _download_args(options):
+	"""Return args for download_setuptools function from cmdline args."""
+	return dict(
+		version=options.version,
+		download_base=options.download_base,
+		downloader_factory=options.downloader_factory,
+	)
+
+
 def main():
     """Install or upgrade setuptools and EasyInstall."""
     options = _parse_args()
-    archive = download_setuptools(
-        version=options.version,
-        download_base=options.download_base,
-        downloader_factory=options.downloader_factory,
-    )
+    archive = download_setuptools(**_download_args(options))
     return _install(archive, _build_install_args(options))
 
 if __name__ == '__main__':
