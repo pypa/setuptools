@@ -155,7 +155,7 @@ def setup_context(tmpdir):
 class TestUserInstallTest:
 
     @mock.patch('setuptools.command.easy_install.__file__', None)
-    def test_user_install_not_implied(self):
+    def test_user_install_not_implied_user_site_enabled(self):
         # simulate setuptools installed in user site packages
         easy_install_pkg.__file__ = site.USER_SITE
         site.ENABLE_USER_SITE = True
@@ -168,9 +168,11 @@ class TestUserInstallTest:
         cmd.ensure_finalized()
         assert not cmd.user, 'user should not be implied'
 
-    def test_user_install_not_implied_without_usersite_enabled(self):
-        site.ENABLE_USER_SITE = False # usually enabled
-        #XXX: replace with something meaningfull
+    def test_user_install_not_implied_user_site_disabled(self):
+        # ensure user-site not enabled
+        site.ENABLE_USER_SITE = False
+
+        # create a finalized easy_install command
         dist = Distribution()
         dist.script_name = 'setup.py'
         cmd = ei.easy_install(dist)
