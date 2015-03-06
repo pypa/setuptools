@@ -2907,6 +2907,9 @@ class Requirement:
             self.hashCmp == other.hashCmp
         )
 
+    def __ne__(self, other):
+        return not self == other
+
     def __contains__(self, item):
         if isinstance(item, Distribution):
             if item.key != self.key:
