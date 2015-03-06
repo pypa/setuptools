@@ -168,13 +168,6 @@ class TestUserInstallTest:
         cmd.ensure_finalized()
         assert not cmd.user, 'user should not be implied'
 
-    def test_multiproc_atexit(self):
-        pytest.importorskip('multiprocessing')
-
-        log = logging.getLogger('test_easy_install')
-        logging.basicConfig(level=logging.INFO, stream=sys.stderr)
-        log.info('this should not break')
-
     def test_user_install_not_implied_without_usersite_enabled(self):
         site.ENABLE_USER_SITE = False # usually enabled
         #XXX: replace with something meaningfull
@@ -184,6 +177,13 @@ class TestUserInstallTest:
         cmd.args = ['py']
         cmd.initialize_options()
         assert not cmd.user, 'NOT user should be implied'
+
+    def test_multiproc_atexit(self):
+        pytest.importorskip('multiprocessing')
+
+        log = logging.getLogger('test_easy_install')
+        logging.basicConfig(level=logging.INFO, stream=sys.stderr)
+        log.info('this should not break')
 
     def test_local_index(self):
         # make sure the local index is used
