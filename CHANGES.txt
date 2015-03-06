@@ -19,6 +19,13 @@ CHANGES
   through an appropriate distutils config file.
 
 ------
+13.0.2
+------
+
+* Issue #359: Include pytest.ini in the sdist so invocation of py.test on the
+  sdist honors the pytest configuration.
+
+------
 13.0.1
 ------
 
