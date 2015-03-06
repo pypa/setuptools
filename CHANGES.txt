@@ -8,7 +8,7 @@ CHANGES
 
 * Bootstrap script now accepts ``--to-dir`` to customize save directory or
   allow for re-use of existing repository of setuptools versions. See
-  Pull Request #112 for an alternate implementation.
+  Pull Request #112 for background.
 * Issue #285: ``easy_install`` no longer will default to installing
   packages to the "user site packages" directory if it is itself installed
   there. Instead, the user must pass ``--user`` in all cases to install
