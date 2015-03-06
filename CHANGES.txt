@@ -3,6 +3,13 @@ CHANGES
 =======
 
 ----
+13.0
+----
+
+* Issue #356: Back out Pull Request #119 as it requires Setuptools 10 or later
+  as the source during an upgrade.
+
+----
 12.4
 ----
 
