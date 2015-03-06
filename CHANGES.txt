@@ -8,6 +8,7 @@ CHANGES
 
 * Issue #356: Back out Pull Request #119 as it requires Setuptools 10 or later
   as the source during an upgrade.
+* Removed apparently unused build_py class in setup.py.
 
 ----
 12.4

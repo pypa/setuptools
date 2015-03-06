@@ -28,7 +28,6 @@ with open(ver_path) as ver_file:
     exec(ver_file.read(), main_ns)
 
 import setuptools
-from setuptools.command.build_py import build_py as _build_py
 
 scripts = []
 
@@ -48,20 +47,6 @@ def _gen_console_scripts():
         .format(shortver=sys.version[:3]))
 
 console_scripts = list(_gen_console_scripts())
-
-
-# specific command that is used to generate windows .exe files
-class build_py(_build_py):
-    def build_package_data(self):
-        """Copy data files into build directory"""
-        for package, src_dir, build_dir, filenames in self.data_files:
-            for filename in filenames:
-                target = os.path.join(build_dir, filename)
-                self.mkpath(os.path.dirname(target))
-                srcfile = os.path.join(src_dir, filename)
-                outf, copied = self.copy_file(srcfile, target)
-                srcfile = os.path.abspath(srcfile)
-
 
 readme_file = io.open('README.txt', encoding='utf-8')
 
