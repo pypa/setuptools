@@ -152,12 +152,9 @@ class easy_install(Command):
     create_index = PackageIndex
 
     def initialize_options(self):
-        if site.ENABLE_USER_SITE:
-            whereami = os.path.abspath(__file__)
-            self.user = whereami.startswith(site.USER_SITE)
-        else:
-            self.user = 0
-
+        # the --user option seemst to be an opt-in one,
+        # so the default should be False.
+        self.user = 0
         self.zip_ok = self.local_snapshots_ok = None
         self.install_dir = self.script_dir = self.exclude_scripts = None
         self.index_url = None
