@@ -155,7 +155,7 @@ def setup_context(tmpdir):
 class TestUserInstallTest:
 
     @mock.patch('setuptools.command.easy_install.__file__', None)
-    def test_user_install_implied(self):
+    def test_user_install_not_implied(self):
         # simulate setuptools installed in user site packages
         easy_install_pkg.__file__ = site.USER_SITE
         site.ENABLE_USER_SITE = True
