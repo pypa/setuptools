@@ -154,18 +154,14 @@ def setup_context(tmpdir):
 @pytest.mark.usefixtures("setup_context")
 class TestUserInstallTest:
 
-    @mock.patch('setuptools.command.easy_install.__file__', None)
+    # simulate setuptools installed in user site packages
+    @mock.patch('setuptools.command.easy_install.__file__', site.USER_SITE)
+    @mock.patch('site.ENABLE_USER_SITE', True)
     def test_user_install_not_implied_user_site_enabled(self):
-        # simulate setuptools installed in user site packages
-        easy_install_pkg.__file__ = site.USER_SITE
-        site.ENABLE_USER_SITE = True
-
         self.assert_not_user_site()
 
+    @mock.patch('site.ENABLE_USER_SITE', False)
     def test_user_install_not_implied_user_site_disabled(self):
-        # ensure user-site not enabled
-        site.ENABLE_USER_SITE = False
-
         self.assert_not_user_site()
 
     @staticmethod
