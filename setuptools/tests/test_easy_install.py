@@ -188,20 +188,23 @@ class TestUserInstallTest:
             f.write('Name: foo\n')
         return str(tmpdir)
 
-    def test_local_index(self, foo_package):
+    @pytest.fixture()
+    def install_target(self, tmpdir):
+        return str(tmpdir)
+
+    def test_local_index(self, foo_package, install_target):
         """
         The local index must be used when easy_install locates installed
         packages.
         """
-        target = tempfile.mkdtemp()
-        sys.path.append(target)
+        sys.path.append(install_target)
         old_ppath = os.environ.get('PYTHONPATH')
         os.environ['PYTHONPATH'] = os.path.pathsep.join(sys.path)
         try:
             dist = Distribution()
             dist.script_name = 'setup.py'
             cmd = ei.easy_install(dist)
-            cmd.install_dir = target
+            cmd.install_dir = install_target
             cmd.args = ['foo']
             cmd.ensure_finalized()
             cmd.local_index.scan([foo_package])
@@ -210,14 +213,7 @@ class TestUserInstallTest:
             expected = os.path.normcase(os.path.realpath(foo_package))
             assert actual == expected
         finally:
-            sys.path.remove(target)
-            for basedir in [target, ]:
-                if not os.path.exists(basedir) or not os.path.isdir(basedir):
-                    continue
-                try:
-                    shutil.rmtree(basedir)
-                except:
-                    pass
+            sys.path.remove(install_target)
             if old_ppath is not None:
                 os.environ['PYTHONPATH'] = old_ppath
             else:
