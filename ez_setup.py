@@ -32,6 +32,7 @@ except ImportError:
 
 DEFAULT_VERSION = "13.0.2"
 DEFAULT_URL = "https://pypi.python.org/packages/source/s/setuptools/"
+DEFAULT_SAVE_DIR = os.curdir
 
 
 def _python_cmd(*args):
@@ -132,7 +133,7 @@ def _do_download(version, download_base, to_dir, download_delay):
 
 def use_setuptools(
         version=DEFAULT_VERSION, download_base=DEFAULT_URL,
-        to_dir=os.curdir, download_delay=15):
+        to_dir=DEFAULT_SAVE_DIR, download_delay=15):
     """
     Ensure that a setuptools version is installed.
 
@@ -306,7 +307,8 @@ def get_best_downloader():
 
 def download_setuptools(
         version=DEFAULT_VERSION, download_base=DEFAULT_URL,
-        to_dir=os.curdir, delay=15, downloader_factory=get_best_downloader):
+        to_dir=DEFAULT_SAVE_DIR, delay=15,
+        downloader_factory=get_best_downloader):
     """
     Download setuptools from a specified location and return its filename.
 
@@ -359,6 +361,11 @@ def _parse_args():
         '--version', help="Specify which version to download",
         default=DEFAULT_VERSION,
     )
+    parser.add_option(
+    	'--to-dir',
+    	help="Directory to save (and re-use) package",
+    	default=DEFAULT_SAVE_DIR,
+    )
     options, args = parser.parse_args()
     # positional arguments are ignored
     return options
@@ -370,6 +377,7 @@ def _download_args(options):
 		version=options.version,
 		download_base=options.download_base,
 		downloader_factory=options.downloader_factory,
+		to_dir=options.to_dir,
 	)
 
 

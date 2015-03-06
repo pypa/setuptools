@@ -2,6 +2,14 @@
 CHANGES
 =======
 
+----
+13.1
+----
+
+Bootstrap script now accepts ``--to-dir`` to customize save directory or
+allow for re-use of existing repository of setuptools versions. See
+Pull Request #112 for an alternate implementation.
+
 ------
 13.0.1
 ------
