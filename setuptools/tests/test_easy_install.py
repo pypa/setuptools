@@ -156,15 +156,17 @@ class TestUserInstallTest:
 
     @mock.patch('setuptools.command.easy_install.__file__', None)
     def test_user_install_implied(self):
+        # simulate setuptools installed in user site packages
         easy_install_pkg.__file__ = site.USER_SITE
-        site.ENABLE_USER_SITE = True # disabled sometimes
-        #XXX: replace with something meaningfull
+        site.ENABLE_USER_SITE = True
+
+        # create a finalized easy_install command
         dist = Distribution()
         dist.script_name = 'setup.py'
         cmd = ei.easy_install(dist)
         cmd.args = ['py']
         cmd.ensure_finalized()
-        assert cmd.user, 'user should be implied'
+        assert not cmd.user, 'user should not be implied'
 
     def test_multiproc_atexit(self):
         try:
