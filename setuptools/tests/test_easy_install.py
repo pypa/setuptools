@@ -181,17 +181,19 @@ class TestUserInstallTest:
         logging.basicConfig(level=logging.INFO, stream=sys.stderr)
         log.info('this should not break')
 
-    def test_local_index(self):
+    @pytest.fixture()
+    def foo_package(self, tmpdir):
+        egg_file = tmpdir / 'foo-1.0.egg-info'
+        with egg_file.open('w') as f:
+            f.write('Name: foo\n')
+        return str(tmpdir)
+
+    def test_local_index(self, foo_package):
         """
         The local index must be used when easy_install locates installed
         packages.
         """
-        new_location = tempfile.mkdtemp()
         target = tempfile.mkdtemp()
-        egg_file = os.path.join(new_location, 'foo-1.0.egg-info')
-        with open(egg_file, 'w') as f:
-            f.write('Name: foo\n')
-
         sys.path.append(target)
         old_ppath = os.environ.get('PYTHONPATH')
         os.environ['PYTHONPATH'] = os.path.pathsep.join(sys.path)
@@ -202,14 +204,14 @@ class TestUserInstallTest:
             cmd.install_dir = target
             cmd.args = ['foo']
             cmd.ensure_finalized()
-            cmd.local_index.scan([new_location])
+            cmd.local_index.scan([foo_package])
             res = cmd.easy_install('foo')
             actual = os.path.normcase(os.path.realpath(res.location))
-            expected = os.path.normcase(os.path.realpath(new_location))
+            expected = os.path.normcase(os.path.realpath(foo_package))
             assert actual == expected
         finally:
             sys.path.remove(target)
-            for basedir in [new_location, target, ]:
+            for basedir in [target, ]:
                 if not os.path.exists(basedir) or not os.path.isdir(basedir):
                     continue
                 try:
