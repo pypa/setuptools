@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+------
+13.0.1
+------
+
+Re-release of 13.0. Intermittent connectivity issues caused the release
+process to fail and PyPI uploads no longer accept files for 13.0.
+
 ----
 13.0
 ----
