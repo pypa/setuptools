@@ -237,15 +237,7 @@ class easy_install(Command):
             self.config_vars['userbase'] = self.install_userbase
             self.config_vars['usersite'] = self.install_usersite
 
-        # fix the install_dir if "--user" was used
-        if self.user and site.ENABLE_USER_SITE:
-            self.create_home_path()
-            if self.install_userbase is None:
-                raise DistutilsPlatformError(
-                    "User base directory is not specified")
-            self.install_base = self.install_platbase = self.install_userbase
-            scheme_name = os.name.replace('posix', 'unix') + '_user'
-            self.select_scheme(scheme_name)
+        self._fix_install_dir_for_user_site()
 
         self.expand_basedirs()
         self.expand_dirs()
@@ -339,6 +331,19 @@ class easy_install(Command):
                 "No urls, filenames, or requirements specified (see --help)")
 
         self.outputs = []
+
+    def _fix_install_dir_for_user_site(self):
+        """
+        Fix the install_dir if "--user" was used.
+        """
+        if self.user and site.ENABLE_USER_SITE:
+            self.create_home_path()
+            if self.install_userbase is None:
+                raise DistutilsPlatformError(
+                    "User base directory is not specified")
+            self.install_base = self.install_platbase = self.install_userbase
+            scheme_name = os.name.replace('posix', 'unix') + '_user'
+            self.select_scheme(scheme_name)
 
     def _expand_attrs(self, attrs):
         for attr in attrs:
