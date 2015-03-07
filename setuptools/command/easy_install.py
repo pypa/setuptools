@@ -204,16 +204,16 @@ class easy_install(Command):
             filename for filename in blockers
             if os.path.exists(filename) or os.path.islink(filename)
         )
-        list(map(self._delete_filename, extant_blockers))
+        list(map(self._delete_path, extant_blockers))
 
-    def _delete_filename(self, filename):
-        log.info("Deleting %s", filename)
+    def _delete_path(self, path):
+        log.info("Deleting %s", path)
         if self.dry_run:
             return
 
-        is_tree = os.path.isdir(filename) and not os.path.islink(filename)
+        is_tree = os.path.isdir(path) and not os.path.islink(path)
         remover = rmtree if is_tree else os.unlink
-        remover(filename)
+        remover(path)
 
     def finalize_options(self):
         if self.version:
