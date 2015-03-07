@@ -211,8 +211,8 @@ class easy_install(Command):
         if self.dry_run:
             return
 
-        if (os.path.isdir(filename) and
-                not os.path.islink(filename)):
+        is_tree = os.path.isdir(filename) and not os.path.islink(filename)
+        if is_tree:
             rmtree(filename)
         else:
             os.unlink(filename)
