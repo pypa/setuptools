@@ -207,13 +207,13 @@ class easy_install(Command):
         list(map(self._delete_filename, extant_blockers))
 
     def _delete_filename(self, filename):
-                log.info("Deleting %s", filename)
-                if not self.dry_run:
-                    if (os.path.isdir(filename) and
-                            not os.path.islink(filename)):
-                        rmtree(filename)
-                    else:
-                        os.unlink(filename)
+        log.info("Deleting %s", filename)
+        if not self.dry_run:
+            if (os.path.isdir(filename) and
+                    not os.path.islink(filename)):
+                rmtree(filename)
+            else:
+                os.unlink(filename)
 
     def finalize_options(self):
         if self.version:
