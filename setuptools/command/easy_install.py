@@ -204,7 +204,9 @@ class easy_install(Command):
             filename for filename in blockers
             if os.path.exists(filename) or os.path.islink(filename)
         )
-        for filename in extant_blockers:
+        list(map(self._delete_filename, extant_blockers))
+
+    def _delete_filename(self, filename):
                 log.info("Deleting %s", filename)
                 if not self.dry_run:
                     if (os.path.isdir(filename) and
