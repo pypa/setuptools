@@ -208,12 +208,14 @@ class easy_install(Command):
 
     def _delete_filename(self, filename):
         log.info("Deleting %s", filename)
-        if not self.dry_run:
-            if (os.path.isdir(filename) and
-                    not os.path.islink(filename)):
-                rmtree(filename)
-            else:
-                os.unlink(filename)
+        if self.dry_run:
+            return
+
+        if (os.path.isdir(filename) and
+                not os.path.islink(filename)):
+            rmtree(filename)
+        else:
+            os.unlink(filename)
 
     def finalize_options(self):
         if self.version:
