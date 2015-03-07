@@ -244,10 +244,8 @@ class easy_install(Command):
                 raise DistutilsPlatformError(
                     "User base directory is not specified")
             self.install_base = self.install_platbase = self.install_userbase
-            if os.name == 'posix':
-                self.select_scheme("unix_user")
-            else:
-                self.select_scheme(os.name + "_user")
+            scheme_name = os.name.replace('posix', 'unix') + '_user'
+            self.select_scheme(scheme_name)
 
         self.expand_basedirs()
         self.expand_dirs()
