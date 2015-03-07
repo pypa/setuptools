@@ -238,7 +238,6 @@ class easy_install(Command):
             self.config_vars['usersite'] = self.install_usersite
 
         # fix the install_dir if "--user" was used
-        # XXX: duplicate of the code in the setup command
         if self.user and site.ENABLE_USER_SITE:
             self.create_home_path()
             if self.install_userbase is None:
