@@ -212,10 +212,8 @@ class easy_install(Command):
             return
 
         is_tree = os.path.isdir(filename) and not os.path.islink(filename)
-        if is_tree:
-            rmtree(filename)
-        else:
-            os.unlink(filename)
+        remover = rmtree if is_tree else os.unlink
+        remover(filename)
 
     def finalize_options(self):
         if self.version:
