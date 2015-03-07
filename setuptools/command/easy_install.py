@@ -341,8 +341,8 @@ class easy_install(Command):
 
         self.create_home_path()
         if self.install_userbase is None:
-            raise DistutilsPlatformError(
-                "User base directory is not specified")
+            msg = "User base directory is not specified"
+            raise DistutilsPlatformError(msg)
         self.install_base = self.install_platbase = self.install_userbase
         scheme_name = os.name.replace('posix', 'unix') + '_user'
         self.select_scheme(scheme_name)
