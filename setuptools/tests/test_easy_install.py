@@ -232,26 +232,6 @@ class TestUserInstallTest:
             self.user_install_setup_context,
         )
 
-    def test_setup_requires(self):
-        """Regression test for Distribute issue #318
-
-        Ensure that a package with setup_requires can be installed when
-        setuptools is installed in the user site-packages without causing a
-        SandboxViolation.
-        """
-
-        test_pkg = create_setup_requires_package(os.getcwd())
-        test_setup_py = os.path.join(test_pkg, 'setup.py')
-
-        try:
-            with contexts.quiet():
-                with self.patched_setup_context():
-                    run_setup(test_setup_py, ['install'])
-        except IndexError:
-            # Test fails in some cases due to bugs in Python
-            # See https://bitbucket.org/pypa/setuptools/issue/201
-            pass
-
 
 @pytest.yield_fixture
 def distutils_package():
