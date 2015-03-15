@@ -154,13 +154,23 @@ def setup_context(tmpdir):
 @pytest.mark.usefixtures("setup_context")
 class TestUserInstallTest:
 
+    # prevent check that site-packages is writable. easy_install
+    # shouldn't be writing to system site-packages during finalize
+    # options, but while it does, bypass the behavior.
+    prev_sp_write = mock.patch(
+        'setuptools.command.easy_install.easy_install.check_site_dir',
+        mock.Mock(),
+    )
+
     # simulate setuptools installed in user site packages
     @mock.patch('setuptools.command.easy_install.__file__', site.USER_SITE)
     @mock.patch('site.ENABLE_USER_SITE', True)
+    @prev_sp_write
     def test_user_install_not_implied_user_site_enabled(self):
         self.assert_not_user_site()
 
     @mock.patch('site.ENABLE_USER_SITE', False)
+    @prev_sp_write
     def test_user_install_not_implied_user_site_disabled(self):
         self.assert_not_user_site()
 
