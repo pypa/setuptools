@@ -3,6 +3,13 @@ CHANGES
 =======
 
 ----
+14.1
+----
+
+* Pull Request #125: Add ``__ne__`` to Requirement class.
+* Various refactoring of easy_install.
+
+----
 14.0
 ----
 
