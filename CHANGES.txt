@@ -3,6 +3,14 @@ CHANGES
 =======
 
 ----
+14.3
+----
+
+* Issue #254: When creating temporary egg cache on Unix, use mode 755
+  for creating the directory to avoid the subsequent warning if
+  the directory is group writable.
+
+----
 14.2
 ----
 
