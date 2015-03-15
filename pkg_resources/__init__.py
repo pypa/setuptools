@@ -2958,14 +2958,14 @@ def ensure_directory(path):
         os.makedirs(dirname)
 
 
-def _bypass_ensure_directory(path, mode=0o755):
+def _bypass_ensure_directory(path):
     """Sandbox-bypassing version of ensure_directory()"""
     if not WRITE_SUPPORT:
         raise IOError('"os.mkdir" not supported on this platform.')
     dirname, filename = split(path)
     if dirname and filename and not isdir(dirname):
         _bypass_ensure_directory(dirname)
-        mkdir(dirname, mode)
+        mkdir(dirname, 0o755)
 
 
 def split_sections(s):
