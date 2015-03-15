@@ -2,6 +2,14 @@
 CHANGES
 =======
 
+----
+14.2
+----
+
+* Issue #137: Update ``Distribution.hashcmp`` so that Distributions with
+  None for pyversion or platform can be compared against Distributions
+  defining those attributes.
+
 ------
 14.1.1
 ------
