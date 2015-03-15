@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+------
+14.1.1
+------
+
+* Issue #360: Removed undesirable behavior from test runs, preventing
+  write tests and installation to system site packages.
+
 ----
 14.1
 ----
