@@ -168,7 +168,8 @@ class egg_info(Command):
         self.mkpath(self.egg_info)
         installer = self.distribution.fetch_build_egg
         for ep in iter_entry_points('egg_info.writers'):
-            writer = ep.load(installer=installer)
+            ep.require(installer=installer)
+            writer = ep.resolve()
             writer(self, ep.name, os.path.join(self.egg_info, ep.name))
 
         # Get rid of native_libs.txt if it was put there by older bdist_egg
