@@ -798,13 +798,16 @@ class WorkingSet(object):
                             ws = WorkingSet([])
                     dist = best[req.key] = env.best_match(req, ws, installer)
                     if dist is None:
-                        #msg = ("The '%s' distribution was not found on this "
-                        #       "system, and is required by this application.")
-                        #raise DistributionNotFound(msg % req)
-
-                        # unfortunately, zc.buildout uses a str(err)
-                        # to get the name of the distribution here..
-                        raise DistributionNotFound(req)
+                        requirers = required_by.get(req, None)
+                        if requirers:
+                            requirers_str = ', '.join(requirers)
+                        else:
+                            requirers_str = 'this application'
+                        msg = ("The '%s' distribution was not found "
+                               "and is required by %s."
+                               % (req, requirers_str))
+                        warnings.warn(msg)
+                        raise DistributionNotFound(msg)
                 to_activate.append(dist)
             if dist not in req:
                 # Oops, the "best" so far conflicts with a dependency
