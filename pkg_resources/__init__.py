@@ -2269,14 +2269,13 @@ CBRACKET = re.compile(r"\s*\]").match
 MODULE = re.compile(r"\w+(\.\w+)*$").match
 EGG_NAME = re.compile(
     r"""
-    (?P<name>.*?) (
+    (?P<name>[^-]+) (
         -(?P<ver>[^-]+) (
             -py(?P<pyver>[^-]+) (
                 -(?P<plat>.+)
             )?
         )?
     )?
-    $
     """,
     re.VERBOSE | re.IGNORECASE,
 ).match
