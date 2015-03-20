@@ -207,6 +207,16 @@ class TestDistro:
         with pytest.raises(pkg_resources.UnknownExtra):
             d.requires(["foo"])
 
+    def test_pkg_name_with_hyphen(self):
+        "Package names with hyphens are supported"
+        name = 'setuptools-markdown-1.0.egg'
+        dist = Distribution.from_filename(name)
+        assert dist.project_name == "setuptools-markdown"
+        assert dist.key == "setuptools-markdown"
+        assert dist.version == "1.0"
+        assert dist.py_version is None
+        assert dist.platform is None
+
 
 class TestWorkingSet:
     def test_find_conflicting(self):
