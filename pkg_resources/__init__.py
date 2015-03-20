@@ -2267,9 +2267,17 @@ OBRACKET = re.compile(r"\s*\[").match
 CBRACKET = re.compile(r"\s*\]").match
 MODULE = re.compile(r"\w+(\.\w+)*$").match
 EGG_NAME = re.compile(
-    r"(?P<name>.*?)"
-    r"( -(?P<ver>[^-]+) (-py(?P<pyver>[^-]+) (-(?P<plat>.+))? )? )?$",
-    re.VERBOSE | re.IGNORECASE
+    r"""
+    (?P<name>.*?) (
+        -(?P<ver>[^-]+) (
+            -py(?P<pyver>[^-]+) (
+                -(?P<plat>.+)
+            )?
+        )?
+    )?
+    $
+    """,
+    re.VERBOSE | re.IGNORECASE,
 ).match
 
 
