@@ -2500,6 +2500,11 @@ class Distribution(object):
     def parsed_version(self):
         if not hasattr(self, "_parsed_version"):
             self._parsed_version = parse_version(self.version)
+            self._warn_legacy_version()
+
+        return self._parsed_version
+
+    def _warn_legacy_version(self):
             if isinstance(
                     self._parsed_version, packaging.version.LegacyVersion):
                 # While an empty version is techincally a legacy version and
@@ -2520,7 +2525,6 @@ class Distribution(object):
                         PEP440Warning,
                     )
 
-        return self._parsed_version
 
     @property
     def version(self):
