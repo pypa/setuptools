@@ -2521,14 +2521,15 @@ class Distribution(object):
             return
 
         tmpl = textwrap.dedent("""
-            '%s (%s)' is being parsed as a legacy, non PEP 440,
+            '{project_name} ({version})' is being parsed as a legacy,
+            non PEP 440,
             version. You may find odd behavior and sort order.
             In particular it will be sorted as less than 0.0. It
             is recommend to migrate to PEP 440 compatible
             versions.
             """).strip().replace('\n', ' ')
 
-        warnings.warn(tmpl % (self.project_name, self.version), PEP440Warning)
+        warnings.warn(tmpl.format(**vars(self)), PEP440Warning)
 
     @property
     def version(self):
