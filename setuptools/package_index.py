@@ -140,8 +140,9 @@ def interpret_distro_name(
     parts = basename.split('-')
     if not py_version:
         for i,p in enumerate(parts[2:]):
-            if len(p)==5 and p.startswith('py2.'):
-                return # It's a bdist_dumb, not an sdist -- bail out
+            if p.match('py\d\.\d'):
+                # It's a bdist_dumb, not an sdist -- bail out
+                return
 
     for p in range(1,len(parts)+1):
         yield Distribution(
