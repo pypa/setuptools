@@ -2501,7 +2501,6 @@ class Distribution(object):
     def parsed_version(self):
         if not hasattr(self, "_parsed_version"):
             self._parsed_version = parse_version(self.version)
-            self._warn_legacy_version()
 
         return self._parsed_version
 
