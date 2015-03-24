@@ -368,6 +368,30 @@ class ContextualVersionConflict(VersionConflict):
 class DistributionNotFound(ResolutionError):
     """A requested distribution was not found"""
 
+    _template = ("The '{self.req}' distribution was not found "
+                 "and is required by {self.requirers_str}")
+
+    @property
+    def req(self):
+        return self.args[0]
+
+    @property
+    def requirers(self):
+        return self.args[1]
+
+    @property
+    def requirers_str(self):
+        if not self.requirers:
+            return 'the application'
+        return ', '.join(self.requirers)
+
+    def report(self):
+        return self._template.format(**locals())
+
+    def __str__(self):
+        return self.report()
+
+
 class UnknownExtra(ResolutionError):
     """Distribution doesn't have an "extra feature" of the given name"""
 _provider_factories = {}
@@ -799,15 +823,7 @@ class WorkingSet(object):
                     dist = best[req.key] = env.best_match(req, ws, installer)
                     if dist is None:
                         requirers = required_by.get(req, None)
-                        if requirers:
-                            requirers_str = ', '.join(requirers)
-                        else:
-                            requirers_str = 'this application'
-                        msg = ("The '%s' distribution was not found "
-                               "and is required by %s."
-                               % (req, requirers_str))
-                        warnings.warn(msg)
-                        raise DistributionNotFound(msg)
+                        raise DistributionNotFound(req, requirers)
                 to_activate.append(dist)
             if dist not in req:
                 # Oops, the "best" so far conflicts with a dependency

@@ -709,9 +709,7 @@ class easy_install(Command):
                 [requirement], self.local_index, self.easy_install
             )
         except DistributionNotFound as e:
-            raise DistutilsError(
-                "Could not find required distribution %s" % e.args
-            )
+            raise DistutilsError(str(e))
         except VersionConflict as e:
             raise DistutilsError(e.report())
         if self.always_copy or self.always_copy_from:
