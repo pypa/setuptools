@@ -2,6 +2,20 @@
 CHANGES
 =======
 
+----
+15.0
+----
+
+* Pull Request #126: DistributionNotFound message now lists the package or
+  packages that required it. E.g.::
+
+      pkg_resources.DistributionNotFound: The 'colorama>=0.3.1' distribution was not found and is required by smlib.log.
+
+  Note that zc.buildout once dependended on the string rendering of this
+  message to determine the package that was not found. This expectation
+  has since been changed, but older versions of buildout may experience
+  problems.
+
 ------
 14.3.1
 ------
