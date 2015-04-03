@@ -14,7 +14,7 @@ CHANGES
   Note that zc.buildout once dependended on the string rendering of this
   message to determine the package that was not found. This expectation
   has since been changed, but older versions of buildout may experience
-  problems.
+  problems. See Buildout #242 for details.
 
 ------
 14.3.1
