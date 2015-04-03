@@ -152,7 +152,7 @@ class easy_install(Command):
     create_index = PackageIndex
 
     def initialize_options(self):
-        # the --user option seemst to be an opt-in one,
+        # the --user option seems to be an opt-in one,
         # so the default should be False.
         self.user = 0
         self.zip_ok = self.local_snapshots_ok = None

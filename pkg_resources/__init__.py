@@ -2528,7 +2528,7 @@ class Distribution(object):
         if not is_legacy:
             return
 
-        # While an empty version is techincally a legacy version and
+        # While an empty version is technically a legacy version and
         # is not a valid PEP 440 version, it's also unlikely to
         # actually come from someone and instead it is more likely that
         # it comes from setuptools attempting to parse a filename and
@@ -2542,7 +2542,7 @@ class Distribution(object):
             non PEP 440,
             version. You may find odd behavior and sort order.
             In particular it will be sorted as less than 0.0. It
-            is recommend to migrate to PEP 440 compatible
+            is recommended to migrate to PEP 440 compatible
             versions.
             """).strip().replace('\n', ' ')
 
