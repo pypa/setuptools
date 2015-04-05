@@ -28,7 +28,7 @@ def setup_module(module):
     try:
         urlopen('https://pypi.python.org/pypi')
     except Exception as exc:
-        pytest.skip(reason=str(exc))
+        pytest.skip(str(exc))
 
 
 @pytest.fixture
