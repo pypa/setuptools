@@ -242,6 +242,10 @@ link_files = {
 				pattern=r"Pip #(?P<pip>\d+)",
 				url='{GH}/pypa/pip/issues/{pip}',
 			),
+			dict(
+				pattern=r"Packaging #(?P<packaging>\d+)",
+				url='{GH}/pypa/packaging/issues/{packaging}',
+			),
 		],
 	),
 }

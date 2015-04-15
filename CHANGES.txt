@@ -3,6 +3,12 @@ CHANGES
 =======
 
 ----
+15.1
+----
+
+* Updated Packaging to 15.1 to address Packaging #28.
+
+----
 15.0
 ----
 
