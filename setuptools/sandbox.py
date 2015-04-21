@@ -10,7 +10,7 @@ import pickle
 
 import pkg_resources
 
-if os.name == "java":
+if sys.platform.startswith('java'):
     import org.python.modules.posix.PosixModule as _os
 else:
     _os = sys.modules[os.name]
