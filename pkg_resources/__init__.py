@@ -21,7 +21,8 @@ import os
 import io
 import time
 import re
-import imp
+import _imp
+import types
 import zipfile
 import zipimport
 import warnings
@@ -2163,7 +2164,7 @@ def _handle_ns(packageName, path_item):
         return None
     module = sys.modules.get(packageName)
     if module is None:
-        module = sys.modules[packageName] = imp.new_module(packageName)
+        module = sys.modules[packageName] = types.ModuleType(packageName)
         module.__path__ = []
         _set_parent_ns(packageName)
     elif not hasattr(module,'__path__'):
@@ -2182,7 +2183,7 @@ def _handle_ns(packageName, path_item):
 def declare_namespace(packageName):
     """Declare that package 'packageName' is a namespace package"""
 
-    imp.acquire_lock()
+    _imp.acquire_lock()
     try:
         if packageName in _namespace_packages:
             return
@@ -2209,18 +2210,18 @@ def declare_namespace(packageName):
             _handle_ns(packageName, path_item)
 
     finally:
-        imp.release_lock()
+        _imp.release_lock()
 
 def fixup_namespace_packages(path_item, parent=None):
     """Ensure that previously-declared namespace packages include path_item"""
-    imp.acquire_lock()
+    _imp.acquire_lock()
     try:
         for package in _namespace_packages.get(parent,()):
             subpath = _handle_ns(package, path_item)
             if subpath:
                 fixup_namespace_packages(subpath, package)
     finally:
-        imp.release_lock()
+        _imp.release_lock()
 
 def file_ns_handler(importer, path_item, packageName, module):
     """Compute an ns-package subpath for a filesystem or zipfile importer"""
