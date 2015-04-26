@@ -89,6 +89,12 @@ except ImportError:
     import packaging.specifiers
 
 
+# declare some globals that will be defined later to
+# satisfy the linters.
+require = None
+working_set = None
+
+
 class PEP440Warning(RuntimeWarning):
     """
     Used when there is an issue with a version or specifier not complying with
