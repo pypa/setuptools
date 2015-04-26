@@ -3057,8 +3057,8 @@ def _call_aside(f, *args, **kwargs):
     return f
 
 
-@functools.partial(_call_aside, globals())
-def _initialize(g):
+@_call_aside
+def _initialize(g=globals()):
     "Set up global resource manager (deliberately not state-saved)"
     manager = ResourceManager()
     g['_manager'] = manager
