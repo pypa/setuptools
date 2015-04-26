@@ -3051,15 +3051,23 @@ def _mkstemp(*args,**kw):
 warnings.filterwarnings("ignore", category=PEP440Warning, append=True)
 
 
-# Set up global resource manager (deliberately not state-saved)
-_manager = ResourceManager()
+# from jaraco.functools 1.3
+def _call_aside(f, *args, **kwargs):
+    f(*args, **kwargs)
+    return f
+
+
+@functools.partial(_call_aside, globals())
 def _initialize(g):
-    for name in dir(_manager):
+    "Set up global resource manager (deliberately not state-saved)"
+    manager = ResourceManager()
+    g['_manager'] = manager
+    for name in dir(manager):
         if not name.startswith('_'):
-            g[name] = getattr(_manager, name)
-_initialize(globals())
+            g[name] = getattr(manager, name)
 
 
+@_call_aside
 def _initialize_master_working_set():
     """
     Prepare the master working set and make the ``require()``
@@ -3089,4 +3097,3 @@ def _initialize_master_working_set():
     # match order
     list(map(working_set.add_entry, sys.path))
     globals().update(locals())
-_initialize_master_working_set()
