@@ -3,6 +3,14 @@ CHANGES
 =======
 
 ----
+15.2
+----
+
+* Issue #373: Provisionally expose
+  ``pkg_resources._initialize_master_working_set``, allowing for
+  imperative re-initialization of the master working set.
+
+----
 15.1
 ----
 
