@@ -21,7 +21,6 @@ import os
 import io
 import time
 import re
-import _imp
 import types
 import zipfile
 import zipimport
@@ -39,6 +38,12 @@ import email.parser
 import tempfile
 import textwrap
 from pkgutil import get_importer
+
+try:
+    import _imp
+except ImportError:
+    # Python 3.2 compatibility
+    import imp as _imp
 
 PY3 = sys.version_info > (3,)
 PY2 = not PY3
