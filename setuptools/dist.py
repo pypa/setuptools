@@ -122,11 +122,15 @@ def check_requirements(dist, attr, value):
     """Verify that install_requires is a valid requirements list"""
     try:
         list(pkg_resources.parse_requirements(value))
-    except (TypeError,ValueError):
+    except (TypeError, ValueError) as e:
         raise DistutilsSetupError(
             "%r must be a string or list of strings "
-            "containing valid project/version requirement specifiers" % (attr,)
+            "containing valid project/version requirement specifiers.\n"
+            "Error: %s"
+            % (attr, ' '.join(e.args))
         )
+
+
 def check_entry_points(dist, attr, value):
     """Verify that entry_points map is parseable"""
     try:
