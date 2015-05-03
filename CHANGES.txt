@@ -3,6 +3,13 @@ CHANGES
 =======
 
 ----
+15.3
+----
+
+* Pull Request #130: Better error messages for errors in
+  parsed requirements.
+
+----
 15.2
 ----
 
