@@ -21,7 +21,7 @@ import os
 import io
 import time
 import re
-import types
+import imp
 import zipfile
 import zipimport
 import warnings
@@ -38,12 +38,6 @@ import email.parser
 import tempfile
 import textwrap
 from pkgutil import get_importer
-
-try:
-    import _imp
-except ImportError:
-    # Python 3.2 compatibility
-    import imp as _imp
 
 PY3 = sys.version_info > (3,)
 PY2 = not PY3
@@ -2169,7 +2163,7 @@ def _handle_ns(packageName, path_item):
         return None
     module = sys.modules.get(packageName)
     if module is None:
-        module = sys.modules[packageName] = types.ModuleType(packageName)
+        module = sys.modules[packageName] = imp.new_module(packageName)
         module.__path__ = []
         _set_parent_ns(packageName)
     elif not hasattr(module,'__path__'):
@@ -2188,7 +2182,7 @@ def _handle_ns(packageName, path_item):
 def declare_namespace(packageName):
     """Declare that package 'packageName' is a namespace package"""
 
-    _imp.acquire_lock()
+    imp.acquire_lock()
     try:
         if packageName in _namespace_packages:
             return
@@ -2215,18 +2209,18 @@ def declare_namespace(packageName):
             _handle_ns(packageName, path_item)
 
     finally:
-        _imp.release_lock()
+        imp.release_lock()
 
 def fixup_namespace_packages(path_item, parent=None):
     """Ensure that previously-declared namespace packages include path_item"""
-    _imp.acquire_lock()
+    imp.acquire_lock()
     try:
         for package in _namespace_packages.get(parent,()):
             subpath = _handle_ns(package, path_item)
             if subpath:
                 fixup_namespace_packages(subpath, package)
     finally:
-        _imp.release_lock()
+        imp.release_lock()
 
 def file_ns_handler(importer, path_item, packageName, module):
     """Compute an ns-package subpath for a filesystem or zipfile importer"""
@@ -2859,6 +2853,11 @@ def issue_warning(*args,**kw):
     warnings.warn(stacklevel=level + 1, *args, **kw)
 
 
+class RequirementParseError(ValueError):
+    def __str__(self):
+        return ' '.join(self.args)
+
+
 def parse_requirements(strs):
     """Yield ``Requirement`` objects for each specification in `strs`
 
@@ -2877,14 +2876,14 @@ def parse_requirements(strs):
                     line = next(lines)
                     p = 0
                 except StopIteration:
-                    raise ValueError(
+                    raise RequirementParseError(
                         "\\ must not appear on the last nonblank line"
                     )
 
             match = ITEM(line, p)
             if not match:
                 msg = "Expected " + item_name + " in"
-                raise ValueError(msg, line, "at", line[p:])
+                raise RequirementParseError(msg, line, "at", line[p:])
 
             items.append(match.group(*groups))
             p = match.end()
@@ -2895,7 +2894,7 @@ def parse_requirements(strs):
                 p = match.end()
             elif not TERMINATOR(line, p):
                 msg = "Expected ',' or end-of-list in"
-                raise ValueError(msg, line, "at", line[p:])
+                raise RequirementParseError(msg, line, "at", line[p:])
 
         match = TERMINATOR(line, p)
         # skip the terminator, if any
@@ -2906,7 +2905,7 @@ def parse_requirements(strs):
     for line in lines:
         match = DISTRO(line)
         if not match:
-            raise ValueError("Missing distribution spec", line)
+            raise RequirementParseError("Missing distribution spec", line)
         project_name = match.group(1)
         p = match.end()
         extras = []
