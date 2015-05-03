@@ -126,8 +126,8 @@ def check_requirements(dist, attr, value):
         raise DistutilsSetupError(
             "%r must be a string or list of strings "
             "containing valid project/version requirement specifiers.\n"
-            "Error: %s"
-            % (attr, ' '.join(e.args))
+            "%s"
+            % (attr, e)
         )
 
 
