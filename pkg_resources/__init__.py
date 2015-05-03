@@ -2876,9 +2876,8 @@ def parse_requirements(strs):
                     line = next(lines)
                     p = 0
                 except StopIteration:
-                    raise RequirementParseError(
-                        "\\ must not appear on the last nonblank line"
-                    )
+                    msg = "\\ must not appear on the last nonblank line"
+                    raise RequirementParseError(msg)
 
             match = ITEM(line, p)
             if not match:
