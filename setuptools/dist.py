@@ -123,13 +123,11 @@ def check_requirements(dist, attr, value):
     try:
         list(pkg_resources.parse_requirements(value))
     except (TypeError, ValueError) as e:
-        raise DistutilsSetupError(
+        tmpl = (
             "%r must be a string or list of strings "
-            "containing valid project/version requirement specifiers.\n"
-            "%s"
-            % (attr, e)
+            "containing valid project/version requirement specifiers; %s"
         )
-
+        raise DistutilsSetupError(tmpl % (attr, e))
 
 def check_entry_points(dist, attr, value):
     """Verify that entry_points map is parseable"""
