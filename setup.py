@@ -80,7 +80,7 @@ setup_params = dict(
     keywords="CPAN PyPI distutils eggs package management",
     url="https://bitbucket.org/pypa/setuptools",
     src_root=src_root,
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages(exclude=['*.tests']),
     package_data=package_data,
 
     py_modules=['easy_install'],
