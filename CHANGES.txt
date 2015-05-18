@@ -3,11 +3,13 @@ CHANGES
 =======
 
 ----
-15.3
+16.0
 ----
 
 * Pull Request #130: Better error messages for errors in
   parsed requirements.
+* Pull Request #133: Removed ``setuptools.tests`` from the
+  installed packages.
 
 ----
 15.2
