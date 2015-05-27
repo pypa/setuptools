@@ -2024,8 +2024,8 @@ class ScriptWriter(object):
             group = type_ + '_scripts'
             for name, ep in dist.get_entry_map(group).items():
                 script_text = cls.template % locals()
-                for res in cls._get_script_args(type_, name, header,
-                        script_text):
+                args = cls._get_script_args(type_, name, header, script_text)
+                for res in args:
                     yield res
 
     @classmethod
