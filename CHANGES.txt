@@ -3,6 +3,14 @@ CHANGES
 =======
 
 ----
+17.0
+----
+
+* Issue #390: Disallow console scripts with path separators in
+  the name. Removes unintended functionality and brings behavior
+  into parity wih pip.
+
+----
 16.0
 ----
 
