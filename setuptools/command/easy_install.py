@@ -2015,7 +2015,8 @@ class ScriptWriter(object):
     @classmethod
     def get_args(cls, dist, header=None):
         """
-        Yield write_script() argument tuples for a distribution's entrypoints
+        Yield write_script() argument tuples for a distribution's
+        console_scripts and gui_scripts entry points.
         """
         if header is None:
             header = cls.get_header()
