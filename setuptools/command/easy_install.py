@@ -2024,10 +2024,20 @@ class ScriptWriter(object):
         for type_ in 'console', 'gui':
             group = type_ + '_scripts'
             for name, ep in dist.get_entry_map(group).items():
+                cls._ensure_safe_name(name)
                 script_text = cls.template % locals()
                 args = cls._get_script_args(type_, name, header, script_text)
                 for res in args:
                     yield res
+
+    @staticmethod
+    def _ensure_safe_name(name):
+        """
+        Prevent paths in *_scripts entry point names.
+        """
+        has_path_sep = re.search(r'[\\/]', name)
+        if has_path_sep:
+            raise ValueError("Path separators not allowed in script names")
 
     @classmethod
     def get_writer(cls, force_windows):
