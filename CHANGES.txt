@@ -6,6 +6,7 @@ CHANGES
 17.0
 ----
 
+* Issue #378: Do not use internal importlib._bootstrap module.
 * Issue #390: Disallow console scripts with path separators in
   the name. Removes unintended functionality and brings behavior
   into parity wih pip.
