@@ -417,3 +417,9 @@ Environment Markers
 
     >>> em("'yx' in 'x'")
     False
+
+    >>> em("python_version >= '2.6'")
+    True
+
+    >>> em("python_version > '2.5'")
+    True
