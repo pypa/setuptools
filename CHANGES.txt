@@ -3,6 +3,13 @@ CHANGES
 =======
 
 ----
+17.1
+----
+
+* Issue #380: Add support for range operators on environment
+  marker evaluation.
+
+----
 17.0
 ----
 
