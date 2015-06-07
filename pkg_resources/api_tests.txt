@@ -364,9 +364,6 @@ Environment Markers
     >>> print(im("'x'=='x' or os.open('foo')=='y'"))   # no short-circuit!
     Language feature not supported in environment markers
 
-    >>> print(im("'x' < 'y'"))
-    '<' operator not allowed in environment markers
-
     >>> print(im("'x' < 'y' < 'z'"))
     Chained comparison not allowed in environment markers
 
