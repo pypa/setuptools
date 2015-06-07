@@ -1489,6 +1489,10 @@ class MarkerEvaluation(object):
             'in': lambda x, y: x in y,
             '==': operator.eq,
             '!=': operator.ne,
+            '<':  operator.lt,
+            '>':  operator.gt,
+            '<=': operator.le,
+            '>=': operator.ge,
         }
         if hasattr(symbol, 'or_test'):
             ops[symbol.or_test] = cls.test
