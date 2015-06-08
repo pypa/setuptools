@@ -2,6 +2,14 @@
 CHANGES
 =======
 
+------
+17.1.1
+------
+
+* Backed out unintended changes to pkg_resources, restoring removal of
+  deprecated imp module (`ref
+  <https://bitbucket.org/pypa/setuptools/commits/f572ec9563d647fa8d4ffc534f2af8070ea07a8b#comment-1881283>`_).
+
 ----
 17.1
 ----
