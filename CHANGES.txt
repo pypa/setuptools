@@ -2,6 +2,30 @@
 CHANGES
 =======
 
+----
+18.0
+----
+
+* Dropped support for builds with Pyrex. Only Cython is supported.
+* Issue #288: Detect Cython later in the build process, after
+  ``setup_requires`` dependencies are resolved.
+  Projects backed by Cython can now be readily built
+  with a ``setup_requires`` dependency. For example::
+
+    ext = setuptools.Extension('mylib', ['src/CythonStuff.pyx', 'src/CStuff.c'])
+    setuptools.setup(
+        ...
+        ext_modules=[ext],
+        setup_requires=['cython'],
+    )
+
+  For compatibility with older versions of setuptools, packagers should
+  still include ``src/CythonMod.c`` in the source distributions or
+  require that Cython be present before building source distributions.
+  However, for systems with this build of setuptools, Cython will be
+  downloaded on demand.
+
+
 ------
 17.1.1
 ------
