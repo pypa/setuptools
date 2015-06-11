@@ -1944,15 +1944,6 @@ class JythonCommandSpec(CommandSpec):
             __import__('java').lang.System.getProperty('os.name') != 'Linux'
         )
 
-    @classmethod
-    def from_environment(cls):
-        string = '"' + cls._sys_executable() + '"'
-        return cls.from_string(string)
-
-    @classmethod
-    def from_string(cls, string):
-        return cls([string])
-
     def as_header(self):
         """
         Workaround Jython's sys.executable being a .sh (an invalid
