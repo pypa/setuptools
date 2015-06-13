@@ -488,9 +488,11 @@ class TestCommandSpec:
         cmd_new = ei.CommandSpec.from_param(cmd)
         assert cmd is cmd_new
 
+    @mock.patch('sys.executable', TestScriptHeader.exe_with_spaces)
+    @mock.patch.dict(os.environ)
     def test_from_environment_with_spaces_in_executable(self):
-        with mock.patch('sys.executable', TestScriptHeader.exe_with_spaces):
-            cmd = ei.CommandSpec.from_environment()
+        del os.environ['__PYVENV_LAUNCHER__']
+        cmd = ei.CommandSpec.from_environment()
         assert len(cmd) == 1
         assert cmd.as_header().startswith('#!"')
 
