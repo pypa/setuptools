@@ -24,7 +24,9 @@ CHANGES
   require that Cython be present before building source distributions.
   However, for systems with this build of setuptools, Cython will be
   downloaded on demand.
-
+* Issue #396: Fixed test failure on OS X.
+* Pull Request #136: Remove excessive quoting from shebang headers
+  for Jython.
 
 ------
 17.1.1
