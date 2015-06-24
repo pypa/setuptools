@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+------
+18.0.1
+------
+
+* Issue #401: Fix failure in test suite.
+
 ----
 18.0
 ----
