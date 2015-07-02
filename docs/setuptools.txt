@@ -1467,7 +1467,7 @@ are included in any source distribution you build.  This is a big improvement
 over having to manually write a ``MANIFEST.in`` file and try to keep it in
 sync with your project.  So, if you are using CVS or Subversion, and your
 source distributions only need to include files that you're tracking in
-revision control, don't create a a ``MANIFEST.in`` file for your project.
+revision control, don't create a ``MANIFEST.in`` file for your project.
 (And, if you already have one, you might consider deleting it the next time
 you would otherwise have to change it.)
 
