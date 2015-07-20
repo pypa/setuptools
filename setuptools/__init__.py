@@ -81,10 +81,20 @@ class PackageFinder(object):
             for dir in dirs:
                 yield os.path.relpath(os.path.join(root, dir), base_path)
 
+    @staticmethod
+    def _suitable_dirs(base_path):
+        """
+        Return all suitable package dirs in base_path, relative to base_path
+        """
+        for root, dirs, files in os.walk(base_path, followlinks=True):
+            # Mutate dirs to trim the search:
+            dirs[:] = filterfalse(lambda n: '.' in n, dirs)
+            for dir in dirs:
+                yield os.path.relpath(os.path.join(root, dir), base_path)
+
     @classmethod
     def _find_packages_iter(cls, base_path):
-        dirs = cls._all_dirs(base_path)
-        suitable = filterfalse(lambda n: '.' in n, dirs)
+        suitable = cls._suitable_dirs(base_path)
         return (
             path.replace(os.path.sep, '.')
             for path in suitable
