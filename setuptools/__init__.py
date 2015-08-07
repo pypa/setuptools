@@ -73,31 +73,24 @@ class PackageFinder(object):
             yield pkg
 
     @staticmethod
-    def _all_dirs(base_path):
+    def _candidate_dirs(base_path):
         """
-        Return all dirs in base_path, relative to base_path
+        Return all dirs in base_path that might be packages.
         """
+        has_dot = lambda name: '.' in name
         for root, dirs, files in os.walk(base_path, followlinks=True):
-            for dir in dirs:
-                yield os.path.relpath(os.path.join(root, dir), base_path)
-
-    @staticmethod
-    def _suitable_dirs(base_path):
-        """
-        Return all suitable package dirs in base_path, relative to base_path
-        """
-        for root, dirs, files in os.walk(base_path, followlinks=True):
-            # Mutate dirs to trim the search:
-            dirs[:] = filterfalse(lambda n: '.' in n, dirs)
+            # Exclude directories that contain a period, as they cannot be
+            #  packages. Mutate the list to avoid traversal.
+            dirs[:] = filterfalse(has_dot, dirs)
             for dir in dirs:
                 yield os.path.relpath(os.path.join(root, dir), base_path)
 
     @classmethod
     def _find_packages_iter(cls, base_path):
-        suitable = cls._suitable_dirs(base_path)
+        candidates = cls._candidate_dirs(base_path)
         return (
             path.replace(os.path.sep, '.')
-            for path in suitable
+            for path in candidates
             if cls._looks_like_package(os.path.join(base_path, path))
         )
 
