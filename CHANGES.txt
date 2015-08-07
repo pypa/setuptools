@@ -3,6 +3,12 @@ CHANGES
 =======
 
 ----
+18.2
+----
+
+* Issue #412: More efficient directory search in ``find_packages``.
+
+----
 18.1
 ----
 
