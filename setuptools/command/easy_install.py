@@ -1547,25 +1547,26 @@ class PthDistributions(Environment):
 
         self.dirty = False
 
-    def _wrap_lines(self, lines):
-        yield self._inline("""
-            import sys
-            sys.__plen = len(sys.path)
-            """)
+    @classmethod
+    def _wrap_lines(cls, lines):
+        yield cls.prelude
         for line in lines:
             yield line
-        yield self._inline("""
-            import sys
-            new = sys.path[sys.__plen:]
-            del sys.path[sys.__plen:]
-            p = getattr(sys, '__egginsert', 0)
-            sys.path[p:p] = new
-            sys.__egginsert = p + len(new)
-            """)
+        yield cls.postlude
 
-    @staticmethod
-    def _inline(text):
-        return textwrap.dedent(text).strip().replace('\n', '; ')
+    _inline = lambda text: textwrap.dedent(text).strip().replace('\n', '; ')
+    prelude = _inline("""
+        import sys
+        sys.__plen = len(sys.path)
+        """)
+    postlude = _inline("""
+        import sys
+        new = sys.path[sys.__plen:]
+        del sys.path[sys.__plen:]
+        p = getattr(sys, '__egginsert', 0)
+        sys.path[p:p] = new
+        sys.__egginsert = p + len(new)
+        """)
 
     def add(self, dist):
         """Add `dist` to the distribution map"""
