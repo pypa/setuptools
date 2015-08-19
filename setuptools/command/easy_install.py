@@ -1530,7 +1530,8 @@ class PthDistributions(Environment):
         if not self.dirty:
             return
 
-        data = '\n'.join(map(self.make_relative, self.paths))
+        rel_paths = map(self.make_relative, self.paths)
+        data = '\n'.join(rel_paths)
         if data:
             log.debug("Saving %s", self.filename)
             data = (
