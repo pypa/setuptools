@@ -1547,26 +1547,9 @@ class PthDistributions(Environment):
 
         self.dirty = False
 
-    @classmethod
-    def _wrap_lines(cls, lines):
-        yield cls.prelude
-        for line in lines:
-            yield line
-        yield cls.postlude
-
-    _inline = lambda text: textwrap.dedent(text).strip().replace('\n', '; ')
-    prelude = _inline("""
-        import sys
-        sys.__plen = len(sys.path)
-        """)
-    postlude = _inline("""
-        import sys
-        new = sys.path[sys.__plen:]
-        del sys.path[sys.__plen:]
-        p = getattr(sys, '__egginsert', 0)
-        sys.path[p:p] = new
-        sys.__egginsert = p + len(new)
-        """)
+    @staticmethod
+    def _wrap_lines(lines):
+        return lines
 
     def add(self, dist):
         """Add `dist` to the distribution map"""
@@ -1603,6 +1586,33 @@ class PthDistributions(Environment):
             parts.append(last)
         else:
             return path
+
+
+class RewritePthDistributions(PthDistributions):
+
+    @classmethod
+    def _wrap_lines(cls, lines):
+        yield cls.prelude
+        for line in lines:
+            yield line
+        yield cls.postlude
+
+    _inline = lambda text: textwrap.dedent(text).strip().replace('\n', '; ')
+    prelude = _inline("""
+        import sys
+        sys.__plen = len(sys.path)
+        """)
+    postlude = _inline("""
+        import sys
+        new = sys.path[sys.__plen:]
+        del sys.path[sys.__plen:]
+        p = getattr(sys, '__egginsert', 0)
+        sys.path[p:p] = new
+        sys.__egginsert = p + len(new)
+        """)
+
+
+PthDistributions = RewritePthDistributions
 
 
 def _first_line_re():
