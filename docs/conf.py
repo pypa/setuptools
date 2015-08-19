@@ -246,6 +246,10 @@ link_files = {
 				pattern=r"Packaging #(?P<packaging>\d+)",
 				url='{GH}/pypa/packaging/issues/{packaging}',
 			),
+			dict(
+				pattern=r"[Pp]ackaging (?P<packaging_ver>\d+(\.\d+)+)",
+				url='{GH}/pypa/packaging/blob/{packaging_ver}/CHANGELOG.rst',
+			),
 		],
 	),
 }
