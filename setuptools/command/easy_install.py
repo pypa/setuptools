@@ -1533,14 +1533,8 @@ class PthDistributions(Environment):
         rel_paths = list(map(self.make_relative, self.paths))
         if rel_paths:
             log.debug("Saving %s", self.filename)
-            data = (
-                "import sys; sys.__plen = len(sys.path)\n"
-                "%s\n"
-                "import sys; new=sys.path[sys.__plen:];"
-                " del sys.path[sys.__plen:];"
-                " p=getattr(sys,'__egginsert',0); sys.path[p:p]=new;"
-                " sys.__egginsert = p+len(new)\n"
-            ) % '\n'.join(rel_paths)
+            lines = self._wrap_lines(rel_paths)
+            data = '\n'.join(lines) + '\n'
 
             if os.path.islink(self.filename):
                 os.unlink(self.filename)
@@ -1553,6 +1547,26 @@ class PthDistributions(Environment):
             os.unlink(self.filename)
 
         self.dirty = False
+
+    def _wrap_lines(self, lines):
+        yield self._inline("""
+            import sys
+            sys.__plen = len(sys.path)
+            """)
+        for line in lines:
+            yield line
+        yield self._inline("""
+            import sys
+            new = sys.path[sys.__plen:]
+            del sys.path[sys.__plen:]
+            p = getattr(sys, '__egginsert', 0)
+            sys.path[p:p] = new
+            sys.__egginsert = p + len(new)
+            """)
+
+    @staticmethod
+    def _inline(text):
+        return textwrap.dedent(text).strip().replace('\n', '; ')
 
     def add(self, dist):
         """Add `dist` to the distribution map"""
