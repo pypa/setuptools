@@ -1612,7 +1612,8 @@ class RewritePthDistributions(PthDistributions):
         """)
 
 
-PthDistributions = RewritePthDistributions
+if os.environ.get('SETUPTOOLS_SYS_PATH_TECHNIQUE', 'rewrite') == 'rewrite':
+    PthDistributions = RewritePthDistributions
 
 
 def _first_line_re():
