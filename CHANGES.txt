@@ -91,7 +91,7 @@ CHANGES
 15.1
 ----
 
-* Updated Packaging to 15.1 to address Packaging #28.
+* Updated to Packaging 15.1 to address Packaging #28.
 * Fix ``setuptools.sandbox._execfile()`` with Python 3.1.
 
 ----
