@@ -1530,9 +1530,8 @@ class PthDistributions(Environment):
         if not self.dirty:
             return
 
-        rel_paths = map(self.make_relative, self.paths)
-        data = '\n'.join(rel_paths)
-        if data:
+        rel_paths = list(map(self.make_relative, self.paths))
+        if rel_paths:
             log.debug("Saving %s", self.filename)
             data = (
                 "import sys; sys.__plen = len(sys.path)\n"
@@ -1541,7 +1540,7 @@ class PthDistributions(Environment):
                 " del sys.path[sys.__plen:];"
                 " p=getattr(sys,'__egginsert',0); sys.path[p:p]=new;"
                 " sys.__egginsert = p+len(new)\n"
-            ) % data
+            ) % '\n'.join(rel_paths)
 
             if os.path.islink(self.filename):
                 os.unlink(self.filename)
