@@ -151,10 +151,10 @@ setup_params = dict(
         """).strip().splitlines(),
     extras_require={
         "ssl:sys_platform=='win32'": "wincertstore==0.2",
-        "certs": "certifi==1.0.1",
+        "certs": "certifi==2015.04.28",
     },
     dependency_links=[
-        'https://pypi.python.org/packages/source/c/certifi/certifi-1.0.1.tar.gz#md5=45f5cb94b8af9e1df0f9450a8f61b790',
+        'https://pypi.python.org/packages/source/c/certifi/certifi-2015.04.28.tar.gz#md5=12c7c3a063b2ff97a0f8291d8de41e8c',
         'https://pypi.python.org/packages/source/w/wincertstore/wincertstore-0.2.zip#md5=ae728f2f007185648d0c7a8679b361e2',
     ],
     scripts=[],
