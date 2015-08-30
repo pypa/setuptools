@@ -151,5 +151,5 @@ def findall(dir = os.curdir):
         all_files.extend(filter(os.path.isfile, files))
     return all_files
 
-# fix findall bug in distutils.
+# fix findall bug in distutils (http://bugs.python.org/issue12885)
 distutils.filelist.findall = findall
