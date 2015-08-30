@@ -124,9 +124,8 @@ class Command(_Command):
 
     def __init__(self, dist, **kw):
         # Add support for keyword arguments
-        _Command.__init__(self,dist)
-        for k,v in kw.items():
-            setattr(self,k,v)
+        _Command.__init__(self, dist)
+        vars(self).update(kw)
 
     def reinitialize_command(self, command, reinit_subcommands=0, **kw):
         cmd = _Command.reinitialize_command(self, command, reinit_subcommands)
