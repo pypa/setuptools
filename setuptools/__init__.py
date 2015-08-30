@@ -1,6 +1,7 @@
 """Extensions to the 'distutils' for large or complex distributions"""
 
 import os
+import functools
 import distutils.core
 import distutils.filelist
 from distutils.core import Command as _Command
@@ -138,18 +139,24 @@ class Command(_Command):
 # we can't patch distutils.cmd, alas
 distutils.core.Command = Command
 
-def findall(dir = os.curdir):
+def findall(dir=os.curdir):
     """Find all files under 'dir' and return the list of full filenames
     (relative to 'dir').
     """
-    all_files = []
-    for base, dirs, files in os.walk(dir, followlinks=True):
-        if base==os.curdir or base.startswith(os.curdir+os.sep):
-            base = base[2:]
-        if base:
-            files = [os.path.join(base, f) for f in files]
-        all_files.extend(filter(os.path.isfile, files))
-    return all_files
+    def _strip_leading_curdir(base):
+        do_strip = base == os.curdir or base.startswith(os.curdir + os.sep)
+        return base[2:] if do_strip else base
+
+    def _base_prepend(base):
+        base = _strip_leading_curdir(base)
+        return functools.partial(os.path.join, base)
+
+    return [
+        file
+        for base, dirs, files in os.walk(dir, followlinks=True)
+        for file in map(_base_prepend(base), files)
+        if os.path.isfile(file)
+    ]
 
 # fix findall bug in distutils (http://bugs.python.org/issue12885)
 distutils.filelist.findall = findall
