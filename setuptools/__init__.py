@@ -132,8 +132,7 @@ class Command(_Command):
 
     def reinitialize_command(self, command, reinit_subcommands=0, **kw):
         cmd = _Command.reinitialize_command(self, command, reinit_subcommands)
-        for k,v in kw.items():
-            setattr(cmd,k,v)    # update command with keywords
+        vars(cmd).update(kw)
         return cmd
 
 distutils.core.Command = Command    # we can't patch distutils.cmd, alas
