@@ -123,7 +123,10 @@ class Command(_Command):
     command_consumes_arguments = False
 
     def __init__(self, dist, **kw):
-        # Add support for keyword arguments
+        """
+        Construct the command for dist, updating
+        vars(self) with any keyword parameters.
+        """
         _Command.__init__(self, dist)
         vars(self).update(kw)
 
