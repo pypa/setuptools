@@ -135,7 +135,8 @@ class Command(_Command):
         vars(cmd).update(kw)
         return cmd
 
-distutils.core.Command = Command    # we can't patch distutils.cmd, alas
+# we can't patch distutils.cmd, alas
+distutils.core.Command = Command
 
 def findall(dir = os.curdir):
     """Find all files under 'dir' and return the list of full filenames
@@ -150,4 +151,5 @@ def findall(dir = os.curdir):
         all_files.extend(filter(os.path.isfile, files))
     return all_files
 
-distutils.filelist.findall = findall    # fix findall bug in distutils.
+# fix findall bug in distutils.
+distutils.filelist.findall = findall
