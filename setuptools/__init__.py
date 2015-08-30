@@ -143,18 +143,13 @@ def findall(dir=os.curdir):
     """Find all files under 'dir' and return the list of full filenames
     (relative to 'dir').
     """
-    def _strip_leading_curdir(base):
-        do_strip = base == os.curdir or base.startswith(os.curdir + os.sep)
-        return base[2:] if do_strip else base
-
-    def _base_prepend(base):
-        base = _strip_leading_curdir(base)
-        return functools.partial(os.path.join, base)
+    def _prepend(base):
+        return functools.partial(os.path.join, os.path.relpath(base, dir))
 
     return [
         file
         for base, dirs, files in os.walk(dir, followlinks=True)
-        for file in map(_base_prepend(base), files)
+        for file in map(_prepend(base), files)
         if os.path.isfile(file)
     ]
 
