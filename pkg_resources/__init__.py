@@ -2466,6 +2466,13 @@ def _remove_md5_fragment(location):
     return location
 
 
+def _version_from_file(fid):
+    for line in fid:
+        if line.lower().startswith('version:'):
+            version = safe_version(line.split(':', 1)[1].strip())
+            return version
+
+
 class Distribution(object):
     """Wrap an actual or potential sys.path entry w/metadata"""
     PKG_INFO = 'PKG-INFO'
@@ -2483,7 +2490,7 @@ class Distribution(object):
         self._provider = metadata or empty_provider
 
     @classmethod
-    def from_location(cls, location, basename, metadata=None,**kw):
+    def from_location(cls, location, basename, metadata=None, **kw):
         project_name, version, py_version, platform = [None]*4
         basename, ext = os.path.splitext(basename)
         if ext.lower() in _distributionImpl:
@@ -2491,9 +2498,25 @@ class Distribution(object):
             match = EGG_NAME(basename)
             if match:
                 project_name, version, py_version, platform = match.group(
-                    'name','ver','pyver','plat'
+                    'name', 'ver', 'pyver', 'plat'
                 )
             cls = _distributionImpl[ext.lower()]
+
+            # Some packages e.g. numpy and scipy use distutils instead of
+            # setuptools, and their version numbers can get mangled when
+            # converted to filenames (e.g., 1.11.0.dev0+2329eae to
+            # 1.11.0.dev0_2329eae). These will not be parsed properly
+            # downstream by Distribution and safe_version, so we need to
+            # take an extra step and try to get the version number from
+            # the file itself instead of the filename.
+            if ext == '.egg-info':
+                full_name = os.path.join(location, basename + ext)
+                try:
+                    with open(full_name, 'r') as fid:
+                        version_ = _version_from_file(fid)
+                    version = version_ if version_ is not None else version
+                except IOError:
+                    pass
         return cls(
             location, metadata, project_name=project_name, version=version,
             py_version=py_version, platform=platform, **kw
@@ -2584,13 +2607,11 @@ class Distribution(object):
         try:
             return self._version
         except AttributeError:
-            for line in self._get_metadata(self.PKG_INFO):
-                if line.lower().startswith('version:'):
-                    self._version = safe_version(line.split(':',1)[1].strip())
-                    return self._version
-            else:
+            version = _version_from_file(self._get_metadata(self.PKG_INFO))
+            if version is None:
                 tmpl = "Missing 'Version:' header and/or %s file"
                 raise ValueError(tmpl % self.PKG_INFO, self)
+            return version
 
     @property
     def _dep_map(self):
