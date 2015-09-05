@@ -2595,8 +2595,8 @@ those methods' docstrings for more details.
 Adding Support for Other Revision Control Systems
 -------------------------------------------------
 
-If you would like to create a plugin for ``setuptools`` to find files in other
-source control systems besides CVS and Subversion, you can do so by adding an
+If you would like to create a plugin for ``setuptools`` to find files in
+source control systems, you can do so by adding an
 entry point to the ``setuptools.file_finders`` group.  The entry point should
 be a function accepting a single directory name, and should yield
 all the filenames within that directory (and any subdirectories thereof) that
