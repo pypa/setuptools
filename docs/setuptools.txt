@@ -2652,9 +2652,7 @@ Subclassing ``Command``
 -----------------------
 
 Sorry, this section isn't written yet, and neither is a lot of what's below
-this point, except for the change log.  You might want to `subscribe to changes
-in this page <setuptools?action=subscribe>`_ to see when new documentation is
-added or updated.
+this point.
 
 XXX
 
