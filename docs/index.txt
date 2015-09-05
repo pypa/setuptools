@@ -23,4 +23,3 @@ Documentation content:
    easy_install
    pkg_resources
    development
-   merge
