@@ -5,16 +5,22 @@ Supporting both Python 2 and Python 3 with Setuptools
 Starting with Distribute version 0.6.2 and Setuptools 0.7, the Setuptools
 project supported Python 3. Installing and
 using setuptools for Python 3 code works exactly the same as for Python 2
-code, but Setuptools also helps you to support Python 2 and Python 3 from
-the same source code by letting you run 2to3 on the code as a part of the
-build process, by setting the keyword parameter ``use_2to3`` to True.
+code.
+
+Setuptools provides a facility to invoke 2to3 on the code as a part of the
+build process, by setting the keyword parameter ``use_2to3`` to True, but
+the Setuptools strongly recommends instead developing a unified codebase
+using `six <https://pypi.python.org/pypi/six>`_,
+`future <https://pypi.python.org/pypi/future>`_, or another compatibility
+library.
 
 
-Setuptools as help during porting
-=================================
+Using 2to3
+==========
 
-Setuptools can make the porting process much easier by automatically running
-2to3 as a part of the test running. To do this you need to configure the
+Setuptools attempts to make the porting process easier by automatically
+running
+2to3 as a part of running tests. To do so, you need to configure the
 setup.py so that you can run the unit tests with ``python setup.py test``.
 
 See :ref:`test` for more information on this.
@@ -37,23 +43,23 @@ to a list of names of packages containing fixers. To exclude fixers, the
 parameter ``use_2to3_exclude_fixers`` can be set to fixer names to be
 skipped.
 
-A typical setup.py can look something like this::
+An example setup.py might look something like this::
 
     from setuptools import setup
 
     setup(
         name='your.module',
-        version = '1.0',
+        version='1.0',
         description='This is your awesome module',
         author='You',
         author_email='your@email',
-        package_dir = {'': 'src'},
-        packages = ['your', 'you.module'],
-        test_suite = 'your.module.tests',
-        use_2to3 = True,
-        convert_2to3_doctests = ['src/your/module/README.txt'],
-        use_2to3_fixers = ['your.fixers'],
-        use_2to3_exclude_fixers = ['lib2to3.fixes.fix_import'],
+        package_dir={'': 'src'},
+        packages=['your', 'you.module'],
+        test_suite='your.module.tests',
+        use_2to3=True,
+        convert_2to3_doctests=['src/your/module/README.txt'],
+        use_2to3_fixers=['your.fixers'],
+        use_2to3_exclude_fixers=['lib2to3.fixes.fix_import'],
     )
 
 Differential conversion
@@ -86,39 +92,3 @@ Advanced features
 
 If you don't want to run the 2to3 conversion on the doctests in Python files,
 you can turn that off by setting ``setuptools.use_2to3_on_doctests = False``.
-
-Note on compatibility with older versions of setuptools
-=======================================================
-
-Setuptools earlier than 0.7 does not know about the new keyword parameters to
-support Python 3.
-As a result it will warn about the unknown keyword parameters if you use
-those versions of setuptools instead of Distribute under Python 2. This output
-is not an error, and
-install process will continue as normal, but if you want to get rid of that
-error this is easy. Simply conditionally add the new parameters into an extra
-dict and pass that dict into setup()::
-
-    from setuptools import setup
-    import sys
-
-    extra = {}
-    if sys.version_info >= (3,):
-        extra['use_2to3'] = True
-        extra['convert_2to3_doctests'] = ['src/your/module/README.txt']
-        extra['use_2to3_fixers'] = ['your.fixers']
-
-    setup(
-        name='your.module',
-        version = '1.0',
-        description='This is your awesome module',
-        author='You',
-        author_email='your@email',
-        package_dir = {'': 'src'},
-        packages = ['your', 'you.module'],
-        test_suite = 'your.module.tests',
-        **extra
-    )
-
-This way the parameters will only be used under Python 3, where Distribute or
-Setuptools 0.7 or later is required.
