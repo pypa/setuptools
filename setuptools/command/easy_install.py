@@ -217,7 +217,9 @@ class easy_install(Command):
 
     def finalize_options(self):
         if self.version:
-            print('setuptools %s' % get_distribution('setuptools').version)
+            dist = get_distribution('setuptools')
+            print('setuptools %s from %s (python %s)' % (
+                dist.version, dist.location, sys.version[:3]))
             sys.exit()
 
         py_version = sys.version.split()[0]
