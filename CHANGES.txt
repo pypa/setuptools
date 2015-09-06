@@ -17,6 +17,9 @@ CHANGES
   manipulation. If so, the default behavior can be retained by setting
   the variable to "rewrite".
 
+* Issue #257: ``easy_install --version`` now shows more detail
+  about the installation location and Python version.
+
 ----
 18.2
 ----
