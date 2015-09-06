@@ -215,12 +215,19 @@ class easy_install(Command):
         remover = rmtree if is_tree else os.unlink
         remover(path)
 
+    @staticmethod
+    def _render_version():
+        """
+        Render the Setuptools version and installation details, then exit.
+        """
+        ver = sys.version[:3]
+        dist = get_distribution('setuptools')
+        tmpl = 'setuptools {dist.version} from {dist.location} (Python {ver})'
+        print(tmpl.format(**locals()))
+        raise SystemExit()
+
     def finalize_options(self):
-        if self.version:
-            dist = get_distribution('setuptools')
-            print('setuptools %s from %s (python %s)' % (
-                dist.version, dist.location, sys.version[:3]))
-            sys.exit()
+        self.version and self._render_version()
 
         py_version = sys.version.split()[0]
         prefix, exec_prefix = get_config_vars('prefix', 'exec_prefix')
