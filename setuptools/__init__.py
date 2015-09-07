@@ -137,8 +137,9 @@ class Command(_Command):
 distutils.core.Command = Command    # we can't patch distutils.cmd, alas
 
 def findall(dir = os.curdir):
-    """Find all files under 'dir' and return the list of full filenames
-    (relative to 'dir').
+    """
+    Find all files under 'dir' and return the list of full filenames.
+    Unless dir is '.', return full filenames with dir prepended.
     """
     all_files = []
     for base, dirs, files in os.walk(dir, followlinks=True):
