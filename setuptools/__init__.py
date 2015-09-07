@@ -140,8 +140,9 @@ class Command(_Command):
 distutils.core.Command = Command
 
 def findall(dir=os.curdir):
-    """Find all files under 'dir' and return the list of full filenames
-    (relative to 'dir').
+    """
+    Find all files under 'dir' and return the list of full filenames.
+    Unless dir is '.', return full filenames with dir prepended.
     """
     def _prepend(base):
         return functools.partial(os.path.join, os.path.relpath(base, dir))
