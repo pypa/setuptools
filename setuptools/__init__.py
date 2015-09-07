@@ -145,7 +145,9 @@ def findall(dir=os.curdir):
     Unless dir is '.', return full filenames with dir prepended.
     """
     def _prepend(base):
-        return functools.partial(os.path.join, os.path.relpath(base, dir))
+        if base == os.curdir or base.startswith(os.curdir + os.sep):
+            base = base[2:]
+        return functools.partial(os.path.join, base)
 
     return [
         file
