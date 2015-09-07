@@ -139,22 +139,29 @@ class Command(_Command):
 # we can't patch distutils.cmd, alas
 distutils.core.Command = Command
 
+
+def _find_all_simple(path):
+    """
+    Find all files under 'path'
+    """
+    return (
+        os.path.join(base, file)
+        for base, dirs, files in os.walk(path, followlinks=True)
+        for file in files
+    )
+
+
 def findall(dir=os.curdir):
     """
     Find all files under 'dir' and return the list of full filenames.
     Unless dir is '.', return full filenames with dir prepended.
     """
-    def _prepend(base):
-        if base == os.curdir or base.startswith(os.curdir + os.sep):
-            base = base[2:]
-        return functools.partial(os.path.join, base)
+    files = _find_all_simple(dir)
+    if dir == os.curdir:
+        make_rel = functools.partial(os.path.relpath, start=dir)
+        files = map(make_rel, files)
+    return list(files)
 
-    return [
-        file
-        for base, dirs, files in os.walk(dir, followlinks=True)
-        for file in map(_prepend(base), files)
-        if os.path.isfile(file)
-    ]
 
 # fix findall bug in distutils (http://bugs.python.org/issue12885)
 distutils.filelist.findall = findall
