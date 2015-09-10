@@ -1403,6 +1403,7 @@ class MarkerEvaluation(object):
         'python_version': lambda: platform.python_version()[:3],
         'platform_version': platform.version,
         'platform_machine': platform.machine,
+        'platform_python_implementation': platform.python_implementation,
         'python_implementation': platform.python_implementation,
     }
 
