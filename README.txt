@@ -223,3 +223,14 @@ Credits
   the Python Packaging Authority (PyPA) and the larger Python community.
 
 .. _files:
+
+
+---------------
+Code of Conduct
+---------------
+
+Everyone interacting in the setuptools project's codebases, issue trackers,
+chat rooms, and mailing lists is expected to follow the
+`PyPA Code of Conduct`_.
+
+.. _PyPA Code of Conduct: https://www.pypa.io/en/latest/code-of-conduct/
