@@ -144,11 +144,12 @@ def _find_all_simple(path):
     """
     Find all files under 'path'
     """
-    return (
+    results = (
         os.path.join(base, file)
         for base, dirs, files in os.walk(path, followlinks=True)
         for file in files
     )
+    return filter(os.path.isfile, results)
 
 
 def findall(dir=os.curdir):
