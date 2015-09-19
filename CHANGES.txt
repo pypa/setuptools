@@ -3,6 +3,13 @@ CHANGES
 =======
 
 ------
+18.3.2
+------
+
+* Correct another regression in setuptools.findall
+  where the fix for Python #12885 was lost.
+
+------
 18.3.1
 ------
 
@@ -25,6 +32,9 @@ CHANGES
 
 * Issue #257: ``easy_install --version`` now shows more detail
   about the installation location and Python version.
+
+* Refactor setuptools.findall in preparation for re-submission
+  back to distutils.
 
 ----
 18.2
