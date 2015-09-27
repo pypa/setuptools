@@ -766,13 +766,17 @@ class easy_install(Command):
 
     def install_script(self, dist, script_name, script_text, dev_path=None):
         """Generate a legacy script wrapper and install it"""
-        spec = str(dist.as_requirement())
+        spec = self._requirement_spec(dist)
         is_script = is_python_script(script_text, script_name)
 
         if is_script:
             script_text = (ScriptWriter.get_header(script_text) +
                            self._load_template(dev_path) % locals())
         self.write_script(script_name, _to_ascii(script_text), 'b')
+
+    @staticmethod
+    def _requirement_spec(dist):
+        return str(dist.as_requirement())
 
     @staticmethod
     def _load_template(dev_path):
