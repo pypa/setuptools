@@ -2983,12 +2983,8 @@ class Requirement:
 
     @staticmethod
     def parse(s):
-        reqs = list(parse_requirements(s))
-        if reqs:
-            if len(reqs) == 1:
-                return reqs[0]
-            raise ValueError("Expected only one requirement", s)
-        raise ValueError("No requirements found", s)
+        req, = parse_requirements(s)
+        return req
 
 
 def _get_mro(cls):
