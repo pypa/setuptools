@@ -72,16 +72,17 @@ class test(Command):
                 "You may specify a module or a suite, but not both"
             )
 
-        self.test_args = [self.test_suite]
-
-        if self.verbose:
-            self.test_args.insert(0, '--verbose')
         if self.test_loader is None:
             self.test_loader = getattr(self.distribution, 'test_loader', None)
         if self.test_loader is None:
             self.test_loader = "setuptools.command.test:ScanningLoader"
         if self.test_runner is None:
             self.test_runner = getattr(self.distribution, 'test_runner', None)
+
+    @property
+    def test_args(self):
+        verbose = ['--verbose'] if self.verbose else []
+        return verbose + [self.test_suite]
 
     def with_project_on_sys_path(self, func):
         with_2to3 = PY3 and getattr(self.distribution, 'use_2to3', False)
