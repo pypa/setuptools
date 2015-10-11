@@ -62,15 +62,16 @@ class test(Command):
 
     def finalize_options(self):
 
+        if self.test_suite and self.test_module:
+            raise DistutilsOptionError(
+                "You may specify a module or a suite, but not both"
+            )
+
         if self.test_suite is None:
             if self.test_module is None:
                 self.test_suite = self.distribution.test_suite
             else:
                 self.test_suite = self.test_module + ".test_suite"
-        elif self.test_module:
-            raise DistutilsOptionError(
-                "You may specify a module or a suite, but not both"
-            )
 
         if self.test_loader is None:
             self.test_loader = getattr(self.distribution, 'test_loader', None)
