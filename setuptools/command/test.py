@@ -80,8 +80,13 @@ class test(Command):
 
     @property
     def test_args(self):
-        verbose = ['--verbose'] if self.verbose else []
-        return verbose + [self.test_suite]
+        return list(self._test_args())
+
+    def _test_args(self):
+        if self.verbose:
+            yield '--verbose'
+        if self.test_suite:
+            yield self.test_suite
 
     def with_project_on_sys_path(self, func):
         with_2to3 = PY3 and getattr(self.distribution, 'use_2to3', False)
