@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+----
+18.4
+----
+
+* Issue #446: Test command now always invokes unittest, even
+  if no test suite is supplied.
+
 ------
 18.3.2
 ------
