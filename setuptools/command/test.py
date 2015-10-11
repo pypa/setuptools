@@ -138,13 +138,12 @@ class test(Command):
         if self.distribution.tests_require:
             self.distribution.fetch_build_eggs(self.distribution.tests_require)
 
-        if True:
-            cmd = ' '.join(self._argv)
-            if self.dry_run:
-                self.announce('skipping "%s" (dry run)' % cmd)
-            else:
-                self.announce('running "%s"' % cmd)
-                self.with_project_on_sys_path(self.run_tests)
+        cmd = ' '.join(self._argv)
+        if self.dry_run:
+            self.announce('skipping "%s" (dry run)' % cmd)
+        else:
+            self.announce('running "%s"' % cmd)
+            self.with_project_on_sys_path(self.run_tests)
 
     def run_tests(self):
         # Purge modules under test from sys.modules. The test loader will
