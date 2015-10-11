@@ -138,7 +138,7 @@ class test(Command):
         if self.distribution.tests_require:
             self.distribution.fetch_build_eggs(self.distribution.tests_require)
 
-        if self.test_suite:
+        if True:
             cmd = ' '.join(self._argv)
             if self.dry_run:
                 self.announce('skipping "%s" (dry run)' % cmd)
