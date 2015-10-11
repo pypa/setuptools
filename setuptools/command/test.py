@@ -1,6 +1,5 @@
 from distutils.errors import DistutilsOptionError
 from unittest import TestLoader
-import unittest
 import sys
 
 from pkg_resources import (resource_listdir, resource_exists, normalize_path,
@@ -159,7 +158,7 @@ class test(Command):
                 list(map(sys.modules.__delitem__, del_modules))
 
         unittest_main(
-            None, None, [unittest.__file__] + self.test_args,
+            None, None, ['unittest'] + self.test_args,
             testLoader=self._resolve_as_ep(self.test_loader),
             testRunner=self._resolve_as_ep(self.test_runner),
         )
