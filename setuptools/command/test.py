@@ -158,10 +158,14 @@ class test(Command):
                 list(map(sys.modules.__delitem__, del_modules))
 
         unittest_main(
-            None, None, ['unittest'] + self.test_args,
+            None, None, self._argv,
             testLoader=self._resolve_as_ep(self.test_loader),
             testRunner=self._resolve_as_ep(self.test_runner),
         )
+
+    @property
+    def _argv(self):
+        return ['unittest'] + self.test_args
 
     @staticmethod
     def _resolve_as_ep(val):
