@@ -147,7 +147,7 @@ class test(Command):
         # re-import them from the build location. Required when 2to3 is used
         # with namespace packages.
         if PY3 and getattr(self.distribution, 'use_2to3', False):
-            module = self.test_args[-1].split('.')[0]
+            module = self.test_suite.split('.')[0]
             if module in _namespace_packages:
                 del_modules = []
                 if module in sys.modules:
