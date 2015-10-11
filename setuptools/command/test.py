@@ -11,7 +11,7 @@ from setuptools.py31compat import unittest_main
 
 
 class ScanningLoader(TestLoader):
-    def loadTestsFromModule(self, module):
+    def loadTestsFromModule(self, module, pattern=None):
         """Return a suite of all tests cases contained in the given module
 
         If the module is a package, load tests from all the modules in it.
