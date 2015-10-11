@@ -134,11 +134,11 @@ class test(Command):
             self.distribution.fetch_build_eggs(self.distribution.tests_require)
 
         if self.test_suite:
-            cmd = ' '.join(self.test_args)
+            cmd = ' '.join(self._argv)
             if self.dry_run:
-                self.announce('skipping "unittest %s" (dry run)' % cmd)
+                self.announce('skipping "%s" (dry run)' % cmd)
             else:
-                self.announce('running "unittest %s"' % cmd)
+                self.announce('running "%s"' % cmd)
                 self.with_project_on_sys_path(self.run_tests)
 
     def run_tests(self):
