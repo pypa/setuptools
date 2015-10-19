@@ -4,6 +4,7 @@ import stat
 import pytest
 
 from . import environment
+from .files import build_files
 from .textwrap import DALS
 from . import contexts
 
@@ -22,14 +23,13 @@ class TestEggInfo:
         """)
 
     def _create_project(self):
-        with open('setup.py', 'w') as f:
-            f.write(self.setup_script)
-
-        with open('hello.py', 'w') as f:
-            f.write(DALS("""
+        build_files({
+            'setup.py': self.setup_script,
+            'hello.py': DALS("""
                 def run():
                     print('hello')
-                """))
+                """)
+        })
 
     @pytest.yield_fixture
     def env(self):
@@ -44,13 +44,14 @@ class TestEggInfo:
                 for dirname in subs
             )
             list(map(os.mkdir, env.paths.values()))
-            config = os.path.join(env.paths['home'], '.pydistutils.cfg')
-            with open(config, 'w') as f:
-                f.write(DALS("""
+            build_files({
+                env.paths['home']: {
+                    '.pydistutils.cfg': DALS("""
                     [egg_info]
                     egg-base = %(egg-base)s
-                    """ % env.paths
-                ))
+                    """ % env.paths)
+                }
+            })
             yield env
 
     def test_egg_base_installed_egg_info(self, tmpdir_cwd, env):
