@@ -57,6 +57,20 @@ class TestEggInfo:
     def test_egg_base_installed_egg_info(self, tmpdir_cwd, env):
         self._create_project()
 
+        self._run_install_command(tmpdir_cwd, env)
+        actual = self._find_egg_info_files(env.paths['lib'])
+
+        expected = [
+            'PKG-INFO',
+            'SOURCES.txt',
+            'dependency_links.txt',
+            'entry_points.txt',
+            'not-zip-safe',
+            'top_level.txt',
+        ]
+        assert sorted(actual) == expected
+
+    def _run_install_command(self, tmpdir_cwd, env):
         environ = os.environ.copy().update(
             HOME=env.paths['home'],
         )
@@ -75,18 +89,6 @@ class TestEggInfo:
         )
         if code:
             raise AssertionError(data)
-
-        actual = self._find_egg_info_files(env.paths['lib'])
-
-        expected = [
-            'PKG-INFO',
-            'SOURCES.txt',
-            'dependency_links.txt',
-            'entry_points.txt',
-            'not-zip-safe',
-            'top_level.txt',
-        ]
-        assert sorted(actual) == expected
 
     def _find_egg_info_files(self, root):
         results = (
