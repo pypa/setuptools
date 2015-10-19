@@ -58,7 +58,7 @@ class TestEggInfo:
         self._create_project()
 
         self._run_install_command(tmpdir_cwd, env)
-        actual = self._find_egg_info_files(env.paths['lib'])
+        _, actual = self._find_egg_info_files(env.paths['lib'])
 
         expected = [
             'PKG-INFO',
@@ -69,6 +69,21 @@ class TestEggInfo:
             'top_level.txt',
         ]
         assert sorted(actual) == expected
+
+    def test_manifest_template_is_read(self, tmpdir_cwd, env):
+        self._create_project()
+        build_files({
+            'MANIFEST.in': DALS("""
+                recursive-include docs *.rst
+            """),
+            'docs': {
+                'usage.rst': "Run 'hi'",
+            }
+        })
+        self._run_install_command(tmpdir_cwd, env)
+        egg_info_dir, _ = self._find_egg_info_files(env.paths['lib'])
+        sources_txt = os.path.join(egg_info_dir, 'SOURCES.txt')
+        assert 'docs/usage.rst' in open(sources_txt).read().split('\n')
 
     def _run_install_command(self, tmpdir_cwd, env):
         environ = os.environ.copy().update(
@@ -92,7 +107,7 @@ class TestEggInfo:
 
     def _find_egg_info_files(self, root):
         results = (
-            filenames
+            (dirpath, filenames)
             for dirpath, dirnames, filenames in os.walk(root)
             if os.path.basename(dirpath) == 'EGG-INFO'
         )
