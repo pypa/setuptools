@@ -3,6 +3,14 @@ CHANGES
 =======
 
 ----
+18.5
+----
+
+* In preparation for dropping support for Python 3.2, a warning is
+  now logged when pkg_resources is imported on Python 3.2 or earlier
+  Python 3 versions.
+
+----
 18.4
 ----
 
