@@ -420,3 +420,6 @@ Environment Markers
 
     >>> em("python_version > '2.5'")
     True
+
+    >>> im("platform_python_implementation=='CPython'")
+    False
