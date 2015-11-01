@@ -1536,7 +1536,7 @@ class MarkerEvaluation(object):
         # markerlib implements Metadata 1.2 (PEP 345) environment markers.
         # Translate the variables to Metadata 2.0 (PEP 426).
         env = _markerlib.default_environment()
-        for key in env.keys():
+        for key in tuple(env.keys()):
             new_key = key.replace('.', '_')
             env[new_key] = env.pop(key)
         try:
