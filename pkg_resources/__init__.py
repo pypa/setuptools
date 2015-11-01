@@ -1525,6 +1525,17 @@ class MarkerEvaluation(object):
         """
         return cls.interpret(parser.expr(text).totuple(1)[1])
 
+    @staticmethod
+    def _translate_metadata2(env):
+        """
+        Markerlib implements Metadata 1.2 (PEP 345) environment markers.
+        Translate the variables to Metadata 2.0 (PEP 426).
+        """
+        return dict(
+            (key.replace('.', '_'), value)
+            for key, value in env
+        )
+
     @classmethod
     def _markerlib_evaluate(cls, text):
         """
@@ -1533,12 +1544,8 @@ class MarkerEvaluation(object):
         Raise SyntaxError if marker is invalid.
         """
         import _markerlib
-        # markerlib implements Metadata 1.2 (PEP 345) environment markers.
-        # Translate the variables to Metadata 2.0 (PEP 426).
-        env = _markerlib.default_environment()
-        for key in tuple(env.keys()):
-            new_key = key.replace('.', '_')
-            env[new_key] = env.pop(key)
+
+        env = cls._translate_metadata2(_markerlib.default_environment())
         try:
             result = _markerlib.interpret(text, env)
         except NameError as e:
