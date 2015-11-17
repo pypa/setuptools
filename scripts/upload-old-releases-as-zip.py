@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# declare and require dependencies
+__requires__ = [
+    'twine',
+]; __import__('pkg_resources')
+
 import errno
 import glob
 import hashlib
@@ -11,8 +16,10 @@ import tarfile
 import tempfile
 import urllib.request, urllib.parse, urllib.error
 import urllib.request, urllib.error, urllib.parse
-
 from distutils.version import LooseVersion
+
+from twine.commands import upload
+
 
 OK = '\033[92m'
 FAIL = '\033[91m'
@@ -221,8 +228,8 @@ class SetuptoolsOldReleasesWithoutZip(object):
         print('Uploading to pypi...')
         zips = sorted(glob.glob('%s/*.zip' % self.dirpath), key=LooseVersion)
         for zips in glob.glob('%s/*.zip' % self.dirpath):
-            # Put the twine upload code here
-            pass
+            print("simulated upload of", zips); continue
+            upload.upload(dists=list(zips))
 
 
 if __name__ == '__main__':
