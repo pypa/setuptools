@@ -9,8 +9,8 @@ import os
 import shutil
 import tarfile
 import tempfile
-import urllib
-import urllib2
+import urllib.request, urllib.parse, urllib.error
+import urllib.request, urllib.error, urllib.parse
 
 from distutils.version import LooseVersion
 
@@ -26,8 +26,8 @@ class SetuptoolsOldReleasesWithoutZip(object):
     def __init__(self):
         super(SetuptoolsOldReleasesWithoutZip, self).__init__()
         self.dirpath = tempfile.mkdtemp(prefix=DISTRIBUTION)
-        print "Downloading %s releases..." % DISTRIBUTION
-        print "All releases will be downloaded to %s" % self.dirpath
+        print("Downloading %s releases..." % DISTRIBUTION)
+        print("All releases will be downloaded to %s" % self.dirpath)
         self.data_json_setuptools = self.get_json_data(DISTRIBUTION)
         self.valid_releases_numbers = sorted([
             release
@@ -109,7 +109,7 @@ class SetuptoolsOldReleasesWithoutZip(object):
             ],
         """
         url = "https://pypi.python.org/pypi/%s/json" % (package_name,)
-        data = json.load(urllib2.urlopen(urllib2.Request(url)))
+        data = json.load(urllib.request.urlopen(urllib.request.Request(url)))
 
         # Mainly for debug.
         json_filename = "%s/%s.json" % (self.dirpath, DISTRIBUTION)
@@ -148,24 +148,24 @@ class SetuptoolsOldReleasesWithoutZip(object):
                 if release in releases_without_zip:
                     for same_version_release_dict in self.data_json_setuptools['releases'][release]:  # NOQA
                         if 'tar.gz' in same_version_release_dict['filename']:
-                            print "Downloading %s..." % release
+                            print("Downloading %s..." % release)
                             local_file = '%s/%s' % (
                                 self.dirpath,
                                 same_version_release_dict["filename"]
                             )
-                            urllib.urlretrieve(
+                            urllib.request.urlretrieve(
                                 same_version_release_dict["url"],
                                 local_file
                             )
                             targz = open(local_file, 'rb').read()
                             hexdigest = hashlib.md5(targz).hexdigest()
                             if (hexdigest != same_version_release_dict['md5_digest']):  # NOQA
-                                print FAIL + "FAIL: md5 for %s didn't match!" % release + END  # NOQA
+                                print(FAIL + "FAIL: md5 for %s didn't match!" % release + END)  # NOQA
                                 failed_md5_releases.append(release)
                             else:
                                 self.total_downloaded_ok += 1
-            print 'Total releases without zip: %s' % len(releases_without_zip)
-            print 'Total downloaded: %s' % self.total_downloaded_ok
+            print('Total releases without zip: %s' % len(releases_without_zip))
+            print('Total downloaded: %s' % self.total_downloaded_ok)
             if failed_md5_releases:
                 msg = FAIL + (
                     "FAIL: these releases %s failed the md5 check!" %
@@ -178,14 +178,14 @@ class SetuptoolsOldReleasesWithoutZip(object):
                 ) + END
                 raise Exception(msg)
             else:
-                print OK + "All releases downloaded and md5 checked." + END
+                print(OK + "All releases downloaded and md5 checked." + END)
 
         except OSError as e:
             if e.errno != errno.EEXIST:
                 raise e
 
     def convert_targz_to_zip(self):
-        print "Converting the tar.gz to zip..."
+        print("Converting the tar.gz to zip...")
         files = glob.glob('%s/*.tar.gz' % self.dirpath)
         total_converted = 0
         for targz in sorted(files, key=LooseVersion):
@@ -198,7 +198,7 @@ class SetuptoolsOldReleasesWithoutZip(object):
             # Zip the extracted tar.
             setuptools_folder_path = targz.replace('.tar.gz', '')
             setuptools_folder_name = setuptools_folder_path.split("/")[-1]
-            print setuptools_folder_name
+            print(setuptools_folder_name)
             shutil.make_archive(
                 setuptools_folder_path,
                 'zip',
@@ -208,17 +208,17 @@ class SetuptoolsOldReleasesWithoutZip(object):
             # Exclude extracted tar folder.
             shutil.rmtree(setuptools_folder_path.replace('.zip', ''))
             total_converted += 1
-        print 'Total converted: %s' % total_converted
+        print('Total converted: %s' % total_converted)
         if self.total_downloaded_ok != total_converted:
             msg = FAIL + (
                 "FAIL: Total number of downloaded releases is different"
                 " from converted ones. Please check the logs."
             ) + END
             raise Exception(msg)
-        print "Done with the tar.gz->zip. Check folder %s." % main.dirpath
+        print("Done with the tar.gz->zip. Check folder %s." % main.dirpath)
 
     def upload_zips_to_pypi(self):
-        print 'Uploading to pypi...'
+        print('Uploading to pypi...')
         zips = sorted(glob.glob('%s/*.zip' % self.dirpath), key=LooseVersion)
         for zips in glob.glob('%s/*.zip' % self.dirpath):
             # Put the twine upload code here
