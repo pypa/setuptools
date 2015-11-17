@@ -228,7 +228,8 @@ class SetuptoolsOldReleasesWithoutZip(object):
             pass
 
 
-main = SetuptoolsOldReleasesWithoutZip()
-main.download_setuptools_releases_without_zip_counterpart()
-main.convert_targz_to_zip()
-main.upload_zips_to_pypi()
+if __name__ == '__main__':
+    main = SetuptoolsOldReleasesWithoutZip()
+    main.download_setuptools_releases_without_zip_counterpart()
+    main.convert_targz_to_zip()
+    main.upload_zips_to_pypi()
