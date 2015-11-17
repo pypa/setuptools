@@ -14,6 +14,7 @@ import os
 import shutil
 import tarfile
 import tempfile
+import codecs
 import urllib.request
 import urllib.parse
 import urllib.error
@@ -32,7 +33,6 @@ class SetuptoolsOldReleasesWithoutZip(object):
     """docstring for SetuptoolsOldReleases"""
 
     def __init__(self):
-        super(SetuptoolsOldReleasesWithoutZip, self).__init__()
         self.dirpath = tempfile.mkdtemp(prefix=DISTRIBUTION)
         print("Downloading %s releases..." % DISTRIBUTION)
         print("All releases will be downloaded to %s" % self.dirpath)
@@ -117,7 +117,10 @@ class SetuptoolsOldReleasesWithoutZip(object):
             ],
         """
         url = "https://pypi.python.org/pypi/%s/json" % (package_name,)
-        data = json.load(urllib.request.urlopen(urllib.request.Request(url)))
+        resp = urllib.request.urlopen(urllib.request.Request(url))
+        charset = resp.info().get_content_charset()
+        reader = codecs.getreader(charset)(resp)
+        data = json.load(reader)
 
         # Mainly for debug.
         json_filename = "%s/%s.json" % (self.dirpath, DISTRIBUTION)
