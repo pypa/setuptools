@@ -29,7 +29,7 @@ END = '\033[0m'
 DISTRIBUTION = "setuptools"
 
 
-class SetuptoolsOldReleasesWithoutZip(object):
+class SetuptoolsOldReleasesWithoutZip:
     """docstring for SetuptoolsOldReleases"""
 
     def __init__(self):
