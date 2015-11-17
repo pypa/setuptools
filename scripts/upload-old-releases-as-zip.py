@@ -14,8 +14,9 @@ import os
 import shutil
 import tarfile
 import tempfile
-import urllib.request, urllib.parse, urllib.error
-import urllib.request, urllib.error, urllib.parse
+import urllib.request
+import urllib.parse
+import urllib.error
 from distutils.version import LooseVersion
 
 from twine.commands import upload
