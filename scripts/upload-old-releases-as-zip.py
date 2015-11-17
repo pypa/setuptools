@@ -227,9 +227,8 @@ class SetuptoolsOldReleasesWithoutZip(object):
     def upload_zips_to_pypi(self):
         print('Uploading to pypi...')
         zips = sorted(glob.glob('%s/*.zip' % self.dirpath), key=LooseVersion)
-        for zips in glob.glob('%s/*.zip' % self.dirpath):
-            print("simulated upload of", zips); continue
-            upload.upload(dists=list(zips))
+        print("simulated upload of", zips); return
+        upload.upload(dists=zips)
 
 
 if __name__ == '__main__':
