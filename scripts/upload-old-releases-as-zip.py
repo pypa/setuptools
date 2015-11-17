@@ -167,18 +167,16 @@ class SetuptoolsOldReleasesWithoutZip(object):
             print 'Total releases without zip: %s' % len(releases_without_zip)
             print 'Total downloaded: %s' % self.total_downloaded_ok
             if failed_md5_releases:
-                raise(Exception(
-                    FAIL + (
-                        "FAIL: these releases %s failed the md5 check!" %
-                        ','.join(failed_md5_releases)
-                    ) + END
-                ))
+                msg = FAIL + (
+                    "FAIL: these releases %s failed the md5 check!" %
+                    ','.join(failed_md5_releases)
+                ) + END
+                raise Exception(msg)
             elif self.total_downloaded_ok != len(releases_without_zip):
-                raise(Exception(
-                    FAIL + (
-                        "FAIL: Unknown error occured. Please check the logs."
-                    ) + END
-                ))
+                msg = FAIL + (
+                    "FAIL: Unknown error occured. Please check the logs."
+                ) + END
+                raise Exception(msg)
             else:
                 print OK + "All releases downloaded and md5 checked." + END
 
@@ -212,12 +210,11 @@ class SetuptoolsOldReleasesWithoutZip(object):
             total_converted += 1
         print 'Total converted: %s' % total_converted
         if self.total_downloaded_ok != total_converted:
-            raise(Exception(
-                FAIL + (
-                    "FAIL: Total number of downloaded releases is different"
-                    " from converted ones. Please check the logs."
-                ) + END
-            ))
+            msg = FAIL + (
+                "FAIL: Total number of downloaded releases is different"
+                " from converted ones. Please check the logs."
+            ) + END
+            raise Exception(msg)
         print "Done with the tar.gz->zip. Check folder %s." % main.dirpath
 
     def upload_zips_to_pypi(self):
