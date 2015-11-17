@@ -13,7 +13,6 @@ import json
 import os
 import shutil
 import tarfile
-import tempfile
 import codecs
 import urllib.request
 import urllib.parse
@@ -33,7 +32,8 @@ class SetuptoolsOldReleasesWithoutZip:
     """docstring for SetuptoolsOldReleases"""
 
     def __init__(self):
-        self.dirpath = tempfile.mkdtemp(prefix=DISTRIBUTION)
+        self.dirpath = './dist'
+        os.makedirs(self.dirpath, exist_ok=True)
         print("Downloading %s releases..." % DISTRIBUTION)
         print("All releases will be downloaded to %s" % self.dirpath)
         self.data_json_setuptools = self.get_json_data(DISTRIBUTION)
