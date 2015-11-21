@@ -92,7 +92,7 @@ Testing
 
 The primary tests are run using py.test. To run the tests::
 
-    $ python setup.py ptr
+    $ python setup.py test
 
 Or install py.test into your environment and run ``py.test``.
 
