@@ -2137,10 +2137,13 @@ class WindowsScriptWriter(ScriptWriter):
             pattern, repl = repl, pattern
         pattern_ob = re.compile(re.escape(pattern), re.IGNORECASE)
         new_header = pattern_ob.sub(string=orig_header, repl=repl)
-        clean_header = new_header[2:-1].strip('"')
-        if sys.platform == 'win32' and not os.path.exists(clean_header):
-            # the adjusted version doesn't exist, so return the original
-            return orig_header
+        if sys.platform == 'win32':
+            from distutils.spawn import find_executable
+
+            clean_header = new_header[2:-1].strip('"')
+            if not find_executable(clean_header):
+                # the adjusted version doesn't exist, so return the original
+                return orig_header
         return new_header
 
 
