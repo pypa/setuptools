@@ -3,6 +3,13 @@ CHANGES
 =======
 
 ----
+18.6
+----
+
+* Issue #462: Provide a more refined detection of unpacked egg
+  directories, avoiding detecting zc.recipe.egg wheel as an egg.
+
+----
 18.5
 ----
 
