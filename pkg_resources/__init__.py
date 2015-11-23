@@ -1716,7 +1716,7 @@ class EggProvider(NullProvider):
         path = self.module_path
         old = None
         while path!=old:
-            if path.lower().endswith('.egg'):
+            if _is_unpacked_egg(path):
                 self.egg_name = os.path.basename(path)
                 self.egg_info = os.path.join(path, 'EGG-INFO')
                 self.egg_root = path
@@ -2099,7 +2099,7 @@ def find_eggs_in_zip(importer, path_item, only=False):
         # don't yield nested distros
         return
     for subitem in metadata.resource_listdir('/'):
-        if subitem.endswith('.egg'):
+        if _is_unpacked_egg(subitem):
             subpath = os.path.join(path_item, subitem)
             for dist in find_eggs_in_zip(zipimport.zipimporter(subpath), subpath):
                 yield dist
@@ -2115,8 +2115,7 @@ def find_on_path(importer, path_item, only=False):
     path_item = _normalize_cached(path_item)
 
     if os.path.isdir(path_item) and os.access(path_item, os.R_OK):
-        if path_item.lower().endswith('.egg'):
-            # unpacked egg
+        if _is_unpacked_egg(path_item):
             yield Distribution.from_filename(
                 path_item, metadata=PathMetadata(
                     path_item, os.path.join(path_item,'EGG-INFO')
@@ -2136,7 +2135,7 @@ def find_on_path(importer, path_item, only=False):
                     yield Distribution.from_location(
                         path_item, entry, metadata, precedence=DEVELOP_DIST
                     )
-                elif not only and lower.endswith('.egg'):
+                elif not only and _is_unpacked_egg(entry):
                     dists = find_distributions(os.path.join(path_item, entry))
                     for dist in dists:
                         yield dist
@@ -2282,6 +2281,14 @@ def _normalize_cached(filename, _cache={}):
     except KeyError:
         _cache[filename] = result = normalize_path(filename)
         return result
+
+def _is_unpacked_egg(path):
+    """
+    Determine if given path appears to be an unpacked egg.
+    """
+    return (
+        path.lower().endswith('.egg')
+    )
 
 def _set_parent_ns(packageName):
     parts = packageName.split('.')
