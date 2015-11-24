@@ -3,6 +3,14 @@ CHANGES
 =======
 
 ----
+18.6
+----
+
+* Issue #439: When installing entry_point scripts under development,
+  omit the version number of the package, allowing any version of the
+  package to be used.
+
+----
 18.5
 ----
 
