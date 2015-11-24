@@ -168,6 +168,10 @@ class develop(easy_install):
             f.close()
             self.install_script(dist, script_name, script_text, script_path)
 
+    def install_wrapper_scripts(self, dist):
+        dist = VersionlessRequirement(dist)
+        return super(develop, self).install_wrapper_scripts(dist)
+
 
 class VersionlessRequirement(object):
     """
