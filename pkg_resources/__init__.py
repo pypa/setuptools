@@ -2288,7 +2288,6 @@ def _is_unpacked_egg(path):
     """
     return (
         path.lower().endswith('.egg')
-        and os.path.isdir(os.path.join(path, 'EGG-INFO'))
     )
 
 def _set_parent_ns(packageName):
