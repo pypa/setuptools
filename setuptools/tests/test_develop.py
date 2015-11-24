@@ -32,15 +32,13 @@ class TestDevelopTest:
         os.mkdir(os.path.join(self.dir, 'foo'))
         # setup.py
         setup = os.path.join(self.dir, 'setup.py')
-        f = open(setup, 'w')
-        f.write(SETUP_PY)
-        f.close()
+        with open(setup, 'w') as f:
+            f.write(SETUP_PY)
         self.old_cwd = os.getcwd()
         # foo/__init__.py
         init = os.path.join(self.dir, 'foo', '__init__.py')
-        f = open(init, 'w')
-        f.write(INIT_PY)
-        f.close()
+        with open(init, 'w') as f:
+            f.write(INIT_PY)
 
         os.chdir(self.dir)
         self.old_base = site.USER_BASE
