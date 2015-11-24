@@ -760,9 +760,10 @@ class easy_install(Command):
         return dst
 
     def install_wrapper_scripts(self, dist):
-        if not self.exclude_scripts:
-            for args in ScriptWriter.best().get_args(dist):
-                self.write_script(*args)
+        if self.exclude_scripts:
+            return
+        for args in ScriptWriter.best().get_args(dist):
+            self.write_script(*args)
 
     def install_script(self, dist, script_name, script_text, dev_path=None):
         """Generate a legacy script wrapper and install it"""
