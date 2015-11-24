@@ -170,7 +170,7 @@ class develop(easy_install):
 
     def install_wrapper_scripts(self, dist):
         dist = VersionlessRequirement(dist)
-        return super(develop, self).install_wrapper_scripts(dist)
+        return easy_install.install_wrapper_scripts(self, dist)
 
 
 class VersionlessRequirement(object):
