@@ -51,8 +51,10 @@ def test_env(tmpdir, temp_user):
 
 
 class TestDevelop:
-    @pytest.mark.skipif(hasattr(sys, 'real_prefix'),
-        reason="Cannot run when invoked in a virtualenv")
+    in_virtualenv = hasattr(sys, 'real_prefix')
+    in_venv = hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix
+    @pytest.mark.skipif(in_virtualenv or in_venv,
+        reason="Cannot run when invoked in a virtualenv or venv")
     def test_2to3_user_mode(self, test_env):
         settings = dict(
             name='foo',
