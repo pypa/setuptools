@@ -65,12 +65,8 @@ class TestDevelopTest:
         cmd.ensure_finalized()
         cmd.install_dir = site.USER_SITE
         cmd.user = 1
-        old_stdout = sys.stdout
-        #sys.stdout = StringIO()
-        try:
+        with contexts.quiet():
             cmd.run()
-        finally:
-            sys.stdout = old_stdout
 
         # let's see if we got our egg link at the right place
         content = os.listdir(site.USER_SITE)
