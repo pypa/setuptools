@@ -85,3 +85,28 @@ class TestDevelop:
 
         expected = 'print("foo")' if PY3 else 'print "foo"'
         assert init == expected
+
+    def test_console_scripts(self, tmpdir):
+        """
+        Test that console scripts are installed and that they reference
+        only the project by name and not the current version.
+        """
+        pytest.skip("TODO: needs a fixture to cause 'develop' "
+            "to be invoked without mutating environment.")
+        settings = dict(
+            name='foo',
+            packages=['foo'],
+            version='0.0',
+            entry_points={
+                'console_scripts': [
+                    'foocmd = foo:foo',
+                ],
+            },
+        )
+        dist = Distribution(settings)
+        dist.script_name = 'setup.py'
+        cmd = develop(dist)
+        cmd.ensure_finalized()
+        cmd.install_dir = tmpdir
+        cmd.run()
+        #assert '0.0' not in foocmd_text
