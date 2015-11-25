@@ -51,18 +51,9 @@ def test_env(tmpdir, temp_user):
 
 
 class TestDevelopTest:
-
-    def setup_method(self, method):
-        if hasattr(sys, 'real_prefix'):
-            return
-
-    def teardown_method(self, method):
-        if hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
-            return
-
+    @pytest.mark.skipif(hasattr(sys, 'real_prefix'),
+        reason="Cannot run when invoked in a virtualenv")
     def test_develop(self, test_env):
-        if hasattr(sys, 'real_prefix'):
-            return
         dist = Distribution(
             dict(name='foo',
                  packages=['foo'],
