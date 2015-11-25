@@ -50,10 +50,10 @@ def test_env(tmpdir, temp_user):
         yield target
 
 
-class TestDevelopTest:
+class TestDevelop:
     @pytest.mark.skipif(hasattr(sys, 'real_prefix'),
         reason="Cannot run when invoked in a virtualenv")
-    def test_develop(self, test_env):
+    def test_2to3_user_mode(self, test_env):
         settings = dict(
             name='foo',
             packages=['foo'],
