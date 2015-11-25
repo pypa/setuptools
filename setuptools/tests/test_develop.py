@@ -6,8 +6,12 @@ import site
 import sys
 import tempfile
 
+import pytest
+
 from setuptools.command.develop import develop
 from setuptools.dist import Distribution
+from . import contexts
+
 
 SETUP_PY = """\
 from setuptools import setup
@@ -21,43 +25,42 @@ setup(name='foo',
 INIT_PY = """print "foo"
 """
 
+@pytest.yield_fixture
+def temp_user(monkeypatch):
+    with contexts.tempdir() as user_base:
+        with contexts.tempdir() as user_site:
+            monkeypatch.setattr('site.USER_BASE', user_base)
+            monkeypatch.setattr('site.USER_SITE', user_site)
+            yield
+
+
+@pytest.yield_fixture
+def test_env(tmpdir, temp_user):
+    target = tmpdir
+    foo = target.mkdir('foo')
+    setup = target / 'setup.py'
+    if setup.isfile():
+        raise ValueError(dir(target))
+    with setup.open('w') as f:
+        f.write(SETUP_PY)
+    init = foo / '__init__.py'
+    with init.open('w') as f:
+        f.write(INIT_PY)
+    with target.as_cwd():
+        yield target
+
+
 class TestDevelopTest:
 
     def setup_method(self, method):
         if hasattr(sys, 'real_prefix'):
             return
 
-        # Directory structure
-        self.dir = tempfile.mkdtemp()
-        os.mkdir(os.path.join(self.dir, 'foo'))
-        # setup.py
-        setup = os.path.join(self.dir, 'setup.py')
-        with open(setup, 'w') as f:
-            f.write(SETUP_PY)
-        self.old_cwd = os.getcwd()
-        # foo/__init__.py
-        init = os.path.join(self.dir, 'foo', '__init__.py')
-        with open(init, 'w') as f:
-            f.write(INIT_PY)
-
-        os.chdir(self.dir)
-        self.old_base = site.USER_BASE
-        site.USER_BASE = tempfile.mkdtemp()
-        self.old_site = site.USER_SITE
-        site.USER_SITE = tempfile.mkdtemp()
-
     def teardown_method(self, method):
         if hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
             return
 
-        os.chdir(self.old_cwd)
-        shutil.rmtree(self.dir)
-        shutil.rmtree(site.USER_BASE)
-        shutil.rmtree(site.USER_SITE)
-        site.USER_BASE = self.old_base
-        site.USER_SITE = self.old_site
-
-    def test_develop(self):
+    def test_develop(self, test_env):
         if hasattr(sys, 'real_prefix'):
             return
         dist = Distribution(
