@@ -54,12 +54,13 @@ class TestDevelopTest:
     @pytest.mark.skipif(hasattr(sys, 'real_prefix'),
         reason="Cannot run when invoked in a virtualenv")
     def test_develop(self, test_env):
-        dist = Distribution(
-            dict(name='foo',
-                 packages=['foo'],
-                 use_2to3=True,
-                 version='0.0',
-                 ))
+        settings = dict(
+            name='foo',
+            packages=['foo'],
+            use_2to3=True,
+            version='0.0',
+        )
+        dist = Distribution(settings)
         dist.script_name = 'setup.py'
         cmd = develop(dist)
         cmd.user = 1
