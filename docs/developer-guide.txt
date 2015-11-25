@@ -94,7 +94,8 @@ The primary tests are run using py.test. To run the tests::
 
     $ python setup.py test
 
-Or install py.test into your environment and run ``py.test``.
+Or install py.test into your environment and run ``PYTHONPATH=. py.test``
+or ``python -m pytest``.
 
 Under continuous integration, additional tests may be run. See the
 ``.travis.yml`` file for full details on the tests run under Travis-CI.
