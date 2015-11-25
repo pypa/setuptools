@@ -10,6 +10,7 @@ import pytest
 from setuptools.command.develop import develop
 from setuptools.dist import Distribution
 from . import contexts
+from setuptools.compat import PY3
 
 
 SETUP_PY = """\
@@ -81,7 +82,6 @@ class TestDevelopTest:
         fn = os.path.join(path, 'foo', '__init__.py')
         with io.open(fn) as init_file:
             init = init_file.read().strip()
-        if sys.version < "3":
-            assert init == 'print "foo"'
-        else:
-            assert init == 'print("foo")'
+
+        expected = 'print("foo")' if PY3 else 'print "foo"'
+        assert init == expected
