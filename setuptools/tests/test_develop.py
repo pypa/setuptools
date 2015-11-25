@@ -3,6 +3,7 @@
 import os
 import site
 import sys
+import io
 
 import pytest
 
@@ -74,16 +75,12 @@ class TestDevelopTest:
         assert content == ['easy-install.pth', 'foo.egg-link']
 
         # Check that we are using the right code.
-        egg_link_file = open(os.path.join(site.USER_SITE, 'foo.egg-link'), 'rt')
-        try:
+        fn = os.path.join(site.USER_SITE, 'foo.egg-link')
+        with io.open(fn) as egg_link_file:
             path = egg_link_file.read().split()[0].strip()
-        finally:
-            egg_link_file.close()
-        init_file = open(os.path.join(path, 'foo', '__init__.py'), 'rt')
-        try:
+        fn = os.path.join(path, 'foo', '__init__.py')
+        with io.open(fn) as init_file:
             init = init_file.read().strip()
-        finally:
-            init_file.close()
         if sys.version < "3":
             assert init == 'print "foo"'
         else:
