@@ -1,10 +1,8 @@
 """develop tests
 """
 import os
-import shutil
 import site
 import sys
-import tempfile
 
 import pytest
 
