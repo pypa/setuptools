@@ -112,10 +112,16 @@ the distutils.  Here's a minimal setup script using setuptools::
     )
 
 As you can see, it doesn't take much to use setuptools in a project.
-Just by doing the above, this project will be able to produce eggs, upload to
+Run that script in your project folder, alongside the Python packages
+you have developed.
+
+Invoke that script to produce eggs, upload to
 PyPI, and automatically include all packages in the directory where the
 setup.py lives.  See the `Command Reference`_ section below to see what
-commands you can give to this setup script.
+commands you can give to this setup script. For example,
+to produce a source distribution, simply invoke::
+
+    python setup.py sdist
 
 Of course, before you release your project to PyPI, you'll want to add a bit
 more information to your setup script to help people find or learn about your
