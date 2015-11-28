@@ -2466,11 +2466,11 @@ def _remove_md5_fragment(location):
     return location
 
 
-def _version_from_file(fid):
-    for line in fid:
-        if line.lower().startswith('version:'):
-            version = safe_version(line.split(':', 1)[1].strip())
-            return version
+def _version_from_file(lines):
+    is_version_line = lambda line: line.lower().startswith('version:')
+    version_lines = filter(is_version_line, lines)
+    line = next(iter(version_lines))
+    return safe_version(line.split(':', 1)[1].strip())
 
 
 class Distribution(object):
