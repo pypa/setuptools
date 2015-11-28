@@ -125,7 +125,7 @@ def _do_download(version, download_base, to_dir, download_delay):
     # Remove previously-imported pkg_resources if present (see
     # https://bitbucket.org/pypa/setuptools/pull-request/7/ for details).
     if 'pkg_resources' in sys.modules:
-        del sys.modules['pkg_resources']
+        _unload_pkg_resources()
 
     import setuptools
     setuptools.bootstrap_install_from = egg
