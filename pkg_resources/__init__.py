@@ -2516,25 +2516,7 @@ class Distribution(object):
 
     @staticmethod
     def _version_from_egg_info(dist_path):
-        """
-        Packages installed by distutils (e.g. numpy or scipy),
-        which uses an old safe_version, and so
-        their version numbers can get mangled when
-        converted to filenames (e.g., 1.11.0.dev0+2329eae to
-        1.11.0.dev0_2329eae). These distributions will not be
-        parsed properly
-        downstream by Distribution and safe_version, so
-        take an extra step and try to get the version number from
-        the metadata file itself instead of the filename.
-        """
-        _, ext = os.path.splitext(dist_path)
-        if ext != '.egg-info' or not os.path.isfile(dist_path):
-            return
-        try:
-            with open(dist_path) as strm:
-                return _version_from_file(strm)
-        except IOError:
-            pass
+        pass
 
     @property
     def hashcmp(self):
@@ -2830,6 +2812,30 @@ class Distribution(object):
         return [dep for dep in self._dep_map if dep]
 
 
+class EggInfoDistribution(Distribution):
+
+    @staticmethod
+    def _version_from_egg_info(dist_path):
+        """
+        Packages installed by distutils (e.g. numpy or scipy),
+        which uses an old safe_version, and so
+        their version numbers can get mangled when
+        converted to filenames (e.g., 1.11.0.dev0+2329eae to
+        1.11.0.dev0_2329eae). These distributions will not be
+        parsed properly
+        downstream by Distribution and safe_version, so
+        take an extra step and try to get the version number from
+        the metadata file itself instead of the filename.
+        """
+        if not os.path.isfile(dist_path):
+            return
+        try:
+            with open(dist_path) as strm:
+                return _version_from_file(strm)
+        except IOError:
+            pass
+
+
 class DistInfoDistribution(Distribution):
     """Wrap an actual or potential sys.path entry w/metadata, .dist-info style"""
     PKG_INFO = 'METADATA'
@@ -2895,7 +2901,7 @@ class DistInfoDistribution(Distribution):
 
 _distributionImpl = {
     '.egg': Distribution,
-    '.egg-info': Distribution,
+    '.egg-info': EggInfoDistribution,
     '.dist-info': DistInfoDistribution,
     }
 
