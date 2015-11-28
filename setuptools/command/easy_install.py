@@ -20,6 +20,7 @@ from distutils.errors import DistutilsArgError, DistutilsOptionError, \
 from distutils.command.install import INSTALL_SCHEMES, SCHEME_KEYS
 from distutils import log, dir_util
 from distutils.command.build_scripts import first_line_re
+from distutils.spawn import find_executable
 import sys
 import os
 import zipimport
@@ -2126,8 +2127,8 @@ class WindowsScriptWriter(ScriptWriter):
         blockers = [name + x for x in old]
         yield name + ext, header + script_text, 't', blockers
 
-    @staticmethod
-    def _adjust_header(type_, orig_header):
+    @classmethod
+    def _adjust_header(cls, type_, orig_header):
         """
         Make sure 'pythonw' is used for gui and and 'python' is used for
         console (regardless of what sys.executable is).
@@ -2138,14 +2139,19 @@ class WindowsScriptWriter(ScriptWriter):
             pattern, repl = repl, pattern
         pattern_ob = re.compile(re.escape(pattern), re.IGNORECASE)
         new_header = pattern_ob.sub(string=orig_header, repl=repl)
-        if sys.platform == 'win32':
-            from distutils.spawn import find_executable
+        return new_header if cls._use_header(new_header) else orig_header
 
-            clean_header = new_header[2:-1].strip('"')
-            if not find_executable(clean_header):
-                # the adjusted version doesn't exist, so return the original
-                return orig_header
-        return new_header
+    @staticmethod
+    def _use_header(new_header):
+        """
+        Should _adjust_header use the replaced header?
+
+        On non-windows systems, always use. On
+        Windows systems, only use the replaced header if it resolves
+        to an executable on the system.
+        """
+        clean_header = new_header[2:-1].strip('"')
+        return sys.platform != 'win32' or find_executable(clean_header)
 
 
 class WindowsExecutableLauncherWriter(WindowsScriptWriter):
