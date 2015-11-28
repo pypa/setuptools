@@ -8,12 +8,9 @@ import subprocess
 import stat
 
 import pytest
+import py
 
 import pkg_resources
-
-from setuptools.tests.textwrap import DALS
-from setuptools.tests import contexts
-from setuptools.tests import environment
 
 
 try:
@@ -120,88 +117,46 @@ class TestIndependence:
 
 
 
-class TestEggInfoDistutils(object):
+class TestDeepVersionLookup(object):
 
-    version = '1.11.0.dev0+2329eae'
-    setup_script = DALS("""
-        from distutils.core import setup
-
-        setup(
-            name='foo',
-            py_modules=['hello'],
-            version='%s',
-        )
-        """)
-
-    def _create_project(self):
-        with open('setup.py', 'w') as f:
-            f.write(self.setup_script % self.version)
-
-        with open('hello.py', 'w') as f:
-            f.write(DALS("""
-                def run():
-                    print('hello')
-                """))
-
-    @pytest.yield_fixture
-    def env(self):
+    @pytest.fixture
+    def env(self, tmpdir):
+        """
+        Create a package environment, similar to a virtualenv,
+        in which packages are installed.
+        """
         class Environment(str):
             pass
-        with contexts.tempdir(prefix='setuptools-test.') as env_dir:
-            env = Environment(env_dir)
-            os.chmod(env_dir, stat.S_IRWXU)
-            subs = 'home', 'lib', 'scripts', 'data', 'egg-base'
-            env.paths = dict(
-                (dirname, os.path.join(env_dir, dirname))
-                for dirname in subs
-            )
-            list(map(os.mkdir, env.paths.values()))
-            config = os.path.join(env.paths['home'], '.pydistutils.cfg')
-            with open(config, 'w') as f:
-                f.write(DALS("""
-                    [egg_info]
-                    egg-base = %(egg-base)s
-                    """ % env.paths))
-            yield env
 
-    def test_version_resolved_from_egg_info(self, tmpdir_cwd, env):
-        self._create_project()
-
-        environ = os.environ.copy().update(
-            HOME=env.paths['home'],
+        env = Environment(tmpdir)
+        tmpdir.chmod(stat.S_IRWXU)
+        subs = 'home', 'lib', 'scripts', 'data', 'egg-base'
+        env.paths = dict(
+            (dirname, str(tmpdir / dirname))
+            for dirname in subs
         )
-        cmd = [
-            'install',
-            '--home', env.paths['home'],
-            '--install-lib', env.paths['lib'],
-            '--install-scripts', env.paths['scripts'],
-            '--install-data', env.paths['data'],
-        ]
-        code, data = environment.run_setup_py(
-            cmd=cmd,
-            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
-            data_stream=1,
-            env=environ,
-        )
-        if code:
-            raise AssertionError(data)
+        list(map(os.mkdir, env.paths.values()))
+        return env
 
-        actual = self._find_egg_info_file(env.paths['lib'])
-        # On Py3k it can be e.g. foo-1.11.0.dev0_2329eae-py3.4.egg-info
-        # but 2.7 doesn't add the Python version, so to be expedient we
-        # just check our start and end, omitting the potential version num
-        assert actual.startswith('foo-' + self.version.replace('+', '_'))
-        assert actual.endswith('.egg-info')
+    def create_foo_pkg(self, env, version):
+        """
+        Create a foo package installed to env.paths['lib']
+        as version.
+        """
+        safe_version = pkg_resources.safe_version(version)
+        lib = py.path.local(env.paths['lib'])
+        egg_info = lib / 'foo-' + safe_version + '.egg-info'
+        egg_info.mkdir()
+        pkg_info = egg_info / 'PKG_INFO'
+        with pkg_info.open('w') as strm:
+            strm.write('version: ' + version)
+
+    def test_version_resolved_from_egg_info(self, env):
+        version = '1.11.0.dev0+2329eae'
+        self.create_foo_pkg(env, version)
+
         # this requirement parsing will raise a VersionConflict unless the
         # .egg-info file is parsed (see #419 on BitBucket)
         req = pkg_resources.Requirement.parse('foo>=1.9')
         dist = pkg_resources.WorkingSet([env.paths['lib']]).find(req)
-        assert dist.version == self.version
-
-    def _find_egg_info_file(self, root):
-        # expect exactly one result
-        result = (filename for dirpath, dirnames, filenames in os.walk(root)
-                  for filename in filenames if filename.endswith('.egg-info'))
-        result, = result
-        return result
-
+        assert dist.version == version
