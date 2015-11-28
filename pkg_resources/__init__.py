@@ -2500,22 +2500,22 @@ class Distribution(object):
         dist_path = os.path.join(location, basename)
         basename, ext = os.path.splitext(basename)
         if ext.lower() in _distributionImpl:
-            # .dist-info gets much metadata differently
+            cls = _distributionImpl[ext.lower()]
+
             match = EGG_NAME(basename)
             if match:
                 project_name, version, py_version, platform = match.group(
                     'name', 'ver', 'pyver', 'plat'
                 )
-            cls = _distributionImpl[ext.lower()]
 
-            version = cls._version_from_egg_info(dist_path) or version
+            version = cls._version_from_metadata(dist_path) or version
         return cls(
             location, metadata, project_name=project_name, version=version,
             py_version=py_version, platform=platform, **kw
         )
 
     @staticmethod
-    def _version_from_egg_info(dist_path):
+    def _version_from_metadata(dist_path):
         pass
 
     @property
@@ -2815,7 +2815,7 @@ class Distribution(object):
 class EggInfoDistribution(Distribution):
 
     @staticmethod
-    def _version_from_egg_info(dist_path):
+    def _version_from_metadata(dist_path):
         """
         Packages installed by distutils (e.g. numpy or scipy),
         which uses an old safe_version, and so
