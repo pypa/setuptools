@@ -8,6 +8,8 @@ CHANGES
 ----
 
 * Update dependency on certify.
+* Pull Request #160: Improve detection of gui script in
+  ``easy_install._adjust_header``.
 
 ------
 18.6.1
