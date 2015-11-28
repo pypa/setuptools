@@ -2469,9 +2469,9 @@ def _remove_md5_fragment(location):
 def _version_from_file(lines):
     is_version_line = lambda line: line.lower().startswith('version:')
     version_lines = filter(is_version_line, lines)
-    line = next(iter(version_lines))
+    line = next(iter(version_lines), '')
     _, _, value = line.partition(':')
-    return safe_version(value.strip())
+    return safe_version(value.strip()) or None
 
 
 class Distribution(object):
