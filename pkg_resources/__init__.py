@@ -2497,6 +2497,7 @@ class Distribution(object):
     @classmethod
     def from_location(cls, location, basename, metadata=None, **kw):
         project_name, version, py_version, platform = [None]*4
+        dist_path = os.path.join(location, basename)
         basename, ext = os.path.splitext(basename)
         if ext.lower() in _distributionImpl:
             # .dist-info gets much metadata differently
@@ -2507,25 +2508,33 @@ class Distribution(object):
                 )
             cls = _distributionImpl[ext.lower()]
 
-            # Some packages e.g. numpy and scipy use distutils instead of
-            # setuptools, and their version numbers can get mangled when
-            # converted to filenames (e.g., 1.11.0.dev0+2329eae to
-            # 1.11.0.dev0_2329eae). These will not be parsed properly
-            # downstream by Distribution and safe_version, so we need to
-            # take an extra step and try to get the version number from
-            # the file itself instead of the filename.
-            if ext == '.egg-info':
-                full_name = os.path.join(location, basename + ext)
-                try:
-                    with open(full_name, 'r') as fid:
-                        version_ = _version_from_file(fid)
-                    version = version_ if version_ is not None else version
-                except IOError:
-                    pass
+            version = cls._version_from_egg_info(dist_path) or version
         return cls(
             location, metadata, project_name=project_name, version=version,
             py_version=py_version, platform=platform, **kw
         )
+
+    @staticmethod
+    def _version_from_egg_info(dist_path):
+        """
+        Packages installed by distutils (e.g. numpy or scipy),
+        which uses an old safe_version, and so
+        their version numbers can get mangled when
+        converted to filenames (e.g., 1.11.0.dev0+2329eae to
+        1.11.0.dev0_2329eae). These distributions will not be
+        parsed properly
+        downstream by Distribution and safe_version, so
+        take an extra step and try to get the version number from
+        the metadata file itself instead of the filename.
+        """
+        _, ext = os.path.splitext(dist_path)
+        if ext != '.egg-info' or not os.path.isfile(dist_path):
+            return
+        try:
+            with open(dist_path) as strm:
+                return _version_from_file(strm)
+        except IOError:
+            pass
 
     @property
     def hashcmp(self):
