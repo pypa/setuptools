@@ -164,7 +164,7 @@ class TestEggInfoDistutils(object):
                     """ % env.paths))
             yield env
 
-    def test_egg_base_installed_egg_info(self, tmpdir_cwd, env):
+    def test_version_resolved_from_egg_info(self, tmpdir_cwd, env):
         self._create_project()
 
         environ = os.environ.copy().update(
