@@ -6,9 +6,10 @@ import datetime
 import time
 import subprocess
 import stat
+import distutils.dist
+import distutils.command.install_egg_info
 
 import pytest
-import py
 
 import pkg_resources
 
@@ -117,7 +118,7 @@ class TestIndependence:
 
 
 
-class TestDeepVersionLookup(object):
+class TestDeepVersionLookupDistutils(object):
 
     @pytest.fixture
     def env(self, tmpdir):
@@ -140,16 +141,16 @@ class TestDeepVersionLookup(object):
 
     def create_foo_pkg(self, env, version):
         """
-        Create a foo package installed to env.paths['lib']
+        Create a foo package installed (distutils-style) to env.paths['lib']
         as version.
         """
-        safe_version = pkg_resources.safe_version(version)
-        lib = py.path.local(env.paths['lib'])
-        egg_info = lib / 'foo-' + safe_version + '.egg-info'
-        egg_info.mkdir()
-        pkg_info = egg_info / 'PKG_INFO'
-        with pkg_info.open('w') as strm:
-            strm.write('version: ' + version)
+        attrs = dict(name='foo', version=version)
+        dist = distutils.dist.Distribution(attrs)
+        iei_cmd = distutils.command.install_egg_info.install_egg_info(dist)
+        iei_cmd.initialize_options()
+        iei_cmd.install_dir = env.paths['lib']
+        iei_cmd.finalize_options()
+        iei_cmd.run()
 
     def test_version_resolved_from_egg_info(self, env):
         version = '1.11.0.dev0+2329eae'
