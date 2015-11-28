@@ -2473,6 +2473,18 @@ def _remove_md5_fragment(location):
     return location
 
 
+def _version_from_file(lines):
+    """
+    Given an iterable of lines from a Metadata file, return
+    the value of the Version field, if present, or None otherwise.
+    """
+    is_version_line = lambda line: line.lower().startswith('version:')
+    version_lines = filter(is_version_line, lines)
+    line = next(iter(version_lines), '')
+    _, _, value = line.partition(':')
+    return safe_version(value.strip()) or None
+
+
 class Distribution(object):
     """Wrap an actual or potential sys.path entry w/metadata"""
     PKG_INFO = 'PKG-INFO'
@@ -2490,21 +2502,28 @@ class Distribution(object):
         self._provider = metadata or empty_provider
 
     @classmethod
-    def from_location(cls, location, basename, metadata=None,**kw):
+    def from_location(cls, location, basename, metadata=None, **kw):
         project_name, version, py_version, platform = [None]*4
+        dist_path = os.path.join(location, basename)
         basename, ext = os.path.splitext(basename)
         if ext.lower() in _distributionImpl:
-            # .dist-info gets much metadata differently
+            cls = _distributionImpl[ext.lower()]
+
             match = EGG_NAME(basename)
             if match:
                 project_name, version, py_version, platform = match.group(
-                    'name','ver','pyver','plat'
+                    'name', 'ver', 'pyver', 'plat'
                 )
-            cls = _distributionImpl[ext.lower()]
+
+            version = cls._version_from_metadata(dist_path) or version
         return cls(
             location, metadata, project_name=project_name, version=version,
             py_version=py_version, platform=platform, **kw
         )
+
+    @staticmethod
+    def _version_from_metadata(dist_path):
+        pass
 
     @property
     def hashcmp(self):
@@ -2591,13 +2610,11 @@ class Distribution(object):
         try:
             return self._version
         except AttributeError:
-            for line in self._get_metadata(self.PKG_INFO):
-                if line.lower().startswith('version:'):
-                    self._version = safe_version(line.split(':',1)[1].strip())
-                    return self._version
-            else:
+            version = _version_from_file(self._get_metadata(self.PKG_INFO))
+            if version is None:
                 tmpl = "Missing 'Version:' header and/or %s file"
                 raise ValueError(tmpl % self.PKG_INFO, self)
+            return version
 
     @property
     def _dep_map(self):
@@ -2802,6 +2819,30 @@ class Distribution(object):
         return [dep for dep in self._dep_map if dep]
 
 
+class EggInfoDistribution(Distribution):
+
+    @staticmethod
+    def _version_from_metadata(dist_path):
+        """
+        Packages installed by distutils (e.g. numpy or scipy),
+        which uses an old safe_version, and so
+        their version numbers can get mangled when
+        converted to filenames (e.g., 1.11.0.dev0+2329eae to
+        1.11.0.dev0_2329eae). These distributions will not be
+        parsed properly
+        downstream by Distribution and safe_version, so
+        take an extra step and try to get the version number from
+        the metadata file itself instead of the filename.
+        """
+        if not os.path.isfile(dist_path):
+            return
+        try:
+            with open(dist_path) as strm:
+                return _version_from_file(strm)
+        except IOError:
+            pass
+
+
 class DistInfoDistribution(Distribution):
     """Wrap an actual or potential sys.path entry w/metadata, .dist-info style"""
     PKG_INFO = 'METADATA'
@@ -2867,7 +2908,7 @@ class DistInfoDistribution(Distribution):
 
 _distributionImpl = {
     '.egg': Distribution,
-    '.egg-info': Distribution,
+    '.egg-info': EggInfoDistribution,
     '.dist-info': DistInfoDistribution,
     }
 

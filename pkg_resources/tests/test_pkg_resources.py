@@ -5,8 +5,14 @@ import zipfile
 import datetime
 import time
 import subprocess
+import stat
+import distutils.dist
+import distutils.command.install_egg_info
+
+import pytest
 
 import pkg_resources
+
 
 try:
     unicode
@@ -109,3 +115,49 @@ class TestIndependence:
         )
         cmd = [sys.executable, '-c', '; '.join(lines)]
         subprocess.check_call(cmd)
+
+
+
+class TestDeepVersionLookupDistutils(object):
+
+    @pytest.fixture
+    def env(self, tmpdir):
+        """
+        Create a package environment, similar to a virtualenv,
+        in which packages are installed.
+        """
+        class Environment(str):
+            pass
+
+        env = Environment(tmpdir)
+        tmpdir.chmod(stat.S_IRWXU)
+        subs = 'home', 'lib', 'scripts', 'data', 'egg-base'
+        env.paths = dict(
+            (dirname, str(tmpdir / dirname))
+            for dirname in subs
+        )
+        list(map(os.mkdir, env.paths.values()))
+        return env
+
+    def create_foo_pkg(self, env, version):
+        """
+        Create a foo package installed (distutils-style) to env.paths['lib']
+        as version.
+        """
+        attrs = dict(name='foo', version=version)
+        dist = distutils.dist.Distribution(attrs)
+        iei_cmd = distutils.command.install_egg_info.install_egg_info(dist)
+        iei_cmd.initialize_options()
+        iei_cmd.install_dir = env.paths['lib']
+        iei_cmd.finalize_options()
+        iei_cmd.run()
+
+    def test_version_resolved_from_egg_info(self, env):
+        version = '1.11.0.dev0+2329eae'
+        self.create_foo_pkg(env, version)
+
+        # this requirement parsing will raise a VersionConflict unless the
+        # .egg-info file is parsed (see #419 on BitBucket)
+        req = pkg_resources.Requirement.parse('foo>=1.9')
+        dist = pkg_resources.WorkingSet([env.paths['lib']]).find(req)
+        assert dist.version == version

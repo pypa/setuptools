@@ -8,7 +8,11 @@ from .textwrap import DALS
 from . import contexts
 
 
-class TestEggInfo:
+class Environment(str):
+    pass
+
+
+class TestEggInfo(object):
 
     setup_script = DALS("""
         from setuptools import setup
@@ -33,8 +37,6 @@ class TestEggInfo:
 
     @pytest.yield_fixture
     def env(self):
-        class Environment(str): pass
-
         with contexts.tempdir(prefix='setuptools-test.') as env_dir:
             env = Environment(env_dir)
             os.chmod(env_dir, stat.S_IRWXU)
@@ -49,8 +51,7 @@ class TestEggInfo:
                 f.write(DALS("""
                     [egg_info]
                     egg-base = %(egg-base)s
-                    """ % env.paths
-                ))
+                    """ % env.paths))
             yield env
 
     def test_egg_base_installed_egg_info(self, tmpdir_cwd, env):
