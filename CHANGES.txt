@@ -17,6 +17,9 @@ CHANGES
 * Pull Request #158: Honor `PEP-488
   <https://www.python.org/dev/peps/pep-0488/>`_ when excluding
   files for namespace packages.
+* Issue #419 and Pull Request #144: Add experimental support for
+  reading the version info from distutils-installed metadata rather
+  than using the version in the filename.
 
 ------
 18.6.1
