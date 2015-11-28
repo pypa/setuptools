@@ -3,6 +3,12 @@ CHANGES
 =======
 
 
+----
+18.7
+----
+
+* Update dependency on certify.
+
 ------
 18.6.1
 ------
