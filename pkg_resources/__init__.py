@@ -2467,6 +2467,10 @@ def _remove_md5_fragment(location):
 
 
 def _version_from_file(lines):
+    """
+    Given an iterable of lines from a Metadata file, return
+    the value of the Version field, if present, or None otherwise.
+    """
     is_version_line = lambda line: line.lower().startswith('version:')
     version_lines = filter(is_version_line, lines)
     line = next(iter(version_lines), '')
