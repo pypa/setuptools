@@ -12,6 +12,8 @@ CHANGES
   ``easy_install._adjust_header``.
 * Made ``test.test_args`` a non-data property; alternate fix
   for the issue reported in Pull Request #155.
+* Issue #453: In ``ez_setup`` bootstrap module, unload all
+  ``pkg_resources`` modules following download.
 
 ------
 18.6.1
