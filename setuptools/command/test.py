@@ -41,6 +41,17 @@ class ScanningLoader(TestLoader):
             return tests[0]  # don't create a nested suite for only one return
 
 
+# adapted from jaraco.classes.properties:NonDataProperty
+class NonDataProperty(object):
+    def __init__(self, fget):
+        self.fget = fget
+
+    def __get__(self, obj, objtype=None):
+        if obj is None:
+            return self
+        return self.fget(obj)
+
+
 class test(Command):
     """Command to run unit tests after in-place build"""
 
@@ -78,7 +89,7 @@ class test(Command):
         if self.test_runner is None:
             self.test_runner = getattr(self.distribution, 'test_runner', None)
 
-    @property
+    @NonDataProperty
     def test_args(self):
         return list(self._test_args())
 
