@@ -55,6 +55,7 @@ if PY3:
 if PY2:
     from urlparse import urlparse, urlunparse
     filter = itertools.ifilter
+    map = itertools.imap
 
 if PY3:
     string_types = str,
