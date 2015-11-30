@@ -37,6 +37,7 @@ import plistlib
 import email.parser
 import tempfile
 import textwrap
+import itertools
 from pkgutil import get_importer
 
 try:
@@ -53,6 +54,7 @@ if PY3:
 
 if PY2:
     from urlparse import urlparse, urlunparse
+    filter = itertools.ifilter
 
 if PY3:
     string_types = str,
