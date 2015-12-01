@@ -16,7 +16,7 @@ from setuptools.compat import StringIO, unicode, PY3, PY2
 from setuptools.command.sdist import sdist
 from setuptools.command.egg_info import manifest_maker
 from setuptools.dist import Distribution
-from setuptools.tests import fail_on_ascii
+from setuptools.tests import fail_on_ascii, is_ascii
 
 
 SETUP_ATTRS = {
@@ -149,7 +149,7 @@ class TestSdistTest:
         assert 'setup.py' not in manifest, manifest
         assert 'setup.cfg' not in manifest, manifest
 
-    @fail_on_ascii
+    @pytest.mark.xfail(is_ascii, reason="Test fails in this locale")
     def test_manifest_is_written_with_utf8_encoding(self):
         # Test for #303.
         dist = Distribution(SETUP_ATTRS)
