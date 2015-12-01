@@ -7,8 +7,8 @@ python:
   - 3.5
   - pypy
 env:
- - LC_ALL=C
  - ""
+ - LC_ALL=C
 script:
  # avoid VersionConflict when newer version is required
  - pip install -U pytest
