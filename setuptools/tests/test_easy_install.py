@@ -430,8 +430,10 @@ class TestScriptHeader:
         expected = '#!"%s"\n' % self.exe_with_spaces
         assert actual == expected
 
+    c_type = os.environ.get("LC_CTYPE", os.environ.get("LC_ALL"))
+    is_ascii = c_type in ("C", "POSIX")
     @pytest.mark.xfail(
-        compat.PY3 and os.environ.get("LC_CTYPE") in ("C", "POSIX"),
+        compat.PY3 and is_ascii,
         reason="Test fails in this locale on Python 3"
     )
     @mock.patch.dict(sys.modules, java=mock.Mock(lang=mock.Mock(System=
