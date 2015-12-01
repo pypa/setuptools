@@ -7,7 +7,7 @@ python:
   - 3.5
   - pypy
 env:
- - LANG=C PYTHONHASHSEED=0
+ - LC_ALL=C PYTHONHASHSEED=0
 script:
  # update egg_info based on setup.py in checkout
  - python bootstrap.py
