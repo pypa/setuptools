@@ -3,6 +3,13 @@ CHANGES
 =======
 
 
+------
+18.7.1
+------
+
+* Issue #469: Refactored logic for Issue #419 fix to re-use metadata
+  loading from Provider.
+
 ----
 18.7
 ----

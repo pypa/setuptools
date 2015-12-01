@@ -2507,7 +2507,6 @@ class Distribution(object):
     @classmethod
     def from_location(cls, location, basename, metadata=None, **kw):
         project_name, version, py_version, platform = [None]*4
-        dist_path = os.path.join(location, basename)
         basename, ext = os.path.splitext(basename)
         if ext.lower() in _distributionImpl:
             cls = _distributionImpl[ext.lower()]
@@ -2517,16 +2516,13 @@ class Distribution(object):
                 project_name, version, py_version, platform = match.group(
                     'name', 'ver', 'pyver', 'plat'
                 )
-
-            version = cls._version_from_metadata(dist_path) or version
         return cls(
             location, metadata, project_name=project_name, version=version,
             py_version=py_version, platform=platform, **kw
-        )
+        )._reload_version()
 
-    @staticmethod
-    def _version_from_metadata(dist_path):
-        pass
+    def _reload_version(self):
+        return self
 
     @property
     def hashcmp(self):
@@ -2824,8 +2820,7 @@ class Distribution(object):
 
 class EggInfoDistribution(Distribution):
 
-    @staticmethod
-    def _version_from_metadata(dist_path):
+    def _reload_version(self):
         """
         Packages installed by distutils (e.g. numpy or scipy),
         which uses an old safe_version, and so
@@ -2837,13 +2832,9 @@ class EggInfoDistribution(Distribution):
         take an extra step and try to get the version number from
         the metadata file itself instead of the filename.
         """
-        if not os.path.isfile(dist_path):
-            return
-        try:
-            with open(dist_path) as strm:
-                return _version_from_file(strm)
-        except IOError:
-            pass
+        md_version = _version_from_file(self._get_metadata(self.PKG_INFO))
+        self._version = md_version or self._version
+        return self
 
 
 class DistInfoDistribution(Distribution):
