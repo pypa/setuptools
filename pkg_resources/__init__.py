@@ -2833,7 +2833,8 @@ class EggInfoDistribution(Distribution):
         the metadata file itself instead of the filename.
         """
         md_version = _version_from_file(self._get_metadata(self.PKG_INFO))
-        self._version = md_version or self._version
+        if md_version:
+            self._version = md_version
         return self
 
 
