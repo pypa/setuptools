@@ -35,7 +35,7 @@ import setuptools.tests.server
 import pkg_resources
 
 from .py26compat import tarfile_open
-from . import contexts
+from . import contexts, is_ascii
 from .textwrap import DALS
 
 
@@ -430,8 +430,6 @@ class TestScriptHeader:
         expected = '#!"%s"\n' % self.exe_with_spaces
         assert actual == expected
 
-    c_type = os.environ.get("LC_CTYPE", os.environ.get("LC_ALL"))
-    is_ascii = c_type in ("C", "POSIX")
     @pytest.mark.xfail(
         compat.PY3 and is_ascii,
         reason="Test fails in this locale on Python 3"

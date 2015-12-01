@@ -16,6 +16,8 @@ from setuptools.compat import StringIO, unicode, PY3, PY2
 from setuptools.command.sdist import sdist
 from setuptools.command.egg_info import manifest_maker
 from setuptools.dist import Distribution
+from setuptools.tests import fail_on_ascii
+
 
 SETUP_ATTRS = {
     'name': 'sdist_test',
@@ -147,6 +149,7 @@ class TestSdistTest:
         assert 'setup.py' not in manifest, manifest
         assert 'setup.cfg' not in manifest, manifest
 
+    @fail_on_ascii
     def test_manifest_is_written_with_utf8_encoding(self):
         # Test for #303.
         dist = Distribution(SETUP_ATTRS)
@@ -256,6 +259,7 @@ class TestSdistTest:
             # The filelist should have been updated as well
             assert u_filename not in mm.filelist.files
 
+    @fail_on_ascii
     def test_manifest_is_read_with_utf8_encoding(self):
         # Test for #303.
         dist = Distribution(SETUP_ATTRS)
@@ -320,9 +324,7 @@ class TestSdistTest:
             filename = filename.decode('latin-1')
             assert filename not in cmd.filelist.files
 
-    @pytest.mark.skipif(PY3 and locale.getpreferredencoding() != 'UTF-8',
-        reason='Unittest fails if locale is not utf-8 but the manifests is '
-            'recorded correctly')
+    @fail_on_ascii
     def test_sdist_with_utf8_encoded_filename(self):
         # Test for #303.
         dist = Distribution(SETUP_ATTRS)
