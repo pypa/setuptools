@@ -20,6 +20,7 @@ c_type = os.environ.get("LC_CTYPE", os.environ.get("LC_ALL"))
 is_ascii = c_type in ("C", "POSIX")
 fail_on_ascii = pytest.mark.xfail(is_ascii, reason="Test fails in this locale")
 
+
 def makeSetup(**args):
     """Return distribution from 'setup(**args)', without executing commands"""
 
