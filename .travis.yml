@@ -11,4 +11,5 @@ script:
  - python bootstrap.py
 
  - python setup.py test --addopts='-rs'
+ - LANG=C python setup.py test
  - python ez_setup.py --version 12.2
