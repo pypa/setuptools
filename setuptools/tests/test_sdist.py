@@ -152,6 +152,7 @@ class TestSdistTest:
     @pytest.mark.xfail(is_ascii, reason="Test fails in this locale")
     def test_manifest_is_written_with_utf8_encoding(self):
         # Test for #303.
+        assert not is_ascii
         dist = Distribution(SETUP_ATTRS)
         dist.script_name = 'setup.py'
         mm = manifest_maker(dist)
