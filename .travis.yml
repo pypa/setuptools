@@ -13,6 +13,9 @@ script:
  # avoid VersionConflict when newer version is required
  - pip install -U pytest
 
+ # Output the env, because the travis docs just can't be trusted
+ - env
+
  # update egg_info based on setup.py in checkout
  - python bootstrap.py
 
