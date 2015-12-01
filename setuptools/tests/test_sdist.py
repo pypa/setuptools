@@ -187,6 +187,7 @@ class TestSdistTest:
         assert posix(filename) in u_contents
 
     @py3_only
+    @fail_on_ascii
     def test_write_manifest_allows_utf8_filenames(self):
         # Test for #303.
         dist = Distribution(SETUP_ATTRS)
