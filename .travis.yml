@@ -13,4 +13,4 @@ script:
  - python bootstrap.py
 
  - python setup.py test --addopts='-rs'
- - python ez_setup.py --version 12.2
+ - python ez_setup.py --version 18.6.1
