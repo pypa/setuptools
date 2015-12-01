@@ -10,6 +10,5 @@ script:
  # update egg_info based on setup.py in checkout
  - python bootstrap.py
 
- - python setup.py test --addopts='-rs'
- - LANG=C python setup.py test
+ - LANG=C python setup.py test --addopts='-rs'
  - python ez_setup.py --version 12.2
