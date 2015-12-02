@@ -772,8 +772,8 @@ class easy_install(Command):
         is_script = is_python_script(script_text, script_name)
 
         if is_script:
-            script_text = (ScriptWriter.get_header(script_text) +
-                           self._load_template(dev_path) % locals())
+            body = self._load_template(dev_path) % locals()
+            script_text = ScriptWriter.get_header(script_text) + body
         self.write_script(script_name, _to_ascii(script_text), 'b')
 
     @staticmethod
