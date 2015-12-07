@@ -440,6 +440,14 @@ class Distribution(_Distribution):
                 self.cmdclass[ep.name] = cmdclass
         return _Distribution.print_commands(self)
 
+    def get_command_list(self):
+        for ep in pkg_resources.iter_entry_points('distutils.commands'):
+            if ep.name not in self.cmdclass:
+                # don't require extras as the commands won't be invoked
+                cmdclass = ep.resolve()
+                self.cmdclass[ep.name] = cmdclass
+        return _Distribution.get_command_list(self)
+
     def _set_feature(self,name,status):
         """Set feature's inclusion status"""
         setattr(self,self._feature_attrname(name),status)
