@@ -160,7 +160,7 @@ def check_packages(dist, attr, value):
     for pkgname in value:
         if not re.match(r'\w+(\.\w+)*', pkgname):
             distutils.log.warn(
-                "WARNING: %r not a valid package name; please use only"
+                "WARNING: %r not a valid package name; please use only "
                 ".-separated package names in setup.py", pkgname
             )
 
@@ -818,7 +818,7 @@ class Feature:
 
         if not self.available:
             raise DistutilsPlatformError(
-                self.description+" is required,"
+                self.description+" is required, "
                 "but is not available on this platform"
             )
 
