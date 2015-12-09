@@ -159,7 +159,8 @@ class build_py(orig.build_py, Mixin2to3):
         else:
             return init_py
 
-        f = io.open(init_py, 'rb')
+        with io.open(init_py, 'rb') as f:
+            contents = f.read()
         if 'declare_namespace'.encode() not in f.read():
             from distutils.errors import DistutilsError
 
@@ -169,7 +170,6 @@ class build_py(orig.build_py, Mixin2to3):
                 'fix it.\n(See the setuptools manual under '
                 '"Namespace Packages" for details.)\n"' % (package,)
             )
-        f.close()
         return init_py
 
     def initialize_options(self):
