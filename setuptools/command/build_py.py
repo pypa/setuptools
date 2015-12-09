@@ -2,7 +2,6 @@ from glob import glob
 from distutils.util import convert_path
 import distutils.command.build_py as orig
 import os
-import sys
 import fnmatch
 import textwrap
 import io
