@@ -11,6 +11,8 @@ CHANGES
   package_index.
 * Issue #419: Avoid errors in FileMetadata when the metadata directory
   is broken.
+* Issue #472: Remove deprecated use of 'U' in mode parameter
+  when opening files.
 
 ------
 18.7.1
