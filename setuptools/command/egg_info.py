@@ -13,11 +13,6 @@ import sys
 import io
 import warnings
 
-try:
-    from setuptools_svn import svn_utils
-except ImportError:
-    pass
-
 from setuptools import Command
 from setuptools.command.sdist import sdist
 from setuptools.compat import basestring, PY3, StringIO
@@ -28,6 +23,12 @@ from pkg_resources import (
 import setuptools.unicode_utils as unicode_utils
 
 from pkg_resources import packaging
+
+try:
+    from setuptools_svn import svn_utils
+except ImportError:
+    pass
+
 
 class egg_info(Command):
     description = "create a distribution's .egg-info directory"
