@@ -472,9 +472,9 @@ def get_pkg_info_revision():
     # a subversion revision
     #
     if os.path.exists('PKG-INFO'):
-      with io.open('PKG-INFO') as f:
-        for line in f:
-            match = re.match(r"Version:.*-r(\d+)\s*$", line)
-            if match:
-                return int(match.group(1))
+        with io.open('PKG-INFO') as f:
+            for line in f:
+                match = re.match(r"Version:.*-r(\d+)\s*$", line)
+                if match:
+                    return int(match.group(1))
     return 0
