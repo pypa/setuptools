@@ -2017,7 +2017,7 @@ class FileMetadata(EmptyProvider):
         self.path = path
 
     def has_metadata(self, name):
-        return name=='PKG-INFO'
+        return name=='PKG-INFO' and os.path.isfile(self.path)
 
     def get_metadata(self, name):
         if name=='PKG-INFO':
