@@ -7,6 +7,8 @@ import fnmatch
 import textwrap
 import io
 import distutils.errors
+import collections
+import itertools
 
 
 try:
@@ -195,14 +197,13 @@ class build_py(orig.build_py, Mixin2to3):
                 os.path.join(src_dir, convert_path(pattern)),
             )
         )
-        seen = {}
+        seen = collections.defaultdict(itertools.count)
         return [
             fn
             for fn in files
             if fn not in bad
             # ditch dupes
-            and fn not in seen
-            and seen.setdefault(fn, 1)
+            and not next(seen[fn])
         ]
 
 
