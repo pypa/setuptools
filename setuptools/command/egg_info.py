@@ -11,6 +11,7 @@ import os
 import re
 import sys
 import io
+import warnings
 
 try:
     from setuptools_svn import svn_utils
@@ -472,6 +473,7 @@ def get_pkg_info_revision():
     Get a -r### off of PKG-INFO Version in case this is an sdist of
     a subversion revision.
     """
+    warnings.warn("get_pkg_info_revision is deprecated.", DeprecationWarning)
     if os.path.exists('PKG-INFO'):
         with io.open('PKG-INFO') as f:
             for line in f:
