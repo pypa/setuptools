@@ -10,6 +10,7 @@ import distutils.filelist
 import os
 import re
 import sys
+import io
 
 try:
     from setuptools_svn import svn_utils
@@ -471,10 +472,9 @@ def get_pkg_info_revision():
     # a subversion revision
     #
     if os.path.exists('PKG-INFO'):
-        f = open('PKG-INFO', 'rU')
+      with io.open('PKG-INFO') as f:
         for line in f:
             match = re.match(r"Version:.*-r(\d+)\s*$", line)
             if match:
                 return int(match.group(1))
-        f.close()
     return 0

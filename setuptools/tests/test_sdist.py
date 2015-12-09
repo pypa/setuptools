@@ -7,6 +7,7 @@ import sys
 import tempfile
 import unicodedata
 import contextlib
+import io
 
 import pytest
 
@@ -79,6 +80,11 @@ def decompose(path):
     except UnicodeError:
         pass  # Not UTF-8
     return path
+
+
+def read_all_bytes(filename):
+    with io.open(filename, 'rb') as fp:
+        return fp.read()
 
 
 class TestSdistTest:
@@ -172,9 +178,7 @@ class TestSdistTest:
             mm.filelist.append(filename)
             mm.write_manifest()
 
-        manifest = open(mm.manifest, 'rbU')
-        contents = manifest.read()
-        manifest.close()
+        contents = read_all_bytes(mm.manifest)
 
         # The manifest should be UTF-8 encoded
         u_contents = contents.decode('UTF-8')
@@ -210,9 +214,7 @@ class TestSdistTest:
             # Re-write manifest
             mm.write_manifest()
 
-        manifest = open(mm.manifest, 'rbU')
-        contents = manifest.read()
-        manifest.close()
+        contents = read_all_bytes(mm.manifest)
 
         # The manifest should be UTF-8 encoded
         contents.decode('UTF-8')
@@ -248,9 +250,7 @@ class TestSdistTest:
             # Re-write manifest
             mm.write_manifest()
 
-        manifest = open(mm.manifest, 'rbU')
-        contents = manifest.read()
-        manifest.close()
+        contents = read_all_bytes(mm.manifest)
 
         # The manifest should be UTF-8 encoded
         contents.decode('UTF-8')

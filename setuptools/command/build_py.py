@@ -163,7 +163,7 @@ class build_py(orig.build_py, Mixin2to3):
 
         with io.open(init_py, 'rb') as f:
             contents = f.read()
-        if b'declare_namespace' not in f.read():
+        if b'declare_namespace' not in contents:
             raise distutils.errors.DistutilsError(
                 "Namespace package problem: %s is a namespace package, but "
                 "its\n__init__.py does not call declare_namespace()! Please "
