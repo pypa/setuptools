@@ -1037,7 +1037,7 @@ def local_open(url):
                 break
             elif os.path.isdir(os.path.join(filename,f)):
                 f+='/'
-            files.append("<a href=%r>%s</a>" % (f,f))
+            files.append('<a href="{name}">{name}</a>'.format(name=f))
         else:
             body = ("<html><head><title>%s</title>" % url) + \
                 "</head><body>%s</body></html>" % '\n'.join(files)
