@@ -4,6 +4,13 @@ CHANGES
 
 
 ------
+18.7.2
+------
+
+* Issue #471: Don't rely on repr for an HTML attribute value in
+  package_index.
+
+------
 18.7.1
 ------
 
