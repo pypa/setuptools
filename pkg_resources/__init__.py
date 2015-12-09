@@ -1987,11 +1987,11 @@ class FileMetadata(EmptyProvider):
         self.path = path
 
     def has_metadata(self, name):
-        return name=='PKG-INFO'
+        return name=='PKG-INFO' and os.path.isfile(self.path)
 
     def get_metadata(self, name):
         if name=='PKG-INFO':
-            with io.open(self.path, 'rU', encoding='utf-8') as f:
+            with io.open(self.path, encoding='utf-8') as f:
                 metadata = f.read()
             return metadata
         raise KeyError("No metadata except PKG-INFO is available")

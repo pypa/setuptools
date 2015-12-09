@@ -772,8 +772,8 @@ class easy_install(Command):
         is_script = is_python_script(script_text, script_name)
 
         if is_script:
-            script_text = (ScriptWriter.get_header(script_text) +
-                           self._load_template(dev_path) % locals())
+            body = self._load_template(dev_path) % locals()
+            script_text = ScriptWriter.get_header(script_text) + body
         self.write_script(script_name, _to_ascii(script_text), 'b')
 
     @staticmethod
@@ -805,9 +805,8 @@ class easy_install(Command):
             ensure_directory(target)
             if os.path.exists(target):
                 os.unlink(target)
-            f = open(target, "w" + mode)
-            f.write(contents)
-            f.close()
+            with open(target, "w" + mode) as f:
+                f.write(contents)
             chmod(target, 0o777 - mask)
 
     def install_eggs(self, spec, dist_filename, tmpdir):

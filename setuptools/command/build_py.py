@@ -2,9 +2,13 @@ from glob import glob
 from distutils.util import convert_path
 import distutils.command.build_py as orig
 import os
-import sys
 import fnmatch
 import textwrap
+import io
+import distutils.errors
+import collections
+import itertools
+
 
 try:
     from setuptools.lib2to3_ex import Mixin2to3
@@ -157,17 +161,15 @@ class build_py(orig.build_py, Mixin2to3):
         else:
             return init_py
 
-        f = open(init_py, 'rbU')
-        if 'declare_namespace'.encode() not in f.read():
-            from distutils.errors import DistutilsError
-
-            raise DistutilsError(
+        with io.open(init_py, 'rb') as f:
+            contents = f.read()
+        if b'declare_namespace' not in contents:
+            raise distutils.errors.DistutilsError(
                 "Namespace package problem: %s is a namespace package, but "
                 "its\n__init__.py does not call declare_namespace()! Please "
                 'fix it.\n(See the setuptools manual under '
                 '"Namespace Packages" for details.)\n"' % (package,)
             )
-        f.close()
         return init_py
 
     def initialize_options(self):
@@ -182,20 +184,25 @@ class build_py(orig.build_py, Mixin2to3):
 
     def exclude_data_files(self, package, src_dir, files):
         """Filter filenames for package's data files in 'src_dir'"""
-        globs = (self.exclude_package_data.get('', [])
-                 + self.exclude_package_data.get(package, []))
-        bad = []
-        for pattern in globs:
-            bad.extend(
-                fnmatch.filter(
-                    files, os.path.join(src_dir, convert_path(pattern))
-                )
+        globs = (
+            self.exclude_package_data.get('', [])
+            + self.exclude_package_data.get(package, [])
+        )
+        bad = set(
+            item
+            for pattern in globs
+            for item in fnmatch.filter(
+                files,
+                os.path.join(src_dir, convert_path(pattern)),
             )
-        bad = dict.fromkeys(bad)
-        seen = {}
+        )
+        seen = collections.defaultdict(itertools.count)
         return [
-            f for f in files if f not in bad
-            and f not in seen and seen.setdefault(f, 1)  # ditch dupes
+            fn
+            for fn in files
+            if fn not in bad
+            # ditch dupes
+            and not next(seen[fn])
         ]
 
 
