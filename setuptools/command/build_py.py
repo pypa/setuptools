@@ -5,6 +5,8 @@ import os
 import sys
 import fnmatch
 import textwrap
+import io
+
 
 try:
     from setuptools.lib2to3_ex import Mixin2to3
@@ -157,7 +159,7 @@ class build_py(orig.build_py, Mixin2to3):
         else:
             return init_py
 
-        f = open(init_py, 'rbU')
+        f = io.open(init_py, 'rb')
         if 'declare_namespace'.encode() not in f.read():
             from distutils.errors import DistutilsError
 
