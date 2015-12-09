@@ -187,7 +187,7 @@ class build_py(orig.build_py, Mixin2to3):
             self.exclude_package_data.get('', [])
             + self.exclude_package_data.get(package, [])
         )
-        bad = dict.fromkeys(
+        bad = set(
             item
             for pattern in globs
             for item in fnmatch.filter(
