@@ -468,9 +468,10 @@ def write_entries(cmd, basename, filename):
 
 
 def get_pkg_info_revision():
-    # See if we can get a -r### off of PKG-INFO, in case this is an sdist of
-    # a subversion revision
-    #
+    """
+    Get a -r### off of PKG-INFO Version in case this is an sdist of
+    a subversion revision.
+    """
     if os.path.exists('PKG-INFO'):
         with io.open('PKG-INFO') as f:
             for line in f:
