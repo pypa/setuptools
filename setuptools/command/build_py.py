@@ -197,8 +197,12 @@ class build_py(orig.build_py, Mixin2to3):
         )
         seen = {}
         return [
-            f for f in files if f not in bad
-            and f not in seen and seen.setdefault(f, 1)  # ditch dupes
+            fn
+            for fn in files
+            if fn not in bad
+            # ditch dupes
+            and fn not in seen
+            and seen.setdefault(fn, 1)
         ]
 
 
