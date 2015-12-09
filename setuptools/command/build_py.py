@@ -183,8 +183,10 @@ class build_py(orig.build_py, Mixin2to3):
 
     def exclude_data_files(self, package, src_dir, files):
         """Filter filenames for package's data files in 'src_dir'"""
-        globs = (self.exclude_package_data.get('', [])
-                 + self.exclude_package_data.get(package, []))
+        globs = (
+            self.exclude_package_data.get('', [])
+            + self.exclude_package_data.get(package, [])
+        )
         bad = []
         for pattern in globs:
             bad.extend(
