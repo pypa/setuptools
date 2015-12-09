@@ -1040,8 +1040,9 @@ def local_open(url):
                 f += '/'
             files.append('<a href="{name}">{name}</a>'.format(name=f))
         else:
-            body = ("<html><head><title>%s</title>" % url) + \
-                "</head><body>%s</body></html>" % '\n'.join(files)
+            tmpl = ("<html><head><title>{url}</title>"
+                "</head><body>{files}</body></html>")
+            body = tmpl.format(url=url, files='\n'.join(files))
         status, message = 200, "OK"
     else:
         status, message, body = 404, "Path not found", "Not found"
