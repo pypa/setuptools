@@ -1031,12 +1031,12 @@ def local_open(url):
     elif path.endswith('/') and os.path.isdir(filename):
         files = []
         for f in os.listdir(filename):
-            if f=='index.html':
-                with open(os.path.join(filename,f),'r') as fp:
+            if f == 'index.html':
+                with open(os.path.join(filename, f), 'r') as fp:
                     body = fp.read()
                 break
-            elif os.path.isdir(os.path.join(filename,f)):
-                f+='/'
+            elif os.path.isdir(os.path.join(filename, f)):
+                f += '/'
             files.append('<a href="{name}">{name}</a>'.format(name=f))
         else:
             body = ("<html><head><title>%s</title>" % url) + \
