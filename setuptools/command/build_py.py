@@ -187,14 +187,14 @@ class build_py(orig.build_py, Mixin2to3):
             self.exclude_package_data.get('', [])
             + self.exclude_package_data.get(package, [])
         )
-        bad = []
-        for pattern in globs:
-            bad.extend(
-                fnmatch.filter(
-                    files, os.path.join(src_dir, convert_path(pattern))
-                )
+        bad = dict.fromkeys(
+            item
+            for pattern in globs
+            for item in fnmatch.filter(
+                files,
+                os.path.join(src_dir, convert_path(pattern)),
             )
-        bad = dict.fromkeys(bad)
+        )
         seen = {}
         return [
             f for f in files if f not in bad
