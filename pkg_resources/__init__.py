@@ -90,6 +90,8 @@ except ImportError:
 try:
     import pkg_resources._vendor.packaging.version
     import pkg_resources._vendor.packaging.specifiers
+    import pkg_resources._vendor.packaging.requirements
+    import pkg_resources._vendor.packaging.markers
     packaging = pkg_resources._vendor.packaging
 except ImportError:
     # fallback to naturally-installed version; allows system packagers to
@@ -1420,13 +1422,15 @@ class MarkerEvaluation(object):
     @classmethod
     def is_invalid_marker(cls, text):
         """
-        Validate text as a PEP 426 environment marker; return an exception
+        Validate text as a PEP 508 environment marker; return an exception
         if invalid or False otherwise.
         """
         try:
             cls.evaluate_marker(text)
-        except SyntaxError as e:
-            return cls.normalize_exception(e)
+        except packaging.markers.InvalidMarker as e:
+            e.filename = None
+            e.lineno = None
+            return e
         return False
 
     @staticmethod
@@ -1518,48 +1522,14 @@ class MarkerEvaluation(object):
     @classmethod
     def evaluate_marker(cls, text, extra=None):
         """
-        Evaluate a PEP 426 environment marker on CPython 2.4+.
+        Evaluate a PEP 508 environment marker on CPython 2.4+.
         Return a boolean indicating the marker result in this environment.
-        Raise SyntaxError if marker is invalid.
+        Raise InvalidMarker if marker is invalid.
 
-        This implementation uses the 'parser' module, which is not implemented
-        on
-        Jython and has been superseded by the 'ast' module in Python 2.6 and
-        later.
+        This implementation uses the 'pyparsing' module.
         """
-        return cls.interpret(parser.expr(text).totuple(1)[1])
-
-    @staticmethod
-    def _translate_metadata2(env):
-        """
-        Markerlib implements Metadata 1.2 (PEP 345) environment markers.
-        Translate the variables to Metadata 2.0 (PEP 426).
-        """
-        return dict(
-            (key.replace('.', '_'), value)
-            for key, value in env
-        )
-
-    @classmethod
-    def _markerlib_evaluate(cls, text):
-        """
-        Evaluate a PEP 426 environment marker using markerlib.
-        Return a boolean indicating the marker result in this environment.
-        Raise SyntaxError if marker is invalid.
-        """
-        import _markerlib
-
-        env = cls._translate_metadata2(_markerlib.default_environment())
-        try:
-            result = _markerlib.interpret(text, env)
-        except NameError as e:
-            raise SyntaxError(e.args[0])
-        return result
-
-    if 'parser' not in globals():
-        # Fall back to less-complete _markerlib implementation if 'parser' module
-        # is not available.
-        evaluate_marker = _markerlib_evaluate
+        marker = packaging.markers.Marker(text)
+        return marker.evaluate()
 
     @classmethod
     def interpret(cls, nodelist):
@@ -2314,18 +2284,6 @@ def yield_lines(strs):
             for s in yield_lines(ss):
                 yield s
 
-# whitespace and comment
-LINE_END = re.compile(r"\s*(#.*)?$").match
-# line continuation
-CONTINUE = re.compile(r"\s*\\\s*(#.*)?$").match
-# Distribution or extra
-DISTRO = re.compile(r"\s*((\w|[-.])+)").match
-# ver. info
-VERSION = re.compile(r"\s*(<=?|>=?|===?|!=|~=)\s*((\w|[-.*_!+])+)").match
-# comma between items
-COMMA = re.compile(r"\s*,").match
-OBRACKET = re.compile(r"\s*\[").match
-CBRACKET = re.compile(r"\s*\]").match
 MODULE = re.compile(r"\w+(\.\w+)*$").match
 EGG_NAME = re.compile(
     r"""
@@ -2861,34 +2819,22 @@ class DistInfoDistribution(Distribution):
             self.__dep_map = self._compute_dependencies()
             return self.__dep_map
 
-    def _preparse_requirement(self, requires_dist):
-        """Convert 'Foobar (1); baz' to ('Foobar ==1', 'baz')
-        Split environment marker, add == prefix to version specifiers as
-        necessary, and remove parenthesis.
-        """
-        parts = requires_dist.split(';', 1) + ['']
-        distvers = parts[0].strip()
-        mark = parts[1].strip()
-        distvers = re.sub(self.EQEQ, r"\1==\2\3", distvers)
-        distvers = distvers.replace('(', '').replace(')', '')
-        return (distvers, mark)
-
     def _compute_dependencies(self):
         """Recompute this distribution's dependencies."""
-        from _markerlib import compile as compile_marker
         dm = self.__dep_map = {None: []}
 
         reqs = []
         # Including any condition expressions
         for req in self._parsed_pkg_info.get_all('Requires-Dist') or []:
-            distvers, mark = self._preparse_requirement(req)
-            parsed = next(parse_requirements(distvers))
-            parsed.marker_fn = compile_marker(mark)
+            current_req = packaging.requirements.Requirement(req)
+            specs = _parse_requirement_specs(current_req)
+            parsed = Requirement(current_req.name, specs, current_req.extras)
+            parsed._marker = current_req.marker
             reqs.append(parsed)
 
         def reqs_for_extra(extra):
             for req in reqs:
-                if req.marker_fn(override={'extra':extra}):
+                if not req._marker or req._marker.evaluate({'extra': extra}):
                     yield req
 
         common = frozenset(reqs_for_extra(None))
@@ -2926,6 +2872,13 @@ class RequirementParseError(ValueError):
         return ' '.join(self.args)
 
 
+def _parse_requirement_specs(req):
+    if req.specifier:
+        return [(spec.operator, spec.version) for spec in req.specifier]
+    else:
+        return []
+
+
 def parse_requirements(strs):
     """Yield ``Requirement`` objects for each specification in `strs`
 
@@ -2934,60 +2887,17 @@ def parse_requirements(strs):
     # create a steppable iterator, so we can handle \-continuations
     lines = iter(yield_lines(strs))
 
-    def scan_list(ITEM, TERMINATOR, line, p, groups, item_name):
-
-        items = []
-
-        while not TERMINATOR(line, p):
-            if CONTINUE(line, p):
-                try:
-                    line = next(lines)
-                    p = 0
-                except StopIteration:
-                    msg = "\\ must not appear on the last nonblank line"
-                    raise RequirementParseError(msg)
-
-            match = ITEM(line, p)
-            if not match:
-                msg = "Expected " + item_name + " in"
-                raise RequirementParseError(msg, line, "at", line[p:])
-
-            items.append(match.group(*groups))
-            p = match.end()
-
-            match = COMMA(line, p)
-            if match:
-                # skip the comma
-                p = match.end()
-            elif not TERMINATOR(line, p):
-                msg = "Expected ',' or end-of-list in"
-                raise RequirementParseError(msg, line, "at", line[p:])
-
-        match = TERMINATOR(line, p)
-        # skip the terminator, if any
-        if match:
-            p = match.end()
-        return line, p, items
-
     for line in lines:
-        match = DISTRO(line)
-        if not match:
-            raise RequirementParseError("Missing distribution spec", line)
-        project_name = match.group(1)
-        p = match.end()
-        extras = []
-
-        match = OBRACKET(line, p)
-        if match:
-            p = match.end()
-            line, p, extras = scan_list(
-                DISTRO, CBRACKET, line, p, (1,), "'extra' name"
-            )
-
-        line, p, specs = scan_list(VERSION, LINE_END, line, p, (1, 2),
-            "version spec")
-        specs = [(op, val) for op, val in specs]
-        yield Requirement(project_name, specs, extras)
+        # Drop comments -- a hash without a space may be in a URL.
+        if ' #' in line:
+            line = line[:line.find(' #')]
+        # If there is a line continuation, drop it, and append the next line.
+        if line.endswith('\\'):
+            line = line[:-2].strip()
+            line += next(lines)
+        req = packaging.requirements.Requirement(line)
+        specs = _parse_requirement_specs(req)
+        yield Requirement(req.name, specs, req.extras)
 
 
 class Requirement:

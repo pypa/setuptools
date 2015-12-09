@@ -338,82 +338,52 @@ Environment Markers
     >>> import os
 
     >>> print(im("sys_platform"))
-    Comparison or logical expression expected
+    Invalid marker: 'sys_platform'
 
     >>> print(im("sys_platform=="))
-    invalid syntax
+    Invalid marker: 'sys_platform=='
 
     >>> print(im("sys_platform=='win32'"))
     False
 
     >>> print(im("sys=='x'"))
-    Unknown name 'sys'
+    Invalid marker: "sys=='x'"
 
     >>> print(im("(extra)"))
-    Comparison or logical expression expected
+    Invalid marker: '(extra)'
 
     >>> print(im("(extra"))
-    invalid syntax
+    Invalid marker: '(extra'
 
     >>> print(im("os.open('foo')=='y'"))
-    Language feature not supported in environment markers
+    Invalid marker: "os.open('foo')=='y'"
 
     >>> print(im("'x'=='y' and os.open('foo')=='y'"))   # no short-circuit!
-    Language feature not supported in environment markers
+    Invalid marker: "'x'=='y' and os.open('foo')=='y'"
 
     >>> print(im("'x'=='x' or os.open('foo')=='y'"))   # no short-circuit!
-    Language feature not supported in environment markers
+    Invalid marker: "'x'=='x' or os.open('foo')=='y'"
 
     >>> print(im("'x' < 'y' < 'z'"))
-    Chained comparison not allowed in environment markers
+    Invalid marker: "'x' < 'y' < 'z'"
 
     >>> print(im("r'x'=='x'"))
-    Only plain strings allowed in environment markers
+    Invalid marker: "r'x'=='x'"
 
     >>> print(im("'''x'''=='x'"))
-    Only plain strings allowed in environment markers
+    Invalid marker: "'''x'''=='x'"
 
     >>> print(im('"""x"""=="x"'))
-    Only plain strings allowed in environment markers
+    Invalid marker: '"""x"""=="x"'
 
-    >>> print(im(r"'x\n'=='x'"))
-    Only plain strings allowed in environment markers
+    >>> print(im(r"x\n=='x'"))
+    Invalid marker: "x\\n=='x'"
 
     >>> print(im("os.open=='y'"))
-    Language feature not supported in environment markers
+    Invalid marker: "os.open=='y'"
 
-    >>> em('"x"=="x"')
+    >>> em("'linux' in sys_platform")
     True
-
-    >>> em('"x"=="y"')
-    False
-
-    >>> em('"x"=="y" and "x"=="x"')
-    False
-
-    >>> em('"x"=="y" or "x"=="x"')
-    True
-
-    >>> em('"x"=="y" and "x"=="q" or "z"=="z"')
-    True
-
-    >>> em('"x"=="y" and ("x"=="q" or "z"=="z")')
-    False
-
-    >>> em('"x"=="y" and "z"=="z" or "x"=="q"')
-    False
-
-    >>> em('"x"=="x" and "z"=="z" or "x"=="q"')
-    True
-
-    >>> em("sys_platform=='win32'") == (sys.platform=='win32')
-    True
-
-    >>> em("'x' in 'yx'")
-    True
-
-    >>> em("'yx' in 'x'")
-    False
 
     >>> em("python_version >= '2.6'")
     True
@@ -421,5 +391,5 @@ Environment Markers
     >>> em("python_version > '2.5'")
     True
 
-    >>> im("platform_python_implementation=='CPython'")
+    >>> im("implementation_name=='CPython'")
     False
