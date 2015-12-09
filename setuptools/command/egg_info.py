@@ -12,11 +12,15 @@ import re
 import sys
 import io
 import warnings
+import time
+
+from setuptools.compat import basestring, PY3, StringIO
 
 from setuptools import Command
 from setuptools.command.sdist import sdist
-from setuptools.compat import basestring, PY3, StringIO
 from setuptools.command.sdist import walk_revctrl
+from setuptools.command.setopt import edit_config
+from setuptools.command import bdist_egg
 from pkg_resources import (
     parse_requirements, safe_name, parse_version,
     safe_version, yield_lines, EntryPoint, iter_entry_points, to_filename)
@@ -61,8 +65,6 @@ class egg_info(Command):
         self.vtags = None
 
     def save_version_info(self, filename):
-        from setuptools.command.setopt import edit_config
-
         values = dict(
             egg_info=dict(
                 tag_svn_revision=0,
@@ -189,8 +191,6 @@ class egg_info(Command):
         if self.tag_svn_revision:
             version += '-r%s' % self.get_svn_revision()
         if self.tag_date:
-            import time
-
             version += time.strftime("-%Y%m%d")
         return version
 
@@ -391,7 +391,6 @@ def write_pkg_info(cmd, basename, filename):
             metadata.name, metadata.version = oldname, oldver
 
         safe = getattr(cmd.distribution, 'zip_safe', None)
-        from setuptools.command import bdist_egg
 
         bdist_egg.write_safety_flag(cmd.egg_info, safe)
 
