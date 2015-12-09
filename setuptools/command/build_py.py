@@ -161,7 +161,7 @@ class build_py(orig.build_py, Mixin2to3):
 
         with io.open(init_py, 'rb') as f:
             contents = f.read()
-        if 'declare_namespace'.encode() not in f.read():
+        if b'declare_namespace' not in f.read():
             from distutils.errors import DistutilsError
 
             raise DistutilsError(
