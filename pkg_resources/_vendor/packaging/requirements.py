@@ -48,11 +48,13 @@ VERSION_PEP440 = Regex(Specifier._regex_str, re.VERBOSE | re.IGNORECASE)
 VERSION_LEGACY = Regex(LegacySpecifier._regex_str, re.VERBOSE | re.IGNORECASE)
 
 VERSION_ONE = VERSION_PEP440 | VERSION_LEGACY
-VERSION_MANY = VERSION_ONE + ZeroOrMore(COMMA + VERSION_ONE)
-VERSION_MANY.setParseAction(
-    lambda s, l, t: SpecifierSet(','.join(t.asList()))
-)
-VERSION_SPEC = ((LPAREN + VERSION_MANY + RPAREN) | VERSION_MANY)("specifier")
+VERSION_MANY = Combine(VERSION_ONE + ZeroOrMore(COMMA + VERSION_ONE),
+                       joinString=",")("_raw_spec")
+_VERSION_SPEC = Optional(((LPAREN + VERSION_MANY + RPAREN) | VERSION_MANY))
+_VERSION_SPEC.setParseAction(lambda s, l, t: t._raw_spec or '')
+
+VERSION_SPEC = originalTextFor(_VERSION_SPEC)("specifier")
+VERSION_SPEC.setParseAction(lambda s, l, t: t[1])
 
 MARKER_EXPR = originalTextFor(MARKER_EXPR())("marker")
 MARKER_EXPR.setParseAction(
@@ -61,7 +63,7 @@ MARKER_EXPR.setParseAction(
 MARKER_SEPERATOR = SEMICOLON
 MARKER = MARKER_SEPERATOR + MARKER_EXPR
 
-VERSION_AND_MARKER = Optional(VERSION_SPEC) + Optional(MARKER)
+VERSION_AND_MARKER = VERSION_SPEC + Optional(MARKER)
 URL_AND_MARKER = URL + Optional(MARKER)
 
 NAMED_REQUIREMENT = \
@@ -94,7 +96,7 @@ class Requirement(object):
         else:
             self.url = None
         self.extras = req.extras.asList() if req.extras else []
-        self.specifier = req.specifier if req.specifier else None
+        self.specifier = SpecifierSet(req.specifier)
         self.marker = req.marker if req.marker else None
 
     def __str__(self):

@@ -2873,10 +2873,7 @@ class RequirementParseError(ValueError):
 
 
 def _parse_requirement_specs(req):
-    if req.specifier:
-        return [(spec.operator, spec.version) for spec in req.specifier]
-    else:
-        return []
+    return [(spec.operator, spec.version) for spec in req.specifier]
 
 
 def parse_requirements(strs):
