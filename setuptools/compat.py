@@ -29,6 +29,8 @@ if PY2:
     from urllib2 import urlopen, HTTPError, URLError, unquote, splituser
     from urlparse import urlparse, urlunparse, urljoin, urlsplit, urlunsplit
     filterfalse = itertools.ifilterfalse
+    filter = itertools.ifilter
+    map = itertools.imap
 
     exec("""def reraise(tp, value, tb=None):
     raise tp, value, tb""")
@@ -59,6 +61,8 @@ if PY3:
         urlunsplit, splittag,
     )
     filterfalse = itertools.filterfalse
+    filter = filter
+    map = map
 
     def reraise(tp, value, tb=None):
         if value.__traceback__ is not tb:
