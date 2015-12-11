@@ -125,9 +125,8 @@ class develop(easy_install):
         # create an .egg-link in the installation dir, pointing to our egg
         log.info("Creating %s (link to %s)", self.egg_link, self.egg_base)
         if not self.dry_run:
-            f = open(self.egg_link, "w")
-            f.write(self.egg_path + "\n" + self.setup_path)
-            f.close()
+            with open(self.egg_link, "w") as f:
+                f.write(self.egg_path + "\n" + self.setup_path)
         # postprocess the installed distro, fixing up .pth, installing scripts,
         # and handling requirements
         self.process_distribution(None, self.dist, not self.no_deps)
