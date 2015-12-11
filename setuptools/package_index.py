@@ -359,8 +359,9 @@ class PackageIndex(Environment):
                         self.scan_egg_link(item, entry)
 
     def scan_egg_link(self, path, entry):
-        lines = [_f for _f in map(str.strip,
-                                  open(os.path.join(path, entry))) if _f]
+        with open(os.path.join(path, entry)) as raw_lines:
+            # filter non-empty lines
+            lines = list(filter(None, map(str.strip, raw_lines)))
         if len(lines)==2:
             for dist in find_distributions(os.path.join(path, lines[0])):
                 dist.location = os.path.join(path, *lines)
