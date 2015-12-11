@@ -6,6 +6,7 @@ import shutil
 import socket
 import base64
 import hashlib
+import itertools
 from functools import wraps
 
 from pkg_resources import (
@@ -353,10 +354,13 @@ class PackageIndex(Environment):
 
     def scan_egg_links(self, search_path):
         dirs = filter(os.path.isdir, search_path)
-        for item in dirs:
-                for entry in os.listdir(item):
-                    if entry.endswith('.egg-link'):
-                        self.scan_egg_link(item, entry)
+        egg_links = (
+            (path, entry)
+            for path in dirs
+            for entry in os.listdir(path)
+            if entry.endswith('.egg-link')
+        )
+        list(itertools.starmap(self.scan_egg_link, egg_links))
 
     def scan_egg_link(self, path, entry):
         with open(os.path.join(path, entry)) as raw_lines:
