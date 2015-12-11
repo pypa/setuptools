@@ -54,8 +54,8 @@ class develop(easy_install):
         # pick up setup-dir .egg files only: no .egg-info
         self.package_index.scan(glob.glob('*.egg'))
 
-        self.egg_link = os.path.join(self.install_dir, ei.egg_name +
-                                     '.egg-link')
+        egg_link_fn = ei.egg_name + '.egg-link'
+        self.egg_link = os.path.join(self.install_dir, egg_link_fn)
         self.egg_base = ei.egg_base
         if self.egg_path is None:
             self.egg_path = os.path.abspath(ei.egg_base)
