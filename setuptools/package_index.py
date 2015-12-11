@@ -17,11 +17,11 @@ from pkg_resources import (
 from setuptools import ssl_support
 from distutils import log
 from distutils.errors import DistutilsError
-from setuptools.compat import (urllib2, httplib, StringIO, HTTPError,
-                               urlparse, urlunparse, unquote, splituser,
-                               url2pathname, name2codepoint,
-                               unichr, urljoin, urlsplit, urlunsplit,
-                               ConfigParser, filter)
+from setuptools.compat import (
+    urllib2, httplib, StringIO, HTTPError, urlparse, urlunparse, unquote,
+    splituser, url2pathname, name2codepoint, unichr, urljoin, urlsplit,
+    urlunsplit, ConfigParser, filter,
+)
 from setuptools.compat import filterfalse
 from fnmatch import translate
 from setuptools.py26compat import strip_fragment
