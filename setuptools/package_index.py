@@ -352,8 +352,8 @@ class PackageIndex(Environment):
             self.warn(msg, url)
 
     def scan_egg_links(self, search_path):
-        for item in search_path:
-            if os.path.isdir(item):
+        dirs = filter(os.path.isdir, search_path)
+        for item in dirs:
                 for entry in os.listdir(item):
                     if entry.endswith('.egg-link'):
                         self.scan_egg_link(item, entry)
