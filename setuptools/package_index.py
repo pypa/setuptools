@@ -362,11 +362,15 @@ class PackageIndex(Environment):
         with open(os.path.join(path, entry)) as raw_lines:
             # filter non-empty lines
             lines = list(filter(None, map(str.strip, raw_lines)))
-        if len(lines)==2:
-            for dist in find_distributions(os.path.join(path, lines[0])):
-                dist.location = os.path.join(path, *lines)
-                dist.precedence = SOURCE_DIST
-                self.add(dist)
+
+        if len(lines) != 2:
+            # format is not recognized; punt
+            return
+
+        for dist in find_distributions(os.path.join(path, lines[0])):
+            dist.location = os.path.join(path, *lines)
+            dist.precedence = SOURCE_DIST
+            self.add(dist)
 
     def process_index(self,url,page):
         """Process the contents of a PyPI page"""
