@@ -367,7 +367,9 @@ class PackageIndex(Environment):
             # format is not recognized; punt
             return
 
-        for dist in find_distributions(os.path.join(path, lines[0])):
+        egg_path, setup_path = lines
+
+        for dist in find_distributions(os.path.join(path, egg_path)):
             dist.location = os.path.join(path, *lines)
             dist.precedence = SOURCE_DIST
             self.add(dist)
