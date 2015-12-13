@@ -100,3 +100,13 @@ class TestExceptionSaver:
             saved_exc.resume()
 
         assert str(caught.value) == "CantPickleThis('detail',)"
+
+    def test_unpickleable_exception_when_hiding_setuptools(self):
+        """
+        As revealed in #440, an infinite recursion can occur if an unpickleable
+        exception while setuptools is hidden. Ensure this doesn't happen.
+        """
+        sandbox = setuptools.sandbox
+        with sandbox.save_modules():
+            sandbox.hide_setuptools()
+            raise sandbox.SandboxViolation('test')
