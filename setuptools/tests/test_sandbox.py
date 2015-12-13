@@ -118,3 +118,24 @@ class TestExceptionSaver:
 
         msg, = caught.value.args
         assert msg == 'ExceptionUnderTest()'
+
+    def test_sandbox_violation_raised_hiding_setuptools(self, tmpdir):
+        """
+        When in a sandbox with setuptools hidden, a SandboxViolation
+        should reflect a proper exception and not be wrapped in
+        an UnpickleableException.
+        """
+        def write_file():
+            "Trigger a SandboxViolation by writing outside the sandbox"
+            with open('/etc/foo', 'w'):
+                pass
+        sandbox = DirectorySandbox(str(tmpdir))
+        with pytest.raises(setuptools.sandbox.SandboxViolation) as caught:
+            with setuptools.sandbox.save_modules():
+                setuptools.sandbox.hide_setuptools()
+                sandbox.run(write_file)
+
+        cmd, args, kwargs = caught.value.args
+        assert cmd == 'open'
+        assert args == ('/etc/foo', 'w')
+        assert kwargs == {}
