@@ -384,6 +384,7 @@ class DirectorySandbox(AbstractSandbox):
         AbstractSandbox.__init__(self)
 
     def _violation(self, operation, *args, **kw):
+        from setuptools.sandbox import SandboxViolation
         raise SandboxViolation(operation, args, kw)
 
     if _file:
