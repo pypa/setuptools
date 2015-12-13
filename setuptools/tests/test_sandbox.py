@@ -111,10 +111,10 @@ class TestExceptionSaver:
             An unpickleable exception (not in globals).
             """
 
-        with pytest.raises(setuptools.sandbox.UnpickleableException) as exc:
+        with pytest.raises(setuptools.sandbox.UnpickleableException) as caught:
             with setuptools.sandbox.save_modules():
                 setuptools.sandbox.hide_setuptools()
                 raise ExceptionUnderTest()
 
-        msg, = exc.value.args
+        msg, = caught.value.args
         assert msg == 'ExceptionUnderTest()'
