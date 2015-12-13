@@ -106,7 +106,15 @@ class TestExceptionSaver:
         As revealed in #440, an infinite recursion can occur if an unpickleable
         exception while setuptools is hidden. Ensure this doesn't happen.
         """
-        sandbox = setuptools.sandbox
-        with sandbox.save_modules():
-            sandbox.hide_setuptools()
-            raise sandbox.SandboxViolation('test')
+        class ExceptionUnderTest(Exception):
+            """
+            An unpickleable exception (not in globals).
+            """
+
+        with pytest.raises(setuptools.sandbox.UnpickleableException) as exc:
+            with setuptools.sandbox.save_modules():
+                setuptools.sandbox.hide_setuptools()
+                raise ExceptionUnderTest()
+
+        msg, = exc.value.args
+        assert msg == 'ExceptionUnderTest()'
