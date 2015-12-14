@@ -219,6 +219,6 @@ class TestPyPIConfig:
                 password=pity%
             """))
         cfg = setuptools.package_index.PyPIConfig()
-        cred = cfg.creds_by_repository['pypi']
+        cred = cfg.creds_by_repository['https://pypi.python.org']
         assert cred.username == 'jaraco'
         assert cred.password == 'pity%'
