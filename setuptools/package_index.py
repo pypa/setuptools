@@ -945,14 +945,14 @@ class Credential(object):
     def __str__(self):
         return '%(username)s:%(password)s' % vars(self)
 
-class PyPIConfig(configparser.SafeConfigParser):
+class PyPIConfig(configparser.RawConfigParser):
 
     def __init__(self):
         """
         Load from ~/.pypirc
         """
         defaults = dict.fromkeys(['username', 'password', 'repository'], '')
-        configparser.SafeConfigParser.__init__(self, defaults)
+        configparser.RawConfigParser.__init__(self, defaults)
 
         rc = os.path.join(os.path.expanduser('~'), '.pypirc')
         if os.path.exists(rc):
