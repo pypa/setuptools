@@ -1402,7 +1402,7 @@ def expand_paths(inputs):
 def extract_wininst_cfg(dist_filename):
     """Extract configuration data from a bdist_wininst .exe
 
-    Returns a ConfigParser.RawConfigParser, or None
+    Returns a configparser.RawConfigParser, or None
     """
     f = open(dist_filename, 'rb')
     try:
@@ -1415,7 +1415,7 @@ def extract_wininst_cfg(dist_filename):
             return None
         f.seek(prepended - 12)
 
-        from setuptools.compat import StringIO, ConfigParser
+        from setuptools.compat import StringIO, configparser
         import struct
 
         tag, cfglen, bmlen = struct.unpack("<iii", f.read(12))
@@ -1423,7 +1423,7 @@ def extract_wininst_cfg(dist_filename):
             return None  # not a valid tag
 
         f.seek(prepended - (12 + cfglen))
-        cfg = ConfigParser.RawConfigParser(
+        cfg = configparser.RawConfigParser(
             {'version': '', 'target_version': ''})
         try:
             part = f.read(cfglen)
@@ -1433,7 +1433,7 @@ def extract_wininst_cfg(dist_filename):
             #  be text, so decode it.
             config = config.decode(sys.getfilesystemencoding())
             cfg.readfp(StringIO(config))
-        except ConfigParser.Error:
+        except configparser.Error:
             return None
         if not cfg.has_section('metadata') or not cfg.has_section('Setup'):
             return None

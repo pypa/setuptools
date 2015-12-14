@@ -7,7 +7,7 @@ PY2 = not PY3
 if PY2:
     basestring = basestring
     import __builtin__ as builtins
-    import ConfigParser
+    import ConfigParser as configparser
     from StringIO import StringIO
     BytesIO = StringIO
     func_code = lambda o: o.func_code
@@ -38,7 +38,7 @@ if PY2:
 if PY3:
     basestring = str
     import builtins
-    import configparser as ConfigParser
+    import configparser
     from io import StringIO, BytesIO
     func_code = lambda o: o.__code__
     func_globals = lambda o: o.__globals__

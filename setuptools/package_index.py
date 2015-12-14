@@ -20,7 +20,7 @@ from distutils.errors import DistutilsError
 from setuptools.compat import (
     urllib2, httplib, StringIO, HTTPError, urlparse, urlunparse, unquote,
     splituser, url2pathname, name2codepoint, unichr, urljoin, urlsplit,
-    urlunsplit, ConfigParser, filter, map,
+    urlunsplit, configparser, filter, map,
 )
 from setuptools.compat import filterfalse
 from fnmatch import translate
@@ -945,14 +945,14 @@ class Credential(object):
     def __str__(self):
         return '%(username)s:%(password)s' % vars(self)
 
-class PyPIConfig(ConfigParser.ConfigParser):
+class PyPIConfig(configparser.ConfigParser):
 
     def __init__(self):
         """
         Load from ~/.pypirc
         """
         defaults = dict.fromkeys(['username', 'password', 'repository'], '')
-        ConfigParser.ConfigParser.__init__(self, defaults)
+        configparser.ConfigParser.__init__(self, defaults)
 
         rc = os.path.join(os.path.expanduser('~'), '.pypirc')
         if os.path.exists(rc):
