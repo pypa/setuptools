@@ -1,7 +1,11 @@
+from __future__ import absolute_import
+
 import sys
+import os
 import distutils.errors
 
 from setuptools.compat import httplib, HTTPError, unicode, pathname2url
+from .textwrap import DALS
 
 import pkg_resources
 import setuptools.package_index
@@ -201,3 +205,20 @@ class TestContentCheckers:
             'http://foo/bar#md5=f12895fdffbd45007040d2e44df98478')
         rep = checker.report(lambda x: x, 'My message about %s')
         assert rep == 'My message about md5'
+
+
+class TestPyPIConfig:
+    def test_percent_in_password(self, tmpdir, monkeypatch):
+        monkeypatch.setitem(os.environ, 'HOME', str(tmpdir))
+        pypirc = tmpdir / '.pypirc'
+        with pypirc.open('w') as strm:
+            strm.write(DALS("""
+                [pypi]
+                repository=https://pypi.python.org
+                username=jaraco
+                password=pity%
+            """))
+        cfg = setuptools.package_index.PyPIConfig()
+        cred = cfg.creds_by_repository['pypi']
+        assert cred.username == 'jaraco'
+        assert cred.password == 'pity%'
