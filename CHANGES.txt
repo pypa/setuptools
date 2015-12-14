@@ -3,6 +3,14 @@ CHANGES
 =======
 
 
+----
+19.0
+----
+
+* Issue #442: Use SafeConfigParser for parsing .pypirc file. Now
+  fields containing the percent symbol (%) must have each percent
+  replaced with two percent symbols (%%).
+
 ------
 18.8.1
 ------
