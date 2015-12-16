@@ -8,7 +8,7 @@ from distutils.core import Command as _Command
 from distutils.util import convert_path
 from fnmatch import fnmatchcase
 
-import setuptools.version
+import pkg_resources
 from setuptools.extension import Extension
 from setuptools.dist import Distribution, Feature, _get_unpatched
 from setuptools.depends import Require
@@ -19,7 +19,7 @@ __all__ = [
     'find_packages'
 ]
 
-__version__ = setuptools.version.__version__
+__version__ = pkg_resources.require('setuptools')[0].version
 
 bootstrap_install_from = None
 

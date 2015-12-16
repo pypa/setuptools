@@ -22,11 +22,6 @@ with open(init_path) as init_file:
 
 SETUP_COMMANDS = command_ns['__all__']
 
-main_ns = {}
-ver_path = convert_path('setuptools/version.py')
-with open(ver_path) as ver_file:
-    exec(ver_file.read(), main_ns)
-
 import setuptools
 
 scripts = []
@@ -70,7 +65,7 @@ sphinx = ['sphinx', 'rst.linker'] if needs_sphinx else []
 
 setup_params = dict(
     name="setuptools",
-    version=main_ns['__version__'],
+    use_scm_version=True,
     description="Easily download, build, install, upgrade, and uninstall "
                 "Python packages",
     author="Python Packaging Authority",
@@ -162,6 +157,7 @@ setup_params = dict(
         'pytest>=2.8',
     ] + (['mock'] if sys.version_info[:2] < (3, 3) else []),
     setup_requires=[
+        'setuptools_scm>=1.9',
     ] + sphinx + pytest_runner,
 )
 
