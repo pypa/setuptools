@@ -19,9 +19,7 @@ def before_upload():
 def after_push():
     BootstrapBookmark.push()
 
-files_with_versions = (
-    'ez_setup.py', 'setuptools/version.py',
-)
+files_with_versions = 'setuptools/version.py',
 
 # bdist_wheel must be included or pip will break
 dist_commands = 'sdist', 'bdist_wheel'
