@@ -16,7 +16,8 @@ import subprocess
 import platform
 import textwrap
 import contextlib
-import warnings
+import json
+import codecs
 
 from distutils import log
 
@@ -30,7 +31,8 @@ try:
 except ImportError:
     USER_SITE = None
 
-DEFAULT_VERSION = "19.1"
+LATEST = object()
+DEFAULT_VERSION = LATEST
 DEFAULT_URL = "https://pypi.python.org/packages/source/s/setuptools/"
 DEFAULT_SAVE_DIR = os.curdir
 
@@ -140,6 +142,7 @@ def use_setuptools(
     Return None. Raise SystemExit if the requested version
     or later cannot be installed.
     """
+    version = _resolve_version(version)
     to_dir = os.path.abspath(to_dir)
 
     # prior to importing, capture the module state for
@@ -321,6 +324,7 @@ def download_setuptools(
     ``downloader_factory`` should be a function taking no arguments and
     returning a function for downloading a URL to a target.
     """
+    version = _resolve_version(version)
     # making sure we use the absolute path
     to_dir = os.path.abspath(to_dir)
     zip_name = "setuptools-%s.zip" % version
@@ -331,6 +335,27 @@ def download_setuptools(
         downloader = downloader_factory()
         downloader(url, saveto)
     return os.path.realpath(saveto)
+
+
+def _resolve_version(version):
+    """
+    Resolve LATEST version
+    """
+    if version is not LATEST:
+        return version
+
+    with urlopen('https://pypi.python.org/pypi/setuptools/json') as resp:
+        charset = resp.info().get_content_charset()
+        reader = codecs.getreader(charset)
+        doc = json.load(reader(resp))
+
+    def by_vals(ver_string):
+        try:
+            return tuple(map(int, ver_string.split('.')))
+        except Exception:
+            return (0,)
+
+    return max(doc['releases'], key=by_vals)
 
 
 def _build_install_args(options):
