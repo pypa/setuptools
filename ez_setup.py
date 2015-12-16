@@ -349,13 +349,7 @@ def _resolve_version(version):
         reader = codecs.getreader(charset)
         doc = json.load(reader(resp))
 
-    def by_vals(ver_string):
-        try:
-            return tuple(map(int, ver_string.split('.')))
-        except Exception:
-            return (0,)
-
-    return max(doc['releases'], key=by_vals)
+    return doc['info']['version']
 
 
 def _build_install_args(options):
