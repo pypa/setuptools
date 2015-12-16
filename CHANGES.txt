@@ -7,7 +7,8 @@ CHANGES
 19.1
 ----
 
-* The bootstrap script ``ez_setup.py`` now automatically detects
+* Issue #215: The bootstrap script ``ez_setup.py`` now
+  automatically detects
   the latest version of setuptools (using PyPI JSON API) rather
   than hard-coding a particular value.
 * Issue #475: Fix incorrect usage in _translate_metadata2.
