@@ -346,7 +346,11 @@ def _resolve_version(version):
 
     resp = urlopen('https://pypi.python.org/pypi/setuptools/json')
     with contextlib.closing(resp):
-        charset = resp.info().get_content_charset()
+        try:
+            charset = resp.info().get_content_charset()
+        except Exception:
+            # Python 2 compat; assume UTF-8
+            charset = 'UTF-8'
         reader = codecs.getreader(charset)
         doc = json.load(reader(resp))
 
