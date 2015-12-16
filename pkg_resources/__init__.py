@@ -1537,7 +1537,7 @@ class MarkerEvaluation(object):
         """
         return dict(
             (key.replace('.', '_'), value)
-            for key, value in env
+            for key, value in env.items()
         )
 
     @classmethod
