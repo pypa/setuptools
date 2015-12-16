@@ -344,7 +344,8 @@ def _resolve_version(version):
     if version is not LATEST:
         return version
 
-    with urlopen('https://pypi.python.org/pypi/setuptools/json') as resp:
+    resp = urlopen('https://pypi.python.org/pypi/setuptools/json')
+    with contextlib.closing(resp):
         charset = resp.info().get_content_charset()
         reader = codecs.getreader(charset)
         doc = json.load(reader(resp))
