@@ -9,6 +9,9 @@ CHANGES
 
 * Issue #476: Cast version to string (using default encoding)
   to avoid creating Unicode types on Python 2 clients.
+* Issue #477: In Powershell downloader, use explicit rendering
+  of strings, rather than rely on ``repr``, which can be
+  incorrect (especially on Python 2).
 
 ----
 19.1
