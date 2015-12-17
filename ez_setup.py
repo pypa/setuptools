@@ -354,7 +354,7 @@ def _resolve_version(version):
         reader = codecs.getreader(charset)
         doc = json.load(reader(resp))
 
-    return doc['info']['version']
+    return str(doc['info']['version'])
 
 
 def _build_install_args(options):

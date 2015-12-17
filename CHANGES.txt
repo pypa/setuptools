@@ -3,6 +3,13 @@ CHANGES
 =======
 
 
+------
+19.1.1
+------
+
+* Issue #476: Cast version to string (using default encoding)
+  to avoid creating Unicode types on Python 2 clients.
+
 ----
 19.1
 ----
