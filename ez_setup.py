@@ -226,7 +226,7 @@ def download_file_powershell(url, target):
         "[System.Net.WebRequest]::DefaultWebProxy.Credentials = "
         "[System.Net.CredentialCache]::DefaultCredentials; "
         '(new-object System.Net.WebClient).DownloadFile("%(url)s", "%(target)s")'
-        % vars()
+        % locals()
     )
     cmd = [
         'powershell',
