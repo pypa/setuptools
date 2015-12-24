@@ -223,6 +223,12 @@ def get_win_certfile():
             self.addcerts(certs)
             atexit.register(self.close)
 
+        def close(self):
+            try:
+                super(MyCertFile, self).close()
+            except OSError:
+                pass
+
     _wincerts = MyCertFile(stores=['CA', 'ROOT'])
     return _wincerts.name
 
