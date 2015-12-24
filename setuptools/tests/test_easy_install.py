@@ -446,10 +446,15 @@ class TestScriptHeader:
         exe = tmpdir / 'exe.py'
         with exe.open('w') as f:
             f.write(header)
-        exe = str(exe)
+
+        exe = ei.nt_quote_arg(os.path.normpath(str(exe)))
+
+        # Make sure Windows paths are quoted properly before they're sent
+        # through shlex.split by get_script_header
+        executable = '"%s"' % exe if os.path.splitdrive(exe)[0] else exe
 
         header = ei.ScriptWriter.get_script_header('#!/usr/local/bin/python',
-            executable=exe)
+            executable=executable)
         assert header == '#!/usr/bin/env %s\n' % exe
 
         expect_out = 'stdout' if sys.version_info < (2,7) else 'stderr'
@@ -458,7 +463,7 @@ class TestScriptHeader:
             # When options are included, generate a broken shebang line
             # with a warning emitted
             candidate = ei.ScriptWriter.get_script_header('#!/usr/bin/python -x',
-                executable=exe)
+                executable=executable)
             assert candidate == '#!%s -x\n' % exe
             output = locals()[expect_out]
             assert 'Unable to adapt shebang line' in output.getvalue()
