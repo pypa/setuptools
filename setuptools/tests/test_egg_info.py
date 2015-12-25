@@ -60,7 +60,7 @@ class TestEggInfo(object):
         self._create_project()
 
         self._run_install_command(tmpdir_cwd, env)
-        _, actual = self._find_egg_info_files(env.paths['lib'])
+        actual = self._find_egg_info_files(env.paths['lib'])
 
         expected = [
             'PKG-INFO',
@@ -83,7 +83,7 @@ class TestEggInfo(object):
             }
         })
         self._run_install_command(tmpdir_cwd, env)
-        egg_info_dir, _ = self._find_egg_info_files(env.paths['lib'])
+        egg_info_dir = self._find_egg_info_dir(env.paths['lib'])
         sources_txt = os.path.join(egg_info_dir, 'SOURCES.txt')
         assert 'docs/usage.rst' in open(sources_txt).read().split('\n')
 
@@ -107,12 +107,15 @@ class TestEggInfo(object):
         if code:
             raise AssertionError(data)
 
-    def _find_egg_info_files(self, root):
+    def _find_egg_info_dir(self, root):
         results = (
-            (dirpath, filenames)
+            dirpath
             for dirpath, dirnames, filenames in os.walk(root)
             if os.path.basename(dirpath) == 'EGG-INFO'
         )
         # expect exactly one result
         result, = results
         return result
+
+    def _find_egg_info_files(self, root):
+        return os.listdir(self._find_egg_info_dir(root))
