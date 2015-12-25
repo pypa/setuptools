@@ -3,6 +3,12 @@ CHANGES
 =======
 
 
+----
+19.2
+----
+
+* Pull Request #163: Add get_command_list method to Distribution.
+
 ------
 19.1.1
 ------
