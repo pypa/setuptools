@@ -8,6 +8,8 @@ CHANGES
 ----
 
 * Pull Request #163: Add get_command_list method to Distribution.
+* Pull Request #162: Add missing whitespace to multiline string
+  literals.
 
 ------
 19.1.1
