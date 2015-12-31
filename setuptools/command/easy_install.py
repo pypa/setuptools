@@ -20,6 +20,7 @@ from distutils.errors import DistutilsArgError, DistutilsOptionError, \
 from distutils.command.install import INSTALL_SCHEMES, SCHEME_KEYS
 from distutils import log, dir_util
 from distutils.command.build_scripts import first_line_re
+from distutils.spawn import find_executable
 import sys
 import os
 import zipimport
@@ -35,6 +36,9 @@ import warnings
 import site
 import struct
 import contextlib
+import subprocess
+import shlex
+import io
 
 import six
 from six.moves import configparser
@@ -55,13 +59,8 @@ from pkg_resources import (
 )
 import pkg_resources
 
-
 # Turn on PEP440Warnings
 warnings.filterwarnings("default", category=pkg_resources.PEP440Warning)
-
-
-sys_executable = os.environ.get('__PYVENV_LAUNCHER__',
-                                os.path.normpath(sys.executable))
 
 
 __all__ = [
@@ -155,12 +154,9 @@ class easy_install(Command):
     create_index = PackageIndex
 
     def initialize_options(self):
-        if site.ENABLE_USER_SITE:
-            whereami = os.path.abspath(__file__)
-            self.user = whereami.startswith(site.USER_SITE)
-        else:
-            self.user = 0
-
+        # the --user option seems to be an opt-in one,
+        # so the default should be False.
+        self.user = 0
         self.zip_ok = self.local_snapshots_ok = None
         self.install_dir = self.script_dir = self.exclude_scripts = None
         self.index_url = None
@@ -206,20 +202,34 @@ class easy_install(Command):
         )
 
     def delete_blockers(self, blockers):
-        for filename in blockers:
-            if os.path.exists(filename) or os.path.islink(filename):
-                log.info("Deleting %s", filename)
-                if not self.dry_run:
-                    if (os.path.isdir(filename) and
-                            not os.path.islink(filename)):
-                        rmtree(filename)
-                    else:
-                        os.unlink(filename)
+        extant_blockers = (
+            filename for filename in blockers
+            if os.path.exists(filename) or os.path.islink(filename)
+        )
+        list(map(self._delete_path, extant_blockers))
+
+    def _delete_path(self, path):
+        log.info("Deleting %s", path)
+        if self.dry_run:
+            return
+
+        is_tree = os.path.isdir(path) and not os.path.islink(path)
+        remover = rmtree if is_tree else os.unlink
+        remover(path)
+
+    @staticmethod
+    def _render_version():
+        """
+        Render the Setuptools version and installation details, then exit.
+        """
+        ver = sys.version[:3]
+        dist = get_distribution('setuptools')
+        tmpl = 'setuptools {dist.version} from {dist.location} (Python {ver})'
+        print(tmpl.format(**locals()))
+        raise SystemExit()
 
     def finalize_options(self):
-        if self.version:
-            print('setuptools %s' % get_distribution('setuptools').version)
-            sys.exit()
+        self.version and self._render_version()
 
         py_version = sys.version.split()[0]
         prefix, exec_prefix = get_config_vars('prefix', 'exec_prefix')
@@ -243,18 +253,7 @@ class easy_install(Command):
             self.config_vars['userbase'] = self.install_userbase
             self.config_vars['usersite'] = self.install_usersite
 
-        # fix the install_dir if "--user" was used
-        # XXX: duplicate of the code in the setup command
-        if self.user and site.ENABLE_USER_SITE:
-            self.create_home_path()
-            if self.install_userbase is None:
-                raise DistutilsPlatformError(
-                    "User base directory is not specified")
-            self.install_base = self.install_platbase = self.install_userbase
-            if os.name == 'posix':
-                self.select_scheme("unix_user")
-            else:
-                self.select_scheme(os.name + "_user")
+        self._fix_install_dir_for_user_site()
 
         self.expand_basedirs()
         self.expand_dirs()
@@ -349,6 +348,21 @@ class easy_install(Command):
 
         self.outputs = []
 
+    def _fix_install_dir_for_user_site(self):
+        """
+        Fix the install_dir if "--user" was used.
+        """
+        if not self.user or not site.ENABLE_USER_SITE:
+            return
+
+        self.create_home_path()
+        if self.install_userbase is None:
+            msg = "User base directory is not specified"
+            raise DistutilsPlatformError(msg)
+        self.install_base = self.install_platbase = self.install_userbase
+        scheme_name = os.name.replace('posix', 'unix') + '_user'
+        self.select_scheme(scheme_name)
+
     def _expand_attrs(self, attrs):
         for attr in attrs:
             val = getattr(self, attr)
@@ -441,7 +455,7 @@ class easy_install(Command):
             self.pth_file = None
 
         PYTHONPATH = os.environ.get('PYTHONPATH', '').split(os.pathsep)
-        if instdir not in map(normalize_path, [_f for _f in PYTHONPATH if _f]):
+        if instdir not in map(normalize_path, filter(None, PYTHONPATH)):
             # only PYTHONPATH dirs need a site.py, so pretend it's there
             self.sitepy_installed = True
         elif self.multi_version and not os.path.exists(pth_file):
@@ -449,43 +463,49 @@ class easy_install(Command):
             self.pth_file = None  # and don't create a .pth file
         self.install_dir = instdir
 
+    __cant_write_msg = textwrap.dedent("""
+        can't create or remove files in install directory
+
+        The following error occurred while trying to add or remove files in the
+        installation directory:
+
+            %s
+
+        The installation directory you specified (via --install-dir, --prefix, or
+        the distutils default setting) was:
+
+            %s
+        """).lstrip()
+
+    __not_exists_id = textwrap.dedent("""
+        This directory does not currently exist.  Please create it and try again, or
+        choose a different installation directory (using the -d or --install-dir
+        option).
+        """).lstrip()
+
+    __access_msg = textwrap.dedent("""
+        Perhaps your account does not have write access to this directory?  If the
+        installation directory is a system-owned directory, you may need to sign in
+        as the administrator or "root" account.  If you do not have administrative
+        access to this machine, you may wish to choose a different installation
+        directory, preferably one that is listed in your PYTHONPATH environment
+        variable.
+
+        For information on other options, you may wish to consult the
+        documentation at:
+
+          https://pythonhosted.org/setuptools/easy_install.html
+
+        Please make the appropriate changes for your system and try again.
+        """).lstrip()
+
     def cant_write_to_target(self):
-        template = """can't create or remove files in install directory
-
-The following error occurred while trying to add or remove files in the
-installation directory:
-
-    %s
-
-The installation directory you specified (via --install-dir, --prefix, or
-the distutils default setting) was:
-
-    %s
-"""
-        msg = template % (sys.exc_info()[1], self.install_dir,)
+        msg = self.__cant_write_msg % (sys.exc_info()[1], self.install_dir,)
 
         if not os.path.exists(self.install_dir):
-            msg += """
-This directory does not currently exist.  Please create it and try again, or
-choose a different installation directory (using the -d or --install-dir
-option).
-"""
+            msg += '\n' + self.__not_exists_id
         else:
-            msg += """
-Perhaps your account does not have write access to this directory?  If the
-installation directory is a system-owned directory, you may need to sign in
-as the administrator or "root" account.  If you do not have administrative
-access to this machine, you may wish to choose a different installation
-directory, preferably one that is listed in your PYTHONPATH environment
-variable.
-
-For information on other options, you may wish to consult the
-documentation at:
-
-  https://pythonhosted.org/setuptools/easy_install.html
-
-Please make the appropriate changes for your system and try again.
-"""
+            msg += '\n' + self.__access_msg
         raise DistutilsError(msg)
 
     def check_pth_processing(self):
@@ -699,17 +719,10 @@ Please make the appropriate changes for your system and try again.
             distros = WorkingSet([]).resolve(
                 [requirement], self.local_index, self.easy_install
             )
-        except DistributionNotFound:
-            e = sys.exc_info()[1]
-            raise DistutilsError(
-                "Could not find required distribution %s" % e.args
-            )
-        except VersionConflict:
-            e = sys.exc_info()[1]
-            raise DistutilsError(
-                "Installed distribution %s conflicts with requirement %s"
-                % e.args
-            )
+        except DistributionNotFound as e:
+            raise DistutilsError(str(e))
+        except VersionConflict as e:
+            raise DistutilsError(e.report())
         if self.always_copy or self.always_copy_from:
             # Force all the relevant distros to be copied or activated
             for dist in distros:
@@ -749,9 +762,10 @@ Please make the appropriate changes for your system and try again.
         return dst
 
     def install_wrapper_scripts(self, dist):
-        if not self.exclude_scripts:
-            for args in get_script_args(dist):
-                self.write_script(*args)
+        if self.exclude_scripts:
+            return
+        for args in ScriptWriter.best().get_args(dist):
+            self.write_script(*args)
 
     def install_script(self, dist, script_name, script_text, dev_path=None):
         """Generate a legacy script wrapper and install it"""
@@ -759,8 +773,8 @@ Please make the appropriate changes for your system and try again.
         is_script = is_python_script(script_text, script_name)
 
         if is_script:
-            script_text = (get_script_header(script_text) +
-                           self._load_template(dev_path) % locals())
+            body = self._load_template(dev_path) % locals()
+            script_text = ScriptWriter.get_header(script_text) + body
         self.write_script(script_name, _to_ascii(script_text), 'b')
 
     @staticmethod
@@ -792,9 +806,8 @@ Please make the appropriate changes for your system and try again.
             ensure_directory(target)
             if os.path.exists(target):
                 os.unlink(target)
-            f = open(target, "w" + mode)
-            f.write(contents)
-            f.close()
+            with open(target, "w" + mode) as f:
+                f.write(contents)
             chmod(target, 0o777 - mask)
 
     def install_eggs(self, spec, dist_filename, tmpdir):
@@ -923,9 +936,10 @@ Please make the appropriate changes for your system and try again.
                     f.write('%s: %s\n' % (k.replace('_', '-').title(), v))
             f.close()
         script_dir = os.path.join(_egg_info, 'scripts')
-        self.delete_blockers(  # delete entry-point scripts to avoid duping
+        # delete entry-point scripts to avoid duping
+        self.delete_blockers(
             [os.path.join(script_dir, args[0]) for args in
-             get_script_args(dist)]
+             ScriptWriter.get_args(dist)]
         )
         # Build .egg file from tmpdir
         bdist_egg.make_zipfile(
@@ -987,46 +1001,52 @@ Please make the appropriate changes for your system and try again.
                     f.write('\n'.join(locals()[name]) + '\n')
                     f.close()
 
+    __mv_warning = textwrap.dedent("""
+        Because this distribution was installed --multi-version, before you can
+        import modules from this package in an application, you will need to
+        'import pkg_resources' and then use a 'require()' call similar to one of
+        these examples, in order to select the desired version:
+
+            pkg_resources.require("%(name)s")  # latest installed version
+            pkg_resources.require("%(name)s==%(version)s")  # this exact version
+            pkg_resources.require("%(name)s>=%(version)s")  # this version or higher
+        """).lstrip()
+
+    __id_warning = textwrap.dedent("""
+        Note also that the installation directory must be on sys.path at runtime for
+        this to work.  (e.g. by being the application's script directory, by being on
+        PYTHONPATH, or by being added to sys.path by your code.)
+        """)
+
     def installation_report(self, req, dist, what="Installed"):
         """Helpful installation message for display to package users"""
         msg = "\n%(what)s %(eggloc)s%(extras)s"
         if self.multi_version and not self.no_report:
-            msg += """
-
-Because this distribution was installed --multi-version, before you can
-import modules from this package in an application, you will need to
-'import pkg_resources' and then use a 'require()' call similar to one of
-these examples, in order to select the desired version:
-
-    pkg_resources.require("%(name)s")  # latest installed version
-    pkg_resources.require("%(name)s==%(version)s")  # this exact version
-    pkg_resources.require("%(name)s>=%(version)s")  # this version or higher
-"""
+            msg += '\n' + self.__mv_warning
             if self.install_dir not in map(normalize_path, sys.path):
-                msg += """
+                msg += '\n' + self.__id_warning
 
-Note also that the installation directory must be on sys.path at runtime for
-this to work.  (e.g. by being the application's script directory, by being on
-PYTHONPATH, or by being added to sys.path by your code.)
-"""
         eggloc = dist.location
         name = dist.project_name
         version = dist.version
         extras = ''  # TODO: self.report_extras(req, dist)
         return msg % locals()
 
+    __editable_msg = textwrap.dedent("""
+        Extracted editable version of %(spec)s to %(dirname)s
+
+        If it uses setuptools in its setup script, you can activate it in
+        "development" mode by going to that directory and running::
+
+            %(python)s setup.py develop
+
+        See the setuptools documentation for the "develop" command for more info.
+        """).lstrip()
+
     def report_editable(self, spec, setup_script):
         dirname = os.path.dirname(setup_script)
         python = sys.executable
-        return """\nExtracted editable version of %(spec)s to %(dirname)s
-
-If it uses setuptools in its setup script, you can activate it in
-"development" mode by going to that directory and running::
-
-    %(python)s setup.py develop
-
-See the setuptools documentation for the "develop" command for more info.
-""" % locals()
+        return '\n' + self.__editable_msg % locals()
 
     def run_setup(self, setup_script, setup_base, args):
         sys.modules.setdefault('distutils.command.bdist_egg', bdist_egg)
@@ -1045,8 +1065,7 @@ See the setuptools documentation for the "develop" command for more info.
         )
         try:
             run_setup(setup_script, args)
-        except SystemExit:
-            v = sys.exc_info()[1]
+        except SystemExit as v:
             raise DistutilsError("Setup script exited with %s" % (v.args[0],))
 
     def build_and_install(self, setup_script, setup_base):
@@ -1178,35 +1197,38 @@ See the setuptools documentation for the "develop" command for more info.
         finally:
             log.set_verbosity(self.verbose)  # restore original verbosity
 
+    __no_default_msg = textwrap.dedent("""
+        bad install directory or PYTHONPATH
+
+        You are attempting to install a package to a directory that is not
+        on PYTHONPATH and which Python does not read ".pth" files from.  The
+        installation directory you specified (via --install-dir, --prefix, or
+        the distutils default setting) was:
+
+            %s
+
+        and your PYTHONPATH environment variable currently contains:
+
+            %r
+
+        Here are some of your options for correcting the problem:
+
+        * You can choose a different installation directory, i.e., one that is
+          on PYTHONPATH or supports .pth files
+
+        * You can add the installation directory to the PYTHONPATH environment
+          variable.  (It must then also be on PYTHONPATH whenever you run
+          Python and want to use the package(s) you are installing.)
+
+        * You can set up the installation directory to support ".pth" files by
+          using one of the approaches described here:
+
+          https://pythonhosted.org/setuptools/easy_install.html#custom-installation-locations
+
+        Please make the appropriate changes for your system and try again.""").lstrip()
+
     def no_default_version_msg(self):
-        template = """bad install directory or PYTHONPATH
-
-You are attempting to install a package to a directory that is not
-on PYTHONPATH and which Python does not read ".pth" files from.  The
-installation directory you specified (via --install-dir, --prefix, or
-the distutils default setting) was:
-
-    %s
-
-and your PYTHONPATH environment variable currently contains:
-
-    %r
-
-Here are some of your options for correcting the problem:
-
-* You can choose a different installation directory, i.e., one that is
-  on PYTHONPATH or supports .pth files
-
-* You can add the installation directory to the PYTHONPATH environment
-  variable.  (It must then also be on PYTHONPATH whenever you run
-  Python and want to use the package(s) you are installing.)
-
-* You can set up the installation directory to support ".pth" files by
-  using one of the approaches described here:
-
-  https://pythonhosted.org/setuptools/easy_install.html#custom-installation-locations
-
-Please make the appropriate changes for your system and try again."""
+        template = self.__no_default_msg
         return template % (self.install_dir, os.environ.get('PYTHONPATH', ''))
 
     def install_site_py(self):
@@ -1403,13 +1425,8 @@ def extract_wininst_cfg(dist_filename):
             {'version': '', 'target_version': ''})
         try:
             part = f.read(cfglen)
-            # part is in bytes, but we need to read up to the first null
-            # byte.
-            if sys.version_info >= (2, 6):
-                null_byte = bytes([0])
-            else:
-                null_byte = chr(0)
-            config = part.split(null_byte, 1)[0]
+            # Read up to the first null byte.
+            config = part.split(b'\0', 1)[0]
             # Now the config is in bytes, but for RawConfigParser, it should
             #  be text, so decode it.
             config = config.decode(sys.getfilesystemencoding())
@@ -1521,29 +1538,26 @@ class PthDistributions(Environment):
         if not self.dirty:
             return
 
-        data = '\n'.join(map(self.make_relative, self.paths))
-        if data:
+        rel_paths = list(map(self.make_relative, self.paths))
+        if rel_paths:
             log.debug("Saving %s", self.filename)
-            data = (
-                "import sys; sys.__plen = len(sys.path)\n"
-                "%s\n"
-                "import sys; new=sys.path[sys.__plen:];"
-                " del sys.path[sys.__plen:];"
-                " p=getattr(sys,'__egginsert',0); sys.path[p:p]=new;"
-                " sys.__egginsert = p+len(new)\n"
-            ) % data
+            lines = self._wrap_lines(rel_paths)
+            data = '\n'.join(lines) + '\n'
 
             if os.path.islink(self.filename):
                 os.unlink(self.filename)
-            f = open(self.filename, 'wt')
-            f.write(data)
-            f.close()
+            with open(self.filename, 'wt') as f:
+                f.write(data)
 
         elif os.path.exists(self.filename):
             log.debug("Deleting empty %s", self.filename)
             os.unlink(self.filename)
 
         self.dirty = False
+
+    @staticmethod
+    def _wrap_lines(lines):
+        return lines
 
     def add(self, dist):
         """Add `dist` to the distribution map"""
@@ -1582,6 +1596,34 @@ class PthDistributions(Environment):
             return path
 
 
+class RewritePthDistributions(PthDistributions):
+
+    @classmethod
+    def _wrap_lines(cls, lines):
+        yield cls.prelude
+        for line in lines:
+            yield line
+        yield cls.postlude
+
+    _inline = lambda text: textwrap.dedent(text).strip().replace('\n', '; ')
+    prelude = _inline("""
+        import sys
+        sys.__plen = len(sys.path)
+        """)
+    postlude = _inline("""
+        import sys
+        new = sys.path[sys.__plen:]
+        del sys.path[sys.__plen:]
+        p = getattr(sys, '__egginsert', 0)
+        sys.path[p:p] = new
+        sys.__egginsert = p + len(new)
+        """)
+
+
+if os.environ.get('SETUPTOOLS_SYS_PATH_TECHNIQUE', 'rewrite') == 'rewrite':
+    PthDistributions = RewritePthDistributions
+
+
 def _first_line_re():
     """
     Return a regular expression based on first_line_re suitable for matching
@@ -1592,33 +1634,6 @@ def _first_line_re():
 
     # first_line_re in Python >=3.1.4 and >=3.2.1 is a bytes pattern.
     return re.compile(first_line_re.pattern.decode())
-
-
-def get_script_header(script_text, executable=sys_executable, wininst=False):
-    """Create a #! line, getting options (if any) from script_text"""
-    first = (script_text + '\n').splitlines()[0]
-    match = _first_line_re().match(first)
-    options = ''
-    if match:
-        options = match.group(1) or ''
-        if options:
-            options = ' ' + options
-    if wininst:
-        executable = "python.exe"
-    else:
-        executable = nt_quote_arg(executable)
-    hdr = "#!%(executable)s%(options)s\n" % locals()
-    if not isascii(hdr):
-        # Non-ascii path to sys.executable, use -x to prevent warnings
-        if options:
-            if options.strip().startswith('-'):
-                options = ' -x' + options.strip()[1:]
-                # else: punt, we can't do it, let the warning happen anyway
-        else:
-            options = ' -x'
-    executable = fix_jython_executable(executable, options)
-    hdr = "#!%(executable)s%(options)s\n" % locals()
-    return hdr
 
 
 def auto_chmod(func, arg, exc):
@@ -1819,9 +1834,8 @@ def is_python(text, filename='<string>'):
 def is_sh(executable):
     """Determine if the specified executable is a .sh (contains a #! line)"""
     try:
-        fp = open(executable)
-        magic = fp.read(2)
-        fp.close()
+        with io.open(executable, encoding='latin-1') as fp:
+            magic = fp.read(2)
     except (OSError, IOError):
         return executable
     return magic == '#!'
@@ -1829,36 +1843,7 @@ def is_sh(executable):
 
 def nt_quote_arg(arg):
     """Quote a command line argument according to Windows parsing rules"""
-
-    result = []
-    needquote = False
-    nb = 0
-
-    needquote = (" " in arg) or ("\t" in arg)
-    if needquote:
-        result.append('"')
-
-    for c in arg:
-        if c == '\\':
-            nb += 1
-        elif c == '"':
-            # double preceding backslashes, then add a \"
-            result.append('\\' * (nb * 2) + '\\"')
-            nb = 0
-        else:
-            if nb:
-                result.append('\\' * nb)
-                nb = 0
-            result.append(c)
-
-    if nb:
-        result.append('\\' * nb)
-
-    if needquote:
-        result.append('\\' * nb)  # double the trailing backslashes
-        result.append('"')
-
-    return ''.join(result)
+    return subprocess.list2cmdline([arg])
 
 
 def is_python_script(script_text, filename):
@@ -1887,31 +1872,130 @@ def chmod(path, mode):
     log.debug("changing mode of %s to %o", path, mode)
     try:
         _chmod(path, mode)
-    except os.error:
-        e = sys.exc_info()[1]
+    except os.error as e:
         log.debug("chmod failed: %s", e)
 
 
 def fix_jython_executable(executable, options):
-    if sys.platform.startswith('java') and is_sh(executable):
-        # Workaround for Jython is not needed on Linux systems.
-        import java
+    warnings.warn("Use JythonCommandSpec", DeprecationWarning, stacklevel=2)
 
-        if java.lang.System.getProperty("os.name") == "Linux":
-            return executable
+    if not JythonCommandSpec.relevant():
+        return executable
 
-        # Workaround Jython's sys.executable being a .sh (an invalid
-        # shebang line interpreter)
-        if options:
+    cmd = CommandSpec.best().from_param(executable)
+    cmd.install_options(options)
+    return cmd.as_header().lstrip('#!').rstrip('\n')
+
+
+class CommandSpec(list):
+    """
+    A command spec for a #! header, specified as a list of arguments akin to
+    those passed to Popen.
+    """
+
+    options = []
+    split_args = dict()
+
+    @classmethod
+    def best(cls):
+        """
+        Choose the best CommandSpec class based on environmental conditions.
+        """
+        return cls if not JythonCommandSpec.relevant() else JythonCommandSpec
+
+    @classmethod
+    def _sys_executable(cls):
+        _default = os.path.normpath(sys.executable)
+        return os.environ.get('__PYVENV_LAUNCHER__', _default)
+
+    @classmethod
+    def from_param(cls, param):
+        """
+        Construct a CommandSpec from a parameter to build_scripts, which may
+        be None.
+        """
+        if isinstance(param, cls):
+            return param
+        if isinstance(param, list):
+            return cls(param)
+        if param is None:
+            return cls.from_environment()
+        # otherwise, assume it's a string.
+        return cls.from_string(param)
+
+    @classmethod
+    def from_environment(cls):
+        return cls([cls._sys_executable()])
+
+    @classmethod
+    def from_string(cls, string):
+        """
+        Construct a command spec from a simple string representing a command
+        line parseable by shlex.split.
+        """
+        items = shlex.split(string, **cls.split_args)
+        return cls(items)
+
+    def install_options(self, script_text):
+        self.options = shlex.split(self._extract_options(script_text))
+        cmdline = subprocess.list2cmdline(self)
+        if not isascii(cmdline):
+            self.options[:0] = ['-x']
+
+    @staticmethod
+    def _extract_options(orig_script):
+        """
+        Extract any options from the first line of the script.
+        """
+        first = (orig_script + '\n').splitlines()[0]
+        match = _first_line_re().match(first)
+        options = match.group(1) or '' if match else ''
+        return options.strip()
+
+    def as_header(self):
+        return self._render(self + list(self.options))
+
+    @staticmethod
+    def _render(items):
+        cmdline = subprocess.list2cmdline(items)
+        return '#!' + cmdline + '\n'
+
+# For pbr compat; will be removed in a future version.
+sys_executable = CommandSpec._sys_executable()
+
+
+class WindowsCommandSpec(CommandSpec):
+    split_args = dict(posix=False)
+
+
+class JythonCommandSpec(CommandSpec):
+    @classmethod
+    def relevant(cls):
+        return (
+            sys.platform.startswith('java')
+            and
+            __import__('java').lang.System.getProperty('os.name') != 'Linux'
+        )
+
+    def as_header(self):
+        """
+        Workaround Jython's sys.executable being a .sh (an invalid
+        shebang line interpreter)
+        """
+        if not is_sh(self[0]):
+            return super(JythonCommandSpec, self).as_header()
+
+        if self.options:
             # Can't apply the workaround, leave it broken
             log.warn(
                 "WARNING: Unable to adapt shebang line for Jython,"
                 " the following script is NOT executable\n"
                 "         see http://bugs.jython.org/issue1112 for"
                 " more information.")
-        else:
-            return '/usr/bin/env %s' % executable
-    return executable
+            return super(JythonCommandSpec, self).as_header()
+
+        items = ['/usr/bin/env'] + self + list(self.options)
+        return self._render(items)
 
 
 class ScriptWriter(object):
@@ -1932,39 +2016,92 @@ class ScriptWriter(object):
             )
     """).lstrip()
 
+    command_spec_class = CommandSpec
+
     @classmethod
-    def get_script_args(cls, dist, executable=sys_executable, wininst=False):
+    def get_script_args(cls, dist, executable=None, wininst=False):
+        # for backward compatibility
+        warnings.warn("Use get_args", DeprecationWarning)
+        writer = (WindowsScriptWriter if wininst else ScriptWriter).best()
+        header = cls.get_script_header("", executable, wininst)
+        return writer.get_args(dist, header)
+
+    @classmethod
+    def get_script_header(cls, script_text, executable=None, wininst=False):
+        # for backward compatibility
+        warnings.warn("Use get_header", DeprecationWarning)
+        if wininst:
+            executable = "python.exe"
+        cmd = cls.command_spec_class.best().from_param(executable)
+        cmd.install_options(script_text)
+        return cmd.as_header()
+
+    @classmethod
+    def get_args(cls, dist, header=None):
         """
-        Yield write_script() argument tuples for a distribution's entrypoints
+        Yield write_script() argument tuples for a distribution's
+        console_scripts and gui_scripts entry points.
         """
-        gen_class = cls.get_writer(wininst)
+        if header is None:
+            header = cls.get_header()
         spec = str(dist.as_requirement())
-        header = get_script_header("", executable, wininst)
         for type_ in 'console', 'gui':
             group = type_ + '_scripts'
             for name, ep in dist.get_entry_map(group).items():
-                script_text = gen_class.template % locals()
-                for res in gen_class._get_script_args(type_, name, header,
-                                                      script_text):
+                cls._ensure_safe_name(name)
+                script_text = cls.template % locals()
+                args = cls._get_script_args(type_, name, header, script_text)
+                for res in args:
                     yield res
+
+    @staticmethod
+    def _ensure_safe_name(name):
+        """
+        Prevent paths in *_scripts entry point names.
+        """
+        has_path_sep = re.search(r'[\\/]', name)
+        if has_path_sep:
+            raise ValueError("Path separators not allowed in script names")
 
     @classmethod
     def get_writer(cls, force_windows):
-        if force_windows or sys.platform == 'win32':
-            return WindowsScriptWriter.get_writer()
-        return cls
+        # for backward compatibility
+        warnings.warn("Use best", DeprecationWarning)
+        return WindowsScriptWriter.best() if force_windows else cls.best()
+
+    @classmethod
+    def best(cls):
+        """
+        Select the best ScriptWriter for this environment.
+        """
+        return WindowsScriptWriter.best() if sys.platform == 'win32' else cls
 
     @classmethod
     def _get_script_args(cls, type_, name, header, script_text):
         # Simply write the stub with no extension.
         yield (name, header + script_text)
 
+    @classmethod
+    def get_header(cls, script_text="", executable=None):
+        """Create a #! line, getting options (if any) from script_text"""
+        cmd = cls.command_spec_class.best().from_param(executable)
+        cmd.install_options(script_text)
+        return cmd.as_header()
+
 
 class WindowsScriptWriter(ScriptWriter):
+    command_spec_class = WindowsCommandSpec
+
     @classmethod
     def get_writer(cls):
+        # for backward compatibility
+        warnings.warn("Use best", DeprecationWarning)
+        return cls.best()
+
+    @classmethod
+    def best(cls):
         """
-        Get a script writer suitable for Windows
+        Select the best ScriptWriter suitable for Windows
         """
         writer_lookup = dict(
             executable=WindowsExecutableLauncherWriter,
@@ -1987,8 +2124,8 @@ class WindowsScriptWriter(ScriptWriter):
         blockers = [name + x for x in old]
         yield name + ext, header + script_text, 't', blockers
 
-    @staticmethod
-    def _adjust_header(type_, orig_header):
+    @classmethod
+    def _adjust_header(cls, type_, orig_header):
         """
         Make sure 'pythonw' is used for gui and and 'python' is used for
         console (regardless of what sys.executable is).
@@ -1999,11 +2136,19 @@ class WindowsScriptWriter(ScriptWriter):
             pattern, repl = repl, pattern
         pattern_ob = re.compile(re.escape(pattern), re.IGNORECASE)
         new_header = pattern_ob.sub(string=orig_header, repl=repl)
+        return new_header if cls._use_header(new_header) else orig_header
+
+    @staticmethod
+    def _use_header(new_header):
+        """
+        Should _adjust_header use the replaced header?
+
+        On non-windows systems, always use. On
+        Windows systems, only use the replaced header if it resolves
+        to an executable on the system.
+        """
         clean_header = new_header[2:-1].strip('"')
-        if sys.platform == 'win32' and not os.path.exists(clean_header):
-            # the adjusted version doesn't exist, so return the original
-            return orig_header
-        return new_header
+        return sys.platform != 'win32' or find_executable(clean_header)
 
 
 class WindowsExecutableLauncherWriter(WindowsScriptWriter):
@@ -2039,6 +2184,7 @@ class WindowsExecutableLauncherWriter(WindowsScriptWriter):
 
 # for backward-compatibility
 get_script_args = ScriptWriter.get_script_args
+get_script_header = ScriptWriter.get_script_header
 
 
 def get_win_launcher(type):
@@ -2160,4 +2306,3 @@ def _patch_usage():
         yield
     finally:
         distutils.core.gen_usage = saved
-

@@ -2,6 +2,7 @@ import os
 import sys
 import tempfile
 import shutil
+import string
 
 import pytest
 
@@ -25,20 +26,22 @@ def safe_repr(obj, short=False):
         return result
     return result[:pkg_resources._MAX_LENGTH] + ' [truncated]...'
 
+
 class Metadata(pkg_resources.EmptyProvider):
     """Mock object to return metadata as if from an on-disk distribution"""
 
-    def __init__(self,*pairs):
+    def __init__(self, *pairs):
         self.metadata = dict(pairs)
 
-    def has_metadata(self,name):
+    def has_metadata(self, name):
         return name in self.metadata
 
-    def get_metadata(self,name):
+    def get_metadata(self, name):
         return self.metadata[name]
 
-    def get_metadata_lines(self,name):
+    def get_metadata_lines(self, name):
         return pkg_resources.yield_lines(self.get_metadata(name))
+
 
 dist_from_fn = pkg_resources.Distribution.from_filename
 
@@ -174,8 +177,11 @@ class TestDistro:
         # Activation list now includes resolved dependency
         assert list(ws.resolve(parse_requirements("Foo[bar]"), ad)) ==[Foo,Baz]
         # Requests for conflicting versions produce VersionConflict
-        with pytest.raises(VersionConflict):
+        with pytest.raises(VersionConflict) as vc:
             ws.resolve(parse_requirements("Foo==1.2\nFoo!=1.2"), ad)
+
+        msg = 'Foo 0.9 is installed but Foo==1.2 is required'
+        assert vc.value.report() == msg
 
     def testDistroDependsOptions(self):
         d = self.distRequires("""
@@ -204,6 +210,49 @@ class TestDistro:
             d.requires(["foo"])
 
 
+class TestWorkingSet:
+    def test_find_conflicting(self):
+        ws = WorkingSet([])
+        Foo = Distribution.from_filename("/foo_dir/Foo-1.2.egg")
+        ws.add(Foo)
+
+        # create a requirement that conflicts with Foo 1.2
+        req = next(parse_requirements("Foo<1.2"))
+
+        with pytest.raises(VersionConflict) as vc:
+            ws.find(req)
+
+        msg = 'Foo 1.2 is installed but Foo<1.2 is required'
+        assert vc.value.report() == msg
+
+    def test_resolve_conflicts_with_prior(self):
+        """
+        A ContextualVersionConflict should be raised when a requirement
+        conflicts with a prior requirement for a different package.
+        """
+        # Create installation where Foo depends on Baz 1.0 and Bar depends on
+        # Baz 2.0.
+        ws = WorkingSet([])
+        md = Metadata(('depends.txt', "Baz==1.0"))
+        Foo = Distribution.from_filename("/foo_dir/Foo-1.0.egg", metadata=md)
+        ws.add(Foo)
+        md = Metadata(('depends.txt', "Baz==2.0"))
+        Bar = Distribution.from_filename("/foo_dir/Bar-1.0.egg", metadata=md)
+        ws.add(Bar)
+        Baz = Distribution.from_filename("/foo_dir/Baz-1.0.egg")
+        ws.add(Baz)
+        Baz = Distribution.from_filename("/foo_dir/Baz-2.0.egg")
+        ws.add(Baz)
+
+        with pytest.raises(VersionConflict) as vc:
+            ws.resolve(parse_requirements("Foo\nBar\n"))
+
+        msg = "Baz 1.0 is installed but Baz==2.0 is required by {'Bar'}"
+        if pkg_resources.PY2:
+            msg = msg.replace("{'Bar'}", "set(['Bar'])")
+        assert vc.value.report() == msg
+
+
 class TestEntryPoints:
 
     def assertfields(self, ep):
@@ -212,10 +261,8 @@ class TestEntryPoints:
         assert ep.attrs == ("TestEntryPoints",)
         assert ep.extras == ("x",)
         assert ep.load() is TestEntryPoints
-        assert (
-            str(ep) ==
-            "foo = pkg_resources.tests.test_resources:TestEntryPoints [x]"
-        )
+        expect = "foo = pkg_resources.tests.test_resources:TestEntryPoints [x]"
+        assert str(ep) == expect
 
     def setup_method(self, method):
         self.dist = Distribution.from_filename(
@@ -250,13 +297,21 @@ class TestEntryPoints:
         ep = EntryPoint.parse(spec)
         assert ep.name == 'html+mako'
 
-    def testRejects(self):
-        for ep in [
-            "foo", "x=1=2", "x=a:b:c", "q=x/na", "fez=pish:tush-z", "x=f[a]>2",
-        ]:
-            try: EntryPoint.parse(ep)
-            except ValueError: pass
-            else: raise AssertionError("Should've been bad", ep)
+    reject_specs = "foo", "x=a:b:c", "q=x/na", "fez=pish:tush-z", "x=f[a]>2"
+    @pytest.mark.parametrize("reject_spec", reject_specs)
+    def test_reject_spec(self, reject_spec):
+        with pytest.raises(ValueError):
+            EntryPoint.parse(reject_spec)
+
+    def test_printable_name(self):
+        """
+        Allow any printable character in the name.
+        """
+        # Create a name with all printable characters; strip the whitespace.
+        name = string.printable.strip()
+        spec = "{name} = module:attr".format(**locals())
+        ep = EntryPoint.parse(spec)
+        assert ep.name == name
 
     def checkSubMap(self, m):
         assert len(m) == len(self.submap_expect)
@@ -595,10 +650,8 @@ class TestNamespaces:
             pkg2_init.close()
         import pkg1
         assert "pkg1" in pkg_resources._namespace_packages
-        try:
-            import pkg1.pkg2
-        except ImportError:
-            self.fail("Setuptools tried to import the parent namespace package")
+        # attempt to import pkg2 from site-pkgs2
+        import pkg1.pkg2
         # check the _namespace_packages dict
         assert "pkg1.pkg2" in pkg_resources._namespace_packages
         assert pkg_resources._namespace_packages["pkg1"] == ["pkg1.pkg2"]

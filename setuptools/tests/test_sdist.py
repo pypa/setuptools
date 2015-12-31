@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """sdist tests"""
 
-import locale
 import os
 import shutil
 import sys
 import tempfile
 import unicodedata
 import contextlib
+import io
 
 import six
 import pytest
@@ -16,6 +16,11 @@ import pkg_resources
 from setuptools.command.sdist import sdist
 from setuptools.command.egg_info import manifest_maker
 from setuptools.dist import Distribution
+from setuptools.tests import fail_on_ascii
+
+
+py3_only = pytest.mark.xfail(six.PY2, reason="Test runs on Python 3 only")
+
 
 SETUP_ATTRS = {
     'name': 'sdist_test',
@@ -75,6 +80,11 @@ def decompose(path):
     except UnicodeError:
         pass  # Not UTF-8
     return path
+
+
+def read_all_bytes(filename):
+    with io.open(filename, 'rb') as fp:
+        return fp.read()
 
 
 class TestSdistTest:
@@ -147,6 +157,7 @@ class TestSdistTest:
         assert 'setup.py' not in manifest, manifest
         assert 'setup.cfg' not in manifest, manifest
 
+    @fail_on_ascii
     def test_manifest_is_written_with_utf8_encoding(self):
         # Test for #303.
         dist = Distribution(SETUP_ATTRS)
@@ -167,16 +178,10 @@ class TestSdistTest:
             mm.filelist.append(filename)
             mm.write_manifest()
 
-        manifest = open(mm.manifest, 'rbU')
-        contents = manifest.read()
-        manifest.close()
+        contents = read_all_bytes(mm.manifest)
 
         # The manifest should be UTF-8 encoded
-        try:
-            u_contents = contents.decode('UTF-8')
-        except UnicodeDecodeError:
-            e = sys.exc_info()[1]
-            self.fail(e)
+        u_contents = contents.decode('UTF-8')
 
         # The manifest should contain the UTF-8 filename
         if six.PY2:
@@ -185,89 +190,78 @@ class TestSdistTest:
 
         assert posix(filename) in u_contents
 
-    # Python 3 only
-    if six.PY3:
+    @py3_only
+    @fail_on_ascii
+    def test_write_manifest_allows_utf8_filenames(self):
+        # Test for #303.
+        dist = Distribution(SETUP_ATTRS)
+        dist.script_name = 'setup.py'
+        mm = manifest_maker(dist)
+        mm.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
+        os.mkdir('sdist_test.egg-info')
 
-        def test_write_manifest_allows_utf8_filenames(self):
-            # Test for #303.
-            dist = Distribution(SETUP_ATTRS)
-            dist.script_name = 'setup.py'
-            mm = manifest_maker(dist)
-            mm.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
-            os.mkdir('sdist_test.egg-info')
+        # UTF-8 filename
+        filename = os.path.join(b('sdist_test'), b('smörbröd.py'))
 
-            # UTF-8 filename
-            filename = os.path.join(b('sdist_test'), b('smörbröd.py'))
+        # Must touch the file or risk removal
+        open(filename, "w").close()
 
-            # Must touch the file or risk removal
-            open(filename, "w").close()
+        # Add filename and write manifest
+        with quiet():
+            mm.run()
+            u_filename = filename.decode('utf-8')
+            mm.filelist.files.append(u_filename)
+            # Re-write manifest
+            mm.write_manifest()
 
-            # Add filename and write manifest
-            with quiet():
-                mm.run()
-                u_filename = filename.decode('utf-8')
-                mm.filelist.files.append(u_filename)
-                # Re-write manifest
-                mm.write_manifest()
+        contents = read_all_bytes(mm.manifest)
 
-            manifest = open(mm.manifest, 'rbU')
-            contents = manifest.read()
-            manifest.close()
+        # The manifest should be UTF-8 encoded
+        contents.decode('UTF-8')
 
-            # The manifest should be UTF-8 encoded
-            try:
-                contents.decode('UTF-8')
-            except UnicodeDecodeError:
-                e = sys.exc_info()[1]
-                self.fail(e)
+        # The manifest should contain the UTF-8 filename
+        assert posix(filename) in contents
 
-            # The manifest should contain the UTF-8 filename
-            assert posix(filename) in contents
+        # The filelist should have been updated as well
+        assert u_filename in mm.filelist.files
 
-            # The filelist should have been updated as well
-            assert u_filename in mm.filelist.files
+    @py3_only
+    def test_write_manifest_skips_non_utf8_filenames(self):
+        """
+        Files that cannot be encoded to UTF-8 (specifically, those that
+        weren't originally successfully decoded and have surrogate
+        escapes) should be omitted from the manifest.
+        See https://bitbucket.org/tarek/distribute/issue/303 for history.
+        """
+        dist = Distribution(SETUP_ATTRS)
+        dist.script_name = 'setup.py'
+        mm = manifest_maker(dist)
+        mm.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
+        os.mkdir('sdist_test.egg-info')
 
-        def test_write_manifest_skips_non_utf8_filenames(self):
-            """
-            Files that cannot be encoded to UTF-8 (specifically, those that
-            weren't originally successfully decoded and have surrogate
-            escapes) should be omitted from the manifest.
-            See https://bitbucket.org/tarek/distribute/issue/303 for history.
-            """
-            dist = Distribution(SETUP_ATTRS)
-            dist.script_name = 'setup.py'
-            mm = manifest_maker(dist)
-            mm.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
-            os.mkdir('sdist_test.egg-info')
+        # Latin-1 filename
+        filename = os.path.join(b('sdist_test'), LATIN1_FILENAME)
 
-            # Latin-1 filename
-            filename = os.path.join(b('sdist_test'), LATIN1_FILENAME)
+        # Add filename with surrogates and write manifest
+        with quiet():
+            mm.run()
+            u_filename = filename.decode('utf-8', 'surrogateescape')
+            mm.filelist.append(u_filename)
+            # Re-write manifest
+            mm.write_manifest()
 
-            # Add filename with surrogates and write manifest
-            with quiet():
-                mm.run()
-                u_filename = filename.decode('utf-8', 'surrogateescape')
-                mm.filelist.append(u_filename)
-                # Re-write manifest
-                mm.write_manifest()
+        contents = read_all_bytes(mm.manifest)
 
-            manifest = open(mm.manifest, 'rbU')
-            contents = manifest.read()
-            manifest.close()
+        # The manifest should be UTF-8 encoded
+        contents.decode('UTF-8')
 
-            # The manifest should be UTF-8 encoded
-            try:
-                contents.decode('UTF-8')
-            except UnicodeDecodeError:
-                e = sys.exc_info()[1]
-                self.fail(e)
+        # The Latin-1 filename should have been skipped
+        assert posix(filename) not in contents
 
-            # The Latin-1 filename should have been skipped
-            assert posix(filename) not in contents
+        # The filelist should have been updated as well
+        assert u_filename not in mm.filelist.files
 
-            # The filelist should have been updated as well
-            assert u_filename not in mm.filelist.files
-
+    @fail_on_ascii
     def test_manifest_is_read_with_utf8_encoding(self):
         # Test for #303.
         dist = Distribution(SETUP_ATTRS)
@@ -299,46 +293,38 @@ class TestSdistTest:
             filename = filename.decode('utf-8')
         assert filename in cmd.filelist.files
 
-    # Python 3 only
-    if six.PY3:
+    @py3_only
+    def test_read_manifest_skips_non_utf8_filenames(self):
+        # Test for #303.
+        dist = Distribution(SETUP_ATTRS)
+        dist.script_name = 'setup.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
 
-        def test_read_manifest_skips_non_utf8_filenames(self):
-            # Test for #303.
-            dist = Distribution(SETUP_ATTRS)
-            dist.script_name = 'setup.py'
-            cmd = sdist(dist)
-            cmd.ensure_finalized()
+        # Create manifest
+        with quiet():
+            cmd.run()
 
-            # Create manifest
-            with quiet():
-                cmd.run()
+        # Add Latin-1 filename to manifest
+        filename = os.path.join(b('sdist_test'), LATIN1_FILENAME)
+        cmd.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
+        manifest = open(cmd.manifest, 'ab')
+        manifest.write(b('\n') + filename)
+        manifest.close()
 
-            # Add Latin-1 filename to manifest
-            filename = os.path.join(b('sdist_test'), LATIN1_FILENAME)
-            cmd.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
-            manifest = open(cmd.manifest, 'ab')
-            manifest.write(b('\n') + filename)
-            manifest.close()
+        # The file must exist to be included in the filelist
+        open(filename, 'w').close()
 
-            # The file must exist to be included in the filelist
-            open(filename, 'w').close()
+        # Re-read manifest
+        cmd.filelist.files = []
+        with quiet():
+            cmd.read_manifest()
 
-            # Re-read manifest
-            cmd.filelist.files = []
-            with quiet():
-                try:
-                    cmd.read_manifest()
-                except UnicodeDecodeError:
-                    e = sys.exc_info()[1]
-                    self.fail(e)
+        # The Latin-1 filename should have been skipped
+        filename = filename.decode('latin-1')
+        assert filename not in cmd.filelist.files
 
-            # The Latin-1 filename should have been skipped
-            filename = filename.decode('latin-1')
-            assert filename not in cmd.filelist.files
-
-    @pytest.mark.skipif(six.PY3 and locale.getpreferredencoding() != 'UTF-8',
-        reason='Unittest fails if locale is not utf-8 but the manifests is '
-            'recorded correctly')
+    @fail_on_ascii
     def test_sdist_with_utf8_encoded_filename(self):
         # Test for #303.
         dist = Distribution(SETUP_ATTRS)
@@ -431,5 +417,5 @@ def test_default_revctrl():
     """
     ep_def = 'svn_cvs = setuptools.command.sdist:_default_revctrl'
     ep = pkg_resources.EntryPoint.parse(ep_def)
-    res = ep._load()
+    res = ep.resolve()
     assert hasattr(res, '__iter__')

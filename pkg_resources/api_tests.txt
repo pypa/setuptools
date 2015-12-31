@@ -210,8 +210,7 @@ working set triggers a ``pkg_resources.VersionConflict`` error:
 
     >>> try:
     ...     ws.find(Requirement.parse("Bar==1.0"))
-    ... except pkg_resources.VersionConflict:
-    ...     exc = sys.exc_info()[1]
+    ... except pkg_resources.VersionConflict as exc:
     ...     print(str(exc))
     ... else:
     ...     raise AssertionError("VersionConflict was not raised")
@@ -365,9 +364,6 @@ Environment Markers
     >>> print(im("'x'=='x' or os.open('foo')=='y'"))   # no short-circuit!
     Language feature not supported in environment markers
 
-    >>> print(im("'x' < 'y'"))
-    '<' operator not allowed in environment markers
-
     >>> print(im("'x' < 'y' < 'z'"))
     Chained comparison not allowed in environment markers
 
@@ -417,4 +413,13 @@ Environment Markers
     True
 
     >>> em("'yx' in 'x'")
+    False
+
+    >>> em("python_version >= '2.6'")
+    True
+
+    >>> em("python_version > '2.5'")
+    True
+
+    >>> im("platform_python_implementation=='CPython'")
     False

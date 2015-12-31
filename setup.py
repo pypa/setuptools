@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""Distutils setup file, used to install or test 'setuptools'"""
+"""
+Distutils setup file, used to install or test 'setuptools'
+"""
+
 import io
 import os
 import sys
@@ -25,7 +28,6 @@ with open(ver_path) as ver_file:
     exec(ver_file.read(), main_ns)
 
 import setuptools
-from setuptools.command.build_py import build_py as _build_py
 
 scripts = []
 
@@ -46,20 +48,6 @@ def _gen_console_scripts():
 
 console_scripts = list(_gen_console_scripts())
 
-
-# specific command that is used to generate windows .exe files
-class build_py(_build_py):
-    def build_package_data(self):
-        """Copy data files into build directory"""
-        for package, src_dir, build_dir, filenames in self.data_files:
-            for filename in filenames:
-                target = os.path.join(build_dir, filename)
-                self.mkpath(os.path.dirname(target))
-                srcfile = os.path.join(src_dir, filename)
-                outf, copied = self.copy_file(srcfile, target)
-                srcfile = os.path.abspath(srcfile)
-
-
 readme_file = io.open('README.txt', encoding='utf-8')
 
 with readme_file:
@@ -75,7 +63,10 @@ if sys.platform == 'win32' or force_windows_specific_files:
     package_data.setdefault('setuptools', []).extend(['*.exe'])
     package_data.setdefault('setuptools.command', []).extend(['*.xml'])
 
-pytest_runner = ['pytest-runner'] if 'ptr' in sys.argv else []
+needs_pytest = set(['ptr', 'pytest', 'test']).intersection(sys.argv)
+pytest_runner = ['pytest-runner'] if needs_pytest else []
+needs_sphinx = set(['build_sphinx', 'upload_docs']).intersection(sys.argv)
+sphinx = ['sphinx', 'rst.linker'] if needs_sphinx else []
 
 setup_params = dict(
     name="setuptools",
@@ -89,7 +80,7 @@ setup_params = dict(
     keywords="CPAN PyPI distutils eggs package management",
     url="https://bitbucket.org/pypa/setuptools",
     src_root=src_root,
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages(exclude=['*.tests']),
     package_data=package_data,
 
     py_modules=['easy_install'],
@@ -149,10 +140,9 @@ setup_params = dict(
         Programming Language :: Python :: 2.6
         Programming Language :: Python :: 2.7
         Programming Language :: Python :: 3
-        Programming Language :: Python :: 3.1
-        Programming Language :: Python :: 3.2
         Programming Language :: Python :: 3.3
         Programming Language :: Python :: 3.4
+        Programming Language :: Python :: 3.5
         Topic :: Software Development :: Libraries :: Python Modules
         Topic :: System :: Archiving :: Packaging
         Topic :: System :: Systems Administration
@@ -163,20 +153,19 @@ setup_params = dict(
     ],
     extras_require={
         "ssl:sys_platform=='win32'": "wincertstore==0.2",
-        "certs": "certifi==1.0.1",
+        "certs": "certifi==2015.11.20",
     },
     dependency_links=[
-        'https://pypi.python.org/packages/source/c/certifi/certifi-1.0.1.tar.gz#md5=45f5cb94b8af9e1df0f9450a8f61b790',
+        'https://pypi.python.org/packages/source/c/certifi/certifi-2015.11.20.tar.gz#md5=25134646672c695c1ff1593c2dd75d08',
         'https://pypi.python.org/packages/source/w/wincertstore/wincertstore-0.2.zip#md5=ae728f2f007185648d0c7a8679b361e2',
     ],
     scripts=[],
     tests_require=[
         'setuptools[ssl]',
-        'pytest',
-        'mock',
-    ],
+        'pytest>=2.8',
+    ] + (['mock'] if sys.version_info[:2] < (3, 3) else []),
     setup_requires=[
-    ] + pytest_runner,
+    ] + sphinx + pytest_runner,
 )
 
 if __name__ == '__main__':

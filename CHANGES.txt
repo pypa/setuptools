@@ -2,6 +2,459 @@
 CHANGES
 =======
 
+
+----
+19.2
+----
+
+* Pull Request #163: Add get_command_list method to Distribution.
+* Pull Request #162: Add missing whitespace to multiline string
+  literals.
+
+------
+19.1.1
+------
+
+* Issue #476: Cast version to string (using default encoding)
+  to avoid creating Unicode types on Python 2 clients.
+* Issue #477: In Powershell downloader, use explicit rendering
+  of strings, rather than rely on ``repr``, which can be
+  incorrect (especially on Python 2).
+
+----
+19.1
+----
+
+* Issue #215: The bootstrap script ``ez_setup.py`` now
+  automatically detects
+  the latest version of setuptools (using PyPI JSON API) rather
+  than hard-coding a particular value.
+* Issue #475: Fix incorrect usage in _translate_metadata2.
+
+----
+19.0
+----
+
+* Issue #442: Use RawConfigParser for parsing .pypirc file.
+  Interpolated values are no longer honored in .pypirc files.
+
+------
+18.8.1
+------
+
+* Issue #440: Prevent infinite recursion when a SandboxViolation
+  or other UnpickleableException occurs in a sandbox context
+  with setuptools hidden. Fixes regression introduced in Setuptools
+  12.0.
+
+----
+18.8
+----
+
+* Deprecated ``egg_info.get_pkg_info_revision``.
+* Issue #471: Don't rely on repr for an HTML attribute value in
+  package_index.
+* Issue #419: Avoid errors in FileMetadata when the metadata directory
+  is broken.
+* Issue #472: Remove deprecated use of 'U' in mode parameter
+  when opening files.
+
+------
+18.7.1
+------
+
+* Issue #469: Refactored logic for Issue #419 fix to re-use metadata
+  loading from Provider.
+
+----
+18.7
+----
+
+* Update dependency on certify.
+* Pull Request #160: Improve detection of gui script in
+  ``easy_install._adjust_header``.
+* Made ``test.test_args`` a non-data property; alternate fix
+  for the issue reported in Pull Request #155.
+* Issue #453: In ``ez_setup`` bootstrap module, unload all
+  ``pkg_resources`` modules following download.
+* Pull Request #158: Honor `PEP-488
+  <https://www.python.org/dev/peps/pep-0488/>`_ when excluding
+  files for namespace packages.
+* Issue #419 and Pull Request #144: Add experimental support for
+  reading the version info from distutils-installed metadata rather
+  than using the version in the filename.
+
+------
+18.6.1
+------
+
+* Issue #464: Correct regression in invocation of superclass on old-style
+  class on Python 2.
+
+----
+18.6
+----
+
+* Issue #439: When installing entry_point scripts under development,
+  omit the version number of the package, allowing any version of the
+  package to be used.
+
+----
+18.5
+----
+
+* In preparation for dropping support for Python 3.2, a warning is
+  now logged when pkg_resources is imported on Python 3.2 or earlier
+  Python 3 versions.
+* `Add support for python_platform_implementation environment marker
+  <https://github.com/jaraco/setuptools/pull/28>`_.
+* `Fix dictionary mutation during iteration
+  <https://github.com/jaraco/setuptools/pull/29>`_.
+
+----
+18.4
+----
+
+* Issue #446: Test command now always invokes unittest, even
+  if no test suite is supplied.
+
+------
+18.3.2
+------
+
+* Correct another regression in setuptools.findall
+  where the fix for Python #12885 was lost.
+
+------
+18.3.1
+------
+
+* Issue #425: Correct regression in setuptools.findall.
+
+----
+18.3
+----
+
+* Setuptools now allows disabling of the manipulation of the sys.path
+  during the processing of the easy-install.pth file. To do so, set
+  the environment variable ``SETUPTOOLS_SYS_PATH_TECHNIQUE`` to
+  anything but "rewrite" (consider "raw"). During any install operation
+  with manipulation disabled, setuptools packages will be appended to
+  sys.path naturally.
+
+  Future versions may change the default behavior to disable
+  manipulation. If so, the default behavior can be retained by setting
+  the variable to "rewrite".
+
+* Issue #257: ``easy_install --version`` now shows more detail
+  about the installation location and Python version.
+
+* Refactor setuptools.findall in preparation for re-submission
+  back to distutils.
+
+----
+18.2
+----
+
+* Issue #412: More efficient directory search in ``find_packages``.
+
+----
+18.1
+----
+
+* Upgrade to vendored packaging 15.3.
+
+------
+18.0.1
+------
+
+* Issue #401: Fix failure in test suite.
+
+----
+18.0
+----
+
+* Dropped support for builds with Pyrex. Only Cython is supported.
+* Issue #288: Detect Cython later in the build process, after
+  ``setup_requires`` dependencies are resolved.
+  Projects backed by Cython can now be readily built
+  with a ``setup_requires`` dependency. For example::
+
+    ext = setuptools.Extension('mylib', ['src/CythonStuff.pyx', 'src/CStuff.c'])
+    setuptools.setup(
+        ...
+        ext_modules=[ext],
+        setup_requires=['cython'],
+    )
+
+  For compatibility with older versions of setuptools, packagers should
+  still include ``src/CythonMod.c`` in the source distributions or
+  require that Cython be present before building source distributions.
+  However, for systems with this build of setuptools, Cython will be
+  downloaded on demand.
+* Issue #396: Fixed test failure on OS X.
+* Pull Request #136: Remove excessive quoting from shebang headers
+  for Jython.
+
+------
+17.1.1
+------
+
+* Backed out unintended changes to pkg_resources, restoring removal of
+  deprecated imp module (`ref
+  <https://bitbucket.org/pypa/setuptools/commits/f572ec9563d647fa8d4ffc534f2af8070ea07a8b#comment-1881283>`_).
+
+----
+17.1
+----
+
+* Issue #380: Add support for range operators on environment
+  marker evaluation.
+
+----
+17.0
+----
+
+* Issue #378: Do not use internal importlib._bootstrap module.
+* Issue #390: Disallow console scripts with path separators in
+  the name. Removes unintended functionality and brings behavior
+  into parity with pip.
+
+----
+16.0
+----
+
+* Pull Request #130: Better error messages for errors in
+  parsed requirements.
+* Pull Request #133: Removed ``setuptools.tests`` from the
+  installed packages.
+
+----
+15.2
+----
+
+* Issue #373: Provisionally expose
+  ``pkg_resources._initialize_master_working_set``, allowing for
+  imperative re-initialization of the master working set.
+
+----
+15.1
+----
+
+* Updated to Packaging 15.1 to address Packaging #28.
+* Fix ``setuptools.sandbox._execfile()`` with Python 3.1.
+
+----
+15.0
+----
+
+* Pull Request #126: DistributionNotFound message now lists the package or
+  packages that required it. E.g.::
+
+      pkg_resources.DistributionNotFound: The 'colorama>=0.3.1' distribution was not found and is required by smlib.log.
+
+  Note that zc.buildout once dependended on the string rendering of this
+  message to determine the package that was not found. This expectation
+  has since been changed, but older versions of buildout may experience
+  problems. See Buildout #242 for details.
+
+------
+14.3.1
+------
+
+* Issue #307: Removed PEP-440 warning during parsing of versions
+  in ``pkg_resources.Distribution``.
+* Issue #364: Replace deprecated usage with recommended usage of
+  ``EntryPoint.load``.
+
+----
+14.3
+----
+
+* Issue #254: When creating temporary egg cache on Unix, use mode 755
+  for creating the directory to avoid the subsequent warning if
+  the directory is group writable.
+
+----
+14.2
+----
+
+* Issue #137: Update ``Distribution.hashcmp`` so that Distributions with
+  None for pyversion or platform can be compared against Distributions
+  defining those attributes.
+
+------
+14.1.1
+------
+
+* Issue #360: Removed undesirable behavior from test runs, preventing
+  write tests and installation to system site packages.
+
+----
+14.1
+----
+
+* Pull Request #125: Add ``__ne__`` to Requirement class.
+* Various refactoring of easy_install.
+
+----
+14.0
+----
+
+* Bootstrap script now accepts ``--to-dir`` to customize save directory or
+  allow for re-use of existing repository of setuptools versions. See
+  Pull Request #112 for background.
+* Issue #285: ``easy_install`` no longer will default to installing
+  packages to the "user site packages" directory if it is itself installed
+  there. Instead, the user must pass ``--user`` in all cases to install
+  packages to the user site packages.
+  This behavior now matches that of "pip install". To configure
+  an environment to always install to the user site packages, consider
+  using the "install-dir" and "scripts-dir" parameters to easy_install
+  through an appropriate distutils config file.
+
+------
+13.0.2
+------
+
+* Issue #359: Include pytest.ini in the sdist so invocation of py.test on the
+  sdist honors the pytest configuration.
+
+------
+13.0.1
+------
+
+Re-release of 13.0. Intermittent connectivity issues caused the release
+process to fail and PyPI uploads no longer accept files for 13.0.
+
+----
+13.0
+----
+
+* Issue #356: Back out Pull Request #119 as it requires Setuptools 10 or later
+  as the source during an upgrade.
+* Removed build_py class from setup.py. According to 892f439d216e, this
+  functionality was added to support upgrades from old Distribute versions,
+  0.6.5 and 0.6.6.
+
+----
+12.4
+----
+
+* Pull Request #119: Restore writing of ``setup_requires`` to metadata
+  (previously added in 8.4 and removed in 9.0).
+
+----
+12.3
+----
+
+* Documentation is now linked using the rst.linker package.
+* Fix ``setuptools.command.easy_install.extract_wininst_cfg()``
+  with Python 2.6 and 2.7.
+* Issue #354. Added documentation on building setuptools
+  documentation.
+
+----
+12.2
+----
+
+* Issue #345: Unload all modules under pkg_resources during
+  ``ez_setup.use_setuptools()``.
+* Issue #336: Removed deprecation from ``ez_setup.use_setuptools``,
+  as it is clearly still used by buildout's bootstrap. ``ez_setup``
+  remains deprecated for use by individual packages.
+* Simplified implementation of ``ez_setup.use_setuptools``.
+
+----
+12.1
+----
+
+* Pull Request #118: Soften warning for non-normalized versions in
+  Distribution.
+
+------
+12.0.5
+------
+
+* Issue #339: Correct Attribute reference in ``cant_write_to_target``.
+* Issue #336: Deprecated ``ez_setup.use_setuptools``.
+
+------
+12.0.4
+------
+
+* Issue #335: Fix script header generation on Windows.
+
+------
+12.0.3
+------
+
+* Fixed incorrect class attribute in ``install_scripts``. Tests would be nice.
+
+------
+12.0.2
+------
+
+* Issue #331: Fixed ``install_scripts`` command on Windows systems corrupting
+  the header.
+
+------
+12.0.1
+------
+
+* Restore ``setuptools.command.easy_install.sys_executable`` for pbr
+  compatibility. For the future, tools should construct a CommandSpec
+  explicitly.
+
+----
+12.0
+----
+
+* Issue #188: Setuptools now support multiple entities in the value for
+  ``build.executable``, such that an executable of "/usr/bin/env my-python" may
+  be specified. This means that systems with a specified executable whose name
+  has spaces in the path must be updated to escape or quote that value.
+* Deprecated ``easy_install.ScriptWriter.get_writer``, replaced by ``.best()``
+  with slightly different semantics (no force_windows flag).
+
+------
+11.3.1
+------
+
+* Issue #327: Formalize and restore support for any printable character in an
+  entry point name.
+
+----
+11.3
+----
+
+* Expose ``EntryPoint.resolve`` in place of EntryPoint._load, implementing the
+  simple, non-requiring load. Deprecated all uses of ``EntryPoint._load``
+  except for calling with no parameters, which is just a shortcut for
+  ``ep.require(); ep.resolve();``.
+
+  Apps currently invoking ``ep.load(require=False)`` should instead do the
+  following if wanting to avoid the deprecating warning::
+
+    getattr(ep, "resolve", lambda: ep.load(require=False))()
+
+----
+11.2
+----
+
+* Pip #2326: Report deprecation warning at stacklevel 2 for easier diagnosis.
+
+----
+11.1
+----
+
+* Issue #281: Since Setuptools 6.1 (Issue #268), a ValueError would be raised
+  in certain cases where VersionConflict was raised with two arguments, which
+  occurred in ``pkg_resources.WorkingSet.find``. This release adds support
+  for indicating the dependent packages while maintaining support for
+  a VersionConflict when no dependent package context is known. New unit tests
+  now capture the expected interface.
+
 ----
 11.0
 ----
@@ -19,7 +472,9 @@ CHANGES
 10.2
 ----
 
-* Deprecated use of EntryPoint.load(require=False).
+* Deprecated use of EntryPoint.load(require=False). Passing a boolean to a
+  function to select behavior is an anti-pattern. Instead use
+  ``Entrypoint._load()``.
 * Substantial refactoring of all unit tests. Tests are now much leaner and
   re-use a lot of fixtures and contexts for better clarity of purpose.
 

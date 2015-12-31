@@ -1,5 +1,5 @@
 recursive-include setuptools *.py *.exe *.xml
-recursive-include tests *.py *.c *.pyx
+recursive-include tests *.py
 recursive-include setuptools/tests *.html
 recursive-include docs *.py *.txt *.conf *.css *.css_t Makefile indexsidebar.html
 recursive-include _markerlib *.py
@@ -10,3 +10,4 @@ include *.txt
 include MANIFEST.in
 include launcher.c
 include msvc-build-launcher.cmd
+include pytest.ini

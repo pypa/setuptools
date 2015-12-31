@@ -10,23 +10,29 @@ import distutils.filelist
 import os
 import re
 import sys
+import io
+import warnings
+import time
 
 import six
-
-try:
-    from setuptools_svn import svn_utils
-except ImportError:
-    pass
 
 from setuptools import Command
 from setuptools.command.sdist import sdist
 from setuptools.command.sdist import walk_revctrl
+from setuptools.command.setopt import edit_config
+from setuptools.command import bdist_egg
 from pkg_resources import (
     parse_requirements, safe_name, parse_version,
     safe_version, yield_lines, EntryPoint, iter_entry_points, to_filename)
 import setuptools.unicode_utils as unicode_utils
 
 from pkg_resources import packaging
+
+try:
+    from setuptools_svn import svn_utils
+except ImportError:
+    pass
+
 
 class egg_info(Command):
     description = "create a distribution's .egg-info directory"
@@ -59,8 +65,6 @@ class egg_info(Command):
         self.vtags = None
 
     def save_version_info(self, filename):
-        from setuptools.command.setopt import edit_config
-
         values = dict(
             egg_info=dict(
                 tag_svn_revision=0,
@@ -169,7 +173,8 @@ class egg_info(Command):
         self.mkpath(self.egg_info)
         installer = self.distribution.fetch_build_egg
         for ep in iter_entry_points('egg_info.writers'):
-            writer = ep.load(installer=installer)
+            ep.require(installer=installer)
+            writer = ep.resolve()
             writer(self, ep.name, os.path.join(self.egg_info, ep.name))
 
         # Get rid of native_libs.txt if it was put there by older bdist_egg
@@ -184,12 +189,8 @@ class egg_info(Command):
         if self.tag_build:
             version += self.tag_build
         if self.tag_svn_revision:
-            rev = self.get_svn_revision()
-            if rev:     # is 0 if it's not an svn working copy
-                version += '-r%s' % rev
+            version += '-r%s' % self.get_svn_revision()
         if self.tag_date:
-            import time
-
             version += time.strftime("-%Y%m%d")
         return version
 
@@ -390,7 +391,6 @@ def write_pkg_info(cmd, basename, filename):
             metadata.name, metadata.version = oldname, oldver
 
         safe = getattr(cmd.distribution, 'zip_safe', None)
-        from setuptools.command import bdist_egg
 
         bdist_egg.write_safety_flag(cmd.egg_info, safe)
 
@@ -467,14 +467,15 @@ def write_entries(cmd, basename, filename):
 
 
 def get_pkg_info_revision():
-    # See if we can get a -r### off of PKG-INFO, in case this is an sdist of
-    # a subversion revision
-    #
+    """
+    Get a -r### off of PKG-INFO Version in case this is an sdist of
+    a subversion revision.
+    """
+    warnings.warn("get_pkg_info_revision is deprecated.", DeprecationWarning)
     if os.path.exists('PKG-INFO'):
-        f = open('PKG-INFO', 'rU')
-        for line in f:
-            match = re.match(r"Version:.*-r(\d+)\s*$", line)
-            if match:
-                return int(match.group(1))
-        f.close()
+        with io.open('PKG-INFO') as f:
+            for line in f:
+                match = re.match(r"Version:.*-r(\d+)\s*$", line)
+                if match:
+                    return int(match.group(1))
     return 0

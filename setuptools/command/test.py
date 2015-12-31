@@ -1,6 +1,5 @@
 from distutils.errors import DistutilsOptionError
 from unittest import TestLoader
-import unittest
 import sys
 
 import six
@@ -13,7 +12,7 @@ from setuptools.py31compat import unittest_main
 
 
 class ScanningLoader(TestLoader):
-    def loadTestsFromModule(self, module):
+    def loadTestsFromModule(self, module, pattern=None):
         """Return a suite of all tests cases contained in the given module
 
         If the module is a package, load tests from all the modules in it.
@@ -43,6 +42,17 @@ class ScanningLoader(TestLoader):
             return tests[0]  # don't create a nested suite for only one return
 
 
+# adapted from jaraco.classes.properties:NonDataProperty
+class NonDataProperty(object):
+    def __init__(self, fget):
+        self.fget = fget
+
+    def __get__(self, obj, objtype=None):
+        if obj is None:
+            return self
+        return self.fget(obj)
+
+
 class test(Command):
     """Command to run unit tests after in-place build"""
 
@@ -63,26 +73,32 @@ class test(Command):
 
     def finalize_options(self):
 
+        if self.test_suite and self.test_module:
+            msg = "You may specify a module or a suite, but not both"
+            raise DistutilsOptionError(msg)
+
         if self.test_suite is None:
             if self.test_module is None:
                 self.test_suite = self.distribution.test_suite
             else:
                 self.test_suite = self.test_module + ".test_suite"
-        elif self.test_module:
-            raise DistutilsOptionError(
-                "You may specify a module or a suite, but not both"
-            )
 
-        self.test_args = [self.test_suite]
-
-        if self.verbose:
-            self.test_args.insert(0, '--verbose')
         if self.test_loader is None:
             self.test_loader = getattr(self.distribution, 'test_loader', None)
         if self.test_loader is None:
             self.test_loader = "setuptools.command.test:ScanningLoader"
         if self.test_runner is None:
             self.test_runner = getattr(self.distribution, 'test_runner', None)
+
+    @NonDataProperty
+    def test_args(self):
+        return list(self._test_args())
+
+    def _test_args(self):
+        if self.verbose:
+            yield '--verbose'
+        if self.test_suite:
+            yield self.test_suite
 
     def with_project_on_sys_path(self, func):
         with_2to3 = six.PY3 and getattr(self.distribution, 'use_2to3', False)
@@ -134,20 +150,19 @@ class test(Command):
         if self.distribution.tests_require:
             self.distribution.fetch_build_eggs(self.distribution.tests_require)
 
-        if self.test_suite:
-            cmd = ' '.join(self.test_args)
-            if self.dry_run:
-                self.announce('skipping "unittest %s" (dry run)' % cmd)
-            else:
-                self.announce('running "unittest %s"' % cmd)
-                self.with_project_on_sys_path(self.run_tests)
+        cmd = ' '.join(self._argv)
+        if self.dry_run:
+            self.announce('skipping "%s" (dry run)' % cmd)
+        else:
+            self.announce('running "%s"' % cmd)
+            self.with_project_on_sys_path(self.run_tests)
 
     def run_tests(self):
         # Purge modules under test from sys.modules. The test loader will
         # re-import them from the build location. Required when 2to3 is used
         # with namespace packages.
         if six.PY3 and getattr(self.distribution, 'use_2to3', False):
-            module = self.test_args[-1].split('.')[0]
+            module = self.test_suite.split('.')[0]
             if module in _namespace_packages:
                 del_modules = []
                 if module in sys.modules:
@@ -159,10 +174,14 @@ class test(Command):
                 list(map(sys.modules.__delitem__, del_modules))
 
         unittest_main(
-            None, None, [unittest.__file__] + self.test_args,
+            None, None, self._argv,
             testLoader=self._resolve_as_ep(self.test_loader),
             testRunner=self._resolve_as_ep(self.test_runner),
         )
+
+    @property
+    def _argv(self):
+        return ['unittest'] + self.test_args
 
     @staticmethod
     def _resolve_as_ep(val):
@@ -173,4 +192,4 @@ class test(Command):
         if val is None:
             return
         parsed = EntryPoint.parse("x=" + val)
-        return parsed._load()()
+        return parsed.resolve()()

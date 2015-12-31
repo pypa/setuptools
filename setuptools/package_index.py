@@ -6,6 +6,7 @@ import shutil
 import socket
 import base64
 import hashlib
+import itertools
 from functools import wraps
 
 try:
@@ -14,7 +15,7 @@ except ImportError:
     from urllib2 import splituser
 
 import six
-from six.moves import urllib, http_client
+from six.moves import urllib, http_client, configparser
 
 from pkg_resources import (
     CHECKOUT_DIST, Distribution, BINARY_DIST, normalize_path, SOURCE_DIST,
@@ -141,10 +142,9 @@ def interpret_distro_name(
     # versions in distribution archive names (sdist and bdist).
 
     parts = basename.split('-')
-    if not py_version:
-        for i,p in enumerate(parts[2:]):
-            if len(p)==5 and p.startswith('py2.'):
-                return # It's a bdist_dumb, not an sdist -- bail out
+    if not py_version and any(re.match('py\d\.\d$', p) for p in parts[2:]):
+        # it is a bdist_dumb, not an sdist -- bail out
+        return
 
     for p in range(1,len(parts)+1):
         yield Distribution(
@@ -356,20 +356,30 @@ class PackageIndex(Environment):
             self.warn(msg, url)
 
     def scan_egg_links(self, search_path):
-        for item in search_path:
-            if os.path.isdir(item):
-                for entry in os.listdir(item):
-                    if entry.endswith('.egg-link'):
-                        self.scan_egg_link(item, entry)
+        dirs = filter(os.path.isdir, search_path)
+        egg_links = (
+            (path, entry)
+            for path in dirs
+            for entry in os.listdir(path)
+            if entry.endswith('.egg-link')
+        )
+        list(itertools.starmap(self.scan_egg_link, egg_links))
 
     def scan_egg_link(self, path, entry):
-        lines = [_f for _f in map(str.strip,
-                                  open(os.path.join(path, entry))) if _f]
-        if len(lines)==2:
-            for dist in find_distributions(os.path.join(path, lines[0])):
-                dist.location = os.path.join(path, *lines)
-                dist.precedence = SOURCE_DIST
-                self.add(dist)
+        with open(os.path.join(path, entry)) as raw_lines:
+            # filter non-empty lines
+            lines = list(filter(None, map(str.strip, raw_lines)))
+
+        if len(lines) != 2:
+            # format is not recognized; punt
+            return
+
+        egg_path, setup_path = lines
+
+        for dist in find_distributions(os.path.join(path, egg_path)):
+            dist.location = os.path.join(path, *lines)
+            dist.precedence = SOURCE_DIST
+            self.add(dist)
 
     def process_index(self,url,page):
         """Process the contents of a PyPI page"""
@@ -702,25 +712,21 @@ class PackageIndex(Environment):
             return local_open(url)
         try:
             return open_with_auth(url, self.opener)
-        except (ValueError, http_client.InvalidURL):
-            v = sys.exc_info()[1]
+        except (ValueError, http_client.InvalidURL) as v:
             msg = ' '.join([str(arg) for arg in v.args])
             if warning:
                 self.warn(warning, msg)
             else:
                 raise DistutilsError('%s %s' % (url, msg))
-        except urllib.error.HTTPError:
-            v = sys.exc_info()[1]
+        except urllib.error.HTTPError as v:
             return v
-        except urllib.error.URLError:
-            v = sys.exc_info()[1]
+        except urllib.error.URLError as v:
             if warning:
                 self.warn(warning, v.reason)
             else:
                 raise DistutilsError("Download error for %s: %s"
                                      % (url, v.reason))
-        except http_client.BadStatusLine:
-            v = sys.exc_info()[1]
+        except http_client.BadStatusLine as v:
             if warning:
                 self.warn(warning, v.line)
             else:
@@ -729,8 +735,7 @@ class PackageIndex(Environment):
                     'down, %s' %
                     (url, v.line)
                 )
-        except http_client.HTTPException:
-            v = sys.exc_info()[1]
+        except http_client.HTTPException as v:
             if warning:
                 self.warn(warning, v)
             else:
@@ -944,14 +949,14 @@ class Credential(object):
     def __str__(self):
         return '%(username)s:%(password)s' % vars(self)
 
-class PyPIConfig(six.moves.configparser.ConfigParser):
+class PyPIConfig(configparser.RawConfigParser):
 
     def __init__(self):
         """
         Load from ~/.pypirc
         """
         defaults = dict.fromkeys(['username', 'password', 'repository'], '')
-        six.moves.configparser.ConfigParser.__init__(self, defaults)
+        configparser.RawConfigParser.__init__(self, defaults)
 
         rc = os.path.join(os.path.expanduser('~'), '.pypirc')
         if os.path.exists(rc):
@@ -1043,16 +1048,18 @@ def local_open(url):
     elif path.endswith('/') and os.path.isdir(filename):
         files = []
         for f in os.listdir(filename):
-            if f=='index.html':
-                with open(os.path.join(filename,f),'r') as fp:
+            filepath = os.path.join(filename, f)
+            if f == 'index.html':
+                with open(filepath, 'r') as fp:
                     body = fp.read()
                 break
-            elif os.path.isdir(os.path.join(filename,f)):
-                f+='/'
-            files.append("<a href=%r>%s</a>" % (f,f))
+            elif os.path.isdir(filepath):
+                f += '/'
+            files.append('<a href="{name}">{name}</a>'.format(name=f))
         else:
-            body = ("<html><head><title>%s</title>" % url) + \
-                "</head><body>%s</body></html>" % '\n'.join(files)
+            tmpl = ("<html><head><title>{url}</title>"
+                "</head><body>{files}</body></html>")
+            body = tmpl.format(url=url, files='\n'.join(files))
         status, message = 200, "OK"
     else:
         status, message, body = 404, "Path not found", "Not found"

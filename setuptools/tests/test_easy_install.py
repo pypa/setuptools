@@ -1,4 +1,4 @@
-#! -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 """Easy install Tests
 """
@@ -13,29 +13,30 @@ import contextlib
 import tarfile
 import logging
 import itertools
+import distutils.errors
 import io
 
 import six
 from six.moves import urllib
 import pytest
-import mock
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 
 from setuptools import sandbox
-from setuptools.sandbox import run_setup, SandboxViolation
-from setuptools.command.easy_install import (
-    easy_install, fix_jython_executable, get_script_args, nt_quote_arg,
-    get_script_header, is_sh,
-)
+from setuptools.sandbox import run_setup
+import setuptools.command.easy_install as ei
 from setuptools.command.easy_install import PthDistributions
 from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
-from pkg_resources import working_set, VersionConflict
+from pkg_resources import working_set
 from pkg_resources import Distribution as PRDistribution
 import setuptools.tests.server
 import pkg_resources
 
 from .py26compat import tarfile_open
-from . import contexts
+from . import contexts, is_ascii
 from .textwrap import DALS
 
 
@@ -48,19 +49,6 @@ class FakeDist(object):
     def as_requirement(self):
         return 'spec'
 
-WANTED = DALS("""
-    #!%s
-    # EASY-INSTALL-ENTRY-SCRIPT: 'spec','console_scripts','name'
-    __requires__ = 'spec'
-    import sys
-    from pkg_resources import load_entry_point
-
-    if __name__ == '__main__':
-        sys.exit(
-            load_entry_point('spec', 'console_scripts', 'name')()
-        )
-    """) % nt_quote_arg(fix_jython_executable(sys.executable, ""))
-
 SETUP_PY = DALS("""
     from setuptools import setup
 
@@ -71,7 +59,7 @@ class TestEasyInstallTest:
 
     def test_install_site_py(self):
         dist = Distribution()
-        cmd = easy_install(dist)
+        cmd = ei.easy_install(dist)
         cmd.sitepy_installed = False
         cmd.install_dir = tempfile.mkdtemp()
         try:
@@ -82,18 +70,30 @@ class TestEasyInstallTest:
             shutil.rmtree(cmd.install_dir)
 
     def test_get_script_args(self):
+        header = ei.CommandSpec.best().from_environment().as_header()
+        expected = header + DALS("""
+            # EASY-INSTALL-ENTRY-SCRIPT: 'spec','console_scripts','name'
+            __requires__ = 'spec'
+            import sys
+            from pkg_resources import load_entry_point
+
+            if __name__ == '__main__':
+                sys.exit(
+                    load_entry_point('spec', 'console_scripts', 'name')()
+                )
+            """)
         dist = FakeDist()
 
-        args = next(get_script_args(dist))
+        args = next(ei.ScriptWriter.get_args(dist))
         name, script = itertools.islice(args, 2)
 
-        assert script == WANTED
+        assert script == expected
 
     def test_no_find_links(self):
         # new option '--no-find-links', that blocks find-links added at
         # the project level
         dist = Distribution()
-        cmd = easy_install(dist)
+        cmd = ei.easy_install(dist)
         cmd.check_pth_processing = lambda: True
         cmd.no_find_links = True
         cmd.find_links = ['link1', 'link2']
@@ -103,7 +103,7 @@ class TestEasyInstallTest:
         assert cmd.package_index.scanned_urls == {}
 
         # let's try without it (default behavior)
-        cmd = easy_install(dist)
+        cmd = ei.easy_install(dist)
         cmd.check_pth_processing = lambda: True
         cmd.find_links = ['link1', 'link2']
         cmd.install_dir = os.path.join(tempfile.mkdtemp(), 'ok')
@@ -111,6 +111,16 @@ class TestEasyInstallTest:
         cmd.ensure_finalized()
         keys = sorted(cmd.package_index.scanned_urls.keys())
         assert keys == ['link1', 'link2']
+
+    def test_write_exception(self):
+        """
+        Test that `cant_write_to_target` is rendered as a DistutilsError.
+        """
+        dist = Distribution()
+        cmd = ei.easy_install(dist)
+        cmd.install_dir = os.getcwd()
+        with pytest.raises(distutils.errors.DistutilsError):
+            cmd.cant_write_to_target()
 
 
 class TestPTHFileWriter:
@@ -145,77 +155,74 @@ def setup_context(tmpdir):
 @pytest.mark.usefixtures("setup_context")
 class TestUserInstallTest:
 
-    @mock.patch('setuptools.command.easy_install.__file__', None)
-    def test_user_install_implied(self):
-        easy_install_pkg.__file__ = site.USER_SITE
-        site.ENABLE_USER_SITE = True # disabled sometimes
-        #XXX: replace with something meaningfull
+    # prevent check that site-packages is writable. easy_install
+    # shouldn't be writing to system site-packages during finalize
+    # options, but while it does, bypass the behavior.
+    prev_sp_write = mock.patch(
+        'setuptools.command.easy_install.easy_install.check_site_dir',
+        mock.Mock(),
+    )
+
+    # simulate setuptools installed in user site packages
+    @mock.patch('setuptools.command.easy_install.__file__', site.USER_SITE)
+    @mock.patch('site.ENABLE_USER_SITE', True)
+    @prev_sp_write
+    def test_user_install_not_implied_user_site_enabled(self):
+        self.assert_not_user_site()
+
+    @mock.patch('site.ENABLE_USER_SITE', False)
+    @prev_sp_write
+    def test_user_install_not_implied_user_site_disabled(self):
+        self.assert_not_user_site()
+
+    @staticmethod
+    def assert_not_user_site():
+        # create a finalized easy_install command
         dist = Distribution()
         dist.script_name = 'setup.py'
-        cmd = easy_install(dist)
+        cmd = ei.easy_install(dist)
         cmd.args = ['py']
         cmd.ensure_finalized()
-        assert cmd.user, 'user should be implied'
+        assert not cmd.user, 'user should not be implied'
 
     def test_multiproc_atexit(self):
-        try:
-            __import__('multiprocessing')
-        except ImportError:
-            # skip the test if multiprocessing is not available
-            return
+        pytest.importorskip('multiprocessing')
 
         log = logging.getLogger('test_easy_install')
         logging.basicConfig(level=logging.INFO, stream=sys.stderr)
         log.info('this should not break')
 
-    def test_user_install_not_implied_without_usersite_enabled(self):
-        site.ENABLE_USER_SITE = False # usually enabled
-        #XXX: replace with something meaningfull
+    @pytest.fixture()
+    def foo_package(self, tmpdir):
+        egg_file = tmpdir / 'foo-1.0.egg-info'
+        with egg_file.open('w') as f:
+            f.write('Name: foo\n')
+        return str(tmpdir)
+
+    @pytest.yield_fixture()
+    def install_target(self, tmpdir):
+        target = str(tmpdir)
+        with mock.patch('sys.path', sys.path + [target]):
+            python_path = os.path.pathsep.join(sys.path)
+            with mock.patch.dict(os.environ, PYTHONPATH=python_path):
+                yield target
+
+    def test_local_index(self, foo_package, install_target):
+        """
+        The local index must be used when easy_install locates installed
+        packages.
+        """
         dist = Distribution()
         dist.script_name = 'setup.py'
-        cmd = easy_install(dist)
-        cmd.args = ['py']
-        cmd.initialize_options()
-        assert not cmd.user, 'NOT user should be implied'
-
-    def test_local_index(self):
-        # make sure the local index is used
-        # when easy_install looks for installed
-        # packages
-        new_location = tempfile.mkdtemp()
-        target = tempfile.mkdtemp()
-        egg_file = os.path.join(new_location, 'foo-1.0.egg-info')
-        with open(egg_file, 'w') as f:
-            f.write('Name: foo\n')
-
-        sys.path.append(target)
-        old_ppath = os.environ.get('PYTHONPATH')
-        os.environ['PYTHONPATH'] = os.path.pathsep.join(sys.path)
-        try:
-            dist = Distribution()
-            dist.script_name = 'setup.py'
-            cmd = easy_install(dist)
-            cmd.install_dir = target
-            cmd.args = ['foo']
-            cmd.ensure_finalized()
-            cmd.local_index.scan([new_location])
-            res = cmd.easy_install('foo')
-            actual = os.path.normcase(os.path.realpath(res.location))
-            expected = os.path.normcase(os.path.realpath(new_location))
-            assert actual == expected
-        finally:
-            sys.path.remove(target)
-            for basedir in [new_location, target, ]:
-                if not os.path.exists(basedir) or not os.path.isdir(basedir):
-                    continue
-                try:
-                    shutil.rmtree(basedir)
-                except:
-                    pass
-            if old_ppath is not None:
-                os.environ['PYTHONPATH'] = old_ppath
-            else:
-                del os.environ['PYTHONPATH']
+        cmd = ei.easy_install(dist)
+        cmd.install_dir = install_target
+        cmd.args = ['foo']
+        cmd.ensure_finalized()
+        cmd.local_index.scan([foo_package])
+        res = cmd.easy_install('foo')
+        actual = os.path.normcase(os.path.realpath(res.location))
+        expected = os.path.normcase(os.path.realpath(foo_package))
+        assert actual == expected
 
     @contextlib.contextmanager
     def user_install_setup_context(self, *args, **kwargs):
@@ -235,28 +242,6 @@ class TestUserInstallTest:
             'setuptools.sandbox.setup_context',
             self.user_install_setup_context,
         )
-
-    def test_setup_requires(self):
-        """Regression test for Distribute issue #318
-
-        Ensure that a package with setup_requires can be installed when
-        setuptools is installed in the user site-packages without causing a
-        SandboxViolation.
-        """
-
-        test_pkg = create_setup_requires_package(os.getcwd())
-        test_setup_py = os.path.join(test_pkg, 'setup.py')
-
-        try:
-            with contexts.quiet():
-                with self.patched_setup_context():
-                    run_setup(test_setup_py, ['install'])
-        except SandboxViolation:
-            self.fail('Installation caused SandboxViolation')
-        except IndexError:
-            # Test fails in some cases due to bugs in Python
-            # See https://bitbucket.org/pypa/setuptools/issue/201
-            pass
 
 
 @pytest.yield_fixture
@@ -305,7 +290,7 @@ class TestSetupRequires:
                             '--install-dir', temp_install_dir,
                             dist_file,
                         ]
-                        with contexts.argv(['easy_install']):
+                        with sandbox.save_argv(['easy_install']):
                             # attempt to install the dist. It should fail because
                             #  it doesn't exist.
                             with pytest.raises(SystemExit):
@@ -354,13 +339,9 @@ class TestSetupRequires:
                 test_pkg = create_setup_requires_package(temp_dir)
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
                 with contexts.quiet() as (stdout, stderr):
-                    try:
-                        # Don't even need to install the package, just
-                        # running the setup.py at all is sufficient
-                        run_setup(test_setup_py, ['--name'])
-                    except VersionConflict:
-                        self.fail('Installing setup.py requirements '
-                            'caused a VersionConflict')
+                    # Don't even need to install the package, just
+                    # running the setup.py at all is sufficient
+                    run_setup(test_setup_py, ['--name'])
 
                 lines = stdout.readlines()
                 assert len(lines) > 0
@@ -422,23 +403,31 @@ class TestScriptHeader:
     exe_with_spaces = r'C:\Program Files\Python33\python.exe'
 
     @pytest.mark.skipif(
-        sys.platform.startswith('java') and is_sh(sys.executable),
+        sys.platform.startswith('java') and ei.is_sh(sys.executable),
         reason="Test cannot run under java when executable is sh"
     )
     def test_get_script_header(self):
-        expected = '#!%s\n' % nt_quote_arg(os.path.normpath(sys.executable))
-        assert get_script_header('#!/usr/local/bin/python') == expected
-        expected = '#!%s  -x\n' % nt_quote_arg(os.path.normpath(sys.executable))
-        assert get_script_header('#!/usr/bin/python -x') == expected
-        candidate = get_script_header('#!/usr/bin/python',
+        expected = '#!%s\n' % ei.nt_quote_arg(os.path.normpath(sys.executable))
+        actual = ei.ScriptWriter.get_script_header('#!/usr/local/bin/python')
+        assert actual == expected
+
+        expected = '#!%s -x\n' % ei.nt_quote_arg(os.path.normpath
+            (sys.executable))
+        actual = ei.ScriptWriter.get_script_header('#!/usr/bin/python -x')
+        assert actual == expected
+
+        actual = ei.ScriptWriter.get_script_header('#!/usr/bin/python',
             executable=self.non_ascii_exe)
-        assert candidate == '#!%s -x\n' % self.non_ascii_exe
-        candidate = get_script_header('#!/usr/bin/python',
-            executable=self.exe_with_spaces)
-        assert candidate == '#!"%s"\n' % self.exe_with_spaces
+        expected = '#!%s -x\n' % self.non_ascii_exe
+        assert actual == expected
+
+        actual = ei.ScriptWriter.get_script_header('#!/usr/bin/python',
+            executable='"'+self.exe_with_spaces+'"')
+        expected = '#!"%s"\n' % self.exe_with_spaces
+        assert actual == expected
 
     @pytest.mark.xfail(
-        six.PY3 and os.environ.get("LC_CTYPE") in ("C", "POSIX"),
+        six.PY3 and is_ascii,
         reason="Test fails in this locale on Python 3"
     )
     @mock.patch.dict(sys.modules, java=mock.Mock(lang=mock.Mock(System=
@@ -453,9 +442,15 @@ class TestScriptHeader:
         exe = tmpdir / 'exe.py'
         with exe.open('w') as f:
             f.write(header)
-        exe = str(exe)
 
-        header = get_script_header('#!/usr/local/bin/python', executable=exe)
+        exe = ei.nt_quote_arg(os.path.normpath(str(exe)))
+
+        # Make sure Windows paths are quoted properly before they're sent
+        # through shlex.split by get_script_header
+        executable = '"%s"' % exe if os.path.splitdrive(exe)[0] else exe
+
+        header = ei.ScriptWriter.get_script_header('#!/usr/local/bin/python',
+            executable=executable)
         assert header == '#!/usr/bin/env %s\n' % exe
 
         expect_out = 'stdout' if sys.version_info < (2,7) else 'stderr'
@@ -463,15 +458,70 @@ class TestScriptHeader:
         with contexts.quiet() as (stdout, stderr):
             # When options are included, generate a broken shebang line
             # with a warning emitted
-            candidate = get_script_header('#!/usr/bin/python -x',
-                executable=exe)
-            assert candidate == '#!%s  -x\n' % exe
+            candidate = ei.ScriptWriter.get_script_header('#!/usr/bin/python -x',
+                executable=executable)
+            assert candidate == '#!%s -x\n' % exe
             output = locals()[expect_out]
             assert 'Unable to adapt shebang line' in output.getvalue()
 
         with contexts.quiet() as (stdout, stderr):
-            candidate = get_script_header('#!/usr/bin/python',
+            candidate = ei.ScriptWriter.get_script_header('#!/usr/bin/python',
                 executable=self.non_ascii_exe)
             assert candidate == '#!%s -x\n' % self.non_ascii_exe
             output = locals()[expect_out]
             assert 'Unable to adapt shebang line' in output.getvalue()
+
+
+class TestCommandSpec:
+    def test_custom_launch_command(self):
+        """
+        Show how a custom CommandSpec could be used to specify a #! executable
+        which takes parameters.
+        """
+        cmd = ei.CommandSpec(['/usr/bin/env', 'python3'])
+        assert cmd.as_header() == '#!/usr/bin/env python3\n'
+
+    def test_from_param_for_CommandSpec_is_passthrough(self):
+        """
+        from_param should return an instance of a CommandSpec
+        """
+        cmd = ei.CommandSpec(['python'])
+        cmd_new = ei.CommandSpec.from_param(cmd)
+        assert cmd is cmd_new
+
+    @mock.patch('sys.executable', TestScriptHeader.exe_with_spaces)
+    @mock.patch.dict(os.environ)
+    def test_from_environment_with_spaces_in_executable(self):
+        os.environ.pop('__PYVENV_LAUNCHER__', None)
+        cmd = ei.CommandSpec.from_environment()
+        assert len(cmd) == 1
+        assert cmd.as_header().startswith('#!"')
+
+    def test_from_simple_string_uses_shlex(self):
+        """
+        In order to support `executable = /usr/bin/env my-python`, make sure
+        from_param invokes shlex on that input.
+        """
+        cmd = ei.CommandSpec.from_param('/usr/bin/env my-python')
+        assert len(cmd) == 2
+        assert '"' not in cmd.as_header()
+
+    def test_sys_executable(self):
+        """
+        CommandSpec.from_string(sys.executable) should contain just that param.
+        """
+        writer = ei.ScriptWriter.best()
+        cmd = writer.command_spec_class.from_string(sys.executable)
+        assert len(cmd) == 1
+        assert cmd[0] == sys.executable
+
+
+class TestWindowsScriptWriter:
+    def test_header(self):
+        hdr = ei.WindowsScriptWriter.get_script_header('')
+        assert hdr.startswith('#!')
+        assert hdr.endswith('\n')
+        hdr = hdr.lstrip('#!')
+        hdr = hdr.rstrip('\n')
+        # header should not start with an escaped quote
+        assert not hdr.startswith('\\"')

@@ -592,7 +592,7 @@ Requirements Parsing
 
     The syntax of a requirement specifier can be defined in EBNF as follows::
 
-        requirement  ::= project_name versionspec? extras?
+        requirement  ::= project_name extras? versionspec?
         versionspec  ::= comparison version (',' comparison version)*
         comparison   ::= '<' | '<=' | '!=' | '==' | '>=' | '>' | '~=' | '==='
         extras       ::= '[' extralist? ']'

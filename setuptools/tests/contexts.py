@@ -27,7 +27,7 @@ def environment(**replacements):
     to clear the values.
     """
     saved = dict(
-        (key, os.environ['key'])
+        (key, os.environ[key])
         for key in replacements
         if key in os.environ
     )
@@ -46,14 +46,6 @@ def environment(**replacements):
         for key in replacements:
             os.environ.pop(key, None)
         os.environ.update(saved)
-
-
-@contextlib.contextmanager
-def argv(repl):
-    old_argv = sys.argv[:]
-    sys.argv[:] = repl
-    yield
-    sys.argv[:] = old_argv
 
 
 @contextlib.contextmanager

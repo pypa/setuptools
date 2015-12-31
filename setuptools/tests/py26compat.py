@@ -8,4 +8,7 @@ def _tarfile_open_ex(*args, **kwargs):
 	"""
 	return contextlib.closing(tarfile.open(*args, **kwargs))
 
-tarfile_open = _tarfile_open_ex if sys.version_info < (2,7) else tarfile.open
+if sys.version_info[:2] < (2, 7) or (3, 0) <= sys.version_info[:2] < (3, 2):
+    tarfile_open = _tarfile_open_ex
+else:
+    tarfile_open = tarfile.open

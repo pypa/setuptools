@@ -2,14 +2,24 @@ language: python
 python:
   - 2.6
   - 2.7
-  - 3.2
   - 3.3
   - 3.4
+  - 3.5
   - pypy
-# command to run tests
+env:
+ - ""
+ - LC_ALL=C LC_CTYPE=C
 script:
+ # avoid VersionConflict when newer version is required
+ - pip install -U pytest
+
+ # Output the env, because the travis docs just can't be trusted
+ - env
+
  # update egg_info based on setup.py in checkout
  - python bootstrap.py
 
- - python setup.py ptr --addopts='-rs'
- - python ez_setup.py --version 10.2.1
+ - python setup.py test --addopts='-rs'
+
+ # test the bootstrap script
+ - python ez_setup.py

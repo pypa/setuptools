@@ -2,9 +2,13 @@ from glob import glob
 from distutils.util import convert_path
 import distutils.command.build_py as orig
 import os
-import sys
 import fnmatch
 import textwrap
+import io
+import distutils.errors
+import collections
+import itertools
+
 
 try:
     from setuptools.lib2to3_ex import Mixin2to3
@@ -136,22 +140,7 @@ class build_py(orig.build_py, Mixin2to3):
                 mf.setdefault(src_dirs[d], []).append(path)
 
     def get_data_files(self):
-        pass  # kludge 2.4 for lazy computation
-
-    if sys.version < "2.4":  # Python 2.4 already has this code
-        def get_outputs(self, include_bytecode=1):
-            """Return complete list of files copied to the build directory
-
-            This includes both '.py' files and data files, as well as '.pyc'
-            and '.pyo' files if 'include_bytecode' is true.  (This method is
-            needed for the 'install_lib' command to do its job properly, and to
-            generate a correct installation manifest.)
-            """
-            return orig.build_py.get_outputs(self, include_bytecode) + [
-                os.path.join(build_dir, filename)
-                for package, src_dir, build_dir, filenames in self.data_files
-                for filename in filenames
-            ]
+        pass  # Lazily compute data files in _get_data_files() function.
 
     def check_package(self, package, package_dir):
         """Check namespace packages' __init__ for declare_namespace"""
@@ -172,17 +161,15 @@ class build_py(orig.build_py, Mixin2to3):
         else:
             return init_py
 
-        f = open(init_py, 'rbU')
-        if 'declare_namespace'.encode() not in f.read():
-            from distutils.errors import DistutilsError
-
-            raise DistutilsError(
+        with io.open(init_py, 'rb') as f:
+            contents = f.read()
+        if b'declare_namespace' not in contents:
+            raise distutils.errors.DistutilsError(
                 "Namespace package problem: %s is a namespace package, but "
                 "its\n__init__.py does not call declare_namespace()! Please "
                 'fix it.\n(See the setuptools manual under '
                 '"Namespace Packages" for details.)\n"' % (package,)
             )
-        f.close()
         return init_py
 
     def initialize_options(self):
@@ -197,20 +184,25 @@ class build_py(orig.build_py, Mixin2to3):
 
     def exclude_data_files(self, package, src_dir, files):
         """Filter filenames for package's data files in 'src_dir'"""
-        globs = (self.exclude_package_data.get('', [])
-                 + self.exclude_package_data.get(package, []))
-        bad = []
-        for pattern in globs:
-            bad.extend(
-                fnmatch.filter(
-                    files, os.path.join(src_dir, convert_path(pattern))
-                )
+        globs = (
+            self.exclude_package_data.get('', [])
+            + self.exclude_package_data.get(package, [])
+        )
+        bad = set(
+            item
+            for pattern in globs
+            for item in fnmatch.filter(
+                files,
+                os.path.join(src_dir, convert_path(pattern)),
             )
-        bad = dict.fromkeys(bad)
-        seen = {}
+        )
+        seen = collections.defaultdict(itertools.count)
         return [
-            f for f in files if f not in bad
-            and f not in seen and seen.setdefault(f, 1)  # ditch dupes
+            fn
+            for fn in files
+            if fn not in bad
+            # ditch dupes
+            and not next(seen[fn])
         ]
 
 

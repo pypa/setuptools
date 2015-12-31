@@ -13,7 +13,7 @@ from six.moves import builtins
 
 import pkg_resources
 
-if os.name == "java":
+if sys.platform.startswith('java'):
     import org.python.modules.posix.PosixModule as _os
 else:
     _os = sys.modules[os.name]
@@ -34,12 +34,12 @@ def _execfile(filename, globals, locals=None):
     Python 3 implementation of execfile.
     """
     mode = 'rb'
-    # Python 2.6 compile requires LF for newlines, so use deprecated
-    #  Universal newlines support.
-    if sys.version_info < (2, 7):
-        mode += 'U'
     with open(filename, mode) as stream:
         script = stream.read()
+    # compile() function in Python 2.6 and 3.1 requires LF line endings.
+    if sys.version_info[:2] < (2, 7) or sys.version_info[:2] >= (3, 0) and sys.version_info[:2] < (3, 2):
+        script = script.replace(b'\r\n', b'\n')
+        script = script.replace(b'\r', b'\n')
     if locals is None:
         locals = globals
     code = compile(script, filename, 'exec')
@@ -47,8 +47,10 @@ def _execfile(filename, globals, locals=None):
 
 
 @contextlib.contextmanager
-def save_argv():
+def save_argv(repl=None):
     saved = sys.argv[:]
+    if repl is not None:
+        sys.argv[:] = repl
     try:
         yield saved
     finally:
@@ -92,6 +94,53 @@ def pushd(target):
         os.chdir(saved)
 
 
+class UnpickleableException(Exception):
+    """
+    An exception representing another Exception that could not be pickled.
+    """
+    @staticmethod
+    def dump(type, exc):
+        """
+        Always return a dumped (pickled) type and exc. If exc can't be pickled,
+        wrap it in UnpickleableException first.
+        """
+        try:
+            return pickle.dumps(type), pickle.dumps(exc)
+        except Exception:
+            # get UnpickleableException inside the sandbox
+            from setuptools.sandbox import UnpickleableException as cls
+            return cls.dump(cls, cls(repr(exc)))
+
+
+class ExceptionSaver:
+    """
+    A Context Manager that will save an exception, serialized, and restore it
+    later.
+    """
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, exc, tb):
+        if not exc:
+            return
+
+        # dump the exception
+        self._saved = UnpickleableException.dump(type, exc)
+        self._tb = tb
+
+        # suppress the exception
+        return True
+
+    def resume(self):
+        "restore and re-raise any exception"
+
+        if '_saved' not in vars(self):
+            return
+
+        type, exc = map(pickle.loads, self._saved)
+        six.reraise(type, exc, self._tb)
+
+
 @contextlib.contextmanager
 def save_modules():
     """
@@ -101,31 +150,20 @@ def save_modules():
     outside the context.
     """
     saved = sys.modules.copy()
-    try:
-        try:
-            yield saved
-        except:
-            # dump any exception
-            class_, exc, tb = sys.exc_info()
-            saved_cls = pickle.dumps(class_)
-            saved_exc = pickle.dumps(exc)
-            raise
-        finally:
-            sys.modules.update(saved)
-            # remove any modules imported since
-            del_modules = (
-                mod_name for mod_name in sys.modules
-                if mod_name not in saved
-                # exclude any encodings modules. See #285
-                and not mod_name.startswith('encodings.')
-            )
-            _clear_modules(del_modules)
-    except:
-        # reload and re-raise any exception, using restored modules
-        class_, exc, tb = sys.exc_info()
-        new_cls = pickle.loads(saved_cls)
-        new_exc = pickle.loads(saved_exc)
-        six.reraise(new_cls, new_exc, tb)
+    with ExceptionSaver() as saved_exc:
+        yield saved
+
+    sys.modules.update(saved)
+    # remove any modules imported since
+    del_modules = (
+        mod_name for mod_name in sys.modules
+        if mod_name not in saved
+        # exclude any encodings modules. See #285
+        and not mod_name.startswith('encodings.')
+    )
+    _clear_modules(del_modules)
+
+    saved_exc.resume()
 
 
 def _clear_modules(module_names):
@@ -199,8 +237,7 @@ def run_setup(setup_script, args):
                 ns = dict(__file__=setup_script, __name__='__main__')
                 _execfile(setup_script, ns)
             DirectorySandbox(setup_dir).run(runner)
-        except SystemExit:
-            v = sys.exc_info()[1]
+        except SystemExit as v:
             if v.args and v.args[0]:
                 raise
             # Normal exit, just return
@@ -347,6 +384,7 @@ class DirectorySandbox(AbstractSandbox):
         AbstractSandbox.__init__(self)
 
     def _violation(self, operation, *args, **kw):
+        from setuptools.sandbox import SandboxViolation
         raise SandboxViolation(operation, args, kw)
 
     if _file:

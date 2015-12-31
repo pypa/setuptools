@@ -1,9 +1,13 @@
+from __future__ import absolute_import
+
 import sys
+import os
 import distutils.errors
 
 import six
 from six.moves import urllib, http_client
 
+from .textwrap import DALS
 import pkg_resources
 import setuptools.package_index
 from setuptools.tests.server import IndexServer
@@ -16,8 +20,7 @@ class TestPackageIndex:
         url = 'http://127.0.0.1:0/nonesuch/test_package_index'
         try:
             v = index.open_url(url)
-        except Exception:
-            v = sys.exc_info()[1]
+        except Exception as v:
             assert url in str(v)
         else:
             assert isinstance(v, urllib.error.HTTPError)
@@ -33,8 +36,7 @@ class TestPackageIndex:
         url = 'url:%20https://svn.plone.org/svn/collective/inquant.contentmirror.plone/trunk'
         try:
             v = index.open_url(url)
-        except Exception:
-            v = sys.exc_info()[1]
+        except Exception as v:
             assert url in str(v)
         else:
             assert isinstance(v, urllib.error.HTTPError)
@@ -51,8 +53,7 @@ class TestPackageIndex:
         url = 'http://example.com'
         try:
             v = index.open_url(url)
-        except Exception:
-            v = sys.exc_info()[1]
+        except Exception as v:
             assert 'line' in str(v)
         else:
             raise AssertionError('Should have raise here!')
@@ -69,8 +70,7 @@ class TestPackageIndex:
         url = 'http://http://svn.pythonpaste.org/Paste/wphp/trunk'
         try:
             index.open_url(url)
-        except distutils.errors.DistutilsError:
-            error = sys.exc_info()[1]
+        except distutils.errors.DistutilsError as error:
             msg = six.text_type(error)
             assert 'nonnumeric port' in msg or 'getaddrinfo failed' in msg or 'Name or service not known' in msg
             return
@@ -206,3 +206,20 @@ class TestContentCheckers:
             'http://foo/bar#md5=f12895fdffbd45007040d2e44df98478')
         rep = checker.report(lambda x: x, 'My message about %s')
         assert rep == 'My message about md5'
+
+
+class TestPyPIConfig:
+    def test_percent_in_password(self, tmpdir, monkeypatch):
+        monkeypatch.setitem(os.environ, 'HOME', str(tmpdir))
+        pypirc = tmpdir / '.pypirc'
+        with pypirc.open('w') as strm:
+            strm.write(DALS("""
+                [pypi]
+                repository=https://pypi.python.org
+                username=jaraco
+                password=pity%
+            """))
+        cfg = setuptools.package_index.PyPIConfig()
+        cred = cfg.creds_by_repository['https://pypi.python.org']
+        assert cred.username == 'jaraco'
+        assert cred.password == 'pity%'

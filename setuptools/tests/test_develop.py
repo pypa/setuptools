@@ -1,13 +1,18 @@
 """develop tests
 """
 import os
-import shutil
 import site
 import sys
-import tempfile
+import io
+
+import six
+
+import pytest
 
 from setuptools.command.develop import develop
 from setuptools.dist import Distribution
+from . import contexts
+
 
 SETUP_PY = """\
 from setuptools import setup
@@ -21,65 +26,52 @@ setup(name='foo',
 INIT_PY = """print "foo"
 """
 
-class TestDevelopTest:
+@pytest.yield_fixture
+def temp_user(monkeypatch):
+    with contexts.tempdir() as user_base:
+        with contexts.tempdir() as user_site:
+            monkeypatch.setattr('site.USER_BASE', user_base)
+            monkeypatch.setattr('site.USER_SITE', user_site)
+            yield
 
-    def setup_method(self, method):
-        if hasattr(sys, 'real_prefix'):
-            return
 
-        # Directory structure
-        self.dir = tempfile.mkdtemp()
-        os.mkdir(os.path.join(self.dir, 'foo'))
-        # setup.py
-        setup = os.path.join(self.dir, 'setup.py')
-        f = open(setup, 'w')
+@pytest.yield_fixture
+def test_env(tmpdir, temp_user):
+    target = tmpdir
+    foo = target.mkdir('foo')
+    setup = target / 'setup.py'
+    if setup.isfile():
+        raise ValueError(dir(target))
+    with setup.open('w') as f:
         f.write(SETUP_PY)
-        f.close()
-        self.old_cwd = os.getcwd()
-        # foo/__init__.py
-        init = os.path.join(self.dir, 'foo', '__init__.py')
-        f = open(init, 'w')
+    init = foo / '__init__.py'
+    with init.open('w') as f:
         f.write(INIT_PY)
-        f.close()
+    with target.as_cwd():
+        yield target
 
-        os.chdir(self.dir)
-        self.old_base = site.USER_BASE
-        site.USER_BASE = tempfile.mkdtemp()
-        self.old_site = site.USER_SITE
-        site.USER_SITE = tempfile.mkdtemp()
 
-    def teardown_method(self, method):
-        if hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
-            return
-
-        os.chdir(self.old_cwd)
-        shutil.rmtree(self.dir)
-        shutil.rmtree(site.USER_BASE)
-        shutil.rmtree(site.USER_SITE)
-        site.USER_BASE = self.old_base
-        site.USER_SITE = self.old_site
-
-    def test_develop(self):
-        if hasattr(sys, 'real_prefix'):
-            return
-        dist = Distribution(
-            dict(name='foo',
-                 packages=['foo'],
-                 use_2to3=True,
-                 version='0.0',
-                 ))
+class TestDevelop:
+    in_virtualenv = hasattr(sys, 'real_prefix')
+    in_venv = hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix
+    @pytest.mark.skipif(in_virtualenv or in_venv,
+        reason="Cannot run when invoked in a virtualenv or venv")
+    def test_2to3_user_mode(self, test_env):
+        settings = dict(
+            name='foo',
+            packages=['foo'],
+            use_2to3=True,
+            version='0.0',
+        )
+        dist = Distribution(settings)
         dist.script_name = 'setup.py'
         cmd = develop(dist)
         cmd.user = 1
         cmd.ensure_finalized()
         cmd.install_dir = site.USER_SITE
         cmd.user = 1
-        old_stdout = sys.stdout
-        #sys.stdout = StringIO()
-        try:
+        with contexts.quiet():
             cmd.run()
-        finally:
-            sys.stdout = old_stdout
 
         # let's see if we got our egg link at the right place
         content = os.listdir(site.USER_SITE)
@@ -87,17 +79,37 @@ class TestDevelopTest:
         assert content == ['easy-install.pth', 'foo.egg-link']
 
         # Check that we are using the right code.
-        egg_link_file = open(os.path.join(site.USER_SITE, 'foo.egg-link'), 'rt')
-        try:
+        fn = os.path.join(site.USER_SITE, 'foo.egg-link')
+        with io.open(fn) as egg_link_file:
             path = egg_link_file.read().split()[0].strip()
-        finally:
-            egg_link_file.close()
-        init_file = open(os.path.join(path, 'foo', '__init__.py'), 'rt')
-        try:
+        fn = os.path.join(path, 'foo', '__init__.py')
+        with io.open(fn) as init_file:
             init = init_file.read().strip()
-        finally:
-            init_file.close()
-        if sys.version < "3":
-            assert init == 'print "foo"'
-        else:
-            assert init == 'print("foo")'
+
+        expected = 'print("foo")' if six.PY3 else 'print "foo"'
+        assert init == expected
+
+    def test_console_scripts(self, tmpdir):
+        """
+        Test that console scripts are installed and that they reference
+        only the project by name and not the current version.
+        """
+        pytest.skip("TODO: needs a fixture to cause 'develop' "
+            "to be invoked without mutating environment.")
+        settings = dict(
+            name='foo',
+            packages=['foo'],
+            version='0.0',
+            entry_points={
+                'console_scripts': [
+                    'foocmd = foo:foo',
+                ],
+            },
+        )
+        dist = Distribution(settings)
+        dist.script_name = 'setup.py'
+        cmd = develop(dist)
+        cmd.ensure_finalized()
+        cmd.install_dir = tmpdir
+        cmd.run()
+        #assert '0.0' not in foocmd_text

@@ -7,7 +7,7 @@ import pytest
 
 import pkg_resources
 import setuptools.sandbox
-from setuptools.sandbox import DirectorySandbox, SandboxViolation
+from setuptools.sandbox import DirectorySandbox
 
 
 class TestSandbox:
@@ -33,10 +33,8 @@ class TestSandbox:
         target = os.path.join(gen_py, 'test_write')
         sandbox = DirectorySandbox(str(tmpdir))
         try:
-            try:
-                sandbox.run(self._file_writer(target))
-            except SandboxViolation:
-                self.fail("Could not create gen_py file due to SandboxViolation")
+            # attempt to create gen_py file
+            sandbox.run(self._file_writer(target))
         finally:
             if os.path.exists(target):
                 os.remove(target)
@@ -56,3 +54,88 @@ class TestSandbox:
         with setup_py.open('wb') as stream:
             stream.write(b'"degenerate script"\r\n')
         setuptools.sandbox._execfile(str(setup_py), globals())
+
+
+class TestExceptionSaver:
+    def test_exception_trapped(self):
+        with setuptools.sandbox.ExceptionSaver():
+            raise ValueError("details")
+
+    def test_exception_resumed(self):
+        with setuptools.sandbox.ExceptionSaver() as saved_exc:
+            raise ValueError("details")
+
+        with pytest.raises(ValueError) as caught:
+            saved_exc.resume()
+
+        assert isinstance(caught.value, ValueError)
+        assert str(caught.value) == 'details'
+
+    def test_exception_reconstructed(self):
+        orig_exc = ValueError("details")
+
+        with setuptools.sandbox.ExceptionSaver() as saved_exc:
+            raise orig_exc
+
+        with pytest.raises(ValueError) as caught:
+            saved_exc.resume()
+
+        assert isinstance(caught.value, ValueError)
+        assert caught.value is not orig_exc
+
+    def test_no_exception_passes_quietly(self):
+        with setuptools.sandbox.ExceptionSaver() as saved_exc:
+            pass
+
+        saved_exc.resume()
+
+    def test_unpickleable_exception(self):
+        class CantPickleThis(Exception):
+            "This Exception is unpickleable because it's not in globals"
+
+        with setuptools.sandbox.ExceptionSaver() as saved_exc:
+            raise CantPickleThis('detail')
+
+        with pytest.raises(setuptools.sandbox.UnpickleableException) as caught:
+            saved_exc.resume()
+
+        assert str(caught.value) == "CantPickleThis('detail',)"
+
+    def test_unpickleable_exception_when_hiding_setuptools(self):
+        """
+        As revealed in #440, an infinite recursion can occur if an unpickleable
+        exception while setuptools is hidden. Ensure this doesn't happen.
+        """
+        class ExceptionUnderTest(Exception):
+            """
+            An unpickleable exception (not in globals).
+            """
+
+        with pytest.raises(setuptools.sandbox.UnpickleableException) as caught:
+            with setuptools.sandbox.save_modules():
+                setuptools.sandbox.hide_setuptools()
+                raise ExceptionUnderTest()
+
+        msg, = caught.value.args
+        assert msg == 'ExceptionUnderTest()'
+
+    def test_sandbox_violation_raised_hiding_setuptools(self, tmpdir):
+        """
+        When in a sandbox with setuptools hidden, a SandboxViolation
+        should reflect a proper exception and not be wrapped in
+        an UnpickleableException.
+        """
+        def write_file():
+            "Trigger a SandboxViolation by writing outside the sandbox"
+            with open('/etc/foo', 'w'):
+                pass
+        sandbox = DirectorySandbox(str(tmpdir))
+        with pytest.raises(setuptools.sandbox.SandboxViolation) as caught:
+            with setuptools.sandbox.save_modules():
+                setuptools.sandbox.hide_setuptools()
+                sandbox.run(write_file)
+
+        cmd, args, kwargs = caught.value.args
+        assert cmd == 'open'
+        assert args == ('/etc/foo', 'w')
+        assert kwargs == {}

@@ -7,7 +7,10 @@ import contextlib
 import distutils.errors
 
 import pytest
-import mock
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 
 from . import contexts
 
@@ -110,7 +113,8 @@ class TestModulePatch:
         Ensure user's settings are preferred.
         """
         result = distutils.msvc9compiler.find_vcvarsall(9.0)
-        assert user_preferred_setting == result
+        expected = os.path.join(user_preferred_setting, 'vcvarsall.bat')
+        assert expected == result
 
     @pytest.yield_fixture
     def local_machine_setting(self):
@@ -131,13 +135,14 @@ class TestModulePatch:
         Ensure machine setting is honored if user settings are not present.
         """
         result = distutils.msvc9compiler.find_vcvarsall(9.0)
-        assert local_machine_setting == result
+        expected = os.path.join(local_machine_setting, 'vcvarsall.bat')
+        assert expected == result
 
     @pytest.yield_fixture
     def x64_preferred_setting(self):
         """
         Set up environment with 64-bit and 32-bit system settings configured
-        and yield the 64-bit location.
+        and yield the canonical location.
         """
         with self.mock_install_dir() as x32_dir:
             with self.mock_install_dir() as x64_dir:
@@ -150,14 +155,15 @@ class TestModulePatch:
                     },
                 )
                 with reg:
-                    yield x64_dir
+                    yield x32_dir
 
     def test_ensure_64_bit_preferred(self, x64_preferred_setting):
         """
         Ensure 64-bit system key is preferred.
         """
         result = distutils.msvc9compiler.find_vcvarsall(9.0)
-        assert x64_preferred_setting == result
+        expected = os.path.join(x64_preferred_setting, 'vcvarsall.bat')
+        assert expected == result
 
     @staticmethod
     @contextlib.contextmanager
@@ -170,4 +176,4 @@ class TestModulePatch:
             vcvarsall = os.path.join(result, 'vcvarsall.bat')
             with open(vcvarsall, 'w'):
                 pass
-            yield
+            yield result

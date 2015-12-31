@@ -1,1 +1,0 @@
-The canonical development guide can be found in docs/developer-guide.txt.
