@@ -2182,9 +2182,14 @@ def _handle_ns(packageName, path_item):
         path = module.__path__
         path.append(subpath)
         loader.load_module(packageName)
+
+        # Ensure that all paths on __path__ have been run through
+        # normalize_path
+        normalized_paths = set(_normalize_cached(p) for p in module.__path__)
         for path_item in path:
-            if path_item not in module.__path__:
-                module.__path__.append(path_item)
+            normalized = _normalize_cached(path_item)
+            if normalized not in normalized_paths:
+                module.__path__.append(normalized)
     return subpath
 
 def declare_namespace(packageName):
