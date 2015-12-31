@@ -1,11 +1,11 @@
 """
-Handle loading six package from system or from the bundled copy
+Handle loading a package from system or from the bundled copy
 """
 
 import imp
 
 
-_SIX_SEARCH_PATH = ['setuptools._vendor.six', 'six']
+_SEARCH_PATH = ['setuptools._vendor.six', 'six']
 
 
 def _find_module(name, path=None):
@@ -24,7 +24,7 @@ def _find_module(name, path=None):
     return fh, path, descr
 
 
-def _import_six(search_path=_SIX_SEARCH_PATH):
+def _import_in_place(search_path=_SEARCH_PATH):
     for mod_name in search_path:
         try:
             mod_info = _find_module(mod_name)
@@ -32,15 +32,14 @@ def _import_six(search_path=_SIX_SEARCH_PATH):
             continue
 
         imp.load_module(__name__, *mod_info)
-
         break
 
     else:
         raise ImportError(
-            "The 'six' module of minimum version {0} is required; "
+            "The '{name}' package is required; "
             "normally this is bundled with this package so if you get "
             "this warning, consult the packager of your "
-            "distribution.")
+            "distribution.".format(name=_SEARCH_PATH[-1]))
 
 
-_import_six()
+_import_in_place()
