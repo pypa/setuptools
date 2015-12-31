@@ -3,7 +3,6 @@
 import os
 import re
 
-import six
 import pytest
 
 from setuptools.dist import Distribution

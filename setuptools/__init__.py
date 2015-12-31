@@ -1,7 +1,5 @@
 """Extensions to the 'distutils' for large or complex distributions"""
 
-__import__('setuptools.bootstrap').bootstrap.ensure_deps()
-
 import os
 import functools
 import distutils.core
@@ -10,7 +8,12 @@ from distutils.core import Command as _Command
 from distutils.util import convert_path
 from fnmatch import fnmatchcase
 
-from six.moves import filterfalse
+try:
+    from setuptools._vendor.six.moves import filterfalse
+except ImportError:
+    # fallback to naturally-installed version; allows system packagers to
+    #  omit vendored packages.
+    from six.moves import filterfalse
 
 import setuptools.version
 from setuptools.extension import Extension

@@ -4,7 +4,12 @@ from distutils.errors import DistutilsOptionError
 import distutils
 import os
 
-from six.moves import configparser
+try:
+    from setuptools._vendor.six.moves import configparser
+except ImportError:
+    # fallback to naturally-installed version; allows system packagers to
+    #  omit vendored packages.
+    from six.moves import configparser
 
 from setuptools import Command
 

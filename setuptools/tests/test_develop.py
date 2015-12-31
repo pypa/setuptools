@@ -5,7 +5,12 @@ import site
 import sys
 import io
 
-import six
+try:
+    from setuptools._vendor import six
+except ImportError:
+    # fallback to naturally-installed version; allows system packagers to
+    #  omit vendored packages.
+    import six
 
 import pytest
 

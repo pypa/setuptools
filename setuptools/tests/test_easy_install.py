@@ -16,8 +16,15 @@ import itertools
 import distutils.errors
 import io
 
-import six
-from six.moves import urllib
+try:
+    from setuptools._vendor import six
+    from setuptools._vendor.six.moves import urllib
+except ImportError:
+    # fallback to naturally-installed version; allows system packagers to
+    #  omit vendored packages.
+    import six
+    from six.moves import urllib
+
 import pytest
 try:
     from unittest import mock

@@ -4,7 +4,13 @@
 import time
 import threading
 
-from six.moves import BaseHTTPServer, SimpleHTTPServer
+try:
+    from setuptools._vendor.six.moves import BaseHTTPServer, SimpleHTTPServer
+except ImportError:
+    # fallback to naturally-installed version; allows system packagers to
+    #  omit vendored packages.
+    from six.moves import BaseHTTPServer, SimpleHTTPServer
+
 
 class IndexServer(BaseHTTPServer.HTTPServer):
     """Basic single-threaded http server simulating a package index

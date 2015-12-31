@@ -1,7 +1,13 @@
 import unicodedata
 import sys
 
-import six
+
+try:
+    from setuptools._vendor import six
+except ImportError:
+    # fallback to naturally-installed version; allows system packagers to
+    #  omit vendored packages.
+    import six
 
 # HFS Plus uses decomposed UTF-8
 def decompose(path):

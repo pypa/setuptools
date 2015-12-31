@@ -8,7 +8,12 @@ from distutils.errors import DistutilsSetupError
 from distutils.core import Extension
 from distutils.version import LooseVersion
 
-import six
+try:
+    from setuptools._vendor import six
+except ImportError:
+    # fallback to naturally-installed version; allows system packagers to
+    #  omit vendored packages.
+    import six
 import pytest
 
 import setuptools.dist

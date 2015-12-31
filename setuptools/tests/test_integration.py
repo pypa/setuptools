@@ -7,7 +7,13 @@ import glob
 import os
 import sys
 
-from six.moves import urllib
+try:
+    from setuptools._vendor.six.moves import urllib
+except ImportError:
+    # fallback to naturally-installed version; allows system packagers to
+    #  omit vendored packages.
+    from six.moves import urllib
+
 
 import pytest
 

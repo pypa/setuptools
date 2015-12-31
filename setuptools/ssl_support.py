@@ -3,7 +3,12 @@ import socket
 import atexit
 import re
 
-from six.moves import urllib, http_client
+try:
+    from setuptools._vendor.six.moves import urllib, http_client
+except ImportError:
+    # fallback to naturally-installed version; allows system packagers to
+    #  omit vendored packages.
+    from six.moves import urllib, http_client
 
 import pkg_resources
 from pkg_resources import ResolutionError, ExtractionError

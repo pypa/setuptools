@@ -4,8 +4,14 @@ import sys
 import os
 import distutils.errors
 
-import six
-from six.moves import urllib, http_client
+try:
+    from setuptools._vendor import six
+    from setuptools._vendor.six.moves import urllib, http_client
+except ImportError:
+    # fallback to naturally-installed version; allows system packagers to
+    #  omit vendored packages.
+    import six
+    from six.moves import urllib, http_client
 
 from .textwrap import DALS
 import pkg_resources

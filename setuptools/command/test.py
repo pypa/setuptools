@@ -2,7 +2,12 @@ from distutils.errors import DistutilsOptionError
 from unittest import TestLoader
 import sys
 
-import six
+try:
+    from setuptools._vendor import six
+except ImportError:
+    # fallback to naturally-installed version; allows system packagers to
+    #  omit vendored packages.
+    import six
 
 from pkg_resources import (resource_listdir, resource_exists, normalize_path,
                            working_set, _namespace_packages,

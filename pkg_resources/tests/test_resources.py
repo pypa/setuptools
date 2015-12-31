@@ -14,8 +14,6 @@ from pkg_resources import (parse_requirements, VersionConflict, parse_version,
 packaging = pkg_resources.packaging
 
 
-import six
-
 def safe_repr(obj, short=False):
     """ copied from Python2.7"""
     try:
@@ -315,7 +313,7 @@ class TestEntryPoints:
 
     def checkSubMap(self, m):
         assert len(m) == len(self.submap_expect)
-        for key, ep in six.iteritems(self.submap_expect):
+        for key, ep in self.submap_expect.items():
             assert repr(m.get(key)) == repr(ep)
 
     submap_expect = dict(

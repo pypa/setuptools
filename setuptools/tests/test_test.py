@@ -6,7 +6,6 @@ import os
 import site
 from distutils.errors import DistutilsError
 
-import six
 import pytest
 
 from setuptools.command.test import test
