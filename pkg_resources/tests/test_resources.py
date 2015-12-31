@@ -5,13 +5,12 @@ import shutil
 import string
 
 import pytest
+from pkg_resources.extern import packaging
 
 import pkg_resources
 from pkg_resources import (parse_requirements, VersionConflict, parse_version,
     Distribution, EntryPoint, Requirement, safe_version, safe_name,
     WorkingSet)
-
-packaging = pkg_resources.packaging
 
 
 def safe_repr(obj, short=False):

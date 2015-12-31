@@ -26,7 +26,7 @@ from pkg_resources import (
     safe_version, yield_lines, EntryPoint, iter_entry_points, to_filename)
 import setuptools.unicode_utils as unicode_utils
 
-from pkg_resources import packaging
+from pkg_resources.extern import packaging
 
 try:
     from setuptools_svn import svn_utils

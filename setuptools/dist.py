@@ -14,12 +14,11 @@ from distutils.errors import (DistutilsOptionError, DistutilsPlatformError,
     DistutilsSetupError)
 
 from setuptools.extern import six
+from pkg_resources.extern import packaging
 
 from setuptools.depends import Require
 from setuptools import windows_support
 import pkg_resources
-
-packaging = pkg_resources.packaging
 
 
 def _get_unpatched(cls):

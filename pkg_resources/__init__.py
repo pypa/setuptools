@@ -87,15 +87,10 @@ try:
 except ImportError:
     pass
 
-try:
-    import pkg_resources._vendor.packaging.version
-    import pkg_resources._vendor.packaging.specifiers
-    packaging = pkg_resources._vendor.packaging
-except ImportError:
-    # fallback to naturally-installed version; allows system packagers to
-    #  omit vendored packages.
-    import packaging.version
-    import packaging.specifiers
+
+from pkg_resources.extern import packaging
+__import__('pkg_resources.extern.packaging.version')
+__import__('pkg_resources.extern.packaging.specifiers')
 
 
 if (3, 0) < sys.version_info < (3, 3):
