@@ -3,12 +3,7 @@ from distutils import log
 from distutils.errors import DistutilsOptionError
 import os
 
-try:
-    from setuptools._vendor import six
-except ImportError:
-    # fallback to naturally-installed version; allows system packagers to
-    #  omit vendored packages.
-    import six
+from setuptools.extern import six
 
 from setuptools import Command
 

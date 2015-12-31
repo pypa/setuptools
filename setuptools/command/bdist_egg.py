@@ -11,12 +11,7 @@ import os
 import marshal
 import textwrap
 
-try:
-    from setuptools._vendor import six
-except ImportError:
-    # fallback to naturally-installed version; allows system packagers to
-    #  omit vendored packages.
-    import six
+from setuptools.extern import six
 
 from pkg_resources import get_build_platform, Distribution, ensure_directory
 from pkg_resources import EntryPoint

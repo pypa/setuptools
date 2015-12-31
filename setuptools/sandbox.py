@@ -8,14 +8,8 @@ import re
 import contextlib
 import pickle
 
-try:
-    from setuptools._vendor import six
-    from setuptools._vendor.six.moves import builtins
-except ImportError:
-    # fallback to naturally-installed version; allows system packagers to
-    #  omit vendored packages.
-    import six
-    from six.moves import builtins
+from setuptools.extern import six
+from setuptools.extern.six.moves import builtins
 
 import pkg_resources
 

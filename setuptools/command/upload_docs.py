@@ -16,14 +16,8 @@ import tempfile
 import sys
 import shutil
 
-try:
-    from setuptools._vendor import six
-    from setuptools._vendor.six.moves import http_client, urllib
-except ImportError:
-    # fallback to naturally-installed version; allows system packagers to
-    #  omit vendored packages.
-    import six
-    from six.moves import http_client, urllib
+from setuptools.extern import six
+from setuptools.extern.six.moves import http_client, urllib
 
 from pkg_resources import iter_entry_points
 

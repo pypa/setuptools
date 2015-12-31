@@ -40,14 +40,8 @@ import subprocess
 import shlex
 import io
 
-try:
-    from setuptools._vendor import six
-    from setuptools._vendor.six.moves import configparser
-except ImportError:
-    # fallback to naturally-installed version; allows system packagers to
-    #  omit vendored packages.
-    import six
-    from six.moves import configparser
+from setuptools.extern import six
+from setuptools.extern.six.moves import configparser
 
 from setuptools import Command
 from setuptools.sandbox import run_setup

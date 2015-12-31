@@ -8,12 +8,7 @@ from distutils.core import Command as _Command
 from distutils.util import convert_path
 from fnmatch import fnmatchcase
 
-try:
-    from setuptools._vendor.six.moves import filterfalse
-except ImportError:
-    # fallback to naturally-installed version; allows system packagers to
-    #  omit vendored packages.
-    from six.moves import filterfalse
+from setuptools.extern.six.moves import filterfalse
 
 import setuptools.version
 from setuptools.extension import Extension

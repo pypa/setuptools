@@ -14,12 +14,7 @@ import io
 import warnings
 import time
 
-try:
-    from setuptools._vendor import six
-except ImportError:
-    # fallback to naturally-installed version; allows system packagers to
-    #  omit vendored packages.
-    import six
+from setuptools.extern import six
 
 from setuptools import Command
 from setuptools.command.sdist import sdist

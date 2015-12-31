@@ -5,12 +5,7 @@ import os
 import glob
 import io
 
-try:
-    from setuptools._vendor import six
-except ImportError:
-    # fallback to naturally-installed version; allows system packagers to
-    #  omit vendored packages.
-    import six
+from setuptools.extern import six
 
 from pkg_resources import Distribution, PathMetadata, normalize_path
 from setuptools.command.easy_install import easy_install

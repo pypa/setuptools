@@ -4,12 +4,7 @@ import marshal
 from imp import PKG_DIRECTORY, PY_COMPILED, PY_SOURCE, PY_FROZEN
 from distutils.version import StrictVersion
 
-try:
-    from setuptools._vendor import six
-except ImportError:
-    # fallback to naturally-installed version; allows system packagers to
-    #  omit vendored packages.
-    import six
+from setuptools.extern import six
 
 __all__ = [
     'Require', 'find_module', 'get_module_constant', 'extract_constant'

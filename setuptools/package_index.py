@@ -14,14 +14,8 @@ try:
 except ImportError:
     from urllib2 import splituser
 
-try:
-    from setuptools._vendor import six
-    from setuptools._vendor.six.moves import urllib, http_client, configparser
-except ImportError:
-    # fallback to naturally-installed version; allows system packagers to
-    #  omit vendored packages.
-    import six
-    from six.moves import urllib, http_client, configparser
+from setuptools.extern import six
+from setuptools.extern.six.moves import urllib, http_client, configparser
 
 from pkg_resources import (
     CHECKOUT_DIST, Distribution, BINARY_DIST, normalize_path, SOURCE_DIST,
