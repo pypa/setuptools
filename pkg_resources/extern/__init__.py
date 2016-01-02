@@ -13,10 +13,17 @@ class VendorImporter:
 
     @property
     def search_path(self):
+        """
+        Search first the vendor package then as a natural package.
+        """
         yield self.vendor_pkg + '.'
         yield ''
 
     def find_module(self, fullname, path=None):
+        """
+        Return self when fullname starts with root_name and the
+        target module is one vendored through this importer.
+        """
         root, base, target = fullname.partition(self.root_name + '.')
         if root:
             return
@@ -25,6 +32,9 @@ class VendorImporter:
         return self
 
     def load_module(self, fullname):
+        """
+        Iterate over the search path to locate and load fullname.
+        """
         root, base, target = fullname.partition(self.root_name + '.')
         for prefix in self.search_path:
             try:
@@ -45,6 +55,9 @@ class VendorImporter:
             )
 
     def install(self):
+        """
+        Install this importer into sys.meta_path if not already present.
+        """
         if self not in sys.meta_path:
             sys.meta_path.append(self)
 
