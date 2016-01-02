@@ -28,8 +28,7 @@ class VendorImporter:
         for prefix in self.search_path:
             try:
                 __import__(prefix + target)
-                mod = sys.modules[prefix + target]
-                sys.modules[fullname] = mod
+                mod = sys.modules[fullname] = sys.modules.pop(prefix + target)
                 return mod
             except ImportError:
                 pass
