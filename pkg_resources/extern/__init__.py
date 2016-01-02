@@ -1,5 +1,6 @@
 import sys
 
+
 class VendorImporter:
     """
     A PEP 302 meta path importer for finding optionally-vendored
