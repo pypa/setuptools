@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+----
+19.3
+----
+
+* Issue #229: Implement new technique for readily incorporating
+  dependencies conditionally from vendored copies or primary
+  locations. Adds a new dependency on six.
 
 ----
 19.2

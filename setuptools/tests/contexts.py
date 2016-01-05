@@ -5,7 +5,7 @@ import sys
 import contextlib
 import site
 
-from ..compat import StringIO
+from setuptools.extern import six
 
 
 @contextlib.contextmanager
@@ -57,8 +57,8 @@ def quiet():
 
     old_stdout = sys.stdout
     old_stderr = sys.stderr
-    new_stdout = sys.stdout = StringIO()
-    new_stderr = sys.stderr = StringIO()
+    new_stdout = sys.stdout = six.StringIO()
+    new_stderr = sys.stderr = six.StringIO()
     try:
         yield new_stdout, new_stderr
     finally:

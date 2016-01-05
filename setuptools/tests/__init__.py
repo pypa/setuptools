@@ -7,8 +7,8 @@ from distutils.errors import DistutilsOptionError, DistutilsPlatformError
 from distutils.errors import DistutilsSetupError
 from distutils.core import Extension
 from distutils.version import LooseVersion
-from setuptools.compat import func_code
 
+from setuptools.extern import six
 import pytest
 
 import setuptools.dist
@@ -52,7 +52,7 @@ class TestDepends:
             x = "test"
             y = z
 
-        fc = func_code(f1)
+        fc = six.get_function_code(f1)
 
         # unrecognized name
         assert dep.extract_constant(fc,'q', -1) is None

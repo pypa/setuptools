@@ -37,7 +37,6 @@ import plistlib
 import email.parser
 import tempfile
 import textwrap
-import itertools
 from pkgutil import get_importer
 
 try:
@@ -46,23 +45,8 @@ except ImportError:
     # Python 3.2 compatibility
     import imp as _imp
 
-PY3 = sys.version_info > (3,)
-PY2 = not PY3
-
-if PY3:
-    from urllib.parse import urlparse, urlunparse
-
-if PY2:
-    from urlparse import urlparse, urlunparse
-    filter = itertools.ifilter
-    map = itertools.imap
-
-if PY3:
-    string_types = str,
-else:
-    string_types = str, eval('unicode')
-
-iteritems = (lambda i: i.items()) if PY3 else lambda i: i.iteritems()
+from pkg_resources.extern import six
+from pkg_resources.extern.six.moves import urllib
 
 # capture these to bypass sandboxing
 from os import utime
@@ -87,16 +71,13 @@ try:
 except ImportError:
     pass
 
-try:
-    import pkg_resources._vendor.packaging.version
-    import pkg_resources._vendor.packaging.specifiers
-    packaging = pkg_resources._vendor.packaging
-except ImportError:
-    # fallback to naturally-installed version; allows system packagers to
-    #  omit vendored packages.
-    import packaging.version
-    import packaging.specifiers
+from pkg_resources.extern import packaging
+__import__('pkg_resources.extern.packaging.version')
+__import__('pkg_resources.extern.packaging.specifiers')
 
+
+filter = six.moves.filter
+map = six.moves.map
 
 if (3, 0) < sys.version_info < (3, 3):
     msg = (
@@ -555,7 +536,7 @@ run_main = run_script
 
 def get_distribution(dist):
     """Return a current distribution object for a Requirement or string"""
-    if isinstance(dist, string_types):
+    if isinstance(dist, six.string_types):
         dist = Requirement.parse(dist)
     if isinstance(dist, Requirement):
         dist = get_provider(dist)
@@ -2303,7 +2284,7 @@ def _set_parent_ns(packageName):
 
 def yield_lines(strs):
     """Yield non-empty/non-comment lines of a string or sequence"""
-    if isinstance(strs, string_types):
+    if isinstance(strs, six.string_types):
         for s in strs.splitlines():
             s = s.strip()
             # skip blank lines/comments
@@ -2470,9 +2451,9 @@ class EntryPoint(object):
 def _remove_md5_fragment(location):
     if not location:
         return ''
-    parsed = urlparse(location)
+    parsed = urllib.parse.urlparse(location)
     if parsed[-1].startswith('md5='):
-        return urlunparse(parsed[:-1] + ('',))
+        return urllib.parse.urlunparse(parsed[:-1] + ('',))
     return location
 
 

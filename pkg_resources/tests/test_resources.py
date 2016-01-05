@@ -5,13 +5,12 @@ import shutil
 import string
 
 import pytest
+from pkg_resources.extern import packaging
 
 import pkg_resources
 from pkg_resources import (parse_requirements, VersionConflict, parse_version,
     Distribution, EntryPoint, Requirement, safe_version, safe_name,
     WorkingSet)
-
-packaging = pkg_resources.packaging
 
 
 def safe_repr(obj, short=False):
@@ -245,9 +244,8 @@ class TestWorkingSet:
         with pytest.raises(VersionConflict) as vc:
             ws.resolve(parse_requirements("Foo\nBar\n"))
 
-        msg = "Baz 1.0 is installed but Baz==2.0 is required by {'Bar'}"
-        if pkg_resources.PY2:
-            msg = msg.replace("{'Bar'}", "set(['Bar'])")
+        msg = "Baz 1.0 is installed but Baz==2.0 is required by "
+        msg += repr(set(['Bar']))
         assert vc.value.report() == msg
 
 
@@ -313,7 +311,7 @@ class TestEntryPoints:
 
     def checkSubMap(self, m):
         assert len(m) == len(self.submap_expect)
-        for key, ep in pkg_resources.iteritems(self.submap_expect):
+        for key, ep in self.submap_expect.items():
             assert repr(m.get(key)) == repr(ep)
 
     submap_expect = dict(

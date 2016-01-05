@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 
 import os
 import site
+from distutils.errors import DistutilsError
 
 import pytest
 
