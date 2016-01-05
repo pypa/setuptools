@@ -244,9 +244,8 @@ class TestWorkingSet:
         with pytest.raises(VersionConflict) as vc:
             ws.resolve(parse_requirements("Foo\nBar\n"))
 
-        msg = "Baz 1.0 is installed but Baz==2.0 is required by {'Bar'}"
-        if pkg_resources.PY2:
-            msg = msg.replace("{'Bar'}", "set(['Bar'])")
+        msg = "Baz 1.0 is installed but Baz==2.0 is required by "
+        msg += repr(set(['Bar']))
         assert vc.value.report() == msg
 
 
