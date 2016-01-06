@@ -235,6 +235,8 @@ CHANGES
   parsed requirements.
 * Pull Request #133: Removed ``setuptools.tests`` from the
   installed packages.
+* Pull Request #129: Address deprecation warning due to usage
+  of imp module.
 
 ----
 15.2
