@@ -671,3 +671,37 @@ class TestNamespaces:
             os.path.join(self._real_tmpdir, "site-pkgs2", "pkg1", "pkg2"),
         ]
         assert pkg1.pkg2.__path__ == expected
+
+    def test_path_order(self):
+        """
+        Test that if multiple versions of the same namespace package subpackage
+        are on different sys.path entries, that only the one earliest on
+        sys.path is imported, and that the namespace package's __path__ is in
+        the correct order.
+
+        Regression test for https://bitbucket.org/pypa/setuptools/issues/207
+        """
+
+        site_pkgs = ["site-pkgs", "site-pkgs2", "site-pkgs3"]
+
+        ns_str = "__import__('pkg_resources').declare_namespace(__name__)\n"
+        vers_str = "__version__ = %r"
+
+        for idx, site in enumerate(site_pkgs):
+            if idx > 0:
+                sys.path.append(os.path.join(self._tmpdir, site))
+            os.makedirs(os.path.join(self._tmpdir, site, "nspkg", "subpkg"))
+            with open(os.path.join(self._tmpdir, site, "nspkg",
+                                   "__init__.py"), "w") as f:
+                f.write(ns_str)
+
+            with open(os.path.join(self._tmpdir, site, "nspkg", "subpkg",
+                                   "__init__.py"), "w") as f:
+                f.write(vers_str % (idx + 1))
+
+        import nspkg.subpkg
+        import nspkg
+        assert nspkg.__path__ == [os.path.join(self._real_tmpdir, site,
+                                               "nspkg")
+                                  for site in site_pkgs]
+        assert nspkg.subpkg.__version__ == 1

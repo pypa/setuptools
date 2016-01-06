@@ -755,7 +755,7 @@ class WorkingSet(object):
         will be called.
         """
         if insert:
-            dist.insert_on(self.entries, entry)
+            dist.insert_on(self.entries, entry, replace=replace)
 
         if entry is None:
             entry = dist.location
@@ -2183,13 +2183,16 @@ def _handle_ns(packageName, path_item):
         path.append(subpath)
         loader.load_module(packageName)
 
-        # Ensure that all paths on __path__ have been run through
-        # normalize_path
-        normalized_paths = set(_normalize_cached(p) for p in module.__path__)
-        for path_item in path:
-            normalized = _normalize_cached(path_item)
-            if normalized not in normalized_paths:
-                module.__path__.append(normalized)
+        # Rebuild mod.__path__ ensuring that all entries are ordered
+        # corresponding to their sys.path order
+        sys_path= [(p and _normalize_cached(p) or p) for p in sys.path]
+        def sort_key(p):
+            parts = p.split(os.sep)
+            parts = parts[:-(packageName.count('.') + 1)]
+            return sys_path.index(_normalize_cached(os.sep.join(parts)))
+
+        path.sort(key=sort_key)
+        module.__path__[:] = [_normalize_cached(p) for p in path]
     return subpath
 
 def declare_namespace(packageName):
@@ -2644,7 +2647,7 @@ class Distribution(object):
         """Ensure distribution is importable on `path` (default=sys.path)"""
         if path is None:
             path = sys.path
-        self.insert_on(path)
+        self.insert_on(path, replace=True)
         if path is sys.path:
             fixup_namespace_packages(self.location)
             for pkg in self._get_metadata('namespace_packages.txt'):
@@ -2721,7 +2724,7 @@ class Distribution(object):
         """Return the EntryPoint object for `group`+`name`, or ``None``"""
         return self.get_entry_map(group).get(name)
 
-    def insert_on(self, path, loc = None):
+    def insert_on(self, path, loc=None, replace=False):
         """Insert self.location in path before its nearest parent directory"""
 
         loc = loc or self.location
@@ -2745,7 +2748,10 @@ class Distribution(object):
         else:
             if path is sys.path:
                 self.check_version_conflict()
-            path.append(loc)
+            if replace:
+                path.insert(0, loc)
+            else:
+                path.append(loc)
             return
 
         # p is the spot where we found or inserted loc; now remove duplicates
