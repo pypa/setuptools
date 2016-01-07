@@ -14,6 +14,10 @@ import tarfile
 import logging
 import itertools
 import distutils.errors
+import io
+
+from setuptools.extern import six
+from setuptools.extern.six.moves import urllib
 
 import pytest
 try:
@@ -22,8 +26,6 @@ except ImportError:
     import mock
 
 from setuptools import sandbox
-from setuptools import compat
-from setuptools.compat import StringIO, BytesIO, urlparse
 from setuptools.sandbox import run_setup
 import setuptools.command.easy_install as ei
 from setuptools.command.easy_install import PthDistributions
@@ -272,7 +274,7 @@ class TestSetupRequires:
         p_index = setuptools.tests.server.MockServer()
         p_index.start()
         netloc = 1
-        p_index_loc = urlparse(p_index.url)[netloc]
+        p_index_loc = urllib.parse.urlparse(p_index.url)[netloc]
         if p_index_loc.endswith(':0'):
             # Some platforms (Jython) don't find a port to which to bind,
             #  so skip this test for them.
@@ -391,12 +393,7 @@ def make_trivial_sdist(dist_path, setup_py):
     """
 
     setup_py_file = tarfile.TarInfo(name='setup.py')
-    try:
-        # Python 3 (StringIO gets converted to io module)
-        MemFile = BytesIO
-    except AttributeError:
-        MemFile = StringIO
-    setup_py_bytes = MemFile(setup_py.encode('utf-8'))
+    setup_py_bytes = io.BytesIO(setup_py.encode('utf-8'))
     setup_py_file.size = len(setup_py_bytes.getvalue())
     with tarfile_open(dist_path, 'w:gz') as dist:
         dist.addfile(setup_py_file, fileobj=setup_py_bytes)
@@ -431,7 +428,7 @@ class TestScriptHeader:
         assert actual == expected
 
     @pytest.mark.xfail(
-        compat.PY3 and is_ascii,
+        six.PY3 and is_ascii,
         reason="Test fails in this locale on Python 3"
     )
     @mock.patch.dict(sys.modules, java=mock.Mock(lang=mock.Mock(System=

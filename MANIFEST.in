@@ -3,6 +3,7 @@ recursive-include tests *.py
 recursive-include setuptools/tests *.html
 recursive-include docs *.py *.txt *.conf *.css *.css_t Makefile indexsidebar.html
 recursive-include _markerlib *.py
+recursive-include setuptools/_vendor *
 recursive-include pkg_resources *.py *.txt
 include *.py
 include *.txt
