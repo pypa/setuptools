@@ -55,7 +55,7 @@ class Value(Node):
 
 VARIABLE = (
     L("implementation_version") |
-    L("python_implementation") |
+    L("platform_python_implementation") |
     L("implementation_name") |
     L("python_full_version") |
     L("platform_release") |
@@ -209,7 +209,7 @@ def default_environment():
         "platform_system": platform.system(),
         "platform_version": platform.version(),
         "python_full_version": platform.python_version(),
-        "python_implementation": platform.python_implementation(),
+        "platform_python_implementation": platform.python_implementation(),
         "python_version": platform.python_version()[:3],
         "sys_platform": sys.platform,
     }

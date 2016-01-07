@@ -225,7 +225,8 @@ class LegacySpecifier(_IndividualSpecifier):
         """
     )
 
-    _regex = re.compile(r"^\s*" + _regex_str + r"\s*$", re.X | re.I)
+    _regex = re.compile(
+        r"^\s*" + _regex_str + r"\s*$", re.VERBOSE | re.IGNORECASE)
 
     _operators = {
         "==": "equal",
@@ -366,7 +367,8 @@ class Specifier(_IndividualSpecifier):
         """
     )
 
-    _regex = re.compile(r"^\s*" + _regex_str + r"\s*$", re.X | re.I)
+    _regex = re.compile(
+        r"^\s*" + _regex_str + r"\s*$", re.VERBOSE | re.IGNORECASE)
 
     _operators = {
         "~=": "compatible",

@@ -9,7 +9,7 @@ import re
 from pkg_resources._vendor.pyparsing import stringStart, stringEnd, originalTextFor, ParseException
 from pkg_resources._vendor.pyparsing import ZeroOrMore, Word, Optional, Regex, Combine
 from pkg_resources._vendor.pyparsing import Literal as L  # noqa
-from six.moves.urllib import parse as urlparse
+from pkg_resources._vendor.six.moves.urllib import parse as urlparse
 
 from .markers import MARKER_EXPR, Marker
 from .specifiers import LegacySpecifier, Specifier, SpecifierSet
@@ -73,6 +73,12 @@ REQUIREMENT = stringStart + NAMED_REQUIREMENT + stringEnd
 
 
 class Requirement(object):
+    """Parse a requirement.
+
+    Parse a given requirement string into its parts, such as name, specifier,
+    URL, and extras. Raises InvalidRequirement on a badly-formed requirement
+    string.
+    """
 
     # TODO: Can we test whether something is contained within a requirement?
     #       If so how do we do that? Do we need to test against the _name_ of
@@ -82,9 +88,10 @@ class Requirement(object):
     def __init__(self, requirement_string):
         try:
             req = REQUIREMENT.parseString(requirement_string)
-        except ParseException:
+        except ParseException as e:
             raise InvalidRequirement(
-                "Invalid requirement: {0!r}".format(requirement_string))
+                "Invalid requirement, parse error at \"{0!r}\"".format(
+                    requirement_string[e.loc:e.loc + 8]))
 
         self.name = req.name
         if req.url:
