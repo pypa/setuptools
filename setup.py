@@ -59,7 +59,8 @@ force_windows_specific_files = (
     os.environ.get("SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES")
     not in (None, "", "0")
 )
-if sys.platform == 'win32' or force_windows_specific_files:
+if (sys.platform == 'win32' or (os.name == 'java' and os._name == 'nt')) \
+        or force_windows_specific_files:
     package_data.setdefault('setuptools', []).extend(['*.exe'])
     package_data.setdefault('setuptools.command', []).extend(['*.xml'])
 

@@ -1876,17 +1876,6 @@ def chmod(path, mode):
         log.debug("chmod failed: %s", e)
 
 
-def fix_jython_executable(executable, options):
-    warnings.warn("Use JythonCommandSpec", DeprecationWarning, stacklevel=2)
-
-    if not JythonCommandSpec.relevant():
-        return executable
-
-    cmd = CommandSpec.best().from_param(executable)
-    cmd.install_options(options)
-    return cmd.as_header().lstrip('#!').rstrip('\n')
-
-
 class CommandSpec(list):
     """
     A command spec for a #! header, specified as a list of arguments akin to
@@ -1901,7 +1890,7 @@ class CommandSpec(list):
         """
         Choose the best CommandSpec class based on environmental conditions.
         """
-        return cls if not JythonCommandSpec.relevant() else JythonCommandSpec
+        return cls
 
     @classmethod
     def _sys_executable(cls):
@@ -1966,36 +1955,6 @@ sys_executable = CommandSpec._sys_executable()
 
 class WindowsCommandSpec(CommandSpec):
     split_args = dict(posix=False)
-
-
-class JythonCommandSpec(CommandSpec):
-    @classmethod
-    def relevant(cls):
-        return (
-            sys.platform.startswith('java')
-            and
-            __import__('java').lang.System.getProperty('os.name') != 'Linux'
-        )
-
-    def as_header(self):
-        """
-        Workaround Jython's sys.executable being a .sh (an invalid
-        shebang line interpreter)
-        """
-        if not is_sh(self[0]):
-            return super(JythonCommandSpec, self).as_header()
-
-        if self.options:
-            # Can't apply the workaround, leave it broken
-            log.warn(
-                "WARNING: Unable to adapt shebang line for Jython,"
-                " the following script is NOT executable\n"
-                "         see http://bugs.jython.org/issue1112 for"
-                " more information.")
-            return super(JythonCommandSpec, self).as_header()
-
-        items = ['/usr/bin/env'] + self + list(self.options)
-        return self._render(items)
 
 
 class ScriptWriter(object):
@@ -2074,7 +2033,10 @@ class ScriptWriter(object):
         """
         Select the best ScriptWriter for this environment.
         """
-        return WindowsScriptWriter.best() if sys.platform == 'win32' else cls
+        if sys.platform == 'win32' or (os.name == 'java' and os._name == 'nt'):
+            return WindowsScriptWriter.best()
+        else:
+            return cls
 
     @classmethod
     def _get_script_args(cls, type_, name, header, script_text):
