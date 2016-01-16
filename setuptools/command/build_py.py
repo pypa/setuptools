@@ -75,8 +75,9 @@ class build_py(orig.build_py, Mixin2to3):
     def _get_data_files(self):
         """Generate list of '(package,src_dir,build_dir,filenames)' tuples"""
         self.analyze_manifest()
-        data = []
-        for package in self.packages or ():
+        return list(map(self._get_pkg_data_files, self.packages or ()))
+
+    def _get_pkg_data_files(self, package):
             # Locate package source directory
             src_dir = self.get_package_dir(package)
 
@@ -90,8 +91,7 @@ class build_py(orig.build_py, Mixin2to3):
             filenames = [
                 file[plen:] for file in self.find_data_files(package, src_dir)
             ]
-            data.append((package, src_dir, build_dir, filenames))
-        return data
+            return package, src_dir, build_dir, filenames
 
     def find_data_files(self, package, src_dir):
         """Return filenames for package's data files in 'src_dir'"""
