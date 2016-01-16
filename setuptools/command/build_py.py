@@ -61,8 +61,8 @@ class build_py(orig.build_py, Mixin2to3):
     def __getattr__(self, attr):
         "lazily compute data files"
         if attr == 'data_files':
-            self.data_files = files = self._get_data_files()
-            return files
+            self.data_files = self._get_data_files()
+            return self.data_files
         return orig.build_py.__getattr__(self, attr)
 
     def build_module(self, module, module_file, package):
