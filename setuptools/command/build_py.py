@@ -78,20 +78,20 @@ class build_py(orig.build_py, Mixin2to3):
         return list(map(self._get_pkg_data_files, self.packages or ()))
 
     def _get_pkg_data_files(self, package):
-            # Locate package source directory
-            src_dir = self.get_package_dir(package)
+        # Locate package source directory
+        src_dir = self.get_package_dir(package)
 
-            # Compute package build directory
-            build_dir = os.path.join(*([self.build_lib] + package.split('.')))
+        # Compute package build directory
+        build_dir = os.path.join(*([self.build_lib] + package.split('.')))
 
-            # Length of path to strip from found files
-            plen = len(src_dir) + 1
+        # Length of path to strip from found files
+        plen = len(src_dir) + 1
 
-            # Strip directory from globbed filenames
-            filenames = [
-                file[plen:] for file in self.find_data_files(package, src_dir)
-            ]
-            return package, src_dir, build_dir, filenames
+        # Strip directory from globbed filenames
+        filenames = [
+            file[plen:] for file in self.find_data_files(package, src_dir)
+        ]
+        return package, src_dir, build_dir, filenames
 
     def find_data_files(self, package, src_dir):
         """Return filenames for package's data files in 'src_dir'"""
