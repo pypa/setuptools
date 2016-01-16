@@ -3,7 +3,7 @@
 
 # declare and require dependencies
 __requires__ = [
-    'twine',
+    'twine==1.6.4',
 ]; __import__('pkg_resources')
 
 import errno
