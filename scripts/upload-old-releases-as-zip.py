@@ -239,7 +239,20 @@ class SetuptoolsOldReleasesWithoutZip:
     def upload_zips_to_pypi(self):
         print('Uploading to pypi...')
         zips = sorted(glob.glob('%s/*.zip' % self.dirpath), key=self.version_from_filename)
-        upload.upload(dists=zips)
+        upload.upload(
+            dists=zips,
+            repository='pypi',
+            sign=False,
+            identity=None,
+            username=None,
+            password=None,
+            comment=None,
+            sign_with='gpg',
+            config_file='~/.pypirc',
+            skip_existing=False,
+            cert=None,
+            client_cert=None,
+        )
 
 
 if __name__ == '__main__':
