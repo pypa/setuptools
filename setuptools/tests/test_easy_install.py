@@ -396,7 +396,7 @@ class TestSetupRequires:
                         # Don't even need to install the package, just
                         # running the setup.py at all is sufficient
                         run_setup(test_setup_py, ['--name'])
-                    except VersionConflict:
+                    except pkg_resources.VersionConflict:
                         self.fail('Installing setup.py requirements '
                             'caused a VersionConflict')
 
