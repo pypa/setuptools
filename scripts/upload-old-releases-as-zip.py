@@ -195,11 +195,19 @@ class SetuptoolsOldReleasesWithoutZip:
             if e.errno != errno.EEXIST:
                 raise e
 
+    @staticmethod
+    def version_from_filename(filename):
+        basename = os.path.basename(filename)
+        name, ext = os.path.splitext(basename)
+        if name.endswith('.tar'):
+            name, ext2 = os.path.splitext(name)
+        return LooseVersion(name)
+
     def convert_targz_to_zip(self):
         print("Converting the tar.gz to zip...")
         files = glob.glob('%s/*.tar.gz' % self.dirpath)
         total_converted = 0
-        for targz in sorted(files, key=LooseVersion):
+        for targz in sorted(files, key=self.version_from_filename):
             # Extract and remove tar.
             tar = tarfile.open(targz)
             tar.extractall(path=self.dirpath)
@@ -230,8 +238,7 @@ class SetuptoolsOldReleasesWithoutZip:
 
     def upload_zips_to_pypi(self):
         print('Uploading to pypi...')
-        zips = sorted(glob.glob('%s/*.zip' % self.dirpath), key=LooseVersion)
-        print("simulated upload of", zips); return
+        zips = sorted(glob.glob('%s/*.zip' % self.dirpath), key=self.version_from_filename)
         upload.upload(dists=zips)
 
 
