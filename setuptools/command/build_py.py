@@ -59,7 +59,8 @@ class build_py(orig.build_py, Mixin2to3):
         self.byte_compile(orig.build_py.get_outputs(self, include_bytecode=0))
 
     def __getattr__(self, attr):
-        if attr == 'data_files':  # lazily compute data files
+        "lazily compute data files"
+        if attr == 'data_files':
             self.data_files = files = self._get_data_files()
             return files
         return orig.build_py.__getattr__(self, attr)
