@@ -250,8 +250,6 @@ class SetuptoolsOldReleasesWithoutZip:
             sign_with='gpg',
             config_file='~/.pypirc',
             skip_existing=False,
-            cert=None,
-            client_cert=None,
         )
 
 
