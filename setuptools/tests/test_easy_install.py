@@ -465,14 +465,8 @@ def make_sdist(dist_path, files):
     dist = tarfile.open(dist_path, 'w:gz')
 
     try:
-        # Python 3 (StringIO gets converted to io module)
-        MemFile = BytesIO
-    except AttributeError:
-        MemFile = StringIO
-
-    try:
         for filename, content in files:
-            file_bytes = MemFile(content.encode('utf-8'))
+            file_bytes = io.BytesIO(content.encode('utf-8'))
             file_info = tarfile.TarInfo(name=filename)
             file_info.size = len(file_bytes.getvalue())
             file_info.mtime = int(time.time())
