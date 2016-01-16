@@ -2,11 +2,17 @@
 CHANGES
 =======
 
-19.3.1
-------
+19.4
+----
 
 * Issue #341: Correct error in path handling of package data
   files in ``build_py`` command when package is empty.
+* Distribute #323, Issue #141, Issue #207, and
+  Pull Request #167: Another implementation of
+  ``pkg_resources.WorkingSet`` and ``pkg_resources.Distribution``
+  that supports replacing an extant package with a new one,
+  allowing for setup_requires dependencies to supersede installed
+  packages for the session.
 
 ----
 19.3
