@@ -41,7 +41,7 @@ import shlex
 import io
 
 from setuptools.extern import six
-from setuptools.extern.six.moves import configparser
+from setuptools.extern.six.moves import configparser, map
 
 from setuptools import Command
 from setuptools.sandbox import run_setup

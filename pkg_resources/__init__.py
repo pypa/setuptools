@@ -46,7 +46,7 @@ except ImportError:
     import imp as _imp
 
 from pkg_resources.extern import six
-from pkg_resources.extern.six.moves import urllib
+from pkg_resources.extern.six.moves import urllib, map
 
 # capture these to bypass sandboxing
 from os import utime

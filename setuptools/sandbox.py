@@ -9,7 +9,7 @@ import contextlib
 import pickle
 
 from setuptools.extern import six
-from setuptools.extern.six.moves import builtins
+from setuptools.extern.six.moves import builtins, map
 
 import pkg_resources
 

@@ -4,6 +4,8 @@ import tempfile
 import shutil
 import string
 
+from pkg_resources.extern.six.moves import map
+
 import pytest
 from pkg_resources.extern import packaging
 
@@ -158,7 +160,7 @@ class TestDistro:
         for i in range(3):
             targets = list(ws.resolve(parse_requirements("Foo"), ad))
             assert targets == [Foo]
-            list(map(ws.add,targets))
+            list(map(ws.add, targets))
         with pytest.raises(VersionConflict):
             ws.resolve(parse_requirements("Foo==0.9"), ad)
         ws = WorkingSet([]) # reset

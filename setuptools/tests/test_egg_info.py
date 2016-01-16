@@ -1,6 +1,8 @@
 import os
 import stat
 
+from setuptools.extern.six.moves import map
+
 import pytest
 
 from . import environment

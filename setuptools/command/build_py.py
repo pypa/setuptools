@@ -9,6 +9,7 @@ import distutils.errors
 import collections
 import itertools
 
+from setuptools.extern.six.moves import map
 
 try:
     from setuptools.lib2to3_ex import Mixin2to3

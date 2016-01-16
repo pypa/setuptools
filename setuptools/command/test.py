@@ -3,6 +3,7 @@ from unittest import TestLoader
 import sys
 
 from setuptools.extern import six
+from setuptools.extern.six.moves import map
 
 from pkg_resources import (resource_listdir, resource_exists, normalize_path,
                            working_set, _namespace_packages,
