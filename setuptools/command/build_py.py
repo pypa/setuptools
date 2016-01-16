@@ -84,12 +84,10 @@ class build_py(orig.build_py, Mixin2to3):
         # Compute package build directory
         build_dir = os.path.join(*([self.build_lib] + package.split('.')))
 
-        # Length of path to strip from found files
-        plen = len(src_dir) + 1
-
         # Strip directory from globbed filenames
         filenames = [
-            file[plen:] for file in self.find_data_files(package, src_dir)
+            os.path.relpath(file, src_dir)
+            for file in self.find_data_files(package, src_dir)
         ]
         return package, src_dir, build_dir, filenames
 

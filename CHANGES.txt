@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+19.3.1
+------
+
+* Issue #341: Correct error in path handling of package data
+  files in ``build_py`` command when package is empty.
+
 ----
 19.3
 ----
