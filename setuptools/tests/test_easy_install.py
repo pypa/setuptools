@@ -18,6 +18,7 @@ import io
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import urllib
+import time
 
 import pytest
 try:
@@ -310,32 +311,32 @@ class TestSetupRequires:
         """
         with contexts.tempdir() as dir:
             dist_path = os.path.join(dir, 'setuptools-test-fetcher-1.0.tar.gz')
-            script = DALS("""
-                import setuptools
-                setuptools.setup(
-                    name="setuptools-test-fetcher",
-                    version="1.0",
-                    setup_requires = ['does-not-exist'],
-                )
-                """)
-            make_trivial_sdist(dist_path, script)
+            make_sdist(dist_path, [
+                ('setup.py', DALS("""
+                    import setuptools
+                    setuptools.setup(
+                        name="setuptools-test-fetcher",
+                        version="1.0",
+                        setup_requires = ['does-not-exist'],
+                    )
+                """))])
             yield dist_path
 
     def test_setup_requires_overrides_version_conflict(self):
         """
-        Regression test for issue #323.
+        Regression test for distribution issue 323:
+        https://bitbucket.org/tarek/distribute/issues/323
 
         Ensures that a distribution's setup_requires requirements can still be
         installed and used locally even if a conflicting version of that
         requirement is already on the path.
         """
 
-        pr_state = pkg_resources.__getstate__()
         fake_dist = PRDistribution('does-not-matter', project_name='foobar',
                                    version='0.0')
         working_set.add(fake_dist)
 
-        try:
+        with contexts.save_pkg_resources_state():
             with contexts.tempdir() as temp_dir:
                 test_pkg = create_setup_requires_package(temp_dir)
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
@@ -347,19 +348,154 @@ class TestSetupRequires:
                 lines = stdout.readlines()
                 assert len(lines) > 0
                 assert lines[-1].strip(), 'test_pkg'
-        finally:
-            pkg_resources.__setstate__(pr_state)
+
+    def test_setup_requires_override_nspkg(self):
+        """
+        Like ``test_setup_requires_overrides_version_conflict`` but where the
+        ``setup_requires`` package is part of a namespace package that has
+        *already* been imported.
+        """
+
+        with contexts.save_pkg_resources_state():
+            with contexts.tempdir() as temp_dir:
+                foobar_1_archive = os.path.join(temp_dir, 'foo.bar-0.1.tar.gz')
+                make_nspkg_sdist(foobar_1_archive, 'foo.bar', '0.1')
+                # Now actually go ahead an extract to the temp dir and add the
+                # extracted path to sys.path so foo.bar v0.1 is importable
+                foobar_1_dir = os.path.join(temp_dir, 'foo.bar-0.1')
+                os.mkdir(foobar_1_dir)
+                with tarfile.open(foobar_1_archive) as tf:
+                    tf.extractall(foobar_1_dir)
+                sys.path.insert(1, foobar_1_dir)
+
+                dist = PRDistribution(foobar_1_dir, project_name='foo.bar',
+                                      version='0.1')
+                working_set.add(dist)
+
+                template = DALS("""\
+                    import foo  # Even with foo imported first the
+                                # setup_requires package should override
+                    import setuptools
+                    setuptools.setup(**%r)
+
+                    if not (hasattr(foo, '__path__') and
+                            len(foo.__path__) == 2):
+                        print('FAIL')
+
+                    if 'foo.bar-0.2' not in foo.__path__[0]:
+                        print('FAIL')
+                """)
+
+                test_pkg = create_setup_requires_package(
+                    temp_dir, 'foo.bar', '0.2', make_nspkg_sdist, template)
+
+                test_setup_py = os.path.join(test_pkg, 'setup.py')
+
+                with contexts.quiet() as (stdout, stderr):
+                    try:
+                        # Don't even need to install the package, just
+                        # running the setup.py at all is sufficient
+                        run_setup(test_setup_py, ['--name'])
+                    except VersionConflict:
+                        self.fail('Installing setup.py requirements '
+                            'caused a VersionConflict')
+
+                assert 'FAIL' not in stdout.getvalue()
+                lines = stdout.readlines()
+                assert len(lines) > 0
+                assert lines[-1].strip() == 'test_pkg'
 
 
-def create_setup_requires_package(path):
+def make_trivial_sdist(dist_path, distname, version):
+    """
+    Create a simple sdist tarball at dist_path, containing just a simple
+    setup.py.
+    """
+
+    make_sdist(dist_path, [
+        ('setup.py',
+         DALS("""\
+             import setuptools
+             setuptools.setup(
+                 name=%r,
+                 version=%r
+             )
+         """ % (distname, version)))])
+
+
+def make_nspkg_sdist(dist_path, distname, version):
+    """
+    Make an sdist tarball with distname and version which also contains one
+    package with the same name as distname.  The top-level package is
+    designated a namespace package).
+    """
+
+    parts = distname.split('.')
+    nspackage = parts[0]
+
+    packages = ['.'.join(parts[:idx]) for idx in range(1, len(parts) + 1)]
+
+    setup_py = DALS("""\
+        import setuptools
+        setuptools.setup(
+            name=%r,
+            version=%r,
+            packages=%r,
+            namespace_packages=[%r]
+        )
+    """ % (distname, version, packages, nspackage))
+
+    init = "__import__('pkg_resources').declare_namespace(__name__)"
+
+    files = [('setup.py', setup_py),
+             (os.path.join(nspackage, '__init__.py'), init)]
+    for package in packages[1:]:
+        filename = os.path.join(*(package.split('.') + ['__init__.py']))
+        files.append((filename, ''))
+
+    make_sdist(dist_path, files)
+
+
+def make_sdist(dist_path, files):
+    """
+    Create a simple sdist tarball at dist_path, containing the files
+    listed in ``files`` as ``(filename, content)`` tuples.
+    """
+
+    dist = tarfile.open(dist_path, 'w:gz')
+
+    try:
+        # Python 3 (StringIO gets converted to io module)
+        MemFile = BytesIO
+    except AttributeError:
+        MemFile = StringIO
+
+    try:
+        for filename, content in files:
+            file_bytes = MemFile(content.encode('utf-8'))
+            file_info = tarfile.TarInfo(name=filename)
+            file_info.size = len(file_bytes.getvalue())
+            file_info.mtime = int(time.time())
+            dist.addfile(file_info, fileobj=file_bytes)
+    finally:
+        dist.close()
+
+
+def create_setup_requires_package(path, distname='foobar', version='0.1',
+                                  make_package=make_trivial_sdist,
+                                  setup_py_template=None):
     """Creates a source tree under path for a trivial test package that has a
     single requirement in setup_requires--a tarball for that requirement is
     also created and added to the dependency_links argument.
+
+    ``distname`` and ``version`` refer to the name/version of the package that
+    the test package requires via ``setup_requires``.  The name of the test
+    package itself is just 'test_pkg'.
     """
 
     test_setup_attrs = {
         'name': 'test_pkg', 'version': '0.0',
-        'setup_requires': ['foobar==0.1'],
+        'setup_requires': ['%s==%s' % (distname, version)],
         'dependency_links': [os.path.abspath(path)]
     }
 
@@ -367,22 +503,17 @@ def create_setup_requires_package(path):
     test_setup_py = os.path.join(test_pkg, 'setup.py')
     os.mkdir(test_pkg)
 
-    with open(test_setup_py, 'w') as f:
-        f.write(DALS("""
+    if setup_py_template is None:
+        setup_py_template = DALS("""\
             import setuptools
             setuptools.setup(**%r)
-        """ % test_setup_attrs))
+        """)
 
-    foobar_path = os.path.join(path, 'foobar-0.1.tar.gz')
-    make_trivial_sdist(
-        foobar_path,
-        DALS("""
-            import setuptools
-            setuptools.setup(
-                name='foobar',
-                version='0.1'
-            )
-        """))
+    with open(test_setup_py, 'w') as f:
+        f.write(setup_py_template % test_setup_attrs)
+
+    foobar_path = os.path.join(path, '%s-%s.tar.gz' % (distname, version))
+    make_package(foobar_path, distname, version)
 
     return test_pkg
 

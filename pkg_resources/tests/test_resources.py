@@ -612,18 +612,32 @@ class TestNamespaces:
 
     def setup_method(self, method):
         self._ns_pkgs = pkg_resources._namespace_packages.copy()
-        self._tmpdir = tempfile.mkdtemp(prefix="tests-setuptools-")
+
+        # Further, test case where the temp dir is a symlink, where applicable
+        # See #231
+        if hasattr(os, 'symlink'):
+            real_tmpdir = tempfile.mkdtemp(prefix="real-tests-setuptools-")
+            tmpdir_base, tmpdir_name = os.path.split(real_tmpdir)
+            tmpdir = os.path.join(tmpdir_base, tmpdir_name[5:])
+            os.symlink(real_tmpdir, tmpdir)
+            self._real_tmpdir = real_tmpdir
+            self._tmpdir = tmpdir
+        else:
+            tmpdir = tempfile.mkdtemp(prefix="tests-setuptools-")
+            self._real_tmpdir = self._tmpdir = tmpdir
+
         os.makedirs(os.path.join(self._tmpdir, "site-pkgs"))
         self._prev_sys_path = sys.path[:]
         sys.path.append(os.path.join(self._tmpdir, "site-pkgs"))
 
     def teardown_method(self, method):
-        shutil.rmtree(self._tmpdir)
+        shutil.rmtree(self._real_tmpdir)
+        if os.path.islink(self._tmpdir):
+            os.unlink(self._tmpdir)
+
         pkg_resources._namespace_packages = self._ns_pkgs.copy()
         sys.path = self._prev_sys_path[:]
 
-    @pytest.mark.skipif(os.path.islink(tempfile.gettempdir()),
-        reason="Test fails when /tmp is a symlink. See #231")
     def test_two_levels_deep(self):
         """
         Test nested namespace packages
@@ -655,7 +669,41 @@ class TestNamespaces:
         assert pkg_resources._namespace_packages["pkg1"] == ["pkg1.pkg2"]
         # check the __path__ attribute contains both paths
         expected = [
-            os.path.join(self._tmpdir, "site-pkgs", "pkg1", "pkg2"),
-            os.path.join(self._tmpdir, "site-pkgs2", "pkg1", "pkg2"),
+            os.path.join(self._real_tmpdir, "site-pkgs", "pkg1", "pkg2"),
+            os.path.join(self._real_tmpdir, "site-pkgs2", "pkg1", "pkg2"),
         ]
         assert pkg1.pkg2.__path__ == expected
+
+    def test_path_order(self):
+        """
+        Test that if multiple versions of the same namespace package subpackage
+        are on different sys.path entries, that only the one earliest on
+        sys.path is imported, and that the namespace package's __path__ is in
+        the correct order.
+
+        Regression test for https://bitbucket.org/pypa/setuptools/issues/207
+        """
+
+        site_pkgs = ["site-pkgs", "site-pkgs2", "site-pkgs3"]
+
+        ns_str = "__import__('pkg_resources').declare_namespace(__name__)\n"
+        vers_str = "__version__ = %r"
+
+        for idx, site in enumerate(site_pkgs):
+            if idx > 0:
+                sys.path.append(os.path.join(self._tmpdir, site))
+            os.makedirs(os.path.join(self._tmpdir, site, "nspkg", "subpkg"))
+            with open(os.path.join(self._tmpdir, site, "nspkg",
+                                   "__init__.py"), "w") as f:
+                f.write(ns_str)
+
+            with open(os.path.join(self._tmpdir, site, "nspkg", "subpkg",
+                                   "__init__.py"), "w") as f:
+                f.write(vers_str % (idx + 1))
+
+        import nspkg.subpkg
+        import nspkg
+        assert nspkg.__path__ == [os.path.join(self._real_tmpdir, site,
+                                               "nspkg")
+                                  for site in site_pkgs]
+        assert nspkg.subpkg.__version__ == 1
