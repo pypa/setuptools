@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+19.4.1
+------
+
+* Issue #487: Use direct invocation of ``importlib.machinery``
+  in ``pkg_resources`` to avoid missing detection on relevant
+  platforms.
+
 19.4
 ----
 

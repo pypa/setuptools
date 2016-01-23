@@ -60,10 +60,11 @@ except ImportError:
 from os import open as os_open
 from os.path import isdir, split
 
-# Avoid try/except due to potential problems with delayed import mechanisms.
-if sys.version_info >= (3, 3) and sys.implementation.name == "cpython":
+try:
     import importlib.machinery as importlib_machinery
-else:
+    # access attribute to force import under delayed import mechanisms.
+    importlib_machinery.__name__
+except ImportError:
     importlib_machinery = None
 
 try:
