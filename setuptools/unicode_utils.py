@@ -22,11 +22,13 @@ def filesys_decode(path):
     NONE when no expected encoding works
     """
 
-    fs_enc = sys.getfilesystemencoding()
     if isinstance(path, six.text_type):
         return path
 
-    for enc in (fs_enc, "utf-8"):
+    fs_enc = sys.getfilesystemencoding()
+    candidates = fs_enc, 'utf-8'
+
+    for enc in candidates:
         try:
             return path.decode(enc)
         except UnicodeDecodeError:
