@@ -548,51 +548,6 @@ class TestScriptHeader:
         expected = '#!"%s"\n' % self.exe_with_spaces
         assert actual == expected
 
-    @pytest.mark.xfail(
-        six.PY3 and is_ascii,
-        reason="Test fails in this locale on Python 3"
-    )
-    @mock.patch.dict(sys.modules, java=mock.Mock(lang=mock.Mock(System=
-        mock.Mock(getProperty=mock.Mock(return_value="")))))
-    @mock.patch('sys.platform', 'java1.5.0_13')
-    def test_get_script_header_jython_workaround(self, tmpdir):
-        # Create a mock sys.executable that uses a shebang line
-        header = DALS("""
-            #!/usr/bin/python
-            # -*- coding: utf-8 -*-
-            """)
-        exe = tmpdir / 'exe.py'
-        with exe.open('w') as f:
-            f.write(header)
-
-        exe = ei.nt_quote_arg(os.path.normpath(str(exe)))
-
-        # Make sure Windows paths are quoted properly before they're sent
-        # through shlex.split by get_script_header
-        executable = '"%s"' % exe if os.path.splitdrive(exe)[0] else exe
-
-        header = ei.ScriptWriter.get_script_header('#!/usr/local/bin/python',
-            executable=executable)
-        assert header == '#!/usr/bin/env %s\n' % exe
-
-        expect_out = 'stdout' if sys.version_info < (2,7) else 'stderr'
-
-        with contexts.quiet() as (stdout, stderr):
-            # When options are included, generate a broken shebang line
-            # with a warning emitted
-            candidate = ei.ScriptWriter.get_script_header('#!/usr/bin/python -x',
-                executable=executable)
-            assert candidate == '#!%s -x\n' % exe
-            output = locals()[expect_out]
-            assert 'Unable to adapt shebang line' in output.getvalue()
-
-        with contexts.quiet() as (stdout, stderr):
-            candidate = ei.ScriptWriter.get_script_header('#!/usr/bin/python',
-                executable=self.non_ascii_exe)
-            assert candidate == '#!%s -x\n' % self.non_ascii_exe
-            output = locals()[expect_out]
-            assert 'Unable to adapt shebang line' in output.getvalue()
-
 
 class TestCommandSpec:
     def test_custom_launch_command(self):
