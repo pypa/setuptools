@@ -7,6 +7,7 @@ CHANGES
 
 * Issue #486: Correct TypeError when getfilesystemencoding
   returns None.
+* Issue #139: Clarified the license as MIT.
 
 19.4.1
 ------
