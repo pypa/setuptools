@@ -25,7 +25,7 @@ def filesys_decode(path):
     if isinstance(path, six.text_type):
         return path
 
-    fs_enc = sys.getfilesystemencoding()
+    fs_enc = sys.getfilesystemencoding() or 'utf-8'
     candidates = fs_enc, 'utf-8'
 
     for enc in candidates:
