@@ -2,12 +2,14 @@
 CHANGES
 =======
 
-19.4.2
-------
+19.5
+----
 
 * Issue #486: Correct TypeError when getfilesystemencoding
   returns None.
 * Issue #139: Clarified the license as MIT.
+* Pull Request #169: Removed special handling of command
+  spec in scripts for Jython.
 
 19.4.1
 ------
