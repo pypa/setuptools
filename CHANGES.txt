@@ -16,6 +16,9 @@ CHANGES
   expose the desired functionality. For example::
 
     $ python -m setuptools.launch setup.py develop
+* Issue #488: Fix dual manifestation of Extension class in
+  extension packages installed as dependencies when Cython
+  is present.
 
 19.5
 ----
