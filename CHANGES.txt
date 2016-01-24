@@ -2,6 +2,21 @@
 CHANGES
 =======
 
+19.6
+----
+
+* Added a new entry script ``setuptools.launch``,
+  implementing the shim found in
+  ``pip.util.setuptools_build``. Use this command to launch
+  distutils-only packages under setuptools in the same way that
+  pip does, causing the setuptools monkeypatching of distutils
+  to be invoked prior to invoking a script. Useful for debugging
+  or otherwise installing a distutils-only package under
+  setuptools when pip isn't available or otherwise does not
+  expose the desired functionality. For example::
+
+    $ python -m setuptools.launch setup.py develop
+
 19.5
 ----
 
