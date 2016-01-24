@@ -75,7 +75,6 @@ setup_params = dict(
                 "Python packages",
     author="Python Packaging Authority",
     author_email="distutils-sig@python.org",
-    license="PSF or ZPL",
     long_description=long_description,
     keywords="CPAN PyPI distutils eggs package management",
     url="https://bitbucket.org/pypa/setuptools",
@@ -134,8 +133,7 @@ setup_params = dict(
     classifiers=textwrap.dedent("""
         Development Status :: 5 - Production/Stable
         Intended Audience :: Developers
-        License :: OSI Approved :: Python Software Foundation License
-        License :: OSI Approved :: Zope Public License
+        License :: OSI Approved :: MIT License
         Operating System :: OS Independent
         Programming Language :: Python :: 2.6
         Programming Language :: Python :: 2.7
