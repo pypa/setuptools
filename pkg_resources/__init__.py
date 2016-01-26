@@ -1727,10 +1727,9 @@ class DefaultProvider(EggProvider):
 
     @classmethod
     def _register(cls):
-        register_loader_type(type(None), cls)
-
-        if importlib_machinery is not None:
-            register_loader_type(importlib_machinery.SourceFileLoader, cls)
+        loader_cls = getattr(importlib_machinery, 'SourceFileLoader',
+            type(None))
+        register_loader_type(loader_cls, cls)
 
 DefaultProvider._register()
 
@@ -2138,7 +2137,7 @@ def find_on_path(importer, path_item, only=False):
                         break
 register_finder(pkgutil.ImpImporter, find_on_path)
 
-if importlib_machinery is not None:
+if hasattr(importlib_machinery, 'FileFinder'):
     register_finder(importlib_machinery.FileFinder, find_on_path)
 
 _declare_state('dict', _namespace_handlers={})
@@ -2255,7 +2254,7 @@ def file_ns_handler(importer, path_item, packageName, module):
 register_namespace_handler(pkgutil.ImpImporter, file_ns_handler)
 register_namespace_handler(zipimport.zipimporter, file_ns_handler)
 
-if importlib_machinery is not None:
+if hasattr(importlib_machinery, 'FileFinder'):
     register_namespace_handler(importlib_machinery.FileFinder, file_ns_handler)
 
 
