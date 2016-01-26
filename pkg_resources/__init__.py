@@ -46,7 +46,7 @@ except ImportError:
     import imp as _imp
 
 from pkg_resources.extern import six
-from pkg_resources.extern.six.moves import urllib, map
+from pkg_resources.extern.six.moves import urllib, map, filter
 
 # capture these to bypass sandboxing
 from os import utime
@@ -76,9 +76,6 @@ from pkg_resources.extern import packaging
 __import__('pkg_resources.extern.packaging.version')
 __import__('pkg_resources.extern.packaging.specifiers')
 
-
-filter = six.moves.filter
-map = six.moves.map
 
 if (3, 0) < sys.version_info < (3, 3):
     msg = (
