@@ -10,19 +10,26 @@ import tokenize
 import sys
 
 
-def load():
+def run():
 	"""
-	Load the script in sys.argv[1] and run it as if it had
+	Run the script in sys.argv[1] as if it had
 	been invoked naturally.
 	"""
-	globals()['__file__'] = sys.argv[1]
+	__builtins__
+	script_name = sys.argv[1]
+	namespace = dict(
+		__file__ = script_name,
+		__name__ = '__main__',
+		__doc__ = None,
+	)
 	sys.argv[:] = sys.argv[1:]
 
 	open_ = getattr(tokenize, 'open', open)
-	script = open_(__file__).read()
+	script = open_(script_name).read()
 	norm_script = script.replace('\\r\\n', '\\n')
-	return compile(norm_script, __file__, 'exec')
+	code = compile(norm_script, script_name, 'exec')
+	exec(code, namespace)
 
 
 if __name__ == '__main__':
-	exec(load())
+	run()
