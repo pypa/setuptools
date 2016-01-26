@@ -1725,10 +1725,14 @@ class DefaultProvider(EggProvider):
         with open(path, 'rb') as stream:
             return stream.read()
 
-register_loader_type(type(None), DefaultProvider)
+    @classmethod
+    def _register(cls):
+        register_loader_type(type(None), cls)
 
-if importlib_machinery is not None:
-    register_loader_type(importlib_machinery.SourceFileLoader, DefaultProvider)
+        if importlib_machinery is not None:
+            register_loader_type(importlib_machinery.SourceFileLoader, cls)
+
+DefaultProvider._register()
 
 
 class EmptyProvider(NullProvider):
