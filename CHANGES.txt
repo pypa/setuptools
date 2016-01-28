@@ -2,6 +2,15 @@
 CHANGES
 =======
 
+19.6.1
+------
+
+* Restore compatibility for PyPy 3 compatibility lost in
+  19.4.1 addressing Issue #487.
+* ``setuptools.launch`` shim now loads scripts in a new
+  namespace, avoiding getting relative imports from
+  the setuptools package on Python 2.
+
 19.6
 ----
 
@@ -16,6 +25,7 @@ CHANGES
   expose the desired functionality. For example::
 
     $ python -m setuptools.launch setup.py develop
+
 * Issue #488: Fix dual manifestation of Extension class in
   extension packages installed as dependencies when Cython
   is present.
