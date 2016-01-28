@@ -7,6 +7,9 @@ python:
   - 3.5
   - pypy
   - pypy3
+matrix:
+  allow_failures:
+    - python: pypy3
 env:
  - ""
  - LC_ALL=C LC_CTYPE=C
