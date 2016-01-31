@@ -2192,13 +2192,16 @@ def _rebuild_mod_path(orig_path, package_name, module):
     Rebuild module.__path__ ensuring that all entries are ordered
     corresponding to their sys.path order
     """
-    sys_path= [(p and _normalize_cached(p) or p) for p in sys.path]
-    def sort_key(p):
+    sys_path = [(p and _normalize_cached(p) or p) for p in sys.path]
+    def position_in_sys_path(p):
+        """
+        Return the ordinal of the path based on its position in sys.path
+        """
         parts = p.split(os.sep)
         parts = parts[:-(package_name.count('.') + 1)]
         return sys_path.index(_normalize_cached(os.sep.join(parts)))
 
-    orig_path.sort(key=sort_key)
+    orig_path.sort(key=position_in_sys_path)
     module.__path__[:] = [_normalize_cached(p) for p in orig_path]
 
 
