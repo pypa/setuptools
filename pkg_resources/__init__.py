@@ -2192,7 +2192,7 @@ def _rebuild_mod_path(orig_path, package_name, module):
     Rebuild module.__path__ ensuring that all entries are ordered
     corresponding to their sys.path order
     """
-    sys_path = [(p and _normalize_cached(p) or p) for p in sys.path]
+    sys_path = [_normalize_cached(p) for p in sys.path]
     def position_in_sys_path(p):
         """
         Return the ordinal of the path based on its position in sys.path
