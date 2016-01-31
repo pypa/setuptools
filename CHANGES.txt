@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+19.6.2
+------
+
+* Issue #491: Correct regression incurred in 19.4 where
+  a double-namespace package installed using pip would
+  cause a TypeError.
+
 19.6.1
 ------
 
