@@ -2183,18 +2183,24 @@ def _handle_ns(packageName, path_item):
         path = module.__path__
         path.append(subpath)
         loader.load_module(packageName)
-
-        # Rebuild mod.__path__ ensuring that all entries are ordered
-        # corresponding to their sys.path order
-        sys_path= [(p and _normalize_cached(p) or p) for p in sys.path]
-        def sort_key(p):
-            parts = p.split(os.sep)
-            parts = parts[:-(packageName.count('.') + 1)]
-            return sys_path.index(_normalize_cached(os.sep.join(parts)))
-
-        path.sort(key=sort_key)
-        module.__path__[:] = [_normalize_cached(p) for p in path]
+        _rebuild_mod_path(path, packageName, module)
     return subpath
+
+
+def _rebuild_mod_path(orig_path, package_name, module):
+    """
+    Rebuild module.__path__ ensuring that all entries are ordered
+    corresponding to their sys.path order
+    """
+    sys_path= [(p and _normalize_cached(p) or p) for p in sys.path]
+    def sort_key(p):
+        parts = p.split(os.sep)
+        parts = parts[:-(package_name.count('.') + 1)]
+        return sys_path.index(_normalize_cached(os.sep.join(parts)))
+
+    orig_path.sort(key=sort_key)
+    module.__path__[:] = [_normalize_cached(p) for p in orig_path]
+
 
 def declare_namespace(packageName):
     """Declare that package 'packageName' is a namespace package"""
