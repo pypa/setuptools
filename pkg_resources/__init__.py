@@ -1174,22 +1174,23 @@ class ResourceManager:
         old_exc = sys.exc_info()[1]
         cache_path = self.extraction_path or get_default_cache()
 
-        err = ExtractionError("""Can't extract file(s) to egg cache
+        tmpl = textwrap.dedent("""
+            Can't extract file(s) to egg cache
 
-The following error occurred while trying to extract file(s) to the Python egg
-cache:
+            The following error occurred while trying to extract file(s) to the Python egg
+            cache:
 
-  %s
+              %s
 
-The Python egg cache directory is currently set to:
+            The Python egg cache directory is currently set to:
 
-  %s
+              %s
 
-Perhaps your account does not have write access to this directory?  You can
-change the cache directory by setting the PYTHON_EGG_CACHE environment
-variable to point to an accessible directory.
-""" % (old_exc, cache_path)
-        )
+            Perhaps your account does not have write access to this directory?  You can
+            change the cache directory by setting the PYTHON_EGG_CACHE environment
+            variable to point to an accessible directory.
+            """).lstrip()
+        err = ExtractionError(tmpl % (old_exc, cache_path))
         err.manager = self
         err.cache_path = cache_path
         err.original_error = old_exc
