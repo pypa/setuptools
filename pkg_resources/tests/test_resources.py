@@ -610,6 +610,8 @@ class TestParsing:
 
 class TestNamespaces:
 
+    ns_str = "__import__('pkg_resources').declare_namespace(__name__)\n"
+
     @pytest.yield_fixture
     def symlinked_tmpdir(self, tmpdir):
         """
@@ -657,13 +659,12 @@ class TestNamespaces:
         tmpdir = symlinked_tmpdir
         sys.path.append(str(tmpdir / 'site-pkgs2'))
         site_dirs = tmpdir / 'site-pkgs', tmpdir / 'site-pkgs2'
-        ns_str = "__import__('pkg_resources').declare_namespace(__name__)\n"
         for site in site_dirs:
             pkg1 = site / 'pkg1'
             pkg2 = pkg1 / 'pkg2'
             pkg2.ensure_dir()
-            (pkg1 / '__init__.py').write_text(ns_str, encoding='utf-8')
-            (pkg2 / '__init__.py').write_text(ns_str, encoding='utf-8')
+            (pkg1 / '__init__.py').write_text(self.ns_str, encoding='utf-8')
+            (pkg2 / '__init__.py').write_text(self.ns_str, encoding='utf-8')
         import pkg1
         assert "pkg1" in pkg_resources._namespace_packages
         # attempt to import pkg2 from site-pkgs2
@@ -695,7 +696,6 @@ class TestNamespaces:
             tmpdir / "site-pkgs3",
         )
 
-        ns_str = "__import__('pkg_resources').declare_namespace(__name__)\n"
         vers_str = "__version__ = %r"
 
         for number, site in enumerate(site_dirs, 1):
@@ -704,7 +704,7 @@ class TestNamespaces:
             nspkg = site / 'nspkg'
             subpkg = nspkg / 'subpkg'
             subpkg.ensure_dir()
-            (nspkg / '__init__.py').write_text(ns_str, encoding='utf-8')
+            (nspkg / '__init__.py').write_text(self.ns_str, encoding='utf-8')
             (subpkg / '__init__.py').write_text(vers_str % number, encoding='utf-8')
 
         import nspkg.subpkg
