@@ -709,7 +709,9 @@ class TestNamespaces:
 
         import nspkg.subpkg
         import nspkg
-        assert nspkg.__path__ == [os.path.join(real_tmpdir, site,
-                                               "nspkg")
-                                  for site in site_pkgs]
+        expected = [
+            os.path.join(real_tmpdir, site, "nspkg")
+            for site in site_pkgs
+        ]
+        assert nspkg.__path__ == expected
         assert nspkg.subpkg.__version__ == 1
