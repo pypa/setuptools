@@ -610,35 +610,41 @@ class TestParsing:
 
 class TestNamespaces:
 
-    def setup_method(self, method):
-        self._ns_pkgs = pkg_resources._namespace_packages.copy()
+    @pytest.yield_fixture
+    def symlinked_tmpdir(self, tmpdir):
+        """
+        Where available, return the tempdir as a symlink,
+        which as revealed in #231 is more fragile than
+        a natural tempdir.
+        """
+        if not hasattr(os, 'symlink'):
+            return str(tmpdir)
 
-        # Further, test case where the temp dir is a symlink, where applicable
-        # See #231
-        if hasattr(os, 'symlink'):
-            real_tmpdir = tempfile.mkdtemp(prefix="real-tests-setuptools-")
-            tmpdir_base, tmpdir_name = os.path.split(real_tmpdir)
-            tmpdir = os.path.join(tmpdir_base, tmpdir_name[5:])
-            os.symlink(real_tmpdir, tmpdir)
-            self._real_tmpdir = real_tmpdir
-            self._tmpdir = tmpdir
-        else:
-            tmpdir = tempfile.mkdtemp(prefix="tests-setuptools-")
-            self._real_tmpdir = self._tmpdir = tmpdir
+        link_name = str(tmpdir) + '-linked'
+        os.symlink(str(tmpdir), link_name)
+        try:
+            yield type(tmpdir)(link_name)
+        finally:
+            os.unlink(link_name)
 
-        os.makedirs(os.path.join(self._tmpdir, "site-pkgs"))
-        self._prev_sys_path = sys.path[:]
-        sys.path.append(os.path.join(self._tmpdir, "site-pkgs"))
+    @pytest.yield_fixture(autouse=True)
+    def patched_path(self, tmpdir):
+        """
+        Patch sys.path to include the 'site-pkgs' dir. Also
+        restore pkg_resources._namespace_packages to its
+        former state.
+        """
+        saved_ns_pkgs = pkg_resources._namespace_packages.copy()
+        saved_sys_path = sys.path[:]
+        site_pkgs = tmpdir.mkdir('site-pkgs')
+        sys.path.append(str(site_pkgs))
+        try:
+            yield
+        finally:
+            pkg_resources._namespace_packages = saved_ns_pkgs
+            sys.path = saved_sys_path
 
-    def teardown_method(self, method):
-        shutil.rmtree(self._real_tmpdir)
-        if os.path.islink(self._tmpdir):
-            os.unlink(self._tmpdir)
-
-        pkg_resources._namespace_packages = self._ns_pkgs.copy()
-        sys.path = self._prev_sys_path[:]
-
-    def test_two_levels_deep(self):
+    def test_two_levels_deep(self, symlinked_tmpdir):
         """
         Test nested namespace packages
         Create namespace packages in the following tree :
@@ -647,16 +653,18 @@ class TestNamespaces:
         Check both are in the _namespace_packages dict and that their __path__
         is correct
         """
-        sys.path.append(os.path.join(self._tmpdir, "site-pkgs2"))
-        os.makedirs(os.path.join(self._tmpdir, "site-pkgs", "pkg1", "pkg2"))
-        os.makedirs(os.path.join(self._tmpdir, "site-pkgs2", "pkg1", "pkg2"))
+        real_tmpdir = str(symlinked_tmpdir.realpath())
+        tmpdir = str(symlinked_tmpdir)
+        sys.path.append(os.path.join(tmpdir, "site-pkgs2"))
+        os.makedirs(os.path.join(tmpdir, "site-pkgs", "pkg1", "pkg2"))
+        os.makedirs(os.path.join(tmpdir, "site-pkgs2", "pkg1", "pkg2"))
         ns_str = "__import__('pkg_resources').declare_namespace(__name__)\n"
         for site in ["site-pkgs", "site-pkgs2"]:
-            pkg1_init = open(os.path.join(self._tmpdir, site,
+            pkg1_init = open(os.path.join(tmpdir, site,
                              "pkg1", "__init__.py"), "w")
             pkg1_init.write(ns_str)
             pkg1_init.close()
-            pkg2_init = open(os.path.join(self._tmpdir, site,
+            pkg2_init = open(os.path.join(tmpdir, site,
                              "pkg1", "pkg2", "__init__.py"), "w")
             pkg2_init.write(ns_str)
             pkg2_init.close()
@@ -669,12 +677,12 @@ class TestNamespaces:
         assert pkg_resources._namespace_packages["pkg1"] == ["pkg1.pkg2"]
         # check the __path__ attribute contains both paths
         expected = [
-            os.path.join(self._real_tmpdir, "site-pkgs", "pkg1", "pkg2"),
-            os.path.join(self._real_tmpdir, "site-pkgs2", "pkg1", "pkg2"),
+            os.path.join(real_tmpdir, "site-pkgs", "pkg1", "pkg2"),
+            os.path.join(real_tmpdir, "site-pkgs2", "pkg1", "pkg2"),
         ]
         assert pkg1.pkg2.__path__ == expected
 
-    def test_path_order(self):
+    def test_path_order(self, symlinked_tmpdir):
         """
         Test that if multiple versions of the same namespace package subpackage
         are on different sys.path entries, that only the one earliest on
@@ -684,6 +692,8 @@ class TestNamespaces:
         Regression test for https://bitbucket.org/pypa/setuptools/issues/207
         """
 
+        real_tmpdir = str(symlinked_tmpdir.realpath())
+        tmpdir = str(symlinked_tmpdir)
         site_pkgs = ["site-pkgs", "site-pkgs2", "site-pkgs3"]
 
         ns_str = "__import__('pkg_resources').declare_namespace(__name__)\n"
@@ -691,19 +701,19 @@ class TestNamespaces:
 
         for idx, site in enumerate(site_pkgs):
             if idx > 0:
-                sys.path.append(os.path.join(self._tmpdir, site))
-            os.makedirs(os.path.join(self._tmpdir, site, "nspkg", "subpkg"))
-            with open(os.path.join(self._tmpdir, site, "nspkg",
+                sys.path.append(os.path.join(tmpdir, site))
+            os.makedirs(os.path.join(tmpdir, site, "nspkg", "subpkg"))
+            with open(os.path.join(tmpdir, site, "nspkg",
                                    "__init__.py"), "w") as f:
                 f.write(ns_str)
 
-            with open(os.path.join(self._tmpdir, site, "nspkg", "subpkg",
+            with open(os.path.join(tmpdir, site, "nspkg", "subpkg",
                                    "__init__.py"), "w") as f:
                 f.write(vers_str % (idx + 1))
 
         import nspkg.subpkg
         import nspkg
-        assert nspkg.__path__ == [os.path.join(self._real_tmpdir, site,
+        assert nspkg.__path__ == [os.path.join(real_tmpdir, site,
                                                "nspkg")
                                   for site in site_pkgs]
         assert nspkg.subpkg.__version__ == 1
