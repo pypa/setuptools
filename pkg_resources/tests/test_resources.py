@@ -688,30 +688,30 @@ class TestNamespaces:
         Regression test for https://bitbucket.org/pypa/setuptools/issues/207
         """
 
-        real_tmpdir = str(symlinked_tmpdir.realpath())
-        tmpdir = str(symlinked_tmpdir)
-        site_pkgs = ["site-pkgs", "site-pkgs2", "site-pkgs3"]
+        tmpdir = symlinked_tmpdir
+        site_dirs = (
+            tmpdir / "site-pkgs",
+            tmpdir / "site-pkgs2",
+            tmpdir / "site-pkgs3",
+        )
 
         ns_str = "__import__('pkg_resources').declare_namespace(__name__)\n"
         vers_str = "__version__ = %r"
 
-        for idx, site in enumerate(site_pkgs):
+        for idx, site in enumerate(site_dirs):
             if idx > 0:
-                sys.path.append(os.path.join(tmpdir, site))
-            os.makedirs(os.path.join(tmpdir, site, "nspkg", "subpkg"))
-            with open(os.path.join(tmpdir, site, "nspkg",
-                                   "__init__.py"), "w") as f:
-                f.write(ns_str)
-
-            with open(os.path.join(tmpdir, site, "nspkg", "subpkg",
-                                   "__init__.py"), "w") as f:
-                f.write(vers_str % (idx + 1))
+                sys.path.append(str(site))
+            nspkg = site / 'nspkg'
+            subpkg = nspkg / 'subpkg'
+            subpkg.ensure_dir()
+            (nspkg / '__init__.py').write_text(ns_str, encoding='utf-8')
+            (subpkg / '__init__.py').write_text(vers_str % (idx + 1), encoding='utf-8')
 
         import nspkg.subpkg
         import nspkg
         expected = [
-            os.path.join(real_tmpdir, site, "nspkg")
-            for site in site_pkgs
+            str(site.realpath() / 'nspkg')
+            for site in site_dirs
         ]
         assert nspkg.__path__ == expected
         assert nspkg.subpkg.__version__ == 1
