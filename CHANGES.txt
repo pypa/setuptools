@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+19.7
+----
+
+* `Off-project PR <https://github.com/jaraco/setuptools/pull/32>`_:
+  For FreeBSD, also honor root certificates from ca_root_nss.
+
 19.6.2
 ------
 
