@@ -25,6 +25,7 @@ cert_paths = """
 /usr/local/share/certs/ca-root.crt
 /etc/ssl/cert.pem
 /System/Library/OpenSSL/certs/cert.pem
+/usr/local/share/certs/ca-root-nss.crt
 """.strip().split()
 
 
