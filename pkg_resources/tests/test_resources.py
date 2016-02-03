@@ -698,14 +698,14 @@ class TestNamespaces:
         ns_str = "__import__('pkg_resources').declare_namespace(__name__)\n"
         vers_str = "__version__ = %r"
 
-        for idx, site in enumerate(site_dirs):
-            if idx > 0:
+        for number, site in enumerate(site_dirs, 1):
+            if number > 1:
                 sys.path.append(str(site))
             nspkg = site / 'nspkg'
             subpkg = nspkg / 'subpkg'
             subpkg.ensure_dir()
             (nspkg / '__init__.py').write_text(ns_str, encoding='utf-8')
-            (subpkg / '__init__.py').write_text(vers_str % (idx + 1), encoding='utf-8')
+            (subpkg / '__init__.py').write_text(vers_str % number, encoding='utf-8')
 
         import nspkg.subpkg
         import nspkg
