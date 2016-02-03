@@ -1,7 +1,5 @@
 import os
 import sys
-import tempfile
-import shutil
 import string
 
 from pkg_resources.extern.six.moves import map
