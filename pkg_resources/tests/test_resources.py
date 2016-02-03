@@ -653,21 +653,17 @@ class TestNamespaces:
         Check both are in the _namespace_packages dict and that their __path__
         is correct
         """
-        real_tmpdir = str(symlinked_tmpdir.realpath())
-        tmpdir = str(symlinked_tmpdir)
-        sys.path.append(os.path.join(tmpdir, "site-pkgs2"))
-        os.makedirs(os.path.join(tmpdir, "site-pkgs", "pkg1", "pkg2"))
-        os.makedirs(os.path.join(tmpdir, "site-pkgs2", "pkg1", "pkg2"))
+        real_tmpdir = symlinked_tmpdir.realpath()
+        tmpdir = symlinked_tmpdir
+        sys.path.append(str(tmpdir / 'site-pkgs2'))
+        site_dirs = tmpdir / 'site-pkgs', tmpdir / 'site-pkgs2'
         ns_str = "__import__('pkg_resources').declare_namespace(__name__)\n"
-        for site in ["site-pkgs", "site-pkgs2"]:
-            pkg1_init = open(os.path.join(tmpdir, site,
-                             "pkg1", "__init__.py"), "w")
-            pkg1_init.write(ns_str)
-            pkg1_init.close()
-            pkg2_init = open(os.path.join(tmpdir, site,
-                             "pkg1", "pkg2", "__init__.py"), "w")
-            pkg2_init.write(ns_str)
-            pkg2_init.close()
+        for site in site_dirs:
+            pkg1 = site / 'pkg1'
+            pkg2 = pkg1 / 'pkg2'
+            pkg2.ensure_dir()
+            (pkg1 / '__init__.py').write_text(ns_str, encoding='utf-8')
+            (pkg2 / '__init__.py').write_text(ns_str, encoding='utf-8')
         import pkg1
         assert "pkg1" in pkg_resources._namespace_packages
         # attempt to import pkg2 from site-pkgs2
@@ -677,8 +673,8 @@ class TestNamespaces:
         assert pkg_resources._namespace_packages["pkg1"] == ["pkg1.pkg2"]
         # check the __path__ attribute contains both paths
         expected = [
-            os.path.join(real_tmpdir, "site-pkgs", "pkg1", "pkg2"),
-            os.path.join(real_tmpdir, "site-pkgs2", "pkg1", "pkg2"),
+            str(real_tmpdir / "site-pkgs" / "pkg1" / "pkg2"),
+            str(real_tmpdir / "site-pkgs2" / "pkg1" / "pkg2"),
         ]
         assert pkg1.pkg2.__path__ == expected
 
