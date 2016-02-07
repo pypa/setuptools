@@ -29,7 +29,7 @@ class install_egg_info(Command):
         ).egg_name() + '.egg-info'
         self.source = ei_cmd.egg_info
         self.target = os.path.join(self.install_dir, basename)
-        self.outputs = [self.target]
+        self.outputs = []
 
     def run(self):
         self.run_command('egg_info')

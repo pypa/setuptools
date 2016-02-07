@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+20.0
+----
+
+* Issue #118: Once again omit the package metadata (egg-info)
+  from the list of outputs in ``--record``. This version of setuptools
+  can no longer be used to upgrade pip earlier than 6.0.
+
 19.7
 ----
 
