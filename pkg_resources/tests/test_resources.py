@@ -618,7 +618,8 @@ class TestNamespaces:
         a natural tempdir.
         """
         if not hasattr(os, 'symlink'):
-            return str(tmpdir)
+            yield str(tmpdir)
+            return
 
         link_name = str(tmpdir) + '-linked'
         os.symlink(str(tmpdir), link_name)
