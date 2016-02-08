@@ -17,7 +17,8 @@ from .specifiers import Specifier, InvalidSpecifier
 
 
 __all__ = [
-    "InvalidMarker", "UndefinedComparison", "Marker", "default_environment",
+    "InvalidMarker", "UndefinedComparison", "UndefinedEnvironmentName",
+    "Marker", "default_environment",
 ]
 
 
@@ -30,6 +31,13 @@ class InvalidMarker(ValueError):
 class UndefinedComparison(ValueError):
     """
     An invalid operation was attempted on a value that doesn't support it.
+    """
+
+
+class UndefinedEnvironmentName(ValueError):
+    """
+    A name was attempted to be used that does not exist inside of the
+    environment.
     """
 
 
@@ -116,8 +124,8 @@ def _format_marker(marker, first=True):
     # where the single item is itself it's own list. In that case we want skip
     # the rest of this function so that we don't get extraneous () on the
     # outside.
-    if (isinstance(marker, list) and len(marker) == 1
-            and isinstance(marker[0], (list, tuple))):
+    if (isinstance(marker, list) and len(marker) == 1 and
+            isinstance(marker[0], (list, tuple))):
         return _format_marker(marker[0])
 
     if isinstance(marker, list):
@@ -161,6 +169,20 @@ def _eval_op(lhs, op, rhs):
     return oper(lhs, rhs)
 
 
+_undefined = object()
+
+
+def _get_env(environment, name):
+    value = environment.get(name, _undefined)
+
+    if value is _undefined:
+        raise UndefinedEnvironmentName(
+            "{0!r} does not exist in evaluation environment.".format(name)
+        )
+
+    return value
+
+
 def _evaluate_markers(markers, environment):
     groups = [[]]
 
@@ -171,11 +193,15 @@ def _evaluate_markers(markers, environment):
             groups[-1].append(_evaluate_markers(marker, environment))
         elif isinstance(marker, tuple):
             lhs, op, rhs = marker
+
             if isinstance(lhs, Variable):
-                value = _eval_op(environment[lhs.value], op, rhs.value)
+                lhs_value = _get_env(environment, lhs.value)
+                rhs_value = rhs.value
             else:
-                value = _eval_op(lhs.value, op, environment[rhs.value])
-            groups[-1].append(value)
+                lhs_value = lhs.value
+                rhs_value = _get_env(environment, rhs.value)
+
+            groups[-1].append(_eval_op(lhs_value, op, rhs_value))
         else:
             assert marker in ["and", "or"]
             if marker == "or":
@@ -220,12 +246,10 @@ class Marker(object):
     def __init__(self, marker):
         try:
             self._markers = _coerce_parse_result(MARKER.parseString(marker))
-        except ParseException:
-            self._markers = None
-
-        # We do this because we can't do raise ... from None in Python 2.x
-        if self._markers is None:
-            raise InvalidMarker("Invalid marker: {0!r}".format(marker))
+        except ParseException as e:
+            err_str = "Invalid marker: {0!r}, parse error at {1!r}".format(
+                marker, marker[e.loc:e.loc + 8])
+            raise InvalidMarker(err_str)
 
     def __str__(self):
         return _format_marker(self._markers)

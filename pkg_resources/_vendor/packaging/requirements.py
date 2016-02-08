@@ -102,7 +102,7 @@ class Requirement(object):
             self.url = req.url
         else:
             self.url = None
-        self.extras = req.extras.asList() if req.extras else []
+        self.extras = set(req.extras.asList() if req.extras else [])
         self.specifier = SpecifierSet(req.specifier)
         self.marker = req.marker if req.marker else None
 
