@@ -1395,7 +1395,7 @@ def invalid_marker(text):
     """
     try:
         evaluate_marker(text)
-    except packaging.markers.InvalidMarker as e:
+    except SyntaxError as e:
         e.filename = None
         e.lineno = None
         return e
@@ -1406,12 +1406,15 @@ def evaluate_marker(text, extra=None):
     """
     Evaluate a PEP 508 environment marker.
     Return a boolean indicating the marker result in this environment.
-    Raise InvalidMarker if marker is invalid.
+    Raise SyntaxError if marker is invalid.
 
     This implementation uses the 'pyparsing' module.
     """
     marker = packaging.markers.Marker(text)
-    return marker.evaluate()
+    try:
+        return marker.evaluate()
+    except packaging.marker.InvalidMarker as e:
+        raise SyntaxError(e)
 
 
 class NullProvider:
