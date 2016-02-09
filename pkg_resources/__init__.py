@@ -1410,10 +1410,10 @@ def evaluate_marker(text, extra=None):
 
     This implementation uses the 'pyparsing' module.
     """
-    marker = packaging.markers.Marker(text)
     try:
+        marker = packaging.markers.Marker(text)
         return marker.evaluate()
-    except packaging.marker.InvalidMarker as e:
+    except packaging.markers.InvalidMarker as e:
         raise SyntaxError(e)
 
 

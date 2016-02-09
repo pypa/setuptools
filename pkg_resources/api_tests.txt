@@ -338,49 +338,49 @@ Environment Markers
     >>> import os
 
     >>> print(im("sys_platform"))
-    Invalid marker: 'sys_platform'
+    Invalid marker: 'sys_platform', parse error at ''
 
     >>> print(im("sys_platform=="))
-    Invalid marker: 'sys_platform=='
+    Invalid marker: 'sys_platform==', parse error at ''
 
     >>> print(im("sys_platform=='win32'"))
     False
 
     >>> print(im("sys=='x'"))
-    Invalid marker: "sys=='x'"
+    Invalid marker: "sys=='x'", parse error at "sys=='x'"
 
     >>> print(im("(extra)"))
-    Invalid marker: '(extra)'
+    Invalid marker: '(extra)', parse error at ')'
 
     >>> print(im("(extra"))
-    Invalid marker: '(extra'
+    Invalid marker: '(extra', parse error at ''
 
     >>> print(im("os.open('foo')=='y'"))
-    Invalid marker: "os.open('foo')=='y'"
+    Invalid marker: "os.open('foo')=='y'", parse error at 'os.open('
 
     >>> print(im("'x'=='y' and os.open('foo')=='y'"))   # no short-circuit!
-    Invalid marker: "'x'=='y' and os.open('foo')=='y'"
+    Invalid marker: "'x'=='y' and os.open('foo')=='y'", parse error at 'and os.o'
 
     >>> print(im("'x'=='x' or os.open('foo')=='y'"))   # no short-circuit!
-    Invalid marker: "'x'=='x' or os.open('foo')=='y'"
+    Invalid marker: "'x'=='x' or os.open('foo')=='y'", parse error at 'or os.op'
 
     >>> print(im("'x' < 'y' < 'z'"))
-    Invalid marker: "'x' < 'y' < 'z'"
+    Invalid marker: "'x' < 'y' < 'z'", parse error at "< 'z'"
 
     >>> print(im("r'x'=='x'"))
-    Invalid marker: "r'x'=='x'"
+    Invalid marker: "r'x'=='x'", parse error at "r'x'=='x"
 
     >>> print(im("'''x'''=='x'"))
-    Invalid marker: "'''x'''=='x'"
+    Invalid marker: "'''x'''=='x'", parse error at "'x'''=='"
 
     >>> print(im('"""x"""=="x"'))
-    Invalid marker: '"""x"""=="x"'
+    Invalid marker: '"""x"""=="x"', parse error at '"x"""=="'
 
     >>> print(im(r"x\n=='x'"))
-    Invalid marker: "x\\n=='x'"
+    Invalid marker: "x\\n=='x'", parse error at "x\\n=='x'"
 
     >>> print(im("os.open=='y'"))
-    Invalid marker: "os.open=='y'"
+    Invalid marker: "os.open=='y'", parse error at 'os.open='
 
     >>> em("sys_platform=='win32'") == (sys.platform=='win32')
     True

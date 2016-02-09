@@ -383,7 +383,7 @@ class TestRequirements:
         r2 = Requirement.parse("Twisted[bar,FOO]>=1.2")
         assert r1 == r2
         assert r1.extras == ("foo","bar")
-        assert r2.extras == ("bar","foo")  # extras are normalized
+        assert r2.extras == ("foo","bar")
         assert hash(r1) == hash(r2)
         assert (
             hash(r1)
