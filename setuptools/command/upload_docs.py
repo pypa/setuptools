@@ -13,7 +13,6 @@ import os
 import socket
 import zipfile
 import tempfile
-import sys
 import shutil
 
 from setuptools.extern import six
