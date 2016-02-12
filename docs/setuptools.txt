@@ -2328,54 +2328,9 @@ available:
 ``upload`` - Upload source and/or egg distributions to PyPI
 ===========================================================
 
-PyPI now supports uploading project files for redistribution; uploaded files
-are easily found by EasyInstall, even if you don't have download links on your
-project's home page.
-
-Although Python 2.5 will support uploading all types of distributions to PyPI,
-setuptools only supports source distributions and eggs.  (This is partly
-because PyPI's upload support is currently broken for various other file
-types.)  To upload files, you must include the ``upload`` command *after* the
-``sdist`` or ``bdist_egg`` commands on the setup command line.  For example::
-
-    setup.py bdist_egg upload         # create an egg and upload it
-    setup.py sdist upload             # create a source distro and upload it
-    setup.py sdist bdist_egg upload   # create and upload both
-
-Note that to upload files for a project, the corresponding version must already
-be registered with PyPI, using the distutils ``register`` command.  It's
-usually a good idea to include the ``register`` command at the start of the
-command line, so that any registration problems can be found and fixed before
-building and uploading the distributions, e.g.::
-
-    setup.py register sdist bdist_egg upload
-
-This will update PyPI's listing for your project's current version.
-
-Note, by the way, that the metadata in your ``setup()`` call determines what
-will be listed in PyPI for your package.  Try to fill out as much of it as
-possible, as it will save you a lot of trouble manually adding and updating
-your PyPI listings.  Just put it in ``setup.py`` and use the ``register``
-command to keep PyPI up to date.
-
-The ``upload`` command has a few options worth noting:
-
-``--sign, -s``
-    Sign each uploaded file using GPG (GNU Privacy Guard).  The ``gpg`` program
-    must be available for execution on the system ``PATH``.
-
-``--identity=NAME, -i NAME``
-    Specify the identity or key name for GPG to use when signing.  The value of
-    this option will be passed through the ``--local-user`` option of the
-    ``gpg`` program.
-
-``--show-response``
-    Display the full response text from server; this is useful for debugging
-    PyPI problems.
-
-``--repository=URL, -r URL``
-    The URL of the repository to upload to.  Defaults to
-    https://pypi.python.org/pypi (i.e., the main PyPI installation).
+The ``upload`` command is implemented and `documented
+<https://docs.python.org/3.1/distutils/uploading.html>`_
+in distutils.
 
 .. _upload_docs:
 
