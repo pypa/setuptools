@@ -2332,6 +2332,22 @@ The ``upload`` command is implemented and `documented
 <https://docs.python.org/3.1/distutils/uploading.html>`_
 in distutils.
 
+Setuptools augments the ``upload`` command with support
+for `keyring <https://pypi.python.org/pypi/keyring>`_,
+allowing the password to be stored in a secure
+location and not in plaintext in the .pypirc file. To use
+keyring, first install keyring and set the password for
+the relevant repository, e.g.::
+
+    python -m keyring set <repository> <username>
+    Password for '<username>' in '<repository>': ********
+
+Then, in .pypirc, set the repository configuration as normal,
+but omit the password. Thereafter, uploads will use the
+password from the keyring.
+
+New in 20.1: Added keyring support.
+
 .. _upload_docs:
 
 ``upload_docs`` - Upload package documentation to PyPI
