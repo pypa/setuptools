@@ -2,10 +2,16 @@
 CHANGES
 =======
 
+20.1.1
+------
+
+* Update ``upload_docs`` command to also honor keyring
+  for password resolution.
+
 20.1
 ----
 
-Added support for using passwords from keyring in the upload
+* Added support for using passwords from keyring in the upload
 command. See `the upload docs
 <http://pythonhosted.org/setuptools/setuptools.html#upload-upload-source-and-or-egg-distributions-to-pypi>`_
 for details.

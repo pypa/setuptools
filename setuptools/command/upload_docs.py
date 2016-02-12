@@ -8,7 +8,6 @@ PyPI's pythonhosted.org).
 from base64 import standard_b64encode
 from distutils import log
 from distutils.errors import DistutilsOptionError
-from distutils.command.upload import upload
 import os
 import socket
 import zipfile
@@ -19,6 +18,7 @@ from setuptools.extern import six
 from setuptools.extern.six.moves import http_client, urllib
 
 from pkg_resources import iter_entry_points
+from .upload import upload
 
 
 errors = 'surrogateescape' if six.PY3 else 'strict'
