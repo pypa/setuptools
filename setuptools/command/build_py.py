@@ -9,6 +9,7 @@ import distutils.errors
 import collections
 import itertools
 
+from setuptools.extern.six.moves import map
 
 try:
     from setuptools.lib2to3_ex import Mixin2to3
@@ -59,9 +60,10 @@ class build_py(orig.build_py, Mixin2to3):
         self.byte_compile(orig.build_py.get_outputs(self, include_bytecode=0))
 
     def __getattr__(self, attr):
-        if attr == 'data_files':  # lazily compute data files
-            self.data_files = files = self._get_data_files()
-            return files
+        "lazily compute data files"
+        if attr == 'data_files':
+            self.data_files = self._get_data_files()
+            return self.data_files
         return orig.build_py.__getattr__(self, attr)
 
     def build_module(self, module, module_file, package):
@@ -74,23 +76,21 @@ class build_py(orig.build_py, Mixin2to3):
     def _get_data_files(self):
         """Generate list of '(package,src_dir,build_dir,filenames)' tuples"""
         self.analyze_manifest()
-        data = []
-        for package in self.packages or ():
-            # Locate package source directory
-            src_dir = self.get_package_dir(package)
+        return list(map(self._get_pkg_data_files, self.packages or ()))
 
-            # Compute package build directory
-            build_dir = os.path.join(*([self.build_lib] + package.split('.')))
+    def _get_pkg_data_files(self, package):
+        # Locate package source directory
+        src_dir = self.get_package_dir(package)
 
-            # Length of path to strip from found files
-            plen = len(src_dir) + 1
+        # Compute package build directory
+        build_dir = os.path.join(*([self.build_lib] + package.split('.')))
 
-            # Strip directory from globbed filenames
-            filenames = [
-                file[plen:] for file in self.find_data_files(package, src_dir)
-            ]
-            data.append((package, src_dir, build_dir, filenames))
-        return data
+        # Strip directory from globbed filenames
+        filenames = [
+            os.path.relpath(file, src_dir)
+            for file in self.find_data_files(package, src_dir)
+        ]
+        return package, src_dir, build_dir, filenames
 
     def find_data_files(self, package, src_dir):
         """Return filenames for package's data files in 'src_dir'"""

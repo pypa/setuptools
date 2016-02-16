@@ -12,6 +12,8 @@ import stat
 import distutils.dist
 import distutils.command.install_egg_info
 
+from pkg_resources.extern.six.moves import map
+
 import pytest
 
 import pkg_resources

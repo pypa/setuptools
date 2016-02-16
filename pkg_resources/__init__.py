@@ -46,7 +46,7 @@ except ImportError:
     import imp as _imp
 
 from pkg_resources.extern import six
-from pkg_resources.extern.six.moves import urllib
+from pkg_resources.extern.six.moves import urllib, map, filter
 
 # capture these to bypass sandboxing
 from os import utime
@@ -60,10 +60,11 @@ except ImportError:
 from os import open as os_open
 from os.path import isdir, split
 
-# Avoid try/except due to potential problems with delayed import mechanisms.
-if sys.version_info >= (3, 3) and sys.implementation.name == "cpython":
+try:
     import importlib.machinery as importlib_machinery
-else:
+    # access attribute to force import under delayed import mechanisms.
+    importlib_machinery.__name__
+except ImportError:
     importlib_machinery = None
 
 try:
@@ -77,9 +78,6 @@ __import__('pkg_resources.extern.packaging.specifiers')
 __import__('pkg_resources._vendor.packaging.requirements')
 __import__('pkg_resources._vendor.packaging.markers')
 
-
-filter = six.moves.filter
-map = six.moves.map
 
 if (3, 0) < sys.version_info < (3, 3):
     msg = (
@@ -757,7 +755,7 @@ class WorkingSet(object):
         will be called.
         """
         if insert:
-            dist.insert_on(self.entries, entry)
+            dist.insert_on(self.entries, entry, replace=replace)
 
         if entry is None:
             entry = dist.location
@@ -1178,22 +1176,23 @@ class ResourceManager:
         old_exc = sys.exc_info()[1]
         cache_path = self.extraction_path or get_default_cache()
 
-        err = ExtractionError("""Can't extract file(s) to egg cache
+        tmpl = textwrap.dedent("""
+            Can't extract file(s) to egg cache
 
-The following error occurred while trying to extract file(s) to the Python egg
-cache:
+            The following error occurred while trying to extract file(s) to the Python egg
+            cache:
 
-  %s
+              {old_exc}
 
-The Python egg cache directory is currently set to:
+            The Python egg cache directory is currently set to:
 
-  %s
+              {cache_path}
 
-Perhaps your account does not have write access to this directory?  You can
-change the cache directory by setting the PYTHON_EGG_CACHE environment
-variable to point to an accessible directory.
-""" % (old_exc, cache_path)
-        )
+            Perhaps your account does not have write access to this directory?  You can
+            change the cache directory by setting the PYTHON_EGG_CACHE environment
+            variable to point to an accessible directory.
+            """).lstrip()
+        err = ExtractionError(tmpl.format(**locals()))
         err.manager = self
         err.cache_path = cache_path
         err.original_error = old_exc
@@ -1561,10 +1560,13 @@ class DefaultProvider(EggProvider):
         with open(path, 'rb') as stream:
             return stream.read()
 
-register_loader_type(type(None), DefaultProvider)
+    @classmethod
+    def _register(cls):
+        loader_cls = getattr(importlib_machinery, 'SourceFileLoader',
+            type(None))
+        register_loader_type(loader_cls, cls)
 
-if importlib_machinery is not None:
-    register_loader_type(importlib_machinery.SourceFileLoader, DefaultProvider)
+DefaultProvider._register()
 
 
 class EmptyProvider(NullProvider):
@@ -1970,7 +1972,7 @@ def find_on_path(importer, path_item, only=False):
                         break
 register_finder(pkgutil.ImpImporter, find_on_path)
 
-if importlib_machinery is not None:
+if hasattr(importlib_machinery, 'FileFinder'):
     register_finder(importlib_machinery.FileFinder, find_on_path)
 
 _declare_state('dict', _namespace_handlers={})
@@ -2016,10 +2018,27 @@ def _handle_ns(packageName, path_item):
         path = module.__path__
         path.append(subpath)
         loader.load_module(packageName)
-        for path_item in path:
-            if path_item not in module.__path__:
-                module.__path__.append(path_item)
+        _rebuild_mod_path(path, packageName, module)
     return subpath
+
+
+def _rebuild_mod_path(orig_path, package_name, module):
+    """
+    Rebuild module.__path__ ensuring that all entries are ordered
+    corresponding to their sys.path order
+    """
+    sys_path = [_normalize_cached(p) for p in sys.path]
+    def position_in_sys_path(p):
+        """
+        Return the ordinal of the path based on its position in sys.path
+        """
+        parts = p.split(os.sep)
+        parts = parts[:-(package_name.count('.') + 1)]
+        return sys_path.index(_normalize_cached(os.sep.join(parts)))
+
+    orig_path.sort(key=position_in_sys_path)
+    module.__path__[:] = [_normalize_cached(p) for p in orig_path]
+
 
 def declare_namespace(packageName):
     """Declare that package 'packageName' is a namespace package"""
@@ -2079,7 +2098,7 @@ def file_ns_handler(importer, path_item, packageName, module):
 register_namespace_handler(pkgutil.ImpImporter, file_ns_handler)
 register_namespace_handler(zipimport.zipimporter, file_ns_handler)
 
-if importlib_machinery is not None:
+if hasattr(importlib_machinery, 'FileFinder'):
     register_namespace_handler(importlib_machinery.FileFinder, file_ns_handler)
 
 
@@ -2461,7 +2480,7 @@ class Distribution(object):
         """Ensure distribution is importable on `path` (default=sys.path)"""
         if path is None:
             path = sys.path
-        self.insert_on(path)
+        self.insert_on(path, replace=True)
         if path is sys.path:
             fixup_namespace_packages(self.location)
             for pkg in self._get_metadata('namespace_packages.txt'):
@@ -2538,7 +2557,7 @@ class Distribution(object):
         """Return the EntryPoint object for `group`+`name`, or ``None``"""
         return self.get_entry_map(group).get(name)
 
-    def insert_on(self, path, loc = None):
+    def insert_on(self, path, loc=None, replace=False):
         """Insert self.location in path before its nearest parent directory"""
 
         loc = loc or self.location
@@ -2562,7 +2581,10 @@ class Distribution(object):
         else:
             if path is sys.path:
                 self.check_version_conflict()
-            path.append(loc)
+            if replace:
+                path.insert(0, loc)
+            else:
+                path.append(loc)
             return
 
         # p is the spot where we found or inserted loc; now remove duplicates

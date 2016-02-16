@@ -10,6 +10,7 @@ import contextlib
 import io
 
 from setuptools.extern import six
+from setuptools.extern.six.moves import map
 
 import pytest
 

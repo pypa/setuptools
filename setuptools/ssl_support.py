@@ -3,7 +3,7 @@ import socket
 import atexit
 import re
 
-from setuptools.extern.six.moves import urllib, http_client
+from setuptools.extern.six.moves import urllib, http_client, map
 
 import pkg_resources
 from pkg_resources import ResolutionError, ExtractionError
@@ -25,6 +25,7 @@ cert_paths = """
 /usr/local/share/certs/ca-root.crt
 /etc/ssl/cert.pem
 /System/Library/OpenSSL/certs/cert.pem
+/usr/local/share/certs/ca-root-nss.crt
 """.strip().split()
 
 

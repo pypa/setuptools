@@ -14,6 +14,7 @@ from distutils.errors import (DistutilsOptionError, DistutilsPlatformError,
     DistutilsSetupError)
 
 from setuptools.extern import six
+from setuptools.extern.six.moves import map
 from pkg_resources.extern import packaging
 
 from setuptools.depends import Require

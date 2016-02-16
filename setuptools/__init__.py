@@ -8,7 +8,7 @@ from distutils.core import Command as _Command
 from distutils.util import convert_path
 from fnmatch import fnmatchcase
 
-from setuptools.extern.six.moves import filterfalse
+from setuptools.extern.six.moves import filterfalse, map
 
 import setuptools.version
 from setuptools.extension import Extension

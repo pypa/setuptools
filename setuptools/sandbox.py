@@ -9,7 +9,7 @@ import contextlib
 import pickle
 
 from setuptools.extern import six
-from setuptools.extern.six.moves import builtins
+from setuptools.extern.six.moves import builtins, map
 
 import pkg_resources
 
@@ -207,8 +207,12 @@ def _needs_hiding(mod_name):
     True
     >>> _needs_hiding('distutils')
     True
+    >>> _needs_hiding('os')
+    False
+    >>> _needs_hiding('Cython')
+    True
     """
-    pattern = re.compile('(setuptools|pkg_resources|distutils)(\.|$)')
+    pattern = re.compile('(setuptools|pkg_resources|distutils|Cython)(\.|$)')
     return bool(pattern.match(mod_name))
 
 

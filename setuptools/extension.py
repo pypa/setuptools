@@ -5,6 +5,8 @@ import distutils.core
 import distutils.errors
 import distutils.extension
 
+from setuptools.extern.six.moves import map
+
 from .dist import _get_unpatched
 from . import msvc9_support
 

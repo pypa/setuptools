@@ -1,8 +1,10 @@
+from __future__ import unicode_literals
+
 import os
 import sys
-import tempfile
-import shutil
 import string
+
+from pkg_resources.extern.six.moves import map
 
 import pytest
 from pkg_resources.extern import packaging
@@ -158,7 +160,7 @@ class TestDistro:
         for i in range(3):
             targets = list(ws.resolve(parse_requirements("Foo"), ad))
             assert targets == [Foo]
-            list(map(ws.add,targets))
+            list(map(ws.add, targets))
         with pytest.raises(VersionConflict):
             ws.resolve(parse_requirements("Foo==0.9"), ad)
         ws = WorkingSet([]) # reset
@@ -608,21 +610,44 @@ class TestParsing:
 
 class TestNamespaces:
 
-    def setup_method(self, method):
-        self._ns_pkgs = pkg_resources._namespace_packages.copy()
-        self._tmpdir = tempfile.mkdtemp(prefix="tests-setuptools-")
-        os.makedirs(os.path.join(self._tmpdir, "site-pkgs"))
-        self._prev_sys_path = sys.path[:]
-        sys.path.append(os.path.join(self._tmpdir, "site-pkgs"))
+    ns_str = "__import__('pkg_resources').declare_namespace(__name__)\n"
 
-    def teardown_method(self, method):
-        shutil.rmtree(self._tmpdir)
-        pkg_resources._namespace_packages = self._ns_pkgs.copy()
-        sys.path = self._prev_sys_path[:]
+    @pytest.yield_fixture
+    def symlinked_tmpdir(self, tmpdir):
+        """
+        Where available, return the tempdir as a symlink,
+        which as revealed in #231 is more fragile than
+        a natural tempdir.
+        """
+        if not hasattr(os, 'symlink'):
+            yield str(tmpdir)
+            return
 
-    @pytest.mark.skipif(os.path.islink(tempfile.gettempdir()),
-        reason="Test fails when /tmp is a symlink. See #231")
-    def test_two_levels_deep(self):
+        link_name = str(tmpdir) + '-linked'
+        os.symlink(str(tmpdir), link_name)
+        try:
+            yield type(tmpdir)(link_name)
+        finally:
+            os.unlink(link_name)
+
+    @pytest.yield_fixture(autouse=True)
+    def patched_path(self, tmpdir):
+        """
+        Patch sys.path to include the 'site-pkgs' dir. Also
+        restore pkg_resources._namespace_packages to its
+        former state.
+        """
+        saved_ns_pkgs = pkg_resources._namespace_packages.copy()
+        saved_sys_path = sys.path[:]
+        site_pkgs = tmpdir.mkdir('site-pkgs')
+        sys.path.append(str(site_pkgs))
+        try:
+            yield
+        finally:
+            pkg_resources._namespace_packages = saved_ns_pkgs
+            sys.path = saved_sys_path
+
+    def test_two_levels_deep(self, symlinked_tmpdir):
         """
         Test nested namespace packages
         Create namespace packages in the following tree :
@@ -631,19 +656,16 @@ class TestNamespaces:
         Check both are in the _namespace_packages dict and that their __path__
         is correct
         """
-        sys.path.append(os.path.join(self._tmpdir, "site-pkgs2"))
-        os.makedirs(os.path.join(self._tmpdir, "site-pkgs", "pkg1", "pkg2"))
-        os.makedirs(os.path.join(self._tmpdir, "site-pkgs2", "pkg1", "pkg2"))
-        ns_str = "__import__('pkg_resources').declare_namespace(__name__)\n"
-        for site in ["site-pkgs", "site-pkgs2"]:
-            pkg1_init = open(os.path.join(self._tmpdir, site,
-                             "pkg1", "__init__.py"), "w")
-            pkg1_init.write(ns_str)
-            pkg1_init.close()
-            pkg2_init = open(os.path.join(self._tmpdir, site,
-                             "pkg1", "pkg2", "__init__.py"), "w")
-            pkg2_init.write(ns_str)
-            pkg2_init.close()
+        real_tmpdir = symlinked_tmpdir.realpath()
+        tmpdir = symlinked_tmpdir
+        sys.path.append(str(tmpdir / 'site-pkgs2'))
+        site_dirs = tmpdir / 'site-pkgs', tmpdir / 'site-pkgs2'
+        for site in site_dirs:
+            pkg1 = site / 'pkg1'
+            pkg2 = pkg1 / 'pkg2'
+            pkg2.ensure_dir()
+            (pkg1 / '__init__.py').write_text(self.ns_str, encoding='utf-8')
+            (pkg2 / '__init__.py').write_text(self.ns_str, encoding='utf-8')
         import pkg1
         assert "pkg1" in pkg_resources._namespace_packages
         # attempt to import pkg2 from site-pkgs2
@@ -653,7 +675,44 @@ class TestNamespaces:
         assert pkg_resources._namespace_packages["pkg1"] == ["pkg1.pkg2"]
         # check the __path__ attribute contains both paths
         expected = [
-            os.path.join(self._tmpdir, "site-pkgs", "pkg1", "pkg2"),
-            os.path.join(self._tmpdir, "site-pkgs2", "pkg1", "pkg2"),
+            str(real_tmpdir / "site-pkgs" / "pkg1" / "pkg2"),
+            str(real_tmpdir / "site-pkgs2" / "pkg1" / "pkg2"),
         ]
         assert pkg1.pkg2.__path__ == expected
+
+    def test_path_order(self, symlinked_tmpdir):
+        """
+        Test that if multiple versions of the same namespace package subpackage
+        are on different sys.path entries, that only the one earliest on
+        sys.path is imported, and that the namespace package's __path__ is in
+        the correct order.
+
+        Regression test for https://bitbucket.org/pypa/setuptools/issues/207
+        """
+
+        tmpdir = symlinked_tmpdir
+        site_dirs = (
+            tmpdir / "site-pkgs",
+            tmpdir / "site-pkgs2",
+            tmpdir / "site-pkgs3",
+        )
+
+        vers_str = "__version__ = %r"
+
+        for number, site in enumerate(site_dirs, 1):
+            if number > 1:
+                sys.path.append(str(site))
+            nspkg = site / 'nspkg'
+            subpkg = nspkg / 'subpkg'
+            subpkg.ensure_dir()
+            (nspkg / '__init__.py').write_text(self.ns_str, encoding='utf-8')
+            (subpkg / '__init__.py').write_text(vers_str % number, encoding='utf-8')
+
+        import nspkg.subpkg
+        import nspkg
+        expected = [
+            str(site.realpath() / 'nspkg')
+            for site in site_dirs
+        ]
+        assert nspkg.__path__ == expected
+        assert nspkg.subpkg.__version__ == 1
