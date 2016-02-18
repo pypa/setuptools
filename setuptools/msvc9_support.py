@@ -62,7 +62,11 @@ def query_vcvarsall(version, *args, **kwargs):
 
     # If vcvarsall.bat fail, try to set environment directly
     try:
-        return setvcenv(version, *args, **kwargs)
+        if not args:
+            arch = 'x86'
+        else:
+            arch = args[0]
+        return setvcenv(version, kwargs.get('arch', arch))
     except distutils.errors.DistutilsPlatformError as exc:
         # Error if MSVC++ directory not found or environment not set
         message = exc.args[0]
@@ -82,7 +86,7 @@ def query_vcvarsall(version, *args, **kwargs):
             message += ' Get it with "Microsoft Windows SDK for Windows 7": '
             message += r'www.microsoft.com/download/details.aspx?id=8279'
         raise distutils.errors.DistutilsPlatformError(message)
-    raise(message)
+    raise distutils.errors.DistutilsPlatformError(message)
 
 def setvcenv(VcVer, arch):
     """
@@ -96,21 +100,17 @@ def setvcenv(VcVer, arch):
     # Find current and target architecture
     CurrentCpu = environ['processor_architecture'].lower()
     TargetCpu = arch[arch.find('_') + 1:]
+    Tar_not_x86 = TargetCpu != 'x86'
+    Cur_not_x86 = CurrentCpu != 'x86'
 
     # Find "Windows" and "Program Files" system directories
     WinDir = environ['WinDir']
     ProgramFiles = environ['ProgramFiles']
-    if CurrentCpu != 'x86':
-        ProgramFilesX86 = environ['ProgramFiles(x86)']
-    else:
-        ProgramFilesX86 = ProgramFiles
+    ProgramFilesX86 = environ.get('ProgramFiles(x86)', ProgramFiles)
 
     # Set registry base paths
     reg_value = distutils.msvc9compiler.Reg.get_value
-    if CurrentCpu != 'x86':
-        node = r'\Wow6432Node'
-    else:
-        node = ''
+    node = r'\Wow6432Node' if Cur_not_x86 else ''
     VsReg = r'Software%s\Microsoft\VisualStudio\SxS\VS7' % node
     VcReg = r'Software%s\Microsoft\VisualStudio\SxS\VC7' % node
     VcForPythonReg = r'Software%s\Microsoft\DevDiv\VCForPython\%0.1f' %\
@@ -119,19 +119,23 @@ def setvcenv(VcVer, arch):
 
     # Set Platform subdirectories
     if TargetCpu == 'amd64':
-        pltsd1, pltsd2 = r'\amd64', r'\x64'
+        plt_subd_lib = r'\amd64'
+        plt_subd_sdk = r'\x64'
         if CurrentCpu == 'amd64':
-            pltsd3 = r'\amd64'
+            plt_subd_tools = r'\amd64'
         else:
-            pltsd3 = r'\x86_amd64'
+            plt_subd_tools = r'\x86_amd64'
     elif TargetCpu == 'ia64':
-        pltsd1, pltsd2 = r'\ia64', r'\ia64'
+        plt_subd_lib = r'\ia64'
+        plt_subd_sdk = r'\ia64'
         if CurrentCpu == 'ia64':
-            pltsd3 = r'\ia64'
+            plt_subd_tools = r'\ia64'
         else:
-            pltsd3 = r'\x86_ia64'
+            plt_subd_tools = r'\x86_ia64'
     else:
-        pltsd1, pltsd2, pltsd3 = '', '', ''
+        plt_subd_lib = ''
+        plt_subd_sdk = ''
+        plt_subd_tools = ''
 
     # Find Microsoft Visual Studio directory
     try:
@@ -228,20 +232,20 @@ def setvcenv(VcVer, arch):
                join(VsInstallDir, r'Common7\Tools')]
 
     # Set Microsoft Visual C++ Includes
-    VCIncludes = join(VcInstallDir, 'Include')
+    VCIncludes = [join(VcInstallDir, 'Include')]
 
     # Set Microsoft Visual C++ & Microsoft Foundation Class Libraries
-    VCLibraries = [join(VcInstallDir, 'Lib' + pltsd1),
-                   join(VcInstallDir, r'ATLMFC\LIB' + pltsd1)]
+    VCLibraries = [join(VcInstallDir, 'Lib' + plt_subd_lib),
+                   join(VcInstallDir, r'ATLMFC\LIB' + plt_subd_lib)]
 
     # Set Microsoft Visual C++ Tools
     VCTools = [join(VcInstallDir, 'VCPackages'),
-               join(VcInstallDir, 'Bin' + pltsd3)]
-    if pltsd3:
+               join(VcInstallDir, 'Bin' + plt_subd_tools)]
+    if plt_subd_tools:
         VCTools.append(join(VcInstallDir, 'Bin'))
 
     # Set Microsoft Windows SDK Include
-    OSLibraries = join(WindowsSdkDir, 'Lib' + pltsd2)
+    OSLibraries = [join(WindowsSdkDir, 'Lib' + plt_subd_sdk)]
 
     # Set Microsoft Windows SDK Libraries
     OSIncludes = [join(WindowsSdkDir, 'Include'),
@@ -249,24 +253,23 @@ def setvcenv(VcVer, arch):
 
     # Set Microsoft Windows SDK Tools
     SdkTools = [join(WindowsSdkDir, 'Bin')]
-    if TargetCpu != 'x86':
-        SdkTools.append(join(WindowsSdkDir, 'Bin' + pltsd2))
+    if Tar_not_x86:
+        SdkTools.append(join(WindowsSdkDir, 'Bin' + plt_subd_sdk))
     if VcVer == 10.0:
-        SdkTools.append(join(WindowsSdkDir, r'Bin\NETFX 4.0 Tools' + pltsd2))
+        SdkTools.append(join(WindowsSdkDir,
+                             r'Bin\NETFX 4.0 Tools' + plt_subd_sdk))
 
     # Set Microsoft Windows SDK Setup
-    SdkSetup = join(WindowsSdkDir, 'Setup')
+    SdkSetup = [join(WindowsSdkDir, 'Setup')]
 
     # Set Microsoft .NET Framework Tools
-    FxTools = []
-    for ver in FrameworkVer:
-        FxTools.append(join(FrameworkDir32, ver))
-    if TargetCpu != 'x86' and CurrentCpu != 'x86':
+    FxTools = [join(FrameworkDir32, ver) for ver in FrameworkVer]
+    if Tar_not_x86 and Cur_not_x86:
         for ver in FrameworkVer:
             FxTools.append(join(FrameworkDir64, ver))
 
     # Set Microsoft Visual Studio Team System Database
-    VsTDb = join(VsInstallDir, r'VSTSDB\Deploy')
+    VsTDb = [join(VsInstallDir, r'VSTSDB\Deploy')]
 
     # Return Environment Variables
     env = {}
@@ -284,13 +287,8 @@ def setvcenv(VcVer, arch):
         var = []
         # Add valid paths
         for val in env[key]:
-            if type(val) is str:
-                # Path
-                checkpath(val, var)
-            else:
-                # Paths list
-                for subval in val:
-                    checkpath(subval, var)
+            for subval in val:
+                checkpath(subval, var)
 
         # Add values from actual environment
         try:
