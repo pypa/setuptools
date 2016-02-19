@@ -8,6 +8,8 @@ CHANGES
 * Pull Request #173: Replace dual PEP 345 _markerlib implementation
   and PEP 426 implementation of environment marker support from
   packaging 16.1 and PEP 508. Fixes Issue #122.
+  See also Pull Request #175, Pull Request #168, and
+  Pull Request #164.
 
 20.1.1
 ------
