@@ -508,6 +508,9 @@ class TestParsing:
         with pytest.raises(ValueError):
             Requirement.parse("#")
 
+    def test_local_version(self):
+        req, = parse_requirements('foo==1.0.org1')
+
     def testVersionEquality(self):
         def c(s1,s2):
             p1, p2 = parse_version(s1),parse_version(s2)
