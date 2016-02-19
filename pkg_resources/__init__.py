@@ -75,8 +75,8 @@ except ImportError:
 from pkg_resources.extern import packaging
 __import__('pkg_resources.extern.packaging.version')
 __import__('pkg_resources.extern.packaging.specifiers')
-__import__('pkg_resources._vendor.packaging.requirements')
-__import__('pkg_resources._vendor.packaging.markers')
+__import__('pkg_resources.extern.packaging.requirements')
+__import__('pkg_resources.extern.packaging.markers')
 
 
 if (3, 0) < sys.version_info < (3, 3):
