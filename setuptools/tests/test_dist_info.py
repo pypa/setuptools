@@ -28,7 +28,6 @@ class TestDistInfo:
         assert versioned.version == '2.718' # from filename
         assert unversioned.version == '0.3' # from METADATA
 
-    @pytest.mark.importorskip('ast')
     def test_conditional_dependencies(self):
         specs = 'splort==4', 'quux>=1.1'
         requires = list(map(pkg_resources.Requirement.parse, specs))

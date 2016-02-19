@@ -75,6 +75,8 @@ except ImportError:
 from pkg_resources.extern import packaging
 __import__('pkg_resources.extern.packaging.version')
 __import__('pkg_resources.extern.packaging.specifiers')
+__import__('pkg_resources.extern.packaging.requirements')
+__import__('pkg_resources.extern.packaging.markers')
 
 
 if (3, 0) < sys.version_info < (3, 3):
@@ -1385,202 +1387,34 @@ def to_filename(name):
     return name.replace('-','_')
 
 
-class MarkerEvaluation(object):
-    values = {
-        'os_name': lambda: os.name,
-        'sys_platform': lambda: sys.platform,
-        'python_full_version': platform.python_version,
-        'python_version': lambda: platform.python_version()[:3],
-        'platform_version': platform.version,
-        'platform_machine': platform.machine,
-        'platform_python_implementation': platform.python_implementation,
-        'python_implementation': platform.python_implementation,
-    }
+def invalid_marker(text):
+    """
+    Validate text as a PEP 508 environment marker; return an exception
+    if invalid or False otherwise.
+    """
+    try:
+        evaluate_marker(text)
+    except SyntaxError as e:
+        e.filename = None
+        e.lineno = None
+        return e
+    return False
 
-    @classmethod
-    def is_invalid_marker(cls, text):
-        """
-        Validate text as a PEP 426 environment marker; return an exception
-        if invalid or False otherwise.
-        """
-        try:
-            cls.evaluate_marker(text)
-        except SyntaxError as e:
-            return cls.normalize_exception(e)
-        return False
 
-    @staticmethod
-    def normalize_exception(exc):
-        """
-        Given a SyntaxError from a marker evaluation, normalize the error
-        message:
-         - Remove indications of filename and line number.
-         - Replace platform-specific error messages with standard error
-           messages.
-        """
-        subs = {
-            'unexpected EOF while parsing': 'invalid syntax',
-            'parenthesis is never closed': 'invalid syntax',
-        }
-        exc.filename = None
-        exc.lineno = None
-        exc.msg = subs.get(exc.msg, exc.msg)
-        return exc
+def evaluate_marker(text, extra=None):
+    """
+    Evaluate a PEP 508 environment marker.
+    Return a boolean indicating the marker result in this environment.
+    Raise SyntaxError if marker is invalid.
 
-    @classmethod
-    def and_test(cls, nodelist):
-        # MUST NOT short-circuit evaluation, or invalid syntax can be skipped!
-        items = [
-            cls.interpret(nodelist[i])
-            for i in range(1, len(nodelist), 2)
-        ]
-        return functools.reduce(operator.and_, items)
+    This implementation uses the 'pyparsing' module.
+    """
+    try:
+        marker = packaging.markers.Marker(text)
+        return marker.evaluate()
+    except packaging.markers.InvalidMarker as e:
+        raise SyntaxError(e)
 
-    @classmethod
-    def test(cls, nodelist):
-        # MUST NOT short-circuit evaluation, or invalid syntax can be skipped!
-        items = [
-            cls.interpret(nodelist[i])
-            for i in range(1, len(nodelist), 2)
-        ]
-        return functools.reduce(operator.or_, items)
-
-    @classmethod
-    def atom(cls, nodelist):
-        t = nodelist[1][0]
-        if t == token.LPAR:
-            if nodelist[2][0] == token.RPAR:
-                raise SyntaxError("Empty parentheses")
-            return cls.interpret(nodelist[2])
-        msg = "Language feature not supported in environment markers"
-        raise SyntaxError(msg)
-
-    @classmethod
-    def comparison(cls, nodelist):
-        if len(nodelist) > 4:
-            msg = "Chained comparison not allowed in environment markers"
-            raise SyntaxError(msg)
-        comp = nodelist[2][1]
-        cop = comp[1]
-        if comp[0] == token.NAME:
-            if len(nodelist[2]) == 3:
-                if cop == 'not':
-                    cop = 'not in'
-                else:
-                    cop = 'is not'
-        try:
-            cop = cls.get_op(cop)
-        except KeyError:
-            msg = repr(cop) + " operator not allowed in environment markers"
-            raise SyntaxError(msg)
-        return cop(cls.evaluate(nodelist[1]), cls.evaluate(nodelist[3]))
-
-    @classmethod
-    def get_op(cls, op):
-        ops = {
-            symbol.test: cls.test,
-            symbol.and_test: cls.and_test,
-            symbol.atom: cls.atom,
-            symbol.comparison: cls.comparison,
-            'not in': lambda x, y: x not in y,
-            'in': lambda x, y: x in y,
-            '==': operator.eq,
-            '!=': operator.ne,
-            '<':  operator.lt,
-            '>':  operator.gt,
-            '<=': operator.le,
-            '>=': operator.ge,
-        }
-        if hasattr(symbol, 'or_test'):
-            ops[symbol.or_test] = cls.test
-        return ops[op]
-
-    @classmethod
-    def evaluate_marker(cls, text, extra=None):
-        """
-        Evaluate a PEP 426 environment marker on CPython 2.4+.
-        Return a boolean indicating the marker result in this environment.
-        Raise SyntaxError if marker is invalid.
-
-        This implementation uses the 'parser' module, which is not implemented
-        on
-        Jython and has been superseded by the 'ast' module in Python 2.6 and
-        later.
-        """
-        return cls.interpret(parser.expr(text).totuple(1)[1])
-
-    @staticmethod
-    def _translate_metadata2(env):
-        """
-        Markerlib implements Metadata 1.2 (PEP 345) environment markers.
-        Translate the variables to Metadata 2.0 (PEP 426).
-        """
-        return dict(
-            (key.replace('.', '_'), value)
-            for key, value in env.items()
-        )
-
-    @classmethod
-    def _markerlib_evaluate(cls, text):
-        """
-        Evaluate a PEP 426 environment marker using markerlib.
-        Return a boolean indicating the marker result in this environment.
-        Raise SyntaxError if marker is invalid.
-        """
-        import _markerlib
-
-        env = cls._translate_metadata2(_markerlib.default_environment())
-        try:
-            result = _markerlib.interpret(text, env)
-        except NameError as e:
-            raise SyntaxError(e.args[0])
-        return result
-
-    if 'parser' not in globals():
-        # Fall back to less-complete _markerlib implementation if 'parser' module
-        # is not available.
-        evaluate_marker = _markerlib_evaluate
-
-    @classmethod
-    def interpret(cls, nodelist):
-        while len(nodelist)==2: nodelist = nodelist[1]
-        try:
-            op = cls.get_op(nodelist[0])
-        except KeyError:
-            raise SyntaxError("Comparison or logical expression expected")
-        return op(nodelist)
-
-    @classmethod
-    def evaluate(cls, nodelist):
-        while len(nodelist)==2: nodelist = nodelist[1]
-        kind = nodelist[0]
-        name = nodelist[1]
-        if kind==token.NAME:
-            try:
-                op = cls.values[name]
-            except KeyError:
-                raise SyntaxError("Unknown name %r" % name)
-            return op()
-        if kind==token.STRING:
-            s = nodelist[1]
-            if not cls._safe_string(s):
-                raise SyntaxError(
-                    "Only plain strings allowed in environment markers")
-            return s[1:-1]
-        msg = "Language feature not supported in environment markers"
-        raise SyntaxError(msg)
-
-    @staticmethod
-    def _safe_string(cand):
-        return (
-            cand[:1] in "'\"" and
-            not cand.startswith('"""') and
-            not cand.startswith("'''") and
-            '\\' not in cand
-        )
-
-invalid_marker = MarkerEvaluation.is_invalid_marker
-evaluate_marker = MarkerEvaluation.evaluate_marker
 
 class NullProvider:
     """Try to implement resources and metadata for arbitrary PEP 302 loaders"""
@@ -2314,18 +2148,6 @@ def yield_lines(strs):
             for s in yield_lines(ss):
                 yield s
 
-# whitespace and comment
-LINE_END = re.compile(r"\s*(#.*)?$").match
-# line continuation
-CONTINUE = re.compile(r"\s*\\\s*(#.*)?$").match
-# Distribution or extra
-DISTRO = re.compile(r"\s*((\w|[-.])+)").match
-# ver. info
-VERSION = re.compile(r"\s*(<=?|>=?|===?|!=|~=)\s*((\w|[-.*_!+])+)").match
-# comma between items
-COMMA = re.compile(r"\s*,").match
-OBRACKET = re.compile(r"\s*\[").match
-CBRACKET = re.compile(r"\s*\]").match
 MODULE = re.compile(r"\w+(\.\w+)*$").match
 EGG_NAME = re.compile(
     r"""
@@ -2864,34 +2686,22 @@ class DistInfoDistribution(Distribution):
             self.__dep_map = self._compute_dependencies()
             return self.__dep_map
 
-    def _preparse_requirement(self, requires_dist):
-        """Convert 'Foobar (1); baz' to ('Foobar ==1', 'baz')
-        Split environment marker, add == prefix to version specifiers as
-        necessary, and remove parenthesis.
-        """
-        parts = requires_dist.split(';', 1) + ['']
-        distvers = parts[0].strip()
-        mark = parts[1].strip()
-        distvers = re.sub(self.EQEQ, r"\1==\2\3", distvers)
-        distvers = distvers.replace('(', '').replace(')', '')
-        return (distvers, mark)
-
     def _compute_dependencies(self):
         """Recompute this distribution's dependencies."""
-        from _markerlib import compile as compile_marker
         dm = self.__dep_map = {None: []}
 
         reqs = []
         # Including any condition expressions
         for req in self._parsed_pkg_info.get_all('Requires-Dist') or []:
-            distvers, mark = self._preparse_requirement(req)
-            parsed = next(parse_requirements(distvers))
-            parsed.marker_fn = compile_marker(mark)
+            current_req = packaging.requirements.Requirement(req)
+            specs = _parse_requirement_specs(current_req)
+            parsed = Requirement(current_req.name, specs, current_req.extras)
+            parsed._marker = current_req.marker
             reqs.append(parsed)
 
         def reqs_for_extra(extra):
             for req in reqs:
-                if req.marker_fn(override={'extra':extra}):
+                if not req._marker or req._marker.evaluate({'extra': extra}):
                     yield req
 
         common = frozenset(reqs_for_extra(None))
@@ -2929,6 +2739,10 @@ class RequirementParseError(ValueError):
         return ' '.join(self.args)
 
 
+def _parse_requirement_specs(req):
+    return [(spec.operator, spec.version) for spec in req.specifier]
+
+
 def parse_requirements(strs):
     """Yield ``Requirement`` objects for each specification in `strs`
 
@@ -2937,60 +2751,17 @@ def parse_requirements(strs):
     # create a steppable iterator, so we can handle \-continuations
     lines = iter(yield_lines(strs))
 
-    def scan_list(ITEM, TERMINATOR, line, p, groups, item_name):
-
-        items = []
-
-        while not TERMINATOR(line, p):
-            if CONTINUE(line, p):
-                try:
-                    line = next(lines)
-                    p = 0
-                except StopIteration:
-                    msg = "\\ must not appear on the last nonblank line"
-                    raise RequirementParseError(msg)
-
-            match = ITEM(line, p)
-            if not match:
-                msg = "Expected " + item_name + " in"
-                raise RequirementParseError(msg, line, "at", line[p:])
-
-            items.append(match.group(*groups))
-            p = match.end()
-
-            match = COMMA(line, p)
-            if match:
-                # skip the comma
-                p = match.end()
-            elif not TERMINATOR(line, p):
-                msg = "Expected ',' or end-of-list in"
-                raise RequirementParseError(msg, line, "at", line[p:])
-
-        match = TERMINATOR(line, p)
-        # skip the terminator, if any
-        if match:
-            p = match.end()
-        return line, p, items
-
     for line in lines:
-        match = DISTRO(line)
-        if not match:
-            raise RequirementParseError("Missing distribution spec", line)
-        project_name = match.group(1)
-        p = match.end()
-        extras = []
-
-        match = OBRACKET(line, p)
-        if match:
-            p = match.end()
-            line, p, extras = scan_list(
-                DISTRO, CBRACKET, line, p, (1,), "'extra' name"
-            )
-
-        line, p, specs = scan_list(VERSION, LINE_END, line, p, (1, 2),
-            "version spec")
-        specs = [(op, val) for op, val in specs]
-        yield Requirement(project_name, specs, extras)
+        # Drop comments -- a hash without a space may be in a URL.
+        if ' #' in line:
+            line = line[:line.find(' #')]
+        # If there is a line continuation, drop it, and append the next line.
+        if line.endswith('\\'):
+            line = line[:-2].strip()
+            line += next(lines)
+        req = packaging.requirements.Requirement(line)
+        specs = _parse_requirement_specs(req)
+        yield Requirement(req.name, specs, req.extras)
 
 
 class Requirement:
