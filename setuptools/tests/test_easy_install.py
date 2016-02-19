@@ -16,7 +16,6 @@ import itertools
 import distutils.errors
 import io
 
-from setuptools.extern import six
 from setuptools.extern.six.moves import urllib
 import time
 
@@ -38,7 +37,7 @@ import setuptools.tests.server
 import pkg_resources
 
 from .py26compat import tarfile_open
-from . import contexts, is_ascii
+from . import contexts
 from .textwrap import DALS
 
 
