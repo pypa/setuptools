@@ -165,8 +165,7 @@ CHANGES
   for the issue reported in Pull Request #155.
 * Issue #453: In ``ez_setup`` bootstrap module, unload all
   ``pkg_resources`` modules following download.
-* Pull Request #158: Honor `PEP-488
-  <https://www.python.org/dev/peps/pep-0488/>`_ when excluding
+* Pull Request #158: Honor PEP-488 when excluding
   files for namespace packages.
 * Issue #419 and Pull Request #144: Add experimental support for
   reading the version info from distutils-installed metadata rather
@@ -626,7 +625,7 @@ process to fail and PyPI uploads no longer accept files for 13.0.
 8.0
 ---
 
-* Implement `PEP 440 <http://legacy.python.org/dev/peps/pep-0440/>`_ within
+* Implement PEP 440 within
   pkg_resources and setuptools. This change
   deprecates some version numbers such that they will no longer be installable
   without using the ``===`` escape hatch. See `the changes to test_resources
@@ -1699,7 +1698,7 @@ how it parses version numbers.
 * Distribute #65: cli.exe and gui.exe are now generated at build time,
   depending on the platform in use.
 
-* Distribute #67: Fixed doc typo (PEP 381/382)
+* Distribute #67: Fixed doc typo (PEP 381/PEP 382).
 
 * Distribute no longer shadows setuptools if we require a 0.7-series
   setuptools.  And an error is raised when installing a 0.7 setuptools with
