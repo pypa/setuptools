@@ -250,6 +250,10 @@ link_files = {
 				pattern=r"[Pp]ackaging (?P<packaging_ver>\d+(\.\d+)+)",
 				url='{GH}/pypa/packaging/blob/{packaging_ver}/CHANGELOG.rst',
 			),
+			dict(
+				pattern=r"PEP[- ](?P<pep_number>\d+)",
+				url='https://www.python.org/dev/peps/pep-{pep_number:0>4}/',
+			),
 		],
 	),
 }
