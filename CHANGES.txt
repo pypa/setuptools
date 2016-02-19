@@ -10,7 +10,12 @@ CHANGES
   and PEP 426 implementation of environment marker support from
   packaging 16.1 and PEP 508. Fixes Issue #122.
   See also Pull Request #175, Pull Request #168, and
-  Pull Request #164.
+  Pull Request #164. Additionally:
+   - ``Requirement.parse`` no longer retains the order of extras.
+   - ``parse_requirements`` now requires that all versions be
+     PEP-440 compliant, as revealed in #499. Packages released
+     with invalid local versions should be re-released using
+     the proper local version syntax, e.g. ``mypkg-1.0+myorg.1``.
 
 20.1.1
 ------
