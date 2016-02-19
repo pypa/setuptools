@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+Next
+----
+
+* Pull Request #174: Add more aggressive support for
+  Windows SDK in msvc9compiler patch.
+
 20.1.1
 ------
 
