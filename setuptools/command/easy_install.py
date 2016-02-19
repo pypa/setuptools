@@ -1239,17 +1239,14 @@ class easy_install(Command):
 
         sitepy = os.path.join(self.install_dir, "site.py")
         source = resource_string("setuptools", "site-patch.py")
+        source = source.decode('utf-8')
         current = ""
 
         if os.path.exists(sitepy):
             log.debug("Checking existing site.py in %s", self.install_dir)
-            f = open(sitepy, 'rb')
-            current = f.read()
-            # we want str, not bytes
-            if six.PY3:
-                current = current.decode()
+            with io.open(sitepy) as strm:
+                current = strm.read()
 
-            f.close()
             if not current.startswith('def __boot():'):
                 raise DistutilsError(
                     "%s is not a setuptools-generated site.py; please"
@@ -1260,9 +1257,8 @@ class easy_install(Command):
             log.info("Creating %s", sitepy)
             if not self.dry_run:
                 ensure_directory(sitepy)
-                f = open(sitepy, 'wb')
-                f.write(source)
-                f.close()
+                with io.open(sitepy, 'w', encoding='utf-8') as strm:
+                    strm.write(source)
             self.byte_compile([sitepy])
 
         self.sitepy_installed = True
