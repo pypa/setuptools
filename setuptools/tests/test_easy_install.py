@@ -59,17 +59,13 @@ SETUP_PY = DALS("""
 
 class TestEasyInstallTest:
 
-    def test_install_site_py(self):
+    def test_install_site_py(self, tmpdir):
         dist = Distribution()
         cmd = ei.easy_install(dist)
         cmd.sitepy_installed = False
-        cmd.install_dir = tempfile.mkdtemp()
-        try:
-            cmd.install_site_py()
-            sitepy = os.path.join(cmd.install_dir, 'site.py')
-            assert os.path.exists(sitepy)
-        finally:
-            shutil.rmtree(cmd.install_dir)
+        cmd.install_dir = str(tmpdir)
+        cmd.install_site_py()
+        assert (tmpdir / 'site.py').exists()
 
     def test_get_script_args(self):
         header = ei.CommandSpec.best().from_environment().as_header()
