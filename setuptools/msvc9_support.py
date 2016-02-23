@@ -241,19 +241,11 @@ def _query_vcvarsall(version, arch):
 
     # Find Microsoft .NET Framework Versions
     if version == 10.0:
-        v4 = reg_value(reg.vc, 'frameworkver32')
-        if v4 and v4.lower()[:2] != 'v4':
+        v4 = reg_value(reg.vc, 'frameworkver32') or ''
+        if v4.lower()[:2] != 'v4':
             v4 = None
+        # default to last v4 version
         v4 = v4 or 'v4.0.30319'
-
-        try:
-            # Try to get v4 from registry
-            v4 = reg_value(reg.vc, 'frameworkver32')
-            if v4.lower()[:2] != 'v4':
-                raise KeyError('Not the V4')
-        except KeyError:
-            # If fail, use last v4 version
-            v4 = 'v4.0.30319'
         FrameworkVer = (v4, 'v3.5')
     elif version == 9.0:
         FrameworkVer = ('v3.5', 'v2.0.50727')
@@ -261,8 +253,10 @@ def _query_vcvarsall(version, arch):
         FrameworkVer = ('v3.0', 'v2.0.50727')
 
     # Set Microsoft Visual Studio Tools
-    VSTools = [os.path.join(VsInstallDir, r'Common7\IDE'),
-               os.path.join(VsInstallDir, r'Common7\Tools')]
+    VSTools = [
+        os.path.join(VsInstallDir, r'Common7\IDE'),
+        os.path.join(VsInstallDir, r'Common7\Tools'),
+    ]
 
     # Set Microsoft Visual C++ Includes
     VCIncludes = [os.path.join(VcInstallDir, 'Include')]
