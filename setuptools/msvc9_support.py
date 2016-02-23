@@ -83,7 +83,7 @@ def query_vcvarsall(version, arch='x86', *args, **kwargs):
             # For VC++ 10.0 Redirect user to Windows SDK 7.1
             message += ' Get it with "Microsoft Windows SDK for Windows 7": '
             message += r'www.microsoft.com/download/details.aspx?id=8279'
-        raise distutils.errors.DistutilsPlatformError(message)
+
     raise distutils.errors.DistutilsPlatformError(message)
 
 def _query_vcvarsall(version, arch):
