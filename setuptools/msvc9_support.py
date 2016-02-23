@@ -88,7 +88,7 @@ def query_vcvarsall(version, *args, **kwargs):
         raise distutils.errors.DistutilsPlatformError(message)
     raise distutils.errors.DistutilsPlatformError(message)
 
-def setvcenv(VcVer, arch):
+def setvcenv(version, arch):
     """
     Return environment variables for specified Microsoft Visual C++ version
     and platform.
@@ -114,7 +114,7 @@ def setvcenv(VcVer, arch):
     VsReg = r'Software%s\Microsoft\VisualStudio\SxS\VS7' % node
     VcReg = r'Software%s\Microsoft\VisualStudio\SxS\VC7' % node
     VcForPythonReg = r'Software%s\Microsoft\DevDiv\VCForPython\%0.1f' %\
-        (node, VcVer)
+        (node, version)
     WindowsSdkReg = r'Software%s\Microsoft\Microsoft SDKs\Windows' % node
 
     # Set Platform subdirectories
@@ -140,16 +140,16 @@ def setvcenv(VcVer, arch):
     # Find Microsoft Visual Studio directory
     try:
         # Try to get it from registry
-        VsInstallDir = reg_value(VsReg, '%0.1f' % VcVer)
+        VsInstallDir = reg_value(VsReg, '%0.1f' % version)
     except KeyError:
         # If fail, use default path
         VsInstallDir = join(ProgramFilesX86,
-                            'Microsoft Visual Studio %0.1f' % VcVer)
+                            'Microsoft Visual Studio %0.1f' % version)
 
     # Find Microsoft Visual C++ directory
     try:
         # Try to get it from registry
-        VcInstallDir = reg_value(VcReg, '%0.1f' % VcVer)
+        VcInstallDir = reg_value(VcReg, '%0.1f' % version)
     except KeyError:
         try:
             # Try to get "VC++ for Python" version from registry
@@ -157,16 +157,16 @@ def setvcenv(VcVer, arch):
         except KeyError:
             # If fail, use default path
             VcInstallDir = join(ProgramFilesX86,
-                                r'Microsoft Visual Studio %0.1f\VC' % VcVer)
+                                r'Microsoft Visual Studio %0.1f\VC' % version)
     if not isdir(VcInstallDir):
         raise DistutilsPlatformError('vcvarsall.bat and Visual C++ '
                                      'directory not found')
 
     # Find Microsoft Windows SDK directory
     WindowsSdkDir = ''
-    if VcVer == 9.0:
+    if version == 9.0:
         WindowsSdkVer = ('7.0', '6.1', '6.0a')
-    elif VcVer == 10.0:
+    elif version == 10.0:
         WindowsSdkVer = ('7.1', '7.0a')
     else:
         WindowsSdkVer = ()
@@ -212,7 +212,7 @@ def setvcenv(VcVer, arch):
         FrameworkDir64 = join(WinDir, r'Microsoft.NET\Framework64')
 
     # Find Microsoft .NET Framework Versions
-    if VcVer == 10.0:
+    if version == 10.0:
         try:
             # Try to get v4 from registry
             v4 = reg_value(VcReg, 'frameworkver32')
@@ -222,9 +222,9 @@ def setvcenv(VcVer, arch):
             # If fail, use last v4 version
             v4 = 'v4.0.30319'
         FrameworkVer = (v4, 'v3.5')
-    elif VcVer == 9.0:
+    elif version == 9.0:
         FrameworkVer = ('v3.5', 'v2.0.50727')
-    elif VcVer == 8.0:
+    elif version == 8.0:
         FrameworkVer = ('v3.0', 'v2.0.50727')
 
     # Set Microsoft Visual Studio Tools
@@ -255,7 +255,7 @@ def setvcenv(VcVer, arch):
     SdkTools = [join(WindowsSdkDir, 'Bin')]
     if Tar_not_x86:
         SdkTools.append(join(WindowsSdkDir, 'Bin' + plt_subd_sdk))
-    if VcVer == 10.0:
+    if version == 10.0:
         SdkTools.append(join(WindowsSdkDir,
                              r'Bin\NETFX 4.0 Tools' + plt_subd_sdk))
 
