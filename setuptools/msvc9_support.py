@@ -137,8 +137,8 @@ def _query_vcvarsall(version, arch):
         VsInstallDir = reg_value(VsReg, '%0.1f' % version)
     except KeyError:
         # If fail, use default path
-        VsInstallDir = os.path.join(ProgramFilesX86,
-                            'Microsoft Visual Studio %0.1f' % version)
+        name = 'Microsoft Visual Studio %0.1f' % version
+        VsInstallDir = os.path.join(ProgramFilesX86, name)
 
     # Find Microsoft Visual C++ directory
     try:
@@ -147,14 +147,15 @@ def _query_vcvarsall(version, arch):
     except KeyError:
         try:
             # Try to get "VC++ for Python" version from registry
-            VcInstallDir = os.path.join(reg_value(VcForPythonReg, 'installdir'), 'VC')
+            install_base = reg_value(VcForPythonReg, 'installdir')
+            VcInstallDir = os.path.join(install_base, 'VC')
         except KeyError:
             # If fail, use default path
-            VcInstallDir = os.path.join(ProgramFilesX86,
-                                r'Microsoft Visual Studio %0.1f\VC' % version)
+            default = r'Microsoft Visual Studio %0.1f\VC' % version
+            VcInstallDir = os.path.join(ProgramFilesX86, default)
     if not os.path.isdir(VcInstallDir):
-        raise distutils.errors.DistutilsPlatformError('vcvarsall.bat and Visual C++ '
-                                     'directory not found')
+        msg = 'vcvarsall.bat and Visual C++ directory not found'
+        raise distutils.errors.DistutilsPlatformError(msg)
 
     # Find Microsoft Windows SDK directory
     WindowsSdkDir = ''
@@ -167,22 +168,23 @@ def _query_vcvarsall(version, arch):
     for ver in WindowsSdkVer:
         # Try to get it from registry
         try:
-            WindowsSdkDir = reg_value(os.path.join(WindowsSdkReg, 'v%s' % ver),
-                                      'installationfolder')
+            loc = os.path.join(WindowsSdkReg, 'v%s' % ver)
+            WindowsSdkDir = reg_value(loc, 'installationfolder')
             break
         except KeyError:
             pass
     if not WindowsSdkDir or not os.path.isdir(WindowsSdkDir):
         # Try to get "VC++ for Python" version from registry
         try:
-            WindowsSdkDir = os.path.join(reg_value(VcForPythonReg, 'installdir'),
-                                 'WinSDK')
+            install_base = reg_value(VcForPythonReg, 'installdir')
+            WindowsSdkDir = os.path.join(install_base, 'WinSDK')
         except:
             pass
     if not WindowsSdkDir or not os.path.isdir(WindowsSdkDir):
         # If fail, use default path
         for ver in WindowsSdkVer:
-            d = os.path.join(ProgramFiles, r'Microsoft SDKs\Windows\v%s' % ver)
+            path = r'Microsoft SDKs\Windows\v%s' % ver
+            d = os.path.join(ProgramFiles, path)
             if os.path.isdir(d):
                 WindowsSdkDir = d
     if not WindowsSdkDir:
@@ -229,12 +231,16 @@ def _query_vcvarsall(version, arch):
     VCIncludes = [os.path.join(VcInstallDir, 'Include')]
 
     # Set Microsoft Visual C++ & Microsoft Foundation Class Libraries
-    VCLibraries = [os.path.join(VcInstallDir, 'Lib' + plt_subd_lib),
-                   os.path.join(VcInstallDir, r'ATLMFC\LIB' + plt_subd_lib)]
+    VCLibraries = [
+        os.path.join(VcInstallDir, 'Lib' + plt_subd_lib),
+        os.path.join(VcInstallDir, r'ATLMFC\LIB' + plt_subd_lib),
+    ]
 
     # Set Microsoft Visual C++ Tools
-    VCTools = [os.path.join(VcInstallDir, 'VCPackages'),
-               os.path.join(VcInstallDir, 'Bin' + plt_subd_tools)]
+    VCTools = [
+        os.path.join(VcInstallDir, 'VCPackages'),
+        os.path.join(VcInstallDir, 'Bin' + plt_subd_tools),
+    ]
     if plt_subd_tools:
         VCTools.append(os.path.join(VcInstallDir, 'Bin'))
 
@@ -242,16 +248,18 @@ def _query_vcvarsall(version, arch):
     OSLibraries = [os.path.join(WindowsSdkDir, 'Lib' + plt_subd_sdk)]
 
     # Set Microsoft Windows SDK Libraries
-    OSIncludes = [os.path.join(WindowsSdkDir, 'Include'),
-                  os.path.join(WindowsSdkDir, r'Include\gl')]
+    OSIncludes = [
+        os.path.join(WindowsSdkDir, 'Include'),
+        os.path.join(WindowsSdkDir, r'Include\gl'),
+    ]
 
     # Set Microsoft Windows SDK Tools
     SdkTools = [os.path.join(WindowsSdkDir, 'Bin')]
     if Tar_not_x86:
         SdkTools.append(os.path.join(WindowsSdkDir, 'Bin' + plt_subd_sdk))
     if version == 10.0:
-        SdkTools.append(os.path.join(WindowsSdkDir,
-                             r'Bin\NETFX 4.0 Tools' + plt_subd_sdk))
+        path = r'Bin\NETFX 4.0 Tools' + plt_subd_sdk
+        SdkTools.append(os.path.join(WindowsSdkDir, path))
 
     # Set Microsoft Windows SDK Setup
     SdkSetup = [os.path.join(WindowsSdkDir, 'Setup')]
@@ -295,6 +303,6 @@ def _query_vcvarsall(version, arch):
         if var:
             env[key] = ';'.os.path.join(var)
         else:
-            raise distutils.errors.DistutilsPlatformError("%s environment variable is empty" %
-                                         key.upper())
+            msg = "%s environment variable is empty" % key.upper()
+            raise distutils.errors.DistutilsPlatformError(msg)
     return env
