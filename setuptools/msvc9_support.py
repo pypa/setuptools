@@ -164,6 +164,14 @@ class RegistryInfo:
     def windows_sdk(self):
         return os.path.join(self.microsoft, r'Microsoft SDKs\Windows')
 
+    def find_visual_studio(self):
+        """
+        Find Microsoft Visual Studio directory
+        """
+        name = 'Microsoft Visual Studio %0.1f' % self.version
+        default = os.path.join(self.platform_info.program_files_x86, name)
+        return self.lookup(self.vs, '%0.1f' % self.version) or default
+
     def lookup(self, base, key):
         try:
             return distutils.msvc9compiler.Reg.get_value(base, key)
@@ -179,11 +187,6 @@ def _query_vcvarsall(version, arch):
     pi = PlatformInfo(arch)
     reg = RegistryInfo(pi, version)
     reg_value = reg.lookup
-
-    # Find Microsoft Visual Studio directory
-    name = 'Microsoft Visual Studio %0.1f' % version
-    default_vs = os.path.join(pi.program_files_x86, name)
-    VsInstallDir = reg_value(reg.vs, '%0.1f' % version) or default_vs
 
     # Find Microsoft Visual C++ directory
 
@@ -254,8 +257,8 @@ def _query_vcvarsall(version, arch):
 
     # Set Microsoft Visual Studio Tools
     VSTools = [
-        os.path.join(VsInstallDir, r'Common7\IDE'),
-        os.path.join(VsInstallDir, r'Common7\Tools'),
+        os.path.join(reg.find_visual_studio(), r'Common7\IDE'),
+        os.path.join(reg.find_visual_studio(), r'Common7\Tools'),
     ]
 
     # Set Microsoft Visual C++ Includes
@@ -302,7 +305,7 @@ def _query_vcvarsall(version, arch):
             FxTools.append(os.path.join(FrameworkDir64, ver))
 
     # Set Microsoft Visual Studio Team System Database
-    VsTDb = [os.path.join(VsInstallDir, r'VSTSDB\Deploy')]
+    VsTDb = [os.path.join(reg.find_visual_studio(), r'VSTSDB\Deploy')]
 
     # Return Environment Variables
     env = {}
