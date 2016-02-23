@@ -86,16 +86,53 @@ def query_vcvarsall(version, arch='x86', *args, **kwargs):
 
     raise distutils.errors.DistutilsPlatformError(message)
 
+
+class PlatformInfo:
+    current_cpu = os.environ['processor_architecture'].lower()
+
+    def __init__(self, arch):
+        self.arch = arch
+
+    @property
+    def target_cpu(self):
+        return self.arch[self.arch.find('_') + 1:]
+
+    def target_is_x86(self):
+        return self.target_cpu == 'x86'
+
+    def current_is_x86(self):
+        return self.current_cpu != 'x86'
+
+    @property
+    def lib_extra(self):
+        return (
+            r'\amd64' if self.target_cpu == 'amd64' else
+            r'\ia64' if self.target_cpu == 'ia64' else
+            ''
+        )
+
+    @property
+    def sdk_extra(self):
+        return (
+            r'\x64' if self.target_cpu == 'amd64' else
+            r'\ia64' if self.target_cpu == 'ia64' else
+            ''
+        )
+
+    @property
+    def tools_extra(self):
+        path = self.lib_extra
+        if self.target_cpu != self.current_cpu:
+            path = path.replace('\\', '\\x86_')
+        return path
+
+
 def _query_vcvarsall(version, arch):
     """
     Return environment variables for specified Microsoft Visual C++ version
     and platform.
     """
-    # Find current and target architecture
-    CurrentCpu = os.environ['processor_architecture'].lower()
-    TargetCpu = arch[arch.find('_') + 1:]
-    Tar_not_x86 = TargetCpu != 'x86'
-    Cur_not_x86 = CurrentCpu != 'x86'
+    pi = PlatformInfo(arch)
 
     # Find "Windows" and "Program Files" system directories
     WinDir = os.environ['WinDir']
@@ -104,32 +141,12 @@ def _query_vcvarsall(version, arch):
 
     # Set registry base paths
     reg_value = distutils.msvc9compiler.Reg.get_value
-    node = r'\Wow6432Node' if Cur_not_x86 else ''
+    node = r'\Wow6432Node' if not pi.current_is_x86() else ''
     VsReg = r'Software%s\Microsoft\VisualStudio\SxS\VS7' % node
     VcReg = r'Software%s\Microsoft\VisualStudio\SxS\VC7' % node
     VcForPythonReg = r'Software%s\Microsoft\DevDiv\VCForPython\%0.1f' %\
         (node, version)
     WindowsSdkReg = r'Software%s\Microsoft\Microsoft SDKs\Windows' % node
-
-    # Set Platform subdirectories
-    if TargetCpu == 'amd64':
-        plt_subd_lib = r'\amd64'
-        plt_subd_sdk = r'\x64'
-        if CurrentCpu == 'amd64':
-            plt_subd_tools = r'\amd64'
-        else:
-            plt_subd_tools = r'\x86_amd64'
-    elif TargetCpu == 'ia64':
-        plt_subd_lib = r'\ia64'
-        plt_subd_sdk = r'\ia64'
-        if CurrentCpu == 'ia64':
-            plt_subd_tools = r'\ia64'
-        else:
-            plt_subd_tools = r'\x86_ia64'
-    else:
-        plt_subd_lib = ''
-        plt_subd_sdk = ''
-        plt_subd_tools = ''
 
     # Find Microsoft Visual Studio directory
     try:
@@ -232,20 +249,20 @@ def _query_vcvarsall(version, arch):
 
     # Set Microsoft Visual C++ & Microsoft Foundation Class Libraries
     VCLibraries = [
-        os.path.join(VcInstallDir, 'Lib' + plt_subd_lib),
-        os.path.join(VcInstallDir, r'ATLMFC\LIB' + plt_subd_lib),
+        os.path.join(VcInstallDir, 'Lib' + pi.lib_extra),
+        os.path.join(VcInstallDir, r'ATLMFC\LIB' + pi.lib_extra),
     ]
 
     # Set Microsoft Visual C++ Tools
     VCTools = [
         os.path.join(VcInstallDir, 'VCPackages'),
-        os.path.join(VcInstallDir, 'Bin' + plt_subd_tools),
+        os.path.join(VcInstallDir, 'Bin' + pi.tools_extra),
     ]
-    if plt_subd_tools:
+    if pi.tools_extra:
         VCTools.append(os.path.join(VcInstallDir, 'Bin'))
 
     # Set Microsoft Windows SDK Include
-    OSLibraries = [os.path.join(WindowsSdkDir, 'Lib' + plt_subd_sdk)]
+    OSLibraries = [os.path.join(WindowsSdkDir, 'Lib' + pi.sdk_extra)]
 
     # Set Microsoft Windows SDK Libraries
     OSIncludes = [
@@ -255,10 +272,10 @@ def _query_vcvarsall(version, arch):
 
     # Set Microsoft Windows SDK Tools
     SdkTools = [os.path.join(WindowsSdkDir, 'Bin')]
-    if Tar_not_x86:
-        SdkTools.append(os.path.join(WindowsSdkDir, 'Bin' + plt_subd_sdk))
+    if not pi.target_is_x86():
+        SdkTools.append(os.path.join(WindowsSdkDir, 'Bin' + pi.sdk_extra))
     if version == 10.0:
-        path = r'Bin\NETFX 4.0 Tools' + plt_subd_sdk
+        path = r'Bin\NETFX 4.0 Tools' + pi.sdk_extra
         SdkTools.append(os.path.join(WindowsSdkDir, path))
 
     # Set Microsoft Windows SDK Setup
@@ -266,7 +283,7 @@ def _query_vcvarsall(version, arch):
 
     # Set Microsoft .NET Framework Tools
     FxTools = [os.path.join(FrameworkDir32, ver) for ver in FrameworkVer]
-    if Tar_not_x86 and Cur_not_x86:
+    if not pi.target_is_x86() and not pi.current_is_x86():
         for ver in FrameworkVer:
             FxTools.append(os.path.join(FrameworkDir64, ver))
 
