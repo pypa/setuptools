@@ -47,12 +47,12 @@ def find_vcvarsall(version):
 
     return unpatched['find_vcvarsall'](version)
 
-def query_vcvarsall(version, *args, **kwargs):
+def query_vcvarsall(version, arch='x86', *args, **kwargs):
     message = ''
 
     # Try to get environement from vcvarsall.bat (Classical way)
     try:
-        return unpatched['query_vcvarsall'](version, *args, **kwargs)
+        return unpatched['query_vcvarsall'](version, arch, *args, **kwargs)
     except distutils.errors.DistutilsPlatformError as exc:
         # Error if Vcvarsall.bat is missing
         message = exc.args[0]
@@ -62,11 +62,7 @@ def query_vcvarsall(version, *args, **kwargs):
 
     # If vcvarsall.bat fail, try to set environment directly
     try:
-        if not args:
-            arch = 'x86'
-        else:
-            arch = args[0]
-        return setvcenv(version, kwargs.get('arch', arch))
+        return setvcenv(version, arch)
     except distutils.errors.DistutilsPlatformError as exc:
         # Error if MSVC++ directory not found or environment not set
         message = exc.args[0]
