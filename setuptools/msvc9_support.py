@@ -89,6 +89,9 @@ def query_vcvarsall(version, arch='x86', *args, **kwargs):
 
 class PlatformInfo:
     current_cpu = os.environ['processor_architecture'].lower()
+    win_dir = os.environ['WinDir']
+    program_files = os.environ['ProgramFiles']
+    program_files_x86 = os.environ.get('ProgramFiles(x86)', program_files)
 
     def __init__(self, arch):
         self.arch = arch
@@ -134,11 +137,6 @@ def _query_vcvarsall(version, arch):
     """
     pi = PlatformInfo(arch)
 
-    # Find "Windows" and "Program Files" system directories
-    WinDir = os.environ['WinDir']
-    ProgramFiles = os.environ['ProgramFiles']
-    ProgramFilesX86 = os.environ.get('ProgramFiles(x86)', ProgramFiles)
-
     # Set registry base paths
     reg_value = distutils.msvc9compiler.Reg.get_value
     node = r'\Wow6432Node' if not pi.current_is_x86() else ''
@@ -155,7 +153,7 @@ def _query_vcvarsall(version, arch):
     except KeyError:
         # If fail, use default path
         name = 'Microsoft Visual Studio %0.1f' % version
-        VsInstallDir = os.path.join(ProgramFilesX86, name)
+        VsInstallDir = os.path.join(pi.program_files_x86, name)
 
     # Find Microsoft Visual C++ directory
     try:
@@ -169,7 +167,7 @@ def _query_vcvarsall(version, arch):
         except KeyError:
             # If fail, use default path
             default = r'Microsoft Visual Studio %0.1f\VC' % version
-            VcInstallDir = os.path.join(ProgramFilesX86, default)
+            VcInstallDir = os.path.join(pi.program_files_x86, default)
     if not os.path.isdir(VcInstallDir):
         msg = 'vcvarsall.bat and Visual C++ directory not found'
         raise distutils.errors.DistutilsPlatformError(msg)
@@ -201,7 +199,7 @@ def _query_vcvarsall(version, arch):
         # If fail, use default path
         for ver in WindowsSdkVer:
             path = r'Microsoft SDKs\Windows\v%s' % ver
-            d = os.path.join(ProgramFiles, path)
+            d = os.path.join(pi.program_files, path)
             if os.path.isdir(d):
                 WindowsSdkDir = d
     if not WindowsSdkDir:
@@ -214,7 +212,7 @@ def _query_vcvarsall(version, arch):
         FrameworkDir32 = reg_value(VcReg, 'frameworkdir32')
     except KeyError:
         # If fail, use default path
-        FrameworkDir32 = os.path.join(WinDir, r'Microsoft.NET\Framework')
+        FrameworkDir32 = os.path.join(pi.win_dir, r'Microsoft.NET\Framework')
 
     # Find Microsoft .NET Framework 64bit directory
     try:
@@ -222,7 +220,7 @@ def _query_vcvarsall(version, arch):
         FrameworkDir64 = reg_value(VcReg, 'frameworkdir64')
     except KeyError:
         # If fail, use default path
-        FrameworkDir64 = os.path.join(WinDir, r'Microsoft.NET\Framework64')
+        FrameworkDir64 = os.path.join(pi.win_dir, r'Microsoft.NET\Framework64')
 
     # Find Microsoft .NET Framework Versions
     if version == 10.0:
