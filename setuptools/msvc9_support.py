@@ -165,7 +165,10 @@ class RegistryInfo:
         return os.path.join(self.microsoft, r'Microsoft SDKs\Windows')
 
     def lookup(self, base, key):
-        return distutils.msvc9compiler.Reg.get_value(base, key)
+        try:
+            return distutils.msvc9compiler.Reg.get_value(base, key)
+        except KeyError:
+            pass
 
 
 def _query_vcvarsall(version, arch):
@@ -178,27 +181,22 @@ def _query_vcvarsall(version, arch):
     reg_value = reg.lookup
 
     # Find Microsoft Visual Studio directory
-    try:
-        # Try to get it from registry
-        VsInstallDir = reg_value(reg.vs, '%0.1f' % version)
-    except KeyError:
-        # If fail, use default path
-        name = 'Microsoft Visual Studio %0.1f' % version
-        VsInstallDir = os.path.join(pi.program_files_x86, name)
+    name = 'Microsoft Visual Studio %0.1f' % version
+    default_vs = os.path.join(pi.program_files_x86, name)
+    VsInstallDir = reg_value(reg.vs, '%0.1f' % version) or default_vs
 
     # Find Microsoft Visual C++ directory
-    try:
-        # Try to get it from registry
-        VcInstallDir = reg_value(reg.vc, '%0.1f' % version)
-    except KeyError:
-        try:
-            # Try to get "VC++ for Python" version from registry
-            install_base = reg_value(reg.vc_for_python, 'installdir')
-            VcInstallDir = os.path.join(install_base, 'VC')
-        except KeyError:
-            # If fail, use default path
-            default = r'Microsoft Visual Studio %0.1f\VC' % version
-            VcInstallDir = os.path.join(pi.program_files_x86, default)
+
+    # If fail, use default path
+    default = r'Microsoft Visual Studio %0.1f\VC' % version
+    guess_vc = os.path.join(pi.program_files_x86, default)
+
+    # Try to get "VC++ for Python" version from registry
+    install_base = reg_value(reg.vc_for_python, 'installdir')
+    default_vc = os.path.join(install_base, 'VC') if install_base else guess_vc
+
+    VcInstallDir = reg_value(reg.vc, '%0.1f' % version) or default_vc
+
     if not os.path.isdir(VcInstallDir):
         msg = 'vcvarsall.bat and Visual C++ directory not found'
         raise distutils.errors.DistutilsPlatformError(msg)
@@ -213,19 +211,15 @@ def _query_vcvarsall(version, arch):
         WindowsSdkVer = ()
     for ver in WindowsSdkVer:
         # Try to get it from registry
-        try:
-            loc = os.path.join(reg.windows_sdk, 'v%s' % ver)
-            WindowsSdkDir = reg_value(loc, 'installationfolder')
+        loc = os.path.join(reg.windows_sdk, 'v%s' % ver)
+        WindowsSdkDir = reg_value(loc, 'installationfolder')
+        if WindowsSdkDir:
             break
-        except KeyError:
-            pass
     if not WindowsSdkDir or not os.path.isdir(WindowsSdkDir):
         # Try to get "VC++ for Python" version from registry
-        try:
-            install_base = reg_value(reg.vc_for_python, 'installdir')
+        install_base = reg_value(reg.vc_for_python, 'installdir')
+        if install_base:
             WindowsSdkDir = os.path.join(install_base, 'WinSDK')
-        except:
-            pass
     if not WindowsSdkDir or not os.path.isdir(WindowsSdkDir):
         # If fail, use default path
         for ver in WindowsSdkVer:
@@ -238,23 +232,20 @@ def _query_vcvarsall(version, arch):
         WindowsSdkDir = os.path.join(VcInstallDir, 'PlatformSDK')
 
     # Find Microsoft .NET Framework 32bit directory
-    try:
-        # Try to get it from registry
-        FrameworkDir32 = reg_value(reg.vc, 'frameworkdir32')
-    except KeyError:
-        # If fail, use default path
-        FrameworkDir32 = os.path.join(pi.win_dir, r'Microsoft.NET\Framework')
+    guess_fw = os.path.join(pi.win_dir, r'Microsoft.NET\Framework')
+    FrameworkDir32 = reg_value(reg.vc, 'frameworkdir32') or guess_fw
 
     # Find Microsoft .NET Framework 64bit directory
-    try:
-        # Try to get it from registry
-        FrameworkDir64 = reg_value(reg.vc, 'frameworkdir64')
-    except KeyError:
-        # If fail, use default path
-        FrameworkDir64 = os.path.join(pi.win_dir, r'Microsoft.NET\Framework64')
+    guess_fw64 = os.path.join(pi.win_dir, r'Microsoft.NET\Framework64')
+    FrameworkDir64 = reg_value(reg.vc, 'frameworkdir64') or guess_fw64
 
     # Find Microsoft .NET Framework Versions
     if version == 10.0:
+        v4 = reg_value(reg.vc, 'frameworkver32')
+        if v4 and v4.lower()[:2] != 'v4':
+            v4 = None
+        v4 = v4 or 'v4.0.30319'
+
         try:
             # Try to get v4 from registry
             v4 = reg_value(reg.vc, 'frameworkver32')
