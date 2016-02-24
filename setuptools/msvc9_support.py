@@ -325,11 +325,12 @@ def _query_vcvarsall(version, arch):
     VsTDb = [os.path.join(reg.find_visual_studio(), r'VSTSDB\Deploy')]
 
     # Return Environment Variables
-    env = {}
-    env['include'] = [VCIncludes, OSIncludes]
-    env['lib'] = [VCLibraries, OSLibraries, FxTools]
-    env['libpath'] = [VCLibraries, FxTools]
-    env['path'] = [VCTools, VSTools, VsTDb, SdkTools, SdkSetup, FxTools]
+    env = dict(
+        include=[VCIncludes, OSIncludes],
+        lib=[VCLibraries, OSLibraries, FxTools],
+        libpath=[VCLibraries, FxTools],
+        path=[VCTools, VSTools, VsTDb, SdkTools, SdkSetup, FxTools],
+    )
 
     def checkpath(path, varlist):
         # Function that add valid paths in list in not already present
