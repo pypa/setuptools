@@ -226,6 +226,23 @@ class RegistryInfo:
             WindowsSdkDir = os.path.join(self.find_visual_c(), 'PlatformSDK')
         return WindowsSdkDir
 
+    def find_dot_net_versions(self):
+        """
+        Find Microsoft .NET Framework Versions
+        """
+        if self.version == 10.0:
+            v4 = self.lookup(self.vc, 'frameworkver32') or ''
+            if v4.lower()[:2] != 'v4':
+                v4 = None
+            # default to last v4 version
+            v4 = v4 or 'v4.0.30319'
+            FrameworkVer = (v4, 'v3.5')
+        elif self.version == 9.0:
+            FrameworkVer = ('v3.5', 'v2.0.50727')
+        elif self.version == 8.0:
+            FrameworkVer = ('v3.0', 'v2.0.50727')
+        return FrameworkVer
+
     def lookup(self, base, key):
         try:
             return distutils.msvc9compiler.Reg.get_value(base, key)
@@ -249,19 +266,6 @@ def _query_vcvarsall(version, arch):
     # Find Microsoft .NET Framework 64bit directory
     guess_fw64 = os.path.join(pi.win_dir, r'Microsoft.NET\Framework64')
     FrameworkDir64 = reg_value(reg.vc, 'frameworkdir64') or guess_fw64
-
-    # Find Microsoft .NET Framework Versions
-    if version == 10.0:
-        v4 = reg_value(reg.vc, 'frameworkver32') or ''
-        if v4.lower()[:2] != 'v4':
-            v4 = None
-        # default to last v4 version
-        v4 = v4 or 'v4.0.30319'
-        FrameworkVer = (v4, 'v3.5')
-    elif version == 9.0:
-        FrameworkVer = ('v3.5', 'v2.0.50727')
-    elif version == 8.0:
-        FrameworkVer = ('v3.0', 'v2.0.50727')
 
     # Set Microsoft Visual Studio Tools
     VSTools = [
@@ -307,9 +311,9 @@ def _query_vcvarsall(version, arch):
     SdkSetup = [os.path.join(reg.find_windows_sdk(), 'Setup')]
 
     # Set Microsoft .NET Framework Tools
-    FxTools = [os.path.join(FrameworkDir32, ver) for ver in FrameworkVer]
+    FxTools = [os.path.join(FrameworkDir32, ver) for ver in reg.find_dot_net_versions()]
     if not pi.target_is_x86() and not pi.current_is_x86():
-        for ver in FrameworkVer:
+        for ver in reg.find_dot_net_versions():
             FxTools.append(os.path.join(FrameworkDir64, ver))
 
     # Set Microsoft Visual Studio Team System Database
