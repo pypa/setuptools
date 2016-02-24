@@ -258,15 +258,14 @@ def _query_vcvarsall(version, arch):
     """
     pi = PlatformInfo(arch)
     reg = RegistryInfo(pi, version)
-    reg_value = reg.lookup
 
     # Find Microsoft .NET Framework 32bit directory
     guess_fw = os.path.join(pi.win_dir, r'Microsoft.NET\Framework')
-    FrameworkDir32 = reg_value(reg.vc, 'frameworkdir32') or guess_fw
+    FrameworkDir32 = reg.lookup(reg.vc, 'frameworkdir32') or guess_fw
 
     # Find Microsoft .NET Framework 64bit directory
     guess_fw64 = os.path.join(pi.win_dir, r'Microsoft.NET\Framework64')
-    FrameworkDir64 = reg_value(reg.vc, 'frameworkdir64') or guess_fw64
+    FrameworkDir64 = reg.lookup(reg.vc, 'frameworkdir64') or guess_fw64
 
     # Set Microsoft Visual Studio Tools
     VSTools = [
