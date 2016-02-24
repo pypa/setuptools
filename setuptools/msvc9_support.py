@@ -1,4 +1,5 @@
 import os
+import itertools
 import distutils.errors
 
 try:
@@ -311,10 +312,14 @@ def _query_vcvarsall(version, arch):
     SdkSetup = [os.path.join(reg.find_windows_sdk(), 'Setup')]
 
     # Set Microsoft .NET Framework Tools
-    FxTools = [os.path.join(FrameworkDir32, ver) for ver in reg.find_dot_net_versions()]
-    if not pi.target_is_x86() and not pi.current_is_x86():
-        for ver in reg.find_dot_net_versions():
-            FxTools.append(os.path.join(FrameworkDir64, ver))
+    roots = [FrameworkDir32]
+    include_64_framework = not pi.target_is_x86() and not pi.current_is_x86()
+    roots += [FrameworkDir64] if include_64_framework else []
+
+    FxTools = [
+        os.path.join(root, ver)
+        for root, ver in itertools.product(roots, reg.find_dot_net_versions())
+    ]
 
     # Set Microsoft Visual Studio Team System Database
     VsTDb = [os.path.join(reg.find_visual_studio(), r'VSTSDB\Deploy')]
