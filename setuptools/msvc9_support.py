@@ -352,7 +352,7 @@ def _query_vcvarsall(version, arch):
 
         # Format paths to Environment Variable string
         if var:
-            env[key] = ';'.os.path.join(var)
+            env[key] = ';'.join(var)
         else:
             msg = "%s environment variable is empty" % key.upper()
             raise distutils.errors.DistutilsPlatformError(msg)
