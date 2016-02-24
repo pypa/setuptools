@@ -7,6 +7,9 @@ try:
 except ImportError:
     pass
 
+import six
+
+
 unpatched = dict()
 
 def patch_for_specialized_compiler():
@@ -323,37 +326,49 @@ def _query_vcvarsall(version, arch):
     # Set Microsoft Visual Studio Team System Database
     VsTDb = [os.path.join(reg.find_visual_studio(), r'VSTSDB\Deploy')]
 
-    # Return Environment Variables
-    env = dict(
-        include=[VCIncludes, OSIncludes],
-        lib=[VCLibraries, OSLibraries, FxTools],
-        libpath=[VCLibraries, FxTools],
-        path=[VCTools, VSTools, VsTDb, SdkTools, SdkSetup, FxTools],
+    return dict(
+        include=_build_paths('include', [VCIncludes, OSIncludes]),
+        lib=_build_paths('lib', [VCLibraries, OSLibraries, FxTools]),
+        libpath=_build_paths('libpath', [VCLibraries, FxTools]),
+        path=_build_paths('path', [VCTools, VSTools, VsTDb, SdkTools, SdkSetup, FxTools]),
     )
 
-    def checkpath(path, varlist):
-        # Function that add valid paths in list in not already present
-        if os.path.isdir(path) and path not in varlist:
-            varlist.append(path)
 
-    for key in env.keys():
-        var = []
-        # Add valid paths
-        for val in env[key]:
-            for subval in val:
-                checkpath(subval, var)
+def _build_paths(name, spec_path_lists):
+    """
+    Given an environment variable name and specified paths,
+    return a pathsep-separated string of paths containing
+    unique, extant, directories from those paths and from
+    the environment variable. Raise an error if no paths
+    are resolved.
+    """
+    # flatten spec_path_lists
+    spec_paths = itertools.chain.from_iterable(spec_path_lists)
+    env_paths = os.environ.get(name, '').split(os.pathsep)
+    paths = itertools.chain(spec_paths, env_paths)
+    extant_paths = list(filter(os.path.isdir, paths))
+    if not extant_paths:
+        msg = "%s environment variable is empty" % name.upper()
+        raise distutils.errors.DistutilsPlatformError(msg)
+    unique_paths = unique_everseen(extant_paths)
+    return os.pathsep.join(unique_paths)
 
-        # Add values from actual environment
-        try:
-            for val in os.environ[key].split(';'):
-                checkpath(val, var)
-        except KeyError:
-            pass
 
-        # Format paths to Environment Variable string
-        if var:
-            env[key] = ';'.join(var)
-        else:
-            msg = "%s environment variable is empty" % key.upper()
-            raise distutils.errors.DistutilsPlatformError(msg)
-    return env
+# from Python docs
+def unique_everseen(iterable, key=None):
+    "List unique elements, preserving order. Remember all elements ever seen."
+    # unique_everseen('AAAABBBCCDAABBB') --> A B C D
+    # unique_everseen('ABBCcAD', str.lower) --> A B C D
+    seen = set()
+    seen_add = seen.add
+    filterfalse = six.moves.filterfalse
+    if key is None:
+        for element in filterfalse(seen.__contains__, iterable):
+            seen_add(element)
+            yield element
+    else:
+        for element in iterable:
+            k = key(element)
+            if k not in seen:
+                seen_add(k)
+                yield element
