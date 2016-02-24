@@ -59,12 +59,12 @@ def query_vcvarsall(version, arch='x86', *args, **kwargs):
     # Try to get environement from vcvarsall.bat (Classical way)
     try:
         return unpatched['query_vcvarsall'](version, arch, *args, **kwargs)
-    except distutils.errors.DistutilsPlatformError as exc:
+    except distutils.errors.DistutilsPlatformError:
         # Error if Vcvarsall.bat is missing
-        message = exc.args[0]
-    except ValueError as exc:
+        pass
+    except ValueError:
         # Error if environment not set after executing vcvarsall.bat
-        message = exc.args[0]
+        pass
 
     # If vcvarsall.bat fail, try to set environment directly
     try:
