@@ -80,7 +80,7 @@ def _augment_exception(exc, version):
     # Error if MSVC++ directory not found or environment not set
     message = exc.args[0]
 
-    if message and "vcvarsall.bat" in message:
+    if "vcvarsall.bat" in message:
         # Special error message if MSVC++ not installed
         message = 'Microsoft Visual C++ %0.1f is required (%s).' %\
             (version, message)
