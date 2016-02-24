@@ -54,8 +54,6 @@ def find_vcvarsall(version):
     return unpatched['find_vcvarsall'](version)
 
 def query_vcvarsall(version, arch='x86', *args, **kwargs):
-    message = ''
-
     # Try to get environement from vcvarsall.bat (Classical way)
     try:
         return unpatched['query_vcvarsall'](version, arch, *args, **kwargs)
@@ -70,10 +68,18 @@ def query_vcvarsall(version, arch='x86', *args, **kwargs):
     try:
         return _compute_env(version, arch)
     except distutils.errors.DistutilsPlatformError as exc:
-        # Error if MSVC++ directory not found or environment not set
-        message = exc.args[0]
+        _augment_exception(exc, version)
+        raise
 
-    # Raise error
+
+def _augment_exception(exc, version):
+    """
+    Add details to the exception message to help guide the user
+    as to what action will resolve it.
+    """
+    # Error if MSVC++ directory not found or environment not set
+    message = exc.args[0]
+
     if message and "vcvarsall.bat" in message:
         # Special error message if MSVC++ not installed
         message = 'Microsoft Visual C++ %0.1f is required (%s).' %\
@@ -88,7 +94,7 @@ def query_vcvarsall(version, arch='x86', *args, **kwargs):
             message += ' Get it with "Microsoft Windows SDK for Windows 7": '
             message += r'www.microsoft.com/download/details.aspx?id=8279'
 
-    raise distutils.errors.DistutilsPlatformError(message)
+    exc.args[0] = message
 
 
 class PlatformInfo:
