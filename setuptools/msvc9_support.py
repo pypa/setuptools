@@ -192,6 +192,40 @@ class RegistryInfo:
 
         return result
 
+    def find_windows_sdk(self):
+        """
+        Find Microsoft Windows SDK directory
+        """
+        WindowsSdkDir = ''
+        if self.version == 9.0:
+            WindowsSdkVer = ('7.0', '6.1', '6.0a')
+        elif self.version == 10.0:
+            WindowsSdkVer = ('7.1', '7.0a')
+        else:
+            WindowsSdkVer = ()
+        for ver in WindowsSdkVer:
+            # Try to get it from registry
+            loc = os.path.join(self.windows_sdk, 'v%s' % ver)
+            WindowsSdkDir = self.lookup(loc, 'installationfolder')
+            if WindowsSdkDir:
+                break
+        if not WindowsSdkDir or not os.path.isdir(WindowsSdkDir):
+            # Try to get "VC++ for Python" version from registry
+            install_base = self.lookup(self.vc_for_python, 'installdir')
+            if install_base:
+                WindowsSdkDir = os.path.join(install_base, 'WinSDK')
+        if not WindowsSdkDir or not os.path.isdir(WindowsSdkDir):
+            # If fail, use default path
+            for ver in WindowsSdkVer:
+                path = r'Microsoft SDKs\Windows\v%s' % ver
+                d = os.path.join(self.platform_info.program_files, path)
+                if os.path.isdir(d):
+                    WindowsSdkDir = d
+        if not WindowsSdkDir:
+            # If fail, use Platform SDK
+            WindowsSdkDir = os.path.join(self.find_visual_c(), 'PlatformSDK')
+        return WindowsSdkDir
+
     def lookup(self, base, key):
         try:
             return distutils.msvc9compiler.Reg.get_value(base, key)
@@ -207,36 +241,6 @@ def _query_vcvarsall(version, arch):
     pi = PlatformInfo(arch)
     reg = RegistryInfo(pi, version)
     reg_value = reg.lookup
-
-    # Find Microsoft Windows SDK directory
-    WindowsSdkDir = ''
-    if version == 9.0:
-        WindowsSdkVer = ('7.0', '6.1', '6.0a')
-    elif version == 10.0:
-        WindowsSdkVer = ('7.1', '7.0a')
-    else:
-        WindowsSdkVer = ()
-    for ver in WindowsSdkVer:
-        # Try to get it from registry
-        loc = os.path.join(reg.windows_sdk, 'v%s' % ver)
-        WindowsSdkDir = reg_value(loc, 'installationfolder')
-        if WindowsSdkDir:
-            break
-    if not WindowsSdkDir or not os.path.isdir(WindowsSdkDir):
-        # Try to get "VC++ for Python" version from registry
-        install_base = reg_value(reg.vc_for_python, 'installdir')
-        if install_base:
-            WindowsSdkDir = os.path.join(install_base, 'WinSDK')
-    if not WindowsSdkDir or not os.path.isdir(WindowsSdkDir):
-        # If fail, use default path
-        for ver in WindowsSdkVer:
-            path = r'Microsoft SDKs\Windows\v%s' % ver
-            d = os.path.join(pi.program_files, path)
-            if os.path.isdir(d):
-                WindowsSdkDir = d
-    if not WindowsSdkDir:
-        # If fail, use Platform SDK
-        WindowsSdkDir = os.path.join(reg.find_visual_c(), 'PlatformSDK')
 
     # Find Microsoft .NET Framework 32bit directory
     guess_fw = os.path.join(pi.win_dir, r'Microsoft.NET\Framework')
@@ -283,24 +287,24 @@ def _query_vcvarsall(version, arch):
         VCTools.append(os.path.join(reg.find_visual_c(), 'Bin'))
 
     # Set Microsoft Windows SDK Include
-    OSLibraries = [os.path.join(WindowsSdkDir, 'Lib' + pi.sdk_extra)]
+    OSLibraries = [os.path.join(reg.find_windows_sdk(), 'Lib' + pi.sdk_extra)]
 
     # Set Microsoft Windows SDK Libraries
     OSIncludes = [
-        os.path.join(WindowsSdkDir, 'Include'),
-        os.path.join(WindowsSdkDir, r'Include\gl'),
+        os.path.join(reg.find_windows_sdk(), 'Include'),
+        os.path.join(reg.find_windows_sdk(), r'Include\gl'),
     ]
 
     # Set Microsoft Windows SDK Tools
-    SdkTools = [os.path.join(WindowsSdkDir, 'Bin')]
+    SdkTools = [os.path.join(reg.find_windows_sdk(), 'Bin')]
     if not pi.target_is_x86():
-        SdkTools.append(os.path.join(WindowsSdkDir, 'Bin' + pi.sdk_extra))
+        SdkTools.append(os.path.join(reg.find_windows_sdk(), 'Bin' + pi.sdk_extra))
     if version == 10.0:
         path = r'Bin\NETFX 4.0 Tools' + pi.sdk_extra
-        SdkTools.append(os.path.join(WindowsSdkDir, path))
+        SdkTools.append(os.path.join(reg.find_windows_sdk(), path))
 
     # Set Microsoft Windows SDK Setup
-    SdkSetup = [os.path.join(WindowsSdkDir, 'Setup')]
+    SdkSetup = [os.path.join(reg.find_windows_sdk(), 'Setup')]
 
     # Set Microsoft .NET Framework Tools
     FxTools = [os.path.join(FrameworkDir32, ver) for ver in FrameworkVer]
