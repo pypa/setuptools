@@ -68,7 +68,7 @@ def query_vcvarsall(version, arch='x86', *args, **kwargs):
 
     # If vcvarsall.bat fail, try to set environment directly
     try:
-        return _query_vcvarsall(version, arch)
+        return _compute_env(version, arch)
     except distutils.errors.DistutilsPlatformError as exc:
         # Error if MSVC++ directory not found or environment not set
         message = exc.args[0]
@@ -254,7 +254,7 @@ class RegistryInfo:
             pass
 
 
-def _query_vcvarsall(version, arch):
+def _compute_env(version, arch):
     """
     Return environment variables for specified Microsoft Visual C++ version
     and platform.
