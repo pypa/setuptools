@@ -172,6 +172,26 @@ class RegistryInfo:
         default = os.path.join(self.platform_info.program_files_x86, name)
         return self.lookup(self.vs, '%0.1f' % self.version) or default
 
+    def find_visual_c(self):
+        """
+        Find Microsoft Visual C++ directory
+        """
+        # If fail, use default path
+        default = r'Microsoft Visual Studio %0.1f\VC' % self.version
+        guess_vc = os.path.join(self.platform_info.program_files_x86, default)
+
+        # Try to get "VC++ for Python" version from registry
+        install_base = self.lookup(self.vc_for_python, 'installdir')
+        default_vc = os.path.join(install_base, 'VC') if install_base else guess_vc
+
+        result = self.lookup(self.vc, '%0.1f' % self.version) or default_vc
+
+        if not os.path.isdir(result):
+            msg = 'vcvarsall.bat and Visual C++ directory not found'
+            raise distutils.errors.DistutilsPlatformError(msg)
+
+        return result
+
     def lookup(self, base, key):
         try:
             return distutils.msvc9compiler.Reg.get_value(base, key)
@@ -187,22 +207,6 @@ def _query_vcvarsall(version, arch):
     pi = PlatformInfo(arch)
     reg = RegistryInfo(pi, version)
     reg_value = reg.lookup
-
-    # Find Microsoft Visual C++ directory
-
-    # If fail, use default path
-    default = r'Microsoft Visual Studio %0.1f\VC' % version
-    guess_vc = os.path.join(pi.program_files_x86, default)
-
-    # Try to get "VC++ for Python" version from registry
-    install_base = reg_value(reg.vc_for_python, 'installdir')
-    default_vc = os.path.join(install_base, 'VC') if install_base else guess_vc
-
-    VcInstallDir = reg_value(reg.vc, '%0.1f' % version) or default_vc
-
-    if not os.path.isdir(VcInstallDir):
-        msg = 'vcvarsall.bat and Visual C++ directory not found'
-        raise distutils.errors.DistutilsPlatformError(msg)
 
     # Find Microsoft Windows SDK directory
     WindowsSdkDir = ''
@@ -232,7 +236,7 @@ def _query_vcvarsall(version, arch):
                 WindowsSdkDir = d
     if not WindowsSdkDir:
         # If fail, use Platform SDK
-        WindowsSdkDir = os.path.join(VcInstallDir, 'PlatformSDK')
+        WindowsSdkDir = os.path.join(reg.find_visual_c(), 'PlatformSDK')
 
     # Find Microsoft .NET Framework 32bit directory
     guess_fw = os.path.join(pi.win_dir, r'Microsoft.NET\Framework')
@@ -262,21 +266,21 @@ def _query_vcvarsall(version, arch):
     ]
 
     # Set Microsoft Visual C++ Includes
-    VCIncludes = [os.path.join(VcInstallDir, 'Include')]
+    VCIncludes = [os.path.join(reg.find_visual_c(), 'Include')]
 
     # Set Microsoft Visual C++ & Microsoft Foundation Class Libraries
     VCLibraries = [
-        os.path.join(VcInstallDir, 'Lib' + pi.lib_extra),
-        os.path.join(VcInstallDir, r'ATLMFC\LIB' + pi.lib_extra),
+        os.path.join(reg.find_visual_c(), 'Lib' + pi.lib_extra),
+        os.path.join(reg.find_visual_c(), r'ATLMFC\LIB' + pi.lib_extra),
     ]
 
     # Set Microsoft Visual C++ Tools
     VCTools = [
-        os.path.join(VcInstallDir, 'VCPackages'),
-        os.path.join(VcInstallDir, 'Bin' + pi.tools_extra),
+        os.path.join(reg.find_visual_c(), 'VCPackages'),
+        os.path.join(reg.find_visual_c(), 'Bin' + pi.tools_extra),
     ]
     if pi.tools_extra:
-        VCTools.append(os.path.join(VcInstallDir, 'Bin'))
+        VCTools.append(os.path.join(reg.find_visual_c(), 'Bin'))
 
     # Set Microsoft Windows SDK Include
     OSLibraries = [os.path.join(WindowsSdkDir, 'Lib' + pi.sdk_extra)]
