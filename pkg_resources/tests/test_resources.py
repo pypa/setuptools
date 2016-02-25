@@ -511,6 +511,10 @@ class TestParsing:
     def test_local_version(self):
         req, = parse_requirements('foo==1.0.org1')
 
+    def test_spaces_between_multiple_versions(self):
+        req, = parse_requirements('foo>=1.0, <3')
+        req, = parse_requirements('foo >= 1.0, < 3')
+
     def testVersionEquality(self):
         def c(s1,s2):
             p1, p2 = parse_version(s1),parse_version(s2)
