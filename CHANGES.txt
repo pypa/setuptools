@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+20.2.1
+------
+
+* Issue #499: Restore compatiblity for legacy versions
+  by bumping to packaging 16.4.
+
 20.2
 ----
 
