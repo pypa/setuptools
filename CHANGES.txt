@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+20.2.2
+------
+
+* Issue #502: Correct regression in parsing of multiple
+  version specifiers separated by commas and spaces.
+
 20.2.1
 ------
 
