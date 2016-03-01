@@ -34,7 +34,9 @@ class TestDistInfo:
 
         for d in pkg_resources.find_distributions(self.tmpdir):
             assert d.requires() == requires[:1]
-            assert d.requires(extras=('baz',)) == requires
+            assert d.requires(extras=('baz',)) == [
+                requires[0],
+                pkg_resources.Requirement.parse('quux>=1.1;extra=="baz"')]
             assert d.extras == ['baz']
 
     metadata_template = DALS("""

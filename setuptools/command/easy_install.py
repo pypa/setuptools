@@ -710,10 +710,7 @@ class easy_install(Command):
         elif requirement is None or dist not in requirement:
             # if we wound up with a different version, resolve what we've got
             distreq = dist.as_requirement()
-            requirement = requirement or distreq
-            requirement = Requirement(
-                distreq.project_name, distreq.specs, requirement.extras
-            )
+            requirement = Requirement(str(distreq.req))
         log.info("Processing dependencies for %s", requirement)
         try:
             distros = WorkingSet([]).resolve(

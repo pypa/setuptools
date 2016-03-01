@@ -2693,15 +2693,11 @@ class DistInfoDistribution(Distribution):
         reqs = []
         # Including any condition expressions
         for req in self._parsed_pkg_info.get_all('Requires-Dist') or []:
-            current_req = packaging.requirements.Requirement(req)
-            specs = _parse_requirement_specs(current_req)
-            parsed = Requirement(current_req.name, specs, current_req.extras)
-            parsed._marker = current_req.marker
-            reqs.append(parsed)
+            reqs.extend(parse_requirements(req))
 
         def reqs_for_extra(extra):
             for req in reqs:
-                if not req._marker or req._marker.evaluate({'extra': extra}):
+                if not req.marker or req.marker.evaluate({'extra': extra}):
                     yield req
 
         common = frozenset(reqs_for_extra(None))
@@ -2739,10 +2735,6 @@ class RequirementParseError(ValueError):
         return ' '.join(self.args)
 
 
-def _parse_requirement_specs(req):
-    return [(spec.operator, spec.version) for spec in req.specifier]
-
-
 def parse_requirements(strs):
     """Yield ``Requirement`` objects for each specification in `strs`
 
@@ -2759,33 +2751,35 @@ def parse_requirements(strs):
         if line.endswith('\\'):
             line = line[:-2].strip()
             line += next(lines)
-        req = packaging.requirements.Requirement(line)
-        specs = _parse_requirement_specs(req)
-        yield Requirement(req.name, specs, req.extras)
+        yield Requirement(line)
 
 
 class Requirement:
-    def __init__(self, project_name, specs, extras):
+    def __init__(self, requirement_string):
         """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
-        self.unsafe_name, project_name = project_name, safe_name(project_name)
+        try:
+            self.req = packaging.requirements.Requirement(requirement_string)
+        except packaging.requirements.InvalidRequirement as e:
+            raise RequirementParseError(str(e))
+        self.unsafe_name = self.req.name
+        project_name = safe_name(self.req.name)
         self.project_name, self.key = project_name, project_name.lower()
-        self.specifier = packaging.specifiers.SpecifierSet(
-            ",".join(["".join([x, y]) for x, y in specs])
-        )
-        self.specs = specs
-        self.extras = tuple(map(safe_extra, extras))
+        self.specifier = self.req.specifier
+        self.specs = [
+            (spec.operator, spec.version) for spec in self.req.specifier]
+        self.extras = tuple(map(safe_extra, self.req.extras))
+        self.marker = self.req.marker
+        self.url = self.req.url
         self.hashCmp = (
             self.key,
             self.specifier,
             frozenset(self.extras),
+            str(self.marker)
         )
         self.__hash = hash(self.hashCmp)
 
     def __str__(self):
-        extras = ','.join(self.extras)
-        if extras:
-            extras = '[%s]' % extras
-        return '%s%s%s' % (self.project_name, extras, self.specifier)
+        return str(self.req)
 
     def __eq__(self, other):
         return (
