@@ -4,22 +4,21 @@ This module improve support for Microsoft Visual C++ compilers. (Windows Only)
 import os
 import itertools
 import distutils.errors
-import winreg
+import six
+import six.moves.winreg as winreg
 
 try:
-    # Distutil file for MSVC++ 9.0 and upper
+    # Distutil file for MSVC++ 9.0 and upper (Python 2.7 to 3.4)
     import distutils.msvc9compiler as msvc9compiler
 except ImportError:
     pass
 
 try:
-    # Distutil file for MSVC++ 14.0 and upper
+    # Distutil file for MSVC++ 14.0 and upper (Python 3.5)
     import distutils._msvccompiler as msvc14compiler
 except ImportError:
     pass
 
-
-import six
 
 unpatched = dict()
 
@@ -73,6 +72,8 @@ def msvc9_find_vcvarsall(version):
     compiler build for Python (VCForPython). Fall back to original behavior
     when the standalone compiler is not available.
 
+    Redirect the path of "vcvarsall.bat".
+
     Known supported compilers
     -------------------------
     Microsoft Visual C++ 9.0:
@@ -113,6 +114,8 @@ def msvc9_query_vcvarsall(ver, arch='x86', *args, **kwargs):
     """
     Patched "distutils.msvc9compiler.query_vcvarsall" for support standalones
     compilers.
+
+    Set environment without use of "vcvarsall.bat".
 
     Known supported compilers
     -------------------------
@@ -157,6 +160,8 @@ def msvc14_get_vc_env(plat_spec):
     """
     Patched "distutils._msvccompiler._get_vc_env" for support standalones
     compilers.
+
+    Set environment without use of "vcvarsall.bat".
 
     Known supported compilers
     -------------------------
@@ -339,23 +344,30 @@ class RegistryInfo:
         )
 
     @property
+    def visualstudio(self):
+        """
+        Microsoft Visual Studio root registry key.
+        """
+        return os.path.join(self.microsoft, r'VisualStudio')
+
+    @property
     def sxs(self):
         """
         Microsoft Visual Studio SxS registry key.
         """
-        return os.path.join(self.microsoft, r'VisualStudio\SxS')
+        return os.path.join(self.visualstudio, 'SxS')
 
     @property
     def vc(self):
         """
-        Microsoft Visual C++ registry key.
+        Microsoft Visual C++ VC7 registry key.
         """
         return os.path.join(self.sxs, 'VC7')
 
     @property
     def vs(self):
         """
-        Microsoft Visual Studio registry key.
+        Microsoft Visual Studio VS7 registry key.
         """
         return os.path.join(self.sxs, 'VS7')
 
@@ -496,14 +508,16 @@ class SystemInfo:
         Microsoft Windows SDK directory.
         """
         sdkdir = ''
-        if self.vcver == 9.0:
+        if self.vcver <= 9.0:
             sdkver = ('7.0', '6.1', '6.0a')
         elif self.vcver == 10.0:
             sdkver = ('7.1', '7.0a')
-        elif self.vcver == 14.0:
-            sdkver = ('10.0', '8.1', '8.1a')
-        else:
-            sdkver = ()
+        elif self.vcver == 11.0:
+            sdkver = ('8.0', '8.0a')
+        elif self.vcver == 12.0:
+            sdkver = ('8.1', '8.1a')
+        elif self.vcver >= 14.0:
+            sdkver = ('10.0', '8.1')
         for ver in sdkver:
             # Try to get it from registry
             loc = os.path.join(self.ri.windows_sdk, 'v%s' % ver)
@@ -535,6 +549,15 @@ class SystemInfo:
             # If fail, use Platform SDK
             sdkdir = os.path.join(self.VCInstallDir, 'PlatformSDK')
         return sdkdir
+
+    @property
+    def FSharpInstallDir(self):
+        """
+        Microsoft Visual F# directory.
+        """
+        path = r'%0.1f\Setup\F#' % self.vcver
+        path = os.path.join(self.ri.visualstudio, path)
+        return self.ri.lookup(path, 'productdir') or ''
 
     @property
     def FrameworkDir32(self):
@@ -585,16 +608,16 @@ class SystemInfo:
         ver = self.ri.lookup(self.ri.vc, 'frameworkver%d' % bits) or ''
 
         # Set .NET versions for specified MSVC++ version
-        if self.vcver >= 14.0:
+        if self.vcver >= 12.0:
             frameworkver = (ver, 'v4.0')
-        elif self.vcver == 10.0:
+        elif self.vcver >= 10.0:
             if ver.lower()[:2] != 'v4':
                 ver = ''
             ver = ver or 'v4.0.30319'
             frameworkver = (ver, 'v3.5')
         elif self.vcver == 9.0:
             frameworkver = ('v3.5', 'v2.0.50727')
-        elif self.vcver == 8.0:
+        if self.vcver == 8.0:
             frameworkver = ('v3.0', 'v2.0.50727')
         return frameworkver
 
@@ -605,6 +628,9 @@ class EnvironmentInfo:
     and platform : Lib, Include, Path and libpath.
 
     This function is compatible with Microsoft Visual C++ 9.0 to 14.0.
+
+    Script created by analysing Microsoft environment configuration files like
+    "vcvars[...].bat", "SetEnv.Cmd", "vcbuildtools.bat", ...
 
     Parameters
     ----------
@@ -669,8 +695,9 @@ class EnvironmentInfo:
         """
         Microsoft Visual C++ store references Libraries
         """
-        path = os.path.join(self.si.VCInstallDir, r'Lib\store\references')
-        return [path] if self.vcver >= 14.0 else []
+        if self.vcver < 14.0:
+            return []
+        return os.path.join(self.si.VCInstallDir, r'Lib\store\references')
 
     @property
     def VCTools(self):
@@ -703,25 +730,36 @@ class EnvironmentInfo:
         """
         Microsoft Windows SDK Include
         """
-        return [
-            os.path.join(self.si.WindowsSdkDir, 'Include'),
-            os.path.join(self.si.WindowsSdkDir, r'Include\gl'),
-        ]
+        if self.vcver <= 10.0:
+            return [
+                os.path.join(self.si.WindowsSdkDir, 'Include'),
+                os.path.join(self.si.WindowsSdkDir, r'Include\gl')
+            ]
+        elif self.vcver <= 12.0:
+            return [
+                os.path.join(self.si.WindowsSdkDir, r'include\shared'),
+                os.path.join(self.si.WindowsSdkDir, r'include\um'),
+                os.path.join(self.si.WindowsSdkDir, r'include\winrt')
+            ]
 
     @property
     def SdkTools(self):
         """
         Microsoft Windows SDK Tools
         """
-        if self.vcver <= 10:
-            arch_subdir = self.pi.target_dir(hidex86=True, x64=True)
+        if self.vcver <= 11.0:
+            tools = [os.path.join(self.si.WindowsSdkDir, 'Bin')]
         else:
-            arch_subdir = self.pi.target_dir(x64=True)
-        tools = [os.path.join(self.si.WindowsSdkDir, 'Bin')]
-        if not self.pi.target_is_x86():
+            tools = [os.path.join(self.si.WindowsSdkDir, r'Bin\x86')]
+        if not self.pi.current_is_x86():
+            arch_subdir = self.pi.current_dir(x64=True)
             path = 'Bin%s' % arch_subdir
             tools += [os.path.join(self.si.WindowsSdkDir, path)]
-        if self.vcver == 10.0:
+        if self.vcver == 10.0 or self.vcver == 11.0:
+            if self.pi.target_is_x86():
+                arch_subdir = ''
+            else:
+                arch_subdir = self.pi.current_dir(hidex86=True, x64=True)
             path = r'Bin\NETFX 4.0 Tools%s' % arch_subdir
             tools += [os.path.join(self.si.WindowsSdkDir, path)]
         return tools
@@ -760,6 +798,22 @@ class EnvironmentInfo:
         return tools
 
     @property
+    def NetFxSDKLibraries(self):
+        """
+        Microsoft .Net Framework SDK Libraries
+        """
+        if self.vcver < 14.0:
+            return []
+
+    @property
+    def NetFxSDKIncludes(self):
+        """
+        Microsoft .Net Framework SDK Includes
+        """
+        if self.vcver < 14.0:
+            return []
+
+    @property
     def VsTDb(self):
         """
         Microsoft Visual Studio Team System Database
@@ -771,6 +825,8 @@ class EnvironmentInfo:
         """
         Microsoft Build Engine
         """
+        if self.vcver < 12.0:
+            return []
         arch_subdir = self.pi.current_dir(hidex86=True)
         path = r'\MSBuild\%0.1f\bin%s' % (self.vcver, arch_subdir)
         return [
@@ -783,10 +839,37 @@ class EnvironmentInfo:
         """
         Microsoft HTML Help Workshop
         """
+        if self.vcver < 11.0:
+            return []
         return [
             os.path.join(self.si.ProgramFilesx86, 'HTML Help Workshop'),
             os.path.join(self.si.ProgramFiles, 'HTML Help Workshop')
         ]
+
+    @property
+    def UCRTLibraries(self):
+        """
+        Microsoft Universal CRT Libraries
+        """
+        if self.vcver < 14.0:
+            return []
+
+    @property
+    def UCRTIncludes(self):
+        """
+        Microsoft Universal CRT Include
+        """
+        if self.vcver < 14.0:
+            return []
+
+    @property
+    def FSharp(self):
+        """
+        Microsoft Visual F#
+        """
+        if self.vcver < 11.0 and self.vcver > 12.0:
+            return []
+        return self.si.FSharpInstallDir
 
     @property
     def VCRuntimeRedist(self):
@@ -805,11 +888,15 @@ class EnvironmentInfo:
         env = dict(
             include=self._build_paths('include',
                                       [self.VCIncludes,
-                                       self.OSIncludes]),
+                                       self.OSIncludes,
+                                       self.UCRTIncludes,
+                                       self.NetFxSDKIncludes]),
             lib=self._build_paths('lib',
                                   [self.VCLibraries,
                                    self.OSLibraries,
-                                   self.FxTools]),
+                                   self.FxTools,
+                                   self.UCRTLibraries,
+                                   self.NetFxSDKLibraries]),
             libpath=self._build_paths('libpath',
                                       [self.VCLibraries,
                                        self.FxTools,
@@ -822,7 +909,8 @@ class EnvironmentInfo:
                                     self.SdkSetup,
                                     self.FxTools,
                                     self.MSBuild,
-                                    self.HTMLWs]),
+                                    self.HTMLWs,
+                                    self.FSharp]),
         )
         if self.vcver >= 14 and os.path.isfile(self.VCRuntimeRedist):
             env['py_vcruntime_redist'] = self.VCRuntimeRedist
