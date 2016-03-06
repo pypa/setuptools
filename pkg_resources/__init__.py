@@ -2754,32 +2754,25 @@ def parse_requirements(strs):
         yield Requirement(line)
 
 
-class Requirement:
+class Requirement(packaging.requirements.Requirement):
     def __init__(self, requirement_string):
         """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
         try:
-            self.req = packaging.requirements.Requirement(requirement_string)
+            super(Requirement, self).__init__(requirement_string)
         except packaging.requirements.InvalidRequirement as e:
             raise RequirementParseError(str(e))
-        self.unsafe_name = self.req.name
-        project_name = safe_name(self.req.name)
-        self.project_name, self.key = project_name, project_name.lower()
-        self.specifier = self.req.specifier
+        self.unsafe_name = self.name
+        self.project_name, self.key = self.name, self.name.lower()
         self.specs = [
-            (spec.operator, spec.version) for spec in self.req.specifier]
-        self.extras = tuple(map(safe_extra, self.req.extras))
-        self.marker = self.req.marker
-        self.url = self.req.url
+            (spec.operator, spec.version) for spec in self.specifier]
+        self.extras = tuple(map(safe_extra, self.extras))
         self.hashCmp = (
             self.key,
             self.specifier,
             frozenset(self.extras),
-            str(self.marker)
+            str(self.marker) if self.marker else None,
         )
         self.__hash = hash(self.hashCmp)
-
-    def __str__(self):
-        return str(self.req)
 
     def __eq__(self, other):
         return (

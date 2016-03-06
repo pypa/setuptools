@@ -394,7 +394,7 @@ class TestRequirements:
                 "twisted",
                 packaging.specifiers.SpecifierSet(">=1.2"),
                 frozenset(["foo","bar"]),
-                'None'
+                None
             ))
         )
 
