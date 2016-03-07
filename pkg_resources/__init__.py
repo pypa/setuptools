@@ -2762,7 +2762,8 @@ class Requirement(packaging.requirements.Requirement):
         except packaging.requirements.InvalidRequirement as e:
             raise RequirementParseError(str(e))
         self.unsafe_name = self.name
-        self.project_name, self.key = self.name, self.name.lower()
+        project_name = safe_name(self.name)
+        self.project_name, self.key = project_name, project_name.lower()
         self.specs = [
             (spec.operator, spec.version) for spec in self.specifier]
         self.extras = tuple(map(safe_extra, self.extras))
