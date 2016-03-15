@@ -2,6 +2,16 @@
 CHANGES
 =======
 
+20.3
+----
+
+* Pull Request #179: ``pkg_resources.Requirement`` objects are
+  now a subclass of ``packaging.requirements.Requirement``,
+  allowing any environment markers and url (if any) to be
+  affiliated with the requirement
+* Pull Request #179: Restore use of RequirementParseError
+  exception unintentionally dropped in 20.2.
+
 20.2.2
 ------
 
