@@ -192,11 +192,8 @@ def _conflict_bail(VC_err, version):
 
 
 def _unload_pkg_resources():
-    from pkg_resources.extern import VendorImporter
     sys.meta_path = [importer for importer in sys.meta_path if
-                     not isinstance(importer, VendorImporter)]
-    del VendorImporter
-
+                     importer.__class__.__module__ != 'pkg_resources.extern']
     del_modules = [
         name for name in sys.modules
         if name.startswith('pkg_resources')
