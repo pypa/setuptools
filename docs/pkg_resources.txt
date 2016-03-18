@@ -590,20 +590,7 @@ Requirements Parsing
     parse multiple specifiers from a string or iterable of strings, use
     ``parse_requirements()`` instead.)
 
-    The syntax of a requirement specifier can be defined in EBNF as follows::
-
-        requirement  ::= project_name extras? versionspec?
-        versionspec  ::= comparison version (',' comparison version)*
-        comparison   ::= '<' | '<=' | '!=' | '==' | '>=' | '>' | '~=' | '==='
-        extras       ::= '[' extralist? ']'
-        extralist    ::= identifier (',' identifier)*
-        project_name ::= identifier
-        identifier   ::= [-A-Za-z0-9_]+
-        version      ::= [-A-Za-z0-9_.]+
-
-    Tokens can be separated by whitespace, and a requirement can be continued
-    over multiple lines using a backslash (``\\``).  Line-end comments (using
-    ``#``) are also allowed.
+    The syntax of a requirement specifier is defined in full in PEP 508.
 
     Some examples of valid requirement specifiers::
 
@@ -611,6 +598,7 @@ Requirements Parsing
         Fizzy [foo, bar]
         PickyThing<1.6,>1.9,!=1.9.6,<2.0a0,==2.4c1
         SomethingWhoseVersionIDontCareAbout
+        SomethingWithMarker[foo]>1.0;python_version<"2.7"
 
     The project name is the only required portion of a requirement string, and
     if it's the only thing supplied, the requirement will accept any version
@@ -631,6 +619,11 @@ Requirements Parsing
     ``pkg_resources.require('Report-O-Rama[PDF]')`` to add the necessary
     distributions to sys.path at runtime.
 
+    The "markers" in a requirement are used to specify when a requirement
+    should be installed -- the requirement will be installed if the marker
+    evaluates as true in the current environment. For example, specifying
+    ``argparse;python_version<"2.7"`` will not install in an Python 2.7 or 3.3
+    environment, but will in a Python 2.6 environment.
 
 ``Requirement`` Methods and Attributes
 --------------------------------------
@@ -680,6 +673,12 @@ Requirements Parsing
     order.  The `op` in each tuple is a comparison operator, represented as
     a string.  The `version` is the (unparsed) version number.
 
+``marker``
+    An instance of ``packaging.markers.Marker`` that allows evaluation
+    against the current environment. May be None if no marker specified.
+
+``url``
+    The location to download the requirement from if specified.
 
 Entry Points
 ============
