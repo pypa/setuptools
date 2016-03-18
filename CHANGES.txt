@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+20.3.1
+------
+
+* Issue #519: Remove import hook when reloading the
+  ``pkg_resources`` module.
+
 20.3
 ----
 
