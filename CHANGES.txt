@@ -7,6 +7,8 @@ CHANGES
 
 * Issue #519: Remove import hook when reloading the
   ``pkg_resources`` module.
+* Pull Request #184: Update documentation in ``pkg_resources``
+  around new ``Requirement`` implementation.
 
 20.3
 ----
