@@ -1461,10 +1461,18 @@ use the appropriate defaults.)
 Generating Source Distributions
 -------------------------------
 
-If you need to include automatically generated files, you'll need to create a
-``MANIFEST.in`` file to specify any files that the default file location
-algorithm doesn't catch.  See the distutils documentation for more information
-on the format of the ``MANIFEST.in`` file.
+``setuptools`` enhances the distutils' default algorithm for source file
+selection with pluggable endpoints for looking up files to include. If you are
+using a revision control system, and your source distributions only need to
+include files that you're tracking in revision control, use a corresponding
+plugin instead of writing a ``MANIFEST.in`` file. See the section below on
+`Adding Support for Revision Control Systems`_ for information on plugins.
+
+If you need to include automatically generated files, or files that are kept in
+an unsupported revision control system, you'll need to create a ``MANIFEST.in``
+file to specify any files that the default file location algorithm doesn't
+catch.  See the distutils documentation for more information on the format of
+the ``MANIFEST.in`` file.
 
 But, be sure to ignore any part of the distutils documentation that deals with
 ``MANIFEST`` or how it's generated from ``MANIFEST.in``; setuptools shields you
@@ -2546,9 +2554,15 @@ those methods' docstrings for more details.
 Adding Support for Revision Control Systems
 -------------------------------------------------
 
-If you would like to create a plugin for ``setuptools`` to find files in
-source control systems, you can do so by adding an entry point to the
-``setuptools.file_finders`` group.  The entry point should be a function
+If the files you want to include in the source distribution are tracked using
+Git, Mercurial or SVN, you can use the following packages to achieve that:
+
+- Git and Mercurial: `setuptools_scm <https://pypi.python.org/pypi/setuptools_scm>`_
+- SVN: `setuptools_svn <https://pypi.python.org/pypi/setuptools_svn>`_
+
+If you would like to create a plugin for ``setuptools`` to find files tracked
+by another revision control system, you can do so by adding an entry point to
+the ``setuptools.file_finders`` group.  The entry point should be a function
 accepting a single directory name, and should yield all the filenames within
 that directory (and any subdirectories thereof) that are under revision
 control.
