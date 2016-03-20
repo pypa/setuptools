@@ -2028,12 +2028,13 @@ def _rebuild_mod_path(orig_path, package_name, module):
     corresponding to their sys.path order
     """
     sys_path = [_normalize_cached(p) for p in sys.path]
-    def position_in_sys_path(p):
+    def position_in_sys_path(path):
         """
         Return the ordinal of the path based on its position in sys.path
         """
-        parts = p.split(os.sep)
-        parts = parts[:-(package_name.count('.') + 1)]
+        path_parts = path.split(os.sep)
+        module_parts = package_name.count('.') + 1
+        parts = path_parts[:-module_parts]
         return sys_path.index(_normalize_cached(os.sep.join(parts)))
 
     orig_path.sort(key=position_in_sys_path)
