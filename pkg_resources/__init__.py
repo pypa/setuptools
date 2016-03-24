@@ -809,6 +809,10 @@ class WorkingSet(object):
             if req in processed:
                 # Ignore cyclic or redundant dependencies
                 continue
+            # If the req has a marker, evaluate it -- skipping the req if
+            # it evaluates to False.
+            if req.marker and not req.marker.evaluate():
+                continue
             dist = best.get(req.key)
             if dist is None:
                 # Find the best distribution and add it to the map
