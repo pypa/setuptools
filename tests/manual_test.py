@@ -43,10 +43,8 @@ PYVER = sys.version.split()[0][:3]
 _VARS = {'base': '.',
          'py_version_short': PYVER}
 
-if sys.platform == 'win32':
-    PURELIB = INSTALL_SCHEMES['nt']['purelib']
-else:
-    PURELIB = INSTALL_SCHEMES['unix_prefix']['purelib']
+scheme = 'nt' if sys.platform == 'win32' else 'unix_prefix'
+PURELIB = INSTALL_SCHEMES[scheme]['purelib']
 
 
 @tempdir
