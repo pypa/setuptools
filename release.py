@@ -7,7 +7,7 @@ import os
 
 import pkg_resources
 
-pkg_resources.require('jaraco.packaging>=2.0')
+pkg_resources.require('jaraco.packaging>=2.11')
 pkg_resources.require('wheel')
 
 files_with_versions = 'setuptools/version.py',
