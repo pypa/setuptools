@@ -208,11 +208,11 @@ link_files = {
 		replace=[
 			dict(
 				pattern=r"(Issue )?#(?P<issue>\d+)",
-				url='{BB}/pypa/setuptools/issue/{issue}',
+				url='{GH}/pypa/setuptools/issues/{issue}',
 			),
 			dict(
-				pattern=r"Pull Request ?#(?P<pull_request>\d+)",
-				url='{BB}/pypa/setuptools/pull-request/{pull_request}',
+				pattern=r"BB Pull Request ?#(?P<bb_pull_request>\d+)",
+				url='{BB}/pypa/setuptools/pull-request/{bb_pull_request}',
 			),
 			dict(
 				pattern=r"Distribute #(?P<distribute>\d+)",

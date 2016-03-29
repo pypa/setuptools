@@ -717,7 +717,7 @@ class TestNamespaces:
         sys.path is imported, and that the namespace package's __path__ is in
         the correct order.
 
-        Regression test for https://bitbucket.org/pypa/setuptools/issues/207
+        Regression test for https://github.com/pypa/setuptools/issues/207
         """
 
         tmpdir = symlinked_tmpdir

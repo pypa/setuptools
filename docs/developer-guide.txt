@@ -23,10 +23,10 @@ quality of contribution.
 Project Management
 ------------------
 
-Setuptools is maintained primarily in Bitbucket at `this home
-<https://bitbucket.org/pypa/setuptools>`_. Setuptools is maintained under the
+Setuptools is maintained primarily in Github at `this home
+<https://github.com/pypa/setuptools>`_. Setuptools is maintained under the
 Python Packaging Authority (PyPA) with several core contributors. All bugs
-for Setuptools are filed and the canonical source is maintained in Bitbucket.
+for Setuptools are filed and the canonical source is maintained in Github.
 
 User support and discussions are done through the issue tracker (for specific)
 issues, through the distutils-sig mailing list, or on IRC (Freenode) at
@@ -44,7 +44,7 @@ describing the motivation behind making changes. First search to see if a
 ticket already exists for your issue. If not, create one. Try to think from
 the perspective of the reader. Explain what behavior you expected, what you
 got instead, and what factors might have contributed to the unexpected
-behavior. In Bitbucket, surround a block of code or traceback with the triple
+behavior. In Github, surround a block of code or traceback with the triple
 backtick "\`\`\`" so that it is formatted nicely.
 
 Filing a ticket provides a forum for justification, discussion, and
@@ -61,17 +61,17 @@ jump to the in-depth discussion about any subject referenced.
 Source Code
 -----------
 
-Grab the code at Bitbucket::
+Grab the code at Github::
 
-    $ hg clone https://bitbucket.org/pypa/setuptools
+    $ git checkout https://github.com/pypa/setuptools
 
 If you want to contribute changes, we recommend you fork the repository on
-Bitbucket, commit the changes to your repository, and then make a pull request
-on Bitbucket. If you make some changes, don't forget to:
+Github, commit the changes to your repository, and then make a pull request
+on Github. If you make some changes, don't forget to:
 
 - add a note in CHANGES.txt
 
-Please commit all changes in the 'default' branch against the latest available
+Please commit all changes in the 'master' branch against the latest available
 commit or for bug-fixes, against an earlier commit or release in which the
 bug occurred.
 
@@ -79,12 +79,11 @@ If you find yourself working on more than one issue at a time, Setuptools
 generally prefers Git-style branches, so use Mercurial bookmarks or Git
 branches or multiple forks to maintain separate efforts.
 
-Setuptools also maintains an unofficial `Git mirror in Github
-<https://github.com/jaraco/setuptools>`_. Contributors are welcome to submit
-pull requests here, but because they are not integrated with the Bitbucket
-Issue tracker, linking pull requests to tickets is more difficult. The
-Continuous Integration tests that validate every release are run from this
-mirror.
+The Continuous Integration tests that validate every release are run
+from this repository.
+
+For posterity, the old `Bitbucket mirror
+<https://bitbucket.org/pypa/setuptools>`_ is available.
 
 -------
 Testing

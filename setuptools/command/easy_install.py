@@ -780,7 +780,7 @@ class easy_install(Command):
         There are a couple of template scripts in the package. This
         function loads one of them and prepares it for use.
         """
-        # See https://bitbucket.org/pypa/setuptools/issue/134 for info
+        # See https://github.com/pypa/setuptools/issues/134 for info
         # on script file naming and downstream issues with SVR4
         name = 'script.tmpl'
         if dev_path:
@@ -1762,7 +1762,7 @@ def _update_zipimporter_cache(normalized_path, cache, updater=None):
         #  * Does not support the dict.pop() method, forcing us to use the
         #    get/del patterns instead. For more detailed information see the
         #    following links:
-        #      https://bitbucket.org/pypa/setuptools/issue/202/more-robust-zipimporter-cache-invalidation#comment-10495960
+        #      https://github.com/pypa/setuptools/issues/202#issuecomment-202913420
         #      https://bitbucket.org/pypy/pypy/src/dd07756a34a41f674c0cacfbc8ae1d4cc9ea2ae4/pypy/module/zipimport/interp_zipimport.py#cl-99
         old_entry = cache[p]
         del cache[p]

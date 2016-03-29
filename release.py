@@ -15,6 +15,6 @@ files_with_versions = 'setuptools/version.py',
 # bdist_wheel must be included or pip will break
 dist_commands = 'sdist', 'bdist_wheel'
 
-test_info = "Travis-CI tests: http://travis-ci.org/#!/jaraco/setuptools"
+test_info = "Travis-CI tests: http://travis-ci.org/#!/pypa/setuptools"
 
 os.environ["SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES"] = "1"
