@@ -255,7 +255,7 @@ link_files = {
 				url='https://www.python.org/dev/peps/pep-{pep_number:0>4}/',
 			),
 			dict(
-				pattern=r"^(?m)((?P<scm_version>\d+(\.\d+){1,2}))\n[-=]+\n",
+				pattern=r"^(?m)((?P<scm_version>v?\d+(\.\d+){1,2}))\n[-=]+\n",
 				with_scm="{text}\n{rev[timestamp]:%d %b %Y}\n",
 			),
 		],
