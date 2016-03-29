@@ -25,8 +25,6 @@ script:
 
  - python setup.py test --addopts='-rs'
 
- # test the bootstrap script
- - python ez_setup.py
 before_deploy:
   - export SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES=1
 deploy:
