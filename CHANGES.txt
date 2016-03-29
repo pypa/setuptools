@@ -2,11 +2,19 @@
 CHANGES
 =======
 
+20.5
+----
+
+* BB Pull Request #185: Add support for environment markers
+  in requirements in install_requires, setup_requires,
+  tests_require as well as adding a test for the existing
+  extra_requires machinery.
+
 20.4
 ----
 
-* Issue #422: Moved hosting to `Github
-  <https://github.com/pypa/setuptools>`_
+* Issue #422: Moved hosting to
+  `Github <https://github.com/pypa/setuptools>`_
   from `Bitbucket <https://bitbucket.org/pypa/setuptools>`_.
   Issues have been migrated, though all issues and comments
   are attributed to bb-migration. So if you have a particular

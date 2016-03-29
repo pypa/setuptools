@@ -1,4 +1,5 @@
 import os
+import glob
 import stat
 
 from setuptools.extern.six.moves import map
@@ -89,17 +90,61 @@ class TestEggInfo(object):
         sources_txt = os.path.join(egg_info_dir, 'SOURCES.txt')
         assert 'docs/usage.rst' in open(sources_txt).read().split('\n')
 
-    def _run_install_command(self, tmpdir_cwd, env):
+    def _setup_script_with_requires(self, requires_line):
+        setup_script = DALS("""
+            from setuptools import setup
+
+            setup(
+                name='foo',
+                %s
+                zip_safe=False,
+            )
+            """ % requires_line)
+        build_files({
+            'setup.py': setup_script,
+            })
+
+    def test_install_requires_with_markers(self, tmpdir_cwd, env):
+        self._setup_script_with_requires(
+            """install_requires=["barbazquux;python_version<'2'"],""")
+        self._run_install_command(tmpdir_cwd, env)
+        egg_info_dir = self._find_egg_info_files(env.paths['lib']).base
+        requires_txt = os.path.join(egg_info_dir, 'requires.txt')
+        assert "barbazquux;python_version<'2'" in open(
+            requires_txt).read().split('\n')
+        assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
+
+    def test_setup_requires_with_markers(self, tmpdir_cwd, env):
+        self._setup_script_with_requires(
+            """setup_requires=["barbazquux;python_version<'2'"],""")
+        self._run_install_command(tmpdir_cwd, env)
+        assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
+
+    def test_tests_require_with_markers(self, tmpdir_cwd, env):
+        self._setup_script_with_requires(
+            """tests_require=["barbazquux;python_version<'2'"],""")
+        data = self._run_install_command(
+            tmpdir_cwd, env, cmd=['test'], output="Ran 0 tests in")
+        assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
+
+    def test_extra_requires_with_markers(self, tmpdir_cwd, env):
+        self._setup_script_with_requires(
+            """extra_requires={":python_version<'2'": ["barbazquux"]},""")
+        self._run_install_command(tmpdir_cwd, env)
+        assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
+
+    def _run_install_command(self, tmpdir_cwd, env, cmd=None, output=None):
         environ = os.environ.copy().update(
             HOME=env.paths['home'],
         )
-        cmd = [
-            'install',
-            '--home', env.paths['home'],
-            '--install-lib', env.paths['lib'],
-            '--install-scripts', env.paths['scripts'],
-            '--install-data', env.paths['data'],
-        ]
+        if cmd is None:
+            cmd = [
+                'install',
+                '--home', env.paths['home'],
+                '--install-lib', env.paths['lib'],
+                '--install-scripts', env.paths['scripts'],
+                '--install-data', env.paths['data'],
+            ]
         code, data = environment.run_setup_py(
             cmd=cmd,
             pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
@@ -108,6 +153,8 @@ class TestEggInfo(object):
         )
         if code:
             raise AssertionError(data)
+        if output:
+            assert output in data   
 
     def _find_egg_info_files(self, root):
         class DirList(list):

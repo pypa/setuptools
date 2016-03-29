@@ -182,6 +182,11 @@ class TestDistro:
         msg = 'Foo 0.9 is installed but Foo==1.2 is required'
         assert vc.value.report() == msg
 
+        ws = WorkingSet([]) # reset
+        # Environment markers are evaluated at resolution time
+        res = ws.resolve(parse_requirements("Foo;python_version<'2'"), ad)
+        assert list(res) == []
+
     def testDistroDependsOptions(self):
         d = self.distRequires("""
             Twisted>=1.5
