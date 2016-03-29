@@ -3,19 +3,14 @@ Release Process
 ===============
 
 In order to allow for rapid, predictable releases, Setuptools uses a
-mechanical technique for releases. The release script, ``release.py`` in the
-repository, defines the details of the releases, and is executed by the
-`jaraco.packaging <https://bitbucket.org/jaraco/jaraco.packaging>`_ release
-module. The script does some checks (some interactive) and fully automates
-the release process.
+mechanical technique for releases, enacted by Travis following a
+successful build of a tagged release per
+`PyPI deployment <https://docs.travis-ci.com/user/deployment/pypi>`_.
 
-A Setuptools release manager must have maintainer access on PyPI to the
-project and administrative access to the Bitbucket project.
-
-To make a release, run the following from a Mercurial checkout at the
-revision slated for release::
-
-    python -m jaraco.packaging.release
+To cut a release, install and run ``bumpversion {part}`` where ``part``
+is major, minor, or patch based on the scope of the changes in the
+release. Then, push the commits to the master branch. If tests pass,
+the release will be uploaded to PyPI.
 
 Bootstrap Bookmark
 ------------------
@@ -23,7 +18,7 @@ Bootstrap Bookmark
 Setuptools has a bootstrap script (ez_setup.py) which is hosted in the
 repository and must be updated with each release (to bump the default version).
 The "published" version of the script is the one indicated by the ``bootstrap``
-bookmark (Mercurial) or branch (Git).
+branch.
 
 Therefore, the latest bootstrap script can be retrieved by checking out the
 repository at that bookmark. It's also possible to get the bootstrap script for
@@ -57,7 +52,5 @@ corrected quickly, in many cases before other users have yet to encounter them.
 Release Managers
 ----------------
 
-Jason R. Coombs is the primary release manager. Additionally, the following
-people have access to create releases:
-
-- Matthew Iversen (Ivoz)
+Additionally, anyone with push access to the master branch has access to cut
+releases.

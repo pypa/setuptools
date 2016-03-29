@@ -1,1 +1,3 @@
-__version__ = '20.6'
+import pkg_resources
+
+__version__ = pkg_resources.require('setuptools')[0].version

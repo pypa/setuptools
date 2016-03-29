@@ -22,11 +22,6 @@ with open(init_path) as init_file:
 
 SETUP_COMMANDS = command_ns['__all__']
 
-main_ns = {}
-ver_path = convert_path('setuptools/version.py')
-with open(ver_path) as ver_file:
-    exec(ver_file.read(), main_ns)
-
 import setuptools
 
 scripts = []
@@ -68,10 +63,12 @@ needs_pytest = set(['ptr', 'pytest', 'test']).intersection(sys.argv)
 pytest_runner = ['pytest-runner'] if needs_pytest else []
 needs_sphinx = set(['build_sphinx', 'upload_docs']).intersection(sys.argv)
 sphinx = ['sphinx', 'rst.linker>=1.5'] if needs_sphinx else []
+needs_wheel = set(['release', 'bdist_wheel']).intersection(sys.argv)
+wheel = ['wheel'] if needs_wheel else []
 
 setup_params = dict(
     name="setuptools",
-    version=main_ns['__version__'],
+    version="20.5",
     description="Easily download, build, install, upgrade, and uninstall "
                 "Python packages",
     author="Python Packaging Authority",
@@ -161,7 +158,7 @@ setup_params = dict(
         'pytest>=2.8',
     ] + (['mock'] if sys.version_info[:2] < (3, 3) else []),
     setup_requires=[
-    ] + sphinx + pytest_runner,
+    ] + sphinx + pytest_runner + wheel,
 )
 
 if __name__ == '__main__':

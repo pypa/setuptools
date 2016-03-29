@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+20.6
+----
+
+* New release process that relies on
+  `bumpversion <https://github.com/peritus/bumpversion>`_
+  and Travis CI for continuous deployment.
+
 20.5
 ----
 
