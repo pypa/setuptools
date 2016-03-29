@@ -2,12 +2,14 @@
 CHANGES
 =======
 
-20.6
-----
+v20.6.0
+-------
 
 * New release process that relies on
   `bumpversion <https://github.com/peritus/bumpversion>`_
   and Travis CI for continuous deployment.
+* Project versioning semantics now follow
+  `semver <https://semver.org>`_ precisely.
 
 20.5
 ----

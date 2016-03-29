@@ -103,10 +103,7 @@ Under continuous integration, additional tests may be run. See the
 Semantic Versioning
 -------------------
 
-Setuptools follows ``semver`` with some exceptions:
-
-- Uses two-segment version when three segment version ends in zero
-- Omits 'v' prefix for tags.
+Setuptools follows ``semver``.
 
 .. explain value of reflecting meaning in versions.
 
