@@ -256,7 +256,7 @@ link_files = {
 			),
 			dict(
 				pattern=r"^(?m)((?P<scm_version>\d+(\.\d+){1,2}))\n[-=]+\n",
-				with_scm="{text}\n{rev[timestamp]}\n",
+				with_scm="{text}\n{rev[timestamp]:%d %b %Y}\n",
 			),
 		],
 	),

@@ -67,7 +67,7 @@ if (sys.platform == 'win32' or (os.name == 'java' and os._name == 'nt')) \
 needs_pytest = set(['ptr', 'pytest', 'test']).intersection(sys.argv)
 pytest_runner = ['pytest-runner'] if needs_pytest else []
 needs_sphinx = set(['build_sphinx', 'upload_docs']).intersection(sys.argv)
-sphinx = ['sphinx', 'rst.linker>=1.4'] if needs_sphinx else []
+sphinx = ['sphinx', 'rst.linker>=1.5'] if needs_sphinx else []
 
 setup_params = dict(
     name="setuptools",
