@@ -1,3 +1,6 @@
 import pkg_resources
 
-__version__ = pkg_resources.require('setuptools')[0].version
+try:
+	__version__ = pkg_resources.require('setuptools')[0].version
+except Exception:
+	__version__ = 'unknown'
