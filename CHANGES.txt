@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+v20.6.6
+-------
+
+* Issue #503: Restore support for PEP 345 environment
+  markers by updating to Packaging 16.6.
+
 v20.6.0
 -------
 
@@ -10,6 +16,9 @@ v20.6.0
   and Travis CI for continuous deployment.
 * Project versioning semantics now follow
   `semver <https://semver.org>`_ precisely.
+  The 'v' prefix on version numbers now also allows
+  version numbers to be referenced in the changelog,
+  e.g. https://pythonhosted.org/setuptools/history.html#v20-6-0.
 
 20.5
 ----
