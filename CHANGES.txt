@@ -80,6 +80,7 @@ v20.6.0
   packaging 16.1 and PEP 508. Fixes Issue #122.
   See also BB Pull Request #175, BB Pull Request #168, and
   BB Pull Request #164. Additionally:
+
    - ``Requirement.parse`` no longer retains the order of extras.
    - ``parse_requirements`` now requires that all versions be
      PEP-440 compliant, as revealed in #499. Packages released
