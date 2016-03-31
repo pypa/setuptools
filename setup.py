@@ -61,7 +61,7 @@ if (sys.platform == 'win32' or (os.name == 'java' and os._name == 'nt')) \
 
 needs_pytest = set(['ptr', 'pytest', 'test']).intersection(sys.argv)
 pytest_runner = ['pytest-runner'] if needs_pytest else []
-needs_sphinx = set(['build_sphinx', 'upload_docs']).intersection(sys.argv)
+needs_sphinx = set(['build_sphinx', 'upload_docs', 'release']).intersection(sys.argv)
 sphinx = ['sphinx', 'rst.linker>=1.5'] if needs_sphinx else []
 needs_wheel = set(['release', 'bdist_wheel']).intersection(sys.argv)
 wheel = ['wheel'] if needs_wheel else []
