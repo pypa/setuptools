@@ -182,8 +182,12 @@ class TestDistro:
         msg = 'Foo 0.9 is installed but Foo==1.2 is required'
         assert vc.value.report() == msg
 
-        ws = WorkingSet([]) # reset
-        # Environment markers are evaluated at resolution time
+    def test_environment_markers(self):
+        """
+        Environment markers are evaluated at resolution time.
+        """
+        ad = pkg_resources.Environment([])
+        ws = WorkingSet([])
         res = ws.resolve(parse_requirements("Foo;python_version<'2'"), ad)
         assert list(res) == []
 

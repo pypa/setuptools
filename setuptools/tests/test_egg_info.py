@@ -123,7 +123,7 @@ class TestEggInfo(object):
     def test_tests_require_with_markers(self, tmpdir_cwd, env):
         self._setup_script_with_requires(
             """tests_require=["barbazquux;python_version<'2'"],""")
-        data = self._run_install_command(
+        self._run_install_command(
             tmpdir_cwd, env, cmd=['test'], output="Ran 0 tests in")
         assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
 
@@ -154,7 +154,7 @@ class TestEggInfo(object):
         if code:
             raise AssertionError(data)
         if output:
-            assert output in data   
+            assert output in data
 
     def _find_egg_info_files(self, root):
         class DirList(list):
