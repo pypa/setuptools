@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+v20.6.7
+-------
+
+* Issue #523: Disabled support for environment markers
+  introduced in v20.5.
+
 v20.6.6
 -------
 

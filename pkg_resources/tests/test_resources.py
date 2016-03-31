@@ -182,6 +182,7 @@ class TestDistro:
         msg = 'Foo 0.9 is installed but Foo==1.2 is required'
         assert vc.value.report() == msg
 
+    @pytest.mark.xfail(reason="Functionality disabled; see #523")
     def test_environment_markers(self):
         """
         Environment markers are evaluated at resolution time.

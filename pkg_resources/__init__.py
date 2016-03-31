@@ -804,8 +804,10 @@ class WorkingSet(object):
                 continue
             # If the req has a marker, evaluate it -- skipping the req if
             # it evaluates to False.
-            if req.marker and not req.marker.evaluate():
-                continue
+            # https://github.com/pypa/setuptools/issues/523
+            _issue_523_bypass = True
+            if not _issue_523_bypass and req.marker and not req.marker.evaluate():
+                    continue
             dist = best.get(req.key)
             if dist is None:
                 # Find the best distribution and add it to the map
