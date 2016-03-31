@@ -28,8 +28,6 @@ import warnings
 import stat
 import functools
 import pkgutil
-import token
-import symbol
 import operator
 import platform
 import collections
@@ -66,11 +64,6 @@ try:
     importlib_machinery.__name__
 except ImportError:
     importlib_machinery = None
-
-try:
-    import parser
-except ImportError:
-    pass
 
 from pkg_resources.extern import packaging
 __import__('pkg_resources.extern.packaging.version')
