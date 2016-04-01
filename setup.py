@@ -43,7 +43,7 @@ def _gen_console_scripts():
 
 console_scripts = list(_gen_console_scripts())
 
-readme_file = io.open('README.txt', encoding='utf-8')
+readme_file = io.open('README.rst', encoding='utf-8')
 
 with readme_file:
     long_description = readme_file.read()

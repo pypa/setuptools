@@ -8,7 +8,6 @@ distribute.egg-info
 setuptools.egg-info
 .coverage
 .tox
-CHANGES (links).txt
 *.egg
 *.py[cod]
 *.swp

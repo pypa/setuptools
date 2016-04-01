@@ -200,7 +200,7 @@ latex_documents = [
 #latex_use_modindex = True
 
 link_files = {
-	'CHANGES.txt': dict(
+	'CHANGES.rst': dict(
 		using=dict(
 			BB='https://bitbucket.org',
 			GH='https://github.com',
