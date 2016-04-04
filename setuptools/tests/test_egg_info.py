@@ -104,7 +104,6 @@ class TestEggInfo(object):
             'setup.py': setup_script,
             })
 
-    @pytest.mark.xfail(reason="Functionality disabled; see #523")
     def test_install_requires_with_markers(self, tmpdir_cwd, env):
         self._setup_script_with_requires(
             """install_requires=["barbazquux;python_version<'2'"],""")
@@ -115,14 +114,12 @@ class TestEggInfo(object):
             requires_txt).read().split('\n')
         assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
 
-    @pytest.mark.xfail(reason="Functionality disabled; see #523")
     def test_setup_requires_with_markers(self, tmpdir_cwd, env):
         self._setup_script_with_requires(
             """setup_requires=["barbazquux;python_version<'2'"],""")
         self._run_install_command(tmpdir_cwd, env)
         assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
 
-    @pytest.mark.xfail(reason="Functionality disabled; see #523")
     def test_tests_require_with_markers(self, tmpdir_cwd, env):
         self._setup_script_with_requires(
             """tests_require=["barbazquux;python_version<'2'"],""")

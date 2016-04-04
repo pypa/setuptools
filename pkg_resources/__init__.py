@@ -791,6 +791,8 @@ class WorkingSet(object):
         # key -> dist
         best = {}
         to_activate = []
+        # Map requirement to the extras that require it
+        extra_req_mapping = {}
 
         # Mapping of requirement to set of distributions that required it;
         # useful for reporting info about conflicts.
@@ -804,9 +806,14 @@ class WorkingSet(object):
                 continue
             # If the req has a marker, evaluate it -- skipping the req if
             # it evaluates to False.
-            # https://github.com/pypa/setuptools/issues/523
-            _issue_523_bypass = True
-            if not _issue_523_bypass and req.marker and not req.marker.evaluate():
+            if req.marker:
+                result = []
+                if req in extra_req_mapping:
+                    for extra in extra_req_mapping[req] or ['']:
+                        result.append(req.marker.evaluate({'extra': extra}))
+                else:
+                    result.append(req.marker.evaluate())
+                if not any(result):
                     continue
             dist = best.get(req.key)
             if dist is None:
@@ -840,6 +847,7 @@ class WorkingSet(object):
             # Register the new requirements needed by req
             for new_requirement in new_requirements:
                 required_by[new_requirement].add(req.project_name)
+                extra_req_mapping[new_requirement] = req.extras
 
             processed[req] = True
 
