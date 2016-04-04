@@ -40,6 +40,9 @@ import subprocess
 import shlex
 import io
 
+from setuptools.extern import six
+from setuptools.extern.six.moves import configparser, map
+
 from setuptools import Command
 from setuptools.sandbox import run_setup
 from setuptools.py31compat import get_path, get_config_vars
@@ -48,8 +51,6 @@ from setuptools.archive_util import unpack_archive
 from setuptools.package_index import PackageIndex
 from setuptools.package_index import URL_SCHEME
 from setuptools.command import bdist_egg, egg_info
-from setuptools.compat import (iteritems, maxsize, basestring, unicode,
-                               reraise, PY2, PY3)
 from pkg_resources import (
     yield_lines, normalize_path, resource_string, ensure_directory,
     get_distribution, find_distributions, Environment, Requirement,
@@ -82,13 +83,13 @@ def samefile(p1, p2):
     return norm_p1 == norm_p2
 
 
-if PY2:
+if six.PY2:
     def _to_ascii(s):
         return s
 
     def isascii(s):
         try:
-            unicode(s, 'ascii')
+            six.text_type(s, 'ascii')
             return True
         except UnicodeError:
             return False
@@ -320,7 +321,7 @@ class easy_install(Command):
         self.local_index = Environment(self.shadow_path + sys.path)
 
         if self.find_links is not None:
-            if isinstance(self.find_links, basestring):
+            if isinstance(self.find_links, six.string_types):
                 self.find_links = self.find_links.split()
         else:
             self.find_links = []
@@ -413,7 +414,7 @@ class easy_install(Command):
         try:
             pid = os.getpid()
         except:
-            pid = random.randint(0, maxsize)
+            pid = random.randint(0, sys.maxsize)
         return os.path.join(self.install_dir, "test-easy-install-%s" % pid)
 
     def warn_deprecated_options(self):
@@ -709,10 +710,7 @@ class easy_install(Command):
         elif requirement is None or dist not in requirement:
             # if we wound up with a different version, resolve what we've got
             distreq = dist.as_requirement()
-            requirement = requirement or distreq
-            requirement = Requirement(
-                distreq.project_name, distreq.specs, requirement.extras
-            )
+            requirement = Requirement(str(distreq))
         log.info("Processing dependencies for %s", requirement)
         try:
             distros = WorkingSet([]).resolve(
@@ -782,7 +780,7 @@ class easy_install(Command):
         There are a couple of template scripts in the package. This
         function loads one of them and prepares it for use.
         """
-        # See https://bitbucket.org/pypa/setuptools/issue/134 for info
+        # See https://github.com/pypa/setuptools/issues/134 for info
         # on script file naming and downstream issues with SVR4
         name = 'script.tmpl'
         if dev_path:
@@ -1238,17 +1236,14 @@ class easy_install(Command):
 
         sitepy = os.path.join(self.install_dir, "site.py")
         source = resource_string("setuptools", "site-patch.py")
+        source = source.decode('utf-8')
         current = ""
 
         if os.path.exists(sitepy):
             log.debug("Checking existing site.py in %s", self.install_dir)
-            f = open(sitepy, 'rb')
-            current = f.read()
-            # we want str, not bytes
-            if PY3:
-                current = current.decode()
+            with io.open(sitepy) as strm:
+                current = strm.read()
 
-            f.close()
             if not current.startswith('def __boot():'):
                 raise DistutilsError(
                     "%s is not a setuptools-generated site.py; please"
@@ -1259,9 +1254,8 @@ class easy_install(Command):
             log.info("Creating %s", sitepy)
             if not self.dry_run:
                 ensure_directory(sitepy)
-                f = open(sitepy, 'wb')
-                f.write(source)
-                f.close()
+                with io.open(sitepy, 'w', encoding='utf-8') as strm:
+                    strm.write(source)
             self.byte_compile([sitepy])
 
         self.sitepy_installed = True
@@ -1271,7 +1265,7 @@ class easy_install(Command):
         if not self.user:
             return
         home = convert_path(os.path.expanduser("~"))
-        for name, path in iteritems(self.config_vars):
+        for name, path in six.iteritems(self.config_vars):
             if path.startswith(home) and not os.path.isdir(path):
                 self.debug_print("os.makedirs('%s', 0o700)" % path)
                 os.makedirs(path, 0o700)
@@ -1415,9 +1409,6 @@ def extract_wininst_cfg(dist_filename):
             return None
         f.seek(prepended - 12)
 
-        from setuptools.compat import StringIO, configparser
-        import struct
-
         tag, cfglen, bmlen = struct.unpack("<iii", f.read(12))
         if tag not in (0x1234567A, 0x1234567B):
             return None  # not a valid tag
@@ -1432,7 +1423,7 @@ def extract_wininst_cfg(dist_filename):
             # Now the config is in bytes, but for RawConfigParser, it should
             #  be text, so decode it.
             config = config.decode(sys.getfilesystemencoding())
-            cfg.readfp(StringIO(config))
+            cfg.readfp(six.StringIO(config))
         except configparser.Error:
             return None
         if not cfg.has_section('metadata') or not cfg.has_section('Setup'):
@@ -1467,7 +1458,7 @@ def get_exe_prefixes(exe_filename):
                 continue
             if parts[0].upper() in ('PURELIB', 'PLATLIB'):
                 contents = z.read(name)
-                if PY3:
+                if six.PY3:
                     contents = contents.decode()
                 for pth in yield_lines(contents):
                     pth = pth.strip().replace('\\', '/')
@@ -1643,7 +1634,7 @@ def auto_chmod(func, arg, exc):
         chmod(arg, stat.S_IWRITE)
         return func(arg)
     et, ev, _ = sys.exc_info()
-    reraise(et, (ev[0], ev[1] + (" %s %s" % (func, arg))))
+    six.reraise(et, (ev[0], ev[1] + (" %s %s" % (func, arg))))
 
 
 def update_dist_caches(dist_path, fix_zipimporter_caches):
@@ -1771,7 +1762,7 @@ def _update_zipimporter_cache(normalized_path, cache, updater=None):
         #  * Does not support the dict.pop() method, forcing us to use the
         #    get/del patterns instead. For more detailed information see the
         #    following links:
-        #      https://bitbucket.org/pypa/setuptools/issue/202/more-robust-zipimporter-cache-invalidation#comment-10495960
+        #      https://github.com/pypa/setuptools/issues/202#issuecomment-202913420
         #      https://bitbucket.org/pypy/pypy/src/dd07756a34a41f674c0cacfbc8ae1d4cc9ea2ae4/pypy/module/zipimport/interp_zipimport.py#cl-99
         old_entry = cache[p]
         del cache[p]
@@ -1878,17 +1869,6 @@ def chmod(path, mode):
         log.debug("chmod failed: %s", e)
 
 
-def fix_jython_executable(executable, options):
-    warnings.warn("Use JythonCommandSpec", DeprecationWarning, stacklevel=2)
-
-    if not JythonCommandSpec.relevant():
-        return executable
-
-    cmd = CommandSpec.best().from_param(executable)
-    cmd.install_options(options)
-    return cmd.as_header().lstrip('#!').rstrip('\n')
-
-
 class CommandSpec(list):
     """
     A command spec for a #! header, specified as a list of arguments akin to
@@ -1903,7 +1883,7 @@ class CommandSpec(list):
         """
         Choose the best CommandSpec class based on environmental conditions.
         """
-        return cls if not JythonCommandSpec.relevant() else JythonCommandSpec
+        return cls
 
     @classmethod
     def _sys_executable(cls):
@@ -1968,36 +1948,6 @@ sys_executable = CommandSpec._sys_executable()
 
 class WindowsCommandSpec(CommandSpec):
     split_args = dict(posix=False)
-
-
-class JythonCommandSpec(CommandSpec):
-    @classmethod
-    def relevant(cls):
-        return (
-            sys.platform.startswith('java')
-            and
-            __import__('java').lang.System.getProperty('os.name') != 'Linux'
-        )
-
-    def as_header(self):
-        """
-        Workaround Jython's sys.executable being a .sh (an invalid
-        shebang line interpreter)
-        """
-        if not is_sh(self[0]):
-            return super(JythonCommandSpec, self).as_header()
-
-        if self.options:
-            # Can't apply the workaround, leave it broken
-            log.warn(
-                "WARNING: Unable to adapt shebang line for Jython,"
-                " the following script is NOT executable\n"
-                "         see http://bugs.jython.org/issue1112 for"
-                " more information.")
-            return super(JythonCommandSpec, self).as_header()
-
-        items = ['/usr/bin/env'] + self + list(self.options)
-        return self._render(items)
 
 
 class ScriptWriter(object):
@@ -2076,7 +2026,10 @@ class ScriptWriter(object):
         """
         Select the best ScriptWriter for this environment.
         """
-        return WindowsScriptWriter.best() if sys.platform == 'win32' else cls
+        if sys.platform == 'win32' or (os.name == 'java' and os._name == 'nt'):
+            return WindowsScriptWriter.best()
+        else:
+            return cls
 
     @classmethod
     def _get_script_args(cls, type_, name, header, script_text):
@@ -2209,7 +2162,7 @@ def get_win_launcher(type):
 
 def load_launcher_manifest(name):
     manifest = pkg_resources.resource_string(__name__, 'launcher manifest.xml')
-    if PY2:
+    if six.PY2:
         return manifest % vars()
     else:
         return manifest.decode('utf-8') % vars()

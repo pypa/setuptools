@@ -43,7 +43,7 @@ def _gen_console_scripts():
 
 console_scripts = list(_gen_console_scripts())
 
-readme_file = io.open('README.txt', encoding='utf-8')
+readme_file = io.open('README.rst', encoding='utf-8')
 
 with readme_file:
     long_description = readme_file.read()
@@ -54,14 +54,17 @@ force_windows_specific_files = (
     os.environ.get("SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES")
     not in (None, "", "0")
 )
-if sys.platform == 'win32' or force_windows_specific_files:
+if (sys.platform == 'win32' or (os.name == 'java' and os._name == 'nt')) \
+        or force_windows_specific_files:
     package_data.setdefault('setuptools', []).extend(['*.exe'])
     package_data.setdefault('setuptools.command', []).extend(['*.xml'])
 
 needs_pytest = set(['ptr', 'pytest', 'test']).intersection(sys.argv)
 pytest_runner = ['pytest-runner'] if needs_pytest else []
-needs_sphinx = set(['build_sphinx', 'upload_docs']).intersection(sys.argv)
-sphinx = ['sphinx', 'rst.linker'] if needs_sphinx else []
+needs_sphinx = set(['build_sphinx', 'upload_docs', 'release']).intersection(sys.argv)
+sphinx = ['sphinx', 'rst.linker>=1.5'] if needs_sphinx else []
+needs_wheel = set(['release', 'bdist_wheel']).intersection(sys.argv)
+wheel = ['wheel'] if needs_wheel else []
 
 setup_params = dict(
     name="setuptools",
@@ -70,10 +73,9 @@ setup_params = dict(
                 "Python packages",
     author="Python Packaging Authority",
     author_email="distutils-sig@python.org",
-    license="PSF or ZPL",
     long_description=long_description,
     keywords="CPAN PyPI distutils eggs package management",
-    url="https://bitbucket.org/pypa/setuptools",
+    url="https://github.com/pypa/setuptools",
     src_root=src_root,
     packages=setuptools.find_packages(exclude=['*.tests']),
     package_data=package_data,
@@ -129,8 +131,7 @@ setup_params = dict(
     classifiers=textwrap.dedent("""
         Development Status :: 5 - Production/Stable
         Intended Audience :: Developers
-        License :: OSI Approved :: Python Software Foundation License
-        License :: OSI Approved :: Zope Public License
+        License :: OSI Approved :: MIT License
         Operating System :: OS Independent
         Programming Language :: Python :: 2.6
         Programming Language :: Python :: 2.7
@@ -158,7 +159,7 @@ setup_params = dict(
     ] + (['mock'] if sys.version_info[:2] < (3, 3) else []),
     setup_requires=[
         'setuptools_scm>=1.9',
-    ] + sphinx + pytest_runner,
+    ] + sphinx + pytest_runner + wheel,
 )
 
 if __name__ == '__main__':

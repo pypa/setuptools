@@ -258,10 +258,9 @@ unless you need the associated ``setuptools`` feature.
 
 ``include_package_data``
     If set to ``True``, this tells ``setuptools`` to automatically include any
-    data files it finds inside your package directories, that are either under
-    CVS or Subversion control, or which are specified by your ``MANIFEST.in``
-    file.  For more information, see the section below on `Including Data
-    Files`_.
+    data files it finds inside your package directories that are specified by
+    your ``MANIFEST.in`` file.  For more information, see the section below on
+    `Including Data Files`_.
 
 ``exclude_package_data``
     A dictionary mapping package names to lists of glob patterns that should
@@ -785,17 +784,15 @@ e.g.::
     )
 
 This tells setuptools to install any data files it finds in your packages.
-The data files must be under CVS or Subversion control, or else they must be
-specified via the distutils' ``MANIFEST.in`` file.  (They can also be tracked
-by another revision control system, using an appropriate plugin.  See the
-section below on `Adding Support for Other Revision Control Systems`_ for
-information on how to write such plugins.)
+The data files must be specified via the distutils' ``MANIFEST.in`` file.
+(They can also be tracked by a revision control system, using an appropriate
+plugin.  See the section below on `Adding Support for Revision Control
+Systems`_ for information on how to write such plugins.)
 
-If the data files are not under version control, or are not in a supported
-version control system, or if you want finer-grained control over what files
-are included (for example, if you have documentation files in your package
-directories and want to exclude them from installation), then you can also use
-the ``package_data`` keyword, e.g.::
+If you want finer-grained control over what files are included (for example,
+if you have documentation files in your package directories and want to exclude
+them from installation), then you can also use the ``package_data`` keyword,
+e.g.::
 
     from setuptools import setup, find_packages
     setup(
@@ -853,8 +850,7 @@ converts slashes to appropriate platform-specific separators at build time.
 Python 2.4; there is `some documentation for the feature`__ available on the
 python.org website.  If using the setuptools-specific ``include_package_data``
 argument, files specified by ``package_data`` will *not* be automatically
-added to the manifest unless they are tracked by a supported version control
-system, or are listed in the MANIFEST.in file.)
+added to the manifest unless they are listed in the MANIFEST.in file.)
 
 __ http://docs.python.org/dist/node11.html
 
@@ -887,8 +883,7 @@ included as a result of using ``include_package_data``.
 In summary, the three options allow you to:
 
 ``include_package_data``
-    Accept all data files and directories matched by ``MANIFEST.in`` or found
-    in source control.
+    Accept all data files and directories matched by ``MANIFEST.in``.
 
 ``package_data``
     Specify additional patterns to match files and directories that may or may
@@ -1231,15 +1226,14 @@ Your Project's Dependencies
     target audience isn't able to compile packages (e.g. most Windows users)
     and your package or some of its dependencies include C code.
 
-Subversion or CVS Users and Co-Developers
+Revision Control System Users and Co-Developers
     Users and co-developers who are tracking your in-development code using
-    CVS, Subversion, or some other revision control system should probably read
-    this manual's sections regarding such development.  Alternately, you may
-    wish to create a quick-reference guide containing the tips from this manual
-    that apply to your particular situation.  For example, if you recommend
-    that people use ``setup.py develop`` when tracking your in-development
-    code, you should let them know that this needs to be run after every update
-    or commit.
+    a revision control system should probably read this manual's sections
+    regarding such development.  Alternately, you may wish to create a
+    quick-reference guide containing the tips from this manual that apply to
+    your particular situation.  For example, if you recommend that people use
+    ``setup.py develop`` when tracking your in-development code, you should let
+    them know that this needs to be run after every update or commit.
 
     Similarly, if you remove modules or data files from your project, you
     should remind them to run ``setup.py clean --all`` and delete any obsolete
@@ -1468,18 +1462,11 @@ Generating Source Distributions
 -------------------------------
 
 ``setuptools`` enhances the distutils' default algorithm for source file
-selection, so that all files managed by CVS or Subversion in your project tree
-are included in any source distribution you build.  This is a big improvement
-over having to manually write a ``MANIFEST.in`` file and try to keep it in
-sync with your project.  So, if you are using CVS or Subversion, and your
-source distributions only need to include files that you're tracking in
-revision control, don't create a ``MANIFEST.in`` file for your project.
-(And, if you already have one, you might consider deleting it the next time
-you would otherwise have to change it.)
-
-(NOTE: other revision control systems besides CVS and Subversion can be
-supported using plugins; see the section below on `Adding Support for Other
-Revision Control Systems`_ for information on how to write such plugins.)
+selection with pluggable endpoints for looking up files to include. If you are
+using a revision control system, and your source distributions only need to
+include files that you're tracking in revision control, use a corresponding
+plugin instead of writing a ``MANIFEST.in`` file. See the section below on
+`Adding Support for Revision Control Systems`_ for information on plugins.
 
 If you need to include automatically generated files, or files that are kept in
 an unsupported revision control system, you'll need to create a ``MANIFEST.in``
@@ -1500,12 +1487,6 @@ distribution is so much simpler, its ``sdist`` command omits nearly all of
 the options that the distutils' more complex ``sdist`` process requires.  For
 all practical purposes, you'll probably use only the ``--formats`` option, if
 you use any option at all.
-
-(By the way, if you're using some other revision control system, you might
-consider creating and publishing a `revision control plugin for setuptools`_.)
-
-
-.. _revision control plugin for setuptools: `Adding Support for Other Revision Control Systems`_
 
 
 Making your package available for EasyInstall
@@ -1687,9 +1668,10 @@ Of course, for this to work, your source distributions must include the C
 code generated by Pyrex, as well as your original ``.pyx`` files.  This means
 that you will probably want to include current ``.c`` files in your revision
 control system, rebuilding them whenever you check changes in for the ``.pyx``
-source files.  This will ensure that people tracking your project in CVS or
-Subversion will be able to build it even if they don't have Pyrex installed,
-and that your source releases will be similarly usable with or without Pyrex.
+source files.  This will ensure that people tracking your project in a revision
+control system will be able to build it even if they don't have Pyrex
+installed, and that your source releases will be similarly usable with or
+without Pyrex.
 
 
 -----------------
@@ -2328,54 +2310,25 @@ available:
 ``upload`` - Upload source and/or egg distributions to PyPI
 ===========================================================
 
-PyPI now supports uploading project files for redistribution; uploaded files
-are easily found by EasyInstall, even if you don't have download links on your
-project's home page.
+The ``upload`` command is implemented and `documented
+<https://docs.python.org/3.1/distutils/uploading.html>`_
+in distutils.
 
-Although Python 2.5 will support uploading all types of distributions to PyPI,
-setuptools only supports source distributions and eggs.  (This is partly
-because PyPI's upload support is currently broken for various other file
-types.)  To upload files, you must include the ``upload`` command *after* the
-``sdist`` or ``bdist_egg`` commands on the setup command line.  For example::
+Setuptools augments the ``upload`` command with support
+for `keyring <https://pypi.python.org/pypi/keyring>`_,
+allowing the password to be stored in a secure
+location and not in plaintext in the .pypirc file. To use
+keyring, first install keyring and set the password for
+the relevant repository, e.g.::
 
-    setup.py bdist_egg upload         # create an egg and upload it
-    setup.py sdist upload             # create a source distro and upload it
-    setup.py sdist bdist_egg upload   # create and upload both
+    python -m keyring set <repository> <username>
+    Password for '<username>' in '<repository>': ********
 
-Note that to upload files for a project, the corresponding version must already
-be registered with PyPI, using the distutils ``register`` command.  It's
-usually a good idea to include the ``register`` command at the start of the
-command line, so that any registration problems can be found and fixed before
-building and uploading the distributions, e.g.::
+Then, in .pypirc, set the repository configuration as normal,
+but omit the password. Thereafter, uploads will use the
+password from the keyring.
 
-    setup.py register sdist bdist_egg upload
-
-This will update PyPI's listing for your project's current version.
-
-Note, by the way, that the metadata in your ``setup()`` call determines what
-will be listed in PyPI for your package.  Try to fill out as much of it as
-possible, as it will save you a lot of trouble manually adding and updating
-your PyPI listings.  Just put it in ``setup.py`` and use the ``register``
-command to keep PyPI up to date.
-
-The ``upload`` command has a few options worth noting:
-
-``--sign, -s``
-    Sign each uploaded file using GPG (GNU Privacy Guard).  The ``gpg`` program
-    must be available for execution on the system ``PATH``.
-
-``--identity=NAME, -i NAME``
-    Specify the identity or key name for GPG to use when signing.  The value of
-    this option will be passed through the ``--local-user`` option of the
-    ``gpg`` program.
-
-``--show-response``
-    Display the full response text from server; this is useful for debugging
-    PyPI problems.
-
-``--repository=URL, -r URL``
-    The URL of the repository to upload to.  Defaults to
-    https://pypi.python.org/pypi (i.e., the main PyPI installation).
+New in 20.1: Added keyring support.
 
 .. _upload_docs:
 
@@ -2598,15 +2551,21 @@ the ``cmd`` object's ``write_file()``, ``delete_file()``, and
 those methods' docstrings for more details.
 
 
-Adding Support for Other Revision Control Systems
+Adding Support for Revision Control Systems
 -------------------------------------------------
 
-If you would like to create a plugin for ``setuptools`` to find files in
-source control systems, you can do so by adding an
-entry point to the ``setuptools.file_finders`` group.  The entry point should
-be a function accepting a single directory name, and should yield
-all the filenames within that directory (and any subdirectories thereof) that
-are under revision control.
+If the files you want to include in the source distribution are tracked using
+Git, Mercurial or SVN, you can use the following packages to achieve that:
+
+- Git and Mercurial: `setuptools_scm <https://pypi.python.org/pypi/setuptools_scm>`_
+- SVN: `setuptools_svn <https://pypi.python.org/pypi/setuptools_svn>`_
+
+If you would like to create a plugin for ``setuptools`` to find files tracked
+by another revision control system, you can do so by adding an entry point to
+the ``setuptools.file_finders`` group.  The entry point should be a function
+accepting a single directory name, and should yield all the filenames within
+that directory (and any subdirectories thereof) that are under revision
+control.
 
 For example, if you were going to create a plugin for a revision control system
 called "foobar", you would write a function something like this:
@@ -2699,5 +2658,5 @@ confirmed via the list are actual bugs, and which you have reduced to a minimal
 set of steps to reproduce.
 
 .. _distutils-sig mailing list: http://mail.python.org/pipermail/distutils-sig/
-.. _setuptools bug tracker: https://bitbucket.org/pypa/setuptools/
+.. _setuptools bug tracker: https://github.com/pypa/setuptools/
 

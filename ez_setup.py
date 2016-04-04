@@ -192,6 +192,8 @@ def _conflict_bail(VC_err, version):
 
 
 def _unload_pkg_resources():
+    sys.meta_path = [importer for importer in sys.meta_path if
+                     importer.__class__.__module__ != 'pkg_resources.extern']
     del_modules = [
         name for name in sys.modules
         if name.startswith('pkg_resources')
@@ -225,8 +227,8 @@ def download_file_powershell(url, target):
     ps_cmd = (
         "[System.Net.WebRequest]::DefaultWebProxy.Credentials = "
         "[System.Net.CredentialCache]::DefaultCredentials; "
-        "(new-object System.Net.WebClient).DownloadFile(%(url)r, %(target)r)"
-        % vars()
+        '(new-object System.Net.WebClient).DownloadFile("%(url)s", "%(target)s")'
+        % locals()
     )
     cmd = [
         'powershell',
@@ -354,7 +356,7 @@ def _resolve_version(version):
         reader = codecs.getreader(charset)
         doc = json.load(reader(resp))
 
-    return doc['info']['version']
+    return str(doc['info']['version'])
 
 
 def _build_install_args(options):

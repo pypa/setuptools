@@ -1,28 +1,18 @@
+from __future__ import unicode_literals
+
 import os
 import sys
-import tempfile
-import shutil
 import string
 
+from pkg_resources.extern.six.moves import map
+
 import pytest
+from pkg_resources.extern import packaging
 
 import pkg_resources
 from pkg_resources import (parse_requirements, VersionConflict, parse_version,
     Distribution, EntryPoint, Requirement, safe_version, safe_name,
     WorkingSet)
-
-packaging = pkg_resources.packaging
-
-
-def safe_repr(obj, short=False):
-    """ copied from Python2.7"""
-    try:
-        result = repr(obj)
-    except Exception:
-        result = object.__repr__(obj)
-    if not short or len(result) < pkg_resources._MAX_LENGTH:
-        return result
-    return result[:pkg_resources._MAX_LENGTH] + ' [truncated]...'
 
 
 class Metadata(pkg_resources.EmptyProvider):
@@ -159,7 +149,7 @@ class TestDistro:
         for i in range(3):
             targets = list(ws.resolve(parse_requirements("Foo"), ad))
             assert targets == [Foo]
-            list(map(ws.add,targets))
+            list(map(ws.add, targets))
         with pytest.raises(VersionConflict):
             ws.resolve(parse_requirements("Foo==0.9"), ad)
         ws = WorkingSet([]) # reset
@@ -180,6 +170,16 @@ class TestDistro:
 
         msg = 'Foo 0.9 is installed but Foo==1.2 is required'
         assert vc.value.report() == msg
+
+    @pytest.mark.xfail(reason="Functionality disabled; see #523")
+    def test_environment_markers(self):
+        """
+        Environment markers are evaluated at resolution time.
+        """
+        ad = pkg_resources.Environment([])
+        ws = WorkingSet([])
+        res = ws.resolve(parse_requirements("Foo;python_version<'2'"), ad)
+        assert list(res) == []
 
     def testDistroDependsOptions(self):
         d = self.distRequires("""
@@ -245,9 +245,8 @@ class TestWorkingSet:
         with pytest.raises(VersionConflict) as vc:
             ws.resolve(parse_requirements("Foo\nBar\n"))
 
-        msg = "Baz 1.0 is installed but Baz==2.0 is required by {'Bar'}"
-        if pkg_resources.PY2:
-            msg = msg.replace("{'Bar'}", "set(['Bar'])")
+        msg = "Baz 1.0 is installed but Baz==2.0 is required by "
+        msg += repr(set(['Bar']))
         assert vc.value.report() == msg
 
 
@@ -313,7 +312,7 @@ class TestEntryPoints:
 
     def checkSubMap(self, m):
         assert len(m) == len(self.submap_expect)
-        for key, ep in pkg_resources.iteritems(self.submap_expect):
+        for key, ep in self.submap_expect.items():
             assert repr(m.get(key)) == repr(ep)
 
     submap_expect = dict(
@@ -353,22 +352,22 @@ class TestRequirements:
         r = Requirement.parse("Twisted>=1.2")
         assert str(r) == "Twisted>=1.2"
         assert repr(r) == "Requirement.parse('Twisted>=1.2')"
-        assert r == Requirement("Twisted", [('>=','1.2')], ())
-        assert r == Requirement("twisTed", [('>=','1.2')], ())
-        assert r != Requirement("Twisted", [('>=','2.0')], ())
-        assert r != Requirement("Zope", [('>=','1.2')], ())
-        assert r != Requirement("Zope", [('>=','3.0')], ())
-        assert r != Requirement.parse("Twisted[extras]>=1.2")
+        assert r == Requirement("Twisted>=1.2")
+        assert r == Requirement("twisTed>=1.2")
+        assert r != Requirement("Twisted>=2.0")
+        assert r != Requirement("Zope>=1.2")
+        assert r != Requirement("Zope>=3.0")
+        assert r != Requirement("Twisted[extras]>=1.2")
 
     def testOrdering(self):
-        r1 = Requirement("Twisted", [('==','1.2c1'),('>=','1.2')], ())
-        r2 = Requirement("Twisted", [('>=','1.2'),('==','1.2c1')], ())
+        r1 = Requirement("Twisted==1.2c1,>=1.2")
+        r2 = Requirement("Twisted>=1.2,==1.2c1")
         assert r1 == r2
         assert str(r1) == str(r2)
         assert str(r2) == "Twisted==1.2c1,>=1.2"
 
     def testBasicContains(self):
-        r = Requirement("Twisted", [('>=','1.2')], ())
+        r = Requirement("Twisted>=1.2")
         foo_dist = Distribution.from_filename("FooPkg-1.3_1.egg")
         twist11 = Distribution.from_filename("Twisted-1.1.egg")
         twist12 = Distribution.from_filename("Twisted-1.2.egg")
@@ -384,8 +383,8 @@ class TestRequirements:
         r1 = Requirement.parse("Twisted[foo,bar]>=1.2")
         r2 = Requirement.parse("Twisted[bar,FOO]>=1.2")
         assert r1 == r2
-        assert r1.extras == ("foo","bar")
-        assert r2.extras == ("bar","foo")  # extras are normalized
+        assert set(r1.extras) == set(("foo", "bar"))
+        assert set(r2.extras) == set(("foo", "bar"))
         assert hash(r1) == hash(r2)
         assert (
             hash(r1)
@@ -394,6 +393,7 @@ class TestRequirements:
                 "twisted",
                 packaging.specifiers.SpecifierSet(">=1.2"),
                 frozenset(["foo","bar"]),
+                None
             ))
         )
 
@@ -485,17 +485,17 @@ class TestParsing:
         assert (
             list(parse_requirements('Twis-Ted>=1.2-1'))
             ==
-            [Requirement('Twis-Ted',[('>=','1.2-1')], ())]
+            [Requirement('Twis-Ted>=1.2-1')]
         )
         assert (
             list(parse_requirements('Twisted >=1.2, \ # more\n<2.0'))
             ==
-            [Requirement('Twisted',[('>=','1.2'),('<','2.0')], ())]
+            [Requirement('Twisted>=1.2,<2.0')]
         )
         assert (
             Requirement.parse("FooBar==1.99a3")
             ==
-            Requirement("FooBar", [('==','1.99a3')], ())
+            Requirement("FooBar==1.99a3")
         )
         with pytest.raises(ValueError):
             Requirement.parse(">=2.3")
@@ -507,6 +507,35 @@ class TestParsing:
             Requirement.parse("X==1\nY==2")
         with pytest.raises(ValueError):
             Requirement.parse("#")
+
+    def test_requirements_with_markers(self):
+        assert (
+            Requirement.parse("foobar;os_name=='a'")
+            ==
+            Requirement.parse("foobar;os_name=='a'")
+        )
+        assert (
+            Requirement.parse("name==1.1;python_version=='2.7'")
+            !=
+            Requirement.parse("name==1.1;python_version=='3.3'")
+        )
+        assert (
+            Requirement.parse("name==1.0;python_version=='2.7'")
+            !=
+            Requirement.parse("name==1.2;python_version=='2.7'")
+        )
+        assert (
+            Requirement.parse("name[foo]==1.0;python_version=='3.3'")
+            !=
+            Requirement.parse("name[foo,bar]==1.0;python_version=='3.3'")
+        )
+
+    def test_local_version(self):
+        req, = parse_requirements('foo==1.0.org1')
+
+    def test_spaces_between_multiple_versions(self):
+        req, = parse_requirements('foo>=1.0, <3')
+        req, = parse_requirements('foo >= 1.0, < 3')
 
     def testVersionEquality(self):
         def c(s1,s2):
@@ -610,21 +639,44 @@ class TestParsing:
 
 class TestNamespaces:
 
-    def setup_method(self, method):
-        self._ns_pkgs = pkg_resources._namespace_packages.copy()
-        self._tmpdir = tempfile.mkdtemp(prefix="tests-setuptools-")
-        os.makedirs(os.path.join(self._tmpdir, "site-pkgs"))
-        self._prev_sys_path = sys.path[:]
-        sys.path.append(os.path.join(self._tmpdir, "site-pkgs"))
+    ns_str = "__import__('pkg_resources').declare_namespace(__name__)\n"
 
-    def teardown_method(self, method):
-        shutil.rmtree(self._tmpdir)
-        pkg_resources._namespace_packages = self._ns_pkgs.copy()
-        sys.path = self._prev_sys_path[:]
+    @pytest.yield_fixture
+    def symlinked_tmpdir(self, tmpdir):
+        """
+        Where available, return the tempdir as a symlink,
+        which as revealed in #231 is more fragile than
+        a natural tempdir.
+        """
+        if not hasattr(os, 'symlink'):
+            yield str(tmpdir)
+            return
 
-    @pytest.mark.skipif(os.path.islink(tempfile.gettempdir()),
-        reason="Test fails when /tmp is a symlink. See #231")
-    def test_two_levels_deep(self):
+        link_name = str(tmpdir) + '-linked'
+        os.symlink(str(tmpdir), link_name)
+        try:
+            yield type(tmpdir)(link_name)
+        finally:
+            os.unlink(link_name)
+
+    @pytest.yield_fixture(autouse=True)
+    def patched_path(self, tmpdir):
+        """
+        Patch sys.path to include the 'site-pkgs' dir. Also
+        restore pkg_resources._namespace_packages to its
+        former state.
+        """
+        saved_ns_pkgs = pkg_resources._namespace_packages.copy()
+        saved_sys_path = sys.path[:]
+        site_pkgs = tmpdir.mkdir('site-pkgs')
+        sys.path.append(str(site_pkgs))
+        try:
+            yield
+        finally:
+            pkg_resources._namespace_packages = saved_ns_pkgs
+            sys.path = saved_sys_path
+
+    def test_two_levels_deep(self, symlinked_tmpdir):
         """
         Test nested namespace packages
         Create namespace packages in the following tree :
@@ -633,19 +685,16 @@ class TestNamespaces:
         Check both are in the _namespace_packages dict and that their __path__
         is correct
         """
-        sys.path.append(os.path.join(self._tmpdir, "site-pkgs2"))
-        os.makedirs(os.path.join(self._tmpdir, "site-pkgs", "pkg1", "pkg2"))
-        os.makedirs(os.path.join(self._tmpdir, "site-pkgs2", "pkg1", "pkg2"))
-        ns_str = "__import__('pkg_resources').declare_namespace(__name__)\n"
-        for site in ["site-pkgs", "site-pkgs2"]:
-            pkg1_init = open(os.path.join(self._tmpdir, site,
-                             "pkg1", "__init__.py"), "w")
-            pkg1_init.write(ns_str)
-            pkg1_init.close()
-            pkg2_init = open(os.path.join(self._tmpdir, site,
-                             "pkg1", "pkg2", "__init__.py"), "w")
-            pkg2_init.write(ns_str)
-            pkg2_init.close()
+        real_tmpdir = symlinked_tmpdir.realpath()
+        tmpdir = symlinked_tmpdir
+        sys.path.append(str(tmpdir / 'site-pkgs2'))
+        site_dirs = tmpdir / 'site-pkgs', tmpdir / 'site-pkgs2'
+        for site in site_dirs:
+            pkg1 = site / 'pkg1'
+            pkg2 = pkg1 / 'pkg2'
+            pkg2.ensure_dir()
+            (pkg1 / '__init__.py').write_text(self.ns_str, encoding='utf-8')
+            (pkg2 / '__init__.py').write_text(self.ns_str, encoding='utf-8')
         import pkg1
         assert "pkg1" in pkg_resources._namespace_packages
         # attempt to import pkg2 from site-pkgs2
@@ -655,7 +704,44 @@ class TestNamespaces:
         assert pkg_resources._namespace_packages["pkg1"] == ["pkg1.pkg2"]
         # check the __path__ attribute contains both paths
         expected = [
-            os.path.join(self._tmpdir, "site-pkgs", "pkg1", "pkg2"),
-            os.path.join(self._tmpdir, "site-pkgs2", "pkg1", "pkg2"),
+            str(real_tmpdir / "site-pkgs" / "pkg1" / "pkg2"),
+            str(real_tmpdir / "site-pkgs2" / "pkg1" / "pkg2"),
         ]
         assert pkg1.pkg2.__path__ == expected
+
+    def test_path_order(self, symlinked_tmpdir):
+        """
+        Test that if multiple versions of the same namespace package subpackage
+        are on different sys.path entries, that only the one earliest on
+        sys.path is imported, and that the namespace package's __path__ is in
+        the correct order.
+
+        Regression test for https://github.com/pypa/setuptools/issues/207
+        """
+
+        tmpdir = symlinked_tmpdir
+        site_dirs = (
+            tmpdir / "site-pkgs",
+            tmpdir / "site-pkgs2",
+            tmpdir / "site-pkgs3",
+        )
+
+        vers_str = "__version__ = %r"
+
+        for number, site in enumerate(site_dirs, 1):
+            if number > 1:
+                sys.path.append(str(site))
+            nspkg = site / 'nspkg'
+            subpkg = nspkg / 'subpkg'
+            subpkg.ensure_dir()
+            (nspkg / '__init__.py').write_text(self.ns_str, encoding='utf-8')
+            (subpkg / '__init__.py').write_text(vers_str % number, encoding='utf-8')
+
+        import nspkg.subpkg
+        import nspkg
+        expected = [
+            str(site.realpath() / 'nspkg')
+            for site in site_dirs
+        ]
+        assert nspkg.__path__ == expected
+        assert nspkg.subpkg.__version__ == 1

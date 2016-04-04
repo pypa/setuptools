@@ -6,6 +6,10 @@ python:
   - 3.4
   - 3.5
   - pypy
+  - pypy3
+matrix:
+  allow_failures:
+    - python: pypy3
 env:
  - ""
  - LC_ALL=C LC_CTYPE=C
@@ -21,5 +25,15 @@ script:
 
  - python setup.py test --addopts='-rs'
 
- # test the bootstrap script
- - python ez_setup.py
+before_deploy:
+  - export SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES=1
+deploy:
+  provider: pypi
+  on:
+    tags: true
+    all_branches: true
+  user: jaraco
+  password:
+    secure: tfWrsQMH2bHrWjqnP+08IX1WlkbW94Q30f4d7lCyhWS1FIf/jBDx4jrEILNfMxQ1NCwuBRje5sihj1Ow0BFf0vVrkaeff2IdvnNDEGFduMejaEQJL3s3QrLfpiAvUbtqwyWaHfAdGfk48PovDKTx0ZTvXZKYGXZhxGCYSlG2CE6Y6RDvnEl6Tk8e+LqUohkcSOwxrRwUoyxSnUaavdGohXxDT8MJlfWOXgr2u+KsRrriZqp3l6Fdsnk4IGvy6pXpy42L1HYQyyVu9XyJilR2JTbC6eCp5f8p26093m1Qas49+t6vYb0VLqQe12dO+Jm3v4uztSS5pPQzS7PFyjEYd2Rdb6ijsdbsy1074S4q7G9Sz+T3RsPUwYEJ07lzez8cxP64dtj5j94RL8m35A1Fb1OE8hHN+4c1yLG1gudfXbem+fUhi2eqhJrzQo5vsvDv1xS5x5GIS5ZHgKHCsWcW1Tv+dsFkrhaup3uU6VkOuc9UN+7VPsGEY7NvquGpTm8O1CnGJRzuJg6nbYRGj8ORwDpI0KmrExx6akV92P72fMC/I5TCgbSQSZn370H3Jj40gz1SM30WAli9M+wFHFd4ddMVY65yxj0NLmrP+m1tvnWdKtNh/RHuoW92d9/UFtiA5IhMf1/3djfsjBq6S9NT1uaLkVkTttqrPYJ7hOql8+g=
+  distributions: release
+  python: 3.5

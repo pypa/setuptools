@@ -196,7 +196,7 @@ latex_documents = [
 #latex_use_modindex = True
 
 link_files = {
-	'CHANGES.txt': dict(
+	'CHANGES.rst': dict(
 		using=dict(
 			BB='https://bitbucket.org',
 			GH='https://github.com',
@@ -204,11 +204,11 @@ link_files = {
 		replace=[
 			dict(
 				pattern=r"(Issue )?#(?P<issue>\d+)",
-				url='{BB}/pypa/setuptools/issue/{issue}',
+				url='{GH}/pypa/setuptools/issues/{issue}',
 			),
 			dict(
-				pattern=r"Pull Request ?#(?P<pull_request>\d+)",
-				url='{BB}/pypa/setuptools/pull-request/{pull_request}',
+				pattern=r"BB Pull Request ?#(?P<bb_pull_request>\d+)",
+				url='{BB}/pypa/setuptools/pull-request/{bb_pull_request}',
 			),
 			dict(
 				pattern=r"Distribute #(?P<distribute>\d+)",
@@ -245,6 +245,14 @@ link_files = {
 			dict(
 				pattern=r"[Pp]ackaging (?P<packaging_ver>\d+(\.\d+)+)",
 				url='{GH}/pypa/packaging/blob/{packaging_ver}/CHANGELOG.rst',
+			),
+			dict(
+				pattern=r"PEP[- ](?P<pep_number>\d+)",
+				url='https://www.python.org/dev/peps/pep-{pep_number:0>4}/',
+			),
+			dict(
+				pattern=r"^(?m)((?P<scm_version>v?\d+(\.\d+){1,2}))\n[-=]+\n",
+				with_scm="{text}\n{rev[timestamp]:%d %b %Y}\n",
 			),
 		],
 	),

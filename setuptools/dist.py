@@ -13,12 +13,13 @@ from distutils.core import Distribution as _Distribution
 from distutils.errors import (DistutilsOptionError, DistutilsPlatformError,
     DistutilsSetupError)
 
+from setuptools.extern import six
+from setuptools.extern.six.moves import map
+from pkg_resources.extern import packaging
+
 from setuptools.depends import Require
-from setuptools.compat import basestring, PY2
 from setuptools import windows_support
 import pkg_resources
-
-packaging = pkg_resources.packaging
 
 
 def _get_unpatched(cls):
@@ -138,7 +139,7 @@ def check_entry_points(dist, attr, value):
         raise DistutilsSetupError(e)
 
 def check_test_suite(dist, attr, value):
-    if not isinstance(value,basestring):
+    if not isinstance(value, six.string_types):
         raise DistutilsSetupError("test_suite must be a string")
 
 def check_package_data(dist, attr, value):
@@ -160,7 +161,7 @@ def check_packages(dist, attr, value):
     for pkgname in value:
         if not re.match(r'\w+(\.\w+)*', pkgname):
             distutils.log.warn(
-                "WARNING: %r not a valid package name; please use only"
+                "WARNING: %r not a valid package name; please use only "
                 ".-separated package names in setup.py", pkgname
             )
 
@@ -439,6 +440,14 @@ class Distribution(_Distribution):
                 self.cmdclass[ep.name] = cmdclass
         return _Distribution.print_commands(self)
 
+    def get_command_list(self):
+        for ep in pkg_resources.iter_entry_points('distutils.commands'):
+            if ep.name not in self.cmdclass:
+                # don't require extras as the commands won't be invoked
+                cmdclass = ep.resolve()
+                self.cmdclass[ep.name] = cmdclass
+        return _Distribution.get_command_list(self)
+
     def _set_feature(self,name,status):
         """Set feature's inclusion status"""
         setattr(self,self._feature_attrname(name),status)
@@ -674,7 +683,7 @@ class Distribution(_Distribution):
         """
         import sys
 
-        if PY2 or self.help_commands:
+        if six.PY2 or self.help_commands:
             return _Distribution.handle_display_options(self, option_order)
 
         # Stdout may be StringIO (e.g. in tests)
@@ -711,7 +720,7 @@ class Feature:
     """
     **deprecated** -- The `Feature` facility was never completely implemented
     or supported, `has reported issues
-    <https://bitbucket.org/pypa/setuptools/issue/58>`_ and will be removed in
+    <https://github.com/pypa/setuptools/issues/58>`_ and will be removed in
     a future version.
 
     A subset of the distribution that can be excluded if unneeded/wanted
@@ -768,7 +777,7 @@ class Feature:
     def warn_deprecated():
         warnings.warn(
             "Features are deprecated and will be removed in a future "
-                "version. See http://bitbucket.org/pypa/setuptools/65.",
+                "version. See https://github.com/pypa/setuptools/issues/65.",
             DeprecationWarning,
             stacklevel=3,
         )
@@ -817,7 +826,7 @@ class Feature:
 
         if not self.available:
             raise DistutilsPlatformError(
-                self.description+" is required,"
+                self.description+" is required, "
                 "but is not available on this platform"
             )
 

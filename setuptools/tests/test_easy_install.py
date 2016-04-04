@@ -14,6 +14,10 @@ import tarfile
 import logging
 import itertools
 import distutils.errors
+import io
+
+from setuptools.extern.six.moves import urllib
+import time
 
 import pytest
 try:
@@ -22,8 +26,6 @@ except ImportError:
     import mock
 
 from setuptools import sandbox
-from setuptools import compat
-from setuptools.compat import StringIO, BytesIO, urlparse
 from setuptools.sandbox import run_setup
 import setuptools.command.easy_install as ei
 from setuptools.command.easy_install import PthDistributions
@@ -35,7 +37,7 @@ import setuptools.tests.server
 import pkg_resources
 
 from .py26compat import tarfile_open
-from . import contexts, is_ascii
+from . import contexts
 from .textwrap import DALS
 
 
@@ -56,17 +58,13 @@ SETUP_PY = DALS("""
 
 class TestEasyInstallTest:
 
-    def test_install_site_py(self):
+    def test_install_site_py(self, tmpdir):
         dist = Distribution()
         cmd = ei.easy_install(dist)
         cmd.sitepy_installed = False
-        cmd.install_dir = tempfile.mkdtemp()
-        try:
-            cmd.install_site_py()
-            sitepy = os.path.join(cmd.install_dir, 'site.py')
-            assert os.path.exists(sitepy)
-        finally:
-            shutil.rmtree(cmd.install_dir)
+        cmd.install_dir = str(tmpdir)
+        cmd.install_site_py()
+        assert (tmpdir / 'site.py').exists()
 
     def test_get_script_args(self):
         header = ei.CommandSpec.best().from_environment().as_header()
@@ -272,7 +270,7 @@ class TestSetupRequires:
         p_index = setuptools.tests.server.MockServer()
         p_index.start()
         netloc = 1
-        p_index_loc = urlparse(p_index.url)[netloc]
+        p_index_loc = urllib.parse.urlparse(p_index.url)[netloc]
         if p_index_loc.endswith(':0'):
             # Some platforms (Jython) don't find a port to which to bind,
             #  so skip this test for them.
@@ -308,32 +306,32 @@ class TestSetupRequires:
         """
         with contexts.tempdir() as dir:
             dist_path = os.path.join(dir, 'setuptools-test-fetcher-1.0.tar.gz')
-            script = DALS("""
-                import setuptools
-                setuptools.setup(
-                    name="setuptools-test-fetcher",
-                    version="1.0",
-                    setup_requires = ['does-not-exist'],
-                )
-                """)
-            make_trivial_sdist(dist_path, script)
+            make_sdist(dist_path, [
+                ('setup.py', DALS("""
+                    import setuptools
+                    setuptools.setup(
+                        name="setuptools-test-fetcher",
+                        version="1.0",
+                        setup_requires = ['does-not-exist'],
+                    )
+                """))])
             yield dist_path
 
     def test_setup_requires_overrides_version_conflict(self):
         """
-        Regression test for issue #323.
+        Regression test for distribution issue 323:
+        https://bitbucket.org/tarek/distribute/issues/323
 
         Ensures that a distribution's setup_requires requirements can still be
         installed and used locally even if a conflicting version of that
         requirement is already on the path.
         """
 
-        pr_state = pkg_resources.__getstate__()
         fake_dist = PRDistribution('does-not-matter', project_name='foobar',
                                    version='0.0')
         working_set.add(fake_dist)
 
-        try:
+        with contexts.save_pkg_resources_state():
             with contexts.tempdir() as temp_dir:
                 test_pkg = create_setup_requires_package(temp_dir)
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
@@ -345,19 +343,144 @@ class TestSetupRequires:
                 lines = stdout.readlines()
                 assert len(lines) > 0
                 assert lines[-1].strip(), 'test_pkg'
-        finally:
-            pkg_resources.__setstate__(pr_state)
+
+    def test_setup_requires_override_nspkg(self):
+        """
+        Like ``test_setup_requires_overrides_version_conflict`` but where the
+        ``setup_requires`` package is part of a namespace package that has
+        *already* been imported.
+        """
+
+        with contexts.save_pkg_resources_state():
+            with contexts.tempdir() as temp_dir:
+                foobar_1_archive = os.path.join(temp_dir, 'foo.bar-0.1.tar.gz')
+                make_nspkg_sdist(foobar_1_archive, 'foo.bar', '0.1')
+                # Now actually go ahead an extract to the temp dir and add the
+                # extracted path to sys.path so foo.bar v0.1 is importable
+                foobar_1_dir = os.path.join(temp_dir, 'foo.bar-0.1')
+                os.mkdir(foobar_1_dir)
+                with tarfile_open(foobar_1_archive) as tf:
+                    tf.extractall(foobar_1_dir)
+                sys.path.insert(1, foobar_1_dir)
+
+                dist = PRDistribution(foobar_1_dir, project_name='foo.bar',
+                                      version='0.1')
+                working_set.add(dist)
+
+                template = DALS("""\
+                    import foo  # Even with foo imported first the
+                                # setup_requires package should override
+                    import setuptools
+                    setuptools.setup(**%r)
+
+                    if not (hasattr(foo, '__path__') and
+                            len(foo.__path__) == 2):
+                        print('FAIL')
+
+                    if 'foo.bar-0.2' not in foo.__path__[0]:
+                        print('FAIL')
+                """)
+
+                test_pkg = create_setup_requires_package(
+                    temp_dir, 'foo.bar', '0.2', make_nspkg_sdist, template)
+
+                test_setup_py = os.path.join(test_pkg, 'setup.py')
+
+                with contexts.quiet() as (stdout, stderr):
+                    try:
+                        # Don't even need to install the package, just
+                        # running the setup.py at all is sufficient
+                        run_setup(test_setup_py, ['--name'])
+                    except pkg_resources.VersionConflict:
+                        self.fail('Installing setup.py requirements '
+                            'caused a VersionConflict')
+
+                assert 'FAIL' not in stdout.getvalue()
+                lines = stdout.readlines()
+                assert len(lines) > 0
+                assert lines[-1].strip() == 'test_pkg'
 
 
-def create_setup_requires_package(path):
+def make_trivial_sdist(dist_path, distname, version):
+    """
+    Create a simple sdist tarball at dist_path, containing just a simple
+    setup.py.
+    """
+
+    make_sdist(dist_path, [
+        ('setup.py',
+         DALS("""\
+             import setuptools
+             setuptools.setup(
+                 name=%r,
+                 version=%r
+             )
+         """ % (distname, version)))])
+
+
+def make_nspkg_sdist(dist_path, distname, version):
+    """
+    Make an sdist tarball with distname and version which also contains one
+    package with the same name as distname.  The top-level package is
+    designated a namespace package).
+    """
+
+    parts = distname.split('.')
+    nspackage = parts[0]
+
+    packages = ['.'.join(parts[:idx]) for idx in range(1, len(parts) + 1)]
+
+    setup_py = DALS("""\
+        import setuptools
+        setuptools.setup(
+            name=%r,
+            version=%r,
+            packages=%r,
+            namespace_packages=[%r]
+        )
+    """ % (distname, version, packages, nspackage))
+
+    init = "__import__('pkg_resources').declare_namespace(__name__)"
+
+    files = [('setup.py', setup_py),
+             (os.path.join(nspackage, '__init__.py'), init)]
+    for package in packages[1:]:
+        filename = os.path.join(*(package.split('.') + ['__init__.py']))
+        files.append((filename, ''))
+
+    make_sdist(dist_path, files)
+
+
+def make_sdist(dist_path, files):
+    """
+    Create a simple sdist tarball at dist_path, containing the files
+    listed in ``files`` as ``(filename, content)`` tuples.
+    """
+
+    with tarfile_open(dist_path, 'w:gz') as dist:
+        for filename, content in files:
+            file_bytes = io.BytesIO(content.encode('utf-8'))
+            file_info = tarfile.TarInfo(name=filename)
+            file_info.size = len(file_bytes.getvalue())
+            file_info.mtime = int(time.time())
+            dist.addfile(file_info, fileobj=file_bytes)
+
+
+def create_setup_requires_package(path, distname='foobar', version='0.1',
+                                  make_package=make_trivial_sdist,
+                                  setup_py_template=None):
     """Creates a source tree under path for a trivial test package that has a
     single requirement in setup_requires--a tarball for that requirement is
     also created and added to the dependency_links argument.
+
+    ``distname`` and ``version`` refer to the name/version of the package that
+    the test package requires via ``setup_requires``.  The name of the test
+    package itself is just 'test_pkg'.
     """
 
     test_setup_attrs = {
         'name': 'test_pkg', 'version': '0.0',
-        'setup_requires': ['foobar==0.1'],
+        'setup_requires': ['%s==%s' % (distname, version)],
         'dependency_links': [os.path.abspath(path)]
     }
 
@@ -365,22 +488,17 @@ def create_setup_requires_package(path):
     test_setup_py = os.path.join(test_pkg, 'setup.py')
     os.mkdir(test_pkg)
 
-    with open(test_setup_py, 'w') as f:
-        f.write(DALS("""
+    if setup_py_template is None:
+        setup_py_template = DALS("""\
             import setuptools
             setuptools.setup(**%r)
-        """ % test_setup_attrs))
+        """)
 
-    foobar_path = os.path.join(path, 'foobar-0.1.tar.gz')
-    make_trivial_sdist(
-        foobar_path,
-        DALS("""
-            import setuptools
-            setuptools.setup(
-                name='foobar',
-                version='0.1'
-            )
-        """))
+    with open(test_setup_py, 'w') as f:
+        f.write(setup_py_template % test_setup_attrs)
+
+    foobar_path = os.path.join(path, '%s-%s.tar.gz' % (distname, version))
+    make_package(foobar_path, distname, version)
 
     return test_pkg
 
@@ -391,12 +509,7 @@ def make_trivial_sdist(dist_path, setup_py):
     """
 
     setup_py_file = tarfile.TarInfo(name='setup.py')
-    try:
-        # Python 3 (StringIO gets converted to io module)
-        MemFile = BytesIO
-    except AttributeError:
-        MemFile = StringIO
-    setup_py_bytes = MemFile(setup_py.encode('utf-8'))
+    setup_py_bytes = io.BytesIO(setup_py.encode('utf-8'))
     setup_py_file.size = len(setup_py_bytes.getvalue())
     with tarfile_open(dist_path, 'w:gz') as dist:
         dist.addfile(setup_py_file, fileobj=setup_py_bytes)
@@ -429,46 +542,6 @@ class TestScriptHeader:
             executable='"'+self.exe_with_spaces+'"')
         expected = '#!"%s"\n' % self.exe_with_spaces
         assert actual == expected
-
-    @pytest.mark.xfail(
-        compat.PY3 and is_ascii,
-        reason="Test fails in this locale on Python 3"
-    )
-    @mock.patch.dict(sys.modules, java=mock.Mock(lang=mock.Mock(System=
-        mock.Mock(getProperty=mock.Mock(return_value="")))))
-    @mock.patch('sys.platform', 'java1.5.0_13')
-    def test_get_script_header_jython_workaround(self, tmpdir):
-        # Create a mock sys.executable that uses a shebang line
-        header = DALS("""
-            #!/usr/bin/python
-            # -*- coding: utf-8 -*-
-            """)
-        exe = tmpdir / 'exe.py'
-        with exe.open('w') as f:
-            f.write(header)
-        exe = str(exe)
-
-        header = ei.ScriptWriter.get_script_header('#!/usr/local/bin/python',
-            executable=exe)
-        assert header == '#!/usr/bin/env %s\n' % exe
-
-        expect_out = 'stdout' if sys.version_info < (2,7) else 'stderr'
-
-        with contexts.quiet() as (stdout, stderr):
-            # When options are included, generate a broken shebang line
-            # with a warning emitted
-            candidate = ei.ScriptWriter.get_script_header('#!/usr/bin/python -x',
-                executable=exe)
-            assert candidate == '#!%s -x\n' % exe
-            output = locals()[expect_out]
-            assert 'Unable to adapt shebang line' in output.getvalue()
-
-        with contexts.quiet() as (stdout, stderr):
-            candidate = ei.ScriptWriter.get_script_header('#!/usr/bin/python',
-                executable=self.non_ascii_exe)
-            assert candidate == '#!%s -x\n' % self.non_ascii_exe
-            output = locals()[expect_out]
-            assert 'Unable to adapt shebang line' in output.getvalue()
 
 
 class TestCommandSpec:

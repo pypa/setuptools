@@ -4,6 +4,8 @@ from distutils.errors import DistutilsOptionError
 import distutils
 import os
 
+from setuptools.extern.six.moves import configparser
+
 from setuptools import Command
 
 
@@ -37,8 +39,6 @@ def edit_config(filename, settings, dry_run=False):
     while a dictionary lists settings to be changed or deleted in that section.
     A setting of ``None`` means to delete that setting.
     """
-    from setuptools.compat import configparser
-
     log.debug("Reading configuration from %s", filename)
     opts = configparser.RawConfigParser()
     opts.read([filename])

@@ -3,8 +3,9 @@ from distutils import log
 from distutils.errors import DistutilsOptionError
 import os
 
+from setuptools.extern import six
+
 from setuptools import Command
-from setuptools.compat import basestring
 
 
 class rotate(Command):
@@ -36,7 +37,7 @@ class rotate(Command):
             self.keep = int(self.keep)
         except ValueError:
             raise DistutilsOptionError("--keep must be an integer")
-        if isinstance(self.match, basestring):
+        if isinstance(self.match, six.string_types):
             self.match = [
                 convert_path(p.strip()) for p in self.match.split(',')
             ]

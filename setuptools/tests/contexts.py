@@ -5,7 +5,8 @@ import sys
 import contextlib
 import site
 
-from ..compat import StringIO
+from setuptools.extern import six
+import pkg_resources
 
 
 @contextlib.contextmanager
@@ -57,8 +58,8 @@ def quiet():
 
     old_stdout = sys.stdout
     old_stderr = sys.stderr
-    new_stdout = sys.stdout = StringIO()
-    new_stderr = sys.stderr = StringIO()
+    new_stdout = sys.stdout = six.StringIO()
+    new_stderr = sys.stderr = six.StringIO()
     try:
         yield new_stdout, new_stderr
     finally:
@@ -75,6 +76,18 @@ def save_user_site_setting():
         yield saved
     finally:
         site.ENABLE_USER_SITE = saved
+
+
+@contextlib.contextmanager
+def save_pkg_resources_state():
+    pr_state = pkg_resources.__getstate__()
+    # also save sys.path
+    sys_path = sys.path[:]
+    try:
+        yield pr_state, sys_path
+    finally:
+        sys.path[:] = sys_path
+        pkg_resources.__setstate__(pr_state)
 
 
 @contextlib.contextmanager

@@ -5,7 +5,8 @@ import os
 import sys
 import io
 
-from setuptools.compat import PY3
+from setuptools.extern import six
+
 from setuptools.utils import cs_path_exists
 
 import pkg_resources
@@ -181,7 +182,7 @@ class sdist(orig.sdist):
         manifest = open(self.manifest, 'rbU')
         for line in manifest:
             # The manifest must contain UTF-8. See #303.
-            if PY3:
+            if six.PY3:
                 try:
                     line = line.decode('UTF-8')
                 except UnicodeDecodeError:
