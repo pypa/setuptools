@@ -804,17 +804,10 @@ class WorkingSet(object):
             if req in processed:
                 # Ignore cyclic or redundant dependencies
                 continue
-            # If the req has a marker, evaluate it -- skipping the req if
-            # it evaluates to False.
-            if req.marker:
-                result = []
-                if req in extra_req_mapping:
-                    for extra in extra_req_mapping[req] or ['']:
-                        result.append(req.marker.evaluate({'extra': extra}))
-                else:
-                    result.append(req.marker.evaluate())
-                if not any(result):
-                    continue
+
+            if not self._markers_pass(req, extra_req_mapping):
+                continue
+
             dist = best.get(req.key)
             if dist is None:
                 # Find the best distribution and add it to the map
@@ -853,6 +846,26 @@ class WorkingSet(object):
 
         # return list of distros to activate
         return to_activate
+
+    @staticmethod
+    def _markers_pass(req, extra_req_mapping):
+        """
+        Return False if the req has a marker and fails
+        evaluation. Otherwise, return True.
+
+        extra_req_mapping is a map of requirements to
+        extras.
+        """
+        if not req.marker:
+            return True
+
+        result = []
+        if req in extra_req_mapping:
+            for extra in extra_req_mapping[req] or ['']:
+                result.append(req.marker.evaluate({'extra': extra}))
+        else:
+            result.append(req.marker.evaluate())
+        return any(result)
 
     def find_plugins(self, plugin_env, full_env=None, installer=None,
             fallback=True):
