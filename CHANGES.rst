@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+v20.6.8
+-------
+
+* Issue #523: Restored support for environment markers,
+  now honoring 'extra' environment markers.
+
 v20.6.7
 -------
 
