@@ -382,7 +382,10 @@ class TestEntryPoints:
     def checkSubMap(self, m):
         assert len(m) == len(self.submap_expect)
         for key, ep in self.submap_expect.items():
-            assert repr(m.get(key)) == repr(ep)
+            assert m.get(key).name == ep.name
+            assert m.get(key).module_name == ep.module_name
+            assert sorted(m.get(key).attrs) == sorted(ep.attrs)
+            assert sorted(m.get(key).extras) == sorted(ep.extras)
 
     submap_expect = dict(
         feature1=EntryPoint('feature1', 'somemodule', ['somefunction']),
