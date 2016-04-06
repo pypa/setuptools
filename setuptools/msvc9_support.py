@@ -1,7 +1,10 @@
+import distutils.errors
+
 try:
     import distutils.msvc9compiler
-except ImportError:
-    pass
+    HAVE_MSVC9COMPILER = True
+except (ImportError, distutils.errors.DistutilsPlatformError):
+    HAVE_MSVC9COMPILER = False
 
 unpatched = dict()
 
@@ -11,7 +14,7 @@ def patch_for_specialized_compiler():
     build for Python (Windows only). Fall back to original behavior when the
     standalone compiler is not available.
     """
-    if 'distutils' not in globals():
+    if not HAVE_MSVC9COMPILER:
         # The module isn't available to be patched
         return
 
