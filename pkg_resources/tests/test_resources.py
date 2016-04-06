@@ -186,6 +186,12 @@ class TestDistro:
         res = ws.resolve(parse_requirements("Foo;python_version>='2'"), ad)
         assert list(res) == [Foo]
 
+    def test_environment_marker_evaluation_called(self):
+        ws = WorkingSet([])
+        req, = parse_requirements("bar;python_version<'4'")
+        extra_req_mapping = {req: ()}
+        assert ws._markers_pass(req, extra_req_mapping) == True
+
     def test_marker_evaluation_with_extras(self):
         """Extras are also evaluated as markers at resolution time."""
         ad = pkg_resources.Environment([])
