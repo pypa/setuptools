@@ -1859,7 +1859,10 @@ class FileMetadata(EmptyProvider):
     def get_metadata(self, name):
         if name=='PKG-INFO':
             with io.open(self.path, encoding='utf-8') as f:
-                metadata = f.read()
+                try:
+                    metadata = f.read()
+                except UnicodeDecodeError as e:
+                    raise Exception("Bad utf in package: %s - %s" % (self.path, e))
             return metadata
         raise KeyError("No metadata except PKG-INFO is available")
 
