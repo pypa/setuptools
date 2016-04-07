@@ -861,7 +861,7 @@ class WorkingSet(object):
 
         result = []
         if req in extra_req_mapping:
-            for extra in extra_req_mapping[req]:
+            for extra in extra_req_mapping[req] or ['']:
                 result.append(req.marker.evaluate({'extra': extra}))
         else:
             result.append(req.marker.evaluate())
