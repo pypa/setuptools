@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+v20.7
+-----
+
+* Issue #536: In msvc9_support, trap additional exceptions
+  that might occur when importing
+  ``distutils.msvc9compiler`` in mingw environments.
+
 v20.6.8
 -------
 
