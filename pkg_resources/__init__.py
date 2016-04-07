@@ -35,6 +35,7 @@ import plistlib
 import email.parser
 import tempfile
 import textwrap
+import itertools
 from pkgutil import get_importer
 
 try:
@@ -986,16 +987,17 @@ class _ReqExtras(dict):
         Return False if the req has a marker and fails
         evaluation. Otherwise, return True.
         """
-        if not req.marker:
-            return True
-
-        result = []
-        if req in self:
-            for extra in self[req] or ['']:
-                result.append(req.marker.evaluate({'extra': extra}))
-        else:
-            result.append(req.marker.evaluate())
-        return any(result)
+        extra_evals = (
+            req.marker.evaluate({'extra': extra})
+            for extra in self.get(req, ())
+        )
+        # set up a late-evaluated simple marker evaluation.
+        simple_eval = (
+            req.marker.evaluate()
+            for _ in (None,)
+        )
+        evals = itertools.chain(extra_evals, simple_eval)
+        return not req.marker or any(evals)
 
 
 class Environment(object):
