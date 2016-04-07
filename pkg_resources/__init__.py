@@ -1861,8 +1861,11 @@ class FileMetadata(EmptyProvider):
             with io.open(self.path, encoding='utf-8') as f:
                 try:
                     metadata = f.read()
-                except UnicodeDecodeError as e:
-                    raise Exception("Bad utf in package: %s - %s" % (self.path, e))
+                except UnicodeDecodeError as exc:
+                    # add path context to error message
+                    tmpl = " in {self.path}"
+                    exc.reason += tmpl.format(self=self)
+                    raise
             return metadata
         raise KeyError("No metadata except PKG-INFO is available")
 
