@@ -2,12 +2,17 @@
 CHANGES
 =======
 
-v20.7
------
+v20.7.0
+-------
 
+* Refactored extra enviroment marker processing
+  in WorkingSet.
+* Issue #533: Fixed intermittent test failures.
 * Issue #536: In msvc9_support, trap additional exceptions
   that might occur when importing
   ``distutils.msvc9compiler`` in mingw environments.
+* Issue #537: Provide better context when package
+  metadata fails to decode in UTF-8.
 
 v20.6.8
 -------
