@@ -35,7 +35,6 @@ import plistlib
 import email.parser
 import tempfile
 import textwrap
-import itertools
 from pkgutil import get_importer
 
 try:
@@ -991,13 +990,7 @@ class _ReqExtras(dict):
             req.marker.evaluate({'extra': extra})
             for extra in self.get(req, ())
         )
-        # set up a late-evaluated simple marker evaluation.
-        simple_eval = (
-            req.marker.evaluate()
-            for _ in (None,)
-        )
-        evals = itertools.chain(extra_evals, simple_eval)
-        return not req.marker or any(evals)
+        return not req.marker or any(extra_evals) or req.marker.evaluate()
 
 
 class Environment(object):
