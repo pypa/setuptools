@@ -791,8 +791,8 @@ class WorkingSet(object):
         # key -> dist
         best = {}
         to_activate = []
-        # Map requirement to the extras that require it
-        extra_req_mapping = {}
+
+        req_extras = _ReqExtras()
 
         # Mapping of requirement to set of distributions that required it;
         # useful for reporting info about conflicts.
@@ -805,7 +805,7 @@ class WorkingSet(object):
                 # Ignore cyclic or redundant dependencies
                 continue
 
-            if not self._markers_pass(req, extra_req_mapping):
+            if not req_extras.markers_pass(req):
                 continue
 
             dist = best.get(req.key)
@@ -840,32 +840,12 @@ class WorkingSet(object):
             # Register the new requirements needed by req
             for new_requirement in new_requirements:
                 required_by[new_requirement].add(req.project_name)
-                extra_req_mapping[new_requirement] = req.extras
+                req_extras[new_requirement] = req.extras
 
             processed[req] = True
 
         # return list of distros to activate
         return to_activate
-
-    @staticmethod
-    def _markers_pass(req, extra_req_mapping):
-        """
-        Return False if the req has a marker and fails
-        evaluation. Otherwise, return True.
-
-        extra_req_mapping is a map of requirements to
-        extras.
-        """
-        if not req.marker:
-            return True
-
-        result = []
-        if req in extra_req_mapping:
-            for extra in extra_req_mapping[req] or ['']:
-                result.append(req.marker.evaluate({'extra': extra}))
-        else:
-            result.append(req.marker.evaluate())
-        return any(result)
 
     def find_plugins(self, plugin_env, full_env=None, installer=None,
             fallback=True):
@@ -991,6 +971,31 @@ class WorkingSet(object):
         self.entry_keys = keys.copy()
         self.by_key = by_key.copy()
         self.callbacks = callbacks[:]
+
+
+class _ReqExtras(dict):
+    """
+    Map each requirement to the extras that demanded it.
+    """
+
+    def markers_pass(self, req):
+        """
+        Evaluate markers for req against each extra that
+        demanded it.
+
+        Return False if the req has a marker and fails
+        evaluation. Otherwise, return True.
+        """
+        if not req.marker:
+            return True
+
+        result = []
+        if req in self:
+            for extra in self[req] or ['']:
+                result.append(req.marker.evaluate({'extra': extra}))
+        else:
+            result.append(req.marker.evaluate())
+        return any(result)
 
 
 class Environment(object):

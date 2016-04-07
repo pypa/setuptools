@@ -187,10 +187,25 @@ class TestDistro:
         assert list(res) == [Foo]
 
     def test_environment_marker_evaluation_called(self):
-        ws = WorkingSet([])
-        req, = parse_requirements("bar;python_version<'4'")
-        extra_req_mapping = {req: ()}
-        assert ws._markers_pass(req, extra_req_mapping) == True
+        """
+        If one package foo requires bar without any extras,
+        markers should pass for bar.
+        """
+        parent_req, = parse_requirements("foo")
+        req, = parse_requirements("bar;python_version>='2'")
+        req_extras = pkg_resources._ReqExtras({req: parent_req.extras})
+        assert req_extras.markers_pass(req)
+
+        parent_req, = parse_requirements("foo[]")
+        req, = parse_requirements("bar;python_version>='2'")
+        req_extras = pkg_resources._ReqExtras({req: parent_req.extras})
+        assert req_extras.markers_pass(req)
+
+        # this is a little awkward; I would want this to fail
+        parent_req, = parse_requirements("foo")
+        req, = parse_requirements("bar;python_version>='2' and extra==''")
+        req_extras = pkg_resources._ReqExtras({req: parent_req.extras})
+        assert req_extras.markers_pass(req)
 
     def test_marker_evaluation_with_extras(self):
         """Extras are also evaluated as markers at resolution time."""
