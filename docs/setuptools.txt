@@ -1270,7 +1270,8 @@ Creating System Packages
 Setting the ``zip_safe`` flag
 -----------------------------
 
-For maximum performance, Python packages are best installed as zip files.
+For some use cases (such as bundling as part of a larger application), Python
+packages may be run directly from a zip file.
 Not all packages, however, are capable of running in compressed form, because
 they may expect to be able to access either source code or data files as
 normal operating system files.  So, ``setuptools`` can install your project
