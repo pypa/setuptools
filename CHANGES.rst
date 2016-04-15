@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+v20.8.0
+-------
+
+* Issue #543: Re-release so that latest release doesn't
+  cause déjà vu with distribute and setuptools 0.7 in
+  older environments.
+
 v20.7.0
 -------
 
