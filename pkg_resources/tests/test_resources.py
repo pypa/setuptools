@@ -189,7 +189,7 @@ class TestDistro:
     def test_environment_marker_evaluation_called(self):
         """
         If one package foo requires bar without any extras,
-        markers should pass for bar.
+        markers should pass for bar without extras.
         """
         parent_req, = parse_requirements("foo")
         req, = parse_requirements("bar;python_version>='2'")
@@ -200,14 +200,6 @@ class TestDistro:
         req, = parse_requirements("bar;python_version>='2'")
         req_extras = pkg_resources._ReqExtras({req: parent_req.extras})
         assert req_extras.markers_pass(req)
-
-        # extra should not be present in the marker namespace if
-        # no markers were supplied
-        parent_req, = parse_requirements("foo")
-        req, = parse_requirements("bar;extra==''")
-        req_extras = pkg_resources._ReqExtras({req: parent_req.extras})
-        with pytest.raises(packaging.markers.UndefinedEnvironmentName):
-            req_extras.markers_pass(req)
 
     def test_marker_evaluation_with_extras(self):
         """Extras are also evaluated as markers at resolution time."""

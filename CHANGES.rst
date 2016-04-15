@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+v20.8.1
+-------
+
+* Issue #544: Fix issue with extra environment marker
+  processing in WorkingSet due to refactor in v20.7.0.
+
 v20.8.0
 -------
 

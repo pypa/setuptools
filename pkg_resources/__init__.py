@@ -988,9 +988,9 @@ class _ReqExtras(dict):
         """
         extra_evals = (
             req.marker.evaluate({'extra': extra})
-            for extra in self.get(req, ())
+            for extra in self.get(req, ()) + (None,)
         )
-        return not req.marker or any(extra_evals) or req.marker.evaluate()
+        return not req.marker or any(extra_evals)
 
 
 class Environment(object):
