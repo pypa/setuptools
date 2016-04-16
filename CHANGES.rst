@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+v20.9.0
+-------
+
+* #548: Update certify version to 2016.2.28
+* #545: Safely handle deletion of non-zip eggs in rotate
+  command.
+
 v20.8.1
 -------
 
