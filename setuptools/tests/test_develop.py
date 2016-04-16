@@ -5,12 +5,13 @@ import site
 import sys
 import io
 
+from setuptools.extern import six
+
 import pytest
 
 from setuptools.command.develop import develop
 from setuptools.dist import Distribution
 from . import contexts
-from setuptools.compat import PY3
 
 
 SETUP_PY = """\
@@ -85,7 +86,7 @@ class TestDevelop:
         with io.open(fn) as init_file:
             init = init_file.read().strip()
 
-        expected = 'print("foo")' if PY3 else 'print "foo"'
+        expected = 'print("foo")' if six.PY3 else 'print "foo"'
         assert init == expected
 
     def test_console_scripts(self, tmpdir):

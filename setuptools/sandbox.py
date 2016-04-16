@@ -8,6 +8,9 @@ import re
 import contextlib
 import pickle
 
+from setuptools.extern import six
+from setuptools.extern.six.moves import builtins, map
+
 import pkg_resources
 
 if sys.platform.startswith('java'):
@@ -21,9 +24,6 @@ except NameError:
 _open = open
 from distutils.errors import DistutilsError
 from pkg_resources import working_set
-
-from setuptools import compat
-from setuptools.compat import builtins
 
 __all__ = [
     "AbstractSandbox", "DirectorySandbox", "SandboxViolation", "run_setup",
@@ -138,7 +138,7 @@ class ExceptionSaver:
             return
 
         type, exc = map(pickle.loads, self._saved)
-        compat.reraise(type, exc, self._tb)
+        six.reraise(type, exc, self._tb)
 
 
 @contextlib.contextmanager
@@ -207,8 +207,12 @@ def _needs_hiding(mod_name):
     True
     >>> _needs_hiding('distutils')
     True
+    >>> _needs_hiding('os')
+    False
+    >>> _needs_hiding('Cython')
+    True
     """
-    pattern = re.compile('(setuptools|pkg_resources|distutils)(\.|$)')
+    pattern = re.compile('(setuptools|pkg_resources|distutils|Cython)(\.|$)')
     return bool(pattern.match(mod_name))
 
 

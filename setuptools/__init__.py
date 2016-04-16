@@ -8,11 +8,12 @@ from distutils.core import Command as _Command
 from distutils.util import convert_path
 from fnmatch import fnmatchcase
 
+from setuptools.extern.six.moves import filterfalse, map
+
 import setuptools.version
 from setuptools.extension import Extension
 from setuptools.dist import Distribution, Feature, _get_unpatched
 from setuptools.depends import Require
-from setuptools.compat import filterfalse
 
 __all__ = [
     'setup', 'Distribution', 'Feature', 'Command', 'Extension', 'Require',

@@ -4,9 +4,10 @@ import sys
 import os
 import distutils.errors
 
-from setuptools.compat import httplib, HTTPError, unicode, pathname2url
-from .textwrap import DALS
+from setuptools.extern import six
+from setuptools.extern.six.moves import urllib, http_client
 
+from .textwrap import DALS
 import pkg_resources
 import setuptools.package_index
 from setuptools.tests.server import IndexServer
@@ -22,7 +23,7 @@ class TestPackageIndex:
         except Exception as v:
             assert url in str(v)
         else:
-            assert isinstance(v, HTTPError)
+            assert isinstance(v, urllib.error.HTTPError)
 
     def test_bad_url_typo(self):
         # issue 16
@@ -38,7 +39,7 @@ class TestPackageIndex:
         except Exception as v:
             assert url in str(v)
         else:
-            assert isinstance(v, HTTPError)
+            assert isinstance(v, urllib.error.HTTPError)
 
     def test_bad_url_bad_status_line(self):
         index = setuptools.package_index.PackageIndex(
@@ -46,7 +47,7 @@ class TestPackageIndex:
         )
 
         def _urlopen(*args):
-            raise httplib.BadStatusLine('line')
+            raise http_client.BadStatusLine('line')
 
         index.opener = _urlopen
         url = 'http://example.com'
@@ -70,7 +71,7 @@ class TestPackageIndex:
         try:
             index.open_url(url)
         except distutils.errors.DistutilsError as error:
-            msg = unicode(error)
+            msg = six.text_type(error)
             assert 'nonnumeric port' in msg or 'getaddrinfo failed' in msg or 'Name or service not known' in msg
             return
         raise RuntimeError("Did not raise")
@@ -167,7 +168,7 @@ class TestPackageIndex:
         index_file = tmpdir / 'index.html'
         with index_file.open('w') as f:
             f.write('<div>content</div>')
-        url = 'file:' + pathname2url(str(tmpdir)) + '/'
+        url = 'file:' + urllib.request.pathname2url(str(tmpdir)) + '/'
         res = setuptools.package_index.local_open(url)
         assert 'content' in res.read()
 

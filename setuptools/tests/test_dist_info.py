@@ -4,6 +4,8 @@ import os
 import shutil
 import tempfile
 
+from setuptools.extern.six.moves import map
+
 import pytest
 
 import pkg_resources
@@ -26,14 +28,15 @@ class TestDistInfo:
         assert versioned.version == '2.718' # from filename
         assert unversioned.version == '0.3' # from METADATA
 
-    @pytest.mark.importorskip('ast')
     def test_conditional_dependencies(self):
         specs = 'splort==4', 'quux>=1.1'
         requires = list(map(pkg_resources.Requirement.parse, specs))
 
         for d in pkg_resources.find_distributions(self.tmpdir):
             assert d.requires() == requires[:1]
-            assert d.requires(extras=('baz',)) == requires
+            assert d.requires(extras=('baz',)) == [
+                requires[0],
+                pkg_resources.Requirement.parse('quux>=1.1;extra=="baz"')]
             assert d.extras == ['baz']
 
     metadata_template = DALS("""

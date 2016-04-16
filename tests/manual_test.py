@@ -7,7 +7,8 @@ import tempfile
 import subprocess
 from distutils.command.install import INSTALL_SCHEMES
 from string import Template
-from setuptools.compat import urlopen
+
+from six.moves import urllib
 
 def _system_call(*args):
     assert subprocess.call(args) == 0
@@ -42,10 +43,8 @@ PYVER = sys.version.split()[0][:3]
 _VARS = {'base': '.',
          'py_version_short': PYVER}
 
-if sys.platform == 'win32':
-    PURELIB = INSTALL_SCHEMES['nt']['purelib']
-else:
-    PURELIB = INSTALL_SCHEMES['unix_prefix']['purelib']
+scheme = 'nt' if sys.platform == 'win32' else 'unix_prefix'
+PURELIB = INSTALL_SCHEMES[scheme]['purelib']
 
 
 @tempdir
@@ -76,7 +75,7 @@ def test_full():
         f.write(SIMPLE_BUILDOUT)
 
     with open('bootstrap.py', 'w') as f:
-        f.write(urlopen(BOOTSTRAP).read())
+        f.write(urllib.request.urlopen(BOOTSTRAP).read())
 
     _system_call('bin/python', 'bootstrap.py')
     _system_call('bin/buildout', '-q')
