@@ -1131,5 +1131,6 @@ class EnvironmentInfo:
             name = os.listdir(path)
             if name:
                 return '%s\\' % name[0]
+            return ''
         except FileNotFoundError:
             return ''
