@@ -2,6 +2,7 @@ from distutils.util import convert_path
 from distutils import log
 from distutils.errors import DistutilsOptionError
 import distutils
+import operator
 import os
 
 from setuptools.extern.six.moves import configparser
@@ -42,7 +43,8 @@ def edit_config(filename, settings, dry_run=False):
     log.debug("Reading configuration from %s", filename)
     opts = configparser.RawConfigParser()
     opts.read([filename])
-    for section, options in settings.items():
+    for section, options in sorted(settings.items(),
+                                   key=operator.itemgetter(0)):
         if options is None:
             log.info("Deleting section [%s] from %s", section, filename)
             opts.remove_section(section)
@@ -50,7 +52,8 @@ def edit_config(filename, settings, dry_run=False):
             if not opts.has_section(section):
                 log.debug("Adding new section [%s] to %s", section, filename)
                 opts.add_section(section)
-            for option, value in options.items():
+            for option, value in sorted(options.items(),
+                                        key=operator.itemgetter(0)):
                 if value is None:
                     log.debug(
                         "Deleting %s.%s from %s",

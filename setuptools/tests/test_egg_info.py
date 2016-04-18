@@ -1,7 +1,16 @@
 import os
 import glob
+import re
 import stat
+import sys
 
+try:
+    from unittest import mock
+except ImportError:
+    import mock
+
+from setuptools.command.egg_info import egg_info
+from setuptools.dist import Distribution
 from setuptools.extern.six.moves import map
 
 import pytest
@@ -58,6 +67,59 @@ class TestEggInfo(object):
                 }
             })
             yield env
+
+    def test_egg_info_save_version_info_setup_empty(self, tmpdir_cwd, env):
+        setup_cfg = os.path.join(env.paths['home'], 'setup.cfg')
+        build_files({
+            setup_cfg: DALS("""
+            [egg_info]
+            """),
+        })
+        dist = Distribution()
+        ei = egg_info(dist)
+        ei.initialize_options()
+        ei.save_version_info(setup_cfg)
+
+        with open(setup_cfg, 'r') as f:
+            content = f.read()
+
+            assert '[egg_info]' in content
+            assert 'tag_build =' in content
+            assert 'tag_date = 0' in content
+            assert 'tag_svn_revision = 0' in content
+
+            if sys.version_info[0:2] >= (2, 7):
+                assert re.search('tag_build.*tag_date.*tag_svn_revision',
+                                 content,
+                                 re.MULTILINE | re.DOTALL) is not None
+
+    def test_egg_info_save_version_info_setup_defaults(self, tmpdir_cwd, env):
+        setup_cfg = os.path.join(env.paths['home'], 'setup.cfg')
+        build_files({
+            setup_cfg: DALS("""
+            [egg_info]
+            tag_build =
+            tag_date = 0
+            tag_svn_revision = 0
+            """),
+        })
+        dist = Distribution()
+        ei = egg_info(dist)
+        ei.initialize_options()
+        ei.save_version_info(setup_cfg)
+
+        with open(setup_cfg, 'r') as f:
+            content = f.read()
+
+            assert '[egg_info]' in content
+            assert 'tag_build =' in content
+            assert 'tag_date = 0' in content
+            assert 'tag_svn_revision = 0' in content
+
+            if sys.version_info[0:2] >= (2, 7):
+                assert re.search('tag_build.*tag_date.*tag_svn_revision',
+                                 content,
+                                 re.MULTILINE | re.DOTALL) is not None
 
     def test_egg_base_installed_egg_info(self, tmpdir_cwd, env):
         self._create_project()
