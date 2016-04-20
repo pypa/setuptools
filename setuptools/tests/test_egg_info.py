@@ -65,11 +65,6 @@ class TestEggInfo(object):
 
     def test_egg_info_save_version_info_setup_empty(self, tmpdir_cwd, env):
         setup_cfg = os.path.join(env.paths['home'], 'setup.cfg')
-        build_files({
-            setup_cfg: DALS("""
-            [egg_info]
-            """),
-        })
         dist = Distribution()
         ei = egg_info(dist)
         ei.initialize_options()
