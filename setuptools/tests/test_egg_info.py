@@ -64,6 +64,12 @@ class TestEggInfo(object):
             yield env
 
     def test_egg_info_save_version_info_setup_empty(self, tmpdir_cwd, env):
+        """
+        When the egg_info section is empty or not present, running
+        save_version_info should add the settings to the setup.cfg
+        in a deterministic order, consistent with the ordering found
+        on Python 2.6 and 2.7 with PYTHONHASHSEED=0.
+        """
         setup_cfg = os.path.join(env.paths['home'], 'setup.cfg')
         dist = Distribution()
         ei = egg_info(dist)
@@ -92,6 +98,13 @@ class TestEggInfo(object):
         assert re.search(pattern, content, flags)
 
     def test_egg_info_save_version_info_setup_defaults(self, tmpdir_cwd, env):
+        """
+        When running save_version_info on an existing setup.cfg
+        with the 'default' values present from a previous run,
+        the file should remain unchanged, except on Python 2.6,
+        where the order of the keys will be changed to match the
+        order as found in a dictionary of those keys.
+        """
         setup_cfg = os.path.join(env.paths['home'], 'setup.cfg')
         build_files({
             setup_cfg: DALS("""
