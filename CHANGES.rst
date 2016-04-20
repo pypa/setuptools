@@ -2,6 +2,14 @@
 CHANGES
 =======
 
+v20.10.0
+--------
+
+* #553: egg_info section is now generated in a
+  deterministic order, matching the order generated
+  by earlier versions of Python. Except on Python 2.6,
+  order is preserved when existing settings are present.
+
 v20.9.0
 -------
 
