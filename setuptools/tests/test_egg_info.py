@@ -84,7 +84,8 @@ class TestEggInfo(object):
         assert 'tag_date = 0' in content
         assert 'tag_svn_revision = 0' in content
 
-        expected_order = 'tag_date', 'tag_svn_revision', 'tag_build'
+        expected_order = 'tag_build', 'tag_date', 'tag_svn_revision'
+
         self._validate_content_order(content, expected_order)
 
     @staticmethod
@@ -93,6 +94,10 @@ class TestEggInfo(object):
         Assert that the strings in expected appear in content
         in order.
         """
+        if sys.version_info < (2, 7):
+            # On Python 2.6, expect dict key order.
+            expected = dict.fromkeys(expected).keys()
+
         pattern = '.*'.join(expected)
         flags = re.MULTILINE | re.DOTALL
         assert re.search(pattern, content, flags)
@@ -128,11 +133,6 @@ class TestEggInfo(object):
         assert 'tag_svn_revision = 0' in content
 
         expected_order = 'tag_build', 'tag_date', 'tag_svn_revision'
-
-        if sys.version_info < (2, 7):
-            # On Python 2.6, config gets overridden, retaining order
-            # from the dict.
-            expected_order = dict.fromkeys(expected_order).keys()
 
         self._validate_content_order(content, expected_order)
 
