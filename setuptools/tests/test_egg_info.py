@@ -4,11 +4,6 @@ import re
 import stat
 import sys
 
-try:
-    from unittest import mock
-except ImportError:
-    import mock
-
 from setuptools.command.egg_info import egg_info
 from setuptools.dist import Distribution
 from setuptools.extern.six.moves import map
