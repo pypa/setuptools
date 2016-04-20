@@ -83,7 +83,7 @@ class TestEggInfo(object):
         assert 'tag_date = 0' in content
         assert 'tag_svn_revision = 0' in content
 
-        if sys.version_info[0:2] >= (2, 7):
+        if sys.version_info >= (2, 7):
             assert re.search('tag_date.*tag_svn_revision.*tag_build',
                              content,
                              re.MULTILINE | re.DOTALL) is not None
@@ -111,7 +111,7 @@ class TestEggInfo(object):
         assert 'tag_date = 0' in content
         assert 'tag_svn_revision = 0' in content
 
-        if sys.version_info[0:2] >= (2, 7):
+        if sys.version_info >= (2, 7):
             assert re.search('tag_build.*tag_date.*tag_svn_revision',
                              content,
                              re.MULTILINE | re.DOTALL) is not None
