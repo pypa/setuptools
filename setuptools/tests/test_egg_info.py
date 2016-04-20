@@ -87,12 +87,12 @@ class TestEggInfo(object):
         self._validate_content_order(content, expected_order)
 
     @staticmethod
-    def _validate_content_order(content, expected_order):
-        if sys.version_info < (2, 7):
-            # order cannot be guaranteed on Python 2.6
-            return
-
-        pattern = '.*'.join(expected_order)
+    def _validate_content_order(content, expected):
+        """
+        Assert that the strings in expected appear in content
+        in order.
+        """
+        pattern = '.*'.join(expected)
         flags = re.MULTILINE | re.DOTALL
         assert re.search(pattern, content, flags)
 
@@ -120,6 +120,12 @@ class TestEggInfo(object):
         assert 'tag_svn_revision = 0' in content
 
         expected_order = 'tag_build', 'tag_date', 'tag_svn_revision'
+
+        if sys.version_info < (2, 7):
+            # On Python 2.6, config gets overridden, retaining order
+            # from the dict.
+            expected_order = dict.fromkeys(expected_order).keys()
+
         self._validate_content_order(content, expected_order)
 
     def test_egg_base_installed_egg_info(self, tmpdir_cwd, env):
