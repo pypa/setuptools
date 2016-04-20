@@ -83,10 +83,18 @@ class TestEggInfo(object):
         assert 'tag_date = 0' in content
         assert 'tag_svn_revision = 0' in content
 
-        if sys.version_info >= (2, 7):
-            assert re.search('tag_date.*tag_svn_revision.*tag_build',
-                             content,
-                             re.MULTILINE | re.DOTALL) is not None
+        expected_order = 'tag_date', 'tag_svn_revision', 'tag_build'
+        self._validate_content_order(content, expected_order)
+
+    @staticmethod
+    def _validate_content_order(content, expected_order):
+        if sys.version_info < (2, 7):
+            # order cannot be guaranteed on Python 2.6
+            return
+
+        pattern = '.*'.join(expected_order)
+        flags = re.MULTILINE | re.DOTALL
+        assert re.search(pattern, content, flags)
 
     def test_egg_info_save_version_info_setup_defaults(self, tmpdir_cwd, env):
         setup_cfg = os.path.join(env.paths['home'], 'setup.cfg')
@@ -111,10 +119,8 @@ class TestEggInfo(object):
         assert 'tag_date = 0' in content
         assert 'tag_svn_revision = 0' in content
 
-        if sys.version_info >= (2, 7):
-            assert re.search('tag_build.*tag_date.*tag_svn_revision',
-                             content,
-                             re.MULTILINE | re.DOTALL) is not None
+        expected_order = 'tag_build', 'tag_date', 'tag_svn_revision'
+        self._validate_content_order(content, expected_order)
 
     def test_egg_base_installed_egg_info(self, tmpdir_cwd, env):
         self._create_project()
