@@ -4,8 +4,7 @@ This module improve support for Microsoft Visual C++ compilers. (Windows Only)
 import os
 import itertools
 import distutils.errors
-import six
-import six.moves.winreg as winreg
+from setuptools.extern.six.moves import winreg, filterfalse
 
 try:
     # Distutil file for MSVC++ 9.0 and upper (Python 2.7 to 3.4)
@@ -1101,7 +1100,6 @@ class EnvironmentInfo:
         """
         seen = set()
         seen_add = seen.add
-        filterfalse = six.moves.filterfalse
         if key is None:
             for element in filterfalse(seen.__contains__, iterable):
                 seen_add(element)
