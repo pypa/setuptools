@@ -13,7 +13,8 @@ class upload(orig.upload):
         # Attempt to obtain password. Short circuit evaluation at the first
         # sign of success.
         self.password = (
-            self.password or self._load_password_from_keyring() or
+            self.password or
+            self._load_password_from_keyring() or
             self._prompt_for_password()
         )
 
