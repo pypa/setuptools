@@ -33,7 +33,7 @@ except ImportError:
 
 LATEST = object()
 DEFAULT_VERSION = LATEST
-DEFAULT_URL = "https://pypi.python.org/packages/source/s/setuptools/"
+DEFAULT_URL = "https://pypi.io/packages/source/s/setuptools/"
 DEFAULT_SAVE_DIR = os.curdir
 
 
@@ -192,8 +192,6 @@ def _conflict_bail(VC_err, version):
 
 
 def _unload_pkg_resources():
-    sys.meta_path = [importer for importer in sys.meta_path if
-                     importer.__class__.__module__ != 'pkg_resources.extern']
     del_modules = [
         name for name in sys.modules
         if name.startswith('pkg_resources')
@@ -253,7 +251,7 @@ download_file_powershell.viable = has_powershell
 
 
 def download_file_curl(url, target):
-    cmd = ['curl', url, '--silent', '--output', target]
+    cmd = ['curl', url, '--location', '--silent', '--output', target]
     _clean_check(cmd, target)
 
 
