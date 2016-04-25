@@ -9,6 +9,8 @@ v20.10.0
   deterministic order, matching the order generated
   by earlier versions of Python. Except on Python 2.6,
   order is preserved when existing settings are present.
+* #556: Update to Packaging 16.7, restoring support
+  for deprecated ``python_implmentation`` marker.
 
 v20.9.0
 -------
