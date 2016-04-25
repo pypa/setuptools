@@ -1,3 +1,4 @@
+import getpass
 from distutils.command import upload as orig
 
 
@@ -34,7 +35,6 @@ class upload(orig.upload):
         """
         password = None
         try:
-            import getpass
             while not password:
                 password = getpass.getpass()
         except (Exception, KeyboardInterrupt):
