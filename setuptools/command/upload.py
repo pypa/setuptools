@@ -24,21 +24,15 @@ class upload(orig.upload):
         """
         try:
             keyring = __import__('keyring')
-            password = keyring.get_password(self.repository, self.username)
+            return keyring.get_password(self.repository, self.username)
         except Exception:
-            password = None
-        finally:
-            return password
+            pass
 
     def _prompt_for_password(self):
         """
         Prompt for a password on the tty. Suppress Exceptions.
         """
-        password = None
         try:
-            while not password:
-                password = getpass.getpass()
+            return getpass.getpass()
         except (Exception, KeyboardInterrupt):
-            password = None
-        finally:
-            return password
+            pass
