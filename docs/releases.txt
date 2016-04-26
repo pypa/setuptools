@@ -10,23 +10,20 @@ successful build of a tagged release per
 To cut a release, install and run ``bumpversion {part}`` where ``part``
 is major, minor, or patch based on the scope of the changes in the
 release. Then, push the commits to the master branch. If tests pass,
-the release will be uploaded to PyPI.
+the release will be uploaded to PyPI (from the Python 3.5 tests).
 
-Bootstrap Bookmark
-------------------
+Bootstrap Branch
+----------------
 
-Setuptools has a bootstrap script (ez_setup.py) which is hosted in the
-repository and must be updated with each release (to bump the default version).
-The "published" version of the script is the one indicated by the ``bootstrap``
-branch.
+Setuptools has a bootstrap script (ez_setup.py), which is hosted in the
+repository in the ``bootstrap`` branch.
 
-Therefore, the latest bootstrap script can be retrieved by checking out the
-repository at that bookmark. It's also possible to get the bootstrap script for
-any particular release by grabbing the script from that tagged release.
+Therefore, the latest bootstrap script can be retrieved by checking out
+that branch.
 
 The officially-published location of the bootstrap script is hosted on Python
 infrastructure (#python-infra on freenode) at https://bootstrap.pypa.io and
-is updated every fifteen minutes from the bootstrap script. Sometimes,
+is updated every fifteen minutes from the bootstrap branch. Sometimes,
 especially when the bootstrap script is rolled back, this
 process doesn't work as expected and requires manual intervention.
 

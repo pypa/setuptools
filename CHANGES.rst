@@ -2,6 +2,15 @@
 CHANGES
 =======
 
+v21.0.0
+-------
+
+* Removed ez_setup.py from Setuptools sdist. The
+  bootstrap script will be maintained in its own
+  branch and should be generally be retrieved from
+  its canonical location at
+  https://bootstrap.pypa.io/ez_setup.py.
+
 v20.10.0
 --------
 
