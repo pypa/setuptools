@@ -192,8 +192,11 @@ def _conflict_bail(VC_err, version):
 
 
 def _unload_pkg_resources():
-    sys.meta_path = [importer for importer in sys.meta_path if
-                     importer.__class__.__module__ != 'pkg_resources.extern']
+    sys.meta_path = [
+        importer
+        for importer in sys.meta_path
+        if importer.__class__.__module__ != 'pkg_resources.extern'
+    ]
     del_modules = [
         name for name in sys.modules
         if name.startswith('pkg_resources')
