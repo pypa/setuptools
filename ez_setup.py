@@ -3,6 +3,8 @@
 """
 Setuptools bootstrapping installer.
 
+Maintained at https://github.com/pypa/setuptools/tree/bootstrap.
+
 Run this script to install or upgrade setuptools.
 """
 
