@@ -1,3 +1,0 @@
-packaging==16.7
-pyparsing==2.0.6
-six==1.10.0
