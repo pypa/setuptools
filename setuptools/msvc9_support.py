@@ -235,7 +235,7 @@ class PlatformInfo:
     current_cpu = os.environ['processor_architecture'].lower()
 
     def __init__(self, arch):
-        self.arch = arch.lower()
+        self.arch = arch.lower().replace('x64', 'amd64')
 
     @property
     def target_cpu(self):
@@ -810,7 +810,7 @@ class EnvironmentInfo:
         """
         forcex86 = True if self.vcver <= 10.0 else False
         arch_subdir = self.pi.cross_dir(forcex86)
-        tools = [os.path.join(self.si.VCInstallDir, 'VCPackages'),
+        tools = [os.path.join(self.si.VCInstallDir, r'VCPackages'),
                  os.path.join(self.si.VCInstallDir, 'Bin%s' % arch_subdir)]
 
         if self.pi.cross_dir() and self.vcver >= 14.0:
@@ -829,7 +829,7 @@ class EnvironmentInfo:
         """
         if self.vcver <= 10.0:
             arch_subdir = self.pi.target_dir(hidex86=True, x64=True)
-            return [os.path.join(self.si.WindowsSdkDir, 'Bin%s' % arch_subdir)]
+            return [os.path.join(self.si.WindowsSdkDir, 'Lib%s' % arch_subdir)]
 
         else:
             arch_subdir = self.pi.target_dir(x64=True)
@@ -862,7 +862,13 @@ class EnvironmentInfo:
         Microsoft Windows SDK Libraries Paths
         """
         ref = os.path.join(self.si.WindowsSdkDir, 'References')
-        libpath = [os.path.join(ref, r'CommonConfiguration\Neutral')]
+        libpath = []
+
+        if self.vcver <= 9.0:
+            libpath += self.OSLibraries
+
+        if self.vcver >= 11.0:
+            libpath += [os.path.join(ref, r'CommonConfiguration\Neutral')]
 
         if self.vcver >= 14.0:
             libpath += [ref,
@@ -910,6 +916,9 @@ class EnvironmentInfo:
         """
         Microsoft Windows SDK Setup
         """
+        if self.vcver > 9.0:
+            return []
+
         return [os.path.join(self.si.WindowsSdkDir, 'Setup')]
 
     @property
@@ -1033,27 +1042,35 @@ class EnvironmentInfo:
         vcruntime = vcruntime % (arch_subdir, self.vcver, self.vcver)
         return os.path.join(self.si.VCInstallDir, vcruntime)
 
-    def return_env(self):
+    def return_env(self, exists=True):
         """
         Return environment dict.
+
+        Parameters
+        ----------
+        exists: bool
+            It True, only return existing paths.
         """
         env = dict(
             include=self._build_paths('include',
                                       [self.VCIncludes,
                                        self.OSIncludes,
                                        self.UCRTIncludes,
-                                       self.NetFxSDKIncludes]),
+                                       self.NetFxSDKIncludes],
+                                      exists),
             lib=self._build_paths('lib',
                                   [self.VCLibraries,
                                    self.OSLibraries,
                                    self.FxTools,
                                    self.UCRTLibraries,
-                                   self.NetFxSDKLibraries]),
+                                   self.NetFxSDKLibraries],
+                                  exists),
             libpath=self._build_paths('libpath',
                                       [self.VCLibraries,
                                        self.FxTools,
                                        self.VCStoreRefs,
-                                       self.OSLibpath]),
+                                       self.OSLibpath],
+                                      exists),
             path=self._build_paths('path',
                                    [self.VCTools,
                                     self.VSTools,
@@ -1063,13 +1080,14 @@ class EnvironmentInfo:
                                     self.FxTools,
                                     self.MSBuild,
                                     self.HTMLHelpWorkshop,
-                                    self.FSharp]),
+                                    self.FSharp],
+                                   exists),
         )
         if self.vcver >= 14 and os.path.isfile(self.VCRuntimeRedist):
             env['py_vcruntime_redist'] = self.VCRuntimeRedist
         return env
 
-    def _build_paths(self, name, spec_path_lists):
+    def _build_paths(self, name, spec_path_lists, exists):
         """
         Given an environment variable name and specified paths,
         return a pathsep-separated string of paths containing
@@ -1081,7 +1099,7 @@ class EnvironmentInfo:
         spec_paths = itertools.chain.from_iterable(spec_path_lists)
         env_paths = os.environ.get(name, '').split(os.pathsep)
         paths = itertools.chain(spec_paths, env_paths)
-        extant_paths = list(filter(os.path.isdir, paths))
+        extant_paths = list(filter(os.path.isdir, paths)) if exists else paths
         if not extant_paths:
             msg = "%s environment variable is empty" % name.upper()
             raise distutils.errors.DistutilsPlatformError(msg)
