@@ -810,7 +810,7 @@ class EnvironmentInfo:
         """
         forcex86 = True if self.vcver <= 10.0 else False
         arch_subdir = self.pi.cross_dir(forcex86)
-        tools = [os.path.join(self.si.VCInstallDir, r'VCPackages'),
+        tools = [os.path.join(self.si.VCInstallDir, 'VCPackages'),
                  os.path.join(self.si.VCInstallDir, 'Bin%s' % arch_subdir)]
 
         if self.pi.cross_dir() and self.vcver >= 14.0:
