@@ -2,9 +2,26 @@
 This module improve support for Microsoft Visual C++ compilers. (Windows Only)
 """
 import os
+import collections
 import itertools
 import distutils.errors
-from setuptools.extern.six.moves import winreg, filterfalse
+from setuptools.extern.six.moves import filterfalse
+
+try:
+    from setuptools.extern.six.moves import winreg
+    safe_env = os.environ
+except ImportError:
+    """
+    Mock winreg and environ so the module can be imported
+    on this platform.
+    """
+    class winreg:
+        HKEY_USERS = None
+        HKEY_CURRENT_USER = None
+        HKEY_LOCAL_MACHINE = None
+        HKEY_CLASSES_ROOT = None
+    safe_env = collections.defaultdict(lambda: '')
+
 
 try:
     # Distutil file for MSVC++ 9.0 and upper (Python 2.7 to 3.4)
@@ -232,7 +249,7 @@ class PlatformInfo:
     arch: str
         Target architecture.
     """
-    current_cpu = os.environ['processor_architecture'].lower()
+    current_cpu = safe_env['processor_architecture'].lower()
 
     def __init__(self, arch):
         self.arch = arch.lower().replace('x64', 'amd64')
@@ -443,8 +460,8 @@ class SystemInfo:
     vcver: float
         Required Microsoft Visual C++ version.
     """
-    WinDir = os.environ['WinDir']
-    ProgramFiles = os.environ['ProgramFiles']
+    WinDir = safe_env['WinDir']
+    ProgramFiles = safe_env['ProgramFiles']
     ProgramFilesx86 = os.environ.get('ProgramFiles(x86)', ProgramFiles)
 
     def __init__(self, registry_info, vcver=None):
