@@ -393,9 +393,9 @@ def _parse_args():
         default=DEFAULT_VERSION,
     )
     parser.add_option(
-    	'--to-dir',
-    	help="Directory to save (and re-use) package",
-    	default=DEFAULT_SAVE_DIR,
+        '--to-dir',
+        help="Directory to save (and re-use) package",
+        default=DEFAULT_SAVE_DIR,
     )
     options, args = parser.parse_args()
     # positional arguments are ignored
@@ -403,13 +403,13 @@ def _parse_args():
 
 
 def _download_args(options):
-	"""Return args for download_setuptools function from cmdline args."""
-	return dict(
-		version=options.version,
-		download_base=options.download_base,
-		downloader_factory=options.downloader_factory,
-		to_dir=options.to_dir,
-	)
+    """Return args for download_setuptools function from cmdline args."""
+    return dict(
+        version=options.version,
+        download_base=options.download_base,
+        downloader_factory=options.downloader_factory,
+        to_dir=options.to_dir,
+    )
 
 
 def main():
