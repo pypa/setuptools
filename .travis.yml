@@ -11,5 +11,4 @@ env:
  - ""
  - LC_ALL=C LC_CTYPE=C
 script:
- - pyflakes .
- - py.test
+ - py.test --flakes
