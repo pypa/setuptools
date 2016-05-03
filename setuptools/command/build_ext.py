@@ -16,15 +16,11 @@ try:
 except ImportError:
     _build_ext = _du_build_ext
 
-try:
-    # Python 2.7 or >=3.2
-    from sysconfig import _CONFIG_VARS
-except ImportError:
-    from distutils.sysconfig import get_config_var
+from distutils.sysconfig import get_config_var
 
-    get_config_var("LDSHARED")  # make sure _config_vars is initialized
-    del get_config_var
-    from distutils.sysconfig import _config_vars as _CONFIG_VARS
+get_config_var("LDSHARED")  # make sure _config_vars is initialized
+del get_config_var
+from distutils.sysconfig import _config_vars as _CONFIG_VARS
 
 have_rtld = False
 use_stubs = False
