@@ -2477,11 +2477,26 @@ class Distribution(object):
                             extra, marker = extra.split(':', 1)
                             if invalid_marker(marker):
                                 # XXX warn
-                                reqs=[]
+                                reqs = []
                             elif not evaluate_marker(marker):
-                                reqs=[]
+                                reqs = []
                         extra = safe_extra(extra) or None
-                    dm.setdefault(extra,[]).extend(parse_requirements(reqs))
+                    try:
+                        dm.setdefault(extra, []).extend(
+                            parse_requirements(reqs))
+                    except (
+                        packaging.requirements.InvalidRequirement,
+                        RequirementParseError
+                    ) as e:
+                        raise RequirementParseError(
+                            "Error on parsing a requirement for package {0} "
+                            "({1}). Message: {2}".format(
+                                str(self),
+                                self.location,
+                                str(e)
+                            )
+                        )
+
             return dm
 
     def requires(self, extras=()):

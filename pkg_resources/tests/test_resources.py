@@ -723,6 +723,18 @@ class TestParsing:
             hash(parse_version("1.0"))
         )
 
+    def testInvalid(self):
+        from pkg_resources import RequirementParseError
+        import pdb
+        pdb.set_trace()
+        with pytest.raises(RequirementParseError):
+            Requirement.parse("foobar,")
+
+        try:
+            Requirement.parse("foobar,")
+        except RequirementParseError as e:
+            assert 'Invalid requirement for "foobar,"' in str(e)
+
 
 class TestNamespaces:
 
