@@ -724,15 +724,12 @@ class TestParsing:
         )
 
     def testInvalid(self):
-        from pkg_resources import RequirementParseError
-        import pdb
-        pdb.set_trace()
-        with pytest.raises(RequirementParseError):
+        with pytest.raises(pkg_resources.RequirementParseError):
             Requirement.parse("foobar,")
 
         try:
             Requirement.parse("foobar,")
-        except RequirementParseError as e:
+        except pkg_resources.RequirementParseError as e:
             assert 'Invalid requirement for "foobar,"' in str(e)
 
 
