@@ -6,6 +6,7 @@ recursive-include setuptools/_vendor *
 recursive-include pkg_resources *.py *.txt
 include *.py
 include *.txt
+include *.rst
 include MANIFEST.in
 include launcher.c
 include msvc-build-launcher.cmd
