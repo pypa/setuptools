@@ -25,8 +25,10 @@ from distutils import log
 
 try:
     from urllib.request import urlopen
+    from urllib.parse import urljoin
 except ImportError:
     from urllib2 import urlopen
+    from urlparse import urljoin
 
 try:
     from site import USER_SITE
@@ -351,7 +353,8 @@ def _resolve_version(version):
     if version is not LATEST:
         return version
 
-    resp = urlopen('https://pypi.python.org/pypi/setuptools/json')
+    meta_url = urljoin(DEFAULT_URL, '/pypi/setuptools/json')
+    resp = urlopen(meta_url)
     with contextlib.closing(resp):
         try:
             charset = resp.info().get_content_charset()
