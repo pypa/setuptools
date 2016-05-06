@@ -10,3 +10,4 @@ include MANIFEST.in
 include launcher.c
 include msvc-build-launcher.cmd
 include pytest.ini
+include CHANGES.rst
