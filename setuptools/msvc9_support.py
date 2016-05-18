@@ -324,11 +324,11 @@ class PlatformInfo:
             "\current" if target architecture is current architecture,
             "\current_target" if not.
         """
-        path = self.target_dir(True)
-        if self.target_cpu != self.current_cpu:
-            current = 'x86' if forcex86 else self.current_cpu
-            path = path.replace('\\', '\\%s_' % current)
-        return path
+        current = 'x86' if forcex86 else self.current_cpu
+        if self.target_cpu != current:
+            return self.target_dir().replace('\\', '\\%s_' % current)
+        else:
+            return ''
 
 
 class RegistryInfo:
@@ -818,24 +818,27 @@ class EnvironmentInfo:
         """
         if self.vcver < 14.0:
             return []
-        return os.path.join(self.si.VCInstallDir, r'Lib\store\references')
+        return [os.path.join(self.si.VCInstallDir, r'Lib\store\references')]
 
     @property
     def VCTools(self):
         """
         Microsoft Visual C++ Tools
         """
+        si = self.si
+        tools = [os.path.join(si.VCInstallDir, 'VCPackages')]
+
         forcex86 = True if self.vcver <= 10.0 else False
         arch_subdir = self.pi.cross_dir(forcex86)
-        tools = [os.path.join(self.si.VCInstallDir, 'VCPackages'),
-                 os.path.join(self.si.VCInstallDir, 'Bin%s' % arch_subdir)]
+        if arch_subdir:
+            tools += [os.path.join(si.VCInstallDir, 'Bin%s' % arch_subdir)]
 
-        if self.pi.cross_dir() and self.vcver >= 14.0:
+        if self.vcver >= 14.0:
             path = 'Bin%s' % self.pi.current_dir(hidex86=True)
-            tools += [os.path.join(self.si.VCInstallDir, path)]
+            tools += [os.path.join(si.VCInstallDir, path)]
 
         else:
-            tools += [os.path.join(self.si.VCInstallDir, 'Bin')]
+            tools += [os.path.join(si.VCInstallDir, 'Bin')]
 
         return tools
 
@@ -999,9 +1002,8 @@ class EnvironmentInfo:
             return []
 
         arch_subdir = self.pi.current_dir(hidex86=True)
-        path = r'\MSBuild\%0.1f\bin%s' % (self.vcver, arch_subdir)
-        return [os.path.join(self.si.ProgramFilesx86, path),
-                os.path.join(self.si.ProgramFiles, path)]
+        path = r'MSBuild\%0.1f\bin%s' % (self.vcver, arch_subdir)
+        return [os.path.join(self.si.ProgramFilesx86, path)]
 
     @property
     def HTMLHelpWorkshop(self):
@@ -1011,8 +1013,7 @@ class EnvironmentInfo:
         if self.vcver < 11.0:
             return []
 
-        return [os.path.join(self.si.ProgramFilesx86, 'HTML Help Workshop'),
-                os.path.join(self.si.ProgramFiles, 'HTML Help Workshop')]
+        return [os.path.join(self.si.ProgramFilesx86, 'HTML Help Workshop')]
 
     @property
     def UCRTLibraries(self):
