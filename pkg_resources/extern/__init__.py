@@ -67,5 +67,5 @@ class VendorImporter:
         if self not in sys.meta_path:
             sys.meta_path.append(self)
 
-names = 'packaging', 'six'
+names = 'packaging', 'pyparsing', 'six'
 VendorImporter(__name__, names).install()

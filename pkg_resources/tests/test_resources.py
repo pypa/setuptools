@@ -15,17 +15,6 @@ from pkg_resources import (parse_requirements, VersionConflict, parse_version,
     WorkingSet)
 
 
-def safe_repr(obj, short=False):
-    """ copied from Python2.7"""
-    try:
-        result = repr(obj)
-    except Exception:
-        result = object.__repr__(obj)
-    if not short or len(result) < pkg_resources._MAX_LENGTH:
-        return result
-    return result[:pkg_resources._MAX_LENGTH] + ' [truncated]...'
-
-
 class Metadata(pkg_resources.EmptyProvider):
     """Mock object to return metadata as if from an on-disk distribution"""
 
@@ -182,6 +171,100 @@ class TestDistro:
         msg = 'Foo 0.9 is installed but Foo==1.2 is required'
         assert vc.value.report() == msg
 
+    def test_environment_marker_evaluation_negative(self):
+        """Environment markers are evaluated at resolution time."""
+        ad = pkg_resources.Environment([])
+        ws = WorkingSet([])
+        res = ws.resolve(parse_requirements("Foo;python_version<'2'"), ad)
+        assert list(res) == []
+
+    def test_environment_marker_evaluation_positive(self):
+        ad = pkg_resources.Environment([])
+        ws = WorkingSet([])
+        Foo = Distribution.from_filename("/foo_dir/Foo-1.2.dist-info")
+        ad.add(Foo)
+        res = ws.resolve(parse_requirements("Foo;python_version>='2'"), ad)
+        assert list(res) == [Foo]
+
+    def test_environment_marker_evaluation_called(self):
+        """
+        If one package foo requires bar without any extras,
+        markers should pass for bar without extras.
+        """
+        parent_req, = parse_requirements("foo")
+        req, = parse_requirements("bar;python_version>='2'")
+        req_extras = pkg_resources._ReqExtras({req: parent_req.extras})
+        assert req_extras.markers_pass(req)
+
+        parent_req, = parse_requirements("foo[]")
+        req, = parse_requirements("bar;python_version>='2'")
+        req_extras = pkg_resources._ReqExtras({req: parent_req.extras})
+        assert req_extras.markers_pass(req)
+
+    def test_marker_evaluation_with_extras(self):
+        """Extras are also evaluated as markers at resolution time."""
+        ad = pkg_resources.Environment([])
+        ws = WorkingSet([])
+        # Metadata needs to be native strings due to cStringIO behaviour in
+        # 2.6, so use str().
+        Foo = Distribution.from_filename(
+            "/foo_dir/Foo-1.2.dist-info",
+            metadata=Metadata(("METADATA", str("Provides-Extra: baz\n"
+                               "Requires-Dist: quux; extra=='baz'")))
+        )
+        ad.add(Foo)
+        assert list(ws.resolve(parse_requirements("Foo"), ad)) == [Foo]
+        quux = Distribution.from_filename("/foo_dir/quux-1.0.dist-info")
+        ad.add(quux)
+        res = list(ws.resolve(parse_requirements("Foo[baz]"), ad))
+        assert res == [Foo,quux]
+
+    def test_marker_evaluation_with_multiple_extras(self):
+        ad = pkg_resources.Environment([])
+        ws = WorkingSet([])
+        # Metadata needs to be native strings due to cStringIO behaviour in
+        # 2.6, so use str().
+        Foo = Distribution.from_filename(
+            "/foo_dir/Foo-1.2.dist-info",
+            metadata=Metadata(("METADATA", str("Provides-Extra: baz\n"
+                               "Requires-Dist: quux; extra=='baz'\n"
+                               "Provides-Extra: bar\n"
+                               "Requires-Dist: fred; extra=='bar'\n")))
+        )
+        ad.add(Foo)
+        quux = Distribution.from_filename("/foo_dir/quux-1.0.dist-info")
+        ad.add(quux)
+        fred = Distribution.from_filename("/foo_dir/fred-0.1.dist-info")
+        ad.add(fred)
+        res = list(ws.resolve(parse_requirements("Foo[baz,bar]"), ad))
+        assert sorted(res) == [fred,quux,Foo]
+
+    def test_marker_evaluation_with_extras_loop(self):
+        ad = pkg_resources.Environment([])
+        ws = WorkingSet([])
+        # Metadata needs to be native strings due to cStringIO behaviour in
+        # 2.6, so use str().
+        a = Distribution.from_filename(
+            "/foo_dir/a-0.2.dist-info",
+            metadata=Metadata(("METADATA", str("Requires-Dist: c[a]")))
+        )
+        b = Distribution.from_filename(
+            "/foo_dir/b-0.3.dist-info",
+            metadata=Metadata(("METADATA", str("Requires-Dist: c[b]")))
+        )
+        c = Distribution.from_filename(
+            "/foo_dir/c-1.0.dist-info",
+            metadata=Metadata(("METADATA", str("Provides-Extra: a\n"
+                               "Requires-Dist: b;extra=='a'\n"
+                               "Provides-Extra: b\n"
+                               "Requires-Dist: foo;extra=='b'")))
+        )
+        foo = Distribution.from_filename("/foo_dir/foo-0.1.dist-info")
+        for dist in (a, b, c, foo):
+            ad.add(dist)
+        res = list(ws.resolve(parse_requirements("a"), ad))
+        assert res == [a, c, b, foo]
+
     def testDistroDependsOptions(self):
         d = self.distRequires("""
             Twisted>=1.5
@@ -314,7 +397,10 @@ class TestEntryPoints:
     def checkSubMap(self, m):
         assert len(m) == len(self.submap_expect)
         for key, ep in self.submap_expect.items():
-            assert repr(m.get(key)) == repr(ep)
+            assert m.get(key).name == ep.name
+            assert m.get(key).module_name == ep.module_name
+            assert sorted(m.get(key).attrs) == sorted(ep.attrs)
+            assert sorted(m.get(key).extras) == sorted(ep.extras)
 
     submap_expect = dict(
         feature1=EntryPoint('feature1', 'somemodule', ['somefunction']),
@@ -353,22 +439,22 @@ class TestRequirements:
         r = Requirement.parse("Twisted>=1.2")
         assert str(r) == "Twisted>=1.2"
         assert repr(r) == "Requirement.parse('Twisted>=1.2')"
-        assert r == Requirement("Twisted", [('>=','1.2')], ())
-        assert r == Requirement("twisTed", [('>=','1.2')], ())
-        assert r != Requirement("Twisted", [('>=','2.0')], ())
-        assert r != Requirement("Zope", [('>=','1.2')], ())
-        assert r != Requirement("Zope", [('>=','3.0')], ())
-        assert r != Requirement.parse("Twisted[extras]>=1.2")
+        assert r == Requirement("Twisted>=1.2")
+        assert r == Requirement("twisTed>=1.2")
+        assert r != Requirement("Twisted>=2.0")
+        assert r != Requirement("Zope>=1.2")
+        assert r != Requirement("Zope>=3.0")
+        assert r != Requirement("Twisted[extras]>=1.2")
 
     def testOrdering(self):
-        r1 = Requirement("Twisted", [('==','1.2c1'),('>=','1.2')], ())
-        r2 = Requirement("Twisted", [('>=','1.2'),('==','1.2c1')], ())
+        r1 = Requirement("Twisted==1.2c1,>=1.2")
+        r2 = Requirement("Twisted>=1.2,==1.2c1")
         assert r1 == r2
         assert str(r1) == str(r2)
         assert str(r2) == "Twisted==1.2c1,>=1.2"
 
     def testBasicContains(self):
-        r = Requirement("Twisted", [('>=','1.2')], ())
+        r = Requirement("Twisted>=1.2")
         foo_dist = Distribution.from_filename("FooPkg-1.3_1.egg")
         twist11 = Distribution.from_filename("Twisted-1.1.egg")
         twist12 = Distribution.from_filename("Twisted-1.2.egg")
@@ -384,8 +470,8 @@ class TestRequirements:
         r1 = Requirement.parse("Twisted[foo,bar]>=1.2")
         r2 = Requirement.parse("Twisted[bar,FOO]>=1.2")
         assert r1 == r2
-        assert r1.extras == ("foo","bar")
-        assert r2.extras == ("bar","foo")  # extras are normalized
+        assert set(r1.extras) == set(("foo", "bar"))
+        assert set(r2.extras) == set(("foo", "bar"))
         assert hash(r1) == hash(r2)
         assert (
             hash(r1)
@@ -394,6 +480,7 @@ class TestRequirements:
                 "twisted",
                 packaging.specifiers.SpecifierSet(">=1.2"),
                 frozenset(["foo","bar"]),
+                None
             ))
         )
 
@@ -485,17 +572,17 @@ class TestParsing:
         assert (
             list(parse_requirements('Twis-Ted>=1.2-1'))
             ==
-            [Requirement('Twis-Ted',[('>=','1.2-1')], ())]
+            [Requirement('Twis-Ted>=1.2-1')]
         )
         assert (
             list(parse_requirements('Twisted >=1.2, \ # more\n<2.0'))
             ==
-            [Requirement('Twisted',[('>=','1.2'),('<','2.0')], ())]
+            [Requirement('Twisted>=1.2,<2.0')]
         )
         assert (
             Requirement.parse("FooBar==1.99a3")
             ==
-            Requirement("FooBar", [('==','1.99a3')], ())
+            Requirement("FooBar==1.99a3")
         )
         with pytest.raises(ValueError):
             Requirement.parse(">=2.3")
@@ -507,6 +594,35 @@ class TestParsing:
             Requirement.parse("X==1\nY==2")
         with pytest.raises(ValueError):
             Requirement.parse("#")
+
+    def test_requirements_with_markers(self):
+        assert (
+            Requirement.parse("foobar;os_name=='a'")
+            ==
+            Requirement.parse("foobar;os_name=='a'")
+        )
+        assert (
+            Requirement.parse("name==1.1;python_version=='2.7'")
+            !=
+            Requirement.parse("name==1.1;python_version=='3.3'")
+        )
+        assert (
+            Requirement.parse("name==1.0;python_version=='2.7'")
+            !=
+            Requirement.parse("name==1.2;python_version=='2.7'")
+        )
+        assert (
+            Requirement.parse("name[foo]==1.0;python_version=='3.3'")
+            !=
+            Requirement.parse("name[foo,bar]==1.0;python_version=='3.3'")
+        )
+
+    def test_local_version(self):
+        req, = parse_requirements('foo==1.0.org1')
+
+    def test_spaces_between_multiple_versions(self):
+        req, = parse_requirements('foo>=1.0, <3')
+        req, = parse_requirements('foo >= 1.0, < 3')
 
     def testVersionEquality(self):
         def c(s1,s2):
@@ -687,7 +803,7 @@ class TestNamespaces:
         sys.path is imported, and that the namespace package's __path__ is in
         the correct order.
 
-        Regression test for https://bitbucket.org/pypa/setuptools/issues/207
+        Regression test for https://github.com/pypa/setuptools/issues/207
         """
 
         tmpdir = symlinked_tmpdir

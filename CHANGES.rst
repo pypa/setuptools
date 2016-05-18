@@ -8,6 +8,157 @@ Next
 * Pull Request #174: Add more aggressive support for
   Windows SDK in msvc9compiler patch.
 
+v21.0.0
+-------
+
+* Removed ez_setup.py from Setuptools sdist. The
+  bootstrap script will be maintained in its own
+  branch and should be generally be retrieved from
+  its canonical location at
+  https://bootstrap.pypa.io/ez_setup.py.
+
+v20.10.0
+--------
+
+* #553: egg_info section is now generated in a
+  deterministic order, matching the order generated
+  by earlier versions of Python. Except on Python 2.6,
+  order is preserved when existing settings are present.
+* #556: Update to Packaging 16.7, restoring support
+  for deprecated ``python_implmentation`` marker.
+* #555: Upload command now prompts for a password
+  when uploading to PyPI (or other repository) if no
+  password is present in .pypirc or in the keyring.
+
+v20.9.0
+-------
+
+* #548: Update certify version to 2016.2.28
+* #545: Safely handle deletion of non-zip eggs in rotate
+  command.
+
+v20.8.1
+-------
+
+* Issue #544: Fix issue with extra environment marker
+  processing in WorkingSet due to refactor in v20.7.0.
+
+v20.8.0
+-------
+
+* Issue #543: Re-release so that latest release doesn't
+  cause déjà vu with distribute and setuptools 0.7 in
+  older environments.
+
+v20.7.0
+-------
+
+* Refactored extra enviroment marker processing
+  in WorkingSet.
+* Issue #533: Fixed intermittent test failures.
+* Issue #536: In msvc9_support, trap additional exceptions
+  that might occur when importing
+  ``distutils.msvc9compiler`` in mingw environments.
+* Issue #537: Provide better context when package
+  metadata fails to decode in UTF-8.
+
+v20.6.8
+-------
+
+* Issue #523: Restored support for environment markers,
+  now honoring 'extra' environment markers.
+
+v20.6.7
+-------
+
+* Issue #523: Disabled support for environment markers
+  introduced in v20.5.
+
+v20.6.6
+-------
+
+* Issue #503: Restore support for PEP 345 environment
+  markers by updating to Packaging 16.6.
+
+v20.6.0
+-------
+
+* New release process that relies on
+  `bumpversion <https://github.com/peritus/bumpversion>`_
+  and Travis CI for continuous deployment.
+* Project versioning semantics now follow
+  `semver <https://semver.org>`_ precisely.
+  The 'v' prefix on version numbers now also allows
+  version numbers to be referenced in the changelog,
+  e.g. https://pythonhosted.org/setuptools/history.html#v20-6-0.
+
+20.5
+----
+
+* BB Pull Request #185: Add support for environment markers
+  in requirements in install_requires, setup_requires,
+  tests_require as well as adding a test for the existing
+  extra_requires machinery.
+
+20.4
+----
+
+* Issue #422: Moved hosting to
+  `Github <https://github.com/pypa/setuptools>`_
+  from `Bitbucket <https://bitbucket.org/pypa/setuptools>`_.
+  Issues have been migrated, though all issues and comments
+  are attributed to bb-migration. So if you have a particular
+  issue or issues to which you've been subscribed, you will
+  want to "watch" the equivalent issue in Github.
+  The Bitbucket project will be retained for the indefinite
+  future, but Github now hosts the canonical project repository.
+
+20.3.1
+------
+
+* Issue #519: Remove import hook when reloading the
+  ``pkg_resources`` module.
+* BB Pull Request #184: Update documentation in ``pkg_resources``
+  around new ``Requirement`` implementation.
+
+20.3
+----
+
+* BB Pull Request #179: ``pkg_resources.Requirement`` objects are
+  now a subclass of ``packaging.requirements.Requirement``,
+  allowing any environment markers and url (if any) to be
+  affiliated with the requirement
+* BB Pull Request #179: Restore use of RequirementParseError
+  exception unintentionally dropped in 20.2.
+
+20.2.2
+------
+
+* Issue #502: Correct regression in parsing of multiple
+  version specifiers separated by commas and spaces.
+
+20.2.1
+------
+
+* Issue #499: Restore compatiblity for legacy versions
+  by bumping to packaging 16.4.
+
+20.2
+----
+
+* Changelog now includes release dates and links to PEPs.
+* BB Pull Request #173: Replace dual PEP 345 _markerlib implementation
+  and PEP 426 implementation of environment marker support from
+  packaging 16.1 and PEP 508. Fixes Issue #122.
+  See also BB Pull Request #175, BB Pull Request #168, and
+  BB Pull Request #164. Additionally:
+
+   - ``Requirement.parse`` no longer retains the order of extras.
+   - ``parse_requirements`` now requires that all versions be
+     PEP-440 compliant, as revealed in #499. Packages released
+     with invalid local versions should be re-released using
+     the proper local version syntax, e.g. ``mypkg-1.0+myorg.1``.
+
 20.1.1
 ------
 
@@ -76,7 +227,7 @@ Next
 * Issue #486: Correct TypeError when getfilesystemencoding
   returns None.
 * Issue #139: Clarified the license as MIT.
-* Pull Request #169: Removed special handling of command
+* BB Pull Request #169: Removed special handling of command
   spec in scripts for Jython.
 
 19.4.1
@@ -92,7 +243,7 @@ Next
 * Issue #341: Correct error in path handling of package data
   files in ``build_py`` command when package is empty.
 * Distribute #323, Issue #141, Issue #207, and
-  Pull Request #167: Another implementation of
+  BB Pull Request #167: Another implementation of
   ``pkg_resources.WorkingSet`` and ``pkg_resources.Distribution``
   that supports replacing an extant package with a new one,
   allowing for setup_requires dependencies to supersede installed
@@ -108,8 +259,8 @@ Next
 19.2
 ----
 
-* Pull Request #163: Add get_command_list method to Distribution.
-* Pull Request #162: Add missing whitespace to multiline string
+* BB Pull Request #163: Add get_command_list method to Distribution.
+* BB Pull Request #162: Add missing whitespace to multiline string
   literals.
 
 19.1.1
@@ -165,16 +316,15 @@ Next
 ----
 
 * Update dependency on certify.
-* Pull Request #160: Improve detection of gui script in
+* BB Pull Request #160: Improve detection of gui script in
   ``easy_install._adjust_header``.
 * Made ``test.test_args`` a non-data property; alternate fix
-  for the issue reported in Pull Request #155.
+  for the issue reported in BB Pull Request #155.
 * Issue #453: In ``ez_setup`` bootstrap module, unload all
   ``pkg_resources`` modules following download.
-* Pull Request #158: Honor `PEP-488
-  <https://www.python.org/dev/peps/pep-0488/>`_ when excluding
+* BB Pull Request #158: Honor PEP-488 when excluding
   files for namespace packages.
-* Issue #419 and Pull Request #144: Add experimental support for
+* Issue #419 and BB Pull Request #144: Add experimental support for
   reading the version info from distutils-installed metadata rather
   than using the version in the filename.
 
@@ -276,7 +426,7 @@ Next
   However, for systems with this build of setuptools, Cython will be
   downloaded on demand.
 * Issue #396: Fixed test failure on OS X.
-* Pull Request #136: Remove excessive quoting from shebang headers
+* BB Pull Request #136: Remove excessive quoting from shebang headers
   for Jython.
 
 17.1.1
@@ -303,11 +453,11 @@ Next
 16.0
 ----
 
-* Pull Request #130: Better error messages for errors in
+* BB Pull Request #130: Better error messages for errors in
   parsed requirements.
-* Pull Request #133: Removed ``setuptools.tests`` from the
+* BB Pull Request #133: Removed ``setuptools.tests`` from the
   installed packages.
-* Pull Request #129: Address deprecation warning due to usage
+* BB Pull Request #129: Address deprecation warning due to usage
   of imp module.
 
 15.2
@@ -326,7 +476,7 @@ Next
 15.0
 ----
 
-* Pull Request #126: DistributionNotFound message now lists the package or
+* BB Pull Request #126: DistributionNotFound message now lists the package or
   packages that required it. E.g.::
 
       pkg_resources.DistributionNotFound: The 'colorama>=0.3.1' distribution was not found and is required by smlib.log.
@@ -367,7 +517,7 @@ Next
 14.1
 ----
 
-* Pull Request #125: Add ``__ne__`` to Requirement class.
+* BB Pull Request #125: Add ``__ne__`` to Requirement class.
 * Various refactoring of easy_install.
 
 14.0
@@ -375,7 +525,7 @@ Next
 
 * Bootstrap script now accepts ``--to-dir`` to customize save directory or
   allow for re-use of existing repository of setuptools versions. See
-  Pull Request #112 for background.
+  BB Pull Request #112 for background.
 * Issue #285: ``easy_install`` no longer will default to installing
   packages to the "user site packages" directory if it is itself installed
   there. Instead, the user must pass ``--user`` in all cases to install
@@ -400,7 +550,7 @@ process to fail and PyPI uploads no longer accept files for 13.0.
 13.0
 ----
 
-* Issue #356: Back out Pull Request #119 as it requires Setuptools 10 or later
+* Issue #356: Back out BB Pull Request #119 as it requires Setuptools 10 or later
   as the source during an upgrade.
 * Removed build_py class from setup.py. According to 892f439d216e, this
   functionality was added to support upgrades from old Distribute versions,
@@ -409,7 +559,7 @@ process to fail and PyPI uploads no longer accept files for 13.0.
 12.4
 ----
 
-* Pull Request #119: Restore writing of ``setup_requires`` to metadata
+* BB Pull Request #119: Restore writing of ``setup_requires`` to metadata
   (previously added in 8.4 and removed in 9.0).
 
 12.3
@@ -434,7 +584,7 @@ process to fail and PyPI uploads no longer accept files for 13.0.
 12.1
 ----
 
-* Pull Request #118: Soften warning for non-normalized versions in
+* BB Pull Request #118: Soften warning for non-normalized versions in
   Distribution.
 
 12.0.5
@@ -575,7 +725,7 @@ process to fail and PyPI uploads no longer accept files for 13.0.
 8.4
 ---
 
-* Pull Request #106: Now write ``setup_requires`` metadata.
+* BB Pull Request #106: Now write ``setup_requires`` metadata.
 
 8.3
 ---
@@ -592,7 +742,7 @@ process to fail and PyPI uploads no longer accept files for 13.0.
 8.2
 ---
 
-* Pull Request #85: Search egg-base when adding egg-info to manifest.
+* BB Pull Request #85: Search egg-base when adding egg-info to manifest.
 
 8.1
 ---
@@ -632,7 +782,7 @@ process to fail and PyPI uploads no longer accept files for 13.0.
 8.0
 ---
 
-* Implement `PEP 440 <http://legacy.python.org/dev/peps/pep-0440/>`_ within
+* Implement PEP 440 within
   pkg_resources and setuptools. This change
   deprecates some version numbers such that they will no longer be installable
   without using the ``===`` escape hatch. See `the changes to test_resources
@@ -695,9 +845,9 @@ process to fail and PyPI uploads no longer accept files for 13.0.
   Any users producing distributions with filenames that match those above
   case-insensitively, but not case-sensitively, should rename those files in
   their repository for better portability.
-* Pull Request #72: When using ``single_version_externally_managed``, the
+* BB Pull Request #72: When using ``single_version_externally_managed``, the
   exclusion list now includes Python 3.2 ``__pycache__`` entries.
-* Pull Request #76 and Pull Request #78: lines in top_level.txt are now
+* BB Pull Request #76 and BB Pull Request #78: lines in top_level.txt are now
   ordered deterministically.
 * Issue #118: The egg-info directory is now no longer included in the list
   of outputs.
@@ -896,7 +1046,7 @@ process to fail and PyPI uploads no longer accept files for 13.0.
 3.2
 ---
 
-* Pull Request #39: Add support for C++ targets from Cython ``.pyx`` files.
+* BB Pull Request #39: Add support for C++ targets from Cython ``.pyx`` files.
 * Issue #162: Update dependency on certifi to 1.0.1.
 * Issue #164: Update dependency on wincertstore to 0.2.
 
@@ -939,7 +1089,7 @@ process to fail and PyPI uploads no longer accept files for 13.0.
   security vulnerabilities presented by use of tar archives in ez_setup.py.
   It also leverages the security features added to ZipFile.extract in Python 2.7.4.
 * Issue #65: Removed deprecated Features functionality.
-* Pull Request #28: Remove backport of ``_bytecode_filenames`` which is
+* BB Pull Request #28: Remove backport of ``_bytecode_filenames`` which is
   available in Python 2.6 and later, but also has better compatibility with
   Python 3 environments.
 * Issue #156: Fix spelling of __PYVENV_LAUNCHER__ variable.
@@ -1035,7 +1185,7 @@ process to fail and PyPI uploads no longer accept files for 13.0.
 
 * Issue #27: ``easy_install`` will now use credentials from .pypirc if
   present for connecting to the package index.
-* Pull Request #21: Omit unwanted newlines in ``package_index._encode_auth``
+* BB Pull Request #21: Omit unwanted newlines in ``package_index._encode_auth``
   when the username/password pair length indicates wrapping.
 
 1.3.2
@@ -1377,7 +1527,7 @@ Added several features that were slated for setuptools 0.6c12:
 0.6.36
 ------
 
-* Pull Request #35: In Buildout #64, it was reported that
+* BB Pull Request #35: In Buildout #64, it was reported that
   under Python 3, installation of distutils scripts could attempt to copy
   the ``__pycache__`` directory as a file, causing an error, apparently only
   under Windows. Easy_install now skips all directories when processing
@@ -1452,7 +1602,7 @@ how it parses version numbers.
 0.6.29
 ------
 
-* Pull Request #14: Honor file permissions in zip files.
+* BB Pull Request #14: Honor file permissions in zip files.
 * Distribute #327: Merged pull request #24 to fix a dependency problem with pip.
 * Merged pull request #23 to fix https://github.com/pypa/virtualenv/issues/301.
 * If Sphinx is installed, the `upload_docs` command now runs `build_sphinx`
@@ -1705,7 +1855,7 @@ how it parses version numbers.
 * Distribute #65: cli.exe and gui.exe are now generated at build time,
   depending on the platform in use.
 
-* Distribute #67: Fixed doc typo (PEP 381/382)
+* Distribute #67: Fixed doc typo (PEP 381/PEP 382).
 
 * Distribute no longer shadows setuptools if we require a 0.7-series
   setuptools.  And an error is raised when installing a 0.7 setuptools with

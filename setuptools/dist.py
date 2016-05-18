@@ -720,7 +720,7 @@ class Feature:
     """
     **deprecated** -- The `Feature` facility was never completely implemented
     or supported, `has reported issues
-    <https://bitbucket.org/pypa/setuptools/issue/58>`_ and will be removed in
+    <https://github.com/pypa/setuptools/issues/58>`_ and will be removed in
     a future version.
 
     A subset of the distribution that can be excluded if unneeded/wanted
@@ -777,7 +777,7 @@ class Feature:
     def warn_deprecated():
         warnings.warn(
             "Features are deprecated and will be removed in a future "
-                "version. See http://bitbucket.org/pypa/setuptools/65.",
+                "version. See https://github.com/pypa/setuptools/issues/65.",
             DeprecationWarning,
             stacklevel=3,
         )

@@ -22,11 +22,6 @@ with open(init_path) as init_file:
 
 SETUP_COMMANDS = command_ns['__all__']
 
-main_ns = {}
-ver_path = convert_path('setuptools/version.py')
-with open(ver_path) as ver_file:
-    exec(ver_file.read(), main_ns)
-
 import setuptools
 
 scripts = []
@@ -48,7 +43,7 @@ def _gen_console_scripts():
 
 console_scripts = list(_gen_console_scripts())
 
-readme_file = io.open('README.txt', encoding='utf-8')
+readme_file = io.open('README.rst', encoding='utf-8')
 
 with readme_file:
     long_description = readme_file.read()
@@ -66,19 +61,21 @@ if (sys.platform == 'win32' or (os.name == 'java' and os._name == 'nt')) \
 
 needs_pytest = set(['ptr', 'pytest', 'test']).intersection(sys.argv)
 pytest_runner = ['pytest-runner'] if needs_pytest else []
-needs_sphinx = set(['build_sphinx', 'upload_docs']).intersection(sys.argv)
-sphinx = ['sphinx', 'rst.linker'] if needs_sphinx else []
+needs_sphinx = set(['build_sphinx', 'upload_docs', 'release']).intersection(sys.argv)
+sphinx = ['sphinx', 'rst.linker>=1.5'] if needs_sphinx else []
+needs_wheel = set(['release', 'bdist_wheel']).intersection(sys.argv)
+wheel = ['wheel'] if needs_wheel else []
 
 setup_params = dict(
     name="setuptools",
-    version=main_ns['__version__'],
+    version="21.0.0",
     description="Easily download, build, install, upgrade, and uninstall "
                 "Python packages",
     author="Python Packaging Authority",
     author_email="distutils-sig@python.org",
     long_description=long_description,
     keywords="CPAN PyPI distutils eggs package management",
-    url="https://bitbucket.org/pypa/setuptools",
+    url="https://github.com/pypa/setuptools",
     src_root=src_root,
     packages=setuptools.find_packages(exclude=['*.tests']),
     package_data=package_data,
@@ -149,10 +146,10 @@ setup_params = dict(
         """).strip().splitlines(),
     extras_require={
         "ssl:sys_platform=='win32'": "wincertstore==0.2",
-        "certs": "certifi==2015.11.20",
+        "certs": "certifi==2016.2.28",
     },
     dependency_links=[
-        'https://pypi.python.org/packages/source/c/certifi/certifi-2015.11.20.tar.gz#md5=25134646672c695c1ff1593c2dd75d08',
+        'https://pypi.python.org/packages/source/c/certifi/certifi-2016.2.28.tar.gz#md5=5d672aa766e1f773c75cfeccd02d3650',
         'https://pypi.python.org/packages/source/w/wincertstore/wincertstore-0.2.zip#md5=ae728f2f007185648d0c7a8679b361e2',
     ],
     scripts=[],
@@ -161,7 +158,7 @@ setup_params = dict(
         'pytest>=2.8',
     ] + (['mock'] if sys.version_info[:2] < (3, 3) else []),
     setup_requires=[
-    ] + sphinx + pytest_runner,
+    ] + sphinx + pytest_runner + wheel,
 )
 
 if __name__ == '__main__':

@@ -710,10 +710,7 @@ class easy_install(Command):
         elif requirement is None or dist not in requirement:
             # if we wound up with a different version, resolve what we've got
             distreq = dist.as_requirement()
-            requirement = requirement or distreq
-            requirement = Requirement(
-                distreq.project_name, distreq.specs, requirement.extras
-            )
+            requirement = Requirement(str(distreq))
         log.info("Processing dependencies for %s", requirement)
         try:
             distros = WorkingSet([]).resolve(
@@ -783,7 +780,7 @@ class easy_install(Command):
         There are a couple of template scripts in the package. This
         function loads one of them and prepares it for use.
         """
-        # See https://bitbucket.org/pypa/setuptools/issue/134 for info
+        # See https://github.com/pypa/setuptools/issues/134 for info
         # on script file naming and downstream issues with SVR4
         name = 'script.tmpl'
         if dev_path:
@@ -1239,17 +1236,14 @@ class easy_install(Command):
 
         sitepy = os.path.join(self.install_dir, "site.py")
         source = resource_string("setuptools", "site-patch.py")
+        source = source.decode('utf-8')
         current = ""
 
         if os.path.exists(sitepy):
             log.debug("Checking existing site.py in %s", self.install_dir)
-            f = open(sitepy, 'rb')
-            current = f.read()
-            # we want str, not bytes
-            if six.PY3:
-                current = current.decode()
+            with io.open(sitepy) as strm:
+                current = strm.read()
 
-            f.close()
             if not current.startswith('def __boot():'):
                 raise DistutilsError(
                     "%s is not a setuptools-generated site.py; please"
@@ -1260,9 +1254,8 @@ class easy_install(Command):
             log.info("Creating %s", sitepy)
             if not self.dry_run:
                 ensure_directory(sitepy)
-                f = open(sitepy, 'wb')
-                f.write(source)
-                f.close()
+                with io.open(sitepy, 'w', encoding='utf-8') as strm:
+                    strm.write(source)
             self.byte_compile([sitepy])
 
         self.sitepy_installed = True
@@ -1769,7 +1762,7 @@ def _update_zipimporter_cache(normalized_path, cache, updater=None):
         #  * Does not support the dict.pop() method, forcing us to use the
         #    get/del patterns instead. For more detailed information see the
         #    following links:
-        #      https://bitbucket.org/pypa/setuptools/issue/202/more-robust-zipimporter-cache-invalidation#comment-10495960
+        #      https://github.com/pypa/setuptools/issues/202#issuecomment-202913420
         #      https://bitbucket.org/pypy/pypy/src/dd07756a34a41f674c0cacfbc8ae1d4cc9ea2ae4/pypy/module/zipimport/interp_zipimport.py#cl-99
         old_entry = cache[p]
         del cache[p]

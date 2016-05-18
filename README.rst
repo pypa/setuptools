@@ -18,7 +18,7 @@ basic routine, so below are some examples to get you started.
 
 Setuptools requires Python 2.6 or later. To install setuptools
 on Python 2.4 or Python 2.5, use the `bootstrap script for Setuptools 1.x
-<https://bitbucket.org/pypa/setuptools/raw/bootstrap-py24/ez_setup.py>`_.
+<https://raw.githubusercontent.com/pypa/setuptools/bootstrap-py24/ez_setup.py>`_.
 
 The link provided to ez_setup.py is a bookmark to bootstrap script for the
 latest known stable release.
@@ -176,7 +176,7 @@ them there, so this reference list can be updated.  If you have working,
 *tested* patches to correct problems or add features, you may submit them to
 the `setuptools bug tracker`_.
 
-.. _setuptools bug tracker: https://bitbucket.org/pypa/setuptools/issues
+.. _setuptools bug tracker: https://github.com/pypa/setuptools/issues
 .. _The Internal Structure of Python Eggs: https://pythonhosted.org/setuptools/formats.html
 .. _The setuptools Developer's Guide: https://pythonhosted.org/setuptools/setuptools.html
 .. _The pkg_resources API reference: https://pythonhosted.org/setuptools/pkg_resources.html
