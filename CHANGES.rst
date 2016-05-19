@@ -2,6 +2,14 @@
 CHANGES
 =======
 
+v21.1.0
+-------
+
+* #572: In build_ext, now always import ``_CONFIG_VARS``
+  from ``distutils`` rather than from ``sysconfig``
+  to allow ``distutils.sysconfig.customize_compiler``
+  configure the OS X compiler for ``-dynamiclib``.
+
 v21.0.0
 -------
 
