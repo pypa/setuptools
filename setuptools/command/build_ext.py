@@ -16,15 +16,32 @@ try:
 except ImportError:
     _build_ext = _du_build_ext
 
-try:
-    # Python 2.7 or >=3.2
-    from sysconfig import _CONFIG_VARS
-except ImportError:
-    from distutils.sysconfig import get_config_var
+from distutils.sysconfig import get_config_var
 
-    get_config_var("LDSHARED")  # make sure _config_vars is initialized
-    del get_config_var
-    from distutils.sysconfig import _config_vars as _CONFIG_VARS
+get_config_var("LDSHARED")  # make sure _config_vars is initialized
+del get_config_var
+from distutils.sysconfig import _config_vars as _CONFIG_VARS
+
+
+def _customize_compiler_for_shlib(compiler):
+    if sys.platform == "darwin":
+        # building .dylib requires additional compiler flags on OSX; here we
+        # temporarily substitute the pyconfig.h variables so that distutils'
+        # 'customize_compiler' uses them before we build the shared libraries.
+        tmp = _CONFIG_VARS.copy()
+        try:
+            # XXX Help!  I don't have any idea whether these are right...
+            _CONFIG_VARS['LDSHARED'] = (
+                "gcc -Wl,-x -dynamiclib -undefined dynamic_lookup")
+            _CONFIG_VARS['CCSHARED'] = " -dynamiclib"
+            _CONFIG_VARS['SO'] = ".dylib"
+            customize_compiler(compiler)
+        finally:
+            _CONFIG_VARS.clear()
+            _CONFIG_VARS.update(tmp)
+    else:
+        customize_compiler(compiler)
+
 
 have_rtld = False
 use_stubs = False
@@ -124,20 +141,7 @@ class build_ext(_build_ext):
         compiler = self.shlib_compiler = new_compiler(
             compiler=self.compiler, dry_run=self.dry_run, force=self.force
         )
-        if sys.platform == "darwin":
-            tmp = _CONFIG_VARS.copy()
-            try:
-                # XXX Help!  I don't have any idea whether these are right...
-                _CONFIG_VARS['LDSHARED'] = (
-                    "gcc -Wl,-x -dynamiclib -undefined dynamic_lookup")
-                _CONFIG_VARS['CCSHARED'] = " -dynamiclib"
-                _CONFIG_VARS['SO'] = ".dylib"
-                customize_compiler(compiler)
-            finally:
-                _CONFIG_VARS.clear()
-                _CONFIG_VARS.update(tmp)
-        else:
-            customize_compiler(compiler)
+        _customize_compiler_for_shlib(compiler)
 
         if self.include_dirs is not None:
             compiler.set_include_dirs(self.include_dirs)
