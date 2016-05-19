@@ -2731,8 +2731,8 @@ class DistInfoDistribution(Distribution):
         dm[None].extend(common)
 
         for extra in self._parsed_pkg_info.get_all('Provides-Extra') or []:
-            extra = safe_extra(extra.strip())
-            dm[extra] = list(frozenset(reqs_for_extra(extra)) - common)
+            safe = safe_extra(extra.strip())
+            dm[safe] = list(frozenset(reqs_for_extra(extra)) - common)
 
         return dm
 
