@@ -18,6 +18,7 @@ v21.0.0
   branch and should be generally be retrieved from
   its canonical location at
   https://bootstrap.pypa.io/ez_setup.py.
+* In case of requirement parse errors, produce more helpful error messages.
 
 v20.10.0
 --------
