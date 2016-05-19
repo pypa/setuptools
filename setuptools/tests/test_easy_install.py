@@ -41,6 +41,22 @@ from . import contexts
 from .textwrap import DALS
 
 
+@contextlib.contextmanager
+def _mark_removing_patcher(obj, attr, newval):
+    setattr(obj, attr, newval)
+    try:
+        yield
+    finally:
+        delattr(obj, attr)
+
+
+def magic_patch_object(obj, attr, newval):
+    if hasattr(obj, attr):
+        return mock.patch.object(obj, attr, newval)
+    else:
+        return _mark_removing_patcher(obj, attr, newval)
+
+
 class FakeDist(object):
     def get_entry_map(self, group):
         if group != 'console_scripts':
@@ -119,9 +135,20 @@ class TestEasyInstallTest:
         with pytest.raises(distutils.errors.DistutilsError):
             cmd.cant_write_to_target()
 
-    @mock.patch('site.getsitepackages', lambda: ['/setuptools/test/site-packages'])
+    @magic_patch_object(site, 'getsitepackages', lambda: ['/setuptools/test/site-packages'])
     def test_all_site_dirs(self):
         assert '/setuptools/test/site-packages' in ei.get_site_dirs()
+
+    def test_all_site_dirs_works_without_getsitepackages(self):
+        getsitepackages_old = None
+        if hasattr(site, 'getsitepackages'):
+            getsitepackages_old = site.getsitepackages
+            del site.getsitepackages
+        try:
+            assert ei.get_site_dirs()
+        finally:
+            if getsitepackages_old is not None:
+                site.getsitepackages = getsitepackages_old
 
 
 class TestPTHFileWriter:
