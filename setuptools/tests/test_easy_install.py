@@ -10,6 +10,7 @@ import shutil
 import tempfile
 import site
 import contextlib
+import functools
 import tarfile
 import logging
 import itertools
@@ -41,20 +42,24 @@ from . import contexts
 from .textwrap import DALS
 
 
-@contextlib.contextmanager
-def _mark_removing_patcher(obj, attr, newval):
-    setattr(obj, attr, newval)
-    try:
-        yield
-    finally:
-        delattr(obj, attr)
+def _mock_removing_patcher(obj, attr, newval):
+    def decorator(fn):
+        @functools.wraps(fn)
+        def wrapper(*args, **kwargs):
+            setattr(obj, attr, newval)
+            try:
+                return fn(*args, **kwargs)
+            finally:
+                delattr(obj, attr)
+        return wrapper
+    return decorator
 
 
 def magic_patch_object(obj, attr, newval):
     if hasattr(obj, attr):
         return mock.patch.object(obj, attr, newval)
     else:
-        return _mark_removing_patcher(obj, attr, newval)
+        return _mock_removing_patcher(obj, attr, newval)
 
 
 class FakeDist(object):
