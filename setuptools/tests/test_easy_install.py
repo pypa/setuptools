@@ -119,6 +119,10 @@ class TestEasyInstallTest:
         with pytest.raises(distutils.errors.DistutilsError):
             cmd.cant_write_to_target()
 
+    @mock.patch('site.getsitepackages', lambda: ['/setuptools/test/site-packages'])
+    def test_all_site_dirs(self):
+        assert '/setuptools/test/site-packages' in ei.get_site_dirs()
+
 
 class TestPTHFileWriter:
     def test_add_from_cwd_site_sets_dirty(self):

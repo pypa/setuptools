@@ -1347,6 +1347,11 @@ def get_site_dirs():
     if site.ENABLE_USER_SITE:
         sitedirs.append(site.USER_SITE)
 
+    try:
+        sitedirs.extend(site.getsitepackages())
+    except AttributeError:
+        pass
+
     sitedirs = list(map(normalize_path, sitedirs))
 
     return sitedirs
