@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+v21.2.0
+-------
+
+* #539: In the easy_install get_site_dirs, honor all
+  paths found in ``site.getsitepackages``.
+
 v21.1.0
 -------
 
