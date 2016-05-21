@@ -113,6 +113,9 @@ else:
             return False
 
 
+_one_liner = lambda text: textwrap.dedent(text).strip().replace('\n', '; ')
+
+
 class easy_install(Command):
     """Manage a download/build/install process"""
     description = "Find/get/install Python packages"
@@ -531,12 +534,12 @@ class easy_install(Command):
         pth_file = self.pseudo_tempname() + ".pth"
         ok_file = pth_file + '.ok'
         ok_exists = os.path.exists(ok_file)
-        doc = "; ".join([
-            "import os",
-            "f = open({ok_file!r}, 'w')",
-            "f.write('OK')",
-            "f.close()\n",
-        ]).format(**locals())
+        tmpl = _one_liner("""
+            import os
+            f = open({ok_file!r}, 'w')
+            f.write('OK')
+            f.close()
+            """) + '\n'
         try:
             if ok_exists:
                 os.unlink(ok_file)
@@ -548,7 +551,7 @@ class easy_install(Command):
             self.cant_write_to_target()
         else:
             try:
-                f.write(doc)
+                f.write(tmpl.format(**locals()))
                 f.close()
                 f = None
                 executable = sys.executable
@@ -1645,12 +1648,11 @@ class RewritePthDistributions(PthDistributions):
             yield line
         yield cls.postlude
 
-    _inline = lambda text: textwrap.dedent(text).strip().replace('\n', '; ')
-    prelude = _inline("""
+    prelude = _one_liner("""
         import sys
         sys.__plen = len(sys.path)
         """)
-    postlude = _inline("""
+    postlude = _one_liner("""
         import sys
         new = sys.path[sys.__plen:]
         del sys.path[sys.__plen:]
