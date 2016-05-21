@@ -15,8 +15,10 @@ __ https://pythonhosted.org/setuptools/easy_install.html
 from glob import glob
 from distutils.util import get_platform
 from distutils.util import convert_path, subst_vars
-from distutils.errors import DistutilsArgError, DistutilsOptionError, \
-    DistutilsError, DistutilsPlatformError
+from distutils.errors import (
+    DistutilsArgError, DistutilsOptionError,
+    DistutilsError, DistutilsPlatformError,
+)
 from distutils.command.install import INSTALL_SCHEMES, SCHEME_KEYS
 from distutils import log, dir_util
 from distutils.command.build_scripts import first_line_re
