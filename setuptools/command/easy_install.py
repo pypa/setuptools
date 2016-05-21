@@ -76,6 +76,12 @@ def is_64bit():
 
 
 def samefile(p1, p2):
+    """
+    Determine if two paths reference the same file.
+
+    Augments os.path.samefile to work on Windows and
+    suppresses errors if the path doesn't exist.
+    """
     both_exist = os.path.exists(p1) and os.path.exists(p2)
     use_samefile = hasattr(os.path, 'samefile') and both_exist
     if use_samefile:
