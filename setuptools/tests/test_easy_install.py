@@ -9,7 +9,6 @@ import os
 import tempfile
 import site
 import contextlib
-import functools
 import tarfile
 import logging
 import itertools
@@ -39,26 +38,6 @@ import pkg_resources
 from .py26compat import tarfile_open
 from . import contexts
 from .textwrap import DALS
-
-
-def _mock_removing_patcher(obj, attr, newval):
-    def decorator(fn):
-        @functools.wraps(fn)
-        def wrapper(*args, **kwargs):
-            setattr(obj, attr, newval)
-            try:
-                return fn(*args, **kwargs)
-            finally:
-                delattr(obj, attr)
-        return wrapper
-    return decorator
-
-
-def magic_patch_object(obj, attr, newval):
-    if hasattr(obj, attr):
-        return mock.patch.object(obj, attr, newval)
-    else:
-        return _mock_removing_patcher(obj, attr, newval)
 
 
 class FakeDist(object):
@@ -139,20 +118,18 @@ class TestEasyInstallTest:
         with pytest.raises(distutils.errors.DistutilsError):
             cmd.cant_write_to_target()
 
-    @magic_patch_object(site, 'getsitepackages', lambda: ['/setuptools/test/site-packages'])
-    def test_all_site_dirs(self):
+    def test_all_site_dirs(self, monkeypatch):
+        """
+        get_site_dirs should always return site dirs reported by
+        site.getsitepackages.
+        """
+        mock_gsp = lambda: ['/setuptools/test/site-packages']
+        monkeypatch.setattr(site, 'getsitepackages', mock_gsp)
         assert '/setuptools/test/site-packages' in ei.get_site_dirs()
 
-    def test_all_site_dirs_works_without_getsitepackages(self):
-        getsitepackages_old = None
-        if hasattr(site, 'getsitepackages'):
-            getsitepackages_old = site.getsitepackages
-            del site.getsitepackages
-        try:
-            assert ei.get_site_dirs()
-        finally:
-            if getsitepackages_old is not None:
-                site.getsitepackages = getsitepackages_old
+    def test_all_site_dirs_works_without_getsitepackages(self, monkeypatch):
+        monkeypatch.delattr(site, 'getsitepackages', raising=False)
+        assert ei.get_site_dirs()
 
 
 class TestPTHFileWriter:
