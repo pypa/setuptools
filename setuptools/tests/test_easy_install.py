@@ -124,7 +124,7 @@ class TestEasyInstallTest:
         site.getsitepackages.
         """
         mock_gsp = lambda: ['/setuptools/test/site-packages']
-        monkeypatch.setattr(site, 'getsitepackages', mock_gsp)
+        monkeypatch.setattr(site, 'getsitepackages', mock_gsp, raising=False)
         assert '/setuptools/test/site-packages' in ei.get_site_dirs()
 
     def test_all_site_dirs_works_without_getsitepackages(self, monkeypatch):
