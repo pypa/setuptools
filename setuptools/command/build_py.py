@@ -94,17 +94,12 @@ class build_py(orig.build_py, Mixin2to3):
 
     def find_data_files(self, package, src_dir):
         """Return filenames for package's data files in 'src_dir'"""
-        spec = self.package_data
-        raw_patterns = itertools.chain(
-            spec.get('', []),
-            spec.get(package, []),
+        patterns = self._get_platform_patterns(
+            self.package_data,
+            package,
+            src_dir,
         )
-        platform_patterns = (
-            # Each pattern has to be converted to a platform-specific path
-            os.path.join(src_dir, convert_path(pattern))
-            for pattern in raw_patterns
-        )
-        globs_expanded = map(glob, platform_patterns)
+        globs_expanded = map(glob, patterns)
         # flatten the expanded globs into an iterable of matches
         globs_matches = itertools.chain.from_iterable(globs_expanded)
         glob_files = filter(os.path.isfile, globs_matches)
@@ -197,19 +192,14 @@ class build_py(orig.build_py, Mixin2to3):
     def exclude_data_files(self, package, src_dir, files):
         """Filter filenames for package's data files in 'src_dir'"""
         files = list(files)
-        spec = self.exclude_package_data
-        raw_patterns = itertools.chain(
-            spec.get('', []),
-            spec.get(package, []),
-        )
-        platform_patterns = (
-            # Each pattern has to be converted to a platform-specific path
-            os.path.join(src_dir, convert_path(pattern))
-            for pattern in raw_patterns
+        patterns = self._get_platform_patterns(
+            self.exclude_package_data,
+            package,
+            src_dir,
         )
         match_groups = (
             fnmatch.filter(files, pattern)
-            for pattern in platform_patterns
+            for pattern in patterns
         )
         # flatten the groups of matches into an iterable of matches
         matches = itertools.chain.from_iterable(match_groups)
@@ -222,6 +212,24 @@ class build_py(orig.build_py, Mixin2to3):
             # ditch dupes
             and not next(seen[fn])
         ]
+
+    @staticmethod
+    def _get_platform_patterns(spec, package, src_dir):
+        """
+        yield platfrom-specific path patterns (suitable for glob
+        or fn_match) from a glob-based spec (such as
+        self.package_data or self.exclude_package_data)
+        matching package in src_dir.
+        """
+        raw_patterns = itertools.chain(
+            spec.get('', []),
+            spec.get(package, []),
+        )
+        return (
+            # Each pattern has to be converted to a platform-specific path
+            os.path.join(src_dir, convert_path(pattern))
+            for pattern in raw_patterns
+        )
 
 
 def assert_relative(path):
