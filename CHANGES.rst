@@ -8,6 +8,20 @@ Next
 * Pull Request #174: Add more aggressive support for
   Windows SDK in msvc9compiler patch.
 
+v21.2.0
+-------
+
+* #539: In the easy_install get_site_dirs, honor all
+  paths found in ``site.getsitepackages``.
+
+v21.1.0
+-------
+
+* #572: In build_ext, now always import ``_CONFIG_VARS``
+  from ``distutils`` rather than from ``sysconfig``
+  to allow ``distutils.sysconfig.customize_compiler``
+  configure the OS X compiler for ``-dynamiclib``.
+
 v21.0.0
 -------
 
