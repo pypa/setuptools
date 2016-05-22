@@ -4,6 +4,7 @@ This module improve support for Microsoft Visual C++ compilers. (Windows Only)
 import os
 import collections
 import itertools
+import platform
 import distutils.errors
 from setuptools.extern.six.moves import filterfalse
 
@@ -57,6 +58,10 @@ def patch_for_specialized_compiler():
     Microsoft Visual C++ 14.0:
         Microsoft Visual C++ Build Tools 2015 (x86, x64, arm)
     """
+    if platform.system() != 'Windows':
+        # Don't need to patch if not on Windows
+        return
+
     if 'distutils' not in globals():
         # The module isn't available to be patched
         return
@@ -71,14 +76,14 @@ def patch_for_specialized_compiler():
         msvc9compiler.find_vcvarsall = msvc9_find_vcvarsall
         unpatched['msvc9_query_vcvarsall'] = msvc9compiler.query_vcvarsall
         msvc9compiler.query_vcvarsall = msvc9_query_vcvarsall
-    except:
+    except Exception:
         pass
 
     try:
         # Patch distutils._msvccompiler._get_vc_env
         unpatched['msv14_get_vc_env'] = msvc14compiler._get_vc_env
         msvc14compiler._get_vc_env = msvc14_get_vc_env
-    except:
+    except Exception:
         pass
 
 
@@ -193,7 +198,7 @@ def msvc14_get_vc_env(plat_spec):
     ------
     environment: dict
     """
-    # Try to get environement from vcvarsall.bat (Classical way)
+    # Try to get environment from vcvarsall.bat (Classical way)
     try:
         return unpatched['msv14_get_vc_env'](plat_spec)
     except distutils.errors.DistutilsPlatformError:
@@ -278,7 +283,7 @@ class PlatformInfo:
         Return
         ------
         subfolder: str
-            "\target"
+            '\target', or '' (see hidex86 parameter)
         """
         return (
             '' if (self.current_cpu == 'x86' and hidex86) else
@@ -300,7 +305,7 @@ class PlatformInfo:
         Return
         ------
         subfolder: str
-            "\current"
+            '\current', or '' (see hidex86 parameter)
         """
         return (
             '' if (self.target_cpu == 'x86' and hidex86) else
@@ -315,20 +320,20 @@ class PlatformInfo:
         Parameters
         ----------
         forcex86: bool
-            If cross compilation, return 'x86' as current architecture even
-            if current acritecture is not x86.
+            Use 'x86' as current architecture even if current acritecture is
+            not x86.
 
         Return
         ------
         subfolder: str
-            "\current" if target architecture is current architecture,
-            "\current_target" if not.
+            '' if target architecture is current architecture,
+            '\current_target' if not.
         """
         current = 'x86' if forcex86 else self.current_cpu
-        if self.target_cpu != current:
-            return self.target_dir().replace('\\', '\\%s_' % current)
-        else:
-            return ''
+        return (
+            '' if self.target_cpu == current else
+            self.target_dir().replace('\\', '\\%s_' % current)
+        )
 
 
 class RegistryInfo:
