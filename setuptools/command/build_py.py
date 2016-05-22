@@ -98,10 +98,18 @@ class build_py(orig.build_py, Mixin2to3):
             self.package_data.get('', []),
             self.package_data.get(package, []),
         )
-        files = self.manifest_files.get(package, [])[:]
-        for pattern in globs:
+        globs_expanded = (
             # Each pattern has to be converted to a platform-specific path
-            files.extend(glob(os.path.join(src_dir, convert_path(pattern))))
+            glob(os.path.join(src_dir, convert_path(pattern)))
+            for pattern in globs
+        )
+        # flatten the expanded globs into an iterable of matches
+        globs_matches = itertools.chain.from_iterable(globs_expanded)
+        glob_files = globs_matches
+        files = list(itertools.chain(
+            self.manifest_files.get(package, []),
+            glob_files,
+        ))
         return self.exclude_data_files(package, src_dir, files)
 
     def build_package_data(self):
