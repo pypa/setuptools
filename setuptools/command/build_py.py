@@ -106,10 +106,10 @@ class build_py(orig.build_py, Mixin2to3):
         # flatten the expanded globs into an iterable of matches
         globs_matches = itertools.chain.from_iterable(globs_expanded)
         glob_files = filter(os.path.isfile, globs_matches)
-        files = list(itertools.chain(
+        files = itertools.chain(
             self.manifest_files.get(package, []),
             glob_files,
-        ))
+        )
         return self.exclude_data_files(package, src_dir, files)
 
     def build_package_data(self):
@@ -198,6 +198,7 @@ class build_py(orig.build_py, Mixin2to3):
             self.exclude_package_data.get('', []),
             self.exclude_package_data.get(package, []),
         )
+        files = list(files)
         bad = set(
             item
             for pattern in globs
