@@ -4,7 +4,6 @@ This module improve support for Microsoft Visual C++ compilers. (Windows Only)
 import os
 import collections
 import itertools
-import platform
 import distutils.errors
 from setuptools.extern.six.moves import filterfalse
 
@@ -58,10 +57,6 @@ def patch_for_specialized_compiler():
     Microsoft Visual C++ 14.0:
         Microsoft Visual C++ Build Tools 2015 (x86, x64, arm)
     """
-    if platform.system() != 'Windows':
-        # Don't need to patch if not on Windows
-        return
-
     if 'distutils' not in globals():
         # The module isn't available to be patched
         return
