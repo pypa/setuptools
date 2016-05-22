@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+v21.2.1
+-------
+
+* #261: Exclude directories when resolving globs in
+  package_data.
+
 v21.2.0
 -------
 
