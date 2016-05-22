@@ -94,8 +94,10 @@ class build_py(orig.build_py, Mixin2to3):
 
     def find_data_files(self, package, src_dir):
         """Return filenames for package's data files in 'src_dir'"""
-        globs = (self.package_data.get('', [])
-                 + self.package_data.get(package, []))
+        globs = itertools.chain(
+            self.package_data.get('', []),
+            self.package_data.get(package, []),
+        )
         files = self.manifest_files.get(package, [])[:]
         for pattern in globs:
             # Each pattern has to be converted to a platform-specific path
