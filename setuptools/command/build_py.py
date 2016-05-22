@@ -9,7 +9,7 @@ import distutils.errors
 import collections
 import itertools
 
-from setuptools.extern.six.moves import map
+from setuptools.extern.six.moves import map, filter
 
 try:
     from setuptools.lib2to3_ex import Mixin2to3
@@ -105,7 +105,7 @@ class build_py(orig.build_py, Mixin2to3):
         )
         # flatten the expanded globs into an iterable of matches
         globs_matches = itertools.chain.from_iterable(globs_expanded)
-        glob_files = globs_matches
+        glob_files = filter(os.path.isfile, globs_matches)
         files = list(itertools.chain(
             self.manifest_files.get(package, []),
             glob_files,
