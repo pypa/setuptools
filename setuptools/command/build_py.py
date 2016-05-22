@@ -94,15 +94,17 @@ class build_py(orig.build_py, Mixin2to3):
 
     def find_data_files(self, package, src_dir):
         """Return filenames for package's data files in 'src_dir'"""
-        globs = itertools.chain(
-            self.package_data.get('', []),
-            self.package_data.get(package, []),
+        spec = self.package_data
+        raw_patterns = itertools.chain(
+            spec.get('', []),
+            spec.get(package, []),
         )
-        globs_expanded = (
+        platform_patterns = (
             # Each pattern has to be converted to a platform-specific path
-            glob(os.path.join(src_dir, convert_path(pattern)))
-            for pattern in globs
+            os.path.join(src_dir, convert_path(pattern))
+            for pattern in raw_patterns
         )
+        globs_expanded = map(glob, platform_patterns)
         # flatten the expanded globs into an iterable of matches
         globs_matches = itertools.chain.from_iterable(globs_expanded)
         glob_files = filter(os.path.isfile, globs_matches)
@@ -194,19 +196,24 @@ class build_py(orig.build_py, Mixin2to3):
 
     def exclude_data_files(self, package, src_dir, files):
         """Filter filenames for package's data files in 'src_dir'"""
-        globs = itertools.chain(
-            self.exclude_package_data.get('', []),
-            self.exclude_package_data.get(package, []),
-        )
         files = list(files)
-        bad = set(
-            item
-            for pattern in globs
-            for item in fnmatch.filter(
-                files,
-                os.path.join(src_dir, convert_path(pattern)),
-            )
+        spec = self.exclude_package_data
+        raw_patterns = itertools.chain(
+            spec.get('', []),
+            spec.get(package, []),
         )
+        platform_patterns = (
+            # Each pattern has to be converted to a platform-specific path
+            os.path.join(src_dir, convert_path(pattern))
+            for pattern in raw_patterns
+        )
+        match_groups = (
+            fnmatch.filter(files, pattern)
+            for pattern in platform_patterns
+        )
+        # flatten the groups of matches into an iterable of matches
+        matches = itertools.chain.from_iterable(match_groups)
+        bad = set(matches)
         seen = collections.defaultdict(itertools.count)
         return [
             fn
