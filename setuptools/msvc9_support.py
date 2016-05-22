@@ -76,7 +76,7 @@ def patch_for_specialized_compiler():
 
     try:
         # Patch distutils._msvccompiler._get_vc_env
-        unpatched['msv14_get_vc_env'] = msvc14compiler._get_vc_env
+        unpatched['msvc14_get_vc_env'] = msvc14compiler._get_vc_env
         msvc14compiler._get_vc_env = msvc14_get_vc_env
     except Exception:
         pass
@@ -195,7 +195,7 @@ def msvc14_get_vc_env(plat_spec):
     """
     # Try to get environment from vcvarsall.bat (Classical way)
     try:
-        return unpatched['msv14_get_vc_env'](plat_spec)
+        return unpatched['msvc14_get_vc_env'](plat_spec)
     except distutils.errors.DistutilsPlatformError:
         # Pass error Vcvarsall.bat is missing
         pass
