@@ -17,6 +17,7 @@ from __future__ import absolute_import
 import sys
 import textwrap
 import subprocess
+from setuptools.extern import six
 
 import pytest
 
@@ -25,6 +26,7 @@ import pkg_resources
 
 
 pytestmark = pytest.mark.skipif(sys.platform != 'win32', reason="Windows only")
+skipif_PY2 = pytest.mark.skipif(not six.PY3, reason="Python 3 only")
 
 
 class WrapperTester:
@@ -147,6 +149,45 @@ class TestCLI(WrapperTester):
             """).lstrip()
         assert actual == expected
 
+    @skipif_PY2
+    def test_with_unicode_argv(self, tmpdir):
+        """
+        Testing non-ASCII Unicode strings as command-line arguments.
+
+        Note: this does not work with Python 2.x, because of the following:
+        https://bugs.python.org/issue2128
+        https://bugs.python.org/issue1759845
+        """
+        self.create_script(tmpdir)
+        tmpl = textwrap.dedent("""
+            #!%(python_exe)s
+            import sys
+            with open(sys.argv[1], 'w', encoding='utf-8') as f:
+                f.write(repr(sys.argv[2]))
+            """).lstrip()
+        with (tmpdir / 'foo-script.py').open('w') as f:
+            f.write(self.prep_script(tmpl))
+
+        cmd = [  # first try running the script without the wrapper
+            sys.executable,
+            str(tmpdir / 'foo-script.py'),
+            str(tmpdir / 'test_output.txt'),
+            '\u05e2\u05d1\u05e8\u05d9\u05ea',
+        ]
+        subprocess.check_call(cmd)
+        actual = (tmpdir / 'test_output.txt').read_text('utf-8')
+        # this *must* pass
+        assert actual == repr('\u05e2\u05d1\u05e8\u05d9\u05ea')
+
+        cmd = [  # try again with the cli-32.exe wrapper
+            str(tmpdir / 'foo.exe'),
+            str(tmpdir / 'test_output.txt'),
+            '\u05e2\u05d1\u05e8\u05d9\u05ea',
+        ]
+        subprocess.check_call(cmd)
+        actual = (tmpdir / 'test_output.txt').read_text('utf-8')
+        assert actual == repr('\u05e2\u05d1\u05e8\u05d9\u05ea')
+
 
 class TestGUI(WrapperTester):
     """
@@ -181,3 +222,28 @@ class TestGUI(WrapperTester):
         with (tmpdir / 'test_output.txt').open('rb') as f_out:
             actual = f_out.read().decode('ascii')
         assert actual == repr('Test Argument')
+
+    @skipif_PY2
+    def test_with_unicode_argv(self, tmpdir):
+        """Testing the GUI version with non-ASCII command-line arguments"""
+        self.create_script(tmpdir)
+
+        cmd = [  # first try running the script without the wrapper
+            sys.executable,
+            str(tmpdir / 'bar-script.pyw'),
+            str(tmpdir / 'test_output.txt'),
+            '\u05e2\u05d1\u05e8\u05d9\u05ea',
+        ]
+        subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()
+        actual = (tmpdir / 'test_output.txt').read_text('utf-8')
+        # this *must* pass
+        assert actual == repr('\u05e2\u05d1\u05e8\u05d9\u05ea')
+
+        cmd = [  # try again with the gui-32.exe wrapper
+            str(tmpdir / 'bar.exe'),
+            str(tmpdir / 'test_output.txt'),
+            '\u05e2\u05d1\u05e8\u05d9\u05ea',
+        ]
+        subprocess.Popen(cmd, stdout=subprocess.PIPE).communicate()
+        actual = (tmpdir / 'test_output.txt').read_text('utf-8')
+        assert actual == repr('\u05e2\u05d1\u05e8\u05d9\u05ea')
