@@ -35,35 +35,39 @@
 #include <stdio.h>
 #include <string.h>
 #include <windows.h>
-#include <tchar.h>
+#include <wchar.h>
+#include <io.h>
 #include <fcntl.h>
 
 int child_pid=0;
 
-int fail(char *format, char *data) {
+int fail(wchar_t *format, wchar_t *data) {
     /* Print error message to stderr and return 2 */
-    fprintf(stderr, format, data);
+    /* set stderr mode to Unicode UTF-16 to print wchar_t* to the console */
+    _setmode(_fileno(stderr), _O_U16TEXT);
+    fwprintf(stderr, format, data);
     return 2;
 }
 
-char *quoted(char *data) {
-    int i, ln = strlen(data), nb;
+wchar_t *quoted(wchar_t *data) {
+    int nb;
+    size_t i, ln = wcslen(data);
 
     /* We allocate twice as much space as needed to deal with worse-case
        of having to escape everything. */
-    char *result = calloc(ln*2+3, sizeof(char));
-    char *presult = result;
+    wchar_t *result = calloc(ln*2+3, sizeof(wchar_t));
+    wchar_t *presult = result;
 
-    *presult++ = '"';
+    *presult++ = L'"';
     for (nb=0, i=0; i < ln; i++)
       {
-        if (data[i] == '\\')
+        if (data[i] == L'\\')
           nb += 1;
-        else if (data[i] == '"')
+        else if (data[i] == L'"')
           {
             for (; nb > 0; nb--)
-              *presult++ = '\\';
-            *presult++ = '\\';
+              *presult++ = L'\\';
+            *presult++ = L'\\';
           }
         else
           nb = 0;
@@ -71,9 +75,9 @@ char *quoted(char *data) {
       }
 
     for (; nb > 0; nb--)        /* Deal w trailing slashes */
-      *presult++ = '\\';
+      *presult++ = L'\\';
 
-    *presult++ = '"';
+    *presult++ = L'"';
     *presult++ = 0;
     return result;
 }
@@ -87,16 +91,16 @@ char *quoted(char *data) {
 
 
 
-char *loadable_exe(char *exename) {
+wchar_t *loadable_exe(wchar_t *exename) {
     /* HINSTANCE hPython;  DLL handle for python executable */
-    char *result;
+    wchar_t *result;
 
     /* hPython = LoadLibraryEx(exename, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
     if (!hPython) return NULL; */
 
     /* Return the absolute filename for spawnv */
-    result = calloc(MAX_PATH, sizeof(char));
-    strncpy(result, exename, MAX_PATH);
+    result = calloc(MAX_PATH, sizeof(wchar_t));
+    wcsncpy(result, exename, MAX_PATH);
     /*if (result) GetModuleFileNameA(hPython, result, MAX_PATH);
 
     FreeLibrary(hPython); */
@@ -104,64 +108,64 @@ char *loadable_exe(char *exename) {
 }
 
 
-char *find_exe(char *exename, char *script) {
-    char drive[_MAX_DRIVE], dir[_MAX_DIR], fname[_MAX_FNAME], ext[_MAX_EXT];
-    char path[_MAX_PATH], c, *result;
+wchar_t *find_exe(wchar_t *exename, wchar_t *script) {
+    wchar_t drive[_MAX_DRIVE], dir[_MAX_DIR], fname[_MAX_FNAME], ext[_MAX_EXT];
+    wchar_t path[_MAX_PATH], c, *result;
 
     /* convert slashes to backslashes for uniform search below */
     result = exename;
-    while (c = *result++) if (c=='/') result[-1] = '\\';
+    while (c = *result++) if (c==L'/') result[-1] = L'\\';
 
-    _splitpath(exename, drive, dir, fname, ext);
-    if (drive[0] || dir[0]=='\\') {
+    _wsplitpath(exename, drive, dir, fname, ext);
+    if (drive[0] || dir[0]==L'\\') {
         return loadable_exe(exename);   /* absolute path, use directly */
     }
     /* Use the script's parent directory, which should be the Python home
        (This should only be used for bdist_wininst-installed scripts, because
         easy_install-ed scripts use the absolute path to python[w].exe
     */
-    _splitpath(script, drive, dir, fname, ext);
-    result = dir + strlen(dir) -1;
-    if (*result == '\\') result--;
-    while (*result != '\\' && result>=dir) *result-- = 0;
-    _makepath(path, drive, dir, exename, NULL);
+    _wsplitpath(script, drive, dir, fname, ext);
+    result = dir + wcslen(dir) -1;
+    if (*result == L'\\') result--;
+    while (*result != L'\\' && result>=dir) *result-- = 0;
+    _wmakepath(path, drive, dir, exename, NULL);
     return loadable_exe(path);
 }
 
 
-char **parse_argv(char *cmdline, int *argc)
+wchar_t **parse_argv(wchar_t *cmdline, int *argc)
 {
     /* Parse a command line in-place using MS C rules */
 
-    char **result = calloc(strlen(cmdline), sizeof(char *));
-    char *output = cmdline;
-    char c;
+    wchar_t **result = calloc(wcslen(cmdline), sizeof(wchar_t *));
+    wchar_t *output = cmdline;
+    wchar_t c;
     int nb = 0;
     int iq = 0;
     *argc = 0;
 
     result[0] = output;
-    while (isspace(*cmdline)) cmdline++;   /* skip leading spaces */
+    while (iswspace(*cmdline)) cmdline++;   /* skip leading spaces */
 
     do {
         c = *cmdline++;
-        if (!c || (isspace(c) && !iq)) {
-            while (nb) {*output++ = '\\'; nb--; }
+        if (!c || (iswspace(c) && !iq)) {
+            while (nb) {*output++ = L'\\'; nb--; }
             *output++ = 0;
             result[++*argc] = output;
             if (!c) return result;
-            while (isspace(*cmdline)) cmdline++;  /* skip leading spaces */
+            while (iswspace(*cmdline)) cmdline++;  /* skip leading spaces */
             if (!*cmdline) return result;  /* avoid empty arg if trailing ws */
             continue;
         }
-        if (c == '\\')
+        if (c == L'\\')
             ++nb;   /* count \'s */
         else {
-            if (c == '"') {
+            if (c == L'"') {
                 if (!(nb & 1)) { iq = !iq; c = 0; }  /* skip " unless odd # of \ */
                 nb = nb >> 1;   /* cut \'s in half */
             }
-            while (nb) {*output++ = '\\'; nb--; }
+            while (nb) {*output++ = L'\\'; nb--; }
             if (c) *output++ = c;
         }
     } while (1);
@@ -191,21 +195,21 @@ BOOL control_handler(DWORD control_type) {
     return TRUE;
 }
 
-int create_and_wait_for_subprocess(char* command) {
+int create_and_wait_for_subprocess(wchar_t * command) {
     /*
      * distribute-issue207
      * launches child process (Python)
      */
     DWORD return_value = 0;
-    LPSTR commandline = command;
-    STARTUPINFOA s_info;
+    LPWSTR commandline = command;
+    STARTUPINFOW s_info;
     PROCESS_INFORMATION p_info;
     ZeroMemory(&p_info, sizeof(p_info));
     ZeroMemory(&s_info, sizeof(s_info));
     s_info.cb = sizeof(STARTUPINFO);
     // set-up control handler callback funciotn
     SetConsoleCtrlHandler((PHANDLER_ROUTINE) control_handler, TRUE);
-    if (!CreateProcessA(NULL, commandline, NULL, NULL, TRUE, 0, NULL, NULL, &s_info, &p_info)) {
+    if (!CreateProcessW(NULL, commandline, NULL, NULL, TRUE, 0, NULL, NULL, &s_info, &p_info)) {
         fprintf(stderr, "failed to create process.\n");
         return 0;
     }   
@@ -219,69 +223,67 @@ int create_and_wait_for_subprocess(char* command) {
     return return_value;
 }
 
-char* join_executable_and_args(char *executable, char **args, int argc)
+wchar_t* join_executable_and_args(wchar_t *executable, wchar_t **args, int argc)
 {
     /*
      * distribute-issue207
      * CreateProcess needs a long string of the executable and command-line arguments,
      * so we need to convert it from the args that was built
      */
-    int len,counter;
-    char* cmdline;
+    int counter;
+    size_t maxlen, len;
+    wchar_t* cmdline;
     
-    len=strlen(executable)+2;
+    maxlen=wcslen(executable)+2;
     for (counter=1; counter<argc; counter++) {
-        len+=strlen(args[counter])+1;
+        maxlen+=wcslen(args[counter])+1;
     }
 
-    cmdline = (char*)calloc(len, sizeof(char));
-    sprintf(cmdline, "%s", executable);
-    len=strlen(executable);
+    cmdline = (wchar_t*)calloc(maxlen, sizeof(wchar_t));
+    len = swprintf(cmdline, maxlen, L"%s", executable);
     for (counter=1; counter<argc; counter++) {
-        sprintf(cmdline+len, " %s", args[counter]);
-        len+=strlen(args[counter])+1;
+        len += swprintf(cmdline+len, maxlen, L" %s", args[counter]);
     }
     return cmdline;
 }
 
-int run(int argc, char **argv, int is_gui) {
+int run(int argc, wchar_t **argv, int is_gui) {
 
-    char python[256];   /* python executable's filename*/
-    char *pyopt;        /* Python option */
-    char script[256];   /* the script's filename */
+    wchar_t python[_MAX_PATH];   /* python executable's filename*/
+    wchar_t script[_MAX_PATH];   /* the script's filename */
 
-    int scriptf;        /* file descriptor for script file */
+    FILE *scriptf;        /* file pointer for script file */
 
-    char **newargs, **newargsp, **parsedargs; /* argument array for exec */
-    char *ptr, *end;    /* working pointers for string manipulation */
-    char *cmdline;
+    wchar_t **newargs, **newargsp, **parsedargs; /* argument array for exec */
+    wchar_t *ptr, *end;    /* working pointers for string manipulation */
+    wchar_t *cmdline;
     int i, parsedargc;              /* loop counter */
 
     /* compute script name from our .exe name*/
-    GetModuleFileNameA(NULL, script, sizeof(script));
-    end = script + strlen(script);
-    while( end>script && *end != '.')
-        *end-- = '\0';
-    *end-- = '\0';
-    strcat(script, (GUI ? "-script.pyw" : "-script.py"));
+    GetModuleFileNameW(NULL, script, sizeof(script));
+    end = script + wcslen(script);
+    while( end>script && *end != L'.')
+        *end-- = L'\0';
+    *end-- = L'\0';
+    wcscat(script, (GUI ? L"-script.pyw" : L"-script.py"));
 
     /* figure out the target python executable */
 
-    scriptf = open(script, O_RDONLY);
-    if (scriptf == -1) {
-        return fail("Cannot open %s\n", script);
+    scriptf = _wfopen(script, L"rt,ccs=UTF-8");
+    if (scriptf == NULL) {
+        return fail(L"Cannot open %s\n", script);
     }
-    end = python + read(scriptf, python, sizeof(python));
-    close(scriptf);
+    end = python + fread(python, sizeof(wchar_t), sizeof(python)/sizeof(wchar_t), scriptf);
+    fclose(scriptf);
 
     ptr = python-1;
     while(++ptr < end && *ptr && *ptr!='\n' && *ptr!='\r') {;}
 
     *ptr-- = '\0';
 
-    if (strncmp(python, "#!", 2)) {
+    if (wcsncmp(python, L"#!", 2)) {
         /* default to python.exe if no #! header */
-        strcpy(python, "#!python.exe");
+        wcscpy(python, L"#!python.exe");
     }
 
     parsedargs = parse_argv(python+2, &parsedargc);
@@ -291,7 +293,7 @@ int run(int argc, char **argv, int is_gui) {
 
     ptr = find_exe(parsedargs[0], script);
     if (!ptr) {
-        return fail("Cannot find Python executable %s\n", parsedargs[0]);
+        return fail(L"Cannot find Python executable %s\n", parsedargs[0]);
     }
 
     /* printf("Python executable: %s\n", ptr); */
@@ -299,7 +301,7 @@ int run(int argc, char **argv, int is_gui) {
     /* Argument array needs to be
        parsedargc + argc, plus 1 for null sentinel */
 
-    newargs = (char **)calloc(parsedargc + argc + 1, sizeof(char *));
+    newargs = (wchar_t **)calloc(parsedargc + argc + 1, sizeof(wchar_t *));
     newargsp = newargs;
 
     *newargsp++ = quoted(ptr);
@@ -314,22 +316,23 @@ int run(int argc, char **argv, int is_gui) {
 
     if (is_gui) {
         /* Use exec, we don't need to wait for the GUI to finish */
-        execv(ptr, (const char * const *)(newargs));
-        return fail("Could not exec %s", ptr);   /* shouldn't get here! */
+        _wexecv(ptr, (const wchar_t * const *)(newargs));
+        return fail(L"Could not exec %s", ptr);   /* shouldn't get here! */
     }
 
     /*
-     * distribute-issue207: using CreateProcessA instead of spawnv
+     * distribute-issue207: using CreateProcessW instead of spawnv
      */
     cmdline = join_executable_and_args(ptr, newargs, parsedargc + argc);
+
     return create_and_wait_for_subprocess(cmdline);
 }
 
-int WINAPI WinMain(HINSTANCE hI, HINSTANCE hP, LPSTR lpCmd, int nShow) {
-    return run(__argc, __argv, GUI);
+int WINAPI wWinMain(HINSTANCE hI, HINSTANCE hP, LPWSTR lpCmd, int nShow) {
+    return run(__argc, __wargv, GUI);
 }
 
-int main(int argc, char** argv) {
+int wmain(int argc, wchar_t ** argv) {
     return run(argc, argv, GUI);
 }
 
