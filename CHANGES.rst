@@ -109,7 +109,7 @@ v20.6.0
 20.5
 ----
 
-* BB Pull Request #185: Add support for environment markers
+* BB Pull Request #185, #470: Add support for environment markers
   in requirements in install_requires, setup_requires,
   tests_require as well as adding a test for the existing
   extra_requires machinery.
