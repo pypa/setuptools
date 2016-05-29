@@ -2,6 +2,11 @@
 CHANGES
 =======
 
+v21.2.2
+-------
+
+* Minor fixes to changelog and docs.
+
 v21.2.1
 -------
 
