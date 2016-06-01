@@ -57,3 +57,15 @@ class TestUploadDocsTest:
 
             with contextlib.closing(zipfile.ZipFile(tmp_file)) as zip_file:
                 assert zip_file.namelist() == ['index.html']
+
+    def test_build_multipart(self):
+        data = dict(
+            a="foo",
+            b="bar",
+            file=('file.txt', b'content'),
+        )
+        body, content_type = upload_docs._build_multipart(data)
+        assert 'form-data' in content_type
+        assert isinstance(body, bytes)
+        assert b'foo' in body
+        assert b'content' in body
