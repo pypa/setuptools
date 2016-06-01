@@ -116,6 +116,21 @@ class upload_docs(upload):
                 if value and value[-1:] == b'\r':
                     yield b'\n'  # write an extra newline (lurve Macs)
 
+    @classmethod
+    def _build_multipart(cls, data):
+        """
+        Build up the MIME payload for the POST data
+        """
+        boundary = b'--------------GHSKFJDLGDS7543FJKLFHRE75642756743254'
+        sep_boundary = b'\n--' + boundary
+        end_boundary = sep_boundary + b'--'
+        end_items = end_boundary, b"\n",
+        body_items = itertools.chain(
+            cls._build_parts(data, sep_boundary),
+            end_items,
+        )
+        return b''.join(body_items)
+
     def upload_file(self, filename):
         with open(filename, 'rb') as f:
             content = f.read()
@@ -132,16 +147,7 @@ class upload_docs(upload):
             credentials = credentials.decode('ascii')
         auth = "Basic " + credentials
 
-        # Build up the MIME payload for the POST data
-        boundary = b'--------------GHSKFJDLGDS7543FJKLFHRE75642756743254'
-        sep_boundary = b'\n--' + boundary
-        end_boundary = sep_boundary + b'--'
-        end_items = end_boundary, b"\n",
-        body_items = itertools.chain(
-            self._build_parts(data, sep_boundary),
-            end_items,
-        )
-        body = b''.join(body_items)
+        body = self._build_multipart(data)
 
         self.announce("Submitting documentation to %s" % (self.repository),
                       log.INFO)
