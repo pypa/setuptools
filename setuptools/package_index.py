@@ -17,6 +17,7 @@ except ImportError:
 from setuptools.extern import six
 from setuptools.extern.six.moves import urllib, http_client, configparser, map
 
+import setuptools
 from pkg_resources import (
     CHECKOUT_DIST, Distribution, BINARY_DIST, normalize_path, SOURCE_DIST,
     require, Environment, find_distributions, safe_name, safe_version,
@@ -45,6 +46,11 @@ __all__ = [
 ]
 
 _SOCKET_TIMEOUT = 15
+
+
+_tmpl = "setuptools/{setuptools.__version__} Python-urllib/{py_major}"
+user_agent = _tmpl.format(py_major=sys.version[:3], **globals())
+
 
 def parse_bdist_wininst(name):
     """Return (base,pyversion) or (None,None) for possible .exe name"""
@@ -202,9 +208,6 @@ def find_external_links(url, page):
             if match:
                 yield urllib.parse.urljoin(url, htmldecode(match.group(1)))
 
-user_agent = "setuptools/%s Python-urllib/%s" % (
-    require('setuptools')[0].version, sys.version[:3],
-)
 
 class ContentChecker(object):
     """
