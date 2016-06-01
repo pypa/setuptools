@@ -104,22 +104,22 @@ class upload_docs(upload):
 
     @staticmethod
     def _build_part(key, values, sep_boundary):
-            title = '\nContent-Disposition: form-data; name="%s"' % key
-            # handle multiple entries for the same name
-            if not isinstance(values, list):
-                values = [values]
-            for value in values:
-                if type(value) is tuple:
-                    title += '; filename="%s"' % value[0]
-                    value = value[1]
-                else:
-                    value = _encode(value)
-                yield sep_boundary
-                yield _encode(title)
-                yield b"\n\n"
-                yield value
-                if value and value[-1:] == b'\r':
-                    yield b'\n'  # write an extra newline (lurve Macs)
+        title = '\nContent-Disposition: form-data; name="%s"' % key
+        # handle multiple entries for the same name
+        if not isinstance(values, list):
+            values = [values]
+        for value in values:
+            if type(value) is tuple:
+                title += '; filename="%s"' % value[0]
+                value = value[1]
+            else:
+                value = _encode(value)
+            yield sep_boundary
+            yield _encode(title)
+            yield b"\n\n"
+            yield value
+            if value and value[-1:] == b'\r':
+                yield b'\n'  # write an extra newline (lurve Macs)
 
     @classmethod
     def _build_multipart(cls, data):
