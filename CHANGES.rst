@@ -2,8 +2,11 @@
 CHANGES
 =======
 
-v21.3.0
+v22.0.0
 -------
+
+Intended to be v21.3.0, but jaraco accidentally released as
+a major bump.
 
 * #598: Setuptools now lists itself first in the User-Agent
   for web requests, better following the guidelines in
