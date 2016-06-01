@@ -2,6 +2,14 @@
 CHANGES
 =======
 
+v21.3.0
+-------
+
+* #598: Setuptools now lists itself first in the User-Agent
+  for web requests, better following the guidelines in
+  `RFC 7231
+  <https://tools.ietf.org/html/rfc7231#section-5.5.3>`_.
+
 v21.2.2
 -------
 

@@ -202,8 +202,8 @@ def find_external_links(url, page):
             if match:
                 yield urllib.parse.urljoin(url, htmldecode(match.group(1)))
 
-user_agent = "Python-urllib/%s setuptools/%s" % (
-    sys.version[:3], require('setuptools')[0].version
+user_agent = "setuptools/%s Python-urllib/%s" % (
+    require('setuptools')[0].version, sys.version[:3],
 )
 
 class ContentChecker(object):
