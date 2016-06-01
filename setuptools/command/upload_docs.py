@@ -13,6 +13,7 @@ import socket
 import zipfile
 import tempfile
 import shutil
+import itertools
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import http_client, urllib
@@ -95,6 +96,26 @@ class upload_docs(upload):
         finally:
             shutil.rmtree(tmp_dir)
 
+    @staticmethod
+    def _build_parts(data, sep_boundary):
+        for key, values in six.iteritems(data):
+            title = '\nContent-Disposition: form-data; name="%s"' % key
+            # handle multiple entries for the same name
+            if not isinstance(values, list):
+                values = [values]
+            for value in values:
+                if type(value) is tuple:
+                    title += '; filename="%s"' % value[0]
+                    value = value[1]
+                else:
+                    value = _encode(value)
+                yield sep_boundary
+                yield _encode(title)
+                yield b"\n\n"
+                yield value
+                if value and value[-1:] == b'\r':
+                    yield b'\n'  # write an extra newline (lurve Macs)
+
     def upload_file(self, filename):
         with open(filename, 'rb') as f:
             content = f.read()
@@ -115,27 +136,12 @@ class upload_docs(upload):
         boundary = b'--------------GHSKFJDLGDS7543FJKLFHRE75642756743254'
         sep_boundary = b'\n--' + boundary
         end_boundary = sep_boundary + b'--'
-        body = []
-        for key, values in six.iteritems(data):
-            title = '\nContent-Disposition: form-data; name="%s"' % key
-            # handle multiple entries for the same name
-            if not isinstance(values, list):
-                values = [values]
-            for value in values:
-                if type(value) is tuple:
-                    title += '; filename="%s"' % value[0]
-                    value = value[1]
-                else:
-                    value = _encode(value)
-                body.append(sep_boundary)
-                body.append(_encode(title))
-                body.append(b"\n\n")
-                body.append(value)
-                if value and value[-1:] == b'\r':
-                    body.append(b'\n')  # write an extra newline (lurve Macs)
-        body.append(end_boundary)
-        body.append(b"\n")
-        body = b''.join(body)
+        end_items = end_boundary, b"\n",
+        body_items = itertools.chain(
+            self._build_parts(data, sep_boundary),
+            end_items,
+        )
+        body = b''.join(body_items)
 
         self.announce("Submitting documentation to %s" % (self.repository),
                       log.INFO)
