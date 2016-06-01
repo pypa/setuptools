@@ -96,9 +96,14 @@ class upload_docs(upload):
         finally:
             shutil.rmtree(tmp_dir)
 
-    @staticmethod
-    def _build_parts(data, sep_boundary):
+    @classmethod
+    def _build_parts(cls, data, sep_boundary):
         for key, values in six.iteritems(data):
+            for part in cls._build_part(key, values):
+                yield part
+
+    @staticmethod
+    def _build_part(key, values, sep_boundary):
             title = '\nContent-Disposition: form-data; name="%s"' % key
             # handle multiple entries for the same name
             if not isinstance(values, list):
