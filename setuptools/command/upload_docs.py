@@ -14,6 +14,7 @@ import zipfile
 import tempfile
 import shutil
 import itertools
+import functools
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import http_client, urllib
@@ -96,14 +97,9 @@ class upload_docs(upload):
         finally:
             shutil.rmtree(tmp_dir)
 
-    @classmethod
-    def _build_parts(cls, data, sep_boundary):
-        for key, values in six.iteritems(data):
-            for part in cls._build_part(key, values):
-                yield part
-
     @staticmethod
-    def _build_part(key, values, sep_boundary):
+    def _build_part(item, sep_boundary):
+        key, values = item
         title = '\nContent-Disposition: form-data; name="%s"' % key
         # handle multiple entries for the same name
         if not isinstance(values, list):
@@ -130,10 +126,13 @@ class upload_docs(upload):
         sep_boundary = b'\n--' + boundary
         end_boundary = sep_boundary + b'--'
         end_items = end_boundary, b"\n",
-        body_items = itertools.chain(
-            cls._build_parts(data, sep_boundary),
-            end_items,
+        builder = functools.partial(
+            cls._build_part,
+            sep_boundary=sep_boundary,
         )
+        part_groups = map(builder, data.items())
+        parts = itertools.chain.from_iterable(part_groups)
+        body_items = itertools.chain(parts, end_items)
         return b''.join(body_items)
 
     def upload_file(self, filename):
