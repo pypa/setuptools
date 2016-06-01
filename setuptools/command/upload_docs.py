@@ -133,7 +133,8 @@ class upload_docs(upload):
         part_groups = map(builder, data.items())
         parts = itertools.chain.from_iterable(part_groups)
         body_items = itertools.chain(parts, end_items)
-        return b''.join(body_items)
+        content_type = 'multipart/form-data; boundary=%s' % boundary
+        return b''.join(body_items), content_type
 
     def upload_file(self, filename):
         with open(filename, 'rb') as f:
@@ -151,7 +152,7 @@ class upload_docs(upload):
             credentials = credentials.decode('ascii')
         auth = "Basic " + credentials
 
-        body = self._build_multipart(data)
+        body, ct = self._build_multipart(data)
 
         self.announce("Submitting documentation to %s" % (self.repository),
                       log.INFO)
@@ -173,7 +174,7 @@ class upload_docs(upload):
         try:
             conn.connect()
             conn.putrequest("POST", url)
-            content_type = 'multipart/form-data; boundary=%s' % boundary
+            content_type = ct
             conn.putheader('Content-type', content_type)
             conn.putheader('Content-length', str(len(body)))
             conn.putheader('Authorization', auth)
