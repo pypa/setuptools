@@ -21,15 +21,9 @@ from pkg_resources import iter_entry_points
 from .upload import upload
 
 
-errors = 'surrogateescape' if six.PY3 else 'strict'
-
-
-# This is not just a replacement for byte literals
-# but works as a general purpose encoder
-def b(s, encoding='utf-8'):
-    if isinstance(s, six.text_type):
-        return s.encode(encoding, errors)
-    return s
+def _encode(s):
+    errors = 'surrogateescape' if six.PY3 else 'strict'
+    return s.encode('utf-8', errors)
 
 
 class upload_docs(upload):
@@ -111,16 +105,16 @@ class upload_docs(upload):
             'content': (os.path.basename(filename), content),
         }
         # set up the authentication
-        credentials = b(self.username + ':' + self.password)
+        credentials = _encode(self.username + ':' + self.password)
         credentials = standard_b64encode(credentials)
         if six.PY3:
             credentials = credentials.decode('ascii')
         auth = "Basic " + credentials
 
         # Build up the MIME payload for the POST data
-        boundary = '--------------GHSKFJDLGDS7543FJKLFHRE75642756743254'
-        sep_boundary = b('\n--') + b(boundary)
-        end_boundary = sep_boundary + b('--')
+        boundary = b'--------------GHSKFJDLGDS7543FJKLFHRE75642756743254'
+        sep_boundary = b'\n--' + boundary
+        end_boundary = sep_boundary + b'--'
         body = []
         for key, values in six.iteritems(data):
             title = '\nContent-Disposition: form-data; name="%s"' % key
@@ -132,16 +126,16 @@ class upload_docs(upload):
                     title += '; filename="%s"' % value[0]
                     value = value[1]
                 else:
-                    value = b(value)
+                    value = _encode(value)
                 body.append(sep_boundary)
-                body.append(b(title))
-                body.append(b("\n\n"))
+                body.append(_encode(title))
+                body.append(b"\n\n")
                 body.append(value)
-                if value and value[-1:] == b('\r'):
-                    body.append(b('\n'))  # write an extra newline (lurve Macs)
+                if value and value[-1:] == b'\r':
+                    body.append(b'\n')  # write an extra newline (lurve Macs)
         body.append(end_boundary)
-        body.append(b("\n"))
-        body = b('').join(body)
+        body.append(b"\n")
+        body = b''.join(body)
 
         self.announce("Submitting documentation to %s" % (self.repository),
                       log.INFO)
