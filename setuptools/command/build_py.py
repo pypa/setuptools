@@ -8,6 +8,7 @@ import io
 import distutils.errors
 import itertools
 
+from setuptools.extern import six
 from setuptools.extern.six.moves import map, filter, filterfalse
 
 try:
@@ -66,6 +67,9 @@ class build_py(orig.build_py, Mixin2to3):
         return orig.build_py.__getattr__(self, attr)
 
     def build_module(self, module, module_file, package):
+        if six.PY2 and isinstance(package, six.string_types):
+            # avoid errors on Python 2 when unicode is passed (#190)
+            package = package.split('.')
         outfile, copied = orig.build_py.build_module(self, module, module_file,
                                                      package)
         if copied:
