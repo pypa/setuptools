@@ -120,11 +120,12 @@ def archive_context(filename):
 
 def _do_download(version, download_base, to_dir, download_delay):
     """Download Setuptools."""
-    egg = os.path.join(to_dir, 'setuptools-%s-py%d.%d.egg'
-                       % (version, sys.version_info[0], sys.version_info[1]))
+    py_desig = 'py{sys.version_info[0]}.{sys.version_info[1]}'.format(sys=sys)
+    tp = 'setuptools-{version}-{py_desig}.egg'
+    egg = os.path.join(to_dir, tp.format(**locals()))
     if not os.path.exists(egg):
         archive = download_setuptools(version, download_base,
-                                      to_dir, download_delay)
+            to_dir, download_delay)
         _build_egg(egg, archive, to_dir)
     sys.path.insert(0, egg)
 
