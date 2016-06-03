@@ -26,7 +26,8 @@ before_deploy:
   - export SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES=1
 deploy:
   provider: pypi
-  server: https://pypi.io/pypi
+  # Also update server in setup.cfg
+  server: https://upload.pypi.io/legacy/
   on:
     tags: true
     all_branches: true

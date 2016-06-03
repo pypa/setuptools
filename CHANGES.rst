@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+v22.0.4
+-------
+
+* #589: Upload releases to pypi.io using the upload
+  hostname and legacy path.
+
 v22.0.3
 -------
 
