@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+v22.0.5
+-------
+
+* #604: Restore repository for upload_docs command
+  to restore publishing of docs during release.
+
 v22.0.4
 -------
 
