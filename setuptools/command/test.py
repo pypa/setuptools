@@ -1,6 +1,7 @@
+import sys
+import contextlib
 from distutils.errors import DistutilsOptionError
 from unittest import TestLoader
-import sys
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import map
@@ -102,6 +103,14 @@ class test(Command):
             yield self.test_suite
 
     def with_project_on_sys_path(self, func):
+        """
+        Backward compatibility for project_on_sys_path context.
+        """
+        with self.project_on_sys_path():
+            func()
+
+    @contextlib.contextmanager
+    def project_on_sys_path(self):
         with_2to3 = six.PY3 and getattr(self.distribution, 'use_2to3', False)
 
         if with_2to3:
@@ -137,7 +146,7 @@ class test(Command):
             working_set.__init__()
             add_activation_listener(lambda dist: dist.activate())
             require('%s==%s' % (ei_cmd.egg_name, ei_cmd.egg_version))
-            func()
+            yield
         finally:
             sys.path[:] = old_path
             sys.modules.clear()
@@ -154,9 +163,11 @@ class test(Command):
         cmd = ' '.join(self._argv)
         if self.dry_run:
             self.announce('skipping "%s" (dry run)' % cmd)
-        else:
-            self.announce('running "%s"' % cmd)
-            self.with_project_on_sys_path(self.run_tests)
+            return
+
+        self.announce('running "%s"' % cmd)
+        with self.project_on_sys_path():
+            self.run_tests()
 
     def run_tests(self):
         # Purge modules under test from sys.modules. The test loader will
