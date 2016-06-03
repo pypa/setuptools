@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+v22.0.1
+-------
+
+* #190: On Python 2, if unicode is passed for packages to
+  ``build_py`` command, it will be handled just as with
+  text on Python 3.
+
 v22.0.0
 -------
 
