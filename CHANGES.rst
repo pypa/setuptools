@@ -2,6 +2,11 @@
 CHANGES
 =======
 
+v22.0.2
+-------
+
+* #589: Releases are now uploaded to pypi.io (Warehouse).
+
 v22.0.1
 -------
 
