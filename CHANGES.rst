@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+v22.0.3
+-------
+
+* #589: Releases are now uploaded to pypi.io (Warehouse)
+  even when releases are made on Twine via Travis.
+
 v22.0.2
 -------
 
