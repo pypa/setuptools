@@ -1,1 +1,1 @@
-rst.linker
+rst.linker>=1.6.1
