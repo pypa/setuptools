@@ -5,7 +5,8 @@ Installing and Using Setuptools
 .. contents:: **Table of Contents**
 
 
-`Change History <https://pythonhosted.org/setuptools/history.html>`_.
+.. image:: https://setuptools.readthedocs.io/en/latest/?badge=latest
+    :target: https://setuptools.readthedocs.io
 
 -------------------------
 Installation Instructions
