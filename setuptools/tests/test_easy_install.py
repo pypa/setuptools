@@ -6,7 +6,6 @@ from __future__ import absolute_import
 
 import sys
 import os
-import shutil
 import tempfile
 import site
 import contextlib
@@ -118,6 +117,19 @@ class TestEasyInstallTest:
         cmd.install_dir = os.getcwd()
         with pytest.raises(distutils.errors.DistutilsError):
             cmd.cant_write_to_target()
+
+    def test_all_site_dirs(self, monkeypatch):
+        """
+        get_site_dirs should always return site dirs reported by
+        site.getsitepackages.
+        """
+        mock_gsp = lambda: ['/setuptools/test/site-packages']
+        monkeypatch.setattr(site, 'getsitepackages', mock_gsp, raising=False)
+        assert '/setuptools/test/site-packages' in ei.get_site_dirs()
+
+    def test_all_site_dirs_works_without_getsitepackages(self, monkeypatch):
+        monkeypatch.delattr(site, 'getsitepackages', raising=False)
+        assert ei.get_site_dirs()
 
 
 class TestPTHFileWriter:

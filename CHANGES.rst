@@ -2,6 +2,132 @@
 CHANGES
 =======
 
+v22.0.5
+-------
+
+* #604: Restore repository for upload_docs command
+  to restore publishing of docs during release.
+
+v22.0.4
+-------
+
+* #589: Upload releases to pypi.io using the upload
+  hostname and legacy path.
+
+v22.0.3
+-------
+
+* #589: Releases are now uploaded to pypi.io (Warehouse)
+  even when releases are made on Twine via Travis.
+
+v22.0.2
+-------
+
+* #589: Releases are now uploaded to pypi.io (Warehouse).
+
+v22.0.1
+-------
+
+* #190: On Python 2, if unicode is passed for packages to
+  ``build_py`` command, it will be handled just as with
+  text on Python 3.
+
+v22.0.0
+-------
+
+Intended to be v21.3.0, but jaraco accidentally released as
+a major bump.
+
+* #598: Setuptools now lists itself first in the User-Agent
+  for web requests, better following the guidelines in
+  `RFC 7231
+  <https://tools.ietf.org/html/rfc7231#section-5.5.3>`_.
+
+v21.2.2
+-------
+
+* Minor fixes to changelog and docs.
+
+v21.2.1
+-------
+
+* #261: Exclude directories when resolving globs in
+  package_data.
+
+v21.2.0
+-------
+
+* #539: In the easy_install get_site_dirs, honor all
+  paths found in ``site.getsitepackages``.
+
+v21.1.0
+-------
+
+* #572: In build_ext, now always import ``_CONFIG_VARS``
+  from ``distutils`` rather than from ``sysconfig``
+  to allow ``distutils.sysconfig.customize_compiler``
+  configure the OS X compiler for ``-dynamiclib``.
+
+v21.0.0
+-------
+
+* Removed ez_setup.py from Setuptools sdist. The
+  bootstrap script will be maintained in its own
+  branch and should be generally be retrieved from
+  its canonical location at
+  https://bootstrap.pypa.io/ez_setup.py.
+
+v20.10.0
+--------
+
+* #553: egg_info section is now generated in a
+  deterministic order, matching the order generated
+  by earlier versions of Python. Except on Python 2.6,
+  order is preserved when existing settings are present.
+* #556: Update to Packaging 16.7, restoring support
+  for deprecated ``python_implmentation`` marker.
+* #555: Upload command now prompts for a password
+  when uploading to PyPI (or other repository) if no
+  password is present in .pypirc or in the keyring.
+
+v20.9.0
+-------
+
+* #548: Update certify version to 2016.2.28
+* #545: Safely handle deletion of non-zip eggs in rotate
+  command.
+
+v20.8.1
+-------
+
+* Issue #544: Fix issue with extra environment marker
+  processing in WorkingSet due to refactor in v20.7.0.
+
+v20.8.0
+-------
+
+* Issue #543: Re-release so that latest release doesn't
+  cause déjà vu with distribute and setuptools 0.7 in
+  older environments.
+
+v20.7.0
+-------
+
+* Refactored extra enviroment marker processing
+  in WorkingSet.
+* Issue #533: Fixed intermittent test failures.
+* Issue #536: In msvc9_support, trap additional exceptions
+  that might occur when importing
+  ``distutils.msvc9compiler`` in mingw environments.
+* Issue #537: Provide better context when package
+  metadata fails to decode in UTF-8.
+
+v20.6.8
+-------
+
+* Issue #523: Restored support for environment markers,
+  now honoring 'extra' environment markers.
+
 v20.6.7
 -------
 
@@ -29,7 +155,7 @@ v20.6.0
 20.5
 ----
 
-* BB Pull Request #185: Add support for environment markers
+* BB Pull Request #185, #470: Add support for environment markers
   in requirements in install_requires, setup_requires,
   tests_require as well as adding a test for the existing
   extra_requires machinery.

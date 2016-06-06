@@ -1,7 +1,11 @@
 import os
 import glob
+import re
 import stat
+import sys
 
+from setuptools.command.egg_info import egg_info
+from setuptools.dist import Distribution
 from setuptools.extern.six.moves import map
 
 import pytest
@@ -59,6 +63,79 @@ class TestEggInfo(object):
             })
             yield env
 
+    def test_egg_info_save_version_info_setup_empty(self, tmpdir_cwd, env):
+        """
+        When the egg_info section is empty or not present, running
+        save_version_info should add the settings to the setup.cfg
+        in a deterministic order, consistent with the ordering found
+        on Python 2.6 and 2.7 with PYTHONHASHSEED=0.
+        """
+        setup_cfg = os.path.join(env.paths['home'], 'setup.cfg')
+        dist = Distribution()
+        ei = egg_info(dist)
+        ei.initialize_options()
+        ei.save_version_info(setup_cfg)
+
+        with open(setup_cfg, 'r') as f:
+            content = f.read()
+
+        assert '[egg_info]' in content
+        assert 'tag_build =' in content
+        assert 'tag_date = 0' in content
+        assert 'tag_svn_revision = 0' in content
+
+        expected_order = 'tag_build', 'tag_date', 'tag_svn_revision'
+
+        self._validate_content_order(content, expected_order)
+
+    @staticmethod
+    def _validate_content_order(content, expected):
+        """
+        Assert that the strings in expected appear in content
+        in order.
+        """
+        if sys.version_info < (2, 7):
+            # On Python 2.6, expect dict key order.
+            expected = dict.fromkeys(expected).keys()
+
+        pattern = '.*'.join(expected)
+        flags = re.MULTILINE | re.DOTALL
+        assert re.search(pattern, content, flags)
+
+    def test_egg_info_save_version_info_setup_defaults(self, tmpdir_cwd, env):
+        """
+        When running save_version_info on an existing setup.cfg
+        with the 'default' values present from a previous run,
+        the file should remain unchanged, except on Python 2.6,
+        where the order of the keys will be changed to match the
+        order as found in a dictionary of those keys.
+        """
+        setup_cfg = os.path.join(env.paths['home'], 'setup.cfg')
+        build_files({
+            setup_cfg: DALS("""
+            [egg_info]
+            tag_build =
+            tag_date = 0
+            tag_svn_revision = 0
+            """),
+        })
+        dist = Distribution()
+        ei = egg_info(dist)
+        ei.initialize_options()
+        ei.save_version_info(setup_cfg)
+
+        with open(setup_cfg, 'r') as f:
+            content = f.read()
+
+        assert '[egg_info]' in content
+        assert 'tag_build =' in content
+        assert 'tag_date = 0' in content
+        assert 'tag_svn_revision = 0' in content
+
+        expected_order = 'tag_build', 'tag_date', 'tag_svn_revision'
+
+        self._validate_content_order(content, expected_order)
+
     def test_egg_base_installed_egg_info(self, tmpdir_cwd, env):
         self._create_project()
 
@@ -104,7 +181,6 @@ class TestEggInfo(object):
             'setup.py': setup_script,
             })
 
-    @pytest.mark.xfail(reason="Functionality disabled; see #523")
     def test_install_requires_with_markers(self, tmpdir_cwd, env):
         self._setup_script_with_requires(
             """install_requires=["barbazquux;python_version<'2'"],""")
@@ -115,14 +191,12 @@ class TestEggInfo(object):
             requires_txt).read().split('\n')
         assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
 
-    @pytest.mark.xfail(reason="Functionality disabled; see #523")
     def test_setup_requires_with_markers(self, tmpdir_cwd, env):
         self._setup_script_with_requires(
             """setup_requires=["barbazquux;python_version<'2'"],""")
         self._run_install_command(tmpdir_cwd, env)
         assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
 
-    @pytest.mark.xfail(reason="Functionality disabled; see #523")
     def test_tests_require_with_markers(self, tmpdir_cwd, env):
         self._setup_script_with_requires(
             """tests_require=["barbazquux;python_version<'2'"],""")
