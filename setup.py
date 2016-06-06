@@ -66,7 +66,7 @@ wheel = ['wheel'] if needs_wheel else []
 
 setup_params = dict(
     name="setuptools",
-    version="22.0.5",
+    use_scm_version=True,
     description="Easily download, build, install, upgrade, and uninstall "
                 "Python packages",
     author="Python Packaging Authority",
@@ -156,6 +156,7 @@ setup_params = dict(
         'pytest>=2.8',
     ] + (['mock'] if sys.version_info[:2] < (3, 3) else []),
     setup_requires=[
+        'setuptools_scm>=1.9',
     ] + pytest_runner + wheel,
 )
 

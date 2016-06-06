@@ -10,7 +10,7 @@ from fnmatch import fnmatchcase
 
 from setuptools.extern.six.moves import filterfalse, map
 
-import setuptools.version
+import pkg_resources
 from setuptools.extension import Extension
 from setuptools.dist import Distribution, Feature, _get_unpatched
 from setuptools.depends import Require
@@ -20,7 +20,7 @@ __all__ = [
     'find_packages'
 ]
 
-__version__ = setuptools.version.__version__
+__version__ = pkg_resources.require('setuptools')[0].version
 
 bootstrap_install_from = None
 
