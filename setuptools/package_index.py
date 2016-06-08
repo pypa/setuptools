@@ -605,14 +605,15 @@ class PackageIndex(Environment):
                     mylocation = self.download(dist.location, tmpdir)
                     if os.path.exists(mylocation):
                         return dist, mylocation
+            return None, None
 
         if force_scan:
             self.prescan()
             self.find_packages(requirement)
             dist, mylocation = find(requirement)
 
-        if local_index is not None:
-            dist, mylocation = dist, mylocation if dist else  find(requirement, local_index)
+        if not dist and local_index is not None:
+            dist, mylocation = find(requirement, local_index)
 
         if dist is None:
             if self.to_scan is not None:
