@@ -8,6 +8,9 @@ v23.0.0
 * #611: Removed ARM executables for CLI and GUI script
   launchers on Windows. If this was a feature you cared
   about, please comment in the ticket.
+* #604: Removed docs building support. The project
+  now relies on documentation hosted at
+  https://setuptools.readthedocs.io/.
 
 v22.0.5
 -------
