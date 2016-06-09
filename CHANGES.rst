@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+v23.0.0
+-------
+
+* #611: Removed ARM executables for CLI and GUI script
+  launchers on Windows. If this was a feature you cared
+  about, please comment in the ticket.
+
 v22.0.5
 -------
 
