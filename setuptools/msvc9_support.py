@@ -202,7 +202,7 @@ def msvc14_get_vc_env(plat_spec):
 
     # If error, try to set environment directly
     try:
-        return EnvironmentInfo(plat_spec, vcvermin=14.0).return_env()
+        return EnvironmentInfo(plat_spec, vc_ver_min=14.0).return_env()
     except distutils.errors.DistutilsPlatformError as exc:
         _augment_exception(exc, 14.0)
         raise
@@ -237,7 +237,7 @@ def _augment_exception(exc, version, arch=''):
             message += ' Get it with "Microsoft Windows SDK 7.1": '
             message += msdownload % 8279
 
-    exc.args[0] = message
+    exc.args = (message, )
 
 
 class PlatformInfo:
@@ -460,6 +460,8 @@ class SystemInfo:
     vc_ver: float
         Required Microsoft Visual C++ version.
     """
+    # Variables and properties in this class use originals CamelCase variables
+    # names from Microsoft source files for more easy comparaison.
     WinDir = safe_env['WinDir']
     ProgramFiles = safe_env['ProgramFiles']
     ProgramFilesx86 = os.environ.get('ProgramFiles(x86)', ProgramFiles)
@@ -481,7 +483,7 @@ class SystemInfo:
         Find all available Microsoft Visual C++ versions.
         """
         vckeys = (self.ri.vc, self.ri.vc_for_python)
-        vsvers = []
+        vc_vers = []
         for hkey in self.ri.HKEYS:
             for key in vckeys:
                 try:
@@ -492,18 +494,18 @@ class SystemInfo:
                 for i in range(values):
                     try:
                         ver = float(winreg.EnumValue(bkey, i)[0])
-                        if ver not in vsvers:
-                            vsvers.append(ver)
+                        if ver not in vc_vers:
+                            vc_vers.append(ver)
                     except ValueError:
                         pass
                 for i in range(subkeys):
                     try:
                         ver = float(winreg.EnumKey(bkey, i))
-                        if ver not in vsvers:
-                            vsvers.append(ver)
+                        if ver not in vc_vers:
+                            vc_vers.append(ver)
                     except ValueError:
                         pass
-        return sorted(vsvers)
+        return sorted(vc_vers)
 
     @property
     def VSInstallDir(self):
@@ -527,18 +529,18 @@ class SystemInfo:
         guess_vc = os.path.join(self.ProgramFilesx86, default)
 
         # Try to get "VC++ for Python" path from registry as default path
-        path = os.path.join(self.ri.vc_for_python, '%0.1f' % self.vc_ver)
-        python_vc = self.ri.lookup(path, 'installdir')
+        reg_path = os.path.join(self.ri.vc_for_python, '%0.1f' % self.vc_ver)
+        python_vc = self.ri.lookup(reg_path, 'installdir')
         default_vc = os.path.join(python_vc, 'VC') if python_vc else guess_vc
 
         # Try to get path from registry, if fail use default path
-        result = self.ri.lookup(self.ri.vc, '%0.1f' % self.vc_ver) or default_vc
+        path = self.ri.lookup(self.ri.vc, '%0.1f' % self.vc_ver) or default_vc
 
-        if not os.path.isdir(result):
+        if not os.path.isdir(path):
             msg = 'Microsoft Visual C++ directory not found'
             raise distutils.errors.DistutilsPlatformError(msg)
 
-        return result
+        return path
 
     @property
     def WindowsSdkVersion(self):
@@ -758,6 +760,8 @@ class EnvironmentInfo:
     vc_min_ver: float
         Minimum Microsoft Visual C++ version.
     """
+    # Variables and properties in this class use originals CamelCase variables
+    # names from Microsoft source files for more easy comparaison.
     def __init__(self, arch, vc_ver=None, vc_min_ver=None):
         self.pi = PlatformInfo(arch)
         self.ri = RegistryInfo(self.pi)
@@ -773,7 +777,7 @@ class EnvironmentInfo:
         """
         Microsoft Visual C++ version.
         """
-        return self.si.vcver
+        return self.si.vc_ver
 
     @property
     def VSTools(self):
@@ -1101,7 +1105,7 @@ class EnvironmentInfo:
                                     self.FSharp],
                                    exists),
         )
-        if self.vcver >= 14 and os.path.isfile(self.VCRuntimeRedist):
+        if self.vc_ver >= 14 and os.path.isfile(self.VCRuntimeRedist):
             env['py_vcruntime_redist'] = self.VCRuntimeRedist
         return env
 
