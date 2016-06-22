@@ -3,9 +3,10 @@
 import os
 import types
 
+from setuptools.extern import pkg_resources
+
 import pytest
 
-import pkg_resources
 import setuptools.sandbox
 from setuptools.sandbox import DirectorySandbox
 

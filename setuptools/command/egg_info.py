@@ -17,18 +17,17 @@ import collections
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import map
+from setuptools.extern.pkg_resources import (
+    parse_requirements, safe_name, parse_version,
+    safe_version, yield_lines, EntryPoint, iter_entry_points, to_filename)
+from setuptools.extern import packaging
 
 from setuptools import Command
 from setuptools.command.sdist import sdist
 from setuptools.command.sdist import walk_revctrl
 from setuptools.command.setopt import edit_config
 from setuptools.command import bdist_egg
-from pkg_resources import (
-    parse_requirements, safe_name, parse_version,
-    safe_version, yield_lines, EntryPoint, iter_entry_points, to_filename)
 import setuptools.unicode_utils as unicode_utils
-
-from pkg_resources.extern import packaging
 
 try:
     from setuptools_svn import svn_utils

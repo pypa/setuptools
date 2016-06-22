@@ -15,11 +15,11 @@ from distutils.errors import (DistutilsOptionError, DistutilsPlatformError,
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import map
-from pkg_resources.extern import packaging
+from setuptools.extern import packaging
+from setuptools.extern import pkg_resources
 
 from setuptools.depends import Require
 from setuptools import windows_support
-import pkg_resources
 
 
 def _get_unpatched(cls):

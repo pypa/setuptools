@@ -18,6 +18,10 @@ import io
 from setuptools.extern.six.moves import urllib
 import time
 
+from setuptools.extern.pkg_resources import working_set
+from setuptools.extern.pkg_resources import Distribution as PRDistribution
+from setuptools.extern import pkg_resources
+
 import pytest
 try:
     from unittest import mock
@@ -30,10 +34,7 @@ import setuptools.command.easy_install as ei
 from setuptools.command.easy_install import PthDistributions
 from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
-from pkg_resources import working_set
-from pkg_resources import Distribution as PRDistribution
 import setuptools.tests.server
-import pkg_resources
 
 from .py26compat import tarfile_open
 from . import contexts

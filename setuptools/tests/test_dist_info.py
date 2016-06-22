@@ -5,10 +5,10 @@ import shutil
 import tempfile
 
 from setuptools.extern.six.moves import map
+from setuptools.extern import pkg_resources
 
 import pytest
 
-import pkg_resources
 from .textwrap import DALS
 
 

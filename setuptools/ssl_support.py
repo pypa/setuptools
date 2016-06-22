@@ -4,9 +4,8 @@ import atexit
 import re
 
 from setuptools.extern.six.moves import urllib, http_client, map
-
-import pkg_resources
-from pkg_resources import ResolutionError, ExtractionError
+from setuptools.extern import pkg_resources
+from setuptools.extern.pkg_resources import ResolutionError, ExtractionError
 
 try:
     import ssl

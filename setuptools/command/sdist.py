@@ -6,10 +6,10 @@ import sys
 import io
 
 from setuptools.extern import six
+from setuptools.extern import pkg_resources
 
 from setuptools.utils import cs_path_exists
 
-import pkg_resources
 
 READMES = 'README', 'README.rst', 'README.txt'
 

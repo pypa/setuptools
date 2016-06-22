@@ -6,8 +6,8 @@ import glob
 import io
 
 from setuptools.extern import six
+from setuptools.extern.pkg_resources import Distribution, PathMetadata, normalize_path
 
-from pkg_resources import Distribution, PathMetadata, normalize_path
 from setuptools.command.easy_install import easy_install
 import setuptools
 

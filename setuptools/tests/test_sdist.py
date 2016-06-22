@@ -11,10 +11,10 @@ import io
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import map
+from setuptools.extern import pkg_resources
 
 import pytest
 
-import pkg_resources
 from setuptools.command.sdist import sdist
 from setuptools.command.egg_info import manifest_maker
 from setuptools.dist import Distribution

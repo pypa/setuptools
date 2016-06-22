@@ -10,8 +10,7 @@ import pickle
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import builtins, map
-
-import pkg_resources
+from setuptools.extern import pkg_resources
 
 if sys.platform.startswith('java'):
     import org.python.modules.posix.PosixModule as _os
@@ -23,7 +22,8 @@ except NameError:
     _file = None
 _open = open
 from distutils.errors import DistutilsError
-from pkg_resources import working_set
+
+working_set = pkg_resources.working_set
 
 __all__ = [
     "AbstractSandbox", "DirectorySandbox", "SandboxViolation", "run_setup",

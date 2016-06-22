@@ -5,10 +5,10 @@ from unittest import TestLoader
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import map
-
-from pkg_resources import (resource_listdir, resource_exists, normalize_path,
+from setuptools.extern.pkg_resources import (resource_listdir, resource_exists, normalize_path,
                            working_set, _namespace_packages,
                            add_activation_listener, require, EntryPoint)
+
 from setuptools import Command
 from setuptools.py31compat import unittest_main
 

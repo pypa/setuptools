@@ -9,10 +9,11 @@ def remove_all(paths):
 
 @task
 def update_vendored():
-    vendor = Path('pkg_resources/_vendor')
-    remove_all(vendor.glob('packaging*'))
+    vendor = Path('setuptools/_vendor')
+    remove_all(vendor.glob('pkg_resources*'))
     remove_all(vendor.glob('six*'))
     remove_all(vendor.glob('pyparsing*'))
+    remove_all(vendor.glob('packaging*'))
     install_args = [
         'install',
         '-r', str(vendor/'vendored.txt'),
@@ -22,7 +23,7 @@ def update_vendored():
     packaging = vendor / 'packaging'
     for file in packaging.glob('*.py'):
         text = file.text()
-        text = re.sub(r' (pyparsing|six)', r' pkg_resources.extern.\1', text)
+        text = re.sub(r' (pyparsing|six)', r' setuptools.extern.\1', text)
         file.write_text(text)
     remove_all(vendor.glob('*.dist-info'))
     remove_all(vendor.glob('*.egg-info'))

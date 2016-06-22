@@ -43,6 +43,13 @@ import io
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import configparser, map
+from setuptools.extern.pkg_resources import (
+    yield_lines, normalize_path, resource_string, ensure_directory,
+    get_distribution, find_distributions, Environment, Requirement,
+    Distribution, PathMetadata, EggMetadata, WorkingSet, DistributionNotFound,
+    VersionConflict, DEVELOP_DIST,
+)
+from setuptools.extern import pkg_resources
 
 from setuptools import Command
 from setuptools.sandbox import run_setup
@@ -52,13 +59,6 @@ from setuptools.archive_util import unpack_archive
 from setuptools.package_index import PackageIndex
 from setuptools.package_index import URL_SCHEME
 from setuptools.command import bdist_egg, egg_info
-from pkg_resources import (
-    yield_lines, normalize_path, resource_string, ensure_directory,
-    get_distribution, find_distributions, Environment, Requirement,
-    Distribution, PathMetadata, EggMetadata, WorkingSet, DistributionNotFound,
-    VersionConflict, DEVELOP_DIST,
-)
-import pkg_resources
 
 # Turn on PEP440Warnings
 warnings.filterwarnings("default", category=pkg_resources.PEP440Warning)
