@@ -625,7 +625,7 @@ class PackageIndex(Environment):
 
         if dist is None:
             self.warn(
-                "No local packages or download links found for %s%s",
+                "No local packages or working download links found for %s%s",
                 (source and "a source distribution of " or ""),
                 requirement,
             )
