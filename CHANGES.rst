@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+v23.1.0
+-------
+
+* #619: Deprecated ``tag_svn_revision`` distribution
+  option.
+
 v23.0.0
 -------
 

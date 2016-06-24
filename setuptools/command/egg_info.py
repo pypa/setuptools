@@ -199,6 +199,10 @@ class egg_info(Command):
         if self.tag_build:
             version += self.tag_build
         if self.tag_svn_revision:
+            warnings.warn(
+                "tag_svn_revision is deprecated and will not be honored "
+                "in a future release"
+            )
             version += '-r%s' % self.get_svn_revision()
         if self.tag_date:
             version += time.strftime("-%Y%m%d")
