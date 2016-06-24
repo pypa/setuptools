@@ -602,9 +602,8 @@ class PackageIndex(Environment):
                     continue
 
                 if dist in req and (dist.precedence <= SOURCE_DIST or not source):
-                    mylocation = self.download(dist.location, tmpdir)
-                    if os.path.exists(mylocation):
-                        dist._location = mylocation
+                    dist.download_location = self.download(dist.location, tmpdir)
+                    if os.path.exists(dist.download_location):
                         return dist
 
         if force_scan:
@@ -632,7 +631,7 @@ class PackageIndex(Environment):
             )
         else:
             self.info("Best match: %s", dist)
-            return dist.clone(location=dist._location)
+            return dist.clone(location=dist.download_location)
 
     def fetch(self, requirement, tmpdir, force_scan=False, source=False):
         """Obtain a file suitable for fulfilling `requirement`
