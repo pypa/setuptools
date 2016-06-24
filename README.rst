@@ -37,6 +37,10 @@ Powershell command. Start up Powershell and paste this command::
 
     > (Invoke-WebRequest https://bootstrap.pypa.io/ez_setup.py).Content | python -
 
+.. image:: https://badges.gitter.im/pypa/setuptools.svg
+   :alt: Join the chat at https://gitter.im/pypa/setuptools
+   :target: https://gitter.im/pypa/setuptools?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+
 You must start the Powershell with Administrative privileges or you may choose
 to install a user-local installation::
 
