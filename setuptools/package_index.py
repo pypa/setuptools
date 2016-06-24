@@ -604,25 +604,25 @@ class PackageIndex(Environment):
                 if dist in req and (dist.precedence <= SOURCE_DIST or not source):
                     mylocation = self.download(dist.location, tmpdir)
                     if os.path.exists(mylocation):
-                        return dist, mylocation
-            return None, None
+                        dist._location = mylocation
+                        return dist
 
         if force_scan:
             self.prescan()
             self.find_packages(requirement)
-            dist, mylocation = find(requirement)
+            dist = find(requirement)
 
         if not dist and local_index is not None:
-            dist, mylocation = find(requirement, local_index)
+            dist = find(requirement, local_index)
 
         if dist is None:
             if self.to_scan is not None:
                 self.prescan()
-            dist, mylocation = find(requirement)
+            dist = find(requirement)
 
         if dist is None and not force_scan:
             self.find_packages(requirement)
-            dist, mylocation = find(requirement)
+            dist = find(requirement)
 
         if dist is None:
             self.warn(
@@ -632,7 +632,7 @@ class PackageIndex(Environment):
             )
         else:
             self.info("Best match: %s", dist)
-            return dist.clone(location=mylocation)
+            return dist.clone(location=dist._location)
 
     def fetch(self, requirement, tmpdir, force_scan=False, source=False):
         """Obtain a file suitable for fulfilling `requirement`
