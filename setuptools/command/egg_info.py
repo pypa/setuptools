@@ -52,8 +52,10 @@ class egg_info(Command):
     ]
 
     boolean_options = ['tag-date', 'tag-svn-revision']
-    negative_opt = {'no-svn-revision': 'tag-svn-revision',
-                    'no-date': 'tag-date'}
+    negative_opt = {
+        'no-svn-revision': 'tag-svn-revision',
+        'no-date': 'tag-date',
+    }
 
     def initialize_options(self):
         self.egg_name = None
