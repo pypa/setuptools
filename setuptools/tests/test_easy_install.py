@@ -591,15 +591,6 @@ class TestCommandSpec:
         assert len(cmd) == 2
         assert '"' not in cmd.as_header()
 
-    def test_sys_executable(self):
-        """
-        CommandSpec.from_string(sys.executable) should contain just that param.
-        """
-        writer = ei.ScriptWriter.best()
-        cmd = writer.command_spec_class.from_string(sys.executable)
-        assert len(cmd) == 1
-        assert cmd[0] == sys.executable
-
 
 class TestWindowsScriptWriter:
     def test_header(self):
