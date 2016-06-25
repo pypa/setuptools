@@ -528,29 +528,32 @@ def make_trivial_sdist(dist_path, setup_py):
         dist.addfile(setup_py_file, fileobj=setup_py_bytes)
 
 
+@pytest.mark.skipif(
+    sys.platform.startswith('java') and ei.is_sh(sys.executable),
+    reason="Test cannot run under java when executable is sh"
+)
 class TestScriptHeader:
     non_ascii_exe = '/Users/José/bin/python'
     exe_with_spaces = r'C:\Program Files\Python33\python.exe'
 
-    @pytest.mark.skipif(
-        sys.platform.startswith('java') and ei.is_sh(sys.executable),
-        reason="Test cannot run under java when executable is sh"
-    )
     def test_get_script_header(self):
         expected = '#!%s\n' % ei.nt_quote_arg(os.path.normpath(sys.executable))
         actual = ei.ScriptWriter.get_script_header('#!/usr/local/bin/python')
         assert actual == expected
 
+    def test_get_script_header_args(self):
         expected = '#!%s -x\n' % ei.nt_quote_arg(os.path.normpath
             (sys.executable))
         actual = ei.ScriptWriter.get_script_header('#!/usr/bin/python -x')
         assert actual == expected
 
+    def test_get_script_header_non_ascii_exe(self):
         actual = ei.ScriptWriter.get_script_header('#!/usr/bin/python',
             executable=self.non_ascii_exe)
         expected = '#!%s -x\n' % self.non_ascii_exe
         assert actual == expected
 
+    def test_get_script_header_exe_with_spaces(self):
         actual = ei.ScriptWriter.get_script_header('#!/usr/bin/python',
             executable='"'+self.exe_with_spaces+'"')
         expected = '#!"%s"\n' % self.exe_with_spaces
