@@ -182,10 +182,10 @@ them there, so this reference list can be updated.  If you have working,
 the `setuptools bug tracker`_.
 
 .. _setuptools bug tracker: https://github.com/pypa/setuptools/issues
-.. _The Internal Structure of Python Eggs: https://pythonhosted.org/setuptools/formats.html
-.. _The setuptools Developer's Guide: https://pythonhosted.org/setuptools/setuptools.html
-.. _The pkg_resources API reference: https://pythonhosted.org/setuptools/pkg_resources.html
-.. _The EasyInstall user's guide and reference manual: https://pythonhosted.org/setuptools/easy_install.html
+.. _The Internal Structure of Python Eggs: https://setuptools.readthedocs.io/en/latest/formats.html
+.. _The setuptools Developer's Guide: https://setuptools.readthedocs.io/en/latest/developer-guide.html
+.. _The pkg_resources API reference: https://setuptools.readthedocs.io/en/latest/pkg_resources.html
+.. _The EasyInstall user's guide and reference manual: https://setuptools.readthedocs.io/en/latest/easy_install.html
 .. _distutils-sig mailing list: http://mail.python.org/pipermail/distutils-sig/
 
 
