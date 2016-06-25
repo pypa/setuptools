@@ -30,7 +30,7 @@ import setuptools.command.easy_install as ei
 from setuptools.command.easy_install import PthDistributions
 from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
-from pkg_resources import working_set
+from pkg_resources import normalize_path, working_set
 from pkg_resources import Distribution as PRDistribution
 import setuptools.tests.server
 import pkg_resources
@@ -123,9 +123,10 @@ class TestEasyInstallTest:
         get_site_dirs should always return site dirs reported by
         site.getsitepackages.
         """
-        mock_gsp = lambda: ['/setuptools/test/site-packages']
+        path = normalize_path('/setuptools/test/site-packages')
+        mock_gsp = lambda: [path]
         monkeypatch.setattr(site, 'getsitepackages', mock_gsp, raising=False)
-        assert '/setuptools/test/site-packages' in ei.get_site_dirs()
+        assert path in ei.get_site_dirs()
 
     def test_all_site_dirs_works_without_getsitepackages(self, monkeypatch):
         monkeypatch.delattr(site, 'getsitepackages', raising=False)
