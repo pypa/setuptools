@@ -129,7 +129,7 @@ v20.8.0
 v20.7.0
 -------
 
-* Refactored extra enviroment marker processing
+* Refactored extra environment marker processing
   in WorkingSet.
 * Issue #533: Fixed intermittent test failures.
 * Issue #536: In msvc9_support, trap additional exceptions
@@ -216,7 +216,7 @@ v20.6.0
 20.2.1
 ------
 
-* Issue #499: Restore compatiblity for legacy versions
+* Issue #499: Restore compatibility for legacy versions
   by bumping to packaging 16.4.
 
 20.2
