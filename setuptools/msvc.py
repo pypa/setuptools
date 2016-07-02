@@ -1,6 +1,7 @@
 """
-This module improve support for Microsoft Visual C++ compilers. (Windows Only)
+This module adds improved support for Microsoft Visual C++ compilers.
 """
+
 import os
 import collections
 import itertools
@@ -30,7 +31,7 @@ except ImportError:
     pass
 
 try:
-    # Distutil file for MSVC++ 14.0 and upper (Python 3.5)
+    # Distutil file for MSVC++ 14.0 and upper (Python 3.5+)
     import distutils._msvccompiler as msvc14compiler
 except ImportError:
     pass

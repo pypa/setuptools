@@ -8,11 +8,11 @@ import distutils.extension
 from setuptools.extern.six.moves import map
 
 from .dist import _get_unpatched
-from . import msvc9_support
+from . import msvc
 
 _Extension = _get_unpatched(distutils.core.Extension)
 
-msvc9_support.patch_for_specialized_compiler()
+msvc.patch_for_specialized_compiler()
 
 def _have_cython():
     """
