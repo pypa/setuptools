@@ -896,18 +896,34 @@ class EnvironmentInfo:
             libpath += [os.path.join(ref, r'CommonConfiguration\Neutral')]
 
         if self.vc_ver >= 14.0:
-            libpath += [ref,
-                        os.path.join(self.si.WindowsSdkDir, 'UnionMetadata'),
-                        os.path.join(ref, 'Windows.Foundation.'
-                                     r'UniversalApiContract\1.0.0.0'),
-                        os.path.join(ref, 'Windows.Foundation.'
-                                     r'FoundationContract\1.0.0.0'),
-                        os.path.join(ref, 'Windows.Networking.Connectivity.'
-                                     r'WwanContract\1.0.0.0'),
-                        os.path.join(self.si.WindowsSdkDir, 'ExtensionSDKs'
-                                     r'\Microsoft.VCLibs\%0.1f\References'
-                                     r'\CommonConfiguration\neutral' %
-                                     self.vc_ver)]
+            libpath += [
+                ref,
+                os.path.join(self.si.WindowsSdkDir, 'UnionMetadata'),
+                os.path.join(
+                    ref,
+                    'Windows.Foundation.UniversalApiContract'
+                    '1.0.0.0',
+                ),
+                os.path.join(
+                    ref,
+                    'Windows.Foundation.FoundationContract',
+                    '1.0.0.0',
+                ),
+                os.path.join(
+                    ref,
+                    'Windows.Networking.Connectivity.WwanContract'
+                    '1.0.0.0',
+                ),
+                os.path.join(
+                    self.si.WindowsSdkDir,
+                    'ExtensionSDKs',
+                    'Microsoft.VCLibs',
+                    '%0.1f' % self.vc_ver,
+                    'References',
+                    'CommonConfiguration',
+                    'neutral',
+                ),
+            ]
         return libpath
 
     @property
