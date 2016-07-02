@@ -5,7 +5,8 @@ Installing and Using Setuptools
 .. contents:: **Table of Contents**
 
 
-`Change History <https://pythonhosted.org/setuptools/history.html>`_.
+.. image:: https://setuptools.readthedocs.io/en/latest/?badge=latest
+    :target: https://setuptools.readthedocs.io
 
 -------------------------
 Installation Instructions
@@ -35,6 +36,10 @@ with PowerShell 3 installed, it's possible to install with one simple
 Powershell command. Start up Powershell and paste this command::
 
     > (Invoke-WebRequest https://bootstrap.pypa.io/ez_setup.py).Content | python -
+
+.. image:: https://badges.gitter.im/pypa/setuptools.svg
+   :alt: Join the chat at https://gitter.im/pypa/setuptools
+   :target: https://gitter.im/pypa/setuptools?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
 You must start the Powershell with Administrative privileges or you may choose
 to install a user-local installation::
@@ -177,10 +182,10 @@ them there, so this reference list can be updated.  If you have working,
 the `setuptools bug tracker`_.
 
 .. _setuptools bug tracker: https://github.com/pypa/setuptools/issues
-.. _The Internal Structure of Python Eggs: https://pythonhosted.org/setuptools/formats.html
-.. _The setuptools Developer's Guide: https://pythonhosted.org/setuptools/setuptools.html
-.. _The pkg_resources API reference: https://pythonhosted.org/setuptools/pkg_resources.html
-.. _The EasyInstall user's guide and reference manual: https://pythonhosted.org/setuptools/easy_install.html
+.. _The Internal Structure of Python Eggs: https://setuptools.readthedocs.io/en/latest/formats.html
+.. _The setuptools Developer's Guide: https://setuptools.readthedocs.io/en/latest/developer-guide.html
+.. _The pkg_resources API reference: https://setuptools.readthedocs.io/en/latest/pkg_resources.html
+.. _The EasyInstall user's guide and reference manual: https://setuptools.readthedocs.io/en/latest/easy_install.html
 .. _distutils-sig mailing list: http://mail.python.org/pipermail/distutils-sig/
 
 

@@ -179,7 +179,7 @@ class sdist(orig.sdist):
         distribution.
         """
         log.info("reading manifest file '%s'", self.manifest)
-        manifest = open(self.manifest, 'rbU')
+        manifest = open(self.manifest, 'rb')
         for line in manifest:
             # The manifest must contain UTF-8. See #303.
             if six.PY3:

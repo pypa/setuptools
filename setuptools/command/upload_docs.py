@@ -13,6 +13,8 @@ import socket
 import zipfile
 import tempfile
 import shutil
+import itertools
+import functools
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import http_client, urllib
@@ -21,15 +23,9 @@ from pkg_resources import iter_entry_points
 from .upload import upload
 
 
-errors = 'surrogateescape' if six.PY3 else 'strict'
-
-
-# This is not just a replacement for byte literals
-# but works as a general purpose encoder
-def b(s, encoding='utf-8'):
-    if isinstance(s, six.text_type):
-        return s.encode(encoding, errors)
-    return s
+def _encode(s):
+    errors = 'surrogateescape' if six.PY3 else 'strict'
+    return s.encode('utf-8', errors)
 
 
 class upload_docs(upload):
@@ -101,10 +97,48 @@ class upload_docs(upload):
         finally:
             shutil.rmtree(tmp_dir)
 
+    @staticmethod
+    def _build_part(item, sep_boundary):
+        key, values = item
+        title = '\nContent-Disposition: form-data; name="%s"' % key
+        # handle multiple entries for the same name
+        if not isinstance(values, list):
+            values = [values]
+        for value in values:
+            if type(value) is tuple:
+                title += '; filename="%s"' % value[0]
+                value = value[1]
+            else:
+                value = _encode(value)
+            yield sep_boundary
+            yield _encode(title)
+            yield b"\n\n"
+            yield value
+            if value and value[-1:] == b'\r':
+                yield b'\n'  # write an extra newline (lurve Macs)
+
+    @classmethod
+    def _build_multipart(cls, data):
+        """
+        Build up the MIME payload for the POST data
+        """
+        boundary = b'--------------GHSKFJDLGDS7543FJKLFHRE75642756743254'
+        sep_boundary = b'\n--' + boundary
+        end_boundary = sep_boundary + b'--'
+        end_items = end_boundary, b"\n",
+        builder = functools.partial(
+            cls._build_part,
+            sep_boundary=sep_boundary,
+        )
+        part_groups = map(builder, data.items())
+        parts = itertools.chain.from_iterable(part_groups)
+        body_items = itertools.chain(parts, end_items)
+        content_type = 'multipart/form-data; boundary=%s' % boundary
+        return b''.join(body_items), content_type
+
     def upload_file(self, filename):
-        f = open(filename, 'rb')
-        content = f.read()
-        f.close()
+        with open(filename, 'rb') as f:
+            content = f.read()
         meta = self.distribution.metadata
         data = {
             ':action': 'doc_upload',
@@ -112,37 +146,13 @@ class upload_docs(upload):
             'content': (os.path.basename(filename), content),
         }
         # set up the authentication
-        credentials = b(self.username + ':' + self.password)
+        credentials = _encode(self.username + ':' + self.password)
         credentials = standard_b64encode(credentials)
         if six.PY3:
             credentials = credentials.decode('ascii')
         auth = "Basic " + credentials
 
-        # Build up the MIME payload for the POST data
-        boundary = '--------------GHSKFJDLGDS7543FJKLFHRE75642756743254'
-        sep_boundary = b('\n--') + b(boundary)
-        end_boundary = sep_boundary + b('--')
-        body = []
-        for key, values in six.iteritems(data):
-            title = '\nContent-Disposition: form-data; name="%s"' % key
-            # handle multiple entries for the same name
-            if not isinstance(values, list):
-                values = [values]
-            for value in values:
-                if type(value) is tuple:
-                    title += '; filename="%s"' % value[0]
-                    value = value[1]
-                else:
-                    value = b(value)
-                body.append(sep_boundary)
-                body.append(b(title))
-                body.append(b("\n\n"))
-                body.append(value)
-                if value and value[-1:] == b('\r'):
-                    body.append(b('\n'))  # write an extra newline (lurve Macs)
-        body.append(end_boundary)
-        body.append(b("\n"))
-        body = b('').join(body)
+        body, ct = self._build_multipart(data)
 
         self.announce("Submitting documentation to %s" % (self.repository),
                       log.INFO)
@@ -164,7 +174,7 @@ class upload_docs(upload):
         try:
             conn.connect()
             conn.putrequest("POST", url)
-            content_type = 'multipart/form-data; boundary=%s' % boundary
+            content_type = ct
             conn.putheader('Content-type', content_type)
             conn.putheader('Content-length', str(len(body)))
             conn.putheader('Authorization', auth)

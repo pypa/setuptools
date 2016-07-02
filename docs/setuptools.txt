@@ -917,7 +917,7 @@ use its resource management API.  See also `Accessing Package Resources`_ for
 a quick example of converting code that uses ``__file__`` to use
 ``pkg_resources`` instead.
 
-.. _Resource Management API: http://peak.telecommunity.com/DevCenter/PythonEggs#resource-management
+.. _Resource Management API: http://peak.telecommunity.com/DevCenter/PkgResources#resourcemanager-api
 .. _Accessing Package Resources: http://peak.telecommunity.com/DevCenter/PythonEggs#accessing-package-resources
 
 

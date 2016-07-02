@@ -10,6 +10,83 @@ Next
 * Renamed ``setuptools.msvc9_support`` to
   ``setuptools.msvc``.
 
+v23.2.1
+-------
+
+Re-release of v23.2.0, which was missing the intended
+commits.
+
+* #623: Remove used of deprecated 'U' flag when reading
+  manifests.
+
+v23.1.0
+-------
+
+* #619: Deprecated ``tag_svn_revision`` distribution
+  option.
+
+v23.0.0
+-------
+
+* #611: Removed ARM executables for CLI and GUI script
+  launchers on Windows. If this was a feature you cared
+  about, please comment in the ticket.
+* #604: Removed docs building support. The project
+  now relies on documentation hosted at
+  https://setuptools.readthedocs.io/.
+
+v22.0.5
+-------
+
+* #604: Restore repository for upload_docs command
+  to restore publishing of docs during release.
+
+v22.0.4
+-------
+
+* #589: Upload releases to pypi.io using the upload
+  hostname and legacy path.
+
+v22.0.3
+-------
+
+* #589: Releases are now uploaded to pypi.io (Warehouse)
+  even when releases are made on Twine via Travis.
+
+v22.0.2
+-------
+
+* #589: Releases are now uploaded to pypi.io (Warehouse).
+
+v22.0.1
+-------
+
+* #190: On Python 2, if unicode is passed for packages to
+  ``build_py`` command, it will be handled just as with
+  text on Python 3.
+
+v22.0.0
+-------
+
+Intended to be v21.3.0, but jaraco accidentally released as
+a major bump.
+
+* #598: Setuptools now lists itself first in the User-Agent
+  for web requests, better following the guidelines in
+  `RFC 7231
+  <https://tools.ietf.org/html/rfc7231#section-5.5.3>`_.
+
+v21.2.2
+-------
+
+* Minor fixes to changelog and docs.
+
+v21.2.1
+-------
+
+* #261: Exclude directories when resolving globs in
+  package_data.
+
 v21.2.0
 -------
 
@@ -111,7 +188,7 @@ v20.6.0
 20.5
 ----
 
-* BB Pull Request #185: Add support for environment markers
+* BB Pull Request #185, #470: Add support for environment markers
   in requirements in install_requires, setup_requires,
   tests_require as well as adding a test for the existing
   extra_requires machinery.
