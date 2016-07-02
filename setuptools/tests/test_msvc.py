@@ -1,5 +1,5 @@
 """
-Tests for msvc9compiler.
+Tests for msvc support module.
 """
 
 import os

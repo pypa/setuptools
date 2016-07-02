@@ -219,8 +219,8 @@ def _augment_exception(exc, version, arch=''):
 
     if "vcvarsall" in message.lower() or "visual c" in message.lower():
         # Special error message if MSVC++ not installed
-        message = 'Microsoft Visual C++ %0.1f is required (%s).' %\
-            (version, message)
+        tmpl = 'Microsoft Visual C++ %0.1f is required (%s).'
+        message = tmpl % version, message
         msdownload = r'www.microsoft.com/download/details.aspx?id=%d'
         if version == 9.0:
             if arch.lower().find('ia64') > -1:
