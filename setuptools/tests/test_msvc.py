@@ -1,5 +1,5 @@
 """
-Tests for msvc9compiler.
+Tests for msvc support module.
 """
 
 import os
@@ -69,7 +69,7 @@ class TestModulePatch:
     def test_patched(self):
         "Test the module is actually patched"
         mod_name = distutils.msvc9compiler.find_vcvarsall.__module__
-        assert mod_name == "setuptools.msvc9_support", "find_vcvarsall unpatched"
+        assert mod_name == "setuptools.msvc", "find_vcvarsall unpatched"
 
     def test_no_registry_entryies_means_nothing_found(self):
         """

@@ -2,6 +2,14 @@
 CHANGES
 =======
 
+Next
+----
+
+* Pull Request #174: Add more aggressive support for
+  Windows SDK in msvc9compiler patch.
+* Renamed ``setuptools.msvc9_support`` to
+  ``setuptools.msvc``.
+
 v23.2.1
 -------
 
