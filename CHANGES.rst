@@ -2,8 +2,11 @@
 CHANGES
 =======
 
-v23.2.0
+v23.2.1
 -------
+
+Re-release of v23.2.0, which was missing the intended
+commits.
 
 * #623: Remove used of deprecated 'U' flag when reading
   manifests.
