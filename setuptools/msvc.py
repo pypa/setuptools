@@ -219,9 +219,9 @@ def _augment_exception(exc, version, arch=''):
 
     if "vcvarsall" in message.lower() or "visual c" in message.lower():
         # Special error message if MSVC++ not installed
-        tmpl = 'Microsoft Visual C++ %0.1f is required (%s).'
-        message = tmpl % version, message
-        msdownload = r'www.microsoft.com/download/details.aspx?id=%d'
+        tmpl = 'Microsoft Visual C++ {version:0.1f} is required {message}.'
+        message = tmpl.format(**locals())
+        msdownload = 'www.microsoft.com/download/details.aspx?id=%d'
         if version == 9.0:
             if arch.lower().find('ia64') > -1:
                 # For VC++ 9.0, if IA64 support is needed, redirect user
@@ -232,7 +232,7 @@ def _augment_exception(exc, version, arch=''):
                 # For VC++ 9.0 redirect user to Vc++ for Python 2.7 :
                 # This redirection link is maintained by Microsoft.
                 # Contact vspython@microsoft.com if it needs updating.
-                message += r' Get it from http://aka.ms/vcpython27'
+                message += ' Get it from http://aka.ms/vcpython27'
         elif version == 10.0:
             # For VC++ 10.0 Redirect user to Windows SDK 7.1
             message += ' Get it with "Microsoft Windows SDK 7.1": '
@@ -365,7 +365,7 @@ class RegistryInfo:
         """
         Microsoft Visual Studio root registry key.
         """
-        return os.path.join(self.microsoft, r'VisualStudio')
+        return os.path.join(self.microsoft, 'VisualStudio')
 
     @property
     def sxs(self):
@@ -860,7 +860,7 @@ class EnvironmentInfo:
             arch_subdir = self.pi.target_dir(x64=True)
             lib = os.path.join(self.si.WindowsSdkDir, 'lib')
             libver = self._get_content_dirname(lib)
-            return [os.path.join(lib, r'%sum%s' % (libver, arch_subdir))]
+            return [os.path.join(lib, '%sum%s' % (libver, arch_subdir))]
 
     @property
     def OSIncludes(self):
@@ -898,13 +898,13 @@ class EnvironmentInfo:
         if self.vc_ver >= 14.0:
             libpath += [ref,
                         os.path.join(self.si.WindowsSdkDir, 'UnionMetadata'),
-                        os.path.join(ref, r'Windows.Foundation.'
+                        os.path.join(ref, 'Windows.Foundation.'
                                      r'UniversalApiContract\1.0.0.0'),
-                        os.path.join(ref, r'Windows.Foundation.'
+                        os.path.join(ref, 'Windows.Foundation.'
                                      r'FoundationContract\1.0.0.0'),
-                        os.path.join(ref, r'Windows.Networking.Connectivity.'
+                        os.path.join(ref, 'Windows.Networking.Connectivity.'
                                      r'WwanContract\1.0.0.0'),
-                        os.path.join(self.si.WindowsSdkDir, r'ExtensionSDKs'
+                        os.path.join(self.si.WindowsSdkDir, 'ExtensionSDKs'
                                      r'\Microsoft.VCLibs\%0.1f\References'
                                      r'\CommonConfiguration\neutral' %
                                      self.vc_ver)]
