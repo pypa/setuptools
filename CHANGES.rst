@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+v23.2.0
+-------
+
+* #623: Remove used of deprecated 'U' flag when reading
+  manifests.
+
 v23.1.0
 -------
 
