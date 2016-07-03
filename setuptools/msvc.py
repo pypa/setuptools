@@ -203,7 +203,7 @@ def msvc14_get_vc_env(plat_spec):
 
     # If error, try to set environment directly
     try:
-        return EnvironmentInfo(plat_spec, vc_ver_min=14.0).return_env()
+        return EnvironmentInfo(plat_spec, vc_min_ver=14.0).return_env()
     except distutils.errors.DistutilsPlatformError as exc:
         _augment_exception(exc, 14.0)
         raise
@@ -442,11 +442,11 @@ class RegistryInfo:
         for hkey in self.HKEYS:
             try:
                 bkey = winreg.OpenKey(hkey, key, 0, winreg.KEY_READ)
-            except FileNotFoundError:
+            except IOError:
                 continue
             try:
                 return winreg.QueryValueEx(bkey, name)[0]
-            except FileNotFoundError:
+            except IOError:
                 pass
 
 
@@ -489,7 +489,7 @@ class SystemInfo:
             for key in vckeys:
                 try:
                     bkey = winreg.OpenKey(hkey, key, 0, winreg.KEY_READ)
-                except FileNotFoundError:
+                except IOError:
                     continue
                 subkeys, values, _ = winreg.QueryInfoKey(bkey)
                 for i in range(values):
@@ -1187,5 +1187,5 @@ class EnvironmentInfo:
             if name:
                 return '%s\\' % name[0]
             return ''
-        except FileNotFoundError:
+        except IOError:
             return ''
