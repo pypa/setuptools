@@ -3,7 +3,6 @@ This module adds improved support for Microsoft Visual C++ compilers.
 """
 
 import os
-import collections
 import itertools
 import distutils.errors
 from setuptools.extern.six.moves import filterfalse
@@ -21,7 +20,7 @@ except ImportError:
         HKEY_CURRENT_USER = None
         HKEY_LOCAL_MACHINE = None
         HKEY_CLASSES_ROOT = None
-    safe_env = collections.defaultdict(lambda: '')
+    safe_env = dict()
 
 
 try:
@@ -36,7 +35,7 @@ try:
 except ImportError:
     pass
 
-
+	
 unpatched = dict()
 
 
@@ -237,10 +236,6 @@ def _augment_exception(exc, version, arch=''):
             # For VC++ 10.0 Redirect user to Windows SDK 7.1
             message += ' Get it with "Microsoft Windows SDK 7.1": '
             message += msdownload % 8279
-        elif version >= 14.0:
-            # For VC++ 14.0 Redirect user to Visual C++ Build Tools
-            message += ' Get it with "Visual C++ Build Tools": '
-            r'http://landinghub.visualstudio.com/visual-cpp-build-tools'
 
     exc.args = (message, )
 
@@ -254,7 +249,7 @@ class PlatformInfo:
     arch: str
         Target architecture.
     """
-    current_cpu = safe_env['processor_architecture'].lower()
+    current_cpu = safe_env.get('processor_architecture', '').lower()
 
     def __init__(self, arch):
         self.arch = arch.lower().replace('x64', 'amd64')
@@ -467,9 +462,9 @@ class SystemInfo:
     """
     # Variables and properties in this class use originals CamelCase variables
     # names from Microsoft source files for more easy comparaison.
-    WinDir = safe_env['WinDir']
-    ProgramFiles = safe_env['ProgramFiles']
-    ProgramFilesx86 = os.environ.get('ProgramFiles(x86)', ProgramFiles)
+    WinDir = safe_env.get('WinDir', '')
+    ProgramFiles = safe_env.get('ProgramFiles', '')
+    ProgramFilesx86 = safe_env.get('ProgramFiles(x86)', ProgramFiles)
 
     def __init__(self, registry_info, vc_ver=None):
         self.ri = registry_info
