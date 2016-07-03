@@ -5,8 +5,8 @@ CHANGES
 v24.0.1
 -------
 
-* Fixes on ``setuptools.msvc`` mainly for Python 2
-  and Linux.
+* #625 and #626: Fixes on ``setuptools.msvc`` mainly
+  for Python 2 and Linux.
 
 v24.0.0
 -------
