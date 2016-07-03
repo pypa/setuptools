@@ -1,17 +1,16 @@
 """
 This module adds improved support for Microsoft Visual C++ compilers.
 """
-
 import os
-import collections
+import platform
 import itertools
 import distutils.errors
 from setuptools.extern.six.moves import filterfalse
 
-try:
+if platform.system() == 'Windows':
     from setuptools.extern.six.moves import winreg
     safe_env = os.environ
-except ImportError:
+else:
     """
     Mock winreg and environ so the module can be imported
     on this platform.
@@ -21,8 +20,7 @@ except ImportError:
         HKEY_CURRENT_USER = None
         HKEY_LOCAL_MACHINE = None
         HKEY_CLASSES_ROOT = None
-    safe_env = collections.defaultdict(lambda: '')
-
+    safe_env = dict()
 
 try:
     # Distutil file for MSVC++ 9.0 and upper (Python 2.7 to 3.4)
@@ -58,6 +56,10 @@ def patch_for_specialized_compiler():
     Microsoft Visual C++ 14.0:
         Microsoft Visual C++ Build Tools 2015 (x86, x64, arm)
     """
+    if platform.system() != 'Windows':
+        # Compilers only availables on Microsoft Windows
+        return
+
     if 'distutils' not in globals():
         # The module isn't available to be patched
         return
@@ -203,7 +205,7 @@ def msvc14_get_vc_env(plat_spec):
 
     # If error, try to set environment directly
     try:
-        return EnvironmentInfo(plat_spec, vc_ver_min=14.0).return_env()
+        return EnvironmentInfo(plat_spec, vc_min_ver=14.0).return_env()
     except distutils.errors.DistutilsPlatformError as exc:
         _augment_exception(exc, 14.0)
         raise
@@ -250,7 +252,7 @@ class PlatformInfo:
     arch: str
         Target architecture.
     """
-    current_cpu = safe_env['processor_architecture'].lower()
+    current_cpu = safe_env.get('processor_architecture', '').lower()
 
     def __init__(self, arch):
         self.arch = arch.lower().replace('x64', 'amd64')
@@ -442,11 +444,11 @@ class RegistryInfo:
         for hkey in self.HKEYS:
             try:
                 bkey = winreg.OpenKey(hkey, key, 0, winreg.KEY_READ)
-            except FileNotFoundError:
+            except IOError:
                 continue
             try:
                 return winreg.QueryValueEx(bkey, name)[0]
-            except FileNotFoundError:
+            except IOError:
                 pass
 
 
@@ -463,9 +465,9 @@ class SystemInfo:
     """
     # Variables and properties in this class use originals CamelCase variables
     # names from Microsoft source files for more easy comparaison.
-    WinDir = safe_env['WinDir']
-    ProgramFiles = safe_env['ProgramFiles']
-    ProgramFilesx86 = os.environ.get('ProgramFiles(x86)', ProgramFiles)
+    WinDir = safe_env.get('WinDir', '')
+    ProgramFiles = safe_env.get('ProgramFiles', '')
+    ProgramFilesx86 = safe_env.get('ProgramFiles(x86)', ProgramFiles)
 
     def __init__(self, registry_info, vc_ver=None):
         self.ri = registry_info
@@ -489,7 +491,7 @@ class SystemInfo:
             for key in vckeys:
                 try:
                     bkey = winreg.OpenKey(hkey, key, 0, winreg.KEY_READ)
-                except FileNotFoundError:
+                except IOError:
                     continue
                 subkeys, values, _ = winreg.QueryInfoKey(bkey)
                 for i in range(values):
@@ -1136,7 +1138,7 @@ class EnvironmentInfo:
         """
         # flatten spec_path_lists
         spec_paths = itertools.chain.from_iterable(spec_path_lists)
-        env_paths = os.environ.get(name, '').split(os.pathsep)
+        env_paths = safe_env.get(name, '').split(os.pathsep)
         paths = itertools.chain(spec_paths, env_paths)
         extant_paths = list(filter(os.path.isdir, paths)) if exists else paths
         if not extant_paths:
@@ -1187,5 +1189,5 @@ class EnvironmentInfo:
             if name:
                 return '%s\\' % name[0]
             return ''
-        except FileNotFoundError:
+        except IOError:
             return ''
