@@ -7,10 +7,10 @@ import itertools
 import distutils.errors
 from setuptools.extern.six.moves import filterfalse
 
-try:
+if platform.system() == Windows:
     from setuptools.extern.six.moves import winreg
     safe_env = os.environ
-except ImportError:
+else:
     """
     Mock winreg and environ so the module can be imported
     on this platform.
