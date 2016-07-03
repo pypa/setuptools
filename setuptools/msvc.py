@@ -1,27 +1,16 @@
 """
 This module adds improved support for Microsoft Visual C++ compilers.
 """
-
 import os
+import platform
 import itertools
 import distutils.errors
 from setuptools.extern.six.moves import filterfalse
 
 try:
     from setuptools.extern.six.moves import winreg
-    safe_env = os.environ
 except ImportError:
-    """
-    Mock winreg and environ so the module can be imported
-    on this platform.
-    """
-    class winreg:
-        HKEY_USERS = None
-        HKEY_CURRENT_USER = None
-        HKEY_LOCAL_MACHINE = None
-        HKEY_CLASSES_ROOT = None
-    safe_env = dict()
-
+    pass
 
 try:
     # Distutil file for MSVC++ 9.0 and upper (Python 2.7 to 3.4)
@@ -35,7 +24,7 @@ try:
 except ImportError:
     pass
 
-	
+
 unpatched = dict()
 
 
@@ -57,6 +46,10 @@ def patch_for_specialized_compiler():
     Microsoft Visual C++ 14.0:
         Microsoft Visual C++ Build Tools 2015 (x86, x64, arm)
     """
+    if platform.system() != Windows:
+        # Compilers only availables on Microsoft Windows
+        return
+
     if 'distutils' not in globals():
         # The module isn't available to be patched
         return
@@ -249,7 +242,7 @@ class PlatformInfo:
     arch: str
         Target architecture.
     """
-    current_cpu = safe_env.get('processor_architecture', '').lower()
+    current_cpu = os.environ.get('processor_architecture', '').lower()
 
     def __init__(self, arch):
         self.arch = arch.lower().replace('x64', 'amd64')
@@ -462,9 +455,9 @@ class SystemInfo:
     """
     # Variables and properties in this class use originals CamelCase variables
     # names from Microsoft source files for more easy comparaison.
-    WinDir = safe_env.get('WinDir', '')
-    ProgramFiles = safe_env.get('ProgramFiles', '')
-    ProgramFilesx86 = safe_env.get('ProgramFiles(x86)', ProgramFiles)
+    WinDir = os.environ.get('WinDir', '')
+    ProgramFiles = os.environ.get('ProgramFiles', '')
+    ProgramFilesx86 = os.environ.get('ProgramFiles(x86)', ProgramFiles)
 
     def __init__(self, registry_info, vc_ver=None):
         self.ri = registry_info
