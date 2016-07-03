@@ -6,7 +6,11 @@ v24.0.0
 -------
 
 * Pull Request #174: Add more aggressive support for
-  Windows SDK in msvc9compiler patch.
+  standalone Microsoft Visual C++ compilers in
+  msvc9compiler patch.
+  Particularly : Windows SDK 6.0 and 6.1
+  (MSVC++ 9.0), Windows SDK 7.0 (MSVC++ 10.0),
+  Visual C++ Build Tools 2015 (MSVC++14)
 * Renamed ``setuptools.msvc9_support`` to
   ``setuptools.msvc``.
 
