@@ -4,6 +4,7 @@ This module adds improved support for Microsoft Visual C++ compilers.
 import os
 import platform
 import itertools
+import collections
 import distutils.errors
 from setuptools.extern.six.moves import filterfalse
 
