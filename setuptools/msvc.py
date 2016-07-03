@@ -9,8 +9,18 @@ from setuptools.extern.six.moves import filterfalse
 
 try:
     from setuptools.extern.six.moves import winreg
+    safe_env = os.environ
 except ImportError:
-    pass
+    """
+    Mock winreg and environ so the module can be imported
+    on this platform.
+    """
+    class winreg:
+        HKEY_USERS = None
+        HKEY_CURRENT_USER = None
+        HKEY_LOCAL_MACHINE = None
+        HKEY_CLASSES_ROOT = None
+    safe_env = collections.defaultdict(lambda: '')
 
 try:
     # Distutil file for MSVC++ 9.0 and upper (Python 2.7 to 3.4)
@@ -242,7 +252,7 @@ class PlatformInfo:
     arch: str
         Target architecture.
     """
-    current_cpu = os.environ.get('processor_architecture', '').lower()
+    current_cpu = safe_env.get('processor_architecture', '').lower()
 
     def __init__(self, arch):
         self.arch = arch.lower().replace('x64', 'amd64')
@@ -455,9 +465,9 @@ class SystemInfo:
     """
     # Variables and properties in this class use originals CamelCase variables
     # names from Microsoft source files for more easy comparaison.
-    WinDir = os.environ.get('WinDir', '')
-    ProgramFiles = os.environ.get('ProgramFiles', '')
-    ProgramFilesx86 = os.environ.get('ProgramFiles(x86)', ProgramFiles)
+    WinDir = safe_env.get('WinDir', '')
+    ProgramFiles = safe_env.get('ProgramFiles', '')
+    ProgramFilesx86 = safe_env.get('ProgramFiles(x86)', ProgramFiles)
 
     def __init__(self, registry_info, vc_ver=None):
         self.ri = registry_info
@@ -1128,7 +1138,7 @@ class EnvironmentInfo:
         """
         # flatten spec_path_lists
         spec_paths = itertools.chain.from_iterable(spec_path_lists)
-        env_paths = os.environ.get(name, '').split(os.pathsep)
+        env_paths = safe_env.get(name, '').split(os.pathsep)
         paths = itertools.chain(spec_paths, env_paths)
         extant_paths = list(filter(os.path.isdir, paths)) if exists else paths
         if not extant_paths:
