@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+v24.0.2
+-------
+
+* If MSVC14 is needed ``setuptools.msvc`` no redirect
+  user to Visual C++ Build Tools web page.
+
 v24.0.1
 -------
 
@@ -14,8 +20,8 @@ v24.0.0
 * Pull Request #174: Add more aggressive support for
   standalone Microsoft Visual C++ compilers in
   msvc9compiler patch.
-  Particularly : Windows SDK 6.0 and 6.1
-  (MSVC++ 9.0), Windows SDK 7.0 (MSVC++ 10.0),
+  Particularly : Windows SDK 6.1 and 7.0
+  (MSVC++ 9.0), Windows SDK 7.1 (MSVC++ 10.0),
   Visual C++ Build Tools 2015 (MSVC++14)
 * Renamed ``setuptools.msvc9_support`` to
   ``setuptools.msvc``.
