@@ -4,7 +4,6 @@ This module adds improved support for Microsoft Visual C++ compilers.
 import os
 import platform
 import itertools
-import collections
 import distutils.errors
 from setuptools.extern.six.moves import filterfalse
 
@@ -21,7 +20,7 @@ else:
         HKEY_CURRENT_USER = None
         HKEY_LOCAL_MACHINE = None
         HKEY_CLASSES_ROOT = None
-    safe_env = collections.defaultdict(lambda: '')
+    safe_env = dict()
 
 try:
     # Distutil file for MSVC++ 9.0 and upper (Python 2.7 to 3.4)
