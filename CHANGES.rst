@@ -5,7 +5,7 @@ CHANGES
 v24.0.2
 -------
 
-* If MSVC14 is needed ``setuptools.msvc`` no redirect
+* If MSVC++14 is needed ``setuptools.msvc`` no redirect
   user to Visual C++ Build Tools web page.
 
 v24.0.1
