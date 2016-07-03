@@ -8,7 +8,7 @@ import collections
 import distutils.errors
 from setuptools.extern.six.moves import filterfalse
 
-if platform.system() == Windows:
+if platform.system() == 'Windows':
     from setuptools.extern.six.moves import winreg
     safe_env = os.environ
 else:
@@ -57,7 +57,7 @@ def patch_for_specialized_compiler():
     Microsoft Visual C++ 14.0:
         Microsoft Visual C++ Build Tools 2015 (x86, x64, arm)
     """
-    if platform.system() != Windows:
+    if platform.system() != 'Windows':
         # Compilers only availables on Microsoft Windows
         return
 
