@@ -1972,6 +1972,7 @@ def find_on_path(importer, path_item, only=False):
 
             path_item_entries = os.listdir(path_item)
             # Reverse so we find the newest version of a distribution,
+            path_item_entries.sort()
             path_item_entries.reverse()
             for entry in path_item_entries:
                 lower = entry.lower()
