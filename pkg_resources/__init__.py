@@ -1975,6 +1975,9 @@ def find_on_path(importer, path_item, only=False):
                     fullpath = os.path.join(path_item, entry)
                     if os.path.isdir(fullpath):
                         # egg-info directory, allow getting metadata
+                        if len(os.listdir(fullpath)) == 0:
+                            # Empty egg directory, skip.
+                            continue
                         metadata = PathMetadata(path_item, fullpath)
                     else:
                         metadata = FileMetadata(fullpath)
