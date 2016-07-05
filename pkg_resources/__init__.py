@@ -1969,7 +1969,11 @@ def find_on_path(importer, path_item, only=False):
             )
         else:
             # scan for .egg and .egg-info in directory
-            for entry in os.listdir(path_item):
+
+            path_item_entries = os.listdir(path_item)
+            # Reverse so we find the newest version of a distribution,
+            path_item_entries.reverse()
+            for entry in path_item_entries:
                 lower = entry.lower()
                 if lower.endswith('.egg-info') or lower.endswith('.dist-info'):
                     fullpath = os.path.join(path_item, entry)
