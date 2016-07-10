@@ -48,8 +48,6 @@ def _patch_distribution_metadata_write_pkg_file():
         original_write(self, file)
         if hasattr(self, 'python_requires'):
             file.write('Requires-Python: %s\n' % self.python_requires)
-        if getattr(self, 'external_requires', []):
-            self._write_list(file, 'Requires-External', self.external_requires)
 
     distutils.dist.DistributionMetadata.write_pkg_file = write_pkg_file
 _patch_distribution_metadata_write_pkg_file()
@@ -333,8 +331,6 @@ class Distribution(_Distribution):
                 )
         if getattr(self, 'python_requires', None):
             self.metadata.python_requires = self.python_requires
-        if getattr(self, 'external_requires', None):
-            self.metadata.external_requires = self.external_requires
 
     def parse_command_line(self):
         """Process features after parsing command line options"""

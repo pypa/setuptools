@@ -96,7 +96,6 @@ setup_params = dict(
             "tests_require          = setuptools.dist:check_requirements",
             "setup_requires         = setuptools.dist:check_requirements",
             "python_requires        = setuptools.dist:check_specifier",
-            "external_requires      = setuptools.dist:assert_string_list",
             "entry_points           = setuptools.dist:check_entry_points",
             "test_suite             = setuptools.dist:check_test_suite",
             "zip_safe               = setuptools.dist:assert_bool",
