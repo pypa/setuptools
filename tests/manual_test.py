@@ -10,8 +10,10 @@ from string import Template
 
 from six.moves import urllib
 
+
 def _system_call(*args):
     assert subprocess.call(args) == 0
+
 
 def tempdir(func):
     def _tempdir(*args, **kwargs):
@@ -61,6 +63,7 @@ def test_virtualenv():
     with open(easy_install) as f:
         res = f.read()
     assert 'setuptools' in res
+
 
 @tempdir
 def test_full():

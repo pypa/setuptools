@@ -2,6 +2,7 @@ import sys
 import tarfile
 import contextlib
 
+
 def _tarfile_open_ex(*args, **kwargs):
     """
     Extend result as a context manager.

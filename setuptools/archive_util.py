@@ -15,8 +15,10 @@ import contextlib
 from pkg_resources import ensure_directory, ContextualZipFile
 from distutils.errors import DistutilsError
 
+
 class UnrecognizedFormat(DistutilsError):
     """Couldn't recognize the archive type"""
+
 
 def default_filter(src,dst):
     """The default progress/filter callback; returns True for all files"""

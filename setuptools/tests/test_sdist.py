@@ -132,7 +132,6 @@ class TestSdistTest:
         assert os.path.join('sdist_test', 'b.txt') in manifest
         assert os.path.join('sdist_test', 'c.rst') not in manifest
 
-
     def test_defaults_case_sensitivity(self):
         """
             Make sure default files (README.*, etc.) are added in a case-sensitive

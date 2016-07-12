@@ -4,6 +4,7 @@ Compatibility Support for Python 2.7 and earlier
 
 import sys
 
+
 def get_all_headers(message, key):
     """
     Given an HTTPMessage, return all headers matching a given key.

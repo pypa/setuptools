@@ -85,6 +85,7 @@ def egg_info_for_url(url):
     if '#' in base: base, fragment = base.split('#',1)
     return base,fragment
 
+
 def distros_for_url(url, metadata=None):
     """Yield egg or source distribution objects that might be found at a URL"""
     base, fragment = egg_info_for_url(url)
@@ -96,6 +97,7 @@ def distros_for_url(url, metadata=None):
                 url, match.group(1), metadata, precedence = CHECKOUT_DIST
             ):
                 yield dist
+
 
 def distros_for_location(location, basename, metadata=None):
     """Yield egg or source distribution objects based on basename"""
@@ -117,6 +119,7 @@ def distros_for_location(location, basename, metadata=None):
             basename = basename[:-len(ext)]
             return interpret_distro_name(location, basename, metadata)
     return []  # no extension matched
+
 
 def distros_for_filename(filename, metadata=None):
     """Yield possible egg or source distribution objects based on a filename"""
@@ -177,6 +180,7 @@ def unique_everseen(iterable, key=None):
                 seen_add(k)
                 yield element
 
+
 def unique_values(func):
     """
     Wrap a function returning an iterable such that the resulting iterable
@@ -189,6 +193,7 @@ def unique_values(func):
 
 REL = re.compile("""<([^>]*\srel\s*=\s*['"]?([^'">]+)[^>]*)>""", re.I)
 # this line is here to fix emacs' cruddy broken syntax highlighting
+
 
 @unique_values
 def find_external_links(url, page):
@@ -213,6 +218,7 @@ class ContentChecker(object):
     """
     A null content checker that defines the interface for checking content
     """
+
     def feed(self, block):
         """
         Feed a block of data to the hash.
@@ -231,6 +237,7 @@ class ContentChecker(object):
         substituted into the template.
         """
         return
+
 
 class HashChecker(ContentChecker):
     pattern = re.compile(
@@ -672,6 +679,7 @@ class PackageIndex(Environment):
             )
 
     dl_blocksize = 8192
+
     def _download_to(self, url, filename):
         self.info("Downloading %s", url)
         # Download the file
@@ -883,11 +891,13 @@ class PackageIndex(Environment):
 # references, a hexadecimal numeric reference, or a named reference).
 entity_sub = re.compile(r'&(#(\d+|x[\da-fA-F]+)|[\w.:-]+);?').sub
 
+
 def uchr(c):
     if not isinstance(c, int):
         return c
     if c>255: return six.unichr(c)
     return chr(c)
+
 
 def decode_entity(match):
     what = match.group(1)
@@ -899,9 +909,11 @@ def decode_entity(match):
         what = six.moves.html_entities.name2codepoint.get(what, match.group(0))
     return uchr(what)
 
+
 def htmldecode(text):
     """Decode HTML entities in the given text."""
     return entity_sub(decode_entity, text)
+
 
 def socket_timeout(timeout=15):
     def _socket_timeout(func):
@@ -914,6 +926,7 @@ def socket_timeout(timeout=15):
                 socket.setdefaulttimeout(old_timeout)
         return _socket_timeout
     return _socket_timeout
+
 
 def _encode_auth(auth):
     """
@@ -937,10 +950,12 @@ def _encode_auth(auth):
     # strip the trailing carriage return
     return encoded.replace('\n','')
 
+
 class Credential(object):
     """
     A username/password pair. Use like a namedtuple.
     """
+
     def __init__(self, username, password):
         self.username = username
         self.password = password
@@ -951,6 +966,7 @@ class Credential(object):
 
     def __str__(self):
         return '%(username)s:%(password)s' % vars(self)
+
 
 class PyPIConfig(configparser.RawConfigParser):
 
@@ -1041,6 +1057,7 @@ open_with_auth = socket_timeout(_SOCKET_TIMEOUT)(open_with_auth)
 
 def fix_sf_url(url):
     return url      # backward compatibility
+
 
 def local_open(url):
     """Read a local path, with special support for directories"""

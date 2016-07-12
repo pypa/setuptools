@@ -59,7 +59,9 @@ elif os.name != 'nt':
 
 if_dl = lambda s: s if have_rtld else ''
 
+
 class build_ext(_build_ext):
+
     def run(self):
         """Build extensions in build directory, then copy if --inplace"""
         old_inplace, self.inplace = self.inplace, 0

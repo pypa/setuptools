@@ -27,6 +27,7 @@ minimal_egg_info = textwrap.dedent("""
     requires.txt = setuptools.command.egg_info:write_requirements
     """)
 
+
 def ensure_egg_info():
     if os.path.exists('setuptools.egg-info'):
         return

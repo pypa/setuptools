@@ -41,6 +41,7 @@ from .textwrap import DALS
 
 
 class FakeDist(object):
+
     def get_entry_map(self, group):
         if group != 'console_scripts':
             return {}
@@ -54,6 +55,7 @@ SETUP_PY = DALS("""
 
     setup(name='foo')
     """)
+
 
 class TestEasyInstallTest:
 
@@ -133,6 +135,7 @@ class TestEasyInstallTest:
 
 
 class TestPTHFileWriter:
+
     def test_add_from_cwd_site_sets_dirty(self):
         '''a pth file manager should set dirty
         if a distribution is in site but also the cwd
@@ -266,6 +269,7 @@ def distutils_package():
 
 
 class TestDistutilsPackage:
+
     def test_bdist_egg_available_on_distutils_pkg(self, distutils_package):
         run_setup('setup.py', ['bdist_egg'])
 
@@ -557,6 +561,7 @@ class TestScriptHeader:
 
 
 class TestCommandSpec:
+
     def test_custom_launch_command(self):
         """
         Show how a custom CommandSpec could be used to specify a #! executable
@@ -601,6 +606,7 @@ class TestCommandSpec:
 
 
 class TestWindowsScriptWriter:
+
     def test_header(self):
         hdr = ei.WindowsScriptWriter.get_script_header('')
         assert hdr.startswith('#!')

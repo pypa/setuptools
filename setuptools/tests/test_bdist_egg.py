@@ -15,6 +15,7 @@ from setuptools import setup
 setup(name='foo', py_modules=['hi'])
 """
 
+
 @pytest.yield_fixture
 def setup_context(tmpdir):
     with (tmpdir/'setup.py').open('w') as f:

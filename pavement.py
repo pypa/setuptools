@@ -3,9 +3,11 @@ import re
 from paver.easy import task, path as Path
 import pip
 
+
 def remove_all(paths):
     for path in paths:
         path.rmtree() if path.isdir() else path.remove()
+
 
 @task
 def update_vendored():

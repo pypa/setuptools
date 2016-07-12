@@ -209,6 +209,7 @@ class TestContentCheckers:
 
 
 class TestPyPIConfig:
+
     def test_percent_in_password(self, tmpdir, monkeypatch):
         monkeypatch.setitem(os.environ, 'HOME', str(tmpdir))
         pypirc = tmpdir / '.pypirc'

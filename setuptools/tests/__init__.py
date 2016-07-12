@@ -40,6 +40,7 @@ needs_bytecode = pytest.mark.skipif(
     reason="bytecode support not available",
 )
 
+
 class TestDepends:
 
     def testExtractConst(self):
@@ -288,6 +289,7 @@ class TestFeatures:
     def testFeatureWithInvalidRemove(self):
         with pytest.raises(SystemExit):
             makeSetup(features={'x':Feature('x', remove='y')})
+
 
 class TestCommandTests:
 
