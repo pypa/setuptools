@@ -39,7 +39,7 @@ def _gen_console_scripts():
     if any(os.environ.get(var) not in (None, "", "0") for var in var_names):
         return
     yield ("easy_install-{shortver} = setuptools.command.easy_install:main"
-        .format(shortver=sys.version[:3]))
+           .format(shortver=sys.version[:3]))
 
 console_scripts = list(_gen_console_scripts())
 

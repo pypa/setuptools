@@ -24,7 +24,7 @@ def default_filter(src,dst):
 
 
 def unpack_archive(filename, extract_dir, progress_filter=default_filter,
-        drivers=None):
+                   drivers=None):
     """Unpack `filename` to `extract_dir`, or raise ``UnrecognizedFormat``
 
     `progress_filter` is a function taking two arguments: a source path
