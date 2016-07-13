@@ -325,4 +325,4 @@ class TestCommandTests:
     def testNoSuite(self):
         ts5 = makeSetup().get_command_obj('test')
         ts5.ensure_finalized()
-        assert ts5.test_suite == None
+        assert ts5.test_suite is None
