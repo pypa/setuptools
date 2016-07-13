@@ -27,6 +27,7 @@ def tempdir(func):
             shutil.rmtree(test_dir)
     return _tempdir
 
+
 SIMPLE_BUILDOUT = """\
 [buildout]
 
@@ -89,6 +90,7 @@ def test_full():
     del eggs[1]
     assert eggs == ['extensions-0.3-py2.6.egg',
         'zc.recipe.egg-1.2.2-py2.6.egg']
+
 
 if __name__ == '__main__':
     test_virtualenv()
