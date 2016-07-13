@@ -12,7 +12,9 @@ from distutils import log
 from lib2to3.refactor import RefactoringTool, get_fixers_from_package
 import setuptools
 
+
 class DistutilsRefactoringTool(RefactoringTool):
+
     def log_error(self, msg, *args, **kw):
         log.error(msg, *args)
 
@@ -22,7 +24,9 @@ class DistutilsRefactoringTool(RefactoringTool):
     def log_debug(self, msg, *args):
         log.debug(msg, *args)
 
+
 class Mixin2to3(_Mixin2to3):
+
     def run_2to3(self, files, doctests = False):
         # See of the distribution option has been set, otherwise check the
         # setuptools default.

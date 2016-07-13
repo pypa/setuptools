@@ -26,6 +26,7 @@ import setuptools
 
 scripts = []
 
+
 def _gen_console_scripts():
     yield "easy_install = setuptools.command.easy_install:main"
 

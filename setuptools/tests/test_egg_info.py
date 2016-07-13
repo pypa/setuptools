@@ -235,6 +235,7 @@ class TestEggInfo(object):
 
     def _find_egg_info_files(self, root):
         class DirList(list):
+
             def __init__(self, files, base):
                 super(DirList, self).__init__(files)
                 self.base = base

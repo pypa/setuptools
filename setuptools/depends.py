@@ -10,6 +10,7 @@ __all__ = [
     'Require', 'find_module', 'get_module_constant', 'extract_constant'
 ]
 
+
 class Require:
     """A prerequisite to building or installing a distribution"""
 
@@ -39,7 +40,6 @@ class Require:
             str(version) != "unknown" and version >= self.requested_version
 
     def get_version(self, paths=None, default="unknown"):
-
         """Get version number of installed module, 'None', or 'default'
 
         Search 'paths' for module.  If not found, return 'None'.  If found,
@@ -78,7 +78,6 @@ class Require:
 
 
 def _iter_code(code):
-
     """Yield '(op,arg)' pair for each operation in code object 'code'"""
 
     from array import array
@@ -131,7 +130,6 @@ def find_module(module, paths=None):
 
 
 def get_module_constant(module, symbol, default=-1, paths=None):
-
     """Find 'module' by searching 'paths', and extract 'symbol'
 
     Return 'None' if 'module' does not exist on 'paths', or it does not define

@@ -15,6 +15,7 @@ READMES = 'README', 'README.rst', 'README.txt'
 
 _default_revctrl = list
 
+
 def walk_revctrl(dirname=''):
     """Find all files under revision control"""
     for ep in pkg_resources.iter_entry_points('setuptools.file_finders'):

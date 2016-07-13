@@ -186,6 +186,7 @@ class VersionlessRequirement(object):
     >>> str(adapted_dist.as_requirement())
     'foo'
     """
+
     def __init__(self, dist):
         self.__dist = dist
 

@@ -14,6 +14,7 @@ _Extension = _get_unpatched(distutils.core.Extension)
 
 msvc.patch_for_specialized_compiler()
 
+
 def _have_cython():
     """
     Return True if Cython can be imported.
@@ -47,6 +48,7 @@ class Extension(_Extension):
         target_ext = '.cpp' if lang.lower() == 'c++' else '.c'
         sub = functools.partial(re.sub, '.pyx$', target_ext)
         self.sources = list(map(sub, self.sources))
+
 
 class Library(Extension):
     """Just like a regular Extension, but built as a library instead"""

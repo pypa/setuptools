@@ -769,6 +769,7 @@ class EnvironmentInfo:
     """
     # Variables and properties in this class use originals CamelCase variables
     # names from Microsoft source files for more easy comparaison.
+
     def __init__(self, arch, vc_ver=None, vc_min_ver=None):
         self.pi = PlatformInfo(arch)
         self.ri = RegistryInfo(self.pi)

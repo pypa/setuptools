@@ -38,6 +38,7 @@ def _get_unpatched(cls):
 
 _Distribution = _get_unpatched(_Distribution)
 
+
 def _patch_distribution_metadata_write_pkg_info():
     """
     Workaround issue #197 - Python 3 prior to 3.2.2 uses an environment-local
@@ -61,6 +62,7 @@ _patch_distribution_metadata_write_pkg_info()
 
 sequence = tuple, list
 
+
 def check_importable(dist, attr, value):
     try:
         ep = pkg_resources.EntryPoint.parse('x='+value)
@@ -80,6 +82,8 @@ def assert_string_list(dist, attr, value):
         raise DistutilsSetupError(
             "%r must be a list of strings (got %r)" % (attr,value)
         )
+
+
 def check_nsp(dist, attr, value):
     """Verify that namespace packages are valid"""
     assert_string_list(dist,attr,value)
@@ -97,6 +101,7 @@ def check_nsp(dist, attr, value):
                     " is not: please correct this in setup.py", nsp, parent
                 )
 
+
 def check_extras(dist, attr, value):
     """Verify that extras_require mapping is valid"""
     try:
@@ -112,6 +117,7 @@ def check_extras(dist, attr, value):
             "strings or lists of strings containing valid project/version "
             "requirement specifiers."
         )
+
 
 def assert_bool(dist, attr, value):
     """Verify that value is True, False, 0, or 1"""
@@ -131,6 +137,7 @@ def check_requirements(dist, attr, value):
         )
         raise DistutilsSetupError(tmpl.format(attr=attr, error=error))
 
+
 def check_entry_points(dist, attr, value):
     """Verify that entry_points map is parseable"""
     try:
@@ -138,9 +145,11 @@ def check_entry_points(dist, attr, value):
     except ValueError as e:
         raise DistutilsSetupError(e)
 
+
 def check_test_suite(dist, attr, value):
     if not isinstance(value, six.string_types):
         raise DistutilsSetupError("test_suite must be a string")
+
 
 def check_package_data(dist, attr, value):
     """Verify that value is a dictionary of package names to glob lists"""
@@ -156,6 +165,7 @@ def check_package_data(dist, attr, value):
         attr+" must be a dictionary mapping package names to lists of "
         "wildcard patterns"
     )
+
 
 def check_packages(dist, attr, value):
     for pkgname in value:
@@ -815,7 +825,6 @@ class Feature:
         return self.available and self.standard
 
     def include_in(self,dist):
-
         """Ensure feature and its requirements are included in distribution
 
         You may override this in a subclass to perform additional operations on
@@ -836,7 +845,6 @@ class Feature:
             dist.include_feature(f)
 
     def exclude_from(self,dist):
-
         """Ensure feature is excluded from distribution
 
         You may override this in a subclass to perform additional operations on
@@ -852,7 +860,6 @@ class Feature:
                 dist.exclude_package(item)
 
     def validate(self,dist):
-
         """Verify that feature makes sense in context of distribution
 
         This method is called by the distribution just before it parses its

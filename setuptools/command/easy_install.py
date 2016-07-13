@@ -2158,6 +2158,7 @@ class WindowsScriptWriter(ScriptWriter):
 
 
 class WindowsExecutableLauncherWriter(WindowsScriptWriter):
+
     @classmethod
     def _get_script_args(cls, type_, name, header, script_text):
         """

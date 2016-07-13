@@ -9,6 +9,7 @@ try:
 except ImportError:
     from urllib import splittag
 
+
 def strip_fragment(url):
     """
     In `Python 8280 <http://bugs.python.org/issue8280>`_, Python 2.7 and

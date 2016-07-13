@@ -29,6 +29,7 @@ __all__ = [
     "AbstractSandbox", "DirectorySandbox", "SandboxViolation", "run_setup",
 ]
 
+
 def _execfile(filename, globals, locals=None):
     """
     Python 3 implementation of execfile.
@@ -117,6 +118,7 @@ class ExceptionSaver:
     A Context Manager that will save an exception, serialized, and restore it
     later.
     """
+
     def __enter__(self):
         return self
 
@@ -237,6 +239,7 @@ def run_setup(setup_script, args):
             # reset to include setup dir, w/clean callback list
             working_set.__init__()
             working_set.callbacks.append(lambda dist:dist.activate())
+
             def runner():
                 ns = dict(__file__=setup_script, __name__='__main__')
                 _execfile(setup_script, ns)
@@ -280,6 +283,7 @@ class AbstractSandbox:
 
     def _mk_dual_path_wrapper(name):
         original = getattr(_os,name)
+
         def wrap(self,src,dst,*args,**kw):
             if self._active:
                 src,dst = self._remap_pair(name,src,dst,*args,**kw)
@@ -291,6 +295,7 @@ class AbstractSandbox:
 
     def _mk_single_path_wrapper(name, original=None):
         original = original or getattr(_os,name)
+
         def wrap(self,path,*args,**kw):
             if self._active:
                 path = self._remap_input(name,path,*args,**kw)
@@ -309,6 +314,7 @@ class AbstractSandbox:
 
     def _mk_single_with_return(name):
         original = getattr(_os,name)
+
         def wrap(self,path,*args,**kw):
             if self._active:
                 path = self._remap_input(name,path,*args,**kw)
@@ -321,6 +327,7 @@ class AbstractSandbox:
 
     def _mk_query(name):
         original = getattr(_os,name)
+
         def wrap(self,*args,**kw):
             retval = original(*args,**kw)
             if self._active:
@@ -363,6 +370,7 @@ try:
 except ImportError:
     # it appears pywin32 is not installed, so no need to exclude.
     pass
+
 
 class DirectorySandbox(AbstractSandbox):
     """Restrict operations to a single subdirectory - pseudo-chroot"""
@@ -453,6 +461,7 @@ WRITE_FLAGS = functools.reduce(
         "O_WRONLY O_RDWR O_APPEND O_CREAT O_TRUNC O_TEMPORARY".split()]
 )
 
+
 class SandboxViolation(DistutilsError):
     """A setup script attempted to modify the filesystem outside the sandbox"""
 
@@ -466,31 +475,6 @@ This package cannot be safely installed by EasyInstall, and may not
 support alternate installation locations even if you run its setup
 script by hand.  Please inform the package's author and the EasyInstall
 maintainers to find out if a fix or workaround is available.""" % self.args
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 #
