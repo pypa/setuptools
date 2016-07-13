@@ -14,7 +14,7 @@ class Require:
     """A prerequisite to building or installing a distribution"""
 
     def __init__(self, name, requested_version, module, homepage='',
-            attribute=None, format=None):
+                 attribute=None, format=None):
 
         if format is None and requested_version is not None:
             format = StrictVersion

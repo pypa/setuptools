@@ -352,7 +352,7 @@ class PackageIndex(Environment):
         if (s and s.group(1).lower()=='file') or self.allows(urllib.parse.urlparse(url)[1]):
             return True
         msg = ("\nNote: Bypassing %s (disallowed host; see "
-            "http://bit.ly/1dg9ijs for details).\n")
+               "http://bit.ly/1dg9ijs for details).\n")
         if fatal:
             raise DistutilsError(msg % url)
         else:
@@ -469,7 +469,7 @@ class PackageIndex(Environment):
         checker is a ContentChecker
         """
         checker.report(self.debug,
-            "Validating %%s checksum for %s" % filename)
+                       "Validating %%s checksum for %s" % filename)
         if not checker.is_valid():
             tfp.close()
             os.unlink(filename)
@@ -505,7 +505,7 @@ class PackageIndex(Environment):
             meth, msg = self.info, "Couldn't retrieve index page for %r"
         else:   # no distros seen for this name, might be misspelled
             meth, msg = (self.warn,
-                "Couldn't find index page for %r (maybe misspelled?)")
+                         "Couldn't find index page for %r (maybe misspelled?)")
         meth(msg, requirement.unsafe_name)
         self.scan_all()
 
@@ -1061,7 +1061,7 @@ def local_open(url):
             files.append('<a href="{name}">{name}</a>'.format(name=f))
         else:
             tmpl = ("<html><head><title>{url}</title>"
-                "</head><body>{files}</body></html>")
+                    "</head><body>{files}</body></html>")
             body = tmpl.format(url=url, files='\n'.join(files))
         status, message = 200, "OK"
     else:

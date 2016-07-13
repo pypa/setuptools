@@ -405,7 +405,7 @@ class TestSetupRequires:
                         run_setup(test_setup_py, ['--name'])
                     except pkg_resources.VersionConflict:
                         self.fail('Installing setup.py requirements '
-                            'caused a VersionConflict')
+                                  'caused a VersionConflict')
 
                 assert 'FAIL' not in stdout.getvalue()
                 lines = stdout.readlines()
@@ -541,17 +541,17 @@ class TestScriptHeader:
         assert actual == expected
 
         expected = '#!%s -x\n' % ei.nt_quote_arg(os.path.normpath
-            (sys.executable))
+                                                 (sys.executable))
         actual = ei.ScriptWriter.get_script_header('#!/usr/bin/python -x')
         assert actual == expected
 
         actual = ei.ScriptWriter.get_script_header('#!/usr/bin/python',
-            executable=self.non_ascii_exe)
+                                                   executable=self.non_ascii_exe)
         expected = '#!%s -x\n' % self.non_ascii_exe
         assert actual == expected
 
         actual = ei.ScriptWriter.get_script_header('#!/usr/bin/python',
-            executable='"'+self.exe_with_spaces+'"')
+                                                   executable='"'+self.exe_with_spaces+'"')
         expected = '#!"%s"\n' % self.exe_with_spaces
         assert actual == expected
 

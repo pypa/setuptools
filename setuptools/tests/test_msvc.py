@@ -53,7 +53,7 @@ def mock_reg(hkcu=None, hklm=None):
         )
 
     return mock.patch.multiple(distutils.msvc9compiler.Reg,
-        read_keys=read_keys, read_values=read_values)
+                               read_keys=read_keys, read_values=read_values)
 
 
 class TestModulePatch:

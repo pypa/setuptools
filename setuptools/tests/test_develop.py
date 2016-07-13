@@ -55,7 +55,7 @@ class TestDevelop:
     in_virtualenv = hasattr(sys, 'real_prefix')
     in_venv = hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix
     @pytest.mark.skipif(in_virtualenv or in_venv,
-        reason="Cannot run when invoked in a virtualenv or venv")
+                        reason="Cannot run when invoked in a virtualenv or venv")
     def test_2to3_user_mode(self, test_env):
         settings = dict(
             name='foo',
@@ -95,7 +95,7 @@ class TestDevelop:
         only the project by name and not the current version.
         """
         pytest.skip("TODO: needs a fixture to cause 'develop' "
-            "to be invoked without mutating environment.")
+                    "to be invoked without mutating environment.")
         settings = dict(
             name='foo',
             packages=['foo'],

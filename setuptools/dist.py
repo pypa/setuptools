@@ -11,7 +11,7 @@ import distutils.cmd
 import distutils.dist
 from distutils.core import Distribution as _Distribution
 from distutils.errors import (DistutilsOptionError, DistutilsPlatformError,
-    DistutilsSetupError)
+                              DistutilsSetupError)
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import map
@@ -783,7 +783,7 @@ class Feature:
         )
 
     def __init__(self, description, standard=False, available=True,
-            optional=True, require_features=(), remove=(), **extras):
+                 optional=True, require_features=(), remove=(), **extras):
         self.warn_deprecated()
 
         self.description = description
