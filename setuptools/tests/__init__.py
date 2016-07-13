@@ -221,7 +221,7 @@ class TestFeatures:
                 'foo': Feature("foo",standard=True,require_features=['baz',self.req]),
                 'bar': Feature("bar",  standard=True, packages=['pkg.bar'],
                                py_modules=['bar_et'], remove=['bar.ext'],
-                       ),
+                               ),
                 'baz': Feature(
                         "baz", optional=False, packages=['pkg.baz'],
                         scripts = ['scripts/baz_it'],
