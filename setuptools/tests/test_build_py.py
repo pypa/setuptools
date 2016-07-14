@@ -26,6 +26,5 @@ def test_directories_in_package_data_glob(tmpdir_as_cwd):
         package_data={'': ['path/*']},
     ))
     os.makedirs('path/subpath')
-    # with contexts.quiet():
     dist.parse_command_line()
     dist.run_commands()
