@@ -7,7 +7,7 @@ def __boot():
     else:
         PYTHONPATH = PYTHONPATH.split(os.pathsep)
 
-    pic = getattr(sys,'path_importer_cache',{})
+    pic = getattr(sys, 'path_importer_cache', {})
     stdpath = sys.path[len(PYTHONPATH):]
     mydir = os.path.dirname(__file__)
     #print "searching",stdpath,sys.path
@@ -25,14 +25,14 @@ def __boot():
         else:
             try:
                 import imp # Avoid import loop in Python >= 3.3
-                stream, path, descr = imp.find_module('site',[item])
+                stream, path, descr = imp.find_module('site', [item])
             except ImportError:
                 continue
             if stream is None:
                 continue
             try:
                 # This should actually reload the current module
-                imp.load_module('site',stream,path,descr)
+                imp.load_module('site', stream, path, descr)
             finally:
                 stream.close()
             break
@@ -41,9 +41,9 @@ def __boot():
 
     #print "loaded", __file__
 
-    known_paths = dict([(makepath(item)[1],1) for item in sys.path]) # 2.2 comp
+    known_paths = dict([(makepath(item)[1], 1) for item in sys.path]) # 2.2 comp
 
-    oldpos = getattr(sys,'__egginsert',0)   # save old insertion position
+    oldpos = getattr(sys, '__egginsert', 0)   # save old insertion position
     sys.__egginsert = 0                     # and reset the current one
 
     for item in PYTHONPATH:
