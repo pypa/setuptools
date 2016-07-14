@@ -220,7 +220,7 @@ class TestFeatures:
         self.dist = makeSetup(
             features={
                 'foo': Feature("foo", standard=True, require_features=['baz', self.req]),
-                'bar': Feature("bar",  standard=True, packages=['pkg.bar'],
+                'bar': Feature("bar", standard=True, packages=['pkg.bar'],
                                py_modules=['bar_et'], remove=['bar.ext'],
                                ),
                 'baz': Feature(
