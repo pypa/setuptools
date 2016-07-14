@@ -105,7 +105,7 @@ class upload_docs(upload):
         if not isinstance(values, list):
             values = [values]
         for value in values:
-            if type(value) is tuple:
+            if isinstance(value, tuple):
                 title += '; filename="%s"' % value[0]
                 value = value[1]
             else:
