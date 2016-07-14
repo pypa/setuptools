@@ -42,6 +42,7 @@ def _gen_console_scripts():
     yield ("easy_install-{shortver} = setuptools.command.easy_install:main"
         .format(shortver=sys.version[:3]))
 
+
 console_scripts = list(_gen_console_scripts())
 
 readme_file = io.open('README.rst', encoding='utf-8')
