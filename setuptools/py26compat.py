@@ -19,5 +19,6 @@ def strip_fragment(url):
     url, fragment = splittag(url)
     return url
 
+
 if sys.version_info >= (2,7):
     strip_fragment = lambda x: x
