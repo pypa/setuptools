@@ -36,6 +36,7 @@ def _get_unpatched(cls):
         )
     return cls
 
+
 _Distribution = _get_unpatched(_Distribution)
 
 
@@ -58,6 +59,8 @@ def _patch_distribution_metadata_write_pkg_info():
             self.write_pkg_file(pkg_info)
 
     distutils.dist.DistributionMetadata.write_pkg_info = write_pkg_info
+
+
 _patch_distribution_metadata_write_pkg_info()
 
 sequence = tuple, list

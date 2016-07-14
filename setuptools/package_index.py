@@ -192,6 +192,7 @@ def unique_values(func):
         return unique_everseen(func(*args, **kwargs))
     return wrapper
 
+
 REL = re.compile("""<([^>]*\srel\s*=\s*['"]?([^'">]+)[^>]*)>""", re.I)
 # this line is here to fix emacs' cruddy broken syntax highlighting
 
@@ -888,6 +889,7 @@ class PackageIndex(Environment):
     def warn(self, msg, *args):
         log.warn(msg, *args)
 
+
 # This pattern matches a character entity reference (a decimal numeric
 # references, a hexadecimal numeric reference, or a named reference).
 entity_sub = re.compile(r'&(#(\d+|x[\da-fA-F]+)|[\w.:-]+);?').sub
@@ -1051,6 +1053,7 @@ def open_with_auth(url, opener=urllib.request.urlopen):
             fp.url = urllib.parse.urlunparse(parts)
 
     return fp
+
 
 # adding a timeout to avoid freezing package_index
 open_with_auth = socket_timeout(_SOCKET_TIMEOUT)(open_with_auth)
