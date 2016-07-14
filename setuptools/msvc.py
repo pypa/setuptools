@@ -294,7 +294,7 @@ class PlatformInfo:
         )
 
     def target_dir(self, hidex86=False, x64=False):
-        """
+        r"""
         Target platform specific subfolder.
 
         Parameters
@@ -307,7 +307,7 @@ class PlatformInfo:
         Return
         ------
         subfolder: str
-            '\current', or '' (see hidex86 parameter)
+            r'\current', or '' (see hidex86 parameter)
         """
         return (
             '' if (self.target_cpu == 'x86' and hidex86) else
@@ -316,7 +316,7 @@ class PlatformInfo:
         )
 
     def cross_dir(self, forcex86=False):
-        """
+        r"""
         Cross platform specific subfolder.
 
         Parameters
@@ -808,7 +808,7 @@ class EnvironmentInfo:
         Microsoft Visual C++ & Microsoft Foundation Class Includes
         """
         return [os.path.join(self.si.VCInstallDir, 'Include'),
-                os.path.join(self.si.VCInstallDir, 'ATLMFC\Include')]
+                os.path.join(self.si.VCInstallDir, r'ATLMFC\Include')]
 
     @property
     def VCLibraries(self):
