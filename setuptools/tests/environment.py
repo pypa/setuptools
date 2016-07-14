@@ -25,11 +25,11 @@ def run_setup_py(cmd, pypath=None, path=None,
         for envname in os.environ:
             env[envname] = os.environ[envname]
 
-    #override the python path if needed
+    # override the python path if needed
     if pypath is not None:
         env["PYTHONPATH"] = pypath
 
-    #overide the execution path if needed
+    # overide the execution path if needed
     if path is not None:
         env["PATH"] = path
     if not env.get("PATH", ""):
@@ -50,11 +50,11 @@ def run_setup_py(cmd, pypath=None, path=None,
     except OSError:
         return 1, ''
 
-    #decode the console string if needed
+    # decode the console string if needed
     if hasattr(data,  "decode"):
         # use the default encoding
         data = data.decode()
         data = unicodedata.normalize('NFC', data)
 
-    #communciate calls wait()
+    # communciate calls wait()
     return proc.returncode, data

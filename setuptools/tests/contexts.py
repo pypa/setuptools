@@ -10,7 +10,7 @@ import pkg_resources
 
 
 @contextlib.contextmanager
-def tempdir(cd=lambda dir:None, **kwargs):
+def tempdir(cd=lambda dir: None, **kwargs):
     temp_dir = tempfile.mkdtemp(**kwargs)
     orig_dir = os.getcwd()
     try:

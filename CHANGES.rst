@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+v24.0.3
+-------
+
+* Updated style in much of the codebase to match
+  community expectations. See #632, #633, #634,
+  #637, #639, #638, #642, #648.
+
 v24.0.2
 -------
 

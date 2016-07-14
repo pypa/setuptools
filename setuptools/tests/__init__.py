@@ -27,7 +27,7 @@ def makeSetup(**args):
     distutils.core._setup_stop_after = "commandline"
 
     # Don't let system command line leak into tests!
-    args.setdefault('script_args',['install'])
+    args.setdefault('script_args', ['install'])
 
     try:
         return setuptools.setup(**args)
@@ -56,35 +56,35 @@ class TestDepends:
         fc = six.get_function_code(f1)
 
         # unrecognized name
-        assert dep.extract_constant(fc,'q', -1) is None
+        assert dep.extract_constant(fc, 'q', -1) is None
 
         # constant assigned
-        dep.extract_constant(fc,'x', -1) == "test"
+        dep.extract_constant(fc, 'x', -1) == "test"
 
         # expression assigned
-        dep.extract_constant(fc,'y', -1) == -1
+        dep.extract_constant(fc, 'y', -1) == -1
 
         # recognized name, not assigned
-        dep.extract_constant(fc,'z', -1) is None
+        dep.extract_constant(fc, 'z', -1) is None
 
     def testFindModule(self):
         with pytest.raises(ImportError):
             dep.find_module('no-such.-thing')
         with pytest.raises(ImportError):
             dep.find_module('setuptools.non-existent')
-        f,p,i = dep.find_module('setuptools.tests')
+        f, p, i = dep.find_module('setuptools.tests')
         f.close()
 
     @needs_bytecode
     def testModuleExtract(self):
         from email import __version__
-        assert dep.get_module_constant('email','__version__') == __version__
-        assert dep.get_module_constant('sys','version') == sys.version
-        assert dep.get_module_constant('setuptools.tests','__doc__') == __doc__
+        assert dep.get_module_constant('email', '__version__') == __version__
+        assert dep.get_module_constant('sys', 'version') == sys.version
+        assert dep.get_module_constant('setuptools.tests', '__doc__') == __doc__
 
     @needs_bytecode
     def testRequire(self):
-        req = Require('Email','1.0.3','email')
+        req = Require('Email', '1.0.3', 'email')
 
         assert req.name == 'Email'
         assert req.module == 'email'
@@ -101,12 +101,12 @@ class TestDepends:
         assert req.is_present()
         assert req.is_current()
 
-        req = Require('Email 3000','03000','email',format=LooseVersion)
+        req = Require('Email 3000', '03000', 'email', format=LooseVersion)
         assert req.is_present()
         assert not req.is_current()
         assert not req.version_ok('unknown')
 
-        req = Require('Do-what-I-mean','1.0','d-w-i-m')
+        req = Require('Do-what-I-mean', '1.0', 'd-w-i-m')
         assert not req.is_present()
         assert not req.is_current()
 
@@ -125,22 +125,22 @@ class TestDepends:
 class TestDistro:
 
     def setup_method(self, method):
-        self.e1 = Extension('bar.ext',['bar.c'])
+        self.e1 = Extension('bar.ext', ['bar.c'])
         self.e2 = Extension('c.y', ['y.c'])
 
         self.dist = makeSetup(
             packages=['a', 'a.b', 'a.b.c', 'b', 'c'],
-            py_modules=['b.d','x'],
+            py_modules=['b.d', 'x'],
             ext_modules = (self.e1, self.e2),
             package_dir = {},
         )
 
     def testDistroType(self):
-        assert isinstance(self.dist,setuptools.dist.Distribution)
+        assert isinstance(self.dist, setuptools.dist.Distribution)
 
     def testExcludePackage(self):
         self.dist.exclude_package('a')
-        assert self.dist.packages == ['b','c']
+        assert self.dist.packages == ['b', 'c']
 
         self.dist.exclude_package('b')
         assert self.dist.packages == ['c']
@@ -169,7 +169,7 @@ class TestDistro:
         assert self.dist.ext_modules == [self.e2, self.e1]
 
     def testExcludePackages(self):
-        self.dist.exclude(packages=['c','b','a'])
+        self.dist.exclude(packages=['c', 'b', 'a'])
         assert self.dist.packages == []
         assert self.dist.py_modules == ['x']
         assert self.dist.ext_modules == [self.e1]
@@ -199,13 +199,13 @@ class TestDistro:
         with pytest.raises(DistutilsSetupError):
             self.dist.exclude(nonexistent_option='x')
         with pytest.raises(DistutilsSetupError):
-            self.dist.include(packages={'x':'y'})
+            self.dist.include(packages={'x': 'y'})
         with pytest.raises(DistutilsSetupError):
-            self.dist.exclude(packages={'x':'y'})
+            self.dist.exclude(packages={'x': 'y'})
         with pytest.raises(DistutilsSetupError):
-            self.dist.include(ext_modules={'x':'y'})
+            self.dist.include(ext_modules={'x': 'y'})
         with pytest.raises(DistutilsSetupError):
-            self.dist.exclude(ext_modules={'x':'y'})
+            self.dist.exclude(ext_modules={'x': 'y'})
 
         with pytest.raises(DistutilsSetupError):
             self.dist.include(package_dir=['q'])
@@ -216,31 +216,31 @@ class TestDistro:
 class TestFeatures:
 
     def setup_method(self, method):
-        self.req = Require('Distutils','1.0.3','distutils')
+        self.req = Require('Distutils', '1.0.3', 'distutils')
         self.dist = makeSetup(
             features={
-                'foo': Feature("foo",standard=True,require_features=['baz',self.req]),
+                'foo': Feature("foo", standard=True, require_features=['baz', self.req]),
                 'bar': Feature("bar",  standard=True, packages=['pkg.bar'],
                                py_modules=['bar_et'], remove=['bar.ext'],
-                       ),
+                               ),
                 'baz': Feature(
                         "baz", optional=False, packages=['pkg.baz'],
                         scripts = ['scripts/baz_it'],
-                        libraries=[('libfoo','foo/foofoo.c')]
+                        libraries=[('libfoo', 'foo/foofoo.c')]
                        ),
                 'dwim': Feature("DWIM", available=False, remove='bazish'),
             },
             script_args=['--without-bar', 'install'],
             packages = ['pkg.bar', 'pkg.foo'],
             py_modules = ['bar_et', 'bazish'],
-            ext_modules = [Extension('bar.ext',['bar.c'])]
+            ext_modules = [Extension('bar.ext', ['bar.c'])]
         )
 
     def testDefaults(self):
         assert not Feature(
-            "test",standard=True,remove='x',available=False
+            "test", standard=True, remove='x', available=False
         ).include_by_default()
-        assert Feature("test",standard=True,remove='x').include_by_default()
+        assert Feature("test", standard=True, remove='x').include_by_default()
         # Feature must have either kwargs, removes, or require_features
         with pytest.raises(DistutilsSetupError):
             Feature("test")
@@ -252,16 +252,16 @@ class TestFeatures:
     def testFeatureOptions(self):
         dist = self.dist
         assert (
-            ('with-dwim',None,'include DWIM') in dist.feature_options
+            ('with-dwim', None, 'include DWIM') in dist.feature_options
         )
         assert (
-            ('without-dwim',None,'exclude DWIM (default)') in dist.feature_options
+            ('without-dwim', None, 'exclude DWIM (default)') in dist.feature_options
         )
         assert (
-            ('with-bar',None,'include bar (default)') in dist.feature_options
+            ('with-bar', None, 'include bar (default)') in dist.feature_options
         )
         assert (
-            ('without-bar',None,'exclude bar') in dist.feature_options
+            ('without-bar', None, 'exclude bar') in dist.feature_options
         )
         assert dist.feature_negopt['without-foo'] == 'with-foo'
         assert dist.feature_negopt['without-bar'] == 'with-bar'
@@ -277,7 +277,7 @@ class TestFeatures:
         assert (not 'pkg.bar' in dist.packages)
         assert ('pkg.baz' in dist.packages)
         assert ('scripts/baz_it' in dist.scripts)
-        assert (('libfoo','foo/foofoo.c') in dist.libraries)
+        assert (('libfoo', 'foo/foofoo.c') in dist.libraries)
         assert dist.ext_modules == []
         assert dist.require_features == [self.req]
 
@@ -288,7 +288,7 @@ class TestFeatures:
 
     def testFeatureWithInvalidRemove(self):
         with pytest.raises(SystemExit):
-            makeSetup(features={'x':Feature('x', remove='y')})
+            makeSetup(features={'x': Feature('x', remove='y')})
 
 
 class TestCommandTests:
@@ -298,7 +298,7 @@ class TestCommandTests:
         assert (isinstance(test_cmd, distutils.cmd.Command))
 
     def testLongOptSuiteWNoDefault(self):
-        ts1 = makeSetup(script_args=['test','--test-suite=foo.tests.suite'])
+        ts1 = makeSetup(script_args=['test', '--test-suite=foo.tests.suite'])
         ts1 = ts1.get_command_obj('test')
         ts1.ensure_finalized()
         assert ts1.test_suite == 'foo.tests.suite'
@@ -311,7 +311,7 @@ class TestCommandTests:
     def testDefaultWModuleOnCmdLine(self):
         ts3 = makeSetup(
             test_suite='bar.tests',
-            script_args=['test','-m','foo.tests']
+            script_args=['test', '-m', 'foo.tests']
         ).get_command_obj('test')
         ts3.ensure_finalized()
         assert ts3.test_module == 'foo.tests'
@@ -319,7 +319,7 @@ class TestCommandTests:
 
     def testConflictingOptions(self):
         ts4 = makeSetup(
-            script_args=['test','-m','bar.tests', '-s','foo.tests.suite']
+            script_args=['test', '-m', 'bar.tests', '-s', 'foo.tests.suite']
         ).get_command_obj('test')
         with pytest.raises(DistutilsOptionError):
             ts4.ensure_finalized()
@@ -327,4 +327,4 @@ class TestCommandTests:
     def testNoSuite(self):
         ts5 = makeSetup().get_command_obj('test')
         ts5.ensure_finalized()
-        assert ts5.test_suite == None
+        assert ts5.test_suite is None
