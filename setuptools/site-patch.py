@@ -2,7 +2,7 @@ def __boot():
     import sys
     import os
     PYTHONPATH = os.environ.get('PYTHONPATH')
-    if PYTHONPATH is None or (sys.platform=='win32' and not PYTHONPATH):
+    if PYTHONPATH is None or (sys.platform == 'win32' and not PYTHONPATH):
         PYTHONPATH = []
     else:
         PYTHONPATH = PYTHONPATH.split(os.pathsep)
@@ -12,7 +12,7 @@ def __boot():
     mydir = os.path.dirname(__file__)
 
     for item in stdpath:
-        if item==mydir or not item:
+        if item == mydir or not item:
             continue    # skip if current dir. on Windows, or my own directory
         importer = pic.get(item)
         if importer is not None:
@@ -55,7 +55,7 @@ def __boot():
     for item in sys.path:
         p, np = makepath(item)
 
-        if np==nd and insert_at is None:
+        if np == nd and insert_at is None:
             # We've hit the first 'system' path entry, so added entries go here
             insert_at = len(new_path)
 
@@ -68,6 +68,6 @@ def __boot():
 
     sys.path[:] = new_path
 
-if __name__=='site':
+if __name__ == 'site':
     __boot()
     del __boot

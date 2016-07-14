@@ -89,16 +89,16 @@ def _iter_code(code):
     ptr = 0
     extended_arg = 0
 
-    while ptr<eof:
+    while ptr < eof:
 
         op = bytes[ptr]
 
-        if op>=HAVE_ARGUMENT:
+        if op >= HAVE_ARGUMENT:
 
-            arg = bytes[ptr+1] + bytes[ptr+2]*256 + extended_arg
+            arg = bytes[ptr + 1] + bytes[ptr + 2] * 256 + extended_arg
             ptr += 3
 
-            if op==EXTENDED_ARG:
+            if op == EXTENDED_ARG:
                 long_type = six.integer_types[-1]
                 extended_arg = arg * long_type(65536)
                 continue
@@ -119,7 +119,7 @@ def find_module(module, paths=None):
         part = parts.pop(0)
         f, path, (suffix, mode, kind) = info = imp.find_module(part, paths)
 
-        if kind==PKG_DIRECTORY:
+        if kind == PKG_DIRECTORY:
             parts = parts or ['__init__']
             paths = [path]
 
@@ -143,12 +143,12 @@ def get_module_constant(module, symbol, default=-1, paths=None):
         return None
 
     try:
-        if kind==PY_COMPILED:
+        if kind == PY_COMPILED:
             f.read(8)   # skip magic & date
             code = marshal.load(f)
-        elif kind==PY_FROZEN:
+        elif kind == PY_FROZEN:
             code = imp.get_frozen_object(module)
-        elif kind==PY_SOURCE:
+        elif kind == PY_SOURCE:
             code = compile(f.read(), path, 'exec')
         else:
             # Not something we can parse; we'll have to import it.  :(
@@ -190,9 +190,9 @@ def extract_constant(code, symbol, default=-1):
 
     for op, arg in _iter_code(code):
 
-        if op==LOAD_CONST:
+        if op == LOAD_CONST:
             const = code.co_consts[arg]
-        elif arg==name_idx and (op==STORE_NAME or op==STORE_GLOBAL):
+        elif arg == name_idx and (op == STORE_NAME or op == STORE_GLOBAL):
             return const
         else:
             const = default

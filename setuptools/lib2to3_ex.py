@@ -34,7 +34,7 @@ class Mixin2to3(_Mixin2to3):
             return
         if not files:
             return
-        log.info("Fixing "+" ".join(files))
+        log.info("Fixing " + " ".join(files))
         self.__build_fixer_names()
         self.__exclude_fixers()
         if doctests:
