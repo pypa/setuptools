@@ -25,8 +25,8 @@ class TestDistInfo:
         unversioned = dists['UnversionedDistribution']
         versioned = dists['VersionedDistribution']
 
-        assert versioned.version == '2.718' # from filename
-        assert unversioned.version == '0.3' # from METADATA
+        assert versioned.version == '2.718'  # from filename
+        assert unversioned.version == '0.3'  # from METADATA
 
     def test_conditional_dependencies(self):
         specs = 'splort==4', 'quux>=1.1'

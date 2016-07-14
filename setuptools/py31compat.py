@@ -29,7 +29,7 @@ except ImportError:
         """
 
         def __init__(self):
-            self.name = None # Handle mkdtemp raising an exception
+            self.name = None  # Handle mkdtemp raising an exception
             self.name = tempfile.mkdtemp()
 
         def __enter__(self):
@@ -38,7 +38,7 @@ except ImportError:
         def __exit__(self, exctype, excvalue, exctrace):
             try:
                 shutil.rmtree(self.name, True)
-            except OSError: #removal errors are not the only possible
+            except OSError:  # removal errors are not the only possible
                 pass
             self.name = None
 
