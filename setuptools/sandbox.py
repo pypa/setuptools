@@ -238,7 +238,7 @@ def run_setup(setup_script, args):
             sys.path.insert(0, setup_dir)
             # reset to include setup dir, w/clean callback list
             working_set.__init__()
-            working_set.callbacks.append(lambda dist:dist.activate())
+            working_set.callbacks.append(lambda dist: dist.activate())
 
             def runner():
                 ns = dict(__file__=setup_script, __name__='__main__')
@@ -258,12 +258,12 @@ class AbstractSandbox:
     def __init__(self):
         self._attrs = [
             name for name in dir(_os)
-                if not name.startswith('_') and hasattr(self,name)
+                if not name.startswith('_') and hasattr(self, name)
         ]
 
     def _copy(self, source):
         for name in self._attrs:
-            setattr(os, name, getattr(source,name))
+            setattr(os, name, getattr(source, name))
 
     def run(self, func):
         """Run 'func' under os sandboxing"""
@@ -282,24 +282,24 @@ class AbstractSandbox:
             self._copy(_os)
 
     def _mk_dual_path_wrapper(name):
-        original = getattr(_os,name)
+        original = getattr(_os, name)
 
-        def wrap(self,src,dst,*args,**kw):
+        def wrap(self, src, dst, *args, **kw):
             if self._active:
-                src,dst = self._remap_pair(name,src,dst,*args,**kw)
-            return original(src,dst,*args,**kw)
+                src, dst = self._remap_pair(name, src, dst, *args, **kw)
+            return original(src, dst, *args, **kw)
         return wrap
 
     for name in ["rename", "link", "symlink"]:
-        if hasattr(_os,name): locals()[name] = _mk_dual_path_wrapper(name)
+        if hasattr(_os, name): locals()[name] = _mk_dual_path_wrapper(name)
 
     def _mk_single_path_wrapper(name, original=None):
-        original = original or getattr(_os,name)
+        original = original or getattr(_os, name)
 
-        def wrap(self,path,*args,**kw):
+        def wrap(self, path, *args, **kw):
             if self._active:
-                path = self._remap_input(name,path,*args,**kw)
-            return original(path,*args,**kw)
+                path = self._remap_input(name, path, *args, **kw)
+            return original(path, *args, **kw)
         return wrap
 
     if _file:
@@ -310,51 +310,51 @@ class AbstractSandbox:
         "remove", "unlink", "rmdir", "utime", "lchown", "chroot", "lstat",
         "startfile", "mkfifo", "mknod", "pathconf", "access"
     ]:
-        if hasattr(_os,name): locals()[name] = _mk_single_path_wrapper(name)
+        if hasattr(_os, name): locals()[name] = _mk_single_path_wrapper(name)
 
     def _mk_single_with_return(name):
-        original = getattr(_os,name)
+        original = getattr(_os, name)
 
-        def wrap(self,path,*args,**kw):
+        def wrap(self, path, *args, **kw):
             if self._active:
-                path = self._remap_input(name,path,*args,**kw)
-                return self._remap_output(name, original(path,*args,**kw))
-            return original(path,*args,**kw)
+                path = self._remap_input(name, path, *args, **kw)
+                return self._remap_output(name, original(path, *args, **kw))
+            return original(path, *args, **kw)
         return wrap
 
     for name in ['readlink', 'tempnam']:
-        if hasattr(_os,name): locals()[name] = _mk_single_with_return(name)
+        if hasattr(_os, name): locals()[name] = _mk_single_with_return(name)
 
     def _mk_query(name):
-        original = getattr(_os,name)
+        original = getattr(_os, name)
 
-        def wrap(self,*args,**kw):
-            retval = original(*args,**kw)
+        def wrap(self, *args, **kw):
+            retval = original(*args, **kw)
             if self._active:
                 return self._remap_output(name, retval)
             return retval
         return wrap
 
     for name in ['getcwd', 'tmpnam']:
-        if hasattr(_os,name): locals()[name] = _mk_query(name)
+        if hasattr(_os, name): locals()[name] = _mk_query(name)
 
-    def _validate_path(self,path):
+    def _validate_path(self, path):
         """Called to remap or validate any path, whether input or output"""
         return path
 
-    def _remap_input(self,operation,path,*args,**kw):
+    def _remap_input(self, operation, path, *args, **kw):
         """Called for path inputs"""
         return self._validate_path(path)
 
-    def _remap_output(self,operation,path):
+    def _remap_output(self, operation, path):
         """Called for path outputs"""
         return self._validate_path(path)
 
-    def _remap_pair(self,operation,src,dst,*args,**kw):
+    def _remap_pair(self, operation, src, dst, *args, **kw):
         """Called for path pairs like rename, link, and symlink operations"""
         return (
-            self._remap_input(operation+'-from',src,*args,**kw),
-            self._remap_input(operation+'-to',dst,*args,**kw)
+            self._remap_input(operation+'-from', src, *args, **kw),
+            self._remap_input(operation+'-to', dst, *args, **kw)
         )
 
 
@@ -388,7 +388,7 @@ class DirectorySandbox(AbstractSandbox):
 
     def __init__(self, sandbox, exceptions=_EXCEPTIONS):
         self._sandbox = os.path.normcase(os.path.realpath(sandbox))
-        self._prefix = os.path.join(self._sandbox,'')
+        self._prefix = os.path.join(self._sandbox, '')
         self._exceptions = [
             os.path.normcase(os.path.realpath(path))
             for path in exceptions
@@ -403,12 +403,12 @@ class DirectorySandbox(AbstractSandbox):
         def _file(self, path, mode='r', *args, **kw):
             if mode not in ('r', 'rt', 'rb', 'rU', 'U') and not self._ok(path):
                 self._violation("file", path, mode, *args, **kw)
-            return _file(path,mode,*args,**kw)
+            return _file(path, mode, *args, **kw)
 
     def _open(self, path, mode='r', *args, **kw):
         if mode not in ('r', 'rt', 'rb', 'rU', 'U') and not self._ok(path):
             self._violation("open", path, mode, *args, **kw)
-        return _open(path,mode,*args,**kw)
+        return _open(path, mode, *args, **kw)
 
     def tmpnam(self):
         self._violation("tmpnam")
@@ -448,13 +448,13 @@ class DirectorySandbox(AbstractSandbox):
         """Called for path pairs like rename, link, and symlink operations"""
         if not self._ok(src) or not self._ok(dst):
             self._violation(operation, src, dst, *args, **kw)
-        return (src,dst)
+        return (src, dst)
 
     def open(self, file, flags, mode=0o777, *args, **kw):
         """Called for low-level os.open()"""
         if flags & WRITE_FLAGS and not self._ok(file):
             self._violation("os.open", file, flags, mode, *args, **kw)
-        return _os.open(file,flags,mode, *args, **kw)
+        return _os.open(file, flags, mode, *args, **kw)
 
 WRITE_FLAGS = functools.reduce(
     operator.or_, [getattr(_os, a, 0) for a in

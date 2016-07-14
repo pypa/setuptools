@@ -20,7 +20,7 @@ class UnrecognizedFormat(DistutilsError):
     """Couldn't recognize the archive type"""
 
 
-def default_filter(src,dst):
+def default_filter(src, dst):
     """The default progress/filter callback; returns True for all files"""
     return dst
 

@@ -31,7 +31,7 @@ class Require:
     def full_name(self):
         """Return full package/distribution name, w/version"""
         if self.requested_version is not None:
-            return '%s-%s' % (self.name,self.requested_version)
+            return '%s-%s' % (self.name, self.requested_version)
         return self.name
 
     def version_ok(self, version):
@@ -52,7 +52,7 @@ class Require:
 
         if self.attribute is None:
             try:
-                f,p,i = find_module(self.module,paths)
+                f, p, i = find_module(self.module, paths)
                 if f: f.close()
                 return default
             except ImportError:
@@ -83,7 +83,7 @@ def _iter_code(code):
     from array import array
     from dis import HAVE_ARGUMENT, EXTENDED_ARG
 
-    bytes = array('b',code.co_code)
+    bytes = array('b', code.co_code)
     eof = len(code.co_code)
 
     ptr = 0
@@ -107,7 +107,7 @@ def _iter_code(code):
             arg = None
             ptr += 1
 
-        yield op,arg
+        yield op, arg
 
 
 def find_module(module, paths=None):
@@ -117,14 +117,14 @@ def find_module(module, paths=None):
 
     while parts:
         part = parts.pop(0)
-        f, path, (suffix,mode,kind) = info = imp.find_module(part, paths)
+        f, path, (suffix, mode, kind) = info = imp.find_module(part, paths)
 
         if kind==PKG_DIRECTORY:
             parts = parts or ['__init__']
             paths = [path]
 
         elif parts:
-            raise ImportError("Can't find %r in %s" % (parts,module))
+            raise ImportError("Can't find %r in %s" % (parts, module))
 
     return info
 
