@@ -33,7 +33,7 @@ class Test:
             script_args=['bdist_egg'],
             name='foo',
             py_modules=['hi']
-            ))
+        ))
         os.makedirs(os.path.join('build', 'src'))
         with contexts.quiet():
             dist.parse_command_line()
