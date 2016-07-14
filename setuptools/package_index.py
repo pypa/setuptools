@@ -94,7 +94,7 @@ def distros_for_url(url, metadata=None):
         match = EGG_FRAGMENT.match(fragment)
         if match:
             for dist in interpret_distro_name(
-                url, match.group(1), metadata, precedence = CHECKOUT_DIST
+                url, match.group(1), metadata, precedence=CHECKOUT_DIST
             ):
                 yield dist
 
@@ -158,8 +158,8 @@ def interpret_distro_name(
     for p in range(1, len(parts)+1):
         yield Distribution(
             location, metadata, '-'.join(parts[:p]), '-'.join(parts[p:]),
-            py_version=py_version, precedence = precedence,
-            platform = platform
+            py_version=py_version, precedence=precedence,
+            platform=platform
         )
 
 

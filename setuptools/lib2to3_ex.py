@@ -27,7 +27,7 @@ class DistutilsRefactoringTool(RefactoringTool):
 
 class Mixin2to3(_Mixin2to3):
 
-    def run_2to3(self, files, doctests = False):
+    def run_2to3(self, files, doctests=False):
         # See of the distribution option has been set, otherwise check the
         # setuptools default.
         if self.distribution.use_2to3 is not True:
