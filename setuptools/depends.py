@@ -1,8 +1,8 @@
 import sys
 import imp
 import marshal
-from imp import PKG_DIRECTORY, PY_COMPILED, PY_SOURCE, PY_FROZEN
 from distutils.version import StrictVersion
+from imp import PKG_DIRECTORY, PY_COMPILED, PY_SOURCE, PY_FROZEN
 
 from setuptools.extern import six
 

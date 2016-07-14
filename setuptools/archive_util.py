@@ -12,8 +12,8 @@ import os
 import shutil
 import posixpath
 import contextlib
-from pkg_resources import ensure_directory, ContextualZipFile
 from distutils.errors import DistutilsError
+from pkg_resources import ensure_directory, ContextualZipFile
 
 
 class UnrecognizedFormat(DistutilsError):
