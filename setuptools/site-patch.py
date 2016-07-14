@@ -71,7 +71,6 @@ def __boot():
 
     sys.path[:] = new_path
 
-
 if __name__=='site':
     __boot()
     del __boot

@@ -116,7 +116,6 @@ class PEP420PackageFinder(PackageFinder):
     def _looks_like_package(path):
         return True
 
-
 find_packages = PackageFinder.find
 
 setup = distutils.core.setup
@@ -141,7 +140,6 @@ class Command(_Command):
         cmd = _Command.reinitialize_command(self, command, reinit_subcommands)
         vars(cmd).update(kw)
         return cmd
-
 
 # we can't patch distutils.cmd, alas
 distutils.core.Command = Command

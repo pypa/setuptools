@@ -50,7 +50,6 @@ class FakeDist(object):
     def as_requirement(self):
         return 'spec'
 
-
 SETUP_PY = DALS("""
     from setuptools import setup
 

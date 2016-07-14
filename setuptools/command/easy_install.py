@@ -1831,7 +1831,6 @@ def _remove_and_clear_zip_directory_cache_data(normalized_path):
         normalized_path, zipimport._zip_directory_cache,
         updater=clear_and_remove_cached_zip_archive_directory_data)
 
-
 # PyPy Python implementation does not allow directly writing to the
 # zipimport._zip_directory_cache and so prevents us from attempting to correct
 # its content. The best we can do there is clear the problematic cache content
@@ -1990,7 +1989,6 @@ class CommandSpec(list):
     def _render(items):
         cmdline = subprocess.list2cmdline(items)
         return '#!' + cmdline + '\n'
-
 
 # For pbr compat; will be removed in a future version.
 sys_executable = CommandSpec._sys_executable()

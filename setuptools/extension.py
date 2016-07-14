@@ -28,7 +28,6 @@ def _have_cython():
         pass
     return False
 
-
 # for compatibility
 have_pyrex = _have_cython
 
@@ -54,7 +53,6 @@ class Extension(_Extension):
 class Library(Extension):
     """Just like a regular Extension, but built as a library instead"""
 
-    
 distutils.core.Extension = Extension
 distutils.extension.Extension = Extension
 if 'distutils.command.build_ext' in sys.modules:

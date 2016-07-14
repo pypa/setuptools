@@ -169,5 +169,4 @@ def unpack_tarfile(filename, extract_dir, progress_filter=default_filter):
                             pass
         return True
 
-
 extraction_drivers = unpack_directory, unpack_zipfile, unpack_tarfile
