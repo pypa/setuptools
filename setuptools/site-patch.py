@@ -10,7 +10,7 @@ def __boot():
     pic = getattr(sys, 'path_importer_cache', {})
     stdpath = sys.path[len(PYTHONPATH):]
     mydir = os.path.dirname(__file__)
-    #print "searching",stdpath,sys.path
+    # print "searching",stdpath,sys.path
 
     for item in stdpath:
         if item==mydir or not item:
@@ -39,7 +39,7 @@ def __boot():
     else:
         raise ImportError("Couldn't find the real 'site' module")
 
-    #print "loaded", __file__
+    # print "loaded", __file__
 
     known_paths = dict([(makepath(item)[1], 1) for item in sys.path]) # 2.2 comp
 
