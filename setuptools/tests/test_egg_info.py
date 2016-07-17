@@ -223,8 +223,10 @@ class TestEggInfo(object):
             env=environ,
         )
         egg_info_dir = os.path.join('.', 'foo.egg-info')
-        pkginfo = os.path.join(egg_info_dir, 'PKG-INFO')
-        assert 'Requires-Python: >=2.7.12' in open(pkginfo).read().split('\n')
+        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+            pkg_info_lines = pkginfo_file.read().split('\n')
+        assert 'Requires-Python: >=2.7.12' in pkg_info_lines
+        assert 'Metadata-Version: 1.2' in pkg_info_lines
 
     def test_python_requires_install(self, tmpdir_cwd, env):
         self._setup_script_with_requires(
