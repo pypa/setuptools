@@ -1,5 +1,6 @@
 __all__ = ['Distribution']
 
+import io
 import re
 import os
 import sys
@@ -62,18 +63,40 @@ def _patch_distribution_metadata_write_pkg_info():
     Workaround issue #197 - Python 3 prior to 3.2.2 uses an environment-local
     encoding to save the pkg_info. Monkey-patch its write_pkg_info method to
     correct this undesirable behavior.
-    """
-    environment_local = (3,) <= sys.version_info[:3] < (3, 2, 2)
-    if not environment_local:
-        return
 
-    # from Python 3.4
+    Update the Metadata-Version field if we are using PEP 345 fields
+    """
+    original_write = distutils.dist.DistributionMetadata.write_pkg_info
+    environment_local = (3,) <= sys.version_info[:3] < (3, 2, 2)
+    if environment_local:
+        # from Python 3.4
+        def write_pkg_info(self, base_dir):
+            """Write the PKG-INFO file into the release tree.
+            """
+            with open(os.path.join(base_dir, 'PKG-INFO'), 'w',
+                      encoding='UTF-8') as pkg_info:
+                self.write_pkg_file(pkg_info)
+        original_write = write_pkg_info
+
     def write_pkg_info(self, base_dir):
-        """Write the PKG-INFO file into the release tree.
-        """
-        with open(os.path.join(base_dir, 'PKG-INFO'), 'w',
-                  encoding='UTF-8') as pkg_info:
-            self.write_pkg_file(pkg_info)
+        original_write(self, base_dir)
+        if not hasattr(self, 'python_requires'):
+            return
+        # Else we should update the Metadata-Version info
+        lines = []
+        with io.open(os.path.join(base_dir, 'PKG-INFO'), 'rt',
+                     encoding='UTF-8') as pkg_info:
+            for line in pkg_info:
+                if line.startswith('Metadata-Version: '):
+                    version = line.split(':')[1].strip()
+                    if version in ('1.0', '1.1'):
+                        lines.append(u'Metadata-Version: 1.2\n')
+                        continue
+                lines.append(line)
+        with io.open(os.path.join(base_dir, 'PKG-INFO'), 'wt',
+                     encoding='UTF-8') as pkg_info:
+            for line in lines:
+                pkg_info.write(line)
 
     distutils.dist.DistributionMetadata.write_pkg_info = write_pkg_info
 
