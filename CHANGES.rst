@@ -7,6 +7,8 @@ v24.1.0
 
 * #659: ``setup.py`` now will fail fast and with a helpful
   error message when the necessary metadata is missing.
+* More style updates. See #656, #635, #640,
+  #644, #650, #652, and #655.
 
 v24.0.3
 -------
