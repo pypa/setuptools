@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+v24.1.0
+-------
+
+* #659: ``setup.py`` now will fail fast and with a helpful
+  error message when the necessary metadata is missing.
+
 v24.0.3
 -------
 
