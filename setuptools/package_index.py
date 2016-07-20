@@ -325,7 +325,7 @@ class PackageIndex(Environment):
 
         base = f.url     # handle redirects
         page = f.read()
-        if not isinstance(page, str): # We are in Python 3 and got bytes. We want str.
+        if not isinstance(page, str):  # We are in Python 3 and got bytes. We want str.
             if isinstance(f, urllib.error.HTTPError):
                 # Errors have no charset, assume latin1:
                 charset = 'latin-1'
