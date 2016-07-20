@@ -51,7 +51,7 @@ def run_setup_py(cmd, pypath=None, path=None,
         return 1, ''
 
     # decode the console string if needed
-    if hasattr(data,  "decode"):
+    if hasattr(data, "decode"):
         # use the default encoding
         data = data.decode()
         data = unicodedata.normalize('NFC', data)
