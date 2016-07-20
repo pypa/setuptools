@@ -82,14 +82,16 @@ def egg_info_for_url(url):
     base = urllib.parse.unquote(path.split('/')[-1])
     if server == 'sourceforge.net' and base == 'download':    # XXX Yuck
         base = urllib.parse.unquote(path.split('/')[-2])
-    if '#' in base: base, fragment = base.split('#', 1)
+    if '#' in base:
+        base, fragment = base.split('#', 1)
     return base, fragment
 
 
 def distros_for_url(url, metadata=None):
     """Yield egg or source distribution objects that might be found at a URL"""
     base, fragment = egg_info_for_url(url)
-    for dist in distros_for_location(url, base, metadata): yield dist
+    for dist in distros_for_location(url, base, metadata):
+        yield dist
     if fragment:
         match = EGG_FRAGMENT.match(fragment)
         if match:
@@ -289,7 +291,8 @@ class PackageIndex(Environment):
         self.to_scan = []
         if verify_ssl and ssl_support.is_available and (ca_bundle or ssl_support.find_ca_bundle()):
             self.opener = ssl_support.opener_for(ca_bundle)
-        else: self.opener = urllib.request.urlopen
+        else:
+            self.opener = urllib.request.urlopen
 
     def process_url(self, url, retrieve=False):
         """Evaluate a URL as a possible download, and maybe retrieve it"""
@@ -317,7 +320,8 @@ class PackageIndex(Environment):
         self.info("Reading %s", url)
         self.fetched_urls[url] = True   # prevent multiple fetch attempts
         f = self.open_url(url, "Download error on %s: %%s -- Some packages may not be found!" % url)
-        if f is None: return
+        if f is None:
+            return
         self.fetched_urls[f.url] = True
         if 'html' not in f.headers.get('content-type', '').lower():
             f.close()   # not html, we can't process it
@@ -442,7 +446,8 @@ class PackageIndex(Environment):
 
     def scan_all(self, msg=None, *args):
         if self.index_url not in self.fetched_urls:
-            if msg: self.warn(msg, *args)
+            if msg:
+                self.warn(msg, *args)
             self.info(
                 "Scanning index of all packages (this may take a while)"
             )
@@ -714,7 +719,8 @@ class PackageIndex(Environment):
                 self.check_hash(checker, filename, tfp)
             return headers
         finally:
-            if fp: fp.close()
+            if fp:
+                fp.close()
 
     def reporthook(self, url, filename, blocknum, blksize, size):
         pass    # no-op
@@ -896,7 +902,8 @@ entity_sub = re.compile(r'&(#(\d+|x[\da-fA-F]+)|[\w.:-]+);?').sub
 def uchr(c):
     if not isinstance(c, int):
         return c
-    if c > 255: return six.unichr(c)
+    if c > 255:
+        return six.unichr(c)
     return chr(c)
 
 

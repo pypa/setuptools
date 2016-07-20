@@ -155,8 +155,10 @@ def check_package_data(dist, attr, value):
     """Verify that value is a dictionary of package names to glob lists"""
     if isinstance(value, dict):
         for k, v in value.items():
-            if not isinstance(k, str): break
-            try: iter(v)
+            if not isinstance(k, str):
+                break
+            try:
+                iter(v)
             except TypeError:
                 break
         else:
@@ -807,7 +809,8 @@ class Feature:
             r for r in require_features if isinstance(r, str)
         ]
         er = [r for r in require_features if not isinstance(r, str)]
-        if er: extras['require_features'] = er
+        if er:
+            extras['require_features'] = er
 
         if isinstance(remove, str):
             remove = remove,

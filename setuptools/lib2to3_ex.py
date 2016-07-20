@@ -45,7 +45,8 @@ class Mixin2to3(_Mixin2to3):
             _Mixin2to3.run_2to3(self, files)
 
     def __build_fixer_names(self):
-        if self.fixer_names: return
+        if self.fixer_names:
+            return
         self.fixer_names = []
         for p in setuptools.lib2to3_fixer_packages:
             self.fixer_names.extend(get_fixers_from_package(p))
