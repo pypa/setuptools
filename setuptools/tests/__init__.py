@@ -266,15 +266,15 @@ class TestFeatures:
         assert dist.feature_negopt['without-foo'] == 'with-foo'
         assert dist.feature_negopt['without-bar'] == 'with-bar'
         assert dist.feature_negopt['without-dwim'] == 'with-dwim'
-        assert (not 'without-baz' in dist.feature_negopt)
+        assert ('without-baz' not in dist.feature_negopt)
 
     def testUseFeatures(self):
         dist = self.dist
         assert dist.with_foo == 1
         assert dist.with_bar == 0
         assert dist.with_baz == 1
-        assert (not 'bar_et' in dist.py_modules)
-        assert (not 'pkg.bar' in dist.packages)
+        assert ('bar_et' not in dist.py_modules)
+        assert ('pkg.bar' not in dist.packages)
         assert ('pkg.baz' in dist.packages)
         assert ('scripts/baz_it' in dist.scripts)
         assert (('libfoo', 'foo/foofoo.c') in dist.libraries)
