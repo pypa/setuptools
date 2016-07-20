@@ -131,8 +131,8 @@ class TestDistro:
         self.dist = makeSetup(
             packages=['a', 'a.b', 'a.b.c', 'b', 'c'],
             py_modules=['b.d', 'x'],
-            ext_modules = (self.e1, self.e2),
-            package_dir = {},
+            ext_modules=(self.e1, self.e2),
+            package_dir={},
         )
 
     def testDistroType(self):
@@ -225,15 +225,15 @@ class TestFeatures:
                                ),
                 'baz': Feature(
                         "baz", optional=False, packages=['pkg.baz'],
-                        scripts = ['scripts/baz_it'],
+                        scripts=['scripts/baz_it'],
                         libraries=[('libfoo', 'foo/foofoo.c')]
                        ),
                 'dwim': Feature("DWIM", available=False, remove='bazish'),
             },
             script_args=['--without-bar', 'install'],
-            packages = ['pkg.bar', 'pkg.foo'],
-            py_modules = ['bar_et', 'bazish'],
-            ext_modules = [Extension('bar.ext', ['bar.c'])]
+            packages=['pkg.bar', 'pkg.foo'],
+            py_modules=['bar_et', 'bazish'],
+            ext_modules=[Extension('bar.ext', ['bar.c'])]
         )
 
     def testDefaults(self):
