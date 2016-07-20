@@ -114,4 +114,4 @@ class TestDevelop:
         cmd.ensure_finalized()
         cmd.install_dir = tmpdir
         cmd.run()
-        #assert '0.0' not in foocmd_text
+        # assert '0.0' not in foocmd_text
