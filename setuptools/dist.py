@@ -39,6 +39,20 @@ def _get_unpatched(cls):
 _Distribution = _get_unpatched(_Distribution)
 
 
+def _patch_distribution_metadata_write_pkg_file():
+    """Patch write_pkg_file to also write Requires-Python/Requires-External"""
+    original_write = distutils.dist.DistributionMetadata.write_pkg_file
+    def write_pkg_file(self, file):
+        """Write the PKG-INFO format data to a file object.
+        """
+        original_write(self, file)
+        if hasattr(self, 'python_requires'):
+            file.write('Requires-Python: %s\n' % self.python_requires)
+
+    distutils.dist.DistributionMetadata.write_pkg_file = write_pkg_file
+_patch_distribution_metadata_write_pkg_file()
+
+
 def _patch_distribution_metadata_write_pkg_info():
     """
     Workaround issue #197 - Python 3 prior to 3.2.2 uses an environment-local
@@ -134,6 +148,18 @@ def check_requirements(dist, attr, value):
         tmpl = (
             "{attr!r} must be a string or list of strings "
             "containing valid project/version requirement specifiers; {error}"
+        )
+        raise DistutilsSetupError(tmpl.format(attr=attr, error=error))
+
+
+def check_specifier(dist, attr, value):
+    """Verify that value is a valid version specifier"""
+    try:
+        packaging.specifiers.SpecifierSet(value)
+    except packaging.specifiers.InvalidSpecifier as error:
+        tmpl = (
+            "{attr!r} must be a string or list of strings "
+            "containing valid version specifiers; {error}"
         )
         raise DistutilsSetupError(tmpl.format(attr=attr, error=error))
 
@@ -305,6 +331,8 @@ class Distribution(_Distribution):
                     "setuptools, pip, and PyPI. Please see PEP 440 for more "
                     "details." % self.metadata.version
                 )
+        if getattr(self, 'python_requires', None):
+            self.metadata.python_requires = self.python_requires
 
     def parse_command_line(self):
         """Process features after parsing command line options"""
