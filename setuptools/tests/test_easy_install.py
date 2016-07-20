@@ -15,8 +15,8 @@ import itertools
 import distutils.errors
 import io
 
-from setuptools.extern.six.moves import urllib
 import time
+from setuptools.extern.six.moves import urllib
 
 import pytest
 try:

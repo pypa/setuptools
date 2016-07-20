@@ -8,8 +8,8 @@ from distutils import log
 from types import CodeType
 import sys
 import os
-import marshal
 import textwrap
+import marshal
 
 from setuptools.extern import six
 
