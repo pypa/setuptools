@@ -179,7 +179,7 @@ class TestEggInfo(object):
             """ % requires_line)
         build_files({
             'setup.py': setup_script,
-            })
+        })
 
     def test_install_requires_with_markers(self, tmpdir_cwd, env):
         self._setup_script_with_requires(
