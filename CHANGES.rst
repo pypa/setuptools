@@ -2,6 +2,11 @@
 CHANGES
 =======
 
+v24.2.0
+-------
+
+* #631: Add support for ``python_requires`` keyword.
+
 v24.1.1
 -------
 
