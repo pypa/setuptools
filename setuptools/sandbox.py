@@ -291,7 +291,8 @@ class AbstractSandbox:
         return wrap
 
     for name in ["rename", "link", "symlink"]:
-        if hasattr(_os, name): locals()[name] = _mk_dual_path_wrapper(name)
+        if hasattr(_os, name):
+            locals()[name] = _mk_dual_path_wrapper(name)
 
     def _mk_single_path_wrapper(name, original=None):
         original = original or getattr(_os, name)
@@ -310,7 +311,8 @@ class AbstractSandbox:
         "remove", "unlink", "rmdir", "utime", "lchown", "chroot", "lstat",
         "startfile", "mkfifo", "mknod", "pathconf", "access"
     ]:
-        if hasattr(_os, name): locals()[name] = _mk_single_path_wrapper(name)
+        if hasattr(_os, name):
+            locals()[name] = _mk_single_path_wrapper(name)
 
     def _mk_single_with_return(name):
         original = getattr(_os, name)
@@ -323,7 +325,8 @@ class AbstractSandbox:
         return wrap
 
     for name in ['readlink', 'tempnam']:
-        if hasattr(_os, name): locals()[name] = _mk_single_with_return(name)
+        if hasattr(_os, name):
+            locals()[name] = _mk_single_with_return(name)
 
     def _mk_query(name):
         original = getattr(_os, name)
@@ -336,7 +339,8 @@ class AbstractSandbox:
         return wrap
 
     for name in ['getcwd', 'tmpnam']:
-        if hasattr(_os, name): locals()[name] = _mk_query(name)
+        if hasattr(_os, name):
+            locals()[name] = _mk_query(name)
 
     def _validate_path(self, path):
         """Called to remap or validate any path, whether input or output"""

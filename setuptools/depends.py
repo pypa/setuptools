@@ -53,7 +53,8 @@ class Require:
         if self.attribute is None:
             try:
                 f, p, i = find_module(self.module, paths)
-                if f: f.close()
+                if f:
+                    f.close()
                 return default
             except ImportError:
                 return None

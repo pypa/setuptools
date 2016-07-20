@@ -2837,7 +2837,8 @@ class Requirement(packaging.requirements.Requirement):
 def _get_mro(cls):
     """Get an mro for a type or classic class"""
     if not isinstance(cls, type):
-        class cls(cls, object): pass
+        class cls(cls, object):
+            pass
         return cls.__mro__[1:]
     return cls.__mro__
 
