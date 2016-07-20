@@ -12,7 +12,7 @@ except ImportError:
     def get_path(name):
         if name not in ('platlib', 'purelib'):
             raise ValueError("Name must be purelib or platlib")
-        return get_python_lib(name=='platlib')
+        return get_python_lib(name == 'platlib')
 
 try:
     # Python >=3.2

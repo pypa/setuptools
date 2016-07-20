@@ -80,7 +80,7 @@ def egg_info_for_url(url):
     parts = urllib.parse.urlparse(url)
     scheme, server, path, parameters, query, fragment = parts
     base = urllib.parse.unquote(path.split('/')[-1])
-    if server=='sourceforge.net' and base=='download':    # XXX Yuck
+    if server == 'sourceforge.net' and base == 'download':    # XXX Yuck
         base = urllib.parse.unquote(path.split('/')[-2])
     if '#' in base: base, fragment = base.split('#', 1)
     return base, fragment
@@ -155,7 +155,7 @@ def interpret_distro_name(
         # it is a bdist_dumb, not an sdist -- bail out
         return
 
-    for p in range(1, len(parts)+1):
+    for p in range(1, len(parts) + 1):
         yield Distribution(
             location, metadata, '-'.join(parts[:p]), '-'.join(parts[p:]),
             py_version=py_version, precedence = precedence,
@@ -209,7 +209,7 @@ def find_external_links(url, page):
 
     for tag in ("<th>Home Page", "<th>Download URL"):
         pos = page.find(tag)
-        if pos!=-1:
+        if pos != -1:
             match = HREF.search(page, pos)
             if match:
                 yield urllib.parse.urljoin(url, htmldecode(match.group(1)))
@@ -336,7 +336,7 @@ class PackageIndex(Environment):
         for match in HREF.finditer(page):
             link = urllib.parse.urljoin(base, htmldecode(match.group(1)))
             self.process_url(link)
-        if url.startswith(self.index_url) and getattr(f, 'code', None)!=404:
+        if url.startswith(self.index_url) and getattr(f, 'code', None) != 404:
             page = self.process_index(url, page)
 
     def process_filename(self, fn, nested=False):
@@ -357,7 +357,7 @@ class PackageIndex(Environment):
 
     def url_ok(self, url, fatal=False):
         s = URL_SCHEME(url)
-        if (s and s.group(1).lower()=='file') or self.allows(urllib.parse.urlparse(url)[1]):
+        if (s and s.group(1).lower() == 'file') or self.allows(urllib.parse.urlparse(url)[1]):
             return True
         msg = ("\nNote: Bypassing %s (disallowed host; see "
             "http://bit.ly/1dg9ijs for details).\n")
@@ -400,7 +400,7 @@ class PackageIndex(Environment):
                 parts = list(map(
                     urllib.parse.unquote, link[len(self.index_url):].split('/')
                 ))
-                if len(parts)==2 and '#' not in parts[1]:
+                if len(parts) == 2 and '#' not in parts[1]:
                     # it's a package page, sanitize and index it
                     pkg = safe_name(parts[0])
                     ver = safe_version(parts[1])
@@ -423,7 +423,7 @@ class PackageIndex(Environment):
                 base, frag = egg_info_for_url(new_url)
                 if base.endswith('.py') and not frag:
                     if ver:
-                        new_url+='#egg=%s-%s' % (pkg, ver)
+                        new_url += '#egg=%s-%s' % (pkg, ver)
                     else:
                         self.need_version_info(url)
                 self.scan_url(new_url)
@@ -449,11 +449,11 @@ class PackageIndex(Environment):
         self.scan_url(self.index_url)
 
     def find_packages(self, requirement):
-        self.scan_url(self.index_url + requirement.unsafe_name+'/')
+        self.scan_url(self.index_url + requirement.unsafe_name + '/')
 
         if not self.package_pages.get(requirement.key):
             # Fall back to safe version of the name
-            self.scan_url(self.index_url + requirement.project_name+'/')
+            self.scan_url(self.index_url + requirement.project_name + '/')
 
         if not self.package_pages.get(requirement.key):
             # We couldn't find the target package, so search the index page too
@@ -589,13 +589,13 @@ class PackageIndex(Environment):
 
             for dist in env[req.key]:
 
-                if dist.precedence==DEVELOP_DIST and not develop_ok:
+                if dist.precedence == DEVELOP_DIST and not develop_ok:
                     if dist not in skipped:
                         self.warn("Skipping development or system egg: %s", dist)
                         skipped[dist] = 1
                     continue
 
-                if dist in req and (dist.precedence<=SOURCE_DIST or not source):
+                if dist in req and (dist.precedence <= SOURCE_DIST or not source):
                     return dist
 
         if force_scan:
@@ -645,7 +645,7 @@ class PackageIndex(Environment):
             interpret_distro_name(filename, match.group(1), None) if d.version
         ] or []
 
-        if len(dists)==1:   # unambiguous ``#egg`` fragment
+        if len(dists) == 1:   # unambiguous ``#egg`` fragment
             basename = os.path.basename(filename)
 
             # Make sure the file has been downloaded to the temp dir.
@@ -654,7 +654,7 @@ class PackageIndex(Environment):
                 from setuptools.command.easy_install import samefile
                 if not samefile(filename, dst):
                     shutil.copy2(filename, dst)
-                    filename=dst
+                    filename = dst
 
             with open(os.path.join(tmpdir, 'setup.py'), 'w') as file:
                 file.write(
@@ -771,13 +771,13 @@ class PackageIndex(Environment):
 
         # Download the file
         #
-        if scheme=='svn' or scheme.startswith('svn+'):
+        if scheme == 'svn' or scheme.startswith('svn+'):
             return self._download_svn(url, filename)
-        elif scheme=='git' or scheme.startswith('git+'):
+        elif scheme == 'git' or scheme.startswith('git+'):
             return self._download_git(url, filename)
         elif scheme.startswith('hg+'):
             return self._download_hg(url, filename)
-        elif scheme=='file':
+        elif scheme == 'file':
             return urllib.request.url2pathname(urllib.parse.urlparse(url)[2])
         else:
             self.url_ok(url, True)   # raises error if not allowed
@@ -806,7 +806,7 @@ class PackageIndex(Environment):
                 break   # not an index page
         file.close()
         os.unlink(filename)
-        raise DistutilsError("Unexpected HTML page found at "+url)
+        raise DistutilsError("Unexpected HTML page found at " + url)
 
     def _download_svn(self, url, filename):
         url = url.split('#', 1)[0]   # remove any fragment for svn's sake
@@ -821,7 +821,7 @@ class PackageIndex(Environment):
                         user, pw = auth.split(':', 1)
                         creds = " --username=%s --password=%s" % (user, pw)
                     else:
-                        creds = " --username="+auth
+                        creds = " --username=" + auth
                     netloc = host
                     parts = scheme, netloc, url, p, q, f
                     url = urllib.parse.urlunparse(parts)
@@ -896,7 +896,7 @@ entity_sub = re.compile(r'&(#(\d+|x[\da-fA-F]+)|[\w.:-]+);?').sub
 def uchr(c):
     if not isinstance(c, int):
         return c
-    if c>255: return six.unichr(c)
+    if c > 255: return six.unichr(c)
     return chr(c)
 
 
@@ -1046,7 +1046,7 @@ def open_with_auth(url, opener=urllib.request.urlopen):
         # Put authentication info back into request URL if same host,
         # so that links found on the page will work
         s2, h2, path2, param2, query2, frag2 = urllib.parse.urlparse(fp.url)
-        if s2==scheme and h2==host:
+        if s2 == scheme and h2 == host:
             parts = s2, netloc, path2, param2, query2, frag2
             fp.url = urllib.parse.urlunparse(parts)
 

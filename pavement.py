@@ -17,7 +17,7 @@ def update_vendored():
     remove_all(vendor.glob('pyparsing*'))
     install_args = [
         'install',
-        '-r', str(vendor/'vendored.txt'),
+        '-r', str(vendor / 'vendored.txt'),
         '-t', str(vendor),
     ]
     pip.main(install_args)

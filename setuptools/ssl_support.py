@@ -235,7 +235,7 @@ def get_win_certfile():
 
 def find_ca_bundle():
     """Return an existing CA bundle path, or None"""
-    if os.name=='nt':
+    if os.name == 'nt':
         return get_win_certfile()
     else:
         for cert_path in cert_paths:

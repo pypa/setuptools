@@ -234,7 +234,7 @@ def run_setup(setup_script, args):
     setup_dir = os.path.abspath(os.path.dirname(setup_script))
     with setup_context(setup_dir):
         try:
-            sys.argv[:] = [setup_script]+list(args)
+            sys.argv[:] = [setup_script] + list(args)
             sys.path.insert(0, setup_dir)
             # reset to include setup dir, w/clean callback list
             working_set.__init__()
@@ -353,8 +353,8 @@ class AbstractSandbox:
     def _remap_pair(self, operation, src, dst, *args, **kw):
         """Called for path pairs like rename, link, and symlink operations"""
         return (
-            self._remap_input(operation+'-from', src, *args, **kw),
-            self._remap_input(operation+'-to', dst, *args, **kw)
+            self._remap_input(operation + '-from', src, *args, **kw),
+            self._remap_input(operation + '-to', dst, *args, **kw)
         )
 
 

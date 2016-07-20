@@ -157,7 +157,7 @@ class TestPTHFileWriter:
 
 @pytest.yield_fixture
 def setup_context(tmpdir):
-    with (tmpdir/'setup.py').open('w') as f:
+    with (tmpdir / 'setup.py').open('w') as f:
         f.write(SETUP_PY)
     with tmpdir.as_cwd():
         yield tmpdir
@@ -555,7 +555,7 @@ class TestScriptHeader:
         assert actual == expected
 
         actual = ei.ScriptWriter.get_script_header('#!/usr/bin/python',
-            executable='"'+self.exe_with_spaces+'"')
+            executable='"' + self.exe_with_spaces + '"')
         expected = '#!"%s"\n' % self.exe_with_spaces
         assert actual == expected
 

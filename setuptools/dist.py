@@ -65,7 +65,7 @@ sequence = tuple, list
 
 def check_importable(dist, attr, value):
     try:
-        ep = pkg_resources.EntryPoint.parse('x='+value)
+        ep = pkg_resources.EntryPoint.parse('x=' + value)
         assert not ep.extras
     except (TypeError, ValueError, AttributeError, AssertionError):
         raise DistutilsSetupError(
@@ -77,7 +77,7 @@ def check_importable(dist, attr, value):
 def assert_string_list(dist, attr, value):
     """Verify that value is a string list or None"""
     try:
-        assert ''.join(value)!=value
+        assert ''.join(value) != value
     except (TypeError, ValueError, AttributeError, AssertionError):
         raise DistutilsSetupError(
             "%r must be a list of strings (got %r)" % (attr, value)
@@ -109,7 +109,7 @@ def check_extras(dist, attr, value):
             if ':' in k:
                 k, m = k.split(':', 1)
                 if pkg_resources.invalid_marker(m):
-                    raise DistutilsSetupError("Invalid environment marker: "+m)
+                    raise DistutilsSetupError("Invalid environment marker: " + m)
             list(pkg_resources.parse_requirements(v))
     except (TypeError, ValueError, AttributeError):
         raise DistutilsSetupError(
@@ -162,7 +162,7 @@ def check_package_data(dist, attr, value):
         else:
             return
     raise DistutilsSetupError(
-        attr+" must be a dictionary mapping package names to lists of "
+        attr + " must be a dictionary mapping package names to lists of "
         "wildcard patterns"
     )
 
@@ -313,7 +313,7 @@ class Distribution(_Distribution):
 
     def _feature_attrname(self, name):
         """Convert feature name to corresponding option attribute name"""
-        return 'with_'+name.replace('-', '_')
+        return 'with_' + name.replace('-', '_')
 
     def fetch_build_eggs(self, requires):
         """Resolve pre-setup requirements"""
@@ -402,13 +402,13 @@ class Distribution(_Distribution):
             if feature.optional:
                 descr = feature.description
                 incdef = ' (default)'
-                excdef=''
+                excdef = ''
                 if not feature.include_by_default():
                     excdef, incdef = incdef, excdef
 
-                go.append(('with-'+name, None, 'include '+descr+incdef))
-                go.append(('without-'+name, None, 'exclude '+descr+excdef))
-                no['without-'+name] = 'with-'+name
+                go.append(('with-' + name, None, 'include ' + descr + incdef))
+                go.append(('without-' + name, None, 'exclude ' + descr + excdef))
+                no['without-' + name] = 'with-' + name
 
         self.global_options = self.feature_options = go + self.global_options
         self.negative_opt = self.feature_negopt = no
@@ -469,7 +469,7 @@ class Distribution(_Distribution):
     def include_feature(self, name):
         """Request inclusion of feature named 'name'"""
 
-        if self.feature_is_included(name)==0:
+        if self.feature_is_included(name) == 0:
             descr = self.features[name].description
             raise DistutilsOptionError(
                 descr + " is required, but was excluded or is not available"
@@ -493,7 +493,7 @@ class Distribution(_Distribution):
         handle whatever special inclusion logic is needed.
         """
         for k, v in attrs.items():
-            include = getattr(self, '_include_'+k, None)
+            include = getattr(self, '_include_' + k, None)
             if include:
                 include(v)
             else:
@@ -502,7 +502,7 @@ class Distribution(_Distribution):
     def exclude_package(self, package):
         """Remove packages, modules, and extensions in named package"""
 
-        pfx = package+'.'
+        pfx = package + '.'
         if self.packages:
             self.packages = [
                 p for p in self.packages
@@ -524,10 +524,10 @@ class Distribution(_Distribution):
     def has_contents_for(self, package):
         """Return true if 'exclude_package(package)' would do something"""
 
-        pfx = package+'.'
+        pfx = package + '.'
 
         for p in self.iter_distribution_names():
-            if p==package or p.startswith(pfx):
+            if p == package or p.startswith(pfx):
                 return True
 
     def _exclude_misc(self, name, value):
@@ -544,7 +544,7 @@ class Distribution(_Distribution):
             )
         if old is not None and not isinstance(old, sequence):
             raise DistutilsSetupError(
-                name+": this setting cannot be changed via include/exclude"
+                name + ": this setting cannot be changed via include/exclude"
             )
         elif old:
             setattr(self, name, [item for item in old if item not in value])
@@ -566,10 +566,10 @@ class Distribution(_Distribution):
             setattr(self, name, value)
         elif not isinstance(old, sequence):
             raise DistutilsSetupError(
-                name+": this setting cannot be changed via include/exclude"
+                name + ": this setting cannot be changed via include/exclude"
             )
         else:
-            setattr(self, name, old+[item for item in value if item not in old])
+            setattr(self, name, old + [item for item in value if item not in old])
 
     def exclude(self, **attrs):
         """Remove items from distribution that are named in keyword arguments
@@ -588,7 +588,7 @@ class Distribution(_Distribution):
         handle whatever special exclusion logic is needed.
         """
         for k, v in attrs.items():
-            exclude = getattr(self, '_exclude_'+k, None)
+            exclude = getattr(self, '_exclude_' + k, None)
             if exclude:
                 exclude(v)
             else:
@@ -648,19 +648,19 @@ class Distribution(_Distribution):
 
                 opt = opt.replace('_', '-')
 
-                if val==0:
+                if val == 0:
                     cmdobj = self.get_command_obj(cmd)
                     neg_opt = self.negative_opt.copy()
                     neg_opt.update(getattr(cmdobj, 'negative_opt', {}))
                     for neg, pos in neg_opt.items():
-                        if pos==opt:
-                            opt=neg
-                            val=None
+                        if pos == opt:
+                            opt = neg
+                            val = None
                             break
                     else:
                         raise AssertionError("Shouldn't be able to get here")
 
-                elif val==1:
+                elif val == 1:
                     val = None
 
                 d.setdefault(cmd, {})[opt] = val
@@ -835,7 +835,7 @@ class Feature:
 
         if not self.available:
             raise DistutilsPlatformError(
-                self.description+" is required, "
+                self.description + " is required, "
                 "but is not available on this platform"
             )
 

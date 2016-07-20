@@ -129,7 +129,7 @@ class TestPackageIndex:
         # the distribution has been found
         assert 'foobar' in pi
         # we have only one link, because links are compared without md5
-        assert len(pi['foobar'])==1
+        assert len(pi['foobar']) == 1
         # the link should be from the index
         assert 'correct_md5' in pi['foobar'][0].location
 
