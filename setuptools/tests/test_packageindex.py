@@ -15,6 +15,16 @@ from setuptools.tests.server import IndexServer
 
 class TestPackageIndex:
 
+    def test_regex(self):
+        hash_url = 'http://other_url?:action=show_md5&amp;'
+        hash_url += 'digest=0123456789abcdef0123456789abcdef'
+        doc = """
+            <a href="http://some_url">Name</a>
+            (<a title="MD5 hash"
+            href="{hash_url}">md5</a>)
+        """.lstrip().format(**locals())
+        assert setuptools.package_index.PYPI_MD5.match(doc)
+
     def test_bad_url_bad_port(self):
         index = setuptools.package_index.PackageIndex()
         url = 'http://127.0.0.1:0/nonesuch/test_package_index'
