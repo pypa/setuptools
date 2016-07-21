@@ -23,23 +23,23 @@ from distutils.command.install import INSTALL_SCHEMES, SCHEME_KEYS
 from distutils import log, dir_util
 from distutils.command.build_scripts import first_line_re
 from distutils.spawn import find_executable
-import sys
+import contextlib
+import io
 import os
-import zipimport
-import shutil
-import tempfile
-import zipfile
-import re
-import stat
 import random
+import re
+import shlex
+import shutil
+import site
+import stat
+import struct
+import subprocess
+import sys
+import tempfile
 import textwrap
 import warnings
-import site
-import struct
-import contextlib
-import subprocess
-import shlex
-import io
+import zipfile
+import zipimport
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import configparser, map

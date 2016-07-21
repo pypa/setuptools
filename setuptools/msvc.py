@@ -1,10 +1,10 @@
 """
 This module adds improved support for Microsoft Visual C++ compilers.
 """
+import distutils.errors
+import itertools
 import os
 import platform
-import itertools
-import distutils.errors
 from setuptools.extern.six.moves import filterfalse
 
 if platform.system() == 'Windows':

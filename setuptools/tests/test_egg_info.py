@@ -1,5 +1,5 @@
-import os
 import glob
+import os
 import re
 import stat
 import sys

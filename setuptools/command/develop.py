@@ -1,9 +1,9 @@
 from distutils.util import convert_path
 from distutils import log
 from distutils.errors import DistutilsError, DistutilsOptionError
-import os
 import glob
 import io
+import os
 
 from setuptools.extern import six
 

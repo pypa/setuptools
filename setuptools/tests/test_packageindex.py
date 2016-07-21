@@ -1,8 +1,8 @@
 from __future__ import absolute_import
 
-import sys
-import os
 import distutils.errors
+import os
+import sys
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import urllib, http_client

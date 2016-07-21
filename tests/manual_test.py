@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-import sys
 import os
 import shutil
-import tempfile
 import subprocess
+import sys
+import tempfile
 from distutils.command.install import INSTALL_SCHEMES
 from string import Template
 

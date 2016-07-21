@@ -1,12 +1,12 @@
-import os
-import sys
-import tempfile
-import operator
+import contextlib
 import functools
 import itertools
-import re
-import contextlib
+import operator
+import os
 import pickle
+import re
+import sys
+import tempfile
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import builtins, map

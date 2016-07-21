@@ -8,13 +8,13 @@ PyPI's pythonhosted.org).
 from base64 import standard_b64encode
 from distutils import log
 from distutils.errors import DistutilsOptionError
-import os
-import socket
-import zipfile
-import tempfile
-import shutil
-import itertools
 import functools
+import itertools
+import os
+import shutil
+import socket
+import tempfile
+import zipfile
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import http_client, urllib

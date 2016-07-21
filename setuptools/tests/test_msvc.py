@@ -2,9 +2,9 @@
 Tests for msvc support module.
 """
 
-import os
 import contextlib
 import distutils.errors
+import os
 
 import pytest
 try:

@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """sdist tests"""
 
+import contextlib
+import io
 import os
 import shutil
 import sys
 import tempfile
 import unicodedata
-import contextlib
-import io
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import map

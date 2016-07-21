@@ -1,9 +1,9 @@
 from glob import glob
 from distutils import log
 import distutils.command.sdist as orig
+import io
 import os
 import sys
-import io
 
 from setuptools.extern import six
 

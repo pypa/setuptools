@@ -14,9 +14,9 @@ are to wrap.
 
 from __future__ import absolute_import
 
+import subprocess
 import sys
 import textwrap
-import subprocess
 
 import pytest
 

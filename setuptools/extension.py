@@ -1,9 +1,9 @@
-import sys
-import re
-import functools
 import distutils.core
 import distutils.errors
 import distutils.extension
+import functools
+import re
+import sys
 
 from setuptools.extern.six.moves import map
 

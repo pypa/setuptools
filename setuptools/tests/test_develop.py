@@ -1,9 +1,9 @@
 """develop tests
 """
+import io
 import os
 import site
 import sys
-import io
 
 from setuptools.extern import six
 

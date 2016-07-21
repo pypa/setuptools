@@ -5,15 +5,15 @@ Create a distribution's .egg-info directory and contents"""
 from distutils.filelist import FileList as _FileList
 from distutils.util import convert_path
 from distutils import log
+import collections
 import distutils.errors
 import distutils.filelist
+import io
 import os
 import re
 import sys
-import io
 import warnings
 import time
-import collections
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import map

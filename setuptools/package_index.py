@@ -1,12 +1,12 @@
 """PyPI and direct package downloading"""
-import sys
+import base64
+import hashlib
+import itertools
 import os
 import re
 import shutil
 import socket
-import base64
-import hashlib
-import itertools
+import sys
 from functools import wraps
 
 try:

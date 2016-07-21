@@ -1,6 +1,6 @@
+import contextlib
 import sys
 import tarfile
-import contextlib
 
 
 def _tarfile_open_ex(*args, **kwargs):

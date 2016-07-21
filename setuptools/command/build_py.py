@@ -1,12 +1,12 @@
 from glob import glob
 from distutils.util import convert_path
 import distutils.command.build_py as orig
-import os
-import fnmatch
-import textwrap
-import io
 import distutils.errors
+import fnmatch
+import io
 import itertools
+import os
+import textwrap
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import map, filter, filterfalse

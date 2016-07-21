@@ -4,16 +4,16 @@
 """
 from __future__ import absolute_import
 
-import sys
-import os
-import tempfile
-import site
 import contextlib
-import tarfile
-import logging
-import itertools
 import distutils.errors
 import io
+import itertools
+import logging
+import os
+import site
+import sys
+import tarfile
+import tempfile
 
 import time
 from setuptools.extern.six.moves import urllib

@@ -1,5 +1,5 @@
-import unicodedata
 import sys
+import unicodedata
 
 from setuptools.extern import six
 

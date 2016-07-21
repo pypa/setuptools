@@ -1,9 +1,9 @@
 from distutils.errors import DistutilsArgError
-import inspect
-import glob
-import warnings
-import platform
 import distutils.command.install as orig
+import glob
+import inspect
+import platform
+import warnings
 
 import setuptools
 
