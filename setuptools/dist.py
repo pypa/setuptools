@@ -36,12 +36,14 @@ def _get_unpatched(cls):
         )
     return cls
 
+
 _Distribution = _get_unpatched(_Distribution)
 
 
 def _patch_distribution_metadata_write_pkg_file():
     """Patch write_pkg_file to also write Requires-Python/Requires-External"""
     original_write = distutils.dist.DistributionMetadata.write_pkg_file
+
     def write_pkg_file(self, file):
         """Write the PKG-INFO format data to a file object.
         """
@@ -50,6 +52,8 @@ def _patch_distribution_metadata_write_pkg_file():
             file.write('Requires-Python: %s\n' % self.python_requires)
 
     distutils.dist.DistributionMetadata.write_pkg_file = write_pkg_file
+
+
 _patch_distribution_metadata_write_pkg_file()
 
 
@@ -72,6 +76,8 @@ def _patch_distribution_metadata_write_pkg_info():
             self.write_pkg_file(pkg_info)
 
     distutils.dist.DistributionMetadata.write_pkg_info = write_pkg_info
+
+
 _patch_distribution_metadata_write_pkg_info()
 
 sequence = tuple, list
