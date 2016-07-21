@@ -1,6 +1,6 @@
+import contextlib
 import os
 import zipfile
-import contextlib
 
 import pytest
 

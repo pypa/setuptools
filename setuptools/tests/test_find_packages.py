@@ -1,9 +1,9 @@
 """Tests for setuptools.find_packages()."""
 import os
-import sys
-import shutil
-import tempfile
 import platform
+import shutil
+import sys
+import tempfile
 
 import pytest
 

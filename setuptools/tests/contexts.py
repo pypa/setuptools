@@ -1,9 +1,9 @@
-import tempfile
+import contextlib
 import os
 import shutil
-import sys
-import contextlib
 import site
+import sys
+import tempfile
 
 from setuptools.extern import six
 import pkg_resources

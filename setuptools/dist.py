@@ -1,14 +1,14 @@
 __all__ = ['Distribution']
 
-import re
+import distutils.cmd
+import distutils.core
+import distutils.dist
+import distutils.log
+import numbers
 import os
+import re
 import sys
 import warnings
-import numbers
-import distutils.log
-import distutils.core
-import distutils.cmd
-import distutils.dist
 from distutils.core import Distribution as _Distribution
 from distutils.errors import (DistutilsOptionError, DistutilsPlatformError,
     DistutilsSetupError)

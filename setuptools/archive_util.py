@@ -6,12 +6,12 @@ __all__ = [
     "UnrecognizedFormat", "extraction_drivers", "unpack_directory",
 ]
 
-import zipfile
-import tarfile
-import os
-import shutil
-import posixpath
 import contextlib
+import os
+import posixpath
+import shutil
+import tarfile
+import zipfile
 from distutils.errors import DistutilsError
 from pkg_resources import ensure_directory, ContextualZipFile
 

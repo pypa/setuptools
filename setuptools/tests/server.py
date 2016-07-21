@@ -1,8 +1,8 @@
 """Basic http server for tests to simulate PyPI or custom indexes
 """
 
-import time
 import threading
+import time
 
 from setuptools.extern.six.moves import BaseHTTPServer, SimpleHTTPServer
 

@@ -6,9 +6,9 @@ egg-info command to flesh out the egg-info directory.
 """
 
 import os
+import subprocess
 import sys
 import textwrap
-import subprocess
 
 
 minimal_egg_info = textwrap.dedent("""

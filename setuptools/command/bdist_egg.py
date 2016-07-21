@@ -6,8 +6,8 @@ from distutils.errors import DistutilsSetupError
 from distutils.dir_util import remove_tree, mkpath
 from distutils import log
 from types import CodeType
-import sys
 import os
+import sys
 import textwrap
 import marshal
 

@@ -4,9 +4,9 @@ from distutils.ccompiler import new_compiler
 from distutils.sysconfig import customize_compiler
 from distutils.errors import DistutilsError
 from distutils import log
+import itertools
 import os
 import sys
-import itertools
 
 from setuptools.extension import Library
 

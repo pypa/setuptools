@@ -1,7 +1,7 @@
-import os
-import socket
 import atexit
+import os
 import re
+import socket
 
 from setuptools.extern.six.moves import urllib, http_client, map
 

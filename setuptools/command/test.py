@@ -1,5 +1,5 @@
-import sys
 import contextlib
+import sys
 from distutils.errors import DistutilsOptionError
 from unittest import TestLoader
 

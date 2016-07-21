@@ -1,5 +1,5 @@
-import platform
 import ctypes
+import platform
 
 
 def windows_only(func):
