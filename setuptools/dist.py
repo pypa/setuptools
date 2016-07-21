@@ -542,19 +542,19 @@ class Distribution(_Distribution):
         if self.packages:
             self.packages = [
                 p for p in self.packages
-                    if p != package and not p.startswith(pfx)
+                if p != package and not p.startswith(pfx)
             ]
 
         if self.py_modules:
             self.py_modules = [
                 p for p in self.py_modules
-                    if p != package and not p.startswith(pfx)
+                if p != package and not p.startswith(pfx)
             ]
 
         if self.ext_modules:
             self.ext_modules = [
                 p for p in self.ext_modules
-                    if p.name != package and not p.name.startswith(pfx)
+                if p.name != package and not p.name.startswith(pfx)
             ]
 
     def has_contents_for(self, package):

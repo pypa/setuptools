@@ -258,7 +258,7 @@ class AbstractSandbox:
     def __init__(self):
         self._attrs = [
             name for name in dir(_os)
-                if not name.startswith('_') and hasattr(self, name)
+            if not name.startswith('_') and hasattr(self, name)
         ]
 
     def _copy(self, source):
