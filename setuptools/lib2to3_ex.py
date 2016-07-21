@@ -10,6 +10,7 @@ This module raises an ImportError on Python 2.
 from distutils.util import Mixin2to3 as _Mixin2to3
 from distutils import log
 from lib2to3.refactor import RefactoringTool, get_fixers_from_package
+
 import setuptools
 
 
