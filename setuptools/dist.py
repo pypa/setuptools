@@ -12,6 +12,7 @@ import distutils.dist
 from distutils.core import Distribution as _Distribution
 from distutils.errors import (DistutilsOptionError, DistutilsPlatformError,
     DistutilsSetupError)
+from distutils.util import rfc822_escape
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import map
@@ -44,10 +45,45 @@ def _patch_distribution_metadata_write_pkg_file():
     """Patch write_pkg_file to also write Requires-Python/Requires-External"""
     original_write = distutils.dist.DistributionMetadata.write_pkg_file
 
+    # Based on Python 3.5 version
     def write_pkg_file(self, file):
         """Write the PKG-INFO format data to a file object.
         """
-        original_write(self, file)
+        version = '1.0'
+        if (self.provides or self.requires or self.obsoletes or
+                self.classifiers or self.download_url):
+            version = '1.1'
+        # Setuptools specific for PEP 345
+        if hasattr(self, 'python_requires'):
+            version = '1.2'
+
+        file.write('Metadata-Version: %s\n' % version)
+        file.write('Name: %s\n' % self.get_name())
+        file.write('Version: %s\n' % self.get_version())
+        file.write('Summary: %s\n' % self.get_description())
+        file.write('Home-page: %s\n' % self.get_url())
+        file.write('Author: %s\n' % self.get_contact())
+        file.write('Author-email: %s\n' % self.get_contact_email())
+        file.write('License: %s\n' % self.get_license())
+        if self.download_url:
+            file.write('Download-URL: %s\n' % self.download_url)
+
+        long_desc = rfc822_escape(self.get_long_description())
+        file.write('Description: %s\n' % long_desc)
+
+        keywords = ','.join(self.get_keywords())
+        if keywords:
+            file.write('Keywords: %s\n' % keywords)
+
+        self._write_list(file, 'Platform', self.get_platforms())
+        self._write_list(file, 'Classifier', self.get_classifiers())
+
+        # PEP 314
+        self._write_list(file, 'Requires', self.get_requires())
+        self._write_list(file, 'Provides', self.get_provides())
+        self._write_list(file, 'Obsoletes', self.get_obsoletes())
+
+        # Setuptools specific for PEP 345
         if hasattr(self, 'python_requires'):
             file.write('Requires-Python: %s\n' % self.python_requires)
 
