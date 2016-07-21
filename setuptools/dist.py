@@ -43,7 +43,6 @@ _Distribution = _get_unpatched(_Distribution)
 
 def _patch_distribution_metadata_write_pkg_file():
     """Patch write_pkg_file to also write Requires-Python/Requires-External"""
-    original_write = distutils.dist.DistributionMetadata.write_pkg_file
 
     # Based on Python 3.5 version
     def write_pkg_file(self, file):
