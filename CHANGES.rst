@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+v24.2.1
+-------
+
+* #667: Update Metadata-Version to 1.2 when
+  ``python_requires`` is supplied.
+
 v24.2.0
 -------
 
