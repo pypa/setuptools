@@ -5,6 +5,7 @@ import os
 import platform
 import itertools
 import distutils.errors
+
 from setuptools.extern.six.moves import filterfalse
 
 if platform.system() == 'Windows':
