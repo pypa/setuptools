@@ -460,6 +460,7 @@ class DirectorySandbox(AbstractSandbox):
             self._violation("os.open", file, flags, mode, *args, **kw)
         return _os.open(file, flags, mode, *args, **kw)
 
+
 WRITE_FLAGS = functools.reduce(
     operator.or_, [getattr(_os, a, 0) for a in
         "O_WRONLY O_RDWR O_APPEND O_CREAT O_TRUNC O_TEMPORARY".split()]
