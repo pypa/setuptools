@@ -73,7 +73,7 @@ wheel = ['wheel'] if needs_wheel else []
 
 setup_params = dict(
     name="setuptools",
-    version="24.2.0",
+    version="24.2.1",
     description="Easily download, build, install, upgrade, and uninstall "
                 "Python packages",
     author="Python Packaging Authority",
