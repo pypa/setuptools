@@ -4,6 +4,7 @@ import distutils.command.sdist as orig
 import os
 import sys
 import io
+import contextlib
 
 from setuptools.extern import six
 
@@ -64,6 +65,32 @@ class sdist(orig.sdist):
             data = ('sdist', '', file)
             if data not in dist_files:
                 dist_files.append(data)
+
+    def make_distribution(self):
+        """
+        Workaround for #516
+        """
+        with self._remove_os_link():
+            orig.sdist.make_distribution(self)
+
+    @staticmethod
+    @contextlib.contextmanager
+    def _remove_os_link():
+        """
+        In a context, remove and restore os.link if it exists
+        """
+        class NoValue:
+            pass
+        orig_val = getattr(os, 'link', NoValue)
+        try:
+            del os.link
+        except Exception:
+            pass
+        try:
+            yield
+        finally:
+            if orig_val is not NoValue:
+                setattr(os, 'link', orig_val)
 
     def __read_template_hack(self):
         # This grody hack closes the template file (MANIFEST.in) if an

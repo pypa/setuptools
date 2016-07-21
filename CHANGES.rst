@@ -2,6 +2,14 @@
 CHANGES
 =======
 
+v24.3.0
+-------
+
+* #516: Disable ``os.link`` to avoid hard linking
+  in ``sdist.make_distribution``, avoiding errors on
+  systems that support hard links but not on the
+  file system in which the build is occurring.
+
 v24.2.1
 -------
 
