@@ -71,7 +71,7 @@ class TestModulePatch:
         mod_name = distutils.msvc9compiler.find_vcvarsall.__module__
         assert mod_name == "setuptools.msvc", "find_vcvarsall unpatched"
 
-    def test_no_registry_entryies_means_nothing_found(self):
+    def test_no_registry_entries_means_nothing_found(self):
         """
         No registry entries or environment variable should lead to an error
         directing the user to download vcpython27.
