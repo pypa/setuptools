@@ -26,7 +26,7 @@ from setuptools.command import bdist_egg
 from pkg_resources import (
     parse_requirements, safe_name, parse_version,
     safe_version, yield_lines, EntryPoint, iter_entry_points, to_filename)
-import setuptools.unicode_utils as unicode_utils
+from setuptools import unicode_utils
 
 from pkg_resources.extern import packaging
 
