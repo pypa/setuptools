@@ -99,7 +99,7 @@ class sdist(orig.sdist):
         #  file.
         try:
             orig.sdist.read_template(self)
-        except:
+        except Exception:
             _, _, tb = sys.exc_info()
             tb.tb_next.tb_frame.f_locals['template'].close()
             raise
