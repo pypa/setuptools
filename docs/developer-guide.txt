@@ -111,15 +111,5 @@ Setuptools follows ``semver``.
 Building Documentation
 ----------------------
 
-Setuptools relies on the Sphinx system for building documentation and in
-particular the ``build_sphinx`` distutils command. To build the
-documentation, invoke::
-
-    python setup.py build_sphinx
-
-from the root of the repository. Setuptools will download a compatible
-build of Sphinx and any requisite plugins and then build the
-documentation in the build/sphinx directory.
-
-Setuptools does not support invoking the doc builder from the docs/
-directory as some tools expect.
+Setuptools relies on the Sphinx system for building documentation.
+To accommodate RTD, docs must be built from the docs/ directory.
