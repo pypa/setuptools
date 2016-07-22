@@ -431,7 +431,7 @@ class easy_install(Command):
         """
         try:
             pid = os.getpid()
-        except:
+        except Exception:
             pid = random.randint(0, sys.maxsize)
         return os.path.join(self.install_dir, "test-easy-install-%s" % pid)
 
@@ -929,7 +929,7 @@ class easy_install(Command):
                     destination,
                     fix_zipimporter_caches=new_dist_is_zipped,
                 )
-            except:
+            except Exception:
                 update_dist_caches(destination, fix_zipimporter_caches=False)
                 raise
 
