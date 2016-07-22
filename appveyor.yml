@@ -4,7 +4,8 @@ environment:
     - PYTHON: "C:\\Python35-x64"
 
 install:
-  - "mklink /s /d \"C:\\Program Files\\Python\" %PYTHON%"
+  # symlink python from a directory with a space
+  - "mklink /d \"C:\\Program Files\\Python\" %PYTHON%"
   - "SET PYTHON=\"C:\\Program Files\\Python\""
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
 
