@@ -30,7 +30,7 @@ import setuptools.command.easy_install as ei
 from setuptools.command.easy_install import PthDistributions
 from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
-from pkg_resources import working_set
+from pkg_resources import normalize_path, working_set
 from pkg_resources import Distribution as PRDistribution
 import setuptools.tests.server
 import pkg_resources
@@ -126,9 +126,10 @@ class TestEasyInstallTest:
         get_site_dirs should always return site dirs reported by
         site.getsitepackages.
         """
-        mock_gsp = lambda: ['/setuptools/test/site-packages']
+        path = normalize_path('/setuptools/test/site-packages')
+        mock_gsp = lambda: [path]
         monkeypatch.setattr(site, 'getsitepackages', mock_gsp, raising=False)
-        assert '/setuptools/test/site-packages' in ei.get_site_dirs()
+        assert path in ei.get_site_dirs()
 
     def test_all_site_dirs_works_without_getsitepackages(self, monkeypatch):
         monkeypatch.delattr(site, 'getsitepackages', raising=False)
@@ -532,29 +533,32 @@ def make_trivial_sdist(dist_path, setup_py):
         dist.addfile(setup_py_file, fileobj=setup_py_bytes)
 
 
+@pytest.mark.skipif(
+    sys.platform.startswith('java') and ei.is_sh(sys.executable),
+    reason="Test cannot run under java when executable is sh"
+)
 class TestScriptHeader:
     non_ascii_exe = '/Users/José/bin/python'
     exe_with_spaces = r'C:\Program Files\Python33\python.exe'
 
-    @pytest.mark.skipif(
-        sys.platform.startswith('java') and ei.is_sh(sys.executable),
-        reason="Test cannot run under java when executable is sh"
-    )
     def test_get_script_header(self):
         expected = '#!%s\n' % ei.nt_quote_arg(os.path.normpath(sys.executable))
         actual = ei.ScriptWriter.get_script_header('#!/usr/local/bin/python')
         assert actual == expected
 
+    def test_get_script_header_args(self):
         expected = '#!%s -x\n' % ei.nt_quote_arg(os.path.normpath
             (sys.executable))
         actual = ei.ScriptWriter.get_script_header('#!/usr/bin/python -x')
         assert actual == expected
 
+    def test_get_script_header_non_ascii_exe(self):
         actual = ei.ScriptWriter.get_script_header('#!/usr/bin/python',
             executable=self.non_ascii_exe)
         expected = '#!%s -x\n' % self.non_ascii_exe
         assert actual == expected
 
+    def test_get_script_header_exe_with_spaces(self):
         actual = ei.ScriptWriter.get_script_header('#!/usr/bin/python',
             executable='"' + self.exe_with_spaces + '"')
         expected = '#!"%s"\n' % self.exe_with_spaces
@@ -595,15 +599,6 @@ class TestCommandSpec:
         cmd = ei.CommandSpec.from_param('/usr/bin/env my-python')
         assert len(cmd) == 2
         assert '"' not in cmd.as_header()
-
-    def test_sys_executable(self):
-        """
-        CommandSpec.from_string(sys.executable) should contain just that param.
-        """
-        writer = ei.ScriptWriter.best()
-        cmd = writer.command_spec_class.from_string(sys.executable)
-        assert len(cmd) == 1
-        assert cmd[0] == sys.executable
 
 
 class TestWindowsScriptWriter:
