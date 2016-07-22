@@ -25,7 +25,7 @@ else:
 
 try:
     # Distutil file for MSVC++ 9.0 and upper (Python 2.7 to 3.4)
-    import distutils.msvc9compiler as msvc9compiler
+    from distutils import msvc9compiler
 except ImportError:
     pass
 
