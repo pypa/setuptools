@@ -12,5 +12,5 @@ install:
 build: off
 
 test_script:
-  - "%PYTHON%\\python bootstrap.py"
-  - "%PYTHON%\\python setup.py test"
+  - "python bootstrap.py"
+  - "python setup.py test"
