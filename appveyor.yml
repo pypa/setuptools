@@ -1,0 +1,14 @@
+environment:
+
+  matrix:
+    - PYTHON: "C:\\Python35-x64"
+
+install:
+  - "mklink /s /d \"C:\\Program Files\\Python\" %PYTHON%"
+  - "SET PYTHON=\"C:\\Program Files\\Python\""
+  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+
+build: off
+
+test_script:
+  - "%PYTHON%\\python setup.py test"
