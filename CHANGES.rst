@@ -2,6 +2,16 @@
 CHANGES
 =======
 
+v24.3.1
+-------
+
+* #398: Fix shebang handling on Windows in script
+  headers where spaces in ``sys.executable`` would
+  produce an improperly-formatted shebang header,
+  introduced in 12.0 with the fix for #188.
+
+* #663, #670: More style updates.
+
 v24.3.0
 -------
 
