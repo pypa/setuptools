@@ -113,3 +113,8 @@ Building Documentation
 
 Setuptools relies on the Sphinx system for building documentation.
 To accommodate RTD, docs must be built from the docs/ directory.
+
+To build them, you need to have installed the requirements specified
+in docs/requirements.txt. One way to do this is to use rwt:
+
+    setuptools/docs$ python -m rwt -r requirements.txt -- -m sphinx . html
