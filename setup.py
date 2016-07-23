@@ -11,10 +11,11 @@ import textwrap
 # Allow to run setup.py from another directory.
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-# Prevent improper installs without necessary metadata. See #659
-if not os.path.exists('setuptools.egg-info'):
-    msg = "Cannot build setuptools without metadata. Run bootstrap.py"
-    raise RuntimeError(msg)
+def require_metadata():
+    "Prevent improper installs without necessary metadata. See #659"
+    if not os.path.exists('setuptools.egg-info'):
+        msg = "Cannot build setuptools without metadata. Run bootstrap.py"
+        raise RuntimeError(msg)
 
 src_root = None
 
@@ -171,4 +172,5 @@ setup_params = dict(
 )
 
 if __name__ == '__main__':
+    require_metadata()
     dist = setuptools.setup(**setup_params)
