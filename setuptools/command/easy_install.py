@@ -1661,7 +1661,7 @@ class RewritePthDistributions(PthDistributions):
         """)
 
 
-if os.environ.get('SETUPTOOLS_SYS_PATH_TECHNIQUE', 'rewrite') == 'rewrite':
+if os.environ.get('SETUPTOOLS_SYS_PATH_TECHNIQUE', 'raw') == 'rewrite':
     PthDistributions = RewritePthDistributions
 
 
