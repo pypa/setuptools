@@ -83,10 +83,12 @@ class TestModulePatch:
             with mock_reg():
                 assert find_vcvarsall(9.0) is None
 
-                expected = distutils.errors.DistutilsPlatformError
-                with pytest.raises(expected) as exc:
+                try:
                     query_vcvarsall(9.0)
-                assert 'aka.ms/vcpython27' in str(exc)
+                except Exception as exc:
+                    expected = distutils.errors.DistutilsPlatformError
+                    assert isinstance(exc, expected)
+                    assert 'aka.ms/vcpython27' in str(exc)
 
     @pytest.yield_fixture
     def user_preferred_setting(self):
