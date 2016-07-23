@@ -7,6 +7,9 @@ import io
 import os
 import sys
 import textwrap
+from distutils.util import convert_path
+
+import setuptools
 
 # Allow to run setup.py from another directory.
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -19,16 +22,13 @@ def require_metadata():
 
 src_root = None
 
-from distutils.util import convert_path
+def read_commands():
+    command_ns = {}
+    init_path = convert_path('setuptools/command/__init__.py')
+    with open(init_path) as init_file:
+        exec(init_file.read(), command_ns)
+    return command_ns['__all__']
 
-command_ns = {}
-init_path = convert_path('setuptools/command/__init__.py')
-with open(init_path) as init_file:
-    exec(init_file.read(), command_ns)
-
-SETUP_COMMANDS = command_ns['__all__']
-
-import setuptools
 
 scripts = []
 
@@ -101,7 +101,7 @@ setup_params = dict(
     entry_points={
         "distutils.commands": [
             "%(cmd)s = setuptools.command.%(cmd)s:%(cmd)s" % locals()
-            for cmd in SETUP_COMMANDS
+            for cmd in read_commands()
         ],
         "distutils.setup_keywords": [
             "eager_resources        = setuptools.dist:assert_string_list",
