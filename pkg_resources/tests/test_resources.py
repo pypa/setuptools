@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import os
 import sys
 import string
+import platform
 
 from pkg_resources.extern.six.moves import map
 
@@ -763,6 +764,9 @@ class TestNamespaces:
             pkg_resources._namespace_packages = saved_ns_pkgs
             sys.path = saved_sys_path
 
+    issue591 = pytest.mark.xfail(platform.system()=='Windows', reason="#591")
+
+    @issue591
     def test_two_levels_deep(self, symlinked_tmpdir):
         """
         Test nested namespace packages
@@ -796,6 +800,7 @@ class TestNamespaces:
         ]
         assert pkg1.pkg2.__path__ == expected
 
+    @issue591
     def test_path_order(self, symlinked_tmpdir):
         """
         Test that if multiple versions of the same namespace package subpackage
