@@ -56,14 +56,22 @@ readme_file = io.open('README.rst', encoding='utf-8')
 with readme_file:
     long_description = readme_file.read()
 
-package_data = {
-        'setuptools': ['script (dev).tmpl', 'script.tmpl', 'site-patch.py']}
+package_data = dict(
+    setuptools=['script (dev).tmpl', 'script.tmpl', 'site-patch.py'],
+)
+
 force_windows_specific_files = (
     os.environ.get("SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES")
     not in (None, "", "0")
 )
-if (sys.platform == 'win32' or (os.name == 'java' and os._name == 'nt')) \
-        or force_windows_specific_files:
+
+include_windows_files = (
+    sys.platform == 'win32' or
+    os.name == 'java' and os._name == 'nt' or
+    force_windows_specific_files
+)
+
+if include_windows_files:
     package_data.setdefault('setuptools', []).extend(['*.exe'])
     package_data.setdefault('setuptools.command', []).extend(['*.xml'])
 
@@ -76,7 +84,7 @@ setup_params = dict(
     name="setuptools",
     version="25.0.0",
     description="Easily download, build, install, upgrade, and uninstall "
-                "Python packages",
+        "Python packages",
     author="Python Packaging Authority",
     author_email="distutils-sig@python.org",
     long_description=long_description,
