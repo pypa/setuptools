@@ -20,7 +20,6 @@ def require_metadata():
         msg = "Cannot build setuptools without metadata. Run bootstrap.py"
         raise RuntimeError(msg)
 
-src_root = None
 
 def read_commands():
     command_ns = {}
@@ -28,9 +27,6 @@ def read_commands():
     with open(init_path) as init_file:
         exec(init_file.read(), command_ns)
     return command_ns['__all__']
-
-
-scripts = []
 
 
 def _gen_console_scripts():
@@ -49,11 +45,7 @@ def _gen_console_scripts():
         .format(shortver=sys.version[:3]))
 
 
-console_scripts = list(_gen_console_scripts())
-
-readme_file = io.open('README.rst', encoding='utf-8')
-
-with readme_file:
+with io.open('README.rst', encoding='utf-8') as readme_file:
     long_description = readme_file.read()
 
 package_data = dict(
@@ -100,7 +92,7 @@ setup_params = dict(
     long_description=long_description,
     keywords="CPAN PyPI distutils eggs package management",
     url="https://github.com/pypa/setuptools",
-    src_root=src_root,
+    src_root=None,
     packages=setuptools.find_packages(exclude=['*.tests']),
     package_data=package_data,
 
@@ -146,7 +138,7 @@ setup_params = dict(
             "depends.txt = setuptools.command.egg_info:warn_depends_obsolete",
             "dependency_links.txt = setuptools.command.egg_info:overwrite_arg",
         ],
-        "console_scripts": console_scripts,
+        "console_scripts": list(_gen_console_scripts()),
 
         "setuptools.installation":
             ['eggsecutable = setuptools.command.easy_install:bootstrap'],
