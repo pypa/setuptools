@@ -10,10 +10,9 @@ import textwrap
 
 import setuptools
 
+
 here = os.path.dirname(__file__)
 
-# Allow to run setup.py from another directory.
-here and os.chdir(here)
 
 def require_metadata():
     "Prevent improper installs without necessary metadata. See #659"
@@ -47,7 +46,8 @@ def _gen_console_scripts():
         .format(shortver=sys.version[:3]))
 
 
-with io.open('README.rst', encoding='utf-8') as readme_file:
+readme_path = os.path.join(here, 'README.rst')
+with io.open(readme_path, encoding='utf-8') as readme_file:
     long_description = readme_file.read()
 
 package_data = dict(
@@ -188,5 +188,7 @@ setup_params = dict(
 )
 
 if __name__ == '__main__':
+    # allow setup.py to run from another directory
+    here and os.path.chdir(here)
     require_metadata()
     dist = setuptools.setup(**setup_params)
