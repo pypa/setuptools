@@ -7,12 +7,13 @@ import io
 import os
 import sys
 import textwrap
-from distutils.util import convert_path
 
 import setuptools
 
+here = os.path.dirname(__file__)
+
 # Allow to run setup.py from another directory.
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
+here and os.chdir(here)
 
 def require_metadata():
     "Prevent improper installs without necessary metadata. See #659"
@@ -23,7 +24,8 @@ def require_metadata():
 
 def read_commands():
     command_ns = {}
-    init_path = convert_path('setuptools/command/__init__.py')
+    cmd_module_path = 'setuptools/command/__init__.py'
+    init_path = os.path.join(here, cmd_module_path)
     with open(init_path) as init_file:
         exec(init_file.read(), command_ns)
     return command_ns['__all__']
