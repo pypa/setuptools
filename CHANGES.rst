@@ -520,7 +520,8 @@ v20.6.0
 18.3
 ----
 
-* Setuptools now allows disabling of the manipulation of the sys.path
+* BB Pull Request #135: Setuptools now allows disabling of
+  the manipulation of the sys.path
   during the processing of the easy-install.pth file. To do so, set
   the environment variable ``SETUPTOOLS_SYS_PATH_TECHNIQUE`` to
   anything but "rewrite" (consider "raw"). During any install operation
