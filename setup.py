@@ -80,6 +80,16 @@ pytest_runner = ['pytest-runner'] if needs_pytest else []
 needs_wheel = set(['release', 'bdist_wheel']).intersection(sys.argv)
 wheel = ['wheel'] if needs_wheel else []
 
+def pypi_link(pkg_filename):
+    """
+    Given the filename, including md5 fragment, construct the
+    dependency link for PyPI.
+    """
+    root = 'https://pypi.python.org/packages/source'
+    name, sep, rest = pkg_filename.partition('-')
+    parts = root, name[0], name, pkg_filename
+    return '/'.join(parts)
+
 setup_params = dict(
     name="setuptools",
     version="25.0.0",
@@ -164,8 +174,12 @@ setup_params = dict(
         "certs": "certifi==2016.2.28",
     },
     dependency_links=[
-        'https://pypi.python.org/packages/source/c/certifi/certifi-2016.2.28.tar.gz#md5=5d672aa766e1f773c75cfeccd02d3650',
-        'https://pypi.python.org/packages/source/w/wincertstore/wincertstore-0.2.zip#md5=ae728f2f007185648d0c7a8679b361e2',
+        pypi_link(
+            'certifi-2016.2.28.tar.gz#md5=5d672aa766e1f773c75cfeccd02d3650',
+        ),
+        pypi_link(
+            'wincertstore-0.2.zip#md5=ae728f2f007185648d0c7a8679b361e2',
+        ),
     ],
     scripts=[],
     tests_require=[
