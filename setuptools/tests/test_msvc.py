@@ -87,7 +87,7 @@ class TestModulePatch:
                     query_vcvarsall(9.0)
                 except Exception as exc:
                     expected = distutils.errors.DistutilsPlatformError
-                    assert isinstance(expected, exc)
+                    assert isinstance(exc, expected)
                     assert 'aka.ms/vcpython27' in str(exc)
 
     @pytest.yield_fixture
