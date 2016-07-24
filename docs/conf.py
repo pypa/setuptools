@@ -19,7 +19,8 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
 # Allow Sphinx to find the setup command that is imported below, as referenced above.
-import sys, os
+import os
+import sys
 sys.path.append(os.path.abspath('..'))
 
 import setup as setup_script
