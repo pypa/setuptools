@@ -74,6 +74,7 @@ pytest_runner = ['pytest-runner'] if needs_pytest else []
 needs_wheel = set(['release', 'bdist_wheel']).intersection(sys.argv)
 wheel = ['wheel'] if needs_wheel else []
 
+
 def pypi_link(pkg_filename):
     """
     Given the filename, including md5 fragment, construct the
@@ -83,6 +84,7 @@ def pypi_link(pkg_filename):
     name, sep, rest = pkg_filename.partition('-')
     parts = root, name[0], name, pkg_filename
     return '/'.join(parts)
+
 
 setup_params = dict(
     name="setuptools",
