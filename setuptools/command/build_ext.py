@@ -287,7 +287,6 @@ else:
         # or warn/abort here if set, or something...
         # libraries=None, library_dirs=None, runtime_library_dirs=None,
         # export_symbols=None, extra_preargs=None, extra_postargs=None,
-        # build_temp=None
 
         assert output_dir is None  # distutils build_ext doesn't pass this
         output_dir, filename = os.path.split(output_libname)

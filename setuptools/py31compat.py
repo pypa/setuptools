@@ -15,7 +15,6 @@ except ImportError:
         return get_python_lib(name == 'platlib')
 
 try:
-    # Python >=3.2
     from tempfile import TemporaryDirectory
 except ImportError:
     import shutil
