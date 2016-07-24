@@ -143,18 +143,18 @@ class TestPTHFileWriter:
         if a distribution is in site but also the cwd
         '''
         pth = PthDistributions('does-not_exist', [os.getcwd()])
-        assert not pth.dirty
+        self.assertFalse(pth.dirty)
         pth.add(PRDistribution(os.getcwd()))
-        assert pth.dirty
+        self.assertTrue(pth.dirty)
 
     def test_add_from_site_is_ignored(self):
         location = '/test/location/does-not-have-to-exist'
         # PthDistributions expects all locations to be normalized
         location = pkg_resources.normalize_path(location)
         pth = PthDistributions('does-not_exist', [location, ])
-        assert not pth.dirty
+        self.assertFalse(pth.dirty)
         pth.add(PRDistribution(location))
-        assert not pth.dirty
+        self.assertFalse(pth.dirty)
 
 
 @pytest.yield_fixture
