@@ -63,7 +63,6 @@ if not match_hostname:
             return False
 
         # Ported from python3-syntax:
-        # leftmost, *remainder = dn.split(r'.')
         parts = dn.split(r'.')
         leftmost = parts[0]
         remainder = parts[1:]

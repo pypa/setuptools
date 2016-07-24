@@ -52,7 +52,6 @@ class sdist(orig.sdist):
             self.run_command(cmd_name)
 
         # Call check_metadata only if no 'check' command
-        # (distutils <= 2.6)
         import distutils.command
 
         if 'check' not in distutils.command.__all__:
