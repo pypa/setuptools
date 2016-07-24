@@ -57,7 +57,7 @@ The recommended way to install setuptools on Windows is to download
 distribution file and install it for you.
 
 Once installation is complete, you will find an ``easy_install`` program in
-your Python ``Scripts`` subdirectory.  For simple invocation and best results,
+your Python ``Scripts`` subdirectory. For simple invocation and best results,
 add this directory to your ``PATH`` environment variable, if it is not already
 present. If you did a user-local install, the ``Scripts`` subdirectory is
 ``$env:APPDATA\Python\Scripts``.
@@ -134,7 +134,7 @@ Downloads
 =========
 
 All setuptools downloads can be found at `the project's home page in the Python
-Package Index`_.  Scroll to the very bottom of the page to find the links.
+Package Index`_. Scroll to the very bottom of the page to find the links.
 
 .. _the project's home page in the Python Package Index: https://pypi.python.org/pypi/setuptools
 
@@ -175,9 +175,9 @@ learning about Setuptools, Python Eggs, and EasyInstall:
 * `The Internal Structure of Python Eggs`_
 
 Questions, comments, and bug reports should be directed to the `distutils-sig
-mailing list`_.  If you have written (or know of) any tutorials, documentation,
+mailing list`_. If you have written (or know of) any tutorials, documentation,
 plug-ins, or other resources for setuptools users, please let us know about
-them there, so this reference list can be updated.  If you have working,
+them there, so this reference list can be updated. If you have working,
 *tested* patches to correct problems or add features, you may submit them to
 the `setuptools bug tracker`_.
 
@@ -194,13 +194,13 @@ Credits
 -------
 
 * The original design for the ``.egg`` format and the ``pkg_resources`` API was
-  co-created by Phillip Eby and Bob Ippolito.  Bob also implemented the first
+  co-created by Phillip Eby and Bob Ippolito. Bob also implemented the first
   version of ``pkg_resources``, and supplied the OS X operating system version
   compatibility algorithm.
 
 * Ian Bicking implemented many early "creature comfort" features of
   easy_install, including support for downloading via Sourceforge and
-  Subversion repositories.  Ian's comments on the Web-SIG about WSGI
+  Subversion repositories. Ian's comments on the Web-SIG about WSGI
   application deployment also inspired the concept of "entry points" in eggs,
   and he has given talks at PyCon and elsewhere to inform and educate the
   community about eggs and setuptools.
@@ -215,7 +215,7 @@ Credits
 
 * Significant parts of the implementation of setuptools were funded by the Open
   Source Applications Foundation, to provide a plug-in infrastructure for the
-  Chandler PIM application.  In addition, many OSAF staffers (such as Mike
+  Chandler PIM application. In addition, many OSAF staffers (such as Mike
   "Code Bear" Taylor) contributed their time and stress as guinea pigs for the
   use of eggs and setuptools, even before eggs were "cool".  (Thanks, guys!)
 
@@ -224,7 +224,7 @@ Credits
   and addressed many defects.
 
 * Since the merge with Distribute, Jason R. Coombs is the
-  maintainer of setuptools.  The project is maintained in coordination with
+  maintainer of setuptools. The project is maintained in coordination with
   the Python Packaging Authority (PyPA) and the larger Python community.
 
 .. _files:
