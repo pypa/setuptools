@@ -19,6 +19,11 @@ v25.0.1
 
 * More style cleanup. See #677, #678, #679, #681, #685.
 
+* #609: setuptools will now try to download a distribution from
+  the next possible download location if the first download fails.
+  This means you can now specify multiple links as ``dependency_links``
+  and all links will be tried until a working download link is encountered.
+
 v25.0.0
 -------
 
