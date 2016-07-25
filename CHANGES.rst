@@ -2,6 +2,17 @@
 CHANGES
 =======
 
+v25.0.1
+-------
+
+* Cleanup of setup.py script.
+
+* Fixed documentation builders by allowing setup.py
+  to be imported without having bootstrapped the
+  metadata.
+
+* More style cleanup. See #677, #678, #679, #681, #685.
+
 v25.0.0
 -------
 
