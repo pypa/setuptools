@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+v25.0.2
+-------
+
+* #688: Fix AttributeError in setup.py when invoked not from
+  the current directory.
+
 v25.0.1
 -------
 
