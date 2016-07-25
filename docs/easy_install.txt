@@ -768,7 +768,7 @@ Command-Line Options
     run by scripts that are already installed.
 
 ``--user`` (New in 0.6.11)
-    Use the the user-site-packages as specified in :pep:`370`
+    Use the user-site-packages as specified in :pep:`370`
     instead of the global site-packages.
 
 ``--always-copy, -a``   (New in 0.5a4)
