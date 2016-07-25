@@ -8,7 +8,8 @@ v25.0.0
 * #674: Default ``sys.path`` manipulation by easy-install.pth
   is now "raw", meaning that when writing easy-install.pth
   during any install operation, the ``sys.path`` will not be
-  rewritten, giving preference to easy_installed packages.
+  rewritten and will no longer give preference to easy_installed
+  packages.
 
   To retain the old behavior when using any easy_install
   operation (including ``setup.py install`` when setuptools is
