@@ -2503,11 +2503,11 @@ class Distribution(object):
             for line in self.get_metadata_lines(name):
                 yield line
 
-    def activate(self, path=None):
+    def activate(self, path=None, replace=False):
         """Ensure distribution is importable on `path` (default=sys.path)"""
         if path is None:
             path = sys.path
-        self.insert_on(path, replace=True)
+        self.insert_on(path, replace=replace)
         if path is sys.path:
             fixup_namespace_packages(self.location)
             for pkg in self._get_metadata('namespace_packages.txt'):
@@ -2585,7 +2585,24 @@ class Distribution(object):
         return self.get_entry_map(group).get(name)
 
     def insert_on(self, path, loc=None, replace=False):
-        """Insert self.location in path before its nearest parent directory"""
+        """Ensure self.location is on path
+
+        If replace=False (default):
+            - If location is already in path anywhere, do nothing.
+            - Else:
+              - If it's an egg and its parent directory is on path,
+                insert just ahead of the parent.
+              - Else: add to the end of path.
+        If replace=True:
+            - If location is already on path anywhere (not eggs)
+              or higher priority than its parent (eggs)
+              do nothing.
+            - Else:
+              - If it's an egg and its parent directory is on path,
+                insert just ahead of the parent,
+                removing any lower-priority entries.
+              - Else: add it to the front of path.
+        """
 
         loc = loc or self.location
         if not loc:
@@ -2600,6 +2617,9 @@ class Distribution(object):
                 break
             elif item == bdir and self.precedence == EGG_DIST:
                 # if it's an .egg, give it precedence over its directory
+                # UNLESS it's already been added to sys.path and replace=False
+                if (not replace) and nloc in npath[p:]:
+                    return
                 if path is sys.path:
                     self.check_version_conflict()
                 path.insert(p, loc)
