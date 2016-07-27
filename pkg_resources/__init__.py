@@ -2620,7 +2620,11 @@ class Distribution(object):
 
         for p, item in enumerate(npath):
             if item == nloc:
-                break
+                if replace:
+                    break
+                else:
+                    # don't modify path (even removing duplicates) if found and not replace
+                    return
             elif item == bdir and self.precedence == EGG_DIST:
                 # if it's an .egg, give it precedence over its directory
                 # UNLESS it's already been added to sys.path and replace=False
