@@ -947,11 +947,17 @@ class WorkingSet(object):
 
         return needed
 
-    def subscribe(self, callback):
-        """Invoke `callback` for all distributions (including existing ones)"""
+    def subscribe(self, callback, existing=True):
+        """Invoke `callback` for all distributions
+
+        If `existing=True` (default),
+        call on all existing ones, as well.
+        """
         if callback in self.callbacks:
             return
         self.callbacks.append(callback)
+        if not existing:
+            return
         for dist in self:
             callback(dist)
 
@@ -2967,10 +2973,14 @@ def _initialize_master_working_set():
     run_script = working_set.run_script
     # backward compatibility
     run_main = run_script
-    # Activate all distributions already on sys.path, and ensure that
-    # all distributions added to the working set in the future (e.g. by
-    # calling ``require()``) will get activated as well.
-    add_activation_listener(lambda dist: dist.activate())
+    # Activate all distributions already on sys.path with replace=False and
+    # ensure that all distributions added to the working set in the future
+    # (e.g. by calling ``require()``) will get activated as well,
+    # with higher priority (replace=True).
+    for dist in working_set:
+        dist.activate(replace=False)
+    del dist
+    add_activation_listener(lambda dist: dist.activate(replace=True), existing=False)
     working_set.entries=[]
     # match order
     list(map(working_set.add_entry, sys.path))
