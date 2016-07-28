@@ -909,7 +909,7 @@ class EnvironmentInfo:
                 os.path.join(self.si.WindowsSdkDir, 'UnionMetadata'),
                 os.path.join(
                     ref,
-                    'Windows.Foundation.UniversalApiContract'
+                    'Windows.Foundation.UniversalApiContract',
                     '1.0.0.0',
                 ),
                 os.path.join(
@@ -919,7 +919,7 @@ class EnvironmentInfo:
                 ),
                 os.path.join(
                     ref,
-                    'Windows.Networking.Connectivity.WwanContract'
+                    'Windows.Networking.Connectivity.WwanContract',
                     '1.0.0.0',
                 ),
                 os.path.join(
