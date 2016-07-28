@@ -947,11 +947,17 @@ class WorkingSet(object):
 
         return needed
 
-    def subscribe(self, callback):
-        """Invoke `callback` for all distributions (including existing ones)"""
+    def subscribe(self, callback, existing=True):
+        """Invoke `callback` for all distributions
+
+        If `existing=True` (default),
+        call on all existing ones, as well.
+        """
         if callback in self.callbacks:
             return
         self.callbacks.append(callback)
+        if not existing:
+            return
         for dist in self:
             callback(dist)
 
@@ -2503,11 +2509,11 @@ class Distribution(object):
             for line in self.get_metadata_lines(name):
                 yield line
 
-    def activate(self, path=None):
+    def activate(self, path=None, replace=False):
         """Ensure distribution is importable on `path` (default=sys.path)"""
         if path is None:
             path = sys.path
-        self.insert_on(path, replace=True)
+        self.insert_on(path, replace=replace)
         if path is sys.path:
             fixup_namespace_packages(self.location)
             for pkg in self._get_metadata('namespace_packages.txt'):
@@ -2585,7 +2591,24 @@ class Distribution(object):
         return self.get_entry_map(group).get(name)
 
     def insert_on(self, path, loc=None, replace=False):
-        """Insert self.location in path before its nearest parent directory"""
+        """Ensure self.location is on path
+
+        If replace=False (default):
+            - If location is already in path anywhere, do nothing.
+            - Else:
+              - If it's an egg and its parent directory is on path,
+                insert just ahead of the parent.
+              - Else: add to the end of path.
+        If replace=True:
+            - If location is already on path anywhere (not eggs)
+              or higher priority than its parent (eggs)
+              do nothing.
+            - Else:
+              - If it's an egg and its parent directory is on path,
+                insert just ahead of the parent,
+                removing any lower-priority entries.
+              - Else: add it to the front of path.
+        """
 
         loc = loc or self.location
         if not loc:
@@ -2597,9 +2620,16 @@ class Distribution(object):
 
         for p, item in enumerate(npath):
             if item == nloc:
-                break
+                if replace:
+                    break
+                else:
+                    # don't modify path (even removing duplicates) if found and not replace
+                    return
             elif item == bdir and self.precedence == EGG_DIST:
                 # if it's an .egg, give it precedence over its directory
+                # UNLESS it's already been added to sys.path and replace=False
+                if (not replace) and nloc in npath[p:]:
+                    return
                 if path is sys.path:
                     self.check_version_conflict()
                 path.insert(p, loc)
@@ -2947,10 +2977,14 @@ def _initialize_master_working_set():
     run_script = working_set.run_script
     # backward compatibility
     run_main = run_script
-    # Activate all distributions already on sys.path, and ensure that
-    # all distributions added to the working set in the future (e.g. by
-    # calling ``require()``) will get activated as well.
-    add_activation_listener(lambda dist: dist.activate())
+    # Activate all distributions already on sys.path with replace=False and
+    # ensure that all distributions added to the working set in the future
+    # (e.g. by calling ``require()``) will get activated as well,
+    # with higher priority (replace=True).
+    for dist in working_set:
+        dist.activate(replace=False)
+    del dist
+    add_activation_listener(lambda dist: dist.activate(replace=True), existing=False)
     working_set.entries=[]
     # match order
     list(map(working_set.add_entry, sys.path))
