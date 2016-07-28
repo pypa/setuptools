@@ -12,5 +12,6 @@ install:
 build: off
 
 test_script:
+  - "python -m pip install -U flake8"
   - "python bootstrap.py"
   - "python setup.py test"
