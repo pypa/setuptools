@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+v25.1.1
+-------
+
+* #686: Fix issue in sys.path ordering by pkg_resources when
+  rewrite technique is "raw".
+* #699: Fix typo in msvc support.
+
 v25.1.0
 -------
 
