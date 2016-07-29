@@ -80,7 +80,8 @@ class PackageFinder(object):
         """
         Return all dirs in base_path that might be packages.
         """
-        has_dot = lambda name: '.' in name
+    def has_dot(name):
+        return '.' in name
         for root, dirs, files in os.walk(base_path, followlinks=True):
             # Exclude directories that contain a period, as they cannot be
             #  packages. Mutate the list to avoid traversal.
