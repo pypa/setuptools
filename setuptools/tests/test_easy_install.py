@@ -14,15 +14,12 @@ import logging
 import itertools
 import distutils.errors
 import io
+from unittest import mock
 
 import time
 from setuptools.extern.six.moves import urllib
 
 import pytest
-try:
-    from unittest import mock
-except ImportError:
-    import mock
 
 from setuptools import sandbox
 from setuptools.sandbox import run_setup

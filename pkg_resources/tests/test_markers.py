@@ -1,9 +1,7 @@
-try:
-    import unittest.mock as mock
-except ImportError:
-    import mock
+from unittest import mock
 
 from pkg_resources import evaluate_marker
+
 
 @mock.patch('platform.python_version', return_value='2.7.10')
 def test_ordering(python_version_mock):
