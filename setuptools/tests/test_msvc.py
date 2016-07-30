@@ -6,7 +6,7 @@ import os
 import contextlib
 import distutils.errors
 
-import six
+from setuptools.extern import six
 
 import pytest
 try:
