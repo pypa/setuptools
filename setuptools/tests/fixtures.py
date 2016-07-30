@@ -10,11 +10,11 @@ def user_override(monkeypatch):
     a context.
     """
     with contexts.tempdir() as user_base:
-            monkeypatch.setattr('site.USER_BASE', user_base)
-            with contexts.tempdir() as user_site:
-                    monkeypatch.setattr('site.USER_SITE', user_site)
-                    with contexts.save_user_site_setting():
-                        yield
+        monkeypatch.setattr('site.USER_BASE', user_base)
+        with contexts.tempdir() as user_site:
+            monkeypatch.setattr('site.USER_SITE', user_site)
+            with contexts.save_user_site_setting():
+                yield
 
 
 @pytest.yield_fixture
