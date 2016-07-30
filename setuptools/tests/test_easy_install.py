@@ -170,6 +170,8 @@ class TestEasyInstallTest:
         sdist_zip.close()
         return str(sdist)
 
+    @pytest.mark.xfail(os.environ.get('LANG') == 'C',
+        reason="https://github.com/pypa/setuptools/issues/706")
     def test_unicode_filename_in_sdist(self, sdist_unicode, tmpdir, monkeypatch):
         """
         The install command should execute correctly even if
