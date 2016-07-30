@@ -135,6 +135,57 @@ class TestEasyInstallTest:
         monkeypatch.delattr(site, 'getsitepackages', raising=False)
         assert ei.get_site_dirs()
 
+    @pytest.fixture
+    def sdist_unicode(self, tmpdir):
+        files = [
+            (
+                'setup.py',
+                DALS("""
+                    import setuptools
+                    setuptools.setup(
+                        name="setuptools-test-unicode",
+                        version="1.0",
+                        packages=["mypkg"],
+                        include_package_data=True,
+                    )
+                    """),
+            ),
+            (
+                'mypkg/__init__.py',
+                "",
+            ),
+            (
+                u'mypkg/\u2603.txt',
+                "",
+            ),
+        ]
+        sdist_name = 'setuptools-test-unicode-1.0.zip'
+        sdist = tmpdir / sdist_name
+        import zipfile
+        # can't use make_sdist, because the issue only occurs
+        #  with zip sdists.
+        sdist_zip = zipfile.ZipFile(str(sdist), 'w')
+        for filename, content in files:
+            sdist_zip.writestr(filename, content)
+        sdist_zip.close()
+        return str(sdist)
+
+    def test_unicode_filename_in_sdist(self, sdist_unicode, tmpdir, monkeypatch):
+        """
+        The install command should execute correctly even if
+        the package has unicode filenames.
+        """
+        dist = Distribution({'script_args': ['easy_install']})
+        target = (tmpdir / 'target').ensure_dir()
+        cmd = ei.easy_install(
+            dist,
+            install_dir=str(target),
+            args=['x'],
+        )
+        monkeypatch.setitem(os.environ, 'PYTHONPATH', str(target))
+        cmd.ensure_finalized()
+        cmd.easy_install(sdist_unicode)
+
 
 class TestPTHFileWriter:
 
