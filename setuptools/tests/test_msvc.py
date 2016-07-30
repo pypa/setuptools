@@ -6,6 +6,8 @@ import os
 import contextlib
 import distutils.errors
 
+import six
+
 import pytest
 try:
     from unittest import mock
@@ -71,6 +73,8 @@ class TestModulePatch:
         mod_name = distutils.msvc9compiler.find_vcvarsall.__module__
         assert mod_name == "setuptools.msvc", "find_vcvarsall unpatched"
 
+    @pytest.mark.xfail(six.PY2,
+        reason="https://github.com/pypa/setuptools/issues/707")
     def test_no_registry_entries_means_nothing_found(self):
         """
         No registry entries or environment variable should lead to an error
