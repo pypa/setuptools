@@ -2230,39 +2230,7 @@ def load_launcher_manifest(name):
 
 
 def rmtree(path, ignore_errors=False, onerror=auto_chmod):
-    """Recursively delete a directory tree.
-
-    This code is taken from the Python 2.4 version of 'shutil', because
-    the 2.3 version doesn't really work right.
-    """
-    if ignore_errors:
-        def onerror(*args):
-            pass
-    elif onerror is None:
-        def onerror(*args):
-            raise
-    names = []
-    try:
-        names = os.listdir(path)
-    except os.error:
-        onerror(os.listdir, path, sys.exc_info())
-    for name in names:
-        fullname = os.path.join(path, name)
-        try:
-            mode = os.lstat(fullname).st_mode
-        except os.error:
-            mode = 0
-        if stat.S_ISDIR(mode):
-            rmtree(fullname, ignore_errors, onerror)
-        else:
-            try:
-                os.remove(fullname)
-            except os.error:
-                onerror(os.remove, fullname, sys.exc_info())
-    try:
-        os.rmdir(path)
-    except os.error:
-        onerror(os.rmdir, path, sys.exc_info())
+    return shutil.rmtree(path, ignore_errors, onerror)
 
 
 def current_umask():
