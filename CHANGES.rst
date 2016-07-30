@@ -10,6 +10,8 @@ v25.1.2
   crash the install when it attempted to clean up the build.
 * #646: MSVC compatibility - catch errors properly in
   RegistryInfo.lookup.
+* #702: Prevent UnboundLocalError when initial working_set
+  is empty.
 
 v25.1.1
 -------
