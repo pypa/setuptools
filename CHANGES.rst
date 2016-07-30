@@ -8,6 +8,8 @@ v25.1.2
 * #704: Fix errors when installing a zip sdist which contained
   files named with non-ascii characters on Windows would
   crash the install when it attempted to clean up the build.
+* #646: MSVC compatibility - catch errors properly in
+  RegistryInfo.lookup.
 
 v25.1.1
 -------
