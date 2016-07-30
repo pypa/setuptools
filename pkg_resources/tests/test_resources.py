@@ -221,6 +221,24 @@ class TestDistro:
         res = list(ws.resolve(parse_requirements("Foo[baz]"), ad))
         assert res == [Foo, quux]
 
+    def test_marker_evaluation_with_extras_normlized(self):
+        """Extras are also evaluated as markers at resolution time."""
+        ad = pkg_resources.Environment([])
+        ws = WorkingSet([])
+        # Metadata needs to be native strings due to cStringIO behaviour in
+        # 2.6, so use str().
+        Foo = Distribution.from_filename(
+            "/foo_dir/Foo-1.2.dist-info",
+            metadata=Metadata(("METADATA", str("Provides-Extra: baz-lightyear\n"
+                               "Requires-Dist: quux; extra=='baz-lightyear'")))
+        )
+        ad.add(Foo)
+        assert list(ws.resolve(parse_requirements("Foo"), ad)) == [Foo]
+        quux = Distribution.from_filename("/foo_dir/quux-1.0.dist-info")
+        ad.add(quux)
+        res = list(ws.resolve(parse_requirements("Foo[baz-lightyear]"), ad))
+        assert res == [Foo, quux]
+
     def test_marker_evaluation_with_multiple_extras(self):
         ad = pkg_resources.Environment([])
         ws = WorkingSet([])

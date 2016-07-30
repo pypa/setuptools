@@ -1428,7 +1428,7 @@ def safe_extra(extra):
     Any runs of non-alphanumeric characters are replaced with a single '_',
     and the result is always lowercased.
     """
-    return re.sub('[^A-Za-z0-9.]+', '_', extra).lower()
+    return re.sub('[^A-Za-z0-9.-]+', '_', extra).lower()
 
 
 def to_filename(name):
@@ -2807,8 +2807,8 @@ class DistInfoDistribution(Distribution):
         dm[None].extend(common)
 
         for extra in self._parsed_pkg_info.get_all('Provides-Extra') or []:
-            extra = safe_extra(extra.strip())
-            dm[extra] = list(frozenset(reqs_for_extra(extra)) - common)
+            s_extra = safe_extra(extra.strip())
+            dm[s_extra] = list(frozenset(reqs_for_extra(extra)) - common)
 
         return dm
 
