@@ -14,6 +14,7 @@ import logging
 import itertools
 import distutils.errors
 import io
+import zipfile
 
 import time
 from setuptools.extern.six.moves import urllib
@@ -161,7 +162,6 @@ class TestEasyInstallTest:
         ]
         sdist_name = 'setuptools-test-unicode-1.0.zip'
         sdist = tmpdir / sdist_name
-        import zipfile
         # can't use make_sdist, because the issue only occurs
         #  with zip sdists.
         sdist_zip = zipfile.ZipFile(str(sdist), 'w')
