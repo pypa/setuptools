@@ -449,10 +449,14 @@ class RegistryInfo:
         for hkey in self.HKEYS:
             try:
                 bkey = winreg.OpenKey(hkey, key, 0, winreg.KEY_READ)
+            except OSError:
+                continue
             except IOError:
                 continue
             try:
                 return winreg.QueryValueEx(bkey, name)[0]
+            except OSError:
+                pass
             except IOError:
                 pass
 
