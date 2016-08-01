@@ -1,9 +1,5 @@
 """Test .dist-info style distributions.
 """
-import os
-import shutil
-import tempfile
-
 from setuptools.extern.six.moves import map
 
 import pytest
