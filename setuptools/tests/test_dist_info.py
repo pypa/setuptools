@@ -14,14 +14,20 @@ from .textwrap import DALS
 
 class TestDistInfo:
 
-    metadata_template = DALS("""
+    metadata_base = DALS("""
         Metadata-Version: 1.2
-        Name: {name}
-        {version}
         Requires-Dist: splort (==4)
         Provides-Extra: baz
         Requires-Dist: quux (>=1.1); extra == 'baz'
         """)
+
+    @classmethod
+    def build_metadata(cls, **kwargs):
+        lines = (
+            '{key}: {value}\n'.format(**locals())
+            for key, value in kwargs.items()
+        )
+        return cls.metadata_base + ''.join(lines)
 
     @pytest.fixture
     def metadata(self, tmpdir):
@@ -29,19 +35,18 @@ class TestDistInfo:
         versioned = tmpdir / dist_info_name
         versioned.mkdir()
         filename = versioned / 'METADATA'
-        content = self.metadata_template.format(
-            name='VersionedDistribution',
-            version='',
-        ).replace('\n\n', '\n')
+        content = self.build_metadata(
+            Name='VersionedDistribution',
+        )
         filename.write_text(content, encoding='utf-8')
 
         dist_info_name = 'UnversionedDistribution.dist-info'
         unversioned = tmpdir / dist_info_name
         unversioned.mkdir()
         filename = unversioned / 'METADATA'
-        content = self.metadata_template.format(
-            name='UnversionedDistribution',
-            version='Version: 0.3',
+        content = self.build_metadata(
+            Name='UnversionedDistribution',
+            Version='0.3',
         )
         filename.write_text(content, encoding='utf-8')
 
