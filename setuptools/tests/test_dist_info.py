@@ -1,5 +1,8 @@
 """Test .dist-info style distributions.
 """
+
+from __future__ import unicode_literals
+
 from setuptools.extern.six.moves import map
 
 import pytest
