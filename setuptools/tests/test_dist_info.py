@@ -29,25 +29,21 @@ class TestDistInfo:
         versioned = tmpdir / dist_info_name
         versioned.mkdir()
         filename = versioned / 'METADATA'
-        filename.write_text(
-            self.metadata_template.format(
-                name='VersionedDistribution',
-                version='',
-            ).replace('\n\n', '\n'),
-            encoding='utf-8',
-        )
+        content = self.metadata_template.format(
+            name='VersionedDistribution',
+            version='',
+        ).replace('\n\n', '\n')
+        filename.write_text(content, encoding='utf-8')
 
         dist_info_name = 'UnversionedDistribution.dist-info'
         unversioned = tmpdir / dist_info_name
         unversioned.mkdir()
         filename = unversioned / 'METADATA'
-        filename.write_text(
-            self.metadata_template.format(
-                name='UnversionedDistribution',
-                version='Version: 0.3',
-            ),
-            encoding='utf-8',
+        content = self.metadata_template.format(
+            name='UnversionedDistribution',
+            version='Version: 0.3',
         )
+        filename.write_text(content, encoding='utf-8')
 
         return str(tmpdir)
 
