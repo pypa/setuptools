@@ -145,8 +145,6 @@ def unpack_tarfile(filename, extract_dir, progress_filter=default_filter):
         tarobj.chown = lambda *args: None
         for member in tarobj:
             name = member.name
-            if isinstance(name, bytes):
-                name = name.decode(tarfile.ENCODING)
             # don't extract absolute paths or ones with .. in them
             if not name.startswith('/') and '..' not in name.split('/'):
                 prelim_dst = os.path.join(extract_dir, *name.split('/'))
