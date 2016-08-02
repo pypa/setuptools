@@ -1,11 +1,5 @@
 """Utilities for extracting common archive formats"""
 
-
-__all__ = [
-    "unpack_archive", "unpack_zipfile", "unpack_tarfile", "default_filter",
-    "UnrecognizedFormat", "extraction_drivers", "unpack_directory",
-]
-
 import zipfile
 import tarfile
 import os
@@ -13,7 +7,14 @@ import shutil
 import posixpath
 import contextlib
 from distutils.errors import DistutilsError
+
 from pkg_resources import ensure_directory, ContextualZipFile
+
+
+__all__ = [
+    "unpack_archive", "unpack_zipfile", "unpack_tarfile", "default_filter",
+    "UnrecognizedFormat", "extraction_drivers", "unpack_directory",
+]
 
 
 class UnrecognizedFormat(DistutilsError):
