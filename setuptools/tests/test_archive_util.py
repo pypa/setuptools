@@ -1,10 +1,11 @@
 # coding: utf-8
 
-import six
+from setuptools.extern import six
 
 import pytest
 
 from setuptools import archive_util
+
 
 @pytest.fixture
 def tarfile_with_unicode(tmpdir):
