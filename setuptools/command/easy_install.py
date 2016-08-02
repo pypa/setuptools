@@ -627,7 +627,7 @@ class easy_install(Command):
             )
 
     def easy_install(self, spec, deps=False):
-        tmpdir = tempfile.mkdtemp(prefix=six.u("easy_install-"))
+        tmpdir = tempfile.mkdtemp(prefix="easy_install-")
         if not self.editable:
             self.install_site_py()
 
