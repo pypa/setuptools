@@ -8,8 +8,6 @@ import posixpath
 import contextlib
 from distutils.errors import DistutilsError
 
-from setuptools.extern import six
-
 from pkg_resources import ensure_directory, ContextualZipFile
 
 
@@ -164,8 +162,6 @@ def unpack_tarfile(filename, extract_dir, progress_filter=default_filter):
                     if final_dst:
                         if final_dst.endswith(os.sep):
                             final_dst = final_dst[:-1]
-                        if six.PY2:
-                            final_dst = final_dst.encode(tarfile.ENCODING)
                         try:
                             # XXX Ugh
                             tarobj._extract_member(member, final_dst)
