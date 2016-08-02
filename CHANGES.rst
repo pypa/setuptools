@@ -5,8 +5,9 @@ CHANGES
 v25.1.3
 -------
 
-* #709: Fix errors when installing a tar.gz sdist that contained
-  files named with non-ascii characters on Python 2.7.
+* #714 and #704: Revert fix as it breaks other components
+  downstream that can't handle unicode. See #709, #710,
+  and #712.
 
 v25.1.2
 -------
