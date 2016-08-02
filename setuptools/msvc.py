@@ -89,6 +89,8 @@ def patch_for_specialized_compiler():
         # Patch distutils._msvccompiler.library_dir_option
         unpatched['msvc14_library_dir_option'] = msvc14compiler.library_dir_option
         msvc14compiler.library_dir_option = msvc14_library_dir_option
+    except Exception:
+        pass
 
 
 def msvc9_find_vcvarsall(version):
