@@ -85,6 +85,11 @@ def patch_for_specialized_compiler():
     except Exception:
         pass
 
+    try:
+        # Patch distutils._msvccompiler.library_dir_option
+        unpatched['msvc14_library_dir_option'] = msvc14compiler.library_dir_option
+        msvc14compiler.library_dir_option = msvc14_library_dir_option
+
 
 def msvc9_find_vcvarsall(version):
     """
@@ -210,6 +215,12 @@ def msvc14_get_vc_env(plat_spec):
     except distutils.errors.DistutilsPlatformError as exc:
         _augment_exception(exc, 14.0)
         raise
+
+
+def msvc14_library_dir_option(dir):
+    if ' ' in dir:
+        dir = '"%s"' % dir
+    return unpatched['msvc14_library_dir_option'](dir)
 
 
 def _augment_exception(exc, version, arch=''):
