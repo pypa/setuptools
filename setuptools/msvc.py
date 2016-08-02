@@ -220,7 +220,7 @@ def msvc14_get_vc_env(plat_spec):
 
 
 def msvc14_library_dir_option(dir):
-    if ' ' in dir:
+    if ' ' in dir and '"' not in dir:
         dir = '"%s"' % dir
     return unpatched['msvc14_library_dir_option'](dir)
 
