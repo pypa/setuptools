@@ -357,22 +357,11 @@ class RegistryInfo:
         self.pi = platform_info
 
     @property
-    def microsoft(self):
-        """
-        Microsoft software registry key.
-        """
-        return os.path.join(
-            'Software',
-            '' if self.pi.current_is_x86() else 'Wow6432Node',
-            'Microsoft',
-        )
-
-    @property
     def visualstudio(self):
         """
         Microsoft Visual Studio root registry key.
         """
-        return os.path.join(self.microsoft, 'VisualStudio')
+        return 'VisualStudio'
 
     @property
     def sxs(self):
@@ -400,15 +389,14 @@ class RegistryInfo:
         """
         Microsoft Visual C++ for Python registry key.
         """
-        path = r'DevDiv\VCForPython'
-        return os.path.join(self.microsoft, path)
+        return r'DevDiv\VCForPython'
 
     @property
     def microsoft_sdk(self):
         """
         Microsoft SDK registry key.
         """
-        return os.path.join(self.microsoft, 'Microsoft SDKs')
+        return 'Microsoft SDKs'
 
     @property
     def windows_sdk(self):
@@ -429,11 +417,29 @@ class RegistryInfo:
         """
         Microsoft Windows Kits Roots registry key.
         """
-        return os.path.join(self.microsoft, r'Windows Kits\Installed Roots')
+        return r'Windows Kits\Installed Roots'
+
+    def microsoft(self, key, x86=False):
+        """
+        Return key in Microsoft software registry.
+
+        Parameters
+        ----------
+        key: str
+            Registry key path where look.
+        x86: str
+            Force x86 software registry.
+
+        Return
+        ------
+        str: value
+        """
+        node64 = '' if self.pi.current_is_x86() or x86 else r'\Wow6432Node'
+        return os.path.join('Software', node64, 'Microsoft', key)
 
     def lookup(self, key, name):
         """
-        Look for values in registry.
+        Look for values in registry in Microsoft software registry.
 
         Parameters
         ----------
@@ -446,18 +452,23 @@ class RegistryInfo:
         ------
         str: value
         """
+        KEY_READ = winreg.KEY_READ
+        openkey = winreg.OpenKey
+        ms = self.microsoft
         for hkey in self.HKEYS:
             try:
-                bkey = winreg.OpenKey(hkey, key, 0, winreg.KEY_READ)
-            except OSError:
-                continue
-            except IOError:
-                continue
+                bkey = openkey(hkey, ms(key), 0, KEY_READ)
+            except (OSError, IOError):
+                if not self.pi.current_is_x86():
+                    try:
+                        bkey = openkey(hkey, ms(key, True), 0, KEY_READ)
+                    except (OSError, IOError):
+                        continue
+                else:
+                    continue
             try:
                 return winreg.QueryValueEx(bkey, name)[0]
-            except OSError:
-                pass
-            except IOError:
+            except (OSError, IOError):
                 pass
 
 
@@ -500,7 +511,7 @@ class SystemInfo:
             for key in vckeys:
                 try:
                     bkey = winreg.OpenKey(hkey, key, 0, winreg.KEY_READ)
-                except IOError:
+                except (OSError, IOError):
                     continue
                 subkeys, values, _ = winreg.QueryInfoKey(bkey)
                 for i in range(values):
@@ -813,7 +824,7 @@ class EnvironmentInfo:
         Microsoft Visual C++ & Microsoft Foundation Class Includes
         """
         return [os.path.join(self.si.VCInstallDir, 'Include'),
-                os.path.join(self.si.VCInstallDir, 'ATLMFC\Include')]
+                os.path.join(self.si.VCInstallDir, r'ATLMFC\Include')]
 
     @property
     def VCLibraries(self):
@@ -1199,5 +1210,5 @@ class EnvironmentInfo:
             if name:
                 return '%s\\' % name[0]
             return ''
-        except IOError:
+        except (OSError, IOError):
             return ''
