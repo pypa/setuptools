@@ -172,6 +172,7 @@ class TestEasyInstallTest:
 
     @pytest.mark.xfail(setuptools.tests.is_ascii,
         reason="https://github.com/pypa/setuptools/issues/706")
+    @pytest.mark.xfail(reason="#709 and #710")
     def test_unicode_filename_in_sdist(self, sdist_unicode, tmpdir, monkeypatch):
         """
         The install command should execute correctly even if
