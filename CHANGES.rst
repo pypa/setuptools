@@ -2,10 +2,16 @@
 CHANGES
 =======
 
+v25.1.3
+-------
+
+* #709: Fix errors when installing a tar.gz sdist that contained
+  files named with non-ascii characters on Python 2.7.
+
 v25.1.2
 -------
 
-* #704: Fix errors when installing a zip sdist which contained
+* #704: Fix errors when installing a zip sdist that contained
   files named with non-ascii characters on Windows would
   crash the install when it attempted to clean up the build.
 * #646: MSVC compatibility - catch errors properly in
