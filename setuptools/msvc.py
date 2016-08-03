@@ -87,8 +87,8 @@ def patch_for_specialized_compiler():
 
     try:
         # Patch distutils._msvccompiler.library_dir_option
-        unpatched['msvc14_library_dir_option'] = msvc14compiler.library_dir_option
-        msvc14compiler.library_dir_option = msvc14_library_dir_option
+        unpatched['msvc14_library_dir_option'] = msvc14compiler.MSVCCompiler.library_dir_option
+        msvc14compiler.MSVCCompiler.library_dir_option = msvc14_library_dir_option
     except Exception:
         pass
 
@@ -219,10 +219,10 @@ def msvc14_get_vc_env(plat_spec):
         raise
 
 
-def msvc14_library_dir_option(dir):
+def msvc14_library_dir_option(self, dir):
     if ' ' in dir and '"' not in dir:
         dir = '"%s"' % dir
-    return unpatched['msvc14_library_dir_option'](dir)
+    return unpatched['msvc14_library_dir_option'](self, dir)
 
 
 def _augment_exception(exc, version, arch=''):
