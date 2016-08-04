@@ -1038,8 +1038,7 @@ def open_with_auth(url, opener=urllib.request.urlopen):
         cred = PyPIConfig().find_credential(url)
         if cred:
             auth = str(cred)
-            info = cred.username, url
-            log.info('Authenticating as %s for %s (from .pypirc)' % info)
+            log.info('Authenticating as %s for %s (from .pypirc)', cred.username, url)
 
     if auth:
         auth = "Basic " + _encode_auth(auth)
