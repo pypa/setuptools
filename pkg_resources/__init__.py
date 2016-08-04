@@ -1468,16 +1468,11 @@ class NullProvider:
     def has_metadata(self, name):
         return self.egg_info and self._has(self._fn(self.egg_info, name))
 
-    if sys.version_info <= (3,):
-        def get_metadata(self, name):
-            if not self.egg_info:
-                return ""
-            return self._get(self._fn(self.egg_info, name))
-    else:
-        def get_metadata(self, name):
-            if not self.egg_info:
-                return ""
-            return self._get(self._fn(self.egg_info, name)).decode("utf-8")
+    def get_metadata(self, name):
+        if not self.egg_info:
+            return ""
+        value = self._get(self._fn(self.egg_info, name))
+        return value.decode('utf-8') if six.PY3 else value
 
     def get_metadata_lines(self, name):
         return yield_lines(self.get_metadata(name))
