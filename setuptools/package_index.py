@@ -290,7 +290,12 @@ class PackageIndex(Environment):
         self.package_pages = {}
         self.allows = re.compile('|'.join(map(translate, hosts))).match
         self.to_scan = []
-        if verify_ssl and ssl_support.is_available and (ca_bundle or ssl_support.find_ca_bundle()):
+        use_ssl = (
+            verify_ssl
+            and ssl_support.is_available
+            and (ca_bundle or ssl_support.find_ca_bundle())
+        )
+        if use_ssl:
             self.opener = ssl_support.opener_for(ca_bundle)
         else:
             self.opener = urllib.request.urlopen
@@ -320,7 +325,8 @@ class PackageIndex(Environment):
 
         self.info("Reading %s", url)
         self.fetched_urls[url] = True   # prevent multiple fetch attempts
-        f = self.open_url(url, "Download error on %s: %%s -- Some packages may not be found!" % url)
+        tmpl = "Download error on %s: %%s -- Some packages may not be found!"
+        f = self.open_url(url, tmpl % url)
         if f is None:
             return
         self.fetched_urls[f.url] = True
@@ -362,7 +368,8 @@ class PackageIndex(Environment):
 
     def url_ok(self, url, fatal=False):
         s = URL_SCHEME(url)
-        if (s and s.group(1).lower() == 'file') or self.allows(urllib.parse.urlparse(url)[1]):
+        is_file = s and s.group(1).lower() == 'file'
+        if is_file or self.allows(urllib.parse.urlparse(url)[1]):
             return True
         msg = ("\nNote: Bypassing %s (disallowed host; see "
             "http://bit.ly/1dg9ijs for details).\n")
@@ -1038,7 +1045,8 @@ def open_with_auth(url, opener=urllib.request.urlopen):
         cred = PyPIConfig().find_credential(url)
         if cred:
             auth = str(cred)
-            log.info('Authenticating as %s for %s (from .pypirc)', cred.username, url)
+            info = cred.username, url
+            log.info('Authenticating as %s for %s (from .pypirc)', *info)
 
     if auth:
         auth = "Basic " + _encode_auth(auth)
