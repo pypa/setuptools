@@ -1859,7 +1859,9 @@ class FileMetadata(EmptyProvider):
 
     def get_metadata(self, name):
         if name=='PKG-INFO':
-            with io.open(self.path, encoding='utf-8') as f:
+            env_key = 'PKG_RESOURCES_METADATA_ERRORS'
+            errors = os.environ.get(env_key, 'strict')
+            with io.open(self.path, encoding='utf-8', errors=errors) as f:
                 try:
                     metadata = f.read()
                 except UnicodeDecodeError as exc:
