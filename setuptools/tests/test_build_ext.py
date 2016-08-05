@@ -35,7 +35,7 @@ class TestBuildExt:
         assert 'spam.eggs' in cmd.ext_map
         res = cmd.get_ext_filename('spam.eggs')
 
-        if sys.version_info[0] == 2:
+        if sys.version_info[0] == 2 or not get_abi3_suffix():
             assert res.endswith(get_config_var('SO'))
         elif sys.platform == 'win32':
             assert res.endswith('eggs.pyd')
