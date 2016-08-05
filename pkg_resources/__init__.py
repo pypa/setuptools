@@ -1868,7 +1868,8 @@ class FileMetadata(EmptyProvider):
         raise KeyError("No metadata except PKG-INFO is available")
 
     def _warn_on_replacement(self, metadata):
-        replacement_char = '�'
+        # Python 2.6 and 3.2 compat for: replacement_char = '�'
+        replacement_char = b'\xef\xbf\xbd'.decode('utf-8')
         if replacement_char in metadata:
             tmpl = "{self.path} could not be properly decoded in UTF-8"
             msg = tmpl.format(**locals())
