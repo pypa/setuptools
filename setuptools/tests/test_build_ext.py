@@ -28,7 +28,7 @@ class TestBuildExt:
         """
         print(get_abi3_suffix())
         
-        extension = Extension('spam.eggs', ['eggs.c'], is_abi3=True)
+        extension = Extension('spam.eggs', ['eggs.c'], py_limited_api=True)
         dist = Distribution(dict(ext_modules=[extension]))
         cmd = build_ext(dist)
         cmd.finalize_options()

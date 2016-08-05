@@ -104,7 +104,9 @@ class build_ext(_build_ext):
         filename = _build_ext.get_ext_filename(self, fullname)
         if fullname in self.ext_map:
             ext = self.ext_map[fullname]
-            if sys.version_info[0] != 2 and getattr(ext, 'is_abi3'):
+            if (sys.version_info[0] != 2 
+                and getattr(ext, 'py_limited_api')
+                and get_abi3_suffix()):
                 from distutils.sysconfig import get_config_var
                 so_ext = get_config_var('SO')
                 filename = filename[:-len(so_ext)]
