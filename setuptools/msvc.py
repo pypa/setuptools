@@ -233,10 +233,11 @@ def msvc14_library_dir_option(self, dir):
     ------
     "\LIBPATH" argument: str
     """
-    if ' ' in dir and '"' not in dir:
+    opt = unpatched['msvc14_library_dir_option'](self, dir)
+    if ' ' in opt and '"' not in opt:
         # Quote if space and not already quoted
-        dir = '"%s"' % dir
-    return unpatched['msvc14_library_dir_option'](self, dir)
+        opt = '"%s"' % opt
+    return opt
 
 
 def _augment_exception(exc, version, arch=''):
