@@ -85,13 +85,6 @@ def patch_for_specialized_compiler():
     except Exception:
         pass
 
-    try:
-        # Patch distutils._msvccompiler.MSVCCompiler.library_dir_option
-        unpatched['msvc14_library_dir_option'] = msvc14compiler.MSVCCompiler.library_dir_option
-        msvc14compiler.MSVCCompiler.library_dir_option = msvc14_library_dir_option
-    except Exception:
-        pass
-
 
 def msvc9_find_vcvarsall(version):
     """
@@ -217,27 +210,6 @@ def msvc14_get_vc_env(plat_spec):
     except distutils.errors.DistutilsPlatformError as exc:
         _augment_exception(exc, 14.0)
         raise
-
-
-def msvc14_library_dir_option(self, dir):
-    """
-    Patched "distutils._msvccompiler.MSVCCompiler.library_dir_option"
-    to fix unquoted path in "\LIBPATH" argument when a space is on path.
-
-    Parameters
-    ----------
-    dir: str
-        Path to convert in "\LIBPATH" argument.
-
-    Return
-    ------
-    "\LIBPATH" argument: str
-    """
-    opt = unpatched['msvc14_library_dir_option'](self, dir)
-    if ' ' in opt and '"' not in opt:
-        # Quote if space and not already quoted
-        opt = '"%s"' % opt
-    return opt
 
 
 def _augment_exception(exc, version, arch=''):
