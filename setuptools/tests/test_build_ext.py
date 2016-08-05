@@ -2,7 +2,7 @@ import sys
 import distutils.command.build_ext as orig
 
 from distutils.sysconfig import get_config_var
-from setuptools.command.build_ext import build_ext
+from setuptools.command.build_ext import build_ext, get_abi3_suffix
 from setuptools.dist import Distribution
 from setuptools.extension import Extension
 
@@ -26,8 +26,13 @@ class TestBuildExt:
         Filename needs to be loadable by several versions
         of Python 3 if 'is_abi3' is truthy on Extension()
         """
-        dist = Distribution(dict(ext_modules=[Extension('spam.eggs', [], is_abi3=True)]))
+        print(get_abi3_suffix())
+        
+        extension = Extension('spam.eggs', ['eggs.c'], is_abi3=True)
+        dist = Distribution(dict(ext_modules=[extension]))
         cmd = build_ext(dist)
+        cmd.finalize_options()
+        assert 'spam.eggs' in cmd.ext_map
         res = cmd.get_ext_filename('spam.eggs')
 
         if sys.version_info[0] == 2:
