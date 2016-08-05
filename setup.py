@@ -30,6 +30,44 @@ def read_commands():
     return command_ns['__all__']
 
 
+def _extras_require():
+    # Gentoo distributions manage the python-version-specific scripts
+    # themselves, so those platforms define an environment variable to
+    # suppress the creation of the version-specific scripts.
+    var_names = (
+        'SETUPTOOLS_DISABLE_EXTRAS_REQUIRE',
+        'DISTRIBUTE_DISABLE_EXTRAS_REQUIRE',
+    )
+    if any(os.environ.get(var) in ("1",) for var in var_names):
+        return {}
+
+    return {
+        "ssl:sys_platform=='win32'": "wincertstore==0.2",
+        "certs": "certifi==2016.8.2",
+    }
+
+
+def _dependency_links():
+    # Gentoo distributions manage the python-version-specific scripts
+    # themselves, so those platforms define an environment variable to
+    # suppress the creation of the version-specific scripts.
+    var_names = (
+        'SETUPTOOLS_DISABLE_EXTRAS_REQUIRE',
+        'DISTRIBUTE_DISABLE_EXTRAS_REQUIRE',
+    )
+    if any(os.environ.get(var) in ("1",) for var in var_names):
+        return []
+
+    return [
+        pypi_link(
+            'certifi-2016.8.2.tar.gz#md5=004ae166985d3a684bcac5368e22ed63'
+        ),
+        pypi_link(
+            'wincertstore-0.2.zip#md5=ae728f2f007185648d0c7a8679b361e2'
+        )
+    ]
+
+
 def _gen_console_scripts():
     yield "easy_install = setuptools.command.easy_install:main"
 
@@ -165,18 +203,8 @@ setup_params = dict(
         Topic :: System :: Systems Administration
         Topic :: Utilities
         """).strip().splitlines(),
-    extras_require={
-        "ssl:sys_platform=='win32'": "wincertstore==0.2",
-        "certs": "certifi==2016.8.2",
-    },
-    dependency_links=[
-        pypi_link(
-            'certifi-2016.8.2.tar.gz#md5=004ae166985d3a684bcac5368e22ed63',
-        ),
-        pypi_link(
-            'wincertstore-0.2.zip#md5=ae728f2f007185648d0c7a8679b361e2',
-        ),
-    ],
+    extras_require=_extras_require(),
+    dependency_links=_dependency_links(),
     scripts=[],
     tests_require=[
         'setuptools[ssl]',
