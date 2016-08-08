@@ -27,7 +27,7 @@ before_deploy:
 deploy:
   provider: pypi
   # Also update server in setup.cfg
-  server: https://upload.pypi.io/legacy/
+  server: https://upload.pypi.org/legacy/
   on:
     tags: true
     all_branches: true
