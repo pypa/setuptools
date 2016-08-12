@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+v25.2.0
+-------
+
+* #612 via #730: Add a LICENSE file which needs to be provided by the terms of
+  the MIT license.
+
 v25.1.6
 -------
 
