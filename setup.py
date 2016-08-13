@@ -167,11 +167,11 @@ setup_params = dict(
         """).strip().splitlines(),
     extras_require={
         "ssl:sys_platform=='win32'": "wincertstore==0.2",
-        "certs": "certifi==2016.8.2",
+        "certs": "certifi==2016.8.8",
     },
     dependency_links=[
         pypi_link(
-            'certifi-2016.8.2.tar.gz#md5=004ae166985d3a684bcac5368e22ed63',
+            'certifi-2016.8.8.tar.gz#md5=b57513f7670482da45bb350b792f659e',
         ),
         pypi_link(
             'wincertstore-0.2.zip#md5=ae728f2f007185648d0c7a8679b361e2',
