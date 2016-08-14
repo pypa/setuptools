@@ -7,7 +7,7 @@ import distutils.filelist
 from distutils.util import convert_path
 from fnmatch import fnmatchcase
 
-from setuptools.extern.six.moves import filterfalse, map
+from setuptools.extern.six.moves import filter, filterfalse, map
 
 import setuptools.version
 from setuptools.extension import Extension
@@ -32,13 +32,18 @@ lib2to3_fixer_packages = ['lib2to3.fixes']
 
 
 class PackageFinder(object):
+    """
+    Generate a list of all Python packages found within a directory
+    """
 
     @classmethod
     def find(cls, where='.', exclude=(), include=('*',)):
         """Return a list all Python packages found within directory 'where'
 
-        'where' should be supplied as a "cross-platform" (i.e. URL-style)
-        path; it will be converted to the appropriate local path syntax.
+        'where' is the root directory which will be searched for packages.  It
+        should be supplied as a "cross-platform" (i.e. URL-style) path; it will
+        be converted to the appropriate local path syntax.
+
         'exclude' is a sequence of package names to exclude; '*' can be used
         as a wildcard in the names, such that 'foo.*' will exclude all
         subpackages of 'foo' (but not 'foo' itself).
@@ -47,65 +52,47 @@ class PackageFinder(object):
         specified, only the named packages will be included.  If it's not
         specified, all found packages will be included.  'include' can contain
         shell style wildcard patterns just like 'exclude'.
+        """
 
-        The list of included packages is built up first and then any
-        explicitly excluded packages are removed from it.
-        """
-        out = cls._find_packages_iter(convert_path(where))
-        out = cls.require_parents(out)
-        includes = cls._build_filter(*include)
-        excludes = cls._build_filter('ez_setup', '*__pycache__', *exclude)
-        out = filter(includes, out)
-        out = filterfalse(excludes, out)
-        return list(out)
-
-    @staticmethod
-    def require_parents(packages):
-        """
-        Exclude any apparent package that apparently doesn't include its
-        parent.
-
-        For example, exclude 'foo.bar' if 'foo' is not present.
-        """
-        found = []
-        for pkg in packages:
-            base, sep, child = pkg.rpartition('.')
-            if base and base not in found:
-                continue
-            found.append(pkg)
-            yield pkg
-
-    @staticmethod
-    def _candidate_dirs(base_path):
-        """
-        Return all dirs in base_path that might be packages.
-        """
-        has_dot = lambda name: '.' in name
-        for root, dirs, files in os.walk(base_path, followlinks=True):
-            # Exclude directories that contain a period, as they cannot be
-            #  packages. Mutate the list to avoid traversal.
-            dirs[:] = filterfalse(has_dot, dirs)
-            for dir in dirs:
-                yield os.path.relpath(os.path.join(root, dir), base_path)
+        return list(cls._find_packages_iter(
+            convert_path(where),
+            cls._build_filter('ez_setup', '*__pycache__', *exclude),
+            cls._build_filter(*include)))
 
     @classmethod
-    def _find_packages_iter(cls, base_path):
-        candidates = cls._candidate_dirs(base_path)
-        return (
-            path.replace(os.path.sep, '.')
-            for path in candidates
-            if cls._looks_like_package(os.path.join(base_path, path))
-        )
+    def _find_packages_iter(cls, where, exclude, include):
+        """
+        All the packages found in 'where' that pass the 'include' filter, but
+        not the 'exclude' filter.
+        """
+        for root, dirs, files in os.walk(where, followlinks=True):
+            # Copy dirs to iterate over it, then empty dirs.
+            all_dirs = dirs[:]
+            dirs[:] = []
+
+            for dir in all_dirs:
+                full_path = os.path.join(root, dir)
+                rel_path = os.path.relpath(full_path, where)
+                package = rel_path.replace(os.path.sep, '.')
+
+                # Check if the directory is a package and passes the filters
+                if ('.' not in dir
+                        and include(package)
+                        and not exclude(package)
+                        and cls._looks_like_package(full_path)):
+                    yield package
+                    dirs.append(dir)
 
     @staticmethod
     def _looks_like_package(path):
+        """Does a directory look like a package?"""
         return os.path.isfile(os.path.join(path, '__init__.py'))
 
     @staticmethod
     def _build_filter(*patterns):
         """
         Given a list of patterns, return a callable that will be true only if
-        the input matches one of the patterns.
+        the input matches at least one of the patterns.
         """
         return lambda name: any(fnmatchcase(name, pat=pat) for pat in patterns)
 
