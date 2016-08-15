@@ -7,6 +7,7 @@ recursive-include pkg_resources *.py *.txt
 include *.py
 include *.rst
 include MANIFEST.in
+include LICENSE
 include launcher.c
 include msvc-build-launcher.cmd
 include pytest.ini
