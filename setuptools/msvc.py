@@ -2,6 +2,7 @@
 This module adds improved support for Microsoft Visual C++ compilers.
 """
 import os
+import sys
 import platform
 import itertools
 import distutils.errors
@@ -225,7 +226,7 @@ def msvc14_gen_lib_options(*args, **kwargs):
     compatibility between "numpy.distutils" and "distutils._msvccompiler"
     (for Numpy < 1.11.2)
     """
-    if "numpy" in distutils.ccompiler.CCompiler.spawn.__module__:
+    if "numpy.distutils" in sys.modules:
         import numpy as np
         return np.distutils.ccompiler.gen_lib_options(*args, **kwargs)
     else:
