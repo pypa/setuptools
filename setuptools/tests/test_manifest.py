@@ -6,8 +6,10 @@ import os
 import shutil
 import sys
 import tempfile
+from distutils import log
+from distutils.errors import DistutilsTemplateError
 
-from setuptools.command.egg_info import egg_info
+from setuptools.command.egg_info import FileList, egg_info
 from setuptools.dist import Distribution
 from setuptools.extern import six
 from setuptools.tests.textwrap import DALS
@@ -63,10 +65,23 @@ default_files = frozenset(map(make_local_path, [
 ]))
 
 
-class TestManifestTest:
+class TempDirTestCase(object):
 
     def setup_method(self, method):
         self.temp_dir = tempfile.mkdtemp()
+        self.old_cwd = os.getcwd()
+        os.chdir(self.temp_dir)
+
+    def teardown_method(self, method):
+        os.chdir(self.old_cwd)
+        shutil.rmtree(self.temp_dir)
+
+
+class TestManifestTest(TempDirTestCase):
+
+    def setup_method(self, method):
+        super(TestManifestTest, self).setup_method(method)
+
         f = open(os.path.join(self.temp_dir, 'setup.py'), 'w')
         f.write(SETUP_PY)
         f.close()
@@ -103,13 +118,6 @@ class TestManifestTest:
         os.mkdir(static)
         for fname in ['app.js', 'app.js.map', 'app.css', 'app.css.map']:
             touch(os.path.join(static, fname))
-
-        self.old_cwd = os.getcwd()
-        os.chdir(self.temp_dir)
-
-    def teardown_method(self, method):
-        os.chdir(self.old_cwd)
-        shutil.rmtree(self.temp_dir)
 
     def make_manifest(self, contents):
         """Write a MANIFEST.in."""
@@ -208,3 +216,260 @@ class TestManifestTest:
         files = default_files | set([
             l('app/a.txt'), l('app/b.txt'), l('app/c.rst')])
         assert files == self.get_files()
+
+
+class TestFileListTest(TempDirTestCase):
+    """
+    A copy of the relevant bits of distutils/tests/test_filelist.py,
+    to ensure setuptools' version of FileList keeps parity with distutils.
+    """
+
+    def setup_method(self, method):
+        super(TestFileListTest, self).setup_method(method)
+        self.threshold = log.set_threshold(log.FATAL)
+        self._old_log = log.Log._log
+        log.Log._log = self._log
+        self.logs = []
+
+    def teardown_method(self, method):
+        log.set_threshold(self.threshold)
+        log.Log._log = self._old_log
+        super(TestFileListTest, self).teardown_method(method)
+
+    def _log(self, level, msg, args):
+        if level not in (log.DEBUG, log.INFO, log.WARN, log.ERROR, log.FATAL):
+            raise ValueError('%s wrong log level' % str(level))
+        self.logs.append((level, msg, args))
+
+    def get_logs(self, *levels):
+        def _format(msg, args):
+            if len(args) == 0:
+                return msg
+            return msg % args
+        return [_format(msg, args) for level, msg, args
+                in self.logs if level in levels]
+
+    def clear_logs(self):
+        self.logs = []
+
+    def assertNoWarnings(self):
+        assert self.get_logs(log.WARN) == []
+        self.clear_logs()
+
+    def assertWarnings(self):
+        assert len(self.get_logs(log.WARN)) > 0
+        self.clear_logs()
+
+    def make_files(self, files):
+        for file in files:
+            file = os.path.join(self.temp_dir, file)
+            dirname, basename = os.path.split(file)
+            if not os.path.exists(dirname):
+                os.makedirs(dirname)
+            open(file, 'w').close()
+
+    def test_process_template_line(self):
+        # testing  all MANIFEST.in template patterns
+        file_list = FileList()
+        l = make_local_path
+
+        # simulated file list
+        self.make_files([
+            'foo.tmp', 'ok', 'xo', 'four.txt',
+            'buildout.cfg',
+            # filelist does not filter out VCS directories,
+            # it's sdist that does
+            l('.hg/last-message.txt'),
+            l('global/one.txt'),
+            l('global/two.txt'),
+            l('global/files.x'),
+            l('global/here.tmp'),
+            l('f/o/f.oo'),
+            l('dir/graft-one'),
+            l('dir/dir2/graft2'),
+            l('dir3/ok'),
+            l('dir3/sub/ok.txt'),
+        ])
+
+        MANIFEST_IN = DALS("""\
+        include ok
+        include xo
+        exclude xo
+        include foo.tmp
+        include buildout.cfg
+        global-include *.x
+        global-include *.txt
+        global-exclude *.tmp
+        recursive-include f *.oo
+        recursive-exclude global *.x
+        graft dir
+        prune dir3
+        """)
+
+        for line in MANIFEST_IN.split('\n'):
+            if not line:
+                continue
+            file_list.process_template_line(line)
+
+        wanted = [
+            'buildout.cfg',
+            'four.txt',
+            'ok',
+            l('.hg/last-message.txt'),
+            l('dir/graft-one'),
+            l('dir/dir2/graft2'),
+            l('f/o/f.oo'),
+            l('global/one.txt'),
+            l('global/two.txt'),
+        ]
+        file_list.sort()
+
+        assert file_list.files == wanted
+
+    def test_exclude_pattern(self):
+        # return False if no match
+        file_list = FileList()
+        assert not file_list.exclude_pattern('*.py')
+
+        # return True if files match
+        file_list = FileList()
+        file_list.files = ['a.py', 'b.py']
+        assert file_list.exclude_pattern('*.py')
+
+        # test excludes
+        file_list = FileList()
+        file_list.files = ['a.py', 'a.txt']
+        file_list.exclude_pattern('*.py')
+        assert file_list.files == ['a.txt']
+
+    def test_include_pattern(self):
+        # return False if no match
+        file_list = FileList()
+        file_list.set_allfiles([])
+        assert not file_list.include_pattern('*.py')
+
+        # return True if files match
+        file_list = FileList()
+        file_list.set_allfiles(['a.py', 'b.txt'])
+        assert file_list.include_pattern('*.py')
+
+        # test * matches all files
+        file_list = FileList()
+        assert file_list.allfiles is None
+        file_list.set_allfiles(['a.py', 'b.txt'])
+        file_list.include_pattern('*')
+        assert file_list.allfiles == ['a.py', 'b.txt']
+
+    def test_process_template(self):
+        l = make_local_path
+        # invalid lines
+        file_list = FileList()
+        for action in ('include', 'exclude', 'global-include',
+                       'global-exclude', 'recursive-include',
+                       'recursive-exclude', 'graft', 'prune', 'blarg'):
+            try:
+                file_list.process_template_line(action)
+            except DistutilsTemplateError:
+                pass
+            except Exception:
+                assert False, "Incorrect error thrown"
+            else:
+                assert False, "Should have thrown an error"
+
+        # include
+        file_list = FileList()
+        file_list.set_allfiles(['a.py', 'b.txt', l('d/c.py')])
+
+        file_list.process_template_line('include *.py')
+        assert file_list.files == ['a.py']
+        self.assertNoWarnings()
+
+        file_list.process_template_line('include *.rb')
+        assert file_list.files == ['a.py']
+        self.assertWarnings()
+
+        # exclude
+        file_list = FileList()
+        file_list.files = ['a.py', 'b.txt', l('d/c.py')]
+
+        file_list.process_template_line('exclude *.py')
+        assert file_list.files == ['b.txt', l('d/c.py')]
+        self.assertNoWarnings()
+
+        file_list.process_template_line('exclude *.rb')
+        assert file_list.files == ['b.txt', l('d/c.py')]
+        self.assertWarnings()
+
+        # global-include
+        file_list = FileList()
+        file_list.set_allfiles(['a.py', 'b.txt', l('d/c.py')])
+
+        file_list.process_template_line('global-include *.py')
+        assert file_list.files == ['a.py', l('d/c.py')]
+        self.assertNoWarnings()
+
+        file_list.process_template_line('global-include *.rb')
+        assert file_list.files == ['a.py', l('d/c.py')]
+        self.assertWarnings()
+
+        # global-exclude
+        file_list = FileList()
+        file_list.files = ['a.py', 'b.txt', l('d/c.py')]
+
+        file_list.process_template_line('global-exclude *.py')
+        assert file_list.files == ['b.txt']
+        self.assertNoWarnings()
+
+        file_list.process_template_line('global-exclude *.rb')
+        assert file_list.files == ['b.txt']
+        self.assertWarnings()
+
+        # recursive-include
+        file_list = FileList()
+        file_list.set_allfiles(['a.py', l('d/b.py'), l('d/c.txt'),
+                                l('d/d/e.py')])
+
+        file_list.process_template_line('recursive-include d *.py')
+        assert file_list.files == [l('d/b.py'), l('d/d/e.py')]
+        self.assertNoWarnings()
+
+        file_list.process_template_line('recursive-include e *.py')
+        assert file_list.files == [l('d/b.py'), l('d/d/e.py')]
+        self.assertWarnings()
+
+        # recursive-exclude
+        file_list = FileList()
+        file_list.files = ['a.py', l('d/b.py'), l('d/c.txt'), l('d/d/e.py')]
+
+        file_list.process_template_line('recursive-exclude d *.py')
+        assert file_list.files == ['a.py', l('d/c.txt')]
+        self.assertNoWarnings()
+
+        file_list.process_template_line('recursive-exclude e *.py')
+        assert file_list.files == ['a.py', l('d/c.txt')]
+        self.assertWarnings()
+
+        # graft
+        file_list = FileList()
+        file_list.set_allfiles(['a.py', l('d/b.py'), l('d/d/e.py'),
+                                l('f/f.py')])
+
+        file_list.process_template_line('graft d')
+        assert file_list.files == [l('d/b.py'), l('d/d/e.py')]
+        self.assertNoWarnings()
+
+        file_list.process_template_line('graft e')
+        assert file_list.files == [l('d/b.py'), l('d/d/e.py')]
+        self.assertWarnings()
+
+        # prune
+        file_list = FileList()
+        file_list.files = ['a.py', l('d/b.py'), l('d/d/e.py'), l('f/f.py')]
+
+        file_list.process_template_line('prune d')
+        assert file_list.files == ['a.py', l('f/f.py')]
+        self.assertNoWarnings()
+
+        file_list.process_template_line('prune e')
+        assert file_list.files == ['a.py', l('f/f.py')]
+        self.assertWarnings()
