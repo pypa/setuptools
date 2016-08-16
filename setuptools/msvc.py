@@ -80,14 +80,14 @@ def patch_for_specialized_compiler():
         pass
 
     try:
-        # Patch distutils._msvccompiler._get_vc_env for numpy compatibility
+        # Patch distutils._msvccompiler._get_vc_env
         unpatched['msvc14_get_vc_env'] = msvc14compiler._get_vc_env
         msvc14compiler._get_vc_env = msvc14_get_vc_env
     except NameError:
         pass
 
     try:
-        # Patch distutils._msvccompiler.gen_lib_options
+        # Patch distutils._msvccompiler.gen_lib_options for Numpy
         unpatched['msvc14_gen_lib_options'] = msvc14compiler.gen_lib_options
         msvc14compiler.gen_lib_options = msvc14_gen_lib_options
     except NameError:
