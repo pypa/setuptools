@@ -75,14 +75,23 @@ def patch_for_specialized_compiler():
         msvc9compiler.find_vcvarsall = msvc9_find_vcvarsall
         unpatched['msvc9_query_vcvarsall'] = msvc9compiler.query_vcvarsall
         msvc9compiler.query_vcvarsall = msvc9_query_vcvarsall
-    except Exception:
+    except NameError:
         pass
 
     try:
         # Patch distutils._msvccompiler._get_vc_env
         unpatched['msvc14_get_vc_env'] = msvc14compiler._get_vc_env
         msvc14compiler._get_vc_env = msvc14_get_vc_env
-    except Exception:
+    except NameError:
+        pass
+
+    try:
+        # Apply "gen_lib_options" patch from Numpy to "distutils._msvccompiler"
+        # to fix compatibility between "numpy.distutils" and
+        # "distutils._msvccompiler" (for Numpy < 1.11.2)
+        import numpy.distutils as np_distutils
+        msvc14compiler.gen_lib_options = np_distutils.ccompiler.gen_lib_options
+    except (ImportError, NameError):
         pass
 
 
@@ -243,7 +252,8 @@ def _augment_exception(exc, version, arch=''):
         elif version >= 14.0:
             # For VC++ 14.0 Redirect user to Visual C++ Build Tools
             message += (' Get it with "Microsoft Visual C++ Build Tools": '
-                r'http://landinghub.visualstudio.com/visual-cpp-build-tools')
+                        r'http://landinghub.visualstudio.com/'
+                        'visual-cpp-build-tools')
 
     exc.args = (message, )
 
