@@ -79,19 +79,17 @@ def patch_for_specialized_compiler():
         pass
 
     try:
-        # Patch distutils._msvccompiler._get_vc_env
+        # Patch distutils._msvccompiler._get_vc_env for numpy compatibility
         unpatched['msvc14_get_vc_env'] = msvc14compiler._get_vc_env
         msvc14compiler._get_vc_env = msvc14_get_vc_env
     except NameError:
         pass
 
     try:
-        # Apply "gen_lib_options" patch from Numpy to "distutils._msvccompiler"
-        # to fix compatibility between "numpy.distutils" and
-        # "distutils._msvccompiler" (for Numpy < 1.11.2)
-        import numpy.distutils as np_distutils
-        msvc14compiler.gen_lib_options = np_distutils.ccompiler.gen_lib_options
-    except (ImportError, NameError):
+        # Patch distutils._msvccompiler.gen_lib_options
+        unpatched['msvc14_gen_lib_options'] = msvc14compiler.gen_lib_options
+        msvc14compiler.gen_lib_options = msvc14_gen_lib_options
+    except NameError:
         pass
 
 
@@ -219,6 +217,19 @@ def msvc14_get_vc_env(plat_spec):
     except distutils.errors.DistutilsPlatformError as exc:
         _augment_exception(exc, 14.0)
         raise
+
+
+def msvc14_gen_lib_options(*args, **kwargs):
+    """
+    Patched "distutils._msvccompiler.gen_lib_options" for fix 
+    compatibility between "numpy.distutils" and "distutils._msvccompiler"
+    (for Numpy < 1.11.2)
+    """
+    if "numpy" in distutils.ccompiler.CCompiler.spawn.__module__:
+        import numpy as np
+        return np.distutils.ccompiler.gen_lib_options(*args, **kwargs)
+    else:
+        return unpatched['msvc14_gen_lib_options'](*args, **kwargs)
 
 
 def _augment_exception(exc, version, arch=''):
