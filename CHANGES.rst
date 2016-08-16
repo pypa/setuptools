@@ -2,6 +2,11 @@
 CHANGES
 =======
 
+v25.3.1
+-------
+
+* #739 Fix unquoted libpaths by fixing compatibility between `numpy.distutils` and `distutils._msvccompiler` for numpy < 1.11.2 (Fix issue #728, error also fixed in Numpy).
+
 v25.3.0
 -------
 
@@ -16,20 +21,21 @@ v25.2.0
 v25.1.6
 -------
 
-* #725
+* #725: revert `library_dir_option` patch (Error is related to `numpy.distutils` and make errors on non Numpy users).
 
 v25.1.5
 -------
 
 * #720
-* #723
+* #723: Improve patch for `library_dir_option`.
 
 v25.1.4
 -------
 
 * #717
 * #713
-* #707 via #715
+* #707: Fix Python 2 compatibility for MSVC by catching errors properly.
+* #715: Fix unquoted libpaths by patching `library_dir_option`.
 
 v25.1.3
 -------
