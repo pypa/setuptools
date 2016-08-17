@@ -103,7 +103,7 @@ class TestDistro:
 
         d = Distribution("/some/path")
         assert d.py_version == sys.version[:3]
-        assert d.platform == None
+        assert d.platform is None
 
     def testDistroParse(self):
         d = dist_from_fn("FooPkg-1.3.post1-py2.4-win32.egg")
