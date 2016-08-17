@@ -164,7 +164,7 @@ class TestDistro:
         ad.add(Baz)
 
         # Activation list now includes resolved dependency
-        assert list(ws.resolve(parse_requirements("Foo[bar]"), ad)) ==[Foo,Baz]
+        assert list(ws.resolve(parse_requirements("Foo[bar]"), ad)) == [Foo,Baz]
         # Requests for conflicting versions produce VersionConflict
         with pytest.raises(VersionConflict) as vc:
             ws.resolve(parse_requirements("Foo==1.2\nFoo!=1.2"), ad)
@@ -426,7 +426,7 @@ class TestEntryPoints:
         m = EntryPoint.parse_map({'xyz':self.submap_str})
         self.checkSubMap(m['xyz'])
         assert list(m.keys()) == ['xyz']
-        m = EntryPoint.parse_map("[xyz]\n"+self.submap_str)
+        m = EntryPoint.parse_map("[xyz]\n" + self.submap_str)
         self.checkSubMap(m['xyz'])
         assert list(m.keys()) == ['xyz']
         with pytest.raises(ValueError):
@@ -644,7 +644,7 @@ class TestParsing:
     def testVersionOrdering(self):
         def c(s1,s2):
             p1, p2 = parse_version(s1),parse_version(s2)
-            assert p1<p2, (s1,s2,p1,p2)
+            assert p1 < p2, (s1,s2,p1,p2)
 
         c('2.1','2.1.1')
         c('2a1','2b0')
@@ -663,14 +663,14 @@ class TestParsing:
         c('2.1.0-rc1','2.1.0')
         c('2.1dev','2.1a0')
 
-        torture ="""
+        torture = """
         0.80.1-3 0.80.1-2 0.80.1-1 0.79.9999+0.80.0pre4-1
         0.79.9999+0.80.0pre2-3 0.79.9999+0.80.0pre2-2
         0.77.2-1 0.77.1-1 0.77.0-1
         """.split()
 
         for p,v1 in enumerate(torture):
-            for v2 in torture[p+1:]:
+            for v2 in torture[p + 1:]:
                 c(v2,v1)
 
     def testVersionBuildout(self):
@@ -764,7 +764,7 @@ class TestNamespaces:
             pkg_resources._namespace_packages = saved_ns_pkgs
             sys.path = saved_sys_path
 
-    issue591 = pytest.mark.xfail(platform.system()=='Windows', reason="#591")
+    issue591 = pytest.mark.xfail(platform.system() == 'Windows', reason="#591")
 
     @issue591
     def test_two_levels_deep(self, symlinked_tmpdir):
