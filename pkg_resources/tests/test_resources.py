@@ -153,7 +153,7 @@ class TestDistro:
             list(map(ws.add, targets))
         with pytest.raises(VersionConflict):
             ws.resolve(parse_requirements("Foo==0.9"), ad)
-        ws = WorkingSet([]) # reset
+        ws = WorkingSet([])  # reset
 
         # Request an extra that causes an unresolved dependency for "Baz"
         with pytest.raises(pkg_resources.DistributionNotFound):
