@@ -1913,7 +1913,7 @@ class EggMetadata(ZipProvider):
             self.module_path = importer.archive
         self._setup_prefix()
 
-_declare_state('dict', _distribution_finders = {})
+_declare_state('dict', _distribution_finders={})
 
 def register_finder(importer_type, distribution_finder):
     """Register `distribution_finder` to find distributions in sys.path items

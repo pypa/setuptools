@@ -114,7 +114,7 @@ class TestDistro:
     def testDistroMetadata(self):
         d = Distribution(
             "/some/path", project_name="FooPkg", py_version="2.4", platform="win32",
-            metadata = Metadata(
+            metadata=Metadata(
                 ('PKG-INFO',"Metadata-Version: 1.0\nVersion: 1.3-1\n")
             )
         )
