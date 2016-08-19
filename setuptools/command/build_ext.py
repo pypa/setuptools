@@ -10,6 +10,7 @@ from distutils.errors import DistutilsError
 from distutils import log
 
 from setuptools.extension import Library
+from setuptools.extern import six
 
 try:
     # Attempt to use Cython for building extensions, if available
@@ -102,9 +103,12 @@ class build_ext(_build_ext):
         filename = _build_ext.get_ext_filename(self, fullname)
         if fullname in self.ext_map:
             ext = self.ext_map[fullname]
-            if (sys.version_info[0] != 2
+            use_abi3 = (
+                six.PY3
                 and getattr(ext, 'py_limited_api')
-                and get_abi3_suffix()):
+                and get_abi3_suffix()
+            )
+            if use_abi3:
                 so_ext = get_config_var('SO')
                 filename = filename[:-len(so_ext)]
                 filename = filename + get_abi3_suffix()
