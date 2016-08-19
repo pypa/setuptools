@@ -2,15 +2,16 @@
 CHANGES
 =======
 
-v25.3.1
+v25.3.0
 -------
 
 * #739 Fix unquoted libpaths by fixing compatibility between `numpy.distutils` and `distutils._msvccompiler` for numpy < 1.11.2 (Fix issue #728, error also fixed in Numpy).
 
-v25.3.0
--------
+* #731: Bump certifi.
 
-#731: Bump certifi.
+* Style updates. See #740, #741, #743, #744, #742, #747.
+
+* #735: include license file.
 
 v25.2.0
 -------
