@@ -5,7 +5,7 @@ import imp
 from distutils.command.build_ext import build_ext as _du_build_ext
 from distutils.file_util import copy_file
 from distutils.ccompiler import new_compiler
-from distutils.sysconfig import customize_compiler
+from distutils.sysconfig import customize_compiler, get_config_var
 from distutils.errors import DistutilsError
 from distutils import log
 
@@ -17,10 +17,8 @@ try:
 except ImportError:
     _build_ext = _du_build_ext
 
-from distutils.sysconfig import get_config_var
-
-get_config_var("LDSHARED")  # make sure _config_vars is initialized
-del get_config_var
+# make sure _config_vars is initialized
+get_config_var("LDSHARED")
 from distutils.sysconfig import _config_vars as _CONFIG_VARS
 
 
@@ -107,7 +105,6 @@ class build_ext(_build_ext):
             if (sys.version_info[0] != 2
                 and getattr(ext, 'py_limited_api')
                 and get_abi3_suffix()):
-                from distutils.sysconfig import get_config_var
                 so_ext = get_config_var('SO')
                 filename = filename[:-len(so_ext)]
                 filename = filename + get_abi3_suffix()
