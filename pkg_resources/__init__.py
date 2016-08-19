@@ -752,8 +752,8 @@ class WorkingSet(object):
 
         if entry is None:
             entry = dist.location
-        keys = self.entry_keys.setdefault(entry,[])
-        keys2 = self.entry_keys.setdefault(dist.location,[])
+        keys = self.entry_keys.setdefault(entry, [])
+        keys2 = self.entry_keys.setdefault(dist.location, [])
         if not replace and dist.key in self.by_key:
             # ignore hidden distros
             return
@@ -1353,7 +1353,7 @@ def get_default_cache():
         # best option, should be locale-safe
         (('APPDATA',), None),
         (('USERPROFILE',), app_data),
-        (('HOMEDRIVE','HOMEPATH'), app_data),
+        (('HOMEDRIVE', 'HOMEPATH'), app_data),
         (('HOMEPATH',), app_data),
         (('HOME',), None),
         # 95/98/ME
@@ -1392,7 +1392,7 @@ def safe_version(version):
         # normalize the version
         return str(packaging.version.Version(version))
     except packaging.version.InvalidVersion:
-        version = version.replace(' ','.')
+        version = version.replace(' ', '.')
         return re.sub('[^A-Za-z0-9.]+', '-', version)
 
 
@@ -1410,7 +1410,7 @@ def to_filename(name):
 
     Any '-' characters are currently replaced with '_'.
     """
-    return name.replace('-','_')
+    return name.replace('-', '_')
 
 
 def invalid_marker(text):
@@ -1508,7 +1508,7 @@ class NullProvider:
             cache[script_filename] = (
                 len(script_text), 0, script_text.split('\n'), script_filename
             )
-            script_code = compile(script_text, script_filename,'exec')
+            script_code = compile(script_text, script_filename, 'exec')
             exec(script_code, namespace, namespace)
 
     def _has(self, path):
@@ -1965,7 +1965,7 @@ def find_on_path(importer, path_item, only=False):
         if _is_unpacked_egg(path_item):
             yield Distribution.from_filename(
                 path_item, metadata=PathMetadata(
-                    path_item, os.path.join(path_item,'EGG-INFO')
+                    path_item, os.path.join(path_item, 'EGG-INFO')
                 )
             )
         else:
@@ -2037,7 +2037,7 @@ def _handle_ns(packageName, path_item):
         module = sys.modules[packageName] = types.ModuleType(packageName)
         module.__path__ = []
         _set_parent_ns(packageName)
-    elif not hasattr(module,'__path__'):
+    elif not hasattr(module, '__path__'):
         raise TypeError("Not a package:", packageName)
     handler = _find_adapter(_namespace_handlers, importer)
     subpath = handler(importer, path_item, packageName, module)
@@ -2089,8 +2089,8 @@ def declare_namespace(packageName):
 
         # Track what packages are namespaces, so when new path items are added,
         # they can be updated
-        _namespace_packages.setdefault(parent,[]).append(packageName)
-        _namespace_packages.setdefault(packageName,[])
+        _namespace_packages.setdefault(parent, []).append(packageName)
+        _namespace_packages.setdefault(packageName, [])
 
         for path_item in path:
             # Ensure all the parent's path items are reflected in the child,
@@ -2104,7 +2104,7 @@ def fixup_namespace_packages(path_item, parent=None):
     """Ensure that previously-declared namespace packages include path_item"""
     _imp.acquire_lock()
     try:
-        for package in _namespace_packages.get(parent,()):
+        for package in _namespace_packages.get(parent, ()):
             subpath = _handle_ns(package, path_item)
             if subpath:
                 fixup_namespace_packages(subpath, package)
@@ -2482,7 +2482,7 @@ class Distribution(object):
                             elif not evaluate_marker(marker):
                                 reqs = []
                         extra = safe_extra(extra) or None
-                    dm.setdefault(extra,[]).extend(parse_requirements(reqs))
+                    dm.setdefault(extra, []).extend(parse_requirements(reqs))
             return dm
 
     def requires(self, extras=()):
@@ -2578,7 +2578,7 @@ class Distribution(object):
                 self._get_metadata('entry_points.txt'), self
             )
         if group is not None:
-            return ep_map.get(group,{})
+            return ep_map.get(group, {})
         return ep_map
 
     def get_entry_info(self, group, name):
@@ -2682,7 +2682,7 @@ class Distribution(object):
             return False
         return True
 
-    def clone(self,**kw):
+    def clone(self, **kw):
         """Copy this distribution, substituting in any changed keyword args"""
         names = 'project_name version py_version platform location precedence'
         for attr in names.split():
@@ -2769,7 +2769,7 @@ _distributionImpl = {
     }
 
 
-def issue_warning(*args,**kw):
+def issue_warning(*args, **kw):
     level = 1
     g = globals()
     try:
@@ -2916,12 +2916,12 @@ def split_sections(s):
     # wrap up last segment
     yield section, content
 
-def _mkstemp(*args,**kw):
+def _mkstemp(*args, **kw):
     old_open = os.open
     try:
         # temporarily bypass sandboxing
         os.open = os_open
-        return tempfile.mkstemp(*args,**kw)
+        return tempfile.mkstemp(*args, **kw)
     finally:
         # and then put it back
         os.open = old_open
