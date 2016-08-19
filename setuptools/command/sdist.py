@@ -1,6 +1,7 @@
 from glob import glob
 from distutils import log
 import distutils.command.sdist as orig
+import collections
 import os
 import sys
 import io
@@ -39,6 +40,8 @@ class sdist(orig.sdist):
     ]
 
     negative_opt = {}
+
+    default_format = collections.defaultdict(lambda: "gztar")
 
     def run(self):
         self.run_command('egg_info')
