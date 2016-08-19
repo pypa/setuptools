@@ -44,6 +44,14 @@ v25.1.3
 * #714 and #704: Revert fix as it breaks other components
   downstream that can't handle unicode. See #709, #710,
   and #712.
+* Add Extension(py_limited_api=True). When set to a truthy value,
+  that extension gets a filename apropriate for code using Py_LIMITED_API.
+  When used correctly this allows a single compiled extension to work on
+  all future versions of CPython 3.
+  The py_limited_api argument only controls the filename. To be
+  compatible with multiple versions of Python 3, the C extension
+  will also need to set -DPy_LIMITED_API=... and be modified to use
+  only the functions in the limited API.
 
 v25.1.2
 -------

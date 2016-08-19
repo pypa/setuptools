@@ -59,6 +59,14 @@ elif os.name != 'nt':
 
 if_dl = lambda s: s if have_rtld else ''
 
+def get_abi3_suffix():
+    """Return the file extension for an abi3-compliant Extension()"""
+    import imp
+    for suffix, _, _ in (s for s in imp.get_suffixes() if s[2] == imp.C_EXTENSION):
+        if '.abi3' in suffix:   # Unix
+            return suffix
+        elif suffix == '.pyd':  # Windows
+            return suffix
 
 class build_ext(_build_ext):
 
@@ -96,6 +104,13 @@ class build_ext(_build_ext):
         filename = _build_ext.get_ext_filename(self, fullname)
         if fullname in self.ext_map:
             ext = self.ext_map[fullname]
+            if (sys.version_info[0] != 2 
+                and getattr(ext, 'py_limited_api')
+                and get_abi3_suffix()):
+                from distutils.sysconfig import get_config_var
+                so_ext = get_config_var('SO')
+                filename = filename[:-len(so_ext)]
+                filename = filename + get_abi3_suffix()
             if isinstance(ext, Library):
                 fn, ext = os.path.splitext(filename)
                 return self.shlib_compiler.library_filename(fn, libtype)
