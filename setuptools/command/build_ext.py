@@ -1,12 +1,12 @@
+import os
+import sys
+import itertools
 from distutils.command.build_ext import build_ext as _du_build_ext
 from distutils.file_util import copy_file
 from distutils.ccompiler import new_compiler
 from distutils.sysconfig import customize_compiler
 from distutils.errors import DistutilsError
 from distutils import log
-import os
-import sys
-import itertools
 
 from setuptools.extension import Library
 
@@ -104,7 +104,7 @@ class build_ext(_build_ext):
         filename = _build_ext.get_ext_filename(self, fullname)
         if fullname in self.ext_map:
             ext = self.ext_map[fullname]
-            if (sys.version_info[0] != 2 
+            if (sys.version_info[0] != 2
                 and getattr(ext, 'py_limited_api')
                 and get_abi3_suffix()):
                 from distutils.sysconfig import get_config_var
