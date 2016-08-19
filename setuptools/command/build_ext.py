@@ -59,6 +59,7 @@ elif os.name != 'nt':
 
 if_dl = lambda s: s if have_rtld else ''
 
+
 def get_abi3_suffix():
     """Return the file extension for an abi3-compliant Extension()"""
     for suffix, _, _ in (s for s in imp.get_suffixes() if s[2] == imp.C_EXTENSION):
@@ -66,6 +67,7 @@ def get_abi3_suffix():
             return suffix
         elif suffix == '.pyd':  # Windows
             return suffix
+
 
 class build_ext(_build_ext):
 

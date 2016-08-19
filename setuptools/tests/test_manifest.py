@@ -51,6 +51,7 @@ def quiet():
 def touch(filename):
     open(filename, 'w').close()
 
+
 # The set of files always in the manifest, including all files in the
 # .egg-info directory
 default_files = frozenset(map(make_local_path, [

@@ -34,6 +34,7 @@ class Metadata(pkg_resources.EmptyProvider):
 
 dist_from_fn = pkg_resources.Distribution.from_filename
 
+
 class TestDistro:
 
     def testCollection(self):
@@ -294,6 +295,7 @@ class TestDistro:
 
 
 class TestWorkingSet:
+
     def test_find_conflicting(self):
         ws = WorkingSet([])
         Foo = Distribution.from_filename("/foo_dir/Foo-1.2.egg")
@@ -380,6 +382,7 @@ class TestEntryPoints:
         assert ep.name == 'html+mako'
 
     reject_specs = "foo", "x=a:b:c", "q=x/na", "fez=pish:tush-z", "x=f[a]>2"
+
     @pytest.mark.parametrize("reject_spec", reject_specs)
     def test_reject_spec(self, reject_spec):
         with pytest.raises(ValueError):
@@ -433,6 +436,7 @@ class TestEntryPoints:
             EntryPoint.parse_map(["[xyz]", "[xyz]"])
         with pytest.raises(ValueError):
             EntryPoint.parse_map(self.submap_str)
+
 
 class TestRequirements:
 

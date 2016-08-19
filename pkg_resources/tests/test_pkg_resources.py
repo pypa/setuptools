@@ -24,6 +24,7 @@ try:
 except NameError:
     unicode = str
 
+
 def timestamp(dt):
     """
     Return a timestamp for a local, naive datetime instance.
@@ -34,12 +35,15 @@ def timestamp(dt):
         # Python 3.2 and earlier
         return time.mktime(dt.timetuple())
 
+
 class EggRemover(unicode):
+
     def __call__(self):
         if self in sys.path:
             sys.path.remove(self)
         if os.path.exists(self):
             os.remove(self)
+
 
 class TestZipProvider(object):
     finalizers = []
@@ -94,7 +98,9 @@ class TestZipProvider(object):
         assert f.read() == 'hello, world!'
         manager.cleanup_resources()
 
+
 class TestResourceManager(object):
+
     def test_get_cache_path(self):
         mgr = pkg_resources.ResourceManager()
         path = mgr.get_cache_path('foo')
@@ -107,6 +113,7 @@ class TestIndependence:
     """
     Tests to ensure that pkg_resources runs independently from setuptools.
     """
+
     def test_setuptools_not_imported(self):
         """
         In a separate Python environment, import pkg_resources and assert
@@ -120,7 +127,6 @@ class TestIndependence:
         )
         cmd = [sys.executable, '-c', '; '.join(lines)]
         subprocess.check_call(cmd)
-
 
 
 class TestDeepVersionLookupDistutils(object):
