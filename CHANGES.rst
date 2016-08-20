@@ -9,11 +9,13 @@ v26.0.0
   format by default on all platforms, adding forward compatibility
   for the same behavior in Python 3.6 (See Python #27819).
 
+* #459 via #736: On Windows with script launchers,
+  sys.argv[0] now reflects
+  the name of the entry point, consistent with the behavior in
+  distlib and pip wrappers.
+
 v25.4.0
 -------
-
-* #459 via #736: On Windows systems, sys.argv[0] now correctly becomes the
-  name of entry point.
 
 * Add Extension(py_limited_api=True). When set to a truthy value,
   that extension gets a filename apropriate for code using Py_LIMITED_API.
