@@ -14,6 +14,9 @@ v26.0.0
   the name of the entry point, consistent with the behavior in
   distlib and pip wrappers.
 
+* #752 via #753: When indicating ``py_limited_api`` to Extension,
+  it must be passed as a keyword argument.
+
 v25.4.0
 -------
 
