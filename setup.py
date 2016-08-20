@@ -88,7 +88,7 @@ def pypi_link(pkg_filename):
 
 setup_params = dict(
     name="setuptools",
-    version="25.2.0",
+    version="25.4.0",
     description="Easily download, build, install, upgrade, and uninstall "
         "Python packages",
     author="Python Packaging Authority",
@@ -181,7 +181,7 @@ setup_params = dict(
     tests_require=[
         'setuptools[ssl]',
         'pytest-flake8',
-        'pytest>=2.8',
+        'pytest>=2.8,<3.0dev',
     ] + (['mock'] if sys.version_info[:2] < (3, 3) else []),
     setup_requires=[
     ] + pytest_runner + wheel,

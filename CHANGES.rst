@@ -2,10 +2,28 @@
 CHANGES
 =======
 
+v25.4.0
+-------
+
+* Add Extension(py_limited_api=True). When set to a truthy value,
+  that extension gets a filename apropriate for code using Py_LIMITED_API.
+  When used correctly this allows a single compiled extension to work on
+  all future versions of CPython 3.
+  The py_limited_api argument only controls the filename. To be
+  compatible with multiple versions of Python 3, the C extension
+  will also need to set -DPy_LIMITED_API=... and be modified to use
+  only the functions in the limited API.
+
 v25.3.0
 -------
 
-#731: Bump certifi.
+* #739 Fix unquoted libpaths by fixing compatibility between `numpy.distutils` and `distutils._msvccompiler` for numpy < 1.11.2 (Fix issue #728, error also fixed in Numpy).
+
+* #731: Bump certifi.
+
+* Style updates. See #740, #741, #743, #744, #742, #747.
+
+* #735: include license file.
 
 v25.2.0
 -------
@@ -16,20 +34,21 @@ v25.2.0
 v25.1.6
 -------
 
-* #725
+* #725: revert `library_dir_option` patch (Error is related to `numpy.distutils` and make errors on non Numpy users).
 
 v25.1.5
 -------
 
 * #720
-* #723
+* #723: Improve patch for `library_dir_option`.
 
 v25.1.4
 -------
 
 * #717
 * #713
-* #707 via #715
+* #707: Fix Python 2 compatibility for MSVC by catching errors properly.
+* #715: Fix unquoted libpaths by patching `library_dir_option`.
 
 v25.1.3
 -------

@@ -2,9 +2,11 @@
 This module adds improved support for Microsoft Visual C++ compilers.
 """
 import os
+import sys
 import platform
 import itertools
 import distutils.errors
+from distutils.version import StrictVersion
 
 from setuptools.extern.six.moves import filterfalse
 
@@ -75,14 +77,21 @@ def patch_for_specialized_compiler():
         msvc9compiler.find_vcvarsall = msvc9_find_vcvarsall
         unpatched['msvc9_query_vcvarsall'] = msvc9compiler.query_vcvarsall
         msvc9compiler.query_vcvarsall = msvc9_query_vcvarsall
-    except Exception:
+    except NameError:
         pass
 
     try:
         # Patch distutils._msvccompiler._get_vc_env
         unpatched['msvc14_get_vc_env'] = msvc14compiler._get_vc_env
         msvc14compiler._get_vc_env = msvc14_get_vc_env
-    except Exception:
+    except NameError:
+        pass
+
+    try:
+        # Patch distutils._msvccompiler.gen_lib_options for Numpy
+        unpatched['msvc14_gen_lib_options'] = msvc14compiler.gen_lib_options
+        msvc14compiler.gen_lib_options = msvc14_gen_lib_options
+    except NameError:
         pass
 
 
@@ -212,6 +221,19 @@ def msvc14_get_vc_env(plat_spec):
         raise
 
 
+def msvc14_gen_lib_options(*args, **kwargs):
+    """
+    Patched "distutils._msvccompiler.gen_lib_options" for fix
+    compatibility between "numpy.distutils" and "distutils._msvccompiler"
+    (for Numpy < 1.11.2)
+    """
+    if "numpy.distutils" in sys.modules:
+        import numpy as np
+        if StrictVersion(np.__version__) < StrictVersion('1.11.2'):
+            return np.distutils.ccompiler.gen_lib_options(*args, **kwargs)
+    return unpatched['msvc14_gen_lib_options'](*args, **kwargs)
+
+
 def _augment_exception(exc, version, arch=''):
     """
     Add details to the exception message to help guide the user
@@ -243,7 +265,8 @@ def _augment_exception(exc, version, arch=''):
         elif version >= 14.0:
             # For VC++ 14.0 Redirect user to Visual C++ Build Tools
             message += (' Get it with "Microsoft Visual C++ Build Tools": '
-                r'http://landinghub.visualstudio.com/visual-cpp-build-tools')
+                        r'http://landinghub.visualstudio.com/'
+                        'visual-cpp-build-tools')
 
     exc.args = (message, )
 

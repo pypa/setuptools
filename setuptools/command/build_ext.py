@@ -1,14 +1,16 @@
-from distutils.command.build_ext import build_ext as _du_build_ext
-from distutils.file_util import copy_file
-from distutils.ccompiler import new_compiler
-from distutils.sysconfig import customize_compiler
-from distutils.errors import DistutilsError
-from distutils import log
 import os
 import sys
 import itertools
+import imp
+from distutils.command.build_ext import build_ext as _du_build_ext
+from distutils.file_util import copy_file
+from distutils.ccompiler import new_compiler
+from distutils.sysconfig import customize_compiler, get_config_var
+from distutils.errors import DistutilsError
+from distutils import log
 
 from setuptools.extension import Library
+from setuptools.extern import six
 
 try:
     # Attempt to use Cython for building extensions, if available
@@ -16,10 +18,8 @@ try:
 except ImportError:
     _build_ext = _du_build_ext
 
-from distutils.sysconfig import get_config_var
-
-get_config_var("LDSHARED")  # make sure _config_vars is initialized
-del get_config_var
+# make sure _config_vars is initialized
+get_config_var("LDSHARED")
 from distutils.sysconfig import _config_vars as _CONFIG_VARS
 
 
@@ -60,6 +60,15 @@ elif os.name != 'nt':
 if_dl = lambda s: s if have_rtld else ''
 
 
+def get_abi3_suffix():
+    """Return the file extension for an abi3-compliant Extension()"""
+    for suffix, _, _ in (s for s in imp.get_suffixes() if s[2] == imp.C_EXTENSION):
+        if '.abi3' in suffix:   # Unix
+            return suffix
+        elif suffix == '.pyd':  # Windows
+            return suffix
+
+
 class build_ext(_build_ext):
 
     def run(self):
@@ -96,6 +105,15 @@ class build_ext(_build_ext):
         filename = _build_ext.get_ext_filename(self, fullname)
         if fullname in self.ext_map:
             ext = self.ext_map[fullname]
+            use_abi3 = (
+                six.PY3
+                and getattr(ext, 'py_limited_api')
+                and get_abi3_suffix()
+            )
+            if use_abi3:
+                so_ext = get_config_var('SO')
+                filename = filename[:-len(so_ext)]
+                filename = filename + get_abi3_suffix()
             if isinstance(ext, Library):
                 fn, ext = os.path.splitext(filename)
                 return self.shlib_compiler.library_filename(fn, libtype)

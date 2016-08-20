@@ -155,7 +155,7 @@ class _SetuptoolsVersionMixin(object):
                     # pad for numeric comparison
                     yield part.zfill(8)
                 else:
-                    yield '*'+part
+                    yield '*' + part
 
             # ensure that alpha/beta/candidate are before final
             yield '*final'
@@ -209,35 +209,43 @@ def parse_version(v):
 
 _state_vars = {}
 
+
 def _declare_state(vartype, **kw):
     globals().update(kw)
     _state_vars.update(dict.fromkeys(kw, vartype))
+
 
 def __getstate__():
     state = {}
     g = globals()
     for k, v in _state_vars.items():
-        state[k] = g['_sget_'+v](g[k])
+        state[k] = g['_sget_' + v](g[k])
     return state
+
 
 def __setstate__(state):
     g = globals()
     for k, v in state.items():
-        g['_sset_'+_state_vars[k]](k, g[k], v)
+        g['_sset_' + _state_vars[k]](k, g[k], v)
     return state
+
 
 def _sget_dict(val):
     return val.copy()
+
 
 def _sset_dict(key, ob, state):
     ob.clear()
     ob.update(state)
 
+
 def _sget_object(val):
     return val.__getstate__()
 
+
 def _sset_object(key, ob, state):
     ob.__setstate__(state)
+
 
 _sget_none = _sset_none = lambda *args: None
 
@@ -264,6 +272,7 @@ def get_supported_platform():
             # not Mac OS X
             pass
     return plat
+
 
 __all__ = [
     # Basic resource access and distribution/entry point discovery
@@ -311,10 +320,12 @@ __all__ = [
     'run_main', 'AvailableDistributions',
 ]
 
+
 class ResolutionError(Exception):
     """Abstract base for dependency resolution errors"""
+
     def __repr__(self):
-        return self.__class__.__name__+repr(self.args)
+        return self.__class__.__name__ + repr(self.args)
 
 
 class VersionConflict(ResolutionError):
@@ -391,6 +402,8 @@ class DistributionNotFound(ResolutionError):
 
 class UnknownExtra(ResolutionError):
     """Distribution doesn't have an "extra feature" of the given name"""
+
+
 _provider_factories = {}
 
 PY_MAJOR = sys.version[:3]
@@ -400,6 +413,7 @@ SOURCE_DIST = 1
 CHECKOUT_DIST = 0
 DEVELOP_DIST = -1
 
+
 def register_loader_type(loader_type, provider_factory):
     """Register `provider_factory` to make providers for `loader_type`
 
@@ -408,6 +422,7 @@ def register_loader_type(loader_type, provider_factory):
     returns an ``IResourceProvider`` for that module.
     """
     _provider_factories[loader_type] = provider_factory
+
 
 def get_provider(moduleOrReq):
     """Return an IResourceProvider for the named module or requirement"""
@@ -420,6 +435,7 @@ def get_provider(moduleOrReq):
         module = sys.modules[moduleOrReq]
     loader = getattr(module, '__loader__', None)
     return _find_adapter(_provider_factories, loader)(module)
+
 
 def _macosx_vers(_cache=[]):
     if not _cache:
@@ -436,8 +452,10 @@ def _macosx_vers(_cache=[]):
         _cache.append(version.split('.'))
     return _cache[0]
 
+
 def _macosx_arch(machine):
     return {'PowerPC': 'ppc', 'Power_Macintosh': 'ppc'}.get(machine, machine)
+
 
 def get_build_platform():
     """Return this platform's string for platform-specific distributions
@@ -464,6 +482,7 @@ def get_build_platform():
             pass
     return plat
 
+
 macosVersionString = re.compile(r"macosx-(\d+)\.(\d+)-(.*)")
 darwinVersionString = re.compile(r"darwin-(\d+)\.(\d+)\.(\d+)-(.*)")
 # XXX backward compat
@@ -477,7 +496,7 @@ def compatible_platforms(provided, required):
 
     XXX Needs compatibility checks for Linux and other unixy OSes.
     """
-    if provided is None or required is None or provided==required:
+    if provided is None or required is None or provided == required:
         # easy case
         return True
 
@@ -524,8 +543,10 @@ def run_script(dist_spec, script_name):
     ns['__name__'] = name
     require(dist_spec)[0].run_script(script_name, ns)
 
+
 # backward compatibility
 run_main = run_script
+
 
 def get_distribution(dist):
     """Return a current distribution object for a Requirement or string"""
@@ -537,13 +558,16 @@ def get_distribution(dist):
         raise TypeError("Expected string, Requirement, or Distribution", dist)
     return dist
 
+
 def load_entry_point(dist, group, name):
     """Return `name` entry point of `group` for `dist` or raise ImportError"""
     return get_distribution(dist).load_entry_point(group, name)
 
+
 def get_entry_map(dist, group=None):
     """Return the entry point map for `group`, or the full entry map"""
     return get_distribution(dist).get_entry_map(group)
+
 
 def get_entry_info(dist, group, name):
     """Return the EntryPoint object for `group`+`name`, or ``None``"""
@@ -732,7 +756,7 @@ class WorkingSet(object):
 
             for key in self.entry_keys[item]:
                 if key not in seen:
-                    seen[key]=1
+                    seen[key] = 1
                     yield self.by_key[key]
 
     def add(self, dist, entry=None, insert=True, replace=False):
@@ -752,8 +776,8 @@ class WorkingSet(object):
 
         if entry is None:
             entry = dist.location
-        keys = self.entry_keys.setdefault(entry,[])
-        keys2 = self.entry_keys.setdefault(dist.location,[])
+        keys = self.entry_keys.setdefault(entry, [])
+        keys2 = self.entry_keys.setdefault(dist.location, [])
         if not replace and dist.key in self.by_key:
             # ignore hidden distros
             return
@@ -1033,7 +1057,7 @@ class Environment(object):
         is returned.
         """
         return (self.python is None or dist.py_version is None
-            or dist.py_version==self.python) \
+            or dist.py_version == self.python) \
             and compatible_platforms(dist.platform, self.platform)
 
     def remove(self, dist):
@@ -1238,7 +1262,7 @@ class ResourceManager:
         extract, as it tracks the generated names for possible cleanup later.
         """
         extract_path = self.extraction_path or get_default_cache()
-        target_path = os.path.join(extract_path, archive_name+'-tmp', *names)
+        target_path = os.path.join(extract_path, archive_name + '-tmp', *names)
         try:
             _bypass_ensure_directory(target_path)
         except:
@@ -1332,6 +1356,7 @@ class ResourceManager:
         """
         # XXX
 
+
 def get_default_cache():
     """Determine the default cache location
 
@@ -1344,7 +1369,7 @@ def get_default_cache():
     except KeyError:
         pass
 
-    if os.name!='nt':
+    if os.name != 'nt':
         return os.path.expanduser('~/.python-eggs')
 
     # XXX this may be locale-specific!
@@ -1353,7 +1378,7 @@ def get_default_cache():
         # best option, should be locale-safe
         (('APPDATA',), None),
         (('USERPROFILE',), app_data),
-        (('HOMEDRIVE','HOMEPATH'), app_data),
+        (('HOMEDRIVE', 'HOMEPATH'), app_data),
         (('HOMEPATH',), app_data),
         (('HOME',), None),
         # 95/98/ME
@@ -1376,6 +1401,7 @@ def get_default_cache():
             "Please set the PYTHON_EGG_CACHE environment variable"
         )
 
+
 def safe_name(name):
     """Convert an arbitrary string to a standard distribution name
 
@@ -1392,7 +1418,7 @@ def safe_version(version):
         # normalize the version
         return str(packaging.version.Version(version))
     except packaging.version.InvalidVersion:
-        version = version.replace(' ','.')
+        version = version.replace(' ', '.')
         return re.sub('[^A-Za-z0-9.]+', '-', version)
 
 
@@ -1410,7 +1436,7 @@ def to_filename(name):
 
     Any '-' characters are currently replaced with '_'.
     """
-    return name.replace('-','_')
+    return name.replace('-', '_')
 
 
 def invalid_marker(text):
@@ -1492,7 +1518,7 @@ class NullProvider:
         return []
 
     def run_script(self, script_name, namespace):
-        script = 'scripts/'+script_name
+        script = 'scripts/' + script_name
         if not self.has_metadata(script):
             raise ResolutionError("No script named %r" % script_name)
         script_text = self.get_metadata(script).replace('\r\n', '\n')
@@ -1508,7 +1534,7 @@ class NullProvider:
             cache[script_filename] = (
                 len(script_text), 0, script_text.split('\n'), script_filename
             )
-            script_code = compile(script_text, script_filename,'exec')
+            script_code = compile(script_text, script_filename, 'exec')
             exec(script_code, namespace, namespace)
 
     def _has(self, path):
@@ -1538,6 +1564,7 @@ class NullProvider:
             "Can't perform this operation for loaders without 'get_data()'"
         )
 
+
 register_loader_type(object, NullProvider)
 
 
@@ -1553,7 +1580,7 @@ class EggProvider(NullProvider):
         # of multiple eggs; that's why we use module_path instead of .archive
         path = self.module_path
         old = None
-        while path!=old:
+        while path != old:
             if _is_unpacked_egg(path):
                 self.egg_name = os.path.basename(path)
                 self.egg_info = os.path.join(path, 'EGG-INFO')
@@ -1561,6 +1588,7 @@ class EggProvider(NullProvider):
                 break
             old = path
             path, base = os.path.split(path)
+
 
 class DefaultProvider(EggProvider):
     """Provides access to package resources in the filesystem"""
@@ -1587,6 +1615,7 @@ class DefaultProvider(EggProvider):
             type(None))
         register_loader_type(loader_cls, cls)
 
+
 DefaultProvider._register()
 
 
@@ -1600,6 +1629,7 @@ class EmptyProvider(NullProvider):
 
     def __init__(self):
         pass
+
 
 empty_provider = EmptyProvider()
 
@@ -1679,7 +1709,7 @@ class ZipProvider(EggProvider):
 
     def __init__(self, module):
         EggProvider.__init__(self, module)
-        self.zip_pre = self.loader.archive+os.sep
+        self.zip_pre = self.loader.archive + os.sep
 
     def _zipinfo_name(self, fspath):
         # Convert a virtual filename (full path to file) into a zipfile subpath
@@ -1693,9 +1723,9 @@ class ZipProvider(EggProvider):
     def _parts(self, zip_path):
         # Convert a zipfile subpath into an egg-relative path part list.
         # pseudo-fs path
-        fspath = self.zip_pre+zip_path
-        if fspath.startswith(self.egg_root+os.sep):
-            return fspath[len(self.egg_root)+1:].split(os.sep)
+        fspath = self.zip_pre + zip_path
+        if fspath.startswith(self.egg_root + os.sep):
+            return fspath[len(self.egg_root) + 1:].split(os.sep)
         raise AssertionError(
             "%s is not a subpath of %s" % (fspath, self.egg_root)
         )
@@ -1766,7 +1796,7 @@ class ZipProvider(EggProvider):
                         #  so proceed.
                         return real_path
                     # Windows, del old file and retry
-                    elif os.name=='nt':
+                    elif os.name == 'nt':
                         unlink(real_path)
                         rename(tmpnam, real_path)
                         return real_path
@@ -1786,7 +1816,7 @@ class ZipProvider(EggProvider):
         if not os.path.isfile(file_path):
             return False
         stat = os.stat(file_path)
-        if stat.st_size!=size or stat.st_mtime!=timestamp:
+        if stat.st_size != size or stat.st_mtime != timestamp:
             return False
         # check that the contents match
         zip_contents = self.loader.get_data(zip_path)
@@ -1836,6 +1866,7 @@ class ZipProvider(EggProvider):
     def _resource_to_zip(self, resource_name):
         return self._zipinfo_name(self._fn(self.module_path, resource_name))
 
+
 register_loader_type(zipimport.zipimporter, ZipProvider)
 
 
@@ -1855,10 +1886,10 @@ class FileMetadata(EmptyProvider):
         self.path = path
 
     def has_metadata(self, name):
-        return name=='PKG-INFO' and os.path.isfile(self.path)
+        return name == 'PKG-INFO' and os.path.isfile(self.path)
 
     def get_metadata(self, name):
-        if name=='PKG-INFO':
+        if name == 'PKG-INFO':
             with io.open(self.path, encoding='utf-8') as f:
                 try:
                     metadata = f.read()
@@ -1905,7 +1936,7 @@ class EggMetadata(ZipProvider):
     def __init__(self, importer):
         """Create a metadata provider from a zipimporter"""
 
-        self.zip_pre = importer.archive+os.sep
+        self.zip_pre = importer.archive + os.sep
         self.loader = importer
         if importer.prefix:
             self.module_path = os.path.join(importer.archive, importer.prefix)
@@ -1913,7 +1944,9 @@ class EggMetadata(ZipProvider):
             self.module_path = importer.archive
         self._setup_prefix()
 
-_declare_state('dict', _distribution_finders = {})
+
+_declare_state('dict', _distribution_finders={})
+
 
 def register_finder(importer_type, distribution_finder):
     """Register `distribution_finder` to find distributions in sys.path items
@@ -1930,6 +1963,7 @@ def find_distributions(path_item, only=False):
     importer = get_importer(path_item)
     finder = _find_adapter(_distribution_finders, importer)
     return finder(importer, path_item, only)
+
 
 def find_eggs_in_zip(importer, path_item, only=False):
     """
@@ -1951,11 +1985,16 @@ def find_eggs_in_zip(importer, path_item, only=False):
             for dist in find_eggs_in_zip(zipimport.zipimporter(subpath), subpath):
                 yield dist
 
+
 register_finder(zipimport.zipimporter, find_eggs_in_zip)
+
 
 def find_nothing(importer, path_item, only=False):
     return ()
+
+
 register_finder(object, find_nothing)
+
 
 def find_on_path(importer, path_item, only=False):
     """Yield distributions accessible on a sys.path directory"""
@@ -1965,7 +2004,7 @@ def find_on_path(importer, path_item, only=False):
         if _is_unpacked_egg(path_item):
             yield Distribution.from_filename(
                 path_item, metadata=PathMetadata(
-                    path_item, os.path.join(path_item,'EGG-INFO')
+                    path_item, os.path.join(path_item, 'EGG-INFO')
                 )
             )
         else:
@@ -1997,6 +2036,8 @@ def find_on_path(importer, path_item, only=False):
                         for item in dists:
                             yield item
                         break
+
+
 register_finder(pkgutil.ImpImporter, find_on_path)
 
 if hasattr(importlib_machinery, 'FileFinder'):
@@ -2023,6 +2064,7 @@ def register_namespace_handler(importer_type, namespace_handler):
     """
     _namespace_handlers[importer_type] = namespace_handler
 
+
 def _handle_ns(packageName, path_item):
     """Ensure that named package includes a subpath of path_item (if needed)"""
 
@@ -2037,7 +2079,7 @@ def _handle_ns(packageName, path_item):
         module = sys.modules[packageName] = types.ModuleType(packageName)
         module.__path__ = []
         _set_parent_ns(packageName)
-    elif not hasattr(module,'__path__'):
+    elif not hasattr(module, '__path__'):
         raise TypeError("Not a package:", packageName)
     handler = _find_adapter(_namespace_handlers, importer)
     subpath = handler(importer, path_item, packageName, module)
@@ -2055,6 +2097,7 @@ def _rebuild_mod_path(orig_path, package_name, module):
     corresponding to their sys.path order
     """
     sys_path = [_normalize_cached(p) for p in sys.path]
+
     def position_in_sys_path(path):
         """
         Return the ordinal of the path based on its position in sys.path
@@ -2089,8 +2132,8 @@ def declare_namespace(packageName):
 
         # Track what packages are namespaces, so when new path items are added,
         # they can be updated
-        _namespace_packages.setdefault(parent,[]).append(packageName)
-        _namespace_packages.setdefault(packageName,[])
+        _namespace_packages.setdefault(parent, []).append(packageName)
+        _namespace_packages.setdefault(packageName, [])
 
         for path_item in path:
             # Ensure all the parent's path items are reflected in the child,
@@ -2100,16 +2143,18 @@ def declare_namespace(packageName):
     finally:
         _imp.release_lock()
 
+
 def fixup_namespace_packages(path_item, parent=None):
     """Ensure that previously-declared namespace packages include path_item"""
     _imp.acquire_lock()
     try:
-        for package in _namespace_packages.get(parent,()):
+        for package in _namespace_packages.get(parent, ()):
             subpath = _handle_ns(package, path_item)
             if subpath:
                 fixup_namespace_packages(subpath, package)
     finally:
         _imp.release_lock()
+
 
 def file_ns_handler(importer, path_item, packageName, module):
     """Compute an ns-package subpath for a filesystem or zipfile importer"""
@@ -2117,11 +2162,12 @@ def file_ns_handler(importer, path_item, packageName, module):
     subpath = os.path.join(path_item, packageName.split('.')[-1])
     normalized = _normalize_cached(subpath)
     for item in module.__path__:
-        if _normalize_cached(item)==normalized:
+        if _normalize_cached(item) == normalized:
             break
     else:
         # Only return the path if it's not already there
         return subpath
+
 
 register_namespace_handler(pkgutil.ImpImporter, file_ns_handler)
 register_namespace_handler(zipimport.zipimporter, file_ns_handler)
@@ -2133,12 +2179,14 @@ if hasattr(importlib_machinery, 'FileFinder'):
 def null_ns_handler(importer, path_item, packageName, module):
     return None
 
+
 register_namespace_handler(object, null_ns_handler)
 
 
 def normalize_path(filename):
     """Normalize a file/dir name for comparison purposes"""
     return os.path.normcase(os.path.realpath(filename))
+
 
 def _normalize_cached(filename, _cache={}):
     try:
@@ -2147,6 +2195,7 @@ def _normalize_cached(filename, _cache={}):
         _cache[filename] = result = normalize_path(filename)
         return result
 
+
 def _is_unpacked_egg(path):
     """
     Determine if given path appears to be an unpacked egg.
@@ -2154,6 +2203,7 @@ def _is_unpacked_egg(path):
     return (
         path.lower().endswith('.egg')
     )
+
 
 def _set_parent_ns(packageName):
     parts = packageName.split('.')
@@ -2175,6 +2225,7 @@ def yield_lines(strs):
         for ss in strs:
             for s in yield_lines(ss):
                 yield s
+
 
 MODULE = re.compile(r"\w+(\.\w+)*$").match
 EGG_NAME = re.compile(
@@ -2294,7 +2345,7 @@ class EntryPoint(object):
             ep = cls.parse(line, dist)
             if ep.name in this:
                 raise ValueError("Duplicate entry point", group, ep.name)
-            this[ep.name]=ep
+            this[ep.name] = ep
         return this
 
     @classmethod
@@ -2356,7 +2407,7 @@ class Distribution(object):
 
     @classmethod
     def from_location(cls, location, basename, metadata=None, **kw):
-        project_name, version, py_version, platform = [None]*4
+        project_name, version, py_version, platform = [None] * 4
         basename, ext = os.path.splitext(basename)
         if ext.lower() in _distributionImpl:
             cls = _distributionImpl[ext.lower()]
@@ -2478,11 +2529,11 @@ class Distribution(object):
                             extra, marker = extra.split(':', 1)
                             if invalid_marker(marker):
                                 # XXX warn
-                                reqs=[]
+                                reqs = []
                             elif not evaluate_marker(marker):
-                                reqs=[]
+                                reqs = []
                         extra = safe_extra(extra) or None
-                    dm.setdefault(extra,[]).extend(parse_requirements(reqs))
+                    dm.setdefault(extra, []).extend(parse_requirements(reqs))
             return dm
 
     def requires(self, extras=()):
@@ -2578,7 +2629,7 @@ class Distribution(object):
                 self._get_metadata('entry_points.txt'), self
             )
         if group is not None:
-            return ep_map.get(group,{})
+            return ep_map.get(group, {})
         return ep_map
 
     def get_entry_info(self, group, name):
@@ -2611,7 +2662,7 @@ class Distribution(object):
 
         nloc = _normalize_cached(loc)
         bdir = os.path.dirname(nloc)
-        npath= [(p and _normalize_cached(p) or p) for p in path]
+        npath = [(p and _normalize_cached(p) or p) for p in path]
 
         for p, item in enumerate(npath):
             if item == nloc:
@@ -2642,7 +2693,7 @@ class Distribution(object):
         # p is the spot where we found or inserted loc; now remove duplicates
         while True:
             try:
-                np = npath.index(nloc, p+1)
+                np = npath.index(nloc, p + 1)
             except ValueError:
                 break
             else:
@@ -2682,7 +2733,7 @@ class Distribution(object):
             return False
         return True
 
-    def clone(self,**kw):
+    def clone(self, **kw):
         """Copy this distribution, substituting in any changed keyword args"""
         names = 'project_name version py_version platform location precedence'
         for attr in names.split():
@@ -2769,7 +2820,7 @@ _distributionImpl = {
     }
 
 
-def issue_warning(*args,**kw):
+def issue_warning(*args, **kw):
     level = 1
     g = globals()
     try:
@@ -2783,6 +2834,7 @@ def issue_warning(*args,**kw):
 
 
 class RequirementParseError(ValueError):
+
     def __str__(self):
         return ' '.join(self.args)
 
@@ -2807,6 +2859,7 @@ def parse_requirements(strs):
 
 
 class Requirement(packaging.requirements.Requirement):
+
     def __init__(self, requirement_string):
         """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
         try:
@@ -2867,6 +2920,7 @@ def _get_mro(cls):
         return cls.__mro__[1:]
     return cls.__mro__
 
+
 def _find_adapter(registry, ob):
     """Return an adapter factory for `ob` from `registry`"""
     for t in _get_mro(getattr(ob, '__class__', type(ob))):
@@ -2916,12 +2970,13 @@ def split_sections(s):
     # wrap up last segment
     yield section, content
 
-def _mkstemp(*args,**kw):
+
+def _mkstemp(*args, **kw):
     old_open = os.open
     try:
         # temporarily bypass sandboxing
         os.open = os_open
-        return tempfile.mkstemp(*args,**kw)
+        return tempfile.mkstemp(*args, **kw)
     finally:
         # and then put it back
         os.open = old_open
@@ -2976,12 +3031,12 @@ def _initialize_master_working_set():
     # ensure that all distributions added to the working set in the future
     # (e.g. by calling ``require()``) will get activated as well,
     # with higher priority (replace=True).
-    dist = None # ensure dist is defined for del dist below
+    dist = None  # ensure dist is defined for del dist below
     for dist in working_set:
         dist.activate(replace=False)
     del dist
     add_activation_listener(lambda dist: dist.activate(replace=True), existing=False)
-    working_set.entries=[]
+    working_set.entries = []
     # match order
     list(map(working_set.add_entry, sys.path))
     globals().update(locals())
