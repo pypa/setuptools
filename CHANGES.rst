@@ -5,6 +5,9 @@ CHANGES
 v25.4.0
 -------
 
+* #459 via #736: On Windows systems, sys.argv[0] now correctly becomes the
+  name of entry point.
+
 * Add Extension(py_limited_api=True). When set to a truthy value,
   that extension gets a filename apropriate for code using Py_LIMITED_API.
   When used correctly this allows a single compiled extension to work on
