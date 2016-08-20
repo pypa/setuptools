@@ -8,6 +8,7 @@ from setuptools.command.build_ext import build_ext, get_abi3_suffix
 from setuptools.dist import Distribution
 from setuptools.extension import Extension
 
+
 class TestBuildExt:
 
     def test_get_ext_filename(self):
