@@ -36,9 +36,11 @@ have_pyrex = _have_cython
 class Extension(_Extension):
     """Extension that uses '.c' files in place of '.pyx' files"""
 
-    def __init__(self, name, sources, py_limited_api=False, **kw):
-        self.py_limited_api = py_limited_api
-        _Extension.__init__(self, name, sources, **kw)
+    def __init__(self, name, sources, *args, **kw):
+        # The *args is needed for compatibility as calls may use positional
+        # arguments. py_limited_api may be set only via keyword.
+        self.py_limited_api = kw.pop("py_limited_api", False)
+        _Extension.__init__(self, name, sources, *args, **kw)
 
     def _convert_pyx_sources_to_lang(self):
         """
