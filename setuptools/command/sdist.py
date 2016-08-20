@@ -66,6 +66,17 @@ class sdist(orig.sdist):
             if data not in dist_files:
                 dist_files.append(data)
 
+    def initialize_options(self):
+        orig.sdist.initialize_options(self)
+
+        self._default_to_gztar()
+
+    def _default_to_gztar(self):
+        # only needed on Python prior to 3.6.
+        if sys.version_info >= (3, 6, 0, 'beta', 1):
+            return
+        self.formats = ['gztar']
+
     def make_distribution(self):
         """
         Workaround for #516

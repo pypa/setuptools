@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+v26.0.0
+-------
+
+* #748: By default, sdists are now produced in gzipped tarfile
+  format by default on all platforms, adding forward compatibility
+  for the same behavior in Python 3.6 (See Python #27819).
+
 v25.4.0
 -------
 
