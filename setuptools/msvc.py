@@ -223,7 +223,7 @@ def msvc14_get_vc_env(plat_spec):
 
 def msvc14_gen_lib_options(*args, **kwargs):
     """
-    Patched "distutils._msvccompiler.gen_lib_options" for fix 
+    Patched "distutils._msvccompiler.gen_lib_options" for fix
     compatibility between "numpy.distutils" and "distutils._msvccompiler"
     (for Numpy < 1.11.2)
     """
