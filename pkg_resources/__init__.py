@@ -276,7 +276,7 @@ def get_supported_platform():
 
 __all__ = [
     # Basic resource access and distribution/entry point discovery
-    'require', 'run_script', 'get_provider',  'get_distribution',
+    'require', 'run_script', 'get_provider', 'get_distribution',
     'load_entry_point', 'get_entry_map', 'get_entry_info',
     'iter_entry_points',
     'resource_string', 'resource_stream', 'resource_filename',
