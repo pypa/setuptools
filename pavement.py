@@ -12,9 +12,11 @@ def remove_all(paths):
 @task
 def update_vendored():
     vendor = Path('pkg_resources/_vendor')
+    # pip uninstall doesn't support -t, so do it manually
     remove_all(vendor.glob('packaging*'))
     remove_all(vendor.glob('six*'))
     remove_all(vendor.glob('pyparsing*'))
+    remove_all(vendor.glob('appdirs*'))
     install_args = [
         'install',
         '-r', str(vendor / 'vendored.txt'),

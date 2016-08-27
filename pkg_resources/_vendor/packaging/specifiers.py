@@ -198,7 +198,7 @@ class _IndividualSpecifier(BaseSpecifier):
                         (prereleases or self.prereleases)):
                     found_prereleases.append(version)
                 # Either this is not a prerelease, or we should have been
-                # accepting prereleases from the beginning.
+                # accepting prereleases from the begining.
                 else:
                     yielded = True
                     yield version
