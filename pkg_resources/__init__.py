@@ -65,6 +65,7 @@ try:
 except ImportError:
     importlib_machinery = None
 
+from pkg_resources.extern import appdirs
 from pkg_resources.extern import packaging
 __import__('pkg_resources.extern.packaging.version')
 __import__('pkg_resources.extern.packaging.specifiers')
@@ -1358,48 +1359,15 @@ class ResourceManager:
 
 
 def get_default_cache():
-    """Determine the default cache location
-
-    This returns the ``PYTHON_EGG_CACHE`` environment variable, if set.
-    Otherwise, on Windows, it returns a "Python-Eggs" subdirectory of the
-    "Application Data" directory.  On all other systems, it's "~/.python-eggs".
     """
-    try:
-        return os.environ['PYTHON_EGG_CACHE']
-    except KeyError:
-        pass
-
-    if os.name != 'nt':
-        return os.path.expanduser('~/.python-eggs')
-
-    # XXX this may be locale-specific!
-    app_data = 'Application Data'
-    app_homes = [
-        # best option, should be locale-safe
-        (('APPDATA',), None),
-        (('USERPROFILE',), app_data),
-        (('HOMEDRIVE', 'HOMEPATH'), app_data),
-        (('HOMEPATH',), app_data),
-        (('HOME',), None),
-        # 95/98/ME
-        (('WINDIR',), app_data),
-    ]
-
-    for keys, subdir in app_homes:
-        dirname = ''
-        for key in keys:
-            if key in os.environ:
-                dirname = os.path.join(dirname, os.environ[key])
-            else:
-                break
-        else:
-            if subdir:
-                dirname = os.path.join(dirname, subdir)
-            return os.path.join(dirname, 'Python-Eggs')
-    else:
-        raise RuntimeError(
-            "Please set the PYTHON_EGG_CACHE environment variable"
-        )
+    Return the ``PYTHON_EGG_CACHE`` environment variable
+    or a platform-relevant user cache dir for an app
+    named "Python-Eggs".
+    """
+    return (
+        os.environ.get('PYTHON_EGG_CACHE')
+        or appdirs.user_cache_dir(appname='Python-Eggs')
+    )
 
 
 def safe_name(name):

@@ -2,6 +2,14 @@
 CHANGES
 =======
 
+v26.1.0
+-------
+
+* #763: ``pkg_resources.get_default_cache`` now defers to the
+  `appdirs project <https://pypi.org/project/appdirs>`_ to
+  resolve the cache directory. Adds a vendored dependency on
+  appdirs to pkg_resources.
+
 v26.0.0
 -------
 
