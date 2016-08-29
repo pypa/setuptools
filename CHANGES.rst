@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+v26.1.1
+-------
+
+* Re-release of 26.1.0 with pytest pinned to allow for automated
+  deployement and thus proper packaging environment variables,
+  fixing issues with missing executable launchers.
+
 v26.1.0
 -------
 
