@@ -12,7 +12,7 @@ env:
  - LC_ALL=C LC_CTYPE=C
 script:
  # avoid VersionConflict when newer version is required
- - pip install -U pytest
+ - pip install -U 'pytest>=2.8,<3'
 
  # Output the env, because the travis docs just can't be trusted
  - env
