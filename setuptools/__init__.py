@@ -1,6 +1,7 @@
 """Extensions to the 'distutils' for large or complex distributions"""
 
 import os
+import sys
 import functools
 import distutils.core
 import distutils.filelist
@@ -17,7 +18,7 @@ from setuptools.depends import Require
 
 __all__ = [
     'setup', 'Distribution', 'Feature', 'Command', 'Extension', 'Require',
-    'find_packages'
+    'find_packages',
 ]
 
 __version__ = setuptools.version.__version__
@@ -171,5 +172,14 @@ def findall(dir=os.curdir):
     return list(files)
 
 
-# fix findall bug in distutils (http://bugs.python.org/issue12885)
-distutils.filelist.findall = findall
+has_issue_12885 = (
+    sys.version_info < (3, 4, 6)
+    or
+    (3, 5) < sys.version_info <= (3, 5, 3)
+    or
+    (3, 6) < sys.version_info
+)
+
+if has_issue_12885:
+    # fix findall bug in distutils (http://bugs.python.org/issue12885)
+    distutils.filelist.findall = findall
