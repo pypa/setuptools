@@ -2,6 +2,28 @@
 CHANGES
 =======
 
+v27.0.0
+-------
+
+* Now use Warehouse by default for
+  ``upload``, patching ``distutils.config.PyPIRCCommand`` to
+  affect default behavior.
+
+  Any config in .pypirc should be updated to replace
+
+    https://pypi.python.org/pypi/
+
+  with
+
+    https://upload.pypi.org/legacy/
+
+  Similarly, any passwords stored in the keyring should be
+  updated to use this new value for "system".
+
+  The ``upload_docs`` command will continue to use the python.org
+  site, but the command is now deprecated. Users are urged to use
+  Read The Docs instead.
+
 v26.1.1
 -------
 
