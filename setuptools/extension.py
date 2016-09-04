@@ -7,10 +7,10 @@ import distutils.extension
 
 from setuptools.extern.six.moves import map
 
-from .monkey import _get_unpatched
+from .monkey import get_unpatched
 from . import msvc
 
-_Extension = _get_unpatched(distutils.core.Extension)
+_Extension = get_unpatched(distutils.core.Extension)
 
 msvc.patch_for_specialized_compiler()
 

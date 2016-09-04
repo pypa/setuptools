@@ -19,11 +19,11 @@ from pkg_resources.extern import packaging
 
 from setuptools.depends import Require
 from setuptools import windows_support
-from setuptools.monkey import _get_unpatched
+from setuptools.monkey import get_unpatched
 import pkg_resources
 
 
-_Distribution = _get_unpatched(distutils.core.Distribution)
+_Distribution = get_unpatched(distutils.core.Distribution)
 
 
 def _patch_distribution_metadata_write_pkg_file():

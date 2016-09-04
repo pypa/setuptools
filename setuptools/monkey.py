@@ -12,7 +12,7 @@ __all__ = []
 "everything is private"
 
 
-def _get_unpatched(cls):
+def get_unpatched(cls):
     """Protect against re-patching the distutils if reloaded
 
     Also ensures that no other distutils extension monkeypatched the distutils

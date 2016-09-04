@@ -121,7 +121,7 @@ find_packages = PackageFinder.find
 
 setup = distutils.core.setup
 
-_Command = monkey._get_unpatched(distutils.core.Command)
+_Command = monkey.get_unpatched(distutils.core.Command)
 
 
 class Command(_Command):
