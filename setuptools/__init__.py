@@ -1,7 +1,6 @@
 """Extensions to the 'distutils' for large or complex distributions"""
 
 import os
-import sys
 import functools
 import distutils.core
 import distutils.filelist
@@ -13,8 +12,8 @@ from setuptools.extern.six.moves import filterfalse, map
 import setuptools.version
 from setuptools.extension import Extension
 from setuptools.dist import Distribution, Feature
-from setuptools.monkey import _get_unpatched
 from setuptools.depends import Require
+from . import monkey
 
 __all__ = [
     'setup', 'Distribution', 'Feature', 'Command', 'Extension', 'Require',
@@ -122,7 +121,7 @@ find_packages = PackageFinder.find
 
 setup = distutils.core.setup
 
-_Command = _get_unpatched(distutils.core.Command)
+_Command = monkey._get_unpatched(distutils.core.Command)
 
 
 class Command(_Command):
@@ -142,10 +141,6 @@ class Command(_Command):
         cmd = _Command.reinitialize_command(self, command, reinit_subcommands)
         vars(cmd).update(kw)
         return cmd
-
-
-# we can't patch distutils.cmd, alas
-distutils.core.Command = Command
 
 
 def _find_all_simple(path):
@@ -172,31 +167,4 @@ def findall(dir=os.curdir):
     return list(files)
 
 
-has_issue_12885 = (
-    sys.version_info < (3, 4, 6)
-    or
-    (3, 5) < sys.version_info <= (3, 5, 3)
-    or
-    (3, 6) < sys.version_info
-)
-
-if has_issue_12885:
-    # fix findall bug in distutils (http://bugs.python.org/issue12885)
-    distutils.filelist.findall = findall
-
-
-needs_warehouse = (
-    sys.version_info < (2, 7, 13)
-    or
-    (3, 0) < sys.version_info < (3, 3, 7)
-    or
-    (3, 4) < sys.version_info < (3, 4, 6)
-    or
-    (3, 5) < sys.version_info <= (3, 5, 3)
-    or
-    (3, 6) < sys.version_info
-)
-
-if needs_warehouse:
-    warehouse = 'https://upload.pypi.org/legacy/'
-    distutils.config.PyPIRCCommand.DEFAULT_REPOSITORY = warehouse
+monkey.patch_all()
