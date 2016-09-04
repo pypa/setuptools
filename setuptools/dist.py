@@ -9,7 +9,6 @@ import distutils.log
 import distutils.core
 import distutils.cmd
 import distutils.dist
-from distutils.core import Distribution as _Distribution
 from distutils.errors import (DistutilsOptionError, DistutilsPlatformError,
     DistutilsSetupError)
 from distutils.util import rfc822_escape
@@ -20,25 +19,11 @@ from pkg_resources.extern import packaging
 
 from setuptools.depends import Require
 from setuptools import windows_support
+from setuptools.monkey import _get_unpatched
 import pkg_resources
 
 
-def _get_unpatched(cls):
-    """Protect against re-patching the distutils if reloaded
-
-    Also ensures that no other distutils extension monkeypatched the distutils
-    first.
-    """
-    while cls.__module__.startswith('setuptools'):
-        cls, = cls.__bases__
-    if not cls.__module__.startswith('distutils'):
-        raise AssertionError(
-            "distutils has already been patched by %r" % cls
-        )
-    return cls
-
-
-_Distribution = _get_unpatched(_Distribution)
+_Distribution = _get_unpatched(distutils.core.Distribution)
 
 
 def _patch_distribution_metadata_write_pkg_file():

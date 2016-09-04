@@ -7,7 +7,7 @@ import distutils.extension
 
 from setuptools.extern.six.moves import map
 
-from .dist import _get_unpatched
+from .monkey import _get_unpatched
 from . import msvc
 
 _Extension = _get_unpatched(distutils.core.Extension)

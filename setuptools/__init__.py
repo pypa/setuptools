@@ -5,7 +5,6 @@ import sys
 import functools
 import distutils.core
 import distutils.filelist
-from distutils.core import Command as _Command
 from distutils.util import convert_path
 from fnmatch import fnmatchcase
 
@@ -13,7 +12,8 @@ from setuptools.extern.six.moves import filterfalse, map
 
 import setuptools.version
 from setuptools.extension import Extension
-from setuptools.dist import Distribution, Feature, _get_unpatched
+from setuptools.dist import Distribution, Feature
+from setuptools.monkey import _get_unpatched
 from setuptools.depends import Require
 
 __all__ = [
@@ -122,7 +122,7 @@ find_packages = PackageFinder.find
 
 setup = distutils.core.setup
 
-_Command = _get_unpatched(_Command)
+_Command = _get_unpatched(distutils.core.Command)
 
 
 class Command(_Command):
