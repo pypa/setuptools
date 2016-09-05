@@ -63,10 +63,6 @@ def patch_for_specialized_compiler():
         # Compilers only availables on Microsoft Windows
         return
 
-    if 'distutils' not in globals():
-        # The module isn't available to be patched
-        return
-
     if unpatched:
         # Already patched
         return
