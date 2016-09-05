@@ -124,8 +124,6 @@ def patch_for_msvc_specialized_compiler():
         # Compilers only availables on Microsoft Windows
         return
 
-    unpatched = __import__('setuptools.msvc').msvc.unpatched
-
     if unpatched:
         # Already patched
         return
