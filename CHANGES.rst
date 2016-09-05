@@ -24,6 +24,9 @@ v27.0.0
   site, but the command is now deprecated. Users are urged to use
   Read The Docs instead.
 
+* Introduce the ``monkey`` module to encapsulate the distutils
+  monkeypatching behavior.
+
 v26.1.1
 -------
 
