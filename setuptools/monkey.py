@@ -4,6 +4,7 @@ Monkey patching of distutils.
 
 import sys
 import distutils.filelist
+import platform
 
 import setuptools
 
@@ -74,9 +75,7 @@ def patch_all():
             setuptools.extension.Extension
         )
 
-    # patch MSVC
-    __import__('setuptools.msvc')
-    setuptools.msvc.patch_for_specialized_compiler()
+    patch_for_msvc_specialized_compiler()
 
 
 def _patch_distribution_metadata_write_pkg_file():
@@ -99,3 +98,57 @@ def _patch_distribution_metadata_write_pkg_info():
     distutils.dist.DistributionMetadata.write_pkg_info = (
         setuptools.dist.write_pkg_info
     )
+
+
+unpatched = dict()
+
+
+def patch_for_msvc_specialized_compiler():
+    """
+    Patch functions in distutils to use standalone Microsoft Visual C++
+    compilers.
+    """
+    try:
+        # Distutil file for MSVC++ 9.0 and upper (Python 2.7 to 3.4)
+        import distutils.msvc9compiler as msvc9compiler
+    except ImportError:
+        pass
+
+    try:
+        # Distutil file for MSVC++ 14.0 and upper (Python 3.5+)
+        import distutils._msvccompiler as msvc14compiler
+    except ImportError:
+        pass
+
+    if platform.system() != 'Windows':
+        # Compilers only availables on Microsoft Windows
+        return
+
+    unpatched = __import__('setuptools.msvc').msvc.unpatched
+
+    if unpatched:
+        # Already patched
+        return
+
+    try:
+        # Patch distutils.msvc9compiler
+        unpatched['msvc9_find_vcvarsall'] = msvc9compiler.find_vcvarsall
+        msvc9compiler.find_vcvarsall = msvc9_find_vcvarsall
+        unpatched['msvc9_query_vcvarsall'] = msvc9compiler.query_vcvarsall
+        msvc9compiler.query_vcvarsall = msvc9_query_vcvarsall
+    except NameError:
+        pass
+
+    try:
+        # Patch distutils._msvccompiler._get_vc_env
+        unpatched['msvc14_get_vc_env'] = msvc14compiler._get_vc_env
+        msvc14compiler._get_vc_env = msvc14_get_vc_env
+    except NameError:
+        pass
+
+    try:
+        # Patch distutils._msvccompiler.gen_lib_options for Numpy
+        unpatched['msvc14_gen_lib_options'] = msvc14compiler.gen_lib_options
+        msvc14compiler.gen_lib_options = msvc14_gen_lib_options
+    except NameError:
+        pass

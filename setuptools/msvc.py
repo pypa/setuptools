@@ -1,6 +1,20 @@
 """
-This module adds improved support for Microsoft Visual C++ compilers.
+Improved support for Microsoft Visual C++ compilers.
+
+Known supported compilers:
+--------------------------
+Microsoft Visual C++ 9.0:
+    Microsoft Visual C++ Compiler for Python 2.7 (x86, amd64);
+    Microsoft Windows SDK 7.0 (x86, x64, ia64);
+    Microsoft Windows SDK 6.1 (x86, x64, ia64)
+
+Microsoft Visual C++ 10.0:
+    Microsoft Windows SDK 7.1 (x86, x64, ia64)
+
+Microsoft Visual C++ 14.0:
+    Microsoft Visual C++ Build Tools 2015 (x86, x64, arm)
 """
+
 import os
 import sys
 import platform
@@ -9,6 +23,8 @@ import distutils.errors
 from distutils.version import StrictVersion
 
 from setuptools.extern.six.moves import filterfalse
+
+from . import monkey
 
 if platform.system() == 'Windows':
     from setuptools.extern.six.moves import winreg
@@ -26,69 +42,9 @@ else:
     safe_env = dict()
 
 try:
-    # Distutil file for MSVC++ 9.0 and upper (Python 2.7 to 3.4)
-    import distutils.msvc9compiler as msvc9compiler
+    from distutils.msvc9compiler import Reg
 except ImportError:
     pass
-
-try:
-    # Distutil file for MSVC++ 14.0 and upper (Python 3.5+)
-    import distutils._msvccompiler as msvc14compiler
-except ImportError:
-    pass
-
-
-unpatched = dict()
-
-
-def patch_for_specialized_compiler():
-    """
-    Patch functions in distutils to use standalone Microsoft Visual C++
-    compilers.
-
-    Known supported compilers:
-    --------------------------
-    Microsoft Visual C++ 9.0:
-        Microsoft Visual C++ Compiler for Python 2.7 (x86, amd64);
-        Microsoft Windows SDK 7.0 (x86, x64, ia64);
-        Microsoft Windows SDK 6.1 (x86, x64, ia64)
-
-    Microsoft Visual C++ 10.0:
-        Microsoft Windows SDK 7.1 (x86, x64, ia64)
-
-    Microsoft Visual C++ 14.0:
-        Microsoft Visual C++ Build Tools 2015 (x86, x64, arm)
-    """
-    if platform.system() != 'Windows':
-        # Compilers only availables on Microsoft Windows
-        return
-
-    if unpatched:
-        # Already patched
-        return
-
-    try:
-        # Patch distutils.msvc9compiler
-        unpatched['msvc9_find_vcvarsall'] = msvc9compiler.find_vcvarsall
-        msvc9compiler.find_vcvarsall = msvc9_find_vcvarsall
-        unpatched['msvc9_query_vcvarsall'] = msvc9compiler.query_vcvarsall
-        msvc9compiler.query_vcvarsall = msvc9_query_vcvarsall
-    except NameError:
-        pass
-
-    try:
-        # Patch distutils._msvccompiler._get_vc_env
-        unpatched['msvc14_get_vc_env'] = msvc14compiler._get_vc_env
-        msvc14compiler._get_vc_env = msvc14_get_vc_env
-    except NameError:
-        pass
-
-    try:
-        # Patch distutils._msvccompiler.gen_lib_options for Numpy
-        unpatched['msvc14_gen_lib_options'] = msvc14compiler.gen_lib_options
-        msvc14compiler.gen_lib_options = msvc14_gen_lib_options
-    except NameError:
-        pass
 
 
 def msvc9_find_vcvarsall(version):
@@ -113,7 +69,6 @@ def msvc9_find_vcvarsall(version):
     ------
     vcvarsall.bat path: str
     """
-    Reg = msvc9compiler.Reg
     VC_BASE = r'Software\%sMicrosoft\DevDiv\VCForPython\%0.1f'
     key = VC_BASE % ('', version)
     try:
@@ -132,7 +87,7 @@ def msvc9_find_vcvarsall(version):
         if os.path.isfile(vcvarsall):
             return vcvarsall
 
-    return unpatched['msvc9_find_vcvarsall'](version)
+    return monkey.unpatched['msvc9_find_vcvarsall'](version)
 
 
 def msvc9_query_vcvarsall(ver, arch='x86', *args, **kwargs):
@@ -165,7 +120,8 @@ def msvc9_query_vcvarsall(ver, arch='x86', *args, **kwargs):
     """
     # Try to get environement from vcvarsall.bat (Classical way)
     try:
-        return unpatched['msvc9_query_vcvarsall'](ver, arch, *args, **kwargs)
+        orig = monkey.unpatched['msvc9_query_vcvarsall']
+        return orig(ver, arch, *args, **kwargs)
     except distutils.errors.DistutilsPlatformError:
         # Pass error if Vcvarsall.bat is missing
         pass
@@ -204,7 +160,7 @@ def msvc14_get_vc_env(plat_spec):
     """
     # Try to get environment from vcvarsall.bat (Classical way)
     try:
-        return unpatched['msvc14_get_vc_env'](plat_spec)
+        return monkey.unpatched['msvc14_get_vc_env'](plat_spec)
     except distutils.errors.DistutilsPlatformError:
         # Pass error Vcvarsall.bat is missing
         pass
@@ -227,7 +183,7 @@ def msvc14_gen_lib_options(*args, **kwargs):
         import numpy as np
         if StrictVersion(np.__version__) < StrictVersion('1.11.2'):
             return np.distutils.ccompiler.gen_lib_options(*args, **kwargs)
-    return unpatched['msvc14_gen_lib_options'](*args, **kwargs)
+    return monkey.unpatched['msvc14_gen_lib_options'](*args, **kwargs)
 
 
 def _augment_exception(exc, version, arch=''):
