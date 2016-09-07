@@ -210,6 +210,31 @@ class TestEggInfo(object):
         self._run_install_command(tmpdir_cwd, env)
         assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
 
+    def test_long_description_content_type(self, tmpdir_cwd, env):
+        # Test that specifying a `long_description_content_type` keyword arg to
+        # the `setup` function results in writing a `Description-Content-Type`
+        # line to the `PKG-INFO` file in the `<distribution>.egg-info`
+        # directory.
+        # `Description-Content-Type` is described at
+        # https://github.com/pypa/python-packaging-user-guide/pull/258
+
+        self._setup_script_with_requires(
+            "long_description_content_type='text/markdown',")
+        environ = os.environ.copy().update(
+            HOME=env.paths['home'],
+        )
+        code, data = environment.run_setup_py(
+            cmd=['egg_info'],
+            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
+            data_stream=1,
+            env=environ,
+        )
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
+        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+            pkg_info_lines = pkginfo_file.read().split('\n')
+        expected_line = 'Description-Content-Type: text/markdown'
+        assert expected_line in pkg_info_lines
+
     def test_python_requires_egg_info(self, tmpdir_cwd, env):
         self._setup_script_with_requires(
             """python_requires='>=2.7.12',""")
