@@ -2,6 +2,7 @@
 CHANGES
 =======
 
+
 v27.0.0
 -------
 
@@ -23,6 +24,11 @@ v27.0.0
   The ``upload_docs`` command will continue to use the python.org
   site, but the command is now deprecated. Users are urged to use
   Read The Docs instead.
+
+* #776: Use EXT_SUFFIX for py_limited_api renaming.
+
+* #774 and #775: Use LegacyVersion from packaging when
+  detecting numpy versions.
 
 v26.1.1
 -------
