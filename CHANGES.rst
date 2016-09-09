@@ -2,6 +2,11 @@
 CHANGES
 =======
 
+v27.2.0
+-------
+
+* Nicer, more consistent interfaces for msvc monkeypatching.
+
 v27.1.2
 -------
 
