@@ -10,7 +10,10 @@ import setuptools
 
 
 __all__ = []
-"everything is private"
+"""
+Everything is private. Contact the project team
+if you think you need this functionality.
+"""
 
 
 def get_unpatched(cls):

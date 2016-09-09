@@ -22,6 +22,11 @@ from setuptools.monkey import get_unpatched
 import pkg_resources
 
 
+def _get_unpatched(cls):
+    warnings.warn("Do not call this function", DeprecationWarning)
+    return get_unpatched(cls)
+
+
 # Based on Python 3.5 version
 def write_pkg_file(self, file):
     """Write the PKG-INFO format data to a file object.
