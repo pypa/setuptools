@@ -8,6 +8,7 @@ import platform
 import types
 
 from .py26compat import import_module
+from setuptools.extern import six
 
 import setuptools
 
@@ -21,7 +22,7 @@ if you think you need this functionality.
 
 def get_unpatched(item):
     lookup = (
-        get_unpatched_class if isinstance(item, type) else
+        get_unpatched_class if isinstance(item, six.class_types) else
         get_unpatched_function if isinstance(item, types.FunctionType) else
         lambda item: None
     )
