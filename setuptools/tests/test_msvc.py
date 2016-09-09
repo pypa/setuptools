@@ -6,8 +6,6 @@ import os
 import contextlib
 import distutils.errors
 
-from setuptools.extern import six
-
 import pytest
 try:
     from unittest import mock
