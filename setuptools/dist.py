@@ -2,7 +2,6 @@ __all__ = ['Distribution']
 
 import re
 import os
-import sys
 import warnings
 import numbers
 import distutils.log
