@@ -24,7 +24,7 @@ from pkg_resources.extern.packaging.version import LegacyVersion
 
 from setuptools.extern.six.moves import filterfalse
 
-from .monkey import get_unpatched_func
+from .monkey import get_unpatched
 
 if platform.system() == 'Windows':
     from setuptools.extern.six.moves import winreg
@@ -87,7 +87,7 @@ def msvc9_find_vcvarsall(version):
         if os.path.isfile(vcvarsall):
             return vcvarsall
 
-    return get_unpatched_func(msvc9_find_vcvarsall)(version)
+    return get_unpatched(msvc9_find_vcvarsall)(version)
 
 
 def msvc9_query_vcvarsall(ver, arch='x86', *args, **kwargs):
@@ -120,7 +120,7 @@ def msvc9_query_vcvarsall(ver, arch='x86', *args, **kwargs):
     """
     # Try to get environement from vcvarsall.bat (Classical way)
     try:
-        orig = get_unpatched_func(msvc9_query_vcvarsall)
+        orig = get_unpatched(msvc9_query_vcvarsall)
         return orig(ver, arch, *args, **kwargs)
     except distutils.errors.DistutilsPlatformError:
         # Pass error if Vcvarsall.bat is missing
@@ -160,7 +160,7 @@ def msvc14_get_vc_env(plat_spec):
     """
     # Try to get environment from vcvarsall.bat (Classical way)
     try:
-        return get_unpatched_func(msvc14_get_vc_env)(plat_spec)
+        return get_unpatched(msvc14_get_vc_env)(plat_spec)
     except distutils.errors.DistutilsPlatformError:
         # Pass error Vcvarsall.bat is missing
         pass
@@ -183,7 +183,7 @@ def msvc14_gen_lib_options(*args, **kwargs):
         import numpy as np
         if LegacyVersion(np.__version__) < LegacyVersion('1.11.2'):
             return np.distutils.ccompiler.gen_lib_options(*args, **kwargs)
-    return get_unpatched_func(msvc14_gen_lib_options)(*args, **kwargs)
+    return get_unpatched(msvc14_gen_lib_options)(*args, **kwargs)
 
 
 def _augment_exception(exc, version, arch=''):

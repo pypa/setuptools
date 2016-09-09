@@ -5,6 +5,7 @@ Monkey patching of distutils.
 import sys
 import distutils.filelist
 import platform
+import types
 
 from .py26compat import import_module
 
@@ -18,7 +19,16 @@ if you think you need this functionality.
 """
 
 
-def get_unpatched(cls):
+def get_unpatched(item):
+    lookup = (
+        get_unpatched_class if isinstance(item, type) else
+        get_unpatched_function if isinstance(item, types.FunctionType) else
+        lambda item: None
+    )
+    return lookup(item)
+
+
+def get_unpatched_class(cls):
     """Protect against re-patching the distutils if reloaded
 
     Also ensures that no other distutils extension monkeypatched the distutils
@@ -117,7 +127,7 @@ def patch_func(replacement, original):
     setattr(target_mod, original.__name__, replacement)
 
 
-def get_unpatched_func(candidate):
+def get_unpatched_function(candidate):
     return getattr(candidate, 'unpatched')
 
 
