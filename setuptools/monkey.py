@@ -6,6 +6,8 @@ import sys
 import distutils.filelist
 import platform
 
+from .py26compat import import_module
+
 import setuptools
 
 
@@ -103,7 +105,20 @@ def _patch_distribution_metadata_write_pkg_info():
     )
 
 
-unpatched = dict()
+def patch_func(replacement, original):
+    # first set the 'unpatched' attribute on the replacement to
+    # point to the original.
+    vars(replacement).setdefault('unpatched', original)
+
+    # next resolve the module in which the original func resides
+    target_mod = import_module(original.__module__)
+
+    # finally replace the function in the original module
+    setattr(target_mod, original.__name__, replacement)
+
+
+def get_unpatched_func(candidate):
+    return getattr(candidate, 'unpatched')
 
 
 def patch_for_msvc_specialized_compiler():
@@ -129,29 +144,21 @@ def patch_for_msvc_specialized_compiler():
         # Compilers only availables on Microsoft Windows
         return
 
-    if unpatched:
-        # Already patched
-        return
-
     try:
         # Patch distutils.msvc9compiler
-        unpatched['msvc9_find_vcvarsall'] = msvc9compiler.find_vcvarsall
-        msvc9compiler.find_vcvarsall = msvc.msvc9_find_vcvarsall
-        unpatched['msvc9_query_vcvarsall'] = msvc9compiler.query_vcvarsall
-        msvc9compiler.query_vcvarsall = msvc.msvc9_query_vcvarsall
+        patch_func(msvc.msvc9_find_vcvarsall, msvc9compiler.find_vcvarsall)
+        patch_func(msvc.msvc9_query_vcvarsall, msvc9compiler.query_vcvarsall)
     except NameError:
         pass
 
     try:
         # Patch distutils._msvccompiler._get_vc_env
-        unpatched['msvc14_get_vc_env'] = msvc14compiler._get_vc_env
-        msvc14compiler._get_vc_env = msvc.msvc14_get_vc_env
+        patch_func(msvc.msvc14_get_vc_env, msvc14compiler._get_vc_env)
     except NameError:
         pass
 
     try:
         # Patch distutils._msvccompiler.gen_lib_options for Numpy
-        unpatched['msvc14_gen_lib_options'] = msvc14compiler.gen_lib_options
-        msvc14compiler.gen_lib_options = msvc.msvc14_gen_lib_options
+        patch_func(msvc.msvc14_gen_lib_options, msvc14compiler.gen_lib_options)
     except NameError:
         pass
