@@ -7,6 +7,7 @@ import distutils.filelist
 import platform
 
 import setuptools
+from . import msvc
 
 
 __all__ = []
@@ -134,22 +135,22 @@ def patch_for_msvc_specialized_compiler():
     try:
         # Patch distutils.msvc9compiler
         unpatched['msvc9_find_vcvarsall'] = msvc9compiler.find_vcvarsall
-        msvc9compiler.find_vcvarsall = msvc9_find_vcvarsall
+        msvc9compiler.find_vcvarsall = msvc.msvc9_find_vcvarsall
         unpatched['msvc9_query_vcvarsall'] = msvc9compiler.query_vcvarsall
-        msvc9compiler.query_vcvarsall = msvc9_query_vcvarsall
+        msvc9compiler.query_vcvarsall = msvc.msvc9_query_vcvarsall
     except NameError:
         pass
 
     try:
         # Patch distutils._msvccompiler._get_vc_env
         unpatched['msvc14_get_vc_env'] = msvc14compiler._get_vc_env
-        msvc14compiler._get_vc_env = msvc14_get_vc_env
+        msvc14compiler._get_vc_env = msvc.msvc14_get_vc_env
     except NameError:
         pass
 
     try:
         # Patch distutils._msvccompiler.gen_lib_options for Numpy
         unpatched['msvc14_gen_lib_options'] = msvc14compiler.gen_lib_options
-        msvc14compiler.gen_lib_options = msvc14_gen_lib_options
+        msvc14compiler.gen_lib_options = msvc.msvc14_gen_lib_options
     except NameError:
         pass

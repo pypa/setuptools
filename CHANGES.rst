@@ -2,6 +2,11 @@
 CHANGES
 =======
 
+v27.1.1
+-------
+
+* #778: Fix MSVC monkeypatching.
+
 v27.1.0
 -------
 
