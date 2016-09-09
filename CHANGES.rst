@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+v27.1.0
+-------
+
+* Introduce the (private) ``monkey`` module to encapsulate
+  the distutils monkeypatching behavior.
+
 v27.0.0
 -------
 
@@ -23,9 +29,6 @@ v27.0.0
   The ``upload_docs`` command will continue to use the python.org
   site, but the command is now deprecated. Users are urged to use
   Read The Docs instead.
-
-* Introduce the ``monkey`` module to encapsulate the distutils
-  monkeypatching behavior.
 
 v26.1.1
 -------
