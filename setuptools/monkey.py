@@ -7,7 +7,6 @@ import distutils.filelist
 import platform
 
 import setuptools
-from . import msvc
 
 
 __all__ = []
@@ -112,6 +111,8 @@ def patch_for_msvc_specialized_compiler():
     Patch functions in distutils to use standalone Microsoft Visual C++
     compilers.
     """
+    from . import msvc
+
     try:
         # Distutil file for MSVC++ 9.0 and upper (Python 2.7 to 3.4)
         import distutils.msvc9compiler as msvc9compiler
