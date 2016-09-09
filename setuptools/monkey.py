@@ -126,7 +126,8 @@ def patch_for_msvc_specialized_compiler():
     Patch functions in distutils to use standalone Microsoft Visual C++
     compilers.
     """
-    from . import msvc
+    # import late to avoid circular imports on Python < 3.5
+    msvc = import_module('setuptools.msvc')
 
     try:
         # Distutil file for MSVC++ 9.0 and upper (Python 2.7 to 3.4)
