@@ -111,7 +111,7 @@ class build_ext(_build_ext):
                 and get_abi3_suffix()
             )
             if use_abi3:
-                so_ext = get_config_var('SO')
+                so_ext = get_config_var('EXT_SUFFIX')
                 filename = filename[:-len(so_ext)]
                 filename = filename + get_abi3_suffix()
             if isinstance(ext, Library):
