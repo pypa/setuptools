@@ -1,4 +1,3 @@
-import sys
 import re
 import functools
 import distutils.core
@@ -7,12 +6,7 @@ import distutils.extension
 
 from setuptools.extern.six.moves import map
 
-from .dist import _get_unpatched
-from . import msvc
-
-_Extension = _get_unpatched(distutils.core.Extension)
-
-msvc.patch_for_specialized_compiler()
+from .monkey import get_unpatched
 
 
 def _have_cython():
@@ -31,6 +25,9 @@ def _have_cython():
 
 # for compatibility
 have_pyrex = _have_cython
+
+
+_Extension = get_unpatched(distutils.core.Extension)
 
 
 class Extension(_Extension):
@@ -59,9 +56,3 @@ class Extension(_Extension):
 
 class Library(Extension):
     """Just like a regular Extension, but built as a library instead"""
-
-
-distutils.core.Extension = Extension
-distutils.extension.Extension = Extension
-if 'distutils.command.build_ext' in sys.modules:
-    sys.modules['distutils.command.build_ext'].Extension = Extension

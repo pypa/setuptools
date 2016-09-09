@@ -2,6 +2,11 @@
 CHANGES
 =======
 
+v27.1.0
+-------
+
+* Introduce the (private) ``monkey`` module to encapsulate
+  the distutils monkeypatching behavior.
 
 v27.0.0
 -------
