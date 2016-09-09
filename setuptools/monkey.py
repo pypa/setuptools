@@ -37,9 +37,8 @@ def get_unpatched_class(cls):
     while cls.__module__.startswith('setuptools'):
         cls, = cls.__bases__
     if not cls.__module__.startswith('distutils'):
-        raise AssertionError(
-            "distutils has already been patched by %r" % cls
-        )
+        msg = "distutils has already been patched by %r" % cls
+        raise AssertionError(msg)
     return cls
 
 
