@@ -2,6 +2,11 @@
 CHANGES
 =======
 
+v27.1.2
+-------
+
+* #779 via #781: Fix circular import.
+
 v27.1.1
 -------
 
