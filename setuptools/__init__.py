@@ -139,9 +139,9 @@ class Command(_Command):
         from distutils.dist import Distribution
 
         if not hasattr(dist, 'get_requires'):
-            raise TypeError, "dist must be a Distribution instance"
-        if self.__class__ is Command:
-            raise RuntimeError, "Command is an abstract class"
+            raise TypeError("dist must be a Distribution instance")
+        if self.__class__ is _Command:
+            raise RuntimeError("Command is an abstract class")
 
         self.distribution = dist
         self.initialize_options()
