@@ -49,8 +49,9 @@ from setuptools.sandbox import run_setup
 from setuptools.py31compat import get_path, get_config_vars
 from setuptools.command import setopt
 from setuptools.archive_util import unpack_archive
-from setuptools.package_index import PackageIndex
-from setuptools.package_index import URL_SCHEME
+from setuptools.package_index import (
+    PackageIndex, parse_requirement_arg, URL_SCHEME,
+)
 from setuptools.command import bdist_egg, egg_info
 from pkg_resources import (
     yield_lines, normalize_path, resource_string, ensure_directory,
@@ -1520,15 +1521,6 @@ def get_exe_prefixes(exe_filename):
     prefixes.sort()
     prefixes.reverse()
     return prefixes
-
-
-def parse_requirement_arg(spec):
-    try:
-        return Requirement.parse(spec)
-    except ValueError:
-        raise DistutilsError(
-            "Not a URL, existing file, or requirement spec: %r" % (spec,)
-        )
 
 
 class PthDistributions(Environment):

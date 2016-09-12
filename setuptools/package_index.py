@@ -52,6 +52,15 @@ _tmpl = "setuptools/{setuptools.__version__} Python-urllib/{py_major}"
 user_agent = _tmpl.format(py_major=sys.version[:3], **globals())
 
 
+def parse_requirement_arg(spec):
+    try:
+        return Requirement.parse(spec)
+    except ValueError:
+        raise DistutilsError(
+            "Not a URL, existing file, or requirement spec: %r" % (spec,)
+        )
+
+
 def parse_bdist_wininst(name):
     """Return (base,pyversion) or (None,None) for possible .exe name"""
 
@@ -561,13 +570,7 @@ class PackageIndex(Environment):
                 # Existing file or directory, just return it
                 return spec
             else:
-                try:
-                    spec = Requirement.parse(spec)
-                except ValueError:
-                    raise DistutilsError(
-                        "Not a URL, existing file, or requirement spec: %r" %
-                        (spec,)
-                    )
+                spec = parse_requirement_arg(spec)
         return getattr(self.fetch_distribution(spec, tmpdir), 'location', None)
 
     def fetch_distribution(
