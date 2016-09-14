@@ -5,6 +5,9 @@ CHANGES
 v27.2.0
 -------
 
+* #520 and #513: Suppress ValueErrors in fixup_namespace_packages
+  when lookup fails.
+
 * Nicer, more consistent interfaces for msvc monkeypatching.
 
 v27.1.2
