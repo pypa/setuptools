@@ -54,11 +54,15 @@ class Node(object):
 
 
 class Variable(Node):
-    pass
+
+    def __str__(self):
+        return self.value
 
 
 class Value(Node):
-    pass
+
+    def __str__(self):
+        return repr(str(self.value))
 
 
 VARIABLE = (
@@ -149,7 +153,7 @@ def _format_marker(marker, first=True):
         else:
             return "(" + " ".join(inner) + ")"
     elif isinstance(marker, tuple):
-        return '{0} {1} "{2}"'.format(*marker)
+        return '{0} {1} {2}'.format(*marker)
     else:
         return marker
 

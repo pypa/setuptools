@@ -518,6 +518,28 @@ class TestRequirements:
         assert (
             Requirement.parse('setuptools >= 0.7').project_name == 'setuptools')
 
+    def testMarkersStr(self):
+        for req_str, req_cannonical_str in (
+            ('pywin32 (>1.0); sys.platform == "win32"',
+             "pywin32>1.0; sys_platform == 'win32'"),
+            ("pywin31; sys.platform == 'win32'",
+             "pywin31; sys_platform == 'win32'"),
+            ("foo != 1.3; platform.machine=='i386'",
+             "foo!=1.3; platform_machine == 'i386'"),
+            ("bar; python_version=='2.4'or python_version==\"2.5\"",
+             "bar; python_version == '2.4' or python_version == '2.5'"),
+            ("bar; ('3.2' <= python_version and python_version <= '3.5')",
+             "bar; '3.2' <= python_version and python_version <= '3.5'"),
+            ("libxslt; 'linux' in sys.platform",
+             "libxslt; 'linux' in sys_platform"),
+            ("foobar; '\"' in sys_platform",
+             "foobar; '\"' in sys_platform"),
+            ("foobar; \"'\" in sys_platform",
+             "foobar; \"'\" in sys_platform"),
+        ):
+            req = Requirement(req_str)
+            assert str(req) == req_cannonical_str
+
 
 class TestParsing:
 
