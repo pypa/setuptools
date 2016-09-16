@@ -151,8 +151,6 @@ class develop(easy_install):
             self._gen_nspkg_line(package) for package in namespace_packages]
 
         if self.dry_run:
-            # always generate the lines, even in dry run
-            list(lines)
             return
 
         with open(filename, 'wt') as f:
