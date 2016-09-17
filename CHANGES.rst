@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+v27.3.0
+-------
+
+* #794: In test command, add installed eggs to PYTHONPATH
+  when invoking tests so that subprocesses will also have the
+  dependencies available.
+
 v27.2.0
 -------
 

@@ -362,6 +362,7 @@ class Distribution(_Distribution):
         )
         for dist in resolved_dists:
             pkg_resources.working_set.add(dist, replace=True)
+        return resolved_dists
 
     def finalize_options(self):
         _Distribution.finalize_options(self)
