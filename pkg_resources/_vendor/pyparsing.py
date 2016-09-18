@@ -1,6 +1,6 @@
 # module pyparsing.py
 #
-# Copyright (c) 2003-2015  Paul T. McGuire
+# Copyright (c) 2003-2016  Paul T. McGuire
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -31,15 +31,18 @@ vs. the traditional lex/yacc approach, or the use of regular expressions.  With 
 don't need to learn a new syntax for defining grammars or matching expressions - the parsing module
 provides a library of classes that you use to construct the grammar directly in Python.
 
-Here is a program to parse "Hello, World!" (or any greeting of the form C{"<salutation>, <addressee>!"})::
+Here is a program to parse "Hello, World!" (or any greeting of the form 
+C{"<salutation>, <addressee>!"}), built up using L{Word}, L{Literal}, and L{And} elements 
+(L{'+'<ParserElement.__add__>} operator gives L{And} expressions, strings are auto-converted to
+L{Literal} expressions)::
 
     from pyparsing import Word, alphas
 
     # define grammar of a greeting
-    greet = Word( alphas ) + "," + Word( alphas ) + "!"
+    greet = Word(alphas) + "," + Word(alphas) + "!"
 
     hello = "Hello, World!"
-    print (hello, "->", greet.parseString( hello ))
+    print (hello, "->", greet.parseString(hello))
 
 The program outputs the following::
 
@@ -48,7 +51,7 @@ The program outputs the following::
 The Python representation of the grammar is quite readable, owing to the self-explanatory
 class names, and the use of '+', '|' and '^' operators.
 
-The parsed results returned from L{I{ParserElement.parseString}<ParserElement.parseString>} can be accessed as a nested list, a dictionary, or an
+The L{ParseResults} object returned from L{ParserElement.parseString<ParserElement.parseString>} can be accessed as a nested list, a dictionary, or an
 object with named attributes.
 
 The pyparsing module handles some of the problems that are typically vexing when writing text parsers:
@@ -57,8 +60,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "2.1.8"
-__versionTime__ = "14 Aug 2016 08:43 UTC"
+__version__ = "2.1.9"
+__versionTime__ = "10 Sep 2016 15:10 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -107,7 +110,7 @@ __all__ = [
 'replaceWith', 'restOfLine', 'sglQuotedString', 'srange', 'stringEnd',
 'stringStart', 'traceParseAction', 'unicodeString', 'upcaseTokens', 'withAttribute',
 'indentedBlock', 'originalTextFor', 'ungroup', 'infixNotation','locatedExpr', 'withClass',
-'tokenMap', 'pyparsing_common',
+'CloseMatch', 'tokenMap', 'pyparsing_common',
 ]
 
 system_version = tuple(sys.version_info)[:3]
@@ -291,7 +294,7 @@ class _ParseResultsWithOffset(object):
     def __getitem__(self,i):
         return self.tup[i]
     def __repr__(self):
-        return repr(self.tup)
+        return repr(self.tup[0])
     def setOffset(self,i):
         self.tup = (self.tup[0],i)
 
@@ -310,6 +313,7 @@ class ParseResults(object):
         # equivalent form:
         # date_str = integer("year") + '/' + integer("month") + '/' + integer("day")
 
+        # parseString returns a ParseResults object
         result = date_str.parseString("1999/12/31")
 
         def test(s, fn=repr):
@@ -836,8 +840,8 @@ class ParseResults(object):
                 return None
         elif (len(self) == 1 and
                len(self.__tokdict) == 1 and
-               self.__tokdict.values()[0][0][1] in (0,-1)):
-            return self.__tokdict.keys()[0]
+               next(iter(self.__tokdict.values()))[0][1] in (0,-1)):
+            return next(iter(self.__tokdict.keys()))
         else:
             return None
 
@@ -1775,7 +1779,15 @@ class ParserElement(object):
 
     def __add__(self, other ):
         """
-        Implementation of + operator - returns C{L{And}}
+        Implementation of + operator - returns C{L{And}}. Adding strings to a ParserElement
+        converts them to L{Literal}s by default.
+        
+        Example::
+            greet = Word(alphas) + "," + Word(alphas) + "!"
+            hello = "Hello, World!"
+            print (hello, "->", greet.parseString(hello))
+        Prints::
+            Hello, World! -> ['Hello', ',', 'World', '!']
         """
         if isinstance( other, basestring ):
             other = ParserElement._literalStringClass( other )
@@ -1972,7 +1984,7 @@ class ParserElement(object):
 
     def __call__(self, name=None):
         """
-        Shortcut for C{L{setResultsName}}, with C{listAllMatches=default}.
+        Shortcut for C{L{setResultsName}}, with C{listAllMatches=False}.
         
         If C{name} is given with a trailing C{'*'} character, then C{listAllMatches} will be
         passed as C{True}.
@@ -2083,7 +2095,8 @@ class ParserElement(object):
             Match alphaword at loc 15(1,16)
             Exception raised:Expected alphaword (at char 15), (line:1, col:16)
 
-        The output shown is that produced by the default debug actions. Prior to attempting
+        The output shown is that produced by the default debug actions - custom debug actions can be
+        specified using L{setDebugActions}. Prior to attempting
         to match the C{wd} expression, the debugging message C{"Match <exprname> at loc <n>(<line>,<col>)"}
         is shown. Then if the parse succeeds, a C{"Matched"} message is shown, or an C{"Exception raised"}
         message is shown. Also note the use of L{setName} to assign a human-readable name to the expression,
@@ -2393,8 +2406,10 @@ class Keyword(Token):
     """
     DEFAULT_KEYWORD_CHARS = alphanums+"_$"
 
-    def __init__( self, matchString, identChars=DEFAULT_KEYWORD_CHARS, caseless=False ):
+    def __init__( self, matchString, identChars=None, caseless=False ):
         super(Keyword,self).__init__()
+        if identChars is None:
+            identChars = Keyword.DEFAULT_KEYWORD_CHARS
         self.match = matchString
         self.matchLen = len(matchString)
         try:
@@ -2469,7 +2484,7 @@ class CaselessKeyword(Keyword):
         
     (Contrast with example for L{CaselessLiteral}.)
     """
-    def __init__( self, matchString, identChars=Keyword.DEFAULT_KEYWORD_CHARS ):
+    def __init__( self, matchString, identChars=None ):
         super(CaselessKeyword,self).__init__( matchString, identChars, caseless=True )
 
     def parseImpl( self, instring, loc, doActions=True ):
@@ -2477,6 +2492,67 @@ class CaselessKeyword(Keyword):
              (loc >= len(instring)-self.matchLen or instring[loc+self.matchLen].upper() not in self.identChars) ):
             return loc+self.matchLen, self.match
         raise ParseException(instring, loc, self.errmsg, self)
+
+class CloseMatch(Token):
+    """
+    A variation on L{Literal} which matches "close" matches, that is, 
+    strings with at most 'n' mismatching characters. C{CloseMatch} takes parameters:
+     - C{match_string} - string to be matched
+     - C{maxMismatches} - (C{default=1}) maximum number of mismatches allowed to count as a match
+    
+    The results from a successful parse will contain the matched text from the input string and the following named results:
+     - C{mismatches} - a list of the positions within the match_string where mismatches were found
+     - C{original} - the original match_string used to compare against the input string
+    
+    If C{mismatches} is an empty list, then the match was an exact match.
+    
+    Example::
+        patt = CloseMatch("ATCATCGAATGGA")
+        patt.parseString("ATCATCGAAXGGA") # -> (['ATCATCGAAXGGA'], {'mismatches': [[9]], 'original': ['ATCATCGAATGGA']})
+        patt.parseString("ATCAXCGAAXGGA") # -> Exception: Expected 'ATCATCGAATGGA' (with up to 1 mismatches) (at char 0), (line:1, col:1)
+
+        # exact match
+        patt.parseString("ATCATCGAATGGA") # -> (['ATCATCGAATGGA'], {'mismatches': [[]], 'original': ['ATCATCGAATGGA']})
+
+        # close match allowing up to 2 mismatches
+        patt = CloseMatch("ATCATCGAATGGA", maxMismatches=2)
+        patt.parseString("ATCAXCGAAXGGA") # -> (['ATCAXCGAAXGGA'], {'mismatches': [[4, 9]], 'original': ['ATCATCGAATGGA']})
+    """
+    def __init__(self, match_string, maxMismatches=1):
+        super(CloseMatch,self).__init__()
+        self.name = match_string
+        self.match_string = match_string
+        self.maxMismatches = maxMismatches
+        self.errmsg = "Expected %r (with up to %d mismatches)" % (self.match_string, self.maxMismatches)
+        self.mayIndexError = False
+        self.mayReturnEmpty = False
+
+    def parseImpl( self, instring, loc, doActions=True ):
+        start = loc
+        instrlen = len(instring)
+        maxloc = start + len(self.match_string)
+
+        if maxloc <= instrlen:
+            match_string = self.match_string
+            match_stringloc = 0
+            mismatches = []
+            maxMismatches = self.maxMismatches
+
+            for match_stringloc,s_m in enumerate(zip(instring[loc:maxloc], self.match_string)):
+                src,mat = s_m
+                if src != mat:
+                    mismatches.append(match_stringloc)
+                    if len(mismatches) > maxMismatches:
+                        break
+            else:
+                loc = match_stringloc + 1
+                results = ParseResults([instring[start:loc]])
+                results['original'] = self.match_string
+                results['mismatches'] = mismatches
+                return loc, results
+
+        raise ParseException(instring, loc, self.errmsg, self)
+
 
 class Word(Token):
     """
@@ -2646,7 +2722,7 @@ class Regex(Token):
 
     Example::
         realnum = Regex(r"[+-]?\d+\.\d*")
-        date = Regex(r'(?P<year>\d{4})-(?P<month>\d\d)-(?P<day>\d\d)')
+        date = Regex(r'(?P<year>\d{4})-(?P<month>\d\d?)-(?P<day>\d\d?)')
         # ref: http://stackoverflow.com/questions/267399/how-do-you-match-only-valid-roman-numerals-with-a-regular-expression
         roman = Regex(r"M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})")
     """
@@ -4274,7 +4350,10 @@ class OnlyOnce(object):
 
 def traceParseAction(f):
     """
-    Decorator for debugging parse actions.
+    Decorator for debugging parse actions. 
+    
+    When the parse action is called, this decorator will print C{">> entering I{method-name}(line:I{current_source_line}, I{parse_location}, I{matched_tokens})".}
+    When the parse action completes, the decorator will print C{"<<"} followed by the returned value, or any exception that the parse action raised.
 
     Example::
         wd = Word(alphas)
@@ -4339,9 +4418,16 @@ def countedArray( expr, intExpr=None ):
         integer expr expr expr...
     where the leading integer tells how many expr expressions follow.
     The matched tokens returns the array of expr tokens as a list - the leading count token is suppressed.
+    
+    If C{intExpr} is specified, it should be a pyparsing expression that produces an integer value.
 
     Example::
         countedArray(Word(alphas)).parseString('2 ab cd ef')  # -> ['ab', 'cd']
+
+        # in this parser, the leading integer value is given in binary,
+        # '10' indicating that 2 values are in the array
+        binaryConstant = Word('01').setParseAction(lambda t: int(t[0], 2))
+        countedArray(Word(alphas), intExpr=binaryConstant).parseString('10 ab cd ef')  # -> ['ab', 'cd']
     """
     arrayExpr = Forward()
     def countFieldParseAction(s,l,t):
@@ -4726,10 +4812,10 @@ def tokenMap(func, *args):
     return pa
 
 upcaseTokens = tokenMap(lambda t: _ustr(t).upper())
-"""Helper parse action to convert tokens to upper case."""
+"""(Deprecated) Helper parse action to convert tokens to upper case. Deprecated in favor of L{pyparsing_common.upcaseTokens}"""
 
 downcaseTokens = tokenMap(lambda t: _ustr(t).lower())
-"""Helper parse action to convert tokens to lower case."""
+"""(Deprecated) Helper parse action to convert tokens to lower case. Deprecated in favor of L{pyparsing_common.downcaseTokens}"""
     
 def _makeTags(tagStr, xml):
     """Internal helper to construct opening and closing tag expressions, given a tag name"""
@@ -4921,7 +5007,7 @@ def infixNotation( baseExpr, opList, lpar=Suppress('('), rpar=Suppress(')') ):
 
     Example::
         # simple example of four-function arithmetic with ints and variable names
-        integer = pyparsing_common.signedInteger
+        integer = pyparsing_common.signed_integer
         varname = pyparsing_common.identifier 
         
         arith_expr = infixNotation(integer | varname,
@@ -5241,23 +5327,27 @@ _commasepitem = Combine(OneOrMore(Word(printables, excludeChars=',') +
                                   Optional( Word(" \t") +
                                             ~Literal(",") + ~LineEnd() ) ) ).streamline().setName("commaItem")
 commaSeparatedList = delimitedList( Optional( quotedString.copy() | _commasepitem, default="") ).setName("commaSeparatedList")
-"""Predefined expression of 1 or more printable words or quoted strings, separated by commas."""
+"""(Deprecated) Predefined expression of 1 or more printable words or quoted strings, separated by commas.
+   This expression is deprecated in favor of L{pyparsing_common.comma_separated_list}."""
 
 # some other useful expressions - using lower-case class name since we are really using this as a namespace
 class pyparsing_common:
     """
     Here are some common low-level expressions that may be useful in jump-starting parser development:
-     - numeric forms (L{integers<integer>}, L{reals<real>}, L{scientific notation<sciReal>})
+     - numeric forms (L{integers<integer>}, L{reals<real>}, L{scientific notation<sci_real>})
      - common L{programming identifiers<identifier>}
      - network addresses (L{MAC<mac_address>}, L{IPv4<ipv4_address>}, L{IPv6<ipv6_address>})
      - ISO8601 L{dates<iso8601_date>} and L{datetime<iso8601_datetime>}
      - L{UUID<uuid>}
+     - L{comma-separated list<comma_separated_list>}
     Parse actions:
      - C{L{convertToInteger}}
      - C{L{convertToFloat}}
      - C{L{convertToDate}}
      - C{L{convertToDatetime}}
      - C{L{stripHTMLTags}}
+     - C{L{upcaseTokens}}
+     - C{L{downcaseTokens}}
 
     Example::
         pyparsing_common.number.runTests('''
@@ -5393,25 +5483,25 @@ class pyparsing_common:
     hex_integer = Word(hexnums).setName("hex integer").setParseAction(tokenMap(int,16))
     """expression that parses a hexadecimal integer, returns an int"""
 
-    signedInteger = Regex(r'[+-]?\d+').setName("signed integer").setParseAction(convertToInteger)
+    signed_integer = Regex(r'[+-]?\d+').setName("signed integer").setParseAction(convertToInteger)
     """expression that parses an integer with optional leading sign, returns an int"""
 
-    fraction = (signedInteger().setParseAction(convertToFloat) + '/' + signedInteger().setParseAction(convertToFloat)).setName("fraction")
+    fraction = (signed_integer().setParseAction(convertToFloat) + '/' + signed_integer().setParseAction(convertToFloat)).setName("fraction")
     """fractional expression of an integer divided by an integer, returns a float"""
     fraction.addParseAction(lambda t: t[0]/t[-1])
 
-    mixed_integer = (fraction | signedInteger + Optional(Optional('-').suppress() + fraction)).setName("fraction or mixed integer-fraction")
+    mixed_integer = (fraction | signed_integer + Optional(Optional('-').suppress() + fraction)).setName("fraction or mixed integer-fraction")
     """mixed integer of the form 'integer - fraction', with optional leading integer, returns float"""
     mixed_integer.addParseAction(sum)
 
     real = Regex(r'[+-]?\d+\.\d*').setName("real number").setParseAction(convertToFloat)
     """expression that parses a floating point number and returns a float"""
 
-    sciReal = Regex(r'[+-]?\d+([eE][+-]?\d+|\.\d*([eE][+-]?\d+)?)').setName("real number with scientific notation").setParseAction(convertToFloat)
+    sci_real = Regex(r'[+-]?\d+([eE][+-]?\d+|\.\d*([eE][+-]?\d+)?)').setName("real number with scientific notation").setParseAction(convertToFloat)
     """expression that parses a floating point number with optional scientific notation and returns a float"""
 
     # streamlining this expression makes the docs nicer-looking
-    number = (sciReal | real | signedInteger).streamline()
+    number = (sci_real | real | signed_integer).streamline()
     """any numeric expression, returns the corresponding Python type"""
 
     fnumber = Regex(r'[+-]?\d+\.?\d*([eE][+-]?\d+)?').setName("fnumber").setParseAction(convertToFloat)
@@ -5502,6 +5592,18 @@ class pyparsing_common:
             print(table_text.parseString(text).body) # -> 'More info at the pyparsing wiki page'
         """
         return pyparsing_common._html_stripper.transformString(tokens[0])
+
+    _commasepitem = Combine(OneOrMore(~Literal(",") + ~LineEnd() + Word(printables, excludeChars=',') 
+                                        + Optional( White(" \t") ) ) ).streamline().setName("commaItem")
+    comma_separated_list = delimitedList( Optional( quotedString.copy() | _commasepitem, default="") ).setName("comma separated list")
+    """Predefined expression of 1 or more printable words or quoted strings, separated by commas."""
+
+    upcaseTokens = staticmethod(tokenMap(lambda t: _ustr(t).upper()))
+    """Parse action to convert tokens to upper case."""
+
+    downcaseTokens = staticmethod(tokenMap(lambda t: _ustr(t).lower()))
+    """Parse action to convert tokens to lower case."""
+
 
 if __name__ == "__main__":
 
