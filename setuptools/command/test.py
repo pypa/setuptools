@@ -2,6 +2,7 @@ import os
 import operator
 import sys
 import contextlib
+import itertools
 from distutils.errors import DistutilsOptionError
 from unittest import TestLoader
 
@@ -185,18 +186,18 @@ class test(Command):
             else:
                 os.environ['PYTHONPATH'] = orig_pythonpath
 
+    def install_dists(self):
+        """
+        Install the requirements indicated by self.distribution and
+        return an iterable of the dists that were built.
+        """
+        dist = self.distribution
+        ir_d = dist.fetch_build_eggs(dist.install_requires or [])
+        tr_d = dist.fetch_build_eggs(dist.tests_require or [])
+        return itertools.chain(ir_d, tr_d)
+
     def run(self):
-        installed_dists = []
-        if self.distribution.install_requires:
-            installed_dists.extend(
-                self.distribution.fetch_build_eggs(
-                    self.distribution.install_requires,
-                ))
-        if self.distribution.tests_require:
-            installed_dists.extend(
-                    self.distribution.fetch_build_eggs(
-                            self.distribution.tests_require,
-                ))
+        installed_dists = self.install_dists()
 
         cmd = ' '.join(self._argv)
         if self.dry_run:

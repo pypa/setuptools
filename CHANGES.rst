@@ -7,7 +7,8 @@ v27.3.0
 
 * #794: In test command, add installed eggs to PYTHONPATH
   when invoking tests so that subprocesses will also have the
-  dependencies available.
+  dependencies available. Fixes `tox 330
+  <https://github.com/tox-dev/tox/issues/330>`_.
 
 v27.2.0
 -------
