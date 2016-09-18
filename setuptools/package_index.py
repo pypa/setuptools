@@ -293,7 +293,7 @@ class PackageIndex(Environment):
             ca_bundle=None, verify_ssl=True, *args, **kw
             ):
         Environment.__init__(self, *args, **kw)
-        self.index_url = index_url + "/"[:not index_url.endswith('/')]
+        self.index_url = index_url + "/" [:not index_url.endswith('/')]
         self.scanned_urls = {}
         self.fetched_urls = {}
         self.package_pages = {}
