@@ -186,18 +186,18 @@ class test(Command):
             else:
                 os.environ['PYTHONPATH'] = orig_pythonpath
 
-    def install_dists(self):
+    @staticmethod
+    def install_dists(dist):
         """
         Install the requirements indicated by self.distribution and
         return an iterable of the dists that were built.
         """
-        dist = self.distribution
         ir_d = dist.fetch_build_eggs(dist.install_requires or [])
         tr_d = dist.fetch_build_eggs(dist.tests_require or [])
         return itertools.chain(ir_d, tr_d)
 
     def run(self):
-        installed_dists = self.install_dists()
+        installed_dists = self.install_dists(self.distribution)
 
         cmd = ' '.join(self._argv)
         if self.dry_run:
