@@ -10,6 +10,8 @@ v27.3.0
   dependencies available. Fixes `tox 330
   <https://github.com/tox-dev/tox/issues/330>`_.
 
+* #795: Update vendored pyparsing 2.1.9.
+
 v27.2.0
 -------
 
