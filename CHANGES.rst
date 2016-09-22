@@ -2,6 +2,11 @@
 CHANGES
 =======
 
+In development
+--------------
+
+* #733: Do not search excluded directories for packages.
+
 v27.3.0
 -------
 
