@@ -6,6 +6,10 @@ In development
 --------------
 
 * #733: Do not search excluded directories for packages.
+  This introduced a backwards incompatible change in ``find_packages()``
+  so that ``find_packages(exclude=['foo']) == []``, excluding subpackages of ``foo``.
+  Previously, ``find_packages(exclude=['foo']) == ['foo.bar']``,
+  even though the parent ``foo`` package was excluded.
 
 v27.3.0
 -------
