@@ -6,6 +6,7 @@ import sys
 import distutils.filelist
 import platform
 import types
+import functools
 
 from .py26compat import import_module
 from setuptools.extern import six
@@ -115,16 +116,21 @@ def _patch_distribution_metadata_write_pkg_info():
     )
 
 
-def patch_func(replacement, original):
-    # first set the 'unpatched' attribute on the replacement to
+def patch_func(replacement, target_mod, func_name):
+    """
+    Patch func_name in target_mod with replacement
+
+    Important - original must be resolved by name to avoid
+    patching an already patched function.
+    """
+    original = getattr(target_mod, func_name)
+
+    # set the 'unpatched' attribute on the replacement to
     # point to the original.
     vars(replacement).setdefault('unpatched', original)
 
-    # next resolve the module in which the original func resides
-    target_mod = import_module(original.__module__)
-
-    # finally replace the function in the original module
-    setattr(target_mod, original.__name__, replacement)
+    # replace the function in the original module
+    setattr(target_mod, func_name, replacement)
 
 
 def get_unpatched_function(candidate):
@@ -139,37 +145,43 @@ def patch_for_msvc_specialized_compiler():
     # import late to avoid circular imports on Python < 3.5
     msvc = import_module('setuptools.msvc')
 
-    try:
-        # Distutil file for MSVC++ 9.0 and upper (Python 2.7 to 3.4)
-        import distutils.msvc9compiler as msvc9compiler
-    except ImportError:
-        pass
-
-    try:
-        # Distutil file for MSVC++ 14.0 and upper (Python 3.5+)
-        import distutils._msvccompiler as msvc14compiler
-    except ImportError:
-        pass
-
     if platform.system() != 'Windows':
         # Compilers only availables on Microsoft Windows
         return
 
+    def patch_params(mod_name, func_name):
+        """
+        Prepare the parameters for patch_func to patch indicated function.
+        """
+        repl_prefix = 'msvc9_' if 'msvc9' in mod_name else 'msvc14_'
+        repl_name = repl_prefix + func_name.lstrip('_')
+        repl = getattr(msvc, repl_name)
+        mod = import_module(mod_name)
+        if not hasattr(mod, func_name):
+            raise ImportError(func_name)
+        return repl, mod, func_name
+
+    # Python 2.7 to 3.4
+    msvc9 = functools.partial(patch_params, 'distutils.msvc9compiler')
+
+    # Python 3.5+
+    msvc14 = functools.partial(patch_params, 'distutils._msvccompiler')
+
     try:
         # Patch distutils.msvc9compiler
-        patch_func(msvc.msvc9_find_vcvarsall, msvc9compiler.find_vcvarsall)
-        patch_func(msvc.msvc9_query_vcvarsall, msvc9compiler.query_vcvarsall)
-    except NameError:
+        patch_func(*msvc9('find_vcvarsall'))
+        patch_func(*msvc9('query_vcvarsall'))
+    except ImportError:
         pass
 
     try:
         # Patch distutils._msvccompiler._get_vc_env
-        patch_func(msvc.msvc14_get_vc_env, msvc14compiler._get_vc_env)
-    except NameError:
+        patch_func(*msvc14('_get_vc_env'))
+    except ImportError:
         pass
 
     try:
         # Patch distutils._msvccompiler.gen_lib_options for Numpy
-        patch_func(msvc.msvc14_gen_lib_options, msvc14compiler.gen_lib_options)
-    except NameError:
+        patch_func(*msvc14('gen_lib_options'))
+    except ImportError:
         pass
