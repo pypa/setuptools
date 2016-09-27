@@ -7,6 +7,8 @@ In development
 
 * #733: Do not search excluded directories for packages.
 
+* #795: Bump certifi.
+
 v27.3.0
 -------
 
