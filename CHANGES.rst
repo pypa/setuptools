@@ -13,6 +13,9 @@ v28.0.0
 
 * #795: Bump certifi.
 
+* #719: Suppress decoding errors and instead log a warning
+  when metadata cannot be decoded.
+
 v27.3.1
 -------
 

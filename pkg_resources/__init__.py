@@ -1,3 +1,5 @@
+# coding: utf-8
+
 """
 Package resource API
 --------------------
@@ -1858,16 +1860,19 @@ class FileMetadata(EmptyProvider):
 
     def get_metadata(self, name):
         if name == 'PKG-INFO':
-            with io.open(self.path, encoding='utf-8') as f:
-                try:
-                    metadata = f.read()
-                except UnicodeDecodeError as exc:
-                    # add path context to error message
-                    tmpl = " in {self.path}"
-                    exc.reason += tmpl.format(self=self)
-                    raise
+            with io.open(self.path, encoding='utf-8', errors="replace") as f:
+                metadata = f.read()
+            self._warn_on_replacement(metadata)
             return metadata
         raise KeyError("No metadata except PKG-INFO is available")
+
+    def _warn_on_replacement(self, metadata):
+        # Python 2.6 and 3.2 compat for: replacement_char = '�'
+        replacement_char = b'\xef\xbf\xbd'.decode('utf-8')
+        if replacement_char in metadata:
+            tmpl = "{self.path} could not be properly decoded in UTF-8"
+            msg = tmpl.format(**locals())
+            warnings.warn(msg)
 
     def get_metadata_lines(self, name):
         return yield_lines(self.get_metadata(name))
