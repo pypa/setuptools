@@ -8,7 +8,7 @@ A tool for doing automatic download/extract/build of distutils-based Python
 packages.  For detailed documentation, see the accompanying EasyInstall.txt
 file, or visit the `EasyInstall home page`__.
 
-__ https://pythonhosted.org/setuptools/easy_install.html
+__ https://setuptools.readthedocs.io/en/latest/easy_install.html
 
 """
 
@@ -32,7 +32,6 @@ import zipfile
 import re
 import stat
 import random
-import platform
 import textwrap
 import warnings
 import site
@@ -50,8 +49,9 @@ from setuptools.sandbox import run_setup
 from setuptools.py31compat import get_path, get_config_vars
 from setuptools.command import setopt
 from setuptools.archive_util import unpack_archive
-from setuptools.package_index import PackageIndex
-from setuptools.package_index import URL_SCHEME
+from setuptools.package_index import (
+    PackageIndex, parse_requirement_arg, URL_SCHEME,
+)
 from setuptools.command import bdist_egg, egg_info
 from pkg_resources import (
     yield_lines, normalize_path, resource_string, ensure_directory,
@@ -432,7 +432,7 @@ class easy_install(Command):
         """
         try:
             pid = os.getpid()
-        except:
+        except Exception:
             pid = random.randint(0, sys.maxsize)
         return os.path.join(self.install_dir, "test-easy-install-%s" % pid)
 
@@ -513,7 +513,7 @@ class easy_install(Command):
         For information on other options, you may wish to consult the
         documentation at:
 
-          https://pythonhosted.org/setuptools/easy_install.html
+          https://setuptools.readthedocs.io/en/latest/easy_install.html
 
         Please make the appropriate changes for your system and try again.
         """).lstrip()
@@ -930,7 +930,7 @@ class easy_install(Command):
                     destination,
                     fix_zipimporter_caches=new_dist_is_zipped,
                 )
-            except:
+            except Exception:
                 update_dist_caches(destination, fix_zipimporter_caches=False)
                 raise
 
@@ -1257,7 +1257,8 @@ class easy_install(Command):
         * You can set up the installation directory to support ".pth" files by
           using one of the approaches described here:
 
-          https://pythonhosted.org/setuptools/easy_install.html#custom-installation-locations
+          https://setuptools.readthedocs.io/en/latest/easy_install.html#custom-installation-locations
+
 
         Please make the appropriate changes for your system and try again.""").lstrip()
 
@@ -1522,15 +1523,6 @@ def get_exe_prefixes(exe_filename):
     return prefixes
 
 
-def parse_requirement_arg(spec):
-    try:
-        return Requirement.parse(spec)
-    except ValueError:
-        raise DistutilsError(
-            "Not a URL, existing file, or requirement spec: %r" % (spec,)
-        )
-
-
 class PthDistributions(Environment):
     """A .pth file with Distribution paths in it"""
 
@@ -1662,7 +1654,7 @@ class RewritePthDistributions(PthDistributions):
         """)
 
 
-if os.environ.get('SETUPTOOLS_SYS_PATH_TECHNIQUE', 'rewrite') == 'rewrite':
+if os.environ.get('SETUPTOOLS_SYS_PATH_TECHNIQUE', 'raw') == 'rewrite':
     PthDistributions = RewritePthDistributions
 
 
@@ -1832,6 +1824,7 @@ def _remove_and_clear_zip_directory_cache_data(normalized_path):
         normalized_path, zipimport._zip_directory_cache,
         updater=clear_and_remove_cached_zip_archive_directory_data)
 
+
 # PyPy Python implementation does not allow directly writing to the
 # zipimport._zip_directory_cache and so prevents us from attempting to correct
 # its content. The best we can do there is clear the problematic cache content
@@ -1987,9 +1980,19 @@ class CommandSpec(list):
         return self._render(self + list(self.options))
 
     @staticmethod
+    def _strip_quotes(item):
+        _QUOTES = '"\''
+        for q in _QUOTES:
+            if item.startswith(q) and item.endswith(q):
+                return item[1:-1]
+        return item
+
+    @staticmethod
     def _render(items):
-        cmdline = subprocess.list2cmdline(items)
+        cmdline = subprocess.list2cmdline(
+            CommandSpec._strip_quotes(item.strip()) for item in items)
         return '#!' + cmdline + '\n'
+
 
 # For pbr compat; will be removed in a future version.
 sys_executable = CommandSpec._sys_executable()
@@ -2008,10 +2011,12 @@ class ScriptWriter(object):
     template = textwrap.dedent("""
         # EASY-INSTALL-ENTRY-SCRIPT: %(spec)r,%(group)r,%(name)r
         __requires__ = %(spec)r
+        import re
         import sys
         from pkg_resources import load_entry_point
 
         if __name__ == '__main__':
+            sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
             sys.exit(
                 load_entry_point(%(spec)r, %(group)r, %(name)r)()
             )
@@ -2159,6 +2164,7 @@ class WindowsScriptWriter(ScriptWriter):
 
 
 class WindowsExecutableLauncherWriter(WindowsScriptWriter):
+
     @classmethod
     def _get_script_args(cls, type_, name, header, script_text):
         """
@@ -2203,8 +2209,6 @@ def get_win_launcher(type):
     Returns the executable as a byte string.
     """
     launcher_fn = '%s.exe' % type
-    if platform.machine().lower() == 'arm':
-        launcher_fn = launcher_fn.replace(".", "-arm.")
     if is_64bit():
         launcher_fn = launcher_fn.replace(".", "-64.")
     else:
@@ -2221,39 +2225,7 @@ def load_launcher_manifest(name):
 
 
 def rmtree(path, ignore_errors=False, onerror=auto_chmod):
-    """Recursively delete a directory tree.
-
-    This code is taken from the Python 2.4 version of 'shutil', because
-    the 2.3 version doesn't really work right.
-    """
-    if ignore_errors:
-        def onerror(*args):
-            pass
-    elif onerror is None:
-        def onerror(*args):
-            raise
-    names = []
-    try:
-        names = os.listdir(path)
-    except os.error:
-        onerror(os.listdir, path, sys.exc_info())
-    for name in names:
-        fullname = os.path.join(path, name)
-        try:
-            mode = os.lstat(fullname).st_mode
-        except os.error:
-            mode = 0
-        if stat.S_ISDIR(mode):
-            rmtree(fullname, ignore_errors, onerror)
-        else:
-            try:
-                os.remove(fullname)
-            except os.error:
-                onerror(os.remove, fullname, sys.exc_info())
-    try:
-        os.rmdir(path)
-    except os.error:
-        onerror(os.rmdir, path, sys.exc_info())
+    return shutil.rmtree(path, ignore_errors, onerror)
 
 
 def current_umask():

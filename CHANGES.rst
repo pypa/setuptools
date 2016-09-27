@@ -2,6 +2,336 @@
 CHANGES
 =======
 
+v28.0.0
+-------
+
+* #733: Do not search excluded directories for packages.
+  This introduced a backwards incompatible change in ``find_packages()``
+  so that ``find_packages(exclude=['foo']) == []``, excluding subpackages of ``foo``.
+  Previously, ``find_packages(exclude=['foo']) == ['foo.bar']``,
+  even though the parent ``foo`` package was excluded.
+
+* #795: Bump certifi.
+
+* #719: Suppress decoding errors and instead log a warning
+  when metadata cannot be decoded.
+
+v27.3.1
+-------
+
+* #790: In MSVC monkeypatching, explicitly patch each
+  function by name in the target module instead of inferring
+  the module from the function's ``__module__``. Improves
+  compatibility with other packages that might have previously
+  patched distutils functions (i.e. NumPy).
+
+v27.3.0
+-------
+
+* #794: In test command, add installed eggs to PYTHONPATH
+  when invoking tests so that subprocesses will also have the
+  dependencies available. Fixes `tox 330
+  <https://github.com/tox-dev/tox/issues/330>`_.
+
+* #795: Update vendored pyparsing 2.1.9.
+
+v27.2.0
+-------
+
+* #520 and #513: Suppress ValueErrors in fixup_namespace_packages
+  when lookup fails.
+
+* Nicer, more consistent interfaces for msvc monkeypatching.
+
+v27.1.2
+-------
+
+* #779 via #781: Fix circular import.
+
+v27.1.1
+-------
+
+* #778: Fix MSVC monkeypatching.
+
+v27.1.0
+-------
+
+* Introduce the (private) ``monkey`` module to encapsulate
+  the distutils monkeypatching behavior.
+
+v27.0.0
+-------
+
+* Now use Warehouse by default for
+  ``upload``, patching ``distutils.config.PyPIRCCommand`` to
+  affect default behavior.
+
+  Any config in .pypirc should be updated to replace
+
+    https://pypi.python.org/pypi/
+
+  with
+
+    https://upload.pypi.org/legacy/
+
+  Similarly, any passwords stored in the keyring should be
+  updated to use this new value for "system".
+
+  The ``upload_docs`` command will continue to use the python.org
+  site, but the command is now deprecated. Users are urged to use
+  Read The Docs instead.
+
+* #776: Use EXT_SUFFIX for py_limited_api renaming.
+
+* #774 and #775: Use LegacyVersion from packaging when
+  detecting numpy versions.
+
+v26.1.1
+-------
+
+* Re-release of 26.1.0 with pytest pinned to allow for automated
+  deployement and thus proper packaging environment variables,
+  fixing issues with missing executable launchers.
+
+v26.1.0
+-------
+
+* #763: ``pkg_resources.get_default_cache`` now defers to the
+  `appdirs project <https://pypi.org/project/appdirs>`_ to
+  resolve the cache directory. Adds a vendored dependency on
+  appdirs to pkg_resources.
+
+v26.0.0
+-------
+
+* #748: By default, sdists are now produced in gzipped tarfile
+  format by default on all platforms, adding forward compatibility
+  for the same behavior in Python 3.6 (See Python #27819).
+
+* #459 via #736: On Windows with script launchers,
+  sys.argv[0] now reflects
+  the name of the entry point, consistent with the behavior in
+  distlib and pip wrappers.
+
+* #752 via #753: When indicating ``py_limited_api`` to Extension,
+  it must be passed as a keyword argument.
+
+v25.4.0
+-------
+
+* Add Extension(py_limited_api=True). When set to a truthy value,
+  that extension gets a filename apropriate for code using Py_LIMITED_API.
+  When used correctly this allows a single compiled extension to work on
+  all future versions of CPython 3.
+  The py_limited_api argument only controls the filename. To be
+  compatible with multiple versions of Python 3, the C extension
+  will also need to set -DPy_LIMITED_API=... and be modified to use
+  only the functions in the limited API.
+
+v25.3.0
+-------
+
+* #739 Fix unquoted libpaths by fixing compatibility between `numpy.distutils` and `distutils._msvccompiler` for numpy < 1.11.2 (Fix issue #728, error also fixed in Numpy).
+
+* #731: Bump certifi.
+
+* Style updates. See #740, #741, #743, #744, #742, #747.
+
+* #735: include license file.
+
+v25.2.0
+-------
+
+* #612 via #730: Add a LICENSE file which needs to be provided by the terms of
+  the MIT license.
+
+v25.1.6
+-------
+
+* #725: revert `library_dir_option` patch (Error is related to `numpy.distutils` and make errors on non Numpy users).
+
+v25.1.5
+-------
+
+* #720
+* #723: Improve patch for `library_dir_option`.
+
+v25.1.4
+-------
+
+* #717
+* #713
+* #707: Fix Python 2 compatibility for MSVC by catching errors properly.
+* #715: Fix unquoted libpaths by patching `library_dir_option`.
+
+v25.1.3
+-------
+
+* #714 and #704: Revert fix as it breaks other components
+  downstream that can't handle unicode. See #709, #710,
+  and #712.
+
+v25.1.2
+-------
+
+* #704: Fix errors when installing a zip sdist that contained
+  files named with non-ascii characters on Windows would
+  crash the install when it attempted to clean up the build.
+* #646: MSVC compatibility - catch errors properly in
+  RegistryInfo.lookup.
+* #702: Prevent UnboundLocalError when initial working_set
+  is empty.
+
+v25.1.1
+-------
+
+* #686: Fix issue in sys.path ordering by pkg_resources when
+  rewrite technique is "raw".
+* #699: Fix typo in msvc support.
+
+v25.1.0
+-------
+
+* #609: Setuptools will now try to download a distribution from
+  the next possible download location if the first download fails.
+  This means you can now specify multiple links as ``dependency_links``
+  and all links will be tried until a working download link is encountered.
+
+v25.0.2
+-------
+
+* #688: Fix AttributeError in setup.py when invoked not from
+  the current directory.
+
+v25.0.1
+-------
+
+* Cleanup of setup.py script.
+
+* Fixed documentation builders by allowing setup.py
+  to be imported without having bootstrapped the
+  metadata.
+
+* More style cleanup. See #677, #678, #679, #681, #685.
+
+v25.0.0
+-------
+
+* #674: Default ``sys.path`` manipulation by easy-install.pth
+  is now "raw", meaning that when writing easy-install.pth
+  during any install operation, the ``sys.path`` will not be
+  rewritten and will no longer give preference to easy_installed
+  packages.
+
+  To retain the old behavior when using any easy_install
+  operation (including ``setup.py install`` when setuptools is
+  present), set the environment variable:
+
+    SETUPTOOLS_SYS_PATH_TECHNIQUE=rewrite
+
+  This project hopes that that few if any environments find it
+  necessary to retain the old behavior, and intends to drop
+  support for it altogether in a future release. Please report
+  any relevant concerns in the ticket for this change.
+
+v24.3.1
+-------
+
+* #398: Fix shebang handling on Windows in script
+  headers where spaces in ``sys.executable`` would
+  produce an improperly-formatted shebang header,
+  introduced in 12.0 with the fix for #188.
+
+* #663, #670: More style updates.
+
+v24.3.0
+-------
+
+* #516: Disable ``os.link`` to avoid hard linking
+  in ``sdist.make_distribution``, avoiding errors on
+  systems that support hard links but not on the
+  file system in which the build is occurring.
+
+v24.2.1
+-------
+
+* #667: Update Metadata-Version to 1.2 when
+  ``python_requires`` is supplied.
+
+v24.2.0
+-------
+
+* #631: Add support for ``python_requires`` keyword.
+
+v24.1.1
+-------
+
+* More style updates. See #660, #661, #641.
+
+v24.1.0
+-------
+
+* #659: ``setup.py`` now will fail fast and with a helpful
+  error message when the necessary metadata is missing.
+* More style updates. See #656, #635, #640,
+  #644, #650, #652, and #655.
+
+v24.0.3
+-------
+
+* Updated style in much of the codebase to match
+  community expectations. See #632, #633, #634,
+  #637, #639, #638, #642, #648.
+
+v24.0.2
+-------
+
+* If MSVC++14 is needed ``setuptools.msvc`` now redirect
+  user to Visual C++ Build Tools web page.
+
+v24.0.1
+-------
+
+* #625 and #626: Fixes on ``setuptools.msvc`` mainly
+  for Python 2 and Linux.
+
+v24.0.0
+-------
+
+* Pull Request #174: Add more aggressive support for
+  standalone Microsoft Visual C++ compilers in
+  msvc9compiler patch.
+  Particularly : Windows SDK 6.1 and 7.0
+  (MSVC++ 9.0), Windows SDK 7.1 (MSVC++ 10.0),
+  Visual C++ Build Tools 2015 (MSVC++14)
+* Renamed ``setuptools.msvc9_support`` to
+  ``setuptools.msvc``.
+
+v23.2.1
+-------
+
+Re-release of v23.2.0, which was missing the intended
+commits.
+
+* #623: Remove used of deprecated 'U' flag when reading
+  manifests.
+
+v23.1.0
+-------
+
+* #619: Deprecated ``tag_svn_revision`` distribution
+  option.
+
+v23.0.0
+-------
+
+* #611: Removed ARM executables for CLI and GUI script
+  launchers on Windows. If this was a feature you cared
+  about, please comment in the ticket.
+* #604: Removed docs building support. The project
+  now relies on documentation hosted at
+  https://setuptools.readthedocs.io/.
+
 v22.0.5
 -------
 
@@ -113,7 +443,7 @@ v20.8.0
 v20.7.0
 -------
 
-* Refactored extra enviroment marker processing
+* Refactored extra environment marker processing
   in WorkingSet.
 * Issue #533: Fixed intermittent test failures.
 * Issue #536: In msvc9_support, trap additional exceptions
@@ -200,7 +530,7 @@ v20.6.0
 20.2.1
 ------
 
-* Issue #499: Restore compatiblity for legacy versions
+* Issue #499: Restore compatibility for legacy versions
   by bumping to packaging 16.4.
 
 20.2
@@ -432,7 +762,8 @@ v20.6.0
 18.3
 ----
 
-* Setuptools now allows disabling of the manipulation of the sys.path
+* BB Pull Request #135: Setuptools now allows disabling of
+  the manipulation of the sys.path
   during the processing of the easy-install.pth file. To do so, set
   the environment variable ``SETUPTOOLS_SYS_PATH_TECHNIQUE`` to
   anything but "rewrite" (consider "raw"). During any install operation
@@ -1132,12 +1463,12 @@ process to fail and PyPI uploads no longer accept files for 13.0.
 
 * Issue #125: Prevent Subversion support from creating a ~/.subversion
   directory just for checking the presence of a Subversion repository.
-* Issue #12: Namespace packages are now imported lazily.  That is, the mere
+* Issue #12: Namespace packages are now imported lazily. That is, the mere
   declaration of a namespace package in an egg on ``sys.path`` no longer
-  causes it to be imported when ``pkg_resources`` is imported.  Note that this
+  causes it to be imported when ``pkg_resources`` is imported. Note that this
   change means that all of a namespace package's ``__init__.py`` files must
   include a ``declare_namespace()`` call in order to ensure that they will be
-  handled properly at runtime.  In 2.x it was possible to get away without
+  handled properly at runtime. In 2.x it was possible to get away without
   including the declaration, but only at the cost of forcing namespace
   packages to be imported early, which 3.0 no longer does.
 * Issue #148: When building (bdist_egg), setuptools no longer adds
@@ -1918,7 +2249,7 @@ how it parses version numbers.
 * Distribute #67: Fixed doc typo (PEP 381/PEP 382).
 
 * Distribute no longer shadows setuptools if we require a 0.7-series
-  setuptools.  And an error is raised when installing a 0.7 setuptools with
+  setuptools. And an error is raised when installing a 0.7 setuptools with
   distribute.
 
 * When run from within buildout, no attempt is made to modify an existing
@@ -2218,7 +2549,7 @@ easy_install
  * Fix ``bdist_egg`` not including files in subdirectories of ``.egg-info``.
 
  * Allow ``.py`` files found by the ``include_package_data`` option to be
-   automatically included.  Remove duplicate data file matches if both
+   automatically included. Remove duplicate data file matches if both
    ``include_package_data`` and ``package_data`` are used to refer to the same
    files.
 
@@ -2259,7 +2590,7 @@ easy_install
    directory doesn't need to support .pth files.
 
  * ``MANIFEST.in`` is now forcibly closed when any errors occur while reading
-   it.  Previously, the file could be left open and the actual error would be
+   it. Previously, the file could be left open and the actual error would be
    masked by problems trying to remove the open file on Windows systems.
 
 0.6a10
@@ -2272,7 +2603,7 @@ easy_install
 
  * The ``sdist`` command no longer uses the traditional ``MANIFEST`` file to
    create source distributions.  ``MANIFEST.in`` is still read and processed,
-   as are the standard defaults and pruning.  But the manifest is built inside
+   as are the standard defaults and pruning. But the manifest is built inside
    the project's ``.egg-info`` directory as ``SOURCES.txt``, and it is rebuilt
    every time the ``egg_info`` command is run.
 
@@ -2308,11 +2639,11 @@ easy_install
    command so that you can more easily wrap a "flat" egg in a system package.
 
  * Enhanced ``bdist_rpm`` so that it installs single-version eggs that
-   don't rely on a ``.pth`` file.  The ``--no-egg`` option has been removed,
+   don't rely on a ``.pth`` file. The ``--no-egg`` option has been removed,
    since all RPMs are now built in a more backwards-compatible format.
 
  * Support full roundtrip translation of eggs to and from ``bdist_wininst``
-   format.  Running ``bdist_wininst`` on a setuptools-based package wraps the
+   format. Running ``bdist_wininst`` on a setuptools-based package wraps the
    egg in an .exe that will safely install it as an egg (i.e., with metadata
    and entry-point wrapper scripts), and ``easy_install`` can turn the .exe
    back into an ``.egg`` file or directory and install it as such.
@@ -2336,19 +2667,19 @@ easy_install
 
  * Fixed some problems with fresh checkouts of projects that don't include
    ``.egg-info/PKG-INFO`` under revision control and put the project's source
-   code directly in the project directory.  If such a package had any
+   code directly in the project directory. If such a package had any
    requirements that get processed before the ``egg_info`` command can be run,
    the setup scripts would fail with a "Missing 'Version:' header and/or
    PKG-INFO file" error, because the egg runtime interpreted the unbuilt
    metadata in a directory on ``sys.path`` (i.e. the current directory) as
-   being a corrupted egg.  Setuptools now monkeypatches the distribution
+   being a corrupted egg. Setuptools now monkeypatches the distribution
    metadata cache to pretend that the egg has valid version information, until
    it has a chance to make it actually be so (via the ``egg_info`` command).
 
 0.6a5
 -----
 
- * Fixed missing gui/cli .exe files in distribution.  Fixed bugs in tests.
+ * Fixed missing gui/cli .exe files in distribution. Fixed bugs in tests.
 
 0.6a3
 -----
@@ -2361,8 +2692,8 @@ easy_install
 -----
 
  * Added ``console_scripts`` entry point group to allow installing scripts
-   without the need to create separate script files.  On Windows, console
-   scripts get an ``.exe`` wrapper so you can just type their name.  On other
+   without the need to create separate script files. On Windows, console
+   scripts get an ``.exe`` wrapper so you can just type their name. On other
    platforms, the scripts are written without a file extension.
 
 0.6a1
@@ -2372,7 +2703,7 @@ easy_install
    the target package, using a ``--no-egg`` option.
 
  * The ``build_ext`` command now works better when using the ``--inplace``
-   option and multiple Python versions.  It now makes sure that all extensions
+   option and multiple Python versions. It now makes sure that all extensions
    match the current Python version, even if newer copies were built for a
    different Python version.
 
@@ -2402,11 +2733,11 @@ easy_install
 
  * ``setuptools`` now finds its commands, ``setup()`` argument validators, and
    metadata writers using entry points, so that they can be extended by
-   third-party packages.  See `Creating distutils Extensions
+   third-party packages. See `Creating distutils Extensions
    <http://pythonhosted.org/setuptools/setuptools.html#creating-distutils-extensions>`_
    for more details.
 
- * The vestigial ``depends`` command has been removed.  It was never finished
+ * The vestigial ``depends`` command has been removed. It was never finished
    or documented, and never would have worked without EasyInstall - which it
    pre-dated and was never compatible with.
 
@@ -2440,9 +2771,9 @@ easy_install
 
  * ``setup.py install`` now automatically detects when an "unmanaged" package
    or module is going to be on ``sys.path`` ahead of a package being installed,
-   thereby preventing the newer version from being imported.  If this occurs,
+   thereby preventing the newer version from being imported. If this occurs,
    a warning message is output to ``sys.stderr``, but installation proceeds
-   anyway.  The warning message informs the user what files or directories
+   anyway. The warning message informs the user what files or directories
    need deleting, and advises them they can also use EasyInstall (with the
    ``--delete-conflicting`` option) to do it automatically.
 
@@ -2463,14 +2794,14 @@ easy_install
  * The "egg_info" command now always sets the distribution metadata to "safe"
    forms of the distribution name and version, so that distribution files will
    be generated with parseable names (i.e., ones that don't include '-' in the
-   name or version).  Also, this means that if you use the various ``--tag``
+   name or version). Also, this means that if you use the various ``--tag``
    options of "egg_info", any distributions generated will use the tags in the
    version, not just egg distributions.
 
  * Added support for defining command aliases in distutils configuration files,
-   under the "[aliases]" section.  To prevent recursion and to allow aliases to
+   under the "[aliases]" section. To prevent recursion and to allow aliases to
    call the command of the same name, a given alias can be expanded only once
-   per command-line invocation.  You can define new aliases with the "alias"
+   per command-line invocation. You can define new aliases with the "alias"
    command, either for the local, global, or per-user configuration.
 
  * Added "rotate" command to delete old distribution files, given a set of
@@ -2478,7 +2809,7 @@ easy_install
    recently-modified distribution files matching each pattern.)
 
  * Added "saveopts" command that saves all command-line options for the current
-   invocation to the local, global, or per-user configuration file.  Useful for
+   invocation to the local, global, or per-user configuration file. Useful for
    setting defaults without having to hand-edit a configuration file.
 
  * Added a "setopt" command that sets a single option in a specified distutils
@@ -2497,7 +2828,7 @@ easy_install
  * Beefed up the "sdist" command so that if you don't have a MANIFEST.in, it
    will include all files under revision control (CVS or Subversion) in the
    current directory, and it will regenerate the list every time you create a
-   source distribution, not just when you tell it to.  This should make the
+   source distribution, not just when you tell it to. This should make the
    default "do what you mean" more often than the distutils' default behavior
    did, while still retaining the old behavior in the presence of MANIFEST.in.
 
@@ -2512,14 +2843,14 @@ easy_install
 0.5a5
 -----
 
- * Added ``develop`` command to ``setuptools``-based packages.  This command
+ * Added ``develop`` command to ``setuptools``-based packages. This command
    installs an ``.egg-link`` pointing to the package's source directory, and
    script wrappers that ``execfile()`` the source versions of the package's
-   scripts.  This lets you put your development checkout(s) on sys.path without
+   scripts. This lets you put your development checkout(s) on sys.path without
    having to actually install them.  (To uninstall the link, use
    use ``setup.py develop --uninstall``.)
 
- * Added ``egg_info`` command to ``setuptools``-based packages.  This command
+ * Added ``egg_info`` command to ``setuptools``-based packages. This command
    just creates or updates the "projectname.egg-info" directory, without
    building an egg.  (It's used by the ``bdist_egg``, ``test``, and ``develop``
    commands.)
@@ -2527,11 +2858,11 @@ easy_install
  * Enhanced the ``test`` command so that it doesn't install the package, but
    instead builds any C extensions in-place, updates the ``.egg-info``
    metadata, adds the source directory to ``sys.path``, and runs the tests
-   directly on the source.  This avoids an "unmanaged" installation of the
+   directly on the source. This avoids an "unmanaged" installation of the
    package to ``site-packages`` or elsewhere.
 
  * Made ``easy_install`` a standard ``setuptools`` command, moving it from
-   the ``easy_install`` module to ``setuptools.command.easy_install``.  Note
+   the ``easy_install`` module to ``setuptools.command.easy_install``. Note
    that if you were importing or extending it, you must now change your imports
    accordingly.  ``easy_install.py`` is still installed as a script, but not as
    a module.
@@ -2542,10 +2873,10 @@ easy_install
  * Setup scripts using setuptools can now list their dependencies directly in
    the setup.py file, without having to manually create a ``depends.txt`` file.
    The ``install_requires`` and ``extras_require`` arguments to ``setup()``
-   are used to create a dependencies file automatically.  If you are manually
+   are used to create a dependencies file automatically. If you are manually
    creating ``depends.txt`` right now, please switch to using these setup
    arguments as soon as practical, because ``depends.txt`` support will be
-   removed in the 0.6 release cycle.  For documentation on the new arguments,
+   removed in the 0.6 release cycle. For documentation on the new arguments,
    see the ``setuptools.dist.Distribution`` class.
 
  * Setup scripts using setuptools now always install using ``easy_install``
@@ -2554,7 +2885,7 @@ easy_install
 0.5a1
 -----
 
- * Added support for "self-installation" bootstrapping.  Packages can now
+ * Added support for "self-installation" bootstrapping. Packages can now
    include ``ez_setup.py`` in their source distribution, and add the following
    to their ``setup.py``, in order to automatically bootstrap installation of
    setuptools as part of their setup process::
@@ -2574,21 +2905,21 @@ easy_install
 
  * All downloads are now managed by the ``PackageIndex`` class (which is now
    subclassable and replaceable), so that embedders can more easily override
-   download logic, give download progress reports, etc.  The class has also
+   download logic, give download progress reports, etc. The class has also
    been moved to the new ``setuptools.package_index`` module.
 
  * The ``Installer`` class no longer handles downloading, manages a temporary
-   directory, or tracks the ``zip_ok`` option.  Downloading is now handled
+   directory, or tracks the ``zip_ok`` option. Downloading is now handled
    by ``PackageIndex``, and ``Installer`` has become an ``easy_install``
    command class based on ``setuptools.Command``.
 
  * There is a new ``setuptools.sandbox.run_setup()`` API to invoke a setup
    script in a directory sandbox, and a new ``setuptools.archive_util`` module
-   with an ``unpack_archive()`` API.  These were split out of EasyInstall to
+   with an ``unpack_archive()`` API. These were split out of EasyInstall to
    allow reuse by other tools and applications.
 
  * ``setuptools.Command`` now supports reinitializing commands using keyword
-   arguments to set/reset options.  Also, ``Command`` subclasses can now set
+   arguments to set/reset options. Also, ``Command`` subclasses can now set
    their ``command_consumes_arguments`` attribute to ``True`` in order to
    receive an ``args`` option containing the rest of the command line.
 
@@ -2597,7 +2928,7 @@ easy_install
 
  * Added new options to ``bdist_egg`` to allow tagging the egg's version number
    with a subversion revision number, the current date, or an explicit tag
-   value.  Run ``setup.py bdist_egg --help`` to get more information.
+   value. Run ``setup.py bdist_egg --help`` to get more information.
 
  * Misc. bug fixes
 

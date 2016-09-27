@@ -8,23 +8,27 @@ import os
 import sys
 import textwrap
 
-# Allow to run setup.py from another directory.
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
-src_root = None
-
-from distutils.util import convert_path
-
-command_ns = {}
-init_path = convert_path('setuptools/command/__init__.py')
-with open(init_path) as init_file:
-    exec(init_file.read(), command_ns)
-
-SETUP_COMMANDS = command_ns['__all__']
-
 import setuptools
 
-scripts = []
+
+here = os.path.dirname(__file__)
+
+
+def require_metadata():
+    "Prevent improper installs without necessary metadata. See #659"
+    if not os.path.exists('setuptools.egg-info'):
+        msg = "Cannot build setuptools without metadata. Run bootstrap.py"
+        raise RuntimeError(msg)
+
+
+def read_commands():
+    command_ns = {}
+    cmd_module_path = 'setuptools/command/__init__.py'
+    init_path = os.path.join(here, cmd_module_path)
+    with open(init_path) as init_file:
+        exec(init_file.read(), command_ns)
+    return command_ns['__all__']
+
 
 def _gen_console_scripts():
     yield "easy_install = setuptools.command.easy_install:main"
@@ -41,21 +45,27 @@ def _gen_console_scripts():
     yield ("easy_install-{shortver} = setuptools.command.easy_install:main"
         .format(shortver=sys.version[:3]))
 
-console_scripts = list(_gen_console_scripts())
 
-readme_file = io.open('README.rst', encoding='utf-8')
-
-with readme_file:
+readme_path = os.path.join(here, 'README.rst')
+with io.open(readme_path, encoding='utf-8') as readme_file:
     long_description = readme_file.read()
 
-package_data = {
-        'setuptools': ['script (dev).tmpl', 'script.tmpl', 'site-patch.py']}
+package_data = dict(
+    setuptools=['script (dev).tmpl', 'script.tmpl', 'site-patch.py'],
+)
+
 force_windows_specific_files = (
     os.environ.get("SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES")
     not in (None, "", "0")
 )
-if (sys.platform == 'win32' or (os.name == 'java' and os._name == 'nt')) \
-        or force_windows_specific_files:
+
+include_windows_files = (
+    sys.platform == 'win32' or
+    os.name == 'java' and os._name == 'nt' or
+    force_windows_specific_files
+)
+
+if include_windows_files:
     package_data.setdefault('setuptools', []).extend(['*.exe'])
     package_data.setdefault('setuptools.command', []).extend(['*.xml'])
 
@@ -64,17 +74,29 @@ pytest_runner = ['pytest-runner'] if needs_pytest else []
 needs_wheel = set(['release', 'bdist_wheel']).intersection(sys.argv)
 wheel = ['wheel'] if needs_wheel else []
 
+
+def pypi_link(pkg_filename):
+    """
+    Given the filename, including md5 fragment, construct the
+    dependency link for PyPI.
+    """
+    root = 'https://pypi.python.org/packages/source'
+    name, sep, rest = pkg_filename.partition('-')
+    parts = root, name[0], name, pkg_filename
+    return '/'.join(parts)
+
+
 setup_params = dict(
     name="setuptools",
     use_scm_version=True,
     description="Easily download, build, install, upgrade, and uninstall "
-                "Python packages",
+        "Python packages",
     author="Python Packaging Authority",
     author_email="distutils-sig@python.org",
     long_description=long_description,
     keywords="CPAN PyPI distutils eggs package management",
     url="https://github.com/pypa/setuptools",
-    src_root=src_root,
+    src_root=None,
     packages=setuptools.find_packages(exclude=['*.tests']),
     package_data=package_data,
 
@@ -85,7 +107,7 @@ setup_params = dict(
     entry_points={
         "distutils.commands": [
             "%(cmd)s = setuptools.command.%(cmd)s:%(cmd)s" % locals()
-            for cmd in SETUP_COMMANDS
+            for cmd in read_commands()
         ],
         "distutils.setup_keywords": [
             "eager_resources        = setuptools.dist:assert_string_list",
@@ -94,6 +116,7 @@ setup_params = dict(
             "install_requires       = setuptools.dist:check_requirements",
             "tests_require          = setuptools.dist:check_requirements",
             "setup_requires         = setuptools.dist:check_requirements",
+            "python_requires        = setuptools.dist:check_specifier",
             "entry_points           = setuptools.dist:check_entry_points",
             "test_suite             = setuptools.dist:check_test_suite",
             "zip_safe               = setuptools.dist:assert_bool",
@@ -119,7 +142,7 @@ setup_params = dict(
             "depends.txt = setuptools.command.egg_info:warn_depends_obsolete",
             "dependency_links.txt = setuptools.command.egg_info:overwrite_arg",
         ],
-        "console_scripts": console_scripts,
+        "console_scripts": list(_gen_console_scripts()),
 
         "setuptools.installation":
             ['eggsecutable = setuptools.command.easy_install:bootstrap'],
@@ -144,16 +167,21 @@ setup_params = dict(
         """).strip().splitlines(),
     extras_require={
         "ssl:sys_platform=='win32'": "wincertstore==0.2",
-        "certs": "certifi==2016.2.28",
+        "certs": "certifi==2016.8.31",
     },
     dependency_links=[
-        'https://pypi.python.org/packages/source/c/certifi/certifi-2016.2.28.tar.gz#md5=5d672aa766e1f773c75cfeccd02d3650',
-        'https://pypi.python.org/packages/source/w/wincertstore/wincertstore-0.2.zip#md5=ae728f2f007185648d0c7a8679b361e2',
+        pypi_link(
+            'certifi-2016.8.31.tar.gz#md5=2f22d484a36d38d98be74f9eeb2846ec',
+        ),
+        pypi_link(
+            'wincertstore-0.2.zip#md5=ae728f2f007185648d0c7a8679b361e2',
+        ),
     ],
     scripts=[],
     tests_require=[
         'setuptools[ssl]',
-        'pytest>=2.8',
+        'pytest-flake8',
+        'pytest>=3.0.2',
     ] + (['mock'] if sys.version_info[:2] < (3, 3) else []),
     setup_requires=[
         'setuptools_scm>=1.9',
@@ -161,4 +189,7 @@ setup_params = dict(
 )
 
 if __name__ == '__main__':
+    # allow setup.py to run from another directory
+    here and os.chdir(here)
+    require_metadata()
     dist = setuptools.setup(**setup_params)

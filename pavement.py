@@ -3,19 +3,23 @@ import re
 from paver.easy import task, path as Path
 import pip
 
+
 def remove_all(paths):
     for path in paths:
         path.rmtree() if path.isdir() else path.remove()
 
+
 @task
 def update_vendored():
     vendor = Path('pkg_resources/_vendor')
+    # pip uninstall doesn't support -t, so do it manually
     remove_all(vendor.glob('packaging*'))
     remove_all(vendor.glob('six*'))
     remove_all(vendor.glob('pyparsing*'))
+    remove_all(vendor.glob('appdirs*'))
     install_args = [
         'install',
-        '-r', str(vendor/'vendored.txt'),
+        '-r', str(vendor / 'vendored.txt'),
         '-t', str(vendor),
     ]
     pip.main(install_args)

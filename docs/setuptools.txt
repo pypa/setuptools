@@ -302,6 +302,10 @@ unless you need the associated ``setuptools`` feature.
     installed to support those features.  See the section below on `Declaring
     Dependencies`_ for details and examples of the format of this argument.
 
+``python_requires``
+    A string corresponding to a version specifier (as defined in PEP 440) for
+    the Python version, used to specify the Requires-Python defined in PEP 345.
+
 ``setup_requires``
     A string or list of strings specifying what other distributions need to
     be present in order for the *setup script* to run.  ``setuptools`` will
@@ -917,7 +921,7 @@ use its resource management API.  See also `Accessing Package Resources`_ for
 a quick example of converting code that uses ``__file__`` to use
 ``pkg_resources`` instead.
 
-.. _Resource Management API: http://peak.telecommunity.com/DevCenter/PythonEggs#resource-management
+.. _Resource Management API: http://peak.telecommunity.com/DevCenter/PkgResources#resourcemanager-api
 .. _Accessing Package Resources: http://peak.telecommunity.com/DevCenter/PythonEggs#accessing-package-resources
 
 

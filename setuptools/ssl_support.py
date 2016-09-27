@@ -161,6 +161,7 @@ class VerifyingHTTPSHandler(HTTPSHandler):
 
 class VerifyingHTTPSConn(HTTPSConnection):
     """Simple verifying connection: no auth, subclasses, timeouts, etc."""
+
     def __init__(self, host, ca_bundle, **kw):
         HTTPSConnection.__init__(self, host, **kw)
         self.ca_bundle = ca_bundle
@@ -192,6 +193,7 @@ class VerifyingHTTPSConn(HTTPSConnection):
             self.sock.close()
             raise
 
+
 def opener_for(ca_bundle=None):
     """Get a urlopen() replacement that uses ca_bundle for verification"""
     return urllib.request.build_opener(
@@ -200,6 +202,7 @@ def opener_for(ca_bundle=None):
 
 
 _wincerts = None
+
 
 def get_win_certfile():
     global _wincerts
@@ -212,6 +215,7 @@ def get_win_certfile():
         return None
 
     class MyCertFile(CertFile):
+
         def __init__(self, stores=(), certs=()):
             CertFile.__init__(self)
             for store in stores:
@@ -231,7 +235,7 @@ def get_win_certfile():
 
 def find_ca_bundle():
     """Return an existing CA bundle path, or None"""
-    if os.name=='nt':
+    if os.name == 'nt':
         return get_win_certfile()
     else:
         for cert_path in cert_paths:

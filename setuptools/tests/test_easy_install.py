@@ -14,9 +14,10 @@ import logging
 import itertools
 import distutils.errors
 import io
+import zipfile
 
-from setuptools.extern.six.moves import urllib
 import time
+from setuptools.extern.six.moves import urllib
 
 import pytest
 try:
@@ -30,7 +31,7 @@ import setuptools.command.easy_install as ei
 from setuptools.command.easy_install import PthDistributions
 from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
-from pkg_resources import working_set
+from pkg_resources import normalize_path, working_set
 from pkg_resources import Distribution as PRDistribution
 import setuptools.tests.server
 import pkg_resources
@@ -41,6 +42,7 @@ from .textwrap import DALS
 
 
 class FakeDist(object):
+
     def get_entry_map(self, group):
         if group != 'console_scripts':
             return {}
@@ -49,11 +51,13 @@ class FakeDist(object):
     def as_requirement(self):
         return 'spec'
 
+
 SETUP_PY = DALS("""
     from setuptools import setup
 
     setup(name='foo')
     """)
+
 
 class TestEasyInstallTest:
 
@@ -70,10 +74,12 @@ class TestEasyInstallTest:
         expected = header + DALS("""
             # EASY-INSTALL-ENTRY-SCRIPT: 'spec','console_scripts','name'
             __requires__ = 'spec'
+            import re
             import sys
             from pkg_resources import load_entry_point
 
             if __name__ == '__main__':
+                sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
                 sys.exit(
                     load_entry_point('spec', 'console_scripts', 'name')()
                 )
@@ -123,16 +129,72 @@ class TestEasyInstallTest:
         get_site_dirs should always return site dirs reported by
         site.getsitepackages.
         """
-        mock_gsp = lambda: ['/setuptools/test/site-packages']
+        path = normalize_path('/setuptools/test/site-packages')
+        mock_gsp = lambda: [path]
         monkeypatch.setattr(site, 'getsitepackages', mock_gsp, raising=False)
-        assert '/setuptools/test/site-packages' in ei.get_site_dirs()
+        assert path in ei.get_site_dirs()
 
     def test_all_site_dirs_works_without_getsitepackages(self, monkeypatch):
         monkeypatch.delattr(site, 'getsitepackages', raising=False)
         assert ei.get_site_dirs()
 
+    @pytest.fixture
+    def sdist_unicode(self, tmpdir):
+        files = [
+            (
+                'setup.py',
+                DALS("""
+                    import setuptools
+                    setuptools.setup(
+                        name="setuptools-test-unicode",
+                        version="1.0",
+                        packages=["mypkg"],
+                        include_package_data=True,
+                    )
+                    """),
+            ),
+            (
+                'mypkg/__init__.py',
+                "",
+            ),
+            (
+                u'mypkg/\u2603.txt',
+                "",
+            ),
+        ]
+        sdist_name = 'setuptools-test-unicode-1.0.zip'
+        sdist = tmpdir / sdist_name
+        # can't use make_sdist, because the issue only occurs
+        #  with zip sdists.
+        sdist_zip = zipfile.ZipFile(str(sdist), 'w')
+        for filename, content in files:
+            sdist_zip.writestr(filename, content)
+        sdist_zip.close()
+        return str(sdist)
+
+    @pytest.mark.xfail(reason="#709 and #710")
+    # also
+    #@pytest.mark.xfail(setuptools.tests.is_ascii,
+    #    reason="https://github.com/pypa/setuptools/issues/706")
+    def test_unicode_filename_in_sdist(self, sdist_unicode, tmpdir, monkeypatch):
+        """
+        The install command should execute correctly even if
+        the package has unicode filenames.
+        """
+        dist = Distribution({'script_args': ['easy_install']})
+        target = (tmpdir / 'target').ensure_dir()
+        cmd = ei.easy_install(
+            dist,
+            install_dir=str(target),
+            args=['x'],
+        )
+        monkeypatch.setitem(os.environ, 'PYTHONPATH', str(target))
+        cmd.ensure_finalized()
+        cmd.easy_install(sdist_unicode)
+
 
 class TestPTHFileWriter:
+
     def test_add_from_cwd_site_sets_dirty(self):
         '''a pth file manager should set dirty
         if a distribution is in site but also the cwd
@@ -154,7 +216,7 @@ class TestPTHFileWriter:
 
 @pytest.yield_fixture
 def setup_context(tmpdir):
-    with (tmpdir/'setup.py').open('w') as f:
+    with (tmpdir / 'setup.py').open('w') as f:
         f.write(SETUP_PY)
     with tmpdir.as_cwd():
         yield tmpdir
@@ -266,6 +328,7 @@ def distutils_package():
 
 
 class TestDistutilsPackage:
+
     def test_bdist_egg_available_on_distutils_pkg(self, distutils_package):
         run_setup('setup.py', ['bdist_egg'])
 
@@ -527,36 +590,40 @@ def make_trivial_sdist(dist_path, setup_py):
         dist.addfile(setup_py_file, fileobj=setup_py_bytes)
 
 
+@pytest.mark.skipif(
+    sys.platform.startswith('java') and ei.is_sh(sys.executable),
+    reason="Test cannot run under java when executable is sh"
+)
 class TestScriptHeader:
     non_ascii_exe = '/Users/José/bin/python'
     exe_with_spaces = r'C:\Program Files\Python33\python.exe'
 
-    @pytest.mark.skipif(
-        sys.platform.startswith('java') and ei.is_sh(sys.executable),
-        reason="Test cannot run under java when executable is sh"
-    )
     def test_get_script_header(self):
         expected = '#!%s\n' % ei.nt_quote_arg(os.path.normpath(sys.executable))
         actual = ei.ScriptWriter.get_script_header('#!/usr/local/bin/python')
         assert actual == expected
 
+    def test_get_script_header_args(self):
         expected = '#!%s -x\n' % ei.nt_quote_arg(os.path.normpath
             (sys.executable))
         actual = ei.ScriptWriter.get_script_header('#!/usr/bin/python -x')
         assert actual == expected
 
+    def test_get_script_header_non_ascii_exe(self):
         actual = ei.ScriptWriter.get_script_header('#!/usr/bin/python',
             executable=self.non_ascii_exe)
         expected = '#!%s -x\n' % self.non_ascii_exe
         assert actual == expected
 
+    def test_get_script_header_exe_with_spaces(self):
         actual = ei.ScriptWriter.get_script_header('#!/usr/bin/python',
-            executable='"'+self.exe_with_spaces+'"')
+            executable='"' + self.exe_with_spaces + '"')
         expected = '#!"%s"\n' % self.exe_with_spaces
         assert actual == expected
 
 
 class TestCommandSpec:
+
     def test_custom_launch_command(self):
         """
         Show how a custom CommandSpec could be used to specify a #! executable
@@ -590,17 +657,9 @@ class TestCommandSpec:
         assert len(cmd) == 2
         assert '"' not in cmd.as_header()
 
-    def test_sys_executable(self):
-        """
-        CommandSpec.from_string(sys.executable) should contain just that param.
-        """
-        writer = ei.ScriptWriter.best()
-        cmd = writer.command_spec_class.from_string(sys.executable)
-        assert len(cmd) == 1
-        assert cmd[0] == sys.executable
-
 
 class TestWindowsScriptWriter:
+
     def test_header(self):
         hdr = ei.WindowsScriptWriter.get_script_header('')
         assert hdr.startswith('#!')

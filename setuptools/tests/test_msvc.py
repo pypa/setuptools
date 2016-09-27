@@ -1,5 +1,5 @@
 """
-Tests for msvc9compiler.
+Tests for msvc support module.
 """
 
 import os
@@ -69,9 +69,9 @@ class TestModulePatch:
     def test_patched(self):
         "Test the module is actually patched"
         mod_name = distutils.msvc9compiler.find_vcvarsall.__module__
-        assert mod_name == "setuptools.msvc9_support", "find_vcvarsall unpatched"
+        assert mod_name == "setuptools.msvc", "find_vcvarsall unpatched"
 
-    def test_no_registry_entryies_means_nothing_found(self):
+    def test_no_registry_entries_means_nothing_found(self):
         """
         No registry entries or environment variable should lead to an error
         directing the user to download vcpython27.
@@ -83,10 +83,12 @@ class TestModulePatch:
             with mock_reg():
                 assert find_vcvarsall(9.0) is None
 
-                expected = distutils.errors.DistutilsPlatformError
-                with pytest.raises(expected) as exc:
+                try:
                     query_vcvarsall(9.0)
-                assert 'aka.ms/vcpython27' in str(exc)
+                except Exception as exc:
+                    expected = distutils.errors.DistutilsPlatformError
+                    assert isinstance(exc, expected)
+                    assert 'aka.ms/vcpython27' in str(exc)
 
     @pytest.yield_fixture
     def user_preferred_setting(self):

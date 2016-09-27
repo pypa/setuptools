@@ -7,13 +7,23 @@ import distutils.errors
 from setuptools.extern import six
 from setuptools.extern.six.moves import urllib, http_client
 
-from .textwrap import DALS
 import pkg_resources
 import setuptools.package_index
 from setuptools.tests.server import IndexServer
+from .textwrap import DALS
 
 
 class TestPackageIndex:
+
+    def test_regex(self):
+        hash_url = 'http://other_url?:action=show_md5&amp;'
+        hash_url += 'digest=0123456789abcdef0123456789abcdef'
+        doc = """
+            <a href="http://some_url">Name</a>
+            (<a title="MD5 hash"
+            href="{hash_url}">md5</a>)
+        """.lstrip().format(**locals())
+        assert setuptools.package_index.PYPI_MD5.match(doc)
 
     def test_bad_url_bad_port(self):
         index = setuptools.package_index.PackageIndex()
@@ -129,7 +139,7 @@ class TestPackageIndex:
         # the distribution has been found
         assert 'foobar' in pi
         # we have only one link, because links are compared without md5
-        assert len(pi['foobar'])==1
+        assert len(pi['foobar']) == 1
         # the link should be from the index
         assert 'correct_md5' in pi['foobar'][0].location
 
@@ -209,6 +219,7 @@ class TestContentCheckers:
 
 
 class TestPyPIConfig:
+
     def test_percent_in_password(self, tmpdir, monkeypatch):
         monkeypatch.setitem(os.environ, 'HOME', str(tmpdir))
         pypirc = tmpdir / '.pypirc'

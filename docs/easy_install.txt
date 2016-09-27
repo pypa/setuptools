@@ -577,7 +577,7 @@ activated or deactivated.
 As a result, if you are using EasyInstall to upgrade an existing package, or
 to install a package with the same name as an existing package, EasyInstall
 will warn you of the conflict.  (This is an improvement over ``setup.py
-install``, becuase the ``distutils`` just install new packages on top of old
+install``, because the ``distutils`` just install new packages on top of old
 ones, possibly combining two unrelated packages or leaving behind modules that
 have been deleted in the newer version of the package.)
 
@@ -606,7 +606,7 @@ can be safely installed as a zipfile, and then acts on its analysis.  (Previous
 versions would not install a package as a zipfile unless you used the
 ``--zip-ok`` option.)
 
-The current analysis approach is fairly conservative; it currenly looks for:
+The current analysis approach is fairly conservative; it currently looks for:
 
  * Any use of the ``__file__`` or ``__path__`` variables (which should be
    replaced with ``pkg_resources`` API calls)
@@ -768,7 +768,7 @@ Command-Line Options
     run by scripts that are already installed.
 
 ``--user`` (New in 0.6.11)
-    Use the the user-site-packages as specified in :pep:`370`
+    Use the user-site-packages as specified in :pep:`370`
     instead of the global site-packages.
 
 ``--always-copy, -a``   (New in 0.5a4)

@@ -179,7 +179,7 @@ class TestEggInfo(object):
             """ % requires_line)
         build_files({
             'setup.py': setup_script,
-            })
+        })
 
     def test_install_requires_with_markers(self, tmpdir_cwd, env):
         self._setup_script_with_requires(
@@ -210,6 +210,32 @@ class TestEggInfo(object):
         self._run_install_command(tmpdir_cwd, env)
         assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
 
+    def test_python_requires_egg_info(self, tmpdir_cwd, env):
+        self._setup_script_with_requires(
+            """python_requires='>=2.7.12',""")
+        environ = os.environ.copy().update(
+            HOME=env.paths['home'],
+        )
+        code, data = environment.run_setup_py(
+            cmd=['egg_info'],
+            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
+            data_stream=1,
+            env=environ,
+        )
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
+        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+            pkg_info_lines = pkginfo_file.read().split('\n')
+        assert 'Requires-Python: >=2.7.12' in pkg_info_lines
+        assert 'Metadata-Version: 1.2' in pkg_info_lines
+
+    def test_python_requires_install(self, tmpdir_cwd, env):
+        self._setup_script_with_requires(
+            """python_requires='>=1.2.3',""")
+        self._run_install_command(tmpdir_cwd, env)
+        egg_info_dir = self._find_egg_info_files(env.paths['lib']).base
+        pkginfo = os.path.join(egg_info_dir, 'PKG-INFO')
+        assert 'Requires-Python: >=1.2.3' in open(pkginfo).read().split('\n')
+
     def _run_install_command(self, tmpdir_cwd, env, cmd=None, output=None):
         environ = os.environ.copy().update(
             HOME=env.paths['home'],
@@ -235,6 +261,7 @@ class TestEggInfo(object):
 
     def _find_egg_info_files(self, root):
         class DirList(list):
+
             def __init__(self, files, base):
                 super(DirList, self).__init__(files)
                 self.base = base

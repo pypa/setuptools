@@ -3,7 +3,7 @@ import os.path
 
 
 def cs_path_exists(fspath):
-    if not os.path.exists(fspath): 
+    if not os.path.exists(fspath):
         return False
     # make absolute so we always have a directory
     abspath = os.path.abspath(fspath)

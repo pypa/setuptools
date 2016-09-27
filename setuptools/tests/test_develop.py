@@ -26,6 +26,7 @@ setup(name='foo',
 INIT_PY = """print "foo"
 """
 
+
 @pytest.yield_fixture
 def temp_user(monkeypatch):
     with contexts.tempdir() as user_base:
@@ -54,6 +55,7 @@ def test_env(tmpdir, temp_user):
 class TestDevelop:
     in_virtualenv = hasattr(sys, 'real_prefix')
     in_venv = hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix
+
     @pytest.mark.skipif(in_virtualenv or in_venv,
         reason="Cannot run when invoked in a virtualenv or venv")
     def test_2to3_user_mode(self, test_env):
@@ -112,4 +114,4 @@ class TestDevelop:
         cmd.ensure_finalized()
         cmd.install_dir = tmpdir
         cmd.run()
-        #assert '0.0' not in foocmd_text
+        # assert '0.0' not in foocmd_text

@@ -57,6 +57,7 @@ class TestSandbox:
 
 
 class TestExceptionSaver:
+
     def test_exception_trapped(self):
         with setuptools.sandbox.ExceptionSaver():
             raise ValueError("details")

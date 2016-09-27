@@ -13,6 +13,8 @@ from setuptools import find_packages
 find_420_packages = setuptools.PEP420PackageFinder.find
 
 # modeled after CPython's test.support.can_symlink
+
+
 def can_symlink():
     TESTFN = tempfile.mktemp()
     symlink_path = TESTFN + "can_symlink"
@@ -26,12 +28,14 @@ def can_symlink():
     globals().update(can_symlink=lambda: can)
     return can
 
+
 def has_symlink():
     bad_symlink = (
         # Windows symlink directory detection is broken on Python 3.2
-        platform.system() == 'Windows' and sys.version_info[:2] == (3,2)
+        platform.system() == 'Windows' and sys.version_info[:2] == (3, 2)
     )
     return can_symlink() and not bad_symlink
+
 
 class TestFindPackages:
 
@@ -93,6 +97,15 @@ class TestFindPackages:
         self._touch('__init__.py', self.pkg_dir)
         packages = find_packages(self.dist_dir, exclude=('pkg.*',))
         assert packages == ['pkg']
+
+    def test_exclude_recursive(self):
+        """
+        Excluding a parent package should exclude all child packages as well.
+        """
+        self._touch('__init__.py', self.pkg_dir)
+        self._touch('__init__.py', self.sub_pkg_dir)
+        packages = find_packages(self.dist_dir, exclude=('pkg',))
+        assert packages == []
 
     def test_include_excludes_other(self):
         """

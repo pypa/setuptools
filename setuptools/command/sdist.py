@@ -4,6 +4,7 @@ import distutils.command.sdist as orig
 import os
 import sys
 import io
+import contextlib
 
 from setuptools.extern import six
 
@@ -14,6 +15,7 @@ import pkg_resources
 READMES = 'README', 'README.rst', 'README.txt'
 
 _default_revctrl = list
+
 
 def walk_revctrl(dirname=''):
     """Find all files under revision control"""
@@ -64,6 +66,43 @@ class sdist(orig.sdist):
             if data not in dist_files:
                 dist_files.append(data)
 
+    def initialize_options(self):
+        orig.sdist.initialize_options(self)
+
+        self._default_to_gztar()
+
+    def _default_to_gztar(self):
+        # only needed on Python prior to 3.6.
+        if sys.version_info >= (3, 6, 0, 'beta', 1):
+            return
+        self.formats = ['gztar']
+
+    def make_distribution(self):
+        """
+        Workaround for #516
+        """
+        with self._remove_os_link():
+            orig.sdist.make_distribution(self)
+
+    @staticmethod
+    @contextlib.contextmanager
+    def _remove_os_link():
+        """
+        In a context, remove and restore os.link if it exists
+        """
+        class NoValue:
+            pass
+        orig_val = getattr(os, 'link', NoValue)
+        try:
+            del os.link
+        except Exception:
+            pass
+        try:
+            yield
+        finally:
+            if orig_val is not NoValue:
+                setattr(os, 'link', orig_val)
+
     def __read_template_hack(self):
         # This grody hack closes the template file (MANIFEST.in) if an
         #  exception occurs during read_template.
@@ -71,7 +110,7 @@ class sdist(orig.sdist):
         #  file.
         try:
             orig.sdist.read_template(self)
-        except:
+        except Exception:
             _, _, tb = sys.exc_info()
             tb.tb_next.tb_frame.f_locals['template'].close()
             raise
@@ -179,7 +218,7 @@ class sdist(orig.sdist):
         distribution.
         """
         log.info("reading manifest file '%s'", self.manifest)
-        manifest = open(self.manifest, 'rbU')
+        manifest = open(self.manifest, 'rb')
         for line in manifest:
             # The manifest must contain UTF-8. See #303.
             if six.PY3:

@@ -32,8 +32,8 @@ User support and discussions are done through the issue tracker (for specific)
 issues, through the distutils-sig mailing list, or on IRC (Freenode) at
 #pypa.
 
-Discussions about development happen on the pypa-dev mailing list or on IRC
-(Freenode) at #pypa-dev.
+Discussions about development happen on the pypa-dev mailing list or on
+`Gitter <https://gitter.im/pypa/setuptools>`_.
 
 -----------------
 Authoring Tickets
@@ -111,15 +111,10 @@ Setuptools follows ``semver``.
 Building Documentation
 ----------------------
 
-Setuptools relies on the Sphinx system for building documentation and in
-particular the ``build_sphinx`` distutils command. To build the
-documentation, invoke::
+Setuptools relies on the Sphinx system for building documentation.
+To accommodate RTD, docs must be built from the docs/ directory.
 
-    python setup.py build_sphinx
+To build them, you need to have installed the requirements specified
+in docs/requirements.txt. One way to do this is to use rwt:
 
-from the root of the repository. Setuptools will download a compatible
-build of Sphinx and any requisite plugins and then build the
-documentation in the build/sphinx directory.
-
-Setuptools does not support invoking the doc builder from the docs/
-directory as some tools expect.
+    setuptools/docs$ python -m rwt -r requirements.txt -- -m sphinx . html
