@@ -2,6 +2,9 @@
 CHANGES
 =======
 
+* #719: Suppress decoding errors and instead log a warning
+  when metadata cannot be decoded.
+
 v25.1.4
 -------
 
