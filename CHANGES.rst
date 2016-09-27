@@ -2,8 +2,8 @@
 CHANGES
 =======
 
-In development
---------------
+v28.0.0
+-------
 
 * #733: Do not search excluded directories for packages.
   This introduced a backwards incompatible change in ``find_packages()``
