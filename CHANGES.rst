@@ -2,6 +2,15 @@
 CHANGES
 =======
 
+v27.3.1
+-------
+
+* #790: In MSVC monkeypatching, explicitly patch each
+  function by name in the target module instead of inferring
+  the module from the function's ``__module__``. Improves
+  compatibility with other packages that might have previously
+  patched distutils functions (i.e. NumPy).
+
 v27.3.0
 -------
 
