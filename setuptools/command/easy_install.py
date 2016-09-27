@@ -8,7 +8,7 @@ A tool for doing automatic download/extract/build of distutils-based Python
 packages.  For detailed documentation, see the accompanying EasyInstall.txt
 file, or visit the `EasyInstall home page`__.
 
-__ https://pythonhosted.org/setuptools/easy_install.html
+__ https://setuptools.readthedocs.io/en/latest/easy_install.html
 
 """
 
@@ -49,8 +49,9 @@ from setuptools.sandbox import run_setup
 from setuptools.py31compat import get_path, get_config_vars
 from setuptools.command import setopt
 from setuptools.archive_util import unpack_archive
-from setuptools.package_index import PackageIndex
-from setuptools.package_index import URL_SCHEME
+from setuptools.package_index import (
+    PackageIndex, parse_requirement_arg, URL_SCHEME,
+)
 from setuptools.command import bdist_egg, egg_info
 from pkg_resources import (
     yield_lines, normalize_path, resource_string, ensure_directory,
@@ -512,7 +513,7 @@ class easy_install(Command):
         For information on other options, you may wish to consult the
         documentation at:
 
-          https://pythonhosted.org/setuptools/easy_install.html
+          https://setuptools.readthedocs.io/en/latest/easy_install.html
 
         Please make the appropriate changes for your system and try again.
         """).lstrip()
@@ -1256,7 +1257,8 @@ class easy_install(Command):
         * You can set up the installation directory to support ".pth" files by
           using one of the approaches described here:
 
-          https://pythonhosted.org/setuptools/easy_install.html#custom-installation-locations
+          https://setuptools.readthedocs.io/en/latest/easy_install.html#custom-installation-locations
+
 
         Please make the appropriate changes for your system and try again.""").lstrip()
 
@@ -1519,15 +1521,6 @@ def get_exe_prefixes(exe_filename):
     prefixes.sort()
     prefixes.reverse()
     return prefixes
-
-
-def parse_requirement_arg(spec):
-    try:
-        return Requirement.parse(spec)
-    except ValueError:
-        raise DistutilsError(
-            "Not a URL, existing file, or requirement spec: %r" % (spec,)
-        )
 
 
 class PthDistributions(Environment):
@@ -2018,10 +2011,12 @@ class ScriptWriter(object):
     template = textwrap.dedent("""
         # EASY-INSTALL-ENTRY-SCRIPT: %(spec)r,%(group)r,%(name)r
         __requires__ = %(spec)r
+        import re
         import sys
         from pkg_resources import load_entry_point
 
         if __name__ == '__main__':
+            sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
             sys.exit(
                 load_entry_point(%(spec)r, %(group)r, %(name)r)()
             )

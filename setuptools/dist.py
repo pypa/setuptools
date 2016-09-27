@@ -2,14 +2,12 @@ __all__ = ['Distribution']
 
 import re
 import os
-import sys
 import warnings
 import numbers
 import distutils.log
 import distutils.core
 import distutils.cmd
 import distutils.dist
-from distutils.core import Distribution as _Distribution
 from distutils.errors import (DistutilsOptionError, DistutilsPlatformError,
     DistutilsSetupError)
 from distutils.util import rfc822_escape
@@ -20,100 +18,66 @@ from pkg_resources.extern import packaging
 
 from setuptools.depends import Require
 from setuptools import windows_support
+from setuptools.monkey import get_unpatched
 import pkg_resources
 
 
 def _get_unpatched(cls):
-    """Protect against re-patching the distutils if reloaded
+    warnings.warn("Do not call this function", DeprecationWarning)
+    return get_unpatched(cls)
 
-    Also ensures that no other distutils extension monkeypatched the distutils
-    first.
+
+# Based on Python 3.5 version
+def write_pkg_file(self, file):
+    """Write the PKG-INFO format data to a file object.
     """
-    while cls.__module__.startswith('setuptools'):
-        cls, = cls.__bases__
-    if not cls.__module__.startswith('distutils'):
-        raise AssertionError(
-            "distutils has already been patched by %r" % cls
-        )
-    return cls
+    version = '1.0'
+    if (self.provides or self.requires or self.obsoletes or
+            self.classifiers or self.download_url):
+        version = '1.1'
+    # Setuptools specific for PEP 345
+    if hasattr(self, 'python_requires'):
+        version = '1.2'
+
+    file.write('Metadata-Version: %s\n' % version)
+    file.write('Name: %s\n' % self.get_name())
+    file.write('Version: %s\n' % self.get_version())
+    file.write('Summary: %s\n' % self.get_description())
+    file.write('Home-page: %s\n' % self.get_url())
+    file.write('Author: %s\n' % self.get_contact())
+    file.write('Author-email: %s\n' % self.get_contact_email())
+    file.write('License: %s\n' % self.get_license())
+    if self.download_url:
+        file.write('Download-URL: %s\n' % self.download_url)
+
+    long_desc = rfc822_escape(self.get_long_description())
+    file.write('Description: %s\n' % long_desc)
+
+    keywords = ','.join(self.get_keywords())
+    if keywords:
+        file.write('Keywords: %s\n' % keywords)
+
+    self._write_list(file, 'Platform', self.get_platforms())
+    self._write_list(file, 'Classifier', self.get_classifiers())
+
+    # PEP 314
+    self._write_list(file, 'Requires', self.get_requires())
+    self._write_list(file, 'Provides', self.get_provides())
+    self._write_list(file, 'Obsoletes', self.get_obsoletes())
+
+    # Setuptools specific for PEP 345
+    if hasattr(self, 'python_requires'):
+        file.write('Requires-Python: %s\n' % self.python_requires)
 
 
-_Distribution = _get_unpatched(_Distribution)
-
-
-def _patch_distribution_metadata_write_pkg_file():
-    """Patch write_pkg_file to also write Requires-Python/Requires-External"""
-
-    # Based on Python 3.5 version
-    def write_pkg_file(self, file):
-        """Write the PKG-INFO format data to a file object.
-        """
-        version = '1.0'
-        if (self.provides or self.requires or self.obsoletes or
-                self.classifiers or self.download_url):
-            version = '1.1'
-        # Setuptools specific for PEP 345
-        if hasattr(self, 'python_requires'):
-            version = '1.2'
-
-        file.write('Metadata-Version: %s\n' % version)
-        file.write('Name: %s\n' % self.get_name())
-        file.write('Version: %s\n' % self.get_version())
-        file.write('Summary: %s\n' % self.get_description())
-        file.write('Home-page: %s\n' % self.get_url())
-        file.write('Author: %s\n' % self.get_contact())
-        file.write('Author-email: %s\n' % self.get_contact_email())
-        file.write('License: %s\n' % self.get_license())
-        if self.download_url:
-            file.write('Download-URL: %s\n' % self.download_url)
-
-        long_desc = rfc822_escape(self.get_long_description())
-        file.write('Description: %s\n' % long_desc)
-
-        keywords = ','.join(self.get_keywords())
-        if keywords:
-            file.write('Keywords: %s\n' % keywords)
-
-        self._write_list(file, 'Platform', self.get_platforms())
-        self._write_list(file, 'Classifier', self.get_classifiers())
-
-        # PEP 314
-        self._write_list(file, 'Requires', self.get_requires())
-        self._write_list(file, 'Provides', self.get_provides())
-        self._write_list(file, 'Obsoletes', self.get_obsoletes())
-
-        # Setuptools specific for PEP 345
-        if hasattr(self, 'python_requires'):
-            file.write('Requires-Python: %s\n' % self.python_requires)
-
-    distutils.dist.DistributionMetadata.write_pkg_file = write_pkg_file
-
-
-_patch_distribution_metadata_write_pkg_file()
-
-
-def _patch_distribution_metadata_write_pkg_info():
+# from Python 3.4
+def write_pkg_info(self, base_dir):
+    """Write the PKG-INFO file into the release tree.
     """
-    Workaround issue #197 - Python 3 prior to 3.2.2 uses an environment-local
-    encoding to save the pkg_info. Monkey-patch its write_pkg_info method to
-    correct this undesirable behavior.
-    """
-    environment_local = (3,) <= sys.version_info[:3] < (3, 2, 2)
-    if not environment_local:
-        return
+    with open(os.path.join(base_dir, 'PKG-INFO'), 'w',
+              encoding='UTF-8') as pkg_info:
+        self.write_pkg_file(pkg_info)
 
-    # from Python 3.4
-    def write_pkg_info(self, base_dir):
-        """Write the PKG-INFO file into the release tree.
-        """
-        with open(os.path.join(base_dir, 'PKG-INFO'), 'w',
-                  encoding='UTF-8') as pkg_info:
-            self.write_pkg_file(pkg_info)
-
-    distutils.dist.DistributionMetadata.write_pkg_info = write_pkg_info
-
-
-_patch_distribution_metadata_write_pkg_info()
 
 sequence = tuple, list
 
@@ -243,6 +207,9 @@ def check_packages(dist, attr, value):
                 "WARNING: %r not a valid package name; please use only "
                 ".-separated package names in setup.py", pkgname
             )
+
+
+_Distribution = get_unpatched(distutils.core.Distribution)
 
 
 class Distribution(_Distribution):
@@ -395,6 +362,7 @@ class Distribution(_Distribution):
         )
         for dist in resolved_dists:
             pkg_resources.working_set.add(dist, replace=True)
+        return resolved_dists
 
     def finalize_options(self):
         _Distribution.finalize_options(self)
@@ -790,11 +758,6 @@ class Distribution(_Distribution):
         finally:
             sys.stdout = io.TextIOWrapper(
                 sys.stdout.detach(), encoding, errors, newline, line_buffering)
-
-
-# Install it throughout the distutils
-for module in distutils.dist, distutils.core, distutils.cmd:
-    module.Distribution = Distribution
 
 
 class Feature:

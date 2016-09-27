@@ -2,6 +2,7 @@ environment:
 
   matrix:
     - PYTHON: "C:\\Python35-x64"
+    - PYTHON: "C:\\Python27-x64"
 
 install:
   # symlink python from a directory with a space
@@ -13,4 +14,4 @@ build: off
 
 test_script:
   - "python bootstrap.py"
-  - "python setup.py test"
+  - "python setup.py test --addopts='-rsx'"

@@ -88,7 +88,7 @@ def pypi_link(pkg_filename):
 
 setup_params = dict(
     name="setuptools",
-    version="25.1.1",
+    version="27.3.1",
     description="Easily download, build, install, upgrade, and uninstall "
         "Python packages",
     author="Python Packaging Authority",
@@ -167,11 +167,11 @@ setup_params = dict(
         """).strip().splitlines(),
     extras_require={
         "ssl:sys_platform=='win32'": "wincertstore==0.2",
-        "certs": "certifi==2016.2.28",
+        "certs": "certifi==2016.8.31",
     },
     dependency_links=[
         pypi_link(
-            'certifi-2016.2.28.tar.gz#md5=5d672aa766e1f773c75cfeccd02d3650',
+            'certifi-2016.8.31.tar.gz#md5=2f22d484a36d38d98be74f9eeb2846ec',
         ),
         pypi_link(
             'wincertstore-0.2.zip#md5=ae728f2f007185648d0c7a8679b361e2',
@@ -181,7 +181,7 @@ setup_params = dict(
     tests_require=[
         'setuptools[ssl]',
         'pytest-flake8',
-        'pytest>=2.8',
+        'pytest>=3.0.2',
         'backports.unittest_mock',
     ],
     setup_requires=[

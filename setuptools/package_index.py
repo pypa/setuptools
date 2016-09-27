@@ -52,6 +52,15 @@ _tmpl = "setuptools/{setuptools.__version__} Python-urllib/{py_major}"
 user_agent = _tmpl.format(py_major=sys.version[:3], **globals())
 
 
+def parse_requirement_arg(spec):
+    try:
+        return Requirement.parse(spec)
+    except ValueError:
+        raise DistutilsError(
+            "Not a URL, existing file, or requirement spec: %r" % (spec,)
+        )
+
+
 def parse_bdist_wininst(name):
     """Return (base,pyversion) or (None,None) for possible .exe name"""
 
@@ -284,13 +293,18 @@ class PackageIndex(Environment):
             ca_bundle=None, verify_ssl=True, *args, **kw
             ):
         Environment.__init__(self, *args, **kw)
-        self.index_url = index_url + "/"[:not index_url.endswith('/')]
+        self.index_url = index_url + "/" [:not index_url.endswith('/')]
         self.scanned_urls = {}
         self.fetched_urls = {}
         self.package_pages = {}
         self.allows = re.compile('|'.join(map(translate, hosts))).match
         self.to_scan = []
-        if verify_ssl and ssl_support.is_available and (ca_bundle or ssl_support.find_ca_bundle()):
+        use_ssl = (
+            verify_ssl
+            and ssl_support.is_available
+            and (ca_bundle or ssl_support.find_ca_bundle())
+        )
+        if use_ssl:
             self.opener = ssl_support.opener_for(ca_bundle)
         else:
             self.opener = urllib.request.urlopen
@@ -320,7 +334,8 @@ class PackageIndex(Environment):
 
         self.info("Reading %s", url)
         self.fetched_urls[url] = True   # prevent multiple fetch attempts
-        f = self.open_url(url, "Download error on %s: %%s -- Some packages may not be found!" % url)
+        tmpl = "Download error on %s: %%s -- Some packages may not be found!"
+        f = self.open_url(url, tmpl % url)
         if f is None:
             return
         self.fetched_urls[f.url] = True
@@ -362,7 +377,8 @@ class PackageIndex(Environment):
 
     def url_ok(self, url, fatal=False):
         s = URL_SCHEME(url)
-        if (s and s.group(1).lower() == 'file') or self.allows(urllib.parse.urlparse(url)[1]):
+        is_file = s and s.group(1).lower() == 'file'
+        if is_file or self.allows(urllib.parse.urlparse(url)[1]):
             return True
         msg = ("\nNote: Bypassing %s (disallowed host; see "
             "http://bit.ly/1dg9ijs for details).\n")
@@ -554,13 +570,7 @@ class PackageIndex(Environment):
                 # Existing file or directory, just return it
                 return spec
             else:
-                try:
-                    spec = Requirement.parse(spec)
-                except ValueError:
-                    raise DistutilsError(
-                        "Not a URL, existing file, or requirement spec: %r" %
-                        (spec,)
-                    )
+                spec = parse_requirement_arg(spec)
         return getattr(self.fetch_distribution(spec, tmpdir), 'location', None)
 
     def fetch_distribution(
@@ -1039,7 +1049,7 @@ def open_with_auth(url, opener=urllib.request.urlopen):
         if cred:
             auth = str(cred)
             info = cred.username, url
-            log.info('Authenticating as %s for %s (from .pypirc)' % info)
+            log.info('Authenticating as %s for %s (from .pypirc)', *info)
 
     if auth:
         auth = "Basic " + _encode_auth(auth)

@@ -29,6 +29,10 @@ def _encode(s):
 
 
 class upload_docs(upload):
+    # override the default repository as upload_docs isn't
+    # supported by Warehouse (and won't be).
+    DEFAULT_REPOSITORY = 'https://pypi.python.org/pypi/'
+
     description = 'Upload documentation to PyPI'
 
     user_options = [
@@ -53,6 +57,7 @@ class upload_docs(upload):
         self.target_dir = None
 
     def finalize_options(self):
+        log.warn("Upload_docs command is deprecated. Use RTD instead.")
         upload.finalize_options(self)
         if self.upload_dir is None:
             if self.has_sphinx():

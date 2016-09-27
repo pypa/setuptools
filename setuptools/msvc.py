@@ -1,12 +1,30 @@
 """
-This module adds improved support for Microsoft Visual C++ compilers.
+Improved support for Microsoft Visual C++ compilers.
+
+Known supported compilers:
+--------------------------
+Microsoft Visual C++ 9.0:
+    Microsoft Visual C++ Compiler for Python 2.7 (x86, amd64);
+    Microsoft Windows SDK 7.0 (x86, x64, ia64);
+    Microsoft Windows SDK 6.1 (x86, x64, ia64)
+
+Microsoft Visual C++ 10.0:
+    Microsoft Windows SDK 7.1 (x86, x64, ia64)
+
+Microsoft Visual C++ 14.0:
+    Microsoft Visual C++ Build Tools 2015 (x86, x64, arm)
 """
+
 import os
+import sys
 import platform
 import itertools
 import distutils.errors
+from pkg_resources.extern.packaging.version import LegacyVersion
 
 from setuptools.extern.six.moves import filterfalse
+
+from .monkey import get_unpatched
 
 if platform.system() == 'Windows':
     from setuptools.extern.six.moves import winreg
@@ -24,66 +42,9 @@ else:
     safe_env = dict()
 
 try:
-    # Distutil file for MSVC++ 9.0 and upper (Python 2.7 to 3.4)
-    import distutils.msvc9compiler as msvc9compiler
+    from distutils.msvc9compiler import Reg
 except ImportError:
     pass
-
-try:
-    # Distutil file for MSVC++ 14.0 and upper (Python 3.5+)
-    import distutils._msvccompiler as msvc14compiler
-except ImportError:
-    pass
-
-
-unpatched = dict()
-
-
-def patch_for_specialized_compiler():
-    """
-    Patch functions in distutils to use standalone Microsoft Visual C++
-    compilers.
-
-    Known supported compilers:
-    --------------------------
-    Microsoft Visual C++ 9.0:
-        Microsoft Visual C++ Compiler for Python 2.7 (x86, amd64);
-        Microsoft Windows SDK 7.0 (x86, x64, ia64);
-        Microsoft Windows SDK 6.1 (x86, x64, ia64)
-
-    Microsoft Visual C++ 10.0:
-        Microsoft Windows SDK 7.1 (x86, x64, ia64)
-
-    Microsoft Visual C++ 14.0:
-        Microsoft Visual C++ Build Tools 2015 (x86, x64, arm)
-    """
-    if platform.system() != 'Windows':
-        # Compilers only availables on Microsoft Windows
-        return
-
-    if 'distutils' not in globals():
-        # The module isn't available to be patched
-        return
-
-    if unpatched:
-        # Already patched
-        return
-
-    try:
-        # Patch distutils.msvc9compiler
-        unpatched['msvc9_find_vcvarsall'] = msvc9compiler.find_vcvarsall
-        msvc9compiler.find_vcvarsall = msvc9_find_vcvarsall
-        unpatched['msvc9_query_vcvarsall'] = msvc9compiler.query_vcvarsall
-        msvc9compiler.query_vcvarsall = msvc9_query_vcvarsall
-    except Exception:
-        pass
-
-    try:
-        # Patch distutils._msvccompiler._get_vc_env
-        unpatched['msvc14_get_vc_env'] = msvc14compiler._get_vc_env
-        msvc14compiler._get_vc_env = msvc14_get_vc_env
-    except Exception:
-        pass
 
 
 def msvc9_find_vcvarsall(version):
@@ -108,7 +69,6 @@ def msvc9_find_vcvarsall(version):
     ------
     vcvarsall.bat path: str
     """
-    Reg = msvc9compiler.Reg
     VC_BASE = r'Software\%sMicrosoft\DevDiv\VCForPython\%0.1f'
     key = VC_BASE % ('', version)
     try:
@@ -127,7 +87,7 @@ def msvc9_find_vcvarsall(version):
         if os.path.isfile(vcvarsall):
             return vcvarsall
 
-    return unpatched['msvc9_find_vcvarsall'](version)
+    return get_unpatched(msvc9_find_vcvarsall)(version)
 
 
 def msvc9_query_vcvarsall(ver, arch='x86', *args, **kwargs):
@@ -160,7 +120,8 @@ def msvc9_query_vcvarsall(ver, arch='x86', *args, **kwargs):
     """
     # Try to get environement from vcvarsall.bat (Classical way)
     try:
-        return unpatched['msvc9_query_vcvarsall'](ver, arch, *args, **kwargs)
+        orig = get_unpatched(msvc9_query_vcvarsall)
+        return orig(ver, arch, *args, **kwargs)
     except distutils.errors.DistutilsPlatformError:
         # Pass error if Vcvarsall.bat is missing
         pass
@@ -199,7 +160,7 @@ def msvc14_get_vc_env(plat_spec):
     """
     # Try to get environment from vcvarsall.bat (Classical way)
     try:
-        return unpatched['msvc14_get_vc_env'](plat_spec)
+        return get_unpatched(msvc14_get_vc_env)(plat_spec)
     except distutils.errors.DistutilsPlatformError:
         # Pass error Vcvarsall.bat is missing
         pass
@@ -210,6 +171,19 @@ def msvc14_get_vc_env(plat_spec):
     except distutils.errors.DistutilsPlatformError as exc:
         _augment_exception(exc, 14.0)
         raise
+
+
+def msvc14_gen_lib_options(*args, **kwargs):
+    """
+    Patched "distutils._msvccompiler.gen_lib_options" for fix
+    compatibility between "numpy.distutils" and "distutils._msvccompiler"
+    (for Numpy < 1.11.2)
+    """
+    if "numpy.distutils" in sys.modules:
+        import numpy as np
+        if LegacyVersion(np.__version__) < LegacyVersion('1.11.2'):
+            return np.distutils.ccompiler.gen_lib_options(*args, **kwargs)
+    return get_unpatched(msvc14_gen_lib_options)(*args, **kwargs)
 
 
 def _augment_exception(exc, version, arch=''):
@@ -243,7 +217,8 @@ def _augment_exception(exc, version, arch=''):
         elif version >= 14.0:
             # For VC++ 14.0 Redirect user to Visual C++ Build Tools
             message += (' Get it with "Microsoft Visual C++ Build Tools": '
-                r'http://landinghub.visualstudio.com/visual-cpp-build-tools')
+                        r'http://landinghub.visualstudio.com/'
+                        'visual-cpp-build-tools')
 
     exc.args = (message, )
 
@@ -357,22 +332,11 @@ class RegistryInfo:
         self.pi = platform_info
 
     @property
-    def microsoft(self):
-        """
-        Microsoft software registry key.
-        """
-        return os.path.join(
-            'Software',
-            '' if self.pi.current_is_x86() else 'Wow6432Node',
-            'Microsoft',
-        )
-
-    @property
     def visualstudio(self):
         """
         Microsoft Visual Studio root registry key.
         """
-        return os.path.join(self.microsoft, 'VisualStudio')
+        return 'VisualStudio'
 
     @property
     def sxs(self):
@@ -400,15 +364,14 @@ class RegistryInfo:
         """
         Microsoft Visual C++ for Python registry key.
         """
-        path = r'DevDiv\VCForPython'
-        return os.path.join(self.microsoft, path)
+        return r'DevDiv\VCForPython'
 
     @property
     def microsoft_sdk(self):
         """
         Microsoft SDK registry key.
         """
-        return os.path.join(self.microsoft, 'Microsoft SDKs')
+        return 'Microsoft SDKs'
 
     @property
     def windows_sdk(self):
@@ -429,11 +392,29 @@ class RegistryInfo:
         """
         Microsoft Windows Kits Roots registry key.
         """
-        return os.path.join(self.microsoft, r'Windows Kits\Installed Roots')
+        return r'Windows Kits\Installed Roots'
+
+    def microsoft(self, key, x86=False):
+        """
+        Return key in Microsoft software registry.
+
+        Parameters
+        ----------
+        key: str
+            Registry key path where look.
+        x86: str
+            Force x86 software registry.
+
+        Return
+        ------
+        str: value
+        """
+        node64 = '' if self.pi.current_is_x86() or x86 else r'\Wow6432Node'
+        return os.path.join('Software', node64, 'Microsoft', key)
 
     def lookup(self, key, name):
         """
-        Look for values in registry.
+        Look for values in registry in Microsoft software registry.
 
         Parameters
         ----------
@@ -446,14 +427,23 @@ class RegistryInfo:
         ------
         str: value
         """
+        KEY_READ = winreg.KEY_READ
+        openkey = winreg.OpenKey
+        ms = self.microsoft
         for hkey in self.HKEYS:
             try:
-                bkey = winreg.OpenKey(hkey, key, 0, winreg.KEY_READ)
-            except IOError:
-                continue
+                bkey = openkey(hkey, ms(key), 0, KEY_READ)
+            except (OSError, IOError):
+                if not self.pi.current_is_x86():
+                    try:
+                        bkey = openkey(hkey, ms(key, True), 0, KEY_READ)
+                    except (OSError, IOError):
+                        continue
+                else:
+                    continue
             try:
                 return winreg.QueryValueEx(bkey, name)[0]
-            except IOError:
+            except (OSError, IOError):
                 pass
 
 
@@ -496,7 +486,7 @@ class SystemInfo:
             for key in vckeys:
                 try:
                     bkey = winreg.OpenKey(hkey, key, 0, winreg.KEY_READ)
-                except IOError:
+                except (OSError, IOError):
                     continue
                 subkeys, values, _ = winreg.QueryInfoKey(bkey)
                 for i in range(values):
@@ -809,7 +799,7 @@ class EnvironmentInfo:
         Microsoft Visual C++ & Microsoft Foundation Class Includes
         """
         return [os.path.join(self.si.VCInstallDir, 'Include'),
-                os.path.join(self.si.VCInstallDir, 'ATLMFC\Include')]
+                os.path.join(self.si.VCInstallDir, r'ATLMFC\Include')]
 
     @property
     def VCLibraries(self):
@@ -1195,5 +1185,5 @@ class EnvironmentInfo:
             if name:
                 return '%s\\' % name[0]
             return ''
-        except IOError:
+        except (OSError, IOError):
             return ''

@@ -14,6 +14,7 @@ import logging
 import itertools
 import distutils.errors
 import io
+import zipfile
 from unittest import mock
 
 import time
@@ -70,10 +71,12 @@ class TestEasyInstallTest:
         expected = header + DALS("""
             # EASY-INSTALL-ENTRY-SCRIPT: 'spec','console_scripts','name'
             __requires__ = 'spec'
+            import re
             import sys
             from pkg_resources import load_entry_point
 
             if __name__ == '__main__':
+                sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
                 sys.exit(
                     load_entry_point('spec', 'console_scripts', 'name')()
                 )
@@ -131,6 +134,60 @@ class TestEasyInstallTest:
     def test_all_site_dirs_works_without_getsitepackages(self, monkeypatch):
         monkeypatch.delattr(site, 'getsitepackages', raising=False)
         assert ei.get_site_dirs()
+
+    @pytest.fixture
+    def sdist_unicode(self, tmpdir):
+        files = [
+            (
+                'setup.py',
+                DALS("""
+                    import setuptools
+                    setuptools.setup(
+                        name="setuptools-test-unicode",
+                        version="1.0",
+                        packages=["mypkg"],
+                        include_package_data=True,
+                    )
+                    """),
+            ),
+            (
+                'mypkg/__init__.py',
+                "",
+            ),
+            (
+                u'mypkg/\u2603.txt',
+                "",
+            ),
+        ]
+        sdist_name = 'setuptools-test-unicode-1.0.zip'
+        sdist = tmpdir / sdist_name
+        # can't use make_sdist, because the issue only occurs
+        #  with zip sdists.
+        sdist_zip = zipfile.ZipFile(str(sdist), 'w')
+        for filename, content in files:
+            sdist_zip.writestr(filename, content)
+        sdist_zip.close()
+        return str(sdist)
+
+    @pytest.mark.xfail(reason="#709 and #710")
+    # also
+    #@pytest.mark.xfail(setuptools.tests.is_ascii,
+    #    reason="https://github.com/pypa/setuptools/issues/706")
+    def test_unicode_filename_in_sdist(self, sdist_unicode, tmpdir, monkeypatch):
+        """
+        The install command should execute correctly even if
+        the package has unicode filenames.
+        """
+        dist = Distribution({'script_args': ['easy_install']})
+        target = (tmpdir / 'target').ensure_dir()
+        cmd = ei.easy_install(
+            dist,
+            install_dir=str(target),
+            args=['x'],
+        )
+        monkeypatch.setitem(os.environ, 'PYTHONPATH', str(target))
+        cmd.ensure_finalized()
+        cmd.easy_install(sdist_unicode)
 
 
 class TestPTHFileWriter:

@@ -2,6 +2,186 @@
 CHANGES
 =======
 
+v28.0.0
+-------
+
+* #733: Do not search excluded directories for packages.
+  This introduced a backwards incompatible change in ``find_packages()``
+  so that ``find_packages(exclude=['foo']) == []``, excluding subpackages of ``foo``.
+  Previously, ``find_packages(exclude=['foo']) == ['foo.bar']``,
+  even though the parent ``foo`` package was excluded.
+
+* #795: Bump certifi.
+
+* #719: Suppress decoding errors and instead log a warning
+  when metadata cannot be decoded.
+
+v27.3.1
+-------
+
+* #790: In MSVC monkeypatching, explicitly patch each
+  function by name in the target module instead of inferring
+  the module from the function's ``__module__``. Improves
+  compatibility with other packages that might have previously
+  patched distutils functions (i.e. NumPy).
+
+v27.3.0
+-------
+
+* #794: In test command, add installed eggs to PYTHONPATH
+  when invoking tests so that subprocesses will also have the
+  dependencies available. Fixes `tox 330
+  <https://github.com/tox-dev/tox/issues/330>`_.
+
+* #795: Update vendored pyparsing 2.1.9.
+
+v27.2.0
+-------
+
+* #520 and #513: Suppress ValueErrors in fixup_namespace_packages
+  when lookup fails.
+
+* Nicer, more consistent interfaces for msvc monkeypatching.
+
+v27.1.2
+-------
+
+* #779 via #781: Fix circular import.
+
+v27.1.1
+-------
+
+* #778: Fix MSVC monkeypatching.
+
+v27.1.0
+-------
+
+* Introduce the (private) ``monkey`` module to encapsulate
+  the distutils monkeypatching behavior.
+
+v27.0.0
+-------
+
+* Now use Warehouse by default for
+  ``upload``, patching ``distutils.config.PyPIRCCommand`` to
+  affect default behavior.
+
+  Any config in .pypirc should be updated to replace
+
+    https://pypi.python.org/pypi/
+
+  with
+
+    https://upload.pypi.org/legacy/
+
+  Similarly, any passwords stored in the keyring should be
+  updated to use this new value for "system".
+
+  The ``upload_docs`` command will continue to use the python.org
+  site, but the command is now deprecated. Users are urged to use
+  Read The Docs instead.
+
+* #776: Use EXT_SUFFIX for py_limited_api renaming.
+
+* #774 and #775: Use LegacyVersion from packaging when
+  detecting numpy versions.
+
+v26.1.1
+-------
+
+* Re-release of 26.1.0 with pytest pinned to allow for automated
+  deployement and thus proper packaging environment variables,
+  fixing issues with missing executable launchers.
+
+v26.1.0
+-------
+
+* #763: ``pkg_resources.get_default_cache`` now defers to the
+  `appdirs project <https://pypi.org/project/appdirs>`_ to
+  resolve the cache directory. Adds a vendored dependency on
+  appdirs to pkg_resources.
+
+v26.0.0
+-------
+
+* #748: By default, sdists are now produced in gzipped tarfile
+  format by default on all platforms, adding forward compatibility
+  for the same behavior in Python 3.6 (See Python #27819).
+
+* #459 via #736: On Windows with script launchers,
+  sys.argv[0] now reflects
+  the name of the entry point, consistent with the behavior in
+  distlib and pip wrappers.
+
+* #752 via #753: When indicating ``py_limited_api`` to Extension,
+  it must be passed as a keyword argument.
+
+v25.4.0
+-------
+
+* Add Extension(py_limited_api=True). When set to a truthy value,
+  that extension gets a filename apropriate for code using Py_LIMITED_API.
+  When used correctly this allows a single compiled extension to work on
+  all future versions of CPython 3.
+  The py_limited_api argument only controls the filename. To be
+  compatible with multiple versions of Python 3, the C extension
+  will also need to set -DPy_LIMITED_API=... and be modified to use
+  only the functions in the limited API.
+
+v25.3.0
+-------
+
+* #739 Fix unquoted libpaths by fixing compatibility between `numpy.distutils` and `distutils._msvccompiler` for numpy < 1.11.2 (Fix issue #728, error also fixed in Numpy).
+
+* #731: Bump certifi.
+
+* Style updates. See #740, #741, #743, #744, #742, #747.
+
+* #735: include license file.
+
+v25.2.0
+-------
+
+* #612 via #730: Add a LICENSE file which needs to be provided by the terms of
+  the MIT license.
+
+v25.1.6
+-------
+
+* #725: revert `library_dir_option` patch (Error is related to `numpy.distutils` and make errors on non Numpy users).
+
+v25.1.5
+-------
+
+* #720
+* #723: Improve patch for `library_dir_option`.
+
+v25.1.4
+-------
+
+* #717
+* #713
+* #707: Fix Python 2 compatibility for MSVC by catching errors properly.
+* #715: Fix unquoted libpaths by patching `library_dir_option`.
+
+v25.1.3
+-------
+
+* #714 and #704: Revert fix as it breaks other components
+  downstream that can't handle unicode. See #709, #710,
+  and #712.
+
+v25.1.2
+-------
+
+* #704: Fix errors when installing a zip sdist that contained
+  files named with non-ascii characters on Windows would
+  crash the install when it attempted to clean up the build.
+* #646: MSVC compatibility - catch errors properly in
+  RegistryInfo.lookup.
+* #702: Prevent UnboundLocalError when initial working_set
+  is empty.
+
 v25.1.1
 -------
 
