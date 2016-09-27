@@ -1859,12 +1859,13 @@ class FileMetadata(EmptyProvider):
         return name == 'PKG-INFO' and os.path.isfile(self.path)
 
     def get_metadata(self, name):
-        if name == 'PKG-INFO':
-            with io.open(self.path, encoding='utf-8', errors="replace") as f:
-                metadata = f.read()
-            self._warn_on_replacement(metadata)
-            return metadata
-        raise KeyError("No metadata except PKG-INFO is available")
+        if name != 'PKG-INFO':
+            raise KeyError("No metadata except PKG-INFO is available")
+
+        with io.open(self.path, encoding='utf-8', errors="replace") as f:
+            metadata = f.read()
+        self._warn_on_replacement(metadata)
+        return metadata
 
     def _warn_on_replacement(self, metadata):
         # Python 2.6 and 3.2 compat for: replacement_char = '�'
