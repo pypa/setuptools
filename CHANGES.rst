@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+v28.1.0
+-------
+
+* #805: Disable ``-nspkg.pth`` behavior on Python 3.3+ where
+  PEP-420 functionality is adequate. Fixes pip #1924.
+
 v28.0.0
 -------
 
