@@ -167,11 +167,11 @@ setup_params = dict(
         """).strip().splitlines(),
     extras_require={
         "ssl:sys_platform=='win32'": "wincertstore==0.2",
-        "certs": "certifi==2016.8.31",
+        "certs": "certifi==2016.9.26",
     },
     dependency_links=[
         pypi_link(
-            'certifi-2016.8.31.tar.gz#md5=2f22d484a36d38d98be74f9eeb2846ec',
+            'certifi-2016.9.26.tar.gz#md5=baa81e951a29958563689d868ef1064d',
         ),
         pypi_link(
             'wincertstore-0.2.zip#md5=ae728f2f007185648d0c7a8679b361e2',
@@ -181,7 +181,8 @@ setup_params = dict(
     tests_require=[
         'setuptools[ssl]',
         'pytest-flake8',
-        'pytest>=3.0.2',
+        # pin pytest to 3.0.2 for pytest-dev/pytest#1888
+        'pytest==3.0.2',
     ] + (['mock'] if sys.version_info[:2] < (3, 3) else []),
     setup_requires=[
     ] + pytest_runner + wheel,

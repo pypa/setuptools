@@ -2,11 +2,16 @@
 CHANGES
 =======
 
-v28.1.0
+v28.2.0
 -------
 
 * #805: Disable ``-nspkg.pth`` behavior on Python 3.3+ where
   PEP-420 functionality is adequate. Fixes pip #1924.
+
+v28.1.0
+-------
+
+* #803: Bump certifi to 2016.9.26.
 
 v28.0.0
 -------
@@ -96,7 +101,7 @@ v26.1.1
 -------
 
 * Re-release of 26.1.0 with pytest pinned to allow for automated
-  deployement and thus proper packaging environment variables,
+  deployment and thus proper packaging environment variables,
   fixing issues with missing executable launchers.
 
 v26.1.0
@@ -126,7 +131,7 @@ v25.4.0
 -------
 
 * Add Extension(py_limited_api=True). When set to a truthy value,
-  that extension gets a filename apropriate for code using Py_LIMITED_API.
+  that extension gets a filename appropriate for code using Py_LIMITED_API.
   When used correctly this allows a single compiled extension to work on
   all future versions of CPython 3.
   The py_limited_api argument only controls the filename. To be
