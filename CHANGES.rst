@@ -2,7 +2,7 @@
 CHANGES
 =======
 
-v28.2.0
+v28.3.0
 -------
 
 * #809: In ``find_packages()``, restore support for excluding
