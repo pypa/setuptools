@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+v28.2.0
+-------
+
+* #809: In ``find_packages()``, restore support for excluding
+  a parent package without excluding a child package.
+
 v28.1.0
 -------
 
