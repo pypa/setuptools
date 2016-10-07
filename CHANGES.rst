@@ -8,6 +8,9 @@ v28.2.0
 * #809: In ``find_packages()``, restore support for excluding
   a parent package without excluding a child package.
 
+* #805: Disable ``-nspkg.pth`` behavior on Python 3.3+ where
+  PEP-420 functionality is adequate. Fixes pip #1924.
+
 v28.1.0
 -------
 
