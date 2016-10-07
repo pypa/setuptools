@@ -75,13 +75,17 @@ class PackageFinder(object):
                 rel_path = os.path.relpath(full_path, where)
                 package = rel_path.replace(os.path.sep, '.')
 
-                # Check if the directory is a package and passes the filters
-                if ('.' not in dir
-                        and include(package)
-                        and not exclude(package)
-                        and cls._looks_like_package(full_path)):
+                # Skip directory trees that are not valid packages
+                if ('.' in dir or not cls._looks_like_package(full_path)):
+                    continue
+
+                # Should this package be included?
+                if include(package) and not exclude(package):
                     yield package
-                    dirs.append(dir)
+
+                # Keep searching subdirectories, as there may be more packages
+                # down there, even if the parent was excluded.
+                dirs.append(dir)
 
     @staticmethod
     def _looks_like_package(path):
