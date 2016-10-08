@@ -60,8 +60,8 @@ The pyparsing module handles some of the problems that are typically vexing when
  - embedded comments
 """
 
-__version__ = "2.1.9"
-__versionTime__ = "10 Sep 2016 15:10 UTC"
+__version__ = "2.1.10"
+__versionTime__ = "07 Oct 2016 01:31 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -868,7 +868,7 @@ class ParseResults(object):
         out.append( indent+_ustr(self.asList()) )
         if full:
             if self.haskeys():
-                items = sorted(self.items())
+                items = sorted((str(k), v) for k,v in self.items())
                 for k,v in items:
                     if out:
                         out.append(NL)
@@ -879,7 +879,7 @@ class ParseResults(object):
                         else:
                             out.append(_ustr(v))
                     else:
-                        out.append(_ustr(v))
+                        out.append(repr(v))
             elif any(isinstance(vv,ParseResults) for vv in self):
                 v = self
                 for i,vv in enumerate(v):
@@ -953,7 +953,7 @@ def col (loc,strg):
    positions within the parsed string.
    """
     s = strg
-    return 1 if loc<len(s) and s[loc] == '\n' else loc - s.rfind("\n", 0, loc)
+    return 1 if 0<loc<len(s) and s[loc-1] == '\n' else loc - s.rfind("\n", 0, loc)
 
 def lineno(loc,strg):
     """Returns current line number within a string, counting newlines as line separators.
@@ -2172,7 +2172,7 @@ class ParserElement(object):
     def matches(self, testString, parseAll=True):
         """
         Method for quick testing of a parser against a test string. Good for simple 
-        inline microtests of sub expressions while building up larger parser.0
+        inline microtests of sub expressions while building up larger parser.
            
         Parameters:
          - testString - to test against this expression for a match
@@ -2267,6 +2267,13 @@ class ParserElement(object):
             FAIL: Expected end of text (at char 4), (line:1, col:5)
 
             Success
+
+        Each test string must be on a single line. If you want to test a string that spans multiple
+        lines, create a test like this::
+
+            expr.runTest(r"this is a test\\n of strings that spans \\n 3 lines")
+        
+        (Note that this is a raw string literal, you must include the leading 'r'.)
         """
         if isinstance(tests, basestring):
             tests = list(map(str.strip, tests.rstrip().splitlines()))
@@ -2284,6 +2291,7 @@ class ParserElement(object):
             out = ['\n'.join(comments), t]
             comments = []
             try:
+                t = t.replace(r'\n','\n')
                 result = self.parseString(t, parseAll=parseAll)
                 out.append(result.dump(full=fullDump))
                 success = success and not failureTests
@@ -2652,7 +2660,7 @@ class Word(Token):
                 self.reString = r"\b"+self.reString+r"\b"
             try:
                 self.re = re.compile( self.reString )
-            except:
+            except Exception:
                 self.re = None
 
     def parseImpl( self, instring, loc, doActions=True ):
@@ -2693,7 +2701,7 @@ class Word(Token):
     def __str__( self ):
         try:
             return super(Word,self).__str__()
-        except:
+        except Exception:
             pass
 
 
@@ -2777,7 +2785,7 @@ class Regex(Token):
     def __str__( self ):
         try:
             return super(Regex,self).__str__()
-        except:
+        except Exception:
             pass
 
         if self.strRepr is None:
@@ -2914,7 +2922,7 @@ class QuotedString(Token):
     def __str__( self ):
         try:
             return super(QuotedString,self).__str__()
-        except:
+        except Exception:
             pass
 
         if self.strRepr is None:
@@ -2983,7 +2991,7 @@ class CharsNotIn(Token):
     def __str__( self ):
         try:
             return super(CharsNotIn, self).__str__()
-        except:
+        except Exception:
             pass
 
         if self.strRepr is None:
@@ -3077,27 +3085,36 @@ class GoToColumn(_PositionToken):
         ret = instring[ loc: newloc ]
         return newloc, ret
 
+
 class LineStart(_PositionToken):
     """
     Matches if current position is at the beginning of a line within the parse string
+    
+    Example::
+    
+        test = '''\
+        AAA this line
+        AAA and this line
+          AAA but not this one
+        B AAA and definitely not this one
+        '''
+
+        for t in (LineStart() + 'AAA' + restOfLine).searchString(test):
+            print(t)
+    
+    Prints::
+        ['AAA', ' this line']
+        ['AAA', ' and this line']    
+
     """
     def __init__( self ):
         super(LineStart,self).__init__()
-        self.setWhitespaceChars( ParserElement.DEFAULT_WHITE_CHARS.replace("\n","") )
         self.errmsg = "Expected start of line"
 
-    def preParse( self, instring, loc ):
-        preloc = super(LineStart,self).preParse(instring,loc)
-        if instring[preloc] == "\n":
-            loc += 1
-        return loc
-
     def parseImpl( self, instring, loc, doActions=True ):
-        if not( loc==0 or
-            (loc == self.preParse( instring, 0 )) or
-            (instring[loc-1] == "\n") ): #col(loc, instring) != 1:
-            raise ParseException(instring, loc, self.errmsg, self)
-        return loc, []
+        if col(loc, instring) == 1:
+            return loc, []
+        raise ParseException(instring, loc, self.errmsg, self)
 
 class LineEnd(_PositionToken):
     """
@@ -3251,7 +3268,7 @@ class ParseExpression(ParserElement):
     def __str__( self ):
         try:
             return super(ParseExpression,self).__str__()
-        except:
+        except Exception:
             pass
 
         if self.strRepr is None:
@@ -3723,7 +3740,7 @@ class ParseElementEnhance(ParserElement):
     def __str__( self ):
         try:
             return super(ParseElementEnhance,self).__str__()
-        except:
+        except Exception:
             pass
 
         if self.strRepr is None and self.expr is not None:
@@ -3792,6 +3809,7 @@ class NotAny(ParseElementEnhance):
 class _MultipleMatch(ParseElementEnhance):
     def __init__( self, expr, stopOn=None):
         super(_MultipleMatch, self).__init__(expr)
+        self.saveAsList = True
         ender = stopOn
         if isinstance(ender, basestring):
             ender = ParserElement._literalStringClass(ender)
@@ -3860,11 +3878,6 @@ class OneOrMore(_MultipleMatch):
             self.strRepr = "{" + _ustr(self.expr) + "}..."
 
         return self.strRepr
-
-    def setResultsName( self, name, listAllMatches=False ):
-        ret = super(OneOrMore,self).setResultsName(name,listAllMatches)
-        ret.saveAsList = True
-        return ret
 
 class ZeroOrMore(_MultipleMatch):
     """
@@ -3942,6 +3955,7 @@ class Optional(ParseElementEnhance):
     """
     def __init__( self, expr, default=_optionalNotMatched ):
         super(Optional,self).__init__( expr, savelist=False )
+        self.saveAsList = self.expr.saveAsList
         self.defaultValue = default
         self.mayReturnEmpty = True
 
@@ -4580,7 +4594,7 @@ def oneOf( strs, caseless=False, useRegex=True ):
                 return Regex( "[%s]" % "".join(_escapeRegexRangeChars(sym) for sym in symbols) ).setName(' | '.join(symbols))
             else:
                 return Regex( "|".join(re.escape(sym) for sym in symbols) ).setName(' | '.join(symbols))
-        except:
+        except Exception:
             warnings.warn("Exception creating Regex for oneOf, building MatchFirst",
                     SyntaxWarning, stacklevel=2)
 
@@ -4726,7 +4740,7 @@ def srange(s):
     _expanded = lambda p: p if not isinstance(p,ParseResults) else ''.join(unichr(c) for c in range(ord(p[0]),ord(p[1])+1))
     try:
         return "".join(_expanded(part) for part in _reBracketExpr.parseString(s).body)
-    except:
+    except Exception:
         return ""
 
 def matchOnlyAtCol(n):
@@ -4983,7 +4997,12 @@ def infixNotation( baseExpr, opList, lpar=Suppress('('), rpar=Suppress(')') ):
     Helper method for constructing grammars of expressions made up of
     operators working in a precedence hierarchy.  Operators may be unary or
     binary, left- or right-associative.  Parse actions can also be attached
-    to operator expressions.
+    to operator expressions. The generated parser will also recognize the use 
+    of parentheses to override operator precedences (see example below).
+    
+    Note: if you define a deep operator list, you may see performance issues
+    when using infixNotation. See L{ParserElement.enablePackrat} for a
+    mechanism to potentially improve your parser performance.
 
     Parameters:
      - baseExpr - expression representing the most basic element for the nested
