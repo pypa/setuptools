@@ -7,6 +7,10 @@ v28.4.0
 
 * #732: Now extras with a hyphen are honored per PEP 426.
 * #811: Update to pyparsing 2.1.10.
+* Updated ``setuptools.command.sdist`` to re-use most of
+  the functionality directly from ``distutils.command.sdist``
+  for the ``add_defaults`` method with strategic overrides.
+  See #750 for rationale.
 
 v28.3.0
 -------
