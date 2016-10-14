@@ -106,9 +106,9 @@ the distutils.  Here's a minimal setup script using setuptools::
 
     from setuptools import setup, find_packages
     setup(
-        name = "HelloWorld",
-        version = "0.1",
-        packages = find_packages(),
+        name="HelloWorld",
+        version="0.1",
+        packages=find_packages(),
     )
 
 As you can see, it doesn't take much to use setuptools in a project.
@@ -130,16 +130,16 @@ dependencies, and perhaps some data files and scripts::
 
     from setuptools import setup, find_packages
     setup(
-        name = "HelloWorld",
-        version = "0.1",
-        packages = find_packages(),
-        scripts = ['say_hello.py'],
+        name="HelloWorld",
+        version="0.1",
+        packages=find_packages(),
+        scripts=['say_hello.py'],
 
         # Project uses reStructuredText, so ensure that the docutils get
         # installed or upgraded on the target machine
-        install_requires = ['docutils>=0.3'],
+        install_requires=['docutils>=0.3'],
 
-        package_data = {
+        package_data={
             # If any package contains *.txt or *.rst files, include them:
             '': ['*.txt', '*.rst'],
             # And include any *.msg files found in the 'hello' package, too:
@@ -147,12 +147,12 @@ dependencies, and perhaps some data files and scripts::
         },
 
         # metadata for upload to PyPI
-        author = "Me",
-        author_email = "me@example.com",
-        description = "This is an Example Package",
-        license = "PSF",
-        keywords = "hello world example examples",
-        url = "http://example.com/HelloWorld/",   # project home page, if any
+        author="Me",
+        author_email="me@example.com",
+        description="This is an Example Package",
+        license="PSF",
+        keywords="hello world example examples",
+        url="http://example.com/HelloWorld/",   # project home page, if any
 
         # could also include long_description, download_url, classifiers, etc.
     )
@@ -431,7 +431,7 @@ the same
 directory as the setup script.  Some projects use a ``src`` or ``lib``
 directory as the root of their source tree, and those projects would of course
 use ``"src"`` or ``"lib"`` as the first argument to ``find_packages()``.  (And
-such projects also need something like ``package_dir = {'':'src'}`` in their
+such projects also need something like ``package_dir={'':'src'}`` in their
 ``setup()`` arguments, but that's just a normal distutils thing.)
 
 Anyway, ``find_packages()`` walks the target directory, filtering by inclusion
@@ -522,7 +522,7 @@ as the following::
 
     setup(
         # other arguments here...
-        entry_points = {
+        entry_points={
             'setuptools.installation': [
                 'eggsecutable = my_package.some_module:main_func',
             ]
@@ -674,7 +674,7 @@ installed::
 
     setup(
         ...
-        dependency_links = [
+        dependency_links=[
             "http://peak.telecommunity.com/snapshots/"
         ],
     )
@@ -699,7 +699,7 @@ For example, let's say that Project A offers optional PDF and reST support::
     setup(
         name="Project-A",
         ...
-        extras_require = {
+        extras_require={
             'PDF':  ["ReportLab>=1.2", "RXP"],
             'reST': ["docutils>=0.3"],
         }
@@ -721,7 +721,7 @@ declare it like this, so that the "PDF" requirements are only resolved if the
     setup(
         name="Project-A",
         ...
-        entry_points = {
+        entry_points={
             'console_scripts': [
                 'rst2pdf = project_a.tools.pdfgen [PDF]',
                 'rst2html = project_a.tools.htmlgen',
@@ -736,7 +736,7 @@ might declare the dependency like this::
 
     setup(
         name="Project-B",
-        install_requires = ["Project-A[PDF]"],
+        install_requires=["Project-A[PDF]"],
         ...
     )
 
@@ -759,7 +759,7 @@ setup to this::
     setup(
         name="Project-A",
         ...
-        extras_require = {
+        extras_require={
             'PDF':  [],
             'reST': ["docutils>=0.3"],
         }
@@ -784,7 +784,7 @@ e.g.::
     from setuptools import setup, find_packages
     setup(
         ...
-        include_package_data = True
+        include_package_data=True
     )
 
 This tells setuptools to install any data files it finds in your packages.
@@ -801,7 +801,7 @@ e.g.::
     from setuptools import setup, find_packages
     setup(
         ...
-        package_data = {
+        package_data={
             # If any package contains *.txt or *.rst files, include them:
             '': ['*.txt', '*.rst'],
             # And include any *.msg files found in the 'hello' package, too:
@@ -828,10 +828,10 @@ The setuptools setup file might look like this::
     from setuptools import setup, find_packages
     setup(
         ...
-        packages = find_packages('src'),  # include all packages under src
-        package_dir = {'':'src'},   # tell distutils packages are under src
+        packages=find_packages('src'),  # include all packages under src
+        package_dir={'':'src'},   # tell distutils packages are under src
 
-        package_data = {
+        package_data={
             # If any package contains *.txt files, include them:
             '': ['*.txt'],
             # And include any *.dat files found in the 'data' subdirectory
@@ -868,13 +868,13 @@ to do things like this::
     from setuptools import setup, find_packages
     setup(
         ...
-        packages = find_packages('src'),  # include all packages under src
-        package_dir = {'':'src'},   # tell distutils packages are under src
+        packages=find_packages('src'),  # include all packages under src
+        package_dir={'':'src'},   # tell distutils packages are under src
 
-        include_package_data = True,    # include everything in source control
+        include_package_data=True,    # include everything in source control
 
         # ...but exclude README.txt from all packages
-        exclude_package_data = { '': ['README.txt'] },
+        exclude_package_data={'': ['README.txt']},
     )
 
 The ``exclude_package_data`` option is a dictionary mapping package names to
@@ -1035,21 +1035,21 @@ for our hypothetical blogging tool::
 
     setup(
         # ...
-        entry_points = {'blogtool.parsers': '.rst = some_module:SomeClass'}
+        entry_points={'blogtool.parsers': '.rst = some_module:SomeClass'}
     )
 
     setup(
         # ...
-        entry_points = {'blogtool.parsers': ['.rst = some_module:a_func']}
+        entry_points={'blogtool.parsers': ['.rst = some_module:a_func']}
     )
 
     setup(
         # ...
-        entry_points = """
+        entry_points="""
             [blogtool.parsers]
             .rst = some.nested.module:SomeClass.some_classmethod [reST]
         """,
-        extras_require = dict(reST = "Docutils>=0.3.5")
+        extras_require=dict(reST="Docutils>=0.3.5")
     )
 
 The ``entry_points`` argument to ``setup()`` accepts either a string with
@@ -1343,7 +1343,7 @@ participates in.  For example, the ZopeInterface project might do this::
 
     setup(
         # ...
-        namespace_packages = ['zope']
+        namespace_packages=['zope']
     )
 
 because it contains a ``zope.interface`` package that lives in the ``zope``
@@ -1599,7 +1599,7 @@ to specify your ``install_requires`` (or other requirements) to include
 
 .. code-block:: python
 
-    install_requires = ["OtherProject>=0.2a1.dev-r143,==dev"]
+    install_requires=["OtherProject>=0.2a1.dev-r143,==dev"]
 
 The above example says, "I really want at least this particular development
 revision number, but feel free to follow and use an ``#egg=OtherProject-dev``
@@ -2303,7 +2303,7 @@ available:
 
         setup(
             # ...
-            test_suite = "my_package.tests.test_all"
+            test_suite="my_package.tests.test_all"
         )
 
     If you did not set a ``test_suite`` in your ``setup()`` call, and do not
@@ -2427,7 +2427,7 @@ project's setup script::
 
     setup(
         # ...
-        entry_points = {
+        entry_points={
             "distutils.commands": [
                 "foo = mypackage.some_module:foo",
             ],
@@ -2459,7 +2459,7 @@ distutils extension project's setup script::
 
     setup(
         # ...
-        entry_points = {
+        entry_points={
             "distutils.commands": [
                 "foo = mypackage.some_module:foo",
             ],
@@ -2521,7 +2521,7 @@ project that uses the argument::
 
     setup(
         # ...
-        entry_points = {
+        entry_points={
             "distutils.setup_keywords": [
                 "foo_bar = setuptools.dist:assert_string_list",
             ],
@@ -2540,7 +2540,7 @@ a file.  Here's what the writer utility looks like::
         argname = os.path.splitext(basename)[0]
         value = getattr(cmd.distribution, argname, None)
         if value is not None:
-            value = '\n'.join(value)+'\n'
+            value = '\n'.join(value) + '\n'
         cmd.write_or_delete_file(argname, filename, value)
 
 As you can see, ``egg_info.writers`` entry points must be a function taking
@@ -2582,9 +2582,9 @@ called "foobar", you would write a function something like this:
 
 And you would register it in a setup script using something like this::
 
-    entry_points = {
+    entry_points={
         "setuptools.file_finders": [
-            "foobar = my_foobar_module:find_files_for_foobar"
+            "foobar = my_foobar_module:find_files_for_foobar",
         ]
     }
 
@@ -2664,4 +2664,3 @@ set of steps to reproduce.
 
 .. _distutils-sig mailing list: http://mail.python.org/pipermail/distutils-sig/
 .. _setuptools bug tracker: https://github.com/pypa/setuptools/
-
