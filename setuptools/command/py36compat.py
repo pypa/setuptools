@@ -39,9 +39,9 @@ class sdist_add_defaults:
         """
         Case-sensitive path existence check
 
-        >>> sdist._cs_path_exists(__file__)
+        >>> sdist_add_defaults._cs_path_exists(__file__)
         True
-        >>> sdist._cs_path_exists(__file__.upper())
+        >>> sdist_add_defaults._cs_path_exists(__file__.upper())
         False
         """
         if not os.path.exists(fspath):
