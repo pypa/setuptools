@@ -1,4 +1,3 @@
-from glob import glob
 from distutils import log
 import distutils.command.sdist as orig
 import os
@@ -7,9 +6,8 @@ import io
 import contextlib
 
 from setuptools.extern import six
-from setuptools.extern.six.moves import filter
 
-from setuptools.utils import cs_path_exists
+from .py36compat import sdist_add_defaults
 
 import pkg_resources
 
@@ -23,7 +21,7 @@ def walk_revctrl(dirname=''):
             yield item
 
 
-class sdist(orig.sdist):
+class sdist(sdist_add_defaults, orig.sdist):
     """Smart sdist that finds anything supported by revision control"""
 
     user_options = [
@@ -127,34 +125,8 @@ class sdist(orig.sdist):
     if has_leaky_handle:
         read_template = __read_template_hack
 
-    def add_defaults(self):
-        standards = [self.READMES,
-                     self.distribution.script_name]
-        for fn in standards:
-            if isinstance(fn, tuple):
-                alts = fn
-                got_it = 0
-                for fn in alts:
-                    if cs_path_exists(fn):
-                        got_it = 1
-                        self.filelist.append(fn)
-                        break
-
-                if not got_it:
-                    self.warn("standard file not found: should have one of " +
-                              ', '.join(alts))
-            else:
-                if cs_path_exists(fn):
-                    self.filelist.append(fn)
-                else:
-                    self.warn("standard file '%s' not found" % fn)
-
-        optional = ['test/test*.py', 'setup.cfg']
-        for pattern in optional:
-            files = filter(cs_path_exists, glob(pattern))
-            self.filelist.extend(files)
-
-        # getting python files
+    def _add_defaults_python(self):
+        """getting python files"""
         if self.distribution.has_pure_modules():
             build_py = self.get_finalized_command('build_py')
             self.filelist.extend(build_py.get_source_files())
@@ -167,17 +139,10 @@ class sdist(orig.sdist):
                     self.filelist.extend([os.path.join(src_dir, filename)
                                           for filename in filenames])
 
-        if self.distribution.has_ext_modules():
-            build_ext = self.get_finalized_command('build_ext')
-            self.filelist.extend(build_ext.get_source_files())
-
-        if self.distribution.has_c_libraries():
-            build_clib = self.get_finalized_command('build_clib')
-            self.filelist.extend(build_clib.get_source_files())
-
-        if self.distribution.has_scripts():
-            build_scripts = self.get_finalized_command('build_scripts')
-            self.filelist.extend(build_scripts.get_source_files())
+    def _add_defaults_data_files(self):
+        """
+        Don't add any data files, but why?
+        """
 
     def check_readme(self):
         for f in self.READMES:
