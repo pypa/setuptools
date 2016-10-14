@@ -2,7 +2,7 @@
 
 Create a distribution's .egg-info directory and contents"""
 
-from distutils.filelist import FileList as _FileList
+from distutils.filelist import FileList as _FileList, translate_pattern
 from distutils.util import convert_path
 from distutils import log
 import distutils.errors
@@ -241,6 +241,24 @@ class egg_info(Command):
 class FileList(_FileList):
     """File list that accepts only existing, platform-independent paths"""
 
+    def __init__(self):
+        _FileList.__init__(self)  # old-style class, can't use super
+
+        # Our version fixes the performance problems which stem from
+        # scanning filesystema and creating 'allfiles'.
+        #
+        # To ensure we didn't break anything, we want to fail loudly if any
+        # code is depending on the inherited behaviour of FileList in which it
+        # generates an 'allfiles' attribute as a side effect. So we remove the
+        # attribute so calling code will get AttributeError.
+        try:
+            del self.allfiles
+        except AttributeError:
+            pass
+
+    def findall(self, dir=None):
+        pass  # Don't scan the filesystem or create 'allfiles' attribute
+
     def append(self, item):
         if item.endswith('\r'):  # Fix older sdists built on Windows
             item = item[:-1]
@@ -251,6 +269,56 @@ class FileList(_FileList):
 
     def extend(self, paths):
         self.files.extend(filter(self._safe_path, paths))
+
+    # Because we don't have 'allfiles', we have to re-implement include_pattern
+    # completely.
+    def include_pattern(self, pattern, anchor=1, prefix=None, is_regex=0):
+        files_found = 0
+        pattern_re = translate_pattern(pattern, anchor=anchor, prefix=prefix,
+                                       is_regex=is_regex)
+
+        dir = os.curdir
+        for (dirpath, dirnames, filenames) in os.walk(dir, topdown=True):
+            if dirpath == ".":
+                start = "."
+            else:
+                start = "." + os.path.sep
+            if dirpath.startswith(start):
+                dirpath_rel = dirpath[len(start):]
+
+            for filename in filenames:
+                fullname = os.path.join(dirpath_rel, filename)
+                if pattern_re.match(fullname):
+                    self.files.append(fullname)
+                    files_found = 1
+
+            if not is_regex:
+                # If we have a regex, we can't easily reverse engineer it.
+
+                if anchor:
+                    # Not 'global-include', which we can't do anything
+                    # about.
+                    if prefix is None:
+                        # 'include' - can't match subdirs
+                        dirnames[:] = []
+                    else:
+                        # 'recursive-include'
+                        def should_recurse(d):
+                            # dirpath will have OS specific separators:
+                            parts = dirpath_rel.split(os.path.sep)
+                            if parts[0] == '':
+                                parts.pop(0)
+                            parts.append(d)
+
+                            # MANIFEST.in paths should have /
+                            prefix_parts = prefix.split('/')
+
+                            # TODO handle 'graft' which can have patterns in
+                            # prefix
+                            return parts[0:len(prefix_parts)] == prefix_parts
+
+                        dirnames[:] = filter(should_recurse, dirnames)
+        return files_found
 
     def _repair(self):
         """
@@ -341,32 +409,7 @@ class manifest_maker(sdist):
         elif os.path.exists(self.manifest):
             self.read_manifest()
         ei_cmd = self.get_finalized_command('egg_info')
-        self._add_egg_info(cmd=ei_cmd)
         self.filelist.include_pattern("*", prefix=ei_cmd.egg_info)
-
-    def _add_egg_info(self, cmd):
-        """
-        Add paths for egg-info files for an external egg-base.
-
-        The egg-info files are written to egg-base. If egg-base is
-        outside the current working directory, this method
-        searchs the egg-base directory for files to include
-        in the manifest. Uses distutils.filelist.findall (which is
-        really the version monkeypatched in by setuptools/__init__.py)
-        to perform the search.
-
-        Since findall records relative paths, prefix the returned
-        paths with cmd.egg_base, so add_default's include_pattern call
-        (which is looking for the absolute cmd.egg_info) will match
-        them.
-        """
-        if cmd.egg_base == os.curdir:
-            # egg-info files were already added by something else
-            return
-
-        discovered = distutils.filelist.findall(cmd.egg_base)
-        resolved = (os.path.join(cmd.egg_base, path) for path in discovered)
-        self.filelist.allfiles.extend(resolved)
 
     def prune_file_list(self):
         build = self.get_finalized_command('build')
