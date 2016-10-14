@@ -10,6 +10,9 @@ class sdist_add_defaults:
     """
     Mix-in providing forward-compatibility for functionality as found in
     distutils on Python 3.7.
+
+    Do not edit the code in this class except to update functionality
+    as implemented in distutils. Instead, override in the subclass.
     """
 
     def add_defaults(self):
