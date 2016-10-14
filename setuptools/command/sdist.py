@@ -150,9 +150,8 @@ class sdist(orig.sdist):
 
         optional = ['test/test*.py', 'setup.cfg']
         for pattern in optional:
-            files = list(filter(cs_path_exists, glob(pattern)))
-            if files:
-                self.filelist.extend(files)
+            files = filter(cs_path_exists, glob(pattern))
+            self.filelist.extend(files)
 
         # getting python files
         if self.distribution.has_pure_modules():
