@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+v28.4.0
+-------
+
+* #732: Now extras with a hyphen are honored per PEP 426.
+* #811: Update to pyparsing 2.1.10.
+
 v28.3.0
 -------
 
