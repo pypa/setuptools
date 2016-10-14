@@ -13,8 +13,6 @@ from setuptools.utils import cs_path_exists
 
 import pkg_resources
 
-READMES = 'README', 'README.rst', 'README.txt'
-
 _default_revctrl = list
 
 
@@ -40,6 +38,8 @@ class sdist(orig.sdist):
     ]
 
     negative_opt = {}
+
+    READMES = 'README', 'README.rst', 'README.txt'
 
     def run(self):
         self.run_command('egg_info')
@@ -128,7 +128,7 @@ class sdist(orig.sdist):
         read_template = __read_template_hack
 
     def add_defaults(self):
-        standards = [READMES,
+        standards = [self.READMES,
                      self.distribution.script_name]
         for fn in standards:
             if isinstance(fn, tuple):
@@ -180,13 +180,13 @@ class sdist(orig.sdist):
             self.filelist.extend(build_scripts.get_source_files())
 
     def check_readme(self):
-        for f in READMES:
+        for f in self.READMES:
             if os.path.exists(f):
                 return
         else:
             self.warn(
                 "standard file not found: should have one of " +
-                ', '.join(READMES)
+                ', '.join(self.READMES)
             )
 
     def make_release_tree(self, base_dir, files):
