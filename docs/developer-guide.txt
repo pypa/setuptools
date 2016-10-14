@@ -89,12 +89,10 @@ For posterity, the old `Bitbucket mirror
 Testing
 -------
 
-The primary tests are run using py.test. To run the tests::
+The primary tests are run using tox. To run the tests, first make
+sure you have tox installed, then invoke it::
 
-    $ python setup.py test
-
-Or install py.test into your environment and run ``PYTHONPATH=. py.test``
-or ``python -m pytest``.
+    $ tox
 
 Under continuous integration, additional tests may be run. See the
 ``.travis.yml`` file for full details on the tests run under Travis-CI.

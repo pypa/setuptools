@@ -69,8 +69,6 @@ if include_windows_files:
     package_data.setdefault('setuptools', []).extend(['*.exe'])
     package_data.setdefault('setuptools.command', []).extend(['*.xml'])
 
-needs_pytest = set(['ptr', 'pytest', 'test']).intersection(sys.argv)
-pytest_runner = ['pytest-runner'] if needs_pytest else []
 needs_wheel = set(['release', 'bdist_wheel']).intersection(sys.argv)
 wheel = ['wheel'] if needs_wheel else []
 
@@ -178,14 +176,8 @@ setup_params = dict(
         ),
     ],
     scripts=[],
-    tests_require=[
-        'setuptools[ssl]',
-        'pytest-flake8',
-        # pin pytest to 3.0.2 for pytest-dev/pytest#1888
-        'pytest==3.0.2',
-    ] + (['mock'] if sys.version_info[:2] < (3, 3) else []),
     setup_requires=[
-    ] + pytest_runner + wheel,
+    ] + wheel,
 )
 
 if __name__ == '__main__':
