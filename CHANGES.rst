@@ -11,6 +11,9 @@ v28.4.0
   the functionality directly from ``distutils.command.sdist``
   for the ``add_defaults`` method with strategic overrides.
   See #750 for rationale.
+* #760 via #762: Look for certificate bundle where SUSE
+  Linux typically presents it. Use ``certifi.where()`` to locate
+  the bundle.
 
 v28.3.0
 -------
