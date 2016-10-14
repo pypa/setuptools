@@ -181,8 +181,7 @@ setup_params = dict(
     tests_require=[
         'setuptools[ssl]',
         'pytest-flake8',
-        # pin pytest to 3.0.2 for pytest-dev/pytest#1888
-        'pytest==3.0.2',
+        'pytest>=3.0.2',
     ] + (['mock'] if sys.version_info[:2] < (3, 3) else []),
     setup_requires=[
     ] + pytest_runner + wheel,
