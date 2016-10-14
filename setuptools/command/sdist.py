@@ -7,6 +7,7 @@ import io
 import contextlib
 
 from setuptools.extern import six
+from setuptools.extern.six.moves import filter
 
 from setuptools.utils import cs_path_exists
 
