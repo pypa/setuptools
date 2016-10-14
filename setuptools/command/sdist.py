@@ -1,6 +1,7 @@
 from glob import glob
 from distutils import log
 import distutils.command.sdist as orig
+from distutils.util import convert_path
 import os
 import sys
 import io
@@ -166,6 +167,20 @@ class sdist(orig.sdist):
                 for _, src_dir, _, filenames in build_py.data_files:
                     self.filelist.extend([os.path.join(src_dir, filename)
                                           for filename in filenames])
+
+        # getting distribution.data_files
+        if self.distribution.has_data_files():
+            for item in self.distribution.data_files:
+                if isinstance(item, six.string_types):  # plain file
+                    item = convert_path(item)
+                    if os.path.isfile(item):
+                        self.filelist.append(item)
+                else:    # a (dirname, filenames) tuple
+                    dirname, filenames = item
+                    for f in filenames:
+                        f = convert_path(f)
+                        if os.path.isfile(f):
+                            self.filelist.append(f)
 
         if self.distribution.has_ext_modules():
             build_ext = self.get_finalized_command('build_ext')
