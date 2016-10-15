@@ -9,7 +9,7 @@ import tempfile
 from distutils import log
 from distutils.errors import DistutilsTemplateError
 
-from setuptools.command.egg_info import FileList, egg_info
+from setuptools.command.egg_info import FileList, egg_info, translate_pattern
 from setuptools.dist import Distribution
 from setuptools.extern import six
 from setuptools.tests.textwrap import DALS
@@ -64,6 +64,34 @@ default_files = frozenset(map(make_local_path, [
     'app.egg-info/top_level.txt',
     'app/__init__.py',
 ]))
+
+
+def get_pattern(glob):
+    return translate_pattern(make_local_path(glob)).pattern
+
+
+def test_translated_pattern_test():
+    l = make_local_path
+    assert get_pattern('foo') == r'foo\Z(?ms)'
+    assert get_pattern(l('foo/bar')) == l(r'foo\/bar\Z(?ms)')
+
+    # Glob matching
+    assert get_pattern('*.txt') == l(r'[^\/]*\.txt\Z(?ms)')
+    assert get_pattern('dir/*.txt') == l(r'dir\/[^\/]*\.txt\Z(?ms)')
+    assert get_pattern('*/*.py') == l(r'[^\/]*\/[^\/]*\.py\Z(?ms)')
+    assert get_pattern('docs/page-?.txt') \
+        == l(r'docs\/page\-[^\/]\.txt\Z(?ms)')
+
+    # Globstars change what they mean depending upon where they are
+    assert get_pattern(l('foo/**/bar')) == l(r'foo\/(?:[^\/]+\/)*bar\Z(?ms)')
+    assert get_pattern(l('foo/**')) == l(r'foo\/.*\Z(?ms)')
+    assert get_pattern(l('**')) == r'.*\Z(?ms)'
+
+    # Character classes
+    assert get_pattern('pre[one]post') == r'pre[one]post\Z(?ms)'
+    assert get_pattern('hello[!one]world') == r'hello[^one]world\Z(?ms)'
+    assert get_pattern('[]one].txt') == r'[\]one]\.txt\Z(?ms)'
+    assert get_pattern('foo[!]one]bar') == r'foo[^\]one]bar\Z(?ms)'
 
 
 class TempDirTestCase(object):
@@ -346,23 +374,21 @@ class TestFileListTest(TempDirTestCase):
     def test_include_pattern(self):
         # return False if no match
         file_list = FileList()
-        file_list.set_allfiles([])
+        self.make_files([])
         assert not file_list.include_pattern('*.py')
 
         # return True if files match
         file_list = FileList()
-        file_list.set_allfiles(['a.py', 'b.txt'])
+        self.make_files(['a.py', 'b.txt'])
         assert file_list.include_pattern('*.py')
 
         # test * matches all files
         file_list = FileList()
-        assert file_list.allfiles is None
-        file_list.set_allfiles(['a.py', 'b.txt'])
+        self.make_files(['a.py', 'b.txt'])
         file_list.include_pattern('*')
-        assert file_list.allfiles == ['a.py', 'b.txt']
+        assert file_list.files == ['a.py', 'b.txt']
 
-    def test_process_template(self):
-        l = make_local_path
+    def test_process_template_line_invalid(self):
         # invalid lines
         file_list = FileList()
         for action in ('include', 'exclude', 'global-include',
@@ -377,9 +403,11 @@ class TestFileListTest(TempDirTestCase):
             else:
                 assert False, "Should have thrown an error"
 
+    def test_include(self):
+        l = make_local_path
         # include
         file_list = FileList()
-        file_list.set_allfiles(['a.py', 'b.txt', l('d/c.py')])
+        self.make_files(['a.py', 'b.txt', l('d/c.py')])
 
         file_list.process_template_line('include *.py')
         assert file_list.files == ['a.py']
@@ -389,6 +417,8 @@ class TestFileListTest(TempDirTestCase):
         assert file_list.files == ['a.py']
         self.assertWarnings()
 
+    def test_exclude(self):
+        l = make_local_path
         # exclude
         file_list = FileList()
         file_list.files = ['a.py', 'b.txt', l('d/c.py')]
@@ -401,9 +431,11 @@ class TestFileListTest(TempDirTestCase):
         assert file_list.files == ['b.txt', l('d/c.py')]
         self.assertWarnings()
 
+    def test_global_include(self):
+        l = make_local_path
         # global-include
         file_list = FileList()
-        file_list.set_allfiles(['a.py', 'b.txt', l('d/c.py')])
+        self.make_files(['a.py', 'b.txt', l('d/c.py')])
 
         file_list.process_template_line('global-include *.py')
         assert file_list.files == ['a.py', l('d/c.py')]
@@ -413,6 +445,8 @@ class TestFileListTest(TempDirTestCase):
         assert file_list.files == ['a.py', l('d/c.py')]
         self.assertWarnings()
 
+    def test_global_exclude(self):
+        l = make_local_path
         # global-exclude
         file_list = FileList()
         file_list.files = ['a.py', 'b.txt', l('d/c.py')]
@@ -425,10 +459,11 @@ class TestFileListTest(TempDirTestCase):
         assert file_list.files == ['b.txt']
         self.assertWarnings()
 
+    def test_recursive_include(self):
+        l = make_local_path
         # recursive-include
         file_list = FileList()
-        file_list.set_allfiles(['a.py', l('d/b.py'), l('d/c.txt'),
-                                l('d/d/e.py')])
+        self.make_files(['a.py', l('d/b.py'), l('d/c.txt'), l('d/d/e.py')])
 
         file_list.process_template_line('recursive-include d *.py')
         assert file_list.files == [l('d/b.py'), l('d/d/e.py')]
@@ -438,6 +473,8 @@ class TestFileListTest(TempDirTestCase):
         assert file_list.files == [l('d/b.py'), l('d/d/e.py')]
         self.assertWarnings()
 
+    def test_recursive_exclude(self):
+        l = make_local_path
         # recursive-exclude
         file_list = FileList()
         file_list.files = ['a.py', l('d/b.py'), l('d/c.txt'), l('d/d/e.py')]
@@ -450,10 +487,11 @@ class TestFileListTest(TempDirTestCase):
         assert file_list.files == ['a.py', l('d/c.txt')]
         self.assertWarnings()
 
+    def test_graft(self):
+        l = make_local_path
         # graft
         file_list = FileList()
-        file_list.set_allfiles(['a.py', l('d/b.py'), l('d/d/e.py'),
-                                l('f/f.py')])
+        self.make_files(['a.py', l('d/b.py'), l('d/d/e.py'), l('f/f.py')])
 
         file_list.process_template_line('graft d')
         assert file_list.files == [l('d/b.py'), l('d/d/e.py')]
@@ -463,6 +501,8 @@ class TestFileListTest(TempDirTestCase):
         assert file_list.files == [l('d/b.py'), l('d/d/e.py')]
         self.assertWarnings()
 
+    def test_prune(self):
+        l = make_local_path
         # prune
         file_list = FileList()
         file_list.files = ['a.py', l('d/b.py'), l('d/d/e.py'), l('f/f.py')]
