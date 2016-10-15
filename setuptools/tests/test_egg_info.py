@@ -63,12 +63,18 @@ class TestEggInfo(object):
             })
             yield env
 
+    dict_order_fails = pytest.mark.skipif(
+        sys.version_info < (2,7),
+        reason="Intermittent failures on Python 2.6",
+    )
+
+    @dict_order_fails
     def test_egg_info_save_version_info_setup_empty(self, tmpdir_cwd, env):
         """
         When the egg_info section is empty or not present, running
         save_version_info should add the settings to the setup.cfg
         in a deterministic order, consistent with the ordering found
-        on Python 2.6 and 2.7 with PYTHONHASHSEED=0.
+        on Python 2.7 with PYTHONHASHSEED=0.
         """
         setup_cfg = os.path.join(env.paths['home'], 'setup.cfg')
         dist = Distribution()
@@ -98,13 +104,12 @@ class TestEggInfo(object):
         flags = re.MULTILINE | re.DOTALL
         assert re.search(pattern, content, flags)
 
+    @dict_order_fails
     def test_egg_info_save_version_info_setup_defaults(self, tmpdir_cwd, env):
         """
         When running save_version_info on an existing setup.cfg
         with the 'default' values present from a previous run,
-        the file should remain unchanged, except on Python 2.6,
-        where the order of the keys will be changed to match the
-        order as found in a dictionary of those keys.
+        the file should remain unchanged.
         """
         setup_cfg = os.path.join(env.paths['home'], 'setup.cfg')
         build_files({
