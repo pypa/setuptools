@@ -94,10 +94,6 @@ class TestEggInfo(object):
         Assert that the strings in expected appear in content
         in order.
         """
-        if sys.version_info < (2, 7):
-            # On Python 2.6, expect dict key order.
-            expected = dict.fromkeys(expected).keys()
-
         pattern = '.*'.join(expected)
         flags = re.MULTILINE | re.DOTALL
         assert re.search(pattern, content, flags)
