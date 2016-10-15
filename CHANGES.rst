@@ -2,6 +2,11 @@
 CHANGES
 =======
 
+v28.5.0
+-------
+
+* #810: Tests are now invoked with tox and not setup.py test.
+
 v28.4.0
 -------
 
