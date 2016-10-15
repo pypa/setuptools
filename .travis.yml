@@ -8,6 +8,7 @@ python:
   - "3.6-dev"
   - nightly
   - pypy
+  - pypy3
 matrix:
   fast_finish: true
   allow_failures:
