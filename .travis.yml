@@ -11,8 +11,7 @@ env:
  - ""
  - LC_ALL=C LC_CTYPE=C
 script:
- # avoid VersionConflict when newer version is required
- - pip install -U 'pytest>=3.0.2'
+ - pip install tox
 
  # Output the env, to verify behavior
  - env
