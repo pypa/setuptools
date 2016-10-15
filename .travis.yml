@@ -1,15 +1,36 @@
 language: python
-python:
-  - 2.6
-  - 2.7
-  - 3.3
-  - 3.4
-  - 3.5
-  - pypy
-  - pypy3
-env:
- - ""
- - LC_ALL=C LC_CTYPE=C
+
+matrix:
+  include:
+    - python: 2.6
+      env: TOXENV=py26
+    - python: 2.6
+      env: TOXENV=py26 LC_ALL=C LC_CTYPE=C
+    - python: 2.7
+      env: TOXENV=py27
+    - python: 2.7
+      env: TOXENV=py27 LC_ALL=C LC_CTYPE=C
+    - python: 3.3
+      env: TOXENV=py33
+    - python: 3.3
+      env: TOXENV=py33 LC_ALL=C LC_CTYPE=C
+    - python: 3.4
+      env: TOXENV=py34
+    - python: 3.4
+      env: TOXENV=py34 LC_ALL=C LC_CTYPE=C
+    - python: 3.5
+      env: TOXENV=py35
+    - python: 3.5
+      env: TOXENV=py35 LC_ALL=C LC_CTYPE=C
+    - python: pypy
+      env: TOXENV=pypy
+    - python: pypy
+      env: TOXENV=pypy LC_ALL=C LC_CTYPE=C
+    - python: pypy3
+      env: TOXENV=pypy3
+    - python: pypy3
+      env: TOXENV=pypy3 LC_ALL=C LC_CTYPE=C
+
 script:
  - pip install tox
 
@@ -19,7 +40,6 @@ script:
  # update egg_info based on setup.py in checkout
  - python bootstrap.py
 
- #- python -m tox
  - tox
 
 before_deploy:

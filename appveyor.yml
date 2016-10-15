@@ -2,7 +2,9 @@ environment:
 
   matrix:
     - PYTHON: "C:\\Python35-x64"
+      TOXENV: "py27"
     - PYTHON: "C:\\Python27-x64"
+      TOXENV: "py35"
 
 install:
   # symlink python from a directory with a space
@@ -14,4 +16,5 @@ build: off
 
 test_script:
   - "python bootstrap.py"
-  - "python setup.py test --addopts='-rsx'"
+  - "pip install tox"
+  - "tox"
