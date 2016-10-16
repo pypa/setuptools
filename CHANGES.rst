@@ -2,6 +2,15 @@
 CHANGES
 =======
 
+v28.6.0
+-------
+
+* #629: When scanning for packages, ``pkg_resources`` now
+  ignores empty egg-info directories and gives precedence to
+  packages whose versions are lexicographically greatest,
+  a rough approximation for preferring the latest available
+  version.
+
 v28.5.0
 -------
 
