@@ -14,8 +14,8 @@ from setuptools.extern.six.moves import map, filter, filterfalse
 try:
     from setuptools.lib2to3_ex import Mixin2to3
 except ImportError:
-    class Mixin2to3:
 
+    class Mixin2to3:
         def run_2to3(self, files, doctests=True):
             "do nothing"
 
