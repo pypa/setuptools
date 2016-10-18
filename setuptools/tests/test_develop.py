@@ -13,7 +13,6 @@ from setuptools.command.develop import develop
 from setuptools.dist import Distribution
 from . import contexts
 
-
 SETUP_PY = """\
 from setuptools import setup
 

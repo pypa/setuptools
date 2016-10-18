@@ -14,7 +14,6 @@ from .textwrap import DALS
 
 
 class TestPackageIndex:
-
     def test_regex(self):
         hash_url = 'http://other_url?:action=show_md5&amp;'
         hash_url += 'digest=0123456789abcdef0123456789abcdef'
@@ -184,7 +183,6 @@ class TestPackageIndex:
 
 
 class TestContentCheckers:
-
     def test_md5(self):
         checker = setuptools.package_index.HashChecker.from_url(
             'http://foo/bar#md5=f12895fdffbd45007040d2e44df98478')
@@ -219,7 +217,6 @@ class TestContentCheckers:
 
 
 class TestPyPIConfig:
-
     def test_percent_in_password(self, tmpdir, monkeypatch):
         monkeypatch.setitem(os.environ, 'HOME', str(tmpdir))
         pypirc = tmpdir / '.pypirc'

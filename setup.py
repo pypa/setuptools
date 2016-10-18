@@ -10,7 +10,6 @@ import textwrap
 
 import setuptools
 
-
 here = os.path.dirname(__file__)
 
 
@@ -97,11 +96,8 @@ setup_params = dict(
     src_root=None,
     packages=setuptools.find_packages(exclude=['*.tests']),
     package_data=package_data,
-
     py_modules=['easy_install'],
-
     zip_safe=True,
-
     entry_points={
         "distutils.commands": [
             "%(cmd)s = setuptools.command.%(cmd)s:%(cmd)s" % locals()
@@ -141,12 +137,9 @@ setup_params = dict(
             "dependency_links.txt = setuptools.command.egg_info:overwrite_arg",
         ],
         "console_scripts": list(_gen_console_scripts()),
-
         "setuptools.installation":
             ['eggsecutable = setuptools.command.easy_install:bootstrap'],
     },
-
-
     classifiers=textwrap.dedent("""
         Development Status :: 5 - Production/Stable
         Intended Audience :: Developers

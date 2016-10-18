@@ -9,7 +9,6 @@ from setuptools.dist import Distribution
 
 from . import contexts
 
-
 SETUP_PY = """\
 from setuptools import setup
 
@@ -28,7 +27,6 @@ def setup_context(tmpdir):
 
 
 class Test:
-
     def test_bdist_egg(self, setup_context, user_override):
         dist = Distribution(dict(
             script_name='setup.py',

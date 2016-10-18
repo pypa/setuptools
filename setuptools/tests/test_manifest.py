@@ -30,7 +30,6 @@ SETUP_ATTRS = {
     'packages': ['app'],
 }
 
-
 SETUP_PY = """\
 from setuptools import setup
 
@@ -95,7 +94,6 @@ def test_translated_pattern_test():
 
 
 class TempDirTestCase(object):
-
     def setup_method(self, method):
         self.temp_dir = tempfile.mkdtemp()
         self.old_cwd = os.getcwd()
@@ -107,14 +105,12 @@ class TempDirTestCase(object):
 
 
 class TestManifestTest(TempDirTestCase):
-
     def setup_method(self, method):
         super(TestManifestTest, self).setup_method(method)
 
         f = open(os.path.join(self.temp_dir, 'setup.py'), 'w')
         f.write(SETUP_PY)
         f.close()
-
         """
         Create a file tree like:
         - LICENSE

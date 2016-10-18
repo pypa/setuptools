@@ -10,7 +10,6 @@ import sys
 import textwrap
 import subprocess
 
-
 minimal_egg_info = textwrap.dedent("""
     [distutils.commands]
     egg_info = setuptools.command.egg_info:egg_info

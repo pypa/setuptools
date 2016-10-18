@@ -429,9 +429,9 @@ def can_scan():
     log.warn("Please ask the author to include a 'zip_safe'"
              " setting (either True or False) in the package's setup.py")
 
+
 # Attribute names of options for commands that might need to be convinced to
 # install to the egg build directory
-
 
 INSTALL_DIRECTORY_ATTRS = [
     'install_lib', 'install_dir', 'install_data', 'install_base'

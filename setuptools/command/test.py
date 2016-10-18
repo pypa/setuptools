@@ -17,7 +17,6 @@ from setuptools.py31compat import unittest_main
 
 
 class ScanningLoader(TestLoader):
-
     def loadTestsFromModule(self, module, pattern=None):
         """Return a suite of all tests cases contained in the given module
 
@@ -50,7 +49,6 @@ class ScanningLoader(TestLoader):
 
 # adapted from jaraco.classes.properties:NonDataProperty
 class NonDataProperty(object):
-
     def __init__(self, fget):
         self.fget = fget
 

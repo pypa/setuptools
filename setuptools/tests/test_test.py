@@ -70,7 +70,6 @@ def sample_test(tmpdir_cwd):
 @pytest.mark.usefixtures('user_override')
 @pytest.mark.usefixtures('sample_test')
 class TestTestTest:
-
     def test_test(self):
         params = dict(
             name='foo',

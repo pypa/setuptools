@@ -14,6 +14,7 @@ from setuptools.extern.six import binary_type
 
 __all__ = ["glob", "iglob", "escape"]
 
+
 def glob(pathname, recursive=False):
     """Return a list of paths matching a pathname pattern.
 
@@ -26,6 +27,7 @@ def glob(pathname, recursive=False):
     zero or more directories and subdirectories.
     """
     return list(iglob(pathname, recursive=recursive))
+
 
 def iglob(pathname, recursive=False):
     """Return an iterator which yields the paths matching a pathname pattern.
@@ -43,6 +45,7 @@ def iglob(pathname, recursive=False):
         s = next(it)  # skip empty string
         assert not s
     return it
+
 
 def _iglob(pathname, recursive):
     dirname, basename = os.path.split(pathname)
@@ -81,9 +84,11 @@ def _iglob(pathname, recursive):
         for name in glob_in_dir(dirname, basename):
             yield os.path.join(dirname, name)
 
+
 # These 2 helper functions non-recursively glob inside a literal directory.
 # They return a list of basenames. `glob1` accepts a pattern while `glob0`
 # takes a literal basename (so it only has to check for its existence).
+
 
 def glob1(dirname, pattern):
     if not dirname:
@@ -97,6 +102,7 @@ def glob1(dirname, pattern):
         return []
     return fnmatch.filter(names, pattern)
 
+
 def glob0(dirname, basename):
     if not basename:
         # `os.path.split()` returns an empty basename for paths ending with a
@@ -108,8 +114,10 @@ def glob0(dirname, basename):
             return [basename]
     return []
 
+
 # This helper function recursively yields relative pathnames inside a literal
 # directory.
+
 
 def glob2(dirname, pattern):
     assert _isrecursive(pattern)
@@ -139,6 +147,7 @@ def _rlistdir(dirname):
 magic_check = re.compile('([*?[])')
 magic_check_bytes = re.compile(b'([*?[])')
 
+
 def has_magic(s):
     if isinstance(s, binary_type):
         match = magic_check_bytes.search(s)
@@ -146,11 +155,13 @@ def has_magic(s):
         match = magic_check.search(s)
     return match is not None
 
+
 def _isrecursive(pattern):
     if isinstance(pattern, binary_type):
         return pattern == b'**'
     else:
         return pattern == '**'
+
 
 def escape(pathname):
     """Escape all special characters.

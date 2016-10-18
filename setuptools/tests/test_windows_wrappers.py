@@ -23,12 +23,10 @@ import pytest
 from setuptools.command.easy_install import nt_quote_arg
 import pkg_resources
 
-
 pytestmark = pytest.mark.skipif(sys.platform != 'win32', reason="Windows only")
 
 
 class WrapperTester:
-
     @classmethod
     def prep_script(cls, template):
         python_exe = nt_quote_arg(sys.executable)

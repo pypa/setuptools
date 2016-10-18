@@ -42,7 +42,6 @@ needs_bytecode = pytest.mark.skipif(
 
 
 class TestDepends:
-
     def testExtractConst(self):
         if not hasattr(dep, 'extract_constant'):
             # skip on non-bytecode platforms
@@ -123,7 +122,6 @@ class TestDepends:
 
 
 class TestDistro:
-
     def setup_method(self, method):
         self.e1 = Extension('bar.ext', ['bar.c'])
         self.e2 = Extension('c.y', ['y.c'])
@@ -214,7 +212,6 @@ class TestDistro:
 
 
 class TestFeatures:
-
     def setup_method(self, method):
         self.req = Require('Distutils', '1.0.3', 'distutils')
         self.dist = makeSetup(
@@ -292,7 +289,6 @@ class TestFeatures:
 
 
 class TestCommandTests:
-
     def testTestIsCommand(self):
         test_cmd = makeSetup().get_command_obj('test')
         assert (isinstance(test_cmd, distutils.cmd.Command))

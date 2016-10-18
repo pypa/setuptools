@@ -13,5 +13,6 @@ def get_all_headers(message, key):
 
 
 if sys.version_info < (3,):
+
     def get_all_headers(message, key):
         return message.getheaders(key)

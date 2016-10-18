@@ -10,7 +10,6 @@ from setuptools.dist import Distribution
 from .textwrap import DALS
 from . import contexts
 
-
 SETUP_PY = DALS(
     """
     from setuptools import setup
@@ -38,7 +37,6 @@ def sample_project(tmpdir_cwd):
 @pytest.mark.usefixtures('sample_project')
 @pytest.mark.usefixtures('user_override')
 class TestUploadDocsTest:
-
     def test_create_zipfile(self):
         """
         Ensure zipfile creation handles common cases, including a folder

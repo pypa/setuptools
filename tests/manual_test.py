@@ -25,6 +25,7 @@ def tempdir(func):
         finally:
             os.chdir(old_dir)
             shutil.rmtree(test_dir)
+
     return _tempdir
 
 
