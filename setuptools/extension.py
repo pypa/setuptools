@@ -26,7 +26,6 @@ def _have_cython():
 # for compatibility
 have_pyrex = _have_cython
 
-
 _Extension = get_unpatched(distutils.core.Extension)
 
 

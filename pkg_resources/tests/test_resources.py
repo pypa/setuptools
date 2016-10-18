@@ -36,7 +36,6 @@ dist_from_fn = pkg_resources.Distribution.from_filename
 
 
 class TestDistro:
-
     def testCollection(self):
         # empty path should produce no distributions
         ad = pkg_resources.Environment([], platform=None, python=None)
@@ -313,7 +312,6 @@ class TestDistro:
 
 
 class TestWorkingSet:
-
     def test_find_conflicting(self):
         ws = WorkingSet([])
         Foo = Distribution.from_filename("/foo_dir/Foo-1.2.egg")
@@ -356,7 +354,6 @@ class TestWorkingSet:
 
 
 class TestEntryPoints:
-
     def assertfields(self, ep):
         assert ep.name == "foo"
         assert ep.module_name == "pkg_resources.tests.test_resources"
@@ -457,7 +454,6 @@ class TestEntryPoints:
 
 
 class TestRequirements:
-
     def testBasics(self):
         r = Requirement.parse("Twisted>=1.2")
         assert str(r) == "Twisted>=1.2"
@@ -538,7 +534,6 @@ class TestRequirements:
 
 
 class TestParsing:
-
     def testEmptyParse(self):
         assert list(parse_requirements('')) == []
 
@@ -701,6 +696,7 @@ class TestParsing:
         value of parse_version. The new parse_version returns a Version class
         which needs to support this behavior, at least for now.
         """
+
         def buildout(parsed_version):
             _final_parts = '*final-', '*final'
 
@@ -709,6 +705,7 @@ class TestParsing:
                     if (part[:1] == '*') and (part not in _final_parts):
                         return False
                 return True
+
             return _final_version(parsed_version)
 
         assert buildout(parse_version("1.0"))

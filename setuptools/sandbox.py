@@ -99,6 +99,7 @@ class UnpickleableException(Exception):
     """
     An exception representing another Exception that could not be pickled.
     """
+
     @staticmethod
     def dump(type, exc):
         """
@@ -243,6 +244,7 @@ def run_setup(setup_script, args):
             def runner():
                 ns = dict(__file__=setup_script, __name__='__main__')
                 _execfile(setup_script, ns)
+
             DirectorySandbox(setup_dir).run(runner)
         except SystemExit as v:
             if v.args and v.args[0]:
@@ -301,6 +303,7 @@ class AbstractSandbox:
             if self._active:
                 path = self._remap_input(name, path, *args, **kw)
             return original(path, *args, **kw)
+
         return wrap
 
     if _file:
@@ -322,6 +325,7 @@ class AbstractSandbox:
                 path = self._remap_input(name, path, *args, **kw)
                 return self._remap_output(name, original(path, *args, **kw))
             return original(path, *args, **kw)
+
         return wrap
 
     for name in ['readlink', 'tempnam']:
@@ -336,6 +340,7 @@ class AbstractSandbox:
             if self._active:
                 return self._remap_output(name, retval)
             return retval
+
         return wrap
 
     for name in ['getcwd', 'tmpnam']:
@@ -404,6 +409,7 @@ class DirectorySandbox(AbstractSandbox):
         raise SandboxViolation(operation, args, kw)
 
     if _file:
+
         def _file(self, path, mode='r', *args, **kw):
             if mode not in ('r', 'rt', 'rb', 'rU', 'U') and not self._ok(path):
                 self._violation("file", path, mode, *args, **kw)

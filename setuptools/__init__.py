@@ -102,7 +102,6 @@ class PackageFinder(object):
 
 
 class PEP420PackageFinder(PackageFinder):
-
     @staticmethod
     def _looks_like_package(path):
         return True

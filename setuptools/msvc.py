@@ -34,11 +34,13 @@ else:
     Mock winreg and environ so the module can be imported
     on this platform.
     """
+
     class winreg:
         HKEY_USERS = None
         HKEY_CURRENT_USER = None
         HKEY_LOCAL_MACHINE = None
         HKEY_CLASSES_ROOT = None
+
     safe_env = dict()
 
 try:
@@ -458,6 +460,7 @@ class SystemInfo:
     vc_ver: float
         Required Microsoft Visual C++ version.
     """
+
     # Variables and properties in this class use originals CamelCase variables
     # names from Microsoft source files for more easy comparaison.
     WinDir = safe_env.get('WinDir', '')

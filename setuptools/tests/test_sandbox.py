@@ -11,7 +11,6 @@ from setuptools.sandbox import DirectorySandbox
 
 
 class TestSandbox:
-
     def test_devnull(self, tmpdir):
         sandbox = DirectorySandbox(str(tmpdir))
         sandbox.run(self._file_writer(os.devnull))
@@ -21,6 +20,7 @@ class TestSandbox:
         def do_write():
             with open(path, 'w') as f:
                 f.write('xxx')
+
         return do_write
 
     def test_win32com(self, tmpdir):
@@ -57,7 +57,6 @@ class TestSandbox:
 
 
 class TestExceptionSaver:
-
     def test_exception_trapped(self):
         with setuptools.sandbox.ExceptionSaver():
             raise ValueError("details")
@@ -107,6 +106,7 @@ class TestExceptionSaver:
         As revealed in #440, an infinite recursion can occur if an unpickleable
         exception while setuptools is hidden. Ensure this doesn't happen.
         """
+
         class ExceptionUnderTest(Exception):
             """
             An unpickleable exception (not in globals).
@@ -126,10 +126,12 @@ class TestExceptionSaver:
         should reflect a proper exception and not be wrapped in
         an UnpickleableException.
         """
+
         def write_file():
             "Trigger a SandboxViolation by writing outside the sandbox"
             with open('/etc/foo', 'w'):
                 pass
+
         sandbox = DirectorySandbox(str(tmpdir))
         with pytest.raises(setuptools.sandbox.SandboxViolation) as caught:
             with setuptools.sandbox.save_modules():

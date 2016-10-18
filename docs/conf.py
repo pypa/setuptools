@@ -60,7 +60,6 @@ exclude_trees = []
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
 
-
 # -- Options for HTML output ---------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  Major themes that come with
@@ -92,7 +91,6 @@ html_use_index = False
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'Setuptoolsdoc'
-
 
 # -- Options for LaTeX output --------------------------------------------------
 

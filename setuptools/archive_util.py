@@ -10,7 +10,6 @@ from distutils.errors import DistutilsError
 
 from pkg_resources import ensure_directory, ContextualZipFile
 
-
 __all__ = [
     "unpack_archive", "unpack_zipfile", "unpack_tarfile", "default_filter",
     "UnrecognizedFormat", "extraction_drivers", "unpack_directory",

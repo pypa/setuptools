@@ -45,7 +45,6 @@ class IndexServer(BaseHTTPServer.HTTPServer):
 
 
 class RequestRecorder(BaseHTTPServer.BaseHTTPRequestHandler):
-
     def do_GET(self):
         requests = vars(self.server).setdefault('requests', [])
         requests.append(self)

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 """
 Easy Install
 ------------
@@ -64,7 +63,6 @@ import pkg_resources
 # Turn on PEP440Warnings
 warnings.filterwarnings("default", category=pkg_resources.PEP440Warning)
 
-
 __all__ = [
     'samefile', 'easy_install', 'PthDistributions', 'extract_wininst_cfg',
     'main', 'get_exe_prefixes',
@@ -92,6 +90,7 @@ def samefile(p1, p2):
 
 
 if six.PY2:
+
     def _to_ascii(s):
         return s
 
@@ -102,6 +101,7 @@ if six.PY2:
         except UnicodeError:
             return False
 else:
+
     def _to_ascii(s):
         return s.encode('ascii')
 
@@ -1632,7 +1632,6 @@ class PthDistributions(Environment):
 
 
 class RewritePthDistributions(PthDistributions):
-
     @classmethod
     def _wrap_lines(cls, lines):
         yield cls.prelude
@@ -1837,6 +1836,7 @@ if '__pypy__' in sys.builtin_module_names:
     _replace_zip_directory_cache_data = \
         _remove_and_clear_zip_directory_cache_data
 else:
+
     def _replace_zip_directory_cache_data(normalized_path):
         def replace_cached_zip_archive_directory_data(path, old_entry):
             # N.B. In theory, we could load the zip directory information just
@@ -2164,7 +2164,6 @@ class WindowsScriptWriter(ScriptWriter):
 
 
 class WindowsExecutableLauncherWriter(WindowsScriptWriter):
-
     @classmethod
     def _get_script_args(cls, type_, name, header, script_text):
         """

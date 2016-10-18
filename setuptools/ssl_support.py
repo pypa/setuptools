@@ -29,7 +29,6 @@ cert_paths = """
 /etc/ssl/ca-bundle.pem
 """.strip().split()
 
-
 try:
     HTTPSHandler = urllib.request.HTTPSHandler
     HTTPSConnection = http_client.HTTPSConnection
@@ -50,10 +49,13 @@ except ImportError:
         match_hostname = None
 
 if not CertificateError:
+
     class CertificateError(ValueError):
         pass
 
+
 if not match_hostname:
+
     def _dnsname_match(dn, hostname, max_wildcards=1):
         """Matching according to RFC 6125, section 6.4.3
 
@@ -216,7 +218,6 @@ def get_win_certfile():
         return None
 
     class MyCertFile(CertFile):
-
         def __init__(self, stores=(), certs=()):
             CertFile.__init__(self)
             for store in stores:

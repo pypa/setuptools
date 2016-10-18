@@ -20,9 +20,7 @@ from setuptools.command.egg_info import manifest_maker
 from setuptools.dist import Distribution
 from setuptools.tests import fail_on_ascii
 
-
 py3_only = pytest.mark.xfail(six.PY2, reason="Test runs on Python 3 only")
-
 
 SETUP_ATTRS = {
     'name': 'sdist_test',
@@ -31,13 +29,11 @@ SETUP_ATTRS = {
     'package_data': {'sdist_test': ['*.txt']}
 }
 
-
 SETUP_PY = """\
 from setuptools import setup
 
 setup(**%r)
 """ % SETUP_ATTRS
-
 
 if six.PY3:
     LATIN1_FILENAME = 'smörbröd.py'.encode('latin-1')
@@ -90,7 +86,6 @@ def read_all_bytes(filename):
 
 
 class TestSdistTest:
-
     def setup_method(self, method):
         self.temp_dir = tempfile.mkdtemp()
         f = open(os.path.join(self.temp_dir, 'setup.py'), 'w')

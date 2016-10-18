@@ -47,7 +47,6 @@ __all__ = [
 
 _SOCKET_TIMEOUT = 15
 
-
 _tmpl = "setuptools/{setuptools.__version__} Python-urllib/{py_major}"
 user_agent = _tmpl.format(py_major=sys.version[:3], **globals())
 
@@ -198,9 +197,11 @@ def unique_values(func):
     Wrap a function returning an iterable such that the resulting iterable
     only ever yields unique items.
     """
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         return unique_everseen(func(*args, **kwargs))
+
     return wrapper
 
 
@@ -415,6 +416,7 @@ class PackageIndex(Environment):
 
     def process_index(self, url, page):
         """Process the contents of a PyPI page"""
+
         def scan(link):
             # Process a URL to see if it's for a package page
             if link.startswith(self.index_url):
@@ -946,7 +948,9 @@ def socket_timeout(timeout=15):
                 return func(*args, **kwargs)
             finally:
                 socket.setdefaulttimeout(old_timeout)
+
         return _socket_timeout
+
     return _socket_timeout
 
 
@@ -991,7 +995,6 @@ class Credential(object):
 
 
 class PyPIConfig(configparser.RawConfigParser):
-
     def __init__(self):
         """
         Load from ~/.pypirc

@@ -18,7 +18,6 @@ import pytest
 
 import pkg_resources
 
-
 try:
     unicode
 except NameError:
@@ -37,7 +36,6 @@ def timestamp(dt):
 
 
 class EggRemover(unicode):
-
     def __call__(self):
         if self in sys.path:
             sys.path.remove(self)
@@ -100,7 +98,6 @@ class TestZipProvider(object):
 
 
 class TestResourceManager(object):
-
     def test_get_cache_path(self):
         mgr = pkg_resources.ResourceManager()
         path = mgr.get_cache_path('foo')
@@ -130,13 +127,13 @@ class TestIndependence:
 
 
 class TestDeepVersionLookupDistutils(object):
-
     @pytest.fixture
     def env(self, tmpdir):
         """
         Create a package environment, similar to a virtualenv,
         in which packages are installed.
         """
+
         class Environment(str):
             pass
 

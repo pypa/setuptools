@@ -89,8 +89,10 @@ class sdist(sdist_add_defaults, orig.sdist):
         """
         In a context, remove and restore os.link if it exists
         """
+
         class NoValue:
             pass
+
         orig_val = getattr(os, 'link', NoValue)
         try:
             del os.link

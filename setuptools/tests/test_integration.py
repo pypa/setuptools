@@ -49,6 +49,7 @@ def install_context(request, tmpdir, monkeypatch):
         user_base.remove()
         user_site.remove()
         install_dir.remove()
+
     request.addfinalizer(fin)
 
     # Change the environment and site settings to control where the

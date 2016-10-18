@@ -1,5 +1,4 @@
 # coding: utf-8
-
 """
 Package resource API
 --------------------
@@ -74,7 +73,6 @@ __import__('pkg_resources.extern.packaging.specifiers')
 __import__('pkg_resources.extern.packaging.requirements')
 __import__('pkg_resources.extern.packaging.markers')
 
-
 if (3, 0) < sys.version_info < (3, 3):
     msg = (
         "Support for Python 3.0-3.2 has been dropped. Future versions "
@@ -96,7 +94,6 @@ class PEP440Warning(RuntimeWarning):
 
 
 class _SetuptoolsVersionMixin(object):
-
     def __hash__(self):
         return super(_SetuptoolsVersionMixin, self).__hash__()
 
@@ -578,7 +575,6 @@ def get_entry_info(dist, group, name):
 
 
 class IMetadataProvider:
-
     def has_metadata(name):
         """Does the package's distribution contain the named metadata?"""
 
@@ -2738,7 +2734,6 @@ class Distribution(object):
 
 
 class EggInfoDistribution(Distribution):
-
     def _reload_version(self):
         """
         Packages installed by distutils (e.g. numpy or scipy),
@@ -2825,7 +2820,6 @@ def issue_warning(*args, **kw):
 
 
 class RequirementParseError(ValueError):
-
     def __str__(self):
         return ' '.join(self.args)
 
@@ -2850,7 +2844,6 @@ def parse_requirements(strs):
 
 
 class Requirement(packaging.requirements.Requirement):
-
     def __init__(self, requirement_string):
         """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
         try:
@@ -2906,8 +2899,10 @@ class Requirement(packaging.requirements.Requirement):
 def _get_mro(cls):
     """Get an mro for a type or classic class"""
     if not isinstance(cls, type):
+
         class cls(cls, object):
             pass
+
         return cls.__mro__[1:]
     return cls.__mro__
 

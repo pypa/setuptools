@@ -38,7 +38,6 @@ def has_symlink():
 
 
 class TestFindPackages:
-
     def setup_method(self, method):
         self.dist_dir = tempfile.mkdtemp()
         self._make_pkg_structure()
