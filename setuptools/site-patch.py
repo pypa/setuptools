@@ -40,13 +40,13 @@ def __boot():
 
     known_paths = dict([(makepath(item)[1], 1) for item in sys.path])  # 2.2 comp
 
-    oldpos = getattr(sys, '__egginsert', 0)   # save old insertion position
-    sys.__egginsert = 0                     # and reset the current one
+    oldpos = getattr(sys, '__egginsert', 0)  # save old insertion position
+    sys.__egginsert = 0  # and reset the current one
 
     for item in PYTHONPATH:
         addsitedir(item)
 
-    sys.__egginsert += oldpos           # restore effective old position
+    sys.__egginsert += oldpos  # restore effective old position
 
     d, nd = makepath(stdpath[0])
     insert_at = None

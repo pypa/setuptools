@@ -145,7 +145,7 @@ def get_module_constant(module, symbol, default=-1, paths=None):
 
     try:
         if kind == PY_COMPILED:
-            f.read(8)   # skip magic & date
+            f.read(8)  # skip magic & date
             code = marshal.load(f)
         elif kind == PY_FROZEN:
             code = imp.get_frozen_object(module)
