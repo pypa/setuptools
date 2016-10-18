@@ -351,8 +351,8 @@ class TestFileListTest(TempDirTestCase):
             l('global/one.txt'),
             l('global/two.txt'),
         ]
-        file_list.sort()
 
+        file_list.sort()
         assert file_list.files == wanted
 
     def test_exclude_pattern(self):
@@ -369,6 +369,7 @@ class TestFileListTest(TempDirTestCase):
         file_list = FileList()
         file_list.files = ['a.py', 'a.txt']
         file_list.exclude_pattern('*.py')
+        file_list.sort()
         assert file_list.files == ['a.txt']
 
     def test_include_pattern(self):
@@ -386,6 +387,7 @@ class TestFileListTest(TempDirTestCase):
         file_list = FileList()
         self.make_files(['a.py', 'b.txt'])
         file_list.include_pattern('*')
+        file_list.sort()
         assert file_list.files == ['a.py', 'b.txt']
 
     def test_process_template_line_invalid(self):
@@ -410,10 +412,12 @@ class TestFileListTest(TempDirTestCase):
         self.make_files(['a.py', 'b.txt', l('d/c.py')])
 
         file_list.process_template_line('include *.py')
+        file_list.sort()
         assert file_list.files == ['a.py']
         self.assertNoWarnings()
 
         file_list.process_template_line('include *.rb')
+        file_list.sort()
         assert file_list.files == ['a.py']
         self.assertWarnings()
 
@@ -424,10 +428,12 @@ class TestFileListTest(TempDirTestCase):
         file_list.files = ['a.py', 'b.txt', l('d/c.py')]
 
         file_list.process_template_line('exclude *.py')
+        file_list.sort()
         assert file_list.files == ['b.txt', l('d/c.py')]
         self.assertNoWarnings()
 
         file_list.process_template_line('exclude *.rb')
+        file_list.sort()
         assert file_list.files == ['b.txt', l('d/c.py')]
         self.assertWarnings()
 
@@ -438,10 +444,12 @@ class TestFileListTest(TempDirTestCase):
         self.make_files(['a.py', 'b.txt', l('d/c.py')])
 
         file_list.process_template_line('global-include *.py')
+        file_list.sort()
         assert file_list.files == ['a.py', l('d/c.py')]
         self.assertNoWarnings()
 
         file_list.process_template_line('global-include *.rb')
+        file_list.sort()
         assert file_list.files == ['a.py', l('d/c.py')]
         self.assertWarnings()
 
@@ -452,10 +460,12 @@ class TestFileListTest(TempDirTestCase):
         file_list.files = ['a.py', 'b.txt', l('d/c.py')]
 
         file_list.process_template_line('global-exclude *.py')
+        file_list.sort()
         assert file_list.files == ['b.txt']
         self.assertNoWarnings()
 
         file_list.process_template_line('global-exclude *.rb')
+        file_list.sort()
         assert file_list.files == ['b.txt']
         self.assertWarnings()
 
@@ -466,10 +476,12 @@ class TestFileListTest(TempDirTestCase):
         self.make_files(['a.py', l('d/b.py'), l('d/c.txt'), l('d/d/e.py')])
 
         file_list.process_template_line('recursive-include d *.py')
+        file_list.sort()
         assert file_list.files == [l('d/b.py'), l('d/d/e.py')]
         self.assertNoWarnings()
 
         file_list.process_template_line('recursive-include e *.py')
+        file_list.sort()
         assert file_list.files == [l('d/b.py'), l('d/d/e.py')]
         self.assertWarnings()
 
@@ -480,10 +492,12 @@ class TestFileListTest(TempDirTestCase):
         file_list.files = ['a.py', l('d/b.py'), l('d/c.txt'), l('d/d/e.py')]
 
         file_list.process_template_line('recursive-exclude d *.py')
+        file_list.sort()
         assert file_list.files == ['a.py', l('d/c.txt')]
         self.assertNoWarnings()
 
         file_list.process_template_line('recursive-exclude e *.py')
+        file_list.sort()
         assert file_list.files == ['a.py', l('d/c.txt')]
         self.assertWarnings()
 
@@ -494,10 +508,12 @@ class TestFileListTest(TempDirTestCase):
         self.make_files(['a.py', l('d/b.py'), l('d/d/e.py'), l('f/f.py')])
 
         file_list.process_template_line('graft d')
+        file_list.sort()
         assert file_list.files == [l('d/b.py'), l('d/d/e.py')]
         self.assertNoWarnings()
 
         file_list.process_template_line('graft e')
+        file_list.sort()
         assert file_list.files == [l('d/b.py'), l('d/d/e.py')]
         self.assertWarnings()
 
@@ -508,9 +524,11 @@ class TestFileListTest(TempDirTestCase):
         file_list.files = ['a.py', l('d/b.py'), l('d/d/e.py'), l('f/f.py')]
 
         file_list.process_template_line('prune d')
+        file_list.sort()
         assert file_list.files == ['a.py', l('f/f.py')]
         self.assertNoWarnings()
 
         file_list.process_template_line('prune e')
+        file_list.sort()
         assert file_list.files == ['a.py', l('f/f.py')]
         self.assertWarnings()
