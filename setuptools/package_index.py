@@ -88,7 +88,7 @@ def egg_info_for_url(url):
     parts = urllib.parse.urlparse(url)
     scheme, server, path, parameters, query, fragment = parts
     base = urllib.parse.unquote(path.split('/')[-1])
-    if server == 'sourceforge.net' and base == 'download':    # XXX Yuck
+    if server == 'sourceforge.net' and base == 'download':  # XXX Yuck
         base = urllib.parse.unquote(path.split('/')[-2])
     if '#' in base:
         base, fragment = base.split('#', 1)
@@ -112,7 +112,7 @@ def distros_for_url(url, metadata=None):
 def distros_for_location(location, basename, metadata=None):
     """Yield egg or source distribution objects based on basename"""
     if basename.endswith('.egg.zip'):
-        basename = basename[:-4]    # strip the .zip
+        basename = basename[:-4]  # strip the .zip
     if basename.endswith('.egg') and '-' in basename:
         # only one, unambiguous interpretation
         return [Distribution.from_location(location, basename, metadata)]
@@ -334,17 +334,17 @@ class PackageIndex(Environment):
             return
 
         self.info("Reading %s", url)
-        self.fetched_urls[url] = True   # prevent multiple fetch attempts
+        self.fetched_urls[url] = True  # prevent multiple fetch attempts
         tmpl = "Download error on %s: %%s -- Some packages may not be found!"
         f = self.open_url(url, tmpl % url)
         if f is None:
             return
         self.fetched_urls[f.url] = True
         if 'html' not in f.headers.get('content-type', '').lower():
-            f.close()   # not html, we can't process it
+            f.close()  # not html, we can't process it
             return
 
-        base = f.url     # handle redirects
+        base = f.url  # handle redirects
         page = f.read()
         if not isinstance(page, str):  # We are in Python 3 and got bytes. We want str.
             if isinstance(f, urllib.error.HTTPError):
@@ -438,7 +438,7 @@ class PackageIndex(Environment):
             except ValueError:
                 pass
 
-        pkg, ver = scan(url)   # ensure this page is in the page index
+        pkg, ver = scan(url)  # ensure this page is in the page index
         if pkg:
             # process individual package page
             for new_url in find_external_links(url, page):
@@ -455,7 +455,7 @@ class PackageIndex(Environment):
                 lambda m: '<a href="%s#md5=%s">%s</a>' % m.group(1, 3, 2), page
             )
         else:
-            return ""   # no sense double-scanning non-package pages
+            return ""  # no sense double-scanning non-package pages
 
     def need_version_info(self, url):
         self.scan_all(
@@ -530,12 +530,12 @@ class PackageIndex(Environment):
         """Scan urls scheduled for prescanning (e.g. --find-links)"""
         if self.to_scan:
             list(map(self.scan_url, self.to_scan))
-        self.to_scan = None     # from now on, go ahead and process immediately
+        self.to_scan = None  # from now on, go ahead and process immediately
 
     def not_found_in_index(self, requirement):
-        if self[requirement.key]:   # we've seen at least one distro
+        if self[requirement.key]:  # we've seen at least one distro
             meth, msg = self.info, "Couldn't retrieve index page for %r"
-        else:   # no distros seen for this name, might be misspelled
+        else:  # no distros seen for this name, might be misspelled
             meth, msg = (self.warn,
                 "Couldn't find index page for %r (maybe misspelled?)")
         meth(msg, requirement.unsafe_name)
@@ -665,7 +665,7 @@ class PackageIndex(Environment):
             interpret_distro_name(filename, match.group(1), None) if d.version
         ] or []
 
-        if len(dists) == 1:   # unambiguous ``#egg`` fragment
+        if len(dists) == 1:  # unambiguous ``#egg`` fragment
             basename = os.path.basename(filename)
 
             # Make sure the file has been downloaded to the temp dir.
@@ -738,7 +738,7 @@ class PackageIndex(Environment):
                 fp.close()
 
     def reporthook(self, url, filename, blocknum, blksize, size):
-        pass    # no-op
+        pass  # no-op
 
     def open_url(self, url, warning=None):
         if url.startswith('file:'):
@@ -783,10 +783,10 @@ class PackageIndex(Environment):
             while '..' in name:
                 name = name.replace('..', '.').replace('\\', '_')
         else:
-            name = "__downloaded__"    # default if URL has no path contents
+            name = "__downloaded__"  # default if URL has no path contents
 
         if name.endswith('.egg.zip'):
-            name = name[:-4]    # strip the extra .zip before download
+            name = name[:-4]  # strip the extra .zip before download
 
         filename = os.path.join(tmpdir, name)
 
@@ -801,7 +801,7 @@ class PackageIndex(Environment):
         elif scheme == 'file':
             return urllib.request.url2pathname(urllib.parse.urlparse(url)[2])
         else:
-            self.url_ok(url, True)   # raises error if not allowed
+            self.url_ok(url, True)  # raises error if not allowed
             return self._attempt_download(url, filename)
 
     def scan_url(self, url):
@@ -824,13 +824,13 @@ class PackageIndex(Environment):
                     file.close()
                     os.unlink(filename)
                     return self._download_svn(url, filename)
-                break   # not an index page
+                break  # not an index page
         file.close()
         os.unlink(filename)
         raise DistutilsError("Unexpected HTML page found at " + url)
 
     def _download_svn(self, url, filename):
-        url = url.split('#', 1)[0]   # remove any fragment for svn's sake
+        url = url.split('#', 1)[0]  # remove any fragment for svn's sake
         creds = ''
         if url.lower().startswith('svn:') and '@' in url:
             scheme, netloc, path, p, q, f = urllib.parse.urlparse(url)
@@ -1082,7 +1082,7 @@ open_with_auth = socket_timeout(_SOCKET_TIMEOUT)(open_with_auth)
 
 
 def fix_sf_url(url):
-    return url      # backward compatibility
+    return url  # backward compatibility
 
 
 def local_open(url):

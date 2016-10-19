@@ -412,7 +412,7 @@ class Distribution(_Distribution):
             )
             for key in list(opts):
                 if key not in keep:
-                    del opts[key]   # don't use any other settings
+                    del opts[key]  # don't use any other settings
             if self.dependency_links:
                 links = self.dependency_links[:]
                 if 'find_links' in opts:
@@ -650,7 +650,7 @@ class Distribution(_Distribution):
         aliases = self.get_option_dict('aliases')
         while command in aliases:
             src, alias = aliases[command]
-            del aliases[command]    # ensure each alias can expand only once!
+            del aliases[command]  # ensure each alias can expand only once!
             import shlex
             args[:1] = shlex.split(alias, True)
             command = args[0]
