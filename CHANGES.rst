@@ -2,6 +2,11 @@
 CHANGES
 =======
 
+v28.6.1
+-------
+
+* #816: Fix manifest file list order in tests.
+
 v28.6.0
 -------
 
