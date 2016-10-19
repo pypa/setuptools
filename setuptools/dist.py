@@ -112,9 +112,8 @@ def check_nsp(dist, attr, value):
                 "Distribution contains no modules or packages for " +
                 "namespace package %r" % nsp
             )
-        if '.' in nsp:
-            parent = '.'.join(nsp.split('.')[:-1])
-            if parent not in value:
+        parent, sep, child = nsp.rpartition('.')
+        if parent and parent not in value:
                 distutils.log.warn(
                     "WARNING: %r is declared as a package namespace, but %r"
                     " is not: please correct this in setup.py", nsp, parent
