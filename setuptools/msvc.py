@@ -761,6 +761,7 @@ class EnvironmentInfo:
     vc_min_ver: float
         Minimum Microsoft Visual C++ version.
     """
+
     # Variables and properties in this class use originals CamelCase variables
     # names from Microsoft source files for more easy comparaison.
 

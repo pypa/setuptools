@@ -290,6 +290,7 @@ class AbstractSandbox:
             if self._active:
                 src, dst = self._remap_pair(name, src, dst, *args, **kw)
             return original(src, dst, *args, **kw)
+
         return wrap
 
     for name in ["rename", "link", "symlink"]:
