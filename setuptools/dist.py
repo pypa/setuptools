@@ -105,15 +105,16 @@ def assert_string_list(dist, attr, value):
 
 def check_nsp(dist, attr, value):
     """Verify that namespace packages are valid"""
-    assert_string_list(dist, attr, value)
-    for nsp in value:
+    ns_packages = value
+    assert_string_list(dist, attr, ns_packages)
+    for nsp in ns_packages:
         if not dist.has_contents_for(nsp):
             raise DistutilsSetupError(
                 "Distribution contains no modules or packages for " +
                 "namespace package %r" % nsp
             )
         parent, sep, child = nsp.rpartition('.')
-        if parent and parent not in value:
+        if parent and parent not in ns_packages:
             distutils.log.warn(
                 "WARNING: %r is declared as a package namespace, but %r"
                 " is not: please correct this in setup.py", nsp, parent
