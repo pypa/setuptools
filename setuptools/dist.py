@@ -114,10 +114,10 @@ def check_nsp(dist, attr, value):
             )
         parent, sep, child = nsp.rpartition('.')
         if parent and parent not in value:
-                distutils.log.warn(
-                    "WARNING: %r is declared as a package namespace, but %r"
-                    " is not: please correct this in setup.py", nsp, parent
-                )
+            distutils.log.warn(
+                "WARNING: %r is declared as a package namespace, but %r"
+                " is not: please correct this in setup.py", nsp, parent
+            )
 
 
 def check_extras(dist, attr, value):
