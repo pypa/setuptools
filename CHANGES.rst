@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+v28.7.1
+-------
+
+* #97: Declaring a namespace package implicitly also
+  declares the package.
+
 v28.6.1
 -------
 

@@ -104,9 +104,17 @@ def assert_string_list(dist, attr, value):
 
 
 def check_nsp(dist, attr, value):
-    """Verify that namespace packages are valid"""
+    """
+    Verify that namespace packages are valid and ensure that any
+    namespace packages imply a package.
+    """
     ns_packages = value
     assert_string_list(dist, attr, ns_packages)
+    dist.packages = dist.packages or []
+    dist.packages.extend(
+        package for package in ns_packages
+        if package not in dist.packages
+    )
     for nsp in ns_packages:
         if not dist.has_contents_for(nsp):
             raise DistutilsSetupError(
