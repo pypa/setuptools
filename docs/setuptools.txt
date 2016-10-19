@@ -1326,9 +1326,12 @@ Namespace Packages
 ------------------
 
 Sometimes, a large package is more useful if distributed as a collection of
-smaller eggs.  However, Python does not normally allow the contents of a
-package to be retrieved from more than one location.  "Namespace packages"
-are a solution for this problem.  When you declare a package to be a namespace
+smaller packages.  Traditionally, Python did not allow the contents of a
+package to be retrieved from more than one location. "Namespace packages"
+are a solution for this problem, and this feature is provided by
+``pkg_resources`` for Python 3.2 and earlier and natively
+supported by Python 3.3 and later per PEP 420.
+When you declare a package to be a namespace
 package, it means that the package has no meaningful contents in its
 ``__init__.py``, and that it is merely a container for modules and subpackages.
 
@@ -1343,7 +1346,7 @@ participates in.  For example, the ZopeInterface project might do this::
 
     setup(
         # ...
-        namespace_packages=['zope']
+        namespace_packages=['zope'],
     )
 
 because it contains a ``zope.interface`` package that lives in the ``zope``
@@ -1353,8 +1356,7 @@ installed and used, Python will see them both as part of a "virtual" ``zope``
 package, even though they will be installed in different locations.
 
 Namespace packages don't have to be top-level packages.  For example, Zope 3's
-``zope.app`` package is a namespace package, and in the future PEAK's
-``peak.util`` package will be too.
+``zope.app`` package is a namespace package.
 
 Note, by the way, that your project's source tree must include the namespace
 packages' ``__init__.py`` files (and the ``__init__.py`` of any parent
