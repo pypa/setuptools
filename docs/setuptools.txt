@@ -1381,6 +1381,10 @@ project's copy of ``__init__.py`` is loaded first.  If the first loaded
 ``__init__.py`` doesn't declare it, it will never *be* declared, because no
 other copies will ever be loaded!
 
+Packages that only support Python 3.3 and later may omit the ``__init__.py``
+altogether, but the namespace package must still be declared during
+``setup()``.
+
 
 TRANSITIONAL NOTE
 ~~~~~~~~~~~~~~~~~
