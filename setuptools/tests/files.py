@@ -1,4 +1,7 @@
+import io
 import os
+
+from setuptools.extern import six
 
 
 def build_files(file_defs, prefix=""):
@@ -28,5 +31,9 @@ def build_files(file_defs, prefix=""):
                 os.makedirs(full_name)
             build_files(contents, prefix=full_name)
         else:
-            with open(full_name, 'w') as f:
-                f.write(contents)
+            if isinstance(contents, six.text_type):
+                with io.open(full_name, 'w', encoding='utf8') as f:
+                    f.write(contents)
+            else:
+                with open(full_name, 'w') as f:
+                    f.write(contents)

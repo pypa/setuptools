@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+import io
 import os
 import glob
 import re
@@ -236,6 +238,34 @@ class TestEggInfo(object):
         egg_info_dir = self._find_egg_info_files(env.paths['lib']).base
         pkginfo = os.path.join(egg_info_dir, 'PKG-INFO')
         assert 'Requires-Python: >=1.2.3' in open(pkginfo).read().split('\n')
+
+    def test_unicode_description(self, tmpdir_cwd, env):
+        self.setup_script = DALS(u"""
+            # -*- coding: utf-8 -*-
+            from setuptools import setup
+
+            setup(
+                name='foo',
+                version='0.0',
+                py_modules=['hello'],
+                long_description=u'Ça a un goût de café',
+            )
+            """)
+        self._create_project()
+
+        environ = os.environ.copy().update(
+            HOME=env.paths['home'],
+        )
+        code, data = environment.run_setup_py(
+            cmd=['egg_info'],
+            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
+            data_stream=1,
+            env=environ,
+        )
+        assert not code, code
+        pkg_info_path = os.path.join('.', 'foo.egg-info', 'PKG-INFO')
+        with io.open(pkg_info_path, encoding='utf-8') as pkginfo:
+            assert u'Ça a un goût de café' in pkginfo.read()
 
     def _run_install_command(self, tmpdir_cwd, env, cmd=None, output=None):
         environ = os.environ.copy().update(
