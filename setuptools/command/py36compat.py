@@ -73,7 +73,7 @@ class sdist_add_defaults:
                 if self._cs_path_exists(fn):
                     self.filelist.append(fn)
                 else:
-                    self.warn("standard file '%s' not found" % fn)
+                    self.warn("standard file not found: '%s'" % fn)
 
     def _add_defaults_optional(self):
         optional = ['test/test*.py', 'setup.cfg']
