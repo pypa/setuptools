@@ -16,7 +16,7 @@ class Installer:
         nsp = self._get_all_ns_packages()
         if not nsp:
             return
-        filename, ext = os.path.splitext(self.target)
+        filename, ext = os.path.splitext(self._get_target())
         filename += self.nspkg_ext
         self.outputs.append(filename)
         log.info("Installing %s", filename)
@@ -29,6 +29,9 @@ class Installer:
 
         with open(filename, 'wt') as f:
             f.writelines(lines)
+
+    def _get_target(self):
+        return self.target
 
     _nspkg_tmpl = (
         "import sys, types, os",
