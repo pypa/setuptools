@@ -10,12 +10,14 @@ flatten = itertools.chain.from_iterable
 
 class Installer:
 
+    nspkg_ext = '-nspkg.pth'
+
     def install_namespaces(self):
         nsp = self._get_all_ns_packages()
         if not nsp:
             return
         filename, ext = os.path.splitext(self.target)
-        filename += '-nspkg.pth'
+        filename += self.nspkg_ext
         self.outputs.append(filename)
         log.info("Installing %s", filename)
         lines = map(self._gen_nspkg_line, nsp)
