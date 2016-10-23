@@ -1,7 +1,11 @@
 import os
 from distutils import log
+import itertools
 
 from setuptools.extern.six.moves import map
+
+
+flatten = itertools.chain.from_iterable
 
 
 class Installer:
@@ -54,11 +58,20 @@ class Installer:
 
     def _get_all_ns_packages(self):
         """Return sorted list of all package namespaces"""
-        nsp = set()
         pkgs = self.distribution.namespace_packages or []
-        for pkg in pkgs:
-            pkg = pkg.split('.')
-            while pkg:
-                nsp.add('.'.join(pkg))
-                pkg.pop()
-        return sorted(nsp)
+        return sorted(flatten(map(self._pkg_names, pkgs)))
+
+    @staticmethod
+    def _pkg_names(pkg):
+        """
+        Given a namespace package, yield the components of that
+        package.
+
+        >>> names = Installer._pkg_names('a.b.c')
+        >>> set(names) == set(['a', 'a.b', 'a.b.c'])
+        True
+        """
+        parts = pkg.split('.')
+        while parts:
+            yield '.'.join(parts)
+            parts.pop()
