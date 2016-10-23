@@ -33,7 +33,7 @@ class Installer:
     _nspkg_tmpl = (
         "import sys, types, os",
         "pep420 = sys.version_info > (3, 3)",
-        "p = os.path.join(sys._getframe(1).f_locals['sitedir'], *%(pth)r)",
+        "p = os.path.join(%(root)s, *%(pth)r)",
         "ie = os.path.exists(os.path.join(p,'__init__.py'))",
         "m = not ie and not pep420 and "
             "sys.modules.setdefault(%(pkg)r, types.ModuleType(%(pkg)r))",
@@ -47,15 +47,18 @@ class Installer:
     )
     "additional line(s) when a parent package is indicated"
 
-    @classmethod
-    def _gen_nspkg_line(cls, pkg):
+    def _get_root(self):
+        return "sys._getframe(1).f_locals['sitedir']"
+
+    def _gen_nspkg_line(self, pkg):
         # ensure pkg is not a unicode string under Python 2.7
         pkg = str(pkg)
         pth = tuple(pkg.split('.'))
-        tmpl_lines = cls._nspkg_tmpl
+        root = self._get_root()
+        tmpl_lines = self._nspkg_tmpl
         parent, sep, child = pkg.rpartition('.')
         if parent:
-            tmpl_lines += cls._nspkg_tmpl_multi
+            tmpl_lines += self._nspkg_tmpl_multi
         return ';'.join(tmpl_lines) % locals() + '\n'
 
     def _get_all_ns_packages(self):
