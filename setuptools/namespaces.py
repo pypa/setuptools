@@ -83,3 +83,11 @@ class Installer:
         while parts:
             yield '.'.join(parts)
             parts.pop()
+
+
+class DevelopInstaller(Installer):
+    def _get_root(self):
+        return repr(str(self.egg_path))
+
+    def _get_target(self):
+        return self.egg_link
