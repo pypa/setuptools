@@ -55,7 +55,8 @@ class Installer:
     def _get_all_ns_packages(self):
         """Return sorted list of all package namespaces"""
         nsp = set()
-        for pkg in self.distribution.namespace_packages or []:
+        pkgs = self.distribution.namespace_packages or []
+        for pkg in pkgs:
             pkg = pkg.split('.')
             while pkg:
                 nsp.add('.'.join(pkg))
