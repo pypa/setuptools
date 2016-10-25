@@ -13,7 +13,7 @@ def __boot():
 
     for item in stdpath:
         if item == mydir or not item:
-            continue    # skip if current dir. on Windows, or my own directory
+            continue  # skip if current dir. on Windows, or my own directory
         importer = pic.get(item)
         if importer is not None:
             loader = importer.find_module('site')
