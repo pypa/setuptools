@@ -38,7 +38,7 @@ import tempfile
 import textwrap
 from pkgutil import get_importer
 
-from pkg_resources._vendor import VersoinString
+from pkg_resources._vendor.cmp_version import VersionString
 
 try:
     import _imp
