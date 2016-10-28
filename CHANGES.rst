@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+v28.7.0
+-------
+
+* Moved much of the namespace package handling functionality
+  into a separate module for re-use in something like #789.
+
 v28.6.1
 -------
 
