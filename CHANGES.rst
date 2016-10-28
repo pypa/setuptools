@@ -5,8 +5,12 @@ CHANGES
 v28.7.0
 -------
 
-* Moved much of the namespace package handling functionality
-  into a separate module for re-use in something like #789.
+* #832: Moved much of the namespace package handling
+  functionality into a separate module for re-use in something
+  like #789.
+* #830: ``sdist`` command no longer suppresses the inclusion
+  of data files, re-aligning with the expectation of distutils
+  and addressing #274 and #521.
 
 v28.6.1
 -------
