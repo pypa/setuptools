@@ -515,10 +515,10 @@ class PackageIndex(Environment):
         """Add `urls` to the list that will be prescanned for searches"""
         for url in urls:
             if (
-                self.to_scan is None        # if we have already "gone online"
-                or not URL_SCHEME(url)      # or it's a local file/directory
+                self.to_scan is None  # if we have already "gone online"
+                or not URL_SCHEME(url)  # or it's a local file/directory
                 or url.startswith('file:')
-                or list(distros_for_url(url))   # or a direct package link
+                or list(distros_for_url(url))  # or a direct package link
             ):
                 # then go ahead and process it now
                 self.scan_url(url)
