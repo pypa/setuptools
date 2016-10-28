@@ -2,3 +2,4 @@ packaging==16.7
 pyparsing==2.1.10
 six==1.10.0
 appdirs==1.4.0
+pkginfo==1.4.0

@@ -17,6 +17,7 @@ def update_vendored():
     remove_all(vendor.glob('six*'))
     remove_all(vendor.glob('pyparsing*'))
     remove_all(vendor.glob('appdirs*'))
+    remove_all(vendor.glob('pkginfo*'))
     install_args = [
         'install',
         '-r', str(vendor / 'vendored.txt'),
