@@ -141,11 +141,6 @@ class sdist(sdist_add_defaults, orig.sdist):
                     self.filelist.extend([os.path.join(src_dir, filename)
                                           for filename in filenames])
 
-    def _add_defaults_data_files(self):
-        """
-        Don't add any data files, but why?
-        """
-
     def check_readme(self):
         for f in self.READMES:
             if os.path.exists(f):
