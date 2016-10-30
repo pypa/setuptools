@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+v28.7.1
+-------
+
+* #833: Backed out changes from #830 as the implementation
+  seems to have problems in some cases.
+
 v28.7.0
 -------
 
