@@ -77,7 +77,7 @@ def pypi_link(pkg_filename):
     Given the filename, including md5 fragment, construct the
     dependency link for PyPI.
     """
-    root = 'https://pypi.python.org/packages/source'
+    root = 'https://files.pythonhosted.org/packages/source'
     name, sep, rest = pkg_filename.partition('-')
     parts = root, name[0], name, pkg_filename
     return '/'.join(parts)

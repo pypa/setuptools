@@ -5,6 +5,8 @@ CHANGES
 v28.7.1
 -------
 
+* #827: Update PyPI root for dependency links.
+
 * #833: Backed out changes from #830 as the implementation
   seems to have problems in some cases.
 
