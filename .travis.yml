@@ -12,8 +12,8 @@ python:
 matrix:
   allow_failures:
     # pypa/setuptools#836
-    - "3.6-dev"
-    - nightly
+    - python: "3.6-dev"
+    - python: nightly
 env:
  - ""
  - LC_ALL=C LC_CTYPE=C
