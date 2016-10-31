@@ -2509,8 +2509,12 @@ class Distribution(object):
         if not hasattr(self, '_pkg_info'):
             self._pkg_info = {}
             for line in yield_lines(self._get_metadata(self.PKG_INFO)):
-                key, value = [field.strip() for field in line.split(':', 1)]
-                self._pkg_info[key] = value
+                try:
+                    key, value = [field.strip() for field in line.split(':', 1)]
+                    self._pkg_info[key] = value
+                except ValueError:
+                    tmpl = "Malformed %s file"
+                    raise ValueError(tmpl % self.PKG_INFO, self)
             if self._pkg_info is None:
                 tmpl = "Missing or empty %s file"
                 raise ValueError(tmpl % self.PKG_INFO, self)
