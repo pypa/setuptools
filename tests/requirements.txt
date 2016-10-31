@@ -1,0 +1,4 @@
+pytest-flake8
+pytest>=3.0.2
+setuptools[ssl]
+backports.unittest_mock>=1.2
