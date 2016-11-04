@@ -9,11 +9,6 @@ python:
   - nightly
   - pypy
   - pypy3
-matrix:
-  allow_failures:
-    # pypa/setuptools#836
-    - python: "3.6-dev"
-    - python: nightly
 env:
  - ""
  - LC_ALL=C LC_CTYPE=C
