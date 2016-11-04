@@ -2,6 +2,14 @@
 CHANGES
 =======
 
+v28.8.0
+-------
+
+* #629: Per the discussion, refine the sorting to use version
+  value order for more accurate detection of the latest
+  available version when scanning for packages. See also
+  #829.
+
 v28.7.1
 -------
 
