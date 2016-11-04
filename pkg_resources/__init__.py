@@ -38,6 +38,8 @@ import tempfile
 import textwrap
 from pkgutil import get_importer
 
+from pkg_resources._vendor.cmp_version import VersionString
+
 try:
     import _imp
 except ImportError:
@@ -189,7 +191,6 @@ class _SetuptoolsVersionMixin(object):
 
         for part in old_parse_version(str(self)):
             yield part
-
 
 class SetuptoolsVersion(_SetuptoolsVersionMixin, packaging.version.Version):
     pass
@@ -1982,7 +1983,9 @@ def find_on_path(importer, path_item, only=False):
 
             path_item_entries = os.listdir(path_item)
             # Reverse so we find the newest version of a distribution,
-            path_item_entries.sort()
+            #  sort by VersionString so that 2.7.10 comes AFTER 2.7.2, instead
+            #  of before.
+            path_item_entries.sort(key = lambda item : VersionString(item))
             path_item_entries.reverse()
             for entry in path_item_entries:
                 lower = entry.lower()
