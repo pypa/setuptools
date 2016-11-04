@@ -10,6 +10,9 @@ v28.8.0
   available version when scanning for packages. See also
   #829.
 
+* #837: Rely on the config var "SO" for Python 3.3.0 only
+  when determining the ext filename.
+
 v28.7.1
 -------
 
