@@ -30,6 +30,14 @@ class Installer:
         with open(filename, 'wt') as f:
             f.writelines(lines)
 
+    def uninstall_namespaces(self):
+        filename, ext = os.path.splitext(self._get_target())
+        filename += self.nspkg_ext
+        if not os.path.exists(filename):
+            return
+        log.info("Removing %s", filename)
+        os.remove(filename)
+
     def _get_target(self):
         return self.target
 

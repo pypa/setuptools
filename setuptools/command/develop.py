@@ -31,6 +31,7 @@ class develop(namespaces.DevelopInstaller, easy_install):
         if self.uninstall:
             self.multi_version = True
             self.uninstall_link()
+            self.uninstall_namespaces()
         else:
             self.install_for_development()
         self.warn_deprecated_options()
