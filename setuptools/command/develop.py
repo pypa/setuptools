@@ -9,10 +9,11 @@ from setuptools.extern import six
 
 from pkg_resources import Distribution, PathMetadata, normalize_path
 from setuptools.command.easy_install import easy_install
+from setuptools import namespaces
 import setuptools
 
 
-class develop(easy_install):
+class develop(namespaces.DevelopInstaller, easy_install):
     """Set up package for development"""
 
     description = "install package in 'development mode'"
@@ -122,6 +123,8 @@ class develop(easy_install):
         if setuptools.bootstrap_install_from:
             self.easy_install(setuptools.bootstrap_install_from)
             setuptools.bootstrap_install_from = None
+
+        self.install_namespaces()
 
         # create an .egg-link in the installation dir, pointing to our egg
         log.info("Creating %s (link to %s)", self.egg_link, self.egg_base)
