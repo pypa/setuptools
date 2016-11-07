@@ -1,9 +1,14 @@
 """develop tests
 """
+
+from __future__ import absolute_import
+
 import os
 import site
 import sys
 import io
+import textwrap
+import subprocess
 
 from setuptools.extern import six
 
@@ -114,10 +119,6 @@ class TestDevelop:
         cmd.install_dir = tmpdir
         cmd.run()
         # assert '0.0' not in foocmd_text
-
-
-import textwrap
-import subprocess
 
 
 class TestNamespaces:
