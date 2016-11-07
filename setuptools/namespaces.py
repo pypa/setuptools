@@ -45,8 +45,7 @@ class Installer:
         "import sys, types, os",
         "pep420 = sys.version_info > (3, 3)",
         "p = os.path.join(%(root)s, *%(pth)r)",
-        "ie = os.path.exists(os.path.join(p,'__init__.py'))",
-        "m = not ie and not pep420 and "
+        "m = not pep420 and "
             "sys.modules.setdefault(%(pkg)r, types.ModuleType(%(pkg)r))",
         "mp = (m or []) and m.__dict__.setdefault('__path__',[])",
         "(p not in mp) and mp.append(p)",
