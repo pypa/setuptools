@@ -140,10 +140,10 @@ class TestNamespaces:
         setup_py.write_text(script, encoding='utf-8')
         ns_pkg_dir = src_dir / namespace
         ns_pkg_dir.mkdir()
-        pkg_init = ns_pkg_dir / '__init__.py'
-        tmpl = '__import__("pkg_resources").declare_namespace({namespace!r})'
-        decl = tmpl.format(**locals())
-        pkg_init.write_text(decl, encoding='utf-8')
+        #pkg_init = ns_pkg_dir / '__init__.py'
+        #tmpl = '__import__("pkg_resources").declare_namespace({namespace!r})'
+        #decl = tmpl.format(**locals())
+        #pkg_init.write_text(decl, encoding='utf-8')
         pkg_mod = ns_pkg_dir / (rest + '.py')
         some_functionality = 'name = {rest!r}'.format(**locals())
         pkg_mod.write_text(some_functionality, encoding='utf-8')
