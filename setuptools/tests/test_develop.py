@@ -160,6 +160,19 @@ class TestNamespaces:
         tmpl = '__import__("site").addsitedir({target_str!r})'
         sc.write_text(tmpl.format(**locals()), encoding='utf-8')
 
+    @staticmethod
+    def install_develop(src_dir, target):
+
+        develop_cmd = [
+            sys.executable,
+            'setup.py',
+            'develop',
+            '--install-dir', str(target),
+        ]
+        env = dict(PYTHONPATH=str(target))
+        with src_dir.as_cwd():
+            subprocess.check_call(develop_cmd, env=env)
+
     def test_namespace_package_importable(self, tmpdir):
         """
         Installing two packages sharing the same namespace, one installed
@@ -174,11 +187,11 @@ class TestNamespaces:
         install_cmd = [
             'pip',
             'install',
-            '-e', str(pkg_B),
             str(pkg_A),
             '-t', str(target),
         ]
         subprocess.check_call(install_cmd)
+        self.install_develop(pkg_B, target)
         self.make_site_dir(target)
         try_import = [
             sys.executable,
