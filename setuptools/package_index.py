@@ -768,7 +768,7 @@ class PackageIndex(Environment):
                     'down, %s' %
                     (url, v.line)
                 )
-        except http_client.HTTPException as v:
+        except (http_client.HTTPException, socket.error) as v:
             if warning:
                 self.warn(warning, v)
             else:
