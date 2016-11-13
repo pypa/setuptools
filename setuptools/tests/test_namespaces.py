@@ -1,9 +1,11 @@
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import os
 import textwrap
 import sys
 import subprocess
+
+import pytest
 
 
 class TestNamespaces:
@@ -46,6 +48,8 @@ class TestNamespaces:
         tmpl = '__import__("site").addsitedir({target_str!r})'
         sc.write_text(tmpl.format(**locals()), encoding='utf-8')
 
+    @pytest.mark.xfail(sys.version_info < (3, 3),
+        reason="Requires PEP 420")
     def test_mixed_site_and_non_site(self, tmpdir):
         """
         Installing two packages sharing the same namespace, one installed
