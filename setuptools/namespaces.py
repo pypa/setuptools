@@ -45,7 +45,7 @@ class Installer:
         "import sys, types, os",
         "pep420 = sys.version_info > (3, 3)",
         "p = os.path.join(%(root)s, *%(pth)r)",
-        "m = not pep420 and "
+        "m = "
             "sys.modules.setdefault(%(pkg)r, types.ModuleType(%(pkg)r))",
         "mp = (m or []) and m.__dict__.setdefault('__path__',[])",
         "(p not in mp) and mp.append(p)",
