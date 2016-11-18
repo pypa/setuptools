@@ -13,6 +13,8 @@ class TestNamespaces:
 
     @pytest.mark.xfail(sys.version_info < (3, 3),
         reason="Requires PEP 420")
+    @pytest.mark.skipif('os.environ.get("APPVEYOR")',
+        reason="https://github.com/pypa/setuptools/issues/851")
     def test_mixed_site_and_non_site(self, tmpdir):
         """
         Installing two packages sharing the same namespace, one installed
