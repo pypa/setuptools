@@ -2,6 +2,13 @@
 CHANGES
 =======
 
+v29.0.0
+-------
+
+* #841: Drop special exception for packages invoking
+  win32com during the build/install process. See
+  Distribute #118 for history.
+
 v28.8.0
 -------
 
