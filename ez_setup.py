@@ -40,6 +40,8 @@ DEFAULT_VERSION = LATEST
 DEFAULT_URL = "https://pypi.io/packages/source/s/setuptools/"
 DEFAULT_SAVE_DIR = os.curdir
 
+MEANINGFUL_INVALID_ZIP_ERR_MSG = 'Maybe {0} is corrupted, delete it and try again.'
+
 
 def _python_cmd(*args):
     """
@@ -104,8 +106,16 @@ def archive_context(filename):
     old_wd = os.getcwd()
     try:
         os.chdir(tmpdir)
-        with ContextualZipFile(filename) as archive:
-            archive.extractall()
+        try:
+            with ContextualZipFile(filename) as archive:
+                archive.extractall()
+        except zipfile.BadZipfile as err:
+            if not err.args:
+                err.args = ('', )
+            err.args = err.args + (
+                MEANINGFUL_INVALID_ZIP_ERR_MSG.format(filename),
+            )
+            raise
 
         # going in the directory
         subdir = os.path.join(tmpdir, os.listdir(tmpdir)[0])
