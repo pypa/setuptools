@@ -457,7 +457,7 @@ class FileList(_FileList):
         """
         if self.allfiles is None:
             self.findall()
-        match = translate_pattern(os.path.join('**', pattern))
+        match = translate_pattern(os.path.join('**', '*' + pattern))
         found = [f for f in self.allfiles if match.match(f)]
         self.extend(found)
         return bool(found)
@@ -466,7 +466,7 @@ class FileList(_FileList):
         """
         Exclude all files anywhere that match the pattern.
         """
-        match = translate_pattern(os.path.join('**', pattern))
+        match = translate_pattern(os.path.join('**', '*' + pattern))
         return self._remove_files(match.match)
 
     def append(self, item):
