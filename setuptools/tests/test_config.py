@@ -145,10 +145,10 @@ class TestMetadata:
                 dist.parse_config_files()
 
     def test_classifiers(self, tmpdir):
-        expected = {
+        expected = set([
             'Framework :: Django',
             'Programming Language :: Python :: 3.5',
-        }
+        ])
 
         # From file.
         fake_env(
@@ -205,32 +205,32 @@ class TestOptions:
             assert dist.use_2to3
             assert dist.include_package_data
             assert dist.package_dir == {'': 'src', 'b': 'c'}
-            assert set(dist.packages) == {'pack_a', 'pack_b.subpack'}
-            assert set(dist.namespace_packages) == {'pack1', 'pack2'}
-            assert set(dist.use_2to3_fixers) == {'your.fixers', 'or.here'}
-            assert set(dist.use_2to3_exclude_fixers) == {
-                'one.here', 'two.there'}
-            assert set(dist.convert_2to3_doctests) == {
-                'src/tests/one.txt', 'src/two.txt'}
-            assert set(dist.scripts) == {'bin/one.py', 'bin/two.py'}
-            assert set(dist.dependency_links) == {
+            assert set(dist.packages) == set(['pack_a', 'pack_b.subpack'])
+            assert set(dist.namespace_packages) == set(['pack1', 'pack2'])
+            assert set(dist.use_2to3_fixers) == set(['your.fixers', 'or.here'])
+            assert set(dist.use_2to3_exclude_fixers) == set([
+                'one.here', 'two.there'])
+            assert set(dist.convert_2to3_doctests) == set([
+                'src/tests/one.txt', 'src/two.txt'])
+            assert set(dist.scripts) == set(['bin/one.py', 'bin/two.py'])
+            assert set(dist.dependency_links) == set([
                 'http://some.com/here/1',
                 'http://some.com/there/2'
-            }
-            assert set(dist.install_requires) == {
+            ])
+            assert set(dist.install_requires) == set([
                 'docutils>=0.3',
                 'pack ==1.1, ==1.3',
                 'hey'
-            }
-            assert set(dist.setup_requires) == {
+            ])
+            assert set(dist.setup_requires) == set([
                 'docutils>=0.3',
                 'spack ==1.1, ==1.3',
                 'there'
-            }
-            assert set(dist.tests_require) == {
+            ])
+            assert set(dist.tests_require) == set([
                 'mock==0.7.2',
                 'pytest'
-            }
+            ])
 
     def test_package_dir_fail(self, tmpdir):
         fake_env(
@@ -323,10 +323,10 @@ class TestOptions:
             assert dist.entry_points == expected
 
     def test_dependency_links(self, tmpdir):
-        expected = {
+        expected = set([
             'http://some.com/here/1',
             'http://some.com/there/2'
-        }
+        ])
         # From section.
         fake_env(
             tmpdir,
