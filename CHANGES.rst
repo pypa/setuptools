@@ -2,6 +2,16 @@
 CHANGES
 =======
 
+v29.0.1
+-------
+
+* #861: Re-release of v29.0.1 with the executable script
+  launchers bundled. Now, launchers are included by default
+  and users that want to disable this behavior must set the
+  environment variable
+  'SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES' to
+  a false value like "false" or "0".
+
 v29.0.0
 -------
 

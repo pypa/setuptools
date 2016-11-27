@@ -54,8 +54,8 @@ package_data = dict(
 )
 
 force_windows_specific_files = (
-    os.environ.get("SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES")
-    not in (None, "", "0")
+    os.environ.get("SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES", "1").lower()
+    not in ("", "0", "false", "no")
 )
 
 include_windows_files = (
