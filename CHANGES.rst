@@ -7,6 +7,7 @@ v30.0.0
 
 * #864: Drop support for Python 3.2. Systems requiring
   Python 3.2 support must use 'setuptools < 30'.
+* #825: Suppress warnings for single files.
 
 v29.0.1
 -------
