@@ -75,11 +75,7 @@ __import__('pkg_resources.extern.packaging.requirements')
 __import__('pkg_resources.extern.packaging.markers')
 
 if (3, 0) < sys.version_info < (3, 3):
-    msg = (
-        "Support for Python 3.0-3.2 has been dropped. Future versions "
-        "will fail here."
-    )
-    warnings.warn(msg)
+    raise RuntimeError("Python 3.3 or later is required")
 
 # declare some globals that will be defined later to
 # satisfy the linters.

@@ -2,6 +2,12 @@
 CHANGES
 =======
 
+v30.0.0
+-------
+
+* #864: Drop support for Python 3.2. Systems requiring
+  Python 3.2 support must use 'setuptools < 30'.
+
 v29.0.1
 -------
 
