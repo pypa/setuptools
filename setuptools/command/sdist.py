@@ -143,7 +143,10 @@ class sdist(sdist_add_defaults, orig.sdist):
 
     def _add_defaults_data_files(self):
         try:
-            sdist_add_defaults._add_defaults_data_files(self)
+            if six.PY2:
+                sdist_add_defaults._add_defaults_data_files(self)
+            else:
+                super()._add_defaults_data_files()
         except TypeError:
             log.warn("data_files contains unexpected objects")
 
