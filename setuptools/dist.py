@@ -39,23 +39,30 @@ def write_pkg_file(self, file):
     if hasattr(self, 'python_requires'):
         version = '1.2'
 
-    file.write('Metadata-Version: %s\n' % version)
-    file.write('Name: %s\n' % self.get_name())
-    file.write('Version: %s\n' % self.get_version())
-    file.write('Summary: %s\n' % self.get_description())
-    file.write('Home-page: %s\n' % self.get_url())
-    file.write('Author: %s\n' % self.get_contact())
-    file.write('Author-email: %s\n' % self.get_contact_email())
-    file.write('License: %s\n' % self.get_license())
+    if six.PY3:
+        def _write_field(file, name, value):
+            file.write('%s: %s\n' % (name, value))
+    else:
+        def _write_field(file, name, value):
+            self._write_field(file, name, value)
+
+    _write_field(file, 'Metadata-Version', version)
+    _write_field(file, 'Name', self.get_name())
+    _write_field(file, 'Version', self.get_version())
+    _write_field(file, 'Summary', self.get_description())
+    _write_field(file, 'Home-page', self.get_url())
+    _write_field(file, 'Author', self.get_contact())
+    _write_field(file, 'Author-email', self.get_contact_email())
+    _write_field(file, 'License', self.get_license())
     if self.download_url:
-        file.write('Download-URL: %s\n' % self.download_url)
+        _write_field(file, 'Download-URL', self.download_url)
 
     long_desc = rfc822_escape(self.get_long_description())
-    file.write('Description: %s\n' % long_desc)
+    _write_field(file, 'Description', long_desc)
 
     keywords = ','.join(self.get_keywords())
     if keywords:
-        file.write('Keywords: %s\n' % keywords)
+        _write_field(file, 'Keywords', keywords)
 
     self._write_list(file, 'Platform', self.get_platforms())
     self._write_list(file, 'Classifier', self.get_classifiers())
@@ -67,7 +74,7 @@ def write_pkg_file(self, file):
 
     # Setuptools specific for PEP 345
     if hasattr(self, 'python_requires'):
-        file.write('Requires-Python: %s\n' % self.python_requires)
+        _write_field(file, 'Requires-Python', self.python_requires)
 
 
 # from Python 3.4
