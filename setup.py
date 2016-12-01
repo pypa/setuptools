@@ -54,8 +54,8 @@ package_data = dict(
 )
 
 force_windows_specific_files = (
-    os.environ.get("SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES")
-    not in (None, "", "0")
+    os.environ.get("SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES", "1").lower()
+    not in ("", "0", "false", "no")
 )
 
 include_windows_files = (
@@ -85,7 +85,7 @@ def pypi_link(pkg_filename):
 
 setup_params = dict(
     name="setuptools",
-    version="29.0.0",
+    version="29.0.1",
     description="Easily download, build, install, upgrade, and uninstall "
         "Python packages",
     author="Python Packaging Authority",
