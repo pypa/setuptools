@@ -7,7 +7,12 @@ v30.0.0
 
 * #864: Drop support for Python 3.2. Systems requiring
   Python 3.2 support must use 'setuptools < 30'.
+
 * #825: Suppress warnings for single files.
+
+* #830 via #843: Once again restored inclusion of data
+  files to sdists, but now trap TypeError caused by
+  techniques employed rjsmin and similar.
 
 v29.0.1
 -------
