@@ -156,6 +156,7 @@ setup_params = dict(
         Topic :: System :: Systems Administration
         Topic :: Utilities
         """).strip().splitlines(),
+    python_requires='>=2.6,!=3.0.*,!=3.1.*,!=3.2.*',
     extras_require={
         "ssl:sys_platform=='win32'": "wincertstore==0.2",
         "certs": "certifi==2016.9.26",
