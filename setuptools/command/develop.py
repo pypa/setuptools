@@ -20,9 +20,12 @@ class develop(easy_install):
     user_options = easy_install.user_options + [
         ("uninstall", "u", "Uninstall this source package"),
         ("egg-path=", None, "Set the path to be used in the .egg-link file"),
+        ("use-pth-file", None,
+            "Create a pip-compatible .pth file instead of an .egg-link file")
     ]
 
-    boolean_options = easy_install.boolean_options + ['uninstall']
+    boolean_options = easy_install.boolean_options + [
+        'uninstall', 'use-pth-file']
 
     command_consumes_arguments = False  # override base
 
@@ -37,6 +40,7 @@ class develop(easy_install):
     def initialize_options(self):
         self.uninstall = None
         self.egg_path = None
+        self.use_pth_file = False
         easy_install.initialize_options(self)
         self.setup_path = None
         self.always_copy_from = '.'  # always copy eggs installed in curdir
@@ -123,14 +127,41 @@ class develop(easy_install):
             self.easy_install(setuptools.bootstrap_install_from)
             setuptools.bootstrap_install_from = None
 
+        if self.distribution.namespace_packages and self.use_pth_file:
+            self._create_nspth()
+        else:
+            self._create_egg_link()
+
+        # postprocess the installed distro, fixing up .pth, installing scripts,
+        # and handling requirements
+        self.process_distribution(None, self.dist, not self.no_deps)
+
+    def _create_nspth(self):
+        namespace_packages = self._get_all_ns_packages()
+
+        # TODO Give the nspth it's own variable
+        filename, ext = os.path.splitext(self.egg_link)
+        filename += '-nspkg-develop.pth'
+        self.outputs.append(filename)
+
+        log.info("Installing %s (link to %s)", filename, self.egg_path)
+
+        # TODO: support package_dir.
+        lines = [
+            self._gen_nspkg_line(package) for package in namespace_packages]
+
+        if self.dry_run:
+            return
+
+        with open(filename, 'wt') as f:
+            f.writelines(lines)
+
+    def _create_egg_link(self):
         # create an .egg-link in the installation dir, pointing to our egg
         log.info("Creating %s (link to %s)", self.egg_link, self.egg_base)
         if not self.dry_run:
             with open(self.egg_link, "w") as f:
                 f.write(self.egg_path + "\n" + self.setup_path)
-        # postprocess the installed distro, fixing up .pth, installing scripts,
-        # and handling requirements
-        self.process_distribution(None, self.dist, not self.no_deps)
 
     def uninstall_link(self):
         if os.path.exists(self.egg_link):
@@ -171,6 +202,43 @@ class develop(easy_install):
     def install_wrapper_scripts(self, dist):
         dist = VersionlessRequirement(dist)
         return easy_install.install_wrapper_scripts(self, dist)
+
+    def _get_all_ns_packages(self):
+        """Return sorted list of all package namespaces"""
+        nsp = set()
+        for pkg in self.distribution.namespace_packages or []:
+            pkg = pkg.split('.')
+            while pkg:
+                nsp.add('.'.join(pkg))
+                pkg.pop()
+        return sorted(nsp)
+
+    _nspkg_tmpl = (
+        "import sys, types, os",
+        "p = os.path.join(%(develop_path)r, *%(pth)r)",
+        "ie = os.path.exists(os.path.join(p,'__init__.py'))",
+        "m = ie and "
+            "sys.modules.setdefault(%(pkg)r, types.ModuleType(%(pkg)r))",
+        "mp = (m or []) and m.__dict__.setdefault('__path__',[])",
+        "(p not in mp) and mp.append(p)",
+    )
+    "lines for the namespace installer"
+
+    _nspkg_tmpl_multi = (
+        'm and setattr(sys.modules[%(parent)r], %(child)r, m)',
+    )
+    "additional line(s) when a parent package is indicated"
+
+    def _gen_nspkg_line(self, pkg):
+        # ensure pkg is not a unicode string under Python 2.7
+        pkg = str(pkg)
+        develop_path = str(self.egg_path)
+        pth = tuple(pkg.split('.'))
+        tmpl_lines = self._nspkg_tmpl
+        parent, sep, child = pkg.rpartition('.')
+        if parent:
+            tmpl_lines += self._nspkg_tmpl_multi
+        return ';'.join(tmpl_lines) % locals() + '\n'
 
 
 class VersionlessRequirement(object):
