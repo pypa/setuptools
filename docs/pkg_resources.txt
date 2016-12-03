@@ -835,6 +835,8 @@ addition, the following methods are provided:
     Load the entry point, returning the advertised Python object, or raise
     ``ImportError`` if it cannot be obtained.  If `require` is a true value,
     then ``require(env, installer)`` is called before attempting the import.
+    Parameters to load are deprecated.  Call ``require`` and ``resolve``
+    separately.
 
 ``require(env=None, installer=None)``
     Ensure that any "extras" needed by the entry point are available on
@@ -845,6 +847,10 @@ addition, the following methods are provided:
     present on sys.path.  If `installer` is supplied, it must be a callable
     taking a ``Requirement`` instance and returning a matching importable
     ``Distribution`` instance or None.
+
+``resolve()``
+    Resolve the entry point from its module and attrs, returning the advertised
+    Python object.
 
 ``__str__()``
     The string form of an ``EntryPoint`` is a string that could be passed to
