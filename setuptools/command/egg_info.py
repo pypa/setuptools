@@ -457,7 +457,7 @@ class FileList(_FileList):
         """
         if self.allfiles is None:
             self.findall()
-        match = translate_pattern(os.path.join('**', pattern))
+        match = translate_pattern(os.path.join('**', '*' + pattern))
         found = [f for f in self.allfiles if match.match(f)]
         self.extend(found)
         return bool(found)
@@ -466,7 +466,7 @@ class FileList(_FileList):
         """
         Exclude all files anywhere that match the pattern.
         """
-        match = translate_pattern(os.path.join('**', pattern))
+        match = translate_pattern(os.path.join('**', '*' + pattern))
         return self._remove_files(match.match)
 
     def append(self, item):
@@ -554,9 +554,16 @@ class manifest_maker(sdist):
         msg = "writing manifest file '%s'" % self.manifest
         self.execute(write_file, (self.manifest, files), msg)
 
-    def warn(self, msg):  # suppress missing-file warnings from sdist
-        if not msg.startswith("standard file not found:"):
+    def warn(self, msg):
+        if not self._should_suppress_warning(msg):
             sdist.warn(self, msg)
+
+    @staticmethod
+    def _should_suppress_warning(msg):
+        """
+        suppress missing-file warnings from sdist
+        """
+        return re.match(r"standard file .*not found", msg)
 
     def add_defaults(self):
         sdist.add_defaults(self)

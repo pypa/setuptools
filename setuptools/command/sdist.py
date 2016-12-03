@@ -142,9 +142,13 @@ class sdist(sdist_add_defaults, orig.sdist):
                                           for filename in filenames])
 
     def _add_defaults_data_files(self):
-        """
-        Don't add any data files, but why?
-        """
+        try:
+            if six.PY2:
+                sdist_add_defaults._add_defaults_data_files(self)
+            else:
+                super()._add_defaults_data_files()
+        except TypeError:
+            log.warn("data_files contains unexpected objects")
 
     def check_readme(self):
         for f in self.READMES:

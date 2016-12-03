@@ -1,6 +1,24 @@
-=======
-CHANGES
-=======
+v30.1.0
+-------
+
+* #846: Also trap 'socket.error' when opening URLs in
+  package_index.
+
+* #849: Manifest processing now matches the filename
+  pattern anywhere in the filename and not just at the
+  start. Restores behavior found prior to 28.5.0.
+
+v30.0.0
+-------
+
+* #864: Drop support for Python 3.2. Systems requiring
+  Python 3.2 support must use 'setuptools < 30'.
+
+* #825: Suppress warnings for single files.
+
+* #830 via #843: Once again restored inclusion of data
+  files to sdists, but now trap TypeError caused by
+  techniques employed rjsmin and similar.
 
 v29.0.1
 -------
