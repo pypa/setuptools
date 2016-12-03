@@ -1,3 +1,9 @@
+v30.1.0
+-------
+
+* #846: Also trap 'socket.error' when opening URLs in
+  package_index.
+
 v30.0.0
 -------
 
