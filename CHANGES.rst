@@ -4,6 +4,10 @@ v30.1.0
 * #846: Also trap 'socket.error' when opening URLs in
   package_index.
 
+* #849: Manifest processing now matches the filename
+  pattern anywhere in the filename and not just at the
+  start. Restores behavior found prior to 28.5.0.
+
 v30.0.0
 -------
 
