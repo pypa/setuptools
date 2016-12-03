@@ -831,12 +831,9 @@ correspond exactly to the constructor argument names: ``name``,
 ``module_name``, ``attrs``, ``extras``, and ``dist`` are all available.  In
 addition, the following methods are provided:
 
-``load(require=True, env=None, installer=None)``
-    Load the entry point, returning the advertised Python object, or raise
-    ``ImportError`` if it cannot be obtained.  If `require` is a true value,
-    then ``require(env, installer)`` is called before attempting the import.
-    Parameters to load are deprecated.  Call ``require`` and ``resolve``
-    separately.
+``load()``
+    Load the entry point, returning the advertised Python object.  Effectively
+    calls ``self.require()`` then returns ``self.resolve()``.
 
 ``require(env=None, installer=None)``
     Ensure that any "extras" needed by the entry point are available on
@@ -850,7 +847,7 @@ addition, the following methods are provided:
 
 ``resolve()``
     Resolve the entry point from its module and attrs, returning the advertised
-    Python object.
+    Python object. Raises ``ImportError`` if it cannot be obtained.
 
 ``__str__()``
     The string form of an ``EntryPoint`` is a string that could be passed to
