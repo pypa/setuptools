@@ -3038,10 +3038,10 @@ def _initialize_master_working_set():
     # ensure that all distributions added to the working set in the future
     # (e.g. by calling ``require()``) will get activated as well,
     # with higher priority (replace=True).
-    dist = None  # ensure dist is defined for del dist below
-    for dist in working_set:
+    tuple(
         dist.activate(replace=False)
-    del dist
+        for dist in working_set
+    )
     add_activation_listener(lambda dist: dist.activate(replace=True), existing=False)
     working_set.entries = []
     # match order
