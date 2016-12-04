@@ -92,7 +92,7 @@ class TestMetadata:
             tmpdir,
             '[metadata]\n'
             'author-email = test@test.com\n'
-            'home_page = http://test.test.com/test/\n'
+            'home-page = http://test.test.com/test/\n'
             'summary = Short summary\n'
             'platform = a, b\n'
             'classifier =\n'
