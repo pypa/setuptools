@@ -1,3 +1,8 @@
+v30.2.0
+-------
+
+* #854: Bump to vendored Packaging 16.8.
+
 v30.1.0
 -------
 
