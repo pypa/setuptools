@@ -12,6 +12,16 @@ class ConfigHandler(object):
     """Handles metadata supplied in configuration files."""
 
     section_prefix = None
+    """Prefix for config sections handled by this handler.
+    Must be provided by class heirs.
+
+    """
+
+    strict_mode = True
+    """Flag. Whether unknown options in config should
+    raise DistutilsOptionError exception, or pass silently.
+
+    """
 
     def __init__(self, target_obj, options):
         sections = {}
@@ -174,9 +184,11 @@ class ConfigHandler(object):
         for (name, (_, value)) in section_options.items():
             try:
                 self[name] = value
+
             except KeyError:
-                raise DistutilsOptionError(
-                    'Unknown distribution option: %s' % name)
+                if self.strict_mode:
+                    raise DistutilsOptionError(
+                        'Unknown distribution option: %s' % name)
 
     def parse(self):
         """Parses configuration file items from one
@@ -203,6 +215,11 @@ class ConfigHandler(object):
 class ConfigMetadataHandler(ConfigHandler):
 
     section_prefix = 'metadata'
+    strict_mode = False
+    """We need to keep it loose, to be compatible with `pbr` package
+    which also uses `metadata` section.
+
+    """
 
     @property
     def parsers(self):
