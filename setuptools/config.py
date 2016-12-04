@@ -32,7 +32,7 @@ class ConfigHandler(object):
             if not section_name.startswith(section_prefix):
                 continue
 
-            section_name = section_name.replace(section_prefix, '').strip(':')
+            section_name = section_name.replace(section_prefix, '').strip('.')
             sections[section_name] = section_options
 
         self.target_obj = target_obj

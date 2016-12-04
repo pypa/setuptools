@@ -157,7 +157,7 @@ class TestMetadata:
 
         fake_env(
             tmpdir,
-            '[metadata:some]\n'
+            '[metadata.some]\n'
             'key = val\n'
         )
         with get_dist(tmpdir, parse=False) as dist:
@@ -187,7 +187,7 @@ class TestMetadata:
 
         # From section.
         tmpdir.join('setup.cfg').write(
-            '[metadata:classifiers]\n'
+            '[metadata.classifiers]\n'
             'Framework :: Django\n'
             'Programming Language :: Python :: 3.5\n'
         )
@@ -329,11 +329,11 @@ class TestOptions:
     def test_package_data(self, tmpdir):
         fake_env(
             tmpdir,
-            '[options:package_data]\n'
+            '[options.package_data]\n'
             '* = *.txt, *.rst\n'
             'hello = *.msg\n'
             '\n'
-            '[options:exclude_package_data]\n'
+            '[options.exclude_package_data]\n'
             '* = fake1.txt, fake2.txt\n'
             'hello = *.dat\n'
         )
@@ -373,9 +373,11 @@ class TestOptions:
     def test_extras_require(self, tmpdir):
         fake_env(
             tmpdir,
-            '[options:extras_require]\n'
+            '[options.extras_require]\n'
             'pdf = ReportLab>=1.2; RXP\n'
-            'rest = docutils>=0.3; pack ==1.1, ==1.3\n'
+            'rest = \n'
+            '  docutils>=0.3\n'
+            '  pack ==1.1, ==1.3\n'
         )
 
         with get_dist(tmpdir) as dist:
@@ -387,7 +389,7 @@ class TestOptions:
     def test_entry_points(self, tmpdir):
         fake_env(
             tmpdir,
-            '[options:entry_points]\n'
+            '[options.entry_points]\n'
             'group1 = point1 = pack.module:func, '
                 '.point2 = pack.module2:func_rest [rest]\n'
             'group2 = point3 = pack.module:func2\n'
