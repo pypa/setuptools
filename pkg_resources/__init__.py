@@ -3005,9 +3005,11 @@ def _initialize(g=globals()):
     "Set up global resource manager (deliberately not state-saved)"
     manager = ResourceManager()
     g['_manager'] = manager
-    for name in dir(manager):
-        if not name.startswith('_'):
-            g[name] = getattr(manager, name)
+    g.update(
+        (name, getattr(manager, name))
+        for name in dir(manager)
+        if not name.startswith('_')
+    )
 
 
 @_call_aside
