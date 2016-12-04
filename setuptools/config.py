@@ -333,14 +333,6 @@ class ConfigOptionsHandler(ConfigHandler):
         from setuptools import find_packages
         return find_packages()
 
-    def parse_section_dependency_links(self, section_options):
-        """Parses `dependency_links` configuration file section.
-
-        :param dict section_options:
-        """
-        parsed = self._parse_section_to_dict(section_options)
-        self['dependency_links'] = list(parsed.values())
-
     def parse_section_entry_points(self, section_options):
         """Parses `entry_points` configuration file section.
 

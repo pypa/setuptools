@@ -417,19 +417,3 @@ class TestOptions:
 
         with get_dist(tmpdir) as dist:
             assert dist.entry_points == expected
-
-    def test_dependency_links(self, tmpdir):
-        expected = set([
-            'http://some.com/here/1',
-            'http://some.com/there/2'
-        ])
-        # From section.
-        fake_env(
-            tmpdir,
-            '[options:dependency_links]\n'
-            '1 = http://some.com/here/1\n'
-            '2 = http://some.com/there/2\n'
-        )
-
-        with get_dist(tmpdir) as dist:
-            assert set(dist.dependency_links) == expected
