@@ -86,6 +86,31 @@ class TestMetadata:
             assert metadata.name == 'fake_name'
             assert metadata.keywords == ['one', 'two']
 
+    def test_aliases(self, tmpdir):
+
+        fake_env(
+            tmpdir,
+            '[metadata]\n'
+            'author-email = test@test.com\n'
+            'home_page = http://test.test.com/test/\n'
+            'summary = Short summary\n'
+            'platform = a, b\n'
+            'classifier =\n'
+            '  Framework :: Django\n'
+            '  Programming Language :: Python :: 3.5\n'
+        )
+
+        with get_dist(tmpdir) as dist:
+            metadata = dist.metadata
+            assert metadata.author_email == 'test@test.com'
+            assert metadata.url == 'http://test.test.com/test/'
+            assert metadata.description == 'Short summary'
+            assert metadata.platforms == ['a', 'b']
+            assert metadata.classifiers == [
+                'Framework :: Django',
+                'Programming Language :: Python :: 3.5',
+            ]
+
     def test_multiline(self, tmpdir):
 
         fake_env(

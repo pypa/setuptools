@@ -18,6 +18,12 @@ class ConfigHandler(object):
 
     """
 
+    aliases = {}
+    """Options aliases.
+    For compatibility with various packages. E.g.: d2to1 and pbr.
+
+    """
+
     strict_mode = True
     """Flag. Whether unknown options in config should
     raise DistutilsOptionError exception, or pass silently.
@@ -47,6 +53,9 @@ class ConfigHandler(object):
     def __setitem__(self, option_name, value):
         unknown = tuple()
         target_obj = self.target_obj
+
+        # Translate alias into real name.
+        option_name = self.aliases.get(option_name, option_name)
 
         current_value = getattr(target_obj, option_name, unknown)
 
@@ -216,9 +225,18 @@ class ConfigHandler(object):
 class ConfigMetadataHandler(ConfigHandler):
 
     section_prefix = 'metadata'
+
+    aliases = {
+        'author-email': 'author_email',
+        'home_page': 'url',
+        'summary': 'description',
+        'classifier': 'classifiers',
+        'platform': 'platforms',
+    }
+
     strict_mode = False
-    """We need to keep it loose, to be compatible with `pbr` package
-    which also uses `metadata` section.
+    """We need to keep it loose, to be partially compatible with
+    `pbr` and `d2to1` packages which also uses `metadata` section.
 
     """
 
