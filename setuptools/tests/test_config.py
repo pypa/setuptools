@@ -86,6 +86,27 @@ class TestMetadata:
             assert metadata.name == 'fake_name'
             assert metadata.keywords == ['one', 'two']
 
+    def test_multiline(self, tmpdir):
+
+        fake_env(
+            tmpdir,
+            '[metadata]\n'
+            'name = fake_name\n'
+            'keywords =\n'
+            '  one\n'
+            '  two\n'
+            'classifiers =\n'
+            '  Framework :: Django\n'
+            '  Programming Language :: Python :: 3.5\n'
+        )
+        with get_dist(tmpdir) as dist:
+            metadata = dist.metadata
+            assert metadata.keywords == ['one', 'two']
+            assert metadata.classifiers == [
+                'Framework :: Django',
+                'Programming Language :: Python :: 3.5',
+            ]
+
     def test_version(self, tmpdir):
 
         fake_env(
@@ -204,32 +225,96 @@ class TestOptions:
             assert dist.use_2to3
             assert dist.include_package_data
             assert dist.package_dir == {'': 'src', 'b': 'c'}
-            assert set(dist.packages) == set(['pack_a', 'pack_b.subpack'])
-            assert set(dist.namespace_packages) == set(['pack1', 'pack2'])
-            assert set(dist.use_2to3_fixers) == set(['your.fixers', 'or.here'])
-            assert set(dist.use_2to3_exclude_fixers) == set([
-                'one.here', 'two.there'])
-            assert set(dist.convert_2to3_doctests) == set([
+            assert dist.packages == ['pack_a', 'pack_b.subpack']
+            assert dist.namespace_packages == ['pack1', 'pack2']
+            assert dist.use_2to3_fixers == ['your.fixers', 'or.here']
+            assert dist.use_2to3_exclude_fixers == ['one.here', 'two.there']
+            assert dist.convert_2to3_doctests == ([
                 'src/tests/one.txt', 'src/two.txt'])
-            assert set(dist.scripts) == set(['bin/one.py', 'bin/two.py'])
-            assert set(dist.dependency_links) == set([
+            assert dist.scripts == ['bin/one.py', 'bin/two.py']
+            assert dist.dependency_links == ([
                 'http://some.com/here/1',
                 'http://some.com/there/2'
             ])
-            assert set(dist.install_requires) == set([
+            assert dist.install_requires == ([
                 'docutils>=0.3',
                 'pack ==1.1, ==1.3',
                 'hey'
             ])
-            assert set(dist.setup_requires) == set([
+            assert dist.setup_requires == ([
                 'docutils>=0.3',
                 'spack ==1.1, ==1.3',
                 'there'
             ])
-            assert set(dist.tests_require) == set([
-                'mock==0.7.2',
-                'pytest'
+            assert dist.tests_require == ['mock==0.7.2', 'pytest']
+
+    def test_multiline(self, tmpdir):
+        fake_env(
+            tmpdir,
+            '[options]\n'
+            'package_dir = \n'
+            '  b=c\n'
+            '  =src\n'
+            'packages = \n'
+            '  pack_a\n'
+            '  pack_b.subpack\n'
+            'namespace_packages = \n'
+            '  pack1\n'
+            '  pack2\n'
+            'use_2to3_fixers = \n'
+            '  your.fixers\n'
+            '  or.here\n'
+            'use_2to3_exclude_fixers = \n'
+            '  one.here\n'
+            '  two.there\n'
+            'convert_2to3_doctests = \n'
+            '  src/tests/one.txt\n'
+            '  src/two.txt\n'
+            'scripts = \n'
+            '  bin/one.py\n'
+            '  bin/two.py\n'
+            'eager_resources = \n'
+            '  bin/one.py\n'
+            '  bin/two.py\n'
+            'install_requires = \n'
+            '  docutils>=0.3\n'
+            '  pack ==1.1, ==1.3\n'
+            '  hey\n'
+            'tests_require = \n'
+            '  mock==0.7.2\n'
+            '  pytest\n'
+            'setup_requires = \n'
+            '  docutils>=0.3\n'
+            '  spack ==1.1, ==1.3\n'
+            '  there\n'
+            'dependency_links = \n'
+            '  http://some.com/here/1\n'
+            '  http://some.com/there/2\n'
+        )
+        with get_dist(tmpdir) as dist:
+            assert dist.package_dir == {'': 'src', 'b': 'c'}
+            assert dist.packages == ['pack_a', 'pack_b.subpack']
+            assert dist.namespace_packages == ['pack1', 'pack2']
+            assert dist.use_2to3_fixers == ['your.fixers', 'or.here']
+            assert dist.use_2to3_exclude_fixers == ['one.here', 'two.there']
+            assert dist.convert_2to3_doctests == (
+                ['src/tests/one.txt', 'src/two.txt'])
+            assert dist.scripts == ['bin/one.py', 'bin/two.py']
+            assert dist.dependency_links == ([
+                'http://some.com/here/1',
+                'http://some.com/there/2'
             ])
+            assert dist.install_requires == ([
+                'docutils>=0.3',
+                'pack ==1.1, ==1.3',
+                'hey'
+            ])
+            assert dist.setup_requires == ([
+                'docutils>=0.3',
+                'spack ==1.1, ==1.3',
+                'there'
+            ])
+            assert dist.tests_require == ['mock==0.7.2', 'pytest']
 
     def test_package_dir_fail(self, tmpdir):
         fake_env(

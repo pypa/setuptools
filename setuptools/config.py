@@ -70,7 +70,7 @@ class ConfigHandler(object):
     def _parse_list(cls, value, separator=','):
         """Represents value as a list.
 
-        Value is split either by comma or by lines.
+        Value is split either by separator (defaults to comma) or by lines.
 
         :param value:
         :param separator: List items separator character.
@@ -84,7 +84,7 @@ class ConfigHandler(object):
         else:
             value = value.split(separator)
 
-        return [chunk.strip() for chunk in value]
+        return [chunk.strip() for chunk in value if chunk.strip()]
 
     @classmethod
     def _parse_dict(cls, value):
