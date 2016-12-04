@@ -153,6 +153,37 @@ class ConfigHandler(object):
         return value
 
     @classmethod
+    def _parse_attr(cls, value):
+        """Represents value as a module attribute.
+
+        Examples:
+            attr: package.attr
+            attr: package.module.attr
+
+        :param str value:
+        :rtype: str
+        """
+        attr_directive = 'attr:'
+        if not value.startswith(attr_directive):
+            return value
+
+        attrs_path = value.replace(attr_directive, '').strip().split('.')
+        attr_name = attrs_path.pop()
+
+        module_name = '.'.join(attrs_path)
+        module_name = module_name or '__init__'
+
+        sys.path.insert(0, os.getcwd())
+        try:
+            module = import_module(module_name)
+            value = getattr(module, attr_name)
+
+        finally:
+            sys.path = sys.path[1:]
+
+        return value
+
+    @classmethod
     def _get_parser_compound(cls, *parse_methods):
         """Returns parser function to represents value as a list.
 
@@ -277,32 +308,16 @@ class ConfigMetadataHandler(ConfigHandler):
         :rtype: str
 
         """
-        attr_directive = 'attr:'
-        if not value.startswith(attr_directive):
-            return value
+        version = self._parse_attr(value)
 
-        attrs_path = value.replace(attr_directive, '').strip().split('.')
-        attr_name = attrs_path.pop()
+        if callable(version):
+            version = version()
 
-        module_name = '.'.join(attrs_path)
-        module_name = module_name or '__init__'
-
-        sys.path.insert(0, os.getcwd())
-        try:
-            module = import_module(module_name)
-            version = getattr(module, attr_name)
-
-            if callable(version):
-                version = version()
-
-            if not isinstance(version, string_types):
-                if hasattr(version, '__iter__'):
-                    version = '.'.join(map(str, version))
-                else:
-                    version = '%s' % version
-
-        finally:
-            sys.path = sys.path[1:]
+        if not isinstance(version, string_types):
+            if hasattr(version, '__iter__'):
+                version = '.'.join(map(str, version))
+            else:
+                version = '%s' % version
 
         return version
 
