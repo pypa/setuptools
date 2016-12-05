@@ -2,11 +2,86 @@ from __future__ import absolute_import, unicode_literals
 import io
 import os
 import sys
+from collections import defaultdict
 from functools import partial
 
 from distutils.errors import DistutilsOptionError
 from setuptools.py26compat import import_module
 from setuptools.extern.six import string_types
+
+
+def read_configuration(filepath, find_others=False):
+    """Read given configuration file and returns options from it as a dict.
+
+    :param str|unicode filepath: Path to configuration file
+        to get options from.
+
+    :param bool find_others: Whether to search for other configuration files
+        which could be on in various places.
+
+    :rtype: dict
+    """
+    from setuptools.dist import Distribution, _Distribution
+
+    dist = Distribution()
+
+    filenames = dist.find_config_files() if find_others else []
+    if filepath not in filenames:
+        filenames.append(filepath)
+
+    _Distribution.parse_config_files(dist, filenames=filenames)
+
+    handlers = parse_configuration(dist, dist.command_options)
+
+    return configuration_to_dict(handlers)
+
+
+def configuration_to_dict(handlers):
+    """Returns configuration data gathered by given handlers as a dict.
+
+    :param list[ConfigHandler] handlers: Handlers list,
+        usually from parse_configuration()
+
+    :rtype: dict
+    """
+    config_dict = defaultdict(dict)
+
+    for handler in handlers:
+
+        obj_alias = handler.section_prefix
+        target_obj = handler.target_obj
+
+        for option in handler.set_options:
+            getter = getattr(target_obj, 'get_%s' % option, None)
+
+            if getter is None:
+                value = getattr(target_obj, option)
+
+            else:
+                value = getter()
+
+            config_dict[obj_alias][option] = value
+
+    return config_dict
+
+
+def parse_configuration(distribution, command_options):
+    """Performs additional parsing of configuration options
+    for a distribution.
+
+    Returns a list of used option handlers.
+
+    :param Distribution distribution:
+    :param dict command_options:
+    :rtype: list
+    """
+    meta = ConfigMetadataHandler(distribution.metadata, command_options)
+    meta.parse()
+
+    options = ConfigOptionsHandler(distribution, command_options)
+    options.parse()
+
+    return [meta, options]
 
 
 class ConfigHandler(object):
@@ -44,6 +119,7 @@ class ConfigHandler(object):
 
         self.target_obj = target_obj
         self.sections = sections
+        self.set_options = []
 
     @property
     def parsers(self):
@@ -76,6 +152,8 @@ class ConfigHandler(object):
             setattr(target_obj, option_name, value)
         else:
             setter(value)
+
+        self.set_options.append(option_name)
 
     @classmethod
     def _parse_list(cls, value, separator=','):

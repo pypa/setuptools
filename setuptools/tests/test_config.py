@@ -2,7 +2,7 @@ import contextlib
 import pytest
 from distutils.errors import DistutilsOptionError
 from setuptools.dist import Distribution
-from setuptools.config import ConfigHandler
+from setuptools.config import ConfigHandler, read_configuration
 
 
 class ErrConfigHandler(ConfigHandler):
@@ -50,6 +50,24 @@ def test_parsers_implemented():
     with pytest.raises(NotImplementedError):
         handler = ErrConfigHandler(None, {})
         handler.parsers
+
+
+class TestConfigurationReader:
+
+    def test_basic(self, tmpdir):
+        fake_env(
+            tmpdir,
+            '[metadata]\n'
+            'version = 10.1.1\n'
+            'keywords = one, two\n'
+            '\n'
+            '[options]\n'
+            'scripts = bin/a.py, bin/b.py\n'
+        )
+        config_dict = read_configuration('%s' % tmpdir.join('setup.cfg'))
+        assert config_dict['metadata']['version'] == '10.1.1'
+        assert config_dict['metadata']['keywords'] == ['one', 'two']
+        assert config_dict['options']['scripts'] == ['bin/a.py', 'bin/b.py']
 
 
 class TestMetadata:
