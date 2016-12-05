@@ -100,12 +100,6 @@ class ConfigHandler(object):
 
     """
 
-    strict_mode = True
-    """Flag. Whether unknown options in config should
-    raise DistutilsOptionError exception, or pass silently.
-
-    """
-
     def __init__(self, target_obj, options):
         sections = {}
 
@@ -316,9 +310,7 @@ class ConfigHandler(object):
                 self[name] = value
 
             except KeyError:
-                if self.strict_mode:
-                    raise DistutilsOptionError(
-                        'Unknown distribution option: %s' % name)
+                pass  # Keep silent for a new option may appear anytime.
 
     def parse(self):
         """Parses configuration file items from one

@@ -417,18 +417,6 @@ class TestOptions:
         with get_dist(tmpdir) as dist:
             assert dist.packages == ['fake_package']
 
-    def test_unknown_options_item(self, tmpdir):
-
-        fake_env(
-            tmpdir,
-            '[options]\n'
-            'zip_safe = True\n'
-            'usr_2to3 = 1\n'
-        )
-        with get_dist(tmpdir, parse=False) as dist:
-            with pytest.raises(DistutilsOptionError):
-                dist.parse_config_files()
-
     def test_extras_require(self, tmpdir):
         fake_env(
             tmpdir,
