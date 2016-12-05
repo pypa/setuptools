@@ -128,7 +128,10 @@ class ConfigHandler(object):
     @classmethod
     def _parse_file(cls, value):
         """Represents value as a string, allowing including text
-        from nearest files using include().
+        from nearest files using `file:` directive.
+
+        Directive is sandboxed and won't reach anything outside
+        directory with setup.py.
 
         Examples:
             include: LICENSE
@@ -144,7 +147,14 @@ class ConfigHandler(object):
         if not value.startswith(include_directive):
             return value
 
+        current_directory = os.getcwd()
+
         filepath = value.replace(include_directive, '').strip()
+        filepath = os.path.abspath(filepath)
+
+        if not filepath.startswith(current_directory):
+            raise DistutilsOptionError(
+                '`file:` directive can not access %s' % filepath)
 
         if os.path.isfile(filepath):
             with io.open(filepath, encoding='utf-8') as f:

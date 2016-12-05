@@ -86,6 +86,18 @@ class TestMetadata:
             assert metadata.name == 'fake_name'
             assert metadata.keywords == ['one', 'two']
 
+    def test_file_sandboxed(self, tmpdir):
+
+        fake_env(
+            tmpdir,
+            '[metadata]\n'
+            'long_description = file: ../../README\n'
+        )
+
+        with get_dist(tmpdir, parse=False) as dist:
+            with pytest.raises(DistutilsOptionError):
+                dist.parse_config_files()  # file: out of sandbox
+
     def test_aliases(self, tmpdir):
 
         fake_env(
