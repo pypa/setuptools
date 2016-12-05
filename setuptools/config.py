@@ -87,7 +87,7 @@ class ConfigHandler(object):
         :param separator: List items separator character.
         :rtype: list
         """
-        if isinstance(value, list):  # _parse_complex case
+        if isinstance(value, list):  # _get_parser_compound case
             return value
 
         if '\n' in value:
@@ -250,7 +250,7 @@ class ConfigHandler(object):
         for section_name, section_options in self.sections.items():
 
             method_postfix = ''
-            if section_name:  # [section:option] variant
+            if section_name:  # [section.option] variant
                 method_postfix = '_%s' % section_name
 
             section_parser_method = getattr(
@@ -258,7 +258,7 @@ class ConfigHandler(object):
 
             if section_parser_method is None:
                 raise DistutilsOptionError(
-                    'Unsupported distribution option section: [%s:%s]' % (
+                    'Unsupported distribution option section: [%s.%s]' % (
                         self.section_prefix, section_name))
 
             section_parser_method(section_options)

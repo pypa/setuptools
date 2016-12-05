@@ -66,6 +66,8 @@ class TestMetadata:
             'keywords = one, two\n'
             'provides = package, package.sub\n'
             'license = otherlic\n'
+            'download_url = http://test.test.com/test/\n'
+            'maintainer_email = test@test.com\n'
         )
 
         tmpdir.join('README').write('readme contents\nline2')
@@ -85,6 +87,8 @@ class TestMetadata:
             assert metadata.license == 'BSD 3-Clause License'
             assert metadata.name == 'fake_name'
             assert metadata.keywords == ['one', 'two']
+            assert metadata.download_url == 'http://test.test.com/test/'
+            assert metadata.maintainer_email == 'test@test.com'
 
     def test_file_sandboxed(self, tmpdir):
 
