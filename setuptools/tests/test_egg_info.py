@@ -237,7 +237,7 @@ class TestEggInfo(object):
         pkginfo = os.path.join(egg_info_dir, 'PKG-INFO')
         assert 'Requires-Python: >=1.2.3' in open(pkginfo).read().split('\n')
 
-    def test_manifest_maker_warning_suppresion(self):
+    def test_manifest_maker_warning_suppression(self):
         fixtures = [
             "standard file not found: should have one of foo.py, bar.py",
             "standard file 'setup.py' not found"
