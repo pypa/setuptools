@@ -1,6 +1,6 @@
 import contextlib
 import pytest
-from distutils.errors import DistutilsOptionError
+from distutils.errors import DistutilsOptionError, DistutilsFileError
 from setuptools.dist import Distribution
 from setuptools.config import ConfigHandler, read_configuration
 
@@ -68,6 +68,10 @@ class TestConfigurationReader:
         assert config_dict['metadata']['version'] == '10.1.1'
         assert config_dict['metadata']['keywords'] == ['one', 'two']
         assert config_dict['options']['scripts'] == ['bin/a.py', 'bin/b.py']
+
+    def test_no_config(self, tmpdir):
+        with pytest.raises(DistutilsFileError):
+            read_configuration('%s' % tmpdir.join('setup.cfg'))
 
 
 class TestMetadata:

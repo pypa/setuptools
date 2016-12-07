@@ -5,7 +5,7 @@ import sys
 from collections import defaultdict
 from functools import partial
 
-from distutils.errors import DistutilsOptionError
+from distutils.errors import DistutilsOptionError, DistutilsFileError
 from setuptools.py26compat import import_module
 from setuptools.extern.six import string_types
 
@@ -23,6 +23,15 @@ def read_configuration(filepath, find_others=False):
     """
     from setuptools.dist import Distribution, _Distribution
 
+    filepath = os.path.abspath(filepath)
+
+    if not os.path.isfile(filepath):
+        raise DistutilsFileError(
+            'Configuration file %s does not exist.' % filepath)
+
+    current_directory = os.getcwd()
+    os.chdir(os.path.dirname(filepath))
+
     dist = Distribution()
 
     filenames = dist.find_config_files() if find_others else []
@@ -32,6 +41,8 @@ def read_configuration(filepath, find_others=False):
     _Distribution.parse_config_files(dist, filenames=filenames)
 
     handlers = parse_configuration(dist, dist.command_options)
+
+    os.chdir(current_directory)
 
     return configuration_to_dict(handlers)
 
