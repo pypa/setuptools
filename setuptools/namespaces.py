@@ -1,4 +1,5 @@
 import os
+import sys
 from distutils import log
 import itertools
 
@@ -42,7 +43,10 @@ class Installer:
             "sys.modules.setdefault(%(pkg)r, "
                 "importlib.util.module_from_spec("
                     "importlib.machinery.PathFinder.find_spec(%(pkg)r, "
-                        "[os.path.dirname(p)])))",
+                        "[os.path.dirname(p)])))"
+        if sys.version_info >= (3, 5) else
+        "m = not ie and not pep420 and "
+            "sys.modules.setdefault(%(pkg)r, types.ModuleType(%(pkg)r))",
         "mp = (m or []) and m.__dict__.setdefault('__path__',[])",
         "(p not in mp) and mp.append(p)",
     )
