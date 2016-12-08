@@ -33,22 +33,24 @@ class Installer:
     def _get_target(self):
         return self.target
 
+    @staticmethod
+    def init(root, pkg):
+        import sys, types
+        pep420 = sys.version_info > (3, 3)
+        pth = tuple(pkg.split('.'))
+        p = os.path.join(root, *pth)
+        ie = os.path.exists(os.path.join(p, '__init__.py'))
+        m = not ie and not pep420 and sys.modules.setdefault(pkg,
+            types.ModuleType(pkg))
+        mp = (m or []) and m.__dict__.setdefault('__path__', [])
+        (p not in mp) and mp.append(p)
+        parent, sep, child = pkg.rpartition('.')
+        m and parent and setattr(sys.modules[parent], child, m)
     _nspkg_tmpl = (
-        "import sys, types, os",
-        "pep420 = sys.version_info > (3, 3)",
-        "p = os.path.join(%(root)s, *%(pth)r)",
-        "ie = os.path.exists(os.path.join(p,'__init__.py'))",
-        "m = not ie and not pep420 and "
-            "sys.modules.setdefault(%(pkg)r, types.ModuleType(%(pkg)r))",
-        "mp = (m or []) and m.__dict__.setdefault('__path__',[])",
-        "(p not in mp) and mp.append(p)",
+        "import setuptools.namespaces",
+        "setuptools.namespaces.Installer.init(%(root)r, %(pkg)r)",
     )
     "lines for the namespace installer"
-
-    _nspkg_tmpl_multi = (
-        'm and setattr(sys.modules[%(parent)r], %(child)r, m)',
-    )
-    "additional line(s) when a parent package is indicated"
 
     def _get_root(self):
         return "sys._getframe(1).f_locals['sitedir']"
@@ -56,13 +58,8 @@ class Installer:
     def _gen_nspkg_line(self, pkg):
         # ensure pkg is not a unicode string under Python 2.7
         pkg = str(pkg)
-        pth = tuple(pkg.split('.'))
         root = self._get_root()
-        tmpl_lines = self._nspkg_tmpl
-        parent, sep, child = pkg.rpartition('.')
-        if parent:
-            tmpl_lines += self._nspkg_tmpl_multi
-        return ';'.join(tmpl_lines) % locals() + '\n'
+        return ';'.join(self._nspkg_tmpl) % locals() + '\n'
 
     def _get_all_ns_packages(self):
         """Return sorted list of all package namespaces"""
