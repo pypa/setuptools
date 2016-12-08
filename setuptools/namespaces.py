@@ -37,15 +37,15 @@ class Installer:
     _nspkg_tmpl = (
         "import sys, types, os, importlib.util, importlib.machinery",
         "pep420 = sys.version_info > (3, 3)",
+        "has_mfs = sys.version_info > (3, 5)",
         "p = os.path.join(%(root)s, *%(pth)r)",
         "ie = os.path.exists(os.path.join(p,'__init__.py'))",
-        "m = not ie and not pep420 and "
+        "m = not ie and not pep420 and has_mfs and "
             "sys.modules.setdefault(%(pkg)r, "
                 "importlib.util.module_from_spec("
                     "importlib.machinery.PathFinder.find_spec(%(pkg)r, "
-                        "[os.path.dirname(p)])))"
-        if sys.version_info >= (3, 5) else
-        "m = not ie and not pep420 and "
+                        "[os.path.dirname(p)])))",
+        "m = not ie and not pep420 and not has_mfs and "
             "sys.modules.setdefault(%(pkg)r, types.ModuleType(%(pkg)r))",
         "mp = (m or []) and m.__dict__.setdefault('__path__',[])",
         "(p not in mp) and mp.append(p)",
