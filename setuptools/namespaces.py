@@ -36,7 +36,7 @@ class Installer:
 
     _nspkg_tmpl = (
         "import sys, types, os, importlib.util, importlib.machinery",
-        "pep420 = sys.version_info > (3, 3)",
+        "pep420 = (3, 3) < sys.version_info < (3, 5)",
         "has_mfs = sys.version_info > (3, 5)",
         "p = os.path.join(%(root)s, *%(pth)r)",
         "ie = os.path.exists(os.path.join(p,'__init__.py'))",
