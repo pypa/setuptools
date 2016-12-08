@@ -1,3 +1,9 @@
+v30.2.1
+-------
+
+* #850: In test command, invoke unittest.main with
+  indication not to exit the process.
+
 v30.2.0
 -------
 
