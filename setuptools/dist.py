@@ -19,6 +19,7 @@ from pkg_resources.extern import packaging
 from setuptools.depends import Require
 from setuptools import windows_support
 from setuptools.monkey import get_unpatched
+from setuptools.config import parse_configuration
 import pkg_resources
 
 
@@ -341,6 +342,15 @@ class Distribution(_Distribution):
                 )
         if getattr(self, 'python_requires', None):
             self.metadata.python_requires = self.python_requires
+
+    def parse_config_files(self, filenames=None):
+        """Parses configuration files from various levels
+        and loads configuration.
+
+        """
+        _Distribution.parse_config_files(self, filenames=filenames)
+
+        parse_configuration(self, self.command_options)
 
     def parse_command_line(self):
         """Process features after parsing command line options"""
