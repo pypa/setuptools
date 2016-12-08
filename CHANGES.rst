@@ -1,3 +1,10 @@
+v30.3.0
+-------
+
+* #394 via #862: Added support for `declarative package
+  config in a setup.cfg file
+  <http://setuptools.readthedocs.io/en/latest/setuptools.html#configuring-setup-using-setup-cfg-files>`_.
+
 v30.2.1
 -------
 
