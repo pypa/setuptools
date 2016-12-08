@@ -34,12 +34,15 @@ class Installer:
         return self.target
 
     _nspkg_tmpl = (
-        "import sys, types, os",
+        "import sys, types, os, importlib.util, importlib.machinery",
         "pep420 = sys.version_info > (3, 3)",
         "p = os.path.join(%(root)s, *%(pth)r)",
         "ie = os.path.exists(os.path.join(p,'__init__.py'))",
         "m = not ie and not pep420 and "
-            "sys.modules.setdefault(%(pkg)r, types.ModuleType(%(pkg)r))",
+            "sys.modules.setdefault(%(pkg)r, "
+                "importlib.util.module_from_spec("
+                    "importlib.machinery.PathFinder.find_spec(%(pkg)r, "
+                        "[os.path.dirname(p)])))",
         "mp = (m or []) and m.__dict__.setdefault('__path__',[])",
         "(p not in mp) and mp.append(p)",
     )
