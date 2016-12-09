@@ -3,6 +3,7 @@ import operator
 import sys
 import contextlib
 import itertools
+import unittest
 from distutils.errors import DistutilsOptionError
 from unittest import TestLoader
 
@@ -13,7 +14,6 @@ from pkg_resources import (resource_listdir, resource_exists, normalize_path,
                            working_set, _namespace_packages,
                            add_activation_listener, require, EntryPoint)
 from setuptools import Command
-from setuptools.py31compat import unittest_main
 
 
 class ScanningLoader(TestLoader):
@@ -225,12 +225,11 @@ class test(Command):
                         del_modules.append(name)
                 list(map(sys.modules.__delitem__, del_modules))
 
-        exit_kwarg = {} if sys.version_info < (2, 7) else {"exit": False}
-        unittest_main(
+        unittest.main(
             None, None, self._argv,
             testLoader=self._resolve_as_ep(self.test_loader),
             testRunner=self._resolve_as_ep(self.test_runner),
-            **exit_kwarg
+            exit=False,
         )
 
     @property

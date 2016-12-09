@@ -35,7 +35,6 @@ from pkg_resources import Distribution as PRDistribution
 import setuptools.tests.server
 import pkg_resources
 
-from .py26compat import tarfile_open
 from . import contexts
 from .textwrap import DALS
 
@@ -428,7 +427,7 @@ class TestSetupRequires:
                 # extracted path to sys.path so foo.bar v0.1 is importable
                 foobar_1_dir = os.path.join(temp_dir, 'foo.bar-0.1')
                 os.mkdir(foobar_1_dir)
-                with tarfile_open(foobar_1_archive) as tf:
+                with tarfile.open(foobar_1_archive) as tf:
                     tf.extractall(foobar_1_dir)
                 sys.path.insert(1, foobar_1_dir)
 
@@ -526,7 +525,7 @@ def make_sdist(dist_path, files):
     listed in ``files`` as ``(filename, content)`` tuples.
     """
 
-    with tarfile_open(dist_path, 'w:gz') as dist:
+    with tarfile.open(dist_path, 'w:gz') as dist:
         for filename, content in files:
             file_bytes = io.BytesIO(content.encode('utf-8'))
             file_info = tarfile.TarInfo(name=filename)
@@ -580,7 +579,7 @@ def make_trivial_sdist(dist_path, setup_py):
     setup_py_file = tarfile.TarInfo(name='setup.py')
     setup_py_bytes = io.BytesIO(setup_py.encode('utf-8'))
     setup_py_file.size = len(setup_py_bytes.getvalue())
-    with tarfile_open(dist_path, 'w:gz') as dist:
+    with tarfile.open(dist_path, 'w:gz') as dist:
         dist.addfile(setup_py_file, fileobj=setup_py_bytes)
 
 
