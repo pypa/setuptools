@@ -2,7 +2,9 @@ v30.4.0
 -------
 
 * #879: For declarative config:
+
   - read_configuration() now accepts ignore_option_errors argument. This allows scraping tools to read metadata without a need to download entire packages. E.g. we can gather some stats right from GitHub repos just by downloading setup.cfg.
+
   - packages find: directive now supports fine tuning from a subsection. The same arguments as for find() are accepted.
 
 v30.3.0
