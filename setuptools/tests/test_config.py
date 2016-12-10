@@ -457,8 +457,9 @@ class TestOptions:
         dir_sub_two, _ = make_package_dir('sub_two', dir_package)
 
         with get_dist(tmpdir) as dist:
-            assert dist.packages == [
-                'fake_package', 'fake_package.sub_two', 'fake_package.sub_one']
+            assert set(dist.packages) == set([
+                'fake_package', 'fake_package.sub_two', 'fake_package.sub_one'
+            ])
 
         config.write(
             '[options]\n'
@@ -482,7 +483,8 @@ class TestOptions:
             '    fake_package.sub_one\n'
         )
         with get_dist(tmpdir) as dist:
-            assert dist.packages == ['fake_package',  'fake_package.sub_two']
+            assert set(dist.packages) == set(
+                ['fake_package',  'fake_package.sub_two'])
 
     def test_extras_require(self, tmpdir):
         fake_env(
