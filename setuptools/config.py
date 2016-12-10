@@ -361,7 +361,10 @@ class ConfigHandler(object):
                 method_postfix = '_%s' % section_name
 
             section_parser_method = getattr(
-                self, 'parse_section%s' % method_postfix, None)
+                self,
+                # Dots in section names are tranlsated into dunderscores.
+                ('parse_section%s' % method_postfix).replace('.', '__'),
+                None)
 
             if section_parser_method is None:
                 raise DistutilsOptionError(
@@ -481,8 +484,34 @@ class ConfigOptionsHandler(ConfigHandler):
         if not value.startswith(find_directive):
             return self._parse_list(value)
 
+        # Read function arguments from a dedicated section.
+        find_kwargs = self.parse_section_packages__find(
+            self.sections.get('packages.find', {}))
+
         from setuptools import find_packages
-        return find_packages()
+
+        return find_packages(**find_kwargs)
+
+    def parse_section_packages__find(self, section_options):
+        """Parses `packages.find` configuration file section.
+
+        To be used in conjunction with _parse_packages().
+
+        :param dict section_options:
+        """
+        section_data = self._parse_section_to_dict(
+            section_options, self._parse_list)
+
+        valid_keys = ['where', 'include', 'exclude']
+
+        find_kwargs = dict(
+            [(k, v) for k, v in section_data.items() if k in valid_keys and v])
+
+        where = find_kwargs.get('where')
+        if where is not None:
+            find_kwargs['where'] = where[0]  # cast list to single val
+
+        return find_kwargs
 
     def parse_section_entry_points(self, section_options):
         """Parses `entry_points` configuration file section.

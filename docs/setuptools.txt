@@ -2448,6 +2448,11 @@ boilerplate code in some cases.
     pdf = ReportLab>=1.2; RXP
     rest = docutils>=0.3; pack ==1.1, ==1.3
 
+    [options.packages.find]
+    exclude =
+        src.subpackage1
+        src.subpackage2
+
 
 Metadata and options could be set in sections with the same names.
 
@@ -2486,13 +2491,13 @@ Type names used below:
 * ``list-semi`` - dangling list or semicolon-separated values string
 * ``bool`` -  ``True`` is 1, yes, true
 * ``dict`` - list-comma where keys from values are separated by =
+* ``section`` - values could be read from a dedicated (sub)section
 
 
 Special directives:
 
 * ``attr:`` - value could be read from module attribute
 * ``file:`` - value could be read from a file
-* ``section:`` - values could be read from a dedicated (sub)section
 
 
 .. note::
@@ -2529,8 +2534,10 @@ requires                              list-comma
 obsoletes                             list-comma
 =================  =================  =====
 
-**version** - ``attr:`` supports callables; supports iterables;
-unsupported types are casted using ``str()``.
+.. note::
+
+    **version** - ``attr:`` supports callables; supports iterables;
+    unsupported types are casted using ``str()``.
 
 
 Options
@@ -2559,6 +2566,13 @@ package_data             section
 exclude_package_data     section
 namespace_packages       list-comma
 =======================  =====
+
+.. note::
+
+    **packages** - ``find:`` directive can be further configured
+    in a dedicated subsection `options.packages.find`. This subsection
+    accepts the same keys as `setuptools.find` function:
+    `where`, `include`, `exclude`.
 
 
 Configuration API
