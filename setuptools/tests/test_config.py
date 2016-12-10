@@ -446,6 +446,44 @@ class TestOptions:
         with get_dist(tmpdir) as dist:
             assert dist.packages == ['fake_package']
 
+    def test_find_directive(self, tmpdir):
+        dir_package, config = fake_env(
+            tmpdir,
+            '[options]\n'
+            'packages = find:\n'
+        )
+
+        dir_sub_one, _ = make_package_dir('sub_one', dir_package)
+        dir_sub_two, _ = make_package_dir('sub_two', dir_package)
+
+        with get_dist(tmpdir) as dist:
+            assert dist.packages == [
+                'fake_package', 'fake_package.sub_two', 'fake_package.sub_one']
+
+        config.write(
+            '[options]\n'
+            'packages = find:\n'
+            '\n'
+            '[options.packages.find]\n'
+            'where = .\n'
+            'include =\n'
+            '    fake_package.sub_one\n'
+            '    two\n'
+        )
+        with get_dist(tmpdir) as dist:
+            assert dist.packages == ['fake_package.sub_one']
+
+        config.write(
+            '[options]\n'
+            'packages = find:\n'
+            '\n'
+            '[options.packages.find]\n'
+            'exclude =\n'
+            '    fake_package.sub_one\n'
+        )
+        with get_dist(tmpdir) as dist:
+            assert dist.packages == ['fake_package',  'fake_package.sub_two']
+
     def test_extras_require(self, tmpdir):
         fake_env(
             tmpdir,
