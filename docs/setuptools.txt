@@ -2543,7 +2543,7 @@ zip_safe                 bool
 setup_requires           list-semi
 install_requires         list-semi
 extras_require           section
-entry_points             file, section
+entry_points             file:, section
 use_2to3                 bool
 use_2to3_fixers          list-comma
 use_2to3_exclude_fixers  list-comma
@@ -2581,6 +2581,12 @@ By default ``read_configuration()`` will read only file provided
 in the first argument. To include values from other configuration files
 which could be in various places set `find_others` function argument
 to ``True``.
+
+If you have only a configuration file but not the whole package you can still
+try to get data out of it with the help of `ignore_option_errors` function
+argument. When it is set to ``True`` all options with errors possibly produced
+by directives, such as ``attr:`` and others will be silently ignored.
+As a consequence the resulting dictionary will include no such options.
 
 
 --------------------------------

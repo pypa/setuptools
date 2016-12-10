@@ -10,7 +10,8 @@ from setuptools.py26compat import import_module
 from setuptools.extern.six import string_types
 
 
-def read_configuration(filepath, find_others=False):
+def read_configuration(
+        filepath, find_others=False, ignore_option_errors=False):
     """Read given configuration file and returns options from it as a dict.
 
     :param str|unicode filepath: Path to configuration file
@@ -18,6 +19,11 @@ def read_configuration(filepath, find_others=False):
 
     :param bool find_others: Whether to search for other configuration files
         which could be on in various places.
+
+    :param bool ignore_option_errors: Whether to silently ignore
+        options, values of which could not be resolved (e.g. due to exceptions
+        in directives such as file:, attr:, etc.).
+        If False exceptions are propagated as expected.
 
     :rtype: dict
     """
@@ -40,7 +46,9 @@ def read_configuration(filepath, find_others=False):
 
     _Distribution.parse_config_files(dist, filenames=filenames)
 
-    handlers = parse_configuration(dist, dist.command_options)
+    handlers = parse_configuration(
+        dist, dist.command_options,
+        ignore_option_errors=ignore_option_errors)
 
     os.chdir(current_directory)
 
@@ -76,7 +84,8 @@ def configuration_to_dict(handlers):
     return config_dict
 
 
-def parse_configuration(distribution, command_options):
+def parse_configuration(
+        distribution, command_options, ignore_option_errors=False):
     """Performs additional parsing of configuration options
     for a distribution.
 
@@ -84,12 +93,18 @@ def parse_configuration(distribution, command_options):
 
     :param Distribution distribution:
     :param dict command_options:
+    :param bool ignore_option_errors: Whether to silently ignore
+        options, values of which could not be resolved (e.g. due to exceptions
+        in directives such as file:, attr:, etc.).
+        If False exceptions are propagated as expected.
     :rtype: list
     """
-    meta = ConfigMetadataHandler(distribution.metadata, command_options)
+    meta = ConfigMetadataHandler(
+        distribution.metadata, command_options, ignore_option_errors)
     meta.parse()
 
-    options = ConfigOptionsHandler(distribution, command_options)
+    options = ConfigOptionsHandler(
+        distribution, command_options, ignore_option_errors)
     options.parse()
 
     return [meta, options]
@@ -111,7 +126,7 @@ class ConfigHandler(object):
 
     """
 
-    def __init__(self, target_obj, options):
+    def __init__(self, target_obj, options, ignore_option_errors=False):
         sections = {}
 
         section_prefix = self.section_prefix
@@ -122,6 +137,7 @@ class ConfigHandler(object):
             section_name = section_name.replace(section_prefix, '').strip('.')
             sections[section_name] = section_options
 
+        self.ignore_option_errors = ignore_option_errors
         self.target_obj = target_obj
         self.sections = sections
         self.set_options = []
@@ -148,9 +164,19 @@ class ConfigHandler(object):
             # Already inhabited. Skipping.
             return
 
+        skip_option = False
         parser = self.parsers.get(option_name)
         if parser:
-            value = parser(value)
+            try:
+                value = parser(value)
+
+            except Exception:
+                skip_option = True
+                if not self.ignore_option_errors:
+                    raise
+
+        if skip_option:
+            return
 
         setter = getattr(target_obj, 'set_%s' % option_name, None)
         if setter is None:
