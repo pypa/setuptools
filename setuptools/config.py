@@ -38,19 +38,21 @@ def read_configuration(
     current_directory = os.getcwd()
     os.chdir(os.path.dirname(filepath))
 
-    dist = Distribution()
+    try:
+        dist = Distribution()
 
-    filenames = dist.find_config_files() if find_others else []
-    if filepath not in filenames:
-        filenames.append(filepath)
+        filenames = dist.find_config_files() if find_others else []
+        if filepath not in filenames:
+            filenames.append(filepath)
 
-    _Distribution.parse_config_files(dist, filenames=filenames)
+        _Distribution.parse_config_files(dist, filenames=filenames)
 
-    handlers = parse_configuration(
-        dist, dist.command_options,
-        ignore_option_errors=ignore_option_errors)
+        handlers = parse_configuration(
+            dist, dist.command_options,
+            ignore_option_errors=ignore_option_errors)
 
-    os.chdir(current_directory)
+    finally:
+        os.chdir(current_directory)
 
     return configuration_to_dict(handlers)
 
