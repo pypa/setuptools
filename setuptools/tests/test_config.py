@@ -98,6 +98,8 @@ class TestConfigurationReader:
         assert config_dict['metadata']['keywords'] == ['one', 'two']
         assert 'version' not in config_dict['metadata']
 
+        config.remove()
+
 
 class TestMetadata:
 
