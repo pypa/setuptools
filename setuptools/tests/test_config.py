@@ -73,6 +73,22 @@ class TestConfigurationReader:
         with pytest.raises(DistutilsFileError):
             read_configuration('%s' % tmpdir.join('setup.cfg'))
 
+    def test_ignore_errors(self, tmpdir):
+        fake_env(
+            tmpdir,
+            '[metadata]\n'
+            'version = attr: none.VERSION\n'
+            'keywords = one, two\n'
+        )
+        with pytest.raises(ImportError):
+            read_configuration('%s' % tmpdir.join('setup.cfg'))
+
+        config_dict = read_configuration(
+            '%s' % tmpdir.join('setup.cfg'), ignore_option_errors=True)
+
+        assert config_dict['metadata']['keywords'] == ['one', 'two']
+        assert 'version' not in config_dict['metadata']
+
 
 class TestMetadata:
 
