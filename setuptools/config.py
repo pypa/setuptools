@@ -4,13 +4,14 @@ import os
 import sys
 from collections import defaultdict
 from functools import partial
+from importlib import import_module
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
-from setuptools.py26compat import import_module
 from setuptools.extern.six import string_types
 
 
-def read_configuration(filepath, find_others=False):
+def read_configuration(
+        filepath, find_others=False, ignore_option_errors=False):
     """Read given configuration file and returns options from it as a dict.
 
     :param str|unicode filepath: Path to configuration file
@@ -18,6 +19,11 @@ def read_configuration(filepath, find_others=False):
 
     :param bool find_others: Whether to search for other configuration files
         which could be on in various places.
+
+    :param bool ignore_option_errors: Whether to silently ignore
+        options, values of which could not be resolved (e.g. due to exceptions
+        in directives such as file:, attr:, etc.).
+        If False exceptions are propagated as expected.
 
     :rtype: dict
     """
@@ -32,17 +38,21 @@ def read_configuration(filepath, find_others=False):
     current_directory = os.getcwd()
     os.chdir(os.path.dirname(filepath))
 
-    dist = Distribution()
+    try:
+        dist = Distribution()
 
-    filenames = dist.find_config_files() if find_others else []
-    if filepath not in filenames:
-        filenames.append(filepath)
+        filenames = dist.find_config_files() if find_others else []
+        if filepath not in filenames:
+            filenames.append(filepath)
 
-    _Distribution.parse_config_files(dist, filenames=filenames)
+        _Distribution.parse_config_files(dist, filenames=filenames)
 
-    handlers = parse_configuration(dist, dist.command_options)
+        handlers = parse_configuration(
+            dist, dist.command_options,
+            ignore_option_errors=ignore_option_errors)
 
-    os.chdir(current_directory)
+    finally:
+        os.chdir(current_directory)
 
     return configuration_to_dict(handlers)
 
@@ -76,7 +86,8 @@ def configuration_to_dict(handlers):
     return config_dict
 
 
-def parse_configuration(distribution, command_options):
+def parse_configuration(
+        distribution, command_options, ignore_option_errors=False):
     """Performs additional parsing of configuration options
     for a distribution.
 
@@ -84,12 +95,18 @@ def parse_configuration(distribution, command_options):
 
     :param Distribution distribution:
     :param dict command_options:
+    :param bool ignore_option_errors: Whether to silently ignore
+        options, values of which could not be resolved (e.g. due to exceptions
+        in directives such as file:, attr:, etc.).
+        If False exceptions are propagated as expected.
     :rtype: list
     """
-    meta = ConfigMetadataHandler(distribution.metadata, command_options)
+    meta = ConfigMetadataHandler(
+        distribution.metadata, command_options, ignore_option_errors)
     meta.parse()
 
-    options = ConfigOptionsHandler(distribution, command_options)
+    options = ConfigOptionsHandler(
+        distribution, command_options, ignore_option_errors)
     options.parse()
 
     return [meta, options]
@@ -111,7 +128,7 @@ class ConfigHandler(object):
 
     """
 
-    def __init__(self, target_obj, options):
+    def __init__(self, target_obj, options, ignore_option_errors=False):
         sections = {}
 
         section_prefix = self.section_prefix
@@ -122,6 +139,7 @@ class ConfigHandler(object):
             section_name = section_name.replace(section_prefix, '').strip('.')
             sections[section_name] = section_options
 
+        self.ignore_option_errors = ignore_option_errors
         self.target_obj = target_obj
         self.sections = sections
         self.set_options = []
@@ -148,9 +166,19 @@ class ConfigHandler(object):
             # Already inhabited. Skipping.
             return
 
+        skip_option = False
         parser = self.parsers.get(option_name)
         if parser:
-            value = parser(value)
+            try:
+                value = parser(value)
+
+            except Exception:
+                skip_option = True
+                if not self.ignore_option_errors:
+                    raise
+
+        if skip_option:
+            return
 
         setter = getattr(target_obj, 'set_%s' % option_name, None)
         if setter is None:
@@ -335,7 +363,10 @@ class ConfigHandler(object):
                 method_postfix = '_%s' % section_name
 
             section_parser_method = getattr(
-                self, 'parse_section%s' % method_postfix, None)
+                self,
+                # Dots in section names are tranlsated into dunderscores.
+                ('parse_section%s' % method_postfix).replace('.', '__'),
+                None)
 
             if section_parser_method is None:
                 raise DistutilsOptionError(
@@ -455,8 +486,34 @@ class ConfigOptionsHandler(ConfigHandler):
         if not value.startswith(find_directive):
             return self._parse_list(value)
 
+        # Read function arguments from a dedicated section.
+        find_kwargs = self.parse_section_packages__find(
+            self.sections.get('packages.find', {}))
+
         from setuptools import find_packages
-        return find_packages()
+
+        return find_packages(**find_kwargs)
+
+    def parse_section_packages__find(self, section_options):
+        """Parses `packages.find` configuration file section.
+
+        To be used in conjunction with _parse_packages().
+
+        :param dict section_options:
+        """
+        section_data = self._parse_section_to_dict(
+            section_options, self._parse_list)
+
+        valid_keys = ['where', 'include', 'exclude']
+
+        find_kwargs = dict(
+            [(k, v) for k, v in section_data.items() if k in valid_keys and v])
+
+        where = find_kwargs.get('where')
+        if where is not None:
+            find_kwargs['where'] = where[0]  # cast list to single val
+
+        return find_kwargs
 
     def parse_section_entry_points(self, section_options):
         """Parses `entry_points` configuration file section.

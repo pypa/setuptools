@@ -3,7 +3,7 @@ Building and Distributing Packages with Setuptools
 ==================================================
 
 ``Setuptools`` is a collection of enhancements to the Python ``distutils``
-(for Python 2.6 and up) that allow developers to more easily build and
+that allow developers to more easily build and
 distribute Python packages, especially ones that have dependencies on other
 packages.
 
@@ -2448,6 +2448,11 @@ boilerplate code in some cases.
     pdf = ReportLab>=1.2; RXP
     rest = docutils>=0.3; pack ==1.1, ==1.3
 
+    [options.packages.find]
+    exclude =
+        src.subpackage1
+        src.subpackage2
+
 
 Metadata and options could be set in sections with the same names.
 
@@ -2486,13 +2491,13 @@ Type names used below:
 * ``list-semi`` - dangling list or semicolon-separated values string
 * ``bool`` -  ``True`` is 1, yes, true
 * ``dict`` - list-comma where keys from values are separated by =
+* ``section`` - values could be read from a dedicated (sub)section
 
 
 Special directives:
 
 * ``attr:`` - value could be read from module attribute
 * ``file:`` - value could be read from a file
-* ``section:`` - values could be read from a dedicated (sub)section
 
 
 .. note::
@@ -2529,8 +2534,10 @@ requires                              list-comma
 obsoletes                             list-comma
 =================  =================  =====
 
-**version** - ``attr:`` supports callables; supports iterables;
-unsupported types are casted using ``str()``.
+.. note::
+
+    **version** - ``attr:`` supports callables; supports iterables;
+    unsupported types are casted using ``str()``.
 
 
 Options
@@ -2543,7 +2550,7 @@ zip_safe                 bool
 setup_requires           list-semi
 install_requires         list-semi
 extras_require           section
-entry_points             file, section
+entry_points             file:, section
 use_2to3                 bool
 use_2to3_fixers          list-comma
 use_2to3_exclude_fixers  list-comma
@@ -2559,6 +2566,13 @@ package_data             section
 exclude_package_data     section
 namespace_packages       list-comma
 =======================  =====
+
+.. note::
+
+    **packages** - ``find:`` directive can be further configured
+    in a dedicated subsection `options.packages.find`. This subsection
+    accepts the same keys as `setuptools.find` function:
+    `where`, `include`, `exclude`.
 
 
 Configuration API
@@ -2581,6 +2595,12 @@ By default ``read_configuration()`` will read only file provided
 in the first argument. To include values from other configuration files
 which could be in various places set `find_others` function argument
 to ``True``.
+
+If you have only a configuration file but not the whole package you can still
+try to get data out of it with the help of `ignore_option_errors` function
+argument. When it is set to ``True`` all options with errors possibly produced
+by directives, such as ``attr:`` and others will be silently ignored.
+As a consequence the resulting dictionary will include no such options.
 
 
 --------------------------------

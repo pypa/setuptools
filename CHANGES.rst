@@ -1,3 +1,9 @@
+v31.0.0
+-------
+
+* #878: Drop support for Python 2.6. Python 2.6 users should
+  rely on 'setuptools < 31dev'.
+
 v30.3.0
 -------
 
