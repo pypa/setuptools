@@ -43,9 +43,11 @@ class Installer:
         return self.target
 
     _nspkg_tmpl = (
-        "import sys, types, os, importlib.util, importlib.machinery",
+        "import sys, types, os",
         "has_mfs = sys.version_info > (3, 5)",
         "p = os.path.join(%(root)s, *%(pth)r)",
+        "importlib = has_mfs and __import__('importlib.util')",
+        "has_mfs and __import__('importlib.machinery')",
         "m = has_mfs and "
             "sys.modules.setdefault(%(pkg)r, "
                 "importlib.util.module_from_spec("
