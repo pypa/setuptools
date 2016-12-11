@@ -1,3 +1,16 @@
+v31.0.0
+-------
+
+* #250: Install '-nspkg.pth' files for packages installed
+  with 'setup.py develop'. These .pth files allow
+  namespace packages installed by pip or develop to
+  co-mingle. This change required the removal of the
+  change for #805, introduced in 28.3.0 and implicated
+  in #870, but means that namespace packages not in a
+  site packages directory will no longer work on Python
+  earlier than 3.5, whereas before they would work on
+  Python not earlier than 3.3.
+
 v30.4.0
 -------
 
