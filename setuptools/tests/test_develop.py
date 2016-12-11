@@ -1,9 +1,13 @@
 """develop tests
 """
+
+from __future__ import absolute_import, unicode_literals
+
 import os
 import site
 import sys
 import io
+import subprocess
 
 from setuptools.extern import six
 
@@ -12,6 +16,7 @@ import pytest
 from setuptools.command.develop import develop
 from setuptools.dist import Distribution
 from . import contexts
+from . import namespaces
 
 SETUP_PY = """\
 from setuptools import setup
@@ -114,3 +119,47 @@ class TestDevelop:
         cmd.install_dir = tmpdir
         cmd.run()
         # assert '0.0' not in foocmd_text
+
+
+class TestNamespaces:
+
+    @staticmethod
+    def install_develop(src_dir, target):
+
+        develop_cmd = [
+            sys.executable,
+            'setup.py',
+            'develop',
+            '--install-dir', str(target),
+        ]
+        env = dict(PYTHONPATH=str(target))
+        with src_dir.as_cwd():
+            subprocess.check_call(develop_cmd, env=env)
+
+    def test_namespace_package_importable(self, tmpdir):
+        """
+        Installing two packages sharing the same namespace, one installed
+        naturally using pip or `--single-version-externally-managed`
+        and the other installed using `develop` should leave the namespace
+        in tact and both packages reachable by import.
+        """
+        pkg_A = namespaces.build_namespace_package(tmpdir, 'myns.pkgA')
+        pkg_B = namespaces.build_namespace_package(tmpdir, 'myns.pkgB')
+        target = tmpdir / 'packages'
+        # use pip to install to the target directory
+        install_cmd = [
+            'pip',
+            'install',
+            str(pkg_A),
+            '-t', str(target),
+        ]
+        subprocess.check_call(install_cmd)
+        self.install_develop(pkg_B, target)
+        namespaces.make_site_dir(target)
+        try_import = [
+            sys.executable,
+            '-c', 'import myns.pkgA; import myns.pkgB',
+        ]
+        env = dict(PYTHONPATH=str(target))
+        subprocess.check_call(try_import, env=env)
+

@@ -31,21 +31,27 @@ class Installer:
         with open(filename, 'wt') as f:
             f.writelines(lines)
 
+    def uninstall_namespaces(self):
+        filename, ext = os.path.splitext(self._get_target())
+        filename += self.nspkg_ext
+        if not os.path.exists(filename):
+            return
+        log.info("Removing %s", filename)
+        os.remove(filename)
+
     def _get_target(self):
         return self.target
 
     _nspkg_tmpl = (
         "import sys, types, os, importlib.util, importlib.machinery",
-        "pep420 = (3, 3) < sys.version_info < (3, 5)",
         "has_mfs = sys.version_info > (3, 5)",
         "p = os.path.join(%(root)s, *%(pth)r)",
-        "ie = os.path.exists(os.path.join(p,'__init__.py'))",
-        "m = not ie and not pep420 and has_mfs and "
+        "m = has_mfs and "
             "sys.modules.setdefault(%(pkg)r, "
                 "importlib.util.module_from_spec("
                     "importlib.machinery.PathFinder.find_spec(%(pkg)r, "
                         "[os.path.dirname(p)])))",
-        "m = not ie and not pep420 and not has_mfs and "
+        "m = not has_mfs and "
             "sys.modules.setdefault(%(pkg)r, types.ModuleType(%(pkg)r))",
         "mp = (m or []) and m.__dict__.setdefault('__path__',[])",
         "(p not in mp) and mp.append(p)",
