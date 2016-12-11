@@ -1,6 +1,68 @@
-=======
-CHANGES
-=======
+v30.4.0
+-------
+
+* #879: For declarative config:
+
+  - read_configuration() now accepts ignore_option_errors argument. This allows scraping tools to read metadata without a need to download entire packages. E.g. we can gather some stats right from GitHub repos just by downloading setup.cfg.
+
+  - packages find: directive now supports fine tuning from a subsection. The same arguments as for find() are accepted.
+
+v30.3.0
+-------
+
+* #394 via #862: Added support for `declarative package
+  config in a setup.cfg file
+  <http://setuptools.readthedocs.io/en/latest/setuptools.html#configuring-setup-using-setup-cfg-files>`_.
+
+v30.2.1
+-------
+
+* #850: In test command, invoke unittest.main with
+  indication not to exit the process.
+
+v30.2.0
+-------
+
+* #854: Bump to vendored Packaging 16.8.
+
+v30.1.0
+-------
+
+* #846: Also trap 'socket.error' when opening URLs in
+  package_index.
+
+* #849: Manifest processing now matches the filename
+  pattern anywhere in the filename and not just at the
+  start. Restores behavior found prior to 28.5.0.
+
+v30.0.0
+-------
+
+* #864: Drop support for Python 3.2. Systems requiring
+  Python 3.2 support must use 'setuptools < 30'.
+
+* #825: Suppress warnings for single files.
+
+* #830 via #843: Once again restored inclusion of data
+  files to sdists, but now trap TypeError caused by
+  techniques employed rjsmin and similar.
+
+v29.0.1
+-------
+
+* #861: Re-release of v29.0.1 with the executable script
+  launchers bundled. Now, launchers are included by default
+  and users that want to disable this behavior must set the
+  environment variable
+  'SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES' to
+  a false value like "false" or "0".
+
+v29.0.0
+-------
+
+* #841: Drop special exception for packages invoking
+  win32com during the build/install process. See
+  Distribute #118 for history.
 
 v28.8.0
 -------

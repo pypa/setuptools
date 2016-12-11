@@ -16,10 +16,10 @@ Documentation content:
 .. toctree::
    :maxdepth: 2
 
-   history
-   roadmap
-   python3
    setuptools
    easy_install
    pkg_resources
+   python3
    development
+   roadmap
+   history

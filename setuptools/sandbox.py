@@ -373,14 +373,6 @@ if hasattr(os, 'devnull'):
 else:
     _EXCEPTIONS = []
 
-try:
-    from win32com.client.gencache import GetGeneratePath
-    _EXCEPTIONS.append(GetGeneratePath())
-    del GetGeneratePath
-except ImportError:
-    # it appears pywin32 is not installed, so no need to exclude.
-    pass
-
 
 class DirectorySandbox(AbstractSandbox):
     """Restrict operations to a single subdirectory - pseudo-chroot"""

@@ -75,11 +75,7 @@ __import__('pkg_resources.extern.packaging.requirements')
 __import__('pkg_resources.extern.packaging.markers')
 
 if (3, 0) < sys.version_info < (3, 3):
-    msg = (
-        "Support for Python 3.0-3.2 has been dropped. Future versions "
-        "will fail here."
-    )
-    warnings.warn(msg)
+    raise RuntimeError("Python 3.3 or later is required")
 
 # declare some globals that will be defined later to
 # satisfy the linters.
@@ -3009,9 +3005,11 @@ def _initialize(g=globals()):
     "Set up global resource manager (deliberately not state-saved)"
     manager = ResourceManager()
     g['_manager'] = manager
-    for name in dir(manager):
-        if not name.startswith('_'):
-            g[name] = getattr(manager, name)
+    g.update(
+        (name, getattr(manager, name))
+        for name in dir(manager)
+        if not name.startswith('_')
+    )
 
 
 @_call_aside
@@ -3040,10 +3038,10 @@ def _initialize_master_working_set():
     # ensure that all distributions added to the working set in the future
     # (e.g. by calling ``require()``) will get activated as well,
     # with higher priority (replace=True).
-    dist = None  # ensure dist is defined for del dist below
-    for dist in working_set:
+    tuple(
         dist.activate(replace=False)
-    del dist
+        for dist in working_set
+    )
     add_activation_listener(lambda dist: dist.activate(replace=True), existing=False)
     working_set.entries = []
     # match order

@@ -26,7 +26,8 @@ SETUP_ATTRS = {
     'name': 'sdist_test',
     'version': '0.0',
     'packages': ['sdist_test'],
-    'package_data': {'sdist_test': ['*.txt']}
+    'package_data': {'sdist_test': ['*.txt']},
+    'data_files': [("data", [os.path.join("d", "e.dat")])],
 }
 
 SETUP_PY = """\
@@ -95,9 +96,12 @@ class TestSdistTest:
         # Set up the rest of the test package
         test_pkg = os.path.join(self.temp_dir, 'sdist_test')
         os.mkdir(test_pkg)
+        data_folder = os.path.join(self.temp_dir, "d")
+        os.mkdir(data_folder)
         # *.rst was not included in package_data, so c.rst should not be
         # automatically added to the manifest when not under version control
-        for fname in ['__init__.py', 'a.txt', 'b.txt', 'c.rst']:
+        for fname in ['__init__.py', 'a.txt', 'b.txt', 'c.rst',
+                      os.path.join(data_folder, "e.dat")]:
             # Just touch the files; their contents are irrelevant
             open(os.path.join(test_pkg, fname), 'w').close()
 
@@ -126,6 +130,7 @@ class TestSdistTest:
         assert os.path.join('sdist_test', 'a.txt') in manifest
         assert os.path.join('sdist_test', 'b.txt') in manifest
         assert os.path.join('sdist_test', 'c.rst') not in manifest
+        assert os.path.join('d', 'e.dat') in manifest
 
     def test_defaults_case_sensitivity(self):
         """

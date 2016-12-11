@@ -8,7 +8,6 @@ python:
   - "3.6-dev"
   - nightly
   - pypy
-  - pypy3
 env:
  - ""
  - LC_ALL=C LC_CTYPE=C
@@ -24,8 +23,6 @@ script:
  #- python -m tox
  - tox
 
-before_deploy:
-  - export SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES=1
 deploy:
   provider: pypi
   # Also update server in setup.cfg
