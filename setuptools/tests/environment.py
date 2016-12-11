@@ -56,5 +56,5 @@ def run_setup_py(cmd, pypath=None, path=None,
         data = data.decode()
         data = unicodedata.normalize('NFC', data)
 
-    # communciate calls wait()
+    # communicate calls wait()
     return proc.returncode, data

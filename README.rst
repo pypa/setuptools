@@ -139,10 +139,10 @@ Package Index`_. Scroll to the very bottom of the page to find the links.
 .. _the project's home page in the Python Package Index: https://pypi.python.org/pypi/setuptools
 
 In addition to the PyPI downloads, the development version of ``setuptools``
-is available from the `Bitbucket repo`_, and in-development versions of the
+is available from the `GitHub repo`_, and in-development versions of the
 `0.6 branch`_ are available as well.
 
-.. _Bitbucket repo: https://bitbucket.org/pypa/setuptools/get/default.tar.gz#egg=setuptools-dev
+.. _GitHub repo: https://github.com/pypa/setuptools/archive/master.tar.gz#egg=setuptools-dev
 .. _0.6 branch: http://svn.python.org/projects/sandbox/branches/setuptools-0.6/#egg=setuptools-dev06
 
 Uninstalling

@@ -1,3 +1,25 @@
+v30.4.0
+-------
+
+* #879: For declarative config:
+
+  - read_configuration() now accepts ignore_option_errors argument. This allows scraping tools to read metadata without a need to download entire packages. E.g. we can gather some stats right from GitHub repos just by downloading setup.cfg.
+
+  - packages find: directive now supports fine tuning from a subsection. The same arguments as for find() are accepted.
+
+v30.3.0
+-------
+
+* #394 via #862: Added support for `declarative package
+  config in a setup.cfg file
+  <http://setuptools.readthedocs.io/en/latest/setuptools.html#configuring-setup-using-setup-cfg-files>`_.
+
+v30.2.1
+-------
+
+* #850: In test command, invoke unittest.main with
+  indication not to exit the process.
+
 v30.2.0
 -------
 
