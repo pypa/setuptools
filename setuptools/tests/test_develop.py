@@ -136,6 +136,8 @@ class TestNamespaces:
         with src_dir.as_cwd():
             subprocess.check_call(develop_cmd, env=env)
 
+    @pytest.mark.skipif(bool(os.environ.get("APPVEYOR")),
+        reason="https://github.com/pypa/setuptools/issues/851")
     def test_namespace_package_importable(self, tmpdir):
         """
         Installing two packages sharing the same namespace, one installed
