@@ -165,3 +165,9 @@ class TestNamespaces:
         env = dict(PYTHONPATH=str(target))
         subprocess.check_call(try_import, env=env)
 
+        # additionally ensure that pkg_resources import works
+        pkg_resources_imp = [
+            sys.executable,
+            '-c', 'import pkg_resources',
+        ]
+        subprocess.check_call(pkg_resources_imp, env=env)
