@@ -50,3 +50,26 @@ class TestNamespaces:
         ]
         env = dict(PYTHONPATH=python_path)
         subprocess.check_call(try_import, env=env)
+
+    def test_pkg_resources_import(self, tmpdir):
+        """
+        Ensure that a namespace package doesn't break on import
+        of pkg_resources.
+        """
+        pkg = namespaces.build_namespace_package(tmpdir, 'myns.pkgA')
+        target = tmpdir / 'packages'
+        target.mkdir()
+        env = dict(PYTHONPATH=str(target))
+        install_cmd = [
+            sys.executable,
+            '-m', 'easy_install',
+            '-d', str(target),
+            str(pkg),
+        ]
+        subprocess.check_call(install_cmd, env=env)
+        namespaces.make_site_dir(target)
+        try_import = [
+            sys.executable,
+            '-c', 'import pkg_resources',
+        ]
+        subprocess.check_call(try_import, env=env)
