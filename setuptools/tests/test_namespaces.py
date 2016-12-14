@@ -73,3 +73,30 @@ class TestNamespaces:
             '-c', 'import pkg_resources',
         ]
         subprocess.check_call(try_import, env=env)
+
+    @pytest.mark.skipif(bool(os.environ.get("APPVEYOR")),
+        reason="https://github.com/pypa/setuptools/issues/851")
+    def test_namespace_package_installed_and_cwd(self, tmpdir):
+        """
+        Installing a namespace packages but also having it in the current
+        working directory, only one version should take precedence.
+        """
+        pkg_A = namespaces.build_namespace_package(tmpdir, 'myns.pkgA')
+        target = tmpdir / 'packages'
+        # use pip to install to the target directory
+        install_cmd = [
+            'pip',
+            'install',
+            str(pkg_A),
+            '-t', str(target),
+        ]
+        subprocess.check_call(install_cmd)
+        namespaces.make_site_dir(target)
+
+        # ensure that package imports and pkg_resources imports
+        pkg_resources_imp = [
+            sys.executable,
+            '-c', 'import pkg_resources; import myns.pkgA',
+        ]
+        env = dict(PYTHONPATH=str(target))
+        subprocess.check_call(pkg_resources_imp, env=env, cwd=str(pkg_A))
