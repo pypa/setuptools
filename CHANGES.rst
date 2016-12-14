@@ -1,3 +1,10 @@
+v31.0.1
+-------
+
+* #885: Fix regression where 'pkg_resources._rebuild_mod_path'
+  would fail when a namespace package's '__path__' was not
+  a list with a sort attribute.
+
 v31.0.0
 -------
 
