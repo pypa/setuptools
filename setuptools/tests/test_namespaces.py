@@ -51,6 +51,8 @@ class TestNamespaces:
         env = dict(PYTHONPATH=python_path)
         subprocess.check_call(try_import, env=env)
 
+    @pytest.mark.skipif(bool(os.environ.get("APPVEYOR")),
+        reason="https://github.com/pypa/setuptools/issues/851")
     def test_pkg_resources_import(self, tmpdir):
         """
         Ensure that a namespace package doesn't break on import
