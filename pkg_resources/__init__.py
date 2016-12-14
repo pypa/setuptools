@@ -2113,7 +2113,7 @@ def _rebuild_mod_path(orig_path, package_name, module):
         parts = path_parts[:-module_parts]
         return safe_sys_path_index(_normalize_cached(os.sep.join(parts)))
 
-    orig_path.sort(key=position_in_sys_path)
+    orig_path[:] = sorted(orig_path, key=position_in_sys_path)
     module.__path__[:] = [_normalize_cached(p) for p in orig_path]
 
 
