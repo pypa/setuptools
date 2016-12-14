@@ -21,6 +21,7 @@ from setuptools import windows_support
 from setuptools.monkey import get_unpatched
 from setuptools.config import parse_configuration
 import pkg_resources
+from .py36compat import Distribution_parse_config_files
 
 
 def _get_unpatched(cls):
@@ -213,7 +214,7 @@ def check_packages(dist, attr, value):
 _Distribution = get_unpatched(distutils.core.Distribution)
 
 
-class Distribution(_Distribution):
+class Distribution(Distribution_parse_config_files, _Distribution):
     """Distribution with support for features, tests, and package data
 
     This is an enhanced version of 'distutils.dist.Distribution' that
