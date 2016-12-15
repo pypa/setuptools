@@ -1,5 +1,5 @@
-In development
---------------
+v32.0.0
+-------
 
 * #890: Revert #849. ``global-exclude .foo`` will not match all
   ``*.foo`` files any more. Package authors must add an explicit
