@@ -449,11 +449,6 @@ class TestFileListTest(TempDirTestCase):
         assert file_list.files == ['a.py', l('d/c.py')]
         self.assertWarnings()
 
-        file_list.process_template_line('global-include .txt')
-        file_list.sort()
-        assert file_list.files == ['a.py', 'b.txt', l('d/c.py')]
-        self.assertNoWarnings()
-
     def test_global_exclude(self):
         l = make_local_path
         # global-exclude
@@ -469,13 +464,6 @@ class TestFileListTest(TempDirTestCase):
         file_list.sort()
         assert file_list.files == ['b.txt']
         self.assertWarnings()
-
-        file_list = FileList()
-        file_list.files = ['a.py', 'b.txt', l('d/c.pyc'), 'e.pyo']
-        file_list.process_template_line('global-exclude .py[co]')
-        file_list.sort()
-        assert file_list.files == ['a.py', 'b.txt']
-        self.assertNoWarnings()
 
     def test_recursive_include(self):
         l = make_local_path

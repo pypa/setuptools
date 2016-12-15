@@ -1,3 +1,11 @@
+In development
+--------------
+
+* #890: Revert #849. ``global-exclude .foo`` will not match all
+  ``*.foo`` files any more. Package authors must add an explicit
+  wildcard, such as ``global-exclude *.foo``, to match all
+  ``.foo`` files. See #886, #849.
+
 v31.0.1
 -------
 
@@ -132,7 +140,11 @@ v28.5.0
 
 * #810: Tests are now invoked with tox and not setup.py test.
 * #249 and #450 via #764: Avoid scanning the whole tree
-  when building the manifest.
+  when building the manifest. Also fixes a long-standing bug
+  where patterns in ``MANIFEST.in`` had implicit wildcard
+  matching. This caused ``global-exclude .foo`` to exclude
+  all ``*.foo`` files, but also ``global-exclude bar.py`` to
+  exclude ``foo_bar.py``.
 
 v28.4.0
 -------
