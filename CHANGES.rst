@@ -1,3 +1,9 @@
+v32.1.0
+-------
+
+* #891: In 'test' command on test failure, raise DistutilsError,
+  suppression invocation of subsequent commands.
+
 v32.0.0
 -------
 
