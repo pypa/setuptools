@@ -3,7 +3,8 @@ import operator
 import sys
 import contextlib
 import itertools
-from distutils.errors import DistutilsOptionError
+from distutils.errors import DistutilsError, DistutilsOptionError
+from distutils import log
 from unittest import TestLoader
 
 from setuptools.extern import six
@@ -233,7 +234,9 @@ class test(Command):
             **exit_kwarg
         )
         if not test.result.wasSuccessful():
-            sys.exit(1)
+            msg = 'Test failed: %s' % test.result
+            self.announce(msg, log.ERROR)
+            raise DistutilsError(msg)
 
     @property
     def _argv(self):
