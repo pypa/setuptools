@@ -226,12 +226,14 @@ class test(Command):
                 list(map(sys.modules.__delitem__, del_modules))
 
         exit_kwarg = {} if sys.version_info < (2, 7) else {"exit": False}
-        unittest_main(
+        test = unittest_main(
             None, None, self._argv,
             testLoader=self._resolve_as_ep(self.test_loader),
             testRunner=self._resolve_as_ep(self.test_runner),
             **exit_kwarg
         )
+        if not test.result.wasSuccessful():
+            sys.exit(1)
 
     @property
     def _argv(self):
