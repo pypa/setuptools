@@ -3,7 +3,8 @@ import operator
 import sys
 import contextlib
 import itertools
-from distutils.errors import DistutilsOptionError
+from distutils.errors import DistutilsError, DistutilsOptionError
+from distutils import log
 from unittest import TestLoader
 
 from setuptools.extern import six
@@ -226,12 +227,16 @@ class test(Command):
                 list(map(sys.modules.__delitem__, del_modules))
 
         exit_kwarg = {} if sys.version_info < (2, 7) else {"exit": False}
-        unittest_main(
+        test = unittest_main(
             None, None, self._argv,
             testLoader=self._resolve_as_ep(self.test_loader),
             testRunner=self._resolve_as_ep(self.test_runner),
             **exit_kwarg
         )
+        if not test.result.wasSuccessful():
+            msg = 'Test failed: %s' % test.result
+            self.announce(msg, log.ERROR)
+            raise DistutilsError(msg)
 
     @property
     def _argv(self):
