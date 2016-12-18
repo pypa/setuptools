@@ -627,12 +627,24 @@ class easy_install(Command):
                 (spec.key, self.build_directory)
             )
 
-    def easy_install(self, spec, deps=False):
+    @contextlib.contextmanager
+    def _tmpdir(self):
         tmpdir = tempfile.mkdtemp(prefix="easy_install-")
+        try:
+            yield tmpdir
+        finally:
+            if not os.path.exists(tmpdir):
+                return
+            # workaround for http://bugs.python.org/issue24672
+            if six.PY2:
+                tmpdir = tmpdir.decode('ascii')
+            rmtree(tmpdir)
+
+    def easy_install(self, spec, deps=False):
         if not self.editable:
             self.install_site_py()
 
-        try:
+        with self._tmpdir() as tmpdir:
             if not isinstance(spec, Requirement):
                 if URL_SCHEME(spec):
                     # It's a url, download it to tmpdir and process
@@ -663,13 +675,6 @@ class easy_install(Command):
                 return dist
             else:
                 return self.install_item(spec, dist.location, tmpdir, deps)
-
-        finally:
-            if os.path.exists(tmpdir):
-                # workaround for http://bugs.python.org/issue24672
-                if six.PY2:
-                    tmpdir = tmpdir.decode('ascii')
-                rmtree(tmpdir)
 
     def install_item(self, spec, download, tmpdir, deps, install_needed=False):
 
