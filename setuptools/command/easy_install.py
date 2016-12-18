@@ -666,6 +666,9 @@ class easy_install(Command):
 
         finally:
             if os.path.exists(tmpdir):
+                # workaround for http://bugs.python.org/issue24672
+                if six.PY2:
+                    tmpdir = six.u(tmpdir)
                 rmtree(tmpdir)
 
     def install_item(self, spec, download, tmpdir, deps, install_needed=False):
