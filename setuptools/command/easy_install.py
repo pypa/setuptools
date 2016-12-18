@@ -629,16 +629,12 @@ class easy_install(Command):
 
     @contextlib.contextmanager
     def _tmpdir(self):
-        tmpdir = tempfile.mkdtemp(prefix="easy_install-")
+        tmpdir = tempfile.mkdtemp(prefix=six.u("easy_install-"))
         try:
-            yield tmpdir
+            # cast to str as workaround for #709 and #710 and #712
+            yield str(tmpdir)
         finally:
-            if not os.path.exists(tmpdir):
-                return
-            # workaround for http://bugs.python.org/issue24672
-            if six.PY2:
-                tmpdir = tmpdir.decode('ascii')
-            rmtree(tmpdir)
+            os.path.exists(tmpdir) and rmtree(tmpdir)
 
     def easy_install(self, spec, deps=False):
         if not self.editable:
