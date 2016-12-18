@@ -1,3 +1,14 @@
+v32.1.1
+-------
+
+* #704: More selectively ensure that 'rmtree' is not invoked with
+  a byte string, enabling it to remove files that are non-ascii,
+  even on Python 2.
+
+* #712: In 'sandbox.run_setup', ensure that ``__file__`` is
+  always a ``str``, modeling the behavior observed by the
+  interpreter when invoking scripts and modules.
+
 v32.1.0
 -------
 
