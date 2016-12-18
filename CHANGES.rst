@@ -1,3 +1,9 @@
+v32.1.2
+-------
+
+* #893: Only release sdist in zip format as warehouse now
+  disallows releasing two different formats.
+
 v32.1.1
 -------
 
