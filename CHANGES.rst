@@ -1,3 +1,9 @@
+v32.1.3
+-------
+
+* #706: Add rmtree compatibility shim for environments where
+  rmtree fails when passed a unicode string.
+
 v32.1.2
 -------
 
