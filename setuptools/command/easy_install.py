@@ -46,6 +46,7 @@ from setuptools.extern.six.moves import configparser, map
 from setuptools import Command
 from setuptools.sandbox import run_setup
 from setuptools.py31compat import get_path, get_config_vars
+from setuptools.py27compat import rmtree_safe
 from setuptools.command import setopt
 from setuptools.archive_util import unpack_archive
 from setuptools.package_index import (
@@ -634,7 +635,7 @@ class easy_install(Command):
             # cast to str as workaround for #709 and #710 and #712
             yield str(tmpdir)
         finally:
-            os.path.exists(tmpdir) and rmtree(tmpdir)
+            os.path.exists(tmpdir) and rmtree(rmtree_safe(tmpdir))
 
     def easy_install(self, spec, deps=False):
         if not self.editable:
