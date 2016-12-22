@@ -10,6 +10,7 @@ import io
 import subprocess
 
 from setuptools.extern import six
+from setuptools.command import test
 
 import pytest
 
@@ -132,9 +133,9 @@ class TestNamespaces:
             'develop',
             '--install-dir', str(target),
         ]
-        env = dict(PYTHONPATH=str(target))
         with src_dir.as_cwd():
-            subprocess.check_call(develop_cmd, env=env)
+            with test.test.paths_on_pythonpath([str(target)]):
+                subprocess.check_call(develop_cmd)
 
     @pytest.mark.skipif(bool(os.environ.get("APPVEYOR")),
         reason="https://github.com/pypa/setuptools/issues/851")
@@ -162,12 +163,13 @@ class TestNamespaces:
             sys.executable,
             '-c', 'import myns.pkgA; import myns.pkgB',
         ]
-        env = dict(PYTHONPATH=str(target))
-        subprocess.check_call(try_import, env=env)
+        with test.test.paths_on_pythonpath([str(target)]):
+            subprocess.check_call(try_import)
 
         # additionally ensure that pkg_resources import works
         pkg_resources_imp = [
             sys.executable,
             '-c', 'import pkg_resources',
         ]
-        subprocess.check_call(pkg_resources_imp, env=env)
+        with test.test.paths_on_pythonpath([str(target)]):
+            subprocess.check_call(pkg_resources_imp)

@@ -1,3 +1,11 @@
+v32.1.4
+-------
+
+* #884: Restore support for running the tests under
+  `pytest-runner <https://github.com/pytest-dev/pytest-runner>`_
+  by ensuring that PYTHONPATH is honored in tests invoking
+  a subprocess.
+
 v32.1.3
 -------
 

@@ -7,6 +7,7 @@ import subprocess
 import pytest
 
 from . import namespaces
+from setuptools.command import test
 
 
 class TestNamespaces:
@@ -27,7 +28,6 @@ class TestNamespaces:
         site_packages = tmpdir / 'site-packages'
         path_packages = tmpdir / 'path-packages'
         targets = site_packages, path_packages
-        python_path = os.pathsep.join(map(str, targets))
         # use pip to install to the target directory
         install_cmd = [
             'pip',
@@ -48,8 +48,8 @@ class TestNamespaces:
             sys.executable,
             '-c', 'import myns.pkgA; import myns.pkgB',
         ]
-        env = dict(PYTHONPATH=python_path)
-        subprocess.check_call(try_import, env=env)
+        with test.test.paths_on_pythonpath(map(str, targets)):
+            subprocess.check_call(try_import)
 
     @pytest.mark.skipif(bool(os.environ.get("APPVEYOR")),
         reason="https://github.com/pypa/setuptools/issues/851")
@@ -61,20 +61,21 @@ class TestNamespaces:
         pkg = namespaces.build_namespace_package(tmpdir, 'myns.pkgA')
         target = tmpdir / 'packages'
         target.mkdir()
-        env = dict(PYTHONPATH=str(target))
         install_cmd = [
             sys.executable,
             '-m', 'easy_install',
             '-d', str(target),
             str(pkg),
         ]
-        subprocess.check_call(install_cmd, env=env)
+        with test.test.paths_on_pythonpath([str(target)]):
+            subprocess.check_call(install_cmd)
         namespaces.make_site_dir(target)
         try_import = [
             sys.executable,
             '-c', 'import pkg_resources',
         ]
-        subprocess.check_call(try_import, env=env)
+        with test.test.paths_on_pythonpath([str(target)]):
+            subprocess.check_call(try_import)
 
     @pytest.mark.skipif(bool(os.environ.get("APPVEYOR")),
         reason="https://github.com/pypa/setuptools/issues/851")
@@ -100,5 +101,5 @@ class TestNamespaces:
             sys.executable,
             '-c', 'import pkg_resources; import myns.pkgA',
         ]
-        env = dict(PYTHONPATH=str(target))
-        subprocess.check_call(pkg_resources_imp, env=env, cwd=str(pkg_A))
+        with test.test.paths_on_pythonpath([str(target)]):
+            subprocess.check_call(pkg_resources_imp, cwd=str(pkg_A))
