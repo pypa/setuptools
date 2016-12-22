@@ -1,4 +1,4 @@
-v32.1.4
+v32.2.0
 -------
 
 * #884: Restore support for running the tests under
