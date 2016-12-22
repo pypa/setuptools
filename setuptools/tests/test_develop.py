@@ -132,7 +132,7 @@ class TestNamespaces:
             'develop',
             '--install-dir', str(target),
         ]
-        env = dict(PYTHONPATH=str(target))
+        env = dict(PYTHONPATH=namespaces.build_pythonpath(target))
         with src_dir.as_cwd():
             subprocess.check_call(develop_cmd, env=env)
 
@@ -162,7 +162,7 @@ class TestNamespaces:
             sys.executable,
             '-c', 'import myns.pkgA; import myns.pkgB',
         ]
-        env = dict(PYTHONPATH=str(target))
+        env = dict(PYTHONPATH=namespaces.build_pythonpath(target))
         subprocess.check_call(try_import, env=env)
 
         # additionally ensure that pkg_resources import works

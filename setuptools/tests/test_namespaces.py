@@ -26,8 +26,7 @@ class TestNamespaces:
         pkg_B = namespaces.build_namespace_package(tmpdir, 'myns.pkgB')
         site_packages = tmpdir / 'site-packages'
         path_packages = tmpdir / 'path-packages'
-        targets = site_packages, path_packages
-        python_path = os.pathsep.join(map(str, targets))
+        python_path = namespaces.build_pythonpath(site_packages, path_packages)
         # use pip to install to the target directory
         install_cmd = [
             'pip',
@@ -61,7 +60,7 @@ class TestNamespaces:
         pkg = namespaces.build_namespace_package(tmpdir, 'myns.pkgA')
         target = tmpdir / 'packages'
         target.mkdir()
-        env = dict(PYTHONPATH=str(target))
+        env = dict(PYTHONPATH=namespaces.build_pythonpath(target))
         install_cmd = [
             sys.executable,
             '-m', 'easy_install',
@@ -100,5 +99,5 @@ class TestNamespaces:
             sys.executable,
             '-c', 'import pkg_resources; import myns.pkgA',
         ]
-        env = dict(PYTHONPATH=str(target))
+        env = dict(PYTHONPATH=namespaces.build_pythonpath(target))
         subprocess.check_call(pkg_resources_imp, env=env, cwd=str(pkg_A))

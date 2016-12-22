@@ -1,5 +1,6 @@
 from __future__ import absolute_import, unicode_literals
 
+import os
 import textwrap
 
 
@@ -40,3 +41,15 @@ def make_site_dir(target):
     target_str = str(target)
     tmpl = '__import__("site").addsitedir({target_str!r})'
     sc.write_text(tmpl.format(**locals()), encoding='utf-8')
+
+
+def build_pythonpath(*paths):
+    """
+    Create a PYTHONPATH value for the indicated paths, casting
+    them to strings, but also injecting the CWD ahead of the
+    values to ensure that this setuptools is used if the tests
+    are invoked without this setuptools being installed.
+    See #884.
+    """
+    paths = (os.getcwd(),) + paths
+    return os.pathsep.join(map(str, paths))
