@@ -1,3 +1,9 @@
+v32.3.0
+-------
+
+* #889: Backport proposed fix for disabling interpolation in
+  distutils.Distribution.parse_config_files.
+
 v32.2.0
 -------
 
