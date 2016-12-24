@@ -366,12 +366,13 @@ def _resolve_version(version):
 
     meta_url = urljoin(DEFAULT_URL, '/pypi/setuptools/json')
     resp = urlopen(meta_url)
+    fallback = 'UTF-8'
     with contextlib.closing(resp):
         try:
-            charset = resp.info().get_content_charset()
+            charset = resp.info().get_content_charset(fallback)
         except Exception:
-            # Python 2 compat; assume UTF-8
-            charset = 'UTF-8'
+            # Python 2 compat
+            charset = fallback
         reader = codecs.getreader(charset)
         doc = json.load(reader(resp))
 
