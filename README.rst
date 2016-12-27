@@ -5,7 +5,7 @@ Installing and Using Setuptools
 .. contents:: **Table of Contents**
 
 
-.. image:: https://setuptools.readthedocs.io/en/latest/?badge=latest
+.. image:: https://readthedocs.org/projects/setuptools/badge/?version=latest
     :target: https://setuptools.readthedocs.io
 
 -------------------------
