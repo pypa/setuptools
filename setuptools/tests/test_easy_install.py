@@ -44,7 +44,9 @@ class FakeDist(object):
     def get_entry_map(self, group):
         if group != 'console_scripts':
             return {}
-        return {'name': 'ep'}
+        return {
+            'name': pkg_resources.EntryPoint.parse('name = my_module:my_func')
+        }
 
     def as_requirement(self):
         return 'spec'
@@ -73,12 +75,11 @@ class TestEasyInstallTest:
             __requires__ = 'spec'
             import re
             import sys
-            from pkg_resources import load_entry_point
 
             if __name__ == '__main__':
                 sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
                 sys.exit(
-                    load_entry_point('spec', 'console_scripts', 'name')()
+                    __import__('my_module', fromlist=['__name__'], level=0).my_func()
                 )
             """)
         dist = FakeDist()

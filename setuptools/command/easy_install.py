@@ -2018,12 +2018,11 @@ class ScriptWriter(object):
         __requires__ = %(spec)r
         import re
         import sys
-        from pkg_resources import load_entry_point
 
         if __name__ == '__main__':
             sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
             sys.exit(
-                load_entry_point(%(spec)r, %(group)r, %(name)r)()
+                __import__(%(ep_module)r, fromlist=['__name__'], level=0).%(ep_attrs)s()
             )
     """).lstrip()
 
@@ -2060,6 +2059,10 @@ class ScriptWriter(object):
             group = type_ + '_scripts'
             for name, ep in dist.get_entry_map(group).items():
                 cls._ensure_safe_name(name)
+                if not ep.attrs:
+                    raise ValueError('Invalid script', ep)
+                ep_module = ep.module_name
+                ep_attrs = '.'.join(ep.attrs)
                 script_text = cls.template % locals()
                 args = cls._get_script_args(type_, name, header, script_text)
                 for res in args:
