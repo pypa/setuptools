@@ -1,3 +1,9 @@
+v32.3.1
+-------
+
+* #866: Use ``dis.Bytecode`` on Python 3.4 and later in
+  ``setuptools.depends``.
+
 v32.3.0
 -------
 
