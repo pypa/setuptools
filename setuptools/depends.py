@@ -1,9 +1,10 @@
 import sys
 import imp
 import marshal
-import dis
 from distutils.version import StrictVersion
 from imp import PKG_DIRECTORY, PY_COMPILED, PY_SOURCE, PY_FROZEN
+
+from .py33compat import Bytecode
 
 
 __all__ = [
@@ -155,7 +156,7 @@ def extract_constant(code, symbol, default=-1):
 
     const = default
 
-    for byte_code in dis.Bytecode(code):
+    for byte_code in Bytecode(code):
         op = byte_code.opcode
         arg = byte_code.arg
 
