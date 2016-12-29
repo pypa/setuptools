@@ -1,10 +1,9 @@
 import sys
 import imp
 import marshal
+import dis
 from distutils.version import StrictVersion
 from imp import PKG_DIRECTORY, PY_COMPILED, PY_SOURCE, PY_FROZEN
-
-from setuptools.extern import six
 
 __all__ = [
     'Require', 'find_module', 'get_module_constant', 'extract_constant'
@@ -80,35 +79,10 @@ class Require:
 
 def _iter_code(code):
     """Yield '(op,arg)' pair for each operation in code object 'code'"""
-
-    from array import array
-    from dis import HAVE_ARGUMENT, EXTENDED_ARG
-
-    bytes = array('b', code.co_code)
-    eof = len(code.co_code)
-
-    ptr = 0
-    extended_arg = 0
-
-    while ptr < eof:
-
-        op = bytes[ptr]
-
-        if op >= HAVE_ARGUMENT:
-
-            arg = bytes[ptr + 1] + bytes[ptr + 2] * 256 + extended_arg
-            ptr += 3
-
-            if op == EXTENDED_ARG:
-                long_type = six.integer_types[-1]
-                extended_arg = arg * long_type(65536)
-                continue
-
-        else:
-            arg = None
-            ptr += 1
-
-        yield op, arg
+    return (
+        (op.opcode, op.arg)
+        for op in dis.Bytecode(code)
+    )
 
 
 def find_module(module, paths=None):
