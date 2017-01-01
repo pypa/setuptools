@@ -32,11 +32,6 @@ from setuptools.glob import glob
 
 from pkg_resources.extern import packaging
 
-try:
-    from setuptools_svn import svn_utils
-except ImportError:
-    pass
-
 
 def translate_pattern(glob):
     """
@@ -147,7 +142,6 @@ class egg_info(Command):
         self.egg_base = None
         self.egg_info = None
         self.tag_build = None
-        self.tag_svn_revision = 0
         self.tag_date = 0
         self.broken_egg_info = False
         self.vtags = None
@@ -165,7 +159,6 @@ class egg_info(Command):
         # when PYTHONHASHSEED=0
         egg_info['tag_build'] = self.tags()
         egg_info['tag_date'] = 0
-        egg_info['tag_svn_revision'] = 0
         edit_config(filename, dict(egg_info=egg_info))
 
     def finalize_options(self):
@@ -282,21 +275,9 @@ class egg_info(Command):
         version = ''
         if self.tag_build:
             version += self.tag_build
-        if self.tag_svn_revision:
-            warnings.warn(
-                "tag_svn_revision is deprecated and will not be honored "
-                "in a future release"
-            )
-            version += '-r%s' % self.get_svn_revision()
         if self.tag_date:
             version += time.strftime("-%Y%m%d")
         return version
-
-    @staticmethod
-    def get_svn_revision():
-        if 'svn_utils' not in globals():
-            return "0"
-        return str(svn_utils.SvnInfo.load(os.curdir).get_revision())
 
     def find_sources(self):
         """Generate SOURCES.txt manifest file"""

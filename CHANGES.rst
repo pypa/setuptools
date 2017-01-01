@@ -1,3 +1,11 @@
+v33.0.0
+-------
+
+* #619: Removed support for the ``tag_svn_revision``
+  distribution option. If Subversion tagging support is
+  still desired, consider adding the functionality to
+  setuptools_svn in setuptools_svn #2.
+
 v32.3.1
 -------
 

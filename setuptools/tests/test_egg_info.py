@@ -88,9 +88,8 @@ class TestEggInfo(object):
         assert '[egg_info]' in content
         assert 'tag_build =' in content
         assert 'tag_date = 0' in content
-        assert 'tag_svn_revision = 0' in content
 
-        expected_order = 'tag_build', 'tag_date', 'tag_svn_revision'
+        expected_order = 'tag_build', 'tag_date',
 
         self._validate_content_order(content, expected_order)
 
@@ -117,7 +116,6 @@ class TestEggInfo(object):
             [egg_info]
             tag_build =
             tag_date = 0
-            tag_svn_revision = 0
             """),
         })
         dist = Distribution()
@@ -131,9 +129,8 @@ class TestEggInfo(object):
         assert '[egg_info]' in content
         assert 'tag_build =' in content
         assert 'tag_date = 0' in content
-        assert 'tag_svn_revision = 0' in content
 
-        expected_order = 'tag_build', 'tag_date', 'tag_svn_revision'
+        expected_order = 'tag_build', 'tag_date',
 
         self._validate_content_order(content, expected_order)
 
