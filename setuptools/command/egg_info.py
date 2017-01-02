@@ -121,18 +121,13 @@ class egg_info(Command):
     user_options = [
         ('egg-base=', 'e', "directory containing .egg-info directories"
                            " (default: top of the source tree)"),
-        ('tag-svn-revision', 'r',
-         "Add subversion revision ID to version number"),
         ('tag-date', 'd', "Add date stamp (e.g. 20050528) to version number"),
         ('tag-build=', 'b', "Specify explicit tag to add to version number"),
-        ('no-svn-revision', 'R',
-         "Don't add subversion revision ID [default]"),
         ('no-date', 'D', "Don't include date stamp [default]"),
     ]
 
-    boolean_options = ['tag-date', 'tag-svn-revision']
+    boolean_options = ['tag-date']
     negative_opt = {
-        'no-svn-revision': 'tag-svn-revision',
         'no-date': 'tag-date',
     }
 
@@ -148,8 +143,8 @@ class egg_info(Command):
 
     def save_version_info(self, filename):
         """
-        Materialize the values of svn_revision and date into the
-        build tag. Install these keys in a deterministic order
+        Materialize the value of date into the
+        build tag. Install build keys in a deterministic order
         to avoid arbitrary reordering on subsequent builds.
         """
         # python 2.6 compatibility
