@@ -5,7 +5,7 @@ import sys
 import contextlib
 import site
 
-from setuptools.extern import six
+import six
 import pkg_resources
 
 

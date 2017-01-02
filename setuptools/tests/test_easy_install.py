@@ -16,7 +16,7 @@ import io
 import zipfile
 
 import time
-from setuptools.extern.six.moves import urllib
+from six.moves import urllib
 
 import pytest
 try:

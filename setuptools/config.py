@@ -7,7 +7,7 @@ from functools import partial
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
 from setuptools.py26compat import import_module
-from setuptools.extern.six import string_types
+from six import string_types
 
 
 def read_configuration(

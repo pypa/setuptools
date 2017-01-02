@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 
-from setuptools.extern.six.moves import map
+from six.moves import map
 
 import pytest
 

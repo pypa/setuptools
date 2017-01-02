@@ -8,8 +8,8 @@ import io
 import distutils.errors
 import itertools
 
-from setuptools.extern import six
-from setuptools.extern.six.moves import map, filter, filterfalse
+import six
+from six.moves import map, filter, filterfalse
 
 try:
     from setuptools.lib2to3_ex import Mixin2to3

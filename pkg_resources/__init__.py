@@ -45,8 +45,8 @@ except ImportError:
     # Python 3.2 compatibility
     import imp as _imp
 
-from pkg_resources.extern import six
-from pkg_resources.extern.six.moves import urllib, map, filter
+import six
+from six.moves import urllib, map, filter
 
 # capture these to bypass sandboxing
 from os import utime
@@ -67,12 +67,11 @@ try:
 except ImportError:
     importlib_machinery = None
 
-from pkg_resources.extern import appdirs
-from pkg_resources.extern import packaging
-__import__('pkg_resources.extern.packaging.version')
-__import__('pkg_resources.extern.packaging.specifiers')
-__import__('pkg_resources.extern.packaging.requirements')
-__import__('pkg_resources.extern.packaging.markers')
+import packaging.version
+import packaging.specifiers
+import packaging.requirements
+import packaging.markers
+import appdirs
 
 if (3, 0) < sys.version_info < (3, 3):
     raise RuntimeError("Python 3.3 or later is required")

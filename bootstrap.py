@@ -5,6 +5,8 @@ environment by creating a minimal egg-info directory and then invoking the
 egg-info command to flesh out the egg-info directory.
 """
 
+__requires__ = ['packaging', 'six', 'appdirs']
+
 import os
 import sys
 import textwrap

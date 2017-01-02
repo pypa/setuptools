@@ -16,8 +16,8 @@ import warnings
 import time
 import collections
 
-from setuptools.extern import six
-from setuptools.extern.six.moves import map
+import six
+from six.moves import map
 
 from setuptools import Command
 from setuptools.command.sdist import sdist
@@ -30,7 +30,7 @@ from pkg_resources import (
 import setuptools.unicode_utils as unicode_utils
 from setuptools.glob import glob
 
-from pkg_resources.extern import packaging
+import packaging
 
 
 def translate_pattern(glob):

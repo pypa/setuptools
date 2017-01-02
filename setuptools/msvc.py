@@ -20,14 +20,14 @@ import sys
 import platform
 import itertools
 import distutils.errors
-from pkg_resources.extern.packaging.version import LegacyVersion
+from packaging.version import LegacyVersion
 
-from setuptools.extern.six.moves import filterfalse
+from six.moves import filterfalse
 
 from .monkey import get_unpatched
 
 if platform.system() == 'Windows':
-    from setuptools.extern.six.moves import winreg
+    from six.moves import winreg
     safe_env = os.environ
 else:
     """
