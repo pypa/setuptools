@@ -5,6 +5,8 @@ environment by creating a minimal egg-info directory and then invoking the
 egg-info command to flesh out the egg-info directory.
 """
 
+from __future__ import unicode_literals
+
 import os
 import io
 import re
@@ -47,7 +49,8 @@ def build_egg_info():
     """
 
     os.mkdir('setuptools.egg-info')
-    with open('setuptools.egg-info/entry_points.txt', 'w') as ep:
+    filename = 'setuptools.egg-info/entry_points.txt'
+    with io.open(filename, 'w', encoding='utf-8') as ep:
         ep.write(minimal_egg_info)
 
 
