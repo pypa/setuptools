@@ -799,7 +799,9 @@ windows, it should only be installed when the operating system is Windows.
 Specifying version requirements for the dependencies is supported as normal.
 
 The environmental markers that may be used for testing platform types are
-detailed in PEP 496.
+detailed in `PEP 496`_.
+
+.. _PEP 496: https://www.python.org/dev/peps/pep-0496/
 
 Including Data Files
 ====================
