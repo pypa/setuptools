@@ -19,7 +19,7 @@ script:
  - env
 
  # update egg_info based on setup.py in checkout
- - rwt -- bootstrap.py
+ - python bootstrap.py
 
  - tox
 
