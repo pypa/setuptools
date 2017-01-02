@@ -141,6 +141,18 @@ class egg_info(Command):
         self.broken_egg_info = False
         self.vtags = None
 
+    ####################################
+    # allow the 'tag_svn_revision' to be detected and
+    # set, supporting sdists built on older Setuptools.
+    @property
+    def tag_svn_revision(self):
+        pass
+
+    @tag_svn_revision.setter
+    def tag_svn_revision(self, value):
+        pass
+    ####################################
+
     def save_version_info(self, filename):
         """
         Materialize the value of date into the
