@@ -787,21 +787,21 @@ For example, here is a project that uses the ``enum`` module and ``pywin32``::
     setup(
         name="Project",
         ...
-        extras_require={
-            ':python_version < "3.4"': ["enum34"],
-            ':sys_platform == "win32"': ["pywin32 >= 1.0"]
-        }
+        install_requires=[
+            'enum34;python_version<"3.4"',
+            'pywin32 >= 1.0;platform_system=="Windows"'
+        ]
     )
 
-Since the ``enum`` module was added in python 3.4, it should only be installed
+Since the ``enum`` module was added in Python 3.4, it should only be installed
 if the python version is earlier.  Since ``pywin32`` will only be used on
 windows, it should only be installed when the operating system is Windows.
 Specifying version requirements for the dependencies is supported as normal.
 
 The environmental markers that may be used for testing platform types are
-detailed in `PEP 496`_.
+detailed in `PEP 508`_.
 
-.. _PEP 496: https://www.python.org/dev/peps/pep-0496/
+.. _PEP 508: https://www.python.org/dev/peps/pep-0508/
 
 Including Data Files
 ====================
