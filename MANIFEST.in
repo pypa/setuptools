@@ -11,3 +11,4 @@ include LICENSE
 include launcher.c
 include msvc-build-launcher.cmd
 include pytest.ini
+include tox.ini
