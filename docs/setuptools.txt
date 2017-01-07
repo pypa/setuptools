@@ -761,6 +761,40 @@ so that Package B doesn't have to remove the ``[PDF]`` from its requirement
 specifier.
 
 
+.. _Platform Specific Dependencies:
+
+
+Declaring platform specific dependencies
+----------------------------------------
+
+Sometimes a project might require a dependency to run on a specific platform.
+This could to a package that back ports a module so that it can be used in
+older python versions.  Or it could be a package that is required to run on a
+specific operating system.  This will allow a project to work on multiple
+different platforms without installing dependencies that are not required for
+a platform that is installing the project.
+
+For example, here is a project that uses the ``enum`` module and ``pywin32``::
+
+    setup(
+        name="Project",
+        ...
+        install_requires=[
+            'enum34;python_version<"3.4"',
+            'pywin32 >= 1.0;platform_system=="Windows"'
+        ]
+    )
+
+Since the ``enum`` module was added in Python 3.4, it should only be installed
+if the python version is earlier.  Since ``pywin32`` will only be used on
+windows, it should only be installed when the operating system is Windows.
+Specifying version requirements for the dependencies is supported as normal.
+
+The environmental markers that may be used for testing platform types are
+detailed in `PEP 508`_.
+
+.. _PEP 508: https://www.python.org/dev/peps/pep-0508/
+
 Including Data Files
 ====================
 
