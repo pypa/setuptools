@@ -241,8 +241,15 @@ def run_setup(setup_script, args):
             working_set.__init__()
             working_set.callbacks.append(lambda dist: dist.activate())
 
+            # __file__ should be a byte string on Python 2 (#712)
+            dunder_file = (
+                setup_script
+                if isinstance(setup_script, str) else
+                setup_script.encode(sys.getfilesystemencoding())
+            )
+
             def runner():
-                ns = dict(__file__=setup_script, __name__='__main__')
+                ns = dict(__file__=dunder_file, __name__='__main__')
                 _execfile(setup_script, ns)
 
             DirectorySandbox(setup_dir).run(runner)
@@ -372,14 +379,6 @@ if hasattr(os, 'devnull'):
     _EXCEPTIONS = [os.devnull,]
 else:
     _EXCEPTIONS = []
-
-try:
-    from win32com.client.gencache import GetGeneratePath
-    _EXCEPTIONS.append(GetGeneratePath())
-    del GetGeneratePath
-except ImportError:
-    # it appears pywin32 is not installed, so no need to exclude.
-    pass
 
 
 class DirectorySandbox(AbstractSandbox):

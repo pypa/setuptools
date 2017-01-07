@@ -1,5 +1,7 @@
 environment:
 
+  APPVEYOR: true
+
   matrix:
     - PYTHON: "C:\\Python35-x64"
     - PYTHON: "C:\\Python27-x64"

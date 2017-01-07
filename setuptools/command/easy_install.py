@@ -46,6 +46,7 @@ from setuptools.extern.six.moves import configparser, map
 from setuptools import Command
 from setuptools.sandbox import run_setup
 from setuptools.py31compat import get_path, get_config_vars
+from setuptools.py27compat import rmtree_safe
 from setuptools.command import setopt
 from setuptools.archive_util import unpack_archive
 from setuptools.package_index import (
@@ -627,12 +628,20 @@ class easy_install(Command):
                 (spec.key, self.build_directory)
             )
 
+    @contextlib.contextmanager
+    def _tmpdir(self):
+        tmpdir = tempfile.mkdtemp(prefix=six.u("easy_install-"))
+        try:
+            # cast to str as workaround for #709 and #710 and #712
+            yield str(tmpdir)
+        finally:
+            os.path.exists(tmpdir) and rmtree(rmtree_safe(tmpdir))
+
     def easy_install(self, spec, deps=False):
-        tmpdir = tempfile.mkdtemp(prefix="easy_install-")
         if not self.editable:
             self.install_site_py()
 
-        try:
+        with self._tmpdir() as tmpdir:
             if not isinstance(spec, Requirement):
                 if URL_SCHEME(spec):
                     # It's a url, download it to tmpdir and process
@@ -663,10 +672,6 @@ class easy_install(Command):
                 return dist
             else:
                 return self.install_item(spec, dist.location, tmpdir, deps)
-
-        finally:
-            if os.path.exists(tmpdir):
-                rmtree(tmpdir)
 
     def install_item(self, spec, download, tmpdir, deps, install_needed=False):
 

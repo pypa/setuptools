@@ -7,6 +7,7 @@ import distutils.filelist
 import platform
 import types
 import functools
+import inspect
 
 from .py26compat import import_module
 from setuptools.extern import six
@@ -35,12 +36,16 @@ def get_unpatched_class(cls):
     Also ensures that no other distutils extension monkeypatched the distutils
     first.
     """
-    while cls.__module__.startswith('setuptools'):
-        cls, = cls.__bases__
-    if not cls.__module__.startswith('distutils'):
+    external_bases = (
+        cls
+        for cls in inspect.getmro(cls)
+        if not cls.__module__.startswith('setuptools')
+    )
+    base = next(external_bases)
+    if not base.__module__.startswith('distutils'):
         msg = "distutils has already been patched by %r" % cls
         raise AssertionError(msg)
-    return cls
+    return base
 
 
 def patch_all():

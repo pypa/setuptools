@@ -62,7 +62,7 @@ if_dl = lambda s: s if have_rtld else ''
 def get_abi3_suffix():
     """Return the file extension for an abi3-compliant Extension()"""
     for suffix, _, _ in (s for s in imp.get_suffixes() if s[2] == imp.C_EXTENSION):
-        if '.abi3' in suffix:   # Unix
+        if '.abi3' in suffix:  # Unix
             return suffix
         elif suffix == '.pyd':  # Windows
             return suffix
@@ -109,7 +109,7 @@ class build_ext(_build_ext):
                 and get_abi3_suffix()
             )
             if use_abi3:
-                so_ext = get_config_var('EXT_SUFFIX')
+                so_ext = _get_config_var_837('EXT_SUFFIX')
                 filename = filename[:-len(so_ext)]
                 filename = filename + get_abi3_suffix()
             if isinstance(ext, Library):
@@ -316,3 +316,13 @@ else:
         self.create_static_lib(
             objects, basename, output_dir, debug, target_lang
         )
+
+
+def _get_config_var_837(name):
+    """
+    In https://github.com/pypa/setuptools/pull/837, we discovered
+    Python 3.3.0 exposes the extension suffix under the name 'SO'.
+    """
+    if sys.version_info < (3, 3, 1):
+        name = 'SO'
+    return get_config_var(name)

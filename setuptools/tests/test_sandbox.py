@@ -23,22 +23,6 @@ class TestSandbox:
 
         return do_write
 
-    def test_win32com(self, tmpdir):
-        """
-        win32com should not be prevented from caching COM interfaces
-        in gen_py.
-        """
-        win32com = pytest.importorskip('win32com')
-        gen_py = win32com.__gen_path__
-        target = os.path.join(gen_py, 'test_write')
-        sandbox = DirectorySandbox(str(tmpdir))
-        try:
-            # attempt to create gen_py file
-            sandbox.run(self._file_writer(target))
-        finally:
-            if os.path.exists(target):
-                os.remove(target)
-
     def test_setup_py_with_BOM(self):
         """
         It should be possible to execute a setup.py with a Byte Order Mark

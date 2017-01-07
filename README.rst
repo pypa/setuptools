@@ -5,7 +5,7 @@ Installing and Using Setuptools
 .. contents:: **Table of Contents**
 
 
-.. image:: https://setuptools.readthedocs.io/en/latest/?badge=latest
+.. image:: https://readthedocs.org/projects/setuptools/badge/?version=latest
     :target: https://setuptools.readthedocs.io
 
 -------------------------
@@ -126,8 +126,8 @@ Use ``--help`` to get a full options list, but we recommend consulting
 the `EasyInstall manual`_ for detailed instructions, especially `the section
 on custom installation locations`_.
 
-.. _EasyInstall manual: https://pythonhosted.org/setuptools/EasyInstall
-.. _the section on custom installation locations: https://pythonhosted.org/setuptools/EasyInstall#custom-installation-locations
+.. _EasyInstall manual: https://setuptools.readthedocs.io/en/latest/easy_install.html
+.. _the section on custom installation locations: https://setuptools.readthedocs.io/en/latest/easy_install.html#custom-installation-locations
 
 
 Downloads
@@ -139,10 +139,10 @@ Package Index`_. Scroll to the very bottom of the page to find the links.
 .. _the project's home page in the Python Package Index: https://pypi.python.org/pypi/setuptools
 
 In addition to the PyPI downloads, the development version of ``setuptools``
-is available from the `Bitbucket repo`_, and in-development versions of the
+is available from the `GitHub repo`_, and in-development versions of the
 `0.6 branch`_ are available as well.
 
-.. _Bitbucket repo: https://bitbucket.org/pypa/setuptools/get/default.tar.gz#egg=setuptools-dev
+.. _GitHub repo: https://github.com/pypa/setuptools/archive/master.tar.gz#egg=setuptools-dev
 .. _0.6 branch: http://svn.python.org/projects/sandbox/branches/setuptools-0.6/#egg=setuptools-dev06
 
 Uninstalling

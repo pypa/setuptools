@@ -32,11 +32,6 @@ from setuptools.glob import glob
 
 from pkg_resources.extern import packaging
 
-try:
-    from setuptools_svn import svn_utils
-except ImportError:
-    pass
-
 
 def translate_pattern(glob):
     """
@@ -126,18 +121,13 @@ class egg_info(Command):
     user_options = [
         ('egg-base=', 'e', "directory containing .egg-info directories"
                            " (default: top of the source tree)"),
-        ('tag-svn-revision', 'r',
-         "Add subversion revision ID to version number"),
         ('tag-date', 'd', "Add date stamp (e.g. 20050528) to version number"),
         ('tag-build=', 'b', "Specify explicit tag to add to version number"),
-        ('no-svn-revision', 'R',
-         "Don't add subversion revision ID [default]"),
         ('no-date', 'D', "Don't include date stamp [default]"),
     ]
 
-    boolean_options = ['tag-date', 'tag-svn-revision']
+    boolean_options = ['tag-date']
     negative_opt = {
-        'no-svn-revision': 'tag-svn-revision',
         'no-date': 'tag-date',
     }
 
@@ -147,15 +137,26 @@ class egg_info(Command):
         self.egg_base = None
         self.egg_info = None
         self.tag_build = None
-        self.tag_svn_revision = 0
         self.tag_date = 0
         self.broken_egg_info = False
         self.vtags = None
 
+    ####################################
+    # allow the 'tag_svn_revision' to be detected and
+    # set, supporting sdists built on older Setuptools.
+    @property
+    def tag_svn_revision(self):
+        pass
+
+    @tag_svn_revision.setter
+    def tag_svn_revision(self, value):
+        pass
+    ####################################
+
     def save_version_info(self, filename):
         """
-        Materialize the values of svn_revision and date into the
-        build tag. Install these keys in a deterministic order
+        Materialize the value of date into the
+        build tag. Install build keys in a deterministic order
         to avoid arbitrary reordering on subsequent builds.
         """
         # python 2.6 compatibility
@@ -165,7 +166,6 @@ class egg_info(Command):
         # when PYTHONHASHSEED=0
         egg_info['tag_build'] = self.tags()
         egg_info['tag_date'] = 0
-        egg_info['tag_svn_revision'] = 0
         edit_config(filename, dict(egg_info=egg_info))
 
     def finalize_options(self):
@@ -282,21 +282,9 @@ class egg_info(Command):
         version = ''
         if self.tag_build:
             version += self.tag_build
-        if self.tag_svn_revision:
-            warnings.warn(
-                "tag_svn_revision is deprecated and will not be honored "
-                "in a future release"
-            )
-            version += '-r%s' % self.get_svn_revision()
         if self.tag_date:
             version += time.strftime("-%Y%m%d")
         return version
-
-    @staticmethod
-    def get_svn_revision():
-        if 'svn_utils' not in globals():
-            return "0"
-        return str(svn_utils.SvnInfo.load(os.curdir).get_revision())
 
     def find_sources(self):
         """Generate SOURCES.txt manifest file"""
@@ -554,9 +542,16 @@ class manifest_maker(sdist):
         msg = "writing manifest file '%s'" % self.manifest
         self.execute(write_file, (self.manifest, files), msg)
 
-    def warn(self, msg):  # suppress missing-file warnings from sdist
-        if not msg.startswith("standard file not found:"):
+    def warn(self, msg):
+        if not self._should_suppress_warning(msg):
             sdist.warn(self, msg)
+
+    @staticmethod
+    def _should_suppress_warning(msg):
+        """
+        suppress missing-file warnings from sdist
+        """
+        return re.match(r"standard file .*not found", msg)
 
     def add_defaults(self):
         sdist.add_defaults(self)

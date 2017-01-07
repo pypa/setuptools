@@ -59,14 +59,6 @@ Feature Highlights:
 * Create extensible applications and frameworks that automatically discover
   extensions, using simple "entry points" declared in a project's setup script.
 
-In addition to the PyPI downloads, the development version of ``setuptools``
-is available from the `Python SVN sandbox`_, and in-development versions of the
-`0.6 branch`_ are available as well.
-
-.. _0.6 branch: http://svn.python.org/projects/sandbox/branches/setuptools-0.6/#egg=setuptools-dev06
-
-.. _Python SVN sandbox: http://svn.python.org/projects/sandbox/trunk/setuptools/#egg=setuptools-dev
-
 .. contents:: **Table of Contents**
 
 .. _ez_setup.py: `bootstrap module`_
@@ -769,6 +761,40 @@ so that Package B doesn't have to remove the ``[PDF]`` from its requirement
 specifier.
 
 
+.. _Platform Specific Dependencies:
+
+
+Declaring platform specific dependencies
+----------------------------------------
+
+Sometimes a project might require a dependency to run on a specific platform.
+This could to a package that back ports a module so that it can be used in
+older python versions.  Or it could be a package that is required to run on a
+specific operating system.  This will allow a project to work on multiple
+different platforms without installing dependencies that are not required for
+a platform that is installing the project.
+
+For example, here is a project that uses the ``enum`` module and ``pywin32``::
+
+    setup(
+        name="Project",
+        ...
+        install_requires=[
+            'enum34;python_version<"3.4"',
+            'pywin32 >= 1.0;platform_system=="Windows"'
+        ]
+    )
+
+Since the ``enum`` module was added in Python 3.4, it should only be installed
+if the python version is earlier.  Since ``pywin32`` will only be used on
+windows, it should only be installed when the operating system is Windows.
+Specifying version requirements for the dependencies is supported as normal.
+
+The environmental markers that may be used for testing platform types are
+detailed in `PEP 508`_.
+
+.. _PEP 508: https://www.python.org/dev/peps/pep-0508/
+
 Including Data Files
 ====================
 
@@ -1428,10 +1454,6 @@ egg distributions by adding one or more of the following to the project's
   manually-specified post-release tag, such as a build or revision number
   (``--tag-build=STRING, -bSTRING``)
 
-* A "last-modified revision number" string generated automatically from
-  Subversion's metadata (assuming your project is being built from a Subversion
-  "working copy")  (``--tag-svn-revision, -r``)
-
 * An 8-character representation of the build date (``--tag-date, -d``), as
   a postrelease tag
 
@@ -1563,68 +1585,6 @@ this::
 in order to check out the in-development version of ``projectname``.
 
 
-Managing "Continuous Releases" Using Subversion
------------------------------------------------
-
-If you expect your users to track in-development versions of your project via
-Subversion, there are a few additional steps you should take to ensure that
-things work smoothly with EasyInstall.  First, you should add the following
-to your project's ``setup.cfg`` file:
-
-.. code-block:: ini
-
-    [egg_info]
-    tag_build = .dev
-    tag_svn_revision = 1
-
-This will tell ``setuptools`` to generate package version numbers like
-``1.0a1.dev-r1263``, which will be considered to be an *older* release than
-``1.0a1``.  Thus, when you actually release ``1.0a1``, the entire egg
-infrastructure (including ``setuptools``, ``pkg_resources`` and EasyInstall)
-will know that ``1.0a1`` supersedes any interim snapshots from Subversion, and
-handle upgrades accordingly.
-
-(Note: the project version number you specify in ``setup.py`` should always be
-the *next* version of your software, not the last released version.
-Alternately, you can leave out the ``tag_build=.dev``, and always use the
-*last* release as a version number, so that your post-1.0 builds are labelled
-``1.0-r1263``, indicating a post-1.0 patchlevel.  Most projects so far,
-however, seem to prefer to think of their project as being a future version
-still under development, rather than a past version being patched.  It is of
-course possible for a single project to have both situations, using
-post-release numbering on release branches, and pre-release numbering on the
-trunk.  But you don't have to make things this complex if you don't want to.)
-
-Commonly, projects releasing code from Subversion will include a PyPI link to
-their checkout URL (as described in the previous section) with an
-``#egg=projectname-dev`` suffix.  This allows users to request EasyInstall
-to download ``projectname==dev`` in order to get the latest in-development
-code.  Note that if your project depends on such in-progress code, you may wish
-to specify your ``install_requires`` (or other requirements) to include
-``==dev``, e.g.:
-
-.. code-block:: python
-
-    install_requires=["OtherProject>=0.2a1.dev-r143,==dev"]
-
-The above example says, "I really want at least this particular development
-revision number, but feel free to follow and use an ``#egg=OtherProject-dev``
-link if you find one".  This avoids the need to have actual source or binary
-distribution snapshots of in-development code available, just to be able to
-depend on the latest and greatest a project has to offer.
-
-A final note for Subversion development: if you are using SVN revision tags
-as described in this section, it's a good idea to run ``setup.py develop``
-after each Subversion checkin or update, because your project's version number
-will be changing, and your script wrappers need to be updated accordingly.
-
-Also, if the project's requirements have changed, the ``develop`` command will
-take care of fetching the updated dependencies, building changed extensions,
-etc.  Be sure to also remind any of your users who check out your project
-from Subversion that they need to run ``setup.py develop`` after every update
-in order to keep their checkout completely in sync.
-
-
 Making "Official" (Non-Snapshot) Releases
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1638,18 +1598,18 @@ tagging the release, so the trunk will still produce development snapshots.
 Alternately, if you are not branching for releases, you can override the
 default version options on the command line, using something like::
 
-    python setup.py egg_info -RDb "" sdist bdist_egg register upload
+    python setup.py egg_info -Db "" sdist bdist_egg register upload
 
-The first part of this command (``egg_info -RDb ""``) will override the
+The first part of this command (``egg_info -Db ""``) will override the
 configured tag information, before creating source and binary eggs, registering
 the project with PyPI, and uploading the files.  Thus, these commands will use
-the plain version from your ``setup.py``, without adding the Subversion
-revision number or build designation string.
+the plain version from your ``setup.py``, without adding the build designation
+string.
 
 Of course, if you will be doing this a lot, you may wish to create a personal
 alias for this operation, e.g.::
 
-    python setup.py alias -u release egg_info -RDb ""
+    python setup.py alias -u release egg_info -Db ""
 
 You can then use it like this::
 
@@ -1709,8 +1669,7 @@ the command line supplies its expansion.  For example, this command defines
 a sitewide alias called "daily", that sets various ``egg_info`` tagging
 options::
 
-    setup.py alias --global-config daily egg_info --tag-svn-revision \
-        --tag-build=development
+    setup.py alias --global-config daily egg_info --tag-build=development
 
 Once the alias is defined, it can then be used with other setup commands,
 e.g.::
@@ -1720,7 +1679,7 @@ e.g.::
     setup.py daily sdist bdist_egg  # generate both
 
 The above commands are interpreted as if the word ``daily`` were replaced with
-``egg_info --tag-svn-revision --tag-build=development``.
+``egg_info --tag-build=development``.
 
 Note that setuptools will expand each alias *at most once* in a given command
 line.  This serves two purposes.  First, if you accidentally create an alias
@@ -2006,27 +1965,6 @@ added in the following order:
     If you have a default build tag set in your ``setup.cfg``, you can suppress
     it on the command line using ``-b ""`` or ``--tag-build=""`` as an argument
     to the ``egg_info`` command.
-
-``--tag-svn-revision, -r``
-    If the current directory is a Subversion checkout (i.e. has a ``.svn``
-    subdirectory, this appends a string of the form "-rNNNN" to the project's
-    version string, where NNNN is the revision number of the most recent
-    modification to the current directory, as obtained from the ``svn info``
-    command.
-
-    If the current directory is not a Subversion checkout, the command will
-    look for a ``PKG-INFO`` file instead, and try to find the revision number
-    from that, by looking for a "-rNNNN" string at the end of the version
-    number.  (This is so that building a package from a source distribution of
-    a Subversion snapshot will produce a binary with the correct version
-    number.)
-
-    If there is no ``PKG-INFO`` file, or the version number contained therein
-    does not end with ``-r`` and a number, then ``-r0`` is used.
-
-``--no-svn-revision, -R``
-    Don't include the Subversion revision in the version number.  This option
-    is included so you can override a default setting put in ``setup.cfg``.
 
 ``--tag-date, -d``
     Add a date stamp of the form "-YYYYMMDD" (e.g. "-20050528") to the
@@ -2341,67 +2279,210 @@ password from the keyring.
 
 New in 20.1: Added keyring support.
 
-.. _upload_docs:
 
-``upload_docs`` - Upload package documentation to PyPI
-======================================================
+-----------------------------------------
+Configuring setup() using setup.cfg files
+-----------------------------------------
 
-PyPI now supports uploading project documentation to the dedicated URL
-https://pythonhosted.org/<project>/.
+``Setuptools`` allows using configuration files (usually `setup.cfg`)
+to define package’s metadata and other options which are normally supplied
+to ``setup()`` function.
 
-The ``upload_docs`` command will create the necessary zip file out of a
-documentation directory and will post to the repository.
+This approach not only allows automation scenarios, but also reduces
+boilerplate code in some cases.
 
-Note that to upload the documentation of a project, the corresponding version
-must already be registered with PyPI, using the distutils ``register``
-command -- just like the ``upload`` command.
+.. note::
+    Implementation presents limited compatibility with distutils2-like
+    ``setup.cfg`` sections (used by ``pbr`` and ``d2to1`` packages).
 
-Assuming there is an ``Example`` project with documentation in the
-subdirectory ``docs``, e.g.::
+    Namely: only metadata related keys from ``metadata`` section are supported
+    (except for ``description-file``); keys from ``files``, ``entry_points``
+    and ``backwards_compat`` are not supported.
 
-  Example/
-  |-- example.py
-  |-- setup.cfg
-  |-- setup.py
-  |-- docs
-  |   |-- build
-  |   |   `-- html
-  |   |   |   |-- index.html
-  |   |   |   `-- tips_tricks.html
-  |   |-- conf.py
-  |   |-- index.txt
-  |   `-- tips_tricks.txt
-
-You can simply pass the documentation directory path to the ``upload_docs``
-command::
-
-    python setup.py upload_docs --upload-dir=docs/build/html
-
-If no ``--upload-dir`` is given, ``upload_docs`` will attempt to run the
-``build_sphinx`` command to generate uploadable documentation.
-For the command to become available, `Sphinx <http://sphinx.pocoo.org/>`_
-must be installed in the same environment as distribute.
-
-As with other ``setuptools``-based commands, you can define useful
-defaults in the ``setup.cfg`` of your Python project, e.g.:
 
 .. code-block:: ini
 
-    [upload_docs]
-    upload-dir = docs/build/html
+    [metadata]
+    name = my_package
+    version = attr: src.VERSION
+    description = My package description
+    long_description = file: README.rst
+    keywords = one, two
+    license = BSD 3-Clause License
 
-The ``upload_docs`` command has the following options:
+    [metadata.classifiers]
+    Framework :: Django
+    Programming Language :: Python :: 3.5
 
-``--upload-dir``
-    The directory to be uploaded to the repository.
+    [options]
+    zip_safe = False
+    include_package_data = True
+    packages = find:
+    scripts =
+      bin/first.py
+      bin/second.py
 
-``--show-response``
-    Display the full response text from server; this is useful for debugging
-    PyPI problems.
+    [options.package_data]
+    * = *.txt, *.rst
+    hello = *.msg
 
-``--repository=URL, -r URL``
-    The URL of the repository to upload to.  Defaults to
-    https://pypi.python.org/pypi (i.e., the main PyPI installation).
+    [options.extras_require]
+    pdf = ReportLab>=1.2; RXP
+    rest = docutils>=0.3; pack ==1.1, ==1.3
+
+    [options.packages.find]
+    exclude =
+        src.subpackage1
+        src.subpackage2
+
+
+Metadata and options could be set in sections with the same names.
+
+* Keys are the same as keyword arguments one provides to ``setup()`` function.
+
+* Complex values could be placed comma-separated or one per line
+  in *dangling* sections. The following are the same:
+
+  .. code-block:: ini
+
+      [metadata]
+      keywords = one, two
+
+      [metadata]
+      keywords =
+        one
+        two
+
+* In some cases complex values could be provided in subsections for clarity.
+
+* Some keys allow ``file:``, ``attr:`` and ``find:`` directives to cover
+  common usecases.
+
+* Unknown keys are ignored.
+
+
+Specifying values
+=================
+
+Some values are treated as simple strings, some allow more logic.
+
+Type names used below:
+
+* ``str`` - simple string
+* ``list-comma`` - dangling list or comma-separated values string
+* ``list-semi`` - dangling list or semicolon-separated values string
+* ``bool`` -  ``True`` is 1, yes, true
+* ``dict`` - list-comma where keys from values are separated by =
+* ``section`` - values could be read from a dedicated (sub)section
+
+
+Special directives:
+
+* ``attr:`` - value could be read from module attribute
+* ``file:`` - value could be read from a file
+
+
+.. note::
+    ``file:`` directive is sandboxed and won't reach anything outside
+    directory with ``setup.py``.
+
+
+Metadata
+--------
+
+.. note::
+    Aliases given below are supported for compatibility reasons,
+    but not advised.
+
+=================  =================  =====
+Key                Aliases            Accepted value type
+=================  =================  =====
+name                                  str
+version                               attr:, str
+url                home-page          str
+download_url       download-url       str
+author                                str
+author_email       author-email       str
+maintainer                            str
+maintainer_email   maintainer-email   str
+classifiers        classifier         file:, section, list-comma
+license                               file:, str
+description        summary            file:, str
+long_description   long-description   file:, str
+keywords                              list-comma
+platforms          platform           list-comma
+provides                              list-comma
+requires                              list-comma
+obsoletes                             list-comma
+=================  =================  =====
+
+.. note::
+
+    **version** - ``attr:`` supports callables; supports iterables;
+    unsupported types are casted using ``str()``.
+
+
+Options
+-------
+
+=======================  =====
+Key                      Accepted value type
+=======================  =====
+zip_safe                 bool
+setup_requires           list-semi
+install_requires         list-semi
+extras_require           section
+entry_points             file:, section
+use_2to3                 bool
+use_2to3_fixers          list-comma
+use_2to3_exclude_fixers  list-comma
+convert_2to3_doctests    list-comma
+scripts                  list-comma
+eager_resources          list-comma
+dependency_links         list-comma
+tests_require            list-semi
+include_package_data     bool
+packages                 find:, list-comma
+package_dir              dict
+package_data             section
+exclude_package_data     section
+namespace_packages       list-comma
+=======================  =====
+
+.. note::
+
+    **packages** - ``find:`` directive can be further configured
+    in a dedicated subsection `options.packages.find`. This subsection
+    accepts the same keys as `setuptools.find` function:
+    `where`, `include`, `exclude`.
+
+
+Configuration API
+=================
+
+Some automation tools may wish to access data from a configuration file.
+
+``Setuptools`` exposes ``read_configuration()`` function allowing
+parsing ``metadata`` and ``options`` sections into a dictionary.
+
+
+.. code-block:: python
+
+    from setuptools.config import read_configuration
+
+    conf_dict = read_configuration('/home/user/dev/package/setup.cfg')
+
+
+By default ``read_configuration()`` will read only file provided
+in the first argument. To include values from other configuration files
+which could be in various places set `find_others` function argument
+to ``True``.
+
+If you have only a configuration file but not the whole package you can still
+try to get data out of it with the help of `ignore_option_errors` function
+argument. When it is set to ``True`` all options with errors possibly produced
+by directives, such as ``attr:`` and others will be silently ignored.
+As a consequence the resulting dictionary will include no such options.
 
 
 --------------------------------

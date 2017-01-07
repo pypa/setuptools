@@ -4,7 +4,8 @@ import marshal
 from distutils.version import StrictVersion
 from imp import PKG_DIRECTORY, PY_COMPILED, PY_SOURCE, PY_FROZEN
 
-from setuptools.extern import six
+from .py33compat import Bytecode
+
 
 __all__ = [
     'Require', 'find_module', 'get_module_constant', 'extract_constant'
@@ -78,39 +79,6 @@ class Require:
         return self.version_ok(version)
 
 
-def _iter_code(code):
-    """Yield '(op,arg)' pair for each operation in code object 'code'"""
-
-    from array import array
-    from dis import HAVE_ARGUMENT, EXTENDED_ARG
-
-    bytes = array('b', code.co_code)
-    eof = len(code.co_code)
-
-    ptr = 0
-    extended_arg = 0
-
-    while ptr < eof:
-
-        op = bytes[ptr]
-
-        if op >= HAVE_ARGUMENT:
-
-            arg = bytes[ptr + 1] + bytes[ptr + 2] * 256 + extended_arg
-            ptr += 3
-
-            if op == EXTENDED_ARG:
-                long_type = six.integer_types[-1]
-                extended_arg = arg * long_type(65536)
-                continue
-
-        else:
-            arg = None
-            ptr += 1
-
-        yield op, arg
-
-
 def find_module(module, paths=None):
     """Just like 'imp.find_module()', but with package support"""
 
@@ -176,9 +144,8 @@ def extract_constant(code, symbol, default=-1):
     only 'STORE_NAME' and 'STORE_GLOBAL' opcodes are checked, and 'symbol'
     must be present in 'code.co_names'.
     """
-
     if symbol not in code.co_names:
-        # name's not there, can't possibly be an assigment
+        # name's not there, can't possibly be an assignment
         return None
 
     name_idx = list(code.co_names).index(symbol)
@@ -189,7 +156,9 @@ def extract_constant(code, symbol, default=-1):
 
     const = default
 
-    for op, arg in _iter_code(code):
+    for byte_code in Bytecode(code):
+        op = byte_code.opcode
+        arg = byte_code.arg
 
         if op == LOAD_CONST:
             const = code.co_consts[arg]

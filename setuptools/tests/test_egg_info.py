@@ -4,7 +4,7 @@ import re
 import stat
 import sys
 
-from setuptools.command.egg_info import egg_info
+from setuptools.command.egg_info import egg_info, manifest_maker
 from setuptools.dist import Distribution
 from setuptools.extern.six.moves import map
 
@@ -88,9 +88,8 @@ class TestEggInfo(object):
         assert '[egg_info]' in content
         assert 'tag_build =' in content
         assert 'tag_date = 0' in content
-        assert 'tag_svn_revision = 0' in content
 
-        expected_order = 'tag_build', 'tag_date', 'tag_svn_revision'
+        expected_order = 'tag_build', 'tag_date',
 
         self._validate_content_order(content, expected_order)
 
@@ -117,7 +116,6 @@ class TestEggInfo(object):
             [egg_info]
             tag_build =
             tag_date = 0
-            tag_svn_revision = 0
             """),
         })
         dist = Distribution()
@@ -131,9 +129,8 @@ class TestEggInfo(object):
         assert '[egg_info]' in content
         assert 'tag_build =' in content
         assert 'tag_date = 0' in content
-        assert 'tag_svn_revision = 0' in content
 
-        expected_order = 'tag_build', 'tag_date', 'tag_svn_revision'
+        expected_order = 'tag_build', 'tag_date',
 
         self._validate_content_order(content, expected_order)
 
@@ -236,6 +233,15 @@ class TestEggInfo(object):
         egg_info_dir = self._find_egg_info_files(env.paths['lib']).base
         pkginfo = os.path.join(egg_info_dir, 'PKG-INFO')
         assert 'Requires-Python: >=1.2.3' in open(pkginfo).read().split('\n')
+
+    def test_manifest_maker_warning_suppression(self):
+        fixtures = [
+            "standard file not found: should have one of foo.py, bar.py",
+            "standard file 'setup.py' not found"
+        ]
+
+        for msg in fixtures:
+            assert manifest_maker._should_suppress_warning(msg)
 
     def _run_install_command(self, tmpdir_cwd, env, cmd=None, output=None):
         environ = os.environ.copy().update(

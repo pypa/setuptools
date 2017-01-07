@@ -219,7 +219,7 @@ class build_py(orig.build_py, Mixin2to3):
     @staticmethod
     def _get_platform_patterns(spec, package, src_dir):
         """
-        yield platfrom-specific path patterns (suitable for glob
+        yield platform-specific path patterns (suitable for glob
         or fn_match) from a glob-based spec (such as
         self.package_data or self.exclude_package_data)
         matching package in src_dir.

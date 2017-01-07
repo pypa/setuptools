@@ -54,8 +54,8 @@ package_data = dict(
 )
 
 force_windows_specific_files = (
-    os.environ.get("SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES")
-    not in (None, "", "0")
+    os.environ.get("SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES", "1").lower()
+    not in ("", "0", "false", "no")
 )
 
 include_windows_files = (
@@ -77,7 +77,7 @@ def pypi_link(pkg_filename):
     Given the filename, including md5 fragment, construct the
     dependency link for PyPI.
     """
-    root = 'https://pypi.python.org/packages/source'
+    root = 'https://files.pythonhosted.org/packages/source'
     name, sep, rest = pkg_filename.partition('-')
     parts = root, name[0], name, pkg_filename
     return '/'.join(parts)
@@ -85,7 +85,7 @@ def pypi_link(pkg_filename):
 
 setup_params = dict(
     name="setuptools",
-    version="28.6.1",
+    version="33.0.0",
     description="Easily download, build, install, upgrade, and uninstall "
         "Python packages",
     author="Python Packaging Authority",
@@ -156,6 +156,7 @@ setup_params = dict(
         Topic :: System :: Systems Administration
         Topic :: Utilities
         """).strip().splitlines(),
+    python_requires='>=2.6,!=3.0.*,!=3.1.*,!=3.2.*',
     extras_require={
         "ssl:sys_platform=='win32'": "wincertstore==0.2",
         "certs": "certifi==2016.9.26",

@@ -1,6 +1,182 @@
-=======
-CHANGES
-=======
+v33.0.0
+-------
+
+* #619: Removed support for the ``tag_svn_revision``
+  distribution option. If Subversion tagging support is
+  still desired, consider adding the functionality to
+  setuptools_svn in setuptools_svn #2.
+
+v32.3.1
+-------
+
+* #866: Use ``dis.Bytecode`` on Python 3.4 and later in
+  ``setuptools.depends``.
+
+v32.3.0
+-------
+
+* #889: Backport proposed fix for disabling interpolation in
+  distutils.Distribution.parse_config_files.
+
+v32.2.0
+-------
+
+* #884: Restore support for running the tests under
+  `pytest-runner <https://github.com/pytest-dev/pytest-runner>`_
+  by ensuring that PYTHONPATH is honored in tests invoking
+  a subprocess.
+
+v32.1.3
+-------
+
+* #706: Add rmtree compatibility shim for environments where
+  rmtree fails when passed a unicode string.
+
+v32.1.2
+-------
+
+* #893: Only release sdist in zip format as warehouse now
+  disallows releasing two different formats.
+
+v32.1.1
+-------
+
+* #704: More selectively ensure that 'rmtree' is not invoked with
+  a byte string, enabling it to remove files that are non-ascii,
+  even on Python 2.
+
+* #712: In 'sandbox.run_setup', ensure that ``__file__`` is
+  always a ``str``, modeling the behavior observed by the
+  interpreter when invoking scripts and modules.
+
+v32.1.0
+-------
+
+* #891: In 'test' command on test failure, raise DistutilsError,
+  suppression invocation of subsequent commands.
+
+v32.0.0
+-------
+
+* #890: Revert #849. ``global-exclude .foo`` will not match all
+  ``*.foo`` files any more. Package authors must add an explicit
+  wildcard, such as ``global-exclude *.foo``, to match all
+  ``.foo`` files. See #886, #849.
+
+v31.0.1
+-------
+
+* #885: Fix regression where 'pkg_resources._rebuild_mod_path'
+  would fail when a namespace package's '__path__' was not
+  a list with a sort attribute.
+
+v31.0.0
+-------
+
+* #250: Install '-nspkg.pth' files for packages installed
+  with 'setup.py develop'. These .pth files allow
+  namespace packages installed by pip or develop to
+  co-mingle. This change required the removal of the
+  change for #805 and pip #1924, introduced in 28.3.0 and implicated
+  in #870, but means that namespace packages not in a
+  site packages directory will no longer work on Python
+  earlier than 3.5, whereas before they would work on
+  Python not earlier than 3.3.
+
+v30.4.0
+-------
+
+* #879: For declarative config:
+
+  - read_configuration() now accepts ignore_option_errors argument. This allows scraping tools to read metadata without a need to download entire packages. E.g. we can gather some stats right from GitHub repos just by downloading setup.cfg.
+
+  - packages find: directive now supports fine tuning from a subsection. The same arguments as for find() are accepted.
+
+v30.3.0
+-------
+
+* #394 via #862: Added support for `declarative package
+  config in a setup.cfg file
+  <https://setuptools.readthedocs.io/en/latest/setuptools.html#configuring-setup-using-setup-cfg-files>`_.
+
+v30.2.1
+-------
+
+* #850: In test command, invoke unittest.main with
+  indication not to exit the process.
+
+v30.2.0
+-------
+
+* #854: Bump to vendored Packaging 16.8.
+
+v30.1.0
+-------
+
+* #846: Also trap 'socket.error' when opening URLs in
+  package_index.
+
+* #849: Manifest processing now matches the filename
+  pattern anywhere in the filename and not just at the
+  start. Restores behavior found prior to 28.5.0.
+
+v30.0.0
+-------
+
+* #864: Drop support for Python 3.2. Systems requiring
+  Python 3.2 support must use 'setuptools < 30'.
+
+* #825: Suppress warnings for single files.
+
+* #830 via #843: Once again restored inclusion of data
+  files to sdists, but now trap TypeError caused by
+  techniques employed rjsmin and similar.
+
+v29.0.1
+-------
+
+* #861: Re-release of v29.0.1 with the executable script
+  launchers bundled. Now, launchers are included by default
+  and users that want to disable this behavior must set the
+  environment variable
+  'SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES' to
+  a false value like "false" or "0".
+
+v29.0.0
+-------
+
+* #841: Drop special exception for packages invoking
+  win32com during the build/install process. See
+  Distribute #118 for history.
+
+v28.8.0
+-------
+
+* #629: Per the discussion, refine the sorting to use version
+  value order for more accurate detection of the latest
+  available version when scanning for packages. See also
+  #829.
+
+* #837: Rely on the config var "SO" for Python 3.3.0 only
+  when determining the ext filename.
+
+v28.7.1
+-------
+
+* #827: Update PyPI root for dependency links.
+
+* #833: Backed out changes from #830 as the implementation
+  seems to have problems in some cases.
+
+v28.7.0
+-------
+
+* #832: Moved much of the namespace package handling
+  functionality into a separate module for re-use in something
+  like #789.
+* #830: ``sdist`` command no longer suppresses the inclusion
+  of data files, re-aligning with the expectation of distutils
+  and addressing #274 and #521.
 
 v28.7.1
 -------
@@ -27,7 +203,11 @@ v28.5.0
 
 * #810: Tests are now invoked with tox and not setup.py test.
 * #249 and #450 via #764: Avoid scanning the whole tree
-  when building the manifest.
+  when building the manifest. Also fixes a long-standing bug
+  where patterns in ``MANIFEST.in`` had implicit wildcard
+  matching. This caused ``global-exclude .foo`` to exclude
+  all ``*.foo`` files, but also ``global-exclude bar.py`` to
+  exclude ``foo_bar.py``.
 
 v28.4.0
 -------
@@ -534,7 +714,7 @@ v20.6.0
   `semver <https://semver.org>`_ precisely.
   The 'v' prefix on version numbers now also allows
   version numbers to be referenced in the changelog,
-  e.g. https://pythonhosted.org/setuptools/history.html#v20-6-0.
+  e.g. http://setuptools.readthedocs.io/en/latest/history.html#v20-6-0.
 
 20.5
 ----
@@ -614,7 +794,7 @@ v20.6.0
 
 * Added support for using passwords from keyring in the upload
   command. See `the upload docs
-  <http://pythonhosted.org/setuptools/setuptools.html#upload-upload-source-and-or-egg-distributions-to-pypi>`_
+  <https://setuptools.readthedocs.io/en/latest/setuptools.html#upload-upload-source-and-or-egg-distributions-to-pypi>`_
   for details.
 
 20.0
@@ -1368,7 +1548,7 @@ process to fail and PyPI uploads no longer accept files for 13.0.
 ---
 
 * Added a `Developer Guide
-  <https://pythonhosted.org/setuptools/developer-guide.html>`_ to the official
+  <https://setuptools.readthedocs.io/en/latest/developer-guide.html>`_ to the official
   documentation.
 * Some code refactoring and cleanup was done with no intended behavioral
   changes.
@@ -2788,7 +2968,7 @@ easy_install
  * ``setuptools`` now finds its commands, ``setup()`` argument validators, and
    metadata writers using entry points, so that they can be extended by
    third-party packages. See `Creating distutils Extensions
-   <http://pythonhosted.org/setuptools/setuptools.html#creating-distutils-extensions>`_
+   <https://setuptools.readthedocs.io/en/latest/setuptools.html#creating-distutils-extensions>`_
    for more details.
 
  * The vestigial ``depends`` command has been removed. It was never finished

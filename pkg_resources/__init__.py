@@ -36,6 +36,7 @@ import plistlib
 import email.parser
 import tempfile
 import textwrap
+import itertools
 from pkgutil import get_importer
 
 try:
@@ -74,11 +75,7 @@ __import__('pkg_resources.extern.packaging.requirements')
 __import__('pkg_resources.extern.packaging.markers')
 
 if (3, 0) < sys.version_info < (3, 3):
-    msg = (
-        "Support for Python 3.0-3.2 has been dropped. Future versions "
-        "will fail here."
-    )
-    warnings.warn(msg)
+    raise RuntimeError("Python 3.3 or later is required")
 
 # declare some globals that will be defined later to
 # satisfy the linters.
@@ -1966,6 +1963,32 @@ def find_nothing(importer, path_item, only=False):
 register_finder(object, find_nothing)
 
 
+def _by_version_descending(names):
+    """
+    Given a list of filenames, return them in descending order
+    by version number.
+
+    >>> names = 'bar', 'foo', 'Python-2.7.10.egg', 'Python-2.7.2.egg'
+    >>> _by_version_descending(names)
+    ['Python-2.7.10.egg', 'Python-2.7.2.egg', 'foo', 'bar']
+    >>> names = 'Setuptools-1.2.3b1.egg', 'Setuptools-1.2.3.egg'
+    >>> _by_version_descending(names)
+    ['Setuptools-1.2.3.egg', 'Setuptools-1.2.3b1.egg']
+    >>> names = 'Setuptools-1.2.3b1.egg', 'Setuptools-1.2.3.post1.egg'
+    >>> _by_version_descending(names)
+    ['Setuptools-1.2.3.post1.egg', 'Setuptools-1.2.3b1.egg']
+    """
+    def _by_version(name):
+        """
+        Parse each component of the filename
+        """
+        name, ext = os.path.splitext(name)
+        parts = itertools.chain(name.split('-'), [ext])
+        return [packaging.version.parse(part) for part in parts]
+
+    return sorted(names, key=_by_version, reverse=True)
+
+
 def find_on_path(importer, path_item, only=False):
     """Yield distributions accessible on a sys.path directory"""
     path_item = _normalize_cached(path_item)
@@ -1979,11 +2002,7 @@ def find_on_path(importer, path_item, only=False):
             )
         else:
             # scan for .egg and .egg-info in directory
-
-            path_item_entries = os.listdir(path_item)
-            # Reverse so we find the newest version of a distribution,
-            path_item_entries.sort()
-            path_item_entries.reverse()
+            path_item_entries = _by_version_descending(os.listdir(path_item))
             for entry in path_item_entries:
                 lower = entry.lower()
                 if lower.endswith('.egg-info') or lower.endswith('.dist-info'):
@@ -2093,6 +2112,10 @@ def _rebuild_mod_path(orig_path, package_name, module):
         module_parts = package_name.count('.') + 1
         parts = path_parts[:-module_parts]
         return safe_sys_path_index(_normalize_cached(os.sep.join(parts)))
+
+    if not isinstance(orig_path, list):
+        # Is this behavior useful when module.__path__ is not a list?
+        return
 
     orig_path.sort(key=position_in_sys_path)
     module.__path__[:] = [_normalize_cached(p) for p in orig_path]
@@ -2986,9 +3009,11 @@ def _initialize(g=globals()):
     "Set up global resource manager (deliberately not state-saved)"
     manager = ResourceManager()
     g['_manager'] = manager
-    for name in dir(manager):
-        if not name.startswith('_'):
-            g[name] = getattr(manager, name)
+    g.update(
+        (name, getattr(manager, name))
+        for name in dir(manager)
+        if not name.startswith('_')
+    )
 
 
 @_call_aside
@@ -3017,10 +3042,10 @@ def _initialize_master_working_set():
     # ensure that all distributions added to the working set in the future
     # (e.g. by calling ``require()``) will get activated as well,
     # with higher priority (replace=True).
-    dist = None  # ensure dist is defined for del dist below
-    for dist in working_set:
+    tuple(
         dist.activate(replace=False)
-    del dist
+        for dist in working_set
+    )
     add_activation_listener(lambda dist: dist.activate(replace=True), existing=False)
     working_set.entries = []
     # match order
