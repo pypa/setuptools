@@ -126,8 +126,8 @@ Use ``--help`` to get a full options list, but we recommend consulting
 the `EasyInstall manual`_ for detailed instructions, especially `the section
 on custom installation locations`_.
 
-.. _EasyInstall manual: https://pythonhosted.org/setuptools/EasyInstall
-.. _the section on custom installation locations: https://pythonhosted.org/setuptools/EasyInstall#custom-installation-locations
+.. _EasyInstall manual: https://setuptools.readthedocs.io/en/latest/easy_install.html
+.. _the section on custom installation locations: https://setuptools.readthedocs.io/en/latest/easy_install.html#custom-installation-locations
 
 
 Downloads
