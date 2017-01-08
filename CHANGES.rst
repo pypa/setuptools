@@ -6,6 +6,11 @@ v33.0.0
   still desired, consider adding the functionality to
   setuptools_svn in setuptools_svn #2.
 
+* #97: ``find_packages`` now has a ``namespace_packages``
+  parameter for explicitly specifying implicit (PEP 420)
+  namespace packages. These will be considered packages
+  during the search, despite not having an ``__init__.py``.
+
 v32.3.1
 -------
 

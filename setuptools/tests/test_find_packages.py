@@ -150,6 +150,18 @@ class TestFindPackages:
         packages = find_packages(self.dist_dir)
         assert 'lpkg' in packages
 
+    def test_implicit_ns_package(self):
+        packages = find_packages(self.dist_dir, namespace_packages=('pkg',))
+        self._assert_packages(packages, ['pkg', 'pkg.subpkg'])
+
+    def test_implicit_ns_package_below_regular_package(self):
+        self._touch('__init__.py', self.pkg_dir)
+        self._mkdir('subnspkg', self.sub_pkg_dir)
+        packages = find_packages(self.dist_dir,
+            namespace_packages=('pkg.subpkg.subnspkg',))
+        self._assert_packages(packages,
+            ['pkg', 'pkg.subpkg.subnspkg', 'pkg.subpkg'])
+
     def _assert_packages(self, actual, expected):
         assert set(actual) == set(expected)
 
