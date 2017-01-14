@@ -237,14 +237,21 @@ def get_win_certfile():
 
 def find_ca_bundle():
     """Return an existing CA bundle path, or None"""
+    ca_bundle_path = None
+
     if os.name == 'nt':
-        return get_win_certfile()
+        ca_bundle_path = get_win_certfile()
     else:
         for cert_path in cert_paths:
             if os.path.isfile(cert_path):
-                return cert_path
-    try:
-        import certifi
-        return certifi.where()
-    except (ImportError, ResolutionError, ExtractionError):
-        return None
+                ca_bundle_path = cert_path
+                break
+
+    if ca_bundle_path is None:
+        try:
+            import certifi
+            ca_bundle_path = certifi.where()
+        except (ImportError, ResolutionError, ExtractionError):
+            pass
+
+    return ca_bundle_path
