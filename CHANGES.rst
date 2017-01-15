@@ -1,3 +1,15 @@
+v33.1.0
+-------
+
+Installation via pip, as indicated in the `Python Packaging
+User's Guide <https://packaging.python.org/installing/>`_,
+is the officially-supported mechanism for installing
+Setuptools, and this recommendation is now explicit in the
+much more concise README.
+
+Other edits and tweaks were made to the documentation. The
+codebase is unchanged.
+
 v33.0.0
 -------
 
