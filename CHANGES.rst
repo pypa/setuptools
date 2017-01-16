@@ -1,3 +1,9 @@
+v33.1.1
+-------
+
+* #921: Correct issue where certifi fallback not being
+  reached on Windows.
+
 v33.1.0
 -------
 
