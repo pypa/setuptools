@@ -217,24 +217,24 @@ def once(func):
 @once
 def get_win_certfile():
     try:
-        from wincertstore import CertFile
+        import wincertstore
     except ImportError:
         return None
 
-    class MyCertFile(CertFile):
+    class CertFile(wincertstore.CertFile):
         def __init__(self, stores=()):
-            CertFile.__init__(self)
+            super(CertFile, self).__init__()
             for store in stores:
                 self.addstore(store)
             atexit.register(self.close)
 
         def close(self):
             try:
-                super(MyCertFile, self).close()
+                super(CertFile, self).close()
             except OSError:
                 pass
 
-    _wincerts = MyCertFile(stores=['CA', 'ROOT'])
+    _wincerts = CertFile(stores=['CA', 'ROOT'])
     return _wincerts.name
 
 
