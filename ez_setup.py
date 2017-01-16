@@ -6,7 +6,8 @@ nominal compatibility with the prior interface.
 
 Maintained at https://github.com/pypa/setuptools/tree/bootstrap.
 
-Run this script to install or upgrade setuptools.
+Don't use this script. Instead, just invoke pip commands to install
+or update setuptools.
 """
 
 import sys
