@@ -3,7 +3,7 @@ import socket
 import atexit
 import re
 
-from setuptools.extern.six.moves import urllib, http_client, map
+from setuptools.extern.six.moves import urllib, http_client, map, filter
 
 import pkg_resources
 from pkg_resources import ResolutionError, ExtractionError
@@ -237,21 +237,16 @@ def get_win_certfile():
 
 def find_ca_bundle():
     """Return an existing CA bundle path, or None"""
-    ca_bundle_path = None
+    extant_cert_paths = filter(os.path.isfile, cert_paths)
+    return (
+        get_win_certfile()
+        or next(extant_cert_paths, None)
+        or _certifi_where()
+    )
 
-    if os.name == 'nt':
-        ca_bundle_path = get_win_certfile()
-    else:
-        for cert_path in cert_paths:
-            if os.path.isfile(cert_path):
-                ca_bundle_path = cert_path
-                break
 
-    if ca_bundle_path is None:
-        try:
-            import certifi
-            ca_bundle_path = certifi.where()
-        except (ImportError, ResolutionError, ExtractionError):
-            pass
-
-    return ca_bundle_path
+def _certifi_where():
+    try:
+        return __import__('certifi').where()
+    except (ImportError, ResolutionError, ExtractionError):
+        pass
