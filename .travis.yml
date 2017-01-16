@@ -5,12 +5,15 @@ python:
   - 3.3
   - 3.4
   - 3.5
-  - "3.6-dev"
+  - 3.6
   - nightly
   - pypy
-env:
- - ""
- - LC_ALL=C LC_CTYPE=C
+matrix:
+  include:
+  - python: 3.6
+    env: LC_ALL=C LC_CTYPE=C
+  - python: 2.7
+    env: LC_ALL=C LC_CTYPE=C
 script:
  # need tox and rwt to get started
  - pip install tox rwt

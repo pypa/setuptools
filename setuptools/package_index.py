@@ -20,7 +20,7 @@ from six.moves import urllib, http_client, configparser, map
 import setuptools
 from pkg_resources import (
     CHECKOUT_DIST, Distribution, BINARY_DIST, normalize_path, SOURCE_DIST,
-    require, Environment, find_distributions, safe_name, safe_version,
+    Environment, find_distributions, safe_name, safe_version,
     to_filename, Requirement, DEVELOP_DIST,
 )
 from setuptools import ssl_support
@@ -48,7 +48,7 @@ __all__ = [
 _SOCKET_TIMEOUT = 15
 
 _tmpl = "setuptools/{setuptools.__version__} Python-urllib/{py_major}"
-user_agent = _tmpl.format(py_major=sys.version[:3], **globals())
+user_agent = _tmpl.format(py_major=sys.version[:3], setuptools=setuptools)
 
 
 def parse_requirement_arg(spec):
