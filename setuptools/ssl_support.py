@@ -222,10 +222,8 @@ def get_win_certfile():
         return None
 
     class CertFile(wincertstore.CertFile):
-        def __init__(self, stores=()):
+        def __init__(self):
             super(CertFile, self).__init__()
-            for store in stores:
-                self.addstore(store)
             atexit.register(self.close)
 
         def close(self):
@@ -234,7 +232,9 @@ def get_win_certfile():
             except OSError:
                 pass
 
-    _wincerts = CertFile(stores=['CA', 'ROOT'])
+    _wincerts = CertFile()
+    _wincerts.addstore('CA')
+    _wincerts.addstore('ROOT')
     return _wincerts.name
 
 
