@@ -17,10 +17,9 @@ except ImportError:
 from setuptools.extern import six
 from setuptools.extern.six.moves import urllib, http_client, configparser, map
 
-import setuptools
 from pkg_resources import (
     CHECKOUT_DIST, Distribution, BINARY_DIST, normalize_path, SOURCE_DIST,
-    require, Environment, find_distributions, safe_name, safe_version,
+    Environment, find_distributions, safe_name, safe_version,
     to_filename, Requirement, DEVELOP_DIST,
 )
 from setuptools import ssl_support

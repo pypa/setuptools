@@ -1,5 +1,4 @@
 import dis
-import code
 import array
 import collections
 
