@@ -6,7 +6,6 @@ import functools
 
 from setuptools.extern.six.moves import urllib, http_client, map, filter
 
-import pkg_resources
 from pkg_resources import ResolutionError, ExtractionError
 
 try:
