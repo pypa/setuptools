@@ -2,6 +2,7 @@ import os
 import socket
 import atexit
 import re
+import functools
 
 from setuptools.extern.six.moves import urllib, http_client, map, filter
 
@@ -204,14 +205,18 @@ def opener_for(ca_bundle=None):
     ).open
 
 
-_wincerts = None
+# from jaraco.functools
+def once(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        if not hasattr(func, 'always_returns'):
+            func.always_returns = func(*args, **kwargs)
+        return func.always_returns
+    return wrapper
 
 
+@once
 def get_win_certfile():
-    global _wincerts
-    if _wincerts is not None:
-        return _wincerts.name
-
     try:
         from wincertstore import CertFile
     except ImportError:
