@@ -222,11 +222,10 @@ def get_win_certfile():
         return None
 
     class MyCertFile(CertFile):
-        def __init__(self, stores=(), certs=()):
+        def __init__(self, stores=()):
             CertFile.__init__(self)
             for store in stores:
                 self.addstore(store)
-            self.addcerts(certs)
             atexit.register(self.close)
 
         def close(self):
