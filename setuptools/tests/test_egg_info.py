@@ -28,7 +28,7 @@ class TestEggInfo(object):
         setup(
             name='foo',
             py_modules=['hello'],
-            entry_points={'console_scripts': ['hi = hello.run']},
+            entry_points={'console_scripts': ['hi = hello:run']},
             zip_safe=False,
         )
         """)
