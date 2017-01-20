@@ -69,5 +69,5 @@ class VendorImporter:
             sys.meta_path.append(self)
 
 
-names = 'packaging', 'pyparsing', 'six', 'appdirs'
+names = 'packaging', 'pyparsing', 'six', 'appdirs', 'pkginfo'
 VendorImporter(__name__, names).install()

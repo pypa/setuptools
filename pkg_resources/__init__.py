@@ -47,6 +47,7 @@ except ImportError:
 
 from pkg_resources.extern import six
 from pkg_resources.extern.six.moves import urllib, map, filter
+from pkg_resources.extern.pkginfo import Installed
 
 # capture these to bypass sandboxing
 from os import utime
@@ -2525,6 +2526,14 @@ class Distribution(object):
                 tmpl = "Missing 'Version:' header and/or %s file"
                 raise ValueError(tmpl % self.PKG_INFO, self)
             return version
+
+
+    @property
+    def pkg_info(self):
+        if not hasattr(self, '_pkg_info'):
+            self._pkg_info = Installed(self.project_name)
+        return self._pkg_info
+
 
     @property
     def _dep_map(self):
