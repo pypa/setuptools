@@ -429,9 +429,11 @@ class FileList(_FileList):
 
     def graft(self, dir):
         """Include all files from 'dir/'."""
-        found = []
-        for match_dir in glob(dir):
-            found += distutils.filelist.findall(match_dir)
+        found = [
+            item
+            for match_dir in glob(dir)
+            for item in distutils.filelist.findall(match_dir)
+        ]
         self.extend(found)
         return bool(found)
 
