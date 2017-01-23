@@ -1,3 +1,8 @@
+v34.0.1
+-------
+
+* #935: Fix glob syntax in graft.
+
 v34.0.0
 -------
 
