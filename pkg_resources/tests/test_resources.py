@@ -5,10 +5,10 @@ import sys
 import string
 import platform
 
-from pkg_resources.extern.six.moves import map
+from six.moves import map
 
 import pytest
-from pkg_resources.extern import packaging
+import packaging
 
 import pkg_resources
 from pkg_resources import (parse_requirements, VersionConflict, parse_version,

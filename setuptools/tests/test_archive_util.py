@@ -3,7 +3,7 @@
 import tarfile
 import io
 
-from setuptools.extern import six
+import six
 
 import pytest
 

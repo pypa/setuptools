@@ -11,7 +11,7 @@ import os
 import textwrap
 import marshal
 
-from setuptools.extern import six
+import six
 
 from pkg_resources import get_build_platform, Distribution, ensure_directory
 from pkg_resources import EntryPoint

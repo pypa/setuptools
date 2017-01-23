@@ -11,7 +11,7 @@ from distutils.errors import DistutilsTemplateError
 
 from setuptools.command.egg_info import FileList, egg_info, translate_pattern
 from setuptools.dist import Distribution
-from setuptools.extern import six
+import six
 from setuptools.tests.textwrap import DALS
 
 import pytest

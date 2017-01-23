@@ -7,8 +7,8 @@ from distutils.errors import DistutilsError, DistutilsOptionError
 from distutils import log
 from unittest import TestLoader
 
-from setuptools.extern import six
-from setuptools.extern.six.moves import map, filter
+import six
+from six.moves import map, filter
 
 from pkg_resources import (resource_listdir, resource_exists, normalize_path,
                            working_set, _namespace_packages,

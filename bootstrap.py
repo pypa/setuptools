@@ -5,10 +5,19 @@ environment by creating a minimal egg-info directory and then invoking the
 egg-info command to flesh out the egg-info directory.
 """
 
+from __future__ import unicode_literals
+
 import os
+import io
+import re
+import contextlib
+import tempfile
+import shutil
 import sys
 import textwrap
 import subprocess
+
+import pip
 
 minimal_egg_info = textwrap.dedent("""
     [distutils.commands]
@@ -40,7 +49,8 @@ def build_egg_info():
     """
 
     os.mkdir('setuptools.egg-info')
-    with open('setuptools.egg-info/entry_points.txt', 'w') as ep:
+    filename = 'setuptools.egg-info/entry_points.txt'
+    with io.open(filename, 'w', encoding='utf-8') as ep:
         ep.write(minimal_egg_info)
 
 
@@ -52,6 +62,35 @@ def run_egg_info():
     subprocess.check_call(cmd)
 
 
+def gen_deps():
+    with io.open('setup.py', encoding='utf-8') as strm:
+        text = strm.read()
+    pattern = r'install_requires=\[(.*?)\]'
+    match = re.search(pattern, text, flags=re.M|re.DOTALL)
+    reqs = eval(match.group(1).replace('\n', ''))
+    with io.open('requirements.txt', 'w', encoding='utf-8') as reqs_file:
+        reqs_file.write('\n'.join(reqs))
+
+
+@contextlib.contextmanager
+def install_deps():
+    "Just in time make the deps available"
+    gen_deps()
+    tmpdir = tempfile.mkdtemp()
+    args = [
+        'install',
+        '-t', tmpdir,
+        '-r', 'requirements.txt',
+    ]
+    pip.main(args)
+    os.environ['PYTHONPATH'] = tmpdir
+    try:
+        yield tmpdir
+    finally:
+        shutil.rmtree(tmpdir)
+
+
 if __name__ == '__main__':
     ensure_egg_info()
-    run_egg_info()
+    with install_deps():
+        run_egg_info()

@@ -1,7 +1,7 @@
 import unicodedata
 import sys
 
-from setuptools.extern import six
+import six
 
 
 # HFS Plus uses decomposed UTF-8

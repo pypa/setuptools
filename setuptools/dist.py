@@ -12,9 +12,9 @@ from distutils.errors import (DistutilsOptionError, DistutilsPlatformError,
     DistutilsSetupError)
 from distutils.util import rfc822_escape
 
-from setuptools.extern import six
-from setuptools.extern.six.moves import map
-from pkg_resources.extern import packaging
+import six
+from six.moves import map
+import packaging
 
 from setuptools.depends import Require
 from setuptools import windows_support

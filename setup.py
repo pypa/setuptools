@@ -16,7 +16,10 @@ here = os.path.dirname(__file__)
 def require_metadata():
     "Prevent improper installs without necessary metadata. See #659"
     if not os.path.exists('setuptools.egg-info'):
-        msg = "Cannot build setuptools without metadata. Run bootstrap.py"
+        msg = (
+            "Cannot build setuptools without metadata. "
+            "Install rwt and run `rwt -- bootstrap.py`."
+        )
         raise RuntimeError(msg)
 
 
@@ -159,6 +162,11 @@ setup_params = dict(
         Topic :: Utilities
         """).strip().splitlines(),
     python_requires='>=2.6,!=3.0.*,!=3.1.*,!=3.2.*',
+    install_requires=[
+        'packaging>=16.8',
+        'six>=1.10.0',
+        'appdirs>=1.4.0',
+    ],
     extras_require={
         "ssl:sys_platform=='win32'": "wincertstore==0.2",
         "certs": "certifi==2016.9.26",

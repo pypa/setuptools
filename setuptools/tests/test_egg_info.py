@@ -6,7 +6,7 @@ import sys
 
 from setuptools.command.egg_info import egg_info, manifest_maker
 from setuptools.dist import Distribution
-from setuptools.extern.six.moves import map
+from six.moves import map
 
 import pytest
 
