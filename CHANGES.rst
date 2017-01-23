@@ -1,3 +1,25 @@
+v34.0.0
+-------
+
+* #581: Instead of vendoring the growing list of
+  dependencies that Setuptools requires to function,
+  Setuptools now requires these dependencies just like
+  any other project. Unlike other projects, however,
+  Setuptools cannot rely on ``setup_requires`` to
+  demand the dependencies it needs to install because
+  its own machinery would be necessary to pull those
+  dependencies if not present (a bootstrapping problem).
+  As a result, Setuptools no longer supports self upgrade or
+  installation in the general case. Instead, users are
+  directed to use pip to install and upgrade using the
+  ``wheel`` distributions of setuptools.
+
+  Users are welcome to contrive other means to install
+  or upgrade Setuptools using other means, such as
+  pre-installing the Setuptools dependencies with pip
+  or a bespoke bootstrap tool, but such usage is not
+  recommended and is not supported.
+
 v33.1.1
 -------
 
