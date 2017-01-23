@@ -206,6 +206,15 @@ class TestManifestTest(TempDirTestCase):
             l('app/static/app.css'), l('app/static/app.css.map')])
         assert files == self.get_files()
 
+    def test_graft_glob_syntax(self):
+        """Include the whole app/static/ directory."""
+        l = make_local_path
+        self.make_manifest("graft */static")
+        files = default_files | set([
+            l('app/static/app.js'), l('app/static/app.js.map'),
+            l('app/static/app.css'), l('app/static/app.css.map')])
+        assert files == self.get_files()
+
     def test_graft_global_exclude(self):
         """Exclude all *.map files in the project."""
         l = make_local_path
