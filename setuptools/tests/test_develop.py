@@ -122,6 +122,22 @@ class TestDevelop:
         # assert '0.0' not in foocmd_text
 
 
+class TestResolver:
+    """
+    TODO: These tests were written with a minimal understanding
+    of what _resolve_setup_path is intending to do. Come up with
+    more meaningful cases that look like real-world scenarios.
+    """
+    def test_resolve_setup_path_cwd(self):
+        assert develop._resolve_setup_path('.', '.', '.') == '.'
+
+    def test_resolve_setup_path_one_dir(self):
+        assert develop._resolve_setup_path('pkgs', '.', 'pkgs') == '../'
+
+    def test_resolve_setup_path_one_dir_trailing_slash(self):
+        assert develop._resolve_setup_path('pkgs/', '.', 'pkgs') == '../'
+
+
 class TestNamespaces:
 
     @staticmethod
