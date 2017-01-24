@@ -1,3 +1,9 @@
+v34.0.2
+-------
+
+* #882: Ensure extras are honored when building the
+  working set.
+
 v34.0.1
 -------
 
