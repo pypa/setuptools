@@ -79,7 +79,7 @@ class develop(namespaces.DevelopInstaller, easy_install):
             project_name=ei.egg_name
         )
 
-        p = self.egg_base.replace(os.sep, '/')
+        p = self.egg_base.replace(os.sep, '/').rstrip('/')
         if p != os.curdir:
             p = '../' * (p.count('/') + 1)
         self.setup_path = p
