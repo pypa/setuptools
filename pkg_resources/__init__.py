@@ -785,7 +785,7 @@ class WorkingSet(object):
         self._added_new(dist)
 
     def resolve(self, requirements, env=None, installer=None,
-            replace_conflicting=False):
+                replace_conflicting=False, extras=None):
         """List all distributions needed to (recursively) meet `requirements`
 
         `requirements` must be a sequence of ``Requirement`` objects.  `env`,
@@ -801,6 +801,12 @@ class WorkingSet(object):
         the wrong version.  Otherwise, if an `installer` is supplied it will be
         invoked to obtain the correct version of the requirement and activate
         it.
+
+        `extras` is a list of the extras to be used with these requirements.
+        This is important because extra requirements may look like `my_req;
+        extra = "my_extra"`, which would otherwise be interpreted as a purely
+        optional requirement.  Instead, we want to be able to assert that these
+        requirements are truly required.
         """
 
         # set up the stack
@@ -824,7 +830,7 @@ class WorkingSet(object):
                 # Ignore cyclic or redundant dependencies
                 continue
 
-            if not req_extras.markers_pass(req):
+            if not req_extras.markers_pass(req, extras):
                 continue
 
             dist = best.get(req.key)
@@ -1003,7 +1009,7 @@ class _ReqExtras(dict):
     Map each requirement to the extras that demanded it.
     """
 
-    def markers_pass(self, req):
+    def markers_pass(self, req, extras=None):
         """
         Evaluate markers for req against each extra that
         demanded it.
@@ -1013,7 +1019,7 @@ class _ReqExtras(dict):
         """
         extra_evals = (
             req.marker.evaluate({'extra': extra})
-            for extra in self.get(req, ()) + (None,)
+            for extra in self.get(req, ()) + (extras or (None,))
         )
         return not req.marker or any(extra_evals)
 
@@ -2302,8 +2308,14 @@ class EntryPoint(object):
     def require(self, env=None, installer=None):
         if self.extras and not self.dist:
             raise UnknownExtra("Can't require() without a distribution", self)
+
+        # Get the requirements for this entry point with all its extras and
+        # then resolve them. We have to pass `extras` along when resolving so
+        # that the working set knows what extras we want. Otherwise, for
+        # dist-info distributions, the working set will assume that the
+        # requirements for that extra are purely optional and skip over them.
         reqs = self.dist.requires(self.extras)
-        items = working_set.resolve(reqs, env, installer)
+        items = working_set.resolve(reqs, env, installer, extras=self.extras)
         list(map(working_set.add, items))
 
     pattern = re.compile(
