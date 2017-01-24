@@ -3,6 +3,8 @@ v34.0.2
 
 * #882: Ensure extras are honored when building the
   working set.
+* #913: Fix issue in develop if package directory has
+  a trailing slash.
 
 v34.0.1
 -------

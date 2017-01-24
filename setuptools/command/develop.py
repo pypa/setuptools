@@ -92,7 +92,7 @@ class develop(namespaces.DevelopInstaller, easy_install):
         setup script resides and ensure that path points to the
         setup path from $install_dir/$egg_path.
         """
-        path_to_setup = egg_base.replace(os.sep, '/')
+        path_to_setup = egg_base.replace(os.sep, '/').rstrip('/')
         if path_to_setup != os.curdir:
             path_to_setup = '../' * (path_to_setup.count('/') + 1)
         resolved = normalize_path(os.path.join(install_dir, egg_path, path_to_setup))
