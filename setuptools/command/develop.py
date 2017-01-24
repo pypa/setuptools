@@ -79,15 +79,28 @@ class develop(namespaces.DevelopInstaller, easy_install):
             project_name=ei.egg_name
         )
 
-        p = self.egg_base.replace(os.sep, '/')
-        if p != os.curdir:
-            p = '../' * (p.count('/') + 1)
-        self.setup_path = p
-        p = normalize_path(os.path.join(self.install_dir, self.egg_path, p))
-        if p != normalize_path(os.curdir):
+        self.setup_path = self._resolve_setup_path(
+            self.egg_base,
+            self.install_dir,
+            self.egg_path,
+        )
+
+    @staticmethod
+    def _resolve_setup_path(egg_base, install_dir, egg_path):
+        """
+        Generate a path from egg_base back to '.' where the
+        setup script resides and ensure that path points to the
+        setup path from $install_dir/$egg_path.
+        """
+        path_to_setup = egg_base.replace(os.sep, '/')
+        if path_to_setup != os.curdir:
+            path_to_setup = '../' * (path_to_setup.count('/') + 1)
+        resolved = normalize_path(os.path.join(install_dir, egg_path, path_to_setup))
+        if resolved != normalize_path(os.curdir):
             raise DistutilsOptionError(
                 "Can't get a consistent path to setup script from"
-                " installation directory", p, normalize_path(os.curdir))
+                " installation directory", resolved, normalize_path(os.curdir))
+        return path_to_setup
 
     def install_for_development(self):
         if six.PY3 and getattr(self.distribution, 'use_2to3', False):
