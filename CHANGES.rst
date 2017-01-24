@@ -25,6 +25,13 @@ v34.0.0
   or a bespoke bootstrap tool, but such usage is not
   recommended and is not supported.
 
+  As discovered in #940, not all versions of pip will
+  successfully install Setuptools from its pre-built
+  wheel. If you encounter issues with "No module named
+  six" or "No module named packaging", especially
+  following a line "Running setup.py egg_info for package
+  setuptools", then your pip is not new enough.
+
 v33.1.1
 -------
 
