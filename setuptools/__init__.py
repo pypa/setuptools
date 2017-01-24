@@ -5,7 +5,7 @@ import functools
 import distutils.core
 import distutils.filelist
 from distutils.util import convert_path
-from fnmatch import fnmatchcase
+from fnmatch import fnmatchcase, fnmatch
 
 from six.moves import filter, map
 
@@ -89,8 +89,21 @@ class PackageFinder(object):
 
     @staticmethod
     def _looks_like_package(path):
-        """Does a directory look like a package?"""
-        return os.path.isfile(os.path.join(path, '__init__.py'))
+        """Does a directory look like a package?
+        """
+        # is there any .py file in here?
+        def find(pattern, path):
+            result = []
+            for root, _, files in os.walk(path):
+                for name in files:
+                    if fnmatch(name, pattern):
+                        result.append(os.path.join(root, name))
+            return result
+
+        # we remove site-packages folders because it could be a venv.
+        results = [f for f in find('*.py', path) if 'site-packages' not in f]
+        return len(results) > 0
+
 
     @staticmethod
     def _build_filter(*patterns):
