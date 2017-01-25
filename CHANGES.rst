@@ -40,6 +40,12 @@ v34.0.0
   following a line "Running setup.py egg_info for package
   setuptools", then your pip is not new enough.
 
+  There's an additional issue in pip where setuptools
+  is upgraded concurrently with other source packages,
+  described in pip #4253. The proposed workaround is to
+  always upgrade Setuptools first prior to upgrading
+  other packages that would upgrade Setuptools.
+
 v33.1.1
 -------
 
