@@ -88,7 +88,7 @@ def pypi_link(pkg_filename):
 
 setup_params = dict(
     name="setuptools",
-    version="34.0.2",
+    version="34.0.3",
     description="Easily download, build, install, upgrade, and uninstall "
         "Python packages",
     author="Python Packaging Authority",
