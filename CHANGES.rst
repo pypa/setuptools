@@ -1,3 +1,10 @@
+v34.0.3
+-------
+
+* #947: Loosen restriction on the version of six required,
+  restoring compatibility with environments relying on
+  six 1.6.0 and later.
+
 v34.0.2
 -------
 

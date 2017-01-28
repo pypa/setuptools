@@ -164,7 +164,7 @@ setup_params = dict(
     python_requires='>=2.6,!=3.0.*,!=3.1.*,!=3.2.*',
     install_requires=[
         'packaging>=16.8',
-        'six>=1.10.0',
+        'six>=1.6.0',
         'appdirs>=1.4.0',
     ],
     extras_require={
