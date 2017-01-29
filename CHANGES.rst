@@ -1,3 +1,9 @@
+v34.1.0
+-------
+
+* #930: ``build_info`` now accepts two new parameters
+  to optimize and customize the building of C libraries.
+
 v34.0.3
 -------
 
