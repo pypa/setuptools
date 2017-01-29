@@ -2,7 +2,11 @@ import pytest
 import os
 import shutil
 
-from unittest import mock
+try:
+    from unittest import mock
+except ImportError:
+    import mock
+
 from distutils.errors import DistutilsSetupError
 from setuptools.command.build_clib import build_clib
 from setuptools.dist import Distribution
