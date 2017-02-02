@@ -1002,7 +1002,8 @@ class PyPIConfig(configparser.RawConfigParser):
         defaults = dict.fromkeys(['username', 'password', 'repository'], '')
         configparser.RawConfigParser.__init__(self, defaults)
 
-        rc = os.path.join(os.path.expanduser('~'), '.pypirc')
+        default_rc = os.path.join(os.path.expanduser('~'), '.pypirc')
+        rc = os.environ.get('PYPI_CONFIG_FILE', default_rc)
         if os.path.exists(rc):
             self.read(rc)
 
