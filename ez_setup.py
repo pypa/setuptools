@@ -6,6 +6,8 @@ Setuptools bootstrapping installer.
 Maintained at https://github.com/pypa/setuptools/tree/bootstrap.
 
 Run this script to install or upgrade setuptools.
+
+This method is DEPRECATED. Check https://github.com/pypa/setuptools/issues/581 for more details.
 """
 
 import os
@@ -32,6 +34,7 @@ try:
 except ImportError:
     USER_SITE = None
 
+# 33.1.1 is the last version that supports setuptools self upgrade/installation.
 DEFAULT_VERSION = "33.1.1"
 DEFAULT_URL = "https://pypi.io/packages/source/s/setuptools/"
 DEFAULT_SAVE_DIR = os.curdir
@@ -406,5 +409,5 @@ def main():
     return _install(archive, _build_install_args(options))
 
 if __name__ == '__main__':
-    warnings.warn("ez_setup.py is deprecated; use pip to install setuptools")
+    warnings.warn("ez_setup.py is deprecated, check https://github.com/pypa/setuptools/issues/581 for more info; use pip to install setuptools")
     sys.exit(main())
