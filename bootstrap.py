@@ -91,7 +91,7 @@ def install_deps():
         shutil.rmtree(tmpdir)
 
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(description='bootstrap setuptools')
     parser.add_argument(
         '--skip-dep-install', action='store_true',
@@ -104,3 +104,6 @@ if __name__ == '__main__':
     else:
         with install_deps():
             run_egg_info()
+
+
+__name__ == '__main__' and main()
