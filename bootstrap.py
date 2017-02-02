@@ -75,7 +75,6 @@ def gen_deps():
 def install_deps():
     "Just in time make the deps available"
     import pip
-    gen_deps()
     tmpdir = tempfile.mkdtemp()
     args = [
         'install',
@@ -92,6 +91,7 @@ def install_deps():
 
 def main():
     ensure_egg_info()
+    gen_deps()
     try:
         # first assume dependencies are present
         run_egg_info()
