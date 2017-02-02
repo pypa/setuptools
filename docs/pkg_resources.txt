@@ -1090,6 +1090,8 @@ simply by creating an appropriate `IResourceProvider`_ implementation; see the
 section below on `Supporting Custom Importers`_ for more details.
 
 
+.. _pkg-resources-resource-manager-api:
+
 ``ResourceManager`` API
 =======================
 
