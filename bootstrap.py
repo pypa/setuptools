@@ -7,7 +7,6 @@ egg-info command to flesh out the egg-info directory.
 
 from __future__ import unicode_literals
 
-import argparse
 import os
 import io
 import re
@@ -92,16 +91,12 @@ def install_deps():
 
 
 def main():
-    parser = argparse.ArgumentParser(description='bootstrap setuptools')
-    parser.add_argument(
-        '--skip-dep-install', action='store_true',
-        help=("Do not attempt to install setuptools dependencies. These "
-              "should be provided in the environment in another manner."))
-    args = parser.parse_args()
     ensure_egg_info()
-    if args.skip_dep_install:
+    try:
+        # first assume dependencies are present
         run_egg_info()
-    else:
+    except Exception:
+        # but if that fails, try again with dependencies just in time
         with install_deps():
             run_egg_info()
 
