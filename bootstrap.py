@@ -7,6 +7,7 @@ egg-info command to flesh out the egg-info directory.
 
 from __future__ import unicode_literals
 
+import argparse
 import os
 import io
 import re
@@ -17,7 +18,6 @@ import sys
 import textwrap
 import subprocess
 
-import pip
 
 minimal_egg_info = textwrap.dedent("""
     [distutils.commands]
@@ -75,6 +75,7 @@ def gen_deps():
 @contextlib.contextmanager
 def install_deps():
     "Just in time make the deps available"
+    import pip
     gen_deps()
     tmpdir = tempfile.mkdtemp()
     args = [
@@ -91,6 +92,15 @@ def install_deps():
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='bootstrap setuptools')
+    parser.add_argument(
+        '--skip-dep-install', action='store_true',
+        help=("Do not attempt to install setuptools dependencies. These "
+              "should be provided in the environment in another manner."))
+    args = parser.parse_args()
     ensure_egg_info()
-    with install_deps():
+    if args.skip_dep_install:
         run_egg_info()
+    else:
+        with install_deps():
+            run_egg_info()
