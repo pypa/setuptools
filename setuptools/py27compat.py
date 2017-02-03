@@ -21,7 +21,6 @@ if sys.version_info < (3,):
 
 linux_py2_ascii = (
 	platform.system() == 'Linux' and
-	sys.getfilesystemencoding() == 'ascii' and
 	sys.version_info < (3,)
 )
 

@@ -1,3 +1,9 @@
+v34.1.1
+-------
+
+* #953: More aggressively employ the compatibility issue
+  originally added in #706.
+
 v34.1.0
 -------
 
