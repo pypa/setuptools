@@ -257,6 +257,7 @@ class TestMetadata:
     def test_classifiers(self, tmpdir):
         expected = set([
             'Framework :: Django',
+            'Programming Language :: Python :: 3',
             'Programming Language :: Python :: 3.5',
         ])
 
@@ -269,19 +270,21 @@ class TestMetadata:
 
         tmpdir.join('classifiers').write(
             'Framework :: Django\n'
+            'Programming Language :: Python :: 3\n'
             'Programming Language :: Python :: 3.5\n'
         )
 
         with get_dist(tmpdir) as dist:
             assert set(dist.metadata.classifiers) == expected
 
-        # From section.
+        # From list notation
         config.write(
-            '[metadata.classifiers]\n'
-            'Framework :: Django\n'
-            'Programming Language :: Python :: 3.5\n'
+            '[metadata]\n'
+            'classifiers =\n'
+            '    Framework :: Django\n'
+            '    Programming Language :: Python :: 3\n'
+            '    Programming Language :: Python :: 3.5\n'
         )
-
         with get_dist(tmpdir) as dist:
             assert set(dist.metadata.classifiers) == expected
 

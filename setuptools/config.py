@@ -412,17 +412,6 @@ class ConfigMetadataHandler(ConfigHandler):
             'version': self._parse_version,
         }
 
-    def parse_section_classifiers(self, section_options):
-        """Parses configuration file section.
-
-        :param dict section_options:
-        """
-        classifiers = []
-        for begin, (_, rest) in section_options.items():
-            classifiers.append('%s :%s' % (begin.title(), rest))
-
-        self['classifiers'] = classifiers
-
     def _parse_version(self, value):
         """Parses `version` option value.
 

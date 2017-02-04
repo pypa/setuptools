@@ -2302,10 +2302,10 @@ boilerplate code in some cases.
     long_description = file: README.rst
     keywords = one, two
     license = BSD 3-Clause License
-
-    [metadata.classifiers]
-    Framework :: Django
-    Programming Language :: Python :: 3.5
+    classifiers =
+        Framework :: Django
+        Programming Language :: Python :: 3
+        Programming Language :: Python :: 3.5
 
     [options]
     zip_safe = False
@@ -2398,7 +2398,7 @@ author                                str
 author_email       author-email       str
 maintainer                            str
 maintainer_email   maintainer-email   str
-classifiers        classifier         file:, section, list-comma
+classifiers        classifier         file:, list-comma
 license                               file:, str
 description        summary            file:, str
 long_description   long-description   file:, str
