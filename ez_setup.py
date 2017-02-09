@@ -20,7 +20,6 @@ import subprocess
 import platform
 import textwrap
 import contextlib
-import warnings
 
 from distutils import log
 
@@ -38,8 +37,11 @@ except ImportError:
 DEFAULT_VERSION = "33.1.1"
 DEFAULT_URL = "https://pypi.io/packages/source/s/setuptools/"
 DEFAULT_SAVE_DIR = os.curdir
+DEFAULT_DEPRECATION_MESSAGE = "ez_setup.py is deprecated and when using it setuptools will be pinned to {0} since it's the last version that supports setuptools self upgrade/installation, check https://github.com/pypa/setuptools/issues/581 for more info; use pip to install setuptools"
 
 MEANINGFUL_INVALID_ZIP_ERR_MSG = 'Maybe {0} is corrupted, delete it and try again.'
+
+log.warn(DEFAULT_DEPRECATION_MESSAGE.format(DEFAULT_VERSION))
 
 
 def _python_cmd(*args):
@@ -409,5 +411,4 @@ def main():
     return _install(archive, _build_install_args(options))
 
 if __name__ == '__main__':
-    warnings.warn("ez_setup.py is deprecated, check https://github.com/pypa/setuptools/issues/581 for more info; use pip to install setuptools")
     sys.exit(main())
