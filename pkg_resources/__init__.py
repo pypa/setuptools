@@ -1956,6 +1956,12 @@ def find_eggs_in_zip(importer, path_item, only=False):
             subpath = os.path.join(path_item, subitem)
             for dist in find_eggs_in_zip(zipimport.zipimporter(subpath), subpath):
                 yield dist
+        elif subitem.lower().endswith('.dist-info'):
+            subpath = os.path.join(path_item, subitem)
+            submeta = EggMetadata(zipimport.zipimporter(subpath))
+            submeta.egg_info = subpath
+            yield Distribution.from_location(path_item, subitem, submeta)
+
 
 
 register_finder(zipimport.zipimporter, find_eggs_in_zip)
