@@ -181,6 +181,48 @@ class TestPackageIndex:
         res = setuptools.package_index.local_open(url)
         assert 'content' in res.read()
 
+    def test_egg_fragment(self):
+        """
+        EGG fragments must comply to PEP 440
+        """
+        epoch = [
+            '',
+            '1!',
+        ]
+        releases = [
+            '0',
+            '0.0',
+            '0.0.0',
+        ]
+        pre = [
+            'a0',
+            'b0',
+            'rc0',
+        ]
+        post = [
+            '.post0'
+        ]
+        dev = [
+            '.dev0',
+        ]
+        local = [
+            ('', ''),
+            ('+ubuntu.0', '+ubuntu.0'),
+            ('+ubuntu-0', '+ubuntu.0'),
+            ('+ubuntu_0', '+ubuntu.0'),
+        ]
+        versions = [
+            [''.join([e, r, p, l]) for l in ll]
+            for e in epoch
+            for r in releases
+            for p in sum([pre, post, dev], [''])
+            for ll in local]
+        for v, vc in versions:
+            dists = list(setuptools.package_index.distros_for_url(
+                'http://example.com/example.zip#egg=example-' + v))
+            assert dists[0].version == ''
+            assert dists[1].version == vc
+
 
 class TestContentCheckers:
     def test_md5(self):
