@@ -1,3 +1,9 @@
+v34.2.0
+-------
+
+* #966: Add support for reading dist-info metadata and
+  thus locating Distributions from zip files.
+
 v34.1.1
 -------
 
