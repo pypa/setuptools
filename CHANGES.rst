@@ -4,6 +4,10 @@ v34.2.0
 * #966: Add support for reading dist-info metadata and
   thus locating Distributions from zip files.
 
+* #968: Allow '+' and '!' in egg fragments
+  so that it can take package names that contain
+  PEP 440 conforming version specifiers.
+
 v34.1.1
 -------
 
