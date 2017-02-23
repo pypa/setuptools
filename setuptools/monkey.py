@@ -66,8 +66,6 @@ def patch_all():
         (3, 4) < sys.version_info < (3, 4, 6)
         or
         (3, 5) < sys.version_info <= (3, 5, 3)
-        or
-        (3, 6) < sys.version_info
     )
 
     if needs_warehouse:
