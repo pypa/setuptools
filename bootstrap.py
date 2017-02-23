@@ -89,6 +89,21 @@ def install_deps():
         shutil.rmtree(tmpdir)
 
 
+def py26_make_archive(filename, type, source_root):
+    "quick and dirty backport of shutil.make_archive"
+    import zipfile
+    assert type == 'zip'
+    filename += '.' + type
+    zip_file = zipfile.ZipFile(filename, 'w', zipfile.ZIP_DEFLATED)
+    for root, dirs, files in os.walk(source_root):
+        for file in files:
+            target = os.path.join(root, file)
+            rel_target = os.path.relpath(target, os.path.join(source_root))
+            zip_file.write(target, rel_target)
+
+vars(shutil).setdefault('make_archive', py26_make_archive)
+
+
 def bundle_deps():
     """
     Generate 'build-deps.zip'
