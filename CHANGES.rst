@@ -4,6 +4,22 @@ v34.3.0
 * #941: In the upload command, if the username is blank,
   default to ``getpass.getuser()``.
 
+v34.2.0
+-------
+
+* #966: Add support for reading dist-info metadata and
+  thus locating Distributions from zip files.
+
+* #968: Allow '+' and '!' in egg fragments
+  so that it can take package names that contain
+  PEP 440 conforming version specifiers.
+
+v34.1.1
+-------
+
+* #953: More aggressively employ the compatibility issue
+  originally added in #706.
+
 v34.1.0
 -------
 

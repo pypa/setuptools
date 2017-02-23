@@ -17,7 +17,6 @@ import sys
 import textwrap
 import subprocess
 
-import pip
 
 minimal_egg_info = textwrap.dedent("""
     [distutils.commands]
@@ -75,7 +74,7 @@ def gen_deps():
 @contextlib.contextmanager
 def install_deps():
     "Just in time make the deps available"
-    gen_deps()
+    import pip
     tmpdir = tempfile.mkdtemp()
     args = [
         'install',
@@ -90,7 +89,16 @@ def install_deps():
         shutil.rmtree(tmpdir)
 
 
-if __name__ == '__main__':
+def main():
     ensure_egg_info()
-    with install_deps():
+    gen_deps()
+    try:
+        # first assume dependencies are present
         run_egg_info()
+    except Exception:
+        # but if that fails, try again with dependencies just in time
+        with install_deps():
+            run_egg_info()
+
+
+__name__ == '__main__' and main()

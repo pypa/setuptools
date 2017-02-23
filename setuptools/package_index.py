@@ -30,7 +30,7 @@ from fnmatch import translate
 from setuptools.py26compat import strip_fragment
 from setuptools.py27compat import get_all_headers
 
-EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.]+)$')
+EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.+!]+)$')
 HREF = re.compile("""href\\s*=\\s*['"]?([^'"> ]+)""", re.I)
 # this is here to fix emacs' cruddy broken syntax highlighting
 PYPI_MD5 = re.compile(

@@ -35,7 +35,7 @@ deploy:
   on:
     tags: true
     all_branches: true
-    python: 3.5
+    python: 3.6
     condition: $LC_ALL != "C"
   user: jaraco
   password:

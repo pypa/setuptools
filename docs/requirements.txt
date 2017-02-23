@@ -1,1 +1,2 @@
 rst.linker>=1.6.1
+sphinx>=1.4

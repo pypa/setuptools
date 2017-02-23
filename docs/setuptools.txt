@@ -940,14 +940,13 @@ Typically, existing programs manipulate a package's ``__file__`` attribute in
 order to find the location of data files.  However, this manipulation isn't
 compatible with PEP 302-based import hooks, including importing from zip files
 and Python Eggs.  It is strongly recommended that, if you are using data files,
-you should use the `Resource Management API`_ of ``pkg_resources`` to access
+you should use the :ref:`ResourceManager API` of ``pkg_resources`` to access
 them.  The ``pkg_resources`` module is distributed as part of setuptools, so if
 you're using setuptools to distribute your package, there is no reason not to
 use its resource management API.  See also `Accessing Package Resources`_ for
 a quick example of converting code that uses ``__file__`` to use
 ``pkg_resources`` instead.
 
-.. _Resource Management API: http://peak.telecommunity.com/DevCenter/PkgResources#resourcemanager-api
 .. _Accessing Package Resources: http://peak.telecommunity.com/DevCenter/PythonEggs#accessing-package-resources
 
 
@@ -959,8 +958,8 @@ location (e.g. ``/usr/share``).  This feature intended to be used for things
 like documentation, example configuration files, and the like.  ``setuptools``
 does not install these data files in a separate location, however.  They are
 bundled inside the egg file or directory, alongside the Python modules and
-packages.  The data files can also be accessed using the `Resource Management
-API`_, by specifying a ``Requirement`` instead of a package name::
+packages.  The data files can also be accessed using the :ref:`ResourceManager
+API`, by specifying a ``Requirement`` instead of a package name::
 
     from pkg_resources import Requirement, resource_filename
     filename = resource_filename(Requirement.parse("MyProject"),"sample.conf")
@@ -2303,10 +2302,10 @@ boilerplate code in some cases.
     long_description = file: README.rst
     keywords = one, two
     license = BSD 3-Clause License
-
-    [metadata.classifiers]
-    Framework :: Django
-    Programming Language :: Python :: 3.5
+    classifiers =
+        Framework :: Django
+        Programming Language :: Python :: 3
+        Programming Language :: Python :: 3.5
 
     [options]
     zip_safe = False
@@ -2399,7 +2398,7 @@ author                                str
 author_email       author-email       str
 maintainer                            str
 maintainer_email   maintainer-email   str
-classifiers        classifier         file:, section, list-comma
+classifiers        classifier         file:, list-comma
 license                               file:, str
 description        summary            file:, str
 long_description   long-description   file:, str
