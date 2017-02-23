@@ -1,3 +1,9 @@
+v34.3.0
+-------
+
+* #941: In the upload command, if the username is blank,
+  default to ``getpass.getuser()``.
+
 v34.2.0
 -------
 
