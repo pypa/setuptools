@@ -53,7 +53,7 @@ def patch_all():
     distutils.core.Command = setuptools.Command
 
     has_issue_12885 = (
-        sys.version_info < (3, 4, 6)
+        sys.version_info < (3, 4, 7)
         or
         (3, 5) < sys.version_info <= (3, 5, 3)
         or
