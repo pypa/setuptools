@@ -13,4 +13,4 @@ setuptools.egg-info
 *.swp
 *~
 .hg*
-requirements.txt
+build-deps.zip

@@ -1,3 +1,9 @@
+v34.3.0
+-------
+
+* #980: Re-enable building of setuptools from source by
+  bundling its build dependencies.
+
 v34.2.0
 -------
 

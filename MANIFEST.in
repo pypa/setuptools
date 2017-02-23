@@ -12,3 +12,4 @@ include launcher.c
 include msvc-build-launcher.cmd
 include pytest.ini
 include tox.ini
+include build-deps.zip

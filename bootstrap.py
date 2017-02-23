@@ -89,16 +89,35 @@ def install_deps():
         shutil.rmtree(tmpdir)
 
 
-def main():
-    ensure_egg_info()
+def py26_make_archive(filename, type, source_root):
+    "quick and dirty backport of shutil.make_archive"
+    import zipfile
+    assert type == 'zip'
+    filename += '.' + type
+    zip_file = zipfile.ZipFile(filename, 'w', zipfile.ZIP_DEFLATED)
+    for root, dirs, files in os.walk(source_root):
+        for file in files:
+            target = os.path.join(root, file)
+            rel_target = os.path.relpath(target, os.path.join(source_root))
+            zip_file.write(target, rel_target)
+
+vars(shutil).setdefault('make_archive', py26_make_archive)
+
+
+def bundle_deps():
+    """
+    Generate 'build-deps.zip'
+    """
     gen_deps()
-    try:
-        # first assume dependencies are present
-        run_egg_info()
-    except Exception:
-        # but if that fails, try again with dependencies just in time
-        with install_deps():
-            run_egg_info()
+    with install_deps() as dir:
+        shutil.make_archive('build-deps', 'zip', dir)
+    os.remove('requirements.txt')
+
+
+def main():
+    bundle_deps()
+    ensure_egg_info()
+    run_egg_info()
 
 
 __name__ == '__main__' and main()
