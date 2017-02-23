@@ -89,16 +89,20 @@ def install_deps():
         shutil.rmtree(tmpdir)
 
 
-def main():
-    ensure_egg_info()
+def bundle_deps():
+    """
+    Generate 'build-deps.zip'
+    """
     gen_deps()
-    try:
-        # first assume dependencies are present
-        run_egg_info()
-    except Exception:
-        # but if that fails, try again with dependencies just in time
-        with install_deps():
-            run_egg_info()
+    with install_deps() as dir:
+        shutil.make_archive('build-deps', 'zip', dir)
+    os.remove('requirements.txt')
+
+
+def main():
+    bundle_deps()
+    ensure_egg_info()
+    run_egg_info()
 
 
 __name__ == '__main__' and main()
