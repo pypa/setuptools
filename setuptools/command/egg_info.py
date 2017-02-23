@@ -261,7 +261,7 @@ class egg_info(Command):
         # in which case the version string already contains all tags.
         if self.vtags and version.endswith(self.vtags):
             return safe_version(version)
-        return safe_version(version + self.vtags)
+        return safe_version(str(version) + str(self.vtags))
 
     def run(self):
         self.mkpath(self.egg_info)
