@@ -4,6 +4,9 @@ v34.3.0
 * #941: In the upload command, if the username is blank,
   default to ``getpass.getuser()``.
 
+* #971: Correct distutils findall monkeypatch to match
+  appropriate versions (namely Python 3.4.6).
+
 v34.2.0
 -------
 

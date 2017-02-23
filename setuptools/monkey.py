@@ -52,13 +52,7 @@ def patch_all():
     # we can't patch distutils.cmd, alas
     distutils.core.Command = setuptools.Command
 
-    has_issue_12885 = (
-        sys.version_info < (3, 4, 6)
-        or
-        (3, 5) < sys.version_info <= (3, 5, 3)
-        or
-        (3, 6) < sys.version_info
-    )
+    has_issue_12885 = sys.version_info <= (3, 5, 3)
 
     if has_issue_12885:
         # fix findall bug in distutils (http://bugs.python.org/issue12885)
