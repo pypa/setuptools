@@ -13,4 +13,3 @@ setuptools.egg-info
 *.swp
 *~
 .hg*
-requirements.txt

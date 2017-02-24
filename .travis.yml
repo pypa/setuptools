@@ -15,8 +15,7 @@ matrix:
   - python: 2.7
     env: LC_ALL=C LC_CTYPE=C
 script:
- # need tox and rwt to get started
- - pip install tox rwt
+ - pip install tox
 
  # Output the env, to verify behavior
  - env
@@ -24,6 +23,7 @@ script:
  # update egg_info based on setup.py in checkout
  - python bootstrap.py
 
+ #- python -m tox
  - tox
 
 before_deploy:

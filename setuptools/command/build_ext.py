@@ -10,7 +10,7 @@ from distutils.errors import DistutilsError
 from distutils import log
 
 from setuptools.extension import Library
-import six
+from setuptools.extern import six
 
 try:
     # Attempt to use Cython for building extensions, if available

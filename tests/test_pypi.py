@@ -2,8 +2,8 @@ import os
 import subprocess
 
 import virtualenv
-from six.moves import http_client
-from six.moves import xmlrpc_client
+from setuptools.extern.six.moves import http_client
+from setuptools.extern.six.moves import xmlrpc_client
 
 TOP = 200
 PYPI_HOSTNAME = 'pypi.python.org'

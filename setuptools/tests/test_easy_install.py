@@ -17,7 +17,7 @@ import zipfile
 from unittest import mock
 
 import time
-from six.moves import urllib
+from setuptools.extern.six.moves import urllib
 
 import pytest
 

@@ -1,9 +1,0 @@
-[build-system]
-# for Setuptools, its own requirements are build requirements,
-# so keep this in sync with install_requires in setup.py.
-requires = [
-    "wheel",
-    "packaging>=16.8",
-    "six>=1.10.0",
-    "appdirs>=1.4.0",
-]

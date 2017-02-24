@@ -14,8 +14,8 @@ try:
 except ImportError:
     from urllib2 import splituser
 
-import six
-from six.moves import urllib, http_client, configparser, map
+from setuptools.extern import six
+from setuptools.extern.six.moves import urllib, http_client, configparser, map
 
 import setuptools
 from pkg_resources import (

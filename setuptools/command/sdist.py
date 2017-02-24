@@ -5,7 +5,7 @@ import sys
 import io
 import contextlib
 
-import six
+from setuptools.extern import six
 
 from .py36compat import sdist_add_defaults
 

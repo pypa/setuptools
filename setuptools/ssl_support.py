@@ -4,7 +4,7 @@ import atexit
 import re
 import functools
 
-from six.moves import urllib, http_client, map, filter
+from setuptools.extern.six.moves import urllib, http_client, map, filter
 
 from pkg_resources import ResolutionError, ExtractionError
 

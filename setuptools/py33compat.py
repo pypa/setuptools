@@ -2,7 +2,7 @@ import dis
 import array
 import collections
 
-import six
+from setuptools.extern import six
 
 
 OpArg = collections.namedtuple('OpArg', 'opcode arg')

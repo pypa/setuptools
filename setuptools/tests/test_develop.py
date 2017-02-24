@@ -9,7 +9,7 @@ import sys
 import io
 import subprocess
 
-import six
+from setuptools.extern import six
 from setuptools.command import test
 
 import pytest

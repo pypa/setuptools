@@ -40,8 +40,8 @@ import subprocess
 import shlex
 import io
 
-import six
-from six.moves import configparser, map
+from setuptools.extern import six
+from setuptools.extern.six.moves import configparser, map
 
 from setuptools import Command
 from setuptools.sandbox import run_setup
