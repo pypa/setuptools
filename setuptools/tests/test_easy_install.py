@@ -65,7 +65,7 @@ class TestEasyInstallTest:
 
     def test_get_script_args(self):
         header = ei.CommandSpec.best().from_environment().as_header()
-        expected = header + DALS("""
+        expected = header + DALS(r"""
             # EASY-INSTALL-ENTRY-SCRIPT: 'spec','console_scripts','name'
             __requires__ = 'spec'
             import re

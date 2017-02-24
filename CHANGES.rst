@@ -1,3 +1,9 @@
+v34.3.1
+-------
+
+* #983: Fixes to invalid escape sequence deprecations on
+  Python 3.6.
+
 v34.3.0
 -------
 

@@ -2013,7 +2013,7 @@ class ScriptWriter(object):
     gui apps.
     """
 
-    template = textwrap.dedent("""
+    template = textwrap.dedent(r"""
         # EASY-INSTALL-ENTRY-SCRIPT: %(spec)r,%(group)r,%(name)r
         __requires__ = %(spec)r
         import re

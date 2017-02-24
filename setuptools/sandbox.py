@@ -215,7 +215,7 @@ def _needs_hiding(mod_name):
     >>> _needs_hiding('Cython')
     True
     """
-    pattern = re.compile('(setuptools|pkg_resources|distutils|Cython)(\.|$)')
+    pattern = re.compile(r'(setuptools|pkg_resources|distutils|Cython)(\.|$)')
     return bool(pattern.match(mod_name))
 
 
@@ -391,7 +391,7 @@ class DirectorySandbox(AbstractSandbox):
 
     _exception_patterns = [
         # Allow lib2to3 to attempt to save a pickled grammar object (#121)
-        '.*lib2to3.*\.pickle$',
+        r'.*lib2to3.*\.pickle$',
     ]
     "exempt writing to paths that match the pattern"
 
