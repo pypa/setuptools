@@ -593,7 +593,7 @@ class TestParsing:
             [Requirement('Twis-Ted>=1.2-1')]
         )
         assert (
-            list(parse_requirements('Twisted >=1.2, \ # more\n<2.0'))
+            list(parse_requirements('Twisted >=1.2, \\ # more\n<2.0'))
             ==
             [Requirement('Twisted>=1.2,<2.0')]
         )

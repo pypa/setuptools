@@ -272,7 +272,7 @@ class PlatformInfo:
         )
 
     def target_dir(self, hidex86=False, x64=False):
-        """
+        r"""
         Target platform specific subfolder.
 
         Parameters
@@ -294,7 +294,7 @@ class PlatformInfo:
         )
 
     def cross_dir(self, forcex86=False):
-        """
+        r"""
         Cross platform specific subfolder.
 
         Parameters
