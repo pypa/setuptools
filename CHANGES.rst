@@ -1,6 +1,9 @@
 v34.3.1
 -------
 
+* #988: Trap ``os.unlink`` same as ``os.remove`` in
+  ``auto_chmod`` error handler.
+
 * #983: Fixes to invalid escape sequence deprecations on
   Python 3.6.
 
