@@ -1675,7 +1675,7 @@ def _first_line_re():
 
 
 def auto_chmod(func, arg, exc):
-    if func is os.remove and os.name == 'nt':
+    if func in [os.unlink, os.remove] and os.name == 'nt':
         chmod(arg, stat.S_IWRITE)
         return func(arg)
     et, ev, _ = sys.exc_info()
