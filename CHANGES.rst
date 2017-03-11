@@ -1,3 +1,10 @@
+v34.3.2
+-------
+
+* #993: Fix documentation upload by correcting
+  rendering of content-type in _build_multipart
+  on Python 3.
+
 v34.3.1
 -------
 
