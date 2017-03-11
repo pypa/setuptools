@@ -138,7 +138,7 @@ class upload_docs(upload):
         part_groups = map(builder, data.items())
         parts = itertools.chain.from_iterable(part_groups)
         body_items = itertools.chain(parts, end_items)
-        content_type = 'multipart/form-data; boundary=%s' % boundary
+        content_type = 'multipart/form-data; boundary=%s' % boundary.decode('ascii')
         return b''.join(body_items), content_type
 
     def upload_file(self, filename):
