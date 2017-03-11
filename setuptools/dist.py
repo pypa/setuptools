@@ -15,6 +15,7 @@ from distutils.util import rfc822_escape
 import six
 from six.moves import map
 import packaging
+import packaging.specifiers
 
 from setuptools.depends import Require
 from setuptools import windows_support
