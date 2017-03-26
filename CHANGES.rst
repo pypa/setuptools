@@ -1,3 +1,10 @@
+v34.3.3
+-------
+
+* #967 (and #997): Explicitly import submodules of
+  packaging to account for environments where the imports
+  of those submodules is not implied by other behavior.
+
 v34.3.2
 -------
 
