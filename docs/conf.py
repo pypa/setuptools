@@ -18,6 +18,11 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
+
+# hack to run the bootstrap script so that jaraco.packaging.sphinx
+# can invoke setup.py
+exec(open('../bootstrap.py').read())
+
 # -- General configuration -----------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
