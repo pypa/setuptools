@@ -15,7 +15,8 @@ here = os.path.dirname(__file__)
 
 def require_metadata():
     "Prevent improper installs without necessary metadata. See #659"
-    if not os.path.exists('setuptools.egg-info'):
+    egg_info_dir = os.path.join(here, 'setuptools.egg-info')
+    if not os.path.exists(egg_info_dir):
         msg = (
             "Cannot build setuptools without metadata. "
             "Install rwt and run `rwt -- bootstrap.py`."
