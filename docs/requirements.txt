@@ -1,5 +1,3 @@
 sphinx
 rst.linker>=1.9
 jaraco.packaging>=3.2
-
-setuptools>=34

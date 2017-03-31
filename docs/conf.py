@@ -18,14 +18,17 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
-
-# hack to run the bootstrap script so that jaraco.packaging.sphinx
-# can invoke setup.py
 import subprocess
 import sys
 import os
-proj_root = os.path.join(os.path.dirname(__file__), os.path.pardir)
-subprocess.check_call([sys.executable, 'bootstrap.py'], cwd=proj_root)
+
+
+# hack to run the bootstrap script so that jaraco.packaging.sphinx
+# can invoke setup.py
+'READTHEDOCS' in os.environ and subprocess.check_call(
+    [sys.executable, 'bootstrap.py'],
+    cwd=os.path.join(os.path.dirname(__file__), os.path.pardir),
+)
 
 # -- General configuration -----------------------------------------------------
 
