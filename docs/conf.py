@@ -21,6 +21,9 @@
 
 # hack to run the bootstrap script so that jaraco.packaging.sphinx
 # can invoke setup.py
+import subprocess
+import sys
+subprocess.Popen([sys.executable, 'bootstrap.py'], cwd='..')
 exec(open('../bootstrap.py').read())
 
 # -- General configuration -----------------------------------------------------
