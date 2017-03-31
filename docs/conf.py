@@ -23,7 +23,9 @@
 # can invoke setup.py
 import subprocess
 import sys
-subprocess.check_call([sys.executable, 'bootstrap.py'], cwd='..')
+import os
+proj_root = os.path.join(os.path.dirname(__file__), os.path.pardir)
+subprocess.check_call([sys.executable, 'bootstrap.py'], cwd=proj_root)
 
 # -- General configuration -----------------------------------------------------
 
