@@ -23,13 +23,13 @@
 # can invoke setup.py
 import subprocess
 import sys
-subprocess.Popen([sys.executable, 'bootstrap.py'], cwd='..')
+subprocess.check_call([sys.executable, 'bootstrap.py'], cwd='..')
 
 # -- General configuration -----------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['rst.linker', 'sphinx.ext.autosectionlabel', 'jaraco.packaging.sphinx']
+extensions = ['jaraco.packaging.sphinx', 'rst.linker', 'sphinx.ext.autosectionlabel']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
