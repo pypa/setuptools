@@ -24,7 +24,6 @@
 import subprocess
 import sys
 subprocess.Popen([sys.executable, 'bootstrap.py'], cwd='..')
-exec(open('../bootstrap.py').read())
 
 # -- General configuration -----------------------------------------------------
 
