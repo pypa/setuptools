@@ -1,3 +1,10 @@
+v34.4.0
+-------
+
+* #999 via #1007: Extend support for declarative package
+  config in a setup.cfg file to include the options
+  ``python_requires`` and ``py_modules``.
+
 v34.3.3
 -------
 
