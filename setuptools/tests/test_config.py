@@ -312,6 +312,8 @@ class TestOptions:
             'setup_requires = docutils>=0.3; spack ==1.1, ==1.3; there\n'
             'dependency_links = http://some.com/here/1, '
                 'http://some.com/there/2\n'
+            'python_requires = >=1.0, !=2.8\n'
+            'py_modules = module1, module2\n'
         )
         with get_dist(tmpdir) as dist:
             assert dist.zip_safe
@@ -340,6 +342,8 @@ class TestOptions:
                 'there'
             ])
             assert dist.tests_require == ['mock==0.7.2', 'pytest']
+            assert dist.python_requires == '>=1.0, !=2.8'
+            assert dist.py_modules == ['module1', 'module2']
 
     def test_multiline(self, tmpdir):
         fake_env(

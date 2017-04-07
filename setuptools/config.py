@@ -462,6 +462,7 @@ class ConfigOptionsHandler(ConfigHandler):
             'tests_require': parse_list_semicolon,
             'packages': self._parse_packages,
             'entry_points': self._parse_file,
+            'py_modules': parse_list,
         }
 
     def _parse_packages(self, value):
