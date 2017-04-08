@@ -530,22 +530,7 @@ class SystemInfo:
         """
         self.VSInstallDir
 
-        # Default path starting VS2017
-        guess_vc = ''
-        if self.vc_ver > 14.0:
-            default = r'VC\Tools\MSVC'
-            guess_vc = os.path.join(self.VSInstallDir, default)
-            # Subdir with VC exact version as name
-            try:
-                vc_exact_ver = os.listdir(guess_vc)[-1]
-                guess_vc = os.path.join(guess_vc, vc_exact_ver)
-            except (OSError, IOError, IndexError):
-                guess_vc = ''
-
-        # Legacy default path
-        if not guess_vc:
-            default = r'Microsoft Visual Studio %0.1f\VC' % self.vc_ver
-            guess_vc = os.path.join(self.ProgramFilesx86, default)
+        guess_vc = self._guess_vc() or self._guess_vc_legacy()
 
         # Try to get "VC++ for Python" path from registry as default path
         reg_path = os.path.join(self.ri.vc_for_python, '%0.1f' % self.vc_ver)
@@ -560,6 +545,30 @@ class SystemInfo:
             raise distutils.errors.DistutilsPlatformError(msg)
 
         return path
+
+    def _guess_vc(self):
+        """
+        Locate Visual C for 2017
+        """
+
+        if self.vc_ver <= 14.0:
+            return
+
+        default = r'VC\Tools\MSVC'
+        guess_vc = os.path.join(self.VSInstallDir, default)
+        # Subdir with VC exact version as name
+        try:
+            vc_exact_ver = os.listdir(guess_vc)[-1]
+            return os.path.join(guess_vc, vc_exact_ver)
+        except (OSError, IOError, IndexError):
+            pass
+
+    def _guess_vc_legacy(self):
+        """
+        Locate Visual C for versions prior to 2017
+        """
+        default = r'Microsoft Visual Studio %0.1f\VC' % self.vc_ver
+        return os.path.join(self.ProgramFilesx86, default)
 
     @property
     def WindowsSdkVersion(self):
