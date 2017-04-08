@@ -753,17 +753,9 @@ class SystemInfo:
             Platform number of bits: 32 or 64.
         """
         # Find actual .NET version in registry
-        ver = self.ri.lookup(self.ri.vc, 'frameworkver%d' % bits) or ''
-
-        # If nothing in registry, look in Framework folder
-        if not ver:
-            dot_net_dir = (self.FrameworkDir32 if bits == 32 else
-                           self.FrameworkDir64)
-            for dir_name in reversed(os.listdir(dot_net_dir)):
-                if (os.path.isdir(os.path.join(dot_net_dir, dir_name)) and
-                        dir_name.startswith('v')):
-                    ver = dir_name
-                    break
+        reg_ver = self.ri.lookup(self.ri.vc, 'frameworkver%d' % bits)
+        dot_net_dir = getattr(self, 'FrameworkDir%d' % bits)
+        ver = reg_ver or self._find_dot_net_in(dot_net_dir) or ''
 
         # Set .NET versions for specified MSVC++ version
         if self.vc_ver >= 12.0:
@@ -776,6 +768,18 @@ class SystemInfo:
         if self.vc_ver == 8.0:
             frameworkver = ('v3.0', 'v2.0.50727')
         return frameworkver
+
+    def _find_dot_net_in(self, dot_net_dir):
+        """
+        Find .Net in the Framework folder
+        """
+        matching_dirs = (
+            dir_name
+            for dir_name in reversed(os.listdir(dot_net_dir))
+            if os.path.isdir(os.path.join(dot_net_dir, dir_name))
+            and dir_name.startswith('v')
+        )
+        return next(matching_dirs, None)
 
 
 class EnvironmentInfo:
