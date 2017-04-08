@@ -20,8 +20,8 @@ if sys.version_info < (3,):
 
 
 linux_py2_ascii = (
-	platform.system() == 'Linux' and
-	sys.version_info < (3,)
+    platform.system() == 'Linux' and
+    sys.version_info < (3,)
 )
 
 rmtree_safe = str if linux_py2_ascii else lambda x: x
