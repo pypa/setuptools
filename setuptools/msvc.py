@@ -987,11 +987,11 @@ class EnvironmentInfo:
         """
         Microsoft Windows SDK Tools
         """
+        tools = []
+
         if self.vc_ver < 15.0:
             bin_dir = 'Bin' if self.vc_ver <= 11.0 else r'Bin\x86'
-            tools = [os.path.join(self.si.WindowsSdkDir, bin_dir)]
-        else:
-            tools = []
+            tools += [os.path.join(self.si.WindowsSdkDir, bin_dir)]
 
         if not self.pi.current_is_x86():
             arch_subdir = self.pi.current_dir(x64=True)
