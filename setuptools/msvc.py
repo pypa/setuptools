@@ -987,16 +987,17 @@ class EnvironmentInfo:
         """
         Microsoft Windows SDK Tools
         """
-        tools = []
+        return list(self._sdk_tools())
 
+    def _sdk_tools(self):
         if self.vc_ver < 15.0:
             bin_dir = 'Bin' if self.vc_ver <= 11.0 else r'Bin\x86'
-            tools += [os.path.join(self.si.WindowsSdkDir, bin_dir)]
+            yield os.path.join(self.si.WindowsSdkDir, bin_dir)
 
         if not self.pi.current_is_x86():
             arch_subdir = self.pi.current_dir(x64=True)
             path = 'Bin%s' % arch_subdir
-            tools += [os.path.join(self.si.WindowsSdkDir, path)]
+            yield os.path.join(self.si.WindowsSdkDir, path)
 
         if self.vc_ver == 10.0 or self.vc_ver == 11.0:
             if self.pi.target_is_x86():
@@ -1004,18 +1005,16 @@ class EnvironmentInfo:
             else:
                 arch_subdir = self.pi.current_dir(hidex86=True, x64=True)
             path = r'Bin\NETFX 4.0 Tools%s' % arch_subdir
-            tools += [os.path.join(self.si.WindowsSdkDir, path)]
+            yield os.path.join(self.si.WindowsSdkDir, path)
 
         elif self.vc_ver >= 15.0:
             path = os.path.join(self.si.WindowsSdkDir, 'Bin')
             arch_subdir = self.pi.current_dir(x64=True)
             sdkver = self._get_content_dirname(path, slash=False)
-            tools += [os.path.join(path, r'%s%s' % (sdkver, arch_subdir))]
+            yield os.path.join(path, r'%s%s' % (sdkver, arch_subdir))
 
         if self.si.WindowsSDKExecutablePath:
-            tools += [self.si.WindowsSDKExecutablePath]
-
-        return tools
+            yield self.si.WindowsSDKExecutablePath
 
     @property
     def SdkSetup(self):
