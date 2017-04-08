@@ -1010,7 +1010,7 @@ class EnvironmentInfo:
         elif self.vc_ver >= 15.0:
             path = os.path.join(self.si.WindowsSdkDir, 'Bin')
             arch_subdir = self.pi.current_dir(x64=True)
-            sdkver = self._get_content_dirname(path, slash=False)
+            sdkver = self._get_content_dirname(path).rstrip('\\')
             yield os.path.join(path, r'%s%s' % (sdkver, arch_subdir))
 
         if self.si.WindowsSDKExecutablePath:
@@ -1243,7 +1243,7 @@ class EnvironmentInfo:
                     seen_add(k)
                     yield element
 
-    def _get_content_dirname(self, path, slash=True):
+    def _get_content_dirname(self, path):
         """
         Return name of the first dir in path or '' if no dir found.
 
@@ -1251,8 +1251,6 @@ class EnvironmentInfo:
         ----------
         path: str
             Path where search dir.
-        slash: bool
-            If not True, only return "name" not "name\"
 
         Return
         ------
@@ -1262,10 +1260,7 @@ class EnvironmentInfo:
         try:
             name = os.listdir(path)
             if name:
-                name = name[0]
-                if slash:
-                    return '%s\\' % name
-                return name
+                return '%s\\' % name[0]
             return ''
         except (OSError, IOError):
             return ''
