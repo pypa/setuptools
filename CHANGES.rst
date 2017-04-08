@@ -1,3 +1,10 @@
+v34.4.1
+-------
+
+* #992: In msvc.msvc9_query_vcvarsall, ensure the
+  returned dicts have str values and not Unicode for
+  compatibilty with os.environ.
+
 v34.4.0
 -------
 
