@@ -1,3 +1,9 @@
+v34.4.0
+-------
+
+* #995: In MSVC support, add support for Microsoft
+  Build Tools 2017.
+
 v34.3.2
 -------
 
