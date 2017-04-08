@@ -806,15 +806,14 @@ class EnvironmentInfo:
     # Variables and properties in this class use originals CamelCase variables
     # names from Microsoft source files for more easy comparaison.
 
-    def __init__(self, arch, vc_ver=None, vc_min_ver=None):
+    def __init__(self, arch, vc_ver=None, vc_min_ver=0):
         self.pi = PlatformInfo(arch)
         self.ri = RegistryInfo(self.pi)
         self.si = SystemInfo(self.ri, vc_ver)
 
-        if vc_min_ver:
-            if self.vc_ver < vc_min_ver:
-                err = 'No suitable Microsoft Visual C++ version found'
-                raise distutils.errors.DistutilsPlatformError(err)
+        if self.vc_ver < vc_min_ver:
+            err = 'No suitable Microsoft Visual C++ version found'
+            raise distutils.errors.DistutilsPlatformError(err)
 
     @property
     def vc_ver(self):
