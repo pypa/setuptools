@@ -2425,6 +2425,7 @@ zip_safe                 bool
 setup_requires           list-semi
 install_requires         list-semi
 extras_require           section
+python_requires          str
 entry_points             file:, section
 use_2to3                 bool
 use_2to3_fixers          list-comma
@@ -2440,6 +2441,7 @@ package_dir              dict
 package_data             section
 exclude_package_data     section
 namespace_packages       list-comma
+py_modules               list-comma
 =======================  =====
 
 .. note::
