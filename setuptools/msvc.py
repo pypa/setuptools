@@ -1011,7 +1011,7 @@ class EnvironmentInfo:
             path = os.path.join(self.si.WindowsSdkDir, 'Bin')
             arch_subdir = self.pi.current_dir(x64=True)
             sdkver = self._get_content_dirname(path).rstrip('\\')
-            yield os.path.join(path, r'%s%s' % (sdkver, arch_subdir))
+            yield os.path.join(path, '%s%s' % (sdkver, arch_subdir))
 
         if self.si.WindowsSDKExecutablePath:
             yield self.si.WindowsSDKExecutablePath
