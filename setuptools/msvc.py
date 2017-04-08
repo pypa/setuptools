@@ -472,14 +472,14 @@ class SystemInfo:
     def __init__(self, registry_info, vc_ver=None):
         self.ri = registry_info
         self.pi = self.ri.pi
-        if vc_ver:
-            self.vc_ver = vc_ver
-        else:
-            try:
-                self.vc_ver = self.find_available_vc_vers()[-1]
-            except IndexError:
-                err = 'No Microsoft Visual C++ version found'
-                raise distutils.errors.DistutilsPlatformError(err)
+        self.vc_ver = vc_ver or self._find_latest_available_vc_ver()
+
+    def _find_latest_available_vc_ver(self):
+        try:
+            return self.find_available_vc_vers()[-1]
+        except IndexError:
+            err = 'No Microsoft Visual C++ version found'
+            raise distutils.errors.DistutilsPlatformError(err)
 
     def find_available_vc_vers(self):
         """
