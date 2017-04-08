@@ -140,7 +140,7 @@ def msvc9_query_vcvarsall(ver, arch='x86', *args, **kwargs):
         _augment_exception(exc, ver, arch)
         raise
 
-    return py27compat.make_dict_values_strings(env)
+    return py27compat.dict_values_strings(env)
 
 
 def msvc14_get_vc_env(plat_spec):
