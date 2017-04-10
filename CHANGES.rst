@@ -1,11 +1,9 @@
-v34.4.2
+v34.4.1
 -------
 
 * #1008: In MSVC support, use always the last version available for Windows SDK and UCRT SDK.
-* #1008: In MSVC support, fix "vcruntime140.dll" returned path with Visual Studio 2017.
 
-v34.4.1
--------
+* #1008: In MSVC support, fix "vcruntime140.dll" returned path with Visual Studio 2017.
 
 * #992: In msvc.msvc9_query_vcvarsall, ensure the
   returned dicts have str values and not Unicode for
