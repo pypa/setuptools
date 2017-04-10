@@ -1,3 +1,9 @@
+v34.4.2
+-------
+
+* #1008: In MSVC support, use always the last version available for Windows SDK and UCRT SDK.
+* #1008: In MSVC support, fix "vcruntime140.dll" returned path with Visual Studio 2017.
+
 v34.4.1
 -------
 
@@ -8,8 +14,7 @@ v34.4.1
 v34.4.0
 -------
 
-* #995: In MSVC support, add support for Microsoft
-  Build Tools 2017.
+* #995: In MSVC support, add support for "Microsoft Visual Studio 2017" and "Microsoft Visual Studio Build Tools 2017".
 
 * #999 via #1007: Extend support for declarative package
   config in a setup.cfg file to include the options

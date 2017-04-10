@@ -4,15 +4,16 @@ Improved support for Microsoft Visual C++ compilers.
 Known supported compilers:
 --------------------------
 Microsoft Visual C++ 9.0:
-    Microsoft Visual C++ Compiler for Python 2.7 (x86, amd64);
-    Microsoft Windows SDK 7.0 (x86, x64, ia64);
+    Microsoft Visual C++ Compiler for Python 2.7 (x86, amd64)
     Microsoft Windows SDK 6.1 (x86, x64, ia64)
+    Microsoft Windows SDK 7.0 (x86, x64, ia64)
 
 Microsoft Visual C++ 10.0:
     Microsoft Windows SDK 7.1 (x86, x64, ia64)
 
 Microsoft Visual C++ 14.0:
     Microsoft Visual C++ Build Tools 2015 (x86, x64, arm)
+    Microsoft Visual Studio 2017 (x86, x64, arm, arm64)
     Microsoft Visual Studio Build Tools 2017 (x86, x64, arm, arm64)
 """
 
@@ -96,7 +97,7 @@ def msvc9_find_vcvarsall(version):
 
 def msvc9_query_vcvarsall(ver, arch='x86', *args, **kwargs):
     """
-    Patched "distutils.msvc9compiler.query_vcvarsall" for support standalones
+    Patched "distutils.msvc9compiler.query_vcvarsall" for support extra
     compilers.
 
     Set environment without use of "vcvarsall.bat".
@@ -104,9 +105,9 @@ def msvc9_query_vcvarsall(ver, arch='x86', *args, **kwargs):
     Known supported compilers
     -------------------------
     Microsoft Visual C++ 9.0:
-        Microsoft Visual C++ Compiler for Python 2.7 (x86, amd64);
-        Microsoft Windows SDK 7.0 (x86, x64, ia64);
+        Microsoft Visual C++ Compiler for Python 2.7 (x86, amd64)
         Microsoft Windows SDK 6.1 (x86, x64, ia64)
+        Microsoft Windows SDK 7.0 (x86, x64, ia64)
 
     Microsoft Visual C++ 10.0:
         Microsoft Windows SDK 7.1 (x86, x64, ia64)
@@ -145,7 +146,7 @@ def msvc9_query_vcvarsall(ver, arch='x86', *args, **kwargs):
 
 def msvc14_get_vc_env(plat_spec):
     """
-    Patched "distutils._msvccompiler._get_vc_env" for support standalones
+    Patched "distutils._msvccompiler._get_vc_env" for support extra
     compilers.
 
     Set environment without use of "vcvarsall.bat".
@@ -154,6 +155,7 @@ def msvc14_get_vc_env(plat_spec):
     -------------------------
     Microsoft Visual C++ 14.0:
         Microsoft Visual C++ Build Tools 2015 (x86, x64, arm)
+        Microsoft Visual Studio 2017 (x86, x64, arm, arm64)
         Microsoft Visual Studio Build Tools 2017 (x86, x64, arm, arm64)
 
     Parameters
@@ -553,7 +555,6 @@ class SystemInfo:
         """
         Locate Visual C for 2017
         """
-
         if self.vc_ver <= 14.0:
             return
 
@@ -576,9 +577,8 @@ class SystemInfo:
     @property
     def WindowsSdkVersion(self):
         """
-        Microsoft Windows SDK versions.
+        Microsoft Windows SDK versions for specified MSVC++ version.
         """
-        # Set Windows SDK versions for specified MSVC++ version
         if self.vc_ver <= 9.0:
             return ('7.0', '6.1', '6.0a')
         elif self.vc_ver == 10.0:
@@ -589,6 +589,14 @@ class SystemInfo:
             return ('8.1', '8.1a')
         elif self.vc_ver >= 14.0:
             return ('10.0', '8.1')
+
+    @property
+    def WindowsSdkLastVersion(self):
+        """
+        Microsoft Windows SDK last version
+        """
+        return self._use_last_dir_name(os.path.join(
+            self.WindowsSdkDir, 'lib'))
 
     @property
     def WindowsSdkDir(self):
@@ -688,6 +696,14 @@ class SystemInfo:
         return sdkdir or ''
 
     @property
+    def UniversalCRTSdkLastVersion(self):
+        """
+        Microsoft Universal C Runtime SDK last version
+        """
+        return self._use_last_dir_name(os.path.join(
+            self.UniversalCRTSdkDir, 'lib'))
+
+    @property
     def NetFxSdkVersion(self):
         """
         Microsoft .NET Framework SDK versions.
@@ -746,7 +762,7 @@ class SystemInfo:
         """
         return self._find_dot_net_versions(64)
 
-    def _find_dot_net_versions(self, bits=32):
+    def _find_dot_net_versions(self, bits):
         """
         Find Microsoft .NET Framework versions.
 
@@ -758,7 +774,7 @@ class SystemInfo:
         # Find actual .NET version in registry
         reg_ver = self.ri.lookup(self.ri.vc, 'frameworkver%d' % bits)
         dot_net_dir = getattr(self, 'FrameworkDir%d' % bits)
-        ver = reg_ver or self._find_dot_net_in(dot_net_dir) or ''
+        ver = reg_ver or self._use_last_dir_name(dot_net_dir, 'v') or ''
 
         # Set .NET versions for specified MSVC++ version
         if self.vc_ver >= 12.0:
@@ -772,17 +788,24 @@ class SystemInfo:
             frameworkver = ('v3.0', 'v2.0.50727')
         return frameworkver
 
-    def _find_dot_net_in(self, dot_net_dir):
+    def _use_last_dir_name(self, path, prefix=''):
         """
-        Find .Net in the Framework folder
+        Return name of the last dir in path or '' if no dir found.
+
+        Parameters
+        ----------
+        path: str
+            Use dirs in this path
+        prefix: str
+            Use only dirs startings by this prefix
         """
         matching_dirs = (
             dir_name
-            for dir_name in reversed(os.listdir(dot_net_dir))
-            if os.path.isdir(os.path.join(dot_net_dir, dir_name))
-            and dir_name.startswith('v')
+            for dir_name in reversed(os.listdir(path))
+            if os.path.isdir(os.path.join(path, dir_name)) and
+            dir_name.startswith(prefix)
         )
-        return next(matching_dirs, None)
+        return next(matching_dirs, None) or ''
 
 
 class EnvironmentInfo:
@@ -917,8 +940,8 @@ class EnvironmentInfo:
         else:
             arch_subdir = self.pi.target_dir(x64=True)
             lib = os.path.join(self.si.WindowsSdkDir, 'lib')
-            libver = self._get_content_dirname(lib)
-            return [os.path.join(lib, '%sum%s' % (libver, arch_subdir))]
+            libver = self._sdk_subdir
+            return [os.path.join(lib, '%sum%s' % (libver , arch_subdir))]
 
     @property
     def OSIncludes(self):
@@ -932,7 +955,7 @@ class EnvironmentInfo:
 
         else:
             if self.vc_ver >= 14.0:
-                sdkver = self._get_content_dirname(include)
+                sdkver = self._sdk_subdir
             else:
                 sdkver = ''
             return [os.path.join(include, '%sshared' % sdkver),
@@ -992,6 +1015,9 @@ class EnvironmentInfo:
         return list(self._sdk_tools())
 
     def _sdk_tools(self):
+        """
+        Microsoft Windows SDK Tools paths generator
+        """
         if self.vc_ver < 15.0:
             bin_dir = 'Bin' if self.vc_ver <= 11.0 else r'Bin\x86'
             yield os.path.join(self.si.WindowsSdkDir, bin_dir)
@@ -1012,11 +1038,19 @@ class EnvironmentInfo:
         elif self.vc_ver >= 15.0:
             path = os.path.join(self.si.WindowsSdkDir, 'Bin')
             arch_subdir = self.pi.current_dir(x64=True)
-            sdkver = self._get_content_dirname(path).rstrip('\\')
+            sdkver = self.si.WindowsSdkLastVersion
             yield os.path.join(path, '%s%s' % (sdkver, arch_subdir))
 
         if self.si.WindowsSDKExecutablePath:
             yield self.si.WindowsSDKExecutablePath
+
+    @property
+    def _sdk_subdir(self):
+        """
+        Microsoft Windows SDK version subdir
+        """
+        ucrtver = self.si.WindowsSdkLastVersion
+        return ('%s\\' % ucrtver) if ucrtver else ''
 
     @property
     def SdkSetup(self):
@@ -1116,27 +1150,34 @@ class EnvironmentInfo:
     @property
     def UCRTLibraries(self):
         """
-        Microsoft Universal CRT Libraries
+        Microsoft Universal C Runtime SDK Libraries
         """
         if self.vc_ver < 14.0:
             return []
 
         arch_subdir = self.pi.target_dir(x64=True)
         lib = os.path.join(self.si.UniversalCRTSdkDir, 'lib')
-        ucrtver = self._get_content_dirname(lib)
+        ucrtver = self._ucrt_subdir
         return [os.path.join(lib, '%sucrt%s' % (ucrtver, arch_subdir))]
 
     @property
     def UCRTIncludes(self):
         """
-        Microsoft Universal CRT Include
+        Microsoft Universal C Runtime SDK Include
         """
         if self.vc_ver < 14.0:
             return []
 
         include = os.path.join(self.si.UniversalCRTSdkDir, 'include')
-        ucrtver = self._get_content_dirname(include)
-        return [os.path.join(include, '%sucrt' % ucrtver)]
+        return [os.path.join(include, '%sucrt' % self._ucrt_subdir)]
+
+    @property
+    def _ucrt_subdir(self):
+        """
+        Microsoft Universal C Runtime SDK version subdir
+        """
+        ucrtver = self.si.UniversalCRTSdkLastVersion
+        return ('%s\\' % ucrtver) if ucrtver else ''
 
     @property
     def FSharp(self):
@@ -1154,9 +1195,18 @@ class EnvironmentInfo:
         Microsoft Visual C++ runtime redistribuable dll
         """
         arch_subdir = self.pi.target_dir(x64=True)
-        vcruntime = 'redist%s\\Microsoft.VC%d0.CRT\\vcruntime%d0.dll'
-        vcruntime = vcruntime % (arch_subdir, self.vc_ver, self.vc_ver)
-        return os.path.join(self.si.VCInstallDir, vcruntime)
+        if self.vc_ver < 15:
+            redist_path = self.si.VCInstallDir
+            vcruntime = 'redist%s\\Microsoft.VC%d0.CRT\\vcruntime%d0.dll'
+        else:
+            redist_path = self.si.VCInstallDir.replace('\\Tools', '\\Redist')
+            vcruntime = 'onecore%s\\Microsoft.VC%d0.CRT\\vcruntime%d0.dll'
+
+        # Visual Studio 2017  is still Visual C++ 14.0
+        dll_ver = 14.0 if self.vc_ver == 15 else self.vc_ver
+
+        vcruntime = vcruntime % (arch_subdir, self.vc_ver, dll_ver)
+        return os.path.join(redist_path, vcruntime)
 
     def return_env(self, exists=True):
         """
@@ -1244,25 +1294,3 @@ class EnvironmentInfo:
                 if k not in seen:
                     seen_add(k)
                     yield element
-
-    def _get_content_dirname(self, path):
-        """
-        Return name of the first dir in path or '' if no dir found.
-
-        Parameters
-        ----------
-        path: str
-            Path where search dir.
-
-        Return
-        ------
-        foldername: str
-            "name\" or ""
-        """
-        try:
-            name = os.listdir(path)
-            if name:
-                return '%s\\' % name[0]
-            return ''
-        except (OSError, IOError):
-            return ''
