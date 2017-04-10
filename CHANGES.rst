@@ -1,5 +1,6 @@
 v34.4.2
 -------
+
 * #1008: In MSVC support, use always the last version available for Windows SDK and UCRT SDK.
 * #1008: In MSVC support, fix "vcruntime140.dll" returned path with Visual Studio 2017.
 
