@@ -474,8 +474,7 @@ class easy_install(Command):
         else:
             self.pth_file = None
 
-        PYTHONPATH = os.environ.get('PYTHONPATH', '').split(os.pathsep)
-        if instdir not in map(normalize_path, filter(None, PYTHONPATH)):
+        if instdir not in map(normalize_path, _pythonpath()):
             # only PYTHONPATH dirs need a site.py, so pretend it's there
             self.sitepy_installed = True
         elif self.multi_version and not os.path.exists(pth_file):
@@ -1348,6 +1347,11 @@ class easy_install(Command):
                 setattr(self, attr, val)
 
 
+def _pythonpath():
+    items = os.environ.get('PYTHONPATH', '').split(os.pathsep)
+    return filter(None, items)
+
+
 def get_site_dirs():
     """
     Return a list of 'site' dirs
@@ -1356,8 +1360,7 @@ def get_site_dirs():
     sitedirs = []
 
     # start with PYTHONPATH
-    pythonpath_items = os.environ.get('PYTHONPATH', '').split(os.pathsep)
-    sitedirs.extend(filter(None, pythonpath_items))
+    sitedirs.extend(_pythonpath())
 
     prefixes = [sys.prefix]
     if sys.exec_prefix != sys.prefix:
