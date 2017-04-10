@@ -1349,9 +1349,16 @@ class easy_install(Command):
 
 
 def get_site_dirs():
-    # return a list of 'site' dirs
-    sitedirs = [_f for _f in os.environ.get('PYTHONPATH',
-                                            '').split(os.pathsep) if _f]
+    """
+    Return a list of 'site' dirs
+    """
+
+    sitedirs = []
+
+    # start with PYTHONPATH
+    pythonpath_items = os.environ.get('PYTHONPATH', '').split(os.pathsep)
+    sitedirs.extend(filter(None, pythonpath_items))
+
     prefixes = [sys.prefix]
     if sys.exec_prefix != sys.prefix:
         prefixes.append(sys.exec_prefix)
