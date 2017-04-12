@@ -1176,6 +1176,8 @@ Distributing a ``setuptools``-based project
 Using ``setuptools``...  Without bundling it!
 ---------------------------------------------
 
+.. warning:: **ez_setup** is deprecated in favor of PIP with **PEP-518** support.
+
 Your users might not have ``setuptools`` installed on their machines, or even
 if they do, it might not be the right version.  Fixing this is easy; just
 download `ez_setup.py`_, and put it in the same directory as your ``setup.py``
@@ -2276,6 +2278,11 @@ New in 20.1: Added keyring support.
 -----------------------------------------
 Configuring setup() using setup.cfg files
 -----------------------------------------
+
+.. note:: New in 30.3.0 (8 Dec 2016).
+
+.. important:: ``setup.py`` with ``setup()`` function call is still required even 
+                if your configuration resides in ``setup.cfg``.
 
 ``Setuptools`` allows using configuration files (usually `setup.cfg`)
 to define package’s metadata and other options which are normally supplied
