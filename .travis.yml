@@ -14,6 +14,9 @@ matrix:
     env: LC_ALL=C LC_CTYPE=C
   - python: 2.7
     env: LC_ALL=C LC_CTYPE=C
+  allow_failures:
+  # https://github.com/pypa/setuptools/issues/1015
+  - python: nightly
 script:
  # need tox and rwt to get started
  - pip install tox rwt
