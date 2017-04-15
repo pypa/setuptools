@@ -1,3 +1,16 @@
+v35.0.0
+-------
+
+* #436: In egg_info.manifest_maker, no longer read
+  the file list from the manifest file, and instead
+  re-build it on each build. In this way, files removed
+  from the specification will not linger in the manifest.
+  As a result, any files manually added to the manifest
+  will be removed on subsequent egg_info invocations.
+  No projects should be manually adding files to the
+  manifest and should instead use MANIFEST.in or SCM
+  file finders to force inclusion of files in the manifest.
+
 v34.4.1
 -------
 
