@@ -1,3 +1,9 @@
+v35.0.1
+-------
+
+* #992: Revert change introduced in v34.4.1, now
+  considered invalid.
+
 v35.0.0
 -------
 
