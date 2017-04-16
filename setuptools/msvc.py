@@ -27,7 +27,6 @@ from packaging.version import LegacyVersion
 from six.moves import filterfalse
 
 from .monkey import get_unpatched
-from . import py27compat
 
 if platform.system() == 'Windows':
     from six.moves import winreg
@@ -136,12 +135,10 @@ def msvc9_query_vcvarsall(ver, arch='x86', *args, **kwargs):
 
     # If error, try to set environment directly
     try:
-        env = EnvironmentInfo(arch, ver).return_env()
+        return EnvironmentInfo(arch, ver).return_env()
     except distutils.errors.DistutilsPlatformError as exc:
         _augment_exception(exc, ver, arch)
         raise
-
-    return py27compat.dict_values_strings(env)
 
 
 def msvc14_get_vc_env(plat_spec):
