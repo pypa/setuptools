@@ -99,6 +99,21 @@ def test_python_novaclient(install_context):
     _install_one('python-novaclient', install_context,
                  'novaclient', 'base.py')
 
+
+def test_pyuri(install_context):
+    """
+    Install the pyuri package (version 0.3.1 at the time of writing).
+
+    This is also a regression test for issue #1016.
+    """
+    _install_one('pyuri', install_context, 'pyuri', 'uri.py')
+
+    pyuri = install_context.installed_projects['pyuri']
+
+    # The package data should be installed.
+    assert os.path.exists(os.path.join(pyuri.location, 'pyuri', 'uri.regex'))
+
+
 import re
 import subprocess
 import functools
