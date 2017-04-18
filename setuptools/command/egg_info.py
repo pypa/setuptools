@@ -564,6 +564,8 @@ class manifest_maker(sdist):
         rcfiles = list(walk_revctrl())
         if rcfiles:
             self.filelist.extend(rcfiles)
+        elif os.path.exists(self.manifest):
+            self.read_manifest()
         ei_cmd = self.get_finalized_command('egg_info')
         self.filelist.graft(ei_cmd.egg_info)
 
