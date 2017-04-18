@@ -71,26 +71,26 @@ def get_pattern(glob):
 
 def test_translated_pattern_test():
     l = make_local_path
-    assert get_pattern('foo') == r'foo\Z(?ms)'
-    assert get_pattern(l('foo/bar')) == l(r'foo\/bar\Z(?ms)')
+    assert get_pattern('foo') == r'foo\Z'
+    assert get_pattern(l('foo/bar')) == l(r'foo\/bar\Z')
 
     # Glob matching
-    assert get_pattern('*.txt') == l(r'[^\/]*\.txt\Z(?ms)')
-    assert get_pattern('dir/*.txt') == l(r'dir\/[^\/]*\.txt\Z(?ms)')
-    assert get_pattern('*/*.py') == l(r'[^\/]*\/[^\/]*\.py\Z(?ms)')
+    assert get_pattern('*.txt') == l(r'[^\/]*\.txt\Z')
+    assert get_pattern('dir/*.txt') == l(r'dir\/[^\/]*\.txt\Z')
+    assert get_pattern('*/*.py') == l(r'[^\/]*\/[^\/]*\.py\Z')
     assert get_pattern('docs/page-?.txt') \
-        == l(r'docs\/page\-[^\/]\.txt\Z(?ms)')
+        == l(r'docs\/page\-[^\/]\.txt\Z')
 
     # Globstars change what they mean depending upon where they are
-    assert get_pattern(l('foo/**/bar')) == l(r'foo\/(?:[^\/]+\/)*bar\Z(?ms)')
-    assert get_pattern(l('foo/**')) == l(r'foo\/.*\Z(?ms)')
-    assert get_pattern(l('**')) == r'.*\Z(?ms)'
+    assert get_pattern(l('foo/**/bar')) == l(r'foo\/(?:[^\/]+\/)*bar\Z')
+    assert get_pattern(l('foo/**')) == l(r'foo\/.*\Z')
+    assert get_pattern(l('**')) == r'.*\Z'
 
     # Character classes
-    assert get_pattern('pre[one]post') == r'pre[one]post\Z(?ms)'
-    assert get_pattern('hello[!one]world') == r'hello[^one]world\Z(?ms)'
-    assert get_pattern('[]one].txt') == r'[\]one]\.txt\Z(?ms)'
-    assert get_pattern('foo[!]one]bar') == r'foo[^\]one]bar\Z(?ms)'
+    assert get_pattern('pre[one]post') == r'pre[one]post\Z'
+    assert get_pattern('hello[!one]world') == r'hello[^one]world\Z'
+    assert get_pattern('[]one].txt') == r'[\]one]\.txt\Z'
+    assert get_pattern('foo[!]one]bar') == r'foo[^\]one]bar\Z'
 
 
 class TempDirTestCase(object):

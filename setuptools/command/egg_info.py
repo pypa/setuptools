@@ -112,7 +112,8 @@ def translate_pattern(glob):
         if not last_chunk:
             pat += sep
 
-    return re.compile(pat + r'\Z(?ms)')
+    pat += r'\Z'
+    return re.compile(pat, flags=re.MULTILINE|re.DOTALL)
 
 
 class egg_info(Command):
