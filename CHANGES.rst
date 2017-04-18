@@ -4,6 +4,11 @@ v35.0.1
 * #992: Revert change introduced in v34.4.1, now
   considered invalid.
 
+* #1016: Revert change introduced in v35.0.0 per #1014,
+  referencing #436. The approach had unintended
+  consequences, causing sdist installs to be missing
+  files.
+
 v35.0.0
 -------
 
