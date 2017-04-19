@@ -74,7 +74,7 @@ def _install_one(requirement, cmd, pkgname, modulename):
     cmd.run()
     target = cmd.install_dir
     dest_path = glob.glob(os.path.join(target, pkgname + '*.egg'))
-    assert dest_path
+    self.assertTrue(dest_path)
     assert os.path.exists(os.path.join(dest_path[0], pkgname, modulename))
 
 

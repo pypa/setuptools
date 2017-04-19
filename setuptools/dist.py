@@ -88,7 +88,7 @@ sequence = tuple, list
 def check_importable(dist, attr, value):
     try:
         ep = pkg_resources.EntryPoint.parse('x=' + value)
-        assert not ep.extras
+        self.assertFalse(ep.extras)
     except (TypeError, ValueError, AttributeError, AssertionError):
         raise DistutilsSetupError(
             "%r must be importable 'module:attrs' string (got %r)"

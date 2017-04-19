@@ -174,8 +174,8 @@ class TestGUI(WrapperTester):
         ]
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT)
         stdout, stderr = proc.communicate()
-        assert not stdout
-        assert not stderr
+        self.assertFalse(stdout)
+        self.assertFalse(stderr)
         with (tmpdir / 'test_output.txt').open('rb') as f_out:
             actual = f_out.read().decode('ascii')
         assert actual == repr('Test Argument')
