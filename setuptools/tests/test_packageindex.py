@@ -5,7 +5,7 @@ import os
 import distutils.errors
 
 import six
-from six.moves import urllib, http_client
+from six.moves import urllib, http_client, configparser
 
 import pkg_resources
 import setuptools.package_index
@@ -273,3 +273,52 @@ class TestPyPIConfig:
         cred = cfg.creds_by_repository['https://pypi.python.org']
         assert cred.username == 'jaraco'
         assert cred.password == 'pity%'
+
+    def test_default_config(self, tmpdir, monkeypatch):
+        monkeypatch.setitem(os.environ, 'HOME', str(tmpdir))
+        pypirc = tmpdir / '.pypirc'
+        with pypirc.open('w') as strm:
+            strm.write(DALS("""
+                [example]
+                name=johndoe
+                location=here
+            """))
+        cfg = setuptools.package_index.PyPIConfig()
+        assert cfg.get('example', 'name') == 'johndoe'
+        assert cfg.get('example' , 'location') == 'here'
+
+    def test_overriden_config(self, tmpdir, monkeypatch):
+        # Write the home config, as well as the override config
+        # Then check that home config is ignored and override is processed
+        monkeypatch.setitem(os.environ, 'HOME', str(tmpdir))
+        pypirc = tmpdir / '.pypirc'
+        with pypirc.open('w') as strm:
+            strm.write(DALS("""
+                [example]
+                name=johndoe
+                location=here
+                thing=ignored
+            """))
+
+        override_pypirc = tmpdir / '.override_pypirc'
+        with override_pypirc.open('w') as strm:
+            strm.write(DALS("""
+                [example]
+                name=janesmith
+                location=there
+                something=special
+            """))
+
+        monkeypatch.setitem(os.environ, 'PYPI_CONFIG_FILE', str(override_pypirc))
+        cfg = setuptools.package_index.PyPIConfig()
+        assert cfg.get('example', 'name') == 'janesmith'
+        assert cfg.get('example', 'location') == 'there'
+        assert cfg.get('example', 'something') == 'special'
+
+        # Make sure the default config was never read
+        try:
+            cfg.get('example', 'thing')
+        except configparser.NoOptionError:
+            pass
+        else:
+            assert False, 'Key \'thing\' unexpectedly found in overriden config'
