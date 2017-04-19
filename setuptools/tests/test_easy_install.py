@@ -75,7 +75,7 @@ class TestEasyInstallTest:
             if __name__ == '__main__':
                 sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
                 sys.exit(
-                    load_entry_point('spec', 'console_scripts', 'name')()
+                    load_entry_point('spec', 'console_scripts', 'name')(sys.argv)
                 )
             """)
         dist = FakeDist()
