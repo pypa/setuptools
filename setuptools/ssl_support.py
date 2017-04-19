@@ -187,7 +187,8 @@ class VerifyingHTTPSConn(HTTPSConnection):
             actual_host = self.host
 
         self.sock = ssl.wrap_socket(
-            sock, cert_reqs=ssl.CERT_REQUIRED, ca_certs=self.ca_bundle
+            sock, cert_reqs=ssl.CERT_REQUIRED, ca_certs=self.ca_bundle,
+            ssl_version=ssl.PROTOCOL_TLSv2
         )
         try:
             match_hostname(self.sock.getpeercert(), actual_host)
