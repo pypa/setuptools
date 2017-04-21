@@ -37,7 +37,7 @@ class PackageFinder(object):
     """
 
     @classmethod
-    def find(cls, where='.', exclude=(), include=('*',)):
+    def find(cls, where='.', exclude=(), include=('*',), namespace_packages=()):
         """Return a list all Python packages found within directory 'where'
 
         'where' is the root directory which will be searched for packages.  It
@@ -52,18 +52,26 @@ class PackageFinder(object):
         specified, only the named packages will be included.  If it's not
         specified, all found packages will be included.  'include' can contain
         shell style wildcard patterns just like 'exclude'.
+
+        'namespace_packages' is a sequence of (PEP 420) namespace package names
+        to include. These must be listed explicitly since they cannot reliably
+        be determined as packages due to their lack of '__init__.py'. Note that
+        old style namespace packages, that have an '__init__.py', do not have
+        to be listed here. They will be picked up automatically by the search.
         """
 
         return list(cls._find_packages_iter(
             convert_path(where),
             cls._build_filter('ez_setup', '*__pycache__', *exclude),
-            cls._build_filter(*include)))
+            cls._build_filter(*include),
+            namespace_packages))
 
     @classmethod
-    def _find_packages_iter(cls, where, exclude, include):
+    def _find_packages_iter(cls, where, exclude, include, namespace_packages):
         """
         All the packages found in 'where' that pass the 'include' filter, but
-        not the 'exclude' filter.
+        not the 'exclude' filter. Packages without '__init__.py' will still
+        be considered packages if they're in 'namespace_packages'.
         """
         for root, dirs, files in os.walk(where, followlinks=True):
             # Copy dirs to iterate over it, then empty dirs.
@@ -76,7 +84,9 @@ class PackageFinder(object):
                 package = rel_path.replace(os.path.sep, '.')
 
                 # Skip directory trees that are not valid packages
-                if ('.' in dir or not cls._looks_like_package(full_path)):
+                if ('.' in dir or not (
+                    cls._looks_like_package(full_path)
+                    or package in namespace_packages)):
                     continue
 
                 # Should this package be included?
