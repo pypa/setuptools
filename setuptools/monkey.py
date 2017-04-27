@@ -21,17 +21,18 @@ if you think you need this functionality.
 """
 
 
-def get_mro(cls):
-    """Returns the bases classes for cls sorted by the MRO.
+def _get_mro(cls):
+    """
+    Returns the bases classes for cls sorted by the MRO.
 
     Works around an issue on Jython where inspect.getmro will not return all
     base classes if multiple classes share the same name. Instead, this
     function will return a tuple containing the class itself, and the contents
-    of cls.__bases__ .
+    of cls.__bases__. See https://github.com/pypa/setuptools/issues/1024.
     """
-    if platform.python_implementation() != "Jython":
-        return inspect.getmro(cls)
-    return (cls,) + cls.__bases__
+    if platform.python_implementation() == "Jython":
+        return (cls,) + cls.__bases__
+    return inspect.getmro(cls)
 
 
 def get_unpatched(item):
@@ -51,7 +52,7 @@ def get_unpatched_class(cls):
     """
     external_bases = (
         cls
-        for cls in get_mro(cls)
+        for cls in _get_mro(cls)
         if not cls.__module__.startswith('setuptools')
     )
     base = next(external_bases)
