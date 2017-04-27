@@ -1,6 +1,8 @@
 v35.0.2
 -------
 
+* #1015: Fix test failures on Python 3.7.
+
 * #1024: Add workaround for Jython #2581 in monkey module.
 
 v35.0.1
