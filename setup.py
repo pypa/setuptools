@@ -19,7 +19,7 @@ def require_metadata():
     if not os.path.exists(egg_info_dir):
         msg = (
             "Cannot build setuptools without metadata. "
-            "Install rwt and run `rwt -- bootstrap.py`."
+            "Install rwt and run `bootstrap.py`."
         )
         raise RuntimeError(msg)
 

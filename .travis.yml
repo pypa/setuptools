@@ -15,8 +15,8 @@ matrix:
   - python: 2.7
     env: LC_ALL=C LC_CTYPE=C
 script:
- # need tox and rwt to get started
- - pip install tox rwt
+ # need tox to get started
+ - pip install tox
 
  # Output the env, to verify behavior
  - env
