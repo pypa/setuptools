@@ -14,3 +14,4 @@ setuptools.egg-info
 *~
 .hg*
 requirements.txt
+.cache
