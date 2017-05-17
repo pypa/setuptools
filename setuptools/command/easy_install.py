@@ -53,7 +53,6 @@ from setuptools.package_index import (
     PackageIndex, parse_requirement_arg, URL_SCHEME,
 )
 from setuptools.command import bdist_egg, egg_info
-from humpty import EggWriter
 
 from pkg_resources import (
     yield_lines, normalize_path, resource_string, ensure_directory,
@@ -840,6 +839,8 @@ class easy_install(Command):
             chmod(target, 0o777 - mask)
 
     def install_eggs(self, spec, dist_filename, tmpdir):
+        from humpty import EggWriter
+        
         # .egg dirs or files are already built, so just return them
         if dist_filename.lower().endswith('.egg'):
             return [self.install_egg(dist_filename, tmpdir)]
