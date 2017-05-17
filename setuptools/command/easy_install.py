@@ -839,6 +839,7 @@ class easy_install(Command):
             chmod(target, 0o777 - mask)
 
     def install_eggs(self, spec, dist_filename, tmpdir):
+        # must import here
         from humpty import EggWriter
         
         # .egg dirs or files are already built, so just return them
