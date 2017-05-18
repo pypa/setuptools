@@ -314,7 +314,13 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         if attrs is not None:
             self.dependency_links = attrs.pop('dependency_links', [])
             assert_string_list(self, 'dependency_links', self.dependency_links)
-        if attrs and 'setup_requires' in attrs:
+        if attrs and 'script_args' in attrs:
+            script_args = attrs['script_args']
+        else:
+            script_args = []
+        if attrs and 'setup_requires' in attrs and script_args[:2] != [
+                'egg_info', '--skip-fetch-build-eggs'
+        ]:
             self.fetch_build_eggs(attrs['setup_requires'])
         for ep in pkg_resources.iter_entry_points('distutils.setup_keywords'):
             vars(self).setdefault(ep.name, None)

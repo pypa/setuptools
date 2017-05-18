@@ -125,6 +125,8 @@ class egg_info(Command):
         ('tag-date', 'd', "Add date stamp (e.g. 20050528) to version number"),
         ('tag-build=', 'b', "Specify explicit tag to add to version number"),
         ('no-date', 'D', "Don't include date stamp [default]"),
+        ('skip-fetch-build-eggs', 's',
+         "Skip installation of setup requirements"),
     ]
 
     boolean_options = ['tag-date']
@@ -141,6 +143,7 @@ class egg_info(Command):
         self.tag_date = 0
         self.broken_egg_info = False
         self.vtags = None
+        self.skip_fetch_build_eggs = False
 
     ####################################
     # allow the 'tag_svn_revision' to be detected and
@@ -638,7 +641,7 @@ def write_requirements(cmd, basename, filename):
 
 
 def write_setup_requirements(cmd, basename, filename):
-    data = StringIO()
+    data = six.StringIO()
     _write_requirements(data, cmd.distribution.setup_requires)
     cmd.write_or_delete_file("setup-requirements", filename, data.getvalue())
 
