@@ -1,3 +1,4 @@
 pytest-flake8
 pytest>=3.0.2
-backports.unittest_mock>=1.2
+# pinned to 1.2 as temporary workaround for #1038
+backports.unittest_mock>=1.2,<1.3
