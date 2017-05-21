@@ -7,6 +7,7 @@ import itertools
 import re
 import contextlib
 import pickle
+import textwrap
 
 import six
 from six.moves import builtins, map
@@ -476,13 +477,17 @@ WRITE_FLAGS = functools.reduce(
 class SandboxViolation(DistutilsError):
     """A setup script attempted to modify the filesystem outside the sandbox"""
 
+    tmpl = textwrap.dedent("""
+        SandboxViolation: %s%r %s
+
+        The package setup script has attempted to modify files on your system
+        that are not within the EasyInstall build area, and has been aborted.
+
+        This package cannot be safely installed by EasyInstall, and may not
+        support alternate installation locations even if you run its setup
+        script by hand.  Please inform the package's author and the EasyInstall
+        maintainers to find out if a fix or workaround is available.
+        """).lstrip()
+
     def __str__(self):
-        return """SandboxViolation: %s%r %s
-
-The package setup script has attempted to modify files on your system
-that are not within the EasyInstall build area, and has been aborted.
-
-This package cannot be safely installed by EasyInstall, and may not
-support alternate installation locations even if you run its setup
-script by hand.  Please inform the package's author and the EasyInstall
-maintainers to find out if a fix or workaround is available.""" % self.args
+        return self.tmpl % self.args
