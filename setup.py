@@ -17,10 +17,8 @@ def require_metadata():
     "Prevent improper installs without necessary metadata. See #659"
     egg_info_dir = os.path.join(here, 'setuptools.egg-info')
     if not os.path.exists(egg_info_dir):
-        msg = (
-            "Cannot build setuptools without metadata. "
-            "Run `bootstrap.py`."
-        )
+        msg = ("Cannot build setuptools without metadata. "
+               "Run `bootstrap.py`.")
         raise RuntimeError(msg)
 
 
@@ -39,14 +37,12 @@ def _gen_console_scripts():
     # Gentoo distributions manage the python-version-specific scripts
     # themselves, so those platforms define an environment variable to
     # suppress the creation of the version-specific scripts.
-    var_names = (
-        'SETUPTOOLS_DISABLE_VERSIONED_EASY_INSTALL_SCRIPT',
-        'DISTRIBUTE_DISABLE_VERSIONED_EASY_INSTALL_SCRIPT',
-    )
+    var_names = ('SETUPTOOLS_DISABLE_VERSIONED_EASY_INSTALL_SCRIPT',
+                 'DISTRIBUTE_DISABLE_VERSIONED_EASY_INSTALL_SCRIPT', )
     if any(os.environ.get(var) not in (None, "", "0") for var in var_names):
         return
     yield ("easy_install-{shortver} = setuptools.command.easy_install:main"
-        .format(shortver=sys.version[:3]))
+           .format(shortver=sys.version[:3]))
 
 
 readme_path = os.path.join(here, 'README.rst')
@@ -54,19 +50,15 @@ with io.open(readme_path, encoding='utf-8') as readme_file:
     long_description = readme_file.read()
 
 package_data = dict(
-    setuptools=['script (dev).tmpl', 'script.tmpl', 'site-patch.py'],
-)
+    setuptools=['script (dev).tmpl', 'script.tmpl', 'site-patch.py'], )
 
 force_windows_specific_files = (
-    os.environ.get("SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES", "1").lower()
-    not in ("", "0", "false", "no")
-)
+    os.environ.get("SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES",
+                   "1").lower() not in ("", "0", "false", "no"))
 
-include_windows_files = (
-    sys.platform == 'win32' or
-    os.name == 'java' and os._name == 'nt' or
-    force_windows_specific_files
-)
+include_windows_files = (sys.platform == 'win32' or
+                         os.name == 'java' and os._name == 'nt' or
+                         force_windows_specific_files)
 
 if include_windows_files:
     package_data.setdefault('setuptools', []).extend(['*.exe'])
@@ -91,7 +83,7 @@ setup_params = dict(
     name="setuptools",
     version="35.0.2",
     description="Easily download, build, install, upgrade, and uninstall "
-        "Python packages",
+    "Python packages",
     author="Python Packaging Authority",
     author_email="distutils-sig@python.org",
     long_description=long_description,
@@ -140,9 +132,10 @@ setup_params = dict(
             "depends.txt = setuptools.command.egg_info:warn_depends_obsolete",
             "dependency_links.txt = setuptools.command.egg_info:overwrite_arg",
         ],
-        "console_scripts": list(_gen_console_scripts()),
+        "console_scripts":
+        list(_gen_console_scripts()),
         "setuptools.installation":
-            ['eggsecutable = setuptools.command.easy_install:bootstrap'],
+        ['eggsecutable = setuptools.command.easy_install:bootstrap'],
     },
     classifiers=textwrap.dedent("""
         Development Status :: 5 - Production/Stable
@@ -167,6 +160,8 @@ setup_params = dict(
         'packaging>=16.8',
         'six>=1.6.0',
         'appdirs>=1.4.0',
+        'pip>=9.0.1',
+        'humpty',
     ],
     extras_require={
         "ssl:sys_platform=='win32'": "wincertstore==0.2",
@@ -174,16 +169,12 @@ setup_params = dict(
     },
     dependency_links=[
         pypi_link(
-            'certifi-2016.9.26.tar.gz#md5=baa81e951a29958563689d868ef1064d',
-        ),
+            'certifi-2016.9.26.tar.gz#md5=baa81e951a29958563689d868ef1064d', ),
         pypi_link(
-            'wincertstore-0.2.zip#md5=ae728f2f007185648d0c7a8679b361e2',
-        ),
+            'wincertstore-0.2.zip#md5=ae728f2f007185648d0c7a8679b361e2', ),
     ],
     scripts=[],
-    setup_requires=[
-    ] + wheel,
-)
+    setup_requires=[] + wheel, )
 
 if __name__ == '__main__':
     # allow setup.py to run from another directory

@@ -53,6 +53,7 @@ from setuptools.package_index import (
     PackageIndex, parse_requirement_arg, URL_SCHEME,
 )
 from setuptools.command import bdist_egg, egg_info
+
 from pkg_resources import (
     yield_lines, normalize_path, resource_string, ensure_directory,
     get_distribution, find_distributions, Environment, Requirement,
@@ -844,40 +845,55 @@ class easy_install(Command):
         elif dist_filename.lower().endswith('.exe'):
             return [self.install_exe(dist_filename, tmpdir)]
 
-        # Anything else, try to extract and build
-        setup_base = tmpdir
-        if os.path.isfile(dist_filename) and not dist_filename.endswith('.py'):
-            unpack_archive(dist_filename, tmpdir, self.unpack_progress)
-        elif os.path.isdir(dist_filename):
-            setup_base = os.path.abspath(dist_filename)
+        try:
+            # must import here
+            from humpty import EggWriter
+            # otherwise, generate .egg files
+            # first, use pip to generate wheel files
+            subprocess.call([sys.executable, '-m', 'pip', 'wheel' , '--wheel-dir={}'.format(tmpdir), str(spec)])
+            eggs = []
+            # then convert the resulting wheel files to .egg
+            for whl in os.listdir(tmpdir):
+                if whl.endswith('.whl'):
+                    eggs += self.install_egg(EggWriter(os.path.join(tmpdir, whl)).build_egg(tmpdir), tmpdir)
 
-        if (setup_base.startswith(tmpdir)  # something we downloaded
-                and self.build_directory and spec is not None):
-            setup_base = self.maybe_move(spec, dist_filename, setup_base)
+            return eggs
+        except:
+            # Anything else, try to extract and build
+            setup_base = tmpdir
+            if os.path.isfile(dist_filename) and not dist_filename.endswith('.py'):
+                unpack_archive(dist_filename, tmpdir, self.unpack_progress)
+            elif os.path.isdir(dist_filename):
+                setup_base = os.path.abspath(dist_filename)
 
-        # Find the setup.py file
-        setup_script = os.path.join(setup_base, 'setup.py')
+            if (setup_base.startswith(tmpdir)  # something we downloaded
+                    and self.build_directory and spec is not None):
+                setup_base = self.maybe_move(spec, dist_filename, setup_base)
 
-        if not os.path.exists(setup_script):
-            setups = glob(os.path.join(setup_base, '*', 'setup.py'))
-            if not setups:
-                raise DistutilsError(
-                    "Couldn't find a setup script in %s" %
-                    os.path.abspath(dist_filename)
-                )
-            if len(setups) > 1:
-                raise DistutilsError(
-                    "Multiple setup scripts in %s" %
-                    os.path.abspath(dist_filename)
-                )
-            setup_script = setups[0]
+            # Find the setup.py file
+            setup_script = os.path.join(setup_base, 'setup.py')
 
-        # Now run it, and return the result
-        if self.editable:
-            log.info(self.report_editable(spec, setup_script))
-            return []
-        else:
-            return self.build_and_install(setup_script, setup_base)
+            if not os.path.exists(setup_script):
+                setups = glob(os.path.join(setup_base, '*', 'setup.py'))
+                if not setups:
+                    raise DistutilsError(
+                        "Couldn't find a setup script in %s" %
+                        os.path.abspath(dist_filename)
+                    )
+                if len(setups) > 1:
+                    raise DistutilsError(
+                        "Multiple setup scripts in %s" %
+                        os.path.abspath(dist_filename)
+                    )
+                setup_script = setups[0]
+
+            # Now run it, and return the result
+            if self.editable:
+                log.info(self.report_editable(spec, setup_script))
+                return []
+            else:
+                return self.build_and_install(setup_script, setup_base)
+
 
     def egg_distribution(self, egg_path):
         if os.path.isdir(egg_path):
