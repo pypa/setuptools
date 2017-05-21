@@ -478,7 +478,7 @@ class SandboxViolation(DistutilsError):
     """A setup script attempted to modify the filesystem outside the sandbox"""
 
     tmpl = textwrap.dedent("""
-        SandboxViolation: %s%r %s
+        SandboxViolation: {cmd}{args!r} {kwargs}
 
         The package setup script has attempted to modify files on your system
         that are not within the EasyInstall build area, and has been aborted.
@@ -490,4 +490,5 @@ class SandboxViolation(DistutilsError):
         """).lstrip()
 
     def __str__(self):
-        return self.tmpl % self.args
+        cmd, args, kwargs = self.args
+        return self.tmpl.format(**locals())
