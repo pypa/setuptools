@@ -12,8 +12,8 @@ from setuptools.sandbox import DirectorySandbox
 
 class TestSandbox:
     def test_devnull(self, tmpdir):
-        sandbox = DirectorySandbox(str(tmpdir))
-        sandbox.run(self._file_writer(os.devnull))
+        with DirectorySandbox(str(tmpdir)):
+            self._file_writer(os.devnull)
 
     @staticmethod
     def _file_writer(path):

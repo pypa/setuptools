@@ -249,11 +249,9 @@ def run_setup(setup_script, args):
                 setup_script.encode(sys.getfilesystemencoding())
             )
 
-            def runner():
+            with DirectorySandbox(setup_dir):
                 ns = dict(__file__=dunder_file, __name__='__main__')
                 _execfile(setup_script, ns)
-
-            DirectorySandbox(setup_dir).run(runner)
         except SystemExit as v:
             if v.args and v.args[0]:
                 raise
@@ -275,21 +273,24 @@ class AbstractSandbox:
         for name in self._attrs:
             setattr(os, name, getattr(source, name))
 
+    def __enter__(self):
+        self._copy(self)
+        if _file:
+            builtins.file = self._file
+        builtins.open = self._open
+        self._active = True
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self._active = False
+        if _file:
+            builtins.file = _file
+        builtins.open = _open
+        self._copy(_os)
+
     def run(self, func):
         """Run 'func' under os sandboxing"""
-        try:
-            self._copy(self)
-            if _file:
-                builtins.file = self._file
-            builtins.open = self._open
-            self._active = True
+        with self:
             return func()
-        finally:
-            self._active = False
-            if _file:
-                builtins.file = _file
-            builtins.open = _open
-            self._copy(_os)
 
     def _mk_dual_path_wrapper(name):
         original = getattr(_os, name)
