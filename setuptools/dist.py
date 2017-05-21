@@ -30,6 +30,14 @@ __import__('pkg_resources.extern.packaging.specifiers')
 __import__('pkg_resources.extern.packaging.version')
 
 
+skip_install_eggs = False
+
+
+class SetupRequirementsError(BaseException):
+    def __init__(self, specifiers):
+        self.specifiers = specifiers
+
+
 def _get_unpatched(cls):
     warnings.warn("Do not call this function", DeprecationWarning)
     return get_unpatched(cls)
@@ -332,7 +340,10 @@ class Distribution(Distribution_parse_config_files, _Distribution):
             self.dependency_links = attrs.pop('dependency_links', [])
             assert_string_list(self, 'dependency_links', self.dependency_links)
         if attrs and 'setup_requires' in attrs:
-            self.fetch_build_eggs(attrs['setup_requires'])
+            if skip_install_eggs:
+                raise SetupRequirementsError(attrs['setup_requires'])
+            else:
+                self.fetch_build_eggs(attrs['setup_requires'])
         for ep in pkg_resources.iter_entry_points('distutils.setup_keywords'):
             vars(self).setdefault(ep.name, None)
         _Distribution.__init__(self, attrs)
