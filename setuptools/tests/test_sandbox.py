@@ -126,3 +126,7 @@ class TestExceptionSaver:
         assert cmd == 'open'
         assert args == ('/etc/foo', 'w')
         assert kwargs == {}
+
+        msg = str(caught.value)
+        assert 'open' in msg
+        assert "('/etc/foo', 'w')" in msg
