@@ -1,3 +1,14 @@
+v36.0.0
+-------
+
+* #980 and others: Once again, Setuptools vendors all
+  of its dependencies. It seems to be the case that in
+  the Python ecosystem, all build tools must run without
+  any dependencies (build, runtime, or otherwise). At
+  such a point that a mechanism exists that allows
+  build tools to have dependencies, Setuptools will adopt
+  it.
+
 v35.0.2
 -------
 
