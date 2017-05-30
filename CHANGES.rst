@@ -1,3 +1,77 @@
+v35.0.2
+-------
+
+* #1015: Fix test failures on Python 3.7.
+
+* #1024: Add workaround for Jython #2581 in monkey module.
+
+v35.0.1
+-------
+
+* #992: Revert change introduced in v34.4.1, now
+  considered invalid.
+
+* #1016: Revert change introduced in v35.0.0 per #1014,
+  referencing #436. The approach had unintended
+  consequences, causing sdist installs to be missing
+  files.
+
+v35.0.0
+-------
+
+* #436: In egg_info.manifest_maker, no longer read
+  the file list from the manifest file, and instead
+  re-build it on each build. In this way, files removed
+  from the specification will not linger in the manifest.
+  As a result, any files manually added to the manifest
+  will be removed on subsequent egg_info invocations.
+  No projects should be manually adding files to the
+  manifest and should instead use MANIFEST.in or SCM
+  file finders to force inclusion of files in the manifest.
+
+v34.4.1
+-------
+
+* #1008: In MSVC support, use always the last version available for Windows SDK and UCRT SDK.
+
+* #1008: In MSVC support, fix "vcruntime140.dll" returned path with Visual Studio 2017.
+
+* #992: In msvc.msvc9_query_vcvarsall, ensure the
+  returned dicts have str values and not Unicode for
+  compatibilty with os.environ.
+
+v34.4.0
+-------
+
+* #995: In MSVC support, add support for "Microsoft Visual Studio 2017" and "Microsoft Visual Studio Build Tools 2017".
+
+* #999 via #1007: Extend support for declarative package
+  config in a setup.cfg file to include the options
+  ``python_requires`` and ``py_modules``.
+
+v34.3.3
+-------
+
+* #967 (and #997): Explicitly import submodules of
+  packaging to account for environments where the imports
+  of those submodules is not implied by other behavior.
+
+v34.3.2
+-------
+
+* #993: Fix documentation upload by correcting
+  rendering of content-type in _build_multipart
+  on Python 3.
+
+v34.3.1
+-------
+
+* #988: Trap ``os.unlink`` same as ``os.remove`` in
+  ``auto_chmod`` error handler.
+
+* #983: Fixes to invalid escape sequence deprecations on
+  Python 3.6.
+
 v34.3.0
 -------
 

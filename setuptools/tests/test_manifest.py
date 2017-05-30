@@ -6,6 +6,7 @@ import os
 import shutil
 import sys
 import tempfile
+import itertools
 from distutils import log
 from distutils.errors import DistutilsTemplateError
 
@@ -65,32 +66,94 @@ default_files = frozenset(map(make_local_path, [
 ]))
 
 
-def get_pattern(glob):
-    return translate_pattern(make_local_path(glob)).pattern
-
-
-def test_translated_pattern_test():
-    l = make_local_path
-    assert get_pattern('foo') == r'foo\Z(?ms)'
-    assert get_pattern(l('foo/bar')) == l(r'foo\/bar\Z(?ms)')
+translate_specs = [
+    ('foo', ['foo'], ['bar', 'foobar']),
+    ('foo/bar', ['foo/bar'], ['foo/bar/baz', './foo/bar', 'foo']),
 
     # Glob matching
-    assert get_pattern('*.txt') == l(r'[^\/]*\.txt\Z(?ms)')
-    assert get_pattern('dir/*.txt') == l(r'dir\/[^\/]*\.txt\Z(?ms)')
-    assert get_pattern('*/*.py') == l(r'[^\/]*\/[^\/]*\.py\Z(?ms)')
-    assert get_pattern('docs/page-?.txt') \
-        == l(r'docs\/page\-[^\/]\.txt\Z(?ms)')
+    ('*.txt', ['foo.txt', 'bar.txt'], ['foo/foo.txt']),
+    ('dir/*.txt', ['dir/foo.txt', 'dir/bar.txt', 'dir/.txt'], ['notdir/foo.txt']),
+    ('*/*.py', ['bin/start.py'], []),
+    ('docs/page-?.txt', ['docs/page-9.txt'], ['docs/page-10.txt']),
 
     # Globstars change what they mean depending upon where they are
-    assert get_pattern(l('foo/**/bar')) == l(r'foo\/(?:[^\/]+\/)*bar\Z(?ms)')
-    assert get_pattern(l('foo/**')) == l(r'foo\/.*\Z(?ms)')
-    assert get_pattern(l('**')) == r'.*\Z(?ms)'
+    (
+        'foo/**/bar',
+        ['foo/bing/bar', 'foo/bing/bang/bar', 'foo/bar'],
+        ['foo/abar'],
+    ),
+    (
+        'foo/**',
+        ['foo/bar/bing.py', 'foo/x'],
+        ['/foo/x'],
+    ),
+    (
+        '**',
+        ['x', 'abc/xyz', '@nything'],
+        [],
+    ),
 
     # Character classes
-    assert get_pattern('pre[one]post') == r'pre[one]post\Z(?ms)'
-    assert get_pattern('hello[!one]world') == r'hello[^one]world\Z(?ms)'
-    assert get_pattern('[]one].txt') == r'[\]one]\.txt\Z(?ms)'
-    assert get_pattern('foo[!]one]bar') == r'foo[^\]one]bar\Z(?ms)'
+    (
+        'pre[one]post',
+        ['preopost', 'prenpost', 'preepost'],
+        ['prepost', 'preonepost'],
+    ),
+
+    (
+        'hello[!one]world',
+        ['helloxworld', 'helloyworld'],
+        ['hellooworld', 'helloworld', 'hellooneworld'],
+    ),
+
+    (
+        '[]one].txt',
+        ['o.txt', '].txt', 'e.txt'],
+        ['one].txt'],
+    ),
+
+    (
+        'foo[!]one]bar',
+        ['fooybar'],
+        ['foo]bar', 'fooobar', 'fooebar'],
+    ),
+
+]
+"""
+A spec of inputs for 'translate_pattern' and matches and mismatches
+for that input.
+"""
+
+match_params = itertools.chain.from_iterable(
+    zip(itertools.repeat(pattern), matches)
+    for pattern, matches, mismatches in translate_specs
+)
+
+
+@pytest.fixture(params=match_params)
+def pattern_match(request):
+    return map(make_local_path, request.param)
+
+
+mismatch_params = itertools.chain.from_iterable(
+    zip(itertools.repeat(pattern), mismatches)
+    for pattern, matches, mismatches in translate_specs
+)
+
+
+@pytest.fixture(params=mismatch_params)
+def pattern_mismatch(request):
+    return map(make_local_path, request.param)
+
+
+def test_translated_pattern_match(pattern_match):
+    pattern, target = pattern_match
+    assert translate_pattern(pattern).match(target)
+
+
+def test_translated_pattern_mismatch(pattern_mismatch):
+    pattern, target = pattern_mismatch
+    assert not translate_pattern(pattern).match(target)
 
 
 class TempDirTestCase(object):

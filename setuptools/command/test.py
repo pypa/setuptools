@@ -67,7 +67,7 @@ class test(Command):
     user_options = [
         ('test-module=', 'm', "Run 'test_suite' in specified module"),
         ('test-suite=', 's',
-         "Test suite to run (e.g. 'some_module.test_suite')"),
+         "Run single test, case or suite (e.g. 'module.test_suite')"),
         ('test-runner=', 'r', "Test runner to use"),
     ]
 

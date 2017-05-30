@@ -16,6 +16,9 @@ from setuptools.extern import six
 from setuptools.extern.six.moves import map
 from pkg_resources.extern import packaging
 
+__import__('pkg_resources.extern.packaging.specifiers')
+__import__('pkg_resources.extern.packaging.version')
+
 from setuptools.depends import Require
 from setuptools import windows_support
 from setuptools.monkey import get_unpatched
@@ -165,7 +168,7 @@ def check_specifier(dist, attr, value):
         packaging.specifiers.SpecifierSet(value)
     except packaging.specifiers.InvalidSpecifier as error:
         tmpl = (
-            "{attr!r} must be a string or list of strings "
+            "{attr!r} must be a string "
             "containing valid version specifiers; {error}"
         )
         raise DistutilsSetupError(tmpl.format(attr=attr, error=error))
@@ -352,6 +355,8 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         _Distribution.parse_config_files(self, filenames=filenames)
 
         parse_configuration(self, self.command_options)
+        if getattr(self, 'python_requires', None):
+            self.metadata.python_requires = self.python_requires
 
     def parse_command_line(self):
         """Process features after parsing command line options"""

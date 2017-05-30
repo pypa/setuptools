@@ -15,8 +15,12 @@ here = os.path.dirname(__file__)
 
 def require_metadata():
     "Prevent improper installs without necessary metadata. See #659"
-    if not os.path.exists('setuptools.egg-info'):
-        msg = "Cannot build setuptools without metadata. Run bootstrap.py"
+    egg_info_dir = os.path.join(here, 'setuptools.egg-info')
+    if not os.path.exists(egg_info_dir):
+        msg = (
+            "Cannot build setuptools without metadata. "
+            "Run `bootstrap.py`."
+        )
         raise RuntimeError(msg)
 
 
@@ -85,7 +89,7 @@ def pypi_link(pkg_filename):
 
 setup_params = dict(
     name="setuptools",
-    version="34.3.0",
+    version="35.0.2",
     description="Easily download, build, install, upgrade, and uninstall "
         "Python packages",
     author="Python Packaging Authority",

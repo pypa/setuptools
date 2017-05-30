@@ -18,18 +18,23 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
-# Allow Sphinx to find the setup command that is imported below, as referenced above.
-import os
+import subprocess
 import sys
-sys.path.append(os.path.abspath('..'))
+import os
 
-import setup as setup_script
+
+# hack to run the bootstrap script so that jaraco.packaging.sphinx
+# can invoke setup.py
+'READTHEDOCS' in os.environ and subprocess.check_call(
+    [sys.executable, 'bootstrap.py'],
+    cwd=os.path.join(os.path.dirname(__file__), os.path.pardir),
+)
 
 # -- General configuration -----------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['rst.linker', 'sphinx.ext.autosectionlabel']
+extensions = ['jaraco.packaging.sphinx', 'rst.linker', 'sphinx.ext.autosectionlabel']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -39,19 +44,6 @@ source_suffix = '.txt'
 
 # The master toctree document.
 master_doc = 'index'
-
-# General information about the project.
-project = 'Setuptools'
-copyright = '2009-2014, The fellowship of the packaging'
-
-# The version info for the project you're documenting, acts as replacement for
-# |version| and |release|, also used in various other places throughout the
-# built documents.
-#
-# The short X.Y version.
-version = setup_script.setup_params['version']
-# The full version, including alpha/beta/rc tags.
-release = setup_script.setup_params['version']
 
 # List of directories, relative to source directory, that shouldn't be searched
 # for source files.
@@ -69,13 +61,6 @@ html_theme = 'nature'
 # Add any paths that contain custom themes here, relative to this directory.
 html_theme_path = ['_theme']
 
-# The name for this set of Sphinx documents.  If None, it defaults to
-# "<project> v<release> documentation".
-html_title = "Setuptools documentation"
-
-# A shorter title for the navigation bar.  Default is the same as html_title.
-html_short_title = "Setuptools"
-
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.
 html_use_smartypants = True
@@ -88,9 +73,6 @@ html_use_modindex = False
 
 # If false, no index is generated.
 html_use_index = False
-
-# Output file base name for HTML help builder.
-htmlhelp_basename = 'Setuptoolsdoc'
 
 # -- Options for LaTeX output --------------------------------------------------
 
@@ -109,60 +91,60 @@ link_files = {
         ),
         replace=[
             dict(
-                pattern=r"(Issue )?#(?P<issue>\d+)",
-                url='{GH}/pypa/setuptools/issues/{issue}',
+                pattern=r'(Issue )?#(?P<issue>\d+)',
+                url='{package_url}/issues/{issue}',
             ),
             dict(
-                pattern=r"BB Pull Request ?#(?P<bb_pull_request>\d+)",
+                pattern=r'BB Pull Request ?#(?P<bb_pull_request>\d+)',
                 url='{BB}/pypa/setuptools/pull-request/{bb_pull_request}',
             ),
             dict(
-                pattern=r"Distribute #(?P<distribute>\d+)",
+                pattern=r'Distribute #(?P<distribute>\d+)',
                 url='{BB}/tarek/distribute/issue/{distribute}',
             ),
             dict(
-                pattern=r"Buildout #(?P<buildout>\d+)",
+                pattern=r'Buildout #(?P<buildout>\d+)',
                 url='{GH}/buildout/buildout/issues/{buildout}',
             ),
             dict(
-                pattern=r"Old Setuptools #(?P<old_setuptools>\d+)",
+                pattern=r'Old Setuptools #(?P<old_setuptools>\d+)',
                 url='http://bugs.python.org/setuptools/issue{old_setuptools}',
             ),
             dict(
-                pattern=r"Jython #(?P<jython>\d+)",
+                pattern=r'Jython #(?P<jython>\d+)',
                 url='http://bugs.jython.org/issue{jython}',
             ),
             dict(
-                pattern=r"Python #(?P<python>\d+)",
+                pattern=r'Python #(?P<python>\d+)',
                 url='http://bugs.python.org/issue{python}',
             ),
             dict(
-                pattern=r"Interop #(?P<interop>\d+)",
+                pattern=r'Interop #(?P<interop>\d+)',
                 url='{GH}/pypa/interoperability-peps/issues/{interop}',
             ),
             dict(
-                pattern=r"Pip #(?P<pip>\d+)",
+                pattern=r'Pip #(?P<pip>\d+)',
                 url='{GH}/pypa/pip/issues/{pip}',
             ),
             dict(
-                pattern=r"Packaging #(?P<packaging>\d+)",
+                pattern=r'Packaging #(?P<packaging>\d+)',
                 url='{GH}/pypa/packaging/issues/{packaging}',
             ),
             dict(
-                pattern=r"[Pp]ackaging (?P<packaging_ver>\d+(\.\d+)+)",
+                pattern=r'[Pp]ackaging (?P<packaging_ver>\d+(\.\d+)+)',
                 url='{GH}/pypa/packaging/blob/{packaging_ver}/CHANGELOG.rst',
             ),
             dict(
-                pattern=r"PEP[- ](?P<pep_number>\d+)",
+                pattern=r'PEP[- ](?P<pep_number>\d+)',
                 url='https://www.python.org/dev/peps/pep-{pep_number:0>4}/',
             ),
             dict(
-                pattern=r"setuptools_svn #(?P<setuptools_svn>\d+)",
+                pattern=r'setuptools_svn #(?P<setuptools_svn>\d+)',
                 url='{GH}/jaraco/setuptools_svn/issues/{setuptools_svn}',
             ),
             dict(
-                pattern=r"^(?m)((?P<scm_version>v?\d+(\.\d+){1,2}))\n[-=]+\n",
-                with_scm="{text}\n{rev[timestamp]:%d %b %Y}\n",
+                pattern=r'^(?m)((?P<scm_version>v?\d+(\.\d+){1,2}))\n[-=]+\n',
+                with_scm='{text}\n{rev[timestamp]:%d %b %Y}\n',
             ),
         ],
     ),

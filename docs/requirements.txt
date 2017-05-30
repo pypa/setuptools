@@ -1,2 +1,5 @@
-rst.linker>=1.6.1
-sphinx>=1.4
+sphinx
+rst.linker>=1.9
+jaraco.packaging>=3.2
+
+setuptools>=34

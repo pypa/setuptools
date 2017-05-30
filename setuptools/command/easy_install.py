@@ -474,8 +474,7 @@ class easy_install(Command):
         else:
             self.pth_file = None
 
-        PYTHONPATH = os.environ.get('PYTHONPATH', '').split(os.pathsep)
-        if instdir not in map(normalize_path, filter(None, PYTHONPATH)):
+        if instdir not in map(normalize_path, _pythonpath()):
             # only PYTHONPATH dirs need a site.py, so pretend it's there
             self.sitepy_installed = True
         elif self.multi_version and not os.path.exists(pth_file):
@@ -1348,10 +1347,21 @@ class easy_install(Command):
                 setattr(self, attr, val)
 
 
+def _pythonpath():
+    items = os.environ.get('PYTHONPATH', '').split(os.pathsep)
+    return filter(None, items)
+
+
 def get_site_dirs():
-    # return a list of 'site' dirs
-    sitedirs = [_f for _f in os.environ.get('PYTHONPATH',
-                                            '').split(os.pathsep) if _f]
+    """
+    Return a list of 'site' dirs
+    """
+
+    sitedirs = []
+
+    # start with PYTHONPATH
+    sitedirs.extend(_pythonpath())
+
     prefixes = [sys.prefix]
     if sys.exec_prefix != sys.prefix:
         prefixes.append(sys.exec_prefix)
@@ -1675,7 +1685,7 @@ def _first_line_re():
 
 
 def auto_chmod(func, arg, exc):
-    if func is os.remove and os.name == 'nt':
+    if func in [os.unlink, os.remove] and os.name == 'nt':
         chmod(arg, stat.S_IWRITE)
         return func(arg)
     et, ev, _ = sys.exc_info()
@@ -2013,7 +2023,7 @@ class ScriptWriter(object):
     gui apps.
     """
 
-    template = textwrap.dedent("""
+    template = textwrap.dedent(r"""
         # EASY-INSTALL-ENTRY-SCRIPT: %(spec)r,%(group)r,%(name)r
         __requires__ = %(spec)r
         import re

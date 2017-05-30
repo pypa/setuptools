@@ -64,6 +64,8 @@ class TestUploadDocsTest:
         )
         body, content_type = upload_docs._build_multipart(data)
         assert 'form-data' in content_type
+        assert "b'" not in content_type
+        assert 'b"' not in content_type
         assert isinstance(body, bytes)
         assert b'foo' in body
         assert b'content' in body
