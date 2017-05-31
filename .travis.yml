@@ -27,8 +27,6 @@ script:
  #- python -m tox
  - tox
 
-before_deploy:
-  - pip install -r requirements.txt
 deploy:
   provider: pypi
   # Also update server in setup.cfg
