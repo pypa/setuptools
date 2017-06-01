@@ -11,12 +11,12 @@ python:
 matrix:
   include:
   - python: 3.6
-    env: LC_ALL=C LC_CTYPE=C
+    env: LC_ALL=C LC_CTYPE=C VIRTUALENV_NO_DOWNLOAD=1
   - python: 2.7
-    env: LC_ALL=C LC_CTYPE=C
+    env: LC_ALL=C LC_CTYPE=C VIRTUALENV_NO_DOWNLOAD=1
 script:
  # need tox to get started
- - pip install tox six
+ - pip install tox
 
  # Output the env, to verify behavior
  - env
