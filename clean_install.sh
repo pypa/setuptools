@@ -5,7 +5,9 @@ set -o xtrace
 
 # Create a temporary directory to install the virtualenv in
 VENV_DIR="$(mktemp -d)"
-function cleanup { rm -rf "$VENV_DIR" }
+function cleanup() {
+  rm -rf "$VENV_DIR"
+}
 trap cleanup EXIT
 
 # Create a virtualenv that doesn't have pip or setuptools installed
