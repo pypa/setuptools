@@ -3,6 +3,7 @@ Compatibility Support for Python 2.7 and earlier
 """
 
 import platform
+import sys
 
 
 PY2 = sys.version_info[0] == 2
