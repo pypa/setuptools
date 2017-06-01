@@ -4,7 +4,7 @@ Compatibility Support for Python 2.7 and earlier
 
 import platform
 
-import six
+from setuptools.extern import six
 
 
 def get_all_headers(message, key):
