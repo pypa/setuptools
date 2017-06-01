@@ -15,10 +15,8 @@ matrix:
   - python: 2.7
     env: LC_ALL=C LC_CTYPE=C
 script:
- - export VIRTUALENV_NO_DOWNLOAD=1 
- - pip install --upgrade "setuptools < 36"
  # need tox to get started
- - pip install tox
+ - pip install tox six
 
  # Output the env, to verify behavior
  - env
