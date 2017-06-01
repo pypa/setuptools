@@ -17,7 +17,7 @@ that person want to know about what has changed--or from the
 perspective of your future self wanting to know when a particular
 change landed.
 
-To cut a release, install and run ``bumpversion {part}`` where ``part``
+To cut a release, install and run ``bump2version {part}`` where ``part``
 is major, minor, or patch based on the scope of the changes in the
 release. Then, push the commits to the master branch. If tests pass,
 the release will be uploaded to PyPI (from the Python 3.6 tests).
