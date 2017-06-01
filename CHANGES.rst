@@ -1,3 +1,10 @@
+v36.0.1
+-------
+
+* #1042: Fix import in py27compat module that still
+  referenced six directly, rather than through the externs
+  module (vendored packages hook).
+
 v36.0.0
 -------
 
