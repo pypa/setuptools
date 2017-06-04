@@ -9,6 +9,7 @@ import os
 import sys
 import textwrap
 import subprocess
+import io
 
 
 minimal_egg_info = textwrap.dedent("""
@@ -41,7 +42,7 @@ def build_egg_info():
     """
 
     os.mkdir('setuptools.egg-info')
-    with open('setuptools.egg-info/entry_points.txt', 'w') as ep:
+    with io.open('setuptools.egg-info/entry_points.txt', 'w') as ep:
         ep.write(minimal_egg_info)
 
 
