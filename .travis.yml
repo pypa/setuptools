@@ -16,6 +16,8 @@ jobs:
     env: LANG=C
   - stage: deploy (does actual deploy to PYPI only for tagged commits)
     python: *latest_py3
+    install: skip
+    script: skip
     deploy:
       provider: pypi
       on:
