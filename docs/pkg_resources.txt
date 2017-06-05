@@ -960,6 +960,13 @@ version
     metadata file.  If ``PKG-INFO`` is unavailable or can't be parsed,
     ``ValueError`` is raised.
 
+pkg_info
+    A dict containing the mapped fields read from its ``PKG-INFO`` metadata
+    file, as defined by `PEP-0314`_.  If ``PKG-INFO`` is unavailable or can't be
+    parsed, ``ValueError`` is raised.
+
+.. _PEP-0314: https://www.python.org/dev/peps/pep-0314/
+
 parsed_version
     The ``parsed_version`` is an object representing a "parsed" form of the
     distribution's ``version``.  ``dist.parsed_version`` is a shortcut for
