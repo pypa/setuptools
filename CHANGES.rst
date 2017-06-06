@@ -1,3 +1,14 @@
+v36.1.0
+-------
+
+* Removed deprecation of and restored support for
+  ``upload_docs`` command for sites other than PyPI.
+  Only warehouse is dropping support, but services like
+  `devpi <http://doc.devpi.net/latest/>`_ continue to
+  support docs built by setuptools' plugins. See
+  `this comment <https://bitbucket.org/hpk42/devpi/issues/388/support-rtd-model-for-building-uploading#comment-34292423>`_
+  for more context on the motivation for this change.
+
 v36.0.1
 -------
 
