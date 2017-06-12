@@ -31,6 +31,10 @@ setup(name='foo',
 INIT_PY = """print "foo"
 """
 
+FOOCMD = """\
+from __future__ import print_function
+print("foo")
+"""
 
 @pytest.yield_fixture
 def temp_user(monkeypatch):
@@ -53,6 +57,9 @@ def test_env(tmpdir, temp_user):
     init = foo / '__init__.py'
     with init.open('w') as f:
         f.write(INIT_PY)
+    foocmd = foo / 'foocmd'
+    with foocmd.open('w') as f:
+        f.write(FOOCMD)
     with target.as_cwd():
         yield target
 
@@ -96,13 +103,11 @@ class TestDevelop:
         expected = 'print("foo")' if six.PY3 else 'print "foo"'
         assert init == expected
 
-    def test_console_scripts(self, tmpdir):
+    def test_console_scripts(self, test_env):
         """
         Test that console scripts are installed and that they reference
         only the project by name and not the current version.
         """
-        pytest.skip("TODO: needs a fixture to cause 'develop' "
-            "to be invoked without mutating environment.")
         settings = dict(
             name='foo',
             packages=['foo'],
@@ -116,10 +121,51 @@ class TestDevelop:
         dist = Distribution(settings)
         dist.script_name = 'setup.py'
         cmd = develop(dist)
+        cmd.user = 1
         cmd.ensure_finalized()
-        cmd.install_dir = tmpdir
+        cmd.install_dir = test_env
+        cmd.script_dir = test_env
+        cmd.user = 1
         cmd.run()
-        # assert '0.0' not in foocmd_text
+
+        content = os.listdir(test_env)
+        content.sort()
+        assert content == ['foo', 'foo.egg-info', 'foocmd', 'setup.py']
+        fn = os.path.join(test_env, 'foocmd')
+        with io.open(fn) as foocmd_file:
+            foocmd_text = foocmd_file.read().strip()
+
+        assert '0.0' not in foocmd_text
+
+    def test_scripts(self, test_env):
+        """
+        Test that old-style scripts are installed and that they reference
+        only the project by name and not the current version.
+        """
+        settings = dict(
+            name='foo',
+            packages=['foo'],
+            version='0.0',
+            scripts=['foo/foocmd'],
+        )
+        dist = Distribution(settings)
+        dist.script_name = 'setup.py'
+        cmd = develop(dist)
+        cmd.user = 1
+        cmd.ensure_finalized()
+        cmd.install_dir = test_env
+        cmd.script_dir = test_env
+        cmd.user = 1
+        cmd.run()
+
+        content = os.listdir(test_env)
+        content.sort()
+        assert content == ['foo', 'foo.egg-info', 'foocmd', 'setup.py']
+        fn = os.path.join(test_env, 'foocmd')
+        with io.open(fn) as foocmd_file:
+            foocmd_text = foocmd_file.read().strip()
+
+        assert '0.0' not in foocmd_text
 
 
 class TestResolver:
