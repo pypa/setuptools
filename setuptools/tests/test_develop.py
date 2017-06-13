@@ -108,6 +108,7 @@ class TestDevelop:
         Test that console scripts are installed and that they reference
         only the project by name and not the current version.
         """
+        dest = str(test_env)
         settings = dict(
             name='foo',
             packages=['foo'],
@@ -123,15 +124,15 @@ class TestDevelop:
         cmd = develop(dist)
         cmd.user = 1
         cmd.ensure_finalized()
-        cmd.install_dir = test_env
-        cmd.script_dir = test_env
+        cmd.install_dir = dest
+        cmd.script_dir = dest
         cmd.user = 1
         cmd.run()
 
-        content = os.listdir(test_env)
+        content = os.listdir(dest)
         content.sort()
         assert content == ['foo', 'foo.egg-info', 'foocmd', 'setup.py']
-        fn = os.path.join(test_env, 'foocmd')
+        fn = os.path.join(dest, 'foocmd')
         with io.open(fn) as foocmd_file:
             foocmd_text = foocmd_file.read().strip()
 
@@ -142,6 +143,7 @@ class TestDevelop:
         Test that old-style scripts are installed and that they reference
         only the project by name and not the current version.
         """
+        dest = str(test_env)
         settings = dict(
             name='foo',
             packages=['foo'],
@@ -153,15 +155,15 @@ class TestDevelop:
         cmd = develop(dist)
         cmd.user = 1
         cmd.ensure_finalized()
-        cmd.install_dir = test_env
-        cmd.script_dir = test_env
+        cmd.install_dir = dest
+        cmd.script_dir = dest
         cmd.user = 1
         cmd.run()
 
-        content = os.listdir(test_env)
+        content = os.listdir(dest)
         content.sort()
         assert content == ['foo', 'foo.egg-info', 'foocmd', 'setup.py']
-        fn = os.path.join(test_env, 'foocmd')
+        fn = os.path.join(dest, 'foocmd')
         with io.open(fn) as foocmd_file:
             foocmd_text = foocmd_file.read().strip()
 
