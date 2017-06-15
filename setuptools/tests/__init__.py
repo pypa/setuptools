@@ -1,4 +1,5 @@
 """Tests for the 'setuptools' package"""
+import locale
 import sys
 import os
 import distutils.core
@@ -16,8 +17,7 @@ import setuptools.depends as dep
 from setuptools import Feature
 from setuptools.depends import Require
 
-c_type = os.environ.get("LC_CTYPE", os.environ.get("LC_ALL"))
-is_ascii = c_type in ("C", "POSIX")
+is_ascii = locale.getpreferredencoding() == 'ANSI_X3.4-1968'
 fail_on_ascii = pytest.mark.xfail(is_ascii, reason="Test fails in this locale")
 
 
