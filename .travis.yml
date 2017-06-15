@@ -11,9 +11,9 @@ python:
 matrix:
   include:
   - python: 3.6
-    env: LC_ALL=C LC_CTYPE=C
+    env: LANG=C
   - python: 2.7
-    env: LC_ALL=C LC_CTYPE=C
+    env: LANG=C
 script:
  # need tox to get started
  - pip install tox
