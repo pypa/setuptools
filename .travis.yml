@@ -8,6 +8,9 @@ python:
   - 3.6
   - nightly
   - pypy
+cache:
+  directories:
+    - $HOME/.cache/pip
 matrix:
   include:
   - python: 3.6
@@ -15,6 +18,9 @@ matrix:
   - python: 2.7
     env: LC_ALL=C LC_CTYPE=C
 script:
+ # test with the latest pip
+ - pip install -U pip
+
  # need tox to get started
  - pip install tox
 
