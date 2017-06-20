@@ -8,7 +8,7 @@ from setuptools import dist
 from setuptools.dist import SetupRequirementsError
 
 
-def _run_setup(setup_script='setup.py'):
+def _run_setup(setup_script='setup.py'): #
     __file__=setup_script
     f=getattr(tokenize, 'open', open)(__file__)
     code=f.read().replace('\\r\\n', '\\n')
