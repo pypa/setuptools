@@ -2,9 +2,8 @@
 
 from __future__ import unicode_literals
 
+from distutils import log
 import os
-import site
-from distutils.errors import DistutilsError
 
 import pytest
 
@@ -66,26 +65,28 @@ def sample_test(tmpdir_cwd):
         f.write(TEST_PY)
 
 
-@pytest.mark.skipif('hasattr(sys, "real_prefix")')
-@pytest.mark.usefixtures('user_override')
-@pytest.mark.usefixtures('sample_test')
-class TestTestTest:
-    def test_test(self):
-        params = dict(
-            name='foo',
-            packages=['name', 'name.space', 'name.space.tests'],
-            namespace_packages=['name'],
-            test_suite='name.space.tests.test_suite',
-            use_2to3=True,
-        )
-        dist = Distribution(params)
-        dist.script_name = 'setup.py'
-        cmd = test(dist)
-        cmd.user = 1
-        cmd.ensure_finalized()
-        cmd.install_dir = site.USER_SITE
-        cmd.user = 1
-        with contexts.quiet():
-            # The test runner calls sys.exit
-            with contexts.suppress_exceptions(SystemExit):
-                cmd.run()
+@pytest.fixture
+def silent_log():
+    # Running some of the other tests will automatically
+    # change the log level to info, messing our output.
+    log.set_verbosity(0)
+
+
+@pytest.mark.usefixtures('sample_test', 'silent_log')
+def test_test(capfd):
+    params = dict(
+        name='foo',
+        packages=['name', 'name.space', 'name.space.tests'],
+        namespace_packages=['name'],
+        test_suite='name.space.tests.test_suite',
+        use_2to3=True,
+    )
+    dist = Distribution(params)
+    dist.script_name = 'setup.py'
+    cmd = test(dist)
+    cmd.ensure_finalized()
+    # The test runner calls sys.exit
+    with contexts.suppress_exceptions(SystemExit):
+        cmd.run()
+    out, err = capfd.readouterr()
+    assert out == 'Foo\n'
