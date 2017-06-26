@@ -101,6 +101,8 @@ class test(Command):
         return list(self._test_args())
 
     def _test_args(self):
+        if not self.test_suite:
+            yield 'discover'
         if self.verbose:
             yield '--verbose'
         if self.test_suite:
