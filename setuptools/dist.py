@@ -8,6 +8,7 @@ import distutils.log
 import distutils.core
 import distutils.cmd
 import distutils.dist
+from collections import defaultdict
 from distutils.errors import (DistutilsOptionError, DistutilsPlatformError,
     DistutilsSetupError)
 from distutils.util import rfc822_escape
@@ -134,7 +135,13 @@ def check_extras(dist, attr, value):
                 k, m = k.split(':', 1)
                 if pkg_resources.invalid_marker(m):
                     raise DistutilsSetupError("Invalid environment marker: " + m)
-            list(pkg_resources.parse_requirements(v))
+            for r in pkg_resources.parse_requirements(v):
+                if r.marker:
+                    tmpl = (
+                        "'extras_require' requirements cannot include "
+                        "environment markers, in {section!r}: '{req!s}'"
+                    )
+                    raise DistutilsSetupError(tmpl.format(section=k, req=r))
     except (TypeError, ValueError, AttributeError):
         raise DistutilsSetupError(
             "'extras_require' must be a dictionary whose values are "
@@ -346,6 +353,31 @@ class Distribution(Distribution_parse_config_files, _Distribution):
                 )
         if getattr(self, 'python_requires', None):
             self.metadata.python_requires = self.python_requires
+        self._finalize_requires()
+
+    def _finalize_requires(self):
+        """Move requirements in `install_requires` that
+        are using environment markers to `extras_require`.
+        """
+        if not self.install_requires:
+            return
+        extras_require = defaultdict(list, (
+            (k, list(pkg_resources.parse_requirements(v)))
+            for k, v in (self.extras_require or {}).items()
+        ))
+        install_requires = []
+        for r in pkg_resources.parse_requirements(self.install_requires):
+            marker = r.marker
+            if not marker:
+                install_requires.append(r)
+                continue
+            r.marker = None
+            extras_require[':'+str(marker)].append(r)
+        self.extras_require = dict(
+            (k, [str(r) for r in v])
+            for k, v in extras_require.items()
+        )
+        self.install_requires = [str(r) for r in install_requires]
 
     def parse_config_files(self, filenames=None):
         """Parses configuration files from various levels
