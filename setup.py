@@ -94,6 +94,7 @@ setup_params = dict(
         "Python packages",
     author="Python Packaging Authority",
     author_email="distutils-sig@python.org",
+    license="MIT",
     long_description=long_description,
     keywords="CPAN PyPI distutils eggs package management",
     url="https://github.com/pypa/setuptools",
