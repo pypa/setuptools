@@ -1,3 +1,10 @@
+v36.1.1
+-------
+
+* #1083: Correct ``py31compat.makedirs`` to correctly honor
+  ``exist_ok`` parameter.
+* #1083: Also use makedirs compatibility throughout setuptools.
+
 v36.1.0
 -------
 

@@ -10,7 +10,7 @@ def _makedirs_31(path, exist_ok=False):
     try:
         os.makedirs(path)
     except OSError as exc:
-        if exc.errno != errno.EEXIST:
+        if not exist_ok or exc.errno != errno.EEXIST:
             raise
 
 
