@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+# This test was created in
+# https://github.com/pypa/setuptools/pull/1050
+# but it really should be incorporated into the test suite
+# such that it runs on Windows and doesn't depend on
+# virtualenv. Moving to test_integration will likely address
+# those concerns.
+
 set -o errexit
 set -o xtrace
 
