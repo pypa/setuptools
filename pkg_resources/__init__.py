@@ -17,6 +17,7 @@ method.
 
 from __future__ import absolute_import
 
+import errno
 import sys
 import os
 import io
@@ -2958,8 +2959,11 @@ def _find_adapter(registry, ob):
 def ensure_directory(path):
     """Ensure that the parent directory of `path` exists"""
     dirname = os.path.dirname(path)
-    if not os.path.isdir(dirname):
+    try:
         os.makedirs(dirname)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
 
 
 def _bypass_ensure_directory(path):
