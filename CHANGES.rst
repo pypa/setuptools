@@ -1,6 +1,9 @@
 v36.1.0
 -------
 
+* #1083: Avoid race condition on directory creation in
+  ``pkg_resources.ensure_directory``.
+
 * Removed deprecation of and restored support for
   ``upload_docs`` command for sites other than PyPI.
   Only warehouse is dropping support, but services like
