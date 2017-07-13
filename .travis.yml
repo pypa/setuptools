@@ -27,6 +27,9 @@ script:
  #- python -m tox
  - tox
 
+ # Check that setuptools can be installed in a clean environment
+ - ./clean_install.sh
+
 deploy:
   provider: pypi
   # Also update server in setup.cfg
