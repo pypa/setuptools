@@ -30,6 +30,7 @@ from setuptools.dist import Distribution
 from pkg_resources import normalize_path, working_set
 from pkg_resources import Distribution as PRDistribution
 import setuptools.tests.server
+from setuptools.tests import fail_on_ascii
 import pkg_resources
 
 from .py26compat import tarfile_open
@@ -166,6 +167,7 @@ class TestEasyInstallTest:
         sdist_zip.close()
         return str(sdist)
 
+    @fail_on_ascii
     def test_unicode_filename_in_sdist(self, sdist_unicode, tmpdir, monkeypatch):
         """
         The install command should execute correctly even if
