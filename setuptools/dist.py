@@ -9,7 +9,6 @@ import distutils.core
 import distutils.cmd
 import distutils.dist
 import itertools
-import operator
 from collections import defaultdict
 from distutils.errors import (
     DistutilsOptionError, DistutilsPlatformError, DistutilsSetupError,
@@ -17,7 +16,7 @@ from distutils.errors import (
 from distutils.util import rfc822_escape
 
 from setuptools.extern import six
-from setuptools.extern.six.moves import map, filter
+from setuptools.extern.six.moves import map
 from pkg_resources.extern import packaging
 
 from setuptools.depends import Require
@@ -133,30 +132,18 @@ def check_nsp(dist, attr, value):
 def check_extras(dist, attr, value):
     """Verify that extras_require mapping is valid"""
     try:
-        list(itertools.starmap(_check_extra, value.items()))
+        for k, v in value.items():
+            if ':' in k:
+                k, m = k.split(':', 1)
+                if pkg_resources.invalid_marker(m):
+                    raise DistutilsSetupError("Invalid environment marker: " + m)
+            list(pkg_resources.parse_requirements(v))
     except (TypeError, ValueError, AttributeError):
         raise DistutilsSetupError(
             "'extras_require' must be a dictionary whose values are "
             "strings or lists of strings containing valid project/version "
             "requirement specifiers."
         )
-
-
-def _check_extra(extra, reqs):
-    name, sep, marker = extra.partition(':')
-    if marker and pkg_resources.invalid_marker(marker):
-        raise DistutilsSetupError("Invalid environment marker: " + marker)
-
-    # extras requirements cannot themselves have markers
-    parsed = pkg_resources.parse_requirements(reqs)
-    marked_reqs = filter(operator.attrgetter('marker'), parsed)
-    bad_req = next(marked_reqs, None)
-    if bad_req:
-        tmpl = (
-            "'extras_require' requirements cannot include "
-            "environment markers, in {name!r}: '{bad_req!s}'"
-        )
-        raise DistutilsSetupError(tmpl.format(**locals()))
 
 
 def assert_bool(dist, attr, value):
@@ -366,17 +353,29 @@ class Distribution(Distribution_parse_config_files, _Distribution):
 
     def _finalize_requires(self):
         """
-        Move requirements in `install_requires` that
-        are using environment markers to `extras_require`.
+        Fix environment markers in `install_requires` and `extras_require`.
+
+        - move requirements in `install_requires` that are using environment
+          markers to `extras_require`.
+        - convert requirements in `extras_require` of the form
+          `"extra": ["barbazquux; {marker}"]` to
+          `"extra:{marker}": ["barbazquux"]`.
         """
-        if not self.install_requires:
-            return
-        extras_require = defaultdict(list, (
-            (k, list(pkg_resources.parse_requirements(v)))
-            for k, v in (self.extras_require or {}).items()
-        ))
+        extras_require = defaultdict(list)
+        for k, v in (
+            getattr(self, 'extras_require', None) or {}
+        ).items():
+            for r in pkg_resources.parse_requirements(v):
+                marker = r.marker
+                if marker:
+                    r.marker = None
+                    extras_require[k + ':' + str(marker)].append(r)
+                else:
+                    extras_require[k].append(r)
         install_requires = []
-        for r in pkg_resources.parse_requirements(self.install_requires):
+        for r in pkg_resources.parse_requirements(
+            getattr(self, 'install_requires', None) or ()
+        ):
             marker = r.marker
             if not marker:
                 install_requires.append(r)
