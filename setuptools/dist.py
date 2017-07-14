@@ -9,13 +9,14 @@ import distutils.core
 import distutils.cmd
 import distutils.dist
 import itertools
+import operator
 from collections import defaultdict
 from distutils.errors import (DistutilsOptionError, DistutilsPlatformError,
     DistutilsSetupError)
 from distutils.util import rfc822_escape
 
 from setuptools.extern import six
-from setuptools.extern.six.moves import map
+from setuptools.extern.six.moves import map, filter
 from pkg_resources.extern import packaging
 
 __import__('pkg_resources.extern.packaging.specifiers')
@@ -145,13 +146,16 @@ def _check_extra(extra, reqs):
     if marker and pkg_resources.invalid_marker(marker):
         raise DistutilsSetupError("Invalid environment marker: " + marker)
 
-    for r in pkg_resources.parse_requirements(reqs):
-        if r.marker:
-            tmpl = (
-                "'extras_require' requirements cannot include "
-                "environment markers, in {section!r}: '{req!s}'"
-            )
-            raise DistutilsSetupError(tmpl.format(section=name, req=r))
+    # extras requirements cannot themselves have markers
+    parsed = pkg_resources.parse_requirements(reqs)
+    marked_reqs = filter(operator.attrgetter('marker'), parsed)
+    bad_req = next(marked_reqs, None)
+    if bad_req:
+        tmpl = (
+            "'extras_require' requirements cannot include "
+            "environment markers, in {name!r}: '{bad_req!s}'"
+        )
+        raise DistutilsSetupError(tmpl.format(**locals()))
 
 
 def assert_bool(dist, attr, value):
