@@ -369,11 +369,12 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         Move requirements in `install_requires` that
         are using environment markers to `extras_require`.
         """
-        if not self.install_requires:
+        if not getattr(self, 'install_requires', None):
             return
+        extras_require = getattr(self, 'extras_require', None)
         extras_require = defaultdict(list, (
             (k, list(pkg_resources.parse_requirements(v)))
-            for k, v in (self.extras_require or {}).items()
+            for k, v in (extras_require or {}).items()
         ))
         install_requires = []
         for r in pkg_resources.parse_requirements(self.install_requires):
