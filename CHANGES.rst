@@ -1,3 +1,11 @@
+v36.2.0
+-------
+
+* #1081: Environment markers indicated in ``install_requires``
+  are now processed and treated as nameless ``extras_require``
+  with markers, allowing their metadata in requires.txt to be
+  correctly generated.
+
 v36.1.1
 -------
 
