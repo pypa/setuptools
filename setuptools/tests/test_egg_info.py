@@ -192,10 +192,11 @@ class TestEggInfo(object):
         requires_txt = os.path.join(egg_info_dir, 'requires.txt')
         with open(requires_txt) as fp:
             install_requires = fp.read()
-        assert install_requires.lstrip() == DALS('''
-                                                 [:python_version < "{sys.version_info[0]}"]
-                                                 barbazquux
-                                                 ''').format(sys=sys)
+        expected_requires = DALS('''
+             [:python_version < "{sys.version_info[0]}"]
+             barbazquux
+             ''').format(sys=sys)
+        assert install_requires.lstrip() == expected_requires
         assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
 
     def test_setup_requires_with_markers(self, tmpdir_cwd, env):
