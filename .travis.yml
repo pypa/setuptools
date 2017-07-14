@@ -19,6 +19,7 @@ jobs:
     python: *latest_py3
     install: skip
     script: skip
+    before_deploy: python bootstrap.py
     deploy:
       provider: pypi
       on:
