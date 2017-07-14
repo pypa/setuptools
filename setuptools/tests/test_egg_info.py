@@ -188,7 +188,7 @@ class TestEggInfo(object):
     )
     invalid_marker = "<=>++"
 
-    def test_install_requires_with_markers(self, tmpdir_cwd, env):
+    def test_install_requires_with_marker(self, tmpdir_cwd, env):
         tmpl = 'install_requires=["barbazquux;{marker}"],'
         req = tmpl.format(marker=self.mismatch_marker)
         self._setup_script_with_requires(req)
@@ -199,6 +199,37 @@ class TestEggInfo(object):
             install_requires = fp.read()
         expected_requires = DALS('''
              [:{marker}]
+             barbazquux
+             ''').format(marker=self.mismatch_marker_alternate)
+        assert install_requires.lstrip() == expected_requires
+        assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
+
+    def test_install_requires_with_extra(self, tmpdir_cwd, env):
+        req = 'install_requires=["barbazquux [test]"],'
+        self._setup_script_with_requires(req)
+        self._run_install_command(tmpdir_cwd, env)
+        egg_info_dir = self._find_egg_info_files(env.paths['lib']).base
+        requires_txt = os.path.join(egg_info_dir, 'requires.txt')
+        with open(requires_txt) as fp:
+            install_requires = fp.read()
+        expected_requires = DALS('''
+             [test]
+             barbazquux
+             ''')
+        assert install_requires.lstrip() == expected_requires
+        assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
+
+    def test_install_requires_with_extra_and_marker(self, tmpdir_cwd, env):
+        tmpl = 'install_requires=["barbazquux [test]; {marker}"],'
+        req = tmpl.format(marker=self.mismatch_marker)
+        self._setup_script_with_requires(req)
+        self._run_install_command(tmpdir_cwd, env)
+        egg_info_dir = self._find_egg_info_files(env.paths['lib']).base
+        requires_txt = os.path.join(egg_info_dir, 'requires.txt')
+        with open(requires_txt) as fp:
+            install_requires = fp.read()
+        expected_requires = DALS('''
+             [test:{marker}]
              barbazquux
              ''').format(marker=self.mismatch_marker_alternate)
         assert install_requires.lstrip() == expected_requires

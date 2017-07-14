@@ -358,7 +358,7 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         Fix environment markers in `install_requires` and `extras_require`.
 
         - move requirements in `install_requires` that are using environment
-          markers to `extras_require`.
+          markers or extras to `extras_require`.
         - convert requirements in `extras_require` of the form
           `"extra": ["barbazquux; {marker}"]` to
           `"extra:{marker}": ["barbazquux"]`.
@@ -379,11 +379,17 @@ class Distribution(Distribution_parse_config_files, _Distribution):
             getattr(self, 'install_requires', None) or ()
         ):
             marker = r.marker
-            if not marker:
+            extras = r.extras
+            if not marker and not extras:
                 install_requires.append(r)
                 continue
+            r.extras = ()
             r.marker = None
-            extras_require[':' + str(marker)].append(r)
+            for e in extras or ('',):
+                section = e
+                if marker:
+                    section += ':' + str(marker)
+                extras_require[section].append(r)
         self.extras_require = dict(
             (k, [str(r) for r in v])
             for k, v in extras_require.items()
