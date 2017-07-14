@@ -5,7 +5,7 @@ Tests for msvc support module.
 import os
 import contextlib
 import distutils.errors
-from unittest import mock
+import mock
 
 import pytest
 
