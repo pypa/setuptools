@@ -185,8 +185,12 @@ class TestEggInfo(object):
         self._run_install_command(tmpdir_cwd, env)
         egg_info_dir = self._find_egg_info_files(env.paths['lib']).base
         requires_txt = os.path.join(egg_info_dir, 'requires.txt')
-        assert "barbazquux;python_version<'2'" in open(
-            requires_txt).read().split('\n')
+        with open(requires_txt) as fp:
+            install_requires = fp.read()
+        assert install_requires.lstrip() == DALS('''
+                                                 [:python_version < "2"]
+                                                 barbazquux
+                                                 ''')
         assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
 
     def test_setup_requires_with_markers(self, tmpdir_cwd, env):
@@ -202,10 +206,11 @@ class TestEggInfo(object):
             tmpdir_cwd, env, cmd=['test'], output="Ran 0 tests in")
         assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
 
-    def test_extra_requires_with_markers(self, tmpdir_cwd, env):
+    def test_extras_require_with_markers(self, tmpdir_cwd, env):
         self._setup_script_with_requires(
-            """extra_requires={":python_version<'2'": ["barbazquux"]},""")
-        self._run_install_command(tmpdir_cwd, env)
+            """extras_require={"extra": ["barbazquux; python_version<'2'"]},""")
+        with pytest.raises(AssertionError):
+            self._run_install_command(tmpdir_cwd, env)
         assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
 
     def test_python_requires_egg_info(self, tmpdir_cwd, env):
