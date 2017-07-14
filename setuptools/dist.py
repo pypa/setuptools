@@ -8,6 +8,7 @@ import distutils.log
 import distutils.core
 import distutils.cmd
 import distutils.dist
+import itertools
 from collections import defaultdict
 from distutils.errors import (DistutilsOptionError, DistutilsPlatformError,
     DistutilsSetupError)
@@ -130,7 +131,16 @@ def check_nsp(dist, attr, value):
 def check_extras(dist, attr, value):
     """Verify that extras_require mapping is valid"""
     try:
-        for k, v in value.items():
+        list(itertools.starmap(_check_extra, value.items()))
+    except (TypeError, ValueError, AttributeError):
+        raise DistutilsSetupError(
+            "'extras_require' must be a dictionary whose values are "
+            "strings or lists of strings containing valid project/version "
+            "requirement specifiers."
+        )
+
+
+def _check_extra(k, v):
             if ':' in k:
                 k, m = k.split(':', 1)
                 if pkg_resources.invalid_marker(m):
@@ -142,12 +152,6 @@ def check_extras(dist, attr, value):
                         "environment markers, in {section!r}: '{req!s}'"
                     )
                     raise DistutilsSetupError(tmpl.format(section=k, req=r))
-    except (TypeError, ValueError, AttributeError):
-        raise DistutilsSetupError(
-            "'extras_require' must be a dictionary whose values are "
-            "strings or lists of strings containing valid project/version "
-            "requirement specifiers."
-        )
 
 
 def assert_bool(dist, attr, value):
