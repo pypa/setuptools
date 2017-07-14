@@ -140,19 +140,18 @@ def check_extras(dist, attr, value):
         )
 
 
-def _check_extra(k, v):
-    if ':' in k:
-        k, m = k.split(':', 1)
-        if pkg_resources.invalid_marker(m):
-            raise DistutilsSetupError("Invalid environment marker: " + m)
+def _check_extra(extra, reqs):
+    name, sep, marker = extra.partition(':')
+    if marker and pkg_resources.invalid_marker(marker):
+        raise DistutilsSetupError("Invalid environment marker: " + marker)
 
-    for r in pkg_resources.parse_requirements(v):
+    for r in pkg_resources.parse_requirements(reqs):
         if r.marker:
             tmpl = (
                 "'extras_require' requirements cannot include "
                 "environment markers, in {section!r}: '{req!s}'"
             )
-            raise DistutilsSetupError(tmpl.format(section=k, req=r))
+            raise DistutilsSetupError(tmpl.format(section=name, req=r))
 
 
 def assert_bool(dist, attr, value):
