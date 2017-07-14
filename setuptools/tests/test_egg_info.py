@@ -208,6 +208,12 @@ class TestEggInfo(object):
 
     def test_extras_require_with_markers(self, tmpdir_cwd, env):
         self._setup_script_with_requires(
+            """extras_require={":python_version<'2'": ["barbazquux"]},""")
+        self._run_install_command(tmpdir_cwd, env)
+        assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
+
+    def test_extras_require_with_markers_in_req(self, tmpdir_cwd, env):
+        self._setup_script_with_requires(
             """extras_require={"extra": ["barbazquux; python_version<'2'"]},""")
         with pytest.raises(AssertionError):
             self._run_install_command(tmpdir_cwd, env)
