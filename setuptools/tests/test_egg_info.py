@@ -64,7 +64,7 @@ class TestEggInfo(object):
             yield env
 
     dict_order_fails = pytest.mark.skipif(
-        sys.version_info < (2,7),
+        sys.version_info < (2, 7),
         reason="Intermittent failures on Python 2.6",
     )
 
