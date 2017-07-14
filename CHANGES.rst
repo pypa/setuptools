@@ -6,6 +6,11 @@ v36.2.0
   with markers, allowing their metadata in requires.txt to be
   correctly generated.
 
+* #1053: Tagged commits are now released using Travis-CI
+  build stages, meaning releases depend on passing tests on
+  all supported Python versions (Linux) and not just the latest
+  Python version.
+
 v36.1.1
 -------
 
