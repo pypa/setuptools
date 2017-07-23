@@ -387,14 +387,9 @@ class Distribution(Distribution_parse_config_files, _Distribution):
             return not req.marker and not req.extras
 
         spec_inst_reqs = getattr(self, 'install_requires', None) or ()
-        simple_reqs = filter(
-            is_simple_req,
-            pkg_resources.parse_requirements(spec_inst_reqs),
-        )
-        complex_reqs = filterfalse(
-            is_simple_req,
-            pkg_resources.parse_requirements(spec_inst_reqs),
-        )
+        inst_reqs = list(pkg_resources.parse_requirements(spec_inst_reqs))
+        simple_reqs = filter(is_simple_req, inst_reqs)
+        complex_reqs = filterfalse(is_simple_req, inst_reqs)
         self.install_requires = list(map(str, simple_reqs))
 
         for r in complex_reqs:
