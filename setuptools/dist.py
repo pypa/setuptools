@@ -379,23 +379,26 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         Move requirements in `install_requires` that are using environment
         markers or extras to `extras_require`.
         """
+
+        # divide the install_requires into two sets, simple ones still
+        # handled by install_requires and more complex ones handled
+        # by extras_require.
+
         def is_simple_req(req):
             return not req.marker and not req.extras
 
         spec_inst_reqs = getattr(self, 'install_requires', None) or ()
-        self.install_requires = list(
-            str(req)
-            for req in filter(
-                is_simple_req,
-                pkg_resources.parse_requirements(spec_inst_reqs),
-            )
-        )
-
-        markers_or_extras_reqs = filterfalse(
+        simple_reqs = filter(
             is_simple_req,
             pkg_resources.parse_requirements(spec_inst_reqs),
         )
-        for r in markers_or_extras_reqs:
+        complex_reqs = filterfalse(
+            is_simple_req,
+            pkg_resources.parse_requirements(spec_inst_reqs),
+        )
+        self.install_requires = list(map(str, simple_reqs))
+
+        for r in complex_reqs:
             suffix = ':' + str(r.marker) if r.marker else ''
             sections = [
                 section + suffix
