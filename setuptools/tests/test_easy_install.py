@@ -14,7 +14,7 @@ import itertools
 import distutils.errors
 import io
 import zipfile
-from unittest import mock
+import mock
 
 import time
 from setuptools.extern.six.moves import urllib
