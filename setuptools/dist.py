@@ -364,9 +364,8 @@ class Distribution(Distribution_parse_config_files, _Distribution):
           `"extra:{marker}": ["barbazquux"]`.
         """
         extras_require = defaultdict(list)
-        for k, v in (
-            getattr(self, 'extras_require', None) or {}
-        ).items():
+        spec_ext_reqs = getattr(self, 'extras_require', None) or {}
+        for k, v in spec_ext_reqs.items():
             for r in pkg_resources.parse_requirements(v):
                 marker = r.marker
                 if marker:
@@ -375,9 +374,8 @@ class Distribution(Distribution_parse_config_files, _Distribution):
                 else:
                     extras_require[k].append(r)
         install_requires = []
-        for r in pkg_resources.parse_requirements(
-            getattr(self, 'install_requires', None) or ()
-        ):
+        spec_inst_reqs = getattr(self, 'install_requires', None) or ()
+        for r in pkg_resources.parse_requirements(spec_inst_reqs):
             marker = r.marker
             extras = r.extras
             if not marker and not extras:
