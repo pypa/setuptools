@@ -370,9 +370,8 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         self._tmp_extras_require = defaultdict(list)
         for section, v in spec_ext_reqs.items():
             for r in pkg_resources.parse_requirements(v):
-                if r.marker:
-                    section += ':' + str(r.marker)
-                self._tmp_extras_require[section].append(r)
+                suffix = ':' + str(r.marker) if r.marker else ''
+                self._tmp_extras_require[section + suffix].append(r)
 
     def _move_install_requirements_markers(self):
         """
@@ -400,12 +399,8 @@ class Distribution(Distribution_parse_config_files, _Distribution):
 
         for r in complex_reqs:
             suffix = ':' + str(r.marker) if r.marker else ''
-            sections = [
-                section + suffix
-                for section in r.extras or ('',)
-            ]
-            for section in sections:
-                self._tmp_extras_require[section].append(r)
+            for section in r.extras or ('',):
+                self._tmp_extras_require[section + suffix].append(r)
         self.extras_require = dict(
             (k, [str(r) for r in map(self._clean_req, v)])
             for k, v in self._tmp_extras_require.items()
