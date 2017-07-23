@@ -372,7 +372,6 @@ class Distribution(Distribution_parse_config_files, _Distribution):
             for r in pkg_resources.parse_requirements(v):
                 if r.marker:
                     section += ':' + str(r.marker)
-                    r.marker = None
                 self._tmp_extras_require[section].append(r)
 
     def _move_install_requirements_markers(self):
@@ -393,18 +392,25 @@ class Distribution(Distribution_parse_config_files, _Distribution):
             if req.marker or req.extras
         )
         for r in markers_or_extras_reqs:
-            marker = r.marker
-            extras = r.extras
-            r.extras = ()
-            r.marker = None
-            for section in extras or ('',):
-                if marker:
-                    section += ':' + str(marker)
+            suffix = ':' + str(r.marker) if r.marker else ''
+            sections = [
+                section + suffix
+                for section in r.extras or ('',)
+            ]
+            for section in sections:
                 self._tmp_extras_require[section].append(r)
         self.extras_require = dict(
-            (k, [str(r) for r in v])
+            (k, [str(r) for r in map(self._clean_req, v)])
             for k, v in self._tmp_extras_require.items()
         )
+
+    def _clean_req(self, req):
+        """
+        Given a Requirement, remove extras and markers and return it.
+        """
+        req.extras = ()
+        req.marker = None
+        return req
 
     def parse_config_files(self, filenames=None):
         """Parses configuration files from various levels
