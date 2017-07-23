@@ -380,15 +380,21 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         Move requirements in `install_requires` that are using environment
         markers or extras to `extras_require`.
         """
-
-        install_requires = []
         spec_inst_reqs = getattr(self, 'install_requires', None) or ()
-        for r in pkg_resources.parse_requirements(spec_inst_reqs):
+        self.install_requires = list(
+            str(req)
+            for req in pkg_resources.parse_requirements(spec_inst_reqs)
+            if not req.marker and not req.extras
+        )
+
+        markers_or_extras_reqs = (
+            req
+            for req in pkg_resources.parse_requirements(spec_inst_reqs)
+            if req.marker or req.extras
+        )
+        for r in markers_or_extras_reqs:
             marker = r.marker
             extras = r.extras
-            if not marker and not extras:
-                install_requires.append(r)
-                continue
             r.extras = ()
             r.marker = None
             for section in extras or ('',):
@@ -399,7 +405,6 @@ class Distribution(Distribution_parse_config_files, _Distribution):
             (k, [str(r) for r in v])
             for k, v in self._tmp_extras_require.items()
         )
-        self.install_requires = [str(r) for r in install_requires]
 
     def parse_config_files(self, filenames=None):
         """Parses configuration files from various levels
