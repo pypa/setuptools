@@ -368,12 +368,12 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         """
         spec_ext_reqs = getattr(self, 'extras_require', None) or {}
         self._tmp_extras_require = defaultdict(list)
-        for k, v in spec_ext_reqs.items():
+        for section, v in spec_ext_reqs.items():
             for r in pkg_resources.parse_requirements(v):
                 if r.marker:
-                    k += ':' + str(r.marker)
+                    section += ':' + str(r.marker)
                     r.marker = None
-                self._tmp_extras_require[k].append(r)
+                self._tmp_extras_require[section].append(r)
 
     def _move_install_requirements_markers(self):
         """
@@ -391,8 +391,7 @@ class Distribution(Distribution_parse_config_files, _Distribution):
                 continue
             r.extras = ()
             r.marker = None
-            for e in extras or ('',):
-                section = e
+            for section in extras or ('',):
                 if marker:
                     section += ':' + str(marker)
                 self._tmp_extras_require[section].append(r)
