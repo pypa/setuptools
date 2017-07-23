@@ -16,7 +16,7 @@ from distutils.errors import (
 from distutils.util import rfc822_escape
 
 from setuptools.extern import six
-from setuptools.extern.six.moves import map
+from setuptools.extern.six.moves import map, filter, filterfalse
 from pkg_resources.extern import packaging
 
 from setuptools.depends import Require
@@ -379,17 +379,21 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         Move requirements in `install_requires` that are using environment
         markers or extras to `extras_require`.
         """
+        def is_simple_req(req):
+            return not req.marker and not req.extras
+
         spec_inst_reqs = getattr(self, 'install_requires', None) or ()
         self.install_requires = list(
             str(req)
-            for req in pkg_resources.parse_requirements(spec_inst_reqs)
-            if not req.marker and not req.extras
+            for req in filter(
+                is_simple_req,
+                pkg_resources.parse_requirements(spec_inst_reqs),
+            )
         )
 
-        markers_or_extras_reqs = (
-            req
-            for req in pkg_resources.parse_requirements(spec_inst_reqs)
-            if req.marker or req.extras
+        markers_or_extras_reqs = filterfalse(
+            is_simple_req,
+            pkg_resources.parse_requirements(spec_inst_reqs),
         )
         for r in markers_or_extras_reqs:
             suffix = ':' + str(r.marker) if r.marker else ''
