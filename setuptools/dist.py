@@ -356,21 +356,31 @@ class Distribution(Distribution_parse_config_files, _Distribution):
     def _finalize_requires(self):
         """
         Fix environment markers in `install_requires` and `extras_require`.
-
-        - move requirements in `install_requires` that are using environment
-          markers or extras to `extras_require`.
-        - convert requirements in `extras_require` of the form
-          `"extra": ["barbazquux; {marker}"]` to
-          `"extra:{marker}": ["barbazquux"]`.
         """
-        extras_require = defaultdict(list)
+        self._convert_extras_requirements()
+        self._move_install_requirements_markers()
+
+    def _convert_extras_requirements(self):
+        """
+        Convert requirements in `extras_require` of the form
+        `"extra": ["barbazquux; {marker}"]` to
+        `"extra:{marker}": ["barbazquux"]`.
+        """
         spec_ext_reqs = getattr(self, 'extras_require', None) or {}
+        self._tmp_extras_require = defaultdict(list)
         for k, v in spec_ext_reqs.items():
             for r in pkg_resources.parse_requirements(v):
                 if r.marker:
                     k += ':' + str(r.marker)
                     r.marker = None
-                extras_require[k].append(r)
+                self._tmp_extras_require[k].append(r)
+
+    def _move_install_requirements_markers(self):
+        """
+        Move requirements in `install_requires` that are using environment
+        markers or extras to `extras_require`.
+        """
+
         install_requires = []
         spec_inst_reqs = getattr(self, 'install_requires', None) or ()
         for r in pkg_resources.parse_requirements(spec_inst_reqs):
@@ -385,10 +395,10 @@ class Distribution(Distribution_parse_config_files, _Distribution):
                 section = e
                 if marker:
                     section += ':' + str(marker)
-                extras_require[section].append(r)
+                self._tmp_extras_require[section].append(r)
         self.extras_require = dict(
             (k, [str(r) for r in v])
-            for k, v in extras_require.items()
+            for k, v in self._tmp_extras_require.items()
         )
         self.install_requires = [str(r) for r in install_requires]
 
