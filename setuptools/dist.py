@@ -367,12 +367,10 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         spec_ext_reqs = getattr(self, 'extras_require', None) or {}
         for k, v in spec_ext_reqs.items():
             for r in pkg_resources.parse_requirements(v):
-                marker = r.marker
-                if marker:
+                if r.marker:
+                    k += ':' + str(r.marker)
                     r.marker = None
-                    extras_require[k + ':' + str(marker)].append(r)
-                else:
-                    extras_require[k].append(r)
+                extras_require[k].append(r)
         install_requires = []
         spec_inst_reqs = getattr(self, 'install_requires', None) or ()
         for r in pkg_resources.parse_requirements(spec_inst_reqs):
