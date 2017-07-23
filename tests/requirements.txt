@@ -3,4 +3,3 @@ mock
 pytest-flake8
 pytest-virtualenv>=1.2.7
 pytest>=3.0.2
-virtualenv
