@@ -1,3 +1,10 @@
+v36.2.1
+-------
+
+* fix #1086
+* fix #1087
+* support extras specifiers in install_requires requirements
+
 v36.2.0
 -------
 
