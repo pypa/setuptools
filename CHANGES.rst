@@ -1,3 +1,9 @@
+v36.2.2
+-------
+
+* #1099: Revert commit a3ec721, restoring intended purpose of
+  extras as part of a requirement declaration.
+
 v36.2.1
 -------
 
