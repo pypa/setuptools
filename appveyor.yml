@@ -16,5 +16,6 @@ build: off
 
 test_script:
   - "python bootstrap.py"
+  - "python -m pip install --upgrade virtualenv"
   - "python -m pip install tox"
   - "tox"
