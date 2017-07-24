@@ -384,7 +384,7 @@ class Distribution(Distribution_parse_config_files, _Distribution):
     def _move_install_requirements_markers(self):
         """
         Move requirements in `install_requires` that are using environment
-        markers or extras to `extras_require`.
+        markers `extras_require`.
         """
 
         # divide the install_requires into two sets, simple ones still
@@ -392,7 +392,7 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         # by extras_require.
 
         def is_simple_req(req):
-            return not req.marker and not req.extras
+            return not req.marker
 
         spec_inst_reqs = getattr(self, 'install_requires', None) or ()
         inst_reqs = list(pkg_resources.parse_requirements(spec_inst_reqs))
@@ -401,13 +401,7 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         self.install_requires = list(map(str, simple_reqs))
 
         for r in complex_reqs:
-            sections = (
-                section + self._suffix_for(r)
-                for section in r.extras or ('',)
-            )
-            for section in sections:
-                self._tmp_extras_require[section].append(r)
-
+            self._tmp_extras_require[':' + str(r.marker)].append(r)
         self.extras_require = dict(
             (k, [str(r) for r in map(self._clean_req, v)])
             for k, v in self._tmp_extras_require.items()
@@ -415,9 +409,8 @@ class Distribution(Distribution_parse_config_files, _Distribution):
 
     def _clean_req(self, req):
         """
-        Given a Requirement, remove extras and markers and return it.
+        Given a Requirement, remove environment markers and return it.
         """
-        req.extras = ()
         req.marker = None
         return req
 
