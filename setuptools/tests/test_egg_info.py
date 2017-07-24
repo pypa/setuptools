@@ -207,14 +207,13 @@ class TestEggInfo(object):
     def test_install_requires_with_extra(self, tmpdir_cwd, env):
         req = 'install_requires=["barbazquux [test]"],'
         self._setup_script_with_requires(req)
-        self._run_install_command(tmpdir_cwd, env)
-        egg_info_dir = self._find_egg_info_files(env.paths['lib']).base
+        self._run_install_command(tmpdir_cwd, env, cmd=['egg_info'])
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
         requires_txt = os.path.join(egg_info_dir, 'requires.txt')
         with open(requires_txt) as fp:
             install_requires = fp.read()
         expected_requires = DALS('''
-             [test]
-             barbazquux
+             barbazquux[test]
              ''')
         assert install_requires.lstrip() == expected_requires
         assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
@@ -229,8 +228,8 @@ class TestEggInfo(object):
         with open(requires_txt) as fp:
             install_requires = fp.read()
         expected_requires = DALS('''
-             [test:{marker}]
-             barbazquux
+             [:{marker}]
+             barbazquux[test]
              ''').format(marker=self.mismatch_marker_alternate)
         assert install_requires.lstrip() == expected_requires
         assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
@@ -248,6 +247,37 @@ class TestEggInfo(object):
         self._setup_script_with_requires(req)
         self._run_install_command(
             tmpdir_cwd, env, cmd=['test'], output="Ran 0 tests in")
+        assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
+
+    def test_extras_require_with_extra(self, tmpdir_cwd, env):
+        req = 'extras_require={"extra": ["barbazquux [test]"]},'
+        self._setup_script_with_requires(req)
+        self._run_install_command(tmpdir_cwd, env, cmd=['egg_info'])
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
+        requires_txt = os.path.join(egg_info_dir, 'requires.txt')
+        with open(requires_txt) as fp:
+            install_requires = fp.read()
+        expected_requires = DALS('''
+             [extra]
+             barbazquux[test]
+             ''')
+        assert install_requires.lstrip() == expected_requires
+        assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
+
+    def test_extras_require_with_extra_and_marker_in_req(self, tmpdir_cwd, env):
+        tmpl = 'extras_require={{"extra": ["barbazquux [test]; {marker}"]}},'
+        req = tmpl.format(marker=self.mismatch_marker)
+        self._setup_script_with_requires(req)
+        self._run_install_command(tmpdir_cwd, env)
+        egg_info_dir = self._find_egg_info_files(env.paths['lib']).base
+        requires_txt = os.path.join(egg_info_dir, 'requires.txt')
+        with open(requires_txt) as fp:
+            install_requires = fp.read()
+        expected_requires = DALS('''
+             [extra:{marker}]
+             barbazquux[test]
+             ''').format(marker=self.mismatch_marker_alternate)
+        assert install_requires.lstrip() == expected_requires
         assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
 
     def test_extras_require_with_marker(self, tmpdir_cwd, env):
