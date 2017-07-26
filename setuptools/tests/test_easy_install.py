@@ -567,18 +567,6 @@ def create_setup_requires_package(path, distname='foobar', version='0.1',
     return test_pkg
 
 
-def make_trivial_sdist(dist_path, setup_py):
-    """Create a simple sdist tarball at dist_path, containing just a
-    setup.py, the contents of which are provided by the setup_py string.
-    """
-
-    setup_py_file = tarfile.TarInfo(name='setup.py')
-    setup_py_bytes = io.BytesIO(setup_py.encode('utf-8'))
-    setup_py_file.size = len(setup_py_bytes.getvalue())
-    with tarfile_open(dist_path, 'w:gz') as dist:
-        dist.addfile(setup_py_file, fileobj=setup_py_bytes)
-
-
 @pytest.mark.skipif(
     sys.platform.startswith('java') and ei.is_sh(sys.executable),
     reason="Test cannot run under java when executable is sh"
