@@ -274,6 +274,8 @@ class TestEggInfo(object):
         with open(requires_txt) as fp:
             install_requires = fp.read()
         expected_requires = DALS('''
+             [extra]
+
              [extra:{marker}]
              barbazquux[test]
              ''').format(marker=self.mismatch_marker_alternate)
@@ -306,6 +308,8 @@ class TestEggInfo(object):
         with open(requires_txt) as fp:
             install_requires = fp.read()
         expected_requires = DALS('''
+             [extra]
+
              [extra:{marker}]
              barbazquux
              ''').format(marker=self.mismatch_marker_alternate)
@@ -327,6 +331,20 @@ class TestEggInfo(object):
         with pytest.raises(AssertionError):
             self._run_install_command(tmpdir_cwd, env)
         assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
+
+    def test_extras_require_with_empty_section(self, tmpdir_cwd, env):
+        tmpl = 'extras_require={{"empty": []}},'
+        req = tmpl.format(marker=self.invalid_marker)
+        self._setup_script_with_requires(req)
+        self._run_install_command(tmpdir_cwd, env)
+        egg_info_dir = self._find_egg_info_files(env.paths['lib']).base
+        requires_txt = os.path.join(egg_info_dir, 'requires.txt')
+        with open(requires_txt) as fp:
+            install_requires = fp.read()
+        expected_requires = DALS('''
+             [empty]
+             ''').format(marker=self.mismatch_marker_alternate)
+        assert install_requires.lstrip() == expected_requires
 
     def test_python_requires_egg_info(self, tmpdir_cwd, env):
         self._setup_script_with_requires(

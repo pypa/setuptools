@@ -369,6 +369,8 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         spec_ext_reqs = getattr(self, 'extras_require', None) or {}
         self._tmp_extras_require = defaultdict(list)
         for section, v in spec_ext_reqs.items():
+            # Do not strip empty sections.
+            self._tmp_extras_require[section]
             for r in pkg_resources.parse_requirements(v):
                 suffix = self._suffix_for(r)
                 self._tmp_extras_require[section + suffix].append(r)
