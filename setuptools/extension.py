@@ -1,4 +1,5 @@
 import re
+import sys
 import functools
 import distutils.core
 import distutils.errors
@@ -36,6 +37,7 @@ class Extension(_Extension):
         # The *args is needed for compatibility as calls may use positional
         # arguments. py_limited_api may be set only via keyword.
         self.py_limited_api = kw.pop("py_limited_api", False)
+        self.compat_glibc = kw.pop("compat_glibc", False) and sys.platform in ('linux', 'linux2')
         _Extension.__init__(self, name, sources, *args, **kw)
 
     def _convert_pyx_sources_to_lang(self):

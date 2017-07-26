@@ -2,6 +2,8 @@ import os
 import sys
 import itertools
 import imp
+from contextlib import contextmanager
+from tempfile import NamedTemporaryFile
 from distutils.command.build_ext import build_ext as _du_build_ext
 from distutils.file_util import copy_file
 from distutils.ccompiler import new_compiler
@@ -9,6 +11,7 @@ from distutils.sysconfig import customize_compiler, get_config_var
 from distutils.errors import DistutilsError
 from distutils import log
 
+from pkg_resources import resource_string
 from setuptools.extension import Library
 from setuptools.extern import six
 
@@ -187,18 +190,65 @@ class build_ext(_build_ext):
             return ext.export_symbols
         return _build_ext.get_export_symbols(self, ext)
 
-    def build_extension(self, ext):
-        ext._convert_pyx_sources_to_lang()
+    def _create_tmp_glibc_header(self, ext):
+        # copy glibc-compat.h contents to a temporary location
+        # accessible to gcc; mostly to keep zip safety
+        tmp_file = None
+        if ext.compat_glibc:
+            raw_bytes = resource_string('setuptools', 'glibc-compat.h')
+            glibc_vers_header = NamedTemporaryFile()
+            try:
+                glibc_vers_header.write(raw_bytes)
+                glibc_vers_header.flush()
+                tmp_file = glibc_vers_header
+            except Exception:
+                glibc_vers_header.close()
+                raise
+        return tmp_file
+
+    def _cleanup_tmp_glibc_header(self, tmp_file):
+        if tmp_file:
+            tmp_file.close()
+
+    @contextmanager
+    def _modified_compiler(self, ext):
+        _glibc_header = self._create_tmp_glibc_header(ext)
         _compiler = self.compiler
         try:
             if isinstance(ext, Library):
                 self.compiler = self.shlib_compiler
+            _old_executables = {
+                'compiler': self.compiler.compiler,
+                'compiler_so': self.compiler.compiler_so,
+                'compiler_cxx': self.compiler.compiler_cxx,
+            }
+            if ext.compat_glibc:
+                # used to override glibc function versions
+                # ("glibc-compat.h" contains pinned version attributes
+                # and will be loaded before any #include macro)
+                #
+                # FORTIFY_SOURCE is disabled to avoid linking symbols
+                # which exist only in newer versions of glibc
+                extra_args = ['-U_FORTIFY_SOURCE', '-include', _glibc_header.name]
+                for key, cmd in _old_executables.items():
+                    cmd = [c for c in cmd if '-D_FORTIFY_SOURCE' not in c]
+                    self.compiler.set_executable(key, cmd + extra_args)
+            try:
+                yield
+            finally:
+                for key, cmd in _old_executables.items():
+                    self.compiler.set_executable(key, cmd)
+        finally:
+            self.compiler = _compiler
+            self._cleanup_tmp_glibc_header(_glibc_header)
+
+    def build_extension(self, ext):
+        ext._convert_pyx_sources_to_lang()
+        with self._modified_compiler(ext):
             _build_ext.build_extension(self, ext)
             if ext._needs_stub:
                 cmd = self.get_finalized_command('build_py').build_lib
                 self.write_stub(cmd, ext)
-        finally:
-            self.compiler = _compiler
 
     def links_to_dynamic(self, ext):
         """Return true if 'ext' links to a dynamic lib in the same package"""

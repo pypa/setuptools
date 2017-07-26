@@ -54,7 +54,7 @@ with io.open(readme_path, encoding='utf-8') as readme_file:
     long_description = readme_file.read()
 
 package_data = dict(
-    setuptools=['script (dev).tmpl', 'script.tmpl', 'site-patch.py'],
+    setuptools=['script (dev).tmpl', 'script.tmpl', 'site-patch.py', 'glibc-compat.h'],
 )
 
 force_windows_specific_files = (
