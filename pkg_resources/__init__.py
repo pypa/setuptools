@@ -37,6 +37,7 @@ import email.parser
 import tempfile
 import textwrap
 import itertools
+import inspect
 from pkgutil import get_importer
 
 try:
@@ -2939,20 +2940,20 @@ class Requirement(packaging.requirements.Requirement):
         return req
 
 
-def _get_mro(cls):
-    """Get an mro for a type or classic class"""
-    if not isinstance(cls, type):
-
-        class cls(cls, object):
-            pass
-
-        return cls.__mro__[1:]
-    return cls.__mro__
+def _always_object(classes):
+    """
+    Ensure object appears in the mro even
+    for old-style classes.
+    """
+    if object not in classes:
+        return classes + (object,)
+    return classes
 
 
 def _find_adapter(registry, ob):
     """Return an adapter factory for `ob` from `registry`"""
-    for t in _get_mro(getattr(ob, '__class__', type(ob))):
+    types = _always_object(inspect.getmro(getattr(ob, '__class__', type(ob))))
+    for t in types:
         if t in registry:
             return registry[t]
 

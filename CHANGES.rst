@@ -1,3 +1,9 @@
+v36.2.4
+-------
+
+* #1092: ``pkg_resources`` now uses ``inspect.getmro`` to
+  resolve classes in method resolution order.
+
 v36.2.3
 -------
 
