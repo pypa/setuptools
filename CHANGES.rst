@@ -1,3 +1,8 @@
+v36.2.3
+-------
+
+* #1102: Restore behavior for empty extras.
+
 v36.2.2
 -------
 
