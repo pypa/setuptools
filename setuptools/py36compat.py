@@ -3,7 +3,7 @@ from distutils.errors import DistutilsOptionError
 from distutils.util import strtobool
 from distutils.debug import DEBUG
 
-import six
+from setuptools.extern import six
 
 
 class Distribution_parse_config_files:
