@@ -1,3 +1,10 @@
+v36.2.5
+-------
+
+* #889: Thanks to test revealed in #1062, identified and
+  corrected two flaws in disabling the interpolation of setup.cfg
+  files.
+
 v36.2.4
 -------
 
