@@ -50,7 +50,7 @@ class Distribution_parse_config_files:
 
             # Make the ConfigParser forget everything (so we retain
             # the original filenames that options come from)
-            parser.__init__()
+            parser.__init__(interpolation=None)
 
         # If there was a "global" section in the config file, use it
         # to set Distribution options.

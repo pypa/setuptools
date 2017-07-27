@@ -421,7 +421,12 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         and loads configuration.
 
         """
-        _Distribution.parse_config_files(self, filenames=filenames)
+        super_call = getattr(
+            Distribution_parse_config_files,
+            'parse_config_files',
+            _Distribution.parse_config_files,
+        )
+        super_call(self, filenames=filenames)
 
         parse_configuration(self, self.command_options)
         if getattr(self, 'python_requires', None):
