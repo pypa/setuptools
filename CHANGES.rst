@@ -1,9 +1,28 @@
-v36.2.5
+v37.0.0
 -------
 
-* #889: Thanks to test revealed in #1062, identified and
-  corrected two flaws in disabling the interpolation of setup.cfg
-  files.
+* #889: Thanks to test revealed in #1062, several things
+  became apparent:
+
+  - The functionality introduced in 32.3.0 was never
+    activated. Changes in another branch made around the
+    same time meant that the new behavior was never
+    called.
+  - Even if the behavior had been called, there was another
+    flaw that would cause crashes.
+  - The Python 2 distutils implementation also performed
+    interpolation on config files.
+
+  As a result, the scope of #889 is now much broader - to
+  disable interpolation on config files (mainly setup.cfg)
+  for all Python versions where previously interpolation was
+  available.
+
+  This change means that:
+
+  - config files that previously escaped % characters must
+    now no longer escape those characters.
+  - config files that used interpolation will no longer work.
 
 v36.2.4
 -------
