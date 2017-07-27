@@ -285,6 +285,15 @@ class TestMetadata:
         with get_dist(tmpdir) as dist:
             assert set(dist.metadata.classifiers) == expected
 
+    def test_no_interpolation(self, tmpdir):
+        fake_env(
+            tmpdir,
+            '[metadata]\n'
+            'description = %(message)s\n'
+        )
+        with get_dist(tmpdir) as dist:
+            assert dist.metadata.description == '%(message)s'
+
 
 class TestOptions:
 
