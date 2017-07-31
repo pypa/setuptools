@@ -1,3 +1,8 @@
+v36.2.5
+-------
+
+* #1093: Fix test command handler with extras_require.
+
 v36.2.4
 -------
 
