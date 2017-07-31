@@ -2,6 +2,8 @@ v36.2.5
 -------
 
 * #1093: Fix test command handler with extras_require.
+* #1112, #1091, #1115: Now using Trusty containers in
+  Travis for CI and CD.
 
 v36.2.4
 -------
