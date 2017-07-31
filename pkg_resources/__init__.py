@@ -1553,7 +1553,7 @@ class EggProvider(NullProvider):
         path = self.module_path
         old = None
         while path != old:
-            if _is_unpacked_egg(path):
+            if _is_egg_path(path):
                 self.egg_name = os.path.basename(path)
                 self.egg_info = os.path.join(path, 'EGG-INFO')
                 self.egg_root = path
@@ -1956,7 +1956,7 @@ def find_eggs_in_zip(importer, path_item, only=False):
         # don't yield nested distros
         return
     for subitem in metadata.resource_listdir('/'):
-        if _is_unpacked_egg(subitem):
+        if _is_egg_path(subitem):
             subpath = os.path.join(path_item, subitem)
             for dist in find_eggs_in_zip(zipimport.zipimporter(subpath), subpath):
                 yield dist
@@ -2033,7 +2033,7 @@ def find_on_path(importer, path_item, only=False):
                     yield Distribution.from_location(
                         path_item, entry, metadata, precedence=DEVELOP_DIST
                     )
-                elif not only and _is_unpacked_egg(entry):
+                elif not only and _is_egg_path(entry):
                     dists = find_distributions(os.path.join(path_item, entry))
                     for dist in dists:
                         yield dist
@@ -2221,12 +2221,22 @@ def _normalize_cached(filename, _cache={}):
         return result
 
 
+def _is_egg_path(path):
+    """
+    Determine if given path appears to be an egg.
+    """
+    return (
+        path.lower().endswith('.egg')
+    )
+
+
 def _is_unpacked_egg(path):
     """
     Determine if given path appears to be an unpacked egg.
     """
     return (
-        path.lower().endswith('.egg')
+        _is_egg_path(path) and
+        os.path.isfile(os.path.join(path, 'EGG-INFO', 'PKG-INFO'))
     )
 
 

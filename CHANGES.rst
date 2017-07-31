@@ -1,3 +1,9 @@
+v36.2.6
+-------
+
+* #462: Don't assume a directory is an egg by the ``.egg``
+  extension alone.
+
 v36.2.5
 -------
 
