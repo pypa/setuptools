@@ -1,3 +1,10 @@
+v36.2.7
+-------
+
+* fix #1105: Fix handling of requirements with environment
+  markers when declared in ``setup.cfg`` (same treatment as
+  for #1081).
+
 v36.2.6
 -------
 
