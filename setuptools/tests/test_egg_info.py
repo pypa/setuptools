@@ -1,3 +1,4 @@
+import ast
 import os
 import glob
 import re
@@ -165,19 +166,17 @@ class TestEggInfo(object):
         sources_txt = os.path.join(egg_info_dir, 'SOURCES.txt')
         assert 'docs/usage.rst' in open(sources_txt).read().split('\n')
 
-    def _setup_script_with_requires(self, requires_line):
-        setup_script = DALS("""
+    def _setup_script_with_requires(self, requires, use_setup_cfg=False):
+        setup_script = DALS(
+            '''
             from setuptools import setup
 
-            setup(
-                name='foo',
-                %s
-                zip_safe=False,
-            )
-            """ % requires_line)
-        build_files({
-            'setup.py': setup_script,
-        })
+            setup(name='foo', zip_safe=False, %s)
+            '''
+        ) % ('' if use_setup_cfg else requires)
+        setup_config = requires if use_setup_cfg else ''
+        build_files({'setup.py': setup_script,
+                     'setup.cfg': setup_config})
 
     mismatch_marker = "python_version<'{this_ver}'".format(
         this_ver=sys.version_info[0],
@@ -188,131 +187,198 @@ class TestEggInfo(object):
     )
     invalid_marker = "<=>++"
 
-    def test_install_requires_with_marker(self, tmpdir_cwd, env):
-        tmpl = 'install_requires=["barbazquux;{marker}"],'
-        req = tmpl.format(marker=self.mismatch_marker)
-        self._setup_script_with_requires(req)
-        self._run_install_command(tmpdir_cwd, env)
-        egg_info_dir = self._find_egg_info_files(env.paths['lib']).base
-        requires_txt = os.path.join(egg_info_dir, 'requires.txt')
-        with open(requires_txt) as fp:
-            install_requires = fp.read()
-        expected_requires = DALS('''
-             [:{marker}]
-             barbazquux
-             ''').format(marker=self.mismatch_marker_alternate)
-        assert install_requires.lstrip() == expected_requires
-        assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
+    class RequiresTestHelper(object):
 
-    def test_install_requires_with_extra(self, tmpdir_cwd, env):
-        req = 'install_requires=["barbazquux [test]"],'
-        self._setup_script_with_requires(req)
-        self._run_install_command(tmpdir_cwd, env, cmd=['egg_info'])
+        @staticmethod
+        def parametrize(*test_list, **format_dict):
+            idlist = []
+            argvalues = []
+            for test in test_list:
+                test_params = test.lstrip().split('\n\n', 3)
+                name_kwargs = test_params.pop(0).split('\n')
+                if len(name_kwargs) > 1:
+                    install_cmd_kwargs = ast.literal_eval(name_kwargs[1].strip())
+                else:
+                    install_cmd_kwargs = {}
+                name = name_kwargs[0].strip()
+                setup_py_requires, setup_cfg_requires, expected_requires = (
+                    DALS(a).format(**format_dict) for a in test_params
+                )
+                for id_, requires, use_cfg in (
+                    (name, setup_py_requires, False),
+                    (name + '_in_setup_cfg', setup_cfg_requires, True),
+                ):
+                    idlist.append(id_)
+                    marks = ()
+                    if requires.startswith('@xfail\n'):
+                        requires = requires[7:]
+                        marks = pytest.mark.xfail
+                    argvalues.append(pytest.param(requires, use_cfg,
+                                                  expected_requires,
+                                                  install_cmd_kwargs,
+                                                  marks=marks))
+            return pytest.mark.parametrize('requires,use_setup_cfg,'
+                                           'expected_requires,install_cmd_kwargs',
+                                           argvalues, ids=idlist)
+
+    @RequiresTestHelper.parametrize(
+        # Format of a test:
+        #
+        # id
+        # install_cmd_kwargs [optional]
+        #
+        # requires block (when used in setup.py)
+        #
+        # requires block (when used in setup.cfg)
+        #
+        # expected contents of requires.txt
+
+        '''
+        install_requires_with_marker
+
+        install_requires=["barbazquux;{mismatch_marker}"],
+
+        [options]
+        install_requires =
+            barbazquux; {mismatch_marker}
+
+        [:{mismatch_marker_alternate}]
+        barbazquux
+        ''',
+
+        '''
+        install_requires_with_extra
+        {'cmd': ['egg_info']}
+
+        install_requires=["barbazquux [test]"],
+
+        [options]
+        install_requires =
+            barbazquux [test]
+
+        barbazquux[test]
+        ''',
+
+        '''
+        install_requires_with_extra_and_marker
+
+        install_requires=["barbazquux [test]; {mismatch_marker}"],
+
+        [options]
+        install_requires =
+            barbazquux [test]; {mismatch_marker}
+
+        [:{mismatch_marker_alternate}]
+        barbazquux[test]
+        ''',
+
+        '''
+        setup_requires_with_markers
+
+        setup_requires=["barbazquux;{mismatch_marker}"],
+
+        [options]
+        setup_requires =
+            barbazquux; {mismatch_marker}
+
+        ''',
+
+        '''
+        tests_require_with_markers
+        {'cmd': ['test'], 'output': "Ran 0 tests in"}
+
+        tests_require=["barbazquux;{mismatch_marker}"],
+
+        [options]
+        tests_require =
+            barbazquux; {mismatch_marker}
+
+        ''',
+
+        '''
+        extras_require_with_extra
+        {'cmd': ['egg_info']}
+
+        extras_require={{"extra": ["barbazquux [test]"]}},
+
+        [options.extras_require]
+        extra = barbazquux [test]
+
+        [extra]
+        barbazquux[test]
+        ''',
+
+        '''
+        extras_require_with_extra_and_marker_in_req
+
+        extras_require={{"extra": ["barbazquux [test]; {mismatch_marker}"]}},
+
+        [options.extras_require]
+        extra =
+            barbazquux [test]; {mismatch_marker}
+
+        [extra]
+
+        [extra:{mismatch_marker_alternate}]
+        barbazquux[test]
+        ''',
+
+        # FIXME: ConfigParser does not allow : in key names!
+        '''
+        extras_require_with_marker
+
+        extras_require={{":{mismatch_marker}": ["barbazquux"]}},
+
+        @xfail
+        [options.extras_require]
+        :{mismatch_marker} = barbazquux
+
+        [:{mismatch_marker}]
+        barbazquux
+        ''',
+
+        '''
+        extras_require_with_marker_in_req
+
+        extras_require={{"extra": ["barbazquux; {mismatch_marker}"]}},
+
+        [options.extras_require]
+        extra =
+            barbazquux; {mismatch_marker}
+
+        [extra]
+
+        [extra:{mismatch_marker_alternate}]
+        barbazquux
+        ''',
+
+        '''
+        extras_require_with_empty_section
+
+        extras_require={{"empty": []}},
+
+        [options.extras_require]
+        empty =
+
+        [empty]
+        ''',
+        # Format arguments.
+        invalid_marker=invalid_marker,
+        mismatch_marker=mismatch_marker,
+        mismatch_marker_alternate=mismatch_marker_alternate,
+    )
+    def test_requires(self, tmpdir_cwd, env,
+                      requires, use_setup_cfg,
+                      expected_requires, install_cmd_kwargs):
+        self._setup_script_with_requires(requires, use_setup_cfg)
+        self._run_install_command(tmpdir_cwd, env, **install_cmd_kwargs)
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         requires_txt = os.path.join(egg_info_dir, 'requires.txt')
-        with open(requires_txt) as fp:
-            install_requires = fp.read()
-        expected_requires = DALS('''
-             barbazquux[test]
-             ''')
-        assert install_requires.lstrip() == expected_requires
-        assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
-
-    def test_install_requires_with_extra_and_marker(self, tmpdir_cwd, env):
-        tmpl = 'install_requires=["barbazquux [test]; {marker}"],'
-        req = tmpl.format(marker=self.mismatch_marker)
-        self._setup_script_with_requires(req)
-        self._run_install_command(tmpdir_cwd, env)
-        egg_info_dir = self._find_egg_info_files(env.paths['lib']).base
-        requires_txt = os.path.join(egg_info_dir, 'requires.txt')
-        with open(requires_txt) as fp:
-            install_requires = fp.read()
-        expected_requires = DALS('''
-             [:{marker}]
-             barbazquux[test]
-             ''').format(marker=self.mismatch_marker_alternate)
-        assert install_requires.lstrip() == expected_requires
-        assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
-
-    def test_setup_requires_with_markers(self, tmpdir_cwd, env):
-        tmpl = 'setup_requires=["barbazquux;{marker}"],'
-        req = tmpl.format(marker=self.mismatch_marker)
-        self._setup_script_with_requires(req)
-        self._run_install_command(tmpdir_cwd, env)
-        assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
-
-    def test_tests_require_with_markers(self, tmpdir_cwd, env):
-        tmpl = 'tests_require=["barbazquux;{marker}"],'
-        req = tmpl.format(marker=self.mismatch_marker)
-        self._setup_script_with_requires(req)
-        self._run_install_command(
-            tmpdir_cwd, env, cmd=['test'], output="Ran 0 tests in")
-        assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
-
-    def test_extras_require_with_extra(self, tmpdir_cwd, env):
-        req = 'extras_require={"extra": ["barbazquux [test]"]},'
-        self._setup_script_with_requires(req)
-        self._run_install_command(tmpdir_cwd, env, cmd=['egg_info'])
-        egg_info_dir = os.path.join('.', 'foo.egg-info')
-        requires_txt = os.path.join(egg_info_dir, 'requires.txt')
-        with open(requires_txt) as fp:
-            install_requires = fp.read()
-        expected_requires = DALS('''
-             [extra]
-             barbazquux[test]
-             ''')
-        assert install_requires.lstrip() == expected_requires
-        assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
-
-    def test_extras_require_with_extra_and_marker_in_req(self, tmpdir_cwd, env):
-        tmpl = 'extras_require={{"extra": ["barbazquux [test]; {marker}"]}},'
-        req = tmpl.format(marker=self.mismatch_marker)
-        self._setup_script_with_requires(req)
-        self._run_install_command(tmpdir_cwd, env)
-        egg_info_dir = self._find_egg_info_files(env.paths['lib']).base
-        requires_txt = os.path.join(egg_info_dir, 'requires.txt')
-        with open(requires_txt) as fp:
-            install_requires = fp.read()
-        expected_requires = DALS('''
-             [extra]
-
-             [extra:{marker}]
-             barbazquux[test]
-             ''').format(marker=self.mismatch_marker_alternate)
-        assert install_requires.lstrip() == expected_requires
-        assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
-
-    def test_extras_require_with_marker(self, tmpdir_cwd, env):
-        tmpl = 'extras_require={{":{marker}": ["barbazquux"]}},'
-        req = tmpl.format(marker=self.mismatch_marker)
-        self._setup_script_with_requires(req)
-        self._run_install_command(tmpdir_cwd, env)
-        egg_info_dir = self._find_egg_info_files(env.paths['lib']).base
-        requires_txt = os.path.join(egg_info_dir, 'requires.txt')
-        with open(requires_txt) as fp:
-            install_requires = fp.read()
-        expected_requires = DALS('''
-             [:{marker}]
-             barbazquux
-             ''').format(marker=self.mismatch_marker)
-        assert install_requires.lstrip() == expected_requires
-        assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
-
-    def test_extras_require_with_marker_in_req(self, tmpdir_cwd, env):
-        tmpl = 'extras_require={{"extra": ["barbazquux; {marker}"]}},'
-        req = tmpl.format(marker=self.mismatch_marker)
-        self._setup_script_with_requires(req)
-        self._run_install_command(tmpdir_cwd, env)
-        egg_info_dir = self._find_egg_info_files(env.paths['lib']).base
-        requires_txt = os.path.join(egg_info_dir, 'requires.txt')
-        with open(requires_txt) as fp:
-            install_requires = fp.read()
-        expected_requires = DALS('''
-             [extra]
-
-             [extra:{marker}]
-             barbazquux
-             ''').format(marker=self.mismatch_marker_alternate)
+        if os.path.exists(requires_txt):
+            with open(requires_txt) as fp:
+                install_requires = fp.read()
+        else:
+            install_requires = ''
         assert install_requires.lstrip() == expected_requires
         assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
 
@@ -331,20 +397,6 @@ class TestEggInfo(object):
         with pytest.raises(AssertionError):
             self._run_install_command(tmpdir_cwd, env)
         assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
-
-    def test_extras_require_with_empty_section(self, tmpdir_cwd, env):
-        tmpl = 'extras_require={{"empty": []}},'
-        req = tmpl.format(marker=self.invalid_marker)
-        self._setup_script_with_requires(req)
-        self._run_install_command(tmpdir_cwd, env)
-        egg_info_dir = self._find_egg_info_files(env.paths['lib']).base
-        requires_txt = os.path.join(egg_info_dir, 'requires.txt')
-        with open(requires_txt) as fp:
-            install_requires = fp.read()
-        expected_requires = DALS('''
-             [empty]
-             ''').format(marker=self.mismatch_marker_alternate)
-        assert install_requires.lstrip() == expected_requires
 
     def test_python_requires_egg_info(self, tmpdir_cwd, env):
         self._setup_script_with_requires(

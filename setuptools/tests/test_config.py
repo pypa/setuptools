@@ -333,7 +333,7 @@ class TestOptions:
             ])
             assert dist.install_requires == ([
                 'docutils>=0.3',
-                'pack ==1.1, ==1.3',
+                'pack==1.1,==1.3',
                 'hey'
             ])
             assert dist.setup_requires == ([
@@ -403,7 +403,7 @@ class TestOptions:
             ])
             assert dist.install_requires == ([
                 'docutils>=0.3',
-                'pack ==1.1, ==1.3',
+                'pack==1.1,==1.3',
                 'hey'
             ])
             assert dist.setup_requires == ([
@@ -508,7 +508,7 @@ class TestOptions:
         with get_dist(tmpdir) as dist:
             assert dist.extras_require == {
                 'pdf': ['ReportLab>=1.2', 'RXP'],
-                'rest': ['docutils>=0.3', 'pack ==1.1, ==1.3']
+                'rest': ['docutils>=0.3', 'pack==1.1,==1.3']
             }
 
     def test_entry_points(self, tmpdir):

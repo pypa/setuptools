@@ -349,14 +349,15 @@ class Distribution(Distribution_parse_config_files, _Distribution):
                     "setuptools, pip, and PyPI. Please see PEP 440 for more "
                     "details." % self.metadata.version
                 )
-        if getattr(self, 'python_requires', None):
-            self.metadata.python_requires = self.python_requires
         self._finalize_requires()
 
     def _finalize_requires(self):
         """
-        Fix environment markers in `install_requires` and `extras_require`.
+        Set `metadata.python_requires` and fix environment markers
+        in `install_requires` and `extras_require`.
         """
+        if getattr(self, 'python_requires', None):
+            self.metadata.python_requires = self.python_requires
         self._convert_extras_requirements()
         self._move_install_requirements_markers()
 
@@ -424,8 +425,7 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         _Distribution.parse_config_files(self, filenames=filenames)
 
         parse_configuration(self, self.command_options)
-        if getattr(self, 'python_requires', None):
-            self.metadata.python_requires = self.python_requires
+        self._finalize_requires()
 
     def parse_command_line(self):
         """Process features after parsing command line options"""
