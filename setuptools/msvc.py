@@ -45,9 +45,18 @@ else:
 
     safe_env = dict()
 
+_msvc9_suppress_errors = (
+    # msvc9compiler isn't available on some platforms
+    ImportError,
+    
+    # msvc9compiler raises DistutilsPlatformError in some
+    # environments. See #1118.
+    distutils.errors.DistutilsPlatformError,
+)
+
 try:
     from distutils.msvc9compiler import Reg
-except ImportError:
+except _msvc9_suppress_errors:
     pass
 
 
