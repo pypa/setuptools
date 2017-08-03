@@ -47,7 +47,7 @@ else:
 
 try:
     from distutils.msvc9compiler import Reg
-except ImportError:
+except (ImportError, distutils.errors.DistutilsPlatformError):
     pass
 
 

@@ -4,7 +4,6 @@ Monkey patching of distutils.
 
 import sys
 import distutils.filelist
-from distutils.util import get_platform
 import platform
 import types
 import functools
@@ -153,12 +152,12 @@ def patch_for_msvc_specialized_compiler():
     Patch functions in distutils to use standalone Microsoft Visual C++
     compilers.
     """
-    if not get_platform().startswith('win'):
-        # Compilers only availables on Microsoft Windows
-        return
-
     # import late to avoid circular imports on Python < 3.5
     msvc = import_module('setuptools.msvc')
+
+    if platform.system() != 'Windows':
+        # Compilers only availables on Microsoft Windows
+        return
 
     def patch_params(mod_name, func_name):
         """
