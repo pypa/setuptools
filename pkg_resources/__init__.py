@@ -852,7 +852,10 @@ class WorkingSet(object):
                             # distribution
                             env = Environment([])
                             ws = WorkingSet([])
-                    dist = best[req.key] = env.best_match(req, ws, installer)
+                    dist = best[req.key] = env.best_match(
+                        req, ws, installer,
+                        replace_conflicting=replace_conflicting
+                    )
                     if dist is None:
                         requirers = required_by.get(req, None)
                         raise DistributionNotFound(req, requirers)
@@ -1104,7 +1107,7 @@ class Environment(object):
                 dists.append(dist)
                 dists.sort(key=operator.attrgetter('hashcmp'), reverse=True)
 
-    def best_match(self, req, working_set, installer=None):
+    def best_match(self, req, working_set, installer=None, replace_conflicting=False):
         """Find distribution best matching `req` and usable on `working_set`
 
         This calls the ``find(req)`` method of the `working_set` to see if a
@@ -1117,7 +1120,12 @@ class Environment(object):
         calling the environment's ``obtain(req, installer)`` method will be
         returned.
         """
-        dist = working_set.find(req)
+        try:
+            dist = working_set.find(req)
+        except VersionConflict:
+            if not replace_conflicting:
+                raise
+            dist = None
         if dist is not None:
             return dist
         for dist in self[req.key]:
