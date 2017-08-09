@@ -245,8 +245,8 @@ class ConfigHandler(object):
         directory with setup.py.
 
         Examples:
-            include: LICENSE
-            include: src/file.txt
+            file: LICENSE
+            file: src/file.txt
 
         :param str value:
         :rtype: str
@@ -408,7 +408,7 @@ class ConfigMetadataHandler(ConfigHandler):
             'classifiers': self._get_parser_compound(parse_file, parse_list),
             'license': parse_file,
             'description': parse_file,
-            'long_description': parse_file,
+            'long_description': self._get_parser_compound(parse_list, lambda l: '\n'.join(map(parse_file, l))),
             'version': self._parse_version,
         }
 
