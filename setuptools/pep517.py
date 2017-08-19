@@ -33,6 +33,14 @@ def get_build_requires(config_settings):
     return requirements
 
 
+def get_requires_for_build_wheel(config_settings=None):
+    return get_build_requires(config_settings)
+
+
+def get_requires_for_build_sdist(config_settings=None):
+    return get_build_requires(config_settings)
+
+
 def build_wheel(wheel_directory, config_settings, metadata_directory=None):
     sys.argv = sys.argv[:1] + ['bdist_wheel']
     _run_setup()
