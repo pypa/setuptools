@@ -8,6 +8,8 @@ from setuptools import dist
 from setuptools.dist import SetupRequirementsError
 
 
+SETUPTOOLS_IMPLEMENTATION_REVISION = 0.1
+
 def _run_setup(setup_script='setup.py'): #
     __file__=setup_script
     f=getattr(tokenize, 'open', open)(__file__)
