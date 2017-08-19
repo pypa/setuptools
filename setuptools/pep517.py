@@ -41,9 +41,21 @@ def get_requires_for_build_sdist(config_settings=None):
     return get_build_requires(config_settings)
 
 
-def build_wheel(wheel_directory, config_settings, metadata_directory=None):
+def build_wheel(wheel_directory, config_settings=None, build_directory=None,
+                metadata_directory=None):
+    if build_directory != None:
+        raise NotImplementedError()
+
     sys.argv = sys.argv[:1] + ['bdist_wheel']
     _run_setup()
     if wheel_directory != 'dist':
         shutil.rmtree(wheel_directory)
         shutil.copytree('dist', wheel_directory)
+
+
+def build_sdist(sdist_directory, config_settings=None):
+    sys.argv = sys.argv[:1] + ['sdist']
+    _run_setup()
+    if sdist_directory != 'dist':
+        shutil.rmtree(sdist_directory)
+        shutil.copytree('dist', sdist_directory)
