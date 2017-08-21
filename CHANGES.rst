@@ -1,3 +1,8 @@
+v36.3.1
+
+* Improved handling of README files extensions and added 
+  Markdown to the list of searched READMES. 
+
 v36.3.0
 -------
 
