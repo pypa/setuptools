@@ -2041,8 +2041,17 @@ def find_on_path(importer, path_item, only=False):
                or hasattr(e, "winerror") and e.winerror == 267):
                 return
             raise
+        # first filter entries that interest us before sorting
+        def of_interest(entry):
+            """Return whetever `entry` is interesting to parse as an egg"""
+            return (entry.lower().endswith('.egg-info')
+                    or entry.lower().endswith('.dist-info')
+                    or (not only and _is_egg_path(entry))
+                    or (not only and entry.lower().endswith('.egg-link')))
+
         # scan for .egg and .egg-info in directory
-        path_item_entries = _by_version_descending(entries)
+        path_item_entries = _by_version_descending(
+            filter(of_interest, entries))
         for entry in path_item_entries:
             lower = entry.lower()
             if lower.endswith('.egg-info') or lower.endswith('.dist-info'):
