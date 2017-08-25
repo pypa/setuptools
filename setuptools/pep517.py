@@ -25,7 +25,8 @@ class TemporaryBuildDirectory(object):
         before entering
         """
         # Get list of directories to copy
-        directories_to_copy = []
+        directories_to_copy = [
+            d in os.listdir('.') if not d.startswith('.')]
         for directory in directories_to_copy:
             shutil.copytree(
                 os.path.join(self._cwd, directory),
