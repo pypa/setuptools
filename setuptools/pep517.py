@@ -55,8 +55,8 @@ def get_build_requires(config_settings):
     requirements = ['setuptools', 'wheel']
     dist.skip_install_eggs = True
 
-    sys.argv = sys.argv[:1] + ['egg_info'] 
-        + config_settings["--global-option"]
+    sys.argv = sys.argv[:1] + ['egg_info'] + \
+        config_settings["--global-option"]
     try:
         _run_setup()
     except SetupRequirementsError as e:
@@ -77,8 +77,8 @@ def get_requires_for_build_sdist(config_settings=None):
 
 def build_wheel(wheel_directory, config_settings=None,
                 metadata_directory=None):
-    sys.argv = sys.argv[:1] + ['bdist_wheel']
-        + config_settings["--global-option"]
+    sys.argv = sys.argv[:1] + ['bdist_wheel'] + \
+        config_settings["--global-option"]
     _run_setup()
     if wheel_directory != 'dist':
         shutil.rmtree(wheel_directory)
@@ -86,8 +86,8 @@ def build_wheel(wheel_directory, config_settings=None,
 
 
 def build_sdist(sdist_directory, config_settings=None):
-    sys.argv = sys.argv[:1] + ['sdist']
-        + config_settings["--global-option"]
+    sys.argv = sys.argv[:1] + ['sdist'] + \
+        config_settings["--global-option"]
     _run_setup()
     if sdist_directory != 'dist':
         shutil.rmtree(sdist_directory)
