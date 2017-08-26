@@ -173,6 +173,8 @@ class develop(namespaces.DevelopInstaller, easy_install):
             return easy_install.install_egg_scripts(self, dist)
 
         # create wrapper scripts in the script dir, pointing to dist.scripts
+        # without pinning to the current version
+        dist = VersionlessRequirement(dist)
 
         # new-style...
         self.install_wrapper_scripts(dist)
@@ -184,10 +186,6 @@ class develop(namespaces.DevelopInstaller, easy_install):
             with io.open(script_path) as strm:
                 script_text = strm.read()
             self.install_script(dist, script_name, script_text, script_path)
-
-    def install_wrapper_scripts(self, dist):
-        dist = VersionlessRequirement(dist)
-        return easy_install.install_wrapper_scripts(self, dist)
 
 
 class VersionlessRequirement(object):
