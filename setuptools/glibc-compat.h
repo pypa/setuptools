@@ -1,0 +1,162 @@
+/* glibc bindings for target ABI version glibc 2.5 */
+#if !defined (__LIBC_CUSTOM_BINDINGS_H__)
+
+#  if !defined (__OBJC__) && !defined (__ASSEMBLER__)
+#    if defined (__cplusplus)
+extern "C" {
+#    endif
+
+/* Symbols redirected to earlier glibc versions */
+__asm__(".symver inet6_opt_init, inet6_opt_init@GLIBC_2.5");
+__asm__(".symver sys_nerr, sys_nerr@GLIBC_2.4");
+__asm__(".symver inet6_rth_init, inet6_rth_init@GLIBC_2.5");
+__asm__(".symver fmemopen, fmemopen@GLIBC_2.2.5");
+__asm__(".symver memcpy, memcpy@GLIBC_2.2.5");
+__asm__(".symver sys_errlist, sys_errlist@GLIBC_2.4");
+__asm__(".symver splice, splice@GLIBC_2.5");
+__asm__(".symver inet6_opt_find, inet6_opt_find@GLIBC_2.5");
+__asm__(".symver vmsplice, vmsplice@GLIBC_2.5");
+__asm__(".symver inet6_opt_get_val, inet6_opt_get_val@GLIBC_2.5");
+__asm__(".symver __readlinkat_chk, __readlinkat_chk@GLIBC_2.5");
+__asm__(".symver _sys_errlist, _sys_errlist@GLIBC_2.4");
+__asm__(".symver inet6_opt_set_val, inet6_opt_set_val@GLIBC_2.5");
+__asm__(".symver inet6_rth_reverse, inet6_rth_reverse@GLIBC_2.5");
+__asm__(".symver posix_spawn, posix_spawn@GLIBC_2.2.5");
+__asm__(".symver posix_spawnp, posix_spawnp@GLIBC_2.2.5");
+__asm__(".symver inet6_opt_next, inet6_opt_next@GLIBC_2.5");
+__asm__(".symver inet6_opt_append, inet6_opt_append@GLIBC_2.5");
+__asm__(".symver _sys_nerr, _sys_nerr@GLIBC_2.4");
+__asm__(".symver inet6_rth_getaddr, inet6_rth_getaddr@GLIBC_2.5");
+__asm__(".symver inet6_opt_finish, inet6_opt_finish@GLIBC_2.5");
+__asm__(".symver tee, tee@GLIBC_2.5");
+__asm__(".symver inet6_rth_space, inet6_rth_space@GLIBC_2.5");
+__asm__(".symver inet6_rth_add, inet6_rth_add@GLIBC_2.5");
+__asm__(".symver inet6_rth_segments, inet6_rth_segments@GLIBC_2.5");
+
+/* Symbols introduced in newer glibc versions, which must not be used */
+__asm__(".symver __sched_cpualloc, __sched_cpualloc@GLIBC_DONT_USE_THIS_VERSION_2.7");
+__asm__(".symver __dprintf_chk, __dprintf_chk@GLIBC_DONT_USE_THIS_VERSION_2.8");
+__asm__(".symver setns, setns@GLIBC_DONT_USE_THIS_VERSION_2.14");
+__asm__(".symver mkostemp, mkostemp@GLIBC_DONT_USE_THIS_VERSION_2.7");
+__asm__(".symver recvmmsg, recvmmsg@GLIBC_DONT_USE_THIS_VERSION_2.12");
+__asm__(".symver c32rtomb, c32rtomb@GLIBC_DONT_USE_THIS_VERSION_2.16");
+__asm__(".symver clock_getres, clock_getres@GLIBC_DONT_USE_THIS_VERSION_2.17");
+__asm__(".symver eventfd, eventfd@GLIBC_DONT_USE_THIS_VERSION_2.7");
+__asm__(".symver __fentry__, __fentry__@GLIBC_DONT_USE_THIS_VERSION_2.13");
+__asm__(".symver eventfd_read, eventfd_read@GLIBC_DONT_USE_THIS_VERSION_2.7");
+__asm__(".symver register_printf_modifier, register_printf_modifier@GLIBC_DONT_USE_THIS_VERSION_2.10");
+__asm__(".symver utimensat, utimensat@GLIBC_DONT_USE_THIS_VERSION_2.6");
+__asm__(".symver __posix_getopt, __posix_getopt@GLIBC_DONT_USE_THIS_VERSION_2.10");
+__asm__(".symver futimens, futimens@GLIBC_DONT_USE_THIS_VERSION_2.6");
+__asm__(".symver __obstack_vprintf_chk, __obstack_vprintf_chk@GLIBC_DONT_USE_THIS_VERSION_2.8");
+__asm__(".symver __fdelt_warn, __fdelt_warn@GLIBC_DONT_USE_THIS_VERSION_2.15");
+__asm__(".symver prlimit64, prlimit64@GLIBC_DONT_USE_THIS_VERSION_2.13");
+__asm__(".symver timerfd_gettime, timerfd_gettime@GLIBC_DONT_USE_THIS_VERSION_2.8");
+__asm__(".symver timerfd_settime, timerfd_settime@GLIBC_DONT_USE_THIS_VERSION_2.8");
+__asm__(".symver eventfd_write, eventfd_write@GLIBC_DONT_USE_THIS_VERSION_2.7");
+__asm__(".symver sgetsgent_r, sgetsgent_r@GLIBC_DONT_USE_THIS_VERSION_2.10");
+__asm__(".symver fts64_set, fts64_set@GLIBC_DONT_USE_THIS_VERSION_2.23");
+__asm__(".symver fallocate64, fallocate64@GLIBC_DONT_USE_THIS_VERSION_2.10");
+__asm__(".symver setsgent, setsgent@GLIBC_DONT_USE_THIS_VERSION_2.10");
+__asm__(".symver fts64_open, fts64_open@GLIBC_DONT_USE_THIS_VERSION_2.23");
+__asm__(".symver __longjmp_chk, __longjmp_chk@GLIBC_DONT_USE_THIS_VERSION_2.11");
+__asm__(".symver __isoc99_vfwscanf, __isoc99_vfwscanf@GLIBC_DONT_USE_THIS_VERSION_2.7");
+__asm__(".symver scandirat64, scandirat64@GLIBC_DONT_USE_THIS_VERSION_2.15");
+__asm__(".symver __isoc99_fwscanf, __isoc99_fwscanf@GLIBC_DONT_USE_THIS_VERSION_2.7");
+__asm__(".symver endsgent, endsgent@GLIBC_DONT_USE_THIS_VERSION_2.10");
+__asm__(".symver preadv64, preadv64@GLIBC_DONT_USE_THIS_VERSION_2.10");
+__asm__(".symver mkostemp64, mkostemp64@GLIBC_DONT_USE_THIS_VERSION_2.7");
+__asm__(".symver mkstemps64, mkstemps64@GLIBC_DONT_USE_THIS_VERSION_2.11");
+__asm__(".symver clock_settime, clock_settime@GLIBC_DONT_USE_THIS_VERSION_2.17");
+__asm__(".symver __openat_2, __openat_2@GLIBC_DONT_USE_THIS_VERSION_2.7");
+__asm__(".symver mkstemps, mkstemps@GLIBC_DONT_USE_THIS_VERSION_2.11");
+__asm__(".symver epoll_pwait, epoll_pwait@GLIBC_DONT_USE_THIS_VERSION_2.6");
+__asm__(".symver inotify_init1, inotify_init1@GLIBC_DONT_USE_THIS_VERSION_2.9");
+__asm__(".symver putsgent, putsgent@GLIBC_DONT_USE_THIS_VERSION_2.10");
+__asm__(".symver timerfd_create, timerfd_create@GLIBC_DONT_USE_THIS_VERSION_2.8");
+__asm__(".symver strerror_l, strerror_l@GLIBC_DONT_USE_THIS_VERSION_2.6");
+__asm__(".symver process_vm_writev, process_vm_writev@GLIBC_DONT_USE_THIS_VERSION_2.15");
+__asm__(".symver __vdprintf_chk, __vdprintf_chk@GLIBC_DONT_USE_THIS_VERSION_2.8");
+__asm__(".symver __isoc99_vswscanf, __isoc99_vswscanf@GLIBC_DONT_USE_THIS_VERSION_2.7");
+__asm__(".symver __fread_chk, __fread_chk@GLIBC_DONT_USE_THIS_VERSION_2.7");
+__asm__(".symver __isoc99_swscanf, __isoc99_swscanf@GLIBC_DONT_USE_THIS_VERSION_2.7");
+__asm__(".symver preadv, preadv@GLIBC_DONT_USE_THIS_VERSION_2.10");
+__asm__(".symver __isoc99_vscanf, __isoc99_vscanf@GLIBC_DONT_USE_THIS_VERSION_2.7");
+__asm__(".symver open_by_handle_at, open_by_handle_at@GLIBC_DONT_USE_THIS_VERSION_2.14");
+__asm__(".symver __cxa_thread_atexit_impl, __cxa_thread_atexit_impl@GLIBC_DONT_USE_THIS_VERSION_2.18");
+__asm__(".symver __asprintf_chk, __asprintf_chk@GLIBC_DONT_USE_THIS_VERSION_2.8");
+__asm__(".symver __vasprintf_chk, __vasprintf_chk@GLIBC_DONT_USE_THIS_VERSION_2.8");
+__asm__(".symver getsgent_r, getsgent_r@GLIBC_DONT_USE_THIS_VERSION_2.10");
+__asm__(".symver execvpe, execvpe@GLIBC_DONT_USE_THIS_VERSION_2.11");
+__asm__(".symver pwritev, pwritev@GLIBC_DONT_USE_THIS_VERSION_2.10");
+__asm__(".symver __open64_2, __open64_2@GLIBC_DONT_USE_THIS_VERSION_2.7");
+__asm__(".symver clock_getcpuclockid, clock_getcpuclockid@GLIBC_DONT_USE_THIS_VERSION_2.17");
+__asm__(".symver __sched_cpufree, __sched_cpufree@GLIBC_DONT_USE_THIS_VERSION_2.7");
+__asm__(".symver fallocate, fallocate@GLIBC_DONT_USE_THIS_VERSION_2.10");
+__asm__(".symver fts64_close, fts64_close@GLIBC_DONT_USE_THIS_VERSION_2.23");
+__asm__(".symver __isoc99_vwscanf, __isoc99_vwscanf@GLIBC_DONT_USE_THIS_VERSION_2.7");
+__asm__(".symver process_vm_readv, process_vm_readv@GLIBC_DONT_USE_THIS_VERSION_2.15");
+__asm__(".symver fgetsgent_r, fgetsgent_r@GLIBC_DONT_USE_THIS_VERSION_2.10");
+__asm__(".symver getauxval, getauxval@GLIBC_DONT_USE_THIS_VERSION_2.16");
+__asm__(".symver quick_exit, quick_exit@GLIBC_DONT_USE_THIS_VERSION_2.10");
+__asm__(".symver getsgent, getsgent@GLIBC_DONT_USE_THIS_VERSION_2.10");
+__asm__(".symver getsgnam_r, getsgnam_r@GLIBC_DONT_USE_THIS_VERSION_2.10");
+__asm__(".symver getsgnam, getsgnam@GLIBC_DONT_USE_THIS_VERSION_2.10");
+__asm__(".symver __isoc99_wscanf, __isoc99_wscanf@GLIBC_DONT_USE_THIS_VERSION_2.7");
+__asm__(".symver __isoc99_vsscanf, __isoc99_vsscanf@GLIBC_DONT_USE_THIS_VERSION_2.7");
+__asm__(".symver fanotify_mark, fanotify_mark@GLIBC_DONT_USE_THIS_VERSION_2.13");
+__asm__(".symver __fread_unlocked_chk, __fread_unlocked_chk@GLIBC_DONT_USE_THIS_VERSION_2.7");
+__asm__(".symver qsort_r, qsort_r@GLIBC_DONT_USE_THIS_VERSION_2.8");
+__asm__(".symver sgetsgent, sgetsgent@GLIBC_DONT_USE_THIS_VERSION_2.10");
+__asm__(".symver scandirat, scandirat@GLIBC_DONT_USE_THIS_VERSION_2.15");
+__asm__(".symver __isoc99_vfscanf, __isoc99_vfscanf@GLIBC_DONT_USE_THIS_VERSION_2.7");
+__asm__(".symver fts64_read, fts64_read@GLIBC_DONT_USE_THIS_VERSION_2.23");
+__asm__(".symver clock_adjtime, clock_adjtime@GLIBC_DONT_USE_THIS_VERSION_2.14");
+__asm__(".symver accept4, accept4@GLIBC_DONT_USE_THIS_VERSION_2.10");
+__asm__(".symver __obstack_printf_chk, __obstack_printf_chk@GLIBC_DONT_USE_THIS_VERSION_2.8");
+__asm__(".symver clock_gettime, clock_gettime@GLIBC_DONT_USE_THIS_VERSION_2.17");
+__asm__(".symver __fdelt_chk, __fdelt_chk@GLIBC_DONT_USE_THIS_VERSION_2.15");
+__asm__(".symver __isoc99_sscanf, __isoc99_sscanf@GLIBC_DONT_USE_THIS_VERSION_2.7");
+__asm__(".symver epoll_create1, epoll_create1@GLIBC_DONT_USE_THIS_VERSION_2.9");
+__asm__(".symver aligned_alloc, aligned_alloc@GLIBC_DONT_USE_THIS_VERSION_2.16");
+__asm__(".symver register_printf_specifier, register_printf_specifier@GLIBC_DONT_USE_THIS_VERSION_2.10");
+__asm__(".symver malloc_info, malloc_info@GLIBC_DONT_USE_THIS_VERSION_2.10");
+__asm__(".symver __sched_cpucount, __sched_cpucount@GLIBC_DONT_USE_THIS_VERSION_2.6");
+__asm__(".symver __isoc99_fscanf, __isoc99_fscanf@GLIBC_DONT_USE_THIS_VERSION_2.7");
+__asm__(".symver fgetsgent, fgetsgent@GLIBC_DONT_USE_THIS_VERSION_2.10");
+__asm__(".symver mbrtoc16, mbrtoc16@GLIBC_DONT_USE_THIS_VERSION_2.16");
+__asm__(".symver sendmmsg, sendmmsg@GLIBC_DONT_USE_THIS_VERSION_2.14");
+__asm__(".symver register_printf_type, register_printf_type@GLIBC_DONT_USE_THIS_VERSION_2.10");
+__asm__(".symver signalfd, signalfd@GLIBC_DONT_USE_THIS_VERSION_2.7");
+__asm__(".symver mkostemps64, mkostemps64@GLIBC_DONT_USE_THIS_VERSION_2.11");
+__asm__(".symver mbrtoc32, mbrtoc32@GLIBC_DONT_USE_THIS_VERSION_2.16");
+__asm__(".symver sync_file_range, sync_file_range@GLIBC_DONT_USE_THIS_VERSION_2.6");
+__asm__(".symver timespec_get, timespec_get@GLIBC_DONT_USE_THIS_VERSION_2.16");
+__asm__(".symver dup3, dup3@GLIBC_DONT_USE_THIS_VERSION_2.9");
+__asm__(".symver syncfs, syncfs@GLIBC_DONT_USE_THIS_VERSION_2.14");
+__asm__(".symver pwritev64, pwritev64@GLIBC_DONT_USE_THIS_VERSION_2.10");
+__asm__(".symver __cxa_at_quick_exit, __cxa_at_quick_exit@GLIBC_DONT_USE_THIS_VERSION_2.10");
+__asm__(".symver prlimit, prlimit@GLIBC_DONT_USE_THIS_VERSION_2.13");
+__asm__(".symver fanotify_init, fanotify_init@GLIBC_DONT_USE_THIS_VERSION_2.13");
+__asm__(".symver __isoc99_scanf, __isoc99_scanf@GLIBC_DONT_USE_THIS_VERSION_2.7");
+__asm__(".symver name_to_handle_at, name_to_handle_at@GLIBC_DONT_USE_THIS_VERSION_2.14");
+__asm__(".symver clock_nanosleep, clock_nanosleep@GLIBC_DONT_USE_THIS_VERSION_2.17");
+__asm__(".symver __open_2, __open_2@GLIBC_DONT_USE_THIS_VERSION_2.7");
+__asm__(".symver sched_getcpu, sched_getcpu@GLIBC_DONT_USE_THIS_VERSION_2.6");
+__asm__(".symver secure_getenv, secure_getenv@GLIBC_DONT_USE_THIS_VERSION_2.17");
+__asm__(".symver fts64_children, fts64_children@GLIBC_DONT_USE_THIS_VERSION_2.23");
+__asm__(".symver psiginfo, psiginfo@GLIBC_DONT_USE_THIS_VERSION_2.10");
+__asm__(".symver __poll_chk, __poll_chk@GLIBC_DONT_USE_THIS_VERSION_2.16");
+__asm__(".symver __ppoll_chk, __ppoll_chk@GLIBC_DONT_USE_THIS_VERSION_2.16");
+__asm__(".symver c16rtomb, c16rtomb@GLIBC_DONT_USE_THIS_VERSION_2.16");
+__asm__(".symver ntp_gettimex, ntp_gettimex@GLIBC_DONT_USE_THIS_VERSION_2.12");
+__asm__(".symver __openat64_2, __openat64_2@GLIBC_DONT_USE_THIS_VERSION_2.7");
+__asm__(".symver mkostemps, mkostemps@GLIBC_DONT_USE_THIS_VERSION_2.11");
+__asm__(".symver pipe2, pipe2@GLIBC_DONT_USE_THIS_VERSION_2.9");
+__asm__(".symver __getauxval, __getauxval@GLIBC_DONT_USE_THIS_VERSION_2.16");
+
+#    if defined (__cplusplus)
+}
+#    endif
+#  endif /* !defined (__OBJC__) && !defined (__ASSEMBLER__) */
+#endif

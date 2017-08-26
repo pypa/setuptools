@@ -1640,6 +1640,17 @@ installed, and that your source releases will be similarly usable with or
 without Pyrex.
 
 
+Distributing simple manylinux1 extensions (Linux only)
+------------------------------------------------------
+
+If your C extension module doesn't link to any external libraries
+beyond basic set of glibc libraries (like ``libc.so`` or
+``libpthread.so``), you can pass ``glibc_compat=True`` to
+``setuptools.Extension`` class to compile the extension in Centos 5
+compatibility module.  This makes your wheel file compatible with
+manylinux1 standard without resorting to cumbersome Docker build.
+
+
 -----------------
 Command Reference
 -----------------
