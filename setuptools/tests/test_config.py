@@ -162,7 +162,7 @@ class TestMetadata:
         fake_env(
             tmpdir,
             '[metadata]\n'
-            'long_description = file: CHANGES.rst, ../../README\n'
+            'long_description = file: ../../README\n'
         )
 
         with get_dist(tmpdir, parse=False) as dist:
