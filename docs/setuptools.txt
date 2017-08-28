@@ -2306,7 +2306,7 @@ boilerplate code in some cases.
     name = my_package
     version = attr: src.VERSION
     description = My package description
-    long_description = file: README.rst
+    long_description = file: README.rst, CHANGELOG.rst, LICENSE.rst
     keywords = one, two
     license = BSD 3-Clause License
     classifiers =
@@ -2379,7 +2379,7 @@ Type names used below:
 Special directives:
 
 * ``attr:`` - value could be read from module attribute
-* ``file:`` - value could be read from a file
+* ``file:`` - value could be read from a list of files and then concatenated
 
 
 .. note::
