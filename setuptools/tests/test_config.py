@@ -144,11 +144,7 @@ class TestMetadata:
         fake_env(
             tmpdir,
             '[metadata]\n'
-            'long_description =\n'
-            '    Some normal line\n'
-            '    file: README.rst\n'
-            '    Another line\n'
-            '    file: CHANGES.rst\n'
+            'long_description = file: README.rst, CHANGES.rst\n'
             '\n'
         )
 
@@ -157,9 +153,7 @@ class TestMetadata:
 
         with get_dist(tmpdir) as dist:
             assert dist.metadata.long_description == (
-                'Some normal line\n'
                 'readme contents\nline2\n'
-                'Another line\n'
                 'changelog contents\nand stuff'
             )
 
@@ -168,7 +162,7 @@ class TestMetadata:
         fake_env(
             tmpdir,
             '[metadata]\n'
-            'long_description = file: ../../README\n'
+            'long_description = file: CHANGES.rst, ../../README\n'
         )
 
         with get_dist(tmpdir, parse=False) as dist:

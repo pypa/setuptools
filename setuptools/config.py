@@ -246,30 +246,38 @@ class ConfigHandler(object):
 
         Examples:
             file: LICENSE
-            file: src/file.txt
+            file: README.rst, CHANGELOG.md, src/file.txt
 
         :param str value:
         :rtype: str
         """
+        include_directive = 'file:'
+        file_contents = []
+
         if not isinstance(value, string_types):
             return value
 
-        include_directive = 'file:'
         if not value.startswith(include_directive):
             return value
 
+        filepaths = value[len(include_directive):]
+        filepaths = filepaths.split(',')
+        filepaths = map(str.strip, filepaths)
+        filepaths = map(os.path.abspath, filepaths)
+
         current_directory = os.getcwd()
 
-        filepath = value.replace(include_directive, '').strip()
-        filepath = os.path.abspath(filepath)
+        for filepath in filepaths:
+            if not filepath.startswith(current_directory):
+                raise DistutilsOptionError(
+                    '`file:` directive can not access %s' % filepath)
 
-        if not filepath.startswith(current_directory):
-            raise DistutilsOptionError(
-                '`file:` directive can not access %s' % filepath)
+            if os.path.isfile(filepath):
+                with io.open(filepath, encoding='utf-8') as f:
+                    file_contents.append(f.read())
 
-        if os.path.isfile(filepath):
-            with io.open(filepath, encoding='utf-8') as f:
-                value = f.read()
+        if file_contents:
+            value = '\n'.join(file_contents)
 
         return value
 
@@ -408,7 +416,7 @@ class ConfigMetadataHandler(ConfigHandler):
             'classifiers': self._get_parser_compound(parse_file, parse_list),
             'license': parse_file,
             'description': parse_file,
-            'long_description': self._get_parser_compound(parse_list, lambda l: '\n'.join(map(parse_file, l))),
+            'long_description': parse_file,
             'version': self._parse_version,
         }
 
