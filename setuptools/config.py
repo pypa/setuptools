@@ -260,11 +260,8 @@ class ConfigHandler(object):
         if not value.startswith(include_directive):
             return value
 
-        filepaths = value[len(include_directive):]
-        filepaths = filepaths.split(',')
-        filepaths = map(str, filepaths)  # Needed for Python 2
-        filepaths = map(str.strip, filepaths)
-        filepaths = map(os.path.abspath, filepaths)
+        spec = value[len(include_directive):]
+        filepaths = (os.path.abspath(path.strip()) for path in spec.split(','))
 
         current_directory = os.getcwd()
 
