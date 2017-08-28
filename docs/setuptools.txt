@@ -2394,27 +2394,28 @@ Metadata
     Aliases given below are supported for compatibility reasons,
     but not advised.
 
-=================  =================  =====
-Key                Aliases            Accepted value type
-=================  =================  =====
-name                                  str
-version                               attr:, str
-url                home-page          str
-download_url       download-url       str
-author                                str
-author_email       author-email       str
-maintainer                            str
-maintainer_email   maintainer-email   str
-classifiers        classifier         file:, list-comma
-license                               file:, str
-description        summary            file:, str
-long_description   long-description   file:, str
-keywords                              list-comma
-platforms          platform           list-comma
-provides                              list-comma
-requires                              list-comma
-obsoletes                             list-comma
-=================  =================  =====
+==============================  =================  =====
+Key                             Aliases            Accepted value type
+==============================  =================  =====
+name                                               str
+version                                            attr:, str
+url                             home-page          str
+download_url                    download-url       str
+author                                             str
+author_email                    author-email       str
+maintainer                                         str
+maintainer_email                maintainer-email   str
+classifiers                     classifier         file:, list-comma
+license                                            file:, str
+description                     summary            file:, str
+long_description                long-description   file:, str
+long_description_content_type                      str
+keywords                                           list-comma
+platforms                       platform           list-comma
+provides                                           list-comma
+requires                                           list-comma
+obsoletes                                          list-comma
+==============================  =================  =====
 
 .. note::
 
