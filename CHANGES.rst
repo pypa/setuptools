@@ -1,3 +1,9 @@
+v36.3.0
+-------
+
+* #1131: Make possible using several files within ``file:`` directive
+  in metadata.long_description in ``setup.cfg``.
+
 v36.2.7
 -------
 
