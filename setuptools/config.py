@@ -262,6 +262,7 @@ class ConfigHandler(object):
 
         filepaths = value[len(include_directive):]
         filepaths = filepaths.split(',')
+        filepaths = map(str, filepaths)  # Needed for Python 2
         filepaths = map(str.strip, filepaths)
         filepaths = map(os.path.abspath, filepaths)
 
