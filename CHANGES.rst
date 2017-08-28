@@ -1,3 +1,10 @@
+v36.4.0
+-------
+
+* #1075: Add new ``Description-Content-Type`` metadata field. `See here for
+  documentation on how to use this field.
+  <https://packaging.python.org/specifications/#description-content-type>`_
+
 v36.3.0
 -------
 
