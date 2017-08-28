@@ -252,7 +252,6 @@ class ConfigHandler(object):
         :rtype: str
         """
         include_directive = 'file:'
-        file_contents = []
 
         if not isinstance(value, string_types):
             return value
@@ -262,22 +261,24 @@ class ConfigHandler(object):
 
         spec = value[len(include_directive):]
         filepaths = (os.path.abspath(path.strip()) for path in spec.split(','))
+        return '\n'.join(
+            self._read_local_file(path)
+            for path in filepath
+            if os.path.isfile(path)
+        )
 
-        current_directory = os.getcwd()
+    @staticmethod
+    def _read_local_file(filepath):
+        """
+        Read contents of filepath. Raise error if the file
+        isn't in the current directory.
+        """
+        if not filepath.startswith(os.getcwd()):
+            raise DistutilsOptionError(
+                '`file:` directive can not access %s' % filepath)
 
-        for filepath in filepaths:
-            if not filepath.startswith(current_directory):
-                raise DistutilsOptionError(
-                    '`file:` directive can not access %s' % filepath)
-
-            if os.path.isfile(filepath):
-                with io.open(filepath, encoding='utf-8') as f:
-                    file_contents.append(f.read())
-
-        if file_contents:
-            value = '\n'.join(file_contents)
-
-        return value
+        with io.open(filepath, encoding='utf-8') as f:
+            return f.read()
 
     @classmethod
     def _parse_attr(cls, value):
