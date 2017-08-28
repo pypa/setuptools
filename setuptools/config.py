@@ -262,21 +262,20 @@ class ConfigHandler(object):
         spec = value[len(include_directive):]
         filepaths = (os.path.abspath(path.strip()) for path in spec.split(','))
         return '\n'.join(
-            cls._read_local_file(path)
+            cls._read_file(path)
             for path in filepaths
-            if os.path.isfile(path)
+            if (cls._assert_local(path) or True)
+            and os.path.isfile(path)
         )
 
     @staticmethod
-    def _read_local_file(filepath):
-        """
-        Read contents of filepath. Raise error if the file
-        isn't in the current directory.
-        """
+    def _assert_local(filepath):
         if not filepath.startswith(os.getcwd()):
             raise DistutilsOptionError(
                 '`file:` directive can not access %s' % filepath)
 
+    @staticmethod
+    def _read_file(filepath):
         with io.open(filepath, encoding='utf-8') as f:
             return f.read()
 
