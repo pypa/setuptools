@@ -1,3 +1,10 @@
+In development
+--------------
+
+* #1129: Fix working set dependencies handling when replacing conflicting
+  distributions (e.g. when using ``setup_requires`` with a conflicting
+  transitive dependency, fix #1124).
+
 v36.3.0
 -------
 
