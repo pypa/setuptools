@@ -427,8 +427,11 @@ such projects also need something like ``package_dir={'':'src'}`` in their
 ``setup()`` arguments, but that's just a normal distutils thing.)
 
 Anyway, ``find_packages()`` walks the target directory, filtering by inclusion
-patterns, and finds Python packages (any directory). On Python 3.2 and
-earlier, packages are only recognized if they include an ``__init__.py`` file.
+patterns, and finds Python packages. By default, it only recognizes directories
+containing an ``__init__.py`` file as valid packages. To enable it to find
+new-style (:pep:`420`) namespace packages, a comprehensive list of such
+packages must be explicitly passed to it, like
+``find_packages(namespace_packages=['foo', 'foo.bar'])``.
 Finally, exclusion patterns are applied to remove matching packages.
 
 Inclusion and exclusion patterns are package names, optionally including
@@ -2281,7 +2284,7 @@ Configuring setup() using setup.cfg files
 
 .. note:: New in 30.3.0 (8 Dec 2016).
 
-.. important:: ``setup.py`` with ``setup()`` function call is still required even 
+.. important:: ``setup.py`` with ``setup()`` function call is still required even
                 if your configuration resides in ``setup.cfg``.
 
 ``Setuptools`` allows using configuration files (usually `setup.cfg`)

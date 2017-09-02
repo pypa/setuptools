@@ -31,7 +31,8 @@ run_2to3_on_doctests = True
 lib2to3_fixer_packages = ['lib2to3.fixes']
 
 
-def find_packages(where='.', exclude=(), include=('*',)):
+def find_packages(where='.', exclude=(), include=('*',),
+                  namespace_packages=()):
     """Return a list all Python packages found within directory 'where'
 
     'where' is the root directory which will be searched for packages.  It
@@ -46,6 +47,9 @@ def find_packages(where='.', exclude=(), include=('*',)):
     specified, only the named packages will be included.  If it's not
     specified, all found packages will be included.  'include' can contain
     shell style wildcard patterns just like 'exclude'.
+
+    'namespace_packages' is a sequence of PEP 420 namespace package names to
+    explicitly include in the results.
     """
     def build_filter(*patterns):
         """
@@ -56,11 +60,21 @@ def find_packages(where='.', exclude=(), include=('*',)):
 
     def looks_like_package(path):
         """Does a directory look like a package?"""
-        return os.path.isfile(os.path.join(path, '__init__.py'))
+        if os.path.isfile(os.path.join(path, '__init__.py')):
+            return True
+
+        # Check the explicitly named namespace package paths
+        if any(path.endswith(ns_path) for ns_path in namespace_paths):
+            return True
+
+        return False
 
     excluded = build_filter('ez_setup', '*__pycache__', *exclude)
     included = build_filter(*include)
+    namespace_paths = [os.path.sep + pkg.replace('.', os.path.sep)
+                       for pkg in namespace_packages]
     packages = []
+
     for root, dirs, files in os.walk(convert_path(where), followlinks=True):
         # Copy dirs to iterate over it, then empty dirs.
         all_dirs = dirs[:]
