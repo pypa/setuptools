@@ -7,13 +7,12 @@ import pytest
 
 import pkg_resources
 import setuptools.sandbox
-from setuptools.sandbox import DirectorySandbox
 
 
 class TestSandbox:
     def test_devnull(self, tmpdir):
-        sandbox = DirectorySandbox(str(tmpdir))
-        sandbox.run(self._file_writer(os.devnull))
+        with setuptools.sandbox.DirectorySandbox(str(tmpdir)):
+            self._file_writer(os.devnull)
 
     @staticmethod
     def _file_writer(path):
@@ -116,13 +115,17 @@ class TestExceptionSaver:
             with open('/etc/foo', 'w'):
                 pass
 
-        sandbox = DirectorySandbox(str(tmpdir))
         with pytest.raises(setuptools.sandbox.SandboxViolation) as caught:
             with setuptools.sandbox.save_modules():
                 setuptools.sandbox.hide_setuptools()
-                sandbox.run(write_file)
+                with setuptools.sandbox.DirectorySandbox(str(tmpdir)):
+                    write_file()
 
         cmd, args, kwargs = caught.value.args
         assert cmd == 'open'
         assert args == ('/etc/foo', 'w')
         assert kwargs == {}
+
+        msg = str(caught.value)
+        assert 'open' in msg
+        assert "('/etc/foo', 'w')" in msg

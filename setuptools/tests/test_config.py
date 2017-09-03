@@ -9,6 +9,13 @@ class ErrConfigHandler(ConfigHandler):
     """Erroneous handler. Fails to implement required methods."""
 
 
+def make_package_dir(name, base_dir):
+    dir_package = base_dir.mkdir(name)
+    init_file = dir_package.join('__init__.py')
+    init_file.write('')
+    return dir_package, init_file
+
+
 def fake_env(tmpdir, setup_cfg, setup_py=None):
 
     if setup_py is None:
@@ -18,11 +25,12 @@ def fake_env(tmpdir, setup_cfg, setup_py=None):
         )
 
     tmpdir.join('setup.py').write(setup_py)
-    tmpdir.join('setup.cfg').write(setup_cfg)
+    config = tmpdir.join('setup.cfg')
+    config.write(setup_cfg)
 
-    package_name = 'fake_package'
-    dir_package = tmpdir.mkdir(package_name)
-    dir_package.join('__init__.py').write(
+    package_dir, init_file = make_package_dir('fake_package', tmpdir)
+
+    init_file.write(
         'VERSION = (1, 2, 3)\n'
         '\n'
         'VERSION_MAJOR = 1'
@@ -31,6 +39,7 @@ def fake_env(tmpdir, setup_cfg, setup_py=None):
         '    return [3, 4, 5, "dev"]\n'
         '\n'
     )
+    return package_dir, config
 
 
 @contextlib.contextmanager
@@ -55,7 +64,7 @@ def test_parsers_implemented():
 class TestConfigurationReader:
 
     def test_basic(self, tmpdir):
-        fake_env(
+        _, config = fake_env(
             tmpdir,
             '[metadata]\n'
             'version = 10.1.1\n'
@@ -64,7 +73,7 @@ class TestConfigurationReader:
             '[options]\n'
             'scripts = bin/a.py, bin/b.py\n'
         )
-        config_dict = read_configuration('%s' % tmpdir.join('setup.cfg'))
+        config_dict = read_configuration('%s' % config)
         assert config_dict['metadata']['version'] == '10.1.1'
         assert config_dict['metadata']['keywords'] == ['one', 'two']
         assert config_dict['options']['scripts'] == ['bin/a.py', 'bin/b.py']
@@ -72,6 +81,24 @@ class TestConfigurationReader:
     def test_no_config(self, tmpdir):
         with pytest.raises(DistutilsFileError):
             read_configuration('%s' % tmpdir.join('setup.cfg'))
+
+    def test_ignore_errors(self, tmpdir):
+        _, config = fake_env(
+            tmpdir,
+            '[metadata]\n'
+            'version = attr: none.VERSION\n'
+            'keywords = one, two\n'
+        )
+        with pytest.raises(ImportError):
+            read_configuration('%s' % config)
+
+        config_dict = read_configuration(
+            '%s' % config, ignore_option_errors=True)
+
+        assert config_dict['metadata']['keywords'] == ['one', 'two']
+        assert 'version' not in config_dict['metadata']
+
+        config.remove()
 
 
 class TestMetadata:
@@ -111,6 +138,24 @@ class TestMetadata:
             assert metadata.keywords == ['one', 'two']
             assert metadata.download_url == 'http://test.test.com/test/'
             assert metadata.maintainer_email == 'test@test.com'
+
+    def test_file_mixed(self, tmpdir):
+
+        fake_env(
+            tmpdir,
+            '[metadata]\n'
+            'long_description = file: README.rst, CHANGES.rst\n'
+            '\n'
+        )
+
+        tmpdir.join('README.rst').write('readme contents\nline2')
+        tmpdir.join('CHANGES.rst').write('changelog contents\nand stuff')
+
+        with get_dist(tmpdir) as dist:
+            assert dist.metadata.long_description == (
+                'readme contents\nline2\n'
+                'changelog contents\nand stuff'
+            )
 
     def test_file_sandboxed(self, tmpdir):
 
@@ -172,7 +217,7 @@ class TestMetadata:
 
     def test_version(self, tmpdir):
 
-        fake_env(
+        _, config = fake_env(
             tmpdir,
             '[metadata]\n'
             'version = attr: fake_package.VERSION\n'
@@ -180,14 +225,14 @@ class TestMetadata:
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '1.2.3'
 
-        tmpdir.join('setup.cfg').write(
+        config.write(
             '[metadata]\n'
             'version = attr: fake_package.get_version\n'
         )
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '3.4.5.dev'
 
-        tmpdir.join('setup.cfg').write(
+        config.write(
             '[metadata]\n'
             'version = attr: fake_package.VERSION_MAJOR\n'
         )
@@ -198,7 +243,7 @@ class TestMetadata:
         subpack.join('__init__.py').write('')
         subpack.join('submodule.py').write('VERSION = (2016, 11, 26)')
 
-        tmpdir.join('setup.cfg').write(
+        config.write(
             '[metadata]\n'
             'version = attr: fake_package.subpackage.submodule.VERSION\n'
         )
@@ -230,11 +275,12 @@ class TestMetadata:
     def test_classifiers(self, tmpdir):
         expected = set([
             'Framework :: Django',
+            'Programming Language :: Python :: 3',
             'Programming Language :: Python :: 3.5',
         ])
 
         # From file.
-        fake_env(
+        _, config = fake_env(
             tmpdir,
             '[metadata]\n'
             'classifiers = file: classifiers\n'
@@ -242,19 +288,21 @@ class TestMetadata:
 
         tmpdir.join('classifiers').write(
             'Framework :: Django\n'
+            'Programming Language :: Python :: 3\n'
             'Programming Language :: Python :: 3.5\n'
         )
 
         with get_dist(tmpdir) as dist:
             assert set(dist.metadata.classifiers) == expected
 
-        # From section.
-        tmpdir.join('setup.cfg').write(
-            '[metadata.classifiers]\n'
-            'Framework :: Django\n'
-            'Programming Language :: Python :: 3.5\n'
+        # From list notation
+        config.write(
+            '[metadata]\n'
+            'classifiers =\n'
+            '    Framework :: Django\n'
+            '    Programming Language :: Python :: 3\n'
+            '    Programming Language :: Python :: 3.5\n'
         )
-
         with get_dist(tmpdir) as dist:
             assert set(dist.metadata.classifiers) == expected
 
@@ -282,6 +330,8 @@ class TestOptions:
             'setup_requires = docutils>=0.3; spack ==1.1, ==1.3; there\n'
             'dependency_links = http://some.com/here/1, '
                 'http://some.com/there/2\n'
+            'python_requires = >=1.0, !=2.8\n'
+            'py_modules = module1, module2\n'
         )
         with get_dist(tmpdir) as dist:
             assert dist.zip_safe
@@ -301,7 +351,7 @@ class TestOptions:
             ])
             assert dist.install_requires == ([
                 'docutils>=0.3',
-                'pack ==1.1, ==1.3',
+                'pack==1.1,==1.3',
                 'hey'
             ])
             assert dist.setup_requires == ([
@@ -310,6 +360,8 @@ class TestOptions:
                 'there'
             ])
             assert dist.tests_require == ['mock==0.7.2', 'pytest']
+            assert dist.python_requires == '>=1.0, !=2.8'
+            assert dist.py_modules == ['module1', 'module2']
 
     def test_multiline(self, tmpdir):
         fake_env(
@@ -369,7 +421,7 @@ class TestOptions:
             ])
             assert dist.install_requires == ([
                 'docutils>=0.3',
-                'pack ==1.1, ==1.3',
+                'pack==1.1,==1.3',
                 'hey'
             ])
             assert dist.setup_requires == ([
@@ -421,6 +473,46 @@ class TestOptions:
         with get_dist(tmpdir) as dist:
             assert dist.packages == ['fake_package']
 
+    def test_find_directive(self, tmpdir):
+        dir_package, config = fake_env(
+            tmpdir,
+            '[options]\n'
+            'packages = find:\n'
+        )
+
+        dir_sub_one, _ = make_package_dir('sub_one', dir_package)
+        dir_sub_two, _ = make_package_dir('sub_two', dir_package)
+
+        with get_dist(tmpdir) as dist:
+            assert set(dist.packages) == set([
+                'fake_package', 'fake_package.sub_two', 'fake_package.sub_one'
+            ])
+
+        config.write(
+            '[options]\n'
+            'packages = find:\n'
+            '\n'
+            '[options.packages.find]\n'
+            'where = .\n'
+            'include =\n'
+            '    fake_package.sub_one\n'
+            '    two\n'
+        )
+        with get_dist(tmpdir) as dist:
+            assert dist.packages == ['fake_package.sub_one']
+
+        config.write(
+            '[options]\n'
+            'packages = find:\n'
+            '\n'
+            '[options.packages.find]\n'
+            'exclude =\n'
+            '    fake_package.sub_one\n'
+        )
+        with get_dist(tmpdir) as dist:
+            assert set(dist.packages) == set(
+                ['fake_package',  'fake_package.sub_two'])
+
     def test_extras_require(self, tmpdir):
         fake_env(
             tmpdir,
@@ -434,11 +526,11 @@ class TestOptions:
         with get_dist(tmpdir) as dist:
             assert dist.extras_require == {
                 'pdf': ['ReportLab>=1.2', 'RXP'],
-                'rest': ['docutils>=0.3', 'pack ==1.1, ==1.3']
+                'rest': ['docutils>=0.3', 'pack==1.1,==1.3']
             }
 
     def test_entry_points(self, tmpdir):
-        fake_env(
+        _, config = fake_env(
             tmpdir,
             '[options.entry_points]\n'
             'group1 = point1 = pack.module:func, '
@@ -463,7 +555,7 @@ class TestOptions:
         tmpdir.join('entry_points').write(expected)
 
         # From file.
-        tmpdir.join('setup.cfg').write(
+        config.write(
             '[options]\n'
             'entry_points = file: entry_points\n'
         )

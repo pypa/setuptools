@@ -8,6 +8,7 @@ import platform
 import types
 import functools
 from importlib import import_module
+import inspect
 
 from setuptools.extern import six
 
@@ -18,6 +19,20 @@ __all__ = []
 Everything is private. Contact the project team
 if you think you need this functionality.
 """
+
+
+def _get_mro(cls):
+    """
+    Returns the bases classes for cls sorted by the MRO.
+
+    Works around an issue on Jython where inspect.getmro will not return all
+    base classes if multiple classes share the same name. Instead, this
+    function will return a tuple containing the class itself, and the contents
+    of cls.__bases__. See https://github.com/pypa/setuptools/issues/1024.
+    """
+    if platform.python_implementation() == "Jython":
+        return (cls,) + cls.__bases__
+    return inspect.getmro(cls)
 
 
 def get_unpatched(item):
@@ -35,25 +50,23 @@ def get_unpatched_class(cls):
     Also ensures that no other distutils extension monkeypatched the distutils
     first.
     """
-    while cls.__module__.startswith('setuptools'):
-        cls, = cls.__bases__
-    if not cls.__module__.startswith('distutils'):
+    external_bases = (
+        cls
+        for cls in _get_mro(cls)
+        if not cls.__module__.startswith('setuptools')
+    )
+    base = next(external_bases)
+    if not base.__module__.startswith('distutils'):
         msg = "distutils has already been patched by %r" % cls
         raise AssertionError(msg)
-    return cls
+    return base
 
 
 def patch_all():
     # we can't patch distutils.cmd, alas
     distutils.core.Command = setuptools.Command
 
-    has_issue_12885 = (
-        sys.version_info < (3, 4, 6)
-        or
-        (3, 5) < sys.version_info <= (3, 5, 3)
-        or
-        (3, 6) < sys.version_info
-    )
+    has_issue_12885 = sys.version_info <= (3, 5, 3)
 
     if has_issue_12885:
         # fix findall bug in distutils (http://bugs.python.org/issue12885)
@@ -67,8 +80,6 @@ def patch_all():
         (3, 4) < sys.version_info < (3, 4, 6)
         or
         (3, 5) < sys.version_info <= (3, 5, 3)
-        or
-        (3, 6) < sys.version_info
     )
 
     if needs_warehouse:

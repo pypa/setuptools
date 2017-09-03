@@ -37,7 +37,8 @@ class sdist(sdist_add_defaults, orig.sdist):
 
     negative_opt = {}
 
-    READMES = 'README', 'README.rst', 'README.txt'
+    README_EXTENSIONS = ['', '.rst', '.txt', '.md']
+    READMES = tuple('README{0}'.format(ext) for ext in README_EXTENSIONS)
 
     def run(self):
         self.run_command('egg_info')

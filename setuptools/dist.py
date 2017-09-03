@@ -8,12 +8,15 @@ import distutils.log
 import distutils.core
 import distutils.cmd
 import distutils.dist
-from distutils.errors import (DistutilsOptionError, DistutilsPlatformError,
-    DistutilsSetupError)
+import itertools
+from collections import defaultdict
+from distutils.errors import (
+    DistutilsOptionError, DistutilsPlatformError, DistutilsSetupError,
+)
 from distutils.util import rfc822_escape
 
 from setuptools.extern import six
-from setuptools.extern.six.moves import map
+from setuptools.extern.six.moves import map, filter, filterfalse
 from pkg_resources.extern import packaging
 
 from setuptools.depends import Require
@@ -21,6 +24,10 @@ from setuptools import windows_support
 from setuptools.monkey import get_unpatched
 from setuptools.config import parse_configuration
 import pkg_resources
+from .py36compat import Distribution_parse_config_files
+
+__import__('pkg_resources.extern.packaging.specifiers')
+__import__('pkg_resources.extern.packaging.version')
 
 
 def _get_unpatched(cls):
@@ -50,6 +57,13 @@ def write_pkg_file(self, file):
     file.write('License: %s\n' % self.get_license())
     if self.download_url:
         file.write('Download-URL: %s\n' % self.download_url)
+
+    long_desc_content_type = getattr(
+        self,
+        'long_description_content_type',
+        None
+    ) or 'UNKNOWN'
+    file.write('Description-Content-Type: %s\n' % long_desc_content_type)
 
     long_desc = rfc822_escape(self.get_long_description())
     file.write('Description: %s\n' % long_desc)
@@ -125,18 +139,20 @@ def check_nsp(dist, attr, value):
 def check_extras(dist, attr, value):
     """Verify that extras_require mapping is valid"""
     try:
-        for k, v in value.items():
-            if ':' in k:
-                k, m = k.split(':', 1)
-                if pkg_resources.invalid_marker(m):
-                    raise DistutilsSetupError("Invalid environment marker: " + m)
-            list(pkg_resources.parse_requirements(v))
+        list(itertools.starmap(_check_extra, value.items()))
     except (TypeError, ValueError, AttributeError):
         raise DistutilsSetupError(
             "'extras_require' must be a dictionary whose values are "
             "strings or lists of strings containing valid project/version "
             "requirement specifiers."
         )
+
+
+def _check_extra(extra, reqs):
+    name, sep, marker = extra.partition(':')
+    if marker and pkg_resources.invalid_marker(marker):
+        raise DistutilsSetupError("Invalid environment marker: " + marker)
+    list(pkg_resources.parse_requirements(reqs))
 
 
 def assert_bool(dist, attr, value):
@@ -164,7 +180,7 @@ def check_specifier(dist, attr, value):
         packaging.specifiers.SpecifierSet(value)
     except packaging.specifiers.InvalidSpecifier as error:
         tmpl = (
-            "{attr!r} must be a string or list of strings "
+            "{attr!r} must be a string "
             "containing valid version specifiers; {error}"
         )
         raise DistutilsSetupError(tmpl.format(attr=attr, error=error))
@@ -213,7 +229,7 @@ def check_packages(dist, attr, value):
 _Distribution = get_unpatched(distutils.core.Distribution)
 
 
-class Distribution(_Distribution):
+class Distribution(Distribution_parse_config_files, _Distribution):
     """Distribution with support for features, tests, and package data
 
     This is an enhanced version of 'distutils.dist.Distribution' that
@@ -308,6 +324,9 @@ class Distribution(_Distribution):
         self.dist_files = []
         self.src_root = attrs and attrs.pop("src_root", None)
         self.patch_missing_pkg_info(attrs)
+        self.long_description_content_type = _attrs_dict.get(
+            'long_description_content_type'
+        )
         # Make sure we have any eggs needed to interpret 'attrs'
         if attrs is not None:
             self.dependency_links = attrs.pop('dependency_links', [])
@@ -340,8 +359,73 @@ class Distribution(_Distribution):
                     "setuptools, pip, and PyPI. Please see PEP 440 for more "
                     "details." % self.metadata.version
                 )
+        self._finalize_requires()
+
+    def _finalize_requires(self):
+        """
+        Set `metadata.python_requires` and fix environment markers
+        in `install_requires` and `extras_require`.
+        """
         if getattr(self, 'python_requires', None):
             self.metadata.python_requires = self.python_requires
+        self._convert_extras_requirements()
+        self._move_install_requirements_markers()
+
+    def _convert_extras_requirements(self):
+        """
+        Convert requirements in `extras_require` of the form
+        `"extra": ["barbazquux; {marker}"]` to
+        `"extra:{marker}": ["barbazquux"]`.
+        """
+        spec_ext_reqs = getattr(self, 'extras_require', None) or {}
+        self._tmp_extras_require = defaultdict(list)
+        for section, v in spec_ext_reqs.items():
+            # Do not strip empty sections.
+            self._tmp_extras_require[section]
+            for r in pkg_resources.parse_requirements(v):
+                suffix = self._suffix_for(r)
+                self._tmp_extras_require[section + suffix].append(r)
+
+    @staticmethod
+    def _suffix_for(req):
+        """
+        For a requirement, return the 'extras_require' suffix for
+        that requirement.
+        """
+        return ':' + str(req.marker) if req.marker else ''
+
+    def _move_install_requirements_markers(self):
+        """
+        Move requirements in `install_requires` that are using environment
+        markers `extras_require`.
+        """
+
+        # divide the install_requires into two sets, simple ones still
+        # handled by install_requires and more complex ones handled
+        # by extras_require.
+
+        def is_simple_req(req):
+            return not req.marker
+
+        spec_inst_reqs = getattr(self, 'install_requires', None) or ()
+        inst_reqs = list(pkg_resources.parse_requirements(spec_inst_reqs))
+        simple_reqs = filter(is_simple_req, inst_reqs)
+        complex_reqs = filterfalse(is_simple_req, inst_reqs)
+        self.install_requires = list(map(str, simple_reqs))
+
+        for r in complex_reqs:
+            self._tmp_extras_require[':' + str(r.marker)].append(r)
+        self.extras_require = dict(
+            (k, [str(r) for r in map(self._clean_req, v)])
+            for k, v in self._tmp_extras_require.items()
+        )
+
+    def _clean_req(self, req):
+        """
+        Given a Requirement, remove environment markers and return it.
+        """
+        req.marker = None
+        return req
 
     def parse_config_files(self, filenames=None):
         """Parses configuration files from various levels
@@ -351,6 +435,7 @@ class Distribution(_Distribution):
         _Distribution.parse_config_files(self, filenames=filenames)
 
         parse_configuration(self, self.command_options)
+        self._finalize_requires()
 
     def parse_command_line(self):
         """Process features after parsing command line options"""
@@ -386,7 +471,10 @@ class Distribution(_Distribution):
                 ep.load()(self, ep.name, value)
         if getattr(self, 'convert_2to3_doctests', None):
             # XXX may convert to set here when we can rely on set being builtin
-            self.convert_2to3_doctests = [os.path.abspath(p) for p in self.convert_2to3_doctests]
+            self.convert_2to3_doctests = [
+                os.path.abspath(p)
+                for p in self.convert_2to3_doctests
+            ]
         else:
             self.convert_2to3_doctests = []
 
@@ -407,35 +495,30 @@ class Distribution(_Distribution):
 
     def fetch_build_egg(self, req):
         """Fetch an egg needed for building"""
-
-        try:
-            cmd = self._egg_fetcher
-            cmd.package_index.to_scan = []
-        except AttributeError:
-            from setuptools.command.easy_install import easy_install
-            dist = self.__class__({'script_args': ['easy_install']})
-            dist.parse_config_files()
-            opts = dist.get_option_dict('easy_install')
-            keep = (
-                'find_links', 'site_dirs', 'index_url', 'optimize',
-                'site_dirs', 'allow_hosts'
-            )
-            for key in list(opts):
-                if key not in keep:
-                    del opts[key]  # don't use any other settings
-            if self.dependency_links:
-                links = self.dependency_links[:]
-                if 'find_links' in opts:
-                    links = opts['find_links'][1].split() + links
-                opts['find_links'] = ('setup', links)
-            install_dir = self.get_egg_cache_dir()
-            cmd = easy_install(
-                dist, args=["x"], install_dir=install_dir, exclude_scripts=True,
-                always_copy=False, build_directory=None, editable=False,
-                upgrade=False, multi_version=True, no_report=True, user=False
-            )
-            cmd.ensure_finalized()
-            self._egg_fetcher = cmd
+        from setuptools.command.easy_install import easy_install
+        dist = self.__class__({'script_args': ['easy_install']})
+        dist.parse_config_files()
+        opts = dist.get_option_dict('easy_install')
+        keep = (
+            'find_links', 'site_dirs', 'index_url', 'optimize',
+            'site_dirs', 'allow_hosts'
+        )
+        for key in list(opts):
+            if key not in keep:
+                del opts[key]  # don't use any other settings
+        if self.dependency_links:
+            links = self.dependency_links[:]
+            if 'find_links' in opts:
+                links = opts['find_links'][1].split() + links
+            opts['find_links'] = ('setup', links)
+        install_dir = self.get_egg_cache_dir()
+        cmd = easy_install(
+            dist, args=["x"], install_dir=install_dir,
+            exclude_scripts=True,
+            always_copy=False, build_directory=None, editable=False,
+            upgrade=False, multi_version=True, no_report=True, user=False
+        )
+        cmd.ensure_finalized()
         return cmd.easy_install(req)
 
     def _set_global_opts_from_features(self):
@@ -455,8 +538,11 @@ class Distribution(_Distribution):
                 if not feature.include_by_default():
                     excdef, incdef = incdef, excdef
 
-                go.append(('with-' + name, None, 'include ' + descr + incdef))
-                go.append(('without-' + name, None, 'exclude ' + descr + excdef))
+                new = (
+                    ('with-' + name, None, 'include ' + descr + incdef),
+                    ('without-' + name, None, 'exclude ' + descr + excdef),
+                )
+                go.extend(new)
                 no['without-' + name] = 'with-' + name
 
         self.global_options = self.feature_options = go + self.global_options
@@ -484,7 +570,8 @@ class Distribution(_Distribution):
         if command in self.cmdclass:
             return self.cmdclass[command]
 
-        for ep in pkg_resources.iter_entry_points('distutils.commands', command):
+        eps = pkg_resources.iter_entry_points('distutils.commands', command)
+        for ep in eps:
             ep.require(installer=self.fetch_build_egg)
             self.cmdclass[command] = cmdclass = ep.load()
             return cmdclass
@@ -618,7 +705,8 @@ class Distribution(_Distribution):
                 name + ": this setting cannot be changed via include/exclude"
             )
         else:
-            setattr(self, name, old + [item for item in value if item not in old])
+            new = [item for item in value if item not in old]
+            setattr(self, name, old + new)
 
     def exclude(self, **attrs):
         """Remove items from distribution that are named in keyword arguments
@@ -829,14 +917,14 @@ class Feature:
 
     @staticmethod
     def warn_deprecated():
-        warnings.warn(
+        msg = (
             "Features are deprecated and will be removed in a future "
-                "version. See https://github.com/pypa/setuptools/issues/65.",
-            DeprecationWarning,
-            stacklevel=3,
+            "version. See https://github.com/pypa/setuptools/issues/65."
         )
+        warnings.warn(msg, DeprecationWarning, stacklevel=3)
 
-    def __init__(self, description, standard=False, available=True,
+    def __init__(
+            self, description, standard=False, available=True,
             optional=True, require_features=(), remove=(), **extras):
         self.warn_deprecated()
 
@@ -861,8 +949,8 @@ class Feature:
 
         if not remove and not require_features and not extras:
             raise DistutilsSetupError(
-                "Feature %s: must define 'require_features', 'remove', or at least one"
-                " of 'packages', 'py_modules', etc."
+                "Feature %s: must define 'require_features', 'remove', or "
+                "at least one of 'packages', 'py_modules', etc."
             )
 
     def include_by_default(self):

@@ -46,6 +46,7 @@ from setuptools.extern.six.moves import configparser, map
 from setuptools import Command
 from setuptools.sandbox import run_setup
 from setuptools.py31compat import get_path, get_config_vars
+from setuptools.py27compat import rmtree_safe
 from setuptools.command import setopt
 from setuptools.archive_util import unpack_archive
 from setuptools.package_index import (
@@ -58,7 +59,7 @@ from pkg_resources import (
     Distribution, PathMetadata, EggMetadata, WorkingSet, DistributionNotFound,
     VersionConflict, DEVELOP_DIST,
 )
-import pkg_resources
+import pkg_resources.py31compat
 
 # Turn on PEP440Warnings
 warnings.filterwarnings("default", category=pkg_resources.PEP440Warning)
@@ -473,8 +474,7 @@ class easy_install(Command):
         else:
             self.pth_file = None
 
-        PYTHONPATH = os.environ.get('PYTHONPATH', '').split(os.pathsep)
-        if instdir not in map(normalize_path, filter(None, PYTHONPATH)):
+        if instdir not in map(normalize_path, _pythonpath()):
             # only PYTHONPATH dirs need a site.py, so pretend it's there
             self.sitepy_installed = True
         elif self.multi_version and not os.path.exists(pth_file):
@@ -544,8 +544,7 @@ class easy_install(Command):
             if ok_exists:
                 os.unlink(ok_file)
             dirname = os.path.dirname(ok_file)
-            if not os.path.exists(dirname):
-                os.makedirs(dirname)
+            pkg_resources.py31compat.makedirs(dirname, exist_ok=True)
             f = open(pth_file, 'w')
         except (OSError, IOError):
             self.cant_write_to_target()
@@ -627,12 +626,20 @@ class easy_install(Command):
                 (spec.key, self.build_directory)
             )
 
+    @contextlib.contextmanager
+    def _tmpdir(self):
+        tmpdir = tempfile.mkdtemp(prefix=six.u("easy_install-"))
+        try:
+            # cast to str as workaround for #709 and #710 and #712
+            yield str(tmpdir)
+        finally:
+            os.path.exists(tmpdir) and rmtree(rmtree_safe(tmpdir))
+
     def easy_install(self, spec, deps=False):
-        tmpdir = tempfile.mkdtemp(prefix="easy_install-")
         if not self.editable:
             self.install_site_py()
 
-        try:
+        with self._tmpdir() as tmpdir:
             if not isinstance(spec, Requirement):
                 if URL_SCHEME(spec):
                     # It's a url, download it to tmpdir and process
@@ -663,10 +670,6 @@ class easy_install(Command):
                 return dist
             else:
                 return self.install_item(spec, dist.location, tmpdir, deps)
-
-        finally:
-            if os.path.exists(tmpdir):
-                rmtree(tmpdir)
 
     def install_item(self, spec, download, tmpdir, deps, install_needed=False):
 
@@ -1343,10 +1346,21 @@ class easy_install(Command):
                 setattr(self, attr, val)
 
 
+def _pythonpath():
+    items = os.environ.get('PYTHONPATH', '').split(os.pathsep)
+    return filter(None, items)
+
+
 def get_site_dirs():
-    # return a list of 'site' dirs
-    sitedirs = [_f for _f in os.environ.get('PYTHONPATH',
-                                            '').split(os.pathsep) if _f]
+    """
+    Return a list of 'site' dirs
+    """
+
+    sitedirs = []
+
+    # start with PYTHONPATH
+    sitedirs.extend(_pythonpath())
+
     prefixes = [sys.prefix]
     if sys.exec_prefix != sys.prefix:
         prefixes.append(sys.exec_prefix)
@@ -1670,7 +1684,7 @@ def _first_line_re():
 
 
 def auto_chmod(func, arg, exc):
-    if func is os.remove and os.name == 'nt':
+    if func in [os.unlink, os.remove] and os.name == 'nt':
         chmod(arg, stat.S_IWRITE)
         return func(arg)
     et, ev, _ = sys.exc_info()
@@ -2008,7 +2022,7 @@ class ScriptWriter(object):
     gui apps.
     """
 
-    template = textwrap.dedent("""
+    template = textwrap.dedent(r"""
         # EASY-INSTALL-ENTRY-SCRIPT: %(spec)r,%(group)r,%(name)r
         __requires__ = %(spec)r
         import re

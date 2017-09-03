@@ -57,7 +57,6 @@ class upload_docs(upload):
         self.target_dir = None
 
     def finalize_options(self):
-        log.warn("Upload_docs command is deprecated. Use RTD instead.")
         upload.finalize_options(self)
         if self.upload_dir is None:
             if self.has_sphinx():
@@ -69,6 +68,8 @@ class upload_docs(upload):
         else:
             self.ensure_dirname('upload_dir')
             self.target_dir = self.upload_dir
+        if 'pypi.python.org' in self.repository:
+            log.warn("Upload_docs command is deprecated. Use RTD instead.")
         self.announce('Using upload directory %s' % self.target_dir)
 
     def create_zipfile(self, filename):
@@ -77,9 +78,8 @@ class upload_docs(upload):
             self.mkpath(self.target_dir)  # just in case
             for root, dirs, files in os.walk(self.target_dir):
                 if root == self.target_dir and not files:
-                    raise DistutilsOptionError(
-                        "no files found in upload directory '%s'"
-                        % self.target_dir)
+                    tmpl = "no files found in upload directory '%s'"
+                    raise DistutilsOptionError(tmpl % self.target_dir)
                 for name in files:
                     full = os.path.join(root, name)
                     relative = root[len(self.target_dir):].lstrip(os.path.sep)
@@ -138,7 +138,7 @@ class upload_docs(upload):
         part_groups = map(builder, data.items())
         parts = itertools.chain.from_iterable(part_groups)
         body_items = itertools.chain(parts, end_items)
-        content_type = 'multipart/form-data; boundary=%s' % boundary
+        content_type = 'multipart/form-data; boundary=%s' % boundary.decode('ascii')
         return b''.join(body_items), content_type
 
     def upload_file(self, filename):
@@ -159,8 +159,8 @@ class upload_docs(upload):
 
         body, ct = self._build_multipart(data)
 
-        self.announce("Submitting documentation to %s" % (self.repository),
-                      log.INFO)
+        msg = "Submitting documentation to %s" % (self.repository)
+        self.announce(msg, log.INFO)
 
         # build the Request
         # We can't use urllib2 since we need to send the Basic
@@ -191,16 +191,16 @@ class upload_docs(upload):
 
         r = conn.getresponse()
         if r.status == 200:
-            self.announce('Server response (%s): %s' % (r.status, r.reason),
-                          log.INFO)
+            msg = 'Server response (%s): %s' % (r.status, r.reason)
+            self.announce(msg, log.INFO)
         elif r.status == 301:
             location = r.getheader('Location')
             if location is None:
                 location = 'https://pythonhosted.org/%s/' % meta.get_name()
-            self.announce('Upload successful. Visit %s' % location,
-                          log.INFO)
+            msg = 'Upload successful. Visit %s' % location
+            self.announce(msg, log.INFO)
         else:
-            self.announce('Upload failed (%s): %s' % (r.status, r.reason),
-                          log.ERROR)
+            msg = 'Upload failed (%s): %s' % (r.status, r.reason)
+            self.announce(msg, log.ERROR)
         if self.show_response:
             print('-' * 75, r.read(), '-' * 75)

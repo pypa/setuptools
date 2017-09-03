@@ -1,15 +1,413 @@
-v31.0.0
+v37.0.0
 -------
 
 * #878: Drop support for Python 2.6. Python 2.6 users should
-  rely on 'setuptools < 31dev'.
+  rely on 'setuptools < 37dev'.
+
+v36.4.0
+-------
+
+* #1075: Add new ``Description-Content-Type`` metadata field. `See here for
+  documentation on how to use this field.
+  <https://packaging.python.org/specifications/#description-content-type>`_
+
+* #1068: Sort files and directories when building eggs for
+  deterministic order.
+
+* #196: Remove caching of easy_install command in fetch_build_egg.
+  Fixes issue where ``pytest-runner-N.N`` would satisfy the installation
+  of ``pytest``.
+
+* #1129: Fix working set dependencies handling when replacing conflicting
+  distributions (e.g. when using ``setup_requires`` with a conflicting
+  transitive dependency, fix #1124).
+
+* #1133: Improved handling of README files extensions and added
+  Markdown to the list of searched READMES.
+
+* #1135: Improve performance of pkg_resources import by not invoking
+  ``access`` or ``stat`` and using ``os.listdir`` instead.
+
+v36.3.0
+-------
+
+* #1131: Make possible using several files within ``file:`` directive
+  in metadata.long_description in ``setup.cfg``.
+
+v36.2.7
+-------
+
+* fix #1105: Fix handling of requirements with environment
+  markers when declared in ``setup.cfg`` (same treatment as
+  for #1081).
+
+v36.2.6
+-------
+
+* #462: Don't assume a directory is an egg by the ``.egg``
+  extension alone.
+
+v36.2.5
+-------
+
+* #1093: Fix test command handler with extras_require.
+* #1112, #1091, #1115: Now using Trusty containers in
+  Travis for CI and CD.
+
+v36.2.4
+-------
+
+* #1092: ``pkg_resources`` now uses ``inspect.getmro`` to
+  resolve classes in method resolution order.
+
+v36.2.3
+-------
+
+* #1102: Restore behavior for empty extras.
+
+v36.2.2
+-------
+
+* #1099: Revert commit a3ec721, restoring intended purpose of
+  extras as part of a requirement declaration.
+
+v36.2.1
+-------
+
+* fix #1086
+* fix #1087
+* support extras specifiers in install_requires requirements
+
+v36.2.0
+-------
+
+* #1081: Environment markers indicated in ``install_requires``
+  are now processed and treated as nameless ``extras_require``
+  with markers, allowing their metadata in requires.txt to be
+  correctly generated.
+
+* #1053: Tagged commits are now released using Travis-CI
+  build stages, meaning releases depend on passing tests on
+  all supported Python versions (Linux) and not just the latest
+  Python version.
+
+v36.1.1
+-------
+
+* #1083: Correct ``py31compat.makedirs`` to correctly honor
+  ``exist_ok`` parameter.
+* #1083: Also use makedirs compatibility throughout setuptools.
+
+v36.1.0
+-------
+
+* #1083: Avoid race condition on directory creation in
+  ``pkg_resources.ensure_directory``.
+
+* Removed deprecation of and restored support for
+  ``upload_docs`` command for sites other than PyPI.
+  Only warehouse is dropping support, but services like
+  `devpi <http://doc.devpi.net/latest/>`_ continue to
+  support docs built by setuptools' plugins. See
+  `this comment <https://bitbucket.org/hpk42/devpi/issues/388/support-rtd-model-for-building-uploading#comment-34292423>`_
+  for more context on the motivation for this change.
+
+v36.0.1
+-------
+
+* #1042: Fix import in py27compat module that still
+  referenced six directly, rather than through the externs
+  module (vendored packages hook).
+
+v36.0.0
+-------
+
+* #980 and others: Once again, Setuptools vendors all
+  of its dependencies. It seems to be the case that in
+  the Python ecosystem, all build tools must run without
+  any dependencies (build, runtime, or otherwise). At
+  such a point that a mechanism exists that allows
+  build tools to have dependencies, Setuptools will adopt
+  it.
+
+v35.0.2
+-------
+
+* #1015: Fix test failures on Python 3.7.
+
+* #1024: Add workaround for Jython #2581 in monkey module.
+
+v35.0.1
+-------
+
+* #992: Revert change introduced in v34.4.1, now
+  considered invalid.
+
+* #1016: Revert change introduced in v35.0.0 per #1014,
+  referencing #436. The approach had unintended
+  consequences, causing sdist installs to be missing
+  files.
+
+v35.0.0
+-------
+
+* #436: In egg_info.manifest_maker, no longer read
+  the file list from the manifest file, and instead
+  re-build it on each build. In this way, files removed
+  from the specification will not linger in the manifest.
+  As a result, any files manually added to the manifest
+  will be removed on subsequent egg_info invocations.
+  No projects should be manually adding files to the
+  manifest and should instead use MANIFEST.in or SCM
+  file finders to force inclusion of files in the manifest.
+
+v34.4.1
+-------
+
+* #1008: In MSVC support, use always the last version available for Windows SDK and UCRT SDK.
+
+* #1008: In MSVC support, fix "vcruntime140.dll" returned path with Visual Studio 2017.
+
+* #992: In msvc.msvc9_query_vcvarsall, ensure the
+  returned dicts have str values and not Unicode for
+  compatibility with os.environ.
+
+v34.4.0
+-------
+
+* #995: In MSVC support, add support for "Microsoft Visual Studio 2017" and "Microsoft Visual Studio Build Tools 2017".
+
+* #999 via #1007: Extend support for declarative package
+  config in a setup.cfg file to include the options
+  ``python_requires`` and ``py_modules``.
+
+v34.3.3
+-------
+
+* #967 (and #997): Explicitly import submodules of
+  packaging to account for environments where the imports
+  of those submodules is not implied by other behavior.
+
+v34.3.2
+-------
+
+* #993: Fix documentation upload by correcting
+  rendering of content-type in _build_multipart
+  on Python 3.
+
+v34.3.1
+-------
+
+* #988: Trap ``os.unlink`` same as ``os.remove`` in
+  ``auto_chmod`` error handler.
+
+* #983: Fixes to invalid escape sequence deprecations on
+  Python 3.6.
+
+v34.3.0
+-------
+
+* #941: In the upload command, if the username is blank,
+  default to ``getpass.getuser()``.
+
+* #971: Correct distutils findall monkeypatch to match
+  appropriate versions (namely Python 3.4.6).
+
+v34.2.0
+-------
+
+* #966: Add support for reading dist-info metadata and
+  thus locating Distributions from zip files.
+
+* #968: Allow '+' and '!' in egg fragments
+  so that it can take package names that contain
+  PEP 440 conforming version specifiers.
+
+v34.1.1
+-------
+
+* #953: More aggressively employ the compatibility issue
+  originally added in #706.
+
+v34.1.0
+-------
+
+* #930: ``build_info`` now accepts two new parameters
+  to optimize and customize the building of C libraries.
+
+v34.0.3
+-------
+
+* #947: Loosen restriction on the version of six required,
+  restoring compatibility with environments relying on
+  six 1.6.0 and later.
+
+v34.0.2
+-------
+
+* #882: Ensure extras are honored when building the
+  working set.
+* #913: Fix issue in develop if package directory has
+  a trailing slash.
+
+v34.0.1
+-------
+
+* #935: Fix glob syntax in graft.
+
+v34.0.0
+-------
+
+* #581: Instead of vendoring the growing list of
+  dependencies that Setuptools requires to function,
+  Setuptools now requires these dependencies just like
+  any other project. Unlike other projects, however,
+  Setuptools cannot rely on ``setup_requires`` to
+  demand the dependencies it needs to install because
+  its own machinery would be necessary to pull those
+  dependencies if not present (a bootstrapping problem).
+  As a result, Setuptools no longer supports self upgrade or
+  installation in the general case. Instead, users are
+  directed to use pip to install and upgrade using the
+  ``wheel`` distributions of setuptools.
+
+  Users are welcome to contrive other means to install
+  or upgrade Setuptools using other means, such as
+  pre-installing the Setuptools dependencies with pip
+  or a bespoke bootstrap tool, but such usage is not
+  recommended and is not supported.
+
+  As discovered in #940, not all versions of pip will
+  successfully install Setuptools from its pre-built
+  wheel. If you encounter issues with "No module named
+  six" or "No module named packaging", especially
+  following a line "Running setup.py egg_info for package
+  setuptools", then your pip is not new enough.
+
+  There's an additional issue in pip where setuptools
+  is upgraded concurrently with other source packages,
+  described in pip #4253. The proposed workaround is to
+  always upgrade Setuptools first prior to upgrading
+  other packages that would upgrade Setuptools.
+
+v33.1.1
+-------
+
+* #921: Correct issue where certifi fallback not being
+  reached on Windows.
+
+v33.1.0
+-------
+
+Installation via pip, as indicated in the `Python Packaging
+User's Guide <https://packaging.python.org/installing/>`_,
+is the officially-supported mechanism for installing
+Setuptools, and this recommendation is now explicit in the
+much more concise README.
+
+Other edits and tweaks were made to the documentation. The
+codebase is unchanged.
+
+v33.0.0
+-------
+
+* #619: Removed support for the ``tag_svn_revision``
+  distribution option. If Subversion tagging support is
+  still desired, consider adding the functionality to
+  setuptools_svn in setuptools_svn #2.
+
+v32.3.1
+-------
+
+* #866: Use ``dis.Bytecode`` on Python 3.4 and later in
+  ``setuptools.depends``.
+
+v32.3.0
+-------
+
+* #889: Backport proposed fix for disabling interpolation in
+  distutils.Distribution.parse_config_files.
+
+v32.2.0
+-------
+
+* #884: Restore support for running the tests under
+  `pytest-runner <https://github.com/pytest-dev/pytest-runner>`_
+  by ensuring that PYTHONPATH is honored in tests invoking
+  a subprocess.
+
+v32.1.3
+-------
+
+* #706: Add rmtree compatibility shim for environments where
+  rmtree fails when passed a unicode string.
+
+v32.1.2
+-------
+
+* #893: Only release sdist in zip format as warehouse now
+  disallows releasing two different formats.
+
+v32.1.1
+-------
+
+* #704: More selectively ensure that 'rmtree' is not invoked with
+  a byte string, enabling it to remove files that are non-ascii,
+  even on Python 2.
+
+* #712: In 'sandbox.run_setup', ensure that ``__file__`` is
+  always a ``str``, modeling the behavior observed by the
+  interpreter when invoking scripts and modules.
+
+v32.1.0
+-------
+
+* #891: In 'test' command on test failure, raise DistutilsError,
+  suppression invocation of subsequent commands.
+
+v32.0.0
+-------
+
+* #890: Revert #849. ``global-exclude .foo`` will not match all
+  ``*.foo`` files any more. Package authors must add an explicit
+  wildcard, such as ``global-exclude *.foo``, to match all
+  ``.foo`` files. See #886, #849.
+
+v31.0.1
+-------
+
+* #885: Fix regression where 'pkg_resources._rebuild_mod_path'
+  would fail when a namespace package's '__path__' was not
+  a list with a sort attribute.
+
+v31.0.0
+-------
+
+* #250: Install '-nspkg.pth' files for packages installed
+  with 'setup.py develop'. These .pth files allow
+  namespace packages installed by pip or develop to
+  co-mingle. This change required the removal of the
+  change for #805 and pip #1924, introduced in 28.3.0 and implicated
+  in #870, but means that namespace packages not in a
+  site packages directory will no longer work on Python
+  earlier than 3.5, whereas before they would work on
+  Python not earlier than 3.3.
+
+v30.4.0
+-------
+
+* #879: For declarative config:
+
+  - read_configuration() now accepts ignore_option_errors argument. This allows scraping tools to read metadata without a need to download entire packages. E.g. we can gather some stats right from GitHub repos just by downloading setup.cfg.
+
+  - packages find: directive now supports fine tuning from a subsection. The same arguments as for find() are accepted.
 
 v30.3.0
 -------
 
 * #394 via #862: Added support for `declarative package
   config in a setup.cfg file
-  <http://setuptools.readthedocs.io/en/latest/setuptools.html#configuring-setup-using-setup-cfg-files>`_.
+  <https://setuptools.readthedocs.io/en/latest/setuptools.html#configuring-setup-using-setup-cfg-files>`_.
 
 v30.2.1
 -------
@@ -109,7 +507,11 @@ v28.5.0
 
 * #810: Tests are now invoked with tox and not setup.py test.
 * #249 and #450 via #764: Avoid scanning the whole tree
-  when building the manifest.
+  when building the manifest. Also fixes a long-standing bug
+  where patterns in ``MANIFEST.in`` had implicit wildcard
+  matching. This caused ``global-exclude .foo`` to exclude
+  all ``*.foo`` files, but also ``global-exclude bar.py`` to
+  exclude ``foo_bar.py``.
 
 v28.4.0
 -------
@@ -616,7 +1018,7 @@ v20.6.0
   `semver <https://semver.org>`_ precisely.
   The 'v' prefix on version numbers now also allows
   version numbers to be referenced in the changelog,
-  e.g. https://pythonhosted.org/setuptools/history.html#v20-6-0.
+  e.g. http://setuptools.readthedocs.io/en/latest/history.html#v20-6-0.
 
 20.5
 ----
@@ -696,7 +1098,7 @@ v20.6.0
 
 * Added support for using passwords from keyring in the upload
   command. See `the upload docs
-  <http://pythonhosted.org/setuptools/setuptools.html#upload-upload-source-and-or-egg-distributions-to-pypi>`_
+  <https://setuptools.readthedocs.io/en/latest/setuptools.html#upload-upload-source-and-or-egg-distributions-to-pypi>`_
   for details.
 
 20.0
@@ -1450,7 +1852,7 @@ process to fail and PyPI uploads no longer accept files for 13.0.
 ---
 
 * Added a `Developer Guide
-  <https://pythonhosted.org/setuptools/developer-guide.html>`_ to the official
+  <https://setuptools.readthedocs.io/en/latest/developer-guide.html>`_ to the official
   documentation.
 * Some code refactoring and cleanup was done with no intended behavioral
   changes.
@@ -2870,7 +3272,7 @@ easy_install
  * ``setuptools`` now finds its commands, ``setup()`` argument validators, and
    metadata writers using entry points, so that they can be extended by
    third-party packages. See `Creating distutils Extensions
-   <http://pythonhosted.org/setuptools/setuptools.html#creating-distutils-extensions>`_
+   <https://setuptools.readthedocs.io/en/latest/setuptools.html#creating-distutils-extensions>`_
    for more details.
 
  * The vestigial ``depends`` command has been removed. It was never finished

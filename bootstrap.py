@@ -5,10 +5,14 @@ environment by creating a minimal egg-info directory and then invoking the
 egg-info command to flesh out the egg-info directory.
 """
 
+from __future__ import unicode_literals
+
 import os
 import sys
 import textwrap
 import subprocess
+import io
+
 
 minimal_egg_info = textwrap.dedent("""
     [distutils.commands]
@@ -40,7 +44,7 @@ def build_egg_info():
     """
 
     os.mkdir('setuptools.egg-info')
-    with open('setuptools.egg-info/entry_points.txt', 'w') as ep:
+    with io.open('setuptools.egg-info/entry_points.txt', 'w') as ep:
         ep.write(minimal_egg_info)
 
 
@@ -52,6 +56,9 @@ def run_egg_info():
     subprocess.check_call(cmd)
 
 
-if __name__ == '__main__':
+def main():
     ensure_egg_info()
     run_egg_info()
+
+
+__name__ == '__main__' and main()

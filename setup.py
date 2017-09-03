@@ -15,8 +15,12 @@ here = os.path.dirname(__file__)
 
 def require_metadata():
     "Prevent improper installs without necessary metadata. See #659"
-    if not os.path.exists('setuptools.egg-info'):
-        msg = "Cannot build setuptools without metadata. Run bootstrap.py"
+    egg_info_dir = os.path.join(here, 'setuptools.egg-info')
+    if not os.path.exists(egg_info_dir):
+        msg = (
+            "Cannot build setuptools without metadata. "
+            "Run `bootstrap.py`."
+        )
         raise RuntimeError(msg)
 
 
@@ -85,12 +89,13 @@ def pypi_link(pkg_filename):
 
 setup_params = dict(
     name="setuptools",
-    version="30.3.0",
+    version="36.4.0",
     description="Easily download, build, install, upgrade, and uninstall "
         "Python packages",
     author="Python Packaging Authority",
     author_email="distutils-sig@python.org",
     long_description=long_description,
+    long_description_content_type='text/x-rst; charset=UTF-8',
     keywords="CPAN PyPI distutils eggs package management",
     url="https://github.com/pypa/setuptools",
     src_root=None,
@@ -145,11 +150,13 @@ setup_params = dict(
         Intended Audience :: Developers
         License :: OSI Approved :: MIT License
         Operating System :: OS Independent
+        Programming Language :: Python :: 2
         Programming Language :: Python :: 2.7
         Programming Language :: Python :: 3
         Programming Language :: Python :: 3.3
         Programming Language :: Python :: 3.4
         Programming Language :: Python :: 3.5
+        Programming Language :: Python :: 3.6
         Topic :: Software Development :: Libraries :: Python Modules
         Topic :: System :: Archiving :: Packaging
         Topic :: System :: Systems Administration
