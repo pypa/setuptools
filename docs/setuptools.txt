@@ -2306,7 +2306,7 @@ boilerplate code in some cases.
     name = my_package
     version = attr: src.VERSION
     description = My package description
-    long_description = file: README.rst
+    long_description = file: README.rst, CHANGELOG.rst, LICENSE.rst
     keywords = one, two
     license = BSD 3-Clause License
     classifiers =
@@ -2379,7 +2379,7 @@ Type names used below:
 Special directives:
 
 * ``attr:`` - value could be read from module attribute
-* ``file:`` - value could be read from a file
+* ``file:`` - value could be read from a list of files and then concatenated
 
 
 .. note::
@@ -2394,27 +2394,28 @@ Metadata
     Aliases given below are supported for compatibility reasons,
     but not advised.
 
-=================  =================  =====
-Key                Aliases            Accepted value type
-=================  =================  =====
-name                                  str
-version                               attr:, str
-url                home-page          str
-download_url       download-url       str
-author                                str
-author_email       author-email       str
-maintainer                            str
-maintainer_email   maintainer-email   str
-classifiers        classifier         file:, list-comma
-license                               file:, str
-description        summary            file:, str
-long_description   long-description   file:, str
-keywords                              list-comma
-platforms          platform           list-comma
-provides                              list-comma
-requires                              list-comma
-obsoletes                             list-comma
-=================  =================  =====
+==============================  =================  =====
+Key                             Aliases            Accepted value type
+==============================  =================  =====
+name                                               str
+version                                            attr:, str
+url                             home-page          str
+download_url                    download-url       str
+author                                             str
+author_email                    author-email       str
+maintainer                                         str
+maintainer_email                maintainer-email   str
+classifiers                     classifier         file:, list-comma
+license                                            file:, str
+description                     summary            file:, str
+long_description                long-description   file:, str
+long_description_content_type                      str
+keywords                                           list-comma
+platforms                       platform           list-comma
+provides                                           list-comma
+requires                                           list-comma
+obsoletes                                          list-comma
+==============================  =================  =====
 
 .. note::
 

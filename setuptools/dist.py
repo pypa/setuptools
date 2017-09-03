@@ -58,6 +58,13 @@ def write_pkg_file(self, file):
     if self.download_url:
         file.write('Download-URL: %s\n' % self.download_url)
 
+    long_desc_content_type = getattr(
+        self,
+        'long_description_content_type',
+        None
+    ) or 'UNKNOWN'
+    file.write('Description-Content-Type: %s\n' % long_desc_content_type)
+
     long_desc = rfc822_escape(self.get_long_description())
     file.write('Description: %s\n' % long_desc)
 
@@ -317,6 +324,9 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         self.dist_files = []
         self.src_root = attrs and attrs.pop("src_root", None)
         self.patch_missing_pkg_info(attrs)
+        self.long_description_content_type = _attrs_dict.get(
+            'long_description_content_type'
+        )
         # Make sure we have any eggs needed to interpret 'attrs'
         if attrs is not None:
             self.dependency_links = attrs.pop('dependency_links', [])

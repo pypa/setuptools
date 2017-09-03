@@ -139,6 +139,24 @@ class TestMetadata:
             assert metadata.download_url == 'http://test.test.com/test/'
             assert metadata.maintainer_email == 'test@test.com'
 
+    def test_file_mixed(self, tmpdir):
+
+        fake_env(
+            tmpdir,
+            '[metadata]\n'
+            'long_description = file: README.rst, CHANGES.rst\n'
+            '\n'
+        )
+
+        tmpdir.join('README.rst').write('readme contents\nline2')
+        tmpdir.join('CHANGES.rst').write('changelog contents\nand stuff')
+
+        with get_dist(tmpdir) as dist:
+            assert dist.metadata.long_description == (
+                'readme contents\nline2\n'
+                'changelog contents\nand stuff'
+            )
+
     def test_file_sandboxed(self, tmpdir):
 
         fake_env(
