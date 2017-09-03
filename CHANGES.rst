@@ -1,3 +1,9 @@
+v36.4.0
+-------
+
+* #1068: Sort files and directories when building eggs for
+  deterministic order.
+
 v36.3.0
 -------
 
