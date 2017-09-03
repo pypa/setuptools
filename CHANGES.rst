@@ -16,6 +16,9 @@ v36.4.0
   distributions (e.g. when using ``setup_requires`` with a conflicting
   transitive dependency, fix #1124).
 
+* #1133: Improved handling of README files extensions and added 
+  Markdown to the list of searched READMES. 
+
 v36.3.0
 -------
 
