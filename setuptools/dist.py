@@ -58,6 +58,13 @@ def write_pkg_file(self, file):
     if self.download_url:
         file.write('Download-URL: %s\n' % self.download_url)
 
+    long_desc_content_type = getattr(
+        self,
+        'long_description_content_type',
+        None
+    ) or 'UNKNOWN'
+    file.write('Description-Content-Type: %s\n' % long_desc_content_type)
+
     long_desc = rfc822_escape(self.get_long_description())
     file.write('Description: %s\n' % long_desc)
 
@@ -317,6 +324,9 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         self.dist_files = []
         self.src_root = attrs and attrs.pop("src_root", None)
         self.patch_missing_pkg_info(attrs)
+        self.long_description_content_type = _attrs_dict.get(
+            'long_description_content_type'
+        )
         # Make sure we have any eggs needed to interpret 'attrs'
         if attrs is not None:
             self.dependency_links = attrs.pop('dependency_links', [])
@@ -485,36 +495,30 @@ class Distribution(Distribution_parse_config_files, _Distribution):
 
     def fetch_build_egg(self, req):
         """Fetch an egg needed for building"""
-
-        try:
-            cmd = self._egg_fetcher
-            cmd.package_index.to_scan = []
-        except AttributeError:
-            from setuptools.command.easy_install import easy_install
-            dist = self.__class__({'script_args': ['easy_install']})
-            dist.parse_config_files()
-            opts = dist.get_option_dict('easy_install')
-            keep = (
-                'find_links', 'site_dirs', 'index_url', 'optimize',
-                'site_dirs', 'allow_hosts'
-            )
-            for key in list(opts):
-                if key not in keep:
-                    del opts[key]  # don't use any other settings
-            if self.dependency_links:
-                links = self.dependency_links[:]
-                if 'find_links' in opts:
-                    links = opts['find_links'][1].split() + links
-                opts['find_links'] = ('setup', links)
-            install_dir = self.get_egg_cache_dir()
-            cmd = easy_install(
-                dist, args=["x"], install_dir=install_dir,
-                exclude_scripts=True,
-                always_copy=False, build_directory=None, editable=False,
-                upgrade=False, multi_version=True, no_report=True, user=False
-            )
-            cmd.ensure_finalized()
-            self._egg_fetcher = cmd
+        from setuptools.command.easy_install import easy_install
+        dist = self.__class__({'script_args': ['easy_install']})
+        dist.parse_config_files()
+        opts = dist.get_option_dict('easy_install')
+        keep = (
+            'find_links', 'site_dirs', 'index_url', 'optimize',
+            'site_dirs', 'allow_hosts'
+        )
+        for key in list(opts):
+            if key not in keep:
+                del opts[key]  # don't use any other settings
+        if self.dependency_links:
+            links = self.dependency_links[:]
+            if 'find_links' in opts:
+                links = opts['find_links'][1].split() + links
+            opts['find_links'] = ('setup', links)
+        install_dir = self.get_egg_cache_dir()
+        cmd = easy_install(
+            dist, args=["x"], install_dir=install_dir,
+            exclude_scripts=True,
+            always_copy=False, build_directory=None, editable=False,
+            upgrade=False, multi_version=True, no_report=True, user=False
+        )
+        cmd.ensure_finalized()
         return cmd.easy_install(req)
 
     def _set_global_opts_from_features(self):
