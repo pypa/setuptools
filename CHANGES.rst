@@ -12,6 +12,10 @@ v36.4.0
   Fixes issue where ``pytest-runner-N.N`` would satisfy the installation
   of ``pytest``.
 
+* #1129: Fix working set dependencies handling when replacing conflicting
+  distributions (e.g. when using ``setup_requires`` with a conflicting
+  transitive dependency, fix #1124).
+
 v36.3.0
 -------
 
