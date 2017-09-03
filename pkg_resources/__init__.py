@@ -34,6 +34,7 @@ import platform
 import collections
 import plistlib
 import email.parser
+import errno
 import tempfile
 import textwrap
 import itertools
@@ -79,6 +80,11 @@ __import__('pkg_resources.extern.packaging.markers')
 
 if (3, 0) < sys.version_info < (3, 3):
     raise RuntimeError("Python 3.3 or later is required")
+
+if six.PY2:
+    # Those builtin exceptions are only defined in Python 3
+    PermissionError = None
+    NotADirectoryError = None
 
 # declare some globals that will be defined later to
 # satisfy the linters.
@@ -2016,46 +2022,57 @@ def find_on_path(importer, path_item, only=False):
     """Yield distributions accessible on a sys.path directory"""
     path_item = _normalize_cached(path_item)
 
-    if os.path.isdir(path_item) and os.access(path_item, os.R_OK):
-        if _is_unpacked_egg(path_item):
-            yield Distribution.from_filename(
-                path_item, metadata=PathMetadata(
-                    path_item, os.path.join(path_item, 'EGG-INFO')
-                )
+    if _is_unpacked_egg(path_item):
+        yield Distribution.from_filename(
+            path_item, metadata=PathMetadata(
+                path_item, os.path.join(path_item, 'EGG-INFO')
             )
-        else:
-            # scan for .egg and .egg-info in directory
-            path_item_entries = _by_version_descending(os.listdir(path_item))
-            for entry in path_item_entries:
-                lower = entry.lower()
-                if lower.endswith('.egg-info') or lower.endswith('.dist-info'):
-                    fullpath = os.path.join(path_item, entry)
-                    if os.path.isdir(fullpath):
-                        # egg-info directory, allow getting metadata
-                        if len(os.listdir(fullpath)) == 0:
-                            # Empty egg directory, skip.
-                            continue
-                        metadata = PathMetadata(path_item, fullpath)
-                    else:
-                        metadata = FileMetadata(fullpath)
-                    yield Distribution.from_location(
-                        path_item, entry, metadata, precedence=DEVELOP_DIST
-                    )
-                elif not only and _is_egg_path(entry):
-                    dists = find_distributions(os.path.join(path_item, entry))
-                    for dist in dists:
-                        yield dist
-                elif not only and lower.endswith('.egg-link'):
-                    with open(os.path.join(path_item, entry)) as entry_file:
-                        entry_lines = entry_file.readlines()
-                    for line in entry_lines:
-                        if not line.strip():
-                            continue
-                        path = os.path.join(path_item, line.rstrip())
-                        dists = find_distributions(path)
-                        for item in dists:
-                            yield item
-                        break
+        )
+    else:
+        try:
+            entries = os.listdir(path_item)
+        except (PermissionError, NotADirectoryError):
+            return
+        except OSError as e:
+            # Ignore the directory if does not exist, not a directory or we
+            # don't have permissions
+            if (e.errno in (errno.ENOTDIR, errno.EACCES, errno.ENOENT)
+                # Python 2 on Windows needs to be handled this way :(
+               or hasattr(e, "winerror") and e.winerror == 267):
+                return
+            raise
+        # scan for .egg and .egg-info in directory
+        path_item_entries = _by_version_descending(entries)
+        for entry in path_item_entries:
+            lower = entry.lower()
+            if lower.endswith('.egg-info') or lower.endswith('.dist-info'):
+                fullpath = os.path.join(path_item, entry)
+                if os.path.isdir(fullpath):
+                    # egg-info directory, allow getting metadata
+                    if len(os.listdir(fullpath)) == 0:
+                        # Empty egg directory, skip.
+                        continue
+                    metadata = PathMetadata(path_item, fullpath)
+                else:
+                    metadata = FileMetadata(fullpath)
+                yield Distribution.from_location(
+                    path_item, entry, metadata, precedence=DEVELOP_DIST
+                )
+            elif not only and _is_egg_path(entry):
+                dists = find_distributions(os.path.join(path_item, entry))
+                for dist in dists:
+                    yield dist
+            elif not only and lower.endswith('.egg-link'):
+                with open(os.path.join(path_item, entry)) as entry_file:
+                    entry_lines = entry_file.readlines()
+                for line in entry_lines:
+                    if not line.strip():
+                        continue
+                    path = os.path.join(path_item, line.rstrip())
+                    dists = find_distributions(path)
+                    for item in dists:
+                        yield item
+                    break
 
 
 register_finder(pkgutil.ImpImporter, find_on_path)
