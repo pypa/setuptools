@@ -8,6 +8,10 @@ v36.4.0
 * #1068: Sort files and directories when building eggs for
   deterministic order.
 
+* #196: Remove caching of easy_install command in fetch_build_egg.
+  Fixes issue where ``pytest-runner-N.N`` would satisfy the installation
+  of ``pytest``.
+
 v36.3.0
 -------
 
