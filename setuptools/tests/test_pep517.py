@@ -8,6 +8,10 @@ pytest.importorskip('concurrent.futures')
 
 from importlib import import_module
 from concurrent.futures import ProcessPoolExecutor
+from .files import build_files
+from .textwrap import DALS
+from . import contexts
+
 
 class BuildBackend(object):
     """PEP 517 Build Backend"""
@@ -39,3 +43,27 @@ class BuildBackendCaller(object):
         os.chdir(self.cwd)
         os.environ.update(self.env)
         return getattr(import_module(self.backend_name), name)
+
+
+@pytest.fixture
+def build_backend():
+    setup_script = DALS("""
+    from setuptools import setup
+
+    setup(
+        name='foo',
+        py_modules=['hello'],
+        entry_points={'console_scripts': ['hi = hello.run']},
+        zip_safe=False,
+    )
+    """)
+
+    build_files({
+        'setup.py': setup_script,
+        'hello.py': DALS("""
+            def run():
+                print('hello')
+            """)
+    })
+
+    return BuildBackend(cwd='.')    
