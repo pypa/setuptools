@@ -6,7 +6,9 @@ import os
 # a concurrent.futures backport for testing
 pytest.importorskip('concurrent.futures')
 
+from contextlib import contextmanager
 from importlib import import_module
+from tempfile import mkdtemp
 from concurrent.futures import ProcessPoolExecutor
 from .files import build_files
 from .textwrap import DALS
@@ -24,10 +26,10 @@ class BuildBackend(object):
     def __getattr__(self, name):
         """Handles aribrary function invokations on the build backend."""
 
-        def method(**kw):
+        def method(*args, **kw):
             return self.pool.submit(
                 BuildBackendCaller(self.cwd, self.env, self.backend_name),
-                (name, kw)).result()
+                (name, args, kw)).result()
 
         return method
 
@@ -38,32 +40,50 @@ class BuildBackendCaller(object):
         self.env = env
         self.backend_name = backend_name
 
-    def __getattr__(self, name):
+    def __call__(self, info):
         """Handles aribrary function invokations on the build backend."""
         os.chdir(self.cwd)
         os.environ.update(self.env)
-        return getattr(import_module(self.backend_name), name)
+        name, args, kw = info
+        return getattr(import_module(self.backend_name), name)(*args, **kw)
+
+
+@contextmanager
+def enter_directory(dir, val=None):
+    original_dir = os.getcwd()
+    os.chdir(dir)
+    yield val
+    os.chdir(original_dir)
 
 
 @pytest.fixture
 def build_backend():
-    setup_script = DALS("""
-    from setuptools import setup
+    tmpdir = mkdtemp()
+    with enter_directory(tmpdir):
+        setup_script = DALS("""
+        from setuptools import setup
 
-    setup(
-        name='foo',
-        py_modules=['hello'],
-        entry_points={'console_scripts': ['hi = hello.run']},
-        zip_safe=False,
-    )
-    """)
+        setup(
+            name='foo',
+            py_modules=['hello'],
+            setup_requires=['test-package'],
+            entry_points={'console_scripts': ['hi = hello.run']},
+            zip_safe=False,
+        )
+        """)
 
-    build_files({
-        'setup.py': setup_script,
-        'hello.py': DALS("""
-            def run():
-                print('hello')
-            """)
-    })
+        build_files({
+            'setup.py': setup_script,
+            'hello.py': DALS("""
+                def run():
+                    print('hello')
+                """)
+        })
 
-    return BuildBackend(cwd='.')    
+    return enter_directory(tmpdir, BuildBackend(cwd='.'))
+
+
+def test_get_requires_for_build_wheel(build_backend):
+    with build_backend as b:
+        assert list(sorted(b.get_requires_for_build_wheel())) == \
+            list(sorted(['test-package', 'setuptools', 'wheel']))
