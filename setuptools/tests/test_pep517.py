@@ -28,7 +28,8 @@ class BuildBackend(object):
 
         def method(*args, **kw):
             return self.pool.submit(
-                BuildBackendCaller(self.cwd, self.env, self.backend_name),
+                BuildBackendCaller(os.path.abspath(self.cwd), self.env,
+                                   self.backend_name),
                 (name, args, kw)).result()
 
         return method
@@ -66,7 +67,7 @@ def build_backend():
         setup(
             name='foo',
             py_modules=['hello'],
-            setup_requires=['test-package'],
+            setup_requires=['six'],
             entry_points={'console_scripts': ['hi = hello.run']},
             zip_safe=False,
         )
@@ -86,4 +87,21 @@ def build_backend():
 def test_get_requires_for_build_wheel(build_backend):
     with build_backend as b:
         assert list(sorted(b.get_requires_for_build_wheel())) == \
-            list(sorted(['test-package', 'setuptools', 'wheel']))
+            list(sorted(['six', 'setuptools', 'wheel']))
+
+def test_build_wheel(build_backend):
+    with build_backend as b:
+        dist_dir = os.path.abspath('pip-wheel')
+        os.makedirs(dist_dir)
+        wheel_name = b.build_wheel(dist_dir)
+
+        assert os.path.isfile(os.path.join(dist_dir, wheel_name))
+
+
+def test_build_sdist(build_backend):
+    with build_backend as b:
+        dist_dir = os.path.abspath('pip-sdist')
+        os.makedirs(dist_dir)
+        sdist_name = b.build_sdist(dist_dir)
+
+        assert os.path.isfile(os.path.join(dist_dir, sdist_name))
