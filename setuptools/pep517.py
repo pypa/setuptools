@@ -29,7 +29,7 @@ def fix_config(config_settings):
 def get_build_requires(config_settings):
     config_settings = fix_config(config_settings)
     requirements = ['setuptools', 'wheel']
-    dist.skip_install_eggs = True
+    dist._skip_install_eggs = True
 
     sys.argv = sys.argv[:1] + ['egg_info'] + \
         config_settings["--global-option"]
@@ -38,7 +38,7 @@ def get_build_requires(config_settings):
     except SetupRequirementsError as e:
         requirements += e.specifiers
 
-    dist.skip_install_eggs = False
+    dist._skip_install_eggs = False
 
     return requirements
 
