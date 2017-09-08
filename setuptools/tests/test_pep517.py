@@ -104,3 +104,12 @@ def test_build_sdist(build_backend):
         sdist_name = b.build_sdist(dist_dir)
 
         assert os.path.isfile(os.path.join(dist_dir, sdist_name))
+
+def test_prepare_metadata_for_build_wheel(build_backend):
+    with build_backend as b:
+        dist_dir = os.path.abspath('pip-dist-info')
+        os.makedirs(dist_dir)
+
+        b.prepare_metadata_for_build_wheel()
+
+        assert os.path.isfile(os.path.join(dist_dir, 'METADATA'))
