@@ -110,6 +110,7 @@ def test_prepare_metadata_for_build_wheel(build_backend):
         dist_dir = os.path.abspath('pip-dist-info')
         os.makedirs(dist_dir)
 
-        b.prepare_metadata_for_build_wheel()
+        dist_info = b.prepare_metadata_for_build_wheel(dist_dir)
 
-        assert os.path.isfile(os.path.join(dist_dir, 'METADATA'))
+        assert os.path.isfile(os.path.join(dist_dir, dist_info,
+                              'METADATA'))

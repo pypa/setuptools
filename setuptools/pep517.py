@@ -26,6 +26,7 @@ def fix_config(config_settings):
     config_settings.setdefault('--global-option', [])
     return config_settings
 
+
 def get_build_requires(config_settings):
     config_settings = fix_config(config_settings)
     requirements = ['setuptools', 'wheel']
@@ -57,6 +58,13 @@ def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
     sys.argv = sys.argv[:1] + ['dist_info', '--egg-base', metadata_directory]
     _run_setup()
 
+    dist_infos = [f for f in os.listdir(metadata_directory)
+                  if f.endswith('.dist-info')]
+
+    assert len(dist_infos) == 1
+    return dist_infos[0]
+
+
 def build_wheel(wheel_directory, config_settings=None,
                 metadata_directory=None):
     config_settings = fix_config(config_settings)
@@ -69,10 +77,11 @@ def build_wheel(wheel_directory, config_settings=None,
         shutil.copytree('dist', wheel_directory)
 
     wheels = [f for f in os.listdir(wheel_directory)
-                if f.endswith('.whl')]
+              if f.endswith('.whl')]
 
     assert len(wheels) == 1
     return wheels[0]
+
 
 def build_sdist(sdist_directory, config_settings=None):
     config_settings = fix_config(config_settings)
@@ -85,7 +94,7 @@ def build_sdist(sdist_directory, config_settings=None):
         shutil.copytree('dist', sdist_directory)
 
     sdists = [f for f in os.listdir(sdist_directory)
-                if f.endswith('.tar.gz')]
+              if f.endswith('.tar.gz')]
 
     assert len(sdists) == 1
     return sdists[0]
