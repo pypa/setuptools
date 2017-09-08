@@ -2286,7 +2286,10 @@ class EntryPoint(object):
         self.name = name
         self.module_name = module_name
         self.attrs = tuple(attrs)
-        self.extras = Requirement.parse(("x[%s]" % ','.join(extras))).extras
+        if extras:
+            self.extras = Requirement.parse(("x[%s]" % ','.join(extras))).extras
+        else:
+            self.extras = ()
         self.dist = dist
 
     def __str__(self):
