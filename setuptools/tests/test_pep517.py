@@ -22,7 +22,7 @@ class BuildBackendBase(object):
         self.backend_name = backend_name
 
 
-class BuildBackend(object):
+class BuildBackend(BuildBackendBase):
     """PEP 517 Build Backend"""
     def __init__(self, *args, **kwargs):
         super(BuildBackend, self).__init__(*args, **kwargs)
