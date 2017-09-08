@@ -15,17 +15,21 @@ from .textwrap import DALS
 from . import contexts
 
 
-class BuildBackend(object):
-    """PEP 517 Build Backend"""
+class BuildBackendBase(object):
     def __init__(self, cwd=None, env={}, backend_name='setuptools.pep517'):
         self.cwd = cwd
         self.env = env
         self.backend_name = backend_name
+
+
+class BuildBackend(object):
+    """PEP 517 Build Backend"""
+    def __init__(self, *args, **kwargs):
+        super(BuildBackend, self).__init__(*args, **kwargs)
         self.pool = ProcessPoolExecutor()
 
     def __getattr__(self, name):
-        """Handles aribrary function invokations on the build backend."""
-
+        """Handles aribrary function invocations on the build backend."""
         def method(*args, **kw):
             return self.pool.submit(
                 BuildBackendCaller(os.path.abspath(self.cwd), self.env,
@@ -35,12 +39,7 @@ class BuildBackend(object):
         return method
 
 
-class BuildBackendCaller(object):
-    def __init__(self, cwd, env, backend_name):
-        self.cwd = cwd
-        self.env = env
-        self.backend_name = backend_name
-
+class BuildBackendCaller(BuildBackendBase):
     def __call__(self, info):
         """Handles aribrary function invokations on the build backend."""
         os.chdir(self.cwd)
