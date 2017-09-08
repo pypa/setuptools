@@ -34,17 +34,16 @@ class BuildBackend(BuildBackendBase):
             return self.pool.submit(
                 BuildBackendCaller(os.path.abspath(self.cwd), self.env,
                                    self.backend_name),
-                (name, args, kw)).result()
+                name, *args, **kw).result()
 
         return method
 
 
 class BuildBackendCaller(BuildBackendBase):
-    def __call__(self, info):
+    def __call__(self, name, *args, **kw):
         """Handles aribrary function invokations on the build backend."""
         os.chdir(self.cwd)
         os.environ.update(self.env)
-        name, args, kw = info
         return getattr(import_module(self.backend_name), name)(*args, **kw)
 
 
