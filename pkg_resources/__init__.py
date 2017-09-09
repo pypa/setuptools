@@ -2253,9 +2253,7 @@ def _is_egg_path(path):
     """
     Determine if given path appears to be an egg.
     """
-    return (
-        path.lower().endswith('.egg')
-    )
+    return path.lower().endswith('.egg')
 
 
 def _is_unpacked_egg(path):
