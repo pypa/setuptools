@@ -2030,21 +2030,8 @@ def find_on_path(importer, path_item, only=False):
         )
         return
 
-    try:
-        entries = os.listdir(path_item)
-    except (PermissionError, NotADirectoryError):
-        return
-    except OSError as e:
-        # Ignore the directory if does not exist, not a directory or we
-        # don't have permissions
-        ignorable = (
-            e.errno in (errno.ENOTDIR, errno.EACCES, errno.ENOENT)
-            # Python 2 on Windows needs to be handled this way :(
-            or getattr(e, "winerror", None) == 267
-        )
-        if ignorable:
-            return
-        raise
+    entries = safe_listdir(path_item)
+
     # scan for .egg and .egg-info in directory
     path_item_entries = _by_version_descending(entries)
     for entry in path_item_entries:
@@ -2062,6 +2049,27 @@ def find_on_path(importer, path_item, only=False):
         )
         for dist in dists:
             yield dist
+
+
+def safe_listdir(path):
+    """
+    Attempt to list contents of path, but suppress some exceptions.
+    """
+    try:
+        return os.listdir(path)
+    except (PermissionError, NotADirectoryError):
+        pass
+    except OSError as e:
+        # Ignore the directory if does not exist, not a directory or
+        # permission denied
+        ignorable = (
+            e.errno in (errno.ENOTDIR, errno.EACCES, errno.ENOENT)
+            # Python 2 on Windows needs to be handled this way :(
+            or getattr(e, "winerror", None) == 267
+        )
+        if not ignorable:
+            raise
+    return ()
 
 
 def distributions_from_metadata(path):
