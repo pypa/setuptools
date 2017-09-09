@@ -2045,10 +2045,27 @@ def find_on_path(importer, path_item, only=False):
             if not only and _is_egg_path(entry) else
             resolve_egg_link(fullpath)
             if not only and lower.endswith('.egg-link') else
-            ()
+            NoDists()(fullpath)
         )
         for dist in dists:
             yield dist
+
+
+class NoDists:
+    """
+    >>> bool(NoDists())
+    False
+
+    >>> list(NoDists()('anything'))
+    []
+    """
+    def __bool__(self):
+        return False
+    if six.PY2:
+        __nonzero__ = __bool__
+
+    def __call__(self, fullpath):
+        return iter(())
 
 
 def safe_listdir(path):
