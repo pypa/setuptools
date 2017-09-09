@@ -2050,17 +2050,9 @@ def find_on_path(importer, path_item, only=False):
             lower = entry.lower()
             fullpath = os.path.join(path_item, entry)
             if lower.endswith('.egg-info') or lower.endswith('.dist-info'):
-                if os.path.isdir(fullpath):
-                    # egg-info directory, allow getting metadata
-                    if len(os.listdir(fullpath)) == 0:
-                        # Empty egg directory, skip.
-                        continue
-                    metadata = PathMetadata(path_item, fullpath)
-                else:
-                    metadata = FileMetadata(fullpath)
-                yield Distribution.from_location(
-                    path_item, entry, metadata, precedence=DEVELOP_DIST
-                )
+                dists = distributions_from_metadata(fullpath)
+                for dist in dists:
+                    yield dist
             elif not only and _is_egg_path(entry):
                 dists = find_distributions(fullpath)
                 for dist in dists:
@@ -2069,6 +2061,21 @@ def find_on_path(importer, path_item, only=False):
                 dists = resolve_egg_link(fullpath)
                 for dist in dists:
                     yield dist
+
+
+def distributions_from_metadata(path):
+    root = os.path.dirname(path)
+    if os.path.isdir(path):
+        if len(os.listdir(path)) == 0:
+            # empty metadata dir; skip
+            return
+        metadata = PathMetadata(root, path)
+    else:
+        metadata = FileMetadata(path)
+    entry = os.path.basename(path)
+    yield Distribution.from_location(
+        root, entry, metadata, precedence=DEVELOP_DIST,
+    )
 
 
 def non_empty_lines(path):
