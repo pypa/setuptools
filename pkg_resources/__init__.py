@@ -2049,10 +2049,10 @@ def find_on_path(importer, path_item, only=False):
         for entry in path_item_entries:
             lower = entry.lower()
             fullpath = os.path.join(path_item, entry)
+            is_meta = any(map(lower.endswith, ('.egg-info', '.dist-info')))
             dists = (
                 distributions_from_metadata(fullpath)
-                if lower.endswith('.egg-info')
-                or lower.endswith('.dist-info') else
+                if is_meta else
                 find_distributions(fullpath)
                 if not only and _is_egg_path(entry) else
                 resolve_egg_link(fullpath)
