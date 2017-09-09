@@ -2048,8 +2048,8 @@ def find_on_path(importer, path_item, only=False):
         path_item_entries = _by_version_descending(entries)
         for entry in path_item_entries:
             lower = entry.lower()
+            fullpath = os.path.join(path_item, entry)
             if lower.endswith('.egg-info') or lower.endswith('.dist-info'):
-                fullpath = os.path.join(path_item, entry)
                 if os.path.isdir(fullpath):
                     # egg-info directory, allow getting metadata
                     if len(os.listdir(fullpath)) == 0:
@@ -2062,20 +2062,34 @@ def find_on_path(importer, path_item, only=False):
                     path_item, entry, metadata, precedence=DEVELOP_DIST
                 )
             elif not only and _is_egg_path(entry):
-                dists = find_distributions(os.path.join(path_item, entry))
+                dists = find_distributions(fullpath)
                 for dist in dists:
                     yield dist
             elif not only and lower.endswith('.egg-link'):
-                with open(os.path.join(path_item, entry)) as entry_file:
-                    entry_lines = entry_file.readlines()
-                for line in entry_lines:
-                    if not line.strip():
-                        continue
-                    path = os.path.join(path_item, line.rstrip())
-                    dists = find_distributions(path)
-                    for item in dists:
-                        yield item
-                    break
+                dists = resolve_egg_link(fullpath)
+                for dist in dists:
+                    yield dist
+
+
+def non_empty_lines(path):
+    """
+    Yield non-empty lines from file at path
+    """
+    return (line.rstrip() for line in open(path) if line.strip())
+
+
+def resolve_egg_link(path):
+    """
+    Given a path to an .egg-link, resolve distributions
+    present in the referenced path.
+    """
+    referenced_paths = non_empty_lines(path)
+    resolved_paths = (
+        os.path.join(os.path.dirname(path), ref)
+        for ref in referenced_paths
+    )
+    dist_groups = map(find_distributions, resolved_paths)
+    return next(dist_groups, ())
 
 
 register_finder(pkgutil.ImpImporter, find_on_path)
