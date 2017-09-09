@@ -2032,8 +2032,17 @@ def find_on_path(importer, path_item, only=False):
 
     entries = safe_listdir(path_item)
 
+    # for performance, before sorting by version,
+    # screen entries for only those that will yield
+    # distributions
+    filtered = (
+        entry
+        for entry in entries
+        if dist_factory(path_item, entry, only)
+    )
+
     # scan for .egg and .egg-info in directory
-    path_item_entries = _by_version_descending(entries)
+    path_item_entries = _by_version_descending(filtered)
     for entry in path_item_entries:
         fullpath = os.path.join(path_item, entry)
         factory = dist_factory(path_item, entry, only)
@@ -2042,6 +2051,9 @@ def find_on_path(importer, path_item, only=False):
 
 
 def dist_factory(path_item, entry, only):
+    """
+    Return a dist_factory for a path_item and entry
+    """
     lower = entry.lower()
     is_meta = any(map(lower.endswith, ('.egg-info', '.dist-info')))
     return (

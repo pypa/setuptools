@@ -1,3 +1,10 @@
+v36.5.0
+-------
+
+* Inspired by #1134, performed substantial refactoring of
+  ``pkg_resources.find_on_path`` to facilitate an optimization
+  for paths with many non-version entries.
+
 v36.4.0
 -------
 
