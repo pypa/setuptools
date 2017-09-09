@@ -2036,9 +2036,12 @@ def find_on_path(importer, path_item, only=False):
         except OSError as e:
             # Ignore the directory if does not exist, not a directory or we
             # don't have permissions
-            if (e.errno in (errno.ENOTDIR, errno.EACCES, errno.ENOENT)
+            ignorable = (
+                e.errno in (errno.ENOTDIR, errno.EACCES, errno.ENOENT)
                 # Python 2 on Windows needs to be handled this way :(
-               or hasattr(e, "winerror") and e.winerror == 267):
+                or getattr(e, "winerror", None) == 267
+            )
+            if ignorable:
                 return
             raise
         # scan for .egg and .egg-info in directory
