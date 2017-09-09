@@ -2028,39 +2028,40 @@ def find_on_path(importer, path_item, only=False):
                 path_item, os.path.join(path_item, 'EGG-INFO')
             )
         )
-    else:
-        try:
-            entries = os.listdir(path_item)
-        except (PermissionError, NotADirectoryError):
+        return
+
+    try:
+        entries = os.listdir(path_item)
+    except (PermissionError, NotADirectoryError):
+        return
+    except OSError as e:
+        # Ignore the directory if does not exist, not a directory or we
+        # don't have permissions
+        ignorable = (
+            e.errno in (errno.ENOTDIR, errno.EACCES, errno.ENOENT)
+            # Python 2 on Windows needs to be handled this way :(
+            or getattr(e, "winerror", None) == 267
+        )
+        if ignorable:
             return
-        except OSError as e:
-            # Ignore the directory if does not exist, not a directory or we
-            # don't have permissions
-            ignorable = (
-                e.errno in (errno.ENOTDIR, errno.EACCES, errno.ENOENT)
-                # Python 2 on Windows needs to be handled this way :(
-                or getattr(e, "winerror", None) == 267
-            )
-            if ignorable:
-                return
-            raise
-        # scan for .egg and .egg-info in directory
-        path_item_entries = _by_version_descending(entries)
-        for entry in path_item_entries:
-            lower = entry.lower()
-            fullpath = os.path.join(path_item, entry)
-            is_meta = any(map(lower.endswith, ('.egg-info', '.dist-info')))
-            dists = (
-                distributions_from_metadata(fullpath)
-                if is_meta else
-                find_distributions(fullpath)
-                if not only and _is_egg_path(entry) else
-                resolve_egg_link(fullpath)
-                if not only and lower.endswith('.egg-link') else
-                ()
-            )
-            for dist in dists:
-                yield dist
+        raise
+    # scan for .egg and .egg-info in directory
+    path_item_entries = _by_version_descending(entries)
+    for entry in path_item_entries:
+        lower = entry.lower()
+        fullpath = os.path.join(path_item, entry)
+        is_meta = any(map(lower.endswith, ('.egg-info', '.dist-info')))
+        dists = (
+            distributions_from_metadata(fullpath)
+            if is_meta else
+            find_distributions(fullpath)
+            if not only and _is_egg_path(entry) else
+            resolve_egg_link(fullpath)
+            if not only and lower.endswith('.egg-link') else
+            ()
+        )
+        for dist in dists:
+            yield dist
 
 
 def distributions_from_metadata(path):
