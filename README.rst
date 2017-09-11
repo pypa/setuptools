@@ -1,5 +1,16 @@
+.. image:: https://img.shields.io/pypi/v/setuptools.svg
+   :target: https://pypi.org/project/setuptools
+
 .. image:: https://readthedocs.org/projects/setuptools/badge/?version=latest
     :target: https://setuptools.readthedocs.io
+
+.. image:: https://img.shields.io/travis/pypa/setuptools/master.svg?label=Linux%20build%20%40%20Travis%20CI
+   :target: http://travis-ci.org/pypa/setuptools
+
+.. image:: https://img.shields.io/appveyor/ci/jaraco/setuptools/master.svg?label=Windows%20build%20%40%20Appveyor
+   :target: https://ci.appveyor.com/project/jaraco/setuptools/branch/master
+
+.. image:: https://img.shields.io/pypi/pyversions/setuptools.svg
 
 See the `Installation Instructions
 <https://packaging.python.org/installing/>`_ in the Python Packaging
