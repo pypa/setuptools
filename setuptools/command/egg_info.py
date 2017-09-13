@@ -2,6 +2,7 @@
 
 Create a distribution's .egg-info directory and contents"""
 
+from collections import OrderedDict
 from distutils.filelist import FileList as _FileList
 from distutils.errors import DistutilsInternalError
 from distutils.util import convert_path
@@ -14,7 +15,6 @@ import sys
 import io
 import warnings
 import time
-import collections
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import map
@@ -160,9 +160,7 @@ class egg_info(Command):
         build tag. Install build keys in a deterministic order
         to avoid arbitrary reordering on subsequent builds.
         """
-        # python 2.6 compatibility
-        odict = getattr(collections, 'OrderedDict', dict)
-        egg_info = odict()
+        egg_info = OrderedDict()
         # follow the order these keys would have been added
         # when PYTHONHASHSEED=0
         egg_info['tag_build'] = self.tags()

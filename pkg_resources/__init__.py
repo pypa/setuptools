@@ -78,8 +78,8 @@ __import__('pkg_resources.extern.packaging.requirements')
 __import__('pkg_resources.extern.packaging.markers')
 
 
-if (3, 0) < sys.version_info < (3, 3):
-    raise RuntimeError("Python 3.3 or later is required")
+if sys.version_info < (2, 7) or  (3, 0) < sys.version_info < (3, 3):
+    raise RuntimeError("Python 2.7 or >=3.3 is required")
 
 if six.PY2:
     # Those builtin exceptions are only defined in Python 3
@@ -1634,7 +1634,7 @@ class ZipManifests(dict):
         Use a platform-specific path separator (os.sep) for the path keys
         for compatibility with pypy on Windows.
         """
-        with ContextualZipFile(path) as zfile:
+        with zipfile.ZipFile(path) as zfile:
             items = (
                 (
                     name.replace('/', os.sep),
@@ -1665,26 +1665,6 @@ class MemoizedZipManifests(ZipManifests):
             self[path] = self.manifest_mod(manifest, mtime)
 
         return self[path].manifest
-
-
-class ContextualZipFile(zipfile.ZipFile):
-    """
-    Supplement ZipFile class to support context manager for Python 2.6
-    """
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, traceback):
-        self.close()
-
-    def __new__(cls, *args, **kwargs):
-        """
-        Construct a ZipFile or ContextualZipFile as appropriate
-        """
-        if hasattr(zipfile.ZipFile, '__exit__'):
-            return zipfile.ZipFile(*args, **kwargs)
-        return super(ContextualZipFile, cls).__new__(cls)
 
 
 class ZipProvider(EggProvider):

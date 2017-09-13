@@ -3,10 +3,10 @@ import io
 import os
 import sys
 from collections import defaultdict
+from importlib import import_module
 from functools import partial
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
-from setuptools.py26compat import import_module
 from setuptools.extern.six import string_types
 
 
