@@ -1,3 +1,9 @@
+v36.5.1
+-------
+
+* #170: When working with Mercurial checkouts, use Windows-friendly
+  syntax for suppressing output.
+
 v36.5.0
 -------
 
