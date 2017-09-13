@@ -1,6 +1,5 @@
-importlib; python_version<"2.7"
 mock
-pytest-flake8; python_version>="2.7"
+pytest-flake8
 virtualenv>=13.0.0
 pytest-virtualenv>=1.2.7
 pytest>=3.0.2

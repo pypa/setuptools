@@ -5,6 +5,7 @@ Build .egg distributions"""
 from distutils.errors import DistutilsSetupError
 from distutils.dir_util import remove_tree, mkpath
 from distutils import log
+from sysconfig import get_path, get_python_version
 from types import CodeType
 import sys
 import os
@@ -17,18 +18,6 @@ from pkg_resources import get_build_platform, Distribution, ensure_directory
 from pkg_resources import EntryPoint
 from setuptools.extension import Library
 from setuptools import Command
-
-try:
-    # Python 2.7 or >=3.2
-    from sysconfig import get_path, get_python_version
-
-    def _get_purelib():
-        return get_path("purelib")
-except ImportError:
-    from distutils.sysconfig import get_python_lib, get_python_version
-
-    def _get_purelib():
-        return get_python_lib(False)
 
 
 def strip_module(filename):
@@ -121,7 +110,7 @@ class bdist_egg(Command):
         # Hack for packages that install data to install's --install-lib
         self.get_finalized_command('install').install_lib = self.bdist_dir
 
-        site_packages = os.path.normcase(os.path.realpath(_get_purelib()))
+        site_packages = os.path.normcase(os.path.realpath(get_path("purelib")))
         old, self.distribution.data_files = self.distribution.data_files, []
 
         for item in old:
