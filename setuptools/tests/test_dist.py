@@ -39,6 +39,7 @@ def test_dist_fetch_build_egg(tmpdir):
     '''.split()
     with tmpdir.as_cwd():
         dist = Distribution()
+        dist.parse_config_files()
         resolved_dists = [
             dist.fetch_build_egg(r)
             for r in reqs
