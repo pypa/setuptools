@@ -2281,21 +2281,23 @@ Configuring setup() using setup.cfg files
 
 .. note:: New in 30.3.0 (8 Dec 2016).
 
-.. important:: ``setup.py`` with ``setup()`` function call is still required even 
-                if your configuration resides in ``setup.cfg``.
+.. important::
+    A ``setup.py`` file containing a ``setup()`` function call is still
+    required even if your configuration resides in ``setup.cfg``.
 
-``Setuptools`` allows using configuration files (usually `setup.cfg`)
-to define package’s metadata and other options which are normally supplied
-to ``setup()`` function.
+``Setuptools`` allows using configuration files (usually :file:`setup.cfg`)
+to define a package’s metadata and other options that are normally supplied
+to the ``setup()`` function.
 
-This approach not only allows automation scenarios, but also reduces
+This approach not only allows automation scenarios but also reduces
 boilerplate code in some cases.
 
 .. note::
-    Implementation presents limited compatibility with distutils2-like
-    ``setup.cfg`` sections (used by ``pbr`` and ``d2to1`` packages).
 
-    Namely: only metadata related keys from ``metadata`` section are supported
+    This implementation has limited compatibility with the distutils2-like
+    ``setup.cfg`` sections used by the ``pbr`` and ``d2to1`` packages.
+
+    Namely: only metadata-related keys from ``metadata`` section are supported
     (except for ``description-file``); keys from ``files``, ``entry_points``
     and ``backwards_compat`` are not supported.
 
@@ -2336,12 +2338,13 @@ boilerplate code in some cases.
         src.subpackage2
 
 
-Metadata and options could be set in sections with the same names.
+Metadata and options are set in the config sections of the same name.
 
-* Keys are the same as keyword arguments one provides to ``setup()`` function.
+* Keys are the same as the keyword arguments one provides to the ``setup()``
+  function.
 
-* Complex values could be placed comma-separated or one per line
-  in *dangling* sections. The following are the same:
+* Complex values can be written comma-separated or placed one per line
+  in *dangling* config values. The following are equivalent:
 
   .. code-block:: ini
 
@@ -2353,10 +2356,11 @@ Metadata and options could be set in sections with the same names.
         one
         two
 
-* In some cases complex values could be provided in subsections for clarity.
+* In some cases, complex values can be provided in dedicated subsections for
+  clarity.
 
-* Some keys allow ``file:``, ``attr:`` and ``find:`` directives to cover
-  common usecases.
+* Some keys allow ``file:``, ``attr:``, and ``find:`` directives in order to
+  cover common usecases.
 
 * Unknown keys are ignored.
 
@@ -2369,33 +2373,34 @@ Some values are treated as simple strings, some allow more logic.
 Type names used below:
 
 * ``str`` - simple string
-* ``list-comma`` - dangling list or comma-separated values string
-* ``list-semi`` - dangling list or semicolon-separated values string
-* ``bool`` -  ``True`` is 1, yes, true
-* ``dict`` - list-comma where keys from values are separated by =
-* ``section`` - values could be read from a dedicated (sub)section
+* ``list-comma`` - dangling list or string of comma-separated values
+* ``list-semi`` - dangling list or string of semicolon-separated values
+* ``bool`` - ``True`` is 1, yes, true
+* ``dict`` - list-comma where keys are separated from values by ``=``
+* ``section`` - values are read from a dedicated (sub)section
 
 
 Special directives:
 
-* ``attr:`` - value could be read from module attribute
-* ``file:`` - value could be read from a list of files and then concatenated
+* ``attr:`` - Value is read from a module attribute.  ``attr:`` supports
+  callables and iterables; unsupported types are cast using ``str()``.
+* ``file:`` - Value is read from a list of files and then concatenated
 
 
 .. note::
-    ``file:`` directive is sandboxed and won't reach anything outside
-    directory with ``setup.py``.
+    The ``file:`` directive is sandboxed and won't reach anything outside
+    the directory containing ``setup.py``.
 
 
 Metadata
 --------
 
 .. note::
-    Aliases given below are supported for compatibility reasons,
-    but not advised.
+    The aliases given below are supported for compatibility reasons,
+    but their use is not advised.
 
 ==============================  =================  =====
-Key                             Aliases            Accepted value type
+Key                             Aliases            Type
 ==============================  =================  =====
 name                                               str
 version                                            attr:, str
@@ -2417,17 +2422,12 @@ requires                                           list-comma
 obsoletes                                          list-comma
 ==============================  =================  =====
 
-.. note::
-
-    **version** - ``attr:`` supports callables; supports iterables;
-    unsupported types are casted using ``str()``.
-
 
 Options
 -------
 
 =======================  =====
-Key                      Accepted value type
+Key                      Type
 =======================  =====
 zip_safe                 bool
 setup_requires           list-semi
@@ -2454,10 +2454,10 @@ py_modules               list-comma
 
 .. note::
 
-    **packages** - ``find:`` directive can be further configured
-    in a dedicated subsection `options.packages.find`. This subsection
-    accepts the same keys as `setuptools.find` function:
-    `where`, `include`, `exclude`.
+    **packages** - The ``find:`` directive can be further configured
+    in a dedicated subsection ``options.packages.find``. This subsection
+    accepts the same keys as the `setuptools.find` function:
+    ``where``, ``include``, and ``exclude``.
 
 
 Configuration API
@@ -2465,7 +2465,7 @@ Configuration API
 
 Some automation tools may wish to access data from a configuration file.
 
-``Setuptools`` exposes ``read_configuration()`` function allowing
+``Setuptools`` exposes a ``read_configuration()`` function for
 parsing ``metadata`` and ``options`` sections into a dictionary.
 
 
@@ -2476,16 +2476,16 @@ parsing ``metadata`` and ``options`` sections into a dictionary.
     conf_dict = read_configuration('/home/user/dev/package/setup.cfg')
 
 
-By default ``read_configuration()`` will read only file provided
+By default, ``read_configuration()`` will read only the file provided
 in the first argument. To include values from other configuration files
-which could be in various places set `find_others` function argument
+which could be in various places, set the ``find_others`` keyword argument
 to ``True``.
 
-If you have only a configuration file but not the whole package you can still
-try to get data out of it with the help of `ignore_option_errors` function
-argument. When it is set to ``True`` all options with errors possibly produced
-by directives, such as ``attr:`` and others will be silently ignored.
-As a consequence the resulting dictionary will include no such options.
+If you have only a configuration file but not the whole package, you can still
+try to get data out of it with the help of the ``ignore_option_errors`` keyword
+argument. When it is set to ``True``, all options with errors possibly produced
+by directives, such as ``attr:`` and others, will be silently ignored.
+As a consequence, the resulting dictionary will include no such options.
 
 
 --------------------------------
