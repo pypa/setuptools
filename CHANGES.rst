@@ -1,11 +1,8 @@
-v36.5.1
+v36.5.0
 -------
 
 * #170: When working with Mercurial checkouts, use Windows-friendly
   syntax for suppressing output.
-
-v36.5.0
--------
 
 * Inspired by #1134, performed substantial refactoring of
   ``pkg_resources.find_on_path`` to facilitate an optimization
