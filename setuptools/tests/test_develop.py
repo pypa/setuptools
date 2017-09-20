@@ -167,6 +167,8 @@ class TestNamespaces:
         target = tmpdir / 'packages'
         # use pip to install to the target directory
         install_cmd = [
+            sys.executable,
+            '-m',
             'pip',
             'install',
             str(pkg_A),
