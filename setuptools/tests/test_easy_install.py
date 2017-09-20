@@ -406,7 +406,7 @@ class TestSetupRequires:
 
                 lines = stdout.readlines()
                 assert len(lines) > 0
-                assert lines[-1].strip(), 'test_pkg'
+                assert lines[-1].strip() == 'test_pkg'
 
     def test_setup_requires_override_nspkg(self):
         """
