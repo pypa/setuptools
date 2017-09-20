@@ -169,7 +169,7 @@ class TestNamespaces:
         install_cmd = [
             sys.executable,
             '-m',
-            'pip',
+            'pip.__main__',
             'install',
             str(pkg_A),
             '-t', str(target),
