@@ -41,7 +41,7 @@ class BuildBackend(BuildBackendBase):
 
 class BuildBackendCaller(BuildBackendBase):
     def __call__(self, name, *args, **kw):
-        """Handles aribrary function invokations on the build backend."""
+        """Handles aribrary function invocations on the build backend."""
         os.chdir(self.cwd)
         os.environ.update(self.env)
         return getattr(import_module(self.backend_name), name)(*args, **kw)
@@ -58,7 +58,8 @@ def enter_directory(dir, val=None):
 @pytest.fixture
 def build_backend():
     tmpdir = mkdtemp()
-    with enter_directory(tmpdir):
+    ctx = enter_directory(tmpdir, BuildBackend(cwd='.'))
+    with ctx:
         setup_script = DALS("""
         from setuptools import setup
 
@@ -79,7 +80,7 @@ def build_backend():
                 """)
         })
 
-    return enter_directory(tmpdir, BuildBackend(cwd='.'))
+    return ctx
 
 
 def test_get_requires_for_build_wheel(build_backend):
