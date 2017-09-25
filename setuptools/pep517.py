@@ -1,3 +1,31 @@
+"""A PEP 517 interface to setuptools
+
+Previously, when a user or a command line tool (let's call it a "frontend")
+needed to make a request of setuptools to take a certain action, for
+example, generating a list of installation requirements, the frontend would
+would call "setup.py egg_info" or "setup.py bdist_wheel" on the command line.
+
+PEP 517 defines a different method of interfacing with setuptools. Rather
+than calling "setup.py" directly, the frontend should:
+
+  1. Set the current directory to the directory with a setup.py file
+  2. Import this module into a safe python interpreter (one in which
+     setuptools can potentially set global variables or crash hard).
+  3. Call one of the functions defined in PEP 517.
+  
+What each function does is defined in PEP 517. However, here is a "casual"
+definition of the functions (this definition should not be relied on for
+bug reports or API stability):
+
+  - `build_wheel`: build a wheel in the folder and return the basename
+  - `get_requires_for_build_wheel`: get the `setup_requires` to build
+  - `prepare_metadata_for_build_wheel`: get the `install_requires`
+  - `build_sdist`: build an sdist in the folder and return the basename
+  - `get_requires_for_build_sdist`: get the `setup_requires` to build
+
+Again, this is not a formal definition! Just a "taste" of the module.
+"""
+
 import os
 import sys
 import subprocess
@@ -21,14 +49,14 @@ def _run_setup(setup_script='setup.py'): #
     exec(compile(code, __file__, 'exec'))
 
 
-def fix_config(config_settings):
+def _fix_config(config_settings):
     config_settings = config_settings or {}
     config_settings.setdefault('--global-option', [])
     return config_settings
 
 
-def get_build_requires(config_settings):
-    config_settings = fix_config(config_settings)
+def _get_build_requires(config_settings):
+    config_settings = _fix_config(config_settings)
     requirements = ['setuptools', 'wheel']
     dist._skip_install_eggs = True
 
@@ -45,13 +73,13 @@ def get_build_requires(config_settings):
 
 
 def get_requires_for_build_wheel(config_settings=None):
-    config_settings = fix_config(config_settings)
-    return get_build_requires(config_settings)
+    config_settings = _fix_config(config_settings)
+    return _get_build_requires(config_settings)
 
 
 def get_requires_for_build_sdist(config_settings=None):
-    config_settings = fix_config(config_settings)
-    return get_build_requires(config_settings)
+    config_settings = _fix_config(config_settings)
+    return _get_build_requires(config_settings)
 
 
 def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
@@ -67,7 +95,7 @@ def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
 
 def build_wheel(wheel_directory, config_settings=None,
                 metadata_directory=None):
-    config_settings = fix_config(config_settings)
+    config_settings = _fix_config(config_settings)
     wheel_directory = os.path.abspath(wheel_directory)
     sys.argv = sys.argv[:1] + ['bdist_wheel'] + \
         config_settings["--global-option"]
@@ -84,7 +112,7 @@ def build_wheel(wheel_directory, config_settings=None,
 
 
 def build_sdist(sdist_directory, config_settings=None):
-    config_settings = fix_config(config_settings)
+    config_settings = _fix_config(config_settings)
     sdist_directory = os.path.abspath(sdist_directory)
     sys.argv = sys.argv[:1] + ['sdist'] + \
         config_settings["--global-option"]
