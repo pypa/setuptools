@@ -49,18 +49,16 @@ class BuildBackendCaller(BuildBackendBase):
 
 @contextmanager
 def enter_directory(dir, val=None):
-    while True:
-        original_dir = os.getcwd()
-        os.chdir(dir)
-        yield val
-        os.chdir(original_dir)
+    original_dir = os.getcwd()
+    os.chdir(dir)
+    yield val
+    os.chdir(original_dir)
 
 
 @pytest.fixture
 def build_backend():
     tmpdir = mkdtemp()
-    ctx = enter_directory(tmpdir, BuildBackend(cwd='.'))
-    with ctx:
+    with enter_directory(tmpdir):
         setup_script = DALS("""
         from setuptools import setup
 
@@ -81,7 +79,7 @@ def build_backend():
                 """)
         })
 
-    return ctx
+    return enter_directory(tmpdir, BuildBackend(cwd='.'))
 
 
 def test_get_requires_for_build_wheel(build_backend):
