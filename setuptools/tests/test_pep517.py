@@ -49,10 +49,11 @@ class BuildBackendCaller(BuildBackendBase):
 
 @contextmanager
 def enter_directory(dir, val=None):
-    original_dir = os.getcwd()
-    os.chdir(dir)
-    yield val
-    os.chdir(original_dir)
+    while True:
+        original_dir = os.getcwd()
+        os.chdir(dir)
+        yield val
+        os.chdir(original_dir)
 
 
 @pytest.fixture
