@@ -164,7 +164,8 @@ class TestEggInfo(object):
         self._run_install_command(tmpdir_cwd, env)
         egg_info_dir = self._find_egg_info_files(env.paths['lib']).base
         sources_txt = os.path.join(egg_info_dir, 'SOURCES.txt')
-        assert 'docs/usage.rst' in open(sources_txt).read().split('\n')
+        with open(sources_txt) as f:
+            assert 'docs/usage.rst' in f.read().split('\n')
 
     def _setup_script_with_requires(self, requires, use_setup_cfg=False):
         setup_script = DALS(
@@ -447,7 +448,8 @@ class TestEggInfo(object):
         self._run_install_command(tmpdir_cwd, env)
         egg_info_dir = self._find_egg_info_files(env.paths['lib']).base
         pkginfo = os.path.join(egg_info_dir, 'PKG-INFO')
-        assert 'Requires-Python: >=1.2.3' in open(pkginfo).read().split('\n')
+        with open(pkginfo) as f:
+            assert 'Requires-Python: >=1.2.3' in f.read().split('\n')
 
     def test_manifest_maker_warning_suppression(self):
         fixtures = [

@@ -2124,7 +2124,11 @@ def non_empty_lines(path):
     """
     Yield non-empty lines from file at path
     """
-    return (line.rstrip() for line in open(path) if line.strip())
+    with open(path) as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                yield line
 
 
 def resolve_egg_link(path):
