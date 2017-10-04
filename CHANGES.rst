@@ -1,3 +1,139 @@
+v36.5.0
+-------
+
+* #170: When working with Mercurial checkouts, use Windows-friendly
+  syntax for suppressing output.
+
+* Inspired by #1134, performed substantial refactoring of
+  ``pkg_resources.find_on_path`` to facilitate an optimization
+  for paths with many non-version entries.
+
+v36.4.0
+-------
+
+* #1075: Add new ``Description-Content-Type`` metadata field. `See here for
+  documentation on how to use this field.
+  <https://packaging.python.org/specifications/#description-content-type>`_
+
+* #1068: Sort files and directories when building eggs for
+  deterministic order.
+
+* #196: Remove caching of easy_install command in fetch_build_egg.
+  Fixes issue where ``pytest-runner-N.N`` would satisfy the installation
+  of ``pytest``.
+
+* #1129: Fix working set dependencies handling when replacing conflicting
+  distributions (e.g. when using ``setup_requires`` with a conflicting
+  transitive dependency, fix #1124).
+
+* #1133: Improved handling of README files extensions and added
+  Markdown to the list of searched READMES.
+
+* #1135: Improve performance of pkg_resources import by not invoking
+  ``access`` or ``stat`` and using ``os.listdir`` instead.
+
+v36.3.0
+-------
+
+* #1131: Make possible using several files within ``file:`` directive
+  in metadata.long_description in ``setup.cfg``.
+
+v36.2.7
+-------
+
+* fix #1105: Fix handling of requirements with environment
+  markers when declared in ``setup.cfg`` (same treatment as
+  for #1081).
+
+v36.2.6
+-------
+
+* #462: Don't assume a directory is an egg by the ``.egg``
+  extension alone.
+
+v36.2.5
+-------
+
+* #1093: Fix test command handler with extras_require.
+* #1112, #1091, #1115: Now using Trusty containers in
+  Travis for CI and CD.
+
+v36.2.4
+-------
+
+* #1092: ``pkg_resources`` now uses ``inspect.getmro`` to
+  resolve classes in method resolution order.
+
+v36.2.3
+-------
+
+* #1102: Restore behavior for empty extras.
+
+v36.2.2
+-------
+
+* #1099: Revert commit a3ec721, restoring intended purpose of
+  extras as part of a requirement declaration.
+
+v36.2.1
+-------
+
+* fix #1086
+* fix #1087
+* support extras specifiers in install_requires requirements
+
+v36.2.0
+-------
+
+* #1081: Environment markers indicated in ``install_requires``
+  are now processed and treated as nameless ``extras_require``
+  with markers, allowing their metadata in requires.txt to be
+  correctly generated.
+
+* #1053: Tagged commits are now released using Travis-CI
+  build stages, meaning releases depend on passing tests on
+  all supported Python versions (Linux) and not just the latest
+  Python version.
+
+v36.1.1
+-------
+
+* #1083: Correct ``py31compat.makedirs`` to correctly honor
+  ``exist_ok`` parameter.
+* #1083: Also use makedirs compatibility throughout setuptools.
+
+v36.1.0
+-------
+
+* #1083: Avoid race condition on directory creation in
+  ``pkg_resources.ensure_directory``.
+
+* Removed deprecation of and restored support for
+  ``upload_docs`` command for sites other than PyPI.
+  Only warehouse is dropping support, but services like
+  `devpi <http://doc.devpi.net/latest/>`_ continue to
+  support docs built by setuptools' plugins. See
+  `this comment <https://bitbucket.org/hpk42/devpi/issues/388/support-rtd-model-for-building-uploading#comment-34292423>`_
+  for more context on the motivation for this change.
+
+v36.0.1
+-------
+
+* #1042: Fix import in py27compat module that still
+  referenced six directly, rather than through the externs
+  module (vendored packages hook).
+
+v36.0.0
+-------
+
+* #980 and others: Once again, Setuptools vendors all
+  of its dependencies. It seems to be the case that in
+  the Python ecosystem, all build tools must run without
+  any dependencies (build, runtime, or otherwise). At
+  such a point that a mechanism exists that allows
+  build tools to have dependencies, Setuptools will adopt
+  it.
+
 v35.0.2
 -------
 
@@ -38,7 +174,7 @@ v34.4.1
 
 * #992: In msvc.msvc9_query_vcvarsall, ensure the
   returned dicts have str values and not Unicode for
-  compatibilty with os.environ.
+  compatibility with os.environ.
 
 v34.4.0
 -------

@@ -10,7 +10,7 @@ import functools
 import inspect
 
 from .py26compat import import_module
-import six
+from setuptools.extern import six
 
 import setuptools
 

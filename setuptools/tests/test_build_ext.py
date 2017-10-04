@@ -2,7 +2,7 @@ import sys
 import distutils.command.build_ext as orig
 from distutils.sysconfig import get_config_var
 
-import six
+from setuptools.extern import six
 
 from setuptools.command.build_ext import build_ext, get_abi3_suffix
 from setuptools.dist import Distribution

@@ -10,9 +10,10 @@ import itertools
 from distutils import log
 from distutils.errors import DistutilsTemplateError
 
+import pkg_resources.py31compat
 from setuptools.command.egg_info import FileList, egg_info, translate_pattern
 from setuptools.dist import Distribution
-import six
+from setuptools.extern import six
 from setuptools.tests.textwrap import DALS
 
 import pytest
@@ -361,8 +362,7 @@ class TestFileListTest(TempDirTestCase):
         for file in files:
             file = os.path.join(self.temp_dir, file)
             dirname, basename = os.path.split(file)
-            if not os.path.exists(dirname):
-                os.makedirs(dirname)
+            pkg_resources.py31compat.makedirs(dirname, exist_ok=True)
             open(file, 'w').close()
 
     def test_process_template_line(self):

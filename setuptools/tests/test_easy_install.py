@@ -14,10 +14,10 @@ import itertools
 import distutils.errors
 import io
 import zipfile
-from unittest import mock
+import mock
 
 import time
-from six.moves import urllib
+from setuptools.extern.six.moves import urllib
 
 import pytest
 
@@ -30,6 +30,7 @@ from setuptools.dist import Distribution
 from pkg_resources import normalize_path, working_set
 from pkg_resources import Distribution as PRDistribution
 import setuptools.tests.server
+from setuptools.tests import fail_on_ascii
 import pkg_resources
 
 from .py26compat import tarfile_open
@@ -166,6 +167,7 @@ class TestEasyInstallTest:
         sdist_zip.close()
         return str(sdist)
 
+    @fail_on_ascii
     def test_unicode_filename_in_sdist(self, sdist_unicode, tmpdir, monkeypatch):
         """
         The install command should execute correctly even if
@@ -563,18 +565,6 @@ def create_setup_requires_package(path, distname='foobar', version='0.1',
     make_package(foobar_path, distname, version)
 
     return test_pkg
-
-
-def make_trivial_sdist(dist_path, setup_py):
-    """Create a simple sdist tarball at dist_path, containing just a
-    setup.py, the contents of which are provided by the setup_py string.
-    """
-
-    setup_py_file = tarfile.TarInfo(name='setup.py')
-    setup_py_bytes = io.BytesIO(setup_py.encode('utf-8'))
-    setup_py_file.size = len(setup_py_bytes.getvalue())
-    with tarfile_open(dist_path, 'w:gz') as dist:
-        dist.addfile(setup_py_file, fileobj=setup_py_bytes)
 
 
 @pytest.mark.skipif(

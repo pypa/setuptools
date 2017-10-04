@@ -14,8 +14,8 @@ try:
 except ImportError:
     from urllib2 import splituser
 
-import six
-from six.moves import urllib, http_client, configparser, map
+from setuptools.extern import six
+from setuptools.extern.six.moves import urllib, http_client, configparser, map
 
 import setuptools
 from pkg_resources import (
@@ -893,7 +893,7 @@ class PackageIndex(Environment):
 
         if rev is not None:
             self.info("Updating to %s", rev)
-            os.system("(cd %s && hg up -C -r %s >&-)" % (
+            os.system("(cd %s && hg up -C -r %s -q)" % (
                 filename,
                 rev,
             ))

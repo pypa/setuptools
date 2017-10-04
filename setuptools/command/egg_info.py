@@ -16,8 +16,8 @@ import warnings
 import time
 import collections
 
-import six
-from six.moves import map
+from setuptools.extern import six
+from setuptools.extern.six.moves import map
 
 from setuptools import Command
 from setuptools.command.sdist import sdist
@@ -30,7 +30,7 @@ from pkg_resources import (
 import setuptools.unicode_utils as unicode_utils
 from setuptools.glob import glob
 
-import packaging
+from pkg_resources.extern import packaging
 
 
 def translate_pattern(glob):
@@ -599,6 +599,10 @@ def write_pkg_info(cmd, basename, filename):
         metadata = cmd.distribution.metadata
         metadata.version, oldver = cmd.egg_version, metadata.version
         metadata.name, oldname = cmd.egg_name, metadata.name
+        metadata.long_description_content_type = getattr(
+            cmd.distribution,
+            'long_description_content_type'
+        )
         try:
             # write unescaped data to PKG-INFO, so older pkg_resources
             # can still parse it

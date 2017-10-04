@@ -4,8 +4,8 @@ import sys
 import os
 import distutils.errors
 
-import six
-from six.moves import urllib, http_client
+from setuptools.extern import six
+from setuptools.extern.six.moves import urllib, http_client
 
 import pkg_resources
 import setuptools.package_index

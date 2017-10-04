@@ -7,11 +7,11 @@ lib
 distribute.egg-info
 setuptools.egg-info
 .coverage
+.eggs
 .tox
 *.egg
 *.py[cod]
 *.swp
 *~
 .hg*
-requirements.txt
 .cache

@@ -10,7 +10,7 @@ Changes include:
 import os
 import re
 import fnmatch
-from six import binary_type
+from setuptools.extern.six import binary_type
 
 __all__ = ["glob", "iglob", "escape"]
 

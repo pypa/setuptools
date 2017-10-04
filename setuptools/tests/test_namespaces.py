@@ -30,7 +30,9 @@ class TestNamespaces:
         targets = site_packages, path_packages
         # use pip to install to the target directory
         install_cmd = [
-            'pip',
+            sys.executable,
+            '-m',
+            'pip.__main__',
             'install',
             str(pkg_A),
             '-t', str(site_packages),
@@ -38,7 +40,9 @@ class TestNamespaces:
         subprocess.check_call(install_cmd)
         namespaces.make_site_dir(site_packages)
         install_cmd = [
-            'pip',
+            sys.executable,
+            '-m',
+            'pip.__main__',
             'install',
             str(pkg_B),
             '-t', str(path_packages),
@@ -88,7 +92,9 @@ class TestNamespaces:
         target = tmpdir / 'packages'
         # use pip to install to the target directory
         install_cmd = [
-            'pip',
+            sys.executable,
+            '-m',
+            'pip.__main__',
             'install',
             str(pkg_A),
             '-t', str(target),

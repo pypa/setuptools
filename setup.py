@@ -89,12 +89,13 @@ def pypi_link(pkg_filename):
 
 setup_params = dict(
     name="setuptools",
-    version="35.0.2",
+    version="36.5.0",
     description="Easily download, build, install, upgrade, and uninstall "
         "Python packages",
     author="Python Packaging Authority",
     author_email="distutils-sig@python.org",
     long_description=long_description,
+    long_description_content_type='text/x-rst; charset=UTF-8',
     keywords="CPAN PyPI distutils eggs package management",
     url="https://github.com/pypa/setuptools",
     src_root=None,
@@ -163,11 +164,6 @@ setup_params = dict(
         Topic :: Utilities
         """).strip().splitlines(),
     python_requires='>=2.6,!=3.0.*,!=3.1.*,!=3.2.*',
-    install_requires=[
-        'packaging>=16.8',
-        'six>=1.6.0',
-        'appdirs>=1.4.0',
-    ],
     extras_require={
         "ssl:sys_platform=='win32'": "wincertstore==0.2",
         "certs": "certifi==2016.9.26",

@@ -7,7 +7,7 @@ import glob
 import os
 import sys
 
-from six.moves import urllib
+from setuptools.extern.six.moves import urllib
 import pytest
 
 from setuptools.command.easy_install import easy_install

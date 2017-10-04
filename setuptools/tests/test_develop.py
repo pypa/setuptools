@@ -9,7 +9,7 @@ import sys
 import io
 import subprocess
 
-import six
+from setuptools.extern import six
 from setuptools.command import test
 
 import pytest
@@ -167,7 +167,9 @@ class TestNamespaces:
         target = tmpdir / 'packages'
         # use pip to install to the target directory
         install_cmd = [
-            'pip',
+            sys.executable,
+            '-m',
+            'pip.__main__',
             'install',
             str(pkg_A),
             '-t', str(target),
