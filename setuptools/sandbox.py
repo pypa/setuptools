@@ -12,7 +12,7 @@ import textwrap
 from setuptools.extern import six
 from setuptools.extern.six.moves import builtins, map
 
-import pkg_resources.py31compat
+import pkg_resources
 
 if sys.platform.startswith('java'):
     import org.python.modules.posix.PosixModule as _os
