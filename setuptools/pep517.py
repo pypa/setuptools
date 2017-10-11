@@ -28,10 +28,8 @@ Again, this is not a formal definition! Just a "taste" of the module.
 
 import os
 import sys
-import subprocess
 import tokenize
 import shutil
-import tempfile
 
 from setuptools import dist
 from setuptools.dist import SetupRequirementsError
@@ -39,12 +37,13 @@ from setuptools.dist import SetupRequirementsError
 
 SETUPTOOLS_IMPLEMENTATION_REVISION = 0.1
 
-def _run_setup(setup_script='setup.py'): #
+
+def _run_setup(setup_script='setup.py'):
     # Note that we can reuse our build directory between calls
     # Correctness comes first, then optimization later
-    __file__=setup_script
-    f=getattr(tokenize, 'open', open)(__file__)
-    code=f.read().replace('\\r\\n', '\\n')
+    __file__ = setup_script
+    f = getattr(tokenize, 'open', open)(__file__)
+    code = f.read().replace('\\r\\n', '\\n')
     f.close()
     exec(compile(code, __file__, 'exec'))
 
