@@ -12,7 +12,7 @@ than calling "setup.py" directly, the frontend should:
   2. Import this module into a safe python interpreter (one in which
      setuptools can potentially set global variables or crash hard).
   3. Call one of the functions defined in PEP 517.
-  
+
 What each function does is defined in PEP 517. However, here is a "casual"
 definition of the functions (this definition should not be relied on for
 bug reports or API stability):
@@ -41,7 +41,7 @@ SETUPTOOLS_IMPLEMENTATION_REVISION = 0.1
 
 def _run_setup(setup_script='setup.py'): #
     # Note that we can reuse our build directory between calls
-    # Correctness comes first, then optimization later    
+    # Correctness comes first, then optimization later
     __file__=setup_script
     f=getattr(tokenize, 'open', open)(__file__)
     code=f.read().replace('\\r\\n', '\\n')
