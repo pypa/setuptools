@@ -19,6 +19,7 @@ from setuptools.command.sdist import sdist
 from setuptools.command.egg_info import manifest_maker
 from setuptools.dist import Distribution
 from setuptools.tests import fail_on_ascii
+from .text import Filenames
 
 py3_only = pytest.mark.xfail(six.PY2, reason="Test runs on Python 3 only")
 
@@ -35,13 +36,6 @@ from setuptools import setup
 
 setup(**%r)
 """ % SETUP_ATTRS
-
-if six.PY3:
-    LATIN1_FILENAME = 'smörbröd.py'.encode('latin-1')
-else:
-    LATIN1_FILENAME = 'sm\xf6rbr\xf6d.py'
-
-utf_8_filename = LATIN1_FILENAME.decode('latin-1').encode('utf-8')
 
 
 @contextlib.contextmanager
@@ -82,7 +76,7 @@ def read_all_bytes(filename):
 
 def latin1_fail():
     try:
-        desc, filename = tempfile.mkstemp(suffix=LATIN1_FILENAME)
+        desc, filename = tempfile.mkstemp(suffix=Filenames.latin_1)
         os.close(desc)
         os.remove(filename)
     except Exception:
@@ -212,7 +206,7 @@ class TestSdistTest:
         mm.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
         os.mkdir('sdist_test.egg-info')
 
-        filename = os.path.join(b'sdist_test', utf_8_filename)
+        filename = os.path.join(b'sdist_test', Filenames.utf_8)
 
         # Must touch the file or risk removal
         open(filename, "w").close()
@@ -251,7 +245,7 @@ class TestSdistTest:
         os.mkdir('sdist_test.egg-info')
 
         # Latin-1 filename
-        filename = os.path.join(b'sdist_test', LATIN1_FILENAME)
+        filename = os.path.join(b'sdist_test', Filenames.latin_1)
 
         # Add filename with surrogates and write manifest
         with quiet():
@@ -285,7 +279,7 @@ class TestSdistTest:
             cmd.run()
 
         # Add UTF-8 filename to manifest
-        filename = os.path.join(b'sdist_test', utf_8_filename)
+        filename = os.path.join(b'sdist_test', Filenames.utf_8)
         cmd.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
         manifest = open(cmd.manifest, 'ab')
         manifest.write(b'\n' + filename)
@@ -318,7 +312,7 @@ class TestSdistTest:
             cmd.run()
 
         # Add Latin-1 filename to manifest
-        filename = os.path.join(b'sdist_test', LATIN1_FILENAME)
+        filename = os.path.join(b'sdist_test', Filenames.latin_1)
         cmd.manifest = os.path.join('sdist_test.egg-info', 'SOURCES.txt')
         manifest = open(cmd.manifest, 'ab')
         manifest.write(b'\n' + filename)
@@ -345,8 +339,7 @@ class TestSdistTest:
         cmd = sdist(dist)
         cmd.ensure_finalized()
 
-        # UTF-8 filename
-        filename = os.path.join(b'sdist_test', utf_8_filename)
+        filename = os.path.join(b'sdist_test', Filenames.utf_8)
         open(filename, 'w').close()
 
         with quiet():
@@ -381,7 +374,7 @@ class TestSdistTest:
         cmd.ensure_finalized()
 
         # Latin-1 filename
-        filename = os.path.join(b'sdist_test', LATIN1_FILENAME)
+        filename = os.path.join(b'sdist_test', Filenames.latin_1)
         open(filename, 'w').close()
         assert os.path.isfile(filename)
 
