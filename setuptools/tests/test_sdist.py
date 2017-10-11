@@ -128,8 +128,8 @@ class TestSdistTest:
 
     def test_defaults_case_sensitivity(self):
         """
-            Make sure default files (README.*, etc.) are added in a case-sensitive
-            way to avoid problems with packages built on Windows.
+        Make sure default files (README.*, etc.) are added in a case-sensitive
+        way to avoid problems with packages built on Windows.
         """
 
         open(os.path.join(self.temp_dir, 'readme.rst'), 'w').close()
@@ -146,7 +146,9 @@ class TestSdistTest:
         with quiet():
             cmd.run()
 
-        # lowercase all names so we can test in a case-insensitive way to make sure the files are not included
+        # lowercase all names so we can test in a
+        # case-insensitive way to make sure the files
+        # are not included.
         manifest = map(lambda x: x.lower(), cmd.filelist.files)
         assert 'readme.rst' not in manifest, manifest
         assert 'setup.py' not in manifest, manifest
