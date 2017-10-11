@@ -35,9 +35,6 @@ from setuptools import dist
 from setuptools.dist import SetupRequirementsError
 
 
-SETUPTOOLS_IMPLEMENTATION_REVISION = 0.1
-
-
 def _run_setup(setup_script='setup.py'):
     # Note that we can reuse our build directory between calls
     # Correctness comes first, then optimization later
