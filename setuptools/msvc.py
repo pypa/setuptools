@@ -25,6 +25,7 @@ import distutils.errors
 from pkg_resources.extern.packaging.version import LegacyVersion
 
 from setuptools.extern.six.moves import filterfalse
+from distutils.util import get_platform
 
 from .monkey import get_unpatched
 
@@ -846,6 +847,47 @@ class EnvironmentInfo:
         if self.vc_ver < vc_min_ver:
             err = 'No suitable Microsoft Visual C++ version found'
             raise distutils.errors.DistutilsPlatformError(err)
+
+    @classmethod
+    def from_compiler(cls, compiler):
+        """
+        Create and return a new instance from an MSVCCompiler
+        """
+        # Initialize to get compiler.cc
+        if not compiler.initialized:
+            compiler.initialize()
+        
+        VCTools = os.path.normcase(
+            os.path.dirname(compiler.cc))
+
+        PLAT_TO_VCVARS = {
+          'win32' : 'x86',
+          'win-amd64' : 'x86_amd64',
+        }
+
+        ei = cls(PLAT_TO_VCVARS[get_platform()])
+        for version in list(ei.si.find_available_vc_vers()):
+            ei = cls(
+                PLAT_TO_VCVARS[get_platform()],
+                vc_ver=version)
+
+            directories = [
+                os.path.normcase(d) for d in ei.VCTools
+            ]
+            directories  = [
+                d.replace('x86_amd64', 'amd64')
+                for d in list(directories)
+            ]
+            directories  = [
+                d.replace('amd64', 'x86_amd64')
+                for d in list(directories)
+            ]
+            for directory in directories:
+                if directory == VCTools:
+                    return ei
+
+        raise ValueError('Unable to find a'
+                         'matching MSVC version')        
 
     @property
     def vc_ver(self):
