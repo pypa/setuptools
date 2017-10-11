@@ -80,6 +80,21 @@ def read_all_bytes(filename):
         return fp.read()
 
 
+def latin1_fail():
+    try:
+        desc, filename = tempfile.mkstemp(suffix=LATIN1_FILENAME)
+        os.close(desc)
+        os.remove(filename)
+    except Exception:
+        return True
+
+
+fail_on_latin1_encoded_filenames = pytest.mark.xfail(
+    latin1_fail(),
+    reason="System does not support latin-1 filenames",
+)
+
+
 class TestSdistTest:
     def setup_method(self, method):
         self.temp_dir = tempfile.mkdtemp()
@@ -290,6 +305,7 @@ class TestSdistTest:
         assert filename in cmd.filelist.files
 
     @py3_only
+    @fail_on_latin1_encoded_filenames
     def test_read_manifest_skips_non_utf8_filenames(self):
         # Test for #303.
         dist = Distribution(SETUP_ATTRS)
@@ -321,6 +337,7 @@ class TestSdistTest:
         assert filename not in cmd.filelist.files
 
     @fail_on_ascii
+    @fail_on_latin1_encoded_filenames
     def test_sdist_with_utf8_encoded_filename(self):
         # Test for #303.
         dist = Distribution(SETUP_ATTRS)
@@ -355,6 +372,7 @@ class TestSdistTest:
         else:
             assert filename in cmd.filelist.files
 
+    @fail_on_latin1_encoded_filenames
     def test_sdist_with_latin1_encoded_filename(self):
         # Test for #303.
         dist = Distribution(SETUP_ATTRS)
