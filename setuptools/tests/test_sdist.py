@@ -374,10 +374,9 @@ class TestSdistTest:
                 # Latin-1 is similar to Windows-1252 however
                 # on mbcs filesys it is not in latin-1 encoding
                 fs_enc = sys.getfilesystemencoding()
-                if fs_enc == 'mbcs':
-                    filename = filename.decode('mbcs')
-                else:
-                    filename = filename.decode('latin-1')
+                if fs_enc != 'mbcs':
+                    fs_enc = 'latin-1'
+                filename = filename.decode(fs_enc)
 
                 assert filename in cmd.filelist.files
             else:
