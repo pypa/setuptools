@@ -42,7 +42,6 @@ else:
     LATIN1_FILENAME = 'sm\xf6rbr\xf6d.py'
 
 
-# Cannot use context manager because of Python 2.4
 @contextlib.contextmanager
 def quiet():
     old_stdout, old_stderr = sys.stdout, sys.stderr
