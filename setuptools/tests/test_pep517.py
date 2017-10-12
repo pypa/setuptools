@@ -1,18 +1,15 @@
-import pytest
 import os
+import contextlib
+import tempfile
 
-# Only test the backend on Python 3
-# because we don't want to require
-# a concurrent.futures backport for testing
-pytest.importorskip('concurrent.futures')
+import pytest
 
-from contextlib import contextmanager
-from importlib import import_module
-from tempfile import mkdtemp
-from concurrent.futures import ProcessPoolExecutor
 from .files import build_files
 from .textwrap import DALS
-from . import contexts
+
+
+futures = pytest.importorskip('concurrent.futures')
+importlib = pytest.importorskip('importlib')
 
 
 class BuildBackendBase(object):
@@ -26,7 +23,7 @@ class BuildBackend(BuildBackendBase):
     """PEP 517 Build Backend"""
     def __init__(self, *args, **kwargs):
         super(BuildBackend, self).__init__(*args, **kwargs)
-        self.pool = ProcessPoolExecutor()
+        self.pool = futures.ProcessPoolExecutor()
 
     def __getattr__(self, name):
         """Handles aribrary function invocations on the build backend."""
@@ -44,10 +41,11 @@ class BuildBackendCaller(BuildBackendBase):
         """Handles aribrary function invocations on the build backend."""
         os.chdir(self.cwd)
         os.environ.update(self.env)
-        return getattr(import_module(self.backend_name), name)(*args, **kw)
+        mod = importlib.import_module(self.backend_name)
+        return getattr(mod, name)(*args, **kw)
 
 
-@contextmanager
+@contextlib.contextmanager
 def enter_directory(dir, val=None):
     original_dir = os.getcwd()
     os.chdir(dir)
@@ -57,7 +55,7 @@ def enter_directory(dir, val=None):
 
 @pytest.fixture
 def build_backend():
-    tmpdir = mkdtemp()
+    tmpdir = tempfile.mkdtemp()
     with enter_directory(tmpdir):
         setup_script = DALS("""
         from setuptools import setup
@@ -87,6 +85,7 @@ def test_get_requires_for_build_wheel(build_backend):
         assert list(sorted(b.get_requires_for_build_wheel())) == \
             list(sorted(['six', 'setuptools', 'wheel']))
 
+
 def test_build_wheel(build_backend):
     with build_backend as b:
         dist_dir = os.path.abspath('pip-wheel')
@@ -103,6 +102,7 @@ def test_build_sdist(build_backend):
         sdist_name = b.build_sdist(dist_dir)
 
         assert os.path.isfile(os.path.join(dist_dir, sdist_name))
+
 
 def test_prepare_metadata_for_build_wheel(build_backend):
     with build_backend as b:
