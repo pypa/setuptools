@@ -26,10 +26,9 @@ class BuildBackend(BuildBackendBase):
     def __getattr__(self, name):
         """Handles aribrary function invocations on the build backend."""
         def method(*args, **kw):
-            return self.pool.submit(
-                BuildBackendCaller(os.path.abspath(self.cwd), self.env,
-                                   self.backend_name),
-                name, *args, **kw).result()
+            root = os.path.abspath(self.cwd)
+            caller = BuildBackendCaller(root, self.env, self.backend_name)
+            return self.pool.submit(caller, name, *args, **kw).result()
 
         return method
 
@@ -91,5 +90,4 @@ def test_prepare_metadata_for_build_wheel(build_backend):
 
     dist_info = build_backend.prepare_metadata_for_build_wheel(dist_dir)
 
-    assert os.path.isfile(os.path.join(dist_dir, dist_info,
-                          'METADATA'))
+    assert os.path.isfile(os.path.join(dist_dir, dist_info, 'METADATA'))
