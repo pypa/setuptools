@@ -45,23 +45,22 @@ class BuildBackendCaller(BuildBackendBase):
 
 @pytest.fixture
 def build_backend(tmpdir):
-    setup_script = DALS("""
-        from setuptools import setup
-
-        setup(
-            name='foo',
-            py_modules=['hello'],
-            setup_requires=['six'],
-            entry_points={'console_scripts': ['hi = hello.run']},
-            zip_safe=False,
-        )
-        """)
     defn = {
-        'setup.py': setup_script,
+        'setup.py': DALS("""
+            from setuptools import setup
+
+            setup(
+                name='foo',
+                py_modules=['hello'],
+                setup_requires=['six'],
+                entry_points={'console_scripts': ['hi = hello.run']},
+                zip_safe=False,
+            )
+            """),
         'hello.py': DALS("""
             def run():
                 print('hello')
-            """)
+            """),
     }
     build_files(defn, prefix=str(tmpdir))
     with tmpdir.as_cwd():
