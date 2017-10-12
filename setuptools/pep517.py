@@ -30,9 +30,35 @@ import os
 import sys
 import tokenize
 import shutil
+import contextlib
 
-from setuptools import dist
-from setuptools.dist import SetupRequirementsError
+import setuptools
+import distutils
+
+
+class SetupRequirementsError(BaseException):
+    def __init__(self, specifiers):
+        self.specifiers = specifiers
+
+
+class Distribution(setuptools.dist.Distribution):
+    def fetch_build_eggs(self, specifiers):
+        raise SetupRequirementsError(specifiers)
+
+    @classmethod
+    @contextlib.contextmanager
+    def patch(cls):
+        """
+        Replace
+        distutils.dist.Distribution with this class
+        for the duration of this context.
+        """
+        orig = distutils.core.Distribution
+        distutils.core.Distribution = cls
+        try:
+            yield
+        finally:
+            distutils.core.Distribution = orig
 
 
 def _run_setup(setup_script='setup.py'):
@@ -54,16 +80,14 @@ def _fix_config(config_settings):
 def _get_build_requires(config_settings):
     config_settings = _fix_config(config_settings)
     requirements = ['setuptools', 'wheel']
-    dist._skip_install_eggs = True
 
     sys.argv = sys.argv[:1] + ['egg_info'] + \
         config_settings["--global-option"]
     try:
-        _run_setup()
+        with Distribution.patch():
+            _run_setup()
     except SetupRequirementsError as e:
         requirements += e.specifiers
-
-    dist._skip_install_eggs = False
 
     return requirements
 
