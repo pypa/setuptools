@@ -4,6 +4,9 @@ v36.6.0
 * #1143: Added ``setuptools.build_meta`` module, an implementation
   of PEP-517 for Setuptools-defined packages.
 
+* #1143: Added ``dist_info`` command for producing dist_info
+  metadata.
+
 v36.5.0
 -------
 
