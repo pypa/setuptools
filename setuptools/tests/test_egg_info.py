@@ -164,7 +164,8 @@ class TestEggInfo(object):
         self._run_install_command(tmpdir_cwd, env)
         egg_info_dir = self._find_egg_info_files(env.paths['lib']).base
         sources_txt = os.path.join(egg_info_dir, 'SOURCES.txt')
-        assert 'docs/usage.rst' in open(sources_txt).read().split('\n')
+        with open(sources_txt) as f:
+            assert 'docs/usage.rst' in f.read().split('\n')
 
     def _setup_script_with_requires(self, requires, use_setup_cfg=False):
         setup_script = DALS(
@@ -398,6 +399,31 @@ class TestEggInfo(object):
             self._run_install_command(tmpdir_cwd, env)
         assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
 
+    def test_long_description_content_type(self, tmpdir_cwd, env):
+        # Test that specifying a `long_description_content_type` keyword arg to
+        # the `setup` function results in writing a `Description-Content-Type`
+        # line to the `PKG-INFO` file in the `<distribution>.egg-info`
+        # directory.
+        # `Description-Content-Type` is described at
+        # https://github.com/pypa/python-packaging-user-guide/pull/258
+
+        self._setup_script_with_requires(
+            """long_description_content_type='text/markdown',""")
+        environ = os.environ.copy().update(
+            HOME=env.paths['home'],
+        )
+        code, data = environment.run_setup_py(
+            cmd=['egg_info'],
+            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
+            data_stream=1,
+            env=environ,
+        )
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
+        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+            pkg_info_lines = pkginfo_file.read().split('\n')
+        expected_line = 'Description-Content-Type: text/markdown'
+        assert expected_line in pkg_info_lines
+
     def test_python_requires_egg_info(self, tmpdir_cwd, env):
         self._setup_script_with_requires(
             """python_requires='>=2.7.12',""")
@@ -422,7 +448,8 @@ class TestEggInfo(object):
         self._run_install_command(tmpdir_cwd, env)
         egg_info_dir = self._find_egg_info_files(env.paths['lib']).base
         pkginfo = os.path.join(egg_info_dir, 'PKG-INFO')
-        assert 'Requires-Python: >=1.2.3' in open(pkginfo).read().split('\n')
+        with open(pkginfo) as f:
+            assert 'Requires-Python: >=1.2.3' in f.read().split('\n')
 
     def test_manifest_maker_warning_suppression(self):
         fixtures = [

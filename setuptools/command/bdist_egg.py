@@ -38,6 +38,14 @@ def strip_module(filename):
         filename = filename[:-6]
     return filename
 
+def sorted_walk(dir):
+    """Do os.walk in a reproducible way,
+    independent of indeterministic filesystem readdir order
+    """
+    for base, dirs, files in os.walk(dir):
+        dirs.sort()
+        files.sort()
+        yield base, dirs, files
 
 def write_stub(resource, pyfile):
     _stub_template = textwrap.dedent("""
@@ -302,7 +310,7 @@ class bdist_egg(Command):
         ext_outputs = []
 
         paths = {self.bdist_dir: ''}
-        for base, dirs, files in os.walk(self.bdist_dir):
+        for base, dirs, files in sorted_walk(self.bdist_dir):
             for filename in files:
                 if os.path.splitext(filename)[1].lower() in NATIVE_EXTENSIONS:
                     all_outputs.append(paths[base] + filename)
@@ -329,7 +337,7 @@ NATIVE_EXTENSIONS = dict.fromkeys('.dll .so .dylib .pyd'.split())
 
 def walk_egg(egg_dir):
     """Walk an unpacked egg's contents, skipping the metadata directory"""
-    walker = os.walk(egg_dir)
+    walker = sorted_walk(egg_dir)
     base, dirs, files = next(walker)
     if 'EGG-INFO' in dirs:
         dirs.remove('EGG-INFO')
@@ -463,10 +471,10 @@ def make_zipfile(zip_filename, base_dir, verbose=0, dry_run=0, compress=True,
     compression = zipfile.ZIP_DEFLATED if compress else zipfile.ZIP_STORED
     if not dry_run:
         z = zipfile.ZipFile(zip_filename, mode, compression=compression)
-        for dirname, dirs, files in os.walk(base_dir):
+        for dirname, dirs, files in sorted_walk(base_dir):
             visit(z, dirname, files)
         z.close()
     else:
-        for dirname, dirs, files in os.walk(base_dir):
+        for dirname, dirs, files in sorted_walk(base_dir):
             visit(None, dirname, files)
     return zip_filename

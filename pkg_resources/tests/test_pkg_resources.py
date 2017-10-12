@@ -92,8 +92,8 @@ class TestZipProvider(object):
         ts = timestamp(self.ref_time)
         os.utime(filename, (ts, ts))
         filename = zp.get_resource_filename(manager, 'data.dat')
-        f = open(filename)
-        assert f.read() == 'hello, world!'
+        with open(filename) as f:
+            assert f.read() == 'hello, world!'
         manager.cleanup_resources()
 
 

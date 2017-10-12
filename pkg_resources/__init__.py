@@ -34,6 +34,7 @@ import platform
 import collections
 import plistlib
 import email.parser
+import errno
 import tempfile
 import textwrap
 import itertools
@@ -79,6 +80,11 @@ __import__('pkg_resources.extern.packaging.markers')
 
 if (3, 0) < sys.version_info < (3, 3):
     raise RuntimeError("Python 3.3 or later is required")
+
+if six.PY2:
+    # Those builtin exceptions are only defined in Python 3
+    PermissionError = None
+    NotADirectoryError = None
 
 # declare some globals that will be defined later to
 # satisfy the linters.
@@ -474,8 +480,10 @@ def get_build_platform():
         try:
             version = _macosx_vers()
             machine = os.uname()[4].replace(" ", "_")
-            return "macosx-%d.%d-%s" % (int(version[0]), int(version[1]),
-                _macosx_arch(machine))
+            return "macosx-%d.%d-%s" % (
+                int(version[0]), int(version[1]),
+                _macosx_arch(machine),
+            )
         except ValueError:
             # if someone is running a non-Mac darwin system, this will fall
             # through to the default implementation
@@ -800,7 +808,8 @@ class WorkingSet(object):
         already-installed distribution; it should return a ``Distribution`` or
         ``None``.
 
-        Unless `replace_conflicting=True`, raises a VersionConflict exception if
+        Unless `replace_conflicting=True`, raises a VersionConflict exception
+        if
         any requirements are found on the path that have the correct name but
         the wrong version.  Otherwise, if an `installer` is supplied it will be
         invoked to obtain the correct version of the requirement and activate
@@ -852,7 +861,10 @@ class WorkingSet(object):
                             # distribution
                             env = Environment([])
                             ws = WorkingSet([])
-                    dist = best[req.key] = env.best_match(req, ws, installer)
+                    dist = best[req.key] = env.best_match(
+                        req, ws, installer,
+                        replace_conflicting=replace_conflicting
+                    )
                     if dist is None:
                         requirers = required_by.get(req, None)
                         raise DistributionNotFound(req, requirers)
@@ -876,8 +888,8 @@ class WorkingSet(object):
         # return list of distros to activate
         return to_activate
 
-    def find_plugins(self, plugin_env, full_env=None, installer=None,
-            fallback=True):
+    def find_plugins(
+            self, plugin_env, full_env=None, installer=None, fallback=True):
         """Find all activatable distributions in `plugin_env`
 
         Example usage::
@@ -1031,7 +1043,8 @@ class _ReqExtras(dict):
 class Environment(object):
     """Searchable snapshot of distributions on a search path"""
 
-    def __init__(self, search_path=None, platform=get_supported_platform(),
+    def __init__(
+            self, search_path=None, platform=get_supported_platform(),
             python=PY_MAJOR):
         """Snapshot distributions available on a search path
 
@@ -1104,7 +1117,8 @@ class Environment(object):
                 dists.append(dist)
                 dists.sort(key=operator.attrgetter('hashcmp'), reverse=True)
 
-    def best_match(self, req, working_set, installer=None):
+    def best_match(
+            self, req, working_set, installer=None, replace_conflicting=False):
         """Find distribution best matching `req` and usable on `working_set`
 
         This calls the ``find(req)`` method of the `working_set` to see if a
@@ -1117,7 +1131,12 @@ class Environment(object):
         calling the environment's ``obtain(req, installer)`` method will be
         returned.
         """
-        dist = working_set.find(req)
+        try:
+            dist = working_set.find(req)
+        except VersionConflict:
+            if not replace_conflicting:
+                raise
+            dist = None
         if dist is not None:
             return dist
         for dist in self[req.key]:
@@ -1234,8 +1253,8 @@ class ResourceManager:
         tmpl = textwrap.dedent("""
             Can't extract file(s) to egg cache
 
-            The following error occurred while trying to extract file(s) to the Python egg
-            cache:
+            The following error occurred while trying to extract file(s)
+            to the Python egg cache:
 
               {old_exc}
 
@@ -1243,9 +1262,9 @@ class ResourceManager:
 
               {cache_path}
 
-            Perhaps your account does not have write access to this directory?  You can
-            change the cache directory by setting the PYTHON_EGG_CACHE environment
-            variable to point to an accessible directory.
+            Perhaps your account does not have write access to this directory?
+            You can change the cache directory by setting the PYTHON_EGG_CACHE
+            environment variable to point to an accessible directory.
             """).lstrip()
         err = ExtractionError(tmpl.format(**locals()))
         err.manager = self
@@ -1295,11 +1314,13 @@ class ResourceManager:
             return
         mode = os.stat(path).st_mode
         if mode & stat.S_IWOTH or mode & stat.S_IWGRP:
-            msg = ("%s is writable by group/others and vulnerable to attack "
+            msg = (
+                "%s is writable by group/others and vulnerable to attack "
                 "when "
                 "used with get_resource_filename. Consider a more secure "
                 "location (set with .set_extraction_path or the "
-                "PYTHON_EGG_CACHE environment variable)." % path)
+                "PYTHON_EGG_CACHE environment variable)." % path
+            )
             warnings.warn(msg, UserWarning)
 
     def postprocess(self, tempname, filename):
@@ -1583,8 +1604,11 @@ class DefaultProvider(EggProvider):
 
     @classmethod
     def _register(cls):
-        loader_cls = getattr(importlib_machinery, 'SourceFileLoader',
-            type(None))
+        loader_cls = getattr(
+            importlib_machinery,
+            'SourceFileLoader',
+            type(None),
+        )
         register_loader_type(loader_cls, cls)
 
 
@@ -1752,7 +1776,10 @@ class ZipProvider(EggProvider):
             if self._is_current(real_path, zip_path):
                 return real_path
 
-            outf, tmpnam = _mkstemp(".$extract", dir=os.path.dirname(real_path))
+            outf, tmpnam = _mkstemp(
+                ".$extract",
+                dir=os.path.dirname(real_path),
+            )
             os.write(outf, self.loader.get_data(zip_path))
             os.close(outf)
             utime(tmpnam, (timestamp, timestamp))
@@ -1958,14 +1985,14 @@ def find_eggs_in_zip(importer, path_item, only=False):
     for subitem in metadata.resource_listdir('/'):
         if _is_egg_path(subitem):
             subpath = os.path.join(path_item, subitem)
-            for dist in find_eggs_in_zip(zipimport.zipimporter(subpath), subpath):
+            dists = find_eggs_in_zip(zipimport.zipimporter(subpath), subpath)
+            for dist in dists:
                 yield dist
         elif subitem.lower().endswith('.dist-info'):
             subpath = os.path.join(path_item, subitem)
             submeta = EggMetadata(zipimport.zipimporter(subpath))
             submeta.egg_info = subpath
             yield Distribution.from_location(path_item, subitem, submeta)
-
 
 
 register_finder(zipimport.zipimporter, find_eggs_in_zip)
@@ -2008,46 +2035,127 @@ def find_on_path(importer, path_item, only=False):
     """Yield distributions accessible on a sys.path directory"""
     path_item = _normalize_cached(path_item)
 
-    if os.path.isdir(path_item) and os.access(path_item, os.R_OK):
-        if _is_unpacked_egg(path_item):
-            yield Distribution.from_filename(
-                path_item, metadata=PathMetadata(
-                    path_item, os.path.join(path_item, 'EGG-INFO')
-                )
+    if _is_unpacked_egg(path_item):
+        yield Distribution.from_filename(
+            path_item, metadata=PathMetadata(
+                path_item, os.path.join(path_item, 'EGG-INFO')
             )
-        else:
-            # scan for .egg and .egg-info in directory
-            path_item_entries = _by_version_descending(os.listdir(path_item))
-            for entry in path_item_entries:
-                lower = entry.lower()
-                if lower.endswith('.egg-info') or lower.endswith('.dist-info'):
-                    fullpath = os.path.join(path_item, entry)
-                    if os.path.isdir(fullpath):
-                        # egg-info directory, allow getting metadata
-                        if len(os.listdir(fullpath)) == 0:
-                            # Empty egg directory, skip.
-                            continue
-                        metadata = PathMetadata(path_item, fullpath)
-                    else:
-                        metadata = FileMetadata(fullpath)
-                    yield Distribution.from_location(
-                        path_item, entry, metadata, precedence=DEVELOP_DIST
-                    )
-                elif not only and _is_egg_path(entry):
-                    dists = find_distributions(os.path.join(path_item, entry))
-                    for dist in dists:
-                        yield dist
-                elif not only and lower.endswith('.egg-link'):
-                    with open(os.path.join(path_item, entry)) as entry_file:
-                        entry_lines = entry_file.readlines()
-                    for line in entry_lines:
-                        if not line.strip():
-                            continue
-                        path = os.path.join(path_item, line.rstrip())
-                        dists = find_distributions(path)
-                        for item in dists:
-                            yield item
-                        break
+        )
+        return
+
+    entries = safe_listdir(path_item)
+
+    # for performance, before sorting by version,
+    # screen entries for only those that will yield
+    # distributions
+    filtered = (
+        entry
+        for entry in entries
+        if dist_factory(path_item, entry, only)
+    )
+
+    # scan for .egg and .egg-info in directory
+    path_item_entries = _by_version_descending(filtered)
+    for entry in path_item_entries:
+        fullpath = os.path.join(path_item, entry)
+        factory = dist_factory(path_item, entry, only)
+        for dist in factory(fullpath):
+            yield dist
+
+
+def dist_factory(path_item, entry, only):
+    """
+    Return a dist_factory for a path_item and entry
+    """
+    lower = entry.lower()
+    is_meta = any(map(lower.endswith, ('.egg-info', '.dist-info')))
+    return (
+        distributions_from_metadata
+        if is_meta else
+        find_distributions
+        if not only and _is_egg_path(entry) else
+        resolve_egg_link
+        if not only and lower.endswith('.egg-link') else
+        NoDists()
+    )
+
+
+class NoDists:
+    """
+    >>> bool(NoDists())
+    False
+
+    >>> list(NoDists()('anything'))
+    []
+    """
+    def __bool__(self):
+        return False
+    if six.PY2:
+        __nonzero__ = __bool__
+
+    def __call__(self, fullpath):
+        return iter(())
+
+
+def safe_listdir(path):
+    """
+    Attempt to list contents of path, but suppress some exceptions.
+    """
+    try:
+        return os.listdir(path)
+    except (PermissionError, NotADirectoryError):
+        pass
+    except OSError as e:
+        # Ignore the directory if does not exist, not a directory or
+        # permission denied
+        ignorable = (
+            e.errno in (errno.ENOTDIR, errno.EACCES, errno.ENOENT)
+            # Python 2 on Windows needs to be handled this way :(
+            or getattr(e, "winerror", None) == 267
+        )
+        if not ignorable:
+            raise
+    return ()
+
+
+def distributions_from_metadata(path):
+    root = os.path.dirname(path)
+    if os.path.isdir(path):
+        if len(os.listdir(path)) == 0:
+            # empty metadata dir; skip
+            return
+        metadata = PathMetadata(root, path)
+    else:
+        metadata = FileMetadata(path)
+    entry = os.path.basename(path)
+    yield Distribution.from_location(
+        root, entry, metadata, precedence=DEVELOP_DIST,
+    )
+
+
+def non_empty_lines(path):
+    """
+    Yield non-empty lines from file at path
+    """
+    with open(path) as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                yield line
+
+
+def resolve_egg_link(path):
+    """
+    Given a path to an .egg-link, resolve distributions
+    present in the referenced path.
+    """
+    referenced_paths = non_empty_lines(path)
+    resolved_paths = (
+        os.path.join(os.path.dirname(path), ref)
+        for ref in referenced_paths
+    )
+    dist_groups = map(find_distributions, resolved_paths)
+    return next(dist_groups, ())
 
 
 register_finder(pkgutil.ImpImporter, find_on_path)
@@ -2225,9 +2333,7 @@ def _is_egg_path(path):
     """
     Determine if given path appears to be an egg.
     """
-    return (
-        path.lower().endswith('.egg')
-    )
+    return path.lower().endswith('.egg')
 
 
 def _is_unpacked_egg(path):
@@ -2287,7 +2393,9 @@ class EntryPoint(object):
         self.module_name = module_name
         self.attrs = tuple(attrs)
         if extras:
-            self.extras = Requirement.parse(("x[%s]" % ','.join(extras))).extras
+            ex_spec = "x[%s]" % ','.join(extras)
+            req = packaging.requirements.Requirement(ex_spec)
+            self.extras = tuple(req.extras)
         else:
             self.extras = ()
         self.dist = dist
@@ -2437,7 +2545,8 @@ class Distribution(object):
     """Wrap an actual or potential sys.path entry w/metadata"""
     PKG_INFO = 'PKG-INFO'
 
-    def __init__(self, location=None, metadata=None, project_name=None,
+    def __init__(
+            self, location=None, metadata=None, project_name=None,
             version=None, py_version=PY_MAJOR, platform=None,
             precedence=EGG_DIST):
         self.project_name = safe_name(project_name or 'Unknown')
@@ -2713,7 +2822,8 @@ class Distribution(object):
                 if replace:
                     break
                 else:
-                    # don't modify path (even removing duplicates) if found and not replace
+                    # don't modify path (even removing duplicates) if
+                    # found and not replace
                     return
             elif item == bdir and self.precedence == EGG_DIST:
                 # if it's an .egg, give it precedence over its directory
@@ -2810,7 +2920,10 @@ class EggInfoDistribution(Distribution):
 
 
 class DistInfoDistribution(Distribution):
-    """Wrap an actual or potential sys.path entry w/metadata, .dist-info style"""
+    """
+    Wrap an actual or potential sys.path entry
+    w/metadata, .dist-info style.
+    """
     PKG_INFO = 'METADATA'
     EQEQ = re.compile(r"([\(,])\s*(\d.*?)\s*([,\)])")
 
@@ -2860,7 +2973,7 @@ _distributionImpl = {
     '.egg': Distribution,
     '.egg-info': EggInfoDistribution,
     '.dist-info': DistInfoDistribution,
-    }
+}
 
 
 def issue_warning(*args, **kw):
@@ -2945,7 +3058,8 @@ class Requirement(packaging.requirements.Requirement):
     def __hash__(self):
         return self.__hash
 
-    def __repr__(self): return "Requirement.parse(%r)" % str(self)
+    def __repr__(self):
+        return "Requirement.parse(%r)" % str(self)
 
     @staticmethod
     def parse(s):
@@ -3079,7 +3193,10 @@ def _initialize_master_working_set():
         dist.activate(replace=False)
         for dist in working_set
     )
-    add_activation_listener(lambda dist: dist.activate(replace=True), existing=False)
+    add_activation_listener(
+        lambda dist: dist.activate(replace=True),
+        existing=False,
+    )
     working_set.entries = []
     # match order
     list(map(working_set.add_entry, sys.path))

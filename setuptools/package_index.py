@@ -893,7 +893,7 @@ class PackageIndex(Environment):
 
         if rev is not None:
             self.info("Updating to %s", rev)
-            os.system("(cd %s && hg up -C -r %s >&-)" % (
+            os.system("(cd %s && hg up -C -r %s -q)" % (
                 filename,
                 rev,
             ))

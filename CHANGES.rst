@@ -1,3 +1,52 @@
+v36.6.0
+-------
+
+* #1143: Added ``setuptools.build_meta`` module, an implementation
+  of PEP-517 for Setuptools-defined packages.
+
+* #1143: Added ``dist_info`` command for producing dist_info
+  metadata.
+
+v36.5.0
+-------
+
+* #170: When working with Mercurial checkouts, use Windows-friendly
+  syntax for suppressing output.
+
+* Inspired by #1134, performed substantial refactoring of
+  ``pkg_resources.find_on_path`` to facilitate an optimization
+  for paths with many non-version entries.
+
+v36.4.0
+-------
+
+* #1075: Add new ``Description-Content-Type`` metadata field. `See here for
+  documentation on how to use this field.
+  <https://packaging.python.org/specifications/#description-content-type>`_
+
+* #1068: Sort files and directories when building eggs for
+  deterministic order.
+
+* #196: Remove caching of easy_install command in fetch_build_egg.
+  Fixes issue where ``pytest-runner-N.N`` would satisfy the installation
+  of ``pytest``.
+
+* #1129: Fix working set dependencies handling when replacing conflicting
+  distributions (e.g. when using ``setup_requires`` with a conflicting
+  transitive dependency, fix #1124).
+
+* #1133: Improved handling of README files extensions and added
+  Markdown to the list of searched READMES.
+
+* #1135: Improve performance of pkg_resources import by not invoking
+  ``access`` or ``stat`` and using ``os.listdir`` instead.
+
+v36.3.0
+-------
+
+* #1131: Make possible using several files within ``file:`` directive
+  in metadata.long_description in ``setup.cfg``.
+
 v36.2.7
 -------
 
