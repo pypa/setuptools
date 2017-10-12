@@ -1,6 +1,4 @@
 import os
-import contextlib
-import tempfile
 
 import pytest
 
