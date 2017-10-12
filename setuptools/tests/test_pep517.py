@@ -45,19 +45,9 @@ class BuildBackendCaller(BuildBackendBase):
         return getattr(mod, name)(*args, **kw)
 
 
-@contextlib.contextmanager
-def enter_directory(dir, val=None):
-    original_dir = os.getcwd()
-    os.chdir(dir)
-    yield val
-    os.chdir(original_dir)
-
-
 @pytest.fixture
-def build_backend():
-    tmpdir = tempfile.mkdtemp()
-    with enter_directory(tmpdir):
-        setup_script = DALS("""
+def build_backend(tmpdir):
+    setup_script = DALS("""
         from setuptools import setup
 
         setup(
@@ -68,48 +58,45 @@ def build_backend():
             zip_safe=False,
         )
         """)
-
-        build_files({
-            'setup.py': setup_script,
-            'hello.py': DALS("""
-                def run():
-                    print('hello')
-                """)
-        })
-
-    return enter_directory(tmpdir, BuildBackend(cwd='.'))
+    defn = {
+        'setup.py': setup_script,
+        'hello.py': DALS("""
+            def run():
+                print('hello')
+            """)
+    }
+    build_files(defn, prefix=str(tmpdir))
+    with tmpdir.as_cwd():
+        yield BuildBackend(cwd='.')
 
 
 def test_get_requires_for_build_wheel(build_backend):
-    with build_backend as b:
-        assert list(sorted(b.get_requires_for_build_wheel())) == \
-            list(sorted(['six', 'setuptools', 'wheel']))
+    b = build_backend
+    assert list(sorted(b.get_requires_for_build_wheel())) == \
+        list(sorted(['six', 'setuptools', 'wheel']))
 
 
 def test_build_wheel(build_backend):
-    with build_backend as b:
-        dist_dir = os.path.abspath('pip-wheel')
-        os.makedirs(dist_dir)
-        wheel_name = b.build_wheel(dist_dir)
+    dist_dir = os.path.abspath('pip-wheel')
+    os.makedirs(dist_dir)
+    wheel_name = build_backend.build_wheel(dist_dir)
 
-        assert os.path.isfile(os.path.join(dist_dir, wheel_name))
+    assert os.path.isfile(os.path.join(dist_dir, wheel_name))
 
 
 def test_build_sdist(build_backend):
-    with build_backend as b:
-        dist_dir = os.path.abspath('pip-sdist')
-        os.makedirs(dist_dir)
-        sdist_name = b.build_sdist(dist_dir)
+    dist_dir = os.path.abspath('pip-sdist')
+    os.makedirs(dist_dir)
+    sdist_name = build_backend.build_sdist(dist_dir)
 
-        assert os.path.isfile(os.path.join(dist_dir, sdist_name))
+    assert os.path.isfile(os.path.join(dist_dir, sdist_name))
 
 
 def test_prepare_metadata_for_build_wheel(build_backend):
-    with build_backend as b:
-        dist_dir = os.path.abspath('pip-dist-info')
-        os.makedirs(dist_dir)
+    dist_dir = os.path.abspath('pip-dist-info')
+    os.makedirs(dist_dir)
 
-        dist_info = b.prepare_metadata_for_build_wheel(dist_dir)
+    dist_info = build_backend.prepare_metadata_for_build_wheel(dist_dir)
 
-        assert os.path.isfile(os.path.join(dist_dir, dist_info,
-                              'METADATA'))
+    assert os.path.isfile(os.path.join(dist_dir, dist_info,
+                          'METADATA'))
