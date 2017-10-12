@@ -53,8 +53,6 @@ def build_backend(tmpdir):
                 name='foo',
                 py_modules=['hello'],
                 setup_requires=['six'],
-                entry_points={'console_scripts': ['hi = hello.run']},
-                zip_safe=False,
             )
             """),
         'hello.py': DALS("""
