@@ -11,7 +11,7 @@ importlib = pytest.importorskip('importlib')
 
 
 class BuildBackendBase(object):
-    def __init__(self, cwd=None, env={}, backend_name='setuptools.pep517'):
+    def __init__(self, cwd=None, env={}, backend_name='setuptools.build_meta'):
         self.cwd = cwd
         self.env = env
         self.backend_name = backend_name
