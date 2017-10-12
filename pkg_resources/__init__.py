@@ -2392,9 +2392,7 @@ class EntryPoint(object):
         self.name = name
         self.module_name = module_name
         self.attrs = tuple(attrs)
-        ex_spec = "x[%s]" % ','.join(extras)
-        req = packaging.requirements.Requirement(ex_spec)
-        self.extras = tuple(req.extras)
+        self.extras = tuple(extras)
         self.dist = dist
 
     def __str__(self):
