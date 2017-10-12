@@ -71,9 +71,9 @@ def build_backend(tmpdir):
 
 
 def test_get_requires_for_build_wheel(build_backend):
-    b = build_backend
-    assert list(sorted(b.get_requires_for_build_wheel())) == \
-        list(sorted(['six', 'setuptools', 'wheel']))
+    actual = build_backend.get_requires_for_build_wheel()
+    expected = ['six', 'setuptools', 'wheel']
+    assert sorted(actual) == sorted(expected)
 
 
 def test_build_wheel(build_backend):
