@@ -47,9 +47,7 @@ class BuildBackendCaller(BuildBackendBase):
 def build_backend(tmpdir):
     defn = {
         'setup.py': DALS("""
-            from setuptools import setup
-
-            setup(
+            __import__('setuptools').setup(
                 name='foo',
                 py_modules=['hello'],
                 setup_requires=['six'],
