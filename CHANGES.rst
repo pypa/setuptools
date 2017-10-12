@@ -1,3 +1,9 @@
+v36.6.0
+-------
+
+* #1143: Added ``setuptools.build_meta`` module, an implementation
+  of PEP-517 for Setuptools-defined packages.
+
 v36.5.0
 -------
 
