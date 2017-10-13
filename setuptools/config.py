@@ -450,6 +450,9 @@ class ConfigOptionsHandler(ConfigHandler):
         parse_list_semicolon = partial(self._parse_list, separator=';')
         parse_bool = self._parse_bool
         parse_dict = self._parse_dict
+        parse_file = self._parse_file
+        parse_file_and_list_semicolon = self._get_parser_compound(
+            parse_file, parse_list_semicolon)
 
         return {
             'zip_safe': parse_bool,
@@ -463,9 +466,9 @@ class ConfigOptionsHandler(ConfigHandler):
             'eager_resources': parse_list,
             'dependency_links': parse_list,
             'namespace_packages': parse_list,
-            'install_requires': parse_list_semicolon,
-            'setup_requires': parse_list_semicolon,
-            'tests_require': parse_list_semicolon,
+            'install_requires': parse_file_and_list_semicolon,
+            'setup_requires': parse_file_and_list_semicolon,
+            'tests_require': parse_file_and_list_semicolon,
             'packages': self._parse_packages,
             'entry_points': self._parse_file,
             'py_modules': parse_list,
