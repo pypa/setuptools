@@ -2430,8 +2430,8 @@ Options
 Key                      Type
 =======================  =====
 zip_safe                 bool
-setup_requires           list-semi
-install_requires         list-semi
+setup_requires           file:, list-semi
+install_requires         file:, list-semi
 extras_require           section
 python_requires          str
 entry_points             file:, section
@@ -2442,7 +2442,7 @@ convert_2to3_doctests    list-comma
 scripts                  list-comma
 eager_resources          list-comma
 dependency_links         list-comma
-tests_require            list-semi
+tests_require            file:, list-semi
 include_package_data     bool
 packages                 find:, list-comma
 package_dir              dict

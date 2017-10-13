@@ -562,3 +562,52 @@ class TestOptions:
 
         with get_dist(tmpdir) as dist:
             assert dist.entry_points == expected
+
+    def test_requirements_from_file(self, tmpdir):
+        setup_expected = [
+            'foo>=3.1',
+            'bar'
+        ]
+        install_expected = [
+            'docutils>=0.3',
+            'pack==1.1,==1.3',
+            'hey'
+        ]
+        test_expected = [
+            'mytest==1.0',
+            'pack2'
+        ]
+
+        fake_env(
+            tmpdir,
+            '[options]\n'
+            'setup_requires = file: setup-requirements.txt\n'
+            'install_requires = file: requirements.txt\n'
+            'tests_require = file: test-requirements.txt\n'
+        )
+
+        tmpdir.join('setup-requirements.txt').write(
+            'foo>=3.1\n'
+            'bar\n')
+        tmpdir.join('requirements.txt').write(
+            'docutils>=0.3\n'
+            'pack ==1.1, ==1.3\n'
+            'hey\n')
+        tmpdir.join('test-requirements.txt').write(
+            'mytest==1.0\n'
+            'pack2\n')
+        with get_dist(tmpdir) as dist:
+            assert dist.setup_requires == setup_expected
+            assert dist.install_requires == install_expected
+            assert dist.tests_require == test_expected
+
+        tmpdir.join('setup-requirements.txt').write(
+            'foo>=3.1; bar')
+        tmpdir.join('requirements.txt').write(
+            'docutils>=0.3; pack ==1.1, ==1.3; hey')
+        tmpdir.join('test-requirements.txt').write(
+            'mytest==1.0; pack2')
+        with get_dist(tmpdir) as dist:
+            assert dist.setup_requires == setup_expected
+            assert dist.install_requires == install_expected
+            assert dist.tests_require == test_expected
