@@ -112,8 +112,6 @@ def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
     dist_infos = [f for f in os.listdir(metadata_directory)
                   if f.endswith('.dist-info')]
 
-    print(dist_infos)
-
     assert len(dist_infos) == 1
     return dist_infos[0]
 
