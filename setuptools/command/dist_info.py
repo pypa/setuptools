@@ -27,6 +27,7 @@ class dist_info(Command):
     def run(self):
         egg_info = self.get_finalized_command('egg_info')
         egg_info.egg_base = self.egg_base
+        egg_info.finalize_options()
         egg_info.run()
         dist_info_dir = egg_info.egg_info[:-len('.egg-info')] + '.dist-info'
         log.info("creating '{}'".format(os.path.abspath(dist_info_dir)))
