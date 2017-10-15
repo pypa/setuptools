@@ -68,10 +68,11 @@ def _run_setup(setup_script='setup.py'):
     # Correctness comes first, then optimization later
     _initialize_master_working_set()
     __file__ = setup_script
+    __name__ = '__main__'
     f = getattr(tokenize, 'open', open)(__file__)
     code = f.read().replace('\\r\\n', '\\n')
     f.close()
-    exec(compile(code, __file__, 'exec'))
+    exec(compile(code, __file__, 'exec'), locals())
 
 
 def _fix_config(config_settings):
