@@ -35,8 +35,6 @@ import contextlib
 import setuptools
 import distutils
 
-from pkg_resources import _initialize_master_working_set
-
 
 class SetupRequirementsError(BaseException):
     def __init__(self, specifiers):
@@ -66,7 +64,6 @@ class Distribution(setuptools.dist.Distribution):
 def _run_setup(setup_script='setup.py'):
     # Note that we can reuse our build directory between calls
     # Correctness comes first, then optimization later
-    _initialize_master_working_set()
     __file__ = setup_script
     __name__ = '__main__'
     f = getattr(tokenize, 'open', open)(__file__)
