@@ -42,22 +42,55 @@ class BuildBackendCaller(BuildBackendBase):
         return getattr(mod, name)(*args, **kw)
 
 
-@pytest.fixture
-def build_backend(tmpdir):
-    defn = {
-        'setup.py': DALS("""
-            __import__('setuptools').setup(
-                name='foo',
-                py_modules=['hello'],
-                setup_requires=['six'],
-            )
-            """),
-        'hello.py': DALS("""
-            def run():
-                print('hello')
-            """),
-    }
-    build_files(defn, prefix=str(tmpdir))
+defns = [{
+            'setup.py': DALS("""
+                __import__('setuptools').setup(
+                    name='foo',
+                    py_modules=['hello'],
+                    setup_requires=['six'],
+                )
+                """),
+            'hello.py': DALS("""
+                def run():
+                    print('hello')
+                """),
+        },
+        {
+            'setup.py': DALS("""
+                assert __name__ == '__main__'
+                __import__('setuptools').setup(
+                    name='foo',
+                    py_modules=['hello'],
+                    setup_requires=['six'],
+                )
+                """),
+            'hello.py': DALS("""
+                def run():
+                    print('hello')
+                """),
+        },
+        {
+            'setup.py': DALS("""
+                variable = True
+                def function():
+                    return variable
+                assert variable
+                __import__('setuptools').setup(
+                    name='foo',
+                    py_modules=['hello'],
+                    setup_requires=['six'],
+                )
+                """),
+            'hello.py': DALS("""
+                def run():
+                    print('hello')
+                """),
+        }]
+
+
+@pytest.fixture(scope="module", params=defns)
+def build_backend(tmpdir, request):
+    build_files(request.param, prefix=str(tmpdir))
     with tmpdir.as_cwd():
         yield BuildBackend(cwd='.')
 
