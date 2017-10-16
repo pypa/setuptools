@@ -88,7 +88,7 @@ defns = [{
         }]
 
 
-@pytest.fixture(scope="module", params=defns)
+@pytest.fixture(params=defns)
 def build_backend(tmpdir, request):
     build_files(request.param, prefix=str(tmpdir))
     with tmpdir.as_cwd():
