@@ -3,6 +3,7 @@ import pytest
 from distutils.errors import DistutilsOptionError, DistutilsFileError
 from setuptools.dist import Distribution
 from setuptools.config import ConfigHandler, read_configuration
+from setuptools.extern.six.moves.configparser import InterpolationMissingOptionError
 
 
 class ErrConfigHandler(ConfigHandler):
@@ -306,6 +307,15 @@ class TestMetadata:
         with get_dist(tmpdir) as dist:
             assert set(dist.metadata.classifiers) == expected
 
+    def test_interpolation(self, tmpdir):
+        fake_env(
+            tmpdir,
+            '[metadata]\n'
+            'description = %(message)s\n'
+        )
+        with pytest.raises(InterpolationMissingOptionError):
+            with get_dist(tmpdir):
+                pass
 
 class TestOptions:
 
