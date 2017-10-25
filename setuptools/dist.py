@@ -432,7 +432,7 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         and loads configuration.
 
         """
-        _Distribution.parse_config_files(self, filenames=filenames)
+        Distribution_parse_config_files.parse_config_files(self, filenames=filenames)
 
         parse_configuration(self, self.command_options)
         self._finalize_requires()

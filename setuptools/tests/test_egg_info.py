@@ -497,3 +497,49 @@ class TestEggInfo(object):
         # expect exactly one result
         result, = results
         return result
+
+    EGG_INFO_TESTS = (
+        # Check for issue #1136: invalid string type when
+        # reading declarative `setup.cfg` under Python 2.
+        {
+            'setup.py': DALS(
+                """
+                from setuptools import setup
+                setup(
+                    name="foo",
+                )
+                """),
+            'setup.cfg': DALS(
+                """
+                [options]
+                package_dir =
+                    = src
+                """),
+            'src': {},
+        },
+        # Check Unicode can be used in `setup.py` under Python 2.
+        {
+            'setup.py': DALS(
+                """
+                # -*- coding: utf-8 -*-
+                from __future__ import unicode_literals
+                from setuptools import setup, find_packages
+                setup(
+                    name="foo",
+                    package_dir={'': 'src'},
+                )
+                """),
+            'src': {},
+        }
+    )
+
+    @pytest.mark.parametrize('package_files', EGG_INFO_TESTS)
+    def test_egg_info(self, tmpdir_cwd, env, package_files):
+        """
+        """
+        build_files(package_files)
+        code, data = environment.run_setup_py(
+            cmd=['egg_info'],
+            data_stream=1,
+        )
+        assert not code, data

@@ -1,7 +1,21 @@
+import io
+import re
 import sys
 from distutils.errors import DistutilsOptionError
 from distutils.util import strtobool
 from distutils.debug import DEBUG
+from setuptools.extern import six
+
+
+CODING_RE = re.compile(br'^[ \t\f]*#.*?coding[:=][ \t]*([-\w.]+)')
+
+def detect_encoding(fp):
+    first_line = fp.readline()
+    fp.seek(0)
+    m = CODING_RE.match(first_line)
+    if m is None:
+        return None
+    return m.group(1).decode('ascii')
 
 
 class Distribution_parse_config_files:
@@ -13,10 +27,10 @@ class Distribution_parse_config_files:
     as implemented in distutils.
     """
     def parse_config_files(self, filenames=None):
-        from configparser import ConfigParser
+        from setuptools.extern.six.moves.configparser import ConfigParser
 
         # Ignore install directory options if we have a venv
-        if sys.prefix != sys.base_prefix:
+        if six.PY3 and sys.prefix != sys.base_prefix:
             ignore_options = [
                 'install-base', 'install-platbase', 'install-lib',
                 'install-platlib', 'install-purelib', 'install-headers',
@@ -33,11 +47,16 @@ class Distribution_parse_config_files:
         if DEBUG:
             self.announce("Distribution.parse_config_files():")
 
-        parser = ConfigParser(interpolation=None)
+        parser = ConfigParser()
         for filename in filenames:
-            if DEBUG:
-                self.announce("  reading %s" % filename)
-            parser.read(filename)
+            with io.open(filename, 'rb') as fp:
+                encoding = detect_encoding(fp)
+                if DEBUG:
+                    self.announce("  reading %s [%s]" % (
+                        filename, encoding or 'locale')
+                    )
+                reader = io.TextIOWrapper(fp, encoding=encoding)
+                (parser.read_file if six.PY3 else parser.readfp)(reader)
             for section in parser.sections():
                 options = parser.options(section)
                 opt_dict = self.get_option_dict(section)
@@ -67,12 +86,6 @@ class Distribution_parse_config_files:
                         setattr(self, opt, val)
                 except ValueError as msg:
                     raise DistutilsOptionError(msg)
-
-
-if sys.version_info < (3,):
-    # Python 2 behavior is sufficient
-    class Distribution_parse_config_files:
-        pass
 
 
 if False:

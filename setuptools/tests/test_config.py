@@ -1,9 +1,13 @@
+# -*- coding: UTF-8 -*-
+from __future__ import unicode_literals
+
 import contextlib
 import pytest
 from distutils.errors import DistutilsOptionError, DistutilsFileError
 from setuptools.dist import Distribution
 from setuptools.config import ConfigHandler, read_configuration
 from setuptools.extern.six.moves.configparser import InterpolationMissingOptionError
+from setuptools.tests import is_ascii
 
 
 class ErrConfigHandler(ConfigHandler):
@@ -17,7 +21,7 @@ def make_package_dir(name, base_dir):
     return dir_package, init_file
 
 
-def fake_env(tmpdir, setup_cfg, setup_py=None):
+def fake_env(tmpdir, setup_cfg, setup_py=None, encoding='ascii'):
 
     if setup_py is None:
         setup_py = (
@@ -27,7 +31,7 @@ def fake_env(tmpdir, setup_cfg, setup_py=None):
 
     tmpdir.join('setup.py').write(setup_py)
     config = tmpdir.join('setup.cfg')
-    config.write(setup_cfg)
+    config.write(setup_cfg.encode(encoding), mode='wb')
 
     package_dir, init_file = make_package_dir('fake_package', tmpdir)
 
@@ -316,6 +320,63 @@ class TestMetadata:
         with pytest.raises(InterpolationMissingOptionError):
             with get_dist(tmpdir):
                 pass
+
+    skip_if_not_ascii = pytest.mark.skipif(not is_ascii, reason='Test not supported with this locale')
+
+    @skip_if_not_ascii
+    def test_non_ascii_1(self, tmpdir):
+        fake_env(
+            tmpdir,
+            '[metadata]\n'
+            'description = éàïôñ\n',
+            encoding='utf-8'
+        )
+        with pytest.raises(UnicodeDecodeError):
+            with get_dist(tmpdir):
+                pass
+
+    def test_non_ascii_2(self, tmpdir):
+        fake_env(
+            tmpdir,
+            '# -*- coding: invalid\n'
+        )
+        with pytest.raises(LookupError):
+            with get_dist(tmpdir):
+                pass
+
+    def test_non_ascii_3(self, tmpdir):
+        fake_env(
+            tmpdir,
+            '\n'
+            '# -*- coding: invalid\n'
+        )
+        with get_dist(tmpdir):
+            pass
+
+    @skip_if_not_ascii
+    def test_non_ascii_4(self, tmpdir):
+        fake_env(
+            tmpdir,
+            '# -*- coding: utf-8\n'
+            '[metadata]\n'
+            'description = éàïôñ\n',
+            encoding='utf-8'
+        )
+        with get_dist(tmpdir) as dist:
+            assert dist.metadata.description == 'éàïôñ'
+
+    @skip_if_not_ascii
+    def test_non_ascii_5(self, tmpdir):
+        fake_env(
+            tmpdir,
+            '# vim: set fileencoding=iso-8859-15 :\n'
+            '[metadata]\n'
+            'description = éàïôñ\n',
+            encoding='iso-8859-15'
+        )
+        with get_dist(tmpdir) as dist:
+            assert dist.metadata.description == 'éàïôñ'
+
 
 class TestOptions:
 
