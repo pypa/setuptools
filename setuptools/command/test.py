@@ -18,6 +18,10 @@ from setuptools.py31compat import unittest_main
 
 
 class ScanningLoader(TestLoader):
+    def __init__(self):
+        super(ScanningLoader, self).__init__()
+        self.__modules = set()
+
     def loadTestsFromModule(self, module, pattern=None):
         """Return a suite of all tests cases contained in the given module
 
@@ -26,10 +30,12 @@ class ScanningLoader(TestLoader):
         the return value to the tests.
         """
         tests = []
-        tests.append(TestLoader.loadTestsFromModule(self, module))
+        if module not in self.__modules:
+            self.__modules.add(module)
+            tests.append(TestLoader.loadTestsFromModule(self, module))
 
-        if hasattr(module, "additional_tests"):
-            tests.append(module.additional_tests())
+            if hasattr(module, "additional_tests"):
+                tests.append(module.additional_tests())
 
         if hasattr(module, '__path__'):
             for file in resource_listdir(module.__name__, ''):
@@ -40,7 +46,9 @@ class ScanningLoader(TestLoader):
                         submodule = module.__name__ + '.' + file
                     else:
                         continue
-                tests.append(self.loadTestsFromName(submodule))
+                if submodule not in self.__modules:
+                    self.__modules.add(submodule)
+                    tests.append(self.loadTestsFromName(submodule))
 
         if len(tests) != 1:
             return self.suiteClass(tests)
