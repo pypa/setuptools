@@ -1,3 +1,8 @@
+v36.7.0
+-------
+
+* #1054: Support ``setup_requires`` in ``setup.cfg`` files.
+
 v36.6.1
 -------
 
