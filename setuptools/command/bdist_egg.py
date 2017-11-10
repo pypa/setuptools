@@ -239,7 +239,6 @@ class bdist_egg(Command):
 
     def zap_pyfiles(self):
         log.info("Removing .py files from temporary directory")
-        re_pycache_file = re.compile('(.+)\.cpython-3\d(.pyc)$')
         for base, dirs, files in walk_egg(self.bdist_dir):
             for name in files:
                 if name.endswith('.py'):
@@ -250,8 +249,9 @@ class bdist_egg(Command):
                 if base.endswith('__pycache__'):
                     path_old = os.path.join(base, name)
 
-                    m = re_pycache_file.match(name)
-                    path_new = os.path.join(base, os.pardir, m.group(1) + m.group(2))
+                    pattern = r'(?P<name>.+)\.(?P<magic>[^.]+)\.pyc'
+                    m = re.match(pattern, name)
+                    path_new = os.path.join(base, os.pardir, m.group('name') + '.pyc')
                     log.info("Renaming file from [%s] to [%s]" % (path_old, path_new))
                     if os.path.exists(path_new):
                         os.unlink(path_new)
