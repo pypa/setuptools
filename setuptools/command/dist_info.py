@@ -7,6 +7,7 @@ import os
 import shutil
 
 from distutils.core import Command
+from distutils import log
 
 
 class dist_info(Command):
@@ -28,10 +29,12 @@ class dist_info(Command):
         egg_info = self.get_finalized_command('egg_info')
         egg_info.run()
         dist_info_dir = egg_info.egg_info[:-len('.egg-info')] + '.dist-info'
+        log.info("creating '{}'".format(os.path.abspath(dist_info_dir)))
 
         bdist_wheel = self.get_finalized_command('bdist_wheel')
         bdist_wheel.egg2dist(egg_info.egg_info, dist_info_dir)
 
         if self.egg_base:
-            shutil.move(dist_info_dir, os.path.join(
-                self.egg_base, dist_info_dir))
+            destination = os.path.join(self.egg_base, dist_info_dir)
+            log.info("creating '{}'".format(os.path.abspath(destination)))
+            shutil.move(dist_info_dir, destination)
