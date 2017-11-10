@@ -480,8 +480,10 @@ def get_build_platform():
         try:
             version = _macosx_vers()
             machine = os.uname()[4].replace(" ", "_")
-            return "macosx-%d.%d-%s" % (int(version[0]), int(version[1]),
-                _macosx_arch(machine))
+            return "macosx-%d.%d-%s" % (
+                int(version[0]), int(version[1]),
+                _macosx_arch(machine),
+            )
         except ValueError:
             # if someone is running a non-Mac darwin system, this will fall
             # through to the default implementation
@@ -806,7 +808,8 @@ class WorkingSet(object):
         already-installed distribution; it should return a ``Distribution`` or
         ``None``.
 
-        Unless `replace_conflicting=True`, raises a VersionConflict exception if
+        Unless `replace_conflicting=True`, raises a VersionConflict exception
+        if
         any requirements are found on the path that have the correct name but
         the wrong version.  Otherwise, if an `installer` is supplied it will be
         invoked to obtain the correct version of the requirement and activate
@@ -885,8 +888,8 @@ class WorkingSet(object):
         # return list of distros to activate
         return to_activate
 
-    def find_plugins(self, plugin_env, full_env=None, installer=None,
-            fallback=True):
+    def find_plugins(
+            self, plugin_env, full_env=None, installer=None, fallback=True):
         """Find all activatable distributions in `plugin_env`
 
         Example usage::
@@ -1040,7 +1043,8 @@ class _ReqExtras(dict):
 class Environment(object):
     """Searchable snapshot of distributions on a search path"""
 
-    def __init__(self, search_path=None, platform=get_supported_platform(),
+    def __init__(
+            self, search_path=None, platform=get_supported_platform(),
             python=PY_MAJOR):
         """Snapshot distributions available on a search path
 
@@ -1113,7 +1117,8 @@ class Environment(object):
                 dists.append(dist)
                 dists.sort(key=operator.attrgetter('hashcmp'), reverse=True)
 
-    def best_match(self, req, working_set, installer=None, replace_conflicting=False):
+    def best_match(
+            self, req, working_set, installer=None, replace_conflicting=False):
         """Find distribution best matching `req` and usable on `working_set`
 
         This calls the ``find(req)`` method of the `working_set` to see if a
@@ -1248,8 +1253,8 @@ class ResourceManager:
         tmpl = textwrap.dedent("""
             Can't extract file(s) to egg cache
 
-            The following error occurred while trying to extract file(s) to the Python egg
-            cache:
+            The following error occurred while trying to extract file(s)
+            to the Python egg cache:
 
               {old_exc}
 
@@ -1257,9 +1262,9 @@ class ResourceManager:
 
               {cache_path}
 
-            Perhaps your account does not have write access to this directory?  You can
-            change the cache directory by setting the PYTHON_EGG_CACHE environment
-            variable to point to an accessible directory.
+            Perhaps your account does not have write access to this directory?
+            You can change the cache directory by setting the PYTHON_EGG_CACHE
+            environment variable to point to an accessible directory.
             """).lstrip()
         err = ExtractionError(tmpl.format(**locals()))
         err.manager = self
@@ -1309,11 +1314,13 @@ class ResourceManager:
             return
         mode = os.stat(path).st_mode
         if mode & stat.S_IWOTH or mode & stat.S_IWGRP:
-            msg = ("%s is writable by group/others and vulnerable to attack "
+            msg = (
+                "%s is writable by group/others and vulnerable to attack "
                 "when "
                 "used with get_resource_filename. Consider a more secure "
                 "location (set with .set_extraction_path or the "
-                "PYTHON_EGG_CACHE environment variable)." % path)
+                "PYTHON_EGG_CACHE environment variable)." % path
+            )
             warnings.warn(msg, UserWarning)
 
     def postprocess(self, tempname, filename):
@@ -1597,8 +1604,11 @@ class DefaultProvider(EggProvider):
 
     @classmethod
     def _register(cls):
-        loader_cls = getattr(importlib_machinery, 'SourceFileLoader',
-            type(None))
+        loader_cls = getattr(
+            importlib_machinery,
+            'SourceFileLoader',
+            type(None),
+        )
         register_loader_type(loader_cls, cls)
 
 
@@ -1766,7 +1776,10 @@ class ZipProvider(EggProvider):
             if self._is_current(real_path, zip_path):
                 return real_path
 
-            outf, tmpnam = _mkstemp(".$extract", dir=os.path.dirname(real_path))
+            outf, tmpnam = _mkstemp(
+                ".$extract",
+                dir=os.path.dirname(real_path),
+            )
             os.write(outf, self.loader.get_data(zip_path))
             os.close(outf)
             utime(tmpnam, (timestamp, timestamp))
@@ -1972,14 +1985,14 @@ def find_eggs_in_zip(importer, path_item, only=False):
     for subitem in metadata.resource_listdir('/'):
         if _is_egg_path(subitem):
             subpath = os.path.join(path_item, subitem)
-            for dist in find_eggs_in_zip(zipimport.zipimporter(subpath), subpath):
+            dists = find_eggs_in_zip(zipimport.zipimporter(subpath), subpath)
+            for dist in dists:
                 yield dist
         elif subitem.lower().endswith('.dist-info'):
             subpath = os.path.join(path_item, subitem)
             submeta = EggMetadata(zipimport.zipimporter(subpath))
             submeta.egg_info = subpath
             yield Distribution.from_location(path_item, subitem, submeta)
-
 
 
 register_finder(zipimport.zipimporter, find_eggs_in_zip)
@@ -2124,7 +2137,11 @@ def non_empty_lines(path):
     """
     Yield non-empty lines from file at path
     """
-    return (line.rstrip() for line in open(path) if line.strip())
+    with open(path) as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                yield line
 
 
 def resolve_egg_link(path):
@@ -2375,7 +2392,7 @@ class EntryPoint(object):
         self.name = name
         self.module_name = module_name
         self.attrs = tuple(attrs)
-        self.extras = Requirement.parse(("x[%s]" % ','.join(extras))).extras
+        self.extras = tuple(extras)
         self.dist = dist
 
     def __str__(self):
@@ -2523,7 +2540,8 @@ class Distribution(object):
     """Wrap an actual or potential sys.path entry w/metadata"""
     PKG_INFO = 'PKG-INFO'
 
-    def __init__(self, location=None, metadata=None, project_name=None,
+    def __init__(
+            self, location=None, metadata=None, project_name=None,
             version=None, py_version=PY_MAJOR, platform=None,
             precedence=EGG_DIST):
         self.project_name = safe_name(project_name or 'Unknown')
@@ -2799,7 +2817,8 @@ class Distribution(object):
                 if replace:
                     break
                 else:
-                    # don't modify path (even removing duplicates) if found and not replace
+                    # don't modify path (even removing duplicates) if
+                    # found and not replace
                     return
             elif item == bdir and self.precedence == EGG_DIST:
                 # if it's an .egg, give it precedence over its directory
@@ -2896,7 +2915,10 @@ class EggInfoDistribution(Distribution):
 
 
 class DistInfoDistribution(Distribution):
-    """Wrap an actual or potential sys.path entry w/metadata, .dist-info style"""
+    """
+    Wrap an actual or potential sys.path entry
+    w/metadata, .dist-info style.
+    """
     PKG_INFO = 'METADATA'
     EQEQ = re.compile(r"([\(,])\s*(\d.*?)\s*([,\)])")
 
@@ -2946,7 +2968,7 @@ _distributionImpl = {
     '.egg': Distribution,
     '.egg-info': EggInfoDistribution,
     '.dist-info': DistInfoDistribution,
-    }
+}
 
 
 def issue_warning(*args, **kw):
@@ -3031,7 +3053,8 @@ class Requirement(packaging.requirements.Requirement):
     def __hash__(self):
         return self.__hash
 
-    def __repr__(self): return "Requirement.parse(%r)" % str(self)
+    def __repr__(self):
+        return "Requirement.parse(%r)" % str(self)
 
     @staticmethod
     def parse(s):
@@ -3165,7 +3188,10 @@ def _initialize_master_working_set():
         dist.activate(replace=False)
         for dist in working_set
     )
-    add_activation_listener(lambda dist: dist.activate(replace=True), existing=False)
+    add_activation_listener(
+        lambda dist: dist.activate(replace=True),
+        existing=False,
+    )
     working_set.entries = []
     # match order
     list(map(working_set.add_entry, sys.path))

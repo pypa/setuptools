@@ -1,11 +1,23 @@
-v36.5.1
+v36.6.1
+-------
+
+* #1132: Removed redundant and costly serialization/parsing step
+  in ``EntryPoint.__init__``.
+
+v36.6.0
+-------
+
+* #1143: Added ``setuptools.build_meta`` module, an implementation
+  of PEP-517 for Setuptools-defined packages.
+
+* #1143: Added ``dist_info`` command for producing dist_info
+  metadata.
+
+v36.5.0
 -------
 
 * #170: When working with Mercurial checkouts, use Windows-friendly
   syntax for suppressing output.
-
-v36.5.0
--------
 
 * Inspired by #1134, performed substantial refactoring of
   ``pkg_resources.find_on_path`` to facilitate an optimization
