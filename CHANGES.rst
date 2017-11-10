@@ -4,6 +4,9 @@ v36.6.1
 * #1132: Removed redundant and costly serialization/parsing step
   in ``EntryPoint.__init__``.
 
+* #844: ``bdist_egg --exclude-source-files`` now tested and works
+  on Python 3.
+
 v36.6.0
 -------
 
