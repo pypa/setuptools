@@ -1,3 +1,9 @@
+v36.7.1
+-------
+
+* #1193: Avoid test failures in bdist_egg when
+  PYTHONDONTWRITEBYTECODE is set.
+
 v36.7.0
 -------
 

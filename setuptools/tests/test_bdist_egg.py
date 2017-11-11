@@ -44,6 +44,10 @@ class Test:
         [content] = os.listdir('dist')
         assert re.match(r'foo-0.0.0-py[23].\d.egg$', content)
 
+    @pytest.mark.xfail(
+        os.environ.get('PYTHONDONTWRITEBYTECODE'),
+        reason="Byte code disabled",
+    )
     def test_exclude_source_files(self, setup_context, user_override):
         dist = Distribution(dict(
             script_name='setup.py',
