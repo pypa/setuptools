@@ -18,6 +18,11 @@ from setuptools.py31compat import unittest_main
 
 
 class ScanningLoader(TestLoader):
+
+    def __init__(self):
+        TestLoader.__init__(self)
+        self._visited = set()
+
     def loadTestsFromModule(self, module, pattern=None):
         """Return a suite of all tests cases contained in the given module
 
@@ -25,6 +30,10 @@ class ScanningLoader(TestLoader):
         If the module has an ``additional_tests`` function, call it and add
         the return value to the tests.
         """
+        if module in self._visited:
+            return None
+        self._visited.add(module)
+
         tests = []
         tests.append(TestLoader.loadTestsFromModule(self, module))
 
@@ -101,6 +110,8 @@ class test(Command):
         return list(self._test_args())
 
     def _test_args(self):
+        if not self.test_suite and sys.version_info >= (2, 7):
+            yield 'discover'
         if self.verbose:
             yield '--verbose'
         if self.test_suite:

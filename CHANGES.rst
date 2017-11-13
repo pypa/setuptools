@@ -1,3 +1,8 @@
+v36.7.2
+-------
+
+* #701: Fixed duplicate test discovery on Python 3.
+
 v36.7.1
 -------
 
