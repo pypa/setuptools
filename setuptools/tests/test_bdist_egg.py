@@ -2,6 +2,7 @@
 """
 import os
 import re
+import zipfile
 
 import pytest
 
@@ -16,7 +17,7 @@ setup(name='foo', py_modules=['hi'])
 """
 
 
-@pytest.yield_fixture
+@pytest.fixture(scope='function')
 def setup_context(tmpdir):
     with (tmpdir / 'setup.py').open('w') as f:
         f.write(SETUP_PY)
@@ -32,7 +33,7 @@ class Test:
             script_name='setup.py',
             script_args=['bdist_egg'],
             name='foo',
-            py_modules=['hi']
+            py_modules=['hi'],
         ))
         os.makedirs(os.path.join('build', 'src'))
         with contexts.quiet():
@@ -42,3 +43,24 @@ class Test:
         # let's see if we got our egg link at the right place
         [content] = os.listdir('dist')
         assert re.match(r'foo-0.0.0-py[23].\d.egg$', content)
+
+    @pytest.mark.xfail(
+        os.environ.get('PYTHONDONTWRITEBYTECODE'),
+        reason="Byte code disabled",
+    )
+    def test_exclude_source_files(self, setup_context, user_override):
+        dist = Distribution(dict(
+            script_name='setup.py',
+            script_args=['bdist_egg', '--exclude-source-files'],
+            name='foo',
+            py_modules=['hi'],
+        ))
+        with contexts.quiet():
+            dist.parse_command_line()
+            dist.run_commands()
+        [dist_name] = os.listdir('dist')
+        dist_filename = os.path.join('dist', dist_name)
+        zip = zipfile.ZipFile(dist_filename)
+        names = list(zi.filename for zi in zip.filelist)
+        assert 'hi.pyc' in names
+        assert 'hi.py' not in names

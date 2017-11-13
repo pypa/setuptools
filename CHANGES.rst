@@ -1,13 +1,27 @@
-v36.6.2
+v36.7.2
 -------
 
 * #701: Fixed duplicate test discovery on Python 3.
+
+v36.7.1
+-------
+
+* #1193: Avoid test failures in bdist_egg when
+  PYTHONDONTWRITEBYTECODE is set.
+
+v36.7.0
+-------
+
+* #1054: Support ``setup_requires`` in ``setup.cfg`` files.
 
 v36.6.1
 -------
 
 * #1132: Removed redundant and costly serialization/parsing step
   in ``EntryPoint.__init__``.
+
+* #844: ``bdist_egg --exclude-source-files`` now tested and works
+  on Python 3.
 
 v36.6.0
 -------
