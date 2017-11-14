@@ -1,3 +1,8 @@
+v36.7.3
+-------
+
+* #1175: Bug fixes to ``build_meta`` module.
+
 v36.7.2
 -------
 
