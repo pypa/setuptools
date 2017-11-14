@@ -382,7 +382,7 @@ class PackageIndex(Environment):
         if is_file or self.allows(urllib.parse.urlparse(url)[1]):
             return True
         msg = ("\nNote: Bypassing %s (disallowed host; see "
-            "http://bit.ly/1dg9ijs for details).\n")
+            "http://bit.ly/2hrImnY for details).\n")
         if fatal:
             raise DistutilsError(msg % url)
         else:
