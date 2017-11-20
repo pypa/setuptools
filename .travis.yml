@@ -10,7 +10,7 @@ jobs:
   # Run pypy3 tests verbose and with output not captured
   # to debug https://github.com/pypa/setuptools/issues/1202
   - python: pypy3
-    env: PYTEST_ADDOPTS="-v -s"
+    script: tox -- -v -s
   - stage: deploy (to PyPI for tagged commits)
     if: tag IS present
     python: *latest_py3
