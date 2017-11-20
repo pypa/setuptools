@@ -8,6 +8,7 @@ import site
 import sys
 import io
 import subprocess
+import platform
 
 from setuptools.extern import six
 from setuptools.command import test
@@ -153,8 +154,14 @@ class TestNamespaces:
             with test.test.paths_on_pythonpath([str(target)]):
                 subprocess.check_call(develop_cmd)
 
-    @pytest.mark.skipif(bool(os.environ.get("APPVEYOR")),
-        reason="https://github.com/pypa/setuptools/issues/851")
+    @pytest.mark.skipif(
+        bool(os.environ.get("APPVEYOR")),
+        reason="https://github.com/pypa/setuptools/issues/851",
+    )
+    @pytest.mark.skipif(
+        platform.python_implementation() == 'PyPy' and six.PY3,
+        reason="https://github.com/pypa/setuptools/issues/1202",
+    )
     def test_namespace_package_importable(self, tmpdir):
         """
         Installing two packages sharing the same namespace, one installed
