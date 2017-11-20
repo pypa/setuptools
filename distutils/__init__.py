@@ -10,4 +10,7 @@ used from a setup script as
 
 import sys
 
-__version__ = sys.version[:sys.version.index(' ')]
+if sys.version_info < (3, 6):
+    __path__ = __import__('pkgutil').extend_path([], __name__)
+else:
+    __version__ = sys.version[:sys.version.index(' ')]
