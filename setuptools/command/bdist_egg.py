@@ -8,6 +8,7 @@ from distutils import log
 from types import CodeType
 import sys
 import os
+import re
 import textwrap
 import marshal
 
@@ -240,10 +241,25 @@ class bdist_egg(Command):
         log.info("Removing .py files from temporary directory")
         for base, dirs, files in walk_egg(self.bdist_dir):
             for name in files:
+                path = os.path.join(base, name)
+
                 if name.endswith('.py'):
-                    path = os.path.join(base, name)
                     log.debug("Deleting %s", path)
                     os.unlink(path)
+
+                if base.endswith('__pycache__'):
+                    path_old = path
+
+                    pattern = r'(?P<name>.+)\.(?P<magic>[^.]+)\.pyc'
+                    m = re.match(pattern, name)
+                    path_new = os.path.join(base, os.pardir, m.group('name') + '.pyc')
+                    log.info("Renaming file from [%s] to [%s]" % (path_old, path_new))
+                    try:
+                        os.remove(path_new)
+                    except OSError:
+                        pass
+                    os.rename(path_old, path_new)
+
 
     def zip_safe(self):
         safe = getattr(self.distribution, 'zip_safe', None)

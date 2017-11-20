@@ -17,6 +17,7 @@ jobs:
   - python: *latest_py2
     env: LANG=C
   - stage: deploy (to PyPI for tagged commits)
+    if: tag IS present
     python: *latest_py3
     install: skip
     script: skip

@@ -4,6 +4,61 @@ v37.0.0
 * #878: Drop support for Python 2.6. Python 2.6 users should
   rely on 'setuptools < 37dev'.
 
+v36.8.0
+-------
+
+* #1190: In SSL support for package index operations, use SNI
+  where available.
+
+v36.7.3
+-------
+
+* #1175: Bug fixes to ``build_meta`` module.
+
+v36.7.2
+-------
+
+* #701: Fixed duplicate test discovery on Python 3.
+
+v36.7.1
+-------
+
+* #1193: Avoid test failures in bdist_egg when
+  PYTHONDONTWRITEBYTECODE is set.
+
+v36.7.0
+-------
+
+* #1054: Support ``setup_requires`` in ``setup.cfg`` files.
+
+v36.6.1
+-------
+
+* #1132: Removed redundant and costly serialization/parsing step
+  in ``EntryPoint.__init__``.
+
+* #844: ``bdist_egg --exclude-source-files`` now tested and works
+  on Python 3.
+
+v36.6.0
+-------
+
+* #1143: Added ``setuptools.build_meta`` module, an implementation
+  of PEP-517 for Setuptools-defined packages.
+
+* #1143: Added ``dist_info`` command for producing dist_info
+  metadata.
+
+v36.5.0
+-------
+
+* #170: When working with Mercurial checkouts, use Windows-friendly
+  syntax for suppressing output.
+
+* Inspired by #1134, performed substantial refactoring of
+  ``pkg_resources.find_on_path`` to facilitate an optimization
+  for paths with many non-version entries.
+
 v36.4.0
 -------
 

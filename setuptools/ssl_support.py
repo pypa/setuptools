@@ -186,9 +186,14 @@ class VerifyingHTTPSConn(HTTPSConnection):
         else:
             actual_host = self.host
 
-        self.sock = ssl.wrap_socket(
-            sock, cert_reqs=ssl.CERT_REQUIRED, ca_certs=self.ca_bundle
-        )
+        if hasattr(ssl, 'create_default_context'):
+            ctx = ssl.create_default_context(cafile=self.ca_bundle)
+            self.sock = ctx.wrap_socket(sock, server_hostname=actual_host)
+        else:
+            # This is for python < 2.7.9 and < 3.4?
+            self.sock = ssl.wrap_socket(
+                sock, cert_reqs=ssl.CERT_REQUIRED, ca_certs=self.ca_bundle
+            )
         try:
             match_hostname(self.sock.getpeercert(), actual_host)
         except CertificateError:
