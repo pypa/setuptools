@@ -4,9 +4,9 @@ import os
 import sys
 from collections import defaultdict
 from functools import partial
+from importlib import import_module
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
-from setuptools.py26compat import import_module
 from setuptools.extern.six import string_types
 
 

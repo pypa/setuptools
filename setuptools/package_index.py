@@ -27,7 +27,6 @@ from setuptools import ssl_support
 from distutils import log
 from distutils.errors import DistutilsError
 from fnmatch import translate
-from setuptools.py26compat import strip_fragment
 from setuptools.py27compat import get_all_headers
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.+!]+)$')
@@ -717,7 +716,7 @@ class PackageIndex(Environment):
         fp = None
         try:
             checker = HashChecker.from_url(url)
-            fp = self.open_url(strip_fragment(url))
+            fp = self.open_url(url)
             if isinstance(fp, urllib.error.HTTPError):
                 raise DistutilsError(
                     "Can't download %s: %s %s" % (url, fp.code, fp.msg)

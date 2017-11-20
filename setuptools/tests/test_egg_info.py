@@ -1,9 +1,9 @@
+import sys
 import ast
 import os
 import glob
 import re
 import stat
-import sys
 
 from setuptools.command.egg_info import egg_info, manifest_maker
 from setuptools.dist import Distribution
@@ -64,12 +64,6 @@ class TestEggInfo(object):
             })
             yield env
 
-    dict_order_fails = pytest.mark.skipif(
-        sys.version_info < (2, 7),
-        reason="Intermittent failures on Python 2.6",
-    )
-
-    @dict_order_fails
     def test_egg_info_save_version_info_setup_empty(self, tmpdir_cwd, env):
         """
         When the egg_info section is empty or not present, running
@@ -104,7 +98,6 @@ class TestEggInfo(object):
         flags = re.MULTILINE | re.DOTALL
         assert re.search(pattern, content, flags)
 
-    @dict_order_fails
     def test_egg_info_save_version_info_setup_defaults(self, tmpdir_cwd, env):
         """
         When running save_version_info on an existing setup.cfg

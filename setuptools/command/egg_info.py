@@ -160,9 +160,7 @@ class egg_info(Command):
         build tag. Install build keys in a deterministic order
         to avoid arbitrary reordering on subsequent builds.
         """
-        # python 2.6 compatibility
-        odict = getattr(collections, 'OrderedDict', dict)
-        egg_info = odict()
+        egg_info = collections.OrderedDict()
         # follow the order these keys would have been added
         # when PYTHONHASHSEED=0
         egg_info['tag_build'] = self.tags()

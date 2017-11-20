@@ -1644,7 +1644,7 @@ class ZipManifests(dict):
         Use a platform-specific path separator (os.sep) for the path keys
         for compatibility with pypy on Windows.
         """
-        with ContextualZipFile(path) as zfile:
+        with zipfile.ZipFile(path) as zfile:
             items = (
                 (
                     name.replace('/', os.sep),
@@ -1675,26 +1675,6 @@ class MemoizedZipManifests(ZipManifests):
             self[path] = self.manifest_mod(manifest, mtime)
 
         return self[path].manifest
-
-
-class ContextualZipFile(zipfile.ZipFile):
-    """
-    Supplement ZipFile class to support context manager for Python 2.6
-    """
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, traceback):
-        self.close()
-
-    def __new__(cls, *args, **kwargs):
-        """
-        Construct a ZipFile or ContextualZipFile as appropriate
-        """
-        if hasattr(zipfile.ZipFile, '__exit__'):
-            return zipfile.ZipFile(*args, **kwargs)
-        return super(ContextualZipFile, cls).__new__(cls)
 
 
 class ZipProvider(EggProvider):
@@ -1897,7 +1877,7 @@ class FileMetadata(EmptyProvider):
         return metadata
 
     def _warn_on_replacement(self, metadata):
-        # Python 2.6 and 3.2 compat for: replacement_char = '�'
+        # Python 2.7 compat for: replacement_char = '�'
         replacement_char = b'\xef\xbf\xbd'.decode('utf-8')
         if replacement_char in metadata:
             tmpl = "{self.path} could not be properly decoded in UTF-8"

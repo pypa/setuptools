@@ -7,9 +7,9 @@ import distutils.filelist
 import platform
 import types
 import functools
+from importlib import import_module
 import inspect
 
-from .py26compat import import_module
 from setuptools.extern import six
 
 import setuptools
