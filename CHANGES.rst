@@ -1,3 +1,9 @@
+v36.8.0
+-------
+
+* #1190: In SSL support for package index operations, use SNI
+  where available.
+
 v36.7.3
 -------
 
