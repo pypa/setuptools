@@ -9,6 +9,7 @@ used from a setup script as
 """
 
 import sys
+import os
 
 if sys.version_info < (3, 6):
     __path__ = __import__('pkgutil').extend_path(__path__, __name__)
