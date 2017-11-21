@@ -601,6 +601,10 @@ def write_pkg_info(cmd, basename, filename):
             cmd.distribution,
             'long_description_content_type'
         )
+        metadata.project_url = getattr(
+            cmd.distribution,
+            'project_url'
+        )
         try:
             # write unescaped data to PKG-INFO, so older pkg_resources
             # can still parse it
