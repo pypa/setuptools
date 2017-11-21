@@ -332,6 +332,13 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         for ep in pkg_resources.iter_entry_points('distutils.setup_keywords'):
             vars(self).setdefault(ep.name, None)
         _Distribution.__init__(self, attrs)
+
+        try:
+            self.metadata.long_description_content_type
+        except AttributeError:
+            self.metadata.long_description_content_type = \
+                self.long_description_content_type
+
         if isinstance(self.metadata.version, numbers.Number):
             # Some people apparently take "version number" too literally :)
             self.metadata.version = str(self.metadata.version)
