@@ -98,6 +98,11 @@ setup_params = dict(
     long_description_content_type='text/x-rst; charset=UTF-8',
     keywords="CPAN PyPI distutils eggs package management",
     url="https://github.com/pypa/setuptools",
+    project_url={
+        "Bug Tracker": "https://github.com/pypa/setuptools/issues",
+        "Documentation": "http://setuptools.readthedocs.io/",
+        "Source Code": "https://github.com/pypa/setuptools",
+    },
     src_root=None,
     packages=setuptools.find_packages(exclude=['*.tests']),
     package_data=package_data,

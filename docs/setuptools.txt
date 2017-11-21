@@ -2406,6 +2406,7 @@ name                                               str
 version                                            attr:, str
 url                             home-page          str
 download_url                    download-url       str
+project_url                     project-url        dict
 author                                             str
 author_email                    author-email       str
 maintainer                                         str
