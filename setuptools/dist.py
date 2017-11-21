@@ -44,7 +44,7 @@ def write_pkg_file(self, file):
             self.classifiers or self.download_url):
         version = '1.1'
     # Setuptools specific for PEP 345
-    if hasattr(self, 'python_requires'):
+    if hasattr(self, 'python_requires') or self.project_urls:
         version = '1.2'
 
     file.write('Metadata-Version: %s\n' % version)
@@ -57,6 +57,8 @@ def write_pkg_file(self, file):
     file.write('License: %s\n' % self.get_license())
     if self.download_url:
         file.write('Download-URL: %s\n' % self.download_url)
+    for project_url in self.project_urls.items():
+        file.write('Project-URL: %s, %s\n' % project_url)
 
     long_desc_content_type = getattr(
         self,
@@ -327,11 +329,18 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         self.long_description_content_type = attrs.get(
             'long_description_content_type'
         )
+        self.project_urls = attrs.get('project_urls', {})
         self.dependency_links = attrs.pop('dependency_links', [])
         self.setup_requires = attrs.pop('setup_requires', [])
         for ep in pkg_resources.iter_entry_points('distutils.setup_keywords'):
             vars(self).setdefault(ep.name, None)
         _Distribution.__init__(self, attrs)
+
+        # The project_urls attribute may not be supported in distutils, so
+        # prime it here from our value if not automatically set
+        self.metadata.project_urls = getattr(
+            self.metadata, 'project_urls', self.project_urls)
+
         if isinstance(self.metadata.version, numbers.Number):
             # Some people apparently take "version number" too literally :)
             self.metadata.version = str(self.metadata.version)

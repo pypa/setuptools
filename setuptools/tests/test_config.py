@@ -215,6 +215,22 @@ class TestMetadata:
                 'Programming Language :: Python :: 3.5',
             ]
 
+    def test_dict(self, tmpdir):
+
+        fake_env(
+            tmpdir,
+            '[metadata]\n'
+            'project_urls =\n'
+            '  Link One = https://example.com/one/\n'
+            '  Link Two = https://example.com/two/\n'
+        )
+        with get_dist(tmpdir) as dist:
+            metadata = dist.metadata
+            assert metadata.project_urls == {
+                'Link One': 'https://example.com/one/',
+                'Link Two': 'https://example.com/two/',
+            }
+
     def test_version(self, tmpdir):
 
         _, config = fake_env(
