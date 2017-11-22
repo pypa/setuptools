@@ -1513,7 +1513,9 @@ class NullProvider:
     def run_script(self, script_name, namespace):
         script = 'scripts/' + script_name
         if not self.has_metadata(script):
-            raise ResolutionError("No script named %r" % script_name)
+            raise ResolutionError(
+                "No script named %r in 'scripts' directory of metadata "
+                "directory %r" % (script_name, self.egg_info))
         script_text = self.get_metadata(script).replace('\r\n', '\n')
         script_text = script_text.replace('\r', '\n')
         script_filename = self._fn(self.egg_info, script)
