@@ -1,3 +1,9 @@
+v38.1.0
+-------
+
+* #1208: Improve error message when failing to locate scripts
+  in egg-info metadata.
+
 v38.0.0
 -------
 
