@@ -640,7 +640,7 @@ def write_requirements(cmd, basename, filename):
 
 
 def write_setup_requirements(cmd, basename, filename):
-    data = StringIO()
+    data = io.StringIO()
     _write_requirements(data, cmd.distribution.setup_requires)
     cmd.write_or_delete_file("setup-requirements", filename, data.getvalue())
 
