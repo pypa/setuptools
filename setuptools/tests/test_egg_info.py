@@ -245,6 +245,20 @@ class TestEggInfo(object):
         ''',
 
         '''
+        install_requires_set_deterministic
+
+        install_requires={{"fake-factory==0.5.2", "pytz"}}
+
+        [options]
+        install_requires =
+            fake-factory==0.5.2
+            pytz
+
+        fake-factory==0.5.2
+        pytz
+        ''',
+
+        '''
         install_requires_with_marker
 
         install_requires=["barbazquux;{mismatch_marker}"],
