@@ -245,20 +245,6 @@ class TestEggInfo(object):
         ''',
 
         '''
-        install_requires_set_deterministic
-
-        install_requires={{"fake-factory==0.5.2", "pytz"}}
-
-        [options]
-        install_requires =
-            fake-factory==0.5.2
-            pytz
-
-        fake-factory==0.5.2
-        pytz
-        ''',
-
-        '''
         install_requires_with_marker
 
         install_requires=["barbazquux;{mismatch_marker}"],
@@ -406,6 +392,17 @@ class TestEggInfo(object):
             install_requires = ''
         assert install_requires.lstrip() == expected_requires
         assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
+
+    def test_install_requires_unordered_disallowed(self, tmpdir_cwd, env):
+        """
+        Packages that pass unordered install_requires sequences
+        should be rejected as they produce non-deterministic
+        builds. See #458.
+        """
+        req = 'install_requires={"fake-factory==0.5.2", "pytz"}'
+        self._setup_script_with_requires(req)
+        with pytest.raises(AssertionError):
+            self._run_install_command(tmpdir_cwd, env)
 
     def test_extras_require_with_invalid_marker(self, tmpdir_cwd, env):
         tmpl = 'extras_require={{":{marker}": ["barbazquux"]}},'
