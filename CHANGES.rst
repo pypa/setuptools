@@ -1,3 +1,10 @@
+v38.0.0
+-------
+
+* #458: In order to support deterministic builds, Setuptools no
+  longer allows packages to declare ``install_requires`` as
+  unordered sequences (sets or dicts).
+
 v37.0.0
 -------
 
