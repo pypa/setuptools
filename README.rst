@@ -5,7 +5,7 @@
     :target: https://setuptools.readthedocs.io
 
 .. image:: https://img.shields.io/travis/pypa/setuptools/master.svg?label=Linux%20build%20%40%20Travis%20CI
-   :target: http://travis-ci.org/pypa/setuptools
+   :target: https://travis-ci.org/pypa/setuptools
 
 .. image:: https://img.shields.io/appveyor/ci/jaraco/setuptools/master.svg?label=Windows%20build%20%40%20Appveyor
    :target: https://ci.appveyor.com/project/jaraco/setuptools/branch/master
