@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """wheel tests
 """
 
@@ -72,13 +74,14 @@ def test_wheel_info(filename, info):
 @contextlib.contextmanager
 def build_wheel(extra_file_defs=None, **kwargs):
     file_defs = {
-        'setup.py': DALS(
+        'setup.py': (DALS(
             '''
+            # -*- coding: utf-8 -*-
             from setuptools import setup
             import setuptools
             setup(**%r)
             '''
-        ) % kwargs,
+        ) % kwargs).encode('utf-8'),
     }
     if extra_file_defs:
         file_defs.update(extra_file_defs)
@@ -168,6 +171,13 @@ WHEEL_INSTALL_TESTS = (
             |  |-- __init__.py
             '''
         ),
+    ),
+
+    dict(
+        id='utf-8',
+        setup_kwargs=dict(
+            description='Description accentuée',
+        )
     ),
 
     dict(

@@ -1,3 +1,9 @@
+v38.2.1
+-------
+
+* #1212: fix encoding handling of metadata when installing
+  from a wheel.
+
 v38.2.0
 -------
 

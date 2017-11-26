@@ -8,6 +8,7 @@ import re
 import zipfile
 
 from pkg_resources import Distribution, PathMetadata, parse_version
+from pkg_resources.extern.six import PY3
 from setuptools import Distribution as SetuptoolsDistribution
 from setuptools import pep425tags
 from setuptools.command.egg_info import write_requirements
@@ -55,7 +56,7 @@ class Wheel(object):
             dist_data = '%s.data' % dist_basename
             def get_metadata(name):
                 with zf.open('%s/%s' % (dist_info, name)) as fp:
-                    value = fp.read().decode('utf-8')
+                    value = fp.read().decode('utf-8') if PY3 else fp.read()
                     return email.parser.Parser().parsestr(value)
             wheel_metadata = get_metadata('WHEEL')
             dist_metadata = get_metadata('METADATA')
