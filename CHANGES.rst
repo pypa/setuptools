@@ -1,3 +1,9 @@
+v38.2.0
+-------
+
+* #1200: easy_install now support installing from wheels:
+  they will be installed as standalone unzipped eggs.
+
 v38.1.0
 -------
 
