@@ -21,13 +21,14 @@ import setuptools
 from pkg_resources import (
     CHECKOUT_DIST, Distribution, BINARY_DIST, normalize_path, SOURCE_DIST,
     Environment, find_distributions, safe_name, safe_version,
-    to_filename, Requirement, DEVELOP_DIST,
+    to_filename, Requirement, DEVELOP_DIST, EGG_DIST,
 )
 from setuptools import ssl_support
 from distutils import log
 from distutils.errors import DistutilsError
 from fnmatch import translate
 from setuptools.py27compat import get_all_headers
+from setuptools.wheel import Wheel
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.+!]+)$')
 HREF = re.compile("""href\\s*=\\s*['"]?([^'"> ]+)""", re.I)
@@ -115,6 +116,17 @@ def distros_for_location(location, basename, metadata=None):
     if basename.endswith('.egg') and '-' in basename:
         # only one, unambiguous interpretation
         return [Distribution.from_location(location, basename, metadata)]
+    if basename.endswith('.whl') and '-' in basename:
+        wheel = Wheel(basename)
+        if not wheel.is_compatible():
+            return []
+        return [Distribution(
+            location=location,
+            project_name=wheel.project_name,
+            version=wheel.version,
+            # Increase priority over eggs.
+            precedence=EGG_DIST + 1,
+        )]
     if basename.endswith('.exe'):
         win_base, py_ver, platform = parse_bdist_wininst(basename)
         if win_base is not None:
