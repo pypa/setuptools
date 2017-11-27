@@ -1,3 +1,9 @@
+v38.2.2
+-------
+
+* #1214: fix handling of namespace packages when installing
+  from a wheel.
+
 v38.2.1
 -------
 

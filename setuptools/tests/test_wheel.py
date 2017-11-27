@@ -14,7 +14,7 @@ import sys
 
 import pytest
 
-from pkg_resources import Distribution, PathMetadata, PY_MAJOR
+from pkg_resources import PY_MAJOR
 from setuptools.wheel import Wheel
 
 from .contexts import tempdir
@@ -116,8 +116,7 @@ def tree(root):
 def _check_wheel_install(filename, install_dir, install_tree,
                          project_name, version, requires_txt):
     w = Wheel(filename)
-    egg_path = os.path.join(install_dir, w.egg_name())
-    w.install_as_egg(egg_path)
+    dist = w.install_as_egg(install_dir)
     if install_tree is not None:
         install_tree = install_tree.format(
             py_version=PY_MAJOR,
@@ -125,10 +124,6 @@ def _check_wheel_install(filename, install_dir, install_tree,
             shlib_ext=get_config_var('EXT_SUFFIX') or get_config_var('SO')
         )
         assert install_tree == tree(install_dir)
-    metadata = PathMetadata(egg_path, os.path.join(egg_path, 'EGG-INFO'))
-    dist = Distribution.from_filename(egg_path, metadata=metadata)
-    assert dist.project_name == project_name
-    assert dist.version == version
     if requires_txt is None:
         assert not dist.has_metadata('requires.txt')
     else:
@@ -412,6 +407,37 @@ WHEEL_INSTALL_TESTS = (
         ),
     ),
 
+    dict(
+        id='namespace_package',
+        file_defs={
+            'foo': {
+                'bar': {
+                    '__init__.py': ''
+                },
+            },
+        },
+        setup_kwargs=dict(
+            namespace_packages=['foo'],
+            packages=['foo.bar'],
+        ),
+        install_tree=DALS(
+            '''
+            foo-1.0-py{py_version}-nspkg.pth
+            foo-1.0-py{py_version}.egg/
+            |-- foo-1.0-py{py_version}-nspkg.pth
+            |-- EGG-INFO/
+            |  |-- DESCRIPTION.rst
+            |  |-- PKG-INFO
+            |  |-- RECORD
+            |  |-- WHEEL
+            |  |-- metadata.json
+            |  |-- namespace_packages.txt
+            |  |-- top_level.txt
+            |-- foo/
+            |  |-- bar/
+            |  |  |-- __init__.py
+            '''),
+    ),
 )
 
 @pytest.mark.parametrize(

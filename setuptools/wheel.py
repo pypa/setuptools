@@ -12,6 +12,7 @@ from pkg_resources.extern.six import PY3
 from setuptools import Distribution as SetuptoolsDistribution
 from setuptools import pep425tags
 from setuptools.command.egg_info import write_requirements
+from setuptools.namespaces import Installer
 
 
 WHEEL_NAME = re.compile(
@@ -19,6 +20,22 @@ WHEEL_NAME = re.compile(
     ((-(?P<build>\d.*?))?-(?P<py_version>.+?)-(?P<abi>.+?)-(?P<platform>.+?)
     )\.whl$""",
 re.VERBOSE).match
+
+
+class NamespacesInstaller(Installer):
+
+    def __init__(self, destination, namespace_packages):
+        self.outputs = []
+        self.dry_run = False
+        self.target = destination
+        self.distribution = SetuptoolsDistribution()
+        self.distribution.namespace_packages = namespace_packages
+
+    def _get_root(self):
+        return "os.path.join(%s, %r)" % (
+            Installer._get_root(self),
+            os.path.basename(self.target),
+        )
 
 
 class Wheel(object):
@@ -48,8 +65,9 @@ class Wheel(object):
             platform=(None if self.platform == 'any' else get_platform()),
         ).egg_name() + '.egg'
 
-    def install_as_egg(self, destination_eggdir):
+    def install_as_egg(self, destination_dir):
         '''Install wheel as an egg directory.'''
+        destination_eggdir = os.path.join(destination_dir, self.egg_name())
         with zipfile.ZipFile(self.filename) as zf:
             dist_basename = '%s-%s' % (self.project_name, self.version)
             dist_info = '%s.dist-info' % dist_basename
@@ -124,3 +142,12 @@ class Wheel(object):
                 os.rmdir(subdir)
             if os.path.exists(dist_data):
                 os.rmdir(dist_data)
+            dist = Distribution.from_location(
+                destination_eggdir, egg_info,
+                metadata=PathMetadata(destination_eggdir, egg_info)
+            )
+            if dist.has_metadata('namespace_packages.txt'):
+                namespace_packages = dist.get_metadata('namespace_packages.txt').split()
+                installer = NamespacesInstaller(destination_eggdir, namespace_packages)
+                installer.install_namespaces()
+            return dist
