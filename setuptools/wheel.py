@@ -20,6 +20,13 @@ WHEEL_NAME = re.compile(
     )\.whl$""",
 re.VERBOSE).match
 
+NAMESPACE_PACKAGE_INIT = '''\
+try:
+    __import__('pkg_resources').declare_namespace(__name__)
+except ImportError:
+    __path__ = __import__('pkgutil').extend_path(__path__, __name__)
+'''
+
 
 class Wheel(object):
 
@@ -124,3 +131,14 @@ class Wheel(object):
                 os.rmdir(subdir)
             if os.path.exists(dist_data):
                 os.rmdir(dist_data)
+            # Fix namespace packages.
+            namespace_packages = os.path.join(egg_info, 'namespace_packages.txt')
+            if os.path.exists(namespace_packages):
+                with open(namespace_packages) as fp:
+                    namespace_packages = fp.read().split()
+                for mod in namespace_packages:
+                    mod_dir = os.path.join(destination_eggdir, *mod.split('.'))
+                    mod_init = os.path.join(mod_dir, '__init__.py')
+                    if os.path.exists(mod_dir) and not os.path.exists(mod_init):
+                        with open(mod_init, 'w') as fp:
+                            fp.write(NAMESPACE_PACKAGE_INIT)

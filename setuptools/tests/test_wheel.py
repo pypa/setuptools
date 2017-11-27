@@ -412,6 +412,38 @@ WHEEL_INSTALL_TESTS = (
         ),
     ),
 
+    dict(
+        id='namespace_package',
+        file_defs={
+            'foo': {
+                'bar': {
+                    '__init__.py': ''
+                },
+            },
+        },
+        setup_kwargs=dict(
+            namespace_packages=['foo'],
+            packages=['foo.bar'],
+        ),
+        install_tree=DALS(
+            '''
+            foo-1.0-py{py_version}.egg/
+            |-- foo-1.0-py{py_version}-nspkg.pth
+            |-- EGG-INFO/
+            |  |-- DESCRIPTION.rst
+            |  |-- PKG-INFO
+            |  |-- RECORD
+            |  |-- WHEEL
+            |  |-- metadata.json
+            |  |-- namespace_packages.txt
+            |  |-- top_level.txt
+            |-- foo/
+            |  |-- __init__.py
+            |  |-- bar/
+            |  |  |-- __init__.py
+            '''),
+    ),
+
 )
 
 @pytest.mark.parametrize(
