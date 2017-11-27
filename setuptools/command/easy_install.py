@@ -1059,7 +1059,7 @@ class easy_install(Command):
         try:
             self.execute(
                 wheel.install_as_egg,
-                (destination,),
+                (os.path.dirname(destination),),
                 ("Installing %s to %s") % (
                     os.path.basename(wheel_path),
                     os.path.dirname(destination)
