@@ -63,9 +63,9 @@ class Distribution(setuptools.dist.Distribution):
             distutils.core.Distribution = orig
 
 
-class dist_info(setuptools.command.dist_info):
+class dist_info(setuptools.command.dist_info.dist_info):
     def run(self):
-        setuptools.command.dist_info.run(self)
+        setuptools.command.dist_info.dist_info.run(self)
         dist_info.dist_info = self.dist_info
 
     @classmethod
@@ -76,12 +76,12 @@ class dist_info(setuptools.command.dist_info):
         distutils.dist.Distribution with this class
         for the duration of this context.
         """
-        orig = setuptools.command.dist_info
+        orig = setuptools.command.dist_info.dist_info
         setuptools.command.dist_info = cls
         try:
             yield
         finally:
-            setuptools.command.dist_info = orig
+            setuptools.command.dist_info.dist_info = orig
 
 
 def _run_setup(setup_script='setup.py'):
