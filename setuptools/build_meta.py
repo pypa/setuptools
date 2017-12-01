@@ -33,8 +33,10 @@ import shutil
 import contextlib
 
 import setuptools
+import setuptools.command.dist_info
 import distutils
 
+from os.path import basename, dirname
 
 class SetupRequirementsError(BaseException):
     def __init__(self, specifiers):
@@ -59,6 +61,27 @@ class Distribution(setuptools.dist.Distribution):
             yield
         finally:
             distutils.core.Distribution = orig
+
+
+class dist_info(setuptools.command.dist_info):
+    def run(self):
+        setuptools.command.dist_info.run(self)
+        dist_info.dist_info = self.dist_info
+
+    @classmethod
+    @contextlib.contextmanager
+    def patch(cls):
+        """
+        Replace
+        distutils.dist.Distribution with this class
+        for the duration of this context.
+        """
+        orig = setuptools.command.dist_info
+        setuptools.command.dist_info = cls
+        try:
+            yield
+        finally:
+            setuptools.command.dist_info = orig
 
 
 def _run_setup(setup_script='setup.py'):
@@ -110,31 +133,15 @@ def get_requires_for_build_sdist(config_settings=None):
 
 def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
     sys.argv = sys.argv[:1] + ['dist_info', '--egg-base', metadata_directory]
-    _run_setup()
-    
-    dist_info_directory = metadata_directory
-    while True:    
-        dist_infos = [f for f in os.listdir(dist_info_directory)
-                      if f.endswith('.dist-info')]
-
-        if len(dist_infos) == 0 and \
-                len(_get_immediate_subdirectories(dist_info_directory)) == 1:
-            dist_info_directory = os.path.join(
-                dist_info_directory, os.listdir(dist_info_directory)[0])
-            continue
-
-        assert len(dist_infos) == 1
-        break
+    with dist_info.patch():    
+        _run_setup()
 
     # PEP 517 requires that the .dist-info directory be placed in the
     # metadata_directory. To comply, we MUST copy the directory to the root
-    if dist_info_directory != metadata_directory:
-        shutil.move(
-            os.path.join(dist_info_directory, dist_infos[0]),
-            metadata_directory)
-        shutil.rmtree(dist_info_directory, ignore_errors=True)
+    if dirname(dist_info.dist_info) != metadata_directory:
+        shutil.move(dist_info.dist_info, metadata_directory)
 
-    return dist_infos[0]
+    return basename(dist_info.dist_info)
 
 
 def build_wheel(wheel_directory, config_settings=None,
