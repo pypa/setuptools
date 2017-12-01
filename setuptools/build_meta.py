@@ -77,7 +77,7 @@ class dist_info(setuptools.command.dist_info.dist_info):
         for the duration of this context.
         """
         orig = setuptools.command.dist_info.dist_info
-        setuptools.command.dist_info = cls
+        setuptools.command.dist_info.dist_info = cls
         try:
             yield
         finally:
