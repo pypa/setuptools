@@ -88,7 +88,7 @@ def _run_setup(args, config_settings=None, setup_script='setup.py'):
     # Note that we can reuse our build directory between calls
     # Correctness comes first, then optimization later
     config_settings = _fix_config(config_settings)
-    sys.argv[0:0] = [setup_script] + args + \
+    sys.argv = [setup_script] + args + \
         config_settings['--global-option']
     __file__ = setup_script
     __name__ = '__main__'
