@@ -30,7 +30,7 @@ The recommended way to install setuptools on Windows is to download
 file and install it for you.
 
 .. _ez_setup.py: https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py
-
+eeeee
 For best results, uninstall previous versions FIRST (see `Uninstalling`_).
 
 Once installation is complete, you will find an ``easy_install`` program in
