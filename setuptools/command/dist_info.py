@@ -34,4 +34,5 @@ class dist_info(Command):
         log.info("creating '{}'".format(os.path.abspath(self.dist_info)))
 
         bdist_wheel = self.get_finalized_command('bdist_wheel')
+        bdist_wheel.distinfo_dir = self.dist_info
         bdist_wheel.egg2dist(egg_info.egg_info, self.dist_info)
