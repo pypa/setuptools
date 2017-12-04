@@ -28,6 +28,28 @@ except ImportError:
 '''
 
 
+def unpack(src_dir, dst_dir):
+    '''Move everything under `src_dir` to `dst_dir`, and delete the former.'''
+    for dirpath, dirnames, filenames in os.walk(src_dir):
+        subdir = os.path.relpath(dirpath, src_dir)
+        for f in filenames:
+            src = os.path.join(dirpath, f)
+            dst = os.path.join(dst_dir, subdir, f)
+            os.renames(src, dst)
+        for n, d in reversed(list(enumerate(dirnames))):
+            src = os.path.join(dirpath, d)
+            dst = os.path.join(dst_dir, subdir, d)
+            if not os.path.exists(dst):
+                # Directory does not exist in destination,
+                # rename it and prune it from os.walk list.
+                os.renames(src, dst)
+                del dirnames[n]
+    # Cleanup.
+    for dirpath, dirnames, filenames in os.walk(src_dir, topdown=True):
+        assert not filenames
+        os.rmdir(dirpath)
+
+
 class Wheel(object):
 
     def __init__(self, filename):
@@ -125,10 +147,7 @@ class Wheel(object):
                 os.path.join(dist_data, d)
                 for d in ('data', 'headers', 'purelib', 'platlib')
             )):
-                for entry in os.listdir(subdir):
-                    os.rename(os.path.join(subdir, entry),
-                              os.path.join(destination_eggdir, entry))
-                os.rmdir(subdir)
+                unpack(subdir, destination_eggdir)
             if os.path.exists(dist_data):
                 os.rmdir(dist_data)
             # Fix namespace packages.

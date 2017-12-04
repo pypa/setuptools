@@ -444,6 +444,42 @@ WHEEL_INSTALL_TESTS = (
             '''),
     ),
 
+    dict(
+        id='data_in_package',
+        file_defs={
+            'foo': {
+                '__init__.py': '',
+                'data_dir': {
+                    'data.txt': DALS(
+                        '''
+                        Some data...
+                        '''
+                    ),
+                }
+            }
+        },
+        setup_kwargs=dict(
+            packages=['foo'],
+            data_files=[('foo/data_dir', ['foo/data_dir/data.txt'])],
+        ),
+        install_tree=DALS(
+            '''
+            foo-1.0-py{py_version}.egg/
+            |-- EGG-INFO/
+            |  |-- DESCRIPTION.rst
+            |  |-- PKG-INFO
+            |  |-- RECORD
+            |  |-- WHEEL
+            |  |-- metadata.json
+            |  |-- top_level.txt
+            |-- foo/
+            |  |-- __init__.py
+            |  |-- data_dir/
+            |  |  |-- data.txt
+            '''
+        ),
+    ),
+
 )
 
 @pytest.mark.parametrize(
