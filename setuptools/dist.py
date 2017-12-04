@@ -414,7 +414,7 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         for r in complex_reqs:
             self._tmp_extras_require[':' + str(r.marker)].append(r)
         self.extras_require = dict(
-            (k, [str(r) for r in map(self._clean_req, v)])
+            (pkg_resources.safe_extra(k), [str(r) for r in map(self._clean_req, v)])
             for k, v in self._tmp_extras_require.items()
         )
 
