@@ -379,10 +379,10 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         self._tmp_extras_require = defaultdict(list)
         for section, v in spec_ext_reqs.items():
             # Do not strip empty sections.
-            self._tmp_extras_require[section]
+            self._tmp_extras_require[pkg_resources.safe_extra(section)]
             for r in pkg_resources.parse_requirements(v):
                 suffix = self._suffix_for(r)
-                self._tmp_extras_require[section + suffix].append(r)
+                self._tmp_extras_require[pkg_resources.safe_extra(section) + suffix].append(r)
 
     @staticmethod
     def _suffix_for(req):
@@ -414,7 +414,7 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         for r in complex_reqs:
             self._tmp_extras_require[':' + str(r.marker)].append(r)
         self.extras_require = dict(
-            (pkg_resources.safe_extra(k), [str(r) for r in map(self._clean_req, v)])
+            (k, [str(r) for r in map(self._clean_req, v)])
             for k, v in self._tmp_extras_require.items()
         )
 
