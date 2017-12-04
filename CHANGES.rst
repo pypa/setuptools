@@ -1,3 +1,8 @@
+v38.2.4
+-------
+
+* #1220: Fix `data_files` handling when installing from wheel.
+
 v38.2.3
 -------
 
