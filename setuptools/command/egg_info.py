@@ -597,7 +597,6 @@ def write_pkg_info(cmd, basename, filename):
         metadata = cmd.distribution.metadata
         metadata.version, oldver = cmd.egg_version, metadata.version
         metadata.name, oldname = cmd.egg_name, metadata.name
-        metadata.project_urls = cmd.distribution.metadata.project_urls
         metadata.long_description_content_type = getattr(
             cmd.distribution,
             'long_description_content_type'
