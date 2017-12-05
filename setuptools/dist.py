@@ -378,10 +378,11 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         spec_ext_reqs = getattr(self, 'extras_require', None) or {}
         self._tmp_extras_require = defaultdict(list)
         for section, v in spec_ext_reqs.items():
-            try:
-                pkg_resources.invalid_marker(section)
-            except SyntaxError as e:
-                section = pkg_resources.safe_extra(section)
+
+            # Section names must be safe extras.
+            section_name, section_sep, section_marker = section.partition(':')
+            section = pkg_resources.safe_extra(section_name) + section_sep + section_marker
+
             # Do not strip empty sections.
             self._tmp_extras_require[section]
             for r in pkg_resources.parse_requirements(v):
