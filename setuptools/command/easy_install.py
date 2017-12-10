@@ -1248,7 +1248,6 @@ class easy_install(Command):
 
     def byte_compile(self, to_compile):
         if sys.dont_write_bytecode:
-            self.warn('byte-compiling is disabled, skipping.')
             return
 
         from distutils.util import byte_compile
