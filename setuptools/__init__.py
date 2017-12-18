@@ -178,3 +178,10 @@ def findall(dir=os.curdir):
 
 
 monkey.patch_all()
+
+try:
+    from __main__ import __setup_requires__
+except ImportError:
+    pass
+else:
+    Distribution().fetch_build_eggs(__setup_requires__)
