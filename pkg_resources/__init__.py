@@ -1693,8 +1693,7 @@ class ZipProvider(EggProvider):
     def _zipinfo_name(self, fspath):
         # Convert a virtual filename (full path to file) into a zipfile subpath
         # usable with the zipimport directory cache for our target archive
-        while fspath.endswith(os.sep):
-            fspath = fspath[:-1]
+        fspath = fspath.rstrip(os.sep)
         if fspath == self.loader.archive:
             return ''
         if fspath.startswith(self.zip_pre):
