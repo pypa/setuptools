@@ -21,14 +21,14 @@ import setuptools
 from pkg_resources import (
     CHECKOUT_DIST, Distribution, BINARY_DIST, normalize_path, SOURCE_DIST,
     Environment, find_distributions, safe_name, safe_version,
-    to_filename, Requirement, DEVELOP_DIST,
+    to_filename, Requirement, DEVELOP_DIST, EGG_DIST,
 )
 from setuptools import ssl_support
 from distutils import log
 from distutils.errors import DistutilsError
 from fnmatch import translate
-from setuptools.py26compat import strip_fragment
 from setuptools.py27compat import get_all_headers
+from setuptools.wheel import Wheel
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.+!]+)$')
 HREF = re.compile("""href\\s*=\\s*['"]?([^'"> ]+)""", re.I)
@@ -116,6 +116,17 @@ def distros_for_location(location, basename, metadata=None):
     if basename.endswith('.egg') and '-' in basename:
         # only one, unambiguous interpretation
         return [Distribution.from_location(location, basename, metadata)]
+    if basename.endswith('.whl') and '-' in basename:
+        wheel = Wheel(basename)
+        if not wheel.is_compatible():
+            return []
+        return [Distribution(
+            location=location,
+            project_name=wheel.project_name,
+            version=wheel.version,
+            # Increase priority over eggs.
+            precedence=EGG_DIST + 1,
+        )]
     if basename.endswith('.exe'):
         win_base, py_ver, platform = parse_bdist_wininst(basename)
         if win_base is not None:
@@ -141,7 +152,7 @@ def distros_for_filename(filename, metadata=None):
 def interpret_distro_name(
         location, basename, metadata, py_version=None, precedence=SOURCE_DIST,
         platform=None
-        ):
+):
     """Generate alternative interpretations of a source distro name
 
     Note: if `location` is a filesystem filename, you should call
@@ -292,7 +303,7 @@ class PackageIndex(Environment):
     def __init__(
             self, index_url="https://pypi.python.org/simple", hosts=('*',),
             ca_bundle=None, verify_ssl=True, *args, **kw
-            ):
+    ):
         Environment.__init__(self, *args, **kw)
         self.index_url = index_url + "/" [:not index_url.endswith('/')]
         self.scanned_urls = {}
@@ -346,7 +357,8 @@ class PackageIndex(Environment):
 
         base = f.url  # handle redirects
         page = f.read()
-        if not isinstance(page, str):  # We are in Python 3 and got bytes. We want str.
+        if not isinstance(page, str):
+            # In Python 3 and got bytes but want str.
             if isinstance(f, urllib.error.HTTPError):
                 # Errors have no charset, assume latin1:
                 charset = 'latin-1'
@@ -381,8 +393,9 @@ class PackageIndex(Environment):
         is_file = s and s.group(1).lower() == 'file'
         if is_file or self.allows(urllib.parse.urlparse(url)[1]):
             return True
-        msg = ("\nNote: Bypassing %s (disallowed host; see "
-            "http://bit.ly/1dg9ijs for details).\n")
+        msg = (
+            "\nNote: Bypassing %s (disallowed host; see "
+            "http://bit.ly/2hrImnY for details).\n")
         if fatal:
             raise DistutilsError(msg % url)
         else:
@@ -500,15 +513,16 @@ class PackageIndex(Environment):
         """
         checker is a ContentChecker
         """
-        checker.report(self.debug,
+        checker.report(
+            self.debug,
             "Validating %%s checksum for %s" % filename)
         if not checker.is_valid():
             tfp.close()
             os.unlink(filename)
             raise DistutilsError(
                 "%s validation failed for %s; "
-                "possible download problem?" % (
-                                checker.hash.name, os.path.basename(filename))
+                "possible download problem?"
+                % (checker.hash.name, os.path.basename(filename))
             )
 
     def add_find_links(self, urls):
@@ -536,7 +550,8 @@ class PackageIndex(Environment):
         if self[requirement.key]:  # we've seen at least one distro
             meth, msg = self.info, "Couldn't retrieve index page for %r"
         else:  # no distros seen for this name, might be misspelled
-            meth, msg = (self.warn,
+            meth, msg = (
+                self.warn,
                 "Couldn't find index page for %r (maybe misspelled?)")
         meth(msg, requirement.unsafe_name)
         self.scan_all()
@@ -577,8 +592,7 @@ class PackageIndex(Environment):
 
     def fetch_distribution(
             self, requirement, tmpdir, force_scan=False, source=False,
-            develop_ok=False, local_index=None
-            ):
+            develop_ok=False, local_index=None):
         """Obtain a distribution suitable for fulfilling `requirement`
 
         `requirement` must be a ``pkg_resources.Requirement`` instance.
@@ -609,12 +623,19 @@ class PackageIndex(Environment):
 
                 if dist.precedence == DEVELOP_DIST and not develop_ok:
                     if dist not in skipped:
-                        self.warn("Skipping development or system egg: %s", dist)
+                        self.warn(
+                            "Skipping development or system egg: %s", dist,
+                        )
                         skipped[dist] = 1
                     continue
 
-                if dist in req and (dist.precedence <= SOURCE_DIST or not source):
-                    dist.download_location = self.download(dist.location, tmpdir)
+                test = (
+                    dist in req
+                    and (dist.precedence <= SOURCE_DIST or not source)
+                )
+                if test:
+                    loc = self.download(dist.location, tmpdir)
+                    dist.download_location = loc
                     if os.path.exists(dist.download_location):
                         return dist
 
@@ -704,10 +725,10 @@ class PackageIndex(Environment):
     def _download_to(self, url, filename):
         self.info("Downloading %s", url)
         # Download the file
-        fp, info = None, None
+        fp = None
         try:
             checker = HashChecker.from_url(url)
-            fp = self.open_url(strip_fragment(url))
+            fp = self.open_url(url)
             if isinstance(fp, urllib.error.HTTPError):
                 raise DistutilsError(
                     "Can't download %s: %s %s" % (url, fp.code, fp.msg)
@@ -1103,7 +1124,8 @@ def local_open(url):
                 f += '/'
             files.append('<a href="{name}">{name}</a>'.format(name=f))
         else:
-            tmpl = ("<html><head><title>{url}</title>"
+            tmpl = (
+                "<html><head><title>{url}</title>"
                 "</head><body>{files}</body></html>")
             body = tmpl.format(url=url, files='\n'.join(files))
         status, message = 200, "OK"

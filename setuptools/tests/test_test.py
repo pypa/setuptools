@@ -2,9 +2,9 @@
 
 from __future__ import unicode_literals
 
+from distutils import log
 import os
-import site
-from distutils.errors import DistutilsError
+import sys
 
 import pytest
 
@@ -66,26 +66,66 @@ def sample_test(tmpdir_cwd):
         f.write(TEST_PY)
 
 
-@pytest.mark.skipif('hasattr(sys, "real_prefix")')
-@pytest.mark.usefixtures('user_override')
-@pytest.mark.usefixtures('sample_test')
-class TestTestTest:
-    def test_test(self):
-        params = dict(
-            name='foo',
-            packages=['name', 'name.space', 'name.space.tests'],
-            namespace_packages=['name'],
-            test_suite='name.space.tests.test_suite',
-            use_2to3=True,
-        )
-        dist = Distribution(params)
-        dist.script_name = 'setup.py'
-        cmd = test(dist)
-        cmd.user = 1
-        cmd.ensure_finalized()
-        cmd.install_dir = site.USER_SITE
-        cmd.user = 1
-        with contexts.quiet():
-            # The test runner calls sys.exit
-            with contexts.suppress_exceptions(SystemExit):
-                cmd.run()
+@pytest.fixture
+def quiet_log():
+    # Running some of the other tests will automatically
+    # change the log level to info, messing our output.
+    log.set_verbosity(0)
+
+
+@pytest.mark.usefixtures('sample_test', 'quiet_log')
+def test_test(capfd):
+    params = dict(
+        name='foo',
+        packages=['name', 'name.space', 'name.space.tests'],
+        namespace_packages=['name'],
+        test_suite='name.space.tests.test_suite',
+        use_2to3=True,
+    )
+    dist = Distribution(params)
+    dist.script_name = 'setup.py'
+    cmd = test(dist)
+    cmd.ensure_finalized()
+    # The test runner calls sys.exit
+    with contexts.suppress_exceptions(SystemExit):
+        cmd.run()
+    out, err = capfd.readouterr()
+    assert out == 'Foo\n'
+
+
+@pytest.mark.xfail(
+    sys.version_info < (2, 7),
+    reason="No discover support for unittest on Python 2.6",
+)
+@pytest.mark.usefixtures('tmpdir_cwd', 'quiet_log')
+def test_tests_are_run_once(capfd):
+    params = dict(
+        name='foo',
+        packages=['dummy'],
+    )
+    with open('setup.py', 'wt') as f:
+        f.write('from setuptools import setup; setup(\n')
+        for k, v in sorted(params.items()):
+            f.write('    %s=%r,\n' % (k, v))
+        f.write(')\n')
+    os.makedirs('dummy')
+    with open('dummy/__init__.py', 'wt'):
+        pass
+    with open('dummy/test_dummy.py', 'wt') as f:
+        f.write(DALS(
+            """
+            from __future__ import print_function
+            import unittest
+            class TestTest(unittest.TestCase):
+                def test_test(self):
+                    print('Foo')
+             """))
+    dist = Distribution(params)
+    dist.script_name = 'setup.py'
+    cmd = test(dist)
+    cmd.ensure_finalized()
+    # The test runner calls sys.exit
+    with contexts.suppress_exceptions(SystemExit):
+        cmd.run()
+    out, err = capfd.readouterr()
+    assert out == 'Foo\n'
