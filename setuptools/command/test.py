@@ -3,6 +3,7 @@ import operator
 import sys
 import contextlib
 import itertools
+import unittest
 from distutils.errors import DistutilsError, DistutilsOptionError
 from distutils import log
 from unittest import TestLoader
@@ -14,10 +15,14 @@ from pkg_resources import (resource_listdir, resource_exists, normalize_path,
                            working_set, _namespace_packages, evaluate_marker,
                            add_activation_listener, require, EntryPoint)
 from setuptools import Command
-from setuptools.py31compat import unittest_main
 
 
 class ScanningLoader(TestLoader):
+
+    def __init__(self):
+        TestLoader.__init__(self)
+        self._visited = set()
+
     def loadTestsFromModule(self, module, pattern=None):
         """Return a suite of all tests cases contained in the given module
 
@@ -25,6 +30,10 @@ class ScanningLoader(TestLoader):
         If the module has an ``additional_tests`` function, call it and add
         the return value to the tests.
         """
+        if module in self._visited:
+            return None
+        self._visited.add(module)
+
         tests = []
         tests.append(TestLoader.loadTestsFromModule(self, module))
 
@@ -101,6 +110,8 @@ class test(Command):
         return list(self._test_args())
 
     def _test_args(self):
+        if not self.test_suite and sys.version_info >= (2, 7):
+            yield 'discover'
         if self.verbose:
             yield '--verbose'
         if self.test_suite:
@@ -230,12 +241,11 @@ class test(Command):
                         del_modules.append(name)
                 list(map(sys.modules.__delitem__, del_modules))
 
-        exit_kwarg = {} if sys.version_info < (2, 7) else {"exit": False}
-        test = unittest_main(
+        test = unittest.main(
             None, None, self._argv,
             testLoader=self._resolve_as_ep(self.test_loader),
             testRunner=self._resolve_as_ep(self.test_runner),
-            **exit_kwarg
+            exit=False,
         )
         if not test.result.wasSuccessful():
             msg = 'Test failed: %s' % test.result

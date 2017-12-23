@@ -110,7 +110,7 @@ the need to create a directory just to store one file.  This option is
 other metadata.  (In fact, setuptools itself never generates
 ``.egg-info`` files, either; the support for using files was added so
 that the requirement could easily be satisfied by other tools, such
-as the distutils in Python 2.5).
+as distutils).
 
 In addition to the ``PKG-INFO`` file, an egg's metadata directory may
 also include files and directories representing various forms of

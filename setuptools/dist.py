@@ -166,6 +166,8 @@ def check_requirements(dist, attr, value):
     """Verify that install_requires is a valid requirements list"""
     try:
         list(pkg_resources.parse_requirements(value))
+        if isinstance(value, (dict, set)):
+            raise TypeError("Unordered types are not allowed")
     except (TypeError, ValueError) as error:
         tmpl = (
             "{attr!r} must be a string or list of strings "

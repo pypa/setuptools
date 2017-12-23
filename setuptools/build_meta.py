@@ -65,10 +65,11 @@ def _run_setup(setup_script='setup.py'):
     # Note that we can reuse our build directory between calls
     # Correctness comes first, then optimization later
     __file__ = setup_script
+    __name__ = '__main__'
     f = getattr(tokenize, 'open', open)(__file__)
     code = f.read().replace('\\r\\n', '\\n')
     f.close()
-    exec(compile(code, __file__, 'exec'))
+    exec(compile(code, __file__, 'exec'), locals())
 
 
 def _fix_config(config_settings):
@@ -92,6 +93,11 @@ def _get_build_requires(config_settings):
     return requirements
 
 
+def _get_immediate_subdirectories(a_dir):
+    return [name for name in os.listdir(a_dir)
+            if os.path.isdir(os.path.join(a_dir, name))]
+
+
 def get_requires_for_build_wheel(config_settings=None):
     config_settings = _fix_config(config_settings)
     return _get_build_requires(config_settings)
@@ -105,11 +111,29 @@ def get_requires_for_build_sdist(config_settings=None):
 def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
     sys.argv = sys.argv[:1] + ['dist_info', '--egg-base', metadata_directory]
     _run_setup()
+    
+    dist_info_directory = metadata_directory
+    while True:    
+        dist_infos = [f for f in os.listdir(dist_info_directory)
+                      if f.endswith('.dist-info')]
 
-    dist_infos = [f for f in os.listdir(metadata_directory)
-                  if f.endswith('.dist-info')]
+        if len(dist_infos) == 0 and \
+                len(_get_immediate_subdirectories(dist_info_directory)) == 1:
+            dist_info_directory = os.path.join(
+                dist_info_directory, os.listdir(dist_info_directory)[0])
+            continue
 
-    assert len(dist_infos) == 1
+        assert len(dist_infos) == 1
+        break
+
+    # PEP 517 requires that the .dist-info directory be placed in the
+    # metadata_directory. To comply, we MUST copy the directory to the root
+    if dist_info_directory != metadata_directory:
+        shutil.move(
+            os.path.join(dist_info_directory, dist_infos[0]),
+            metadata_directory)
+        shutil.rmtree(dist_info_directory, ignore_errors=True)
+
     return dist_infos[0]
 
 
