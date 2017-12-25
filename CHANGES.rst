@@ -1,3 +1,8 @@
+v38.2.5
+-------
+
+* #1232: Fix trailing slash handling in ``pkg_resources.ZipProvider``.
+
 v38.2.4
 -------
 
