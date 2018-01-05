@@ -1,3 +1,8 @@
+v38.3.1
+-------
+
+* #1231: Removed warning when PYTHONDONTWRITEBYTECODE is enabled.
+
 v38.3.0
 -------
 
