@@ -145,6 +145,11 @@ dependencies, and perhaps some data files and scripts::
         license="PSF",
         keywords="hello world example examples",
         url="http://example.com/HelloWorld/",   # project home page, if any
+        project_urls={
+            "Bug Tracker": "https://bugs.example.com/HelloWorld/",
+            "Documentation": "https://docs.example.com/HelloWorld/",
+            "Source Code": "https://code.example.com/HelloWorld/",
+        }
 
         # could also include long_description, download_url, classifiers, etc.
     )
@@ -407,6 +412,11 @@ unless you need the associated ``setuptools`` feature.
 ``use_2to3_fixers``
     A list of modules to search for additional fixers to be used during
     the 2to3 conversion. See :doc:`python3` for more details.
+
+``project_urls``
+    An arbitrary map of URL names to hyperlinks, allowing more extensible
+    documentation of where various resources can be found than the simple
+    ``url`` and ``download_url`` options provide.
 
 
 Using ``find_packages()``
@@ -2406,6 +2416,7 @@ name                                               str
 version                                            attr:, str
 url                             home-page          str
 download_url                    download-url       str
+project_urls                                       dict
 author                                             str
 author_email                    author-email       str
 maintainer                                         str

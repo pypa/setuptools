@@ -89,7 +89,7 @@ def pypi_link(pkg_filename):
 
 setup_params = dict(
     name="setuptools",
-    version="38.2.4",
+    version="38.3.0",
     description="Easily download, build, install, upgrade, and uninstall "
         "Python packages",
     author="Python Packaging Authority",
@@ -98,6 +98,9 @@ setup_params = dict(
     long_description_content_type='text/x-rst; charset=UTF-8',
     keywords="CPAN PyPI distutils eggs package management",
     url="https://github.com/pypa/setuptools",
+    project_urls={
+        "Documentation": "https://setuptools.readthedocs.io/",
+    },
     src_root=None,
     packages=setuptools.find_packages(exclude=['*.tests']),
     package_data=package_data,

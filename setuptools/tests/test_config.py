@@ -110,6 +110,7 @@ class TestMetadata:
             '[metadata]\n'
             'version = 10.1.1\n'
             'description = Some description\n'
+            'long_description_content_type = text/something\n'
             'long_description = file: README\n'
             'name = fake_name\n'
             'keywords = one, two\n'
@@ -131,6 +132,7 @@ class TestMetadata:
 
             assert metadata.version == '10.1.1'
             assert metadata.description == 'Some description'
+            assert metadata.long_description_content_type == 'text/something'
             assert metadata.long_description == 'readme contents\nline2'
             assert metadata.provides == ['package', 'package.sub']
             assert metadata.license == 'BSD 3-Clause License'
@@ -214,6 +216,22 @@ class TestMetadata:
                 'Framework :: Django',
                 'Programming Language :: Python :: 3.5',
             ]
+
+    def test_dict(self, tmpdir):
+
+        fake_env(
+            tmpdir,
+            '[metadata]\n'
+            'project_urls =\n'
+            '  Link One = https://example.com/one/\n'
+            '  Link Two = https://example.com/two/\n'
+        )
+        with get_dist(tmpdir) as dist:
+            metadata = dist.metadata
+            assert metadata.project_urls == {
+                'Link One': 'https://example.com/one/',
+                'Link Two': 'https://example.com/two/',
+            }
 
     def test_version(self, tmpdir):
 

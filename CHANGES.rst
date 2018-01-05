@@ -1,7 +1,19 @@
+v38.3.1
+-------
+
+* #1231: Removed warning when PYTHONDONTWRITEBYTECODE is enabled.
+
+v38.3.0
+-------
+
+* #1210: Add support for PEP 345 Project-URL metadata.
+* #1207: Add support for ``long_description_type`` to setup.cfg
+  declarative config as intended and documented.
+
 v38.2.5
 -------
 
-* Removed warning when PYTHONDONTWRITEBYTECODE is enabled
+* #1232: Fix trailing slash handling in ``pkg_resources.ZipProvider``.
 
 v38.2.4
 -------

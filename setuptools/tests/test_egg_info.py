@@ -445,6 +445,36 @@ class TestEggInfo(object):
         expected_line = 'Description-Content-Type: text/markdown'
         assert expected_line in pkg_info_lines
 
+    def test_project_urls(self, tmpdir_cwd, env):
+        # Test that specifying a `project_urls` dict to the `setup`
+        # function results in writing multiple `Project-URL` lines to
+        # the `PKG-INFO` file in the `<distribution>.egg-info`
+        # directory.
+        # `Project-URL` is described at https://packaging.python.org
+        #     /specifications/core-metadata/#project-url-multiple-use
+
+        self._setup_script_with_requires(
+            """project_urls={
+                'Link One': 'https://example.com/one/',
+                'Link Two': 'https://example.com/two/',
+                },""")
+        environ = os.environ.copy().update(
+            HOME=env.paths['home'],
+        )
+        code, data = environment.run_setup_py(
+            cmd=['egg_info'],
+            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
+            data_stream=1,
+            env=environ,
+        )
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
+        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+            pkg_info_lines = pkginfo_file.read().split('\n')
+        expected_line = 'Project-URL: Link One, https://example.com/one/'
+        assert expected_line in pkg_info_lines
+        expected_line = 'Project-URL: Link Two, https://example.com/two/'
+        assert expected_line in pkg_info_lines
+
     def test_python_requires_egg_info(self, tmpdir_cwd, env):
         self._setup_script_with_requires(
             """python_requires='>=2.7.12',""")
