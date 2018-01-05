@@ -1,3 +1,9 @@
+v38.2.6
+-------
+
+* #1207: Add support for ``long_description_type`` to setup.cfg
+  declarative config as intended and documented.
+
 v38.2.5
 -------
 
