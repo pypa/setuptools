@@ -1,6 +1,7 @@
-v38.2.6
+v38.3.0
 -------
 
+* #1210: Add support for PEP 345 Project-URL metadata.
 * #1207: Add support for ``long_description_type`` to setup.cfg
   declarative config as intended and documented.
 
