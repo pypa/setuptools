@@ -18,3 +18,5 @@ test_script:
   - "python bootstrap.py"
   - "python -m pip install tox"
   - "tox"
+
+version: '{build}'
