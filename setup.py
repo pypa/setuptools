@@ -89,7 +89,7 @@ def pypi_link(pkg_filename):
 
 setup_params = dict(
     name="setuptools",
-    version="36.7.1",
+    version="38.2.4",
     description="Easily download, build, install, upgrade, and uninstall "
         "Python packages",
     author="Python Packaging Authority",
@@ -151,7 +151,6 @@ setup_params = dict(
         License :: OSI Approved :: MIT License
         Operating System :: OS Independent
         Programming Language :: Python :: 2
-        Programming Language :: Python :: 2.6
         Programming Language :: Python :: 2.7
         Programming Language :: Python :: 3
         Programming Language :: Python :: 3.3
@@ -163,7 +162,7 @@ setup_params = dict(
         Topic :: System :: Systems Administration
         Topic :: Utilities
         """).strip().splitlines(),
-    python_requires='>=2.6,!=3.0.*,!=3.1.*,!=3.2.*',
+    python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*',
     extras_require={
         "ssl:sys_platform=='win32'": "wincertstore==0.2",
         "certs": "certifi==2016.9.26",

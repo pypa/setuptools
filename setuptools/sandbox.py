@@ -39,10 +39,6 @@ def _execfile(filename, globals, locals=None):
     mode = 'rb'
     with open(filename, mode) as stream:
         script = stream.read()
-    # compile() function in Python 2.6 and 3.1 requires LF line endings.
-    if sys.version_info[:2] < (2, 7) or sys.version_info[:2] >= (3, 0) and sys.version_info[:2] < (3, 2):
-        script = script.replace(b'\r\n', b'\n')
-        script = script.replace(b'\r', b'\n')
     if locals is None:
         locals = globals
     code = compile(script, filename, 'exec')

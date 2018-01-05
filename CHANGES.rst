@@ -1,3 +1,66 @@
+v38.2.4
+-------
+
+* #1220: Fix `data_files` handling when installing from wheel.
+
+v38.2.3
+-------
+
+* fix Travis' Python 3.3 job.
+
+v38.2.2
+-------
+
+* #1214: fix handling of namespace packages when installing
+  from a wheel.
+
+v38.2.1
+-------
+
+* #1212: fix encoding handling of metadata when installing
+  from a wheel.
+
+v38.2.0
+-------
+
+* #1200: easy_install now support installing from wheels:
+  they will be installed as standalone unzipped eggs.
+
+v38.1.0
+-------
+
+* #1208: Improve error message when failing to locate scripts
+  in egg-info metadata.
+
+v38.0.0
+-------
+
+* #458: In order to support deterministic builds, Setuptools no
+  longer allows packages to declare ``install_requires`` as
+  unordered sequences (sets or dicts).
+
+v37.0.0
+-------
+
+* #878: Drop support for Python 2.6. Python 2.6 users should
+  rely on 'setuptools < 37dev'.
+
+v36.8.0
+-------
+
+* #1190: In SSL support for package index operations, use SNI
+  where available.
+
+v36.7.3
+-------
+
+* #1175: Bug fixes to ``build_meta`` module.
+
+v36.7.2
+-------
+
+* #701: Fixed duplicate test discovery on Python 3.
+
 v36.7.1
 -------
 

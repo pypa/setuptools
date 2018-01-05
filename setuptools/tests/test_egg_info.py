@@ -1,9 +1,9 @@
+import sys
 import ast
 import os
 import glob
 import re
 import stat
-import sys
 
 from setuptools.command.egg_info import egg_info, manifest_maker
 from setuptools.dist import Distribution
@@ -64,12 +64,6 @@ class TestEggInfo(object):
             })
             yield env
 
-    dict_order_fails = pytest.mark.skipif(
-        sys.version_info < (2, 7),
-        reason="Intermittent failures on Python 2.6",
-    )
-
-    @dict_order_fails
     def test_egg_info_save_version_info_setup_empty(self, tmpdir_cwd, env):
         """
         When the egg_info section is empty or not present, running
@@ -104,7 +98,6 @@ class TestEggInfo(object):
         flags = re.MULTILINE | re.DOTALL
         assert re.search(pattern, content, flags)
 
-    @dict_order_fails
     def test_egg_info_save_version_info_setup_defaults(self, tmpdir_cwd, env):
         """
         When running save_version_info on an existing setup.cfg
@@ -198,7 +191,8 @@ class TestEggInfo(object):
                 test_params = test.lstrip().split('\n\n', 3)
                 name_kwargs = test_params.pop(0).split('\n')
                 if len(name_kwargs) > 1:
-                    install_cmd_kwargs = ast.literal_eval(name_kwargs[1].strip())
+                    val = name_kwargs[1].strip()
+                    install_cmd_kwargs = ast.literal_eval(val)
                 else:
                     install_cmd_kwargs = {}
                 name = name_kwargs[0].strip()
@@ -218,9 +212,11 @@ class TestEggInfo(object):
                                                   expected_requires,
                                                   install_cmd_kwargs,
                                                   marks=marks))
-            return pytest.mark.parametrize('requires,use_setup_cfg,'
-                                           'expected_requires,install_cmd_kwargs',
-                                           argvalues, ids=idlist)
+            return pytest.mark.parametrize(
+                'requires,use_setup_cfg,'
+                'expected_requires,install_cmd_kwargs',
+                argvalues, ids=idlist,
+            )
 
     @RequiresTestHelper.parametrize(
         # Format of a test:
@@ -233,6 +229,20 @@ class TestEggInfo(object):
         # requires block (when used in setup.cfg)
         #
         # expected contents of requires.txt
+
+        '''
+        install_requires_deterministic
+
+        install_requires=["fake-factory==0.5.2", "pytz"]
+
+        [options]
+        install_requires =
+            fake-factory==0.5.2
+            pytz
+
+        fake-factory==0.5.2
+        pytz
+        ''',
 
         '''
         install_requires_with_marker
@@ -368,9 +378,9 @@ class TestEggInfo(object):
         mismatch_marker=mismatch_marker,
         mismatch_marker_alternate=mismatch_marker_alternate,
     )
-    def test_requires(self, tmpdir_cwd, env,
-                      requires, use_setup_cfg,
-                      expected_requires, install_cmd_kwargs):
+    def test_requires(
+            self, tmpdir_cwd, env, requires, use_setup_cfg,
+            expected_requires, install_cmd_kwargs):
         self._setup_script_with_requires(requires, use_setup_cfg)
         self._run_install_command(tmpdir_cwd, env, **install_cmd_kwargs)
         egg_info_dir = os.path.join('.', 'foo.egg-info')
@@ -382,6 +392,17 @@ class TestEggInfo(object):
             install_requires = ''
         assert install_requires.lstrip() == expected_requires
         assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
+
+    def test_install_requires_unordered_disallowed(self, tmpdir_cwd, env):
+        """
+        Packages that pass unordered install_requires sequences
+        should be rejected as they produce non-deterministic
+        builds. See #458.
+        """
+        req = 'install_requires={"fake-factory==0.5.2", "pytz"}'
+        self._setup_script_with_requires(req)
+        with pytest.raises(AssertionError):
+            self._run_install_command(tmpdir_cwd, env)
 
     def test_extras_require_with_invalid_marker(self, tmpdir_cwd, env):
         tmpl = 'extras_require={{":{marker}": ["barbazquux"]}},'
