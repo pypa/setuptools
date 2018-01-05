@@ -1513,7 +1513,10 @@ class NullProvider:
     def run_script(self, script_name, namespace):
         script = 'scripts/' + script_name
         if not self.has_metadata(script):
-            raise ResolutionError("No script named %r" % script_name)
+            raise ResolutionError(
+                "Script {script!r} not found in metadata at {self.egg_info!r}"
+                .format(**locals()),
+            )
         script_text = self.get_metadata(script).replace('\r\n', '\n')
         script_text = script_text.replace('\r', '\n')
         script_filename = self._fn(self.egg_info, script)
@@ -1690,6 +1693,9 @@ class ZipProvider(EggProvider):
     def _zipinfo_name(self, fspath):
         # Convert a virtual filename (full path to file) into a zipfile subpath
         # usable with the zipimport directory cache for our target archive
+        fspath = fspath.rstrip(os.sep)
+        if fspath == self.loader.archive:
+            return ''
         if fspath.startswith(self.zip_pre):
             return fspath[len(self.zip_pre):]
         raise AssertionError(

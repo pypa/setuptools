@@ -60,11 +60,8 @@ def write_pkg_file(self, file):
     for project_url in self.project_urls.items():
         file.write('Project-URL: %s, %s\n' % project_url)
 
-    long_desc_content_type = getattr(
-        self,
-        'long_description_content_type',
-        None
-    ) or 'UNKNOWN'
+    long_desc_content_type = \
+        self.long_description_content_type or 'UNKNOWN'
     file.write('Description-Content-Type: %s\n' % long_desc_content_type)
 
     long_desc = rfc822_escape(self.get_long_description())
@@ -168,6 +165,8 @@ def check_requirements(dist, attr, value):
     """Verify that install_requires is a valid requirements list"""
     try:
         list(pkg_resources.parse_requirements(value))
+        if isinstance(value, (dict, set)):
+            raise TypeError("Unordered types are not allowed")
     except (TypeError, ValueError) as error:
         tmpl = (
             "{attr!r} must be a string or list of strings "
@@ -340,6 +339,9 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         # prime it here from our value if not automatically set
         self.metadata.project_urls = getattr(
             self.metadata, 'project_urls', self.project_urls)
+        self.metadata.long_description_content_type = attrs.get(
+            'long_description_content_type'
+        )
 
         if isinstance(self.metadata.version, numbers.Number):
             # Some people apparently take "version number" too literally :)

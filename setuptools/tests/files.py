@@ -1,6 +1,7 @@
 import os
 
 
+from pkg_resources.extern.six import binary_type
 import pkg_resources.py31compat
 
 
@@ -30,5 +31,9 @@ def build_files(file_defs, prefix=""):
             pkg_resources.py31compat.makedirs(full_name, exist_ok=True)
             build_files(contents, prefix=full_name)
         else:
-            with open(full_name, 'w') as f:
-                f.write(contents)
+            if isinstance(contents, binary_type):
+                with open(full_name, 'wb') as f:
+                    f.write(contents)
+            else:
+                with open(full_name, 'w') as f:
+                    f.write(contents)

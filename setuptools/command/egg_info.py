@@ -597,10 +597,7 @@ def write_pkg_info(cmd, basename, filename):
         metadata = cmd.distribution.metadata
         metadata.version, oldver = cmd.egg_version, metadata.version
         metadata.name, oldname = cmd.egg_name, metadata.name
-        metadata.long_description_content_type = getattr(
-            cmd.distribution,
-            'long_description_content_type'
-        )
+
         try:
             # write unescaped data to PKG-INFO, so older pkg_resources
             # can still parse it
@@ -640,7 +637,7 @@ def write_requirements(cmd, basename, filename):
 
 
 def write_setup_requirements(cmd, basename, filename):
-    data = StringIO()
+    data = io.StringIO()
     _write_requirements(data, cmd.distribution.setup_requires)
     cmd.write_or_delete_file("setup-requirements", filename, data.getvalue())
 

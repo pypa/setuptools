@@ -1,3 +1,55 @@
+v38.2.6
+-------
+
+* #1207: Add support for ``long_description_type`` to setup.cfg
+  declarative config as intended and documented.
+
+v38.2.5
+-------
+
+* #1232: Fix trailing slash handling in ``pkg_resources.ZipProvider``.
+
+v38.2.4
+-------
+
+* #1220: Fix `data_files` handling when installing from wheel.
+
+v38.2.3
+-------
+
+* fix Travis' Python 3.3 job.
+
+v38.2.2
+-------
+
+* #1214: fix handling of namespace packages when installing
+  from a wheel.
+
+v38.2.1
+-------
+
+* #1212: fix encoding handling of metadata when installing
+  from a wheel.
+
+v38.2.0
+-------
+
+* #1200: easy_install now support installing from wheels:
+  they will be installed as standalone unzipped eggs.
+
+v38.1.0
+-------
+
+* #1208: Improve error message when failing to locate scripts
+  in egg-info metadata.
+
+v38.0.0
+-------
+
+* #458: In order to support deterministic builds, Setuptools no
+  longer allows packages to declare ``install_requires`` as
+  unordered sequences (sets or dicts).
+
 v37.0.0
 -------
 
