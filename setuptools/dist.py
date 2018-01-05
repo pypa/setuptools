@@ -325,9 +325,6 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         self.dist_files = []
         self.src_root = attrs.pop("src_root", None)
         self.patch_missing_pkg_info(attrs)
-        self.long_description_content_type = attrs.get(
-            'long_description_content_type'
-        )
         self.project_urls = attrs.get('project_urls', {})
         self.dependency_links = attrs.pop('dependency_links', [])
         self.setup_requires = attrs.pop('setup_requires', [])
