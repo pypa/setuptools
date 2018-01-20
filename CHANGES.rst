@@ -1,3 +1,8 @@
+v38.5.0
+-------
+
+* #1246: ``easy_install`` now always writes scripts out in UTF-8.
+
 v38.4.0
 -------
 

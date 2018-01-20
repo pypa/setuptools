@@ -828,14 +828,15 @@ class easy_install(Command):
         target = os.path.join(self.script_dir, script_name)
         self.add_output(target)
 
-        if not self.dry_run:
+        if self.dry_run:
             return
 
         mask = current_umask()
         ensure_directory(target)
         if os.path.exists(target):
             os.unlink(target)
-        with open(target, "w" + mode) as f:
+        encoding = 'utf-8' if mode == 't' else None
+        with io.open(target, "w" + mode, encoding=encoding) as f:
             f.write(contents)
         chmod(target, 0o777 - mask)
 
