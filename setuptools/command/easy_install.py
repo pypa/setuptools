@@ -828,14 +828,16 @@ class easy_install(Command):
         target = os.path.join(self.script_dir, script_name)
         self.add_output(target)
 
-        mask = current_umask()
         if not self.dry_run:
-            ensure_directory(target)
-            if os.path.exists(target):
-                os.unlink(target)
-            with open(target, "w" + mode) as f:
-                f.write(contents)
-            chmod(target, 0o777 - mask)
+            return
+
+        mask = current_umask()
+        ensure_directory(target)
+        if os.path.exists(target):
+            os.unlink(target)
+        with open(target, "w" + mode) as f:
+            f.write(contents)
+        chmod(target, 0o777 - mask)
 
     def install_eggs(self, spec, dist_filename, tmpdir):
         # .egg dirs or files are already built, so just return them
