@@ -133,6 +133,7 @@ class easy_install(Command):
         ("exclude-scripts", "x", "Don't install scripts"),
         ("always-copy", "a", "Copy all needed packages to install dir"),
         ("index-url=", "i", "base URL of Python Package Index"),
+        ("extra-index-urls=", "e", "Extra base URLs of Python Package Index"),
         ("find-links=", "f", "additional URL(s) to search for packages"),
         ("build-directory=", "b",
          "download/extract/build in DIR; keep the results"),
@@ -173,6 +174,7 @@ class easy_install(Command):
         self.zip_ok = self.local_snapshots_ok = None
         self.install_dir = self.script_dir = self.exclude_scripts = None
         self.index_url = None
+        self.extra_index_urls = None
         self.find_links = None
         self.build_directory = None
         self.args = None
@@ -320,6 +322,13 @@ class easy_install(Command):
         if not self.editable:
             self.check_site_dir()
         self.index_url = self.index_url or "https://pypi.python.org/simple"
+
+        if self.extra_index_urls is not None:
+            if isinstance(self.extra_index_urls, six.string_types):
+                self.extra_index_urls = self.extra_index_urls.split()
+        else:
+            self.extra_index_urls = []
+
         self.shadow_path = self.all_site_dirs[:]
         for path_item in self.install_dir, normalize_path(self.script_dir):
             if path_item not in self.shadow_path:
@@ -331,7 +340,7 @@ class easy_install(Command):
             hosts = ['*']
         if self.package_index is None:
             self.package_index = self.create_index(
-                self.index_url, search_path=self.shadow_path, hosts=hosts,
+                self.index_url, self.extra_index_urls, search_path=self.shadow_path, hosts=hosts,
             )
         self.local_index = Environment(self.shadow_path + sys.path)
 
@@ -1172,7 +1181,7 @@ class easy_install(Command):
         # to the setup.cfg file.
         ei_opts = self.distribution.get_option_dict('easy_install').copy()
         fetch_directives = (
-            'find_links', 'site_dirs', 'index_url', 'optimize',
+            'find_links', 'site_dirs', 'index_url', 'extra_index_urls', 'optimize',
             'site_dirs', 'allow_hosts',
         )
         fetch_options = {}

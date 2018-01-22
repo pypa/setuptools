@@ -301,11 +301,13 @@ class PackageIndex(Environment):
     """A distribution index that scans web pages for download URLs"""
 
     def __init__(
-            self, index_url="https://pypi.python.org/simple", hosts=('*',),
+            self, index_url="https://pypi.python.org/simple", extra_index_urls=None, hosts=('*',),
             ca_bundle=None, verify_ssl=True, *args, **kw
     ):
         Environment.__init__(self, *args, **kw)
         self.index_url = index_url + "/" [:not index_url.endswith('/')]
+        self.extra_index_url = extra_index_urls if extra_index_urls is not None else []
+        self.index_urls = [index_url] + extra_index_urls
         self.scanned_urls = {}
         self.fetched_urls = {}
         self.package_pages = {}
@@ -320,6 +322,13 @@ class PackageIndex(Environment):
             self.opener = ssl_support.opener_for(ca_bundle)
         else:
             self.opener = urllib.request.urlopen
+
+    def url_startswith_index_urls(self, url):
+        """If the provided url starts with one of the index urls, return the one that matched"""
+        for idx_url in self.index_urls:
+            if url.startswith(idx_url):
+                return idx_url
+        return None
 
     def process_url(self, url, retrieve=False):
         """Evaluate a URL as a possible download, and maybe retrieve it"""
@@ -369,7 +378,7 @@ class PackageIndex(Environment):
         for match in HREF.finditer(page):
             link = urllib.parse.urljoin(base, htmldecode(match.group(1)))
             self.process_url(link)
-        if url.startswith(self.index_url) and getattr(f, 'code', None) != 404:
+        if self.url_startswith_index_urls(url) is not None and getattr(f, 'code', None) != 404:
             page = self.process_index(url, page)
 
     def process_filename(self, fn, nested=False):
@@ -432,9 +441,10 @@ class PackageIndex(Environment):
 
         def scan(link):
             # Process a URL to see if it's for a package page
-            if link.startswith(self.index_url):
+            idx_url = self.url_startswith_index_urls(link)
+            if idx_url is not None:
                 parts = list(map(
-                    urllib.parse.unquote, link[len(self.index_url):].split('/')
+                    urllib.parse.unquote, link[len(idx_url):].split('/')
                 ))
                 if len(parts) == 2 and '#' not in parts[1]:
                     # it's a package page, sanitize and index it
@@ -477,28 +487,30 @@ class PackageIndex(Environment):
         )
 
     def scan_all(self, msg=None, *args):
-        if self.index_url not in self.fetched_urls:
-            if msg:
-                self.warn(msg, *args)
-            self.info(
-                "Scanning index of all packages (this may take a while)"
-            )
-        self.scan_url(self.index_url)
+        for idx_url in self.index_urls:
+            if idx_url not in self.fetched_urls:
+                if msg:
+                    self.warn(msg, *args)
+                self.info(
+                    "Scanning index of all packages (this may take a while)"
+                )
+            self.scan_url(idx_url)
 
     def find_packages(self, requirement):
-        self.scan_url(self.index_url + requirement.unsafe_name + '/')
+        for idx_url in self.index_urls:
+            self.scan_url(idx_url + requirement.unsafe_name + '/')
 
-        if not self.package_pages.get(requirement.key):
-            # Fall back to safe version of the name
-            self.scan_url(self.index_url + requirement.project_name + '/')
+            if not self.package_pages.get(requirement.key):
+                # Fall back to safe version of the name
+                self.scan_url(idx_url + requirement.project_name + '/')
 
-        if not self.package_pages.get(requirement.key):
-            # We couldn't find the target package, so search the index page too
-            self.not_found_in_index(requirement)
+            if not self.package_pages.get(requirement.key):
+                # We couldn't find the target package, so search the index page too
+                self.not_found_in_index(requirement)
 
-        for url in list(self.package_pages.get(requirement.key, ())):
-            # scan each page that might be related to the desired package
-            self.scan_url(url)
+            for url in list(self.package_pages.get(requirement.key, ())):
+                # scan each page that might be related to the desired package
+                self.scan_url(url)
 
     def obtain(self, requirement, installer=None):
         self.prescan()
