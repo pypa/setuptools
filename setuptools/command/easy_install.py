@@ -828,7 +828,7 @@ class easy_install(Command):
         target = os.path.join(self.script_dir, script_name)
         self.add_output(target)
 
-        if not self.dry_run:
+        if self.dry_run:
             return
 
         mask = current_umask()
