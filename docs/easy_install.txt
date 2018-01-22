@@ -837,6 +837,16 @@ Command-Line Options
     package, and those download pages will be searched for links to download
     an egg or source distribution.
 
+``--extra-index-urls=URLS, -I URLS`` (New in x.xxx; )
+    Specifies extra base URLs of the Python Package Index. Indexes specified here
+    are searched in the order specified, if the requested package is not found.
+
+    You may specify multiple URLs or file/directory names with this option,
+    separated by whitespace.  Note that on the command line, you will probably
+    have to surround the URL list with quotes, so that it is recognized as a
+    single option value.  You can also specify URLs in a configuration file;
+    see `Configuration Files`_, above.
+
 ``--editable, -e`` (New in 0.6a1)
     Only find and download source distributions for the specified projects,
     unpacking them to subdirectories of the specified ``--build-directory``.
