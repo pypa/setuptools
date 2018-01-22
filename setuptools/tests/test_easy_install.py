@@ -327,7 +327,7 @@ class TestSetupRequires:
         """
         When easy_install installs a source distribution which specifies
         setup_requires, it should honor the fetch parameters (such as
-        allow-hosts, index-url, and find-links).
+        allow-hosts, index-url, extra-index-urls, and find-links).
         """
         # set up a server which will simulate an alternate package index.
         p_index = setuptools.tests.server.MockServer()
