@@ -133,7 +133,7 @@ class easy_install(Command):
         ("exclude-scripts", "x", "Don't install scripts"),
         ("always-copy", "a", "Copy all needed packages to install dir"),
         ("index-url=", "i", "base URL of Python Package Index"),
-        ("extra-index-urls=", "e", "Extra base URLs of Python Package Index"),
+        ("extra-index-urls=", "I", "Extra base URLs of Python Package Index"),
         ("find-links=", "f", "additional URL(s) to search for packages"),
         ("build-directory=", "b",
          "download/extract/build in DIR; keep the results"),
