@@ -511,6 +511,7 @@ class Distribution(Distribution_parse_config_files, _Distribution):
                 # don't use any other settings
                 'find_links', 'site_dirs', 'index_url',
                 'optimize', 'site_dirs', 'allow_hosts',
+                'extra_index_urls'
         ))
         if self.dependency_links:
             links = self.dependency_links[:]
