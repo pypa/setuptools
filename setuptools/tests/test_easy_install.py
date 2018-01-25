@@ -183,6 +183,51 @@ class TestEasyInstallTest:
         cmd.ensure_finalized()
         cmd.easy_install(sdist_unicode)
 
+    @pytest.fixture
+    def sdist_script(self, tmpdir):
+        files = [
+            (
+                'setup.py',
+                DALS("""
+                    import setuptools
+                    setuptools.setup(
+                        name="setuptools-test-script",
+                        version="1.0",
+                        scripts=["mypkg_script"],
+                    )
+                    """),
+            ),
+            (
+                u'mypkg_script',
+                DALS("""
+                     #/usr/bin/python
+                     print('mypkg_script')
+                     """),
+            ),
+        ]
+        sdist_name = 'setuptools-test-script-1.0.zip'
+        sdist = str(tmpdir / sdist_name)
+        make_sdist(sdist, files)
+        return sdist
+
+    @pytest.mark.skipif(not sys.platform.startswith('linux'),
+                        reason="Test can only be run on Linux")
+    def test_script_install(self, sdist_script, tmpdir, monkeypatch):
+        """
+        Check scripts are installed.
+        """
+        dist = Distribution({'script_args': ['easy_install']})
+        target = (tmpdir / 'target').ensure_dir()
+        cmd = ei.easy_install(
+            dist,
+            install_dir=str(target),
+            args=['x'],
+        )
+        monkeypatch.setitem(os.environ, 'PYTHONPATH', str(target))
+        cmd.ensure_finalized()
+        cmd.easy_install(sdist_script)
+        assert (target / 'mypkg_script').exists()
+
 
 class TestPTHFileWriter:
     def test_add_from_cwd_site_sets_dirty(self):
