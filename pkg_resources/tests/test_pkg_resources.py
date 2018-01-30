@@ -62,16 +62,51 @@ class TestZipProvider(object):
         zip_info.filename = 'data.dat'
         zip_info.date_time = cls.ref_time.timetuple()
         zip_egg.writestr(zip_info, 'hello, world!')
+        zip_info = zipfile.ZipInfo()
+        zip_info.filename = 'subdir/mod2.py'
+        zip_info.date_time = cls.ref_time.timetuple()
+        zip_egg.writestr(zip_info, 'x = 6\n')
+        zip_info = zipfile.ZipInfo()
+        zip_info.filename = 'subdir/data2.dat'
+        zip_info.date_time = cls.ref_time.timetuple()
+        zip_egg.writestr(zip_info, 'goodbye, world!')
         zip_egg.close()
         egg.close()
 
         sys.path.append(egg.name)
+        subdir = os.path.join(egg.name, 'subdir')
+        sys.path.append(subdir)
+        cls.finalizers.append(EggRemover(subdir))
         cls.finalizers.append(EggRemover(egg.name))
 
     @classmethod
     def teardown_class(cls):
         for finalizer in cls.finalizers:
             finalizer()
+
+    def test_resource_listdir(self):
+        import mod
+        zp = pkg_resources.ZipProvider(mod)
+
+        expected_root = ['data.dat', 'mod.py', 'subdir']
+        assert sorted(zp.resource_listdir('')) == expected_root
+        assert sorted(zp.resource_listdir('/')) == expected_root
+
+        expected_subdir = ['data2.dat', 'mod2.py']
+        assert sorted(zp.resource_listdir('subdir')) == expected_subdir
+        assert sorted(zp.resource_listdir('subdir/')) == expected_subdir
+
+        assert zp.resource_listdir('nonexistent') == []
+        assert zp.resource_listdir('nonexistent/') == []
+
+        import mod2
+        zp2 = pkg_resources.ZipProvider(mod2)
+
+        assert sorted(zp2.resource_listdir('')) == expected_subdir
+        assert sorted(zp2.resource_listdir('/')) == expected_subdir
+
+        assert zp2.resource_listdir('subdir') == []
+        assert zp2.resource_listdir('subdir/') == []
 
     def test_resource_filename_rewrites_on_change(self):
         """
