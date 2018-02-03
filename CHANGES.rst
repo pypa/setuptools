@@ -1,3 +1,8 @@
+v38.4.1
+-------
+
+* #1257: In bdist_egg.scan_module, fix ValueError on Python 3.7.
+
 v38.4.0
 -------
 
