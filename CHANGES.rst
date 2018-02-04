@@ -1,3 +1,9 @@
+v38.5.0
+-------
+
+* #1229: Expand imports in ``build_ext`` to refine detection of
+  Cython availability.
+
 v38.4.1
 -------
 
