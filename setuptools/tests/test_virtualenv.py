@@ -26,6 +26,7 @@ def bare_virtualenv():
 
 SOURCE_DIR = os.path.join(os.path.dirname(__file__), '../..')
 
+
 def test_clean_env_install(bare_virtualenv):
     """
     Check setuptools can be installed in a clean environment.
@@ -34,6 +35,7 @@ def test_clean_env_install(bare_virtualenv):
         'cd {source}',
         'python setup.py install',
     )).format(source=SOURCE_DIR))
+
 
 def test_pip_upgrade_from_source(virtualenv):
     """
@@ -56,6 +58,7 @@ def test_pip_upgrade_from_source(virtualenv):
     # And finally try to upgrade from source.
     virtualenv.run('pip install --no-cache-dir --upgrade ' + sdist)
 
+
 def test_test_command_install_requirements(bare_virtualenv, tmpdir):
     """
     Check the test command will install all required dependencies.
@@ -64,6 +67,7 @@ def test_test_command_install_requirements(bare_virtualenv, tmpdir):
         'cd {source}',
         'python setup.py develop',
     )).format(source=SOURCE_DIR))
+
     def sdist(distname, version):
         dist_path = tmpdir.join('%s-%s.tar.gz' % (distname, version))
         make_nspkg_sdist(str(dist_path), distname, version)
