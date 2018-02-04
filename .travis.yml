@@ -40,7 +40,7 @@ cache: pip
 
 install:
 # need tox to get started
-- pip install tox
+- pip install tox tox-venv
 
 # Output the env, to verify behavior
 - env

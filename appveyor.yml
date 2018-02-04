@@ -16,7 +16,7 @@ build: off
 
 test_script:
   - "python bootstrap.py"
-  - "python -m pip install tox"
+  - "python -m pip install tox tox-venv"
   - "tox"
 
 version: '{build}'
