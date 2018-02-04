@@ -4,6 +4,9 @@ v38.5.0
 * #1229: Expand imports in ``build_ext`` to refine detection of
   Cython availability.
 
+* #1270: When Cython is available, ``build_ext`` now uses the
+  new_build_ext.
+
 v38.4.1
 -------
 
