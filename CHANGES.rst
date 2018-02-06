@@ -1,3 +1,9 @@
+v38.5.1
+-------
+
+* #1271: Revert to Cython legacy ``build_ext`` behavior for
+  compatibility.
+
 v38.5.0
 -------
 
