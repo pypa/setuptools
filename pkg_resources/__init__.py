@@ -2687,23 +2687,26 @@ class Distribution(object):
         return self.__dep_map
 
     @staticmethod
-    def _filter_extras(dm):
+    def _filter_extras(dm, evaluate_markers=True):
         """
         Given a mapping of extras to dependencies, strip off
-        environment markers and filter out any dependencies
-        not matching the markers.
+        environment and filter out any dependencies
+        not matching the markers unless asked not to.
         """
         for extra in list(filter(None, dm)):
             new_extra = extra
             reqs = dm.pop(extra)
-            new_extra, _, marker = extra.partition(':')
-            fails_marker = marker and (
-                invalid_marker(marker)
-                or not evaluate_marker(marker)
-            )
-            if fails_marker:
-                reqs = []
+            new_extra, sep, marker = extra.partition(':')
             new_extra = safe_extra(new_extra) or None
+            if evaluate_markers:
+                fails_marker = marker and (
+                    invalid_marker(marker)
+                    or not evaluate_marker(marker)
+                )
+                if fails_marker:
+                    reqs = []
+            elif marker:
+                new_extra = "{}{}{}".format(new_extra or "", sep, marker)
 
             dm.setdefault(new_extra, []).extend(reqs)
         return dm
