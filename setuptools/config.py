@@ -109,7 +109,7 @@ def parse_configuration(
         distribution, command_options, ignore_option_errors)
     options.parse()
 
-    return [meta, options]
+    return meta, options
 
 
 class ConfigHandler(object):
