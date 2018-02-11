@@ -2683,22 +2683,36 @@ class Distribution(object):
         try:
             return self.__dep_map
         except AttributeError:
-            self.__dep_map = self._build_dep_map()
+            self.__dep_map = self._filter_extras(self._build_dep_map())
         return self.__dep_map
+
+    @staticmethod
+    def _filter_extras(dm):
+        """
+        Given a mapping of extras to dependencies, strip off
+        environment markers and filter out any dependencies
+        not matching the markers.
+        """
+        for extra in list(dm):
+            if extra:
+                new_extra = extra
+                reqs = dm.pop(extra)
+                if ':' in extra:
+                    new_extra, marker = extra.split(':', 1)
+                    if invalid_marker(marker):
+                        # XXX warn
+                        reqs = []
+                    elif not evaluate_marker(marker):
+                        reqs = []
+                new_extra = safe_extra(new_extra) or None
+
+                dm.setdefault(new_extra, []).extend(reqs)
+        return dm
 
     def _build_dep_map(self):
         dm = {}
         for name in 'requires.txt', 'depends.txt':
             for extra, reqs in split_sections(self._get_metadata(name)):
-                if extra:
-                    if ':' in extra:
-                        extra, marker = extra.split(':', 1)
-                        if invalid_marker(marker):
-                            # XXX warn
-                            reqs = []
-                        elif not evaluate_marker(marker):
-                            reqs = []
-                    extra = safe_extra(extra) or None
                 dm.setdefault(extra, []).extend(parse_requirements(reqs))
         return dm
 
