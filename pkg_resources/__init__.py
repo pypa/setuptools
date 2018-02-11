@@ -2693,20 +2693,19 @@ class Distribution(object):
         environment markers and filter out any dependencies
         not matching the markers.
         """
-        for extra in list(dm):
-            if extra:
-                new_extra = extra
-                reqs = dm.pop(extra)
-                if ':' in extra:
-                    new_extra, marker = extra.split(':', 1)
-                    if invalid_marker(marker):
-                        # XXX warn
-                        reqs = []
-                    elif not evaluate_marker(marker):
-                        reqs = []
-                new_extra = safe_extra(new_extra) or None
+        for extra in list(filter(None, dm)):
+            new_extra = extra
+            reqs = dm.pop(extra)
+            if ':' in extra:
+                new_extra, marker = extra.split(':', 1)
+                if invalid_marker(marker):
+                    # XXX warn
+                    reqs = []
+                elif not evaluate_marker(marker):
+                    reqs = []
+            new_extra = safe_extra(new_extra) or None
 
-                dm.setdefault(new_extra, []).extend(reqs)
+            dm.setdefault(new_extra, []).extend(reqs)
         return dm
 
     def _build_dep_map(self):
