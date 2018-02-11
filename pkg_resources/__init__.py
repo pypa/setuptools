@@ -2697,12 +2697,12 @@ class Distribution(object):
             new_extra = extra
             reqs = dm.pop(extra)
             new_extra, _, marker = extra.partition(':')
-            if marker:
-                if invalid_marker(marker):
-                    # XXX warn
-                    reqs = []
-                elif not evaluate_marker(marker):
-                    reqs = []
+            fails_marker = marker and (
+                invalid_marker(marker)
+                or not evaluate_marker(marker)
+            )
+            if fails_marker:
+                reqs = []
             new_extra = safe_extra(new_extra) or None
 
             dm.setdefault(new_extra, []).extend(reqs)
