@@ -2696,8 +2696,8 @@ class Distribution(object):
         for extra in list(filter(None, dm)):
             new_extra = extra
             reqs = dm.pop(extra)
-            if ':' in extra:
-                new_extra, marker = extra.split(':', 1)
+            new_extra, _, marker = extra.partition(':')
+            if marker:
                 if invalid_marker(marker):
                     # XXX warn
                     reqs = []
