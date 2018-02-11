@@ -2683,20 +2683,24 @@ class Distribution(object):
         try:
             return self.__dep_map
         except AttributeError:
-            dm = self.__dep_map = {None: []}
-            for name in 'requires.txt', 'depends.txt':
-                for extra, reqs in split_sections(self._get_metadata(name)):
-                    if extra:
-                        if ':' in extra:
-                            extra, marker = extra.split(':', 1)
-                            if invalid_marker(marker):
-                                # XXX warn
-                                reqs = []
-                            elif not evaluate_marker(marker):
-                                reqs = []
-                        extra = safe_extra(extra) or None
-                    dm.setdefault(extra, []).extend(parse_requirements(reqs))
-            return dm
+            self.__dep_map = self._build_dep_map()
+        return self.__dep_map
+
+    def _build_dep_map(self):
+        dm = {None: []}
+        for name in 'requires.txt', 'depends.txt':
+            for extra, reqs in split_sections(self._get_metadata(name)):
+                if extra:
+                    if ':' in extra:
+                        extra, marker = extra.split(':', 1)
+                        if invalid_marker(marker):
+                            # XXX warn
+                            reqs = []
+                        elif not evaluate_marker(marker):
+                            reqs = []
+                    extra = safe_extra(extra) or None
+                dm.setdefault(extra, []).extend(parse_requirements(reqs))
+        return dm
 
     def requires(self, extras=()):
         """List of Requirements needed for this distro if `extras` are used"""
