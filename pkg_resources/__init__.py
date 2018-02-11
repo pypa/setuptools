@@ -2687,7 +2687,7 @@ class Distribution(object):
         return self.__dep_map
 
     def _build_dep_map(self):
-        dm = {None: []}
+        dm = {}
         for name in 'requires.txt', 'depends.txt':
             for extra, reqs in split_sections(self._get_metadata(name)):
                 if extra:
