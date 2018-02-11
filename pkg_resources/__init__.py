@@ -2676,6 +2676,10 @@ class Distribution(object):
 
     @property
     def _dep_map(self):
+        """
+        A map of extra to its list of (direct) requirements
+        for this distribution, including the null extra.
+        """
         try:
             return self.__dep_map
         except AttributeError:
