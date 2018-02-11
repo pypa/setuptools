@@ -90,6 +90,21 @@ if six.PY2:
 # satisfy the linters.
 require = None
 working_set = None
+add_activation_listener = None
+resources_stream = None
+cleanup_resources = None
+resource_dir = None
+resource_stream = None
+set_extraction_path = None
+resource_isdir = None
+resource_string = None
+iter_entry_points = None
+resource_listdir = None
+resource_filename = None
+resource_exists = None
+_distribution_finders = None
+_namespace_handlers = None
+_namespace_packages = None
 
 
 class PEP440Warning(RuntimeWarning):
@@ -1074,9 +1089,12 @@ class Environment(object):
         requirements specified when this environment was created, or False
         is returned.
         """
-        return (self.python is None or dist.py_version is None
-            or dist.py_version == self.python) \
-            and compatible_platforms(dist.platform, self.platform)
+        py_compat = (
+            self.python is None
+            or dist.py_version is None
+            or dist.py_version == self.python
+        )
+        return py_compat and compatible_platforms(dist.platform, self.platform)
 
     def remove(self, dist):
         """Remove `dist` from the environment"""
@@ -1621,10 +1639,15 @@ DefaultProvider._register()
 class EmptyProvider(NullProvider):
     """Provider that returns nothing for all requests"""
 
-    _isdir = _has = lambda self, path: False
-    _get = lambda self, path: ''
-    _listdir = lambda self, path: []
     module_path = None
+
+    _isdir = _has = lambda self, path: False
+
+    def _get(self, path):
+        return ''
+
+    def _listdir(self, path):
+        return []
 
     def __init__(self):
         pass
@@ -2515,7 +2538,8 @@ def _version_from_file(lines):
     Given an iterable of lines from a Metadata file, return
     the value of the Version field, if present, or None otherwise.
     """
-    is_version_line = lambda line: line.lower().startswith('version:')
+    def is_version_line(line):
+        return line.lower().startswith('version:')
     version_lines = filter(is_version_line, lines)
     line = next(iter(version_lines), '')
     _, _, value = line.partition(':')
