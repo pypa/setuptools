@@ -571,7 +571,7 @@ project name or version identifier must be replaced with ``-``.
 Version specifiers for a given project are internally sorted into ascending
 version order, and used to establish what ranges of versions are acceptable.
 Adjacent redundant conditions are also consolidated (e.g. ``">1, >2"`` becomes
-``">1"``, and ``"<2,<3"`` becomes ``"<3"``). ``"!="`` versions are excised from
+``">2"``, and ``"<2,<3"`` becomes ``"<2"``). ``"!="`` versions are excised from
 the ranges they fall within.  A project's version is then checked for
 membership in the resulting ranges. (Note that providing conflicting conditions
 for the same version (e.g. "<2,>=2" or "==2,!=2") is meaningless and may
