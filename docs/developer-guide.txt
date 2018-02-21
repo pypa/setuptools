@@ -82,9 +82,6 @@ branches or multiple forks to maintain separate efforts.
 The Continuous Integration tests that validate every release are run
 from this repository.
 
-For posterity, the old `Bitbucket mirror
-<https://bitbucket.org/pypa/setuptools>`_ is available.
-
 -------
 Testing
 -------
