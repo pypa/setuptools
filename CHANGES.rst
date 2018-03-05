@@ -1,3 +1,9 @@
+v38.5.2
+-------
+
+* #1285: Fixed RuntimeError in pkg_resources.parse_requirements
+  on Python 3.7 (stemming from PEP 479).
+
 v38.5.1
 -------
 

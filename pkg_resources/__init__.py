@@ -3035,7 +3035,10 @@ def parse_requirements(strs):
         # If there is a line continuation, drop it, and append the next line.
         if line.endswith('\\'):
             line = line[:-2].strip()
-            line += next(lines)
+            try:
+                line += next(lines)
+            except StopIteration:
+                return
         yield Requirement(line)
 
 
