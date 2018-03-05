@@ -2,6 +2,7 @@ import glob
 import os
 import sys
 
+import pytest
 from pytest import yield_fixture
 from pytest_fixture_config import yield_requires_config
 
@@ -9,6 +10,20 @@ import pytest_virtualenv
 
 from .textwrap import DALS
 from .test_easy_install import make_nspkg_sdist
+
+
+@pytest.fixture(autouse=True)
+def pytest_virtualenv_works(virtualenv):
+    """
+    pytest_virtualenv may not work. if it doesn't, skip these
+    tests. See #1284.
+    """
+    venv_prefix = virtualenv.run(
+        'python -c "import sys; print(sys.prefix)"',
+        capture=True,
+    ).strip()
+    if venv_prefix == sys.prefix:
+        pytest.skip("virtualenv is broken (see pypa/setuptools#1284)")
 
 
 @yield_requires_config(pytest_virtualenv.CONFIG, ['virtualenv_executable'])
