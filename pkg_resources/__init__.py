@@ -1307,7 +1307,7 @@ class ResourceManager:
         target_path = os.path.join(extract_path, archive_name + '-tmp', *names)
         try:
             _bypass_ensure_directory(target_path)
-        except:
+        except Exception:
             self.extraction_error()
 
         self._warn_unsafe_extraction_path(extract_path)

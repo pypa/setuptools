@@ -154,8 +154,10 @@ class TestIndependence:
         lines = (
             'import pkg_resources',
             'import sys',
-            'assert "setuptools" not in sys.modules, '
-                '"setuptools was imported"',
+            (
+                'assert "setuptools" not in sys.modules, '
+                '"setuptools was imported"'
+            ),
         )
         cmd = [sys.executable, '-c', '; '.join(lines)]
         subprocess.check_call(cmd)

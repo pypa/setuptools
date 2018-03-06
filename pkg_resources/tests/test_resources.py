@@ -11,7 +11,8 @@ import pytest
 from pkg_resources.extern import packaging
 
 import pkg_resources
-from pkg_resources import (parse_requirements, VersionConflict, parse_version,
+from pkg_resources import (
+    parse_requirements, VersionConflict, parse_version,
     Distribution, EntryPoint, Requirement, safe_version, safe_name,
     WorkingSet)
 
@@ -51,7 +52,8 @@ class TestDistro:
         assert list(ad) == ['foopkg']
 
         # Distributions sort by version
-        assert [dist.version for dist in ad['FooPkg']] == ['1.4', '1.3-1', '1.2']
+        expected = ['1.4', '1.3-1', '1.2']
+        assert [dist.version for dist in ad['FooPkg']] == expected
 
         # Removing a distribution leaves sequence alone
         ad.remove(ad['FooPkg'][1])
@@ -97,7 +99,10 @@ class TestDistro:
     def testDistroBasics(self):
         d = Distribution(
             "/some/path",
-            project_name="FooPkg", version="1.3-1", py_version="2.4", platform="win32"
+            project_name="FooPkg",
+            version="1.3-1",
+            py_version="2.4",
+            platform="win32",
         )
         self.checkFooPkg(d)
 
@@ -113,10 +118,11 @@ class TestDistro:
 
     def testDistroMetadata(self):
         d = Distribution(
-            "/some/path", project_name="FooPkg", py_version="2.4", platform="win32",
+            "/some/path", project_name="FooPkg",
+            py_version="2.4", platform="win32",
             metadata=Metadata(
                 ('PKG-INFO', "Metadata-Version: 1.0\nVersion: 1.3-1\n")
-            )
+            ),
         )
         self.checkFooPkg(d)
 
@@ -164,7 +170,10 @@ class TestDistro:
         ad.add(Baz)
 
         # Activation list now includes resolved dependency
-        assert list(ws.resolve(parse_requirements("Foo[bar]"), ad)) == [Foo, Baz]
+        assert (
+            list(ws.resolve(parse_requirements("Foo[bar]"), ad))
+            == [Foo, Baz]
+        )
         # Requests for conflicting versions produce VersionConflict
         with pytest.raises(VersionConflict) as vc:
             ws.resolve(parse_requirements("Foo==1.2\nFoo!=1.2"), ad)
@@ -415,7 +424,8 @@ class TestEntryPoints:
 
     submap_expect = dict(
         feature1=EntryPoint('feature1', 'somemodule', ['somefunction']),
-        feature2=EntryPoint('feature2', 'another.module', ['SomeClass'], ['extra1', 'extra2']),
+        feature2=EntryPoint(
+            'feature2', 'another.module', ['SomeClass'], ['extra1', 'extra2']),
         feature3=EntryPoint('feature3', 'this.module', extras=['something'])
     )
     submap_str = """
@@ -518,11 +528,17 @@ class TestRequirements:
             Requirement.parse('setuptools').project_name == 'setuptools')
         # setuptools 0.7 and higher means setuptools.
         assert (
-            Requirement.parse('setuptools == 0.7').project_name == 'setuptools')
+            Requirement.parse('setuptools == 0.7').project_name
+            == 'setuptools'
+        )
         assert (
-            Requirement.parse('setuptools == 0.7a1').project_name == 'setuptools')
+            Requirement.parse('setuptools == 0.7a1').project_name
+            == 'setuptools'
+        )
         assert (
-            Requirement.parse('setuptools >= 0.7').project_name == 'setuptools')
+            Requirement.parse('setuptools >= 0.7').project_name
+            == 'setuptools'
+        )
 
 
 class TestParsing:
@@ -552,7 +568,7 @@ class TestParsing:
                     """
         assert (
             list(pkg_resources.split_sections(sample))
-                ==
+            ==
             [
                 (None, ["x"]),
                 ("Y", ["z", "a"]),
@@ -838,7 +854,8 @@ class TestNamespaces:
             subpkg = nspkg / 'subpkg'
             subpkg.ensure_dir()
             (nspkg / '__init__.py').write_text(self.ns_str, encoding='utf-8')
-            (subpkg / '__init__.py').write_text(vers_str % number, encoding='utf-8')
+            (subpkg / '__init__.py').write_text(
+                vers_str % number, encoding='utf-8')
 
         import nspkg.subpkg
         import nspkg
