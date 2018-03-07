@@ -54,13 +54,15 @@ from setuptools.package_index import (
 )
 from setuptools.command import bdist_egg, egg_info
 from setuptools.wheel import Wheel
-from pkg_resources import (
+from setuptools.extern.pkg_resources import (
     yield_lines, normalize_path, resource_string, ensure_directory,
     get_distribution, find_distributions, Environment, Requirement,
     Distribution, PathMetadata, EggMetadata, WorkingSet, DistributionNotFound,
     VersionConflict, DEVELOP_DIST,
 )
-import pkg_resources.py31compat
+from setuptools.extern import pkg_resources
+__import__('setuptools.extern.pkg_resources.py31compat')
+
 
 # Turn on PEP440Warnings
 warnings.filterwarnings("default", category=pkg_resources.PEP440Warning)

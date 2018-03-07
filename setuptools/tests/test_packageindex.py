@@ -7,7 +7,7 @@ import distutils.errors
 from setuptools.extern import six
 from setuptools.extern.six.moves import urllib, http_client
 
-import pkg_resources
+from setuptools.extern import pkg_resources
 import setuptools.package_index
 from setuptools.tests.server import IndexServer
 from .textwrap import DALS

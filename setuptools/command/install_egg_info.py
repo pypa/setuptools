@@ -4,7 +4,7 @@ import os
 from setuptools import Command
 from setuptools import namespaces
 from setuptools.archive_util import unpack_archive
-import pkg_resources
+from setuptools.extern import pkg_resources
 
 
 class install_egg_info(namespaces.Installer, Command):

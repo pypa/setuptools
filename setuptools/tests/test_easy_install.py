@@ -27,11 +27,11 @@ import setuptools.command.easy_install as ei
 from setuptools.command.easy_install import PthDistributions
 from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
-from pkg_resources import normalize_path, working_set
-from pkg_resources import Distribution as PRDistribution
+from setuptools.extern.pkg_resources import normalize_path, working_set
+from setuptools.extern.pkg_resources import Distribution as PRDistribution
 import setuptools.tests.server
 from setuptools.tests import fail_on_ascii
-import pkg_resources
+from setuptools.extern import pkg_resources
 
 from . import contexts
 from .textwrap import DALS

@@ -14,8 +14,8 @@ import marshal
 
 from setuptools.extern import six
 
-from pkg_resources import get_build_platform, Distribution, ensure_directory
-from pkg_resources import EntryPoint
+from setuptools.extern.pkg_resources import get_build_platform, Distribution, ensure_directory
+from setuptools.extern.pkg_resources import EntryPoint
 from setuptools.extension import Library
 from setuptools import Command
 

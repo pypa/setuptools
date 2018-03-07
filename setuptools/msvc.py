@@ -22,8 +22,8 @@ import sys
 import platform
 import itertools
 import distutils.errors
-from pkg_resources.extern.packaging.version import LegacyVersion
 
+from setuptools.extern.packaging.version import LegacyVersion
 from setuptools.extern.six.moves import filterfalse
 
 from .monkey import get_unpatched
@@ -48,7 +48,7 @@ else:
 _msvc9_suppress_errors = (
     # msvc9compiler isn't available on some platforms
     ImportError,
-    
+
     # msvc9compiler raises DistutilsPlatformError in some
     # environments. See #1118.
     distutils.errors.DistutilsPlatformError,

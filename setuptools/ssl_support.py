@@ -5,8 +5,7 @@ import re
 import functools
 
 from setuptools.extern.six.moves import urllib, http_client, map, filter
-
-from pkg_resources import ResolutionError, ExtractionError
+from setuptools.extern.pkg_resources import ResolutionError, ExtractionError
 
 try:
     import ssl

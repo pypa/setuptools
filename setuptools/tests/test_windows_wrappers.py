@@ -21,7 +21,7 @@ import subprocess
 import pytest
 
 from setuptools.command.easy_install import nt_quote_arg
-import pkg_resources
+from setuptools.extern import pkg_resources
 
 pytestmark = pytest.mark.skipif(sys.platform != 'win32', reason="Windows only")
 

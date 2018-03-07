@@ -1,8 +1,9 @@
 import os
 
 
-from pkg_resources.extern.six import binary_type
-import pkg_resources.py31compat
+from setuptools.extern.six import binary_type
+from setuptools.extern import pkg_resources
+__import__('setuptools.extern.pkg_resources.py31compat')
 
 
 def build_files(file_defs, prefix=""):

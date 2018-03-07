@@ -12,7 +12,8 @@ import textwrap
 from setuptools.extern import six
 from setuptools.extern.six.moves import builtins, map
 
-import pkg_resources.py31compat
+from setuptools.extern import pkg_resources
+from setuptools.extern.pkg_resources import py31compat
 
 if sys.platform.startswith('java'):
     import org.python.modules.posix.PosixModule as _os
@@ -23,9 +24,8 @@ try:
 except NameError:
     _file = None
 _open = open
+from setuptools.extern.pkg_resources import working_set
 from distutils.errors import DistutilsError
-from pkg_resources import working_set
-
 
 __all__ = [
     "AbstractSandbox", "DirectorySandbox", "SandboxViolation", "run_setup",
@@ -70,7 +70,7 @@ def override_temp(replacement):
     """
     Monkey-patch tempfile.tempdir with replacement, ensuring it exists
     """
-    pkg_resources.py31compat.makedirs(replacement, exist_ok=True)
+    py31compat.makedirs(replacement, exist_ok=True)
 
     saved = tempfile.tempdir
 

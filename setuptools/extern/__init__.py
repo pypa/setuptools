@@ -1,4 +1,4 @@
-from pkg_resources.extern import VendorImporter
+from .importer import VendorImporter
 
-names = 'six',
-VendorImporter(__name__, names, 'pkg_resources._vendor').install()
+names = 'pkg_resources', 'six', 'packaging', 'appdirs'
+VendorImporter(__name__, names, 'setuptools._vendor').install()

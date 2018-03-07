@@ -17,17 +17,17 @@ from distutils.util import rfc822_escape
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import map, filter, filterfalse
-from pkg_resources.extern import packaging
+from setuptools.extern import packaging
+from setuptools.extern import pkg_resources
 
 from setuptools.depends import Require
 from setuptools import windows_support
 from setuptools.monkey import get_unpatched
 from setuptools.config import parse_configuration
-import pkg_resources
 from .py36compat import Distribution_parse_config_files
 
-__import__('pkg_resources.extern.packaging.specifiers')
-__import__('pkg_resources.extern.packaging.version')
+__import__('setuptools.extern.packaging.specifiers')
+__import__('setuptools.extern.packaging.version')
 
 
 def _get_unpatched(cls):

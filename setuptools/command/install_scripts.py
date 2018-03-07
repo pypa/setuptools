@@ -3,7 +3,7 @@ import distutils.command.install_scripts as orig
 import os
 import sys
 
-from pkg_resources import Distribution, PathMetadata, ensure_directory
+from setuptools.extern.pkg_resources import Distribution, PathMetadata, ensure_directory
 
 
 class install_scripts(orig.install_scripts):

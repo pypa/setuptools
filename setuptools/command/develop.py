@@ -7,7 +7,7 @@ import io
 
 from setuptools.extern import six
 
-from pkg_resources import Distribution, PathMetadata, normalize_path
+from setuptools.extern.pkg_resources import Distribution, PathMetadata, normalize_path
 from setuptools.command.easy_install import easy_install
 from setuptools import namespaces
 import setuptools

@@ -24,13 +24,13 @@ from setuptools.command.sdist import sdist
 from setuptools.command.sdist import walk_revctrl
 from setuptools.command.setopt import edit_config
 from setuptools.command import bdist_egg
-from pkg_resources import (
+from setuptools.extern.pkg_resources import (
     parse_requirements, safe_name, parse_version,
     safe_version, yield_lines, EntryPoint, iter_entry_points, to_filename)
 import setuptools.unicode_utils as unicode_utils
 from setuptools.glob import glob
 
-from pkg_resources.extern import packaging
+from setuptools.extern import packaging
 
 
 def translate_pattern(glob):

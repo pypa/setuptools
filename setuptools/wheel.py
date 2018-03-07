@@ -7,8 +7,11 @@ import os
 import re
 import zipfile
 
-from pkg_resources import Distribution, PathMetadata, parse_version
-from pkg_resources.extern.six import PY3
+from setuptools.extern.six import PY3
+from setuptools.extern.pkg_resources import (
+    Distribution, PathMetadata, parse_version,
+)
+
 from setuptools import Distribution as SetuptoolsDistribution
 from setuptools import pep425tags
 from setuptools.command.egg_info import write_requirements

@@ -14,7 +14,7 @@ import sys
 
 import pytest
 
-from pkg_resources import Distribution, PathMetadata, PY_MAJOR
+from setuptools.extern.pkg_resources import Distribution, PathMetadata, PY_MAJOR
 from setuptools.wheel import Wheel
 
 from .contexts import tempdir

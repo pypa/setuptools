@@ -6,10 +6,10 @@ import io
 import contextlib
 
 from setuptools.extern import six
+from setuptools.extern import pkg_resources
 
 from .py36compat import sdist_add_defaults
 
-import pkg_resources
 
 _default_revctrl = list
 

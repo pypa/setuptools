@@ -10,13 +10,15 @@ import itertools
 from distutils import log
 from distutils.errors import DistutilsTemplateError
 
-import pkg_resources.py31compat
+from setuptools.extern import pkg_resources
 from setuptools.command.egg_info import FileList, egg_info, translate_pattern
 from setuptools.dist import Distribution
 from setuptools.extern import six
 from setuptools.tests.textwrap import DALS
 
 import pytest
+
+__import__('setuptools.extern.pkg_resources.py31compat')
 
 py3_only = pytest.mark.xfail(six.PY2, reason="Test runs on Python 3 only")
 

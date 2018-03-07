@@ -7,7 +7,7 @@ from setuptools.extern.six.moves import map
 
 import pytest
 
-import pkg_resources
+from setuptools.extern import pkg_resources
 from .textwrap import DALS
 
 

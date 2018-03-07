@@ -6,7 +6,7 @@ import contextlib
 import site
 
 from setuptools.extern import six
-import pkg_resources
+from setuptools.extern import pkg_resources
 
 
 @contextlib.contextmanager

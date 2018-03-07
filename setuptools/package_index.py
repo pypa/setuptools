@@ -18,7 +18,7 @@ from setuptools.extern import six
 from setuptools.extern.six.moves import urllib, http_client, configparser, map
 
 import setuptools
-from pkg_resources import (
+from setuptools.extern.pkg_resources import (
     CHECKOUT_DIST, Distribution, BINARY_DIST, normalize_path, SOURCE_DIST,
     Environment, find_distributions, safe_name, safe_version,
     to_filename, Requirement, DEVELOP_DIST, EGG_DIST,

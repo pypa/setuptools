@@ -18,8 +18,8 @@ import functools
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import http_client, urllib
+from setuptools.extern.pkg_resources import iter_entry_points
 
-from pkg_resources import iter_entry_points
 from .upload import upload
 
 
