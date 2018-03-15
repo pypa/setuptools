@@ -1,3 +1,8 @@
+v38.5.3
+-------
+
+* Support Metadata 2.1 (`PEP 566 <https://www.python.org/dev/peps/pep-0566/>`_)
+
 v38.5.2
 -------
 
