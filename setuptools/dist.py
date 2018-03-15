@@ -46,6 +46,8 @@ def write_pkg_file(self, file):
     # Setuptools specific for PEP 345
     if hasattr(self, 'python_requires') or self.project_urls:
         version = '1.2'
+    if self.long_description_content_type or self.provides_extras:
+        version = '2.1'
 
     file.write('Metadata-Version: %s\n' % version)
     file.write('Name: %s\n' % self.get_name())
@@ -59,10 +61,6 @@ def write_pkg_file(self, file):
         file.write('Download-URL: %s\n' % self.download_url)
     for project_url in self.project_urls.items():
         file.write('Project-URL: %s, %s\n' % project_url)
-
-    long_desc_content_type = \
-        self.long_description_content_type or 'UNKNOWN'
-    file.write('Description-Content-Type: %s\n' % long_desc_content_type)
 
     long_desc = rfc822_escape(self.get_long_description())
     file.write('Description: %s\n' % long_desc)
@@ -82,6 +80,16 @@ def write_pkg_file(self, file):
     # Setuptools specific for PEP 345
     if hasattr(self, 'python_requires'):
         file.write('Requires-Python: %s\n' % self.python_requires)
+
+    # PEP 566
+    if self.long_description_content_type:
+        file.write(
+            'Description-Content-Type: %s\n' %
+            self.long_description_content_type
+        )
+    if self.provides_extras:
+        for extra in self.provides_extras:
+            file.write('Provides-Extra: %s\n' % extra)
 
 
 # from Python 3.4
@@ -339,6 +347,9 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         self.metadata.long_description_content_type = attrs.get(
             'long_description_content_type'
         )
+        self.metadata.provides_extras = getattr(
+            self.metadata, 'provides_extras', set()
+        )
 
         if isinstance(self.metadata.version, numbers.Number):
             # Some people apparently take "version number" too literally :)
@@ -372,6 +383,14 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         """
         if getattr(self, 'python_requires', None):
             self.metadata.python_requires = self.python_requires
+
+        if getattr(self, 'extras_require', None):
+            for extra in self.extras_require.keys():
+                # Since this gets called multiple times at points where the
+                # keys have become 'converted' extras, ensure that we are only
+                # truly adding extras we haven't seen before here.
+                self.metadata.provides_extras.add(extra.split(':')[0])
+
         self._convert_extras_requirements()
         self._move_install_requirements_markers()
 

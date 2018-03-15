@@ -1,3 +1,8 @@
+v38.6.0
+-------
+
+* #1286: Add support for Metadata 2.1 (PEP 566).
+
 v38.5.2
 -------
 
