@@ -89,7 +89,8 @@ def write_pkg_file(self, file):
         )
     if self.provides_extras:
         for extra in self.provides_extras:
-            file.write('Provides-Extra: %s\n' % extra)
+            if extra:
+                file.write('Provides-Extra: %s\n' % extra)
 
 
 # from Python 3.4
