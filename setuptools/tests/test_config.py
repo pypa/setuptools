@@ -235,7 +235,7 @@ class TestMetadata:
 
     def test_version(self, tmpdir):
 
-        _, config = fake_env(
+        package_dir, config = fake_env(
             tmpdir,
             '[metadata]\n'
             'version = attr: fake_package.VERSION\n'
@@ -257,9 +257,35 @@ class TestMetadata:
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '1'
 
+        tmpdir.join('VERSION').write('1.2.3')
+        tmpdir.join('BUILD').write('+20180316')
+        package_dir.join('VERSION').write('3.4.5')
+
+        config.write(
+            '[metadata]\n'
+            'version = file: VERSION\n'
+        )
+        with get_dist(tmpdir) as dist:
+            assert dist.metadata.version == '1.2.3'
+
+        config.write(
+            '[metadata]\n'
+            'version = file: VERSION, BUILD\n'
+        )
+        with get_dist(tmpdir) as dist:
+            assert dist.metadata.version == '1.2.3+20180316'
+
+        config.write(
+            '[metadata]\n'
+            'version = file: fake_package/VERSION, BUILD\n'
+        )
+        with get_dist(tmpdir) as dist:
+            assert dist.metadata.version == '3.4.5+20180316'
+
         subpack = tmpdir.join('fake_package').mkdir('subpackage')
         subpack.join('__init__.py').write('')
         subpack.join('submodule.py').write('VERSION = (2016, 11, 26)')
+        subpack.join('VERSION').write('2018.3.16')
 
         config.write(
             '[metadata]\n'
@@ -267,6 +293,13 @@ class TestMetadata:
         )
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '2016.11.26'
+
+        config.write(
+            '[metadata]\n'
+            'version = file: fake_package/subpackage/VERSION\n'
+        )
+        with get_dist(tmpdir) as dist:
+            assert dist.metadata.version == '2018.3.16'
 
     def test_unknown_meta_item(self, tmpdir):
 
