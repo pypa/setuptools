@@ -1,3 +1,13 @@
+v39.0.0
+-------
+
+* #296: Removed long-deprecated support for iteration on
+  Version objects as returned by ``pkg_resources.parse_version``.
+  Removed the ``SetuptoolsVersion`` and
+  ``SetuptoolsLegacyVersion`` names as well. They should not
+  have been used, but if they were, replace with
+  ``Version`` and ``LegacyVersion`` from ``packaging.version``.
+
 v38.7.0
 -------
 
