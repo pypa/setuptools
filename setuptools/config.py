@@ -431,6 +431,8 @@ class ConfigMetadataHandler(ConfigHandler):
 
         if callable(version):
             version = version()
+        else:
+            version = self._parse_file(value)
 
         if not isinstance(version, string_types):
             if hasattr(version, '__iter__'):
