@@ -427,12 +427,14 @@ class ConfigMetadataHandler(ConfigHandler):
         :rtype: str
 
         """
+        include_directive = 'file:'
+        if value.startswith(include_directive):
+            return self._parse_file(value)
+
         version = self._parse_attr(value)
 
         if callable(version):
             version = version()
-        else:
-            version = self._parse_file(value)
 
         if not isinstance(version, string_types):
             if hasattr(version, '__iter__'):
