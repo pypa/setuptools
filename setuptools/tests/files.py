@@ -1,7 +1,7 @@
 import os
 
 
-from pkg_resources.extern.six import binary_type
+from setuptools.extern.six import binary_type
 import pkg_resources.py31compat
 
 

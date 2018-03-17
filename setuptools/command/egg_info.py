@@ -30,7 +30,7 @@ from pkg_resources import (
 import setuptools.unicode_utils as unicode_utils
 from setuptools.glob import glob
 
-from pkg_resources.extern import packaging
+from setuptools.extern import packaging
 
 
 def translate_pattern(glob):
