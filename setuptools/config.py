@@ -430,7 +430,8 @@ class ConfigMetadataHandler(ConfigHandler):
         """
         include_directive = 'file:'
         if value.startswith(include_directive):
-            return self._parse_file(value, separator='')
+            version = self._parse_file(value, separator='')
+            return ''.join(version.splitlines())
 
         version = self._parse_attr(value)
 
