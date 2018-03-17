@@ -9,11 +9,6 @@ import hashlib
 import itertools
 from functools import wraps
 
-try:
-    from urllib.parse import splituser
-except ImportError:
-    from urllib2 import splituser
-
 from setuptools.extern import six
 from setuptools.extern.six.moves import urllib, http_client, configparser, map
 
@@ -857,7 +852,7 @@ class PackageIndex(Environment):
             scheme, netloc, path, p, q, f = urllib.parse.urlparse(url)
             if not netloc and path.startswith('//') and '/' in path[2:]:
                 netloc, path = path[2:].split('/', 1)
-                auth, host = splituser(netloc)
+                auth, host = urllib.parse.splituser(netloc)
                 if auth:
                     if ':' in auth:
                         user, pw = auth.split(':', 1)
@@ -1064,7 +1059,7 @@ def open_with_auth(url, opener=urllib.request.urlopen):
         raise http_client.InvalidURL("nonnumeric port: ''")
 
     if scheme in ('http', 'https'):
-        auth, host = splituser(netloc)
+        auth, host = urllib.parse.splituser(netloc)
     else:
         auth = None
 
