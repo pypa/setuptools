@@ -438,6 +438,23 @@ class TestEggInfo(object):
         assert 'Provides-Extra: foobar' in pkg_info_lines
         assert 'Metadata-Version: 2.1' in pkg_info_lines
 
+    def test_doesnt_provides_extra(self, tmpdir_cwd, env):
+        self._setup_script_with_requires(
+            '''install_requires=["spam ; python_version<'3.3'"]''')
+        environ = os.environ.copy().update(
+            HOME=env.paths['home'],
+        )
+        environment.run_setup_py(
+            cmd=['egg_info'],
+            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
+            data_stream=1,
+            env=environ,
+        )
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
+        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+            pkg_info_text = pkginfo_file.read()
+        assert 'Provides-Extra:' not in pkg_info_text
+
     def test_long_description_content_type(self, tmpdir_cwd, env):
         # Test that specifying a `long_description_content_type` keyword arg to
         # the `setup` function results in writing a `Description-Content-Type`

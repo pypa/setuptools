@@ -413,7 +413,9 @@ class Distribution(Distribution_parse_config_files, _Distribution):
                 # Since this gets called multiple times at points where the
                 # keys have become 'converted' extras, ensure that we are only
                 # truly adding extras we haven't seen before here.
-                self.metadata.provides_extras.add(extra.split(':')[0])
+                extra = extra.split(':')[0]
+                if extra:
+                    self.metadata.provides_extras.add(extra)
 
         self._convert_extras_requirements()
         self._move_install_requirements_markers()

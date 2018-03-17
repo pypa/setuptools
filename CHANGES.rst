@@ -1,3 +1,9 @@
+v38.6.1
+-------
+
+* #1292: Avoid generating ``Provides-Extra`` in metadata when
+  no extra is present (but environment markers are).
+
 v38.6.0
 -------
 
