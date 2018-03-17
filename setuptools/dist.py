@@ -14,6 +14,7 @@ from distutils.errors import (
     DistutilsOptionError, DistutilsPlatformError, DistutilsSetupError,
 )
 from distutils.util import rfc822_escape
+from distutils.version import StrictVersion
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import map, filter, filterfalse
@@ -34,28 +35,46 @@ def _get_unpatched(cls):
     warnings.warn("Do not call this function", DeprecationWarning)
     return get_unpatched(cls)
 
+def get_metadata_version(dist_md):
+    if dist_md.long_description_content_type or dist_md.provides_extras:
+        return StrictVersion('2.1')
+    elif getattr(dist_md, 'python_requires', None) is not None:
+        return StrictVersion('1.2')
+    elif (dist_md.provides or dist_md.requires or dist_md.obsoletes or
+            dist_md.classifiers or dist_md.download_url):
+        return StrictVersion('1.1')
+
+    return StrictVersion('1.0')
+
 
 # Based on Python 3.5 version
 def write_pkg_file(self, file):
     """Write the PKG-INFO format data to a file object.
     """
-    version = '1.0'
-    if (self.provides or self.requires or self.obsoletes or
-            self.classifiers or self.download_url):
-        version = '1.1'
-    # Setuptools specific for PEP 345
-    if hasattr(self, 'python_requires') or self.project_urls:
-        version = '1.2'
-    if self.long_description_content_type or self.provides_extras:
-        version = '2.1'
+    version = get_metadata_version(self)
 
     file.write('Metadata-Version: %s\n' % version)
     file.write('Name: %s\n' % self.get_name())
     file.write('Version: %s\n' % self.get_version())
     file.write('Summary: %s\n' % self.get_description())
     file.write('Home-page: %s\n' % self.get_url())
-    file.write('Author: %s\n' % self.get_contact())
-    file.write('Author-email: %s\n' % self.get_contact_email())
+
+    if version == '1.2':
+        file.write('Author: %s\n' % self.get_contact())
+        file.write('Author-email: %s\n' % self.get_contact_email())
+    else:
+        optional_fields = (
+            ('Author', 'author'),
+            ('Author-email', 'author_email'),
+            ('Maintainer', 'maintainer'),
+            ('Maintainer-email', 'maintainer_email'),
+        )
+
+        for field, attr in optional_fields:
+            attr_val = getattr(self, attr)
+            if attr_val is not None:
+                file.write('%s: %s\n' % (field, attr_val))
+
     file.write('License: %s\n' % self.get_license())
     if self.download_url:
         file.write('Download-URL: %s\n' % self.download_url)
@@ -69,7 +88,12 @@ def write_pkg_file(self, file):
     if keywords:
         file.write('Keywords: %s\n' % keywords)
 
-    self._write_list(file, 'Platform', self.get_platforms())
+    if version == '1.2':
+        for platform in self.get_platforms():
+            file.write('Platform: %s\n' % platform)
+    else:
+        self._write_list(file, 'Platform', self.get_platforms())
+
     self._write_list(file, 'Classifier', self.get_classifiers())
 
     # PEP 314

@@ -1,3 +1,8 @@
+v38.7.0
+-------
+
+* #1288: Add support for maintainer in PKG-INFO.
+
 v38.6.1
 -------
 
