@@ -2,7 +2,6 @@
 from setuptools import Distribution
 from setuptools.extern.six.moves.urllib.request import pathname2url
 from setuptools.extern.six.moves.urllib_parse import urljoin
-from setuptools.extern.six import StringIO
 
 from .textwrap import DALS
 from .test_easy_install import make_nspkg_sdist
@@ -85,15 +84,15 @@ def __maintainer_test_cases():
             {'author_email': 'author@name.com',
              'maintainer_email': 'maintainer@name.com'})),
         ('Author unicode', merge_dicts(attrs,
-            {'author': '鉄沢寛'})),
+            {'author': u'鉄沢寛'})),
         ('Maintainer unicode', merge_dicts(attrs,
-            {'maintainer': 'Jan Łukasiewicz'})),
+            {'maintainer': u'Jan Łukasiewicz'})),
     ]
 
     return test_cases
 
 @pytest.mark.parametrize('name,attrs', __maintainer_test_cases())
-def test_maintainer_author(name, attrs):
+def test_maintainer_author(name, attrs, tmpdir):
     tested_keys = {
         'author': 'Author',
         'author_email': 'Author-email',
@@ -103,11 +102,14 @@ def test_maintainer_author(name, attrs):
 
     # Generate a PKG-INFO file
     dist = Distribution(attrs)
-    PKG_INFO = StringIO()
-    dist.metadata.write_pkg_file(PKG_INFO)
-    PKG_INFO.seek(0)
+    fn = tmpdir.mkdir('pkg_info')
+    fn_s = str(fn)
 
-    pkg_lines = PKG_INFO.readlines()
+    dist.metadata.write_pkg_info(fn_s)
+
+    with open(str(fn.join('PKG-INFO')), 'r') as f:
+        pkg_lines = f.readlines()
+
     pkg_lines = [_ for _ in pkg_lines if _]   # Drop blank lines
     pkg_lines_set = set(pkg_lines)
 
