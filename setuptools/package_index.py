@@ -23,6 +23,7 @@ from distutils import log
 from distutils.errors import DistutilsError
 from fnmatch import translate
 from setuptools.py27compat import get_all_headers
+from setuptools.py33compat import unescape
 from setuptools.wheel import Wheel
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.+!]+)$')
@@ -931,23 +932,9 @@ class PackageIndex(Environment):
 entity_sub = re.compile(r'&(#(\d+|x[\da-fA-F]+)|[\w.:-]+);?').sub
 
 
-def uchr(c):
-    if not isinstance(c, int):
-        return c
-    if c > 255:
-        return six.unichr(c)
-    return chr(c)
-
-
 def decode_entity(match):
     what = match.group(1)
-    if what.startswith('#x'):
-        what = int(what[2:], 16)
-    elif what.startswith('#'):
-        what = int(what[1:])
-    else:
-        what = six.moves.html_entities.name2codepoint.get(what, match.group(0))
-    return uchr(what)
+    return unescape(what)
 
 
 def htmldecode(text):
