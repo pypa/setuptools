@@ -885,6 +885,14 @@ Also notice that if you use paths, you *must* use a forward slash (``/``) as
 the path separator, even if you are on Windows.  Setuptools automatically
 converts slashes to appropriate platform-specific separators at build time.
 
+If datafiles are contained in a subdirectory of a package that isn't a package
+itself (no ``__init__.py``), then the subdirectory names (or ``*``) are required
+in the ``package_data`` argument (as shown above with ``'data/*.dat'``).
+
+When building an ``sdist``, the datafiles are also drawn from the
+``package_name.egg-info/SOURCES.txt`` file, so make sure that this is removed if
+the ``setup.py`` ``package_data`` list is updated before calling ``setup.py``.
+
 (Note: although the ``package_data`` argument was previously only available in
 ``setuptools``, it was also added to the Python ``distutils`` package as of
 Python 2.4; there is `some documentation for the feature`__ available on the
@@ -926,7 +934,7 @@ In summary, the three options allow you to:
     Accept all data files and directories matched by ``MANIFEST.in``.
 
 ``package_data``
-    Specify additional patterns to match files and directories that may or may
+    Specify additional patterns to match files that may or may
     not be matched by ``MANIFEST.in`` or found in source control.
 
 ``exclude_package_data``

@@ -9,11 +9,6 @@ import hashlib
 import itertools
 from functools import wraps
 
-try:
-    from urllib.parse import splituser
-except ImportError:
-    from urllib2 import splituser
-
 from setuptools.extern import six
 from setuptools.extern.six.moves import urllib, http_client, configparser, map
 
@@ -28,6 +23,7 @@ from distutils import log
 from distutils.errors import DistutilsError
 from fnmatch import translate
 from setuptools.py27compat import get_all_headers
+from setuptools.py33compat import unescape
 from setuptools.wheel import Wheel
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.+!]+)$')
@@ -857,7 +853,7 @@ class PackageIndex(Environment):
             scheme, netloc, path, p, q, f = urllib.parse.urlparse(url)
             if not netloc and path.startswith('//') and '/' in path[2:]:
                 netloc, path = path[2:].split('/', 1)
-                auth, host = splituser(netloc)
+                auth, host = urllib.parse.splituser(netloc)
                 if auth:
                     if ':' in auth:
                         user, pw = auth.split(':', 1)
@@ -936,23 +932,9 @@ class PackageIndex(Environment):
 entity_sub = re.compile(r'&(#(\d+|x[\da-fA-F]+)|[\w.:-]+);?').sub
 
 
-def uchr(c):
-    if not isinstance(c, int):
-        return c
-    if c > 255:
-        return six.unichr(c)
-    return chr(c)
-
-
 def decode_entity(match):
     what = match.group(1)
-    if what.startswith('#x'):
-        what = int(what[2:], 16)
-    elif what.startswith('#'):
-        what = int(what[1:])
-    else:
-        what = six.moves.html_entities.name2codepoint.get(what, match.group(0))
-    return uchr(what)
+    return unescape(what)
 
 
 def htmldecode(text):
@@ -1064,7 +1046,7 @@ def open_with_auth(url, opener=urllib.request.urlopen):
         raise http_client.InvalidURL("nonnumeric port: ''")
 
     if scheme in ('http', 'https'):
-        auth, host = splituser(netloc)
+        auth, host = urllib.parse.splituser(netloc)
     else:
         auth = None
 

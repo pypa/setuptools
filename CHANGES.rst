@@ -1,3 +1,32 @@
+v39.0.0
+-------
+
+* #1296: Setuptools now vendors its own direct dependencies, no
+  longer relying on the dependencies as vendored by pkg_resources.
+
+* #296: Removed long-deprecated support for iteration on
+  Version objects as returned by ``pkg_resources.parse_version``.
+  Removed the ``SetuptoolsVersion`` and
+  ``SetuptoolsLegacyVersion`` names as well. They should not
+  have been used, but if they were, replace with
+  ``Version`` and ``LegacyVersion`` from ``packaging.version``.
+
+v38.7.0
+-------
+
+* #1288: Add support for maintainer in PKG-INFO.
+
+v38.6.1
+-------
+
+* #1292: Avoid generating ``Provides-Extra`` in metadata when
+  no extra is present (but environment markers are).
+
+v38.6.0
+-------
+
+* #1286: Add support for Metadata 2.1 (PEP 566).
+
 v38.5.2
 -------
 

@@ -45,8 +45,8 @@ def _gen_console_scripts():
     )
     if any(os.environ.get(var) not in (None, "", "0") for var in var_names):
         return
-    yield ("easy_install-{shortver} = setuptools.command.easy_install:main"
-        .format(shortver=sys.version[:3]))
+    tmpl = "easy_install-{shortver} = setuptools.command.easy_install:main"
+    yield tmpl.format(shortver=sys.version[:3])
 
 
 readme_path = os.path.join(here, 'README.rst')
@@ -89,9 +89,11 @@ def pypi_link(pkg_filename):
 
 setup_params = dict(
     name="setuptools",
-    version="38.5.2",
-    description="Easily download, build, install, upgrade, and uninstall "
-        "Python packages",
+    version="38.7.0",
+    description=(
+        "Easily download, build, install, upgrade, and uninstall "
+        "Python packages"
+    ),
     author="Python Packaging Authority",
     author_email="distutils-sig@python.org",
     long_description=long_description,
@@ -139,7 +141,10 @@ setup_params = dict(
             "requires.txt = setuptools.command.egg_info:write_requirements",
             "entry_points.txt = setuptools.command.egg_info:write_entries",
             "eager_resources.txt = setuptools.command.egg_info:overwrite_arg",
-            "namespace_packages.txt = setuptools.command.egg_info:overwrite_arg",
+            (
+                "namespace_packages.txt = "
+                "setuptools.command.egg_info:overwrite_arg"
+            ),
             "top_level.txt = setuptools.command.egg_info:write_toplevel_names",
             "depends.txt = setuptools.command.egg_info:warn_depends_obsolete",
             "dependency_links.txt = setuptools.command.egg_info:overwrite_arg",
