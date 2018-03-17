@@ -1,6 +1,9 @@
 v39.0.0
 -------
 
+* #1296: Setuptools now vendors its own direct dependencies, no
+  longer relying on the dependencies as vendored by pkg_resources.
+
 * #296: Removed long-deprecated support for iteration on
   Version objects as returned by ``pkg_resources.parse_version``.
   Removed the ``SetuptoolsVersion`` and
