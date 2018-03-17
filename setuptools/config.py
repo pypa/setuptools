@@ -237,7 +237,7 @@ class ConfigHandler(object):
         return value in ('1', 'true', 'yes')
 
     @classmethod
-    def _parse_file(cls, value):
+    def _parse_file(cls, value, separator='\n'):
         """Represents value as a string, allowing including text
         from nearest files using `file:` directive.
 
@@ -249,6 +249,7 @@ class ConfigHandler(object):
             file: README.rst, CHANGELOG.md, src/file.txt
 
         :param str value:
+        :param str separator:
         :rtype: str
         """
         include_directive = 'file:'
@@ -261,7 +262,7 @@ class ConfigHandler(object):
 
         spec = value[len(include_directive):]
         filepaths = (os.path.abspath(path.strip()) for path in spec.split(','))
-        return '\n'.join(
+        return separator.join(
             cls._read_file(path)
             for path in filepaths
             if (cls._assert_local(path) or True)
@@ -429,7 +430,7 @@ class ConfigMetadataHandler(ConfigHandler):
         """
         include_directive = 'file:'
         if value.startswith(include_directive):
-            return self._parse_file(value)
+            return self._parse_file(value, separator='')
 
         version = self._parse_attr(value)
 
