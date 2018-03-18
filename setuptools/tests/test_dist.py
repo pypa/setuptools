@@ -127,7 +127,9 @@ def test_maintainer_author(name, attrs, tmpdir):
     with io.open(str(fn.join('PKG-INFO')), 'r', encoding='utf-8') as f:
         pkg_lines = f.readlines()
 
-    pkg_lines = [_ for _ in pkg_lines if _]   # Drop blank lines
+    # Drop blank lines
+    pkg_lines = list(filter(None, pkg_lines))
+
     pkg_lines_set = set(pkg_lines)
 
     # Duplicate lines should not be generated
