@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 __all__ = ['Distribution']
 
 import re
@@ -35,10 +36,13 @@ def _get_unpatched(cls):
     warnings.warn("Do not call this function", DeprecationWarning)
     return get_unpatched(cls)
 
+
 def get_metadata_version(dist_md):
     if dist_md.long_description_content_type or dist_md.provides_extras:
         return StrictVersion('2.1')
-    elif getattr(dist_md, 'python_requires', None) is not None:
+    elif (dist_md.maintainer is not None or
+          dist_md.maintainer_email is not None or
+          getattr(dist_md, 'python_requires', None) is not None):
         return StrictVersion('1.2')
     elif (dist_md.provides or dist_md.requires or dist_md.obsoletes or
             dist_md.classifiers or dist_md.download_url):
@@ -59,7 +63,7 @@ def write_pkg_file(self, file):
     file.write('Summary: %s\n' % self.get_description())
     file.write('Home-page: %s\n' % self.get_url())
 
-    if version == '1.2':
+    if version < StrictVersion('1.2'):
         file.write('Author: %s\n' % self.get_contact())
         file.write('Author-email: %s\n' % self.get_contact_email())
     else:
@@ -72,6 +76,9 @@ def write_pkg_file(self, file):
 
         for field, attr in optional_fields:
             attr_val = getattr(self, attr)
+            if six.PY2:
+                attr_val = self._encode_field(attr_val)
+
             if attr_val is not None:
                 file.write('%s: %s\n' % (field, attr_val))
 
@@ -88,7 +95,7 @@ def write_pkg_file(self, file):
     if keywords:
         file.write('Keywords: %s\n' % keywords)
 
-    if version == '1.2':
+    if version >= StrictVersion('1.2'):
         for platform in self.get_platforms():
             file.write('Platform: %s\n' % platform)
     else:
@@ -556,7 +563,7 @@ class Distribution(Distribution_parse_config_files, _Distribution):
                 # don't use any other settings
                 'find_links', 'site_dirs', 'index_url',
                 'optimize', 'site_dirs', 'allow_hosts',
-        ))
+            ))
         if self.dependency_links:
             links = self.dependency_links[:]
             if 'find_links' in opts:
