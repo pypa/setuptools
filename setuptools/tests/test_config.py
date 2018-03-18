@@ -257,9 +257,9 @@ class TestMetadata:
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '1'
 
-        tmpdir.join('VERSION').write('1.2.3')
-        tmpdir.join('BUILD').write('+20180316')
-        package_dir.join('VERSION').write('3.4.5')
+        tmpdir.join('VERSION').write('1.2.3\n')
+        tmpdir.join('BUILD').write('+20180316\n')
+        package_dir.join('VERSION').write('3.4.5\r\n')
 
         config.write(
             '[metadata]\n'
