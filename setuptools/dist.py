@@ -123,15 +123,6 @@ def write_pkg_file(self, file):
             file.write('Provides-Extra: %s\n' % extra)
 
 
-# from Python 3.4
-def write_pkg_info(self, base_dir):
-    """Write the PKG-INFO file into the release tree.
-    """
-    with open(os.path.join(base_dir, 'PKG-INFO'), 'w',
-              encoding='UTF-8') as pkg_info:
-        self.write_pkg_file(pkg_info)
-
-
 sequence = tuple, list
 
 
