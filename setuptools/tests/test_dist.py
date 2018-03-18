@@ -2,6 +2,8 @@
 
 from __future__ import unicode_literals
 
+import io
+
 from setuptools import Distribution
 from setuptools.extern.six.moves.urllib.request import pathname2url
 from setuptools.extern.six.moves.urllib_parse import urljoin
@@ -122,7 +124,7 @@ def test_maintainer_author(name, attrs, tmpdir):
 
     dist.metadata.write_pkg_info(fn_s)
 
-    with open(str(fn.join('PKG-INFO')), 'r') as f:
+    with io.open(str(fn.join('PKG-INFO')), 'r', encoding='utf-8') as f:
         pkg_lines = f.readlines()
 
     pkg_lines = [_ for _ in pkg_lines if _]   # Drop blank lines
