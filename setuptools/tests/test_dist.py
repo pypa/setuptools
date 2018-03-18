@@ -125,10 +125,10 @@ def test_maintainer_author(name, attrs, tmpdir):
     dist.metadata.write_pkg_info(fn_s)
 
     with io.open(str(fn.join('PKG-INFO')), 'r', encoding='utf-8') as f:
-        pkg_lines = f.readlines()
+        raw_pkg_lines = f.readlines()
 
     # Drop blank lines
-    pkg_lines = list(filter(None, pkg_lines))
+    pkg_lines = list(filter(None, raw_pkg_lines))
 
     pkg_lines_set = set(pkg_lines)
 
