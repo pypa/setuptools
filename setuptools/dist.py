@@ -36,6 +36,7 @@ def _get_unpatched(cls):
     warnings.warn("Do not call this function", DeprecationWarning)
     return get_unpatched(cls)
 
+
 def get_metadata_version(dist_md):
     if dist_md.long_description_content_type or dist_md.provides_extras:
         return StrictVersion('2.1')
@@ -76,7 +77,7 @@ def write_pkg_file(self, file):
         for field, attr in optional_fields:
             attr_val = getattr(self, attr)
             if six.PY2:
-               attr_val = self._encode_field(attr_val)
+                attr_val = self._encode_field(attr_val)
 
             if attr_val is not None:
                 file.write('%s: %s\n' % (field, attr_val))
@@ -562,7 +563,7 @@ class Distribution(Distribution_parse_config_files, _Distribution):
                 # don't use any other settings
                 'find_links', 'site_dirs', 'index_url',
                 'optimize', 'site_dirs', 'allow_hosts',
-        ))
+            ))
         if self.dependency_links:
             links = self.dependency_links[:]
             if 'find_links' in opts:
