@@ -51,7 +51,7 @@ def get_metadata_version(dist_md):
 
 
 # Based on Python 3.5 version
-def write_pkg_file(self, file, is_test=False):
+def write_pkg_file(self, file):
     """Write the PKG-INFO format data to a file object.
     """
     version = get_metadata_version(self)
