@@ -1,3 +1,9 @@
+v39.0.1
+-------
+
+* #1297: Restore Unicode handling for Maintainer fields in
+  metadata.
+
 v39.0.0
 -------
 
