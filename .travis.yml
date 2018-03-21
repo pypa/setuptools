@@ -10,14 +10,19 @@ python:
 - nightly
 - pypy
 - pypy3
+env:
+    TOXENV=py
 
 jobs:
   fast_finish: true
   include:
   - python: *latest_py3
-    env: LANG=C
+    env: &cenv
+        global:
+            - LANG=C
+            - TOXENV=py
   - python: *latest_py2
-    env: LANG=C
+    env: *cenv
   - stage: deploy (to PyPI for tagged commits)
     if: tag IS present
     python: *latest_py3
@@ -49,3 +54,6 @@ install:
 - python bootstrap.py
 
 script: tox
+
+after_success:
+    - if [[ $TOXENV == "py" ]]; then tox -e coverage; fi
