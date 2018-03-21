@@ -74,7 +74,7 @@ def write_pkg_file(self, file):
             ('Maintainer-email', 'maintainer_email'),
         )
 
-        for field, attr in optional_fields:
+        for field, attr in sorted(optional_fields):
             attr_val = getattr(self, attr)
             if six.PY2:
                 attr_val = self._encode_field(attr_val)
@@ -85,7 +85,7 @@ def write_pkg_file(self, file):
     file.write('License: %s\n' % self.get_license())
     if self.download_url:
         file.write('Download-URL: %s\n' % self.download_url)
-    for project_url in self.project_urls.items():
+    for project_url in sorted(self.project_urls.items()):
         file.write('Project-URL: %s, %s\n' % project_url)
 
     long_desc = rfc822_escape(self.get_long_description())
@@ -96,17 +96,17 @@ def write_pkg_file(self, file):
         file.write('Keywords: %s\n' % keywords)
 
     if version >= StrictVersion('1.2'):
-        for platform in self.get_platforms():
+        for platform in sorted(self.get_platforms()):
             file.write('Platform: %s\n' % platform)
     else:
-        self._write_list(file, 'Platform', self.get_platforms())
+        self._write_list(file, 'Platform', sorted(self.get_platforms()))
 
-    self._write_list(file, 'Classifier', self.get_classifiers())
+    self._write_list(file, 'Classifier', sorted(self.get_classifiers()))
 
     # PEP 314
-    self._write_list(file, 'Requires', self.get_requires())
-    self._write_list(file, 'Provides', self.get_provides())
-    self._write_list(file, 'Obsoletes', self.get_obsoletes())
+    self._write_list(file, 'Requires', sorted(self.get_requires()))
+    self._write_list(file, 'Provides', sorted(self.get_provides()))
+    self._write_list(file, 'Obsoletes', sorted(self.get_obsoletes()))
 
     # Setuptools specific for PEP 345
     if hasattr(self, 'python_requires'):
@@ -119,7 +119,7 @@ def write_pkg_file(self, file):
             self.long_description_content_type
         )
     if self.provides_extras:
-        for extra in self.provides_extras:
+        for extra in sorted(self.provides_extras):
             file.write('Provides-Extra: %s\n' % extra)
 
 
