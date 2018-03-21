@@ -1,6 +1,6 @@
 environment:
 
-  APPVEYOR: true
+  APPVEYOR: True
 
   matrix:
     - PYTHON: "C:\\Python35-x64"
@@ -20,6 +20,10 @@ cache:
 test_script:
   - "python bootstrap.py"
   - "python -m pip install tox"
-  - "tox"
+  - "tox -e py"
+
+after_test:
+    - tox -e coverage,codecov
 
 version: '{build}'
+
