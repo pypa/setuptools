@@ -56,4 +56,5 @@ install:
 script: tox
 
 after_success:
-    - if [[ $TOXENV == "py" ]]; then tox -e coverage; fi
+    - if [[ $TOXENV == "py" ]]; then tox -e coverage,codecov; fi
+
