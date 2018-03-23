@@ -9,7 +9,6 @@ python:
 - &latest_py3 3.6
 - nightly
 - pypy
-- pypy3
 env:
     TOXENV=py
 
@@ -23,6 +22,10 @@ jobs:
             - TOXENV=py
   - python: *latest_py2
     env: *cenv
+  - python: pypy3
+    # Running coverage breaks the pypy3 build on Travis only.
+    # Until that's fixed the pypy3 build needs to be run without coverage
+    script: tox -e py -- $TRAVIS_BUILD_DIR
   - stage: deploy (to PyPI for tagged commits)
     if: tag IS present
     python: *latest_py3
