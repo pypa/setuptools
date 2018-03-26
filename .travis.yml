@@ -8,29 +8,20 @@ python:
 - 3.5
 - &latest_py3 3.6
 - nightly
-- pypy
-env:
-    TOXENV=py
 
 jobs:
   fast_finish: true
   include:
   - python: *latest_py3
-    env: &cenv
-        global:
-            - LANG=C
-            - TOXENV=py
+    env: LANG=C
   - python: *latest_py2
-    env: *cenv
-  - python: pypy3
-    # Running coverage breaks the pypy3 build on Travis only.
-    # Until that's fixed the pypy3 build needs to be run without coverage
-    script: tox -e py -- $TRAVIS_BUILD_DIR
+    env: LANG=C
   - stage: deploy (to PyPI for tagged commits)
     if: tag IS present
     python: *latest_py3
     install: skip
     script: skip
+    after_success: skip
     before_deploy: python bootstrap.py
     deploy:
       provider: pypi
@@ -43,6 +34,13 @@ jobs:
       distributions: release
       skip_cleanup: true
       skip_upload_docs: true
+  # Don't run coverage on pypy.
+  - python: pypy
+    script: tox
+    after_success: skip
+  - python: pypy3
+    script: tox
+    after_success: skip
 
 cache: pip
 
@@ -56,8 +54,6 @@ install:
 # update egg_info based on setup.py in checkout
 - python bootstrap.py
 
-script: tox
+script: tox -- --cov
 
-after_success:
-    - if [[ $TOXENV == "py" ]]; then tox -e coverage,codecov; fi
-
+after_success: env TRAVIS_JOB_NAME="${TRAVIS_PYTHON_VERSION} (LANG=$LANG)" CODECOV_ENV=TRAVIS_JOB_NAME tox -e coverage,codecov
