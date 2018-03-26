@@ -245,6 +245,18 @@ class TestEggInfo(object):
         ''',
 
         '''
+        install_requires_ordered
+
+        install_requires=["fake-factory>=1.12.3,!=2.0"]
+
+        [options]
+        install_requires =
+            fake-factory>=1.12.3,!=2.0
+
+        fake-factory!=2.0,>=1.12.3
+        ''',
+
+        '''
         install_requires_with_marker
 
         install_requires=["barbazquux;{mismatch_marker}"],
