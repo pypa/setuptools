@@ -161,11 +161,9 @@ WHEEL_INSTALL_TESTS = (
             '''
             foo-1.0-py{py_version}.egg/
             |-- EGG-INFO/
-            |  |-- DESCRIPTION.rst
             |  |-- PKG-INFO
             |  |-- RECORD
             |  |-- WHEEL
-            |  |-- metadata.json
             |  |-- top_level.txt
             |-- foo/
             |  |-- __init__.py
@@ -196,11 +194,9 @@ WHEEL_INSTALL_TESTS = (
             '''
             foo-1.0-py{py_version}.egg/
             |-- EGG-INFO/
-            |  |-- DESCRIPTION.rst
             |  |-- PKG-INFO
             |  |-- RECORD
             |  |-- WHEEL
-            |  |-- metadata.json
             |  |-- top_level.txt
             |-- data_dir/
             |  |-- data.txt
@@ -267,11 +263,9 @@ WHEEL_INSTALL_TESTS = (
             foo-1.0-py{py_version}-{platform}.egg/
             |-- extension{shlib_ext}
             |-- EGG-INFO/
-            |  |-- DESCRIPTION.rst
             |  |-- PKG-INFO
             |  |-- RECORD
             |  |-- WHEEL
-            |  |-- metadata.json
             |  |-- top_level.txt
             '''
         ),
@@ -293,11 +287,9 @@ WHEEL_INSTALL_TESTS = (
             foo-1.0-py{py_version}.egg/
             |-- header.h
             |-- EGG-INFO/
-            |  |-- DESCRIPTION.rst
             |  |-- PKG-INFO
             |  |-- RECORD
             |  |-- WHEEL
-            |  |-- metadata.json
             |  |-- top_level.txt
             '''
         ),
@@ -326,11 +318,9 @@ WHEEL_INSTALL_TESTS = (
             '''
             foo-1.0-py{py_version}.egg/
             |-- EGG-INFO/
-            |  |-- DESCRIPTION.rst
             |  |-- PKG-INFO
             |  |-- RECORD
             |  |-- WHEEL
-            |  |-- metadata.json
             |  |-- top_level.txt
             |  |-- scripts/
             |  |  |-- script.py
@@ -346,11 +336,9 @@ WHEEL_INSTALL_TESTS = (
             '''
             foo-1.0-py{py_version}.egg/
             |-- EGG-INFO/
-            |  |-- DESCRIPTION.rst
             |  |-- PKG-INFO
             |  |-- RECORD
             |  |-- WHEEL
-            |  |-- metadata.json
             |  |-- requires.txt
             |  |-- top_level.txt
             '''),
@@ -430,11 +418,9 @@ WHEEL_INSTALL_TESTS = (
             foo-1.0-py{py_version}.egg/
             |-- foo-1.0-py{py_version}-nspkg.pth
             |-- EGG-INFO/
-            |  |-- DESCRIPTION.rst
             |  |-- PKG-INFO
             |  |-- RECORD
             |  |-- WHEEL
-            |  |-- metadata.json
             |  |-- namespace_packages.txt
             |  |-- top_level.txt
             |-- foo/
@@ -466,11 +452,9 @@ WHEEL_INSTALL_TESTS = (
             '''
             foo-1.0-py{py_version}.egg/
             |-- EGG-INFO/
-            |  |-- DESCRIPTION.rst
             |  |-- PKG-INFO
             |  |-- RECORD
             |  |-- WHEEL
-            |  |-- metadata.json
             |  |-- top_level.txt
             |-- foo/
             |  |-- __init__.py
