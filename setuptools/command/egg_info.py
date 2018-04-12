@@ -333,7 +333,7 @@ class FileList(_FileList):
             self.debug_print("exclude " + ' '.join(patterns))
             for pattern in patterns:
                 if not self.exclude(pattern):
-                    log.warn(("warning: no previously-included files "
+                    log.warn(("warning: no to-exclude files "
                               "found matching '%s'"), pattern)
 
         elif action == 'global-include':
@@ -347,7 +347,7 @@ class FileList(_FileList):
             self.debug_print("global-exclude " + ' '.join(patterns))
             for pattern in patterns:
                 if not self.global_exclude(pattern):
-                    log.warn(("warning: no previously-included files matching "
+                    log.warn(("warning: no to-exclude files matching "
                               "'%s' found anywhere in distribution"),
                              pattern)
 
@@ -365,7 +365,7 @@ class FileList(_FileList):
                              (dir, ' '.join(patterns)))
             for pattern in patterns:
                 if not self.recursive_exclude(dir, pattern):
-                    log.warn(("warning: no previously-included files matching "
+                    log.warn(("warning: no to-exclude files matching "
                               "'%s' found under directory '%s'"),
                              pattern, dir)
 
@@ -378,7 +378,7 @@ class FileList(_FileList):
         elif action == 'prune':
             self.debug_print("prune " + dir_pattern)
             if not self.prune(dir_pattern):
-                log.warn(("no previously-included directories found "
+                log.warn(("no to-prune directories found "
                           "matching '%s'"), dir_pattern)
 
         else:
