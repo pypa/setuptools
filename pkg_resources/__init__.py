@@ -1312,9 +1312,9 @@ def get_default_cache():
 def safe_name(name):
     """Convert an arbitrary string to a standard distribution name
 
-    Any runs of non-alphanumeric/. characters are replaced with a single '-'.
+    Any runs of non-alphanumeric characters are replaced with a single '-'.
     """
-    return re.sub('[^A-Za-z0-9.]+', '-', name)
+    return re.sub('[^A-Za-z0-9]+', '-', name)
 
 
 def safe_version(version):
