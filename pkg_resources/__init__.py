@@ -2220,7 +2220,15 @@ register_namespace_handler(object, null_ns_handler)
 
 def normalize_path(filename):
     """Normalize a file/dir name for comparison purposes"""
-    return os.path.normcase(os.path.realpath(filename))
+    if sys.platform == 'cygwin':
+      # This results in a call to getcwd() if `filename` is relative. Contrary
+      # to POSIX 2008 on Cygwin getcwd (3) contains symlink components. Using
+      # os.path.abspath() works around this limitation. A fix in os.getcwd()
+      # would probably better, in Cygwin even more so except that this seems
+      # to be by design...
+      return os.path.normcase(os.path.realpath(os.path.abspath(filename)))
+    else:
+      return os.path.normcase(os.path.realpath(filename))
 
 
 def _normalize_cached(filename, _cache={}):
