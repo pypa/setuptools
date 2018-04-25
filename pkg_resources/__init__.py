@@ -1518,12 +1518,10 @@ class DefaultProvider(EggProvider):
 
     @classmethod
     def _register(cls):
-        loader_cls = getattr(
-            importlib_machinery,
-            'SourceFileLoader',
-            type(None),
-        )
-        register_loader_type(loader_cls, cls)
+        loader_names = 'SourceFileLoader',
+        for name in loader_names:
+            loader_cls = getattr(importlib_machinery, name, type(None))
+            register_loader_type(loader_cls, cls)
 
 
 DefaultProvider._register()
