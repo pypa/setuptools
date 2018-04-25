@@ -1,3 +1,9 @@
+v39.1.0
+-------
+
+* #1337: In ``pkg_resources``, now support loading resources
+  for modules loaded by the ``SourcelessFileLoader``.
+
 v39.0.1
 -------
 

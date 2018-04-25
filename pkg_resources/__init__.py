@@ -1518,7 +1518,7 @@ class DefaultProvider(EggProvider):
 
     @classmethod
     def _register(cls):
-        loader_names = 'SourceFileLoader',
+        loader_names = 'SourceFileLoader', 'SourcelessFileLoader',
         for name in loader_names:
             loader_cls = getattr(importlib_machinery, name, type(None))
             register_loader_type(loader_cls, cls)
