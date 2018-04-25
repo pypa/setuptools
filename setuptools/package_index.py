@@ -898,9 +898,10 @@ class PackageIndex(Environment):
                 filename,
                 rev,
             ))
-            os.system("(cd %s && git submodule update --init --recursive)" % (
-                filename
-            ))
+
+        os.system("(cd %s && git submodule update --init --recursive)" % (
+            filename
+        ))
 
         return filename
 
