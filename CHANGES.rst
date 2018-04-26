@@ -1808,7 +1808,7 @@ process to fail and PyPI uploads no longer accept files for 13.0.
 * Issue #313: Removed built-in support for subversion. Projects wishing to
   retain support for subversion will need to use a third party library. The
   extant implementation is being ported to `setuptools_svn
-  <https://pypi.python.org/pypi/setuptools_svn>`_.
+  <https://pypi.org/project/setuptools_svn/>`_.
 * Issue #315: Updated setuptools to hide its own loaded modules during
   installation of another package. This change will enable setuptools to
   upgrade (or downgrade) itself even when its own metadata and implementation
@@ -2313,7 +2313,7 @@ process to fail and PyPI uploads no longer accept files for 13.0.
 * Address security vulnerability in SSL match_hostname check as reported in
   Python #17997.
 * Prefer `backports.ssl_match_hostname
-  <https://pypi.python.org/pypi/backports.ssl_match_hostname>`_ for backport
+  <https://pypi.org/project/backports.ssl_match_hostname/>`_ for backport
   implementation if present.
 * Correct NameError in ``ssl_support`` module (``socket.error``).
 

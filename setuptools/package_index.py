@@ -297,7 +297,7 @@ class PackageIndex(Environment):
     """A distribution index that scans web pages for download URLs"""
 
     def __init__(
-            self, index_url="https://pypi.python.org/simple", hosts=('*',),
+            self, index_url="https://pypi.org/simple/", hosts=('*',),
             ca_bundle=None, verify_ssl=True, *args, **kw
     ):
         Environment.__init__(self, *args, **kw)
