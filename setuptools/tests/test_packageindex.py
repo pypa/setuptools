@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import sys
 import os
 import distutils.errors
+import mock
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import urllib, http_client
@@ -169,6 +170,28 @@ class TestPackageIndex:
         url, rev = vsrfu('https://example.com/bar@2995')
         assert url == 'https://example.com/bar'
         assert rev == '2995'
+
+    @mock.patch('os.system')
+    def test__download_git(self, mocked_os_system):
+        # start an index server
+        server = IndexServer()
+        server.start()
+        index_url = server.base_url() + 'test__download_git/simple/'
+
+        # download from a git repository (when os.system is mocked)
+        pi = setuptools.package_index.PackageIndex(index_url)
+        pi._download_git('git@github.com:pypa/carrots@favourite', 'tempdir')
+        server.stop()
+
+        from mock import call
+        # assert calls by os.system
+        calls = [
+            call('git clone --quiet git@github.com:pypa/carrots tempdir'),
+            call('(cd tempdir && git checkout --quiet favourite)'),
+            call('(cd tempdir && git submodule update --init --recursive)')
+        ]
+        mocked_os_system.assert_has_calls(calls)
+        assert mocked_os_system.call_count == 3
 
     def test_local_index(self, tmpdir):
         """
