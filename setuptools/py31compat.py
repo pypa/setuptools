@@ -1,3 +1,5 @@
+__all__ = []
+
 try:
     # Python >=3.2
     from tempfile import TemporaryDirectory
