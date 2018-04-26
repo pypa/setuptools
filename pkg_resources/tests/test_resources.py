@@ -668,7 +668,7 @@ class TestParsing:
         assert (
             Requirement.parse("name==1.1;python_version=='2.7'")
             !=
-            Requirement.parse("name==1.1;python_version=='3.3'")
+            Requirement.parse("name==1.1;python_version=='3.6'")
         )
         assert (
             Requirement.parse("name==1.0;python_version=='2.7'")
@@ -676,9 +676,9 @@ class TestParsing:
             Requirement.parse("name==1.2;python_version=='2.7'")
         )
         assert (
-            Requirement.parse("name[foo]==1.0;python_version=='3.3'")
+            Requirement.parse("name[foo]==1.0;python_version=='3.6'")
             !=
-            Requirement.parse("name[foo,bar]==1.0;python_version=='3.3'")
+            Requirement.parse("name[foo,bar]==1.0;python_version=='3.6'")
         )
 
     def test_local_version(self):

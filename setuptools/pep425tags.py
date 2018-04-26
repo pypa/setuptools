@@ -97,8 +97,8 @@ def get_abi_tag():
                     lambda: sys.maxunicode == 0x10ffff,
                     expected=4,
                     warn=(impl == 'cp' and
-                          sys.version_info < (3, 3))) \
-                and sys.version_info < (3, 3):
+                          sys.version_info.major == 2)) \
+                and sys.version_info.major == 2:
             u = 'u'
         abi = '%s%s%s%s%s' % (impl, get_impl_ver(), d, m, u)
     elif soabi and soabi.startswith('cpython-'):

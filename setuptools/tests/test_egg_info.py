@@ -452,7 +452,7 @@ class TestEggInfo(object):
 
     def test_doesnt_provides_extra(self, tmpdir_cwd, env):
         self._setup_script_with_requires(
-            '''install_requires=["spam ; python_version<'3.3'"]''')
+            '''install_requires=["spam ; python_version<'3.6'"]''')
         environ = os.environ.copy().update(
             HOME=env.paths['home'],
         )

@@ -78,8 +78,8 @@ __import__('pkg_resources.extern.packaging.requirements')
 __import__('pkg_resources.extern.packaging.markers')
 
 
-if (3, 0) < sys.version_info < (3, 3):
-    raise RuntimeError("Python 3.3 or later is required")
+if (3, 0) < sys.version_info < (3, 4):
+    raise RuntimeError("Python 3.4 or later is required")
 
 if six.PY2:
     # Those builtin exceptions are only defined in Python 3
@@ -959,7 +959,7 @@ class Environment(object):
         `platform` is an optional string specifying the name of the platform
         that platform-specific distributions must be compatible with.  If
         unspecified, it defaults to the current platform.  `python` is an
-        optional string naming the desired version of Python (e.g. ``'3.3'``);
+        optional string naming the desired version of Python (e.g. ``'3.6'``);
         it defaults to the current version.
 
         You may explicitly set `platform` (and/or `python`) to ``None`` if you
