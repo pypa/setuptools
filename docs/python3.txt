@@ -10,8 +10,8 @@ code.
 Setuptools provides a facility to invoke 2to3 on the code as a part of the
 build process, by setting the keyword parameter ``use_2to3`` to True, but
 the Setuptools strongly recommends instead developing a unified codebase
-using `six <https://pypi.python.org/pypi/six>`_,
-`future <https://pypi.python.org/pypi/future>`_, or another compatibility
+using `six <https://pypi.org/project/six/>`_,
+`future <https://pypi.org/project/future/>`_, or another compatibility
 library.
 
 

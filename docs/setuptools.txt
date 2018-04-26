@@ -2277,7 +2277,7 @@ The ``upload`` command is implemented and `documented
 in distutils.
 
 Setuptools augments the ``upload`` command with support
-for `keyring <https://pypi.python.org/pypi/keyring>`_,
+for `keyring <https://pypi.org/project/keyring/>`_,
 allowing the password to be stored in a secure
 location and not in plaintext in the .pypirc file. To use
 keyring, first install keyring and set the password for
@@ -2671,8 +2671,8 @@ Adding Support for Revision Control Systems
 If the files you want to include in the source distribution are tracked using
 Git, Mercurial or SVN, you can use the following packages to achieve that:
 
-- Git and Mercurial: `setuptools_scm <https://pypi.python.org/pypi/setuptools_scm>`_
-- SVN: `setuptools_svn <https://pypi.python.org/pypi/setuptools_svn>`_
+- Git and Mercurial: `setuptools_scm <https://pypi.org/project/setuptools_scm/>`_
+- SVN: `setuptools_svn <https://pypi.org/project/setuptools_svn/>`_
 
 If you would like to create a plugin for ``setuptools`` to find files tracked
 by another revision control system, you can do so by adding an entry point to

@@ -265,11 +265,11 @@ class TestPyPIConfig:
         with pypirc.open('w') as strm:
             strm.write(DALS("""
                 [pypi]
-                repository=https://pypi.python.org
+                repository=https://pypi.org
                 username=jaraco
                 password=pity%
             """))
         cfg = setuptools.package_index.PyPIConfig()
-        cred = cfg.creds_by_repository['https://pypi.python.org']
+        cred = cfg.creds_by_repository['https://pypi.org']
         assert cred.username == 'jaraco'
         assert cred.password == 'pity%'
