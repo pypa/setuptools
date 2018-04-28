@@ -1,8 +1,11 @@
 v39.1.0
 -------
 
+* #1340: Update all PyPI URLs to reflect the switch to the
+  new Warehouse codebase.
 * #1337: In ``pkg_resources``, now support loading resources
   for modules loaded by the ``SourcelessFileLoader``.
+* #1332: Silence spurious wheel related warnings on Windows.
 
 v39.0.1
 -------
