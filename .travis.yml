@@ -8,6 +8,8 @@ python:
 - 3.5
 - &latest_py3 3.6
 - nightly
+- pypy
+- pypy3
 
 jobs:
   fast_finish: true
@@ -21,7 +23,7 @@ jobs:
     python: *latest_py3
     install: skip
     script: skip
-    after_success: skip
+    after_success: true
     before_deploy: python bootstrap.py
     deploy:
       provider: pypi
@@ -34,13 +36,6 @@ jobs:
       distributions: release
       skip_cleanup: true
       skip_upload_docs: true
-  # Don't run coverage on pypy.
-  - python: pypy
-    script: tox
-    after_success: skip
-  - python: pypy3
-    script: tox
-    after_success: skip
 
 cache: pip
 
@@ -54,6 +49,31 @@ install:
 # update egg_info based on setup.py in checkout
 - python bootstrap.py
 
-script: tox -- --cov
+script:
+  - |
+    ( # Run testsuite.
+      set -ex
+      case $TRAVIS_PYTHON_VERSION in
+      pypy*)
+        # Don't run coverage on pypy (too slow).
+        tox
+        ;;
+      *)
+        tox -- --cov
+        ;;
+      esac
+    )
 
-after_success: env TRAVIS_JOB_NAME="${TRAVIS_PYTHON_VERSION} (LANG=$LANG)" CODECOV_ENV=TRAVIS_JOB_NAME tox -e coverage,codecov
+after_success:
+  - |
+    ( # Upload coverage data.
+      set -ex
+      case $TRAVIS_PYTHON_VERSION in
+      pypy*)
+        ;;
+        *)
+        export TRAVIS_JOB_NAME="${TRAVIS_PYTHON_VERSION} (LANG=$LANG)" CODECOV_ENV=TRAVIS_JOB_NAME
+        tox -e coverage,codecov
+        ;;
+      esac
+    )
