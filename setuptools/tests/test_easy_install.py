@@ -15,24 +15,24 @@ import distutils.errors
 import io
 import zipfile
 import mock
-from setuptools.command.easy_install import (
-    EasyInstallDeprecationWarning, ScriptWriter, WindowsScriptWriter,
-)
 import time
+
 from setuptools.extern import six
-from setuptools.extern.six.moves import urllib
 
 import pytest
 
 from setuptools import sandbox
 from setuptools.sandbox import run_setup
 import setuptools.command.easy_install as ei
-from setuptools.command.easy_install import PthDistributions
+from setuptools.command.easy_install import (
+    EasyInstallDeprecationWarning, ScriptWriter, PthDistributions,
+    WindowsScriptWriter,
+)
 from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
 from pkg_resources import normalize_path, working_set
 from pkg_resources import Distribution as PRDistribution
-import setuptools.tests.server
+from setuptools.tests.server import MockServer, path_to_url
 from setuptools.tests import fail_on_ascii
 import pkg_resources
 
@@ -440,35 +440,40 @@ def distutils_package():
         yield
 
 
+@pytest.fixture
+def mock_index():
+    # set up a server which will simulate an alternate package index.
+    p_index = MockServer()
+    if p_index.server_port == 0:
+        # Some platforms (Jython) don't find a port to which to bind,
+        # so skip test for them.
+        pytest.skip("could not find a valid port")
+    p_index.start()
+    return p_index
+
+
 class TestDistutilsPackage:
     def test_bdist_egg_available_on_distutils_pkg(self, distutils_package):
         run_setup('setup.py', ['bdist_egg'])
 
 
 class TestSetupRequires:
-    def test_setup_requires_honors_fetch_params(self):
+
+    def test_setup_requires_honors_fetch_params(self, mock_index, monkeypatch):
         """
         When easy_install installs a source distribution which specifies
         setup_requires, it should honor the fetch parameters (such as
-        allow-hosts, index-url, and find-links).
+        index-url, and find-links).
         """
-        # set up a server which will simulate an alternate package index.
-        p_index = setuptools.tests.server.MockServer()
-        p_index.start()
-        netloc = 1
-        p_index_loc = urllib.parse.urlparse(p_index.url)[netloc]
-        if p_index_loc.endswith(':0'):
-            # Some platforms (Jython) don't find a port to which to bind,
-            #  so skip this test for them.
-            return
+        monkeypatch.setenv(str('PIP_RETRIES'), str('0'))
+        monkeypatch.setenv(str('PIP_TIMEOUT'), str('0'))
         with contexts.quiet():
             # create an sdist that has a build-time dependency.
             with TestSetupRequires.create_sdist() as dist_file:
                 with contexts.tempdir() as temp_install_dir:
                     with contexts.environment(PYTHONPATH=temp_install_dir):
                         ei_params = [
-                            '--index-url', p_index.url,
-                            '--allow-hosts', p_index_loc,
+                            '--index-url', mock_index.url,
                             '--exclude-scripts',
                             '--install-dir', temp_install_dir,
                             dist_file,
@@ -478,10 +483,8 @@ class TestSetupRequires:
                             # fail because it doesn't exist.
                             with pytest.raises(SystemExit):
                                 easy_install_pkg.main(ei_params)
-        # there should have been two or three requests to the server
-        #  (three happens on Python 3.3a)
-        assert 2 <= len(p_index.requests) <= 3
-        assert p_index.requests[0].path == '/does-not-exist/'
+        # there should have been one requests to the server
+        assert [r.path for r in mock_index.requests] == ['/does-not-exist/']
 
     @staticmethod
     @contextlib.contextmanager
@@ -500,7 +503,9 @@ class TestSetupRequires:
                         version="1.0",
                         setup_requires = ['does-not-exist'],
                     )
-                """))])
+                """)),
+                ('setup.cfg', ''),
+            ])
             yield dist_path
 
     use_setup_cfg = (
@@ -632,6 +637,113 @@ class TestSetupRequires:
                 assert len(lines) > 0
                 assert lines[-1].strip() == '42'
 
+    def test_setup_requires_honors_pip_env(self, mock_index, monkeypatch):
+        monkeypatch.setenv(str('PIP_RETRIES'), str('0'))
+        monkeypatch.setenv(str('PIP_TIMEOUT'), str('0'))
+        monkeypatch.setenv(str('PIP_INDEX_URL'), mock_index.url)
+        with contexts.save_pkg_resources_state():
+            with contexts.tempdir() as temp_dir:
+                test_pkg = create_setup_requires_package(
+                    temp_dir, 'python-xlib', '0.19',
+                    setup_attrs=dict(dependency_links=[]))
+                test_setup_cfg = os.path.join(test_pkg, 'setup.cfg')
+                with open(test_setup_cfg, 'w') as fp:
+                    fp.write(DALS(
+                        '''
+                        [easy_install]
+                        index_url = https://pypi.org/legacy/
+                        '''))
+                test_setup_py = os.path.join(test_pkg, 'setup.py')
+                with pytest.raises(distutils.errors.DistutilsError):
+                    run_setup(test_setup_py, [str('--version')])
+        assert len(mock_index.requests) == 1
+        assert mock_index.requests[0].path == '/python-xlib/'
+
+    def test_setup_requires_with_pep508_url(self, mock_index, monkeypatch):
+        monkeypatch.setenv(str('PIP_RETRIES'), str('0'))
+        monkeypatch.setenv(str('PIP_TIMEOUT'), str('0'))
+        monkeypatch.setenv(str('PIP_INDEX_URL'), mock_index.url)
+        with contexts.save_pkg_resources_state():
+            with contexts.tempdir() as temp_dir:
+                dep_sdist = os.path.join(temp_dir, 'dep.tar.gz')
+                make_trivial_sdist(dep_sdist, 'dependency', '42')
+                dep_url = path_to_url(dep_sdist, authority='localhost')
+                test_pkg = create_setup_requires_package(
+                    temp_dir,
+                    'python-xlib', '0.19', # Ignored (overriden by setup_attrs).
+                    setup_attrs=dict(setup_requires='dependency @ %s' % dep_url))
+                test_setup_py = os.path.join(test_pkg, 'setup.py')
+                run_setup(test_setup_py, [str('--version')])
+        assert len(mock_index.requests) == 0
+
+    def test_setup_requires_with_allow_hosts(self, mock_index):
+        ''' The `allow-hosts` option in not supported anymore. '''
+        with contexts.save_pkg_resources_state():
+            with contexts.tempdir() as temp_dir:
+                test_pkg = os.path.join(temp_dir, 'test_pkg')
+                test_setup_py = os.path.join(test_pkg, 'setup.py')
+                test_setup_cfg = os.path.join(test_pkg, 'setup.cfg')
+                os.mkdir(test_pkg)
+                with open(test_setup_py, 'w') as fp:
+                    fp.write(DALS(
+                        '''
+                        from setuptools import setup
+                        setup(setup_requires='python-xlib')
+                        '''))
+                with open(test_setup_cfg, 'w') as fp:
+                    fp.write(DALS(
+                        '''
+                        [easy_install]
+                        allow_hosts = *
+                        '''))
+                with pytest.raises(distutils.errors.DistutilsError):
+                    run_setup(test_setup_py, [str('--version')])
+        assert len(mock_index.requests) == 0
+
+    def test_setup_requires_with_python_requires(self, monkeypatch, tmpdir):
+        ''' Check `python_requires` is honored. '''
+        monkeypatch.setenv(str('PIP_RETRIES'), str('0'))
+        monkeypatch.setenv(str('PIP_TIMEOUT'), str('0'))
+        monkeypatch.setenv(str('PIP_NO_INDEX'), str('1'))
+        monkeypatch.setenv(str('PIP_VERBOSE'), str('1'))
+        dep_1_0_sdist = 'dep-1.0.tar.gz'
+        dep_1_0_url = path_to_url(str(tmpdir / dep_1_0_sdist))
+        dep_1_0_python_requires = '>=2.7'
+        make_python_requires_sdist(str(tmpdir / dep_1_0_sdist), 'dep', '1.0', dep_1_0_python_requires)
+        dep_2_0_sdist = 'dep-2.0.tar.gz'
+        dep_2_0_url = path_to_url(str(tmpdir / dep_2_0_sdist))
+        dep_2_0_python_requires = '!=' + '.'.join(map(str, sys.version_info[:2])) + '.*'
+        make_python_requires_sdist(str(tmpdir / dep_2_0_sdist), 'dep', '2.0', dep_2_0_python_requires)
+        index = tmpdir / 'index.html'
+        index.write_text(DALS(
+            '''
+            <!DOCTYPE html>
+            <html><head><title>Links for dep</title></head>
+            <body>
+                <h1>Links for dep</h1>
+                <a href="{dep_1_0_url}" data-requires-python="{dep_1_0_python_requires}">{dep_1_0_sdist}</a><br/>
+                <a href="{dep_2_0_url}" data-requires-python="{dep_2_0_python_requires}">{dep_2_0_sdist}</a><br/>
+            </body>
+            </html>
+            ''').format(
+                dep_1_0_url=dep_1_0_url,
+                dep_1_0_sdist=dep_1_0_sdist,
+                dep_1_0_python_requires=dep_1_0_python_requires,
+                dep_2_0_url=dep_2_0_url,
+                dep_2_0_sdist=dep_2_0_sdist,
+                dep_2_0_python_requires=dep_2_0_python_requires,
+            ), 'utf-8')
+        index_url = path_to_url(str(index))
+        with contexts.save_pkg_resources_state():
+            test_pkg = create_setup_requires_package(
+                str(tmpdir),
+                'python-xlib', '0.19', # Ignored (overriden by setup_attrs).
+                setup_attrs=dict(setup_requires='dep', dependency_links=[index_url]))
+            test_setup_py = os.path.join(test_pkg, 'setup.py')
+            run_setup(test_setup_py, [str('--version')])
+        eggs = list(map(str, pkg_resources.find_distributions(os.path.join(test_pkg, '.eggs'))))
+        assert eggs == ['dep 1.0']
+
 
 def make_trivial_sdist(dist_path, distname, version):
     """
@@ -647,7 +759,9 @@ def make_trivial_sdist(dist_path, distname, version):
                  name=%r,
                  version=%r
              )
-         """ % (distname, version)))])
+         """ % (distname, version))),
+        ('setup.cfg', ''),
+    ])
 
 
 def make_nspkg_sdist(dist_path, distname, version):
@@ -683,12 +797,29 @@ def make_nspkg_sdist(dist_path, distname, version):
     make_sdist(dist_path, files)
 
 
+def make_python_requires_sdist(dist_path, distname, version, python_requires):
+    make_sdist(dist_path, [
+        ('setup.py', DALS("""\
+                          import setuptools
+                          setuptools.setup(
+                              name={name!r},
+                              version={version!r},
+                              python_requires={python_requires!r},
+                          )
+                          """).format(name=distname, version=version,
+                                      python_requires=python_requires)),
+         ('setup.cfg', ''),
+    ])
+
+
 def make_sdist(dist_path, files):
     """
     Create a simple sdist tarball at dist_path, containing the files
     listed in ``files`` as ``(filename, content)`` tuples.
     """
 
+    # Distributions with only one file don't play well with pip.
+    assert len(files) > 1
     with tarfile.open(dist_path, 'w:gz') as dist:
         for filename, content in files:
             file_bytes = io.BytesIO(content.encode('utf-8'))
@@ -721,8 +852,8 @@ def create_setup_requires_package(path, distname='foobar', version='0.1',
     test_pkg = os.path.join(path, 'test_pkg')
     os.mkdir(test_pkg)
 
+    # setup.cfg
     if use_setup_cfg:
-        test_setup_cfg = os.path.join(test_pkg, 'setup.cfg')
         options = []
         metadata = []
         for name in use_setup_cfg:
@@ -734,8 +865,7 @@ def create_setup_requires_package(path, distname='foobar', version='0.1',
             if isinstance(value, (tuple, list)):
                 value = ';'.join(value)
             section.append('%s: %s' % (name, value))
-        with open(test_setup_cfg, 'w') as f:
-            f.write(DALS(
+        test_setup_cfg_contents = DALS(
                 """
                 [metadata]
                 {metadata}
@@ -745,16 +875,19 @@ def create_setup_requires_package(path, distname='foobar', version='0.1',
             ).format(
                 options='\n'.join(options),
                 metadata='\n'.join(metadata),
-            ))
+            )
+    else:
+        test_setup_cfg_contents = ''
+    with open(os.path.join(test_pkg, 'setup.cfg'), 'w') as f:
+        f.write(test_setup_cfg_contents)
 
-    test_setup_py = os.path.join(test_pkg, 'setup.py')
-
+    # setup.py
     if setup_py_template is None:
         setup_py_template = DALS("""\
             import setuptools
             setuptools.setup(**%r)
         """)
-    with open(test_setup_py, 'w') as f:
+    with open(os.path.join(test_pkg, 'setup.py'), 'w') as f:
         f.write(setup_py_template % test_setup_attrs)
 
     foobar_path = os.path.join(path, '%s-%s.tar.gz' % (distname, version))
