@@ -1,7 +1,8 @@
 import contextlib
 import pytest
 from distutils.errors import DistutilsOptionError, DistutilsFileError
-from setuptools.dist import Distribution
+from mock import patch
+from setuptools.dist import Distribution, _Distribution
 from setuptools.config import ConfigHandler, read_configuration
 
 
@@ -598,3 +599,43 @@ class TestOptions:
 
         with get_dist(tmpdir) as dist:
             assert dist.entry_points == expected
+
+saved_dist_init = _Distribution.__init__
+class TestExternalSetters:
+    # During creation of the setuptools Distribution() object, we call
+    # the init of the parent distutils Distribution object via
+    # _Distribution.__init__ ().
+    #
+    # It's possible distutils calls out to various keyword
+    # implementations (i.e. distutils.setup_keywords entry points)
+    # that may set a range of variables.
+    #
+    # This wraps distutil's Distribution.__init__ and simulates
+    # pbr or something else setting these values.
+    def _fake_distribution_init(self, dist, attrs):
+        saved_dist_init(dist, attrs)
+        # see self._DISTUTUILS_UNSUPPORTED_METADATA
+        setattr(dist.metadata, 'long_description_content_type',
+                'text/something')
+        # Test overwrite setup() args
+        setattr(dist.metadata, 'project_urls', {
+            'Link One': 'https://example.com/one/',
+            'Link Two': 'https://example.com/two/',
+        })
+        return None
+
+    @patch.object(_Distribution, '__init__', autospec=True)
+    def test_external_setters(self,  mock_parent_init, tmpdir):
+        mock_parent_init.side_effect = self._fake_distribution_init
+
+        dist = Distribution(attrs={
+            'project_urls': {
+                'will_be': 'ignored'
+            }
+        })
+
+        assert dist.metadata.long_description_content_type == 'text/something'
+        assert dist.metadata.project_urls == {
+            'Link One': 'https://example.com/one/',
+            'Link Two': 'https://example.com/two/',
+        }

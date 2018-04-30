@@ -328,6 +328,12 @@ class Distribution(Distribution_parse_config_files, _Distribution):
     distribution for the included and excluded features.
     """
 
+    _DISTUTILS_UNSUPPORTED_METADATA = {
+        'long_description_content_type': None,
+        'project_urls': dict,
+        'provides_extras': set,
+    }
+
     _patched_dist = None
 
     def patch_missing_pkg_info(self, attrs):
@@ -353,25 +359,29 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         self.require_features = []
         self.features = {}
         self.dist_files = []
+        # Filter-out setuptools' specific options.
         self.src_root = attrs.pop("src_root", None)
         self.patch_missing_pkg_info(attrs)
-        self.project_urls = attrs.get('project_urls', {})
         self.dependency_links = attrs.pop('dependency_links', [])
         self.setup_requires = attrs.pop('setup_requires', [])
         for ep in pkg_resources.iter_entry_points('distutils.setup_keywords'):
             vars(self).setdefault(ep.name, None)
-        _Distribution.__init__(self, attrs)
+        _Distribution.__init__(self, {
+            k: v for k, v in attrs.items()
+            if k not in self._DISTUTILS_UNSUPPORTED_METADATA
+        })
 
-        # The project_urls attribute may not be supported in distutils, so
-        # prime it here from our value if not automatically set
-        self.metadata.project_urls = getattr(
-            self.metadata, 'project_urls', self.project_urls)
-        self.metadata.long_description_content_type = attrs.get(
-            'long_description_content_type'
-        )
-        self.metadata.provides_extras = getattr(
-            self.metadata, 'provides_extras', set()
-        )
+        # Fill-in missing metadata fields not supported by distutils.
+        # Note some fields may have been set by other tools (e.g. pbr)
+        # above; they are taken preferrentially to setup() arguments
+        for option, default in self._DISTUTILS_UNSUPPORTED_METADATA.items():
+            for source in self.metadata.__dict__, attrs:
+                if option in source:
+                    value = source[option]
+                    break
+            else:
+                value = default() if default else None
+            setattr(self.metadata, option, value)
 
         if isinstance(self.metadata.version, numbers.Number):
             # Some people apparently take "version number" too literally :)
