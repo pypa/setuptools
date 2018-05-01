@@ -3,7 +3,6 @@ sudo: false
 language: python
 python:
 - &latest_py2 2.7
-- 3.3
 - 3.4
 - 3.5
 - &latest_py3 3.6
