@@ -8,7 +8,6 @@ import re
 import zipfile
 
 from pkg_resources import Distribution, PathMetadata, parse_version
-from setuptools.extern.six import PY3
 from setuptools import Distribution as SetuptoolsDistribution
 from setuptools import pep425tags
 from setuptools.command.egg_info import write_requirements
@@ -83,21 +82,20 @@ class Wheel(object):
             dist_basename = '%s-%s' % (self.project_name, self.version)
             dist_info = '%s.dist-info' % dist_basename
             dist_data = '%s.data' % dist_basename
-            def get_metadata(name):
-                with zf.open('%s/%s' % (dist_info, name)) as fp:
-                    value = fp.read().decode('utf-8') if PY3 else fp.read()
-                    return email.parser.Parser().parsestr(value)
-            wheel_metadata = get_metadata('WHEEL')
-            dist_metadata = get_metadata('METADATA')
-            # Check wheel format version is supported.
-            wheel_version = parse_version(wheel_metadata.get('Wheel-Version'))
-            if not parse_version('1.0') <= wheel_version < parse_version('2.0dev0'):
-                raise ValueError('unsupported wheel format version: %s' % wheel_version)
             # Extract to target directory.
             os.mkdir(destination_eggdir)
             zf.extractall(destination_eggdir)
             # Convert metadata.
             dist_info = os.path.join(destination_eggdir, dist_info)
+            def get_metadata(name):
+                with open(os.path.join(dist_info, name)) as fp:
+                    value = fp.read()
+                    return email.parser.Parser().parsestr(value)
+            wheel_metadata = get_metadata('WHEEL')
+            # Check wheel format version is supported.
+            wheel_version = parse_version(wheel_metadata.get('Wheel-Version'))
+            if not parse_version('1.0') <= wheel_version < parse_version('2.0dev0'):
+                raise ValueError('unsupported wheel format version: %s' % wheel_version)
             dist = Distribution.from_location(
                 destination_eggdir, dist_info,
                 metadata=PathMetadata(destination_eggdir, dist_info)
