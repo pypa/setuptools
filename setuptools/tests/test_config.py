@@ -268,6 +268,23 @@ class TestMetadata:
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '2016.11.26'
 
+    def test_version_file(self, tmpdir):
+
+        _, config = fake_env(
+            tmpdir,
+            '[metadata]\n'
+            'version = file: fake_package/version.txt\n'
+        )
+        tmpdir.join('fake_package', 'version.txt').write('1.2.3\n')
+
+        with get_dist(tmpdir) as dist:
+            assert dist.metadata.version == '1.2.3'
+
+        tmpdir.join('fake_package', 'version.txt').write('1.2.3\n4.5.6\n')
+        with pytest.raises(DistutilsOptionError):
+            with get_dist(tmpdir) as dist:
+                _ = dist.metadata.version
+
     def test_unknown_meta_item(self, tmpdir):
 
         fake_env(

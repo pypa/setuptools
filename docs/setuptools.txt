@@ -2421,7 +2421,7 @@ Metadata
 Key                             Aliases            Type
 ==============================  =================  =====
 name                                               str
-version                                            attr:, str
+version                                            attr:, file:, str
 url                             home-page          str
 download_url                    download-url       str
 project_urls                                       dict
@@ -2441,6 +2441,10 @@ requires                                           list-comma
 obsoletes                                          list-comma
 ==============================  =================  =====
 
+.. note::
+    A version loaded using the ``file:`` directive must comply with PEP 440.
+    It is easy to accidentally put something other than a valid version
+    string in such a file, so validation is stricter in this case.
 
 Options
 -------
