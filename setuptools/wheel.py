@@ -4,10 +4,12 @@ from distutils.util import get_platform
 import email
 import itertools
 import os
+import posixpath
 import re
 import zipfile
 
 from pkg_resources import Distribution, PathMetadata, parse_version
+from setuptools.extern.packaging.utils import canonicalize_name
 from setuptools.extern.six import PY3
 from setuptools import Distribution as SetuptoolsDistribution
 from setuptools import pep425tags
@@ -77,14 +79,24 @@ class Wheel(object):
             platform=(None if self.platform == 'any' else get_platform()),
         ).egg_name() + '.egg'
 
+    def get_dist_info(self, zf):
+        # find the correct name of the .dist-info dir in the wheel file
+        for member in zf.namelist():
+            dirname = posixpath.dirname(member)
+            if (dirname.endswith('.dist-info') and
+                    canonicalize_name(dirname).startswith(
+                        canonicalize_name(self.project_name))):
+                return dirname
+        raise ValueError("unsupported wheel format. .dist-info not found")
+
     def install_as_egg(self, destination_eggdir):
         '''Install wheel as an egg directory.'''
         with zipfile.ZipFile(self.filename) as zf:
             dist_basename = '%s-%s' % (self.project_name, self.version)
-            dist_info = '%s.dist-info' % dist_basename
+            dist_info = self.get_dist_info(zf)
             dist_data = '%s.data' % dist_basename
             def get_metadata(name):
-                with zf.open('%s/%s' % (dist_info, name)) as fp:
+                with zf.open(posixpath.join(dist_info, name)) as fp:
                     value = fp.read().decode('utf-8') if PY3 else fp.read()
                     return email.parser.Parser().parsestr(value)
             wheel_metadata = get_metadata('WHEEL')
