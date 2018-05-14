@@ -86,8 +86,12 @@ from this repository.
 Testing
 -------
 
-The primary tests are run using tox. To run the tests, first make
-sure you have tox installed, then invoke it::
+The primary tests are run using tox. To run the tests, first create the metadata
+needed to run the tests::
+
+    $ python bootstrap.py
+
+Then make sure you have tox installed, and invoke it::
 
     $ tox
 
