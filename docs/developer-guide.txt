@@ -106,10 +106,12 @@ Setuptools follows ``semver``.
 Building Documentation
 ----------------------
 
-Setuptools relies on the Sphinx system for building documentation.
-To accommodate RTD, docs must be built from the docs/ directory.
+Setuptools relies on the `Sphinx`_ system for building documentation.
+The `published documentation`_ is hosted on Read the Docs.
 
-To build them, you need to have installed the requirements specified
-in docs/requirements.txt. One way to do this is to use rwt:
+To build the docs locally, use tox::
 
-    setuptools/docs$ python -m rwt -r requirements.txt -- -m sphinx . html
+    $ tox -e docs
+
+.. _Sphinx: http://www.sphinx-doc.org/en/master/
+.. _published documentation: https://setuptools.readthedocs.io/en/latest/
