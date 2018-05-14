@@ -1,0 +1,1 @@
+Fixed warnings in documentation builds and started enforcing that the docs build without warnings in tox.
