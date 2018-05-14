@@ -2,6 +2,7 @@
 bin
 build
 dist
+docs/build
 include
 lib
 distribute.egg-info
