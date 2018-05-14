@@ -10,6 +10,9 @@
 .. image:: https://img.shields.io/appveyor/ci/jaraco/setuptools/master.svg?label=Windows%20build%20%40%20Appveyor
    :target: https://ci.appveyor.com/project/jaraco/setuptools/branch/master
 
+.. image:: https://img.shields.io/codecov/c/github/pypa/setuptools/master.svg
+   :target: https://codecov.io/gh/pypa/setuptools
+
 .. image:: https://img.shields.io/pypi/pyversions/setuptools.svg
 
 See the `Installation Instructions
