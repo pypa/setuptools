@@ -63,7 +63,7 @@ Source Code
 
 Grab the code at Github::
 
-    $ git checkout https://github.com/pypa/setuptools
+    $ git clone https://github.com/pypa/setuptools
 
 If you want to contribute changes, we recommend you fork the repository on
 Github, commit the changes to your repository, and then make a pull request
@@ -86,8 +86,12 @@ from this repository.
 Testing
 -------
 
-The primary tests are run using tox. To run the tests, first make
-sure you have tox installed, then invoke it::
+The primary tests are run using tox. To run the tests, first create the metadata
+needed to run the tests::
+
+    $ python bootstrap.py
+
+Then make sure you have tox installed, and invoke it::
 
     $ tox
 
