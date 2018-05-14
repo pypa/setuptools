@@ -63,7 +63,7 @@ Source Code
 
 Grab the code at Github::
 
-    $ git checkout https://github.com/pypa/setuptools
+    $ git clone https://github.com/pypa/setuptools
 
 If you want to contribute changes, we recommend you fork the repository on
 Github, commit the changes to your repository, and then make a pull request
