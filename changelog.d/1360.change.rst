@@ -1,0 +1,1 @@
+Fixed issue with a mismatch between the name of the package and the name of the .dist-info file in wheel files
