@@ -7,6 +7,7 @@ from functools import partial
 from importlib import import_module
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
+from setuptools.extern.packaging.version import LegacyVersion, parse
 from setuptools.extern.six import string_types
 
 
@@ -427,6 +428,18 @@ class ConfigMetadataHandler(ConfigHandler):
         :rtype: str
 
         """
+        version = self._parse_file(value)
+
+        if version != value:
+            version = version.strip()
+            # Be strict about versions loaded from file because it's easy to
+            # accidentally include newlines and other unintended content
+            if isinstance(parse(version), LegacyVersion):
+                raise DistutilsOptionError('Version loaded from %s does not comply with PEP 440: %s' % (
+                    value, version
+                ))
+            return version
+
         version = self._parse_attr(value)
 
         if callable(version):
