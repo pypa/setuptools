@@ -242,7 +242,6 @@ have setuptools automatically tag your in-development releases with various
 pre- or post-release tags.  See the following sections for more details:
 
 * `Tagging and "Daily Build" or "Snapshot" Releases`_
-* `Managing "Continuous Releases" Using Subversion`_
 * The `egg_info`_ command
 
 
@@ -1366,6 +1365,7 @@ then make an explicit declaration of ``True`` or ``False`` for the ``zip_safe``
 flag, so that it will not be necessary for ``bdist_egg`` or ``EasyInstall`` to
 try to guess whether your project can work as a zipfile.
 
+.. _Namespace Packages:
 
 Namespace Packages
 ------------------
