@@ -2341,6 +2341,9 @@ boilerplate code in some cases.
     scripts =
       bin/first.py
       bin/second.py
+    install_requires =
+      requests
+      importlib; python_version == "2.6"
 
     [options.package_data]
     * = *.txt, *.rst
