@@ -427,6 +427,11 @@ class ConfigMetadataHandler(ConfigHandler):
         :rtype: str
 
         """
+        include_directive = 'file:'
+        if value.startswith(include_directive):
+            version = self._parse_file(value)
+            return ''.join(version.splitlines())
+
         version = self._parse_attr(value)
 
         if callable(version):

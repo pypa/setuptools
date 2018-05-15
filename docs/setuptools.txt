@@ -2424,7 +2424,7 @@ Metadata
 Key                             Aliases            Type
 ==============================  =================  =====
 name                                               str
-version                                            attr:, str
+version                                            file:, attr:, str
 url                             home-page          str
 download_url                    download-url       str
 project_urls                                       dict
