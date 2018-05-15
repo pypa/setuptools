@@ -145,6 +145,24 @@ class TestDistro:
         for v in "Twisted>=1.5", "Twisted>=1.5\nZConfig>=2.0":
             self.checkRequires(self.distRequires(v), v)
 
+    def test_distribution_dir_includes_provider_dir(self):
+        d = pkg_resources.Distribution()
+        before = d.__dir__()
+        assert 'test_attr' not in before
+        d._provider.test_attr = None
+        after = d.__dir__()
+        assert len(after) == len(before) + 1
+        assert 'test_attr' in after
+
+    def test_distribution_dir_ignores_provider_dir_leading_underscore(self):
+        d = pkg_resources.Distribution()
+        before = d.__dir__()
+        assert '_test_attr' not in before
+        d._provider._test_attr = None
+        after = d.__dir__()
+        assert len(after) == len(before)
+        assert '_test_attr' not in after
+
     def testResolve(self):
         ad = pkg_resources.Environment([])
         ws = WorkingSet([])
