@@ -145,6 +145,16 @@ class TestDistro:
         for v in "Twisted>=1.5", "Twisted>=1.5\nZConfig>=2.0":
             self.checkRequires(self.distRequires(v), v)
 
+    needs_object_dir = pytest.mark.skipif(
+        not hasattr(object, '__dir__'),
+        reason='object.__dir__ necessary for self.__dir__ implementation',
+    )
+
+    def test_distribution_dir(self):
+        d = pkg_resources.Distribution()
+        dir(d)
+
+    @needs_object_dir
     def test_distribution_dir_includes_provider_dir(self):
         d = pkg_resources.Distribution()
         before = d.__dir__()
@@ -154,6 +164,7 @@ class TestDistro:
         assert len(after) == len(before) + 1
         assert 'test_attr' in after
 
+    @needs_object_dir
     def test_distribution_dir_ignores_provider_dir_leading_underscore(self):
         d = pkg_resources.Distribution()
         before = d.__dir__()
