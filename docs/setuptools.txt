@@ -437,7 +437,7 @@ such projects also need something like ``package_dir={'':'src'}`` in their
 
 Anyway, ``find_packages()`` walks the target directory, filtering by inclusion
 patterns, and finds Python packages (any directory). Packages are only
-recognized if they include an ``__init__.py`` file. Finally, exclusion 
+recognized if they include an ``__init__.py`` file. Finally, exclusion
 patterns are applied to remove matching packages.
 
 Inclusion and exclusion patterns are package names, optionally including
@@ -2305,7 +2305,7 @@ Configuring setup() using setup.cfg files
 
 ``Setuptools`` allows using configuration files (usually :file:`setup.cfg`)
 to define a package’s metadata and other options that are normally supplied
-to the ``setup()`` function.
+to the ``setup()`` function (declarative config).
 
 This approach not only allows automation scenarios but also reduces
 boilerplate code in some cases.
