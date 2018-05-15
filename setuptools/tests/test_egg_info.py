@@ -245,6 +245,18 @@ class TestEggInfo(object):
         ''',
 
         '''
+        install_requires_ordered
+
+        install_requires=["fake-factory>=1.12.3,!=2.0"]
+
+        [options]
+        install_requires =
+            fake-factory>=1.12.3,!=2.0
+
+        fake-factory!=2.0,>=1.12.3
+        ''',
+
+        '''
         install_requires_with_marker
 
         install_requires=["barbazquux;{mismatch_marker}"],
@@ -420,6 +432,41 @@ class TestEggInfo(object):
             self._run_install_command(tmpdir_cwd, env)
         assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
 
+    def test_provides_extra(self, tmpdir_cwd, env):
+        self._setup_script_with_requires(
+            'extras_require={"foobar": ["barbazquux"]},')
+        environ = os.environ.copy().update(
+            HOME=env.paths['home'],
+        )
+        code, data = environment.run_setup_py(
+            cmd=['egg_info'],
+            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
+            data_stream=1,
+            env=environ,
+        )
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
+        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+            pkg_info_lines = pkginfo_file.read().split('\n')
+        assert 'Provides-Extra: foobar' in pkg_info_lines
+        assert 'Metadata-Version: 2.1' in pkg_info_lines
+
+    def test_doesnt_provides_extra(self, tmpdir_cwd, env):
+        self._setup_script_with_requires(
+            '''install_requires=["spam ; python_version<'3.3'"]''')
+        environ = os.environ.copy().update(
+            HOME=env.paths['home'],
+        )
+        environment.run_setup_py(
+            cmd=['egg_info'],
+            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
+            data_stream=1,
+            env=environ,
+        )
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
+        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+            pkg_info_text = pkginfo_file.read()
+        assert 'Provides-Extra:' not in pkg_info_text
+
     def test_long_description_content_type(self, tmpdir_cwd, env):
         # Test that specifying a `long_description_content_type` keyword arg to
         # the `setup` function results in writing a `Description-Content-Type`
@@ -443,6 +490,37 @@ class TestEggInfo(object):
         with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
         expected_line = 'Description-Content-Type: text/markdown'
+        assert expected_line in pkg_info_lines
+        assert 'Metadata-Version: 2.1' in pkg_info_lines
+
+    def test_project_urls(self, tmpdir_cwd, env):
+        # Test that specifying a `project_urls` dict to the `setup`
+        # function results in writing multiple `Project-URL` lines to
+        # the `PKG-INFO` file in the `<distribution>.egg-info`
+        # directory.
+        # `Project-URL` is described at https://packaging.python.org
+        #     /specifications/core-metadata/#project-url-multiple-use
+
+        self._setup_script_with_requires(
+            """project_urls={
+                'Link One': 'https://example.com/one/',
+                'Link Two': 'https://example.com/two/',
+                },""")
+        environ = os.environ.copy().update(
+            HOME=env.paths['home'],
+        )
+        code, data = environment.run_setup_py(
+            cmd=['egg_info'],
+            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
+            data_stream=1,
+            env=environ,
+        )
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
+        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+            pkg_info_lines = pkginfo_file.read().split('\n')
+        expected_line = 'Project-URL: Link One, https://example.com/one/'
+        assert expected_line in pkg_info_lines
+        expected_line = 'Project-URL: Link Two, https://example.com/two/'
         assert expected_line in pkg_info_lines
 
     def test_python_requires_egg_info(self, tmpdir_cwd, env):

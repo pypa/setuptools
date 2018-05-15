@@ -2,6 +2,7 @@
 bin
 build
 dist
+docs/build
 include
 lib
 distribute.egg-info
@@ -15,3 +16,4 @@ setuptools.egg-info
 *~
 .hg*
 .cache
+.pytest_cache/

@@ -7,6 +7,7 @@ from functools import partial
 from importlib import import_module
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
+from setuptools.extern.packaging.version import LegacyVersion, parse
 from setuptools.extern.six import string_types
 
 
@@ -109,7 +110,7 @@ def parse_configuration(
         distribution, command_options, ignore_option_errors)
     options.parse()
 
-    return [meta, options]
+    return meta, options
 
 
 class ConfigHandler(object):
@@ -404,6 +405,7 @@ class ConfigMetadataHandler(ConfigHandler):
         """Metadata item name to parser function mapping."""
         parse_list = self._parse_list
         parse_file = self._parse_file
+        parse_dict = self._parse_dict
 
         return {
             'platforms': parse_list,
@@ -416,6 +418,7 @@ class ConfigMetadataHandler(ConfigHandler):
             'description': parse_file,
             'long_description': parse_file,
             'version': self._parse_version,
+            'project_urls': parse_dict,
         }
 
     def _parse_version(self, value):
@@ -425,6 +428,18 @@ class ConfigMetadataHandler(ConfigHandler):
         :rtype: str
 
         """
+        version = self._parse_file(value)
+
+        if version != value:
+            version = version.strip()
+            # Be strict about versions loaded from file because it's easy to
+            # accidentally include newlines and other unintended content
+            if isinstance(parse(version), LegacyVersion):
+                raise DistutilsOptionError('Version loaded from %s does not comply with PEP 440: %s' % (
+                    value, version
+                ))
+            return version
+
         version = self._parse_attr(value)
 
         if callable(version):

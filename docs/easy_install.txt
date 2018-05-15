@@ -31,7 +31,7 @@ Using "Easy Install"
 Installing "Easy Install"
 -------------------------
 
-Please see the `setuptools PyPI page <https://pypi.python.org/pypi/setuptools>`_
+Please see the `setuptools PyPI page <https://pypi.org/project/setuptools/>`_
 for download links and basic installation instructions for each of the
 supported platforms.
 
@@ -831,7 +831,7 @@ Command-Line Options
 
 ``--index-url=URL, -i URL`` (New in 0.4a1; default changed in 0.6c7)
     Specifies the base URL of the Python Package Index.  The default is
-    https://pypi.python.org/simple if not specified.  When a package is requested
+    https://pypi.org/simple/ if not specified.  When a package is requested
     that is not locally available or linked from a ``--find-links`` download
     page, the package index will be searched for download pages for the needed
     package, and those download pages will be searched for links to download
@@ -1019,7 +1019,7 @@ that the User installation scheme alone does not provide, e.g. the ability to hi
 
 Please refer to the `virtualenv`_ documentation for more details.
 
-.. _virtualenv: https://pypi.python.org/pypi/virtualenv
+.. _virtualenv: https://pypi.org/project/virtualenv/
 
 
 
@@ -1620,4 +1620,3 @@ Future Plans
 * Signature checking?  SSL?  Ability to suppress PyPI search?
 * Display byte progress meter when downloading distributions and long pages?
 * Redirect stdout/stderr to log during run_setup?
-

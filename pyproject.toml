@@ -1,0 +1,34 @@
+[tool.towncrier]
+    package = "setuptools"
+    package_dir = "setuptools"
+    filename = "CHANGES.rst"
+    directory = "changelog.d"
+    title_format = "v{version}"
+    issue_format = "#{issue}"
+    template = "towncrier_template.rst"
+    underlines = ["-"]
+
+    [[tool.towncrier.type]]
+        directory = "deprecation"
+        name = "Deprecations"
+        showcontent = true
+
+    [[tool.towncrier.type]]
+        directory = "breaking"
+        name = "Breaking Changes"
+        showcontent = true
+
+    [[tool.towncrier.type]]
+        directory = "change"
+        name = "Changes"
+        showcontent = true
+
+    [[tool.towncrier.type]]
+        directory = "doc"
+        name = "Documentation changes"
+        showcontent = true
+
+    [[tool.towncrier.type]]
+        directory = "misc"
+        name = "Misc"
+        showcontent = true

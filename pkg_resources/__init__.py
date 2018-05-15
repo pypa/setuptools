@@ -90,6 +90,21 @@ if six.PY2:
 # satisfy the linters.
 require = None
 working_set = None
+add_activation_listener = None
+resources_stream = None
+cleanup_resources = None
+resource_dir = None
+resource_stream = None
+set_extraction_path = None
+resource_isdir = None
+resource_string = None
+iter_entry_points = None
+resource_listdir = None
+resource_filename = None
+resource_exists = None
+_distribution_finders = None
+_namespace_handlers = None
+_namespace_packages = None
 
 
 class PEP440Warning(RuntimeWarning):
@@ -99,118 +114,11 @@ class PEP440Warning(RuntimeWarning):
     """
 
 
-class _SetuptoolsVersionMixin(object):
-    def __hash__(self):
-        return super(_SetuptoolsVersionMixin, self).__hash__()
-
-    def __lt__(self, other):
-        if isinstance(other, tuple):
-            return tuple(self) < other
-        else:
-            return super(_SetuptoolsVersionMixin, self).__lt__(other)
-
-    def __le__(self, other):
-        if isinstance(other, tuple):
-            return tuple(self) <= other
-        else:
-            return super(_SetuptoolsVersionMixin, self).__le__(other)
-
-    def __eq__(self, other):
-        if isinstance(other, tuple):
-            return tuple(self) == other
-        else:
-            return super(_SetuptoolsVersionMixin, self).__eq__(other)
-
-    def __ge__(self, other):
-        if isinstance(other, tuple):
-            return tuple(self) >= other
-        else:
-            return super(_SetuptoolsVersionMixin, self).__ge__(other)
-
-    def __gt__(self, other):
-        if isinstance(other, tuple):
-            return tuple(self) > other
-        else:
-            return super(_SetuptoolsVersionMixin, self).__gt__(other)
-
-    def __ne__(self, other):
-        if isinstance(other, tuple):
-            return tuple(self) != other
-        else:
-            return super(_SetuptoolsVersionMixin, self).__ne__(other)
-
-    def __getitem__(self, key):
-        return tuple(self)[key]
-
-    def __iter__(self):
-        component_re = re.compile(r'(\d+ | [a-z]+ | \.| -)', re.VERBOSE)
-        replace = {
-            'pre': 'c',
-            'preview': 'c',
-            '-': 'final-',
-            'rc': 'c',
-            'dev': '@',
-        }.get
-
-        def _parse_version_parts(s):
-            for part in component_re.split(s):
-                part = replace(part, part)
-                if not part or part == '.':
-                    continue
-                if part[:1] in '0123456789':
-                    # pad for numeric comparison
-                    yield part.zfill(8)
-                else:
-                    yield '*' + part
-
-            # ensure that alpha/beta/candidate are before final
-            yield '*final'
-
-        def old_parse_version(s):
-            parts = []
-            for part in _parse_version_parts(s.lower()):
-                if part.startswith('*'):
-                    # remove '-' before a prerelease tag
-                    if part < '*final':
-                        while parts and parts[-1] == '*final-':
-                            parts.pop()
-                    # remove trailing zeros from each series of numeric parts
-                    while parts and parts[-1] == '00000000':
-                        parts.pop()
-                parts.append(part)
-            return tuple(parts)
-
-        # Warn for use of this function
-        warnings.warn(
-            "You have iterated over the result of "
-            "pkg_resources.parse_version. This is a legacy behavior which is "
-            "inconsistent with the new version class introduced in setuptools "
-            "8.0. In most cases, conversion to a tuple is unnecessary. For "
-            "comparison of versions, sort the Version instances directly. If "
-            "you have another use case requiring the tuple, please file a "
-            "bug with the setuptools project describing that need.",
-            RuntimeWarning,
-            stacklevel=1,
-        )
-
-        for part in old_parse_version(str(self)):
-            yield part
-
-
-class SetuptoolsVersion(_SetuptoolsVersionMixin, packaging.version.Version):
-    pass
-
-
-class SetuptoolsLegacyVersion(_SetuptoolsVersionMixin,
-                              packaging.version.LegacyVersion):
-    pass
-
-
 def parse_version(v):
     try:
-        return SetuptoolsVersion(v)
+        return packaging.version.Version(v)
     except packaging.version.InvalidVersion:
-        return SetuptoolsLegacyVersion(v)
+        return packaging.version.LegacyVersion(v)
 
 
 _state_vars = {}
@@ -1074,9 +982,12 @@ class Environment(object):
         requirements specified when this environment was created, or False
         is returned.
         """
-        return (self.python is None or dist.py_version is None
-            or dist.py_version == self.python) \
-            and compatible_platforms(dist.platform, self.platform)
+        py_compat = (
+            self.python is None
+            or dist.py_version is None
+            or dist.py_version == self.python
+        )
+        return py_compat and compatible_platforms(dist.platform, self.platform)
 
     def remove(self, dist):
         """Remove `dist` from the environment"""
@@ -1289,7 +1200,7 @@ class ResourceManager:
         target_path = os.path.join(extract_path, archive_name + '-tmp', *names)
         try:
             _bypass_ensure_directory(target_path)
-        except:
+        except Exception:
             self.extraction_error()
 
         self._warn_unsafe_extraction_path(extract_path)
@@ -1607,12 +1518,10 @@ class DefaultProvider(EggProvider):
 
     @classmethod
     def _register(cls):
-        loader_cls = getattr(
-            importlib_machinery,
-            'SourceFileLoader',
-            type(None),
-        )
-        register_loader_type(loader_cls, cls)
+        loader_names = 'SourceFileLoader', 'SourcelessFileLoader',
+        for name in loader_names:
+            loader_cls = getattr(importlib_machinery, name, type(None))
+            register_loader_type(loader_cls, cls)
 
 
 DefaultProvider._register()
@@ -1621,10 +1530,15 @@ DefaultProvider._register()
 class EmptyProvider(NullProvider):
     """Provider that returns nothing for all requests"""
 
-    _isdir = _has = lambda self, path: False
-    _get = lambda self, path: ''
-    _listdir = lambda self, path: []
     module_path = None
+
+    _isdir = _has = lambda self, path: False
+
+    def _get(self, path):
+        return ''
+
+    def _listdir(self, path):
+        return []
 
     def __init__(self):
         pass
@@ -1693,6 +1607,9 @@ class ZipProvider(EggProvider):
     def _zipinfo_name(self, fspath):
         # Convert a virtual filename (full path to file) into a zipfile subpath
         # usable with the zipimport directory cache for our target archive
+        fspath = fspath.rstrip(os.sep)
+        if fspath == self.loader.archive:
+            return ''
         if fspath.startswith(self.zip_pre):
             return fspath[len(self.zip_pre):]
         raise AssertionError(
@@ -2512,7 +2429,8 @@ def _version_from_file(lines):
     Given an iterable of lines from a Metadata file, return
     the value of the Version field, if present, or None otherwise.
     """
-    is_version_line = lambda line: line.lower().startswith('version:')
+    def is_version_line(line):
+        return line.lower().startswith('version:')
     version_lines = filter(is_version_line, lines)
     line = next(iter(version_lines), '')
     _, _, value = line.partition(':')
@@ -2649,23 +2567,44 @@ class Distribution(object):
 
     @property
     def _dep_map(self):
+        """
+        A map of extra to its list of (direct) requirements
+        for this distribution, including the null extra.
+        """
         try:
             return self.__dep_map
         except AttributeError:
-            dm = self.__dep_map = {None: []}
-            for name in 'requires.txt', 'depends.txt':
-                for extra, reqs in split_sections(self._get_metadata(name)):
-                    if extra:
-                        if ':' in extra:
-                            extra, marker = extra.split(':', 1)
-                            if invalid_marker(marker):
-                                # XXX warn
-                                reqs = []
-                            elif not evaluate_marker(marker):
-                                reqs = []
-                        extra = safe_extra(extra) or None
-                    dm.setdefault(extra, []).extend(parse_requirements(reqs))
-            return dm
+            self.__dep_map = self._filter_extras(self._build_dep_map())
+        return self.__dep_map
+
+    @staticmethod
+    def _filter_extras(dm):
+        """
+        Given a mapping of extras to dependencies, strip off
+        environment markers and filter out any dependencies
+        not matching the markers.
+        """
+        for extra in list(filter(None, dm)):
+            new_extra = extra
+            reqs = dm.pop(extra)
+            new_extra, _, marker = extra.partition(':')
+            fails_marker = marker and (
+                invalid_marker(marker)
+                or not evaluate_marker(marker)
+            )
+            if fails_marker:
+                reqs = []
+            new_extra = safe_extra(new_extra) or None
+
+            dm.setdefault(new_extra, []).extend(reqs)
+        return dm
+
+    def _build_dep_map(self):
+        dm = {}
+        for name in 'requires.txt', 'depends.txt':
+            for extra, reqs in split_sections(self._get_metadata(name)):
+                dm.setdefault(extra, []).extend(parse_requirements(reqs))
+        return dm
 
     def requires(self, extras=()):
         """List of Requirements needed for this distro if `extras` are used"""
@@ -2987,7 +2926,10 @@ def parse_requirements(strs):
         # If there is a line continuation, drop it, and append the next line.
         if line.endswith('\\'):
             line = line[:-2].strip()
-            line += next(lines)
+            try:
+                line += next(lines)
+            except StopIteration:
+                return
         yield Requirement(line)
 
 

@@ -638,7 +638,7 @@ Requirements Parsing
     sorted into ascending version order, and used to establish what ranges of
     versions are acceptable.  Adjacent redundant conditions are effectively
     consolidated (e.g. ``">1, >2"`` produces the same results as ``">2"``, and
-    ``"<2,<3"`` produces the same results as``"<2"``). ``"!="`` versions are
+    ``"<2,<3"`` produces the same results as ``"<2"``). ``"!="`` versions are
     excised from the ranges they fall within.  The version being tested for
     acceptability is then checked for membership in the resulting ranges.
 
@@ -1087,6 +1087,7 @@ so that supporting custom importers or new distribution formats can be done
 simply by creating an appropriate `IResourceProvider`_ implementation; see the
 section below on `Supporting Custom Importers`_ for more details.
 
+.. _ResourceManager API:
 
 ``ResourceManager`` API
 =======================

@@ -1,7 +1,10 @@
 importlib; python_version<"2.7"
 mock
-pytest-flake8; python_version>="2.7"
+pytest-flake8<=1.0.0; python_version>="3.3" and python_version<"3.5"
+pytest-flake8; python_version>="2.7" and python_version!="3.3" and python_version!="3.4"
 virtualenv>=13.0.0
 pytest-virtualenv>=1.2.7
-pytest>=3.0.2,<=3.2.5
+pytest>=3.0.2
 wheel
+coverage>=4.5.1
+pytest-cov>=2.5.1

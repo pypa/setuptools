@@ -4,6 +4,7 @@
 from __future__ import absolute_import
 
 import distutils.util
+from distutils import log
 import platform
 import re
 import sys
@@ -69,8 +70,8 @@ def get_flag(var, fallback, expected=True, warn=True):
     val = get_config_var(var)
     if val is None:
         if warn:
-            warnings.warn("Config variable '{0}' is unset, Python ABI tag may "
-                          "be incorrect".format(var), RuntimeWarning, 2)
+            log.debug("Config variable '%s' is unset, Python ABI tag may "
+                      "be incorrect", var)
         return fallback()
     return val == expected
 

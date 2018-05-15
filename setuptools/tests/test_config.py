@@ -110,6 +110,7 @@ class TestMetadata:
             '[metadata]\n'
             'version = 10.1.1\n'
             'description = Some description\n'
+            'long_description_content_type = text/something\n'
             'long_description = file: README\n'
             'name = fake_name\n'
             'keywords = one, two\n'
@@ -131,6 +132,7 @@ class TestMetadata:
 
             assert metadata.version == '10.1.1'
             assert metadata.description == 'Some description'
+            assert metadata.long_description_content_type == 'text/something'
             assert metadata.long_description == 'readme contents\nline2'
             assert metadata.provides == ['package', 'package.sub']
             assert metadata.license == 'BSD 3-Clause License'
@@ -215,6 +217,22 @@ class TestMetadata:
                 'Programming Language :: Python :: 3.5',
             ]
 
+    def test_dict(self, tmpdir):
+
+        fake_env(
+            tmpdir,
+            '[metadata]\n'
+            'project_urls =\n'
+            '  Link One = https://example.com/one/\n'
+            '  Link Two = https://example.com/two/\n'
+        )
+        with get_dist(tmpdir) as dist:
+            metadata = dist.metadata
+            assert metadata.project_urls == {
+                'Link One': 'https://example.com/one/',
+                'Link Two': 'https://example.com/two/',
+            }
+
     def test_version(self, tmpdir):
 
         _, config = fake_env(
@@ -249,6 +267,23 @@ class TestMetadata:
         )
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '2016.11.26'
+
+    def test_version_file(self, tmpdir):
+
+        _, config = fake_env(
+            tmpdir,
+            '[metadata]\n'
+            'version = file: fake_package/version.txt\n'
+        )
+        tmpdir.join('fake_package', 'version.txt').write('1.2.3\n')
+
+        with get_dist(tmpdir) as dist:
+            assert dist.metadata.version == '1.2.3'
+
+        tmpdir.join('fake_package', 'version.txt').write('1.2.3\n4.5.6\n')
+        with pytest.raises(DistutilsOptionError):
+            with get_dist(tmpdir) as dist:
+                _ = dist.metadata.version
 
     def test_unknown_meta_item(self, tmpdir):
 
@@ -528,6 +563,7 @@ class TestOptions:
                 'pdf': ['ReportLab>=1.2', 'RXP'],
                 'rest': ['docutils>=0.3', 'pack==1.1,==1.3']
             }
+            assert dist.metadata.provides_extras == set(['pdf', 'rest'])
 
     def test_entry_points(self, tmpdir):
         _, config = fake_env(

@@ -1,10 +1,13 @@
 environment:
 
-  APPVEYOR: true
+  APPVEYOR: True
+  CODECOV_ENV: APPVEYOR_JOB_NAME
 
   matrix:
-    - PYTHON: "C:\\Python35-x64"
-    - PYTHON: "C:\\Python27-x64"
+    - APPVEYOR_JOB_NAME: "python35-x64"
+      PYTHON: "C:\\Python35-x64"
+    - APPVEYOR_JOB_NAME: "python27-x64"
+      PYTHON: "C:\\Python27-x64"
 
 install:
   # symlink python from a directory with a space
@@ -14,7 +17,15 @@ install:
 
 build: off
 
+cache:
+  - '%LOCALAPPDATA%\pip\Cache'
+
 test_script:
   - "python bootstrap.py"
   - "python -m pip install tox"
-  - "tox"
+  - "tox -- --cov"
+
+after_test:
+    - tox -e coverage,codecov
+
+version: '{build}'

@@ -1,3 +1,90 @@
+v39.1.0
+-------
+
+* #1340: Update all PyPI URLs to reflect the switch to the
+  new Warehouse codebase.
+* #1337: In ``pkg_resources``, now support loading resources
+  for modules loaded by the ``SourcelessFileLoader``.
+* #1332: Silence spurious wheel related warnings on Windows.
+
+v39.0.1
+-------
+
+* #1297: Restore Unicode handling for Maintainer fields in
+  metadata.
+
+v39.0.0
+-------
+
+* #1296: Setuptools now vendors its own direct dependencies, no
+  longer relying on the dependencies as vendored by pkg_resources.
+
+* #296: Removed long-deprecated support for iteration on
+  Version objects as returned by ``pkg_resources.parse_version``.
+  Removed the ``SetuptoolsVersion`` and
+  ``SetuptoolsLegacyVersion`` names as well. They should not
+  have been used, but if they were, replace with
+  ``Version`` and ``LegacyVersion`` from ``packaging.version``.
+
+v38.7.0
+-------
+
+* #1288: Add support for maintainer in PKG-INFO.
+
+v38.6.1
+-------
+
+* #1292: Avoid generating ``Provides-Extra`` in metadata when
+  no extra is present (but environment markers are).
+
+v38.6.0
+-------
+
+* #1286: Add support for Metadata 2.1 (PEP 566).
+
+v38.5.2
+-------
+
+* #1285: Fixed RuntimeError in pkg_resources.parse_requirements
+  on Python 3.7 (stemming from PEP 479).
+
+v38.5.1
+-------
+
+* #1271: Revert to Cython legacy ``build_ext`` behavior for
+  compatibility.
+
+v38.5.0
+-------
+
+* #1229: Expand imports in ``build_ext`` to refine detection of
+  Cython availability.
+
+* #1270: When Cython is available, ``build_ext`` now uses the
+  new_build_ext.
+
+v38.4.1
+-------
+
+* #1257: In bdist_egg.scan_module, fix ValueError on Python 3.7.
+
+v38.4.0
+-------
+
+* #1231: Removed warning when PYTHONDONTWRITEBYTECODE is enabled.
+
+v38.3.0
+-------
+
+* #1210: Add support for PEP 345 Project-URL metadata.
+* #1207: Add support for ``long_description_type`` to setup.cfg
+  declarative config as intended and documented.
+
+v38.2.5
+-------
+
+* #1232: Fix trailing slash handling in ``pkg_resources.ZipProvider``.
+
 v38.2.4
 -------
 
@@ -1724,7 +1811,7 @@ process to fail and PyPI uploads no longer accept files for 13.0.
 * Issue #313: Removed built-in support for subversion. Projects wishing to
   retain support for subversion will need to use a third party library. The
   extant implementation is being ported to `setuptools_svn
-  <https://pypi.python.org/pypi/setuptools_svn>`_.
+  <https://pypi.org/project/setuptools_svn/>`_.
 * Issue #315: Updated setuptools to hide its own loaded modules during
   installation of another package. This change will enable setuptools to
   upgrade (or downgrade) itself even when its own metadata and implementation
@@ -2229,7 +2316,7 @@ process to fail and PyPI uploads no longer accept files for 13.0.
 * Address security vulnerability in SSL match_hostname check as reported in
   Python #17997.
 * Prefer `backports.ssl_match_hostname
-  <https://pypi.python.org/pypi/backports.ssl_match_hostname>`_ for backport
+  <https://pypi.org/project/backports.ssl_match_hostname/>`_ for backport
   implementation if present.
 * Correct NameError in ``ssl_support`` module (``socket.error``).
 

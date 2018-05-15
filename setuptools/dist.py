@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 __all__ = ['Distribution']
 
 import re
@@ -14,10 +15,11 @@ from distutils.errors import (
     DistutilsOptionError, DistutilsPlatformError, DistutilsSetupError,
 )
 from distutils.util import rfc822_escape
+from distutils.version import StrictVersion
 
 from setuptools.extern import six
+from setuptools.extern import packaging
 from setuptools.extern.six.moves import map, filter, filterfalse
-from pkg_resources.extern import packaging
 
 from setuptools.depends import Require
 from setuptools import windows_support
@@ -26,8 +28,8 @@ from setuptools.config import parse_configuration
 import pkg_resources
 from .py36compat import Distribution_parse_config_files
 
-__import__('pkg_resources.extern.packaging.specifiers')
-__import__('pkg_resources.extern.packaging.version')
+__import__('setuptools.extern.packaging.specifiers')
+__import__('setuptools.extern.packaging.version')
 
 
 def _get_unpatched(cls):
@@ -35,35 +37,56 @@ def _get_unpatched(cls):
     return get_unpatched(cls)
 
 
+def get_metadata_version(dist_md):
+    if dist_md.long_description_content_type or dist_md.provides_extras:
+        return StrictVersion('2.1')
+    elif (dist_md.maintainer is not None or
+          dist_md.maintainer_email is not None or
+          getattr(dist_md, 'python_requires', None) is not None):
+        return StrictVersion('1.2')
+    elif (dist_md.provides or dist_md.requires or dist_md.obsoletes or
+            dist_md.classifiers or dist_md.download_url):
+        return StrictVersion('1.1')
+
+    return StrictVersion('1.0')
+
+
 # Based on Python 3.5 version
 def write_pkg_file(self, file):
     """Write the PKG-INFO format data to a file object.
     """
-    version = '1.0'
-    if (self.provides or self.requires or self.obsoletes or
-            self.classifiers or self.download_url):
-        version = '1.1'
-    # Setuptools specific for PEP 345
-    if hasattr(self, 'python_requires'):
-        version = '1.2'
+    version = get_metadata_version(self)
 
     file.write('Metadata-Version: %s\n' % version)
     file.write('Name: %s\n' % self.get_name())
     file.write('Version: %s\n' % self.get_version())
     file.write('Summary: %s\n' % self.get_description())
     file.write('Home-page: %s\n' % self.get_url())
-    file.write('Author: %s\n' % self.get_contact())
-    file.write('Author-email: %s\n' % self.get_contact_email())
+
+    if version < StrictVersion('1.2'):
+        file.write('Author: %s\n' % self.get_contact())
+        file.write('Author-email: %s\n' % self.get_contact_email())
+    else:
+        optional_fields = (
+            ('Author', 'author'),
+            ('Author-email', 'author_email'),
+            ('Maintainer', 'maintainer'),
+            ('Maintainer-email', 'maintainer_email'),
+        )
+
+        for field, attr in optional_fields:
+            attr_val = getattr(self, attr)
+            if six.PY2:
+                attr_val = self._encode_field(attr_val)
+
+            if attr_val is not None:
+                file.write('%s: %s\n' % (field, attr_val))
+
     file.write('License: %s\n' % self.get_license())
     if self.download_url:
         file.write('Download-URL: %s\n' % self.download_url)
-
-    long_desc_content_type = getattr(
-        self,
-        'long_description_content_type',
-        None
-    ) or 'UNKNOWN'
-    file.write('Description-Content-Type: %s\n' % long_desc_content_type)
+    for project_url in self.project_urls.items():
+        file.write('Project-URL: %s, %s\n' % project_url)
 
     long_desc = rfc822_escape(self.get_long_description())
     file.write('Description: %s\n' % long_desc)
@@ -72,7 +95,12 @@ def write_pkg_file(self, file):
     if keywords:
         file.write('Keywords: %s\n' % keywords)
 
-    self._write_list(file, 'Platform', self.get_platforms())
+    if version >= StrictVersion('1.2'):
+        for platform in self.get_platforms():
+            file.write('Platform: %s\n' % platform)
+    else:
+        self._write_list(file, 'Platform', self.get_platforms())
+
     self._write_list(file, 'Classifier', self.get_classifiers())
 
     # PEP 314
@@ -84,14 +112,15 @@ def write_pkg_file(self, file):
     if hasattr(self, 'python_requires'):
         file.write('Requires-Python: %s\n' % self.python_requires)
 
-
-# from Python 3.4
-def write_pkg_info(self, base_dir):
-    """Write the PKG-INFO file into the release tree.
-    """
-    with open(os.path.join(base_dir, 'PKG-INFO'), 'w',
-              encoding='UTF-8') as pkg_info:
-        self.write_pkg_file(pkg_info)
+    # PEP 566
+    if self.long_description_content_type:
+        file.write(
+            'Description-Content-Type: %s\n' %
+            self.long_description_content_type
+        )
+    if self.provides_extras:
+        for extra in self.provides_extras:
+            file.write('Provides-Extra: %s\n' % extra)
 
 
 sequence = tuple, list
@@ -326,14 +355,24 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         self.dist_files = []
         self.src_root = attrs.pop("src_root", None)
         self.patch_missing_pkg_info(attrs)
-        self.long_description_content_type = attrs.get(
-            'long_description_content_type'
-        )
+        self.project_urls = attrs.get('project_urls', {})
         self.dependency_links = attrs.pop('dependency_links', [])
         self.setup_requires = attrs.pop('setup_requires', [])
         for ep in pkg_resources.iter_entry_points('distutils.setup_keywords'):
             vars(self).setdefault(ep.name, None)
         _Distribution.__init__(self, attrs)
+
+        # The project_urls attribute may not be supported in distutils, so
+        # prime it here from our value if not automatically set
+        self.metadata.project_urls = getattr(
+            self.metadata, 'project_urls', self.project_urls)
+        self.metadata.long_description_content_type = attrs.get(
+            'long_description_content_type'
+        )
+        self.metadata.provides_extras = getattr(
+            self.metadata, 'provides_extras', set()
+        )
+
         if isinstance(self.metadata.version, numbers.Number):
             # Some people apparently take "version number" too literally :)
             self.metadata.version = str(self.metadata.version)
@@ -366,6 +405,16 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         """
         if getattr(self, 'python_requires', None):
             self.metadata.python_requires = self.python_requires
+
+        if getattr(self, 'extras_require', None):
+            for extra in self.extras_require.keys():
+                # Since this gets called multiple times at points where the
+                # keys have become 'converted' extras, ensure that we are only
+                # truly adding extras we haven't seen before here.
+                extra = extra.split(':')[0]
+                if extra:
+                    self.metadata.provides_extras.add(extra)
+
         self._convert_extras_requirements()
         self._move_install_requirements_markers()
 
@@ -505,7 +554,7 @@ class Distribution(Distribution_parse_config_files, _Distribution):
                 # don't use any other settings
                 'find_links', 'site_dirs', 'index_url',
                 'optimize', 'site_dirs', 'allow_hosts',
-        ))
+            ))
         if self.dependency_links:
             links = self.dependency_links[:]
             if 'find_links' in opts:

@@ -145,6 +145,11 @@ dependencies, and perhaps some data files and scripts::
         license="PSF",
         keywords="hello world example examples",
         url="http://example.com/HelloWorld/",   # project home page, if any
+        project_urls={
+            "Bug Tracker": "https://bugs.example.com/HelloWorld/",
+            "Documentation": "https://docs.example.com/HelloWorld/",
+            "Source Code": "https://code.example.com/HelloWorld/",
+        }
 
         # could also include long_description, download_url, classifiers, etc.
     )
@@ -237,7 +242,6 @@ have setuptools automatically tag your in-development releases with various
 pre- or post-release tags.  See the following sections for more details:
 
 * `Tagging and "Daily Build" or "Snapshot" Releases`_
-* `Managing "Continuous Releases" Using Subversion`_
 * The `egg_info`_ command
 
 
@@ -408,6 +412,11 @@ unless you need the associated ``setuptools`` feature.
     A list of modules to search for additional fixers to be used during
     the 2to3 conversion. See :doc:`python3` for more details.
 
+``project_urls``
+    An arbitrary map of URL names to hyperlinks, allowing more extensible
+    documentation of where various resources can be found than the simple
+    ``url`` and ``download_url`` options provide.
+
 
 Using ``find_packages()``
 -------------------------
@@ -427,9 +436,9 @@ such projects also need something like ``package_dir={'':'src'}`` in their
 ``setup()`` arguments, but that's just a normal distutils thing.)
 
 Anyway, ``find_packages()`` walks the target directory, filtering by inclusion
-patterns, and finds Python packages (any directory). On Python 3.2 and
-earlier, packages are only recognized if they include an ``__init__.py`` file.
-Finally, exclusion patterns are applied to remove matching packages.
+patterns, and finds Python packages (any directory). Packages are only
+recognized if they include an ``__init__.py`` file. Finally, exclusion
+patterns are applied to remove matching packages.
 
 Inclusion and exclusion patterns are package names, optionally including
 wildcards.  For
@@ -561,7 +570,7 @@ project name or version identifier must be replaced with ``-``.
 Version specifiers for a given project are internally sorted into ascending
 version order, and used to establish what ranges of versions are acceptable.
 Adjacent redundant conditions are also consolidated (e.g. ``">1, >2"`` becomes
-``">1"``, and ``"<2,<3"`` becomes ``"<3"``). ``"!="`` versions are excised from
+``">2"``, and ``"<2,<3"`` becomes ``"<2"``). ``"!="`` versions are excised from
 the ranges they fall within.  A project's version is then checked for
 membership in the resulting ranges. (Note that providing conflicting conditions
 for the same version (e.g. "<2,>=2" or "==2,!=2") is meaningless and may
@@ -875,6 +884,14 @@ Also notice that if you use paths, you *must* use a forward slash (``/``) as
 the path separator, even if you are on Windows.  Setuptools automatically
 converts slashes to appropriate platform-specific separators at build time.
 
+If datafiles are contained in a subdirectory of a package that isn't a package
+itself (no ``__init__.py``), then the subdirectory names (or ``*``) are required
+in the ``package_data`` argument (as shown above with ``'data/*.dat'``).
+
+When building an ``sdist``, the datafiles are also drawn from the
+``package_name.egg-info/SOURCES.txt`` file, so make sure that this is removed if
+the ``setup.py`` ``package_data`` list is updated before calling ``setup.py``.
+
 (Note: although the ``package_data`` argument was previously only available in
 ``setuptools``, it was also added to the Python ``distutils`` package as of
 Python 2.4; there is `some documentation for the feature`__ available on the
@@ -916,7 +933,7 @@ In summary, the three options allow you to:
     Accept all data files and directories matched by ``MANIFEST.in``.
 
 ``package_data``
-    Specify additional patterns to match files and directories that may or may
+    Specify additional patterns to match files that may or may
     not be matched by ``MANIFEST.in`` or found in source control.
 
 ``exclude_package_data``
@@ -1348,6 +1365,7 @@ then make an explicit declaration of ``True`` or ``False`` for the ``zip_safe``
 flag, so that it will not be necessary for ``bdist_egg`` or ``EasyInstall`` to
 try to guess whether your project can work as a zipfile.
 
+.. _Namespace Packages:
 
 Namespace Packages
 ------------------
@@ -2259,7 +2277,7 @@ The ``upload`` command is implemented and `documented
 in distutils.
 
 Setuptools augments the ``upload`` command with support
-for `keyring <https://pypi.python.org/pypi/keyring>`_,
+for `keyring <https://pypi.org/project/keyring/>`_,
 allowing the password to be stored in a secure
 location and not in plaintext in the .pypirc file. To use
 keyring, first install keyring and set the password for
@@ -2287,7 +2305,7 @@ Configuring setup() using setup.cfg files
 
 ``Setuptools`` allows using configuration files (usually :file:`setup.cfg`)
 to define a package’s metadata and other options that are normally supplied
-to the ``setup()`` function.
+to the ``setup()`` function (declarative config).
 
 This approach not only allows automation scenarios but also reduces
 boilerplate code in some cases.
@@ -2323,6 +2341,9 @@ boilerplate code in some cases.
     scripts =
       bin/first.py
       bin/second.py
+    install_requires =
+      requests
+      importlib; python_version == "2.6"
 
     [options.package_data]
     * = *.txt, *.rst
@@ -2403,9 +2424,10 @@ Metadata
 Key                             Aliases            Type
 ==============================  =================  =====
 name                                               str
-version                                            attr:, str
+version                                            attr:, file:, str
 url                             home-page          str
 download_url                    download-url       str
+project_urls                                       dict
 author                                             str
 author_email                    author-email       str
 maintainer                                         str
@@ -2422,6 +2444,10 @@ requires                                           list-comma
 obsoletes                                          list-comma
 ==============================  =================  =====
 
+.. note::
+    A version loaded using the ``file:`` directive must comply with PEP 440.
+    It is easy to accidentally put something other than a valid version
+    string in such a file, so validation is stricter in this case.
 
 Options
 -------
@@ -2652,8 +2678,8 @@ Adding Support for Revision Control Systems
 If the files you want to include in the source distribution are tracked using
 Git, Mercurial or SVN, you can use the following packages to achieve that:
 
-- Git and Mercurial: `setuptools_scm <https://pypi.python.org/pypi/setuptools_scm>`_
-- SVN: `setuptools_svn <https://pypi.python.org/pypi/setuptools_svn>`_
+- Git and Mercurial: `setuptools_scm <https://pypi.org/project/setuptools_scm/>`_
+- SVN: `setuptools_svn <https://pypi.org/project/setuptools_svn/>`_
 
 If you would like to create a plugin for ``setuptools`` to find files tracked
 by another revision control system, you can do so by adding an entry point to

@@ -4,6 +4,7 @@ import os
 import sys
 import string
 import platform
+import itertools
 
 from pkg_resources.extern.six.moves import map
 
@@ -11,9 +12,18 @@ import pytest
 from pkg_resources.extern import packaging
 
 import pkg_resources
-from pkg_resources import (parse_requirements, VersionConflict, parse_version,
+from pkg_resources import (
+    parse_requirements, VersionConflict, parse_version,
     Distribution, EntryPoint, Requirement, safe_version, safe_name,
     WorkingSet)
+
+
+# from Python 3.6 docs.
+def pairwise(iterable):
+    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
+    a, b = itertools.tee(iterable)
+    next(b, None)
+    return zip(a, b)
 
 
 class Metadata(pkg_resources.EmptyProvider):
@@ -51,7 +61,8 @@ class TestDistro:
         assert list(ad) == ['foopkg']
 
         # Distributions sort by version
-        assert [dist.version for dist in ad['FooPkg']] == ['1.4', '1.3-1', '1.2']
+        expected = ['1.4', '1.3-1', '1.2']
+        assert [dist.version for dist in ad['FooPkg']] == expected
 
         # Removing a distribution leaves sequence alone
         ad.remove(ad['FooPkg'][1])
@@ -97,7 +108,10 @@ class TestDistro:
     def testDistroBasics(self):
         d = Distribution(
             "/some/path",
-            project_name="FooPkg", version="1.3-1", py_version="2.4", platform="win32"
+            project_name="FooPkg",
+            version="1.3-1",
+            py_version="2.4",
+            platform="win32",
         )
         self.checkFooPkg(d)
 
@@ -113,10 +127,11 @@ class TestDistro:
 
     def testDistroMetadata(self):
         d = Distribution(
-            "/some/path", project_name="FooPkg", py_version="2.4", platform="win32",
+            "/some/path", project_name="FooPkg",
+            py_version="2.4", platform="win32",
             metadata=Metadata(
                 ('PKG-INFO', "Metadata-Version: 1.0\nVersion: 1.3-1\n")
-            )
+            ),
         )
         self.checkFooPkg(d)
 
@@ -164,7 +179,10 @@ class TestDistro:
         ad.add(Baz)
 
         # Activation list now includes resolved dependency
-        assert list(ws.resolve(parse_requirements("Foo[bar]"), ad)) == [Foo, Baz]
+        assert (
+            list(ws.resolve(parse_requirements("Foo[bar]"), ad))
+            == [Foo, Baz]
+        )
         # Requests for conflicting versions produce VersionConflict
         with pytest.raises(VersionConflict) as vc:
             ws.resolve(parse_requirements("Foo==1.2\nFoo!=1.2"), ad)
@@ -415,7 +433,8 @@ class TestEntryPoints:
 
     submap_expect = dict(
         feature1=EntryPoint('feature1', 'somemodule', ['somefunction']),
-        feature2=EntryPoint('feature2', 'another.module', ['SomeClass'], ['extra1', 'extra2']),
+        feature2=EntryPoint(
+            'feature2', 'another.module', ['SomeClass'], ['extra1', 'extra2']),
         feature3=EntryPoint('feature3', 'this.module', extras=['something'])
     )
     submap_str = """
@@ -518,11 +537,17 @@ class TestRequirements:
             Requirement.parse('setuptools').project_name == 'setuptools')
         # setuptools 0.7 and higher means setuptools.
         assert (
-            Requirement.parse('setuptools == 0.7').project_name == 'setuptools')
+            Requirement.parse('setuptools == 0.7').project_name
+            == 'setuptools'
+        )
         assert (
-            Requirement.parse('setuptools == 0.7a1').project_name == 'setuptools')
+            Requirement.parse('setuptools == 0.7a1').project_name
+            == 'setuptools'
+        )
         assert (
-            Requirement.parse('setuptools >= 0.7').project_name == 'setuptools')
+            Requirement.parse('setuptools >= 0.7').project_name
+            == 'setuptools'
+        )
 
 
 class TestParsing:
@@ -552,7 +577,7 @@ class TestParsing:
                     """
         assert (
             list(pkg_resources.split_sections(sample))
-                ==
+            ==
             [
                 (None, ["x"]),
                 ("Y", ["z", "a"]),
@@ -634,95 +659,53 @@ class TestParsing:
         req, = parse_requirements('foo>=1.0, <3')
         req, = parse_requirements('foo >= 1.0, < 3')
 
-    def testVersionEquality(self):
-        def c(s1, s2):
-            p1, p2 = parse_version(s1), parse_version(s2)
-            assert p1 == p2, (s1, s2, p1, p2)
+    @pytest.mark.parametrize(
+        ['lower', 'upper'],
+        [
+            ('1.2-rc1', '1.2rc1'),
+            ('0.4', '0.4.0'),
+            ('0.4.0.0', '0.4.0'),
+            ('0.4.0-0', '0.4-0'),
+            ('0post1', '0.0post1'),
+            ('0pre1', '0.0c1'),
+            ('0.0.0preview1', '0c1'),
+            ('0.0c1', '0-rc1'),
+            ('1.2a1', '1.2.a.1'),
+            ('1.2.a', '1.2a'),
+        ],
+    )
+    def testVersionEquality(self, lower, upper):
+        assert parse_version(lower) == parse_version(upper)
 
-        c('1.2-rc1', '1.2rc1')
-        c('0.4', '0.4.0')
-        c('0.4.0.0', '0.4.0')
-        c('0.4.0-0', '0.4-0')
-        c('0post1', '0.0post1')
-        c('0pre1', '0.0c1')
-        c('0.0.0preview1', '0c1')
-        c('0.0c1', '0-rc1')
-        c('1.2a1', '1.2.a.1')
-        c('1.2.a', '1.2a')
-
-    def testVersionOrdering(self):
-        def c(s1, s2):
-            p1, p2 = parse_version(s1), parse_version(s2)
-            assert p1 < p2, (s1, s2, p1, p2)
-
-        c('2.1', '2.1.1')
-        c('2a1', '2b0')
-        c('2a1', '2.1')
-        c('2.3a1', '2.3')
-        c('2.1-1', '2.1-2')
-        c('2.1-1', '2.1.1')
-        c('2.1', '2.1post4')
-        c('2.1a0-20040501', '2.1')
-        c('1.1', '02.1')
-        c('3.2', '3.2.post0')
-        c('3.2post1', '3.2post2')
-        c('0.4', '4.0')
-        c('0.0.4', '0.4.0')
-        c('0post1', '0.4post1')
-        c('2.1.0-rc1', '2.1.0')
-        c('2.1dev', '2.1a0')
-
-        torture = """
+    torture = """
         0.80.1-3 0.80.1-2 0.80.1-1 0.79.9999+0.80.0pre4-1
         0.79.9999+0.80.0pre2-3 0.79.9999+0.80.0pre2-2
         0.77.2-1 0.77.1-1 0.77.0-1
-        """.split()
-
-        for p, v1 in enumerate(torture):
-            for v2 in torture[p + 1:]:
-                c(v2, v1)
-
-    def testVersionBuildout(self):
-        """
-        Buildout has a function in it's bootstrap.py that inspected the return
-        value of parse_version. The new parse_version returns a Version class
-        which needs to support this behavior, at least for now.
         """
 
-        def buildout(parsed_version):
-            _final_parts = '*final-', '*final'
-
-            def _final_version(parsed_version):
-                for part in parsed_version:
-                    if (part[:1] == '*') and (part not in _final_parts):
-                        return False
-                return True
-
-            return _final_version(parsed_version)
-
-        assert buildout(parse_version("1.0"))
-        assert not buildout(parse_version("1.0a1"))
-
-    def testVersionIndexable(self):
-        """
-        Some projects were doing things like parse_version("v")[0], so we'll
-        support indexing the same as we support iterating.
-        """
-        assert parse_version("1.0")[0] == "00000001"
-
-    def testVersionTupleSort(self):
-        """
-        Some projects expected to be able to sort tuples against the return
-        value of parse_version. So again we'll add a warning enabled shim to
-        make this possible.
-        """
-        assert parse_version("1.0") < tuple(parse_version("2.0"))
-        assert parse_version("1.0") <= tuple(parse_version("2.0"))
-        assert parse_version("1.0") == tuple(parse_version("1.0"))
-        assert parse_version("3.0") > tuple(parse_version("2.0"))
-        assert parse_version("3.0") >= tuple(parse_version("2.0"))
-        assert parse_version("3.0") != tuple(parse_version("2.0"))
-        assert not (parse_version("3.0") != tuple(parse_version("3.0")))
+    @pytest.mark.parametrize(
+        ['lower', 'upper'],
+        [
+            ('2.1', '2.1.1'),
+            ('2a1', '2b0'),
+            ('2a1', '2.1'),
+            ('2.3a1', '2.3'),
+            ('2.1-1', '2.1-2'),
+            ('2.1-1', '2.1.1'),
+            ('2.1', '2.1post4'),
+            ('2.1a0-20040501', '2.1'),
+            ('1.1', '02.1'),
+            ('3.2', '3.2.post0'),
+            ('3.2post1', '3.2post2'),
+            ('0.4', '4.0'),
+            ('0.0.4', '0.4.0'),
+            ('0post1', '0.4post1'),
+            ('2.1.0-rc1', '2.1.0'),
+            ('2.1dev', '2.1a0'),
+        ] + list(pairwise(reversed(torture.split()))),
+    )
+    def testVersionOrdering(self, lower, upper):
+        assert parse_version(lower) < parse_version(upper)
 
     def testVersionHashable(self):
         """
@@ -838,7 +821,8 @@ class TestNamespaces:
             subpkg = nspkg / 'subpkg'
             subpkg.ensure_dir()
             (nspkg / '__init__.py').write_text(self.ns_str, encoding='utf-8')
-            (subpkg / '__init__.py').write_text(vers_str % number, encoding='utf-8')
+            (subpkg / '__init__.py').write_text(
+                vers_str % number, encoding='utf-8')
 
         import nspkg.subpkg
         import nspkg
