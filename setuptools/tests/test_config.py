@@ -10,13 +10,15 @@ class ErrConfigHandler(ConfigHandler):
 
 
 def make_package_dir(name, base_dir):
-    dir_package = base_dir.mkdir(name)
+    dir_package = base_dir
+    for dir_name in name.split('/'):
+        dir_package = dir_package.mkdir(dir_name)
     init_file = dir_package.join('__init__.py')
     init_file.write('')
     return dir_package, init_file
 
 
-def fake_env(tmpdir, setup_cfg, setup_py=None):
+def fake_env(tmpdir, setup_cfg, setup_py=None, package_path='fake_package'):
 
     if setup_py is None:
         setup_py = (
@@ -28,7 +30,7 @@ def fake_env(tmpdir, setup_cfg, setup_py=None):
     config = tmpdir.join('setup.cfg')
     config.write(setup_cfg)
 
-    package_dir, init_file = make_package_dir('fake_package', tmpdir)
+    package_dir, init_file = make_package_dir(package_path, tmpdir)
 
     init_file.write(
         'VERSION = (1, 2, 3)\n'
@@ -284,6 +286,51 @@ class TestMetadata:
         with pytest.raises(DistutilsOptionError):
             with get_dist(tmpdir) as dist:
                 _ = dist.metadata.version
+
+    def test_version_with_package_dir_simple(self, tmpdir):
+
+        _, config = fake_env(
+            tmpdir,
+            '[metadata]\n'
+            'version = attr: fake_package_simple.VERSION\n'
+            '[options]\n'
+            'package_dir =\n'
+            '    = src\n',
+            package_path='src/fake_package_simple'
+        )
+
+        with get_dist(tmpdir) as dist:
+            assert dist.metadata.version == '1.2.3'
+
+    def test_version_with_package_dir_rename(self, tmpdir):
+
+        _, config = fake_env(
+            tmpdir,
+            '[metadata]\n'
+            'version = attr: fake_package_rename.VERSION\n'
+            '[options]\n'
+            'package_dir =\n'
+            '    fake_package_rename = fake_dir\n',
+            package_path='fake_dir'
+        )
+
+        with get_dist(tmpdir) as dist:
+            assert dist.metadata.version == '1.2.3'
+
+    def test_version_with_package_dir_complex(self, tmpdir):
+
+        _, config = fake_env(
+            tmpdir,
+            '[metadata]\n'
+            'version = attr: fake_package_complex.VERSION\n'
+            '[options]\n'
+            'package_dir =\n'
+            '    fake_package_complex = src/fake_dir\n',
+            package_path='src/fake_dir'
+        )
+
+        with get_dist(tmpdir) as dist:
+            assert dist.metadata.version == '1.2.3'
 
     def test_unknown_meta_item(self, tmpdir):
 
