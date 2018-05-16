@@ -233,27 +233,27 @@ class TestEggInfo(object):
         '''
         install_requires_deterministic
 
-        install_requires=["fake-factory==0.5.2", "pytz"]
+        install_requires=["wheel>=0.5", "pytest"]
 
         [options]
         install_requires =
-            fake-factory==0.5.2
-            pytz
+            wheel>=0.5
+            pytest
 
-        fake-factory==0.5.2
-        pytz
+        wheel>=0.5
+        pytest
         ''',
 
         '''
         install_requires_ordered
 
-        install_requires=["fake-factory>=1.12.3,!=2.0"]
+        install_requires=["pytest>=3.0.2,!=10.9999"]
 
         [options]
         install_requires =
-            fake-factory>=1.12.3,!=2.0
+            pytest>=3.0.2,!=10.9999
 
-        fake-factory!=2.0,>=1.12.3
+        pytest!=10.9999,>=3.0.2
         ''',
 
         '''
