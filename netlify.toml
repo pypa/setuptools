@@ -1,0 +1,5 @@
+# Configuration for pull request documentation previews via Netlify
+
+[build]
+    publish = "docs/build/html"
+    command = "pip install tox && tox -e docs"
