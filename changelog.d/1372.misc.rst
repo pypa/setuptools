@@ -1,0 +1,2 @@
+Stop testing Python 3.3 in Travis CI, now that the latest version of
+``wheel`` no longer installs on it.
