@@ -1,0 +1,1 @@
+Added coverage badge to README.
