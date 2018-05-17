@@ -3,7 +3,6 @@ sudo: false
 language: python
 python:
 - &latest_py2 2.7
-- 3.3
 - 3.4
 - 3.5
 - &latest_py3 3.6
@@ -43,7 +42,7 @@ install:
 # ensure we have recent pip/setuptools
 - pip install --upgrade pip setuptools
 # need tox to get started
-- pip install tox 'tox-venv; python_version!="3.3"'
+- pip install tox tox-venv
 
 # Output the env, to verify behavior
 - env
