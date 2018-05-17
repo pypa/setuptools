@@ -73,7 +73,13 @@ if include_windows_files:
     package_data.setdefault('setuptools.command', []).extend(['*.xml'])
 
 needs_wheel = set(['release', 'bdist_wheel']).intersection(sys.argv)
-wheel = ['wheel'] if needs_wheel else []
+wheel = []
+if needs_wheel:
+    if sys.version[0:2] == (3, 3):
+        # Pin wheel until 3.3 support is dropped
+        wheel = ['wheel==0.30.0']
+    else:
+        wheel = ['wheel']
 
 
 def pypi_link(pkg_filename):

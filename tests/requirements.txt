@@ -5,6 +5,7 @@ pytest-flake8; python_version>="2.7" and python_version!="3.3" and python_versio
 virtualenv>=13.0.0
 pytest-virtualenv>=1.2.7
 pytest>=3.0.2
-wheel
+wheel; python_version!="3.3"
+wheel==0.30.0; python_version=="3.3"
 coverage>=4.5.1
 pytest-cov>=2.5.1

@@ -11,6 +11,8 @@ import pytest_virtualenv
 from .textwrap import DALS
 from .test_easy_install import make_nspkg_sdist
 
+xfail_33 = pytest.mark.xfail(sys.version_info[0:2] == (3, 3),
+                             reason='pytest_virtualenv fails on Python 3.3')
 
 @pytest.fixture(autouse=True)
 def pytest_virtualenv_works(virtualenv):
@@ -42,6 +44,7 @@ def bare_virtualenv():
 SOURCE_DIR = os.path.join(os.path.dirname(__file__), '../..')
 
 
+@xfail_33
 def test_clean_env_install(bare_virtualenv):
     """
     Check setuptools can be installed in a clean environment.
@@ -52,6 +55,7 @@ def test_clean_env_install(bare_virtualenv):
     )).format(source=SOURCE_DIR))
 
 
+@xfail_33
 def test_pip_upgrade_from_source(virtualenv):
     """
     Check pip can upgrade setuptools from source.
@@ -60,6 +64,9 @@ def test_pip_upgrade_from_source(virtualenv):
     if sys.version_info < (2, 7):
         # Python 2.6 support was dropped in wheel 0.30.0.
         virtualenv.run('pip install -U "wheel<0.30.0"')
+    elif sys.version_info[0:2] == (3, 3):
+        virtualenv.run('pip install -U "wheel==0.30.0"')
+
     # Generate source distribution / wheel.
     virtualenv.run(' && '.join((
         'cd {source}',
@@ -74,6 +81,7 @@ def test_pip_upgrade_from_source(virtualenv):
     virtualenv.run('pip install --no-cache-dir --upgrade ' + sdist)
 
 
+@xfail_33
 def test_test_command_install_requirements(bare_virtualenv, tmpdir):
     """
     Check the test command will install all required dependencies.
