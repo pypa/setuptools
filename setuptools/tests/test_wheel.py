@@ -9,12 +9,15 @@ import contextlib
 import glob
 import inspect
 import os
+import shutil
 import subprocess
 import sys
+import zipfile
 
 import pytest
 
 from pkg_resources import Distribution, PathMetadata, PY_MAJOR
+from setuptools.extern.packaging.utils import canonicalize_name
 from setuptools.wheel import Wheel
 
 from .contexts import tempdir
@@ -506,3 +509,33 @@ def test_wheel_install(params):
         _check_wheel_install(filename, install_dir,
                              install_tree, project_name,
                              version, requires_txt)
+
+
+def test_wheel_install_pep_503():
+    project_name = 'Foo_Bar'    # PEP 503 canonicalized name is "foo-bar"
+    version = '1.0'
+    with build_wheel(
+        name=project_name,
+        version=version,
+    ) as filename, tempdir() as install_dir:
+        new_filename = filename.replace(project_name,
+                                        canonicalize_name(project_name))
+        shutil.move(filename, new_filename)
+        _check_wheel_install(new_filename, install_dir, None,
+                             canonicalize_name(project_name),
+                             version, None)
+
+
+def test_wheel_no_dist_dir():
+    project_name = 'nodistinfo'
+    version = '1.0'
+    wheel_name = '{0}-{1}-py2.py3-none-any.whl'.format(project_name, version)
+    with tempdir() as source_dir:
+        wheel_path = os.path.join(source_dir, wheel_name)
+        # create an empty zip file
+        zipfile.ZipFile(wheel_path, 'w').close()
+        with tempdir() as install_dir:
+            with pytest.raises(ValueError):
+                _check_wheel_install(wheel_path, install_dir, None,
+                                     project_name,
+                                     version, None)
