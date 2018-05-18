@@ -1,0 +1,4 @@
+The ``setuptools`` specific ``long_description_content_type``,
+``project_urls`` and ``provides_extras`` fields are now set
+consistently after any ``distutils`` ``setup_keywords`` calls,
+allowing them to override values.
