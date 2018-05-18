@@ -1,0 +1,1 @@
+Add `__dir__()` implementation to `pkg_resources.Distribution()` that includes the attributes in the `_provider` instance variable.

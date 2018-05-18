@@ -2663,6 +2663,19 @@ class Distribution(object):
             raise AttributeError(attr)
         return getattr(self._provider, attr)
 
+    def __dir__(self):
+        return list(
+            set(super(Distribution, self).__dir__())
+            | set(
+                attr for attr in self._provider.__dir__()
+                if not attr.startswith('_')
+            )
+        )
+
+    if not hasattr(object, '__dir__'):
+        # python 2.7 not supported
+        del __dir__
+
     @classmethod
     def from_filename(cls, filename, metadata=None, **kw):
         return cls.from_location(
