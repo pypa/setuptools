@@ -4,8 +4,8 @@ environment:
   CODECOV_ENV: APPVEYOR_JOB_NAME
 
   matrix:
-    - APPVEYOR_JOB_NAME: "python35-x64"
-      PYTHON: "C:\\Python35-x64"
+    - APPVEYOR_JOB_NAME: "python36-x64"
+      PYTHON: "C:\\Python36-x64"
     - APPVEYOR_JOB_NAME: "python27-x64"
       PYTHON: "C:\\Python27-x64"
 
