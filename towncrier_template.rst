@@ -8,7 +8,6 @@
 {% for text, values in sections[section][category].items() %}
 * {{ values|join(', ') }}: {{ text }}
 {% endfor %}
-
 {% else %}
 *  {{ sections[section][category]['']|join(', ') }}
 
