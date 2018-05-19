@@ -19,9 +19,13 @@ To update the changelog:
    ``git add`` for any modified files.
 3. Run ``towncrier --version {new.version.number}`` to stage the changelog
    updates in git.
+4. Verify that there are no remaining ``changelog.d/*.rst`` files.  If a
+   file was named incorrectly, it may be ignored by towncrier.
+5. Review the updated ``CHANGES.rst`` file.  If any changes are needed,
+   make the edits and stage them via ``git add CHANGES.rst``.
 
 Once the changelog edits are staged and ready to commit, cut a release by
-installing and running ``bump2version {part}`` where ``part``
+installing and running ``bump2version --allow-dirty {part}`` where ``part``
 is major, minor, or patch based on the scope of the changes in the
 release. Then, push the commits to the master branch::
 

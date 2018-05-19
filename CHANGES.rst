@@ -5,6 +5,8 @@ v39.2.0
   a text file.
 * #1360: Fixed issue with a mismatch between the name of the package and the
   name of the .dist-info file in wheel files
+* #1364: Add `__dir__()` implementation to `pkg_resources.Distribution()` that
+  includes the attributes in the `_provider` instance variable.
 * #1365: Take the package_dir option into account when loading the version from
   a module attribute.
 * #1353: Added coverage badge to README.
