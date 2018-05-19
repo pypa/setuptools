@@ -1,3 +1,29 @@
+v39.2.0
+-------
+
+* #1359: Support using "file:" to load a PEP 440-compliant package version from
+  a text file.
+* #1360: Fixed issue with a mismatch between the name of the package and the
+  name of the .dist-info file in wheel files
+* #1365: Take the package_dir option into account when loading the version from
+  a module attribute.
+* #1353: Added coverage badge to README.
+* #1356: Made small fixes to the developer guide documentation.
+* #1357: Fixed warnings in documentation builds and started enforcing that the
+  docs build without warnings in tox.
+* #1376: Updated release process docs.
+* #1343: The ``setuptools`` specific ``long_description_content_type``,
+  ``project_urls`` and ``provides_extras`` fields are now set consistently
+  after any ``distutils`` ``setup_keywords`` calls, allowing them to override
+  values.
+* #1352: Added ``tox`` environment for documentation builds.
+* #1354: Added ``towncrier`` for changelog managment.
+* #1355: Add PR template.
+* #1368: Fixed tests which failed without network connectivity.
+* #1369: Added unit tests for PEP 425 compatibility tags support.
+* #1372: Stop testing Python 3.3 in Travis CI, now that the latest version of
+  ``wheel`` no longer installs on it.
+
 v39.1.0
 -------
 

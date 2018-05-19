@@ -1,1 +1,0 @@
-Made small fixes to the developer guide documentation.

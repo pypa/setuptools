@@ -1,2 +1,0 @@
-Take the package_dir option into account when loading the version from a
-module attribute.
