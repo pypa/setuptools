@@ -20,7 +20,9 @@ See the `Installation Instructions
 User's Guide for instructions on installing, upgrading, and uninstalling
 Setuptools.
 
-The project is `maintained at GitHub <https://github.com/pypa/setuptools>`_.
+The project is `maintained at GitHub <https://github.com/pypa/setuptools>`_
+by the `Setuptools Developers
+<https://github.com/orgs/pypa/teams/setuptools-developers>`_.
 
 Questions and comments should be directed to the `distutils-sig
 mailing list <http://mail.python.org/pipermail/distutils-sig/>`_.
