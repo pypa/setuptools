@@ -40,12 +40,13 @@ import subprocess
 import shlex
 import io
 
+from sysconfig import get_config_vars, get_path
+
 from setuptools.extern import six
 from setuptools.extern.six.moves import configparser, map
 
 from setuptools import Command
 from setuptools.sandbox import run_setup
-from setuptools.py31compat import get_path, get_config_vars
 from setuptools.py27compat import rmtree_safe
 from setuptools.command import setopt
 from setuptools.archive_util import unpack_archive

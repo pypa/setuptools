@@ -688,7 +688,7 @@ def create_setup_requires_package(path, distname='foobar', version='0.1',
 )
 class TestScriptHeader:
     non_ascii_exe = '/Users/José/bin/python'
-    exe_with_spaces = r'C:\Program Files\Python33\python.exe'
+    exe_with_spaces = r'C:\Program Files\Python36\python.exe'
 
     def test_get_script_header(self):
         expected = '#!%s\n' % ei.nt_quote_arg(os.path.normpath(sys.executable))

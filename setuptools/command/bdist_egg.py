@@ -411,7 +411,7 @@ def scan_module(egg_dir, base, name, stubs):
         return True  # Extension module
     pkg = base[len(egg_dir) + 1:].replace(os.sep, '.')
     module = pkg + (pkg and '.' or '') + os.path.splitext(name)[0]
-    if sys.version_info < (3, 3):
+    if sys.version_info.major == 2:
         skip = 8  # skip magic & date
     elif sys.version_info < (3, 7):
         skip = 12  # skip magic & date & file size
