@@ -970,35 +970,14 @@ a quick example of converting code that uses ``__file__`` to use
 Non-Package Data Files
 ----------------------
 
-The ``distutils`` normally install general "data files" to a platform-specific
-location (e.g. ``/usr/share``).  This feature intended to be used for things
-like documentation, example configuration files, and the like.  ``setuptools``
-does not install these data files in a separate location, however.  They are
-bundled inside the egg file or directory, alongside the Python modules and
-packages.  The data files can also be accessed using the :ref:`ResourceManager
-API`, by specifying a ``Requirement`` instead of a package name::
+Historically, ``setuptools`` by way of ``easy_install`` would encapsulate data
+files from the distribution into the egg (see `this reference
+<https://github.com/pypa/setuptools/blob/52aacd5b276fedd6849c3a648a0014f5da563e93/docs/setuptools.txt#L970-L1001>`_). As eggs are deprecated and pip-based installs
+fall back to the platform-specific location for installing data files, there is
+no supported facility to reliably retrieve these resources.
 
-    from pkg_resources import Requirement, resource_filename
-    filename = resource_filename(Requirement.parse("MyProject"),"sample.conf")
-
-The above code will obtain the filename of the "sample.conf" file in the data
-root of the "MyProject" distribution.
-
-Note, by the way, that this encapsulation of data files means that you can't
-actually install data files to some arbitrary location on a user's machine;
-this is a feature, not a bug.  You can always include a script in your
-distribution that extracts and copies your the documentation or data files to
-a user-specified location, at their discretion.  If you put related data files
-in a single directory, you can use ``resource_filename()`` with the directory
-name to get a filesystem directory that then can be copied with the ``shutil``
-module.  (Even if your package is installed as a zipfile, calling
-``resource_filename()`` on a directory will return an actual filesystem
-directory, whose contents will be that entire subtree of your distribution.)
-
-(Of course, if you're writing a new package, you can just as easily place your
-data files or directories inside one of your packages, rather than using the
-distutils' approach.  However, if you're updating an existing application, it
-may be simpler not to change the way it currently specifies these data files.)
+Instead, the PyPA recommends that any data files you wish to be accessible at
+run time be included in the package.
 
 
 Automatic Resource Extraction
