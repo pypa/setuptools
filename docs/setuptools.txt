@@ -971,7 +971,7 @@ Non-Package Data Files
 ----------------------
 
 Historically, ``setuptools`` by way of ``easy_install`` would encapsulate data
-files from the distribution into the egg (see `this reference
+files from the distribution into the egg (see `the old docs
 <https://github.com/pypa/setuptools/blob/52aacd5b276fedd6849c3a648a0014f5da563e93/docs/setuptools.txt#L970-L1001>`_). As eggs are deprecated and pip-based installs
 fall back to the platform-specific location for installing data files, there is
 no supported facility to reliably retrieve these resources.

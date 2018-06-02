@@ -1,0 +1,1 @@
+Removed section on non-package data files.
