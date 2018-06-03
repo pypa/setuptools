@@ -107,8 +107,7 @@ class Wheel(object):
         # Check wheel format version is supported.
         wheel_version = parse_version(wheel_metadata.get('Wheel-Version'))
         wheel_v1 = (
-            parse_version('1.0') <= wheel_version
-            < parse_version('2.0dev0')
+            parse_version('1.0') <= wheel_version < parse_version('2.0dev0')
         )
         if not wheel_v1:
             raise ValueError(
@@ -120,7 +119,7 @@ class Wheel(object):
         dist_info = os.path.join(destination_eggdir, dist_info)
         dist = Distribution.from_location(
             destination_eggdir, dist_info,
-            metadata=PathMetadata(destination_eggdir, dist_info)
+            metadata=PathMetadata(destination_eggdir, dist_info),
         )
 
         # Note: Evaluate and strip markers now,
@@ -180,8 +179,6 @@ class Wheel(object):
             for mod in namespace_packages:
                 mod_dir = os.path.join(destination_eggdir, *mod.split('.'))
                 mod_init = os.path.join(mod_dir, '__init__.py')
-                if (
-                        os.path.exists(mod_dir)
-                        and not os.path.exists(mod_init)):
+                if os.path.exists(mod_dir) and not os.path.exists(mod_init):
                     with open(mod_init, 'w') as fp:
                         fp.write(NAMESPACE_PACKAGE_INIT)
