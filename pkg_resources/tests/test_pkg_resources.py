@@ -13,15 +13,11 @@ import distutils.dist
 import distutils.command.install_egg_info
 
 from pkg_resources.extern.six.moves import map
+from pkg_resources.extern.six import text_type, string_types
 
 import pytest
 
 import pkg_resources
-
-try:
-    unicode
-except NameError:
-    unicode = str
 
 __metaclass__ = type
 
@@ -37,7 +33,7 @@ def timestamp(dt):
         return time.mktime(dt.timetuple())
 
 
-class EggRemover(unicode):
+class EggRemover(text_type):
     def __call__(self):
         if self in sys.path:
             sys.path.remove(self)
@@ -140,7 +136,7 @@ class TestResourceManager:
         path = mgr.get_cache_path('foo')
         type_ = str(type(path))
         message = "Unexpected type from get_cache_path: " + type_
-        assert isinstance(path, (unicode, str)), message
+        assert isinstance(path, string_types), message
 
 
 class TestIndependence:
