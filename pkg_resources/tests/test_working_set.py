@@ -39,7 +39,7 @@ def parse_distributions(s):
           requires=['foo>=3.0', 'baz; extra=="feature"']
     '''
     s = s.strip()
-    for spec in re.split('\n(?=[^\s])', s):
+    for spec in re.split(r'\n(?=[^\s])', s):
         if not spec:
             continue
         fields = spec.split('\n', 1)
@@ -89,7 +89,7 @@ def parametrize_test_working_set_resolve(*test_list):
         ):
             idlist.append(id_)
             expected = strip_comments(expected.strip())
-            if re.match('\w+$', expected):
+            if re.match(r'\w+$', expected):
                 expected = getattr(pkg_resources, expected)
                 assert issubclass(expected, Exception)
             else:
