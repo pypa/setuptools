@@ -15,6 +15,8 @@ from setuptools.dist import Distribution, Feature
 from setuptools.depends import Require
 from . import monkey
 
+__metaclass__ = type
+
 __all__ = [
     'setup', 'Distribution', 'Feature', 'Command', 'Extension', 'Require',
     'find_packages',
@@ -31,7 +33,7 @@ run_2to3_on_doctests = True
 lib2to3_fixer_packages = ['lib2to3.fixes']
 
 
-class PackageFinder(object):
+class PackageFinder:
     """
     Generate a list of all Python packages found within a directory
     """

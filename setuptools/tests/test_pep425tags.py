@@ -4,8 +4,10 @@ from mock import patch
 
 from setuptools import pep425tags
 
+__metaclass__ = type
 
-class TestPEP425Tags(object):
+
+class TestPEP425Tags:
 
     def mock_get_config_var(self, **kwd):
         """
@@ -104,7 +106,7 @@ class TestPEP425Tags(object):
         self.abi_tag_unicode('dm', {'Py_DEBUG': True, 'WITH_PYMALLOC': True})
 
 
-class TestManylinux1Tags(object):
+class TestManylinux1Tags:
 
     @patch('setuptools.pep425tags.get_platform', lambda: 'linux_x86_64')
     @patch('setuptools.glibc.have_compatible_glibc',

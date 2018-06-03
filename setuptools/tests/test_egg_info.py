@@ -16,12 +16,14 @@ from .files import build_files
 from .textwrap import DALS
 from . import contexts
 
+__metaclass__ = type
+
 
 class Environment(str):
     pass
 
 
-class TestEggInfo(object):
+class TestEggInfo:
 
     setup_script = DALS("""
         from setuptools import setup
@@ -181,7 +183,7 @@ class TestEggInfo(object):
     )
     invalid_marker = "<=>++"
 
-    class RequiresTestHelper(object):
+    class RequiresTestHelper:
 
         @staticmethod
         def parametrize(*test_list, **format_dict):

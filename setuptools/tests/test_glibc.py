@@ -4,6 +4,8 @@ import pytest
 
 from setuptools.glibc import check_glibc_version
 
+__metaclass__ = type
+
 
 @pytest.fixture(params=[
     "2.20",
@@ -23,7 +25,7 @@ def bad_string(request):
     return request.param
 
 
-class TestGlibc(object):
+class TestGlibc:
     def test_manylinux1_check_glibc_version(self, two_twenty):
         """
         Test that the check_glibc_version function is robust against weird

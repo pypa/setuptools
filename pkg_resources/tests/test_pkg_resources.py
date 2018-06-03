@@ -23,6 +23,8 @@ try:
 except NameError:
     unicode = str
 
+__metaclass__ = type
+
 
 def timestamp(dt):
     """
@@ -43,7 +45,7 @@ class EggRemover(unicode):
             os.remove(self)
 
 
-class TestZipProvider(object):
+class TestZipProvider:
     finalizers = []
 
     ref_time = datetime.datetime(2013, 5, 12, 13, 25, 0)
@@ -132,7 +134,7 @@ class TestZipProvider(object):
         manager.cleanup_resources()
 
 
-class TestResourceManager(object):
+class TestResourceManager:
     def test_get_cache_path(self):
         mgr = pkg_resources.ResourceManager()
         path = mgr.get_cache_path('foo')
@@ -163,7 +165,7 @@ class TestIndependence:
         subprocess.check_call(cmd)
 
 
-class TestDeepVersionLookupDistutils(object):
+class TestDeepVersionLookupDistutils:
     @pytest.fixture
     def env(self, tmpdir):
         """

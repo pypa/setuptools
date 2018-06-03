@@ -26,6 +26,8 @@ from setuptools.py27compat import get_all_headers
 from setuptools.py33compat import unescape
 from setuptools.wheel import Wheel
 
+__metaclass__ = type
+
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.+!]+)$')
 HREF = re.compile("""href\\s*=\\s*['"]?([^'"> ]+)""", re.I)
 # this is here to fix emacs' cruddy broken syntax highlighting
@@ -235,7 +237,7 @@ def find_external_links(url, page):
                 yield urllib.parse.urljoin(url, htmldecode(match.group(1)))
 
 
-class ContentChecker(object):
+class ContentChecker:
     """
     A null content checker that defines the interface for checking content
     """
@@ -980,7 +982,7 @@ def _encode_auth(auth):
     return encoded.replace('\n', '')
 
 
-class Credential(object):
+class Credential:
     """
     A username/password pair. Use like a namedtuple.
     """

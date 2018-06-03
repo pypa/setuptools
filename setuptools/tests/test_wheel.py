@@ -24,6 +24,8 @@ from .contexts import tempdir
 from .files import build_files
 from .textwrap import DALS
 
+__metaclass__ = type
+
 
 WHEEL_INFO_TESTS = (
     ('invalid.whl', ValueError),
@@ -148,7 +150,7 @@ def _check_wheel_install(filename, install_dir, install_tree_includes,
         assert requires_txt == dist.get_metadata('requires.txt').lstrip()
 
 
-class Record(object):
+class Record:
 
     def __init__(self, id, **kwargs):
         self._id = id

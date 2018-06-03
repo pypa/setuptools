@@ -18,6 +18,8 @@ from setuptools.tests.textwrap import DALS
 
 import pytest
 
+__metaclass__ = type
+
 py3_only = pytest.mark.xfail(six.PY2, reason="Test runs on Python 3 only")
 
 
@@ -157,7 +159,7 @@ def test_translated_pattern_mismatch(pattern_mismatch):
     assert not translate_pattern(pattern).match(target)
 
 
-class TempDirTestCase(object):
+class TempDirTestCase:
     def setup_method(self, method):
         self.temp_dir = tempfile.mkdtemp()
         self.old_cwd = os.getcwd()

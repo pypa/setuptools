@@ -12,6 +12,8 @@ from setuptools.command.easy_install import easy_install
 from setuptools import namespaces
 import setuptools
 
+__metaclass__ = type
+
 
 class develop(namespaces.DevelopInstaller, easy_install):
     """Set up package for development"""
@@ -192,7 +194,7 @@ class develop(namespaces.DevelopInstaller, easy_install):
         return easy_install.install_wrapper_scripts(self, dist)
 
 
-class VersionlessRequirement(object):
+class VersionlessRequirement:
     """
     Adapt a pkg_resources.Distribution to simply return the project
     name as the 'requirement' so that scripts will work across

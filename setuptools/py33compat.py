@@ -10,11 +10,12 @@ except ImportError:
 from setuptools.extern import six
 from setuptools.extern.six.moves import html_parser
 
+__metaclass__ = type
 
 OpArg = collections.namedtuple('OpArg', 'opcode arg')
 
 
-class Bytecode_compat(object):
+class Bytecode_compat:
     def __init__(self, code):
         self.code = code
 

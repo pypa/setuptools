@@ -9,6 +9,8 @@ import pkg_resources
 
 from .test_resources import Metadata
 
+__metaclass__ = type
+
 
 def strip_comments(s):
     return '\n'.join(
@@ -54,7 +56,7 @@ def parse_distributions(s):
         yield dist
 
 
-class FakeInstaller(object):
+class FakeInstaller:
 
     def __init__(self, installable_dists):
         self._installable_dists = installable_dists

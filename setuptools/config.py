@@ -11,6 +11,9 @@ from setuptools.extern.packaging.version import LegacyVersion, parse
 from setuptools.extern.six import string_types
 
 
+__metaclass__ = type
+
+
 def read_configuration(
         filepath, find_others=False, ignore_option_errors=False):
     """Read given configuration file and returns options from it as a dict.
@@ -113,7 +116,7 @@ def parse_configuration(
     return meta, options
 
 
-class ConfigHandler(object):
+class ConfigHandler:
     """Handles metadata supplied in configuration files."""
 
     section_prefix = None

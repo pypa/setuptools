@@ -63,6 +63,8 @@ from pkg_resources import (
 )
 import pkg_resources.py31compat
 
+__metaclass__ = type
+
 # Turn on PEP440Warnings
 warnings.filterwarnings("default", category=pkg_resources.PEP440Warning)
 
@@ -2050,7 +2052,7 @@ class WindowsCommandSpec(CommandSpec):
     split_args = dict(posix=False)
 
 
-class ScriptWriter(object):
+class ScriptWriter:
     """
     Encapsulates behavior around writing entry point scripts for console and
     gui apps.

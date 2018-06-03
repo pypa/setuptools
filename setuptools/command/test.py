@@ -16,6 +16,8 @@ from pkg_resources import (resource_listdir, resource_exists, normalize_path,
                            add_activation_listener, require, EntryPoint)
 from setuptools import Command
 
+__metaclass__ = type
+
 
 class ScanningLoader(TestLoader):
 
@@ -58,7 +60,7 @@ class ScanningLoader(TestLoader):
 
 
 # adapted from jaraco.classes.properties:NonDataProperty
-class NonDataProperty(object):
+class NonDataProperty:
     def __init__(self, fget):
         self.fget = fget
 

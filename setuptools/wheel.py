@@ -16,6 +16,9 @@ from setuptools import pep425tags
 from setuptools.command.egg_info import write_requirements
 
 
+__metaclass__ = type
+
+
 WHEEL_NAME = re.compile(
     r"""^(?P<project_name>.+?)-(?P<version>\d.*?)
     ((-(?P<build>\d.*?))?-(?P<py_version>.+?)-(?P<abi>.+?)-(?P<platform>.+?)
@@ -52,7 +55,7 @@ def unpack(src_dir, dst_dir):
         os.rmdir(dirpath)
 
 
-class Wheel(object):
+class Wheel:
 
     def __init__(self, filename):
         match = WHEEL_NAME(os.path.basename(filename))

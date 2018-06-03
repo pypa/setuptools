@@ -36,8 +36,10 @@ import pkg_resources
 from . import contexts
 from .textwrap import DALS
 
+__metaclass__ = type
 
-class FakeDist(object):
+
+class FakeDist:
     def get_entry_map(self, group):
         if group != 'console_scripts':
             return {}
