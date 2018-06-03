@@ -100,11 +100,19 @@ class Wheel(object):
         dist_basename = '%s-%s' % (self.project_name, self.version)
         dist_info = self.get_dist_info(zf)
         dist_data = '%s.data' % dist_basename
+        egg_info = os.path.join(destination_eggdir, 'EGG-INFO')
 
+        self._convert_metadata(zf, destination_eggdir, dist_info, egg_info)
+        self._move_data_entries(destination_eggdir, dist_data)
+        self._fix_namespace_packages(egg_info, destination_eggdir)
+
+    @staticmethod
+    def _convert_metadata(zf, destination_eggdir, dist_info, egg_info):
         def get_metadata(name):
             with zf.open(posixpath.join(dist_info, name)) as fp:
                 value = fp.read().decode('utf-8') if PY3 else fp.read()
                 return email.parser.Parser().parsestr(value)
+
         wheel_metadata = get_metadata('WHEEL')
         # Check wheel format version is supported.
         wheel_version = parse_version(wheel_metadata.get('Wheel-Version'))
@@ -139,7 +147,6 @@ class Wheel(object):
             )
             for extra in dist.extras
         }
-        egg_info = os.path.join(destination_eggdir, 'EGG-INFO')
         os.rename(dist_info, egg_info)
         os.rename(
             os.path.join(egg_info, 'METADATA'),
@@ -156,8 +163,6 @@ class Wheel(object):
             None,
             os.path.join(egg_info, 'requires.txt'),
         )
-        self._move_data_entries(destination_eggdir, dist_data)
-        self._fix_namespace_packages(egg_info, destination_eggdir)
 
     @staticmethod
     def _move_data_entries(destination_eggdir, dist_data):
