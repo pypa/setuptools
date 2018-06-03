@@ -156,7 +156,12 @@ class Wheel(object):
             None,
             os.path.join(egg_info, 'requires.txt'),
         )
-        # Move data entries to their correct location.
+        self._move_data_entries(destination_eggdir, dist_data)
+        self._fix_namespace_packages(egg_info, destination_eggdir)
+
+    @staticmethod
+    def _move_data_entries(destination_eggdir, dist_data):
+        """Move data entries to their correct location."""
         dist_data = os.path.join(destination_eggdir, dist_data)
         dist_data_scripts = os.path.join(dist_data, 'scripts')
         if os.path.exists(dist_data_scripts):
@@ -181,7 +186,6 @@ class Wheel(object):
             unpack(subdir, destination_eggdir)
         if os.path.exists(dist_data):
             os.rmdir(dist_data)
-        self._fix_namespace_packages(egg_info, destination_eggdir)
 
     @staticmethod
     def _fix_namespace_packages(egg_info, destination_eggdir):
