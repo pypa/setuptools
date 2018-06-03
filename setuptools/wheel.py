@@ -130,11 +130,11 @@ class Wheel(object):
             return str(req)
         install_requires = list(sorted(map(raw_req, dist.requires())))
         extras_require = {
-            extra: list(sorted(
+            extra: sorted(
                 req
                 for req in map(raw_req, dist.requires((extra,)))
                 if req not in install_requires
-            ))
+            )
             for extra in dist.extras
         }
         egg_info = os.path.join(destination_eggdir, 'EGG-INFO')
