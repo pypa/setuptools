@@ -1,4 +1,4 @@
-'''Wheels support.'''
+"""Wheels support."""
 
 from distutils.util import get_platform
 import email
@@ -181,7 +181,10 @@ class Wheel(object):
             unpack(subdir, destination_eggdir)
         if os.path.exists(dist_data):
             os.rmdir(dist_data)
-        # Fix namespace packages.
+        self._fix_namespace_packages(egg_info, destination_eggdir)
+
+    @staticmethod
+    def _fix_namespace_packages(egg_info, destination_eggdir):
         namespace_packages = os.path.join(
             egg_info, 'namespace_packages.txt')
         if os.path.exists(namespace_packages):
