@@ -64,9 +64,11 @@ class Wheel(object):
 
     def tags(self):
         '''List tags (py_version, abi, platform) supported by this wheel.'''
-        return itertools.product(self.py_version.split('.'),
-                                 self.abi.split('.'),
-                                 self.platform.split('.'))
+        return itertools.product(
+            self.py_version.split('.'),
+            self.abi.split('.'),
+            self.platform.split('.'),
+        )
 
     def is_compatible(self):
         '''Is the wheel is compatible with the current platform?'''
@@ -139,20 +141,27 @@ class Wheel(object):
         }
         egg_info = os.path.join(destination_eggdir, 'EGG-INFO')
         os.rename(dist_info, egg_info)
-        os.rename(os.path.join(egg_info, 'METADATA'),
-                  os.path.join(egg_info, 'PKG-INFO'))
-        setup_dist = SetuptoolsDistribution(attrs=dict(
-            install_requires=install_requires,
-            extras_require=extras_require,
-        ))
-        write_requirements(setup_dist.get_command_obj('egg_info'),
-                           None, os.path.join(egg_info, 'requires.txt'))
+        os.rename(
+            os.path.join(egg_info, 'METADATA'),
+            os.path.join(egg_info, 'PKG-INFO'),
+        )
+        setup_dist = SetuptoolsDistribution(
+            attrs=dict(
+                install_requires=install_requires,
+                extras_require=extras_require,
+            ),
+        )
+        write_requirements(
+            setup_dist.get_command_obj('egg_info'),
+            None,
+            os.path.join(egg_info, 'requires.txt'),
+        )
         # Move data entries to their correct location.
         dist_data = os.path.join(destination_eggdir, dist_data)
         dist_data_scripts = os.path.join(dist_data, 'scripts')
         if os.path.exists(dist_data_scripts):
-            egg_info_scripts = os.path.join(destination_eggdir,
-                                            'EGG-INFO', 'scripts')
+            egg_info_scripts = os.path.join(
+                destination_eggdir, 'EGG-INFO', 'scripts')
             os.mkdir(egg_info_scripts)
             for entry in os.listdir(dist_data_scripts):
                 # Remove bytecode, as it's not properly handled
@@ -160,8 +169,10 @@ class Wheel(object):
                 if entry.endswith('.pyc'):
                     os.unlink(os.path.join(dist_data_scripts, entry))
                 else:
-                    os.rename(os.path.join(dist_data_scripts, entry),
-                              os.path.join(egg_info_scripts, entry))
+                    os.rename(
+                        os.path.join(dist_data_scripts, entry),
+                        os.path.join(egg_info_scripts, entry),
+                    )
             os.rmdir(dist_data_scripts)
         for subdir in filter(os.path.exists, (
             os.path.join(dist_data, d)
