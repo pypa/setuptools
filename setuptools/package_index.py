@@ -934,12 +934,19 @@ entity_sub = re.compile(r'&(#(\d+|x[\da-fA-F]+)|[\w.:-]+);?').sub
 
 
 def decode_entity(match):
-    what = match.group(1)
+    what = match.group(0)
     return unescape(what)
 
 
 def htmldecode(text):
-    """Decode HTML entities in the given text."""
+    """
+    Decode HTML entities in the given text.
+
+    >>> htmldecode(
+    ...     'https://../package_name-0.1.2.tar.gz'
+    ...     '?tokena=A&amp;tokenb=B">package_name-0.1.2.tar.gz')
+    'https://../package_name-0.1.2.tar.gz?tokena=A&tokenb=B">package_name-0.1.2.tar.gz'
+    """
     return entity_sub(decode_entity, text)
 
 
