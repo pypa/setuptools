@@ -9,12 +9,9 @@ def pytest_addoption(parser):
 
 
 collect_ignore = [
-    'release.py',
     'setuptools/lib2to3_ex.py',
     'tests/manual_test.py',
     'tests/test_pypi.py',
-    'tests/shlib_test',
-    'scripts/upload-old-releases-as-zip.py',
     'pavement.py',
     'setuptools/tests/mod_with_constant.py',
 ]
