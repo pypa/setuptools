@@ -89,8 +89,10 @@ def test_full():
     assert len(eggs) == 3
     assert eggs[1].startswith('setuptools')
     del eggs[1]
-    assert eggs == ['extensions-0.3-py2.6.egg',
-        'zc.recipe.egg-1.2.2-py2.6.egg']
+    assert eggs == [
+        'extensions-0.3-py2.6.egg',
+        'zc.recipe.egg-1.2.2-py2.6.egg',
+    ]
 
 
 if __name__ == '__main__':
