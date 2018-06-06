@@ -1,3 +1,6 @@
+import sys
+
+
 pytest_plugins = 'setuptools.tests.fixtures'
 
 
@@ -9,9 +12,12 @@ def pytest_addoption(parser):
 
 
 collect_ignore = [
-    'setuptools/lib2to3_ex.py',
     'tests/manual_test.py',
     'tests/test_pypi.py',
     'pavement.py',
     'setuptools/tests/mod_with_constant.py',
 ]
+
+
+if sys.version_info < (3,):
+    collect_ignore.append('setuptools/lib2to3_ex.py')
