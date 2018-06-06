@@ -13,7 +13,6 @@ def pytest_addoption(parser):
 
 collect_ignore = [
     'tests/manual_test.py',
-    'tests/test_pypi.py',
     'pavement.py',
     'setuptools/tests/mod_with_constant.py',
 ]
