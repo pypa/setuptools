@@ -13,10 +13,13 @@ def pytest_addoption(parser):
 
 collect_ignore = [
     'tests/manual_test.py',
-    'pavement.py',
     'setuptools/tests/mod_with_constant.py',
 ]
 
 
 if sys.version_info < (3,):
     collect_ignore.append('setuptools/lib2to3_ex.py')
+
+
+if sys.version_info < (3, 6):
+    collect_ignore.append('pavement.py')
