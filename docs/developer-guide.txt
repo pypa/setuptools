@@ -66,7 +66,7 @@ and a reference to any issue tickets that the PR is intended to solve.
 All PRs with code changes should include tests. All changes should include a
 changelog entry.
 
-``setuptools`` uses `towncrier <https://town-crier.readthedocs.io/en/latest/>`_
+``setuptools`` uses `towncrier <https://pypi.org/project/towncrier/>`_
 for changelog managment, so when making a PR, please add a news fragment in the
 ``changelog.d/`` folder. Changelog files are written in Restructured Text and
 should be a 1 or 2 sentence description of the substantive changes in the PR.
