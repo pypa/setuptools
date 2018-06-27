@@ -2135,12 +2135,13 @@ def _rebuild_mod_path(orig_path, package_name, module):
         parts = path_parts[:-module_parts]
         return safe_sys_path_index(_normalize_cached(os.sep.join(parts)))
 
-    if not isinstance(orig_path, list):
-        # Is this behavior useful when module.__path__ is not a list?
-        return
+    new_path = sorted(orig_path, key=position_in_sys_path)
+    new_path = [_normalize_cached(p) for p in new_path]
 
-    orig_path.sort(key=position_in_sys_path)
-    module.__path__[:] = [_normalize_cached(p) for p in orig_path]
+    if isinstance(module.__path__, list):
+        module.__path__[:] = new_path
+    else:
+        module.__path__ = new_path
 
 
 def declare_namespace(packageName):
