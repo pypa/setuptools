@@ -19,7 +19,7 @@ v39.2.0
   after any ``distutils`` ``setup_keywords`` calls, allowing them to override
   values.
 * #1352: Added ``tox`` environment for documentation builds.
-* #1354: Added ``towncrier`` for changelog managment.
+* #1354: Added ``towncrier`` for changelog management.
 * #1355: Add PR template.
 * #1368: Fixed tests which failed without network connectivity.
 * #1369: Added unit tests for PEP 425 compatibility tags support.
