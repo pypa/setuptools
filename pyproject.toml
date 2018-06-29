@@ -1,3 +1,6 @@
+[build-system]
+requires = ["wheel"]
+
 [tool.towncrier]
     package = "setuptools"
     package_dir = "setuptools"
