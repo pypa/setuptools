@@ -89,31 +89,6 @@ code changes. See the following for an example news fragment:
     $ cat changelog.d/1288.change.rst
     Add support for maintainer in PKG-INFO
 
------------
-Source Code
------------
-
-Grab the code at Github::
-
-    $ git clone https://github.com/pypa/setuptools
-
-If you want to contribute changes, we recommend you fork the repository on
-Github, commit the changes to your repository, and then make a pull request
-on Github. If you make some changes, don't forget to:
-
-- add a note in CHANGES.rst
-
-Please commit all changes in the 'master' branch against the latest available
-commit or for bug-fixes, against an earlier commit or release in which the
-bug occurred.
-
-If you find yourself working on more than one issue at a time, Setuptools
-generally prefers Git-style branches, so use Mercurial bookmarks or Git
-branches or multiple forks to maintain separate efforts.
-
-The Continuous Integration tests that validate every release are run
-from this repository.
-
 -------
 Testing
 -------
