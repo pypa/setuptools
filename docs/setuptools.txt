@@ -110,21 +110,6 @@ As you can see, it doesn't take much to use setuptools in a project.
 Run that script in your project folder, alongside the Python packages
 you have developed.
 
-For Python 3.3+, and whenever you are using PEP 420 compliant implicit
-namespace packages, you can use ``find_packages_ns()`` instead.
-But keep in mind that if you do, you might have to either define a few 
-exclusions or reorganize your codebase a little bit so that the new function 
-does not find for example your test fixtures and treat them as implicit
-namespace packages. And here is a minimal setup script using 
-``find_packages_ns()``::
-
-    from setuptools import setup, find_packages_ns as find_packages
-    setup(
-        name="HelloWorld",
-        version="0.1",
-        packages=find_packages(),
-    )
-
 Invoke that script to produce eggs, upload to
 PyPI, and automatically include all packages in the directory where the
 setup.py lives.  See the `Command Reference`_ section below to see what
@@ -480,6 +465,67 @@ argument in your setup script.  Especially since it frees you from having to
 remember to modify your setup script whenever your project grows additional
 top-level packages or subpackages.
 
+``find_packages_ns()``
+----------------------
+In Python 3.3+, ``setuptools`` also provides the ``find_packages_ns`` variant
+of ``find_packages``, which has the same function signature as
+``find_packages``, but works with `PEP 420`_ compliant implicit namespace
+packages. Here is a minimal setup script using ``find_packages_ns``::
+
+    from setuptools import setup, find_packages_ns
+    setup(
+        name="HelloWorld",
+        version="0.1",
+        packages=find_packages_ns(),
+    )
+
+
+Keep in mind that according to PEP 420, you may have to either re-organize your
+codebase a bit or define a few exclusions, as the definition of an implicit
+namespace package is quite lenient, so for a project organized like so::
+
+
+    ├── namespace
+    │   └── mypackage
+    │       ├── __init__.py
+    │       └── mod1.py
+    ├── setup.py
+    └── tests
+        └── test_mod1.py
+
+A naive ``find_packages_ns()`` would install both ``namespace.mypackage`` and a
+top-level package called ``tests``! One way to avoid this problem is to use the
+``include`` keyword to whitelist the packages to include, like so::
+
+    from setuptools import setup, find_packages_ns
+
+    setup(
+        name="namespace.mypackage",
+        version="0.1",
+        packages=find_packages_ns(include=['namespace.*'])
+    )
+
+Another option is to use the "src" layout, where all package code is placed in
+the ``src`` directory, like so::
+
+
+    ├── setup.py
+    ├── src
+    │   └── namespace
+    │       └── mypackage
+    │           ├── __init__.py
+    │           └── mod1.py
+    └── tests
+        └── test_mod1.py
+
+With this layout, the package directory is specified as ``src``, as such::
+
+    setup(name="namespace.mypackage",
+          version="0.1",
+          package_dir={'': 'src'},
+          packages=find_packages_ns(where='src'))
+
+.. _PEP 420: https://www.python.org/dev/peps/pep-0420/
 
 Automatic Script Creation
 =========================
