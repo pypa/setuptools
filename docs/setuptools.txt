@@ -59,6 +59,9 @@ Feature Highlights:
 * Create extensible applications and frameworks that automatically discover
   extensions, using simple "entry points" declared in a project's setup script.
 
+* Full support for PEP 420 via ``find_packages_ns()``, which is also backwards
+  compatible to the existing ``find_packages()`` for Python >= 3.3.
+
 .. contents:: **Table of Contents**
 
 .. _ez_setup.py: `bootstrap module`_
@@ -106,6 +109,21 @@ the distutils.  Here's a minimal setup script using setuptools::
 As you can see, it doesn't take much to use setuptools in a project.
 Run that script in your project folder, alongside the Python packages
 you have developed.
+
+For Python 3.3+, and whenever you are using PEP 420 compliant implicit
+namespace packages, you can use ``find_packages_ns()`` instead.
+But keep in mind that if you do, you might have to either define a few 
+exclusions or reorganize your codebase a little bit so that the new function 
+does not find for example your test fixtures and treat them as implicit
+namespace packages. And here is a minimal setup script using 
+``find_packages_ns()``::
+
+    from setuptools import setup, find_packages_ns as find_packages
+    setup(
+        name="HelloWorld",
+        version="0.1",
+        packages=find_packages(),
+    )
 
 Invoke that script to produce eggs, upload to
 PyPI, and automatically include all packages in the directory where the
