@@ -1,12 +1,14 @@
 """Extensions to the 'distutils' for large or complex distributions"""
 
 import os
+import sys
 import functools
 import distutils.core
 import distutils.filelist
 from distutils.util import convert_path
 from fnmatch import fnmatchcase
 
+from setuptools.extern.six import PY3
 from setuptools.extern.six.moves import filter, map
 
 import setuptools.version
@@ -17,10 +19,14 @@ from . import monkey
 
 __metaclass__ = type
 
+
 __all__ = [
     'setup', 'Distribution', 'Feature', 'Command', 'Extension', 'Require',
-    'find_packages',
+    'find_packages'
 ]
+
+if PY3:
+  __all__.append('find_packages_ns')
 
 __version__ = setuptools.version.__version__
 
@@ -110,6 +116,9 @@ class PEP420PackageFinder(PackageFinder):
 
 
 find_packages = PackageFinder.find
+
+if PY3:
+  find_packages_ns = PEP420PackageFinder.find
 
 
 def _install_setup_requires(attrs):
