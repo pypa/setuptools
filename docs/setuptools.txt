@@ -48,8 +48,6 @@ Feature Highlights:
 * Command aliases - create project-specific, per-user, or site-wide shortcut
   names for commonly used commands and options
 
-* PyPI upload support - upload your source distributions and eggs to PyPI
-
 * Deploy your project in "development mode", such that it's available on
   ``sys.path``, yet can still be edited directly from its source checkout.
 
@@ -107,11 +105,10 @@ As you can see, it doesn't take much to use setuptools in a project.
 Run that script in your project folder, alongside the Python packages
 you have developed.
 
-Invoke that script to produce eggs, upload to
-PyPI, and automatically include all packages in the directory where the
-setup.py lives.  See the `Command Reference`_ section below to see what
-commands you can give to this setup script. For example,
-to produce a source distribution, simply invoke::
+Invoke that script to produce distributions and automatically include all
+packages in the directory where the setup.py lives.  See the `Command
+Reference`_ section below to see what commands you can give to this setup
+script. For example, to produce a source distribution, simply invoke::
 
     python setup.py sdist
 
@@ -138,7 +135,7 @@ dependencies, and perhaps some data files and scripts::
             'hello': ['*.msg'],
         },
 
-        # metadata for upload to PyPI
+        # metadata to display on PyPI
         author="Me",
         author_email="me@example.com",
         description="This is an Example Package",
@@ -618,9 +615,8 @@ using ``setup.py develop``.)
 Dependencies that aren't in PyPI
 --------------------------------
 
-If your project depends on packages that aren't registered in PyPI, you may
-still be able to depend on them, as long as they are available for download
-as:
+If your project depends on packages that don't exist on PyPI, you may still be
+able to depend on them, as long as they are available for download as:
 
 - an egg, in the standard distutils ``sdist`` format,
 - a single ``.py`` file, or
@@ -1192,15 +1188,6 @@ Whenever you install an updated version of setuptools, you should also update
 your projects' ``ez_setup.py`` files, so that a matching version gets installed
 on the target machine(s).
 
-By the way, setuptools supports the new PyPI "upload" command, so you can use
-``setup.py sdist upload`` or ``setup.py bdist_egg upload`` to upload your
-source or egg distributions respectively.  Your project's current version must
-be registered with PyPI first, of course; you can use ``setup.py register`` to
-do that.  Or you can do it all in one step, e.g. ``setup.py register sdist
-bdist_egg upload`` will register the package, build source and egg
-distributions, and then upload them both to PyPI, where they'll be easily
-found by other projects that depend on them.
-
 (By the way, if you need to distribute a specific version of ``setuptools``,
 you can specify the exact version and base download URL as parameters to the
 ``use_setuptools()`` function.  See the function's docstring for details.)
@@ -1517,22 +1504,11 @@ you use any option at all.
 Making your package available for EasyInstall
 ---------------------------------------------
 
-If you use the ``register`` command (``setup.py register``) to register your
-package with PyPI, that's most of the battle right there.  (See the
-`docs for the register command`_ for more details.)
-
-.. _docs for the register command: http://docs.python.org/dist/package-index.html
-
-If you also use the `upload`_ command to upload actual distributions of your
-package, that's even better, because EasyInstall will be able to find and
-download them directly from your project's PyPI page.
-
-However, there may be reasons why you don't want to upload distributions to
+There may be reasons why you don't want to upload distributions to
 PyPI, and just want your existing distributions (or perhaps a Subversion
 checkout) to be used instead.
 
-So here's what you need to do before running the ``register`` command.  There
-are three ``setup()`` arguments that affect EasyInstall:
+There are three ``setup()`` arguments that affect EasyInstall:
 
 ``url`` and ``download_url``
    These become links on your project's PyPI page.  EasyInstall will examine
@@ -1590,13 +1566,12 @@ tagging the release, so the trunk will still produce development snapshots.
 Alternately, if you are not branching for releases, you can override the
 default version options on the command line, using something like::
 
-    python setup.py egg_info -Db "" sdist bdist_egg register upload
+    python setup.py egg_info -Db "" sdist bdist_egg
 
 The first part of this command (``egg_info -Db ""``) will override the
-configured tag information, before creating source and binary eggs, registering
-the project with PyPI, and uploading the files.  Thus, these commands will use
-the plain version from your ``setup.py``, without adding the build designation
-string.
+configured tag information, before creating source and binary eggs. Thus, these
+commands will use the plain version from your ``setup.py``, without adding the
+build designation string.
 
 Of course, if you will be doing this a lot, you may wish to create a personal
 alias for this operation, e.g.::
@@ -1605,7 +1580,7 @@ alias for this operation, e.g.::
 
 You can then use it like this::
 
-    python setup.py release sdist bdist_egg register upload
+    python setup.py release sdist bdist_egg
 
 Or of course you can create more elaborate aliases that do all of the above.
 See the sections below on the `egg_info`_ and `alias`_ commands for more ideas.
@@ -1921,11 +1896,11 @@ This command performs two operations: it updates a project's ``.egg-info``
 metadata directory (used by the ``bdist_egg``, ``develop``, and ``test``
 commands), and it allows you to temporarily change a project's version string,
 to support "daily builds" or "snapshot" releases.  It is run automatically by
-the ``sdist``, ``bdist_egg``, ``develop``, ``register``, and ``test`` commands
-in order to update the project's metadata, but you can also specify it
-explicitly in order to temporarily change the project's version string while
-executing other commands.  (It also generates the``.egg-info/SOURCES.txt``
-manifest file, which is used when you are building source distributions.)
+the ``sdist``, ``bdist_egg``, ``develop``, and ``test`` commands in order to
+update the project's metadata, but you can also specify it explicitly in order
+to temporarily change the project's version string while executing other
+commands.  (It also generates the``.egg-info/SOURCES.txt`` manifest file, which
+is used when you are building source distributions.)
 
 In addition to writing the core egg metadata defined by ``setuptools`` and
 required by ``pkg_resources``, this command can be extended to write other
@@ -1999,10 +1974,10 @@ Creating a dated "nightly build" snapshot egg::
 
     python setup.py egg_info --tag-date --tag-build=DEV bdist_egg
 
-Creating and uploading a release with no version tags, even if some default
-tags are specified in ``setup.cfg``::
+Creating a release with no version tags, even if some default tags are
+specified in ``setup.cfg``::
 
-    python setup.py egg_info -RDb "" sdist bdist_egg register upload
+    python setup.py egg_info -RDb "" sdist bdist_egg
 
 (Notice that ``egg_info`` must always appear on the command line *before* any
 commands that you want the version changes to apply to.)
@@ -2251,25 +2226,16 @@ available:
 ``upload`` - Upload source and/or egg distributions to PyPI
 ===========================================================
 
+.. warning::
+    **upload** is deprecated in favor of using `twine
+    <https://pypi.org/p/twine>`_
+
 The ``upload`` command is implemented and `documented
 <https://docs.python.org/3.1/distutils/uploading.html>`_
 in distutils.
 
-Setuptools augments the ``upload`` command with support
-for `keyring <https://pypi.org/project/keyring/>`_,
-allowing the password to be stored in a secure
-location and not in plaintext in the .pypirc file. To use
-keyring, first install keyring and set the password for
-the relevant repository, e.g.::
-
-    python -m keyring set <repository> <username>
-    Password for '<username>' in '<repository>': ********
-
-Then, in .pypirc, set the repository configuration as normal,
-but omit the password. Thereafter, uploads will use the
-password from the keyring.
-
 New in 20.1: Added keyring support.
+New in 40.0: Deprecated the upload command.
 
 
 -----------------------------------------

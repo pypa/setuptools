@@ -1,4 +1,5 @@
 import getpass
+from distutils import log
 from distutils.command import upload as orig
 
 
@@ -7,6 +8,16 @@ class upload(orig.upload):
     Override default upload behavior to obtain password
     in a variety of different ways.
     """
+
+    def run(self):
+        try:
+            orig.upload.run(self)
+        finally:
+            self.announce(
+                "WARNING: Uploading via this command is deprecated, use twine "
+                "to upload instead (https://pypi.org/p/twine/)",
+                log.WARN
+            )
 
     def finalize_options(self):
         orig.upload.finalize_options(self)
