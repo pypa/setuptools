@@ -1,0 +1,1 @@
+In pkg_resources VendorImporter, avoid removing packages imported from the root.

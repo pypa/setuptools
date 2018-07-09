@@ -48,7 +48,7 @@ class VendorImporter:
                 # on later Python versions to cause relative imports
                 # in the vendor package to resolve the same modules
                 # as those going through this importer.
-                if sys.version_info > (3, 3):
+                if prefix and sys.version_info > (3, 3):
                     del sys.modules[extant]
                 return mod
             except ImportError:
