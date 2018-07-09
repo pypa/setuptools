@@ -1,1 +1,0 @@
-Fix PEP 518 configuration: set build requirements in ``pyproject.toml`` to ``["wheel"]``.

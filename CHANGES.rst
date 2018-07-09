@@ -1,3 +1,14 @@
+v40.0.0
+-------
+* #1342: Drop support for Python 3.3.
+* #1366: In package_index, fixed handling of encoded entities in URLs.
+* #1383: In pkg_resources VendorImporter, avoid removing packages imported from the root.
+* #1379: Minor doc fixes after actually using the new release process.
+* #1385: Removed section on non-package data files.
+* #1403: Fix developer's guide.
+* #1404: Fix PEP 518 configuration: set build requirements in ``pyproject.toml`` to ``["wheel"]``.
+
+
 v39.2.0
 -------
 

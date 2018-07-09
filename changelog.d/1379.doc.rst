@@ -1,1 +1,0 @@
-Minor doc fixes after actually using the new release process.
