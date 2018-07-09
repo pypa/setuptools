@@ -3030,7 +3030,13 @@ def _bypass_ensure_directory(path):
     dirname, filename = split(path)
     if dirname and filename and not isdir(dirname):
         _bypass_ensure_directory(dirname)
-        mkdir(dirname, 0o755)
+        try:
+          mkdir(dirname, 0o755)
+        except os.error:
+          # Check for a possible race where the directory was already
+          # created.
+          if not isdir(dirname):
+            raise
 
 
 def split_sections(s):
