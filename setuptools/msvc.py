@@ -232,8 +232,7 @@ def _augment_exception(exc, version, arch=''):
         elif version >= 14.0:
             # For VC++ 14.0 Redirect user to Visual C++ Build Tools
             message += (' Get it with "Microsoft Visual C++ Build Tools": '
-                        r'http://landinghub.visualstudio.com/'
-                        'visual-cpp-build-tools')
+                        r'https://visualstudio.microsoft.com/downloads/')
 
     exc.args = (message, )
 

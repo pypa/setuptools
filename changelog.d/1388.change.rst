@@ -1,0 +1,1 @@
+Fixed "Microsoft Visual C++ Build Tools" link in exception when Visual C++ not found.
