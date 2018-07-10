@@ -1,0 +1,1 @@
+Moved several Python version checks over to using ``six.PY2`` and ``six.PY3``.
