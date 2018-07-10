@@ -12,6 +12,8 @@ import sysconfig
 import warnings
 from collections import OrderedDict
 
+from .extern import six
+
 from . import glibc
 
 _osx_arch_pat = re.compile(r'(.+)_(\d+)_(\d+)_(.+)')
@@ -97,8 +99,8 @@ def get_abi_tag():
                     lambda: sys.maxunicode == 0x10ffff,
                     expected=4,
                     warn=(impl == 'cp' and
-                          sys.version_info.major == 2)) \
-                and sys.version_info.major == 2:
+                          six.PY2)) \
+                and six.PY2:
             u = 'u'
         abi = '%s%s%s%s%s' % (impl, get_impl_ver(), d, m, u)
     elif soabi and soabi.startswith('cpython-'):
