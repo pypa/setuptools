@@ -1198,7 +1198,7 @@ class ResourceManager:
         extract_path = self.extraction_path or get_default_cache()
         target_path = os.path.join(extract_path, archive_name + '-tmp', *names)
         try:
-            _bypass_ensure_directory(target_path)
+            ensure_directory(target_path)
         except Exception:
             self.extraction_error()
 
@@ -3021,22 +3021,6 @@ def ensure_directory(path):
     """Ensure that the parent directory of `path` exists"""
     dirname = os.path.dirname(path)
     py31compat.makedirs(dirname, exist_ok=True)
-
-
-def _bypass_ensure_directory(path):
-    """Sandbox-bypassing version of ensure_directory()"""
-    if not WRITE_SUPPORT:
-        raise IOError('"os.mkdir" not supported on this platform.')
-    dirname, filename = split(path)
-    if dirname and filename and not isdir(dirname):
-        _bypass_ensure_directory(dirname)
-        try:
-          mkdir(dirname, 0o755)
-        except os.error:
-          # Check for a possible race where the directory was already
-          # created.
-          if not isdir(dirname):
-            raise
 
 
 def split_sections(s):
