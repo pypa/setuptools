@@ -1,0 +1,1 @@
+Add find_namespace: directive to config parser
