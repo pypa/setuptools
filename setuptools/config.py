@@ -8,7 +8,7 @@ from importlib import import_module
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
 from setuptools.extern.packaging.version import LegacyVersion, parse
-from setuptools.extern.six import string_types
+from setuptools.extern.six import string_types, PY3
 
 
 __metaclass__ = type
@@ -516,20 +516,30 @@ class ConfigOptionsHandler(ConfigHandler):
         :rtype: list
         """
         find_directive = 'find:'
+        find_namespace_directive = 'find_namespace:'
 
+        findns = False
         if not value.startswith(find_directive):
+          if value.startswith(find_namespace_directive):
+            if not PY3:
+              raise DistutilsOptionError('find_namespace directive is unsupported on Python < 3.3')
+            findns = True
+          else:
             return self._parse_list(value)
 
         # Read function arguments from a dedicated section.
         find_kwargs = self.parse_section_packages__find(
             self.sections.get('packages.find', {}))
 
-        from setuptools import find_packages
+        if findns:
+          from setuptools import find_packages_ns as find_packages
+        else:
+          from setuptools import find_packages
 
         return find_packages(**find_kwargs)
 
     def parse_section_packages__find(self, section_options):
-        """Parses `packages.find` configuration file section.
+        """Parses `packages.find[ns]` configuration file section.
 
         To be used in conjunction with _parse_packages().
 
