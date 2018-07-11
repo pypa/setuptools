@@ -2389,7 +2389,7 @@ Metadata and options are set in the config sections of the same name.
 * In some cases, complex values can be provided in dedicated subsections for
   clarity.
 
-* Some keys allow ``file:``, ``attr:``, and ``find:`` and ``find_namespace:`` directives i
+* Some keys allow ``file:``, ``attr:``, and ``find:`` and ``find_namespace:`` directives in
   order to cover common usecases.
 
 * Unknown keys are ignored.
