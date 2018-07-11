@@ -519,25 +519,25 @@ class ConfigOptionsHandler(ConfigHandler):
         trimmed_value = value.strip()
 
         if not trimmed_value in find_directives:
-          return self._parse_list(value)
+            return self._parse_list(value)
 
         findns = trimmed_value == find_directives[1]
         if findns and not PY3:
-          raise DistutilsOptionError('find_namespace: directive is unsupported on Python < 3.3')
+            raise DistutilsOptionError('find_namespace: directive is unsupported on Python < 3.3')
 
         # Read function arguments from a dedicated section.
         find_kwargs = self.parse_section_packages__find(
             self.sections.get('packages.find', {}))
 
         if findns:
-          from setuptools import find_packages_ns as find_packages
+            from setuptools import find_packages_ns as find_packages
         else:
-          from setuptools import find_packages
+            from setuptools import find_packages
 
         return find_packages(**find_kwargs)
 
     def parse_section_packages__find(self, section_options):
-        """Parses `packages.find[ns]` configuration file section.
+        """Parses `packages.find` configuration file section.
 
         To be used in conjunction with _parse_packages().
 
