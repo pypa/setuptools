@@ -4,18 +4,23 @@ from distutils.errors import DistutilsOptionError, DistutilsFileError
 from mock import patch
 from setuptools.dist import Distribution, _Distribution
 from setuptools.config import ConfigHandler, read_configuration
+from setuptools.extern.six import PY2, PY3
 
+py2_only = pytest.mark.xfail(not PY2, reason="Test runs on Python 2 only")
+py3_only = pytest.mark.xfail(not PY3, reason="Test runs on Python 3 only")
 
 class ErrConfigHandler(ConfigHandler):
     """Erroneous handler. Fails to implement required methods."""
 
 
-def make_package_dir(name, base_dir):
+def make_package_dir(name, base_dir, ns=False):
     dir_package = base_dir
     for dir_name in name.split('/'):
         dir_package = dir_package.mkdir(dir_name)
-    init_file = dir_package.join('__init__.py')
-    init_file.write('')
+    init_file = None
+    if not ns:
+      init_file = dir_package.join('__init__.py')
+      init_file.write('')
     return dir_package, init_file
 
 
@@ -587,6 +592,59 @@ class TestOptions:
         config.write(
             '[options]\n'
             'packages = find:\n'
+            '\n'
+            '[options.packages.find]\n'
+            'exclude =\n'
+            '    fake_package.sub_one\n'
+        )
+        with get_dist(tmpdir) as dist:
+            assert set(dist.packages) == set(
+                ['fake_package',  'fake_package.sub_two'])
+
+    @py2_only
+    def test_find_namespace_directive_fails_on_py2(self, tmpdir):
+        dir_package, config = fake_env(
+            tmpdir,
+            '[options]\n'
+            'packages = find_namespace:\n'
+        )
+
+        with pytest.raises(DistutilsOptionError):
+          with get_dist(tmpdir) as dist:
+            dist.parse_config_files()
+
+    @py3_only
+    def test_find_namespace_directive(self, tmpdir):
+        dir_package, config = fake_env(
+            tmpdir,
+            '[options]\n'
+            'packages = find_namespace:\n'
+        )
+
+        dir_sub_one, _ = make_package_dir('sub_one', dir_package)
+        dir_sub_two, _ = make_package_dir('sub_two', dir_package, ns=True)
+
+        with get_dist(tmpdir) as dist:
+            assert set(dist.packages) == set([
+                'fake_package', 'fake_package.sub_two', 'fake_package.sub_one'
+            ])
+
+        config.write(
+            '[options]\n'
+            'packages = find_namespace:\n'
+            '\n'
+            '[options.packages.find]\n'
+            'where = .\n'
+            'include =\n'
+            '    fake_package.sub_one\n'
+            '    two\n'
+        )
+        with get_dist(tmpdir) as dist:
+            assert dist.packages == ['fake_package.sub_one']
+
+        config.write(
+            '[options]\n'
+            'packages = find_namespace:\n'
             '\n'
             '[options.packages.find]\n'
             'exclude =\n'
