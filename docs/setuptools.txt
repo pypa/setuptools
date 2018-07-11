@@ -2389,8 +2389,8 @@ Metadata and options are set in the config sections of the same name.
 * In some cases, complex values can be provided in dedicated subsections for
   clarity.
 
-* Some keys allow ``file:``, ``attr:``, and ``find:`` directives in order to
-  cover common usecases.
+* Some keys allow ``file:``, ``attr:``, and ``find:`` and ``find_namespace:`` directives i
+  order to cover common usecases.
 
 * Unknown keys are ignored.
 
@@ -2479,7 +2479,7 @@ eager_resources          list-comma
 dependency_links         list-comma
 tests_require            list-semi
 include_package_data     bool
-packages                 find:, list-comma
+packages                 find:, find_namespace:, list-comma
 package_dir              dict
 package_data             section
 exclude_package_data     section
@@ -2489,10 +2489,13 @@ py_modules               list-comma
 
 .. note::
 
-    **packages** - The ``find:`` directive can be further configured
+    **packages** - The ``find:`` and ``find_namespace:`` directive can be further configured
     in a dedicated subsection ``options.packages.find``. This subsection
-    accepts the same keys as the `setuptools.find` function:
+    accepts the same keys as the `setuptools.find_packages` and the
+    `setuptools.find_packages_ns` function:
     ``where``, ``include``, and ``exclude``.
+    
+    **find_namespace directive** - The ``find_namespace:`` directive is supported since Python >=3.3.
 
 
 Configuration API
