@@ -515,17 +515,15 @@ class ConfigOptionsHandler(ConfigHandler):
         :param value:
         :rtype: list
         """
-        find_directive = 'find:'
-        find_namespace_directive = 'find_namespace:'
+        find_directives = ['find:', 'find_namespace:']
+        trimmed_value = value.strip()
 
-        findns = False
-        if not value.startswith(find_directive):
-          if value.startswith(find_namespace_directive):
-            if not PY3:
-              raise DistutilsOptionError('find_namespace directive is unsupported on Python < 3.3')
-            findns = True
-          else:
-            return self._parse_list(value)
+        if not trimmed_value in find_directives:
+          return self._parse_list(value)
+
+        findns = trimmed_value == find_directives[1]
+        if findns and not PY3:
+          raise DistutilsOptionError('find_namespace: directive is unsupported on Python < 3.3')
 
         # Read function arguments from a dedicated section.
         find_kwargs = self.parse_section_packages__find(
