@@ -6,8 +6,8 @@ from setuptools.dist import Distribution, _Distribution
 from setuptools.config import ConfigHandler, read_configuration
 from setuptools.extern.six import PY2, PY3
 
-py2_only = pytest.mark.xfail(not PY2, reason="Test runs on Python 2 only")
-py3_only = pytest.mark.xfail(not PY3, reason="Test runs on Python 3 only")
+py2_only = pytest.mark.skipif(not PY2, reason="Test runs on Python 2 only")
+py3_only = pytest.mark.skipif(not PY3, reason="Test runs on Python 3 only")
 
 class ErrConfigHandler(ConfigHandler):
     """Erroneous handler. Fails to implement required methods."""
