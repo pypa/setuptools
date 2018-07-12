@@ -4,10 +4,7 @@ from distutils.errors import DistutilsOptionError, DistutilsFileError
 from mock import patch
 from setuptools.dist import Distribution, _Distribution
 from setuptools.config import ConfigHandler, read_configuration
-from setuptools.extern.six import PY2, PY3
-
-py2_only = pytest.mark.skipif(not PY2, reason="Test runs on Python 2 only")
-py3_only = pytest.mark.skipif(not PY3, reason="Test runs on Python 3 only")
+from setuptools.tests import py2_only, py3_only
 
 class ErrConfigHandler(ConfigHandler):
     """Erroneous handler. Fails to implement required methods."""
@@ -610,8 +607,8 @@ class TestOptions:
         )
 
         with pytest.raises(DistutilsOptionError):
-          with get_dist(tmpdir) as dist:
-            dist.parse_config_files()
+            with get_dist(tmpdir) as dist:
+                dist.parse_config_files()
 
     @py3_only
     def test_find_namespace_directive(self, tmpdir):

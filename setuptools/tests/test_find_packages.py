@@ -7,10 +7,10 @@ import platform
 
 import pytest
 
+from setuptools.tests import py3_only
+
 from setuptools.extern.six import PY3
 from setuptools import find_packages
-
-py3_only = pytest.mark.xfail(not PY3, reason="Test runs on Python 3 only")
 if PY3:
   from setuptools import find_packages_ns
 
