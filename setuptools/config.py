@@ -530,7 +530,7 @@ class ConfigOptionsHandler(ConfigHandler):
             self.sections.get('packages.find', {}))
 
         if findns:
-            from setuptools import find_packages_ns as find_packages
+            from setuptools import find_namespace_packages as find_packages
         else:
             from setuptools import find_packages
 

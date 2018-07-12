@@ -26,7 +26,7 @@ __all__ = [
 ]
 
 if PY3:
-  __all__.append('find_packages_ns')
+  __all__.append('find_namespace_packages')
 
 __version__ = setuptools.version.__version__
 
@@ -118,7 +118,7 @@ class PEP420PackageFinder(PackageFinder):
 find_packages = PackageFinder.find
 
 if PY3:
-  find_packages_ns = PEP420PackageFinder.find
+  find_namespace_packages = PEP420PackageFinder.find
 
 
 def _install_setup_requires(attrs):
