@@ -18,7 +18,7 @@ class TestRegisterTest:
 
         cmd.run()
 
-        cmd.announce.assert_called_once_with(
+        cmd.announce.assert_called_with(
             "WARNING: Registering is deprecated, use twine to upload instead "
             "(https://pypi.org/p/twine/)",
             log.WARN
@@ -36,7 +36,7 @@ class TestRegisterTest:
         with pytest.raises(Exception):
             cmd.run()
 
-        cmd.announce.assert_called_once_with(
+        cmd.announce.assert_called_with(
             "WARNING: Registering is deprecated, use twine to upload instead "
             "(https://pypi.org/p/twine/)",
             log.WARN
