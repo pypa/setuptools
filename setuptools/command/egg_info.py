@@ -116,7 +116,33 @@ def translate_pattern(glob):
     return re.compile(pat, flags=re.MULTILINE|re.DOTALL)
 
 
-class egg_info(Command):
+class InfoCommon:
+    tag_build = None
+    tag_date = None
+
+    @property
+    def name(self):
+        return safe_name(self.distribution.get_name())
+
+    def tagged_version(self):
+        version = self.distribution.get_version()
+        # egg_info may be called more than once for a distribution,
+        # in which case the version string already contains all tags.
+        if self.vtags and version.endswith(self.vtags):
+            return safe_version(version)
+        return safe_version(version + self.vtags)
+
+    def tags(self):
+        version = ''
+        if self.tag_build:
+            version += self.tag_build
+        if self.tag_date:
+            version += time.strftime("-%Y%m%d")
+        return version
+    vtags = property(tags)
+
+
+class egg_info(InfoCommon, Command):
     description = "create a distribution's .egg-info directory"
 
     user_options = [
@@ -133,14 +159,9 @@ class egg_info(Command):
     }
 
     def initialize_options(self):
-        self.egg_name = None
-        self.egg_version = None
         self.egg_base = None
         self.egg_info = None
-        self.tag_build = None
-        self.tag_date = 0
         self.broken_egg_info = False
-        self.vtags = None
 
     ####################################
     # allow the 'tag_svn_revision' to be detected and
@@ -167,11 +188,15 @@ class egg_info(Command):
         egg_info['tag_date'] = 0
         edit_config(filename, dict(egg_info=egg_info))
 
-    def finalize_options(self):
-        self.egg_name = safe_name(self.distribution.get_name())
-        self.vtags = self.tags()
-        self.egg_version = self.tagged_version()
+    @property
+    def egg_name(self):
+        return self.name
 
+    @property
+    def egg_version(self):
+        return self.tagged_version()
+
+    def finalize_options(self):
         parsed_version = parse_version(self.egg_version)
 
         try:
@@ -254,14 +279,6 @@ class egg_info(Command):
         if not self.dry_run:
             os.unlink(filename)
 
-    def tagged_version(self):
-        version = self.distribution.get_version()
-        # egg_info may be called more than once for a distribution,
-        # in which case the version string already contains all tags.
-        if self.vtags and version.endswith(self.vtags):
-            return safe_version(version)
-        return safe_version(version + self.vtags)
-
     def run(self):
         self.mkpath(self.egg_info)
         installer = self.distribution.fetch_build_egg
@@ -276,14 +293,6 @@ class egg_info(Command):
             self.delete_file(nl)
 
         self.find_sources()
-
-    def tags(self):
-        version = ''
-        if self.tag_build:
-            version += self.tag_build
-        if self.tag_date:
-            version += time.strftime("-%Y%m%d")
-        return version
 
     def find_sources(self):
         """Generate SOURCES.txt manifest file"""
