@@ -1,9 +1,11 @@
+import datetime
 import sys
 import ast
 import os
 import glob
 import re
 import stat
+import time
 
 from setuptools.command.egg_info import egg_info, manifest_maker
 from setuptools.dist import Distribution
@@ -145,6 +147,21 @@ class TestEggInfo:
             'top_level.txt',
         ]
         assert sorted(actual) == expected
+
+    def test_rebuilt(self, tmpdir_cwd, env):
+        """Ensure timestamps are updated when the command is re-run."""
+        self._create_project()
+
+        self._run_egg_info_command(tmpdir_cwd, env)
+        timestamp_a = os.path.getmtime('foo.egg-info')
+
+        # arbitrary sleep just to handle *really* fast systems
+        time.sleep(.001)
+
+        self._run_egg_info_command(tmpdir_cwd, env)
+        timestamp_b = os.path.getmtime('foo.egg-info')
+
+        assert timestamp_a != timestamp_b
 
     def test_manifest_template_is_read(self, tmpdir_cwd, env):
         self._create_project()
