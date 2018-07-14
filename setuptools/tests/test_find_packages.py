@@ -7,7 +7,7 @@ import platform
 
 import pytest
 
-from setuptools.tests import py3_only
+from . import py3_only
 
 from setuptools.extern.six import PY3
 from setuptools import find_packages

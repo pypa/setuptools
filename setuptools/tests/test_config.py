@@ -4,7 +4,7 @@ from distutils.errors import DistutilsOptionError, DistutilsFileError
 from mock import patch
 from setuptools.dist import Distribution, _Distribution
 from setuptools.config import ConfigHandler, read_configuration
-from setuptools.tests import py2_only, py3_only
+from . import py2_only, py3_only
 
 class ErrConfigHandler(ConfigHandler):
     """Erroneous handler. Fails to implement required methods."""
