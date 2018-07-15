@@ -2,6 +2,7 @@
 {% set underline = underlines[0] %}{% if section %}{{section}}
 {{ underline * section|length }}
 {% endif %}
+
 {% if sections[section] %}
 {% for category, val in definitions.items() if category in sections[section]%}
 {% if definitions[category]['showcontent'] %}

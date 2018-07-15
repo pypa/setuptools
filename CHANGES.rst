@@ -1,5 +1,6 @@
 v40.0.0
 -------
+
 * #1342: Drop support for Python 3.3.
 * #1366: In package_index, fixed handling of encoded entities in URLs.
 * #1383: In pkg_resources VendorImporter, avoid removing packages imported from the root.
