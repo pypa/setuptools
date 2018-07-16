@@ -1,0 +1,1 @@
+Solve race during creation of egg cache by removing bypass_ensure_directory and switching to ensure_directory
