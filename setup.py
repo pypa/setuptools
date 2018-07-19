@@ -135,6 +135,7 @@ setup_params = dict(
             "convert_2to3_doctests  = setuptools.dist:assert_string_list",
             "use_2to3_fixers        = setuptools.dist:assert_string_list",
             "use_2to3_exclude_fixers = setuptools.dist:assert_string_list",
+            "normalize_version      = setuptools.dist:assert_bool",
         ],
         "egg_info.writers": [
             "PKG-INFO = setuptools.command.egg_info:write_pkg_info",

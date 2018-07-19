@@ -390,15 +390,16 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         if self.metadata.version is not None:
             try:
                 ver = packaging.version.Version(self.metadata.version)
-                normalized_version = str(ver)
-                if self.metadata.version != normalized_version:
-                    warnings.warn(
-                        "Normalizing '%s' to '%s'" % (
-                            self.metadata.version,
-                            normalized_version,
+                if self.normalize_version or self.normalize_version is None:
+                    normalized_version = str(ver)
+                    if self.metadata.version != normalized_version:
+                        warnings.warn(
+                            "Normalizing '%s' to '%s'" % (
+                                self.metadata.version,
+                                normalized_version,
+                            )
                         )
-                    )
-                    self.metadata.version = normalized_version
+                        self.metadata.version = normalized_version
             except (packaging.version.InvalidVersion, TypeError):
                 warnings.warn(
                     "The version specified (%r) is an invalid version, this "
