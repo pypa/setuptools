@@ -47,6 +47,11 @@ except ImportError:
     # Python 3.2 compatibility
     import imp as _imp
 
+try:
+    FileExistsError
+except NameError:
+    FileExistsError = OSError
+
 from pkg_resources.extern import six
 from pkg_resources.extern.six.moves import urllib, map, filter
 
@@ -3030,7 +3035,10 @@ def _bypass_ensure_directory(path):
     dirname, filename = split(path)
     if dirname and filename and not isdir(dirname):
         _bypass_ensure_directory(dirname)
-        mkdir(dirname, 0o755)
+        try:
+            mkdir(dirname, 0o755)
+        except FileExistsError:
+            pass
 
 
 def split_sections(s):
