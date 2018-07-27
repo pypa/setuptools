@@ -1,0 +1,1 @@
+Remove spurious executable permissions from files that don't need them.
