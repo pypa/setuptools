@@ -890,10 +890,15 @@ class PackageIndex(Environment):
         filename = filename.split('#', 1)[0]
         url, rev = self._vcs_split_rev_from_url(url, pop_prefix=True)
 
-        self.info("Doing git clone from %s to %s", url, filename)
-        os.system("git clone --quiet %s %s" % (url, filename))
+        self.info("Doing shallow git clone from %s to %s", url, filename)
+        os.system("git clone --quiet --depth 1 %s %s" % (url, filename))
 
         if rev is not None:
+            self.info("Fetching origin %s", rev)
+            os.system("(cd %s && git fetch --quiet --depth 1 origin %s)" % (
+                filename,
+                rev,
+            ))
             self.info("Checking out %s", rev)
             os.system("(cd %s && git checkout --quiet %s)" % (
                 filename,
