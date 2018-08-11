@@ -645,13 +645,12 @@ class WorkingSet:
         distributions in the working set, otherwise only ones matching
         both `group` and `name` are yielded (in distribution order).
         """
-        for dist in self:
-            entries = dist.get_entry_map(group)
-            if name is None:
-                for ep in entries.values():
-                    yield ep
-            elif name in entries:
-                yield entries[name]
+        return (
+            entry
+            for dist in self
+            for entry in dist.get_entry_map(group).values()
+            if name is None or name == entry.name
+        )
 
     def run_script(self, requires, script_name):
         """Locate distribution for `requires` and run `script_name` script"""
