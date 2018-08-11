@@ -42,7 +42,7 @@ install:
 # ensure we have recent pip/setuptools
 - pip install --upgrade pip setuptools
 # need tox to get started
-- pip install tox tox-venv
+- pip install 'tox<=3.1.2' tox-venv
 
 # Output the env, to verify behavior
 - env
