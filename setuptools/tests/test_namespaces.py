@@ -12,8 +12,10 @@ from setuptools.command import test
 
 class TestNamespaces:
 
-    @pytest.mark.xfail(sys.version_info < (3, 5),
-        reason="Requires importlib.util.module_from_spec")
+    @pytest.mark.xfail(
+        sys.version_info < (3, 5),
+        reason="Requires importlib.util.module_from_spec",
+    )
     @pytest.mark.xfail(
         os.environ.get("APPVEYOR"),
         reason="https://github.com/pypa/setuptools/issues/851",
