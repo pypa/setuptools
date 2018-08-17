@@ -1,3 +1,18 @@
+v40.1.0
+-------
+
+* #1410: Deprecated ``upload`` and ``register`` commands.
+* #1312: Introduced find_namespace_packages() to find PEP 420 namespace packages.
+* #1420: Added find_namespace: directive to config parser.
+* #1418: Solved race in when creating egg cache directories.
+* #1450: Upgraded vendored PyParsing from 2.1.10 to 2.2.0.
+* #1451: Upgraded vendored appdirs from 1.4.0 to 1.4.3.
+* #1388: Fixed "Microsoft Visual C++ Build Tools" link in exception when Visual C++ not found.
+* #1389: Added support for scripts which have unicode content.
+* #1416: Moved several Python version checks over to using ``six.PY2`` and ``six.PY3``.
+* #1441: Removed spurious executable permissions from files that don't need them.
+
+
 v40.0.0
 -------
 

@@ -1,1 +1,0 @@
-Upgrade vendored PyParsing from 2.1.10 to 2.2.0.
