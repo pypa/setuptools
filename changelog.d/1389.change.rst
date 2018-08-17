@@ -1,1 +1,0 @@
-Scripts which have unicode content are now supported

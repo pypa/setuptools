@@ -1,1 +1,0 @@
-Introduce find_namespace_packages() to find PEP 420 namespace packages.
