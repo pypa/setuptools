@@ -7,12 +7,12 @@ import platform
 
 import pytest
 
+from . import py3_only
+
 from setuptools.extern.six import PY3
 from setuptools import find_packages
-
-py3_only = pytest.mark.xfail(not PY3, reason="Test runs on Python 3 only")
 if PY3:
-  from setuptools import find_packages_ns
+  from setuptools import find_namespace_packages
 
 # modeled after CPython's test.support.can_symlink
 
@@ -156,26 +156,26 @@ class TestFindPackages:
 
     @py3_only
     def test_pep420_ns_package(self):
-        packages = find_packages_ns(
+        packages = find_namespace_packages(
             self.dist_dir, include=['pkg*'], exclude=['pkg.subpkg.assets'])
         self._assert_packages(packages, ['pkg', 'pkg.nspkg', 'pkg.subpkg'])
 
     @py3_only
     def test_pep420_ns_package_no_includes(self):
-        packages = find_packages_ns(
+        packages = find_namespace_packages(
             self.dist_dir, exclude=['pkg.subpkg.assets'])
         self._assert_packages(packages, ['docs', 'pkg', 'pkg.nspkg', 'pkg.subpkg'])
 
     @py3_only
     def test_pep420_ns_package_no_includes_or_excludes(self):
-        packages = find_packages_ns(self.dist_dir)
+        packages = find_namespace_packages(self.dist_dir)
         expected = ['docs', 'pkg', 'pkg.nspkg', 'pkg.subpkg', 'pkg.subpkg.assets']
         self._assert_packages(packages, expected)
 
     @py3_only
     def test_regular_package_with_nested_pep420_ns_packages(self):
         self._touch('__init__.py', self.pkg_dir)
-        packages = find_packages_ns(
+        packages = find_namespace_packages(
             self.dist_dir, exclude=['docs', 'pkg.subpkg.assets'])
         self._assert_packages(packages, ['pkg', 'pkg.nspkg', 'pkg.subpkg'])
 
@@ -183,6 +183,6 @@ class TestFindPackages:
     def test_pep420_ns_package_no_non_package_dirs(self):
         shutil.rmtree(self.docs_dir)
         shutil.rmtree(os.path.join(self.dist_dir, 'pkg/subpkg/assets'))
-        packages = find_packages_ns(self.dist_dir)
+        packages = find_namespace_packages(self.dist_dir)
         self._assert_packages(packages, ['pkg', 'pkg.nspkg', 'pkg.subpkg'])
 
