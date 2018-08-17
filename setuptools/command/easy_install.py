@@ -96,7 +96,7 @@ def samefile(p1, p2):
 
 if six.PY2:
 
-    def _to_ascii(s):
+    def _to_bytes(s):
         return s
 
     def isascii(s):
@@ -107,8 +107,8 @@ if six.PY2:
             return False
 else:
 
-    def _to_ascii(s):
-        return s.encode('ascii')
+    def _to_bytes(s):
+        return s.encode('utf8')
 
     def isascii(s):
         try:
@@ -805,7 +805,7 @@ class easy_install(Command):
         if is_script:
             body = self._load_template(dev_path) % locals()
             script_text = ScriptWriter.get_header(script_text) + body
-        self.write_script(script_name, _to_ascii(script_text), 'b')
+        self.write_script(script_name, _to_bytes(script_text), 'b')
 
     @staticmethod
     def _load_template(dev_path):

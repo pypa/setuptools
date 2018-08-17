@@ -186,6 +186,58 @@ class TestEasyInstallTest:
         cmd.easy_install(sdist_unicode)
 
     @pytest.fixture
+    def sdist_unicode_in_script(self, tmpdir):
+        files = [
+            (
+                "setup.py",
+                DALS("""
+                    import setuptools
+                    setuptools.setup(
+                        name="setuptools-test-unicode",
+                        version="1.0",
+                        packages=["mypkg"],
+                        include_package_data=True,
+                        scripts=['mypkg/unicode_in_script'],
+                    )
+                    """),
+            ),
+            ("mypkg/__init__.py", ""),
+            (
+                "mypkg/unicode_in_script",
+                DALS(
+                    """
+                    #!/bin/sh
+                    # \xc3\xa1
+
+                    non_python_fn() {
+                    }
+                """),
+            ),
+        ]
+        sdist_name = "setuptools-test-unicode-script-1.0.zip"
+        sdist = tmpdir / sdist_name
+        # can't use make_sdist, because the issue only occurs
+        #  with zip sdists.
+        sdist_zip = zipfile.ZipFile(str(sdist), "w")
+        for filename, content in files:
+            sdist_zip.writestr(filename, content)
+        sdist_zip.close()
+        return str(sdist)
+
+    @fail_on_ascii
+    def test_unicode_content_in_sdist(self, sdist_unicode_in_script, tmpdir, monkeypatch):
+        """
+        The install command should execute correctly even if
+        the package has unicode in scripts.
+        """
+        dist = Distribution({"script_args": ["easy_install"]})
+        target = (tmpdir / "target").ensure_dir()
+        cmd = ei.easy_install(dist, install_dir=str(target), args=["x"])
+        monkeypatch.setitem(os.environ, "PYTHONPATH", str(target))
+        cmd.ensure_finalized()
+        cmd.easy_install(sdist_unicode_in_script)
+
+    @pytest.fixture
     def sdist_script(self, tmpdir):
         files = [
             (
