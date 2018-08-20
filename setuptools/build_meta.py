@@ -61,6 +61,19 @@ class Distribution(setuptools.dist.Distribution):
             distutils.core.Distribution = orig
 
 
+def _to_str(s):
+    """
+    Convert a filename to a string (on Python 2, explicitly
+    a byte string, not Unicode) as distutils checks for the
+    exact type str.
+    """
+    if sys.version_info[0] == 2 and not isinstance(s, str):
+        # Assume it's Unicode, as that's what the PEP says
+        # should be provided.
+        return s.encode(sys.getfilesystemencoding())
+    return s
+
+
 def _run_setup(setup_script='setup.py'):
     # Note that we can reuse our build directory between calls
     # Correctness comes first, then optimization later
@@ -109,7 +122,7 @@ def get_requires_for_build_sdist(config_settings=None):
 
 
 def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
-    sys.argv = sys.argv[:1] + ['dist_info', '--egg-base', metadata_directory]
+    sys.argv = sys.argv[:1] + ['dist_info', '--egg-base', _to_str(metadata_directory)]
     _run_setup()
     
     dist_info_directory = metadata_directory
