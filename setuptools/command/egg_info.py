@@ -160,7 +160,9 @@ class egg_info(InfoCommon, Command):
 
     def initialize_options(self):
         self.egg_base = None
+        self.egg_name = None
         self.egg_info = None
+        self.egg_version = None
         self.broken_egg_info = False
 
     ####################################
@@ -188,15 +190,13 @@ class egg_info(InfoCommon, Command):
         egg_info['tag_date'] = 0
         edit_config(filename, dict(egg_info=egg_info))
 
-    @property
-    def egg_name(self):
-        return self.name
-
-    @property
-    def egg_version(self):
-        return self.tagged_version()
-
     def finalize_options(self):
+        # Note: we need to capture the current value returned
+        # by `self.tagged_version()`, so we can later update
+        # `self.distribution.metadata.version` without
+        # repercussions.
+        self.egg_name = self.name
+        self.egg_version = self.tagged_version()
         parsed_version = parse_version(self.egg_version)
 
         try:
