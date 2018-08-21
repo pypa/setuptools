@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Easy install Tests
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import sys
 import os
@@ -17,6 +17,7 @@ import zipfile
 import mock
 
 import time
+from setuptools.extern import six
 from setuptools.extern.six.moves import urllib
 
 import pytest
@@ -43,7 +44,7 @@ class FakeDist:
     def get_entry_map(self, group):
         if group != 'console_scripts':
             return {}
-        return {'name': 'ep'}
+        return {str('name'): 'ep'}
 
     def as_requirement(self):
         return 'spec'
@@ -156,7 +157,7 @@ class TestEasyInstallTest:
                 "",
             ),
             (
-                u'mypkg/\u2603.txt',
+                'mypkg/☃.txt',
                 "",
             ),
         ]
@@ -209,7 +210,7 @@ class TestEasyInstallTest:
                 DALS(
                     """
                     #!/bin/sh
-                    # \xc3\xa1
+                    # á
 
                     non_python_fn() {
                     }
@@ -222,7 +223,7 @@ class TestEasyInstallTest:
         #  with zip sdists.
         sdist_zip = zipfile.ZipFile(str(sdist), "w")
         for filename, content in files:
-            sdist_zip.writestr(filename, content)
+            sdist_zip.writestr(filename, content.encode('utf-8'))
         sdist_zip.close()
         return str(sdist)
 
@@ -254,7 +255,7 @@ class TestEasyInstallTest:
                     """),
             ),
             (
-                u'mypkg_script',
+                'mypkg_script',
                 DALS("""
                      #/usr/bin/python
                      print('mypkg_script')
@@ -510,7 +511,7 @@ class TestSetupRequires:
                 with contexts.quiet() as (stdout, stderr):
                     # Don't even need to install the package, just
                     # running the setup.py at all is sufficient
-                    run_setup(test_setup_py, ['--name'])
+                    run_setup(test_setup_py, [str('--name')])
 
                 lines = stdout.readlines()
                 assert len(lines) > 0
@@ -564,7 +565,7 @@ class TestSetupRequires:
                     try:
                         # Don't even need to install the package, just
                         # running the setup.py at all is sufficient
-                        run_setup(test_setup_py, ['--name'])
+                        run_setup(test_setup_py, [str('--name')])
                     except pkg_resources.VersionConflict:
                         self.fail('Installing setup.py requirements '
                             'caused a VersionConflict')
@@ -601,7 +602,7 @@ class TestSetupRequires:
                 )
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
                 with contexts.quiet() as (stdout, stderr):
-                    run_setup(test_setup_py, ['--version'])
+                    run_setup(test_setup_py, [str('--version')])
                 lines = stdout.readlines()
                 assert len(lines) > 0
                 assert lines[-1].strip() == '42'
@@ -728,7 +729,6 @@ def create_setup_requires_package(path, distname='foobar', version='0.1',
             import setuptools
             setuptools.setup(**%r)
         """)
-
     with open(test_setup_py, 'w') as f:
         f.write(setup_py_template % test_setup_attrs)
 
@@ -744,6 +744,8 @@ def create_setup_requires_package(path, distname='foobar', version='0.1',
 )
 class TestScriptHeader:
     non_ascii_exe = '/Users/José/bin/python'
+    if six.PY2:
+        non_ascii_exe = non_ascii_exe.encode('utf-8')
     exe_with_spaces = r'C:\Program Files\Python36\python.exe'
 
     def test_get_script_header(self):
@@ -760,7 +762,7 @@ class TestScriptHeader:
     def test_get_script_header_non_ascii_exe(self):
         actual = ei.ScriptWriter.get_script_header('#!/usr/bin/python',
             executable=self.non_ascii_exe)
-        expected = '#!%s -x\n' % self.non_ascii_exe
+        expected = str('#!%s -x\n') % self.non_ascii_exe
         assert actual == expected
 
     def test_get_script_header_exe_with_spaces(self):
