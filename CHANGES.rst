@@ -1,3 +1,9 @@
+vv40.1.1
+--------
+
+* #1465: Fix regression with `egg_info` command when tagging is used.
+
+
 v40.1.0
 -------
 
