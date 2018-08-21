@@ -46,50 +46,52 @@ class BuildBackendCaller(BuildBackendBase):
         return getattr(mod, name)(*args, **kw)
 
 
-defns = [{
-            'setup.py': DALS("""
-                __import__('setuptools').setup(
-                    name='foo',
-                    py_modules=['hello'],
-                    setup_requires=['six'],
-                )
-                """),
-            'hello.py': DALS("""
-                def run():
-                    print('hello')
-                """),
-        },
-        {
-            'setup.py': DALS("""
-                assert __name__ == '__main__'
-                __import__('setuptools').setup(
-                    name='foo',
-                    py_modules=['hello'],
-                    setup_requires=['six'],
-                )
-                """),
-            'hello.py': DALS("""
-                def run():
-                    print('hello')
-                """),
-        },
-        {
-            'setup.py': DALS("""
-                variable = True
-                def function():
-                    return variable
-                assert variable
-                __import__('setuptools').setup(
-                    name='foo',
-                    py_modules=['hello'],
-                    setup_requires=['six'],
-                )
-                """),
-            'hello.py': DALS("""
-                def run():
-                    print('hello')
-                """),
-        }]
+defns = [
+    {
+        'setup.py': DALS("""
+            __import__('setuptools').setup(
+                name='foo',
+                py_modules=['hello'],
+                setup_requires=['six'],
+            )
+            """),
+        'hello.py': DALS("""
+            def run():
+                print('hello')
+            """),
+    },
+    {
+        'setup.py': DALS("""
+            assert __name__ == '__main__'
+            __import__('setuptools').setup(
+                name='foo',
+                py_modules=['hello'],
+                setup_requires=['six'],
+            )
+            """),
+        'hello.py': DALS("""
+            def run():
+                print('hello')
+            """),
+    },
+    {
+        'setup.py': DALS("""
+            variable = True
+            def function():
+                return variable
+            assert variable
+            __import__('setuptools').setup(
+                name='foo',
+                py_modules=['hello'],
+                setup_requires=['six'],
+            )
+            """),
+        'hello.py': DALS("""
+            def run():
+                print('hello')
+            """),
+    },
+]
 
 
 @pytest.fixture(params=defns)
