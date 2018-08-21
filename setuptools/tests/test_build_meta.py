@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import os
 
 import pytest
@@ -129,7 +131,7 @@ def test_prepare_metadata_for_build_wheel(build_backend):
 
 
 def test_prepare_metadata_for_build_wheel_with_unicode(build_backend):
-    dist_dir = os.path.abspath(u'pip-dist-info')
+    dist_dir = os.path.abspath('pip-dist-info')
     os.makedirs(dist_dir)
 
     dist_info = build_backend.prepare_metadata_for_build_wheel(dist_dir)
