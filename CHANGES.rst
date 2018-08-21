@@ -1,3 +1,9 @@
+v40.2.0
+-------
+
+* #1466: Fix handling of Unicode arguments in PEP 517 backend
+
+
 vv40.1.1
 --------
 
