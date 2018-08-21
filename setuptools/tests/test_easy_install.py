@@ -126,7 +126,9 @@ class TestEasyInstallTest:
         site.getsitepackages.
         """
         path = normalize_path('/setuptools/test/site-packages')
-        mock_gsp = lambda: [path]
+
+        def mock_gsp():
+            return [path]
         monkeypatch.setattr(site, 'getsitepackages', mock_gsp, raising=False)
         assert path in ei.get_site_dirs()
 
