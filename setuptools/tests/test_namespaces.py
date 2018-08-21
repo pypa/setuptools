@@ -59,10 +59,6 @@ class TestNamespaces:
         with test.test.paths_on_pythonpath(map(str, targets)):
             subprocess.check_call(try_import)
 
-    @pytest.mark.xfail(
-        os.environ.get("APPVEYOR"),
-        reason="https://github.com/pypa/setuptools/issues/851",
-    )
     def test_pkg_resources_import(self, tmpdir):
         """
         Ensure that a namespace package doesn't break on import
@@ -87,10 +83,6 @@ class TestNamespaces:
         with test.test.paths_on_pythonpath([str(target)]):
             subprocess.check_call(try_import)
 
-    @pytest.mark.xfail(
-        os.environ.get("APPVEYOR"),
-        reason="https://github.com/pypa/setuptools/issues/851",
-    )
     def test_namespace_package_installed_and_cwd(self, tmpdir):
         """
         Installing a namespace packages but also having it in the current
@@ -118,11 +110,7 @@ class TestNamespaces:
         with test.test.paths_on_pythonpath([str(target)]):
             subprocess.check_call(pkg_resources_imp, cwd=str(pkg_A))
 
-    @pytest.mark.xfail(
-        os.environ.get("APPVEYOR"),
-        reason="https://github.com/pypa/setuptools/issues/851",
-    )
-    def test_packages_in_the_sampe_namespace_installed_and_cwd(self, tmpdir):
+    def test_packages_in_the_same_namespace_installed_and_cwd(self, tmpdir):
         """
         Installing one namespace package and also have another in the same
         namespace in the current working directory, both of them must be
