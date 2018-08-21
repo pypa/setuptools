@@ -16,10 +16,6 @@ class TestNamespaces:
         sys.version_info < (3, 5),
         reason="Requires importlib.util.module_from_spec",
     )
-    @pytest.mark.xfail(
-        os.environ.get("APPVEYOR"),
-        reason="https://github.com/pypa/setuptools/issues/851",
-    )
     def test_mixed_site_and_non_site(self, tmpdir):
         """
         Installing two packages sharing the same namespace, one installed
