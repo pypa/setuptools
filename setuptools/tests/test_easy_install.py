@@ -80,7 +80,7 @@ class TestEasyInstallTest:
                 sys.exit(
                     load_entry_point('spec', 'console_scripts', 'name')()
                 )
-            """)
+            """)  # noqa: E501
         dist = FakeDist()
 
         args = next(ei.ScriptWriter.get_args(dist))
@@ -172,7 +172,8 @@ class TestEasyInstallTest:
         return str(sdist)
 
     @fail_on_ascii
-    def test_unicode_filename_in_sdist(self, sdist_unicode, tmpdir, monkeypatch):
+    def test_unicode_filename_in_sdist(
+            self, sdist_unicode, tmpdir, monkeypatch):
         """
         The install command should execute correctly even if
         the package has unicode filenames.
@@ -228,7 +229,8 @@ class TestEasyInstallTest:
         return str(sdist)
 
     @fail_on_ascii
-    def test_unicode_content_in_sdist(self, sdist_unicode_in_script, tmpdir, monkeypatch):
+    def test_unicode_content_in_sdist(
+            self, sdist_unicode_in_script, tmpdir, monkeypatch):
         """
         The install command should execute correctly even if
         the package has unicode in scripts.
@@ -453,8 +455,8 @@ class TestSetupRequires:
                             dist_file,
                         ]
                         with sandbox.save_argv(['easy_install']):
-                            # attempt to install the dist. It should fail because
-                            #  it doesn't exist.
+                            # attempt to install the dist. It should
+                            # fail because it doesn't exist.
                             with pytest.raises(SystemExit):
                                 easy_install_pkg.main(ei_params)
         # there should have been two or three requests to the server
@@ -506,7 +508,8 @@ class TestSetupRequires:
 
         with contexts.save_pkg_resources_state():
             with contexts.tempdir() as temp_dir:
-                test_pkg = create_setup_requires_package(temp_dir, use_setup_cfg=use_setup_cfg)
+                test_pkg = create_setup_requires_package(
+                    temp_dir, use_setup_cfg=use_setup_cfg)
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
                 with contexts.quiet() as (stdout, stderr):
                     # Don't even need to install the package, just
@@ -567,7 +570,8 @@ class TestSetupRequires:
                         # running the setup.py at all is sufficient
                         run_setup(test_setup_py, [str('--name')])
                     except pkg_resources.VersionConflict:
-                        self.fail('Installing setup.py requirements '
+                        self.fail(
+                            'Installing setup.py requirements '
                             'caused a VersionConflict')
 
                 assert 'FAIL' not in stdout.getvalue()
@@ -578,21 +582,23 @@ class TestSetupRequires:
     @pytest.mark.parametrize('use_setup_cfg', use_setup_cfg)
     def test_setup_requires_with_attr_version(self, use_setup_cfg):
         def make_dependency_sdist(dist_path, distname, version):
-            make_sdist(dist_path, [
-                ('setup.py',
-                 DALS("""
-                      import setuptools
-                      setuptools.setup(
-                          name={name!r},
-                          version={version!r},
-                          py_modules=[{name!r}],
-                      )
-                      """.format(name=distname, version=version))),
-                (distname + '.py',
-                 DALS("""
-                      version = 42
-                      """
-                     ))])
+            files = [(
+                'setup.py',
+                DALS("""
+                    import setuptools
+                    setuptools.setup(
+                        name={name!r},
+                        version={version!r},
+                        py_modules=[{name!r}],
+                    )
+                    """.format(name=distname, version=version)),
+            ), (
+                distname + '.py',
+                DALS("""
+                    version = 42
+                    """),
+            )]
+            make_sdist(dist_path, files)
         with contexts.save_pkg_resources_state():
             with contexts.tempdir() as temp_dir:
                 test_pkg = create_setup_requires_package(
@@ -754,19 +760,21 @@ class TestScriptHeader:
         assert actual == expected
 
     def test_get_script_header_args(self):
-        expected = '#!%s -x\n' % ei.nt_quote_arg(os.path.normpath
-            (sys.executable))
+        expected = '#!%s -x\n' % ei.nt_quote_arg(
+            os.path.normpath(sys.executable))
         actual = ei.ScriptWriter.get_script_header('#!/usr/bin/python -x')
         assert actual == expected
 
     def test_get_script_header_non_ascii_exe(self):
-        actual = ei.ScriptWriter.get_script_header('#!/usr/bin/python',
+        actual = ei.ScriptWriter.get_script_header(
+            '#!/usr/bin/python',
             executable=self.non_ascii_exe)
         expected = str('#!%s -x\n') % self.non_ascii_exe
         assert actual == expected
 
     def test_get_script_header_exe_with_spaces(self):
-        actual = ei.ScriptWriter.get_script_header('#!/usr/bin/python',
+        actual = ei.ScriptWriter.get_script_header(
+            '#!/usr/bin/python',
             executable='"' + self.exe_with_spaces + '"')
         expected = '#!"%s"\n' % self.exe_with_spaces
         assert actual == expected
