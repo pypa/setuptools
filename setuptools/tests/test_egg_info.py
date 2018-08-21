@@ -570,3 +570,19 @@ class TestEggInfo:
             raise AssertionError(data)
         if output:
             assert output in data
+
+    def test_egg_info_tag_only_once(self, tmpdir_cwd, env):
+        self._create_project()
+        build_files({
+            'setup.cfg': DALS("""
+                              [egg_info]
+                              tag_build = dev
+                              tag_date = 0
+                              tag_svn_revision = 0
+                              """),
+        })
+        self._run_egg_info_command(tmpdir_cwd, env)
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
+        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+            pkg_info_lines = pkginfo_file.read().split('\n')
+        assert 'Version: 0.0.0.dev0' in pkg_info_lines
