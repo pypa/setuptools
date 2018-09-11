@@ -4,7 +4,7 @@ v40.2.0
 * #1466: Fix handling of Unicode arguments in PEP 517 backend
 
 
-vv40.1.1
+v40.1.1
 --------
 
 * #1465: Fix regression with `egg_info` command when tagging is used.
