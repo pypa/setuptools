@@ -107,6 +107,12 @@ def test_get_requires_for_build_wheel(build_backend):
     assert sorted(actual) == sorted(expected)
 
 
+def test_get_requires_for_build_sdist(build_backend):
+    actual = build_backend.get_requires_for_build_sdist()
+    expected = ['six', 'setuptools']
+    assert sorted(actual) == sorted(expected)
+
+
 def test_build_wheel(build_backend):
     dist_dir = os.path.abspath('pip-wheel')
     os.makedirs(dist_dir)
