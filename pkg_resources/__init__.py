@@ -2156,9 +2156,9 @@ def declare_namespace(packageName):
             return
 
         path = sys.path
-        parent = None
-        if '.' in packageName:
-            parent = '.'.join(packageName.split('.')[:-1])
+        parent, _, _ = packageName.rpartition('.')
+
+        if parent:
             declare_namespace(parent)
             if parent not in _namespace_packages:
                 __import__(parent)
@@ -2169,7 +2169,7 @@ def declare_namespace(packageName):
 
         # Track what packages are namespaces, so when new path items are added,
         # they can be updated
-        _namespace_packages.setdefault(parent, []).append(packageName)
+        _namespace_packages.setdefault(parent or None, []).append(packageName)
         _namespace_packages.setdefault(packageName, [])
 
         for path_item in path:
