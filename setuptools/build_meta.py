@@ -171,11 +171,9 @@ def build_sdist(sdist_directory, config_settings=None):
     config_settings = _fix_config(config_settings)
     sdist_directory = os.path.abspath(sdist_directory)
     sys.argv = sys.argv[:1] + ['sdist'] + \
-        config_settings["--global-option"]
+        config_settings["--global-option"] + \
+        ["--dist-dir", sdist_directory]
     _run_setup()
-    if sdist_directory != 'dist':
-        shutil.rmtree(sdist_directory)
-        shutil.copytree('dist', sdist_directory)
 
     sdists = [f for f in os.listdir(sdist_directory)
               if f.endswith('.tar.gz')]
