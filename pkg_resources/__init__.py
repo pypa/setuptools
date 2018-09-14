@@ -2155,7 +2155,8 @@ def declare_namespace(packageName):
         if packageName in _namespace_packages:
             return
 
-        path, parent = sys.path, None
+        path = sys.path
+        parent = None
         if '.' in packageName:
             parent = '.'.join(packageName.split('.')[:-1])
             declare_namespace(parent)
