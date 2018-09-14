@@ -2,4 +2,4 @@
 
 [build]
     publish = "docs/build/html"
-    command = "pip install tox && tox -e docs"
+    command = "pip install tox && tox -e docs --notest && ./.tox/docs/bin/pip install 'Sphinx==1.7.9' && tox -e docs"
