@@ -2,4 +2,4 @@
 
 [build]
     publish = "docs/build/html"
-    command = "pip install tox && tox -e docs"
+    command = "pip install tox && python -m tox -e docs"
