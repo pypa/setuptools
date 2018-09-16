@@ -10,6 +10,7 @@ setuptools.egg-info
 .coverage
 .eggs
 .tox
+.venv
 *.egg
 *.py[cod]
 *.swp

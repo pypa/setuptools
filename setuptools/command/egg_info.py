@@ -281,6 +281,7 @@ class egg_info(InfoCommon, Command):
 
     def run(self):
         self.mkpath(self.egg_info)
+        os.utime(self.egg_info, None)
         installer = self.distribution.fetch_build_egg
         for ep in iter_entry_points('egg_info.writers'):
             ep.require(installer=installer)
