@@ -1,0 +1,1 @@
+join the sdist ``--dist-dir`` and the ``build_meta`` sdist directory argument to point to the same (this means the build frontend no longer needs to clean manually the dist dir - to avoid multiple sdist presence, and we no longer need to handle conflicts between these two flags)
