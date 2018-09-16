@@ -6,9 +6,6 @@ python:
 - 3.4
 - 3.6
 - &latest_py3 3.7
-- nightly
-- pypy
-- pypy3
 
 jobs:
   fast_finish: true
