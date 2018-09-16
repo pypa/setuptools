@@ -91,9 +91,8 @@ def _fix_config(config_settings):
     return config_settings
 
 
-def _get_build_requires(config_settings):
+def _get_build_requires(config_settings, requirements):
     config_settings = _fix_config(config_settings)
-    requirements = ['setuptools', 'wheel']
 
     sys.argv = sys.argv[:1] + ['egg_info'] + \
         config_settings["--global-option"]
@@ -113,20 +112,20 @@ def _get_immediate_subdirectories(a_dir):
 
 def get_requires_for_build_wheel(config_settings=None):
     config_settings = _fix_config(config_settings)
-    return _get_build_requires(config_settings)
+    return _get_build_requires(config_settings, requirements=['setuptools', 'wheel'])
 
 
 def get_requires_for_build_sdist(config_settings=None):
     config_settings = _fix_config(config_settings)
-    return _get_build_requires(config_settings)
+    return _get_build_requires(config_settings, requirements=['setuptools'])
 
 
 def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
     sys.argv = sys.argv[:1] + ['dist_info', '--egg-base', _to_str(metadata_directory)]
     _run_setup()
-    
+
     dist_info_directory = metadata_directory
-    while True:    
+    while True:
         dist_infos = [f for f in os.listdir(dist_info_directory)
                       if f.endswith('.dist-info')]
 
