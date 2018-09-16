@@ -1,1 +1,1 @@
-``build_meta.get_requires_for_build_sdist`` now does not include the ``wheel`` package anymore
+``build_meta.get_requires_for_build_sdist`` now does not include the ``wheel`` package anymore.

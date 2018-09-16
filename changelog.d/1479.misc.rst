@@ -1,1 +1,1 @@
-Remove internal use of six.binary_type
+Remove internal use of six.binary_type.
