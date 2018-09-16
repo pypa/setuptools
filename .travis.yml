@@ -35,7 +35,7 @@ jobs:
 
 cache: pip
 
-install:
+script:
 # ensure we have recent pip/setuptools
 - pip install --upgrade pip setuptools
 # need tox to get started
@@ -46,18 +46,4 @@ install:
 
 # update egg_info based on setup.py in checkout
 - python bootstrap.py
-
-script:
-  - |
-    ( # Run testsuite.
-      set -ex
-      case $TRAVIS_PYTHON_VERSION in
-      pypy*)
-        # Don't run coverage on pypy (too slow).
-        tox
-        ;;
-      *)
-        tox -- --cov
-        ;;
-      esac
-    )
+- tox -- --cov
