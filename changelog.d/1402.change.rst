@@ -1,2 +1,0 @@
-Fixed a bug with namespace packages under Python 3.6 when one package in
-current directory hides another which is installed.

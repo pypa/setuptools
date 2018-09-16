@@ -1,3 +1,14 @@
+v40.3.0
+-------
+
+* #1402: Fixed a bug with namespace packages under Python 3.6 when one package in
+  current directory hides another which is installed.
+* #1427: Set timestamp of ``.egg-info`` directory whenever ``egg_info`` command is run.
+* #1474: ``build_meta.get_requires_for_build_sdist`` now does not include the ``wheel`` package anymore.
+* #1486: Suppress warnings in pkg_resources.handle_ns.
+* #1479: Remove internal use of six.binary_type.
+
+
 v40.2.0
 -------
 

@@ -1,1 +1,0 @@
-Set timestamp of ``.egg-info`` directory whenever ``egg_info`` command is run.

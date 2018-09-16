@@ -1,1 +1,0 @@
-Suppress warnings in pkg_resources.handle_ns.
