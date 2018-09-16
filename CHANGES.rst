@@ -3821,8 +3821,8 @@ easy_install
 
  * EasyInstall now handles symlinks in target directories by removing the link,
    rather than attempting to overwrite the link's destination.  This makes it
-   easier to set up an alternate Python "home" directory (as described above in
-   the `Non-Root Installation`_ section).
+   easier to set up an alternate Python "home" directory (as described in
+   the Non-Root Installation section of the docs).
 
  * Added support for handling MacOS platform information in ``.egg`` filenames,
    based on a contribution by Kevin Dangoor.  You may wish to delete and
@@ -3858,8 +3858,8 @@ easy_install
    i.e., all non-alphanumeric runs must be condensed to single underscore
    characters.
 
- * Added the ``--editable`` option; see `Editing and Viewing Source Packages`_
-   above for more info.  Also, slightly changed the behavior of the
+ * Added the ``--editable`` option; see Editing and Viewing Source Packages
+   in the docs.  Also, slightly changed the behavior of the
    ``--build-directory`` option.
 
  * Fixed the setup script sandbox facility not recognizing certain paths as
