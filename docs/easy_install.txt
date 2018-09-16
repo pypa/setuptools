@@ -2,6 +2,12 @@
 Easy Install
 ============
 
+..warning::
+    Easy Install is deprecated. Do not use it. Instead use pip. If
+    you think you need Easy Install, please reach out to the PyPA
+    team (a ticket to pip or setuptools is fine), describing your
+    use-case.
+
 Easy Install is a python module (``easy_install``) bundled with ``setuptools``
 that lets you automatically download, build, install, and manage Python
 packages.
