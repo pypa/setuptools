@@ -15,6 +15,9 @@
 
 .. image:: https://img.shields.io/pypi/pyversions/setuptools.svg
 
+.. image:: https://tidelift.com/badges/github/pypa/setuptools
+   :target: https://tidelift.com/subscription/pkg/pypi-setuptools?utm_source=pypi-setuptools&utm_medium=readme
+
 See the `Installation Instructions
 <https://packaging.python.org/installing/>`_ in the Python Packaging
 User's Guide for instructions on installing, upgrading, and uninstalling
