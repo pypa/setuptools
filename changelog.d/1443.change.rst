@@ -1,0 +1,1 @@
+Avoid loading pywin32's dlls so that pywin32 can be updated via setuptools/pip.
