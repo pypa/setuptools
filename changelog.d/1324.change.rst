@@ -1,1 +1,0 @@
-Make safe_name compliant with PEP 503.
