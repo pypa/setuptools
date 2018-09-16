@@ -61,17 +61,3 @@ script:
         ;;
       esac
     )
-
-after_success:
-  - |
-    ( # Upload coverage data.
-      set -ex
-      case $TRAVIS_PYTHON_VERSION in
-      pypy*)
-        ;;
-        *)
-        export TRAVIS_JOB_NAME="${TRAVIS_PYTHON_VERSION} (LANG=$LANG)" CODECOV_ENV=TRAVIS_JOB_NAME
-        tox -e coverage,codecov
-        ;;
-      esac
-    )
