@@ -40,6 +40,8 @@ def unpack(src_dir, dst_dir):
         for f in filenames:
             src = os.path.join(dirpath, f)
             dst = os.path.join(dst_dir, subdir, f)
+            if os.path.exists(dst):
+                os.remove(dst)
             os.renames(src, dst)
         for n, d in reversed(list(enumerate(dirnames))):
             src = os.path.join(dirpath, d)
