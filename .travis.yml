@@ -1,25 +1,19 @@
 dist: xenial
 sudo: false
 language: python
+
 python:
-- &latest_py2 2.7
-- 3.6
+- 2.7
 - &latest_py3 3.7
 
 jobs:
   fast_finish: true
   include:
-  - python: *latest_py3
-    env: LANG=C
-  - python: *latest_py2
-    env: LANG=C
-  - stage: deploy (to PyPI for tagged commits)
+  - stage: deploy
     if: tag IS present
     python: *latest_py3
     install: skip
     script: skip
-    after_success: true
-    before_deploy: python bootstrap.py
     deploy:
       provider: pypi
       on:
@@ -30,19 +24,7 @@ jobs:
         secure: tfWrsQMH2bHrWjqnP+08IX1WlkbW94Q30f4d7lCyhWS1FIf/jBDx4jrEILNfMxQ1NCwuBRje5sihj1Ow0BFf0vVrkaeff2IdvnNDEGFduMejaEQJL3s3QrLfpiAvUbtqwyWaHfAdGfk48PovDKTx0ZTvXZKYGXZhxGCYSlG2CE6Y6RDvnEl6Tk8e+LqUohkcSOwxrRwUoyxSnUaavdGohXxDT8MJlfWOXgr2u+KsRrriZqp3l6Fdsnk4IGvy6pXpy42L1HYQyyVu9XyJilR2JTbC6eCp5f8p26093m1Qas49+t6vYb0VLqQe12dO+Jm3v4uztSS5pPQzS7PFyjEYd2Rdb6ijsdbsy1074S4q7G9Sz+T3RsPUwYEJ07lzez8cxP64dtj5j94RL8m35A1Fb1OE8hHN+4c1yLG1gudfXbem+fUhi2eqhJrzQo5vsvDv1xS5x5GIS5ZHgKHCsWcW1Tv+dsFkrhaup3uU6VkOuc9UN+7VPsGEY7NvquGpTm8O1CnGJRzuJg6nbYRGj8ORwDpI0KmrExx6akV92P72fMC/I5TCgbSQSZn370H3Jj40gz1SM30WAli9M+wFHFd4ddMVY65yxj0NLmrP+m1tvnWdKtNh/RHuoW92d9/UFtiA5IhMf1/3djfsjBq6S9NT1uaLkVkTttqrPYJ7hOql8+g=
       distributions: release
       skip_cleanup: true
-      skip_upload_docs: true
 
 cache: pip
 
-script:
-# ensure we have recent pip/setuptools
-- pip install --upgrade pip setuptools
-# need tox to get started
-- pip install tox tox-venv
-
-# Output the env, to verify behavior
-- env
-
-# update egg_info based on setup.py in checkout
-- python bootstrap.py
-- tox -- --cov
+script: python -V
