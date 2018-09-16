@@ -12,10 +12,10 @@ from setuptools.command import test
 
 class TestNamespaces:
 
-    @pytest.mark.xfail(sys.version_info < (3, 5),
-        reason="Requires importlib.util.module_from_spec")
-    @pytest.mark.skipif(bool(os.environ.get("APPVEYOR")),
-        reason="https://github.com/pypa/setuptools/issues/851")
+    @pytest.mark.xfail(
+        sys.version_info < (3, 5),
+        reason="Requires importlib.util.module_from_spec",
+    )
     def test_mixed_site_and_non_site(self, tmpdir):
         """
         Installing two packages sharing the same namespace, one installed
@@ -55,8 +55,6 @@ class TestNamespaces:
         with test.test.paths_on_pythonpath(map(str, targets)):
             subprocess.check_call(try_import)
 
-    @pytest.mark.skipif(bool(os.environ.get("APPVEYOR")),
-        reason="https://github.com/pypa/setuptools/issues/851")
     def test_pkg_resources_import(self, tmpdir):
         """
         Ensure that a namespace package doesn't break on import
@@ -81,8 +79,6 @@ class TestNamespaces:
         with test.test.paths_on_pythonpath([str(target)]):
             subprocess.check_call(try_import)
 
-    @pytest.mark.skipif(bool(os.environ.get("APPVEYOR")),
-        reason="https://github.com/pypa/setuptools/issues/851")
     def test_namespace_package_installed_and_cwd(self, tmpdir):
         """
         Installing a namespace packages but also having it in the current
@@ -109,3 +105,32 @@ class TestNamespaces:
         ]
         with test.test.paths_on_pythonpath([str(target)]):
             subprocess.check_call(pkg_resources_imp, cwd=str(pkg_A))
+
+    def test_packages_in_the_same_namespace_installed_and_cwd(self, tmpdir):
+        """
+        Installing one namespace package and also have another in the same
+        namespace in the current working directory, both of them must be
+        importable.
+        """
+        pkg_A = namespaces.build_namespace_package(tmpdir, 'myns.pkgA')
+        pkg_B = namespaces.build_namespace_package(tmpdir, 'myns.pkgB')
+        target = tmpdir / 'packages'
+        # use pip to install to the target directory
+        install_cmd = [
+            sys.executable,
+            '-m',
+            'pip.__main__',
+            'install',
+            str(pkg_A),
+            '-t', str(target),
+        ]
+        subprocess.check_call(install_cmd)
+        namespaces.make_site_dir(target)
+
+        # ensure that all packages import and pkg_resources imports
+        pkg_resources_imp = [
+            sys.executable,
+            '-c', 'import pkg_resources; import myns.pkgA; import myns.pkgB',
+        ]
+        with test.test.paths_on_pythonpath([str(target)]):
+            subprocess.check_call(pkg_resources_imp, cwd=str(pkg_B))
