@@ -23,7 +23,7 @@ bug -- and then do so via list discussion first.)
 (Also, if you'd like to learn about how you can use ``setuptools`` to make your
 own packages work better with EasyInstall, or provide EasyInstall-like features
 without requiring your users to use EasyInstall directly, you'll probably want
-to check out the full `setuptools`_ documentation as well.)
+to check out the full documentation as well.)
 
 .. contents:: **Table of Contents**
 
