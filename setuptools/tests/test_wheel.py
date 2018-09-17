@@ -451,6 +451,34 @@ WHEEL_INSTALL_TESTS = (
     ),
 
     dict(
+        id='empty_namespace_package',
+        file_defs={
+            'foobar': {
+                '__init__.py': "__import__('pkg_resources').declare_namespace(__name__)",
+            },
+        },
+        setup_kwargs=dict(
+            namespace_packages=['foobar'],
+            packages=['foobar'],
+        ),
+        install_tree=flatten_tree({
+            'foo-1.0-py{py_version}.egg': [
+                'foo-1.0-py{py_version}-nspkg.pth',
+                {'EGG-INFO': [
+                    'PKG-INFO',
+                    'RECORD',
+                    'WHEEL',
+                    'namespace_packages.txt',
+                    'top_level.txt',
+                ]},
+                {'foobar': [
+                    '__init__.py',
+                ]},
+            ]
+        }),
+    ),
+
+    dict(
         id='data_in_package',
         file_defs={
             'foo': {

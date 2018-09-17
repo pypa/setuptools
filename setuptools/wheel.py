@@ -213,6 +213,8 @@ class Wheel:
             for mod in namespace_packages:
                 mod_dir = os.path.join(destination_eggdir, *mod.split('.'))
                 mod_init = os.path.join(mod_dir, '__init__.py')
-                if os.path.exists(mod_dir) and not os.path.exists(mod_init):
+                if not os.path.exists(mod_dir):
+                    os.mkdir(mod_dir)
+                if not os.path.exists(mod_init):
                     with open(mod_init, 'w') as fp:
                         fp.write(NAMESPACE_PACKAGE_INIT)

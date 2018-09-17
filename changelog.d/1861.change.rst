@@ -1,0 +1,1 @@
+Fix empty namespace package installation from wheel.
