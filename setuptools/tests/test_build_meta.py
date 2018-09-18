@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import os
+import shutil
 
 import pytest
 
@@ -8,7 +9,6 @@ from .files import build_files
 from .textwrap import DALS
 
 __metaclass__ = type
-
 
 futures = pytest.importorskip('concurrent.futures')
 importlib = pytest.importorskip('importlib')
@@ -23,12 +23,14 @@ class BuildBackendBase:
 
 class BuildBackend(BuildBackendBase):
     """PEP 517 Build Backend"""
+
     def __init__(self, *args, **kwargs):
         super(BuildBackend, self).__init__(*args, **kwargs)
         self.pool = futures.ProcessPoolExecutor()
 
     def __getattr__(self, name):
         """Handles aribrary function invocations on the build backend."""
+
         def method(*args, **kw):
             root = os.path.abspath(self.cwd)
             caller = BuildBackendCaller(root, self.env, self.backend_name)
@@ -51,6 +53,7 @@ defns = [
         'setup.py': DALS("""
             __import__('setuptools').setup(
                 name='foo',
+                version='0.0.0',
                 py_modules=['hello'],
                 setup_requires=['six'],
             )
@@ -65,6 +68,7 @@ defns = [
             assert __name__ == '__main__'
             __import__('setuptools').setup(
                 name='foo',
+                version='0.0.0',
                 py_modules=['hello'],
                 setup_requires=['six'],
             )
@@ -82,6 +86,7 @@ defns = [
             assert variable
             __import__('setuptools').setup(
                 name='foo',
+                version='0.0.0',
                 py_modules=['hello'],
                 setup_requires=['six'],
             )
@@ -146,3 +151,32 @@ def test_prepare_metadata_for_build_wheel_with_str(build_backend):
     dist_info = build_backend.prepare_metadata_for_build_wheel(dist_dir)
 
     assert os.path.isfile(os.path.join(dist_dir, dist_info, 'METADATA'))
+
+
+def test_build_sdist_explicit_dist(build_backend):
+    # explicitly specifying the dist folder should work
+    # the folder sdist_directory and the ``--dist-dir`` can be the same
+    dist_dir = os.path.abspath('dist')
+    sdist_name = build_backend.build_sdist(dist_dir)
+    assert os.path.isfile(os.path.join(dist_dir, sdist_name))
+
+
+def test_build_sdist_version_change(build_backend):
+    sdist_into_directory = os.path.abspath("out_sdist")
+    os.makedirs(sdist_into_directory)
+
+    sdist_name = build_backend.build_sdist(sdist_into_directory)
+    assert os.path.isfile(os.path.join(sdist_into_directory, sdist_name))
+
+    # if the setup.py changes subsequent call of the build meta should still succeed, given the
+    # sdist_directory the frontend specifies is empty
+    with open(os.path.abspath("setup.py"), 'rt') as file_handler:
+        content = file_handler.read()
+    with open(os.path.abspath("setup.py"), 'wt') as file_handler:
+        file_handler.write(content.replace("version='0.0.0'", "version='0.0.1'"))
+
+    shutil.rmtree(sdist_into_directory)
+    os.makedirs(sdist_into_directory)
+
+    sdist_name = build_backend.build_sdist("out_sdist")
+    assert os.path.isfile(os.path.join(os.path.abspath("out_sdist"), sdist_name))
