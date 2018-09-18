@@ -1,3 +1,9 @@
+v40.4.1
+-------
+
+* #1480: Bump vendored pyparsing to 2.2.1.
+
+
 v40.4.0
 -------
 
