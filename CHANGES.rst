@@ -1,3 +1,9 @@
+v40.4.0
+-------
+
+* #1481: Join the sdist ``--dist-dir`` and the ``build_meta`` sdist directory argument to point to the same target (meaning the build frontend no longer needs to clean manually the dist dir to avoid multiple sdist presence, and setuptools no longer needs to handle conflicts between the two).
+
+
 v40.3.0
 -------
 
