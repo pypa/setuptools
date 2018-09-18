@@ -1,7 +1,8 @@
 import re
+import sys
+import subprocess
 
 from paver.easy import task, path as Path
-import pip
 
 
 def remove_all(paths):
@@ -40,11 +41,13 @@ def clean(vendor):
 def install(vendor):
     clean(vendor)
     install_args = [
+        sys.executable,
+        '-m', 'pip',
         'install',
         '-r', str(vendor / 'vendored.txt'),
         '-t', str(vendor),
     ]
-    pip.main(install_args)
+    subprocess.check_call(install_args)
     remove_all(vendor.glob('*.dist-info'))
     remove_all(vendor.glob('*.egg-info'))
     (vendor / '__init__.py').write_text('')
