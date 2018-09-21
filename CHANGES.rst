@@ -1,3 +1,9 @@
+v40.4.2
+-------
+
+* #1497: Updated gitignore in repo.
+
+
 v40.4.1
 -------
 
