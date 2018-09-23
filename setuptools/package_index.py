@@ -980,8 +980,7 @@ def _encode_auth(auth):
     auth_s = urllib.parse.unquote(auth)
     # convert to bytes
     auth_bytes = auth_s.encode()
-    # use the legacy interface for Python 2.3 support
-    encoded_bytes = base64.encodestring(auth_bytes)
+    encoded_bytes = base64.b64encode(auth_bytes)
     # convert back to a string
     encoded = encoded_bytes.decode()
     # strip the trailing carriage return
