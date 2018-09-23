@@ -288,6 +288,7 @@ class TestEasyInstallTest:
         assert (target / 'mypkg_script').exists()
 
 
+@pytest.mark.filterwarnings('ignore:Unbuilt egg')
 class TestPTHFileWriter:
     def test_add_from_cwd_site_sets_dirty(self):
         '''a pth file manager should set dirty
