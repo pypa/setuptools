@@ -2085,7 +2085,7 @@ class ScriptWriter:
     @classmethod
     def get_script_header(cls, script_text, executable=None, wininst=False):
         # for backward compatibility
-        warnings.warn("Use get_header", DeprecationWarning)
+        warnings.warn("Use get_header", DeprecationWarning, stacklevel=2)
         if wininst:
             executable = "python.exe"
         cmd = cls.command_spec_class.best().from_param(executable)
