@@ -1,0 +1,1 @@
+Bump vendored pyparsing in pkg_resources to 2.2.1.
