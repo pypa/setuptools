@@ -1,3 +1,9 @@
+v40.4.3
+-------
+
+* #1480: Bump vendored pyparsing in pkg_resources to 2.2.1.
+
+
 v40.4.2
 -------
 
