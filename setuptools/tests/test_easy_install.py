@@ -756,24 +756,24 @@ class TestScriptHeader:
 
     def test_get_script_header(self):
         expected = '#!%s\n' % ei.nt_quote_arg(os.path.normpath(sys.executable))
-        actual = ei.ScriptWriter.get_script_header('#!/usr/local/bin/python')
+        actual = ei.ScriptWriter.get_header('#!/usr/local/bin/python')
         assert actual == expected
 
     def test_get_script_header_args(self):
         expected = '#!%s -x\n' % ei.nt_quote_arg(
             os.path.normpath(sys.executable))
-        actual = ei.ScriptWriter.get_script_header('#!/usr/bin/python -x')
+        actual = ei.ScriptWriter.get_header('#!/usr/bin/python -x')
         assert actual == expected
 
     def test_get_script_header_non_ascii_exe(self):
-        actual = ei.ScriptWriter.get_script_header(
+        actual = ei.ScriptWriter.get_header(
             '#!/usr/bin/python',
             executable=self.non_ascii_exe)
         expected = str('#!%s -x\n') % self.non_ascii_exe
         assert actual == expected
 
     def test_get_script_header_exe_with_spaces(self):
-        actual = ei.ScriptWriter.get_script_header(
+        actual = ei.ScriptWriter.get_header(
             '#!/usr/bin/python',
             executable='"' + self.exe_with_spaces + '"')
         expected = '#!"%s"\n' % self.exe_with_spaces
@@ -817,7 +817,7 @@ class TestCommandSpec:
 
 class TestWindowsScriptWriter:
     def test_header(self):
-        hdr = ei.WindowsScriptWriter.get_script_header('')
+        hdr = ei.WindowsScriptWriter.get_header('')
         assert hdr.startswith('#!')
         assert hdr.endswith('\n')
         hdr = hdr.lstrip('#!')
