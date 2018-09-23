@@ -1,5 +1,6 @@
 import sys
 
+import pytest
 from mock import patch
 
 from setuptools import pep425tags
@@ -64,7 +65,8 @@ class TestPEP425Tags:
 
         with patch('setuptools.pep425tags.sysconfig.get_config_var',
                    raises_ioerror):
-            assert len(pep425tags.get_supported())
+            with pytest.warns(RuntimeWarning):
+                assert len(pep425tags.get_supported())
 
     def test_no_hyphen_tag(self):
         """
