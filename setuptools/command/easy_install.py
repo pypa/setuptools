@@ -2088,9 +2088,7 @@ class ScriptWriter:
         warnings.warn("Use get_header", DeprecationWarning, stacklevel=2)
         if wininst:
             executable = "python.exe"
-        cmd = cls.command_spec_class.best().from_param(executable)
-        cmd.install_options(script_text)
-        return cmd.as_header()
+        return cls.get_header(script_text, executable)
 
     @classmethod
     def get_args(cls, dist, header=None):
