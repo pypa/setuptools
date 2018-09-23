@@ -210,6 +210,7 @@ class TestDistro:
             self.dist.exclude(package_dir=['q'])
 
 
+@pytest.mark.filterwarnings('ignore:Features are deprecated')
 class TestFeatures:
     def setup_method(self, method):
         self.req = Require('Distutils', '1.0.3', 'distutils')
