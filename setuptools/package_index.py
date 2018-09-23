@@ -7,6 +7,7 @@ import socket
 import base64
 import hashlib
 import itertools
+import warnings
 from functools import wraps
 
 from setuptools.extern import six
@@ -848,6 +849,7 @@ class PackageIndex(Environment):
         raise DistutilsError("Unexpected HTML page found at " + url)
 
     def _download_svn(self, url, filename):
+        warnings.warn("SVN download support is deprecated", UserWarning)
         url = url.split('#', 1)[0]  # remove any fragment for svn's sake
         creds = ''
         if url.lower().startswith('svn:') and '@' in url:
