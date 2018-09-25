@@ -2628,6 +2628,12 @@ class Distribution:
                 raise UnknownExtra(
                     "%s has no such extra feature %r" % (self, ext)
                 )
+        # If no extras have been requested, add dependencies from the "empty
+        # string extra". Usually this will not exist, but if it does, it will
+        # allow users to specify requirements that should only be installed
+        # when no extras have been requested.
+        if not extras:
+            deps.extend(dm.get('', ()))
         return deps
 
     def _get_metadata(self, name):
