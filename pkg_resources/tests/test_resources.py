@@ -349,6 +349,21 @@ class TestDistro:
         with pytest.raises(pkg_resources.UnknownExtra):
             d.requires(["foo"])
 
+    def testEmptyStringExtras(self):
+        d = self.distRequires("""
+            foobar
+            [aiohttp]
+            aiohttp
+            [tornado]
+            tornado
+            []
+            requests""")
+        self.checkRequires(d, "foobar requests".split())
+        self.checkRequires(d, "foobar requests".split(), [""])
+        self.checkRequires(d, "foobar requests".split(), [])
+        self.checkRequires(d, "foobar aiohttp".split(), ["aiohttp"])
+        self.checkRequires(d, "foobar tornado".split(), ["tornado"])
+
 
 class TestWorkingSet:
     def test_find_conflicting(self):
