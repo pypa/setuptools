@@ -1,10 +1,13 @@
 from distutils import log
+from distutils.errors import DistutilsPlatformError
 import distutils.command.sdist as orig
 import os
 import sys
+import time
 import io
 import contextlib
 
+from setuptools import archive_util
 from setuptools.extern import six
 
 from .py36compat import sdist_add_defaults
@@ -63,6 +66,24 @@ class sdist(sdist_add_defaults, orig.sdist):
         orig.sdist.initialize_options(self)
 
         self._default_to_gztar()
+        self._timestamp = int(os.environ.get('SOURCE_DATE_EPOCH',
+                                             int(time.time())))
+
+    def finalize_options(self):
+        if self.manifest is None:
+            self.manifest = "MANIFEST"
+        if self.template is None:
+            self.template = "MANIFEST.in"
+
+        self.ensure_string_list('formats')
+
+        bad_format = archive_util.check_archive_formats(self.formats)
+        if bad_format:
+            raise DistutilsOptionError(
+                "unknown archive format '%s'" % bad_format)
+
+        if self.dist_dir is None:
+            self.dist_dir = "dist"
 
     def _default_to_gztar(self):
         # only needed on Python prior to 3.6.
@@ -153,6 +174,12 @@ class sdist(sdist_add_defaults, orig.sdist):
                 "standard file not found: should have one of " +
                 ', '.join(self.READMES)
             )
+
+    def make_archive(self, base_name, format, root_dir=None, base_dir=None,
+                     owner=None, group=None):
+        return archive_util.make_archive(base_name, format, root_dir, base_dir,
+                                         dry_run=self.dry_run, owner=owner,
+                                         group=group, timestamp=self._timestamp)
 
     def make_release_tree(self, base_dir, files):
         orig.sdist.make_release_tree(self, base_dir, files)

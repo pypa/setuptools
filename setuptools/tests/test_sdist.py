@@ -1,13 +1,18 @@
 # -*- coding: utf-8 -*-
 """sdist tests"""
 
+import contextlib
+import hashlib
+import io
+import itertools
 import os
 import shutil
 import sys
+import tarfile
 import tempfile
+import time
 import unicodedata
-import contextlib
-import io
+import zipfile
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import map
@@ -15,6 +20,7 @@ from setuptools.extern.six.moves import map
 import pytest
 
 import pkg_resources
+from setuptools.archive_util import ARCHIVE_FORMATS
 from setuptools.command.sdist import sdist
 from setuptools.command.egg_info import manifest_maker
 from setuptools.dist import Distribution
@@ -408,6 +414,87 @@ class TestSdistTest:
                 assert filename in cmd.filelist.files
             except UnicodeDecodeError:
                 filename not in cmd.filelist.files
+
+    @pytest.mark.parametrize('format, mode', itertools.product(
+        ARCHIVE_FORMATS, ('default', 'reproducible')
+    ))
+    def test_sdist_archive(self, monkeypatch, format, mode):
+
+        if mode == 'default':
+            # Test default mode: the current time should be used
+            # for all entries timestamp.
+            verify_checksum = False
+            # Note: the timestamp less significant bit is ignored
+            # to workaround the zip format loss of precision:
+            # https://bugs.python.org/issue5457
+            expected_timestamp = (int(time.time()) - 60) & ~0b1
+            monkeypatch.setattr('time.time', lambda: expected_timestamp)
+        elif mode == 'reproducible':
+            verify_checksum = True
+            # When SOURCE_DATE_EPOCH is set, it must be used for
+            # all entries timestamp.
+            expected_timestamp = 1539523768
+            monkeypatch.setenv('SOURCE_DATE_EPOCH', str(expected_timestamp))
+            monkeypatch.setattr('time.time', lambda: 0)
+        else:
+            raise ValueError(mode)
+
+        def run_sdist():
+            dist = Distribution(SETUP_ATTRS)
+            dist.script_name = 'setup.py'
+            cmd = sdist(dist)
+            cmd.formats = [format]
+            cmd.ensure_finalized()
+            with quiet():
+                cmd.run()
+            assert len(cmd.archive_files) == 1
+            archive_file = cmd.archive_files[0]
+            return (cmd.archive_files[0],
+                    cmd.distribution.get_fullname(),
+                    cmd.filelist.files)
+
+        # Run `sdist` a first time, check the resulting
+        # archive's entries and calculate its checksum.
+        archive_file, basedir, files = run_sdist()
+        expected_listing = set(files)
+        expected_listing.update(('PKG-INFO', 'setup.cfg'))
+        expected_listing = [
+            '/'.join((basedir, name.replace(os.path.sep, '/')))
+            for name in sorted(expected_listing)
+        ]
+        # Note: directories are ignored (apart from checking their timestamps).
+        archive_listing = []
+        if archive_file.endswith('.zip'):
+            with zipfile.ZipFile(archive_file) as archive:
+                for info in archive.infolist():
+                    timestamp = time.mktime(info.date_time + (-1, -1, -1))
+                    assert timestamp == expected_timestamp, info.filename
+                    if not info.filename.endswith('/'):
+                        archive_listing.append(info.filename)
+        else:
+            with tarfile.open(archive_file) as archive:
+                for info in archive.getmembers():
+                    assert info.mtime == expected_timestamp, info.name
+                    if not info.isdir():
+                        archive_listing.append(info.name)
+        assert archive_listing == expected_listing, archive_file
+
+        if mode != 'reproducible':
+            return
+
+        with open(archive_file, 'rb') as fp:
+            checksum = hashlib.sha1(fp.read()).hexdigest()
+
+        # Re-run `sdist` command a second time after
+        # patching sources timestamps, and verify the
+        # archive's checksum is unchanged.
+        for entry in os.listdir('.'):
+            os.utime(entry, (315529200, 315529200))
+        monkeypatch.setattr('time.time', lambda: 3)
+        archive_file = run_sdist()[0]
+        with open(archive_file, 'rb') as fp:
+            new_checksum = hashlib.sha1(fp.read()).hexdigest()
+        assert new_checksum == checksum, archive_file
 
 
 def test_default_revctrl():
