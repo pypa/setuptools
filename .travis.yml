@@ -1,24 +1,29 @@
 dist: trusty
 language: python
-python:
-- &latest_py2 2.7
-- 3.4
-- 3.5
-- &latest_py3 3.6
-- nightly
-- pypy
-- pypy3
 
 jobs:
   fast_finish: true
   include:
-  - python: *latest_py3
+  - &latest_py2
+    python: 2.7
+  - <<: *latest_py2
     env: LANG=C
-  - python: *latest_py2
+  - python: pypy
+  - python: pypy3
+  - python: 3.4
+  - python: 3.5
+  - &default_py
+    python: 3.6
+  - &latest_py3
+    python: 3.7
+    dist: xenial
+  - <<: *latest_py3
     env: LANG=C
-  - stage: deploy (to PyPI for tagged commits)
+  - python: 3.8-dev
+    dist: xenial
+  - <<: *default_py
+    stage: deploy (to PyPI for tagged commits)
     if: tag IS present
-    python: *latest_py3
     install: skip
     script: skip
     after_success: true
