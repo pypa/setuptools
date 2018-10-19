@@ -1,5 +1,4 @@
 dist: trusty
-sudo: false
 language: python
 python:
 - &latest_py2 2.7
