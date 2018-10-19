@@ -1,3 +1,5 @@
+clone_depth: 50
+
 environment:
 
   APPVEYOR: True
