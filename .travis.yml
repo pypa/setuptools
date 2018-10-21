@@ -9,7 +9,9 @@ jobs:
   - <<: *latest_py2
     env: LANG=C
   - python: pypy
+    env: DISABLE_COVERAGE=1  # Don't run coverage on pypy (too slow).
   - python: pypy3
+    env: DISABLE_COVERAGE=1
   - python: 3.4
   - python: 3.5
   - &default_py
@@ -21,6 +23,7 @@ jobs:
     env: LANG=C
   - python: 3.8-dev
     dist: xenial
+    env: DISABLE_COVERAGE=1  # Ignore invalid coverage data.
   - <<: *default_py
     stage: deploy (to PyPI for tagged commits)
     if: tag IS present
@@ -59,28 +62,20 @@ install:
 script:
   - |
     ( # Run testsuite.
-      set -ex
-      case $TRAVIS_PYTHON_VERSION in
-      pypy*)
-        # Don't run coverage on pypy (too slow).
-        tox
-        ;;
-      *)
+      if [ -z "$DISABLE_COVERAGE" ]
+      then
         tox -- --cov
-        ;;
-      esac
+      else
+        tox
+      fi
     )
 
 after_success:
   - |
     ( # Upload coverage data.
-      set -ex
-      case $TRAVIS_PYTHON_VERSION in
-      pypy*)
-        ;;
-        *)
+      if [ -z "$DISABLE_COVERAGE" ]
+      then
         export TRAVIS_JOB_NAME="${TRAVIS_PYTHON_VERSION} (LANG=$LANG)" CODECOV_ENV=TRAVIS_JOB_NAME
         tox -e coverage,codecov
-        ;;
-      esac
+      fi
     )
