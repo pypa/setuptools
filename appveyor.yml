@@ -1,3 +1,5 @@
+clone_depth: 50
+
 environment:
 
   APPVEYOR: True
@@ -21,9 +23,12 @@ cache:
   - '%LOCALAPPDATA%\pip\Cache'
 
 test_script:
-  - "python bootstrap.py"
-  - "python -m pip install tox"
-  - "tox -- --cov"
+  - python --version
+  - python -m pip install --disable-pip-version-check --upgrade pip setuptools wheel
+  - pip install --upgrade tox tox-venv
+  - pip freeze --all
+  - python bootstrap.py
+  - tox -- --cov
 
 after_test:
     - tox -e coverage,codecov
