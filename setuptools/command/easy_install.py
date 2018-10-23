@@ -632,7 +632,7 @@ class easy_install(Command):
 
     @contextlib.contextmanager
     def _tmpdir(self):
-        tmpdir = tempfile.mkdtemp(prefix=six.u("easy_install-"))
+        tmpdir = tempfile.mkdtemp(prefix=u"easy_install-")
         try:
             # cast to str as workaround for #709 and #710 and #712
             yield str(tmpdir)
