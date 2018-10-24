@@ -2228,7 +2228,7 @@ register_namespace_handler(object, null_ns_handler)
 
 def normalize_path(filename):
     """Normalize a file/dir name for comparison purposes"""
-    return os.path.normcase(os.path.realpath(filename))
+    return os.path.normcase(os.path.normpath(os.path.realpath(filename)))
 
 
 def _normalize_cached(filename, _cache={}):

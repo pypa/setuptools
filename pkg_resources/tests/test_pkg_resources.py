@@ -236,3 +236,8 @@ class TestDeepVersionLookupDistutils:
         req = pkg_resources.Requirement.parse('foo>=1.9')
         dist = pkg_resources.WorkingSet([env.paths['lib']]).find(req)
         assert dist.version == version
+
+    def test_normalize_path(self, tmpdir):
+        path = str(tmpdir)
+        expected = os.path.normcase(os.path.normpath(os.path.realpath(path)))
+        assert pkg_resources.normalize_path(path) == expected
