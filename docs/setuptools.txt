@@ -2367,6 +2367,11 @@ boilerplate code in some cases.
         src.subpackage1
         src.subpackage2
 
+    [options.data_files]
+    /etc/my_package =
+        site.d/00_default.conf
+        host.d/00_default.conf
+    data = data/img/logo.png, data/svg/icon.svg
 
 Metadata and options are set in the config sections of the same name.
 

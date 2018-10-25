@@ -598,3 +598,11 @@ class ConfigOptionsHandler(ConfigHandler):
         parse_list = partial(self._parse_list, separator=';')
         self['extras_require'] = self._parse_section_to_dict(
             section_options, parse_list)
+
+    def parse_section_data_files(self, section_options):
+        """Parses `data_files` configuration file section.
+
+        :param dict section_options:
+        """
+        parsed = self._parse_section_to_dict(section_options, self._parse_list)
+        self['data_files'] = [(k, v) for k, v in parsed.items()]

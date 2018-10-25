@@ -703,6 +703,23 @@ class TestOptions:
         with get_dist(tmpdir) as dist:
             assert dist.entry_points == expected
 
+    def test_data_files(self, tmpdir):
+        fake_env(
+            tmpdir,
+            '[options.data_files]\n'
+            'cfg =\n'
+            '      a/b.conf\n'
+            '      c/d.conf\n'
+            'data = e/f.dat, g/h.dat\n'
+        )
+
+        with get_dist(tmpdir) as dist:
+            expected = [
+                ('cfg', ['a/b.conf', 'c/d.conf']),
+                ('data', ['e/f.dat', 'g/h.dat']),
+            ]
+            assert sorted(dist.data_files) == sorted(expected)
+
 saved_dist_init = _Distribution.__init__
 class TestExternalSetters:
     # During creation of the setuptools Distribution() object, we call
