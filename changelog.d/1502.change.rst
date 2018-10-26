@@ -1,1 +1,0 @@
-Deprecated support for downloads from Subversion in package_index/easy_install.

@@ -1,1 +1,0 @@
-In ``pkg_resources.normalize_path``, fix issue on Cygwin when cwd contains symlinks.

@@ -1,3 +1,13 @@
+v40.5.0
+-------
+
+* #1335: In ``pkg_resources.normalize_path``, fix issue on Cygwin when cwd contains symlinks.
+* #1502: Deprecated support for downloads from Subversion in package_index/easy_install.
+* #1517: Dropped use of six.u in favor of `u""` literals.
+* #1520: Added support for ``data_files`` in ``setup.cfg``.
+* #1525: Fixed rendering of the deprecation warning in easy_install doc.
+
+
 v40.4.3
 -------
 
