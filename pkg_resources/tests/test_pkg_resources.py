@@ -237,7 +237,55 @@ class TestDeepVersionLookupDistutils:
         dist = pkg_resources.WorkingSet([env.paths['lib']]).find(req)
         assert dist.version == version
 
-    def test_normalize_path(self, tmpdir):
-        path = str(tmpdir)
-        expected = os.path.normcase(os.path.normpath(os.path.realpath(path)))
-        assert pkg_resources.normalize_path(path) == expected
+    @pytest.mark.parametrize(
+        'unnormalized, normalized',
+        [
+            ('foo', 'foo'),
+            ('foo/', 'foo'),
+            ('foo/bar', 'foo/bar'),
+            ('foo/bar/', 'foo/bar'),
+        ],
+    )
+    def test_normalize_path_trailing_sep(self, unnormalized, normalized):
+        """Ensure the trailing slash is cleaned for path comparison.
+
+        See pypa/setuptools#1519.
+        """
+        result_from_unnormalized = pkg_resources.normalize_path(unnormalized)
+        result_from_normalized = pkg_resources.normalize_path(normalized)
+        assert result_from_unnormalized == result_from_normalized
+
+    @pytest.mark.skipif(
+        os.path.normcase('A') != os.path.normcase('a'),
+        reason='Testing case-insensitive filesystems.',
+    )
+    @pytest.mark.parametrize(
+        'unnormalized, normalized',
+        [
+            ('MiXeD/CasE', 'mixed/case'),
+        ],
+    )
+    def test_normalize_path_normcase(self, unnormalized, normalized):
+        """Ensure mixed case is normalized on case-insensitive filesystems.
+        """
+        result_from_unnormalized = pkg_resources.normalize_path(unnormalized)
+        result_from_normalized = pkg_resources.normalize_path(normalized)
+        assert result_from_unnormalized == result_from_normalized
+
+    @pytest.mark.skipif(
+        os.path.sep != '\\',
+        reason='Testing systems using backslashes as path separators.',
+    )
+    @pytest.mark.parametrize(
+        'unnormalized, expected',
+        [
+            ('forward/slash', 'forward\\slash'),
+            ('forward/slash/', 'forward\\slash'),
+            ('backward\\slash\\', 'backward\\slash'),
+        ],
+    )
+    def test_normalize_path_backslash_sep(self, unnormalized, expected):
+        """Ensure path seps are cleaned on backslash path sep systems.
+        """
+        result = pkg_resources.normalize_path(unnormalized)
+        assert result.endswith(expected)
