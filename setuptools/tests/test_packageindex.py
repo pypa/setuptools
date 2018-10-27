@@ -6,6 +6,7 @@ import distutils.errors
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import urllib, http_client
+import mock
 
 import pkg_resources
 import setuptools.package_index
@@ -222,6 +223,41 @@ class TestPackageIndex:
                 'http://example.com/example.zip#egg=example-' + v))
             assert dists[0].version == ''
             assert dists[1].version == vc
+
+
+    def test_download_git(self):
+        index = setuptools.package_index.PackageIndex(
+            hosts=('www.example.com',)
+        )
+
+        index._vcs_split_rev_from_url = mock.Mock()
+        url = 'https://example.com/bar'
+        rev = '2995'
+
+        index._vcs_split_rev_from_url.return_value = (url, rev)
+
+        filename = "somefile.py"
+
+        with mock.patch("os.system") as os_system_mock:
+
+            result = index._download_git(url, filename)
+
+        os_system_mock.assert_called()
+
+        assert os_system_mock.call_args_list[0][0] \
+            == ("git clone --quiet %s %s" % (url, filename), )
+
+        assert os_system_mock.call_args_list[1][0] \
+            == ("(cd %s && git checkout --quiet %s)" % (filename, rev), )
+        assert result == filename
+
+        index._vcs_split_rev_from_url.return_value = (url, None)
+
+        with mock.patch("os.system") as os_system_mock:
+
+            index._download_git(url, filename)
+
+        os_system_mock.assert_called_once_with("git clone --quiet %s %s" % (url, filename))
 
 
 class TestContentCheckers:
