@@ -15,7 +15,6 @@ The package resource API is designed to work with normal filesystem packages,
 method.
 """
 
-
 from __future__ import absolute_import
 
 import sys
