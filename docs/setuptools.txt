@@ -2466,9 +2466,9 @@ obsoletes                                          list-comma
 Options
 -------
 
-=======================  =====
-Key                      Type
-=======================  =====
+=======================  ===================================  =====
+Key                      Type                                 Minimum Version
+=======================  ===================================  =====
 zip_safe                 bool
 setup_requires           list-semi
 install_requires         list-semi
@@ -2490,7 +2490,8 @@ package_data             section
 exclude_package_data     section
 namespace_packages       list-comma
 py_modules               list-comma
-=======================  =====
+data_files               dict                                 40.5.0
+=======================  ===================================  =====
 
 .. note::
 
