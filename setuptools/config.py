@@ -2,8 +2,10 @@ from __future__ import absolute_import, unicode_literals
 import io
 import os
 import sys
+import warnings
 from collections import defaultdict
 from functools import partial
+from functools import wraps
 from importlib import import_module
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
@@ -399,6 +401,20 @@ class ConfigHandler:
 
             section_parser_method(section_options)
 
+    def _deprecated_config_handler(self, func, msg, warning_class):
+        """ this function will wrap around parameters that are deprecated
+        
+        :param msg: deprecation message 
+        :param warning_class: class of warning exception to be raised
+        :param func: function to be wrapped around
+        """
+        @wraps(func)
+        def config_handler(*args, **kwargs):
+            warnings.warn(msg, warning_class)
+            return func(*args, **kwargs)
+        
+        return config_handler
+
 
 class ConfigMetadataHandler(ConfigHandler):
 
@@ -434,7 +450,10 @@ class ConfigMetadataHandler(ConfigHandler):
             'platforms': parse_list,
             'keywords': parse_list,
             'provides': parse_list,
-            'requires': parse_list,
+            'requires': self._deprecated_config_handler(parse_list,
+                "The requires parameter is deprecated, please use " +
+                "install_requires for runtime dependencies.",
+                DeprecationWarning),
             'obsoletes': parse_list,
             'classifiers': self._get_parser_compound(parse_file, parse_list),
             'license': parse_file,
