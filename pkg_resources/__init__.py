@@ -15,6 +15,7 @@ The package resource API is designed to work with normal filesystem packages,
 method.
 """
 
+
 from __future__ import absolute_import
 
 import sys
@@ -2335,7 +2336,7 @@ class EntryPoint:
             warnings.warn(
                 "Parameters to load are deprecated.  Call .resolve and "
                 ".require separately.",
-                DeprecationWarning,
+                PkgResourcesDeprecationWarning,
                 stacklevel=2,
             )
         if require:
@@ -3158,3 +3159,7 @@ def _initialize_master_working_set():
     # match order
     list(map(working_set.add_entry, sys.path))
     globals().update(locals())
+
+class PkgResourcesDeprecationWarning(Warning):
+    """Class for warning about deprecations in PkgResources. Not ignored by default, unlike DeprecationWarning."""
+
