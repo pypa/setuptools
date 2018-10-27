@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 
 import io
-
+from setuptools.dist import DistDeprecationWarning, _get_unpatched
 from setuptools import Distribution
 from setuptools.extern.six.moves.urllib.request import pathname2url
 from setuptools.extern.six.moves.urllib_parse import urljoin
@@ -55,6 +55,9 @@ def test_dist_fetch_build_egg(tmpdir):
         ]
     assert [dist.key for dist in resolved_dists if dist] == reqs
 
+
+def test_dist__get_unpatched_deprecated():
+    pytest.warns(DistDeprecationWarning, _get_unpatched, [""])
 
 def __maintainer_test_cases():
     attrs = {"name": "package",
