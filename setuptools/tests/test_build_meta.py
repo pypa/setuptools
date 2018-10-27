@@ -7,6 +7,7 @@ import pytest
 
 from .files import build_files
 from .textwrap import DALS
+from . import py2_only
 
 __metaclass__ = type
 
@@ -143,7 +144,7 @@ def test_prepare_metadata_for_build_wheel(build_backend):
     assert os.path.isfile(os.path.join(dist_dir, dist_info, 'METADATA'))
 
 
-@pytest.mark.skipif('sys.version_info > (3,)')
+@py2_only
 def test_prepare_metadata_for_build_wheel_with_str(build_backend):
     dist_dir = os.path.abspath(str('pip-dist-info'))
     os.makedirs(dist_dir)

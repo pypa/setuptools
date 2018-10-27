@@ -20,8 +20,8 @@ from setuptools.command.egg_info import manifest_maker
 from setuptools.dist import Distribution
 from setuptools.tests import fail_on_ascii
 from .text import Filenames
+from . import py3_only
 
-py3_only = pytest.mark.xfail(six.PY2, reason="Test runs on Python 3 only")
 
 SETUP_ATTRS = {
     'name': 'sdist_test',

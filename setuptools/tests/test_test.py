@@ -93,7 +93,7 @@ def test_test(capfd):
     assert out == 'Foo\n'
 
 
-@pytest.mark.xfail(
+@pytest.mark.skipif(
     sys.version_info < (2, 7),
     reason="No discover support for unittest on Python 2.6",
 )

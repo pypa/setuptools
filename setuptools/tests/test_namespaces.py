@@ -12,7 +12,7 @@ from setuptools.command import test
 
 class TestNamespaces:
 
-    @pytest.mark.xfail(
+    @pytest.mark.skipif(
         sys.version_info < (3, 5),
         reason="Requires importlib.util.module_from_spec",
     )
