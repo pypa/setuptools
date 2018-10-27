@@ -6,6 +6,7 @@ import io
 import contextlib
 
 from setuptools.extern import six
+from setuptools.extern.six.moves import configparser
 
 from .py36compat import sdist_add_defaults
 
@@ -198,3 +199,27 @@ class sdist(sdist_add_defaults, orig.sdist):
                 continue
             self.filelist.append(line)
         manifest.close()
+
+    def check_license(self):
+        """Read the setup configuration file ('setup.cfg') and use it to find
+        if a license is defined with the 'license_file' attribute.
+        If the license is declared and exists, it will be added to
+        'self.filelist'.
+        """
+
+        cfg_file = 'setup.cfg'
+        log.debug("Reading configuration from %s", cfg_file)
+        parser = configparser.RawConfigParser()
+        parser.read(cfg_file)
+        try:
+            license_file = parser.get('metadata', 'license_file')
+
+            if not os.path.exists(license_file):
+                log.warn("warning: Failed to find license file '%s' in setup.cfg",
+                        license_file)
+                return
+
+            self.filelist.append(license_file)
+        except configparser.Error:
+            log.debug("license_file attribute is not defined in setup.cfg")
+            return
