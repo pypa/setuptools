@@ -31,9 +31,7 @@ import setuptools.unicode_utils as unicode_utils
 from setuptools.glob import glob
 
 from setuptools.extern import packaging
-
 from setuptools.setup_tools_deprecation_warning import SetupToolsDeprecationWarning
-
 
 def translate_pattern(glob):
     """
