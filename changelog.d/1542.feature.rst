@@ -1,0 +1,1 @@
+Added custom deprecation warning classes because DeprecationWarning is not visible unless the user opts in.
