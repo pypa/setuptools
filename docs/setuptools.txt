@@ -2403,7 +2403,7 @@ Metadata and options are set in the config sections of the same name.
 Using a ``src/`` layout (storing packages in a subdirectory)
 ============================================================
 
-If you use a `src` layout, as in, you package structure looks like this::
+If you use a ``src/`` layout, as in, you package structure looks like this::
 
     ├── src
     │   └── mypackage
