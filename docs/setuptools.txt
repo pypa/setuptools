@@ -2434,9 +2434,9 @@ Metadata
     The aliases given below are supported for compatibility reasons,
     but their use is not advised.
 
-==============================  =================  =====
-Key                             Aliases            Type
-==============================  =================  =====
+==============================  =================  =====			=====
+Key                             Aliases            Type				Minimum Version
+==============================  =================  =====			=====
 name                                               str
 version                                            attr:, file:, str
 url                             home-page          str
@@ -2450,13 +2450,13 @@ classifiers                     classifier         file:, list-comma
 license                                            file:, str
 description                     summary            file:, str
 long_description                long-description   file:, str
-long_description_content_type                      str
+long_description_content_type                      str				38.6.0
 keywords                                           list-comma
 platforms                       platform           list-comma
 provides                                           list-comma
 requires                                           list-comma
 obsoletes                                          list-comma
-==============================  =================  =====
+==============================  =================  =====			=====
 
 .. note::
     A version loaded using the ``file:`` directive must comply with PEP 440.
