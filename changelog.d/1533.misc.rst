@@ -1,0 +1,1 @@
+Restrict the `recursive-include setuptools/_vendor` to contain only .py and .txt files

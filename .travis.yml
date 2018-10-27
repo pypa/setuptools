@@ -30,7 +30,9 @@ jobs:
     install: skip
     script: skip
     after_success: true
-    before_deploy: python bootstrap.py
+    before_deploy:
+      - python bootstrap.py
+      - ! grep pyc setuptools.egg-info/SOURCES.txt
     deploy:
       provider: pypi
       on:
