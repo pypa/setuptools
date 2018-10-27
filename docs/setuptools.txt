@@ -2455,7 +2455,7 @@ keywords                                           list-comma
 platforms                       platform           list-comma
 provides                                           list-comma
 requires                                           list-comma
-obsoletes                                          list-comma
+obsoletes                                          dict
 ==============================  =================  =====
 
 .. note::
@@ -2466,9 +2466,9 @@ obsoletes                                          list-comma
 Options
 -------
 
-=======================  ===================================  =====
-Key                      Type                                 Added In
-=======================  ===================================  =====
+=======================  =====
+Key                      Type
+=======================  =====
 zip_safe                 bool
 setup_requires           list-semi
 install_requires         list-semi
@@ -2490,8 +2490,7 @@ package_data             section
 exclude_package_data     section
 namespace_packages       list-comma
 py_modules               list-comma
-data_files               list-comma                           40.5.0
-=======================  ===================================  =====
+=======================  =====
 
 .. note::
 
