@@ -2435,7 +2435,7 @@ Metadata
     but their use is not advised.
 
 ==============================  =================  =====			=====
-Key                             Aliases            Type				Minimum Version
+Key                             Aliases            Type			Minimum Version
 ==============================  =================  =====			=====
 name                                               str
 version                                            attr:, file:, str
