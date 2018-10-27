@@ -28,12 +28,14 @@ from setuptools.config import parse_configuration
 import pkg_resources
 from .py36compat import Distribution_parse_config_files
 
+from setuptools.setup_tools_deprecation_warning import SetupToolsDeprecationWarning
+
 __import__('setuptools.extern.packaging.specifiers')
 __import__('setuptools.extern.packaging.version')
 
 
 def _get_unpatched(cls):
-    warnings.warn("Do not call this function", DeprecationWarning)
+    warnings.warn("Do not call this function", DistDeprecationWarning)
     return get_unpatched(cls)
 
 
@@ -980,7 +982,7 @@ class Feature:
             "Features are deprecated and will be removed in a future "
             "version. See https://github.com/pypa/setuptools/issues/65."
         )
-        warnings.warn(msg, DeprecationWarning, stacklevel=3)
+        warnings.warn(msg, DistDeprecationWarning, stacklevel=3)
 
     def __init__(
             self, description, standard=False, available=True,
@@ -1069,3 +1071,6 @@ class Feature:
                     " doesn't contain any packages or modules under %s"
                     % (self.description, item, item)
                 )
+
+class DistDeprecationWarning(SetupToolsDeprecationWarning):
+    """Class for warning about deprecations in dist in setuptools. Not ignored by default, unlike DeprecationWarning."""
