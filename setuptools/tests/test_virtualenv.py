@@ -57,9 +57,6 @@ def test_pip_upgrade_from_source(virtualenv):
     Check pip can upgrade setuptools from source.
     """
     dist_dir = virtualenv.workspace
-    if sys.version_info < (2, 7):
-        # Python 2.6 support was dropped in wheel 0.30.0.
-        virtualenv.run('pip install -U "wheel<0.30.0"')
     # Generate source distribution / wheel.
     virtualenv.run(' && '.join((
         'cd {source}',
