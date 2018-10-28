@@ -2,7 +2,9 @@ from __future__ import absolute_import, unicode_literals
 import io
 import os
 import sys
+
 import warnings
+import functools
 from collections import defaultdict
 from functools import partial
 from functools import wraps
@@ -63,6 +65,18 @@ def read_configuration(
     return configuration_to_dict(handlers)
 
 
+def _get_option(target_obj, key):
+    """
+    Given a target object and option key, get that option from
+    the target object, either through a get_{key} method or
+    from an attribute directly.
+    """
+    getter_name = 'get_{key}'.format(**locals())
+    by_attribute = functools.partial(getattr, target_obj, key)
+    getter = getattr(target_obj, getter_name, by_attribute)
+    return getter()
+
+
 def configuration_to_dict(handlers):
     """Returns configuration data gathered by given handlers as a dict.
 
@@ -74,20 +88,9 @@ def configuration_to_dict(handlers):
     config_dict = defaultdict(dict)
 
     for handler in handlers:
-
-        obj_alias = handler.section_prefix
-        target_obj = handler.target_obj
-
         for option in handler.set_options:
-            getter = getattr(target_obj, 'get_%s' % option, None)
-
-            if getter is None:
-                value = getattr(target_obj, option)
-
-            else:
-                value = getter()
-
-            config_dict[obj_alias][option] = value
+            value = _get_option(handler.target_obj, option)
+            config_dict[handler.section_prefix][option] = value
 
     return config_dict
 
@@ -112,7 +115,8 @@ def parse_configuration(
     options.parse()
 
     meta = ConfigMetadataHandler(
-        distribution.metadata, command_options, ignore_option_errors, distribution.package_dir)
+        distribution.metadata, command_options, ignore_option_errors,
+        distribution.package_dir)
     meta.parse()
 
     return meta, options
@@ -477,9 +481,12 @@ class ConfigMetadataHandler(ConfigHandler):
             # Be strict about versions loaded from file because it's easy to
             # accidentally include newlines and other unintended content
             if isinstance(parse(version), LegacyVersion):
-                raise DistutilsOptionError('Version loaded from %s does not comply with PEP 440: %s' % (
-                    value, version
-                ))
+                tmpl = (
+                    'Version loaded from {value} does not '
+                    'comply with PEP 440: {version}'
+                )
+                raise DistutilsOptionError(tmpl.format(**locals()))
+
             return version
 
         version = self._parse_attr(value, self.package_dir)
@@ -537,12 +544,13 @@ class ConfigOptionsHandler(ConfigHandler):
         find_directives = ['find:', 'find_namespace:']
         trimmed_value = value.strip()
 
-        if not trimmed_value in find_directives:
+        if trimmed_value not in find_directives:
             return self._parse_list(value)
 
         findns = trimmed_value == find_directives[1]
         if findns and not PY3:
-            raise DistutilsOptionError('find_namespace: directive is unsupported on Python < 3.3')
+            raise DistutilsOptionError(
+                'find_namespace: directive is unsupported on Python < 3.3')
 
         # Read function arguments from a dedicated section.
         find_kwargs = self.parse_section_packages__find(
