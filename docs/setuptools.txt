@@ -2405,6 +2405,35 @@ Metadata and options are set in the config sections of the same name.
 * Unknown keys are ignored.
 
 
+Using a ``src/`` layout
+=======================
+
+One commonly used package configuration has all the module source code in a
+subdirectory (often called the ``src/`` layout), like this::
+
+    ├── src
+    │   └── mypackage
+    │       ├── __init__.py
+    │       └── mod1.py
+    ├── setup.py
+    └── setup.cfg
+
+You can set up your ``setup.cfg`` to automatically find all your packages in
+the subdirectory like this:
+
+.. code-block:: ini
+
+    # This example contains just the necessary options for a src-layout, set up
+    # the rest of the file as described above.
+
+    [options]
+    package_dir=
+        =src
+    packages=find:
+
+    [options.packages.find]
+    where=src
+
 Specifying values
 =================
 
