@@ -2,6 +2,7 @@ from __future__ import absolute_import, unicode_literals
 import io
 import os
 import sys
+import functools
 from collections import defaultdict
 from functools import partial
 from importlib import import_module
@@ -61,6 +62,18 @@ def read_configuration(
     return configuration_to_dict(handlers)
 
 
+def _get_option(target_obj, key):
+    """
+    Given a target object and option key, get that option from
+    the target object, either through a get_{key} method or
+    from an attribute directly.
+    """
+    getter_name = 'get_{key}'.format(**locals())
+    by_attribute = functools.partial(getattr, target_obj, key)
+    getter = getattr(target_obj, getter_name, by_attribute)
+    return getter()
+
+
 def configuration_to_dict(handlers):
     """Returns configuration data gathered by given handlers as a dict.
 
@@ -74,17 +87,9 @@ def configuration_to_dict(handlers):
     for handler in handlers:
 
         obj_alias = handler.section_prefix
-        target_obj = handler.target_obj
 
         for option in handler.set_options:
-            getter = getattr(target_obj, 'get_%s' % option, None)
-
-            if getter is None:
-                value = getattr(target_obj, option)
-
-            else:
-                value = getter()
-
+            value = _get_option(handler.target_obj, option)
             config_dict[obj_alias][option] = value
 
     return config_dict
