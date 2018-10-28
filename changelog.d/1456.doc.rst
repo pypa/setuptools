@@ -1,1 +1,1 @@
-Document that rpmbuild is required to build bdist_rpm.
+Documented that the ``rpmbuild`` packages is required for the ``bdist_rpm`` command.
