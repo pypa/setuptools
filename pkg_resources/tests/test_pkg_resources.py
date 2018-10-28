@@ -210,7 +210,13 @@ class TestDeepVersionLookupDistutils:
             (dirname, str(tmpdir / dirname))
             for dirname in subs
         )
-        list(map(os.mkdir, env.paths.values()))
+
+        for path in env.paths.values():
+            try:
+                os.mkdir(path)
+            except OSError:
+                pass
+
         return env
 
     def create_foo_pkg(self, env, version):
