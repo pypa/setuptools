@@ -1342,6 +1342,7 @@ Creating System Packages
     Please note that building system packages may require you to install
     some system software, e.g. ``bdist_rpm`` requires the ``rpmbuild``
     command installed.
+
     If you or your users have a problem building a usable system package for
     your project, please report the problem via the mailing list so that
     either the "bdist" tool in question or setuptools can be modified to
