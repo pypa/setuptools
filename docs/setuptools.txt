@@ -2400,10 +2400,11 @@ Metadata and options are set in the config sections of the same name.
 * Unknown keys are ignored.
 
 
-Using a ``src/`` layout (storing packages in a subdirectory)
-============================================================
+Using a ``src/`` layout
+=======================
 
-If you use a ``src/`` layout, as in, you package structure looks like this::
+One commonly used package configuration has all the module source code in a
+subdirectory (often called the ``src/`` layout), like this::
 
     ├── src
     │   └── mypackage
@@ -2412,7 +2413,7 @@ If you use a ``src/`` layout, as in, you package structure looks like this::
     ├── setup.py
     └── setup.cfg
 
-You can set up your ``setup.cfg`` to automatically look up all your packages in
+You can set up your ``setup.cfg`` to automatically find all your packages in
 the subdirectory like this:
 
 .. code-block:: ini
