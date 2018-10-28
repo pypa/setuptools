@@ -93,19 +93,19 @@ def read_pkg_file(self, file):
 
 
 def get_metadata_version(self):
-    if hasattr(self, "metadata_version"):
-        return StrictVersion(getattr(self, "metadata_version"))
-    elif self.long_description_content_type or self.provides_extras:
-        return StrictVersion('2.1')
-    elif (self.maintainer is not None or
-          self.maintainer_email is not None or
-          getattr(self, 'python_requires', None) is not None):
-        return StrictVersion('1.2')
-    elif (self.provides or self.requires or self.obsoletes or
-          self.classifiers or self.download_url):
-        return StrictVersion('1.1')
-
-    return StrictVersion('1.0')
+    if not hasattr(self, "metadata_version"):
+        if self.long_description_content_type or self.provides_extras:
+            self.metadata_version = StrictVersion('2.1')
+        elif (self.maintainer is not None or
+              self.maintainer_email is not None or
+              getattr(self, 'python_requires', None) is not None):
+            self.metadata_version = StrictVersion('1.2')
+        elif (self.provides or self.requires or self.obsoletes or
+              self.classifiers or self.download_url):
+            self.metadata_version = StrictVersion('1.1')
+        else:
+            self.metadata_version = StrictVersion('1.0')
+    return self.metadata_version
 
 
 # Based on Python 3.5 version
