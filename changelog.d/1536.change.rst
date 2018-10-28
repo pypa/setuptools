@@ -1,0 +1,3 @@
+``setuptools`` will now automatically include licenses if ``setup.cfg``
+contains a ``license_file`` attribute, unless this file is manually excluded
+inside ``MANIFEST.in``.

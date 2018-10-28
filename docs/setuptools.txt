@@ -2448,6 +2448,7 @@ maintainer                                         str
 maintainer_email                maintainer-email   str
 classifiers                     classifier         file:, list-comma
 license                                            file:, str
+license_file                                       str
 description                     summary            file:, str
 long_description                long-description   file:, str
 long_description_content_type                      str
