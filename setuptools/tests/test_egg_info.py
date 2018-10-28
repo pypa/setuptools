@@ -148,6 +148,26 @@ class TestEggInfo:
         ]
         assert sorted(actual) == expected
 
+    def test_license_is_a_string(self, tmpdir_cwd, env):
+        setup_config = DALS("""
+            [metadata]
+            name=foo
+            version=0.0.1
+            license=file:MIT
+            """)
+
+        setup_script = DALS("""
+            from setuptools import setup
+
+            setup()
+            """)
+
+        build_files({'setup.py': setup_script,
+                     'setup.cfg': setup_config})
+
+        with pytest.raises(ValueError):
+            self._run_egg_info_command(tmpdir_cwd, env)
+
     def test_rebuilt(self, tmpdir_cwd, env):
         """Ensure timestamps are updated when the command is re-run."""
         self._create_project()
@@ -598,7 +618,10 @@ class TestEggInfo:
             env=environ,
         )
         if code:
-            raise AssertionError(data)
+            if 'ValueError' in data:
+                raise ValueError(data)
+            else:
+                raise AssertionError(data)
         if output:
             assert output in data
 
