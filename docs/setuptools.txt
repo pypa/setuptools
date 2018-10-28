@@ -73,23 +73,22 @@ Developer's Guide
 Installing ``setuptools``
 =========================
 
-Please follow the `EasyInstall Installation Instructions`_ to install the
-current stable version of setuptools.  In particular, be sure to read the
-section on `Custom Installation Locations`_ if you are installing anywhere
-other than Python's ``site-packages`` directory.
+Please follow the `Installing Packages`_ to install the
+current stable version of setuptools.
 
-.. _EasyInstall Installation Instructions: easy_install.html#installation-instructions
+.. _Installing Packages: https://packaging.python.org/tutorials/installing-packages/
 
-.. _Custom Installation Locations: easy_install.html#custom-installation-locations
+::
 
-If you want the current in-development version of setuptools, you should first
-install a stable version, and then run::
+    pip install setuptools
 
-    ez_setup.py setuptools==dev
+.
 
-This will download and install the latest development (i.e. unstable) version
-of setuptools from the Python Subversion sandbox.
+In particular, be sure to read the
+section on `Creating Virtual Environments`_ if you're interested in installing 
+anywhere other than  ``site-packages`` directory.
 
+.. _Creating Virtual Environments: https://packaging.python.org/tutorials/installing-packages/#creating-virtual-environments
 
 Basic Use
 =========
