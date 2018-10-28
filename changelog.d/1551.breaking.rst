@@ -1,0 +1,1 @@
+File inputs for the `license` field in `setup.cfg` files now explicitly raise an error.
