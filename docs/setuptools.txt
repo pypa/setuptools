@@ -1655,7 +1655,7 @@ Distributing Extensions compiled with Cython
 --------------------------------------------
 
 ``setuptools`` will detect at build time whether Cython is installed or not.
-If Cython is not found ``setputools`` will ignore pyx files. In case it's
+If Cython is not found ``setuptools`` will ignore pyx files. In case it's
 available you are supposed it will work with just a couple of adjustments.
 ``setuptools`` includes transparent support for building Cython extensions, as
 long as you define your extensions using ``setuptools.Extension``.
