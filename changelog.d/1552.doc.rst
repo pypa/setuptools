@@ -1,1 +1,1 @@
- Add missing word to sentence in docs
+Fixed a minor typo in the python 2/3 compatibility documentation.
