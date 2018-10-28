@@ -22,5 +22,4 @@ Documentation content:
    development
    roadmap
    easy_install
-   ez_setup
    history
