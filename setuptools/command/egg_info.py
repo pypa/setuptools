@@ -575,6 +575,12 @@ class manifest_maker(sdist):
             self.filelist.extend(rcfiles)
         elif os.path.exists(self.manifest):
             self.read_manifest()
+
+        if os.path.exists("setup.py"):
+            # setup.py should be included by default, even if it's not
+            # the script called to create the sdist
+            self.filelist.append("setup.py")
+
         ei_cmd = self.get_finalized_command('egg_info')
         self.filelist.graft(ei_cmd.egg_info)
 
