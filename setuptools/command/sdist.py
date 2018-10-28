@@ -201,25 +201,21 @@ class sdist(sdist_add_defaults, orig.sdist):
         manifest.close()
 
     def check_license(self):
-        """Read the setup configuration file ('setup.cfg') and use it to find
-        if a license is defined with the 'license_file' attribute.
-        If the license is declared and exists, it will be added to
-        'self.filelist'.
+        """Checks if license_file' is configured and adds it to
+        'self.filelist' if the value contains a valid path.
         """
 
-        cfg_file = 'setup.cfg'
-        log.debug("Reading configuration from %s", cfg_file)
-        parser = configparser.RawConfigParser()
-        parser.read(cfg_file)
+        opts = self.distribution.get_option_dict('metadata')
         try:
-            license_file = parser.get('metadata', 'license_file')
-
-            if not os.path.exists(license_file):
-                log.warn("warning: Failed to find license file '%s' in setup.cfg",
-                        license_file)
-                return
-
-            self.filelist.append(license_file)
-        except configparser.Error:
-            log.debug("license_file attribute is not defined in setup.cfg")
+            # ignore the source of the value
+            _, license_file = opts.get('license_file')
+        except TypeError:
+            log.debug("'license_file' attribute is not defined")
             return
+
+        if not os.path.exists(license_file):
+            log.warn("warning: Failed to find the configured license file '%s'",
+                    license_file)
+            return
+
+        self.filelist.append(license_file)
