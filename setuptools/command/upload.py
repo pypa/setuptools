@@ -84,7 +84,7 @@ class upload(orig.upload):
             'md5_digest': hashlib.md5(content).hexdigest(),
 
             # additional meta-data
-            'metadata_version': '1.0',
+            'metadata_version': meta.metadata_version,
             'summary': meta.get_description(),
             'home_page': meta.get_url(),
             'author': meta.get_contact(),

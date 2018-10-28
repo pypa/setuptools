@@ -3,6 +3,7 @@ __all__ = ['Distribution']
 
 import re
 import os
+from email import message_from_file
 import warnings
 import numbers
 import distutils.log
@@ -37,15 +38,71 @@ def _get_unpatched(cls):
     return get_unpatched(cls)
 
 
-def get_metadata_version(dist_md):
-    if dist_md.long_description_content_type or dist_md.provides_extras:
+def read_pkg_file(self, file):
+    """Reads the metadata values from a file object."""
+    # TODO: Should be inlined in our distutils.
+    msg = message_from_file(file)
+
+    def _read_field(name):
+        value = msg[name]
+        if value == 'UNKNOWN':
+            return None
+        return value
+
+    def _read_list(name):
+        values = msg.get_all(name, None)
+        if values == []:
+            return None
+        return values
+
+    self.metadata_version = StrictVersion(msg['metadata-version'])
+    self.name = _read_field('name')
+    self.version = _read_field('version')
+    self.description = _read_field('summary')
+    # we are filling author only.
+    self.author = _read_field('author')
+    self.maintainer = None
+    self.author_email = _read_field('author-email')
+    self.maintainer_email = None
+    self.url = _read_field('home-page')
+    self.license = _read_field('license')
+
+    if 'download-url' in msg:
+        self.download_url = _read_field('download-url')
+    else:
+        self.download_url = None
+
+    self.long_description = _read_field('description')
+    self.description = _read_field('summary')
+
+    if 'keywords' in msg:
+        self.keywords = _read_field('keywords').split(',')
+
+    self.platforms = _read_list('platform')
+    self.classifiers = _read_list('classifier')
+
+    # PEP 314 - these fields only exist in 1.1
+    if self.metadata_version == StrictVersion('1.1'):
+        self.requires = _read_list('requires')
+        self.provides = _read_list('provides')
+        self.obsoletes = _read_list('obsoletes')
+    else:
+        self.requires = None
+        self.provides = None
+        self.obsoletes = None
+
+
+def get_metadata_version(self):
+    if hasattr(self, "metadata_version"):
+        return StrictVersion(getattr(self, "metadata_version"))
+    elif self.long_description_content_type or self.provides_extras:
         return StrictVersion('2.1')
-    elif (dist_md.maintainer is not None or
-          dist_md.maintainer_email is not None or
-          getattr(dist_md, 'python_requires', None) is not None):
+    elif (self.maintainer is not None or
+          self.maintainer_email is not None or
+          getattr(self, 'python_requires', None) is not None):
         return StrictVersion('1.2')
-    elif (dist_md.provides or dist_md.requires or dist_md.obsoletes or
-            dist_md.classifiers or dist_md.download_url):
+    elif (self.provides or self.requires or self.obsoletes or
+          self.classifiers or self.download_url):
         return StrictVersion('1.1')
 
     return StrictVersion('1.0')
@@ -55,7 +112,7 @@ def get_metadata_version(dist_md):
 def write_pkg_file(self, file):
     """Write the PKG-INFO format data to a file object.
     """
-    version = get_metadata_version(self)
+    version = self.get_metadata_version()
 
     file.write('Metadata-Version: %s\n' % version)
     file.write('Name: %s\n' % self.get_name())
