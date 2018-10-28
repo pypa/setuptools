@@ -1,0 +1,1 @@
+Document that rpmbuild is required to build bdist_rpm.
