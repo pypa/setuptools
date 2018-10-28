@@ -76,6 +76,10 @@ Installing ``setuptools``
 Please follow the `Installing Packages`_ to install the
 current stable version of setuptools.
 
+.. _EasyInstall Installation Instructions: easy_install.html
+
+.. _Custom Installation Locations: easy_install.html
+
 .. _Installing Packages: https://packaging.python.org/tutorials/installing-packages/
 
 ::
