@@ -79,11 +79,9 @@ Installing ``setuptools``
 
 .. _Installing Packages: https://packaging.python.org/tutorials/installing-packages/
 
-To install setuptools run::
+To install setuptools, use::
 
     pip install setuptools
-
-.
 
 Refer to `Installing Packages`_ guide for more information.
 
