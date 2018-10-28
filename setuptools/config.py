@@ -85,12 +85,9 @@ def configuration_to_dict(handlers):
     config_dict = defaultdict(dict)
 
     for handler in handlers:
-
-        obj_alias = handler.section_prefix
-
         for option in handler.set_options:
             value = _get_option(handler.target_obj, option)
-            config_dict[obj_alias][option] = value
+            config_dict[handler.section_prefix][option] = value
 
     return config_dict
 
