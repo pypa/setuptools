@@ -1655,17 +1655,26 @@ Distributing Extensions compiled with Cython
 --------------------------------------------
 
 ``setuptools`` will detect at build time whether Cython is installed or not.
-If Cython is not found ``setputools`` will ignore pyx files. In case it's
-available you are supposed it will work with just a couple of adjustments.
-``setuptools`` includes transparent support for building Cython extensions, as
-long as you define your extensions using ``setuptools.Extension``.
-Then you should use Cython own ``build_ext`` in ``cmdclass``, e.g.::
+If Cython is not found ``setputools`` will ignore pyx files.
 
-   from Cython.Distutils import build_ext
+To ensure Cython is available, include Cython in the build-requires section
+of your pyproject.toml::
 
-   setup(...
-         cmdclass={"build_ext": build_ext}
-         ...)
+    [build-system]
+    requires=[..., 'cython']
+
+Built with pip 10 or later, that declaration is sufficient to include Cython
+in the build. For broader compatibility, declare the dependency in your
+setup-requires of setup.cfg::
+
+    [options]
+    setup_requires =
+        ...
+        cython
+
+As long as Cython is present in the build environment, ``setuptools`` includes
+transparent support for building Cython extensions, as
+long as extensions are defined using ``setuptools.Extension``.
 
 If you follow these rules, you can safely list ``.pyx`` files as the source
 of your ``Extension`` objects in the setup script.  If it is, then ``setuptools``
@@ -2505,7 +2514,7 @@ data_files               dict                                 40.5.0
     accepts the same keys as the `setuptools.find_packages` and the
     `setuptools.find_namespace_packages` function:
     ``where``, ``include``, and ``exclude``.
-    
+
     **find_namespace directive** - The ``find_namespace:`` directive is supported since Python >=3.3.
 
 
