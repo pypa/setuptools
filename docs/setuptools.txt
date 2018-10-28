@@ -1655,7 +1655,7 @@ Distributing Extensions compiled with Cython
 --------------------------------------------
 
 ``setuptools`` will detect at build time whether Cython is installed or not.
-If Cython is not found ``setputools`` will ignore pyx files.
+If Cython is not found ``setuptools`` will ignore pyx files.
 
 To ensure Cython is available, include Cython in the build-requires section
 of your pyproject.toml::
