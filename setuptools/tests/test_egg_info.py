@@ -486,84 +486,39 @@ class TestEggInfo:
             pkg_info_text = pkginfo_file.read()
         assert 'Provides-Extra:' not in pkg_info_text
 
-    def test_setup_cfg_with_license(self, tmpdir_cwd, env):
-        self._create_project()
-        build_files({
+    @pytest.mark.parametrize("files, license_in_sources", [
+        ({
             'setup.cfg': DALS("""
                               [metadata]
                               license_file = LICENSE
                               """),
             'LICENSE': DALS("Test license")
-        })
-        environ = os.environ.copy().update(
-            HOME=env.paths['home'],
-        )
-        environment.run_setup_py(
-            cmd=['egg_info'],
-            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
-            data_stream=1,
-            env=environ,
-        )
-        egg_info_dir = os.path.join('.', 'foo.egg-info')
-        with open(os.path.join(egg_info_dir, 'SOURCES.txt')) as sources_file:
-            sources_text = sources_file.read()
-        assert 'LICENSE' in sources_text
-
-    def test_setup_cfg_with_invalid_license(self, tmpdir_cwd, env):
-        self._create_project()
-        build_files({
+        }, True), # with license
+        ({
             'setup.cfg': DALS("""
                               [metadata]
                               license_file = INVALID_LICENSE
                               """),
             'LICENSE': DALS("Test license")
-        })
-        environ = os.environ.copy().update(
-            HOME=env.paths['home'],
-        )
-        environment.run_setup_py(
-            cmd=['egg_info'],
-            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
-            data_stream=1,
-            env=environ,
-        )
-        egg_info_dir = os.path.join('.', 'foo.egg-info')
-        with open(os.path.join(egg_info_dir, 'SOURCES.txt')) as sources_file:
-            sources_text = sources_file.read()
-        assert 'LICENSE' not in sources_text
-        assert 'INVALID_LICENSE' not in sources_text
-
-    def test_setup_cfg_with_no_license(self, tmpdir_cwd, env):
-        self._create_project()
-        build_files({
+        }, False), # with an invalid license
+        ({
             'setup.cfg': DALS("""
                               """),
             'LICENSE': DALS("Test license")
-        })
-        environ = os.environ.copy().update(
-            HOME=env.paths['home'],
-        )
-        environment.run_setup_py(
-            cmd=['egg_info'],
-            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
-            data_stream=1,
-            env=environ,
-        )
-        egg_info_dir = os.path.join('.', 'foo.egg-info')
-        with open(os.path.join(egg_info_dir, 'SOURCES.txt')) as sources_file:
-            sources_text = sources_file.read()
-        assert 'LICENSE' not in sources_text
-
-    def test_setup_cfg_with_license_excluded(self, tmpdir_cwd, env):
-        self._create_project()
-        build_files({
+        }, False), # no license_file attribute
+        ({
             'setup.cfg': DALS("""
                               [metadata]
                               license_file = LICENSE
                               """),
             'MANIFEST.in': DALS("exclude LICENSE"),
             'LICENSE': DALS("Test license")
-        })
+        }, False) # license file is manually excluded
+    ])
+    def test_setup_cfg_license_file(
+            self, tmpdir_cwd, env, files, license_in_sources):
+        self._create_project()
+        build_files(files)
         environ = os.environ.copy().update(
             HOME=env.paths['home'],
         )
@@ -576,7 +531,11 @@ class TestEggInfo:
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         with open(os.path.join(egg_info_dir, 'SOURCES.txt')) as sources_file:
             sources_text = sources_file.read()
-        assert 'LICENSE' not in sources_text
+        if license_in_sources:
+            assert 'LICENSE' in sources_text
+        else:
+            assert 'LICENSE' not in sources_text
+            assert 'INVALID_LICENSE' not in sources_text # for invalid license test
 
     def test_long_description_content_type(self, tmpdir_cwd, env):
         # Test that specifying a `long_description_content_type` keyword arg to
