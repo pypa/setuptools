@@ -2098,10 +2098,11 @@ def _handle_ns(packageName, path_item):
     # capture warnings due to #1111
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        loader = importer.find_module(packageName)
-
-    if loader is None:
-        return None
+        spec = importer.find_spec(packageName)
+        if spec is not None:
+            loader = spec.loader
+        else:
+            return None
     module = sys.modules.get(packageName)
     if module is None:
         module = sys.modules[packageName] = types.ModuleType(packageName)
