@@ -25,6 +25,7 @@ from setuptools.depends import Require
 from setuptools import windows_support
 from setuptools.monkey import get_unpatched
 from setuptools.config import parse_configuration
+from setuptools.validation import Metadata
 import pkg_resources
 from .py36compat import Distribution_parse_config_files
 
@@ -55,17 +56,41 @@ def get_metadata_version(dist_md):
 def write_pkg_file(self, file):
     """Write the PKG-INFO format data to a file object.
     """
+    metadata = Metadata(
+        name=self.get_name(),
+        version=self.get_version(),
+        description=self.get_description(),
+        url=self.get_url(),
+        author=self.get_contact(),
+        author_email=self.get_contact_email(),
+        license=self.get_license(),
+        download_url=self.download_url,
+        project_urls=['%s, %s' % (key, val)
+                      for key, val in self.project_urls.items()],
+        long_description=rfc822_escape(self.get_long_description()),
+        long_description_content_type=self.long_description_content_type,
+        keywords=self.get_keywords(),
+        platforms=self.get_platforms(),
+        classifiers=self.get_classifiers(),
+        requires=self.get_requires(),
+        provides=self.get_provides(),
+        obsoletes=self.get_obsoletes(),
+        python_requires=getattr(self, 'python_requires', None),
+        provides_extras=self.provides_extras,
+    )
+    metadata.validate(throw_exception=True)
+
     version = get_metadata_version(self)
 
     file.write('Metadata-Version: %s\n' % version)
-    file.write('Name: %s\n' % self.get_name())
-    file.write('Version: %s\n' % self.get_version())
-    file.write('Summary: %s\n' % self.get_description())
-    file.write('Home-page: %s\n' % self.get_url())
+    file.write('Name: %s\n' % metadata.name)
+    file.write('Version: %s\n' % metadata.version)
+    file.write('Summary: %s\n' % metadata.description)
+    file.write('Home-page: %s\n' % metadata.url)
 
     if version < StrictVersion('1.2'):
-        file.write('Author: %s\n' % self.get_contact())
-        file.write('Author-email: %s\n' % self.get_contact_email())
+        file.write('Author: %s\n' % metadata.author)
+        file.write('Author-email: %s\n' % metadata.author_email)
     else:
         optional_fields = (
             ('Author', 'author'),
@@ -75,51 +100,50 @@ def write_pkg_file(self, file):
         )
 
         for field, attr in optional_fields:
-            attr_val = getattr(self, attr)
+            attr_val = getattr(metadata, attr, None)
             if six.PY2:
                 attr_val = self._encode_field(attr_val)
 
             if attr_val is not None:
                 file.write('%s: %s\n' % (field, attr_val))
 
-    file.write('License: %s\n' % self.get_license())
+    file.write('License: %s\n' % metadata.license)
     if self.download_url:
-        file.write('Download-URL: %s\n' % self.download_url)
-    for project_url in self.project_urls.items():
-        file.write('Project-URL: %s, %s\n' % project_url)
+        file.write('Download-URL: %s\n' % metadata.download_url)
+    for project_named_url in metadata.project_urls:
+        file.write('Project-URL: %s\n' % project_named_url)
 
-    long_desc = rfc822_escape(self.get_long_description())
-    file.write('Description: %s\n' % long_desc)
+    file.write('Description: %s\n' % metadata.long_description)
 
-    keywords = ','.join(self.get_keywords())
+    keywords = ','.join(metadata.keywords)
     if keywords:
         file.write('Keywords: %s\n' % keywords)
 
     if version >= StrictVersion('1.2'):
-        for platform in self.get_platforms():
+        for platform in metadata.platforms:
             file.write('Platform: %s\n' % platform)
     else:
-        self._write_list(file, 'Platform', self.get_platforms())
+        self._write_list(file, 'Platform', metadata.platforms)
 
-    self._write_list(file, 'Classifier', self.get_classifiers())
+    self._write_list(file, 'Classifier', metadata.classifiers)
 
     # PEP 314
-    self._write_list(file, 'Requires', self.get_requires())
-    self._write_list(file, 'Provides', self.get_provides())
-    self._write_list(file, 'Obsoletes', self.get_obsoletes())
+    self._write_list(file, 'Requires', metadata.requires)
+    self._write_list(file, 'Provides', metadata.provides)
+    self._write_list(file, 'Obsoletes', metadata.obsoletes)
 
     # Setuptools specific for PEP 345
-    if hasattr(self, 'python_requires'):
-        file.write('Requires-Python: %s\n' % self.python_requires)
+    if metadata.python_requires:
+        file.write('Requires-Python: %s\n' % metadata.python_requires)
 
     # PEP 566
-    if self.long_description_content_type:
+    if metadata.long_description_content_type:
         file.write(
             'Description-Content-Type: %s\n' %
-            self.long_description_content_type
+            metadata.long_description_content_type
         )
     if self.provides_extras:
-        for extra in self.provides_extras:
+        for extra in metadata.provides_extras:
             file.write('Provides-Extra: %s\n' % extra)
 
 
