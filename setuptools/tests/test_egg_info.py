@@ -7,7 +7,7 @@ import re
 import stat
 import time
 
-from setuptools.command.egg_info import egg_info, manifest_maker
+from setuptools.command.egg_info import egg_info, manifest_maker, EggInfoDeprecationWarning, get_pkg_info_revision
 from setuptools.dist import Distribution
 from setuptools.extern.six.moves import map
 
@@ -603,3 +603,6 @@ class TestEggInfo:
         with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
         assert 'Version: 0.0.0.dev0' in pkg_info_lines
+
+    def test_get_pkg_info_revision_deprecated(self):
+        pytest.warns(EggInfoDeprecationWarning, get_pkg_info_revision)

@@ -238,6 +238,9 @@ __all__ = [
     'register_finder', 'register_namespace_handler', 'register_loader_type',
     'fixup_namespace_packages', 'get_importer',
 
+    # Warnings
+    'PkgResourcesDeprecationWarning',
+
     # Deprecated/backward compatibility only
     'run_main', 'AvailableDistributions',
 ]
@@ -2335,7 +2338,7 @@ class EntryPoint:
             warnings.warn(
                 "Parameters to load are deprecated.  Call .resolve and "
                 ".require separately.",
-                DeprecationWarning,
+                PkgResourcesDeprecationWarning,
                 stacklevel=2,
             )
         if require:
@@ -3158,3 +3161,11 @@ def _initialize_master_working_set():
     # match order
     list(map(working_set.add_entry, sys.path))
     globals().update(locals())
+
+class PkgResourcesDeprecationWarning(Warning):
+    """
+    Base class for warning about deprecations in ``pkg_resources``
+
+    This class is not derived from ``DeprecationWarning``, and as such is
+    visible by default.
+    """

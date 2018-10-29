@@ -40,7 +40,10 @@ import subprocess
 import shlex
 import io
 
+
 from sysconfig import get_config_vars, get_path
+
+from setuptools import SetuptoolsDeprecationWarning
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import configparser, map
@@ -2077,7 +2080,7 @@ class ScriptWriter:
     @classmethod
     def get_script_args(cls, dist, executable=None, wininst=False):
         # for backward compatibility
-        warnings.warn("Use get_args", DeprecationWarning)
+        warnings.warn("Use get_args", EasyInstallDeprecationWarning)
         writer = (WindowsScriptWriter if wininst else ScriptWriter).best()
         header = cls.get_script_header("", executable, wininst)
         return writer.get_args(dist, header)
@@ -2085,7 +2088,7 @@ class ScriptWriter:
     @classmethod
     def get_script_header(cls, script_text, executable=None, wininst=False):
         # for backward compatibility
-        warnings.warn("Use get_header", DeprecationWarning, stacklevel=2)
+        warnings.warn("Use get_header", EasyInstallDeprecationWarning, stacklevel=2)
         if wininst:
             executable = "python.exe"
         return cls.get_header(script_text, executable)
@@ -2120,7 +2123,7 @@ class ScriptWriter:
     @classmethod
     def get_writer(cls, force_windows):
         # for backward compatibility
-        warnings.warn("Use best", DeprecationWarning)
+        warnings.warn("Use best", EasyInstallDeprecationWarning)
         return WindowsScriptWriter.best() if force_windows else cls.best()
 
     @classmethod
@@ -2152,7 +2155,7 @@ class WindowsScriptWriter(ScriptWriter):
     @classmethod
     def get_writer(cls):
         # for backward compatibility
-        warnings.warn("Use best", DeprecationWarning)
+        warnings.warn("Use best", EasyInstallDeprecationWarning)
         return cls.best()
 
     @classmethod
@@ -2333,3 +2336,7 @@ def _patch_usage():
         yield
     finally:
         distutils.core.gen_usage = saved
+
+class EasyInstallDeprecationWarning(SetuptoolsDeprecationWarning):
+    """Class for warning about deprecations in EasyInstall in SetupTools. Not ignored by default, unlike DeprecationWarning."""
+    

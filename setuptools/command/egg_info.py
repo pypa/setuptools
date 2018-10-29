@@ -31,7 +31,7 @@ import setuptools.unicode_utils as unicode_utils
 from setuptools.glob import glob
 
 from setuptools.extern import packaging
-
+from setuptools import SetuptoolsDeprecationWarning
 
 def translate_pattern(glob):
     """
@@ -696,7 +696,7 @@ def get_pkg_info_revision():
     Get a -r### off of PKG-INFO Version in case this is an sdist of
     a subversion revision.
     """
-    warnings.warn("get_pkg_info_revision is deprecated.", DeprecationWarning)
+    warnings.warn("get_pkg_info_revision is deprecated.", EggInfoDeprecationWarning)
     if os.path.exists('PKG-INFO'):
         with io.open('PKG-INFO') as f:
             for line in f:
@@ -704,3 +704,7 @@ def get_pkg_info_revision():
                 if match:
                     return int(match.group(1))
     return 0
+
+
+class EggInfoDeprecationWarning(SetuptoolsDeprecationWarning):
+    """Class for warning about deprecations in eggInfo in setupTools. Not ignored by default, unlike DeprecationWarning."""

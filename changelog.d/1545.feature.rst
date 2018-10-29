@@ -1,0 +1,1 @@
+Changed the warning class of all deprecation warnings; deprecation warning classes are no longer derived from ``DeprecationWarning`` and are thus visible by default.
