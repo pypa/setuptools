@@ -1333,6 +1333,10 @@ Creating System Packages
     ``bdist_deb`` command is an example of a command that currently requires
     this kind of patching to work with setuptools.
 
+    Please note that building system packages may require you to install
+    some system software, for example ``bdist_rpm`` requires the ``rpmbuild``
+    command installed.
+
     If you or your users have a problem building a usable system package for
     your project, please report the problem via the mailing list so that
     either the "bdist" tool in question or setuptools can be modified to
