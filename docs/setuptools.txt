@@ -2471,11 +2471,11 @@ Metadata
     The aliases given below are supported for compatibility reasons,
     but their use is not advised.
 
-==============================  =================  =================  ===============
-Key                             Aliases            Type               Minumum Version
-==============================  =================  =================  ===============
+==============================  =================  =================  =============== =====
+Key                             Aliases            Type               Minumum Version Notes
+==============================  =================  =================  =============== =====
 name                                               str
-version                                            attr:, file:, str  39.2.0
+version                                            attr:, file:, str  39.2.0          (1)
 url                             home-page          str
 download_url                    download-url       str
 project_urls                                       dict               38.3.0
@@ -2493,19 +2493,22 @@ platforms                       platform           list-comma
 provides                                           list-comma
 requires                                           list-comma
 obsoletes                                          list-comma
-==============================  =================  =================  ===============
+==============================  =================  =================  =============== =====
 
 .. note::
     A version loaded using the ``file:`` directive must comply with PEP 440.
     It is easy to accidentally put something other than a valid version
     string in such a file, so validation is stricter in this case.
 
+Notes:
+1. The `version` file attribute has only been supported since 39.2.0.
+
 Options
 -------
 
-=======================  ===================================  ===============
-Key                      Type                                 Minimum Version
-=======================  ===================================  ===============
+=======================  ===================================  =============== =====
+Key                      Type                                 Minimum Version Notes
+=======================  ===================================  =============== =====
 zip_safe                 bool
 setup_requires           list-semi
 install_requires         list-semi
@@ -2528,7 +2531,7 @@ exclude_package_data     section
 namespace_packages       list-comma
 py_modules               list-comma
 data_files               dict                                 40.5.0
-=======================  ===================================  ===============
+=======================  ===================================  =============== =====
 
 .. note::
 
