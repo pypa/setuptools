@@ -1,0 +1,1 @@
+Document setup.cfg minimum version for version and project_urls
