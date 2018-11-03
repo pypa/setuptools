@@ -193,3 +193,24 @@ def test_build_sdist_setup_py_exists(tmpdir_cwd):
     with tarfile.open(os.path.join("temp", targz_path)) as tar:
         assert any('setup.py' in name for name in tar.getnames())
 
+
+def test_build_sdist_setup_py_manifest_excluded(tmpdir_cwd):
+    # Ensure that MANIFEST.in can exclude setup.py
+    files = {
+        'setup.py': DALS("""
+    __import__('setuptools').setup(
+        name='foo',
+        version='0.0.0',
+        py_modules=['hello']
+    )"""),
+        'hello.py': '',
+        'MANIFEST.in': DALS("""
+    exclude setup.py
+    """)
+    }
+
+    build_files(files)
+    targz_path = build_sdist("temp")
+    with tarfile.open(os.path.join("temp", targz_path)) as tar:
+        assert not any('setup.py' in name for name in tar.getnames())
+
