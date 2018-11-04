@@ -569,6 +569,20 @@ class TestEggInfo:
         for msg in fixtures:
             assert manifest_maker._should_suppress_warning(msg)
 
+    def test_egg_info_includes_setup_py(self, tmpdir_cwd):
+        self._create_project()
+        dist = Distribution({"name": "foo", "version": "0.0.1"})
+        dist.script_name = "non_setup.py"
+        egg_info_instance = egg_info(dist)
+        egg_info_instance.finalize_options()
+        egg_info_instance.run()
+
+        assert 'setup.py' in egg_info_instance.filelist.files
+
+        with open(egg_info_instance.egg_info + "/SOURCES.txt") as f:
+            sources = f.read().split('\n')
+            assert 'setup.py' in sources
+
     def _run_egg_info_command(self, tmpdir_cwd, env, cmd=None, output=None):
         environ = os.environ.copy().update(
             HOME=env.paths['home'],
