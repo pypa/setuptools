@@ -13,8 +13,9 @@ from . import py2_only
 
 __metaclass__ = type
 
-futures = pytest.importorskip('concurrent.futures')
-importlib = pytest.importorskip('importlib')
+# Backports on Python 2.7
+import importlib
+from concurrent import futures
 
 
 class BuildBackendBase:

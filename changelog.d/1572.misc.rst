@@ -1,0 +1,1 @@
+Added the ``concurrent.futures`` backport ``futures`` to the Python 2.7 test suite requirements.
