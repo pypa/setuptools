@@ -192,6 +192,28 @@ class build_py(orig.build_py, Mixin2to3):
         if self.distribution.src_root is not None:
             return os.path.join(self.distribution.src_root, res)
         return res
+    
+    def find_package_modules(self, package, package_dir):
+        modules = orig.build_py.find_package_modules(self, package, package_dir)
+        if not self.distribution.include_package_data:
+            return modules
+        
+        patterns = self._get_platform_patterns(
+            self.exclude_package_data,
+            package,
+            package_dir,
+        )
+        
+        excluded_module_files = [] 
+        for pattern in patterns:
+            excluded_module_files.extend(glob(pattern))
+
+        for f in excluded_module_files:
+            for module in modules:
+                if module[2] == f:
+                    modules.remove(module)
+        
+        return modules
 
     def exclude_data_files(self, package, src_dir, files):
         """Filter filenames for package's data files in 'src_dir'"""
