@@ -43,18 +43,25 @@ def _get_unpatched(cls):
     return get_unpatched(cls)
 
 
-def get_metadata_version(dist_md):
-    if dist_md.long_description_content_type or dist_md.provides_extras:
-        return StrictVersion('2.1')
-    elif (dist_md.maintainer is not None or
-          dist_md.maintainer_email is not None or
-          getattr(dist_md, 'python_requires', None) is not None):
-        return StrictVersion('1.2')
-    elif (dist_md.provides or dist_md.requires or dist_md.obsoletes or
-            dist_md.classifiers or dist_md.download_url):
-        return StrictVersion('1.1')
+def get_metadata_version(self):
+    mv = getattr(self, 'metadata_version', None)
 
-    return StrictVersion('1.0')
+    if mv is None:
+        if self.long_description_content_type or self.provides_extras:
+            mv = StrictVersion('2.1')
+        elif (self.maintainer is not None or
+              self.maintainer_email is not None or
+              getattr(self, 'python_requires', None) is not None):
+            mv = StrictVersion('1.2')
+        elif (self.provides or self.requires or self.obsoletes or
+                self.classifiers or self.download_url):
+            mv = StrictVersion('1.1')
+        else:
+            mv = StrictVersion('1.0')
+
+        self.metadata_version = mv
+
+    return mv
 
 
 def read_pkg_file(self, file):
@@ -100,7 +107,7 @@ def read_pkg_file(self, file):
     self.classifiers = _read_list('classifier')
 
     # PEP 314 - these fields only exist in 1.1
-    if metadata_version == StrictVersion('1.1'):
+    if self.metadata_version == StrictVersion('1.1'):
         self.requires = _read_list('requires')
         self.provides = _read_list('provides')
         self.obsoletes = _read_list('obsoletes')
@@ -114,7 +121,7 @@ def read_pkg_file(self, file):
 def write_pkg_file(self, file):
     """Write the PKG-INFO format data to a file object.
     """
-    version = get_metadata_version(self)
+    version = self.get_metadata_version()
 
     file.write('Metadata-Version: %s\n' % version)
     file.write('Name: %s\n' % self.get_name())
