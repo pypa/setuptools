@@ -33,7 +33,6 @@ def _parse_upload_body(body):
 
 
 class TestUploadTest:
-    @pytest.mark.xfail(reason='Issue #1381')
     @mock.patch('setuptools.command.upload.urlopen')
     def test_upload_metadata(self, patch, tmpdir):
         dist = Distribution()
