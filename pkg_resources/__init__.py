@@ -2231,7 +2231,7 @@ register_namespace_handler(object, null_ns_handler)
 
 def normalize_path(filename):
     """Normalize a file/dir name for comparison purposes"""
-    return os.path.normcase(os.path.realpath(_cygwin_patch(filename)))
+    return os.path.normcase(os.path.realpath(_cygwin_patch(filename))).rstrip(os.sep)
 
 
 def _cygwin_patch(filename):  # pragma: nocover
