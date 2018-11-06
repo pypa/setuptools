@@ -12,6 +12,7 @@ from .textwrap import DALS
 from .test_easy_install import make_nspkg_sdist
 
 import pytest
+import six
 
 
 def test_dist_fetch_build_egg(tmpdir):
@@ -120,20 +121,22 @@ def __read_test_cases():
 
 
 @pytest.mark.parametrize('name,attrs', __read_test_cases())
-def test_read_metadata(name, attrs, tmpdir):
+def test_read_metadata(name, attrs):
     dist = Distribution(attrs)
     metadata_out = dist.metadata
     dist_class = metadata_out.__class__
 
     # Write to PKG_INFO and then load into a new metadata object
-    fn = tmpdir.mkdir('pkg_info')
-    fn_s = str(fn)
+    if six.PY2:
+        PKG_INFO = io.BytesIO()
+    else:
+        PKG_INFO = io.StringIO()
 
-    metadata_out.write_pkg_info(fn_s)
+    metadata_out.write_pkg_file(PKG_INFO)
 
+    PKG_INFO.seek(0)
     metadata_in = dist_class()
-    with io.open(str(fn.join('PKG-INFO')), 'r', encoding='utf-8') as f:
-        metadata_in.read_pkg_file(f)
+    metadata_in.read_pkg_file(PKG_INFO)
 
     tested_attrs = [
         ('name', dist_class.get_name),
