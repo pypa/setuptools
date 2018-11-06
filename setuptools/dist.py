@@ -123,15 +123,23 @@ def write_pkg_file(self, file):
     """
     version = self.get_metadata_version()
 
-    file.write('Metadata-Version: %s\n' % version)
-    file.write('Name: %s\n' % self.get_name())
-    file.write('Version: %s\n' % self.get_version())
-    file.write('Summary: %s\n' % self.get_description())
-    file.write('Home-page: %s\n' % self.get_url())
+    if six.PY2:
+        def write_field(key, value):
+            file.write("%s: %s\n" % (key, self._encode_field(value)))
+    else:
+        def write_field(key, value):
+            file.write("%s: %s\n" % (key, value))
+
+
+    write_field('Metadata-Version', str(version))
+    write_field('Name', self.get_name())
+    write_field('Version', self.get_version())
+    write_field('Summary', self.get_description())
+    write_field('Home-page', self.get_url())
 
     if version < StrictVersion('1.2'):
-        file.write('Author: %s\n' % self.get_contact())
-        file.write('Author-email: %s\n' % self.get_contact_email())
+        write_field('Author:', self.get_contact())
+        write_field('Author-email:', self.get_contact_email())
     else:
         optional_fields = (
             ('Author', 'author'),
@@ -142,28 +150,26 @@ def write_pkg_file(self, file):
 
         for field, attr in optional_fields:
             attr_val = getattr(self, attr)
-            if six.PY2:
-                attr_val = self._encode_field(attr_val)
 
             if attr_val is not None:
-                file.write('%s: %s\n' % (field, attr_val))
+                write_field(field, attr_val)
 
-    file.write('License: %s\n' % self.get_license())
+    write_field('License', self.get_license())
     if self.download_url:
-        file.write('Download-URL: %s\n' % self.download_url)
+        write_field('Download-URL', self.download_url)
     for project_url in self.project_urls.items():
-        file.write('Project-URL: %s, %s\n' % project_url)
+        write_field('Project-URL',  '%s, %s' % project_url)
 
     long_desc = rfc822_escape(self.get_long_description())
-    file.write('Description: %s\n' % long_desc)
+    write_field('Description', long_desc)
 
     keywords = ','.join(self.get_keywords())
     if keywords:
-        file.write('Keywords: %s\n' % keywords)
+        write_field('Keywords', keywords)
 
     if version >= StrictVersion('1.2'):
         for platform in self.get_platforms():
-            file.write('Platform: %s\n' % platform)
+            write_field('Platform', platform)
     else:
         self._write_list(file, 'Platform', self.get_platforms())
 
@@ -176,17 +182,17 @@ def write_pkg_file(self, file):
 
     # Setuptools specific for PEP 345
     if hasattr(self, 'python_requires'):
-        file.write('Requires-Python: %s\n' % self.python_requires)
+        write_field('Requires-Python', self.python_requires)
 
     # PEP 566
     if self.long_description_content_type:
-        file.write(
-            'Description-Content-Type: %s\n' %
+        write_field(
+            'Description-Content-Type',
             self.long_description_content_type
         )
     if self.provides_extras:
         for extra in self.provides_extras:
-            file.write('Provides-Extra: %s\n' % extra)
+            write_field('Provides-Extra', extra)
 
 
 sequence = tuple, list
