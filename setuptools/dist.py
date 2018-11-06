@@ -10,7 +10,11 @@ import distutils.core
 import distutils.cmd
 import distutils.dist
 import itertools
+
+
 from collections import defaultdict
+from email import message_from_file
+
 from distutils.errors import (
     DistutilsOptionError, DistutilsPlatformError, DistutilsSetupError,
 )
@@ -69,7 +73,7 @@ def read_pkg_file(self, file):
             return None
         return values
 
-    metadata_version = msg['metadata-version']
+    self.metadata_version = StrictVersion(msg['metadata-version'])
     self.name = _read_field('name')
     self.version = _read_field('version')
     self.description = _read_field('summary')
@@ -96,7 +100,7 @@ def read_pkg_file(self, file):
     self.classifiers = _read_list('classifier')
 
     # PEP 314 - these fields only exist in 1.1
-    if metadata_version == '1.1':
+    if metadata_version == StrictVersion('1.1'):
         self.requires = _read_list('requires')
         self.provides = _read_list('provides')
         self.obsoletes = _read_list('obsoletes')
