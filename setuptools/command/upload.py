@@ -7,6 +7,7 @@ from base64 import standard_b64encode
 
 from distutils import log
 from distutils.command import upload as orig
+from distutils.spawn import spawn
 
 from distutils.errors import DistutilsError
 

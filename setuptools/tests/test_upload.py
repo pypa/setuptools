@@ -176,3 +176,29 @@ class TestUploadTest:
             cmd.run()
 
         cmd.announce.assert_any_call('Invalid', log.ERROR)
+
+    @mock.patch('setuptools.command.upload.spawn')
+    def test_upload_file_gpg(self, spawn, patched_upload):
+        cmd, urlopen = patched_upload
+
+        cmd.sign = True
+        cmd.identity = "Alice"
+        cmd.dry_run = True
+        content_fname = cmd.distribution.dist_files[0][2]
+        signed_file = content_fname + '.asc'
+
+        with open(signed_file, 'wb') as f:
+            f.write("signed-data".encode('utf-8'))
+
+        cmd.ensure_finalized()
+        cmd.run()
+
+        # Make sure that GPG was called
+        spawn.assert_called_once_with([
+            "gpg", "--detach-sign", "--local-user", "Alice", "-a",
+            content_fname
+        ], dry_run=True)
+
+        # Read the 'signed' data that was transmitted
+        entries = patched_upload.get_uploaded_metadata()
+        assert entries['gpg_signature'] == 'signed-data'
