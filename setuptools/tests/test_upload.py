@@ -202,3 +202,24 @@ class TestUploadTest:
         # Read the 'signed' data that was transmitted
         entries = patched_upload.get_uploaded_metadata()
         assert entries['gpg_signature'] == 'signed-data'
+
+    @pytest.mark.parametrize('bdist', ['bdist_rpm', 'bdist_dumb'])
+    @mock.patch('setuptools.command.upload.platform')
+    def test_bdist_rpm_upload(self, platform, bdist, patched_upload):
+        # Set the upload command to include bdist_rpm
+        cmd = patched_upload.cmd
+        dist_files = cmd.distribution.dist_files
+        dist_files = [(bdist,) + dist_files[0][1:]]
+        cmd.distribution.dist_files = dist_files
+
+        # Mock out the platform commands to make this platform-independent
+        platform.dist.return_value = ('redhat', '', '')
+
+        cmd.ensure_finalized()
+        cmd.run()
+
+        entries = patched_upload.get_uploaded_metadata()
+
+        assert entries['comment'].startswith(u'built for')
+        assert len(entries['comment']) > len(u'built for')
+

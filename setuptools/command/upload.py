@@ -2,6 +2,7 @@ import io
 import os
 import hashlib
 import getpass
+import platform
 
 from base64 import standard_b64encode
 
