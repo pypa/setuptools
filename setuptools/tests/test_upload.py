@@ -166,3 +166,13 @@ class TestUploadTest:
             'Upload failed (404): File not found',
             log.ERROR)
 
+    def test_upload_file_os_error(self, patched_upload):
+        patched_upload.urlopen.side_effect = OSError("Invalid")
+
+        cmd = patched_upload.cmd
+        cmd.ensure_finalized()
+
+        with pytest.raises(OSError):
+            cmd.run()
+
+        cmd.announce.assert_any_call('Invalid', log.ERROR)
