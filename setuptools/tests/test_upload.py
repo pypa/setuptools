@@ -3,6 +3,7 @@ import os
 import re
 
 from distutils import log
+from distutils.errors import DistutilsError
 from distutils.version import StrictVersion
 
 import pytest
@@ -145,4 +146,23 @@ class TestUploadTest:
         cmd.ensure_finalized()
         with pytest.raises(AssertionError):
             cmd.run()
+
+    def test_upload_file_http_error(self, patched_upload):
+        patched_upload.urlopen.side_effect = six.moves.urllib.error.HTTPError(
+            'https://example.com',
+            404,
+            'File not found',
+            None,
+            None
+        )
+
+        cmd = patched_upload.cmd
+        cmd.ensure_finalized()
+
+        with pytest.raises(DistutilsError):
+            cmd.run()
+
+        cmd.announce.assert_any_call(
+            'Upload failed (404): File not found',
+            log.ERROR)
 
