@@ -78,25 +78,13 @@ def patched_upload(tmpdir):
 
 
 class TestUploadTest:
-    @mock.patch('setuptools.command.upload.urlopen')
-    def test_upload_metadata(self, patch, tmpdir):
-        dist = Distribution()
-        dist.metadata.metadata_version = StrictVersion('2.1')
+    def test_upload_metadata(self, patched_upload):
+        cmd, patch = patched_upload
 
-        content = os.path.join(str(tmpdir), "test_upload_metadata_content")
+        # Set the metadata version to 2.1
+        cmd.distribution.metadata.metadata_version = '2.1'
 
-        with open(content, 'w') as f:
-            f.write("Some content")
-
-        dist.dist_files = [('xxx', '3.7', content)]
-
-        patch.return_value = mock.Mock()
-        patch.return_value.getcode.return_value = 200
-
-        cmd = upload(dist)
-        cmd.announce = mock.Mock()
-        cmd.username = 'user'
-        cmd.password = 'hunter2'
+        # Run the command
         cmd.ensure_finalized()
         cmd.run()
 
@@ -104,10 +92,7 @@ class TestUploadTest:
         patch.assert_called_once()
 
         # Make sure the metadata version is correct in the headers
-        request = patch.call_args_list[0][0][0]
-        body = request.data.decode('utf-8')
-
-        entries = dict(_parse_upload_body(body))
+        entries = patched_upload.get_uploaded_metadata()
         assert entries['metadata_version'] == '2.1'
 
 
