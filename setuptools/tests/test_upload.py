@@ -95,7 +95,6 @@ class TestUploadTest:
         entries = patched_upload.get_uploaded_metadata()
         assert entries['metadata_version'] == '2.1'
 
-
     def test_warns_deprecation(self):
         dist = Distribution()
         dist.dist_files = [(mock.Mock(), mock.Mock(), mock.Mock())]
@@ -129,3 +128,21 @@ class TestUploadTest:
             "upload instead (https://pypi.org/p/twine/)",
             log.WARN
         )
+
+    @pytest.mark.parametrize('url', [
+        'https://example.com/a;parameter',    # Has parameters
+        'https://example.com/a?query',        # Has query
+        'https://example.com/a#fragment',     # Has fragment
+        'ftp://example.com',                  # Invalid scheme
+
+    ])
+    def test_upload_file_invalid_url(self, url, patched_upload):
+        patched_upload.urlopen.side_effect = Exception("Should not be reached")
+
+        cmd = patched_upload.cmd
+        cmd.repository = url
+
+        cmd.ensure_finalized()
+        with pytest.raises(AssertionError):
+            cmd.run()
+
