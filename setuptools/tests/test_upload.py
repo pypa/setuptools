@@ -32,6 +32,51 @@ def _parse_upload_body(body):
     return entries
 
 
+@pytest.fixture
+def patched_upload(tmpdir):
+    class Fix:
+        def __init__(self, cmd, urlopen):
+            self.cmd = cmd
+            self.urlopen = urlopen
+
+        def __iter__(self):
+            return iter((self.cmd, self.urlopen))
+
+        def get_uploaded_metadata(self):
+            request = self.urlopen.call_args_list[0][0][0]
+            body = request.data.decode('utf-8')
+            entries = dict(_parse_upload_body(body))
+
+            return entries
+
+    class ResponseMock(mock.Mock):
+        def getheader(self, name, default=None):
+            """Mocked getheader method for response object"""
+            return {
+                'content-type': 'text/plain; charset=utf-8',
+            }.get(name.lower(), default)
+
+    with mock.patch('setuptools.command.upload.urlopen') as urlopen:
+        urlopen.return_value = ResponseMock()
+        urlopen.return_value.getcode.return_value = 200
+        urlopen.return_value.read.return_value = b''
+
+        content = os.path.join(str(tmpdir), "content_data")
+
+        with open(content, 'w') as f:
+            f.write("Some content")
+
+        dist = Distribution()
+        dist.dist_files = [('sdist', '3.7.0', content)]
+
+        cmd = upload(dist)
+        cmd.announce = mock.Mock()
+        cmd.username = 'user'
+        cmd.password = 'hunter2'
+
+        yield Fix(cmd, urlopen)
+
+
 class TestUploadTest:
     @mock.patch('setuptools.command.upload.urlopen')
     def test_upload_metadata(self, patch, tmpdir):
