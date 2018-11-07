@@ -172,9 +172,11 @@ class upload(orig.upload):
             self.announce('Server response (%s): %s' % (status, reason),
                           log.INFO)
             if self.show_response:
-                text = self._read_pypi_response(result)
-                msg = '\n'.join(('-' * 75, text, '-' * 75))
-                self.announce(msg, log.INFO)
+                text = getattr(self, '_read_pypi_response',
+                               lambda x: None)(result)
+                if text is not None:
+                    msg = '\n'.join(('-' * 75, text, '-' * 75))
+                    self.announce(msg, log.INFO)
         else:
             msg = 'Upload failed (%s): %s' % (status, reason)
             self.announce(msg, log.ERROR)

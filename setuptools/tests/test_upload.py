@@ -223,3 +223,12 @@ class TestUploadTest:
         assert entries['comment'].startswith(u'built for')
         assert len(entries['comment']) > len(u'built for')
 
+    def test_show_response_no_error(self, patched_upload):
+        # This test is just that show_response doesn't throw an error
+        # It is not really important what the printed response looks like
+        # in a deprecated command, but we don't want to introduce new
+        # errors when importing this function from distutils
+
+        patched_upload.cmd.show_response = True
+        patched_upload.cmd.ensure_finalized()
+        patched_upload.cmd.run()
