@@ -2098,16 +2098,19 @@ def _handle_ns(packageName, path_item):
     if importer is None:
         return None
 
-    # capture warnings due to #1111
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
+    # use find_spec (PEP 451) and fall-back to find_module (PEP 302)
+    try:
+        loader = importer.find_spec(packageName).loader
+    except AttributeError:
         try:
-            loader = importer.find_module(packageName)
+            # capture warnings due to #1111
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                loader = importer.find_module(packageName)
         except AttributeError:
-            try:
-                loader = importer.find_spec(packageName).loader
-            except:
-                loader = None
+            # not a system module
+            loader = None
+
     if loader is None:
         return None
     module = sys.modules.get(packageName)
