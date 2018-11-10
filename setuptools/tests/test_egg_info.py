@@ -519,14 +519,10 @@ class TestEggInfo:
             self, tmpdir_cwd, env, files, license_in_sources):
         self._create_project()
         build_files(files)
-        environ = os.environ.copy().update(
-            HOME=env.paths['home'],
-        )
+
         environment.run_setup_py(
             cmd=['egg_info'],
-            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
-            data_stream=1,
-            env=environ,
+            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)])
         )
         egg_info_dir = os.path.join('.', 'foo.egg-info')
 
