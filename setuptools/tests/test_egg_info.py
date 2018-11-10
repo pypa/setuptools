@@ -454,14 +454,11 @@ class TestEggInfo:
     def test_provides_extra(self, tmpdir_cwd, env):
         self._setup_script_with_requires(
             'extras_require={"foobar": ["barbazquux"]},')
-        environ = os.environ.copy().update(
-            HOME=env.paths['home'],
-        )
+
         code, data = environment.run_setup_py(
             cmd=['egg_info'],
             pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
             data_stream=1,
-            env=environ,
         )
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
@@ -472,14 +469,11 @@ class TestEggInfo:
     def test_doesnt_provides_extra(self, tmpdir_cwd, env):
         self._setup_script_with_requires(
             '''install_requires=["spam ; python_version<'3.6'"]''')
-        environ = os.environ.copy().update(
-            HOME=env.paths['home'],
-        )
+
         environment.run_setup_py(
             cmd=['egg_info'],
             pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
             data_stream=1,
-            env=environ,
         )
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
@@ -496,14 +490,11 @@ class TestEggInfo:
 
         self._setup_script_with_requires(
             """long_description_content_type='text/markdown',""")
-        environ = os.environ.copy().update(
-            HOME=env.paths['home'],
-        )
+
         code, data = environment.run_setup_py(
             cmd=['egg_info'],
             pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
             data_stream=1,
-            env=environ,
         )
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
@@ -525,14 +516,11 @@ class TestEggInfo:
                 'Link One': 'https://example.com/one/',
                 'Link Two': 'https://example.com/two/',
                 },""")
-        environ = os.environ.copy().update(
-            HOME=env.paths['home'],
-        )
+
         code, data = environment.run_setup_py(
             cmd=['egg_info'],
             pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
             data_stream=1,
-            env=environ,
         )
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
@@ -545,14 +533,11 @@ class TestEggInfo:
     def test_python_requires_egg_info(self, tmpdir_cwd, env):
         self._setup_script_with_requires(
             """python_requires='>=2.7.12',""")
-        environ = os.environ.copy().update(
-            HOME=env.paths['home'],
-        )
+
         code, data = environment.run_setup_py(
             cmd=['egg_info'],
             pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
             data_stream=1,
-            env=environ,
         )
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
@@ -584,9 +569,6 @@ class TestEggInfo:
             assert 'setup.py' in sources
 
     def _run_egg_info_command(self, tmpdir_cwd, env, cmd=None, output=None):
-        environ = os.environ.copy().update(
-            HOME=env.paths['home'],
-        )
         if cmd is None:
             cmd = [
                 'egg_info',
@@ -595,7 +577,6 @@ class TestEggInfo:
             cmd=cmd,
             pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
             data_stream=1,
-            env=environ,
         )
         if code:
             raise AssertionError(data)
