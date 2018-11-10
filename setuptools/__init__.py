@@ -8,6 +8,8 @@ import distutils.filelist
 from distutils.util import convert_path
 from fnmatch import fnmatchcase
 
+from ._deprecation_warning import SetuptoolsDeprecationWarning
+
 from setuptools.extern.six import PY3
 from setuptools.extern.six.moves import filter, map
 
@@ -22,6 +24,7 @@ __metaclass__ = type
 
 __all__ = [
     'setup', 'Distribution', 'Feature', 'Command', 'Extension', 'Require',
+    'SetuptoolsDeprecationWarning',
     'find_packages'
 ]
 
@@ -188,4 +191,5 @@ def findall(dir=os.curdir):
     return list(files)
 
 
+# Apply monkey patches
 monkey.patch_all()

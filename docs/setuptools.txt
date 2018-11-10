@@ -1223,121 +1223,53 @@ the quoted part.
 Distributing a ``setuptools``-based project
 ===========================================
 
-Using ``setuptools``...  Without bundling it!
----------------------------------------------
+Detailed instructions to distribute a setuptools project can be found at 
+`Packaging project tutorials`_.
+
+.. _Packaging project tutorials: https://packaging.python.org/tutorials/packaging-projects/#generating-distribution-archives
+
+Before you begin, make sure you have the latest versions of setuptools and wheel::
+
+    python3 -m pip install --user --upgrade setuptools wheel
+
+To build a setuptools project, run this command from the same directory where
+setup.py is located::
+
+    python3 setup.py sdist bdist_wheel
+
+This will generate distribution archives in the `dist` directory.
+
+Before you upload the generated archives make sure you're registered on 
+https://test.pypi.org/account/register/. You will also need to verify your email
+to be able to upload any packages.
+You should install twine to be able to upload packages::
+
+    python3 -m pip install --user --upgrade setuptools wheel
+
+Now, to upload these archives, run::
+
+    twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+
+To install your newly uploaded package ``example_pkg``,  you can use pip::
+
+    python3 -m pip install --index-url https://test.pypi.org/simple/ example_pkg
+
+If you have issues at any point, please refer to `Packaging project tutorials`_
+for clarification.
+
+Distributing legacy ``setuptools`` projects using ez_setup.py
+-------------------------------------------------------------
 
 .. warning:: **ez_setup** is deprecated in favor of PIP with **PEP-518** support.
 
-Your users might not have ``setuptools`` installed on their machines, or even
-if they do, it might not be the right version.  Fixing this is easy; just
-download `ez_setup.py`_, and put it in the same directory as your ``setup.py``
-script.  (Be sure to add it to your revision control system, too.)  Then add
-these two lines to the very top of your setup script, before the script imports
-anything from setuptools:
+Distributing packages using the legacy ``ez_setup.py`` and ``easy_install`` is 
+deprecated in favor of PIP. Please consider migrating to using pip and twine based
+distribution.
 
-.. code-block:: python
+However, if you still have any ``ez_setup`` based packages, documentation for 
+ez_setup based distributions can be found at `ez_setup distribution guide`_.
 
-    import ez_setup
-    ez_setup.use_setuptools()
-
-That's it.  The ``ez_setup`` module will automatically download a matching
-version of ``setuptools`` from PyPI, if it isn't present on the target system.
-Whenever you install an updated version of setuptools, you should also update
-your projects' ``ez_setup.py`` files, so that a matching version gets installed
-on the target machine(s).
-
-(By the way, if you need to distribute a specific version of ``setuptools``,
-you can specify the exact version and base download URL as parameters to the
-``use_setuptools()`` function.  See the function's docstring for details.)
-
-
-What Your Users Should Know
----------------------------
-
-In general, a setuptools-based project looks just like any distutils-based
-project -- as long as your users have an internet connection and are installing
-to ``site-packages``, that is.  But for some users, these conditions don't
-apply, and they may become frustrated if this is their first encounter with
-a setuptools-based project.  To keep these users happy, you should review the
-following topics in your project's installation instructions, if they are
-relevant to your project and your target audience isn't already familiar with
-setuptools and ``easy_install``.
-
-Network Access
-    If your project is using ``ez_setup``, you should inform users of the
-    need to either have network access, or to preinstall the correct version of
-    setuptools using the `EasyInstall installation instructions`_.  Those
-    instructions also have tips for dealing with firewalls as well as how to
-    manually download and install setuptools.
-
-Custom Installation Locations
-    You should inform your users that if they are installing your project to
-    somewhere other than the main ``site-packages`` directory, they should
-    first install setuptools using the instructions for `Custom Installation
-    Locations`_, before installing your project.
-
-Your Project's Dependencies
-    If your project depends on other projects that may need to be downloaded
-    from PyPI or elsewhere, you should list them in your installation
-    instructions, or tell users how to find out what they are.  While most
-    users will not need this information, any users who don't have unrestricted
-    internet access may have to find, download, and install the other projects
-    manually.  (Note, however, that they must still install those projects
-    using ``easy_install``, or your project will not know they are installed,
-    and your setup script will try to download them again.)
-
-    If you want to be especially friendly to users with limited network access,
-    you may wish to build eggs for your project and its dependencies, making
-    them all available for download from your site, or at least create a page
-    with links to all of the needed eggs.  In this way, users with limited
-    network access can manually download all the eggs to a single directory,
-    then use the ``-f`` option of ``easy_install`` to specify the directory
-    to find eggs in.  Users who have full network access can just use ``-f``
-    with the URL of your download page, and ``easy_install`` will find all the
-    needed eggs using your links directly.  This is also useful when your
-    target audience isn't able to compile packages (e.g. most Windows users)
-    and your package or some of its dependencies include C code.
-
-Revision Control System Users and Co-Developers
-    Users and co-developers who are tracking your in-development code using
-    a revision control system should probably read this manual's sections
-    regarding such development.  Alternately, you may wish to create a
-    quick-reference guide containing the tips from this manual that apply to
-    your particular situation.  For example, if you recommend that people use
-    ``setup.py develop`` when tracking your in-development code, you should let
-    them know that this needs to be run after every update or commit.
-
-    Similarly, if you remove modules or data files from your project, you
-    should remind them to run ``setup.py clean --all`` and delete any obsolete
-    ``.pyc`` or ``.pyo``.  (This tip applies to the distutils in general, not
-    just setuptools, but not everybody knows about them; be kind to your users
-    by spelling out your project's best practices rather than leaving them
-    guessing.)
-
-Creating System Packages
-    Some users want to manage all Python packages using a single package
-    manager, and sometimes that package manager isn't ``easy_install``!
-    Setuptools currently supports ``bdist_rpm``, ``bdist_wininst``, and
-    ``bdist_dumb`` formats for system packaging.  If a user has a locally-
-    installed "bdist" packaging tool that internally uses the distutils
-    ``install`` command, it should be able to work with ``setuptools``.  Some
-    examples of "bdist" formats that this should work with include the
-    ``bdist_nsi`` and ``bdist_msi`` formats for Windows.
-
-    However, packaging tools that build binary distributions by running
-    ``setup.py install`` on the command line or as a subprocess will require
-    modification to work with setuptools.  They should use the
-    ``--single-version-externally-managed`` option to the ``install`` command,
-    combined with the standard ``--root`` or ``--record`` options.
-    See the `install command`_ documentation below for more details.  The
-    ``bdist_deb`` command is an example of a command that currently requires
-    this kind of patching to work with setuptools.
-
-    If you or your users have a problem building a usable system package for
-    your project, please report the problem via the mailing list so that
-    either the "bdist" tool in question or setuptools can be modified to
-    resolve the issue.
-
+.. _ez_setup distribution guide: ez_setup.html
 
 Setting the ``zip_safe`` flag
 -----------------------------
@@ -2054,52 +1986,6 @@ specified in ``setup.cfg``::
 (Notice that ``egg_info`` must always appear on the command line *before* any
 commands that you want the version changes to apply to.)
 
-
-.. _install command:
-
-``install`` - Run ``easy_install`` or old-style installation
-============================================================
-
-The setuptools ``install`` command is basically a shortcut to run the
-``easy_install`` command on the current project.  However, for convenience
-in creating "system packages" of setuptools-based projects, you can also
-use this option:
-
-``--single-version-externally-managed``
-    This boolean option tells the ``install`` command to perform an "old style"
-    installation, with the addition of an ``.egg-info`` directory so that the
-    installed project will still have its metadata available and operate
-    normally.  If you use this option, you *must* also specify the ``--root``
-    or ``--record`` options (or both), because otherwise you will have no way
-    to identify and remove the installed files.
-
-This option is automatically in effect when ``install`` is invoked by another
-distutils command, so that commands like ``bdist_wininst`` and ``bdist_rpm``
-will create system packages of eggs.  It is also automatically in effect if
-you specify the ``--root`` option.
-
-
-``install_egg_info`` - Install an ``.egg-info`` directory in ``site-packages``
-==============================================================================
-
-Setuptools runs this command as part of ``install`` operations that use the
-``--single-version-externally-managed`` options.  You should not invoke it
-directly; it is documented here for completeness and so that distutils
-extensions such as system package builders can make use of it.  This command
-has only one option:
-
-``--install-dir=DIR, -d DIR``
-    The parent directory where the ``.egg-info`` directory will be placed.
-    Defaults to the same as the ``--install-dir`` option specified for the
-    ``install_lib`` command, which is usually the system ``site-packages``
-    directory.
-
-This command assumes that the ``egg_info`` command has been given valid options
-via the command line or ``setup.cfg``, as it will invoke the ``egg_info``
-command and use its options to locate the project's source ``.egg-info``
-directory.
-
-
 .. _rotate:
 
 ``rotate`` - Delete outdated distribution files
@@ -2471,14 +2357,14 @@ Metadata
     The aliases given below are supported for compatibility reasons,
     but their use is not advised.
 
-==============================  =================  =================  ===============
-Key                             Aliases            Type               Minumum Version
-==============================  =================  =================  ===============
+==============================  =================  =================  =============== =====
+Key                             Aliases            Type               Minumum Version Notes
+==============================  =================  =================  =============== =====
 name                                               str
-version                                            attr:, file:, str
+version                                            attr:, file:, str  39.2.0          (1)
 url                             home-page          str
 download_url                    download-url       str
-project_urls                                       dict
+project_urls                                       dict               38.3.0
 author                                             str
 author_email                    author-email       str
 maintainer                                         str
@@ -2493,19 +2379,22 @@ platforms                       platform           list-comma
 provides                                           list-comma
 requires                                           list-comma
 obsoletes                                          list-comma
-==============================  =================  =================  ===============
+==============================  =================  =================  =============== =====
 
 .. note::
     A version loaded using the ``file:`` directive must comply with PEP 440.
     It is easy to accidentally put something other than a valid version
     string in such a file, so validation is stricter in this case.
 
+Notes:
+1. The `version` file attribute has only been supported since 39.2.0.
+
 Options
 -------
 
-=======================  ===================================  =====
-Key                      Type                                 Minimum Version
-=======================  ===================================  =====
+=======================  ===================================  =============== =====
+Key                      Type                                 Minimum Version Notes
+=======================  ===================================  =============== =====
 zip_safe                 bool
 setup_requires           list-semi
 install_requires         list-semi
@@ -2528,7 +2417,7 @@ exclude_package_data     section
 namespace_packages       list-comma
 py_modules               list-comma
 data_files               dict                                 40.5.0
-=======================  ===================================  =====
+=======================  ===================================  =============== =====
 
 .. note::
 

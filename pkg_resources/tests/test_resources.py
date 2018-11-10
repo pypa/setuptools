@@ -15,7 +15,7 @@ import pkg_resources
 from pkg_resources import (
     parse_requirements, VersionConflict, parse_version,
     Distribution, EntryPoint, Requirement, safe_version, safe_name,
-    WorkingSet)
+    WorkingSet, PkgResourcesDeprecationWarning)
 
 
 # from Python 3.6 docs.
@@ -491,6 +491,15 @@ class TestEntryPoints:
             EntryPoint.parse_map(["[xyz]", "[xyz]"])
         with pytest.raises(ValueError):
             EntryPoint.parse_map(self.submap_str)
+
+    def testDeprecationWarnings(self):
+        ep = EntryPoint(
+            "foo", "pkg_resources.tests.test_resources", ["TestEntryPoints"],
+            ["x"]
+        )
+        with pytest.warns(pkg_resources.PkgResourcesDeprecationWarning):
+            ep.load(require=False)
+
 
 
 class TestRequirements:

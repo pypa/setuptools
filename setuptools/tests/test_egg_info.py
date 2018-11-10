@@ -7,7 +7,7 @@ import re
 import stat
 import time
 
-from setuptools.command.egg_info import egg_info, manifest_maker
+from setuptools.command.egg_info import egg_info, manifest_maker, EggInfoDeprecationWarning, get_pkg_info_revision
 from setuptools.dist import Distribution
 from setuptools.extern.six.moves import map
 
@@ -569,6 +569,20 @@ class TestEggInfo:
         for msg in fixtures:
             assert manifest_maker._should_suppress_warning(msg)
 
+    def test_egg_info_includes_setup_py(self, tmpdir_cwd):
+        self._create_project()
+        dist = Distribution({"name": "foo", "version": "0.0.1"})
+        dist.script_name = "non_setup.py"
+        egg_info_instance = egg_info(dist)
+        egg_info_instance.finalize_options()
+        egg_info_instance.run()
+
+        assert 'setup.py' in egg_info_instance.filelist.files
+
+        with open(egg_info_instance.egg_info + "/SOURCES.txt") as f:
+            sources = f.read().split('\n')
+            assert 'setup.py' in sources
+
     def _run_egg_info_command(self, tmpdir_cwd, env, cmd=None, output=None):
         environ = os.environ.copy().update(
             HOME=env.paths['home'],
@@ -603,3 +617,6 @@ class TestEggInfo:
         with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
         assert 'Version: 0.0.0.dev0' in pkg_info_lines
+
+    def test_get_pkg_info_revision_deprecated(self):
+        pytest.warns(EggInfoDeprecationWarning, get_pkg_info_revision)

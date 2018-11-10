@@ -2,17 +2,20 @@ from __future__ import unicode_literals
 
 import os
 import shutil
+import tarfile
 
 import pytest
 
+from setuptools.build_meta import build_sdist
 from .files import build_files
 from .textwrap import DALS
 from . import py2_only
 
 __metaclass__ = type
 
-futures = pytest.importorskip('concurrent.futures')
-importlib = pytest.importorskip('importlib')
+# Backports on Python 2.7
+import importlib
+from concurrent import futures
 
 
 class BuildBackendBase:
@@ -181,3 +184,34 @@ def test_build_sdist_version_change(build_backend):
 
     sdist_name = build_backend.build_sdist("out_sdist")
     assert os.path.isfile(os.path.join(os.path.abspath("out_sdist"), sdist_name))
+
+
+def test_build_sdist_setup_py_exists(tmpdir_cwd):
+    # If build_sdist is called from a script other than setup.py,
+    # ensure setup.py is include
+    build_files(defns[0])
+    targz_path = build_sdist("temp")
+    with tarfile.open(os.path.join("temp", targz_path)) as tar:
+        assert any('setup.py' in name for name in tar.getnames())
+
+
+def test_build_sdist_setup_py_manifest_excluded(tmpdir_cwd):
+    # Ensure that MANIFEST.in can exclude setup.py
+    files = {
+        'setup.py': DALS("""
+    __import__('setuptools').setup(
+        name='foo',
+        version='0.0.0',
+        py_modules=['hello']
+    )"""),
+        'hello.py': '',
+        'MANIFEST.in': DALS("""
+    exclude setup.py
+    """)
+    }
+
+    build_files(files)
+    targz_path = build_sdist("temp")
+    with tarfile.open(os.path.join("temp", targz_path)) as tar:
+        assert not any('setup.py' in name for name in tar.getnames())
+

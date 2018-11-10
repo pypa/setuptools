@@ -1,0 +1,1 @@
+``build_meta.build_sdist`` now includes ``setup.py`` in source distributions by default
