@@ -6,7 +6,6 @@ import io
 import contextlib
 
 from setuptools.extern import six
-from setuptools.extern.six.moves import configparser
 
 from .py36compat import sdist_add_defaults
 
@@ -206,11 +205,12 @@ class sdist(sdist_add_defaults, orig.sdist):
         """
 
         opts = self.distribution.get_option_dict('metadata')
-        try:
-            # ignore the source of the value
-            _, license_file = opts.get('license_file')
-        except TypeError:
-            log.debug("'license_file' attribute is not defined")
+
+        # ignore the source of the value
+        _, license_file = opts.get('license_file', (None, None))
+
+        if license_file is None:
+            log.debug("'license_file' option was not specified")
             return
 
         if not os.path.exists(license_file):

@@ -529,8 +529,10 @@ class TestEggInfo:
             env=environ,
         )
         egg_info_dir = os.path.join('.', 'foo.egg-info')
+
         with open(os.path.join(egg_info_dir, 'SOURCES.txt')) as sources_file:
             sources_text = sources_file.read()
+
         if license_in_sources:
             assert 'LICENSE' in sources_text
         else:
