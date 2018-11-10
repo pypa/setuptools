@@ -21,9 +21,7 @@ def run_setup_py(cmd, pypath=None, path=None,
     code directly to prevent accidental behavior issues
     """
     if env is None:
-        env = dict()
-        for envname in os.environ:
-            env[envname] = os.environ[envname]
+        env = os.environ.copy()
 
     # override the python path if needed
     if pypath is not None:
