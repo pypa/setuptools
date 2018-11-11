@@ -13,3 +13,5 @@ Setuptools has the following large-scale goals on the roadmap:
 - Provide essential interfaces for installers such as pip to
   support creation of "editable" installs without invoking
   easy_install or creating egg-info.
+- Deprecate pkg_resources in favor of other third-party and
+  stdlib libraries.
