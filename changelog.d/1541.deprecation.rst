@@ -1,1 +1,0 @@
-Officially deprecated the ``requires`` parameter in ``setup()``.

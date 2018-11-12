@@ -1,1 +1,0 @@
-Started monkey-patching ``get_metadata_version`` and ``read_pkg_file`` onto ``distutils.DistributionMetadata`` to retain the correct version on the ``PKG-INFO`` file in the (deprecated) ``upload`` command.

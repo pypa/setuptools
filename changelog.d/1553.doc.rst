@@ -1,1 +1,0 @@
-Update installation instructions to point to ``pip install`` instead of ``ez_setup.py``.

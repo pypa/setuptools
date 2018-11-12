@@ -1,1 +1,0 @@
-In ``pkg_resources.normalize_path``, additional path normalization is now performed to ensure path values to a directory is always the same, preventing false positives when checking scripts have a consistent prefix to set up on Windows.

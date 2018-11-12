@@ -1,1 +1,0 @@
-Documented that the ``rpmbuild`` packages is required for the ``bdist_rpm`` command.

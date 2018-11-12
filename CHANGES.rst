@@ -1,3 +1,23 @@
+v40.6.0
+-------
+
+* #1541: Officially deprecated the ``requires`` parameter in ``setup()``.
+* #1519: In ``pkg_resources.normalize_path``, additional path normalization is now performed to ensure path values to a directory is always the same, preventing false positives when checking scripts have a consistent prefix to set up on Windows.
+* #1545: Changed the warning class of all deprecation warnings; deprecation warning classes are no longer derived from ``DeprecationWarning`` and are thus visible by default.
+* #1554: ``build_meta.build_sdist`` now includes ``setup.py`` in source distributions by default.
+* #1576: Started monkey-patching ``get_metadata_version`` and ``read_pkg_file`` onto ``distutils.DistributionMetadata`` to retain the correct version on the ``PKG-INFO`` file in the (deprecated) ``upload`` command.
+* #1533: Restricted the ``recursive-include setuptools/_vendor`` to contain only .py and .txt files.
+* #1395: Changed Pyrex references to Cython in the documentation.
+* #1456: Documented that the ``rpmbuild`` packages is required for the ``bdist_rpm`` command.
+* #1537: Documented how to use ``setup.cfg`` for ``src/ layouts``
+* #1539: Added minimum version column in ``setup.cfg`` metadata table.
+* #1552: Fixed a minor typo in the python 2/3 compatibility documentation.
+* #1553: Updated installation instructions to point to ``pip install`` instead of ``ez_setup.py``.
+* #1560: Updated ``setuptools`` distribution documentation to remove some outdated information.
+* #1564: Documented ``setup.cfg`` minimum version for version and project_urls.
+* #1572: Added the ``concurrent.futures`` backport ``futures`` to the Python 2.7 test suite requirements.
+
+
 v40.5.0
 -------
 
