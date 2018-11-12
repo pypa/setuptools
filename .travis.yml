@@ -32,7 +32,7 @@ jobs:
     after_success: true
     before_deploy:
       - python bootstrap.py
-      - ! grep pyc setuptools.egg-info/SOURCES.txt
+      - "! grep pyc setuptools.egg-info/SOURCES.txt"
     deploy:
       provider: pypi
       on:
@@ -60,6 +60,7 @@ install:
 
 # update egg_info based on setup.py in checkout
 - python bootstrap.py
+- "! grep pyc setuptools.egg-info/SOURCES.txt"
 
 script:
   - |
