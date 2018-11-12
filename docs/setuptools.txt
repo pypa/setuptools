@@ -2416,7 +2416,7 @@ package_data             section
 exclude_package_data     section
 namespace_packages       list-comma
 py_modules               list-comma
-data_files               dict                                 40.5.0
+data_files               dict                                 40.6.0
 =======================  ===================================  =============== =====
 
 .. note::

@@ -1,1 +1,0 @@
-Fixed a minor typo in the python 2/3 compatibility documentation.

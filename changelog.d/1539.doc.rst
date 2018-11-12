@@ -1,1 +1,0 @@
-Added minumum version column in ``setup.cfg`` metadata table.

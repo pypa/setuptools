@@ -1,1 +1,0 @@
-update ``setuptools`` distribution documentation to mimic packaging.python.org tutorial.

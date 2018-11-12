@@ -1,1 +1,0 @@
-Document building Cython projects instead of Pyrex
