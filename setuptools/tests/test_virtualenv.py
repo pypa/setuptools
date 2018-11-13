@@ -1,3 +1,4 @@
+import distutils.command
 import glob
 import os
 import sys
@@ -134,3 +135,14 @@ def test_test_command_install_requirements(bare_virtualenv, tmpdir):
         'python setup.py test -s test',
     )).format(tmpdir=tmpdir))
     assert tmpdir.join('success').check()
+
+
+def test_no_missing_dependencies(bare_virtualenv):
+    """
+    Quick and dirty test to ensure all external dependencies are vendored.
+    """
+    for command in ('upload',):#sorted(distutils.command.__all__):
+        bare_virtualenv.run(' && '.join((
+            'cd {source}',
+            'python setup.py {command} -h',
+        )).format(command=command, source=SOURCE_DIR))
