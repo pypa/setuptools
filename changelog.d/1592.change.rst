@@ -1,0 +1,1 @@
+Fix invalid dependency on external six module (instead of vendored version).
