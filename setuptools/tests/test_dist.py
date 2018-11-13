@@ -7,13 +7,12 @@ from setuptools.dist import DistDeprecationWarning, _get_unpatched
 from setuptools import Distribution
 from setuptools.extern.six.moves.urllib.request import pathname2url
 from setuptools.extern.six.moves.urllib_parse import urljoin
+from setuptools.extern import six
 
 from .textwrap import DALS
 from .test_easy_install import make_nspkg_sdist
 
 import pytest
-import six
-
 
 def test_dist_fetch_build_egg(tmpdir):
     """

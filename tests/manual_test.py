@@ -8,7 +8,7 @@ import subprocess
 from distutils.command.install import INSTALL_SCHEMES
 from string import Template
 
-from six.moves import urllib
+from setuptools.extern.six.moves import urllib
 
 
 def _system_call(*args):

@@ -7,10 +7,10 @@ from distutils.errors import DistutilsError
 from distutils.version import StrictVersion
 
 import pytest
-import six
 
 from setuptools.command.upload import upload
 from setuptools.dist import Distribution
+from setuptools.extern import six
 
 
 def _parse_upload_body(body):

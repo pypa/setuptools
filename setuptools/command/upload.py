@@ -12,9 +12,9 @@ from distutils.spawn import spawn
 
 from distutils.errors import DistutilsError
 
-from six.moves.urllib.request import urlopen, Request
-from six.moves.urllib.error import HTTPError
-from six.moves.urllib.parse import urlparse
+from setuptools.extern.six.moves.urllib.request import urlopen, Request
+from setuptools.extern.six.moves.urllib.error import HTTPError
+from setuptools.extern.six.moves.urllib.parse import urlparse
 
 class upload(orig.upload):
     """
