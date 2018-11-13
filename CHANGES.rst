@@ -1,3 +1,9 @@
+v40.6.1
+-------
+
+* #1590: Fixed regression where packages without ``author`` or ``author_email`` fields generated malformed package metadata.
+
+
 v40.6.0
 -------
 
