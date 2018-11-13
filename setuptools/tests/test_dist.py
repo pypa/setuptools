@@ -115,6 +115,20 @@ def __read_test_cases():
             merge_dicts(base_attrs, {
                 'provides_extras': ['foo', 'bar']
         }), marks=pytest.mark.xfail(reason="provides_extras not read")),
+        ('Missing author, missing author e-mail',
+         {'name': 'foo', 'version': '1.0.0'}),
+        ('Missing author',
+         {'name': 'foo',
+          'version': '1.0.0',
+          'author_email': 'snorri@sturluson.name'}),
+        ('Missing author e-mail',
+         {'name': 'foo',
+          'version': '1.0.0',
+          'author': 'Snorri Sturluson'}),
+        ('Missing author',
+         {'name': 'foo',
+          'version': '1.0.0',
+          'author': 'Snorri Sturluson'}),
     ]
 
     return test_cases
@@ -141,6 +155,8 @@ def test_read_metadata(name, attrs):
     tested_attrs = [
         ('name', dist_class.get_name),
         ('version', dist_class.get_version),
+        ('author', dist_class.get_contact),
+        ('author_email', dist_class.get_contact_email),
         ('metadata_version', dist_class.get_metadata_version),
         ('provides', dist_class.get_provides),
         ('description', dist_class.get_description),

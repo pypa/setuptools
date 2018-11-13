@@ -138,8 +138,8 @@ def write_pkg_file(self, file):
     write_field('Home-page', self.get_url())
 
     if version < StrictVersion('1.2'):
-        write_field('Author:', self.get_contact())
-        write_field('Author-email:', self.get_contact_email())
+        write_field('Author', self.get_contact())
+        write_field('Author-email', self.get_contact_email())
     else:
         optional_fields = (
             ('Author', 'author'),
