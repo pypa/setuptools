@@ -1,3 +1,9 @@
+v40.6.2
+-------
+
+* #1592: Fix invalid dependency on external six module (instead of vendored version).
+
+
 v40.6.1
 -------
 
