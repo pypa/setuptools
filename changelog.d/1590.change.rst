@@ -1,0 +1,1 @@
+Fixed regression where packages without ``author`` or ``author_email`` fields generated malformed package metadata.
