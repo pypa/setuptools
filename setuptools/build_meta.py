@@ -112,12 +112,12 @@ def _get_immediate_subdirectories(a_dir):
 
 def get_requires_for_build_wheel(config_settings=None):
     config_settings = _fix_config(config_settings)
-    return _get_build_requires(config_settings, requirements=['setuptools', 'wheel'])
+    return _get_build_requires(config_settings, requirements=['wheel'])
 
 
 def get_requires_for_build_sdist(config_settings=None):
     config_settings = _fix_config(config_settings)
-    return _get_build_requires(config_settings, requirements=['setuptools'])
+    return _get_build_requires(config_settings, requirements=[])
 
 
 def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
