@@ -112,13 +112,13 @@ def build_backend(tmpdir, request):
 
 def test_get_requires_for_build_wheel(build_backend):
     actual = build_backend.get_requires_for_build_wheel()
-    expected = ['six', 'setuptools', 'wheel']
+    expected = ['six', 'wheel']
     assert sorted(actual) == sorted(expected)
 
 
 def test_get_requires_for_build_sdist(build_backend):
     actual = build_backend.get_requires_for_build_sdist()
-    expected = ['six', 'setuptools']
+    expected = ['six']
     assert sorted(actual) == sorted(expected)
 
 
