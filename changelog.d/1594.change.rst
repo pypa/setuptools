@@ -1,1 +1,0 @@
-PEP 517 backend no longer declares setuptools as a dependency as it can be assumed.

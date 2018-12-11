@@ -1,3 +1,9 @@
+v40.6.3
+-------
+
+* #1594: PEP 517 backend no longer declares setuptools as a dependency as it can be assumed.
+
+
 v40.6.2
 -------
 
