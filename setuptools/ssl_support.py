@@ -3,6 +3,7 @@ import socket
 import atexit
 import re
 import functools
+import sys
 
 from setuptools.extern.six.moves import urllib, http_client, map, filter
 
@@ -47,6 +48,12 @@ except ImportError:
     except ImportError:
         CertificateError = None
         match_hostname = None
+
+try:
+    import OpenSSL
+except ImportError:
+    pass
+
 
 if not CertificateError:
 
@@ -158,7 +165,7 @@ class VerifyingHTTPSHandler(HTTPSHandler):
 
     def https_open(self, req):
         return self.do_open(
-            lambda host, **kw: VerifyingHTTPSConn(host, self.ca_bundle, **kw), req
+            lambda host, **kw: pick_ssl()(host, self.ca_bundle, **kw), req
         )
 
 
@@ -200,6 +207,29 @@ class VerifyingHTTPSConn(HTTPSConnection):
             self.sock.shutdown(socket.SHUT_RDWR)
             self.sock.close()
             raise
+
+
+class OpenSSLHTTPSConnection(HTTPSConnection):
+    def __init__(self, host, ca_bundle, **kw):
+        HTTPSConnection.__init__(self, host, **kw)
+        self.ca_bundle = ca_bundle
+
+    def connect(self):
+        context = OpenSSL.SSL.Context(OpenSSL.SSL.SSLv23_METHOD)
+        context.use_certificate_file(self.ca_bundle)
+
+        raw_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock = OpenSSL.SSL.Connection(context, raw_sock)
+        self.sock.connect((self.host, self.port))
+
+
+def pick_ssl():
+    use_openssl = (
+        sys.platform == "darwin"
+        and ssl.OPENSSL_VERSION_NUMBER < 0x1000100f
+        and 'OpenSSL' in globals()
+    )
+    return OpenSSLHTTPSConnection if use_openssl else VerifyingHTTPSConn
 
 
 def opener_for(ca_bundle=None):
