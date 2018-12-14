@@ -224,40 +224,43 @@ class TestPackageIndex:
             assert dists[0].version == ''
             assert dists[1].version == vc
 
-
-    def test_download_git(self):
-        index = setuptools.package_index.PackageIndex(
-            hosts=('www.example.com',)
-        )
-
-        index._vcs_split_rev_from_url = mock.Mock()
-        url = 'https://example.com/bar'
-        rev = '2995'
-
-        index._vcs_split_rev_from_url.return_value = (url, rev)
-
-        filename = "somefile.py"
+    def test_download_git_with_rev(self, tmpdir):
+        url = 'git+https://github.example/group/project@master#egg=foo'
+        index = setuptools.package_index.PackageIndex()
 
         with mock.patch("os.system") as os_system_mock:
-
-            result = index._download_git(url, filename)
+            result = index.download(url, str(tmpdir))
 
         os_system_mock.assert_called()
 
-        assert os_system_mock.call_args_list[0][0] \
-            == ("git clone --quiet %s %s" % (url, filename), )
+        expected_dir = str(tmpdir / 'project@master')
+        expected = (
+            'git clone --quiet '
+            'https://github.example/group/project {expected_dir}'
+        ).format(**locals())
+        first_call_args = os_system_mock.call_args_list[0][0]
+        assert first_call_args == (expected,)
 
-        assert os_system_mock.call_args_list[1][0] \
-            == ("(cd %s && git checkout --quiet %s)" % (filename, rev), )
-        assert result == filename
+        tmpl = '(cd {expected_dir} && git checkout --quiet master)'
+        expected = tmpl.format(**locals())
+        assert os_system_mock.call_args_list[1][0] == (expected,)
+        assert result == expected_dir
 
-        index._vcs_split_rev_from_url.return_value = (url, None)
+    def test_download_git_no_rev(self, tmpdir):
+        url = 'git+https://github.example/group/project#egg=foo'
+        index = setuptools.package_index.PackageIndex()
 
         with mock.patch("os.system") as os_system_mock:
+            result = index.download(url, str(tmpdir))
 
-            index._download_git(url, filename)
+        os_system_mock.assert_called()
 
-        os_system_mock.assert_called_once_with("git clone --quiet %s %s" % (url, filename))
+        expected_dir = str(tmpdir / 'project')
+        expected = (
+            'git clone --quiet '
+            'https://github.example/group/project {expected_dir}'
+        ).format(**locals())
+        os_system_mock.assert_called_once_with(expected)
 
 
 class TestContentCheckers:
