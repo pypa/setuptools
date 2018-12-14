@@ -6,6 +6,7 @@ import distutils.errors
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import urllib, http_client
+import mock
 
 import pkg_resources
 import setuptools.package_index
@@ -222,6 +223,44 @@ class TestPackageIndex:
                 'http://example.com/example.zip#egg=example-' + v))
             assert dists[0].version == ''
             assert dists[1].version == vc
+
+    def test_download_git_with_rev(self, tmpdir):
+        url = 'git+https://github.example/group/project@master#egg=foo'
+        index = setuptools.package_index.PackageIndex()
+
+        with mock.patch("os.system") as os_system_mock:
+            result = index.download(url, str(tmpdir))
+
+        os_system_mock.assert_called()
+
+        expected_dir = str(tmpdir / 'project@master')
+        expected = (
+            'git clone --quiet '
+            'https://github.example/group/project {expected_dir}'
+        ).format(**locals())
+        first_call_args = os_system_mock.call_args_list[0][0]
+        assert first_call_args == (expected,)
+
+        tmpl = '(cd {expected_dir} && git checkout --quiet master)'
+        expected = tmpl.format(**locals())
+        assert os_system_mock.call_args_list[1][0] == (expected,)
+        assert result == expected_dir
+
+    def test_download_git_no_rev(self, tmpdir):
+        url = 'git+https://github.example/group/project#egg=foo'
+        index = setuptools.package_index.PackageIndex()
+
+        with mock.patch("os.system") as os_system_mock:
+            result = index.download(url, str(tmpdir))
+
+        os_system_mock.assert_called()
+
+        expected_dir = str(tmpdir / 'project')
+        expected = (
+            'git clone --quiet '
+            'https://github.example/group/project {expected_dir}'
+        ).format(**locals())
+        os_system_mock.assert_called_once_with(expected)
 
 
 class TestContentCheckers:
