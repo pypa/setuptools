@@ -262,6 +262,22 @@ class TestPackageIndex:
         ).format(**locals())
         os_system_mock.assert_called_once_with(expected)
 
+    def test_download_svn(self, tmpdir):
+        url = 'svn+https://svn.example/project#egg=foo'
+        index = setuptools.package_index.PackageIndex()
+
+        with mock.patch("os.system") as os_system_mock:
+            result = index.download(url, str(tmpdir))
+
+        os_system_mock.assert_called()
+
+        expected_dir = str(tmpdir / 'project')
+        expected = (
+            'svn checkout -q '
+            'svn+https://svn.example/project {expected_dir}'
+        ).format(**locals())
+        os_system_mock.assert_called_once_with(expected)
+
 
 class TestContentCheckers:
     def test_md5(self):
