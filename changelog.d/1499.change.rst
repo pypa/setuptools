@@ -1,0 +1,1 @@
+``setuptools.package_index`` no longer relies on the deprecated ``urllib.parse.splituser`` per Python #27485.

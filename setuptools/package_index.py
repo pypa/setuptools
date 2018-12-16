@@ -850,13 +850,16 @@ class PackageIndex(Environment):
 
     def _download_svn(self, url, filename):
         warnings.warn("SVN download support is deprecated", UserWarning)
+        def splituser(host):
+            user, delim, host = host.rpartition('@')
+            return user, host
         url = url.split('#', 1)[0]  # remove any fragment for svn's sake
         creds = ''
         if url.lower().startswith('svn:') and '@' in url:
             scheme, netloc, path, p, q, f = urllib.parse.urlparse(url)
             if not netloc and path.startswith('//') and '/' in path[2:]:
                 netloc, path = path[2:].split('/', 1)
-                auth, host = urllib.parse.splituser(netloc)
+                auth, host = splituser(netloc)
                 if auth:
                     if ':' in auth:
                         user, pw = auth.split(':', 1)
@@ -1047,15 +1050,16 @@ class PyPIConfig(configparser.RawConfigParser):
 def open_with_auth(url, opener=urllib.request.urlopen):
     """Open a urllib2 request, handling HTTP authentication"""
 
-    scheme, netloc, path, params, query, frag = urllib.parse.urlparse(url)
+    parsed = urllib.parse.urlparse(url)
+    scheme, netloc, path, params, query, frag = parsed
 
     # Double scheme does not raise on Mac OS X as revealed by a
     # failing test. We would expect "nonnumeric port". Refs #20.
     if netloc.endswith(':'):
         raise http_client.InvalidURL("nonnumeric port: ''")
 
-    if scheme in ('http', 'https'):
-        auth, host = urllib.parse.splituser(netloc)
+    if scheme in ('http', 'https') and parsed.username:
+        auth = ':'.join((parsed.username, parsed.password))
     else:
         auth = None
 
@@ -1068,7 +1072,7 @@ def open_with_auth(url, opener=urllib.request.urlopen):
 
     if auth:
         auth = "Basic " + _encode_auth(auth)
-        parts = scheme, host, path, params, query, frag
+        parts = scheme, parsed.hostname, path, params, query, frag
         new_url = urllib.parse.urlunparse(parts)
         request = urllib.request.Request(new_url)
         request.add_header("Authorization", auth)
@@ -1082,7 +1086,7 @@ def open_with_auth(url, opener=urllib.request.urlopen):
         # Put authentication info back into request URL if same host,
         # so that links found on the page will work
         s2, h2, path2, param2, query2, frag2 = urllib.parse.urlparse(fp.url)
-        if s2 == scheme and h2 == host:
+        if s2 == scheme and h2 == parsed.hostname:
             parts = s2, netloc, path2, param2, query2, frag2
             fp.url = urllib.parse.urlunparse(parts)
 
