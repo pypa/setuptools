@@ -8,10 +8,11 @@ import posixpath
 import re
 import zipfile
 
-from pkg_resources import Distribution, PathMetadata, parse_version
+import pkg_resources
+import setuptools
+from pkg_resources import parse_version
 from setuptools.extern.packaging.utils import canonicalize_name
 from setuptools.extern.six import PY3
-from setuptools import Distribution as SetuptoolsDistribution
 from setuptools import pep425tags
 from setuptools.command.egg_info import write_requirements
 
@@ -79,7 +80,7 @@ class Wheel:
         return next((True for t in self.tags() if t in supported_tags), False)
 
     def egg_name(self):
-        return Distribution(
+        return pkg_resources.Distribution(
             project_name=self.project_name, version=self.version,
             platform=(None if self.platform == 'any' else get_platform()),
         ).egg_name() + '.egg'
@@ -130,9 +131,9 @@ class Wheel:
         zf.extractall(destination_eggdir)
         # Convert metadata.
         dist_info = os.path.join(destination_eggdir, dist_info)
-        dist = Distribution.from_location(
+        dist = pkg_resources.Distribution.from_location(
             destination_eggdir, dist_info,
-            metadata=PathMetadata(destination_eggdir, dist_info),
+            metadata=pkg_resources.PathMetadata(destination_eggdir, dist_info),
         )
 
         # Note: Evaluate and strip markers now,
@@ -155,7 +156,7 @@ class Wheel:
             os.path.join(egg_info, 'METADATA'),
             os.path.join(egg_info, 'PKG-INFO'),
         )
-        setup_dist = SetuptoolsDistribution(
+        setup_dist = setuptools.Distribution(
             attrs=dict(
                 install_requires=install_requires,
                 extras_require=extras_require,
