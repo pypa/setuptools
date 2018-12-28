@@ -7,6 +7,7 @@ import distutils.errors
 from setuptools.extern import six
 from setuptools.extern.six.moves import urllib, http_client
 import mock
+import pytest
 
 import pkg_resources
 import setuptools.package_index
@@ -266,8 +267,9 @@ class TestPackageIndex:
         url = 'svn+https://svn.example/project#egg=foo'
         index = setuptools.package_index.PackageIndex()
 
-        with mock.patch("os.system") as os_system_mock:
-            result = index.download(url, str(tmpdir))
+        with pytest.warns(UserWarning):
+            with mock.patch("os.system") as os_system_mock:
+                result = index.download(url, str(tmpdir))
 
         os_system_mock.assert_called()
 
