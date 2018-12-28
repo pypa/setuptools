@@ -202,6 +202,7 @@ class VersionlessRequirement:
     name as the 'requirement' so that scripts will work across
     multiple versions.
 
+    >>> from pkg_resources import Distribution
     >>> dist = Distribution(project_name='foo', version='1.0')
     >>> str(dist.as_requirement())
     'foo==1.0'
