@@ -89,6 +89,17 @@ code changes. See the following for an example news fragment:
     $ cat changelog.d/1288.change.rst
     Add support for maintainer in PKG-INFO
 
+-------------------
+Auto-Merge Requests
+-------------------
+
+To support running all code through CI, even lightweight contributions,
+the project employs Mergify to auto-merge pull requests tagged as
+auto-merge.
+
+Use ``hub pull-request -l auto-merge`` to create such a pull request
+from the command line after pushing a new branch.
+
 -------
 Testing
 -------
