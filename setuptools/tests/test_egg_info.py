@@ -165,8 +165,19 @@ class TestEggInfo:
         build_files({'setup.py': setup_script,
                      'setup.cfg': setup_config})
 
-        with pytest.raises(ValueError):
+        # This command should fail with a ValueError, but because it's
+        # currently configured to use a subprocess, the actual traceback
+        # object is lost and we need to parse it from stderr
+        with pytest.raises(AssertionError) as exc:
             self._run_egg_info_command(tmpdir_cwd, env)
+
+        # Hopefully this is not too fragile: the only argument to the
+        # assertion error should be a traceback, ending with:
+        #     ValueError: ....
+        #
+        #     assert not 1
+        tb = exc.value.args[0].split('\n')
+        assert tb[-3].lstrip().startswith('ValueError')
 
     def test_rebuilt(self, tmpdir_cwd, env):
         """Ensure timestamps are updated when the command is re-run."""
@@ -617,11 +628,8 @@ class TestEggInfo:
             data_stream=1,
             env=environ,
         )
-        if code:
-            if 'ValueError' in data:
-                raise ValueError(data)
-            else:
-                raise AssertionError(data)
+        assert not code, data
+
         if output:
             assert output in data
 
