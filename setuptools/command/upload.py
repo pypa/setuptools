@@ -2,7 +2,6 @@ import io
 import os
 import hashlib
 import getpass
-import platform
 
 from base64 import standard_b64encode
 
@@ -15,6 +14,7 @@ from distutils.errors import DistutilsError
 from setuptools.extern.six.moves.urllib.request import urlopen, Request
 from setuptools.extern.six.moves.urllib.error import HTTPError
 from setuptools.extern.six.moves.urllib.parse import urlparse
+
 
 class upload(orig.upload):
     """
@@ -80,7 +80,7 @@ class upload(orig.upload):
             'version': meta.get_version(),
 
             # file content
-            'content': (os.path.basename(filename),content),
+            'content': (os.path.basename(filename), content),
             'filetype': command,
             'pyversion': pyversion,
             'md5_digest': hashlib.md5(content).hexdigest(),
