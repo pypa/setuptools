@@ -1,10 +1,12 @@
 import contextlib
 import pytest
+
 from distutils.errors import DistutilsOptionError, DistutilsFileError
 from mock import patch
 from setuptools.dist import Distribution, _Distribution
 from setuptools.config import ConfigHandler, read_configuration
 from . import py2_only, py3_only
+from .textwrap import DALS
 
 class ErrConfigHandler(ConfigHandler):
     """Erroneous handler. Fails to implement required methods."""
@@ -145,6 +147,24 @@ class TestMetadata:
             assert metadata.keywords == ['one', 'two']
             assert metadata.download_url == 'http://test.test.com/test/'
             assert metadata.maintainer_email == 'test@test.com'
+
+    def test_license_cfg(self, tmpdir):
+        fake_env(
+            tmpdir,
+            DALS("""
+            [metadata]
+            name=foo
+            version=0.0.1
+            license=Apache 2.0
+            """)
+        )
+
+        with get_dist(tmpdir) as dist:
+            metadata = dist.metadata
+
+            assert metadata.name == "foo"
+            assert metadata.version == "0.0.1"
+            assert metadata.license == "Apache 2.0"
 
     def test_file_mixed(self, tmpdir):
 
