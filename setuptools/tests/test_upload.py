@@ -196,6 +196,7 @@ class TestUploadTest:
         # Make sure that GPG was called
         spawn.assert_called_once_with([
             "gpg", "--detach-sign", "--local-user", "Alice", "-a",
+            "--output", signed_file,
             content_fname
         ], dry_run=True)
 

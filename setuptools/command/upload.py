@@ -57,7 +57,7 @@ class upload(orig.upload):
 
         # Sign if requested
         if self.sign:
-            gpg_args = ["gpg", "--detach-sign", "-a", filename]
+            gpg_args = ["gpg", "--detach-sign", "-a", "--output", filename + ".asc", filename]
             if self.identity:
                 gpg_args[2:2] = ["--local-user", self.identity]
             spawn(gpg_args,
