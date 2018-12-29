@@ -4,7 +4,6 @@ import re
 
 from distutils import log
 from distutils.errors import DistutilsError
-from distutils.version import StrictVersion
 
 import pytest
 
