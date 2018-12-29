@@ -1,0 +1,7 @@
+pull_request_rules:
+- name: auto-merge
+  conditions:
+  - label=auto-merge
+  actions:
+    merge:
+      method: merge
