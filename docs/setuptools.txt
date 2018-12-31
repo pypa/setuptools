@@ -2370,7 +2370,7 @@ author_email                    author-email       str
 maintainer                                         str
 maintainer_email                maintainer-email   str
 classifiers                     classifier         file:, list-comma
-license                                            file:, str
+license                                            str
 description                     summary            file:, str
 long_description                long-description   file:, str
 long_description_content_type                      str                38.6.0
