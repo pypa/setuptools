@@ -2358,7 +2358,7 @@ Metadata
     but their use is not advised.
 
 ==============================  =================  =================  =============== =====
-Key                             Aliases            Type               Minumum Version Notes
+Key                             Aliases            Type               Minimum Version Notes
 ==============================  =================  =================  =============== =====
 name                                               str
 version                                            attr:, file:, str  39.2.0          (1)

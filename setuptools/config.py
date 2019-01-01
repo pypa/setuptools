@@ -411,7 +411,7 @@ class ConfigHandler:
 
             section_parser_method = getattr(
                 self,
-                # Dots in section names are tranlsated into dunderscores.
+                # Dots in section names are translated into dunderscores.
                 ('parse_section%s' % method_postfix).replace('.', '__'),
                 None)
 
