@@ -160,8 +160,10 @@ def build_wheel(wheel_directory, config_settings=None,
         shutil.rmtree(wheel_directory)
         shutil.copytree('dist', wheel_directory)
 
-    wheels = (f for f in os.listdir(wheel_directory)
-              if f.endswith('.whl'))
+    wheels = (
+        f for f in os.listdir(wheel_directory)
+        if f.endswith('.whl')
+    )
 
     wheel, = wheels
     return wheel
@@ -175,8 +177,10 @@ def build_sdist(sdist_directory, config_settings=None):
         ["--dist-dir", sdist_directory]
     _run_setup()
 
-    sdists = (f for f in os.listdir(sdist_directory)
-              if f.endswith('.tar.gz'))
+    sdists = (
+        f for f in os.listdir(sdist_directory)
+        if f.endswith('.tar.gz')
+    )
 
     sdist, = sdists
     return sdist
