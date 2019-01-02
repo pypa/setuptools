@@ -170,7 +170,7 @@ def build_wheel(wheel_directory, config_settings=None,
 def build_sdist(sdist_directory, config_settings=None):
     config_settings = _fix_config(config_settings)
     sdist_directory = os.path.abspath(sdist_directory)
-    sys.argv = sys.argv[:1] + ['sdist'] + \
+    sys.argv = sys.argv[:1] + ['sdist', '--formats', 'gztar'] + \
         config_settings["--global-option"] + \
         ["--dist-dir", sdist_directory]
     _run_setup()
