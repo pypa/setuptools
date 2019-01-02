@@ -175,8 +175,11 @@ def build_sdist(sdist_directory, config_settings=None):
         ["--dist-dir", sdist_directory]
     _run_setup()
 
-    sdists = [f for f in os.listdir(sdist_directory)
-              if f.endswith('.tar.gz')]
+    sdists = [
+        f for f in os.listdir(sdist_directory)
+        if f.endswith('.tar.gz')
+        or f.endswith('.zip')
+    ]
 
     assert len(sdists) == 1
     return sdists[0]
