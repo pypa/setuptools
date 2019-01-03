@@ -217,3 +217,22 @@ def test_build_sdist_setup_py_manifest_excluded(tmpdir_cwd):
     targz_path = build_sdist("temp")
     with tarfile.open(os.path.join("temp", targz_path)) as tar:
         assert not any('setup.py' in name for name in tar.getnames())
+
+
+def test_build_sdist_builds_targz_even_if_zip_indicated(tmpdir_cwd):
+    files = {
+        'setup.py': DALS("""
+            __import__('setuptools').setup(
+                name='foo',
+                version='0.0.0',
+                py_modules=['hello']
+            )"""),
+        'hello.py': '',
+        'setup.cfg': DALS("""
+            [sdist]
+            formats=zip
+            """)
+    }
+
+    build_files(files)
+    build_sdist("temp")
