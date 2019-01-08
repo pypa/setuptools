@@ -424,8 +424,8 @@ class ConfigHandler:
 
     def _deprecated_config_handler(self, func, msg, warning_class):
         """ this function will wrap around parameters that are deprecated
-        
-        :param msg: deprecation message 
+
+        :param msg: deprecation message
         :param warning_class: class of warning exception to be raised
         :param func: function to be wrapped around
         """
@@ -433,7 +433,7 @@ class ConfigHandler:
         def config_handler(*args, **kwargs):
             warnings.warn(msg, warning_class)
             return func(*args, **kwargs)
-        
+
         return config_handler
 
 
@@ -472,8 +472,9 @@ class ConfigMetadataHandler(ConfigHandler):
             'platforms': parse_list,
             'keywords': parse_list,
             'provides': parse_list,
-            'requires': self._deprecated_config_handler(parse_list,
-                "The requires parameter is deprecated, please use " +
+            'requires': self._deprecated_config_handler(
+                parse_list,
+                "The requires parameter is deprecated, please use "
                 "install_requires for runtime dependencies.",
                 DeprecationWarning),
             'obsoletes': parse_list,
