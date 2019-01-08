@@ -260,7 +260,9 @@ class ConfigHandler:
         def parser(value):
             exclude_directive = 'file:'
             if value.startswith(exclude_directive):
-                raise ValueError('Only strings are accepted for the {0} field, files are not accepted'.format(key))
+                raise ValueError(
+                    'Only strings are accepted for the {0} field, '
+                    'files are not accepted'.format(key))
             return value
         return parser
 
