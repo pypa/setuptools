@@ -449,6 +449,20 @@ class TestSdistTest:
             except UnicodeDecodeError:
                 filename not in cmd.filelist.files
 
+    def test_pyproject_toml_in_sdist(self):
+        """
+        Check if pyproject.toml is included in source distribution if present
+        """
+        open(os.path.join(self.temp_dir, 'pyproject.toml'), 'w').close()
+        dist = Distribution(SETUP_ATTRS)
+        dist.script_name = 'setup.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+        with quiet():
+            cmd.run()
+        manifest = cmd.filelist.files
+        assert 'pyproject.toml' in manifest
+
 
 def test_default_revctrl():
     """
