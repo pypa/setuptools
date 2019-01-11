@@ -76,7 +76,7 @@ class sdist_add_defaults:
                     self.warn("standard file '%s' not found" % fn)
 
     def _add_defaults_optional(self):
-        optional = ['test/test*.py', 'setup.cfg', 'pyproject.toml']
+        optional = ['test/test*.py', 'setup.cfg']
         for pattern in optional:
             files = filter(os.path.isfile, glob(pattern))
             self.filelist.extend(files)
