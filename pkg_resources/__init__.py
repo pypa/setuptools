@@ -1466,9 +1466,54 @@ class NullProvider:
         )
 
     def _fn(self, base, resource_name):
+        self._validate_resource_path(resource_name)
         if resource_name:
             return os.path.join(base, *resource_name.split('/'))
         return base
+
+    @staticmethod
+    def _validate_resource_path(path):
+        """
+        Validate the resource paths according to the docs.
+        https://setuptools.readthedocs.io/en/latest/pkg_resources.html#basic-resource-access
+
+        >>> warned = getfixture('recwarn')
+        >>> warnings.simplefilter('always')
+        >>> vrp = NullProvider._validate_resource_path
+        >>> vrp('foo/bar.txt')
+        >>> bool(warned)
+        False
+        >>> vrp('../foo/bar.txt')
+        >>> bool(warned)
+        True
+        >>> warned.clear()
+        >>> vrp('/foo/bar.txt')
+        >>> bool(warned)
+        True
+        >>> warned.clear()
+        >>> vrp('foo/../../bar.txt')
+        >>> bool(warned)
+        True
+        >>> warned.clear()
+        >>> vrp('foo/f../bar.txt')
+        >>> bool(warned)
+        False
+        """
+        invalid = (
+            path.startswith('/') or
+            re.search(r'\B\.\.\B', path)
+        )
+        if not invalid:
+            return
+
+        msg = "Use of .. or leading / in a resource path is not allowed."
+        # for compatibility, warn; in future
+        # raise ValueError(msg)
+        warnings.warn(
+            msg[:-1] + " and will raise exceptions in a future release.",
+            DeprecationWarning,
+            stacklevel=4,
+        )
 
     def _get(self, path):
         if hasattr(self.loader, 'get_data'):
