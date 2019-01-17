@@ -1489,8 +1489,7 @@ class NullProvider:
         >>> warned.clear()
         >>> vrp('/foo/bar.txt')
         >>> bool(warned)
-        True
-        >>> warned.clear()
+        False
         >>> vrp('foo/../../bar.txt')
         >>> bool(warned)
         True
@@ -1499,14 +1498,11 @@ class NullProvider:
         >>> bool(warned)
         False
         """
-        invalid = (
-            path.startswith('/') or
-            re.search(r'\B\.\.\B', path)
-        )
+        invalid = '..' in path.split('/')
         if not invalid:
             return
 
-        msg = "Use of .. or leading / in a resource path is not allowed."
+        msg = "Use of .. in a resource path is not allowed."
         # for compatibility, warn; in future
         # raise ValueError(msg)
         warnings.warn(

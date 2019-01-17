@@ -1,0 +1,1 @@
+Resource paths are passed to ``pkg_resources.resource_string`` and similar no longer accept paths that traverse parents. Violations of this expectation raise DeprecationWarnings and will become errors.
