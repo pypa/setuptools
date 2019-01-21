@@ -93,7 +93,6 @@ class TestZipProvider:
 
         expected_root = ['data.dat', 'mod.py', 'subdir']
         assert sorted(zp.resource_listdir('')) == expected_root
-        assert sorted(zp.resource_listdir('/')) == expected_root
 
         expected_subdir = ['data2.dat', 'mod2.py']
         assert sorted(zp.resource_listdir('subdir')) == expected_subdir
@@ -106,7 +105,6 @@ class TestZipProvider:
         zp2 = pkg_resources.ZipProvider(mod2)
 
         assert sorted(zp2.resource_listdir('')) == expected_subdir
-        assert sorted(zp2.resource_listdir('/')) == expected_subdir
 
         assert zp2.resource_listdir('subdir') == []
         assert zp2.resource_listdir('subdir/') == []

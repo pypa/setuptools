@@ -1932,7 +1932,7 @@ def find_eggs_in_zip(importer, path_item, only=False):
     if only:
         # don't yield nested distros
         return
-    for subitem in metadata.resource_listdir('/'):
+    for subitem in metadata.resource_listdir(''):
         if _is_egg_path(subitem):
             subpath = os.path.join(path_item, subitem)
             dists = find_eggs_in_zip(zipimport.zipimporter(subpath), subpath)
