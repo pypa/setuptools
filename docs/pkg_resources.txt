@@ -1132,8 +1132,9 @@ relative to the root of the identified distribution; i.e. its first path
 segment will be treated as a peer of the top-level modules or packages in the
 distribution.
 
-Note that resource names must be ``/``-separated paths rooted at the package
-and cannot contain relative names like ``".."``.  Do *not* use
+Note that resource names must be ``/``-separated paths rooted at the package,
+cannot contain relative names like ``".."``, and cannot begin with a
+leading ``/``.  Do *not* use
 ``os.path`` routines to manipulate resource paths, as they are *not* filesystem
 paths.
 
