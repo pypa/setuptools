@@ -1,0 +1,1 @@
+Add support for non-ASCII in setup.cfg (#1062). Add support for native strings on some parameters (#1136).
