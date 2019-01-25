@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 __all__ = ['Distribution']
 
+import io
+import sys
 import re
 import os
 import warnings
@@ -9,8 +11,10 @@ import distutils.log
 import distutils.core
 import distutils.cmd
 import distutils.dist
+from distutils.errors import DistutilsOptionError
+from distutils.util import strtobool
+from distutils.debug import DEBUG
 import itertools
-
 
 from collections import defaultdict
 from email import message_from_file
@@ -31,8 +35,8 @@ from setuptools.depends import Require
 from setuptools import windows_support
 from setuptools.monkey import get_unpatched
 from setuptools.config import parse_configuration
+from .unicode_utils import detect_encoding
 import pkg_resources
-from .py36compat import Distribution_parse_config_files
 
 __import__('setuptools.extern.packaging.specifiers')
 __import__('setuptools.extern.packaging.version')
@@ -332,7 +336,7 @@ def check_packages(dist, attr, value):
 _Distribution = get_unpatched(distutils.core.Distribution)
 
 
-class Distribution(Distribution_parse_config_files, _Distribution):
+class Distribution(_Distribution):
     """Distribution with support for features, tests, and package data
 
     This is an enhanced version of 'distutils.dist.Distribution' that
@@ -556,12 +560,78 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         req.marker = None
         return req
 
+    def _parse_config_files(self, filenames=None):
+        """
+        Adapted from distutils.dist.Distribution.parse_config_files,
+        this method provides the same functionality in subtly-improved
+        ways.
+        """
+        from setuptools.extern.six.moves.configparser import ConfigParser
+
+        # Ignore install directory options if we have a venv
+        if six.PY3 and sys.prefix != sys.base_prefix:
+            ignore_options = [
+                'install-base', 'install-platbase', 'install-lib',
+                'install-platlib', 'install-purelib', 'install-headers',
+                'install-scripts', 'install-data', 'prefix', 'exec-prefix',
+                'home', 'user', 'root']
+        else:
+            ignore_options = []
+
+        ignore_options = frozenset(ignore_options)
+
+        if filenames is None:
+            filenames = self.find_config_files()
+
+        if DEBUG:
+            self.announce("Distribution.parse_config_files():")
+
+        parser = ConfigParser()
+        for filename in filenames:
+            with io.open(filename, 'rb') as fp:
+                encoding = detect_encoding(fp)
+                if DEBUG:
+                    self.announce("  reading %s [%s]" % (
+                        filename, encoding or 'locale')
+                    )
+                reader = io.TextIOWrapper(fp, encoding=encoding)
+                (parser.read_file if six.PY3 else parser.readfp)(reader)
+            for section in parser.sections():
+                options = parser.options(section)
+                opt_dict = self.get_option_dict(section)
+
+                for opt in options:
+                    if opt != '__name__' and opt not in ignore_options:
+                        val = parser.get(section, opt)
+                        opt = opt.replace('-', '_')
+                        opt_dict[opt] = (filename, val)
+
+            # Make the ConfigParser forget everything (so we retain
+            # the original filenames that options come from)
+            parser.__init__()
+
+        # If there was a "global" section in the config file, use it
+        # to set Distribution options.
+
+        if 'global' in self.command_options:
+            for (opt, (src, val)) in self.command_options['global'].items():
+                alias = self.negative_opt.get(opt)
+                try:
+                    if alias:
+                        setattr(self, alias, not strtobool(val))
+                    elif opt in ('verbose', 'dry_run'):  # ugh!
+                        setattr(self, opt, strtobool(val))
+                    else:
+                        setattr(self, opt, val)
+                except ValueError as msg:
+                    raise DistutilsOptionError(msg)
+
     def parse_config_files(self, filenames=None, ignore_option_errors=False):
         """Parses configuration files from various levels
         and loads configuration.
 
         """
-        Distribution_parse_config_files.parse_config_files(self, filenames=filenames)
+        self._parse_config_files(filenames=filenames)
 
         parse_configuration(self, self.command_options,
                             ignore_option_errors=ignore_option_errors)
