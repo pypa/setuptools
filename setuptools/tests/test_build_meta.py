@@ -236,3 +236,22 @@ def test_build_sdist_builds_targz_even_if_zip_indicated(tmpdir_cwd):
 
     build_files(files)
     build_sdist("temp")
+
+
+def test_build_sdist_with_pwd_in_sys_path(tmpdir_cwd):
+    files = {
+        'setup.py': DALS("""
+            __import__('setuptools').setup(
+                name='foo',
+                version=__import__('hello').__version__,
+                py_modules=['hello']
+            )"""),
+        'hello.py': '__version__ = "0.0.0"',
+        'setup.cfg': DALS("""
+            [sdist]
+            formats=zip
+            """)
+    }
+
+    build_files(files)
+    build_sdist("temp")

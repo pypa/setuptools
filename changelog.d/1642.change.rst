@@ -1,0 +1,1 @@
+The current working directory is injected into `sys.path` when executing `setup.py`, maintaining compatibility to non-isolated projects where the module is imported in `setup.py`.

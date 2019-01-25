@@ -82,7 +82,15 @@ def _run_setup(setup_script='setup.py'):
     f = getattr(tokenize, 'open', open)(__file__)
     code = f.read().replace('\\r\\n', '\\n')
     f.close()
+
+    # Execute setup.py. The current directory is added into sys.path to emulate
+    # the behavior when setup.py is run globally (i.e. no PEP 517 isolation)
+    # to maintain backward compatibility. (pypa/setuptools#1642)
+    sys_path = sys.path
+    if '' not in sys.path:
+        sys.path.insert(0, '')
     exec(compile(code, __file__, 'exec'), locals())
+    sys.path = sys_path
 
 
 def _fix_config(config_settings):
