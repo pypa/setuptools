@@ -8,7 +8,7 @@ import subprocess
 from distutils.command.install import INSTALL_SCHEMES
 from string import Template
 
-from six.moves import urllib
+from setuptools.extern.six.moves import urllib
 
 
 def _system_call(*args):
@@ -89,8 +89,10 @@ def test_full():
     assert len(eggs) == 3
     assert eggs[1].startswith('setuptools')
     del eggs[1]
-    assert eggs == ['extensions-0.3-py2.6.egg',
-        'zc.recipe.egg-1.2.2-py2.6.egg']
+    assert eggs == [
+        'extensions-0.3-py2.6.egg',
+        'zc.recipe.egg-1.2.2-py2.6.egg',
+    ]
 
 
 if __name__ == '__main__':

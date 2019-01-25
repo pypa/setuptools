@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 __all__ = ['Distribution']
 
 import re
@@ -9,15 +10,22 @@ import distutils.core
 import distutils.cmd
 import distutils.dist
 import itertools
+
+
 from collections import defaultdict
+from email import message_from_file
+
 from distutils.errors import (
     DistutilsOptionError, DistutilsPlatformError, DistutilsSetupError,
 )
 from distutils.util import rfc822_escape
+from distutils.version import StrictVersion
 
 from setuptools.extern import six
+from setuptools.extern import packaging
 from setuptools.extern.six.moves import map, filter, filterfalse
-from pkg_resources.extern import packaging
+
+from . import SetuptoolsDeprecationWarning
 
 from setuptools.depends import Require
 from setuptools import windows_support
@@ -26,53 +34,145 @@ from setuptools.config import parse_configuration
 import pkg_resources
 from .py36compat import Distribution_parse_config_files
 
-__import__('pkg_resources.extern.packaging.specifiers')
-__import__('pkg_resources.extern.packaging.version')
+__import__('setuptools.extern.packaging.specifiers')
+__import__('setuptools.extern.packaging.version')
 
 
 def _get_unpatched(cls):
-    warnings.warn("Do not call this function", DeprecationWarning)
+    warnings.warn("Do not call this function", DistDeprecationWarning)
     return get_unpatched(cls)
+
+
+def get_metadata_version(self):
+    mv = getattr(self, 'metadata_version', None)
+
+    if mv is None:
+        if self.long_description_content_type or self.provides_extras:
+            mv = StrictVersion('2.1')
+        elif (self.maintainer is not None or
+              self.maintainer_email is not None or
+              getattr(self, 'python_requires', None) is not None):
+            mv = StrictVersion('1.2')
+        elif (self.provides or self.requires or self.obsoletes or
+                self.classifiers or self.download_url):
+            mv = StrictVersion('1.1')
+        else:
+            mv = StrictVersion('1.0')
+
+        self.metadata_version = mv
+
+    return mv
+
+
+def read_pkg_file(self, file):
+    """Reads the metadata values from a file object."""
+    msg = message_from_file(file)
+
+    def _read_field(name):
+        value = msg[name]
+        if value == 'UNKNOWN':
+            return None
+        return value
+
+    def _read_list(name):
+        values = msg.get_all(name, None)
+        if values == []:
+            return None
+        return values
+
+    self.metadata_version = StrictVersion(msg['metadata-version'])
+    self.name = _read_field('name')
+    self.version = _read_field('version')
+    self.description = _read_field('summary')
+    # we are filling author only.
+    self.author = _read_field('author')
+    self.maintainer = None
+    self.author_email = _read_field('author-email')
+    self.maintainer_email = None
+    self.url = _read_field('home-page')
+    self.license = _read_field('license')
+
+    if 'download-url' in msg:
+        self.download_url = _read_field('download-url')
+    else:
+        self.download_url = None
+
+    self.long_description = _read_field('description')
+    self.description = _read_field('summary')
+
+    if 'keywords' in msg:
+        self.keywords = _read_field('keywords').split(',')
+
+    self.platforms = _read_list('platform')
+    self.classifiers = _read_list('classifier')
+
+    # PEP 314 - these fields only exist in 1.1
+    if self.metadata_version == StrictVersion('1.1'):
+        self.requires = _read_list('requires')
+        self.provides = _read_list('provides')
+        self.obsoletes = _read_list('obsoletes')
+    else:
+        self.requires = None
+        self.provides = None
+        self.obsoletes = None
 
 
 # Based on Python 3.5 version
 def write_pkg_file(self, file):
     """Write the PKG-INFO format data to a file object.
     """
-    version = '1.0'
-    if (self.provides or self.requires or self.obsoletes or
-            self.classifiers or self.download_url):
-        version = '1.1'
-    # Setuptools specific for PEP 345
-    if hasattr(self, 'python_requires'):
-        version = '1.2'
+    version = self.get_metadata_version()
 
-    file.write('Metadata-Version: %s\n' % version)
-    file.write('Name: %s\n' % self.get_name())
-    file.write('Version: %s\n' % self.get_version())
-    file.write('Summary: %s\n' % self.get_description())
-    file.write('Home-page: %s\n' % self.get_url())
-    file.write('Author: %s\n' % self.get_contact())
-    file.write('Author-email: %s\n' % self.get_contact_email())
-    file.write('License: %s\n' % self.get_license())
+    if six.PY2:
+        def write_field(key, value):
+            file.write("%s: %s\n" % (key, self._encode_field(value)))
+    else:
+        def write_field(key, value):
+            file.write("%s: %s\n" % (key, value))
+
+
+    write_field('Metadata-Version', str(version))
+    write_field('Name', self.get_name())
+    write_field('Version', self.get_version())
+    write_field('Summary', self.get_description())
+    write_field('Home-page', self.get_url())
+
+    if version < StrictVersion('1.2'):
+        write_field('Author', self.get_contact())
+        write_field('Author-email', self.get_contact_email())
+    else:
+        optional_fields = (
+            ('Author', 'author'),
+            ('Author-email', 'author_email'),
+            ('Maintainer', 'maintainer'),
+            ('Maintainer-email', 'maintainer_email'),
+        )
+
+        for field, attr in optional_fields:
+            attr_val = getattr(self, attr)
+
+            if attr_val is not None:
+                write_field(field, attr_val)
+
+    write_field('License', self.get_license())
     if self.download_url:
-        file.write('Download-URL: %s\n' % self.download_url)
-
-    long_desc_content_type = getattr(
-        self,
-        'long_description_content_type',
-        None
-    ) or 'UNKNOWN'
-    file.write('Description-Content-Type: %s\n' % long_desc_content_type)
+        write_field('Download-URL', self.download_url)
+    for project_url in self.project_urls.items():
+        write_field('Project-URL',  '%s, %s' % project_url)
 
     long_desc = rfc822_escape(self.get_long_description())
-    file.write('Description: %s\n' % long_desc)
+    write_field('Description', long_desc)
 
     keywords = ','.join(self.get_keywords())
     if keywords:
-        file.write('Keywords: %s\n' % keywords)
+        write_field('Keywords', keywords)
 
-    self._write_list(file, 'Platform', self.get_platforms())
+    if version >= StrictVersion('1.2'):
+        for platform in self.get_platforms():
+            write_field('Platform', platform)
+    else:
+        self._write_list(file, 'Platform', self.get_platforms())
+
     self._write_list(file, 'Classifier', self.get_classifiers())
 
     # PEP 314
@@ -82,16 +182,17 @@ def write_pkg_file(self, file):
 
     # Setuptools specific for PEP 345
     if hasattr(self, 'python_requires'):
-        file.write('Requires-Python: %s\n' % self.python_requires)
+        write_field('Requires-Python', self.python_requires)
 
-
-# from Python 3.4
-def write_pkg_info(self, base_dir):
-    """Write the PKG-INFO file into the release tree.
-    """
-    with open(os.path.join(base_dir, 'PKG-INFO'), 'w',
-              encoding='UTF-8') as pkg_info:
-        self.write_pkg_file(pkg_info)
+    # PEP 566
+    if self.long_description_content_type:
+        write_field(
+            'Description-Content-Type',
+            self.long_description_content_type
+        )
+    if self.provides_extras:
+        for extra in self.provides_extras:
+            write_field('Provides-Extra', extra)
 
 
 sequence = tuple, list
@@ -166,6 +267,8 @@ def check_requirements(dist, attr, value):
     """Verify that install_requires is a valid requirements list"""
     try:
         list(pkg_resources.parse_requirements(value))
+        if isinstance(value, (dict, set)):
+            raise TypeError("Unordered types are not allowed")
     except (TypeError, ValueError) as error:
         tmpl = (
             "{attr!r} must be a string or list of strings "
@@ -297,6 +400,12 @@ class Distribution(Distribution_parse_config_files, _Distribution):
     distribution for the included and excluded features.
     """
 
+    _DISTUTILS_UNSUPPORTED_METADATA = {
+        'long_description_content_type': None,
+        'project_urls': dict,
+        'provides_extras': set,
+    }
+
     _patched_dist = None
 
     def patch_missing_pkg_info(self, attrs):
@@ -316,26 +425,36 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         have_package_data = hasattr(self, "package_data")
         if not have_package_data:
             self.package_data = {}
-        _attrs_dict = attrs or {}
-        if 'features' in _attrs_dict or 'require_features' in _attrs_dict:
+        attrs = attrs or {}
+        if 'features' in attrs or 'require_features' in attrs:
             Feature.warn_deprecated()
         self.require_features = []
         self.features = {}
         self.dist_files = []
-        self.src_root = attrs and attrs.pop("src_root", None)
+        # Filter-out setuptools' specific options.
+        self.src_root = attrs.pop("src_root", None)
         self.patch_missing_pkg_info(attrs)
-        self.long_description_content_type = _attrs_dict.get(
-            'long_description_content_type'
-        )
-        # Make sure we have any eggs needed to interpret 'attrs'
-        if attrs is not None:
-            self.dependency_links = attrs.pop('dependency_links', [])
-            assert_string_list(self, 'dependency_links', self.dependency_links)
-        if attrs and 'setup_requires' in attrs:
-            self.fetch_build_eggs(attrs['setup_requires'])
+        self.dependency_links = attrs.pop('dependency_links', [])
+        self.setup_requires = attrs.pop('setup_requires', [])
         for ep in pkg_resources.iter_entry_points('distutils.setup_keywords'):
             vars(self).setdefault(ep.name, None)
-        _Distribution.__init__(self, attrs)
+        _Distribution.__init__(self, {
+            k: v for k, v in attrs.items()
+            if k not in self._DISTUTILS_UNSUPPORTED_METADATA
+        })
+
+        # Fill-in missing metadata fields not supported by distutils.
+        # Note some fields may have been set by other tools (e.g. pbr)
+        # above; they are taken preferrentially to setup() arguments
+        for option, default in self._DISTUTILS_UNSUPPORTED_METADATA.items():
+            for source in self.metadata.__dict__, attrs:
+                if option in source:
+                    value = source[option]
+                    break
+            else:
+                value = default() if default else None
+            setattr(self.metadata, option, value)
+
         if isinstance(self.metadata.version, numbers.Number):
             # Some people apparently take "version number" too literally :)
             self.metadata.version = str(self.metadata.version)
@@ -368,6 +487,16 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         """
         if getattr(self, 'python_requires', None):
             self.metadata.python_requires = self.python_requires
+
+        if getattr(self, 'extras_require', None):
+            for extra in self.extras_require.keys():
+                # Since this gets called multiple times at points where the
+                # keys have become 'converted' extras, ensure that we are only
+                # truly adding extras we haven't seen before here.
+                extra = extra.split(':')[0]
+                if extra:
+                    self.metadata.provides_extras.add(extra)
+
         self._convert_extras_requirements()
         self._move_install_requirements_markers()
 
@@ -427,14 +556,15 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         req.marker = None
         return req
 
-    def parse_config_files(self, filenames=None):
+    def parse_config_files(self, filenames=None, ignore_option_errors=False):
         """Parses configuration files from various levels
         and loads configuration.
 
         """
         Distribution_parse_config_files.parse_config_files(self, filenames=filenames)
 
-        parse_configuration(self, self.command_options)
+        parse_configuration(self, self.command_options,
+                            ignore_option_errors=ignore_option_errors)
         self._finalize_requires()
 
     def parse_command_line(self):
@@ -497,19 +627,20 @@ class Distribution(Distribution_parse_config_files, _Distribution):
         """Fetch an egg needed for building"""
         from setuptools.command.easy_install import easy_install
         dist = self.__class__({'script_args': ['easy_install']})
-        dist.parse_config_files()
         opts = dist.get_option_dict('easy_install')
-        keep = (
-            'find_links', 'site_dirs', 'index_url', 'optimize',
-            'site_dirs', 'allow_hosts'
-        )
-        for key in list(opts):
-            if key not in keep:
-                del opts[key]  # don't use any other settings
+        opts.clear()
+        opts.update(
+            (k, v)
+            for k, v in self.get_option_dict('easy_install').items()
+            if k in (
+                # don't use any other settings
+                'find_links', 'site_dirs', 'index_url',
+                'optimize', 'site_dirs', 'allow_hosts',
+            ))
         if self.dependency_links:
             links = self.dependency_links[:]
             if 'find_links' in opts:
-                links = opts['find_links'][1].split() + links
+                links = opts['find_links'][1] + links
             opts['find_links'] = ('setup', links)
         install_dir = self.get_egg_cache_dir()
         cmd = easy_install(
@@ -921,7 +1052,7 @@ class Feature:
             "Features are deprecated and will be removed in a future "
             "version. See https://github.com/pypa/setuptools/issues/65."
         )
-        warnings.warn(msg, DeprecationWarning, stacklevel=3)
+        warnings.warn(msg, DistDeprecationWarning, stacklevel=3)
 
     def __init__(
             self, description, standard=False, available=True,
@@ -1010,3 +1141,7 @@ class Feature:
                     " doesn't contain any packages or modules under %s"
                     % (self.description, item, item)
                 )
+
+
+class DistDeprecationWarning(SetuptoolsDeprecationWarning):
+    """Class for warning about deprecations in dist in setuptools. Not ignored by default, unlike DeprecationWarning."""

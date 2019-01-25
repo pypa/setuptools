@@ -40,12 +40,16 @@ import subprocess
 import shlex
 import io
 
+
+from sysconfig import get_config_vars, get_path
+
+from setuptools import SetuptoolsDeprecationWarning
+
 from setuptools.extern import six
 from setuptools.extern.six.moves import configparser, map
 
 from setuptools import Command
 from setuptools.sandbox import run_setup
-from setuptools.py31compat import get_path, get_config_vars
 from setuptools.py27compat import rmtree_safe
 from setuptools.command import setopt
 from setuptools.archive_util import unpack_archive
@@ -53,6 +57,7 @@ from setuptools.package_index import (
     PackageIndex, parse_requirement_arg, URL_SCHEME,
 )
 from setuptools.command import bdist_egg, egg_info
+from setuptools.wheel import Wheel
 from pkg_resources import (
     yield_lines, normalize_path, resource_string, ensure_directory,
     get_distribution, find_distributions, Environment, Requirement,
@@ -60,6 +65,8 @@ from pkg_resources import (
     VersionConflict, DEVELOP_DIST,
 )
 import pkg_resources.py31compat
+
+__metaclass__ = type
 
 # Turn on PEP440Warnings
 warnings.filterwarnings("default", category=pkg_resources.PEP440Warning)
@@ -92,7 +99,7 @@ def samefile(p1, p2):
 
 if six.PY2:
 
-    def _to_ascii(s):
+    def _to_bytes(s):
         return s
 
     def isascii(s):
@@ -103,8 +110,8 @@ if six.PY2:
             return False
 else:
 
-    def _to_ascii(s):
-        return s.encode('ascii')
+    def _to_bytes(s):
+        return s.encode('utf8')
 
     def isascii(s):
         try:
@@ -318,7 +325,7 @@ class easy_install(Command):
                     self.all_site_dirs.append(normalize_path(d))
         if not self.editable:
             self.check_site_dir()
-        self.index_url = self.index_url or "https://pypi.python.org/simple"
+        self.index_url = self.index_url or "https://pypi.org/simple/"
         self.shadow_path = self.all_site_dirs[:]
         for path_item in self.install_dir, normalize_path(self.script_dir):
             if path_item not in self.shadow_path:
@@ -628,7 +635,7 @@ class easy_install(Command):
 
     @contextlib.contextmanager
     def _tmpdir(self):
-        tmpdir = tempfile.mkdtemp(prefix=six.u("easy_install-"))
+        tmpdir = tempfile.mkdtemp(prefix=u"easy_install-")
         try:
             # cast to str as workaround for #709 and #710 and #712
             yield str(tmpdir)
@@ -801,7 +808,7 @@ class easy_install(Command):
         if is_script:
             body = self._load_template(dev_path) % locals()
             script_text = ScriptWriter.get_header(script_text) + body
-        self.write_script(script_name, _to_ascii(script_text), 'b')
+        self.write_script(script_name, _to_bytes(script_text), 'b')
 
     @staticmethod
     def _load_template(dev_path):
@@ -827,14 +834,16 @@ class easy_install(Command):
         target = os.path.join(self.script_dir, script_name)
         self.add_output(target)
 
+        if self.dry_run:
+            return
+
         mask = current_umask()
-        if not self.dry_run:
-            ensure_directory(target)
-            if os.path.exists(target):
-                os.unlink(target)
-            with open(target, "w" + mode) as f:
-                f.write(contents)
-            chmod(target, 0o777 - mask)
+        ensure_directory(target)
+        if os.path.exists(target):
+            os.unlink(target)
+        with open(target, "w" + mode) as f:
+            f.write(contents)
+        chmod(target, 0o777 - mask)
 
     def install_eggs(self, spec, dist_filename, tmpdir):
         # .egg dirs or files are already built, so just return them
@@ -842,6 +851,8 @@ class easy_install(Command):
             return [self.install_egg(dist_filename, tmpdir)]
         elif dist_filename.lower().endswith('.exe'):
             return [self.install_exe(dist_filename, tmpdir)]
+        elif dist_filename.lower().endswith('.whl'):
+            return [self.install_wheel(dist_filename, tmpdir)]
 
         # Anything else, try to extract and build
         setup_base = tmpdir
@@ -1038,6 +1049,35 @@ class easy_install(Command):
                     f.write('\n'.join(locals()[name]) + '\n')
                     f.close()
 
+    def install_wheel(self, wheel_path, tmpdir):
+        wheel = Wheel(wheel_path)
+        assert wheel.is_compatible()
+        destination = os.path.join(self.install_dir, wheel.egg_name())
+        destination = os.path.abspath(destination)
+        if not self.dry_run:
+            ensure_directory(destination)
+        if os.path.isdir(destination) and not os.path.islink(destination):
+            dir_util.remove_tree(destination, dry_run=self.dry_run)
+        elif os.path.exists(destination):
+            self.execute(
+                os.unlink,
+                (destination,),
+                "Removing " + destination,
+            )
+        try:
+            self.execute(
+                wheel.install_as_egg,
+                (destination,),
+                ("Installing %s to %s") % (
+                    os.path.basename(wheel_path),
+                    os.path.dirname(destination)
+                ),
+            )
+        finally:
+            update_dist_caches(destination, fix_zipimporter_caches=False)
+        self.add_output(destination)
+        return self.egg_distribution(destination)
+
     __mv_warning = textwrap.dedent("""
         Because this distribution was installed --multi-version, before you can
         import modules from this package in an application, you will need to
@@ -1216,7 +1256,6 @@ class easy_install(Command):
 
     def byte_compile(self, to_compile):
         if sys.dont_write_bytecode:
-            self.warn('byte-compiling is disabled, skipping.')
             return
 
         from distutils.util import byte_compile
@@ -1817,7 +1856,7 @@ def _update_zipimporter_cache(normalized_path, cache, updater=None):
         #    get/del patterns instead. For more detailed information see the
         #    following links:
         #      https://github.com/pypa/setuptools/issues/202#issuecomment-202913420
-        #      https://bitbucket.org/pypy/pypy/src/dd07756a34a41f674c0cacfbc8ae1d4cc9ea2ae4/pypy/module/zipimport/interp_zipimport.py#cl-99
+        #      http://bit.ly/2h9itJX
         old_entry = cache[p]
         del cache[p]
         new_entry = updater and updater(p, old_entry)
@@ -2016,7 +2055,7 @@ class WindowsCommandSpec(CommandSpec):
     split_args = dict(posix=False)
 
 
-class ScriptWriter(object):
+class ScriptWriter:
     """
     Encapsulates behavior around writing entry point scripts for console and
     gui apps.
@@ -2041,7 +2080,7 @@ class ScriptWriter(object):
     @classmethod
     def get_script_args(cls, dist, executable=None, wininst=False):
         # for backward compatibility
-        warnings.warn("Use get_args", DeprecationWarning)
+        warnings.warn("Use get_args", EasyInstallDeprecationWarning)
         writer = (WindowsScriptWriter if wininst else ScriptWriter).best()
         header = cls.get_script_header("", executable, wininst)
         return writer.get_args(dist, header)
@@ -2049,12 +2088,10 @@ class ScriptWriter(object):
     @classmethod
     def get_script_header(cls, script_text, executable=None, wininst=False):
         # for backward compatibility
-        warnings.warn("Use get_header", DeprecationWarning)
+        warnings.warn("Use get_header", EasyInstallDeprecationWarning, stacklevel=2)
         if wininst:
             executable = "python.exe"
-        cmd = cls.command_spec_class.best().from_param(executable)
-        cmd.install_options(script_text)
-        return cmd.as_header()
+        return cls.get_header(script_text, executable)
 
     @classmethod
     def get_args(cls, dist, header=None):
@@ -2086,7 +2123,7 @@ class ScriptWriter(object):
     @classmethod
     def get_writer(cls, force_windows):
         # for backward compatibility
-        warnings.warn("Use best", DeprecationWarning)
+        warnings.warn("Use best", EasyInstallDeprecationWarning)
         return WindowsScriptWriter.best() if force_windows else cls.best()
 
     @classmethod
@@ -2118,7 +2155,7 @@ class WindowsScriptWriter(ScriptWriter):
     @classmethod
     def get_writer(cls):
         # for backward compatibility
-        warnings.warn("Use best", DeprecationWarning)
+        warnings.warn("Use best", EasyInstallDeprecationWarning)
         return cls.best()
 
     @classmethod
@@ -2299,3 +2336,7 @@ def _patch_usage():
         yield
     finally:
         distutils.core.gen_usage = saved
+
+class EasyInstallDeprecationWarning(SetuptoolsDeprecationWarning):
+    """Class for warning about deprecations in EasyInstall in SetupTools. Not ignored by default, unlike DeprecationWarning."""
+    

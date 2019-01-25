@@ -19,7 +19,7 @@ class TestInstallScripts:
     )
     unix_exe = '/usr/dummy-test-path/local/bin/python'
     unix_spaces_exe = '/usr/bin/env dummy-test-python'
-    win32_exe = 'C:\\Dummy Test Path\\Program Files\\Python 3.3\\python.exe'
+    win32_exe = 'C:\\Dummy Test Path\\Program Files\\Python 3.6\\python.exe'
 
     def _run_install_scripts(self, install_dir, executable=None):
         dist = Distribution(self.settings)

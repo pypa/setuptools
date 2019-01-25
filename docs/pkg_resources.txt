@@ -620,8 +620,8 @@ Requirements Parsing
     The "markers" in a requirement are used to specify when a requirement
     should be installed -- the requirement will be installed if the marker
     evaluates as true in the current environment. For example, specifying
-    ``argparse;python_version<"2.7"`` will not install in an Python 2.7 or 3.3
-    environment, but will in a Python 2.6 environment.
+    ``argparse;python_version<"3.0"`` will not install in an Python 3
+    environment, but will in a Python 2 environment.
 
 ``Requirement`` Methods and Attributes
 --------------------------------------
@@ -638,7 +638,7 @@ Requirements Parsing
     sorted into ascending version order, and used to establish what ranges of
     versions are acceptable.  Adjacent redundant conditions are effectively
     consolidated (e.g. ``">1, >2"`` produces the same results as ``">2"``, and
-    ``"<2,<3"`` produces the same results as``"<2"``). ``"!="`` versions are
+    ``"<2,<3"`` produces the same results as ``"<2"``). ``"!="`` versions are
     excised from the ranges they fall within.  The version being tested for
     acceptability is then checked for membership in the resulting ranges.
 
@@ -703,7 +703,7 @@ entry point group and look for entry points named "pre_process" and
 To advertise an entry point, a project needs to use ``setuptools`` and provide
 an ``entry_points`` argument to ``setup()`` in its setup script, so that the
 entry points will be included in the distribution's metadata.  For more
-details, see the ``setuptools`` documentation.  (XXX link here to setuptools)
+details, see the [``setuptools`` documentation](https://setuptools.readthedocs.io/en/latest/setuptools.html#dynamic-discovery-of-services-and-plugins).
 
 Each project distribution can advertise at most one entry point of a given
 name within the same entry point group.  For example, a distutils extension
@@ -1087,6 +1087,7 @@ so that supporting custom importers or new distribution formats can be done
 simply by creating an appropriate `IResourceProvider`_ implementation; see the
 section below on `Supporting Custom Importers`_ for more details.
 
+.. _ResourceManager API:
 
 ``ResourceManager`` API
 =======================
@@ -1658,19 +1659,7 @@ PEP 302 Utilities
 -----------------
 
 ``get_importer(path_item)``
-    Retrieve a PEP 302 "importer" for the given path item (which need not
-    actually be on ``sys.path``).  This routine simulates the PEP 302 protocol
-    for obtaining an "importer" object.  It first checks for an importer for
-    the path item in ``sys.path_importer_cache``, and if not found it calls
-    each of the ``sys.path_hooks`` and caches the result if a good importer is
-    found.  If no importer is found, this routine returns an ``ImpWrapper``
-    instance that wraps the builtin import machinery as a PEP 302-compliant
-    "importer" object.  This ``ImpWrapper`` is *not* cached; instead a new
-    instance is returned each time.
-
-    (Note: When run under Python 2.5, this function is simply an alias for
-    ``pkgutil.get_importer()``, and instead of ``pkg_resources.ImpWrapper``
-    instances, it may return ``pkgutil.ImpImporter`` instances.)
+    A deprecated alias for ``pkgutil.get_importer()``
 
 
 File/Path Utilities

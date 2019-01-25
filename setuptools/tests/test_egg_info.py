@@ -1,11 +1,13 @@
+import datetime
+import sys
 import ast
 import os
 import glob
 import re
 import stat
-import sys
+import time
 
-from setuptools.command.egg_info import egg_info, manifest_maker
+from setuptools.command.egg_info import egg_info, manifest_maker, EggInfoDeprecationWarning, get_pkg_info_revision
 from setuptools.dist import Distribution
 from setuptools.extern.six.moves import map
 
@@ -16,12 +18,14 @@ from .files import build_files
 from .textwrap import DALS
 from . import contexts
 
+__metaclass__ = type
+
 
 class Environment(str):
     pass
 
 
-class TestEggInfo(object):
+class TestEggInfo:
 
     setup_script = DALS("""
         from setuptools import setup
@@ -64,12 +68,6 @@ class TestEggInfo(object):
             })
             yield env
 
-    dict_order_fails = pytest.mark.skipif(
-        sys.version_info < (2, 7),
-        reason="Intermittent failures on Python 2.6",
-    )
-
-    @dict_order_fails
     def test_egg_info_save_version_info_setup_empty(self, tmpdir_cwd, env):
         """
         When the egg_info section is empty or not present, running
@@ -104,7 +102,6 @@ class TestEggInfo(object):
         flags = re.MULTILINE | re.DOTALL
         assert re.search(pattern, content, flags)
 
-    @dict_order_fails
     def test_egg_info_save_version_info_setup_defaults(self, tmpdir_cwd, env):
         """
         When running save_version_info on an existing setup.cfg
@@ -135,11 +132,11 @@ class TestEggInfo(object):
 
         self._validate_content_order(content, expected_order)
 
-    def test_egg_base_installed_egg_info(self, tmpdir_cwd, env):
+    def test_expected_files_produced(self, tmpdir_cwd, env):
         self._create_project()
 
-        self._run_install_command(tmpdir_cwd, env)
-        actual = self._find_egg_info_files(env.paths['lib'])
+        self._run_egg_info_command(tmpdir_cwd, env)
+        actual = os.listdir('foo.egg-info')
 
         expected = [
             'PKG-INFO',
@@ -151,6 +148,52 @@ class TestEggInfo(object):
         ]
         assert sorted(actual) == expected
 
+    def test_license_is_a_string(self, tmpdir_cwd, env):
+        setup_config = DALS("""
+            [metadata]
+            name=foo
+            version=0.0.1
+            license=file:MIT
+            """)
+
+        setup_script = DALS("""
+            from setuptools import setup
+
+            setup()
+            """)
+
+        build_files({'setup.py': setup_script,
+                     'setup.cfg': setup_config})
+
+        # This command should fail with a ValueError, but because it's
+        # currently configured to use a subprocess, the actual traceback
+        # object is lost and we need to parse it from stderr
+        with pytest.raises(AssertionError) as exc:
+            self._run_egg_info_command(tmpdir_cwd, env)
+
+        # Hopefully this is not too fragile: the only argument to the
+        # assertion error should be a traceback, ending with:
+        #     ValueError: ....
+        #
+        #     assert not 1
+        tb = exc.value.args[0].split('\n')
+        assert tb[-3].lstrip().startswith('ValueError')
+
+    def test_rebuilt(self, tmpdir_cwd, env):
+        """Ensure timestamps are updated when the command is re-run."""
+        self._create_project()
+
+        self._run_egg_info_command(tmpdir_cwd, env)
+        timestamp_a = os.path.getmtime('foo.egg-info')
+
+        # arbitrary sleep just to handle *really* fast systems
+        time.sleep(.001)
+
+        self._run_egg_info_command(tmpdir_cwd, env)
+        timestamp_b = os.path.getmtime('foo.egg-info')
+
+        assert timestamp_a != timestamp_b
+
     def test_manifest_template_is_read(self, tmpdir_cwd, env):
         self._create_project()
         build_files({
@@ -161,8 +204,8 @@ class TestEggInfo(object):
                 'usage.rst': "Run 'hi'",
             }
         })
-        self._run_install_command(tmpdir_cwd, env)
-        egg_info_dir = self._find_egg_info_files(env.paths['lib']).base
+        self._run_egg_info_command(tmpdir_cwd, env)
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
         sources_txt = os.path.join(egg_info_dir, 'SOURCES.txt')
         with open(sources_txt) as f:
             assert 'docs/usage.rst' in f.read().split('\n')
@@ -188,7 +231,7 @@ class TestEggInfo(object):
     )
     invalid_marker = "<=>++"
 
-    class RequiresTestHelper(object):
+    class RequiresTestHelper:
 
         @staticmethod
         def parametrize(*test_list, **format_dict):
@@ -198,7 +241,8 @@ class TestEggInfo(object):
                 test_params = test.lstrip().split('\n\n', 3)
                 name_kwargs = test_params.pop(0).split('\n')
                 if len(name_kwargs) > 1:
-                    install_cmd_kwargs = ast.literal_eval(name_kwargs[1].strip())
+                    val = name_kwargs[1].strip()
+                    install_cmd_kwargs = ast.literal_eval(val)
                 else:
                     install_cmd_kwargs = {}
                 name = name_kwargs[0].strip()
@@ -218,9 +262,11 @@ class TestEggInfo(object):
                                                   expected_requires,
                                                   install_cmd_kwargs,
                                                   marks=marks))
-            return pytest.mark.parametrize('requires,use_setup_cfg,'
-                                           'expected_requires,install_cmd_kwargs',
-                                           argvalues, ids=idlist)
+            return pytest.mark.parametrize(
+                'requires,use_setup_cfg,'
+                'expected_requires,install_cmd_kwargs',
+                argvalues, ids=idlist,
+            )
 
     @RequiresTestHelper.parametrize(
         # Format of a test:
@@ -233,6 +279,32 @@ class TestEggInfo(object):
         # requires block (when used in setup.cfg)
         #
         # expected contents of requires.txt
+
+        '''
+        install_requires_deterministic
+
+        install_requires=["wheel>=0.5", "pytest"]
+
+        [options]
+        install_requires =
+            wheel>=0.5
+            pytest
+
+        wheel>=0.5
+        pytest
+        ''',
+
+        '''
+        install_requires_ordered
+
+        install_requires=["pytest>=3.0.2,!=10.9999"]
+
+        [options]
+        install_requires =
+            pytest>=3.0.2,!=10.9999
+
+        pytest!=10.9999,>=3.0.2
+        ''',
 
         '''
         install_requires_with_marker
@@ -368,11 +440,11 @@ class TestEggInfo(object):
         mismatch_marker=mismatch_marker,
         mismatch_marker_alternate=mismatch_marker_alternate,
     )
-    def test_requires(self, tmpdir_cwd, env,
-                      requires, use_setup_cfg,
-                      expected_requires, install_cmd_kwargs):
+    def test_requires(
+            self, tmpdir_cwd, env, requires, use_setup_cfg,
+            expected_requires, install_cmd_kwargs):
         self._setup_script_with_requires(requires, use_setup_cfg)
-        self._run_install_command(tmpdir_cwd, env, **install_cmd_kwargs)
+        self._run_egg_info_command(tmpdir_cwd, env, **install_cmd_kwargs)
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         requires_txt = os.path.join(egg_info_dir, 'requires.txt')
         if os.path.exists(requires_txt):
@@ -383,12 +455,23 @@ class TestEggInfo(object):
         assert install_requires.lstrip() == expected_requires
         assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
 
+    def test_install_requires_unordered_disallowed(self, tmpdir_cwd, env):
+        """
+        Packages that pass unordered install_requires sequences
+        should be rejected as they produce non-deterministic
+        builds. See #458.
+        """
+        req = 'install_requires={"fake-factory==0.5.2", "pytz"}'
+        self._setup_script_with_requires(req)
+        with pytest.raises(AssertionError):
+            self._run_egg_info_command(tmpdir_cwd, env)
+
     def test_extras_require_with_invalid_marker(self, tmpdir_cwd, env):
         tmpl = 'extras_require={{":{marker}": ["barbazquux"]}},'
         req = tmpl.format(marker=self.invalid_marker)
         self._setup_script_with_requires(req)
         with pytest.raises(AssertionError):
-            self._run_install_command(tmpdir_cwd, env)
+            self._run_egg_info_command(tmpdir_cwd, env)
         assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
 
     def test_extras_require_with_invalid_marker_in_req(self, tmpdir_cwd, env):
@@ -396,8 +479,43 @@ class TestEggInfo(object):
         req = tmpl.format(marker=self.invalid_marker)
         self._setup_script_with_requires(req)
         with pytest.raises(AssertionError):
-            self._run_install_command(tmpdir_cwd, env)
+            self._run_egg_info_command(tmpdir_cwd, env)
         assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
+
+    def test_provides_extra(self, tmpdir_cwd, env):
+        self._setup_script_with_requires(
+            'extras_require={"foobar": ["barbazquux"]},')
+        environ = os.environ.copy().update(
+            HOME=env.paths['home'],
+        )
+        code, data = environment.run_setup_py(
+            cmd=['egg_info'],
+            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
+            data_stream=1,
+            env=environ,
+        )
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
+        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+            pkg_info_lines = pkginfo_file.read().split('\n')
+        assert 'Provides-Extra: foobar' in pkg_info_lines
+        assert 'Metadata-Version: 2.1' in pkg_info_lines
+
+    def test_doesnt_provides_extra(self, tmpdir_cwd, env):
+        self._setup_script_with_requires(
+            '''install_requires=["spam ; python_version<'3.6'"]''')
+        environ = os.environ.copy().update(
+            HOME=env.paths['home'],
+        )
+        environment.run_setup_py(
+            cmd=['egg_info'],
+            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
+            data_stream=1,
+            env=environ,
+        )
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
+        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+            pkg_info_text = pkginfo_file.read()
+        assert 'Provides-Extra:' not in pkg_info_text
 
     def test_long_description_content_type(self, tmpdir_cwd, env):
         # Test that specifying a `long_description_content_type` keyword arg to
@@ -423,6 +541,37 @@ class TestEggInfo(object):
             pkg_info_lines = pkginfo_file.read().split('\n')
         expected_line = 'Description-Content-Type: text/markdown'
         assert expected_line in pkg_info_lines
+        assert 'Metadata-Version: 2.1' in pkg_info_lines
+
+    def test_project_urls(self, tmpdir_cwd, env):
+        # Test that specifying a `project_urls` dict to the `setup`
+        # function results in writing multiple `Project-URL` lines to
+        # the `PKG-INFO` file in the `<distribution>.egg-info`
+        # directory.
+        # `Project-URL` is described at https://packaging.python.org
+        #     /specifications/core-metadata/#project-url-multiple-use
+
+        self._setup_script_with_requires(
+            """project_urls={
+                'Link One': 'https://example.com/one/',
+                'Link Two': 'https://example.com/two/',
+                },""")
+        environ = os.environ.copy().update(
+            HOME=env.paths['home'],
+        )
+        code, data = environment.run_setup_py(
+            cmd=['egg_info'],
+            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
+            data_stream=1,
+            env=environ,
+        )
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
+        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+            pkg_info_lines = pkginfo_file.read().split('\n')
+        expected_line = 'Project-URL: Link One, https://example.com/one/'
+        assert expected_line in pkg_info_lines
+        expected_line = 'Project-URL: Link Two, https://example.com/two/'
+        assert expected_line in pkg_info_lines
 
     def test_python_requires_egg_info(self, tmpdir_cwd, env):
         self._setup_script_with_requires(
@@ -442,15 +591,6 @@ class TestEggInfo(object):
         assert 'Requires-Python: >=2.7.12' in pkg_info_lines
         assert 'Metadata-Version: 1.2' in pkg_info_lines
 
-    def test_python_requires_install(self, tmpdir_cwd, env):
-        self._setup_script_with_requires(
-            """python_requires='>=1.2.3',""")
-        self._run_install_command(tmpdir_cwd, env)
-        egg_info_dir = self._find_egg_info_files(env.paths['lib']).base
-        pkginfo = os.path.join(egg_info_dir, 'PKG-INFO')
-        with open(pkginfo) as f:
-            assert 'Requires-Python: >=1.2.3' in f.read().split('\n')
-
     def test_manifest_maker_warning_suppression(self):
         fixtures = [
             "standard file not found: should have one of foo.py, bar.py",
@@ -460,17 +600,27 @@ class TestEggInfo(object):
         for msg in fixtures:
             assert manifest_maker._should_suppress_warning(msg)
 
-    def _run_install_command(self, tmpdir_cwd, env, cmd=None, output=None):
+    def test_egg_info_includes_setup_py(self, tmpdir_cwd):
+        self._create_project()
+        dist = Distribution({"name": "foo", "version": "0.0.1"})
+        dist.script_name = "non_setup.py"
+        egg_info_instance = egg_info(dist)
+        egg_info_instance.finalize_options()
+        egg_info_instance.run()
+
+        assert 'setup.py' in egg_info_instance.filelist.files
+
+        with open(egg_info_instance.egg_info + "/SOURCES.txt") as f:
+            sources = f.read().split('\n')
+            assert 'setup.py' in sources
+
+    def _run_egg_info_command(self, tmpdir_cwd, env, cmd=None, output=None):
         environ = os.environ.copy().update(
             HOME=env.paths['home'],
         )
         if cmd is None:
             cmd = [
-                'install',
-                '--home', env.paths['home'],
-                '--install-lib', env.paths['lib'],
-                '--install-scripts', env.paths['scripts'],
-                '--install-data', env.paths['data'],
+                'egg_info',
             ]
         code, data = environment.run_setup_py(
             cmd=cmd,
@@ -478,25 +628,29 @@ class TestEggInfo(object):
             data_stream=1,
             env=environ,
         )
-        if code:
-            raise AssertionError(data)
+        assert not code, data
+
         if output:
             assert output in data
 
-    def _find_egg_info_files(self, root):
-        class DirList(list):
-            def __init__(self, files, base):
-                super(DirList, self).__init__(files)
-                self.base = base
+    def test_egg_info_tag_only_once(self, tmpdir_cwd, env):
+        self._create_project()
+        build_files({
+            'setup.cfg': DALS("""
+                              [egg_info]
+                              tag_build = dev
+                              tag_date = 0
+                              tag_svn_revision = 0
+                              """),
+        })
+        self._run_egg_info_command(tmpdir_cwd, env)
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
+        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+            pkg_info_lines = pkginfo_file.read().split('\n')
+        assert 'Version: 0.0.0.dev0' in pkg_info_lines
 
-        results = (
-            DirList(filenames, dirpath)
-            for dirpath, dirnames, filenames in os.walk(root)
-            if os.path.basename(dirpath) == 'EGG-INFO'
-        )
-        # expect exactly one result
-        result, = results
-        return result
+    def test_get_pkg_info_revision_deprecated(self):
+        pytest.warns(EggInfoDeprecationWarning, get_pkg_info_revision)
 
     EGG_INFO_TESTS = (
         # Check for issue #1136: invalid string type when

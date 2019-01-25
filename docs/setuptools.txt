@@ -3,7 +3,7 @@ Building and Distributing Packages with Setuptools
 ==================================================
 
 ``Setuptools`` is a collection of enhancements to the Python ``distutils``
-(for Python 2.6 and up) that allow developers to more easily build and
+that allow developers to more easily build and
 distribute Python packages, especially ones that have dependencies on other
 packages.
 
@@ -41,14 +41,12 @@ Feature Highlights:
   files for any number of "main" functions in your project.  (Note: this is not
   a py2exe replacement; the .exe files rely on the local Python installation.)
 
-* Transparent Pyrex support, so that your setup.py can list ``.pyx`` files and
-  still work even when the end-user doesn't have Pyrex installed (as long as
-  you include the Pyrex-generated C in your source distribution)
+* Transparent Cython support, so that your setup.py can list ``.pyx`` files and
+  still work even when the end-user doesn't have Cython installed (as long as
+  you include the Cython-generated C in your source distribution)
 
 * Command aliases - create project-specific, per-user, or site-wide shortcut
   names for commonly used commands and options
-
-* PyPI upload support - upload your source distributions and eggs to PyPI
 
 * Deploy your project in "development mode", such that it's available on
   ``sys.path``, yet can still be edited directly from its source checkout.
@@ -58,6 +56,9 @@ Feature Highlights:
 
 * Create extensible applications and frameworks that automatically discover
   extensions, using simple "entry points" declared in a project's setup script.
+
+* Full support for PEP 420 via ``find_namespace_packages()``, which is also backwards
+  compatible to the existing ``find_packages()`` for Python >= 3.3.
 
 .. contents:: **Table of Contents**
 
@@ -72,23 +73,17 @@ Developer's Guide
 Installing ``setuptools``
 =========================
 
-Please follow the `EasyInstall Installation Instructions`_ to install the
-current stable version of setuptools.  In particular, be sure to read the
-section on `Custom Installation Locations`_ if you are installing anywhere
-other than Python's ``site-packages`` directory.
+.. _EasyInstall Installation Instructions: easy_install.html
 
-.. _EasyInstall Installation Instructions: easy_install.html#installation-instructions
+.. _Custom Installation Locations: easy_install.html
 
-.. _Custom Installation Locations: easy_install.html#custom-installation-locations
+.. _Installing Packages: https://packaging.python.org/tutorials/installing-packages/
 
-If you want the current in-development version of setuptools, you should first
-install a stable version, and then run::
+To install the latest version of setuptools, use::
 
-    ez_setup.py setuptools==dev
+    pip install -U setuptools
 
-This will download and install the latest development (i.e. unstable) version
-of setuptools from the Python Subversion sandbox.
-
+Refer to `Installing Packages`_ guide for more information.
 
 Basic Use
 =========
@@ -107,11 +102,10 @@ As you can see, it doesn't take much to use setuptools in a project.
 Run that script in your project folder, alongside the Python packages
 you have developed.
 
-Invoke that script to produce eggs, upload to
-PyPI, and automatically include all packages in the directory where the
-setup.py lives.  See the `Command Reference`_ section below to see what
-commands you can give to this setup script. For example,
-to produce a source distribution, simply invoke::
+Invoke that script to produce distributions and automatically include all
+packages in the directory where the setup.py lives.  See the `Command
+Reference`_ section below to see what commands you can give to this setup
+script. For example, to produce a source distribution, simply invoke::
 
     python setup.py sdist
 
@@ -138,13 +132,18 @@ dependencies, and perhaps some data files and scripts::
             'hello': ['*.msg'],
         },
 
-        # metadata for upload to PyPI
+        # metadata to display on PyPI
         author="Me",
         author_email="me@example.com",
         description="This is an Example Package",
         license="PSF",
         keywords="hello world example examples",
         url="http://example.com/HelloWorld/",   # project home page, if any
+        project_urls={
+            "Bug Tracker": "https://bugs.example.com/HelloWorld/",
+            "Documentation": "https://docs.example.com/HelloWorld/",
+            "Source Code": "https://code.example.com/HelloWorld/",
+        }
 
         # could also include long_description, download_url, classifiers, etc.
     )
@@ -237,7 +236,6 @@ have setuptools automatically tag your in-development releases with various
 pre- or post-release tags.  See the following sections for more details:
 
 * `Tagging and "Daily Build" or "Snapshot" Releases`_
-* `Managing "Continuous Releases" Using Subversion`_
 * The `egg_info`_ command
 
 
@@ -408,6 +406,11 @@ unless you need the associated ``setuptools`` feature.
     A list of modules to search for additional fixers to be used during
     the 2to3 conversion. See :doc:`python3` for more details.
 
+``project_urls``
+    An arbitrary map of URL names to hyperlinks, allowing more extensible
+    documentation of where various resources can be found than the simple
+    ``url`` and ``download_url`` options provide.
+
 
 Using ``find_packages()``
 -------------------------
@@ -427,9 +430,9 @@ such projects also need something like ``package_dir={'':'src'}`` in their
 ``setup()`` arguments, but that's just a normal distutils thing.)
 
 Anyway, ``find_packages()`` walks the target directory, filtering by inclusion
-patterns, and finds Python packages (any directory). On Python 3.2 and
-earlier, packages are only recognized if they include an ``__init__.py`` file.
-Finally, exclusion patterns are applied to remove matching packages.
+patterns, and finds Python packages (any directory). Packages are only
+recognized if they include an ``__init__.py`` file. Finally, exclusion
+patterns are applied to remove matching packages.
 
 Inclusion and exclusion patterns are package names, optionally including
 wildcards.  For
@@ -453,6 +456,67 @@ argument in your setup script.  Especially since it frees you from having to
 remember to modify your setup script whenever your project grows additional
 top-level packages or subpackages.
 
+``find_namespace_packages()``
+-----------------------------
+In Python 3.3+, ``setuptools`` also provides the ``find_namespace_packages`` variant
+of ``find_packages``, which has the same function signature as
+``find_packages``, but works with `PEP 420`_ compliant implicit namespace
+packages. Here is a minimal setup script using ``find_namespace_packages``::
+
+    from setuptools import setup, find_namespace_packages
+    setup(
+        name="HelloWorld",
+        version="0.1",
+        packages=find_namespace_packages(),
+    )
+
+
+Keep in mind that according to PEP 420, you may have to either re-organize your
+codebase a bit or define a few exclusions, as the definition of an implicit
+namespace package is quite lenient, so for a project organized like so::
+
+
+    ├── namespace
+    │   └── mypackage
+    │       ├── __init__.py
+    │       └── mod1.py
+    ├── setup.py
+    └── tests
+        └── test_mod1.py
+
+A naive ``find_namespace_packages()`` would install both ``namespace.mypackage`` and a
+top-level package called ``tests``! One way to avoid this problem is to use the
+``include`` keyword to whitelist the packages to include, like so::
+
+    from setuptools import setup, find_namespace_packages
+
+    setup(
+        name="namespace.mypackage",
+        version="0.1",
+        packages=find_namespace_packages(include=['namespace.*'])
+    )
+
+Another option is to use the "src" layout, where all package code is placed in
+the ``src`` directory, like so::
+
+
+    ├── setup.py
+    ├── src
+    │   └── namespace
+    │       └── mypackage
+    │           ├── __init__.py
+    │           └── mod1.py
+    └── tests
+        └── test_mod1.py
+
+With this layout, the package directory is specified as ``src``, as such::
+
+    setup(name="namespace.mypackage",
+          version="0.1",
+          package_dir={'': 'src'},
+          packages=find_namespace_packages(where='src'))
+
+.. _PEP 420: https://www.python.org/dev/peps/pep-0420/
 
 Automatic Script Creation
 =========================
@@ -561,7 +625,7 @@ project name or version identifier must be replaced with ``-``.
 Version specifiers for a given project are internally sorted into ascending
 version order, and used to establish what ranges of versions are acceptable.
 Adjacent redundant conditions are also consolidated (e.g. ``">1, >2"`` becomes
-``">1"``, and ``"<2,<3"`` becomes ``"<3"``). ``"!="`` versions are excised from
+``">2"``, and ``"<2,<3"`` becomes ``"<2"``). ``"!="`` versions are excised from
 the ranges they fall within.  A project's version is then checked for
 membership in the resulting ranges. (Note that providing conflicting conditions
 for the same version (e.g. "<2,>=2" or "==2,!=2") is meaningless and may
@@ -609,9 +673,8 @@ using ``setup.py develop``.)
 Dependencies that aren't in PyPI
 --------------------------------
 
-If your project depends on packages that aren't registered in PyPI, you may
-still be able to depend on them, as long as they are available for download
-as:
+If your project depends on packages that don't exist on PyPI, you may still be
+able to depend on them, as long as they are available for download as:
 
 - an egg, in the standard distutils ``sdist`` format,
 - a single ``.py`` file, or
@@ -875,6 +938,14 @@ Also notice that if you use paths, you *must* use a forward slash (``/``) as
 the path separator, even if you are on Windows.  Setuptools automatically
 converts slashes to appropriate platform-specific separators at build time.
 
+If datafiles are contained in a subdirectory of a package that isn't a package
+itself (no ``__init__.py``), then the subdirectory names (or ``*``) are required
+in the ``package_data`` argument (as shown above with ``'data/*.dat'``).
+
+When building an ``sdist``, the datafiles are also drawn from the
+``package_name.egg-info/SOURCES.txt`` file, so make sure that this is removed if
+the ``setup.py`` ``package_data`` list is updated before calling ``setup.py``.
+
 (Note: although the ``package_data`` argument was previously only available in
 ``setuptools``, it was also added to the Python ``distutils`` package as of
 Python 2.4; there is `some documentation for the feature`__ available on the
@@ -916,7 +987,7 @@ In summary, the three options allow you to:
     Accept all data files and directories matched by ``MANIFEST.in``.
 
 ``package_data``
-    Specify additional patterns to match files and directories that may or may
+    Specify additional patterns to match files that may or may
     not be matched by ``MANIFEST.in`` or found in source control.
 
 ``exclude_package_data``
@@ -953,35 +1024,14 @@ a quick example of converting code that uses ``__file__`` to use
 Non-Package Data Files
 ----------------------
 
-The ``distutils`` normally install general "data files" to a platform-specific
-location (e.g. ``/usr/share``).  This feature intended to be used for things
-like documentation, example configuration files, and the like.  ``setuptools``
-does not install these data files in a separate location, however.  They are
-bundled inside the egg file or directory, alongside the Python modules and
-packages.  The data files can also be accessed using the :ref:`ResourceManager
-API`, by specifying a ``Requirement`` instead of a package name::
+Historically, ``setuptools`` by way of ``easy_install`` would encapsulate data
+files from the distribution into the egg (see `the old docs
+<https://github.com/pypa/setuptools/blob/52aacd5b276fedd6849c3a648a0014f5da563e93/docs/setuptools.txt#L970-L1001>`_). As eggs are deprecated and pip-based installs
+fall back to the platform-specific location for installing data files, there is
+no supported facility to reliably retrieve these resources.
 
-    from pkg_resources import Requirement, resource_filename
-    filename = resource_filename(Requirement.parse("MyProject"),"sample.conf")
-
-The above code will obtain the filename of the "sample.conf" file in the data
-root of the "MyProject" distribution.
-
-Note, by the way, that this encapsulation of data files means that you can't
-actually install data files to some arbitrary location on a user's machine;
-this is a feature, not a bug.  You can always include a script in your
-distribution that extracts and copies your the documentation or data files to
-a user-specified location, at their discretion.  If you put related data files
-in a single directory, you can use ``resource_filename()`` with the directory
-name to get a filesystem directory that then can be copied with the ``shutil``
-module.  (Even if your package is installed as a zipfile, calling
-``resource_filename()`` on a directory will return an actual filesystem
-directory, whose contents will be that entire subtree of your distribution.)
-
-(Of course, if you're writing a new package, you can just as easily place your
-data files or directories inside one of your packages, rather than using the
-distutils' approach.  However, if you're updating an existing application, it
-may be simpler not to change the way it currently specifies these data files.)
+Instead, the PyPA recommends that any data files you wish to be accessible at
+run time be included in the package.
 
 
 Automatic Resource Extraction
@@ -1173,130 +1223,53 @@ the quoted part.
 Distributing a ``setuptools``-based project
 ===========================================
 
-Using ``setuptools``...  Without bundling it!
----------------------------------------------
+Detailed instructions to distribute a setuptools project can be found at 
+`Packaging project tutorials`_.
+
+.. _Packaging project tutorials: https://packaging.python.org/tutorials/packaging-projects/#generating-distribution-archives
+
+Before you begin, make sure you have the latest versions of setuptools and wheel::
+
+    python3 -m pip install --user --upgrade setuptools wheel
+
+To build a setuptools project, run this command from the same directory where
+setup.py is located::
+
+    python3 setup.py sdist bdist_wheel
+
+This will generate distribution archives in the `dist` directory.
+
+Before you upload the generated archives make sure you're registered on 
+https://test.pypi.org/account/register/. You will also need to verify your email
+to be able to upload any packages.
+You should install twine to be able to upload packages::
+
+    python3 -m pip install --user --upgrade setuptools wheel
+
+Now, to upload these archives, run::
+
+    twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+
+To install your newly uploaded package ``example_pkg``,  you can use pip::
+
+    python3 -m pip install --index-url https://test.pypi.org/simple/ example_pkg
+
+If you have issues at any point, please refer to `Packaging project tutorials`_
+for clarification.
+
+Distributing legacy ``setuptools`` projects using ez_setup.py
+-------------------------------------------------------------
 
 .. warning:: **ez_setup** is deprecated in favor of PIP with **PEP-518** support.
 
-Your users might not have ``setuptools`` installed on their machines, or even
-if they do, it might not be the right version.  Fixing this is easy; just
-download `ez_setup.py`_, and put it in the same directory as your ``setup.py``
-script.  (Be sure to add it to your revision control system, too.)  Then add
-these two lines to the very top of your setup script, before the script imports
-anything from setuptools:
+Distributing packages using the legacy ``ez_setup.py`` and ``easy_install`` is 
+deprecated in favor of PIP. Please consider migrating to using pip and twine based
+distribution.
 
-.. code-block:: python
+However, if you still have any ``ez_setup`` based packages, documentation for 
+ez_setup based distributions can be found at `ez_setup distribution guide`_.
 
-    import ez_setup
-    ez_setup.use_setuptools()
-
-That's it.  The ``ez_setup`` module will automatically download a matching
-version of ``setuptools`` from PyPI, if it isn't present on the target system.
-Whenever you install an updated version of setuptools, you should also update
-your projects' ``ez_setup.py`` files, so that a matching version gets installed
-on the target machine(s).
-
-By the way, setuptools supports the new PyPI "upload" command, so you can use
-``setup.py sdist upload`` or ``setup.py bdist_egg upload`` to upload your
-source or egg distributions respectively.  Your project's current version must
-be registered with PyPI first, of course; you can use ``setup.py register`` to
-do that.  Or you can do it all in one step, e.g. ``setup.py register sdist
-bdist_egg upload`` will register the package, build source and egg
-distributions, and then upload them both to PyPI, where they'll be easily
-found by other projects that depend on them.
-
-(By the way, if you need to distribute a specific version of ``setuptools``,
-you can specify the exact version and base download URL as parameters to the
-``use_setuptools()`` function.  See the function's docstring for details.)
-
-
-What Your Users Should Know
----------------------------
-
-In general, a setuptools-based project looks just like any distutils-based
-project -- as long as your users have an internet connection and are installing
-to ``site-packages``, that is.  But for some users, these conditions don't
-apply, and they may become frustrated if this is their first encounter with
-a setuptools-based project.  To keep these users happy, you should review the
-following topics in your project's installation instructions, if they are
-relevant to your project and your target audience isn't already familiar with
-setuptools and ``easy_install``.
-
-Network Access
-    If your project is using ``ez_setup``, you should inform users of the
-    need to either have network access, or to preinstall the correct version of
-    setuptools using the `EasyInstall installation instructions`_.  Those
-    instructions also have tips for dealing with firewalls as well as how to
-    manually download and install setuptools.
-
-Custom Installation Locations
-    You should inform your users that if they are installing your project to
-    somewhere other than the main ``site-packages`` directory, they should
-    first install setuptools using the instructions for `Custom Installation
-    Locations`_, before installing your project.
-
-Your Project's Dependencies
-    If your project depends on other projects that may need to be downloaded
-    from PyPI or elsewhere, you should list them in your installation
-    instructions, or tell users how to find out what they are.  While most
-    users will not need this information, any users who don't have unrestricted
-    internet access may have to find, download, and install the other projects
-    manually.  (Note, however, that they must still install those projects
-    using ``easy_install``, or your project will not know they are installed,
-    and your setup script will try to download them again.)
-
-    If you want to be especially friendly to users with limited network access,
-    you may wish to build eggs for your project and its dependencies, making
-    them all available for download from your site, or at least create a page
-    with links to all of the needed eggs.  In this way, users with limited
-    network access can manually download all the eggs to a single directory,
-    then use the ``-f`` option of ``easy_install`` to specify the directory
-    to find eggs in.  Users who have full network access can just use ``-f``
-    with the URL of your download page, and ``easy_install`` will find all the
-    needed eggs using your links directly.  This is also useful when your
-    target audience isn't able to compile packages (e.g. most Windows users)
-    and your package or some of its dependencies include C code.
-
-Revision Control System Users and Co-Developers
-    Users and co-developers who are tracking your in-development code using
-    a revision control system should probably read this manual's sections
-    regarding such development.  Alternately, you may wish to create a
-    quick-reference guide containing the tips from this manual that apply to
-    your particular situation.  For example, if you recommend that people use
-    ``setup.py develop`` when tracking your in-development code, you should let
-    them know that this needs to be run after every update or commit.
-
-    Similarly, if you remove modules or data files from your project, you
-    should remind them to run ``setup.py clean --all`` and delete any obsolete
-    ``.pyc`` or ``.pyo``.  (This tip applies to the distutils in general, not
-    just setuptools, but not everybody knows about them; be kind to your users
-    by spelling out your project's best practices rather than leaving them
-    guessing.)
-
-Creating System Packages
-    Some users want to manage all Python packages using a single package
-    manager, and sometimes that package manager isn't ``easy_install``!
-    Setuptools currently supports ``bdist_rpm``, ``bdist_wininst``, and
-    ``bdist_dumb`` formats for system packaging.  If a user has a locally-
-    installed "bdist" packaging tool that internally uses the distutils
-    ``install`` command, it should be able to work with ``setuptools``.  Some
-    examples of "bdist" formats that this should work with include the
-    ``bdist_nsi`` and ``bdist_msi`` formats for Windows.
-
-    However, packaging tools that build binary distributions by running
-    ``setup.py install`` on the command line or as a subprocess will require
-    modification to work with setuptools.  They should use the
-    ``--single-version-externally-managed`` option to the ``install`` command,
-    combined with the standard ``--root`` or ``--record`` options.
-    See the `install command`_ documentation below for more details.  The
-    ``bdist_deb`` command is an example of a command that currently requires
-    this kind of patching to work with setuptools.
-
-    If you or your users have a problem building a usable system package for
-    your project, please report the problem via the mailing list so that
-    either the "bdist" tool in question or setuptools can be modified to
-    resolve the issue.
-
+.. _ez_setup distribution guide: ez_setup.html
 
 Setting the ``zip_safe`` flag
 -----------------------------
@@ -1348,6 +1321,7 @@ then make an explicit declaration of ``True`` or ``False`` for the ``zip_safe``
 flag, so that it will not be necessary for ``bdist_egg`` or ``EasyInstall`` to
 try to guess whether your project can work as a zipfile.
 
+.. _Namespace Packages:
 
 Namespace Packages
 ------------------
@@ -1520,22 +1494,11 @@ you use any option at all.
 Making your package available for EasyInstall
 ---------------------------------------------
 
-If you use the ``register`` command (``setup.py register``) to register your
-package with PyPI, that's most of the battle right there.  (See the
-`docs for the register command`_ for more details.)
-
-.. _docs for the register command: http://docs.python.org/dist/package-index.html
-
-If you also use the `upload`_ command to upload actual distributions of your
-package, that's even better, because EasyInstall will be able to find and
-download them directly from your project's PyPI page.
-
-However, there may be reasons why you don't want to upload distributions to
+There may be reasons why you don't want to upload distributions to
 PyPI, and just want your existing distributions (or perhaps a Subversion
 checkout) to be used instead.
 
-So here's what you need to do before running the ``register`` command.  There
-are three ``setup()`` arguments that affect EasyInstall:
+There are three ``setup()`` arguments that affect EasyInstall:
 
 ``url`` and ``download_url``
    These become links on your project's PyPI page.  EasyInstall will examine
@@ -1593,13 +1556,12 @@ tagging the release, so the trunk will still produce development snapshots.
 Alternately, if you are not branching for releases, you can override the
 default version options on the command line, using something like::
 
-    python setup.py egg_info -Db "" sdist bdist_egg register upload
+    python setup.py egg_info -Db "" sdist bdist_egg
 
 The first part of this command (``egg_info -Db ""``) will override the
-configured tag information, before creating source and binary eggs, registering
-the project with PyPI, and uploading the files.  Thus, these commands will use
-the plain version from your ``setup.py``, without adding the build designation
-string.
+configured tag information, before creating source and binary eggs. Thus, these
+commands will use the plain version from your ``setup.py``, without adding the
+build designation string.
 
 Of course, if you will be doing this a lot, you may wish to create a personal
 alias for this operation, e.g.::
@@ -1608,36 +1570,50 @@ alias for this operation, e.g.::
 
 You can then use it like this::
 
-    python setup.py release sdist bdist_egg register upload
+    python setup.py release sdist bdist_egg
 
 Or of course you can create more elaborate aliases that do all of the above.
 See the sections below on the `egg_info`_ and `alias`_ commands for more ideas.
 
 
 
-Distributing Extensions compiled with Pyrex
--------------------------------------------
+Distributing Extensions compiled with Cython
+--------------------------------------------
 
-``setuptools`` includes transparent support for building Pyrex extensions, as
-long as you define your extensions using ``setuptools.Extension``, *not*
-``distutils.Extension``.  You must also not import anything from Pyrex in
-your setup script.
+``setuptools`` will detect at build time whether Cython is installed or not.
+If Cython is not found ``setuptools`` will ignore pyx files.
+
+To ensure Cython is available, include Cython in the build-requires section
+of your pyproject.toml::
+
+    [build-system]
+    requires=[..., 'cython']
+
+Built with pip 10 or later, that declaration is sufficient to include Cython
+in the build. For broader compatibility, declare the dependency in your
+setup-requires of setup.cfg::
+
+    [options]
+    setup_requires =
+        ...
+        cython
+
+As long as Cython is present in the build environment, ``setuptools`` includes
+transparent support for building Cython extensions, as
+long as extensions are defined using ``setuptools.Extension``.
 
 If you follow these rules, you can safely list ``.pyx`` files as the source
-of your ``Extension`` objects in the setup script.  ``setuptools`` will detect
-at build time whether Pyrex is installed or not.  If it is, then ``setuptools``
-will use it.  If not, then ``setuptools`` will silently change the
-``Extension`` objects to refer to the ``.c`` counterparts of the ``.pyx``
-files, so that the normal distutils C compilation process will occur.
+of your ``Extension`` objects in the setup script.  If it is, then ``setuptools``
+will use it.
 
 Of course, for this to work, your source distributions must include the C
-code generated by Pyrex, as well as your original ``.pyx`` files.  This means
+code generated by Cython, as well as your original ``.pyx`` files.  This means
 that you will probably want to include current ``.c`` files in your revision
 control system, rebuilding them whenever you check changes in for the ``.pyx``
 source files.  This will ensure that people tracking your project in a revision
-control system will be able to build it even if they don't have Pyrex
+control system will be able to build it even if they don't have Cython
 installed, and that your source releases will be similarly usable with or
-without Pyrex.
+without Cython.
 
 
 -----------------
@@ -1924,11 +1900,11 @@ This command performs two operations: it updates a project's ``.egg-info``
 metadata directory (used by the ``bdist_egg``, ``develop``, and ``test``
 commands), and it allows you to temporarily change a project's version string,
 to support "daily builds" or "snapshot" releases.  It is run automatically by
-the ``sdist``, ``bdist_egg``, ``develop``, ``register``, and ``test`` commands
-in order to update the project's metadata, but you can also specify it
-explicitly in order to temporarily change the project's version string while
-executing other commands.  (It also generates the``.egg-info/SOURCES.txt``
-manifest file, which is used when you are building source distributions.)
+the ``sdist``, ``bdist_egg``, ``develop``, and ``test`` commands in order to
+update the project's metadata, but you can also specify it explicitly in order
+to temporarily change the project's version string while executing other
+commands.  (It also generates the``.egg-info/SOURCES.txt`` manifest file, which
+is used when you are building source distributions.)
 
 In addition to writing the core egg metadata defined by ``setuptools`` and
 required by ``pkg_resources``, this command can be extended to write other
@@ -2002,59 +1978,13 @@ Creating a dated "nightly build" snapshot egg::
 
     python setup.py egg_info --tag-date --tag-build=DEV bdist_egg
 
-Creating and uploading a release with no version tags, even if some default
-tags are specified in ``setup.cfg``::
+Creating a release with no version tags, even if some default tags are
+specified in ``setup.cfg``::
 
-    python setup.py egg_info -RDb "" sdist bdist_egg register upload
+    python setup.py egg_info -RDb "" sdist bdist_egg
 
 (Notice that ``egg_info`` must always appear on the command line *before* any
 commands that you want the version changes to apply to.)
-
-
-.. _install command:
-
-``install`` - Run ``easy_install`` or old-style installation
-============================================================
-
-The setuptools ``install`` command is basically a shortcut to run the
-``easy_install`` command on the current project.  However, for convenience
-in creating "system packages" of setuptools-based projects, you can also
-use this option:
-
-``--single-version-externally-managed``
-    This boolean option tells the ``install`` command to perform an "old style"
-    installation, with the addition of an ``.egg-info`` directory so that the
-    installed project will still have its metadata available and operate
-    normally.  If you use this option, you *must* also specify the ``--root``
-    or ``--record`` options (or both), because otherwise you will have no way
-    to identify and remove the installed files.
-
-This option is automatically in effect when ``install`` is invoked by another
-distutils command, so that commands like ``bdist_wininst`` and ``bdist_rpm``
-will create system packages of eggs.  It is also automatically in effect if
-you specify the ``--root`` option.
-
-
-``install_egg_info`` - Install an ``.egg-info`` directory in ``site-packages``
-==============================================================================
-
-Setuptools runs this command as part of ``install`` operations that use the
-``--single-version-externally-managed`` options.  You should not invoke it
-directly; it is documented here for completeness and so that distutils
-extensions such as system package builders can make use of it.  This command
-has only one option:
-
-``--install-dir=DIR, -d DIR``
-    The parent directory where the ``.egg-info`` directory will be placed.
-    Defaults to the same as the ``--install-dir`` option specified for the
-    ``install_lib`` command, which is usually the system ``site-packages``
-    directory.
-
-This command assumes that the ``egg_info`` command has been given valid options
-via the command line or ``setup.cfg``, as it will invoke the ``egg_info``
-command and use its options to locate the project's source ``.egg-info``
-directory.
-
 
 .. _rotate:
 
@@ -2254,25 +2184,16 @@ available:
 ``upload`` - Upload source and/or egg distributions to PyPI
 ===========================================================
 
+.. warning::
+    **upload** is deprecated in favor of using `twine
+    <https://pypi.org/p/twine>`_
+
 The ``upload`` command is implemented and `documented
 <https://docs.python.org/3.1/distutils/uploading.html>`_
 in distutils.
 
-Setuptools augments the ``upload`` command with support
-for `keyring <https://pypi.python.org/pypi/keyring>`_,
-allowing the password to be stored in a secure
-location and not in plaintext in the .pypirc file. To use
-keyring, first install keyring and set the password for
-the relevant repository, e.g.::
-
-    python -m keyring set <repository> <username>
-    Password for '<username>' in '<repository>': ********
-
-Then, in .pypirc, set the repository configuration as normal,
-but omit the password. Thereafter, uploads will use the
-password from the keyring.
-
 New in 20.1: Added keyring support.
+New in 40.0: Deprecated the upload command.
 
 
 -----------------------------------------
@@ -2287,7 +2208,7 @@ Configuring setup() using setup.cfg files
 
 ``Setuptools`` allows using configuration files (usually :file:`setup.cfg`)
 to define a package’s metadata and other options that are normally supplied
-to the ``setup()`` function.
+to the ``setup()`` function (declarative config).
 
 This approach not only allows automation scenarios but also reduces
 boilerplate code in some cases.
@@ -2323,6 +2244,9 @@ boilerplate code in some cases.
     scripts =
       bin/first.py
       bin/second.py
+    install_requires =
+      requests
+      importlib; python_version == "2.6"
 
     [options.package_data]
     * = *.txt, *.rst
@@ -2337,6 +2261,11 @@ boilerplate code in some cases.
         src.subpackage1
         src.subpackage2
 
+    [options.data_files]
+    /etc/my_package =
+        site.d/00_default.conf
+        host.d/00_default.conf
+    data = data/img/logo.png, data/svg/icon.svg
 
 Metadata and options are set in the config sections of the same name.
 
@@ -2359,11 +2288,40 @@ Metadata and options are set in the config sections of the same name.
 * In some cases, complex values can be provided in dedicated subsections for
   clarity.
 
-* Some keys allow ``file:``, ``attr:``, and ``find:`` directives in order to
-  cover common usecases.
+* Some keys allow ``file:``, ``attr:``, and ``find:`` and ``find_namespace:`` directives in
+  order to cover common usecases.
 
 * Unknown keys are ignored.
 
+
+Using a ``src/`` layout
+=======================
+
+One commonly used package configuration has all the module source code in a
+subdirectory (often called the ``src/`` layout), like this::
+
+    ├── src
+    │   └── mypackage
+    │       ├── __init__.py
+    │       └── mod1.py
+    ├── setup.py
+    └── setup.cfg
+
+You can set up your ``setup.cfg`` to automatically find all your packages in
+the subdirectory like this:
+
+.. code-block:: ini
+
+    # This example contains just the necessary options for a src-layout, set up
+    # the rest of the file as described above.
+
+    [options]
+    package_dir=
+        =src
+    packages=find:
+
+    [options.packages.find]
+    where=src
 
 Specifying values
 =================
@@ -2399,36 +2357,44 @@ Metadata
     The aliases given below are supported for compatibility reasons,
     but their use is not advised.
 
-==============================  =================  =====
-Key                             Aliases            Type
-==============================  =================  =====
+==============================  =================  =================  =============== =====
+Key                             Aliases            Type               Minimum Version Notes
+==============================  =================  =================  =============== =====
 name                                               str
-version                                            attr:, str
+version                                            attr:, file:, str  39.2.0          (1)
 url                             home-page          str
 download_url                    download-url       str
+project_urls                                       dict               38.3.0
 author                                             str
 author_email                    author-email       str
 maintainer                                         str
 maintainer_email                maintainer-email   str
 classifiers                     classifier         file:, list-comma
-license                                            file:, str
+license                                            str
 description                     summary            file:, str
 long_description                long-description   file:, str
-long_description_content_type                      str
+long_description_content_type                      str                38.6.0
 keywords                                           list-comma
 platforms                       platform           list-comma
 provides                                           list-comma
 requires                                           list-comma
 obsoletes                                          list-comma
-==============================  =================  =====
+==============================  =================  =================  =============== =====
 
+.. note::
+    A version loaded using the ``file:`` directive must comply with PEP 440.
+    It is easy to accidentally put something other than a valid version
+    string in such a file, so validation is stricter in this case.
+
+Notes:
+1. The `version` file attribute has only been supported since 39.2.0.
 
 Options
 -------
 
-=======================  =====
-Key                      Type
-=======================  =====
+=======================  ===================================  =============== =====
+Key                      Type                                 Minimum Version Notes
+=======================  ===================================  =============== =====
 zip_safe                 bool
 setup_requires           list-semi
 install_requires         list-semi
@@ -2444,20 +2410,24 @@ eager_resources          list-comma
 dependency_links         list-comma
 tests_require            list-semi
 include_package_data     bool
-packages                 find:, list-comma
+packages                 find:, find_namespace:, list-comma
 package_dir              dict
 package_data             section
 exclude_package_data     section
 namespace_packages       list-comma
 py_modules               list-comma
-=======================  =====
+data_files               dict                                 40.6.0
+=======================  ===================================  =============== =====
 
 .. note::
 
-    **packages** - The ``find:`` directive can be further configured
+    **packages** - The ``find:`` and ``find_namespace:`` directive can be further configured
     in a dedicated subsection ``options.packages.find``. This subsection
-    accepts the same keys as the `setuptools.find` function:
+    accepts the same keys as the `setuptools.find_packages` and the
+    `setuptools.find_namespace_packages` function:
     ``where``, ``include``, and ``exclude``.
+
+    **find_namespace directive** - The ``find_namespace:`` directive is supported since Python >=3.3.
 
 
 Configuration API
@@ -2652,8 +2622,8 @@ Adding Support for Revision Control Systems
 If the files you want to include in the source distribution are tracked using
 Git, Mercurial or SVN, you can use the following packages to achieve that:
 
-- Git and Mercurial: `setuptools_scm <https://pypi.python.org/pypi/setuptools_scm>`_
-- SVN: `setuptools_svn <https://pypi.python.org/pypi/setuptools_svn>`_
+- Git and Mercurial: `setuptools_scm <https://pypi.org/project/setuptools_scm/>`_
+- SVN: `setuptools_svn <https://pypi.org/project/setuptools_svn/>`_
 
 If you would like to create a plugin for ``setuptools`` to find files tracked
 by another revision control system, you can do so by adding an entry point to

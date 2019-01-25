@@ -57,40 +57,59 @@ Setuptools makes extensive use of hyperlinks to tickets in the changelog so
 that system integrators and other users can get a quick summary, but then
 jump to the in-depth discussion about any subject referenced.
 
------------
-Source Code
------------
+---------------------
+Making a pull request
+---------------------
 
-Grab the code at Github::
+When making a pull request, please include a short summary of the changes
+and a reference to any issue tickets that the PR is intended to solve.
+All PRs with code changes should include tests. All changes should include a
+changelog entry.
 
-    $ git checkout https://github.com/pypa/setuptools
+``setuptools`` uses `towncrier <https://pypi.org/project/towncrier/>`_
+for changelog management, so when making a PR, please add a news fragment in the
+``changelog.d/`` folder. Changelog files are written in reStructuredText and
+should be a 1 or 2 sentence description of the substantive changes in the PR.
+They should be named ``<pr_number>.<category>.rst``, where the categories are:
 
-If you want to contribute changes, we recommend you fork the repository on
-Github, commit the changes to your repository, and then make a pull request
-on Github. If you make some changes, don't forget to:
+- ``change``: Any backwards compatible code change
+- ``breaking``: Any backwards-compatibility breaking change
+- ``doc``: A change to the documentation
+- ``misc``: Changes internal to the repo like CI, test and build changes
+- ``deprecation``: For deprecations of an existing feature or behavior
 
-- add a note in CHANGES.rst
+A pull request may have more than one of these components, for example a code
+change may introduce a new feature that deprecates an old feature, in which
+case two fragments should be added. It is not necessary to make a separate
+documentation fragment for documentation changes accompanying the relevant
+code changes. See the following for an example news fragment:
 
-Please commit all changes in the 'master' branch against the latest available
-commit or for bug-fixes, against an earlier commit or release in which the
-bug occurred.
+.. code-block:: bash
 
-If you find yourself working on more than one issue at a time, Setuptools
-generally prefers Git-style branches, so use Mercurial bookmarks or Git
-branches or multiple forks to maintain separate efforts.
+    $ cat changelog.d/1288.change.rst
+    Add support for maintainer in PKG-INFO
 
-The Continuous Integration tests that validate every release are run
-from this repository.
+-------------------
+Auto-Merge Requests
+-------------------
 
-For posterity, the old `Bitbucket mirror
-<https://bitbucket.org/pypa/setuptools>`_ is available.
+To support running all code through CI, even lightweight contributions,
+the project employs Mergify to auto-merge pull requests tagged as
+auto-merge.
+
+Use ``hub pull-request -l auto-merge`` to create such a pull request
+from the command line after pushing a new branch.
 
 -------
 Testing
 -------
 
-The primary tests are run using tox. To run the tests, first make
-sure you have tox installed, then invoke it::
+The primary tests are run using tox. To run the tests, first create the metadata
+needed to run the tests::
+
+    $ python bootstrap.py
+
+Then make sure you have tox installed, and invoke it::
 
     $ tox
 
@@ -109,10 +128,12 @@ Setuptools follows ``semver``.
 Building Documentation
 ----------------------
 
-Setuptools relies on the Sphinx system for building documentation.
-To accommodate RTD, docs must be built from the docs/ directory.
+Setuptools relies on the `Sphinx`_ system for building documentation.
+The `published documentation`_ is hosted on Read the Docs.
 
-To build them, you need to have installed the requirements specified
-in docs/requirements.txt. One way to do this is to use rwt:
+To build the docs locally, use tox::
 
-    setuptools/docs$ python -m rwt -r requirements.txt -- -m sphinx . html
+    $ tox -e docs
+
+.. _Sphinx: http://www.sphinx-doc.org/en/master/
+.. _published documentation: https://setuptools.readthedocs.io/en/latest/

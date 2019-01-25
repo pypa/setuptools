@@ -1,28 +1,38 @@
 dist: trusty
-sudo: false
 language: python
+
 jobs:
   fast_finish: true
   include:
-  - python: 2.6
-  - python: &latest_py2 2.7
-  - python: 3.3
+  - &latest_py2
+    python: 2.7
+  - <<: *latest_py2
+    env: LANG=C
+  - python: pypy
+    env: DISABLE_COVERAGE=1  # Don't run coverage on pypy (too slow).
+  - python: pypy3
+    env: DISABLE_COVERAGE=1
   - python: 3.4
   - python: 3.5
-  - python: &latest_py3 3.6
-  - python: nightly
-  - python: pypy
-  - python: pypy3
-  - python: *latest_py3
+  - &default_py
+    python: 3.6
+  - &latest_py3
+    python: 3.7
+    dist: xenial
+  - <<: *latest_py3
     env: LANG=C
-  - python: *latest_py2
-    env: LANG=C
-  - stage: deploy (to PyPI for tagged commits)
+  - python: 3.8-dev
+    dist: xenial
+    env: DISABLE_COVERAGE=1  # Ignore invalid coverage data.
+  - <<: *default_py
+    stage: deploy (to PyPI for tagged commits)
     if: tag IS present
-    python: *latest_py3
     install: skip
     script: skip
-    before_deploy: python bootstrap.py
+    after_success: true
+    before_deploy:
+      - python bootstrap.py
+      - "! grep pyc setuptools.egg-info/SOURCES.txt"
     deploy:
       provider: pypi
       on:
@@ -38,13 +48,37 @@ jobs:
 cache: pip
 
 install:
+
+# ensure we have recent pip/setuptools/wheel
+- pip install --disable-pip-version-check --upgrade pip setuptools wheel
 # need tox to get started
-- pip install tox
+- pip install --upgrade tox tox-venv
 
 # Output the env, to verify behavior
+- pip freeze --all
 - env
 
 # update egg_info based on setup.py in checkout
 - python bootstrap.py
+- "! grep pyc setuptools.egg-info/SOURCES.txt"
 
-script: tox
+script:
+  - |
+    ( # Run testsuite.
+      if [ -z "$DISABLE_COVERAGE" ]
+      then
+        tox -- --cov
+      else
+        tox
+      fi
+    )
+
+after_success:
+  - |
+    ( # Upload coverage data.
+      if [ -z "$DISABLE_COVERAGE" ]
+      then
+        export TRAVIS_JOB_NAME="${TRAVIS_PYTHON_VERSION} (LANG=$LANG)" CODECOV_ENV=TRAVIS_JOB_NAME
+        tox -e coverage,codecov
+      fi
+    )

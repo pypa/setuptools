@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Easy install Tests
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import sys
 import os
@@ -15,8 +15,9 @@ import distutils.errors
 import io
 import zipfile
 import mock
-
+from setuptools.command.easy_install import EasyInstallDeprecationWarning, ScriptWriter, WindowsScriptWriter
 import time
+from setuptools.extern import six
 from setuptools.extern.six.moves import urllib
 
 import pytest
@@ -33,16 +34,17 @@ import setuptools.tests.server
 from setuptools.tests import fail_on_ascii
 import pkg_resources
 
-from .py26compat import tarfile_open
 from . import contexts
 from .textwrap import DALS
 
+__metaclass__ = type
 
-class FakeDist(object):
+
+class FakeDist:
     def get_entry_map(self, group):
         if group != 'console_scripts':
             return {}
-        return {'name': 'ep'}
+        return {str('name'): 'ep'}
 
     def as_requirement(self):
         return 'spec'
@@ -78,7 +80,7 @@ class TestEasyInstallTest:
                 sys.exit(
                     load_entry_point('spec', 'console_scripts', 'name')()
                 )
-            """)
+            """)  # noqa: E501
         dist = FakeDist()
 
         args = next(ei.ScriptWriter.get_args(dist))
@@ -125,7 +127,9 @@ class TestEasyInstallTest:
         site.getsitepackages.
         """
         path = normalize_path('/setuptools/test/site-packages')
-        mock_gsp = lambda: [path]
+
+        def mock_gsp():
+            return [path]
         monkeypatch.setattr(site, 'getsitepackages', mock_gsp, raising=False)
         assert path in ei.get_site_dirs()
 
@@ -153,7 +157,7 @@ class TestEasyInstallTest:
                 "",
             ),
             (
-                u'mypkg/\u2603.txt',
+                'mypkg/☃.txt',
                 "",
             ),
         ]
@@ -168,7 +172,8 @@ class TestEasyInstallTest:
         return str(sdist)
 
     @fail_on_ascii
-    def test_unicode_filename_in_sdist(self, sdist_unicode, tmpdir, monkeypatch):
+    def test_unicode_filename_in_sdist(
+            self, sdist_unicode, tmpdir, monkeypatch):
         """
         The install command should execute correctly even if
         the package has unicode filenames.
@@ -184,7 +189,122 @@ class TestEasyInstallTest:
         cmd.ensure_finalized()
         cmd.easy_install(sdist_unicode)
 
+    @pytest.fixture
+    def sdist_unicode_in_script(self, tmpdir):
+        files = [
+            (
+                "setup.py",
+                DALS("""
+                    import setuptools
+                    setuptools.setup(
+                        name="setuptools-test-unicode",
+                        version="1.0",
+                        packages=["mypkg"],
+                        include_package_data=True,
+                        scripts=['mypkg/unicode_in_script'],
+                    )
+                    """),
+            ),
+            ("mypkg/__init__.py", ""),
+            (
+                "mypkg/unicode_in_script",
+                DALS(
+                    """
+                    #!/bin/sh
+                    # á
 
+                    non_python_fn() {
+                    }
+                """),
+            ),
+        ]
+        sdist_name = "setuptools-test-unicode-script-1.0.zip"
+        sdist = tmpdir / sdist_name
+        # can't use make_sdist, because the issue only occurs
+        #  with zip sdists.
+        sdist_zip = zipfile.ZipFile(str(sdist), "w")
+        for filename, content in files:
+            sdist_zip.writestr(filename, content.encode('utf-8'))
+        sdist_zip.close()
+        return str(sdist)
+
+    @fail_on_ascii
+    def test_unicode_content_in_sdist(
+            self, sdist_unicode_in_script, tmpdir, monkeypatch):
+        """
+        The install command should execute correctly even if
+        the package has unicode in scripts.
+        """
+        dist = Distribution({"script_args": ["easy_install"]})
+        target = (tmpdir / "target").ensure_dir()
+        cmd = ei.easy_install(dist, install_dir=str(target), args=["x"])
+        monkeypatch.setitem(os.environ, "PYTHONPATH", str(target))
+        cmd.ensure_finalized()
+        cmd.easy_install(sdist_unicode_in_script)
+
+    @pytest.fixture
+    def sdist_script(self, tmpdir):
+        files = [
+            (
+                'setup.py',
+                DALS("""
+                    import setuptools
+                    setuptools.setup(
+                        name="setuptools-test-script",
+                        version="1.0",
+                        scripts=["mypkg_script"],
+                    )
+                    """),
+            ),
+            (
+                'mypkg_script',
+                DALS("""
+                     #/usr/bin/python
+                     print('mypkg_script')
+                     """),
+            ),
+        ]
+        sdist_name = 'setuptools-test-script-1.0.zip'
+        sdist = str(tmpdir / sdist_name)
+        make_sdist(sdist, files)
+        return sdist
+
+    @pytest.mark.skipif(not sys.platform.startswith('linux'),
+                        reason="Test can only be run on Linux")
+    def test_script_install(self, sdist_script, tmpdir, monkeypatch):
+        """
+        Check scripts are installed.
+        """
+        dist = Distribution({'script_args': ['easy_install']})
+        target = (tmpdir / 'target').ensure_dir()
+        cmd = ei.easy_install(
+            dist,
+            install_dir=str(target),
+            args=['x'],
+        )
+        monkeypatch.setitem(os.environ, 'PYTHONPATH', str(target))
+        cmd.ensure_finalized()
+        cmd.easy_install(sdist_script)
+        assert (target / 'mypkg_script').exists()
+
+
+    def test_dist_get_script_args_deprecated(self):
+        with pytest.warns(EasyInstallDeprecationWarning):
+            ScriptWriter.get_script_args(None, None)
+
+    def test_dist_get_script_header_deprecated(self):
+        with pytest.warns(EasyInstallDeprecationWarning):
+            ScriptWriter.get_script_header("")
+
+    def test_dist_get_writer_deprecated(self):
+        with pytest.warns(EasyInstallDeprecationWarning):
+            ScriptWriter.get_writer(None)
+
+    def test_dist_WindowsScriptWriter_get_writer_deprecated(self):
+        with pytest.warns(EasyInstallDeprecationWarning):
+            WindowsScriptWriter.get_writer()
+
+@pytest.mark.filterwarnings('ignore:Unbuilt egg')
 class TestPTHFileWriter:
     def test_add_from_cwd_site_sets_dirty(self):
         '''a pth file manager should set dirty
@@ -352,8 +472,8 @@ class TestSetupRequires:
                             dist_file,
                         ]
                         with sandbox.save_argv(['easy_install']):
-                            # attempt to install the dist. It should fail because
-                            #  it doesn't exist.
+                            # attempt to install the dist. It should
+                            # fail because it doesn't exist.
                             with pytest.raises(SystemExit):
                                 easy_install_pkg.main(ei_params)
         # there should have been two or three requests to the server
@@ -381,7 +501,15 @@ class TestSetupRequires:
                 """))])
             yield dist_path
 
-    def test_setup_requires_overrides_version_conflict(self):
+    use_setup_cfg = (
+        (),
+        ('dependency_links',),
+        ('setup_requires',),
+        ('dependency_links', 'setup_requires'),
+    )
+
+    @pytest.mark.parametrize('use_setup_cfg', use_setup_cfg)
+    def test_setup_requires_overrides_version_conflict(self, use_setup_cfg):
         """
         Regression test for distribution issue 323:
         https://bitbucket.org/tarek/distribute/issues/323
@@ -397,18 +525,20 @@ class TestSetupRequires:
 
         with contexts.save_pkg_resources_state():
             with contexts.tempdir() as temp_dir:
-                test_pkg = create_setup_requires_package(temp_dir)
+                test_pkg = create_setup_requires_package(
+                    temp_dir, use_setup_cfg=use_setup_cfg)
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
                 with contexts.quiet() as (stdout, stderr):
                     # Don't even need to install the package, just
                     # running the setup.py at all is sufficient
-                    run_setup(test_setup_py, ['--name'])
+                    run_setup(test_setup_py, [str('--name')])
 
                 lines = stdout.readlines()
                 assert len(lines) > 0
-                assert lines[-1].strip(), 'test_pkg'
+                assert lines[-1].strip() == 'test_pkg'
 
-    def test_setup_requires_override_nspkg(self):
+    @pytest.mark.parametrize('use_setup_cfg', use_setup_cfg)
+    def test_setup_requires_override_nspkg(self, use_setup_cfg):
         """
         Like ``test_setup_requires_overrides_version_conflict`` but where the
         ``setup_requires`` package is part of a namespace package that has
@@ -423,7 +553,7 @@ class TestSetupRequires:
                 # extracted path to sys.path so foo.bar v0.1 is importable
                 foobar_1_dir = os.path.join(temp_dir, 'foo.bar-0.1')
                 os.mkdir(foobar_1_dir)
-                with tarfile_open(foobar_1_archive) as tf:
+                with tarfile.open(foobar_1_archive) as tf:
                     tf.extractall(foobar_1_dir)
                 sys.path.insert(1, foobar_1_dir)
 
@@ -446,7 +576,8 @@ class TestSetupRequires:
                 """)
 
                 test_pkg = create_setup_requires_package(
-                    temp_dir, 'foo.bar', '0.2', make_nspkg_sdist, template)
+                    temp_dir, 'foo.bar', '0.2', make_nspkg_sdist, template,
+                    use_setup_cfg=use_setup_cfg)
 
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
 
@@ -454,15 +585,50 @@ class TestSetupRequires:
                     try:
                         # Don't even need to install the package, just
                         # running the setup.py at all is sufficient
-                        run_setup(test_setup_py, ['--name'])
+                        run_setup(test_setup_py, [str('--name')])
                     except pkg_resources.VersionConflict:
-                        self.fail('Installing setup.py requirements '
+                        self.fail(
+                            'Installing setup.py requirements '
                             'caused a VersionConflict')
 
                 assert 'FAIL' not in stdout.getvalue()
                 lines = stdout.readlines()
                 assert len(lines) > 0
                 assert lines[-1].strip() == 'test_pkg'
+
+    @pytest.mark.parametrize('use_setup_cfg', use_setup_cfg)
+    def test_setup_requires_with_attr_version(self, use_setup_cfg):
+        def make_dependency_sdist(dist_path, distname, version):
+            files = [(
+                'setup.py',
+                DALS("""
+                    import setuptools
+                    setuptools.setup(
+                        name={name!r},
+                        version={version!r},
+                        py_modules=[{name!r}],
+                    )
+                    """.format(name=distname, version=version)),
+            ), (
+                distname + '.py',
+                DALS("""
+                    version = 42
+                    """),
+            )]
+            make_sdist(dist_path, files)
+        with contexts.save_pkg_resources_state():
+            with contexts.tempdir() as temp_dir:
+                test_pkg = create_setup_requires_package(
+                    temp_dir, setup_attrs=dict(version='attr: foobar.version'),
+                    make_package=make_dependency_sdist,
+                    use_setup_cfg=use_setup_cfg+('version',),
+                )
+                test_setup_py = os.path.join(test_pkg, 'setup.py')
+                with contexts.quiet() as (stdout, stderr):
+                    run_setup(test_setup_py, [str('--version')])
+                lines = stdout.readlines()
+                assert len(lines) > 0
+                assert lines[-1].strip() == '42'
 
 
 def make_trivial_sdist(dist_path, distname, version):
@@ -521,7 +687,7 @@ def make_sdist(dist_path, files):
     listed in ``files`` as ``(filename, content)`` tuples.
     """
 
-    with tarfile_open(dist_path, 'w:gz') as dist:
+    with tarfile.open(dist_path, 'w:gz') as dist:
         for filename, content in files:
             file_bytes = io.BytesIO(content.encode('utf-8'))
             file_info = tarfile.TarInfo(name=filename)
@@ -532,7 +698,8 @@ def make_sdist(dist_path, files):
 
 def create_setup_requires_package(path, distname='foobar', version='0.1',
                                   make_package=make_trivial_sdist,
-                                  setup_py_template=None):
+                                  setup_py_template=None, setup_attrs={},
+                                  use_setup_cfg=()):
     """Creates a source tree under path for a trivial test package that has a
     single requirement in setup_requires--a tarball for that requirement is
     also created and added to the dependency_links argument.
@@ -547,17 +714,44 @@ def create_setup_requires_package(path, distname='foobar', version='0.1',
         'setup_requires': ['%s==%s' % (distname, version)],
         'dependency_links': [os.path.abspath(path)]
     }
+    test_setup_attrs.update(setup_attrs)
 
     test_pkg = os.path.join(path, 'test_pkg')
-    test_setup_py = os.path.join(test_pkg, 'setup.py')
     os.mkdir(test_pkg)
+
+    if use_setup_cfg:
+        test_setup_cfg = os.path.join(test_pkg, 'setup.cfg')
+        options = []
+        metadata = []
+        for name in use_setup_cfg:
+            value = test_setup_attrs.pop(name)
+            if name in 'name version'.split():
+                section = metadata
+            else:
+                section = options
+            if isinstance(value, (tuple, list)):
+                value = ';'.join(value)
+            section.append('%s: %s' % (name, value))
+        with open(test_setup_cfg, 'w') as f:
+            f.write(DALS(
+                """
+                [metadata]
+                {metadata}
+                [options]
+                {options}
+                """
+            ).format(
+                options='\n'.join(options),
+                metadata='\n'.join(metadata),
+            ))
+
+    test_setup_py = os.path.join(test_pkg, 'setup.py')
 
     if setup_py_template is None:
         setup_py_template = DALS("""\
             import setuptools
             setuptools.setup(**%r)
         """)
-
     with open(test_setup_py, 'w') as f:
         f.write(setup_py_template % test_setup_attrs)
 
@@ -573,27 +767,31 @@ def create_setup_requires_package(path, distname='foobar', version='0.1',
 )
 class TestScriptHeader:
     non_ascii_exe = '/Users/José/bin/python'
-    exe_with_spaces = r'C:\Program Files\Python33\python.exe'
+    if six.PY2:
+        non_ascii_exe = non_ascii_exe.encode('utf-8')
+    exe_with_spaces = r'C:\Program Files\Python36\python.exe'
 
     def test_get_script_header(self):
         expected = '#!%s\n' % ei.nt_quote_arg(os.path.normpath(sys.executable))
-        actual = ei.ScriptWriter.get_script_header('#!/usr/local/bin/python')
+        actual = ei.ScriptWriter.get_header('#!/usr/local/bin/python')
         assert actual == expected
 
     def test_get_script_header_args(self):
-        expected = '#!%s -x\n' % ei.nt_quote_arg(os.path.normpath
-            (sys.executable))
-        actual = ei.ScriptWriter.get_script_header('#!/usr/bin/python -x')
+        expected = '#!%s -x\n' % ei.nt_quote_arg(
+            os.path.normpath(sys.executable))
+        actual = ei.ScriptWriter.get_header('#!/usr/bin/python -x')
         assert actual == expected
 
     def test_get_script_header_non_ascii_exe(self):
-        actual = ei.ScriptWriter.get_script_header('#!/usr/bin/python',
+        actual = ei.ScriptWriter.get_header(
+            '#!/usr/bin/python',
             executable=self.non_ascii_exe)
-        expected = '#!%s -x\n' % self.non_ascii_exe
+        expected = str('#!%s -x\n') % self.non_ascii_exe
         assert actual == expected
 
     def test_get_script_header_exe_with_spaces(self):
-        actual = ei.ScriptWriter.get_script_header('#!/usr/bin/python',
+        actual = ei.ScriptWriter.get_header(
+            '#!/usr/bin/python',
             executable='"' + self.exe_with_spaces + '"')
         expected = '#!"%s"\n' % self.exe_with_spaces
         assert actual == expected
@@ -636,7 +834,7 @@ class TestCommandSpec:
 
 class TestWindowsScriptWriter:
     def test_header(self):
-        hdr = ei.WindowsScriptWriter.get_script_header('')
+        hdr = ei.WindowsScriptWriter.get_header('')
         assert hdr.startswith('#!')
         assert hdr.endswith('\n')
         hdr = hdr.lstrip('#!')

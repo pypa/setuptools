@@ -61,14 +61,28 @@ class Distribution(setuptools.dist.Distribution):
             distutils.core.Distribution = orig
 
 
+def _to_str(s):
+    """
+    Convert a filename to a string (on Python 2, explicitly
+    a byte string, not Unicode) as distutils checks for the
+    exact type str.
+    """
+    if sys.version_info[0] == 2 and not isinstance(s, str):
+        # Assume it's Unicode, as that's what the PEP says
+        # should be provided.
+        return s.encode(sys.getfilesystemencoding())
+    return s
+
+
 def _run_setup(setup_script='setup.py'):
     # Note that we can reuse our build directory between calls
     # Correctness comes first, then optimization later
     __file__ = setup_script
+    __name__ = '__main__'
     f = getattr(tokenize, 'open', open)(__file__)
     code = f.read().replace('\\r\\n', '\\n')
     f.close()
-    exec(compile(code, __file__, 'exec'))
+    exec(compile(code, __file__, 'exec'), locals())
 
 
 def _fix_config(config_settings):
@@ -77,9 +91,8 @@ def _fix_config(config_settings):
     return config_settings
 
 
-def _get_build_requires(config_settings):
+def _get_build_requires(config_settings, requirements):
     config_settings = _fix_config(config_settings)
-    requirements = ['setuptools', 'wheel']
 
     sys.argv = sys.argv[:1] + ['egg_info'] + \
         config_settings["--global-option"]
@@ -92,25 +105,57 @@ def _get_build_requires(config_settings):
     return requirements
 
 
+def _get_immediate_subdirectories(a_dir):
+    return [name for name in os.listdir(a_dir)
+            if os.path.isdir(os.path.join(a_dir, name))]
+
+
 def get_requires_for_build_wheel(config_settings=None):
     config_settings = _fix_config(config_settings)
-    return _get_build_requires(config_settings)
+    return _get_build_requires(config_settings, requirements=['wheel'])
 
 
 def get_requires_for_build_sdist(config_settings=None):
     config_settings = _fix_config(config_settings)
-    return _get_build_requires(config_settings)
+    return _get_build_requires(config_settings, requirements=[])
 
 
 def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
-    sys.argv = sys.argv[:1] + ['dist_info', '--egg-base', metadata_directory]
+    sys.argv = sys.argv[:1] + ['dist_info', '--egg-base', _to_str(metadata_directory)]
     _run_setup()
 
-    dist_infos = [f for f in os.listdir(metadata_directory)
-                  if f.endswith('.dist-info')]
+    dist_info_directory = metadata_directory
+    while True:
+        dist_infos = [f for f in os.listdir(dist_info_directory)
+                      if f.endswith('.dist-info')]
 
-    assert len(dist_infos) == 1
+        if len(dist_infos) == 0 and \
+                len(_get_immediate_subdirectories(dist_info_directory)) == 1:
+            dist_info_directory = os.path.join(
+                dist_info_directory, os.listdir(dist_info_directory)[0])
+            continue
+
+        assert len(dist_infos) == 1
+        break
+
+    # PEP 517 requires that the .dist-info directory be placed in the
+    # metadata_directory. To comply, we MUST copy the directory to the root
+    if dist_info_directory != metadata_directory:
+        shutil.move(
+            os.path.join(dist_info_directory, dist_infos[0]),
+            metadata_directory)
+        shutil.rmtree(dist_info_directory, ignore_errors=True)
+
     return dist_infos[0]
+
+
+def _file_with_extension(directory, extension):
+    matching = (
+        f for f in os.listdir(directory)
+        if f.endswith(extension)
+    )
+    file, = matching
+    return file
 
 
 def build_wheel(wheel_directory, config_settings=None,
@@ -124,25 +169,15 @@ def build_wheel(wheel_directory, config_settings=None,
         shutil.rmtree(wheel_directory)
         shutil.copytree('dist', wheel_directory)
 
-    wheels = [f for f in os.listdir(wheel_directory)
-              if f.endswith('.whl')]
-
-    assert len(wheels) == 1
-    return wheels[0]
+    return _file_with_extension(wheel_directory, '.whl')
 
 
 def build_sdist(sdist_directory, config_settings=None):
     config_settings = _fix_config(config_settings)
     sdist_directory = os.path.abspath(sdist_directory)
-    sys.argv = sys.argv[:1] + ['sdist'] + \
-        config_settings["--global-option"]
+    sys.argv = sys.argv[:1] + ['sdist', '--formats', 'gztar'] + \
+        config_settings["--global-option"] + \
+        ["--dist-dir", sdist_directory]
     _run_setup()
-    if sdist_directory != 'dist':
-        shutil.rmtree(sdist_directory)
-        shutil.copytree('dist', sdist_directory)
 
-    sdists = [f for f in os.listdir(sdist_directory)
-              if f.endswith('.tar.gz')]
-
-    assert len(sdists) == 1
-    return sdists[0]
+    return _file_with_extension(sdist_directory, '.tar.gz')

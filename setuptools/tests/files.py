@@ -30,5 +30,9 @@ def build_files(file_defs, prefix=""):
             pkg_resources.py31compat.makedirs(full_name, exist_ok=True)
             build_files(contents, prefix=full_name)
         else:
-            with open(full_name, 'w') as f:
-                f.write(contents)
+            if isinstance(contents, bytes):
+                with open(full_name, 'wb') as f:
+                    f.write(contents)
+            else:
+                with open(full_name, 'w') as f:
+                    f.write(contents)

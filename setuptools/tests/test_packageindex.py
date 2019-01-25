@@ -6,6 +6,8 @@ import distutils.errors
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import urllib, http_client
+import mock
+import pytest
 
 import pkg_resources
 import setuptools.package_index
@@ -223,6 +225,61 @@ class TestPackageIndex:
             assert dists[0].version == ''
             assert dists[1].version == vc
 
+    def test_download_git_with_rev(self, tmpdir):
+        url = 'git+https://github.example/group/project@master#egg=foo'
+        index = setuptools.package_index.PackageIndex()
+
+        with mock.patch("os.system") as os_system_mock:
+            result = index.download(url, str(tmpdir))
+
+        os_system_mock.assert_called()
+
+        expected_dir = str(tmpdir / 'project@master')
+        expected = (
+            'git clone --quiet '
+            'https://github.example/group/project {expected_dir}'
+        ).format(**locals())
+        first_call_args = os_system_mock.call_args_list[0][0]
+        assert first_call_args == (expected,)
+
+        tmpl = '(cd {expected_dir} && git checkout --quiet master)'
+        expected = tmpl.format(**locals())
+        assert os_system_mock.call_args_list[1][0] == (expected,)
+        assert result == expected_dir
+
+    def test_download_git_no_rev(self, tmpdir):
+        url = 'git+https://github.example/group/project#egg=foo'
+        index = setuptools.package_index.PackageIndex()
+
+        with mock.patch("os.system") as os_system_mock:
+            result = index.download(url, str(tmpdir))
+
+        os_system_mock.assert_called()
+
+        expected_dir = str(tmpdir / 'project')
+        expected = (
+            'git clone --quiet '
+            'https://github.example/group/project {expected_dir}'
+        ).format(**locals())
+        os_system_mock.assert_called_once_with(expected)
+
+    def test_download_svn(self, tmpdir):
+        url = 'svn+https://svn.example/project#egg=foo'
+        index = setuptools.package_index.PackageIndex()
+
+        with pytest.warns(UserWarning):
+            with mock.patch("os.system") as os_system_mock:
+                result = index.download(url, str(tmpdir))
+
+        os_system_mock.assert_called()
+
+        expected_dir = str(tmpdir / 'project')
+        expected = (
+            'svn checkout -q '
+            'svn+https://svn.example/project {expected_dir}'
+        ).format(**locals())
+        os_system_mock.assert_called_once_with(expected)
+
 
 class TestContentCheckers:
     def test_md5(self):
@@ -265,11 +322,11 @@ class TestPyPIConfig:
         with pypirc.open('w') as strm:
             strm.write(DALS("""
                 [pypi]
-                repository=https://pypi.python.org
+                repository=https://pypi.org
                 username=jaraco
                 password=pity%
             """))
         cfg = setuptools.package_index.PyPIConfig()
-        cred = cfg.creds_by_repository['https://pypi.python.org']
+        cred = cfg.creds_by_repository['https://pypi.org']
         assert cred.username == 'jaraco'
         assert cred.password == 'pity%'

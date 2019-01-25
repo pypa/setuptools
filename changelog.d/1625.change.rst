@@ -1,0 +1,1 @@
+In PEP 517 build_meta builder, ensure that sdists are built as gztar per the spec.

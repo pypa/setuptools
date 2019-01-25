@@ -1,6 +1,7 @@
 import inspect
 import re
 import textwrap
+import functools
 
 import pytest
 
@@ -8,12 +9,15 @@ import pkg_resources
 
 from .test_resources import Metadata
 
+__metaclass__ = type
+
 
 def strip_comments(s):
     return '\n'.join(
         l for l in s.split('\n')
         if l.strip() and not l.strip().startswith('#')
     )
+
 
 def parse_distributions(s):
     '''
@@ -31,10 +35,11 @@ def parse_distributions(s):
 
     yield 2 distributions:
         - project_name=foo, version=0.2
-        - project_name=bar, version=1.0, requires=['foo>=3.0', 'baz; extra=="feature"']
+        - project_name=bar, version=1.0,
+          requires=['foo>=3.0', 'baz; extra=="feature"']
     '''
     s = s.strip()
-    for spec in re.split('\n(?=[^\s])', s):
+    for spec in re.split(r'\n(?=[^\s])', s):
         if not spec:
             continue
         fields = spec.split('\n', 1)
@@ -42,7 +47,7 @@ def parse_distributions(s):
         name, version = fields.pop(0).split('-')
         if fields:
             requires = textwrap.dedent(fields.pop(0))
-            metadata=Metadata(('requires.txt', requires))
+            metadata = Metadata(('requires.txt', requires))
         else:
             metadata = None
         dist = pkg_resources.Distribution(project_name=name,
@@ -51,7 +56,7 @@ def parse_distributions(s):
         yield dist
 
 
-class FakeInstaller(object):
+class FakeInstaller:
 
     def __init__(self, installable_dists):
         self._installable_dists = installable_dists
@@ -84,7 +89,7 @@ def parametrize_test_working_set_resolve(*test_list):
         ):
             idlist.append(id_)
             expected = strip_comments(expected.strip())
-            if re.match('\w+$', expected):
+            if re.match(r'\w+$', expected):
                 expected = getattr(pkg_resources, expected)
                 assert issubclass(expected, Exception)
             else:
@@ -467,7 +472,8 @@ def test_working_set_resolve(installed_dists, installable_dists, requirements,
                              replace_conflicting, resolved_dists_or_exception):
     ws = pkg_resources.WorkingSet([])
     list(map(ws.add, installed_dists))
-    resolve_call = lambda: ws.resolve(
+    resolve_call = functools.partial(
+        ws.resolve,
         requirements, installer=FakeInstaller(installable_dists),
         replace_conflicting=replace_conflicting,
     )

@@ -8,6 +8,7 @@ from distutils import log
 from types import CodeType
 import sys
 import os
+import re
 import textwrap
 import marshal
 
@@ -38,6 +39,7 @@ def strip_module(filename):
         filename = filename[:-6]
     return filename
 
+
 def sorted_walk(dir):
     """Do os.walk in a reproducible way,
     independent of indeterministic filesystem readdir order
@@ -46,6 +48,7 @@ def sorted_walk(dir):
         dirs.sort()
         files.sort()
         yield base, dirs, files
+
 
 def write_stub(resource, pyfile):
     _stub_template = textwrap.dedent("""
@@ -240,10 +243,27 @@ class bdist_egg(Command):
         log.info("Removing .py files from temporary directory")
         for base, dirs, files in walk_egg(self.bdist_dir):
             for name in files:
+                path = os.path.join(base, name)
+
                 if name.endswith('.py'):
-                    path = os.path.join(base, name)
                     log.debug("Deleting %s", path)
                     os.unlink(path)
+
+                if base.endswith('__pycache__'):
+                    path_old = path
+
+                    pattern = r'(?P<name>.+)\.(?P<magic>[^.]+)\.pyc'
+                    m = re.match(pattern, name)
+                    path_new = os.path.join(
+                        base, os.pardir, m.group('name') + '.pyc')
+                    log.info(
+                        "Renaming file from [%s] to [%s]"
+                        % (path_old, path_new))
+                    try:
+                        os.remove(path_new)
+                    except OSError:
+                        pass
+                    os.rename(path_old, path_new)
 
     def zip_safe(self):
         safe = getattr(self.distribution, 'zip_safe', None)
@@ -391,10 +411,12 @@ def scan_module(egg_dir, base, name, stubs):
         return True  # Extension module
     pkg = base[len(egg_dir) + 1:].replace(os.sep, '.')
     module = pkg + (pkg and '.' or '') + os.path.splitext(name)[0]
-    if sys.version_info < (3, 3):
+    if six.PY2:
         skip = 8  # skip magic & date
-    else:
+    elif sys.version_info < (3, 7):
         skip = 12  # skip magic & date & file size
+    else:
+        skip = 16  # skip magic & reserved? & date & file size
     f = open(filename, 'rb')
     f.read(skip)
     code = marshal.load(f)

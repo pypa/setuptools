@@ -13,6 +13,7 @@ setuptools.setup(
 )
 """.lstrip()
 
+
 class TestFindDistributions:
 
     @pytest.fixture

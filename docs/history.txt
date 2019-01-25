@@ -40,7 +40,6 @@ Credits
   re-invigorated the community on the project, encouraged renewed innovation,
   and addressed many defects.
 
-* Since the merge with Distribute, Jason R. Coombs is the
-  maintainer of setuptools. The project is maintained in coordination with
-  the Python Packaging Authority (PyPA) and the larger Python community.
-
+* Jason R. Coombs performed the merge with Distribute, maintaining the
+  project for several years in coordination with the Python Packaging
+  Authority (PyPA).

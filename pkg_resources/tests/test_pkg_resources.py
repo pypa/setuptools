@@ -12,16 +12,19 @@ import stat
 import distutils.dist
 import distutils.command.install_egg_info
 
+try:
+    from unittest import mock
+except ImportError:
+    import mock
+
 from pkg_resources.extern.six.moves import map
+from pkg_resources.extern.six import text_type, string_types
 
 import pytest
 
 import pkg_resources
 
-try:
-    unicode
-except NameError:
-    unicode = str
+__metaclass__ = type
 
 
 def timestamp(dt):
@@ -35,7 +38,7 @@ def timestamp(dt):
         return time.mktime(dt.timetuple())
 
 
-class EggRemover(unicode):
+class EggRemover(text_type):
     def __call__(self):
         if self in sys.path:
             sys.path.remove(self)
@@ -43,7 +46,7 @@ class EggRemover(unicode):
             os.remove(self)
 
 
-class TestZipProvider(object):
+class TestZipProvider:
     finalizers = []
 
     ref_time = datetime.datetime(2013, 5, 12, 13, 25, 0)
@@ -62,16 +65,51 @@ class TestZipProvider(object):
         zip_info.filename = 'data.dat'
         zip_info.date_time = cls.ref_time.timetuple()
         zip_egg.writestr(zip_info, 'hello, world!')
+        zip_info = zipfile.ZipInfo()
+        zip_info.filename = 'subdir/mod2.py'
+        zip_info.date_time = cls.ref_time.timetuple()
+        zip_egg.writestr(zip_info, 'x = 6\n')
+        zip_info = zipfile.ZipInfo()
+        zip_info.filename = 'subdir/data2.dat'
+        zip_info.date_time = cls.ref_time.timetuple()
+        zip_egg.writestr(zip_info, 'goodbye, world!')
         zip_egg.close()
         egg.close()
 
         sys.path.append(egg.name)
+        subdir = os.path.join(egg.name, 'subdir')
+        sys.path.append(subdir)
+        cls.finalizers.append(EggRemover(subdir))
         cls.finalizers.append(EggRemover(egg.name))
 
     @classmethod
     def teardown_class(cls):
         for finalizer in cls.finalizers:
             finalizer()
+
+    def test_resource_listdir(self):
+        import mod
+        zp = pkg_resources.ZipProvider(mod)
+
+        expected_root = ['data.dat', 'mod.py', 'subdir']
+        assert sorted(zp.resource_listdir('')) == expected_root
+        assert sorted(zp.resource_listdir('/')) == expected_root
+
+        expected_subdir = ['data2.dat', 'mod2.py']
+        assert sorted(zp.resource_listdir('subdir')) == expected_subdir
+        assert sorted(zp.resource_listdir('subdir/')) == expected_subdir
+
+        assert zp.resource_listdir('nonexistent') == []
+        assert zp.resource_listdir('nonexistent/') == []
+
+        import mod2
+        zp2 = pkg_resources.ZipProvider(mod2)
+
+        assert sorted(zp2.resource_listdir('')) == expected_subdir
+        assert sorted(zp2.resource_listdir('/')) == expected_subdir
+
+        assert zp2.resource_listdir('subdir') == []
+        assert zp2.resource_listdir('subdir/') == []
 
     def test_resource_filename_rewrites_on_change(self):
         """
@@ -97,16 +135,42 @@ class TestZipProvider(object):
         manager.cleanup_resources()
 
 
-class TestResourceManager(object):
+class TestResourceManager:
     def test_get_cache_path(self):
         mgr = pkg_resources.ResourceManager()
         path = mgr.get_cache_path('foo')
         type_ = str(type(path))
         message = "Unexpected type from get_cache_path: " + type_
-        assert isinstance(path, (unicode, str)), message
+        assert isinstance(path, string_types), message
 
+    def test_get_cache_path_race(self, tmpdir):
+        # Patch to os.path.isdir to create a race condition
+        def patched_isdir(dirname, unpatched_isdir=pkg_resources.isdir):
+            patched_isdir.dirnames.append(dirname)
 
-class TestIndependence:
+            was_dir = unpatched_isdir(dirname)
+            if not was_dir:
+                os.makedirs(dirname)
+            return was_dir
+
+        patched_isdir.dirnames = []
+
+        # Get a cache path with a "race condition"
+        mgr = pkg_resources.ResourceManager()
+        mgr.set_extraction_path(str(tmpdir))
+
+        archive_name = os.sep.join(('foo', 'bar', 'baz'))
+        with mock.patch.object(pkg_resources, 'isdir', new=patched_isdir):
+            mgr.get_cache_path(archive_name)
+
+        # Because this test relies on the implementation details of this
+        # function, these assertions are a sentinel to ensure that the
+        # test suite will not fail silently if the implementation changes.
+        called_dirnames = patched_isdir.dirnames
+        assert len(called_dirnames) == 2
+        assert called_dirnames[0].split(os.sep)[-2:] == ['foo', 'bar']
+        assert called_dirnames[1].split(os.sep)[-1:] == ['foo']
+
     """
     Tests to ensure that pkg_resources runs independently from setuptools.
     """
@@ -119,14 +183,16 @@ class TestIndependence:
         lines = (
             'import pkg_resources',
             'import sys',
-            'assert "setuptools" not in sys.modules, '
-                '"setuptools was imported"',
+            (
+                'assert "setuptools" not in sys.modules, '
+                '"setuptools was imported"'
+            ),
         )
         cmd = [sys.executable, '-c', '; '.join(lines)]
         subprocess.check_call(cmd)
 
 
-class TestDeepVersionLookupDistutils(object):
+class TestDeepVersionLookupDistutils:
     @pytest.fixture
     def env(self, tmpdir):
         """
@@ -170,3 +236,56 @@ class TestDeepVersionLookupDistutils(object):
         req = pkg_resources.Requirement.parse('foo>=1.9')
         dist = pkg_resources.WorkingSet([env.paths['lib']]).find(req)
         assert dist.version == version
+
+    @pytest.mark.parametrize(
+        'unnormalized, normalized',
+        [
+            ('foo', 'foo'),
+            ('foo/', 'foo'),
+            ('foo/bar', 'foo/bar'),
+            ('foo/bar/', 'foo/bar'),
+        ],
+    )
+    def test_normalize_path_trailing_sep(self, unnormalized, normalized):
+        """Ensure the trailing slash is cleaned for path comparison.
+
+        See pypa/setuptools#1519.
+        """
+        result_from_unnormalized = pkg_resources.normalize_path(unnormalized)
+        result_from_normalized = pkg_resources.normalize_path(normalized)
+        assert result_from_unnormalized == result_from_normalized
+
+    @pytest.mark.skipif(
+        os.path.normcase('A') != os.path.normcase('a'),
+        reason='Testing case-insensitive filesystems.',
+    )
+    @pytest.mark.parametrize(
+        'unnormalized, normalized',
+        [
+            ('MiXeD/CasE', 'mixed/case'),
+        ],
+    )
+    def test_normalize_path_normcase(self, unnormalized, normalized):
+        """Ensure mixed case is normalized on case-insensitive filesystems.
+        """
+        result_from_unnormalized = pkg_resources.normalize_path(unnormalized)
+        result_from_normalized = pkg_resources.normalize_path(normalized)
+        assert result_from_unnormalized == result_from_normalized
+
+    @pytest.mark.skipif(
+        os.path.sep != '\\',
+        reason='Testing systems using backslashes as path separators.',
+    )
+    @pytest.mark.parametrize(
+        'unnormalized, expected',
+        [
+            ('forward/slash', 'forward\\slash'),
+            ('forward/slash/', 'forward\\slash'),
+            ('backward\\slash\\', 'backward\\slash'),
+        ],
+    )
+    def test_normalize_path_backslash_sep(self, unnormalized, expected):
+        """Ensure path seps are cleaned on backslash path sep systems.
+        """
+        result = pkg_resources.normalize_path(unnormalized)
+        assert result.endswith(expected)

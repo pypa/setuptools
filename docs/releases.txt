@@ -7,20 +7,35 @@ mechanical technique for releases, enacted by Travis following a
 successful build of a tagged release per
 `PyPI deployment <https://docs.travis-ci.com/user/deployment/pypi>`_.
 
-Prior to cutting a release, please check that the CHANGES.rst reflects
-the summary of changes since the last release.
-Ideally, these changelog entries would have been added
-along with the changes, but it's always good to check.
-Think about it from the
-perspective of a user not involved with the development--what would
-that person want to know about what has changed--or from the
-perspective of your future self wanting to know when a particular
-change landed.
+Prior to cutting a release, please use `towncrier`_ to update
+``CHANGES.rst`` to summarize the changes since the last release.
+To update the changelog:
 
-To cut a release, install and run ``bump2version {part}`` where ``part``
+1. Install towncrier via ``pip install towncrier`` if not already installed.
+2. Preview the new ``CHANGES.rst`` entry by running
+   ``towncrier --draft --version {new.version.number}`` (enter the desired
+   version number for the next release).  If any changes are needed, make
+   them and generate a new preview until the output is acceptable.  Run
+   ``git add`` for any modified files.
+3. Run ``towncrier --version {new.version.number}`` to stage the changelog
+   updates in git.
+4. Verify that there are no remaining ``changelog.d/*.rst`` files.  If a
+   file was named incorrectly, it may be ignored by towncrier.
+5. Review the updated ``CHANGES.rst`` file.  If any changes are needed,
+   make the edits and stage them via ``git add CHANGES.rst``.
+
+Once the changelog edits are staged and ready to commit, cut a release by
+installing and running ``bump2version --allow-dirty {part}`` where ``part``
 is major, minor, or patch based on the scope of the changes in the
-release. Then, push the commits to the master branch. If tests pass,
-the release will be uploaded to PyPI (from the Python 3.6 tests).
+release. Then, push the commits to the master branch::
+
+    $ git push origin master
+    $ git push --tags
+
+If tests pass, the release will be uploaded to PyPI (from the Python 3.6
+tests).
+
+.. _towncrier: https://pypi.org/project/towncrier/
 
 Release Frequency
 -----------------

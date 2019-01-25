@@ -15,10 +15,11 @@ from setuptools.command.egg_info import FileList, egg_info, translate_pattern
 from setuptools.dist import Distribution
 from setuptools.extern import six
 from setuptools.tests.textwrap import DALS
+from . import py3_only
 
 import pytest
 
-py3_only = pytest.mark.xfail(six.PY2, reason="Test runs on Python 3 only")
+__metaclass__ = type
 
 
 def make_local_path(s):
@@ -157,7 +158,7 @@ def test_translated_pattern_mismatch(pattern_mismatch):
     assert not translate_pattern(pattern).match(target)
 
 
-class TempDirTestCase(object):
+class TempDirTestCase:
     def setup_method(self, method):
         self.temp_dir = tempfile.mkdtemp()
         self.old_cwd = os.getcwd()

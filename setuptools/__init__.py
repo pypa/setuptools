@@ -1,6 +1,7 @@
 """Extensions to the 'distutils' for large or complex distributions"""
 
 import os
+import sys
 import functools
 import distutils.core
 import distutils.filelist
@@ -9,7 +10,9 @@ from distutils.errors import DistutilsOptionError
 from distutils.util import convert_path
 from fnmatch import fnmatchcase
 
-from setuptools.extern.six import string_types
+from ._deprecation_warning import SetuptoolsDeprecationWarning
+
+from setuptools.extern.six import PY3, string_types
 from setuptools.extern.six.moves import filter, map
 
 import setuptools.version
@@ -18,10 +21,17 @@ from setuptools.dist import Distribution, Feature
 from setuptools.depends import Require
 from . import monkey
 
+__metaclass__ = type
+
+
 __all__ = [
     'setup', 'Distribution', 'Feature', 'Command', 'Extension', 'Require',
-    'find_packages',
+    'SetuptoolsDeprecationWarning',
+    'find_packages'
 ]
+
+if PY3:
+  __all__.append('find_namespace_packages')
 
 __version__ = setuptools.version.__version__
 
@@ -34,7 +44,7 @@ run_2to3_on_doctests = True
 lib2to3_fixer_packages = ['lib2to3.fixes']
 
 
-class PackageFinder(object):
+class PackageFinder:
     """
     Generate a list of all Python packages found within a directory
     """
@@ -112,7 +122,30 @@ class PEP420PackageFinder(PackageFinder):
 
 find_packages = PackageFinder.find
 
-setup = distutils.core.setup
+if PY3:
+  find_namespace_packages = PEP420PackageFinder.find
+
+
+def _install_setup_requires(attrs):
+    # Note: do not use `setuptools.Distribution` directly, as
+    # our PEP 517 backend patch `distutils.core.Distribution`.
+    dist = distutils.core.Distribution(dict(
+        (k, v) for k, v in attrs.items()
+        if k in ('dependency_links', 'setup_requires')
+    ))
+    # Honor setup.cfg's options.
+    dist.parse_config_files(ignore_option_errors=True)
+    if dist.setup_requires:
+        dist.fetch_build_eggs(dist.setup_requires)
+
+
+def setup(**attrs):
+    # Make sure we have any requirements needed to interpret 'attrs'.
+    _install_setup_requires(attrs)
+    return distutils.core.setup(**attrs)
+
+setup.__doc__ = distutils.core.setup.__doc__
+
 
 _Command = monkey.get_unpatched(distutils.core.Command)
 
@@ -191,4 +224,5 @@ def findall(dir=os.curdir):
     return list(files)
 
 
+# Apply monkey patches
 monkey.patch_all()

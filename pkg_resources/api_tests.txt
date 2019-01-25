@@ -385,10 +385,10 @@ Environment Markers
     >>> em("sys_platform=='win32'") == (sys.platform=='win32')
     True
 
-    >>> em("python_version >= '2.6'")
+    >>> em("python_version >= '2.7'")
     True
 
-    >>> em("python_version > '2.5'")
+    >>> em("python_version > '2.6'")
     True
 
     >>> im("implementation_name=='cpython'")

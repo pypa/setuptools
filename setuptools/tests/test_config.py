@@ -3,25 +3,32 @@ from __future__ import unicode_literals
 
 import contextlib
 import pytest
+
 from distutils.errors import DistutilsOptionError, DistutilsFileError
-from setuptools.dist import Distribution
+from mock import patch
+from setuptools.dist import Distribution, _Distribution
 from setuptools.config import ConfigHandler, read_configuration
 from setuptools.extern.six.moves.configparser import InterpolationMissingOptionError
 from setuptools.tests import is_ascii
-
+from . import py2_only, py3_only
+from .textwrap import DALS
 
 class ErrConfigHandler(ConfigHandler):
     """Erroneous handler. Fails to implement required methods."""
 
 
-def make_package_dir(name, base_dir):
-    dir_package = base_dir.mkdir(name)
-    init_file = dir_package.join('__init__.py')
-    init_file.write('')
+def make_package_dir(name, base_dir, ns=False):
+    dir_package = base_dir
+    for dir_name in name.split('/'):
+        dir_package = dir_package.mkdir(dir_name)
+    init_file = None
+    if not ns:
+      init_file = dir_package.join('__init__.py')
+      init_file.write('')
     return dir_package, init_file
 
 
-def fake_env(tmpdir, setup_cfg, setup_py=None, encoding='ascii'):
+def fake_env(tmpdir, setup_cfg, setup_py=None, encoding='ascii', package_path='fake_package'):
 
     if setup_py is None:
         setup_py = (
@@ -33,7 +40,7 @@ def fake_env(tmpdir, setup_cfg, setup_py=None, encoding='ascii'):
     config = tmpdir.join('setup.cfg')
     config.write(setup_cfg.encode(encoding), mode='wb')
 
-    package_dir, init_file = make_package_dir('fake_package', tmpdir)
+    package_dir, init_file = make_package_dir(package_path, tmpdir)
 
     init_file.write(
         'VERSION = (1, 2, 3)\n'
@@ -115,6 +122,7 @@ class TestMetadata:
             '[metadata]\n'
             'version = 10.1.1\n'
             'description = Some description\n'
+            'long_description_content_type = text/something\n'
             'long_description = file: README\n'
             'name = fake_name\n'
             'keywords = one, two\n'
@@ -136,6 +144,7 @@ class TestMetadata:
 
             assert metadata.version == '10.1.1'
             assert metadata.description == 'Some description'
+            assert metadata.long_description_content_type == 'text/something'
             assert metadata.long_description == 'readme contents\nline2'
             assert metadata.provides == ['package', 'package.sub']
             assert metadata.license == 'BSD 3-Clause License'
@@ -143,6 +152,24 @@ class TestMetadata:
             assert metadata.keywords == ['one', 'two']
             assert metadata.download_url == 'http://test.test.com/test/'
             assert metadata.maintainer_email == 'test@test.com'
+
+    def test_license_cfg(self, tmpdir):
+        fake_env(
+            tmpdir,
+            DALS("""
+            [metadata]
+            name=foo
+            version=0.0.1
+            license=Apache 2.0
+            """)
+        )
+
+        with get_dist(tmpdir) as dist:
+            metadata = dist.metadata
+
+            assert metadata.name == "foo"
+            assert metadata.version == "0.0.1"
+            assert metadata.license == "Apache 2.0"
 
     def test_file_mixed(self, tmpdir):
 
@@ -220,6 +247,22 @@ class TestMetadata:
                 'Programming Language :: Python :: 3.5',
             ]
 
+    def test_dict(self, tmpdir):
+
+        fake_env(
+            tmpdir,
+            '[metadata]\n'
+            'project_urls =\n'
+            '  Link One = https://example.com/one/\n'
+            '  Link Two = https://example.com/two/\n'
+        )
+        with get_dist(tmpdir) as dist:
+            metadata = dist.metadata
+            assert metadata.project_urls == {
+                'Link One': 'https://example.com/one/',
+                'Link Two': 'https://example.com/two/',
+            }
+
     def test_version(self, tmpdir):
 
         _, config = fake_env(
@@ -254,6 +297,68 @@ class TestMetadata:
         )
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '2016.11.26'
+
+    def test_version_file(self, tmpdir):
+
+        _, config = fake_env(
+            tmpdir,
+            '[metadata]\n'
+            'version = file: fake_package/version.txt\n'
+        )
+        tmpdir.join('fake_package', 'version.txt').write('1.2.3\n')
+
+        with get_dist(tmpdir) as dist:
+            assert dist.metadata.version == '1.2.3'
+
+        tmpdir.join('fake_package', 'version.txt').write('1.2.3\n4.5.6\n')
+        with pytest.raises(DistutilsOptionError):
+            with get_dist(tmpdir) as dist:
+                _ = dist.metadata.version
+
+    def test_version_with_package_dir_simple(self, tmpdir):
+
+        _, config = fake_env(
+            tmpdir,
+            '[metadata]\n'
+            'version = attr: fake_package_simple.VERSION\n'
+            '[options]\n'
+            'package_dir =\n'
+            '    = src\n',
+            package_path='src/fake_package_simple'
+        )
+
+        with get_dist(tmpdir) as dist:
+            assert dist.metadata.version == '1.2.3'
+
+    def test_version_with_package_dir_rename(self, tmpdir):
+
+        _, config = fake_env(
+            tmpdir,
+            '[metadata]\n'
+            'version = attr: fake_package_rename.VERSION\n'
+            '[options]\n'
+            'package_dir =\n'
+            '    fake_package_rename = fake_dir\n',
+            package_path='fake_dir'
+        )
+
+        with get_dist(tmpdir) as dist:
+            assert dist.metadata.version == '1.2.3'
+
+    def test_version_with_package_dir_complex(self, tmpdir):
+
+        _, config = fake_env(
+            tmpdir,
+            '[metadata]\n'
+            'version = attr: fake_package_complex.VERSION\n'
+            '[options]\n'
+            'package_dir =\n'
+            '    fake_package_complex = src/fake_dir\n',
+            package_path='src/fake_dir'
+        )
+
+        with get_dist(tmpdir) as dist:
+            assert dist.metadata.version == '1.2.3'
 
     def test_unknown_meta_item(self, tmpdir):
 
@@ -310,6 +415,23 @@ class TestMetadata:
         )
         with get_dist(tmpdir) as dist:
             assert set(dist.metadata.classifiers) == expected
+
+    def test_deprecated_config_handlers(self, tmpdir):
+        fake_env(
+            tmpdir,
+            '[metadata]\n'
+            'version = 10.1.1\n'
+            'description = Some description\n'
+            'requires = some, requirement\n'
+        )
+
+        with pytest.deprecated_call():
+            with get_dist(tmpdir) as dist:
+                metadata = dist.metadata
+
+                assert metadata.version == '10.1.1'
+                assert metadata.description == 'Some description'
+                assert metadata.requires == ['some', 'requirement']
 
     def test_interpolation(self, tmpdir):
         fake_env(
@@ -584,6 +706,60 @@ class TestOptions:
             assert set(dist.packages) == set(
                 ['fake_package',  'fake_package.sub_two'])
 
+    @py2_only
+    def test_find_namespace_directive_fails_on_py2(self, tmpdir):
+        dir_package, config = fake_env(
+            tmpdir,
+            '[options]\n'
+            'packages = find_namespace:\n'
+        )
+
+        with pytest.raises(DistutilsOptionError):
+            with get_dist(tmpdir) as dist:
+                dist.parse_config_files()
+
+    @py3_only
+    def test_find_namespace_directive(self, tmpdir):
+        dir_package, config = fake_env(
+            tmpdir,
+            '[options]\n'
+            'packages = find_namespace:\n'
+        )
+
+        dir_sub_one, _ = make_package_dir('sub_one', dir_package)
+        dir_sub_two, _ = make_package_dir('sub_two', dir_package, ns=True)
+
+        with get_dist(tmpdir) as dist:
+            assert set(dist.packages) == { 
+                'fake_package', 'fake_package.sub_two', 'fake_package.sub_one'
+            }
+
+        config.write(
+            '[options]\n'
+            'packages = find_namespace:\n'
+            '\n'
+            '[options.packages.find]\n'
+            'where = .\n'
+            'include =\n'
+            '    fake_package.sub_one\n'
+            '    two\n'
+        )
+        with get_dist(tmpdir) as dist:
+            assert dist.packages == ['fake_package.sub_one']
+
+        config.write(
+            '[options]\n'
+            'packages = find_namespace:\n'
+            '\n'
+            '[options.packages.find]\n'
+            'exclude =\n'
+            '    fake_package.sub_one\n'
+        )
+        with get_dist(tmpdir) as dist:
+            assert set(dist.packages) == {
+                'fake_package',  'fake_package.sub_two'
+            }
+
     def test_extras_require(self, tmpdir):
         fake_env(
             tmpdir,
@@ -599,6 +775,7 @@ class TestOptions:
                 'pdf': ['ReportLab>=1.2', 'RXP'],
                 'rest': ['docutils>=0.3', 'pack==1.1,==1.3']
             }
+            assert dist.metadata.provides_extras == set(['pdf', 'rest'])
 
     def test_entry_points(self, tmpdir):
         _, config = fake_env(
@@ -633,3 +810,60 @@ class TestOptions:
 
         with get_dist(tmpdir) as dist:
             assert dist.entry_points == expected
+
+    def test_data_files(self, tmpdir):
+        fake_env(
+            tmpdir,
+            '[options.data_files]\n'
+            'cfg =\n'
+            '      a/b.conf\n'
+            '      c/d.conf\n'
+            'data = e/f.dat, g/h.dat\n'
+        )
+
+        with get_dist(tmpdir) as dist:
+            expected = [
+                ('cfg', ['a/b.conf', 'c/d.conf']),
+                ('data', ['e/f.dat', 'g/h.dat']),
+            ]
+            assert sorted(dist.data_files) == sorted(expected)
+
+saved_dist_init = _Distribution.__init__
+class TestExternalSetters:
+    # During creation of the setuptools Distribution() object, we call
+    # the init of the parent distutils Distribution object via
+    # _Distribution.__init__ ().
+    #
+    # It's possible distutils calls out to various keyword
+    # implementations (i.e. distutils.setup_keywords entry points)
+    # that may set a range of variables.
+    #
+    # This wraps distutil's Distribution.__init__ and simulates
+    # pbr or something else setting these values.
+    def _fake_distribution_init(self, dist, attrs):
+        saved_dist_init(dist, attrs)
+        # see self._DISTUTUILS_UNSUPPORTED_METADATA
+        setattr(dist.metadata, 'long_description_content_type',
+                'text/something')
+        # Test overwrite setup() args
+        setattr(dist.metadata, 'project_urls', {
+            'Link One': 'https://example.com/one/',
+            'Link Two': 'https://example.com/two/',
+        })
+        return None
+
+    @patch.object(_Distribution, '__init__', autospec=True)
+    def test_external_setters(self,  mock_parent_init, tmpdir):
+        mock_parent_init.side_effect = self._fake_distribution_init
+
+        dist = Distribution(attrs={
+            'project_urls': {
+                'will_be': 'ignored'
+            }
+        })
+
+        assert dist.metadata.long_description_content_type == 'text/something'
+        assert dist.metadata.project_urls == {
+            'Link One': 'https://example.com/one/',
+            'Link Two': 'https://example.com/two/',
+        }
