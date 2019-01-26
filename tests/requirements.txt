@@ -1,3 +1,5 @@
+# workaround for #1644
+pip<19
 mock
 pytest-flake8; python_version!="3.4"
 pytest-flake8<=1.0.0; python_version=="3.4"
