@@ -1,0 +1,1 @@
+Added the ``build_meta_legacy`` backend, a "compatibility mode" PEP 517 backend that can be used as the default when ``build-backend`` is left unspecified in ``pyproject.toml``.
