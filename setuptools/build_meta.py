@@ -112,12 +112,12 @@ def _get_immediate_subdirectories(a_dir):
 
 def get_requires_for_build_wheel(config_settings=None):
     config_settings = _fix_config(config_settings)
-    return _get_build_requires(config_settings, requirements=['setuptools', 'wheel'])
+    return _get_build_requires(config_settings, requirements=['wheel'])
 
 
 def get_requires_for_build_sdist(config_settings=None):
     config_settings = _fix_config(config_settings)
-    return _get_build_requires(config_settings, requirements=['setuptools'])
+    return _get_build_requires(config_settings, requirements=[])
 
 
 def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
@@ -149,6 +149,15 @@ def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
     return dist_infos[0]
 
 
+def _file_with_extension(directory, extension):
+    matching = (
+        f for f in os.listdir(directory)
+        if f.endswith(extension)
+    )
+    file, = matching
+    return file
+
+
 def build_wheel(wheel_directory, config_settings=None,
                 metadata_directory=None):
     config_settings = _fix_config(config_settings)
@@ -160,23 +169,15 @@ def build_wheel(wheel_directory, config_settings=None,
         shutil.rmtree(wheel_directory)
         shutil.copytree('dist', wheel_directory)
 
-    wheels = [f for f in os.listdir(wheel_directory)
-              if f.endswith('.whl')]
-
-    assert len(wheels) == 1
-    return wheels[0]
+    return _file_with_extension(wheel_directory, '.whl')
 
 
 def build_sdist(sdist_directory, config_settings=None):
     config_settings = _fix_config(config_settings)
     sdist_directory = os.path.abspath(sdist_directory)
-    sys.argv = sys.argv[:1] + ['sdist'] + \
+    sys.argv = sys.argv[:1] + ['sdist', '--formats', 'gztar'] + \
         config_settings["--global-option"] + \
         ["--dist-dir", sdist_directory]
     _run_setup()
 
-    sdists = [f for f in os.listdir(sdist_directory)
-              if f.endswith('.tar.gz')]
-
-    assert len(sdists) == 1
-    return sdists[0]
+    return _file_with_extension(sdist_directory, '.tar.gz')

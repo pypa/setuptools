@@ -3,10 +3,11 @@
 from __future__ import unicode_literals
 
 import io
-
+from setuptools.dist import DistDeprecationWarning, _get_unpatched
 from setuptools import Distribution
 from setuptools.extern.six.moves.urllib.request import pathname2url
 from setuptools.extern.six.moves.urllib_parse import urljoin
+from setuptools.extern import six
 
 from .textwrap import DALS
 from .test_easy_install import make_nspkg_sdist
@@ -54,6 +55,125 @@ def test_dist_fetch_build_egg(tmpdir):
             for r in reqs
         ]
     assert [dist.key for dist in resolved_dists if dist] == reqs
+
+
+def test_dist__get_unpatched_deprecated():
+    pytest.warns(DistDeprecationWarning, _get_unpatched, [""])
+
+
+def __read_test_cases():
+    # Metadata version 1.0
+    base_attrs = {
+        "name": "package",
+        "version": "0.0.1",
+        "author": "Foo Bar",
+        "author_email": "foo@bar.net",
+        "long_description": "Long\ndescription",
+        "description": "Short description",
+        "keywords": ["one", "two"]
+    }
+
+    def merge_dicts(d1, d2):
+        d1 = d1.copy()
+        d1.update(d2)
+
+        return d1
+
+    test_cases = [
+        ('Metadata version 1.0', base_attrs.copy()),
+        ('Metadata version 1.1: Provides', merge_dicts(base_attrs, {
+            'provides': ['package']
+        })),
+        ('Metadata version 1.1: Obsoletes', merge_dicts(base_attrs, {
+            'obsoletes': ['foo']
+        })),
+        ('Metadata version 1.1: Classifiers', merge_dicts(base_attrs, {
+            'classifiers': [
+                'Programming Language :: Python :: 3',
+                'Programming Language :: Python :: 3.7',
+                'License :: OSI Approved :: MIT License',
+            ]})),
+        ('Metadata version 1.1: Download URL', merge_dicts(base_attrs, {
+            'download_url': 'https://example.com'
+        })),
+        ('Metadata Version 1.2: Requires-Python', merge_dicts(base_attrs, {
+            'python_requires': '>=3.7'
+        })),
+        pytest.param(
+            'Metadata Version 1.2: Project-Url',
+            merge_dicts(base_attrs, {
+                'project_urls': {
+                    'Foo': 'https://example.bar'
+                }
+            }), marks=pytest.mark.xfail(
+                reason="Issue #1578: project_urls not read"
+            )),
+        ('Metadata Version 2.1: Long Description Content Type',
+         merge_dicts(base_attrs, {
+             'long_description_content_type': 'text/x-rst; charset=UTF-8'
+         })),
+        pytest.param(
+            'Metadata Version 2.1: Provides Extra',
+            merge_dicts(base_attrs, {
+                'provides_extras': ['foo', 'bar']
+            }), marks=pytest.mark.xfail(reason="provides_extras not read")),
+        ('Missing author, missing author e-mail',
+         {'name': 'foo', 'version': '1.0.0'}),
+        ('Missing author',
+         {'name': 'foo',
+          'version': '1.0.0',
+          'author_email': 'snorri@sturluson.name'}),
+        ('Missing author e-mail',
+         {'name': 'foo',
+          'version': '1.0.0',
+          'author': 'Snorri Sturluson'}),
+        ('Missing author',
+         {'name': 'foo',
+          'version': '1.0.0',
+          'author': 'Snorri Sturluson'}),
+    ]
+
+    return test_cases
+
+
+@pytest.mark.parametrize('name,attrs', __read_test_cases())
+def test_read_metadata(name, attrs):
+    dist = Distribution(attrs)
+    metadata_out = dist.metadata
+    dist_class = metadata_out.__class__
+
+    # Write to PKG_INFO and then load into a new metadata object
+    if six.PY2:
+        PKG_INFO = io.BytesIO()
+    else:
+        PKG_INFO = io.StringIO()
+
+    metadata_out.write_pkg_file(PKG_INFO)
+
+    PKG_INFO.seek(0)
+    metadata_in = dist_class()
+    metadata_in.read_pkg_file(PKG_INFO)
+
+    tested_attrs = [
+        ('name', dist_class.get_name),
+        ('version', dist_class.get_version),
+        ('author', dist_class.get_contact),
+        ('author_email', dist_class.get_contact_email),
+        ('metadata_version', dist_class.get_metadata_version),
+        ('provides', dist_class.get_provides),
+        ('description', dist_class.get_description),
+        ('download_url', dist_class.get_download_url),
+        ('keywords', dist_class.get_keywords),
+        ('platforms', dist_class.get_platforms),
+        ('obsoletes', dist_class.get_obsoletes),
+        ('requires', dist_class.get_requires),
+        ('classifiers', dist_class.get_classifiers),
+        ('project_urls', lambda s: getattr(s, 'project_urls', {})),
+        ('provides_extras', lambda s: getattr(s, 'provides_extras', set())),
+    ]
+
+    for attr, getter in tested_attrs:
+        assert getter(metadata_in) == getter(metadata_out)
 
 
 def __maintainer_test_cases():

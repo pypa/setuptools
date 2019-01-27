@@ -17,9 +17,9 @@ Documentation content:
    :maxdepth: 2
 
    setuptools
-   easy_install
    pkg_resources
    python3
    development
    roadmap
+   Deprecated: Easy Install <easy_install>
    history

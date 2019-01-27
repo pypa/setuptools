@@ -2,8 +2,12 @@ from __future__ import absolute_import, unicode_literals
 import io
 import os
 import sys
+
+import warnings
+import functools
 from collections import defaultdict
 from functools import partial
+from functools import wraps
 from importlib import import_module
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
@@ -61,6 +65,18 @@ def read_configuration(
     return configuration_to_dict(handlers)
 
 
+def _get_option(target_obj, key):
+    """
+    Given a target object and option key, get that option from
+    the target object, either through a get_{key} method or
+    from an attribute directly.
+    """
+    getter_name = 'get_{key}'.format(**locals())
+    by_attribute = functools.partial(getattr, target_obj, key)
+    getter = getattr(target_obj, getter_name, by_attribute)
+    return getter()
+
+
 def configuration_to_dict(handlers):
     """Returns configuration data gathered by given handlers as a dict.
 
@@ -72,20 +88,9 @@ def configuration_to_dict(handlers):
     config_dict = defaultdict(dict)
 
     for handler in handlers:
-
-        obj_alias = handler.section_prefix
-        target_obj = handler.target_obj
-
         for option in handler.set_options:
-            getter = getattr(target_obj, 'get_%s' % option, None)
-
-            if getter is None:
-                value = getattr(target_obj, option)
-
-            else:
-                value = getter()
-
-            config_dict[obj_alias][option] = value
+            value = _get_option(handler.target_obj, option)
+            config_dict[handler.section_prefix][option] = value
 
     return config_dict
 
@@ -110,7 +115,8 @@ def parse_configuration(
     options.parse()
 
     meta = ConfigMetadataHandler(
-        distribution.metadata, command_options, ignore_option_errors, distribution.package_dir)
+        distribution.metadata, command_options, ignore_option_errors,
+        distribution.package_dir)
     meta.parse()
 
     return meta, options
@@ -241,6 +247,26 @@ class ConfigHandler:
         return value in ('1', 'true', 'yes')
 
     @classmethod
+    def _exclude_files_parser(cls, key):
+        """Returns a parser function to make sure field inputs
+        are not files.
+
+        Parses a value after getting the key so error messages are
+        more informative.
+
+        :param key:
+        :rtype: callable
+        """
+        def parser(value):
+            exclude_directive = 'file:'
+            if value.startswith(exclude_directive):
+                raise ValueError(
+                    'Only strings are accepted for the {0} field, '
+                    'files are not accepted'.format(key))
+            return value
+        return parser
+
+    @classmethod
     def _parse_file(cls, value):
         """Represents value as a string, allowing including text
         from nearest files using `file:` directive.
@@ -249,7 +275,6 @@ class ConfigHandler:
         directory with setup.py.
 
         Examples:
-            file: LICENSE
             file: README.rst, CHANGELOG.md, src/file.txt
 
         :param str value:
@@ -388,7 +413,7 @@ class ConfigHandler:
 
             section_parser_method = getattr(
                 self,
-                # Dots in section names are tranlsated into dunderscores.
+                # Dots in section names are translated into dunderscores.
                 ('parse_section%s' % method_postfix).replace('.', '__'),
                 None)
 
@@ -398,6 +423,20 @@ class ConfigHandler:
                         self.section_prefix, section_name))
 
             section_parser_method(section_options)
+
+    def _deprecated_config_handler(self, func, msg, warning_class):
+        """ this function will wrap around parameters that are deprecated
+
+        :param msg: deprecation message
+        :param warning_class: class of warning exception to be raised
+        :param func: function to be wrapped around
+        """
+        @wraps(func)
+        def config_handler(*args, **kwargs):
+            warnings.warn(msg, warning_class)
+            return func(*args, **kwargs)
+
+        return config_handler
 
 
 class ConfigMetadataHandler(ConfigHandler):
@@ -429,15 +468,20 @@ class ConfigMetadataHandler(ConfigHandler):
         parse_list = self._parse_list
         parse_file = self._parse_file
         parse_dict = self._parse_dict
+        exclude_files_parser = self._exclude_files_parser
 
         return {
             'platforms': parse_list,
             'keywords': parse_list,
             'provides': parse_list,
-            'requires': parse_list,
+            'requires': self._deprecated_config_handler(
+                parse_list,
+                "The requires parameter is deprecated, please use "
+                "install_requires for runtime dependencies.",
+                DeprecationWarning),
             'obsoletes': parse_list,
             'classifiers': self._get_parser_compound(parse_file, parse_list),
-            'license': parse_file,
+            'license': exclude_files_parser('license'),
             'description': parse_file,
             'long_description': parse_file,
             'version': self._parse_version,
@@ -458,9 +502,12 @@ class ConfigMetadataHandler(ConfigHandler):
             # Be strict about versions loaded from file because it's easy to
             # accidentally include newlines and other unintended content
             if isinstance(parse(version), LegacyVersion):
-                raise DistutilsOptionError('Version loaded from %s does not comply with PEP 440: %s' % (
-                    value, version
-                ))
+                tmpl = (
+                    'Version loaded from {value} does not '
+                    'comply with PEP 440: {version}'
+                )
+                raise DistutilsOptionError(tmpl.format(**locals()))
+
             return version
 
         version = self._parse_attr(value, self.package_dir)
@@ -518,12 +565,13 @@ class ConfigOptionsHandler(ConfigHandler):
         find_directives = ['find:', 'find_namespace:']
         trimmed_value = value.strip()
 
-        if not trimmed_value in find_directives:
+        if trimmed_value not in find_directives:
             return self._parse_list(value)
 
         findns = trimmed_value == find_directives[1]
         if findns and not PY3:
-            raise DistutilsOptionError('find_namespace: directive is unsupported on Python < 3.3')
+            raise DistutilsOptionError(
+                'find_namespace: directive is unsupported on Python < 3.3')
 
         # Read function arguments from a dedicated section.
         find_kwargs = self.parse_section_packages__find(

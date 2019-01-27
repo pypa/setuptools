@@ -1,4 +1,3 @@
-import datetime
 import sys
 import ast
 import os
@@ -7,7 +6,9 @@ import re
 import stat
 import time
 
-from setuptools.command.egg_info import egg_info, manifest_maker
+from setuptools.command.egg_info import (
+    egg_info, manifest_maker, EggInfoDeprecationWarning, get_pkg_info_revision,
+)
 from setuptools.dist import Distribution
 from setuptools.extern.six.moves import map
 
@@ -147,6 +148,37 @@ class TestEggInfo:
             'top_level.txt',
         ]
         assert sorted(actual) == expected
+
+    def test_license_is_a_string(self, tmpdir_cwd, env):
+        setup_config = DALS("""
+            [metadata]
+            name=foo
+            version=0.0.1
+            license=file:MIT
+            """)
+
+        setup_script = DALS("""
+            from setuptools import setup
+
+            setup()
+            """)
+
+        build_files({'setup.py': setup_script,
+                     'setup.cfg': setup_config})
+
+        # This command should fail with a ValueError, but because it's
+        # currently configured to use a subprocess, the actual traceback
+        # object is lost and we need to parse it from stderr
+        with pytest.raises(AssertionError) as exc:
+            self._run_egg_info_command(tmpdir_cwd, env)
+
+        # Hopefully this is not too fragile: the only argument to the
+        # assertion error should be a traceback, ending with:
+        #     ValueError: ....
+        #
+        #     assert not 1
+        tb = exc.value.args[0].split('\n')
+        assert tb[-3].lstrip().startswith('ValueError')
 
     def test_rebuilt(self, tmpdir_cwd, env):
         """Ensure timestamps are updated when the command is re-run."""
@@ -618,6 +650,20 @@ class TestEggInfo:
         for msg in fixtures:
             assert manifest_maker._should_suppress_warning(msg)
 
+    def test_egg_info_includes_setup_py(self, tmpdir_cwd):
+        self._create_project()
+        dist = Distribution({"name": "foo", "version": "0.0.1"})
+        dist.script_name = "non_setup.py"
+        egg_info_instance = egg_info(dist)
+        egg_info_instance.finalize_options()
+        egg_info_instance.run()
+
+        assert 'setup.py' in egg_info_instance.filelist.files
+
+        with open(egg_info_instance.egg_info + "/SOURCES.txt") as f:
+            sources = f.read().split('\n')
+            assert 'setup.py' in sources
+
     def _run_egg_info_command(self, tmpdir_cwd, env, cmd=None, output=None):
         environ = os.environ.copy().update(
             HOME=env.paths['home'],
@@ -632,8 +678,8 @@ class TestEggInfo:
             data_stream=1,
             env=environ,
         )
-        if code:
-            raise AssertionError(data)
+        assert not code, data
+
         if output:
             assert output in data
 
@@ -652,3 +698,52 @@ class TestEggInfo:
         with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
         assert 'Version: 0.0.0.dev0' in pkg_info_lines
+
+    def test_get_pkg_info_revision_deprecated(self):
+        pytest.warns(EggInfoDeprecationWarning, get_pkg_info_revision)
+
+    EGG_INFO_TESTS = (
+        # Check for issue #1136: invalid string type when
+        # reading declarative `setup.cfg` under Python 2.
+        {
+            'setup.py': DALS(
+                """
+                from setuptools import setup
+                setup(
+                    name="foo",
+                )
+                """),
+            'setup.cfg': DALS(
+                """
+                [options]
+                package_dir =
+                    = src
+                """),
+            'src': {},
+        },
+        # Check Unicode can be used in `setup.py` under Python 2.
+        {
+            'setup.py': DALS(
+                """
+                # -*- coding: utf-8 -*-
+                from __future__ import unicode_literals
+                from setuptools import setup, find_packages
+                setup(
+                    name="foo",
+                    package_dir={'': 'src'},
+                )
+                """),
+            'src': {},
+        }
+    )
+
+    @pytest.mark.parametrize('package_files', EGG_INFO_TESTS)
+    def test_egg_info(self, tmpdir_cwd, env, package_files):
+        """
+        """
+        build_files(package_files)
+        code, data = environment.run_setup_py(
+            cmd=['egg_info'],
+            data_stream=1,
+        )
+        assert not code, data

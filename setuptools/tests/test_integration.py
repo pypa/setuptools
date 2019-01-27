@@ -6,6 +6,11 @@ Try to install a few packages.
 import glob
 import os
 import sys
+import re
+import subprocess
+import functools
+import tarfile
+import zipfile
 
 from setuptools.extern.six.moves import urllib
 import pytest
@@ -114,15 +119,12 @@ def test_pyuri(install_context):
     assert os.path.exists(os.path.join(pyuri.location, 'pyuri', 'uri.regex'))
 
 
-import re
-import subprocess
-import functools
-import tarfile, zipfile
-
-
 build_deps = ['appdirs', 'packaging', 'pyparsing', 'six']
+
+
 @pytest.mark.parametrize("build_dep", build_deps)
-@pytest.mark.skipif(sys.version_info < (3, 6), reason='run only on late versions')
+@pytest.mark.skipif(
+    sys.version_info < (3, 6), reason='run only on late versions')
 def test_build_deps_on_distutils(request, tmpdir_factory, build_dep):
     """
     All setuptools build dependencies must build without
@@ -149,13 +151,16 @@ def install(pkg_dir, install_dir):
         breaker.write('raise ImportError()')
     cmd = [sys.executable, 'setup.py', 'install', '--prefix', install_dir]
     env = dict(os.environ, PYTHONPATH=pkg_dir)
-    output = subprocess.check_output(cmd, cwd=pkg_dir, env=env, stderr=subprocess.STDOUT)
+    output = subprocess.check_output(
+        cmd, cwd=pkg_dir, env=env, stderr=subprocess.STDOUT)
     return output.decode('utf-8')
 
 
 def download_and_extract(request, req, target):
-    cmd = [sys.executable, '-m', 'pip', 'download', '--no-deps',
-        '--no-binary', ':all:', req]
+    cmd = [
+        sys.executable, '-m', 'pip', 'download', '--no-deps',
+        '--no-binary', ':all:', req,
+    ]
     output = subprocess.check_output(cmd, encoding='utf-8')
     filename = re.search('Saved (.*)', output).group(1)
     request.addfinalizer(functools.partial(os.remove, filename))

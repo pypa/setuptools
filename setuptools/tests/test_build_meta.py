@@ -2,16 +2,20 @@ from __future__ import unicode_literals
 
 import os
 import shutil
+import tarfile
 
 import pytest
 
+from setuptools.build_meta import build_sdist
 from .files import build_files
 from .textwrap import DALS
+from . import py2_only
 
 __metaclass__ = type
 
-futures = pytest.importorskip('concurrent.futures')
-importlib = pytest.importorskip('importlib')
+# Backports on Python 2.7
+import importlib
+from concurrent import futures
 
 
 class BuildBackendBase:
@@ -108,13 +112,13 @@ def build_backend(tmpdir, request):
 
 def test_get_requires_for_build_wheel(build_backend):
     actual = build_backend.get_requires_for_build_wheel()
-    expected = ['six', 'setuptools', 'wheel']
+    expected = ['six', 'wheel']
     assert sorted(actual) == sorted(expected)
 
 
 def test_get_requires_for_build_sdist(build_backend):
     actual = build_backend.get_requires_for_build_sdist()
-    expected = ['six', 'setuptools']
+    expected = ['six']
     assert sorted(actual) == sorted(expected)
 
 
@@ -143,7 +147,7 @@ def test_prepare_metadata_for_build_wheel(build_backend):
     assert os.path.isfile(os.path.join(dist_dir, dist_info, 'METADATA'))
 
 
-@pytest.mark.skipif('sys.version_info > (3,)')
+@py2_only
 def test_prepare_metadata_for_build_wheel_with_str(build_backend):
     dist_dir = os.path.abspath(str('pip-dist-info'))
     os.makedirs(dist_dir)
@@ -168,15 +172,67 @@ def test_build_sdist_version_change(build_backend):
     sdist_name = build_backend.build_sdist(sdist_into_directory)
     assert os.path.isfile(os.path.join(sdist_into_directory, sdist_name))
 
-    # if the setup.py changes subsequent call of the build meta should still succeed, given the
+    # if the setup.py changes subsequent call of the build meta
+    # should still succeed, given the
     # sdist_directory the frontend specifies is empty
     with open(os.path.abspath("setup.py"), 'rt') as file_handler:
         content = file_handler.read()
     with open(os.path.abspath("setup.py"), 'wt') as file_handler:
-        file_handler.write(content.replace("version='0.0.0'", "version='0.0.1'"))
+        file_handler.write(
+            content.replace("version='0.0.0'", "version='0.0.1'"))
 
     shutil.rmtree(sdist_into_directory)
     os.makedirs(sdist_into_directory)
 
     sdist_name = build_backend.build_sdist("out_sdist")
-    assert os.path.isfile(os.path.join(os.path.abspath("out_sdist"), sdist_name))
+    assert os.path.isfile(
+        os.path.join(os.path.abspath("out_sdist"), sdist_name))
+
+
+def test_build_sdist_setup_py_exists(tmpdir_cwd):
+    # If build_sdist is called from a script other than setup.py,
+    # ensure setup.py is include
+    build_files(defns[0])
+    targz_path = build_sdist("temp")
+    with tarfile.open(os.path.join("temp", targz_path)) as tar:
+        assert any('setup.py' in name for name in tar.getnames())
+
+
+def test_build_sdist_setup_py_manifest_excluded(tmpdir_cwd):
+    # Ensure that MANIFEST.in can exclude setup.py
+    files = {
+        'setup.py': DALS("""
+    __import__('setuptools').setup(
+        name='foo',
+        version='0.0.0',
+        py_modules=['hello']
+    )"""),
+        'hello.py': '',
+        'MANIFEST.in': DALS("""
+    exclude setup.py
+    """)
+    }
+
+    build_files(files)
+    targz_path = build_sdist("temp")
+    with tarfile.open(os.path.join("temp", targz_path)) as tar:
+        assert not any('setup.py' in name for name in tar.getnames())
+
+
+def test_build_sdist_builds_targz_even_if_zip_indicated(tmpdir_cwd):
+    files = {
+        'setup.py': DALS("""
+            __import__('setuptools').setup(
+                name='foo',
+                version='0.0.0',
+                py_modules=['hello']
+            )"""),
+        'hello.py': '',
+        'setup.cfg': DALS("""
+            [sdist]
+            formats=zip
+            """)
+    }
+
+    build_files(files)
+    build_sdist("temp")

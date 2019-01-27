@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 
 from distutils import log
 import os
-import sys
 
 import pytest
 
@@ -93,10 +92,6 @@ def test_test(capfd):
     assert out == 'Foo\n'
 
 
-@pytest.mark.xfail(
-    sys.version_info < (2, 7),
-    reason="No discover support for unittest on Python 2.6",
-)
 @pytest.mark.usefixtures('tmpdir_cwd', 'quiet_log')
 def test_tests_are_run_once(capfd):
     params = dict(

@@ -20,8 +20,8 @@ from setuptools.command.egg_info import manifest_maker
 from setuptools.dist import Distribution
 from setuptools.tests import fail_on_ascii
 from .text import Filenames
+from . import py3_only
 
-py3_only = pytest.mark.xfail(six.PY2, reason="Test runs on Python 3 only")
 
 SETUP_ATTRS = {
     'name': 'sdist_test',
@@ -92,9 +92,8 @@ fail_on_latin1_encoded_filenames = pytest.mark.xfail(
 class TestSdistTest:
     def setup_method(self, method):
         self.temp_dir = tempfile.mkdtemp()
-        f = open(os.path.join(self.temp_dir, 'setup.py'), 'w')
-        f.write(SETUP_PY)
-        f.close()
+        with open(os.path.join(self.temp_dir, 'setup.py'), 'w') as f:
+            f.write(SETUP_PY)
 
         # Set up the rest of the test package
         test_pkg = os.path.join(self.temp_dir, 'sdist_test')
@@ -134,6 +133,47 @@ class TestSdistTest:
         assert os.path.join('sdist_test', 'b.txt') in manifest
         assert os.path.join('sdist_test', 'c.rst') not in manifest
         assert os.path.join('d', 'e.dat') in manifest
+
+    def test_setup_py_exists(self):
+        dist = Distribution(SETUP_ATTRS)
+        dist.script_name = 'foo.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+
+        with quiet():
+            cmd.run()
+
+        manifest = cmd.filelist.files
+        assert 'setup.py' in manifest
+
+    def test_setup_py_missing(self):
+        dist = Distribution(SETUP_ATTRS)
+        dist.script_name = 'foo.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+
+        if os.path.exists("setup.py"):
+            os.remove("setup.py")
+        with quiet():
+            cmd.run()
+
+        manifest = cmd.filelist.files
+        assert 'setup.py' not in manifest
+
+    def test_setup_py_excluded(self):
+        with open("MANIFEST.in", "w") as manifest_file:
+            manifest_file.write("exclude setup.py")
+
+        dist = Distribution(SETUP_ATTRS)
+        dist.script_name = 'foo.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+
+        with quiet():
+            cmd.run()
+
+        manifest = cmd.filelist.files
+        assert 'setup.py' not in manifest
 
     def test_defaults_case_sensitivity(self):
         """

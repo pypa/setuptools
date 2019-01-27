@@ -238,6 +238,9 @@ __all__ = [
     'register_finder', 'register_namespace_handler', 'register_loader_type',
     'fixup_namespace_packages', 'get_importer',
 
+    # Warnings
+    'PkgResourcesDeprecationWarning',
+
     # Deprecated/backward compatibility only
     'run_main', 'AvailableDistributions',
 ]
@@ -2228,7 +2231,7 @@ register_namespace_handler(object, null_ns_handler)
 
 def normalize_path(filename):
     """Normalize a file/dir name for comparison purposes"""
-    return os.path.normcase(os.path.realpath(_cygwin_patch(filename)))
+    return os.path.normcase(os.path.realpath(os.path.normpath(_cygwin_patch(filename))))
 
 
 def _cygwin_patch(filename):  # pragma: nocover
@@ -2335,7 +2338,7 @@ class EntryPoint:
             warnings.warn(
                 "Parameters to load are deprecated.  Call .resolve and "
                 ".require separately.",
-                DeprecationWarning,
+                PkgResourcesDeprecationWarning,
                 stacklevel=2,
             )
         if require:
@@ -3158,3 +3161,11 @@ def _initialize_master_working_set():
     # match order
     list(map(working_set.add_entry, sys.path))
     globals().update(locals())
+
+class PkgResourcesDeprecationWarning(Warning):
+    """
+    Base class for warning about deprecations in ``pkg_resources``
+
+    This class is not derived from ``DeprecationWarning``, and as such is
+    visible by default.
+    """

@@ -67,8 +67,8 @@ All PRs with code changes should include tests. All changes should include a
 changelog entry.
 
 ``setuptools`` uses `towncrier <https://pypi.org/project/towncrier/>`_
-for changelog managment, so when making a PR, please add a news fragment in the
-``changelog.d/`` folder. Changelog files are written in Restructured Text and
+for changelog management, so when making a PR, please add a news fragment in the
+``changelog.d/`` folder. Changelog files are written in reStructuredText and
 should be a 1 or 2 sentence description of the substantive changes in the PR.
 They should be named ``<pr_number>.<category>.rst``, where the categories are:
 
@@ -76,7 +76,7 @@ They should be named ``<pr_number>.<category>.rst``, where the categories are:
 - ``breaking``: Any backwards-compatibility breaking change
 - ``doc``: A change to the documentation
 - ``misc``: Changes internal to the repo like CI, test and build changes
-- ``deprecation``: For deprecations of an existing feature of behavior
+- ``deprecation``: For deprecations of an existing feature or behavior
 
 A pull request may have more than one of these components, for example a code
 change may introduce a new feature that deprecates an old feature, in which
@@ -88,6 +88,17 @@ code changes. See the following for an example news fragment:
 
     $ cat changelog.d/1288.change.rst
     Add support for maintainer in PKG-INFO
+
+-------------------
+Auto-Merge Requests
+-------------------
+
+To support running all code through CI, even lightweight contributions,
+the project employs Mergify to auto-merge pull requests tagged as
+auto-merge.
+
+Use ``hub pull-request -l auto-merge`` to create such a pull request
+from the command line after pushing a new branch.
 
 -------
 Testing
