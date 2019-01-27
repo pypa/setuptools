@@ -518,6 +518,55 @@ class TestEggInfo:
             pkg_info_text = pkginfo_file.read()
         assert 'Provides-Extra:' not in pkg_info_text
 
+    @pytest.mark.parametrize("files, license_in_sources", [
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_file = LICENSE
+                              """),
+            'LICENSE': DALS("Test license")
+        }, True), # with license
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_file = INVALID_LICENSE
+                              """),
+            'LICENSE': DALS("Test license")
+        }, False), # with an invalid license
+        ({
+            'setup.cfg': DALS("""
+                              """),
+            'LICENSE': DALS("Test license")
+        }, False), # no license_file attribute
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_file = LICENSE
+                              """),
+            'MANIFEST.in': DALS("exclude LICENSE"),
+            'LICENSE': DALS("Test license")
+        }, False) # license file is manually excluded
+    ])
+    def test_setup_cfg_license_file(
+            self, tmpdir_cwd, env, files, license_in_sources):
+        self._create_project()
+        build_files(files)
+
+        environment.run_setup_py(
+            cmd=['egg_info'],
+            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)])
+        )
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
+
+        with open(os.path.join(egg_info_dir, 'SOURCES.txt')) as sources_file:
+            sources_text = sources_file.read()
+
+        if license_in_sources:
+            assert 'LICENSE' in sources_text
+        else:
+            assert 'LICENSE' not in sources_text
+            assert 'INVALID_LICENSE' not in sources_text # for invalid license test
+
     def test_long_description_content_type(self, tmpdir_cwd, env):
         # Test that specifying a `long_description_content_type` keyword arg to
         # the `setup` function results in writing a `Description-Content-Type`
