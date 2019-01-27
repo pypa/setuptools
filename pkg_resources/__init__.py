@@ -39,6 +39,8 @@ import tempfile
 import textwrap
 import itertools
 import inspect
+import ntpath
+import posixpath
 from pkgutil import get_importer
 
 try:
@@ -1497,15 +1499,34 @@ class NullProvider:
         >>> vrp('foo/f../bar.txt')
         >>> bool(warned)
         False
+
+        Windows path separators are straight-up disallowed.
+        >>> vrp(r'\\foo/bar.txt')
+        Traceback (most recent call last):
+        ...
+        ValueError: Use of .. or absolute path in a resource path \
+is not allowed.
+
+        >>> vrp(r'C:\\foo/bar.txt')
+        Traceback (most recent call last):
+        ...
+        ValueError: Use of .. or absolute path in a resource path \
+is not allowed.
         """
         invalid = (
-            '..' in path.split('/') or
-            path.startswith('/')
+            os.path.pardir in path.split(posixpath.sep) or
+            posixpath.isabs(path) or
+            ntpath.isabs(path)
         )
         if not invalid:
             return
 
-        msg = "Use of .. or leading '/' in a resource path is not allowed."
+        msg = "Use of .. or absolute path in a resource path is not allowed."
+
+        # Aggressively disallow Windows absolute paths
+        if ntpath.isabs(path) and not posixpath.isabs(path):
+            raise ValueError(msg)
+
         # for compatibility, warn; in future
         # raise ValueError(msg)
         warnings.warn(
