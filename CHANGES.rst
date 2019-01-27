@@ -1,3 +1,13 @@
+v40.7.0
+-------
+
+* #1551: File inputs for the `license` field in `setup.cfg` files now explicitly raise an error.
+* #1180: Add support for non-ASCII in setup.cfg (#1062). Add support for native strings on some parameters (#1136).
+* #1499: ``setuptools.package_index`` no longer relies on the deprecated ``urllib.parse.splituser`` per Python #27485.
+* #1544: Added tests for PackageIndex.download (for git URLs).
+* #1625: In PEP 517 build_meta builder, ensure that sdists are built as gztar per the spec.
+
+
 v40.6.3
 -------
 
