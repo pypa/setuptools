@@ -258,7 +258,6 @@ class TestBuildMetaBackend:
             build_backend.build_sdist("temp")
 
 
-@pytest.mark.xfail
 class TestBuildMetaLegacyBackend(TestBuildMetaBackend):
     backend_name = 'setuptools.build_meta_legacy'
 
