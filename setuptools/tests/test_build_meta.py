@@ -236,3 +236,23 @@ class TestBuildMetaBackend:
 
         build_backend = self.get_build_backend()
         build_backend.build_sdist("temp")
+
+    _relative_path_import_files = {
+        'setup.py': DALS("""
+            __import__('setuptools').setup(
+                name='foo',
+                version=__import__('hello').__version__,
+                py_modules=['hello']
+            )"""),
+        'hello.py': '__version__ = "0.0.0"',
+        'setup.cfg': DALS("""
+            [sdist]
+            formats=zip
+            """)
+    }
+
+    def test_build_sdist_relative_path_import(self, tmpdir_cwd):
+        build_files(self._relative_path_import_files)
+        build_backend = self.get_build_backend()
+        with pytest.raises(ImportError):
+            build_backend.build_sdist("temp")
