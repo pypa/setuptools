@@ -35,6 +35,12 @@ import contextlib
 import setuptools
 import distutils
 
+__all__ = ['get_requires_for_build_sdist',
+           'get_requires_for_build_wheel',
+           'prepare_metadata_for_build_wheel',
+           'build_wheel',
+           'build_sdist',
+           'SetupRequirementsError']
 
 class SetupRequirementsError(BaseException):
     def __init__(self, specifiers):
