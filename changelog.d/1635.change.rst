@@ -1,0 +1,1 @@
+Resource paths are passed to ``pkg_resources.resource_string`` and similar no longer accept paths that traverse parents, that begin with a leading ``/``. Violations of this expectation raise DeprecationWarnings and will become errors. Additionally, any paths that are absolute on Windows are strictly disallowed and will raise ValueErrors.
