@@ -660,7 +660,7 @@ class Distribution(_Distribution):
                 neg_opt = {}
 
             try:
-                is_string = isinstance(value, str)
+                is_string = isinstance(value, six.string_types)
                 if option in neg_opt and is_string:
                     setattr(command_obj, neg_opt[option], not strtobool(value))
                 elif option in bool_opts and is_string:
