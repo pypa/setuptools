@@ -256,3 +256,16 @@ class TestBuildMetaBackend:
         build_backend = self.get_build_backend()
         with pytest.raises(ImportError):
             build_backend.build_sdist("temp")
+
+
+@pytest.mark.xfail
+class TestBuildMetaLegacyBackend(TestBuildMetaBackend):
+    backend_name = 'setuptools.build_meta_legacy'
+
+    # build_meta_legacy-specific tests
+    def test_build_sdist_relative_path_import(self, tmpdir_cwd):
+        # This must fail in build_meta, but must pass in build_meta_legacy
+        build_files(self._relative_path_import_files)
+
+        build_backend = self.get_build_backend()
+        build_backend.build_sdist("temp")
