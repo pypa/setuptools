@@ -1,5 +1,6 @@
 import unicodedata
 import sys
+import re
 
 from setuptools.extern import six
 
@@ -42,3 +43,15 @@ def try_encode(string, enc):
         return string.encode(enc)
     except UnicodeEncodeError:
         return None
+
+
+CODING_RE = re.compile(br'^[ \t\f]*#.*?coding[:=][ \t]*([-\w.]+)')
+
+
+def detect_encoding(fp):
+    first_line = fp.readline()
+    fp.seek(0)
+    m = CODING_RE.match(first_line)
+    if m is None:
+        return None
+    return m.group(1).decode('ascii')
