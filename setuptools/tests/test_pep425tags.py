@@ -32,7 +32,9 @@ class TestPEP425Tags:
         if sys.version_info < (3, 3):
             config_vars.update({'Py_UNICODE_SIZE': 2})
             mock_gcf = self.mock_get_config_var(**config_vars)
-            with patch('setuptools.pep425tags.sysconfig.get_config_var', mock_gcf):
+            with patch(
+                    'setuptools.pep425tags.sysconfig.get_config_var',
+                    mock_gcf):
                 abi_tag = pep425tags.get_abi_tag()
                 assert abi_tag == base + flags
 

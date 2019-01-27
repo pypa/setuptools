@@ -1,4 +1,3 @@
-import distutils.command
 import glob
 import os
 import sys
@@ -141,7 +140,7 @@ def test_no_missing_dependencies(bare_virtualenv):
     """
     Quick and dirty test to ensure all external dependencies are vendored.
     """
-    for command in ('upload',):#sorted(distutils.command.__all__):
+    for command in ('upload',):  # sorted(distutils.command.__all__):
         bare_virtualenv.run(' && '.join((
             'cd {source}',
             'python setup.py {command} -h',

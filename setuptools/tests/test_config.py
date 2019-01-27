@@ -8,6 +8,7 @@ from setuptools.config import ConfigHandler, read_configuration
 from . import py2_only, py3_only
 from .textwrap import DALS
 
+
 class ErrConfigHandler(ConfigHandler):
     """Erroneous handler. Fails to implement required methods."""
 
@@ -18,8 +19,8 @@ def make_package_dir(name, base_dir, ns=False):
         dir_package = dir_package.mkdir(dir_name)
     init_file = None
     if not ns:
-      init_file = dir_package.join('__init__.py')
-      init_file.write('')
+        init_file = dir_package.join('__init__.py')
+        init_file.write('')
     return dir_package, init_file
 
 
@@ -308,7 +309,7 @@ class TestMetadata:
         tmpdir.join('fake_package', 'version.txt').write('1.2.3\n4.5.6\n')
         with pytest.raises(DistutilsOptionError):
             with get_dist(tmpdir) as dist:
-                _ = dist.metadata.version
+                dist.metadata.version
 
     def test_version_with_package_dir_simple(self, tmpdir):
 
@@ -451,7 +452,7 @@ class TestOptions:
             'tests_require = mock==0.7.2; pytest\n'
             'setup_requires = docutils>=0.3; spack ==1.1, ==1.3; there\n'
             'dependency_links = http://some.com/here/1, '
-                'http://some.com/there/2\n'
+            'http://some.com/there/2\n'
             'python_requires = >=1.0, !=2.8\n'
             'py_modules = module1, module2\n'
         )
@@ -659,7 +660,7 @@ class TestOptions:
         dir_sub_two, _ = make_package_dir('sub_two', dir_package, ns=True)
 
         with get_dist(tmpdir) as dist:
-            assert set(dist.packages) == { 
+            assert set(dist.packages) == {
                 'fake_package', 'fake_package.sub_two', 'fake_package.sub_one'
             }
 
@@ -711,7 +712,7 @@ class TestOptions:
             tmpdir,
             '[options.entry_points]\n'
             'group1 = point1 = pack.module:func, '
-                '.point2 = pack.module2:func_rest [rest]\n'
+            '.point2 = pack.module2:func_rest [rest]\n'
             'group2 = point3 = pack.module:func2\n'
         )
 
@@ -757,7 +758,10 @@ class TestOptions:
             ]
             assert sorted(dist.data_files) == sorted(expected)
 
+
 saved_dist_init = _Distribution.__init__
+
+
 class TestExternalSetters:
     # During creation of the setuptools Distribution() object, we call
     # the init of the parent distutils Distribution object via

@@ -1,4 +1,3 @@
-import datetime
 import sys
 import ast
 import os
@@ -7,7 +6,9 @@ import re
 import stat
 import time
 
-from setuptools.command.egg_info import egg_info, manifest_maker, EggInfoDeprecationWarning, get_pkg_info_revision
+from setuptools.command.egg_info import (
+    egg_info, manifest_maker, EggInfoDeprecationWarning, get_pkg_info_revision,
+)
 from setuptools.dist import Distribution
 from setuptools.extern.six.moves import map
 

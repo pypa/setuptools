@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 
 from distutils import log
 import os
-import sys
 
 import pytest
 

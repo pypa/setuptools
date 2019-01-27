@@ -44,7 +44,10 @@ class TestPackageIndex:
             hosts=('www.example.com',)
         )
 
-        url = 'url:%20https://svn.plone.org/svn/collective/inquant.contentmirror.plone/trunk'
+        url = (
+            'url:%20https://svn.plone.org/svn'
+            '/collective/inquant.contentmirror.plone/trunk'
+        )
         try:
             v = index.open_url(url)
         except Exception as v:
@@ -63,9 +66,9 @@ class TestPackageIndex:
         index.opener = _urlopen
         url = 'http://example.com'
         try:
-            v = index.open_url(url)
-        except Exception as v:
-            assert 'line' in str(v)
+            index.open_url(url)
+        except Exception as exc:
+            assert 'line' in str(exc)
         else:
             raise AssertionError('Should have raise here!')
 
@@ -83,7 +86,11 @@ class TestPackageIndex:
             index.open_url(url)
         except distutils.errors.DistutilsError as error:
             msg = six.text_type(error)
-            assert 'nonnumeric port' in msg or 'getaddrinfo failed' in msg or 'Name or service not known' in msg
+            assert (
+                'nonnumeric port' in msg
+                or 'getaddrinfo failed' in msg
+                or 'Name or service not known' in msg
+            )
             return
         raise RuntimeError("Did not raise")
 

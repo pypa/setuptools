@@ -19,10 +19,11 @@ class IndexServer(BaseHTTPServer.HTTPServer):
         s.stop()
     """
 
-    def __init__(self, server_address=('', 0),
+    def __init__(
+            self, server_address=('', 0),
             RequestHandlerClass=SimpleHTTPServer.SimpleHTTPRequestHandler):
-        BaseHTTPServer.HTTPServer.__init__(self, server_address,
-            RequestHandlerClass)
+        BaseHTTPServer.HTTPServer.__init__(
+            self, server_address, RequestHandlerClass)
         self._run = True
 
     def start(self):
@@ -56,10 +57,11 @@ class MockServer(BaseHTTPServer.HTTPServer, threading.Thread):
     A simple HTTP Server that records the requests made to it.
     """
 
-    def __init__(self, server_address=('', 0),
+    def __init__(
+            self, server_address=('', 0),
             RequestHandlerClass=RequestRecorder):
-        BaseHTTPServer.HTTPServer.__init__(self, server_address,
-            RequestHandlerClass)
+        BaseHTTPServer.HTTPServer.__init__(
+            self, server_address, RequestHandlerClass)
         threading.Thread.__init__(self)
         self.setDaemon(True)
         self.requests = []

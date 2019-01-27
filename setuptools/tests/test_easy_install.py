@@ -15,7 +15,9 @@ import distutils.errors
 import io
 import zipfile
 import mock
-from setuptools.command.easy_install import EasyInstallDeprecationWarning, ScriptWriter, WindowsScriptWriter
+from setuptools.command.easy_install import (
+    EasyInstallDeprecationWarning, ScriptWriter, WindowsScriptWriter,
+)
 import time
 from setuptools.extern import six
 from setuptools.extern.six.moves import urllib
@@ -287,7 +289,6 @@ class TestEasyInstallTest:
         cmd.easy_install(sdist_script)
         assert (target / 'mypkg_script').exists()
 
-
     def test_dist_get_script_args_deprecated(self):
         with pytest.warns(EasyInstallDeprecationWarning):
             ScriptWriter.get_script_args(None, None)
@@ -303,6 +304,7 @@ class TestEasyInstallTest:
     def test_dist_WindowsScriptWriter_get_writer_deprecated(self):
         with pytest.warns(EasyInstallDeprecationWarning):
             WindowsScriptWriter.get_writer()
+
 
 @pytest.mark.filterwarnings('ignore:Unbuilt egg')
 class TestPTHFileWriter:

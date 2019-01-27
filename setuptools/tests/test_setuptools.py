@@ -77,7 +77,8 @@ class TestDepends:
         from json import __version__
         assert dep.get_module_constant('json', '__version__') == __version__
         assert dep.get_module_constant('sys', 'version') == sys.version
-        assert dep.get_module_constant('setuptools.tests.test_setuptools', '__doc__') == __doc__
+        assert dep.get_module_constant(
+            'setuptools.tests.test_setuptools', '__doc__') == __doc__
 
     @needs_bytecode
     def testRequire(self):
@@ -216,7 +217,8 @@ class TestFeatures:
         self.req = Require('Distutils', '1.0.3', 'distutils')
         self.dist = makeSetup(
             features={
-                'foo': Feature("foo", standard=True, require_features=['baz', self.req]),
+                'foo': Feature(
+                    "foo", standard=True, require_features=['baz', self.req]),
                 'bar': Feature("bar", standard=True, packages=['pkg.bar'],
                                py_modules=['bar_et'], remove=['bar.ext'],
                                ),
@@ -252,7 +254,8 @@ class TestFeatures:
             ('with-dwim', None, 'include DWIM') in dist.feature_options
         )
         assert (
-            ('without-dwim', None, 'exclude DWIM (default)') in dist.feature_options
+            ('without-dwim', None, 'exclude DWIM (default)')
+            in dist.feature_options
         )
         assert (
             ('with-bar', None, 'include bar (default)') in dist.feature_options

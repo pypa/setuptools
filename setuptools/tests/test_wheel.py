@@ -63,6 +63,7 @@ WHEEL_INFO_TESTS = (
     }),
 )
 
+
 @pytest.mark.parametrize(
     ('filename', 'info'), WHEEL_INFO_TESTS,
     ids=[t[0] for t in WHEEL_INFO_TESTS]
@@ -486,6 +487,7 @@ WHEEL_INSTALL_TESTS = (
     ),
 
 )
+
 
 @pytest.mark.parametrize(
     'params', WHEEL_INSTALL_TESTS,

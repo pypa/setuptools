@@ -14,6 +14,7 @@ from .test_easy_install import make_nspkg_sdist
 
 import pytest
 
+
 def test_dist_fetch_build_egg(tmpdir):
     """
     Check multiple calls to `Distribution.fetch_build_egg` work as expected.
@@ -90,30 +91,32 @@ def __read_test_cases():
             'classifiers': [
                 'Programming Language :: Python :: 3',
                 'Programming Language :: Python :: 3.7',
-                'License :: OSI Approved :: MIT License'
-        ]})),
+                'License :: OSI Approved :: MIT License',
+            ]})),
         ('Metadata version 1.1: Download URL', merge_dicts(base_attrs, {
             'download_url': 'https://example.com'
         })),
         ('Metadata Version 1.2: Requires-Python', merge_dicts(base_attrs, {
             'python_requires': '>=3.7'
         })),
-        pytest.param('Metadata Version 1.2: Project-Url',
+        pytest.param(
+            'Metadata Version 1.2: Project-Url',
             merge_dicts(base_attrs, {
                 'project_urls': {
                     'Foo': 'https://example.bar'
                 }
             }), marks=pytest.mark.xfail(
                 reason="Issue #1578: project_urls not read"
-        )),
+            )),
         ('Metadata Version 2.1: Long Description Content Type',
          merge_dicts(base_attrs, {
              'long_description_content_type': 'text/x-rst; charset=UTF-8'
          })),
-        pytest.param('Metadata Version 2.1: Provides Extra',
+        pytest.param(
+            'Metadata Version 2.1: Provides Extra',
             merge_dicts(base_attrs, {
                 'provides_extras': ['foo', 'bar']
-        }), marks=pytest.mark.xfail(reason="provides_extras not read")),
+            }), marks=pytest.mark.xfail(reason="provides_extras not read")),
         ('Missing author, missing author e-mail',
          {'name': 'foo', 'version': '1.0.0'}),
         ('Missing author',
