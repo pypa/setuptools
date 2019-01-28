@@ -28,10 +28,11 @@ class _BuildMetaLegacyBackend(_BuildMetaBackend):
         # '' into sys.path. (pypa/setuptools#1642)
         sys_path = list(sys.path)           # Save the original path
 
-        try:
-            if '' not in sys.path:
-                sys.path.insert(0, '')
+        script_dir = os.path.dirname(os.path.abspath(setup_script))
+        if script_dir not in sys.path:
+            sys.path.insert(0, script_dir)
 
+        try:
             super(_BuildMetaLegacyBackend,
                   self).run_setup(setup_script=setup_script)
         finally:
