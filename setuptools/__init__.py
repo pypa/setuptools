@@ -5,14 +5,12 @@ import sys
 import functools
 import distutils.core
 import distutils.filelist
-import re
-from distutils.errors import DistutilsOptionError
 from distutils.util import convert_path
 from fnmatch import fnmatchcase
 
 from ._deprecation_warning import SetuptoolsDeprecationWarning
 
-from setuptools.extern.six import PY3, string_types
+from setuptools.extern.six import PY3
 from setuptools.extern.six.moves import filter, map
 
 import setuptools.version
@@ -162,37 +160,6 @@ class Command(_Command):
         """
         _Command.__init__(self, dist)
         vars(self).update(kw)
-
-    def _ensure_stringlike(self, option, what, default=None):
-        val = getattr(self, option)
-        if val is None:
-            setattr(self, option, default)
-            return default
-        elif not isinstance(val, string_types):
-            raise DistutilsOptionError("'%s' must be a %s (got `%s`)"
-                                       % (option, what, val))
-        return val
-
-    def ensure_string_list(self, option):
-        r"""Ensure that 'option' is a list of strings.  If 'option' is
-        currently a string, we split it either on /,\s*/ or /\s+/, so
-        "foo bar baz", "foo,bar,baz", and "foo,   bar baz" all become
-        ["foo", "bar", "baz"].
-        """
-        val = getattr(self, option)
-        if val is None:
-            return
-        elif isinstance(val, string_types):
-            setattr(self, option, re.split(r',\s*|\s+', val))
-        else:
-            if isinstance(val, list):
-                ok = all(isinstance(v, string_types) for v in val)
-            else:
-                ok = False
-            if not ok:
-                raise DistutilsOptionError(
-                      "'%s' must be a list of strings (got %r)"
-                      % (option, val))
 
     def reinitialize_command(self, command, reinit_subcommands=0, **kw):
         cmd = _Command.reinitialize_command(self, command, reinit_subcommands)

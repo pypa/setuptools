@@ -1,6 +1,3 @@
-# -*- coding: UTF-8 -*-
-from __future__ import unicode_literals
-
 import contextlib
 import pytest
 
@@ -8,8 +5,6 @@ from distutils.errors import DistutilsOptionError, DistutilsFileError
 from mock import patch
 from setuptools.dist import Distribution, _Distribution
 from setuptools.config import ConfigHandler, read_configuration
-from setuptools.extern.six.moves.configparser import InterpolationMissingOptionError
-from setuptools.tests import is_ascii
 from . import py2_only, py3_only
 from .textwrap import DALS
 
@@ -29,7 +24,7 @@ def make_package_dir(name, base_dir, ns=False):
     return dir_package, init_file
 
 
-def fake_env(tmpdir, setup_cfg, setup_py=None, encoding='ascii', package_path='fake_package'):
+def fake_env(tmpdir, setup_cfg, setup_py=None, package_path='fake_package'):
 
     if setup_py is None:
         setup_py = (
@@ -39,7 +34,7 @@ def fake_env(tmpdir, setup_cfg, setup_py=None, encoding='ascii', package_path='f
 
     tmpdir.join('setup.py').write(setup_py)
     config = tmpdir.join('setup.cfg')
-    config.write(setup_cfg.encode(encoding), mode='wb')
+    config.write(setup_cfg)
 
     package_dir, init_file = make_package_dir(package_path, tmpdir)
 
@@ -433,72 +428,6 @@ class TestMetadata:
                 assert metadata.version == '10.1.1'
                 assert metadata.description == 'Some description'
                 assert metadata.requires == ['some', 'requirement']
-
-    def test_interpolation(self, tmpdir):
-        fake_env(
-            tmpdir,
-            '[metadata]\n'
-            'description = %(message)s\n'
-        )
-        with pytest.raises(InterpolationMissingOptionError):
-            with get_dist(tmpdir):
-                pass
-
-    skip_if_not_ascii = pytest.mark.skipif(not is_ascii, reason='Test not supported with this locale')
-
-    @skip_if_not_ascii
-    def test_non_ascii_1(self, tmpdir):
-        fake_env(
-            tmpdir,
-            '[metadata]\n'
-            'description = éàïôñ\n',
-            encoding='utf-8'
-        )
-        with pytest.raises(UnicodeDecodeError):
-            with get_dist(tmpdir):
-                pass
-
-    def test_non_ascii_2(self, tmpdir):
-        fake_env(
-            tmpdir,
-            '# -*- coding: invalid\n'
-        )
-        with pytest.raises(LookupError):
-            with get_dist(tmpdir):
-                pass
-
-    def test_non_ascii_3(self, tmpdir):
-        fake_env(
-            tmpdir,
-            '\n'
-            '# -*- coding: invalid\n'
-        )
-        with get_dist(tmpdir):
-            pass
-
-    @skip_if_not_ascii
-    def test_non_ascii_4(self, tmpdir):
-        fake_env(
-            tmpdir,
-            '# -*- coding: utf-8\n'
-            '[metadata]\n'
-            'description = éàïôñ\n',
-            encoding='utf-8'
-        )
-        with get_dist(tmpdir) as dist:
-            assert dist.metadata.description == 'éàïôñ'
-
-    @skip_if_not_ascii
-    def test_non_ascii_5(self, tmpdir):
-        fake_env(
-            tmpdir,
-            '# vim: set fileencoding=iso-8859-15 :\n'
-            '[metadata]\n'
-            'description = éàïôñ\n',
-            encoding='iso-8859-15'
-        )
-        with get_dist(tmpdir) as dist:
-            assert dist.metadata.description == 'éàïôñ'
 
 
 class TestOptions:
