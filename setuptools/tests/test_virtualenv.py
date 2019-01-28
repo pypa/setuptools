@@ -52,10 +52,24 @@ def test_clean_env_install(bare_virtualenv):
     )).format(source=SOURCE_DIR))
 
 
-def test_pip_upgrade_from_source(virtualenv):
+@pytest.mark.parametrize('pip_version', (
+    'pip==9.0.3',
+    'pip==10.0.1',
+    'pip==18.1',
+    'pip==19.0.1',
+    'https://github.com/pypa/pip/archive/master.zip',
+))
+def test_pip_upgrade_from_source(virtualenv, pip_version):
     """
     Check pip can upgrade setuptools from source.
     """
+    # Install pip/wheel, and remove setuptools (as it
+    # should not be needed for bootstraping from source)
+    virtualenv.run(' && '.join((
+        'pip uninstall -y setuptools',
+        'pip install -U wheel',
+        'python -m pip install {pip_version}',
+    )).format(pip_version=pip_version))
     dist_dir = virtualenv.workspace
     # Generate source distribution / wheel.
     virtualenv.run(' && '.join((
