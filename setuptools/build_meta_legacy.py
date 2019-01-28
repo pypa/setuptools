@@ -6,6 +6,7 @@ bridge between the old packaging mechanism and the new packaging mechanism,
 and will eventually be removed.
 """
 
+import os
 import sys
 
 from setuptools.build_meta import _BuildMetaBackend
@@ -25,14 +26,21 @@ class _BuildMetaLegacyBackend(_BuildMetaBackend):
         # In order to maintain compatibility with scripts assuming that
         # the setup.py script is in a directory on the PYTHONPATH, inject
         # '' into sys.path. (pypa/setuptools#1642)
-        sys_path = list(sys.path)       # Save the old path
-        if '' not in sys.path:
-            sys.path.insert(0, '')
+        sys_path = list(sys.path)           # Save the original path
 
-        super(_BuildMetaLegacyBackend,
-              self).run_setup(setup_script=setup_script)
+        try:
+            if '' not in sys.path:
+                sys.path.insert(0, '')
 
-        sys.path = sys_path             # Restore the old path
+            super(_BuildMetaLegacyBackend,
+                  self).run_setup(setup_script=setup_script)
+        finally:
+            # While PEP 517 frontends should be calling each hook in a fresh
+            # subprocess according to the standard (and thus it should not be
+            # strictly necessary to restore the old sys.path), we'll restore
+            # the original path so that the path manipulation does not persist
+            # within the hook after run_setup is called.
+            sys.path[:] = sys_path
 
 
 _BACKEND = _BuildMetaLegacyBackend()
