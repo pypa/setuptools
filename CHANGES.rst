@@ -1,3 +1,9 @@
+v40.7.1
+-------
+
+* #1660: On Python 2, when reading config files, downcast options from text to bytes to satisfy distutils expectations.
+
+
 v40.7.0
 -------
 
