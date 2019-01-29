@@ -603,7 +603,7 @@ class Distribution(_Distribution):
 
                 for opt in options:
                     if opt != '__name__' and opt not in ignore_options:
-                        val = parser.get(section, opt)
+                        val = self._try_str(parser.get(section, opt))
                         opt = opt.replace('-', '_')
                         opt_dict[opt] = (filename, val)
 
@@ -626,6 +626,26 @@ class Distribution(_Distribution):
                         setattr(self, opt, val)
                 except ValueError as msg:
                     raise DistutilsOptionError(msg)
+
+    @staticmethod
+    def _try_str(val):
+        """
+        On Python 2, much of distutils relies on string values being of
+        type 'str' (bytes) and not unicode text. If the value can be safely
+        encoded to bytes using the default encoding, prefer that.
+
+        Why the default encoding? Because that value can be implicitly
+        decoded back to text if needed.
+
+        Ref #1653
+        """
+        if six.PY3:
+            return val
+        try:
+            return val.encode()
+        except UnicodeEncodeError:
+            pass
+        return val
 
     def _set_command_options(self, command_obj, option_dict=None):
         """

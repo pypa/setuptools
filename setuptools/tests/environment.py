@@ -46,6 +46,8 @@ def run_setup_py(cmd, pypath=None, path=None,
             cmd, stdout=_PIPE, stderr=_PIPE, shell=shell, env=env,
         )
 
+        if isinstance(data_stream, tuple):
+            data_stream = slice(*data_stream)
         data = proc.communicate()[data_stream]
     except OSError:
         return 1, ''
