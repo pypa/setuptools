@@ -26,6 +26,7 @@ bug reports or API stability):
 Again, this is not a formal definition! Just a "taste" of the module.
 """
 
+import io
 import os
 import sys
 import tokenize
@@ -95,6 +96,14 @@ def _file_with_extension(directory, extension):
     return file
 
 
+def _open_setup_script(setup_script):
+    if not os.path.exists(setup_script):
+        # Supply a default setup.py
+        return io.StringIO(u"from setuptools import setup; setup()")
+
+    return getattr(tokenize, 'open', open)(setup_script)
+
+
 class _BuildMetaBackend(object):
 
     def _fix_config(self, config_settings):
@@ -120,9 +129,10 @@ class _BuildMetaBackend(object):
         # Correctness comes first, then optimization later
         __file__ = setup_script
         __name__ = '__main__'
-        f = getattr(tokenize, 'open', open)(__file__)
-        code = f.read().replace('\\r\\n', '\\n')
-        f.close()
+
+        with _open_setup_script(__file__) as f:
+            code = f.read().replace(r'\r\n', r'\n')
+
         exec(compile(code, __file__, 'exec'), locals())
 
     def get_requires_for_build_wheel(self, config_settings=None):
