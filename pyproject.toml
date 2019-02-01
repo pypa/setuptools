@@ -1,6 +1,5 @@
 [build-system]
 requires = ["wheel"]
-build-backend = "setuptools.build_meta"
 
 [tool.towncrier]
     package = "setuptools"
