@@ -1,3 +1,9 @@
+v40.7.2
+-------
+
+* #1666: Restore port in URL handling in package_index.
+
+
 v40.7.1
 -------
 
