@@ -1072,7 +1072,7 @@ def open_with_auth(url, opener=urllib.request.urlopen):
 
     if auth:
         auth = "Basic " + _encode_auth(auth)
-        parts = scheme, parsed.hostname, path, params, query, frag
+        parts = scheme, netloc, path, params, query, frag
         new_url = urllib.parse.urlunparse(parts)
         request = urllib.request.Request(new_url)
         request.add_header("Authorization", auth)
