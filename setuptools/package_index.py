@@ -850,16 +850,13 @@ class PackageIndex(Environment):
 
     def _download_svn(self, url, filename):
         warnings.warn("SVN download support is deprecated", UserWarning)
-        def splituser(host):
-            user, delim, host = host.rpartition('@')
-            return user, host
         url = url.split('#', 1)[0]  # remove any fragment for svn's sake
         creds = ''
         if url.lower().startswith('svn:') and '@' in url:
             scheme, netloc, path, p, q, f = urllib.parse.urlparse(url)
             if not netloc and path.startswith('//') and '/' in path[2:]:
                 netloc, path = path[2:].split('/', 1)
-                auth, host = splituser(netloc)
+                auth, host = _splituser(netloc)
                 if auth:
                     if ':' in auth:
                         user, pw = auth.split(':', 1)
@@ -1058,8 +1055,8 @@ def open_with_auth(url, opener=urllib.request.urlopen):
     if netloc.endswith(':'):
         raise http_client.InvalidURL("nonnumeric port: ''")
 
-    if scheme in ('http', 'https') and parsed.username:
-        auth = ':'.join((parsed.username, parsed.password))
+    if scheme in ('http', 'https'):
+        auth, address = _splituser(netloc)
     else:
         auth = None
 
@@ -1072,7 +1069,7 @@ def open_with_auth(url, opener=urllib.request.urlopen):
 
     if auth:
         auth = "Basic " + _encode_auth(auth)
-        parts = scheme, netloc, path, params, query, frag
+        parts = scheme, address, path, params, query, frag
         new_url = urllib.parse.urlunparse(parts)
         request = urllib.request.Request(new_url)
         request.add_header("Authorization", auth)
@@ -1091,6 +1088,13 @@ def open_with_auth(url, opener=urllib.request.urlopen):
             fp.url = urllib.parse.urlunparse(parts)
 
     return fp
+
+
+# copy of urllib.parse._splituser from Python 3.8
+def _splituser(host):
+    """splituser('user[:passwd]@host[:port]') --> 'user[:passwd]', 'host[:port]'."""
+    user, delim, host = host.rpartition('@')
+    return (user if delim else None), host
 
 
 # adding a timeout to avoid freezing package_index
