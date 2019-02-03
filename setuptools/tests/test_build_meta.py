@@ -23,7 +23,6 @@ class BuildBackendBase:
         self.env = env
         self.backend_name = backend_name
 
-
 class BuildBackend(BuildBackendBase):
     """PEP 517 Build Backend"""
 
@@ -43,12 +42,24 @@ class BuildBackend(BuildBackendBase):
 
 
 class BuildBackendCaller(BuildBackendBase):
+    def __init__(self, *args, **kwargs):
+        super(BuildBackendCaller, self).__init__(*args, **kwargs)
+
+        (self.backend_name, _,
+         self.backend_obj) = self.backend_name.partition(':')
+
     def __call__(self, name, *args, **kw):
         """Handles aribrary function invocations on the build backend."""
         os.chdir(self.cwd)
         os.environ.update(self.env)
         mod = importlib.import_module(self.backend_name)
-        return getattr(mod, name)(*args, **kw)
+
+        if self.backend_obj:
+            backend = getattr(mod, self.backend_obj)
+        else:
+            backend = mod
+
+        return getattr(backend, name)(*args, **kw)
 
 
 defns = [
@@ -259,7 +270,7 @@ class TestBuildMetaBackend:
 
 
 class TestBuildMetaLegacyBackend(TestBuildMetaBackend):
-    backend_name = 'setuptools.build_meta_legacy'
+    backend_name = 'setuptools.build_meta:legacy'
 
     # build_meta_legacy-specific tests
     def test_build_sdist_relative_path_import(self, tmpdir_cwd):
