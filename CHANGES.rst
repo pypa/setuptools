@@ -1,3 +1,9 @@
+v40.7.3
+-------
+
+* #1670: In package_index, revert to using a copy of splituser from Python 3.8. Attempts to use ``urllib.parse.urlparse`` led to problems as reported in #1663 and #1668. This change serves as an alternative to #1499 and fixes #1668.
+
+
 v40.7.2
 -------
 
