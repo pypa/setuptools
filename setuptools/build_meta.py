@@ -40,7 +40,7 @@ __all__ = ['get_requires_for_build_sdist',
            'prepare_metadata_for_build_wheel',
            'build_wheel',
            'build_sdist',
-           'legacy',
+           '__legacy__',
            'SetupRequirementsError']
 
 class SetupRequirementsError(BaseException):
@@ -228,4 +228,4 @@ build_sdist = _BACKEND.build_sdist
 
 
 # The legacy backend
-legacy = _BuildMetaLegacyBackend()
+__legacy__ = _BuildMetaLegacyBackend()

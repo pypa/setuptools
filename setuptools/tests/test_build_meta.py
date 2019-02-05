@@ -270,7 +270,7 @@ class TestBuildMetaBackend:
 
 
 class TestBuildMetaLegacyBackend(TestBuildMetaBackend):
-    backend_name = 'setuptools.build_meta:legacy'
+    backend_name = 'setuptools.build_meta:__legacy__'
 
     # build_meta_legacy-specific tests
     def test_build_sdist_relative_path_import(self, tmpdir_cwd):
