@@ -1,3 +1,11 @@
+v40.8.0
+-------
+
+* #1652: Added the ``build_meta:__legacy__`` backend, a "compatibility mode" PEP 517 backend that can be used as the default when ``build-backend`` is left unspecified in ``pyproject.toml``.
+* #1635: Resource paths are passed to ``pkg_resources.resource_string`` and similar no longer accept paths that traverse parents, that begin with a leading ``/``. Violations of this expectation raise DeprecationWarnings and will become errors. Additionally, any paths that are absolute on Windows are strictly disallowed and will raise ValueErrors.
+* #1536: ``setuptools`` will now automatically include licenses if ``setup.cfg`` contains a ``license_file`` attribute, unless this file is manually excluded inside ``MANIFEST.in``.
+
+
 v40.7.3
 -------
 
