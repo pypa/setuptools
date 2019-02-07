@@ -3,6 +3,7 @@ clone_depth: 50
 environment:
 
   APPVEYOR: True
+  NETWORK_REQUIRED: True
   CODECOV_ENV: APPVEYOR_JOB_NAME
 
   matrix:
