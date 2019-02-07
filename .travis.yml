@@ -63,6 +63,7 @@ install:
 - "! grep pyc setuptools.egg-info/SOURCES.txt"
 
 script:
+  - export NETWORK_REQUIRED=1
   - |
     ( # Run testsuite.
       if [ -z "$DISABLE_COVERAGE" ]
