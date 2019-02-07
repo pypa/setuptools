@@ -1,0 +1,1 @@
+Added support for ``setup.cfg``-only projects when using the ``setuptools.build_meta`` backend. Projects that have enabled PEP 517 no longer need to have a ``setup.py`` and can use the purely declarative ``setup.cfg`` configuration file instead.
