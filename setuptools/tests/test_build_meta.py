@@ -110,6 +110,21 @@ defns = [
                 print('hello')
             """),
     },
+    {
+        'setup.cfg': DALS("""
+        [metadata]
+        name = foo
+        version='0.0.0'
+
+        [options]
+        py_modules=hello
+        setup_requires=six
+        """),
+        'hello.py': DALS("""
+        def run():
+            print('hello')
+        """)
+    },
 ]
 
 
@@ -183,9 +198,13 @@ class TestBuildMetaBackend:
         # if the setup.py changes subsequent call of the build meta
         # should still succeed, given the
         # sdist_directory the frontend specifies is empty
-        with open(os.path.abspath("setup.py"), 'rt') as file_handler:
+        setup_loc = os.path.abspath("setup.py")
+        if not os.path.exists(setup_loc):
+            setup_loc = os.path.abspath("setup.cfg")
+
+        with open(setup_loc, 'rt') as file_handler:
             content = file_handler.read()
-        with open(os.path.abspath("setup.py"), 'wt') as file_handler:
+        with open(setup_loc, 'wt') as file_handler:
             file_handler.write(
                 content.replace("version='0.0.0'", "version='0.0.1'"))
 
