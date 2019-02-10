@@ -240,7 +240,7 @@ def get_version(path, field='__version__'):
             # __version__ = "0.9"
             # current_version = 4.8.0
             _, value = line.split(b'=')
-            version = value.strip(b' \'\"').decode()
+            version = value.strip(b' \n\t\'\"').decode()
             return version
 
 

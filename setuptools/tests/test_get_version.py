@@ -1,4 +1,4 @@
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 """Tests for setuptools.get_version()."""
 import os
@@ -12,7 +12,14 @@ from setuptools import __version__, get_version
 
 def test_get_version():
     version = get_version('setup.cfg', field='current_version')
-    assert version == __version__
+
+    # `setup.py egg_info` which is run in bootstrap.py during package
+    # installation adds `.post` prefix to setuptools.__version__
+    # which becomes different from 'setup.cfg` file
+
+    # https://setuptools.readthedocs.io/en/latest/setuptools.html#egg-info
+
+    assert __version__.startswith(version + '.post')
 
 
 class TestFiles:
