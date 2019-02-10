@@ -1,0 +1,3 @@
+Add ``setuptools.get_version(path, field='__version__')``. It extracts version
+info from lines like ``__version__ = '0.12'"`` in text files and Python
+sources without importing them.
