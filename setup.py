@@ -89,7 +89,7 @@ def pypi_link(pkg_filename):
 
 setup_params = dict(
     name="setuptools",
-    version="40.8.0",
+    version=setuptools.get_version("setup.cfg", field="current_version"),
     description=(
         "Easily download, build, install, upgrade, and uninstall "
         "Python packages"

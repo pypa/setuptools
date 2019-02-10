@@ -27,7 +27,7 @@ __metaclass__ = type
 __all__ = [
     'setup', 'Distribution', 'Feature', 'Command', 'Extension', 'Require',
     'SetuptoolsDeprecationWarning',
-    'find_packages'
+    'find_packages', 'get_version'
 ]
 
 if PY3:
@@ -222,6 +222,26 @@ def findall(dir=os.curdir):
         make_rel = functools.partial(os.path.relpath, start=dir)
         files = map(make_rel, files)
     return list(files)
+
+
+def get_version(path, field='__version__'):
+    """
+    Get version information from a text file. Version is extracted
+    from "key = value" format with key matched at the beginning of
+    a line and specified by `field` parameter. Returns string.
+    """
+    version_file = os.path.abspath(path)
+    # Using binary matching to avoid possible encoding problems
+    # when reading arbitrary text files
+    if type(field) is not bytes:
+        field = field.encode('utf-8')
+    for line in open(version_file, 'rb'):
+        if line.startswith(field):
+            # __version__ = "0.9"
+            # current_version = 4.8.0
+            _, value = line.split(b'=')
+            version = value.strip(b' \'\"').decode()
+            return version
 
 
 # Apply monkey patches
