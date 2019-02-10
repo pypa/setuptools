@@ -10,7 +10,7 @@ import pytest
 from setuptools import __version__, get_version
 
 
-def test_get_version():
+def test_own_version():
     version = get_version('setup.cfg', field='current_version')
 
     # `setup.py egg_info` which is run in bootstrap.py during package
@@ -38,10 +38,11 @@ class TestFiles:
     def teardown_method(self, method):
         shutil.rmtree(self.dist_dir)
 
-    def test_get_version_files(self):
+    def test_python_file(self):
         version = get_version(self.ver_python)
         assert version == '0.23beta'
 
+    def test_non_utf8_python_file(self):
         version2 = get_version(self.ver_russian)
         assert version2 == '17.0'
 
