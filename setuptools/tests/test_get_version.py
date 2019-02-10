@@ -3,6 +3,7 @@
 """Tests for setuptools.get_version()."""
 import os
 import codecs
+import shutil
 import tempfile
 
 import pytest
@@ -41,7 +42,7 @@ class TestFiles:
         path = os.path.join(self.tmpdir, 'russian.py')
         with open(path, 'wb') as fp:
             fp.write(u'# файл в русской кодировке\n\n'.encode('cp1251'))
-            fp.write('__version__ = "17.0"\n')
+            fp.write(u'__version__ = "17.0"\n'.encode('cp1251'))
 
         version = get_version(path)
         assert version == '17.0'
