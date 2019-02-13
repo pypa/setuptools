@@ -1512,6 +1512,19 @@ is not allowed.
         ...
         ValueError: Use of .. or absolute path in a resource path \
 is not allowed.
+
+        Blank values are allowed
+
+        >>> vrp('')
+        >>> bool(warned)
+        False
+
+        Non-string values are not.
+
+        >>> vrp(None)
+        Traceback (most recent call last):
+        ...
+        AttributeError: ...
         """
         invalid = (
             os.path.pardir in path.split(posixpath.sep) or
