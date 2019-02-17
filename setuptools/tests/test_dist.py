@@ -263,3 +263,16 @@ def test_maintainer_author(name, attrs, tmpdir):
         else:
             line = '%s: %s' % (fkey, val)
             assert line in pkg_lines_set
+
+
+def test_provides_extras_deterministic_order():
+    attrs = dict(extras_require=dict(
+        a=['foo'],
+        b=['bar'],
+    ))
+    dist = Distribution(attrs)
+    assert dist.metadata.provides_extras == ['a', 'b']
+    attrs['extras_require'] = dict(
+        reversed(list(attrs['extras_require'].items())))
+    dist = Distribution(attrs)
+    assert dist.metadata.provides_extras == ['b', 'a']
