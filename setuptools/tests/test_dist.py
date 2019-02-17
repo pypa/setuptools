@@ -3,6 +3,8 @@
 from __future__ import unicode_literals
 
 import io
+import collections
+
 from setuptools.dist import DistDeprecationWarning, _get_unpatched
 from setuptools import Distribution
 from setuptools.extern.six.moves.urllib.request import pathname2url
@@ -266,13 +268,13 @@ def test_maintainer_author(name, attrs, tmpdir):
 
 
 def test_provides_extras_deterministic_order():
-    attrs = dict(extras_require=dict(
-        a=['foo'],
-        b=['bar'],
-    ))
+    extras = collections.OrderedDict()
+    extras['a'] = ['foo']
+    extras['b'] = ['bar']
+    attrs = dict(extras_require=extras)
     dist = Distribution(attrs)
     assert dist.metadata.provides_extras == ['a', 'b']
-    attrs['extras_require'] = dict(
+    attrs['extras_require'] = collections.OrderedDict(
         reversed(list(attrs['extras_require'].items())))
     dist = Distribution(attrs)
     assert dist.metadata.provides_extras == ['b', 'a']
