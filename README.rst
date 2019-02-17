@@ -1,22 +1,22 @@
 .. image:: https://img.shields.io/pypi/v/setuptools.svg
    :target: https://pypi.org/project/setuptools
 
-.. image:: https://readthedocs.org/projects/setuptools/badge/?version=latest
+.. image:: https://img.shields.io/readthedocs/setuptools/latest.svg
     :target: https://setuptools.readthedocs.io
 
-.. image:: https://img.shields.io/travis/pypa/setuptools/master.svg?label=Linux%20build%20%40%20Travis%20CI
+.. image:: https://img.shields.io/travis/pypa/setuptools/master.svg?label=Linux%20CI&logo=travis&logoColor=white
    :target: https://travis-ci.org/pypa/setuptools
 
-.. image:: https://img.shields.io/appveyor/ci/pypa/setuptools/master.svg?label=Windows%20build%20%40%20Appveyor
+.. image:: https://img.shields.io/appveyor/ci/pypa/setuptools/master.svg?label=Windows%20CI&logo=appveyor&logoColor=white
    :target: https://ci.appveyor.com/project/pypa/setuptools/branch/master
 
-.. image:: https://img.shields.io/codecov/c/github/pypa/setuptools/master.svg
+.. image:: https://img.shields.io/codecov/c/github/pypa/setuptools/master.svg?logo=codecov&logoColor=white
    :target: https://codecov.io/gh/pypa/setuptools
 
-.. image:: https://img.shields.io/pypi/pyversions/setuptools.svg
-
-.. image:: https://tidelift.com/badges/github/pypa/setuptools
+.. image:: https://tidelift.com/badges/github/pypa/setuptools?style=flat
    :target: https://tidelift.com/subscription/pkg/pypi-setuptools?utm_source=pypi-setuptools&utm_medium=readme
+
+.. image:: https://img.shields.io/pypi/pyversions/setuptools.svg
 
 See the `Installation Instructions
 <https://packaging.python.org/installing/>`_ in the Python Packaging
