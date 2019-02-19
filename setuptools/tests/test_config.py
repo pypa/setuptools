@@ -776,7 +776,7 @@ class TestOptions:
                 'pdf': ['ReportLab>=1.2', 'RXP'],
                 'rest': ['docutils>=0.3', 'pack==1.1,==1.3']
             }
-            assert dist.metadata.provides_extras == set(['pdf', 'rest'])
+            assert dist.metadata.provides_extras == ['pdf', 'rest']
 
     def test_entry_points(self, tmpdir):
         _, config = fake_env(

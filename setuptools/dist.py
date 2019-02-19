@@ -16,6 +16,7 @@ from distutils.util import strtobool
 from distutils.debug import DEBUG
 from distutils.fancy_getopt import translate_longopt
 import itertools
+import collections
 
 from collections import defaultdict
 from email import message_from_file
@@ -746,6 +747,11 @@ class Distribution(_Distribution):
             ]
         else:
             self.convert_2to3_doctests = []
+
+        if sys.version_info < (3, 6) and self.extras_require:
+            self.extras_require = collections.OrderedDict(
+                sorted(self.extras_require.items())
+            )
 
     def get_egg_cache_dir(self):
         egg_cache_dir = os.path.join(os.curdir, '.eggs')
