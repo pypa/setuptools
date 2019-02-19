@@ -31,6 +31,7 @@ from setuptools.extern import packaging
 from setuptools.extern.six.moves import map, filter, filterfalse
 
 from . import SetuptoolsDeprecationWarning
+from .itertools_recipes import unique_everseen
 
 from setuptools.depends import Require
 from setuptools import windows_support
@@ -408,7 +409,7 @@ class Distribution(_Distribution):
     _DISTUTILS_UNSUPPORTED_METADATA = {
         'long_description_content_type': None,
         'project_urls': dict,
-        'provides_extras': set,
+        'provides_extras': list,
     }
 
     _patched_dist = None
@@ -493,14 +494,14 @@ class Distribution(_Distribution):
         if getattr(self, 'python_requires', None):
             self.metadata.python_requires = self.python_requires
 
-        if getattr(self, 'extras_require', None):
-            for extra in self.extras_require.keys():
-                # Since this gets called multiple times at points where the
-                # keys have become 'converted' extras, ensure that we are only
-                # truly adding extras we haven't seen before here.
-                extra = extra.split(':')[0]
-                if extra:
-                    self.metadata.provides_extras.add(extra)
+        # Since this gets called multiple times at points where the
+        # keys have become 'converted' extras, ensure that we are only
+        # truly adding extras we haven't seen before here.
+        raw_extra_names = filter(None, unique_everseen(
+            extra.split(':')[0]
+            for extra in getattr(self, 'extras_require', None) or {}
+        ))
+        self.metadata.provides_extras.extend(raw_extra_names)
 
         self._convert_extras_requirements()
         self._move_install_requirements_markers()
