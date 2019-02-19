@@ -265,14 +265,54 @@ def test_maintainer_author(name, attrs, tmpdir):
             assert line in pkg_lines_set
 
 
-def test_provides_extras_deterministic_order():
+def test_extras_deterministic_order():
+    """
+    On all Pythons, if extras are indicated in sorted order, they will
+    be presented in that order.
+    """
     attrs = dict(extras_require=dict(
         a=['foo'],
         b=['bar'],
     ))
     dist = Distribution(attrs)
-    assert dist.metadata.provides_extras == ['a', 'b']
-    attrs['extras_require'] = dict(
-        reversed(list(attrs['extras_require'].items())))
+    assert (
+        dist.metadata.provides_extras ==
+        list(dist.extras_require.keys()) ==
+        ['a', 'b']
+    )
+
+
+@pytest.mark.skipif('sys.version_info < (3, 6)')
+def test_extras_deterministic_order_reversed():
+    """
+    On newer Pythons, honor the order of the extras_require keys
+    as indicated by the author.
+    """
+    attrs = dict(extras_require=dict(
+        b=['bar'],
+        a=['foo'],
+    ))
     dist = Distribution(attrs)
-    assert dist.metadata.provides_extras == ['b', 'a']
+    assert (
+        dist.metadata.provides_extras ==
+        list(dist.extras_require.keys()) ==
+        ['b', 'a']
+    )
+
+
+@pytest.mark.skipif('sys.version_info > (3, 6)')
+def test_extras_deterministic_order_reversed_legacy():
+    """
+    On older Pythons, dict order is non-deterministic, so enforce order
+    of keys.
+    """
+    attrs = dict(extras_require=dict(
+        b=['bar'],
+        a=['foo'],
+    ))
+    dist = Distribution(attrs)
+    assert (
+        dist.metadata.provides_extras ==
+        list(dist.extras_require.keys()) ==
+        ['a', 'b']
+    )
