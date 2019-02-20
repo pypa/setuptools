@@ -382,11 +382,11 @@ class ConfigHandler:
         :param callable values_parser:
         :rtype: dict
         """
-        value = {}
         values_parser = values_parser or (lambda val: val)
-        for key, (_, val) in section_options.items():
-            value[key] = values_parser(val)
-        return value
+        return {
+            key: values_parser(val)
+            for key, (_, val) in section_options.items()
+        }
 
     def parse_section(self, section_options):
         """Parses configuration file section.
