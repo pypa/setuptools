@@ -5,6 +5,7 @@ import sys
 
 import warnings
 import functools
+import collections
 from collections import defaultdict
 from functools import partial
 from functools import wraps
@@ -383,10 +384,10 @@ class ConfigHandler:
         :rtype: dict
         """
         values_parser = values_parser or (lambda val: val)
-        return {
-            key: values_parser(val)
+        return collections.OrderedDict(
+            (key, values_parser(val))
             for key, (_, val) in section_options.items()
-        }
+        )
 
     def parse_section(self, section_options):
         """Parses configuration file section.
