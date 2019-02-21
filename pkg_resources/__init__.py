@@ -2661,7 +2661,7 @@ class Distribution:
         try:
             return self._version
         except AttributeError:
-            version = _version_from_file(self._get_metadata(self.PKG_INFO))
+            version = self._get_version()
             if version is None:
                 tmpl = "Missing 'Version:' header and/or %s file"
                 raise ValueError(tmpl % self.PKG_INFO, self)
@@ -2726,6 +2726,12 @@ class Distribution:
         if self.has_metadata(name):
             for line in self.get_metadata_lines(name):
                 yield line
+
+    def _get_version(self):
+        lines = self._get_metadata(self.PKG_INFO)
+        version = _version_from_file(lines)
+
+        return version
 
     def activate(self, path=None, replace=False):
         """Ensure distribution is importable on `path` (default=sys.path)"""
@@ -2945,7 +2951,7 @@ class EggInfoDistribution(Distribution):
         take an extra step and try to get the version number from
         the metadata file itself instead of the filename.
         """
-        md_version = _version_from_file(self._get_metadata(self.PKG_INFO))
+        md_version = self._get_version()
         if md_version:
             self._version = md_version
         return self
