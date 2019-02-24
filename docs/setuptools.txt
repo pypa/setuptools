@@ -2679,42 +2679,6 @@ A few important points for writing revision control file finders:
   inform the user of the missing program(s).
 
 
-Subclassing ``Command``
------------------------
-
-Sorry, this section isn't written yet, and neither is a lot of what's below
-this point.
-
-XXX
-
-
-Reusing ``setuptools`` Code
-===========================
-
-``ez_setup``
-------------
-
-XXX
-
-
-``setuptools.archive_util``
----------------------------
-
-XXX
-
-
-``setuptools.sandbox``
-----------------------
-
-XXX
-
-
-``setuptools.package_index``
-----------------------------
-
-XXX
-
-
 Mailing List and Bug Tracker
 ============================
 
