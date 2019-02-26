@@ -1,1 +1,1 @@
-Removed some documentation which refered to deprecated features.
+Removed some placeholder documentation sections referring to deprecated features.
