@@ -1103,7 +1103,6 @@ class Distribution(_Distribution):
             return _Distribution.handle_display_options(self, option_order)
 
         # Stdout may be StringIO (e.g. in tests)
-        import io
         if not isinstance(sys.stdout, io.TextIOWrapper):
             return _Distribution.handle_display_options(self, option_order)
 
