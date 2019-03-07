@@ -5,11 +5,13 @@ trigger:
 
 variables:
   python: 'python'
+  pool_image: ubuntu-16.04
 
 jobs:
 - job: 'Test'
   pool:
-    vmImage: 'ubuntu-16.04'
+    vmImage: $[ variables.pool_image ]
+
   strategy:
     matrix:
       Python27:
@@ -26,6 +28,15 @@ jobs:
       PyPy3:
         python: 'pypy3'
         DISABLE_COVERAGE: 1
+      Python27Windows:
+        python.version: '2.7'
+        pool_image: vs2017-win2016
+      Python36Windows:
+        python.version: '3.6'
+        pool_image: vs2017-win2016
+      Python36Mac:
+        python.version: '3.6'
+        pool_image: macos-10.13
 
   steps:
   - task: UsePythonVersion@0
@@ -42,7 +53,7 @@ jobs:
     displayName: PyPy directory fixup
     condition: in(variables.python, 'pypy', 'pypy3')
 
-  - script: |
+  - bash: |
       $PYTHON -m pip install --upgrade pip
       $PYTHON -m pip install --upgrade setuptools wheel
       $PYTHON -m pip install --upgrade tox tox-venv
@@ -50,25 +61,32 @@ jobs:
       env
     displayName: 'Install prereqs'
 
-  - script: |
+  - bash: |
       # update egg_info based on setup.py in checkout
       $PYTHON bootstrap.py
       ! grep pyc setuptools.egg-info/SOURCES.txt
     displayName: Update egg_info
 
-  - script: |
+  - bash: |
+      export NETWORK_REQUIRED=1
       if [ -z "$DISABLE_COVERAGE" ]; then
-        $PYTHON -m tox -- --cov --junitxml=junit/test-results.xml
+        $(python) -m tox -- --cov --junitxml=junit/test-results.xml
       else
-        $PYTHON -m tox -- --junitxml=junit/test-results.xml
+        $(python) -m tox -- --junitxml=junit/test-results.xml
       fi
     displayName: 'Tox'
 
   - task: PublishTestResults@2
     inputs:
       testResultsFiles: '**/test-results.xml'
-      testRunTitle: 'Python $(python.version)'
+      testRunTitle: '$(Agent.JobName)'
     condition: succeededOrFailed()
+  
+  # - bash: |
+  #     export CODECOV_ENV=$(Agent.JobName)
+  #     tox -e coverage,codecov
+  #   displayName: Publish coverage data
+  #   condition: not(eq(variables.DISABLE_COVERAGE, '1'))
 
 - job: 'Publish'
   dependsOn: 'Test'
@@ -82,5 +100,5 @@ jobs:
       versionSpec: '3.x'
       architecture: 'x64'
 
-  - script: $PYTHON setup.py sdist
+  - bash: $PYTHON setup.py sdist
     displayName: 'Build sdist'
