@@ -1,0 +1,86 @@
+# Azure Pipelines
+
+trigger:
+- master
+
+variables:
+  python: 'python'
+
+jobs:
+- job: 'Test'
+  pool:
+    vmImage: 'ubuntu-16.04'
+  strategy:
+    matrix:
+      Python27:
+        python.version: '2.7'
+      Python35:
+        python.version: '3.5'
+      Python36:
+        python.version: '3.6'
+      Python37:
+        python.version: '3.7'
+      PyPy:
+        python: 'pypy'
+        DISABLE_COVERAGE: 1
+      PyPy3:
+        python: 'pypy3'
+        DISABLE_COVERAGE: 1
+
+  steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '$(python.version)'
+      architecture: 'x64'
+    condition: notIn(variables.python, 'pypy', 'pypy3')
+
+  # required until the UsePythonVersion task supports pypy
+  - bash: |
+      PYPYDIR=$(dirname $(dirname $(readlink -f $(which $PYTHON))))
+      sudo chmod a+rwX -R $PYPYDIR
+      $PYTHON -m ensurepip
+    displayName: PyPy directory fixup
+    condition: in(variables.python, 'pypy', 'pypy3')
+
+  - script: |
+      $PYTHON -m pip install --upgrade pip
+      $PYTHON -m pip install --upgrade setuptools wheel
+      $PYTHON -m pip install --upgrade tox tox-venv
+      $PYTHON -m pip freeze --all
+      env
+    displayName: 'Install prereqs'
+
+  - script: |
+      # update egg_info based on setup.py in checkout
+      $PYTHON bootstrap.py
+      ! grep pyc setuptools.egg-info/SOURCES.txt
+    displayName: Update egg_info
+
+  - script: |
+      if [ -z "$DISABLE_COVERAGE" ]; then
+        $PYTHON -m tox -- --cov --junitxml=junit/test-results.xml
+      else
+        $PYTHON -m tox -- --junitxml=junit/test-results.xml
+      fi
+    displayName: 'Tox'
+
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFiles: '**/test-results.xml'
+      testRunTitle: 'Python $(python.version)'
+    condition: succeededOrFailed()
+
+- job: 'Publish'
+  dependsOn: 'Test'
+  condition: false # disable for starters
+  pool:
+    vmImage: 'Ubuntu-16.04'
+
+  steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.x'
+      architecture: 'x64'
+
+  - script: $PYTHON setup.py sdist
+    displayName: 'Build sdist'
