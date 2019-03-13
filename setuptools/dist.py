@@ -885,7 +885,7 @@ class Distribution(_Distribution):
     def include(self, **attrs):
         """Add items to distribution that are named in keyword arguments
 
-        For example, 'dist.exclude(py_modules=["x"])' would add 'x' to
+        For example, 'dist.include(py_modules=["x"])' would add 'x' to
         the distribution's 'py_modules' attribute, if it was not already
         there.
 
