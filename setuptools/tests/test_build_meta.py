@@ -300,7 +300,9 @@ class TestBuildMetaBackend:
         (r"'foo\nbar\n'", ['foo', 'bar']),
         (r"['foo\n', 'bar\n']", ['foo', 'bar']),
     ])
-    def test_setup_requires(self, setup_literal, requirements, tmpdir_cwd):
+    @pytest.mark.parametrize('use_wheel', [True, False])
+    def test_setup_requires(self, setup_literal, requirements, use_wheel,
+                            tmpdir_cwd):
 
         files = {
             'setup.py': DALS("""
@@ -323,9 +325,16 @@ class TestBuildMetaBackend:
 
         build_backend = self.get_build_backend()
 
+        if use_wheel:
+            base_requirements = ['wheel']
+            get_requires = build_backend.get_requires_for_build_wheel
+        else:
+            base_requirements = []
+            get_requires = build_backend.get_requires_for_build_sdist
+
         # Ensure that the build requirements are properly parsed
-        expected = sorted(['wheel'] + requirements)
-        actual = build_backend.get_requires_for_build_wheel()
+        expected = sorted(base_requirements + requirements)
+        actual = get_requires()
 
         assert expected == sorted(actual)
 
