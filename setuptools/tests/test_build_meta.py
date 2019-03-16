@@ -287,6 +287,52 @@ class TestBuildMetaBackend:
         with pytest.raises(ImportError):
             build_backend.build_sdist("temp")
 
+    @pytest.mark.parametrize('setup_literal, requirements', [
+        pytest.param("'foo'", ['foo'], marks=pytest.mark.xfail),
+        ("['foo']", ['foo']),
+        pytest.param(r"'foo\n'", ['foo'], marks=pytest.mark.xfail),
+        pytest.param(r"'foo\n\n'", ['foo'], marks=pytest.mark.xfail),
+        ("['foo', 'bar']", ['foo', 'bar']),
+        pytest.param(r"'# Has a comment line\nfoo'",
+                     ['foo'], marks=pytest.mark.xfail),
+        pytest.param(r"'foo # Has an inline comment'",
+                     ['foo'], marks=pytest.mark.xfail),
+        pytest.param(r"'foo \\\n >=3.0'",
+                     ['foo>=3.0'], marks=pytest.mark.xfail),
+        pytest.param(r"'foo\nbar'", ['foo', 'bar'], marks=pytest.mark.xfail),
+        pytest.param(r"'foo\nbar\n'", ['foo', 'bar'], marks=pytest.mark.xfail),
+        pytest.param(r"['foo\n', 'bar\n']",
+                     ['foo', 'bar'], marks=pytest.mark.xfail),
+    ])
+    def test_setup_requires(self, setup_literal, requirements, tmpdir_cwd):
+
+        files = {
+            'setup.py': DALS("""
+                from setuptools import setup
+
+                setup(
+                    name="qux",
+                    version="0.0.0",
+                    py_modules=["hello.py"],
+                    setup_requires={setup_literal},
+                )
+            """).format(setup_literal=setup_literal),
+            'hello.py': DALS("""
+            def run():
+                print('hello')
+            """),
+        }
+
+        build_files(files)
+
+        build_backend = self.get_build_backend()
+
+        # Ensure that the build requirements are properly parsed
+        expected = sorted(['wheel'] + requirements)
+        actual = build_backend.get_requires_for_build_wheel()
+
+        assert expected == sorted(actual)
+
 
 class TestBuildMetaLegacyBackend(TestBuildMetaBackend):
     backend_name = 'setuptools.build_meta:__legacy__'
