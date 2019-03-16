@@ -36,7 +36,7 @@ import contextlib
 import setuptools
 import distutils
 
-from setuptools._vendor import six
+from pkg_resources import parse_requirements
 
 __all__ = ['get_requires_for_build_sdist',
            'get_requires_for_build_wheel',
@@ -53,7 +53,7 @@ class SetupRequirementsError(BaseException):
 
 class Distribution(setuptools.dist.Distribution):
     def fetch_build_eggs(self, specifiers):
-        specifier_list = self._parse_requirements(specifiers)
+        specifier_list = list(map(str, parse_requirements(specifiers)))
 
         raise SetupRequirementsError(specifier_list)
 
@@ -72,45 +72,6 @@ class Distribution(setuptools.dist.Distribution):
         finally:
             distutils.core.Distribution = orig
 
-    def _yield_lines(self, strs):
-        """Yield non-empty/non-comment lines of a string or sequence"""
-        if isinstance(strs, six.string_types):
-            for s in strs.splitlines():
-                s = s.strip()
-                # skip blank lines/comments
-                if s and not s.startswith('#'):
-                    yield s
-        else:
-            for ss in strs:
-                for s in self._yield_lines(ss):
-                    yield s
-
-    def _parse_requirements(self, strs):
-        """Parse requirement specifiers into a list of requirement strings
-
-        This is forked from pkg_resources.parse_requirements.
-
-        `strs` must be a string, or a (possibly-nested) iterable thereof.
-        """
-        # create a steppable iterator, so we can handle \-continuations
-        lines = iter(self._yield_lines(strs))
-
-        requirements = []
-
-        for line in lines:
-            # Drop comments -- a hash without a space may be in a URL.
-            if ' #' in line:
-                line = line[:line.find(' #')]
-            # If there is a line continuation, drop it, and append the next line.
-            if line.endswith('\\'):
-                line = line[:-2].strip()
-                try:
-                    line += next(lines)
-                except StopIteration:
-                    return
-            requirements.append(line)
-
-        return requirements
 
 def _to_str(s):
     """
