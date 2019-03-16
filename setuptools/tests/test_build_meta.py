@@ -288,21 +288,17 @@ class TestBuildMetaBackend:
             build_backend.build_sdist("temp")
 
     @pytest.mark.parametrize('setup_literal, requirements', [
-        pytest.param("'foo'", ['foo'], marks=pytest.mark.xfail),
+        ("'foo'", ['foo']),
         ("['foo']", ['foo']),
-        pytest.param(r"'foo\n'", ['foo'], marks=pytest.mark.xfail),
-        pytest.param(r"'foo\n\n'", ['foo'], marks=pytest.mark.xfail),
+        (r"'foo\n'", ['foo']),
+        (r"'foo\n\n'", ['foo']),
         ("['foo', 'bar']", ['foo', 'bar']),
-        pytest.param(r"'# Has a comment line\nfoo'",
-                     ['foo'], marks=pytest.mark.xfail),
-        pytest.param(r"'foo # Has an inline comment'",
-                     ['foo'], marks=pytest.mark.xfail),
-        pytest.param(r"'foo \\\n >=3.0'",
-                     ['foo>=3.0'], marks=pytest.mark.xfail),
-        pytest.param(r"'foo\nbar'", ['foo', 'bar'], marks=pytest.mark.xfail),
-        pytest.param(r"'foo\nbar\n'", ['foo', 'bar'], marks=pytest.mark.xfail),
-        pytest.param(r"['foo\n', 'bar\n']",
-                     ['foo', 'bar'], marks=pytest.mark.xfail),
+        (r"'# Has a comment line\nfoo'", ['foo']),
+        (r"'foo # Has an inline comment'", ['foo']),
+        (r"'foo \\\n >=3.0'", ['foo>=3.0']),
+        (r"'foo\nbar'", ['foo', 'bar']),
+        (r"'foo\nbar\n'", ['foo', 'bar']),
+        (r"['foo\n', 'bar\n']", ['foo', 'bar']),
     ])
     def test_setup_requires(self, setup_literal, requirements, tmpdir_cwd):
 
