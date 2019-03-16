@@ -287,6 +287,57 @@ class TestBuildMetaBackend:
         with pytest.raises(ImportError):
             build_backend.build_sdist("temp")
 
+    @pytest.mark.parametrize('setup_literal, requirements', [
+        ("'foo'", ['foo']),
+        ("['foo']", ['foo']),
+        (r"'foo\n'", ['foo']),
+        (r"'foo\n\n'", ['foo']),
+        ("['foo', 'bar']", ['foo', 'bar']),
+        (r"'# Has a comment line\nfoo'", ['foo']),
+        (r"'foo # Has an inline comment'", ['foo']),
+        (r"'foo \\\n >=3.0'", ['foo>=3.0']),
+        (r"'foo\nbar'", ['foo', 'bar']),
+        (r"'foo\nbar\n'", ['foo', 'bar']),
+        (r"['foo\n', 'bar\n']", ['foo', 'bar']),
+    ])
+    @pytest.mark.parametrize('use_wheel', [True, False])
+    def test_setup_requires(self, setup_literal, requirements, use_wheel,
+                            tmpdir_cwd):
+
+        files = {
+            'setup.py': DALS("""
+                from setuptools import setup
+
+                setup(
+                    name="qux",
+                    version="0.0.0",
+                    py_modules=["hello.py"],
+                    setup_requires={setup_literal},
+                )
+            """).format(setup_literal=setup_literal),
+            'hello.py': DALS("""
+            def run():
+                print('hello')
+            """),
+        }
+
+        build_files(files)
+
+        build_backend = self.get_build_backend()
+
+        if use_wheel:
+            base_requirements = ['wheel']
+            get_requires = build_backend.get_requires_for_build_wheel
+        else:
+            base_requirements = []
+            get_requires = build_backend.get_requires_for_build_sdist
+
+        # Ensure that the build requirements are properly parsed
+        expected = sorted(base_requirements + requirements)
+        actual = get_requires()
+
+        assert expected == sorted(actual)
+
 
 class TestBuildMetaLegacyBackend(TestBuildMetaBackend):
     backend_name = 'setuptools.build_meta:__legacy__'

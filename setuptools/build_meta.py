@@ -36,6 +36,8 @@ import contextlib
 import setuptools
 import distutils
 
+from pkg_resources import parse_requirements
+
 __all__ = ['get_requires_for_build_sdist',
            'get_requires_for_build_wheel',
            'prepare_metadata_for_build_wheel',
@@ -51,7 +53,9 @@ class SetupRequirementsError(BaseException):
 
 class Distribution(setuptools.dist.Distribution):
     def fetch_build_eggs(self, specifiers):
-        raise SetupRequirementsError(specifiers)
+        specifier_list = list(map(str, parse_requirements(specifiers)))
+
+        raise SetupRequirementsError(specifier_list)
 
     @classmethod
     @contextlib.contextmanager
