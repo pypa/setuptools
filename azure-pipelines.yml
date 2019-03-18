@@ -6,6 +6,8 @@ trigger:
 variables:
   python: 'python'
   pool_image: ubuntu-16.04
+  # Workaround for tests that assume the virtualenv and script are on the same Windows drive
+  VSTS_OVERWRITE_TEMP: True
 
 jobs:
 - job: 'Test'
@@ -44,6 +46,10 @@ jobs:
       versionSpec: '$(python.version)'
       architecture: 'x64'
     condition: notIn(variables.python, 'pypy', 'pypy3')
+  
+  - script: choco install vcpython27 --no-progress
+    displayName: 'Install C++ compiler for Python 2.7'
+    condition: and(eq(variables['Agent.OS'], 'Windows_NT'), eq(variables['python.version'], '2.7'))
 
   # required until the UsePythonVersion task supports pypy
   - bash: |
