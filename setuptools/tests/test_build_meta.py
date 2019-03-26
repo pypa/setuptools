@@ -157,6 +157,44 @@ class TestBuildMetaBackend:
 
         assert os.path.isfile(os.path.join(dist_dir, wheel_name))
 
+    @pytest.mark.xfail(reason="Known error, see GH #1671")
+    def test_build_wheel_with_existing_wheel_file_present(self, tmpdir_cwd):
+        # Building a wheel should still succeed if there's already a wheel
+        # in the wheel directory
+        files = {
+            'setup.py': "from setuptools import setup\nsetup()",
+            'VERSION': "0.0.1",
+            'setup.cfg': DALS("""
+                [metadata]
+                name = foo
+                version = file: VERSION
+            """),
+            'pyproject.toml': DALS("""
+                [build-system]
+                requires = ["setuptools", "wheel"]
+                build-backend = "setuptools.build_meta
+            """),
+        }
+
+        build_files(files)
+
+        dist_dir = os.path.abspath('pip-wheel-preexisting')
+        os.makedirs(dist_dir)
+
+        # make first wheel
+        build_backend = self.get_build_backend()
+        wheel_one = build_backend.build_wheel(dist_dir)
+
+        # change version
+        with open("VERSION", "wt") as version_file:
+            version_file.write("0.0.2")
+
+        # make *second* wheel
+        wheel_two = self.get_build_backend().build_wheel(dist_dir)
+
+        assert os.path.isfile(os.path.join(dist_dir, wheel_one))
+        assert wheel_one != wheel_two
+
     def test_build_sdist(self, build_backend):
         dist_dir = os.path.abspath('pip-sdist')
         os.makedirs(dist_dir)
