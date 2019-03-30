@@ -2,8 +2,11 @@ from distutils.util import convert_path
 from distutils import log
 from distutils.errors import DistutilsOptionError
 import distutils
+import io
 import os
+from ..unicode_utils import detect_encoding
 
+from setuptools.extern import six
 from setuptools.extern.six.moves import configparser
 
 from setuptools import Command
@@ -40,7 +43,17 @@ def edit_config(filename, settings, dry_run=False):
     """
     log.debug("Reading configuration from %s", filename)
     opts = configparser.RawConfigParser()
-    opts.read([filename])
+    try:
+        with io.open(filename, 'rb') as fp:
+            encoding = detect_encoding(fp)
+            log.debug("Reading %s [%s]" % (filename, encoding or 'locale'))
+            reader = io.TextIOWrapper(fp, encoding=encoding)
+            (opts.read_file if six.PY3 else opts.readfp)(reader)
+    except IOError:
+        encoding = None
+    except LookupError:
+        encoding = None
+        opts.read([filename])
     for section, options in settings.items():
         if options is None:
             log.info("Deleting section [%s] from %s", section, filename)
@@ -70,6 +83,8 @@ def edit_config(filename, settings, dry_run=False):
     log.info("Writing %s", filename)
     if not dry_run:
         with open(filename, 'w') as f:
+            if encoding:
+                f.write("# coding: %s\n" % encoding)
             opts.write(f)
 
 
