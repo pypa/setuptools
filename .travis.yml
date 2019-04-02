@@ -8,7 +8,8 @@ jobs:
     python: 2.7
   - <<: *latest_py2
     env: LANG=C
-  - python: pypy
+  - python: pypy2.7-6.0.0
+    dist: xenial
     env: DISABLE_COVERAGE=1  # Don't run coverage on pypy (too slow).
   - python: pypy3
     env: DISABLE_COVERAGE=1
