@@ -1,3 +1,13 @@
+v40.9.0
+-------
+
+* #1675: Added support for ``setup.cfg``-only projects when using the ``setuptools.build_meta`` backend. Projects that have enabled PEP 517 no longer need to have a ``setup.py`` and can use the purely declarative ``setup.cfg`` configuration file instead.
+* #1720: Added support for ``pkg_resources.parse_requirements``-style requirements in ``setup_requires`` when ``setup.py`` is invoked from the ``setuptools.build_meta`` build backend.
+* #1664: Added the path to the ``PKG-INFO`` or ``METADATA`` file in the exception
+  text when the ``Version:`` header can't be found.
+* #1705: Removed some placeholder documentation sections referring to deprecated features.
+
+
 v40.8.0
 -------
 
