@@ -1,0 +1,2 @@
+Added the path to the ``PKG-INFO`` or ``METADATA`` file in the exception
+text when the ``Version:`` header can't be found.

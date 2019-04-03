@@ -17,6 +17,7 @@ try:
 except ImportError:
     import mock
 
+from pkg_resources import DistInfoDistribution, Distribution, EggInfoDistribution
 from pkg_resources.extern.six.moves import map
 from pkg_resources.extern.six import text_type, string_types
 
@@ -188,6 +189,89 @@ class TestResourceManager:
         )
         cmd = [sys.executable, '-c', '; '.join(lines)]
         subprocess.check_call(cmd)
+
+
+# TODO: remove this in favor of Path.touch() when Python 2 is dropped.
+def touch_file(path):
+    """
+    Create an empty file.
+    """
+    with open(path, 'w'):
+        pass
+
+
+def make_distribution_no_version(tmpdir, basename):
+    """
+    Create a distribution directory with no file containing the version.
+    """
+    # Convert the LocalPath object to a string before joining.
+    dist_dir = os.path.join(str(tmpdir), basename)
+    os.mkdir(dist_dir)
+    # Make the directory non-empty so distributions_from_metadata()
+    # will detect it and yield it.
+    touch_file(os.path.join(dist_dir, 'temp.txt'))
+
+    dists = list(pkg_resources.distributions_from_metadata(dist_dir))
+    assert len(dists) == 1
+    dist, = dists
+
+    return dist, dist_dir
+
+
+@pytest.mark.parametrize(
+    'suffix, expected_filename, expected_dist_type',
+    [
+        ('egg-info', 'PKG-INFO', EggInfoDistribution),
+        ('dist-info', 'METADATA', DistInfoDistribution),
+    ],
+)
+def test_distribution_version_missing(tmpdir, suffix, expected_filename,
+    expected_dist_type):
+    """
+    Test Distribution.version when the "Version" header is missing.
+    """
+    basename = 'foo.{}'.format(suffix)
+    dist, dist_dir = make_distribution_no_version(tmpdir, basename)
+
+    expected_text = (
+        "Missing 'Version:' header and/or {} file at path: "
+    ).format(expected_filename)
+    metadata_path = os.path.join(dist_dir, expected_filename)
+
+    # Now check the exception raised when the "version" attribute is accessed.
+    with pytest.raises(ValueError) as excinfo:
+        dist.version
+
+    err = str(excinfo)
+    # Include a string expression after the assert so the full strings
+    # will be visible for inspection on failure.
+    assert expected_text in err, str((expected_text, err))
+
+    # Also check the args passed to the ValueError.
+    msg, dist = excinfo.value.args
+    assert expected_text in msg
+    # Check that the message portion contains the path.
+    assert metadata_path in msg, str((metadata_path, msg))
+    assert type(dist) == expected_dist_type
+
+
+def test_distribution_version_missing_undetected_path():
+    """
+    Test Distribution.version when the "Version" header is missing and
+    the path can't be detected.
+    """
+    # Create a Distribution object with no metadata argument, which results
+    # in an empty metadata provider.
+    dist = Distribution('/foo')
+    with pytest.raises(ValueError) as excinfo:
+        dist.version
+
+    msg, dist = excinfo.value.args
+    expected = (
+        "Missing 'Version:' header and/or PKG-INFO file at path: "
+        '[could not detect]'
+    )
+    assert msg == expected
 
 
 class TestDeepVersionLookupDistutils:
