@@ -11,7 +11,6 @@ import distutils.log
 import distutils.core
 import distutils.cmd
 import distutils.dist
-from distutils.errors import DistutilsOptionError
 from distutils.util import strtobool
 from distutils.debug import DEBUG
 from distutils.fancy_getopt import translate_longopt
@@ -134,7 +133,6 @@ def write_pkg_file(self, file):
     else:
         def write_field(key, value):
             file.write("%s: %s\n" % (key, value))
-
 
     write_field('Metadata-Version', str(version))
     write_field('Name', self.get_name())
@@ -1281,4 +1279,5 @@ class Feature:
 
 
 class DistDeprecationWarning(SetuptoolsDeprecationWarning):
-    """Class for warning about deprecations in dist in setuptools. Not ignored by default, unlike DeprecationWarning."""
+    """Class for warning about deprecations in dist in
+    setuptools. Not ignored by default, unlike DeprecationWarning."""

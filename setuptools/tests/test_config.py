@@ -8,7 +8,7 @@ from distutils.errors import DistutilsOptionError, DistutilsFileError
 from mock import patch
 from setuptools.dist import Distribution, _Distribution
 from setuptools.config import ConfigHandler, read_configuration
-from setuptools.extern.six.moves.configparser import InterpolationMissingOptionError
+from setuptools.extern.six.moves import configparser
 from setuptools.tests import is_ascii
 from . import py2_only, py3_only
 from .textwrap import DALS
@@ -29,7 +29,9 @@ def make_package_dir(name, base_dir, ns=False):
     return dir_package, init_file
 
 
-def fake_env(tmpdir, setup_cfg, setup_py=None, encoding='ascii', package_path='fake_package'):
+def fake_env(
+        tmpdir, setup_cfg, setup_py=None,
+        encoding='ascii', package_path='fake_package'):
 
     if setup_py is None:
         setup_py = (
@@ -440,11 +442,12 @@ class TestMetadata:
             '[metadata]\n'
             'description = %(message)s\n'
         )
-        with pytest.raises(InterpolationMissingOptionError):
+        with pytest.raises(configparser.InterpolationMissingOptionError):
             with get_dist(tmpdir):
                 pass
 
-    skip_if_not_ascii = pytest.mark.skipif(not is_ascii, reason='Test not supported with this locale')
+    skip_if_not_ascii = pytest.mark.skipif(
+        not is_ascii, reason='Test not supported with this locale')
 
     @skip_if_not_ascii
     def test_non_ascii_1(self, tmpdir):
