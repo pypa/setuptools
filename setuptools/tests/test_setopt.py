@@ -29,8 +29,8 @@ class TestEdit:
         UTF-8 should be retained.
         """
         config = tmpdir.join('setup.cfg')
-        self.write_text(str(config), '[names]\njaraco=йарацо')
+        self.write_text(str(config), '[names]\njaraco=джарако')
         setopt.edit_config(str(config), dict(names=dict(other='yes')))
         parser = self.parse_config(str(config))
-        assert parser.get('names', 'jaraco') == 'йарацо'
+        assert parser.get('names', 'jaraco') == 'джарако'
         assert parser.get('names', 'other') == 'yes'
