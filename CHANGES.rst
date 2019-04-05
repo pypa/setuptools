@@ -1,3 +1,9 @@
+v41.0.0
+-------
+
+* #1735: When parsing setup.cfg files, setuptools now requires the files to be encoded as UTF-8. Any other encoding will lead to a UnicodeDecodeError. This change removes support for specifying an encoding using a 'coding: ' directive in the header of the file, a feature that was introduces in 40.7. Given the recent release of the aforementioned feature, it is assumed that few if any projects are utilizing the feature to specify an encoding other than UTF-8.
+
+
 v40.9.0
 -------
 
