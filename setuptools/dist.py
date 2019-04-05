@@ -35,7 +35,6 @@ from setuptools.depends import Require
 from setuptools import windows_support
 from setuptools.monkey import get_unpatched
 from setuptools.config import parse_configuration
-from .unicode_utils import detect_encoding
 import pkg_resources
 
 __import__('setuptools.extern.packaging.specifiers')
@@ -587,13 +586,9 @@ class Distribution(_Distribution):
 
         parser = ConfigParser()
         for filename in filenames:
-            with io.open(filename, 'rb') as fp:
-                encoding = detect_encoding(fp)
+            with io.open(filename, encoding='utf-8') as reader:
                 if DEBUG:
-                    self.announce("  reading %s [%s]" % (
-                        filename, encoding or 'locale')
-                    )
-                reader = io.TextIOWrapper(fp, encoding=encoding)
+                    self.announce("  reading {filename}".format(**locals()))
                 (parser.read_file if six.PY3 else parser.readfp)(reader)
             for section in parser.sections():
                 options = parser.options(section)

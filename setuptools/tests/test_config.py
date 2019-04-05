@@ -9,7 +9,6 @@ from mock import patch
 from setuptools.dist import Distribution, _Distribution
 from setuptools.config import ConfigHandler, read_configuration
 from setuptools.extern.six.moves import configparser
-from setuptools.tests import is_ascii
 from . import py2_only, py3_only
 from .textwrap import DALS
 
@@ -446,10 +445,6 @@ class TestMetadata:
             with get_dist(tmpdir):
                 pass
 
-    skip_if_not_ascii = pytest.mark.skipif(
-        not is_ascii, reason='Test not supported with this locale')
-
-    @skip_if_not_ascii
     def test_non_ascii_1(self, tmpdir):
         fake_env(
             tmpdir,
@@ -457,18 +452,8 @@ class TestMetadata:
             'description = éàïôñ\n',
             encoding='utf-8'
         )
-        with pytest.raises(UnicodeDecodeError):
-            with get_dist(tmpdir):
-                pass
-
-    def test_non_ascii_2(self, tmpdir):
-        fake_env(
-            tmpdir,
-            '# -*- coding: invalid\n'
-        )
-        with pytest.raises(LookupError):
-            with get_dist(tmpdir):
-                pass
+        with get_dist(tmpdir):
+            pass
 
     def test_non_ascii_3(self, tmpdir):
         fake_env(
@@ -479,7 +464,6 @@ class TestMetadata:
         with get_dist(tmpdir):
             pass
 
-    @skip_if_not_ascii
     def test_non_ascii_4(self, tmpdir):
         fake_env(
             tmpdir,
@@ -491,8 +475,10 @@ class TestMetadata:
         with get_dist(tmpdir) as dist:
             assert dist.metadata.description == 'éàïôñ'
 
-    @skip_if_not_ascii
-    def test_non_ascii_5(self, tmpdir):
+    def test_not_utf8(self, tmpdir):
+        """
+        Config files encoded not in UTF-8 will fail
+        """
         fake_env(
             tmpdir,
             '# vim: set fileencoding=iso-8859-15 :\n'
@@ -500,8 +486,9 @@ class TestMetadata:
             'description = éàïôñ\n',
             encoding='iso-8859-15'
         )
-        with get_dist(tmpdir) as dist:
-            assert dist.metadata.description == 'éàïôñ'
+        with pytest.raises(UnicodeDecodeError):
+            with get_dist(tmpdir):
+                pass
 
 
 class TestOptions:
