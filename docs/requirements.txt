@@ -1,4 +1,5 @@
 sphinx!=1.8.0
+pygments-github-lexers==0.0.5
 rst.linker>=1.9
 jaraco.packaging>=6.1
 
