@@ -1,0 +1,1 @@
+Fixed revision checkout routine of git and hg repositories under Windows
