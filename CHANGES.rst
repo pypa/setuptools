@@ -1496,8 +1496,8 @@ v20.6.0
 19.7
 ----
 
-* `Off-project PR <https://github.com/jaraco/setuptools/pull/32>`_:
-  For FreeBSD, also honor root certificates from ca_root_nss.
+* Off-project PR: `0dcee79 <https://github.com/pypa/setuptools/commit/0dcee791dfdcfacddaaec79b29f30a347a147413>`_ and `f9bd9b9 <https://github.com/pypa/setuptools/commit/f9bd9b9f5df54ef5a0bf8d16c3a889ab8c640580>`_
+  For FreeBSD, also `honor root certificates from ca_root_nss <https://github.com/pypa/setuptools/commit/3ae46c30225eb46e1f5aada1a19e88b79f04dc72>`_.
 
 19.6.2
 ------
@@ -1661,9 +1661,9 @@ v20.6.0
   now logged when pkg_resources is imported on Python 3.2 or earlier
   Python 3 versions.
 * `Add support for python_platform_implementation environment marker
-  <https://github.com/jaraco/setuptools/pull/28>`_.
+  <https://github.com/pypa/setuptools/commit/94416707fd59a65f4a8f7f70541d6b3fc018b626>`_.
 * `Fix dictionary mutation during iteration
-  <https://github.com/jaraco/setuptools/pull/29>`_.
+  <https://github.com/pypa/setuptools/commit/57ebfa41e0f96b97e599ecd931b7ae8a143e096e>`_.
 
 18.4
 ----
@@ -2023,7 +2023,7 @@ process to fail and PyPI uploads no longer accept files for 13.0.
 ---
 
 * Prefer vendored packaging library `as recommended
-  <https://github.com/jaraco/setuptools/commit/170657b68f4b92e7e1bf82f5e19a831f5744af67#commitcomment-9109448>`_.
+  <https://github.com/pypa/setuptools/commit/170657b68f4b92e7e1bf82f5e19a831f5744af67>`_.
 
 9.0.1
 -----
