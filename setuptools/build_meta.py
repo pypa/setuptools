@@ -35,6 +35,7 @@ import contextlib
 
 import setuptools
 import distutils
+from setuptools.py31compat import TemporaryDirectory
 
 from pkg_resources import parse_requirements
 
@@ -182,14 +183,22 @@ class _BuildMetaBackend(object):
                     metadata_directory=None):
         config_settings = self._fix_config(config_settings)
         wheel_directory = os.path.abspath(wheel_directory)
-        sys.argv = sys.argv[:1] + ['bdist_wheel'] + \
-            config_settings["--global-option"]
-        self.run_setup()
-        if wheel_directory != 'dist':
-            shutil.rmtree(wheel_directory)
-            shutil.copytree('dist', wheel_directory)
 
-        return _file_with_extension(wheel_directory, '.whl')
+        # Build the wheel in a temporary directory, then copy to the target
+        with TemporaryDirectory(dir=wheel_directory) as tmp_dist_dir:
+            sys.argv = (sys.argv[:1] +
+                        ['bdist_wheel', '--dist-dir', tmp_dist_dir] +
+                        config_settings["--global-option"])
+            self.run_setup()
+
+            wheel_basename = _file_with_extension(tmp_dist_dir, '.whl')
+            wheel_path = os.path.join(wheel_directory, wheel_basename)
+            if os.path.exists(wheel_path):
+                # os.rename will fail overwriting on non-unix env
+                os.remove(wheel_path)
+            os.rename(os.path.join(tmp_dist_dir, wheel_basename), wheel_path)
+
+        return wheel_basename
 
     def build_sdist(self, sdist_directory, config_settings=None):
         config_settings = self._fix_config(config_settings)

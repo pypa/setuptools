@@ -157,7 +157,6 @@ class TestBuildMetaBackend:
 
         assert os.path.isfile(os.path.join(dist_dir, wheel_name))
 
-    @pytest.mark.xfail(reason="Known error, see GH #1671")
     def test_build_wheel_with_existing_wheel_file_present(self, tmpdir_cwd):
         # Building a wheel should still succeed if there's already a wheel
         # in the wheel directory
@@ -194,6 +193,12 @@ class TestBuildMetaBackend:
 
         assert os.path.isfile(os.path.join(dist_dir, wheel_one))
         assert wheel_one != wheel_two
+
+        # and if rebuilding the same wheel?
+        open(os.path.join(dist_dir, wheel_two), 'w').close()
+        wheel_three = self.get_build_backend().build_wheel(dist_dir)
+        assert wheel_three == wheel_two
+        assert os.path.getsize(os.path.join(dist_dir, wheel_three)) > 0
 
     def test_build_sdist(self, build_backend):
         dist_dir = os.path.abspath('pip-sdist')
