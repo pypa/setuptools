@@ -28,7 +28,7 @@ class BuildBackend(BuildBackendBase):
 
     def __init__(self, *args, **kwargs):
         super(BuildBackend, self).__init__(*args, **kwargs)
-        self.pool = futures.ProcessPoolExecutor()
+        self.pool = futures.ProcessPoolExecutor(max_workers=1)
 
     def __getattr__(self, name):
         """Handles aribrary function invocations on the build backend."""
