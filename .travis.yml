@@ -1,4 +1,4 @@
-dist: trusty
+dist: xenial
 language: python
 
 jobs:
@@ -9,7 +9,6 @@ jobs:
   - <<: *latest_py2
     env: LANG=C
   - python: pypy2.7-6.0.0
-    dist: xenial
     env: DISABLE_COVERAGE=1  # Don't run coverage on pypy (too slow).
   - python: pypy3
     env: DISABLE_COVERAGE=1
@@ -19,11 +18,9 @@ jobs:
     python: 3.6
   - &latest_py3
     python: 3.7
-    dist: xenial
   - <<: *latest_py3
     env: LANG=C
   - python: 3.8-dev
-    dist: xenial
     env: DISABLE_COVERAGE=1  # Ignore invalid coverage data.
   - <<: *default_py
     stage: deploy (to PyPI for tagged commits)
