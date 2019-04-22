@@ -1,3 +1,11 @@
+v41.0.1
+-------
+
+* #1671: Fixed issue with the PEP 517 backend that prevented building a wheel when the ``dist/`` directory contained existing ``.whl`` files.
+* #1709: In test.paths_on_python_path, avoid adding unnecessary duplicates to the PYTHONPATH.
+* #1741: In package_index, now honor "current directory" during a checkout of git and hg repositories under Windows
+
+
 v41.0.0
 -------
 

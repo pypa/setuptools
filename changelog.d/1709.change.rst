@@ -1,1 +1,0 @@
-In test.paths_on_python_path, avoid adding unnecessary duplicates to the PYTHONPATH.

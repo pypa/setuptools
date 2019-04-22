@@ -1,1 +1,0 @@
-Fixed issue with the PEP 517 backend that prevented building a wheel when the ``dist/`` directory contained existing ``.whl`` files.

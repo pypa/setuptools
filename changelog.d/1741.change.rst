@@ -1,1 +1,0 @@
-In package_index, now honor "current directory" during a checkout of git and hg repositories under Windows
