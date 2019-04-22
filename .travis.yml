@@ -21,7 +21,6 @@ jobs:
   - <<: *latest_py3
     env: LANG=C
   - python: 3.8-dev
-    env: DISABLE_COVERAGE=1  # Ignore invalid coverage data.
   - <<: *default_py
     stage: deploy (to PyPI for tagged commits)
     if: tag IS present
