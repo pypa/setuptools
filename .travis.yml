@@ -10,7 +10,7 @@ jobs:
     env: LANG=C
   - python: pypy2.7-6.0.0
     env: DISABLE_COVERAGE=1  # Don't run coverage on pypy (too slow).
-  - python: pypy3
+  - python: pypy3.5-6.0.0
     env: DISABLE_COVERAGE=1
   - python: 3.4
   - python: 3.5
