@@ -157,9 +157,10 @@ class TestBuildMetaBackend:
 
         assert os.path.isfile(os.path.join(dist_dir, wheel_name))
 
-    def test_build_wheel_with_existing_wheel_file_present(self, tmpdir_cwd):
-        # Building a wheel should still succeed if there's already a wheel
-        # in the wheel directory
+    @pytest.mark.parametrize('build_type', ('wheel', 'sdist'))
+    def test_build_with_existing_file_present(self, build_type, tmpdir_cwd):
+        # Building a sdist/wheel should still succeed if there's
+        # already a sdist/wheel in the destination directory.
         files = {
             'setup.py': "from setuptools import setup\nsetup()",
             'VERSION': "0.0.1",
@@ -177,28 +178,31 @@ class TestBuildMetaBackend:
 
         build_files(files)
 
-        dist_dir = os.path.abspath('pip-wheel-preexisting')
-        os.makedirs(dist_dir)
+        dist_dir = os.path.abspath('preexisting-' + build_type)
 
-        # make first wheel
         build_backend = self.get_build_backend()
-        wheel_one = build_backend.build_wheel(dist_dir)
+        build_method = getattr(build_backend, 'build_' + build_type)
 
-        # change version
+        # Build a first sdist/wheel.
+        # Note: this also check the destination directory is
+        # successfully created if it does not exist already.
+        first_result = build_method(dist_dir)
+
+        # Change version.
         with open("VERSION", "wt") as version_file:
             version_file.write("0.0.2")
 
-        # make *second* wheel
-        wheel_two = self.get_build_backend().build_wheel(dist_dir)
+        # Build a *second* sdist/wheel.
+        second_result = build_method(dist_dir)
 
-        assert os.path.isfile(os.path.join(dist_dir, wheel_one))
-        assert wheel_one != wheel_two
+        assert os.path.isfile(os.path.join(dist_dir, first_result))
+        assert first_result != second_result
 
-        # and if rebuilding the same wheel?
-        open(os.path.join(dist_dir, wheel_two), 'w').close()
-        wheel_three = self.get_build_backend().build_wheel(dist_dir)
-        assert wheel_three == wheel_two
-        assert os.path.getsize(os.path.join(dist_dir, wheel_three)) > 0
+        # And if rebuilding the exact same sdist/wheel?
+        open(os.path.join(dist_dir, second_result), 'w').close()
+        third_result = build_method(dist_dir)
+        assert third_result == second_result
+        assert os.path.getsize(os.path.join(dist_dir, third_result)) > 0
 
     def test_build_sdist(self, build_backend):
         dist_dir = os.path.abspath('pip-sdist')
