@@ -2193,7 +2193,7 @@ Metadata and options are set in the config sections of the same name.
 * In some cases, complex values can be provided in dedicated subsections for
   clarity.
 
-* Some keys allow ``file:``, ``attr:``, and ``find:`` and ``find_namespace:`` directives in
+* Some keys allow ``file:``, ``attr:``, ``literal_attr:``, ``find:``, and ``find_namespace:`` directives in
   order to cover common usecases.
 
 * Unknown keys are ignored.
@@ -2290,6 +2290,15 @@ Special directives:
 
 * ``attr:`` - Value is read from a module attribute.  ``attr:`` supports
   callables and iterables; unsupported types are cast using ``str()``.
+
+* ``literal_attr:`` — Like ``attr:``, except that the value is parsed using
+  ``ast.literal_eval()`` instead of by importing the module.  This allows one
+  to specify an attribute of a module that imports one or more third-party
+  modules without having to install those modules first; as a downside,
+  ``literal_attr:`` only supports variables that are assigned constant
+  expressions, not more complex assignments like ``__version__ =
+  '.'.join(map(str, (VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH)))``.
+
 * ``file:`` - Value is read from a list of files and then concatenated
 
 
@@ -2305,14 +2314,14 @@ Metadata
     The aliases given below are supported for compatibility reasons,
     but their use is not advised.
 
-==============================  =================  =================  =============== =====
-Key                             Aliases            Type               Minimum Version Notes
-==============================  =================  =================  =============== =====
+==============================  =================  ================================  =============== =====
+Key                             Aliases            Type                              Minimum Version Notes
+==============================  =================  ================================  =============== =====
 name                                               str
-version                                            attr:, file:, str  39.2.0          (1)
+version                                            attr:, literal_attr:, file:, str  39.2.0          (1)
 url                             home-page          str
 download_url                    download-url       str
-project_urls                                       dict               38.3.0
+project_urls                                       dict                              38.3.0
 author                                             str
 author_email                    author-email       str
 maintainer                                         str
@@ -2323,13 +2332,13 @@ license_file                                       str
 license_files                                      list-comma
 description                     summary            file:, str
 long_description                long-description   file:, str
-long_description_content_type                      str                38.6.0
+long_description_content_type                      str                               38.6.0
 keywords                                           list-comma
 platforms                       platform           list-comma
 provides                                           list-comma
 requires                                           list-comma
 obsoletes                                          list-comma
-==============================  =================  =================  =============== =====
+==============================  =================  ================================  =============== =====
 
 .. note::
     A version loaded using the ``file:`` directive must comply with PEP 440.
