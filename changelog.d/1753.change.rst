@@ -1,0 +1,1 @@
+Added a ``literal_attr:`` config directive to support reading versions from attributes of modules that import third-party modules
