@@ -1,7 +1,7 @@
 mock==3.0.5
 pytest-flake8==1.0.4; python_version!="3.4"
 pytest-flake8==1.0.0; python_version=="3.4"
-virtualenv==13.0.0
+virtualenv==16.5.0
 pytest-virtualenv==1.6.0
 pytest==3.10.1
 wheel==0.33.4
