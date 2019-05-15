@@ -1,4 +1,4 @@
-sphinx==2.0.1
+sphinx==1.8.5
 rst.linker==1.10
 jaraco.packaging==6.1
 setuptools==40.8.0
