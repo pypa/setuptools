@@ -1,3 +1,5 @@
+.. _Supported setup() Keywords:
+
 ==============================
 Supported ``setup()`` Keywords
 ==============================

@@ -239,6 +239,13 @@ pre- or post-release tags.  See the following sections for more details:
 * The `egg_info`_ command
 
 
+New and Changed ``setup()`` Keywords
+====================================
+
+The keywords supported by setuptools can be found in :ref:`Supported setup()
+Keywords`
+
+
 Using ``find_packages()``
 -------------------------
 
