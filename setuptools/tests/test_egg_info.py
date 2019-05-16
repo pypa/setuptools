@@ -622,6 +622,7 @@ class TestEggInfo:
         assert expected_line in pkg_info_lines
         expected_line = 'Project-URL: Link Two, https://example.com/two/'
         assert expected_line in pkg_info_lines
+        assert 'Metadata-Version: 1.2' in pkg_info_lines
 
     def test_python_requires_egg_info(self, tmpdir_cwd, env):
         self._setup_script_with_requires(
