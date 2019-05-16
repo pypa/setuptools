@@ -3,8 +3,95 @@ Supported ``setup()`` Keywords
 ==============================
 
 The following keyword arguments to ``setup()`` are supported by ``setuptools``.
-All of them are optional; you do not have to supply them unless you need the
+Some of them are optional; you do not have to supply them unless you need the
 associated ``setuptools`` feature.
+
+``name``
+    A string specifying the name of the package.
+
+``version``
+    A string specifying the version number of the package.
+
+``description``
+    A string describing the package in a single line.
+
+``long_description``
+    A string providing a longer description of the package.
+
+``author``
+    A string specifying the author of the package.
+
+``author_email``
+    A string specifying the email address of the package author.
+
+``maintainer``
+    A string specifying the name of the current maintainer, if different from
+    the author. Note that if the maintainer is provided, setuptools will use it
+    as the author in ``PKG-INFO``.
+
+``maintainer_email``
+    A string specifying the email address of the current maintainer, if
+    different from the author.
+
+``url``
+    A string specifying the URL for the package homepage.
+
+``download_url``
+    A string specifying the URL to download the package.
+
+``packages``
+    A list of strings specifying the packages that setuptools will manipulate.
+
+``py_modules``
+    A list of strings specifying the modules that setuptools will manipulate.
+
+``scripts``
+    A list of strings specifying the standalone script files to be built and
+    installed.
+
+``ext_modules``
+    A list of instances of ``setuptools.Extension`` providing the list of
+    Python extensions to be built.
+
+``classifiers``
+    A list of strings describing the categories for the package.
+
+``distclass``
+    A subclass of ``Distribution`` to use.
+
+``script_name``
+    A string specifying the name of the setup.py script -- defaults to
+    ``sys.argv[0]``
+
+``script_args``
+    A list of strings defining the arguments to supply to the setup script.
+
+``options``
+    A dictionary providing the default options for the setup script.
+
+``license``
+    A string specifying the license of the package.
+
+``keywords``
+    A list of strings or a comma-separated string providing descriptive
+    meta-data. See: `PEP 0314`_.
+
+.. _PEP 0314: https://www.python.org/dev/peps/pep-0314/
+
+``platforms``
+    A list of strings or comma-separated string.
+
+``cmdclass``
+    A dictionary providing a mapping of command names to ``Command``
+    subclasses.
+
+``data_files``
+    A list of strings specifying the data files to install.
+
+``package_dir``
+    A dictionary providing a mapping of package to directory names.
+
+.. Below are setuptools keywords, above are distutils
 
 ``include_package_data``
     If set to ``True``, this tells ``setuptools`` to automatically include any
