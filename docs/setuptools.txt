@@ -345,6 +345,8 @@ With this layout, the package directory is specified as ``src``, as such::
 
 .. _PEP 420: https://www.python.org/dev/peps/pep-0420/
 
+.. _Automatic Script Creation:
+
 Automatic Script Creation
 =========================
 
@@ -432,6 +434,7 @@ and version is in use.  The header script will check this and exit with an
 error if the ``.egg`` file has been renamed or is invoked via a symlink that
 changes its base name.
 
+.. _Declaring Dependencies:
 
 Declaring Dependencies
 ======================
@@ -685,6 +688,8 @@ detailed in `PEP 508`_.
 
 .. _PEP 508: https://www.python.org/dev/peps/pep-0508/
 
+.. _Including Data Files:
+
 Including Data Files
 ====================
 
@@ -860,6 +865,7 @@ no supported facility to reliably retrieve these resources.
 Instead, the PyPA recommends that any data files you wish to be accessible at
 run time be included in the package.
 
+.. _Automatic Resource Extraction:
 
 Automatic Resource Extraction
 -----------------------------
@@ -904,6 +910,8 @@ Extensible Applications and Frameworks
 
 
 .. _Entry Points:
+
+.. _Dynamic Discovery of Services and Plugins:
 
 Dynamic Discovery of Services and Plugins
 -----------------------------------------
@@ -1977,7 +1985,7 @@ result (which must be a ``unittest.TestSuite``) is added to the tests to be
 run.  If the named suite is a package, any submodules and subpackages are
 recursively added to the overall test suite.  (Note: if your project specifies
 a ``test_loader``, the rules for processing the chosen ``test_suite`` may
-differ; see the `test_loader`_ documentation for more details.)
+differ; see the :ref:`test_loader <test_loader>` documentation for more details.)
 
 Note that many test systems including ``doctest`` support wrapping their
 non-``unittest`` tests in ``TestSuite`` objects.  So, if you are using a test
