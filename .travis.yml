@@ -4,3 +4,4 @@ jobs:
     env:
     # TIDELIFT_TOKEN
     - secure: ...
+    TOX_TESTENV_PASSENV="TIDELIFT_TOKEN"
