@@ -20,6 +20,10 @@ associated ``setuptools`` feature.
 ``long_description``
     A string providing a longer description of the package.
 
+``long_description_content_type``
+    A string specifying the content type is used for the ``long_description``
+    (e.g. ``text/markdown``)
+
 ``author``
     A string specifying the author of the package.
 
