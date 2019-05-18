@@ -105,13 +105,49 @@
 ``obsoletes``
 
    .. warning::
-      ``obsoletes`` is not supported by ``pip`` and should not be used.
+      ``obsoletes`` is currently ignored by ``pip``.
+
+   List of strings describing packages which this package renders obsolete,
+   meaning that the two projects should not be installed at the same time.
+
+   Version declarations can be supplied. Version numbers must be in the format
+   specified in Version specifiers (e.g. ``foo (<3.0)``).
+
+   This field may be followed by an environment marker after a semicolon (e.g.
+   ``foo; os_name == "posix"``)
+
+   The most common use of this field will be in case a project name changes,
+   e.g. Gorgon 2.3 gets subsumed into Torqued Python 1.0. When you install
+   Torqued Python, the Gorgon distribution should be removed.
 
 ``provides``
 
    .. warning::
-      ``provides`` is not supported by ``pip`` and should not be used.
+      ``provides`` is currently ignored by ``pip``.
 
+   List of strings describing package- and virtual package names contained
+   within this package.
+
+   A package may provide additional names, e.g. to indicate that multiple
+   projects have been bundled together. For instance, source distributions of
+   the ZODB project have historically included the transaction project, which
+   is now available as a separate distribution. Installing such a source
+   distribution satisfies requirements for both ZODB and transaction.
+
+   A package may also provide a “virtual” project name, which does not
+   correspond to any separately-distributed project: such a name might be used
+   to indicate an abstract capability which could be supplied by one of
+   multiple projects. E.g., multiple projects might supply RDBMS bindings for
+   use by a given ORM: each project might declare that it provides
+   ORM-bindings, allowing other projects to depend only on having at most one
+   of them installed.
+
+   A version declaration may be supplied and must follow the rules described in
+   Version specifiers. The distribution’s version number will be implied if
+   none is specified (e.g. ``foo (<3.0)``).
+
+   Each package may be followed by an environment marker after a semicolon
+   (e.g. ``foo; os_name == "posix"``).
 
 .. Below are setuptools keywords, above are distutils
 
