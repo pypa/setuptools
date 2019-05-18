@@ -168,7 +168,7 @@
 ``setup_requires``
 
     .. warning::
-        Using ``setup_requires`` is discouraged in favour for `PEP-518`_
+        Using ``setup_requires`` is discouraged in favor of `PEP-518`_
 
     A string or list of strings specifying what other distributions need to
     be present in order for the *setup script* to run.  ``setuptools`` will
