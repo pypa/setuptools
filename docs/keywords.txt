@@ -291,6 +291,9 @@ associated ``setuptools`` feature.
     A list of modules to search for additional fixers to be used during
     the 2to3 conversion. See :doc:`python3` for more details.
 
+``use_2to3_exclude_fixers``
+    List of fixer names to be skipped.
+
 ``project_urls``
     An arbitrary map of URL names to hyperlinks, allowing more extensible
     documentation of where various resources can be found than the simple
