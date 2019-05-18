@@ -17,7 +17,6 @@ Documentation content:
    :maxdepth: 2
 
    setuptools
-   keywords
    pkg_resources
    python3
    development

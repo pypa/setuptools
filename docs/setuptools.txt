@@ -242,8 +242,11 @@ pre- or post-release tags.  See the following sections for more details:
 New and Changed ``setup()`` Keywords
 ====================================
 
-The keywords supported by setuptools can be found in :ref:`Supported setup()
-Keywords`
+The following keyword arguments to ``setup()`` are supported by ``setuptools``.
+Some of them are optional; you do not have to supply them unless you need the
+associated ``setuptools`` feature.
+
+.. include:: keywords.txt
 
 
 Using ``find_packages()``

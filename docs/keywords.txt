@@ -1,13 +1,3 @@
-.. _Supported setup() Keywords:
-
-==============================
-Supported ``setup()`` Keywords
-==============================
-
-The following keyword arguments to ``setup()`` are supported by ``setuptools``.
-Some of them are optional; you do not have to supply them unless you need the
-associated ``setuptools`` feature.
-
 ``name``
     A string specifying the name of the package.
 
