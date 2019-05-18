@@ -107,10 +107,10 @@
    .. warning::
       ``obsoletes`` is not supported by ``pip`` and should not be used.
 
-``requires``
+``provides``
 
    .. warning::
-      ``requires`` is not supported by ``pip`` and should not be used.
+      ``provides`` is not supported by ``pip`` and should not be used.
 
 
 .. Below are setuptools keywords, above are distutils
