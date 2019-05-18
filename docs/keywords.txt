@@ -98,6 +98,23 @@ associated ``setuptools`` feature.
 ``package_dir``
     A dictionary providing a mapping of package to directory names.
 
+``requires``
+
+   .. warning::
+      ``requires`` is superseded by ``install_requires`` and should not be used
+      anymore.
+
+``obsoletes``
+
+   .. warning::
+      ``obsoletes`` is not supported by ``pip`` and should not be used.
+
+``requires``
+
+   .. warning::
+      ``requires`` is not supported by ``pip`` and should not be used.
+
+
 .. Below are setuptools keywords, above are distutils
 
 ``include_package_data``
