@@ -51,6 +51,10 @@ associated ``setuptools`` feature.
     A list of strings specifying the standalone script files to be built and
     installed.
 
+``ext_package``
+    A string specifying the base package name for the extensions provided by
+    this package.
+
 ``ext_modules``
     A list of instances of ``setuptools.Extension`` providing the list of
     Python extensions to be built.
