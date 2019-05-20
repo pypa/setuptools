@@ -409,6 +409,7 @@ class Distribution(_Distribution):
         'long_description_content_type': None,
         'project_urls': dict,
         'provides_extras': ordered_set.OrderedSet,
+        'license_files': list,
     }
 
     _patched_dist = None
