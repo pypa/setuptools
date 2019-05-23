@@ -213,7 +213,7 @@ def check_importable(dist, attr, value):
 
 
 def assert_string_list(dist, attr, value):
-    """Verify that value is a string list or None"""
+    """Verify that value is a string list"""
     try:
         assert ''.join(value) != value
     except (TypeError, ValueError, AttributeError, AssertionError):
