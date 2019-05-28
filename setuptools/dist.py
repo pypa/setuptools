@@ -54,7 +54,8 @@ def get_metadata_version(self):
             mv = StrictVersion('2.1')
         elif (self.maintainer is not None or
               self.maintainer_email is not None or
-              getattr(self, 'python_requires', None) is not None):
+              getattr(self, 'python_requires', None) is not None or
+              self.project_urls):
             mv = StrictVersion('1.2')
         elif (self.provides or self.requires or self.obsoletes or
                 self.classifiers or self.download_url):
