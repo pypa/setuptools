@@ -85,7 +85,7 @@ class _IndividualSpecifier(BaseSpecifier):
             raise InvalidSpecifier("Invalid specifier: '{0}'".format(spec))
 
         self._spec = (
-            match.group("operator").strip(),
+            (match.group("operator") or '').strip(),
             match.group("version").strip(),
         )
 
@@ -276,7 +276,7 @@ class Specifier(_IndividualSpecifier):
 
     _regex_str = (
         r"""
-        (?P<operator>(~=|==|!=|<=|>=|<|>|===))
+        (?P<operator>(~=|==|!=|<=|>=|<|>|===))?
         (?P<version>
             (?:
                 # The identity operators allow for an escape hatch that will
