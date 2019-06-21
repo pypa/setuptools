@@ -18,6 +18,7 @@ except ImportError:
     import mock
 
 from pkg_resources import DistInfoDistribution, Distribution, EggInfoDistribution
+from setuptools.extern import six
 from pkg_resources.extern.six.moves import map
 from pkg_resources.extern.six import text_type, string_types
 
@@ -189,6 +190,59 @@ class TestResourceManager:
         )
         cmd = [sys.executable, '-c', '; '.join(lines)]
         subprocess.check_call(cmd)
+
+
+def make_test_distribution(metadata_path, metadata):
+    """
+    Make a test Distribution object, and return it.
+
+    :param metadata_path: the path to the metadata file that should be
+        created. This should be inside a distribution directory that should
+        also be created. For example, an argument value might end with
+        "<project>.dist-info/METADATA".
+    :param metadata: the desired contents of the metadata file, as bytes.
+    """
+    dist_dir = os.path.dirname(metadata_path)
+    os.mkdir(dist_dir)
+    with open(metadata_path, 'wb') as f:
+        f.write(metadata)
+    dists = list(pkg_resources.distributions_from_metadata(dist_dir))
+    dist, = dists
+
+    return dist
+
+
+def test_get_metadata__bad_utf8(tmpdir):
+    """
+    Test a metadata file with bytes that can't be decoded as utf-8.
+    """
+    filename = 'METADATA'
+    # Convert the tmpdir LocalPath object to a string before joining.
+    metadata_path = os.path.join(str(tmpdir), 'foo.dist-info', filename)
+    # Encode a non-ascii string with the wrong encoding (not utf-8).
+    metadata = 'née'.encode('iso-8859-1')
+    dist = make_test_distribution(metadata_path, metadata=metadata)
+
+    if six.PY2:
+        # In Python 2, get_metadata() doesn't do any decoding.
+        actual = dist.get_metadata(filename)
+        assert actual == metadata
+        return
+
+    # Otherwise, we are in the Python 3 case.
+    with pytest.raises(UnicodeDecodeError) as excinfo:
+        dist.get_metadata(filename)
+
+    exc = excinfo.value
+    actual = str(exc)
+    expected = (
+        # The error message starts with "'utf-8' codec ..." However, the
+        # spelling of "utf-8" can vary (e.g. "utf8") so we don't include it
+        "codec can't decode byte 0xe9 in position 1: "
+        'invalid continuation byte in METADATA file at path: '
+    )
+    assert expected in actual, 'actual: {}'.format(actual)
+    assert actual.endswith(metadata_path), 'actual: {}'.format(actual)
 
 
 # TODO: remove this in favor of Path.touch() when Python 2 is dropped.
