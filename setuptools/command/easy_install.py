@@ -1180,8 +1180,7 @@ class easy_install(Command):
         # to the setup.cfg file.
         ei_opts = self.distribution.get_option_dict('easy_install').copy()
         fetch_directives = (
-            'find_links', 'site_dirs', 'index_url', 'optimize',
-            'site_dirs', 'allow_hosts',
+            'find_links', 'site_dirs', 'index_url', 'optimize', 'allow_hosts',
         )
         fetch_options = {}
         for key, val in ei_opts.items():
