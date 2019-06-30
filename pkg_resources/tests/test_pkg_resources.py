@@ -242,7 +242,7 @@ def test_distribution_version_missing(tmpdir, suffix, expected_filename,
     with pytest.raises(ValueError) as excinfo:
         dist.version
 
-    err = str(excinfo)
+    err = str(excinfo.value)
     # Include a string expression after the assert so the full strings
     # will be visible for inspection on failure.
     assert expected_text in err, str((expected_text, err))
