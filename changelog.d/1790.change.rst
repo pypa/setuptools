@@ -1,2 +1,2 @@
-Add to the error message the path to the file if a ``UnicodeDecodeError``
-occurs while reading a metadata file.
+Added the file path to the error message when a ``UnicodeDecodeError`` occurs
+while reading a metadata file.
