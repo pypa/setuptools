@@ -1,0 +1,1 @@
+Remove some usage of the deprecated ``imp`` module.
