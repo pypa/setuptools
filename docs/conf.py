@@ -69,7 +69,11 @@ html_theme_path = ['_theme']
 html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
+<<<<<<< HEAD
 html_sidebars = {'index': ['relations.html', 'sourcelink.html', 'indexsidebar.html', 'searchbox.html']}
+=======
+html_sidebars = {'index': ['indexsidebar.html']}
+>>>>>>> 81e58e3f6ce6e4993c1dd2575ecb7a9ad65f40df
 
 # If false, no module index is generated.
 html_use_modindex = False
