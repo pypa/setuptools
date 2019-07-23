@@ -8,6 +8,8 @@ from pytest_fixture_config import yield_requires_config
 
 import pytest_virtualenv
 
+from setuptools.extern import six
+
 from .textwrap import DALS
 from .test_easy_install import make_nspkg_sdist
 
@@ -75,8 +77,11 @@ def _get_pip_versions():
         'pip==10.0.1',
         'pip==18.1',
         'pip==19.0.1',
-        'https://github.com/pypa/pip/archive/master.zip',
     ]
+
+    # Pip's master dropped support for 3.4.
+    if not six.PY34:
+        network_versions.append('https://github.com/pypa/pip/archive/master.zip')
 
     versions = [None] + [
         pytest.param(v, **({} if network else {'marks': pytest.mark.skip}))
