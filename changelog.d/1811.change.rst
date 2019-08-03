@@ -1,0 +1,1 @@
+Improve Visual C++ 14.X support, mainly for Visual Studio 2017 and 2019.
