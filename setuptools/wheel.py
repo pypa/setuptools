@@ -1,6 +1,7 @@
 """Wheels support."""
 
 from distutils.util import get_platform
+from distutils import log
 import email
 import itertools
 import os
@@ -162,11 +163,17 @@ class Wheel:
                 extras_require=extras_require,
             ),
         )
-        write_requirements(
-            setup_dist.get_command_obj('egg_info'),
-            None,
-            os.path.join(egg_info, 'requires.txt'),
-        )
+        # Temporarily disable info traces.
+        log_threshold = log._global_log.threshold
+        log.set_threshold(log.WARN)
+        try:
+            write_requirements(
+                setup_dist.get_command_obj('egg_info'),
+                None,
+                os.path.join(egg_info, 'requires.txt'),
+            )
+        finally:
+            log.set_threshold(log_threshold)
 
     @staticmethod
     def _move_data_entries(destination_eggdir, dist_data):
