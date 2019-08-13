@@ -1,1 +1,0 @@
-Moved most of the constants from setup.py to setup.cfg

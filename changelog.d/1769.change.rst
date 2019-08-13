@@ -1,1 +1,0 @@
-Improve ``package_data`` check: ensure the dictionary values are lists/tuples of strings.

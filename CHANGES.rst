@@ -1,3 +1,16 @@
+v41.1.0
+-------
+
+* #1697: Moved most of the constants from setup.py to setup.cfg
+* #1749: Fixed issue with the PEP 517 backend where building a source distribution would fail if any tarball existed in the destination directory.
+* #1750: Fixed an issue with PEP 517 backend where wheel builds would fail if the destination directory did not already exist.
+* #1756: Forse metadata-version >= 1.2. when project urls are present.
+* #1769: Improve ``package_data`` check: ensure the dictionary values are lists/tuples of strings.
+* #1788: Changed compatibility fallback logic for ``html.unescape`` to avoid accessing ``HTMLParser.unescape`` when not necessary. ``HTMLParser.unescape`` is deprecated and will be removed in Python 3.9.
+* #1790: Added the file path to the error message when a ``UnicodeDecodeError`` occurs while reading a metadata file.
+* #1776: Use license classifiers rather than the license field.
+
+
 v41.0.1
 -------
 
