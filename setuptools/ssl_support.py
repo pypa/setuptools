@@ -243,11 +243,36 @@ def get_win_certfile():
     return _wincerts.name
 
 
+def get_env_ca_bundle():
+    """Return a CA bundle file path set through environment variables.
+    
+    Supports the REQUESTS_CA_BUNDLE and CURL_CA_BUNDLE env vars for setting
+    the path to a CA bundle (Current restriction: path must be a file path, 
+    not a directory).
+    """
+    # Be compatible with requests and curl ca bundle environment configuration
+    # (somewhat, only bundle files but not directories)
+    ca_bundle = (os.environ.get('SSL_CERT_FILE') or
+                 os.environ.get('REQUESTS_CA_BUNDLE') or
+                 os.environ.get('CURL_CA_BUNDLE'))
+    if ca_bundle is not None:
+        if os.path.isdir(ca_bundle):
+            raise NotImplementedError(
+                "TLS CA certificate bundle directory paths are currently  "
+                "not supported.")
+        if not os.path.isfile(ca_bundle):
+            raise IOError(
+                "Could not find a suitable TLS CA certificate bundle file, "
+                "invalid path: {}".format(ca_bundle))
+    return ca_bundle
+
+
 def find_ca_bundle():
     """Return an existing CA bundle path, or None"""
     extant_cert_paths = filter(os.path.isfile, cert_paths)
     return (
-        get_win_certfile()
+        get_env_ca_bundle()
+        or get_win_certfile()
         or next(extant_cert_paths, None)
         or _certifi_where()
     )

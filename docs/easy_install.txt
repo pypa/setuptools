@@ -390,6 +390,17 @@ The above example would then allow downloads only from hosts in the
 ``python.org`` and ``myintranet.example.com`` domains, unless overridden on the
 command line.
 
+Custom TLS (SSL) certificate validation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+EasyInstall supports the environment variables ``SSL_CERT_FILE``,
+``REQUESTS_CA_BUNDLE`` and ``CURL_CA_BUNDLE`` (as established by the
+`openssl <https://www.openssl.org/>`_,
+`requests <http://python-requests.org/>`_ and
+`curl <https://curl.haxx.se/>`_ projects) to specify a custom local CA cert
+path. The path must refer to a CA cert file, not a directory. If multiple of
+these env vars are set the 1st one found in above precedence order gets used
+and is expected to contain a valid file path.
 
 Installing on Un-networked Machines
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
