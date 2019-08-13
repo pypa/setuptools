@@ -21,6 +21,8 @@ jobs:
   - <<: *latest_py3
     env: LANG=C
   - python: 3.8-dev
+  - <<: *latest_py3
+    env: TOXENV=docs DISABLE_COVERAGE=1
   - <<: *default_py
     stage: deploy (to PyPI for tagged commits)
     if: tag IS present
