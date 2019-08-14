@@ -4,9 +4,8 @@ language: python
 jobs:
   fast_finish: true
   include:
-  - &latest_py2
-    python: 2.7
-  - <<: *latest_py2
+  - python: 2.7
+  - python: 2.7
     env: LANG=C
   - python: pypy
     env: DISABLE_COVERAGE=1  # Don't run coverage on pypy (too slow).
@@ -14,33 +13,22 @@ jobs:
     env: DISABLE_COVERAGE=1
   - python: 3.4
   - python: 3.5
-  - &default_py
-    python: 3.6
-  - &latest_py3
-    python: 3.7
-  - <<: *latest_py3
+  - python: 3.6
+  - python: &latest_py3 3.7
+  - python: *latest_py3
     env: LANG=C
   - python: 3.8-dev
-  - <<: *default_py
-    stage: deploy (to PyPI for tagged commits)
+  - stage: deploy
     if: tag IS present
-    install: skip
-    script: skip
-    after_success: true
-    before_deploy:
-      - python bootstrap.py
-      - "! grep pyc setuptools.egg-info/SOURCES.txt"
-    deploy:
-      provider: pypi
-      on:
-        tags: true
-        all_branches: true
-      user: __token__
-      password:
-        secure: DMdGcoBuTXkEfnbS2hI3OPWlKOPijDWDi+VYlO7GmXrvtEsP32atMb84X8KS0m7kZZrDHY4mLvIqeomwjhcmzTxxWELBTRUtnHe9pPd8klYq8D0Bm9hTmt50AGQZP340zuiapTOTywuDPOUkzKBglflGbPetOA/fcBX+7BWZRYPOAvgtMdix5ff58qDqRc4aO9soWAHRwENnZTfKN5O5m2C9fnxxpC+9/MjhnFsf5pYamV6gS4sEsm+IeCu4wYiH28ksDrhT2gyKcyMLyMxdiyHiDaYG/zqxWZv8+pfFBp8JbzvQxz1z+aR7iswIxIGQTt2P52/PB+riGs64A1bmKVZaIZULCKl5J8qgkRpAPEMkaej9cOQPqHKUt5VFvLlvMQrWiuHwOY1FxS5fqvdhLvrpdbRFGvw5hqA7ZdcdIpkIS54oiveQD8vRgQPLZ+p43eA+wzcY6yk4Y6D1L3UYG4bNV/XAlQEAC+YnWH/iFdres7I3c3BYHqAq2DQU0dcmhc+MpjE7sAa2Hyk1NiuXx7M8FGJ+iVh5e93y38OnVfKGm2gdH6NDd6mCFu2H5RANwUzq6ASHTdT38Q6YvZ2ZCFBj7sTaaydjat/mUiv/aDioamTp83xv4ZsVlspHaq1e7wsSVQGbmZAd07OJ7n5mX511HsGAnYkFHjoIFw/+7Gc=
-      distributions: release
-      skip_cleanup: true
-      skip_upload_docs: true
+    python: *latest_py3
+    before_script: skip
+    env:
+    - TWINE_USERNAME=__token__
+    # TWINE_PASSWORD
+    - secure: DMdGcoBuTXkEfnbS2hI3OPWlKOPijDWDi+VYlO7GmXrvtEsP32atMb84X8KS0m7kZZrDHY4mLvIqeomwjhcmzTxxWELBTRUtnHe9pPd8klYq8D0Bm9hTmt50AGQZP340zuiapTOTywuDPOUkzKBglflGbPetOA/fcBX+7BWZRYPOAvgtMdix5ff58qDqRc4aO9soWAHRwENnZTfKN5O5m2C9fnxxpC+9/MjhnFsf5pYamV6gS4sEsm+IeCu4wYiH28ksDrhT2gyKcyMLyMxdiyHiDaYG/zqxWZv8+pfFBp8JbzvQxz1z+aR7iswIxIGQTt2P52/PB+riGs64A1bmKVZaIZULCKl5J8qgkRpAPEMkaej9cOQPqHKUt5VFvLlvMQrWiuHwOY1FxS5fqvdhLvrpdbRFGvw5hqA7ZdcdIpkIS54oiveQD8vRgQPLZ+p43eA+wzcY6yk4Y6D1L3UYG4bNV/XAlQEAC+YnWH/iFdres7I3c3BYHqAq2DQU0dcmhc+MpjE7sAa2Hyk1NiuXx7M8FGJ+iVh5e93y38OnVfKGm2gdH6NDd6mCFu2H5RANwUzq6ASHTdT38Q6YvZ2ZCFBj7sTaaydjat/mUiv/aDioamTp83xv4ZsVlspHaq1e7wsSVQGbmZAd07OJ7n5mX511HsGAnYkFHjoIFw/+7Gc=
+    - TOX_TESTENV_PASSENV="TWINE_USERNAME TWINE_PASSWORD"
+    - DISABLE_COVERAGE=1
+    script: tox -e release
 
 cache: pip
 
