@@ -1693,6 +1693,9 @@ file locations.
 ``bdist_egg`` - Create a Python Egg for the project
 ===================================================
 
+.. warning::
+    **eggs** are deprecated in favor of wheels, and not supported by pip.
+
 This command generates a Python Egg (``.egg`` file) for the project.  Python
 Eggs are the preferred binary distribution format for EasyInstall, because they
 are cross-platform (for "pure" packages), directly importable, and contain
