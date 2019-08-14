@@ -1,0 +1,1 @@
+Drop ez_setup documentation: deprecated for some time (last updated in 2016), and still relying on easy_install (deprecated too).
