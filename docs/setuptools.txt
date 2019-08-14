@@ -675,6 +675,10 @@ using ``setup.py develop``.)
 Dependencies that aren't in PyPI
 --------------------------------
 
+.. warning::
+    Dependency links support has been dropped by pip starting with version
+    19.0 (released 2019-01-22).
+
 If your project depends on packages that don't exist on PyPI, you may still be
 able to depend on them, as long as they are available for download as:
 
