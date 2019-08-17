@@ -29,6 +29,10 @@ class TestPEP425Tags:
         config_vars.update({'SOABI': None})
         base = pep425tags.get_abbr_impl() + pep425tags.get_impl_ver()
 
+        if sys.version_info >= (3, 8):
+            # Python 3.8 removes the m flag, so don't look for it.
+            flags = flags.replace('m', '')
+
         if sys.version_info < (3, 3):
             config_vars.update({'Py_UNICODE_SIZE': 2})
             mock_gcf = self.mock_get_config_var(**config_vars)
