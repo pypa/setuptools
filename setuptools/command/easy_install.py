@@ -241,7 +241,7 @@ class easy_install(Command):
         """
         Render the Setuptools version and installation details, then exit.
         """
-        ver = sys.version[:3]
+        ver = '{}.{}'.format(*sys.version_info)
         dist = get_distribution('setuptools')
         tmpl = 'setuptools {dist.version} from {dist.location} (Python {ver})'
         print(tmpl.format(**locals()))
@@ -1412,7 +1412,7 @@ def get_site_dirs():
                     os.path.join(
                         prefix,
                         "lib",
-                        "python" + sys.version[:3],
+                        "python{}.{}".format(*sys.version_info),
                         "site-packages",
                     ),
                     os.path.join(prefix, "lib", "site-python"),
@@ -1433,7 +1433,7 @@ def get_site_dirs():
                             home,
                             'Library',
                             'Python',
-                            sys.version[:3],
+                            '{}.{}'.format(*sys.version_info),
                             'site-packages',
                         )
                         sitedirs.append(home_sp)

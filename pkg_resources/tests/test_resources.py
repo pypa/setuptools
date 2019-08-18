@@ -116,7 +116,7 @@ class TestDistro:
         self.checkFooPkg(d)
 
         d = Distribution("/some/path")
-        assert d.py_version == sys.version[:3]
+        assert d.py_version == '{}.{}'.format(*sys.version_info)
         assert d.platform is None
 
     def testDistroParse(self):

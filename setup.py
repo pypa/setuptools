@@ -44,7 +44,7 @@ def _gen_console_scripts():
     if any(os.environ.get(var) not in (None, "", "0") for var in var_names):
         return
     tmpl = "easy_install-{shortver} = setuptools.command.easy_install:main"
-    yield tmpl.format(shortver=sys.version[:3])
+    yield tmpl.format(shortver='{}.{}'.format(*sys.version_info))
 
 
 package_data = dict(
