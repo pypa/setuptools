@@ -654,3 +654,11 @@ class ConfigOptionsHandler(ConfigHandler):
         """
         parsed = self._parse_section_to_dict(section_options, self._parse_list)
         self['data_files'] = [(k, v) for k, v in parsed.items()]
+
+    def parse_section_cmdclass(self, section_options):
+        """Parses `cmdclass` configuration file section.
+
+        :param dict section_options:
+        """
+        parsed = self._parse_section_to_dict(section_options, self._parse_attr)
+        self['cmdclass'] = parsed

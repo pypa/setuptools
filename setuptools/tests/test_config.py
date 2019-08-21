@@ -6,6 +6,7 @@ import pytest
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
 from mock import patch
+from setuptools import Command
 from setuptools.dist import Distribution, _Distribution
 from setuptools.config import ConfigHandler, read_configuration
 from setuptools.extern.six.moves import configparser
@@ -801,6 +802,25 @@ class TestOptions:
 
         with get_dist(tmpdir) as dist:
             assert dist.entry_points == expected
+
+    def test_cmdclass(self, tmpdir):
+        _, config = fake_env(
+            tmpdir,
+            '[options.cmdclass]\n'
+            'my_cmd = attr: cmdclasses.MyCommand\n',
+        )
+
+        tmpdir.join('cmdclasses.py').write(
+            'from setuptools import Command\n'
+            'class MyCommand(Command):\n'
+            '    user_options = []\n'
+            '    def initialize_options(self): pass\n'
+            '    def finalize_options(self): pass\n'
+        )
+
+        with get_dist(tmpdir) as dist:
+            assert dist.cmdclass['my_cmd'].__name__ == 'MyCommand'
+            assert issubclass(dist.cmdclass['my_cmd'], Command)
 
     def test_data_files(self, tmpdir):
         fake_env(

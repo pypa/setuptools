@@ -1,0 +1,1 @@
+Add support for specifying cmdclass in setup.cfg.
