@@ -1,3 +1,11 @@
+v41.2.0
+-------
+
+* #479: Remove some usage of the deprecated ``imp`` module.
+* #1565: Changed html_sidebars from string to list of string as per
+  https://www.sphinx-doc.org/en/master/changes.html#id58
+
+
 v41.1.0
 -------
 

@@ -1,2 +1,0 @@
-Changed html_sidebars from string to list of string as per
-https://www.sphinx-doc.org/en/master/changes.html#id58 
