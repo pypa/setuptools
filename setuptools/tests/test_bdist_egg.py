@@ -76,7 +76,6 @@ class Test:
                 'setuptools.installation':
                     ['eggsecutable = my_package.some_module:main_func']},
         ))
-        with contexts.quiet():
-            dist.parse_command_line()
-            with pytest.warns(SetuptoolsDeprecationWarning):
-                dist.run_commands()
+        dist.parse_command_line()
+        with pytest.warns(SetuptoolsDeprecationWarning):
+            dist.run_commands()
