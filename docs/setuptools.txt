@@ -572,7 +572,7 @@ Services and Plugins`_.
 "Eggsecutable" Scripts
 ----------------------
 
-.. warning:: Eggsecutable Scripts are deprecated.
+.. deprecated:: 41.3.0
 
 Occasionally, there are situations where it's desirable to make an ``.egg``
 file directly executable.  You can do this by including an entry point such
