@@ -1,0 +1,1 @@
+Add RequirementParseError to pkg_resources.__all__
