@@ -217,7 +217,7 @@ __all__ = [
 
     # Exceptions
     'ResolutionError', 'VersionConflict', 'DistributionNotFound',
-    'UnknownExtra', 'ExtractionError',
+    'UnknownExtra', 'ExtractionError', 'RequirementParseError',
 
     # Warnings
     'PEP440Warning',
