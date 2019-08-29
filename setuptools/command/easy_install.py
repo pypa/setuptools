@@ -2267,7 +2267,7 @@ def get_win_launcher(type):
 
 
 def load_launcher_manifest(name):
-    manifest = pkg_resources.resource_string(__name__, 'launcher manifest.xml')
+    manifest = pkg_resources.resource_string(__name__, 'launcher-manifest.xml')
     if six.PY2:
         return manifest % vars()
     else:

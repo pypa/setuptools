@@ -48,7 +48,7 @@ def _gen_console_scripts():
 
 
 package_data = dict(
-    setuptools=['script (dev).tmpl', 'script.tmpl', 'site-patch.py'],
+    setuptools=['script-(dev).tmpl', 'script.tmpl', 'site-patch.py'],
 )
 
 force_windows_specific_files = (
