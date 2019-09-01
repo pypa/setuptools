@@ -1,0 +1,75 @@
+name: Test suite
+
+on:
+  push:
+  pull_request:
+  schedule:
+  - cron: 1 0 * * *  # Run daily at 0:01 UTC
+
+jobs:
+  tests:
+    name: 👷
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # max-parallel: 5
+      matrix:
+        python-version:
+        - 3.7
+        - 3.6
+        - 3.5
+        - 2.7
+        os:
+        - ubuntu-18.04
+        - ubuntu-16.04
+        - macOS-10.14
+        - windows-2019
+        - windows-2016
+        env:
+        - TOXENV: python
+
+    steps:
+    - uses: actions/checkout@master
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        version: ${{ matrix.python-version }}
+    - name: Upgrade pip/setuptools/wheel
+      run: >-
+        python
+        -m pip install
+        --disable-pip-version-check
+        --upgrade
+        pip setuptools wheel
+    - name: Install tox
+      run: >-
+        python -m pip install --upgrade tox tox-venv
+    - name: Log installed dists
+      run: >-
+        python -m pip freeze --all
+    - name: Log env vars
+      run: >-
+        env
+      env: ${{ matrix.env }}
+
+    - name: Update egg_info based on setup.py in checkout
+      run: >-
+        python -m bootstrap
+      env: ${{ matrix.env }}
+    - name: Verify that there's no cached Python modules in sources
+      if: >-
+        ! startsWith(matrix.os, 'windows-')
+      run: >-
+        ! grep pyc setuptools.egg-info/SOURCES.txt
+
+    - name: 'Initialize tox envs: ${{ matrix.env.TOXENV }}'
+      run: |
+        python -m tox --parallel auto --notest
+      env: ${{ matrix.env }}
+    - name: Test with tox
+      run: |
+        ${{ startsWith(matrix.os, 'windows-') && 'setx NETWORK_REQUIRED ' || 'export NETWORK_REQUIRED=' }}1
+        python -m tox \
+        --parallel 0 \
+        -- \
+        --cov
+      env: ${{ matrix.env }}
