@@ -63,7 +63,7 @@ jobs:
 
     - name: 'Initialize tox envs: ${{ matrix.env.TOXENV }}'
       run: |
-        python -m tox --parallel auto --notest
+        python -m tox --parallel auto --notest --skip-missing-interpreters false
       env: ${{ matrix.env }}
     - name: Test with tox
       run: |
