@@ -1,4 +1,4 @@
-.. image:: https://tidelift.com/badges/github/GROUP/PROJECT
+.. image:: https://tidelift.com/badges/package/pypi/PROJECT
    :target: https://tidelift.com/subscription/pkg/pypi-PROJECT?utm_source=pypi-PROJECT&utm_medium=readme
 
 Security Contact
