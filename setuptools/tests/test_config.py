@@ -819,6 +819,28 @@ class TestOptions:
             ]
             assert sorted(dist.data_files) == sorted(expected)
 
+    def test_python_requires_simple(self, tmpdir):
+        fake_env(
+            tmpdir,
+            DALS("""
+            [options]
+            python_requires=>=2.7
+            """),
+        )
+        with get_dist(tmpdir) as dist:
+            dist.parse_config_files()
+
+    def test_python_requires_compound(self, tmpdir):
+        fake_env(
+            tmpdir,
+            DALS("""
+            [options]
+            python_requires=>=2.7,!=3.0.*
+            """),
+        )
+        with get_dist(tmpdir) as dist:
+            dist.parse_config_files()
+
     def test_python_requires_invalid(self, tmpdir):
         fake_env(
             tmpdir,
@@ -827,7 +849,7 @@ class TestOptions:
             python_requires=invalid
             """),
         )
-        with pytest.raises(DistutilsOptionError):
+        with pytest.raises(Exception):
             with get_dist(tmpdir) as dist:
                 dist.parse_config_files()
 
