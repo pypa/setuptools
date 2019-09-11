@@ -1,3 +1,48 @@
+v41.2.0
+-------
+
+* #479: Remove some usage of the deprecated ``imp`` module.
+* #1565: Changed html_sidebars from string to list of string as per
+  https://www.sphinx-doc.org/en/master/changes.html#id58
+
+
+v41.1.0
+-------
+
+* #1697: Moved most of the constants from setup.py to setup.cfg
+* #1749: Fixed issue with the PEP 517 backend where building a source distribution would fail if any tarball existed in the destination directory.
+* #1750: Fixed an issue with PEP 517 backend where wheel builds would fail if the destination directory did not already exist.
+* #1756: Force metadata-version >= 1.2. when project urls are present.
+* #1769: Improve ``package_data`` check: ensure the dictionary values are lists/tuples of strings.
+* #1788: Changed compatibility fallback logic for ``html.unescape`` to avoid accessing ``HTMLParser.unescape`` when not necessary. ``HTMLParser.unescape`` is deprecated and will be removed in Python 3.9.
+* #1790: Added the file path to the error message when a ``UnicodeDecodeError`` occurs while reading a metadata file.
+* #1776: Use license classifiers rather than the license field.
+
+
+v41.0.1
+-------
+
+* #1671: Fixed issue with the PEP 517 backend that prevented building a wheel when the ``dist/`` directory contained existing ``.whl`` files.
+* #1709: In test.paths_on_python_path, avoid adding unnecessary duplicates to the PYTHONPATH.
+* #1741: In package_index, now honor "current directory" during a checkout of git and hg repositories under Windows
+
+
+v41.0.0
+-------
+
+* #1735: When parsing setup.cfg files, setuptools now requires the files to be encoded as UTF-8. Any other encoding will lead to a UnicodeDecodeError. This change removes support for specifying an encoding using a 'coding: ' directive in the header of the file, a feature that was introduces in 40.7. Given the recent release of the aforementioned feature, it is assumed that few if any projects are utilizing the feature to specify an encoding other than UTF-8.
+
+
+v40.9.0
+-------
+
+* #1675: Added support for ``setup.cfg``-only projects when using the ``setuptools.build_meta`` backend. Projects that have enabled PEP 517 no longer need to have a ``setup.py`` and can use the purely declarative ``setup.cfg`` configuration file instead.
+* #1720: Added support for ``pkg_resources.parse_requirements``-style requirements in ``setup_requires`` when ``setup.py`` is invoked from the ``setuptools.build_meta`` build backend.
+* #1664: Added the path to the ``PKG-INFO`` or ``METADATA`` file in the exception
+  text when the ``Version:`` header can't be found.
+* #1705: Removed some placeholder documentation sections referring to deprecated features.
+
+
 v40.8.0
 -------
 
@@ -1480,8 +1525,8 @@ v20.6.0
 19.7
 ----
 
-* `Off-project PR <https://github.com/jaraco/setuptools/pull/32>`_:
-  For FreeBSD, also honor root certificates from ca_root_nss.
+* Off-project PR: `0dcee79 <https://github.com/pypa/setuptools/commit/0dcee791dfdcfacddaaec79b29f30a347a147413>`_ and `f9bd9b9 <https://github.com/pypa/setuptools/commit/f9bd9b9f5df54ef5a0bf8d16c3a889ab8c640580>`_
+  For FreeBSD, also `honor root certificates from ca_root_nss <https://github.com/pypa/setuptools/commit/3ae46c30225eb46e1f5aada1a19e88b79f04dc72>`_.
 
 19.6.2
 ------
@@ -1645,9 +1690,9 @@ v20.6.0
   now logged when pkg_resources is imported on Python 3.2 or earlier
   Python 3 versions.
 * `Add support for python_platform_implementation environment marker
-  <https://github.com/jaraco/setuptools/pull/28>`_.
+  <https://github.com/pypa/setuptools/commit/94416707fd59a65f4a8f7f70541d6b3fc018b626>`_.
 * `Fix dictionary mutation during iteration
-  <https://github.com/jaraco/setuptools/pull/29>`_.
+  <https://github.com/pypa/setuptools/commit/57ebfa41e0f96b97e599ecd931b7ae8a143e096e>`_.
 
 18.4
 ----
@@ -2007,7 +2052,7 @@ process to fail and PyPI uploads no longer accept files for 13.0.
 ---
 
 * Prefer vendored packaging library `as recommended
-  <https://github.com/jaraco/setuptools/commit/170657b68f4b92e7e1bf82f5e19a831f5744af67#commitcomment-9109448>`_.
+  <https://github.com/pypa/setuptools/commit/170657b68f4b92e7e1bf82f5e19a831f5744af67>`_.
 
 9.0.1
 -----

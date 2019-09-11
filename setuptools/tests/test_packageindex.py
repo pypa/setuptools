@@ -249,7 +249,7 @@ class TestPackageIndex:
         first_call_args = os_system_mock.call_args_list[0][0]
         assert first_call_args == (expected,)
 
-        tmpl = '(cd {expected_dir} && git checkout --quiet master)'
+        tmpl = 'git -C {expected_dir} checkout --quiet master'
         expected = tmpl.format(**locals())
         assert os_system_mock.call_args_list[1][0] == (expected,)
         assert result == expected_dir

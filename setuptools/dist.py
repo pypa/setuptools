@@ -11,7 +11,6 @@ import distutils.log
 import distutils.core
 import distutils.cmd
 import distutils.dist
-from distutils.errors import DistutilsOptionError
 from distutils.util import strtobool
 from distutils.debug import DEBUG
 from distutils.fancy_getopt import translate_longopt
@@ -37,7 +36,6 @@ from setuptools.depends import Require
 from setuptools import windows_support
 from setuptools.monkey import get_unpatched
 from setuptools.config import parse_configuration
-from .unicode_utils import detect_encoding
 import pkg_resources
 
 __import__('setuptools.extern.packaging.specifiers')
@@ -57,7 +55,8 @@ def get_metadata_version(self):
             mv = StrictVersion('2.1')
         elif (self.maintainer is not None or
               self.maintainer_email is not None or
-              getattr(self, 'python_requires', None) is not None):
+              getattr(self, 'python_requires', None) is not None or
+              self.project_urls):
             mv = StrictVersion('1.2')
         elif (self.provides or self.requires or self.obsoletes or
                 self.classifiers or self.download_url):
@@ -135,7 +134,6 @@ def write_pkg_file(self, file):
     else:
         def write_field(key, value):
             file.write("%s: %s\n" % (key, value))
-
 
     write_field('Metadata-Version', str(version))
     write_field('Name', self.get_name())
@@ -216,8 +214,12 @@ def check_importable(dist, attr, value):
 
 
 def assert_string_list(dist, attr, value):
-    """Verify that value is a string list or None"""
+    """Verify that value is a string list"""
     try:
+        # verify that value is a list or tuple to exclude unordered
+        # or single-use iterables
+        assert isinstance(value, (list, tuple))
+        # verify that elements of value are strings
         assert ''.join(value) != value
     except (TypeError, ValueError, AttributeError, AssertionError):
         raise DistutilsSetupError(
@@ -310,20 +312,17 @@ def check_test_suite(dist, attr, value):
 
 def check_package_data(dist, attr, value):
     """Verify that value is a dictionary of package names to glob lists"""
-    if isinstance(value, dict):
-        for k, v in value.items():
-            if not isinstance(k, str):
-                break
-            try:
-                iter(v)
-            except TypeError:
-                break
-        else:
-            return
-    raise DistutilsSetupError(
-        attr + " must be a dictionary mapping package names to lists of "
-        "wildcard patterns"
-    )
+    if not isinstance(value, dict):
+        raise DistutilsSetupError(
+            "{!r} must be a dictionary mapping package names to lists of "
+            "string wildcard patterns".format(attr))
+    for k, v in value.items():
+        if not isinstance(k, six.string_types):
+            raise DistutilsSetupError(
+                "keys of {!r} dict must be strings (got {!r})"
+                .format(attr, k)
+            )
+        assert_string_list(dist, 'values of {!r} dict'.format(attr), v)
 
 
 def check_packages(dist, attr, value):
@@ -590,13 +589,9 @@ class Distribution(_Distribution):
 
         parser = ConfigParser()
         for filename in filenames:
-            with io.open(filename, 'rb') as fp:
-                encoding = detect_encoding(fp)
+            with io.open(filename, encoding='utf-8') as reader:
                 if DEBUG:
-                    self.announce("  reading %s [%s]" % (
-                        filename, encoding or 'locale')
-                    )
-                reader = io.TextIOWrapper(fp, encoding=encoding)
+                    self.announce("  reading {filename}".format(**locals()))
                 (parser.read_file if six.PY3 else parser.readfp)(reader)
             for section in parser.sections():
                 options = parser.options(section)
@@ -886,7 +881,7 @@ class Distribution(_Distribution):
     def include(self, **attrs):
         """Add items to distribution that are named in keyword arguments
 
-        For example, 'dist.exclude(py_modules=["x"])' would add 'x' to
+        For example, 'dist.include(py_modules=["x"])' would add 'x' to
         the distribution's 'py_modules' attribute, if it was not already
         there.
 
@@ -1104,7 +1099,6 @@ class Distribution(_Distribution):
             return _Distribution.handle_display_options(self, option_order)
 
         # Stdout may be StringIO (e.g. in tests)
-        import io
         if not isinstance(sys.stdout, io.TextIOWrapper):
             return _Distribution.handle_display_options(self, option_order)
 
@@ -1283,4 +1277,5 @@ class Feature:
 
 
 class DistDeprecationWarning(SetuptoolsDeprecationWarning):
-    """Class for warning about deprecations in dist in setuptools. Not ignored by default, unlike DeprecationWarning."""
+    """Class for warning about deprecations in dist in
+    setuptools. Not ignored by default, unlike DeprecationWarning."""

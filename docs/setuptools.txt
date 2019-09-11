@@ -136,16 +136,18 @@ dependencies, and perhaps some data files and scripts::
         author="Me",
         author_email="me@example.com",
         description="This is an Example Package",
-        license="PSF",
         keywords="hello world example examples",
         url="http://example.com/HelloWorld/",   # project home page, if any
         project_urls={
             "Bug Tracker": "https://bugs.example.com/HelloWorld/",
             "Documentation": "https://docs.example.com/HelloWorld/",
             "Source Code": "https://code.example.com/HelloWorld/",
-        }
+        },
+        classifiers=[
+            'License :: OSI Approved :: Python Software Foundation License'
+        ]
 
-        # could also include long_description, download_url, classifiers, etc.
+        # could also include long_description, download_url, etc.
     )
 
 In the sections that follow, we'll explain what most of these ``setup()``
@@ -2234,6 +2236,7 @@ boilerplate code in some cases.
     license = BSD 3-Clause License
     classifiers =
         Framework :: Django
+        License :: OSI Approved :: BSD License
         Programming Language :: Python :: 3
         Programming Language :: Python :: 3.5
 
@@ -2677,42 +2680,6 @@ A few important points for writing revision control file finders:
   with the absence of needed programs (i.e., ones belonging to the revision
   control system itself.  It *may*, however, use ``distutils.log.warn()`` to
   inform the user of the missing program(s).
-
-
-Subclassing ``Command``
------------------------
-
-Sorry, this section isn't written yet, and neither is a lot of what's below
-this point.
-
-XXX
-
-
-Reusing ``setuptools`` Code
-===========================
-
-``ez_setup``
-------------
-
-XXX
-
-
-``setuptools.archive_util``
----------------------------
-
-XXX
-
-
-``setuptools.sandbox``
-----------------------
-
-XXX
-
-
-``setuptools.package_index``
-----------------------------
-
-XXX
 
 
 Mailing List and Bug Tracker

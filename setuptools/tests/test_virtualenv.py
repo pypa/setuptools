@@ -8,6 +8,8 @@ from pytest_fixture_config import yield_requires_config
 
 import pytest_virtualenv
 
+from setuptools.extern import six
+
 from .textwrap import DALS
 from .test_easy_install import make_nspkg_sdist
 
@@ -52,10 +54,58 @@ def test_clean_env_install(bare_virtualenv):
     )).format(source=SOURCE_DIR))
 
 
-def test_pip_upgrade_from_source(virtualenv):
+def _get_pip_versions():
+    # This fixture will attempt to detect if tests are being run without
+    # network connectivity and if so skip some tests
+
+    network = True
+    if not os.environ.get('NETWORK_REQUIRED', False):  # pragma: nocover
+        try:
+            from urllib.request import urlopen
+            from urllib.error import URLError
+        except ImportError:
+            from urllib2 import urlopen, URLError # Python 2.7 compat
+
+        try:
+            urlopen('https://pypi.org', timeout=1)
+        except URLError:
+            # No network, disable most of these tests
+            network = False
+
+    network_versions = [
+        'pip==9.0.3',
+        'pip==10.0.1',
+        'pip==18.1',
+        'pip==19.0.1',
+    ]
+
+    # Pip's master dropped support for 3.4.
+    if not six.PY34:
+        network_versions.append('https://github.com/pypa/pip/archive/master.zip')
+
+    versions = [None] + [
+        pytest.param(v, **({} if network else {'marks': pytest.mark.skip}))
+        for v in network_versions
+    ]
+
+    return versions
+
+
+@pytest.mark.parametrize('pip_version', _get_pip_versions())
+def test_pip_upgrade_from_source(pip_version, virtualenv):
     """
     Check pip can upgrade setuptools from source.
     """
+    # Install pip/wheel, and remove setuptools (as it
+    # should not be needed for bootstraping from source)
+    if pip_version is None:
+        upgrade_pip = ()
+    else:
+        upgrade_pip = ('python -m pip install -U {pip_version} --retries=1',)
+    virtualenv.run(' && '.join((
+        'pip uninstall -y setuptools',
+        'pip install -U wheel',
+    ) + upgrade_pip).format(pip_version=pip_version))
     dist_dir = virtualenv.workspace
     # Generate source distribution / wheel.
     virtualenv.run(' && '.join((

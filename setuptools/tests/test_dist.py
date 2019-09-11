@@ -4,8 +4,13 @@ from __future__ import unicode_literals
 
 import io
 import collections
-
-from setuptools.dist import DistDeprecationWarning, _get_unpatched
+import re
+from distutils.errors import DistutilsSetupError
+from setuptools.dist import (
+    _get_unpatched,
+    check_package_data,
+    DistDeprecationWarning,
+)
 from setuptools import Distribution
 from setuptools.extern.six.moves.urllib.request import pathname2url
 from setuptools.extern.six.moves.urllib_parse import urljoin
@@ -278,3 +283,48 @@ def test_provides_extras_deterministic_order():
         reversed(list(attrs['extras_require'].items())))
     dist = Distribution(attrs)
     assert dist.metadata.provides_extras == ['b', 'a']
+
+   
+CHECK_PACKAGE_DATA_TESTS = (
+    # Valid.
+    ({
+        '': ['*.txt', '*.rst'],
+        'hello': ['*.msg'],
+    }, None),
+    # Not a dictionary.
+    ((
+        ('', ['*.txt', '*.rst']),
+        ('hello', ['*.msg']),
+    ), (
+        "'package_data' must be a dictionary mapping package"
+        " names to lists of string wildcard patterns"
+    )),
+    # Invalid key type.
+    ({
+        400: ['*.txt', '*.rst'],
+    }, (
+        "keys of 'package_data' dict must be strings (got 400)"
+    )),
+    # Invalid value type.
+    ({
+        'hello': str('*.msg'),
+    }, (
+        "\"values of 'package_data' dict\" must be a list of strings (got '*.msg')"
+    )),
+    # Invalid value type (generators are single use)
+    ({
+        'hello': (x for x in "generator"),
+    }, (
+        "\"values of 'package_data' dict\" must be a list of strings "
+        "(got <generator object"
+    )),
+)
+
+
+@pytest.mark.parametrize('package_data, expected_message', CHECK_PACKAGE_DATA_TESTS)
+def test_check_package_data(package_data, expected_message):
+    if expected_message is None:
+        assert check_package_data(None, 'package_data', package_data) is None
+    else:
+        with pytest.raises(DistutilsSetupError, match=re.escape(expected_message)):
+            check_package_data(None, str('package_data'), package_data)

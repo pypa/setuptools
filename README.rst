@@ -29,6 +29,10 @@ Bug reports and especially tested patches may be
 submitted directly to the `bug tracker
 <https://github.com/pypa/setuptools/issues>`_.
 
+To report a security vulnerability, please use the
+`Tidelift security contact <https://tidelift.com/security>`_.
+Tidelift will coordinate the fix and disclosure.
+
 
 Code of Conduct
 ---------------
