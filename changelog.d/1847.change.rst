@@ -1,0 +1,1 @@
+Now traps errors when invalid ``python_requires`` values are supplied.
