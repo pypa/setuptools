@@ -819,6 +819,18 @@ class TestOptions:
             ]
             assert sorted(dist.data_files) == sorted(expected)
 
+    def test_python_requires_invalid(self, tmpdir):
+        fake_env(
+            tmpdir,
+            DALS("""
+            [options]
+            python_requires=invalid
+            """),
+        )
+        with pytest.raises(DistutilsOptionError):
+            with get_dist(tmpdir) as dist:
+                dist.parse_config_files()
+
 
 saved_dist_init = _Distribution.__init__
 
