@@ -633,6 +633,7 @@ class TestParsing:
         assert safe_name("WSGI  Utils") == "WSGI-Utils"
         assert safe_name("Money$$$Maker") == "Money-Maker"
         assert safe_name("peak.web") != "peak-web"
+        assert safe_name("నమస్తే") == "నమస్తే"
 
     def testSafeVersion(self):
         assert safe_version("1.2-1") == "1.2.post1"
