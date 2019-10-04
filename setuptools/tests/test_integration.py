@@ -143,6 +143,7 @@ def test_build_deps_on_distutils(request, tmpdir_factory, build_dep):
             'tests_require',
             'python_requires',
             'install_requires',
+            'long_description_content_type',
         ]
         assert not match or match.group(1).strip('"\'') in allowed_unknowns
 

@@ -1,10 +1,22 @@
 import sys
-import imp
 import marshal
 from distutils.version import StrictVersion
-from imp import PKG_DIRECTORY, PY_COMPILED, PY_SOURCE, PY_FROZEN
+from setuptools.extern import six
 
 from .py33compat import Bytecode
+
+if six.PY2:
+    import imp
+    from imp import PKG_DIRECTORY, PY_COMPILED, PY_SOURCE, PY_FROZEN
+else:
+    import os.path
+    from importlib.util import find_spec, spec_from_loader
+    from importlib.machinery import SOURCE_SUFFIXES, BYTECODE_SUFFIXES, EXTENSION_SUFFIXES, BuiltinImporter, FrozenImporter
+    PY_SOURCE = 1
+    PY_COMPILED = 2
+    C_EXTENSION = 3
+    C_BUILTIN = 6
+    PY_FROZEN = 7
 
 
 __all__ = [
@@ -81,21 +93,59 @@ class Require:
 
 def find_module(module, paths=None):
     """Just like 'imp.find_module()', but with package support"""
+    if six.PY3:
+        spec = find_spec(module, paths)
+        if spec is None:
+            raise ImportError("Can't find %s" % module)
+        if not spec.has_location and hasattr(spec, 'submodule_search_locations'):
+            spec = spec_from_loader('__init__.py', spec.loader)
 
-    parts = module.split('.')
+        kind = -1
+        file = None
+        static = isinstance(spec.loader, type)
+        if spec.origin == 'frozen' or static and issubclass(spec.loader, FrozenImporter):
+            kind = PY_FROZEN
+            path = None # imp compabilty
+            suffix = mode = '' # imp compability
+        elif spec.origin == 'built-in' or static and issubclass(spec.loader, BuiltinImporter):
+            kind = C_BUILTIN
+            path = None # imp compabilty
+            suffix = mode = '' # imp compability
+        elif spec.has_location:
+            frozen = False
+            path = spec.origin
+            suffix = os.path.splitext(path)[1]
+            mode = 'r' if suffix in SOURCE_SUFFIXES else 'rb'
 
-    while parts:
-        part = parts.pop(0)
-        f, path, (suffix, mode, kind) = info = imp.find_module(part, paths)
+            if suffix in SOURCE_SUFFIXES:
+                kind = PY_SOURCE
+            elif suffix in BYTECODE_SUFFIXES:
+                kind = PY_COMPILED
+            elif suffix in EXTENSION_SUFFIXES:
+                kind = C_EXTENSION
 
-        if kind == PKG_DIRECTORY:
-            parts = parts or ['__init__']
-            paths = [path]
+            if kind in {PY_SOURCE, PY_COMPILED}:
+                file = open(path, mode)
+        else:
+            path = None
+            suffix = mode= ''
 
-        elif parts:
-            raise ImportError("Can't find %r in %s" % (parts, module))
+        return file, path, (suffix, mode, kind)
 
-    return info
+    else:
+        parts = module.split('.')
+        while parts:
+            part = parts.pop(0)
+            f, path, (suffix, mode, kind) = info = imp.find_module(part, paths)
+
+            if kind == PKG_DIRECTORY:
+                parts = parts or ['__init__']
+                paths = [path]
+
+            elif parts:
+                raise ImportError("Can't find %r in %s" % (parts, module))
+
+        return info
 
 
 def get_module_constant(module, symbol, default=-1, paths=None):
@@ -111,18 +161,29 @@ def get_module_constant(module, symbol, default=-1, paths=None):
         # Module doesn't exist
         return None
 
+    if six.PY3:
+        spec = find_spec(module, paths)
+        if hasattr(spec, 'submodule_search_locations'):
+            spec = spec_from_loader('__init__.py', spec.loader)
+
     try:
         if kind == PY_COMPILED:
             f.read(8)  # skip magic & date
             code = marshal.load(f)
         elif kind == PY_FROZEN:
-            code = imp.get_frozen_object(module)
+            if six.PY2:
+                code = imp.get_frozen_object(module)
+            else:
+                code = spec.loader.get_code(module)
         elif kind == PY_SOURCE:
             code = compile(f.read(), path, 'exec')
         else:
             # Not something we can parse; we'll have to import it.  :(
             if module not in sys.modules:
-                imp.load_module(module, f, path, (suffix, mode, kind))
+                if six.PY2:
+                    imp.load_module(module, f, path, (suffix, mode, kind))
+                else:
+                    sys.modules[module] = module_from_spec(spec)
             return getattr(sys.modules[module], symbol, None)
 
     finally:
