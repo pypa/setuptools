@@ -1,3 +1,9 @@
+v41.4.0
+-------
+
+* #1847: In declarative config, now traps errors when invalid ``python_requires`` values are supplied.
+
+
 v41.3.0
 -------
 
