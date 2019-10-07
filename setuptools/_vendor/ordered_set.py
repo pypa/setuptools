@@ -87,14 +87,14 @@ class OrderedSet(MutableSet, Sequence):
         """
         if isinstance(index, slice) and index == SLICE_ALL:
             return self.copy()
+        elif is_iterable(index):
+            return [self.items[i] for i in index]
         elif hasattr(index, "__index__") or isinstance(index, slice):
             result = self.items[index]
             if isinstance(result, list):
                 return self.__class__(result)
             else:
                 return result
-        elif is_iterable(index):
-            return [self.items[i] for i in index]
         else:
             raise TypeError("Don't know how to index an OrderedSet by %r" % index)
 
