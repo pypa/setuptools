@@ -1,0 +1,1 @@
+When storing extras, rely on OrderedSet to retain order of extras as indicated by the packager, which will also be deterministic on Python 2.7 (with PYTHONHASHSEED unset) and Python 3.6+.

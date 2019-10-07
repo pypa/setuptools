@@ -3,6 +3,7 @@
 from __future__ import unicode_literals
 
 import io
+import collections
 import re
 from distutils.errors import DistutilsSetupError
 from setuptools.dist import (
@@ -271,6 +272,19 @@ def test_maintainer_author(name, attrs, tmpdir):
             assert line in pkg_lines_set
 
 
+def test_provides_extras_deterministic_order():
+    extras = collections.OrderedDict()
+    extras['a'] = ['foo']
+    extras['b'] = ['bar']
+    attrs = dict(extras_require=extras)
+    dist = Distribution(attrs)
+    assert dist.metadata.provides_extras == ['a', 'b']
+    attrs['extras_require'] = collections.OrderedDict(
+        reversed(list(attrs['extras_require'].items())))
+    dist = Distribution(attrs)
+    assert dist.metadata.provides_extras == ['b', 'a']
+
+   
 CHECK_PACKAGE_DATA_TESTS = (
     # Valid.
     ({

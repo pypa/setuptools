@@ -27,6 +27,7 @@ from distutils.version import StrictVersion
 
 from setuptools.extern import six
 from setuptools.extern import packaging
+from setuptools.extern import ordered_set
 from setuptools.extern.six.moves import map, filter, filterfalse
 
 from . import SetuptoolsDeprecationWarning
@@ -407,7 +408,7 @@ class Distribution(_Distribution):
     _DISTUTILS_UNSUPPORTED_METADATA = {
         'long_description_content_type': None,
         'project_urls': dict,
-        'provides_extras': set,
+        'provides_extras': ordered_set.OrderedSet,
     }
 
     _patched_dist = None
