@@ -1,1 +1,0 @@
-Fixed failing integration test triggered by 'long_description_content_type' in packaging.

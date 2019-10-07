@@ -1,3 +1,10 @@
+v41.3.0
+-------
+
+* #1690: When storing extras, rely on OrderedSet to retain order of extras as indicated by the packager, which will also be deterministic on Python 2.7 (with PYTHONHASHSEED unset) and Python 3.6+.
+* #1858: Fixed failing integration test triggered by 'long_description_content_type' in packaging.
+
+
 v41.2.0
 -------
 
