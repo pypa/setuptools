@@ -17,30 +17,31 @@ method.
 
 from __future__ import absolute_import
 
-import sys
-import os
-import io
-import time
-import re
-import types
-import zipfile
-import zipimport
-import warnings
-import stat
-import functools
-import pkgutil
-import operator
-import platform
 import collections
-import plistlib
 import email.parser
 import errno
+import functools
+import inspect
+import io
+import itertools
+import ntpath
+import operator
+import os
+import pkgutil
+import platform
+import plistlib
+import posixpath
+import re
+import stat
+import sys
 import tempfile
 import textwrap
-import itertools
-import inspect
-import ntpath
-import posixpath
+import time
+import types
+import unicodedata
+import warnings
+import zipfile
+import zipimport
 from pkgutil import get_importer
 
 try:
@@ -59,8 +60,10 @@ from pkg_resources.extern.six.moves import urllib, map, filter
 
 # capture these to bypass sandboxing
 from os import utime
+
 try:
     from os import mkdir, rename, unlink
+
     WRITE_SUPPORT = True
 except ImportError:
     # no write support, probably under GAE
@@ -71,6 +74,7 @@ from os.path import isdir, split
 
 try:
     import importlib.machinery as importlib_machinery
+
     # access attribute to force import under delayed import mechanisms.
     importlib_machinery.__name__
 except ImportError:
@@ -79,14 +83,13 @@ except ImportError:
 from . import py31compat
 from pkg_resources.extern import appdirs
 from pkg_resources.extern import packaging
+
 __import__('pkg_resources.extern.packaging.version')
 __import__('pkg_resources.extern.packaging.specifiers')
 __import__('pkg_resources.extern.packaging.requirements')
 __import__('pkg_resources.extern.packaging.markers')
 
-
 __metaclass__ = type
-
 
 if (3, 0) < sys.version_info < (3, 4):
     raise RuntimeError("Python 3.4 or later is required")
@@ -991,9 +994,9 @@ class Environment:
         is returned.
         """
         py_compat = (
-            self.python is None
-            or dist.py_version is None
-            or dist.py_version == self.python
+                self.python is None
+                or dist.py_version is None
+                or dist.py_version == self.python
         )
         return py_compat and compatible_platforms(dist.platform, self.platform)
 
@@ -1234,11 +1237,11 @@ class ResourceManager:
         mode = os.stat(path).st_mode
         if mode & stat.S_IWOTH or mode & stat.S_IWGRP:
             msg = (
-                "%s is writable by group/others and vulnerable to attack "
-                "when "
-                "used with get_resource_filename. Consider a more secure "
-                "location (set with .set_extraction_path or the "
-                "PYTHON_EGG_CACHE environment variable)." % path
+                    "%s is writable by group/others and vulnerable to attack "
+                    "when "
+                    "used with get_resource_filename. Consider a more secure "
+                    "location (set with .set_extraction_path or the "
+                    "PYTHON_EGG_CACHE environment variable)." % path
             )
             warnings.warn(msg, UserWarning)
 
@@ -1309,11 +1312,25 @@ def get_default_cache():
     named "Python-Eggs".
     """
     return (
-        os.environ.get('PYTHON_EGG_CACHE')
-        or appdirs.user_cache_dir(appname='Python-Eggs')
+            os.environ.get('PYTHON_EGG_CACHE')
+            or appdirs.user_cache_dir(appname='Python-Eggs')
     )
 
-unicode_marks = "\u0300-\u0370\u0483-\u048a\u0591-\u05be\u05bf-\u05c0\u05c1-\u05c3\u05c4-\u05c6\u05c7-\u05c8\u0610-\u061b\u064b-\u0660\u0670-\u0671\u06d6-\u06dd\u06df-\u06e5\u06e7-\u06e9\u06ea-\u06ee\u0711-\u0712\u0730-\u074b\u07a6-\u07b1\u07eb-\u07f4\u07fd-\u07fe\u0816-\u081a\u081b-\u0824\u0825-\u0828\u0829-\u082e\u0859-\u085c\u08d3-\u08e2\u08e3-\u0904\u093a-\u093d\u093e-\u0950\u0951-\u0958\u0962-\u0964\u0981-\u0984\u09bc-\u09bd\u09be-\u09c5\u09c7-\u09c9\u09cb-\u09ce\u09d7-\u09d8\u09e2-\u09e4\u09fe-\u09ff\u0a01-\u0a04\u0a3c-\u0a3d\u0a3e-\u0a43\u0a47-\u0a49\u0a4b-\u0a4e\u0a51-\u0a52\u0a70-\u0a72\u0a75-\u0a76\u0a81-\u0a84\u0abc-\u0abd\u0abe-\u0ac6\u0ac7-\u0aca\u0acb-\u0ace\u0ae2-\u0ae4\u0afa-\u0b00\u0b01-\u0b04\u0b3c-\u0b3d\u0b3e-\u0b45\u0b47-\u0b49\u0b4b-\u0b4e\u0b56-\u0b58\u0b62-\u0b64\u0b82-\u0b83\u0bbe-\u0bc3\u0bc6-\u0bc9\u0bca-\u0bce\u0bd7-\u0bd8\u0c00-\u0c05\u0c3e-\u0c45\u0c46-\u0c49\u0c4a-\u0c4e\u0c55-\u0c57\u0c62-\u0c64\u0c81-\u0c84\u0cbc-\u0cbd\u0cbe-\u0cc5\u0cc6-\u0cc9\u0cca-\u0cce\u0cd5-\u0cd7\u0ce2-\u0ce4\u0d00-\u0d04\u0d3b-\u0d3d\u0d3e-\u0d45\u0d46-\u0d49\u0d4a-\u0d4e\u0d57-\u0d58\u0d62-\u0d64\u0d82-\u0d84\u0dca-\u0dcb\u0dcf-\u0dd5\u0dd6-\u0dd7\u0dd8-\u0de0\u0df2-\u0df4\u0e31-\u0e32\u0e34-\u0e3b\u0e47-\u0e4f\u0eb1-\u0eb2\u0eb4-\u0eba\u0ebb-\u0ebd\u0ec8-\u0ece\u0f18-\u0f1a\u0f35-\u0f36\u0f37-\u0f38\u0f39-\u0f3a\u0f3e-\u0f40\u0f71-\u0f85\u0f86-\u0f88\u0f8d-\u0f98\u0f99-\u0fbd\u0fc6-\u0fc7\u102b-\u103f\u1056-\u105a\u105e-\u1061\u1062-\u1065\u1067-\u106e\u1071-\u1075\u1082-\u108e\u108f-\u1090\u109a-\u109e\u135d-\u1360\u1712-\u1715\u1732-\u1735\u1752-\u1754\u1772-\u1774\u17b4-\u17d4\u17dd-\u17de\u180b-\u180e\u1885-\u1887\u18a9-\u18aa\u1920-\u192c\u1930-\u193c\u1a17-\u1a1c\u1a55-\u1a5f\u1a60-\u1a7d\u1a7f-\u1a80\u1ab0-\u1abf\u1b00-\u1b05\u1b34-\u1b45\u1b6b-\u1b74\u1b80-\u1b83\u1ba1-\u1bae\u1be6-\u1bf4\u1c24-\u1c38\u1cd0-\u1cd3\u1cd4-\u1ce9\u1ced-\u1cee\u1cf2-\u1cf5\u1cf7-\u1cfa\u1dc0-\u1dfa\u1dfb-\u1e00\u20d0-\u20f1\u2cef-\u2cf2\u2d7f-\u2d80\u2de0-\u2e00\u302a-\u3030\u3099-\u309b\ua66f-\ua673\ua674-\ua67e\ua69e-\ua6a0\ua6f0-\ua6f2\ua802-\ua803\ua806-\ua807\ua80b-\ua80c\ua823-\ua828\ua880-\ua882\ua8b4-\ua8c6\ua8e0-\ua8f2\ua8ff-\ua900\ua926-\ua92e\ua947-\ua954\ua980-\ua984\ua9b3-\ua9c1\ua9e5-\ua9e6\uaa29-\uaa37\uaa43-\uaa44\uaa4c-\uaa4e\uaa7b-\uaa7e\uaab0-\uaab1\uaab2-\uaab5\uaab7-\uaab9\uaabe-\uaac0\uaac1-\uaac2\uaaeb-\uaaf0\uaaf5-\uaaf7\uabe3-\uabeb\uabec-\uabee\ufb1e-\ufb1f\ufe00-\ufe10\ufe20-\ufe30\u101fd-\u101fe\u102e0-\u102e1\u10376-\u1037b\u10a01-\u10a04\u10a05-\u10a07\u10a0c-\u10a10\u10a38-\u10a3b\u10a3f-\u10a40\u10ae5-\u10ae7\u10d24-\u10d28\u10f46-\u10f51\u11000-\u11003\u11038-\u11047\u1107f-\u11083\u110b0-\u110bb\u11100-\u11103\u11127-\u11135\u11145-\u11147\u11173-\u11174\u11180-\u11183\u111b3-\u111c1\u111c9-\u111cd\u1122c-\u11238\u1123e-\u1123f\u112df-\u112eb\u11300-\u11304\u1133b-\u1133d\u1133e-\u11345\u11347-\u11349\u1134b-\u1134e\u11357-\u11358\u11362-\u11364\u11366-\u1136d\u11370-\u11375\u11435-\u11447\u1145e-\u1145f\u114b0-\u114c4\u115af-\u115b6\u115b8-\u115c1\u115dc-\u115de\u11630-\u11641\u116ab-\u116b8\u1171d-\u1172c\u1182c-\u1183b\u11a01-\u11a0b\u11a33-\u11a3a\u11a3b-\u11a3f\u11a47-\u11a48\u11a51-\u11a5c\u11a8a-\u11a9a\u11c2f-\u11c37\u11c38-\u11c40\u11c92-\u11ca8\u11ca9-\u11cb7\u11d31-\u11d37\u11d3a-\u11d3b\u11d3c-\u11d3e\u11d3f-\u11d46\u11d47-\u11d48\u11d8a-\u11d8f\u11d90-\u11d92\u11d93-\u11d98\u11ef3-\u11ef7\u16af0-\u16af5\u16b30-\u16b37\u16f51-\u16f7f\u16f8f-\u16f93\u1bc9d-\u1bc9f\u1d165-\u1d16a\u1d16d-\u1d173\u1d17b-\u1d183\u1d185-\u1d18c\u1d1aa-\u1d1ae\u1d242-\u1d245\u1da00-\u1da37\u1da3b-\u1da6d\u1da75-\u1da76\u1da84-\u1da85\u1da9b-\u1daa0\u1daa1-\u1dab0\u1e000-\u1e007\u1e008-\u1e019\u1e01b-\u1e022\u1e023-\u1e025\u1e026-\u1e02b\u1e8d0-\u1e8d7\u1e944-\u1e94b\ue0100-\ue01f0"
+
+def fc(x, replace_with='-', also_accept=None):
+    also_accept = also_accept or []
+    # From PEP 3131
+    allowed_start_categories = {"Lt", "Lm", "Lu", "Ll", "Lt", "Lm", "Lo", "Nl"}
+    allowed_continue_categories = {"Mn", "Mc", "Nd", "Pc"}.union(allowed_start_categories)
+    out = x[0] if (unicodedata.category(x[0]) in allowed_start_categories or x[0] in also_accept) else ""
+    for c in x[1:]:
+        if unicodedata.category(c) in allowed_continue_categories \
+                or c in also_accept \
+                or c.encode('unicode_escape') == b'\\xb7':  # Last is for Catalan (see PEP 3131)
+            out += c
+        else:
+            out += replace_with
+    return re.sub(r"{}+".format(replace_with), replace_with, out).strip(replace_with)
 
 
 def safe_name(name):
@@ -1321,7 +1338,7 @@ def safe_name(name):
 
     Any runs of non-alphanumeric/. characters are replaced with a single '-'.
     """
-    return re.sub(re.compile(r'[^{}.]+|_+'.format(unicode_marks), re.U), '-', name)
+    return fc(name, also_accept='.')
 
 
 def safe_version(version):
@@ -1342,7 +1359,7 @@ def safe_extra(extra):
     Any runs of non-alphanumeric characters are replaced with a single '_',
     and the result is always lowercased.
     """
-    return re.sub(re.compile(r'[^{}.]+|-+'.format(unicode_marks), re.U), '_', extra).lower()
+    return fc(extra, replace_with='_', also_accept=['.', '-']).lower()
 
 
 def to_filename(name):
@@ -1452,7 +1469,7 @@ class NullProvider:
         if not self.has_metadata(script):
             raise ResolutionError(
                 "Script {script!r} not found in metadata at {self.egg_info!r}"
-                .format(**locals()),
+                    .format(**locals()),
             )
         script_text = self.get_metadata(script).replace('\r\n', '\n')
         script_text = script_text.replace('\r', '\n')
@@ -1545,9 +1562,9 @@ is not allowed.
         AttributeError: ...
         """
         invalid = (
-            os.path.pardir in path.split(posixpath.sep) or
-            posixpath.isabs(path) or
-            ntpath.isabs(path)
+                os.path.pardir in path.split(posixpath.sep) or
+                posixpath.isabs(path) or
+                ntpath.isabs(path)
         )
         if not invalid:
             return
@@ -2025,6 +2042,7 @@ def _by_version_descending(names):
     >>> _by_version_descending(names)
     ['Setuptools-1.2.3.post1.egg', 'Setuptools-1.2.3b1.egg']
     """
+
     def _by_version(name):
         """
         Parse each component of the filename
@@ -2093,8 +2111,10 @@ class NoDists:
     >>> list(NoDists()('anything'))
     []
     """
+
     def __bool__(self):
         return False
+
     if six.PY2:
         __nonzero__ = __bool__
 
@@ -2114,9 +2134,9 @@ def safe_listdir(path):
         # Ignore the directory if does not exist, not a directory or
         # permission denied
         ignorable = (
-            e.errno in (errno.ENOTDIR, errno.EACCES, errno.ENOENT)
-            # Python 2 on Windows needs to be handled this way :(
-            or getattr(e, "winerror", None) == 267
+                e.errno in (errno.ENOTDIR, errno.EACCES, errno.ENOENT)
+                # Python 2 on Windows needs to be handled this way :(
+                or getattr(e, "winerror", None) == 267
         )
         if not ignorable:
             raise
@@ -2364,8 +2384,8 @@ def _is_unpacked_egg(path):
     Determine if given path appears to be an unpacked egg.
     """
     return (
-        _is_egg_path(path) and
-        os.path.isfile(os.path.join(path, 'EGG-INFO', 'PKG-INFO'))
+            _is_egg_path(path) and
+            os.path.isfile(os.path.join(path, 'EGG-INFO', 'PKG-INFO'))
     )
 
 
@@ -2552,8 +2572,10 @@ def _version_from_file(lines):
     Given an iterable of lines from a Metadata file, return
     the value of the Version field, if present, or None otherwise.
     """
+
     def is_version_line(line):
         return line.lower().startswith('version:')
+
     version_lines = filter(is_version_line, lines)
     line = next(iter(version_lines), '')
     _, _, value = line.partition(':')
@@ -2716,8 +2738,8 @@ class Distribution:
             reqs = dm.pop(extra)
             new_extra, _, marker = extra.partition(':')
             fails_marker = marker and (
-                invalid_marker(marker)
-                or not evaluate_marker(marker)
+                    invalid_marker(marker)
+                    or not evaluate_marker(marker)
             )
             if fails_marker:
                 reqs = []
@@ -3119,8 +3141,8 @@ class Requirement(packaging.requirements.Requirement):
 
     def __eq__(self, other):
         return (
-            isinstance(other, Requirement) and
-            self.hashCmp == other.hashCmp
+                isinstance(other, Requirement) and
+                self.hashCmp == other.hashCmp
         )
 
     def __ne__(self, other):
@@ -3287,6 +3309,7 @@ def _initialize_master_working_set():
     # match order
     list(map(working_set.add_entry, sys.path))
     globals().update(locals())
+
 
 class PkgResourcesDeprecationWarning(Warning):
     """
