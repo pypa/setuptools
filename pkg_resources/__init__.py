@@ -1323,6 +1323,9 @@ def fc(x, replace_with='-', also_accept=None, also_refuse=None):
     also_accept = also_accept or ''
     also_refuse = also_refuse or ''
 
+    if not x:
+        return x  # For empty strings
+
     # From PEP 3131
     allowed_start_categories = {"Lt", "Lm", "Lu", "Ll", "Lt", "Lm", "Lo", "Nl"}
     allowed_continue_categories = {"Mn", "Mc", "Nd", "Pc"}.union(allowed_start_categories)
