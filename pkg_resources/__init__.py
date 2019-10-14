@@ -98,6 +98,8 @@ if six.PY2:
     # Those builtin exceptions are only defined in Python 3
     PermissionError = None
     NotADirectoryError = None
+else:
+    unicode = str  # Need for compatibility between Python 2/3
 
 # declare some globals that will be defined later to
 # satisfy the linters.
@@ -1322,9 +1324,9 @@ def fc(x, replace_with='-', also_accept=None):
     # From PEP 3131
     allowed_start_categories = {"Lt", "Lm", "Lu", "Ll", "Lt", "Lm", "Lo", "Nl"}
     allowed_continue_categories = {"Mn", "Mc", "Nd", "Pc"}.union(allowed_start_categories)
-    out = x[0] if (unicodedata.category(x[0]) in allowed_start_categories or x[0] in also_accept) else ""
+    out = x[0] if (unicodedata.category(unicode(x[0])) in allowed_start_categories or x[0] in also_accept) else ""
     for c in x[1:]:
-        if unicodedata.category(c) in allowed_continue_categories \
+        if unicodedata.category(unicode(c)) in allowed_continue_categories \
                 or c in also_accept \
                 or c.encode('unicode_escape') == b'\\xb7':  # Last is for Catalan (see PEP 3131)
             out += c
