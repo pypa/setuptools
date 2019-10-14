@@ -1319,16 +1319,20 @@ def get_default_cache():
     )
 
 
-def fc(x, replace_with='-', also_accept=None):
-    also_accept = also_accept or []
+def fc(x, replace_with='-', also_accept=None, also_refuse=None):
+    also_accept = also_accept or ''
+    also_refuse = also_refuse or ''
+
     # From PEP 3131
     allowed_start_categories = {"Lt", "Lm", "Lu", "Ll", "Lt", "Lm", "Lo", "Nl"}
     allowed_continue_categories = {"Mn", "Mc", "Nd", "Pc"}.union(allowed_start_categories)
     out = x[0] if (unicodedata.category(unicode(x[0])) in allowed_start_categories or x[0] in also_accept) else ""
     for c in x[1:]:
-        if unicodedata.category(unicode(c)) in allowed_continue_categories \
-                or c in also_accept \
-                or c.encode('unicode_escape') == b'\\xb7':  # Last is for Catalan (see PEP 3131)
+        if (
+                unicodedata.category(unicode(c)) in allowed_continue_categories
+                or c in also_accept
+                or c.encode('unicode_escape') == b'\\xb7'  # Last is for Catalan (see PEP 3131)
+        ) and c not in also_refuse:
             out += c
         else:
             out += replace_with
@@ -1340,7 +1344,7 @@ def safe_name(name):
 
     Any runs of non-alphanumeric/. characters are replaced with a single '-'.
     """
-    return fc(name, also_accept='.')
+    return fc(name, also_accept='.', also_refuse='_')
 
 
 def safe_version(version):
@@ -1361,7 +1365,7 @@ def safe_extra(extra):
     Any runs of non-alphanumeric characters are replaced with a single '_',
     and the result is always lowercased.
     """
-    return fc(extra, replace_with='_', also_accept=['.', '-']).lower()
+    return fc(extra, replace_with='_', also_accept='.-').lower()
 
 
 def to_filename(name):
