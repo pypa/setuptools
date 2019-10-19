@@ -728,6 +728,10 @@ class Distribution(_Distribution):
         if self.features:
             self._set_global_opts_from_features()
 
+        hook_key = 'setuptools.finalize_distribution_options'
+        for ep in pkg_resources.iter_entry_points(hook_key):
+            ep.load()(self)
+
         for ep in pkg_resources.iter_entry_points('distutils.setup_keywords'):
             value = getattr(self, ep.name, None)
             if value is not None:
