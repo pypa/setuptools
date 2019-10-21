@@ -27,9 +27,19 @@ def test_dist_fetch_build_egg(tmpdir):
     Check multiple calls to `Distribution.fetch_build_egg` work as expected.
     """
     index = tmpdir.mkdir('index')
+    additional_index = tmpdir.mkdir('additional-index-1')
+    other_additional_index = tmpdir.mkdir('additional-index-2')
     index_url = urljoin('file://', pathname2url(str(index)))
+    additional_index_url = urljoin(
+        'file://',
+        pathname2url(str(additional_index))
+    )
+    other_additional_index_url = urljoin(
+        'file://',
+        pathname2url(str(other_additional_index))
+    )
 
-    def sdist_with_index(distname, version):
+    def sdist_with_index(index, distname, version):
         dist_dir = index.mkdir(distname)
         dist_sdist = '%s-%s.tar.gz' % (distname, version)
         make_nspkg_sdist(str(dist_dir.join(dist_sdist)), distname, version)
@@ -41,18 +51,33 @@ def test_dist_fetch_build_egg(tmpdir):
                 </body></html>
                 '''
             ).format(dist_sdist=dist_sdist))
-    sdist_with_index('barbazquux', '3.2.0')
-    sdist_with_index('barbazquux-runner', '2.11.1')
+
+    sdist_with_index(index, 'barbazquux', '3.2.0')
+    sdist_with_index(index, 'barbazquux-runner', '2.11.1')
+    sdist_with_index(additional_index, 'additional-barbazquux', '3.2.0')
+    sdist_with_index(
+        other_additional_index,
+        'additional-barbazquux-runner',
+        '2.11.1'
+    )
     with tmpdir.join('setup.cfg').open('w') as fp:
         fp.write(DALS(
             '''
             [easy_install]
             index_url = {index_url}
+            find-links = {additional_index_url}/additional-barbazquux/
+                         {other_additional_index_url}/additional-barbazquux-runner/
             '''
-        ).format(index_url=index_url))
+        ).format(
+            index_url=index_url,
+            additional_index_url=additional_index_url,
+            other_additional_index_url=other_additional_index_url,
+        ))
     reqs = '''
     barbazquux-runner
     barbazquux
+    additional-barbazquux
+    additional-barbazquux-runner
     '''.split()
     with tmpdir.as_cwd():
         dist = Distribution()

@@ -600,6 +600,8 @@ class Distribution(_Distribution):
                 for opt in options:
                     if opt != '__name__' and opt not in ignore_options:
                         val = self._try_str(parser.get(section, opt))
+                        if opt == 'find-links' and val:
+                            val = val.split('\n')
                         opt = opt.replace('-', '_')
                         opt_dict[opt] = (filename, val)
 

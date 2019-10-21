@@ -65,6 +65,8 @@ def edit_config(filename, settings, dry_run=False):
                         "Setting %s.%s to %r in %s",
                         section, option, value, filename
                     )
+                    if isinstance(value, list):
+                        value = '\n'.join(value)
                     opts.set(section, option, value)
 
     log.info("Writing %s", filename)
