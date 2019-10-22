@@ -86,9 +86,7 @@ def test_test(capfd):
     dist.script_name = 'setup.py'
     cmd = test(dist)
     cmd.ensure_finalized()
-    # The test runner calls sys.exit
-    with contexts.suppress_exceptions(SystemExit):
-        cmd.run()
+    cmd.run()
     out, err = capfd.readouterr()
     assert out == 'Foo\n'
 
@@ -120,9 +118,7 @@ def test_tests_are_run_once(capfd):
     dist.script_name = 'setup.py'
     cmd = test(dist)
     cmd.ensure_finalized()
-    # The test runner calls sys.exit
-    with contexts.suppress_exceptions(SystemExit):
-        cmd.run()
+    cmd.run()
     out, err = capfd.readouterr()
     assert out == 'Foo\n'
 
