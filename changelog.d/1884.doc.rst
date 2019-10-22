@@ -1,0 +1,1 @@
+Added a trove classifier to document support for Python 3.8.
