@@ -1,0 +1,1 @@
+Warn if the ``include_package_data`` and ``package_data`` arguments are combined as they are incompatible.

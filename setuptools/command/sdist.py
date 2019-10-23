@@ -135,6 +135,11 @@ class sdist(sdist_add_defaults, orig.sdist):
         is enabled, so suppress it in that case.
         """
         if self.distribution.include_package_data:
+            self.warn(
+                "Either specify package_data manually, or use "
+                "include_package_data=True, but not both. Proceeding as if "
+                "package_data was not specified."
+            )
             return ()
         return build_py.data_files
 

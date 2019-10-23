@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """sdist tests"""
 
+import mock
 import contextlib
 import os
 import shutil
@@ -11,7 +12,9 @@ from distutils import log
 from distutils.errors import DistutilsTemplateError
 
 import pkg_resources.py31compat
-from setuptools.command.egg_info import FileList, egg_info, translate_pattern
+from setuptools.command.egg_info import (
+    FileList, egg_info, translate_pattern, manifest_maker
+)
 from setuptools.dist import Distribution
 from setuptools.extern import six
 from setuptools.tests.textwrap import DALS
@@ -602,3 +605,27 @@ class TestFileListTest(TempDirTestCase):
         file_list.sort()
         assert file_list.files == ['a.py', ml('f/f.py')]
         self.assertWarnings()
+
+    def test_warning_on_meaningless_parameter_combination(self):
+        ml = make_local_path
+        self.make_files([ml('app/__init__.py'), ml('app/e.py')])
+
+        setup_attrs = {
+            "package_data": {"some": ["data"]},
+            "include_package_data": True,
+            'packages': ['app'],
+        }
+
+        dist = Distribution(setup_attrs)
+        dist.script_name = 'setup.py'
+
+        mm = manifest_maker(dist)
+        mm.manifest = "MANIFEST.in"
+        mm.warn = mock.Mock()
+        mm.run()
+
+        mm.warn.assert_called_with(
+            "Either specify package_data manually, or use "
+            "include_package_data=True, but not both. Proceeding as if "
+            "package_data was not specified."
+        )
