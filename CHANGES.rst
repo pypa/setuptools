@@ -1,3 +1,37 @@
+v41.4.0
+-------
+
+* #1847: In declarative config, now traps errors when invalid ``python_requires`` values are supplied.
+
+
+v41.3.0
+-------
+
+* #1690: When storing extras, rely on OrderedSet to retain order of extras as indicated by the packager, which will also be deterministic on Python 2.7 (with PYTHONHASHSEED unset) and Python 3.6+.
+* #1858: Fixed failing integration test triggered by 'long_description_content_type' in packaging.
+
+
+v41.2.0
+-------
+
+* #479: Remove some usage of the deprecated ``imp`` module.
+* #1565: Changed html_sidebars from string to list of string as per
+  https://www.sphinx-doc.org/en/master/changes.html#id58
+
+
+v41.1.0
+-------
+
+* #1697: Moved most of the constants from setup.py to setup.cfg
+* #1749: Fixed issue with the PEP 517 backend where building a source distribution would fail if any tarball existed in the destination directory.
+* #1750: Fixed an issue with PEP 517 backend where wheel builds would fail if the destination directory did not already exist.
+* #1756: Force metadata-version >= 1.2. when project urls are present.
+* #1769: Improve ``package_data`` check: ensure the dictionary values are lists/tuples of strings.
+* #1788: Changed compatibility fallback logic for ``html.unescape`` to avoid accessing ``HTMLParser.unescape`` when not necessary. ``HTMLParser.unescape`` is deprecated and will be removed in Python 3.9.
+* #1790: Added the file path to the error message when a ``UnicodeDecodeError`` occurs while reading a metadata file.
+* #1776: Use license classifiers rather than the license field.
+
+
 v41.0.1
 -------
 

@@ -136,16 +136,18 @@ dependencies, and perhaps some data files and scripts::
         author="Me",
         author_email="me@example.com",
         description="This is an Example Package",
-        license="PSF",
         keywords="hello world example examples",
         url="http://example.com/HelloWorld/",   # project home page, if any
         project_urls={
             "Bug Tracker": "https://bugs.example.com/HelloWorld/",
             "Documentation": "https://docs.example.com/HelloWorld/",
             "Source Code": "https://code.example.com/HelloWorld/",
-        }
+        },
+        classifiers=[
+            'License :: OSI Approved :: Python Software Foundation License'
+        ]
 
-        # could also include long_description, download_url, classifiers, etc.
+        # could also include long_description, download_url, etc.
     )
 
 In the sections that follow, we'll explain what most of these ``setup()``
@@ -242,9 +244,9 @@ pre- or post-release tags.  See the following sections for more details:
 New and Changed ``setup()`` Keywords
 ====================================
 
-The following keyword arguments to ``setup()`` are supported by ``setuptools``.
-Some of them are optional; you do not have to supply them unless you need the
-associated ``setuptools`` feature.
+The following keyword arguments to ``setup()`` are added or changed by
+``setuptools``.  All of them are optional; you do not have to supply them
+unless you need the associated ``setuptools`` feature.
 
 .. include:: keywords.txt
 
@@ -512,6 +514,10 @@ using ``setup.py develop``.)
 
 Dependencies that aren't in PyPI
 --------------------------------
+
+.. warning::
+    Dependency links support has been dropped by pip starting with version
+    19.0 (released 2019-01-22).
 
 If your project depends on packages that don't exist on PyPI, you may still be
 able to depend on them, as long as they are available for download as:
@@ -1532,6 +1538,9 @@ file locations.
 ``bdist_egg`` - Create a Python Egg for the project
 ===================================================
 
+.. warning::
+    **eggs** are deprecated in favor of wheels, and not supported by pip.
+
 This command generates a Python Egg (``.egg`` file) for the project.  Python
 Eggs are the preferred binary distribution format for EasyInstall, because they
 are cross-platform (for "pure" packages), directly importable, and contain
@@ -1978,6 +1987,11 @@ distutils configuration file the option will be added to (or removed from).
 ``test`` - Build package and run a unittest suite
 =================================================
 
+.. warning::
+    ``test`` is deprecated and will be removed in a future version. Users
+    looking for a generic test entry point independent of test runner are
+    encouraged to use `tox <https://tox.readthedocs.io>`_.
+
 When doing test-driven development, or running automated builds that need
 testing before they are deployed for downloading or use, it's often useful
 to be able to run a project's unit tests without actually deploying the project
@@ -2022,6 +2036,8 @@ available:
 
     If you did not set a ``test_suite`` in your ``setup()`` call, and do not
     provide a ``--test-suite`` option, an error will occur.
+
+New in 41.5.0: Deprecated the test command.
 
 
 .. _upload:
@@ -2079,6 +2095,7 @@ boilerplate code in some cases.
     license = BSD 3-Clause License
     classifiers =
         Framework :: Django
+        License :: OSI Approved :: BSD License
         Programming Language :: Python :: 3
         Programming Language :: Python :: 3.5
 

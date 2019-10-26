@@ -1,1 +1,0 @@
-Fixed issue with the PEP 517 backend where building a source distribution would fail if any tarball existed in the destination directory.

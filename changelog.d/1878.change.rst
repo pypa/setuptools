@@ -1,0 +1,1 @@
+Formally deprecated the ``test`` command, with the recommendation that users migrate to ``tox``.
