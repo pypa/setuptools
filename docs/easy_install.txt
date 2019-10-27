@@ -317,7 +317,7 @@ Note that instead of changing your ``PATH`` to include the Python scripts
 directory, you can also retarget the installation location for scripts so they
 go on a directory that's already on the ``PATH``.  For more information see
 `Command-Line Options`_ and `Configuration Files`_.  During installation,
-pass command line options (such as ``--script-dir``) to to control where
+pass command line options (such as ``--script-dir``) to control where
 scripts will be installed.
 
 
