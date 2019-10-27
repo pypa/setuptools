@@ -19,12 +19,6 @@ package from source and doesn't have a suitable version already installed.
 
 Feature Highlights:
 
-* Automatically find/download/install/upgrade dependencies at build time using
-  the `EasyInstall tool <easy_install.html>`_,
-  which supports downloading via HTTP, FTP, Subversion, and SourceForge, and
-  automatically scans web pages linked from PyPI to find download links.  (It's
-  the closest thing to CPAN currently available for Python.)
-
 * Create `Python Eggs <http://peak.telecommunity.com/DevCenter/PythonEggs>`_ -
   a single-file importable distribution format
 
@@ -72,10 +66,6 @@ Developer's Guide
 
 Installing ``setuptools``
 =========================
-
-.. _EasyInstall Installation Instructions: easy_install.html
-
-.. _Custom Installation Locations: easy_install.html
 
 .. _Installing Packages: https://packaging.python.org/tutorials/installing-packages/
 
@@ -160,7 +150,7 @@ Specifying Your Project's Version
 
 Setuptools can work well with most versioning schemes; there are, however, a
 few special things to watch out for, in order to ensure that setuptools and
-EasyInstall can always tell what version of your package is newer than another
+other tools can always tell what version of your package is newer than another
 version.  Knowing these things will also help you correctly specify what
 versions of other projects your project depends on.
 
@@ -301,11 +291,10 @@ unless you need the associated ``setuptools`` feature.
 ``setup_requires``
     A string or list of strings specifying what other distributions need to
     be present in order for the *setup script* to run.  ``setuptools`` will
-    attempt to obtain these (even going so far as to download them using
-    ``EasyInstall``) before processing the rest of the setup script or commands.
-    This argument is needed if you are using distutils extensions as part of
-    your build process; for example, extensions that process setup() arguments
-    and turn them into EGG-INFO metadata files.
+    attempt to obtain these before processing the rest of the setup script or
+    commands.  This argument is needed if you are using distutils extensions as
+    part of your build process; for example, extensions that process setup()
+    arguments and turn them into EGG-INFO metadata files.
 
     (Note: projects listed in ``setup_requires`` will NOT be automatically
     installed on the system where the setup script is being run.  They are
@@ -318,8 +307,7 @@ unless you need the associated ``setuptools`` feature.
     A list of strings naming URLs to be searched when satisfying dependencies.
     These links will be used if needed to install packages specified by
     ``setup_requires`` or ``tests_require``.  They will also be written into
-    the egg's metadata for use by tools like EasyInstall to use when installing
-    an ``.egg`` file.
+    the egg's metadata for use during install by tools that support them.
 
 ``namespace_packages``
     A list of strings naming the project's "namespace packages".  A namespace
@@ -353,8 +341,7 @@ unless you need the associated ``setuptools`` feature.
     needed to install it, you can use this option to specify them.  It should
     be a string or list of strings specifying what other distributions need to
     be present for the package's tests to run.  When you run the ``test``
-    command, ``setuptools`` will  attempt to obtain these (even going
-    so far as to download them using ``EasyInstall``).  Note that these
+    command, ``setuptools`` will  attempt to obtain these.  Note that these
     required projects will *not* be installed on the system where the tests
     are run, but only downloaded to the project's setup directory if they're
     not already installed locally.
@@ -558,11 +545,12 @@ script called ``baz``, you might do something like this::
     )
 
 When this project is installed on non-Windows platforms (using "setup.py
-install", "setup.py develop", or by using EasyInstall), a set of ``foo``,
-``bar``, and ``baz`` scripts will be installed that import ``main_func`` and
-``some_func`` from the specified modules.  The functions you specify are called
-with no arguments, and their return value is passed to ``sys.exit()``, so you
-can return an errorlevel or message to print to stderr.
+install", "setup.py develop", or with pip), a set of ``foo``, ``bar``,
+and ``baz`` scripts will be installed that import ``main_func`` and
+``some_func`` from the specified modules.  The functions you specify are
+called with no arguments, and their return value is passed to
+``sys.exit()``, so you can return an errorlevel or message to print to
+stderr.
 
 On Windows, a set of ``foo.exe``, ``bar.exe``, and ``baz.exe`` launchers are
 created, alongside a set of ``foo.py``, ``bar.py``, and ``baz.pyw`` files.  The
@@ -619,7 +607,7 @@ Declaring Dependencies
 
 ``setuptools`` supports automatically installing dependencies when a package is
 installed, and including information about dependencies in Python Eggs (so that
-package management tools like EasyInstall can use the information).
+package management tools like pip can use the information).
 
 ``setuptools`` and ``pkg_resources`` use a common syntax for specifying a
 project's required dependencies.  This syntax consists of a project's PyPI
@@ -658,10 +646,9 @@ requirement in a string, each requirement must begin on a new line.
 
 This has three effects:
 
-1. When your project is installed, either by using EasyInstall, ``setup.py
-   install``, or ``setup.py develop``, all of the dependencies not already
-   installed will be located (via PyPI), downloaded, built (if necessary),
-   and installed.
+1. When your project is installed, either by using pip, ``setup.py install``,
+   or ``setup.py develop``, all of the dependencies not already installed will
+   be located (via PyPI), downloaded, built (if necessary), and installed.
 
 2. Any scripts in your project will be installed with wrappers that verify
    the availability of the specified dependencies at runtime, and ensure that
@@ -735,9 +722,8 @@ This will do a checkout (or a clone, in Git and Mercurial parlance) to a
 temporary folder and run ``setup.py bdist_egg``.
 
 The ``dependency_links`` option takes the form of a list of URL strings.  For
-example, the below will cause EasyInstall to search the specified page for
-eggs or source distributions, if the package's dependencies aren't already
-installed::
+example, this will cause a search of the specified page for eggs or source
+distributions, if the package's dependencies aren't already installed::
 
     setup(
         ...
@@ -777,7 +763,7 @@ names of "extra" features, to strings or lists of strings describing those
 features' requirements.  These requirements will *not* be automatically
 installed unless another package depends on them (directly or indirectly) by
 including the desired "extras" in square brackets after the associated project
-name.  (Or if the extras were listed in a requirement spec on the EasyInstall
+name.  (Or if the extras were listed in a requirement spec on the "pip install"
 command line.)
 
 Extras can be used by a project's `entry points`_ to specify dynamic
@@ -1192,13 +1178,12 @@ preferred way of working (as opposed to using a common independent staging area
 or the site-packages directory).
 
 To do this, use the ``setup.py develop`` command.  It works very similarly to
-``setup.py install`` or the EasyInstall tool, except that it doesn't actually
-install anything.  Instead, it creates a special ``.egg-link`` file in the
-deployment directory, that links to your project's source code.  And, if your
-deployment directory is Python's ``site-packages`` directory, it will also
-update the ``easy-install.pth`` file to include your project's source code,
-thereby making it available on ``sys.path`` for all programs using that Python
-installation.
+``setup.py install``, except that it doesn't actually install anything.
+Instead, it creates a special ``.egg-link`` file in the deployment directory,
+that links to your project's source code.  And, if your deployment directory is
+Python's ``site-packages`` directory, it will also update the
+``easy-install.pth`` file to include your project's source code, thereby making
+it available on ``sys.path`` for all programs using that Python installation.
 
 If you have enabled the ``use_2to3`` flag, then of course the ``.egg-link``
 will not link directly to your source code when run under Python 3, since
@@ -1318,20 +1303,14 @@ you've checked over all the warnings it issued, and you are either satisfied it
 doesn't work, you can always change it to ``False``, which will force
 ``setuptools`` to install your project as a directory rather than as a zipfile.
 
-Of course, the end-user can still override either decision, if they are using
-EasyInstall to install your package.  And, if you want to override for testing
-purposes, you can just run ``setup.py easy_install --zip-ok .`` or ``setup.py
-easy_install --always-unzip .`` in your project directory. to install the
-package as a zipfile or directory, respectively.
-
 In the future, as we gain more experience with different packages and become
 more satisfied with the robustness of the ``pkg_resources`` runtime, the
 "zip safety" analysis may become less conservative.  However, we strongly
 recommend that you determine for yourself whether your project functions
 correctly when installed as a zipfile, correct any problems if you can, and
 then make an explicit declaration of ``True`` or ``False`` for the ``zip_safe``
-flag, so that it will not be necessary for ``bdist_egg`` or ``EasyInstall`` to
-try to guess whether your project can work as a zipfile.
+flag, so that it will not be necessary for ``bdist_egg`` to try to guess
+whether your project can work as a zipfile.
 
 .. _Namespace Packages:
 
@@ -1445,9 +1424,9 @@ to generate a daily build or snapshot for.  See the section below on the
 
 (Also, before you release your project, be sure to see the section above on
 `Specifying Your Project's Version`_ for more information about how pre- and
-post-release tags affect how setuptools and EasyInstall interpret version
-numbers.  This is important in order to make sure that dependency processing
-tools will know which versions of your project are newer than others.)
+post-release tags affect how version numbers are interpreted.  This is
+important in order to make sure that dependency processing tools will know
+which versions of your project are newer than others.)
 
 Finally, if you are creating builds frequently, and either building them in a
 downloadable location or are copying them to a distribution server, you should
@@ -1501,58 +1480,6 @@ distribution is so much simpler, its ``sdist`` command omits nearly all of
 the options that the distutils' more complex ``sdist`` process requires.  For
 all practical purposes, you'll probably use only the ``--formats`` option, if
 you use any option at all.
-
-
-Making your package available for EasyInstall
----------------------------------------------
-
-There may be reasons why you don't want to upload distributions to
-PyPI, and just want your existing distributions (or perhaps a Subversion
-checkout) to be used instead.
-
-There are three ``setup()`` arguments that affect EasyInstall:
-
-``url`` and ``download_url``
-   These become links on your project's PyPI page.  EasyInstall will examine
-   them to see if they link to a package ("primary links"), or whether they are
-   HTML pages.  If they're HTML pages, EasyInstall scans all HREF's on the
-   page for primary links
-
-``long_description``
-   EasyInstall will check any URLs contained in this argument to see if they
-   are primary links.
-
-A URL is considered a "primary link" if it is a link to a .tar.gz, .tgz, .zip,
-.egg, .egg.zip, .tar.bz2, or .exe file, or if it has an ``#egg=project`` or
-``#egg=project-version`` fragment identifier attached to it.  EasyInstall
-attempts to determine a project name and optional version number from the text
-of a primary link *without* downloading it.  When it has found all the primary
-links, EasyInstall will select the best match based on requested version,
-platform compatibility, and other criteria.
-
-So, if your ``url`` or ``download_url`` point either directly to a downloadable
-source distribution, or to HTML page(s) that have direct links to such, then
-EasyInstall will be able to locate downloads automatically.  If you want to
-make Subversion checkouts available, then you should create links with either
-``#egg=project`` or ``#egg=project-version`` added to the URL.  You should
-replace ``project`` and ``version`` with the values they would have in an egg
-filename.  (Be sure to actually generate an egg and then use the initial part
-of the filename, rather than trying to guess what the escaped form of the
-project name and version number will be.)
-
-Note that Subversion checkout links are of lower precedence than other kinds
-of distributions, so EasyInstall will not select a Subversion checkout for
-downloading unless it has a version included in the ``#egg=`` suffix, and
-it's a higher version than EasyInstall has seen in any other links for your
-project.
-
-As a result, it's a common practice to use mark checkout URLs with a version of
-"dev" (i.e., ``#egg=projectname-dev``), so that users can do something like
-this::
-
-    easy_install --editable projectname==dev
-
-in order to check out the in-development version of ``projectname``.
 
 
 Making "Official" (Non-Snapshot) Releases
@@ -1809,9 +1736,9 @@ Here are some of the options that the ``develop`` command accepts.  Note that
 they affect the project's dependencies as well as the project itself, so if you
 have dependencies that need to be installed and you use ``--exclude-scripts``
 (for example), the dependencies' scripts will not be installed either!  For
-this reason, you may want to use EasyInstall to install the project's
-dependencies before using the ``develop`` command, if you need finer control
-over the installation options for dependencies.
+this reason, you may want to use pip to install the project's dependencies
+before using the ``develop`` command, if you need finer control over the
+installation options for dependencies.
 
 ``--uninstall, -u``
     Un-deploy the current project.  You may use the ``--install-dir`` or ``-d``
@@ -1821,10 +1748,10 @@ over the installation options for dependencies.
     staging area is Python's ``site-packages`` directory.
 
     Note that this option currently does *not* uninstall script wrappers!  You
-    must uninstall them yourself, or overwrite them by using EasyInstall to
-    activate a different version of the package.  You can also avoid installing
-    script wrappers in the first place, if you use the ``--exclude-scripts``
-    (aka ``-x``) option when you run ``develop`` to deploy the project.
+    must uninstall them yourself, or overwrite them by using pip to install a
+    different version of the package.  You can also avoid installing script
+    wrappers in the first place, if you use the ``--exclude-scripts`` (aka
+    ``-x``) option when you run ``develop`` to deploy the project.
 
 ``--multi-version, -m``
     "Multi-version" mode. Specifying this option prevents ``develop`` from
@@ -1833,8 +1760,8 @@ over the installation options for dependencies.
     removed upon successful deployment.  In multi-version mode, no specific
     version of the package is available for importing, unless you use
     ``pkg_resources.require()`` to put it on ``sys.path``, or you are running
-    a wrapper script generated by ``setuptools`` or EasyInstall.  (In which
-    case the wrapper script calls ``require()`` for you.)
+    a wrapper script generated by ``setuptools``.  (In which case the wrapper
+    script calls ``require()`` for you.)
 
     Note that if you install to a directory other than ``site-packages``,
     this option is automatically in effect, because ``.pth`` files can only be
@@ -1885,25 +1812,6 @@ the same options accepted by ``easy_install``.  If you've configured any
 ``easy_install`` settings in your ``setup.cfg`` (or other distutils config
 files), the ``develop`` command will use them as defaults, unless you override
 them in a ``[develop]`` section or on the command line.
-
-
-``easy_install`` - Find and install packages
-============================================
-
-This command runs the `EasyInstall tool
-<easy_install.html>`_ for you.  It is exactly
-equivalent to running the ``easy_install`` command.  All command line arguments
-following this command are consumed and not processed further by the distutils,
-so this must be the last command listed on the command line.  Please see
-the EasyInstall documentation for the options reference and usage examples.
-Normally, there is no reason to use this command via the command line, as you
-can just use ``easy_install`` directly.  It's only listed here so that you know
-it's a distutils command, which means that you can:
-
-* create command aliases that use it,
-* create distutils extensions that invoke it as a subcommand, and
-* configure options for it in your ``setup.cfg`` or other distutils config
-  files.
 
 
 .. _egg_info:
@@ -1964,9 +1872,9 @@ added in the following order:
 (Note: Because these options modify the version number used for source and
 binary distributions of your project, you should first make sure that you know
 how the resulting version numbers will be interpreted by automated tools
-like EasyInstall.  See the section above on `Specifying Your Project's
-Version`_ for an explanation of pre- and post-release tags, as well as tips on
-how to choose and verify a versioning scheme for your your project.)
+like pip.  See the section above on `Specifying Your Project's Version`_ for an
+explanation of pre- and post-release tags, as well as tips on how to choose and
+verify a versioning scheme for your your project.)
 
 For advanced uses, there is one other option that can be set, to change the
 location of the project's ``.egg-info`` directory.  Commands that need to find
