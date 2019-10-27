@@ -1,3 +1,17 @@
+v41.5.0
+-------
+
+* #1811: Improve Visual C++ 14.X support, mainly for Visual Studio 2017 and 2019.
+* #1814: Fix ``pkg_resources.Requirement`` hash/equality implementation: take PEP 508 direct URL into account.
+* #1824: Fix tests when running under ``python3.10``.
+* #1878: Formally deprecated the ``test`` command, with the recommendation that users migrate to ``tox``.
+* #1860: Update documentation to mention the egg format is not supported by pip and dependency links support was dropped starting with pip 19.0.
+* #1862: Drop ez_setup documentation: deprecated for some time (last updated in 2016), and still relying on easy_install (deprecated too).
+* #1868: Drop most documentation references to (deprecated) EasyInstall.
+* #1884: Added a trove classifier to document support for Python 3.8.
+* #1886: Added Python 3.8 release to the Travis test matrix.
+
+
 v41.4.0
 -------
 

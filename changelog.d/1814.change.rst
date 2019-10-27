@@ -1,1 +1,0 @@
-Fix ``pkg_resources.Requirement`` hash/equality implementation: take PEP 508 direct URL into account.

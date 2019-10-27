@@ -1,1 +1,0 @@
-Drop most documentation references to (deprecated) EasyInstall.
