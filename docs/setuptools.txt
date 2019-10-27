@@ -8,14 +8,7 @@ distribute Python packages, especially ones that have dependencies on other
 packages.
 
 Packages built and distributed using ``setuptools`` look to the user like
-ordinary Python packages based on the ``distutils``.  Your users don't need to
-install or even know about setuptools in order to use them, and you don't
-have to include the entire setuptools package in your distributions.  By
-including just a single `bootstrap module`_ (a 12K .py file), your package will
-automatically download and install ``setuptools`` if the user is building your
-package from source and doesn't have a suitable version already installed.
-
-.. _bootstrap module: https://bootstrap.pypa.io/ez_setup.py
+ordinary Python packages based on the ``distutils``.
 
 Feature Highlights:
 
@@ -55,8 +48,6 @@ Feature Highlights:
   compatible to the existing ``find_packages()`` for Python >= 3.3.
 
 .. contents:: **Table of Contents**
-
-.. _ez_setup.py: `bootstrap module`_
 
 
 -----------------
@@ -589,10 +580,6 @@ invoking the egg with ``/bin/sh``, or by enabling execute permissions on the
 Python must be available via the ``PATH`` environment variable, under its
 "long" name.  That is, if the egg is built for Python 2.3, there must be a
 ``python2.3`` executable present in a directory on ``PATH``.
-
-This feature is primarily intended to support ez_setup the installation of
-setuptools itself on non-Windows platforms, but may also be useful for other
-projects as well.
 
 IMPORTANT NOTE: Eggs with an "eggsecutable" header cannot be renamed, or
 invoked via symlinks.  They *must* be invoked using their original filename, in
@@ -1253,20 +1240,6 @@ To install your newly uploaded package ``example_pkg``,  you can use pip::
 
 If you have issues at any point, please refer to `Packaging project tutorials`_
 for clarification.
-
-Distributing legacy ``setuptools`` projects using ez_setup.py
--------------------------------------------------------------
-
-.. warning:: **ez_setup** is deprecated in favor of PIP with **PEP-518** support.
-
-Distributing packages using the legacy ``ez_setup.py`` and ``easy_install`` is 
-deprecated in favor of PIP. Please consider migrating to using pip and twine based
-distribution.
-
-However, if you still have any ``ez_setup`` based packages, documentation for 
-ez_setup based distributions can be found at `ez_setup distribution guide`_.
-
-.. _ez_setup distribution guide: ez_setup.html
 
 Setting the ``zip_safe`` flag
 -----------------------------
