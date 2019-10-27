@@ -2317,7 +2317,7 @@ tests_require            list-semi
 include_package_data     bool
 packages                 find:, find_namespace:, list-comma
 package_dir              dict
-package_data             section
+package_data             section                                              (1)
 exclude_package_data     section
 namespace_packages       list-comma
 py_modules               list-comma
@@ -2333,6 +2333,10 @@ data_files               dict                                 40.6.0
     ``where``, ``include``, and ``exclude``.
 
     **find_namespace directive** - The ``find_namespace:`` directive is supported since Python >=3.3.
+
+Notes:
+1. In the `package_data` section, a key named with a single asterisk (`*`)
+refers to all packages, in lieu of the empty string used in `setup.py`.
 
 
 Configuration API
