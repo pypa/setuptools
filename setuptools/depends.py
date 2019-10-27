@@ -1,5 +1,6 @@
 import sys
 import marshal
+import contextlib
 from distutils.version import StrictVersion
 
 from .py33compat import Bytecode
@@ -81,6 +82,17 @@ class Require:
         return self.version_ok(version)
 
 
+def maybe_close(f):
+    @contextlib.contextmanager
+    def empty():
+        yield
+        return
+    if not f:
+        return empty()
+
+    return contextlib.closing(f)
+
+
 def get_module_constant(module, symbol, default=-1, paths=None):
     """Find 'module' by searching 'paths', and extract 'symbol'
 
@@ -94,7 +106,7 @@ def get_module_constant(module, symbol, default=-1, paths=None):
         # Module doesn't exist
         return None
 
-    try:
+    with maybe_close(f):
         if kind == PY_COMPILED:
             f.read(8)  # skip magic & date
             code = marshal.load(f)
@@ -106,10 +118,6 @@ def get_module_constant(module, symbol, default=-1, paths=None):
             # Not something we can parse; we'll have to import it.  :(
             imported = py27compat.get_module(module, paths, info)
             return getattr(imported, symbol, None)
-
-    finally:
-        if f:
-            f.close()
 
     return extract_constant(code, symbol, default)
 
