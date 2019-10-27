@@ -1,0 +1,22 @@
+import importlib
+import pickle
+
+from setuptools import Distribution
+from setuptools.extern import ordered_set
+from setuptools.tests import py3_only
+
+
+def test_reimport_extern():
+    ordered_set2 = importlib.import_module(ordered_set.__name__)
+    assert ordered_set is ordered_set2
+
+
+def test_orderedset_pickle_roundtrip():
+    o1 = ordered_set.OrderedSet([1, 2, 5])
+    o2 = pickle.loads(pickle.dumps(o1))
+    assert o1 == o2
+
+
+@py3_only
+def test_distribution_picklable():
+    pickle.loads(pickle.dumps(Distribution()))
