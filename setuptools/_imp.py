@@ -73,4 +73,4 @@ def _resolve(spec):
 
 def get_module(module, paths, info):
     spec = importlib.util.find_spec(module, paths)
-    return importlib.util.module_from_spec(_resolve(spec))
+    return importlib.util.module_from_spec(spec)
