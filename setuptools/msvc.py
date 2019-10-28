@@ -20,6 +20,7 @@ This may also support compilers shipped with compatible Visual Studio versions.
 """
 
 import json
+from io import open
 from os import listdir, pathsep
 from os.path import join, isfile, isdir, dirname
 import sys
