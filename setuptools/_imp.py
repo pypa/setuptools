@@ -60,13 +60,17 @@ def find_module(module, paths=None):
 
 def get_frozen_object(module, paths):
     spec = importlib.util.find_spec(module, paths)
-    if hasattr(spec, 'submodule_search_locations'):
-        spec = importlib.util.spec_from_loader('__init__.py', spec.loader)
-    return spec.loader.get_code(module)
+    return spec.loader.get_code(_resolve(module))
+
+
+def _resolve(spec):
+    return (
+        importlib.util.spec_from_loader('__init__.py', spec.loader)
+        if hasattr(spec, 'submodule_search_locations')
+        else spec
+    )
 
 
 def get_module(module, paths, info):
     spec = importlib.util.find_spec(module, paths)
-    if hasattr(spec, 'submodule_search_locations'):
-        spec = importlib.util.spec_from_loader('__init__.py', spec.loader)
-    return importlib.util.module_from_spec(spec)
+    return importlib.util.module_from_spec(_resolve(spec))
