@@ -63,13 +63,6 @@ def get_frozen_object(module, paths):
     return spec.loader.get_code(_resolve(module))
 
 
-def _resolve(spec):
-    return (
-        importlib.util.spec_from_loader('__init__.py', spec.loader)
-        if hasattr(spec, 'submodule_search_locations')
-        else spec
-    )
-
 def _module_from_spec(spec):
     if sys.version_info >= (3, 5):
         return importlib.util.module_from_spec(spec)
