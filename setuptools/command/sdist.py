@@ -5,7 +5,7 @@ import sys
 import io
 import contextlib
 
-from setuptools.extern import six
+from setuptools.extern import six, ordered_set
 
 from .py36compat import sdist_add_defaults
 
@@ -204,7 +204,7 @@ class sdist(sdist_add_defaults, orig.sdist):
         valid paths to 'self.filelist'.
         """
 
-        files = set()
+        files = ordered_set.OrderedSet()
 
         opts = self.distribution.get_option_dict('metadata')
 
