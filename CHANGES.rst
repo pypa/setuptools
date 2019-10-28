@@ -1,3 +1,9 @@
+v41.5.1
+-------
+
+* #1891: Fix code for detecting Visual Studio's version on Windows under Python 2.
+
+
 v41.5.0
 -------
 

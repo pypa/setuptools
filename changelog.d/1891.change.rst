@@ -1,1 +1,0 @@
-Fix code for detecting Visual Studio's version on Windows under Python 2.
