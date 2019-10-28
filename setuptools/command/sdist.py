@@ -226,6 +226,6 @@ class sdist(sdist_add_defaults, orig.sdist):
                 log.warn(
                     "warning: Failed to find the configured license file '%s'",
                     f)
-                continue
+                files.remove(f)
 
-            self.filelist.append(f)
+        self.filelist.extend(files)
