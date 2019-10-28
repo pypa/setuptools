@@ -4,6 +4,7 @@ from the deprecated imp module.
 """
 
 import os
+import sys
 import importlib.util
 import importlib.machinery
 
@@ -70,7 +71,12 @@ def _resolve(spec):
         else spec
     )
 
+def _module_from_spec(spec):
+    if sys.version_info >= (3, 5):
+        return importlib.util.module_from_spec(spec)
+    else:
+        return spec.loader.load_module(spec.name)
 
 def get_module(module, paths, info):
     spec = importlib.util.find_spec(module, paths)
-    return importlib.util.module_from_spec(spec)
+    return _module_from_spec(spec)
