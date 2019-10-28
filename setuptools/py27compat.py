@@ -56,5 +56,5 @@ except ImportError:
         return imp.get_frozen_object(module)
 
     def get_module(module, paths, info):
-        imp.load_module(*info)
+        imp.load_module(module, *info)
         return sys.modules[module]
