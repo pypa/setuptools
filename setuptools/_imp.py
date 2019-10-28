@@ -17,8 +17,7 @@ PY_FROZEN = 7
 
 
 def find_module(module, paths=None):
-    """
-    """
+    """Just like 'imp.find_module()', but with package support"""
     spec = importlib.util.find_spec(module, paths)
     if spec is None:
         raise ImportError("Can't find %s" % module)
