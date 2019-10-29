@@ -8,6 +8,8 @@ import sys
 import importlib.util
 import importlib.machinery
 
+from .py34compat import module_from_spec
+
 
 PY_SOURCE = 1
 PY_COMPILED = 2
@@ -63,12 +65,6 @@ def get_frozen_object(module, paths):
     return spec.loader.get_code(_resolve(module))
 
 
-def _module_from_spec(spec):
-    if sys.version_info >= (3, 5):
-        return importlib.util.module_from_spec(spec)
-    else:
-        return spec.loader.load_module(spec.name)
-
 def get_module(module, paths, info):
     spec = importlib.util.find_spec(module, paths)
-    return _module_from_spec(spec)
+    return module_from_spec(spec)
