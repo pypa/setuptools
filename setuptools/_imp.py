@@ -4,7 +4,6 @@ from the deprecated imp module.
 """
 
 import os
-import sys
 import importlib.util
 import importlib.machinery
 
