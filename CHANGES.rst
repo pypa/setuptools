@@ -1,3 +1,9 @@
+v41.6.0
+-------
+
+* #479: Replace usage of deprecated ``imp`` module with local re-implementation in ``setuptools._imp``.
+
+
 v41.5.1
 -------
 
