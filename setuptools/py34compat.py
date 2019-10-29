@@ -1,4 +1,4 @@
-import importlib.util
+import importlib
 
 
 try:
