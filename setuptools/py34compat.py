@@ -1,5 +1,10 @@
 import importlib
 
+try:
+    import importlib.util
+except ImportError:
+    pass
+
 
 try:
     module_from_spec = importlib.util.module_from_spec
