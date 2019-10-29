@@ -60,11 +60,15 @@ def find_module(module, paths=None):
     return file, path, (suffix, mode, kind)
 
 
-def get_frozen_object(module, paths):
+def get_frozen_object(module, paths=None):
     spec = importlib.util.find_spec(module, paths)
-    return spec.loader.get_code(_resolve(module))
+    if not spec:
+        raise ImportError("Can't find %s" % module)
+    return spec.loader.get_code(module)
 
 
 def get_module(module, paths, info):
     spec = importlib.util.find_spec(module, paths)
+    if not spec:
+        raise ImportError("Can't find %s" % module)
     return module_from_spec(spec)
