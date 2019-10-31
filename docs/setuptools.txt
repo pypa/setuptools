@@ -2087,16 +2087,13 @@ New in 41.5.0: Deprecated the test command.
 ``upload`` - Upload source and/or egg distributions to PyPI
 ===========================================================
 
-.. warning::
-    **upload** is deprecated in favor of using `twine
-    <https://pypi.org/p/twine>`_
+The ``upload`` command was deprecated in version 40.0 and removed in version
+42.0. Use `twine <https://pypi.org/p/twine>`_ instead.
 
-The ``upload`` command is implemented and `documented
-<https://docs.python.org/3.1/distutils/uploading.html>`_
-in distutils.
-
-New in 20.1: Added keyring support.
-New in 40.0: Deprecated the upload command.
+For  more information on the current best practices in uploading your packages
+to PyPI, see the Python Packaging User Guide's "Packaging Python Projects"
+tutorial specifically the section on `uploading the distribution archives
+<https://packaging.python.org/tutorials/packaging-projects/#uploading-the-distribution-archives>`_.
 
 
 -----------------------------------------
