@@ -1,0 +1,1 @@
+Removed the "upload" and "register" commands in favor of `twine <https://pypi.org/p/twine>`_.
