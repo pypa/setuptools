@@ -467,22 +467,24 @@ class TestSetupRequires:
         """
         monkeypatch.setenv(str('PIP_RETRIES'), str('0'))
         monkeypatch.setenv(str('PIP_TIMEOUT'), str('0'))
-        with contexts.quiet():
-            # create an sdist that has a build-time dependency.
-            with TestSetupRequires.create_sdist() as dist_file:
-                with contexts.tempdir() as temp_install_dir:
-                    with contexts.environment(PYTHONPATH=temp_install_dir):
-                        ei_params = [
-                            '--index-url', mock_index.url,
-                            '--exclude-scripts',
-                            '--install-dir', temp_install_dir,
-                            dist_file,
-                        ]
-                        with sandbox.save_argv(['easy_install']):
-                            # attempt to install the dist. It should
-                            # fail because it doesn't exist.
-                            with pytest.raises(SystemExit):
-                                easy_install_pkg.main(ei_params)
+        monkeypatch.setenv(str('PIP_VERBOSE'), str('1'))
+        # create an sdist that has a build-time dependency.
+        with TestSetupRequires.create_sdist() as dist_file:
+            with contexts.tempdir() as temp_dir:
+                setup_py = os.path.join(temp_dir, 'setup.py')
+                with open(setup_py, 'w') as fp:
+                    fp.write('__import__("setuptools").setup()')
+                temp_install_dir = os.path.join(temp_dir, 'target')
+                os.mkdir(temp_install_dir)
+                with contexts.environment(PYTHONPATH=temp_install_dir):
+                    # attempt to install the dist. It should
+                    # fail because it doesn't exist.
+                    with pytest.raises(SystemExit):
+                        run_setup(setup_py, ['easy_install',
+                                             '--exclude-scripts',
+                                             '--index-url', mock_index.url,
+                                             '--install-dir', temp_install_dir,
+                                             dist_file])
         # there should have been one requests to the server
         assert [r.path for r in mock_index.requests] == ['/does-not-exist/']
 

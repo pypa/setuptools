@@ -31,22 +31,6 @@ def read_commands():
     return command_ns['__all__']
 
 
-def _gen_console_scripts():
-    yield "easy_install = setuptools.command.easy_install:main"
-
-    # Gentoo distributions manage the python-version-specific scripts
-    # themselves, so those platforms define an environment variable to
-    # suppress the creation of the version-specific scripts.
-    var_names = (
-        'SETUPTOOLS_DISABLE_VERSIONED_EASY_INSTALL_SCRIPT',
-        'DISTRIBUTE_DISABLE_VERSIONED_EASY_INSTALL_SCRIPT',
-    )
-    if any(os.environ.get(var) not in (None, "", "0") for var in var_names):
-        return
-    tmpl = "easy_install-{shortver} = setuptools.command.easy_install:main"
-    yield tmpl.format(shortver='{}.{}'.format(*sys.version_info))
-
-
 package_data = dict(
     setuptools=['script (dev).tmpl', 'script.tmpl', 'site-patch.py'],
 )
@@ -125,9 +109,6 @@ setup_params = dict(
             "depends.txt = setuptools.command.egg_info:warn_depends_obsolete",
             "dependency_links.txt = setuptools.command.egg_info:overwrite_arg",
         ],
-        "console_scripts": list(_gen_console_scripts()),
-        "setuptools.installation":
-            ['eggsecutable = setuptools.command.easy_install:bootstrap'],
     },
     dependency_links=[
         pypi_link(
