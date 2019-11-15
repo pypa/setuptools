@@ -12,7 +12,6 @@ jobs:
     env: DISABLE_COVERAGE=1  # Don't run coverage on pypy (too slow).
   - python: pypy3
     env: DISABLE_COVERAGE=1
-  - python: 3.4
   - python: 3.5
   - &default_py
     python: 3.6

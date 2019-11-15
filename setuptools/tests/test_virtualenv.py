@@ -77,11 +77,8 @@ def _get_pip_versions():
         'pip==10.0.1',
         'pip==18.1',
         'pip==19.0.1',
+        'https://github.com/pypa/pip/archive/master.zip',
     ]
-
-    # Pip's master dropped support for 3.4.
-    if not six.PY34:
-        network_versions.append('https://github.com/pypa/pip/archive/master.zip')
 
     versions = [None] + [
         pytest.param(v, **({} if network else {'marks': pytest.mark.skip}))
