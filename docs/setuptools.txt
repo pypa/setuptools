@@ -1207,7 +1207,7 @@ the quoted part.
 Distributing a ``setuptools``-based project
 ===========================================
 
-Detailed instructions to distribute a setuptools project can be found at 
+Detailed instructions to distribute a setuptools project can be found at
 `Packaging project tutorials`_.
 
 .. _Packaging project tutorials: https://packaging.python.org/tutorials/packaging-projects/#generating-distribution-archives
@@ -1223,7 +1223,7 @@ setup.py is located::
 
 This will generate distribution archives in the `dist` directory.
 
-Before you upload the generated archives make sure you're registered on 
+Before you upload the generated archives make sure you're registered on
 https://test.pypi.org/account/register/. You will also need to verify your email
 to be able to upload any packages.
 You should install twine to be able to upload packages::
