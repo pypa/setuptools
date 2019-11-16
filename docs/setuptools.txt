@@ -1225,7 +1225,7 @@ the quoted part.
 Distributing a ``setuptools``-based project
 ===========================================
 
-Detailed instructions to distribute a setuptools project can be found at 
+Detailed instructions to distribute a setuptools project can be found at
 `Packaging project tutorials`_.
 
 .. _Packaging project tutorials: https://packaging.python.org/tutorials/packaging-projects/#generating-distribution-archives
@@ -1241,7 +1241,7 @@ setup.py is located::
 
 This will generate distribution archives in the `dist` directory.
 
-Before you upload the generated archives make sure you're registered on 
+Before you upload the generated archives make sure you're registered on
 https://test.pypi.org/account/register/. You will also need to verify your email
 to be able to upload any packages.
 You should install twine to be able to upload packages::
@@ -1264,11 +1264,11 @@ Distributing legacy ``setuptools`` projects using ez_setup.py
 
 .. warning:: **ez_setup** is deprecated in favor of PIP with **PEP-518** support.
 
-Distributing packages using the legacy ``ez_setup.py`` and ``easy_install`` is 
+Distributing packages using the legacy ``ez_setup.py`` and ``easy_install`` is
 deprecated in favor of PIP. Please consider migrating to using pip and twine based
 distribution.
 
-However, if you still have any ``ez_setup`` based packages, documentation for 
+However, if you still have any ``ez_setup`` based packages, documentation for
 ez_setup based distributions can be found at `ez_setup distribution guide`_.
 
 .. _ez_setup distribution guide: ez_setup.html
@@ -2515,6 +2515,10 @@ script defines entry points for them!
 Adding ``setup()`` Arguments
 ----------------------------
 
+.. warning:: Adding arguments to setup is discouraged as such arguments
+   are only supported through imperative execution and not supported through
+   declarative config.
+
 Sometimes, your commands may need additional arguments to the ``setup()``
 call.  You can enable this by defining entry points in the
 ``distutils.setup_keywords`` group.  For example, if you wanted a ``setup()``
@@ -2564,6 +2568,25 @@ the distutils ``Distribution`` class in order to add your arguments; it is
 sufficient to define the entry points in your extension, as long as any setup
 script using your extension lists your project in its ``setup_requires``
 argument.
+
+
+Customizing Distribution Options
+--------------------------------
+
+Plugins may wish to extend or alter the options on a Distribution object to
+suit the purposes of that project. For example, a tool that infers the
+``Distribution.version`` from SCM-metadata may need to hook into the
+option finalization. To enable this feature, Setuptools offers an entry
+point "setuptools.finalize_distribution_options". That entry point must
+be a callable taking one argument (the Distribution instance).
+
+If the callable has an ``.order`` property, that value will be used to
+determine the order in which the hook is called. Lower numbers are called
+first and the default is zero (0).
+
+Plugins may read, alter, and set properties on the distribution, but each
+plugin is encouraged to load the configuration/settings for their behavior
+independently.
 
 
 Adding new EGG-INFO Files
