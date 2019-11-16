@@ -524,27 +524,27 @@ class TestEggInfo:
                               [metadata]
                               license_file = LICENSE
                               """),
-            'LICENSE': DALS("Test license")
+            'LICENSE': "Test license"
         }, True), # with license
         ({
             'setup.cfg': DALS("""
                               [metadata]
                               license_file = INVALID_LICENSE
                               """),
-            'LICENSE': DALS("Test license")
+            'LICENSE': "Test license"
         }, False), # with an invalid license
         ({
             'setup.cfg': DALS("""
                               """),
-            'LICENSE': DALS("Test license")
+            'LICENSE': "Test license"
         }, False), # no license_file attribute
         ({
             'setup.cfg': DALS("""
                               [metadata]
                               license_file = LICENSE
                               """),
-            'MANIFEST.in': DALS("exclude LICENSE"),
-            'LICENSE': DALS("Test license")
+            'MANIFEST.in': "exclude LICENSE",
+            'LICENSE': "Test license"
         }, False) # license file is manually excluded
     ])
     def test_setup_cfg_license_file(
@@ -566,6 +566,204 @@ class TestEggInfo:
         else:
             assert 'LICENSE' not in sources_text
             assert 'INVALID_LICENSE' not in sources_text # for invalid license test
+
+    @pytest.mark.parametrize("files, incl_licenses, excl_licenses", [
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_files =
+                                  LICENSE-ABC
+                                  LICENSE-XYZ
+                              """),
+            'LICENSE-ABC': "ABC license",
+            'LICENSE-XYZ': "XYZ license"
+        }, ['LICENSE-ABC', 'LICENSE-XYZ'], []), # with licenses
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_files = LICENSE-ABC, LICENSE-XYZ
+                              """),
+            'LICENSE-ABC': "ABC license",
+            'LICENSE-XYZ': "XYZ license"
+        }, ['LICENSE-ABC', 'LICENSE-XYZ'], []), # with commas
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_files =
+                                  LICENSE-ABC
+                              """),
+            'LICENSE-ABC': "ABC license",
+            'LICENSE-XYZ': "XYZ license"
+        }, ['LICENSE-ABC'], ['LICENSE-XYZ']), # with one license
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_files =
+                              """),
+            'LICENSE-ABC': "ABC license",
+            'LICENSE-XYZ': "XYZ license"
+        }, [], ['LICENSE-ABC', 'LICENSE-XYZ']), # empty
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_files = LICENSE-XYZ
+                              """),
+            'LICENSE-ABC': "ABC license",
+            'LICENSE-XYZ': "XYZ license"
+        }, ['LICENSE-XYZ'], ['LICENSE-ABC']), # on same line
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_files =
+                                  LICENSE-ABC
+                                  INVALID_LICENSE
+                              """),
+            'LICENSE-ABC': "Test license"
+        }, ['LICENSE-ABC'], ['INVALID_LICENSE']), # with an invalid license
+        ({
+            'setup.cfg': DALS("""
+                              """),
+            'LICENSE': "Test license"
+        }, [], ['LICENSE']), # no license_files attribute
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_files = LICENSE
+                              """),
+            'MANIFEST.in': "exclude LICENSE",
+            'LICENSE': "Test license"
+        }, [], ['LICENSE']), # license file is manually excluded
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_files =
+                                  LICENSE-ABC
+                                  LICENSE-XYZ
+                              """),
+            'MANIFEST.in': "exclude LICENSE-XYZ",
+            'LICENSE-ABC': "ABC license",
+            'LICENSE-XYZ': "XYZ license"
+        }, ['LICENSE-ABC'], ['LICENSE-XYZ']) # subset is manually excluded
+    ])
+    def test_setup_cfg_license_files(
+            self, tmpdir_cwd, env, files, incl_licenses, excl_licenses):
+        self._create_project()
+        build_files(files)
+
+        environment.run_setup_py(
+            cmd=['egg_info'],
+            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)])
+        )
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
+
+        with open(os.path.join(egg_info_dir, 'SOURCES.txt')) as sources_file:
+            sources_lines = list(line.strip() for line in sources_file)
+
+        for lf in incl_licenses:
+            assert sources_lines.count(lf) == 1
+
+        for lf in excl_licenses:
+            assert sources_lines.count(lf) == 0
+
+    @pytest.mark.parametrize("files, incl_licenses, excl_licenses", [
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_file =
+                              license_files =
+                              """),
+            'LICENSE-ABC': "ABC license",
+            'LICENSE-XYZ': "XYZ license"
+        }, [], ['LICENSE-ABC', 'LICENSE-XYZ']), # both empty
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_file =
+                                  LICENSE-ABC
+                                  LICENSE-XYZ
+                              """),
+            'LICENSE-ABC': "ABC license",
+            'LICENSE-XYZ': "XYZ license"
+        }, [], ['LICENSE-ABC', 'LICENSE-XYZ']), # license_file is still singular
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_file = LICENSE-ABC
+                              license_files =
+                                  LICENSE-XYZ
+                                  LICENSE-PQR
+                              """),
+            'LICENSE-ABC': "ABC license",
+            'LICENSE-PQR': "PQR license",
+            'LICENSE-XYZ': "XYZ license"
+        }, ['LICENSE-ABC', 'LICENSE-PQR', 'LICENSE-XYZ'], []), # combined
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_file = LICENSE-ABC
+                              license_files =
+                                  LICENSE-ABC
+                                  LICENSE-XYZ
+                                  LICENSE-PQR
+                              """),
+            'LICENSE-ABC': "ABC license",
+            'LICENSE-PQR': "PQR license",
+            'LICENSE-XYZ': "XYZ license"
+        }, ['LICENSE-ABC', 'LICENSE-PQR', 'LICENSE-XYZ'], []), # duplicate license
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_file = LICENSE-ABC
+                              license_files =
+                                  LICENSE-XYZ
+                              """),
+            'LICENSE-ABC': "ABC license",
+            'LICENSE-PQR': "PQR license",
+            'LICENSE-XYZ': "XYZ license"
+        }, ['LICENSE-ABC', 'LICENSE-XYZ'], ['LICENSE-PQR']), # combined subset
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_file = LICENSE-ABC
+                              license_files =
+                                  LICENSE-XYZ
+                                  LICENSE-PQR
+                              """),
+            'LICENSE-PQR': "Test license"
+        }, ['LICENSE-PQR'], ['LICENSE-ABC', 'LICENSE-XYZ']), # with invalid licenses
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_file = LICENSE-ABC
+                              license_files =
+                                LICENSE-PQR
+                                LICENSE-XYZ
+                              """),
+            'MANIFEST.in': "exclude LICENSE-ABC\nexclude LICENSE-PQR",
+            'LICENSE-ABC': "ABC license",
+            'LICENSE-PQR': "PQR license",
+            'LICENSE-XYZ': "XYZ license"
+        }, ['LICENSE-XYZ'], ['LICENSE-ABC', 'LICENSE-PQR']) # manually excluded
+    ])
+    def test_setup_cfg_license_file_license_files(
+            self, tmpdir_cwd, env, files, incl_licenses, excl_licenses):
+        self._create_project()
+        build_files(files)
+
+        environment.run_setup_py(
+            cmd=['egg_info'],
+            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)])
+        )
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
+
+        with open(os.path.join(egg_info_dir, 'SOURCES.txt')) as sources_file:
+            sources_lines = list(line.strip() for line in sources_file)
+
+        for lf in incl_licenses:
+            assert sources_lines.count(lf) == 1
+
+        for lf in excl_licenses:
+            assert sources_lines.count(lf) == 0
 
     def test_long_description_content_type(self, tmpdir_cwd, env):
         # Test that specifying a `long_description_content_type` keyword arg to
