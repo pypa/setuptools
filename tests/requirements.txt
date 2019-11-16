@@ -9,4 +9,3 @@ coverage>=4.5.1
 pytest-cov>=2.5.1
 paver; python_version>="3.6"
 futures; python_version=="2.7"
-pip==18.1  # Temporary workaround for #1644.

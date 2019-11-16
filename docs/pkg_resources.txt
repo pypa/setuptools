@@ -245,8 +245,8 @@ abbreviation for ``pkg_resources.working_set.require()``:
     interactive interpreter hacking than for production use. If you're creating
     an actual library or application, it's strongly recommended that you create
     a "setup.py" script using ``setuptools``, and declare all your requirements
-    there.  That way, tools like EasyInstall can automatically detect what
-    requirements your package has, and deal with them accordingly.
+    there.  That way, tools like pip can automatically detect what requirements
+    your package has, and deal with them accordingly.
 
     Note that calling ``require('SomePackage')`` will not install
     ``SomePackage`` if it isn't already present.  If you need to do this, you
@@ -611,9 +611,9 @@ Requirements Parsing
     or activation of both Report-O-Rama and any libraries it needs in order to
     provide PDF support.  For example, you could use::
 
-        easy_install.py Report-O-Rama[PDF]
+        pip install Report-O-Rama[PDF]
 
-    To install the necessary packages using the EasyInstall program, or call
+    To install the necessary packages using pip, or call
     ``pkg_resources.require('Report-O-Rama[PDF]')`` to add the necessary
     distributions to sys.path at runtime.
 
@@ -1843,9 +1843,9 @@ History
      because it isn't necessarily a filesystem path (and hasn't been for some
      time now).  The ``location`` of ``Distribution`` objects in the filesystem
      should always be normalized using ``pkg_resources.normalize_path()``; all
-     of the setuptools and EasyInstall code that generates distributions from
-     the filesystem (including ``Distribution.from_filename()``) ensure this
-     invariant, but if you use a more generic API like ``Distribution()`` or
+     of the setuptools' code that generates distributions from the filesystem
+     (including ``Distribution.from_filename()``) ensure this invariant, but if
+     you use a more generic API like ``Distribution()`` or
      ``Distribution.from_location()`` you should take care that you don't
      create a distribution with an un-normalized filesystem path.
 
