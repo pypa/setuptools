@@ -89,6 +89,13 @@ setup_params = dict(
             "%(cmd)s = setuptools.command.%(cmd)s:%(cmd)s" % locals()
             for cmd in read_commands()
         ],
+        "setuptools.finalize_distribution_options": [
+            "parent_finalize = setuptools.dist:_Distribution.finalize_options",
+            "features = setuptools.dist:Distribution._finalize_feature_opts",
+            "keywords = setuptools.dist:Distribution._finalize_setup_keywords",
+            "2to3_doctests = "
+            "setuptools.dist:Distribution._finalize_2to3_doctests",
+        ],
         "distutils.setup_keywords": [
             "eager_resources        = setuptools.dist:assert_string_list",
             "namespace_packages     = setuptools.dist:check_nsp",
