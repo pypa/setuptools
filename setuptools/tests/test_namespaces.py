@@ -64,9 +64,8 @@ class TestNamespaces:
         target.mkdir()
         install_cmd = [
             sys.executable,
-            '-m', 'easy_install',
-            '-d', str(target),
-            str(pkg),
+            '-m', 'pip.__main__', 'install',
+            '-t', str(target), str(pkg),
         ]
         with test.test.paths_on_pythonpath([str(target)]):
             subprocess.check_call(install_cmd)

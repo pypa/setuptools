@@ -1,10 +1,13 @@
 """Basic http server for tests to simulate PyPI or custom indexes
 """
 
+import os
 import time
 import threading
 
 from setuptools.extern.six.moves import BaseHTTPServer, SimpleHTTPServer
+from setuptools.extern.six.moves.urllib_parse import urljoin
+from setuptools.extern.six.moves.urllib.request import pathname2url
 
 
 class IndexServer(BaseHTTPServer.HTTPServer):
@@ -70,5 +73,19 @@ class MockServer(BaseHTTPServer.HTTPServer, threading.Thread):
         self.serve_forever()
 
     @property
+    def netloc(self):
+        return 'localhost:%s' % self.server_port
+
+    @property
     def url(self):
-        return 'http://localhost:%(server_port)s/' % vars(self)
+        return 'http://%s/' % self.netloc
+
+
+def path_to_url(path, authority=None):
+    """ Convert a path to a file: URL. """
+    path = os.path.normpath(os.path.abspath(path))
+    base = 'file:'
+    if authority is not None:
+        base += '//' + authority
+    url = urljoin(base, pathname2url(path))
+    return url
