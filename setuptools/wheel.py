@@ -12,9 +12,9 @@ import zipfile
 import pkg_resources
 import setuptools
 from pkg_resources import parse_version
+from setuptools.extern.packaging.tags import sys_tags
 from setuptools.extern.packaging.utils import canonicalize_name
 from setuptools.extern.six import PY3
-from setuptools import pep425tags
 from setuptools.command.egg_info import write_requirements
 
 
@@ -77,7 +77,7 @@ class Wheel:
 
     def is_compatible(self):
         '''Is the wheel is compatible with the current platform?'''
-        supported_tags = pep425tags.get_supported()
+        supported_tags = set(map(str, sys_tags()))
         return next((True for t in self.tags() if t in supported_tags), False)
 
     def egg_name(self):
