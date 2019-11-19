@@ -11,16 +11,16 @@ def test_read_from_dynlib():
     dylib_dir = os.path.join(dirname, "testdata",
                              "macosx_minimal_system_version")
     versions = [
-        ("test_lib_10_6_fat.dynlib", "10.6"),
-        ("test_lib_10_10_fat.dynlib", "10.10"),
-        ("test_lib_10_14_fat.dynlib", "10.14"),
-        ("test_lib_10_6.dynlib", "10.6"),
-        ("test_lib_10_10.dynlib", "10.10"),
-        ("test_lib_10_14.dynlib", "10.14"),
-        ("test_lib_10_6_386.dynlib", "10.6"),
-        ("test_lib_10_10_386.dynlib", "10.10"),
-        ("test_lib_10_14_386.dynlib", "10.14"),
-        ("test_lib_multiple_fat.dynlib", "10.14")
+        ("test_lib_10_6_fat.dylib", "10.6"),
+        ("test_lib_10_10_fat.dylib", "10.10"),
+        ("test_lib_10_14_fat.dylib", "10.14"),
+        ("test_lib_10_6.dylib", "10.6"),
+        ("test_lib_10_10.dylib", "10.10"),
+        ("test_lib_10_14.dylib", "10.14"),
+        ("test_lib_10_6_386.dylib", "10.6"),
+        ("test_lib_10_10_386.dylib", "10.10"),
+        ("test_lib_10_14_386.dylib", "10.14"),
+        ("test_lib_multiple_fat.dylib", "10.14")
     ]
     for file_name, ver in versions:
         extracted = extract_macosx_min_system_version(
@@ -60,13 +60,13 @@ class TestGetPlatformMacosx:
         dylib_dir = os.path.join(dirname, "testdata", "macosx_minimal_system_version")
         monkeypatch.setattr(distutils.util, "get_platform", return_factory("macosx-10.9-x86_64"))
         monkeypatch.setattr(os, "walk", return_factory(
-            [(dylib_dir, [], ["test_lib_10_6.dynlib", "test_lib_10_10_fat.dynlib"])]
+            [(dylib_dir, [], ["test_lib_10_6.dylib", "test_lib_10_10_fat.dylib"])]
         ))
         assert get_platform(dylib_dir) == "macosx_10_10_x86_64"
         captured = capsys.readouterr()
         assert "[WARNING] This wheel needs higher macosx version than" in captured.err
         assert "your python is compiled against." in captured.err
-        assert "test_lib_10_10_fat.dynlib" in captured.err
+        assert "test_lib_10_10_fat.dylib" in captured.err
 
     def test_information_about_problematic_files_env_variable(self, monkeypatch, capsys):
         dirname = os.path.dirname(__file__)
@@ -74,20 +74,20 @@ class TestGetPlatformMacosx:
         monkeypatch.setattr(distutils.util, "get_platform", return_factory("macosx-10.9-x86_64"))
         monkeypatch.setenv("MACOSX_DEPLOYMENT_TARGET", "10.8")
         monkeypatch.setattr(os, "walk", return_factory(
-            [(dylib_dir, [], ["test_lib_10_6.dynlib", "test_lib_10_10_fat.dynlib"])]
+            [(dylib_dir, [], ["test_lib_10_6.dylib", "test_lib_10_10_fat.dylib"])]
         ))
         assert get_platform(dylib_dir) == "macosx_10_10_x86_64"
         captured = capsys.readouterr()
         assert "[WARNING] This wheel needs higher macosx version than" in captured.err
         assert "is set in MACOSX_DEPLOYMENT_TARGET variable." in captured.err
-        assert "test_lib_10_10_fat.dynlib" in captured.err
+        assert "test_lib_10_10_fat.dylib" in captured.err
 
     def test_bump_platform_tag_by_env_variable(self, monkeypatch, capsys):
         dirname = os.path.dirname(__file__)
         dylib_dir = os.path.join(dirname, "testdata", "macosx_minimal_system_version")
         monkeypatch.setattr(distutils.util, "get_platform", return_factory("macosx-10.9-x86_64"))
         monkeypatch.setattr(os, "walk", return_factory(
-            [(dylib_dir, [], ["test_lib_10_6.dynlib", "test_lib_10_6_fat.dynlib"])]
+            [(dylib_dir, [], ["test_lib_10_6.dylib", "test_lib_10_6_fat.dylib"])]
         ))
         assert get_platform(dylib_dir) == "macosx_10_9_x86_64"
         monkeypatch.setenv("MACOSX_DEPLOYMENT_TARGET", "10.10")
@@ -101,7 +101,7 @@ class TestGetPlatformMacosx:
         monkeypatch.setattr(distutils.util, "get_platform", return_factory("macosx-10.9-x86_64"))
         monkeypatch.setenv("MACOSX_DEPLOYMENT_TARGET", "10.8")
         monkeypatch.setattr(os, "walk", return_factory(
-            [(dylib_dir, [], ["test_lib_10_6.dynlib", "test_lib_10_6_fat.dynlib"])]
+            [(dylib_dir, [], ["test_lib_10_6.dylib", "test_lib_10_6_fat.dylib"])]
         ))
         assert get_platform(dylib_dir) == "macosx_10_9_x86_64"
         captured = capsys.readouterr()
