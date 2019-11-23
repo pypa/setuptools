@@ -1,1 +1,0 @@
-Setuptools now exposes a new entry point hook "setuptools.finalize_distribution_options", enabling plugins like `setuptools_scm <https://pypi.org/project/setuptools_scm>`_ to configure options on the distribution at finalization time.

@@ -1,2 +1,0 @@
-Add support for the ``license_files`` option in ``setup.cfg`` to automatically
-include multiple license files in a source distribution.

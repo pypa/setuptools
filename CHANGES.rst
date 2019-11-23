@@ -1,3 +1,23 @@
+v42.0.0
+-------
+
+* #1830, #1909: Mark the easy_install script and setuptools command as deprecated, and use `pip <https://pip.pypa.io/en/stable/>`_ when available to fetch/build wheels for missing ``setup_requires``/``tests_require`` requirements, with the following differences in behavior:
+   * support for ``python_requires``
+   * better support for wheels (proper handling of priority with respect to PEP 425 tags)
+   * PEP 517/518 support
+   * eggs are not supported
+   * no support for the ``allow_hosts`` easy_install option (``index_url``/``find_links`` are still honored)
+   * pip environment variables are honored (and take precedence over easy_install options)
+* #1898: Removed the "upload" and "register" commands in favor of `twine <https://pypi.org/p/twine>`_.
+* #1767: Add support for the ``license_files`` option in ``setup.cfg`` to automatically
+  include multiple license files in a source distribution.
+* #1829: Update handling of wheels compatibility tags:
+  * add support for manylinux2010
+  * fix use of removed 'm' ABI flag in Python 3.8 on Windows
+* #1861: Fix empty namespace package installation from wheel.
+* #1877: Setuptools now exposes a new entry point hook "setuptools.finalize_distribution_options", enabling plugins like `setuptools_scm <https://pypi.org/project/setuptools_scm>`_ to configure options on the distribution at finalization time.
+
+
 v41.6.0
 -------
 

@@ -1,3 +1,0 @@
-Update handling of wheels compatibility tags:
-* add support for manylinux2010
-* fix use of removed 'm' ABI flag in Python 3.8 on Windows
