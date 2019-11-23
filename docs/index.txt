@@ -21,4 +21,5 @@ Documentation content:
    python3
    development
    roadmap
+   Deprecated: Easy Install <easy_install>
    history
