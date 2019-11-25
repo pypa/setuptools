@@ -1,3 +1,9 @@
+v42.0.1
+-------
+
+* #1918: Fix regression in handling wheels compatibility tags.
+
+
 v42.0.0
 -------
 
