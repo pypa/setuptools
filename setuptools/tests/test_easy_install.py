@@ -744,6 +744,44 @@ class TestSetupRequires:
         eggs = list(map(str, pkg_resources.find_distributions(os.path.join(test_pkg, '.eggs'))))
         assert eggs == ['dep 1.0']
 
+    @pytest.mark.parametrize('use_legacy_installer,with_dependency_links_in_setup_py',
+                             itertools.product((False, True), (False, True)))
+    def test_setup_requires_with_find_links_in_setup_cfg(self, monkeypatch,
+                                                         use_legacy_installer,
+                                                         with_dependency_links_in_setup_py):
+        monkeypatch.setenv(str('PIP_RETRIES'), str('0'))
+        monkeypatch.setenv(str('PIP_TIMEOUT'), str('0'))
+        with contexts.save_pkg_resources_state():
+            with contexts.tempdir() as temp_dir:
+                make_trivial_sdist(os.path.join(temp_dir, 'python-xlib-42.tar.gz'), 'python-xlib', '42')
+                test_pkg = os.path.join(temp_dir, 'test_pkg')
+                test_setup_py = os.path.join(test_pkg, 'setup.py')
+                test_setup_cfg = os.path.join(test_pkg, 'setup.cfg')
+                os.mkdir(test_pkg)
+                with open(test_setup_py, 'w') as fp:
+                    if with_dependency_links_in_setup_py:
+                        dependency_links = [os.path.join(temp_dir, 'links')]
+                    else:
+                        dependency_links = []
+                    fp.write(DALS(
+                        '''
+                        from setuptools import installer, setup
+                        if {use_legacy_installer}:
+                            installer.fetch_build_egg = installer._legacy_fetch_build_egg
+                        setup(setup_requires='python-xlib==42',
+                        dependency_links={dependency_links!r})
+                        ''').format(use_legacy_installer=use_legacy_installer,
+                                    dependency_links=dependency_links))
+                with open(test_setup_cfg, 'w') as fp:
+                    fp.write(DALS(
+                        '''
+                        [easy_install]
+                        index_url = {index_url}
+                        find_links = {find_links}
+                        ''').format(index_url=os.path.join(temp_dir, 'index'),
+                                    find_links=temp_dir))
+                run_setup(test_setup_py, [str('--version')])
+
 
 def make_trivial_sdist(dist_path, distname, version):
     """
