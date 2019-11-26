@@ -1,5 +1,5 @@
 [build-system]
-requires = ["wheel"]
+requires = ["wheel", "setuptools>=40.8.0"]
 
 [tool.towncrier]
     package = "setuptools"
