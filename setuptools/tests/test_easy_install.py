@@ -37,6 +37,7 @@ from setuptools.tests import fail_on_ascii
 import pkg_resources
 
 from . import contexts
+from .files import build_files
 from .textwrap import DALS
 
 __metaclass__ = type
@@ -743,6 +744,49 @@ class TestSetupRequires:
             run_setup(test_setup_py, [str('--version')])
         eggs = list(map(str, pkg_resources.find_distributions(os.path.join(test_pkg, '.eggs'))))
         assert eggs == ['dep 1.0']
+
+    def test_setup_requires_with_transitive_extra_dependency(self, monkeypatch):
+        # Use case: installing a package with a build dependency on
+        # an already installed `dep[extra]`, which in turn depends
+        # on `extra_dep` (whose is not already installed).
+        with contexts.save_pkg_resources_state():
+            with contexts.tempdir() as temp_dir:
+                # Create source distribution for `extra_dep`.
+                make_trivial_sdist(os.path.join(temp_dir, 'extra_dep-1.0.tar.gz'), 'extra_dep', '1.0')
+                # Create source tree for `dep`.
+                dep_pkg = os.path.join(temp_dir, 'dep')
+                os.mkdir(dep_pkg)
+                build_files({
+                    'setup.py':
+                    DALS("""
+                          import setuptools
+                          setuptools.setup(
+                              name='dep', version='2.0',
+                              extras_require={'extra': ['extra_dep']},
+                          )
+                         """),
+                    'setup.cfg': '',
+                }, prefix=dep_pkg)
+                # "Install" dep.
+                run_setup(os.path.join(dep_pkg, 'setup.py'), [str('dist_info')])
+                working_set.add_entry(dep_pkg)
+                # Create source tree for test package.
+                test_pkg = os.path.join(temp_dir, 'test_pkg')
+                test_setup_py = os.path.join(test_pkg, 'setup.py')
+                test_setup_cfg = os.path.join(test_pkg, 'setup.cfg')
+                os.mkdir(test_pkg)
+                with open(test_setup_py, 'w') as fp:
+                    fp.write(DALS(
+                        '''
+                        from setuptools import installer, setup
+                        setup(setup_requires='dep[extra]')
+                        '''))
+                # Check...
+                monkeypatch.setenv(str('PIP_FIND_LINKS'), str(temp_dir))
+                monkeypatch.setenv(str('PIP_NO_INDEX'), str('1'))
+                monkeypatch.setenv(str('PIP_RETRIES'), str('0'))
+                monkeypatch.setenv(str('PIP_TIMEOUT'), str('0'))
+                run_setup(test_setup_py, [str('--version')])
 
 
 def make_trivial_sdist(dist_path, distname, version):

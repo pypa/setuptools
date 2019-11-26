@@ -64,8 +64,11 @@ def fetch_build_egg(dist, req):
         pkg_resources.get_distribution('wheel')
     except pkg_resources.DistributionNotFound:
         dist.announce('WARNING: The wheel package is not available.', log.WARN)
-    if not isinstance(req, pkg_resources.Requirement):
-        req = pkg_resources.Requirement.parse(req)
+    # Ignore environment markers: if we're here, it's needed. This ensure
+    # we don't try to ask pip for something like `babel; extra == "i18n"`,
+    # which would always be ignored.
+    req = pkg_resources.Requirement.parse(str(req))
+    req.marker = None
     # Take easy_install options into account, but do not override relevant
     # pip environment variables (like PIP_INDEX_URL or PIP_QUIET); they'll
     # take precedence.
