@@ -26,7 +26,6 @@ jobs:
   - <<: *latest_py3
     stage: deploy
     if: tag IS present
-    install: skip
     script: tox -e release
     after_success: skip
 
