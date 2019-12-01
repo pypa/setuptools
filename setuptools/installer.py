@@ -64,8 +64,8 @@ def fetch_build_egg(dist, req):
         pkg_resources.get_distribution('wheel')
     except pkg_resources.DistributionNotFound:
         dist.announce('WARNING: The wheel package is not available.', log.WARN)
-    if not isinstance(req, pkg_resources.Requirement):
-        req = pkg_resources.Requirement.parse(req)
+    # Ignore environment markers; if supplied, it is required.
+    req = strip_marker(req)
     # Take easy_install options into account, but do not override relevant
     # pip environment variables (like PIP_INDEX_URL or PIP_QUIET); they'll
     # take precedence.
@@ -127,3 +127,15 @@ def fetch_build_egg(dist, req):
         dist = pkg_resources.Distribution.from_filename(
             dist_location, metadata=dist_metadata)
         return dist
+
+
+def strip_marker(req):
+    """
+    Return a new requirement without the environment marker to avoid
+    calling pip with something like `babel; extra == "i18n"`, which
+    would always be ignored.
+    """
+    # create a copy to avoid mutating the input
+    req = pkg_resources.Requirement.parse(str(req))
+    req.marker = None
+    return req
