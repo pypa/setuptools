@@ -1,3 +1,10 @@
+v42.0.2
+-------
+
+* #1921: Fix support for easy_install's ``find-links`` option in ``setup.cfg``.
+* #1922: Build dependencies (setup_requires and tests_require) now install transitive dependencies indicated by extras.
+
+
 v42.0.1
 -------
 

@@ -1,1 +1,0 @@
-Build dependencies (setup_requires and tests_require) now install transitive dependencies indicated by extras.
