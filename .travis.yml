@@ -14,8 +14,7 @@ jobs:
     env: DISABLE_COVERAGE=1
   - python: 3.4
   - python: 3.5
-  - &default_py
-    python: 3.6
+  - python: 3.6
   - python: 3.7
   - &latest_py3
     python: 3.8
@@ -24,7 +23,7 @@ jobs:
   - python: 3.8-dev
   - <<: *latest_py3
     env: TOXENV=docs DISABLE_COVERAGE=1
-  - <<: *default_py
+  - <<: *latest_py3
     stage: deploy (to PyPI for tagged commits)
     if: tag IS present
     install: skip
