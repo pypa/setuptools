@@ -156,18 +156,15 @@ class easy_install(Command):
          "allow building eggs from local checkouts"),
         ('version', None, "print version information and exit"),
         ('no-find-links', None,
-         "Don't load find-links defined in packages being installed")
+         "Don't load find-links defined in packages being installed"),
+        ('user', None, "install in user site-package '%s'" % site.USER_SITE)
     ]
     boolean_options = [
         'zip-ok', 'multi-version', 'exclude-scripts', 'upgrade', 'always-copy',
         'editable',
-        'no-deps', 'local-snapshots-ok', 'version'
+        'no-deps', 'local-snapshots-ok', 'version',
+        'user'
     ]
-
-    if site.ENABLE_USER_SITE:
-        help_msg = "install in user site-package '%s'" % site.USER_SITE
-        user_options.append(('user', None, help_msg))
-        boolean_options.append('user')
 
     negative_opt = {'always-unzip': 'zip-ok'}
     create_index = PackageIndex
@@ -271,6 +268,9 @@ class easy_install(Command):
         if site.ENABLE_USER_SITE:
             self.config_vars['userbase'] = self.install_userbase
             self.config_vars['usersite'] = self.install_usersite
+
+        elif self.user:
+            log.warn("WARNING: The user site-packages directory is disabled.")
 
         self._fix_install_dir_for_user_site()
 
@@ -478,8 +478,9 @@ class easy_install(Command):
                 self.cant_write_to_target()
 
         if not is_site_dir and not self.multi_version:
-            # Can't install non-multi to non-site dir
-            raise DistutilsError(self.no_default_version_msg())
+            # Can't install non-multi to non-site dir with easy_install
+            pythonpath = os.environ.get('PYTHONPATH', '')
+            log.warn(self.__no_default_msg, self.install_dir, pythonpath)
 
         if is_site_dir:
             if self.pth_file is None:
@@ -1308,10 +1309,6 @@ class easy_install(Command):
 
 
         Please make the appropriate changes for your system and try again.""").lstrip()
-
-    def no_default_version_msg(self):
-        template = self.__no_default_msg
-        return template % (self.install_dir, os.environ.get('PYTHONPATH', ''))
 
     def install_site_py(self):
         """Make sure there's a site.py in the target dir, if needed"""
@@ -2344,4 +2341,3 @@ def _patch_usage():
 
 class EasyInstallDeprecationWarning(SetuptoolsDeprecationWarning):
     """Class for warning about deprecations in EasyInstall in SetupTools. Not ignored by default, unlike DeprecationWarning."""
-    
