@@ -1004,7 +1004,7 @@ use its resource management API.  See also `Accessing Package Resources`_ for
 a quick example of converting code that uses ``__file__`` to use
 ``pkg_resources`` instead.
 
-.. _Accessing Package Resources: http://peak.telecommunity.com/DevCenter/PythonEggs#accessing-package-resources
+.. _Accessing Package Resources: https://github.com/getnikola/nikola/issues/1229#issue-31382857
 
 
 Non-Package Data Files
