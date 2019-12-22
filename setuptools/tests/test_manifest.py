@@ -624,8 +624,5 @@ class TestFileListTest(TempDirTestCase):
         mm.warn = mock.Mock()
         mm.run()
 
-        mm.warn.assert_called_with(
-            "Either specify package_data manually, or use "
-            "include_package_data=True, but not both. Proceeding as if "
-            "package_data was not specified."
-        )
+        msg = "Distutils 'package_data' ignored due to 'include_package_data'."
+        mm.warn.assert_called_with(msg)

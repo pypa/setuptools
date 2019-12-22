@@ -136,9 +136,8 @@ class sdist(sdist_add_defaults, orig.sdist):
         """
         if self.distribution.include_package_data:
             self.warn(
-                "Either specify package_data manually, or use "
-                "include_package_data=True, but not both. Proceeding as if "
-                "package_data was not specified."
+                "Distutils 'package_data' ignored due to "
+                "'include_package_data'."
             )
             return ()
         return build_py.data_files
