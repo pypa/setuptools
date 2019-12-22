@@ -244,8 +244,8 @@ unless you need the associated ``setuptools`` feature.
 ``package_data``
     A dictionary mapping package names to lists of glob patterns.  For a
     complete description and examples, see the section below on `Including
-    Data Files`_.  You do not need to use this option if you are using
-    ``include_package_data``, and in fact the 2 options are incompatible.
+    Data Files`_.  This option is incompatible with ``include_package_data``
+    and will be ignored in that case.
 
 ``zip_safe``
     A boolean (True or False) flag specifying whether the project can be
@@ -1202,7 +1202,7 @@ the quoted part.
 Distributing a ``setuptools``-based project
 ===========================================
 
-Detailed instructions to distribute a setuptools project can be found at
+Detailed instructions to distribute a setuptools project can be found at 
 `Packaging project tutorials`_.
 
 .. _Packaging project tutorials: https://packaging.python.org/tutorials/packaging-projects/#generating-distribution-archives
@@ -1218,7 +1218,7 @@ setup.py is located::
 
 This will generate distribution archives in the `dist` directory.
 
-Before you upload the generated archives make sure you're registered on
+Before you upload the generated archives make sure you're registered on 
 https://test.pypi.org/account/register/. You will also need to verify your email
 to be able to upload any packages.
 You should install twine to be able to upload packages::
