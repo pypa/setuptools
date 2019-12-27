@@ -262,6 +262,27 @@ class TestBuildMetaBackend:
         assert os.path.isfile(
             os.path.join(os.path.abspath("out_sdist"), sdist_name))
 
+    def test_build_sdist_pyproject_toml_exists(self, tmpdir_cwd):
+        files = {
+            'setup.py': DALS("""
+                __import__('setuptools').setup(
+                    name='foo',
+                    version='0.0.0',
+                    py_modules=['hello']
+                )"""),
+            'hello.py': '',
+            'pyproject.toml': DALS("""
+                [build-system]
+                requires = ["setuptools", "wheel"]
+                build-backend = "setuptools.build_meta
+                """),
+        }
+        build_files(files)
+        build_backend = self.get_build_backend()
+        targz_path = build_backend.build_sdist("temp")
+        with tarfile.open(os.path.join("temp", targz_path)) as tar:
+            assert any('pyproject.toml' in name for name in tar.getnames())
+
     def test_build_sdist_setup_py_exists(self, tmpdir_cwd):
         # If build_sdist is called from a script other than setup.py,
         # ensure setup.py is included

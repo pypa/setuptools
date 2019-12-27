@@ -24,6 +24,8 @@ def walk_revctrl(dirname=''):
 class sdist(sdist_add_defaults, orig.sdist):
     """Smart sdist that finds anything supported by revision control"""
 
+    include_pyproject_toml = False
+
     user_options = [
         ('formats=', None,
          "formats for source distribution (comma-separated list)"),
@@ -45,6 +47,8 @@ class sdist(sdist_add_defaults, orig.sdist):
         ei_cmd = self.get_finalized_command('egg_info')
         self.filelist = ei_cmd.filelist
         self.filelist.append(os.path.join(ei_cmd.egg_info, 'SOURCES.txt'))
+        if self.include_pyproject_toml:
+            self.filelist.append('pyproject.toml')
         self.check_readme()
 
         # Run sub commands

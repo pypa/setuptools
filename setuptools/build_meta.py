@@ -36,6 +36,7 @@ import contextlib
 import setuptools
 import distutils
 from setuptools.py31compat import TemporaryDirectory
+from setuptools.command.sdist import sdist
 
 from pkg_resources import parse_requirements
 from pkg_resources.py31compat import makedirs
@@ -209,9 +210,13 @@ class _BuildMetaBackend(object):
                                          wheel_directory, config_settings)
 
     def build_sdist(self, sdist_directory, config_settings=None):
-        return self._build_with_temp_dir(['sdist', '--formats', 'gztar'],
-                                         '.tar.gz', sdist_directory,
-                                         config_settings)
+        orig, sdist.include_pyproject_toml = sdist.include_pyproject_toml, True
+        try:
+            return self._build_with_temp_dir(['sdist', '--formats', 'gztar'],
+                                             '.tar.gz', sdist_directory,
+                                             config_settings)
+        finally:
+            sdist.include_pyproject_toml = orig
 
 
 class _BuildMetaLegacyBackend(_BuildMetaBackend):
