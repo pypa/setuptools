@@ -26,7 +26,8 @@ class TestSandbox:
         """
         It should be possible to execute a setup.py with a Byte Order Mark
         """
-        target = pkg_resources.resource_filename(__name__,
+        target = pkg_resources.resource_filename(
+            __name__,
             'script-with-bom.py')
         namespace = types.ModuleType('namespace')
         setuptools.sandbox._execfile(target, vars(namespace))

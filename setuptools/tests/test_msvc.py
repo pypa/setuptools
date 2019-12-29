@@ -49,7 +49,8 @@ def mock_reg(hkcu=None, hklm=None):
             for k in hive if k.startswith(key.lower())
         )
 
-    return mock.patch.multiple(distutils.msvc9compiler.Reg,
+    return mock.patch.multiple(
+        distutils.msvc9compiler.Reg,
         read_keys=read_keys, read_values=read_values)
 
 
@@ -61,7 +62,7 @@ class TestModulePatch:
     """
 
     key_32 = r'software\microsoft\devdiv\vcforpython\9.0\installdir'
-    key_64 = r'software\wow6432node\microsoft\devdiv\vcforpython\9.0\installdir'
+    key_64 = key_32.replace(r'\microsoft', r'\wow6432node\microsoft')
 
     def test_patched(self):
         "Test the module is actually patched"

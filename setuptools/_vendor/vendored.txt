@@ -1,3 +1,4 @@
-packaging==16.8
+packaging==19.2
 pyparsing==2.2.1
 six==1.10.0
+ordered-set==3.1.1

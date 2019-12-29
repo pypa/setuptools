@@ -1,4 +1,3 @@
-import datetime
 import sys
 import ast
 import os
@@ -7,7 +6,9 @@ import re
 import stat
 import time
 
-from setuptools.command.egg_info import egg_info, manifest_maker, EggInfoDeprecationWarning, get_pkg_info_revision
+from setuptools.command.egg_info import (
+    egg_info, manifest_maker, EggInfoDeprecationWarning, get_pkg_info_revision,
+)
 from setuptools.dist import Distribution
 from setuptools.extern.six.moves import map
 
@@ -517,6 +518,253 @@ class TestEggInfo:
             pkg_info_text = pkginfo_file.read()
         assert 'Provides-Extra:' not in pkg_info_text
 
+    @pytest.mark.parametrize("files, license_in_sources", [
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_file = LICENSE
+                              """),
+            'LICENSE': "Test license"
+        }, True), # with license
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_file = INVALID_LICENSE
+                              """),
+            'LICENSE': "Test license"
+        }, False), # with an invalid license
+        ({
+            'setup.cfg': DALS("""
+                              """),
+            'LICENSE': "Test license"
+        }, False), # no license_file attribute
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_file = LICENSE
+                              """),
+            'MANIFEST.in': "exclude LICENSE",
+            'LICENSE': "Test license"
+        }, False) # license file is manually excluded
+    ])
+    def test_setup_cfg_license_file(
+            self, tmpdir_cwd, env, files, license_in_sources):
+        self._create_project()
+        build_files(files)
+
+        environment.run_setup_py(
+            cmd=['egg_info'],
+            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)])
+        )
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
+
+        with open(os.path.join(egg_info_dir, 'SOURCES.txt')) as sources_file:
+            sources_text = sources_file.read()
+
+        if license_in_sources:
+            assert 'LICENSE' in sources_text
+        else:
+            assert 'LICENSE' not in sources_text
+            assert 'INVALID_LICENSE' not in sources_text # for invalid license test
+
+    @pytest.mark.parametrize("files, incl_licenses, excl_licenses", [
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_files =
+                                  LICENSE-ABC
+                                  LICENSE-XYZ
+                              """),
+            'LICENSE-ABC': "ABC license",
+            'LICENSE-XYZ': "XYZ license"
+        }, ['LICENSE-ABC', 'LICENSE-XYZ'], []), # with licenses
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_files = LICENSE-ABC, LICENSE-XYZ
+                              """),
+            'LICENSE-ABC': "ABC license",
+            'LICENSE-XYZ': "XYZ license"
+        }, ['LICENSE-ABC', 'LICENSE-XYZ'], []), # with commas
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_files =
+                                  LICENSE-ABC
+                              """),
+            'LICENSE-ABC': "ABC license",
+            'LICENSE-XYZ': "XYZ license"
+        }, ['LICENSE-ABC'], ['LICENSE-XYZ']), # with one license
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_files =
+                              """),
+            'LICENSE-ABC': "ABC license",
+            'LICENSE-XYZ': "XYZ license"
+        }, [], ['LICENSE-ABC', 'LICENSE-XYZ']), # empty
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_files = LICENSE-XYZ
+                              """),
+            'LICENSE-ABC': "ABC license",
+            'LICENSE-XYZ': "XYZ license"
+        }, ['LICENSE-XYZ'], ['LICENSE-ABC']), # on same line
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_files =
+                                  LICENSE-ABC
+                                  INVALID_LICENSE
+                              """),
+            'LICENSE-ABC': "Test license"
+        }, ['LICENSE-ABC'], ['INVALID_LICENSE']), # with an invalid license
+        ({
+            'setup.cfg': DALS("""
+                              """),
+            'LICENSE': "Test license"
+        }, [], ['LICENSE']), # no license_files attribute
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_files = LICENSE
+                              """),
+            'MANIFEST.in': "exclude LICENSE",
+            'LICENSE': "Test license"
+        }, [], ['LICENSE']), # license file is manually excluded
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_files =
+                                  LICENSE-ABC
+                                  LICENSE-XYZ
+                              """),
+            'MANIFEST.in': "exclude LICENSE-XYZ",
+            'LICENSE-ABC': "ABC license",
+            'LICENSE-XYZ': "XYZ license"
+        }, ['LICENSE-ABC'], ['LICENSE-XYZ']) # subset is manually excluded
+    ])
+    def test_setup_cfg_license_files(
+            self, tmpdir_cwd, env, files, incl_licenses, excl_licenses):
+        self._create_project()
+        build_files(files)
+
+        environment.run_setup_py(
+            cmd=['egg_info'],
+            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)])
+        )
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
+
+        with open(os.path.join(egg_info_dir, 'SOURCES.txt')) as sources_file:
+            sources_lines = list(line.strip() for line in sources_file)
+
+        for lf in incl_licenses:
+            assert sources_lines.count(lf) == 1
+
+        for lf in excl_licenses:
+            assert sources_lines.count(lf) == 0
+
+    @pytest.mark.parametrize("files, incl_licenses, excl_licenses", [
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_file =
+                              license_files =
+                              """),
+            'LICENSE-ABC': "ABC license",
+            'LICENSE-XYZ': "XYZ license"
+        }, [], ['LICENSE-ABC', 'LICENSE-XYZ']), # both empty
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_file =
+                                  LICENSE-ABC
+                                  LICENSE-XYZ
+                              """),
+            'LICENSE-ABC': "ABC license",
+            'LICENSE-XYZ': "XYZ license"
+        }, [], ['LICENSE-ABC', 'LICENSE-XYZ']), # license_file is still singular
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_file = LICENSE-ABC
+                              license_files =
+                                  LICENSE-XYZ
+                                  LICENSE-PQR
+                              """),
+            'LICENSE-ABC': "ABC license",
+            'LICENSE-PQR': "PQR license",
+            'LICENSE-XYZ': "XYZ license"
+        }, ['LICENSE-ABC', 'LICENSE-PQR', 'LICENSE-XYZ'], []), # combined
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_file = LICENSE-ABC
+                              license_files =
+                                  LICENSE-ABC
+                                  LICENSE-XYZ
+                                  LICENSE-PQR
+                              """),
+            'LICENSE-ABC': "ABC license",
+            'LICENSE-PQR': "PQR license",
+            'LICENSE-XYZ': "XYZ license"
+        }, ['LICENSE-ABC', 'LICENSE-PQR', 'LICENSE-XYZ'], []), # duplicate license
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_file = LICENSE-ABC
+                              license_files =
+                                  LICENSE-XYZ
+                              """),
+            'LICENSE-ABC': "ABC license",
+            'LICENSE-PQR': "PQR license",
+            'LICENSE-XYZ': "XYZ license"
+        }, ['LICENSE-ABC', 'LICENSE-XYZ'], ['LICENSE-PQR']), # combined subset
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_file = LICENSE-ABC
+                              license_files =
+                                  LICENSE-XYZ
+                                  LICENSE-PQR
+                              """),
+            'LICENSE-PQR': "Test license"
+        }, ['LICENSE-PQR'], ['LICENSE-ABC', 'LICENSE-XYZ']), # with invalid licenses
+        ({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_file = LICENSE-ABC
+                              license_files =
+                                LICENSE-PQR
+                                LICENSE-XYZ
+                              """),
+            'MANIFEST.in': "exclude LICENSE-ABC\nexclude LICENSE-PQR",
+            'LICENSE-ABC': "ABC license",
+            'LICENSE-PQR': "PQR license",
+            'LICENSE-XYZ': "XYZ license"
+        }, ['LICENSE-XYZ'], ['LICENSE-ABC', 'LICENSE-PQR']) # manually excluded
+    ])
+    def test_setup_cfg_license_file_license_files(
+            self, tmpdir_cwd, env, files, incl_licenses, excl_licenses):
+        self._create_project()
+        build_files(files)
+
+        environment.run_setup_py(
+            cmd=['egg_info'],
+            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)])
+        )
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
+
+        with open(os.path.join(egg_info_dir, 'SOURCES.txt')) as sources_file:
+            sources_lines = list(line.strip() for line in sources_file)
+
+        for lf in incl_licenses:
+            assert sources_lines.count(lf) == 1
+
+        for lf in excl_licenses:
+            assert sources_lines.count(lf) == 0
+
     def test_long_description_content_type(self, tmpdir_cwd, env):
         # Test that specifying a `long_description_content_type` keyword arg to
         # the `setup` function results in writing a `Description-Content-Type`
@@ -572,6 +820,7 @@ class TestEggInfo:
         assert expected_line in pkg_info_lines
         expected_line = 'Project-URL: Link Two, https://example.com/two/'
         assert expected_line in pkg_info_lines
+        assert 'Metadata-Version: 1.2' in pkg_info_lines
 
     def test_python_requires_egg_info(self, tmpdir_cwd, env):
         self._setup_script_with_requires(
@@ -651,3 +900,49 @@ class TestEggInfo:
 
     def test_get_pkg_info_revision_deprecated(self):
         pytest.warns(EggInfoDeprecationWarning, get_pkg_info_revision)
+
+    EGG_INFO_TESTS = (
+        # Check for issue #1136: invalid string type when
+        # reading declarative `setup.cfg` under Python 2.
+        {
+            'setup.py': DALS(
+                """
+                from setuptools import setup
+                setup(
+                    name="foo",
+                )
+                """),
+            'setup.cfg': DALS(
+                """
+                [options]
+                package_dir =
+                    = src
+                """),
+            'src': {},
+        },
+        # Check Unicode can be used in `setup.py` under Python 2.
+        {
+            'setup.py': DALS(
+                """
+                # -*- coding: utf-8 -*-
+                from __future__ import unicode_literals
+                from setuptools import setup, find_packages
+                setup(
+                    name="foo",
+                    package_dir={'': 'src'},
+                )
+                """),
+            'src': {},
+        }
+    )
+
+    @pytest.mark.parametrize('package_files', EGG_INFO_TESTS)
+    def test_egg_info(self, tmpdir_cwd, env, package_files):
+        """
+        """
+        build_files(package_files)
+        code, data = environment.run_setup_py(
+            cmd=['egg_info'],
+            data_stream=1,
+        )
+        assert not code, data

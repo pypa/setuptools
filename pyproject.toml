@@ -1,6 +1,7 @@
 [build-system]
-requires = ["wheel"]
+requires = ["setuptools >= 40.8", "wheel"]
 build-backend = "setuptools.build_meta"
+backend-path = ["."]
 
 [tool.towncrier]
     package = "setuptools"

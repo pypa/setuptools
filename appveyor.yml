@@ -3,6 +3,7 @@ clone_depth: 50
 environment:
 
   APPVEYOR: True
+  NETWORK_REQUIRED: True
   CODECOV_ENV: APPVEYOR_JOB_NAME
 
   matrix:
@@ -25,7 +26,7 @@ cache:
 test_script:
   - python --version
   - python -m pip install --disable-pip-version-check --upgrade pip setuptools wheel
-  - pip install --upgrade tox tox-venv
+  - pip install --upgrade tox tox-venv virtualenv
   - pip freeze --all
   - python bootstrap.py
   - tox -- --cov

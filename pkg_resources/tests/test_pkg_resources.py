@@ -17,6 +17,8 @@ try:
 except ImportError:
     import mock
 
+from pkg_resources import DistInfoDistribution, Distribution, EggInfoDistribution
+from setuptools.extern import six
 from pkg_resources.extern.six.moves import map
 from pkg_resources.extern.six import text_type, string_types
 
@@ -93,7 +95,6 @@ class TestZipProvider:
 
         expected_root = ['data.dat', 'mod.py', 'subdir']
         assert sorted(zp.resource_listdir('')) == expected_root
-        assert sorted(zp.resource_listdir('/')) == expected_root
 
         expected_subdir = ['data2.dat', 'mod2.py']
         assert sorted(zp.resource_listdir('subdir')) == expected_subdir
@@ -106,7 +107,6 @@ class TestZipProvider:
         zp2 = pkg_resources.ZipProvider(mod2)
 
         assert sorted(zp2.resource_listdir('')) == expected_subdir
-        assert sorted(zp2.resource_listdir('/')) == expected_subdir
 
         assert zp2.resource_listdir('subdir') == []
         assert zp2.resource_listdir('subdir/') == []
@@ -190,6 +190,142 @@ class TestResourceManager:
         )
         cmd = [sys.executable, '-c', '; '.join(lines)]
         subprocess.check_call(cmd)
+
+
+def make_test_distribution(metadata_path, metadata):
+    """
+    Make a test Distribution object, and return it.
+
+    :param metadata_path: the path to the metadata file that should be
+        created. This should be inside a distribution directory that should
+        also be created. For example, an argument value might end with
+        "<project>.dist-info/METADATA".
+    :param metadata: the desired contents of the metadata file, as bytes.
+    """
+    dist_dir = os.path.dirname(metadata_path)
+    os.mkdir(dist_dir)
+    with open(metadata_path, 'wb') as f:
+        f.write(metadata)
+    dists = list(pkg_resources.distributions_from_metadata(dist_dir))
+    dist, = dists
+
+    return dist
+
+
+def test_get_metadata__bad_utf8(tmpdir):
+    """
+    Test a metadata file with bytes that can't be decoded as utf-8.
+    """
+    filename = 'METADATA'
+    # Convert the tmpdir LocalPath object to a string before joining.
+    metadata_path = os.path.join(str(tmpdir), 'foo.dist-info', filename)
+    # Encode a non-ascii string with the wrong encoding (not utf-8).
+    metadata = 'née'.encode('iso-8859-1')
+    dist = make_test_distribution(metadata_path, metadata=metadata)
+
+    if six.PY2:
+        # In Python 2, get_metadata() doesn't do any decoding.
+        actual = dist.get_metadata(filename)
+        assert actual == metadata
+        return
+
+    # Otherwise, we are in the Python 3 case.
+    with pytest.raises(UnicodeDecodeError) as excinfo:
+        dist.get_metadata(filename)
+
+    exc = excinfo.value
+    actual = str(exc)
+    expected = (
+        # The error message starts with "'utf-8' codec ..." However, the
+        # spelling of "utf-8" can vary (e.g. "utf8") so we don't include it
+        "codec can't decode byte 0xe9 in position 1: "
+        'invalid continuation byte in METADATA file at path: '
+    )
+    assert expected in actual, 'actual: {}'.format(actual)
+    assert actual.endswith(metadata_path), 'actual: {}'.format(actual)
+
+
+# TODO: remove this in favor of Path.touch() when Python 2 is dropped.
+def touch_file(path):
+    """
+    Create an empty file.
+    """
+    with open(path, 'w'):
+        pass
+
+
+def make_distribution_no_version(tmpdir, basename):
+    """
+    Create a distribution directory with no file containing the version.
+    """
+    # Convert the LocalPath object to a string before joining.
+    dist_dir = os.path.join(str(tmpdir), basename)
+    os.mkdir(dist_dir)
+    # Make the directory non-empty so distributions_from_metadata()
+    # will detect it and yield it.
+    touch_file(os.path.join(dist_dir, 'temp.txt'))
+
+    dists = list(pkg_resources.distributions_from_metadata(dist_dir))
+    assert len(dists) == 1
+    dist, = dists
+
+    return dist, dist_dir
+
+
+@pytest.mark.parametrize(
+    'suffix, expected_filename, expected_dist_type',
+    [
+        ('egg-info', 'PKG-INFO', EggInfoDistribution),
+        ('dist-info', 'METADATA', DistInfoDistribution),
+    ],
+)
+def test_distribution_version_missing(tmpdir, suffix, expected_filename,
+    expected_dist_type):
+    """
+    Test Distribution.version when the "Version" header is missing.
+    """
+    basename = 'foo.{}'.format(suffix)
+    dist, dist_dir = make_distribution_no_version(tmpdir, basename)
+
+    expected_text = (
+        "Missing 'Version:' header and/or {} file at path: "
+    ).format(expected_filename)
+    metadata_path = os.path.join(dist_dir, expected_filename)
+
+    # Now check the exception raised when the "version" attribute is accessed.
+    with pytest.raises(ValueError) as excinfo:
+        dist.version
+
+    err = str(excinfo.value)
+    # Include a string expression after the assert so the full strings
+    # will be visible for inspection on failure.
+    assert expected_text in err, str((expected_text, err))
+
+    # Also check the args passed to the ValueError.
+    msg, dist = excinfo.value.args
+    assert expected_text in msg
+    # Check that the message portion contains the path.
+    assert metadata_path in msg, str((metadata_path, msg))
+    assert type(dist) == expected_dist_type
+
+
+def test_distribution_version_missing_undetected_path():
+    """
+    Test Distribution.version when the "Version" header is missing and
+    the path can't be detected.
+    """
+    # Create a Distribution object with no metadata argument, which results
+    # in an empty metadata provider.
+    dist = Distribution('/foo')
+    with pytest.raises(ValueError) as excinfo:
+        dist.version
+
+    msg, dist = excinfo.value.args
+    expected = (
+        "Missing 'Version:' header and/or PKG-INFO file at path: "
+        '[could not detect]'
+    )
+    assert msg == expected
 
 
 class TestDeepVersionLookupDistutils:
