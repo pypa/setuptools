@@ -21,12 +21,6 @@ def pip(args):
     pypath = pypath.split(os.pathsep) if pypath is not None else []
     pypath.insert(0, TOX_PIP_DIR)
     os.environ['PYTHONPATH'] = os.pathsep.join(pypath)
-    # Disable PEP 517 support when using editable installs.
-    for n, a in enumerate(args):
-        if not a.startswith('-'):
-            if a in 'install' and '-e' in args[n:]:
-                args.insert(n + 1, '--no-use-pep517')
-            break
     # Fix call for setuptools editable install.
     for n, a in enumerate(args):
         if a == '.':
