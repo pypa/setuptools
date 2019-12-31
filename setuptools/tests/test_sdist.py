@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """sdist tests"""
 
+from __future__ import print_function
+
 import os
 import shutil
 import sys
