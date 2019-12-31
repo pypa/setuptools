@@ -98,7 +98,6 @@ def touch(path):
 class TestSdistTest:
     @pytest.fixture(autouse=True)
     def source_dir(self, tmpdir):
-        self.temp_dir = str(tmpdir)
         (tmpdir / 'setup.py').write_text(SETUP_PY, encoding='utf-8')
 
         # Set up the rest of the test package
@@ -176,14 +175,14 @@ class TestSdistTest:
         manifest = cmd.filelist.files
         assert 'setup.py' not in manifest
 
-    def test_defaults_case_sensitivity(self):
+    def test_defaults_case_sensitivity(self, tmpdir):
         """
         Make sure default files (README.*, etc.) are added in a case-sensitive
         way to avoid problems with packages built on Windows.
         """
 
-        open(os.path.join(self.temp_dir, 'readme.rst'), 'w').close()
-        open(os.path.join(self.temp_dir, 'SETUP.cfg'), 'w').close()
+        touch(tmpdir / 'readme.rst')
+        touch(tmpdir / 'SETUP.cfg')
 
         dist = Distribution(SETUP_ATTRS)
         # the extension deliberately capitalized for this test
@@ -450,11 +449,11 @@ class TestSdistTest:
             except UnicodeDecodeError:
                 filename not in cmd.filelist.files
 
-    def test_pyproject_toml_in_sdist(self):
+    def test_pyproject_toml_in_sdist(self, tmpdir):
         """
         Check if pyproject.toml is included in source distribution if present
         """
-        open(os.path.join(self.temp_dir, 'pyproject.toml'), 'w').close()
+        touch(tmpdir / 'pyproject.toml')
         dist = Distribution(SETUP_ATTRS)
         dist.script_name = 'setup.py'
         cmd = sdist(dist)
@@ -464,11 +463,11 @@ class TestSdistTest:
         manifest = cmd.filelist.files
         assert 'pyproject.toml' in manifest
 
-    def test_pyproject_toml_excluded(self):
+    def test_pyproject_toml_excluded(self, tmpdir):
         """
         Check that pyproject.toml can excluded even if present
         """
-        open(os.path.join(self.temp_dir, 'pyproject.toml'), 'w').close()
+        touch(tmpdir / 'pyproject.toml')
         with open('MANIFEST.in', 'w') as mts:
             print('exclude pyproject.toml', file=mts)
         dist = Distribution(SETUP_ATTRS)
