@@ -91,30 +91,29 @@ fail_on_latin1_encoded_filenames = pytest.mark.xfail(
 )
 
 
+def touch(path):
+    path.write_text('', encoding='utf-8')
+
+
 class TestSdistTest:
-    def setup_method(self, method):
-        self.temp_dir = tempfile.mkdtemp()
-        with open(os.path.join(self.temp_dir, 'setup.py'), 'w') as f:
-            f.write(SETUP_PY)
+    @pytest.fixture(autouse=True)
+    def source_dir(self, tmpdir):
+        self.temp_dir = str(tmpdir)
+        (tmpdir / 'setup.py').write_text(SETUP_PY, encoding='utf-8')
 
         # Set up the rest of the test package
-        test_pkg = os.path.join(self.temp_dir, 'sdist_test')
-        os.mkdir(test_pkg)
-        data_folder = os.path.join(self.temp_dir, "d")
-        os.mkdir(data_folder)
+        test_pkg = tmpdir / 'sdist_test'
+        test_pkg.mkdir()
+        data_folder = tmpdir / 'd'
+        data_folder.mkdir()
         # *.rst was not included in package_data, so c.rst should not be
         # automatically added to the manifest when not under version control
-        for fname in ['__init__.py', 'a.txt', 'b.txt', 'c.rst',
-                      os.path.join(data_folder, "e.dat")]:
-            # Just touch the files; their contents are irrelevant
-            open(os.path.join(test_pkg, fname), 'w').close()
+        for fname in ['__init__.py', 'a.txt', 'b.txt', 'c.rst']:
+            touch(test_pkg / fname)
+        touch(data_folder / 'e.dat')
 
-        self.old_cwd = os.getcwd()
-        os.chdir(self.temp_dir)
-
-    def teardown_method(self, method):
-        os.chdir(self.old_cwd)
-        shutil.rmtree(self.temp_dir)
+        with tmpdir.as_cwd():
+            yield
 
     def test_package_data_in_sdist(self):
         """Regression test for pull request #4: ensures that files listed in
