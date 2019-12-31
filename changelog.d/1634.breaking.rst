@@ -1,0 +1,1 @@
+Include ``pyproject.toml`` in source distribution by default. Projects relying on the previous behavior where ``pyproject.toml`` was excluded by default should stop relying on that behavior or add ``exclude pyproject.toml`` to their MANIFEST.in file.

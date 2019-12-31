@@ -121,6 +121,14 @@ class sdist(sdist_add_defaults, orig.sdist):
     if has_leaky_handle:
         read_template = __read_template_hack
 
+    def _add_defaults_optional(self):
+        if six.PY2:
+            sdist_add_defaults._add_defaults_optional(self)
+        else:
+            super()._add_defaults_optional()
+        if os.path.isfile('pyproject.toml'):
+            self.filelist.append('pyproject.toml')
+
     def _add_defaults_python(self):
         """getting python files"""
         if self.distribution.has_pure_modules():

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """sdist tests"""
 
+from __future__ import print_function
+
 import os
 import shutil
 import sys
@@ -448,6 +450,36 @@ class TestSdistTest:
                 assert filename in cmd.filelist.files
             except UnicodeDecodeError:
                 filename not in cmd.filelist.files
+
+    def test_pyproject_toml_in_sdist(self):
+        """
+        Check if pyproject.toml is included in source distribution if present
+        """
+        open(os.path.join(self.temp_dir, 'pyproject.toml'), 'w').close()
+        dist = Distribution(SETUP_ATTRS)
+        dist.script_name = 'setup.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+        with quiet():
+            cmd.run()
+        manifest = cmd.filelist.files
+        assert 'pyproject.toml' in manifest
+
+    def test_pyproject_toml_excluded(self):
+        """
+        Check that pyproject.toml can excluded even if present
+        """
+        open(os.path.join(self.temp_dir, 'pyproject.toml'), 'w').close()
+        with open('MANIFEST.in', 'w') as mts:
+            print('exclude pyproject.toml', file=mts)
+        dist = Distribution(SETUP_ATTRS)
+        dist.script_name = 'setup.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+        with quiet():
+            cmd.run()
+        manifest = cmd.filelist.files
+        assert 'pyproject.toml' not in manifest
 
 
 def test_default_revctrl():
