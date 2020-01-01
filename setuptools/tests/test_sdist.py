@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """sdist tests"""
 
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 
 import os
 import sys
@@ -229,10 +229,6 @@ class TestSdistTest:
         u_contents = contents.decode('UTF-8')
 
         # The manifest should contain the UTF-8 filename
-        if six.PY2:
-            fs_enc = sys.getfilesystemencoding()
-            filename = filename.decode(fs_enc)
-
         assert posix(filename) in u_contents
 
     @py3_only
