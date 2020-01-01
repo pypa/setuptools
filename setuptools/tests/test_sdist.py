@@ -369,7 +369,7 @@ class TestSdistTest:
     @fail_on_latin1_encoded_filenames
     def test_sdist_with_utf8_encoded_filename(self):
         # Test for #303.
-        dist = Distribution(SETUP_ATTRS)
+        dist = Distribution(self.make_strings(SETUP_ATTRS))
         dist.script_name = 'setup.py'
         cmd = sdist(dist)
         cmd.ensure_finalized()
@@ -400,10 +400,19 @@ class TestSdistTest:
         else:
             assert filename in cmd.filelist.files
 
+    @classmethod
+    def make_strings(cls, item):
+        if isinstance(item, dict):
+            return {
+                key: cls.make_strings(value) for key, value in item.items()}
+        if isinstance(item, list):
+            return list(map(cls.make_strings, item))
+        return str(item)
+
     @fail_on_latin1_encoded_filenames
     def test_sdist_with_latin1_encoded_filename(self):
         # Test for #303.
-        dist = Distribution(SETUP_ATTRS)
+        dist = Distribution(self.make_strings(SETUP_ATTRS))
         dist.script_name = 'setup.py'
         cmd = sdist(dist)
         cmd.ensure_finalized()
