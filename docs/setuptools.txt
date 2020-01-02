@@ -1000,11 +1000,11 @@ and Python Eggs.  It is strongly recommended that, if you are using data files,
 you should use the :ref:`ResourceManager API` of ``pkg_resources`` to access
 them.  The ``pkg_resources`` module is distributed as part of setuptools, so if
 you're using setuptools to distribute your package, there is no reason not to
-use its resource management API.  See also `Accessing Package Resources`_ for
+use its resource management API.  See also `Importlib Resources`_ for
 a quick example of converting code that uses ``__file__`` to use
 ``pkg_resources`` instead.
 
-.. _Accessing Package Resources: http://peak.telecommunity.com/DevCenter/PythonEggs#accessing-package-resources
+.. _Importlib Resources: https://docs.python.org/3/library/importlib.html#module-importlib.resources
 
 
 Non-Package Data Files
