@@ -4,14 +4,8 @@ language: python
 jobs:
   fast_finish: true
   include:
-  - &latest_py2
-    python: 2.7
-  - <<: *latest_py2
-    env: LANG=C
-  - python: pypy
-    env: DISABLE_COVERAGE=1  # Don't run coverage on pypy (too slow).
   - python: pypy3
-    env: DISABLE_COVERAGE=1
+    env: DISABLE_COVERAGE=1  # Don't run coverage on pypy (too slow).
   - python: 3.5
   - python: 3.6
   - python: 3.7
