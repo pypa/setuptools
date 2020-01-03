@@ -53,7 +53,7 @@ LC_VERSION_MIN_MACOSX = 0x24
 LC_BUILD_VERSION = 0x32
 
 
-mach_header_fields = _fields_ = [
+mach_header_fields = [
         ("magic", ctypes.c_uint32), ("cputype", ctypes.c_int),
         ("cpusubtype", ctypes.c_int), ("filetype", ctypes.c_uint32),
         ("ncmds", ctypes.c_uint32), ("sizeofcmds", ctypes.c_uint32),
@@ -265,9 +265,6 @@ def extract_macosx_min_system_version(path_to_lib):
 
             fat_arch_list = [read_data(FatArch, lib_file) for _ in range(fat_header.nfat_arch)]
 
-            class SegmentBase(BaseClass):
-                _fields_ = segment_base_fields
-
             versions_list = []
             for el in fat_arch_list:
                 try:
@@ -304,21 +301,16 @@ def read_mach_header(lib_file, seek=None):
 
     class SegmentBase(base_class):
         _fields_ = segment_base_fields
+
     if arch == "32":
 
         class MachHeader(base_class):
             _fields_ = mach_header_fields
 
-        class SegmentCommand(base_class):
-            _fields_ = segment_command_fields
-
     else:
 
         class MachHeader(base_class):
             _fields_ = mach_header_fields_64
-
-        class SegmentCommand(base_class):
-            _fields_ = segment_command_fields_64
 
     mach_header = read_data(MachHeader, lib_file)
     for _i in range(mach_header.ncmds):
@@ -343,8 +335,7 @@ def read_mach_header(lib_file, seek=None):
 
 
 def parse_version(version):
-    zz = version & 2**9-1
-    version >>= 8
-    yy = version & 2**9-1
-    version >>= 8
-    return version, yy, zz
+    x = (version & 0xffff0000) >> 16
+    y = (version & 0x0000ff00) >> 8
+    z = (version & 0x000000ff)
+    return x, y, z
