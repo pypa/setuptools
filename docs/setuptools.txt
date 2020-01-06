@@ -1233,7 +1233,7 @@ You should install twine to be able to upload packages::
 
 Now, to upload these archives, run::
 
-    twine upload --repository-url https://test.pypi.org/simple/ dist/*
+    twine upload --repository-url https://test.pypi.org/legacy/ dist/*
 
 To install your newly uploaded package ``example_pkg``,  you can use pip::
 
