@@ -571,7 +571,7 @@ class Distribution(_Distribution):
         from setuptools.extern.six.moves.configparser import ConfigParser
 
         # Ignore install directory options if we have a venv
-        if six.PY3 and sys.prefix != sys.base_prefix:
+        if not six.PY2 and sys.prefix != sys.base_prefix:
             ignore_options = [
                 'install-base', 'install-platbase', 'install-lib',
                 'install-platlib', 'install-purelib', 'install-headers',
@@ -593,7 +593,7 @@ class Distribution(_Distribution):
             with io.open(filename, encoding='utf-8') as reader:
                 if DEBUG:
                     self.announce("  reading {filename}".format(**locals()))
-                (parser.read_file if six.PY3 else parser.readfp)(reader)
+                (parser.readfp if six.PY2 else parser.read_file)(reader)
             for section in parser.sections():
                 options = parser.options(section)
                 opt_dict = self.get_option_dict(section)
@@ -636,7 +636,7 @@ class Distribution(_Distribution):
 
         Ref #1653
         """
-        if six.PY3:
+        if not six.PY2:
             return val
         try:
             return val.encode()
