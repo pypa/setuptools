@@ -1,3 +1,4 @@
+import os
 import subprocess
 import sys
 
@@ -14,6 +15,10 @@ def remove_setuptools():
 
 
 def pip(args):
+    # Honor requires-python when installing test suite dependencies
+    if any('-r' in arg for arg in args):
+        os.environ['PIP_IGNORE_REQUIRES_PYTHON'] = '0'
+
     # When installing '.', remove setuptools
     '.' in args and remove_setuptools()
 
