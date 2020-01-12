@@ -51,7 +51,7 @@ def quiet():
 
 # Convert to POSIX path
 def posix(path):
-    if six.PY3 and not isinstance(path, str):
+    if not six.PY2 and not isinstance(path, str):
         return path.replace(os.sep.encode('ascii'), b'/')
     else:
         return path.replace(os.sep, '/')
@@ -329,7 +329,7 @@ class TestSdistTest:
             cmd.read_manifest()
 
         # The filelist should contain the UTF-8 filename
-        if six.PY3:
+        if not six.PY2:
             filename = filename.decode('utf-8')
         assert filename in cmd.filelist.files
 
@@ -383,7 +383,7 @@ class TestSdistTest:
         if sys.platform == 'darwin':
             filename = decompose(filename)
 
-        if six.PY3:
+        if not six.PY2:
             fs_enc = sys.getfilesystemencoding()
 
             if sys.platform == 'win32':
@@ -425,7 +425,19 @@ class TestSdistTest:
         with quiet():
             cmd.run()
 
-        if six.PY3:
+        if six.PY2:
+            # Under Python 2 there seems to be no decoded string in the
+            # filelist.  However, due to decode and encoding of the
+            # file name to get utf-8 Manifest the latin1 maybe excluded
+            try:
+                # fs_enc should match how one is expect the decoding to
+                # be proformed for the manifest output.
+                fs_enc = sys.getfilesystemencoding()
+                filename.decode(fs_enc)
+                assert filename in cmd.filelist.files
+            except UnicodeDecodeError:
+                filename not in cmd.filelist.files
+        else:
             # not all windows systems have a default FS encoding of cp1252
             if sys.platform == 'win32':
                 # Latin-1 is similar to Windows-1252 however
@@ -439,18 +451,6 @@ class TestSdistTest:
             else:
                 # The Latin-1 filename should have been skipped
                 filename = filename.decode('latin-1')
-                filename not in cmd.filelist.files
-        else:
-            # Under Python 2 there seems to be no decoded string in the
-            # filelist.  However, due to decode and encoding of the
-            # file name to get utf-8 Manifest the latin1 maybe excluded
-            try:
-                # fs_enc should match how one is expect the decoding to
-                # be proformed for the manifest output.
-                fs_enc = sys.getfilesystemencoding()
-                filename.decode(fs_enc)
-                assert filename in cmd.filelist.files
-            except UnicodeDecodeError:
                 filename not in cmd.filelist.files
 
     def test_pyproject_toml_in_sdist(self, tmpdir):
