@@ -1,1 +1,0 @@
-Drop support for Python 2. Setuptools now requires Python 3.5 or later. Install setuptools using pip >=9 or pin to Setuptools <45 to maintain 2.7 support.

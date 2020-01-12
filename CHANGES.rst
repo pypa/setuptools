@@ -1,3 +1,10 @@
+v45.0.0
+-------
+
+* #1458: Drop support for Python 2. Setuptools now requires Python 3.5 or later. Install setuptools using pip >=9 or pin to Setuptools <45 to maintain 2.7 support.
+* #1959: Fix for Python 4: replace unsafe six.PY3 with six.PY2
+
+
 v44.0.0
 -------
 
