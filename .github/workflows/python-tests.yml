@@ -22,7 +22,7 @@ jobs:
         os:
         - ubuntu-18.04
         - ubuntu-16.04
-        - macOS-10.14
+        - macOS-latest
         # - windows-2019
         # - windows-2016
         env:
