@@ -1800,7 +1800,7 @@ to support "daily builds" or "snapshot" releases.  It is run automatically by
 the ``sdist``, ``bdist_egg``, ``develop``, and ``test`` commands in order to
 update the project's metadata, but you can also specify it explicitly in order
 to temporarily change the project's version string while executing other
-commands.  (It also generates the``.egg-info/SOURCES.txt`` manifest file, which
+commands.  (It also generates the ``.egg-info/SOURCES.txt`` manifest file, which
 is used when you are building source distributions.)
 
 In addition to writing the core egg metadata defined by ``setuptools`` and
@@ -1848,7 +1848,7 @@ binary distributions of your project, you should first make sure that you know
 how the resulting version numbers will be interpreted by automated tools
 like pip.  See the section above on `Specifying Your Project's Version`_ for an
 explanation of pre- and post-release tags, as well as tips on how to choose and
-verify a versioning scheme for your your project.)
+verify a versioning scheme for your project.)
 
 For advanced uses, there is one other option that can be set, to change the
 location of the project's ``.egg-info`` directory.  Commands that need to find
