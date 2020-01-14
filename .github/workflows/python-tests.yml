@@ -33,6 +33,14 @@ jobs:
       uses: actions/setup-python@v1.1.1
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Cache pip
+      uses: actions/cache@v1
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('docs/requirements.txt') }}-${{ hashFiles('tests/requirements.txt') }}-${{ hashFiles('tox.ini') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          ${{ runner.os }}-
     - name: Upgrade pip/setuptools/wheel
       run: >-
         python
