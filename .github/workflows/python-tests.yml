@@ -27,6 +27,9 @@ jobs:
         env:
         - TOXENV: python
 
+    env:
+      TOX_PARALLEL_NO_SPINNER: 1
+
     steps:
     - uses: actions/checkout@master
     - name: Set up Python ${{ matrix.python-version }}
