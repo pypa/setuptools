@@ -39,6 +39,9 @@ jobs:
     - name: Log Python version
       run: >-
         python --version
+    - name: Log Python location
+      run: >-
+        which python
     - name: Cache pip
       uses: actions/cache@v1
       with:
