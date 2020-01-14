@@ -406,6 +406,28 @@ class TestBuildMetaBackend:
 
         assert expected == sorted(actual)
 
+    _sys_argv_0_passthrough = {
+        'setup.py': DALS("""
+            import os
+            import sys
+
+            __import__('setuptools').setup(
+                name='foo',
+                version='0.0.0',
+            )
+
+            sys_argv = os.path.abspath(sys.argv[0])
+            file_path = os.path.abspath('setup.py')
+            assert sys_argv == file_path
+            """)
+    }
+
+    def test_sys_argv_passthrough(self, tmpdir_cwd):
+        build_files(self._sys_argv_0_passthrough)
+        build_backend = self.get_build_backend()
+        with pytest.raises(AssertionError):
+            build_backend.build_sdist("temp")
+
 
 class TestBuildMetaLegacyBackend(TestBuildMetaBackend):
     backend_name = 'setuptools.build_meta:__legacy__'
@@ -414,6 +436,12 @@ class TestBuildMetaLegacyBackend(TestBuildMetaBackend):
     def test_build_sdist_relative_path_import(self, tmpdir_cwd):
         # This must fail in build_meta, but must pass in build_meta_legacy
         build_files(self._relative_path_import_files)
+
+        build_backend = self.get_build_backend()
+        build_backend.build_sdist("temp")
+
+    def test_sys_argv_passthrough(self, tmpdir_cwd):
+        build_files(self._sys_argv_0_passthrough)
 
         build_backend = self.get_build_backend()
         build_backend.build_sdist("temp")

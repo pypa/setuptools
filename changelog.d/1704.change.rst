@@ -1,0 +1,1 @@
+Set sys.argv[0] in setup script run by build_meta.__legacy__
