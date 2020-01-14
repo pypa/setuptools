@@ -77,13 +77,13 @@ jobs:
 
     - name: 'Initialize tox envs: ${{ matrix.env.TOXENV }}'
       run: |
-        ${{ startsWith(matrix.os, 'windows-') && 'setx TOXENV ' || 'export TOXENV=' }}${{ ('2.7' == matrix.python-version || 'pypy2' == matrix.python-version) && 'py27' || '$TOXENV' }}
+        ${{ startsWith(matrix.os, 'windows-') && 'setx TOXENV ' || 'export TOXENV=' }}${{ ('2.7' == matrix.python-version && 'py27') || ('pypy2' == matrix.python-version && 'pypy2') || '$TOXENV' }}
         python -m tox --parallel auto --notest --skip-missing-interpreters false
       env: ${{ matrix.env }}
     - name: Test with tox
       run: |
         ${{ startsWith(matrix.os, 'windows-') && 'setx NETWORK_REQUIRED ' || 'export NETWORK_REQUIRED=' }}1
-        ${{ startsWith(matrix.os, 'windows-') && 'setx TOXENV ' || 'export TOXENV=' }}${{ ('2.7' == matrix.python-version || 'pypy2' == matrix.python-version) && 'py27' || '$TOXENV' }}
+        ${{ startsWith(matrix.os, 'windows-') && 'setx TOXENV ' || 'export TOXENV=' }}${{ ('2.7' == matrix.python-version && 'py27') || ('pypy2' == matrix.python-version && 'pypy2') || '$TOXENV' }}
         python -m tox \
         --parallel 0 \
         -- \
