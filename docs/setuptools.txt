@@ -88,7 +88,7 @@ packages in the directory where the setup.py lives.  See the `Command
 Reference`_ section below to see what commands you can give to this setup
 script. For example, to produce a source distribution, simply invoke::
 
-    python setup.py sdist
+    setup.py sdist
 
 Of course, before you release your project to PyPI, you'll want to add a bit
 more information to your setup script to help people find or learn about your
@@ -1220,7 +1220,7 @@ Before you begin, make sure you have the latest versions of setuptools and wheel
 To build a setuptools project, run this command from the same directory where
 setup.py is located::
 
-    python3 setup.py sdist bdist_wheel
+    setup.py sdist bdist_wheel
 
 This will generate distribution archives in the `dist` directory.
 
@@ -1469,7 +1469,7 @@ tagging the release, so the trunk will still produce development snapshots.
 Alternately, if you are not branching for releases, you can override the
 default version options on the command line, using something like::
 
-    python setup.py egg_info -Db "" sdist bdist_egg
+    setup.py egg_info -Db "" sdist bdist_egg
 
 The first part of this command (``egg_info -Db ""``) will override the
 configured tag information, before creating source and binary eggs. Thus, these
@@ -1479,11 +1479,11 @@ build designation string.
 Of course, if you will be doing this a lot, you may wish to create a personal
 alias for this operation, e.g.::
 
-    python setup.py alias -u release egg_info -Db ""
+    setup.py alias -u release egg_info -Db ""
 
 You can then use it like this::
 
-    python setup.py release sdist bdist_egg
+    setup.py release sdist bdist_egg
 
 Or of course you can create more elaborate aliases that do all of the above.
 See the sections below on the `egg_info`_ and `alias`_ commands for more ideas.
@@ -1873,12 +1873,12 @@ Other ``egg_info`` Options
 
 Creating a dated "nightly build" snapshot egg::
 
-    python setup.py egg_info --tag-date --tag-build=DEV bdist_egg
+    setup.py egg_info --tag-date --tag-build=DEV bdist_egg
 
 Creating a release with no version tags, even if some default tags are
 specified in ``setup.cfg``::
 
-    python setup.py egg_info -RDb "" sdist bdist_egg
+    setup.py egg_info -RDb "" sdist bdist_egg
 
 (Notice that ``egg_info`` must always appear on the command line *before* any
 commands that you want the version changes to apply to.)
