@@ -709,6 +709,10 @@ If you want to disregard the version, you have to omit it both in the
 This will do a checkout (or a clone, in Git and Mercurial parlance) to a
 temporary folder and run ``setup.py bdist_egg``.
 
+You can also specify a local dependency on your machine by using the URL format:
+
+    ``package @ file://path/to/your/package``
+
 The ``dependency_links`` option takes the form of a list of URL strings.  For
 example, this will cause a search of the specified page for eggs or source
 distributions, if the package's dependencies aren't already installed::
