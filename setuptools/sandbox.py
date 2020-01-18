@@ -12,7 +12,7 @@ import textwrap
 from setuptools.extern import six
 from setuptools.extern.six.moves import builtins, map
 
-import pkg_resources.py31compat
+import pkg_resources
 from distutils.errors import DistutilsError
 from pkg_resources import working_set
 
@@ -70,7 +70,7 @@ def override_temp(replacement):
     """
     Monkey-patch tempfile.tempdir with replacement, ensuring it exists
     """
-    pkg_resources.py31compat.makedirs(replacement, exist_ok=True)
+    os.makedirs(replacement, exist_ok=True)
 
     saved = tempfile.tempdir
 
