@@ -1,0 +1,1 @@
+Add Python 3 Only Trove Classifier and remove universal wheel declaration for more complete transition from Python 2.
