@@ -191,8 +191,8 @@ class Command(_Command):
                 ok = False
             if not ok:
                 raise DistutilsOptionError(
-                      "'%s' must be a list of strings (got %r)"
-                      % (option, val))
+                    "'%s' must be a list of strings (got %r)"
+                    % (option, val))
 
     def reinitialize_command(self, command, reinit_subcommands=0, **kw):
         cmd = _Command.reinitialize_command(self, command, reinit_subcommands)

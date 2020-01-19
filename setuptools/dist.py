@@ -162,7 +162,7 @@ def write_pkg_file(self, file):
     if self.download_url:
         write_field('Download-URL', self.download_url)
     for project_url in self.project_urls.items():
-        write_field('Project-URL',  '%s, %s' % project_url)
+        write_field('Project-URL', '%s, %s' % project_url)
 
     long_desc = rfc822_escape(self.get_long_description())
     write_field('Description', long_desc)

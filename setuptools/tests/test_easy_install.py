@@ -629,7 +629,7 @@ class TestSetupRequires:
                 test_pkg = create_setup_requires_package(
                     temp_dir, setup_attrs=dict(version='attr: foobar.version'),
                     make_package=make_dependency_sdist,
-                    use_setup_cfg=use_setup_cfg+('version',),
+                    use_setup_cfg=use_setup_cfg + ('version',),
                 )
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
                 with contexts.quiet() as (stdout, stderr):
@@ -905,8 +905,8 @@ def make_python_requires_sdist(dist_path, distname, version, python_requires):
                   python_requires={python_requires!r},
                 )
                 """).format(
-                    name=distname, version=version,
-                    python_requires=python_requires)),
+                name=distname, version=version,
+                python_requires=python_requires)),
         ('setup.cfg', ''),
     ])
 
@@ -965,16 +965,16 @@ def create_setup_requires_package(path, distname='foobar', version='0.1',
                 value = ';'.join(value)
             section.append('%s: %s' % (name, value))
         test_setup_cfg_contents = DALS(
-                """
-                [metadata]
-                {metadata}
-                [options]
-                {options}
-                """
-            ).format(
-                options='\n'.join(options),
-                metadata='\n'.join(metadata),
-            )
+            """
+            [metadata]
+            {metadata}
+            [options]
+            {options}
+            """
+        ).format(
+            options='\n'.join(options),
+            metadata='\n'.join(metadata),
+        )
     else:
         test_setup_cfg_contents = ''
     with open(os.path.join(test_pkg, 'setup.cfg'), 'w') as f:

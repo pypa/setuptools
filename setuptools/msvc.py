@@ -544,7 +544,7 @@ class SystemInfo:
 
         # Except for VS15+, VC version is aligned with VS version
         self.vs_ver = self.vc_ver = (
-                vc_ver or self._find_latest_available_vs_ver())
+            vc_ver or self._find_latest_available_vs_ver())
 
     def _find_latest_available_vs_ver(self):
         """

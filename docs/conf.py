@@ -64,10 +64,10 @@ html_use_index = False
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author,
 # documentclass [howto/manual]).
-latex_documents = [
-  ('index', 'Setuptools.tex', 'Setuptools Documentation',
-   'The fellowship of the packaging', 'manual'),
-]
+latex_documents = [(
+    'index', 'Setuptools.tex', 'Setuptools Documentation',
+    'The fellowship of the packaging', 'manual',
+)]
 
 link_files = {
     '../CHANGES.rst': dict(

@@ -6,7 +6,7 @@ from setuptools.extern.six import PY2, PY3
 
 
 __all__ = [
-  'fail_on_ascii', 'py2_only', 'py3_only'
+    'fail_on_ascii', 'py2_only', 'py3_only'
 ]
 
 
