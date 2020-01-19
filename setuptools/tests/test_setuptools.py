@@ -223,10 +223,10 @@ class TestFeatures:
                                py_modules=['bar_et'], remove=['bar.ext'],
                                ),
                 'baz': Feature(
-                        "baz", optional=False, packages=['pkg.baz'],
-                        scripts=['scripts/baz_it'],
-                        libraries=[('libfoo', 'foo/foofoo.c')]
-                       ),
+                    "baz", optional=False, packages=['pkg.baz'],
+                    scripts=['scripts/baz_it'],
+                    libraries=[('libfoo', 'foo/foofoo.c')]
+                ),
                 'dwim': Feature("DWIM", available=False, remove='bazish'),
             },
             script_args=['--without-bar', 'install'],

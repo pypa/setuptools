@@ -284,7 +284,7 @@ def test_provides_extras_deterministic_order():
     dist = Distribution(attrs)
     assert dist.metadata.provides_extras == ['b', 'a']
 
-   
+
 CHECK_PACKAGE_DATA_TESTS = (
     # Valid.
     ({
@@ -309,7 +309,8 @@ CHECK_PACKAGE_DATA_TESTS = (
     ({
         'hello': str('*.msg'),
     }, (
-        "\"values of 'package_data' dict\" must be a list of strings (got '*.msg')"
+        "\"values of 'package_data' dict\" "
+        "must be a list of strings (got '*.msg')"
     )),
     # Invalid value type (generators are single use)
     ({
@@ -321,10 +322,12 @@ CHECK_PACKAGE_DATA_TESTS = (
 )
 
 
-@pytest.mark.parametrize('package_data, expected_message', CHECK_PACKAGE_DATA_TESTS)
+@pytest.mark.parametrize(
+    'package_data, expected_message', CHECK_PACKAGE_DATA_TESTS)
 def test_check_package_data(package_data, expected_message):
     if expected_message is None:
         assert check_package_data(None, 'package_data', package_data) is None
     else:
-        with pytest.raises(DistutilsSetupError, match=re.escape(expected_message)):
+        with pytest.raises(
+                DistutilsSetupError, match=re.escape(expected_message)):
             check_package_data(None, str('package_data'), package_data)

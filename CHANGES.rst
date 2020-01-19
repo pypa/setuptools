@@ -1,3 +1,64 @@
+v45.1.0
+-------
+
+* #1458: Add minimum sunset date and preamble to Python 2 warning.
+* #1704: Set sys.argv[0] in setup script run by build_meta.__legacy__
+* #1974: Add Python 3 Only Trove Classifier and remove universal wheel declaration for more complete transition from Python 2.
+
+
+v45.0.0
+-------
+
+* #1458: Drop support for Python 2. Setuptools now requires Python 3.5 or later. Install setuptools using pip >=9 or pin to Setuptools <45 to maintain 2.7 support.
+* #1959: Fix for Python 4: replace unsafe six.PY3 with six.PY2
+
+
+v44.0.0
+-------
+
+* #1908: Drop support for Python 3.4.
+
+
+v43.0.0
+-------
+
+* #1634: Include ``pyproject.toml`` in source distribution by default. Projects relying on the previous behavior where ``pyproject.toml`` was excluded by default should stop relying on that behavior or add ``exclude pyproject.toml`` to their MANIFEST.in file.
+* #1927: Setuptools once again declares 'setuptools' in the ``build-system.requires`` and adds PEP 517 build support by declaring itself as the ``build-backend``. It additionally specifies ``build-system.backend-path`` to rely on itself for those builders that support it.
+
+
+v42.0.2
+-------
+
+* #1921: Fix support for easy_install's ``find-links`` option in ``setup.cfg``.
+* #1922: Build dependencies (setup_requires and tests_require) now install transitive dependencies indicated by extras.
+
+
+v42.0.1
+-------
+
+* #1918: Fix regression in handling wheels compatibility tags.
+
+
+v42.0.0
+-------
+
+* #1830, #1909: Mark the easy_install script and setuptools command as deprecated, and use `pip <https://pip.pypa.io/en/stable/>`_ when available to fetch/build wheels for missing ``setup_requires``/``tests_require`` requirements, with the following differences in behavior:
+   * support for ``python_requires``
+   * better support for wheels (proper handling of priority with respect to PEP 425 tags)
+   * PEP 517/518 support
+   * eggs are not supported
+   * no support for the ``allow_hosts`` easy_install option (``index_url``/``find_links`` are still honored)
+   * pip environment variables are honored (and take precedence over easy_install options)
+* #1898: Removed the "upload" and "register" commands in favor of `twine <https://pypi.org/p/twine>`_.
+* #1767: Add support for the ``license_files`` option in ``setup.cfg`` to automatically
+  include multiple license files in a source distribution.
+* #1829: Update handling of wheels compatibility tags:
+  * add support for manylinux2010
+  * fix use of removed 'm' ABI flag in Python 3.8 on Windows
+* #1861: Fix empty namespace package installation from wheel.
+* #1877: Setuptools now exposes a new entry point hook "setuptools.finalize_distribution_options", enabling plugins like `setuptools_scm <https://pypi.org/project/setuptools_scm>`_ to configure options on the distribution at finalization time.
+
+
 v41.6.0
 -------
 

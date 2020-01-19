@@ -15,7 +15,7 @@ class TestEdit:
     def parse_config(filename):
         parser = configparser.ConfigParser()
         with io.open(filename, encoding='utf-8') as reader:
-            (parser.read_file if six.PY3 else parser.readfp)(reader)
+            (parser.readfp if six.PY2 else parser.read_file)(reader)
         return parser
 
     @staticmethod

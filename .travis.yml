@@ -6,16 +6,13 @@ jobs:
   include:
   - &latest_py2
     python: 2.7
+    env: TOXENV=py27
   - <<: *latest_py2
-    env: LANG=C
-  - python: pypy
-    env: DISABLE_COVERAGE=1  # Don't run coverage on pypy (too slow).
+    env: LANG=C TOXENV=py27
   - python: pypy3
-    env: DISABLE_COVERAGE=1
-  - python: 3.4
+    env: DISABLE_COVERAGE=1  # Don't run coverage on pypy (too slow).
   - python: 3.5
-  - &default_py
-    python: 3.6
+  - python: 3.6
   - python: 3.7
   - &latest_py3
     python: 3.8
@@ -24,26 +21,11 @@ jobs:
   - python: 3.8-dev
   - <<: *latest_py3
     env: TOXENV=docs DISABLE_COVERAGE=1
-  - <<: *default_py
-    stage: deploy (to PyPI for tagged commits)
+  - <<: *latest_py3
+    stage: deploy
     if: tag IS present
-    install: skip
-    script: skip
-    after_success: true
-    before_deploy:
-      - python bootstrap.py
-      - "! grep pyc setuptools.egg-info/SOURCES.txt"
-    deploy:
-      provider: pypi
-      on:
-        tags: true
-        all_branches: true
-      user: __token__
-      password:
-        secure: FSp9KU+pdvWPxBOaxe6BNmcJ9y8259G3/NdTJ00r0qx/xMLpSneGjpuLqoD6BL2JoM6gRwurwakWoH/9Ah+Di7afETjMnL6WJKtDZ+Uu3YLx3ss7/FlhVz6zmVTaDJUzuo9dGr//qLBQTIxVjGYfQelRJyfMAXtrYWdeT/4489E45lMw+86Z/vnSBOxs4lWekeQW5Gem0cDViWu67RRiGkAEvrYVwuImMr2Dyhpv+l/mQGQIS/ezXuAEFToE6+q8VUVe/aK498Qovdc+O4M7OYk1JouFpffZ3tVZ6iWHQFcR11480UdI6VCIcFpPvGC/J8MWUWLjq7YOm0X9jPXgdYMUQLAP4clFgUr2qNoRSKWfuQlNdVVuS2htYcjJ3eEl90FhcIZKp+WVMrypRPOQJ8CBielZEs0dhytRrZSaJC1BNq25O/BPzws8dL8hYtoXsM6I3Zv5cZgdyqyq/eOEMCX7Cetv6do0U41VGEV5UohvyyuwH5l9GCuPREpY3sXayPg8fw7XcPjvvzSVyjcUT/ePW8sfnAyWZnngjweAn6dK8IFGPuSPQdlos78uxeUOvCVUW0xv/0m4lX73yoHdVVdLbu1MJTyibFGec86Bew9JqIcDlhHaIJ9ihZ9Z9tOtvp1cuNyKYE4kvmOtumDDicEw4DseYn2z5sZDTYTBsKY=
-      distributions: release
-      skip_cleanup: true
-      skip_upload_docs: true
+    script: tox -e release
+    after_success: skip
 
 cache: pip
 
@@ -58,8 +40,6 @@ install:
 - pip freeze --all
 - env
 
-# update egg_info based on setup.py in checkout
-- python bootstrap.py
 - "! grep pyc setuptools.egg-info/SOURCES.txt"
 
 script:
