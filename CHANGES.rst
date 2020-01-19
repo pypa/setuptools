@@ -1,3 +1,11 @@
+v45.1.0
+-------
+
+* #1458: Add minimum sunset date and preamble to Python 2 warning.
+* #1704: Set sys.argv[0] in setup script run by build_meta.__legacy__
+* #1974: Add Python 3 Only Trove Classifier and remove universal wheel declaration for more complete transition from Python 2.
+
+
 v45.0.0
 -------
 
