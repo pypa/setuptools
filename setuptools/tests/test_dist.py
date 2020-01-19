@@ -61,7 +61,8 @@ def test_dist_fetch_build_egg(tmpdir):
             dist.fetch_build_egg(r)
             for r in reqs
         ]
-    assert [dist.key for dist in resolved_dists if dist] == reqs
+    # noqa below because on Python 2 it causes flakes
+    assert [dist.key for dist in resolved_dists if dist] == reqs  # noqa
 
 
 def test_dist__get_unpatched_deprecated():
