@@ -108,6 +108,11 @@ class TestDepends:
         assert not req.is_present()
         assert not req.is_current()
 
+    @needs_bytecode
+    def test_require_present(self):
+        # In #1896, this test was failing for months with the only
+        # complaint coming from test runners (not end users).
+        # TODO: Evaluate if this code is needed at all.
         req = Require('Tests', None, 'tests', homepage="http://example.com")
         assert req.format is None
         assert req.attribute is None
