@@ -23,6 +23,7 @@ class BuildBackendBase:
         self.env = env
         self.backend_name = backend_name
 
+
 class BuildBackend(BuildBackendBase):
     """PEP 517 Build Backend"""
 

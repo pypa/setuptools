@@ -71,28 +71,31 @@ class build_clib(orig.build_clib):
                     output_dir=self.build_temp
                     )
 
-            if newer_pairwise_group(dependencies, expected_objects) != ([], []):
+            if (
+                newer_pairwise_group(dependencies, expected_objects)
+                != ([], [])
+            ):
                 # First, compile the source code to object files in the library
                 # directory.  (This should probably change to putting object
                 # files in a temporary build directory.)
                 macros = build_info.get('macros')
                 include_dirs = build_info.get('include_dirs')
                 cflags = build_info.get('cflags')
-                objects = self.compiler.compile(
-                        sources,
-                        output_dir=self.build_temp,
-                        macros=macros,
-                        include_dirs=include_dirs,
-                        extra_postargs=cflags,
-                        debug=self.debug
-                        )
+                self.compiler.compile(
+                    sources,
+                    output_dir=self.build_temp,
+                    macros=macros,
+                    include_dirs=include_dirs,
+                    extra_postargs=cflags,
+                    debug=self.debug
+                )
 
             # Now "link" the object files together into a static library.
             # (On Unix at least, this isn't really linking -- it just
             # builds an archive.  Whatever.)
             self.compiler.create_static_lib(
-                    expected_objects,
-                    lib_name,
-                    output_dir=self.build_clib,
-                    debug=self.debug
-                    )
+                expected_objects,
+                lib_name,
+                output_dir=self.build_clib,
+                debug=self.debug
+            )

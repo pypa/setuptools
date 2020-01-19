@@ -12,7 +12,7 @@ from setuptools.command.test import test
 from setuptools.dist import Distribution
 
 from .textwrap import DALS
-from . import contexts
+
 
 SETUP_PY = DALS("""
     from setuptools import setup
