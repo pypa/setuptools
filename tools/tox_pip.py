@@ -13,9 +13,16 @@ def remove_setuptools():
     subprocess.check_call(cmd, cwd='.tox')
 
 
+def bootstrap():
+    print("Running bootstrap")
+    cmd = [sys.executable, '-m', 'bootstrap']
+    subprocess.check_call(cmd)
+
+
 def pip(args):
-    # When installing '.', remove setuptools
-    '.' in args and remove_setuptools()
+    if '.' in args:
+        remove_setuptools()
+        bootstrap()
 
     cmd = [sys.executable, '-m', 'pip'] + args
     subprocess.check_call(cmd)
