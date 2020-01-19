@@ -1,0 +1,1 @@
+Fixed test failure introduced in 41.6.0 when the 'tests' directory is not present.
