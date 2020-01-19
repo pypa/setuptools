@@ -51,10 +51,6 @@ jobs:
         env
       env: ${{ matrix.env }}
 
-    - name: Update egg_info based on setup.py in checkout
-      run: >-
-        python -m bootstrap
-      env: ${{ matrix.env }}
     - name: Verify that there's no cached Python modules in sources
       if: >-
         ! startsWith(matrix.os, 'windows-')
