@@ -36,10 +36,11 @@ def ensure_egg_info():
     if os.path.exists('setuptools.egg-info'):
         return
     print("adding minimal entry_points")
-    build_egg_info()
+    add_minimal_info()
+    run_egg_info()
 
 
-def build_egg_info():
+def add_minimal_info():
     """
     Build a minimal egg-info, enough to invoke egg_info
     """
@@ -55,9 +56,4 @@ def run_egg_info():
     subprocess.check_call(cmd)
 
 
-def main():
-    ensure_egg_info()
-    run_egg_info()
-
-
-__name__ == '__main__' and main()
+__name__ == '__main__' and ensure_egg_info()
