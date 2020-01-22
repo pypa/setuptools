@@ -68,6 +68,8 @@ def disable_python_requires():
 
 
 def run(args):
+    os.environ['PIP_USE_PEP517'] = 'true'
+
     if is_install_self(args):
         remove_setuptools()
         bootstrap()
