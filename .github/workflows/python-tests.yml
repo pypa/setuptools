@@ -1,4 +1,6 @@
-name: Test suite
+name: >-
+  👷
+  Test suite
 
 on:
   push:
@@ -8,31 +10,55 @@ on:
 
 jobs:
   tests:
-    name: 👷
+    name: >-
+      ${{ matrix.python-version }}
+      /
+      ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       # max-parallel: 5
       matrix:
         python-version:
         - 3.8
+        - pypy3
         - 3.7
         - 3.6
         - 3.5
         os:
-        - ubuntu-18.04
+        - ubuntu-latest
         - ubuntu-16.04
         - macOS-latest
         # - windows-2019
         # - windows-2016
-        env:
-        - TOXENV: python
+
+    env:
+      NETWORK_REQUIRED: 1
+      TOX_PARALLEL_NO_SPINNER: 1
+      TOXENV: python
 
     steps:
     - uses: actions/checkout@master
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v1.1.1
       with:
-        version: ${{ matrix.python-version }}
+        python-version: ${{ matrix.python-version }}
+    - name: Log Python version
+      run: >-
+        python --version
+    - name: Log Python location
+      run: >-
+        which python
+    - name: Log Python env
+      run: >-
+        python -m sysconfig
+    - name: Pip cache
+      uses: actions/cache@v1
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('docs/requirements.txt') }}-${{ hashFiles('setup.cfg') }}-${{ hashFiles('tox.ini') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          ${{ runner.os }}-
     - name: Upgrade pip/setuptools/wheel
       run: >-
         python
@@ -46,10 +72,13 @@ jobs:
     - name: Log installed dists
       run: >-
         python -m pip freeze --all
+    - name: Adjust TOXENV for PyPy
+      if: startsWith(matrix.python-version, 'pypy')
+      run: >-
+        echo "::set-env name=TOXENV::${{ matrix.python-version }}"
     - name: Log env vars
       run: >-
         env
-      env: ${{ matrix.env }}
 
     - name: Verify that there's no cached Python modules in sources
       if: >-
@@ -58,14 +87,16 @@ jobs:
         ! grep pyc setuptools.egg-info/SOURCES.txt
 
     - name: 'Initialize tox envs: ${{ matrix.env.TOXENV }}'
-      run: |
-        python -m tox --parallel auto --notest --skip-missing-interpreters false
-      env: ${{ matrix.env }}
+      run: >-
+        python -m
+        tox
+        --parallel auto
+        --notest
+        --skip-missing-interpreters false
     - name: Test with tox
-      run: |
-        ${{ startsWith(matrix.os, 'windows-') && 'setx NETWORK_REQUIRED ' || 'export NETWORK_REQUIRED=' }}1
-        python -m tox \
-        --parallel 0 \
-        -- \
+      run: >-
+        python -m
+        tox
+        --parallel auto
+        --
         --cov
-      env: ${{ matrix.env }}
