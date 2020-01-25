@@ -64,8 +64,8 @@ def fetch_build_egg(dist, req):
         dist.announce(
             'WARNING: The pip package is not available, falling back '
             'to EasyInstall for handling setup_requires/test_requires; '
-            'this is deprecated and will be removed in a future version.'
-            , log.WARN
+            'this is deprecated and will be removed in a future version.',
+            log.WARN
         )
         return _legacy_fetch_build_egg(dist, req)
     # Warn if wheel is not.

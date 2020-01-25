@@ -1,0 +1,1 @@
+Fixed defect in _imp, introduced in 41.6.0 when the 'tests' directory is not present.

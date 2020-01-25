@@ -629,7 +629,7 @@ class TestSetupRequires:
                 test_pkg = create_setup_requires_package(
                     temp_dir, setup_attrs=dict(version='attr: foobar.version'),
                     make_package=make_dependency_sdist,
-                    use_setup_cfg=use_setup_cfg+('version',),
+                    use_setup_cfg=use_setup_cfg + ('version',),
                 )
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
                 with contexts.quiet() as (stdout, stderr):
@@ -671,8 +671,10 @@ class TestSetupRequires:
                 dep_url = path_to_url(dep_sdist, authority='localhost')
                 test_pkg = create_setup_requires_package(
                     temp_dir,
-                    'python-xlib', '0.19', # Ignored (overriden by setup_attrs).
-                    setup_attrs=dict(setup_requires='dependency @ %s' % dep_url))
+                    # Ignored (overriden by setup_attrs)
+                    'python-xlib', '0.19',
+                    setup_attrs=dict(
+                        setup_requires='dependency @ %s' % dep_url))
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
                 run_setup(test_setup_py, [str('--version')])
         assert len(mock_index.requests) == 0
@@ -710,11 +712,14 @@ class TestSetupRequires:
         dep_1_0_sdist = 'dep-1.0.tar.gz'
         dep_1_0_url = path_to_url(str(tmpdir / dep_1_0_sdist))
         dep_1_0_python_requires = '>=2.7'
-        make_python_requires_sdist(str(tmpdir / dep_1_0_sdist), 'dep', '1.0', dep_1_0_python_requires)
+        make_python_requires_sdist(
+            str(tmpdir / dep_1_0_sdist), 'dep', '1.0', dep_1_0_python_requires)
         dep_2_0_sdist = 'dep-2.0.tar.gz'
         dep_2_0_url = path_to_url(str(tmpdir / dep_2_0_sdist))
-        dep_2_0_python_requires = '!=' + '.'.join(map(str, sys.version_info[:2])) + '.*'
-        make_python_requires_sdist(str(tmpdir / dep_2_0_sdist), 'dep', '2.0', dep_2_0_python_requires)
+        dep_2_0_python_requires = '!=' + '.'.join(
+            map(str, sys.version_info[:2])) + '.*'
+        make_python_requires_sdist(
+            str(tmpdir / dep_2_0_sdist), 'dep', '2.0', dep_2_0_python_requires)
         index = tmpdir / 'index.html'
         index.write_text(DALS(
             '''
@@ -726,7 +731,7 @@ class TestSetupRequires:
                 <a href="{dep_2_0_url}" data-requires-python="{dep_2_0_python_requires}">{dep_2_0_sdist}</a><br/>
             </body>
             </html>
-            ''').format(
+            ''').format(  # noqa
                 dep_1_0_url=dep_1_0_url,
                 dep_1_0_sdist=dep_1_0_sdist,
                 dep_1_0_python_requires=dep_1_0_python_requires,
@@ -738,23 +743,29 @@ class TestSetupRequires:
         with contexts.save_pkg_resources_state():
             test_pkg = create_setup_requires_package(
                 str(tmpdir),
-                'python-xlib', '0.19', # Ignored (overriden by setup_attrs).
-                setup_attrs=dict(setup_requires='dep', dependency_links=[index_url]))
+                'python-xlib', '0.19',  # Ignored (overriden by setup_attrs).
+                setup_attrs=dict(
+                    setup_requires='dep', dependency_links=[index_url]))
             test_setup_py = os.path.join(test_pkg, 'setup.py')
             run_setup(test_setup_py, [str('--version')])
-        eggs = list(map(str, pkg_resources.find_distributions(os.path.join(test_pkg, '.eggs'))))
+        eggs = list(map(str, pkg_resources.find_distributions(
+            os.path.join(test_pkg, '.eggs'))))
         assert eggs == ['dep 1.0']
 
-    @pytest.mark.parametrize('use_legacy_installer,with_dependency_links_in_setup_py',
-                             itertools.product((False, True), (False, True)))
-    def test_setup_requires_with_find_links_in_setup_cfg(self, monkeypatch,
-                                                         use_legacy_installer,
-                                                         with_dependency_links_in_setup_py):
+    @pytest.mark.parametrize(
+        'use_legacy_installer,with_dependency_links_in_setup_py',
+        itertools.product((False, True), (False, True)))
+    def test_setup_requires_with_find_links_in_setup_cfg(
+            self, monkeypatch, use_legacy_installer,
+            with_dependency_links_in_setup_py):
         monkeypatch.setenv(str('PIP_RETRIES'), str('0'))
         monkeypatch.setenv(str('PIP_TIMEOUT'), str('0'))
         with contexts.save_pkg_resources_state():
             with contexts.tempdir() as temp_dir:
-                make_trivial_sdist(os.path.join(temp_dir, 'python-xlib-42.tar.gz'), 'python-xlib', '42')
+                make_trivial_sdist(
+                    os.path.join(temp_dir, 'python-xlib-42.tar.gz'),
+                    'python-xlib',
+                    '42')
                 test_pkg = os.path.join(temp_dir, 'test_pkg')
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
                 test_setup_cfg = os.path.join(test_pkg, 'setup.cfg')
@@ -771,7 +782,7 @@ class TestSetupRequires:
                             installer.fetch_build_egg = installer._legacy_fetch_build_egg
                         setup(setup_requires='python-xlib==42',
                         dependency_links={dependency_links!r})
-                        ''').format(use_legacy_installer=use_legacy_installer,
+                        ''').format(use_legacy_installer=use_legacy_installer,  # noqa
                                     dependency_links=dependency_links))
                 with open(test_setup_cfg, 'w') as fp:
                     fp.write(DALS(
@@ -783,14 +794,17 @@ class TestSetupRequires:
                                     find_links=temp_dir))
                 run_setup(test_setup_py, [str('--version')])
 
-    def test_setup_requires_with_transitive_extra_dependency(self, monkeypatch):
+    def test_setup_requires_with_transitive_extra_dependency(
+            self, monkeypatch):
         # Use case: installing a package with a build dependency on
         # an already installed `dep[extra]`, which in turn depends
         # on `extra_dep` (whose is not already installed).
         with contexts.save_pkg_resources_state():
             with contexts.tempdir() as temp_dir:
                 # Create source distribution for `extra_dep`.
-                make_trivial_sdist(os.path.join(temp_dir, 'extra_dep-1.0.tar.gz'), 'extra_dep', '1.0')
+                make_trivial_sdist(
+                    os.path.join(temp_dir, 'extra_dep-1.0.tar.gz'),
+                    'extra_dep', '1.0')
                 # Create source tree for `dep`.
                 dep_pkg = os.path.join(temp_dir, 'dep')
                 os.mkdir(dep_pkg)
@@ -806,12 +820,12 @@ class TestSetupRequires:
                     'setup.cfg': '',
                 }, prefix=dep_pkg)
                 # "Install" dep.
-                run_setup(os.path.join(dep_pkg, 'setup.py'), [str('dist_info')])
+                run_setup(
+                    os.path.join(dep_pkg, 'setup.py'), [str('dist_info')])
                 working_set.add_entry(dep_pkg)
                 # Create source tree for test package.
                 test_pkg = os.path.join(temp_dir, 'test_pkg')
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
-                test_setup_cfg = os.path.join(test_pkg, 'setup.cfg')
                 os.mkdir(test_pkg)
                 with open(test_setup_py, 'w') as fp:
                     fp.write(DALS(
@@ -881,16 +895,19 @@ def make_nspkg_sdist(dist_path, distname, version):
 
 def make_python_requires_sdist(dist_path, distname, version, python_requires):
     make_sdist(dist_path, [
-        ('setup.py', DALS("""\
-                          import setuptools
-                          setuptools.setup(
-                              name={name!r},
-                              version={version!r},
-                              python_requires={python_requires!r},
-                          )
-                          """).format(name=distname, version=version,
-                                      python_requires=python_requires)),
-         ('setup.cfg', ''),
+        (
+            'setup.py',
+            DALS("""\
+                import setuptools
+                setuptools.setup(
+                  name={name!r},
+                  version={version!r},
+                  python_requires={python_requires!r},
+                )
+                """).format(
+                name=distname, version=version,
+                python_requires=python_requires)),
+        ('setup.cfg', ''),
     ])
 
 
@@ -948,16 +965,16 @@ def create_setup_requires_package(path, distname='foobar', version='0.1',
                 value = ';'.join(value)
             section.append('%s: %s' % (name, value))
         test_setup_cfg_contents = DALS(
-                """
-                [metadata]
-                {metadata}
-                [options]
-                {options}
-                """
-            ).format(
-                options='\n'.join(options),
-                metadata='\n'.join(metadata),
-            )
+            """
+            [metadata]
+            {metadata}
+            [options]
+            {options}
+            """
+        ).format(
+            options='\n'.join(options),
+            metadata='\n'.join(metadata),
+        )
     else:
         test_setup_cfg_contents = ''
     with open(os.path.join(test_pkg, 'setup.cfg'), 'w') as f:

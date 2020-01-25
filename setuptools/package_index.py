@@ -46,7 +46,8 @@ __all__ = [
 _SOCKET_TIMEOUT = 15
 
 _tmpl = "setuptools/{setuptools.__version__} Python-urllib/{py_major}"
-user_agent = _tmpl.format(py_major='{}.{}'.format(*sys.version_info), setuptools=setuptools)
+user_agent = _tmpl.format(
+    py_major='{}.{}'.format(*sys.version_info), setuptools=setuptools)
 
 
 def parse_requirement_arg(spec):
@@ -1092,7 +1093,8 @@ def open_with_auth(url, opener=urllib.request.urlopen):
 
 # copy of urllib.parse._splituser from Python 3.8
 def _splituser(host):
-    """splituser('user[:passwd]@host[:port]') --> 'user[:passwd]', 'host[:port]'."""
+    """splituser('user[:passwd]@host[:port]')
+    --> 'user[:passwd]', 'host[:port]'."""
     user, delim, host = host.rpartition('@')
     return (user if delim else None), host
 

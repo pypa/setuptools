@@ -8,8 +8,6 @@ from pytest_fixture_config import yield_requires_config
 
 import pytest_virtualenv
 
-from setuptools.extern import six
-
 from .textwrap import DALS
 from .test_easy_install import make_nspkg_sdist
 
@@ -64,7 +62,7 @@ def _get_pip_versions():
             from urllib.request import urlopen
             from urllib.error import URLError
         except ImportError:
-            from urllib2 import urlopen, URLError # Python 2.7 compat
+            from urllib2 import urlopen, URLError  # Python 2.7 compat
 
         try:
             urlopen('https://pypi.org', timeout=1)
@@ -77,11 +75,8 @@ def _get_pip_versions():
         'pip==10.0.1',
         'pip==18.1',
         'pip==19.0.1',
+        'https://github.com/pypa/pip/archive/master.zip',
     ]
-
-    # Pip's master dropped support for 3.4.
-    if not six.PY34:
-        network_versions.append('https://github.com/pypa/pip/archive/master.zip')
 
     versions = [None] + [
         pytest.param(v, **({} if network else {'marks': pytest.mark.skip}))
@@ -183,12 +178,16 @@ def _check_test_command_install_requirements(virtualenv, tmpdir):
     )).format(tmpdir=tmpdir))
     assert tmpdir.join('success').check()
 
+
 def test_test_command_install_requirements(virtualenv, tmpdir):
     # Ensure pip/wheel packages are installed.
-    virtualenv.run("python -c \"__import__('pkg_resources').require(['pip', 'wheel'])\"")
+    virtualenv.run(
+        "python -c \"__import__('pkg_resources').require(['pip', 'wheel'])\"")
     _check_test_command_install_requirements(virtualenv, tmpdir)
 
-def test_test_command_install_requirements_when_using_easy_install(bare_virtualenv, tmpdir):
+
+def test_test_command_install_requirements_when_using_easy_install(
+        bare_virtualenv, tmpdir):
     _check_test_command_install_requirements(bare_virtualenv, tmpdir)
 
 

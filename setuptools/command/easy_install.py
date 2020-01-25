@@ -121,7 +121,8 @@ else:
             return False
 
 
-_one_liner = lambda text: textwrap.dedent(text).strip().replace('\n', '; ')
+def _one_liner(text):
+    return textwrap.dedent(text).strip().replace('\n', '; ')
 
 
 class easy_install(Command):
@@ -414,8 +415,8 @@ class easy_install(Command):
         if show_deprecation:
             self.announce(
                 "WARNING: The easy_install command is deprecated "
-                "and will be removed in a future version."
-                , log.WARN,
+                "and will be removed in a future version.",
+                log.WARN,
             )
         if self.verbose != self.distribution.verbose:
             log.set_verbosity(self.verbose)
@@ -508,13 +509,13 @@ class easy_install(Command):
         the distutils default setting) was:
 
             %s
-        """).lstrip()
+        """).lstrip()  # noqa
 
     __not_exists_id = textwrap.dedent("""
         This directory does not currently exist.  Please create it and try again, or
         choose a different installation directory (using the -d or --install-dir
         option).
-        """).lstrip()
+        """).lstrip()  # noqa
 
     __access_msg = textwrap.dedent("""
         Perhaps your account does not have write access to this directory?  If the
@@ -530,7 +531,7 @@ class easy_install(Command):
           https://setuptools.readthedocs.io/en/latest/easy_install.html
 
         Please make the appropriate changes for your system and try again.
-        """).lstrip()
+        """).lstrip()  # noqa
 
     def cant_write_to_target(self):
         msg = self.__cant_write_msg % (sys.exc_info()[1], self.install_dir,)
@@ -1094,13 +1095,13 @@ class easy_install(Command):
             pkg_resources.require("%(name)s")  # latest installed version
             pkg_resources.require("%(name)s==%(version)s")  # this exact version
             pkg_resources.require("%(name)s>=%(version)s")  # this version or higher
-        """).lstrip()
+        """).lstrip()  # noqa
 
     __id_warning = textwrap.dedent("""
         Note also that the installation directory must be on sys.path at runtime for
         this to work.  (e.g. by being the application's script directory, by being on
         PYTHONPATH, or by being added to sys.path by your code.)
-        """)
+        """)  # noqa
 
     def installation_report(self, req, dist, what="Installed"):
         """Helpful installation message for display to package users"""
@@ -1125,7 +1126,7 @@ class easy_install(Command):
             %(python)s setup.py develop
 
         See the setuptools documentation for the "develop" command for more info.
-        """).lstrip()
+        """).lstrip()  # noqa
 
     def report_editable(self, spec, setup_script):
         dirname = os.path.dirname(setup_script)
@@ -1308,7 +1309,8 @@ class easy_install(Command):
           https://setuptools.readthedocs.io/en/latest/easy_install.html#custom-installation-locations
 
 
-        Please make the appropriate changes for your system and try again.""").lstrip()
+        Please make the appropriate changes for your system and try again.
+        """).strip()
 
     def install_site_py(self):
         """Make sure there's a site.py in the target dir, if needed"""
@@ -1564,7 +1566,7 @@ def get_exe_prefixes(exe_filename):
                 continue
             if parts[0].upper() in ('PURELIB', 'PLATLIB'):
                 contents = z.read(name)
-                if six.PY3:
+                if not six.PY2:
                     contents = contents.decode()
                 for pth in yield_lines(contents):
                     pth = pth.strip().replace('\\', '/')
@@ -2090,7 +2092,8 @@ class ScriptWriter:
     @classmethod
     def get_script_header(cls, script_text, executable=None, wininst=False):
         # for backward compatibility
-        warnings.warn("Use get_header", EasyInstallDeprecationWarning, stacklevel=2)
+        warnings.warn(
+            "Use get_header", EasyInstallDeprecationWarning, stacklevel=2)
         if wininst:
             executable = "python.exe"
         return cls.get_header(script_text, executable)
@@ -2339,5 +2342,8 @@ def _patch_usage():
     finally:
         distutils.core.gen_usage = saved
 
+
 class EasyInstallDeprecationWarning(SetuptoolsDeprecationWarning):
-    """Class for warning about deprecations in EasyInstall in SetupTools. Not ignored by default, unlike DeprecationWarning."""
+    """
+    Warning for EasyInstall deprecations, bypassing suppression.
+    """

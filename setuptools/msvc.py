@@ -544,7 +544,7 @@ class SystemInfo:
 
         # Except for VS15+, VC version is aligned with VS version
         self.vs_ver = self.vc_ver = (
-                vc_ver or self._find_latest_available_vs_ver())
+            vc_ver or self._find_latest_available_vs_ver())
 
     def _find_latest_available_vs_ver(self):
         """
@@ -1225,7 +1225,7 @@ class EnvironmentInfo:
             arch_subdir = self.pi.target_dir(x64=True)
             lib = join(self.si.WindowsSdkDir, 'lib')
             libver = self._sdk_subdir
-            return [join(lib, '%sum%s' % (libver , arch_subdir))]
+            return [join(lib, '%sum%s' % (libver, arch_subdir))]
 
     @property
     def OSIncludes(self):
@@ -1274,13 +1274,16 @@ class EnvironmentInfo:
             libpath += [
                 ref,
                 join(self.si.WindowsSdkDir, 'UnionMetadata'),
-                join(ref, 'Windows.Foundation.UniversalApiContract', '1.0.0.0'),
+                join(
+                    ref, 'Windows.Foundation.UniversalApiContract', '1.0.0.0'),
                 join(ref, 'Windows.Foundation.FoundationContract', '1.0.0.0'),
-                join(ref,'Windows.Networking.Connectivity.WwanContract',
-                     '1.0.0.0'),
-                join(self.si.WindowsSdkDir, 'ExtensionSDKs', 'Microsoft.VCLibs',
-                     '%0.1f' % self.vs_ver, 'References', 'CommonConfiguration',
-                     'neutral'),
+                join(
+                    ref, 'Windows.Networking.Connectivity.WwanContract',
+                    '1.0.0.0'),
+                join(
+                    self.si.WindowsSdkDir, 'ExtensionSDKs', 'Microsoft.VCLibs',
+                    '%0.1f' % self.vs_ver, 'References', 'CommonConfiguration',
+                    'neutral'),
             ]
         return libpath
 

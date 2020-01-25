@@ -1,3 +1,31 @@
+v45.1.0
+-------
+
+* #1458: Add minimum sunset date and preamble to Python 2 warning.
+* #1704: Set sys.argv[0] in setup script run by build_meta.__legacy__
+* #1974: Add Python 3 Only Trove Classifier and remove universal wheel declaration for more complete transition from Python 2.
+
+
+v45.0.0
+-------
+
+* #1458: Drop support for Python 2. Setuptools now requires Python 3.5 or later. Install setuptools using pip >=9 or pin to Setuptools <45 to maintain 2.7 support.
+* #1959: Fix for Python 4: replace unsafe six.PY3 with six.PY2
+
+
+v44.0.0
+-------
+
+* #1908: Drop support for Python 3.4.
+
+
+v43.0.0
+-------
+
+* #1634: Include ``pyproject.toml`` in source distribution by default. Projects relying on the previous behavior where ``pyproject.toml`` was excluded by default should stop relying on that behavior or add ``exclude pyproject.toml`` to their MANIFEST.in file.
+* #1927: Setuptools once again declares 'setuptools' in the ``build-system.requires`` and adds PEP 517 build support by declaring itself as the ``build-backend``. It additionally specifies ``build-system.backend-path`` to rely on itself for those builders that support it.
+
+
 v42.0.2
 -------
 

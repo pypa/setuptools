@@ -695,7 +695,7 @@ class TestOptions:
         )
         with get_dist(tmpdir) as dist:
             assert set(dist.packages) == set(
-                ['fake_package',  'fake_package.sub_two'])
+                ['fake_package', 'fake_package.sub_two'])
 
     @py2_only
     def test_find_namespace_directive_fails_on_py2(self, tmpdir):
@@ -748,7 +748,7 @@ class TestOptions:
         )
         with get_dist(tmpdir) as dist:
             assert set(dist.packages) == {
-                'fake_package',  'fake_package.sub_two'
+                'fake_package', 'fake_package.sub_two'
             }
 
     def test_extras_require(self, tmpdir):
@@ -881,7 +881,7 @@ class TestExternalSetters:
         return None
 
     @patch.object(_Distribution, '__init__', autospec=True)
-    def test_external_setters(self,  mock_parent_init, tmpdir):
+    def test_external_setters(self, mock_parent_init, tmpdir):
         mock_parent_init.side_effect = self._fake_distribution_init
 
         dist = Distribution(attrs={
