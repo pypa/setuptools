@@ -1,0 +1,1 @@
+Setuptools now declares its ``tests`` and ``docs`` dependencies in metadata (extras).
