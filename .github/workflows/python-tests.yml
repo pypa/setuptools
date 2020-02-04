@@ -55,7 +55,7 @@ jobs:
       uses: actions/cache@v1
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('docs/requirements.txt') }}-${{ hashFiles('tests/requirements.txt') }}-${{ hashFiles('tox.ini') }}
+        key: ${{ runner.os }}-pip-${{ hashFiles('setup.cfg') }}
         restore-keys: |
           ${{ runner.os }}-pip-
           ${{ runner.os }}-
