@@ -1,0 +1,1 @@
+Add support for installing scripts in environments where bdist_wininst is missing (i.e. Python 3.9).

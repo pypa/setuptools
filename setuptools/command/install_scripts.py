@@ -32,8 +32,11 @@ class install_scripts(orig.install_scripts):
         )
         bs_cmd = self.get_finalized_command('build_scripts')
         exec_param = getattr(bs_cmd, 'executable', None)
-        bw_cmd = self.get_finalized_command("bdist_wininst")
-        is_wininst = getattr(bw_cmd, '_is_running', False)
+        try:
+            bw_cmd = self.get_finalized_command("bdist_wininst")
+            is_wininst = getattr(bw_cmd, '_is_running', False)
+        except ImportError:
+            is_wininst = False
         writer = ei.ScriptWriter
         if is_wininst:
             exec_param = "python.exe"
