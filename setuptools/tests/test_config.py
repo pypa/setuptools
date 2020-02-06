@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
 import contextlib
@@ -8,8 +8,7 @@ from distutils.errors import DistutilsOptionError, DistutilsFileError
 from mock import patch
 from setuptools.dist import Distribution, _Distribution
 from setuptools.config import ConfigHandler, read_configuration
-from setuptools.extern.six.moves.configparser import InterpolationMissingOptionError
-from setuptools.tests import is_ascii
+from setuptools.extern.six.moves import configparser
 from . import py2_only, py3_only
 from .textwrap import DALS
 
@@ -29,7 +28,9 @@ def make_package_dir(name, base_dir, ns=False):
     return dir_package, init_file
 
 
-def fake_env(tmpdir, setup_cfg, setup_py=None, encoding='ascii', package_path='fake_package'):
+def fake_env(
+        tmpdir, setup_cfg, setup_py=None,
+        encoding='ascii', package_path='fake_package'):
 
     if setup_py is None:
         setup_py = (
@@ -440,13 +441,10 @@ class TestMetadata:
             '[metadata]\n'
             'description = %(message)s\n'
         )
-        with pytest.raises(InterpolationMissingOptionError):
+        with pytest.raises(configparser.InterpolationMissingOptionError):
             with get_dist(tmpdir):
                 pass
 
-    skip_if_not_ascii = pytest.mark.skipif(not is_ascii, reason='Test not supported with this locale')
-
-    @skip_if_not_ascii
     def test_non_ascii_1(self, tmpdir):
         fake_env(
             tmpdir,
@@ -454,18 +452,8 @@ class TestMetadata:
             'description = éàïôñ\n',
             encoding='utf-8'
         )
-        with pytest.raises(UnicodeDecodeError):
-            with get_dist(tmpdir):
-                pass
-
-    def test_non_ascii_2(self, tmpdir):
-        fake_env(
-            tmpdir,
-            '# -*- coding: invalid\n'
-        )
-        with pytest.raises(LookupError):
-            with get_dist(tmpdir):
-                pass
+        with get_dist(tmpdir):
+            pass
 
     def test_non_ascii_3(self, tmpdir):
         fake_env(
@@ -476,7 +464,6 @@ class TestMetadata:
         with get_dist(tmpdir):
             pass
 
-    @skip_if_not_ascii
     def test_non_ascii_4(self, tmpdir):
         fake_env(
             tmpdir,
@@ -488,8 +475,10 @@ class TestMetadata:
         with get_dist(tmpdir) as dist:
             assert dist.metadata.description == 'éàïôñ'
 
-    @skip_if_not_ascii
-    def test_non_ascii_5(self, tmpdir):
+    def test_not_utf8(self, tmpdir):
+        """
+        Config files encoded not in UTF-8 will fail
+        """
         fake_env(
             tmpdir,
             '# vim: set fileencoding=iso-8859-15 :\n'
@@ -497,8 +486,9 @@ class TestMetadata:
             'description = éàïôñ\n',
             encoding='iso-8859-15'
         )
-        with get_dist(tmpdir) as dist:
-            assert dist.metadata.description == 'éàïôñ'
+        with pytest.raises(UnicodeDecodeError):
+            with get_dist(tmpdir):
+                pass
 
 
 class TestOptions:
@@ -828,6 +818,40 @@ class TestOptions:
                 ('data', ['e/f.dat', 'g/h.dat']),
             ]
             assert sorted(dist.data_files) == sorted(expected)
+
+    def test_python_requires_simple(self, tmpdir):
+        fake_env(
+            tmpdir,
+            DALS("""
+            [options]
+            python_requires=>=2.7
+            """),
+        )
+        with get_dist(tmpdir) as dist:
+            dist.parse_config_files()
+
+    def test_python_requires_compound(self, tmpdir):
+        fake_env(
+            tmpdir,
+            DALS("""
+            [options]
+            python_requires=>=2.7,!=3.0.*
+            """),
+        )
+        with get_dist(tmpdir) as dist:
+            dist.parse_config_files()
+
+    def test_python_requires_invalid(self, tmpdir):
+        fake_env(
+            tmpdir,
+            DALS("""
+            [options]
+            python_requires=invalid
+            """),
+        )
+        with pytest.raises(Exception):
+            with get_dist(tmpdir) as dist:
+                dist.parse_config_files()
 
 
 saved_dist_init = _Distribution.__init__

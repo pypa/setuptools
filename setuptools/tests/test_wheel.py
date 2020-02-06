@@ -18,6 +18,7 @@ import pytest
 
 from pkg_resources import Distribution, PathMetadata, PY_MAJOR
 from setuptools.extern.packaging.utils import canonicalize_name
+from setuptools.extern.packaging.tags import parse_tag
 from setuptools.wheel import Wheel
 
 from .contexts import tempdir
@@ -451,6 +452,34 @@ WHEEL_INSTALL_TESTS = (
     ),
 
     dict(
+        id='empty_namespace_package',
+        file_defs={
+            'foobar': {
+                '__init__.py': "__import__('pkg_resources').declare_namespace(__name__)",
+            },
+        },
+        setup_kwargs=dict(
+            namespace_packages=['foobar'],
+            packages=['foobar'],
+        ),
+        install_tree=flatten_tree({
+            'foo-1.0-py{py_version}.egg': [
+                'foo-1.0-py{py_version}-nspkg.pth',
+                {'EGG-INFO': [
+                    'PKG-INFO',
+                    'RECORD',
+                    'WHEEL',
+                    'namespace_packages.txt',
+                    'top_level.txt',
+                ]},
+                {'foobar': [
+                    '__init__.py',
+                ]},
+            ]
+        }),
+    ),
+
+    dict(
         id='data_in_package',
         file_defs={
             'foo': {
@@ -543,3 +572,11 @@ def test_wheel_no_dist_dir():
                 _check_wheel_install(wheel_path, install_dir, None,
                                      project_name,
                                      version, None)
+
+
+def test_wheel_is_compatible(monkeypatch):
+    def sys_tags():
+        for t in parse_tag('cp36-cp36m-manylinux1_x86_64'):
+            yield t
+    monkeypatch.setattr('setuptools.wheel.sys_tags', sys_tags)
+    assert Wheel('onnxruntime-0.1.2-cp36-cp36m-manylinux1_x86_64.whl').is_compatible()

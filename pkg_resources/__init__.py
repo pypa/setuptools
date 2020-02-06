@@ -88,8 +88,8 @@ __import__('pkg_resources.extern.packaging.markers')
 __metaclass__ = type
 
 
-if (3, 0) < sys.version_info < (3, 4):
-    raise RuntimeError("Python 3.4 or later is required")
+if (3, 0) < sys.version_info < (3, 5):
+    raise RuntimeError("Python 3.5 or later is required")
 
 if six.PY2:
     # Those builtin exceptions are only defined in Python 3
@@ -333,7 +333,7 @@ class UnknownExtra(ResolutionError):
 
 _provider_factories = {}
 
-PY_MAJOR = sys.version[:3]
+PY_MAJOR = '{}.{}'.format(*sys.version_info)
 EGG_DIST = 3
 BINARY_DIST = 2
 SOURCE_DIST = 1
@@ -1403,14 +1403,30 @@ class NullProvider:
     def has_resource(self, resource_name):
         return self._has(self._fn(self.module_path, resource_name))
 
+    def _get_metadata_path(self, name):
+        return self._fn(self.egg_info, name)
+
     def has_metadata(self, name):
-        return self.egg_info and self._has(self._fn(self.egg_info, name))
+        if not self.egg_info:
+            return self.egg_info
+
+        path = self._get_metadata_path(name)
+        return self._has(path)
 
     def get_metadata(self, name):
         if not self.egg_info:
             return ""
-        value = self._get(self._fn(self.egg_info, name))
-        return value.decode('utf-8') if six.PY3 else value
+        path = self._get_metadata_path(name)
+        value = self._get(path)
+        if six.PY2:
+            return value
+        try:
+            return value.decode('utf-8')
+        except UnicodeDecodeError as exc:
+            # Include the path in the error message to simplify
+            # troubleshooting, and without changing the exception type.
+            exc.reason += ' in {} file at path: {}'.format(name, path)
+            raise
 
     def get_metadata_lines(self, name):
         return yield_lines(self.get_metadata(name))
@@ -1867,6 +1883,9 @@ class FileMetadata(EmptyProvider):
 
     def __init__(self, path):
         self.path = path
+
+    def _get_metadata_path(self, name):
+        return self.path
 
     def has_metadata(self, name):
         return name == 'PKG-INFO' and os.path.isfile(self.path)
@@ -2661,10 +2680,14 @@ class Distribution:
         try:
             return self._version
         except AttributeError:
-            version = _version_from_file(self._get_metadata(self.PKG_INFO))
+            version = self._get_version()
             if version is None:
-                tmpl = "Missing 'Version:' header and/or %s file"
-                raise ValueError(tmpl % self.PKG_INFO, self)
+                path = self._get_metadata_path_for_display(self.PKG_INFO)
+                msg = (
+                    "Missing 'Version:' header and/or {} file at path: {}"
+                ).format(self.PKG_INFO, path)
+                raise ValueError(msg, self)
+
             return version
 
     @property
@@ -2722,10 +2745,33 @@ class Distribution:
                 )
         return deps
 
+    def _get_metadata_path_for_display(self, name):
+        """
+        Return the path to the given metadata file, if available.
+        """
+        try:
+            # We need to access _get_metadata_path() on the provider object
+            # directly rather than through this class's __getattr__()
+            # since _get_metadata_path() is marked private.
+            path = self._provider._get_metadata_path(name)
+
+        # Handle exceptions e.g. in case the distribution's metadata
+        # provider doesn't support _get_metadata_path().
+        except Exception:
+            return '[could not detect]'
+
+        return path
+
     def _get_metadata(self, name):
         if self.has_metadata(name):
             for line in self.get_metadata_lines(name):
                 yield line
+
+    def _get_version(self):
+        lines = self._get_metadata(self.PKG_INFO)
+        version = _version_from_file(lines)
+
+        return version
 
     def activate(self, path=None, replace=False):
         """Ensure distribution is importable on `path` (default=sys.path)"""
@@ -2945,7 +2991,7 @@ class EggInfoDistribution(Distribution):
         take an extra step and try to get the version number from
         the metadata file itself instead of the filename.
         """
-        md_version = _version_from_file(self._get_metadata(self.PKG_INFO))
+        md_version = self._get_version()
         if md_version:
             self._version = md_version
         return self
@@ -3063,6 +3109,7 @@ class Requirement(packaging.requirements.Requirement):
         self.extras = tuple(map(safe_extra, self.extras))
         self.hashCmp = (
             self.key,
+            self.url,
             self.specifier,
             frozenset(self.extras),
             str(self.marker) if self.marker else None,

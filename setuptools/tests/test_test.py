@@ -1,7 +1,8 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
 
+import mock
 from distutils import log
 import os
 
@@ -85,9 +86,7 @@ def test_test(capfd):
     dist.script_name = 'setup.py'
     cmd = test(dist)
     cmd.ensure_finalized()
-    # The test runner calls sys.exit
-    with contexts.suppress_exceptions(SystemExit):
-        cmd.run()
+    cmd.run()
     out, err = capfd.readouterr()
     assert out == 'Foo\n'
 
@@ -119,8 +118,55 @@ def test_tests_are_run_once(capfd):
     dist.script_name = 'setup.py'
     cmd = test(dist)
     cmd.ensure_finalized()
-    # The test runner calls sys.exit
-    with contexts.suppress_exceptions(SystemExit):
-        cmd.run()
+    cmd.run()
     out, err = capfd.readouterr()
     assert out == 'Foo\n'
+
+
+@pytest.mark.usefixtures('sample_test')
+def test_warns_deprecation(capfd):
+    params = dict(
+        name='foo',
+        packages=['name', 'name.space', 'name.space.tests'],
+        namespace_packages=['name'],
+        test_suite='name.space.tests.test_suite',
+        use_2to3=True
+    )
+    dist = Distribution(params)
+    dist.script_name = 'setup.py'
+    cmd = test(dist)
+    cmd.ensure_finalized()
+    cmd.announce = mock.Mock()
+    cmd.run()
+    capfd.readouterr()
+    msg = (
+        "WARNING: Testing via this command is deprecated and will be "
+        "removed in a future version. Users looking for a generic test "
+        "entry point independent of test runner are encouraged to use "
+        "tox."
+    )
+    cmd.announce.assert_any_call(msg, log.WARN)
+
+
+@pytest.mark.usefixtures('sample_test')
+def test_deprecation_stderr(capfd):
+    params = dict(
+        name='foo',
+        packages=['name', 'name.space', 'name.space.tests'],
+        namespace_packages=['name'],
+        test_suite='name.space.tests.test_suite',
+        use_2to3=True
+    )
+    dist = Distribution(params)
+    dist.script_name = 'setup.py'
+    cmd = test(dist)
+    cmd.ensure_finalized()
+    cmd.run()
+    out, err = capfd.readouterr()
+    msg = (
+        "WARNING: Testing via this command is deprecated and will be "
+        "removed in a future version. Users looking for a generic test "
+        "entry point independent of test runner are encouraged to use "
+        "tox.\n"
+    )
+    assert msg in err

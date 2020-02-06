@@ -1,3 +1,133 @@
+v44.0.0
+-------
+
+* #1908: Drop support for Python 3.4.
+
+
+v43.0.0
+-------
+
+* #1634: Include ``pyproject.toml`` in source distribution by default. Projects relying on the previous behavior where ``pyproject.toml`` was excluded by default should stop relying on that behavior or add ``exclude pyproject.toml`` to their MANIFEST.in file.
+* #1927: Setuptools once again declares 'setuptools' in the ``build-system.requires`` and adds PEP 517 build support by declaring itself as the ``build-backend``. It additionally specifies ``build-system.backend-path`` to rely on itself for those builders that support it.
+
+
+v42.0.2
+-------
+
+* #1921: Fix support for easy_install's ``find-links`` option in ``setup.cfg``.
+* #1922: Build dependencies (setup_requires and tests_require) now install transitive dependencies indicated by extras.
+
+
+v42.0.1
+-------
+
+* #1918: Fix regression in handling wheels compatibility tags.
+
+
+v42.0.0
+-------
+
+* #1830, #1909: Mark the easy_install script and setuptools command as deprecated, and use `pip <https://pip.pypa.io/en/stable/>`_ when available to fetch/build wheels for missing ``setup_requires``/``tests_require`` requirements, with the following differences in behavior:
+   * support for ``python_requires``
+   * better support for wheels (proper handling of priority with respect to PEP 425 tags)
+   * PEP 517/518 support
+   * eggs are not supported
+   * no support for the ``allow_hosts`` easy_install option (``index_url``/``find_links`` are still honored)
+   * pip environment variables are honored (and take precedence over easy_install options)
+* #1898: Removed the "upload" and "register" commands in favor of `twine <https://pypi.org/p/twine>`_.
+* #1767: Add support for the ``license_files`` option in ``setup.cfg`` to automatically
+  include multiple license files in a source distribution.
+* #1829: Update handling of wheels compatibility tags:
+  * add support for manylinux2010
+  * fix use of removed 'm' ABI flag in Python 3.8 on Windows
+* #1861: Fix empty namespace package installation from wheel.
+* #1877: Setuptools now exposes a new entry point hook "setuptools.finalize_distribution_options", enabling plugins like `setuptools_scm <https://pypi.org/project/setuptools_scm>`_ to configure options on the distribution at finalization time.
+
+
+v41.6.0
+-------
+
+* #479: Replace usage of deprecated ``imp`` module with local re-implementation in ``setuptools._imp``.
+
+
+v41.5.1
+-------
+
+* #1891: Fix code for detecting Visual Studio's version on Windows under Python 2.
+
+
+v41.5.0
+-------
+
+* #1811: Improve Visual C++ 14.X support, mainly for Visual Studio 2017 and 2019.
+* #1814: Fix ``pkg_resources.Requirement`` hash/equality implementation: take PEP 508 direct URL into account.
+* #1824: Fix tests when running under ``python3.10``.
+* #1878: Formally deprecated the ``test`` command, with the recommendation that users migrate to ``tox``.
+* #1860: Update documentation to mention the egg format is not supported by pip and dependency links support was dropped starting with pip 19.0.
+* #1862: Drop ez_setup documentation: deprecated for some time (last updated in 2016), and still relying on easy_install (deprecated too).
+* #1868: Drop most documentation references to (deprecated) EasyInstall.
+* #1884: Added a trove classifier to document support for Python 3.8.
+* #1886: Added Python 3.8 release to the Travis test matrix.
+
+
+v41.4.0
+-------
+
+* #1847: In declarative config, now traps errors when invalid ``python_requires`` values are supplied.
+
+
+v41.3.0
+-------
+
+* #1690: When storing extras, rely on OrderedSet to retain order of extras as indicated by the packager, which will also be deterministic on Python 2.7 (with PYTHONHASHSEED unset) and Python 3.6+.
+* #1858: Fixed failing integration test triggered by 'long_description_content_type' in packaging.
+
+
+v41.2.0
+-------
+
+* #479: Remove some usage of the deprecated ``imp`` module.
+* #1565: Changed html_sidebars from string to list of string as per
+  https://www.sphinx-doc.org/en/master/changes.html#id58
+
+
+v41.1.0
+-------
+
+* #1697: Moved most of the constants from setup.py to setup.cfg
+* #1749: Fixed issue with the PEP 517 backend where building a source distribution would fail if any tarball existed in the destination directory.
+* #1750: Fixed an issue with PEP 517 backend where wheel builds would fail if the destination directory did not already exist.
+* #1756: Force metadata-version >= 1.2. when project urls are present.
+* #1769: Improve ``package_data`` check: ensure the dictionary values are lists/tuples of strings.
+* #1788: Changed compatibility fallback logic for ``html.unescape`` to avoid accessing ``HTMLParser.unescape`` when not necessary. ``HTMLParser.unescape`` is deprecated and will be removed in Python 3.9.
+* #1790: Added the file path to the error message when a ``UnicodeDecodeError`` occurs while reading a metadata file.
+* #1776: Use license classifiers rather than the license field.
+
+
+v41.0.1
+-------
+
+* #1671: Fixed issue with the PEP 517 backend that prevented building a wheel when the ``dist/`` directory contained existing ``.whl`` files.
+* #1709: In test.paths_on_python_path, avoid adding unnecessary duplicates to the PYTHONPATH.
+* #1741: In package_index, now honor "current directory" during a checkout of git and hg repositories under Windows
+
+
+v41.0.0
+-------
+
+* #1735: When parsing setup.cfg files, setuptools now requires the files to be encoded as UTF-8. Any other encoding will lead to a UnicodeDecodeError. This change removes support for specifying an encoding using a 'coding: ' directive in the header of the file, a feature that was introduces in 40.7. Given the recent release of the aforementioned feature, it is assumed that few if any projects are utilizing the feature to specify an encoding other than UTF-8.
+
+
+v40.9.0
+-------
+
+* #1675: Added support for ``setup.cfg``-only projects when using the ``setuptools.build_meta`` backend. Projects that have enabled PEP 517 no longer need to have a ``setup.py`` and can use the purely declarative ``setup.cfg`` configuration file instead.
+* #1720: Added support for ``pkg_resources.parse_requirements``-style requirements in ``setup_requires`` when ``setup.py`` is invoked from the ``setuptools.build_meta`` build backend.
+* #1664: Added the path to the ``PKG-INFO`` or ``METADATA`` file in the exception
+  text when the ``Version:`` header can't be found.
+* #1705: Removed some placeholder documentation sections referring to deprecated features.
+
+
 v40.8.0
 -------
 
@@ -1480,8 +1610,8 @@ v20.6.0
 19.7
 ----
 
-* `Off-project PR <https://github.com/jaraco/setuptools/pull/32>`_:
-  For FreeBSD, also honor root certificates from ca_root_nss.
+* Off-project PR: `0dcee79 <https://github.com/pypa/setuptools/commit/0dcee791dfdcfacddaaec79b29f30a347a147413>`_ and `f9bd9b9 <https://github.com/pypa/setuptools/commit/f9bd9b9f5df54ef5a0bf8d16c3a889ab8c640580>`_
+  For FreeBSD, also `honor root certificates from ca_root_nss <https://github.com/pypa/setuptools/commit/3ae46c30225eb46e1f5aada1a19e88b79f04dc72>`_.
 
 19.6.2
 ------
@@ -1645,9 +1775,9 @@ v20.6.0
   now logged when pkg_resources is imported on Python 3.2 or earlier
   Python 3 versions.
 * `Add support for python_platform_implementation environment marker
-  <https://github.com/jaraco/setuptools/pull/28>`_.
+  <https://github.com/pypa/setuptools/commit/94416707fd59a65f4a8f7f70541d6b3fc018b626>`_.
 * `Fix dictionary mutation during iteration
-  <https://github.com/jaraco/setuptools/pull/29>`_.
+  <https://github.com/pypa/setuptools/commit/57ebfa41e0f96b97e599ecd931b7ae8a143e096e>`_.
 
 18.4
 ----
@@ -2007,7 +2137,7 @@ process to fail and PyPI uploads no longer accept files for 13.0.
 ---
 
 * Prefer vendored packaging library `as recommended
-  <https://github.com/jaraco/setuptools/commit/170657b68f4b92e7e1bf82f5e19a831f5744af67#commitcomment-9109448>`_.
+  <https://github.com/pypa/setuptools/commit/170657b68f4b92e7e1bf82f5e19a831f5744af67>`_.
 
 9.0.1
 -----

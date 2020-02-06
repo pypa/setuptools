@@ -1,1 +1,0 @@
-Removed some placeholder documentation sections referring to deprecated features.

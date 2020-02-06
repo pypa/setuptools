@@ -37,6 +37,7 @@
 #include <windows.h>
 #include <tchar.h>
 #include <fcntl.h>
+#include <process.h>
 
 int child_pid=0;
 

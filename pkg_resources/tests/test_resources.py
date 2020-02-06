@@ -116,7 +116,7 @@ class TestDistro:
         self.checkFooPkg(d)
 
         d = Distribution("/some/path")
-        assert d.py_version == sys.version[:3]
+        assert d.py_version == '{}.{}'.format(*sys.version_info)
         assert d.platform is None
 
     def testDistroParse(self):
@@ -520,6 +520,11 @@ class TestRequirements:
         assert r1 == r2
         assert str(r1) == str(r2)
         assert str(r2) == "Twisted==1.2c1,>=1.2"
+        assert (
+            Requirement("Twisted")
+            !=
+            Requirement("Twisted @ https://localhost/twisted.zip")
+        )
 
     def testBasicContains(self):
         r = Requirement("Twisted>=1.2")
@@ -546,8 +551,20 @@ class TestRequirements:
             ==
             hash((
                 "twisted",
+                None,
                 packaging.specifiers.SpecifierSet(">=1.2"),
                 frozenset(["foo", "bar"]),
+                None
+            ))
+        )
+        assert (
+            hash(Requirement.parse("Twisted @ https://localhost/twisted.zip"))
+            ==
+            hash((
+                "twisted",
+                "https://localhost/twisted.zip",
+                packaging.specifiers.SpecifierSet(),
+                frozenset(),
                 None
             ))
         )

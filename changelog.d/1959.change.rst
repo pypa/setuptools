@@ -1,0 +1,1 @@
+Fix for Python 4: replace unsafe six.PY3 with six.PY2

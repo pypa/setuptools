@@ -64,7 +64,7 @@ def install_context(request, tmpdir, monkeypatch):
     monkeypatch.setattr('site.USER_BASE', user_base.strpath)
     monkeypatch.setattr('site.USER_SITE', user_site.strpath)
     monkeypatch.setattr('sys.path', sys.path + [install_dir.strpath])
-    monkeypatch.setenv('PYTHONPATH', os.path.pathsep.join(sys.path))
+    monkeypatch.setenv(str('PYTHONPATH'), str(os.path.pathsep.join(sys.path)))
 
     # Set up the command for performing the installation.
     dist = Distribution()
@@ -141,7 +141,9 @@ def test_build_deps_on_distutils(request, tmpdir_factory, build_dep):
         allowed_unknowns = [
             'test_suite',
             'tests_require',
+            'python_requires',
             'install_requires',
+            'long_description_content_type',
         ]
         assert not match or match.group(1).strip('"\'') in allowed_unknowns
 
@@ -149,8 +151,8 @@ def test_build_deps_on_distutils(request, tmpdir_factory, build_dep):
 def install(pkg_dir, install_dir):
     with open(os.path.join(pkg_dir, 'setuptools.py'), 'w') as breaker:
         breaker.write('raise ImportError()')
-    cmd = [sys.executable, 'setup.py', 'install', '--prefix', install_dir]
-    env = dict(os.environ, PYTHONPATH=pkg_dir)
+    cmd = [sys.executable, 'setup.py', 'install', '--prefix', str(install_dir)]
+    env = dict(os.environ, PYTHONPATH=str(pkg_dir))
     output = subprocess.check_output(
         cmd, cwd=pkg_dir, env=env, stderr=subprocess.STDOUT)
     return output.decode('utf-8')

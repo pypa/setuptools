@@ -46,7 +46,7 @@ __all__ = [
 _SOCKET_TIMEOUT = 15
 
 _tmpl = "setuptools/{setuptools.__version__} Python-urllib/{py_major}"
-user_agent = _tmpl.format(py_major=sys.version[:3], setuptools=setuptools)
+user_agent = _tmpl.format(py_major='{}.{}'.format(*sys.version_info), setuptools=setuptools)
 
 
 def parse_requirement_arg(spec):
@@ -897,7 +897,7 @@ class PackageIndex(Environment):
 
         if rev is not None:
             self.info("Checking out %s", rev)
-            os.system("(cd %s && git checkout --quiet %s)" % (
+            os.system("git -C %s checkout --quiet %s" % (
                 filename,
                 rev,
             ))
@@ -913,7 +913,7 @@ class PackageIndex(Environment):
 
         if rev is not None:
             self.info("Updating to %s", rev)
-            os.system("(cd %s && hg up -C -r %s -q)" % (
+            os.system("hg --cwd %s up -C -r %s -q" % (
                 filename,
                 rev,
             ))

@@ -28,7 +28,7 @@ class BuildBackend(BuildBackendBase):
 
     def __init__(self, *args, **kwargs):
         super(BuildBackend, self).__init__(*args, **kwargs)
-        self.pool = futures.ProcessPoolExecutor()
+        self.pool = futures.ProcessPoolExecutor(max_workers=1)
 
     def __getattr__(self, name):
         """Handles aribrary function invocations on the build backend."""
@@ -157,6 +157,53 @@ class TestBuildMetaBackend:
 
         assert os.path.isfile(os.path.join(dist_dir, wheel_name))
 
+    @pytest.mark.parametrize('build_type', ('wheel', 'sdist'))
+    def test_build_with_existing_file_present(self, build_type, tmpdir_cwd):
+        # Building a sdist/wheel should still succeed if there's
+        # already a sdist/wheel in the destination directory.
+        files = {
+            'setup.py': "from setuptools import setup\nsetup()",
+            'VERSION': "0.0.1",
+            'setup.cfg': DALS("""
+                [metadata]
+                name = foo
+                version = file: VERSION
+            """),
+            'pyproject.toml': DALS("""
+                [build-system]
+                requires = ["setuptools", "wheel"]
+                build-backend = "setuptools.build_meta
+            """),
+        }
+
+        build_files(files)
+
+        dist_dir = os.path.abspath('preexisting-' + build_type)
+
+        build_backend = self.get_build_backend()
+        build_method = getattr(build_backend, 'build_' + build_type)
+
+        # Build a first sdist/wheel.
+        # Note: this also check the destination directory is
+        # successfully created if it does not exist already.
+        first_result = build_method(dist_dir)
+
+        # Change version.
+        with open("VERSION", "wt") as version_file:
+            version_file.write("0.0.2")
+
+        # Build a *second* sdist/wheel.
+        second_result = build_method(dist_dir)
+
+        assert os.path.isfile(os.path.join(dist_dir, first_result))
+        assert first_result != second_result
+
+        # And if rebuilding the exact same sdist/wheel?
+        open(os.path.join(dist_dir, second_result), 'w').close()
+        third_result = build_method(dist_dir)
+        assert third_result == second_result
+        assert os.path.getsize(os.path.join(dist_dir, third_result)) > 0
+
     def test_build_sdist(self, build_backend):
         dist_dir = os.path.abspath('pip-sdist')
         os.makedirs(dist_dir)
@@ -214,6 +261,27 @@ class TestBuildMetaBackend:
         sdist_name = build_backend.build_sdist("out_sdist")
         assert os.path.isfile(
             os.path.join(os.path.abspath("out_sdist"), sdist_name))
+
+    def test_build_sdist_pyproject_toml_exists(self, tmpdir_cwd):
+        files = {
+            'setup.py': DALS("""
+                __import__('setuptools').setup(
+                    name='foo',
+                    version='0.0.0',
+                    py_modules=['hello']
+                )"""),
+            'hello.py': '',
+            'pyproject.toml': DALS("""
+                [build-system]
+                requires = ["setuptools", "wheel"]
+                build-backend = "setuptools.build_meta
+                """),
+        }
+        build_files(files)
+        build_backend = self.get_build_backend()
+        targz_path = build_backend.build_sdist("temp")
+        with tarfile.open(os.path.join("temp", targz_path)) as tar:
+            assert any('pyproject.toml' in name for name in tar.getnames())
 
     def test_build_sdist_setup_py_exists(self, tmpdir_cwd):
         # If build_sdist is called from a script other than setup.py,
@@ -287,6 +355,79 @@ class TestBuildMetaBackend:
         with pytest.raises(ImportError):
             build_backend.build_sdist("temp")
 
+    @pytest.mark.parametrize('setup_literal, requirements', [
+        ("'foo'", ['foo']),
+        ("['foo']", ['foo']),
+        (r"'foo\n'", ['foo']),
+        (r"'foo\n\n'", ['foo']),
+        ("['foo', 'bar']", ['foo', 'bar']),
+        (r"'# Has a comment line\nfoo'", ['foo']),
+        (r"'foo # Has an inline comment'", ['foo']),
+        (r"'foo \\\n >=3.0'", ['foo>=3.0']),
+        (r"'foo\nbar'", ['foo', 'bar']),
+        (r"'foo\nbar\n'", ['foo', 'bar']),
+        (r"['foo\n', 'bar\n']", ['foo', 'bar']),
+    ])
+    @pytest.mark.parametrize('use_wheel', [True, False])
+    def test_setup_requires(self, setup_literal, requirements, use_wheel,
+                            tmpdir_cwd):
+
+        files = {
+            'setup.py': DALS("""
+                from setuptools import setup
+
+                setup(
+                    name="qux",
+                    version="0.0.0",
+                    py_modules=["hello.py"],
+                    setup_requires={setup_literal},
+                )
+            """).format(setup_literal=setup_literal),
+            'hello.py': DALS("""
+            def run():
+                print('hello')
+            """),
+        }
+
+        build_files(files)
+
+        build_backend = self.get_build_backend()
+
+        if use_wheel:
+            base_requirements = ['wheel']
+            get_requires = build_backend.get_requires_for_build_wheel
+        else:
+            base_requirements = []
+            get_requires = build_backend.get_requires_for_build_sdist
+
+        # Ensure that the build requirements are properly parsed
+        expected = sorted(base_requirements + requirements)
+        actual = get_requires()
+
+        assert expected == sorted(actual)
+
+    _sys_argv_0_passthrough = {
+        'setup.py': DALS("""
+            import os
+            import sys
+
+            __import__('setuptools').setup(
+                name='foo',
+                version='0.0.0',
+            )
+
+            sys_argv = os.path.abspath(sys.argv[0])
+            file_path = os.path.abspath('setup.py')
+            assert sys_argv == file_path
+            """)
+    }
+
+    def test_sys_argv_passthrough(self, tmpdir_cwd):
+        build_files(self._sys_argv_0_passthrough)
+        build_backend = self.get_build_backend()
+        with pytest.raises(AssertionError):
+            build_backend.build_sdist("temp")
+
 
 class TestBuildMetaLegacyBackend(TestBuildMetaBackend):
     backend_name = 'setuptools.build_meta:__legacy__'
@@ -295,6 +436,12 @@ class TestBuildMetaLegacyBackend(TestBuildMetaBackend):
     def test_build_sdist_relative_path_import(self, tmpdir_cwd):
         # This must fail in build_meta, but must pass in build_meta_legacy
         build_files(self._relative_path_import_files)
+
+        build_backend = self.get_build_backend()
+        build_backend.build_sdist("temp")
+
+    def test_sys_argv_passthrough(self, tmpdir_cwd):
+        build_files(self._sys_argv_0_passthrough)
 
         build_backend = self.get_build_backend()
         build_backend.build_sdist("temp")

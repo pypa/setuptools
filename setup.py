@@ -3,10 +3,8 @@
 Distutils setup file, used to install or test 'setuptools'
 """
 
-import io
 import os
 import sys
-import textwrap
 
 import setuptools
 
@@ -46,12 +44,8 @@ def _gen_console_scripts():
     if any(os.environ.get(var) not in (None, "", "0") for var in var_names):
         return
     tmpl = "easy_install-{shortver} = setuptools.command.easy_install:main"
-    yield tmpl.format(shortver=sys.version[:3])
+    yield tmpl.format(shortver='{}.{}'.format(*sys.version_info))
 
-
-readme_path = os.path.join(here, 'README.rst')
-with io.open(readme_path, encoding='utf-8') as readme_file:
-    long_description = readme_file.read()
 
 package_data = dict(
     setuptools=['script (dev).tmpl', 'script.tmpl', 'site-patch.py'],
@@ -88,29 +82,19 @@ def pypi_link(pkg_filename):
 
 
 setup_params = dict(
-    name="setuptools",
-    description=(
-        "Easily download, build, install, upgrade, and uninstall "
-        "Python packages"
-    ),
-    author="Python Packaging Authority",
-    author_email="distutils-sig@python.org",
-    long_description=long_description,
-    long_description_content_type='text/x-rst; charset=UTF-8',
-    keywords="CPAN PyPI distutils eggs package management",
-    url="https://github.com/pypa/setuptools",
-    project_urls={
-        "Documentation": "https://setuptools.readthedocs.io/",
-    },
     src_root=None,
-    packages=setuptools.find_packages(exclude=['*.tests']),
     package_data=package_data,
-    py_modules=['easy_install'],
-    zip_safe=True,
     entry_points={
         "distutils.commands": [
             "%(cmd)s = setuptools.command.%(cmd)s:%(cmd)s" % locals()
             for cmd in read_commands()
+        ],
+        "setuptools.finalize_distribution_options": [
+            "parent_finalize = setuptools.dist:_Distribution.finalize_options",
+            "features = setuptools.dist:Distribution._finalize_feature_opts",
+            "keywords = setuptools.dist:Distribution._finalize_setup_keywords",
+            "2to3_doctests = "
+            "setuptools.dist:Distribution._finalize_2to3_doctests",
         ],
         "distutils.setup_keywords": [
             "eager_resources        = setuptools.dist:assert_string_list",
@@ -152,28 +136,6 @@ setup_params = dict(
         "setuptools.installation":
             ['eggsecutable = setuptools.command.easy_install:bootstrap'],
     },
-    classifiers=textwrap.dedent("""
-        Development Status :: 5 - Production/Stable
-        Intended Audience :: Developers
-        License :: OSI Approved :: MIT License
-        Operating System :: OS Independent
-        Programming Language :: Python :: 2
-        Programming Language :: Python :: 2.7
-        Programming Language :: Python :: 3
-        Programming Language :: Python :: 3.4
-        Programming Language :: Python :: 3.5
-        Programming Language :: Python :: 3.6
-        Programming Language :: Python :: 3.7
-        Topic :: Software Development :: Libraries :: Python Modules
-        Topic :: System :: Archiving :: Packaging
-        Topic :: System :: Systems Administration
-        Topic :: Utilities
-        """).strip().splitlines(),
-    python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*',
-    extras_require={
-        "ssl:sys_platform=='win32'": "wincertstore==0.2",
-        "certs": "certifi==2016.9.26",
-    },
     dependency_links=[
         pypi_link(
             'certifi-2016.9.26.tar.gz#md5=baa81e951a29958563689d868ef1064d',
@@ -182,7 +144,6 @@ setup_params = dict(
             'wincertstore-0.2.zip#md5=ae728f2f007185648d0c7a8679b361e2',
         ),
     ],
-    scripts=[],
     setup_requires=[
     ] + wheel,
 )
