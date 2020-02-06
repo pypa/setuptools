@@ -1,0 +1,4 @@
+Improve editable installs with PEP 518 build isolation:
+
+* The ``--user`` option is now always available. A warning is issued if the user site directory is not available.
+* The error shown when the install directory is not in ``PYTHONPATH`` has been turned into a warning.
