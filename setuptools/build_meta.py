@@ -115,13 +115,18 @@ class _BuildMetaBackend(object):
     def _fix_config(self, config_settings):
         config_settings = config_settings or {}
         config_settings.setdefault('--global-option', [])
+        config_settings.setdefault('--build-option', [])
         return config_settings
 
     def _get_build_requires(self, config_settings, requirements):
         config_settings = self._fix_config(config_settings)
 
-        sys.argv = sys.argv[:1] + ['egg_info'] + \
-            config_settings["--global-option"]
+        sys.argv = (
+            sys.argv[:1] +
+            config_settings["--global-option"] +
+            ['egg_info'] +
+            config_settings["--build-option"]
+        )
         try:
             with Distribution.patch():
                 self.run_setup()
@@ -188,9 +193,13 @@ class _BuildMetaBackend(object):
         # Build in a temporary directory, then copy to the target.
         makedirs(result_directory, exist_ok=True)
         with TemporaryDirectory(dir=result_directory) as tmp_dist_dir:
-            sys.argv = (sys.argv[:1] + setup_command +
-                        ['--dist-dir', tmp_dist_dir] +
-                        config_settings["--global-option"])
+            sys.argv = (
+                sys.argv[:1] +
+                config_settings["--global-option"] +
+                setup_command +
+                ['--dist-dir', tmp_dist_dir] +
+                config_settings["--build-option"]
+            )
             self.run_setup()
 
             result_basename = _file_with_extension(tmp_dist_dir, result_extension)
