@@ -95,7 +95,7 @@ class TestDevelop:
         with io.open(fn) as init_file:
             init = init_file.read().strip()
 
-        expected = 'print("foo")' if six.PY3 else 'print "foo"'
+        expected = 'print "foo"' if six.PY2 else 'print("foo")'
         assert init == expected
 
     def test_console_scripts(self, tmpdir):
@@ -161,7 +161,7 @@ class TestNamespaces:
         reason="https://github.com/pypa/setuptools/issues/851",
     )
     @pytest.mark.skipif(
-        platform.python_implementation() == 'PyPy' and six.PY3,
+        platform.python_implementation() == 'PyPy' and not six.PY2,
         reason="https://github.com/pypa/setuptools/issues/1202",
     )
     def test_namespace_package_importable(self, tmpdir):
