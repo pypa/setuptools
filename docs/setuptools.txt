@@ -572,7 +572,7 @@ Services and Plugins`_.
 "Eggsecutable" Scripts
 ----------------------
 
-.. deprecated:: 41.3.0
+.. deprecated:: 45.3.0
 
 Occasionally, there are situations where it's desirable to make an ``.egg``
 file directly executable.  You can do this by including an entry point such
@@ -1225,7 +1225,7 @@ the quoted part.
 Distributing a ``setuptools``-based project
 ===========================================
 
-Detailed instructions to distribute a setuptools project can be found at 
+Detailed instructions to distribute a setuptools project can be found at
 `Packaging project tutorials`_.
 
 .. _Packaging project tutorials: https://packaging.python.org/tutorials/packaging-projects/#generating-distribution-archives
@@ -1241,7 +1241,7 @@ setup.py is located::
 
 This will generate distribution archives in the `dist` directory.
 
-Before you upload the generated archives make sure you're registered on 
+Before you upload the generated archives make sure you're registered on
 https://test.pypi.org/account/register/. You will also need to verify your email
 to be able to upload any packages.
 You should install twine to be able to upload packages::
@@ -1264,11 +1264,11 @@ Distributing legacy ``setuptools`` projects using ez_setup.py
 
 .. warning:: **ez_setup** is deprecated in favor of PIP with **PEP-518** support.
 
-Distributing packages using the legacy ``ez_setup.py`` and ``easy_install`` is 
+Distributing packages using the legacy ``ez_setup.py`` and ``easy_install`` is
 deprecated in favor of PIP. Please consider migrating to using pip and twine based
 distribution.
 
-However, if you still have any ``ez_setup`` based packages, documentation for 
+However, if you still have any ``ez_setup`` based packages, documentation for
 ez_setup based distributions can be found at `ez_setup distribution guide`_.
 
 .. _ez_setup distribution guide: ez_setup.html
