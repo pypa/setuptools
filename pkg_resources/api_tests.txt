@@ -36,7 +36,7 @@ Distributions have various introspectable attributes::
     >>> dist.version
     '0.9'
 
-    >>> dist.py_version == sys.version[:3]
+    >>> dist.py_version == '{}.{}'.format(*sys.version_info)
     True
 
     >>> print(dist.platform)

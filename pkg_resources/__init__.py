@@ -83,13 +83,14 @@ __import__('pkg_resources.extern.packaging.version')
 __import__('pkg_resources.extern.packaging.specifiers')
 __import__('pkg_resources.extern.packaging.requirements')
 __import__('pkg_resources.extern.packaging.markers')
+__import__('pkg_resources.py2_warn')
 
 
 __metaclass__ = type
 
 
-if (3, 0) < sys.version_info < (3, 4):
-    raise RuntimeError("Python 3.4 or later is required")
+if (3, 0) < sys.version_info < (3, 5):
+    raise RuntimeError("Python 3.5 or later is required")
 
 if six.PY2:
     # Those builtin exceptions are only defined in Python 3
@@ -333,7 +334,7 @@ class UnknownExtra(ResolutionError):
 
 _provider_factories = {}
 
-PY_MAJOR = sys.version[:3]
+PY_MAJOR = '{}.{}'.format(*sys.version_info)
 EGG_DIST = 3
 BINARY_DIST = 2
 SOURCE_DIST = 1
@@ -1416,8 +1417,17 @@ class NullProvider:
     def get_metadata(self, name):
         if not self.egg_info:
             return ""
-        value = self._get(self._fn(self.egg_info, name))
-        return value.decode('utf-8') if six.PY3 else value
+        path = self._get_metadata_path(name)
+        value = self._get(path)
+        if six.PY2:
+            return value
+        try:
+            return value.decode('utf-8')
+        except UnicodeDecodeError as exc:
+            # Include the path in the error message to simplify
+            # troubleshooting, and without changing the exception type.
+            exc.reason += ' in {} file at path: {}'.format(name, path)
+            raise
 
     def get_metadata_lines(self, name):
         return yield_lines(self.get_metadata(name))
@@ -2319,7 +2329,8 @@ register_namespace_handler(object, null_ns_handler)
 
 def normalize_path(filename):
     """Normalize a file/dir name for comparison purposes"""
-    return os.path.normcase(os.path.realpath(os.path.normpath(_cygwin_patch(filename))))
+    return os.path.normcase(os.path.realpath(os.path.normpath(
+        _cygwin_patch(filename))))
 
 
 def _cygwin_patch(filename):  # pragma: nocover
@@ -3100,6 +3111,7 @@ class Requirement(packaging.requirements.Requirement):
         self.extras = tuple(map(safe_extra, self.extras))
         self.hashCmp = (
             self.key,
+            self.url,
             self.specifier,
             frozenset(self.extras),
             str(self.marker) if self.marker else None,
@@ -3276,6 +3288,7 @@ def _initialize_master_working_set():
     # match order
     list(map(working_set.add_entry, sys.path))
     globals().update(locals())
+
 
 class PkgResourcesDeprecationWarning(Warning):
     """

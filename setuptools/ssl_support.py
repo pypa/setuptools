@@ -35,7 +35,8 @@ try:
 except AttributeError:
     HTTPSHandler = HTTPSConnection = object
 
-is_available = ssl is not None and object not in (HTTPSHandler, HTTPSConnection)
+is_available = ssl is not None and object not in (
+    HTTPSHandler, HTTPSConnection)
 
 
 try:
@@ -85,8 +86,10 @@ if not match_hostname:
             return dn.lower() == hostname.lower()
 
         # RFC 6125, section 6.4.3, subitem 1.
-        # The client SHOULD NOT attempt to match a presented identifier in which
-        # the wildcard character comprises a label other than the left-most label.
+        # The client SHOULD NOT attempt to match a
+        # presented identifier in which the wildcard
+        # character comprises a label other than the
+        # left-most label.
         if leftmost == '*':
             # When '*' is a fragment by itself, it matches a non-empty dotless
             # fragment.
@@ -137,15 +140,16 @@ if not match_hostname:
                             return
                         dnsnames.append(value)
         if len(dnsnames) > 1:
-            raise CertificateError("hostname %r "
-                "doesn't match either of %s"
+            raise CertificateError(
+                "hostname %r doesn't match either of %s"
                 % (hostname, ', '.join(map(repr, dnsnames))))
         elif len(dnsnames) == 1:
-            raise CertificateError("hostname %r "
-                "doesn't match %r"
+            raise CertificateError(
+                "hostname %r doesn't match %r"
                 % (hostname, dnsnames[0]))
         else:
-            raise CertificateError("no appropriate commonName or "
+            raise CertificateError(
+                "no appropriate commonName or "
                 "subjectAltName fields were found")
 
 
@@ -158,7 +162,8 @@ class VerifyingHTTPSHandler(HTTPSHandler):
 
     def https_open(self, req):
         return self.do_open(
-            lambda host, **kw: VerifyingHTTPSConn(host, self.ca_bundle, **kw), req
+            lambda host, **kw: VerifyingHTTPSConn(host, self.ca_bundle, **kw),
+            req
         )
 
 

@@ -13,6 +13,17 @@ from .test_easy_install import make_nspkg_sdist
 
 
 @pytest.fixture(autouse=True)
+def disable_requires_python(monkeypatch):
+    """
+    Disable Requires-Python on Python 2.7
+    """
+    if sys.version_info > (3,):
+        return
+
+    monkeypatch.setenv('PIP_IGNORE_REQUIRES_PYTHON', 'true')
+
+
+@pytest.fixture(autouse=True)
 def pytest_virtualenv_works(virtualenv):
     """
     pytest_virtualenv may not work. if it doesn't, skip these
@@ -62,7 +73,7 @@ def _get_pip_versions():
             from urllib.request import urlopen
             from urllib.error import URLError
         except ImportError:
-            from urllib2 import urlopen, URLError # Python 2.7 compat
+            from urllib2 import urlopen, URLError  # Python 2.7 compat
 
         try:
             urlopen('https://pypi.org', timeout=1)
@@ -116,14 +127,12 @@ def test_pip_upgrade_from_source(pip_version, virtualenv):
     virtualenv.run('pip install --no-cache-dir --upgrade ' + sdist)
 
 
-def test_test_command_install_requirements(bare_virtualenv, tmpdir):
+def _check_test_command_install_requirements(virtualenv, tmpdir):
     """
     Check the test command will install all required dependencies.
     """
-    bare_virtualenv.run(' && '.join((
-        'cd {source}',
-        'python setup.py develop',
-    )).format(source=SOURCE_DIR))
+    # Install setuptools.
+    virtualenv.run('python setup.py develop', cd=SOURCE_DIR)
 
     def sdist(distname, version):
         dist_path = tmpdir.join('%s-%s.tar.gz' % (distname, version))
@@ -174,11 +183,23 @@ def test_test_command_install_requirements(bare_virtualenv, tmpdir):
             open('success', 'w').close()
             '''))
     # Run test command for test package.
-    bare_virtualenv.run(' && '.join((
+    virtualenv.run(' && '.join((
         'cd {tmpdir}',
         'python setup.py test -s test',
     )).format(tmpdir=tmpdir))
     assert tmpdir.join('success').check()
+
+
+def test_test_command_install_requirements(virtualenv, tmpdir):
+    # Ensure pip/wheel packages are installed.
+    virtualenv.run(
+        "python -c \"__import__('pkg_resources').require(['pip', 'wheel'])\"")
+    _check_test_command_install_requirements(virtualenv, tmpdir)
+
+
+def test_test_command_install_requirements_when_using_easy_install(
+        bare_virtualenv, tmpdir):
+    _check_test_command_install_requirements(bare_virtualenv, tmpdir)
 
 
 def test_no_missing_dependencies(bare_virtualenv):

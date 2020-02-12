@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
 import contextlib
@@ -695,7 +695,7 @@ class TestOptions:
         )
         with get_dist(tmpdir) as dist:
             assert set(dist.packages) == set(
-                ['fake_package',  'fake_package.sub_two'])
+                ['fake_package', 'fake_package.sub_two'])
 
     @py2_only
     def test_find_namespace_directive_fails_on_py2(self, tmpdir):
@@ -748,7 +748,7 @@ class TestOptions:
         )
         with get_dist(tmpdir) as dist:
             assert set(dist.packages) == {
-                'fake_package',  'fake_package.sub_two'
+                'fake_package', 'fake_package.sub_two'
             }
 
     def test_extras_require(self, tmpdir):
@@ -819,6 +819,40 @@ class TestOptions:
             ]
             assert sorted(dist.data_files) == sorted(expected)
 
+    def test_python_requires_simple(self, tmpdir):
+        fake_env(
+            tmpdir,
+            DALS("""
+            [options]
+            python_requires=>=2.7
+            """),
+        )
+        with get_dist(tmpdir) as dist:
+            dist.parse_config_files()
+
+    def test_python_requires_compound(self, tmpdir):
+        fake_env(
+            tmpdir,
+            DALS("""
+            [options]
+            python_requires=>=2.7,!=3.0.*
+            """),
+        )
+        with get_dist(tmpdir) as dist:
+            dist.parse_config_files()
+
+    def test_python_requires_invalid(self, tmpdir):
+        fake_env(
+            tmpdir,
+            DALS("""
+            [options]
+            python_requires=invalid
+            """),
+        )
+        with pytest.raises(Exception):
+            with get_dist(tmpdir) as dist:
+                dist.parse_config_files()
+
 
 saved_dist_init = _Distribution.__init__
 
@@ -847,7 +881,7 @@ class TestExternalSetters:
         return None
 
     @patch.object(_Distribution, '__init__', autospec=True)
-    def test_external_setters(self,  mock_parent_init, tmpdir):
+    def test_external_setters(self, mock_parent_init, tmpdir):
         mock_parent_init.side_effect = self._fake_distribution_init
 
         dist = Distribution(attrs={
