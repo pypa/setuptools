@@ -26,6 +26,9 @@ jobs:
     if: tag IS present
     script: tox -e release
     after_success: skip
+  allow_failures:
+  # suppress failures due to pypa/setuptools#2000
+  - python: pypy3
 
 cache: pip
 
