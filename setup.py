@@ -7,19 +7,9 @@ import os
 import sys
 
 import setuptools
+import bootstrap
 
 here = os.path.dirname(__file__)
-
-
-def require_metadata():
-    "Prevent improper installs without necessary metadata. See #659"
-    egg_info_dir = os.path.join(here, 'setuptools.egg-info')
-    if not os.path.exists(egg_info_dir):
-        msg = (
-            "Cannot build setuptools without metadata. "
-            "Run `bootstrap.py`."
-        )
-        raise RuntimeError(msg)
 
 
 def read_commands():
@@ -151,5 +141,5 @@ setup_params = dict(
 if __name__ == '__main__':
     # allow setup.py to run from another directory
     here and os.chdir(here)
-    require_metadata()
+    bootstrap.ensure_egg_info()
     dist = setuptools.setup(**setup_params)

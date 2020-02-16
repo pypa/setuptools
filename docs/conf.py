@@ -1,15 +1,3 @@
-import subprocess
-import sys
-import os
-
-
-# hack to run the bootstrap script so that jaraco.packaging.sphinx
-# can invoke setup.py
-'READTHEDOCS' in os.environ and subprocess.check_call(
-    [sys.executable, '-m', 'bootstrap'],
-    cwd=os.path.join(os.path.dirname(__file__), os.path.pardir),
-)
-
 # -- General configuration --
 
 extensions = ['jaraco.packaging.sphinx', 'rst.linker']

@@ -15,12 +15,6 @@ def remove_setuptools():
     subprocess.check_call(cmd, cwd='.tox')
 
 
-def bootstrap():
-    print("Running bootstrap")
-    cmd = [sys.executable, '-m', 'bootstrap']
-    subprocess.check_call(cmd)
-
-
 def is_install_self(args):
     """
     Do the args represent an install of .?
@@ -72,7 +66,6 @@ def run(args):
 
     if is_install_self(args):
         remove_setuptools()
-        bootstrap()
         sys.version_info > (3,) or disable_python_requires()
 
     pip(*args)
