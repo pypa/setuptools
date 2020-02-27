@@ -486,6 +486,7 @@ class ConfigMetadataHandler(ConfigHandler):
             'license_files': parse_list,
             'description': parse_file,
             'long_description': parse_file,
+            'long_description_content_type': parse_file,
             'version': self._parse_version,
             'project_urls': parse_dict,
         }
