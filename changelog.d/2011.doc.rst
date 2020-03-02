@@ -1,0 +1,1 @@
+Fix broken link to distutils docs on package_data
