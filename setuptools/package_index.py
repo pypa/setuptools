@@ -349,6 +349,8 @@ class PackageIndex(Environment):
         f = self.open_url(url, tmpl % url)
         if f is None:
             return
+        if isinstance(f, urllib.error.HTTPError) and f.code == 401:
+            self.info("Authentication error: %s" % f.msg)
         self.fetched_urls[f.url] = True
         if 'html' not in f.headers.get('content-type', '').lower():
             f.close()  # not html, we can't process it
