@@ -88,7 +88,7 @@ packages in the directory where the setup.py lives.  See the `Command
 Reference`_ section below to see what commands you can give to this setup
 script. For example, to produce a source distribution, simply invoke::
 
-    python setup.py sdist
+    setup.py sdist
 
 Of course, before you release your project to PyPI, you'll want to add a bit
 more information to your setup script to help people find or learn about your
@@ -100,17 +100,17 @@ dependencies, and perhaps some data files and scripts::
         name="HelloWorld",
         version="0.1",
         packages=find_packages(),
-        scripts=['say_hello.py'],
+        scripts=["say_hello.py"],
 
         # Project uses reStructuredText, so ensure that the docutils get
         # installed or upgraded on the target machine
-        install_requires=['docutils>=0.3'],
+        install_requires=["docutils>=0.3"],
 
         package_data={
             # If any package contains *.txt or *.rst files, include them:
-            '': ['*.txt', '*.rst'],
-            # And include any *.msg files found in the 'hello' package, too:
-            'hello': ['*.msg'],
+            "": ["*.txt", "*.rst"],
+            # And include any *.msg files found in the "hello" package, too:
+            "hello": ["*.msg"],
         },
 
         # metadata to display on PyPI
@@ -125,7 +125,7 @@ dependencies, and perhaps some data files and scripts::
             "Source Code": "https://code.example.com/HelloWorld/",
         },
         classifiers=[
-            'License :: OSI Approved :: Python Software Foundation License'
+            "License :: OSI Approved :: Python Software Foundation License"
         ]
 
         # could also include long_description, download_url, etc.
@@ -207,11 +207,11 @@ but here are a few tips that will keep you out of trouble in the corner cases:
   to compare different version numbers::
 
     >>> from pkg_resources import parse_version
-    >>> parse_version('1.9.a.dev') == parse_version('1.9a0dev')
+    >>> parse_version("1.9.a.dev") == parse_version("1.9a0dev")
     True
-    >>> parse_version('2.1-rc2') < parse_version('2.1')
+    >>> parse_version("2.1-rc2") < parse_version("2.1")
     True
-    >>> parse_version('0.6a9dev-r41475') < parse_version('0.6a9')
+    >>> parse_version("0.6a9dev-r41475") < parse_version("0.6a9")
     True
 
 Once you've decided on a version numbering scheme for your project, you can
@@ -371,7 +371,7 @@ unless you need the associated ``setuptools`` feature.
     imported.  This argument is only useful if the project will be installed as
     a zipfile, and there is a need to have all of the listed resources be
     extracted to the filesystem *as a unit*.  Resources listed here
-    should be '/'-separated paths, relative to the source root, so to list a
+    should be "/"-separated paths, relative to the source root, so to list a
     resource ``foo.png`` in package ``bar.baz``, you would include the string
     ``bar/baz/foo.png`` in this argument.
 
@@ -413,7 +413,7 @@ the same
 directory as the setup script.  Some projects use a ``src`` or ``lib``
 directory as the root of their source tree, and those projects would of course
 use ``"src"`` or ``"lib"`` as the first argument to ``find_packages()``.  (And
-such projects also need something like ``package_dir={'':'src'}`` in their
+such projects also need something like ``package_dir={"": "src"}`` in their
 ``setup()`` arguments, but that's just a normal distutils thing.)
 
 Anyway, ``find_packages()`` walks the target directory, filtering by inclusion
@@ -480,7 +480,7 @@ top-level package called ``tests``! One way to avoid this problem is to use the
     setup(
         name="namespace.mypackage",
         version="0.1",
-        packages=find_namespace_packages(include=['namespace.*'])
+        packages=find_namespace_packages(include=["namespace.*"])
     )
 
 Another option is to use the "src" layout, where all package code is placed in
@@ -500,8 +500,8 @@ With this layout, the package directory is specified as ``src``, as such::
 
     setup(name="namespace.mypackage",
           version="0.1",
-          package_dir={'': 'src'},
-          packages=find_namespace_packages(where='src'))
+          package_dir={"": "src"},
+          packages=find_namespace_packages(where="src"))
 
 .. _PEP 420: https://www.python.org/dev/peps/pep-0420/
 
@@ -526,12 +526,12 @@ script called ``baz``, you might do something like this::
     setup(
         # other arguments here...
         entry_points={
-            'console_scripts': [
-                'foo = my_package.some_module:main_func',
-                'bar = other_module:some_func',
+            "console_scripts": [
+                "foo = my_package.some_module:main_func",
+                "bar = other_module:some_func",
             ],
-            'gui_scripts': [
-                'baz = my_package_gui:start_func',
+            "gui_scripts": [
+                "baz = my_package_gui:start_func",
             ]
         }
     )
@@ -560,6 +560,8 @@ Services and Plugins`_.
 "Eggsecutable" Scripts
 ----------------------
 
+.. deprecated:: 45.3.0
+
 Occasionally, there are situations where it's desirable to make an ``.egg``
 file directly executable.  You can do this by including an entry point such
 as the following::
@@ -567,8 +569,8 @@ as the following::
     setup(
         # other arguments here...
         entry_points={
-            'setuptools.installation': [
-                'eggsecutable = my_package.some_module:main_func',
+            "setuptools.installation": [
+                "eggsecutable = my_package.some_module:main_func",
             ]
         }
     )
@@ -741,8 +743,8 @@ For example, let's say that Project A offers optional PDF and reST support::
         name="Project-A",
         ...
         extras_require={
-            'PDF':  ["ReportLab>=1.2", "RXP"],
-            'reST': ["docutils>=0.3"],
+            "PDF":  ["ReportLab>=1.2", "RXP"],
+            "reST": ["docutils>=0.3"],
         }
     )
 
@@ -763,9 +765,9 @@ declare it like this, so that the "PDF" requirements are only resolved if the
         name="Project-A",
         ...
         entry_points={
-            'console_scripts': [
-                'rst2pdf = project_a.tools.pdfgen [PDF]',
-                'rst2html = project_a.tools.htmlgen',
+            "console_scripts": [
+                "rst2pdf = project_a.tools.pdfgen [PDF]",
+                "rst2html = project_a.tools.htmlgen",
                 # more script entry points ...
             ],
         }
@@ -801,8 +803,8 @@ setup to this::
         name="Project-A",
         ...
         extras_require={
-            'PDF':  [],
-            'reST': ["docutils>=0.3"],
+            "PDF":  [],
+            "reST": ["docutils>=0.3"],
         }
     )
 
@@ -829,8 +831,8 @@ For example, here is a project that uses the ``enum`` module and ``pywin32``::
         name="Project",
         ...
         install_requires=[
-            'enum34;python_version<"3.4"',
-            'pywin32 >= 1.0;platform_system=="Windows"'
+            "enum34;python_version<'3.4'",
+            "pywin32 >= 1.0;platform_system=='Windows'"
         ]
     )
 
@@ -878,9 +880,9 @@ e.g.::
         ...
         package_data={
             # If any package contains *.txt or *.rst files, include them:
-            '': ['*.txt', '*.rst'],
-            # And include any *.msg files found in the 'hello' package, too:
-            'hello': ['*.msg'],
+            "": ["*.txt", "*.rst"],
+            # And include any *.msg files found in the "hello" package, too:
+            "hello": ["*.msg"],
         }
     )
 
@@ -903,15 +905,15 @@ The setuptools setup file might look like this::
     from setuptools import setup, find_packages
     setup(
         ...
-        packages=find_packages('src'),  # include all packages under src
-        package_dir={'':'src'},   # tell distutils packages are under src
+        packages=find_packages("src"),  # include all packages under src
+        package_dir={"": "src"},   # tell distutils packages are under src
 
         package_data={
             # If any package contains *.txt files, include them:
-            '': ['*.txt'],
-            # And include any *.dat files found in the 'data' subdirectory
-            # of the 'mypkg' package, also:
-            'mypkg': ['data/*.dat'],
+            "": ["*.txt"],
+            # And include any *.dat files found in the "data" subdirectory
+            # of the "mypkg" package, also:
+            "mypkg": ["data/*.dat"],
         }
     )
 
@@ -926,7 +928,7 @@ converts slashes to appropriate platform-specific separators at build time.
 
 If datafiles are contained in a subdirectory of a package that isn't a package
 itself (no ``__init__.py``), then the subdirectory names (or ``*``) are required
-in the ``package_data`` argument (as shown above with ``'data/*.dat'``).
+in the ``package_data`` argument (as shown above with ``"data/*.dat"``).
 
 When building an ``sdist``, the datafiles are also drawn from the
 ``package_name.egg-info/SOURCES.txt`` file, so make sure that this is removed if
@@ -939,7 +941,7 @@ python.org website.  If using the setuptools-specific ``include_package_data``
 argument, files specified by ``package_data`` will *not* be automatically
 added to the manifest unless they are listed in the MANIFEST.in file.)
 
-__ http://docs.python.org/dist/node11.html
+__ https://docs.python.org/3/distutils/setupscript.html#installing-package-data
 
 Sometimes, the ``include_package_data`` or ``package_data`` options alone
 aren't sufficient to precisely define what files you want included.  For
@@ -951,18 +953,18 @@ to do things like this::
     from setuptools import setup, find_packages
     setup(
         ...
-        packages=find_packages('src'),  # include all packages under src
-        package_dir={'':'src'},   # tell distutils packages are under src
+        packages=find_packages("src"),  # include all packages under src
+        package_dir={"": "src"},   # tell distutils packages are under src
 
         include_package_data=True,    # include everything in source control
 
         # ...but exclude README.txt from all packages
-        exclude_package_data={'': ['README.txt']},
+        exclude_package_data={"": ["README.txt"]},
     )
 
 The ``exclude_package_data`` option is a dictionary mapping package names to
 lists of wildcard patterns, just like the ``package_data`` option.  And, just
-as with that option, a key of ``''`` will apply the given pattern(s) to all
+as with that option, a key of ``""`` will apply the given pattern(s) to all
 packages.  However, any files that match these patterns will be *excluded*
 from installation, even if they were listed in ``package_data`` or were
 included as a result of using ``include_package_data``.
@@ -1096,12 +1098,12 @@ for our hypothetical blogging tool::
 
     setup(
         # ...
-        entry_points={'blogtool.parsers': '.rst = some_module:SomeClass'}
+        entry_points={"blogtool.parsers": ".rst = some_module:SomeClass"}
     )
 
     setup(
         # ...
-        entry_points={'blogtool.parsers': ['.rst = some_module:a_func']}
+        entry_points={"blogtool.parsers": [".rst = some_module:a_func"]}
     )
 
     setup(
@@ -1220,7 +1222,7 @@ Before you begin, make sure you have the latest versions of setuptools and wheel
 To build a setuptools project, run this command from the same directory where
 setup.py is located::
 
-    python3 setup.py sdist bdist_wheel
+    setup.py sdist bdist_wheel
 
 This will generate distribution archives in the `dist` directory.
 
@@ -1309,7 +1311,7 @@ participates in.  For example, the ZopeInterface project might do this::
 
     setup(
         # ...
-        namespace_packages=['zope']
+        namespace_packages=["zope"]
     )
 
 because it contains a ``zope.interface`` package that lives in the ``zope``
@@ -1327,7 +1329,7 @@ packages' ``__init__.py`` files (and the ``__init__.py`` of any parent
 packages), in a normal Python package layout.  These ``__init__.py`` files
 *must* contain the line::
 
-    __import__('pkg_resources').declare_namespace(__name__)
+    __import__("pkg_resources").declare_namespace(__name__)
 
 This code ensures that the namespace package machinery is operating and that
 the current package is registered as a namespace package.
@@ -1410,7 +1412,7 @@ pattern.  So, you can use a command line like::
 
     setup.py egg_info -rbDEV bdist_egg rotate -m.egg -k3
 
-to build an egg whose version info includes 'DEV-rNNNN' (where NNNN is the
+to build an egg whose version info includes "DEV-rNNNN" (where NNNN is the
 most recent Subversion revision that affected the source tree), and then
 delete any egg files from the distribution directory except for the three
 that were built most recently.
@@ -1469,7 +1471,7 @@ tagging the release, so the trunk will still produce development snapshots.
 Alternately, if you are not branching for releases, you can override the
 default version options on the command line, using something like::
 
-    python setup.py egg_info -Db "" sdist bdist_egg
+    setup.py egg_info -Db "" sdist bdist_egg
 
 The first part of this command (``egg_info -Db ""``) will override the
 configured tag information, before creating source and binary eggs. Thus, these
@@ -1479,11 +1481,11 @@ build designation string.
 Of course, if you will be doing this a lot, you may wish to create a personal
 alias for this operation, e.g.::
 
-    python setup.py alias -u release egg_info -Db ""
+    setup.py alias -u release egg_info -Db ""
 
 You can then use it like this::
 
-    python setup.py release sdist bdist_egg
+    setup.py release sdist bdist_egg
 
 Or of course you can create more elaborate aliases that do all of the above.
 See the sections below on the `egg_info`_ and `alias`_ commands for more ideas.
@@ -1500,7 +1502,7 @@ To ensure Cython is available, include Cython in the build-requires section
 of your pyproject.toml::
 
     [build-system]
-    requires=[..., 'cython']
+    requires=[..., "cython"]
 
 Built with pip 10 or later, that declaration is sufficient to include Cython
 in the build. For broader compatibility, declare the dependency in your
@@ -1800,7 +1802,7 @@ to support "daily builds" or "snapshot" releases.  It is run automatically by
 the ``sdist``, ``bdist_egg``, ``develop``, and ``test`` commands in order to
 update the project's metadata, but you can also specify it explicitly in order
 to temporarily change the project's version string while executing other
-commands.  (It also generates the``.egg-info/SOURCES.txt`` manifest file, which
+commands.  (It also generates the ``.egg-info/SOURCES.txt`` manifest file, which
 is used when you are building source distributions.)
 
 In addition to writing the core egg metadata defined by ``setuptools`` and
@@ -1848,7 +1850,7 @@ binary distributions of your project, you should first make sure that you know
 how the resulting version numbers will be interpreted by automated tools
 like pip.  See the section above on `Specifying Your Project's Version`_ for an
 explanation of pre- and post-release tags, as well as tips on how to choose and
-verify a versioning scheme for your your project.)
+verify a versioning scheme for your project.)
 
 For advanced uses, there is one other option that can be set, to change the
 location of the project's ``.egg-info`` directory.  Commands that need to find
@@ -1873,12 +1875,12 @@ Other ``egg_info`` Options
 
 Creating a dated "nightly build" snapshot egg::
 
-    python setup.py egg_info --tag-date --tag-build=DEV bdist_egg
+    setup.py egg_info --tag-date --tag-build=DEV bdist_egg
 
 Creating a release with no version tags, even if some default tags are
 specified in ``setup.cfg``::
 
-    python setup.py egg_info -RDb "" sdist bdist_egg
+    setup.py egg_info -RDb "" sdist bdist_egg
 
 (Notice that ``egg_info`` must always appear on the command line *before* any
 commands that you want the version changes to apply to.)
@@ -2351,7 +2353,7 @@ parsing ``metadata`` and ``options`` sections into a dictionary.
 
     from setuptools.config import read_configuration
 
-    conf_dict = read_configuration('/home/user/dev/package/setup.cfg')
+    conf_dict = read_configuration("/home/user/dev/package/setup.cfg")
 
 
 By default, ``read_configuration()`` will read only the file provided
@@ -2531,7 +2533,7 @@ a file.  Here's what the writer utility looks like::
         argname = os.path.splitext(basename)[0]
         value = getattr(cmd.distribution, argname, None)
         if value is not None:
-            value = '\n'.join(value) + '\n'
+            value = "\n".join(value) + "\n"
         cmd.write_or_delete_file(argname, filename, value)
 
 As you can see, ``egg_info.writers`` entry points must be a function taking

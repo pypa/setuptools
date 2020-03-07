@@ -525,19 +525,19 @@ class TestEggInfo:
                               license_file = LICENSE
                               """),
             'LICENSE': "Test license"
-        }, True), # with license
+        }, True),  # with license
         ({
             'setup.cfg': DALS("""
                               [metadata]
                               license_file = INVALID_LICENSE
                               """),
             'LICENSE': "Test license"
-        }, False), # with an invalid license
+        }, False),  # with an invalid license
         ({
             'setup.cfg': DALS("""
                               """),
             'LICENSE': "Test license"
-        }, False), # no license_file attribute
+        }, False),  # no license_file attribute
         ({
             'setup.cfg': DALS("""
                               [metadata]
@@ -545,7 +545,7 @@ class TestEggInfo:
                               """),
             'MANIFEST.in': "exclude LICENSE",
             'LICENSE': "Test license"
-        }, False) # license file is manually excluded
+        }, False)  # license file is manually excluded
     ])
     def test_setup_cfg_license_file(
             self, tmpdir_cwd, env, files, license_in_sources):
@@ -565,7 +565,8 @@ class TestEggInfo:
             assert 'LICENSE' in sources_text
         else:
             assert 'LICENSE' not in sources_text
-            assert 'INVALID_LICENSE' not in sources_text # for invalid license test
+            # for invalid license test
+            assert 'INVALID_LICENSE' not in sources_text
 
     @pytest.mark.parametrize("files, incl_licenses, excl_licenses", [
         ({
@@ -577,7 +578,7 @@ class TestEggInfo:
                               """),
             'LICENSE-ABC': "ABC license",
             'LICENSE-XYZ': "XYZ license"
-        }, ['LICENSE-ABC', 'LICENSE-XYZ'], []), # with licenses
+        }, ['LICENSE-ABC', 'LICENSE-XYZ'], []),  # with licenses
         ({
             'setup.cfg': DALS("""
                               [metadata]
@@ -585,7 +586,7 @@ class TestEggInfo:
                               """),
             'LICENSE-ABC': "ABC license",
             'LICENSE-XYZ': "XYZ license"
-        }, ['LICENSE-ABC', 'LICENSE-XYZ'], []), # with commas
+        }, ['LICENSE-ABC', 'LICENSE-XYZ'], []),  # with commas
         ({
             'setup.cfg': DALS("""
                               [metadata]
@@ -594,7 +595,7 @@ class TestEggInfo:
                               """),
             'LICENSE-ABC': "ABC license",
             'LICENSE-XYZ': "XYZ license"
-        }, ['LICENSE-ABC'], ['LICENSE-XYZ']), # with one license
+        }, ['LICENSE-ABC'], ['LICENSE-XYZ']),  # with one license
         ({
             'setup.cfg': DALS("""
                               [metadata]
@@ -602,7 +603,7 @@ class TestEggInfo:
                               """),
             'LICENSE-ABC': "ABC license",
             'LICENSE-XYZ': "XYZ license"
-        }, [], ['LICENSE-ABC', 'LICENSE-XYZ']), # empty
+        }, [], ['LICENSE-ABC', 'LICENSE-XYZ']),  # empty
         ({
             'setup.cfg': DALS("""
                               [metadata]
@@ -610,7 +611,7 @@ class TestEggInfo:
                               """),
             'LICENSE-ABC': "ABC license",
             'LICENSE-XYZ': "XYZ license"
-        }, ['LICENSE-XYZ'], ['LICENSE-ABC']), # on same line
+        }, ['LICENSE-XYZ'], ['LICENSE-ABC']),  # on same line
         ({
             'setup.cfg': DALS("""
                               [metadata]
@@ -619,12 +620,12 @@ class TestEggInfo:
                                   INVALID_LICENSE
                               """),
             'LICENSE-ABC': "Test license"
-        }, ['LICENSE-ABC'], ['INVALID_LICENSE']), # with an invalid license
+        }, ['LICENSE-ABC'], ['INVALID_LICENSE']),  # with an invalid license
         ({
             'setup.cfg': DALS("""
                               """),
             'LICENSE': "Test license"
-        }, [], ['LICENSE']), # no license_files attribute
+        }, [], ['LICENSE']),  # no license_files attribute
         ({
             'setup.cfg': DALS("""
                               [metadata]
@@ -632,7 +633,7 @@ class TestEggInfo:
                               """),
             'MANIFEST.in': "exclude LICENSE",
             'LICENSE': "Test license"
-        }, [], ['LICENSE']), # license file is manually excluded
+        }, [], ['LICENSE']),  # license file is manually excluded
         ({
             'setup.cfg': DALS("""
                               [metadata]
@@ -643,7 +644,7 @@ class TestEggInfo:
             'MANIFEST.in': "exclude LICENSE-XYZ",
             'LICENSE-ABC': "ABC license",
             'LICENSE-XYZ': "XYZ license"
-        }, ['LICENSE-ABC'], ['LICENSE-XYZ']) # subset is manually excluded
+        }, ['LICENSE-ABC'], ['LICENSE-XYZ'])  # subset is manually excluded
     ])
     def test_setup_cfg_license_files(
             self, tmpdir_cwd, env, files, incl_licenses, excl_licenses):
@@ -674,7 +675,7 @@ class TestEggInfo:
                               """),
             'LICENSE-ABC': "ABC license",
             'LICENSE-XYZ': "XYZ license"
-        }, [], ['LICENSE-ABC', 'LICENSE-XYZ']), # both empty
+        }, [], ['LICENSE-ABC', 'LICENSE-XYZ']),  # both empty
         ({
             'setup.cfg': DALS("""
                               [metadata]
@@ -684,7 +685,8 @@ class TestEggInfo:
                               """),
             'LICENSE-ABC': "ABC license",
             'LICENSE-XYZ': "XYZ license"
-        }, [], ['LICENSE-ABC', 'LICENSE-XYZ']), # license_file is still singular
+            # license_file is still singular
+        }, [], ['LICENSE-ABC', 'LICENSE-XYZ']),
         ({
             'setup.cfg': DALS("""
                               [metadata]
@@ -696,7 +698,7 @@ class TestEggInfo:
             'LICENSE-ABC': "ABC license",
             'LICENSE-PQR': "PQR license",
             'LICENSE-XYZ': "XYZ license"
-        }, ['LICENSE-ABC', 'LICENSE-PQR', 'LICENSE-XYZ'], []), # combined
+        }, ['LICENSE-ABC', 'LICENSE-PQR', 'LICENSE-XYZ'], []),  # combined
         ({
             'setup.cfg': DALS("""
                               [metadata]
@@ -709,7 +711,8 @@ class TestEggInfo:
             'LICENSE-ABC': "ABC license",
             'LICENSE-PQR': "PQR license",
             'LICENSE-XYZ': "XYZ license"
-        }, ['LICENSE-ABC', 'LICENSE-PQR', 'LICENSE-XYZ'], []), # duplicate license
+            # duplicate license
+        }, ['LICENSE-ABC', 'LICENSE-PQR', 'LICENSE-XYZ'], []),
         ({
             'setup.cfg': DALS("""
                               [metadata]
@@ -720,7 +723,8 @@ class TestEggInfo:
             'LICENSE-ABC': "ABC license",
             'LICENSE-PQR': "PQR license",
             'LICENSE-XYZ': "XYZ license"
-        }, ['LICENSE-ABC', 'LICENSE-XYZ'], ['LICENSE-PQR']), # combined subset
+            # combined subset
+        }, ['LICENSE-ABC', 'LICENSE-XYZ'], ['LICENSE-PQR']),
         ({
             'setup.cfg': DALS("""
                               [metadata]
@@ -730,7 +734,8 @@ class TestEggInfo:
                                   LICENSE-PQR
                               """),
             'LICENSE-PQR': "Test license"
-        }, ['LICENSE-PQR'], ['LICENSE-ABC', 'LICENSE-XYZ']), # with invalid licenses
+            # with invalid licenses
+        }, ['LICENSE-PQR'], ['LICENSE-ABC', 'LICENSE-XYZ']),
         ({
             'setup.cfg': DALS("""
                               [metadata]
@@ -743,7 +748,8 @@ class TestEggInfo:
             'LICENSE-ABC': "ABC license",
             'LICENSE-PQR': "PQR license",
             'LICENSE-XYZ': "XYZ license"
-        }, ['LICENSE-XYZ'], ['LICENSE-ABC', 'LICENSE-PQR']) # manually excluded
+            # manually excluded
+        }, ['LICENSE-XYZ'], ['LICENSE-ABC', 'LICENSE-PQR'])
     ])
     def test_setup_cfg_license_file_license_files(
             self, tmpdir_cwd, env, files, incl_licenses, excl_licenses):

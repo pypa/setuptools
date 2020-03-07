@@ -16,7 +16,7 @@ def get_all_headers(message, key):
 
 
 if six.PY2:
-    def get_all_headers(message, key):
+    def get_all_headers(message, key):  # noqa
         return message.getheaders(key)
 
 

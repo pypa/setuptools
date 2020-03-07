@@ -14,7 +14,8 @@ from setuptools.extern import six
 if six.PY2:
     import imp
 
-    EXTENSION_SUFFIXES = [s for s, _, tp in imp.get_suffixes() if tp == imp.C_EXTENSION]
+    EXTENSION_SUFFIXES = [
+        s for s, _, tp in imp.get_suffixes() if tp == imp.C_EXTENSION]
 else:
     from importlib.machinery import EXTENSION_SUFFIXES
 
@@ -29,7 +30,7 @@ except ImportError:
 
 # make sure _config_vars is initialized
 get_config_var("LDSHARED")
-from distutils.sysconfig import _config_vars as _CONFIG_VARS
+from distutils.sysconfig import _config_vars as _CONFIG_VARS  # noqa
 
 
 def _customize_compiler_for_shlib(compiler):
@@ -65,7 +66,9 @@ elif os.name != 'nt':
     except ImportError:
         pass
 
-if_dl = lambda s: s if have_rtld else ''
+
+def if_dl(s):
+    return s if have_rtld else ''
 
 
 def get_abi3_suffix():

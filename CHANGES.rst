@@ -1,3 +1,31 @@
+v45.3.0
+-------
+
+* #1557: Deprecated eggsecutable scripts and updated docs.
+* #1904: Update msvc.py to use CPython 3.8.0 mechanism to find msvc 14+
+
+
+v45.2.0
+-------
+
+* #1905: Fixed defect in _imp, introduced in 41.6.0 when the 'tests' directory is not present.
+* #1941: Improve editable installs with PEP 518 build isolation:
+
+  * The ``--user`` option is now always available. A warning is issued if the user site directory is not available.
+  * The error shown when the install directory is not in ``PYTHONPATH`` has been turned into a warning.
+* #1981: Setuptools now declares its ``tests`` and ``docs`` dependencies in metadata (extras).
+* #1985: Add support for installing scripts in environments where bdist_wininst is missing (i.e. Python 3.9).
+* #1968: Add flake8-2020 to check for misuse of sys.version or sys.version_info.
+
+
+v45.1.0
+-------
+
+* #1458: Add minimum sunset date and preamble to Python 2 warning.
+* #1704: Set sys.argv[0] in setup script run by build_meta.__legacy__
+* #1974: Add Python 3 Only Trove Classifier and remove universal wheel declaration for more complete transition from Python 2.
+
+
 v45.0.0
 -------
 

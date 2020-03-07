@@ -33,6 +33,7 @@ from setuptools.glob import glob
 from setuptools.extern import packaging
 from setuptools import SetuptoolsDeprecationWarning
 
+
 def translate_pattern(glob):
     """
     Translate a file path glob like '*.txt' in to a regular expression.
@@ -113,7 +114,7 @@ def translate_pattern(glob):
             pat += sep
 
     pat += r'\Z'
-    return re.compile(pat, flags=re.MULTILINE|re.DOTALL)
+    return re.compile(pat, flags=re.MULTILINE | re.DOTALL)
 
 
 class InfoCommon:
@@ -637,7 +638,9 @@ def warn_depends_obsolete(cmd, basename, filename):
 
 def _write_requirements(stream, reqs):
     lines = yield_lines(reqs or ())
-    append_cr = lambda line: line + '\n'
+
+    def append_cr(line):
+        return line + '\n'
     lines = map(append_cr, lines)
     stream.writelines(lines)
 
@@ -703,7 +706,8 @@ def get_pkg_info_revision():
     Get a -r### off of PKG-INFO Version in case this is an sdist of
     a subversion revision.
     """
-    warnings.warn("get_pkg_info_revision is deprecated.", EggInfoDeprecationWarning)
+    warnings.warn(
+        "get_pkg_info_revision is deprecated.", EggInfoDeprecationWarning)
     if os.path.exists('PKG-INFO'):
         with io.open('PKG-INFO') as f:
             for line in f:
@@ -714,4 +718,4 @@ def get_pkg_info_revision():
 
 
 class EggInfoDeprecationWarning(SetuptoolsDeprecationWarning):
-    """Class for warning about deprecations in eggInfo in setupTools. Not ignored by default, unlike DeprecationWarning."""
+    """Deprecated behavior warning for EggInfo, bypassing suppression."""
