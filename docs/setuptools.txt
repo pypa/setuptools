@@ -941,7 +941,7 @@ python.org website.  If using the setuptools-specific ``include_package_data``
 argument, files specified by ``package_data`` will *not* be automatically
 added to the manifest unless they are listed in the MANIFEST.in file.)
 
-__ http://docs.python.org/dist/node11.html
+__ https://docs.python.org/3/distutils/setupscript.html#installing-package-data
 
 Sometimes, the ``include_package_data`` or ``package_data`` options alone
 aren't sufficient to precisely define what files you want included.  For
