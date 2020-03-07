@@ -1,3 +1,10 @@
+v45.3.0
+-------
+
+* #1557: Deprecated eggsecutable scripts and updated docs.
+* #1904: Update msvc.py to use CPython 3.8.0 mechanism to find msvc 14+
+
+
 v45.2.0
 -------
 

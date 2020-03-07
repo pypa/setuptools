@@ -1,1 +1,0 @@
-Update msvc.py to use CPython 3.8.0 mechanism to find msvc 14+

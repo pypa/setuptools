@@ -1,1 +1,0 @@
-Deprecated eggsecutable scripts and updated docs.
