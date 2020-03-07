@@ -48,6 +48,7 @@ __all__ = ['get_requires_for_build_sdist',
            '__legacy__',
            'SetupRequirementsError']
 
+
 class SetupRequirementsError(BaseException):
     def __init__(self, specifiers):
         self.specifiers = specifiers
@@ -143,7 +144,8 @@ class _BuildMetaBackend(object):
 
     def get_requires_for_build_wheel(self, config_settings=None):
         config_settings = self._fix_config(config_settings)
-        return self._get_build_requires(config_settings, requirements=['wheel'])
+        return self._get_build_requires(
+            config_settings, requirements=['wheel'])
 
     def get_requires_for_build_sdist(self, config_settings=None):
         config_settings = self._fix_config(config_settings)
@@ -160,8 +162,10 @@ class _BuildMetaBackend(object):
             dist_infos = [f for f in os.listdir(dist_info_directory)
                           if f.endswith('.dist-info')]
 
-            if (len(dist_infos) == 0 and
-                len(_get_immediate_subdirectories(dist_info_directory)) == 1):
+            if (
+                len(dist_infos) == 0 and
+                len(_get_immediate_subdirectories(dist_info_directory)) == 1
+            ):
 
                 dist_info_directory = os.path.join(
                     dist_info_directory, os.listdir(dist_info_directory)[0])
@@ -193,7 +197,8 @@ class _BuildMetaBackend(object):
                         config_settings["--global-option"])
             self.run_setup()
 
-            result_basename = _file_with_extension(tmp_dist_dir, result_extension)
+            result_basename = _file_with_extension(
+                tmp_dist_dir, result_extension)
             result_path = os.path.join(result_directory, result_basename)
             if os.path.exists(result_path):
                 # os.rename will fail overwriting on non-Unix.
@@ -201,7 +206,6 @@ class _BuildMetaBackend(object):
             os.rename(os.path.join(tmp_dist_dir, result_basename), result_path)
 
         return result_basename
-
 
     def build_wheel(self, wheel_directory, config_settings=None,
                     metadata_directory=None):
@@ -217,9 +221,12 @@ class _BuildMetaBackend(object):
 class _BuildMetaLegacyBackend(_BuildMetaBackend):
     """Compatibility backend for setuptools
 
-    This is a version of setuptools.build_meta that endeavors to maintain backwards
-    compatibility with pre-PEP 517 modes of invocation. It exists as a temporary
-    bridge between the old packaging mechanism and the new packaging mechanism,
+    This is a version of setuptools.build_meta that endeavors
+    to maintain backwards
+    compatibility with pre-PEP 517 modes of invocation. It
+    exists as a temporary
+    bridge between the old packaging mechanism and the new
+    packaging mechanism,
     and will eventually be removed.
     """
     def run_setup(self, setup_script='setup.py'):
@@ -232,6 +239,12 @@ class _BuildMetaLegacyBackend(_BuildMetaBackend):
         if script_dir not in sys.path:
             sys.path.insert(0, script_dir)
 
+        # Some setup.py scripts (e.g. in pygame and numpy) use sys.argv[0] to
+        # get the directory of the source code. They expect it to refer to the
+        # setup.py script.
+        sys_argv_0 = sys.argv[0]
+        sys.argv[0] = setup_script
+
         try:
             super(_BuildMetaLegacyBackend,
                   self).run_setup(setup_script=setup_script)
@@ -242,6 +255,8 @@ class _BuildMetaLegacyBackend(_BuildMetaBackend):
             # the original path so that the path manipulation does not persist
             # within the hook after run_setup is called.
             sys.path[:] = sys_path
+            sys.argv[0] = sys_argv_0
+
 
 # The primary backend
 _BACKEND = _BuildMetaBackend()

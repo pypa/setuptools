@@ -77,7 +77,8 @@ class install_lib(orig.install_lib):
         if not hasattr(sys, 'implementation'):
             return
 
-        base = os.path.join('__pycache__', '__init__.' + sys.implementation.cache_tag)
+        base = os.path.join(
+            '__pycache__', '__init__.' + sys.implementation.cache_tag)
         yield base + '.pyc'
         yield base + '.pyo'
         yield base + '.opt-1.pyc'

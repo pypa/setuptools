@@ -15,7 +15,7 @@ import pkg_resources
 from pkg_resources import (
     parse_requirements, VersionConflict, parse_version,
     Distribution, EntryPoint, Requirement, safe_version, safe_name,
-    WorkingSet, PkgResourcesDeprecationWarning)
+    WorkingSet)
 
 
 # from Python 3.6 docs.
@@ -499,7 +499,6 @@ class TestEntryPoints:
         )
         with pytest.warns(pkg_resources.PkgResourcesDeprecationWarning):
             ep.load(require=False)
-
 
 
 class TestRequirements:

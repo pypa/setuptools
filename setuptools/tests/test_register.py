@@ -1,43 +1,22 @@
-import mock
-from distutils import log
+from setuptools.command.register import register
+from setuptools.dist import Distribution
+from setuptools.errors import RemovedCommandError
+
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 
 import pytest
 
-from setuptools.command.register import register
-from setuptools.dist import Distribution
 
-
-class TestRegisterTest:
-    def test_warns_deprecation(self):
+class TestRegister:
+    def test_register_exception(self):
+        """Ensure that the register command has been properly removed."""
         dist = Distribution()
+        dist.dist_files = [(mock.Mock(), mock.Mock(), mock.Mock())]
 
         cmd = register(dist)
-        cmd.run_command = mock.Mock()
-        cmd.send_metadata = mock.Mock()
-        cmd.announce = mock.Mock()
 
-        cmd.run()
-
-        cmd.announce.assert_called_with(
-            "WARNING: Registering is deprecated, use twine to upload instead "
-            "(https://pypi.org/p/twine/)",
-            log.WARN
-        )
-
-    def test_warns_deprecation_when_raising(self):
-        dist = Distribution()
-
-        cmd = register(dist)
-        cmd.run_command = mock.Mock()
-        cmd.send_metadata = mock.Mock()
-        cmd.send_metadata.side_effect = Exception
-        cmd.announce = mock.Mock()
-
-        with pytest.raises(Exception):
+        with pytest.raises(RemovedCommandError):
             cmd.run()
-
-        cmd.announce.assert_called_with(
-            "WARNING: Registering is deprecated, use twine to upload instead "
-            "(https://pypi.org/p/twine/)",
-            log.WARN
-        )

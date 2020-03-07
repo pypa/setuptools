@@ -83,13 +83,14 @@ __import__('pkg_resources.extern.packaging.version')
 __import__('pkg_resources.extern.packaging.specifiers')
 __import__('pkg_resources.extern.packaging.requirements')
 __import__('pkg_resources.extern.packaging.markers')
+__import__('pkg_resources.py2_warn')
 
 
 __metaclass__ = type
 
 
-if (3, 0) < sys.version_info < (3, 4):
-    raise RuntimeError("Python 3.4 or later is required")
+if (3, 0) < sys.version_info < (3, 5):
+    raise RuntimeError("Python 3.5 or later is required")
 
 if six.PY2:
     # Those builtin exceptions are only defined in Python 3
@@ -2328,7 +2329,8 @@ register_namespace_handler(object, null_ns_handler)
 
 def normalize_path(filename):
     """Normalize a file/dir name for comparison purposes"""
-    return os.path.normcase(os.path.realpath(os.path.normpath(_cygwin_patch(filename))))
+    return os.path.normcase(os.path.realpath(os.path.normpath(
+        _cygwin_patch(filename))))
 
 
 def _cygwin_patch(filename):  # pragma: nocover
@@ -3286,6 +3288,7 @@ def _initialize_master_working_set():
     # match order
     list(map(working_set.add_entry, sys.path))
     globals().update(locals())
+
 
 class PkgResourcesDeprecationWarning(Warning):
     """

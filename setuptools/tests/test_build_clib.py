@@ -8,8 +8,7 @@ from setuptools.dist import Distribution
 
 class TestBuildCLib:
     @mock.patch(
-            'setuptools.command.build_clib.newer_pairwise_group'
-            )
+        'setuptools.command.build_clib.newer_pairwise_group')
     def test_build_libraries(self, mock_newer):
         dist = Distribution()
         cmd = build_clib(dist)
