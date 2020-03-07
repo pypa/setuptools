@@ -19,6 +19,7 @@ collect_ignore = [
 
 if sys.version_info < (3,):
     collect_ignore.append('setuptools/lib2to3_ex.py')
+    collect_ignore.append('setuptools/_imp.py')
 
 
 if sys.version_info < (3, 6):

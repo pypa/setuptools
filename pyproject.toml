@@ -1,5 +1,11 @@
 [build-system]
-requires = ["wheel"]
+requires = [
+    # avoid self install on Python 2; ref #1996
+    "setuptools >= 40.8; python_version > '3'",
+    "wheel",
+]
+build-backend = "setuptools.build_meta"
+backend-path = ["."]
 
 [tool.towncrier]
     package = "setuptools"

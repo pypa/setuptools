@@ -1,0 +1,1 @@
+Include pkg_resources test data in sdist, so tests can be executed from it.

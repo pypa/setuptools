@@ -1,5 +1,4 @@
-sphinx!=1.8.0
-rst.linker>=1.9
+# keep these in sync with setup.cfg
+sphinx
 jaraco.packaging>=6.1
-
-setuptools>=34
+rst.linker>=1.9

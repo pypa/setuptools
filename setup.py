@@ -44,7 +44,7 @@ def _gen_console_scripts():
     if any(os.environ.get(var) not in (None, "", "0") for var in var_names):
         return
     tmpl = "easy_install-{shortver} = setuptools.command.easy_install:main"
-    yield tmpl.format(shortver=sys.version[:3])
+    yield tmpl.format(shortver='{}.{}'.format(*sys.version_info))
 
 
 package_data = dict(
@@ -88,6 +88,13 @@ setup_params = dict(
         "distutils.commands": [
             "%(cmd)s = setuptools.command.%(cmd)s:%(cmd)s" % locals()
             for cmd in read_commands()
+        ],
+        "setuptools.finalize_distribution_options": [
+            "parent_finalize = setuptools.dist:_Distribution.finalize_options",
+            "features = setuptools.dist:Distribution._finalize_feature_opts",
+            "keywords = setuptools.dist:Distribution._finalize_setup_keywords",
+            "2to3_doctests = "
+            "setuptools.dist:Distribution._finalize_2to3_doctests",
         ],
         "distutils.setup_keywords": [
             "eager_resources        = setuptools.dist:assert_string_list",

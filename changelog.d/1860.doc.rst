@@ -1,1 +1,0 @@
-Update documentation to mention the egg format is not supported by pip and dependency links support was dropped starting with pip 19.0.
