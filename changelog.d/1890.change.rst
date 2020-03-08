@@ -1,1 +1,0 @@
-Fix vendored dependencies so importing ``setuptools.extern.some_module`` gives the same object as ``setuptools._vendor.some_module``. This makes Metadata picklable again.

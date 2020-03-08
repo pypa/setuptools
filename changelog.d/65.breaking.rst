@@ -1,1 +1,0 @@
-Once again as in 3.0, removed the Features feature.

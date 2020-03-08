@@ -1,3 +1,13 @@
+v46.0.0
+-------
+
+* #65: Once again as in 3.0, removed the Features feature.
+* #1890: Fix vendored dependencies so importing ``setuptools.extern.some_module`` gives the same object as ``setuptools._vendor.some_module``. This makes Metadata picklable again.
+* #1899: Test suite now fails on warnings.
+* #2011: Fix broken link to distutils docs on package_data
+* #1991: Include pkg_resources test data in sdist, so tests can be executed from it.
+
+
 v45.3.0
 -------
 
