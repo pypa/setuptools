@@ -2,4 +2,4 @@
 
 [build]
     publish = "docs/build/html"
-    command = "(wget https://bootstrap.pypa.io/get-pip.py -O - | python3) && python3 -m pip install --use-pep517 tox && tox -e docs"
+    command = "python3 -V && (wget https://bootstrap.pypa.io/get-pip.py -O - | python3) && python3 -m pip install --use-pep517 tox && tox -e docs"
