@@ -16,7 +16,7 @@ from setuptools.extern.six.moves import filter, map
 
 import setuptools.version
 from setuptools.extension import Extension
-from setuptools.dist import Distribution, Feature
+from setuptools.dist import Distribution
 from setuptools.depends import Require
 from . import monkey
 
@@ -24,7 +24,7 @@ __metaclass__ = type
 
 
 __all__ = [
-    'setup', 'Distribution', 'Feature', 'Command', 'Extension', 'Require',
+    'setup', 'Distribution', 'Command', 'Extension', 'Require',
     'SetuptoolsDeprecationWarning',
     'find_packages'
 ]
