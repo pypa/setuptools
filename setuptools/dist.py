@@ -438,30 +438,35 @@ class Distribution(_Distribution):
                 value = default() if default else None
             setattr(self.metadata, option, value)
 
-        if isinstance(self.metadata.version, numbers.Number):
-            # Some people apparently take "version number" too literally :)
-            self.metadata.version = str(self.metadata.version)
+        self.metadata.version = self._validate_version(self.metadata.version)
+        self._finalize_requires()
 
-        if self.metadata.version is not None:
+    @staticmethod
+    def _validate_version(version):
+        if isinstance(version, numbers.Number):
+            # Some people apparently take "version number" too literally :)
+            version = str(version)
+
+        if version is not None:
             try:
-                ver = packaging.version.Version(self.metadata.version)
+                ver = packaging.version.Version(version)
                 normalized_version = str(ver)
-                if self.metadata.version != normalized_version:
+                if version != normalized_version:
                     warnings.warn(
                         "Normalizing '%s' to '%s'" % (
-                            self.metadata.version,
+                            version,
                             normalized_version,
                         )
                     )
-                    self.metadata.version = normalized_version
+                    version = normalized_version
             except (packaging.version.InvalidVersion, TypeError):
                 warnings.warn(
                     "The version specified (%r) is an invalid version, this "
                     "may not work as expected with newer versions of "
                     "setuptools, pip, and PyPI. Please see PEP 440 for more "
-                    "details." % self.metadata.version
+                    "details." % version
                 )
-        self._finalize_requires()
+        return version
 
     def _finalize_requires(self):
         """
