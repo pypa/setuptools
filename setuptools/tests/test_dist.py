@@ -139,6 +139,13 @@ def __read_test_cases():
          {'name': 'foo',
           'version': '1.0.0',
           'author': 'Snorri Sturluson'}),
+        (
+            'Normalized version',
+            dict(
+                name='foo',
+                version='1.0.0a',
+            ),
+        ),
     ]
 
     return test_cases
