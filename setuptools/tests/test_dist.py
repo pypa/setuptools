@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import io
 import collections
 import re
+import functools
 from distutils.errors import DistutilsSetupError
 from setuptools.dist import (
     _get_unpatched,
@@ -80,8 +81,7 @@ def __read_test_cases():
         keywords=["one", "two"],
     )
 
-    def params(**update):
-        return dict(base, **update)
+    params = functools.partial(dict, base)
 
     test_cases = [
         ('Metadata version 1.0', params()),
