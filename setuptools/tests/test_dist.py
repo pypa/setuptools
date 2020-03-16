@@ -11,6 +11,7 @@ from setuptools.dist import (
     check_package_data,
     DistDeprecationWarning,
 )
+from setuptools import sic
 from setuptools import Distribution
 from setuptools.extern.six.moves.urllib.request import pathname2url
 from setuptools.extern.six.moves.urllib_parse import urljoin
@@ -139,6 +140,13 @@ def __read_test_cases():
          {'name': 'foo',
           'version': '1.0.0',
           'author': 'Snorri Sturluson'}),
+        (
+            'Bypass normalized version',
+            dict(
+                name='foo',
+                version=sic('1.0.0a'),
+            ),
+        ),
     ]
 
     return test_cases
