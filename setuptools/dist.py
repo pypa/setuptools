@@ -801,7 +801,38 @@ class Distribution(_Distribution):
                 )
                 continue
 
-            f(self)
+            res = f(self)
+
+            if res is not None:
+                self._recursive_merge_dict_into_dist(res)
+
+    def _recursive_merge_dict_into_dist(self, dic):
+        def dictGetter(orig, k):
+            return orig[k]
+
+        def dictSetter(orig, k, v):
+            orig[k] = v
+
+        def recursive_merge(orig, patch, getter, setter):
+            for k, v in patch.items():
+                try:
+                    ov = orig[k]
+                except KeyError:
+                    orig[k] = v
+                    continue
+
+                if isinstance(ov, Mapping) and isinstance(v, Mapping):
+                    recursive_merge(ov, v, dictGetter, dictSetter)
+                else:
+                    orig[k] = v
+
+        if isinstance(dic, dict):
+            recursive_merge(dist, dic, getattr, setattr)
+        else:
+            warnings.warn(
+                f + " has returned " + repr(dic) +
+                " which is not a `dict`"
+            )
 
     @staticmethod
     def _finalize_setup_keywords(dist):

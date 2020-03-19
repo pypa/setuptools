@@ -1,0 +1,1 @@
+Implemented merging results returned by ''setuptools.finalize_distribution_options'' hooks into the ''Distribution''. It is needed for proper cooperative hooks isolation.
