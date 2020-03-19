@@ -1,0 +1,1 @@
+Implemented ''setuptools.finalize_distribution_options'' hooks prioritization. A priority can be set as an integer or float metadata. Or, if you need to set other options via providing a ''dict'', it can be added into ''order'' key.

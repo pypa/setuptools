@@ -785,10 +785,13 @@ class Distribution(_Distribution):
         hook_key = 'setuptools.finalize_distribution_options'
 
         def by_order(hook):
-            return getattr(hook, 'order', default_order_value)
+            if isinstance(hook.metadata, (int, float)):
+                return hook.metadata
+            elif isinstance(hook.metadata, Mapping):
+                return hook.metadata.get('order', default_order_value)
+            return default_order_value
 
         fdohac = FinalizeDistributionOptionsHookArgsCache()
-
         eps = pkg_resources.iter_entry_points(hook_key)
 
         for ep in sorted(eps, key=by_order):
