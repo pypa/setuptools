@@ -1,0 +1,4 @@
+A bit "cosmetic" changes though needed for implementing more advanced stuff.
+* Renamed args names params for some static methods and marked them with ''@staticmethod''.
+* Moved ''0'' into ''default_order_value" variable.
+* When an entry point now fails to be loaded, it doesn't disrupt building process.
