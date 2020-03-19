@@ -1,0 +1,3 @@
+Improved ''setuptools.finalize_distribution_options'' hook.
+* Now it allows a hook only be called if it is mentioned in ''setup'' args or in ''pyproject.toml''. It can be done by adding ''{"only": ["toml"]}'' metadata. This should reduce breakage due to malfunctions in ''setuptools'' or hooks code. Use ''{"only": true}'' for system hooks that must be executed unconditionally.
+* Now it by default tolerates errors in hooks code, so a package with a broken hook doesn't prevent from updating itself. It can be overridden by adding Use ''{"fail": true}'' metadata. ''{"only": true}'' hooks have it by default, unless overridden.

@@ -90,9 +90,9 @@ setup_params = dict(
             for cmd in read_commands()
         ],
         "setuptools.finalize_distribution_options": [
-            "parent_finalize = setuptools.dist:_Distribution.finalize_options",
-            "keywords = setuptools.dist:Distribution._finalize_setup_keywords",
-            "2to3_doctests = "
+            'parent_finalize  @ {"only": true} = setuptools.dist:_Distribution.finalize_options',
+            'keywords  @ {"only": true} = setuptools.dist:Distribution._finalize_setup_keywords',
+            '2to3_doctests @ {"only": true} = '
             "setuptools.dist:Distribution._finalize_2to3_doctests",
         ],
         "distutils.setup_keywords": [

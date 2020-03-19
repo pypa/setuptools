@@ -773,6 +773,44 @@ class Distribution(_Distribution):
             pkg_resources.working_set.add(dist, replace=True)
         return resolved_dists
 
+    shouldCallFinHookCheckers = {
+        'dist': lambda dist, fdohac, ep: hasattr(dist, ep.name),
+        'toml': lambda dist, fdohac, ep: bool(fdohac.pyProjectToml) and ep.name in fdohac.pyProjectToml,
+    }
+
+    def isFinHookFailureFatal(self, ep, fdohac):
+        """Returns either a bool, or None. The semantics is following
+        None: don't call the hook
+        All other options call the hook.
+        True: If an error occurs, fail
+        False: If an error occurs, warning
+        """
+        if isinstance(ep.metadata, Mapping):
+            only = ep.metadata.get('only', None)
+            fail = ep.metadata.get('fail', None)
+            if only is not None:
+                if isinstance(only, str):
+                    if only == '*':
+                        only = tuple(self.shouldCallFinHookCheckers)
+                    else:
+                        only = (only,)
+
+                elif isinstance(only, bool):
+                    if fail is None:
+                        fail = True
+                    return fail
+
+                if fail is None:
+                    fail = False
+
+                for cand in only:
+                    checker = self.shouldCallFinHookCheckers.get(cand, None)
+                    if checker:
+                        if checker(self, fdohac, ep):
+                            return fail
+            return None
+        return False
+
     def finalize_options(self):
         """
         Allow plugins to apply arbitrary operations to the
@@ -792,6 +830,10 @@ class Distribution(_Distribution):
         eps = pkg_resources.iter_entry_points(hook_key)
 
         for ep in sorted(eps, key=by_order):
+            isFatal = self.isFinHookFailureFatal(ep, fdohac)
+            if isFatal is None:
+                continue
+
             try:
                 f = ep.load()
             except Exception as ex:
@@ -801,7 +843,13 @@ class Distribution(_Distribution):
                 )
                 continue
 
-            f(self)
+            try:
+                f(self)
+            except BaseException as ex:
+                if not isFatal:
+                    warnings.warn("Error when executing entry point:" + str(ex))
+                    continue
+                raise
 
     @staticmethod
     def _finalize_setup_keywords(dist):
@@ -1113,6 +1161,23 @@ class Distribution(_Distribution):
         finally:
             sys.stdout = io.TextIOWrapper(
                 sys.stdout.detach(), encoding, errors, newline, line_buffering)
+
+
+def pyProjectTomlSectionFinRemap(sself, entryPoint, fdohac, par):
+    return fdohac.pyProjectToml.get(
+        entryPoint.name, None
+    )
+
+
+Distribution.optsFinalizationRemap = {
+    "dist": lambda sself, entryPoint, fdohac, par: sself,
+    "setupPySection": lambda sself, entryPoint, fdohac, par: sself.get(
+        entryPoint.name, None
+    ),
+    "setupPyDir": lambda sself, entryPoint, fdohac, par: fdohac.setupPyDir,
+    "pyProjectTomlSection": pyProjectTomlSectionFinRemap,
+    "entryPoint": lambda sself, entryPoint, fdohac, par: entryPoint,
+}
 
 
 class DistDeprecationWarning(SetuptoolsDeprecationWarning):
