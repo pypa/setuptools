@@ -285,6 +285,7 @@ def check_requirements(dist, attr, value):
 
 def check_specifier(dist, attr, value):
     """Verify that value is a valid version specifier"""
+
     try:
         packaging.specifiers.SpecifierSet(value)
     except packaging.specifiers.InvalidSpecifier as error:
@@ -708,30 +709,38 @@ class Distribution(_Distribution):
         to influence the order of execution. Smaller numbers
         go first and the default is 0.
         """
+
         group = 'setuptools.finalize_distribution_options'
 
         def by_order(hook):
             return getattr(hook, 'order', 0)
-        eps = map(lambda e: e.load(), pkg_resources.iter_entry_points(group))
+
+        eps = []
+        for ep in  pkg_resources.iter_entry_points(group):
+            f = ep.load()
+            eps.append(f)
+
         for ep in sorted(eps, key=by_order):
             ep(self)
 
-    def _finalize_setup_keywords(self):
+    @staticmethod
+    def _finalize_setup_keywords(dist):
         for ep in pkg_resources.iter_entry_points('distutils.setup_keywords'):
-            value = getattr(self, ep.name, None)
+            value = getattr(dist, ep.name, None)
             if value is not None:
-                ep.require(installer=self.fetch_build_egg)
-                ep.load()(self, ep.name, value)
+                ep.require(installer=dist.fetch_build_egg)
+                ep.load()(dist, ep.name, value)
 
-    def _finalize_2to3_doctests(self):
-        if getattr(self, 'convert_2to3_doctests', None):
+    @staticmethod
+    def _finalize_2to3_doctests(dist):
+        if getattr(dist, 'convert_2to3_doctests', None):
             # XXX may convert to set here when we can rely on set being builtin
-            self.convert_2to3_doctests = [
+            dist.convert_2to3_doctests = [
                 os.path.abspath(p)
-                for p in self.convert_2to3_doctests
+                for p in dist.convert_2to3_doctests
             ]
         else:
-            self.convert_2to3_doctests = []
+            dist.convert_2to3_doctests = []
 
     def get_egg_cache_dir(self):
         egg_cache_dir = os.path.join(os.curdir, '.eggs')

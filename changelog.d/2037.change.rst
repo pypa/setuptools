@@ -1,0 +1,2 @@
+A bit "cosmetic" changes though needed for implementing more advanced stuff.
+* Renamed args names params for some static methods and marked them with ''@staticmethod''.
