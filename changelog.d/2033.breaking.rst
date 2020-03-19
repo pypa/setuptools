@@ -1,0 +1,1 @@
+* Improved entry points mechanism. Entry points now can contain JSON metadata appended to a ''name'' after ''@'' character. It is a backward-incompatible change, but the breakage will unlikely happen.
