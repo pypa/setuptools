@@ -285,6 +285,7 @@ def check_requirements(dist, attr, value):
 
 def check_specifier(dist, attr, value):
     """Verify that value is a valid version specifier"""
+
     try:
         packaging.specifiers.SpecifierSet(value)
     except packaging.specifiers.InvalidSpecifier as error:
@@ -712,7 +713,19 @@ class Distribution(_Distribution):
 
         def by_order(hook):
             return getattr(hook, 'order', 0)
-        eps = map(lambda e: e.load(), pkg_resources.iter_entry_points(group))
+
+        eps = []
+        for ep in  pkg_resources.iter_entry_points(group):
+            try:
+                f = ep.load()
+            except Exception as ex:
+                warnings.warn(
+                    "Cannot load " + hook_key + " entry point "
+                    + repr(ep) + ":\n" + str(ex)
+                )
+                continue
+            eps.append(f)
+
         for ep in sorted(eps, key=by_order):
             ep(self)
 
