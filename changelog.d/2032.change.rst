@@ -1,0 +1,7 @@
+Implemented some common facilities needed for further improvement of ''setuptools.finalize_distribution_options'' hook.
+
+* Implemented ''get_setup_py_path'' that allows to get a path of ''setup.py'' file.
+* Implemented ''get_setup_py_dir'' that allows to get a path of a dir where''setup.py'' file resides.
+* Implemented ''read_toml'' that just reads a TOML file. Neede ''toml' lib.
+* Implemented ''read_pyproject_toml'' that just reads ''pyproject'toml' file.
+* Implemented ''FinalizeDistributionOptionsHookArgsCache'' that does these operations lazily and caches their results, to use them for hooks in future.

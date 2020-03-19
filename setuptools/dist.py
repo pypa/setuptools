@@ -15,6 +15,7 @@ from distutils.util import strtobool
 from distutils.debug import DEBUG
 from distutils.fancy_getopt import translate_longopt
 import itertools
+import inspect
 
 from collections import defaultdict
 from email import message_from_file
@@ -37,6 +38,12 @@ import pkg_resources
 
 __import__('setuptools.extern.packaging.specifiers')
 __import__('setuptools.extern.packaging.version')
+
+
+try:
+    from collections.abc import Mapping
+except ImportError:
+    Mapping = dict
 
 
 def _get_unpatched(cls):
@@ -64,6 +71,51 @@ def get_metadata_version(self):
         self.metadata_version = mv
 
     return mv
+
+
+def get_setup_py_path():
+    """Returns the path of `setup.py` file used to trigger the build."""
+    s = inspect.stack()
+
+    setuptoolsDir = os.path.dirname(os.path.normpath(
+        os.path.abspath(__file__)
+    ))
+    s = s[1:]
+
+    setuptoolsFrameFound = None
+    for i, f in enumerate(s):
+        if f.function == "setup":
+            setupFuncFileParentDir = os.path.dirname(
+                os.path.normpath(os.path.abspath(f.filename))
+            )
+            if os.path.samefile(setupFuncFileParentDir, setuptoolsDir):
+                setuptoolsFrameFound = i
+                break
+
+    if setuptoolsFrameFound is not None:
+        setupPyFrame = s[setuptoolsFrameFound + 1]
+        if os.path.split(setupPyFrame.filename)[1] == "setup.py":
+            return os.path.normpath(os.path.realpath(
+                os.path.abspath(setupPyFrame.filename)
+            ))
+
+
+def get_setup_py_dir():
+    """Returns the path of parent dir of `setup.py`."""
+    spp = get_setup_py_path()
+    if spp:
+        return os.path.dirname(spp)
+
+
+def read_toml(tomlFile):
+    import toml
+
+    if os.path.isfile(tomlFile):
+        return toml.load(tomlFile)
+
+
+def read_pyproject_toml(setupPyDir):
+    return read_toml(os.path.join(setupPyDir, 'pyproject.toml'))
 
 
 def read_pkg_file(self, file):
@@ -330,6 +382,31 @@ def check_packages(dist, attr, value):
                 "WARNING: %r not a valid package name; please use only "
                 ".-separated package names in setup.py", pkgname
             )
+
+
+class FinalizeDistributionOptionsHookArgsCache:
+    __slots__ = ("_setupPyDir", "_pyProjectToml")
+
+    def __init__(self):
+        self._setupPyDir = None
+        self._pyProjectToml = None
+
+    @property
+    def setupPyDir(self):
+        if self._setupPyDir is None:
+            self._setupPyDir = get_setup_py_dir()
+            if not self._setupPyDir:
+                self._setupPyDir = False
+        return self._setupPyDir
+
+    @property
+    def pyProjectToml(self):
+        if self._pyProjectToml is None:
+            if self.setupPyDir:
+                self._pyProjectToml = read_pyproject_toml(self.setupPyDir)
+            else:
+                self._pyProjectToml = False
+        return self._pyProjectToml
 
 
 _Distribution = get_unpatched(distutils.core.Distribution)
@@ -709,6 +786,8 @@ class Distribution(_Distribution):
 
         def by_order(hook):
             return getattr(hook, 'order', default_order_value)
+
+        fdohac = FinalizeDistributionOptionsHookArgsCache()
 
         eps = pkg_resources.iter_entry_points(hook_key)
 
