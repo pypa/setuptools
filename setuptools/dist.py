@@ -773,6 +773,8 @@ class Distribution(_Distribution):
             pkg_resources.working_set.add(dist, replace=True)
         return resolved_dists
 
+    optsFinalizationRemap = None  # set later
+
     def finalize_options(self):
         """
         Allow plugins to apply arbitrary operations to the
@@ -789,6 +791,23 @@ class Distribution(_Distribution):
 
         fdohac = FinalizeDistributionOptionsHookArgsCache()
 
+        def constructArgsForAFunc(f, ep, fdohac):
+            if sys.version_info.major >= 3:
+                p = inspect.getfullargspec(f).args
+            else:
+                p = inspect.getargspec(f)[0]
+
+            if len(p) == 1:
+                firstParam = p[0]
+                if firstParam not in self.optsFinalizationRemap:
+                    return [self]
+
+            args = []
+            for parN in p:
+                a = self.optsFinalizationRemap[parN](self, ep, fdohac, parN)
+                args.append(a)
+            return args
+
         eps = pkg_resources.iter_entry_points(hook_key)
 
         for ep in sorted(eps, key=by_order):
@@ -801,7 +820,16 @@ class Distribution(_Distribution):
                 )
                 continue
 
-            f(self)
+            try:
+                args = constructArgsForAFunc(f, ep, fdohac)
+            except Exception as ex:
+                warnings.warn(
+                    repr(ep) + " is incompatible to the current"
+                    " version of setuptools: " + str(ex)
+                )
+                continue
+
+            f(*args)
 
     @staticmethod
     def _finalize_setup_keywords(dist):
@@ -1113,6 +1141,23 @@ class Distribution(_Distribution):
         finally:
             sys.stdout = io.TextIOWrapper(
                 sys.stdout.detach(), encoding, errors, newline, line_buffering)
+
+
+def pyProjectTomlSectionFinRemap(sself, entryPoint, fdohac, par):
+    return fdohac.pyProjectToml.get(
+        entryPoint.name, None
+    )
+
+
+Distribution.optsFinalizationRemap = {
+    "dist": lambda sself, entryPoint, fdohac, par: sself,
+    "setupPySection": lambda sself, entryPoint, fdohac, par: sself.get(
+        entryPoint.name, None
+    ),
+    "setupPyDir": lambda sself, entryPoint, fdohac, par: fdohac.setupPyDir,
+    "pyProjectTomlSection": pyProjectTomlSectionFinRemap,
+    "entryPoint": lambda sself, entryPoint, fdohac, par: entryPoint,
+}
 
 
 class DistDeprecationWarning(SetuptoolsDeprecationWarning):

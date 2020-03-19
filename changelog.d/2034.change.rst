@@ -1,0 +1,4 @@
+Now ''setuptools.finalize_distribution_options'' hook allows the implementers to ast setuptools to provide them various information by adding a parameter with a certain name into the function signature.
+Old behavior is also supported.
+
+For the list of args names see ''DistributionoptionsFinalizationRemap'' in ''dist.py''.
