@@ -430,6 +430,13 @@ class TestEntryPoints:
         assert ep.attrs == ("foo",)
         assert ep.extras == ()
 
+        ep = EntryPoint.parse('a @ {"aa:aa=b@ddd": {"bb:b@c=cc": 1}} =  b:c')
+        assert ep.name == "a"
+        assert ep.module_name == "b"
+        assert ep.attrs == ("c",)
+        assert ep.metadata["aa:aa=b@ddd"]["bb:b@c=cc"] == 1
+        assert ep.extras == ()
+
         # plus in the name
         spec = "html+mako = mako.ext.pygmentplugin:MakoHtmlLexer"
         ep = EntryPoint.parse(spec)
@@ -447,7 +454,7 @@ class TestEntryPoints:
         Allow any printable character in the name.
         """
         # Create a name with all printable characters; strip the whitespace.
-        name = string.printable.strip()
+        name = "".join(set(string.printable.strip()) - {"@"})
         spec = "{name} = module:attr".format(**locals())
         ep = EntryPoint.parse(spec)
         assert ep.name == name

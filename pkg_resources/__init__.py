@@ -42,6 +42,7 @@ import inspect
 import ntpath
 import posixpath
 from pkgutil import get_importer
+import json
 
 try:
     import _imp
@@ -2410,17 +2411,27 @@ EGG_NAME = re.compile(
 class EntryPoint:
     """Object representing an advertised importable object"""
 
-    def __init__(self, name, module_name, attrs=(), extras=(), dist=None):
+    __slots__ = ("name", "metadata", "module_name", "attrs", "extras", "dist")
+
+    def __init__(self, name, module_name, attrs=(),
+                 extras=(), dist=None, metadata=None
+                 ):
         if not MODULE(module_name):
             raise ValueError("Invalid module name", module_name)
         self.name = name
+        self.metadata = metadata
         self.module_name = module_name
         self.attrs = tuple(attrs)
         self.extras = tuple(extras)
         self.dist = dist
 
     def __str__(self):
-        s = "%s = %s" % (self.name, self.module_name)
+        if self.metadata is not None:
+            encoded = " @ ".join((self.name, json.dumps(self.metadata)))
+        else:
+            encoded = self.name
+
+        s = "%s = %s" % (encoded, self.module_name)
         if self.attrs:
             s += ':' + '.'.join(self.attrs)
         if self.extras:
@@ -2470,7 +2481,8 @@ class EntryPoint:
 
     pattern = re.compile(
         r'\s*'
-        r'(?P<name>.+?)\s*'
+        r'(?P<name>[^@]+?)\s*'
+        r'(?:@\s*(?P<metadata>.+?)\s*)?'
         r'=\s*'
         r'(?P<module>[\w.]+)\s*'
         r'(:\s*(?P<attr>[\w.]+))?\s*'
@@ -2493,9 +2505,16 @@ class EntryPoint:
             msg = "EntryPoint must be in 'name=module:attrs [extras]' format"
             raise ValueError(msg, src)
         res = m.groupdict()
+
+        metadataStr = res['metadata']
+        if metadataStr is not None:
+            metadata = json.loads(metadataStr)
+        else:
+            metadata = None
+
         extras = cls._parse_extras(res['extras'])
         attrs = res['attr'].split('.') if res['attr'] else ()
-        return cls(res['name'], res['module'], attrs, extras, dist)
+        return cls(res['name'], res['module'], attrs, extras, dist, metadata)
 
     @classmethod
     def _parse_extras(cls, extras_spec):
