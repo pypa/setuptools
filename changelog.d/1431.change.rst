@@ -1,0 +1,1 @@
+In ``easy_install.check_site_dir``, ensure the installation directory exists.

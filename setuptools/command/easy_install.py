@@ -460,6 +460,12 @@ class easy_install(Command):
         instdir = normalize_path(self.install_dir)
         pth_file = os.path.join(instdir, 'easy-install.pth')
 
+        if not os.path.exists(instdir):
+            try:
+                os.makedirs(instdir)
+            except (OSError, IOError):
+                self.cant_write_to_target()
+
         # Is it a configured, PYTHONPATH, implicit, or explicit site dir?
         is_site_dir = instdir in self.all_site_dirs
 
