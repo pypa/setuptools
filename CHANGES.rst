@@ -1,3 +1,11 @@
+v44.1.0
+-------
+
+* #1704: Set sys.argv[0] in setup script run by build_meta.__legacy__
+* #1959: Fix for Python 4: replace unsafe six.PY3 with six.PY2
+* #1994: Fixed a bug in the "setuptools.finalize_distribution_options" hook that lead to ignoring the order attribute of entry points managed by this hook.
+
+
 v44.0.0
 -------
 
