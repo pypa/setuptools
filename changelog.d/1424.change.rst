@@ -1,0 +1,1 @@
+Prevent keeping files mode for package_data build. It may break a build if user's package data has read only flag.

@@ -120,7 +120,7 @@ class build_py(orig.build_py, Mixin2to3):
                 target = os.path.join(build_dir, filename)
                 self.mkpath(os.path.dirname(target))
                 srcfile = os.path.join(src_dir, filename)
-                outf, copied = self.copy_file(srcfile, target)
+                outf, copied = self.copy_file(srcfile, target, preserve_mode=False)
                 srcfile = os.path.abspath(srcfile)
                 if (copied and
                         srcfile in self.distribution.convert_2to3_doctests):
