@@ -1,3 +1,18 @@
+v46.1.0
+-------
+
+* #308: Allow version number normalization to be bypassed by wrapping in a 'setuptools.sic()' call.
+* #1424: Prevent keeping files mode for package_data build. It may break a build if user's package data has read only flag.
+* #1431: In ``easy_install.check_site_dir``, ensure the installation directory exists.
+* #1563: In ``pkg_resources`` prefer ``find_spec`` (PEP 451) to ``find_module``.
+
+Incorporate changes from v44.1.0:
+
+* #1704: Set sys.argv[0] in setup script run by build_meta.__legacy__
+* #1959: Fix for Python 4: replace unsafe six.PY3 with six.PY2
+* #1994: Fixed a bug in the "setuptools.finalize_distribution_options" hook that lead to ignoring the order attribute of entry points managed by this hook.
+
+
 v44.1.0
 -------
 
