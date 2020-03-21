@@ -1,3 +1,0 @@
-Make install directory if it doesn't exist yet to prevent Fedora's
-specific setup to blow up if ``/usr/local/lib/pythonX.Y/site-packages``
-doesn't exist yet.
