@@ -97,7 +97,8 @@ class TestCLI(WrapperTester):
             'arg 4\\',
             'arg5 a\\\\b',
         ]
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+        proc = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
         stdout, stderr = proc.communicate('hello\nworld\n'.encode('ascii'))
         actual = stdout.decode('ascii').replace('\r\n', '\n')
         expected = textwrap.dedent(r"""
@@ -134,7 +135,11 @@ class TestCLI(WrapperTester):
         with (tmpdir / 'foo-script.py').open('w') as f:
             f.write(self.prep_script(tmpl))
         cmd = [str(tmpdir / 'foo.exe')]
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT)
+        proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stdin=subprocess.PIPE,
+            stderr=subprocess.STDOUT)
         stdout, stderr = proc.communicate()
         actual = stdout.decode('ascii').replace('\r\n', '\n')
         expected = textwrap.dedent(r"""
@@ -172,7 +177,9 @@ class TestGUI(WrapperTester):
             str(tmpdir / 'test_output.txt'),
             'Test Argument',
         ]
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT)
+        proc = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE,
+            stderr=subprocess.STDOUT)
         stdout, stderr = proc.communicate()
         assert not stdout
         assert not stderr

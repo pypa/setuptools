@@ -6,6 +6,8 @@ import distutils.errors
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import urllib, http_client
+import mock
+import pytest
 
 import pkg_resources
 import setuptools.package_index
@@ -42,7 +44,10 @@ class TestPackageIndex:
             hosts=('www.example.com',)
         )
 
-        url = 'url:%20https://svn.plone.org/svn/collective/inquant.contentmirror.plone/trunk'
+        url = (
+            'url:%20https://svn.plone.org/svn'
+            '/collective/inquant.contentmirror.plone/trunk'
+        )
         try:
             v = index.open_url(url)
         except Exception as v:
@@ -61,9 +66,9 @@ class TestPackageIndex:
         index.opener = _urlopen
         url = 'http://example.com'
         try:
-            v = index.open_url(url)
-        except Exception as v:
-            assert 'line' in str(v)
+            index.open_url(url)
+        except Exception as exc:
+            assert 'line' in str(exc)
         else:
             raise AssertionError('Should have raise here!')
 
@@ -81,7 +86,11 @@ class TestPackageIndex:
             index.open_url(url)
         except distutils.errors.DistutilsError as error:
             msg = six.text_type(error)
-            assert 'nonnumeric port' in msg or 'getaddrinfo failed' in msg or 'Name or service not known' in msg
+            assert (
+                'nonnumeric port' in msg
+                or 'getaddrinfo failed' in msg
+                or 'Name or service not known' in msg
+            )
             return
         raise RuntimeError("Did not raise")
 
@@ -222,6 +231,61 @@ class TestPackageIndex:
                 'http://example.com/example.zip#egg=example-' + v))
             assert dists[0].version == ''
             assert dists[1].version == vc
+
+    def test_download_git_with_rev(self, tmpdir):
+        url = 'git+https://github.example/group/project@master#egg=foo'
+        index = setuptools.package_index.PackageIndex()
+
+        with mock.patch("os.system") as os_system_mock:
+            result = index.download(url, str(tmpdir))
+
+        os_system_mock.assert_called()
+
+        expected_dir = str(tmpdir / 'project@master')
+        expected = (
+            'git clone --quiet '
+            'https://github.example/group/project {expected_dir}'
+        ).format(**locals())
+        first_call_args = os_system_mock.call_args_list[0][0]
+        assert first_call_args == (expected,)
+
+        tmpl = 'git -C {expected_dir} checkout --quiet master'
+        expected = tmpl.format(**locals())
+        assert os_system_mock.call_args_list[1][0] == (expected,)
+        assert result == expected_dir
+
+    def test_download_git_no_rev(self, tmpdir):
+        url = 'git+https://github.example/group/project#egg=foo'
+        index = setuptools.package_index.PackageIndex()
+
+        with mock.patch("os.system") as os_system_mock:
+            result = index.download(url, str(tmpdir))
+
+        os_system_mock.assert_called()
+
+        expected_dir = str(tmpdir / 'project')
+        expected = (
+            'git clone --quiet '
+            'https://github.example/group/project {expected_dir}'
+        ).format(**locals())
+        os_system_mock.assert_called_once_with(expected)
+
+    def test_download_svn(self, tmpdir):
+        url = 'svn+https://svn.example/project#egg=foo'
+        index = setuptools.package_index.PackageIndex()
+
+        with pytest.warns(UserWarning):
+            with mock.patch("os.system") as os_system_mock:
+                result = index.download(url, str(tmpdir))
+
+        os_system_mock.assert_called()
+
+        expected_dir = str(tmpdir / 'project')
+        expected = (
+            'svn checkout -q '
+            'svn+https://svn.example/project {expected_dir}'
+        ).format(**locals())
+        os_system_mock.assert_called_once_with(expected)
 
 
 class TestContentCheckers:

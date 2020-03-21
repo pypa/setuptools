@@ -3,13 +3,23 @@ clone_depth: 50
 environment:
 
   APPVEYOR: True
+  NETWORK_REQUIRED: True
   CODECOV_ENV: APPVEYOR_JOB_NAME
 
   matrix:
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      APPVEYOR_JOB_NAME: "python35-x64-vs2015"
+      PYTHON: "C:\\Python35-x64"
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      APPVEYOR_JOB_NAME: "python35-x64-vs2017"
+      PYTHON: "C:\\Python35-x64"
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      APPVEYOR_JOB_NAME: "python35-x64-vs2019"
+      PYTHON: "C:\\Python35-x64"
     - APPVEYOR_JOB_NAME: "python36-x64"
       PYTHON: "C:\\Python36-x64"
-    - APPVEYOR_JOB_NAME: "python27-x64"
-      PYTHON: "C:\\Python27-x64"
+    - APPVEYOR_JOB_NAME: "python37-x64"
+      PYTHON: "C:\\Python37-x64"
 
 install:
   # symlink python from a directory with a space
@@ -25,9 +35,8 @@ cache:
 test_script:
   - python --version
   - python -m pip install --disable-pip-version-check --upgrade pip setuptools wheel
-  - pip install --upgrade tox tox-venv
+  - pip install --upgrade tox tox-venv virtualenv
   - pip freeze --all
-  - python bootstrap.py
   - tox -- --cov
 
 after_test:

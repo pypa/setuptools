@@ -299,11 +299,8 @@ specified by the ``setup_requires`` parameter to the Distribution.
 A list of dependency URLs, one per line, as specified using the
 ``dependency_links`` keyword to ``setup()``.  These may be direct
 download URLs, or the URLs of web pages containing direct download
-links, and will be used by EasyInstall to find dependencies, as though
-the user had manually provided them via the ``--find-links`` command
-line option.  Please see the setuptools manual and EasyInstall manual
-for more information on specifying this option, and for information on
-how EasyInstall processes ``--find-links`` URLs.
+links. Please see the setuptools manual for more information on
+specifying this option.
 
 
 ``depends.txt`` -- Obsolete, do not create!

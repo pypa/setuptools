@@ -1,0 +1,1 @@
+Allow version number normalization to be bypassed by wrapping in a 'setuptools.sic()' call.

@@ -1,17 +1,9 @@
 import os
 
-import pytest
-
 from setuptools.dist import Distribution
 
 
-@pytest.yield_fixture
-def tmpdir_as_cwd(tmpdir):
-    with tmpdir.as_cwd():
-        yield tmpdir
-
-
-def test_directories_in_package_data_glob(tmpdir_as_cwd):
+def test_directories_in_package_data_glob(tmpdir_cwd):
     """
     Directories matching the glob in package_data should
     not be included in the package data.
