@@ -4,6 +4,9 @@
 .. image:: https://img.shields.io/readthedocs/setuptools/latest.svg
     :target: https://setuptools.readthedocs.io
 
+.. image:: https://dev.azure.com/jaraco/setuptools/_apis/build/status/jaraco.setuptools?branchName=master
+   :target: https://dev.azure.com/jaraco/setuptools/_build/latest?definitionId=1&branchName=master
+
 .. image:: https://img.shields.io/travis/pypa/setuptools/master.svg?label=Linux%20CI&logo=travis&logoColor=white
    :target: https://travis-ci.org/pypa/setuptools
 
