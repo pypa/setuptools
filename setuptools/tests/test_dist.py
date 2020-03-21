@@ -137,7 +137,7 @@ def __read_test_cases():
         ('Bypass normalized version', dict(
             name='foo',
             version=sic('1.0.0a'),
-        )),      
+        )),
     ]
 
     return test_cases
