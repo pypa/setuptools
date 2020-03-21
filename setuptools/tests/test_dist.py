@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import io
 import collections
 import re
+import functools
 from distutils.errors import DistutilsSetupError
 from setuptools.dist import (
     _get_unpatched,
@@ -71,82 +72,72 @@ def test_dist__get_unpatched_deprecated():
 
 
 def __read_test_cases():
-    # Metadata version 1.0
-    base_attrs = {
-        "name": "package",
-        "version": "0.0.1",
-        "author": "Foo Bar",
-        "author_email": "foo@bar.net",
-        "long_description": "Long\ndescription",
-        "description": "Short description",
-        "keywords": ["one", "two"]
-    }
+    base = dict(
+        name="package",
+        version="0.0.1",
+        author="Foo Bar",
+        author_email="foo@bar.net",
+        long_description="Long\ndescription",
+        description="Short description",
+        keywords=["one", "two"],
+    )
 
-    def merge_dicts(d1, d2):
-        d1 = d1.copy()
-        d1.update(d2)
-
-        return d1
+    params = functools.partial(dict, base)
 
     test_cases = [
-        ('Metadata version 1.0', base_attrs.copy()),
-        ('Metadata version 1.1: Provides', merge_dicts(base_attrs, {
-            'provides': ['package']
-        })),
-        ('Metadata version 1.1: Obsoletes', merge_dicts(base_attrs, {
-            'obsoletes': ['foo']
-        })),
-        ('Metadata version 1.1: Classifiers', merge_dicts(base_attrs, {
-            'classifiers': [
+        ('Metadata version 1.0', params()),
+        ('Metadata version 1.1: Provides', params(
+            provides=['package'],
+        )),
+        ('Metadata version 1.1: Obsoletes', params(
+            obsoletes=['foo'],
+        )),
+        ('Metadata version 1.1: Classifiers', params(
+            classifiers=[
                 'Programming Language :: Python :: 3',
                 'Programming Language :: Python :: 3.7',
                 'License :: OSI Approved :: MIT License',
-            ]})),
-        ('Metadata version 1.1: Download URL', merge_dicts(base_attrs, {
-            'download_url': 'https://example.com'
-        })),
-        ('Metadata Version 1.2: Requires-Python', merge_dicts(base_attrs, {
-            'python_requires': '>=3.7'
-        })),
+            ],
+        )),
+        ('Metadata version 1.1: Download URL', params(
+            download_url='https://example.com',
+        )),
+        ('Metadata Version 1.2: Requires-Python', params(
+            python_requires='>=3.7',
+        )),
         pytest.param(
             'Metadata Version 1.2: Project-Url',
-            merge_dicts(base_attrs, {
-                'project_urls': {
-                    'Foo': 'https://example.bar'
-                }
-            }), marks=pytest.mark.xfail(
-                reason="Issue #1578: project_urls not read"
-            )),
-        ('Metadata Version 2.1: Long Description Content Type',
-         merge_dicts(base_attrs, {
-             'long_description_content_type': 'text/x-rst; charset=UTF-8'
-         })),
-        pytest.param(
-            'Metadata Version 2.1: Provides Extra',
-            merge_dicts(base_attrs, {
-                'provides_extras': ['foo', 'bar']
-            }), marks=pytest.mark.xfail(reason="provides_extras not read")),
-        ('Missing author, missing author e-mail',
-         {'name': 'foo', 'version': '1.0.0'}),
-        ('Missing author',
-         {'name': 'foo',
-          'version': '1.0.0',
-          'author_email': 'snorri@sturluson.name'}),
-        ('Missing author e-mail',
-         {'name': 'foo',
-          'version': '1.0.0',
-          'author': 'Snorri Sturluson'}),
-        ('Missing author',
-         {'name': 'foo',
-          'version': '1.0.0',
-          'author': 'Snorri Sturluson'}),
-        (
-            'Bypass normalized version',
-            dict(
-                name='foo',
-                version=sic('1.0.0a'),
+            params(project_urls=dict(Foo='https://example.bar')),
+            marks=pytest.mark.xfail(
+                reason="Issue #1578: project_urls not read",
             ),
         ),
+        ('Metadata Version 2.1: Long Description Content Type', params(
+            long_description_content_type='text/x-rst; charset=UTF-8',
+        )),
+        pytest.param(
+            'Metadata Version 2.1: Provides Extra',
+            params(provides_extras=['foo', 'bar']),
+            marks=pytest.mark.xfail(reason="provides_extras not read"),
+        ),
+        ('Missing author', dict(
+            name='foo',
+            version='1.0.0',
+            author_email='snorri@sturluson.name',
+        )),
+        ('Missing author e-mail', dict(
+            name='foo',
+            version='1.0.0',
+            author='Snorri Sturluson',
+        )),
+        ('Missing author and e-mail', dict(
+            name='foo',
+            version='1.0.0',
+        )),
+        ('Bypass normalized version', dict(
+            name='foo',
+            version=sic('1.0.0a'),
+        )),      
     ]
 
     return test_cases
