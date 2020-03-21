@@ -2102,14 +2102,10 @@ def _handle_ns(packageName, path_item):
     try:
         loader = importer.find_spec(packageName).loader
     except AttributeError:
-        try:
-            # capture warnings due to #1111
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                loader = importer.find_module(packageName)
-        except AttributeError:
-            # not a system module
-            loader = None
+        # capture warnings due to #1111
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            loader = importer.find_module(packageName)
 
     if loader is None:
         return None
