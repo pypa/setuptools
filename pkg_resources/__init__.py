@@ -2197,10 +2197,14 @@ def _handle_ns(packageName, path_item):
     if importer is None:
         return None
 
-    # capture warnings due to #1111
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        loader = importer.find_module(packageName)
+    # use find_spec (PEP 451) and fall-back to find_module (PEP 302)
+    try:
+        loader = importer.find_spec(packageName).loader
+    except AttributeError:
+        # capture warnings due to #1111
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            loader = importer.find_module(packageName)
 
     if loader is None:
         return None

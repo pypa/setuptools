@@ -1,0 +1,1 @@
+In ``pkg_resources`` prefer ``find_spec`` (PEP 451) to ``find_module``.
