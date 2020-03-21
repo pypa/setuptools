@@ -1,8 +1,10 @@
 .. image:: https://img.shields.io/pypi/v/setuptools.svg
-   :target: https://pypi.org/project/setuptools
+   :target: `PyPI link`_
 
-.. image:: https://img.shields.io/readthedocs/setuptools/latest.svg
-    :target: https://setuptools.readthedocs.io
+.. image:: https://img.shields.io/pypi/pyversions/setuptools.svg
+   :target: `PyPI link`_
+
+.. _PyPI link: https://pypi.org/project/setuptools
 
 .. image:: https://dev.azure.com/jaraco/setuptools/_apis/build/status/jaraco.setuptools?branchName=master
    :target: https://dev.azure.com/jaraco/setuptools/_build/latest?definitionId=1&branchName=master
@@ -13,13 +15,14 @@
 .. image:: https://img.shields.io/appveyor/ci/pypa/setuptools/master.svg?label=Windows%20CI&logo=appveyor&logoColor=white
    :target: https://ci.appveyor.com/project/pypa/setuptools/branch/master
 
+.. image:: https://img.shields.io/readthedocs/setuptools/latest.svg
+    :target: https://setuptools.readthedocs.io
+
 .. image:: https://img.shields.io/codecov/c/github/pypa/setuptools/master.svg?logo=codecov&logoColor=white
    :target: https://codecov.io/gh/pypa/setuptools
 
 .. image:: https://tidelift.com/badges/github/pypa/setuptools?style=flat
    :target: https://tidelift.com/subscription/pkg/pypi-setuptools?utm_source=pypi-setuptools&utm_medium=readme
-
-.. image:: https://img.shields.io/pypi/pyversions/setuptools.svg
 
 See the `Installation Instructions
 <https://packaging.python.org/installing/>`_ in the Python Packaging
