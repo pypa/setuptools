@@ -30,6 +30,7 @@ from setuptools.extern.six.moves import map, filter, filterfalse
 
 from . import SetuptoolsDeprecationWarning
 
+import setuptools
 from setuptools import windows_support
 from setuptools.monkey import get_unpatched
 from setuptools.config import parse_configuration
@@ -438,8 +439,21 @@ class Distribution(_Distribution):
                 value = default() if default else None
             setattr(self.metadata, option, value)
 
-        self.metadata.version = self._validate_version(self.metadata.version)
+        self.metadata.version = self._normalize_version(
+            self._validate_version(self.metadata.version))
         self._finalize_requires()
+
+    @staticmethod
+    def _normalize_version(version):
+        if isinstance(version, setuptools.sic) or version is None:
+            return version
+
+        normalized = str(packaging.version.Version(version))
+        if version != normalized:
+            tmpl = "Normalizing '{version}' to '{normalized}'"
+            warnings.warn(tmpl.format(**locals()))
+            return normalized
+        return version
 
     @staticmethod
     def _validate_version(version):
@@ -449,16 +463,7 @@ class Distribution(_Distribution):
 
         if version is not None:
             try:
-                ver = packaging.version.Version(version)
-                normalized_version = str(ver)
-                if version != normalized_version:
-                    warnings.warn(
-                        "Normalizing '%s' to '%s'" % (
-                            version,
-                            normalized_version,
-                        )
-                    )
-                    version = normalized_version
+                packaging.version.Version(version)
             except (packaging.version.InvalidVersion, TypeError):
                 warnings.warn(
                     "The version specified (%r) is an invalid version, this "
@@ -466,6 +471,7 @@ class Distribution(_Distribution):
                     "setuptools, pip, and PyPI. Please see PEP 440 for more "
                     "details." % version
                 )
+                return setuptools.sic(version)
         return version
 
     def _finalize_requires(self):
