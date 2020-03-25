@@ -2,6 +2,8 @@ import os
 import stat
 import shutil
 
+import pytest
+
 from setuptools.dist import Distribution
 
 
@@ -50,6 +52,12 @@ def test_read_only(tmpdir_cwd):
     shutil.rmtree('build')
 
 
+@pytest.mark.xfail(
+    'platform.system() == "Windows"',
+    reason="On Windows, files do not have executable bits",
+    raises=AssertionError,
+    strict=True,
+)
 def test_executable_data(tmpdir_cwd):
     """
     Ensure executable bit is preserved in copy for
