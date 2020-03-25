@@ -25,6 +25,7 @@ Your first course of action should be to reason about how you managed to get an 
 try them first. -->
 
 - [ ] Python 2 is required for this application.
+- [ ] I maintain the software that installs Setuptools (if not, please contact that project).
 - [ ] Setuptools installed with pip 9 or later.
 - [ ] Pinning Setuptools to `setuptools<45` in the environment was unsuccessful.
 
