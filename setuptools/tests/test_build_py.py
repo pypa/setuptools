@@ -26,9 +26,10 @@ def test_directories_in_package_data_glob(tmpdir_cwd):
 
 def test_read_only(tmpdir_cwd):
     """
-    Ensure mode is not preserved in copy for package modules
-    and package data, as that causes problems
-    with deleting read-only files on Windows.
+    Ensure read-only flag is not preserved in copy
+    for package modules and package data, as that
+    causes problems with deleting read-only files on
+    Windows.
 
     #1451
     """
@@ -47,3 +48,29 @@ def test_read_only(tmpdir_cwd):
     dist.parse_command_line()
     dist.run_commands()
     shutil.rmtree('build')
+
+
+def test_executable_data(tmpdir_cwd):
+    """
+    Ensure executable bit is preserved in copy for
+    package data, as users rely on it for scripts.
+
+    #2041
+    """
+    dist = Distribution(dict(
+        script_name='setup.py',
+        script_args=['build_py'],
+        packages=['pkg'],
+        package_data={'pkg': ['run-me']},
+        name='pkg',
+    ))
+    os.makedirs('pkg')
+    open('pkg/__init__.py', 'w').close()
+    open('pkg/run-me', 'w').close()
+    os.chmod('pkg/run-me', 0o700)
+
+    dist.parse_command_line()
+    dist.run_commands()
+
+    assert os.stat('build/lib/pkg/run-me').st_mode & stat.S_IEXEC, \
+        "Script is not executable"
