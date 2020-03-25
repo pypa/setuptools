@@ -43,7 +43,11 @@ def test_read_only(tmpdir_cwd):
     open('pkg/__init__.py', 'w').close()
     open('pkg/data.dat', 'w').close()
     os.chmod('pkg/__init__.py', stat.S_IREAD)
-    os.chmod('pkg/data.dat', stat.S_IREAD)
+    os.chmod('pkg/data.dat', stat.S_IREAD | stat.S_IEXEC)
+
     dist.parse_command_line()
     dist.run_commands()
+
+    if not (os.stat('build/lib/pkg/data.dat')[stat.ST_MODE] & stat.S_IEXEC):
+        raise Exception('Executable flag was cleared!')
     shutil.rmtree('build')

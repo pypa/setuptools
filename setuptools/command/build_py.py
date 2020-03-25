@@ -7,6 +7,7 @@ import textwrap
 import io
 import distutils.errors
 import itertools
+import stat
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import map, filter, filterfalse
@@ -120,8 +121,10 @@ class build_py(orig.build_py, Mixin2to3):
                 target = os.path.join(build_dir, filename)
                 self.mkpath(os.path.dirname(target))
                 srcfile = os.path.join(src_dir, filename)
-                outf, copied = self.copy_file(
-                    srcfile, target, preserve_mode=False)
+                outf, copied = self.copy_file(srcfile, target)
+                cur_mode = os.stat(target)[stat.ST_MODE]
+                target_mode = cur_mode | stat.S_IWRITE
+                os.chmod(target, target_mode)
                 srcfile = os.path.abspath(srcfile)
                 if (copied and
                         srcfile in self.distribution.convert_2to3_doctests):
