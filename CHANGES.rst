@@ -1,3 +1,9 @@
+v46.1.2
+-------
+
+* #1458: Added template for reporting Python 2 incompatibilities.
+
+
 v46.1.1
 -------
 

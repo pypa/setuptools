@@ -1,1 +1,0 @@
-Added template for reporting Python 2 incompatibilities.
