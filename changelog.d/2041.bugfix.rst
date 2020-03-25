@@ -1,0 +1,1 @@
+Preserve file modes during pkg files copying, but clear read only flag for target afterwards.
