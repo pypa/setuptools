@@ -1,0 +1,88 @@
+=======================================
+Documentation to setuptools.build_meta
+=======================================
+
+What is it?
+-------------
+
+Setuptools, or Python packaging in general, has faced many 
+`criticism <https://www.bernat.tech/growing-pain>`_ and 
+`PEP517 <https://www.python.org/dev/peps/pep-0517/>`_ attempts to fix this
+issue by ``get distutils-sig out of the business of being a gatekeeper for
+Python build system``. 
+
+A quick overview on the `current state of Python packaging 
+<https://www.bernat.tech/pep-517-and-python-packaging/>`_. The ``distutils``
+package specified the de facto standard way to bundle up your packages::
+
+    setup.py
+    mypkg/__init__.py
+
+And then you run ``python setup.py bdist`` and compressed ``.tar.gz`` will be
+available for distribution.
+
+Following this tradition, several other enhancements have been made: ``pip`` 
+was created and user can run ``pip install`` on their downloaded distribution 
+file and it will be installed. ``wheel`` format was created to minimize the 
+build process for C extension. ``PyPI`` and ``twine`` then made it easier to 
+upload and download the distribution and finally ``setuptools`` extends the 
+original ``distutils`` and emcompass everything else and become the standard
+way for Python packaging. (check the timeline for accuracy)
+
+I'll skip the many downsides and complexity that came with the development
+of setuptools. PEP517 aims to solve these issues by specifying a new 
+standardized way to distribute your packages which is not as compatible as
+the setuptools module.
+
+``build_meta.py`` therefore acts as an adaptor to the PEP517 and the existing
+setuptools. 
+
+How to use it?
+-------------
+
+Starting with a package that you want to distribute. You will need your source
+scripts, a ``pyproject.toml`` file and a ``setup.cfg`` file.
+
+    ~/meowpkg/
+        pyproject.toml
+        setup.cfg
+        src/meowpkg/__init__.py
+         
+        
+The pyproject.toml file is required by PEP517 and PEP518 to specify the build 
+system (i.e. what is being used to package your scripts). To use it with 
+setuptools, the content would be::
+
+    [build-system]
+    requires = ["setuptools", "wheel"]
+    build-backend = "setuptools.build-meta"
+
+The setup.cfg is used to specify your package information (essentially
+replacing setup.py), specified on setuptools `documentation <https://
+setuptools.readthedocs.io/en/latest/setuptools.html#configuring-setup-
+using-setup-cfg-files>`_ ::
+
+    [metadata]
+    name = meowpkg
+    version = 0.0.1
+    description = a package that meows
+    
+    [options]
+    package_dir=
+        =src
+    packages = find:
+
+    [options.packages.find]
+    where=src
+
+Now it's time to actually generate the distribution. PEP517 specifies two
+mandatory functions, ``build_wheel`` and ``build_sdist``, implemented in
+this module. Currently, it has to be done in the interpreter::
+
+    >>> import setuptools.build_meta
+    >>> setuptools.build_meta.build_wheel('wheel_dist')
+    'meowpkg-0.0.1-py3-none-any.whl'
+
+And now it's done! The ``.whl`` file  and ``.tar.gz`` can then be distributed 
+and installed!
+
