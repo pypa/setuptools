@@ -21,7 +21,7 @@ package and distribute Python modules. Under PEP517:
     a ``pyproject.toml`` file is used to specify what program to use
     for generating distribution. 
 
-    Then, two functions provided by the program,``build_wheel(directory: str)`` 
+    Then, two functions provided by the program, ``build_wheel(directory: str)`` 
     and ``build_sdist(directory: str)`` create the distribution bundle at the 
     specified ``directory``. The program is free to use its own configuration 
     script or extend the ``.toml`` file. 
@@ -43,7 +43,7 @@ How to use it?
 --------------
 
 Starting with a package that you want to distribute. You will need your source
-scripts, a ``pyproject.toml`` file and a ``setup.cfg`` file.
+scripts, a ``pyproject.toml`` file and a ``setup.cfg`` file::
 
     ~/meowpkg/
         pyproject.toml
