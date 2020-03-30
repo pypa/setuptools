@@ -40,7 +40,7 @@ two functions, ``build_wheel`` and ``build_sdist``, amongst others and uses
 a ``setup.cfg`` to specify the information about the package. 
 
 How to use it?
--------------
+--------------
 
 Starting with a package that you want to distribute. You will need your source
 scripts, a ``pyproject.toml`` file and a ``setup.cfg`` file.
@@ -49,8 +49,7 @@ scripts, a ``pyproject.toml`` file and a ``setup.cfg`` file.
         pyproject.toml
         setup.cfg
         meowpkg/__init__.py
-         
-        
+
 The pyproject.toml file is required to specify the build system (i.e. what is 
 being used to package your scripts and install from source). To use it with 
 setuptools, the content would be::
