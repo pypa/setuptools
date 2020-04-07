@@ -3,7 +3,7 @@ import sys
 import distutils.util
 
 from wheel.macosx_libfile import extract_macosx_min_system_version
-from wheel.pep425tags import get_platform
+from wheel.bdist_wheel import get_platform
 
 
 def test_read_from_dylib():

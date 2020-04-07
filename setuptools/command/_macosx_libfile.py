@@ -36,6 +36,7 @@ Important remarks:
 """
 
 import ctypes
+import os
 import sys
 
 """here the needed const and struct from mach-o header files"""
@@ -339,3 +340,71 @@ def parse_version(version):
     y = (version & 0x0000ff00) >> 8
     z = (version & 0x000000ff)
     return x, y, z
+
+
+def calculate_macosx_platform_tag(archive_root, platform_tag):
+    """
+    Calculate proper macosx platform tag basing on files which are included to wheel
+
+    Example platform tag `macosx-10.14-x86_64`
+    """
+    prefix, base_version, suffix = platform_tag.split('-')
+    base_version = tuple([int(x) for x in base_version.split(".")])
+    if len(base_version) >= 2:
+        base_version = base_version[0:2]
+
+    assert len(base_version) == 2
+    if "MACOSX_DEPLOYMENT_TARGET" in os.environ:
+        deploy_target = tuple([int(x) for x in os.environ[
+            "MACOSX_DEPLOYMENT_TARGET"].split(".")])
+        if len(deploy_target) >= 2:
+            deploy_target = deploy_target[0:2]
+        if deploy_target < base_version:
+            sys.stderr.write(
+                 "[WARNING] MACOSX_DEPLOYMENT_TARGET is set to a lower value ({}) than the "
+                 "version on which the Python interpreter was compiled ({}), and will be "
+                 "ignored.\n".format('.'.join(str(x) for x in deploy_target),
+                                     '.'.join(str(x) for x in base_version))
+                )
+        else:
+            base_version = deploy_target
+
+    assert len(base_version) == 2
+    start_version = base_version
+    versions_dict = {}
+    for (dirpath, dirnames, filenames) in os.walk(archive_root):
+        for filename in filenames:
+            if filename.endswith('.dylib') or filename.endswith('.so'):
+                lib_path = os.path.join(dirpath, filename)
+                min_ver = extract_macosx_min_system_version(lib_path)
+                if min_ver is not None:
+                    versions_dict[lib_path] = min_ver[0:2]
+
+    if len(versions_dict) > 0:
+        base_version = max(base_version, max(versions_dict.values()))
+
+    # macosx platform tag do not support minor bugfix release
+    fin_base_version = "_".join([str(x) for x in base_version])
+    if start_version < base_version:
+        problematic_files = [k for k, v in versions_dict.items() if v > start_version]
+        problematic_files = "\n".join(problematic_files)
+        if len(problematic_files) == 1:
+            files_form = "this file"
+        else:
+            files_form = "these files"
+        error_message = \
+            "[WARNING] This wheel needs a higher macOS version than {}  " \
+            "To silence this warning, set MACOSX_DEPLOYMENT_TARGET to at least " +\
+            fin_base_version + " or recreate " + files_form + " with lower " \
+            "MACOSX_DEPLOYMENT_TARGET:  \n" + problematic_files
+
+        if "MACOSX_DEPLOYMENT_TARGET" in os.environ:
+            error_message = error_message.format("is set in MACOSX_DEPLOYMENT_TARGET variable.")
+        else:
+            error_message = error_message.format(
+                "the version your Python interpreter is compiled against.")
+
+        sys.stderr.write(error_message)
+
+    platform_tag = prefix + "_" + fin_base_version + "_" + suffix
+    return platform_tag
