@@ -19,6 +19,7 @@ Microsoft Visual C++ 14.X:
 This may also support compilers shipped with compatible Visual Studio versions.
 """
 
+import ctypes
 import json
 from io import open
 from os import listdir, pathsep
@@ -173,39 +174,247 @@ def _msvc14_find_vc2015():
     return best_version, best_dir
 
 
-def _msvc14_find_vc2017():
-    """Python 3.8 "distutils/_msvccompiler.py" backport
+def _vs_setup_config_check_vc(packages):
+    """Search packages for the C++ compiler and return it's version.
 
-    Returns "15, path" based on the result of invoking vswhere.exe
-    If no install is found, returns "None, None"
-
-    The version is returned to avoid unnecessarily changing the function
-    result. It may be ignored when the path is not None.
-
-    If vswhere.exe is not available, by definition, VS 2017 is not
-    installed.
+    Returns the version number as a tuple of integers if the C++
+    compiler package is found or None if it's not found.
     """
-    root = environ.get("ProgramFiles(x86)") or environ.get("ProgramFiles")
-    if not root:
-        return None, None
 
     try:
-        path = subprocess.check_output([
-            join(root, "Microsoft Visual Studio", "Installer", "vswhere.exe"),
-            "-latest",
-            "-prerelease",
-            "-requires", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
-            "-property", "installationPath",
-            "-products", "*",
-        ]).decode(encoding="mbcs", errors="strict").strip()
-    except (subprocess.CalledProcessError, OSError, UnicodeDecodeError):
+        oleaut32 = ctypes.oledll.oleaut32
+
+        # lock the SafeArray
+        oleaut32.SafeArrayLock(packages)
+    except OSError:
+        # destroy the SafeArray and release all elements
+        oleaut32.SafeArrayDestroy(packages)
+
+        return None
+
+    # setup the ISetupPackageReference::GetId method
+    prototype = ctypes.WINFUNCTYPE(
+        ctypes.HRESULT, ctypes.POINTER(ctypes.c_wchar_p)
+    )
+    get_id = prototype(3, 'GetId')
+
+    # setup the ISetupPackageReference::GetVersion method
+    prototype = ctypes.WINFUNCTYPE(
+        ctypes.HRESULT, ctypes.POINTER(ctypes.c_wchar_p)
+    )
+    get_version = prototype(4, 'GetVersion')
+
+    count = ctypes.c_long()
+    indicies = ctypes.c_long()
+    setup_package_reference = ctypes.c_void_p()
+    wchar_p = ctypes.c_wchar_p()
+
+    try:
+        # get the number of elements in the SafeArray
+        oleaut32.SafeArrayGetUBound(packages, 1, ctypes.byref(count))
+
+        for i in range(count.value):
+            # get an ISetupPackageReference instance from the SafeArray
+            indicies.value = i
+            oleaut32.SafeArrayGetElement(
+                packages,
+                ctypes.byref(indicies),
+                ctypes.byref(setup_package_reference)
+            )
+
+            # call ISetupPackageReference::GetId and receive a wchar
+            # string
+            get_id(setup_package_reference, ctypes.byref(wchar_p))
+
+            vc_id = u'Microsoft.VisualStudio.Component.VC.Tools.x86.x64'
+            if ctypes.wstring_at(wchar_p) == vc_id:
+                # call ISetupPackageReference::GetVersion and receive a
+                # wchar string
+                get_version(setup_package_reference, ctypes.byref(wchar_p))
+
+                # parse the version into a format that can be compared
+                version = ctypes.wstring_at(wchar_p)
+                try:
+                    return tuple(map(int, version.strip().split('.')))
+                except ValueError:
+                    return None
+    except OSError:
+        pass
+    finally:
+        # unlock the SafeArray
+        oleaut32.SafeArrayUnlock(packages)
+
+        # destroy the SafeArray and release all elements
+        oleaut32.SafeArrayDestroy(packages)
+
+    return None
+
+
+class GUID(ctypes.Structure):
+    _fields_ = [
+        ('Data1', ctypes.c_ulong),
+        ('Data2', ctypes.c_ushort),
+        ('Data3', ctypes.c_ushort),
+        ('Data4', ctypes.c_char * 8),
+    ]
+
+CLSID_SetupConfiguration = GUID(
+    0x177f0c4a, 0x1cd3, 0x4de7, b'\xa3\x2c\x71\xdb\xbb\x9f\xa3\x6d'
+)
+
+IID_ISetupConfiguration = GUID(
+    0x42843719, 0xdb4c, 0x46c2, b'\x8e\x7c\x64\xf1\x81\x6e\xfd\x5b'
+)
+
+IID_ISetupInstance2 = GUID(
+    0x89143c9a, 0x05af, 0x49b0, b'\xb7\x17\x72\xe2\x18\xa2\x18\x5c'
+)
+
+def _vs_setup_config_find_vc():
+    """Search Visual Studio instances and returns the latest version.
+
+    Returns a tuple with the version and the installation path.
+
+    This uses the Visual Studio setup configuration API to find
+    installations. According to Microsoft, this API will be available
+    for all Visual Studio versions 2017 and newer.
+
+    Information and sample code for this API can be found here:
+        https://github.com/microsoft/vs-setup-samples
+    """
+    try:
+        ole32 = ctypes.oledll.ole32
+
+        # initialize the COM library
+        ole32.CoInitialize(None)
+    except OSError:
         return None, None
 
-    path = join(path, "VC", "Auxiliary", "Build")
-    if isdir(path):
-        return 15, path
+    version, path = None, None
 
-    return None, None
+    try:
+        # create an instance of the ISetupConfiguration interface
+        setup_configuration = ctypes.c_void_p()
+        ole32.CoCreateInstance(
+            ctypes.byref(CLSID_SetupConfiguration),
+            None,
+            1, # CLSCTX_INPROC_SERVER
+            ctypes.byref(IID_ISetupConfiguration),
+            ctypes.byref(setup_configuration)
+        )
+
+        # setup the IUnknown::QueryInterface method
+        prototype = ctypes.WINFUNCTYPE(
+            ctypes.HRESULT,
+            ctypes.POINTER(GUID),
+            ctypes.POINTER(ctypes.c_void_p)
+        )
+        query_interface = prototype(0, 'QueryInterface')
+
+        # setup the IUnknown::Release method
+        prototype = ctypes.WINFUNCTYPE(ctypes.HRESULT)
+        release = prototype(2, 'Release')
+
+        # setup the ISetupConfiguration::EnumInstances method
+        prototype = ctypes.WINFUNCTYPE(
+            ctypes.HRESULT, ctypes.POINTER(ctypes.c_void_p)
+        )
+        enum_instances = prototype(3, 'EnumInstances')
+
+        enum_setup_instances = ctypes.c_void_p()
+        try:
+            # call ISetupConfiguration::EnumInstances and receive an
+            # instance of IEnumSetupInstances
+            enum_instances(
+                setup_configuration, ctypes.byref(enum_setup_instances)
+            )
+        finally:
+            # release the ISetupConfiguration instance
+            release(setup_configuration)
+
+        # setup the IEnumSetupInstances::Next method
+        prototype = ctypes.WINFUNCTYPE(
+            ctypes.HRESULT,
+            ctypes.c_ulong,
+            ctypes.POINTER(ctypes.c_void_p),
+            ctypes.POINTER(ctypes.c_ulong)
+        )
+        _next = prototype(3, 'Next')
+
+        # setup the ISetupInstance::GetInstallationPath method
+        prototype = ctypes.WINFUNCTYPE(
+            ctypes.HRESULT, ctypes.POINTER(ctypes.c_wchar_p)
+        )
+        get_installation_path = prototype(6, 'GetInstallationPath')
+
+        # setup the ISetupInstance2::GetPackages method
+        prototype = ctypes.WINFUNCTYPE(
+            ctypes.HRESULT, ctypes.POINTER(ctypes.c_void_p)
+        )
+        get_packages = prototype(12, 'GetPackages')
+
+        setup_instance = ctypes.c_void_p()
+        setup_instance2 = ctypes.c_void_p()
+        installation_path = ctypes.c_wchar_p()
+        packages = ctypes.c_void_p()
+
+        try:
+            while _next(enum_setup_instances, 1, ctypes.byref(setup_instance), None) == 0: # S_OK
+                try:
+                    # call IUnknown::QueryInterface and receive an
+                    # instance of ISetupInstance2
+                    query_interface(
+                        setup_instance,
+                        ctypes.byref(IID_ISetupInstance2),
+                        ctypes.byref(setup_instance2)
+                    )
+                finally:
+                    # release the ISetupInstance instance
+                    release(setup_instance)
+
+                try:
+                    # call ISetupInstance::GetInstallationPath and
+                    # receive a wchar string
+                    get_installation_path(
+                        setup_instance2, ctypes.byref(installation_path)
+                    )
+
+                    # call ISetupInstance2::GetPackages and receive a
+                    # SafeArray
+                    get_packages(setup_instance2, ctypes.byref(packages))
+                finally:
+                    # release the ISetupInstance2 instance
+                    release(setup_instance2)
+
+                _version = _vs_setup_config_check_vc(packages)
+                _path = ctypes.wstring_at(installation_path)
+
+                if _version and _version > (version or (0,)) and isdir(_path):
+                    version, path = _version, _path
+        finally:
+            # release the IEnumSetupInstances instance
+            release(enum_setup_instances)
+    except OSError:
+        pass
+    finally:
+        # finalize the COM library
+        ole32.CoUninitialize()
+
+    return version, path
+
+
+def _msvc14_find_vc2017():
+    version, path = _vs_setup_config_find_vc()
+
+    if version:
+        version = 15
+
+    if path:
+        path = join(path, 'VC', 'Auxiliary', 'Build')
+        if not isdir(path):
+            version, path = None, None
+
+    return version, path
 
 
 PLAT_SPEC_TO_RUNTIME = {
