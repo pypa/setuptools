@@ -1461,7 +1461,7 @@ v21.1.0
 * #572: In build_ext, now always import ``_CONFIG_VARS``
   from ``distutils`` rather than from ``sysconfig``
   to allow ``distutils.sysconfig.customize_compiler``
-  configure the OS X compiler for ``-dynamiclib``.
+  configure the macOS compiler for ``-dynamiclib``.
 
 v21.0.0
 -------
@@ -1881,7 +1881,7 @@ v20.6.0
   require that Cython be present before building source distributions.
   However, for systems with this build of setuptools, Cython will be
   downloaded on demand.
-* Issue #396: Fixed test failure on OS X.
+* Issue #396: Fixed test failure on macOS.
 * BB Pull Request #136: Remove excessive quoting from shebang headers
   for Jython.
 
@@ -3078,7 +3078,7 @@ how it parses version numbers.
 * Distribute #306: Even if 2to3 is used, we build in-place under Python 2.
 * Distribute #307: Prints the full path when .svn/entries is broken.
 * Distribute #313: Support for sdist subcommands (Python 2.7)
-* Distribute #314: test_local_index() would fail an OS X.
+* Distribute #314: test_local_index() would fail an macOS.
 * Distribute #310: Non-ascii characters in a namespace __init__.py causes errors.
 * Distribute #218: Improved documentation on behavior of `package_data` and
   `include_package_data`. Files indicated by `package_data` are now included
@@ -4105,7 +4105,7 @@ easy_install
    based on a contribution by Kevin Dangoor.  You may wish to delete and
    reinstall any eggs whose filename includes "darwin" and "Power_Macintosh",
    because the format for this platform information has changed so that minor
-   OS X upgrades (such as 10.4.1 to 10.4.2) do not cause eggs built with a
+   macOS upgrades (such as 10.4.1 to 10.4.2) do not cause eggs built with a
    previous OS version to become obsolete.
 
  * easy_install's dependency processing algorithms have changed.  When using
@@ -4118,7 +4118,7 @@ easy_install
 
  * Added ``--site-dirs`` option to allow adding custom "site" directories.
    Made ``easy-install.pth`` work in platform-specific alternate site
-   directories (e.g. ``~/Library/Python/2.x/site-packages`` on Mac OS X).
+   directories (e.g. ``~/Library/Python/2.x/site-packages`` on macOS).
 
  * If you manually delete the current version of a package, the next run of
    EasyInstall against the target directory will now remove the stray entry
