@@ -258,6 +258,7 @@ class GUID(ctypes.Structure):
         ('Data4', ctypes.c_char * 8),
     ]
 
+
 CLSID_SetupConfiguration = GUID(
     0x177f0c4a, 0x1cd3, 0x4de7, b'\xa3\x2c\x71\xdb\xbb\x9f\xa3\x6d'
 )
@@ -269,6 +270,7 @@ IID_ISetupConfiguration = GUID(
 IID_ISetupInstance2 = GUID(
     0x89143c9a, 0x05af, 0x49b0, b'\xb7\x17\x72\xe2\x18\xa2\x18\x5c'
 )
+
 
 def _vs_setup_config_find_vc():
     """Search Visual Studio instances and returns the latest version.
@@ -298,7 +300,7 @@ def _vs_setup_config_find_vc():
         ole32.CoCreateInstance(
             ctypes.byref(CLSID_SetupConfiguration),
             None,
-            1, # CLSCTX_INPROC_SERVER
+            1,  # CLSCTX_INPROC_SERVER
             ctypes.byref(IID_ISetupConfiguration),
             ctypes.byref(setup_configuration)
         )
@@ -359,7 +361,9 @@ def _vs_setup_config_find_vc():
         packages = ctypes.c_void_p()
 
         try:
-            while _next(enum_setup_instances, 1, ctypes.byref(setup_instance), None) == 0: # S_OK
+            while _next(
+                    enum_setup_instances, 1, ctypes.byref(setup_instance), None
+            ) == 0:  # S_OK
                 try:
                     # call IUnknown::QueryInterface and receive an
                     # instance of ISetupInstance2
