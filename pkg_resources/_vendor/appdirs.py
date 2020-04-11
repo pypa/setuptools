@@ -8,10 +8,9 @@
 See <http://github.com/ActiveState/appdirs> for details and usage.
 """
 # Dev Notes:
-# - MSDN on where to store app data files:
-#   http://support.microsoft.com/default.aspx?scid=kb;en-us;310294#XSLTH3194121123120121120120
-# - Mac OS X: http://developer.apple.com/documentation/MacOSX/Conceptual/BPFileSystem/index.html
-# - XDG spec for Un*x: http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
+# - MSDN on where to store app data files: (TODO: needs new link)
+# - macOS: (TODO: needs new link)
+# - XDG spec for Un*x: https://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
 
 __version_info__ = (1, 4, 3)
 __version__ = '.'.join(map(str, __version_info__))
@@ -64,7 +63,7 @@ def user_data_dir(appname=None, appauthor=None, version=None, roaming=False):
             for a discussion of issues.
 
     Typical user data directories are:
-        Mac OS X:               ~/Library/Application Support/<AppName>
+        macOS:                 ~/Library/Application Support/<AppName>
         Unix:                   ~/.local/share/<AppName>    # or in $XDG_DATA_HOME, if defined
         Win XP (not roaming):   C:\Documents and Settings\<username>\Application Data\<AppAuthor>\<AppName>
         Win XP (roaming):       C:\Documents and Settings\<username>\Local Settings\Application Data\<AppAuthor>\<AppName>
@@ -118,7 +117,7 @@ def site_data_dir(appname=None, appauthor=None, version=None, multipath=False):
             if XDG_DATA_DIRS is not set
 
     Typical site data directories are:
-        Mac OS X:   /Library/Application Support/<AppName>
+        macOS:      /Library/Application Support/<AppName>
         Unix:       /usr/local/share/<AppName> or /usr/share/<AppName>
         Win XP:     C:\Documents and Settings\All Users\Application Data\<AppAuthor>\<AppName>
         Vista:      (Fail! "C:\ProgramData" is a hidden *system* directory on Vista.)
@@ -185,7 +184,7 @@ def user_config_dir(appname=None, appauthor=None, version=None, roaming=False):
             for a discussion of issues.
 
     Typical user config directories are:
-        Mac OS X:               same as user_data_dir
+        macOS:                  same as user_data_dir
         Unix:                   ~/.config/<AppName>     # or in $XDG_CONFIG_HOME, if defined
         Win *:                  same as user_data_dir
 
@@ -223,7 +222,7 @@ def site_config_dir(appname=None, appauthor=None, version=None, multipath=False)
             returned, or '/etc/xdg/<AppName>', if XDG_CONFIG_DIRS is not set
 
     Typical site config directories are:
-        Mac OS X:   same as site_data_dir
+        macOS:      same as site_data_dir
         Unix:       /etc/xdg/<AppName> or $XDG_CONFIG_DIRS[i]/<AppName> for each value in
                     $XDG_CONFIG_DIRS
         Win *:      same as site_data_dir
@@ -273,7 +272,7 @@ def user_cache_dir(appname=None, appauthor=None, version=None, opinion=True):
             discussion below.
 
     Typical user cache directories are:
-        Mac OS X:   ~/Library/Caches/<AppName>
+        macOS:     ~/Library/Caches/<AppName>
         Unix:       ~/.cache/<AppName> (XDG default)
         Win XP:     C:\Documents and Settings\<username>\Local Settings\Application Data\<AppAuthor>\<AppName>\Cache
         Vista:      C:\Users\<username>\AppData\Local\<AppAuthor>\<AppName>\Cache
@@ -333,7 +332,7 @@ def user_state_dir(appname=None, appauthor=None, version=None, roaming=False):
             for a discussion of issues.
 
     Typical user state directories are:
-        Mac OS X:  same as user_data_dir
+        macOS:     same as user_data_dir
         Unix:      ~/.local/state/<AppName>   # or in $XDG_STATE_HOME, if defined
         Win *:     same as user_data_dir
 
@@ -372,7 +371,7 @@ def user_log_dir(appname=None, appauthor=None, version=None, opinion=True):
             base cache dir for Unix. See discussion below.
 
     Typical user log directories are:
-        Mac OS X:   ~/Library/Logs/<AppName>
+        macOS:      ~/Library/Logs/<AppName>
         Unix:       ~/.cache/<AppName>/log  # or under $XDG_CACHE_HOME if defined
         Win XP:     C:\Documents and Settings\<username>\Local Settings\Application Data\<AppAuthor>\<AppName>\Logs
         Vista:      C:\Users\<username>\AppData\Local\<AppAuthor>\<AppName>\Logs
