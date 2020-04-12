@@ -182,13 +182,14 @@ def _vs_setup_config_check_vc(packages):
     """
 
     try:
-        oleaut32 = ctypes.oledll.oleaut32
+        oleaut32 = ctypes.windll.oleaut32
+        oleaut32_hr = ctypes.oledll.oleaut32
 
         # lock the SafeArray
-        oleaut32.SafeArrayLock(packages)
+        oleaut32_hr.SafeArrayLock(packages)
     except OSError:
         # destroy the SafeArray and release all elements
-        oleaut32.SafeArrayDestroy(packages)
+        oleaut32_hr.SafeArrayDestroy(packages)
 
         return None
 
@@ -204,22 +205,29 @@ def _vs_setup_config_check_vc(packages):
     )
     get_version = prototype(4, 'GetVersion')
 
-    count = ctypes.c_long()
-    indicies = ctypes.c_long()
+    long = ctypes.c_long()
+    indicies = (ctypes.c_long * 1)()
     setup_package_reference = ctypes.c_void_p()
     wchar_p = ctypes.c_wchar_p()
 
     try:
-        # get the number of elements in the SafeArray
-        oleaut32.SafeArrayGetUBound(packages, 1, ctypes.byref(count))
+        # check that the SafeArray is the expected shape
+        if oleaut32.SafeArrayGetDim(packages) != 1:
+            return None
 
-        for i in range(count.value):
+        # get the lower bound of the SafeArray
+        oleaut32_hr.SafeArrayGetLBound(packages, 1, ctypes.byref(long))
+        lower = long.value
+
+        # get the upper bound of the SafeArray
+        oleaut32_hr.SafeArrayGetUBound(packages, 1, ctypes.byref(long))
+        upper = long.value
+
+        for i in range(lower, upper + 1):
             # get an ISetupPackageReference instance from the SafeArray
-            indicies.value = i
-            oleaut32.SafeArrayGetElement(
-                packages,
-                ctypes.byref(indicies),
-                ctypes.byref(setup_package_reference)
+            indicies[0] = i
+            oleaut32_hr.SafeArrayGetElement(
+                packages, indicies, ctypes.byref(setup_package_reference)
             )
 
             # call ISetupPackageReference::GetId and receive a wchar
@@ -242,10 +250,10 @@ def _vs_setup_config_check_vc(packages):
         pass
     finally:
         # unlock the SafeArray
-        oleaut32.SafeArrayUnlock(packages)
+        oleaut32_hr.SafeArrayUnlock(packages)
 
         # destroy the SafeArray and release all elements
-        oleaut32.SafeArrayDestroy(packages)
+        oleaut32_hr.SafeArrayDestroy(packages)
 
     return None
 
