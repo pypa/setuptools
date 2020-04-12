@@ -285,10 +285,11 @@ def _vs_setup_config_find_vc():
         https://github.com/microsoft/vs-setup-samples
     """
     try:
-        ole32 = ctypes.oledll.ole32
+        ole32 = ctypes.windll.ole32
+        ole32_hr = ctypes.oledll.ole32
 
         # initialize the COM library
-        ole32.CoInitialize(None)
+        ole32_hr.CoInitializeEx(None, 0)  # COINIT_MULTITHREADED
     except OSError:
         return None, None
 
@@ -297,7 +298,7 @@ def _vs_setup_config_find_vc():
     try:
         # create an instance of the ISetupConfiguration interface
         setup_configuration = ctypes.c_void_p()
-        ole32.CoCreateInstance(
+        ole32_hr.CoCreateInstance(
             ctypes.byref(CLSID_SetupConfiguration),
             None,
             1,  # CLSCTX_INPROC_SERVER
