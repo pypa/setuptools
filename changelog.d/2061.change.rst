@@ -1,0 +1,1 @@
+Use the Visual Studio setup configuration API to find Visual Studio 2017 and newer installs
