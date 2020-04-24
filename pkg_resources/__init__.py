@@ -2056,33 +2056,31 @@ def find_on_path(importer, path_item, only=False):
     filtered = (
         entry
         for entry in entries
-        if dist_factory(path_item, entry, only)
+        if dist_factory(entry, only)
     )
 
     # scan for .egg and .egg-info in directory
     path_item_entries = _by_version_descending(filtered)
     for entry in path_item_entries:
         fullpath = os.path.join(path_item, entry)
-        factory = dist_factory(path_item, entry, only)
+        factory = dist_factory(entry, only)
         for dist in factory(fullpath):
             yield dist
 
 
-def dist_factory(path_item, entry, only):
-    """
-    Return a dist_factory for a path_item and entry
-    """
+def dist_factory(entry, only):
+    """Return a dist_factory for the given entry."""
     lower = entry.lower()
-    is_meta = any(map(lower.endswith, ('.egg-info', '.dist-info')))
-    return (
-        distributions_from_metadata
-        if is_meta else
-        find_distributions
-        if not only and _is_egg_path(entry) else
-        resolve_egg_link
-        if not only and lower.endswith('.egg-link') else
-        NoDists()
-    )
+    if lower.endswith('.egg-info'):
+        return distributions_from_metadata
+    elif lower.endswith('.dist-info') and os.path.isdir(entry):
+        return distributions_from_metadata
+    elif not only and _is_egg_path(entry):
+        return find_distributions
+    elif not only and lower.endswith('.egg-link'):
+        return resolve_egg_link
+    else:
+        return NoDists()
 
 
 class NoDists:
