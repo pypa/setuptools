@@ -76,6 +76,22 @@ class Distribution(setuptools.dist.Distribution):
             distutils.core.Distribution = orig
 
 
+class TrapSetupReturn:
+    @contextlib.contextmanager
+    def patch(self):
+        """
+        Replace setuptools.setup(**attrs) and capture its return value.
+        """
+        orig = setuptools.setup
+        def setup(**args):
+            self.dist = orig(**args)
+        setuptools.setup = setup
+        try:
+            yield
+        finally:
+            setuptools.setup = orig
+
+
 def _to_str(s):
     """
     Convert a filename to a string (on Python 2, explicitly
@@ -217,6 +233,12 @@ class _BuildMetaBackend(object):
                                          '.tar.gz', sdist_directory,
                                          config_settings)
 
+    def build_editable(self, config_settings=None):
+        sys.argv = sys.argv[:1] + ['develop', '--no-install']
+        tsr = TrapSetupReturn()
+        with tsr.patch():
+            self.run_setup()
+        return {'src_root': tsr.dist.command_obj['develop'].egg_base}
 
 class _BuildMetaLegacyBackend(_BuildMetaBackend):
     """Compatibility backend for setuptools
@@ -266,7 +288,7 @@ get_requires_for_build_sdist = _BACKEND.get_requires_for_build_sdist
 prepare_metadata_for_build_wheel = _BACKEND.prepare_metadata_for_build_wheel
 build_wheel = _BACKEND.build_wheel
 build_sdist = _BACKEND.build_sdist
-
+build_editable = _BACKEND.build_editable
 
 # The legacy backend
 __legacy__ = _BuildMetaLegacyBackend()
