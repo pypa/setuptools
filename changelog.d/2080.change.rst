@@ -1,0 +1,1 @@
+Add support for running `python -m setuptools cmd` as a setup.py alternative.
