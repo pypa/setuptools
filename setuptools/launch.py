@@ -11,6 +11,7 @@ import os
 import sys
 import tokenize
 
+
 def _open_setup_script(setup_script, fallback):
     if fallback and not os.path.exists(setup_script):
         # Supply a default setup.py
@@ -18,17 +19,19 @@ def _open_setup_script(setup_script, fallback):
 
     return getattr(tokenize, 'open', open)(setup_script)
 
+
 def run_setup(setup_script='setup.py', fallback=True):
     namespace = {
-        '__file__' : setup_script,
-        '__name__' : '__main__',
-        '__doc__' : None
+        '__file__': setup_script,
+        '__name__': '__main__',
+        '__doc__': None
     }
 
     with _open_setup_script(setup_script, fallback) as f:
         code = f.read().replace(r'\r\n', r'\n')
 
     exec(compile(code, setup_script, 'exec'), namespace)
+
 
 def run_script():
     """
