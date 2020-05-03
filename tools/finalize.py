@@ -53,7 +53,15 @@ def bump_version():
     subprocess.check_call(cmd)
 
 
+def ensure_config():
+    """
+    Double-check that Git has an e-mail configured.
+    """
+    subprocess.check_output(['git', 'config', 'user.email'])
+
+
 if __name__ == '__main__':
     print("Cutting release at", get_version())
+    ensure_config()
     update_changelog()
     bump_version()

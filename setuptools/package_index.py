@@ -1053,7 +1053,7 @@ def open_with_auth(url, opener=urllib.request.urlopen):
     parsed = urllib.parse.urlparse(url)
     scheme, netloc, path, params, query, frag = parsed
 
-    # Double scheme does not raise on Mac OS X as revealed by a
+    # Double scheme does not raise on macOS as revealed by a
     # failing test. We would expect "nonnumeric port". Refs #20.
     if netloc.endswith(':'):
         raise http_client.InvalidURL("nonnumeric port: ''")

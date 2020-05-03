@@ -12,7 +12,7 @@ Credits
 
 * The original design for the ``.egg`` format and the ``pkg_resources`` API was
   co-created by Phillip Eby and Bob Ippolito. Bob also implemented the first
-  version of ``pkg_resources``, and supplied the OS X operating system version
+  version of ``pkg_resources``, and supplied the macOS operating system version
   compatibility algorithm.
 
 * Ian Bicking implemented many early "creature comfort" features of
