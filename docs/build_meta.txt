@@ -34,12 +34,8 @@ package and distribute Python modules. Under PEP 517:
     ``pyproject.toml`` and decide what program to use to 'build from source' 
     (the default is ``setuptools``)
 
-With this standard, switching between packaging tools becomes a lot easier and
-in the case of ``setuptools``, ``setup.py`` becomes optional.
-
-``build_meta`` is ``setuptools``'s implementation of PEP 517. It provides the 
-two functions, ``build_wheel`` and ``build_sdist`` amongst others, and uses 
-a ``setup.cfg`` to specify the information about the package. 
+With this standard, switching between packaging tools becomes a lot easier. ``build_meta``
+implements ``setuptools``' build system support.
 
 How to use it?
 --------------
@@ -60,9 +56,7 @@ setuptools, the content would be::
     requires = ["setuptools", "wheel"]
     build-backend = "setuptools.build_meta" 
 
-Use ``setup.cfg`` to specify your package information, specified 
-`here <https://setuptools.readthedocs.io/en/latest/setuptools.html#configuring
--setup-using-setup-cfg-files>`_ ::
+Use ``setuptools``' `declarative config`_ to specify the package information::
 
     [metadata]
     name = meowpkg
