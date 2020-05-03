@@ -1,5 +1,5 @@
 =======================================
-Documentation to setuptools.build_meta
+Build System Support
 =======================================
 
 What is it?
@@ -7,16 +7,18 @@ What is it?
 
 Python packaging has come `a long way <https://www.bernat.tech/pep-517-518/>`_.
 
-The traditional ``setuptools``'s way of packgaging Python modules
+The traditional ``setuptools`` way of packgaging Python modules
 uses a ``setup()`` function within the ``setup.py`` script. Commands such as
 ``python setup.py bdist`` or ``python setup.py bdist_wheel`` generate a 
 distribution bundle and ``python setup.py install`` installs the distribution. 
 This interface makes it difficult to choose other packaging tools without an 
-overhaul. Additionally, the ``setup.py`` scripts hasn't been the most user
-friendly tool.
+overhaul. Because ``setup.py`` scripts allowed for arbitrary execution, it
+proved difficult to provide a reliable user experience across environments
+and history.
 
-PEP517 therefore came to rescue and specified a new standard to 
-package and distribute Python modules. Under PEP517:
+`PEP 517 <https://www.python.org/dev/peps/pep-0517/>`_ therefore came to
+rescue and specified a new standard to 
+package and distribute Python modules. Under PEP 517:
 
     a ``pyproject.toml`` file is used to specify what program to use
     for generating distribution. 
@@ -35,8 +37,8 @@ package and distribute Python modules. Under PEP517:
 With this standard, switching between packaging tools becomes a lot easier and
 in the case of ``setuptools``, ``setup.py`` becomes optional.
 
-``build_meta`` is ``setuptools``'s implementation of PEP517. It provides the 
-two functions, ``build_wheel`` and ``build_sdist``, amongst others and uses 
+``build_meta`` is ``setuptools``'s implementation of PEP 517. It provides the 
+two functions, ``build_wheel`` and ``build_sdist`` amongst others, and uses 
 a ``setup.cfg`` to specify the information about the package. 
 
 How to use it?
@@ -58,7 +60,7 @@ setuptools, the content would be::
     requires = ["setuptools", "wheel"]
     build-backend = "setuptools.build_meta" 
 
-``setup.cfg`` is used to specify your package information, specified 
+Use ``setup.cfg`` to specify your package information, specified 
 `here <https://setuptools.readthedocs.io/en/latest/setuptools.html#configuring
 -setup-using-setup-cfg-files>`_ ::
 
@@ -70,26 +72,24 @@ setuptools, the content would be::
     [options]
     packages = find:
 
-Now it's time to actually generate the distribution. PEP517 specifies two
-mandatory functions, ``build_wheel`` and ``build_sdist``, implemented in
-this module. Currently, it has to be done in the interpreter::
+Now generate the distribution. Although the PyPA is still working to
+`provide a recommended tool <https://github.com/pypa/packaging-problems/issues/219>`_
+to build packages, the `pep517 package <https://pypi.org/project/pep517`_
+provides this functionality. To build the package::
 
-    >>> import setuptools.build_meta
-    >>> setuptools.build_meta.build_wheel('wheel_dist')
-    'meowpkg-0.0.1-py3-none-any.whl'
-    >>> setuptools.build_meta.build_sdist('sdist')
-    'meowpkg-0.0.1.tar.gz'
+    $ pip install -q pep517
+    $ mkdir dist
+    $ python -m pep517.build .
 
 And now it's done! The ``.whl`` file  and ``.tar.gz`` can then be distributed 
 and installed::
 
-    ~/newcomputer/
+    dist/
         meowpkg-0.0.1.whl
         meowpkg-0.0.1.tar.gz
 
-    $ pip install meowpkg-0.0.1.whl
+    $ pip install dist/meowpkg-0.0.1.whl
 
 or::
 
-    $ pip install meowpkg-0.0.1.tar.gz
-
+    $ pip install dist/meowpkg-0.0.1.tar.gz
