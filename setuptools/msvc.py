@@ -20,9 +20,9 @@ This may also support compilers shipped with compatible Visual Studio versions.
 """
 
 from ctypes import HRESULT, POINTER, Structure, c_uint, c_ulong, c_wchar_p
-from comtypes import BSTR, COMMETHOD, GUID, IUnknown
-from comtypes.client import CreateObject
-from comtypes.safearray import _midlSAFEARRAY
+from setuptools.extern.comtypes import BSTR, COMMETHOD, GUID, IUnknown
+from setuptools.extern.comtypes.client import CreateObject
+from setuptools.extern.comtypes.safearray import _midlSAFEARRAY
 import json
 from io import open
 from os import listdir, pathsep
