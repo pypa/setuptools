@@ -2608,10 +2608,19 @@ class Distribution:
             self.parsed_version,
             self.precedence,
             self.key,
-            _remove_md5_fragment(self.location),
+            self._location_without_md5,
             self.py_version or '',
             self.platform or '',
         )
+
+    def get_location(self):
+        return self._location
+
+    def set_location(self, l):
+        self._location = l
+        self._location_without_md5 = _remove_md5_fragment(l)
+
+    location = property(get_location, set_location)
 
     def __hash__(self):
         return hash(self.hashcmp)
