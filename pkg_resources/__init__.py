@@ -2613,14 +2613,14 @@ class Distribution:
             self.platform or '',
         )
 
-    def get_location(self):
+    @property
+    def location(self):
         return self._location
 
-    def set_location(self, l):
-        self._location = l
-        self._location_without_md5 = _remove_md5_fragment(l)
-
-    location = property(get_location, set_location)
+    @location.setter
+    def location(self, location):
+        self._location = location
+        self._location_without_md5 = _remove_md5_fragment(location)
 
     def __hash__(self):
         return hash(self.hashcmp)
