@@ -7,11 +7,13 @@ Customized Mixin2to3 support:
 This module raises an ImportError on Python 2.
 """
 
+import warnings
 from distutils.util import Mixin2to3 as _Mixin2to3
 from distutils import log
 from lib2to3.refactor import RefactoringTool, get_fixers_from_package
 
 import setuptools
+from ._deprecation_warning import SetuptoolsDeprecationWarning
 
 
 class DistutilsRefactoringTool(RefactoringTool):
@@ -33,6 +35,13 @@ class Mixin2to3(_Mixin2to3):
             return
         if not files:
             return
+
+        warnings.warn(
+            "2to3 support is deprecated. If the project still "
+            "requires Python 2 support, please migrate to "
+            "a single-codebase solution or employ an "
+            "independent conversion process.",
+            SetuptoolsDeprecationWarning)
         log.info("Fixing " + " ".join(files))
         self.__build_fixer_names()
         self.__exclude_fixers()
