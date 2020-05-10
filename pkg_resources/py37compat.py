@@ -1,5 +1,5 @@
 try:
-	from functools import cached_property
+    from functools import cached_property
 except ImportError:
-	# todo: consider backports.cached-property
-	cached_property = property
+    # todo: consider backports.cached-property
+    cached_property = property
