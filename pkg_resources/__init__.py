@@ -2072,7 +2072,7 @@ def dist_factory(path_item, entry, only):
     """Return a dist_factory for the given entry."""
     lower = entry.lower()
     is_egg_info = lower.endswith('.egg-info')
-    is_dist_info = lower.endswith('.dist-info') and os.path.isdir(entry)
+    is_dist_info = lower.endswith('.dist-info') and not os.path.isfile(entry)
     is_meta = is_egg_info or is_dist_info
     return (
         distributions_from_metadata
