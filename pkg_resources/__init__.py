@@ -2069,11 +2069,14 @@ def find_on_path(importer, path_item, only=False):
 
 
 def dist_factory(path_item, entry, only):
-    """
-    Return a dist_factory for a path_item and entry
-    """
+    """Return a dist_factory for the given entry."""
     lower = entry.lower()
-    is_meta = any(map(lower.endswith, ('.egg-info', '.dist-info')))
+    is_egg_info = lower.endswith('.egg-info')
+    is_dist_info = (
+        lower.endswith('.dist-info') and
+        os.path.isdir(os.path.join(path_item, entry))
+    )
+    is_meta = is_egg_info or is_dist_info
     return (
         distributions_from_metadata
         if is_meta else
