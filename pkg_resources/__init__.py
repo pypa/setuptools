@@ -2056,19 +2056,19 @@ def find_on_path(importer, path_item, only=False):
     filtered = (
         entry
         for entry in entries
-        if dist_factory(entry, only)
+        if dist_factory(path_item, entry, only)
     )
 
     # scan for .egg and .egg-info in directory
     path_item_entries = _by_version_descending(filtered)
     for entry in path_item_entries:
         fullpath = os.path.join(path_item, entry)
-        factory = dist_factory(entry, only)
+        factory = dist_factory(path_item, entry, only)
         for dist in factory(fullpath):
             yield dist
 
 
-def dist_factory(entry, only):
+def dist_factory(path_item, entry, only):
     """Return a dist_factory for the given entry."""
     lower = entry.lower()
     if lower.endswith('.egg-info'):
