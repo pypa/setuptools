@@ -1,3 +1,15 @@
+v46.2.0
+-------
+
+* #2040: Deprecated the ``bdist_wininst`` command. Binary packages should be built as wheels instead.
+* #2062: Change 'Mac OS X' to 'macOS' in code.
+* #2075: Stop recognizing files ending with ``.dist-info`` as distribution metadata.
+* #2086: Deprecate 'use_2to3' functionality. Packagers are encouraged to use single-source solutions or build tool chains to manage conversions outside of setuptools.
+* #1698: Added documentation for ``build_meta`` (a bare minimum, not completed).
+* #2082: Filter ``lib2to3`` ``PendingDeprecationWarning`` and ``DeprecationWarning`` in testes,
+  because ``lib2to3`` is `deprecated in Python 3.9 <https://bugs.python.org/issue40360>`_.
+
+
 v46.1.3
 -------
 

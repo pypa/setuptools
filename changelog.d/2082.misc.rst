@@ -1,2 +1,0 @@
-Filter ``lib2to3`` ``PendingDeprecationWarning`` and ``DeprecationWarning`` in testes,
-because ``lib2to3`` is `deprecated in Python 3.9 <https://bugs.python.org/issue40360>`_.
