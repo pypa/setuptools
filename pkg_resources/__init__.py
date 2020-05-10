@@ -2071,16 +2071,18 @@ def find_on_path(importer, path_item, only=False):
 def dist_factory(path_item, entry, only):
     """Return a dist_factory for the given entry."""
     lower = entry.lower()
-    if lower.endswith('.egg-info'):
-        return distributions_from_metadata
-    elif lower.endswith('.dist-info') and os.path.isdir(entry):
-        return distributions_from_metadata
-    elif not only and _is_egg_path(entry):
-        return find_distributions
-    elif not only and lower.endswith('.egg-link'):
-        return resolve_egg_link
-    else:
-        return NoDists()
+    is_egg_info = lower.endswith('.egg-info')
+    is_dist_info = lower.endswith('.dist-info') and os.path.isdir(entry)
+    is_meta = is_egg_info or is_dist_info
+    return (
+        distributions_from_metadata
+        if is_meta else
+        find_distributions
+        if not only and _is_egg_path(entry) else
+        resolve_egg_link
+        if not only and lower.endswith('.egg-link') else
+        NoDists()
+    )
 
 
 class NoDists:
