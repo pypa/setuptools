@@ -36,9 +36,10 @@ class Mixin2to3(_Mixin2to3):
             return
 
         warnings.warn(
-            "2to3 support is deprecated. Please migrate to "
-            "a single-codebase solution or roll your own "
-            "conversion process.",
+            "2to3 support is deprecated. If the project still "
+            "requires Python 2 support, please migrate to "
+            "a single-codebase solution or employ an "
+            "independent conversion process.",
             DeprecationWarning)
         log.info("Fixing " + " ".join(files))
         self.__build_fixer_names()
