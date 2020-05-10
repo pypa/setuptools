@@ -290,8 +290,8 @@ Platform Compatibility Rules
 ----------------------------
 
 On the Mac, there are potential compatibility issues for modules compiled
-on newer versions of Mac OS X than what the user is running. Additionally,
-Mac OS X will soon have two platforms to contend with: Intel and PowerPC.
+on newer versions of macOS than what the user is running. Additionally,
+macOS will soon have two platforms to contend with: Intel and PowerPC.
 
 Basic equality works as on other platforms::
 

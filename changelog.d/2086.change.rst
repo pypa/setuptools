@@ -1,0 +1,1 @@
+Deprecate 'use_2to3' functionality. Packagers are encouraged to use single-source solutions or build tool chains to manage conversions outside of setuptools.

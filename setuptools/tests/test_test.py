@@ -73,7 +73,11 @@ def quiet_log():
     log.set_verbosity(0)
 
 
+ack_2to3 = pytest.mark.filterwarnings('ignore:2to3 support is deprecated')
+
+
 @pytest.mark.usefixtures('sample_test', 'quiet_log')
+@ack_2to3
 def test_test(capfd):
     params = dict(
         name='foo',
@@ -124,6 +128,7 @@ def test_tests_are_run_once(capfd):
 
 
 @pytest.mark.usefixtures('sample_test')
+@ack_2to3
 def test_warns_deprecation(capfd):
     params = dict(
         name='foo',
@@ -149,6 +154,7 @@ def test_warns_deprecation(capfd):
 
 
 @pytest.mark.usefixtures('sample_test')
+@ack_2to3
 def test_deprecation_stderr(capfd):
     params = dict(
         name='foo',

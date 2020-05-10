@@ -2106,8 +2106,9 @@ Configuring setup() using setup.cfg files
 .. note:: New in 30.3.0 (8 Dec 2016).
 
 .. important::
-    A ``setup.py`` file containing a ``setup()`` function call is still
-    required even if your configuration resides in ``setup.cfg``.
+    If compatibility with legacy builds (i.e. those not using the :pep:`517`
+    build API) is desired, a ``setup.py`` file containing a ``setup()`` function
+    call is still required even if your configuration resides in ``setup.cfg``.
 
 ``Setuptools`` allows using configuration files (usually :file:`setup.cfg`)
 to define a package’s metadata and other options that are normally supplied

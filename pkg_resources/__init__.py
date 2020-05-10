@@ -179,10 +179,10 @@ def get_supported_platform():
     """Return this platform's maximum compatible version.
 
     distutils.util.get_platform() normally reports the minimum version
-    of Mac OS X that would be required to *use* extensions produced by
+    of macOS that would be required to *use* extensions produced by
     distutils.  But what we want when checking compatibility is to know the
-    version of Mac OS X that we are *running*.  To allow usage of packages that
-    explicitly require a newer version of Mac OS X, we must also know the
+    version of macOS that we are *running*.  To allow usage of packages that
+    explicitly require a newer version of macOS, we must also know the
     current version of the OS.
 
     If this condition occurs for any other platform with a version in its
@@ -192,9 +192,9 @@ def get_supported_platform():
     m = macosVersionString.match(plat)
     if m is not None and sys.platform == "darwin":
         try:
-            plat = 'macosx-%s-%s' % ('.'.join(_macosx_vers()[:2]), m.group(3))
+            plat = 'macosx-%s-%s' % ('.'.join(_macos_vers()[:2]), m.group(3))
         except ValueError:
-            # not Mac OS X
+            # not macOS
             pass
     return plat
 
@@ -365,7 +365,7 @@ def get_provider(moduleOrReq):
     return _find_adapter(_provider_factories, loader)(module)
 
 
-def _macosx_vers(_cache=[]):
+def _macos_vers(_cache=[]):
     if not _cache:
         version = platform.mac_ver()[0]
         # fallback for MacPorts
@@ -381,7 +381,7 @@ def _macosx_vers(_cache=[]):
     return _cache[0]
 
 
-def _macosx_arch(machine):
+def _macos_arch(machine):
     return {'PowerPC': 'ppc', 'Power_Macintosh': 'ppc'}.get(machine, machine)
 
 
@@ -389,18 +389,18 @@ def get_build_platform():
     """Return this platform's string for platform-specific distributions
 
     XXX Currently this is the same as ``distutils.util.get_platform()``, but it
-    needs some hacks for Linux and Mac OS X.
+    needs some hacks for Linux and macOS.
     """
     from sysconfig import get_platform
 
     plat = get_platform()
     if sys.platform == "darwin" and not plat.startswith('macosx-'):
         try:
-            version = _macosx_vers()
+            version = _macos_vers()
             machine = os.uname()[4].replace(" ", "_")
             return "macosx-%d.%d-%s" % (
                 int(version[0]), int(version[1]),
-                _macosx_arch(machine),
+                _macos_arch(machine),
             )
         except ValueError:
             # if someone is running a non-Mac darwin system, this will fall
@@ -426,7 +426,7 @@ def compatible_platforms(provided, required):
         # easy case
         return True
 
-    # Mac OS X special cases
+    # macOS special cases
     reqMac = macosVersionString.match(required)
     if reqMac:
         provMac = macosVersionString.match(provided)
@@ -435,7 +435,7 @@ def compatible_platforms(provided, required):
         if not provMac:
             # this is backwards compatibility for packages built before
             # setuptools 0.6. All packages built after this point will
-            # use the new macosx designation.
+            # use the new macOS designation.
             provDarwin = darwinVersionString.match(provided)
             if provDarwin:
                 dversion = int(provDarwin.group(1))
@@ -443,7 +443,7 @@ def compatible_platforms(provided, required):
                 if dversion == 7 and macosversion >= "10.3" or \
                         dversion == 8 and macosversion >= "10.4":
                     return True
-            # egg isn't macosx or legacy darwin
+            # egg isn't macOS or legacy darwin
             return False
 
         # are they the same major version and machine type?

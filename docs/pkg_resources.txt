@@ -1621,7 +1621,7 @@ Platform Utilities
 
 ``get_build_platform()``
     Return this platform's identifier string.  For Windows, the return value
-    is ``"win32"``, and for Mac OS X it is a string of the form
+    is ``"win32"``, and for macOS it is a string of the form
     ``"macosx-10.4-ppc"``.  All other platforms return the same uname-based
     string that the ``distutils.util.get_platform()`` function returns.
     This string is the minimum platform version required by distributions built
@@ -1641,7 +1641,7 @@ Platform Utilities
     considered a wildcard, and the platforms are therefore compatible.
     Likewise, if the platform strings are equal, they're also considered
     compatible, and ``True`` is returned.  Currently, the only non-equal
-    platform strings that are considered compatible are Mac OS X platform
+    platform strings that are considered compatible are macOS platform
     strings with the same hardware type (e.g. ``ppc``) and major version
     (e.g. ``10``) with the `provided` platform's minor version being less than
     or equal to the `required` platform's minor version.
@@ -1674,7 +1674,7 @@ File/Path Utilities
     the same filesystem location if they have equal ``normalized_path()``
     values.  Specifically, this is a shortcut for calling ``os.path.realpath``
     and ``os.path.normcase`` on `path`.  Unfortunately, on certain platforms
-    (notably Cygwin and Mac OS X) the ``normcase`` function does not accurately
+    (notably Cygwin and macOS) the ``normcase`` function does not accurately
     reflect the platform's case-sensitivity, so there is always the possibility
     of two apparently-different paths being equal on such platforms.
 

@@ -1,0 +1,1 @@
+Added documentation for ``build_meta`` (a bare minimum, not completed).
