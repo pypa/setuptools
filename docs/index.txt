@@ -14,7 +14,7 @@ designed to facilitate packaging Python projects, where packaging includes:
 Documentation content:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    User guide <setuptools>
    Development guide <development>
