@@ -13,6 +13,7 @@ from distutils import log
 from lib2to3.refactor import RefactoringTool, get_fixers_from_package
 
 import setuptools
+from ._deprecation_warning import SetuptoolsDeprecationWarning
 
 
 class DistutilsRefactoringTool(RefactoringTool):
@@ -40,7 +41,7 @@ class Mixin2to3(_Mixin2to3):
             "requires Python 2 support, please migrate to "
             "a single-codebase solution or employ an "
             "independent conversion process.",
-            DeprecationWarning)
+            SetuptoolsDeprecationWarning)
         log.info("Fixing " + " ".join(files))
         self.__build_fixer_names()
         self.__exclude_fixers()
