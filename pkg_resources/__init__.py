@@ -77,6 +77,7 @@ except ImportError:
     importlib_machinery = None
 
 from . import py31compat
+from .py37compat import cached_property
 from pkg_resources.extern import appdirs
 from pkg_resources.extern import packaging
 __import__('pkg_resources.extern.packaging.version')
@@ -2608,10 +2609,14 @@ class Distribution:
             self.parsed_version,
             self.precedence,
             self.key,
-            _remove_md5_fragment(self.location),
+            self._location_without_md5,
             self.py_version or '',
             self.platform or '',
         )
+
+    @cached_property
+    def _location_without_md5(self):
+        return _remove_md5_fragment(self.location)
 
     def __hash__(self):
         return hash(self.hashcmp)
