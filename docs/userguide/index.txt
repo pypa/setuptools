@@ -15,3 +15,4 @@ ordinary Python packages based on the ``distutils``.
 
     Quickstart <quickstart>
     keyword reference <keywords>
+    Command reference <commands>
