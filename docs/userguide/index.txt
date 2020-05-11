@@ -15,5 +15,6 @@ ordinary Python packages based on the ``distutils``.
 
     Quickstart <quickstart>
     Functionalities <functionalities>
+    Declarative config <declarative_config>
     keyword reference <keywords>
     Command reference <commands>
