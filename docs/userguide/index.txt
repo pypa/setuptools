@@ -14,5 +14,6 @@ ordinary Python packages based on the ``distutils``.
     :maxdepth: 1
 
     Quickstart <quickstart>
+    Functionalities <functionalities>
     keyword reference <keywords>
     Command reference <commands>
