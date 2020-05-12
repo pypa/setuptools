@@ -55,7 +55,7 @@ except NameError:
     FileExistsError = OSError
 
 from pkg_resources.extern import six
-from pkg_resources.extern.six.moves import urllib, map, filter
+from pkg_resources.extern.six.moves import map, filter
 
 # capture these to bypass sandboxing
 from os import utime
@@ -2546,15 +2546,6 @@ class EntryPoint:
         return maps
 
 
-def _remove_md5_fragment(location):
-    if not location:
-        return ''
-    parsed = urllib.parse.urlparse(location)
-    if parsed[-1].startswith('md5='):
-        return urllib.parse.urlunparse(parsed[:-1] + ('',))
-    return location
-
-
 def _version_from_file(lines):
     """
     Given an iterable of lines from a Metadata file, return
@@ -2611,7 +2602,7 @@ class Distribution:
             self.parsed_version,
             self.precedence,
             self.key,
-            _remove_md5_fragment(self.location),
+            self.location,
             self.py_version or '',
             self.platform or '',
         )
