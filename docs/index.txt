@@ -16,6 +16,6 @@ Documentation content:
 .. toctree::
    :maxdepth: 1
 
-   User guide <setuptools>
+   User guide <userguide/index>
    Development guide <development>
    Backward compatibility & deprecated practice <deprecated/index>
