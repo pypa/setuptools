@@ -2546,13 +2546,12 @@ class EntryPoint:
         return maps
 
 
-def _remove_md5_fragment(location):
-    if not location:
-        return ''
-    parsed = urllib.parse.urlparse(location)
-    if parsed[-1].startswith('md5='):
-        return urllib.parse.urlunparse(parsed[:-1] + ('',))
-    return location
+class Location(str):
+    def without_fragment(self):
+        parsed = urllib.parse.urlparse(self)
+        if parsed.fragment.startswith('md5='):
+            parsed = parsed._replace(fragment='')
+        return urllib.parse.urlunparse(parsed)
 
 
 def _version_from_file(lines):
@@ -2581,7 +2580,7 @@ class Distribution:
             self._version = safe_version(version)
         self.py_version = py_version
         self.platform = platform
-        self.location = location
+        self.location = Location(location)
         self.precedence = precedence
         self._provider = metadata or empty_provider
 
@@ -2611,7 +2610,7 @@ class Distribution:
             self.parsed_version,
             self.precedence,
             self.key,
-            _remove_md5_fragment(self.location),
+            self.location.without_fragment(),
             self.py_version or '',
             self.platform or '',
         )
