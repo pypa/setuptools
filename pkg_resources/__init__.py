@@ -2547,6 +2547,16 @@ class EntryPoint:
 
 
 class Location(str):
+    def method_cache(func):
+        def wrapper(self):
+            try:
+                result = getattr(func, '_cached')
+            except AttributeError:
+                func._cached = result = func(self)
+            return result
+        return wrapper
+
+    @method_cache
     def without_fragment(self):
         parsed = urllib.parse.urlparse(self)
         if parsed.fragment.startswith('md5='):
