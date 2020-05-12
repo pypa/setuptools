@@ -6,7 +6,7 @@ v46.2.0
 * #2075: Stop recognizing files ending with ``.dist-info`` as distribution metadata.
 * #2086: Deprecate 'use_2to3' functionality. Packagers are encouraged to use single-source solutions or build tool chains to manage conversions outside of setuptools.
 * #1698: Added documentation for ``build_meta`` (a bare minimum, not completed).
-* #2082: Filter ``lib2to3`` ``PendingDeprecationWarning`` and ``DeprecationWarning`` in testes,
+* #2082: Filter ``lib2to3`` ``PendingDeprecationWarning`` and ``DeprecationWarning`` in tests,
   because ``lib2to3`` is `deprecated in Python 3.9 <https://bugs.python.org/issue40360>`_.
 
 
