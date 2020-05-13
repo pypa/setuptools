@@ -1,0 +1,1 @@
+Package index functionality no longer attempts to remove an md5 fragment from the index URL. This functionality, added for distribute #163 is no longer relevant.
