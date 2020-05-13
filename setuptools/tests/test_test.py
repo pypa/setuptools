@@ -10,6 +10,7 @@ import pytest
 
 from setuptools.command.test import test
 from setuptools.dist import Distribution
+from setuptools.tests import ack_2to3
 
 from .textwrap import DALS
 
@@ -71,9 +72,6 @@ def quiet_log():
     # Running some of the other tests will automatically
     # change the log level to info, messing our output.
     log.set_verbosity(0)
-
-
-ack_2to3 = pytest.mark.filterwarnings('ignore:2to3 support is deprecated')
 
 
 @pytest.mark.usefixtures('sample_test', 'quiet_log')

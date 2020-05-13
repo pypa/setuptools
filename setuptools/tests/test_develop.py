@@ -17,6 +17,7 @@ import pytest
 
 from setuptools.command.develop import develop
 from setuptools.dist import Distribution
+from setuptools.tests import ack_2to3
 from . import contexts
 from . import namespaces
 
@@ -65,6 +66,7 @@ class TestDevelop:
     @pytest.mark.skipif(
         in_virtualenv or in_venv,
         reason="Cannot run when invoked in a virtualenv or venv")
+    @ack_2to3
     def test_2to3_user_mode(self, test_env):
         settings = dict(
             name='foo',
