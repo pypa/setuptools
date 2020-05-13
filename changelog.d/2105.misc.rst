@@ -1,1 +1,0 @@
-Filter ``2to3`` deprecation warnings from ``TestDevelop.test_2to3_user_mode``.

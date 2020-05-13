@@ -1,3 +1,11 @@
+v46.3.0
+-------
+
+* #2089: Package index functionality no longer attempts to remove an md5 fragment from the index URL. This functionality, added for distribute #163 is no longer relevant.
+* #2041: Preserve file modes during pkg files copying, but clear read only flag for target afterwards.
+* #2105: Filter ``2to3`` deprecation warnings from ``TestDevelop.test_2to3_user_mode``.
+
+
 v46.2.0
 -------
 
