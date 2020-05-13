@@ -221,11 +221,11 @@ class TestPackageIndex:
             ('+ubuntu_0', '+ubuntu.0'),
         ]
         versions = [
-            [''.join([e, r, p, l]) for l in ll]
+            [''.join([e, r, p, loc]) for loc in locs]
             for e in epoch
             for r in releases
             for p in sum([pre, post, dev], [''])
-            for ll in local]
+            for locs in local]
         for v, vc in versions:
             dists = list(setuptools.package_index.distros_for_url(
                 'http://example.com/example.zip#egg=example-' + v))

@@ -14,8 +14,8 @@ __metaclass__ = type
 
 def strip_comments(s):
     return '\n'.join(
-        l for l in s.split('\n')
-        if l.strip() and not l.strip().startswith('#')
+        line for line in s.split('\n')
+        if line.strip() and not line.strip().startswith('#')
     )
 
 
