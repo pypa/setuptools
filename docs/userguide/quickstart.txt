@@ -74,8 +74,6 @@ dependencies, and perhaps some data files and scripts::
         # could also include long_description, download_url, etc.
     )
 
-In the sections that follow, we'll explain what most of these ``setup()``
-arguments do (except for the metadata ones), and the various ways you might use
-them in your own project(s).
+
 
 
