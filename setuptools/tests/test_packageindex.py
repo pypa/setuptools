@@ -9,9 +9,7 @@ from setuptools.extern.six.moves import urllib, http_client
 import mock
 import pytest
 
-import pkg_resources
 import setuptools.package_index
-from setuptools.tests.server import IndexServer
 from .textwrap import DALS
 
 
@@ -113,43 +111,6 @@ class TestPackageIndex:
         )
         url = 'file:///tmp/test_package_index'
         assert index.url_ok(url, True)
-
-    def test_links_priority(self):
-        """
-        Download links from the pypi simple index should be used before
-        external download links.
-        https://bitbucket.org/tarek/distribute/issue/163
-
-        Usecase :
-        - someone uploads a package on pypi, a md5 is generated
-        - someone manually copies this link (with the md5 in the url) onto an
-          external page accessible from the package page.
-        - someone reuploads the package (with a different md5)
-        - while easy_installing, an MD5 error occurs because the external link
-          is used
-        -> Setuptools should use the link from pypi, not the external one.
-        """
-        if sys.platform.startswith('java'):
-            # Skip this test on jython because binding to :0 fails
-            return
-
-        # start an index server
-        server = IndexServer()
-        server.start()
-        index_url = server.base_url() + 'test_links_priority/simple/'
-
-        # scan a test index
-        pi = setuptools.package_index.PackageIndex(index_url)
-        requirement = pkg_resources.Requirement.parse('foobar')
-        pi.find_packages(requirement)
-        server.stop()
-
-        # the distribution has been found
-        assert 'foobar' in pi
-        # we have only one link, because links are compared without md5
-        assert len(pi['foobar']) == 1
-        # the link should be from the index
-        assert 'correct_md5' in pi['foobar'][0].location
 
     def test_parse_bdist_wininst(self):
         parse = setuptools.package_index.parse_bdist_wininst
