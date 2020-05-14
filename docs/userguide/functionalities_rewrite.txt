@@ -12,29 +12,23 @@ Automatic package discovery
 For simple projects, it's usually easy enough to manually add packages to
 the ``packages`` argument of ``setup()``.  However, for very large projects
 , it can be a big burden to keep the package list updated. setuptools therefore
-provides two tools to ease the burden.
+provides tools to ease the burden.
 
 ``find_packages()`` takes a source directory and two lists of package name
 patterns to exclude and include. It then walks the target directory, filtering
-by inclusion patterns, and finds Python packages (any directory). Packages are only
-recognized if they include an ``__init__.py`` file. Finally, exclusion
-patterns are applied to remove matching packages.
+by inclusion patterns, and return a list of Python packages (any directory).
+Finally, exclusion patterns are applied to remove matching packages.
 
-Inclusion and exclusion patterns are package names, optionally including
-wildcards.  For example, ``find_packages(exclude=["*.tests"])`` will exclude
-all packages whose last name part is ``tests``.   Or, ``find_packages(exclude=["*.tests",
-"*.tests.*"])`` will also exclude any subpackages of packages named ``tests``,
-but it still won't exclude a top-level ``tests`` package or the children
-thereof.
+For example::
+    #...
+    from setuptools import find_packages()
 
-Regardless of the parameters, the ``find_packages()``
-function returns a list of package names suitable for use as the ``packages``
-argument to ``setup()``, and so is usually the easiest way to set that
-argument in your setup script.  Especially since it frees you from having to
-remember to modify your setup script whenever your project grows additional
-top-level packages or subpackages.
+    setup(
+        #...,
+        packages = find_packages()
+    )
 
-
+For more details and advanced use, go to :ref:`package_discovery`
 
 Entry points and automatic script creation
 ===========================================
@@ -50,25 +44,13 @@ example::
         entry_points={
             "console_scripts": [
                 "foo = my_package.some_module:main_func",
-                "bar = other_module:some_func",
             ],
-            "gui_scripts": [
-                "baz = my_package_gui:start_func",
-            ]
         }
     )
 
-When this project is installed on non-Windows platforms (using "setup.py
-install", "setup.py develop", or with pip), a set of ``foo``, ``bar``,
-and ``baz`` scripts will be installed that import ``main_func`` and
-``some_func`` from the specified modules. On Windows, a set of ``foo.exe``,
-``bar.exe``, and ``baz.exe`` launchers are
-created, alongside a set of ``foo.py``, ``bar.py``, and ``baz.pyw`` files.  The
-``.exe`` wrappers find and execute the right version of Python to run the
-``.py`` or ``.pyw`` file.
-
-For detailed usage, including managing the additional or optional dependencies,
-go to :ref:`entry_point`.
+When this project is installed, a ``foo`` script will be installed and will
+invoke the ``main_func`` when called by the user. For detailed usage, including
+managing the additional or optional dependencies, go to :ref:`entry_point`.
 
 Dependency management
 =====================
@@ -91,6 +73,21 @@ For more advanced use, see :ref:`dependencies`
 
 Including Data Files
 ====================
+
+The distutils have traditionally allowed installation of "data files", which
+are placed in a platform-specific location. Setuptools offers three ways to
+specify data files to be included in your packages. For the simpliest use, you
+can simply use the ``include_package_data`` keyword e.g.::
+
+    setup(
+            ...
+            include_package_data=True
+        )
+
+This tells setuptools to install any data files it finds in your packages.
+The data files must be specified via the distutils' ``MANIFEST.in`` file.
+
+For more details, see :ref:`datafiles`
 
 Development mode
 ================
