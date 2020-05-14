@@ -2,15 +2,27 @@
 Package Discovery
 ===================
 
+``Setuptools`` provide powerful tools to handle package discovery, including
+support for namespace package. The following explain how you include package
+in your ``setup`` script::
+
+    setup(
+        packages = ['mypkg1', 'mypkg2']
+    )
+
+To speed things up, we introduce two functions provided by setuptools::
+
+    from setuptools import find_packages
+
+or::
+
+    from setuptools import find_namespace_packages
 
 
 Using ``find_packages()``
 -------------------------
 
-For simple projects, it's usually easy enough to manually add packages to
-the ``packages`` argument of ``setup()``.  However, for very large projects
-(Twisted, PEAK, Zope, Chandler, etc.), it can be a big burden to keep the
-package list updated.  That's what ``setuptools.find_packages()`` is for.
+Let's start with the first tool.
 
 ``find_packages()`` takes a source directory and two lists of package name
 patterns to exclude and include.  If omitted, the source directory defaults to
