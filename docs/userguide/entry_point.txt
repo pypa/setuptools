@@ -1,0 +1,115 @@
+==========================================
+Entry Points and Automatic Script Creation
+==========================================
+
+Packaging and installing scripts can be a bit awkward with the distutils.  For
+one thing, there's no easy way to have a script's filename match local
+conventions on both Windows and POSIX platforms.  For another, you often have
+to create a separate file just for the "main" script, when your actual "main"
+is a function in a module somewhere.  And even in Python 2.4, using the ``-m``
+option only works for actual ``.py`` files that aren't installed in a package.
+
+``setuptools`` fixes all of these problems by automatically generating scripts
+for you with the correct extension, and on Windows it will even create an
+``.exe`` file so that users don't have to change their ``PATHEXT`` settings.
+The way to use this feature is to define "entry points" in your setup script
+that indicate what function the generated script should import and run.  For
+example, to create two console scripts called ``foo`` and ``bar``, and a GUI
+script called ``baz``, you might do something like this::
+
+    setup(
+        # other arguments here...
+        entry_points={
+            "console_scripts": [
+                "foo = my_package.some_module:main_func",
+                "bar = other_module:some_func",
+            ],
+            "gui_scripts": [
+                "baz = my_package_gui:start_func",
+            ]
+        }
+    )
+
+When this project is installed on non-Windows platforms (using "setup.py
+install", "setup.py develop", or with pip), a set of ``foo``, ``bar``,
+and ``baz`` scripts will be installed that import ``main_func`` and
+``some_func`` from the specified modules.  The functions you specify are
+called with no arguments, and their return value is passed to
+``sys.exit()``, so you can return an errorlevel or message to print to
+stderr.
+
+On Windows, a set of ``foo.exe``, ``bar.exe``, and ``baz.exe`` launchers are
+created, alongside a set of ``foo.py``, ``bar.py``, and ``baz.pyw`` files.  The
+``.exe`` wrappers find and execute the right version of Python to run the
+``.py`` or ``.pyw`` file.
+
+You may define as many "console script" and "gui script" entry points as you
+like, and each one can optionally specify "extras" that it depends on, that
+will be added to ``sys.path`` when the script is run.  For more information on
+"extras", see the section below on `Declaring Extras`_.  For more information
+on "entry points" in general, see the section below on `Dynamic Discovery of
+Services and Plugins`_.
+
+
+Dynamic Discovery of Services and Plugins
+-----------------------------------------
+
+``setuptools`` supports creating libraries that "plug in" to extensible
+applications and frameworks, by letting you register "entry points" in your
+project that can be imported by the application or framework.
+
+For example, suppose that a blogging tool wants to support plugins
+that provide translation for various file types to the blog's output format.
+The framework might define an "entry point group" called ``blogtool.parsers``,
+and then allow plugins to register entry points for the file extensions they
+support.
+
+This would allow people to create distributions that contain one or more
+parsers for different file types, and then the blogging tool would be able to
+find the parsers at runtime by looking up an entry point for the file
+extension (or mime type, or however it wants to).
+
+Note that if the blogging tool includes parsers for certain file formats, it
+can register these as entry points in its own setup script, which means it
+doesn't have to special-case its built-in formats.  They can just be treated
+the same as any other plugin's entry points would be.
+
+If you're creating a project that plugs in to an existing application or
+framework, you'll need to know what entry points or entry point groups are
+defined by that application or framework.  Then, you can register entry points
+in your setup script.  Here are a few examples of ways you might register an
+``.rst`` file parser entry point in the ``blogtool.parsers`` entry point group,
+for our hypothetical blogging tool::
+
+    setup(
+        # ...
+        entry_points={"blogtool.parsers": ".rst = some_module:SomeClass"}
+    )
+
+    setup(
+        # ...
+        entry_points={"blogtool.parsers": [".rst = some_module:a_func"]}
+    )
+
+    setup(
+        # ...
+        entry_points="""
+            [blogtool.parsers]
+            .rst = some.nested.module:SomeClass.some_classmethod [reST]
+        """,
+        extras_require=dict(reST="Docutils>=0.3.5")
+    )
+
+The ``entry_points`` argument to ``setup()`` accepts either a string with
+``.ini``-style sections, or a dictionary mapping entry point group names to
+either strings or lists of strings containing entry point specifiers.  An
+entry point specifier consists of a name and value, separated by an ``=``
+sign.  The value consists of a dotted module name, optionally followed by a
+``:`` and a dotted identifier naming an object within the module.  It can
+also include a bracketed list of "extras" that are required for the entry
+point to be used.  When the invoking application or framework requests loading
+of an entry point, any requirements implied by the associated extras will be
+passed to ``pkg_resources.require()``, so that an appropriate error message
+can be displayed if the needed package(s) are missing.  (Of course, the
+invoking app or framework can ignore such errors if it wants to make an entry
+point optional if a requirement isn't installed.)
