@@ -13,8 +13,14 @@ ordinary Python packages based on the ``distutils``.
 .. toctree::
     :maxdepth: 1
 
-    Quickstart <quickstart>
-    Functionalities <functionalities>
-    Declarative config <declarative_config>
-    keyword reference <keywords>
-    Command reference <commands>
+    quickstart
+    package_discovery
+    entry_point
+    dependencies_management
+    datafiles
+    development_mode
+    distribution
+    extension
+    declarative_config
+    keywords
+    commands
