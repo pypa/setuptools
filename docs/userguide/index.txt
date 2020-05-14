@@ -16,8 +16,8 @@ ordinary Python packages based on the ``distutils``.
     quickstart
     package_discovery
     entry_point
-    dependencies_management
-    datafiles
+    dependency_management
+    data_files
     development_mode
     distribution
     extension
