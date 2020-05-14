@@ -1,0 +1,143 @@
+========================================================
+Using setuptools to package and distribute your project
+========================================================
+
+``setuptools`` offers a variety of functionalities that make it easy to
+build and distribute your python package. Here we provide an overview on
+the commonly used ones.
+
+Automatic package discovery
+===========================
+
+For simple projects, it's usually easy enough to manually add packages to
+the ``packages`` argument of ``setup()``.  However, for very large projects
+, it can be a big burden to keep the package list updated. setuptools therefore
+provides two tools to ease the burden.
+
+``find_packages()`` takes a source directory and two lists of package name
+patterns to exclude and include. It then walks the target directory, filtering
+by inclusion patterns, and finds Python packages (any directory). Packages are only
+recognized if they include an ``__init__.py`` file. Finally, exclusion
+patterns are applied to remove matching packages.
+
+Inclusion and exclusion patterns are package names, optionally including
+wildcards.  For example, ``find_packages(exclude=["*.tests"])`` will exclude
+all packages whose last name part is ``tests``.   Or, ``find_packages(exclude=["*.tests",
+"*.tests.*"])`` will also exclude any subpackages of packages named ``tests``,
+but it still won't exclude a top-level ``tests`` package or the children
+thereof.
+
+Regardless of the parameters, the ``find_packages()``
+function returns a list of package names suitable for use as the ``packages``
+argument to ``setup()``, and so is usually the easiest way to set that
+argument in your setup script.  Especially since it frees you from having to
+remember to modify your setup script whenever your project grows additional
+top-level packages or subpackages.
+
+
+
+Entry points and automatic script creation
+===========================================
+
+Setuptools support automatic creation of scripts upon installation, that runs
+code within your package if you specify them with the ``entry_point`` keyword.
+This is what allows you to run commands like ``pip install`` instead of having
+to type ``python -m pip install``. To accomplish this, consider the following
+example::
+
+    setup(
+        #....
+        entry_points={
+            "console_scripts": [
+                "foo = my_package.some_module:main_func",
+                "bar = other_module:some_func",
+            ],
+            "gui_scripts": [
+                "baz = my_package_gui:start_func",
+            ]
+        }
+    )
+
+When this project is installed on non-Windows platforms (using "setup.py
+install", "setup.py develop", or with pip), a set of ``foo``, ``bar``,
+and ``baz`` scripts will be installed that import ``main_func`` and
+``some_func`` from the specified modules. On Windows, a set of ``foo.exe``,
+``bar.exe``, and ``baz.exe`` launchers are
+created, alongside a set of ``foo.py``, ``bar.py``, and ``baz.pyw`` files.  The
+``.exe`` wrappers find and execute the right version of Python to run the
+``.py`` or ``.pyw`` file.
+
+For detailed usage, including managing the additional or optional dependencies,
+go to :ref:`entry_point`.
+
+Dependency management
+=====================
+
+``setuptools`` supports automatically installing dependencies when a package is
+installed. The simplest way to include requirement specifiers is to use the
+``install_requires`` argument to ``setup()``.  It takes a string or list of
+strings containing requirement specifiers::
+
+    setup(
+        #...
+        install_requires = "docutils >= 0.3"
+    )
+
+When your project is installed, either by using pip, ``setup.py install``,
+or ``setup.py develop``, all of the dependencies not already installed will
+be located (via PyPI), downloaded, built (if necessary), and installed.
+
+For more advanced use, see :ref:`dependencies`
+
+Including Data Files
+====================
+
+Development mode
+================
+
+Setuptools allows you to deploy your projects for use in a common directory or
+staging area, but without copying any files.  Thus, you can edit each project's
+code in its checkout directory, and only need to run build commands when you
+change a project's C extensions or similarly compiled files.
+
+To do this, use the ``setup.py develop`` command.  It works very similarly to
+``setup.py install``, except that it doesn't actually install anything.
+Instead, it creates a special ``.egg-link`` file in the deployment directory,
+that links to your project's source code.  And, if your deployment directory is
+Python's ``site-packages`` directory, it will also update the
+``easy-install.pth`` file to include your project's source code, thereby making
+it available on ``sys.path`` for all programs using that Python installation.
+
+for more information, go to :ref:`development_mode`
+
+Distributing a ``setuptools``-based project
+===========================================
+Before you begin, make sure you have the latest versions of setuptools and wheel::
+
+    pip install --upgrade setuptools wheel
+
+To build a setuptools project, run this command from the same directory where
+setup.py is located::
+
+    setup.py sdist bdist_wheel
+
+This will generate distribution archives in the `dist` directory.
+
+Before you upload the generated archives make sure you're registered on
+https://test.pypi.org/account/register/. You will also need to verify your email
+to be able to upload any packages.
+You should install twine to be able to upload packages::
+
+    pip install --upgrade twine
+
+Now, to upload these archives, run::
+
+    twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+
+To install your newly uploaded package ``example_pkg``,  you can use pip::
+
+    pip install --index-url https://test.pypi.org/simple/ example_pkg
+
+The next following sections will walk you through all of the available functions
+``setuptools`` offers in excrutiating details (including those already mentioned)
+for more advanced use.
