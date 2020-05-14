@@ -141,7 +141,7 @@ When your project is installed, either by using pip, ``setup.py install``,
 or ``setup.py develop``, all of the dependencies not already installed will
 be located (via PyPI), downloaded, built (if necessary), and installed.
 
-For more advanced use, see :ref:`dependencies`
+For more advanced use, see :ref:`dependency_management`
 
 Including Data Files
 ====================
@@ -210,5 +210,3 @@ To install your newly uploaded package ``example_pkg``,  you can use pip::
 The next following sections will walk you through all of the available functions
 ``setuptools`` offers in excrutiating details (including those already mentioned)
 for more advanced use.
-
-
