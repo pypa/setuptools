@@ -103,7 +103,7 @@ class TestConfigurationReader:
             'version = attr: none.VERSION\n'
             'keywords = one, two\n'
         )
-        with pytest.raises(ImportError):
+        with pytest.raises(DistutilsOptionError):
             read_configuration('%s' % config)
 
         config_dict = read_configuration(
@@ -300,25 +300,6 @@ class TestMetadata:
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '2016.11.26'
 
-    def test_literal_version(self, tmpdir):
-
-        _, config = fake_env(
-            tmpdir,
-            '[metadata]\n'
-            'version = literal_attr: fake_package.VERSION\n'
-        )
-        with get_dist(tmpdir) as dist:
-            assert dist.metadata.version == '1.2.3'
-
-        config.write(
-            '[metadata]\n'
-            'version = literal_attr: fake_package.VERSION_MAJOR\n'
-        )
-        with get_dist(tmpdir) as dist:
-            assert dist.metadata.version == '1'
-
-        subpack = tmpdir.join('fake_package').mkdir('subpackage')
-        subpack.join('__init__.py').write('')
         subpack.join('submodule.py').write(
             'import third_party_module\n'
             'VERSION = (2016, 11, 26)'
@@ -363,17 +344,6 @@ class TestMetadata:
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '1.2.3'
 
-        config.write(
-            '[metadata]\n'
-            'version = literal_attr: fake_package_simple.VERSION\n'
-            '[options]\n'
-            'package_dir =\n'
-            '    = src\n'
-        )
-
-        with get_dist(tmpdir) as dist:
-            assert dist.metadata.version == '1.2.3'
-
     def test_version_with_package_dir_rename(self, tmpdir):
 
         _, config = fake_env(
@@ -389,17 +359,6 @@ class TestMetadata:
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '1.2.3'
 
-        config.write(
-            '[metadata]\n'
-            'version = literal_attr: fake_package_rename.VERSION\n'
-            '[options]\n'
-            'package_dir =\n'
-            '    fake_package_rename = fake_dir\n'
-        )
-
-        with get_dist(tmpdir) as dist:
-            assert dist.metadata.version == '1.2.3'
-
     def test_version_with_package_dir_complex(self, tmpdir):
 
         _, config = fake_env(
@@ -410,17 +369,6 @@ class TestMetadata:
             'package_dir =\n'
             '    fake_package_complex = src/fake_dir\n',
             package_path='src/fake_dir'
-        )
-
-        with get_dist(tmpdir) as dist:
-            assert dist.metadata.version == '1.2.3'
-
-        config.write(
-            '[metadata]\n'
-            'version = literal_attr: fake_package_complex.VERSION\n'
-            '[options]\n'
-            'package_dir =\n'
-            '    fake_package_complex = src/fake_dir\n'
         )
 
         with get_dist(tmpdir) as dist:
