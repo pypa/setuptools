@@ -2198,6 +2198,49 @@ Metadata and options are set in the config sections of the same name.
 
 * Unknown keys are ignored.
 
+setup.cfg-only projects
+=======================
+
+.. versionadded:: 40.9.0
+
+If ``setup.py`` is missing from the project directory when a :pep:`517`
+build is invoked, ``setuptools`` emulates a dummy ``setup.py`` file containing
+only a ``setuptools.setup()`` call.
+
+.. note::
+
+    :pep:`517` doesn't support editable installs so this is currently
+    incompatible with ``pip install -e .``, as :pep:`517` does not support editable installs.
+
+This means that you can have a Python project with all build configuration
+specified in ``setup.cfg``, without a ``setup.py`` file, if you **can rely
+on** your project always being built by a :pep:`517`/:pep:`518` compatible
+frontend.
+
+To use this feature:
+
+* Specify build requirements and :pep:`517` build backend in
+  ``pyproject.toml``.
+  For example:
+
+  .. code-block:: toml
+
+      [build-system]
+      requires = [
+        "setuptools >= 40.9.0",
+        "wheel",
+      ]
+      build-backend = "setuptools.build_meta"
+
+* Use a :pep:`517` compatible build frontend, such as ``pip >= 19`` or ``pep517``.
+
+  .. warning::
+
+      As :pep:`517` is new, support is not universal, and frontends that
+      do support it may still have bugs. For compatibility, you may want to
+      put a ``setup.py`` file containing only a ``setuptools.setup()``
+      invocation.
+
 
 Using a ``src/`` layout
 =======================
