@@ -1,0 +1,255 @@
+=====================================
+Dependencies Management in Setuptools
+=====================================
+
+Declaring Dependencies
+======================
+
+``setuptools`` supports automatically installing dependencies when a package is
+installed, and including information about dependencies in Python Eggs (so that
+package management tools like pip can use the information).
+
+``setuptools`` and ``pkg_resources`` use a common syntax for specifying a
+project's required dependencies.  This syntax consists of a project's PyPI
+name, optionally followed by a comma-separated list of "extras" in square
+brackets, optionally followed by a comma-separated list of version
+specifiers.  A version specifier is one of the operators ``<``, ``>``, ``<=``,
+``>=``, ``==`` or ``!=``, followed by a version identifier.  Tokens may be
+separated by whitespace, but any whitespace or nonstandard characters within a
+project name or version identifier must be replaced with ``-``.
+
+Version specifiers for a given project are internally sorted into ascending
+version order, and used to establish what ranges of versions are acceptable.
+Adjacent redundant conditions are also consolidated (e.g. ``">1, >2"`` becomes
+``">2"``, and ``"<2,<3"`` becomes ``"<2"``). ``"!="`` versions are excised from
+the ranges they fall within.  A project's version is then checked for
+membership in the resulting ranges. (Note that providing conflicting conditions
+for the same version (e.g. "<2,>=2" or "==2,!=2") is meaningless and may
+therefore produce bizarre results.)
+
+Here are some example requirement specifiers::
+
+    docutils >= 0.3
+
+    # comment lines and \ continuations are allowed in requirement strings
+    BazSpam ==1.1, ==1.2, ==1.3, ==1.4, ==1.5, \
+        ==1.6, ==1.7  # and so are line-end comments
+
+    PEAK[FastCGI, reST]>=0.5a4
+
+    setuptools==0.5a7
+
+The simplest way to include requirement specifiers is to use the
+``install_requires`` argument to ``setup()``.  It takes a string or list of
+strings containing requirement specifiers.  If you include more than one
+requirement in a string, each requirement must begin on a new line.
+
+This has three effects:
+
+1. When your project is installed, either by using pip, ``setup.py install``,
+   or ``setup.py develop``, all of the dependencies not already installed will
+   be located (via PyPI), downloaded, built (if necessary), and installed.
+
+2. Any scripts in your project will be installed with wrappers that verify
+   the availability of the specified dependencies at runtime, and ensure that
+   the correct versions are added to ``sys.path`` (e.g. if multiple versions
+   have been installed).
+
+3. Python Egg distributions will include a metadata file listing the
+   dependencies.
+
+Note, by the way, that if you declare your dependencies in ``setup.py``, you do
+*not* need to use the ``require()`` function in your scripts or modules, as
+long as you either install the project or use ``setup.py develop`` to do
+development work on it.  (See `"Development Mode"`_ below for more details on
+using ``setup.py develop``.)
+
+Dependencies that aren't in PyPI
+--------------------------------
+
+.. warning::
+    Dependency links support has been dropped by pip starting with version
+    19.0 (released 2019-01-22).
+
+If your project depends on packages that don't exist on PyPI, you may still be
+able to depend on them, as long as they are available for download as:
+
+- an egg, in the standard distutils ``sdist`` format,
+- a single ``.py`` file, or
+- a VCS repository (Subversion, Mercurial, or Git).
+
+You just need to add some URLs to the ``dependency_links`` argument to
+``setup()``.
+
+The URLs must be either:
+
+1. direct download URLs,
+2. the URLs of web pages that contain direct download links, or
+3. the repository's URL
+
+In general, it's better to link to web pages, because it is usually less
+complex to update a web page than to release a new version of your project.
+You can also use a SourceForge ``showfiles.php`` link in the case where a
+package you depend on is distributed via SourceForge.
+
+If you depend on a package that's distributed as a single ``.py`` file, you
+must include an ``"#egg=project-version"`` suffix to the URL, to give a project
+name and version number.  (Be sure to escape any dashes in the name or version
+by replacing them with underscores.)  EasyInstall will recognize this suffix
+and automatically create a trivial ``setup.py`` to wrap the single ``.py`` file
+as an egg.
+
+In the case of a VCS checkout, you should also append ``#egg=project-version``
+in order to identify for what package that checkout should be used. You can
+append ``@REV`` to the URL's path (before the fragment) to specify a revision.
+Additionally, you can also force the VCS being used by prepending the URL with
+a certain prefix. Currently available are:
+
+-  ``svn+URL`` for Subversion,
+-  ``git+URL`` for Git, and
+-  ``hg+URL`` for Mercurial
+
+A more complete example would be:
+
+    ``vcs+proto://host/path@revision#egg=project-version``
+
+Be careful with the version. It should match the one inside the project files.
+If you want to disregard the version, you have to omit it both in the
+``requires`` and in the URL's fragment.
+
+This will do a checkout (or a clone, in Git and Mercurial parlance) to a
+temporary folder and run ``setup.py bdist_egg``.
+
+The ``dependency_links`` option takes the form of a list of URL strings.  For
+example, this will cause a search of the specified page for eggs or source
+distributions, if the package's dependencies aren't already installed::
+
+    setup(
+        ...
+        dependency_links=[
+            "http://peak.telecommunity.com/snapshots/"
+        ],
+    )
+
+
+.. _Declaring Extras:
+
+
+Declaring "Extras" (optional features with their own dependencies)
+------------------------------------------------------------------
+
+Sometimes a project has "recommended" dependencies, that are not required for
+all uses of the project.  For example, a project might offer optional PDF
+output if ReportLab is installed, and reStructuredText support if docutils is
+installed.  These optional features are called "extras", and setuptools allows
+you to define their requirements as well.  In this way, other projects that
+require these optional features can force the additional requirements to be
+installed, by naming the desired extras in their ``install_requires``.
+
+For example, let's say that Project A offers optional PDF and reST support::
+
+    setup(
+        name="Project-A",
+        ...
+        extras_require={
+            "PDF":  ["ReportLab>=1.2", "RXP"],
+            "reST": ["docutils>=0.3"],
+        }
+    )
+
+As you can see, the ``extras_require`` argument takes a dictionary mapping
+names of "extra" features, to strings or lists of strings describing those
+features' requirements.  These requirements will *not* be automatically
+installed unless another package depends on them (directly or indirectly) by
+including the desired "extras" in square brackets after the associated project
+name.  (Or if the extras were listed in a requirement spec on the "pip install"
+command line.)
+
+Extras can be used by a project's `entry points`_ to specify dynamic
+dependencies.  For example, if Project A includes a "rst2pdf" script, it might
+declare it like this, so that the "PDF" requirements are only resolved if the
+"rst2pdf" script is run::
+
+    setup(
+        name="Project-A",
+        ...
+        entry_points={
+            "console_scripts": [
+                "rst2pdf = project_a.tools.pdfgen [PDF]",
+                "rst2html = project_a.tools.htmlgen",
+                # more script entry points ...
+            ],
+        }
+    )
+
+Projects can also use another project's extras when specifying dependencies.
+For example, if project B needs "project A" with PDF support installed, it
+might declare the dependency like this::
+
+    setup(
+        name="Project-B",
+        install_requires=["Project-A[PDF]"],
+        ...
+    )
+
+This will cause ReportLab to be installed along with project A, if project B is
+installed -- even if project A was already installed.  In this way, a project
+can encapsulate groups of optional "downstream dependencies" under a feature
+name, so that packages that depend on it don't have to know what the downstream
+dependencies are.  If a later version of Project A builds in PDF support and
+no longer needs ReportLab, or if it ends up needing other dependencies besides
+ReportLab in order to provide PDF support, Project B's setup information does
+not need to change, but the right packages will still be installed if needed.
+
+Note, by the way, that if a project ends up not needing any other packages to
+support a feature, it should keep an empty requirements list for that feature
+in its ``extras_require`` argument, so that packages depending on that feature
+don't break (due to an invalid feature name).  For example, if Project A above
+builds in PDF support and no longer needs ReportLab, it could change its
+setup to this::
+
+    setup(
+        name="Project-A",
+        ...
+        extras_require={
+            "PDF":  [],
+            "reST": ["docutils>=0.3"],
+        }
+    )
+
+so that Package B doesn't have to remove the ``[PDF]`` from its requirement
+specifier.
+
+.. _Platform Specific Dependencies:
+
+
+Declaring platform specific dependencies
+----------------------------------------
+
+Sometimes a project might require a dependency to run on a specific platform.
+This could to a package that back ports a module so that it can be used in
+older python versions.  Or it could be a package that is required to run on a
+specific operating system.  This will allow a project to work on multiple
+different platforms without installing dependencies that are not required for
+a platform that is installing the project.
+
+For example, here is a project that uses the ``enum`` module and ``pywin32``::
+
+    setup(
+        name="Project",
+        ...
+        install_requires=[
+            "enum34;python_version<'3.4'",
+            "pywin32 >= 1.0;platform_system=='Windows'"
+        ]
+    )
+
+Since the ``enum`` module was added in Python 3.4, it should only be installed
+if the python version is earlier.  Since ``pywin32`` will only be used on
+windows, it should only be installed when the operating system is Windows.
+Specifying version requirements for the dependencies is supported as normal.
+
+The environmental markers that may be used for testing platform types are
+detailed in `PEP 508`_.
+
+.. _PEP 508: https://www.python.org/dev/peps/pep-0508/

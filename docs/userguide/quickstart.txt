@@ -1,5 +1,9 @@
-Installing ``setuptools``
-=========================
+==========================
+``setuptools`` Quickstart
+==========================
+
+Installation
+============
 
 .. _Installing Packages: https://packaging.python.org/tutorials/installing-packages/
 
@@ -12,8 +16,8 @@ Refer to `Installing Packages`_ guide for more information.
 Basic Use
 =========
 
-For basic use of setuptools, just import things from setuptools instead of
-the distutils.  Here's a minimal setup script using setuptools::
+For basic use of setuptools, just import things from setuptools.  Here's a
+minimal setup script using setuptools::
 
     from setuptools import setup, find_packages
     setup(
@@ -74,92 +78,135 @@ dependencies, and perhaps some data files and scripts::
         # could also include long_description, download_url, etc.
     )
 
-In the sections that follow, we'll explain what most of these ``setup()``
-arguments do (except for the metadata ones), and the various ways you might use
-them in your own project(s).
+Automatic package discovery
+===========================
 
+For simple projects, it's usually easy enough to manually add packages to
+the ``packages`` argument of ``setup()``.  However, for very large projects
+, it can be a big burden to keep the package list updated. setuptools therefore
+provides tools to ease the burden.
 
-Specifying Your Project's Version
----------------------------------
+``find_packages()`` takes a source directory and two lists of package name
+patterns to exclude and include. It then walks the target directory, filtering
+by inclusion patterns, and return a list of Python packages (any directory).
+Finally, exclusion patterns are applied to remove matching packages.
 
-Setuptools can work well with most versioning schemes; there are, however, a
-few special things to watch out for, in order to ensure that setuptools and
-other tools can always tell what version of your package is newer than another
-version.  Knowing these things will also help you correctly specify what
-versions of other projects your project depends on.
+For example::
+    #...
+    from setuptools import find_packages()
 
-A version consists of an alternating series of release numbers and pre-release
-or post-release tags.  A release number is a series of digits punctuated by
-dots, such as ``2.4`` or ``0.5``.  Each series of digits is treated
-numerically, so releases ``2.1`` and ``2.1.0`` are different ways to spell the
-same release number, denoting the first subrelease of release 2.  But  ``2.10``
-is the *tenth* subrelease of release 2, and so is a different and newer release
-from ``2.1`` or ``2.1.0``.  Leading zeros within a series of digits are also
-ignored, so ``2.01`` is the same as ``2.1``, and different from ``2.0.1``.
+    setup(
+        #...,
+        packages = find_packages()
+    )
 
-Following a release number, you can have either a pre-release or post-release
-tag.  Pre-release tags make a version be considered *older* than the version
-they are appended to.  So, revision ``2.4`` is *newer* than revision ``2.4c1``,
-which in turn is newer than ``2.4b1`` or ``2.4a1``.  Postrelease tags make
-a version be considered *newer* than the version they are appended to.  So,
-revisions like ``2.4-1`` and ``2.4pl3`` are newer than ``2.4``, but are *older*
-than ``2.4.1`` (which has a higher release number).
+For more details and advanced use, go to :ref:`package_discovery`
 
-A pre-release tag is a series of letters that are alphabetically before
-"final".  Some examples of prerelease tags would include ``alpha``, ``beta``,
-``a``, ``c``, ``dev``, and so on.  You do not have to place a dot or dash
-before the prerelease tag if it's immediately after a number, but it's okay to
-do so if you prefer.  Thus, ``2.4c1`` and ``2.4.c1`` and ``2.4-c1`` all
-represent release candidate 1 of version ``2.4``, and are treated as identical
-by setuptools.
+Entry points and automatic script creation
+===========================================
 
-In addition, there are three special prerelease tags that are treated as if
-they were the letter ``c``: ``pre``, ``preview``, and ``rc``.  So, version
-``2.4rc1``, ``2.4pre1`` and ``2.4preview1`` are all the exact same version as
-``2.4c1``, and are treated as identical by setuptools.
+Setuptools support automatic creation of scripts upon installation, that runs
+code within your package if you specify them with the ``entry_point`` keyword.
+This is what allows you to run commands like ``pip install`` instead of having
+to type ``python -m pip install``. To accomplish this, consider the following
+example::
 
-A post-release tag is either a series of letters that are alphabetically
-greater than or equal to "final", or a dash (``-``).  Post-release tags are
-generally used to separate patch numbers, port numbers, build numbers, revision
-numbers, or date stamps from the release number.  For example, the version
-``2.4-r1263`` might denote Subversion revision 1263 of a post-release patch of
-version ``2.4``.  Or you might use ``2.4-20051127`` to denote a date-stamped
-post-release.
+    setup(
+        #....
+        entry_points={
+            "console_scripts": [
+                "foo = my_package.some_module:main_func",
+            ],
+        }
+    )
 
-Notice that after each pre or post-release tag, you are free to place another
-release number, followed again by more pre- or post-release tags.  For example,
-``0.6a9.dev-r41475`` could denote Subversion revision 41475 of the in-
-development version of the ninth alpha of release 0.6.  Notice that ``dev`` is
-a pre-release tag, so this version is a *lower* version number than ``0.6a9``,
-which would be the actual ninth alpha of release 0.6.  But the ``-r41475`` is
-a post-release tag, so this version is *newer* than ``0.6a9.dev``.
+When this project is installed, a ``foo`` script will be installed and will
+invoke the ``main_func`` when called by the user. For detailed usage, including
+managing the additional or optional dependencies, go to :ref:`entry_point`.
 
-For the most part, setuptools' interpretation of version numbers is intuitive,
-but here are a few tips that will keep you out of trouble in the corner cases:
+Dependency management
+=====================
 
-* Don't stick adjoining pre-release tags together without a dot or number
-  between them.  Version ``1.9adev`` is the ``adev`` prerelease of ``1.9``,
-  *not* a development pre-release of ``1.9a``.  Use ``.dev`` instead, as in
-  ``1.9a.dev``, or separate the prerelease tags with a number, as in
-  ``1.9a0dev``.  ``1.9a.dev``, ``1.9a0dev``, and even ``1.9.a.dev`` are
-  identical versions from setuptools' point of view, so you can use whatever
-  scheme you prefer.
+``setuptools`` supports automatically installing dependencies when a package is
+installed. The simplest way to include requirement specifiers is to use the
+``install_requires`` argument to ``setup()``.  It takes a string or list of
+strings containing requirement specifiers::
 
-* If you want to be certain that your chosen numbering scheme works the way
-  you think it will, you can use the ``pkg_resources.parse_version()`` function
-  to compare different version numbers::
+    setup(
+        #...
+        install_requires = "docutils >= 0.3"
+    )
 
-    >>> from pkg_resources import parse_version
-    >>> parse_version("1.9.a.dev") == parse_version("1.9a0dev")
-    True
-    >>> parse_version("2.1-rc2") < parse_version("2.1")
-    True
-    >>> parse_version("0.6a9dev-r41475") < parse_version("0.6a9")
-    True
+When your project is installed, either by using pip, ``setup.py install``,
+or ``setup.py develop``, all of the dependencies not already installed will
+be located (via PyPI), downloaded, built (if necessary), and installed.
 
-Once you've decided on a version numbering scheme for your project, you can
-have setuptools automatically tag your in-development releases with various
-pre- or post-release tags.  See the following sections for more details:
+For more advanced use, see :ref:`dependency_management`
 
-* `Tagging and "Daily Build" or "Snapshot" Releases`_
-* The `egg_info`_ command
+Including Data Files
+====================
+
+The distutils have traditionally allowed installation of "data files", which
+are placed in a platform-specific location. Setuptools offers three ways to
+specify data files to be included in your packages. For the simpliest use, you
+can simply use the ``include_package_data`` keyword e.g.::
+
+    setup(
+            ...
+            include_package_data=True
+        )
+
+This tells setuptools to install any data files it finds in your packages.
+The data files must be specified via the distutils' ``MANIFEST.in`` file.
+
+For more details, see :ref:`datafiles`
+
+Development mode
+================
+
+Setuptools allows you to deploy your projects for use in a common directory or
+staging area, but without copying any files.  Thus, you can edit each project's
+code in its checkout directory, and only need to run build commands when you
+change a project's C extensions or similarly compiled files.
+
+To do this, use the ``setup.py develop`` command.  It works very similarly to
+``setup.py install``, except that it doesn't actually install anything.
+Instead, it creates a special ``.egg-link`` file in the deployment directory,
+that links to your project's source code.  And, if your deployment directory is
+Python's ``site-packages`` directory, it will also update the
+``easy-install.pth`` file to include your project's source code, thereby making
+it available on ``sys.path`` for all programs using that Python installation.
+
+for more information, go to :ref:`development_mode`
+
+Distributing a ``setuptools``-based project
+===========================================
+Before you begin, make sure you have the latest versions of setuptools and wheel::
+
+    pip install --upgrade setuptools wheel
+
+To build a setuptools project, run this command from the same directory where
+setup.py is located::
+
+    setup.py sdist bdist_wheel
+
+This will generate distribution archives in the `dist` directory.
+
+Before you upload the generated archives make sure you're registered on
+https://test.pypi.org/account/register/. You will also need to verify your email
+to be able to upload any packages.
+You should install twine to be able to upload packages::
+
+    pip install --upgrade twine
+
+Now, to upload these archives, run::
+
+    twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+
+To install your newly uploaded package ``example_pkg``,  you can use pip::
+
+    pip install --index-url https://test.pypi.org/simple/ example_pkg
+
+The next following sections will walk you through all of the available functions
+``setuptools`` offers in excrutiating details (including those already mentioned)
+for more advanced use.
