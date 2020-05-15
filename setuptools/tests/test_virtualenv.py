@@ -57,10 +57,7 @@ def test_clean_env_install(bare_virtualenv):
     """
     Check setuptools can be installed in a clean environment.
     """
-    bare_virtualenv.run(' && '.join((
-        'cd {source}',
-        'python setup.py install',
-    )).format(source=SOURCE_DIR))
+    bare_virtualenv.run(['python', 'setup.py', 'install'], cd=SOURCE_DIR)
 
 
 def _get_pip_versions():
