@@ -287,13 +287,12 @@ class TestPyPIConfig:
     def test_percent_in_password(self, tmpdir, monkeypatch):
         monkeypatch.setitem(os.environ, 'HOME', str(tmpdir))
         pypirc = tmpdir / '.pypirc'
-        with pypirc.open('w') as strm:
-            strm.write(DALS("""
-                [pypi]
-                repository=https://pypi.org
-                username=jaraco
-                password=pity%
-            """))
+        pypirc.write(DALS("""
+            [pypi]
+            repository=https://pypi.org
+            username=jaraco
+            password=pity%
+        """))
         cfg = setuptools.package_index.PyPIConfig()
         cred = cfg.creds_by_repository['https://pypi.org']
         assert cred.username == 'jaraco'
