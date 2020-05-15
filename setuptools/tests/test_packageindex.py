@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import sys
 import os
 import distutils.errors
+import platform
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import urllib, http_client
@@ -285,7 +286,13 @@ class TestContentCheckers:
 
 @pytest.fixture
 def temp_home(tmpdir, monkeypatch):
-    monkeypatch.setitem(os.environ, 'HOME', str(tmpdir))
+    key = (
+        'USERPROFILE'
+        if platform.system() == 'Windows' and sys.version_info > (3, 8) else
+        'HOME'
+    )
+
+    monkeypatch.setitem(os.environ, key, str(tmpdir))
     return tmpdir
 
 
