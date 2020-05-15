@@ -1,4 +1,6 @@
 python:
   version: 3
-  requirements_file: docs/requirements.txt
+  extra_requirements:
+  - docs
   pip_install: false
+  requirements: docs/requirements.txt

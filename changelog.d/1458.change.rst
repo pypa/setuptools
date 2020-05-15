@@ -1,1 +1,0 @@
-Add minimum sunset date and preamble to Python 2 warning.

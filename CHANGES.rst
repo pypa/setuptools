@@ -1,3 +1,108 @@
+v46.3.1
+-------
+
+No significant changes.
+
+
+v46.3.0
+-------
+
+* #2089: Package index functionality no longer attempts to remove an md5 fragment from the index URL. This functionality, added for distribute #163 is no longer relevant.
+* #2041: Preserve file modes during pkg files copying, but clear read only flag for target afterwards.
+* #2105: Filter ``2to3`` deprecation warnings from ``TestDevelop.test_2to3_user_mode``.
+
+
+v46.2.0
+-------
+
+* #2040: Deprecated the ``bdist_wininst`` command. Binary packages should be built as wheels instead.
+* #2062: Change 'Mac OS X' to 'macOS' in code.
+* #2075: Stop recognizing files ending with ``.dist-info`` as distribution metadata.
+* #2086: Deprecate 'use_2to3' functionality. Packagers are encouraged to use single-source solutions or build tool chains to manage conversions outside of setuptools.
+* #1698: Added documentation for ``build_meta`` (a bare minimum, not completed).
+* #2082: Filter ``lib2to3`` ``PendingDeprecationWarning`` and ``DeprecationWarning`` in tests,
+  because ``lib2to3`` is `deprecated in Python 3.9 <https://bugs.python.org/issue40360>`_.
+
+
+v46.1.3
+-------
+
+No significant changes.
+
+
+v46.1.2
+-------
+
+* #1458: Added template for reporting Python 2 incompatibilities.
+
+
+v46.1.1
+-------
+
+No significant changes.
+
+
+v46.1.0
+-------
+
+* #308: Allow version number normalization to be bypassed by wrapping in a 'setuptools.sic()' call.
+* #1424: Prevent keeping files mode for package_data build. It may break a build if user's package data has read only flag.
+* #1431: In ``easy_install.check_site_dir``, ensure the installation directory exists.
+* #1563: In ``pkg_resources`` prefer ``find_spec`` (PEP 451) to ``find_module``.
+
+Incorporate changes from v44.1.0:
+
+* #1704: Set sys.argv[0] in setup script run by build_meta.__legacy__
+* #1959: Fix for Python 4: replace unsafe six.PY3 with six.PY2
+* #1994: Fixed a bug in the "setuptools.finalize_distribution_options" hook that lead to ignoring the order attribute of entry points managed by this hook.
+
+
+v44.1.0
+-------
+
+* #1704: Set sys.argv[0] in setup script run by build_meta.__legacy__
+* #1959: Fix for Python 4: replace unsafe six.PY3 with six.PY2
+* #1994: Fixed a bug in the "setuptools.finalize_distribution_options" hook that lead to ignoring the order attribute of entry points managed by this hook.
+
+
+v46.0.0
+-------
+
+* #65: Once again as in 3.0, removed the Features feature.
+* #1890: Fix vendored dependencies so importing ``setuptools.extern.some_module`` gives the same object as ``setuptools._vendor.some_module``. This makes Metadata picklable again.
+* #1899: Test suite now fails on warnings.
+* #2011: Fix broken link to distutils docs on package_data
+* #1991: Include pkg_resources test data in sdist, so tests can be executed from it.
+
+
+v45.3.0
+-------
+
+* #1557: Deprecated eggsecutable scripts and updated docs.
+* #1904: Update msvc.py to use CPython 3.8.0 mechanism to find msvc 14+
+
+
+v45.2.0
+-------
+
+* #1905: Fixed defect in _imp, introduced in 41.6.0 when the 'tests' directory is not present.
+* #1941: Improve editable installs with PEP 518 build isolation:
+
+  * The ``--user`` option is now always available. A warning is issued if the user site directory is not available.
+  * The error shown when the install directory is not in ``PYTHONPATH`` has been turned into a warning.
+* #1981: Setuptools now declares its ``tests`` and ``docs`` dependencies in metadata (extras).
+* #1985: Add support for installing scripts in environments where bdist_wininst is missing (i.e. Python 3.9).
+* #1968: Add flake8-2020 to check for misuse of sys.version or sys.version_info.
+
+
+v45.1.0
+-------
+
+* #1458: Add minimum sunset date and preamble to Python 2 warning.
+* #1704: Set sys.argv[0] in setup script run by build_meta.__legacy__
+* #1974: Add Python 3 Only Trove Classifier and remove universal wheel declaration for more complete transition from Python 2.
+
+
 v45.0.0
 -------
 

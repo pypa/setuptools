@@ -104,12 +104,8 @@ from the command line after pushing a new branch.
 Testing
 -------
 
-The primary tests are run using tox. To run the tests, first create the metadata
-needed to run the tests::
-
-    $ python bootstrap.py
-
-Then make sure you have tox installed, and invoke it::
+The primary tests are run using tox.  Make sure you have tox installed,
+and invoke it::
 
     $ tox
 

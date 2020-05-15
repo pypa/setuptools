@@ -129,7 +129,8 @@ class test(Command):
 
     @contextlib.contextmanager
     def project_on_sys_path(self, include_dists=[]):
-        with_2to3 = not six.PY2 and getattr(self.distribution, 'use_2to3', False)
+        with_2to3 = not six.PY2 and getattr(
+            self.distribution, 'use_2to3', False)
 
         if with_2to3:
             # If we run 2to3 we can not do this inplace:

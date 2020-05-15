@@ -8,10 +8,19 @@ from pytest_fixture_config import yield_requires_config
 
 import pytest_virtualenv
 
-from setuptools.extern import six
-
 from .textwrap import DALS
 from .test_easy_install import make_nspkg_sdist
+
+
+@pytest.fixture(autouse=True)
+def disable_requires_python(monkeypatch):
+    """
+    Disable Requires-Python on Python 2.7
+    """
+    if sys.version_info > (3,):
+        return
+
+    monkeypatch.setenv('PIP_IGNORE_REQUIRES_PYTHON', 'true')
 
 
 @pytest.fixture(autouse=True)
@@ -48,10 +57,7 @@ def test_clean_env_install(bare_virtualenv):
     """
     Check setuptools can be installed in a clean environment.
     """
-    bare_virtualenv.run(' && '.join((
-        'cd {source}',
-        'python setup.py install',
-    )).format(source=SOURCE_DIR))
+    bare_virtualenv.run(['python', 'setup.py', 'install'], cd=SOURCE_DIR)
 
 
 def _get_pip_versions():
@@ -64,7 +70,7 @@ def _get_pip_versions():
             from urllib.request import urlopen
             from urllib.error import URLError
         except ImportError:
-            from urllib2 import urlopen, URLError # Python 2.7 compat
+            from urllib2 import urlopen, URLError  # Python 2.7 compat
 
         try:
             urlopen('https://pypi.org', timeout=1)
@@ -106,10 +112,9 @@ def test_pip_upgrade_from_source(pip_version, virtualenv):
     dist_dir = virtualenv.workspace
     # Generate source distribution / wheel.
     virtualenv.run(' && '.join((
-        'cd {source}',
         'python setup.py -q sdist -d {dist}',
         'python setup.py -q bdist_wheel -d {dist}',
-    )).format(source=SOURCE_DIR, dist=dist_dir))
+    )).format(dist=dist_dir), cd=SOURCE_DIR)
     sdist = glob.glob(os.path.join(dist_dir, '*.zip'))[0]
     wheel = glob.glob(os.path.join(dist_dir, '*.whl'))[0]
     # Then update from wheel.
@@ -174,18 +179,20 @@ def _check_test_command_install_requirements(virtualenv, tmpdir):
             open('success', 'w').close()
             '''))
     # Run test command for test package.
-    virtualenv.run(' && '.join((
-        'cd {tmpdir}',
-        'python setup.py test -s test',
-    )).format(tmpdir=tmpdir))
+    virtualenv.run(
+        ['python', 'setup.py', 'test', '-s', 'test'], cd=str(tmpdir))
     assert tmpdir.join('success').check()
+
 
 def test_test_command_install_requirements(virtualenv, tmpdir):
     # Ensure pip/wheel packages are installed.
-    virtualenv.run("python -c \"__import__('pkg_resources').require(['pip', 'wheel'])\"")
+    virtualenv.run(
+        "python -c \"__import__('pkg_resources').require(['pip', 'wheel'])\"")
     _check_test_command_install_requirements(virtualenv, tmpdir)
 
-def test_test_command_install_requirements_when_using_easy_install(bare_virtualenv, tmpdir):
+
+def test_test_command_install_requirements_when_using_easy_install(
+        bare_virtualenv, tmpdir):
     _check_test_command_install_requirements(bare_virtualenv, tmpdir)
 
 
@@ -194,7 +201,5 @@ def test_no_missing_dependencies(bare_virtualenv):
     Quick and dirty test to ensure all external dependencies are vendored.
     """
     for command in ('upload',):  # sorted(distutils.command.__all__):
-        bare_virtualenv.run(' && '.join((
-            'cd {source}',
-            'python setup.py {command} -h',
-        )).format(command=command, source=SOURCE_DIR))
+        bare_virtualenv.run(
+            ['python', 'setup.py', command, '-h'], cd=SOURCE_DIR)

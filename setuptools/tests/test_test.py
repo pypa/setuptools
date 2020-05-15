@@ -10,9 +10,10 @@ import pytest
 
 from setuptools.command.test import test
 from setuptools.dist import Distribution
+from setuptools.tests import ack_2to3
 
 from .textwrap import DALS
-from . import contexts
+
 
 SETUP_PY = DALS("""
     from setuptools import setup
@@ -74,6 +75,7 @@ def quiet_log():
 
 
 @pytest.mark.usefixtures('sample_test', 'quiet_log')
+@ack_2to3
 def test_test(capfd):
     params = dict(
         name='foo',
@@ -124,6 +126,7 @@ def test_tests_are_run_once(capfd):
 
 
 @pytest.mark.usefixtures('sample_test')
+@ack_2to3
 def test_warns_deprecation(capfd):
     params = dict(
         name='foo',
@@ -149,6 +152,7 @@ def test_warns_deprecation(capfd):
 
 
 @pytest.mark.usefixtures('sample_test')
+@ack_2to3
 def test_deprecation_stderr(capfd):
     params = dict(
         name='foo',

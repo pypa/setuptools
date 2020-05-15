@@ -77,7 +77,8 @@ class Wheel:
 
     def is_compatible(self):
         '''Is the wheel is compatible with the current platform?'''
-        supported_tags = set((t.interpreter, t.abi, t.platform) for t in sys_tags())
+        supported_tags = set(
+            (t.interpreter, t.abi, t.platform) for t in sys_tags())
         return next((True for t in self.tags() if t in supported_tags), False)
 
     def egg_name(self):

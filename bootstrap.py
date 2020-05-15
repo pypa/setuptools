@@ -25,6 +25,7 @@ minimal_egg_info = textwrap.dedent("""
     entry_points = setuptools.dist:check_entry_points
 
     [egg_info.writers]
+    PKG-INFO = setuptools.command.egg_info:write_pkg_info
     dependency_links.txt = setuptools.command.egg_info:overwrite_arg
     entry_points.txt = setuptools.command.egg_info:write_entries
     requires.txt = setuptools.command.egg_info:write_requirements
@@ -35,10 +36,11 @@ def ensure_egg_info():
     if os.path.exists('setuptools.egg-info'):
         return
     print("adding minimal entry_points")
-    build_egg_info()
+    add_minimal_info()
+    run_egg_info()
 
 
-def build_egg_info():
+def add_minimal_info():
     """
     Build a minimal egg-info, enough to invoke egg_info
     """
@@ -52,13 +54,6 @@ def run_egg_info():
     cmd = [sys.executable, 'setup.py', 'egg_info']
     print("Regenerating egg_info")
     subprocess.check_call(cmd)
-    print("...and again.")
-    subprocess.check_call(cmd)
 
 
-def main():
-    ensure_egg_info()
-    run_egg_info()
-
-
-__name__ == '__main__' and main()
+__name__ == '__main__' and ensure_egg_info()

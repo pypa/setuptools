@@ -1,7 +1,6 @@
 """Extensions to the 'distutils' for large or complex distributions"""
 
 import os
-import sys
 import functools
 import distutils.core
 import distutils.filelist
@@ -17,7 +16,7 @@ from setuptools.extern.six.moves import filter, map
 
 import setuptools.version
 from setuptools.extension import Extension
-from setuptools.dist import Distribution, Feature
+from setuptools.dist import Distribution
 from setuptools.depends import Require
 from . import monkey
 
@@ -25,13 +24,13 @@ __metaclass__ = type
 
 
 __all__ = [
-    'setup', 'Distribution', 'Feature', 'Command', 'Extension', 'Require',
+    'setup', 'Distribution', 'Command', 'Extension', 'Require',
     'SetuptoolsDeprecationWarning',
     'find_packages'
 ]
 
 if PY3:
-  __all__.append('find_namespace_packages')
+    __all__.append('find_namespace_packages')
 
 __version__ = setuptools.version.__version__
 
@@ -123,7 +122,7 @@ class PEP420PackageFinder(PackageFinder):
 find_packages = PackageFinder.find
 
 if PY3:
-  find_namespace_packages = PEP420PackageFinder.find
+    find_namespace_packages = PEP420PackageFinder.find
 
 
 def _install_setup_requires(attrs):
@@ -143,6 +142,7 @@ def setup(**attrs):
     # Make sure we have any requirements needed to interpret 'attrs'.
     _install_setup_requires(attrs)
     return distutils.core.setup(**attrs)
+
 
 setup.__doc__ = distutils.core.setup.__doc__
 
@@ -191,8 +191,8 @@ class Command(_Command):
                 ok = False
             if not ok:
                 raise DistutilsOptionError(
-                      "'%s' must be a list of strings (got %r)"
-                      % (option, val))
+                    "'%s' must be a list of strings (got %r)"
+                    % (option, val))
 
     def reinitialize_command(self, command, reinit_subcommands=0, **kw):
         cmd = _Command.reinitialize_command(self, command, reinit_subcommands)
@@ -222,6 +222,10 @@ def findall(dir=os.curdir):
         make_rel = functools.partial(os.path.relpath, start=dir)
         files = map(make_rel, files)
     return list(files)
+
+
+class sic(str):
+    """Treat this string as-is (https://en.wikipedia.org/wiki/Sic)"""
 
 
 # Apply monkey patches

@@ -17,7 +17,9 @@ try:
 except ImportError:
     import mock
 
-from pkg_resources import DistInfoDistribution, Distribution, EggInfoDistribution
+from pkg_resources import (
+    DistInfoDistribution, Distribution, EggInfoDistribution,
+)
 from setuptools.extern import six
 from pkg_resources.extern.six.moves import map
 from pkg_resources.extern.six import text_type, string_types
@@ -279,8 +281,8 @@ def make_distribution_no_version(tmpdir, basename):
         ('dist-info', 'METADATA', DistInfoDistribution),
     ],
 )
-def test_distribution_version_missing(tmpdir, suffix, expected_filename,
-    expected_dist_type):
+def test_distribution_version_missing(
+        tmpdir, suffix, expected_filename, expected_dist_type):
     """
     Test Distribution.version when the "Version" header is missing.
     """
@@ -326,6 +328,14 @@ def test_distribution_version_missing_undetected_path():
         '[could not detect]'
     )
     assert msg == expected
+
+
+@pytest.mark.parametrize('only', [False, True])
+def test_dist_info_is_not_dir(tmp_path, only):
+    """Test path containing a file with dist-info extension."""
+    dist_info = tmp_path / 'foobar.dist-info'
+    dist_info.touch()
+    assert not pkg_resources.dist_factory(str(tmp_path), str(dist_info), only)
 
 
 class TestDeepVersionLookupDistutils:
