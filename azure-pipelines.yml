@@ -11,10 +11,12 @@ trigger:
     - '*'
 
 pool:
-  vmimage: 'Ubuntu-18.04'
+  vmImage: $(pool_vm_image)
 
 variables:
 - group: Azure secrets
+- name: pool_vm_image
+  value: Ubuntu-18.04
 
 stages:
 - stage: Test
@@ -23,10 +25,17 @@ stages:
   - job: 'Test'
     strategy:
       matrix:
-        Python36:
+        Bionic Python 3.6:
           python.version: '3.6'
-        Python38:
+        Bionic Python 3.8:
           python.version: '3.8'
+        Windows:
+          python.version: '3.8'
+          pool_vm_image: vs2017-win2016
+        MacOS:
+          python.version: '3.8'
+          pool_vm_image: macos-10.15
+
       maxParallel: 4
 
     steps:
