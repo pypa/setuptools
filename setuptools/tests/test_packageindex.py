@@ -283,10 +283,15 @@ class TestContentCheckers:
         assert rep == 'My message about md5'
 
 
+@pytest.fixture
+def temp_home(tmpdir, monkeypatch):
+    monkeypatch.setitem(os.environ, 'HOME', str(tmpdir))
+    return tmpdir
+
+
 class TestPyPIConfig:
-    def test_percent_in_password(self, tmpdir, monkeypatch):
-        monkeypatch.setitem(os.environ, 'HOME', str(tmpdir))
-        pypirc = tmpdir / '.pypirc'
+    def test_percent_in_password(self, temp_home):
+        pypirc = temp_home / '.pypirc'
         pypirc.write(DALS("""
             [pypi]
             repository=https://pypi.org
