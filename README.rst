@@ -6,7 +6,7 @@
 
 .. _PyPI link: https://pypi.org/project/setuptools
 
-.. image:: https://dev.azure.com/jaraco/setuptools/_apis/build/status/jaraco.setuptools?branchName=master
+.. image:: https://dev.azure.com/jaraco/setuptools/_apis/build/status/pypa.setuptools?branchName=master
    :target: https://dev.azure.com/jaraco/setuptools/_build/latest?definitionId=1&branchName=master
 
 .. image:: https://img.shields.io/travis/pypa/setuptools/master.svg?label=Linux%20CI&logo=travis&logoColor=white
