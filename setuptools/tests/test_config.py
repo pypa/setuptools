@@ -103,7 +103,7 @@ class TestConfigurationReader:
             'version = attr: none.VERSION\n'
             'keywords = one, two\n'
         )
-        with pytest.raises(DistutilsOptionError):
+        with pytest.raises(ImportError):
             read_configuration('%s' % config)
 
         config_dict = read_configuration(
