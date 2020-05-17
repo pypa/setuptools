@@ -10,6 +10,7 @@ from mock import patch
 from setuptools.dist import Distribution, _Distribution
 from setuptools.config import ConfigHandler, read_configuration
 from setuptools.extern.six.moves import configparser
+from setuptools.extern import six
 from . import py2_only, py3_only
 from .textwrap import DALS
 
@@ -309,6 +310,10 @@ class TestMetadata:
         )
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '2016.11.26'
+
+        if six.PY2:
+            # static version loading is unsupported on Python 2
+            return
 
         config.write(
             '[metadata]\n'
