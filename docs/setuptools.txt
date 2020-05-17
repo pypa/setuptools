@@ -2193,7 +2193,7 @@ Metadata and options are set in the config sections of the same name.
 * In some cases, complex values can be provided in dedicated subsections for
   clarity.
 
-* Some keys allow ``file:``, ``attr:``, and ``find:`` and ``find_namespace:`` directives in
+* Some keys allow ``file:``, ``attr:``, ``find:``, and ``find_namespace:`` directives in
   order to cover common usecases.
 
 * Unknown keys are ignored.
@@ -2290,6 +2290,12 @@ Special directives:
 
 * ``attr:`` - Value is read from a module attribute.  ``attr:`` supports
   callables and iterables; unsupported types are cast using ``str()``.
+
+  In order to support the common case of a literal value assigned to a variable
+  in a module containing (directly or indirectly) third-party imports,
+  ``attr:`` first tries to read the value from the module by examining the
+  module's AST.  If that fails, ``attr:`` falls back to importing the module.
+
 * ``file:`` - Value is read from a list of files and then concatenated
 
 
