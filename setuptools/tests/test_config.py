@@ -300,14 +300,14 @@ class TestMetadata:
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '2016.11.26'
 
-        subpack.join('submodule.py').write(
+        subpack.join('othersub.py').write(
             'import third_party_module\n'
             'VERSION = (2016, 11, 26)'
         )
 
         config.write(
             '[metadata]\n'
-            'version = attr: fake_package.subpackage.submodule.VERSION\n'
+            'version = attr: fake_package.subpackage.othersub.VERSION\n'
         )
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '2016.11.26'
