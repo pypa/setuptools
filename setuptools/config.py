@@ -26,7 +26,7 @@ class StaticModule:
     Attempt to load the module by the name
     """
     def __init__(self, name):
-        spec = importlib.util.find_spec(module_name)
+        spec = importlib.util.find_spec(name)
         with open(spec.origin) as strm:
             src = strm.read()
         module = ast.parse(src)
