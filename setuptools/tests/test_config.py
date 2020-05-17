@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import sys
 import contextlib
 
 import pytest
@@ -291,28 +290,27 @@ class TestMetadata:
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '1'
 
-        subpack = tmpdir.join('fake_package').mkdir('subpackage')
-        subpack.join('__init__.py').write('')
-        subpack.join('submodule.py').write('VERSION = (2016, 11, 26)')
+        sub_a = tmpdir.join('fake_package').mkdir('subpkg_a')
+        sub_a.join('__init__.py').write('')
+        sub_a.join('mod.py').write('VERSION = (2016, 11, 26)')
 
         config.write(
             '[metadata]\n'
-            'version = attr: fake_package.subpackage.submodule.VERSION\n'
+            'version = attr: fake_package.subpkg_a.mod.VERSION\n'
         )
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '2016.11.26'
 
-        del sys.modules['fake_package']
-        del sys.modules['fake_package.subpackage']
-
-        subpack.join('othersub.py').write(
+        sub_b = tmpdir.join('fake_package').mkdir('subpkg_b')
+        sub_b.join('__init__.py').write('')
+        sub_b.join('mod.py').write(
             'import third_party_module\n'
             'VERSION = (2016, 11, 26)'
         )
 
         config.write(
             '[metadata]\n'
-            'version = attr: fake_package.subpackage.othersub.VERSION\n'
+            'version = attr: fake_package.subpkg_b.mod.VERSION\n'
         )
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '2016.11.26'
