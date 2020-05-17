@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import sys
 import contextlib
+
 import pytest
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
@@ -299,6 +301,9 @@ class TestMetadata:
         )
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '2016.11.26'
+
+        del sys.modules['fake_package']
+        del sys.modules['fake_package.subpackage']
 
         subpack.join('othersub.py').write(
             'import third_party_module\n'
