@@ -6,10 +6,10 @@ import sys
 
 import warnings
 import functools
+import importlib
 from collections import defaultdict
 from functools import partial
 from functools import wraps
-from importlib import import_module
 import contextlib
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
@@ -391,7 +391,7 @@ class ConfigHandler:
                 return getattr(StaticModule(module_name), attr_name)
             except Exception:
                 # fallback to simple import
-                module = import_module(module_name)
+                module = importlib.import_module(module_name)
 
         return getattr(module, attr_name)
 
