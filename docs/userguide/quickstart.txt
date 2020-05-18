@@ -13,78 +13,75 @@ To install the latest version of setuptools, use::
 
 Refer to `Installing Packages`_ guide for more information.
 
+Python packaging at a glance
+============================
+
+The landscape of Python packaging is shifting and ``Setuptools`` has evolved to
+only provide backend support, no longer being the de-facto packaging tool in
+the market. All python package must provide a ``pyproject.toml`` and specify
+the backend (build system) it wants to use. The distribution can then
+be generated with whatever tools that provides a ``build sdist``-alike
+functionality. While this may appear cumbersome, given the added pieces,
+it in fact tremendously enhances the portability of your package. The
+change is driven under `PEP 517 <https://www.python.org/dev/peps/pep-0517/#
+build-requirements>``
+
 Basic Use
 =========
 
-For basic use of setuptools, just import things from setuptools.  Here's a
-minimal setup script using setuptools::
+For basic use of setuptools, you will need a ``pyproject.toml`` with the
+exact following info, which declares you want to use ``setuptools`` to
+package your project:
 
-    from setuptools import setup, find_packages
-    setup(
-        name="HelloWorld",
-        version="0.1",
-        packages=find_packages(),
-    )
+.. code-block:: toml
 
-As you can see, it doesn't take much to use setuptools in a project.
-Run that script in your project folder, alongside the Python packages
-you have developed.
+    [build-system]
+    requires = ["setuptools", "wheel"]
+    build-backend = "setuptools.build_meta"
 
-Invoke that script to produce distributions and automatically include all
-packages in the directory where the setup.py lives.  See the `Command
-Reference`_ section below to see what commands you can give to this setup
-script. For example, to produce a source distribution, simply invoke::
+Then, you will need a ``setup.cfg`` to specify your package information,
+such as metadata, contents, dependencies, etc. Here we demonstrate the minimum
 
-    setup.py sdist
+.. code-block:: ini
+
+    [metadata]
+    name = "mypackage"
+    version = 0.0.1
+
+    [options]
+    packages = "mypackage"
+    install_requires =
+      requests
+      importlib; python_version == "2.6"
+
+This is what your project would look like::
+
+    ~/mypackage/
+        pyproject.toml
+        setup.cfg
+        mypackage/__init__.py
+
+As you can see, it doesn't take much to use setuptools in a project. Invoke
+the installer at the root of your package::
+
+    pep517 build
+
+You now have your distribution ready, which you can upload to PyPI.
 
 Of course, before you release your project to PyPI, you'll want to add a bit
 more information to your setup script to help people find or learn about your
 project.  And maybe your project will have grown by then to include a few
-dependencies, and perhaps some data files and scripts::
-
-    from setuptools import setup, find_packages
-    setup(
-        name="HelloWorld",
-        version="0.1",
-        packages=find_packages(),
-        scripts=["say_hello.py"],
-
-        # Project uses reStructuredText, so ensure that the docutils get
-        # installed or upgraded on the target machine
-        install_requires=["docutils>=0.3"],
-
-        package_data={
-            # If any package contains *.txt or *.rst files, include them:
-            "": ["*.txt", "*.rst"],
-            # And include any *.msg files found in the "hello" package, too:
-            "hello": ["*.msg"],
-        },
-
-        # metadata to display on PyPI
-        author="Me",
-        author_email="me@example.com",
-        description="This is an Example Package",
-        keywords="hello world example examples",
-        url="http://example.com/HelloWorld/",   # project home page, if any
-        project_urls={
-            "Bug Tracker": "https://bugs.example.com/HelloWorld/",
-            "Documentation": "https://docs.example.com/HelloWorld/",
-            "Source Code": "https://code.example.com/HelloWorld/",
-        },
-        classifiers=[
-            "License :: OSI Approved :: Python Software Foundation License"
-        ]
-
-        # could also include long_description, download_url, etc.
-    )
+dependencies, and perhaps some data files and scripts. In the next few section,
+we will walk through those additional but essential information you need
+to specify to properly package your project.
 
 Automatic package discovery
 ===========================
 
 For simple projects, it's usually easy enough to manually add packages to
-the ``packages`` argument of ``setup()``.  However, for very large projects
-, it can be a big burden to keep the package list updated. setuptools therefore
-provides tools to ease the burden.
+the ``packages`` keyword in ``setup.cfg``.  However, for very large projects
+, it can be a big burden to keep the package list updated. ``setuptools``
+therefore provides tools to ease the burden.
 
 ``find_packages()`` takes a source directory and two lists of package name
 patterns to exclude and include. It then walks the target directory, filtering
