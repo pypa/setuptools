@@ -594,7 +594,7 @@ Requirements Parsing
 
         FooProject >= 1.2
         Fizzy [foo, bar]
-        PickyThing<1.6,>1.9,!=1.9.6,<2.0a0,==2.4c1
+        PickyThing>1.6,<=1.9,!=1.8.6
         SomethingWhoseVersionIDontCareAbout
         SomethingWithMarker[foo]>1.0;python_version<"2.7"
 
