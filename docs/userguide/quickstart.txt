@@ -81,21 +81,26 @@ Automatic package discovery
 For simple projects, it's usually easy enough to manually add packages to
 the ``packages`` keyword in ``setup.cfg``.  However, for very large projects
 , it can be a big burden to keep the package list updated. ``setuptools``
-therefore provides tools to ease the burden.
+therefore provides two convenient tools to ease the burden: ``find: `` and
+``find_namespace: ``. To use it in your project:
 
-``find_packages()`` takes a source directory and two lists of package name
-patterns to exclude and include. It then walks the target directory, filtering
-by inclusion patterns, and return a list of Python packages (any directory).
-Finally, exclusion patterns are applied to remove matching packages.
+.. code-block:: ini
 
-For example::
-    #...
-    from setuptools import find_packages()
+    [options]
+    packages = find:
 
-    setup(
-        #...,
-        packages = find_packages()
-    )
+    [options.packages.find] #optional
+    where="."
+    include=['pkg1', 'pkg2']
+    exclude=['pkg3', 'pkg4']]
+
+
+When you pass the above information, alongside other necessary ones,
+``setuptools`` walks through the directory specified in ``where`` (default to
+current directory) and filters the packages
+it can find following the ``include``  (default to none), then remove
+those that match the ``exclude`` and return a list of Python packages. Note
+that each entry in the ``[options.packages.find]`` is optional.
 
 For more details and advanced use, go to :ref:`package_discovery`
 
