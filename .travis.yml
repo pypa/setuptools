@@ -4,11 +4,6 @@ language: python
 jobs:
   fast_finish: true
   include:
-  - &latest_py2
-    python: 2.7
-    env: TOXENV=py27
-  - <<: *latest_py2
-    env: LANG=C TOXENV=py27
   - python: pypy3
     env: DISABLE_COVERAGE=1  # Don't run coverage on pypy (too slow).
   - python: 3.5

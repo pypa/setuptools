@@ -28,6 +28,7 @@ Your first course of action should be to reason about how you managed to get an 
 <!-- These are the recommended workarounds for the issue. Please
 try them first. -->
 
+- [ ] Read [Python 2 Sunset docs](https://setuptools.readthedocs.io/en/latest/python%202%20sunset.html).
 - [ ] Python 2 is required for this application.
 - [ ] I maintain the software that installs Setuptools (if not, please contact that project).
 - [ ] Setuptools installed with pip 9 or later.
