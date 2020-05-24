@@ -104,12 +104,8 @@ from the command line after pushing a new branch.
 Testing
 -------
 
-The primary tests are run using tox. To run the tests, first create the metadata
-needed to run the tests::
-
-    $ python bootstrap.py
-
-Then make sure you have tox installed, and invoke it::
+The primary tests are run using tox.  Make sure you have tox installed,
+and invoke it::
 
     $ tox
 
@@ -143,7 +139,7 @@ Vendored Dependencies
 ---------------------
 
 Setuptools has some dependencies, but due to `bootstrapping issues
-<https://github.com/pypa/setuptools/issues/980>`, those dependencies
+<https://github.com/pypa/setuptools/issues/980>`_, those dependencies
 cannot be declared as they won't be resolved soon enough to build
 setuptools from source. Eventually, this limitation may be lifted as
 PEP 517/518 reach ubiquitous adoption, but for now, Setuptools

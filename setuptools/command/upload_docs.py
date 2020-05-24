@@ -24,7 +24,7 @@ from .upload import upload
 
 
 def _encode(s):
-    errors = 'surrogateescape' if six.PY3 else 'strict'
+    errors = 'strict' if six.PY2 else 'surrogateescape'
     return s.encode('utf-8', errors)
 
 
@@ -127,8 +127,8 @@ class upload_docs(upload):
         """
         Build up the MIME payload for the POST data
         """
-        boundary = b'--------------GHSKFJDLGDS7543FJKLFHRE75642756743254'
-        sep_boundary = b'\n--' + boundary
+        boundary = '--------------GHSKFJDLGDS7543FJKLFHRE75642756743254'
+        sep_boundary = b'\n--' + boundary.encode('ascii')
         end_boundary = sep_boundary + b'--'
         end_items = end_boundary, b"\n",
         builder = functools.partial(
@@ -138,7 +138,7 @@ class upload_docs(upload):
         part_groups = map(builder, data.items())
         parts = itertools.chain.from_iterable(part_groups)
         body_items = itertools.chain(parts, end_items)
-        content_type = 'multipart/form-data; boundary=%s' % boundary.decode('ascii')
+        content_type = 'multipart/form-data; boundary=%s' % boundary
         return b''.join(body_items), content_type
 
     def upload_file(self, filename):
@@ -153,7 +153,7 @@ class upload_docs(upload):
         # set up the authentication
         credentials = _encode(self.username + ':' + self.password)
         credentials = standard_b64encode(credentials)
-        if six.PY3:
+        if not six.PY2:
             credentials = credentials.decode('ascii')
         auth = "Basic " + credentials
 

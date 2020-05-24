@@ -1,1 +1,0 @@
-Use license classifiers rather than the license field.

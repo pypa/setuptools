@@ -3,7 +3,16 @@
 from __future__ import unicode_literals
 
 import io
-from setuptools.dist import DistDeprecationWarning, _get_unpatched
+import collections
+import re
+import functools
+from distutils.errors import DistutilsSetupError
+from setuptools.dist import (
+    _get_unpatched,
+    check_package_data,
+    DistDeprecationWarning,
+)
+from setuptools import sic
 from setuptools import Distribution
 from setuptools.extern.six.moves.urllib.request import pathname2url
 from setuptools.extern.six.moves.urllib_parse import urljoin
@@ -54,7 +63,8 @@ def test_dist_fetch_build_egg(tmpdir):
             dist.fetch_build_egg(r)
             for r in reqs
         ]
-    assert [dist.key for dist in resolved_dists if dist] == reqs
+    # noqa below because on Python 2 it causes flakes
+    assert [dist.key for dist in resolved_dists if dist] == reqs  # noqa
 
 
 def test_dist__get_unpatched_deprecated():
@@ -62,75 +72,72 @@ def test_dist__get_unpatched_deprecated():
 
 
 def __read_test_cases():
-    # Metadata version 1.0
-    base_attrs = {
-        "name": "package",
-        "version": "0.0.1",
-        "author": "Foo Bar",
-        "author_email": "foo@bar.net",
-        "long_description": "Long\ndescription",
-        "description": "Short description",
-        "keywords": ["one", "two"]
-    }
+    base = dict(
+        name="package",
+        version="0.0.1",
+        author="Foo Bar",
+        author_email="foo@bar.net",
+        long_description="Long\ndescription",
+        description="Short description",
+        keywords=["one", "two"],
+    )
 
-    def merge_dicts(d1, d2):
-        d1 = d1.copy()
-        d1.update(d2)
-
-        return d1
+    params = functools.partial(dict, base)
 
     test_cases = [
-        ('Metadata version 1.0', base_attrs.copy()),
-        ('Metadata version 1.1: Provides', merge_dicts(base_attrs, {
-            'provides': ['package']
-        })),
-        ('Metadata version 1.1: Obsoletes', merge_dicts(base_attrs, {
-            'obsoletes': ['foo']
-        })),
-        ('Metadata version 1.1: Classifiers', merge_dicts(base_attrs, {
-            'classifiers': [
+        ('Metadata version 1.0', params()),
+        ('Metadata version 1.1: Provides', params(
+            provides=['package'],
+        )),
+        ('Metadata version 1.1: Obsoletes', params(
+            obsoletes=['foo'],
+        )),
+        ('Metadata version 1.1: Classifiers', params(
+            classifiers=[
                 'Programming Language :: Python :: 3',
                 'Programming Language :: Python :: 3.7',
                 'License :: OSI Approved :: MIT License',
-            ]})),
-        ('Metadata version 1.1: Download URL', merge_dicts(base_attrs, {
-            'download_url': 'https://example.com'
-        })),
-        ('Metadata Version 1.2: Requires-Python', merge_dicts(base_attrs, {
-            'python_requires': '>=3.7'
-        })),
+            ],
+        )),
+        ('Metadata version 1.1: Download URL', params(
+            download_url='https://example.com',
+        )),
+        ('Metadata Version 1.2: Requires-Python', params(
+            python_requires='>=3.7',
+        )),
         pytest.param(
             'Metadata Version 1.2: Project-Url',
-            merge_dicts(base_attrs, {
-                'project_urls': {
-                    'Foo': 'https://example.bar'
-                }
-            }), marks=pytest.mark.xfail(
-                reason="Issue #1578: project_urls not read"
-            )),
-        ('Metadata Version 2.1: Long Description Content Type',
-         merge_dicts(base_attrs, {
-             'long_description_content_type': 'text/x-rst; charset=UTF-8'
-         })),
+            params(project_urls=dict(Foo='https://example.bar')),
+            marks=pytest.mark.xfail(
+                reason="Issue #1578: project_urls not read",
+            ),
+        ),
+        ('Metadata Version 2.1: Long Description Content Type', params(
+            long_description_content_type='text/x-rst; charset=UTF-8',
+        )),
         pytest.param(
             'Metadata Version 2.1: Provides Extra',
-            merge_dicts(base_attrs, {
-                'provides_extras': ['foo', 'bar']
-            }), marks=pytest.mark.xfail(reason="provides_extras not read")),
-        ('Missing author, missing author e-mail',
-         {'name': 'foo', 'version': '1.0.0'}),
-        ('Missing author',
-         {'name': 'foo',
-          'version': '1.0.0',
-          'author_email': 'snorri@sturluson.name'}),
-        ('Missing author e-mail',
-         {'name': 'foo',
-          'version': '1.0.0',
-          'author': 'Snorri Sturluson'}),
-        ('Missing author',
-         {'name': 'foo',
-          'version': '1.0.0',
-          'author': 'Snorri Sturluson'}),
+            params(provides_extras=['foo', 'bar']),
+            marks=pytest.mark.xfail(reason="provides_extras not read"),
+        ),
+        ('Missing author', dict(
+            name='foo',
+            version='1.0.0',
+            author_email='snorri@sturluson.name',
+        )),
+        ('Missing author e-mail', dict(
+            name='foo',
+            version='1.0.0',
+            author='Snorri Sturluson',
+        )),
+        ('Missing author and e-mail', dict(
+            name='foo',
+            version='1.0.0',
+        )),
+        ('Bypass normalized version', dict(
+            name='foo',
+            version=sic('1.0.0a'),
+        )),
     ]
 
     return test_cases
@@ -263,3 +270,64 @@ def test_maintainer_author(name, attrs, tmpdir):
         else:
             line = '%s: %s' % (fkey, val)
             assert line in pkg_lines_set
+
+
+def test_provides_extras_deterministic_order():
+    extras = collections.OrderedDict()
+    extras['a'] = ['foo']
+    extras['b'] = ['bar']
+    attrs = dict(extras_require=extras)
+    dist = Distribution(attrs)
+    assert dist.metadata.provides_extras == ['a', 'b']
+    attrs['extras_require'] = collections.OrderedDict(
+        reversed(list(attrs['extras_require'].items())))
+    dist = Distribution(attrs)
+    assert dist.metadata.provides_extras == ['b', 'a']
+
+
+CHECK_PACKAGE_DATA_TESTS = (
+    # Valid.
+    ({
+        '': ['*.txt', '*.rst'],
+        'hello': ['*.msg'],
+    }, None),
+    # Not a dictionary.
+    ((
+        ('', ['*.txt', '*.rst']),
+        ('hello', ['*.msg']),
+    ), (
+        "'package_data' must be a dictionary mapping package"
+        " names to lists of string wildcard patterns"
+    )),
+    # Invalid key type.
+    ({
+        400: ['*.txt', '*.rst'],
+    }, (
+        "keys of 'package_data' dict must be strings (got 400)"
+    )),
+    # Invalid value type.
+    ({
+        'hello': str('*.msg'),
+    }, (
+        "\"values of 'package_data' dict\" "
+        "must be a list of strings (got '*.msg')"
+    )),
+    # Invalid value type (generators are single use)
+    ({
+        'hello': (x for x in "generator"),
+    }, (
+        "\"values of 'package_data' dict\" must be a list of strings "
+        "(got <generator object"
+    )),
+)
+
+
+@pytest.mark.parametrize(
+    'package_data, expected_message', CHECK_PACKAGE_DATA_TESTS)
+def test_check_package_data(package_data, expected_message):
+    if expected_message is None:
+        assert check_package_data(None, 'package_data', package_data) is None
+    else:
+        with pytest.raises(
+                DistutilsSetupError, match=re.escape(expected_message)):
+            check_package_data(None, str('package_data'), package_data)

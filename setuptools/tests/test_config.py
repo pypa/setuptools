@@ -1,7 +1,8 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
 import contextlib
+
 import pytest
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
@@ -9,6 +10,7 @@ from mock import patch
 from setuptools.dist import Distribution, _Distribution
 from setuptools.config import ConfigHandler, read_configuration
 from setuptools.extern.six.moves import configparser
+from setuptools.extern import six
 from . import py2_only, py3_only
 from .textwrap import DALS
 
@@ -53,6 +55,7 @@ def fake_env(
         '    return [3, 4, 5, "dev"]\n'
         '\n'
     )
+
     return package_dir, config
 
 
@@ -267,11 +270,23 @@ class TestMetadata:
 
     def test_version(self, tmpdir):
 
-        _, config = fake_env(
+        package_dir, config = fake_env(
             tmpdir,
             '[metadata]\n'
             'version = attr: fake_package.VERSION\n'
         )
+
+        sub_a = package_dir.mkdir('subpkg_a')
+        sub_a.join('__init__.py').write('')
+        sub_a.join('mod.py').write('VERSION = (2016, 11, 26)')
+
+        sub_b = package_dir.mkdir('subpkg_b')
+        sub_b.join('__init__.py').write('')
+        sub_b.join('mod.py').write(
+            'import third_party_module\n'
+            'VERSION = (2016, 11, 26)'
+        )
+
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '1.2.3'
 
@@ -289,13 +304,20 @@ class TestMetadata:
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '1'
 
-        subpack = tmpdir.join('fake_package').mkdir('subpackage')
-        subpack.join('__init__.py').write('')
-        subpack.join('submodule.py').write('VERSION = (2016, 11, 26)')
+        config.write(
+            '[metadata]\n'
+            'version = attr: fake_package.subpkg_a.mod.VERSION\n'
+        )
+        with get_dist(tmpdir) as dist:
+            assert dist.metadata.version == '2016.11.26'
+
+        if six.PY2:
+            # static version loading is unsupported on Python 2
+            return
 
         config.write(
             '[metadata]\n'
-            'version = attr: fake_package.subpackage.submodule.VERSION\n'
+            'version = attr: fake_package.subpkg_b.mod.VERSION\n'
         )
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '2016.11.26'
@@ -695,7 +717,7 @@ class TestOptions:
         )
         with get_dist(tmpdir) as dist:
             assert set(dist.packages) == set(
-                ['fake_package',  'fake_package.sub_two'])
+                ['fake_package', 'fake_package.sub_two'])
 
     @py2_only
     def test_find_namespace_directive_fails_on_py2(self, tmpdir):
@@ -748,7 +770,7 @@ class TestOptions:
         )
         with get_dist(tmpdir) as dist:
             assert set(dist.packages) == {
-                'fake_package',  'fake_package.sub_two'
+                'fake_package', 'fake_package.sub_two'
             }
 
     def test_extras_require(self, tmpdir):
@@ -819,6 +841,40 @@ class TestOptions:
             ]
             assert sorted(dist.data_files) == sorted(expected)
 
+    def test_python_requires_simple(self, tmpdir):
+        fake_env(
+            tmpdir,
+            DALS("""
+            [options]
+            python_requires=>=2.7
+            """),
+        )
+        with get_dist(tmpdir) as dist:
+            dist.parse_config_files()
+
+    def test_python_requires_compound(self, tmpdir):
+        fake_env(
+            tmpdir,
+            DALS("""
+            [options]
+            python_requires=>=2.7,!=3.0.*
+            """),
+        )
+        with get_dist(tmpdir) as dist:
+            dist.parse_config_files()
+
+    def test_python_requires_invalid(self, tmpdir):
+        fake_env(
+            tmpdir,
+            DALS("""
+            [options]
+            python_requires=invalid
+            """),
+        )
+        with pytest.raises(Exception):
+            with get_dist(tmpdir) as dist:
+                dist.parse_config_files()
+
 
 saved_dist_init = _Distribution.__init__
 
@@ -847,7 +903,7 @@ class TestExternalSetters:
         return None
 
     @patch.object(_Distribution, '__init__', autospec=True)
-    def test_external_setters(self,  mock_parent_init, tmpdir):
+    def test_external_setters(self, mock_parent_init, tmpdir):
         mock_parent_init.side_effect = self._fake_distribution_init
 
         dist = Distribution(attrs={

@@ -46,7 +46,8 @@ __all__ = [
 _SOCKET_TIMEOUT = 15
 
 _tmpl = "setuptools/{setuptools.__version__} Python-urllib/{py_major}"
-user_agent = _tmpl.format(py_major=sys.version[:3], setuptools=setuptools)
+user_agent = _tmpl.format(
+    py_major='{}.{}'.format(*sys.version_info), setuptools=setuptools)
 
 
 def parse_requirement_arg(spec):
@@ -348,6 +349,8 @@ class PackageIndex(Environment):
         f = self.open_url(url, tmpl % url)
         if f is None:
             return
+        if isinstance(f, urllib.error.HTTPError) and f.code == 401:
+            self.info("Authentication error: %s" % f.msg)
         self.fetched_urls[f.url] = True
         if 'html' not in f.headers.get('content-type', '').lower():
             f.close()  # not html, we can't process it
@@ -1050,7 +1053,7 @@ def open_with_auth(url, opener=urllib.request.urlopen):
     parsed = urllib.parse.urlparse(url)
     scheme, netloc, path, params, query, frag = parsed
 
-    # Double scheme does not raise on Mac OS X as revealed by a
+    # Double scheme does not raise on macOS as revealed by a
     # failing test. We would expect "nonnumeric port". Refs #20.
     if netloc.endswith(':'):
         raise http_client.InvalidURL("nonnumeric port: ''")
@@ -1092,7 +1095,8 @@ def open_with_auth(url, opener=urllib.request.urlopen):
 
 # copy of urllib.parse._splituser from Python 3.8
 def _splituser(host):
-    """splituser('user[:passwd]@host[:port]') --> 'user[:passwd]', 'host[:port]'."""
+    """splituser('user[:passwd]@host[:port]')
+    --> 'user[:passwd]', 'host[:port]'."""
     user, delim, host = host.rpartition('@')
     return (user if delim else None), host
 

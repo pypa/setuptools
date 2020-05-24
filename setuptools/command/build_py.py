@@ -7,6 +7,7 @@ import textwrap
 import io
 import distutils.errors
 import itertools
+import stat
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import map, filter, filterfalse
@@ -18,6 +19,10 @@ except ImportError:
     class Mixin2to3:
         def run_2to3(self, files, doctests=True):
             "do nothing"
+
+
+def make_writable(target):
+    os.chmod(target, os.stat(target).st_mode | stat.S_IWRITE)
 
 
 class build_py(orig.build_py, Mixin2to3):
@@ -121,6 +126,7 @@ class build_py(orig.build_py, Mixin2to3):
                 self.mkpath(os.path.dirname(target))
                 srcfile = os.path.join(src_dir, filename)
                 outf, copied = self.copy_file(srcfile, target)
+                make_writable(target)
                 srcfile = os.path.abspath(srcfile)
                 if (copied and
                         srcfile in self.distribution.convert_2to3_doctests):

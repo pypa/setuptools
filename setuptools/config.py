@@ -1,21 +1,62 @@
 from __future__ import absolute_import, unicode_literals
+import ast
 import io
 import os
 import sys
 
 import warnings
 import functools
+import importlib
 from collections import defaultdict
 from functools import partial
 from functools import wraps
-from importlib import import_module
+import contextlib
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
 from setuptools.extern.packaging.version import LegacyVersion, parse
+from setuptools.extern.packaging.specifiers import SpecifierSet
 from setuptools.extern.six import string_types, PY3
 
 
 __metaclass__ = type
+
+
+class StaticModule:
+    """
+    Attempt to load the module by the name
+    """
+    def __init__(self, name):
+        spec = importlib.util.find_spec(name)
+        with open(spec.origin) as strm:
+            src = strm.read()
+        module = ast.parse(src)
+        vars(self).update(locals())
+        del self.self
+
+    def __getattr__(self, attr):
+        try:
+            return next(
+                ast.literal_eval(statement.value)
+                for statement in self.module.body
+                if isinstance(statement, ast.Assign)
+                for target in statement.targets
+                if isinstance(target, ast.Name) and target.id == attr
+            )
+        except Exception:
+            raise AttributeError(
+                "{self.name} has no attribute {attr}".format(**locals()))
+
+
+@contextlib.contextmanager
+def patch_path(path):
+    """
+    Add path to front of sys.path for the duration of the context.
+    """
+    try:
+        sys.path.insert(0, path)
+        yield
+    finally:
+        sys.path.remove(path)
 
 
 def read_configuration(
@@ -343,15 +384,16 @@ class ConfigHandler:
             elif '' in package_dir:
                 # A custom parent directory was specified for all root modules
                 parent_path = os.path.join(os.getcwd(), package_dir[''])
-        sys.path.insert(0, parent_path)
-        try:
-            module = import_module(module_name)
-            value = getattr(module, attr_name)
 
-        finally:
-            sys.path = sys.path[1:]
+        with patch_path(parent_path):
+            try:
+                # attempt to load value statically
+                return getattr(StaticModule(module_name), attr_name)
+            except Exception:
+                # fallback to simple import
+                module = importlib.import_module(module_name)
 
-        return value
+        return getattr(module, attr_name)
 
     @classmethod
     def _get_parser_compound(cls, *parse_methods):
@@ -482,6 +524,7 @@ class ConfigMetadataHandler(ConfigHandler):
             'obsoletes': parse_list,
             'classifiers': self._get_parser_compound(parse_file, parse_list),
             'license': exclude_files_parser('license'),
+            'license_files': parse_list,
             'description': parse_file,
             'long_description': parse_file,
             'version': self._parse_version,
@@ -554,6 +597,7 @@ class ConfigOptionsHandler(ConfigHandler):
             'packages': self._parse_packages,
             'entry_points': self._parse_file,
             'py_modules': parse_list,
+            'python_requires': SpecifierSet,
         }
 
     def _parse_packages(self, value):

@@ -1,3 +1,230 @@
+v46.4.0
+-------
+
+* #1753: ``attr:`` now extracts variables through rudimentary examination of the AST,
+  thereby supporting modules with third-party imports. If examining the AST
+  fails to find the variable, ``attr:`` falls back to the old behavior of
+  importing the module. Works on Python 3 only.
+
+
+v46.3.1
+-------
+
+No significant changes.
+
+
+v46.3.0
+-------
+
+* #2089: Package index functionality no longer attempts to remove an md5 fragment from the index URL. This functionality, added for distribute #163 is no longer relevant.
+* #2041: Preserve file modes during pkg files copying, but clear read only flag for target afterwards.
+* #2105: Filter ``2to3`` deprecation warnings from ``TestDevelop.test_2to3_user_mode``.
+
+
+v46.2.0
+-------
+
+* #2040: Deprecated the ``bdist_wininst`` command. Binary packages should be built as wheels instead.
+* #2062: Change 'Mac OS X' to 'macOS' in code.
+* #2075: Stop recognizing files ending with ``.dist-info`` as distribution metadata.
+* #2086: Deprecate 'use_2to3' functionality. Packagers are encouraged to use single-source solutions or build tool chains to manage conversions outside of setuptools.
+* #1698: Added documentation for ``build_meta`` (a bare minimum, not completed).
+* #2082: Filter ``lib2to3`` ``PendingDeprecationWarning`` and ``DeprecationWarning`` in tests,
+  because ``lib2to3`` is `deprecated in Python 3.9 <https://bugs.python.org/issue40360>`_.
+
+
+v46.1.3
+-------
+
+No significant changes.
+
+
+v46.1.2
+-------
+
+* #1458: Added template for reporting Python 2 incompatibilities.
+
+
+v46.1.1
+-------
+
+No significant changes.
+
+
+v46.1.0
+-------
+
+* #308: Allow version number normalization to be bypassed by wrapping in a 'setuptools.sic()' call.
+* #1424: Prevent keeping files mode for package_data build. It may break a build if user's package data has read only flag.
+* #1431: In ``easy_install.check_site_dir``, ensure the installation directory exists.
+* #1563: In ``pkg_resources`` prefer ``find_spec`` (PEP 451) to ``find_module``.
+
+Incorporate changes from v44.1.0:
+
+* #1704: Set sys.argv[0] in setup script run by build_meta.__legacy__
+* #1959: Fix for Python 4: replace unsafe six.PY3 with six.PY2
+* #1994: Fixed a bug in the "setuptools.finalize_distribution_options" hook that lead to ignoring the order attribute of entry points managed by this hook.
+
+
+v44.1.0
+-------
+
+* #1704: Set sys.argv[0] in setup script run by build_meta.__legacy__
+* #1959: Fix for Python 4: replace unsafe six.PY3 with six.PY2
+* #1994: Fixed a bug in the "setuptools.finalize_distribution_options" hook that lead to ignoring the order attribute of entry points managed by this hook.
+
+
+v46.0.0
+-------
+
+* #65: Once again as in 3.0, removed the Features feature.
+* #1890: Fix vendored dependencies so importing ``setuptools.extern.some_module`` gives the same object as ``setuptools._vendor.some_module``. This makes Metadata picklable again.
+* #1899: Test suite now fails on warnings.
+* #2011: Fix broken link to distutils docs on package_data
+* #1991: Include pkg_resources test data in sdist, so tests can be executed from it.
+
+
+v45.3.0
+-------
+
+* #1557: Deprecated eggsecutable scripts and updated docs.
+* #1904: Update msvc.py to use CPython 3.8.0 mechanism to find msvc 14+
+
+
+v45.2.0
+-------
+
+* #1905: Fixed defect in _imp, introduced in 41.6.0 when the 'tests' directory is not present.
+* #1941: Improve editable installs with PEP 518 build isolation:
+
+  * The ``--user`` option is now always available. A warning is issued if the user site directory is not available.
+  * The error shown when the install directory is not in ``PYTHONPATH`` has been turned into a warning.
+* #1981: Setuptools now declares its ``tests`` and ``docs`` dependencies in metadata (extras).
+* #1985: Add support for installing scripts in environments where bdist_wininst is missing (i.e. Python 3.9).
+* #1968: Add flake8-2020 to check for misuse of sys.version or sys.version_info.
+
+
+v45.1.0
+-------
+
+* #1458: Add minimum sunset date and preamble to Python 2 warning.
+* #1704: Set sys.argv[0] in setup script run by build_meta.__legacy__
+* #1974: Add Python 3 Only Trove Classifier and remove universal wheel declaration for more complete transition from Python 2.
+
+
+v45.0.0
+-------
+
+* #1458: Drop support for Python 2. Setuptools now requires Python 3.5 or later. Install setuptools using pip >=9 or pin to Setuptools <45 to maintain 2.7 support.
+* #1959: Fix for Python 4: replace unsafe six.PY3 with six.PY2
+
+
+v44.0.0
+-------
+
+* #1908: Drop support for Python 3.4.
+
+
+v43.0.0
+-------
+
+* #1634: Include ``pyproject.toml`` in source distribution by default. Projects relying on the previous behavior where ``pyproject.toml`` was excluded by default should stop relying on that behavior or add ``exclude pyproject.toml`` to their MANIFEST.in file.
+* #1927: Setuptools once again declares 'setuptools' in the ``build-system.requires`` and adds PEP 517 build support by declaring itself as the ``build-backend``. It additionally specifies ``build-system.backend-path`` to rely on itself for those builders that support it.
+
+
+v42.0.2
+-------
+
+* #1921: Fix support for easy_install's ``find-links`` option in ``setup.cfg``.
+* #1922: Build dependencies (setup_requires and tests_require) now install transitive dependencies indicated by extras.
+
+
+v42.0.1
+-------
+
+* #1918: Fix regression in handling wheels compatibility tags.
+
+
+v42.0.0
+-------
+
+* #1830, #1909: Mark the easy_install script and setuptools command as deprecated, and use `pip <https://pip.pypa.io/en/stable/>`_ when available to fetch/build wheels for missing ``setup_requires``/``tests_require`` requirements, with the following differences in behavior:
+   * support for ``python_requires``
+   * better support for wheels (proper handling of priority with respect to PEP 425 tags)
+   * PEP 517/518 support
+   * eggs are not supported
+   * no support for the ``allow_hosts`` easy_install option (``index_url``/``find_links`` are still honored)
+   * pip environment variables are honored (and take precedence over easy_install options)
+* #1898: Removed the "upload" and "register" commands in favor of `twine <https://pypi.org/p/twine>`_.
+* #1767: Add support for the ``license_files`` option in ``setup.cfg`` to automatically
+  include multiple license files in a source distribution.
+* #1829: Update handling of wheels compatibility tags:
+  * add support for manylinux2010
+  * fix use of removed 'm' ABI flag in Python 3.8 on Windows
+* #1861: Fix empty namespace package installation from wheel.
+* #1877: Setuptools now exposes a new entry point hook "setuptools.finalize_distribution_options", enabling plugins like `setuptools_scm <https://pypi.org/project/setuptools_scm>`_ to configure options on the distribution at finalization time.
+
+
+v41.6.0
+-------
+
+* #479: Replace usage of deprecated ``imp`` module with local re-implementation in ``setuptools._imp``.
+
+
+v41.5.1
+-------
+
+* #1891: Fix code for detecting Visual Studio's version on Windows under Python 2.
+
+
+v41.5.0
+-------
+
+* #1811: Improve Visual C++ 14.X support, mainly for Visual Studio 2017 and 2019.
+* #1814: Fix ``pkg_resources.Requirement`` hash/equality implementation: take PEP 508 direct URL into account.
+* #1824: Fix tests when running under ``python3.10``.
+* #1878: Formally deprecated the ``test`` command, with the recommendation that users migrate to ``tox``.
+* #1860: Update documentation to mention the egg format is not supported by pip and dependency links support was dropped starting with pip 19.0.
+* #1862: Drop ez_setup documentation: deprecated for some time (last updated in 2016), and still relying on easy_install (deprecated too).
+* #1868: Drop most documentation references to (deprecated) EasyInstall.
+* #1884: Added a trove classifier to document support for Python 3.8.
+* #1886: Added Python 3.8 release to the Travis test matrix.
+
+
+v41.4.0
+-------
+
+* #1847: In declarative config, now traps errors when invalid ``python_requires`` values are supplied.
+
+
+v41.3.0
+-------
+
+* #1690: When storing extras, rely on OrderedSet to retain order of extras as indicated by the packager, which will also be deterministic on Python 2.7 (with PYTHONHASHSEED unset) and Python 3.6+.
+* #1858: Fixed failing integration test triggered by 'long_description_content_type' in packaging.
+
+
+v41.2.0
+-------
+
+* #479: Remove some usage of the deprecated ``imp`` module.
+* #1565: Changed html_sidebars from string to list of string as per
+  https://www.sphinx-doc.org/en/master/changes.html#id58
+
+
+v41.1.0
+-------
+
+* #1697: Moved most of the constants from setup.py to setup.cfg
+* #1749: Fixed issue with the PEP 517 backend where building a source distribution would fail if any tarball existed in the destination directory.
+* #1750: Fixed an issue with PEP 517 backend where wheel builds would fail if the destination directory did not already exist.
+* #1756: Force metadata-version >= 1.2. when project urls are present.
+* #1769: Improve ``package_data`` check: ensure the dictionary values are lists/tuples of strings.
+* #1788: Changed compatibility fallback logic for ``html.unescape`` to avoid accessing ``HTMLParser.unescape`` when not necessary. ``HTMLParser.unescape`` is deprecated and will be removed in Python 3.9.
+* #1790: Added the file path to the error message when a ``UnicodeDecodeError`` occurs while reading a metadata file.
+* #1776: Use license classifiers rather than the license field.
+
+
 v41.0.1
 -------
 
