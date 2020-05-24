@@ -40,6 +40,11 @@ try them first. -->
 - Python installed how:
 - Virtualenv version (if using virtualenv): n/a
 
+Command(s) that triggered the warning/error (and output):
+
+```
+```
+
 Command(s) used to install setuptools (and output):
 
 ```
