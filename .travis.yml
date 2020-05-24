@@ -24,6 +24,8 @@ jobs:
   allow_failures:
   # suppress failures due to pypa/setuptools#2000
   - python: pypy3
+  - <<: *latest_py3
+    env: TOXENV=docs DISABLE_COVERAGE=1
 
 cache: pip
 
