@@ -13,7 +13,7 @@ Please DO NOT SUBMIT this template without first investigating the issue and ans
 
 If you did not intend to use this template, but only meant to file a blank issue, just hit the back button and click "Open a blank issue".
 
-It's by design that Setuptools 45 and later will stop working on Python 2. To ease the transition, Setuptools 45 was released to continue to have Python 2 compatibility, but emit a strenuous warning that it will stop working.
+Setuptools 45 dropped support for Python 2 with a strenuous warning and Setuptools 47 fails to run on Python 2.
 
 In most cases, using pip 9 or later to install Setuptools from PyPI or any index supporting the Requires-Python metadata will do the right thing and install Setuptools 44.x on Python 2.
 
