@@ -20,3 +20,5 @@ setuptools.egg-info
 .idea/
 .pytest_cache/
 .mypy_cache/
+tags**
+tags{,.temp,.lock}
