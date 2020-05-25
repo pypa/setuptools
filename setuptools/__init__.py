@@ -2,6 +2,9 @@
 
 import os
 import functools
+
+import setuptools.distutils_patch  # noqa: F401
+
 import distutils.core
 import distutils.filelist
 import re
