@@ -54,11 +54,11 @@ versions of Setuptools installed, here are some things to try.
    environments (or reinstall/reset the failing one to defaults).
 3. End users who are not themselves the maintainers for the package they are
    trying to install should contact the support channels for the relevant
-   application. Please be respectful by searching for existing issues and
-   following the latest guidance before reaching out for support. When filing
-   an issue, be sure to give as much detail as possible to help the
-   maintainers understand what factors led to the issue after following their
-   recommended guidance.
+   application. Please be considerate of those projects by searching for
+   existing issues and following the latest guidance before reaching out for
+   support. When filing an issue, be sure to give as much detail as possible
+   to help the maintainers understand what factors led to the issue after
+   following their recommended guidance.
 4. Reach out to your local support groups. There's a good chance someone
    nearby has the expertise and willingness to help.
 5. If all else fails, `file this template
