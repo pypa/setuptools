@@ -3,10 +3,20 @@
 from __future__ import unicode_literals
 
 import io
-
+import collections
+import re
+import functools
+from distutils.errors import DistutilsSetupError
+from setuptools.dist import (
+    _get_unpatched,
+    check_package_data,
+    DistDeprecationWarning,
+)
+from setuptools import sic
 from setuptools import Distribution
 from setuptools.extern.six.moves.urllib.request import pathname2url
 from setuptools.extern.six.moves.urllib_parse import urljoin
+from setuptools.extern import six
 
 from .textwrap import DALS
 from .test_easy_install import make_nspkg_sdist
@@ -53,7 +63,124 @@ def test_dist_fetch_build_egg(tmpdir):
             dist.fetch_build_egg(r)
             for r in reqs
         ]
-    assert [dist.key for dist in resolved_dists if dist] == reqs
+    # noqa below because on Python 2 it causes flakes
+    assert [dist.key for dist in resolved_dists if dist] == reqs  # noqa
+
+
+def test_dist__get_unpatched_deprecated():
+    pytest.warns(DistDeprecationWarning, _get_unpatched, [""])
+
+
+def __read_test_cases():
+    base = dict(
+        name="package",
+        version="0.0.1",
+        author="Foo Bar",
+        author_email="foo@bar.net",
+        long_description="Long\ndescription",
+        description="Short description",
+        keywords=["one", "two"],
+    )
+
+    params = functools.partial(dict, base)
+
+    test_cases = [
+        ('Metadata version 1.0', params()),
+        ('Metadata version 1.1: Provides', params(
+            provides=['package'],
+        )),
+        ('Metadata version 1.1: Obsoletes', params(
+            obsoletes=['foo'],
+        )),
+        ('Metadata version 1.1: Classifiers', params(
+            classifiers=[
+                'Programming Language :: Python :: 3',
+                'Programming Language :: Python :: 3.7',
+                'License :: OSI Approved :: MIT License',
+            ],
+        )),
+        ('Metadata version 1.1: Download URL', params(
+            download_url='https://example.com',
+        )),
+        ('Metadata Version 1.2: Requires-Python', params(
+            python_requires='>=3.7',
+        )),
+        pytest.param(
+            'Metadata Version 1.2: Project-Url',
+            params(project_urls=dict(Foo='https://example.bar')),
+            marks=pytest.mark.xfail(
+                reason="Issue #1578: project_urls not read",
+            ),
+        ),
+        ('Metadata Version 2.1: Long Description Content Type', params(
+            long_description_content_type='text/x-rst; charset=UTF-8',
+        )),
+        pytest.param(
+            'Metadata Version 2.1: Provides Extra',
+            params(provides_extras=['foo', 'bar']),
+            marks=pytest.mark.xfail(reason="provides_extras not read"),
+        ),
+        ('Missing author', dict(
+            name='foo',
+            version='1.0.0',
+            author_email='snorri@sturluson.name',
+        )),
+        ('Missing author e-mail', dict(
+            name='foo',
+            version='1.0.0',
+            author='Snorri Sturluson',
+        )),
+        ('Missing author and e-mail', dict(
+            name='foo',
+            version='1.0.0',
+        )),
+        ('Bypass normalized version', dict(
+            name='foo',
+            version=sic('1.0.0a'),
+        )),
+    ]
+
+    return test_cases
+
+
+@pytest.mark.parametrize('name,attrs', __read_test_cases())
+def test_read_metadata(name, attrs):
+    dist = Distribution(attrs)
+    metadata_out = dist.metadata
+    dist_class = metadata_out.__class__
+
+    # Write to PKG_INFO and then load into a new metadata object
+    if six.PY2:
+        PKG_INFO = io.BytesIO()
+    else:
+        PKG_INFO = io.StringIO()
+
+    metadata_out.write_pkg_file(PKG_INFO)
+
+    PKG_INFO.seek(0)
+    metadata_in = dist_class()
+    metadata_in.read_pkg_file(PKG_INFO)
+
+    tested_attrs = [
+        ('name', dist_class.get_name),
+        ('version', dist_class.get_version),
+        ('author', dist_class.get_contact),
+        ('author_email', dist_class.get_contact_email),
+        ('metadata_version', dist_class.get_metadata_version),
+        ('provides', dist_class.get_provides),
+        ('description', dist_class.get_description),
+        ('download_url', dist_class.get_download_url),
+        ('keywords', dist_class.get_keywords),
+        ('platforms', dist_class.get_platforms),
+        ('obsoletes', dist_class.get_obsoletes),
+        ('requires', dist_class.get_requires),
+        ('classifiers', dist_class.get_classifiers),
+        ('project_urls', lambda s: getattr(s, 'project_urls', {})),
+        ('provides_extras', lambda s: getattr(s, 'provides_extras', set())),
+    ]
+
+    for attr, getter in tested_attrs:
+        assert getter(metadata_in) == getter(metadata_out)
 
 
 def __maintainer_test_cases():
@@ -143,3 +270,64 @@ def test_maintainer_author(name, attrs, tmpdir):
         else:
             line = '%s: %s' % (fkey, val)
             assert line in pkg_lines_set
+
+
+def test_provides_extras_deterministic_order():
+    extras = collections.OrderedDict()
+    extras['a'] = ['foo']
+    extras['b'] = ['bar']
+    attrs = dict(extras_require=extras)
+    dist = Distribution(attrs)
+    assert dist.metadata.provides_extras == ['a', 'b']
+    attrs['extras_require'] = collections.OrderedDict(
+        reversed(list(attrs['extras_require'].items())))
+    dist = Distribution(attrs)
+    assert dist.metadata.provides_extras == ['b', 'a']
+
+
+CHECK_PACKAGE_DATA_TESTS = (
+    # Valid.
+    ({
+        '': ['*.txt', '*.rst'],
+        'hello': ['*.msg'],
+    }, None),
+    # Not a dictionary.
+    ((
+        ('', ['*.txt', '*.rst']),
+        ('hello', ['*.msg']),
+    ), (
+        "'package_data' must be a dictionary mapping package"
+        " names to lists of string wildcard patterns"
+    )),
+    # Invalid key type.
+    ({
+        400: ['*.txt', '*.rst'],
+    }, (
+        "keys of 'package_data' dict must be strings (got 400)"
+    )),
+    # Invalid value type.
+    ({
+        'hello': str('*.msg'),
+    }, (
+        "\"values of 'package_data' dict\" "
+        "must be a list of strings (got '*.msg')"
+    )),
+    # Invalid value type (generators are single use)
+    ({
+        'hello': (x for x in "generator"),
+    }, (
+        "\"values of 'package_data' dict\" must be a list of strings "
+        "(got <generator object"
+    )),
+)
+
+
+@pytest.mark.parametrize(
+    'package_data, expected_message', CHECK_PACKAGE_DATA_TESTS)
+def test_check_package_data(package_data, expected_message):
+    if expected_message is None:
+        assert check_package_data(None, 'package_data', package_data) is None
+    else:
+        with pytest.raises(
+                DistutilsSetupError, match=re.escape(expected_message)):
+            check_package_data(None, str('package_data'), package_data)

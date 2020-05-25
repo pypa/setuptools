@@ -1,6 +1,6 @@
 # module pyparsing.py
 #
-# Copyright (c) 2003-2016  Paul T. McGuire
+# Copyright (c) 2003-2018  Paul T. McGuire
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -25,6 +25,7 @@
 __doc__ = \
 """
 pyparsing module - Classes and methods to define and execute parsing grammars
+=============================================================================
 
 The pyparsing module is an alternative approach to creating and executing simple grammars,
 vs. the traditional lex/yacc approach, or the use of regular expressions.  With pyparsing, you
@@ -58,10 +59,23 @@ The pyparsing module handles some of the problems that are typically vexing when
  - extra or missing whitespace (the above program will also handle "Hello,World!", "Hello  ,  World  !", etc.)
  - quoted strings
  - embedded comments
+
+
+Getting Started -
+-----------------
+Visit the classes L{ParserElement} and L{ParseResults} to see the base classes that most other pyparsing
+classes inherit from. Use the docstrings for examples of how to:
+ - construct literal match expressions from L{Literal} and L{CaselessLiteral} classes
+ - construct character word-group expressions using the L{Word} class
+ - see how to create repetitive expressions using L{ZeroOrMore} and L{OneOrMore} classes
+ - use L{'+'<And>}, L{'|'<MatchFirst>}, L{'^'<Or>}, and L{'&'<Each>} operators to combine simple expressions into more complex ones
+ - associate names with your parsed results using L{ParserElement.setResultsName}
+ - find some helpful expression short-cuts like L{delimitedList} and L{oneOf}
+ - find more useful common expressions in the L{pyparsing_common} namespace class
 """
 
-__version__ = "2.1.10"
-__versionTime__ = "07 Oct 2016 01:31 UTC"
+__version__ = "2.2.1"
+__versionTime__ = "18 Sep 2018 00:49 UTC"
 __author__ = "Paul McGuire <ptmcg@users.sourceforge.net>"
 
 import string
@@ -81,6 +95,15 @@ try:
     from _thread import RLock
 except ImportError:
     from threading import RLock
+
+try:
+    # Python 3
+    from collections.abc import Iterable
+    from collections.abc import MutableMapping
+except ImportError:
+    # Python 2.7
+    from collections import Iterable
+    from collections import MutableMapping
 
 try:
     from collections import OrderedDict as _OrderedDict
@@ -144,7 +167,7 @@ else:
         except UnicodeEncodeError:
             # Else encode it
             ret = unicode(obj).encode(sys.getdefaultencoding(), 'xmlcharrefreplace')
-            xmlcharref = Regex('&#\d+;')
+            xmlcharref = Regex(r'&#\d+;')
             xmlcharref.setParseAction(lambda t: '\\u' + hex(int(t[0][2:-1]))[2:])
             return xmlcharref.transformString(ret)
 
@@ -809,7 +832,7 @@ class ParseResults(object):
         return None
 
     def getName(self):
-        """
+        r"""
         Returns the results name for this token expression. Useful when several 
         different expressions might match at a particular location.
 
@@ -940,7 +963,7 @@ class ParseResults(object):
     def __dir__(self):
         return (dir(type(self)) + list(self.keys()))
 
-collections.MutableMapping.register(ParseResults)
+MutableMapping.register(ParseResults)
 
 def col (loc,strg):
     """Returns current column within a string, counting newlines as line separators.
@@ -1025,11 +1048,11 @@ def _trim_arity(func, maxargs=2):
             # special handling for Python 3.5.0 - extra deep call stack by 1
             offset = -3 if system_version == (3,5,0) else -2
             frame_summary = traceback.extract_stack(limit=-offset+limit-1)[offset]
-            return [(frame_summary.filename, frame_summary.lineno)]
+            return [frame_summary[:2]]
         def extract_tb(tb, limit=0):
             frames = traceback.extract_tb(tb, limit=limit)
             frame_summary = frames[-1]
-            return [(frame_summary.filename, frame_summary.lineno)]
+            return [frame_summary[:2]]
     else:
         extract_stack = traceback.extract_stack
         extract_tb = traceback.extract_tb
@@ -1226,7 +1249,7 @@ class ParserElement(object):
 
     def setParseAction( self, *fns, **kwargs ):
         """
-        Define action to perform when successfully matching parse element definition.
+        Define one or more actions to perform when successfully matching parse element definition.
         Parse action fn is a callable method with 0-3 arguments, called as C{fn(s,loc,toks)},
         C{fn(loc,toks)}, C{fn(toks)}, or just C{fn()}, where:
          - s   = the original string being parsed (see note below)
@@ -1264,7 +1287,7 @@ class ParserElement(object):
 
     def addParseAction( self, *fns, **kwargs ):
         """
-        Add parse action to expression's list of parse actions. See L{I{setParseAction}<setParseAction>}.
+        Add one or more parse actions to expression's list of parse actions. See L{I{setParseAction}<setParseAction>}.
         
         See examples in L{I{copy}<copy>}.
         """
@@ -1374,7 +1397,7 @@ class ParserElement(object):
             else:
                 preloc = loc
             tokensStart = preloc
-            if self.mayIndexError or loc >= len(instring):
+            if self.mayIndexError or preloc >= len(instring):
                 try:
                     loc,tokens = self.parseImpl( instring, preloc, doActions )
                 except IndexError:
@@ -1408,7 +1431,6 @@ class ParserElement(object):
                                                   self.resultsName,
                                                   asList=self.saveAsList and isinstance(tokens,(ParseResults,list)),
                                                   modal=self.modalResults )
-
         if debugging:
             #~ print ("Matched",self,"->",retTokens.asList())
             if (self.debugActions[1] ):
@@ -1443,10 +1465,14 @@ class ParserElement(object):
 
             def clear(self):
                 cache.clear()
+                
+            def cache_len(self):
+                return len(cache)
 
             self.get = types.MethodType(get, self)
             self.set = types.MethodType(set, self)
             self.clear = types.MethodType(clear, self)
+            self.__len__ = types.MethodType(cache_len, self)
 
     if _OrderedDict is not None:
         class _FifoCache(object):
@@ -1460,15 +1486,22 @@ class ParserElement(object):
 
                 def set(self, key, value):
                     cache[key] = value
-                    if len(cache) > size:
-                        cache.popitem(False)
+                    while len(cache) > size:
+                        try:
+                            cache.popitem(False)
+                        except KeyError:
+                            pass
 
                 def clear(self):
                     cache.clear()
 
+                def cache_len(self):
+                    return len(cache)
+
                 self.get = types.MethodType(get, self)
                 self.set = types.MethodType(set, self)
                 self.clear = types.MethodType(clear, self)
+                self.__len__ = types.MethodType(cache_len, self)
 
     else:
         class _FifoCache(object):
@@ -1483,7 +1516,7 @@ class ParserElement(object):
 
                 def set(self, key, value):
                     cache[key] = value
-                    if len(cache) > size:
+                    while len(key_fifo) > size:
                         cache.pop(key_fifo.popleft(), None)
                     key_fifo.append(key)
 
@@ -1491,9 +1524,13 @@ class ParserElement(object):
                     cache.clear()
                     key_fifo.clear()
 
+                def cache_len(self):
+                    return len(cache)
+
                 self.get = types.MethodType(get, self)
                 self.set = types.MethodType(set, self)
                 self.clear = types.MethodType(clear, self)
+                self.__len__ = types.MethodType(cache_len, self)
 
     # argument cache for optimizing repeated calls when backtracking through recursive expressions
     packrat_cache = {} # this is set later by enabledPackrat(); this is here so that resetCache() doesn't fail
@@ -1743,8 +1780,12 @@ class ParserElement(object):
             cap_word = Word(alphas.upper(), alphas.lower())
             
             print(cap_word.searchString("More than Iron, more than Lead, more than Gold I need Electricity"))
+
+            # the sum() builtin can be used to merge results into a single ParseResults object
+            print(sum(cap_word.searchString("More than Iron, more than Lead, more than Gold I need Electricity")))
         prints::
-            ['More', 'Iron', 'Lead', 'Gold', 'I']
+            [['More'], ['Iron'], ['Lead'], ['Gold'], ['I'], ['Electricity']]
+            ['More', 'Iron', 'Lead', 'Gold', 'I', 'Electricity']
         """
         try:
             return ParseResults([ t for t,s,e in self.scanString( instring, maxMatches ) ])
@@ -1819,7 +1860,7 @@ class ParserElement(object):
             warnings.warn("Cannot combine element of type %s with ParserElement" % type(other),
                     SyntaxWarning, stacklevel=2)
             return None
-        return And( [ self, And._ErrorStop(), other ] )
+        return self + And._ErrorStop() + other
 
     def __rsub__(self, other ):
         """
@@ -2722,7 +2763,7 @@ class Word(Token):
 
 
 class Regex(Token):
-    """
+    r"""
     Token for matching strings that match a given regular expression.
     Defined with string specifying the regular expression in a form recognized by the inbuilt Python re module.
     If the given regex contains named groups (defined using C{(?P<name>...)}), these will be preserved as 
@@ -2911,7 +2952,7 @@ class QuotedString(Token):
 
                 # replace escaped characters
                 if self.escChar:
-                    ret = re.sub(self.escCharReplacePattern,"\g<1>",ret)
+                    ret = re.sub(self.escCharReplacePattern, r"\g<1>", ret)
 
                 # replace escaped quotes
                 if self.escQuote:
@@ -3223,7 +3264,7 @@ class ParseExpression(ParserElement):
 
         if isinstance( exprs, basestring ):
             self.exprs = [ ParserElement._literalStringClass( exprs ) ]
-        elif isinstance( exprs, collections.Iterable ):
+        elif isinstance( exprs, Iterable ):
             exprs = list(exprs)
             # if sequence of strings provided, wrap with Literal
             if all(isinstance(expr, basestring) for expr in exprs):
@@ -4374,7 +4415,7 @@ def traceParseAction(f):
 
         @traceParseAction
         def remove_duplicate_chars(tokens):
-            return ''.join(sorted(set(''.join(tokens)))
+            return ''.join(sorted(set(''.join(tokens))))
 
         wds = OneOrMore(wd).setParseAction(remove_duplicate_chars)
         print(wds.parseString("slkdjs sld sldd sdlf sdljf"))
@@ -4564,7 +4605,7 @@ def oneOf( strs, caseless=False, useRegex=True ):
     symbols = []
     if isinstance(strs,basestring):
         symbols = strs.split()
-    elif isinstance(strs, collections.Iterable):
+    elif isinstance(strs, Iterable):
         symbols = list(strs)
     else:
         warnings.warn("Invalid argument to oneOf, expected string or iterable",
@@ -4715,7 +4756,7 @@ stringEnd   = StringEnd().setName("stringEnd")
 _escapedPunc = Word( _bslash, r"\[]-*.$+^?()~ ", exact=2 ).setParseAction(lambda s,l,t:t[0][1])
 _escapedHexChar = Regex(r"\\0?[xX][0-9a-fA-F]+").setParseAction(lambda s,l,t:unichr(int(t[0].lstrip(r'\0x'),16)))
 _escapedOctChar = Regex(r"\\0[0-7]+").setParseAction(lambda s,l,t:unichr(int(t[0][1:],8)))
-_singleChar = _escapedPunc | _escapedHexChar | _escapedOctChar | Word(printables, excludeChars=r'\]', exact=1) | Regex(r"\w", re.UNICODE)
+_singleChar = _escapedPunc | _escapedHexChar | _escapedOctChar | CharsNotIn(r'\]', exact=1)
 _charRange = Group(_singleChar + Suppress("-") + _singleChar)
 _reBracketExpr = Literal("[") + Optional("^").setResultsName("negate") + Group( OneOrMore( _charRange | _singleChar ) ).setResultsName("body") + "]"
 
@@ -5020,7 +5061,9 @@ def infixNotation( baseExpr, opList, lpar=Suppress('('), rpar=Suppress(')') ):
           constants C{opAssoc.RIGHT} and C{opAssoc.LEFT}.
        - parseAction is the parse action to be associated with
           expressions matching this operator expression (the
-          parse action tuple member may be omitted)
+          parse action tuple member may be omitted); if the parse action
+          is passed a tuple or list of functions, this is equivalent to
+          calling C{setParseAction(*fn)} (L{ParserElement.setParseAction})
      - lpar - expression for matching left-parentheses (default=C{Suppress('(')})
      - rpar - expression for matching right-parentheses (default=C{Suppress(')')})
 
@@ -5093,7 +5136,10 @@ def infixNotation( baseExpr, opList, lpar=Suppress('('), rpar=Suppress(')') ):
         else:
             raise ValueError("operator must indicate right or left associativity")
         if pa:
-            matchExpr.setParseAction( pa )
+            if isinstance(pa, (tuple, list)):
+                matchExpr.setParseAction(*pa)
+            else:
+                matchExpr.setParseAction(pa)
         thisExpr <<= ( matchExpr.setName(termName) | lastExpr )
         lastExpr = thisExpr
     ret <<= lastExpr

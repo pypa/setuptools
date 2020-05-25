@@ -245,8 +245,8 @@ abbreviation for ``pkg_resources.working_set.require()``:
     interactive interpreter hacking than for production use. If you're creating
     an actual library or application, it's strongly recommended that you create
     a "setup.py" script using ``setuptools``, and declare all your requirements
-    there.  That way, tools like EasyInstall can automatically detect what
-    requirements your package has, and deal with them accordingly.
+    there.  That way, tools like pip can automatically detect what requirements
+    your package has, and deal with them accordingly.
 
     Note that calling ``require('SomePackage')`` will not install
     ``SomePackage`` if it isn't already present.  If you need to do this, you
@@ -611,9 +611,9 @@ Requirements Parsing
     or activation of both Report-O-Rama and any libraries it needs in order to
     provide PDF support.  For example, you could use::
 
-        easy_install.py Report-O-Rama[PDF]
+        pip install Report-O-Rama[PDF]
 
-    To install the necessary packages using the EasyInstall program, or call
+    To install the necessary packages using pip, or call
     ``pkg_resources.require('Report-O-Rama[PDF]')`` to add the necessary
     distributions to sys.path at runtime.
 
@@ -703,7 +703,7 @@ entry point group and look for entry points named "pre_process" and
 To advertise an entry point, a project needs to use ``setuptools`` and provide
 an ``entry_points`` argument to ``setup()`` in its setup script, so that the
 entry points will be included in the distribution's metadata.  For more
-details, see the ``setuptools`` documentation.  (XXX link here to setuptools)
+details, see the [``setuptools`` documentation](https://setuptools.readthedocs.io/en/latest/setuptools.html#dynamic-discovery-of-services-and-plugins).
 
 Each project distribution can advertise at most one entry point of a given
 name within the same entry point group.  For example, a distutils extension
@@ -1132,8 +1132,8 @@ relative to the root of the identified distribution; i.e. its first path
 segment will be treated as a peer of the top-level modules or packages in the
 distribution.
 
-Note that resource names must be ``/``-separated paths and cannot be absolute
-(i.e. no leading ``/``) or contain relative names like ``".."``.  Do *not* use
+Note that resource names must be ``/``-separated paths rooted at the package,
+cannot contain relative names like ``".."``, and cannot be absolute.  Do *not* use
 ``os.path`` routines to manipulate resource paths, as they are *not* filesystem
 paths.
 
@@ -1621,7 +1621,7 @@ Platform Utilities
 
 ``get_build_platform()``
     Return this platform's identifier string.  For Windows, the return value
-    is ``"win32"``, and for Mac OS X it is a string of the form
+    is ``"win32"``, and for macOS it is a string of the form
     ``"macosx-10.4-ppc"``.  All other platforms return the same uname-based
     string that the ``distutils.util.get_platform()`` function returns.
     This string is the minimum platform version required by distributions built
@@ -1641,7 +1641,7 @@ Platform Utilities
     considered a wildcard, and the platforms are therefore compatible.
     Likewise, if the platform strings are equal, they're also considered
     compatible, and ``True`` is returned.  Currently, the only non-equal
-    platform strings that are considered compatible are Mac OS X platform
+    platform strings that are considered compatible are macOS platform
     strings with the same hardware type (e.g. ``ppc``) and major version
     (e.g. ``10``) with the `provided` platform's minor version being less than
     or equal to the `required` platform's minor version.
@@ -1674,7 +1674,7 @@ File/Path Utilities
     the same filesystem location if they have equal ``normalized_path()``
     values.  Specifically, this is a shortcut for calling ``os.path.realpath``
     and ``os.path.normcase`` on `path`.  Unfortunately, on certain platforms
-    (notably Cygwin and Mac OS X) the ``normcase`` function does not accurately
+    (notably Cygwin and macOS) the ``normcase`` function does not accurately
     reflect the platform's case-sensitivity, so there is always the possibility
     of two apparently-different paths being equal on such platforms.
 
@@ -1843,9 +1843,9 @@ History
      because it isn't necessarily a filesystem path (and hasn't been for some
      time now).  The ``location`` of ``Distribution`` objects in the filesystem
      should always be normalized using ``pkg_resources.normalize_path()``; all
-     of the setuptools and EasyInstall code that generates distributions from
-     the filesystem (including ``Distribution.from_filename()``) ensure this
-     invariant, but if you use a more generic API like ``Distribution()`` or
+     of the setuptools' code that generates distributions from the filesystem
+     (including ``Distribution.from_filename()``) ensure this invariant, but if
+     you use a more generic API like ``Distribution()`` or
      ``Distribution.from_location()`` you should take care that you don't
      create a distribution with an un-normalized filesystem path.
 

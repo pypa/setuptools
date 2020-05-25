@@ -1,15 +1,6 @@
-__all__ = ['get_config_vars', 'get_path']
+__all__ = []
 
-try:
-    # Python 2.7 or >=3.2
-    from sysconfig import get_config_vars, get_path
-except ImportError:
-    from distutils.sysconfig import get_config_vars, get_python_lib
-
-    def get_path(name):
-        if name not in ('platlib', 'purelib'):
-            raise ValueError("Name must be purelib or platlib")
-        return get_python_lib(name == 'platlib')
+__metaclass__ = type
 
 
 try:
@@ -19,16 +10,16 @@ except ImportError:
     import shutil
     import tempfile
 
-    class TemporaryDirectory(object):
+    class TemporaryDirectory:
         """
         Very simple temporary directory context manager.
         Will try to delete afterward, but will also ignore OS and similar
         errors on deletion.
         """
 
-        def __init__(self):
+        def __init__(self, **kwargs):
             self.name = None  # Handle mkdtemp raising an exception
-            self.name = tempfile.mkdtemp()
+            self.name = tempfile.mkdtemp(**kwargs)
 
         def __enter__(self):
             return self.name

@@ -1,0 +1,7 @@
+# Configuration for pull request documentation previews via Netlify
+
+# Netlify relies on there being a ./runtime.txt to indicate Python 3.
+
+[build]
+    publish = "build/html"
+    command = "pip install tox && tox -e docs"

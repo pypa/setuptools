@@ -10,10 +10,13 @@ setuptools.egg-info
 .coverage
 .eggs
 .tox
+.venv
 *.egg
 *.py[cod]
 *.swp
 *~
 .hg*
 .cache
+.idea/
 .pytest_cache/
+.mypy_cache/

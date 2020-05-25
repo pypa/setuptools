@@ -1,16 +1,18 @@
 import os
 
 
-from setuptools.extern.six import binary_type
 import pkg_resources.py31compat
 
 
 def build_files(file_defs, prefix=""):
     """
-    Build a set of files/directories, as described by the file_defs dictionary.
+    Build a set of files/directories, as described by the
+    file_defs dictionary.
 
-    Each key/value pair in the dictionary is interpreted as a filename/contents
-    pair. If the contents value is a dictionary, a directory is created, and the
+    Each key/value pair in the dictionary is interpreted as
+    a filename/contents
+    pair. If the contents value is a dictionary, a directory
+    is created, and the
     dictionary interpreted as the files within it, recursively.
 
     For example:
@@ -31,7 +33,7 @@ def build_files(file_defs, prefix=""):
             pkg_resources.py31compat.makedirs(full_name, exist_ok=True)
             build_files(contents, prefix=full_name)
         else:
-            if isinstance(contents, binary_type):
+            if isinstance(contents, bytes):
                 with open(full_name, 'wb') as f:
                     f.write(contents)
             else:

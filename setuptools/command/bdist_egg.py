@@ -11,13 +11,14 @@ import os
 import re
 import textwrap
 import marshal
+import warnings
 
 from setuptools.extern import six
 
 from pkg_resources import get_build_platform, Distribution, ensure_directory
 from pkg_resources import EntryPoint
 from setuptools.extension import Library
-from setuptools import Command
+from setuptools import Command, SetuptoolsDeprecationWarning
 
 try:
     # Python 2.7 or >=3.2
@@ -278,13 +279,19 @@ class bdist_egg(Command):
         if ep is None:
             return 'w'  # not an eggsecutable, do it the usual way.
 
+        warnings.warn(
+            "Eggsecutables are deprecated and will be removed in a future "
+            "version.",
+            SetuptoolsDeprecationWarning
+        )
+
         if not ep.attrs or ep.extras:
             raise DistutilsSetupError(
                 "eggsecutable entry point (%r) cannot have 'extras' "
                 "or refer to a module" % (ep,)
             )
 
-        pyver = sys.version[:3]
+        pyver = '{}.{}'.format(*sys.version_info)
         pkg = ep.module_name
         full = '.'.join(ep.attrs)
         base = ep.attrs[0]
@@ -411,7 +418,7 @@ def scan_module(egg_dir, base, name, stubs):
         return True  # Extension module
     pkg = base[len(egg_dir) + 1:].replace(os.sep, '.')
     module = pkg + (pkg and '.' or '') + os.path.splitext(name)[0]
-    if sys.version_info < (3, 3):
+    if six.PY2:
         skip = 8  # skip magic & date
     elif sys.version_info < (3, 7):
         skip = 12  # skip magic & date & file size

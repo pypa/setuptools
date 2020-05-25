@@ -1,0 +1,81 @@
+# Create the project in Azure with:
+# az devops project create --name $name --organization https://dev.azure.com/$org/ --visibility public
+# then configure the pipelines (through web UI)
+
+trigger:
+  branches:
+    include:
+    - '*'
+  tags:
+    include:
+    - '*'
+
+pool:
+  vmImage: $(pool_vm_image)
+
+variables:
+- group: Azure secrets
+- name: pool_vm_image
+  value: Ubuntu-18.04
+
+stages:
+- stage: Test
+  jobs:
+
+  - job: 'Test'
+    strategy:
+      matrix:
+        Bionic Python 3.6:
+          python.version: '3.6'
+        Bionic Python 3.8:
+          python.version: '3.8'
+        Windows:
+          python.version: '3.8'
+          pool_vm_image: vs2017-win2016
+        MacOS:
+          python.version: '3.8'
+          pool_vm_image: macos-10.15
+
+      maxParallel: 4
+
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '$(python.version)'
+        architecture: 'x64'
+
+    - script: python -m pip install tox
+      displayName: 'Install tox'
+
+    - script: |
+        tox -- --junit-xml=test-results.xml
+      displayName: 'run tests'
+
+    - task: PublishTestResults@2
+      inputs:
+        testResultsFiles: '**/test-results.xml'
+        testRunTitle: 'Python $(python.version)'
+      condition: succeededOrFailed()
+
+- stage: Publish
+  dependsOn: Test
+  jobs:
+  - job: 'Publish'
+
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.8'
+        architecture: 'x64'
+
+    - script: python -m pip install tox
+      displayName: 'Install tox'
+
+    - script: |
+        tox -e release
+      env:
+        TWINE_PASSWORD: $(PyPI-token)
+        TIDELIFT_TOKEN: $(Tidelift-token)
+      displayName: 'publish to PyPI'
+
+  condition: contains(variables['Build.SourceBranch'], 'tags')

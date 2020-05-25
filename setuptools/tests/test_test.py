@@ -1,18 +1,19 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 
 from __future__ import unicode_literals
 
+import mock
 from distutils import log
 import os
-import sys
 
 import pytest
 
 from setuptools.command.test import test
 from setuptools.dist import Distribution
+from setuptools.tests import ack_2to3
 
 from .textwrap import DALS
-from . import contexts
+
 
 SETUP_PY = DALS("""
     from setuptools import setup
@@ -74,6 +75,7 @@ def quiet_log():
 
 
 @pytest.mark.usefixtures('sample_test', 'quiet_log')
+@ack_2to3
 def test_test(capfd):
     params = dict(
         name='foo',
@@ -86,17 +88,11 @@ def test_test(capfd):
     dist.script_name = 'setup.py'
     cmd = test(dist)
     cmd.ensure_finalized()
-    # The test runner calls sys.exit
-    with contexts.suppress_exceptions(SystemExit):
-        cmd.run()
+    cmd.run()
     out, err = capfd.readouterr()
     assert out == 'Foo\n'
 
 
-@pytest.mark.xfail(
-    sys.version_info < (2, 7),
-    reason="No discover support for unittest on Python 2.6",
-)
 @pytest.mark.usefixtures('tmpdir_cwd', 'quiet_log')
 def test_tests_are_run_once(capfd):
     params = dict(
@@ -124,8 +120,57 @@ def test_tests_are_run_once(capfd):
     dist.script_name = 'setup.py'
     cmd = test(dist)
     cmd.ensure_finalized()
-    # The test runner calls sys.exit
-    with contexts.suppress_exceptions(SystemExit):
-        cmd.run()
+    cmd.run()
     out, err = capfd.readouterr()
     assert out == 'Foo\n'
+
+
+@pytest.mark.usefixtures('sample_test')
+@ack_2to3
+def test_warns_deprecation(capfd):
+    params = dict(
+        name='foo',
+        packages=['name', 'name.space', 'name.space.tests'],
+        namespace_packages=['name'],
+        test_suite='name.space.tests.test_suite',
+        use_2to3=True
+    )
+    dist = Distribution(params)
+    dist.script_name = 'setup.py'
+    cmd = test(dist)
+    cmd.ensure_finalized()
+    cmd.announce = mock.Mock()
+    cmd.run()
+    capfd.readouterr()
+    msg = (
+        "WARNING: Testing via this command is deprecated and will be "
+        "removed in a future version. Users looking for a generic test "
+        "entry point independent of test runner are encouraged to use "
+        "tox."
+    )
+    cmd.announce.assert_any_call(msg, log.WARN)
+
+
+@pytest.mark.usefixtures('sample_test')
+@ack_2to3
+def test_deprecation_stderr(capfd):
+    params = dict(
+        name='foo',
+        packages=['name', 'name.space', 'name.space.tests'],
+        namespace_packages=['name'],
+        test_suite='name.space.tests.test_suite',
+        use_2to3=True
+    )
+    dist = Distribution(params)
+    dist.script_name = 'setup.py'
+    cmd = test(dist)
+    cmd.ensure_finalized()
+    cmd.run()
+    out, err = capfd.readouterr()
+    msg = (
+        "WARNING: Testing via this command is deprecated and will be "
+        "removed in a future version. Users looking for a generic test "
+        "entry point independent of test runner are encouraged to use "
+        "tox.\n"
+    )
+    assert msg in err

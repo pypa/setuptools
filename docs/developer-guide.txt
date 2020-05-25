@@ -66,9 +66,9 @@ and a reference to any issue tickets that the PR is intended to solve.
 All PRs with code changes should include tests. All changes should include a
 changelog entry.
 
-``setuptools`` uses `towncrier <https://town-crier.readthedocs.io/en/latest/>`_
-for changelog managment, so when making a PR, please add a news fragment in the
-``changelog.d/`` folder. Changelog files are written in Restructured Text and
+``setuptools`` uses `towncrier <https://pypi.org/project/towncrier/>`_
+for changelog management, so when making a PR, please add a news fragment in the
+``changelog.d/`` folder. Changelog files are written in reStructuredText and
 should be a 1 or 2 sentence description of the substantive changes in the PR.
 They should be named ``<pr_number>.<category>.rst``, where the categories are:
 
@@ -76,7 +76,7 @@ They should be named ``<pr_number>.<category>.rst``, where the categories are:
 - ``breaking``: Any backwards-compatibility breaking change
 - ``doc``: A change to the documentation
 - ``misc``: Changes internal to the repo like CI, test and build changes
-- ``deprecation``: For deprecations of an existing feature of behavior
+- ``deprecation``: For deprecations of an existing feature or behavior
 
 A pull request may have more than one of these components, for example a code
 change may introduce a new feature that deprecates an old feature, in which
@@ -89,41 +89,23 @@ code changes. See the following for an example news fragment:
     $ cat changelog.d/1288.change.rst
     Add support for maintainer in PKG-INFO
 
------------
-Source Code
------------
+-------------------
+Auto-Merge Requests
+-------------------
 
-Grab the code at Github::
+To support running all code through CI, even lightweight contributions,
+the project employs Mergify to auto-merge pull requests tagged as
+auto-merge.
 
-    $ git clone https://github.com/pypa/setuptools
-
-If you want to contribute changes, we recommend you fork the repository on
-Github, commit the changes to your repository, and then make a pull request
-on Github. If you make some changes, don't forget to:
-
-- add a note in CHANGES.rst
-
-Please commit all changes in the 'master' branch against the latest available
-commit or for bug-fixes, against an earlier commit or release in which the
-bug occurred.
-
-If you find yourself working on more than one issue at a time, Setuptools
-generally prefers Git-style branches, so use Mercurial bookmarks or Git
-branches or multiple forks to maintain separate efforts.
-
-The Continuous Integration tests that validate every release are run
-from this repository.
+Use ``hub pull-request -l auto-merge`` to create such a pull request
+from the command line after pushing a new branch.
 
 -------
 Testing
 -------
 
-The primary tests are run using tox. To run the tests, first create the metadata
-needed to run the tests::
-
-    $ python bootstrap.py
-
-Then make sure you have tox installed, and invoke it::
+The primary tests are run using tox.  Make sure you have tox installed,
+and invoke it::
 
     $ tox
 
@@ -151,3 +133,17 @@ To build the docs locally, use tox::
 
 .. _Sphinx: http://www.sphinx-doc.org/en/master/
 .. _published documentation: https://setuptools.readthedocs.io/en/latest/
+
+---------------------
+Vendored Dependencies
+---------------------
+
+Setuptools has some dependencies, but due to `bootstrapping issues
+<https://github.com/pypa/setuptools/issues/980>`_, those dependencies
+cannot be declared as they won't be resolved soon enough to build
+setuptools from source. Eventually, this limitation may be lifted as
+PEP 517/518 reach ubiquitous adoption, but for now, Setuptools
+cannot declare dependencies other than through
+``setuptools/_vendor/vendored.txt`` and
+``pkg_reosurces/_vendor/vendored.txt`` and refreshed by way of
+``paver update_vendored`` (pavement.py).

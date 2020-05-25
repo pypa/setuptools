@@ -8,6 +8,10 @@ from setuptools.command.build_ext import build_ext, get_abi3_suffix
 from setuptools.dist import Distribution
 from setuptools.extension import Extension
 
+from . import environment
+from .files import build_files
+from .textwrap import DALS
+
 
 class TestBuildExt:
     def test_get_ext_filename(self):
@@ -43,3 +47,69 @@ class TestBuildExt:
             assert res.endswith('eggs.pyd')
         else:
             assert 'abi3' in res
+
+
+def test_build_ext_config_handling(tmpdir_cwd):
+    files = {
+        'setup.py': DALS(
+            """
+            from setuptools import Extension, setup
+            setup(
+                name='foo',
+                version='0.0.0',
+                ext_modules=[Extension('foo', ['foo.c'])],
+            )
+            """),
+        'foo.c': DALS(
+            """
+            #include "Python.h"
+
+            #if PY_MAJOR_VERSION >= 3
+
+            static struct PyModuleDef moduledef = {
+                    PyModuleDef_HEAD_INIT,
+                    "foo",
+                    NULL,
+                    0,
+                    NULL,
+                    NULL,
+                    NULL,
+                    NULL,
+                    NULL
+            };
+
+            #define INITERROR return NULL
+
+            PyMODINIT_FUNC PyInit_foo(void)
+
+            #else
+
+            #define INITERROR return
+
+            void initfoo(void)
+
+            #endif
+            {
+            #if PY_MAJOR_VERSION >= 3
+                PyObject *module = PyModule_Create(&moduledef);
+            #else
+                PyObject *module = Py_InitModule("extension", NULL);
+            #endif
+                if (module == NULL)
+                    INITERROR;
+            #if PY_MAJOR_VERSION >= 3
+                return module;
+            #endif
+            }
+            """),
+        'setup.cfg': DALS(
+            """
+            [build]
+            build-base = foo_build
+            """),
+    }
+    build_files(files)
+    code, output = environment.run_setup_py(
+        cmd=['build'], data_stream=(0, 2),
+    )
+    assert code == 0, '\nSTDOUT:\n%s\nSTDERR:\n%s' % output

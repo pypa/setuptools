@@ -13,6 +13,8 @@ from setuptools.extern import six
 from setuptools.extern.six.moves import builtins, map
 
 import pkg_resources.py31compat
+from distutils.errors import DistutilsError
+from pkg_resources import working_set
 
 if sys.platform.startswith('java'):
     import org.python.modules.posix.PosixModule as _os
@@ -23,8 +25,6 @@ try:
 except NameError:
     _file = None
 _open = open
-from distutils.errors import DistutilsError
-from pkg_resources import working_set
 
 
 __all__ = [
@@ -374,7 +374,7 @@ class AbstractSandbox:
 
 
 if hasattr(os, 'devnull'):
-    _EXCEPTIONS = [os.devnull,]
+    _EXCEPTIONS = [os.devnull]
 else:
     _EXCEPTIONS = []
 
@@ -466,7 +466,8 @@ class DirectorySandbox(AbstractSandbox):
 
 
 WRITE_FLAGS = functools.reduce(
-    operator.or_, [getattr(_os, a, 0) for a in
+    operator.or_, [
+        getattr(_os, a, 0) for a in
         "O_WRONLY O_RDWR O_APPEND O_CREAT O_TRUNC O_TEMPORARY".split()]
 )
 

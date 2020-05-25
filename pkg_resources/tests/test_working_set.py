@@ -9,11 +9,13 @@ import pkg_resources
 
 from .test_resources import Metadata
 
+__metaclass__ = type
+
 
 def strip_comments(s):
     return '\n'.join(
-        l for l in s.split('\n')
-        if l.strip() and not l.strip().startswith('#')
+        line for line in s.split('\n')
+        if line.strip() and not line.strip().startswith('#')
     )
 
 
@@ -37,7 +39,7 @@ def parse_distributions(s):
           requires=['foo>=3.0', 'baz; extra=="feature"']
     '''
     s = s.strip()
-    for spec in re.split('\n(?=[^\s])', s):
+    for spec in re.split(r'\n(?=[^\s])', s):
         if not spec:
             continue
         fields = spec.split('\n', 1)
@@ -54,7 +56,7 @@ def parse_distributions(s):
         yield dist
 
 
-class FakeInstaller(object):
+class FakeInstaller:
 
     def __init__(self, installable_dists):
         self._installable_dists = installable_dists
@@ -87,7 +89,7 @@ def parametrize_test_working_set_resolve(*test_list):
         ):
             idlist.append(id_)
             expected = strip_comments(expected.strip())
-            if re.match('\w+$', expected):
+            if re.match(r'\w+$', expected):
                 expected = getattr(pkg_resources, expected)
                 assert issubclass(expected, Exception)
             else:

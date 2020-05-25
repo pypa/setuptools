@@ -1,0 +1,1 @@
+Document all supported keywords by migrating the ones from distutils.

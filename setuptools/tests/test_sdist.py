@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """sdist tests"""
 
+from __future__ import print_function, unicode_literals
+
 import os
-import shutil
 import sys
 import tempfile
 import unicodedata
@@ -20,8 +21,8 @@ from setuptools.command.egg_info import manifest_maker
 from setuptools.dist import Distribution
 from setuptools.tests import fail_on_ascii
 from .text import Filenames
+from . import py3_only
 
-py3_only = pytest.mark.xfail(six.PY2, reason="Test runs on Python 3 only")
 
 SETUP_ATTRS = {
     'name': 'sdist_test',
@@ -50,7 +51,7 @@ def quiet():
 
 # Convert to POSIX path
 def posix(path):
-    if six.PY3 and not isinstance(path, str):
+    if not six.PY2 and not isinstance(path, str):
         return path.replace(os.sep.encode('ascii'), b'/')
     else:
         return path.replace(os.sep, '/')
@@ -89,31 +90,28 @@ fail_on_latin1_encoded_filenames = pytest.mark.xfail(
 )
 
 
+def touch(path):
+    path.write_text('', encoding='utf-8')
+
+
 class TestSdistTest:
-    def setup_method(self, method):
-        self.temp_dir = tempfile.mkdtemp()
-        f = open(os.path.join(self.temp_dir, 'setup.py'), 'w')
-        f.write(SETUP_PY)
-        f.close()
+    @pytest.fixture(autouse=True)
+    def source_dir(self, tmpdir):
+        (tmpdir / 'setup.py').write_text(SETUP_PY, encoding='utf-8')
 
         # Set up the rest of the test package
-        test_pkg = os.path.join(self.temp_dir, 'sdist_test')
-        os.mkdir(test_pkg)
-        data_folder = os.path.join(self.temp_dir, "d")
-        os.mkdir(data_folder)
+        test_pkg = tmpdir / 'sdist_test'
+        test_pkg.mkdir()
+        data_folder = tmpdir / 'd'
+        data_folder.mkdir()
         # *.rst was not included in package_data, so c.rst should not be
         # automatically added to the manifest when not under version control
-        for fname in ['__init__.py', 'a.txt', 'b.txt', 'c.rst',
-                      os.path.join(data_folder, "e.dat")]:
-            # Just touch the files; their contents are irrelevant
-            open(os.path.join(test_pkg, fname), 'w').close()
+        for fname in ['__init__.py', 'a.txt', 'b.txt', 'c.rst']:
+            touch(test_pkg / fname)
+        touch(data_folder / 'e.dat')
 
-        self.old_cwd = os.getcwd()
-        os.chdir(self.temp_dir)
-
-    def teardown_method(self, method):
-        os.chdir(self.old_cwd)
-        shutil.rmtree(self.temp_dir)
+        with tmpdir.as_cwd():
+            yield
 
     def test_package_data_in_sdist(self):
         """Regression test for pull request #4: ensures that files listed in
@@ -135,14 +133,55 @@ class TestSdistTest:
         assert os.path.join('sdist_test', 'c.rst') not in manifest
         assert os.path.join('d', 'e.dat') in manifest
 
-    def test_defaults_case_sensitivity(self):
+    def test_setup_py_exists(self):
+        dist = Distribution(SETUP_ATTRS)
+        dist.script_name = 'foo.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+
+        with quiet():
+            cmd.run()
+
+        manifest = cmd.filelist.files
+        assert 'setup.py' in manifest
+
+    def test_setup_py_missing(self):
+        dist = Distribution(SETUP_ATTRS)
+        dist.script_name = 'foo.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+
+        if os.path.exists("setup.py"):
+            os.remove("setup.py")
+        with quiet():
+            cmd.run()
+
+        manifest = cmd.filelist.files
+        assert 'setup.py' not in manifest
+
+    def test_setup_py_excluded(self):
+        with open("MANIFEST.in", "w") as manifest_file:
+            manifest_file.write("exclude setup.py")
+
+        dist = Distribution(SETUP_ATTRS)
+        dist.script_name = 'foo.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+
+        with quiet():
+            cmd.run()
+
+        manifest = cmd.filelist.files
+        assert 'setup.py' not in manifest
+
+    def test_defaults_case_sensitivity(self, tmpdir):
         """
         Make sure default files (README.*, etc.) are added in a case-sensitive
         way to avoid problems with packages built on Windows.
         """
 
-        open(os.path.join(self.temp_dir, 'readme.rst'), 'w').close()
-        open(os.path.join(self.temp_dir, 'SETUP.cfg'), 'w').close()
+        touch(tmpdir / 'readme.rst')
+        touch(tmpdir / 'SETUP.cfg')
 
         dist = Distribution(SETUP_ATTRS)
         # the extension deliberately capitalized for this test
@@ -190,10 +229,6 @@ class TestSdistTest:
         u_contents = contents.decode('UTF-8')
 
         # The manifest should contain the UTF-8 filename
-        if six.PY2:
-            fs_enc = sys.getfilesystemencoding()
-            filename = filename.decode(fs_enc)
-
         assert posix(filename) in u_contents
 
     @py3_only
@@ -294,7 +329,7 @@ class TestSdistTest:
             cmd.read_manifest()
 
         # The filelist should contain the UTF-8 filename
-        if six.PY3:
+        if not six.PY2:
             filename = filename.decode('utf-8')
         assert filename in cmd.filelist.files
 
@@ -334,7 +369,7 @@ class TestSdistTest:
     @fail_on_latin1_encoded_filenames
     def test_sdist_with_utf8_encoded_filename(self):
         # Test for #303.
-        dist = Distribution(SETUP_ATTRS)
+        dist = Distribution(self.make_strings(SETUP_ATTRS))
         dist.script_name = 'setup.py'
         cmd = sdist(dist)
         cmd.ensure_finalized()
@@ -348,7 +383,7 @@ class TestSdistTest:
         if sys.platform == 'darwin':
             filename = decompose(filename)
 
-        if six.PY3:
+        if not six.PY2:
             fs_enc = sys.getfilesystemencoding()
 
             if sys.platform == 'win32':
@@ -365,10 +400,19 @@ class TestSdistTest:
         else:
             assert filename in cmd.filelist.files
 
+    @classmethod
+    def make_strings(cls, item):
+        if isinstance(item, dict):
+            return {
+                key: cls.make_strings(value) for key, value in item.items()}
+        if isinstance(item, list):
+            return list(map(cls.make_strings, item))
+        return str(item)
+
     @fail_on_latin1_encoded_filenames
     def test_sdist_with_latin1_encoded_filename(self):
         # Test for #303.
-        dist = Distribution(SETUP_ATTRS)
+        dist = Distribution(self.make_strings(SETUP_ATTRS))
         dist.script_name = 'setup.py'
         cmd = sdist(dist)
         cmd.ensure_finalized()
@@ -381,7 +425,19 @@ class TestSdistTest:
         with quiet():
             cmd.run()
 
-        if six.PY3:
+        if six.PY2:
+            # Under Python 2 there seems to be no decoded string in the
+            # filelist.  However, due to decode and encoding of the
+            # file name to get utf-8 Manifest the latin1 maybe excluded
+            try:
+                # fs_enc should match how one is expect the decoding to
+                # be proformed for the manifest output.
+                fs_enc = sys.getfilesystemencoding()
+                filename.decode(fs_enc)
+                assert filename in cmd.filelist.files
+            except UnicodeDecodeError:
+                filename not in cmd.filelist.files
+        else:
             # not all windows systems have a default FS encoding of cp1252
             if sys.platform == 'win32':
                 # Latin-1 is similar to Windows-1252 however
@@ -396,18 +452,36 @@ class TestSdistTest:
                 # The Latin-1 filename should have been skipped
                 filename = filename.decode('latin-1')
                 filename not in cmd.filelist.files
-        else:
-            # Under Python 2 there seems to be no decoded string in the
-            # filelist.  However, due to decode and encoding of the
-            # file name to get utf-8 Manifest the latin1 maybe excluded
-            try:
-                # fs_enc should match how one is expect the decoding to
-                # be proformed for the manifest output.
-                fs_enc = sys.getfilesystemencoding()
-                filename.decode(fs_enc)
-                assert filename in cmd.filelist.files
-            except UnicodeDecodeError:
-                filename not in cmd.filelist.files
+
+    def test_pyproject_toml_in_sdist(self, tmpdir):
+        """
+        Check if pyproject.toml is included in source distribution if present
+        """
+        touch(tmpdir / 'pyproject.toml')
+        dist = Distribution(SETUP_ATTRS)
+        dist.script_name = 'setup.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+        with quiet():
+            cmd.run()
+        manifest = cmd.filelist.files
+        assert 'pyproject.toml' in manifest
+
+    def test_pyproject_toml_excluded(self, tmpdir):
+        """
+        Check that pyproject.toml can excluded even if present
+        """
+        touch(tmpdir / 'pyproject.toml')
+        with open('MANIFEST.in', 'w') as mts:
+            print('exclude pyproject.toml', file=mts)
+        dist = Distribution(SETUP_ATTRS)
+        dist.script_name = 'setup.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+        with quiet():
+            cmd.run()
+        manifest = cmd.filelist.files
+        assert 'pyproject.toml' not in manifest
 
 
 def test_default_revctrl():

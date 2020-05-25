@@ -1,2 +1,0 @@
-Support using "file:" to load a PEP 440-compliant package version
-from a text file.

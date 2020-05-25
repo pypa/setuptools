@@ -1,6 +1,4 @@
 import pytest
-import os
-import shutil
 
 import mock
 from distutils.errors import DistutilsSetupError
@@ -10,8 +8,7 @@ from setuptools.dist import Distribution
 
 class TestBuildCLib:
     @mock.patch(
-            'setuptools.command.build_clib.newer_pairwise_group'
-            )
+        'setuptools.command.build_clib.newer_pairwise_group')
     def test_build_libraries(self, mock_newer):
         dist = Distribution()
         cmd = build_clib(dist)
@@ -40,13 +37,14 @@ class TestBuildCLib:
         # with that out of the way, let's see if the crude dependency
         # system works
         cmd.compiler = mock.MagicMock(spec=cmd.compiler)
-        mock_newer.return_value = ([],[])
+        mock_newer.return_value = ([], [])
 
         obj_deps = {'': ('global.h',), 'example.c': ('example.h',)}
-        libs = [('example', {'sources': ['example.c'] ,'obj_deps': obj_deps})]
+        libs = [('example', {'sources': ['example.c'], 'obj_deps': obj_deps})]
 
         cmd.build_libraries(libs)
-        assert [['example.c', 'global.h', 'example.h']] in mock_newer.call_args[0]
+        assert [['example.c', 'global.h', 'example.h']] in \
+            mock_newer.call_args[0]
         assert not cmd.compiler.compile.called
         assert cmd.compiler.create_static_lib.call_count == 1
 

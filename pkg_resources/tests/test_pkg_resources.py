@@ -12,16 +12,23 @@ import stat
 import distutils.dist
 import distutils.command.install_egg_info
 
+try:
+    from unittest import mock
+except ImportError:
+    import mock
+
+from pkg_resources import (
+    DistInfoDistribution, Distribution, EggInfoDistribution,
+)
+from setuptools.extern import six
 from pkg_resources.extern.six.moves import map
+from pkg_resources.extern.six import text_type, string_types
 
 import pytest
 
 import pkg_resources
 
-try:
-    unicode
-except NameError:
-    unicode = str
+__metaclass__ = type
 
 
 def timestamp(dt):
@@ -35,7 +42,7 @@ def timestamp(dt):
         return time.mktime(dt.timetuple())
 
 
-class EggRemover(unicode):
+class EggRemover(text_type):
     def __call__(self):
         if self in sys.path:
             sys.path.remove(self)
@@ -43,7 +50,7 @@ class EggRemover(unicode):
             os.remove(self)
 
 
-class TestZipProvider(object):
+class TestZipProvider:
     finalizers = []
 
     ref_time = datetime.datetime(2013, 5, 12, 13, 25, 0)
@@ -90,7 +97,6 @@ class TestZipProvider(object):
 
         expected_root = ['data.dat', 'mod.py', 'subdir']
         assert sorted(zp.resource_listdir('')) == expected_root
-        assert sorted(zp.resource_listdir('/')) == expected_root
 
         expected_subdir = ['data2.dat', 'mod2.py']
         assert sorted(zp.resource_listdir('subdir')) == expected_subdir
@@ -103,7 +109,6 @@ class TestZipProvider(object):
         zp2 = pkg_resources.ZipProvider(mod2)
 
         assert sorted(zp2.resource_listdir('')) == expected_subdir
-        assert sorted(zp2.resource_listdir('/')) == expected_subdir
 
         assert zp2.resource_listdir('subdir') == []
         assert zp2.resource_listdir('subdir/') == []
@@ -132,16 +137,42 @@ class TestZipProvider(object):
         manager.cleanup_resources()
 
 
-class TestResourceManager(object):
+class TestResourceManager:
     def test_get_cache_path(self):
         mgr = pkg_resources.ResourceManager()
         path = mgr.get_cache_path('foo')
         type_ = str(type(path))
         message = "Unexpected type from get_cache_path: " + type_
-        assert isinstance(path, (unicode, str)), message
+        assert isinstance(path, string_types), message
 
+    def test_get_cache_path_race(self, tmpdir):
+        # Patch to os.path.isdir to create a race condition
+        def patched_isdir(dirname, unpatched_isdir=pkg_resources.isdir):
+            patched_isdir.dirnames.append(dirname)
 
-class TestIndependence:
+            was_dir = unpatched_isdir(dirname)
+            if not was_dir:
+                os.makedirs(dirname)
+            return was_dir
+
+        patched_isdir.dirnames = []
+
+        # Get a cache path with a "race condition"
+        mgr = pkg_resources.ResourceManager()
+        mgr.set_extraction_path(str(tmpdir))
+
+        archive_name = os.sep.join(('foo', 'bar', 'baz'))
+        with mock.patch.object(pkg_resources, 'isdir', new=patched_isdir):
+            mgr.get_cache_path(archive_name)
+
+        # Because this test relies on the implementation details of this
+        # function, these assertions are a sentinel to ensure that the
+        # test suite will not fail silently if the implementation changes.
+        called_dirnames = patched_isdir.dirnames
+        assert len(called_dirnames) == 2
+        assert called_dirnames[0].split(os.sep)[-2:] == ['foo', 'bar']
+        assert called_dirnames[1].split(os.sep)[-1:] == ['foo']
+
     """
     Tests to ensure that pkg_resources runs independently from setuptools.
     """
@@ -163,7 +194,151 @@ class TestIndependence:
         subprocess.check_call(cmd)
 
 
-class TestDeepVersionLookupDistutils(object):
+def make_test_distribution(metadata_path, metadata):
+    """
+    Make a test Distribution object, and return it.
+
+    :param metadata_path: the path to the metadata file that should be
+        created. This should be inside a distribution directory that should
+        also be created. For example, an argument value might end with
+        "<project>.dist-info/METADATA".
+    :param metadata: the desired contents of the metadata file, as bytes.
+    """
+    dist_dir = os.path.dirname(metadata_path)
+    os.mkdir(dist_dir)
+    with open(metadata_path, 'wb') as f:
+        f.write(metadata)
+    dists = list(pkg_resources.distributions_from_metadata(dist_dir))
+    dist, = dists
+
+    return dist
+
+
+def test_get_metadata__bad_utf8(tmpdir):
+    """
+    Test a metadata file with bytes that can't be decoded as utf-8.
+    """
+    filename = 'METADATA'
+    # Convert the tmpdir LocalPath object to a string before joining.
+    metadata_path = os.path.join(str(tmpdir), 'foo.dist-info', filename)
+    # Encode a non-ascii string with the wrong encoding (not utf-8).
+    metadata = 'née'.encode('iso-8859-1')
+    dist = make_test_distribution(metadata_path, metadata=metadata)
+
+    if six.PY2:
+        # In Python 2, get_metadata() doesn't do any decoding.
+        actual = dist.get_metadata(filename)
+        assert actual == metadata
+        return
+
+    # Otherwise, we are in the Python 3 case.
+    with pytest.raises(UnicodeDecodeError) as excinfo:
+        dist.get_metadata(filename)
+
+    exc = excinfo.value
+    actual = str(exc)
+    expected = (
+        # The error message starts with "'utf-8' codec ..." However, the
+        # spelling of "utf-8" can vary (e.g. "utf8") so we don't include it
+        "codec can't decode byte 0xe9 in position 1: "
+        'invalid continuation byte in METADATA file at path: '
+    )
+    assert expected in actual, 'actual: {}'.format(actual)
+    assert actual.endswith(metadata_path), 'actual: {}'.format(actual)
+
+
+# TODO: remove this in favor of Path.touch() when Python 2 is dropped.
+def touch_file(path):
+    """
+    Create an empty file.
+    """
+    with open(path, 'w'):
+        pass
+
+
+def make_distribution_no_version(tmpdir, basename):
+    """
+    Create a distribution directory with no file containing the version.
+    """
+    # Convert the LocalPath object to a string before joining.
+    dist_dir = os.path.join(str(tmpdir), basename)
+    os.mkdir(dist_dir)
+    # Make the directory non-empty so distributions_from_metadata()
+    # will detect it and yield it.
+    touch_file(os.path.join(dist_dir, 'temp.txt'))
+
+    dists = list(pkg_resources.distributions_from_metadata(dist_dir))
+    assert len(dists) == 1
+    dist, = dists
+
+    return dist, dist_dir
+
+
+@pytest.mark.parametrize(
+    'suffix, expected_filename, expected_dist_type',
+    [
+        ('egg-info', 'PKG-INFO', EggInfoDistribution),
+        ('dist-info', 'METADATA', DistInfoDistribution),
+    ],
+)
+def test_distribution_version_missing(
+        tmpdir, suffix, expected_filename, expected_dist_type):
+    """
+    Test Distribution.version when the "Version" header is missing.
+    """
+    basename = 'foo.{}'.format(suffix)
+    dist, dist_dir = make_distribution_no_version(tmpdir, basename)
+
+    expected_text = (
+        "Missing 'Version:' header and/or {} file at path: "
+    ).format(expected_filename)
+    metadata_path = os.path.join(dist_dir, expected_filename)
+
+    # Now check the exception raised when the "version" attribute is accessed.
+    with pytest.raises(ValueError) as excinfo:
+        dist.version
+
+    err = str(excinfo.value)
+    # Include a string expression after the assert so the full strings
+    # will be visible for inspection on failure.
+    assert expected_text in err, str((expected_text, err))
+
+    # Also check the args passed to the ValueError.
+    msg, dist = excinfo.value.args
+    assert expected_text in msg
+    # Check that the message portion contains the path.
+    assert metadata_path in msg, str((metadata_path, msg))
+    assert type(dist) == expected_dist_type
+
+
+def test_distribution_version_missing_undetected_path():
+    """
+    Test Distribution.version when the "Version" header is missing and
+    the path can't be detected.
+    """
+    # Create a Distribution object with no metadata argument, which results
+    # in an empty metadata provider.
+    dist = Distribution('/foo')
+    with pytest.raises(ValueError) as excinfo:
+        dist.version
+
+    msg, dist = excinfo.value.args
+    expected = (
+        "Missing 'Version:' header and/or PKG-INFO file at path: "
+        '[could not detect]'
+    )
+    assert msg == expected
+
+
+@pytest.mark.parametrize('only', [False, True])
+def test_dist_info_is_not_dir(tmp_path, only):
+    """Test path containing a file with dist-info extension."""
+    dist_info = tmp_path / 'foobar.dist-info'
+    dist_info.touch()
+    assert not pkg_resources.dist_factory(str(tmp_path), str(dist_info), only)
+
+
+class TestDeepVersionLookupDistutils:
     @pytest.fixture
     def env(self, tmpdir):
         """
@@ -207,3 +382,56 @@ class TestDeepVersionLookupDistutils(object):
         req = pkg_resources.Requirement.parse('foo>=1.9')
         dist = pkg_resources.WorkingSet([env.paths['lib']]).find(req)
         assert dist.version == version
+
+    @pytest.mark.parametrize(
+        'unnormalized, normalized',
+        [
+            ('foo', 'foo'),
+            ('foo/', 'foo'),
+            ('foo/bar', 'foo/bar'),
+            ('foo/bar/', 'foo/bar'),
+        ],
+    )
+    def test_normalize_path_trailing_sep(self, unnormalized, normalized):
+        """Ensure the trailing slash is cleaned for path comparison.
+
+        See pypa/setuptools#1519.
+        """
+        result_from_unnormalized = pkg_resources.normalize_path(unnormalized)
+        result_from_normalized = pkg_resources.normalize_path(normalized)
+        assert result_from_unnormalized == result_from_normalized
+
+    @pytest.mark.skipif(
+        os.path.normcase('A') != os.path.normcase('a'),
+        reason='Testing case-insensitive filesystems.',
+    )
+    @pytest.mark.parametrize(
+        'unnormalized, normalized',
+        [
+            ('MiXeD/CasE', 'mixed/case'),
+        ],
+    )
+    def test_normalize_path_normcase(self, unnormalized, normalized):
+        """Ensure mixed case is normalized on case-insensitive filesystems.
+        """
+        result_from_unnormalized = pkg_resources.normalize_path(unnormalized)
+        result_from_normalized = pkg_resources.normalize_path(normalized)
+        assert result_from_unnormalized == result_from_normalized
+
+    @pytest.mark.skipif(
+        os.path.sep != '\\',
+        reason='Testing systems using backslashes as path separators.',
+    )
+    @pytest.mark.parametrize(
+        'unnormalized, expected',
+        [
+            ('forward/slash', 'forward\\slash'),
+            ('forward/slash/', 'forward\\slash'),
+            ('backward\\slash\\', 'backward\\slash'),
+        ],
+    )
+    def test_normalize_path_backslash_sep(self, unnormalized, expected):
+        """Ensure path seps are cleaned on backslash path sep systems.
+        """
+        result = pkg_resources.normalize_path(unnormalized)
+        assert result.endswith(expected)

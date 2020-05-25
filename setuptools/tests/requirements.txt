@@ -1,0 +1,12 @@
+mock
+pytest-flake8
+flake8-2020; python_version>="3.6"
+virtualenv>=13.0.0
+pytest-virtualenv>=1.2.7
+pytest>=3.7
+wheel
+coverage>=4.5.1
+pytest-cov>=2.5.1
+paver; python_version>="3.6"
+futures; python_version=="2.7"
+pip>=19.1 # For proper file:// URLs support.
