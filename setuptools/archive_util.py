@@ -202,8 +202,8 @@ def make_tarball(base_name, base_dir, compress="gzip", verbose=0, dry_run=0,
     # flags for compression program, each element of list will be an argument
     if compress is not None and compress not in compress_ext.keys():
         raise ValueError(
-              "bad value for 'compress': must be None, 'gzip', 'bzip2', "
-              "'xz' or 'compress'")
+            "bad value for 'compress': must be None, 'gzip', 'bzip2', "
+            "'xz' or 'compress'")
 
     archive_name = base_name + '.tar'
     if compress != 'compress':
@@ -254,10 +254,10 @@ ARCHIVE_FORMATS = {
     'gztar': (make_tarball, [('compress', 'gzip')], "gzip'ed tar-file"),
     'bztar': (make_tarball, [('compress', 'bzip2')], "bzip2'ed tar-file"),
     'xztar': (make_tarball, [('compress', 'xz')], "xz'ed tar-file"),
-    'ztar':  (make_tarball, [('compress', 'compress')], "compressed tar file"),
-    'tar':   (make_tarball, [('compress', None)], "uncompressed tar file"),
-    'zip':   (make_zipfile, [],"ZIP file")
-    }
+    'ztar': (make_tarball, [('compress', 'compress')], "compressed tar file"),
+    'tar': (make_tarball, [('compress', None)], "uncompressed tar file"),
+    'zip': (make_zipfile, [], "ZIP file")
+}
 
 
 def make_archive(base_name, format, root_dir=None, base_dir=None, verbose=0,
