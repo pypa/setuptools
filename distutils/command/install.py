@@ -298,7 +298,7 @@ class install(Command):
                             'sys_exec_prefix': exec_prefix,
                             'exec_prefix': exec_prefix,
                             'abiflags': abiflags,
-                            'platlibdir': sys.platlibdir,
+                            'platlibdir': getattr(sys, 'platlibdir', 'lib'),
                            }
 
         if HAS_USER_SITE:
