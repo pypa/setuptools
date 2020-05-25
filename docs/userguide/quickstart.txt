@@ -64,7 +64,7 @@ Then, you need an installer, such as `pep517 <https://pypi.org/project/pep517/>`
 which you can obtain via ``pip install pep517``. After downloading it, invoke
 the installer::
 
-    pep517 build
+    python -m pep517.build
 
 You now have your distribution ready (e.g. a ``tar.gz`` file and a ``.whl``
 file in the ``dist`` directory), which you can upload to PyPI!
