@@ -14,10 +14,11 @@ designed to facilitate packaging Python projects, where packaging includes:
 Documentation content:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    setuptools
    pkg_resources
+   build_meta
    python3
    development
    roadmap
