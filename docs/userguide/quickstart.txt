@@ -88,19 +88,22 @@ therefore provides two convenient tools to ease the burden: ``find: `` and
 
     [options]
     packages = find:
+    package_dir=
 
     [options.packages.find] #optional
-    where="."
-    include=['pkg1', 'pkg2']
-    exclude=['pkg3', 'pkg4']]
+    where=
+    include=pkg1, pkg2
+    exclude=pk3, pk4
 
 
 When you pass the above information, alongside other necessary ones,
 ``setuptools`` walks through the directory specified in ``where`` (default to
-current directory) and filters the packages
+current directory when left empty) and filters the packages
 it can find following the ``include``  (default to none), then remove
 those that match the ``exclude`` and return a list of Python packages. Note
-that each entry in the ``[options.packages.find]`` is optional.
+that each entry in the ``[options.packages.find]`` is optional. And when
+``where`` keyword is used, ``package_dir`` also need to be specified (so that
+the packages discovered by ``find:`` can actually be loaded)
 
 For more details and advanced use, go to :ref:`package_discovery`
 
@@ -110,40 +113,45 @@ Entry points and automatic script creation
 Setuptools support automatic creation of scripts upon installation, that runs
 code within your package if you specify them with the ``entry_point`` keyword.
 This is what allows you to run commands like ``pip install`` instead of having
-to type ``python -m pip install``. To accomplish this, consider the following
-example::
+to type ``python -m pip install``. To accomplish this, add the entry_points
+keyword in your ``setup.cfg``:
 
-    setup(
-        #....
-        entry_points={
-            "console_scripts": [
-                "foo = my_package.some_module:main_func",
-            ],
-        }
-    )
+.. code-block:: ini
 
-When this project is installed, a ``foo`` script will be installed and will
-invoke the ``main_func`` when called by the user. For detailed usage, including
-managing the additional or optional dependencies, go to :ref:`entry_point`.
+    [options]
+    entry_points =
+        [console_script]
+        main = mypkg:some_func
+
+When this project is installed, a ``main`` script will be installed and will
+invoke the ``some_func`` in the ``__init__.py`` file when called by the user.
+For detailed usage, including managing the additional or optional dependencies,
+go to :ref:`entry_point`.
 
 Dependency management
 =====================
 
 ``setuptools`` supports automatically installing dependencies when a package is
 installed. The simplest way to include requirement specifiers is to use the
-``install_requires`` argument to ``setup()``.  It takes a string or list of
-strings containing requirement specifiers::
+``install_requires`` argument to ``setup.cfg``.  It takes a string or list of
+strings containing requirement specifiers (A version specifier is one of the
+operators <, >, <=, >=, == or !=, followed by a version identifier):
 
-    setup(
-        #...
-        install_requires = "docutils >= 0.3"
-    )
+.. code-block:: ini
 
-When your project is installed, either by using pip, ``setup.py install``,
-or ``setup.py develop``, all of the dependencies not already installed will
-be located (via PyPI), downloaded, built (if necessary), and installed.
+    [options]
+    install_requires =
+        docutils >= 0.3
+        requests <= 0.4
 
-For more advanced use, see :ref:`dependency_management`
+When your project is installed, all of the dependencies not already installed
+will be located (via PyPI), downloaded, built (if necessary), and installed.
+This, of course, is a simplified scenarios. ``setuptools`` also provide
+additional keywords such as ``setup_requires`` that allows you to install
+dependencies before running the script, and ``extras_requires`` that take
+care of those needed by automatically generated scripts. It also provides
+mechanisms to handle dependencies that are not in PyPI. For more advanced use,
+see :ref:`dependency_management`
 
 Including Data Files
 ====================
@@ -151,35 +159,18 @@ Including Data Files
 The distutils have traditionally allowed installation of "data files", which
 are placed in a platform-specific location. Setuptools offers three ways to
 specify data files to be included in your packages. For the simpliest use, you
-can simply use the ``include_package_data`` keyword e.g.::
+can simply use the ``include_package_data`` keyword:
 
-    setup(
-            ...
-            include_package_data=True
-        )
+.. code-block:: ini
+
+    [options]
+    include_package_data = True
 
 This tells setuptools to install any data files it finds in your packages.
 The data files must be specified via the distutils' ``MANIFEST.in`` file.
 
 For more details, see :ref:`datafiles`
 
-Development mode
-================
-
-Setuptools allows you to deploy your projects for use in a common directory or
-staging area, but without copying any files.  Thus, you can edit each project's
-code in its checkout directory, and only need to run build commands when you
-change a project's C extensions or similarly compiled files.
-
-To do this, use the ``setup.py develop`` command.  It works very similarly to
-``setup.py install``, except that it doesn't actually install anything.
-Instead, it creates a special ``.egg-link`` file in the deployment directory,
-that links to your project's source code.  And, if your deployment directory is
-Python's ``site-packages`` directory, it will also update the
-``easy-install.pth`` file to include your project's source code, thereby making
-it available on ``sys.path`` for all programs using that Python installation.
-
-for more information, go to :ref:`development_mode`
 
 Distributing a ``setuptools``-based project
 ===========================================
