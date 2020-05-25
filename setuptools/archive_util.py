@@ -6,6 +6,7 @@ import os
 import shutil
 import posixpath
 import contextlib
+import distutils.archive_util
 from distutils.errors import DistutilsError
 from distutils.dir_util import mkpath
 from distutils import log
@@ -177,6 +178,7 @@ def unpack_tarfile(filename, extract_dir, progress_filter=default_filter):
 extraction_drivers = unpack_directory, unpack_zipfile, unpack_tarfile
 
 
+# Modified version fo distutils' to support SOURCE_DATE_EPOCH
 def make_tarball(base_name, base_dir, compress="gzip", verbose=0, dry_run=0,
                  owner=None, group=None):
     """Create a (possibly compressed) tar file from all the files under
@@ -216,8 +218,8 @@ def make_tarball(base_name, base_dir, compress="gzip", verbose=0, dry_run=0,
 
     log.info('Creating tar archive')
 
-    uid = _get_uid(owner)
-    gid = _get_gid(group)
+    uid = distutils.archive_util._get_uid(owner)
+    gid = distutils.archive_util._get_gid(group)
 
     def _set_uid_gid(tarinfo):
         if gid is not None:
@@ -228,10 +230,26 @@ def make_tarball(base_name, base_dir, compress="gzip", verbose=0, dry_run=0,
             tarinfo.uname = owner
         return tarinfo
 
+    _filter = _set_uid_gid
+
+    # SOURCE_DATE EPOCH is defined there
+    # https://reproducible-builds.org/specs/source-date-epoch/
+    # we are at least sure that when it is set no timestamp can be later than
+    # this.
+    timestamp = None
+    sde = os.environ.get('SOURCE_DATE_EPOCH')
+    if sde:
+        timestamp = int(sde)
+
+        def _filter(tarinfo):
+            tarinfo = _set_uid_gid(tarinfo)
+            tarinfo.mtime = min(tarinfo.mtime, timestamp)
+            return tarinfo
+
     if not dry_run:
         tar = tarfile.open(archive_name, 'w|%s' % tar_compression[compress])
         try:
-            tar.add(base_dir, filter=_set_uid_gid)
+            tar.add(base_dir, filter=_filter)
         finally:
             tar.close()
 
@@ -256,7 +274,7 @@ ARCHIVE_FORMATS = {
     'xztar': (make_tarball, [('compress', 'xz')], "xz'ed tar-file"),
     'ztar': (make_tarball, [('compress', 'compress')], "compressed tar file"),
     'tar': (make_tarball, [('compress', None)], "uncompressed tar file"),
-    'zip': (make_zipfile, [], "ZIP file")
+    'zip': (distutils.archive_util.make_zipfile, [], "ZIP file")
 }
 
 
@@ -309,5 +327,4 @@ def make_archive(base_name, format, root_dir=None, base_dir=None, verbose=0,
         if root_dir is not None:
             log.debug("changing back to '%s'", save_cwd)
             os.chdir(save_cwd)
-
     return filename

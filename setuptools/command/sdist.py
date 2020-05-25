@@ -8,6 +8,7 @@ import contextlib
 from setuptools.extern import six, ordered_set
 
 from .py36compat import sdist_add_defaults
+from .. import archive_util
 
 import pkg_resources
 
@@ -76,6 +77,12 @@ class sdist(sdist_add_defaults, orig.sdist):
         """
         with self._remove_os_link():
             orig.sdist.make_distribution(self)
+
+    def make_archive(self, base_name, format, root_dir=None, base_dir=None,
+                     owner=None, group=None):
+        return archive_util.make_archive(base_name, format, root_dir, base_dir,
+                                         dry_run=self.dry_run,
+                                         owner=owner, group=group)
 
     @staticmethod
     @contextlib.contextmanager
