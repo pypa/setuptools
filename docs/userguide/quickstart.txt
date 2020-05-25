@@ -24,7 +24,8 @@ be generated with whatever tools that provides a ``build sdist``-alike
 functionality. While this may appear cumbersome, given the added pieces,
 it in fact tremendously enhances the portability of your package. The
 change is driven under `PEP 517 <https://www.python.org/dev/peps/pep-0517/#
-build-requirements>``
+build-requirements>``. To learn more about Python packaging in general,
+navigate to the `bottom <Resources on python packaging>`_ of this page.
 
 Basic Use
 =========
@@ -61,12 +62,14 @@ This is what your project would look like::
         setup.cfg
         mypackage/__init__.py
 
-As you can see, it doesn't take much to use setuptools in a project. Invoke
-the installer at the root of your package::
+Then, you need an installer, such as ``pep517 <https://pypi.org/project/pep517/``
+which you can obtain via ``pip install pep517``. After downloading it, invoke
+the installer::
 
     pep517 build
 
-You now have your distribution ready, which you can upload to PyPI.
+You now have your distribution ready (e.g. a ``tar.gz`` file and a ``.whl``
+file in the ``dist``), which you can upload to PyPI!
 
 Of course, before you release your project to PyPI, you'll want to add a bit
 more information to your setup script to help people find or learn about your
@@ -88,24 +91,19 @@ therefore provides two convenient tools to ease the burden: ``find: `` and
 
     [options]
     packages = find:
-    package_dir=
 
     [options.packages.find] #optional
-    where=
     include=pkg1, pkg2
     exclude=pk3, pk4
 
-
 When you pass the above information, alongside other necessary ones,
-``setuptools`` walks through the directory specified in ``where`` (default to
-current directory when left empty) and filters the packages
+``setuptools`` walks through the directory specified in ``where`` (omitted
+here as the package reside in current directory) and filters the packages
 it can find following the ``include``  (default to none), then remove
 those that match the ``exclude`` and return a list of Python packages. Note
-that each entry in the ``[options.packages.find]`` is optional. And when
-``where`` keyword is used, ``package_dir`` also need to be specified (so that
-the packages discovered by ``find:`` can actually be loaded)
-
-For more details and advanced use, go to :ref:`package_discovery`
+that each entry in the ``[options.packages.find]`` is optional. The above
+setup also allows you to adopt a ``src/`` layout. For more details and advanced
+use, go to :ref:`package_discovery`
 
 Entry points and automatic script creation
 ===========================================
@@ -170,36 +168,3 @@ This tells setuptools to install any data files it finds in your packages.
 The data files must be specified via the distutils' ``MANIFEST.in`` file.
 
 For more details, see :ref:`datafiles`
-
-
-Distributing a ``setuptools``-based project
-===========================================
-Before you begin, make sure you have the latest versions of setuptools and wheel::
-
-    pip install --upgrade setuptools wheel
-
-To build a setuptools project, run this command from the same directory where
-setup.py is located::
-
-    setup.py sdist bdist_wheel
-
-This will generate distribution archives in the `dist` directory.
-
-Before you upload the generated archives make sure you're registered on
-https://test.pypi.org/account/register/. You will also need to verify your email
-to be able to upload any packages.
-You should install twine to be able to upload packages::
-
-    pip install --upgrade twine
-
-Now, to upload these archives, run::
-
-    twine upload --repository-url https://test.pypi.org/legacy/ dist/*
-
-To install your newly uploaded package ``example_pkg``,  you can use pip::
-
-    pip install --index-url https://test.pypi.org/simple/ example_pkg
-
-The next following sections will walk you through all of the available functions
-``setuptools`` offers in excrutiating details (including those already mentioned)
-for more advanced use.
