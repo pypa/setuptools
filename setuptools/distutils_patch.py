@@ -7,9 +7,23 @@ for more motivation.
 
 import sys
 import importlib
+import contextlib
 from os.path import dirname
 
 
-sys.path.insert(0, dirname(dirname(__file__)))
-importlib.import_module('distutils')
-sys.path.pop(0)
+@contextlib.contextmanager
+def patch_sys_path():
+    orig = sys.path[:]
+    sys.path[:] = [dirname(dirname(__file__))]
+    try:
+        yield
+    finally:
+        sys.path[:] = orig
+
+
+if 'distutils' in sys.path:
+    raise RuntimeError("Distutils must not be imported before setuptools")
+
+
+with patch_sys_path():
+    importlib.import_module('distutils')
