@@ -1,15 +1,9 @@
 """Extensions to the 'distutils' for large or complex distributions"""
 
 import os
-import sys
 import functools
 
-from os.path import dirname
-
-# Patch the distutils search location
-sys.path.insert(0, dirname(dirname(__file__)))
-import distutils
-sys.path.pop(0)
+import setuptools.distutils_patch  # noqa: F401
 
 import distutils.core
 import distutils.filelist
