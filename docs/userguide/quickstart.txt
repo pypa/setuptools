@@ -167,6 +167,26 @@ The data files must be specified via the distutils' ``MANIFEST.in`` file.
 For more details, see :ref:`datafiles`
 
 
+Development mode
+================
+``setuptools`` allows you to install a package without copying any files
+to your interpretor directory (e.g. the ``site-packages`` directory). This
+allows you to modify your source code and have the changes take effect without
+you having to rebuild and reinstall. This is currently incompatible with
+PEP 517 and therefore it requires a ``setup.py`` script with the following
+content::
+
+    import setuptools
+    setuptools.setup()
+
+Then::
+
+    pip install --editable .
+
+This creates a link file in your interpretor site package directory which
+associate with your source code. For more information, see: (WIP)
+
+
 Uploading your package to PyPI
 ==============================
 After generating the distribution files, next step would be to upload your
