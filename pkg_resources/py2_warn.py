@@ -6,7 +6,7 @@ import textwrap
 msg = textwrap.dedent("""
     Encountered a version of Setuptools that no longer supports
     this version of Python. Please head to
-    https://bit.ly/setuptools-py2-warning for support.
+    https://bit.ly/setuptools-py2-sunset for support.
     """)
 
 pre = "Setuptools no longer works on Python 2\n"
