@@ -2,61 +2,82 @@
 Entry Points and Automatic Script Creation
 ==========================================
 
-Packaging and installing scripts can be a bit awkward with the distutils.  For
-one thing, there's no easy way to have a script's filename match local
-conventions on both Windows and POSIX platforms.  For another, you often have
-to create a separate file just for the "main" script, when your actual "main"
-is a function in a module somewhere.  And even in Python 2.4, using the ``-m``
-option only works for actual ``.py`` files that aren't installed in a package.
+When installing a package, you may realize you can invoke some commands without
+explicitly calling the python interpreter. For example, instead of calling
+``python -m pip install`` you can just do ``pip install``. The magic behind
+this is entry point, a keyword passed to your ``setup.cfg`` or ``setup.py``
+to create script wrapped around function in your libraries.
 
-``setuptools`` fixes all of these problems by automatically generating scripts
-for you with the correct extension, and on Windows it will even create an
-``.exe`` file so that users don't have to change their ``PATHEXT`` settings.
-The way to use this feature is to define "entry points" in your setup script
-that indicate what function the generated script should import and run.  For
-example, to create two console scripts called ``foo`` and ``bar``, and a GUI
-script called ``baz``, you might do something like this::
+
+Using entry point in your package
+=================================
+Let's start with an example. Suppose you have written your package like this:
+
+.. code-block:: bash
+
+    timmins/
+        timmins/__init__.py
+        setup.cfg
+        #other necessary files
+
+and in your ``__init__.py`` it defines a function:
+
+.. code-block:: python
+
+    def helloworld():
+        print("Hello world")
+
+After installing the package, you can invoke this function in the following
+manner, without applying any magic:
+
+.. code-block:: bash
+
+    python -m mypkg.helloworld
+
+But entry point simplifies this process and would create a wrapper script around
+your function, making it behave more natively. To do that, add the following
+lines to your ``setup.cfg`` or ``setup.py``:
+
+.. code-block:: ini
+
+    [options]
+    #...
+    entry_points =
+        [console_scripts]
+        helloworld = mypkg:helloworld
+
+.. code-block:: python
 
     setup(
-        # other arguments here...
-        entry_points={
-            "console_scripts": [
-                "foo = my_package.some_module:main_func",
-                "bar = other_module:some_func",
-            ],
-            "gui_scripts": [
-                "baz = my_package_gui:start_func",
-            ]
-        }
+        #...
+        entry_points = """
+            [console_scripts]
+            helloworld = mypkg:helloworld
+            """
     )
 
-When this project is installed on non-Windows platforms (using "setup.py
-install", "setup.py develop", or with pip), a set of ``foo``, ``bar``,
-and ``baz`` scripts will be installed that import ``main_func`` and
-``some_func`` from the specified modules.  The functions you specify are
-called with no arguments, and their return value is passed to
-``sys.exit()``, so you can return an errorlevel or message to print to
-stderr.
+The syntax for your entry points is specified as follows
 
-On Windows, a set of ``foo.exe``, ``bar.exe``, and ``baz.exe`` launchers are
-created, alongside a set of ``foo.py``, ``bar.py``, and ``baz.pyw`` files.  The
-``.exe`` wrappers find and execute the right version of Python to run the
-``.py`` or ``.pyw`` file.
+.. code-block::
 
-You may define as many "console script" and "gui script" entry points as you
-like, and each one can optionally specify "extras" that it depends on, that
-will be added to ``sys.path`` when the script is run.  For more information on
-"extras", see the section below on `Declaring Extras`_.  For more information
-on "entry points" in general, see the section below on `Dynamic Discovery of
-Services and Plugins`_.
+    [<type>]
+    <name> = [<package>.<subpackage>.]<module>:<function>
 
+where ``name`` is the name for the script you want to create and the left hand
+side of ``:`` is the module that contains your function and the right hand
+side is the function you wish to wrap. ``type`` specifies the type of script
+you want to create. ``setuptools`` currently supports either ``[console_script]``
+and ``[gui_script]`` (DOUBLE CHECK ON THIS).
 
-Dynamic Discovery of Services and Plugins
------------------------------------------
+After installation, you will be able to invoke that function simply calling
+``helloworld`` on your command line. It will also do command line options parsing
+for you!
 
-``setuptools`` supports creating libraries that "plug in" to extensible
-applications and frameworks, by letting you register "entry points" in your
-project that can be imported by the application or framework.
+Dynamic discovery of services and plugins
+=========================================
+The ability of entry points isn't limited to "advertising" your functions. In
+fact, its implementation allows us to achieve more powerful features, such as
+supporting libraries that "plus in" to extensible applications and frameworks
 
 For example, suppose that a blogging tool wants to support plugins
 that provide translation for various file types to the blog's output format.
@@ -113,3 +134,6 @@ passed to ``pkg_resources.require()``, so that an appropriate error message
 can be displayed if the needed package(s) are missing.  (Of course, the
 invoking app or framework can ignore such errors if it wants to make an entry
 point optional if a requirement isn't installed.)
+
+Dependencies management for entry points
+========================================
