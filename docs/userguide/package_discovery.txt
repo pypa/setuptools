@@ -1,65 +1,90 @@
+.. _`package_discovery`:
+
 ===================
 Package Discovery
 ===================
 
 ``Setuptools`` provide powerful tools to handle package discovery, including
-support for namespace package. The following explain how you include package
-in your ``setup`` script::
+support for namespace package. Normally, you would specify the package to be
+included manually in the following manner:
+
+.. code-block:: ini
+
+    [options]
+    packages =
+        mypkg1
+        mypkg2
+
+.. code-block:: python
 
     setup(
         packages = ['mypkg1', 'mypkg2']
     )
 
-To speed things up, we introduce two functions provided by setuptools::
+This can get tiresome reallly quickly. To speed things up, we introduce two
+functions provided by setuptools:
+
+.. code-block:: ini
+
+    [options]
+    packages = find:
+    #or
+    packages = find_namespace:
+
+.. code-block:: python
 
     from setuptools import find_packages
-
-or::
-
+    #or
     from setuptools import find_namespace_packages
 
 
-Using ``find_packages()``
--------------------------
+Using ``find:`` (``find_packages``)
+===================================
+Let's start with the first tool. ``find:`` (``find_packages``) takes a source
+directory and two lists of package name patterns to exclude and include, and
+then return a list of ``str`` representing the packages it could find. To use
+it, consider the following directory
 
-Let's start with the first tool.
+    mypkg/
+        src/
+            pkg1/__init__.py
+            pkg2/__init__.py
+            tests/__init__.py
+        setup.cfg #or setup.py
 
-``find_packages()`` takes a source directory and two lists of package name
-patterns to exclude and include.  If omitted, the source directory defaults to
-the same
-directory as the setup script.  Some projects use a ``src`` or ``lib``
-directory as the root of their source tree, and those projects would of course
-use ``"src"`` or ``"lib"`` as the first argument to ``find_packages()``.  (And
-such projects also need something like ``package_dir={"": "src"}`` in their
-``setup()`` arguments, but that's just a normal distutils thing.)
+To have your setup.cfg or setup.py to automatically include packages found
+in ``src`` that starts with the name ``pkg`` and not ``tests``:
 
-Anyway, ``find_packages()`` walks the target directory, filtering by inclusion
-patterns, and finds Python packages (any directory). Packages are only
-recognized if they include an ``__init__.py`` file. Finally, exclusion
-patterns are applied to remove matching packages.
+.. code-block:: ini
 
-Inclusion and exclusion patterns are package names, optionally including
-wildcards.  For
-example, ``find_packages(exclude=["*.tests"])`` will exclude all packages whose
-last name part is ``tests``.   Or, ``find_packages(exclude=["*.tests",
-"*.tests.*"])`` will also exclude any subpackages of packages named ``tests``,
-but it still won't exclude a top-level ``tests`` package or the children
-thereof.  In fact, if you really want no ``tests`` packages at all, you'll need
-something like this::
+    [options]
+    packages = find:
+    package_dir =
+        =src
 
-    find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"])
+    [options.packages.find]
+    where = src
+    include = pkg*
+    exclude = tests
 
-in order to cover all the bases.  Really, the exclusion patterns are intended
-to cover simpler use cases than this, like excluding a single, specified
-package and its subpackages.
+.. code-block:: python
 
-Regardless of the parameters, the ``find_packages()``
-function returns a list of package names suitable for use as the ``packages``
-argument to ``setup()``, and so is usually the easiest way to set that
-argument in your setup script.  Especially since it frees you from having to
-remember to modify your setup script whenever your project grows additional
-top-level packages or subpackages.
+    setup(
+        #...
+        packages = find_packages(
+            where = 'src',
+            include = ['pkg*',],
+            exclude = ['tests',]
+        ),
+        package_dir = {"":"src"}
+        #...
+    )
 
+Of course the keywords presented here appear arbitary and the example given
+doesn't apply to every other scenarios. For best understanding, we recommend
+going to :ref:`keywords_ref`.
+
+#####WIP below#########
 ``find_namespace_packages()``
 -----------------------------
 In Python 3.3+, ``setuptools`` also provides the ``find_namespace_packages`` variant
