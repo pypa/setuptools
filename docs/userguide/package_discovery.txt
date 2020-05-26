@@ -1,8 +1,19 @@
 .. _`package_discovery`:
 
-===================
-Package Discovery
-===================
+========================================
+Package Discovery and Namespace Package
+========================================
+
+.. note::
+    a full specification for the keyword supplied to ``setup.cfg`` or
+    ``setup.py`` can be found at :ref:`keywords reference <keywords_ref>`
+
+.. note::
+    the examples provided here are only to demonstrate the functionality
+    introduced. More metadata and options arguments need to be supplied
+    if you want to replicate them on your system. If you are completely
+    new to setuptools, the :ref:`quickstart section <quickstart>` is a good
+    place to start.
 
 ``Setuptools`` provide powerful tools to handle package discovery, including
 support for namespace package. Normally, you would specify the package to be
@@ -38,22 +49,25 @@ functions provided by setuptools:
     from setuptools import find_namespace_packages
 
 
-Using ``find:`` (``find_packages``)
-===================================
+Using ``find:`` or ``find_packages``
+====================================
 Let's start with the first tool. ``find:`` (``find_packages``) takes a source
 directory and two lists of package name patterns to exclude and include, and
 then return a list of ``str`` representing the packages it could find. To use
 it, consider the following directory
 
+.. code-block:: bash
+
     mypkg/
         src/
             pkg1/__init__.py
             pkg2/__init__.py
-            tests/__init__.py
+            additional/__init__.py
+
         setup.cfg #or setup.py
 
 To have your setup.cfg or setup.py to automatically include packages found
-in ``src`` that starts with the name ``pkg`` and not ``tests``:
+in ``src`` that starts with the name ``pkg`` and not ``additional``:
 
 .. code-block:: ini
 
@@ -65,7 +79,7 @@ in ``src`` that starts with the name ``pkg`` and not ``tests``:
     [options.packages.find]
     where = src
     include = pkg*
-    exclude = tests
+    exclude = additional
 
 .. code-block:: python
 
@@ -80,127 +94,113 @@ in ``src`` that starts with the name ``pkg`` and not ``tests``:
         #...
     )
 
-Of course the keywords presented here appear arbitary and the example given
-doesn't apply to every other scenarios. For best understanding, we recommend
-going to :ref:`keywords_ref`.
 
-#####WIP below#########
-``find_namespace_packages()``
------------------------------
-In Python 3.3+, ``setuptools`` also provides the ``find_namespace_packages`` variant
-of ``find_packages``, which has the same function signature as
-``find_packages``, but works with `PEP 420`_ compliant implicit namespace
-packages. Here is a minimal setup script using ``find_namespace_packages``::
+Using ``find_namespace:`` or ``find_namespace_packages``
+========================================================
+``setuptools``  provides the ``find_namespace:`` (``find_namespace_packages``)
+which behaves similarly to ``find:`` but works with namespace package. Before
+diving in, it is important to have a good understanding of what namespace
+packages are. Here is a quick recap:
 
-    from setuptools import setup, find_namespace_packages
-    setup(
-        name="HelloWorld",
-        version="0.1",
-        packages=find_namespace_packages(),
-    )
+Suppose you have two packages named as follows:
+
+.. code-block:: bash
+
+    /Users/Desktop/timmins/foo/__init__.py
+    /Library/timmins/bar/__init__.py
+
+If both ``Desktop`` and ``Library`` are on your ``PYTHONPATH``, then a
+namespace package called ``timmins`` will be created automatically for you when
+you invoke the import mechanism, allowing you to accomplish the following
+
+.. code-block:: python
+
+    >>> import timmins.foo
+    >>> import timmins.bar
+
+as if there is only one ``timmins`` on your system. The two packages can then
+be distributed separately and installed individually without affecting the
+other one. Suppose you are packaging the ``foo`` part:
+
+.. code-block:: bash
+
+    foo/
+        src/
+            timmins/foo/__init__.py
+        setup.cfg # or setup.py
+
+and you want the ``foo`` to be automatically included, ``find:`` won't work
+because timmins doesn't contain ``__init__.py`` directly, instead, you have
+to use ``find_namespace:``:
+
+.. code-block:: ini
+
+    [options]
+    package_dir =
+        =src
+    packages = find_namespace:
+
+    [options.packages.find_namespace]
+    where = src
+
+When you install the zipped distribution, ``timmins.foo`` would become
+available to your interpreter.
+
+You can think of ``find_namespace:`` as identical to ``find:`` except it
+would count a directory as a package even if it doesn't contain ``__init__.py``
+file directly. As a result, this creates an interesting side effect. If you
+organize your package like this:
+
+.. code-block:: bash
+
+    foo/
+        timmins/
+            foo/__init__.py
+        setup.cfg # or setup.py
+        tests/
+            test_foo/__init__.py
+
+a naive ``find_namespace:`` would include tests as part of your package to
+be installed. A simple way to fix it is to adopt the aforementioned
+``src`` layout.
 
 
-Keep in mind that according to PEP 420, you may have to either re-organize your
-codebase a bit or define a few exclusions, as the definition of an implicit
-namespace package is quite lenient, so for a project organized like so::
+Legacy Namespace Packages
+==========================
+The fact you can create namespace package so effortlessly above is credited
+to `PEP 420 <https://www.python.org/dev/peps/pep-0420/>`_. In the past, it
+is more cumbersome to accomplish the same result.
 
+Starting with the same layout, there are two pieces you need to add to it.
+First, an ``__init__.py`` file directly under your namespace package
+directory that contains the following:
 
-    ├── namespace
-    │   └── mypackage
-    │       ├── __init__.py
-    │       └── mod1.py
-    ├── setup.py
-    └── tests
-        └── test_mod1.py
-
-A naive ``find_namespace_packages()`` would install both ``namespace.mypackage`` and a
-top-level package called ``tests``! One way to avoid this problem is to use the
-``include`` keyword to whitelist the packages to include, like so::
-
-    from setuptools import setup, find_namespace_packages
-
-    setup(
-        name="namespace.mypackage",
-        version="0.1",
-        packages=find_namespace_packages(include=["namespace.*"])
-    )
-
-Another option is to use the "src" layout, where all package code is placed in
-the ``src`` directory, like so::
-
-
-    ├── setup.py
-    ├── src
-    │   └── namespace
-    │       └── mypackage
-    │           ├── __init__.py
-    │           └── mod1.py
-    └── tests
-        └── test_mod1.py
-
-With this layout, the package directory is specified as ``src``, as such::
-
-    setup(name="namespace.mypackage",
-          version="0.1",
-          package_dir={"": "src"},
-          packages=find_namespace_packages(where="src"))
-
-.. _PEP 420: https://www.python.org/dev/peps/pep-0420/
-
-
-Namespace Packages
-------------------
-
-Sometimes, a large package is more useful if distributed as a collection of
-smaller eggs.  However, Python does not normally allow the contents of a
-package to be retrieved from more than one location.  "Namespace packages"
-are a solution for this problem.  When you declare a package to be a namespace
-package, it means that the package has no meaningful contents in its
-``__init__.py``, and that it is merely a container for modules and subpackages.
-
-The ``pkg_resources`` runtime will then automatically ensure that the contents
-of namespace packages that are spread over multiple eggs or directories are
-combined into a single "virtual" package.
-
-The ``namespace_packages`` argument to ``setup()`` lets you declare your
-project's namespace packages, so that they will be included in your project's
-metadata.  The argument should list the namespace packages that the egg
-participates in.  For example, the ZopeInterface project might do this::
-
-    setup(
-        # ...
-        namespace_packages=["zope"]
-    )
-
-because it contains a ``zope.interface`` package that lives in the ``zope``
-namespace package.  Similarly, a project for a standalone ``zope.publisher``
-would also declare the ``zope`` namespace package.  When these projects are
-installed and used, Python will see them both as part of a "virtual" ``zope``
-package, even though they will be installed in different locations.
-
-Namespace packages don't have to be top-level packages.  For example, Zope 3's
-``zope.app`` package is a namespace package, and in the future PEAK's
-``peak.util`` package will be too.
-
-Note, by the way, that your project's source tree must include the namespace
-packages' ``__init__.py`` files (and the ``__init__.py`` of any parent
-packages), in a normal Python package layout.  These ``__init__.py`` files
-*must* contain the line::
+.. code-block:: python
 
     __import__("pkg_resources").declare_namespace(__name__)
 
-This code ensures that the namespace package machinery is operating and that
-the current package is registered as a namespace package.
+And the ``namespace_packages`` keyword in your ``setup.cfg`` or ``setup.py``:
 
-You must NOT include any other code and data in a namespace package's
-``__init__.py``.  Even though it may appear to work during development, or when
-projects are installed as ``.egg`` files, it will not work when the projects
-are installed using "system" packaging tools -- in such cases the
-``__init__.py`` files will not be installed, let alone executed.
+.. code-block:: ini
 
-You must include the ``declare_namespace()``  line in the ``__init__.py`` of
-*every* project that has contents for the namespace package in question, in
-order to ensure that the namespace will be declared regardless of which
-project's copy of ``__init__.py`` is loaded first.  If the first loaded
-``__init__.py`` doesn't declare it, it will never *be* declared, because no
-other copies will ever be loaded!
+    [options]
+    namespace_packages = timmins
+
+.. code-block:: python
+
+    setup(
+        # ...
+        namespace_packages = ['timmins']
+    )
+
+And your directory should look like this::
+
+    /foo/
+        src/
+            timmins/
+                __init__.py
+                foo/__init__.py
+        setup.cfg #or setup.py
+
+Repeat the same for other packages and you can achieve the same result as
+the previous section.
