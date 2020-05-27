@@ -34,9 +34,10 @@ manner, without applying any magic:
 
     python -m mypkg.helloworld
 
-But entry point simplifies this process and would create a wrapper script around
-your function, making it behave more natively. To do that, add the following
-lines to your ``setup.cfg`` or ``setup.py``:
+But entry point simplifies the call and would create a wrapper script around
+your function, making it behave more natively (you type in ``helloworld`` and
+the ``helloworld`` function residing inside ``__init__.py`` is executed!). To
+accomplish that, add the following lines to your ``setup.cfg`` or ``setup.py``:
 
 .. code-block:: ini
 
@@ -56,22 +57,27 @@ lines to your ``setup.cfg`` or ``setup.py``:
             """
     )
 
-The syntax for your entry points is specified as follows
+The syntax for entry points is specified as follows:
 
 .. code-block::
 
     [<type>]
-    <name> = [<package>.<subpackage>.]<module>:<function>
+    <name> = [<package>.<subpackage>.]<module>[:<object>.<object>]
 
-where ``name`` is the name for the script you want to create and the left hand
+where ``name`` is the name for the script you want to create, the left hand
 side of ``:`` is the module that contains your function and the right hand
-side is the function you wish to wrap. ``type`` specifies the type of script
-you want to create. ``setuptools`` currently supports either ``[console_script]``
-and ``[gui_script]`` (DOUBLE CHECK ON THIS).
+side is the object you want to invoke (e.g. a function). ``type`` specifies the
+type of script you want to create. ``setuptools`` currently supports either
+``[console_script]`` and ``[gui_script]``.
 
-After installation, you will be able to invoke that function simply calling
-``helloworld`` on your command line. It will also do command line options parsing
-for you!
+.. note::
+    the syntax is not limited to ``INI`` string as demonstrated above. You can
+    also pass in the values in the form of a dictionary or list. Check out
+    :ref:`keyword reference <keywords_ref>` for more details
+
+After installation, you will be able to invoke that function by simply calling
+``helloworld`` on your command line. It will even do command line argument
+parsing for you!
 
 Dynamic discovery of services and plugins
 =========================================
