@@ -68,7 +68,7 @@ Use ``setuptools``' `declarative config`_ to specify the package information::
 
 Now generate the distribution. Although the PyPA is still working to
 `provide a recommended tool <https://github.com/pypa/packaging-problems/issues/219>`_
-to build packages, the `pep517 package <https://pypi.org/project/pep517`_
+to build packages, the `pep517 package <https://pypi.org/project/pep517>`_
 provides this functionality. To build the package::
 
     $ pip install -q pep517
