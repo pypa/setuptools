@@ -1,6 +1,8 @@
 import subprocess
 import sys
 import os
+import pathlib
+import shutil
 
 
 # hack to run the bootstrap script so that jaraco.packaging.sphinx
@@ -135,3 +137,20 @@ link_files = {
         ],
     ),
 }
+
+
+def copy_html_files(app, docname):
+    """
+    #2150: copy static html files to allow for redirects
+    """
+    if app.builder.name != 'html':
+        return
+    srcdir = pathlib.Path(app.srcdir)
+    static_files = srcdir.glob('*.html')
+    for found in static_files:
+        target = pathlib.Path(app.outdir).joinpath(found.relative_to(srcdir))
+        shutil.copyfile(found, target)
+
+
+def setup(app):
+    app.connect('build-finished', copy_html_files)
