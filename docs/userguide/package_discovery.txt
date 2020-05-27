@@ -222,7 +222,8 @@ the previous section.
 ``pkgutil`` style namespace package
 -----------------------------------
 This method is almost identical to the ``pkg_resource`` except that the
-``__init__.py`` file contains the following:
+``namespace_packages`` declaration is omitted and the ``__init__.py``
+file contains the following:
 
 .. code-block:: python
 
