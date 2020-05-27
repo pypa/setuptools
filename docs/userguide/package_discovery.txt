@@ -22,6 +22,7 @@ included manually in the following manner:
 .. code-block:: ini
 
     [options]
+    #...
     packages =
         mypkg1
         mypkg2
@@ -29,6 +30,7 @@ included manually in the following manner:
 .. code-block:: python
 
     setup(
+        #...
         packages = ['mypkg1', 'mypkg2']
     )
 
@@ -166,14 +168,24 @@ be installed. A simple way to fix it is to adopt the aforementioned
 
 
 Legacy Namespace Packages
-==========================
+=========================
 The fact you can create namespace package so effortlessly above is credited
-to `PEP 420 <https://www.python.org/dev/peps/pep-0420/>`_. In the past, it
-is more cumbersome to accomplish the same result.
+to `PEP 420 <https://www.python.org/dev/peps/pep-0420/>`_. It use to be more
+cumbersome to accomplish the same result. Historically, there were two methods
+to create namespace packages. One is the ``pkg_resources`` style supported by
+``setuptools`` and the other one being ``pkgutils`` style offered by
+``pkgutils`` module in Python. Both are now considered deprecated despite the
+fact they still linger in many existing packages. These two differ in many
+subtle yet significant aspects and you can find out more on `Python packaging
+user guide <https://packaging.python.org/guides/packaging-namespace-packages/>`_
 
-Starting with the same layout, there are two pieces you need to add to it.
-First, an ``__init__.py`` file directly under your namespace package
-directory that contains the following:
+
+``pkg_resource`` style namespace package
+----------------------------------------
+This is the method ``setuptools`` directly supports. Starting with the same
+layout, there are two pieces you need to add to it. First, an ``__init__.py``
+file directly under your namespace package directory that contains the
+following:
 
 .. code-block:: python
 
@@ -193,7 +205,9 @@ And the ``namespace_packages`` keyword in your ``setup.cfg`` or ``setup.py``:
         namespace_packages = ['timmins']
     )
 
-And your directory should look like this::
+And your directory should look like this
+
+.. code-block:: bash
 
     /foo/
         src/
@@ -204,3 +218,14 @@ And your directory should look like this::
 
 Repeat the same for other packages and you can achieve the same result as
 the previous section.
+
+``pkgutil`` style namespace package
+-----------------------------------
+This method is almost identical to the ``pkg_resource`` except that the
+``__init__.py`` file contains the following:
+
+.. code-block:: python
+
+    __path__ = __import__('pkgutil').extend_path(__path__, __name__)
+
+The project layout remains the same and ``setup.cfg`` remains the same.
