@@ -12,6 +12,7 @@ dependency.
     For all the packages you intend to add to dependency, you can optionally
     specify the version following :ref:`reference on version specifyer <WIP>`
 
+.. contents::
 
 Build system requirement
 ========================
@@ -85,28 +86,47 @@ versions have been installed).
 
 Platform specific dependencies
 ------------------------------
-Sometimes a project might require a dependency to run on a specific platform.
-This could to a package that back ports a module so that it can be used in
-older python versions.  Or it could be a package that is required to run on a
-specific operating system.  This will allow a project to work on multiple
-different platforms without installing dependencies that are not required for
-a platform that is installing the project.
+Setuptools offer the capability to evaluate certain conditions before blindly
+installing everything listed in ``install_requires``. This is great for platform
+specific dependencies. For example, the ``enum`` package was added in Python
+3.4, therefore, package that depends on it can elect to install it only when
+the Python version is older than 3.4. To accomplish this
 
-For example, here is a project that uses the ``enum`` module and ``pywin32``::
+.. code-block:: ini
+
+    [options]
+    #...
+    install_requires =
+        enum34;python_version<'3.4'
+
+.. code-block:: python
 
     setup(
-        name="Project",
-        ...
+        #...
+        install_requires=[
+            "enum34;python_version<'3.4'",]
+    )
+
+Similarly, if you also wish to declare ``pywin32`` with a minimal version of 1.0
+and only install it if the user is using a Windows operating system:
+
+.. code-block:: ini
+
+    [options]
+    #...
+    install_requires =
+        enum34;python_version<'3.4'
+        pywin32 >= 1.0;platform_system=='Windows'
+
+.. code-block:: python
+
+    setup(
+        #...
         install_requires=[
             "enum34;python_version<'3.4'",
             "pywin32 >= 1.0;platform_system=='Windows'"
-        ]
+            ]
     )
-
-Since the ``enum`` module was added in Python 3.4, it should only be installed
-if the python version is earlier.  Since ``pywin32`` will only be used on
-windows, it should only be installed when the operating system is Windows.
-Specifying version requirements for the dependencies is supported as normal.
 
 The environmental markers that may be used for testing platform types are
 detailed in `PEP 508 <https://www.python.org/dev/peps/pep-0508/>`_.
@@ -187,40 +207,40 @@ distributions, if the package's dependencies aren't already installed:
     )
 
 
-
 Optional dependencies
 =====================
-Sometimes a project has "recommended" dependencies, that are not required for
-all uses of the project.  For example, a project might offer optional PDF
-output if ReportLab is installed, and reStructuredText support if docutils is
-installed.  These optional features are called "extras", and setuptools allows
-you to define their requirements as well.  In this way, other projects that
-require these optional features can force the additional requirements to be
-installed, by naming the desired extras in their ``install_requires``.
+Setuptools allows you to declare dependencies that only get installed under
+specific circumstances. For example, let's say that Project-A offers optional
+PDF support and requires some additional package for it to work. Such a
+dependency will be specified with ``extras_require`` keyword and they are only
+installed if another package depends on it (either directly or indirectly).
 
-For example, let's say that Project A offers optional PDF and reST support::
+Let's first see how to specify such package:
+
+.. code-block:: ini
+
+    [metadata]
+    name = Package-A
+
+    [options.extras_require]
+    PDF = ReportLab>=1.2; RXP
+
+
+.. code-block:: python
 
     setup(
         name="Project-A",
-        ...
+        #...
         extras_require={
             "PDF":  ["ReportLab>=1.2", "RXP"],
-            "reST": ["docutils>=0.3"],
         }
     )
 
-As you can see, the ``extras_require`` argument takes a dictionary mapping
-names of "extra" features, to strings or lists of strings describing those
-features' requirements.  These requirements will *not* be automatically
-installed unless another package depends on them (directly or indirectly) by
-including the desired "extras" in square brackets after the associated project
-name.  (Or if the extras were listed in a requirement spec on the "pip install"
-command line.)
+The name ``PDF`` is an arbitary identifier of such a list of dependencies, to
+which other components can refer and have them installed. There are two common
+use cases.
 
-Extras can be used by a project's `entry points`_ to specify dynamic
-dependencies.  For example, if Project A includes a "rst2pdf" script, it might
-declare it like this, so that the "PDF" requirements are only resolved if the
-"rst2pdf" script is run::
+First is the console_scripts entry point:
 
 .. code-block:: ini
 
@@ -248,9 +268,12 @@ declare it like this, so that the "PDF" requirements are only resolved if the
         }
     )
 
-Projects can also use another project's extras when specifying dependencies.
-For example, if project B needs "project A" with PDF support installed, it
-might declare the dependency like this::
+When the script ``rst2pdf`` is run, it will trigger the installation of
+the two dependencies ``PDF`` maps to.
+
+The second use case is that other package can use this "extra" for their
+own dependencies. For example, if "Project-B" needs "project A" with PDF support
+installed, it might declare the dependency like this::
 
 .. code-block:: ini
 
@@ -280,23 +303,8 @@ no longer needs ReportLab, or if it ends up needing other dependencies besides
 ReportLab in order to provide PDF support, Project B's setup information does
 not need to change, but the right packages will still be installed if needed.
 
-Note, by the way, that if a project ends up not needing any other packages to
-support a feature, it should keep an empty requirements list for that feature
-in its ``extras_require`` argument, so that packages depending on that feature
-don't break (due to an invalid feature name).  For example, if Project A above
-builds in PDF support and no longer needs ReportLab, it could change its
-setup to this::
-
-    setup(
-        name="Project-A",
-        ...
-        extras_require={
-            "PDF":  [],
-            "reST": ["docutils>=0.3"],
-        }
-    )
-
-so that Package B doesn't have to remove the ``[PDF]`` from its requirement
-specifier.
-
-.. _Platform Specific Dependencies:
+.. note::
+    Best practice: if a project ends up not needing any other packages to
+    support a feature, it should keep an empty requirements list for that feature
+    in its ``extras_require`` argument, so that packages depending on that feature
+    don't break (due to an invalid feature name).
