@@ -2373,7 +2373,15 @@ def _is_egg_path(path):
     """
     Determine if given path appears to be an egg.
     """
-    return path.lower().endswith('.egg')
+    return _is_zip_egg(path) or _is_unpacked_egg(path)
+
+
+def _is_zip_egg(path):
+    return (
+        path.lower().endswith('.egg') and
+        os.path.isfile(path) and
+        zipfile.is_zipfile(path)
+    )
 
 
 def _is_unpacked_egg(path):
@@ -2381,7 +2389,7 @@ def _is_unpacked_egg(path):
     Determine if given path appears to be an unpacked egg.
     """
     return (
-        _is_egg_path(path) and
+        path.lower().endswith('.egg') and
         os.path.isfile(os.path.join(path, 'EGG-INFO', 'PKG-INFO'))
     )
 
