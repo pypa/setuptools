@@ -2,71 +2,118 @@
 Dependencies Management in Setuptools
 =====================================
 
-Declaring Dependencies
-======================
+``Setuptools``'s dependency management is meticulous, or agonizing, depending
+on your level of familiarity. There are three types of dependency styles.
+1) those required to run the packaging program (build system requirement),
+2) those your package depends on (required dependency) and 3) optional
+dependency.
 
-``setuptools`` supports automatically installing dependencies when a package is
-installed, and including information about dependencies in Python Eggs (so that
-package management tools like pip can use the information).
+.. Note::
+    For all the packages you intend to add to dependency, you can optionally
+    specify the version following :ref:`reference on version specifyer <WIP>`
 
-``setuptools`` and ``pkg_resources`` use a common syntax for specifying a
-project's required dependencies.  This syntax consists of a project's PyPI
-name, optionally followed by a comma-separated list of "extras" in square
-brackets, optionally followed by a comma-separated list of version
-specifiers.  A version specifier is one of the operators ``<``, ``>``, ``<=``,
-``>=``, ``==`` or ``!=``, followed by a version identifier.  Tokens may be
-separated by whitespace, but any whitespace or nonstandard characters within a
-project name or version identifier must be replaced with ``-``.
 
-Version specifiers for a given project are internally sorted into ascending
-version order, and used to establish what ranges of versions are acceptable.
-Adjacent redundant conditions are also consolidated (e.g. ``">1, >2"`` becomes
-``">2"``, and ``"<2,<3"`` becomes ``"<2"``). ``"!="`` versions are excised from
-the ranges they fall within.  A project's version is then checked for
-membership in the resulting ranges. (Note that providing conflicting conditions
-for the same version (e.g. "<2,>=2" or "==2,!=2") is meaningless and may
-therefore produce bizarre results.)
+Build system requirement
+========================
 
-Here are some example requirement specifiers::
+Package requirement
+-------------------
+After organizing all the scripts and files and getting ready for packaging,
+there needs to be a way to tell Python what programs it need to actually
+do the packgaging (in our case, ``setuptools`` of course). Usually,
+you also need the ``wheel`` package as well since it is recommended that you
+upload a ``.whl`` file to PyPI alongside your ``.tar.gz`` file. Unlike the
+other two types of dependency keyword, this one is specified in your
+``pyproject.toml`` file (if you have forgot what this is, go to
+:ref:`quickstart` or (WIP)):
 
-    docutils >= 0.3
+.. code-block:: ini
 
-    # comment lines and \ continuations are allowed in requirement strings
-    BazSpam ==1.1, ==1.2, ==1.3, ==1.4, ==1.5, \
-        ==1.6, ==1.7  # and so are line-end comments
+    [build-system]
+    requires = ["setuptools", "wheel"]
+    #...
 
-    PEAK[FastCGI, reST]>=0.5a4
+.. note::
+    This used to be accomplished with the ``setup_requires`` keyword but is
+    now considered deprecated in favor of the PEP 517 style described above.
+    To peek into how this legacy keyword is used, consult our :ref:`guide on
+    deprecated practice (WIP)`
 
-    setuptools==0.5a7
 
-The simplest way to include requirement specifiers is to use the
-``install_requires`` argument to ``setup()``.  It takes a string or list of
-strings containing requirement specifiers.  If you include more than one
-requirement in a string, each requirement must begin on a new line.
+Python requirement
+------------------
+In some cases, you might need to specify the minimum required python version.
+This is handled with the ``python_requires`` keyword supplied to ``setup.cfg``
+or ``setup.py``.
 
-This has three effects:
+Example WIP
 
-1. When your project is installed, either by using pip, ``setup.py install``,
-   or ``setup.py develop``, all of the dependencies not already installed will
-   be located (via PyPI), downloaded, built (if necessary), and installed.
 
-2. Any scripts in your project will be installed with wrappers that verify
-   the availability of the specified dependencies at runtime, and ensure that
-   the correct versions are added to ``sys.path`` (e.g. if multiple versions
-   have been installed).
+Declaring required dependency
+=============================
+This is where a package declares its core dependencies, without which it won't
+be able to run. ``setuptools`` support automatically download and install
+these dependencies when the package is installed. Although there is more
+finess to it, let's start with a simple example.
 
-3. Python Egg distributions will include a metadata file listing the
-   dependencies.
+.. code-block:: ini
 
-Note, by the way, that if you declare your dependencies in ``setup.py``, you do
-*not* need to use the ``require()`` function in your scripts or modules, as
-long as you either install the project or use ``setup.py develop`` to do
-development work on it.  (See `"Development Mode"`_ below for more details on
-using ``setup.py develop``.)
+    [options]
+    #...
+    install_requires =
+        docutils
+        BazSpam ==1.1
+
+.. code-block:: python
+
+    setup(
+        #...,
+        install_requires = [
+            'docutils',
+            'BazSpam ==1.1'
+        ]
+    )
+
+
+When your project is installed (e.g. using pip), all of the dependencies not
+already installed will be located (via PyPI), downloaded, built (if necessary),
+and installed and 2) Any scripts in your project will be installed with wrappers
+that verify the availability of the specified dependencies at runtime, and
+ensure that the correct versions are added to ``sys.path`` (e.g. if multiple
+versions have been installed).
+
+
+Platform specific dependencies
+------------------------------
+Sometimes a project might require a dependency to run on a specific platform.
+This could to a package that back ports a module so that it can be used in
+older python versions.  Or it could be a package that is required to run on a
+specific operating system.  This will allow a project to work on multiple
+different platforms without installing dependencies that are not required for
+a platform that is installing the project.
+
+For example, here is a project that uses the ``enum`` module and ``pywin32``::
+
+    setup(
+        name="Project",
+        ...
+        install_requires=[
+            "enum34;python_version<'3.4'",
+            "pywin32 >= 1.0;platform_system=='Windows'"
+        ]
+    )
+
+Since the ``enum`` module was added in Python 3.4, it should only be installed
+if the python version is earlier.  Since ``pywin32`` will only be used on
+windows, it should only be installed when the operating system is Windows.
+Specifying version requirements for the dependencies is supported as normal.
+
+The environmental markers that may be used for testing platform types are
+detailed in `PEP 508 <https://www.python.org/dev/peps/pep-0508/>`_.
+
 
 Dependencies that aren't in PyPI
 --------------------------------
-
 .. warning::
     Dependency links support has been dropped by pip starting with version
     19.0 (released 2019-01-22).
@@ -122,22 +169,27 @@ temporary folder and run ``setup.py bdist_egg``.
 
 The ``dependency_links`` option takes the form of a list of URL strings.  For
 example, this will cause a search of the specified page for eggs or source
-distributions, if the package's dependencies aren't already installed::
+distributions, if the package's dependencies aren't already installed:
+
+.. code-block:: ini
+
+    [options]
+    #...
+    dependency_links = http://peak.telecommunity.com/snapshots/
+
+.. code-block:: python
 
     setup(
-        ...
+        #...
         dependency_links=[
             "http://peak.telecommunity.com/snapshots/"
         ],
     )
 
 
-.. _Declaring Extras:
 
-
-Declaring "Extras" (optional features with their own dependencies)
-------------------------------------------------------------------
-
+Optional dependencies
+=====================
 Sometimes a project has "recommended" dependencies, that are not required for
 all uses of the project.  For example, a project might offer optional PDF
 output if ReportLab is installed, and reStructuredText support if docutils is
@@ -170,14 +222,28 @@ dependencies.  For example, if Project A includes a "rst2pdf" script, it might
 declare it like this, so that the "PDF" requirements are only resolved if the
 "rst2pdf" script is run::
 
+.. code-block:: ini
+
+    [metadata]
+    name = Project A
+    #...
+
+    [options]
+    #...
+    entry_points=
+        [console_scripts]
+        rst2pdf = project_a.tools.pdfgen [PDF]
+        rst2html = project_a.tools.htmlgen
+
+.. code-block:: python
+
     setup(
-        name="Project-A",
-        ...
+        name = "Project-A"
+        #...,
         entry_points={
             "console_scripts": [
                 "rst2pdf = project_a.tools.pdfgen [PDF]",
                 "rst2html = project_a.tools.htmlgen",
-                # more script entry points ...
             ],
         }
     )
@@ -185,6 +251,19 @@ declare it like this, so that the "PDF" requirements are only resolved if the
 Projects can also use another project's extras when specifying dependencies.
 For example, if project B needs "project A" with PDF support installed, it
 might declare the dependency like this::
+
+.. code-block:: ini
+
+    [metadata]
+    name = Project-B
+    #...
+
+    [options]
+    #...
+    install_requires =
+        Project-A[PDF]
+
+.. code-block:: python
 
     setup(
         name="Project-B",
@@ -221,35 +300,3 @@ so that Package B doesn't have to remove the ``[PDF]`` from its requirement
 specifier.
 
 .. _Platform Specific Dependencies:
-
-
-Declaring platform specific dependencies
-----------------------------------------
-
-Sometimes a project might require a dependency to run on a specific platform.
-This could to a package that back ports a module so that it can be used in
-older python versions.  Or it could be a package that is required to run on a
-specific operating system.  This will allow a project to work on multiple
-different platforms without installing dependencies that are not required for
-a platform that is installing the project.
-
-For example, here is a project that uses the ``enum`` module and ``pywin32``::
-
-    setup(
-        name="Project",
-        ...
-        install_requires=[
-            "enum34;python_version<'3.4'",
-            "pywin32 >= 1.0;platform_system=='Windows'"
-        ]
-    )
-
-Since the ``enum`` module was added in Python 3.4, it should only be installed
-if the python version is earlier.  Since ``pywin32`` will only be used on
-windows, it should only be installed when the operating system is Windows.
-Specifying version requirements for the dependencies is supported as normal.
-
-The environmental markers that may be used for testing platform types are
-detailed in `PEP 508`_.
-
-.. _PEP 508: https://www.python.org/dev/peps/pep-0508/
