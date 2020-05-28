@@ -1,3 +1,9 @@
+v47.1.0
+-------
+
+* #2070: In wheel-to-egg conversion, use simple pkg_resources-style namespace declaration for packages that declare namespace_packages.
+
+
 v47.0.0
 -------
 
