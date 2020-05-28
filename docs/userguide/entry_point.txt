@@ -69,8 +69,8 @@ The syntax for entry points is specified as follows:
 where ``name`` is the name for the script you want to create, the left hand
 side of ``:`` is the module that contains your function and the right hand
 side is the object you want to invoke (e.g. a function). ``type`` specifies the
-type of script you want to create. ``setuptools`` currently supports either
-``[console_script]`` and ``[gui_script]``.
+type of entry point (pertinent to the program that exploits it). ``setuptools``
+natively supports ``[console_script]`` and ``[gui_script]``.
 
 .. note::
     the syntax is not limited to ``INI`` string as demonstrated above. You can
