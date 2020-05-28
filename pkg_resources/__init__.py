@@ -1577,6 +1577,17 @@ is not allowed.
 register_loader_type(object, NullProvider)
 
 
+def _parents(path):
+    """
+    yield all parents of path including path
+    """
+    last = None
+    while path != last:
+        yield path
+        last = path
+        path, _ = os.path.split(path)
+
+
 class EggProvider(NullProvider):
     """Provider based on a virtual filesystem"""
 
@@ -1585,18 +1596,16 @@ class EggProvider(NullProvider):
         self._setup_prefix()
 
     def _setup_prefix(self):
-        # we assume here that our metadata may be nested inside a "basket"
-        # of multiple eggs; that's why we use module_path instead of .archive
-        path = self.module_path
-        old = None
-        while path != old:
-            if _is_egg_path(path):
-                self.egg_name = os.path.basename(path)
-                self.egg_info = os.path.join(path, 'EGG-INFO')
-                self.egg_root = path
-                break
-            old = path
-            path, base = os.path.split(path)
+        # Assume that metadata may be nested inside a "basket"
+        # of multiple eggs and use module_path instead of .archive.
+        eggs = filter(_is_egg_path, _parents(self.module_path))
+        egg = next(eggs, None)
+        egg and self._set_egg(egg)
+
+    def _set_egg(self, path):
+        self.egg_name = os.path.basename(path)
+        self.egg_info = os.path.join(path, 'EGG-INFO')
+        self.egg_root = path
 
 
 class DefaultProvider(EggProvider):
