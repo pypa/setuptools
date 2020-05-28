@@ -1,3 +1,10 @@
+v47.0.0
+-------
+
+* #2094: Setuptools now actively crashes under Python 2. Python 3.5 or later is required. Users of Python 2 should use ``setuptools<45``.
+* #1700: Document all supported keywords by migrating the ones from distutils.
+
+
 v46.4.0
 -------
 
