@@ -1,12 +1,14 @@
+.. _`entry_points`:
+
 ==========================================
 Entry Points and Automatic Script Creation
 ==========================================
 
-When installing a package, you may realize you can invoke some commands without
-explicitly calling the python interpreter. For example, instead of calling
-``python -m pip install`` you can just do ``pip install``. The magic behind
-this is entry point, a keyword passed to your ``setup.cfg`` or ``setup.py``
-to create script wrapped around function in your libraries.
+After installing some packages, you may realize you can invoke some commands
+without explicitly calling the python interpreter. For example, instead of
+calling ``python -m pip install`` you can just do ``pip install``. The magic
+behind this is entry point, a keyword passed to your ``setup.cfg`` or
+``setup.py`` to create script wrapped around function in your libraries.
 
 
 Using entry point in your package
@@ -17,7 +19,7 @@ Let's start with an example. Suppose you have written your package like this:
 
     timmins/
         timmins/__init__.py
-        setup.cfg
+        setup.cfg # or setup.py
         #other necessary files
 
 and in your ``__init__.py`` it defines a function:
@@ -79,67 +81,120 @@ After installation, you will be able to invoke that function by simply calling
 ``helloworld`` on your command line. It will even do command line argument
 parsing for you!
 
-Dynamic discovery of services and plugins
-=========================================
-The ability of entry points isn't limited to "advertising" your functions. In
-fact, its implementation allows us to achieve more powerful features, such as
-supporting libraries that "plus in" to extensible applications and frameworks
 
-For example, suppose that a blogging tool wants to support plugins
-that provide translation for various file types to the blog's output format.
-The framework might define an "entry point group" called ``blogtool.parsers``,
-and then allow plugins to register entry points for the file extensions they
-support.
+Dynamic discovery of services (aka plugin support)
+==================================================
+The ability of entry points isn't limited to "advertising" your functions. Its
+implementation allows us to accomplish more powerful features, such as creating
+plugins. In fact, the aforementioned script wrapping ability is a form of
+plugin that was built into ``setuptools``. With that being said, you now have
+more options than ``[console_script]`` or ``[gui_script]`` when creating your
+package.
 
-This would allow people to create distributions that contain one or more
-parsers for different file types, and then the blogging tool would be able to
-find the parsers at runtime by looking up an entry point for the file
-extension (or mime type, or however it wants to).
+To understand how you can extend this functionality, let's go through how
+``setuptool`` does its ``[console_script]`` magic. Again, we use the same
+example as above:
 
-Note that if the blogging tool includes parsers for certain file formats, it
-can register these as entry points in its own setup script, which means it
-doesn't have to special-case its built-in formats.  They can just be treated
-the same as any other plugin's entry points would be.
+.. code-block:: ini
 
-If you're creating a project that plugs in to an existing application or
-framework, you'll need to know what entry points or entry point groups are
-defined by that application or framework.  Then, you can register entry points
-in your setup script.  Here are a few examples of ways you might register an
-``.rst`` file parser entry point in the ``blogtool.parsers`` entry point group,
-for our hypothetical blogging tool::
+    [options]
+    # ...
+    entry_points =
+        [console_scripts]
+        helloworld = mypkg:helloworld
 
-    setup(
-        # ...
-        entry_points={"blogtool.parsers": ".rst = some_module:SomeClass"}
-    )
+Package installation contains multiple steps, so at some point, this package
+becomes available to your interpreter, and if you run the following code:
 
-    setup(
-        # ...
-        entry_points={"blogtool.parsers": [".rst = some_module:a_func"]}
-    )
+.. code-block:: ini
 
-    setup(
-        # ...
-        entry_points="""
-            [blogtool.parsers]
-            .rst = some.nested.module:SomeClass.some_classmethod [reST]
-        """,
-        extras_require=dict(reST="Docutils>=0.3.5")
-    )
+    >>> import pkg_resources #a module part of setuptools
+    >>> [item for item in
+        pkg_srouces.working_set.iter_entry_points('console_scripts')]
 
-The ``entry_points`` argument to ``setup()`` accepts either a string with
-``.ini``-style sections, or a dictionary mapping entry point group names to
-either strings or lists of strings containing entry point specifiers.  An
-entry point specifier consists of a name and value, separated by an ``=``
-sign.  The value consists of a dotted module name, optionally followed by a
-``:`` and a dotted identifier naming an object within the module.  It can
-also include a bracketed list of "extras" that are required for the entry
-point to be used.  When the invoking application or framework requests loading
-of an entry point, any requirements implied by the associated extras will be
-passed to ``pkg_resources.require()``, so that an appropriate error message
-can be displayed if the needed package(s) are missing.  (Of course, the
-invoking app or framework can ignore such errors if it wants to make an entry
-point optional if a requirement isn't installed.)
+It will return a list of special objects (called "EntryPoints"), and there
+will be one of them that corresponds to the ``helloworld = mypkg:helloworld``
+which we defined above. In fact, this object doesn't just contain the string,
+but also an encompassing representation of the package that created it.
+In the case of ``console_scripts``, setuptools will automatically invoke
+an internal function that utilizes this object and create the wrapper scripts
+and place them in your ``bin`` directory for your interpreter. How
+``pkg_resource`` look up all the entry points is further detailed in our
+:ref:`developer_guide` (WIP). With that being said, if you specify a different
+entry point:
+
+.. code-block:: ini
+
+    [options]
+    # ...
+    entry_points =
+        [iam.just.playing.around]
+        helloworld = mypkg:helloworld
+
+Then, running the same python expression like above:
+
+.. code-block:: python
+
+    >>> import pkg_resources
+    >>> [item for item in
+        pkg_srouces.working_set.iter_entry_points('iam.just.playing.around')
+        ]
+
+will create another ``EntryPoints`` object that contains the
+``helloworld = mypkg:helloworld`` and you can create custom
+functions to exploit its information however you want. For example, one of
+the installed programs on your system may contain a startup script that
+scans the system for all the packages that specify this
+``iam.just.playing.around`` entry points, such that when you install this new
+package, it becomes immediately available without having to reconfigure
+the already installed program. This in fact is the very idea of a plugin!
+
 
 Dependencies management for entry points
 ========================================
+Some entry points may require additional dependencies for them to work and
+others may trigger the installation of additional dependencies only when they
+are run. While this is elaborated in more excrutiating details on
+:ref:`guide on dependencies management <dependency_management>`, we will
+provide a brief overview on the entry point aspect.
+
+Dependencies of this manner are declared using the ``extra_requires`` keywords,
+which takes a mapping of the arbitary name of the functionality and a list of
+its depencencies, optionally suffixed with its :ref:`version specifier
+<version_specifier>`. For example, our package provides "pdf" output capability
+which requires at least 0.3 version of "ReportLab" and whatever version of "RXP"
+
+.. code-block:: ini
+
+    [options.extras_require]
+    PDF = ReportLab>=1.2; RXP
+
+.. code-block:: python
+
+    setup(
+        extras_require = {
+            "PDF":  ["ReportLab>=1.2", "RXP"],
+        }
+    )
+
+
+And we only want them to be installed if the console script entry point
+``rst2pdf`` is run:
+
+.. code-block:: ini
+
+    [options]
+    entry_points =
+        ['console_script']
+        rst2pdf = project_a.tools.pdfgen [PDF]
+        rst2html = project_a.tools.htmlgen
+
+.. code-block:: python
+
+    setup(
+        entry_points = """
+            ['console_script']
+            rst2pdf = project_a.tools.pdfgen [PDF]
+            rst2html = project_a.tools.htmlgen
+            """
+    )
