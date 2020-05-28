@@ -83,6 +83,12 @@ that verify the availability of the specified dependencies at runtime, and
 ensure that the correct versions are added to ``sys.path`` (e.g. if multiple
 versions have been installed).
 
+.. note::
+    if you declare your dependencies in ``setup.py``, you do
+    *not* need to use the ``require()`` function in your scripts or modules, as
+    long as you either install the project or use ``setup.py develop`` to do
+    development work on it.
+    
 
 Platform specific dependencies
 ------------------------------
