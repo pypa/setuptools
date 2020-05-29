@@ -1,0 +1,1 @@
+Avoid loading working set during ``Distribution.finalize_options`` prior to invoking ``_install_setup_requires``, broken since v42.0.0.
