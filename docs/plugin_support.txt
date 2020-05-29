@@ -33,7 +33,7 @@ like this:
                 commands.py
         setup.cfg #or setup.py for legacy use
 
-The ``__init__.py`` file will contain the necessary code that implement the
+The ``commands.py`` file will contain the necessary code that implement the
 ``supersdist`` functionality. The more challenging task, though, lies in
 how to make it work with setuptools.
 
@@ -78,7 +78,9 @@ they will specify it is through an argument passed to ``setup()`` or
 
 .. code-block:: ini
 
-    [options]
+    [options] #i'm not sure whether this is the right section actually but from
+              # my understanding the sectioning depends on the plugin's
+              # own implementation
     supersdist_type = thunderbay
 
 
@@ -112,4 +114,4 @@ do the following in our plugins' ``setup.cfg`` or ``setup.py``:
 What ``setuptools`` will then do is that it query the user's configuration
 file or setup script, look for the keyword "supersdist_type", and pass its
 value to the function ``parser`` located in ``keywords.py`` module. The value
-will default to None if it is not supplied. 
+will default to None if it is not supplied.
