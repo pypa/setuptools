@@ -1,0 +1,115 @@
+===============================
+Building plugins for setuptools
+===============================
+
+Setuptools provides a powerful interface for plugin support. In fact, many
+features offered by setuptools are plugins themselves! Here we provide a
+guidance on how you can create your own plugin to complement ``setuptools``.
+
+Before diving in, here is a quick refresher on plugin design. A plugin is a
+piece of software that works together with the application it is intended for.
+The only matter pertinent to an end user is that they have to
+install this plugin, and then they can access an additional features when using
+setuptools.
+
+For example, we want to develop a plugin that generates a customized source
+distribution format, essentially adding a command to setuptools which the
+user can access like this, when packaging their *own* project:
+
+.. code-block:: bash
+
+    $ python setup.py supersdist
+
+To develop such a plugin, your project repository should look more or less
+like this:
+
+.. code-block:: bash
+
+    myplugin/
+        src/
+            myplugin/
+                __init__.py
+                keywords.py
+                commands.py
+        setup.cfg #or setup.py for legacy use
+
+The ``__init__.py`` file will contain the necessary code that implement the
+``supersdist`` functionality. The more challenging task, though, lies in
+how to make it work with setuptools.
+
+.. note::
+    the ``setup.cfg`` or ``setup.py`` used in the plugin project is different
+    from the one that the user is using when they run ``python setup.py
+    supersdist``!
+
+Registering the command
+=======================
+Add the following to your ``setup.cfg`` (or ``setup.py``) so that the command
+named "supersdist" becomes available to ``setuptools``:
+
+.. code-block:: ini
+
+    [options]
+    #...
+    entry_points =
+        [distutils.commands]
+        supersdist = myplugin.commands:supersdist
+
+.. code-block:: python
+
+    setup(
+        #...
+        entry_points = """
+            [distutils.commands]
+            supersdist = myplugin.commands:supersdist
+    )
+
+Now, assuming the user has installed our plugin, their ``setuptools`` will
+have the command "supersdist" available.
+
+Supplying additional options and metadata
+=========================================
+Sometimes a plugin may want additional input from the user. For example,
+we might want to ask the user what type of "supersdist" they want and they
+can pick something like "whitehorse", "yellowknife" or "thunderbay". Like we
+said before, the user is expecting a native setuptools experience so the way
+they will specify it is through an argument passed to ``setup()`` or
+``setup.cfg``:
+
+.. code-block:: ini
+
+    [options]
+    supersdist_type = thunderbay
+
+
+.. code-block:: python
+
+    setup(
+        supersdist_type = ['thunderbay']
+    )
+
+``setuptools`` will allow us to map those input onto some functions if we
+do the following in our plugins' ``setup.cfg`` or ``setup.py``:
+
+.. code-block:: ini
+
+    [options]
+    #...
+    entry_points =
+        [distutils.setup_keywords]
+        supersdist_type = myplugin.keywords:parser
+
+.. code-block:: python
+
+    setup(
+        #...
+        entry_points = """
+            [distutils.setup_keywords]
+            supersdist_type = myplugin.keywords:parser
+            """
+    )
+
+What ``setuptools`` will then do is that it query the user's configuration
+file or setup script, look for the keyword "supersdist_type", and pass its
+value to the function ``parser`` located in ``keywords.py`` module. The value
+will default to None if it is not supplied. 
