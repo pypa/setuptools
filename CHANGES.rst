@@ -1,3 +1,9 @@
+v44.1.1
+-------
+
+* #2158: Avoid loading working set during ``Distribution.finalize_options`` prior to invoking ``_install_setup_requires``, broken since v42.0.0.
+
+
 v44.1.0
 -------
 
