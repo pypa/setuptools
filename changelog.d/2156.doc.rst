@@ -1,0 +1,1 @@
+Update mailing list pointer in developer docs
