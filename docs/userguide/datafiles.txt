@@ -8,12 +8,28 @@ for data files distributed with a package is for use *by* the package, usually
 by including the data files in the package directory.
 
 Setuptools offers three ways to specify data files to be included in your
-packages.  First, you can simply use the ``include_package_data`` keyword,
-e.g.::
+packages.  ``include_package_data`` accepts all data files and directories
+matched by ``MANIFEST.in``. ``package_data`` specifies additional patterns to
+match files that may or not be matched by ``MANIFEST.in`` or found in source
+control. ``exclude_package_data`` specifies patterns for data files and
+directories that should *not* be included when a package is installed, even
+if they would otherwise have been included due to the use of the preceding options.
 
-    from setuptools import setup, find_packages
+
+``include_package_data`` keyword
+================================
+First, you can simply use the ``include_package_data`` keyword.
+
+.. code-block::ini
+
+    [options]
+    #...
+    include_package_data = True
+
+.. code-block::python
+
     setup(
-        ...
+        #...
         include_package_data=True
     )
 
@@ -23,18 +39,25 @@ The data files must be specified via the distutils' ``MANIFEST.in`` file.
 plugin.  See the section below on `Adding Support for Revision Control
 Systems`_ for information on how to write such plugins.)
 
+
+``package_data`` keyword
+========================
 If you want finer-grained control over what files are included (for example,
 if you have documentation files in your package directories and want to exclude
-them from installation), then you can also use the ``package_data`` keyword,
-e.g.::
+them from installation), then you can also use the ``package_data`` keyword.
 
-    from setuptools import setup, find_packages
+.. code-block:: ini
+
+    [options.package_data]
+    * = *.txt, *.rst
+    hello = *.msg
+
+.. code-block:: ini
+
     setup(
         ...
         package_data={
-            # If any package contains *.txt or *.rst files, include them:
             "": ["*.txt", "*.rst"],
-            # And include any *.msg files found in the "hello" package, too:
             "hello": ["*.msg"],
         }
     )
@@ -42,7 +65,9 @@ e.g.::
 The ``package_data`` argument is a dictionary that maps from package names to
 lists of glob patterns.  The globs may include subdirectory names, if the data
 files are contained in a subdirectory of the package.  For example, if the
-package tree looks like this::
+package tree looks like this:
+
+.. code-block:: bash
 
     setup.py
     src/
@@ -53,7 +78,23 @@ package tree looks like this::
                 somefile.dat
                 otherdata.dat
 
-The setuptools setup file might look like this::
+The setuptools setup file might look like this
+
+.. code-block:: ini
+
+    [options]
+    packages = find:
+    package_dir =
+        =src
+
+    [options.packages.find]
+    where = src
+
+    [options.package_data]
+    * = *.txt
+    mypkg = data/*.dat
+
+.. code-block:: python
 
     from setuptools import setup, find_packages
     setup(
@@ -89,19 +130,38 @@ the ``setup.py`` ``package_data`` list is updated before calling ``setup.py``.
 
 (Note: although the ``package_data`` argument was previously only available in
 ``setuptools``, it was also added to the Python ``distutils`` package as of
-Python 2.4; there is `some documentation for the feature`__ available on the
-python.org website.  If using the setuptools-specific ``include_package_data``
+Python 2.4; there is `some documentation for the `feature available on the
+python website <https://docs.python.org/3/distutils/setupscript.html#
+installing-package-data`_.  If using the setuptools-specific ``include_package_data``
 argument, files specified by ``package_data`` will *not* be automatically
 added to the manifest unless they are listed in the MANIFEST.in file.)
 
-__ https://docs.python.org/3/distutils/setupscript.html#installing-package-data
 
+``exclude_package_data`` keyword
+================================
 Sometimes, the ``include_package_data`` or ``package_data`` options alone
 aren't sufficient to precisely define what files you want included.  For
 example, you may want to include package README files in your revision control
 system and source distributions, but exclude them from being installed.  So,
 setuptools offers an ``exclude_package_data`` option as well, that allows you
-to do things like this::
+to do things like this:
+
+.. code-block:: ini
+
+    [options]
+    packages = find:
+    package_dir =
+        =src
+    include_package_data = True
+
+    [options.packages.find]
+    where = src
+
+    [options.exclude_package_data]]
+    * = README.txt
+
+
+.. code-block:: python
 
     from setuptools import setup, find_packages
     setup(
@@ -122,19 +182,6 @@ packages.  However, any files that match these patterns will be *excluded*
 from installation, even if they were listed in ``package_data`` or were
 included as a result of using ``include_package_data``.
 
-In summary, the three options allow you to:
-
-``include_package_data``
-    Accept all data files and directories matched by ``MANIFEST.in``.
-
-``package_data``
-    Specify additional patterns to match files that may or may
-    not be matched by ``MANIFEST.in`` or found in source control.
-
-``exclude_package_data``
-    Specify patterns for data files and directories that should *not* be
-    included when a package is installed, even if they would otherwise have
-    been included due to the use of the preceding options.
 
 NOTE: Due to the way the distutils build process works, a data file that you
 include in your project and then stop including may be "orphaned" in your
@@ -145,7 +192,7 @@ to let them know when you make changes that remove files from inclusion so they
 can run ``setup.py clean --all``.
 
 Accessing Data Files at Runtime
--------------------------------
+===============================
 
 Typically, existing programs manipulate a package's ``__file__`` attribute in
 order to find the location of data files.  However, this manipulation isn't
@@ -162,7 +209,7 @@ a quick example of converting code that uses ``__file__`` to use
 
 
 Non-Package Data Files
-----------------------
+======================
 
 Historically, ``setuptools`` by way of ``easy_install`` would encapsulate data
 files from the distribution into the egg (see `the old docs
