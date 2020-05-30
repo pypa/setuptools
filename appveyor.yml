@@ -8,15 +8,13 @@ environment:
 
   matrix:
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-      APPVEYOR_JOB_NAME: "python35-x64-vs2015"
-      PYTHON: "C:\\Python35-x64"
+      APPVEYOR_JOB_NAME: "python36-x64-vs2015"
+      PYTHON: "C:\\Python36-x64"
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-      APPVEYOR_JOB_NAME: "python35-x64-vs2017"
-      PYTHON: "C:\\Python35-x64"
+      APPVEYOR_JOB_NAME: "python36-x64-vs2017"
+      PYTHON: "C:\\Python36-x64"
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-      APPVEYOR_JOB_NAME: "python35-x64-vs2019"
-      PYTHON: "C:\\Python35-x64"
-    - APPVEYOR_JOB_NAME: "python36-x64"
+      APPVEYOR_JOB_NAME: "python36-x64-vs2019"
       PYTHON: "C:\\Python36-x64"
     - APPVEYOR_JOB_NAME: "python37-x64"
       PYTHON: "C:\\Python37-x64"

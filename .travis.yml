@@ -6,7 +6,6 @@ jobs:
   include:
   - python: pypy3
     env: DISABLE_COVERAGE=1  # Don't run coverage on pypy (too slow).
-  - python: 3.5
   - python: 3.6
   - python: 3.7
   - &latest_py3
