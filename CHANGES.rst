@@ -1,3 +1,32 @@
+v47.1.1
+-------
+
+* #2156: Update mailing list pointer in developer docs
+
+Incorporate changes from v44.1.1:
+
+* #2158: Avoid loading working set during ``Distribution.finalize_options`` prior to invoking ``_install_setup_requires``, broken since v42.0.0.
+
+
+v44.1.1
+-------
+
+* #2158: Avoid loading working set during ``Distribution.finalize_options`` prior to invoking ``_install_setup_requires``, broken since v42.0.0.
+
+
+v47.1.0
+-------
+
+* #2070: In wheel-to-egg conversion, use simple pkg_resources-style namespace declaration for packages that declare namespace_packages.
+
+
+v47.0.0
+-------
+
+* #2094: Setuptools now actively crashes under Python 2. Python 3.5 or later is required. Users of Python 2 should use ``setuptools<45``.
+* #1700: Document all supported keywords by migrating the ones from distutils.
+
+
 v46.4.0
 -------
 
