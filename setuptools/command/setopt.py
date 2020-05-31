@@ -16,6 +16,9 @@ def config_file(kind="local"):
 
     `kind` must be one of "local", "global", or "user"
     """
+    env_location = os.environ.get('SETUPTOOLS_CFG_FILE')
+    if env_location:
+        return os.path.normpath(env_location)
     if kind == 'local':
         return 'setup.cfg'
     if kind == 'global':
