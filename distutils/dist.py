@@ -35,7 +35,8 @@ def _ensure_list(value, fieldname):
     elif not isinstance(value, list):
         # passing a tuple or an iterator perhaps, warn and convert
         typename = type(value).__name__
-        msg = f"Warning: '{fieldname}' should be a list, got type '{typename}'"
+        msg = "Warning: '{fieldname}' should be a list, got type '{typename}'"
+        msg = msg.format(**locals())
         log.log(log.WARN, msg)
         value = list(value)
     return value
