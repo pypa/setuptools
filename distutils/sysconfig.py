@@ -444,7 +444,12 @@ def _init_posix():
         platform=sys.platform,
         multiarch=getattr(sys.implementation, '_multiarch', ''),
     ))
-    _temp = __import__(name, globals(), locals(), ['build_time_vars'], 0)
+    try:
+        _temp = __import__(name, globals(), locals(), ['build_time_vars'], 0)
+    except ImportError:
+        # Python 3.5 and pypy 7.3.1
+        _temp = __import__(
+            '_sysconfigdata', globals(), locals(), ['build_time_vars'], 0)
     build_time_vars = _temp.build_time_vars
     global _config_vars
     _config_vars = {}
