@@ -21,9 +21,11 @@ def patch_sys_path():
         sys.path[:] = orig
 
 
-if 'distutils' in sys.path:
-    raise RuntimeError("Distutils must not be imported before setuptools")
+def ensure_local_distutils():
+    if 'distutils' in sys.path:
+        raise RuntimeError("Distutils must not be imported before setuptools")
+    with patch_sys_path():
+        importlib.import_module('distutils')
 
 
-with patch_sys_path():
-    importlib.import_module('distutils')
+ensure_local_distutils()
