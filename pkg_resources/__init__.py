@@ -1329,6 +1329,11 @@ def safe_version(version):
     Convert an arbitrary string to a standard version string
     """
     try:
+        # If this is a sic version bypass normalization. Unfortunately this
+        # module is loaded prior to sic being defined, so look for it by name.
+        if (type(version).__name__ == 'sic'):
+            return version
+
         # normalize the version
         return str(packaging.version.Version(version))
     except packaging.version.InvalidVersion:
