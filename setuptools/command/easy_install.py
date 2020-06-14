@@ -2070,9 +2070,7 @@ class ScriptWriter:
     gui apps.
     """
 
-    try:
-        from importlib.metadata import distribution  # noqa: F401
-
+    if sys.version_info >= (3, 8):
         template = textwrap.dedent(r"""
             # EASY-INSTALL-ENTRY-SCRIPT: %(spec)r,%(group)r,%(name)r
             __requires__ = %(spec)r
@@ -2086,7 +2084,7 @@ class ScriptWriter:
                     if entry_point.group == %(group)r and entry_point.name == %(name)r:
                         sys.exit(entry_point.load()())
         """).lstrip()  # noqa: E501
-    except ImportError:
+    else:
         template = textwrap.dedent(r"""
             # EASY-INSTALL-ENTRY-SCRIPT: %(spec)r,%(group)r,%(name)r
             __requires__ = %(spec)r

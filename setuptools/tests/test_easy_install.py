@@ -71,9 +71,7 @@ class TestEasyInstallTest:
 
     def test_get_script_args(self):
         header = ei.CommandSpec.best().from_environment().as_header()
-        try:
-            from importlib.metadata import distribution  # noqa: F401
-
+        if sys.version_info >= (3, 8):
             expected = header + DALS(r"""
                 # EASY-INSTALL-ENTRY-SCRIPT: 'spec','console_scripts','name'
                 __requires__ = 'spec'
@@ -87,7 +85,7 @@ class TestEasyInstallTest:
                         if entry_point.group == 'console_scripts' and entry_point.name == 'name':
                             sys.exit(entry_point.load()())
                 """)  # noqa: E501
-        except ImportError:
+        else:
             expected = header + DALS(r"""
                 # EASY-INSTALL-ENTRY-SCRIPT: 'spec','console_scripts','name'
                 __requires__ = 'spec'
