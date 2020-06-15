@@ -2073,7 +2073,6 @@ class ScriptWriter:
     if sys.version_info >= (3, 8):
         template = textwrap.dedent(r"""
             # EASY-INSTALL-ENTRY-SCRIPT: %(spec)r,%(group)r,%(name)r
-            __requires__ = %(spec)r
             import re
             import sys
             from importlib.metadata import distribution

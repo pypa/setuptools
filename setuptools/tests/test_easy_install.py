@@ -74,7 +74,6 @@ class TestEasyInstallTest:
         if sys.version_info >= (3, 8):
             expected = header + DALS(r"""
                 # EASY-INSTALL-ENTRY-SCRIPT: 'spec','console_scripts','name'
-                __requires__ = 'spec'
                 import re
                 import sys
                 from importlib.metadata import distribution
