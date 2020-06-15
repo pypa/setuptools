@@ -192,30 +192,4 @@ class develop(namespaces.DevelopInstaller, easy_install):
             self.install_script(dist, script_name, script_text, script_path)
 
     def install_wrapper_scripts(self, dist):
-        dist = VersionlessRequirement(dist)
         return easy_install.install_wrapper_scripts(self, dist)
-
-
-class VersionlessRequirement:
-    """
-    Adapt a pkg_resources.Distribution to simply return the project
-    name as the 'requirement' so that scripts will work across
-    multiple versions.
-
-    >>> from pkg_resources import Distribution
-    >>> dist = Distribution(project_name='foo', version='1.0')
-    >>> str(dist.as_requirement())
-    'foo==1.0'
-    >>> adapted_dist = VersionlessRequirement(dist)
-    >>> str(adapted_dist.as_requirement())
-    'foo'
-    """
-
-    def __init__(self, dist):
-        self.__dist = dist
-
-    def __getattr__(self, name):
-        return getattr(self.__dist, name)
-
-    def as_requirement(self):
-        return self.project_name

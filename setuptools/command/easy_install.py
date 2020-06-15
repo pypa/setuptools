@@ -2071,7 +2071,7 @@ class ScriptWriter:
     """
 
     template = textwrap.dedent(r"""
-        # EASY-INSTALL-ENTRY-SCRIPT: %(spec)r,%(group)r,%(name)r
+        # EASY-INSTALL-ENTRY-SCRIPT: %(dist_name)r,%(group)r,%(name)r
         import re
         import sys
 
@@ -2084,8 +2084,7 @@ class ScriptWriter:
                 from pkg_resources import load_entry_point
 
 
-        def importlib_load_entry_point(spec, group, name):
-            dist_name, _, _ = spec.partition('==')
+        def importlib_load_entry_point(dist_name, group, name):
             matches = (
                 entry_point
                 for entry_point in distribution(dist_name).entry_points
@@ -2099,7 +2098,7 @@ class ScriptWriter:
 
         if __name__ == '__main__':
             sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
-            sys.exit(load_entry_point(%(spec)r, %(group)r, %(name)r)())
+            sys.exit(load_entry_point(%(dist_name)r, %(group)r, %(name)r)())
         """).lstrip()
 
     command_spec_class = CommandSpec
@@ -2129,7 +2128,7 @@ class ScriptWriter:
         """
         if header is None:
             header = cls.get_header()
-        spec = str(dist.as_requirement())
+        dist_name = dist.project_name
         for type_ in 'console', 'gui':
             group = type_ + '_scripts'
             for name, ep in dist.get_entry_map(group).items():

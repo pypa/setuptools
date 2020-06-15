@@ -45,13 +45,12 @@ __metaclass__ = type
 
 
 class FakeDist:
+    project_name = 'project'
+
     def get_entry_map(self, group):
         if group != 'console_scripts':
             return {}
         return {str('name'): 'ep'}
-
-    def as_requirement(self):
-        return 'spec'
 
 
 SETUP_PY = DALS("""
@@ -76,7 +75,7 @@ class TestEasyInstallTest:
         args = next(ei.ScriptWriter.get_args(dist))
         name, script = itertools.islice(args, 2)
         assert script.startswith(header)
-        assert "'spec'" in script
+        assert "'project'" in script
         assert "'console_scripts'" in script
         assert "'name'" in script
         assert re.search(
