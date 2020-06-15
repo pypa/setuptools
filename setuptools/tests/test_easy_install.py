@@ -71,19 +71,34 @@ class TestEasyInstallTest:
 
     def test_get_script_args(self):
         header = ei.CommandSpec.best().from_environment().as_header()
-        expected = header + DALS(r"""
-            # EASY-INSTALL-ENTRY-SCRIPT: 'spec','console_scripts','name'
-            __requires__ = 'spec'
-            import re
-            import sys
-            from pkg_resources import load_entry_point
+        if sys.version_info >= (3, 8):
+            expected = header + DALS(r"""
+                # EASY-INSTALL-ENTRY-SCRIPT: 'spec','console_scripts','name'
+                import re
+                import sys
+                from importlib.metadata import distribution
 
-            if __name__ == '__main__':
-                sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
-                sys.exit(
-                    load_entry_point('spec', 'console_scripts', 'name')()
-                )
-            """)  # noqa: E501
+                if __name__ == '__main__':
+                    sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
+                    for entry_point in distribution('spec').entry_points:
+                        if entry_point.group == 'console_scripts' and entry_point.name == 'name':
+                            sys.exit(entry_point.load()())
+                """)  # noqa: E501
+        else:
+            expected = header + DALS(r"""
+                # EASY-INSTALL-ENTRY-SCRIPT: 'spec','console_scripts','name'
+                __requires__ = 'spec'
+                import re
+                import sys
+                from pkg_resources import load_entry_point
+
+                if __name__ == '__main__':
+                    sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
+                    sys.exit(
+                        load_entry_point('spec', 'console_scripts', 'name')()
+                    )
+                """)  # noqa: E501
+
         dist = FakeDist()
 
         args = next(ei.ScriptWriter.get_args(dist))

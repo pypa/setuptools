@@ -2070,19 +2070,33 @@ class ScriptWriter:
     gui apps.
     """
 
-    template = textwrap.dedent(r"""
-        # EASY-INSTALL-ENTRY-SCRIPT: %(spec)r,%(group)r,%(name)r
-        __requires__ = %(spec)r
-        import re
-        import sys
-        from pkg_resources import load_entry_point
+    if sys.version_info >= (3, 8):
+        template = textwrap.dedent(r"""
+            # EASY-INSTALL-ENTRY-SCRIPT: %(spec)r,%(group)r,%(name)r
+            import re
+            import sys
+            from importlib.metadata import distribution
 
-        if __name__ == '__main__':
-            sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
-            sys.exit(
-                load_entry_point(%(spec)r, %(group)r, %(name)r)()
-            )
-    """).lstrip()
+            if __name__ == '__main__':
+                sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
+                for entry_point in distribution(%(spec)r).entry_points:
+                    if entry_point.group == %(group)r and entry_point.name == %(name)r:
+                        sys.exit(entry_point.load()())
+        """).lstrip()  # noqa: E501
+    else:
+        template = textwrap.dedent(r"""
+            # EASY-INSTALL-ENTRY-SCRIPT: %(spec)r,%(group)r,%(name)r
+            __requires__ = %(spec)r
+            import re
+            import sys
+            from pkg_resources import load_entry_point
+
+            if __name__ == '__main__':
+                sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
+                sys.exit(
+                    load_entry_point(%(spec)r, %(group)r, %(name)r)()
+                )
+        """).lstrip()  # noqa: E501
 
     command_spec_class = CommandSpec
 
