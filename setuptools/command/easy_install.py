@@ -2079,7 +2079,7 @@ class ScriptWriter:
 
             if __name__ == '__main__':
                 sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
-                for entry_point in distribution(%(spec)r).entry_points:
+                for entry_point in distribution(%(spec)r.split('==')[0]).entry_points:
                     if entry_point.group == %(group)r and entry_point.name == %(name)r:
                         sys.exit(entry_point.load()())
         """).lstrip()  # noqa: E501
