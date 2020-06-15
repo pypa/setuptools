@@ -1,3 +1,9 @@
+v47.2.0
+-------
+
+* #2194: Editable-installed entry points now load significantly faster on Python versions 3.8+.
+
+
 v47.1.1
 -------
 

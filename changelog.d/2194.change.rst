@@ -1,1 +1,0 @@
-Editable-installed entry points now load significantly faster on Python versions 3.8+.
