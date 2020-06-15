@@ -1,200 +1,154 @@
 .. _`entry_points`:
 
-==========================================
-Entry Points and Automatic Script Creation
-==========================================
+============
+Entry Points
+============
 
-After installing some packages, you may realize you can invoke some commands
-without explicitly calling the python interpreter. For example, instead of
-calling ``python -m pip install`` you can just do ``pip install``. The magic
-behind this is entry point, a keyword passed to your ``setup.cfg`` or
-``setup.py`` to create script wrapped around function in your libraries.
+Packages may provide commands to be run at the console (console scripts),
+such as the ``pip`` command. These commands are defined for a package
+as a specific kind of entry point in the ``setup.cfg`` or
+``setup.py``.
 
 
-Using entry point in your package
-=================================
-Let's start with an example. Suppose you have written your package like this:
+Console Scripts
+===============
+
+First consider an example without entry points. Imagine a package
+defined thus::
 
 .. code-block:: bash
 
     timmins/
         timmins/__init__.py
+        timmins/__main__.py
         setup.cfg # or setup.py
         #other necessary files
 
-and in your ``__init__.py`` it defines a function:
+with ``__init__.py`` as:
 
 .. code-block:: python
 
     def helloworld():
         print("Hello world")
 
-After installing the package, you can invoke this function in the following
-manner, without applying any magic:
+and ``__main__.py`` providing a hook:
+
+    from . import hello_world
+    if __name__ == '__main__':
+        hello_world()
+
+After installing the package, the function may be invoked through the
+`runpy <https://docs.python.org/3/library/runpy.html>`_ module::
 
 .. code-block:: bash
 
-    python -m mypkg.helloworld
+    python -m timmins
 
-But entry point simplifies the call and would create a wrapper script around
-your function, making it behave more natively (you type in ``helloworld`` and
-the ``helloworld`` function residing inside ``__init__.py`` is executed!). To
-accomplish that, add the following lines to your ``setup.cfg`` or ``setup.py``:
+Adding a console script entry point allows the package to define a
+user-friendly name for installers of the package to execute. Installers
+like pip will create wrapper scripts to execute a function. In the
+above example, to create a command ``hello-world`` that invokes
+``timmins.hello_world``, add a console script entry point to
+``setup.cfg``::
 
 .. code-block:: ini
 
-    [options]
-    #...
-    entry_points =
-        [console_scripts]
-        helloworld = mypkg:helloworld
+    [options.entry_points]
+    console_scripts =
+        hello-world = timmins:hello_world
 
-.. code-block:: python
-
-    setup(
-        #...
-        entry_points = """
-            [console_scripts]
-            helloworld = mypkg:helloworld
-            """
-    )
+After installing the package, a user may invoke that function by simply calling
+``hello-world`` on the command line.
 
 The syntax for entry points is specified as follows:
 
 .. code-block::
 
-    [<type>]
-    <name> = [<package>.<subpackage>.]<module>[:<object>.<object>]
+    <name> = [<package>.[<subpackage>.]]<module>[:<object>.<object>]
 
 where ``name`` is the name for the script you want to create, the left hand
 side of ``:`` is the module that contains your function and the right hand
-side is the object you want to invoke (e.g. a function). ``type`` specifies the
-type of entry point (pertinent to the program that exploits it). ``setuptools``
-natively supports ``[console_script]`` and ``[gui_script]``.
+side is the object you want to invoke (e.g. a function).
 
-.. note::
-    the syntax is not limited to ``INI`` string as demonstrated above. You can
-    also pass in the values in the form of a dictionary or list. Check out
-    :ref:`keyword reference <keywords_ref>` for more details
-
-After installation, you will be able to invoke that function by simply calling
-``helloworld`` on your command line. It will even do command line argument
-parsing for you!
+In addition to ``console_scripts``, Setuptools supports ``gui_scripts``, which
+will launch a GUI application without running in a terminal window.
 
 
-Dynamic discovery of services (aka plugin support)
-==================================================
-The ability of entry points isn't limited to "advertising" your functions. Its
-implementation allows us to accomplish more powerful features, such as creating
-plugins. In fact, the aforementioned script wrapping ability is a form of
-plugin that was built into ``setuptools``. With that being said, you now have
-more options than ``[console_script]`` or ``[gui_script]`` when creating your
-package.
+Advertising Behavior
+====================
 
-To understand how you can extend this functionality, let's go through how
-``setuptool`` does its ``[console_script]`` magic. Again, we use the same
-example as above:
+Console scripts are one use of the more general concept of entry points. Entry
+points more generally allow a packager to advertise behavior for discovery by
+other libraries and applications. This feature enables "plug-in"-like
+functionality, where one library solicits entry points and any number of other
+libraries provide those entry points.
 
-.. code-block:: ini
+A good example of this plug-in behavior can be seen in
+`pytest plugins <https://docs.pytest.org/en/latest/writing_plugins.html>`_,
+where pytest is a test framework that allows other libraries to extend
+or modify its functionality through the ``pytest11`` entry point.
 
-    [options]
-    # ...
-    entry_points =
-        [console_scripts]
-        helloworld = mypkg:helloworld
+The console scripts work similarly, where libraries advertise their commands
+and tools like ``pip`` create wrapper scripts that invoke those commands.
 
-Package installation contains multiple steps, so at some point, this package
-becomes available to your interpreter, and if you run the following code:
+For a project wishing to solicit entry points, Setuptools recommends the
+`importlib.metadata <https://docs.python.org/3/library/importlib.metadata.html>`_
+module (part of stdlib since Python 3.8) or its backport,
+`importlib_metadata <https://pypi.org/project/importlib_metadata>`_.
 
-.. code-block:: ini
-
-    >>> import pkg_resources #a module part of setuptools
-    >>> [item for item in
-        pkg_srouces.working_set.iter_entry_points('console_scripts')]
-
-It will return a list of special objects (called "EntryPoints"), and there
-will be one of them that corresponds to the ``helloworld = mypkg:helloworld``
-which we defined above. In fact, this object doesn't just contain the string,
-but also an encompassing representation of the package that created it.
-In the case of ``console_scripts``, setuptools will automatically invoke
-an internal function that utilizes this object and create the wrapper scripts
-and place them in your ``bin`` directory for your interpreter. How
-``pkg_resource`` look up all the entry points is further detailed in our
-:ref:`developer_guide` (WIP). With that being said, if you specify a different
-entry point:
-
-.. code-block:: ini
-
-    [options]
-    # ...
-    entry_points =
-        [iam.just.playing.around]
-        helloworld = mypkg:helloworld
-
-Then, running the same python expression like above:
+For example, to find the console script entry points from the example above::
 
 .. code-block:: python
 
-    >>> import pkg_resources
-    >>> [item for item in
-        pkg_srouces.working_set.iter_entry_points('iam.just.playing.around')
-        ]
+    >>> from importlib import metadata
+    >>> eps = metadata.entry_points()['console_scripts']
 
-will create another ``EntryPoints`` object that contains the
-``helloworld = mypkg:helloworld`` and you can create custom
-functions to exploit its information however you want. For example, one of
-the installed programs on your system may contain a startup script that
-scans the system for all the packages that specify this
-``iam.just.playing.around`` entry points, such that when you install this new
-package, it becomes immediately available without having to reconfigure
-the already installed program. This in fact is the very idea of a plugin!
-
-
-Dependencies management for entry points
-========================================
-Some entry points may require additional dependencies for them to work and
-others may trigger the installation of additional dependencies only when they
-are run. While this is elaborated in more excrutiating details on
-:ref:`guide on dependencies management <dependency_management>`, we will
-provide a brief overview on the entry point aspect.
-
-Dependencies of this manner are declared using the ``extra_requires`` keywords,
-which takes a mapping of the arbitary name of the functionality and a list of
-its depencencies, optionally suffixed with its :ref:`version specifier
-<version_specifier>`. For example, our package provides "pdf" output capability
-which requires at least 0.3 version of "ReportLab" and whatever version of "RXP"
+``eps`` is now a list of ``EntryPoint`` objects, one of which corresponds
+to the ``hello-world = timmins:hello_world`` defined above. Each ``EntryPoint``
+contains the ``name``, ``group``, and ``value``. It also supplies a ``.load()``
+method to import and load that entry point (module or object).
 
 .. code-block:: ini
 
-    [options.extras_require]
-    PDF = ReportLab>=1.2; RXP
+    [options.entry_points]
+    my.plugins =
+        hello-world = timmins:hello_world
+
+Then, a different project wishing to load 'my.plugins' plugins could run
+the following routine to load (and invoke) such plugins::
 
 .. code-block:: python
 
-    setup(
-        extras_require = {
-            "PDF":  ["ReportLab>=1.2", "RXP"],
-        }
-    )
+    >>> from importlib import metadata
+    >>> eps = metadata.entry_points()['my.plugins']
+    >>> for ep in eps:
+    ...     plugin = ep.load()
+    ...     plugin()
+
+The project soliciting the entry points needs not to have any dependency
+or prior knowledge about the libraries implementing the entry points, and
+downstream users are able to compose functionality by pulling together
+libraries implementing the entry points.
 
 
-And we only want them to be installed if the console script entry point
-``rst2pdf`` is run:
+Dependency Management
+=====================
+
+Some entry points may require additional dependencies to properly function.
+For such an entry point, declare in square brakets any number of dependency
+``extras`` following the entry point definition. Such entry points will only
+be viable if their extras were declared and installed. See the
+:ref:`guide on dependencies management <dependency_management>` for
+more information on defining extra requirements. Consider from the
+above example::
 
 .. code-block:: ini
 
-    [options]
-    entry_points =
-        ['console_script']
-        rst2pdf = project_a.tools.pdfgen [PDF]
-        rst2html = project_a.tools.htmlgen
+    [options.entry_points]
+    console_scripts =
+        hello-world = timmins:hello_world [pretty-printer]
 
-.. code-block:: python
-
-    setup(
-        entry_points = """
-            ['console_script']
-            rst2pdf = project_a.tools.pdfgen [PDF]
-            rst2html = project_a.tools.htmlgen
-            """
-    )
+In this case, the ``hello-world`` script is only viable if the ``pretty-printer``
+extra is indicated, and so a plugin host might exclude that entry point
+(i.e. not install a console script) if the relevant extra dependencies are not
+installed.
