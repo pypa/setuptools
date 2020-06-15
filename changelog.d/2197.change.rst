@@ -1,0 +1,1 @@
+Console script wrapper for editable installs now has a unified template and honors importlib_metadata if present for faster script execution on older Pythons.
