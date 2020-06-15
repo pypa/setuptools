@@ -2070,33 +2070,37 @@ class ScriptWriter:
     gui apps.
     """
 
-    if sys.version_info >= (3, 8):
-        template = textwrap.dedent(r"""
-            # EASY-INSTALL-ENTRY-SCRIPT: %(spec)r,%(group)r,%(name)r
-            import re
-            import sys
+    template = textwrap.dedent(r"""
+        # EASY-INSTALL-ENTRY-SCRIPT: %(spec)r,%(group)r,%(name)r
+        import re
+        import sys
+
+        try:
             from importlib.metadata import distribution
+        except ImportError:
+            try:
+                from importlib_metadata import distribution
+            except ImportError:
+                from pkg_resources import load_entry_point
 
-            if __name__ == '__main__':
-                sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
-                for entry_point in distribution(%(spec)r.split('==')[0]).entry_points:
-                    if entry_point.group == %(group)r and entry_point.name == %(name)r:
-                        sys.exit(entry_point.load()())
-        """).lstrip()  # noqa: E501
-    else:
-        template = textwrap.dedent(r"""
-            # EASY-INSTALL-ENTRY-SCRIPT: %(spec)r,%(group)r,%(name)r
-            __requires__ = %(spec)r
-            import re
-            import sys
-            from pkg_resources import load_entry_point
 
-            if __name__ == '__main__':
-                sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
-                sys.exit(
-                    load_entry_point(%(spec)r, %(group)r, %(name)r)()
-                )
-        """).lstrip()  # noqa: E501
+        def importlib_load_entry_point(spec, group, name):
+            dist_name, _, _ = spec.partition('==')
+            matches = (
+                entry_point
+                for entry_point in distribution(dist_name).entry_points
+                if entry_point.group == group and entry_point.name == name
+            )
+            return next(matches).load()
+
+
+        globals().setdefault('load_entry_point', importlib_load_entry_point)
+
+
+        if __name__ == '__main__':
+            sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
+            sys.exit(load_entry_point(%(spec)r, %(group)r, %(name)r)())
+        """).lstrip()
 
     command_spec_class = CommandSpec
 
