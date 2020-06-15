@@ -38,7 +38,6 @@ import distutils
 from setuptools.py31compat import TemporaryDirectory
 
 from pkg_resources import parse_requirements
-from pkg_resources.py31compat import makedirs
 
 __all__ = ['get_requires_for_build_sdist',
            'get_requires_for_build_wheel',
@@ -190,7 +189,7 @@ class _BuildMetaBackend(object):
         result_directory = os.path.abspath(result_directory)
 
         # Build in a temporary directory, then copy to the target.
-        makedirs(result_directory, exist_ok=True)
+        os.makedirs(result_directory, exist_ok=True)
         with TemporaryDirectory(dir=result_directory) as tmp_dist_dir:
             sys.argv = (sys.argv[:1] + setup_command +
                         ['--dist-dir', tmp_dist_dir] +
