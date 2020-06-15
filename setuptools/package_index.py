@@ -53,10 +53,10 @@ user_agent = _tmpl.format(
 def parse_requirement_arg(spec):
     try:
         return Requirement.parse(spec)
-    except ValueError:
+    except ValueError as e:
         raise DistutilsError(
             "Not a URL, existing file, or requirement spec: %r" % (spec,)
-        )
+        ) from e
 
 
 def parse_bdist_wininst(name):
@@ -772,7 +772,7 @@ class PackageIndex(Environment):
             if warning:
                 self.warn(warning, msg)
             else:
-                raise DistutilsError('%s %s' % (url, msg))
+                raise DistutilsError('%s %s' % (url, msg)) from v
         except urllib.error.HTTPError as v:
             return v
         except urllib.error.URLError as v:
@@ -780,7 +780,7 @@ class PackageIndex(Environment):
                 self.warn(warning, v.reason)
             else:
                 raise DistutilsError("Download error for %s: %s"
-                                     % (url, v.reason))
+                                     % (url, v.reason)) from v
         except http_client.BadStatusLine as v:
             if warning:
                 self.warn(warning, v.line)
@@ -789,13 +789,13 @@ class PackageIndex(Environment):
                     '%s returned a bad status line. The server might be '
                     'down, %s' %
                     (url, v.line)
-                )
+                ) from v
         except (http_client.HTTPException, socket.error) as v:
             if warning:
                 self.warn(warning, v)
             else:
                 raise DistutilsError("Download error for %s: %s"
-                                     % (url, v))
+                                     % (url, v)) from v
 
     def _download_url(self, scheme, url, tmpdir):
         # Determine download filename
