@@ -42,9 +42,10 @@ class StaticModule:
                 for target in statement.targets
                 if isinstance(target, ast.Name) and target.id == attr
             )
-        except Exception:
+        except Exception as e:
             raise AttributeError(
-                "{self.name} has no attribute {attr}".format(**locals()))
+                "{self.name} has no attribute {attr}".format(**locals())
+            ) from e
 
 
 @contextlib.contextmanager
