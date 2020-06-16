@@ -2075,6 +2075,9 @@ class ScriptWriter:
         import re
         import sys
 
+        # for compatibility with easy_install; see #2198
+        __requires__ = %(spec)r
+
         try:
             from importlib.metadata import distribution
         except ImportError:
