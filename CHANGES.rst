@@ -1,3 +1,10 @@
+v47.3.1
+-------
+
+* #1973: Removed ``pkg_resources.py31compat.makedirs`` in favor of the stdlib. Use ``os.makedirs()`` instead.
+* #2198: Restore ``__requires__`` directive in easy-install wrapper scripts.
+
+
 v47.3.0
 -------
 

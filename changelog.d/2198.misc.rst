@@ -1,1 +1,0 @@
-Restore ``__requires__`` directive in easy-install wrapper scripts.
