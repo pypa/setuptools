@@ -55,10 +55,11 @@ def write_stub(resource, pyfile):
     _stub_template = textwrap.dedent("""
         def __bootstrap__():
             global __bootstrap__, __loader__, __file__
-            import sys, pkg_resources, imp
+            import sys, pkg_resources
+            from importlib.machinery import ExtensionFileLoader
             __file__ = pkg_resources.resource_filename(__name__, %r)
             __loader__ = None; del __bootstrap__, __loader__
-            imp.load_dynamic(__name__,__file__)
+            ExtensionFileLoader(__name__,__file__).exec_module()
         __bootstrap__()
         """).lstrip()
     with open(pyfile, 'w') as f:
