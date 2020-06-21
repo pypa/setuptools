@@ -11,3 +11,5 @@ used from a setup script as
 import sys
 
 __version__ = sys.version[:sys.version.index(' ')]
+
+local = True

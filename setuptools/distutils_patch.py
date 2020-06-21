@@ -6,8 +6,10 @@ for more motivation.
 """
 
 import sys
+import re
 import importlib
 import contextlib
+import warnings
 from os.path import dirname
 
 
@@ -21,11 +23,20 @@ def patch_sys_path():
         sys.path[:] = orig
 
 
+def clear_distutils():
+    if 'distutils' not in sys.modules:
+        return
+    warnings.warn("Setuptools is replacing distutils")
+    mods = [name for name in sys.modules if re.match(r'distutils\b', name)]
+    for name in mods:
+        del sys.modules[name]
+
+
 def ensure_local_distutils():
-    if 'distutils' in sys.modules:
-        raise RuntimeError("Distutils must not be imported before setuptools")
+    clear_distutils()
     with patch_sys_path():
         importlib.import_module('distutils')
+        assert sys.modules['distutils'].local
 
 
 ensure_local_distutils()
