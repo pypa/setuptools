@@ -22,7 +22,7 @@ def patch_sys_path():
 
 
 def ensure_local_distutils():
-    if 'distutils' in sys.path:
+    if 'distutils' in sys.modules:
         raise RuntimeError("Distutils must not be imported before setuptools")
     with patch_sys_path():
         importlib.import_module('distutils')
