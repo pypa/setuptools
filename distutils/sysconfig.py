@@ -16,6 +16,8 @@ import sys
 
 from .errors import DistutilsPlatformError
 
+IS_PYPY = '__pypy__' in sys.builtin_module_names
+
 # These are needed in a couple of spots, so just compute them once.
 PREFIX = os.path.normpath(sys.prefix)
 EXEC_PREFIX = os.path.normpath(sys.exec_prefix)
@@ -97,7 +99,9 @@ def get_python_inc(plat_specific=0, prefix=None):
     """
     if prefix is None:
         prefix = plat_specific and BASE_EXEC_PREFIX or BASE_PREFIX
-    if os.name == "posix":
+    if IS_PYPY:
+        return os.path.join(prefix, 'include')
+    elif os.name == "posix":
         if python_build:
             # Assume the executable is in the build directory.  The
             # pyconfig.h file should be in the same directory.  Since
