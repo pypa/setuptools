@@ -83,6 +83,10 @@ class DistributionTestCase(support.LoggingSilencer,
         self.assertIsInstance(cmd, test_dist)
         self.assertEqual(cmd.sample_option, "sometext")
 
+    @unittest.skipIf(
+        'distutils' not in Distribution.parse_config_files.__module__,
+        'Cannot test when virtualenv has monkey-patched Distribution.',
+    )
     def test_venv_install_options(self):
         sys.argv.append("install")
         self.addCleanup(os.unlink, TESTFN)
