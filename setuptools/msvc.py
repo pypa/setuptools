@@ -643,8 +643,10 @@ class RegistryInfo:
         """
         key_read = winreg.KEY_READ
         openkey = winreg.OpenKey
+        closekey = winreg.CloseKey
         ms = self.microsoft
         for hkey in self.HKEYS:
+            bkey = None
             try:
                 bkey = openkey(hkey, ms(key), 0, key_read)
             except (OSError, IOError):
@@ -659,6 +661,9 @@ class RegistryInfo:
                 return winreg.QueryValueEx(bkey, name)[0]
             except (OSError, IOError):
                 pass
+            finally:
+                if bkey:
+                    closekey(bkey)
 
 
 class SystemInfo:
@@ -726,21 +731,22 @@ class SystemInfo:
                     bkey = winreg.OpenKey(hkey, ms(key), 0, winreg.KEY_READ)
                 except (OSError, IOError):
                     continue
-                subkeys, values, _ = winreg.QueryInfoKey(bkey)
-                for i in range(values):
-                    try:
-                        ver = float(winreg.EnumValue(bkey, i)[0])
-                        if ver not in vs_vers:
-                            vs_vers.append(ver)
-                    except ValueError:
-                        pass
-                for i in range(subkeys):
-                    try:
-                        ver = float(winreg.EnumKey(bkey, i))
-                        if ver not in vs_vers:
-                            vs_vers.append(ver)
-                    except ValueError:
-                        pass
+                with bkey:
+                    subkeys, values, _ = winreg.QueryInfoKey(bkey)
+                    for i in range(values):
+                        try:
+                            ver = float(winreg.EnumValue(bkey, i)[0])
+                            if ver not in vs_vers:
+                                vs_vers.append(ver)
+                        except ValueError:
+                            pass
+                    for i in range(subkeys):
+                        try:
+                            ver = float(winreg.EnumKey(bkey, i))
+                            if ver not in vs_vers:
+                                vs_vers.append(ver)
+                        except ValueError:
+                            pass
         return sorted(vs_vers)
 
     def find_programdata_vs_vers(self):

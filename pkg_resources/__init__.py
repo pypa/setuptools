@@ -1459,7 +1459,8 @@ class NullProvider:
         script_filename = self._fn(self.egg_info, script)
         namespace['__file__'] = script_filename
         if os.path.exists(script_filename):
-            source = open(script_filename).read()
+            with open(script_filename) as fid:
+                source = fid.read()
             code = compile(source, script_filename, 'exec')
             exec(code, namespace, namespace)
         else:
