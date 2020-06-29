@@ -1,6 +1,6 @@
 # common.py
-from pyparsing.core import *
-from pyparsing.helpers import delimitedList, anyOpenTag, anyCloseTag
+from .core import *
+from .helpers import delimitedList, anyOpenTag, anyCloseTag
 from datetime import datetime
 
 # some other useful expressions - using lower-case class name since we are really using this as a namespace

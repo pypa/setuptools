@@ -2,7 +2,7 @@
 
 from contextlib import contextmanager
 
-from pyparsing.core import (
+from .core import (
     ParserElement,
     ParseException,
     Keyword,
@@ -46,17 +46,28 @@ class pyparsing_test:
         def save(self):
             self._save_context["default_whitespace"] = ParserElement.DEFAULT_WHITE_CHARS
             self._save_context["default_keyword_chars"] = Keyword.DEFAULT_KEYWORD_CHARS
+
             self._save_context[
                 "literal_string_class"
             ] = ParserElement._literalStringClass
+
             self._save_context["packrat_enabled"] = ParserElement._packratEnabled
+            if ParserElement._packratEnabled:
+                self._save_context[
+                    "packrat_cache_size"
+                ] = ParserElement.packrat_cache.size
+            else:
+                self._save_context["packrat_cache_size"] = None
             self._save_context["packrat_parse"] = ParserElement._parse
+
             self._save_context["__diag__"] = {
                 name: getattr(__diag__, name) for name in __diag__._all_names
             }
+
             self._save_context["__compat__"] = {
                 "collect_all_And_tokens": __compat__.collect_all_And_tokens
             }
+
             return self
 
         def restore(self):
@@ -68,21 +79,35 @@ class pyparsing_test:
                 ParserElement.setDefaultWhitespaceChars(
                     self._save_context["default_whitespace"]
                 )
+
             Keyword.DEFAULT_KEYWORD_CHARS = self._save_context["default_keyword_chars"]
             ParserElement.inlineLiteralsUsing(
                 self._save_context["literal_string_class"]
             )
+
             for name, value in self._save_context["__diag__"].items():
                 (__diag__.enable if value else __diag__.disable)(name)
-            ParserElement._packratEnabled = self._save_context["packrat_enabled"]
-            ParserElement._parse = self._save_context["packrat_parse"]
+
+            ParserElement._packratEnabled = False
+            if self._save_context["packrat_enabled"]:
+                ParserElement.enablePackrat(self._save_context["packrat_cache_size"])
+            else:
+                ParserElement._parse = self._save_context["packrat_parse"]
+
             __compat__.collect_all_And_tokens = self._save_context["__compat__"]
+
+            return self
+
+        def copy(self):
+            ret = type(self)()
+            ret._save_context.update(self._save_context)
+            return ret
 
         def __enter__(self):
             return self.save()
 
         def __exit__(self, *args):
-            return self.restore()
+            self.restore()
 
     class TestParseResultsAsserts:
         """

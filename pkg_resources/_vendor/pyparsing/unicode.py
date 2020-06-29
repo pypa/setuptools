@@ -101,7 +101,18 @@ class pyparsing_unicode(unicode_set):
     class Greek(unicode_set):
         "Unicode set for Greek Unicode Character Ranges"
         _ranges = [
-            (0x0370, 0x03FF),
+            (0x0342, 0x0345),
+            (0x0370, 0x0377),
+            (0x037A, 0x037F),
+            (0x0384, 0x038A),
+            (0x038C,),
+            (0x038E, 0x03A1),
+            (0x03A3, 0x03E1),
+            (0x03F0, 0x03FF),
+            (0x1D26, 0x1D2A),
+            (0x1D5E,),
+            (0x1D60,),
+            (0x1D66, 0x1D6A),
             (0x1F00, 0x1F15),
             (0x1F18, 0x1F1D),
             (0x1F20, 0x1F45),
@@ -118,17 +129,49 @@ class pyparsing_unicode(unicode_set):
             (0x1FDD, 0x1FEF),
             (0x1FF2, 0x1FF4),
             (0x1FF6, 0x1FFE),
+            (0x2129,),
+            (0x2719, 0x271A),
+            (0xAB65,),
+            (0x10140, 0x1018D),
+            (0x101A0,),
+            (0x1D200, 0x1D245),
+            (0x1F7A1, 0x1F7A7),
         ]
 
     class Cyrillic(unicode_set):
         "Unicode set for Cyrillic Unicode Character Range"
-        _ranges = [(0x0400, 0x04FF)]
+        _ranges = [
+            (0x0400, 0x052F),
+            (0x1C80, 0x1C88),
+            (0x1D2B,),
+            (0x1D78,),
+            (0x2DE0, 0x2DFF),
+            (0xA640, 0xA672),
+            (0xA674, 0xA69F),
+            (0xFE2E, 0xFE2F),
+        ]
 
     class Chinese(unicode_set):
         "Unicode set for Chinese Unicode Character Range"
         _ranges = [
-            (0x4E00, 0x9FFF),
-            (0x3000, 0x303F),
+            (0x2E80, 0x2E99),
+            (0x2E9B, 0x2EF3),
+            (0x31C0, 0x31E3),
+            (0x3400, 0x4DB5),
+            (0x4E00, 0x9FEF),
+            (0xA700, 0xA707),
+            (0xF900, 0xFA6D),
+            (0xFA70, 0xFAD9),
+            (0x16FE2, 0x16FE3),
+            (0x1F210, 0x1F212),
+            (0x1F214, 0x1F23B),
+            (0x1F240, 0x1F248),
+            (0x20000, 0x2A6D6),
+            (0x2A700, 0x2B734),
+            (0x2B740, 0x2B81D),
+            (0x2B820, 0x2CEA1),
+            (0x2CEB0, 0x2EBE0),
+            (0x2F800, 0x2FA1D),
         ]
 
     class Japanese(unicode_set):
@@ -145,25 +188,50 @@ class pyparsing_unicode(unicode_set):
         class Hiragana(unicode_set):
             "Unicode set for Hiragana Unicode Character Range"
             _ranges = [
-                (0x3040, 0x309F),
+                (0x3041, 0x3096),
+                (0x3099, 0x30A0),
+                (0x30FC,),
+                (0xFF70,),
+                (0x1B001,),
+                (0x1B150, 0x1B152),
+                (0x1F200,),
             ]
 
         class Katakana(unicode_set):
             "Unicode set for Katakana  Unicode Character Range"
             _ranges = [
+                (0x3099, 0x309C),
                 (0x30A0, 0x30FF),
+                (0x31F0, 0x31FF),
+                (0x32D0, 0x32FE),
+                (0xFF65, 0xFF9F),
+                (0x1B000,),
+                (0x1B164, 0x1B167),
+                (0x1F201, 0x1F202),
+                (0x1F213,),
             ]
 
-    class Korean(unicode_set):
-        "Unicode set for Korean Unicode Character Range"
+    class Hangul(unicode_set):
+        "Unicode set for Hangul (Korean) Unicode Character Range"
         _ranges = [
-            (0xAC00, 0xD7AF),
             (0x1100, 0x11FF),
-            (0x3130, 0x318F),
-            (0xA960, 0xA97F),
-            (0xD7B0, 0xD7FF),
-            (0x3000, 0x303F),
+            (0x302E, 0x302F),
+            (0x3131, 0x318E),
+            (0x3200, 0x321C),
+            (0x3260, 0x327B),
+            (0x327E,),
+            (0xA960, 0xA97C),
+            (0xAC00, 0xD7A3),
+            (0xD7B0, 0xD7C6),
+            (0xD7CB, 0xD7FB),
+            (0xFFA0, 0xFFBE),
+            (0xFFC2, 0xFFC7),
+            (0xFFCA, 0xFFCF),
+            (0xFFD2, 0xFFD7),
+            (0xFFDA, 0xFFDC),
         ]
+
+    Korean = Hangul
 
     class CJK(Chinese, Japanese, Korean):
         "Unicode set for combined Chinese, Japanese, and Korean (CJK) Unicode Character Range"
@@ -171,10 +239,7 @@ class pyparsing_unicode(unicode_set):
 
     class Thai(unicode_set):
         "Unicode set for Thai Unicode Character Range"
-        _ranges = [
-            (0x0E01, 0x0E3A),
-            (0x0E3F, 0x0E5B),
-        ]
+        _ranges = [(0x0E01, 0x0E3A), (0x0E3F, 0x0E5B)]
 
     class Arabic(unicode_set):
         "Unicode set for Arabic Unicode Character Range"
@@ -187,7 +252,15 @@ class pyparsing_unicode(unicode_set):
     class Hebrew(unicode_set):
         "Unicode set for Hebrew Unicode Character Range"
         _ranges = [
-            (0x0590, 0x05FF),
+            (0x0591, 0x05C7),
+            (0x05D0, 0x05EA),
+            (0x05EF, 0x05F4),
+            (0xFB1D, 0xFB36),
+            (0xFB38, 0xFB3C),
+            (0xFB3E,),
+            (0xFB40, 0xFB41),
+            (0xFB43, 0xFB44),
+            (0xFB46, 0xFB4F),
         ]
 
     class Devanagari(unicode_set):
