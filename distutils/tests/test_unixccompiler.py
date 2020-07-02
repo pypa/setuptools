@@ -11,6 +11,7 @@ class UnixCCompilerTestCase(unittest.TestCase):
     def setUp(self):
         self._backup_platform = sys.platform
         self._backup_get_config_var = sysconfig.get_config_var
+        self._backup_get_config_vars = sysconfig.get_config_vars
         class CompilerWrapper(UnixCCompiler):
             def rpath_foo(self):
                 return self.runtime_library_dir_option('/foo')
@@ -19,6 +20,7 @@ class UnixCCompilerTestCase(unittest.TestCase):
     def tearDown(self):
         sys.platform = self._backup_platform
         sysconfig.get_config_var = self._backup_get_config_var
+        sysconfig.get_config_vars = self._backup_get_config_vars
 
     @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
     def test_runtime_libdir_option(self):
@@ -110,7 +112,13 @@ class UnixCCompilerTestCase(unittest.TestCase):
             if v == 'LDSHARED':
                 return 'gcc-4.2 -bundle -undefined dynamic_lookup '
             return 'gcc-4.2'
+
+        def gcvs(*args, _orig=sysconfig.get_config_vars):
+            if args:
+                return list(map(sysconfig.get_config_var, args))
+            return _orig()
         sysconfig.get_config_var = gcv
+        sysconfig.get_config_vars = gcvs
         with EnvironmentVarGuard() as env:
             env['CC'] = 'my_cc'
             del env['LDSHARED']
@@ -126,7 +134,13 @@ class UnixCCompilerTestCase(unittest.TestCase):
             if v == 'LDSHARED':
                 return 'gcc-4.2 -bundle -undefined dynamic_lookup '
             return 'gcc-4.2'
+
+        def gcvs(*args, _orig=sysconfig.get_config_vars):
+            if args:
+                return list(map(sysconfig.get_config_var, args))
+            return _orig()
         sysconfig.get_config_var = gcv
+        sysconfig.get_config_vars = gcvs
         with EnvironmentVarGuard() as env:
             env['CC'] = 'my_cc'
             env['LDSHARED'] = 'my_ld -bundle -dynamic'
