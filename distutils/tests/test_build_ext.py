@@ -82,7 +82,7 @@ class BuildExtTestCase(TempdirManager,
         else:
             ALREADY_TESTED = type(self).__name__
 
-        code = textwrap.dedent(f"""
+        code = textwrap.dedent("""
             tmp_dir = {self.tmp_dir!r}
 
             import sys
@@ -108,7 +108,7 @@ class BuildExtTestCase(TempdirManager,
 
 
             unittest.main()
-        """)
+        """.format(**locals()))
         assert_python_ok('-c', code)
 
     def test_solaris_enable_shared(self):
