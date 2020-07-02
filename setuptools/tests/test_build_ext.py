@@ -42,7 +42,7 @@ class TestBuildExt:
         res = cmd.get_ext_filename('spam.eggs')
 
         if six.PY2 or not get_abi3_suffix():
-            assert res.endswith(get_config_var('SO'))
+            assert res.endswith(get_config_var('EXT_SUFFIX'))
         elif sys.platform == 'win32':
             assert res.endswith('eggs.pyd')
         else:
