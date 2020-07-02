@@ -16,6 +16,8 @@ import sys
 
 from .errors import DistutilsPlatformError
 
+IS_PYPY = '__pypy__' in sys.builtin_module_names
+
 # These are needed in a couple of spots, so just compute them once.
 PREFIX = os.path.normpath(sys.prefix)
 EXEC_PREFIX = os.path.normpath(sys.exec_prefix)
@@ -97,7 +99,9 @@ def get_python_inc(plat_specific=0, prefix=None):
     """
     if prefix is None:
         prefix = plat_specific and BASE_EXEC_PREFIX or BASE_PREFIX
-    if os.name == "posix":
+    if IS_PYPY:
+        return os.path.join(prefix, 'include')
+    elif os.name == "posix":
         if python_build:
             # Assume the executable is in the build directory.  The
             # pyconfig.h file should be in the same directory.  Since
@@ -138,6 +142,14 @@ def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
     If 'prefix' is supplied, use it instead of sys.base_prefix or
     sys.base_exec_prefix -- i.e., ignore 'plat_specific'.
     """
+    if IS_PYPY:
+        # PyPy-specific schema
+        if prefix is None:
+            prefix = PREFIX
+        if standard_lib:
+            return os.path.join(prefix, "lib-python", sys.version[0])
+        return os.path.join(prefix, 'site-packages')
+
     if prefix is None:
         if standard_lib:
             prefix = plat_specific and BASE_EXEC_PREFIX or BASE_PREFIX
@@ -499,41 +511,42 @@ def get_config_vars(*args):
         _config_vars['prefix'] = PREFIX
         _config_vars['exec_prefix'] = EXEC_PREFIX
 
-        # For backward compatibility, see issue19555
-        SO = _config_vars.get('EXT_SUFFIX')
-        if SO is not None:
-            _config_vars['SO'] = SO
+        if not IS_PYPY:
+            # For backward compatibility, see issue19555
+            SO = _config_vars.get('EXT_SUFFIX')
+            if SO is not None:
+                _config_vars['SO'] = SO
 
-        # Always convert srcdir to an absolute path
-        srcdir = _config_vars.get('srcdir', project_base)
-        if os.name == 'posix':
-            if python_build:
-                # If srcdir is a relative path (typically '.' or '..')
-                # then it should be interpreted relative to the directory
-                # containing Makefile.
-                base = os.path.dirname(get_makefile_filename())
-                srcdir = os.path.join(base, srcdir)
-            else:
-                # srcdir is not meaningful since the installation is
-                # spread about the filesystem.  We choose the
-                # directory containing the Makefile since we know it
-                # exists.
-                srcdir = os.path.dirname(get_makefile_filename())
-        _config_vars['srcdir'] = os.path.abspath(os.path.normpath(srcdir))
+            # Always convert srcdir to an absolute path
+            srcdir = _config_vars.get('srcdir', project_base)
+            if os.name == 'posix':
+                if python_build:
+                    # If srcdir is a relative path (typically '.' or '..')
+                    # then it should be interpreted relative to the directory
+                    # containing Makefile.
+                    base = os.path.dirname(get_makefile_filename())
+                    srcdir = os.path.join(base, srcdir)
+                else:
+                    # srcdir is not meaningful since the installation is
+                    # spread about the filesystem.  We choose the
+                    # directory containing the Makefile since we know it
+                    # exists.
+                    srcdir = os.path.dirname(get_makefile_filename())
+            _config_vars['srcdir'] = os.path.abspath(os.path.normpath(srcdir))
 
-        # Convert srcdir into an absolute path if it appears necessary.
-        # Normally it is relative to the build directory.  However, during
-        # testing, for example, we might be running a non-installed python
-        # from a different directory.
-        if python_build and os.name == "posix":
-            base = project_base
-            if (not os.path.isabs(_config_vars['srcdir']) and
-                base != os.getcwd()):
-                # srcdir is relative and we are not in the same directory
-                # as the executable. Assume executable is in the build
-                # directory and make srcdir absolute.
-                srcdir = os.path.join(base, _config_vars['srcdir'])
-                _config_vars['srcdir'] = os.path.normpath(srcdir)
+            # Convert srcdir into an absolute path if it appears necessary.
+            # Normally it is relative to the build directory.  However, during
+            # testing, for example, we might be running a non-installed python
+            # from a different directory.
+            if python_build and os.name == "posix":
+                base = project_base
+                if (not os.path.isabs(_config_vars['srcdir']) and
+                    base != os.getcwd()):
+                    # srcdir is relative and we are not in the same directory
+                    # as the executable. Assume executable is in the build
+                    # directory and make srcdir absolute.
+                    srcdir = os.path.join(base, _config_vars['srcdir'])
+                    _config_vars['srcdir'] = os.path.normpath(srcdir)
 
         # OS X platforms require special customization to handle
         # multi-architecture, multi-os-version installers

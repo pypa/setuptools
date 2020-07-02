@@ -3,8 +3,10 @@ import os
 import stat
 import sys
 import unittest.mock
-from test.support import run_unittest, unix_shell
+from test.support import run_unittest
 from test import support as test_support
+
+from .py35compat import unix_shell
 
 from distutils.spawn import find_executable
 from distutils.spawn import spawn

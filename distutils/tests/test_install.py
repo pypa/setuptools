@@ -58,7 +58,8 @@ class InstallTestCase(support.TempdirManager,
 
         libdir = os.path.join(destination, "lib", "python")
         check_path(cmd.install_lib, libdir)
-        platlibdir = os.path.join(destination, sys.platlibdir, "python")
+        _platlibdir = getattr(sys, "platlibdir", "lib")
+        platlibdir = os.path.join(destination, _platlibdir, "python")
         check_path(cmd.install_platlib, platlibdir)
         check_path(cmd.install_purelib, libdir)
         check_path(cmd.install_headers,
