@@ -12,6 +12,9 @@ import test.support
 from test.support import captured_stdout, run_unittest
 from distutils.tests import support
 
+from .py35compat import adapt_glob
+
+
 MANIFEST_IN = """\
 include ok
 include xo
@@ -60,7 +63,7 @@ class FileListTestCase(support.LoggingSilencer,
             ('foo????', r'(?s:foo[^%(sep)s][^%(sep)s][^%(sep)s][^%(sep)s])\Z'),
             (r'foo\\??', r'(?s:foo\\\\[^%(sep)s][^%(sep)s])\Z')):
             regex = regex % {'sep': sep}
-            self.assertEqual(glob_to_re(glob), regex)
+            self.assertEqual(glob_to_re(glob), adapt_glob(regex))
 
     def test_process_template_line(self):
         # testing  all MANIFEST.in template patterns

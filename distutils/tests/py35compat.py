@@ -66,3 +66,12 @@ vars(subprocess).setdefault(
     '_optim_args_from_interpreter_flags',
     _optim_args_from_interpreter_flags,
 )
+
+
+def adapt_glob(regex):
+    """
+    Supply legacy expectation on Python 3.5
+    """
+    if sys.version_info > (3, 6):
+        return regex
+    return regex.replace('(?s:', '').replace(r')\Z', r'\Z(?ms)')
