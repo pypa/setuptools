@@ -1,1 +1,0 @@
-Update vendored packaging in pkg_resources to 19.2.

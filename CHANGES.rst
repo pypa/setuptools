@@ -1,3 +1,12 @@
+v49.0.0
+-------
+
+* #2165: Setuptools no longer installs a site.py file during easy_install or develop installs. As a result, .eggs on PYTHONPATH will no longer take precedence over other packages on sys.path. If this issue affects your production environment, please reach out to the maintainers at #2165.
+* #2137: Removed (private) pkg_resources.RequirementParseError, now replaced by packaging.requirements.InvalidRequirement. Kept the name for compatibility, but users should catch InvalidRequirement instead.
+* #2180: Update vendored packaging in pkg_resources to 19.2.
+* #2199: Fix exception causes all over the codebase by using ``raise new_exception from old_exception``
+
+
 v48.0.0
 -------
 

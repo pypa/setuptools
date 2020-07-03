@@ -1,1 +1,0 @@
-Setuptools no longer installs a site.py file during easy_install or develop installs. As a result, .eggs on PYTHONPATH will no longer take precedence over other packages on sys.path. If this issue affects your production environment, please reach out to the maintainers at #2165.

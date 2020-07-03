@@ -1,1 +1,0 @@
-Removed (private) pkg_resources.RequirementParseError, now replaced by packaging.requirements.InvalidRequirement. Kept the name for compatibility, but users should catch InvalidRequirement instead.
