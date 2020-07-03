@@ -277,7 +277,7 @@ def _msvc14_get_vc_env(plat_spec):
     except subprocess.CalledProcessError as exc:
         raise distutils.errors.DistutilsPlatformError(
             "Error executing {}".format(exc.cmd)
-        )
+        ) from exc
 
     env = {
         key.lower(): value

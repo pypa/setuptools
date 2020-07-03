@@ -208,11 +208,11 @@ class egg_info(InfoCommon, Command):
             list(
                 parse_requirements(spec % (self.egg_name, self.egg_version))
             )
-        except ValueError:
+        except ValueError as e:
             raise distutils.errors.DistutilsOptionError(
                 "Invalid distribution name or version syntax: %s-%s" %
                 (self.egg_name, self.egg_version)
-            )
+            ) from e
 
         if self.egg_base is None:
             dirs = self.distribution.package_dir

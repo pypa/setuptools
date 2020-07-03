@@ -204,11 +204,11 @@ def check_importable(dist, attr, value):
     try:
         ep = pkg_resources.EntryPoint.parse('x=' + value)
         assert not ep.extras
-    except (TypeError, ValueError, AttributeError, AssertionError):
+    except (TypeError, ValueError, AttributeError, AssertionError) as e:
         raise DistutilsSetupError(
             "%r must be importable 'module:attrs' string (got %r)"
             % (attr, value)
-        )
+        ) from e
 
 
 def assert_string_list(dist, attr, value):
@@ -219,10 +219,10 @@ def assert_string_list(dist, attr, value):
         assert isinstance(value, (list, tuple))
         # verify that elements of value are strings
         assert ''.join(value) != value
-    except (TypeError, ValueError, AttributeError, AssertionError):
+    except (TypeError, ValueError, AttributeError, AssertionError) as e:
         raise DistutilsSetupError(
             "%r must be a list of strings (got %r)" % (attr, value)
-        )
+        ) from e
 
 
 def check_nsp(dist, attr, value):
@@ -247,12 +247,12 @@ def check_extras(dist, attr, value):
     """Verify that extras_require mapping is valid"""
     try:
         list(itertools.starmap(_check_extra, value.items()))
-    except (TypeError, ValueError, AttributeError):
+    except (TypeError, ValueError, AttributeError) as e:
         raise DistutilsSetupError(
             "'extras_require' must be a dictionary whose values are "
             "strings or lists of strings containing valid project/version "
             "requirement specifiers."
-        )
+        ) from e
 
 
 def _check_extra(extra, reqs):
@@ -280,7 +280,9 @@ def check_requirements(dist, attr, value):
             "{attr!r} must be a string or list of strings "
             "containing valid project/version requirement specifiers; {error}"
         )
-        raise DistutilsSetupError(tmpl.format(attr=attr, error=error))
+        raise DistutilsSetupError(
+            tmpl.format(attr=attr, error=error)
+        ) from error
 
 
 def check_specifier(dist, attr, value):
@@ -292,7 +294,9 @@ def check_specifier(dist, attr, value):
             "{attr!r} must be a string "
             "containing valid version specifiers; {error}"
         )
-        raise DistutilsSetupError(tmpl.format(attr=attr, error=error))
+        raise DistutilsSetupError(
+            tmpl.format(attr=attr, error=error)
+        ) from error
 
 
 def check_entry_points(dist, attr, value):
@@ -300,7 +304,7 @@ def check_entry_points(dist, attr, value):
     try:
         pkg_resources.EntryPoint.parse_map(value)
     except ValueError as e:
-        raise DistutilsSetupError(e)
+        raise DistutilsSetupError(e) from e
 
 
 def check_test_suite(dist, attr, value):
@@ -609,8 +613,8 @@ class Distribution(_Distribution):
                         setattr(self, opt, strtobool(val))
                     else:
                         setattr(self, opt, val)
-                except ValueError as msg:
-                    raise DistutilsOptionError(msg)
+                except ValueError as e:
+                    raise DistutilsOptionError(e) from e
 
     @staticmethod
     def _try_str(val):
@@ -676,8 +680,8 @@ class Distribution(_Distribution):
                     raise DistutilsOptionError(
                         "error in %s: command '%s' has no such option '%s'"
                         % (source, command_name, option))
-            except ValueError as msg:
-                raise DistutilsOptionError(msg)
+            except ValueError as e:
+                raise DistutilsOptionError(e) from e
 
     def parse_config_files(self, filenames=None, ignore_option_errors=False):
         """Parses configuration files from various levels
@@ -843,10 +847,10 @@ class Distribution(_Distribution):
             )
         try:
             old = getattr(self, name)
-        except AttributeError:
+        except AttributeError as e:
             raise DistutilsSetupError(
                 "%s: No such distribution setting" % name
-            )
+            ) from e
         if old is not None and not isinstance(old, sequence):
             raise DistutilsSetupError(
                 name + ": this setting cannot be changed via include/exclude"
@@ -863,10 +867,10 @@ class Distribution(_Distribution):
             )
         try:
             old = getattr(self, name)
-        except AttributeError:
+        except AttributeError as e:
             raise DistutilsSetupError(
                 "%s: No such distribution setting" % name
-            )
+            ) from e
         if old is None:
             setattr(self, name, value)
         elif not isinstance(old, sequence):

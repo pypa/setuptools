@@ -1378,7 +1378,7 @@ def evaluate_marker(text, extra=None):
         marker = packaging.markers.Marker(text)
         return marker.evaluate()
     except packaging.markers.InvalidMarker as e:
-        raise SyntaxError(e)
+        raise SyntaxError(e) from e
 
 
 class NullProvider:
@@ -2288,8 +2288,8 @@ def declare_namespace(packageName):
                 __import__(parent)
             try:
                 path = sys.modules[parent].__path__
-            except AttributeError:
-                raise TypeError("Not a package:", parent)
+            except AttributeError as e:
+                raise TypeError("Not a package:", parent) from e
 
         # Track what packages are namespaces, so when new path items are added,
         # they can be updated
@@ -2469,7 +2469,7 @@ class EntryPoint:
         try:
             return functools.reduce(getattr, self.attrs, module)
         except AttributeError as exc:
-            raise ImportError(str(exc))
+            raise ImportError(str(exc)) from exc
 
     def require(self, env=None, installer=None):
         if self.extras and not self.dist:
@@ -2689,14 +2689,14 @@ class Distribution:
     def version(self):
         try:
             return self._version
-        except AttributeError:
+        except AttributeError as e:
             version = self._get_version()
             if version is None:
                 path = self._get_metadata_path_for_display(self.PKG_INFO)
                 msg = (
                     "Missing 'Version:' header and/or {} file at path: {}"
                 ).format(self.PKG_INFO, path)
-                raise ValueError(msg, self)
+                raise ValueError(msg, self) from e
 
             return version
 
@@ -2749,10 +2749,10 @@ class Distribution:
         for ext in extras:
             try:
                 deps.extend(dm[safe_extra(ext)])
-            except KeyError:
+            except KeyError as e:
                 raise UnknownExtra(
                     "%s has no such extra feature %r" % (self, ext)
-                )
+                ) from e
         return deps
 
     def _get_metadata_path_for_display(self, name):

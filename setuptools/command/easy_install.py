@@ -355,8 +355,10 @@ class easy_install(Command):
                 self.optimize = int(self.optimize)
                 if not (0 <= self.optimize <= 2):
                     raise ValueError
-            except ValueError:
-                raise DistutilsOptionError("--optimize must be 0, 1, or 2")
+            except ValueError as e:
+                raise DistutilsOptionError(
+                    "--optimize must be 0, 1, or 2"
+                ) from e
 
         if self.editable and not self.build_directory:
             raise DistutilsArgError(
@@ -757,9 +759,9 @@ class easy_install(Command):
                 [requirement], self.local_index, self.easy_install
             )
         except DistributionNotFound as e:
-            raise DistutilsError(str(e))
+            raise DistutilsError(str(e)) from e
         except VersionConflict as e:
-            raise DistutilsError(e.report())
+            raise DistutilsError(e.report()) from e
         if self.always_copy or self.always_copy_from:
             # Force all the relevant distros to be copied or activated
             for dist in distros:
@@ -1148,7 +1150,9 @@ class easy_install(Command):
         try:
             run_setup(setup_script, args)
         except SystemExit as v:
-            raise DistutilsError("Setup script exited with %s" % (v.args[0],))
+            raise DistutilsError(
+                "Setup script exited with %s" % (v.args[0],)
+            ) from v
 
     def build_and_install(self, setup_script, setup_base):
         args = ['bdist_egg', '--dist-dir']

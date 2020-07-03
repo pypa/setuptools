@@ -127,7 +127,7 @@ def fetch_build_egg(dist, req):
         try:
             subprocess.check_call(cmd)
         except subprocess.CalledProcessError as e:
-            raise DistutilsError(str(e))
+            raise DistutilsError(str(e)) from e
         wheel = Wheel(glob.glob(os.path.join(tmpdir, '*.whl'))[0])
         dist_location = os.path.join(eggs_dir, wheel.egg_name())
         wheel.install_as_egg(dist_location)

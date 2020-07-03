@@ -36,8 +36,8 @@ class rotate(Command):
             raise DistutilsOptionError("Must specify number of files to keep")
         try:
             self.keep = int(self.keep)
-        except ValueError:
-            raise DistutilsOptionError("--keep must be an integer")
+        except ValueError as e:
+            raise DistutilsOptionError("--keep must be an integer") from e
         if isinstance(self.match, six.string_types):
             self.match = [
                 convert_path(p.strip()) for p in self.match.split(',')
