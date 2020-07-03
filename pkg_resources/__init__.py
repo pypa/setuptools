@@ -2057,7 +2057,10 @@ def find_on_path(importer, path_item, only=False):
         )
         return
 
-    entries = safe_listdir(path_item)
+    entries = (
+        os.path.join(path_item, child)
+        for child in safe_listdir(path_item)
+    )
 
     # for performance, before sorting by version,
     # screen entries for only those that will yield
