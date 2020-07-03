@@ -23,6 +23,7 @@ def clear_distutils():
 def ensure_local_distutils():
     clear_distutils()
     distutils = importlib.import_module('setuptools._distutils')
+    distutils.__name__ = 'distutils'
     sys.modules['distutils'] = distutils
 
     # sanity check that submodules load as expected
