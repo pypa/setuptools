@@ -1,3 +1,9 @@
+v47.3.2
+-------
+
+* #2071: Replaced references to the deprecated imp package with references to importlib
+
+
 v47.3.1
 -------
 
