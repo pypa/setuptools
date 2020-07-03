@@ -17,6 +17,19 @@ collect_ignore = [
 ]
 
 
+def pytest_configure(config):
+    disable_coverage_on_pypy(config)
+
+
+def disable_coverage_on_pypy(config):
+    """
+    Coverage makes tests on PyPy unbearably slow, so disable it.
+    """
+    if '__pypy__' in sys.builtin_module_names:
+        # Recommended at pytest-dev/pytest-cov#418
+        config.pluginmanager.set_blocked('_cov')
+
+
 if sys.version_info < (3,):
     collect_ignore.append('setuptools/lib2to3_ex.py')
     collect_ignore.append('setuptools/_imp.py')
