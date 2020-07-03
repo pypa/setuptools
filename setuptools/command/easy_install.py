@@ -205,7 +205,6 @@ class easy_install(Command):
         self.pth_file = self.always_copy_from = None
         self.site_dirs = None
         self.installed_projects = {}
-        self.sitepy_installed = False
         # Always read easy_install options, even if we are subclassed, or have
         # an independent instance created.  This ensures that defaults will
         # always come from the standard configuration file(s)' "easy_install"
@@ -494,12 +493,8 @@ class easy_install(Command):
         else:
             self.pth_file = None
 
-        if instdir not in map(normalize_path, _pythonpath()):
-            # only PYTHONPATH dirs need a site.py, so pretend it's there
-            self.sitepy_installed = True
-        elif self.multi_version and not os.path.exists(pth_file):
-            self.sitepy_installed = True  # don't need site.py in this case
-            self.pth_file = None  # and don't create a .pth file
+        if self.multi_version and not os.path.exists(pth_file):
+            self.pth_file = None  # don't create a .pth file
         self.install_dir = instdir
 
     __cant_write_msg = textwrap.dedent("""
@@ -656,9 +651,6 @@ class easy_install(Command):
             os.path.exists(tmpdir) and rmtree(rmtree_safe(tmpdir))
 
     def easy_install(self, spec, deps=False):
-        if not self.editable:
-            self.install_site_py()
-
         with self._tmpdir() as tmpdir:
             if not isinstance(spec, Requirement):
                 if URL_SCHEME(spec):
@@ -1316,38 +1308,6 @@ class easy_install(Command):
 
         Please make the appropriate changes for your system and try again.
         """).strip()
-
-    def install_site_py(self):
-        """Make sure there's a site.py in the target dir, if needed"""
-
-        if self.sitepy_installed:
-            return  # already did it, or don't need to
-
-        sitepy = os.path.join(self.install_dir, "site.py")
-        source = resource_string("setuptools", "site-patch.py")
-        source = source.decode('utf-8')
-        current = ""
-
-        if os.path.exists(sitepy):
-            log.debug("Checking existing site.py in %s", self.install_dir)
-            with io.open(sitepy) as strm:
-                current = strm.read()
-
-            if not current.startswith('def __boot():'):
-                raise DistutilsError(
-                    "%s is not a setuptools-generated site.py; please"
-                    " remove it." % sitepy
-                )
-
-        if current != source:
-            log.info("Creating %s", sitepy)
-            if not self.dry_run:
-                ensure_directory(sitepy)
-                with io.open(sitepy, 'w', encoding='utf-8') as strm:
-                    strm.write(source)
-            self.byte_compile([sitepy])
-
-        self.sitepy_installed = True
 
     def create_home_path(self):
         """Create directories under ~."""
