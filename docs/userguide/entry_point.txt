@@ -1,115 +1,154 @@
-==========================================
-Entry Points and Automatic Script Creation
-==========================================
+.. _`entry_points`:
 
-Packaging and installing scripts can be a bit awkward with the distutils.  For
-one thing, there's no easy way to have a script's filename match local
-conventions on both Windows and POSIX platforms.  For another, you often have
-to create a separate file just for the "main" script, when your actual "main"
-is a function in a module somewhere.  And even in Python 2.4, using the ``-m``
-option only works for actual ``.py`` files that aren't installed in a package.
+============
+Entry Points
+============
 
-``setuptools`` fixes all of these problems by automatically generating scripts
-for you with the correct extension, and on Windows it will even create an
-``.exe`` file so that users don't have to change their ``PATHEXT`` settings.
-The way to use this feature is to define "entry points" in your setup script
-that indicate what function the generated script should import and run.  For
-example, to create two console scripts called ``foo`` and ``bar``, and a GUI
-script called ``baz``, you might do something like this::
-
-    setup(
-        # other arguments here...
-        entry_points={
-            "console_scripts": [
-                "foo = my_package.some_module:main_func",
-                "bar = other_module:some_func",
-            ],
-            "gui_scripts": [
-                "baz = my_package_gui:start_func",
-            ]
-        }
-    )
-
-When this project is installed on non-Windows platforms (using "setup.py
-install", "setup.py develop", or with pip), a set of ``foo``, ``bar``,
-and ``baz`` scripts will be installed that import ``main_func`` and
-``some_func`` from the specified modules.  The functions you specify are
-called with no arguments, and their return value is passed to
-``sys.exit()``, so you can return an errorlevel or message to print to
-stderr.
-
-On Windows, a set of ``foo.exe``, ``bar.exe``, and ``baz.exe`` launchers are
-created, alongside a set of ``foo.py``, ``bar.py``, and ``baz.pyw`` files.  The
-``.exe`` wrappers find and execute the right version of Python to run the
-``.py`` or ``.pyw`` file.
-
-You may define as many "console script" and "gui script" entry points as you
-like, and each one can optionally specify "extras" that it depends on, that
-will be added to ``sys.path`` when the script is run.  For more information on
-"extras", see the section below on `Declaring Extras`_.  For more information
-on "entry points" in general, see the section below on `Dynamic Discovery of
-Services and Plugins`_.
+Packages may provide commands to be run at the console (console scripts),
+such as the ``pip`` command. These commands are defined for a package
+as a specific kind of entry point in the ``setup.cfg`` or
+``setup.py``.
 
 
-Dynamic Discovery of Services and Plugins
------------------------------------------
+Console Scripts
+===============
 
-``setuptools`` supports creating libraries that "plug in" to extensible
-applications and frameworks, by letting you register "entry points" in your
-project that can be imported by the application or framework.
+First consider an example without entry points. Imagine a package
+defined thus::
 
-For example, suppose that a blogging tool wants to support plugins
-that provide translation for various file types to the blog's output format.
-The framework might define an "entry point group" called ``blogtool.parsers``,
-and then allow plugins to register entry points for the file extensions they
-support.
+.. code-block:: bash
 
-This would allow people to create distributions that contain one or more
-parsers for different file types, and then the blogging tool would be able to
-find the parsers at runtime by looking up an entry point for the file
-extension (or mime type, or however it wants to).
+    timmins/
+        timmins/__init__.py
+        timmins/__main__.py
+        setup.cfg # or setup.py
+        #other necessary files
 
-Note that if the blogging tool includes parsers for certain file formats, it
-can register these as entry points in its own setup script, which means it
-doesn't have to special-case its built-in formats.  They can just be treated
-the same as any other plugin's entry points would be.
+with ``__init__.py`` as:
 
-If you're creating a project that plugs in to an existing application or
-framework, you'll need to know what entry points or entry point groups are
-defined by that application or framework.  Then, you can register entry points
-in your setup script.  Here are a few examples of ways you might register an
-``.rst`` file parser entry point in the ``blogtool.parsers`` entry point group,
-for our hypothetical blogging tool::
+.. code-block:: python
 
-    setup(
-        # ...
-        entry_points={"blogtool.parsers": ".rst = some_module:SomeClass"}
-    )
+    def helloworld():
+        print("Hello world")
 
-    setup(
-        # ...
-        entry_points={"blogtool.parsers": [".rst = some_module:a_func"]}
-    )
+and ``__main__.py`` providing a hook:
 
-    setup(
-        # ...
-        entry_points="""
-            [blogtool.parsers]
-            .rst = some.nested.module:SomeClass.some_classmethod [reST]
-        """,
-        extras_require=dict(reST="Docutils>=0.3.5")
-    )
+    from . import hello_world
+    if __name__ == '__main__':
+        hello_world()
 
-The ``entry_points`` argument to ``setup()`` accepts either a string with
-``.ini``-style sections, or a dictionary mapping entry point group names to
-either strings or lists of strings containing entry point specifiers.  An
-entry point specifier consists of a name and value, separated by an ``=``
-sign.  The value consists of a dotted module name, optionally followed by a
-``:`` and a dotted identifier naming an object within the module.  It can
-also include a bracketed list of "extras" that are required for the entry
-point to be used.  When the invoking application or framework requests loading
-of an entry point, any requirements implied by the associated extras will be
-passed to ``pkg_resources.require()``, so that an appropriate error message
-can be displayed if the needed package(s) are missing.  (Of course, the
-invoking app or framework can ignore such errors if it wants to make an entry
-point optional if a requirement isn't installed.)
+After installing the package, the function may be invoked through the
+`runpy <https://docs.python.org/3/library/runpy.html>`_ module::
+
+.. code-block:: bash
+
+    python -m timmins
+
+Adding a console script entry point allows the package to define a
+user-friendly name for installers of the package to execute. Installers
+like pip will create wrapper scripts to execute a function. In the
+above example, to create a command ``hello-world`` that invokes
+``timmins.hello_world``, add a console script entry point to
+``setup.cfg``::
+
+.. code-block:: ini
+
+    [options.entry_points]
+    console_scripts =
+        hello-world = timmins:hello_world
+
+After installing the package, a user may invoke that function by simply calling
+``hello-world`` on the command line.
+
+The syntax for entry points is specified as follows:
+
+.. code-block::
+
+    <name> = [<package>.[<subpackage>.]]<module>[:<object>.<object>]
+
+where ``name`` is the name for the script you want to create, the left hand
+side of ``:`` is the module that contains your function and the right hand
+side is the object you want to invoke (e.g. a function).
+
+In addition to ``console_scripts``, Setuptools supports ``gui_scripts``, which
+will launch a GUI application without running in a terminal window.
+
+
+Advertising Behavior
+====================
+
+Console scripts are one use of the more general concept of entry points. Entry
+points more generally allow a packager to advertise behavior for discovery by
+other libraries and applications. This feature enables "plug-in"-like
+functionality, where one library solicits entry points and any number of other
+libraries provide those entry points.
+
+A good example of this plug-in behavior can be seen in
+`pytest plugins <https://docs.pytest.org/en/latest/writing_plugins.html>`_,
+where pytest is a test framework that allows other libraries to extend
+or modify its functionality through the ``pytest11`` entry point.
+
+The console scripts work similarly, where libraries advertise their commands
+and tools like ``pip`` create wrapper scripts that invoke those commands.
+
+For a project wishing to solicit entry points, Setuptools recommends the
+`importlib.metadata <https://docs.python.org/3/library/importlib.metadata.html>`_
+module (part of stdlib since Python 3.8) or its backport,
+`importlib_metadata <https://pypi.org/project/importlib_metadata>`_.
+
+For example, to find the console script entry points from the example above::
+
+.. code-block:: python
+
+    >>> from importlib import metadata
+    >>> eps = metadata.entry_points()['console_scripts']
+
+``eps`` is now a list of ``EntryPoint`` objects, one of which corresponds
+to the ``hello-world = timmins:hello_world`` defined above. Each ``EntryPoint``
+contains the ``name``, ``group``, and ``value``. It also supplies a ``.load()``
+method to import and load that entry point (module or object).
+
+.. code-block:: ini
+
+    [options.entry_points]
+    my.plugins =
+        hello-world = timmins:hello_world
+
+Then, a different project wishing to load 'my.plugins' plugins could run
+the following routine to load (and invoke) such plugins::
+
+.. code-block:: python
+
+    >>> from importlib import metadata
+    >>> eps = metadata.entry_points()['my.plugins']
+    >>> for ep in eps:
+    ...     plugin = ep.load()
+    ...     plugin()
+
+The project soliciting the entry points needs not to have any dependency
+or prior knowledge about the libraries implementing the entry points, and
+downstream users are able to compose functionality by pulling together
+libraries implementing the entry points.
+
+
+Dependency Management
+=====================
+
+Some entry points may require additional dependencies to properly function.
+For such an entry point, declare in square brakets any number of dependency
+``extras`` following the entry point definition. Such entry points will only
+be viable if their extras were declared and installed. See the
+:ref:`guide on dependencies management <dependency_management>` for
+more information on defining extra requirements. Consider from the
+above example::
+
+.. code-block:: ini
+
+    [options.entry_points]
+    console_scripts =
+        hello-world = timmins:hello_world [pretty-printer]
+
+In this case, the ``hello-world`` script is only viable if the ``pretty-printer``
+extra is indicated, and so a plugin host might exclude that entry point
+(i.e. not install a console script) if the relevant extra dependencies are not
+installed.
