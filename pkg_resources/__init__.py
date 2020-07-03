@@ -3077,11 +3077,6 @@ def issue_warning(*args, **kw):
     warnings.warn(stacklevel=level + 1, *args, **kw)
 
 
-class RequirementParseError(ValueError):
-    def __str__(self):
-        return ' '.join(self.args)
-
-
 def parse_requirements(strs):
     """Yield ``Requirement`` objects for each specification in `strs`
 
@@ -3104,13 +3099,14 @@ def parse_requirements(strs):
         yield Requirement(line)
 
 
+class RequirementParseError(packaging.requirements.InvalidRequirement):
+    "Compatibility wrapper for InvalidRequirement"
+
+
 class Requirement(packaging.requirements.Requirement):
     def __init__(self, requirement_string):
         """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
-        try:
-            super(Requirement, self).__init__(requirement_string)
-        except packaging.requirements.InvalidRequirement as e:
-            raise RequirementParseError(str(e))
+        super(Requirement, self).__init__(requirement_string)
         self.unsafe_name = self.name
         project_name = safe_name(self.name)
         self.project_name, self.key = project_name, project_name.lower()
