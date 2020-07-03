@@ -8,19 +8,7 @@ for more motivation.
 import sys
 import re
 import importlib
-import contextlib
 import warnings
-from os.path import dirname
-
-
-@contextlib.contextmanager
-def patch_sys_path():
-    orig = sys.path[:]
-    sys.path[:] = [dirname(dirname(__file__))]
-    try:
-        yield
-    finally:
-        sys.path[:] = orig
 
 
 def clear_distutils():
@@ -34,9 +22,12 @@ def clear_distutils():
 
 def ensure_local_distutils():
     clear_distutils()
-    with patch_sys_path():
-        importlib.import_module('distutils')
-        assert sys.modules['distutils'].local
+    distutils = importlib.import_module('setuptools._distutils')
+    sys.modules['distutils'] = distutils
+
+    # sanity check that submodules load as expected
+    core = importlib.import_module('distutils.core')
+    assert '_distutils' in core.__file__, core.__file__
 
 
 ensure_local_distutils()
