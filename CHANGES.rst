@@ -1,3 +1,9 @@
+v49.1.0
+-------
+
+* #2228: Disabled distutils adoption for now while emergent issues are addressed.
+
+
 v49.0.0
 -------
 

@@ -1,1 +1,0 @@
-Disabled distutils adoption for now while emergent issues are addressed.
