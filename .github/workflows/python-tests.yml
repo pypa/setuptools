@@ -98,5 +98,3 @@ jobs:
         python -m
         tox
         --parallel auto
-        --
-        --cov

@@ -139,7 +139,6 @@ class develop(namespaces.DevelopInstaller, easy_install):
             self.reinitialize_command('build_ext', inplace=1)
             self.run_command('build_ext')
 
-        self.install_site_py()  # ensure that target dir is site-safe
         if setuptools.bootstrap_install_from:
             self.easy_install(setuptools.bootstrap_install_from)
             setuptools.bootstrap_install_from = None

@@ -1,3 +1,22 @@
+v48.0.0
+-------
+
+* #2143: Setuptools adopts distutils from the Python 3.9 standard library and no longer depends on distutils in the standard library. When importing ``setuptools`` or ``setuptools.distutils_patch``, Setuptools will expose its bundled version as a top-level ``distutils`` package (and unload any previously-imported top-level distutils package), retaining the expectation that ``distutils``' objects are actually Setuptools objects. Although this change is not expected to break any use cases, it will likely affect tool chains that are monkey-patching distutils or relying on Setuptools' own monkey-patching of distutils.
+
+
+v47.3.2
+-------
+
+* #2071: Replaced references to the deprecated imp package with references to importlib
+
+
+v47.3.1
+-------
+
+* #1973: Removed ``pkg_resources.py31compat.makedirs`` in favor of the stdlib. Use ``os.makedirs()`` instead.
+* #2198: Restore ``__requires__`` directive in easy-install wrapper scripts.
+
+
 v47.3.0
 -------
 
