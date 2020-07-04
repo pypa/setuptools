@@ -5,14 +5,7 @@ Documentation
 =============
 
 Setuptools is a fully-featured, actively-maintained, and stable library
-designed to facilitate packaging Python projects, where packaging includes:
-
- - Python package and module definitions
- - Distribution package metadata
- - Test hooks
- - Project installation
- - Platform-specific details
- - Python 3 support
+designed to facilitate packaging Python projects.
 
 Documentation content:
 
