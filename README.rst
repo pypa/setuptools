@@ -1,3 +1,6 @@
+.. image:: https://raw.githubusercontent.com/pypa/setuptools/master/docs/logo/banner%201%20line%20color.svg
+
+
 .. image:: https://img.shields.io/pypi/v/setuptools.svg
    :target: `PyPI link`_
 
@@ -23,6 +26,7 @@
 
 .. image:: https://tidelift.com/badges/github/pypa/setuptools?style=flat
    :target: https://tidelift.com/subscription/pkg/pypi-setuptools?utm_source=pypi-setuptools&utm_medium=readme
+
 
 See the `Installation Instructions
 <https://packaging.python.org/installing/>`_ in the Python Packaging
