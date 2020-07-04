@@ -1,5 +1,8 @@
-Welcome to Setuptools' documentation!
-=====================================
+.. image:: https://raw.githubusercontent.com/pypa/setuptools/master/docs/logo/banner%201%20line%20color.svg
+
+
+Documentation
+=============
 
 Setuptools is a fully-featured, actively-maintained, and stable library
 designed to facilitate packaging Python projects, where packaging includes:
