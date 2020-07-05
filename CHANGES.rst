@@ -1,3 +1,9 @@
+v49.0.1
+-------
+
+* #2228: Applied fix for pypa/distutils#3, restoring expectation that spawn will raise a DistutilsExecError when attempting to execute a missing file.
+
+
 v49.0.0
 -------
 
