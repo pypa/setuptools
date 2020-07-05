@@ -3,7 +3,8 @@
 import os
 import functools
 
-import setuptools.distutils_patch  # noqa: F401
+# Disabled for now due to: #2228, #2230
+# import setuptools.distutils_patch  # noqa: F401
 
 import distutils.core
 import distutils.filelist
