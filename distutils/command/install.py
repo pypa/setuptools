@@ -14,6 +14,7 @@ from distutils.file_util import write_file
 from distutils.util import convert_path, subst_vars, change_root
 from distutils.util import get_platform
 from distutils.errors import DistutilsOptionError
+from distutils._platform import is_debian
 
 from site import USER_BASE
 from site import USER_SITE
@@ -206,7 +207,7 @@ class install(Command):
 
         # enable custom installation, known values: deb
         self.install_layout = None
-        
+
         self.compile = None
         self.optimize = None
 
@@ -479,11 +480,13 @@ class install(Command):
                   or 'VIRTUAL_ENV' in os.environ
                   or 'real_prefix' in sys.__dict__):
                 self.select_scheme("unix_prefix")
-            else:
+            elif is_debian():
                 if os.path.normpath(self.prefix) == '/usr/local':
                     self.prefix = self.exec_prefix = '/usr'
                     self.install_base = self.install_platbase = '/usr'
                 self.select_scheme("unix_local")
+            else:
+                self.select_scheme("unix_prefix")
 
     def finalize_other(self):
         """Finalizes options for non-posix platforms"""

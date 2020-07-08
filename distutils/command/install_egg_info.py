@@ -6,6 +6,7 @@ a package's PKG-INFO metadata."""
 
 from distutils.cmd import Command
 from distutils import log, dir_util
+from distutils._platform import is_debian
 import os, sys, re
 
 class install_egg_info(Command):
@@ -34,7 +35,7 @@ class install_egg_info(Command):
         elif self.prefix_option:
             no_pyver = False
         else:
-            no_pyver = True
+            no_pyver = is_debian()
         if no_pyver:
             basename = "%s-%s.egg-info" % (
                 to_filename(safe_name(self.distribution.get_name())),
