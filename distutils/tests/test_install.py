@@ -15,6 +15,7 @@ from distutils.command.install import INSTALL_SCHEMES
 from distutils.core import Distribution
 from distutils.errors import DistutilsOptionError
 from distutils.extension import Extension
+from distutils._platform import is_debian
 
 from distutils.tests import support
 from test import support as test_support
@@ -195,7 +196,8 @@ class InstallTestCase(support.TempdirManager,
         found = [os.path.basename(line) for line in content.splitlines()]
         expected = ['hello.py', 'hello.%s.pyc' % sys.implementation.cache_tag,
                     'sayhi',
-                    'UNKNOWN-0.0.0.egg-info']
+                    'UNKNOWN-0.0.0.egg-info' if is_debian() else
+                    'UNKNOWN-0.0.0-py%s.%s.egg-info' % sys.version_info[:2]]
         self.assertEqual(found, expected)
 
     def test_record_extensions(self):
@@ -228,7 +230,8 @@ class InstallTestCase(support.TempdirManager,
 
         found = [os.path.basename(line) for line in content.splitlines()]
         expected = [_make_ext_name('xx'),
-                    'UNKNOWN-0.0.0.egg-info']
+                    'UNKNOWN-0.0.0.egg-info' if is_debian() else
+                    'UNKNOWN-0.0.0-py%s.%s.egg-info' % sys.version_info[:2]]
         self.assertEqual(found, expected)
 
     def test_debug_mode(self):
