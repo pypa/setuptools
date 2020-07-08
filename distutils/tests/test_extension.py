@@ -3,8 +3,10 @@ import unittest
 import os
 import warnings
 
-from test.support import check_warnings, run_unittest
+from test.support import run_unittest
 from distutils.extension import read_setup_file, Extension
+
+from .py38compat import check_warnings
 
 class ExtensionTestCase(unittest.TestCase):
 
