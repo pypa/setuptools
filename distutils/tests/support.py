@@ -6,7 +6,8 @@ import tempfile
 import unittest
 import sysconfig
 from copy import deepcopy
-from test.support import os_helper
+
+from . import py38compat as os_helper
 
 from distutils import log
 from distutils.log import DEBUG, INFO, WARN, ERROR, FATAL

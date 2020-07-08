@@ -11,8 +11,9 @@ from distutils import sysconfig
 from distutils.ccompiler import get_default_compiler
 from distutils.tests import support
 from test.support import run_unittest, swap_item
-from test.support.os_helper import TESTFN
-from test.support.warnings_helper import check_warnings
+
+from .py38compat import TESTFN
+from .py38compat import check_warnings
 
 
 class SysconfigTestCase(support.EnvironGuard, unittest.TestCase):
@@ -48,6 +49,7 @@ class SysconfigTestCase(support.EnvironGuard, unittest.TestCase):
         self.assertIsInstance(cvars, dict)
         self.assertTrue(cvars)
 
+    @unittest.skip('sysconfig.IS_PYPY')
     def test_srcdir(self):
         # See Issues #15322, #15364.
         srcdir = sysconfig.get_config_var('srcdir')

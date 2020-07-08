@@ -14,7 +14,7 @@ from distutils.cmd import Command
 from test.support import (
      captured_stdout, captured_stderr, run_unittest
 )
-from test.support.os_helper import TESTFN
+from .py38compat import TESTFN
 from distutils.tests import support
 from distutils import log
 
@@ -84,6 +84,10 @@ class DistributionTestCase(support.LoggingSilencer,
         self.assertIsInstance(cmd, test_dist)
         self.assertEqual(cmd.sample_option, "sometext")
 
+    @unittest.skipIf(
+        'distutils' not in Distribution.parse_config_files.__module__,
+        'Cannot test when virtualenv has monkey-patched Distribution.',
+    )
     def test_venv_install_options(self):
         sys.argv.append("install")
         self.addCleanup(os.unlink, TESTFN)

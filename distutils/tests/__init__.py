@@ -16,7 +16,8 @@ import os
 import sys
 import unittest
 from test.support import run_unittest
-from test.support.warnings_helper import save_restore_warnings_filters
+
+from .py38compat import save_restore_warnings_filters
 
 
 here = os.path.dirname(__file__) or os.curdir

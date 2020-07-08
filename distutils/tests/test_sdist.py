@@ -7,7 +7,8 @@ import zipfile
 from os.path import join
 from textwrap import dedent
 from test.support import captured_stdout, run_unittest
-from test.support.warnings_helper import check_warnings
+
+from .py38compat import check_warnings
 
 try:
     import zlib

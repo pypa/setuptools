@@ -9,7 +9,7 @@ from distutils import log
 from distutils.tests import support
 from distutils.errors import DistutilsFileError
 from test.support import run_unittest
-from test.support.os_helper import unlink
+from .py38compat import unlink
 
 
 class FileUtilTestCase(support.TempdirManager, unittest.TestCase):

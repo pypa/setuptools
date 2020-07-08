@@ -57,6 +57,20 @@ INSTALL_SCHEMES = {
         'data'   : '$base',
         },
     'nt': WINDOWS_SCHEME,
+    'pypy': {
+        'purelib': '$base/site-packages',
+        'platlib': '$base/site-packages',
+        'headers': '$base/include/$dist_name',
+        'scripts': '$base/bin',
+        'data'   : '$base',
+        },
+    'pypy_nt': {
+        'purelib': '$base/site-packages',
+        'platlib': '$base/site-packages',
+        'headers': '$base/include/$dist_name',
+        'scripts': '$base/Scripts',
+        'data'   : '$base',
+        },
     }
 
 # user site schemes
@@ -319,7 +333,7 @@ class install(Command):
                             'sys_exec_prefix': exec_prefix,
                             'exec_prefix': exec_prefix,
                             'abiflags': abiflags,
-                            'platlibdir': sys.platlibdir,
+                            'platlibdir': getattr(sys, 'platlibdir', 'lib'),
                            }
 
         if HAS_USER_SITE:
@@ -496,6 +510,12 @@ class install(Command):
     def select_scheme(self, name):
         """Sets the install directories by applying the install schemes."""
         # it's the caller's problem if they supply a bad name!
+        if (hasattr(sys, 'pypy_version_info') and
+                not name.endswith(('_user', '_home'))):
+            if os.name == 'nt':
+                name = 'pypy_nt'
+            else:
+                name = 'pypy'
         scheme = INSTALL_SCHEMES[name]
         for key in SCHEME_KEYS:
             attrname = 'install_' + key

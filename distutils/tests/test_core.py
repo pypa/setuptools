@@ -6,7 +6,7 @@ import os
 import shutil
 import sys
 from test.support import captured_stdout, run_unittest
-from test.support import os_helper
+from . import py38compat as os_helper
 import unittest
 from distutils.tests import support
 from distutils import log
