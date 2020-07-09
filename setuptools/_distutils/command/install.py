@@ -14,6 +14,7 @@ from distutils.file_util import write_file
 from distutils.util import convert_path, subst_vars, change_root
 from distutils.util import get_platform
 from distutils.errors import DistutilsOptionError
+from distutils._platform import is_debian
 
 from site import USER_BASE
 from site import USER_SITE
@@ -32,6 +33,20 @@ INSTALL_SCHEMES = {
         'purelib': '$base/lib/python$py_version_short/site-packages',
         'platlib': '$platbase/$platlibdir/python$py_version_short/site-packages',
         'headers': '$base/include/python$py_version_short$abiflags/$dist_name',
+        'scripts': '$base/bin',
+        'data'   : '$base',
+        },
+    'unix_local': {
+        'purelib': '$base/local/lib/python$py_version_short/dist-packages',
+        'platlib': '$platbase/local/lib/python$py_version_short/dist-packages',
+        'headers': '$base/local/include/python$py_version_short/$dist_name',
+        'scripts': '$base/local/bin',
+        'data'   : '$base/local',
+        },
+    'deb_system': {
+        'purelib': '$base/lib/python3/dist-packages',
+        'platlib': '$platbase/lib/python3/dist-packages',
+        'headers': '$base/include/python$py_version_short/$dist_name',
         'scripts': '$base/bin',
         'data'   : '$base',
         },
@@ -145,6 +160,9 @@ class install(Command):
 
         ('record=', None,
          "filename in which to record list of installed files"),
+
+        ('install-layout=', None,
+         "installation layout to choose (known values: deb, unix)"),
         ]
 
     boolean_options = ['compile', 'force', 'skip-build']
@@ -165,6 +183,7 @@ class install(Command):
         self.exec_prefix = None
         self.home = None
         self.user = 0
+        self.prefix_option = None
 
         # These select only the installation base; it's up to the user to
         # specify the installation scheme (currently, that means supplying
@@ -185,6 +204,9 @@ class install(Command):
         self.install_data = None
         self.install_userbase = USER_BASE
         self.install_usersite = USER_SITE
+
+        # enable custom installation, known values: deb
+        self.install_layout = None
 
         self.compile = None
         self.optimize = None
@@ -428,6 +450,7 @@ class install(Command):
             self.install_base = self.install_platbase = self.home
             self.select_scheme("unix_home")
         else:
+            self.prefix_option = self.prefix
             if self.prefix is None:
                 if self.exec_prefix is not None:
                     raise DistutilsOptionError(
@@ -442,7 +465,28 @@ class install(Command):
 
             self.install_base = self.prefix
             self.install_platbase = self.exec_prefix
-            self.select_scheme("unix_prefix")
+            if self.install_layout:
+                if self.install_layout.lower() in ['deb']:
+                    self.select_scheme("deb_system")
+                elif self.install_layout.lower() in ['unix']:
+                    self.select_scheme("unix_prefix")
+                else:
+                    raise DistutilsOptionError(
+                        "unknown value for --install-layout")
+            elif ((self.prefix_option and
+                   os.path.normpath(self.prefix) != '/usr/local')
+                  or sys.base_prefix != sys.prefix
+                  or 'PYTHONUSERBASE' in os.environ
+                  or 'VIRTUAL_ENV' in os.environ
+                  or 'real_prefix' in sys.__dict__):
+                self.select_scheme("unix_prefix")
+            elif is_debian():
+                if os.path.normpath(self.prefix) == '/usr/local':
+                    self.prefix = self.exec_prefix = '/usr'
+                    self.install_base = self.install_platbase = '/usr'
+                self.select_scheme("unix_local")
+            else:
+                self.select_scheme("unix_prefix")
 
     def finalize_other(self):
         """Finalizes options for non-posix platforms"""
