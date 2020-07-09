@@ -150,6 +150,7 @@ def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
             return os.path.join(prefix, "lib-python", sys.version[0])
         return os.path.join(prefix, 'site-packages')
 
+    is_default_prefix = not prefix or os.path.normpath(prefix) in ('/usr', '/usr/local')
     if prefix is None:
         if standard_lib:
             prefix = plat_specific and BASE_EXEC_PREFIX or BASE_PREFIX
@@ -168,6 +169,12 @@ def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
                                  "python" + get_python_version())
         if standard_lib:
             return libpython
+        elif (is_default_prefix and
+              'PYTHONUSERBASE' not in os.environ and
+              'VIRTUAL_ENV' not in os.environ and
+              'real_prefix' not in sys.__dict__ and
+              sys.prefix == sys.base_prefix):
+            return os.path.join(prefix, "lib", "python3", "dist-packages")
         else:
             return os.path.join(libpython, "site-packages")
     elif os.name == "nt":

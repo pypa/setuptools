@@ -9,6 +9,7 @@ from test.support import run_unittest
 from distutils.core import Distribution
 from distutils.command.bdist_dumb import bdist_dumb
 from distutils.tests import support
+from distutils._platform import is_debian
 
 SETUP_PY = """\
 from distutils.core import setup
@@ -85,7 +86,12 @@ class BuildDumbTestCase(support.TempdirManager,
             fp.close()
 
         contents = sorted(filter(None, map(os.path.basename, contents)))
-        wanted = ['foo-0.1-py%s.%s.egg-info' % sys.version_info[:2], 'foo.py']
+        egg_info_name = (
+            'foo-0.1.egg-info' if is_debian() else
+            'foo-0.1-py%s.%s.egg-info' % sys.version_info[:2]
+        )
+        wanted = [egg_info_name, 'foo.py']
+
         if not sys.dont_write_bytecode:
             wanted.append('foo.%s.pyc' % sys.implementation.cache_tag)
         self.assertEqual(contents, sorted(wanted))
