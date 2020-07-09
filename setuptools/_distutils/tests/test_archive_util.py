@@ -13,7 +13,10 @@ from distutils.archive_util import (check_archive_formats, make_tarball,
                                     ARCHIVE_FORMATS)
 from distutils.spawn import find_executable, spawn
 from distutils.tests import support
-from test.support import check_warnings, run_unittest, patch, change_cwd
+from test.support import run_unittest, patch
+
+from .py38compat import change_cwd
+from .py38compat import check_warnings
 
 try:
     import grp
