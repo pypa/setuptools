@@ -2,7 +2,9 @@
 import sys
 import platform
 import unittest
-from test.support import run_unittest, check_warnings
+from test.support import run_unittest
+
+from .py38compat import check_warnings
 
 from distutils.command.bdist_wininst import bdist_wininst
 from distutils.tests import support

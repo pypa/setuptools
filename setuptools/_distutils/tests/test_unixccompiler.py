@@ -1,7 +1,9 @@
 """Tests for distutils.unixccompiler."""
 import sys
 import unittest
-from test.support import EnvironmentVarGuard, run_unittest
+from test.support import run_unittest
+
+from .py38compat import EnvironmentVarGuard
 
 from distutils import sysconfig
 from distutils.unixccompiler import UnixCCompiler

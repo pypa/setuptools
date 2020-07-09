@@ -1,8 +1,10 @@
 """Tests for distutils.command.bdist_msi."""
 import sys
 import unittest
-from test.support import run_unittest, check_warnings
+from test.support import run_unittest
 from distutils.tests import support
+
+from .py38compat import check_warnings
 
 
 @unittest.skipUnless(sys.platform == 'win32', 'these tests require Windows')

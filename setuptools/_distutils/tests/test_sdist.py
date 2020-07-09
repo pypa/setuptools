@@ -6,7 +6,9 @@ import warnings
 import zipfile
 from os.path import join
 from textwrap import dedent
-from test.support import captured_stdout, check_warnings, run_unittest
+from test.support import captured_stdout, run_unittest
+
+from .py38compat import check_warnings
 
 try:
     import zlib
