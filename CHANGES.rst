@@ -1,3 +1,9 @@
+v49.1.1
+-------
+
+* #2094: Removed pkg_resources.py2_warn module, which is no longer reachable.
+
+
 v49.0.1
 -------
 

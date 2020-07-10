@@ -1,1 +1,0 @@
-Removed pkg_resources.py2_warn module, which is no longer reachable.
