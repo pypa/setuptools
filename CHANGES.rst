@@ -1,3 +1,9 @@
+v49.1.2
+-------
+
+* #2232: In preparation for re-enabling a local copy of distutils, Setuptools now honors an environment variable, SETUPTOOLS_USE_DISTUTILS. If set to 'stdlib' (current default), distutils will be used from the standard library. If set to 'local' (default in a imminent backward-incompatible release), the local copy of distutils will be used.
+
+
 v49.1.1
 -------
 
