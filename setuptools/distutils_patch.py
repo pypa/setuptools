@@ -7,6 +7,7 @@ for more motivation.
 
 import sys
 import re
+import os
 import importlib
 import warnings
 
@@ -20,6 +21,14 @@ def clear_distutils():
         del sys.modules[name]
 
 
+def enabled():
+    """
+    Allow selection of distutils by environment variable.
+    """
+    which = os.environ.get('SETUPTOOLS_USE_DISTUTILS', 'stdlib')
+    return which == 'local'
+
+
 def ensure_local_distutils():
     clear_distutils()
     distutils = importlib.import_module('setuptools._distutils')
@@ -31,4 +40,5 @@ def ensure_local_distutils():
     assert '_distutils' in core.__file__, core.__file__
 
 
-ensure_local_distutils()
+if enabled():
+    ensure_local_distutils()
