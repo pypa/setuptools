@@ -23,9 +23,10 @@ def clear_distutils():
 
 def enabled():
     """
-    Provide an escape hatch for environments wishing to opt out.
+    Allow selection of distutils by environment variable.
     """
-    return 'SETUPTOOLS_DISTUTILS_ADOPTION_OPT_OUT' not in os.environ
+    which = os.environ.get('SETUPTOOLS_USE_DISTUTILS', 'stdlib')
+    return which == 'local'
 
 
 def ensure_local_distutils():
