@@ -501,12 +501,8 @@ class MSVCCompiler(CCompiler) :
             log.debug("skipping %s (up-to-date)", output_filename)
 
     def spawn(self, cmd):
-        old_path = os.getenv('path')
-        try:
-            os.environ['path'] = self._paths
-            return super().spawn(cmd)
-        finally:
-            os.environ['path'] = old_path
+        env = dict(os.environ, path=self._paths)
+        return super().spawn(cmd, env=env)
 
     # -- Miscellaneous methods -----------------------------------------
     # These are all used by the 'gen_lib_options() function, in
