@@ -30,6 +30,9 @@ jobs:
         - macOS-latest
         # - windows-2019
         # - windows-2016
+        include:
+        # Dev versions
+        - { python-version: 3.9-dev, os: ubuntu-20.04 }
 
     env:
       NETWORK_REQUIRED: 1
@@ -38,8 +41,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@master
+    - name: Set up Python ${{ matrix.python-version }} (deadsnakes)
+      uses: deadsnakes/action@v1.0.0
+      if: endsWith(matrix.python-version, '-dev')
+      with:
+        python-version: ${{ matrix.python-version }}
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v1.1.1
+      if: "!endsWith(matrix.python-version, '-dev')"
       with:
         python-version: ${{ matrix.python-version }}
     - name: Log Python version
