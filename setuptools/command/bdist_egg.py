@@ -59,7 +59,7 @@ def write_stub(resource, pyfile):
             from importlib.machinery import ExtensionFileLoader
             __file__ = pkg_resources.resource_filename(__name__, %r)
             __loader__ = None; del __bootstrap__, __loader__
-            ExtensionFileLoader(__name__,__file__).exec_module()
+            ExtensionFileLoader(__name__,__file__).load_module()
         __bootstrap__()
         """).lstrip()
     with open(pyfile, 'w') as f:

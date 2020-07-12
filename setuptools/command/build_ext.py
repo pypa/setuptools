@@ -268,7 +268,7 @@ class build_ext(_build_ext):
                     "     os.chdir(os.path.dirname(__file__))",
                     if_dl("     sys.setdlopenflags(dl.RTLD_NOW)"),
                     "     ExtensionFileLoader(__name__,",
-                    "                         __file__).exec_module()",
+                    "                         __file__).load_module()",
                     "   finally:",
                     if_dl("     sys.setdlopenflags(old_flags)"),
                     "     os.chdir(old_dir)",
