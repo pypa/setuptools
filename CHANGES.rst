@@ -1,3 +1,10 @@
+v49.1.3
+-------
+
+* #2212: (Distutils) Allow spawn to accept environment. Avoid monkey-patching global state.
+* #2249: Fix extension loading technique in stubs.
+
+
 v49.1.2
 -------
 
