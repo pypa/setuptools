@@ -20,7 +20,7 @@ if sys.platform == 'darwin':
     _cfg_target_split = None
 
 
-def spawn(cmd, search_path=1, verbose=0, dry_run=0):
+def spawn(cmd, search_path=1, verbose=0, dry_run=0, env=None):
     """Run another program, specified as a command list 'cmd', in a new process.
 
     'cmd' is just the argument list for the new process, ie.
@@ -49,7 +49,8 @@ def spawn(cmd, search_path=1, verbose=0, dry_run=0):
         if executable is not None:
             cmd[0] = executable
 
-    env = None
+    env = env if env is not None else dict(os.environ)
+
     if sys.platform == 'darwin':
         global _cfg_target, _cfg_target_split
         if _cfg_target is None:
@@ -68,8 +69,7 @@ def spawn(cmd, search_path=1, verbose=0, dry_run=0):
                           'now "%s" but "%s" during configure'
                                 % (cur_target, _cfg_target))
                 raise DistutilsPlatformError(my_msg)
-            env = dict(os.environ,
-                       MACOSX_DEPLOYMENT_TARGET=cur_target)
+            env.update(MACOSX_DEPLOYMENT_TARGET=cur_target)
 
     try:
         proc = subprocess.Popen(cmd, env=env)
