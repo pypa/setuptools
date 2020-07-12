@@ -13,6 +13,7 @@ jobs:
   - <<: *latest_py3
     env: LANG=C
   - python: 3.8-dev
+  - python: 3.9-dev
   - <<: *latest_py3
     env: TOXENV=docs
   allow_failures:
