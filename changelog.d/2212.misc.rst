@@ -1,0 +1,1 @@
+(Distutils) Allow spawn to accept environment. Avoid monkey-patching global state.
