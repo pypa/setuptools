@@ -1,3 +1,9 @@
+v49.2.0
+-------
+
+* #2230: Now warn the user when setuptools is imported after distutils modules have been loaded (exempting PyPy for 3.6), directing the users of packages to import setuptools first.
+
+
 v49.1.3
 -------
 

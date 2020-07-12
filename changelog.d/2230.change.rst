@@ -1,1 +1,0 @@
-Now warn the user when setuptools is imported after distutils modules have been loaded (exempting PyPy for 3.6), directing the users of packages to import setuptools first.
