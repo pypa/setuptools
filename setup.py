@@ -7,6 +7,7 @@ import os
 import sys
 
 import setuptools
+from setuptools.command.install import install
 
 here = os.path.dirname(__file__)
 
@@ -49,6 +50,7 @@ def _gen_console_scripts():
 
 package_data = dict(
     setuptools=['script (dev).tmpl', 'script.tmpl', 'site-patch.py'],
+    _distutils_importer=['distutils-shim-package/distutils/__init__.py'],
 )
 
 force_windows_specific_files = (
@@ -81,8 +83,38 @@ def pypi_link(pkg_filename):
     return '/'.join(parts)
 
 
+class install_with_pth(install):
+    """
+    Custom install command to install a .pth file for distutils patching.
+
+    This is necessary because there's no standard way to install a `.pth` file
+    alongside your package (and there probably shouldn't be one), but we need
+    to do this in order to give precedence higher precedence to our version of
+    `distutils` than the standard library.
+    """
+
+    def initialize_options(self):
+        install.initialize_options(self)
+
+        name = 'distutils_precedence'
+        with open(os.path.join(here, name + '.pth'), 'rt') as f:
+            contents = f.read()
+
+        self.extra_path = (name, contents)
+
+    def finalize_options(self):
+        install.finalize_options(self)
+
+        install_suffix = os.path.relpath(self.install_lib,
+                                         self.install_libbase)
+
+        if install_suffix == self.extra_path[1]:
+            self.install_lib = self.install_libbase
+
+
 setup_params = dict(
     src_root=None,
+    cmdclass={'install': install_with_pth},
     package_data=package_data,
     entry_points={
         "distutils.commands": [

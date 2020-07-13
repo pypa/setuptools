@@ -13,4 +13,5 @@ include launcher.c
 include msvc-build-launcher.cmd
 include pytest.ini
 include tox.ini
+include distutils_precedence.pth
 exclude pyproject.toml  # Temporary workaround for #1644.
