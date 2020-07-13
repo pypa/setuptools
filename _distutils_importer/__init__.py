@@ -1,15 +1,37 @@
 import sys
 
-_HERE = os.path.dirname(__file__)
-NEW_DISTUTILS_LOCATION = os.path.join(_HERE, 'distutils-shim-package')
+
+class DistutilsMetaFinder:
+    def find_spec(self, fullname, path, target=None):
+        if path is not None or fullname != "distutils":
+            return None
+
+        return self.get_distutils_spec()
+
+    def get_distutils_spec(self):
+        import importlib
+
+        class DistutilsLoader(importlib.util.abc.Loader):
+
+            def create_module(self, spec):
+                return importlib.import_module('._distutils', 'setuptools')
+
+            def exec_module(self, module):
+                pass
+
+        return importlib.util.spec_from_loader('distutils', DistutilsLoader())
+
+
+DISTUTILS_FINDER = DistutilsMetaFinder()
+
 
 def add_shim():
-    if NEW_DISTUTILS_LOCATION not in sys.path:
-        sys.path.insert(0, NEW_DISTUTILS_LOCATION)
+    sys.meta_path.insert(0, DISTUTILS_FINDER)
+
 
 def remove_shim():
     try:
-        sys.path.remove(NEW_DISTUTILS_LOCATION)
+        sys.path.remove(DISTUTILS_FINDER)
     except ValueError:
         pass
 
