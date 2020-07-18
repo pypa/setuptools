@@ -18,4 +18,5 @@ Documentation content:
    development
    roadmap
    Deprecated: Easy Install <easy_install>
+   distutils-legacy
    history
