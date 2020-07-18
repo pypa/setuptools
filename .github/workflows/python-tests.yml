@@ -25,14 +25,20 @@ jobs:
         - 3.6
         - 3.5
         os:
-        - ubuntu-latest
+        - ubuntu-18.04
         - ubuntu-16.04
         - macOS-latest
         # - windows-2019
         # - windows-2016
         include:
-        # Dev versions
-        - { python-version: 3.9-dev, os: ubuntu-20.04 }
+        # Pre-release versions (GH-shipped)
+        - os: ubuntu-20.04
+          python-version: 3.9.0-beta.4 - 3.9.0
+        # Dev versions (deadsnakes)
+        - os: ubuntu-20.04
+          python-version: 3.9-dev
+        - os: ubuntu-20.04
+          python-version: 3.8-dev
 
     env:
       NETWORK_REQUIRED: 1
@@ -47,7 +53,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1.1.1
+      uses: actions/setup-python@v2
       if: "!endsWith(matrix.python-version, '-dev')"
       with:
         python-version: ${{ matrix.python-version }}
