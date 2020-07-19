@@ -115,3 +115,5 @@ jobs:
         tox
         --parallel auto
         --parallel-live
+        --
+        -vvvvv
