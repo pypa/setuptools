@@ -106,6 +106,7 @@ jobs:
         python -m
         tox
         --parallel auto
+        --parallel-live
         --notest
         --skip-missing-interpreters false
     - name: Test with tox
@@ -113,3 +114,4 @@ jobs:
         python -m
         tox
         --parallel auto
+        --parallel-live
