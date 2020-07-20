@@ -1,5 +1,20 @@
+"""
+Ensure that the local copy of distutils is preferred over stdlib.
+
+See https://github.com/pypa/setuptools/issues/417#issuecomment-392298401
+for more motivation.
+"""
+
 import os
 import sys
+
+
+def enabled():
+    """
+    Allow selection of distutils by environment variable.
+    """
+    which = os.environ.get('SETUPTOOLS_USE_DISTUTILS', 'stdlib')
+    return which == 'local'
 
 
 class DistutilsMetaFinder:
@@ -37,6 +52,3 @@ def remove_shim():
         sys.path.remove(DISTUTILS_FINDER)
     except ValueError:
         pass
-
-
-add_shim()

@@ -97,15 +97,11 @@ class install_with_pth(install):
     """
 
     _pth_name = 'distutils-precedence'
-    _pth_contents = textwrap.dedent("""
-        import os
-        enabled = os.environ.get('SETUPTOOLS_USE_DISTUTILS') == 'local'
-        enabled and __import__('_setuptools_distutils_hack')
-        """).lstrip().replace('\n', '; ')
+    _pth_contents = "import _setuptools_distutils_hack.install"
 
     def initialize_options(self):
         install.initialize_options(self)
-        self.extra_path = self._pth_name, self._pth_contents
+        self.extra_path = (self._pth_name, self._pth_contents)
 
     def finalize_options(self):
         install.finalize_options(self)
