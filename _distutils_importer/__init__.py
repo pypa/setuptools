@@ -25,7 +25,7 @@ class DistutilsMetaFinder:
         return self.get_distutils_spec()
 
     def get_distutils_spec(self):
-        import importlib
+        import importlib.util
 
         class DistutilsLoader(importlib.util.abc.Loader):
 
