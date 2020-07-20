@@ -1,1 +1,0 @@
-import os; (os.environ.get('SETUPTOOLS_USE_DISTUTILS', 'stdlib') == 'local' and __import__('_distutils_importer'))

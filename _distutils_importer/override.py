@@ -1,15 +1,9 @@
-"""
-Ensure that the local copy of distutils is preferred over stdlib.
-
-See https://github.com/pypa/setuptools/issues/417#issuecomment-392298401
-for more motivation.
-"""
-
 import sys
 import re
-import os
 import importlib
 import warnings
+
+from . import enabled
 
 
 is_pypy = '__pypy__' in sys.builtin_module_names
@@ -35,14 +29,6 @@ def clear_distutils():
     mods = [name for name in sys.modules if re.match(r'distutils\b', name)]
     for name in mods:
         del sys.modules[name]
-
-
-def enabled():
-    """
-    Allow selection of distutils by environment variable.
-    """
-    which = os.environ.get('SETUPTOOLS_USE_DISTUTILS', 'stdlib')
-    return which == 'local'
 
 
 def ensure_local_distutils():

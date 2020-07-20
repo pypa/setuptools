@@ -94,12 +94,8 @@ class install_with_pth(install):
 
     def initialize_options(self):
         install.initialize_options(self)
-
-        name = 'distutils_precedence'
-        with open(os.path.join(here, name + '.pth'), 'rt') as f:
-            contents = f.read()
-
-        self.extra_path = (name, contents)
+        self.extra_path = (
+            'distutils-precedence', 'import _distutils_importer.install')
 
     def finalize_options(self):
         install.finalize_options(self)

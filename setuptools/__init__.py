@@ -5,8 +5,7 @@ import functools
 import os
 import re
 
-# Disabled for now due to: #2228, #2230
-import setuptools.distutils_patch  # noqa: F401
+import _distutils_importer.override  # noqa: F401
 
 import distutils.core
 from distutils.errors import DistutilsOptionError
