@@ -72,7 +72,7 @@ class PackageFinder:
 
         return list(cls._find_packages_iter(
             convert_path(where),
-            cls._build_filter('ez_setup', '*__pycache__', *exclude),
+            cls._build_filter('ez_setup', '*__pycache__', exclude),
             cls._build_filter(*include)))
 
     @classmethod
