@@ -1,6 +1,3 @@
-.. image:: https://raw.githubusercontent.com/pypa/setuptools/master/docs/logo/banner%201%20line%20color.svg
-
-
 Documentation
 =============
 
