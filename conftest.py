@@ -15,7 +15,7 @@ collect_ignore = [
     'tests/manual_test.py',
     'setuptools/tests/mod_with_constant.py',
     'setuptools/_distutils',
-    '_distutils_importer',
+    '_distutils_hack',
 ]
 
 

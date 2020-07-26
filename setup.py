@@ -95,7 +95,7 @@ class install_with_pth(install):
     def initialize_options(self):
         install.initialize_options(self)
         self.extra_path = (
-            'distutils-precedence', 'import _distutils_importer.install')
+            'distutils-precedence', 'import _distutils_hack.install')
 
     def finalize_options(self):
         install.finalize_options(self)

@@ -200,7 +200,7 @@ _MODULES_TO_HIDE = {
     'distutils',
     'pkg_resources',
     'Cython',
-    '_distutils_importer',
+    '_distutils_hack',
 }
 
 
@@ -232,9 +232,9 @@ def hide_setuptools():
     necessary to avoid issues such as #315 where setuptools upgrading itself
     would fail to find a function declared in the metadata.
     """
-    _distutils_importer = sys.modules.get('_distutils_importer', None)
-    if _distutils_importer is not None:
-        _distutils_importer.remove_shim()
+    _distutils_hack = sys.modules.get('_distutils_hack', None)
+    if _distutils_hack is not None:
+        _distutils_hack.remove_shim()
 
     modules = filter(_needs_hiding, sys.modules)
     _clear_modules(modules)
