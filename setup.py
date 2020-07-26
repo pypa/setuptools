@@ -86,10 +86,13 @@ class install_with_pth(install):
     """
     Custom install command to install a .pth file for distutils patching.
 
-    This is necessary because there's no standard way to install a `.pth` file
-    alongside your package (and there probably shouldn't be one), but we need
-    to do this in order to give precedence higher precedence to our version of
-    `distutils` than the standard library.
+    This hack is necessary because there's no standard way to install behavior
+    on startup (and it's debatable if there should be one). This hack (ab)uses
+    the `extra_path` behavior in Setuptools to install a `.pth` file with
+    implicit behavior on startup to give higher precedence to the local version
+    of `distutils` over the version from the standard library.
+
+    Please do not replicate this behavior.
     """
 
     _pth_name = 'distutils-precedence'
