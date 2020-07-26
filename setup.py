@@ -5,6 +5,7 @@ Distutils setup file, used to install or test 'setuptools'
 
 import os
 import sys
+import textwrap
 
 import setuptools
 from setuptools.command.install import install
@@ -96,7 +97,11 @@ class install_with_pth(install):
     """
 
     _pth_name = 'distutils-precedence'
-    _pth_contents = 'import _distutils_hack.install'
+    _pth_contents = textwrap.dedent("""
+        import os
+        enabled = os.environ.get('SETUPTOOLS_USE_DISTUTILS') == 'local'
+        enabled and __import__('_distutils_hack.install')
+        """).lstrip().replace('\n', '; ')
 
     def initialize_options(self):
         install.initialize_options(self)
