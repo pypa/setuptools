@@ -92,18 +92,21 @@ class install_with_pth(install):
     `distutils` than the standard library.
     """
 
+    _pth_name = 'distutils-precedence'
+    _pth_contents = 'import _distutils_hack.install'
+
     def initialize_options(self):
         install.initialize_options(self)
-        self.extra_path = (
-            'distutils-precedence', 'import _distutils_hack.install')
+        self.extra_path = self._pth_name, self._pth_contents
 
     def finalize_options(self):
         install.finalize_options(self)
 
+        # undo secondary effect of `extra_path` adding to `install_lib`
         install_suffix = os.path.relpath(self.install_lib,
                                          self.install_libbase)
 
-        if install_suffix == self.extra_path[1]:
+        if install_suffix == self._pth_contents:
             self.install_lib = self.install_libbase
 
 
