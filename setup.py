@@ -106,8 +106,10 @@ class install_with_pth(install):
         install.finalize_options(self)
 
         # undo secondary effect of `extra_path` adding to `install_lib`
-        install_suffix = os.path.relpath(self.install_lib,
-                                         self.install_libbase)
+        install_suffix = os.path.relpath(
+            self.install_lib,
+            self.install_libbase,
+        )
 
         if install_suffix == self._pth_contents:
             self.install_lib = self.install_libbase
