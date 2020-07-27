@@ -92,6 +92,6 @@ def add_shim():
 
 def remove_shim():
     try:
-        sys.path.remove(DISTUTILS_FINDER)
+        sys.meta_path.remove(DISTUTILS_FINDER)
     except ValueError:
         pass
