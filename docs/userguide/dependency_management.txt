@@ -70,9 +70,7 @@ finess to it, let's start with a simple example.
 When your project is installed (e.g. using pip), all of the dependencies not
 already installed will be located (via PyPI), downloaded, built (if necessary),
 and installed and 2) Any scripts in your project will be installed with wrappers
-that verify the availability of the specified dependencies at runtime, and
-ensure that the correct versions are added to ``sys.path`` (e.g. if multiple
-versions have been installed).
+that verify the availability of the specified dependencies at runtime.
 
 .. note::
     if you declare your dependencies in ``setup.py``, you do
