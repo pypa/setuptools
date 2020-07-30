@@ -71,12 +71,6 @@ When your project is installed (e.g. using pip), all of the dependencies not
 already installed will be located (via PyPI), downloaded, built (if necessary),
 and installed and 2) Any scripts in your project will be installed with wrappers
 that verify the availability of the specified dependencies at runtime.
-
-.. note::
-    if you declare your dependencies in ``setup.py``, you do
-    *not* need to use the ``require()`` function in your scripts or modules, as
-    long as you either install the project or use ``setup.py develop`` to do
-    development work on it.
     
 
 Platform specific dependencies
