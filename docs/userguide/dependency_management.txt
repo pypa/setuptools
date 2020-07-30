@@ -199,12 +199,16 @@ distributions, if the package's dependencies aren't already installed:
 Optional dependencies
 =====================
 Setuptools allows you to declare dependencies that only get installed under
-specific circumstances. For example, let's say that Project-A offers optional
-PDF support and requires some additional package for it to work. Such a
-dependency will be specified with ``extras_require`` keyword and they are only
-installed if another package depends on it (either directly or indirectly).
+specific circumstances. These dependencies are specified with ``extras_require``
+keyword and are only installed if another package depends on it (either
+directly or indirectly) This makes it convenient to declare dependencies for 
+ancillary functions such as "tests" and "docs".
 
-Let's first see how to specify such package:
+.. note::
+    ``tests_require`` is now deprecated
+
+For example, Package-A offers optional PDF support and requires two other
+dependencies for it to work:
 
 .. code-block:: ini
 
