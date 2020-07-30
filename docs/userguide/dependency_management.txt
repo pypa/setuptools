@@ -40,14 +40,6 @@ other two types of dependency keyword, this one is specified in your
     deprecated practice (WIP)`
 
 
-Python requirement
-------------------
-In some cases, you might need to specify the minimum required python version.
-This is handled with the ``python_requires`` keyword supplied to ``setup.cfg``
-or ``setup.py``.
-
-Example WIP
-
 
 Declaring required dependency
 =============================
@@ -313,3 +305,12 @@ not need to change, but the right packages will still be installed if needed.
     support a feature, it should keep an empty requirements list for that feature
     in its ``extras_require`` argument, so that packages depending on that feature
     don't break (due to an invalid feature name).
+
+
+Python requirement
+==================
+In some cases, you might need to specify the minimum required python version.
+This is handled with the ``python_requires`` keyword supplied to ``setup.cfg``
+or ``setup.py``.
+
+Example WIP
