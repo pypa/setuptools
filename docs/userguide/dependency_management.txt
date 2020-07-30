@@ -2,10 +2,8 @@
 Dependencies Management in Setuptools
 =====================================
 
-``Setuptools``'s dependency management is meticulous, or agonizing, depending
-on your level of familiarity. There are three types of dependency styles.
-1) those required to run the packaging program (build system requirement),
-2) those your package depends on (required dependency) and 3) optional
+There are three types of dependency styles offered by setuptools:
+1) build system requirement, required dependency and 3) optional
 dependency.
 
 .. Note::
