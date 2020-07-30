@@ -7,8 +7,9 @@ There are three types of dependency styles offered by setuptools:
 dependency.
 
 .. Note::
-    For all the packages you intend to add to dependency, you can optionally
-    specify the version following :ref:`reference on version specifyer <WIP>`
+    Packages that are added to dependency can be optionally specified with the
+    version by following `PEP 440 <https://www.python.org/dev/peps/pep-0440/>`_
+
 
 .. contents::
 
