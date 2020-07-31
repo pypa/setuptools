@@ -54,4 +54,4 @@ Code of Conduct
 
 Everyone interacting in the setuptools project's codebases, issue trackers,
 chat rooms, and mailing lists is expected to follow the
-`PyPA Code of Conduct <https://www.pypa.io/en/latest/code-of-conduct/>`_.
+`PSF Code of Conduct <https://github.com/pypa/.github/blob/main/CODE_OF_CONDUCT.md>`_.
