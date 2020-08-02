@@ -503,7 +503,7 @@ class MSVCCompiler(CCompiler) :
             log.debug("skipping %s (up-to-date)", output_filename)
 
     def spawn(self, cmd):
-        env = dict(os.environ, path=self._paths)
+        env = dict(os.environ, PATH=self._paths)
         return super().spawn(cmd, env=env)
 
     # -- Miscellaneous methods -----------------------------------------
