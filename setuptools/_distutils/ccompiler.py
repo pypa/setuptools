@@ -906,8 +906,8 @@ int main (int argc, char **argv) {
     def execute(self, func, args, msg=None, level=1):
         execute(func, args, msg, self.dry_run)
 
-    def spawn(self, cmd):
-        spawn(cmd, dry_run=self.dry_run)
+    def spawn(self, cmd, **kwargs):
+        spawn(cmd, dry_run=self.dry_run, **kwargs)
 
     def move_file(self, src, dst):
         return move_file(src, dst, dry_run=self.dry_run)
