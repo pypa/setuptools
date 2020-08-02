@@ -2,6 +2,7 @@
 import sys
 import unittest
 import os
+import threading
 
 from distutils.errors import DistutilsPlatformError
 from distutils.tests import support
@@ -73,6 +74,28 @@ class msvccompilerTestCase(support.TempdirManager,
             self.assertTrue(os.path.isdir(path))
         else:
             raise unittest.SkipTest("VS 2015 is not installed")
+
+
+class TestSpawn(unittest.TestCase):
+    def test_concurrent_safe(self):
+        """
+        Concurrent calls to spawn should have consistent results.
+        """
+        import distutils._msvccompiler as _msvccompiler
+        compiler = _msvccompiler.MSVCCompiler()
+        compiler._paths = "expected"
+        inner_cmd = 'import os; assert os.environ["PATH"] == "expected"'
+        command = ['python', '-c', inner_cmd]
+
+        threads = [
+            threading.Thread(target=compiler.spawn, args=[command])
+            for n in range(100)
+        ]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+
 
 def test_suite():
     return unittest.makeSuite(msvccompilerTestCase)
