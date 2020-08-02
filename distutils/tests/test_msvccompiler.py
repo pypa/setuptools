@@ -76,6 +76,19 @@ class msvccompilerTestCase(support.TempdirManager,
             raise unittest.SkipTest("VS 2015 is not installed")
 
 
+class CheckThread(threading.Thread):
+    exc_info = None
+
+    def run(self):
+        try:
+            super().run()
+        except Exception:
+            self.exc_info = sys.exc_info()
+
+    def __bool__(self):
+        return not self.exc_info
+
+
 class TestSpawn(unittest.TestCase):
     def test_concurrent_safe(self):
         """
@@ -88,13 +101,14 @@ class TestSpawn(unittest.TestCase):
         command = ['python', '-c', inner_cmd]
 
         threads = [
-            threading.Thread(target=compiler.spawn, args=[command])
+            CheckThread(target=compiler.spawn, args=[command])
             for n in range(100)
         ]
         for thread in threads:
             thread.start()
         for thread in threads:
             thread.join()
+        assert all(threads)
 
 
 def test_suite():
