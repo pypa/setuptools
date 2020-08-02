@@ -1,1 +1,0 @@
-Fixed two flaws in distutils._msvccompiler.MSVCCompiler.spawn.
