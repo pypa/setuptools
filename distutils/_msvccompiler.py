@@ -15,7 +15,9 @@ for older versions in distutils.msvc9compiler and distutils.msvccompiler.
 
 import os
 import subprocess
-import winreg
+import contextlib
+with contextlib.suppress(ImportError):
+    import winreg
 
 from distutils.errors import DistutilsExecError, DistutilsPlatformError, \
                              CompileError, LibError, LinkError
