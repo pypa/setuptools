@@ -155,8 +155,7 @@ class _BuildMetaBackend(object):
         with _open_setup_script(__file__) as f:
             code = f.read().replace(r'\r\n', r'\n')
 
-        with no_install_setup_requires():
-            exec(compile(code, __file__, 'exec'), locals())
+        exec(compile(code, __file__, 'exec'), locals())
 
     def get_requires_for_build_wheel(self, config_settings=None):
         config_settings = self._fix_config(config_settings)
@@ -171,7 +170,8 @@ class _BuildMetaBackend(object):
                                          config_settings=None):
         sys.argv = sys.argv[:1] + ['dist_info', '--egg-base',
                                    _to_str(metadata_directory)]
-        self.run_setup()
+        with no_install_setup_requires():
+            self.run_setup()
 
         dist_info_directory = metadata_directory
         while True:
@@ -211,7 +211,8 @@ class _BuildMetaBackend(object):
             sys.argv = (sys.argv[:1] + setup_command +
                         ['--dist-dir', tmp_dist_dir] +
                         config_settings["--global-option"])
-            self.run_setup()
+            with no_install_setup_requires():
+                self.run_setup()
 
             result_basename = _file_with_extension(
                 tmp_dist_dir, result_extension)
