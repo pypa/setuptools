@@ -75,6 +75,22 @@ class Distribution(setuptools.dist.Distribution):
             distutils.core.Distribution = orig
 
 
+@contextlib.contextmanager
+def no_install_setup_requires():
+    """Temporarily disable installing setup_requires
+
+    Under PEP 517, the backend reports build dependencies to the frontend,
+    and the frontend is responsible for ensuring they're installed.
+    So setuptools (acting as a backend) should not try to install them.
+    """
+    orig = setuptools._install_setup_requires
+    setuptools._install_setup_requires = lambda attrs: None
+    try:
+        yield
+    finally:
+        setuptools._install_setup_requires = orig
+
+
 def _to_str(s):
     """
     Convert a filename to a string (on Python 2, explicitly
@@ -139,7 +155,8 @@ class _BuildMetaBackend(object):
         with _open_setup_script(__file__) as f:
             code = f.read().replace(r'\r\n', r'\n')
 
-        exec(compile(code, __file__, 'exec'), locals())
+        with no_install_setup_requires():
+            exec(compile(code, __file__, 'exec'), locals())
 
     def get_requires_for_build_wheel(self, config_settings=None):
         config_settings = self._fix_config(config_settings)
