@@ -380,7 +380,7 @@ class TestBuildMetaBackend:
                 setup(
                     name="qux",
                     version="0.0.0",
-                    py_modules=["hello.py"],
+                    py_modules=["hello"],
                     setup_requires={setup_literal},
                 )
             """).format(setup_literal=setup_literal),
@@ -406,6 +406,36 @@ class TestBuildMetaBackend:
         actual = get_requires()
 
         assert expected == sorted(actual)
+
+    def test_dont_install_setup_requires(self, tmpdir_cwd):
+        files = {
+            'setup.py': DALS("""
+                        from setuptools import setup
+
+                        setup(
+                            name="qux",
+                            version="0.0.0",
+                            py_modules=["hello"],
+                            setup_requires=["does-not-exist >99"],
+                        )
+                    """),
+            'hello.py': DALS("""
+                    def run():
+                        print('hello')
+                    """),
+        }
+
+        build_files(files)
+
+        build_backend = self.get_build_backend()
+
+        dist_dir = os.path.abspath('pip-dist-info')
+        os.makedirs(dist_dir)
+
+        # does-not-exist can't be satisfied, so if it attempts to install
+        # setup_requires, it will fail.
+        build_backend.prepare_metadata_for_build_wheel(dist_dir)
+
 
     _sys_argv_0_passthrough = {
         'setup.py': DALS("""
