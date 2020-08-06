@@ -436,7 +436,6 @@ class TestBuildMetaBackend:
         # setup_requires, it will fail.
         build_backend.prepare_metadata_for_build_wheel(dist_dir)
 
-
     _sys_argv_0_passthrough = {
         'setup.py': DALS("""
             import os
