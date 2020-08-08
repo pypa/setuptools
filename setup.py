@@ -117,7 +117,7 @@ class install_with_pth(install):
         """
         suffix = os.path.relpath(self.install_lib, self.install_libbase)
 
-        if suffix == self._pth_contents:
+        if suffix.strip() == self._pth_contents.strip():
             self.install_lib = self.install_libbase
 
 
