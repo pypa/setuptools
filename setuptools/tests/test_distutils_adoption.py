@@ -1,8 +1,27 @@
 import os
 import sys
 import functools
+import subprocess
 
 import pytest
+import jaraco.envs
+import path
+
+
+class VirtualEnv(jaraco.envs.VirtualEnv):
+    name = '.env'
+
+    def run(self, cmd, *args, **kwargs):
+        cmd = [self.exe(cmd[0])] + cmd[1:]
+        return subprocess.check_output(cmd, *args, cwd=self.root, **kwargs)
+
+
+@pytest.fixture
+def venv(tmpdir):
+    env = VirtualEnv()
+    env.root = path.Path(tmpdir)
+    env.req = os.getcwd()
+    return env.create()
 
 
 def popen_text(call):
@@ -13,36 +32,29 @@ def popen_text(call):
         if sys.version_info < (3, 7) else functools.partial(call, text=True)
 
 
-@pytest.fixture
-def env(virtualenv):
-    virtualenv.run(['pip', 'uninstall', '-y', 'setuptools'])
-    virtualenv.run(['pip', 'install', os.getcwd()])
-    return virtualenv
-
-
-def find_distutils(env, imports='distutils'):
+def find_distutils(venv, imports='distutils', **kwargs):
     py_cmd = 'import {imports}; print(distutils.__file__)'.format(**locals())
     cmd = ['python', '-c', py_cmd]
-    return popen_text(env.run)(cmd, capture=True)
+    return popen_text(venv.run)(cmd, **kwargs)
 
 
-def test_distutils_stdlib(env):
+def test_distutils_stdlib(venv):
     """
     Ensure stdlib distutils is used when appropriate.
     """
-    assert '.env' not in find_distutils(env).split(os.sep)
+    assert venv.name not in find_distutils(venv, env=dict()).split(os.sep)
 
 
-def test_distutils_local_with_setuptools(env):
+def test_distutils_local_with_setuptools(venv):
     """
     Ensure local distutils is used when appropriate.
     """
-    env.env.update(SETUPTOOLS_USE_DISTUTILS='local')
-    loc = find_distutils(env, imports='setuptools, distutils')
-    assert '.env' in loc.split(os.sep)
+    env = dict(SETUPTOOLS_USE_DISTUTILS='local')
+    loc = find_distutils(venv, imports='setuptools, distutils', env=env)
+    assert venv.name in loc.split(os.sep)
 
 
 @pytest.mark.xfail(reason="#2259")
-def test_distutils_local(env):
-    env.env.update(SETUPTOOLS_USE_DISTUTILS='local')
-    assert '.env' in find_distutils(env).split(os.sep)
+def test_distutils_local(venv):
+    env = dict(SETUPTOOLS_USE_DISTUTILS='local')
+    assert venv.name in find_distutils(venv, env=env).split(os.sep)
