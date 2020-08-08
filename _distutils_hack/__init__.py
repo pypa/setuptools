@@ -8,14 +8,6 @@ import warnings
 is_pypy = '__pypy__' in sys.builtin_module_names
 
 
-def enabled():
-    """
-    Allow selection of distutils by environment variable.
-    """
-    which = os.environ.get('SETUPTOOLS_USE_DISTUTILS', 'stdlib')
-    return which == 'local'
-
-
 def warn_distutils_present():
     if 'distutils' not in sys.modules:
         return
@@ -36,6 +28,14 @@ def clear_distutils():
     mods = [name for name in sys.modules if re.match(r'distutils\b', name)]
     for name in mods:
         del sys.modules[name]
+
+
+def enabled():
+    """
+    Allow selection of distutils by environment variable.
+    """
+    which = os.environ.get('SETUPTOOLS_USE_DISTUTILS', 'stdlib')
+    return which == 'local'
 
 
 def ensure_local_distutils():
