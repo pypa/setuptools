@@ -57,7 +57,10 @@ def test_distutils_local_with_setuptools(venv):
     assert venv.name in loc.split(os.sep)
 
 
-@pytest.mark.xfail(reason="#2259")
 def test_distutils_local(venv):
+    """
+    Even without importing, the setuptools-local copy of distutils is
+    preferred.
+    """
     env = dict(SETUPTOOLS_USE_DISTUTILS='local')
     assert venv.name in find_distutils(venv, env=env).split(os.sep)
