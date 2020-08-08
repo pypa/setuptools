@@ -15,7 +15,9 @@ for older versions in distutils.msvc9compiler and distutils.msvccompiler.
 
 import os
 import subprocess
-import winreg
+import contextlib
+with contextlib.suppress(ImportError):
+    import winreg
 
 from distutils.errors import DistutilsExecError, DistutilsPlatformError, \
                              CompileError, LibError, LinkError
@@ -501,7 +503,7 @@ class MSVCCompiler(CCompiler) :
             log.debug("skipping %s (up-to-date)", output_filename)
 
     def spawn(self, cmd):
-        env = dict(os.environ, path=self._paths)
+        env = dict(os.environ, PATH=self._paths)
         return super().spawn(cmd, env=env)
 
     # -- Miscellaneous methods -----------------------------------------

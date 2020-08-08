@@ -1,3 +1,9 @@
+v49.2.1
+-------
+
+* #2257: Fixed two flaws in distutils._msvccompiler.MSVCCompiler.spawn.
+
+
 v49.2.0
 -------
 

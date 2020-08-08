@@ -138,7 +138,7 @@ def patch_for_msvc_specialized_compiler():
     msvc = import_module('setuptools.msvc')
 
     if platform.system() != 'Windows':
-        # Compilers only availables on Microsoft Windows
+        # Compilers only available on Microsoft Windows
         return
 
     def patch_params(mod_name, func_name):
