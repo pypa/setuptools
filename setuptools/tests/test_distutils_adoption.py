@@ -2,6 +2,7 @@ import os
 import sys
 import functools
 import subprocess
+import platform
 
 import pytest
 import jaraco.envs
@@ -32,10 +33,12 @@ def popen_text(call):
         if sys.version_info < (3, 7) else functools.partial(call, text=True)
 
 
-def find_distutils(venv, imports='distutils', **kwargs):
+def find_distutils(venv, imports='distutils', env=None, **kwargs):
     py_cmd = 'import {imports}; print(distutils.__file__)'.format(**locals())
     cmd = ['python', '-c', py_cmd]
-    return popen_text(venv.run)(cmd, **kwargs)
+    if platform.system() == 'Windows':
+        env['SYSTEMROOT'] = os.environ['SYSTEMROOT']
+    return popen_text(venv.run)(cmd, env=env, **kwargs)
 
 
 def test_distutils_stdlib(venv):
