@@ -1,5 +1,16 @@
 import os
+import sys
+import functools
+
 import pytest
+
+
+def popen_text(call):
+    """
+    Augment the Popen call with the parameters to ensure unicode text.
+    """
+    return functools.partial(call, universal_newlines=True) \
+        if sys.version_info < (3, 7) else functools.partial(call, text=True)
 
 
 @pytest.fixture
@@ -12,7 +23,7 @@ def env(virtualenv):
 def find_distutils(env, imports='distutils'):
     py_cmd = 'import {imports}; print(distutils.__file__)'.format(**locals())
     cmd = ['python', '-c', py_cmd]
-    return env.run(cmd, capture=True, text=True)
+    return popen_text(env.run)(cmd, capture=True)
 
 
 def test_distutils_stdlib(env):
