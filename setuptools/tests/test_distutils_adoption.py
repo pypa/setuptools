@@ -9,6 +9,9 @@ import jaraco.envs
 import path
 
 
+IS_PYPY = '__pypy__' in sys.builtin_module_names
+
+
 class VirtualEnv(jaraco.envs.VirtualEnv):
     name = '.env'
 
@@ -57,6 +60,7 @@ def test_distutils_local_with_setuptools(venv):
     assert venv.name in loc.split(os.sep)
 
 
+@pytest.mark.xfail('IS_PYPY', reason='pypy imports distutils on startup')
 def test_distutils_local(venv):
     """
     Even without importing, the setuptools-local copy of distutils is
