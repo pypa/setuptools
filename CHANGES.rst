@@ -1,3 +1,9 @@
+v49.3.0
+-------
+
+* #2259: Setuptools now provides a .pth file (except for editable installs of setuptools) to the target environment to ensure that when enabled, the setuptools-provided distutils is preferred before setuptools has been imported (and even if setuptools is never imported). Honors the SETUPTOOLS_USE_DISTUTILS environment variable.
+
+
 v49.2.1
 -------
 
