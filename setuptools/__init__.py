@@ -1,17 +1,15 @@
 """Extensions to the 'distutils' for large or complex distributions"""
 
-import os
+from fnmatch import fnmatchcase
 import functools
+import os
+import re
 
-# Disabled for now due to: #2228, #2230
-import setuptools.distutils_patch  # noqa: F401
+import _distutils_hack.override  # noqa: F401
 
 import distutils.core
-import distutils.filelist
-import re
 from distutils.errors import DistutilsOptionError
 from distutils.util import convert_path
-from fnmatch import fnmatchcase
 
 from ._deprecation_warning import SetuptoolsDeprecationWarning
 

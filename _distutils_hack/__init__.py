@@ -1,13 +1,6 @@
-"""
-Ensure that the local copy of distutils is preferred over stdlib.
-
-See https://github.com/pypa/setuptools/issues/417#issuecomment-392298401
-for more motivation.
-"""
-
 import sys
-import re
 import os
+import re
 import importlib
 import warnings
 
@@ -56,6 +49,48 @@ def ensure_local_distutils():
     assert '_distutils' in core.__file__, core.__file__
 
 
-warn_distutils_present()
-if enabled():
-    ensure_local_distutils()
+def do_override():
+    """
+    Ensure that the local copy of distutils is preferred over stdlib.
+
+    See https://github.com/pypa/setuptools/issues/417#issuecomment-392298401
+    for more motivation.
+    """
+    warn_distutils_present()
+    if enabled():
+        ensure_local_distutils()
+
+
+class DistutilsMetaFinder:
+    def find_spec(self, fullname, path, target=None):
+        if path is not None or fullname != "distutils":
+            return None
+
+        return self.get_distutils_spec()
+
+    def get_distutils_spec(self):
+        import importlib.util
+
+        class DistutilsLoader(importlib.util.abc.Loader):
+
+            def create_module(self, spec):
+                return importlib.import_module('._distutils', 'setuptools')
+
+            def exec_module(self, module):
+                pass
+
+        return importlib.util.spec_from_loader('distutils', DistutilsLoader())
+
+
+DISTUTILS_FINDER = DistutilsMetaFinder()
+
+
+def add_shim():
+    sys.meta_path.insert(0, DISTUTILS_FINDER)
+
+
+def remove_shim():
+    try:
+        sys.meta_path.remove(DISTUTILS_FINDER)
+    except ValueError:
+        pass
