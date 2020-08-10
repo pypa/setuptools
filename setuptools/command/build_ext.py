@@ -254,8 +254,8 @@ class build_ext(_build_ext):
                 '\n'.join([
                     "def __bootstrap__():",
                     "   global __bootstrap__, __file__, __loader__",
-                    "   import sys, os, pkg_resources" + if_dl(", dl"),
-                    "   from importlib.machinery import ExtensionFileLoader",
+                    "   import sys, os, pkg_resources, importlib.util" +
+                    if_dl(", dl"),
                     "   __file__ = pkg_resources.resource_filename"
                     "(__name__,%r)"
                     % os.path.basename(ext._file_name),
@@ -267,8 +267,10 @@ class build_ext(_build_ext):
                     "   try:",
                     "     os.chdir(os.path.dirname(__file__))",
                     if_dl("     sys.setdlopenflags(dl.RTLD_NOW)"),
-                    "     ExtensionFileLoader(__name__,",
-                    "                         __file__).load_module()",
+                    "     spec = importlib.util.spec_from_file_location(",
+                    "                __name__, __file__)",
+                    "     mod = importlib.util.module_from_spec(spec)",
+                    "     spec.loader.exec_module(mod)",
                     "   finally:",
                     if_dl("     sys.setdlopenflags(old_flags)"),
                     "     os.chdir(old_dir)",
