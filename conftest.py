@@ -15,8 +15,26 @@ collect_ignore = [
     'tests/manual_test.py',
     'setuptools/tests/mod_with_constant.py',
     'setuptools/_distutils',
-    'setuptools/distutils_patch.py',
+    '_distutils_hack',
 ]
+
+
+def pytest_configure(config):
+    disable_coverage_on_pypy(config)
+
+
+def disable_coverage_on_pypy(config):
+    """
+    Coverage makes tests on PyPy unbearably slow, so disable it.
+    """
+    if '__pypy__' not in sys.builtin_module_names:
+        return
+
+    # Recommended at pytest-dev/pytest-cov#418
+    cov = config.pluginmanager.get_plugin('_cov')
+    cov.options.no_cov = True
+    if cov.cov_controller:
+        cov.cov_controller.pause()
 
 
 if sys.version_info < (3,):

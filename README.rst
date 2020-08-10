@@ -1,6 +1,3 @@
-.. image:: https://raw.githubusercontent.com/pypa/setuptools/master/docs/logo/banner%201%20line%20color.svg
-
-
 .. image:: https://img.shields.io/pypi/v/setuptools.svg
    :target: `PyPI link`_
 
@@ -26,7 +23,6 @@
 
 .. image:: https://tidelift.com/badges/github/pypa/setuptools?style=flat
    :target: https://tidelift.com/subscription/pkg/pypi-setuptools?utm_source=pypi-setuptools&utm_medium=readme
-
 
 See the `Installation Instructions
 <https://packaging.python.org/installing/>`_ in the Python Packaging
@@ -58,4 +54,4 @@ Code of Conduct
 
 Everyone interacting in the setuptools project's codebases, issue trackers,
 chat rooms, and mailing lists is expected to follow the
-`PyPA Code of Conduct <https://www.pypa.io/en/latest/code-of-conduct/>`_.
+`PSF Code of Conduct <https://github.com/pypa/.github/blob/main/CODE_OF_CONDUCT.md>`_.

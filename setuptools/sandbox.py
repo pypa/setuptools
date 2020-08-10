@@ -185,14 +185,23 @@ def setup_context(setup_dir):
     temp_dir = os.path.join(setup_dir, 'temp')
     with save_pkg_resources_state():
         with save_modules():
-            hide_setuptools()
             with save_path():
+                hide_setuptools()
                 with save_argv():
                     with override_temp(temp_dir):
                         with pushd(setup_dir):
                             # ensure setuptools commands are available
                             __import__('setuptools')
                             yield
+
+
+_MODULES_TO_HIDE = {
+    'setuptools',
+    'distutils',
+    'pkg_resources',
+    'Cython',
+    '_distutils_hack',
+}
 
 
 def _needs_hiding(mod_name):
@@ -212,8 +221,8 @@ def _needs_hiding(mod_name):
     >>> _needs_hiding('Cython')
     True
     """
-    pattern = re.compile(r'(setuptools|pkg_resources|distutils|Cython)(\.|$)')
-    return bool(pattern.match(mod_name))
+    base_module = mod_name.split('.', 1)[0]
+    return base_module in _MODULES_TO_HIDE
 
 
 def hide_setuptools():
@@ -223,6 +232,10 @@ def hide_setuptools():
     necessary to avoid issues such as #315 where setuptools upgrading itself
     would fail to find a function declared in the metadata.
     """
+    _distutils_hack = sys.modules.get('_distutils_hack', None)
+    if _distutils_hack is not None:
+        _distutils_hack.remove_shim()
+
     modules = filter(_needs_hiding, sys.modules)
     _clear_modules(modules)
 

@@ -1,3 +1,21 @@
+v49.3.0
+-------
+
+* #2259: Setuptools now provides a .pth file (except for editable installs of setuptools) to the target environment to ensure that when enabled, the setuptools-provided distutils is preferred before setuptools has been imported (and even if setuptools is never imported). Honors the SETUPTOOLS_USE_DISTUTILS environment variable.
+
+
+v49.2.1
+-------
+
+* #2257: Fixed two flaws in distutils._msvccompiler.MSVCCompiler.spawn.
+
+
+v49.2.0
+-------
+
+* #2230: Now warn the user when setuptools is imported after distutils modules have been loaded (exempting PyPy for 3.6), directing the users of packages to import setuptools first.
+
+
 v49.1.3
 -------
 
