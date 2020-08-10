@@ -1,1 +1,0 @@
-Removed warning when ``distutils`` is imported before ``setuptools`` when ``distutils`` replacement is not enabled.
