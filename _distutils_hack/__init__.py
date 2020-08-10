@@ -16,9 +16,12 @@ def warn_distutils_present():
         # https://foss.heptapod.net/pypy/pypy/-/blob/be829135bc0d758997b3566062999ee8b23872b4/lib-python/3/site.py#L250
         return
     warnings.warn(
-        "Distutils was imported before Setuptools. This usage is discouraged "
-        "and may exhibit undesirable behaviors or errors. Please use "
-        "Setuptools' objects directly or at least import Setuptools first.")
+        "Distutils was imported before Setuptools, but importing Setuptools "
+        "also replaces the `distutils` module in `sys.modules`. This may lead "
+        "to undesirable behaviors or errors. To avoid these issues, avoid "
+        "using distutils directly, ensure that setuptools is installed in the "
+        "traditional way (e.g. not an editable install), and/or make sure that "
+        "setuptools is always imported before distutils.")
 
 
 def clear_distutils():
@@ -56,8 +59,8 @@ def do_override():
     See https://github.com/pypa/setuptools/issues/417#issuecomment-392298401
     for more motivation.
     """
-    warn_distutils_present()
     if enabled():
+        warn_distutils_present()
         ensure_local_distutils()
 
 
