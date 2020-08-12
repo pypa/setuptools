@@ -1,1 +1,0 @@
-Improve the ``safe_version`` function documentation

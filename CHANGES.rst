@@ -1,3 +1,10 @@
+v49.3.2
+-------
+
+* #2300: Improve the ``safe_version`` function documentation
+* #2297: Once again, in stubs prefer exec_module to the deprecated load_module.
+
+
 v49.3.1
 --------
 

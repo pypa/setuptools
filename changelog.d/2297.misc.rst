@@ -1,1 +1,0 @@
-Once again, in stubs prefer exec_module to the deprecated load_module.
