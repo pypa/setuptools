@@ -6,7 +6,7 @@ v49.3.2
 
 
 v49.3.1
---------
+-------
 
 * #2316: Removed warning when ``distutils`` is imported before ``setuptools`` when ``distutils`` replacement is not enabled.
 
