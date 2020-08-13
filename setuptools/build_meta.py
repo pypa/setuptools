@@ -75,6 +75,22 @@ class Distribution(setuptools.dist.Distribution):
             distutils.core.Distribution = orig
 
 
+@contextlib.contextmanager
+def no_install_setup_requires():
+    """Temporarily disable installing setup_requires
+
+    Under PEP 517, the backend reports build dependencies to the frontend,
+    and the frontend is responsible for ensuring they're installed.
+    So setuptools (acting as a backend) should not try to install them.
+    """
+    orig = setuptools._install_setup_requires
+    setuptools._install_setup_requires = lambda attrs: None
+    try:
+        yield
+    finally:
+        setuptools._install_setup_requires = orig
+
+
 def _to_str(s):
     """
     Convert a filename to a string (on Python 2, explicitly
@@ -154,7 +170,8 @@ class _BuildMetaBackend(object):
                                          config_settings=None):
         sys.argv = sys.argv[:1] + ['dist_info', '--egg-base',
                                    _to_str(metadata_directory)]
-        self.run_setup()
+        with no_install_setup_requires():
+            self.run_setup()
 
         dist_info_directory = metadata_directory
         while True:
@@ -194,7 +211,8 @@ class _BuildMetaBackend(object):
             sys.argv = (sys.argv[:1] + setup_command +
                         ['--dist-dir', tmp_dist_dir] +
                         config_settings["--global-option"])
-            self.run_setup()
+            with no_install_setup_requires():
+                self.run_setup()
 
             result_basename = _file_with_extension(
                 tmp_dist_dir, result_extension)
