@@ -1,3 +1,11 @@
+v49.5.0
+-------
+
+* #2306: When running as a PEP 517 backend, setuptools does not try to install
+  ``setup_requires`` itself. They are reported as build requirements for the
+  frontend to install.
+
+
 v49.4.0
 -------
 
