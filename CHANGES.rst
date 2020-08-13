@@ -1,3 +1,9 @@
+v49.4.0
+-------
+
+* #2310: Updated vendored packaging version to 20.4.
+
+
 v49.3.2
 -------
 
