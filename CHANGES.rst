@@ -1,3 +1,30 @@
+v49.5.0
+-------
+
+* #2306: When running as a PEP 517 backend, setuptools does not try to install
+  ``setup_requires`` itself. They are reported as build requirements for the
+  frontend to install.
+
+
+v49.4.0
+-------
+
+* #2310: Updated vendored packaging version to 20.4.
+
+
+v49.3.2
+-------
+
+* #2300: Improve the ``safe_version`` function documentation
+* #2297: Once again, in stubs prefer exec_module to the deprecated load_module.
+
+
+v49.3.1
+-------
+
+* #2316: Removed warning when ``distutils`` is imported before ``setuptools`` when ``distutils`` replacement is not enabled.
+
+
 v49.3.0
 -------
 
