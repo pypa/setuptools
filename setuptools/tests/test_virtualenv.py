@@ -119,6 +119,9 @@ def test_pip_upgrade_from_source(pip_version, virtualenv):
     wheel = glob.glob(os.path.join(dist_dir, '*.whl'))[0]
     # Then update from wheel.
     virtualenv.run('pip install ' + wheel)
+    # As reported in pypa/pip#8761, pip cannot handle an upgrade when
+    # setuptools supplies distutils.
+    virtualenv.env['SETUPTOOLS_USE_DISTUTILS'] = 'stdlib'
     # And finally try to upgrade from source.
     virtualenv.run('pip install --no-cache-dir --upgrade ' + sdist)
 
