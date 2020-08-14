@@ -2056,7 +2056,10 @@ def find_on_path(importer, path_item, only=False):
         )
         return
 
-    entries = safe_listdir(path_item)
+    entries = (
+        os.path.join(path_item, child)
+        for child in safe_listdir(path_item)
+    )
 
     # for performance, before sorting by version,
     # screen entries for only those that will yield
@@ -2372,7 +2375,15 @@ def _is_egg_path(path):
     """
     Determine if given path appears to be an egg.
     """
-    return path.lower().endswith('.egg')
+    return _is_zip_egg(path) or _is_unpacked_egg(path)
+
+
+def _is_zip_egg(path):
+    return (
+        path.lower().endswith('.egg') and
+        os.path.isfile(path) and
+        zipfile.is_zipfile(path)
+    )
 
 
 def _is_unpacked_egg(path):
@@ -2380,7 +2391,7 @@ def _is_unpacked_egg(path):
     Determine if given path appears to be an unpacked egg.
     """
     return (
-        _is_egg_path(path) and
+        path.lower().endswith('.egg') and
         os.path.isfile(os.path.join(path, 'EGG-INFO', 'PKG-INFO'))
     )
 
