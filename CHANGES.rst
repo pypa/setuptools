@@ -1,3 +1,9 @@
+v49.6.0
+-------
+
+* #2129: In pkg_resources, no longer detect any pathname ending in .egg as a Python egg. Now the path must be an unpacked egg or a zip file.
+
+
 v49.5.0
 -------
 
