@@ -3,7 +3,6 @@ import os
 import re
 import importlib
 import warnings
-import inspect
 
 
 is_pypy = '__pypy__' in sys.builtin_module_names
@@ -67,7 +66,9 @@ def do_override():
 
 class DistutilsMetaFinder:
     def find_spec(self, fullname, path, target=None):
-        if path is not None or fullname != "distutils" or self._bypass():
+        self._disable_for_pip(fullname, path)
+
+        if path is not None or fullname != "distutils":
             return None
 
         return self.get_distutils_spec()
@@ -85,15 +86,17 @@ class DistutilsMetaFinder:
 
         return importlib.util.spec_from_loader('distutils', DistutilsLoader())
 
-    def _bypass(self):
+    def _disable_for_pip(self, fullname, path):
         """
-        Suppress the import of distutils from setuptools when running under pip.
+        Ensure stdlib distutils when running under pip.
         See pypa/pip#8761 for rationale.
         """
-        return any(
-            level.frame.f_globals['__name__'].startswith('pip.')
-            for level in inspect.stack(context=False)
-        )
+        if path is not None or fullname != "pip":
+            return
+
+        # pip is being imported the first time.
+        clear_distutils()
+        self.get_distutils_spec = lambda: None
 
 
 DISTUTILS_FINDER = DistutilsMetaFinder()
