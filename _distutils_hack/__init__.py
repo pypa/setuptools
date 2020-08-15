@@ -66,14 +66,14 @@ def do_override():
 
 class DistutilsMetaFinder:
     def find_spec(self, fullname, path, target=None):
-        self._disable_for_pip(fullname, path)
+        if path is not None:
+            return
 
-        if path is not None or fullname != "distutils":
-            return None
+        method_name = 'spec_for_{fullname}'.format(**locals())
+        method = getattr(self, method_name, lambda: None)
+        return method()
 
-        return self.get_distutils_spec()
-
-    def get_distutils_spec(self):
+    def spec_for_distutils(self):
         import importlib.util
 
         class DistutilsLoader(importlib.util.abc.Loader):
@@ -86,17 +86,13 @@ class DistutilsMetaFinder:
 
         return importlib.util.spec_from_loader('distutils', DistutilsLoader())
 
-    def _disable_for_pip(self, fullname, path):
+    def spec_for_pip(self):
         """
         Ensure stdlib distutils when running under pip.
         See pypa/pip#8761 for rationale.
         """
-        if path is not None or fullname != "pip":
-            return
-
-        # pip is being imported the first time.
         clear_distutils()
-        self.get_distutils_spec = lambda: None
+        self.spec_for_distutils = lambda: None
 
 
 DISTUTILS_FINDER = DistutilsMetaFinder()
