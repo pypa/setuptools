@@ -12,7 +12,7 @@ def remove_setuptools():
     cmd = [sys.executable, '-m', 'pip', 'uninstall', '-y', 'setuptools']
     # set cwd to something other than '.' to avoid detecting
     # '.' as the installed package.
-    subprocess.check_call(cmd, cwd='.tox')
+    subprocess.check_call(cmd, cwd=os.environ['TOX_WORK_DIR'])
 
 
 def bootstrap():
