@@ -8,9 +8,7 @@ import re
 import contextlib
 import pickle
 import textwrap
-
-from setuptools.extern import six
-from setuptools.extern.six.moves import builtins, map
+import builtins
 
 import pkg_resources
 from distutils.errors import DistutilsError
@@ -138,7 +136,7 @@ class ExceptionSaver:
             return
 
         type, exc = map(pickle.loads, self._saved)
-        six.reraise(type, exc, self._tb)
+        raise exc.with_traceback(self._tb)
 
 
 @contextlib.contextmanager
@@ -251,15 +249,8 @@ def run_setup(setup_script, args):
             working_set.__init__()
             working_set.callbacks.append(lambda dist: dist.activate())
 
-            # __file__ should be a byte string on Python 2 (#712)
-            dunder_file = (
-                setup_script
-                if isinstance(setup_script, str) else
-                setup_script.encode(sys.getfilesystemencoding())
-            )
-
             with DirectorySandbox(setup_dir):
-                ns = dict(__file__=dunder_file, __name__='__main__')
+                ns = dict(__file__=setup_script, __name__='__main__')
                 _execfile(setup_script, ns)
         except SystemExit as v:
             if v.args and v.args[0]:

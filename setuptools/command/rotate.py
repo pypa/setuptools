@@ -4,8 +4,6 @@ from distutils.errors import DistutilsOptionError
 import os
 import shutil
 
-from setuptools.extern import six
-
 from setuptools import Command
 
 
@@ -38,7 +36,7 @@ class rotate(Command):
             self.keep = int(self.keep)
         except ValueError as e:
             raise DistutilsOptionError("--keep must be an integer") from e
-        if isinstance(self.match, six.string_types):
+        if isinstance(self.match, str):
             self.match = [
                 convert_path(p.strip()) for p in self.match.split(',')
             ]

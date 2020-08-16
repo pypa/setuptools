@@ -9,7 +9,7 @@ import re
 from setuptools.extern.pyparsing import stringStart, stringEnd, originalTextFor, ParseException
 from setuptools.extern.pyparsing import ZeroOrMore, Word, Optional, Regex, Combine
 from setuptools.extern.pyparsing import Literal as L  # noqa
-from setuptools.extern.six.moves.urllib import parse as urlparse
+from urllib import parse as urlparse
 
 from ._typing import TYPE_CHECKING
 from .markers import MARKER_EXPR, Marker

@@ -1,20 +1,13 @@
-from __future__ import unicode_literals
-
 import os
 import shutil
 import tarfile
+import importlib
+from concurrent import futures
 
 import pytest
 
 from .files import build_files
 from .textwrap import DALS
-from . import py2_only
-
-__metaclass__ = type
-
-# Backports on Python 2.7
-import importlib
-from concurrent import futures
 
 
 class BuildBackendBase:
@@ -214,15 +207,6 @@ class TestBuildMetaBackend:
 
     def test_prepare_metadata_for_build_wheel(self, build_backend):
         dist_dir = os.path.abspath('pip-dist-info')
-        os.makedirs(dist_dir)
-
-        dist_info = build_backend.prepare_metadata_for_build_wheel(dist_dir)
-
-        assert os.path.isfile(os.path.join(dist_dir, dist_info, 'METADATA'))
-
-    @py2_only
-    def test_prepare_metadata_for_build_wheel_with_str(self, build_backend):
-        dist_dir = os.path.abspath(str('pip-dist-info'))
         os.makedirs(dist_dir)
 
         dist_info = build_backend.prepare_metadata_for_build_wheel(dist_dir)

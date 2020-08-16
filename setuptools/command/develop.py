@@ -5,14 +5,10 @@ import os
 import glob
 import io
 
-from setuptools.extern import six
-
 import pkg_resources
 from setuptools.command.easy_install import easy_install
 from setuptools import namespaces
 import setuptools
-
-__metaclass__ = type
 
 
 class develop(namespaces.DevelopInstaller, easy_install):
@@ -108,7 +104,7 @@ class develop(namespaces.DevelopInstaller, easy_install):
         return path_to_setup
 
     def install_for_development(self):
-        if not six.PY2 and getattr(self.distribution, 'use_2to3', False):
+        if getattr(self.distribution, 'use_2to3', False):
             # If we run 2to3 we can not do this inplace:
 
             # Ensure metadata is up-to-date

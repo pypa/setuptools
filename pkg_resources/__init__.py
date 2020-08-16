@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 Package resource API
 --------------------
@@ -14,8 +13,6 @@ The package resource API is designed to work with normal filesystem packages,
 .zip files and with custom PEP 302 loaders that support the ``get_data()``
 method.
 """
-
-from __future__ import absolute_import
 
 import sys
 import os
@@ -54,9 +51,6 @@ try:
 except NameError:
     FileExistsError = OSError
 
-from pkg_resources.extern import six
-from pkg_resources.extern.six.moves import map, filter
-
 # capture these to bypass sandboxing
 from os import utime
 try:
@@ -83,17 +77,8 @@ __import__('pkg_resources.extern.packaging.specifiers')
 __import__('pkg_resources.extern.packaging.requirements')
 __import__('pkg_resources.extern.packaging.markers')
 
-
-__metaclass__ = type
-
-
-if (3, 0) < sys.version_info < (3, 5):
+if sys.version_info < (3, 5):
     raise RuntimeError("Python 3.5 or later is required")
-
-if six.PY2:
-    # Those builtin exceptions are only defined in Python 3
-    PermissionError = None
-    NotADirectoryError = None
 
 # declare some globals that will be defined later to
 # satisfy the linters.
@@ -474,7 +459,7 @@ run_main = run_script
 
 def get_distribution(dist):
     """Return a current distribution object for a Requirement or string"""
-    if isinstance(dist, six.string_types):
+    if isinstance(dist, str):
         dist = Requirement.parse(dist)
     if isinstance(dist, Requirement):
         dist = get_provider(dist)
@@ -1418,8 +1403,6 @@ class NullProvider:
             return ""
         path = self._get_metadata_path(name)
         value = self._get(path)
-        if six.PY2:
-            return value
         try:
             return value.decode('utf-8')
         except UnicodeDecodeError as exc:
@@ -1910,8 +1893,7 @@ class FileMetadata(EmptyProvider):
         return metadata
 
     def _warn_on_replacement(self, metadata):
-        # Python 2.7 compat for: replacement_char = '�'
-        replacement_char = b'\xef\xbf\xbd'.decode('utf-8')
+        replacement_char = '�'
         if replacement_char in metadata:
             tmpl = "{self.path} could not be properly decoded in UTF-8"
             msg = tmpl.format(**locals())
@@ -2109,8 +2091,6 @@ class NoDists:
     """
     def __bool__(self):
         return False
-    if six.PY2:
-        __nonzero__ = __bool__
 
     def __call__(self, fullpath):
         return iter(())
@@ -2127,12 +2107,7 @@ def safe_listdir(path):
     except OSError as e:
         # Ignore the directory if does not exist, not a directory or
         # permission denied
-        ignorable = (
-            e.errno in (errno.ENOTDIR, errno.EACCES, errno.ENOENT)
-            # Python 2 on Windows needs to be handled this way :(
-            or getattr(e, "winerror", None) == 267
-        )
-        if not ignorable:
+        if e.errno not in (errno.ENOTDIR, errno.EACCES, errno.ENOENT):
             raise
     return ()
 
@@ -2406,7 +2381,7 @@ def _set_parent_ns(packageName):
 
 def yield_lines(strs):
     """Yield non-empty/non-comment lines of a string or sequence"""
-    if isinstance(strs, six.string_types):
+    if isinstance(strs, str):
         for s in strs.splitlines():
             s = s.strip()
             # skip blank lines/comments
@@ -2843,10 +2818,6 @@ class Distribution:
                 if not attr.startswith('_')
             )
         )
-
-    if not hasattr(object, '__dir__'):
-        # python 2.7 not supported
-        del __dir__
 
     @classmethod
     def from_filename(cls, filename, metadata=None, **kw):

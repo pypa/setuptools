@@ -13,17 +13,6 @@ from .test_easy_install import make_nspkg_sdist
 
 
 @pytest.fixture(autouse=True)
-def disable_requires_python(monkeypatch):
-    """
-    Disable Requires-Python on Python 2.7
-    """
-    if sys.version_info > (3,):
-        return
-
-    monkeypatch.setenv('PIP_IGNORE_REQUIRES_PYTHON', 'true')
-
-
-@pytest.fixture(autouse=True)
 def pytest_virtualenv_works(virtualenv):
     """
     pytest_virtualenv may not work. if it doesn't, skip these

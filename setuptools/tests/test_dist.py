@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import unicode_literals
-
 import io
 import collections
 import re
 import functools
+import urllib.request
+import urllib.parse
 from distutils.errors import DistutilsSetupError
 from setuptools.dist import (
     _get_unpatched,
@@ -14,9 +12,6 @@ from setuptools.dist import (
 )
 from setuptools import sic
 from setuptools import Distribution
-from setuptools.extern.six.moves.urllib.request import pathname2url
-from setuptools.extern.six.moves.urllib_parse import urljoin
-from setuptools.extern import six
 
 from .textwrap import DALS
 from .test_easy_install import make_nspkg_sdist
@@ -29,7 +24,8 @@ def test_dist_fetch_build_egg(tmpdir):
     Check multiple calls to `Distribution.fetch_build_egg` work as expected.
     """
     index = tmpdir.mkdir('index')
-    index_url = urljoin('file://', pathname2url(str(index)))
+    index_url = urllib.parse.urljoin(
+        'file://', urllib.request.pathname2url(str(index)))
 
     def sdist_with_index(distname, version):
         dist_dir = index.mkdir(distname)
@@ -63,8 +59,7 @@ def test_dist_fetch_build_egg(tmpdir):
             dist.fetch_build_egg(r)
             for r in reqs
         ]
-    # noqa below because on Python 2 it causes flakes
-    assert [dist.key for dist in resolved_dists if dist] == reqs  # noqa
+    assert [dist.key for dist in resolved_dists if dist] == reqs
 
 
 def test_dist__get_unpatched_deprecated():
@@ -150,10 +145,7 @@ def test_read_metadata(name, attrs):
     dist_class = metadata_out.__class__
 
     # Write to PKG_INFO and then load into a new metadata object
-    if six.PY2:
-        PKG_INFO = io.BytesIO()
-    else:
-        PKG_INFO = io.StringIO()
+    PKG_INFO = io.StringIO()
 
     metadata_out.write_pkg_file(PKG_INFO)
 

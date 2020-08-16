@@ -4,13 +4,12 @@
 import os
 import time
 import threading
+import http.server
+import urllib.parse
+import urllib.request
 
-from setuptools.extern.six.moves import BaseHTTPServer, SimpleHTTPServer
-from setuptools.extern.six.moves.urllib_parse import urljoin
-from setuptools.extern.six.moves.urllib.request import pathname2url
 
-
-class IndexServer(BaseHTTPServer.HTTPServer):
+class IndexServer(http.server.HTTPServer):
     """Basic single-threaded http server simulating a package index
 
     You can use this server in unittest like this::
@@ -24,8 +23,8 @@ class IndexServer(BaseHTTPServer.HTTPServer):
 
     def __init__(
             self, server_address=('', 0),
-            RequestHandlerClass=SimpleHTTPServer.SimpleHTTPRequestHandler):
-        BaseHTTPServer.HTTPServer.__init__(
+            RequestHandlerClass=http.server.SimpleHTTPRequestHandler):
+        http.server.HTTPServer.__init__(
             self, server_address, RequestHandlerClass)
         self._run = True
 
@@ -48,14 +47,14 @@ class IndexServer(BaseHTTPServer.HTTPServer):
         return 'http://127.0.0.1:%s/setuptools/tests/indexes/' % port
 
 
-class RequestRecorder(BaseHTTPServer.BaseHTTPRequestHandler):
+class RequestRecorder(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         requests = vars(self.server).setdefault('requests', [])
         requests.append(self)
         self.send_response(200, 'OK')
 
 
-class MockServer(BaseHTTPServer.HTTPServer, threading.Thread):
+class MockServer(http.server.HTTPServer, threading.Thread):
     """
     A simple HTTP Server that records the requests made to it.
     """
@@ -63,7 +62,7 @@ class MockServer(BaseHTTPServer.HTTPServer, threading.Thread):
     def __init__(
             self, server_address=('', 0),
             RequestHandlerClass=RequestRecorder):
-        BaseHTTPServer.HTTPServer.__init__(
+        http.server.HTTPServer.__init__(
             self, server_address, RequestHandlerClass)
         threading.Thread.__init__(self)
         self.setDaemon(True)
@@ -87,5 +86,5 @@ def path_to_url(path, authority=None):
     base = 'file:'
     if authority is not None:
         base += '//' + authority
-    url = urljoin(base, pathname2url(path))
+    url = urllib.parse.urljoin(base, urllib.request.pathname2url(path))
     return url

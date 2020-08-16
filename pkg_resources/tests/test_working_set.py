@@ -9,8 +9,6 @@ import pkg_resources
 
 from .test_resources import Metadata
 
-__metaclass__ = type
-
 
 def strip_comments(s):
     return '\n'.join(

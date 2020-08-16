@@ -32,10 +32,10 @@ import sys
 import tokenize
 import shutil
 import contextlib
+import tempfile
 
 import setuptools
 import distutils
-from setuptools.py31compat import TemporaryDirectory
 
 from pkg_resources import parse_requirements
 
@@ -89,19 +89,6 @@ def no_install_setup_requires():
         yield
     finally:
         setuptools._install_setup_requires = orig
-
-
-def _to_str(s):
-    """
-    Convert a filename to a string (on Python 2, explicitly
-    a byte string, not Unicode) as distutils checks for the
-    exact type str.
-    """
-    if sys.version_info[0] == 2 and not isinstance(s, str):
-        # Assume it's Unicode, as that's what the PEP says
-        # should be provided.
-        return s.encode(sys.getfilesystemencoding())
-    return s
 
 
 def _get_immediate_subdirectories(a_dir):
@@ -168,8 +155,8 @@ class _BuildMetaBackend(object):
 
     def prepare_metadata_for_build_wheel(self, metadata_directory,
                                          config_settings=None):
-        sys.argv = sys.argv[:1] + ['dist_info', '--egg-base',
-                                   _to_str(metadata_directory)]
+        sys.argv = sys.argv[:1] + [
+            'dist_info', '--egg-base', metadata_directory]
         with no_install_setup_requires():
             self.run_setup()
 
@@ -207,7 +194,7 @@ class _BuildMetaBackend(object):
 
         # Build in a temporary directory, then copy to the target.
         os.makedirs(result_directory, exist_ok=True)
-        with TemporaryDirectory(dir=result_directory) as tmp_dist_dir:
+        with tempfile.TemporaryDirectory(dir=result_directory) as tmp_dist_dir:
             sys.argv = (sys.argv[:1] + setup_command +
                         ['--dist-dir', tmp_dist_dir] +
                         config_settings["--global-option"])
