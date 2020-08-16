@@ -1,0 +1,1 @@
+remove dots from `find_package(exclude=['*tests*'])` glob pattern examples

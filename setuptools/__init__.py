@@ -51,7 +51,7 @@ class PackageFinder:
         be converted to the appropriate local path syntax.
 
         'exclude' is a sequence of package names to exclude; '*' can be used
-        as a wildcard in the names, such that 'foo.*' will exclude all
+        as a wildcard in the names, such that 'foo*' will exclude all
         subpackages of 'foo' (but not 'foo' itself).
 
         'include' is a sequence of package names to include.  If it's

@@ -256,14 +256,14 @@ patterns are applied to remove matching packages.
 
 Inclusion and exclusion patterns are package names, optionally including
 wildcards.  For
-example, ``find_packages(exclude=["*.tests"])`` will exclude all packages whose
-last name part is ``tests``.   Or, ``find_packages(exclude=["*.tests",
-"*.tests.*"])`` will also exclude any subpackages of packages named ``tests``,
+example, ``find_packages(exclude=["*tests"])`` will exclude all packages whose
+last name part is ``tests``.   Or, ``find_packages(exclude=["*tests",
+"*tests*"])`` will also exclude any subpackages of packages named ``tests``,
 but it still won't exclude a top-level ``tests`` package or the children
 thereof.  In fact, if you really want no ``tests`` packages at all, you'll need
 something like this::
 
-    find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests"])
+    find_packages(exclude=["*tests", "*tests*", "tests*", "tests"])
 
 in order to cover all the bases.  Really, the exclusion patterns are intended
 to cover simpler use cases than this, like excluding a single, specified
