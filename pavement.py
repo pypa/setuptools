@@ -22,7 +22,11 @@ def rewrite_packaging(pkg_files, new_root):
     """
     for file in pkg_files.glob('*.py'):
         text = file.text()
-        text = re.sub(r' (pyparsing|six)', rf' {new_root}.\1', text)
+        text = re.sub(r' (pyparsing)', rf' {new_root}.\1', text)
+        text = text.replace(
+            'from six.moves.urllib import parse',
+            'from urllib import parse',
+        )
         file.write_text(text)
 
 
