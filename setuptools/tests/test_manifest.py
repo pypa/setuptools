@@ -7,17 +7,15 @@ import shutil
 import sys
 import tempfile
 import itertools
+import io
 from distutils import log
 from distutils.errors import DistutilsTemplateError
 
 from setuptools.command.egg_info import FileList, egg_info, translate_pattern
 from setuptools.dist import Distribution
-from setuptools.extern import six
 from setuptools.tests.textwrap import DALS
 
 import pytest
-
-__metaclass__ = type
 
 
 def make_local_path(s):
@@ -41,7 +39,7 @@ setup(**%r)
 @contextlib.contextmanager
 def quiet():
     old_stdout, old_stderr = sys.stdout, sys.stderr
-    sys.stdout, sys.stderr = six.StringIO(), six.StringIO()
+    sys.stdout, sys.stderr = io.StringIO(), io.StringIO()
     try:
         yield
     finally:

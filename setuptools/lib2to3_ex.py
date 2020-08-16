@@ -2,9 +2,6 @@
 Customized Mixin2to3 support:
 
  - adds support for converting doctests
-
-
-This module raises an ImportError on Python 2.
 """
 
 import warnings

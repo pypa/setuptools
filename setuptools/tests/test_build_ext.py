@@ -2,8 +2,6 @@ import sys
 import distutils.command.build_ext as orig
 from distutils.sysconfig import get_config_var
 
-from setuptools.extern import six
-
 from setuptools.command.build_ext import build_ext, get_abi3_suffix
 from setuptools.dist import Distribution
 from setuptools.extension import Extension
@@ -41,7 +39,7 @@ class TestBuildExt:
         assert 'spam.eggs' in cmd.ext_map
         res = cmd.get_ext_filename('spam.eggs')
 
-        if six.PY2 or not get_abi3_suffix():
+        if not get_abi3_suffix():
             assert res.endswith(get_config_var('EXT_SUFFIX'))
         elif sys.platform == 'win32':
             assert res.endswith('eggs.pyd')

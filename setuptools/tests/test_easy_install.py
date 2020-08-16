@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 """Easy install Tests
 """
-from __future__ import absolute_import, unicode_literals
 
 import sys
 import os
@@ -17,8 +15,6 @@ import zipfile
 import mock
 import time
 import re
-
-from setuptools.extern import six
 
 import pytest
 
@@ -40,8 +36,6 @@ import pkg_resources
 from . import contexts
 from .files import build_files
 from .textwrap import DALS
-
-__metaclass__ = type
 
 
 class FakeDist:
@@ -984,8 +978,6 @@ def create_setup_requires_package(path, distname='foobar', version='0.1',
 )
 class TestScriptHeader:
     non_ascii_exe = '/Users/José/bin/python'
-    if six.PY2:
-        non_ascii_exe = non_ascii_exe.encode('utf-8')
     exe_with_spaces = r'C:\Program Files\Python36\python.exe'
 
     def test_get_script_header(self):

@@ -15,7 +15,6 @@ import setuptools
 import setuptools.dist
 import setuptools.depends as dep
 from setuptools.depends import Require
-from setuptools.extern import six
 
 
 def makeSetup(**args):
@@ -49,7 +48,7 @@ class TestDepends:
             x = "test"
             y = z
 
-        fc = six.get_function_code(f1)
+        fc = f1.__code__
 
         # unrecognized name
         assert dep.extract_constant(fc, 'q', -1) is None

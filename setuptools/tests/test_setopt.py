@@ -1,13 +1,7 @@
-# coding: utf-8
-
-from __future__ import unicode_literals
-
 import io
-
-import six
+import configparser
 
 from setuptools.command import setopt
-from setuptools.extern.six.moves import configparser
 
 
 class TestEdit:
@@ -15,7 +9,7 @@ class TestEdit:
     def parse_config(filename):
         parser = configparser.ConfigParser()
         with io.open(filename, encoding='utf-8') as reader:
-            (parser.readfp if six.PY2 else parser.read_file)(reader)
+            parser.read_file(reader)
         return parser
 
     @staticmethod

@@ -38,18 +38,15 @@ import contextlib
 import subprocess
 import shlex
 import io
+import configparser
 
 
 from sysconfig import get_config_vars, get_path
 
 from setuptools import SetuptoolsDeprecationWarning
 
-from setuptools.extern import six
-from setuptools.extern.six.moves import configparser, map
-
 from setuptools import Command
 from setuptools.sandbox import run_setup
-from setuptools.py27compat import rmtree_safe
 from setuptools.command import setopt
 from setuptools.archive_util import unpack_archive
 from setuptools.package_index import (
@@ -64,8 +61,6 @@ from pkg_resources import (
     VersionConflict, DEVELOP_DIST,
 )
 import pkg_resources
-
-__metaclass__ = type
 
 # Turn on PEP440Warnings
 warnings.filterwarnings("default", category=pkg_resources.PEP440Warning)
@@ -96,28 +91,16 @@ def samefile(p1, p2):
     return norm_p1 == norm_p2
 
 
-if six.PY2:
+def _to_bytes(s):
+    return s.encode('utf8')
 
-    def _to_bytes(s):
-        return s
 
-    def isascii(s):
-        try:
-            six.text_type(s, 'ascii')
-            return True
-        except UnicodeError:
-            return False
-else:
-
-    def _to_bytes(s):
-        return s.encode('utf8')
-
-    def isascii(s):
-        try:
-            s.encode('ascii')
-            return True
-        except UnicodeError:
-            return False
+def isascii(s):
+    try:
+        s.encode('ascii')
+        return True
+    except UnicodeError:
+        return False
 
 
 def _one_liner(text):
@@ -341,7 +324,7 @@ class easy_install(Command):
         self.local_index = Environment(self.shadow_path + sys.path)
 
         if self.find_links is not None:
-            if isinstance(self.find_links, six.string_types):
+            if isinstance(self.find_links, str):
                 self.find_links = self.find_links.split()
         else:
             self.find_links = []
@@ -650,7 +633,7 @@ class easy_install(Command):
             # cast to str as workaround for #709 and #710 and #712
             yield str(tmpdir)
         finally:
-            os.path.exists(tmpdir) and rmtree(rmtree_safe(tmpdir))
+            os.path.exists(tmpdir) and rmtree(tmpdir)
 
     def easy_install(self, spec, deps=False):
         with self._tmpdir() as tmpdir:
@@ -1318,7 +1301,7 @@ class easy_install(Command):
         if not self.user:
             return
         home = convert_path(os.path.expanduser("~"))
-        for name, path in six.iteritems(self.config_vars):
+        for name, path in self.config_vars.items():
             if path.startswith(home) and not os.path.isdir(path):
                 self.debug_print("os.makedirs('%s', 0o700)" % path)
                 os.makedirs(path, 0o700)
@@ -1499,7 +1482,7 @@ def extract_wininst_cfg(dist_filename):
             # Now the config is in bytes, but for RawConfigParser, it should
             #  be text, so decode it.
             config = config.decode(sys.getfilesystemencoding())
-            cfg.readfp(six.StringIO(config))
+            cfg.readfp(io.StringIO(config))
         except configparser.Error:
             return None
         if not cfg.has_section('metadata') or not cfg.has_section('Setup'):
@@ -1534,9 +1517,7 @@ def get_exe_prefixes(exe_filename):
             if name.endswith('-nspkg.pth'):
                 continue
             if parts[0].upper() in ('PURELIB', 'PLATLIB'):
-                contents = z.read(name)
-                if not six.PY2:
-                    contents = contents.decode()
+                contents = z.read(name).decode()
                 for pth in yield_lines(contents):
                     pth = pth.strip().replace('\\', '/')
                     if not pth.startswith('import'):
@@ -1700,7 +1681,8 @@ def auto_chmod(func, arg, exc):
         chmod(arg, stat.S_IWRITE)
         return func(arg)
     et, ev, _ = sys.exc_info()
-    six.reraise(et, (ev[0], ev[1] + (" %s %s" % (func, arg))))
+    # TODO: This code doesn't make sense. What is it trying to do?
+    raise (ev[0], ev[1] + (" %s %s" % (func, arg)))
 
 
 def update_dist_caches(dist_path, fix_zipimporter_caches):
@@ -2263,10 +2245,7 @@ def get_win_launcher(type):
 
 def load_launcher_manifest(name):
     manifest = pkg_resources.resource_string(__name__, 'launcher manifest.xml')
-    if six.PY2:
-        return manifest % vars()
-    else:
-        return manifest.decode('utf-8') % vars()
+    return manifest.decode('utf-8') % vars()
 
 
 def rmtree(path, ignore_errors=False, onerror=auto_chmod):

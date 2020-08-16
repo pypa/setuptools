@@ -31,8 +31,6 @@ class TestMSVC14:
         finally:
             _msvccompiler._msvc14_find_vcvarsall = old_find_vcvarsall
 
-    @pytest.mark.skipif(sys.version_info[0] < 3,
-                        reason="Unicode requires encode/decode on Python 2")
     def test_get_vc_env_unicode(self):
         import setuptools.msvc as _msvccompiler
 

@@ -30,12 +30,10 @@ import subprocess
 import distutils.errors
 from setuptools.extern.packaging.version import LegacyVersion
 
-from setuptools.extern.six.moves import filterfalse
-
 from .monkey import get_unpatched
 
 if platform.system() == 'Windows':
-    from setuptools.extern.six.moves import winreg
+    import winreg
     from os import environ
 else:
     # Mock winreg and environ so the module can be imported on this platform.
@@ -1820,7 +1818,7 @@ class EnvironmentInfo:
         seen = set()
         seen_add = seen.add
         if key is None:
-            for element in filterfalse(seen.__contains__, iterable):
+            for element in itertools.filterfalse(seen.__contains__, iterable):
                 seen_add(element)
                 yield element
         else:
