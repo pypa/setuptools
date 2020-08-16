@@ -54,6 +54,7 @@ def install(vendor):
     subprocess.check_call(install_args)
     remove_all(vendor.glob('*.dist-info'))
     remove_all(vendor.glob('*.egg-info'))
+    remove_all(vendor.glob('six.py'))
     (vendor / '__init__.py').write_text('')
 
 
