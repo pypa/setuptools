@@ -338,7 +338,7 @@ def _augment_exception(exc, version, arch=''):
 
     if "vcvarsall" in message.lower() or "visual c" in message.lower():
         # Special error message if MSVC++ not installed
-        tmpl = 'Microsoft Visual C++ {version:0.1f} is required.'
+        tmpl = 'Microsoft Visual C++ {version:0.1f} or greater is required.'
         message = tmpl.format(**locals())
         msdownload = 'www.microsoft.com/download/details.aspx?id=%d'
         if version == 9.0:
@@ -358,8 +358,8 @@ def _augment_exception(exc, version, arch=''):
             message += msdownload % 8279
         elif version >= 14.0:
             # For VC++ 14.X Redirect user to latest Visual C++ Build Tools
-            message += (' Get it with "Build Tools for Visual Studio": '
-                        r'https://visualstudio.microsoft.com/downloads/')
+            message += (' Get it with "Microsoft C++ Build Tools": '
+                        r'https://visualstudio.microsoft.com/visual-cpp-build-tools/')
 
     exc.args = (message, )
 
