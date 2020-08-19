@@ -1,1 +1,1 @@
-Update text in error message.
+In MSVC module, refine text in error message.
