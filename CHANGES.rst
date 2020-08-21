@@ -1,3 +1,10 @@
+v50.0.0
+-------
+
+* #2232: Once again, Setuptools overrides the stdlib distutils on import. For environments or invocations where this behavior is undesirable, users are provided with a temporary escape hatch. If the environment variable ``SETUPTOOLS_USE_DISTUTILS`` is set to ``stdlib``, Setuptools will fall back to the legacy behavior. Use of this escape hatch is discouraged, but it is provided to ease the transition while proper fixes for edge cases can be addressed.
+* #2334: In MSVC module, refine text in error message.
+
+
 v49.6.0
 -------
 
