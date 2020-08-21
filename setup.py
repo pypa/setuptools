@@ -99,7 +99,8 @@ class install_with_pth(install):
     _pth_name = 'distutils-precedence'
     _pth_contents = textwrap.dedent("""
         import os
-        enabled = os.environ.get('SETUPTOOLS_USE_DISTUTILS') == 'local'
+        var = 'SETUPTOOLS_USE_DISTUTILS'
+        enabled = os.environ.get(var, 'local') == 'local'
         enabled and __import__('_distutils_hack').add_shim()
         """).lstrip().replace('\n', '; ')
 

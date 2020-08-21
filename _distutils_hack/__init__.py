@@ -37,7 +37,7 @@ def enabled():
     """
     Allow selection of distutils by environment variable.
     """
-    which = os.environ.get('SETUPTOOLS_USE_DISTUTILS', 'stdlib')
+    which = os.environ.get('SETUPTOOLS_USE_DISTUTILS', 'local')
     return which == 'local'
 
 
@@ -66,12 +66,14 @@ def do_override():
 
 class DistutilsMetaFinder:
     def find_spec(self, fullname, path, target=None):
-        if path is not None or fullname != "distutils":
-            return None
+        if path is not None:
+            return
 
-        return self.get_distutils_spec()
+        method_name = 'spec_for_{fullname}'.format(**locals())
+        method = getattr(self, method_name, lambda: None)
+        return method()
 
-    def get_distutils_spec(self):
+    def spec_for_distutils(self):
         import importlib.util
 
         class DistutilsLoader(importlib.util.abc.Loader):
@@ -83,6 +85,14 @@ class DistutilsMetaFinder:
                 pass
 
         return importlib.util.spec_from_loader('distutils', DistutilsLoader())
+
+    def spec_for_pip(self):
+        """
+        Ensure stdlib distutils when running under pip.
+        See pypa/pip#8761 for rationale.
+        """
+        clear_distutils()
+        self.spec_for_distutils = lambda: None
 
 
 DISTUTILS_FINDER = DistutilsMetaFinder()
