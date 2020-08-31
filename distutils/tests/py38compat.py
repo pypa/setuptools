@@ -1,6 +1,9 @@
 # flake8: noqa
 
 import contextlib
+import builtins
+
+ModuleNotFoundError = getattr(builtins, 'ModuleNotFoundError', ImportError)
 
 try:
     from test.support.warnings_helper import check_warnings
