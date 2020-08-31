@@ -74,9 +74,10 @@ class DistutilsMetaFinder:
         return method()
 
     def spec_for_distutils(self):
+        import importlib.abc
         import importlib.util
 
-        class DistutilsLoader(importlib.util.abc.Loader):
+        class DistutilsLoader(importlib.abc.Loader):
 
             def create_module(self, spec):
                 return importlib.import_module('._distutils', 'setuptools')
