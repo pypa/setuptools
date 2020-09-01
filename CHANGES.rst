@@ -1,3 +1,13 @@
+v50.0.1
+-------
+
+* #2357: Restored Python 3.5 support in distutils.util for missing `subprocess._optim_args_from_interpreter_flags`.
+* #2358: Restored AIX support on Python 3.8 and earlier.
+* #2361: Add Python 3.10 support to _distutils_hack. Get the 'Loader' abstract class
+  from importlib.abc rather than importlib.util.abc (alias removed in Python
+  3.10).
+
+
 v50.0.0
 -------
 

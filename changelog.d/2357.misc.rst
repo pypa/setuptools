@@ -1,1 +1,0 @@
-Restored Python 3.5 support in distutils.util for missing `subprocess._optim_args_from_interpreter_flags`.

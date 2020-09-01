@@ -1,3 +1,0 @@
-Add Python 3.10 support to _distutils_hack. Get the 'Loader' abstract class
-from importlib.abc rather than importlib.util.abc (alias removed in Python
-3.10).

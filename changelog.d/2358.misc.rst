@@ -1,1 +1,0 @@
-Restored AIX support on Python 3.8 and earlier.
