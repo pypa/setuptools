@@ -1,3 +1,9 @@
+v50.0.2
+-------
+
+* #2352: In distutils hack, use absolute import rather than relative to avoid bpo-30876.
+
+
 v50.0.1
 -------
 
