@@ -101,7 +101,7 @@ link_files = {
                 url='http://bugs.jython.org/issue{jython}',
             ),
             dict(
-                pattern=r'Python #(?P<python>\d+)',
+                pattern=r'(Python #|bpo-)(?P<python>\d+)',
                 url='http://bugs.python.org/issue{python}',
             ),
             dict(
