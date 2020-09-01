@@ -14,6 +14,8 @@ from distutils.dep_util import newer
 from distutils.spawn import spawn
 from distutils import log
 from distutils.errors import DistutilsByteCompileError
+from .py35compat import _optim_args_from_interpreter_flags
+
 
 def get_host_platform():
     """Return a string that identifies the current platform.  This is used mainly to
@@ -79,8 +81,8 @@ def get_host_platform():
             machine += ".%s" % bitness[sys.maxsize]
         # fall through to standard osname-release-machine representation
     elif osname[:3] == "aix":
-        from _aix_support import aix_platform
-        return aix_platform()
+        from .py38compat import aix_platform
+        return aix_platform(osname, version, release)
     elif osname[:6] == "cygwin":
         osname = "cygwin"
         rel_re = re.compile (r'[\d.]+', re.ASCII)
@@ -420,7 +422,7 @@ byte_compile(files, optimize=%r, force=%r,
 """ % (optimize, force, prefix, base_dir, verbose))
 
         cmd = [sys.executable]
-        cmd.extend(subprocess._optim_args_from_interpreter_flags())
+        cmd.extend(_optim_args_from_interpreter_flags())
         cmd.append(script_name)
         spawn(cmd, dry_run=dry_run)
         execute(os.remove, (script_name,), "removing %s" % script_name,
