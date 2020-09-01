@@ -1,0 +1,1 @@
+In distutils hack, use absolute import rather than relative to avoid bpo-30876.

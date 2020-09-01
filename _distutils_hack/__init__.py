@@ -80,7 +80,7 @@ class DistutilsMetaFinder:
         class DistutilsLoader(importlib.abc.Loader):
 
             def create_module(self, spec):
-                return importlib.import_module('._distutils', 'setuptools')
+                return importlib.import_module('setuptools._distutils')
 
             def exec_module(self, module):
                 pass
