@@ -67,3 +67,12 @@ def test_distutils_local(venv):
     preferred.
     """
     assert venv.name in find_distutils(venv, env=dict()).split(os.sep)
+
+
+@pytest.mark.xfail('IS_PYPY', reason='pypy imports distutils on startup')
+def test_distutils_invalid_option(venv):
+    """
+    Ensure local distutils is used even when an invalid option is provided.
+    """
+    env = dict(SETUPTOOLS_USE_DISTUTILS='xxx')
+    assert venv.name in find_distutils(venv, env=env).split(os.sep)

@@ -1,0 +1,1 @@
+Fix the default distutils hatching behavior when environment variable SETUPTOOLS_USE_DISTUTILS is specified
