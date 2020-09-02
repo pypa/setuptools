@@ -16,6 +16,7 @@ from distutils.dep_util import newer_group
 from distutils.extension import Extension
 from distutils.util import get_platform
 from distutils import log
+from . import py37compat
 
 from site import USER_BASE
 
@@ -751,4 +752,4 @@ class build_ext(Command):
                 ldversion = get_config_var('LDVERSION')
                 return ext.libraries + ['python' + ldversion]
 
-        return ext.libraries
+        return ext.libraries + py37compat.pythonlib()
