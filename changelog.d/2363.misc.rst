@@ -1,1 +1,0 @@
-Restore link_libpython support on Python 3.7 and earlier (see pypa/distutils#9).

@@ -1,3 +1,9 @@
+v50.0.3
+-------
+
+* #2363: Restore link_libpython support on Python 3.7 and earlier (see pypa/distutils#9).
+
+
 v50.0.2
 -------
 
