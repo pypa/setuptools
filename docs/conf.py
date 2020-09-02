@@ -129,6 +129,10 @@ link_files = {
                 url='{GH}/jaraco/setuptools_svn/issues/{setuptools_svn}',
             ),
             dict(
+                pattern=r'pypa/distutils#(?P<distutils>\d+)',
+                url='{GH}/pypa/distutils/issues/{distutils}',
+            ),
+            dict(
                 pattern=r'^(?m)((?P<scm_version>v?\d+(\.\d+){1,2}))\n[-=]+\n',
                 with_scm='{text}\n{rev[timestamp]:%d %b %Y}\n',
             ),
