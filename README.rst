@@ -37,4 +37,4 @@ From the CPython repo, cherry-pick the changes from this project.
 To Setuptools
 -------------
 
-This project also maintains a `clean branch <https://github.com/pypa/distutils/tree/clean>`_ to capture only the code changes to distutils, excluding the ancillary details like packaging and this document.
+Simply merge the changes directly into setuptools' repo.
