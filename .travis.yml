@@ -16,20 +16,51 @@ jobs:
   - python: 3.9-dev
   - <<: *latest_py3
     env: TOXENV=docs
+    #PPC64LE
+  - arch: ppc64le
+    python: pypy3
+  - arch: ppc64le
+    python: 3.5
+  - arch: ppc64le
+    python: 3.6
+  - arch: ppc64le
+    python: 3.7
+  - &latest_py3_ppc
+    arch: ppc64le
+    python: 3.8
+  - <<: *latest_py3_ppc
+    env: LANG=C
+  - arch: ppc64le
+    python: 3.8-dev
+  - arch: ppc64le
+    python: 3.9-dev
+  - <<: *latest_py3_ppc
+    env: TOXENV=docs
   allow_failures:
   # suppress failures due to pypa/setuptools#2000
   - python: pypy3
+  - arch: ppc64le
+    python: pypy3
   - <<: *latest_py3
     env: TOXENV=docs
+  - <<: *latest_py3_ppc
+    env: TOXENV=docs
+
 
 cache: pip
+
+before_install:
+  - |
+    if [[ "$TRAVIS_CPU_ARCH" == "ppc64le" ]]; then
+      sudo chown -Rfv $USER:$GROUP ~/.cache/pip/wheels
+    fi
 
 install:
 
 # ensure we have recent pip/setuptools/wheel
 - pip install --disable-pip-version-check --upgrade pip setuptools wheel
-# need tox to get started
 - pip install --upgrade tox tox-venv
+# need tox to get started
 
 # Output the env, to verify behavior
 - pip freeze --all
