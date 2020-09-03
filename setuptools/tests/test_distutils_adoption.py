@@ -56,7 +56,8 @@ def test_distutils_local_with_setuptools(venv):
     """
     Ensure local distutils is used when appropriate.
     """
-    loc = find_distutils(venv, imports='setuptools, distutils', env=dict())
+    env = dict(SETUPTOOLS_USE_DISTUTILS='local')
+    loc = find_distutils(venv, imports='setuptools, distutils', env=env)
     assert venv.name in loc.split(os.sep)
 
 
@@ -66,4 +67,5 @@ def test_distutils_local(venv):
     Even without importing, the setuptools-local copy of distutils is
     preferred.
     """
-    assert venv.name in find_distutils(venv, env=dict()).split(os.sep)
+    env = dict(SETUPTOOLS_USE_DISTUTILS='local')
+    assert venv.name in find_distutils(venv, env=env).split(os.sep)
