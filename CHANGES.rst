@@ -1,3 +1,9 @@
+v50.1.0
+-------
+
+* #2350: Setuptools reverts using the included distutils by default. Platform maintainers and system integrators and others are *strongly* encouraged to set ``SETUPTOOLS_USE_DISTUTILS=local`` to help identify and work through the reported issues with distutils adoption, mainly to file issues and pull requests with pypa/distutils such that distutils performs as needed across every supported environment.
+
+
 v50.0.3
 -------
 
