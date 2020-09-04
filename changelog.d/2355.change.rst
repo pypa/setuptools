@@ -1,1 +1,0 @@
-When pip is imported as part of a build, leave distutils patched.

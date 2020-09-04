@@ -1,3 +1,13 @@
+v50.2.0
+-------
+
+* #2355: When pip is imported as part of a build, leave distutils patched.
+* #2380: There are some setuptools specific changes in the
+  `setuptools.command.bdist_rpm` module that are no longer needed, because
+  they are part of the `bdist_rpm` module in distutils in Python
+  3.5.0. Therefore, code was removed from `setuptools.command.bdist_rpm`.
+
+
 v50.1.0
 -------
 

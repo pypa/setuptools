@@ -1,4 +1,0 @@
-There are some setuptools specific changes in the
-`setuptools.command.bdist_rpm` module that are no longer needed, because
-they are part of the `bdist_rpm` module in distutils in Python
-3.5.0. Therefore, code was removed from `setuptools.command.bdist_rpm`.
