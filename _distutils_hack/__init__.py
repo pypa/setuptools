@@ -20,8 +20,8 @@ def warn_distutils_present():
         "also replaces the `distutils` module in `sys.modules`. This may lead "
         "to undesirable behaviors or errors. To avoid these issues, avoid "
         "using distutils directly, ensure that setuptools is installed in the "
-        "traditional way (e.g. not an editable install), and/or make sure that "
-        "setuptools is always imported before distutils.")
+        "traditional way (e.g. not an editable install), and/or make sure "
+        "that setuptools is always imported before distutils.")
 
 
 def clear_distutils():
