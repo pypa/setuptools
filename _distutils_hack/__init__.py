@@ -92,8 +92,21 @@ class DistutilsMetaFinder:
         Ensure stdlib distutils when running under pip.
         See pypa/pip#8761 for rationale.
         """
+        if self.pip_imported_during_build():
+            return
         clear_distutils()
         self.spec_for_distutils = lambda: None
+
+    @staticmethod
+    def pip_imported_during_build():
+        """
+        Detect if pip is being imported in a build script. Ref #2355.
+        """
+        import traceback
+        return any(
+            frame.f_globals['__file__'].endswith('setup.py')
+            for frame, line in traceback.walk_stack(None)
+        )
 
 
 DISTUTILS_FINDER = DistutilsMetaFinder()
