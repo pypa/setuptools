@@ -16,9 +16,6 @@ import warnings
 import time
 import collections
 
-from setuptools.extern import six
-from setuptools.extern.six.moves import map
-
 from setuptools import Command
 from setuptools.command.sdist import sdist
 from setuptools.command.sdist import walk_revctrl
@@ -208,11 +205,11 @@ class egg_info(InfoCommon, Command):
             list(
                 parse_requirements(spec % (self.egg_name, self.egg_version))
             )
-        except ValueError:
+        except ValueError as e:
             raise distutils.errors.DistutilsOptionError(
                 "Invalid distribution name or version syntax: %s-%s" %
                 (self.egg_name, self.egg_version)
-            )
+            ) from e
 
         if self.egg_base is None:
             dirs = self.distribution.package_dir
@@ -267,8 +264,7 @@ class egg_info(InfoCommon, Command):
         to the file.
         """
         log.info("writing %s to %s", what, filename)
-        if not six.PY2:
-            data = data.encode("utf-8")
+        data = data.encode("utf-8")
         if not self.dry_run:
             f = open(filename, 'wb')
             f.write(data)
@@ -647,7 +643,7 @@ def _write_requirements(stream, reqs):
 
 def write_requirements(cmd, basename, filename):
     dist = cmd.distribution
-    data = six.StringIO()
+    data = io.StringIO()
     _write_requirements(data, dist.install_requires)
     extras_require = dist.extras_require or {}
     for extra in sorted(extras_require):
@@ -687,12 +683,12 @@ def write_arg(cmd, basename, filename, force=False):
 def write_entries(cmd, basename, filename):
     ep = cmd.distribution.entry_points
 
-    if isinstance(ep, six.string_types) or ep is None:
+    if isinstance(ep, str) or ep is None:
         data = ep
     elif ep is not None:
         data = []
         for section, contents in sorted(ep.items()):
-            if not isinstance(contents, six.string_types):
+            if not isinstance(contents, str):
                 contents = EntryPoint.parse_group(section, contents)
                 contents = '\n'.join(sorted(map(str, contents.values())))
             data.append('[%s]\n%s\n\n' % (section, contents))

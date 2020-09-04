@@ -1,15 +1,12 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 import contextlib
+import configparser
+
 import pytest
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
 from mock import patch
 from setuptools.dist import Distribution, _Distribution
 from setuptools.config import ConfigHandler, read_configuration
-from setuptools.extern.six.moves import configparser
-from . import py2_only, py3_only
 from .textwrap import DALS
 
 
@@ -53,6 +50,7 @@ def fake_env(
         '    return [3, 4, 5, "dev"]\n'
         '\n'
     )
+
     return package_dir, config
 
 
@@ -267,11 +265,23 @@ class TestMetadata:
 
     def test_version(self, tmpdir):
 
-        _, config = fake_env(
+        package_dir, config = fake_env(
             tmpdir,
             '[metadata]\n'
             'version = attr: fake_package.VERSION\n'
         )
+
+        sub_a = package_dir.mkdir('subpkg_a')
+        sub_a.join('__init__.py').write('')
+        sub_a.join('mod.py').write('VERSION = (2016, 11, 26)')
+
+        sub_b = package_dir.mkdir('subpkg_b')
+        sub_b.join('__init__.py').write('')
+        sub_b.join('mod.py').write(
+            'import third_party_module\n'
+            'VERSION = (2016, 11, 26)'
+        )
+
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '1.2.3'
 
@@ -289,13 +299,16 @@ class TestMetadata:
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '1'
 
-        subpack = tmpdir.join('fake_package').mkdir('subpackage')
-        subpack.join('__init__.py').write('')
-        subpack.join('submodule.py').write('VERSION = (2016, 11, 26)')
+        config.write(
+            '[metadata]\n'
+            'version = attr: fake_package.subpkg_a.mod.VERSION\n'
+        )
+        with get_dist(tmpdir) as dist:
+            assert dist.metadata.version == '2016.11.26'
 
         config.write(
             '[metadata]\n'
-            'version = attr: fake_package.subpackage.submodule.VERSION\n'
+            'version = attr: fake_package.subpkg_b.mod.VERSION\n'
         )
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '2016.11.26'
@@ -697,19 +710,6 @@ class TestOptions:
             assert set(dist.packages) == set(
                 ['fake_package', 'fake_package.sub_two'])
 
-    @py2_only
-    def test_find_namespace_directive_fails_on_py2(self, tmpdir):
-        dir_package, config = fake_env(
-            tmpdir,
-            '[options]\n'
-            'packages = find_namespace:\n'
-        )
-
-        with pytest.raises(DistutilsOptionError):
-            with get_dist(tmpdir) as dist:
-                dist.parse_config_files()
-
-    @py3_only
     def test_find_namespace_directive(self, tmpdir):
         dir_package, config = fake_env(
             tmpdir,

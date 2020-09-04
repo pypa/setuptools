@@ -26,15 +26,14 @@ from os.path import join, isfile, isdir, dirname
 import sys
 import platform
 import itertools
+import subprocess
 import distutils.errors
 from setuptools.extern.packaging.version import LegacyVersion
-
-from setuptools.extern.six.moves import filterfalse
 
 from .monkey import get_unpatched
 
 if platform.system() == 'Windows':
-    from setuptools.extern.six.moves import winreg
+    import winreg
     from os import environ
 else:
     # Mock winreg and environ so the module can be imported on this platform.
@@ -142,6 +141,154 @@ def msvc9_query_vcvarsall(ver, arch='x86', *args, **kwargs):
         raise
 
 
+def _msvc14_find_vc2015():
+    """Python 3.8 "distutils/_msvccompiler.py" backport"""
+    try:
+        key = winreg.OpenKey(
+            winreg.HKEY_LOCAL_MACHINE,
+            r"Software\Microsoft\VisualStudio\SxS\VC7",
+            0,
+            winreg.KEY_READ | winreg.KEY_WOW64_32KEY
+        )
+    except OSError:
+        return None, None
+
+    best_version = 0
+    best_dir = None
+    with key:
+        for i in itertools.count():
+            try:
+                v, vc_dir, vt = winreg.EnumValue(key, i)
+            except OSError:
+                break
+            if v and vt == winreg.REG_SZ and isdir(vc_dir):
+                try:
+                    version = int(float(v))
+                except (ValueError, TypeError):
+                    continue
+                if version >= 14 and version > best_version:
+                    best_version, best_dir = version, vc_dir
+    return best_version, best_dir
+
+
+def _msvc14_find_vc2017():
+    """Python 3.8 "distutils/_msvccompiler.py" backport
+
+    Returns "15, path" based on the result of invoking vswhere.exe
+    If no install is found, returns "None, None"
+
+    The version is returned to avoid unnecessarily changing the function
+    result. It may be ignored when the path is not None.
+
+    If vswhere.exe is not available, by definition, VS 2017 is not
+    installed.
+    """
+    root = environ.get("ProgramFiles(x86)") or environ.get("ProgramFiles")
+    if not root:
+        return None, None
+
+    try:
+        path = subprocess.check_output([
+            join(root, "Microsoft Visual Studio", "Installer", "vswhere.exe"),
+            "-latest",
+            "-prerelease",
+            "-requires", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+            "-property", "installationPath",
+            "-products", "*",
+        ]).decode(encoding="mbcs", errors="strict").strip()
+    except (subprocess.CalledProcessError, OSError, UnicodeDecodeError):
+        return None, None
+
+    path = join(path, "VC", "Auxiliary", "Build")
+    if isdir(path):
+        return 15, path
+
+    return None, None
+
+
+PLAT_SPEC_TO_RUNTIME = {
+    'x86': 'x86',
+    'x86_amd64': 'x64',
+    'x86_arm': 'arm',
+    'x86_arm64': 'arm64'
+}
+
+
+def _msvc14_find_vcvarsall(plat_spec):
+    """Python 3.8 "distutils/_msvccompiler.py" backport"""
+    _, best_dir = _msvc14_find_vc2017()
+    vcruntime = None
+
+    if plat_spec in PLAT_SPEC_TO_RUNTIME:
+        vcruntime_plat = PLAT_SPEC_TO_RUNTIME[plat_spec]
+    else:
+        vcruntime_plat = 'x64' if 'amd64' in plat_spec else 'x86'
+
+    if best_dir:
+        vcredist = join(best_dir, "..", "..", "redist", "MSVC", "**",
+                        vcruntime_plat, "Microsoft.VC14*.CRT",
+                        "vcruntime140.dll")
+        try:
+            import glob
+            vcruntime = glob.glob(vcredist, recursive=True)[-1]
+        except (ImportError, OSError, LookupError):
+            vcruntime = None
+
+    if not best_dir:
+        best_version, best_dir = _msvc14_find_vc2015()
+        if best_version:
+            vcruntime = join(best_dir, 'redist', vcruntime_plat,
+                             "Microsoft.VC140.CRT", "vcruntime140.dll")
+
+    if not best_dir:
+        return None, None
+
+    vcvarsall = join(best_dir, "vcvarsall.bat")
+    if not isfile(vcvarsall):
+        return None, None
+
+    if not vcruntime or not isfile(vcruntime):
+        vcruntime = None
+
+    return vcvarsall, vcruntime
+
+
+def _msvc14_get_vc_env(plat_spec):
+    """Python 3.8 "distutils/_msvccompiler.py" backport"""
+    if "DISTUTILS_USE_SDK" in environ:
+        return {
+            key.lower(): value
+            for key, value in environ.items()
+        }
+
+    vcvarsall, vcruntime = _msvc14_find_vcvarsall(plat_spec)
+    if not vcvarsall:
+        raise distutils.errors.DistutilsPlatformError(
+            "Unable to find vcvarsall.bat"
+        )
+
+    try:
+        out = subprocess.check_output(
+            'cmd /u /c "{}" {} && set'.format(vcvarsall, plat_spec),
+            stderr=subprocess.STDOUT,
+        ).decode('utf-16le', errors='replace')
+    except subprocess.CalledProcessError as exc:
+        raise distutils.errors.DistutilsPlatformError(
+            "Error executing {}".format(exc.cmd)
+        ) from exc
+
+    env = {
+        key.lower(): value
+        for key, _, value in
+        (line.partition('=') for line in out.splitlines())
+        if key and value
+    }
+
+    if vcruntime:
+        env['py_vcruntime_redist'] = vcruntime
+    return env
+
+
 def msvc14_get_vc_env(plat_spec):
     """
     Patched "distutils._msvccompiler._get_vc_env" for support extra
@@ -159,16 +306,10 @@ def msvc14_get_vc_env(plat_spec):
     dict
         environment
     """
-    # Try to get environment from vcvarsall.bat (Classical way)
-    try:
-        return get_unpatched(msvc14_get_vc_env)(plat_spec)
-    except distutils.errors.DistutilsPlatformError:
-        # Pass error Vcvarsall.bat is missing
-        pass
 
-    # If error, try to set environment directly
+    # Always use backport from CPython 3.8
     try:
-        return EnvironmentInfo(plat_spec, vc_min_ver=14.0).return_env()
+        return _msvc14_get_vc_env(plat_spec)
     except distutils.errors.DistutilsPlatformError as exc:
         _augment_exception(exc, 14.0)
         raise
@@ -197,7 +338,7 @@ def _augment_exception(exc, version, arch=''):
 
     if "vcvarsall" in message.lower() or "visual c" in message.lower():
         # Special error message if MSVC++ not installed
-        tmpl = 'Microsoft Visual C++ {version:0.1f} is required.'
+        tmpl = 'Microsoft Visual C++ {version:0.1f} or greater is required.'
         message = tmpl.format(**locals())
         msdownload = 'www.microsoft.com/download/details.aspx?id=%d'
         if version == 9.0:
@@ -217,8 +358,9 @@ def _augment_exception(exc, version, arch=''):
             message += msdownload % 8279
         elif version >= 14.0:
             # For VC++ 14.X Redirect user to latest Visual C++ Build Tools
-            message += (' Get it with "Build Tools for Visual Studio": '
-                        r'https://visualstudio.microsoft.com/downloads/')
+            message += (' Get it with "Microsoft C++ Build Tools": '
+                        r'https://visualstudio.microsoft.com'
+                        r'/visual-cpp-build-tools/')
 
     exc.args = (message, )
 
@@ -500,8 +642,10 @@ class RegistryInfo:
         """
         key_read = winreg.KEY_READ
         openkey = winreg.OpenKey
+        closekey = winreg.CloseKey
         ms = self.microsoft
         for hkey in self.HKEYS:
+            bkey = None
             try:
                 bkey = openkey(hkey, ms(key), 0, key_read)
             except (OSError, IOError):
@@ -516,6 +660,9 @@ class RegistryInfo:
                 return winreg.QueryValueEx(bkey, name)[0]
             except (OSError, IOError):
                 pass
+            finally:
+                if bkey:
+                    closekey(bkey)
 
 
 class SystemInfo:
@@ -583,21 +730,22 @@ class SystemInfo:
                     bkey = winreg.OpenKey(hkey, ms(key), 0, winreg.KEY_READ)
                 except (OSError, IOError):
                     continue
-                subkeys, values, _ = winreg.QueryInfoKey(bkey)
-                for i in range(values):
-                    try:
-                        ver = float(winreg.EnumValue(bkey, i)[0])
-                        if ver not in vs_vers:
-                            vs_vers.append(ver)
-                    except ValueError:
-                        pass
-                for i in range(subkeys):
-                    try:
-                        ver = float(winreg.EnumKey(bkey, i))
-                        if ver not in vs_vers:
-                            vs_vers.append(ver)
-                    except ValueError:
-                        pass
+                with bkey:
+                    subkeys, values, _ = winreg.QueryInfoKey(bkey)
+                    for i in range(values):
+                        try:
+                            ver = float(winreg.EnumValue(bkey, i)[0])
+                            if ver not in vs_vers:
+                                vs_vers.append(ver)
+                        except ValueError:
+                            pass
+                    for i in range(subkeys):
+                        try:
+                            ver = float(winreg.EnumKey(bkey, i))
+                            if ver not in vs_vers:
+                                vs_vers.append(ver)
+                        except ValueError:
+                            pass
         return sorted(vs_vers)
 
     def find_programdata_vs_vers(self):
@@ -1671,7 +1819,7 @@ class EnvironmentInfo:
         seen = set()
         seen_add = seen.add
         if key is None:
-            for element in filterfalse(seen.__contains__, iterable):
+            for element in itertools.filterfalse(seen.__contains__, iterable):
                 seen_add(element)
                 yield element
         else:

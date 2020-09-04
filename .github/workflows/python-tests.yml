@@ -25,23 +25,54 @@ jobs:
         - 3.6
         - 3.5
         os:
-        - ubuntu-latest
+        - ubuntu-18.04
         - ubuntu-16.04
         - macOS-latest
         # - windows-2019
         # - windows-2016
+        include:
+        # Pre-release versions (GH-shipped)
+        - os: ubuntu-20.04
+          python-version: 3.9.0-beta.4 - 3.9.0
+        # Pre-release versions (deadsnakes)
+        - os: ubuntu-20.04
+          python-version: 3.9-beta
+        # Dev versions (deadsnakes)
+        - os: ubuntu-20.04
+          python-version: 3.9-dev
+        - os: ubuntu-20.04
+          python-version: 3.8-dev
 
     env:
       NETWORK_REQUIRED: 1
+      PYTHON_VERSION: ${{ matrix.python-version }}
       TOX_PARALLEL_NO_SPINNER: 1
       TOXENV: python
+      USE_DEADSNAKES: false
 
     steps:
     - uses: actions/checkout@master
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1.1.1
+    - name: Set flag to use deadsnakes
+      if: >-
+        endsWith(env.PYTHON_VERSION, '-beta') || 
+        endsWith(env.PYTHON_VERSION, '-dev')
+      run: |
+        from __future__ import print_function
+        python_version = '${{ env.PYTHON_VERSION }}'.replace('-beta', '')
+        print('::set-env name=PYTHON_VERSION::{ver}'.format(ver=python_version))
+        print('::set-env name=USE_DEADSNAKES::true')
+      shell: python
+    - name: Set up Python ${{ env.PYTHON_VERSION }} (deadsnakes)
+      uses: deadsnakes/action@v1.0.0
+      if: fromJSON(env.USE_DEADSNAKES) && true || false
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: ${{ env.PYTHON_VERSION }}
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v2.1.1
+      if: >-
+        !fromJSON(env.USE_DEADSNAKES) && true || false
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
     - name: Log Python version
       run: >-
         python --version
@@ -73,9 +104,9 @@ jobs:
       run: >-
         python -m pip freeze --all
     - name: Adjust TOXENV for PyPy
-      if: startsWith(matrix.python-version, 'pypy')
+      if: startsWith(env.PYTHON_VERSION, 'pypy')
       run: >-
-        echo "::set-env name=TOXENV::${{ matrix.python-version }}"
+        echo "::set-env name=TOXENV::${{ env.PYTHON_VERSION }}"
     - name: Log env vars
       run: >-
         env
@@ -91,6 +122,7 @@ jobs:
         python -m
         tox
         --parallel auto
+        --parallel-live
         --notest
         --skip-missing-interpreters false
     - name: Test with tox
@@ -98,5 +130,6 @@ jobs:
         python -m
         tox
         --parallel auto
+        --parallel-live
         --
-        --cov
+        -vvvvv

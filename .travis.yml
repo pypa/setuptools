@@ -4,13 +4,7 @@ language: python
 jobs:
   fast_finish: true
   include:
-  - &latest_py2
-    python: 2.7
-    env: TOXENV=py27
-  - <<: *latest_py2
-    env: LANG=C TOXENV=py27
   - python: pypy3
-    env: DISABLE_COVERAGE=1  # Don't run coverage on pypy (too slow).
   - python: 3.5
   - python: 3.6
   - python: 3.7
@@ -19,16 +13,14 @@ jobs:
   - <<: *latest_py3
     env: LANG=C
   - python: 3.8-dev
+  - python: 3.9-dev
   - <<: *latest_py3
-    env: TOXENV=docs DISABLE_COVERAGE=1
-  - <<: *latest_py3
-    stage: deploy
-    if: tag IS present
-    script: tox -e release
-    after_success: skip
+    env: TOXENV=docs
   allow_failures:
   # suppress failures due to pypa/setuptools#2000
   - python: pypy3
+  - <<: *latest_py3
+    env: TOXENV=docs
 
 cache: pip
 
@@ -47,22 +39,8 @@ install:
 
 script:
   - export NETWORK_REQUIRED=1
-  - |
-    ( # Run testsuite.
-      if [ -z "$DISABLE_COVERAGE" ]
-      then
-        tox -- --cov
-      else
-        tox
-      fi
-    )
+  - tox
 
 after_success:
-  - |
-    ( # Upload coverage data.
-      if [ -z "$DISABLE_COVERAGE" ]
-      then
-        export TRAVIS_JOB_NAME="${TRAVIS_PYTHON_VERSION} (LANG=$LANG)" CODECOV_ENV=TRAVIS_JOB_NAME
-        tox -e coverage,codecov
-      fi
-    )
+  - export TRAVIS_JOB_NAME="${TRAVIS_PYTHON_VERSION} (LANG=$LANG)" CODECOV_ENV=TRAVIS_JOB_NAME
+  - tox -e coverage,codecov

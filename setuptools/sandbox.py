@@ -8,11 +8,9 @@ import re
 import contextlib
 import pickle
 import textwrap
+import builtins
 
-from setuptools.extern import six
-from setuptools.extern.six.moves import builtins, map
-
-import pkg_resources.py31compat
+import pkg_resources
 from distutils.errors import DistutilsError
 from pkg_resources import working_set
 
@@ -70,7 +68,7 @@ def override_temp(replacement):
     """
     Monkey-patch tempfile.tempdir with replacement, ensuring it exists
     """
-    pkg_resources.py31compat.makedirs(replacement, exist_ok=True)
+    os.makedirs(replacement, exist_ok=True)
 
     saved = tempfile.tempdir
 
@@ -138,7 +136,7 @@ class ExceptionSaver:
             return
 
         type, exc = map(pickle.loads, self._saved)
-        six.reraise(type, exc, self._tb)
+        raise exc.with_traceback(self._tb)
 
 
 @contextlib.contextmanager
@@ -185,14 +183,23 @@ def setup_context(setup_dir):
     temp_dir = os.path.join(setup_dir, 'temp')
     with save_pkg_resources_state():
         with save_modules():
-            hide_setuptools()
             with save_path():
+                hide_setuptools()
                 with save_argv():
                     with override_temp(temp_dir):
                         with pushd(setup_dir):
                             # ensure setuptools commands are available
                             __import__('setuptools')
                             yield
+
+
+_MODULES_TO_HIDE = {
+    'setuptools',
+    'distutils',
+    'pkg_resources',
+    'Cython',
+    '_distutils_hack',
+}
 
 
 def _needs_hiding(mod_name):
@@ -212,8 +219,8 @@ def _needs_hiding(mod_name):
     >>> _needs_hiding('Cython')
     True
     """
-    pattern = re.compile(r'(setuptools|pkg_resources|distutils|Cython)(\.|$)')
-    return bool(pattern.match(mod_name))
+    base_module = mod_name.split('.', 1)[0]
+    return base_module in _MODULES_TO_HIDE
 
 
 def hide_setuptools():
@@ -223,6 +230,10 @@ def hide_setuptools():
     necessary to avoid issues such as #315 where setuptools upgrading itself
     would fail to find a function declared in the metadata.
     """
+    _distutils_hack = sys.modules.get('_distutils_hack', None)
+    if _distutils_hack is not None:
+        _distutils_hack.remove_shim()
+
     modules = filter(_needs_hiding, sys.modules)
     _clear_modules(modules)
 
@@ -238,15 +249,8 @@ def run_setup(setup_script, args):
             working_set.__init__()
             working_set.callbacks.append(lambda dist: dist.activate())
 
-            # __file__ should be a byte string on Python 2 (#712)
-            dunder_file = (
-                setup_script
-                if isinstance(setup_script, str) else
-                setup_script.encode(sys.getfilesystemencoding())
-            )
-
             with DirectorySandbox(setup_dir):
-                ns = dict(__file__=dunder_file, __name__='__main__')
+                ns = dict(__file__=setup_script, __name__='__main__')
                 _execfile(setup_script, ns)
         except SystemExit as v:
             if v.args and v.args[0]:

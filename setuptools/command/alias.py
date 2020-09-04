@@ -1,7 +1,5 @@
 from distutils.errors import DistutilsOptionError
 
-from setuptools.extern.six.moves import map
-
 from setuptools.command.setopt import edit_config, option_base, config_file
 
 

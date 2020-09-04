@@ -43,13 +43,6 @@ class VendorImporter:
                 __import__(extant)
                 mod = sys.modules[extant]
                 sys.modules[fullname] = mod
-                # mysterious hack:
-                # Remove the reference to the extant package/module
-                # on later Python versions to cause relative imports
-                # in the vendor package to resolve the same modules
-                # as those going through this importer.
-                if sys.version_info >= (3, ):
-                    del sys.modules[extant]
                 return mod
             except ImportError:
                 pass
@@ -69,5 +62,5 @@ class VendorImporter:
             sys.meta_path.append(self)
 
 
-names = 'six', 'packaging', 'pyparsing', 'ordered_set',
+names = 'packaging', 'pyparsing', 'ordered_set',
 VendorImporter(__name__, names, 'setuptools._vendor').install()

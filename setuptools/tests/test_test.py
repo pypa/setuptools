@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import unicode_literals
-
 import mock
 from distutils import log
 import os
@@ -10,6 +6,7 @@ import pytest
 
 from setuptools.command.test import test
 from setuptools.dist import Distribution
+from setuptools.tests import ack_2to3
 
 from .textwrap import DALS
 
@@ -74,6 +71,7 @@ def quiet_log():
 
 
 @pytest.mark.usefixtures('sample_test', 'quiet_log')
+@ack_2to3
 def test_test(capfd):
     params = dict(
         name='foo',
@@ -108,7 +106,6 @@ def test_tests_are_run_once(capfd):
     with open('dummy/test_dummy.py', 'wt') as f:
         f.write(DALS(
             """
-            from __future__ import print_function
             import unittest
             class TestTest(unittest.TestCase):
                 def test_test(self):
@@ -124,6 +121,7 @@ def test_tests_are_run_once(capfd):
 
 
 @pytest.mark.usefixtures('sample_test')
+@ack_2to3
 def test_warns_deprecation(capfd):
     params = dict(
         name='foo',
@@ -149,6 +147,7 @@ def test_warns_deprecation(capfd):
 
 
 @pytest.mark.usefixtures('sample_test')
+@ack_2to3
 def test_deprecation_stderr(capfd):
     params = dict(
         name='foo',

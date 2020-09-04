@@ -19,3 +19,4 @@ setuptools.egg-info
 .cache
 .idea/
 .pytest_cache/
+.mypy_cache/

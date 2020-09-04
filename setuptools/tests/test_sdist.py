@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
 """sdist tests"""
-
-from __future__ import print_function, unicode_literals
 
 import os
 import sys
@@ -9,9 +6,6 @@ import tempfile
 import unicodedata
 import contextlib
 import io
-
-from setuptools.extern import six
-from setuptools.extern.six.moves import map
 
 import pytest
 
@@ -21,7 +15,6 @@ from setuptools.command.egg_info import manifest_maker
 from setuptools.dist import Distribution
 from setuptools.tests import fail_on_ascii
 from .text import Filenames
-from . import py3_only
 
 
 SETUP_ATTRS = {
@@ -42,7 +35,7 @@ setup(**%r)
 @contextlib.contextmanager
 def quiet():
     old_stdout, old_stderr = sys.stdout, sys.stderr
-    sys.stdout, sys.stderr = six.StringIO(), six.StringIO()
+    sys.stdout, sys.stderr = io.StringIO(), io.StringIO()
     try:
         yield
     finally:
@@ -51,7 +44,7 @@ def quiet():
 
 # Convert to POSIX path
 def posix(path):
-    if not six.PY2 and not isinstance(path, str):
+    if not isinstance(path, str):
         return path.replace(os.sep.encode('ascii'), b'/')
     else:
         return path.replace(os.sep, '/')
@@ -59,7 +52,7 @@ def posix(path):
 
 # HFS Plus uses decomposed UTF-8
 def decompose(path):
-    if isinstance(path, six.text_type):
+    if isinstance(path, str):
         return unicodedata.normalize('NFD', path)
     try:
         path = path.decode('utf-8')
@@ -231,7 +224,6 @@ class TestSdistTest:
         # The manifest should contain the UTF-8 filename
         assert posix(filename) in u_contents
 
-    @py3_only
     @fail_on_ascii
     def test_write_manifest_allows_utf8_filenames(self):
         # Test for #303.
@@ -265,7 +257,6 @@ class TestSdistTest:
         # The filelist should have been updated as well
         assert u_filename in mm.filelist.files
 
-    @py3_only
     def test_write_manifest_skips_non_utf8_filenames(self):
         """
         Files that cannot be encoded to UTF-8 (specifically, those that
@@ -329,11 +320,9 @@ class TestSdistTest:
             cmd.read_manifest()
 
         # The filelist should contain the UTF-8 filename
-        if not six.PY2:
-            filename = filename.decode('utf-8')
+        filename = filename.decode('utf-8')
         assert filename in cmd.filelist.files
 
-    @py3_only
     @fail_on_latin1_encoded_filenames
     def test_read_manifest_skips_non_utf8_filenames(self):
         # Test for #303.
@@ -383,21 +372,18 @@ class TestSdistTest:
         if sys.platform == 'darwin':
             filename = decompose(filename)
 
-        if not six.PY2:
-            fs_enc = sys.getfilesystemencoding()
+        fs_enc = sys.getfilesystemencoding()
 
-            if sys.platform == 'win32':
-                if fs_enc == 'cp1252':
-                    # Python 3 mangles the UTF-8 filename
-                    filename = filename.decode('cp1252')
-                    assert filename in cmd.filelist.files
-                else:
-                    filename = filename.decode('mbcs')
-                    assert filename in cmd.filelist.files
+        if sys.platform == 'win32':
+            if fs_enc == 'cp1252':
+                # Python mangles the UTF-8 filename
+                filename = filename.decode('cp1252')
+                assert filename in cmd.filelist.files
             else:
-                filename = filename.decode('utf-8')
+                filename = filename.decode('mbcs')
                 assert filename in cmd.filelist.files
         else:
+            filename = filename.decode('utf-8')
             assert filename in cmd.filelist.files
 
     @classmethod
@@ -425,33 +411,20 @@ class TestSdistTest:
         with quiet():
             cmd.run()
 
-        if six.PY2:
-            # Under Python 2 there seems to be no decoded string in the
-            # filelist.  However, due to decode and encoding of the
-            # file name to get utf-8 Manifest the latin1 maybe excluded
-            try:
-                # fs_enc should match how one is expect the decoding to
-                # be proformed for the manifest output.
-                fs_enc = sys.getfilesystemencoding()
-                filename.decode(fs_enc)
-                assert filename in cmd.filelist.files
-            except UnicodeDecodeError:
-                filename not in cmd.filelist.files
-        else:
-            # not all windows systems have a default FS encoding of cp1252
-            if sys.platform == 'win32':
-                # Latin-1 is similar to Windows-1252 however
-                # on mbcs filesys it is not in latin-1 encoding
-                fs_enc = sys.getfilesystemencoding()
-                if fs_enc != 'mbcs':
-                    fs_enc = 'latin-1'
-                filename = filename.decode(fs_enc)
+        # not all windows systems have a default FS encoding of cp1252
+        if sys.platform == 'win32':
+            # Latin-1 is similar to Windows-1252 however
+            # on mbcs filesys it is not in latin-1 encoding
+            fs_enc = sys.getfilesystemencoding()
+            if fs_enc != 'mbcs':
+                fs_enc = 'latin-1'
+            filename = filename.decode(fs_enc)
 
-                assert filename in cmd.filelist.files
-            else:
-                # The Latin-1 filename should have been skipped
-                filename = filename.decode('latin-1')
-                filename not in cmd.filelist.files
+            assert filename in cmd.filelist.files
+        else:
+            # The Latin-1 filename should have been skipped
+            filename = filename.decode('latin-1')
+            filename not in cmd.filelist.files
 
     def test_pyproject_toml_in_sdist(self, tmpdir):
         """

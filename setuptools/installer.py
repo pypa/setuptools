@@ -2,20 +2,18 @@ import glob
 import os
 import subprocess
 import sys
+import tempfile
 from distutils import log
 from distutils.errors import DistutilsError
 
 import pkg_resources
 from setuptools.command.easy_install import easy_install
-from setuptools.extern import six
 from setuptools.wheel import Wheel
-
-from .py31compat import TemporaryDirectory
 
 
 def _fixup_find_links(find_links):
     """Ensure find-links option end-up being a list of strings."""
-    if isinstance(find_links, six.string_types):
+    if isinstance(find_links, str):
         return find_links.split()
     assert isinstance(find_links, (tuple, list))
     return find_links
@@ -103,7 +101,7 @@ def fetch_build_egg(dist, req):
     for egg_dist in pkg_resources.find_distributions(eggs_dir):
         if egg_dist in req and environment.can_add(egg_dist):
             return egg_dist
-    with TemporaryDirectory() as tmpdir:
+    with tempfile.TemporaryDirectory() as tmpdir:
         cmd = [
             sys.executable, '-m', 'pip',
             '--disable-pip-version-check',
@@ -127,7 +125,7 @@ def fetch_build_egg(dist, req):
         try:
             subprocess.check_call(cmd)
         except subprocess.CalledProcessError as e:
-            raise DistutilsError(str(e))
+            raise DistutilsError(str(e)) from e
         wheel = Wheel(glob.glob(os.path.join(tmpdir, '*.whl'))[0])
         dist_location = os.path.join(eggs_dir, wheel.egg_name())
         wheel.install_as_egg(dist_location)

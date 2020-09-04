@@ -1,3 +1,294 @@
+v50.2.0
+-------
+
+* #2355: When pip is imported as part of a build, leave distutils patched.
+* #2380: There are some setuptools specific changes in the
+  `setuptools.command.bdist_rpm` module that are no longer needed, because
+  they are part of the `bdist_rpm` module in distutils in Python
+  3.5.0. Therefore, code was removed from `setuptools.command.bdist_rpm`.
+
+
+v50.1.0
+-------
+
+* #2350: Setuptools reverts using the included distutils by default. Platform maintainers and system integrators and others are *strongly* encouraged to set ``SETUPTOOLS_USE_DISTUTILS=local`` to help identify and work through the reported issues with distutils adoption, mainly to file issues and pull requests with pypa/distutils such that distutils performs as needed across every supported environment.
+
+
+v50.0.3
+-------
+
+* #2363: Restore link_libpython support on Python 3.7 and earlier (see pypa/distutils#9).
+
+
+v50.0.2
+-------
+
+* #2352: In distutils hack, use absolute import rather than relative to avoid bpo-30876.
+
+
+v50.0.1
+-------
+
+* #2357: Restored Python 3.5 support in distutils.util for missing `subprocess._optim_args_from_interpreter_flags`.
+* #2358: Restored AIX support on Python 3.8 and earlier.
+* #2361: Add Python 3.10 support to _distutils_hack. Get the 'Loader' abstract class
+  from importlib.abc rather than importlib.util.abc (alias removed in Python
+  3.10).
+
+
+v50.0.0
+-------
+
+* #2232: Once again, Setuptools overrides the stdlib distutils on import. For environments or invocations where this behavior is undesirable, users are provided with a temporary escape hatch. If the environment variable ``SETUPTOOLS_USE_DISTUTILS`` is set to ``stdlib``, Setuptools will fall back to the legacy behavior. Use of this escape hatch is discouraged, but it is provided to ease the transition while proper fixes for edge cases can be addressed.
+* #2334: In MSVC module, refine text in error message.
+
+
+v49.6.0
+-------
+
+* #2129: In pkg_resources, no longer detect any pathname ending in .egg as a Python egg. Now the path must be an unpacked egg or a zip file.
+
+
+v49.5.0
+-------
+
+* #2306: When running as a PEP 517 backend, setuptools does not try to install
+  ``setup_requires`` itself. They are reported as build requirements for the
+  frontend to install.
+
+
+v49.4.0
+-------
+
+* #2310: Updated vendored packaging version to 20.4.
+
+
+v49.3.2
+-------
+
+* #2300: Improve the ``safe_version`` function documentation
+* #2297: Once again, in stubs prefer exec_module to the deprecated load_module.
+
+
+v49.3.1
+-------
+
+* #2316: Removed warning when ``distutils`` is imported before ``setuptools`` when ``distutils`` replacement is not enabled.
+
+
+v49.3.0
+-------
+
+* #2259: Setuptools now provides a .pth file (except for editable installs of setuptools) to the target environment to ensure that when enabled, the setuptools-provided distutils is preferred before setuptools has been imported (and even if setuptools is never imported). Honors the SETUPTOOLS_USE_DISTUTILS environment variable.
+
+
+v49.2.1
+-------
+
+* #2257: Fixed two flaws in distutils._msvccompiler.MSVCCompiler.spawn.
+
+
+v49.2.0
+-------
+
+* #2230: Now warn the user when setuptools is imported after distutils modules have been loaded (exempting PyPy for 3.6), directing the users of packages to import setuptools first.
+
+
+v49.1.3
+-------
+
+* #2212: (Distutils) Allow spawn to accept environment. Avoid monkey-patching global state.
+* #2249: Fix extension loading technique in stubs.
+
+
+v49.1.2
+-------
+
+* #2232: In preparation for re-enabling a local copy of distutils, Setuptools now honors an environment variable, SETUPTOOLS_USE_DISTUTILS. If set to 'stdlib' (current default), distutils will be used from the standard library. If set to 'local' (default in a imminent backward-incompatible release), the local copy of distutils will be used.
+
+
+v49.1.1
+-------
+
+* #2094: Removed pkg_resources.py2_warn module, which is no longer reachable.
+
+
+v49.0.1
+-------
+
+* #2228: Applied fix for pypa/distutils#3, restoring expectation that spawn will raise a DistutilsExecError when attempting to execute a missing file.
+
+
+v49.1.0
+-------
+
+* #2228: Disabled distutils adoption for now while emergent issues are addressed.
+
+
+v49.0.0
+-------
+
+* #2165: Setuptools no longer installs a site.py file during easy_install or develop installs. As a result, .eggs on PYTHONPATH will no longer take precedence over other packages on sys.path. If this issue affects your production environment, please reach out to the maintainers at #2165.
+* #2137: Removed (private) pkg_resources.RequirementParseError, now replaced by packaging.requirements.InvalidRequirement. Kept the name for compatibility, but users should catch InvalidRequirement instead.
+* #2180: Update vendored packaging in pkg_resources to 19.2.
+* #2199: Fix exception causes all over the codebase by using ``raise new_exception from old_exception``
+
+
+v48.0.0
+-------
+
+* #2143: Setuptools adopts distutils from the Python 3.9 standard library and no longer depends on distutils in the standard library. When importing ``setuptools`` or ``setuptools.distutils_patch``, Setuptools will expose its bundled version as a top-level ``distutils`` package (and unload any previously-imported top-level distutils package), retaining the expectation that ``distutils``' objects are actually Setuptools objects.
+  To avoid getting any legacy behavior from the standard library, projects are advised to always "import setuptools" prior to importing anything from distutils. This behavior happens by default when using ``pip install`` or ``pep517.build``. Workflows that rely on ``setup.py (anything)`` will need to first ensure setuptools is imported. One way to achieve this behavior without modifying code is to invoke Python thus: ``python -c "import setuptools; exec(open('setup.py').read())" (anything)``.
+
+
+v47.3.2
+-------
+
+* #2071: Replaced references to the deprecated imp package with references to importlib
+
+
+v47.3.1
+-------
+
+* #1973: Removed ``pkg_resources.py31compat.makedirs`` in favor of the stdlib. Use ``os.makedirs()`` instead.
+* #2198: Restore ``__requires__`` directive in easy-install wrapper scripts.
+
+
+v47.3.0
+-------
+
+* #2197: Console script wrapper for editable installs now has a unified template and honors importlib_metadata if present for faster script execution on older Pythons.
+* #2195: Fix broken entry points generated by easy-install (pip editable installs).
+
+
+v47.2.0
+-------
+
+* #2194: Editable-installed entry points now load significantly faster on Python versions 3.8+.
+
+
+v47.1.1
+-------
+
+* #2156: Update mailing list pointer in developer docs
+
+Incorporate changes from v44.1.1:
+
+* #2158: Avoid loading working set during ``Distribution.finalize_options`` prior to invoking ``_install_setup_requires``, broken since v42.0.0.
+
+
+v44.1.1
+-------
+
+* #2158: Avoid loading working set during ``Distribution.finalize_options`` prior to invoking ``_install_setup_requires``, broken since v42.0.0.
+
+
+v47.1.0
+-------
+
+* #2070: In wheel-to-egg conversion, use simple pkg_resources-style namespace declaration for packages that declare namespace_packages.
+
+
+v47.0.0
+-------
+
+* #2094: Setuptools now actively crashes under Python 2. Python 3.5 or later is required. Users of Python 2 should use ``setuptools<45``.
+* #1700: Document all supported keywords by migrating the ones from distutils.
+
+
+v46.4.0
+-------
+
+* #1753: ``attr:`` now extracts variables through rudimentary examination of the AST,
+  thereby supporting modules with third-party imports. If examining the AST
+  fails to find the variable, ``attr:`` falls back to the old behavior of
+  importing the module. Works on Python 3 only.
+
+
+v46.3.1
+-------
+
+No significant changes.
+
+
+v46.3.0
+-------
+
+* #2089: Package index functionality no longer attempts to remove an md5 fragment from the index URL. This functionality, added for distribute #163 is no longer relevant.
+* #2041: Preserve file modes during pkg files copying, but clear read only flag for target afterwards.
+* #2105: Filter ``2to3`` deprecation warnings from ``TestDevelop.test_2to3_user_mode``.
+
+
+v46.2.0
+-------
+
+* #2040: Deprecated the ``bdist_wininst`` command. Binary packages should be built as wheels instead.
+* #2062: Change 'Mac OS X' to 'macOS' in code.
+* #2075: Stop recognizing files ending with ``.dist-info`` as distribution metadata.
+* #2086: Deprecate 'use_2to3' functionality. Packagers are encouraged to use single-source solutions or build tool chains to manage conversions outside of setuptools.
+* #1698: Added documentation for ``build_meta`` (a bare minimum, not completed).
+* #2082: Filter ``lib2to3`` ``PendingDeprecationWarning`` and ``DeprecationWarning`` in tests,
+  because ``lib2to3`` is `deprecated in Python 3.9 <https://bugs.python.org/issue40360>`_.
+
+
+v46.1.3
+-------
+
+No significant changes.
+
+
+v46.1.2
+-------
+
+* #1458: Added template for reporting Python 2 incompatibilities.
+
+
+v46.1.1
+-------
+
+No significant changes.
+
+
+v46.1.0
+-------
+
+* #308: Allow version number normalization to be bypassed by wrapping in a 'setuptools.sic()' call.
+* #1424: Prevent keeping files mode for package_data build. It may break a build if user's package data has read only flag.
+* #1431: In ``easy_install.check_site_dir``, ensure the installation directory exists.
+* #1563: In ``pkg_resources`` prefer ``find_spec`` (PEP 451) to ``find_module``.
+
+Incorporate changes from v44.1.0:
+
+* #1704: Set sys.argv[0] in setup script run by build_meta.__legacy__
+* #1959: Fix for Python 4: replace unsafe six.PY3 with six.PY2
+* #1994: Fixed a bug in the "setuptools.finalize_distribution_options" hook that lead to ignoring the order attribute of entry points managed by this hook.
+
+
+v44.1.0
+-------
+
+* #1704: Set sys.argv[0] in setup script run by build_meta.__legacy__
+* #1959: Fix for Python 4: replace unsafe six.PY3 with six.PY2
+* #1994: Fixed a bug in the "setuptools.finalize_distribution_options" hook that lead to ignoring the order attribute of entry points managed by this hook.
+
+
+v46.0.0
+-------
+
+* #65: Once again as in 3.0, removed the Features feature.
+* #1890: Fix vendored dependencies so importing ``setuptools.extern.some_module`` gives the same object as ``setuptools._vendor.some_module``. This makes Metadata picklable again.
+* #1899: Test suite now fails on warnings.
+* #2011: Fix broken link to distutils docs on package_data
+* #1991: Include pkg_resources test data in sdist, so tests can be executed from it.
+
+
+v45.3.0
+-------
+
+* #1557: Deprecated eggsecutable scripts and updated docs.
+* #1904: Update msvc.py to use CPython 3.8.0 mechanism to find msvc 14+
+
+
 v45.2.0
 -------
 

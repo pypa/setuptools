@@ -5,8 +5,6 @@ environment by creating a minimal egg-info directory sufficient for
 setuptools to build its own egg-info.
 """
 
-from __future__ import unicode_literals
-
 import os
 import textwrap
 import io

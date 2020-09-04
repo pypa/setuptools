@@ -1,12 +1,8 @@
-from __future__ import unicode_literals
-
 import os
 import sys
 import string
 import platform
 import itertools
-
-from pkg_resources.extern.six.moves import map
 
 import pytest
 from pkg_resources.extern import packaging

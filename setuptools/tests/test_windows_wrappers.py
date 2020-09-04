@@ -12,8 +12,6 @@ the script they are to wrap and with the same name as the script they
 are to wrap.
 """
 
-from __future__ import absolute_import
-
 import sys
 import textwrap
 import subprocess

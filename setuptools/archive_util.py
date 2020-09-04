@@ -134,10 +134,10 @@ def unpack_tarfile(filename, extract_dir, progress_filter=default_filter):
     """
     try:
         tarobj = tarfile.open(filename)
-    except tarfile.TarError:
+    except tarfile.TarError as e:
         raise UnrecognizedFormat(
             "%s is not a compressed or uncompressed tar file" % (filename,)
-        )
+        ) from e
     with contextlib.closing(tarobj):
         # don't do any chowning!
         tarobj.chown = lambda *args: None

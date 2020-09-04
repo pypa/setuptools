@@ -2,8 +2,6 @@ import os
 from distutils import log
 import itertools
 
-from setuptools.extern.six.moves import map
-
 
 flatten = itertools.chain.from_iterable
 
@@ -72,8 +70,6 @@ class Installer:
         return "sys._getframe(1).f_locals['sitedir']"
 
     def _gen_nspkg_line(self, pkg):
-        # ensure pkg is not a unicode string under Python 2.7
-        pkg = str(pkg)
         pth = tuple(pkg.split('.'))
         root = self._get_root()
         tmpl_lines = self._nspkg_tmpl

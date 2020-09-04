@@ -25,8 +25,6 @@ from .contexts import tempdir
 from .files import build_files
 from .textwrap import DALS
 
-__metaclass__ = type
-
 
 WHEEL_INFO_TESTS = (
     ('invalid.whl', ValueError),

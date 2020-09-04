@@ -25,7 +25,8 @@ def run():
     sys.argv[:] = sys.argv[1:]
 
     open_ = getattr(tokenize, 'open', open)
-    script = open_(script_name).read()
+    with open_(script_name) as fid:
+        script = fid.read()
     norm_script = script.replace('\\r\\n', '\\n')
     code = compile(norm_script, script_name, 'exec')
     exec(code, namespace)

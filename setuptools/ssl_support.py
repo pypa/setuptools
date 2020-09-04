@@ -3,8 +3,9 @@ import socket
 import atexit
 import re
 import functools
+import urllib.request
+import http.client
 
-from setuptools.extern.six.moves import urllib, http_client, map, filter
 
 from pkg_resources import ResolutionError, ExtractionError
 
@@ -31,7 +32,7 @@ cert_paths = """
 
 try:
     HTTPSHandler = urllib.request.HTTPSHandler
-    HTTPSConnection = http_client.HTTPSConnection
+    HTTPSConnection = http.client.HTTPSConnection
 except AttributeError:
     HTTPSHandler = HTTPSConnection = object
 
