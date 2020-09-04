@@ -21,17 +21,11 @@ jobs:
     python: pypy3
   - arch: ppc64le
     python: 3.5
-  - arch: ppc64le
-    python: 3.6
-  - arch: ppc64le
-    python: 3.7
   - &latest_py3_ppc
     arch: ppc64le
     python: 3.8
   - <<: *latest_py3_ppc
     env: LANG=C
-  - arch: ppc64le
-    python: 3.8-dev
   - arch: ppc64le
     python: 3.9-dev
   - <<: *latest_py3_ppc
@@ -50,6 +44,8 @@ jobs:
 cache: pip
 
 before_install:
+# Fix for PPC64LE, where permissions are fixed to allow tox/pip to install packages. 
+# As travis base images for PPC64LE except for bionic, do not have this fix.
   - |
     if [[ "$TRAVIS_CPU_ARCH" == "ppc64le" ]]; then
       sudo chown -Rfv $USER:$GROUP ~/.cache/pip/wheels
@@ -59,8 +55,8 @@ install:
 
 # ensure we have recent pip/setuptools/wheel
 - pip install --disable-pip-version-check --upgrade pip setuptools wheel
-- pip install --upgrade tox tox-venv
 # need tox to get started
+- pip install --upgrade tox tox-venv
 
 # Output the env, to verify behavior
 - pip freeze --all
