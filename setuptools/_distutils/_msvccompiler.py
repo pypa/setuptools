@@ -16,6 +16,8 @@ for older versions in distutils.msvc9compiler and distutils.msvccompiler.
 import os
 import subprocess
 import contextlib
+import warnings
+import unittest.mock
 with contextlib.suppress(ImportError):
     import winreg
 
@@ -504,7 +506,29 @@ class MSVCCompiler(CCompiler) :
 
     def spawn(self, cmd):
         env = dict(os.environ, PATH=self._paths)
-        return super().spawn(cmd, env=env)
+        with self._fallback_spawn(cmd, env) as fallback:
+            return super().spawn(cmd, env=env)
+        return fallback.value
+
+    @contextlib.contextmanager
+    def _fallback_spawn(self, cmd, env):
+        """
+        Discovered in pypa/distutils#15, some tools monkeypatch the compiler,
+        so the 'env' kwarg causes a TypeError. Detect this condition and
+        restore the legacy, unsafe behavior.
+        """
+        bag = type('Bag', (), {})()
+        try:
+            yield bag
+        except TypeError as exc:
+            if "unexpected keyword argument 'env'" not in str(exc):
+                raise
+        else:
+            return
+        warnings.warn(
+            "Fallback spawn triggered. Please update distutils monkeypatch.")
+        with unittest.mock.patch('os.environ', env):
+            bag.value = super().spawn(cmd)
 
     # -- Miscellaneous methods -----------------------------------------
     # These are all used by the 'gen_lib_options() function, in

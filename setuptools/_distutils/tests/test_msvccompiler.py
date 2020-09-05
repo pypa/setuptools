@@ -110,6 +110,26 @@ class TestSpawn(unittest.TestCase):
             thread.join()
         assert all(threads)
 
+    def test_concurrent_safe_fallback(self):
+        """
+        If CCompiler.spawn has been monkey-patched without support
+        for an env, it should still execute.
+        """
+        import distutils._msvccompiler as _msvccompiler
+        from distutils import ccompiler
+        compiler = _msvccompiler.MSVCCompiler()
+        compiler._paths = "expected"
+
+        def CCompiler_spawn(self, cmd):
+            "A spawn without an env argument."
+            assert os.environ["PATH"] == "expected"
+
+        with unittest.mock.patch.object(
+                ccompiler.CCompiler, 'spawn', CCompiler_spawn):
+            compiler.spawn(["n/a"])
+
+        assert os.environ.get("PATH") != "expected"
+
 
 def test_suite():
     return unittest.makeSuite(msvccompilerTestCase)
