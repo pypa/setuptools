@@ -1,1 +1,0 @@
-In distutils, restore support for monkeypatched CCompiler.spawn per pypa/distutils#15.

@@ -1,3 +1,9 @@
+v50.3.0
+-------
+
+* #2368: In distutils, restore support for monkeypatched CCompiler.spawn per pypa/distutils#15.
+
+
 v50.2.0
 -------
 
