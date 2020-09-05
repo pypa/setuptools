@@ -16,6 +16,7 @@ for older versions in distutils.msvc9compiler and distutils.msvccompiler.
 import os
 import subprocess
 import contextlib
+import warnings
 import unittest.mock
 with contextlib.suppress(ImportError):
     import winreg
@@ -524,6 +525,8 @@ class MSVCCompiler(CCompiler) :
                 raise
         else:
             return
+        warnings.warn(
+            "Fallback spawn triggered. Please update distutils monkeypatch.")
         with unittest.mock.patch('os.environ', env):
             bag.value = super().spawn(cmd)
 
