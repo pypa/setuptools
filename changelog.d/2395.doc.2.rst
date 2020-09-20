@@ -1,0 +1,1 @@
+Added an illustrative explanation about the change notes to fragments dir -- by :user:`webknjaz`

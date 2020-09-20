@@ -61,33 +61,14 @@ jump to the in-depth discussion about any subject referenced.
 Making a pull request
 ---------------------
 
-When making a pull request, please include a short summary of the changes
-and a reference to any issue tickets that the PR is intended to solve.
-All PRs with code changes should include tests. All changes should include a
-changelog entry.
+When making a pull request, please 
+:ref:`include a short summary of the changes <Adding change notes
+with your PRs>` and a reference to any issue tickets that the PR is
+intended to solve.
+All PRs with code changes should include tests. All changes should
+include a changelog entry.
 
-``setuptools`` uses `towncrier <https://pypi.org/project/towncrier/>`_
-for changelog management, so when making a PR, please add a news fragment in the
-``changelog.d/`` folder. Changelog files are written in reStructuredText and
-should be a 1 or 2 sentence description of the substantive changes in the PR.
-They should be named ``<pr_number>.<category>.rst``, where the categories are:
-
-- ``change``: Any backwards compatible code change
-- ``breaking``: Any backwards-compatibility breaking change
-- ``doc``: A change to the documentation
-- ``misc``: Changes internal to the repo like CI, test and build changes
-- ``deprecation``: For deprecations of an existing feature or behavior
-
-A pull request may have more than one of these components, for example a code
-change may introduce a new feature that deprecates an old feature, in which
-case two fragments should be added. It is not necessary to make a separate
-documentation fragment for documentation changes accompanying the relevant
-code changes. See the following for an example news fragment:
-
-.. code-block:: shell-session
-
-    $ cat changelog.d/1288.change.rst
-    Add support for maintainer in PKG-INFO
+.. include:: ../changelog.d/README.rst
 
 -------------------
 Auto-Merge Requests
