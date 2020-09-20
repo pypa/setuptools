@@ -84,7 +84,7 @@ case two fragments should be added. It is not necessary to make a separate
 documentation fragment for documentation changes accompanying the relevant
 code changes. See the following for an example news fragment:
 
-.. code-block:: bash
+.. code-block:: shell-session
 
     $ cat changelog.d/1288.change.rst
     Add support for maintainer in PKG-INFO
