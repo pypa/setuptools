@@ -1,0 +1,1 @@
+Added a ``:user:`` role to Sphinx config -- by :user:`webknjaz`
