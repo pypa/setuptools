@@ -23,16 +23,16 @@ contribution.
 Project Management
 ------------------
 
-Setuptools is maintained primarily in Github at `this home
+Setuptools is maintained primarily in GitHub at `this home
 <https://github.com/pypa/setuptools>`_. Setuptools is maintained under the
 Python Packaging Authority (PyPA) with several core contributors. All bugs
-for Setuptools are filed and the canonical source is maintained in Github.
+for Setuptools are filed and the canonical source is maintained in GitHub.
 
 User support and discussions are done through the issue tracker (for specific)
-issues, through the distutils-sig mailing list, or on IRC (Freenode) at
+issues, through the `distutils-sig mailing list <https://mail.python.org/mailman3/lists/distutils-sig.python.org/>`_, or on IRC (Freenode) at
 #pypa.
 
-Discussions about development happen on the pypa-dev mailing list or on
+Discussions about development happen on the distutils-sig mailing list or on
 `Gitter <https://gitter.im/pypa/setuptools>`_.
 
 -----------------
@@ -44,7 +44,7 @@ describing the motivation behind making changes. First search to see if a
 ticket already exists for your issue. If not, create one. Try to think from
 the perspective of the reader. Explain what behavior you expected, what you
 got instead, and what factors might have contributed to the unexpected
-behavior. In Github, surround a block of code or traceback with the triple
+behavior. In GitHub, surround a block of code or traceback with the triple
 backtick "\`\`\`" so that it is formatted nicely.
 
 Filing a ticket provides a forum for justification, discussion, and
@@ -145,5 +145,5 @@ setuptools from source. Eventually, this limitation may be lifted as
 PEP 517/518 reach ubiquitous adoption, but for now, Setuptools
 cannot declare dependencies other than through
 ``setuptools/_vendor/vendored.txt`` and
-``pkg_reosurces/_vendor/vendored.txt`` and refreshed by way of
+``pkg_resources/_vendor/vendored.txt`` and refreshed by way of
 ``paver update_vendored`` (pavement.py).

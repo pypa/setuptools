@@ -9,9 +9,6 @@ import distutils.errors
 import itertools
 import stat
 
-from setuptools.extern import six
-from setuptools.extern.six.moves import map, filter, filterfalse
-
 try:
     from setuptools.lib2to3_ex import Mixin2to3
 except ImportError:
@@ -73,9 +70,6 @@ class build_py(orig.build_py, Mixin2to3):
         return orig.build_py.__getattr__(self, attr)
 
     def build_module(self, module, module_file, package):
-        if six.PY2 and isinstance(package, six.string_types):
-            # avoid errors on Python 2 when unicode is passed (#190)
-            package = package.split('.')
         outfile, copied = orig.build_py.build_module(self, module, module_file,
                                                      package)
         if copied:
@@ -249,7 +243,7 @@ def _unique_everseen(iterable, key=None):
     seen = set()
     seen_add = seen.add
     if key is None:
-        for element in filterfalse(seen.__contains__, iterable):
+        for element in itertools.filterfalse(seen.__contains__, iterable):
             seen_add(element)
             yield element
     else:

@@ -13,24 +13,16 @@ import textwrap
 import marshal
 import warnings
 
-from setuptools.extern import six
-
 from pkg_resources import get_build_platform, Distribution, ensure_directory
 from pkg_resources import EntryPoint
 from setuptools.extension import Library
 from setuptools import Command, SetuptoolsDeprecationWarning
 
-try:
-    # Python 2.7 or >=3.2
-    from sysconfig import get_path, get_python_version
+from sysconfig import get_path, get_python_version
 
-    def _get_purelib():
-        return get_path("purelib")
-except ImportError:
-    from distutils.sysconfig import get_python_lib, get_python_version
 
-    def _get_purelib():
-        return get_python_lib(False)
+def _get_purelib():
+    return get_path("purelib")
 
 
 def strip_module(filename):
@@ -55,10 +47,12 @@ def write_stub(resource, pyfile):
     _stub_template = textwrap.dedent("""
         def __bootstrap__():
             global __bootstrap__, __loader__, __file__
-            import sys, pkg_resources, imp
+            import sys, pkg_resources, importlib.util
             __file__ = pkg_resources.resource_filename(__name__, %r)
             __loader__ = None; del __bootstrap__, __loader__
-            imp.load_dynamic(__name__,__file__)
+            spec = importlib.util.spec_from_file_location(__name__,__file__)
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
         __bootstrap__()
         """).lstrip()
     with open(pyfile, 'w') as f:
@@ -418,9 +412,7 @@ def scan_module(egg_dir, base, name, stubs):
         return True  # Extension module
     pkg = base[len(egg_dir) + 1:].replace(os.sep, '.')
     module = pkg + (pkg and '.' or '') + os.path.splitext(name)[0]
-    if six.PY2:
-        skip = 8  # skip magic & date
-    elif sys.version_info < (3, 7):
+    if sys.version_info < (3, 7):
         skip = 12  # skip magic & date & file size
     else:
         skip = 16  # skip magic & reserved? & date & file size
@@ -451,7 +443,7 @@ def iter_symbols(code):
     for name in code.co_names:
         yield name
     for const in code.co_consts:
-        if isinstance(const, six.string_types):
+        if isinstance(const, str):
             yield const
         elif isinstance(const, CodeType):
             for name in iter_symbols(const):

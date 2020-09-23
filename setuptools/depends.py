@@ -1,12 +1,11 @@
 import sys
 import marshal
 import contextlib
+import dis
 from distutils.version import StrictVersion
 
-from .py33compat import Bytecode
-
-from .py27compat import find_module, PY_COMPILED, PY_FROZEN, PY_SOURCE
-from . import py27compat
+from ._imp import find_module, PY_COMPILED, PY_FROZEN, PY_SOURCE
+from . import _imp
 
 
 __all__ = [
@@ -111,12 +110,12 @@ def get_module_constant(module, symbol, default=-1, paths=None):
             f.read(8)  # skip magic & date
             code = marshal.load(f)
         elif kind == PY_FROZEN:
-            code = py27compat.get_frozen_object(module, paths)
+            code = _imp.get_frozen_object(module, paths)
         elif kind == PY_SOURCE:
             code = compile(f.read(), path, 'exec')
         else:
             # Not something we can parse; we'll have to import it.  :(
-            imported = py27compat.get_module(module, paths, info)
+            imported = _imp.get_module(module, paths, info)
             return getattr(imported, symbol, None)
 
     return extract_constant(code, symbol, default)
@@ -146,7 +145,7 @@ def extract_constant(code, symbol, default=-1):
 
     const = default
 
-    for byte_code in Bytecode(code):
+    for byte_code in dis.Bytecode(code):
         op = byte_code.opcode
         arg = byte_code.arg
 

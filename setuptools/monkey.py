@@ -10,8 +10,6 @@ import functools
 from importlib import import_module
 import inspect
 
-from setuptools.extern import six
-
 import setuptools
 
 __all__ = []
@@ -37,7 +35,7 @@ def _get_mro(cls):
 
 def get_unpatched(item):
     lookup = (
-        get_unpatched_class if isinstance(item, six.class_types) else
+        get_unpatched_class if isinstance(item, type) else
         get_unpatched_function if isinstance(item, types.FunctionType) else
         lambda item: None
     )
@@ -138,7 +136,7 @@ def patch_for_msvc_specialized_compiler():
     msvc = import_module('setuptools.msvc')
 
     if platform.system() != 'Windows':
-        # Compilers only availables on Microsoft Windows
+        # Compilers only available on Microsoft Windows
         return
 
     def patch_params(mod_name, func_name):

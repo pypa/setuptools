@@ -30,12 +30,10 @@ import subprocess
 import distutils.errors
 from setuptools.extern.packaging.version import LegacyVersion
 
-from setuptools.extern.six.moves import filterfalse
-
 from .monkey import get_unpatched
 
 if platform.system() == 'Windows':
-    from setuptools.extern.six.moves import winreg
+    import winreg
     from os import environ
 else:
     # Mock winreg and environ so the module can be imported on this platform.
@@ -277,7 +275,7 @@ def _msvc14_get_vc_env(plat_spec):
     except subprocess.CalledProcessError as exc:
         raise distutils.errors.DistutilsPlatformError(
             "Error executing {}".format(exc.cmd)
-        )
+        ) from exc
 
     env = {
         key.lower(): value
@@ -340,7 +338,7 @@ def _augment_exception(exc, version, arch=''):
 
     if "vcvarsall" in message.lower() or "visual c" in message.lower():
         # Special error message if MSVC++ not installed
-        tmpl = 'Microsoft Visual C++ {version:0.1f} is required.'
+        tmpl = 'Microsoft Visual C++ {version:0.1f} or greater is required.'
         message = tmpl.format(**locals())
         msdownload = 'www.microsoft.com/download/details.aspx?id=%d'
         if version == 9.0:
@@ -360,8 +358,9 @@ def _augment_exception(exc, version, arch=''):
             message += msdownload % 8279
         elif version >= 14.0:
             # For VC++ 14.X Redirect user to latest Visual C++ Build Tools
-            message += (' Get it with "Build Tools for Visual Studio": '
-                        r'https://visualstudio.microsoft.com/downloads/')
+            message += (' Get it with "Microsoft C++ Build Tools": '
+                        r'https://visualstudio.microsoft.com'
+                        r'/visual-cpp-build-tools/')
 
     exc.args = (message, )
 
@@ -643,8 +642,10 @@ class RegistryInfo:
         """
         key_read = winreg.KEY_READ
         openkey = winreg.OpenKey
+        closekey = winreg.CloseKey
         ms = self.microsoft
         for hkey in self.HKEYS:
+            bkey = None
             try:
                 bkey = openkey(hkey, ms(key), 0, key_read)
             except (OSError, IOError):
@@ -659,6 +660,9 @@ class RegistryInfo:
                 return winreg.QueryValueEx(bkey, name)[0]
             except (OSError, IOError):
                 pass
+            finally:
+                if bkey:
+                    closekey(bkey)
 
 
 class SystemInfo:
@@ -726,21 +730,22 @@ class SystemInfo:
                     bkey = winreg.OpenKey(hkey, ms(key), 0, winreg.KEY_READ)
                 except (OSError, IOError):
                     continue
-                subkeys, values, _ = winreg.QueryInfoKey(bkey)
-                for i in range(values):
-                    try:
-                        ver = float(winreg.EnumValue(bkey, i)[0])
-                        if ver not in vs_vers:
-                            vs_vers.append(ver)
-                    except ValueError:
-                        pass
-                for i in range(subkeys):
-                    try:
-                        ver = float(winreg.EnumKey(bkey, i))
-                        if ver not in vs_vers:
-                            vs_vers.append(ver)
-                    except ValueError:
-                        pass
+                with bkey:
+                    subkeys, values, _ = winreg.QueryInfoKey(bkey)
+                    for i in range(values):
+                        try:
+                            ver = float(winreg.EnumValue(bkey, i)[0])
+                            if ver not in vs_vers:
+                                vs_vers.append(ver)
+                        except ValueError:
+                            pass
+                    for i in range(subkeys):
+                        try:
+                            ver = float(winreg.EnumKey(bkey, i))
+                            if ver not in vs_vers:
+                                vs_vers.append(ver)
+                        except ValueError:
+                            pass
         return sorted(vs_vers)
 
     def find_programdata_vs_vers(self):
@@ -1814,7 +1819,7 @@ class EnvironmentInfo:
         seen = set()
         seen_add = seen.add
         if key is None:
-            for element in filterfalse(seen.__contains__, iterable):
+            for element in itertools.filterfalse(seen.__contains__, iterable):
                 seen_add(element)
                 yield element
         else:

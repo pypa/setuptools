@@ -8,16 +8,11 @@ from distutils.errors import DistutilsError, DistutilsOptionError
 from distutils import log
 from unittest import TestLoader
 
-from setuptools.extern import six
-from setuptools.extern.six.moves import map, filter
-
 from pkg_resources import (resource_listdir, resource_exists, normalize_path,
                            working_set, _namespace_packages, evaluate_marker,
                            add_activation_listener, require, EntryPoint)
 from setuptools import Command
 from .build_py import _unique_everseen
-
-__metaclass__ = type
 
 
 class ScanningLoader(TestLoader):
@@ -129,8 +124,7 @@ class test(Command):
 
     @contextlib.contextmanager
     def project_on_sys_path(self, include_dists=[]):
-        with_2to3 = not six.PY2 and getattr(
-            self.distribution, 'use_2to3', False)
+        with_2to3 = getattr(self.distribution, 'use_2to3', False)
 
         if with_2to3:
             # If we run 2to3 we can not do this inplace:
@@ -241,7 +235,7 @@ class test(Command):
         # Purge modules under test from sys.modules. The test loader will
         # re-import them from the build location. Required when 2to3 is used
         # with namespace packages.
-        if not six.PY2 and getattr(self.distribution, 'use_2to3', False):
+        if getattr(self.distribution, 'use_2to3', False):
             module = self.test_suite.split('.')[0]
             if module in _namespace_packages:
                 del_modules = []

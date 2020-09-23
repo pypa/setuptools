@@ -3,7 +3,6 @@ import pickle
 
 from setuptools import Distribution
 from setuptools.extern import ordered_set
-from setuptools.tests import py3_only
 
 
 def test_reimport_extern():
@@ -17,6 +16,5 @@ def test_orderedset_pickle_roundtrip():
     assert o1 == o2
 
 
-@py3_only
 def test_distribution_picklable():
     pickle.loads(pickle.dumps(Distribution()))

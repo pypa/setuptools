@@ -11,8 +11,8 @@ import subprocess
 import functools
 import tarfile
 import zipfile
+import urllib.request
 
-from setuptools.extern.six.moves import urllib
 import pytest
 
 from setuptools.command.easy_install import easy_install

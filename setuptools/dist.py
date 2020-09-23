@@ -23,10 +23,8 @@ from distutils.errors import DistutilsOptionError, DistutilsSetupError
 from distutils.util import rfc822_escape
 from distutils.version import StrictVersion
 
-from setuptools.extern import six
 from setuptools.extern import packaging
 from setuptools.extern import ordered_set
-from setuptools.extern.six.moves import map, filter, filterfalse
 
 from . import SetuptoolsDeprecationWarning
 
@@ -126,12 +124,8 @@ def write_pkg_file(self, file):
     """
     version = self.get_metadata_version()
 
-    if six.PY2:
-        def write_field(key, value):
-            file.write("%s: %s\n" % (key, self._encode_field(value)))
-    else:
-        def write_field(key, value):
-            file.write("%s: %s\n" % (key, value))
+    def write_field(key, value):
+        file.write("%s: %s\n" % (key, value))
 
     write_field('Metadata-Version', str(version))
     write_field('Name', self.get_name())
@@ -204,11 +198,11 @@ def check_importable(dist, attr, value):
     try:
         ep = pkg_resources.EntryPoint.parse('x=' + value)
         assert not ep.extras
-    except (TypeError, ValueError, AttributeError, AssertionError):
+    except (TypeError, ValueError, AttributeError, AssertionError) as e:
         raise DistutilsSetupError(
             "%r must be importable 'module:attrs' string (got %r)"
             % (attr, value)
-        )
+        ) from e
 
 
 def assert_string_list(dist, attr, value):
@@ -219,10 +213,10 @@ def assert_string_list(dist, attr, value):
         assert isinstance(value, (list, tuple))
         # verify that elements of value are strings
         assert ''.join(value) != value
-    except (TypeError, ValueError, AttributeError, AssertionError):
+    except (TypeError, ValueError, AttributeError, AssertionError) as e:
         raise DistutilsSetupError(
             "%r must be a list of strings (got %r)" % (attr, value)
-        )
+        ) from e
 
 
 def check_nsp(dist, attr, value):
@@ -247,12 +241,12 @@ def check_extras(dist, attr, value):
     """Verify that extras_require mapping is valid"""
     try:
         list(itertools.starmap(_check_extra, value.items()))
-    except (TypeError, ValueError, AttributeError):
+    except (TypeError, ValueError, AttributeError) as e:
         raise DistutilsSetupError(
             "'extras_require' must be a dictionary whose values are "
             "strings or lists of strings containing valid project/version "
             "requirement specifiers."
-        )
+        ) from e
 
 
 def _check_extra(extra, reqs):
@@ -280,7 +274,9 @@ def check_requirements(dist, attr, value):
             "{attr!r} must be a string or list of strings "
             "containing valid project/version requirement specifiers; {error}"
         )
-        raise DistutilsSetupError(tmpl.format(attr=attr, error=error))
+        raise DistutilsSetupError(
+            tmpl.format(attr=attr, error=error)
+        ) from error
 
 
 def check_specifier(dist, attr, value):
@@ -292,7 +288,9 @@ def check_specifier(dist, attr, value):
             "{attr!r} must be a string "
             "containing valid version specifiers; {error}"
         )
-        raise DistutilsSetupError(tmpl.format(attr=attr, error=error))
+        raise DistutilsSetupError(
+            tmpl.format(attr=attr, error=error)
+        ) from error
 
 
 def check_entry_points(dist, attr, value):
@@ -300,11 +298,11 @@ def check_entry_points(dist, attr, value):
     try:
         pkg_resources.EntryPoint.parse_map(value)
     except ValueError as e:
-        raise DistutilsSetupError(e)
+        raise DistutilsSetupError(e) from e
 
 
 def check_test_suite(dist, attr, value):
-    if not isinstance(value, six.string_types):
+    if not isinstance(value, str):
         raise DistutilsSetupError("test_suite must be a string")
 
 
@@ -315,7 +313,7 @@ def check_package_data(dist, attr, value):
             "{!r} must be a dictionary mapping package names to lists of "
             "string wildcard patterns".format(attr))
     for k, v in value.items():
-        if not isinstance(k, six.string_types):
+        if not isinstance(k, str):
             raise DistutilsSetupError(
                 "keys of {!r} dict must be strings (got {!r})"
                 .format(attr, k)
@@ -533,7 +531,7 @@ class Distribution(_Distribution):
         spec_inst_reqs = getattr(self, 'install_requires', None) or ()
         inst_reqs = list(pkg_resources.parse_requirements(spec_inst_reqs))
         simple_reqs = filter(is_simple_req, inst_reqs)
-        complex_reqs = filterfalse(is_simple_req, inst_reqs)
+        complex_reqs = itertools.filterfalse(is_simple_req, inst_reqs)
         self.install_requires = list(map(str, simple_reqs))
 
         for r in complex_reqs:
@@ -556,10 +554,10 @@ class Distribution(_Distribution):
         this method provides the same functionality in subtly-improved
         ways.
         """
-        from setuptools.extern.six.moves.configparser import ConfigParser
+        from configparser import ConfigParser
 
         # Ignore install directory options if we have a venv
-        if not six.PY2 and sys.prefix != sys.base_prefix:
+        if sys.prefix != sys.base_prefix:
             ignore_options = [
                 'install-base', 'install-platbase', 'install-lib',
                 'install-platlib', 'install-purelib', 'install-headers',
@@ -581,14 +579,14 @@ class Distribution(_Distribution):
             with io.open(filename, encoding='utf-8') as reader:
                 if DEBUG:
                     self.announce("  reading {filename}".format(**locals()))
-                (parser.readfp if six.PY2 else parser.read_file)(reader)
+                parser.read_file(reader)
             for section in parser.sections():
                 options = parser.options(section)
                 opt_dict = self.get_option_dict(section)
 
                 for opt in options:
                     if opt != '__name__' and opt not in ignore_options:
-                        val = self._try_str(parser.get(section, opt))
+                        val = parser.get(section, opt)
                         opt = opt.replace('-', '_')
                         opt_dict[opt] = (filename, val)
 
@@ -609,28 +607,8 @@ class Distribution(_Distribution):
                         setattr(self, opt, strtobool(val))
                     else:
                         setattr(self, opt, val)
-                except ValueError as msg:
-                    raise DistutilsOptionError(msg)
-
-    @staticmethod
-    def _try_str(val):
-        """
-        On Python 2, much of distutils relies on string values being of
-        type 'str' (bytes) and not unicode text. If the value can be safely
-        encoded to bytes using the default encoding, prefer that.
-
-        Why the default encoding? Because that value can be implicitly
-        decoded back to text if needed.
-
-        Ref #1653
-        """
-        if not six.PY2:
-            return val
-        try:
-            return val.encode()
-        except UnicodeEncodeError:
-            pass
-        return val
+                except ValueError as e:
+                    raise DistutilsOptionError(e) from e
 
     def _set_command_options(self, command_obj, option_dict=None):
         """
@@ -665,7 +643,7 @@ class Distribution(_Distribution):
                 neg_opt = {}
 
             try:
-                is_string = isinstance(value, six.string_types)
+                is_string = isinstance(value, str)
                 if option in neg_opt and is_string:
                     setattr(command_obj, neg_opt[option], not strtobool(value))
                 elif option in bool_opts and is_string:
@@ -676,8 +654,8 @@ class Distribution(_Distribution):
                     raise DistutilsOptionError(
                         "error in %s: command '%s' has no such option '%s'"
                         % (source, command_name, option))
-            except ValueError as msg:
-                raise DistutilsOptionError(msg)
+            except ValueError as e:
+                raise DistutilsOptionError(e) from e
 
     def parse_config_files(self, filenames=None, ignore_option_errors=False):
         """Parses configuration files from various levels
@@ -843,10 +821,10 @@ class Distribution(_Distribution):
             )
         try:
             old = getattr(self, name)
-        except AttributeError:
+        except AttributeError as e:
             raise DistutilsSetupError(
                 "%s: No such distribution setting" % name
-            )
+            ) from e
         if old is not None and not isinstance(old, sequence):
             raise DistutilsSetupError(
                 name + ": this setting cannot be changed via include/exclude"
@@ -863,10 +841,10 @@ class Distribution(_Distribution):
             )
         try:
             old = getattr(self, name)
-        except AttributeError:
+        except AttributeError as e:
             raise DistutilsSetupError(
                 "%s: No such distribution setting" % name
-            )
+            ) from e
         if old is None:
             setattr(self, name, value)
         elif not isinstance(old, sequence):
@@ -999,7 +977,7 @@ class Distribution(_Distribution):
         """
         import sys
 
-        if six.PY2 or self.help_commands:
+        if self.help_commands:
             return _Distribution.handle_display_options(self, option_order)
 
         # Stdout may be StringIO (e.g. in tests)

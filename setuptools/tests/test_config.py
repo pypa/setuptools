@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 import contextlib
+import configparser
 
 import pytest
 
@@ -9,9 +7,6 @@ from distutils.errors import DistutilsOptionError, DistutilsFileError
 from mock import patch
 from setuptools.dist import Distribution, _Distribution
 from setuptools.config import ConfigHandler, read_configuration
-from setuptools.extern.six.moves import configparser
-from setuptools.extern import six
-from . import py2_only, py3_only
 from .textwrap import DALS
 
 
@@ -310,10 +305,6 @@ class TestMetadata:
         )
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '2016.11.26'
-
-        if six.PY2:
-            # static version loading is unsupported on Python 2
-            return
 
         config.write(
             '[metadata]\n'
@@ -719,19 +710,6 @@ class TestOptions:
             assert set(dist.packages) == set(
                 ['fake_package', 'fake_package.sub_two'])
 
-    @py2_only
-    def test_find_namespace_directive_fails_on_py2(self, tmpdir):
-        dir_package, config = fake_env(
-            tmpdir,
-            '[options]\n'
-            'packages = find_namespace:\n'
-        )
-
-        with pytest.raises(DistutilsOptionError):
-            with get_dist(tmpdir) as dist:
-                dist.parse_config_files()
-
-    @py3_only
     def test_find_namespace_directive(self, tmpdir):
         dir_package, config = fake_env(
             tmpdir,

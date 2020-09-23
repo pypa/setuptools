@@ -1,0 +1,8 @@
+[run]
+source=
+	pkg_resources
+	setuptools
+omit=
+	*/_vendor/*
+
+[report]

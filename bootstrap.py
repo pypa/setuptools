@@ -5,8 +5,6 @@ environment by creating a minimal egg-info directory and then invoking the
 egg-info command to flesh out the egg-info directory.
 """
 
-from __future__ import unicode_literals
-
 import os
 import sys
 import textwrap

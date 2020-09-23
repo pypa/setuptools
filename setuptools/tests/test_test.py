@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import unicode_literals
-
 import mock
 from distutils import log
 import os
@@ -110,7 +106,6 @@ def test_tests_are_run_once(capfd):
     with open('dummy/test_dummy.py', 'wt') as f:
         f.write(DALS(
             """
-            from __future__ import print_function
             import unittest
             class TestTest(unittest.TestCase):
                 def test_test(self):

@@ -101,7 +101,7 @@ link_files = {
                 url='http://bugs.jython.org/issue{jython}',
             ),
             dict(
-                pattern=r'Python #(?P<python>\d+)',
+                pattern=r'(Python #|bpo-)(?P<python>\d+)',
                 url='http://bugs.python.org/issue{python}',
             ),
             dict(
@@ -127,6 +127,10 @@ link_files = {
             dict(
                 pattern=r'setuptools_svn #(?P<setuptools_svn>\d+)',
                 url='{GH}/jaraco/setuptools_svn/issues/{setuptools_svn}',
+            ),
+            dict(
+                pattern=r'pypa/distutils#(?P<distutils>\d+)',
+                url='{GH}/pypa/distutils/issues/{distutils}',
             ),
             dict(
                 pattern=r'^(?m)((?P<scm_version>v?\d+(\.\d+){1,2}))\n[-=]+\n',

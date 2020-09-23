@@ -12,7 +12,7 @@ def remove_setuptools():
     cmd = [sys.executable, '-m', 'pip', 'uninstall', '-y', 'setuptools']
     # set cwd to something other than '.' to avoid detecting
     # '.' as the installed package.
-    subprocess.check_call(cmd, cwd='.tox')
+    subprocess.check_call(cmd, cwd=os.environ['TOX_WORK_DIR'])
 
 
 def bootstrap():
@@ -56,24 +56,12 @@ def test_dependencies():
     return filter(None, map(clean, raw))
 
 
-def disable_python_requires():
-    """
-    On Python 2, install the dependencies that are selective
-    on Python version while honoring REQUIRES_PYTHON, then
-    disable REQUIRES_PYTHON so that pip can install this
-    checkout of setuptools.
-    """
-    pip('install', *test_dependencies())
-    os.environ['PIP_IGNORE_REQUIRES_PYTHON'] = 'true'
-
-
 def run(args):
     os.environ['PIP_USE_PEP517'] = 'true'
 
     if is_install_self(args):
         remove_setuptools()
         bootstrap()
-        sys.version_info > (3,) or disable_python_requires()
 
     pip(*args)
 

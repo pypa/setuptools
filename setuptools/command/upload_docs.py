@@ -15,17 +15,15 @@ import tempfile
 import shutil
 import itertools
 import functools
-
-from setuptools.extern import six
-from setuptools.extern.six.moves import http_client, urllib
+import http.client
+import urllib.parse
 
 from pkg_resources import iter_entry_points
 from .upload import upload
 
 
 def _encode(s):
-    errors = 'strict' if six.PY2 else 'surrogateescape'
-    return s.encode('utf-8', errors)
+    return s.encode('utf-8', 'surrogateescape')
 
 
 class upload_docs(upload):
@@ -152,9 +150,7 @@ class upload_docs(upload):
         }
         # set up the authentication
         credentials = _encode(self.username + ':' + self.password)
-        credentials = standard_b64encode(credentials)
-        if not six.PY2:
-            credentials = credentials.decode('ascii')
+        credentials = standard_b64encode(credentials).decode('ascii')
         auth = "Basic " + credentials
 
         body, ct = self._build_multipart(data)
@@ -169,9 +165,9 @@ class upload_docs(upload):
             urllib.parse.urlparse(self.repository)
         assert not params and not query and not fragments
         if schema == 'http':
-            conn = http_client.HTTPConnection(netloc)
+            conn = http.client.HTTPConnection(netloc)
         elif schema == 'https':
-            conn = http_client.HTTPSConnection(netloc)
+            conn = http.client.HTTPSConnection(netloc)
         else:
             raise AssertionError("unsupported schema " + schema)
 

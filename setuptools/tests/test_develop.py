@@ -1,8 +1,6 @@
 """develop tests
 """
 
-from __future__ import absolute_import, unicode_literals
-
 import os
 import site
 import sys
@@ -10,7 +8,6 @@ import io
 import subprocess
 import platform
 
-from setuptools.extern import six
 from setuptools.command import test
 
 import pytest
@@ -97,7 +94,7 @@ class TestDevelop:
         with io.open(fn) as init_file:
             init = init_file.read().strip()
 
-        expected = 'print "foo"' if six.PY2 else 'print("foo")'
+        expected = 'print("foo")'
         assert init == expected
 
     def test_console_scripts(self, tmpdir):
@@ -163,7 +160,7 @@ class TestNamespaces:
         reason="https://github.com/pypa/setuptools/issues/851",
     )
     @pytest.mark.skipif(
-        platform.python_implementation() == 'PyPy' and not six.PY2,
+        platform.python_implementation() == 'PyPy',
         reason="https://github.com/pypa/setuptools/issues/1202",
     )
     def test_namespace_package_importable(self, tmpdir):

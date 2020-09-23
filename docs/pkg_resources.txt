@@ -594,7 +594,7 @@ Requirements Parsing
 
         FooProject >= 1.2
         Fizzy [foo, bar]
-        PickyThing<1.6,>1.9,!=1.9.6,<2.0a0,==2.4c1
+        PickyThing>1.6,<=1.9,!=1.8.6
         SomethingWhoseVersionIDontCareAbout
         SomethingWithMarker[foo]>1.0;python_version<"2.7"
 
@@ -1596,12 +1596,12 @@ Parsing Utilities
     See ``to_filename()``.
 
 ``safe_version(version)``
-    This will return the normalized form of any PEP 440 version, if the version
-    string is not PEP 440 compatible than it is similar to ``safe_name()``
-    except that spaces in the input become dots, and dots are allowed to exist
-    in the output.  As with ``safe_name()``, if you are generating a filename
-    from this you should replace any "-" characters in the output with
-    underscores.
+    This will return the normalized form of any PEP 440 version. If the version
+    string is not PEP 440 compatible, this function behaves similar to
+    ``safe_name()`` except that spaces in the input become dots, and dots are
+    allowed to exist in the output.  As with ``safe_name()``, if you are
+    generating a filename from this you should replace any "-" characters in
+    the output with underscores.
 
 ``safe_extra(extra)``
     Return a "safe" form of an extra's name, suitable for use in a requirement

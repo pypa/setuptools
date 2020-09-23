@@ -5,7 +5,7 @@ import sys
 import io
 import contextlib
 
-from setuptools.extern import six, ordered_set
+from setuptools.extern import ordered_set
 
 from .py36compat import sdist_add_defaults
 
@@ -98,34 +98,8 @@ class sdist(sdist_add_defaults, orig.sdist):
             if orig_val is not NoValue:
                 setattr(os, 'link', orig_val)
 
-    def __read_template_hack(self):
-        # This grody hack closes the template file (MANIFEST.in) if an
-        #  exception occurs during read_template.
-        # Doing so prevents an error when easy_install attempts to delete the
-        #  file.
-        try:
-            orig.sdist.read_template(self)
-        except Exception:
-            _, _, tb = sys.exc_info()
-            tb.tb_next.tb_frame.f_locals['template'].close()
-            raise
-
-    # Beginning with Python 2.7.2, 3.1.4, and 3.2.1, this leaky file handle
-    #  has been fixed, so only override the method if we're using an earlier
-    #  Python.
-    has_leaky_handle = (
-        sys.version_info < (2, 7, 2)
-        or (3, 0) <= sys.version_info < (3, 1, 4)
-        or (3, 2) <= sys.version_info < (3, 2, 1)
-    )
-    if has_leaky_handle:
-        read_template = __read_template_hack
-
     def _add_defaults_optional(self):
-        if six.PY2:
-            sdist_add_defaults._add_defaults_optional(self)
-        else:
-            super()._add_defaults_optional()
+        super()._add_defaults_optional()
         if os.path.isfile('pyproject.toml'):
             self.filelist.append('pyproject.toml')
 
@@ -158,10 +132,7 @@ class sdist(sdist_add_defaults, orig.sdist):
 
     def _add_defaults_data_files(self):
         try:
-            if six.PY2:
-                sdist_add_defaults._add_defaults_data_files(self)
-            else:
-                super()._add_defaults_data_files()
+            super()._add_defaults_data_files()
         except TypeError:
             log.warn("data_files contains unexpected objects")
 
@@ -207,12 +178,11 @@ class sdist(sdist_add_defaults, orig.sdist):
         manifest = open(self.manifest, 'rb')
         for line in manifest:
             # The manifest must contain UTF-8. See #303.
-            if not six.PY2:
-                try:
-                    line = line.decode('UTF-8')
-                except UnicodeDecodeError:
-                    log.warn("%r not UTF-8 decodable -- skipping" % line)
-                    continue
+            try:
+                line = line.decode('UTF-8')
+            except UnicodeDecodeError:
+                log.warn("%r not UTF-8 decodable -- skipping" % line)
+                continue
             # ignore comments and blank lines
             line = line.strip()
             if line.startswith('#') or not line:
