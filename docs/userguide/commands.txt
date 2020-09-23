@@ -521,7 +521,7 @@ result (which must be a ``unittest.TestSuite``) is added to the tests to be
 run.  If the named suite is a package, any submodules and subpackages are
 recursively added to the overall test suite.  (Note: if your project specifies
 a ``test_loader``, the rules for processing the chosen ``test_suite`` may
-differ; see the `test_loader`_ documentation for more details.)
+differ; see the :ref:`test_loader <test_loader>` documentation for more details.)
 
 Note that many test systems including ``doctest`` support wrapping their
 non-``unittest`` tests in ``TestSuite`` objects.  So, if you are using a test
@@ -563,4 +563,4 @@ The ``upload`` command was deprecated in version 40.0 and removed in version
 For  more information on the current best practices in uploading your packages
 to PyPI, see the Python Packaging User Guide's "Packaging Python Projects"
 tutorial specifically the section on `uploading the distribution archives
-<https://packaging.python.org/tutorials/packaging-projects/#uploading-the-distribution-archives>`_. 
+<https://packaging.python.org/tutorials/packaging-projects/#uploading-the-distribution-archives>`_.

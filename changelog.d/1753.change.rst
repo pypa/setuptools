@@ -1,4 +1,0 @@
-``attr:`` now extracts variables through rudimentary examination of the AST,
-thereby supporting modules with third-party imports.  If examining the AST
-fails to find the variable, ``attr:`` falls back to the old behavior of
-importing the module.

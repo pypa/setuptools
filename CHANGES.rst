@@ -1,3 +1,12 @@
+v46.4.0
+-------
+
+* #1753: ``attr:`` now extracts variables through rudimentary examination of the AST,
+  thereby supporting modules with third-party imports. If examining the AST
+  fails to find the variable, ``attr:`` falls back to the old behavior of
+  importing the module. Works on Python 3 only.
+
+
 v46.3.1
 -------
 
