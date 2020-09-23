@@ -1,3 +1,29 @@
+v46.3.1
+-------
+
+No significant changes.
+
+
+v46.3.0
+-------
+
+* #2089: Package index functionality no longer attempts to remove an md5 fragment from the index URL. This functionality, added for distribute #163 is no longer relevant.
+* #2041: Preserve file modes during pkg files copying, but clear read only flag for target afterwards.
+* #2105: Filter ``2to3`` deprecation warnings from ``TestDevelop.test_2to3_user_mode``.
+
+
+v46.2.0
+-------
+
+* #2040: Deprecated the ``bdist_wininst`` command. Binary packages should be built as wheels instead.
+* #2062: Change 'Mac OS X' to 'macOS' in code.
+* #2075: Stop recognizing files ending with ``.dist-info`` as distribution metadata.
+* #2086: Deprecate 'use_2to3' functionality. Packagers are encouraged to use single-source solutions or build tool chains to manage conversions outside of setuptools.
+* #1698: Added documentation for ``build_meta`` (a bare minimum, not completed).
+* #2082: Filter ``lib2to3`` ``PendingDeprecationWarning`` and ``DeprecationWarning`` in tests,
+  because ``lib2to3`` is `deprecated in Python 3.9 <https://bugs.python.org/issue40360>`_.
+
+
 v46.1.3
 -------
 

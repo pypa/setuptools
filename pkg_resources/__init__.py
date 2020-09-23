@@ -55,7 +55,7 @@ except NameError:
     FileExistsError = OSError
 
 from pkg_resources.extern import six
-from pkg_resources.extern.six.moves import urllib, map, filter
+from pkg_resources.extern.six.moves import map, filter
 
 # capture these to bypass sandboxing
 from os import utime
@@ -2069,11 +2069,14 @@ def find_on_path(importer, path_item, only=False):
 
 
 def dist_factory(path_item, entry, only):
-    """
-    Return a dist_factory for a path_item and entry
-    """
+    """Return a dist_factory for the given entry."""
     lower = entry.lower()
-    is_meta = any(map(lower.endswith, ('.egg-info', '.dist-info')))
+    is_egg_info = lower.endswith('.egg-info')
+    is_dist_info = (
+        lower.endswith('.dist-info') and
+        os.path.isdir(os.path.join(path_item, entry))
+    )
+    is_meta = is_egg_info or is_dist_info
     return (
         distributions_from_metadata
         if is_meta else
@@ -2543,15 +2546,6 @@ class EntryPoint:
         return maps
 
 
-def _remove_md5_fragment(location):
-    if not location:
-        return ''
-    parsed = urllib.parse.urlparse(location)
-    if parsed[-1].startswith('md5='):
-        return urllib.parse.urlunparse(parsed[:-1] + ('',))
-    return location
-
-
 def _version_from_file(lines):
     """
     Given an iterable of lines from a Metadata file, return
@@ -2608,7 +2602,7 @@ class Distribution:
             self.parsed_version,
             self.precedence,
             self.key,
-            _remove_md5_fragment(self.location),
+            self.location,
             self.py_version or '',
             self.platform or '',
         )

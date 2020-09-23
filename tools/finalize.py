@@ -60,8 +60,22 @@ def ensure_config():
     subprocess.check_output(['git', 'config', 'user.email'])
 
 
+def check_changes():
+    """
+    Verify that all of the files in changelog.d have the appropriate
+    names.
+    """
+    allowed = 'deprecation', 'breaking', 'change', 'doc', 'misc'
+    assert all(
+        any(key in file.name for key in allowed)
+        for file in pathlib.Path('changelog.d').iterdir()
+        if file.name != '.gitignore'
+    )
+
+
 if __name__ == '__main__':
     print("Cutting release at", get_version())
     ensure_config()
+    check_changes()
     update_changelog()
     bump_version()

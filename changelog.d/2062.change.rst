@@ -1,1 +1,0 @@
-Change 'Mac OS X' to 'macOS' in code.

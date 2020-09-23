@@ -2,3 +2,6 @@
 sphinx
 jaraco.packaging>=6.1
 rst.linker>=1.9
+pygments-github-lexers==0.0.5
+
+setuptools>=34

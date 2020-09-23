@@ -1,1 +1,0 @@
-Deprecated the ``bdist_wininst`` command. Binary packages should be built as wheels instead.

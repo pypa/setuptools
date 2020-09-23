@@ -738,7 +738,7 @@ class TestSetupRequires:
                 dep_2_0_url=dep_2_0_url,
                 dep_2_0_sdist=dep_2_0_sdist,
                 dep_2_0_python_requires=dep_2_0_python_requires,
-            ), 'utf-8')
+        ), 'utf-8')
         index_url = path_to_url(str(index))
         with contexts.save_pkg_resources_state():
             test_pkg = create_setup_requires_package(
