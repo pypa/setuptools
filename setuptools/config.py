@@ -1,4 +1,5 @@
 from __future__ import absolute_import, unicode_literals
+import ast
 import io
 import os
 import sys
@@ -344,14 +345,50 @@ class ConfigHandler:
             elif '' in package_dir:
                 # A custom parent directory was specified for all root modules
                 parent_path = os.path.join(os.getcwd(), package_dir[''])
-        sys.path.insert(0, parent_path)
-        try:
-            module = import_module(module_name)
-            value = getattr(module, attr_name)
 
-        finally:
-            sys.path = sys.path[1:]
-
+        fpath = os.path.join(parent_path, *module_name.split('.'))
+        if os.path.exists(fpath + '.py'):
+            fpath += '.py'
+        elif os.path.isdir(fpath):
+            fpath = os.path.join(fpath, '__init__.py')
+        else:
+            raise DistutilsOptionError('Could not find module ' + module_name)
+        with open(fpath, 'rb') as fp:
+            src = fp.read()
+        found = False
+        top_level = ast.parse(src)
+        for statement in top_level.body:
+            if isinstance(statement, ast.Assign):
+                for target in statement.targets:
+                    if isinstance(target, ast.Name) \
+                            and target.id == attr_name:
+                        try:
+                            value = ast.literal_eval(statement.value)
+                        except ValueError:
+                            found = False
+                        else:
+                            found = True
+                    elif isinstance(target, ast.Tuple) \
+                        and any(isinstance(t, ast.Name) and t.id == attr_name
+                                for t in target.elts):
+                        try:
+                            stmnt_value = ast.literal_eval(statement.value)
+                        except ValueError:
+                            found = False
+                        else:
+                            for t, v in zip(target.elts, stmnt_value):
+                                if isinstance(t, ast.Name) \
+                                        and t.id == attr_name:
+                                    value = v
+                                    found = True
+        if not found:
+            # Fall back to extracting attribute via importing
+            sys.path.insert(0, parent_path)
+            try:
+                module = import_module(module_name)
+                value = getattr(module, attr_name)
+            finally:
+                sys.path = sys.path[1:]
         return value
 
     @classmethod

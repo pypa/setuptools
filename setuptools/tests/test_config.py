@@ -103,7 +103,7 @@ class TestConfigurationReader:
             'version = attr: none.VERSION\n'
             'keywords = one, two\n'
         )
-        with pytest.raises(ImportError):
+        with pytest.raises(DistutilsOptionError):
             read_configuration('%s' % config)
 
         config_dict = read_configuration(
@@ -292,6 +292,18 @@ class TestMetadata:
         subpack = tmpdir.join('fake_package').mkdir('subpackage')
         subpack.join('__init__.py').write('')
         subpack.join('submodule.py').write('VERSION = (2016, 11, 26)')
+
+        config.write(
+            '[metadata]\n'
+            'version = attr: fake_package.subpackage.submodule.VERSION\n'
+        )
+        with get_dist(tmpdir) as dist:
+            assert dist.metadata.version == '2016.11.26'
+
+        subpack.join('submodule.py').write(
+            'import third_party_module\n'
+            'VERSION = (2016, 11, 26)'
+        )
 
         config.write(
             '[metadata]\n'
