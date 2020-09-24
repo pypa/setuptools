@@ -7,13 +7,8 @@ designed to facilitate packaging Python projects.
 Documentation content:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
-   setuptools
-   pkg_resources
-   python3
-   development
-   roadmap
-   Deprecated: Easy Install <easy_install>
-   distutils-legacy
-   history
+   User guide <userguide/index>
+   Development guide <development>
+   Backward compatibility & deprecated practice <deprecated/index>

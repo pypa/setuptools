@@ -1,0 +1,210 @@
+==========================
+``setuptools`` Quickstart
+==========================
+
+.. contents::
+
+Installation
+============
+
+To install the latest version of setuptools, use::
+
+    pip install --upgrade setuptools
+
+
+Python packaging at a glance
+============================
+The landscape of Python packaging is shifting and ``Setuptools`` has evolved to
+only provide backend support, no longer being the de-facto packaging tool in
+the market. All python package must provide a ``pyproject.toml`` and specify
+the backend (build system) it wants to use. The distribution can then
+be generated with whatever tools that provides a ``build sdist``-alike
+functionality. While this may appear cumbersome, given the added pieces,
+it in fact tremendously enhances the portability of your package. The
+change is driven under `PEP 517 <https://www.python.org/dev/peps/pep-0517/#
+build-requirements>``. To learn more about Python packaging in general,
+navigate to the `bottom <Resources on python packaging>`_ of this page.
+
+
+Basic Use
+=========
+For basic use of setuptools, you will need a ``pyproject.toml`` with the
+exact following info, which declares you want to use ``setuptools`` to
+package your project:
+
+.. code-block:: toml
+
+    [build-system]
+    requires = ["setuptools", "wheel"]
+    build-backend = "setuptools.build_meta"
+
+Then, you will need a ``setup.cfg`` to specify your package information,
+such as metadata, contents, dependencies, etc. Here we demonstrate the minimum
+
+.. code-block:: ini
+
+    [metadata]
+    name = "mypackage"
+    version = 0.0.1
+
+    [options]
+    packages = "mypackage"
+    install_requires =
+      requests
+      importlib; python_version == "2.6"
+
+This is what your project would look like::
+
+    ~/mypackage/
+        pyproject.toml
+        setup.cfg
+        mypackage/__init__.py
+
+Then, you need an installer, such as `pep517 <https://pypi.org/project/pep517/>`_
+which you can obtain via ``pip install pep517``. After downloading it, invoke
+the installer::
+
+    python -m pep517.build
+
+You now have your distribution ready (e.g. a ``tar.gz`` file and a ``.whl``
+file in the ``dist`` directory), which you can upload to PyPI!
+
+Of course, before you release your project to PyPI, you'll want to add a bit
+more information to your setup script to help people find or learn about your
+project.  And maybe your project will have grown by then to include a few
+dependencies, and perhaps some data files and scripts. In the next few section,
+we will walk through those additional but essential information you need
+to specify to properly package your project.
+
+
+Automatic package discovery
+===========================
+For simple projects, it's usually easy enough to manually add packages to
+the ``packages`` keyword in ``setup.cfg``.  However, for very large projects
+, it can be a big burden to keep the package list updated. ``setuptools``
+therefore provides two convenient tools to ease the burden: ``find: `` and
+``find_namespace: ``. To use it in your project:
+
+.. code-block:: ini
+
+    [options]
+    packages = find:
+
+    [options.packages.find] #optional
+    include=pkg1, pkg2
+    exclude=pk3, pk4
+
+When you pass the above information, alongside other necessary ones,
+``setuptools`` walks through the directory specified in ``where`` (omitted
+here as the package reside in current directory) and filters the packages
+it can find following the ``include``  (default to none), then remove
+those that match the ``exclude`` and return a list of Python packages. Note
+that each entry in the ``[options.packages.find]`` is optional. The above
+setup also allows you to adopt a ``src/`` layout. For more details and advanced
+use, go to :ref:`package_discovery`
+
+
+Entry points and automatic script creation
+===========================================
+Setuptools support automatic creation of scripts upon installation, that runs
+code within your package if you specify them with the ``entry_point`` keyword.
+This is what allows you to run commands like ``pip install`` instead of having
+to type ``python -m pip install``. To accomplish this, add the entry_points
+keyword in your ``setup.cfg``:
+
+.. code-block:: ini
+
+    [options]
+    entry_points =
+        [console_script]
+        main = mypkg:some_func
+
+When this project is installed, a ``main`` script will be installed and will
+invoke the ``some_func`` in the ``__init__.py`` file when called by the user.
+For detailed usage, including managing the additional or optional dependencies,
+go to :ref:`entry_point`.
+
+
+Dependency management
+=====================
+``setuptools`` supports automatically installing dependencies when a package is
+installed. The simplest way to include requirement specifiers is to use the
+``install_requires`` argument to ``setup.cfg``.  It takes a string or list of
+strings containing requirement specifiers (A version specifier is one of the
+operators <, >, <=, >=, == or !=, followed by a version identifier):
+
+.. code-block:: ini
+
+    [options]
+    install_requires =
+        docutils >= 0.3
+        requests <= 0.4
+
+When your project is installed, all of the dependencies not already installed
+will be located (via PyPI), downloaded, built (if necessary), and installed.
+This, of course, is a simplified scenarios. ``setuptools`` also provide
+additional keywords such as ``setup_requires`` that allows you to install
+dependencies before running the script, and ``extras_requires`` that take
+care of those needed by automatically generated scripts. It also provides
+mechanisms to handle dependencies that are not in PyPI. For more advanced use,
+see :ref:`dependency_management`
+
+
+Including Data Files
+====================
+The distutils have traditionally allowed installation of "data files", which
+are placed in a platform-specific location. Setuptools offers three ways to
+specify data files to be included in your packages. For the simpliest use, you
+can simply use the ``include_package_data`` keyword:
+
+.. code-block:: ini
+
+    [options]
+    include_package_data = True
+
+This tells setuptools to install any data files it finds in your packages.
+The data files must be specified via the distutils' ``MANIFEST.in`` file.
+For more details, see :ref:`datafiles`
+
+
+Development mode
+================
+``setuptools`` allows you to install a package without copying any files
+to your interpretor directory (e.g. the ``site-packages`` directory). This
+allows you to modify your source code and have the changes take effect without
+you having to rebuild and reinstall. This is currently incompatible with
+PEP 517 and therefore it requires a ``setup.py`` script with the following
+content::
+
+    import setuptools
+    setuptools.setup()
+
+Then::
+
+    pip install --editable .
+
+This creates a link file in your interpretor site package directory which
+associate with your source code. For more information, see: (WIP)
+
+
+Uploading your package to PyPI
+==============================
+After generating the distribution files, next step would be to upload your
+distribution so others can use it. This functionality is provided by
+``twine <https://pypi.org/project/twine/>`` and we will only demonstrate the
+basic use here.
+
+
+Transitioning from ``setup.py`` to ``setup.cfg``
+==================================================
+To avoid executing arbitary scripts and boilerplate code, we are transitioning
+into a full-fledged ``setup.cfg`` to declare your package information instead
+of running ``setup()``. This inevitably brings challenges due to a different
+syntax. Here we provide a quick guide to understanding how ``setup.cfg`` is
+parsed by ``setuptool`` to ease the pain of transition.
+
+
+Resources on Python packaging
+=============================
+Packaging in Python is hard. Here we provide a list of links for those that
+want to learn more.
