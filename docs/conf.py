@@ -17,15 +17,8 @@ extensions = ['jaraco.packaging.sphinx', 'rst.linker']
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
-# The suffix of source filenames.
-source_suffix = '.txt'
-
 # The master toctree document.
 master_doc = 'index'
-
-# A list of glob-style patterns that should be excluded
-# when looking for source files.
-exclude_patterns = ['requirements.txt']
 
 # List of directories, relative to source directory, that shouldn't be searched
 # for source files.
