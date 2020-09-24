@@ -15,7 +15,7 @@ backend-path = ["."]
     title_format = "v{version}"
     issue_format = "#{issue}"
     template = "towncrier_template.rst"
-    underlines = ["-"]
+    underlines = ["-", "^"]
 
     [[tool.towncrier.type]]
         directory = "deprecation"
