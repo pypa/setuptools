@@ -16,7 +16,6 @@ jobs:
   - python: 3.9-dev
   - <<: *latest_py3
     env: TOXENV=docs
-    #PPC64LE
   - arch: ppc64le
     python: pypy3
   - arch: ppc64le
@@ -28,8 +27,6 @@ jobs:
     env: LANG=C
   - arch: ppc64le
     python: 3.9-dev
-  - <<: *latest_py3_ppc
-    env: TOXENV=docs
   allow_failures:
   # suppress failures due to pypa/setuptools#2000
   - python: pypy3
@@ -37,14 +34,12 @@ jobs:
     python: pypy3
   - <<: *latest_py3
     env: TOXENV=docs
-  - <<: *latest_py3_ppc
-    env: TOXENV=docs
 
 
 cache: pip
 
 before_install:
-# Fix for PPC64LE, where permissions are fixed to allow tox/pip to install packages. 
+# Fix for PPC64LE, where permissions are fixed to allow tox/pip to install packages.
 # As travis base images for PPC64LE except for bionic, do not have this fix.
   - |
     if [[ "$TRAVIS_CPU_ARCH" == "ppc64le" ]]; then
