@@ -16,6 +16,11 @@ collect_ignore = [
     'setuptools/tests/mod_with_constant.py',
     'setuptools/_distutils',
     '_distutils_hack',
+    'setuptools/extern',
+    'pkg_resources/extern',
+    'pkg_resources/tests/data',
+    'setuptools/_vendor',
+    'pkg_resources/_vendor',
 ]
 
 
