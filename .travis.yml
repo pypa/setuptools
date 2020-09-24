@@ -39,9 +39,12 @@ jobs:
 cache: pip
 
 before_install:
-# Fix for PPC64LE, where permissions are fixed to allow tox/pip to install packages.
-# As travis base images for PPC64LE except for bionic, do not have this fix.
   - |
+    # Except on bionic, Travis Linux base image for PPC64LE
+    # platform lacks the proper
+    # permissions to the directory ~/.cache/pip/wheels that allow
+    # the user running travis build to install pip packages.
+    # TODO: is someone tracking this issue? Maybe just move to bionic?
     if [[ "$TRAVIS_CPU_ARCH" == "ppc64le" ]]; then
       sudo chown -Rfv $USER:$GROUP ~/.cache/pip/wheels
     fi
