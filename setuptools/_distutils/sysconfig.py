@@ -97,9 +97,9 @@ def get_python_inc(plat_specific=0, prefix=None):
     If 'prefix' is supplied, use it instead of sys.base_prefix or
     sys.base_exec_prefix -- i.e., ignore 'plat_specific'.
     """
-    if prefix is None:
-        prefix = plat_specific and BASE_EXEC_PREFIX or BASE_PREFIX
     if IS_PYPY:
+        if prefix is None:
+            prefix = plat_specific and BASE_EXEC_PREFIX or BASE_PREFIX
         return os.path.join(prefix, 'include')
     elif os.name == "posix":
         if python_build:
@@ -113,9 +113,17 @@ def get_python_inc(plat_specific=0, prefix=None):
             else:
                 incdir = os.path.join(get_config_var('srcdir'), 'Include')
                 return os.path.normpath(incdir)
-        python_dir = 'python' + get_python_version() + build_flags
-        return os.path.join(prefix, "include", python_dir)
+        if prefix is None:
+            if plat_specific:
+                return get_config_var('CONFINCLUDEPY')
+            else:
+                return get_config_var('INCLUDEPY')
+        else:
+            python_dir = 'python' + get_python_version() + build_flags
+            return os.path.join(prefix, "include", python_dir)
     elif os.name == "nt":
+        if prefix is None:
+            prefix = plat_specific and BASE_EXEC_PREFIX or BASE_PREFIX
         if python_build:
             # Include both the include and PC dir to ensure we can find
             # pyconfig.h
