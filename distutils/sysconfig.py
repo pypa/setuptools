@@ -116,7 +116,8 @@ def get_python_inc(plat_specific=0, prefix=None):
     If 'prefix' is supplied, use it instead of sys.base_prefix or
     sys.base_exec_prefix -- i.e., ignore 'plat_specific'.
     """
-    if prefix is None:
+    default_prefix = prefix is None
+    if default_prefix:
         prefix = plat_specific and BASE_EXEC_PREFIX or BASE_PREFIX
     if os.name == "posix":
         if IS_PYPY and sys.version_info < (3, 8):
@@ -132,6 +133,18 @@ def get_python_inc(plat_specific=0, prefix=None):
             else:
                 incdir = os.path.join(get_config_var('srcdir'), 'Include')
                 return os.path.normpath(incdir)
+        if default_prefix:
+            # If no prefix was explicitly specified, use the include
+            # directory from the config vars. This is useful when
+            # cross-compiling, since the config vars may come the host
+            # platform Python installation, while the current Python
+            # executable is from the build platform installation.
+            if plat_specific:
+                include_py = get_config_var('CONFINCLUDEPY')
+            else:
+                include_py = get_config_var('INCLUDEPY')
+            if include_py is not None:
+              return include_py
         implementation = 'pypy' if IS_PYPY else 'python'
         python_dir = implementation + get_python_version() + build_flags
         return os.path.join(prefix, "include", python_dir)
