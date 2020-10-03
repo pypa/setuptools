@@ -33,6 +33,8 @@ with ``__init__.py`` as:
 
 and ``__main__.py`` providing a hook:
 
+.. code-block:: python
+
     from . import hello_world
     if __name__ == '__main__':
         hello_world()
