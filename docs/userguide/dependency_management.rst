@@ -266,7 +266,7 @@ the two dependencies ``PDF`` maps to.
 
 The second use case is that other package can use this "extra" for their
 own dependencies. For example, if "Project-B" needs "project A" with PDF support
-installed, it might declare the dependency like this::
+installed, it might declare the dependency like this:
 
 .. code-block:: ini
 
