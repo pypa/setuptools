@@ -4,6 +4,7 @@ from fnmatch import fnmatchcase
 import functools
 import os
 import re
+from functools import singledispatch
 
 import _distutils_hack.override  # noqa: F401
 
@@ -13,6 +14,7 @@ from distutils.util import convert_path
 
 from ._deprecation_warning import SetuptoolsDeprecationWarning
 
+import pkg_resources
 import setuptools.version
 from setuptools.extension import Extension
 from setuptools.dist import Distribution
@@ -24,6 +26,7 @@ __all__ = [
     'setup', 'Distribution', 'Command', 'Extension', 'Require',
     'SetuptoolsDeprecationWarning',
     'find_packages', 'find_namespace_packages',
+    'normalize_version',
 ]
 
 __version__ = setuptools.version.__version__
@@ -235,6 +238,11 @@ def findall(dir=os.curdir):
 
 class sic(str):
     """Treat this string as-is (https://en.wikipedia.org/wiki/Sic)"""
+
+
+# Implement 'normalize_version' to bypass safe_version for `sic` versions
+normalize_version = singledispatch(pkg_resources.safe_version)
+normalize_version.register(sic)(lambda version: version)
 
 
 # Apply monkey patches
