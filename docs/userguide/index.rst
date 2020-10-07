@@ -10,6 +10,15 @@ packages.
 Packages built and distributed using ``setuptools`` look to the user like
 ordinary Python packages based on the ``distutils``.
 
+Transition to PEP517
+====================
+
+Since setuptools no longer serves as the default build tool, one must explicitly
+opt in (by providing a ``pyproject.toml`` file) to use this library. The user
+facing part is provided by `PEP517 <https://pypi.org/project/pep517/>`_ and
+backend interface is described :ref:`in this document <../build_meta>`. The
+quickstart provides an overview of the new workflow.
+
 .. toctree::
     :maxdepth: 1
 
