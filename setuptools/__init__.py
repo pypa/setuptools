@@ -1,4 +1,9 @@
-"""Extensions to the 'distutils' for large or complex distributions"""
+"""Extensions to the 'distutils' for large or complex distributions
+
+
+>>> normalize_version(sic('0.1.2.rc.0'))
+'0.1.2.rc.0'
+"""
 
 from fnmatch import fnmatchcase
 import functools
