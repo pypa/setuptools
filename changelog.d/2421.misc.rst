@@ -1,0 +1,2 @@
+Python 3.9 trove classifier got added to the dist metadata
+-- by :user:`webknjaz`
