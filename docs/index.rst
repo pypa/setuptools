@@ -10,5 +10,5 @@ Documentation content:
    :maxdepth: 1
 
    User guide <userguide/index>
-   Development guide <development>
+   Development guide <development/index>
    Backward compatibility & deprecated practice <deprecated/index>

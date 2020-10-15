@@ -33,3 +33,4 @@ setuptools changes.  You have been warned.
    developer-guide
    formats
    releases
+   history
