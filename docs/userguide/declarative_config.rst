@@ -201,7 +201,7 @@ obsoletes                                          list-comma
     string in such a file, so validation is stricter in this case.
 
 Notes:
-1. The `version` file attribute has only been supported since 39.2.0.
+1. The ``version`` file attribute has only been supported since 39.2.0.
 
 Options
 -------
@@ -237,12 +237,12 @@ data_files               dict                                 40.6.0
 
     **packages** - The ``find:`` and ``find_namespace:`` directive can be further configured
     in a dedicated subsection ``options.packages.find``. This subsection
-    accepts the same keys as the `setuptools.find_packages` and the
-    `setuptools.find_namespace_packages` function:
+    accepts the same keys as the ``setuptools.find_packages`` and the
+    ``setuptools.find_namespace_packages`` function:
     ``where``, ``include``, and ``exclude``.
 
     **find_namespace directive** - The ``find_namespace:`` directive is supported since Python >=3.3.
 
 Notes:
-1. In the `package_data` section, a key named with a single asterisk (`*`)
-refers to all packages, in lieu of the empty string used in `setup.py`.
+1. In the ``package_data`` section, a key named with a single asterisk (``*``)
+refers to all packages, in lieu of the empty string used in ``setup.py``.

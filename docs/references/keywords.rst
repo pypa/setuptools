@@ -286,7 +286,7 @@ Keywords
     this argument.  The named class must be instantiable with no arguments, and
     its instances must support the ``loadTestsFromNames()`` method as defined
     in the Python ``unittest`` module's ``TestLoader`` class.  Setuptools will
-    pass only one test "name" in the `names` argument: the value supplied for
+    pass only one test "name" in the ``names`` argument: the value supplied for
     the ``test_suite`` argument.  The loader you specify may interpret this
     string in any way it likes, as there are no restrictions on what may be
     contained in a ``test_suite`` string.

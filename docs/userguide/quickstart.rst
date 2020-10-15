@@ -21,8 +21,7 @@ the backend (build system) it wants to use. The distribution can then
 be generated with whatever tools that provides a ``build sdist``-alike
 functionality. While this may appear cumbersome, given the added pieces,
 it in fact tremendously enhances the portability of your package. The
-change is driven under `PEP 517 <https://www.python.org/dev/peps/pep-0517/#
-build-requirements>``. To learn more about Python packaging in general,
+change is driven under :pep:`517 <517#build-requirements>`. To learn more about Python packaging in general,
 navigate to the `bottom <Resources on python packaging>`_ of this page.
 
 
