@@ -68,7 +68,7 @@ intended to solve.
 All PRs with code changes should include tests. All changes should
 include a changelog entry.
 
-.. include:: ../changelog.d/README.rst
+.. include:: ../../changelog.d/README.rst
 
 -------------------
 Auto-Merge Requests
