@@ -12,3 +12,4 @@ Documentation content:
    User guide <userguide/index>
    Development guide <development>
    Backward compatibility & deprecated practice <deprecated/index>
+   Changelog <history>
