@@ -17,3 +17,4 @@ objectives.
     python_eggs
     easy_install
     distutils-legacy
+    functionalities

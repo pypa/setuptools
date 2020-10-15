@@ -82,8 +82,8 @@ Automatic package discovery
 For simple projects, it's usually easy enough to manually add packages to
 the ``packages`` keyword in ``setup.cfg``.  However, for very large projects
 , it can be a big burden to keep the package list updated. ``setuptools``
-therefore provides two convenient tools to ease the burden: ``find: `` and
-``find_namespace: ``. To use it in your project:
+therefore provides two convenient tools to ease the burden: :literal:`find:\ ` and
+:literal:`find_namespace:\ `. To use it in your project:
 
 .. code-block:: ini
 
@@ -122,7 +122,7 @@ keyword in your ``setup.cfg``:
 When this project is installed, a ``main`` script will be installed and will
 invoke the ``some_func`` in the ``__init__.py`` file when called by the user.
 For detailed usage, including managing the additional or optional dependencies,
-go to :ref:`entry_point`.
+go to :doc:`entry_point`.
 
 
 Dependency management
@@ -147,8 +147,10 @@ additional keywords such as ``setup_requires`` that allows you to install
 dependencies before running the script, and ``extras_requires`` that take
 care of those needed by automatically generated scripts. It also provides
 mechanisms to handle dependencies that are not in PyPI. For more advanced use,
-see :ref:`dependency_management`
+see :doc:`dependency_management`
 
+
+.. _Including Data Files:
 
 Including Data Files
 ====================
@@ -164,7 +166,7 @@ can simply use the ``include_package_data`` keyword:
 
 This tells setuptools to install any data files it finds in your packages.
 The data files must be specified via the distutils' ``MANIFEST.in`` file.
-For more details, see :ref:`datafiles`
+For more details, see :doc:`datafiles`
 
 
 Development mode

@@ -1,3 +1,7 @@
+========
+Keywords
+========
+
 ``name``
     A string specifying the name of the package.
 
@@ -189,7 +193,7 @@
     discovery of services or plugins provided by a project.  See :ref:`Dynamic
     Discovery of Services and Plugins` for details and examples of the format
     of this argument.  In addition, this keyword is used to support
-    :ref:`Automatic Script Creation`.
+    :ref:`Automatic Script Creation <entry_points>`.
 
 ``extras_require``
     A dictionary mapping names of "extras" (optional features of your project)
@@ -317,15 +321,15 @@
 
 ``use_2to3``
     Convert the source code from Python 2 to Python 3 with 2to3 during the
-    build process. See :doc:`python3` for more details.
+    build process. See :doc:`../deprecated/python3` for more details.
 
 ``convert_2to3_doctests``
     List of doctest source files that need to be converted with 2to3.
-    See :doc:`python3` for more details.
+    See :doc:`../deprecated/python3` for more details.
 
 ``use_2to3_fixers``
     A list of modules to search for additional fixers to be used during
-    the 2to3 conversion. See :doc:`python3` for more details.
+    the 2to3 conversion. See :doc:`../deprecated/python3` for more details.
 
 ``use_2to3_exclude_fixers``
     List of fixer names to be skipped.

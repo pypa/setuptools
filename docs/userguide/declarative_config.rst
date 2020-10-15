@@ -1,3 +1,5 @@
+.. _declarative config:
+
 -----------------------------------------
 Configuring setup() using setup.cfg files
 -----------------------------------------
