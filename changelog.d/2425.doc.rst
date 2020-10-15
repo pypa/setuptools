@@ -1,0 +1,2 @@
+Recovered the history of the changes_ page in Sphinx docs
+-- by :user:`webknjaz`
