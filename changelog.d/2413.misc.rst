@@ -1,1 +1,0 @@
-Suppress EOF errors (and other exceptions) when importing lib2to3.

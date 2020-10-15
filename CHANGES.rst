@@ -1,3 +1,16 @@
+v50.3.1
+-------
+
+* #2093: Finalized doc revamp.
+* #2097: doc: simplify index and group deprecated files
+* #2102: doc overhaul step 2: break main doc into multiple sections
+* #2111: doc overhaul step 3: update userguide
+* #2395: Added a ``:user:`` role to Sphinx config -- by :user:`webknjaz`
+* #2395: Added an illustrative explanation about the change notes to fragments dir -- by :user:`webknjaz`
+* #2379: Travis CI test suite now tests against PPC64.
+* #2413: Suppress EOF errors (and other exceptions) when importing lib2to3.
+
+
 v50.3.0
 -------
 
