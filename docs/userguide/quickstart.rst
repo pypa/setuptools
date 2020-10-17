@@ -81,8 +81,8 @@ Automatic package discovery
 For simple projects, it's usually easy enough to manually add packages to
 the ``packages`` keyword in ``setup.cfg``.  However, for very large projects
 , it can be a big burden to keep the package list updated. ``setuptools``
-therefore provides two convenient tools to ease the burden: ``find:\ `` and
-``find_namespace:\ ``. To use it in your project:
+therefore provides two convenient tools to ease the burden: :literal:`find:\ ` and
+:literal:`find_namespace:\ `. To use it in your project:
 
 .. code-block:: ini
 
