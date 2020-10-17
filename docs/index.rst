@@ -10,5 +10,11 @@ Documentation content:
    :maxdepth: 1
 
    User guide <userguide/index>
+   build_meta
+   pkg_resources
+   references/keywords
+   roadmap
+   setuptools
    Development guide <development>
    Backward compatibility & deprecated practice <deprecated/index>
+   Changelog <history>

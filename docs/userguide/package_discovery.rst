@@ -6,13 +6,13 @@ Package Discovery and Namespace Package
 
 .. note::
     a full specification for the keyword supplied to ``setup.cfg`` or
-    ``setup.py`` can be found at :ref:`keywords reference <keywords_ref>`
+    ``setup.py`` can be found at :doc:`keywords reference <keywords>`
 
 .. note::
     the examples provided here are only to demonstrate the functionality
     introduced. More metadata and options arguments need to be supplied
     if you want to replicate them on your system. If you are completely
-    new to setuptools, the :ref:`quickstart section <quickstart>` is a good
+    new to setuptools, the :doc:`quickstart section <quickstart>` is a good
     place to start.
 
 ``Setuptools`` provide powerful tools to handle package discovery, including
@@ -96,6 +96,8 @@ in ``src`` that starts with the name ``pkg`` and not ``additional``:
         #...
     )
 
+
+.. _Namespace Packages:
 
 Using ``find_namespace:`` or ``find_namespace_packages``
 ========================================================

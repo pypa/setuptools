@@ -33,6 +33,8 @@ with ``__init__.py`` as:
 
 and ``__main__.py`` providing a hook:
 
+.. code-block:: python
+
     from . import hello_world
     if __name__ == '__main__':
         hello_world()
@@ -49,7 +51,7 @@ user-friendly name for installers of the package to execute. Installers
 like pip will create wrapper scripts to execute a function. In the
 above example, to create a command ``hello-world`` that invokes
 ``timmins.hello_world``, add a console script entry point to
-``setup.cfg``::
+``setup.cfg``:
 
 .. code-block:: ini
 
@@ -73,6 +75,8 @@ side is the object you want to invoke (e.g. a function).
 In addition to ``console_scripts``, Setuptools supports ``gui_scripts``, which
 will launch a GUI application without running in a terminal window.
 
+
+.. _dynamic discovery of services and plugins:
 
 Advertising Behavior
 ====================
@@ -138,9 +142,9 @@ Some entry points may require additional dependencies to properly function.
 For such an entry point, declare in square brakets any number of dependency
 ``extras`` following the entry point definition. Such entry points will only
 be viable if their extras were declared and installed. See the
-:ref:`guide on dependencies management <dependency_management>` for
+:doc:`guide on dependencies management <dependency_management>` for
 more information on defining extra requirements. Consider from the
-above example::
+above example:
 
 .. code-block:: ini
 

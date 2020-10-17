@@ -24,3 +24,5 @@ ordinary Python packages based on the ``distutils``.
     declarative_config
     keywords
     commands
+    functionalities_rewrite
+    miscellaneous
