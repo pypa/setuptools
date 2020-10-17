@@ -1,0 +1,2 @@
+Enabled test results reporting in AppVeyor CI
+-- by :user:`webknjaz`
