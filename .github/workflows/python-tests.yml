@@ -19,6 +19,7 @@ jobs:
       # max-parallel: 5
       matrix:
         python-version:
+        - 3.9
         - 3.8
         - pypy3
         - 3.7
@@ -31,12 +32,6 @@ jobs:
         # - windows-2019
         # - windows-2016
         include:
-        # Pre-release versions (GH-shipped)
-        - os: ubuntu-20.04
-          python-version: 3.9.0-beta.4 - 3.9.0
-        # Pre-release versions (deadsnakes)
-        - os: ubuntu-20.04
-          python-version: 3.9-beta
         # Dev versions (deadsnakes)
         - os: ubuntu-20.04
           python-version: 3.9-dev
