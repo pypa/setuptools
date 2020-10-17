@@ -1,3 +1,0 @@
-Extended towncrier news template to include change note categories.
-This allows to see what types of changes a given version introduces
--- by :user:`webknjaz`

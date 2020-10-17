@@ -1,3 +1,25 @@
+v50.3.2
+-------
+
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #2394: Extended towncrier news template to include change note categories.
+  This allows to see what types of changes a given version introduces
+  -- by :user:`webknjaz`
+* #2427: Started enforcing strict syntax and reference validation
+  in the Sphinx docs -- by :user:`webknjaz`
+* #2428: Removed redundant Sphinx ``Makefile`` support -- by :user:`webknjaz`
+
+Misc
+^^^^
+* #2401: Enabled test results reporting in AppVeyor CI
+  -- by :user:`webknjaz`
+* #2420: Replace Python 3.9.0 beta with 3.9.0 final on GitHub Actions.
+* #2421: Python 3.9 Trove classifier got added to the dist metadata
+  -- by :user:`webknjaz`
+
+
 v50.3.1
 -------
 

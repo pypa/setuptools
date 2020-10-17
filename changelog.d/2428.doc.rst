@@ -1,1 +1,0 @@
-Removed redundant Sphinx ``Makefile`` support -- by :user:`webknjaz`

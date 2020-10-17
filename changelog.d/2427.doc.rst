@@ -1,2 +1,0 @@
-Started enforcing strict syntax and reference validation
-in the Sphinx docs -- by :user:`webknjaz`
