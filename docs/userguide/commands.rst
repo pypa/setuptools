@@ -275,7 +275,7 @@ is used when you are building source distributions.)
 In addition to writing the core egg metadata defined by ``setuptools`` and
 required by ``pkg_resources``, this command can be extended to write other
 metadata files as well, by defining entry points in the ``egg_info.writers``
-group.  See the section on `Adding new EGG-INFO Files`_ below for more details.
+group.  See the section on :ref:`Adding new EGG-INFO Files` below for more details.
 Note that using additional metadata writers may require you to include a
 ``setup_requires`` argument to ``setup()`` in order to ensure that the desired
 writers are available on ``sys.path``.
@@ -315,7 +315,7 @@ added in the following order:
 (Note: Because these options modify the version number used for source and
 binary distributions of your project, you should first make sure that you know
 how the resulting version numbers will be interpreted by automated tools
-like pip.  See the section above on `Specifying Your Project's Version`_ for an
+like pip.  See the section above on :ref:`Specifying Your Project's Version` for an
 explanation of pre- and post-release tags, as well as tips on how to choose and
 verify a versioning scheme for your project.)
 

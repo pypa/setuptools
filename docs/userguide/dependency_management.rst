@@ -25,7 +25,7 @@ you also need the ``wheel`` package as well since it is recommended that you
 upload a ``.whl`` file to PyPI alongside your ``.tar.gz`` file. Unlike the
 other two types of dependency keyword, this one is specified in your
 ``pyproject.toml`` file (if you have forgot what this is, go to
-:ref:`quickstart` or (WIP)):
+:doc:`quickstart` or (WIP)):
 
 .. code-block:: ini
 
@@ -36,10 +36,11 @@ other two types of dependency keyword, this one is specified in your
 .. note::
     This used to be accomplished with the ``setup_requires`` keyword but is
     now considered deprecated in favor of the PEP 517 style described above.
-    To peek into how this legacy keyword is used, consult our :ref:`guide on
-    deprecated practice (WIP)`
+    To peek into how this legacy keyword is used, consult our :doc:`guide on
+    deprecated practice (WIP) <../deprecated/index>`
 
 
+.. _Declaring Dependencies:
 
 Declaring required dependency
 =============================
@@ -266,7 +267,7 @@ the two dependencies ``PDF`` maps to.
 
 The second use case is that other package can use this "extra" for their
 own dependencies. For example, if "Project-B" needs "project A" with PDF support
-installed, it might declare the dependency like this::
+installed, it might declare the dependency like this:
 
 .. code-block:: ini
 

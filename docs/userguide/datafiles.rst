@@ -20,8 +20,8 @@ e.g.::
 This tells setuptools to install any data files it finds in your packages.
 The data files must be specified via the distutils' ``MANIFEST.in`` file.
 (They can also be tracked by a revision control system, using an appropriate
-plugin.  See the section below on `Adding Support for Revision Control
-Systems`_ for information on how to write such plugins.)
+plugin.  See the section below on :ref:`Adding Support for Revision
+Control Systems` for information on how to write such plugins.)
 
 If you want finer-grained control over what files are included (for example,
 if you have documentation files in your package directories and want to exclude
@@ -143,6 +143,9 @@ fully remove them.  This may also be important for your users and contributors
 if they track intermediate revisions of your project using Subversion; be sure
 to let them know when you make changes that remove files from inclusion so they
 can run ``setup.py clean --all``.
+
+
+.. _Accessing Data Files at Runtime:
 
 Accessing Data Files at Runtime
 -------------------------------

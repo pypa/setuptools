@@ -14,7 +14,7 @@ Console Scripts
 ===============
 
 First consider an example without entry points. Imagine a package
-defined thus::
+defined thus:
 
 .. code-block:: bash
 
@@ -33,12 +33,14 @@ with ``__init__.py`` as:
 
 and ``__main__.py`` providing a hook:
 
+.. code-block:: python
+
     from . import hello_world
     if __name__ == '__main__':
         hello_world()
 
 After installing the package, the function may be invoked through the
-`runpy <https://docs.python.org/3/library/runpy.html>`_ module::
+`runpy <https://docs.python.org/3/library/runpy.html>`_ module:
 
 .. code-block:: bash
 
@@ -49,7 +51,7 @@ user-friendly name for installers of the package to execute. Installers
 like pip will create wrapper scripts to execute a function. In the
 above example, to create a command ``hello-world`` that invokes
 ``timmins.hello_world``, add a console script entry point to
-``setup.cfg``::
+``setup.cfg``:
 
 .. code-block:: ini
 
@@ -74,6 +76,8 @@ In addition to ``console_scripts``, Setuptools supports ``gui_scripts``, which
 will launch a GUI application without running in a terminal window.
 
 
+.. _dynamic discovery of services and plugins:
+
 Advertising Behavior
 ====================
 
@@ -96,7 +100,7 @@ For a project wishing to solicit entry points, Setuptools recommends the
 module (part of stdlib since Python 3.8) or its backport,
 `importlib_metadata <https://pypi.org/project/importlib_metadata>`_.
 
-For example, to find the console script entry points from the example above::
+For example, to find the console script entry points from the example above:
 
 .. code-block:: python
 
@@ -115,7 +119,7 @@ method to import and load that entry point (module or object).
         hello-world = timmins:hello_world
 
 Then, a different project wishing to load 'my.plugins' plugins could run
-the following routine to load (and invoke) such plugins::
+the following routine to load (and invoke) such plugins:
 
 .. code-block:: python
 
@@ -138,9 +142,9 @@ Some entry points may require additional dependencies to properly function.
 For such an entry point, declare in square brakets any number of dependency
 ``extras`` following the entry point definition. Such entry points will only
 be viable if their extras were declared and installed. See the
-:ref:`guide on dependencies management <dependency_management>` for
+:doc:`guide on dependencies management <dependency_management>` for
 more information on defining extra requirements. Consider from the
-above example::
+above example:
 
 .. code-block:: ini
 
