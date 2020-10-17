@@ -14,13 +14,16 @@ def pytest_addoption(parser):
 collect_ignore = [
     'tests/manual_test.py',
     'setuptools/tests/mod_with_constant.py',
+    'setuptools/_distutils',
+    '_distutils_hack',
+    'setuptools/extern',
+    'pkg_resources/extern',
+    'pkg_resources/tests/data',
+    'setuptools/_vendor',
+    'pkg_resources/_vendor',
 ]
 
 
-if sys.version_info < (3,):
-    collect_ignore.append('setuptools/lib2to3_ex.py')
-    collect_ignore.append('setuptools/_imp.py')
-
-
 if sys.version_info < (3, 6):
+    collect_ignore.append('docs/conf.py')  # uses f-strings
     collect_ignore.append('pavement.py')

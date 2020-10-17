@@ -76,6 +76,7 @@ stages:
       env:
         TWINE_PASSWORD: $(PyPI-token)
         TIDELIFT_TOKEN: $(Tidelift-token)
+        GITHUB_TOKEN: $(Github-token)
       displayName: 'publish to PyPI'
 
   condition: contains(variables['Build.SourceBranch'], 'tags')

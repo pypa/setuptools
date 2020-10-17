@@ -15,7 +15,7 @@ backend-path = ["."]
     title_format = "v{version}"
     issue_format = "#{issue}"
     template = "towncrier_template.rst"
-    underlines = ["-"]
+    underlines = ["-", "^"]
 
     [[tool.towncrier.type]]
         directory = "deprecation"
@@ -41,3 +41,9 @@ backend-path = ["."]
         directory = "misc"
         name = "Misc"
         showcontent = true
+
+[tool.jaraco.pytest.plugins.flake8]
+addopts = "--flake8"
+
+[tool.jaraco.pytest.plugins.cov]
+addopts = "--cov"

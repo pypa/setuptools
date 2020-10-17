@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 """Easy install Tests
 """
-from __future__ import absolute_import, unicode_literals
 
 import sys
 import os
@@ -16,8 +14,7 @@ import io
 import zipfile
 import mock
 import time
-
-from setuptools.extern import six
+import re
 
 import pytest
 
@@ -40,8 +37,6 @@ from . import contexts
 from .files import build_files
 from .textwrap import DALS
 
-__metaclass__ = type
-
 
 class FakeDist:
     def get_entry_map(self, group):
@@ -61,35 +56,17 @@ SETUP_PY = DALS("""
 
 
 class TestEasyInstallTest:
-    def test_install_site_py(self, tmpdir):
-        dist = Distribution()
-        cmd = ei.easy_install(dist)
-        cmd.sitepy_installed = False
-        cmd.install_dir = str(tmpdir)
-        cmd.install_site_py()
-        assert (tmpdir / 'site.py').exists()
-
     def test_get_script_args(self):
         header = ei.CommandSpec.best().from_environment().as_header()
-        expected = header + DALS(r"""
-            # EASY-INSTALL-ENTRY-SCRIPT: 'spec','console_scripts','name'
-            __requires__ = 'spec'
-            import re
-            import sys
-            from pkg_resources import load_entry_point
-
-            if __name__ == '__main__':
-                sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
-                sys.exit(
-                    load_entry_point('spec', 'console_scripts', 'name')()
-                )
-            """)  # noqa: E501
         dist = FakeDist()
-
         args = next(ei.ScriptWriter.get_args(dist))
         name, script = itertools.islice(args, 2)
-
-        assert script == expected
+        assert script.startswith(header)
+        assert "'spec'" in script
+        assert "'console_scripts'" in script
+        assert "'name'" in script
+        assert re.search(
+            '^# EASY-INSTALL-ENTRY-SCRIPT', script, flags=re.MULTILINE)
 
     def test_no_find_links(self):
         # new option '--no-find-links', that blocks find-links added at
@@ -1001,8 +978,6 @@ def create_setup_requires_package(path, distname='foobar', version='0.1',
 )
 class TestScriptHeader:
     non_ascii_exe = '/Users/José/bin/python'
-    if six.PY2:
-        non_ascii_exe = non_ascii_exe.encode('utf-8')
     exe_with_spaces = r'C:\Program Files\Python36\python.exe'
 
     def test_get_script_header(self):

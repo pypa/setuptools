@@ -4,8 +4,8 @@ import shutil
 import sys
 import contextlib
 import site
+import io
 
-from setuptools.extern import six
 import pkg_resources
 
 
@@ -58,8 +58,8 @@ def quiet():
 
     old_stdout = sys.stdout
     old_stderr = sys.stderr
-    new_stdout = sys.stdout = six.StringIO()
-    new_stderr = sys.stderr = six.StringIO()
+    new_stdout = sys.stdout = io.StringIO()
+    new_stderr = sys.stderr = io.StringIO()
     try:
         yield new_stdout, new_stderr
     finally:

@@ -1,6 +1,3 @@
-# coding: utf-8
-from __future__ import unicode_literals
-
 import sys
 import tempfile
 import os
@@ -20,15 +17,10 @@ except ImportError:
 from pkg_resources import (
     DistInfoDistribution, Distribution, EggInfoDistribution,
 )
-from setuptools.extern import six
-from pkg_resources.extern.six.moves import map
-from pkg_resources.extern.six import text_type, string_types
 
 import pytest
 
 import pkg_resources
-
-__metaclass__ = type
 
 
 def timestamp(dt):
@@ -42,7 +34,7 @@ def timestamp(dt):
         return time.mktime(dt.timetuple())
 
 
-class EggRemover(text_type):
+class EggRemover(str):
     def __call__(self):
         if self in sys.path:
             sys.path.remove(self)
@@ -143,7 +135,7 @@ class TestResourceManager:
         path = mgr.get_cache_path('foo')
         type_ = str(type(path))
         message = "Unexpected type from get_cache_path: " + type_
-        assert isinstance(path, string_types), message
+        assert isinstance(path, str), message
 
     def test_get_cache_path_race(self, tmpdir):
         # Patch to os.path.isdir to create a race condition
@@ -225,13 +217,6 @@ def test_get_metadata__bad_utf8(tmpdir):
     metadata = 'née'.encode('iso-8859-1')
     dist = make_test_distribution(metadata_path, metadata=metadata)
 
-    if six.PY2:
-        # In Python 2, get_metadata() doesn't do any decoding.
-        actual = dist.get_metadata(filename)
-        assert actual == metadata
-        return
-
-    # Otherwise, we are in the Python 3 case.
     with pytest.raises(UnicodeDecodeError) as excinfo:
         dist.get_metadata(filename)
 
@@ -247,25 +232,18 @@ def test_get_metadata__bad_utf8(tmpdir):
     assert actual.endswith(metadata_path), 'actual: {}'.format(actual)
 
 
-# TODO: remove this in favor of Path.touch() when Python 2 is dropped.
-def touch_file(path):
-    """
-    Create an empty file.
-    """
-    with open(path, 'w'):
-        pass
-
-
 def make_distribution_no_version(tmpdir, basename):
     """
     Create a distribution directory with no file containing the version.
     """
-    # Convert the LocalPath object to a string before joining.
-    dist_dir = os.path.join(str(tmpdir), basename)
-    os.mkdir(dist_dir)
+    dist_dir = tmpdir / basename
+    dist_dir.ensure_dir()
     # Make the directory non-empty so distributions_from_metadata()
     # will detect it and yield it.
-    touch_file(os.path.join(dist_dir, 'temp.txt'))
+    dist_dir.join('temp.txt').ensure()
+
+    if sys.version_info < (3, 6):
+        dist_dir = str(dist_dir)
 
     dists = list(pkg_resources.distributions_from_metadata(dist_dir))
     assert len(dists) == 1

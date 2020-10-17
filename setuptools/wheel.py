@@ -14,11 +14,7 @@ import setuptools
 from pkg_resources import parse_version
 from setuptools.extern.packaging.tags import sys_tags
 from setuptools.extern.packaging.utils import canonicalize_name
-from setuptools.extern.six import PY3
 from setuptools.command.egg_info import write_requirements
-
-
-__metaclass__ = type
 
 
 WHEEL_NAME = re.compile(
@@ -112,7 +108,7 @@ class Wheel:
     def _convert_metadata(zf, destination_eggdir, dist_info, egg_info):
         def get_metadata(name):
             with zf.open(posixpath.join(dist_info, name)) as fp:
-                value = fp.read().decode('utf-8') if PY3 else fp.read()
+                value = fp.read().decode('utf-8')
                 return email.parser.Parser().parsestr(value)
 
         wheel_metadata = get_metadata('WHEEL')

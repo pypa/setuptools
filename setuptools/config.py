@@ -1,4 +1,3 @@
-from __future__ import absolute_import, unicode_literals
 import ast
 import io
 import os
@@ -15,10 +14,6 @@ import contextlib
 from distutils.errors import DistutilsOptionError, DistutilsFileError
 from setuptools.extern.packaging.version import LegacyVersion, parse
 from setuptools.extern.packaging.specifiers import SpecifierSet
-from setuptools.extern.six import string_types, PY3
-
-
-__metaclass__ = type
 
 
 class StaticModule:
@@ -42,9 +37,10 @@ class StaticModule:
                 for target in statement.targets
                 if isinstance(target, ast.Name) and target.id == attr
             )
-        except Exception:
+        except Exception as e:
             raise AttributeError(
-                "{self.name} has no attribute {attr}".format(**locals()))
+                "{self.name} has no attribute {attr}".format(**locals())
+            ) from e
 
 
 @contextlib.contextmanager
@@ -323,7 +319,7 @@ class ConfigHandler:
         """
         include_directive = 'file:'
 
-        if not isinstance(value, string_types):
+        if not isinstance(value, str):
             return value
 
         if not value.startswith(include_directive):
@@ -558,7 +554,7 @@ class ConfigMetadataHandler(ConfigHandler):
         if callable(version):
             version = version()
 
-        if not isinstance(version, string_types):
+        if not isinstance(version, str):
             if hasattr(version, '__iter__'):
                 version = '.'.join(map(str, version))
             else:
@@ -613,9 +609,6 @@ class ConfigOptionsHandler(ConfigHandler):
             return self._parse_list(value)
 
         findns = trimmed_value == find_directives[1]
-        if findns and not PY3:
-            raise DistutilsOptionError(
-                'find_namespace: directive is unsupported on Python < 3.3')
 
         # Read function arguments from a dedicated section.
         find_kwargs = self.parse_section_packages__find(

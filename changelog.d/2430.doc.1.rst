@@ -1,0 +1,2 @@
+Fixed a typo in Sphinx docs that made docs dev section disappear
+as a result of PR #2426 -- by :user:`webknjaz`

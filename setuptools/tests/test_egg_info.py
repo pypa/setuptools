@@ -10,7 +10,6 @@ from setuptools.command.egg_info import (
     egg_info, manifest_maker, EggInfoDeprecationWarning, get_pkg_info_revision,
 )
 from setuptools.dist import Distribution
-from setuptools.extern.six.moves import map
 
 import pytest
 
@@ -18,8 +17,6 @@ from . import environment
 from .files import build_files
 from .textwrap import DALS
 from . import contexts
-
-__metaclass__ = type
 
 
 class Environment(str):
@@ -73,8 +70,7 @@ class TestEggInfo:
         """
         When the egg_info section is empty or not present, running
         save_version_info should add the settings to the setup.cfg
-        in a deterministic order, consistent with the ordering found
-        on Python 2.7 with PYTHONHASHSEED=0.
+        in a deterministic order.
         """
         setup_cfg = os.path.join(env.paths['home'], 'setup.cfg')
         dist = Distribution()
@@ -906,49 +902,3 @@ class TestEggInfo:
 
     def test_get_pkg_info_revision_deprecated(self):
         pytest.warns(EggInfoDeprecationWarning, get_pkg_info_revision)
-
-    EGG_INFO_TESTS = (
-        # Check for issue #1136: invalid string type when
-        # reading declarative `setup.cfg` under Python 2.
-        {
-            'setup.py': DALS(
-                """
-                from setuptools import setup
-                setup(
-                    name="foo",
-                )
-                """),
-            'setup.cfg': DALS(
-                """
-                [options]
-                package_dir =
-                    = src
-                """),
-            'src': {},
-        },
-        # Check Unicode can be used in `setup.py` under Python 2.
-        {
-            'setup.py': DALS(
-                """
-                # -*- coding: utf-8 -*-
-                from __future__ import unicode_literals
-                from setuptools import setup, find_packages
-                setup(
-                    name="foo",
-                    package_dir={'': 'src'},
-                )
-                """),
-            'src': {},
-        }
-    )
-
-    @pytest.mark.parametrize('package_files', EGG_INFO_TESTS)
-    def test_egg_info(self, tmpdir_cwd, env, package_files):
-        """
-        """
-        build_files(package_files)
-        code, data = environment.run_setup_py(
-            cmd=['egg_info'],
-            data_stream=1,
-        )
-        assert not code, data

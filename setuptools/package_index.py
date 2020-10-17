@@ -2,16 +2,20 @@
 import sys
 import os
 import re
+import io
 import shutil
 import socket
 import base64
 import hashlib
 import itertools
 import warnings
+import configparser
+import html
+import http.client
+import urllib.parse
+import urllib.request
+import urllib.error
 from functools import wraps
-
-from setuptools.extern import six
-from setuptools.extern.six.moves import urllib, http_client, configparser, map
 
 import setuptools
 from pkg_resources import (
@@ -23,11 +27,7 @@ from setuptools import ssl_support
 from distutils import log
 from distutils.errors import DistutilsError
 from fnmatch import translate
-from setuptools.py27compat import get_all_headers
-from setuptools.py33compat import unescape
 from setuptools.wheel import Wheel
-
-__metaclass__ = type
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.+!]+)$')
 HREF = re.compile(r"""href\s*=\s*['"]?([^'"> ]+)""", re.I)
@@ -53,10 +53,10 @@ user_agent = _tmpl.format(
 def parse_requirement_arg(spec):
     try:
         return Requirement.parse(spec)
-    except ValueError:
+    except ValueError as e:
         raise DistutilsError(
             "Not a URL, existing file, or requirement spec: %r" % (spec,)
-        )
+        ) from e
 
 
 def parse_bdist_wininst(name):
@@ -191,7 +191,7 @@ def unique_everseen(iterable, key=None):
     seen = set()
     seen_add = seen.add
     if key is None:
-        for element in six.moves.filterfalse(seen.__contains__, iterable):
+        for element in itertools.filterfalse(seen.__contains__, iterable):
             seen_add(element)
             yield element
     else:
@@ -740,7 +740,7 @@ class PackageIndex(Environment):
             size = -1
             if "content-length" in headers:
                 # Some servers return multiple Content-Length headers :(
-                sizes = get_all_headers(headers, 'Content-Length')
+                sizes = headers.get_all('Content-Length')
                 size = max(map(int, sizes))
                 self.reporthook(url, filename, blocknum, bs, size)
             with open(filename, 'wb') as tfp:
@@ -767,12 +767,12 @@ class PackageIndex(Environment):
             return local_open(url)
         try:
             return open_with_auth(url, self.opener)
-        except (ValueError, http_client.InvalidURL) as v:
+        except (ValueError, http.client.InvalidURL) as v:
             msg = ' '.join([str(arg) for arg in v.args])
             if warning:
                 self.warn(warning, msg)
             else:
-                raise DistutilsError('%s %s' % (url, msg))
+                raise DistutilsError('%s %s' % (url, msg)) from v
         except urllib.error.HTTPError as v:
             return v
         except urllib.error.URLError as v:
@@ -780,8 +780,8 @@ class PackageIndex(Environment):
                 self.warn(warning, v.reason)
             else:
                 raise DistutilsError("Download error for %s: %s"
-                                     % (url, v.reason))
-        except http_client.BadStatusLine as v:
+                                     % (url, v.reason)) from v
+        except http.client.BadStatusLine as v:
             if warning:
                 self.warn(warning, v.line)
             else:
@@ -789,13 +789,13 @@ class PackageIndex(Environment):
                     '%s returned a bad status line. The server might be '
                     'down, %s' %
                     (url, v.line)
-                )
-        except (http_client.HTTPException, socket.error) as v:
+                ) from v
+        except (http.client.HTTPException, socket.error) as v:
             if warning:
                 self.warn(warning, v)
             else:
                 raise DistutilsError("Download error for %s: %s"
-                                     % (url, v))
+                                     % (url, v)) from v
 
     def _download_url(self, scheme, url, tmpdir):
         # Determine download filename
@@ -940,7 +940,7 @@ entity_sub = re.compile(r'&(#(\d+|x[\da-fA-F]+)|[\w.:-]+);?').sub
 
 def decode_entity(match):
     what = match.group(0)
-    return unescape(what)
+    return html.unescape(what)
 
 
 def htmldecode(text):
@@ -972,8 +972,7 @@ def socket_timeout(timeout=15):
 
 def _encode_auth(auth):
     """
-    A function compatible with Python 2.3-3.3 that will encode
-    auth from a URL suitable for an HTTP header.
+    Encode auth from a URL suitable for an HTTP header.
     >>> str(_encode_auth('username%3Apassword'))
     'dXNlcm5hbWU6cGFzc3dvcmQ='
 
@@ -1056,7 +1055,7 @@ def open_with_auth(url, opener=urllib.request.urlopen):
     # Double scheme does not raise on macOS as revealed by a
     # failing test. We would expect "nonnumeric port". Refs #20.
     if netloc.endswith(':'):
-        raise http_client.InvalidURL("nonnumeric port: ''")
+        raise http.client.InvalidURL("nonnumeric port: ''")
 
     if scheme in ('http', 'https'):
         auth, address = _splituser(netloc)
@@ -1136,5 +1135,5 @@ def local_open(url):
         status, message, body = 404, "Path not found", "Not found"
 
     headers = {'content-type': 'text/html'}
-    body_stream = six.StringIO(body)
+    body_stream = io.StringIO(body)
     return urllib.error.HTTPError(url, status, message, headers, body_stream)

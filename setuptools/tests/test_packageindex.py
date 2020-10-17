@@ -1,12 +1,11 @@
-from __future__ import absolute_import
-
 import sys
 import os
 import distutils.errors
 import platform
+import urllib.request
+import urllib.error
+import http.client
 
-from setuptools.extern import six
-from setuptools.extern.six.moves import urllib, http_client
 import mock
 import pytest
 
@@ -60,7 +59,7 @@ class TestPackageIndex:
         )
 
         def _urlopen(*args):
-            raise http_client.BadStatusLine('line')
+            raise http.client.BadStatusLine('line')
 
         index.opener = _urlopen
         url = 'http://example.com'
@@ -84,7 +83,7 @@ class TestPackageIndex:
         try:
             index.open_url(url)
         except distutils.errors.DistutilsError as error:
-            msg = six.text_type(error)
+            msg = str(error)
             assert (
                 'nonnumeric port' in msg
                 or 'getaddrinfo failed' in msg

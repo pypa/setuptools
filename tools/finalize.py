@@ -66,10 +66,11 @@ def check_changes():
     names.
     """
     allowed = 'deprecation', 'breaking', 'change', 'doc', 'misc'
+    except_ = 'README.rst', '.gitignore'
     assert all(
         any(key in file.name for key in allowed)
         for file in pathlib.Path('changelog.d').iterdir()
-        if file.name != '.gitignore'
+        if file.name not in except_
     )
 
 

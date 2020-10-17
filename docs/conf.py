@@ -10,22 +10,24 @@ import os
     cwd=os.path.join(os.path.dirname(__file__), os.path.pardir),
 )
 
+# -- Project information -----------------------------------------------------
+
+github_url = 'https://github.com'
+github_sponsors_url = f'{github_url}/sponsors'
+
 # -- General configuration --
 
-extensions = ['jaraco.packaging.sphinx', 'rst.linker']
+extensions = [
+    'sphinx.ext.extlinks',  # allows to create custom roles easily
+    'jaraco.packaging.sphinx',
+    'rst.linker',
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
-# The suffix of source filenames.
-source_suffix = '.txt'
-
 # The master toctree document.
 master_doc = 'index'
-
-# A list of glob-style patterns that should be excluded
-# when looking for source files.
-exclude_patterns = ['requirements.txt']
 
 # List of directories, relative to source directory, that shouldn't be searched
 # for source files.
@@ -33,6 +35,11 @@ exclude_trees = []
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
+
+# -- Options for extlinks extension ---------------------------------------
+extlinks = {
+    'user': (f'{github_sponsors_url}/%s', '@'),  # noqa: WPS323
+}
 
 # -- Options for HTML output --
 
@@ -101,7 +108,7 @@ link_files = {
                 url='http://bugs.jython.org/issue{jython}',
             ),
             dict(
-                pattern=r'Python #(?P<python>\d+)',
+                pattern=r'(Python #|bpo-)(?P<python>\d+)',
                 url='http://bugs.python.org/issue{python}',
             ),
             dict(
@@ -129,9 +136,22 @@ link_files = {
                 url='{GH}/jaraco/setuptools_svn/issues/{setuptools_svn}',
             ),
             dict(
+                pattern=r'pypa/distutils#(?P<distutils>\d+)',
+                url='{GH}/pypa/distutils/issues/{distutils}',
+            ),
+            dict(
                 pattern=r'^(?m)((?P<scm_version>v?\d+(\.\d+){1,2}))\n[-=]+\n',
                 with_scm='{text}\n{rev[timestamp]:%d %b %Y}\n',
             ),
         ],
     ),
 }
+
+
+# Be strict about any broken references:
+nitpicky = True
+
+
+# Ref: https://github.com/python-attrs/attrs/pull/571/files\
+#      #diff-85987f48f1258d9ee486e3191495582dR82
+default_role = 'any'

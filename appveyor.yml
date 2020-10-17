@@ -8,16 +8,22 @@ environment:
 
   matrix:
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-      APPVEYOR_JOB_NAME: "python36-x64-vs2015"
-      PYTHON: "C:\\Python36-x64"
+      APPVEYOR_JOB_NAME: "Python38-x64-vs2015"
+      PYTHON: "C:\\Python38-x64"
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-      APPVEYOR_JOB_NAME: "python36-x64-vs2017"
-      PYTHON: "C:\\Python36-x64"
+      APPVEYOR_JOB_NAME: "Python38-x64-vs2017"
+      PYTHON: "C:\\Python38-x64"
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-      APPVEYOR_JOB_NAME: "python36-x64-vs2019"
-      PYTHON: "C:\\Python36-x64"
+      APPVEYOR_JOB_NAME: "Python38-x64-vs2019"
+      PYTHON: "C:\\Python38-x64"
     - APPVEYOR_JOB_NAME: "python37-x64"
       PYTHON: "C:\\Python37-x64"
+    - APPVEYOR_JOB_NAME: "python36-x64"
+      PYTHON: "C:\\Python36-x64"
+    - APPVEYOR_JOB_NAME: "python35-x64"
+      PYTHON: "C:\\Python35-x64"
+      PYTEST_ADDOPTS: "--cov"
+      TOX_TESTENV_PASSENV: "PYTEST_ADDOPTS"
 
 install:
   # symlink python from a directory with a space
@@ -35,9 +41,14 @@ test_script:
   - python -m pip install --disable-pip-version-check --upgrade pip setuptools wheel
   - pip install --upgrade tox tox-venv virtualenv
   - pip freeze --all
-  - tox -- --cov
+  - tox -- --junit-xml=test-results.xml
 
 after_test:
     - tox -e coverage,codecov
+
+on_finish:
+  - ps: |
+      $wc = New-Object 'System.Net.WebClient'
+      $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\test-results.xml))
 
 version: '{build}'

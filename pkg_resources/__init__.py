@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 Package resource API
 --------------------
@@ -14,8 +13,6 @@ The package resource API is designed to work with normal filesystem packages,
 .zip files and with custom PEP 302 loaders that support the ``get_data()``
 method.
 """
-
-from __future__ import absolute_import
 
 import sys
 import os
@@ -54,9 +51,6 @@ try:
 except NameError:
     FileExistsError = OSError
 
-from pkg_resources.extern import six
-from pkg_resources.extern.six.moves import map, filter
-
 # capture these to bypass sandboxing
 from os import utime
 try:
@@ -76,26 +70,15 @@ try:
 except ImportError:
     importlib_machinery = None
 
-from . import py31compat
 from pkg_resources.extern import appdirs
 from pkg_resources.extern import packaging
 __import__('pkg_resources.extern.packaging.version')
 __import__('pkg_resources.extern.packaging.specifiers')
 __import__('pkg_resources.extern.packaging.requirements')
 __import__('pkg_resources.extern.packaging.markers')
-__import__('pkg_resources.py2_warn')
 
-
-__metaclass__ = type
-
-
-if (3, 0) < sys.version_info < (3, 5):
+if sys.version_info < (3, 5):
     raise RuntimeError("Python 3.5 or later is required")
-
-if six.PY2:
-    # Those builtin exceptions are only defined in Python 3
-    PermissionError = None
-    NotADirectoryError = None
 
 # declare some globals that will be defined later to
 # satisfy the linters.
@@ -476,7 +459,7 @@ run_main = run_script
 
 def get_distribution(dist):
     """Return a current distribution object for a Requirement or string"""
-    if isinstance(dist, six.string_types):
+    if isinstance(dist, str):
         dist = Requirement.parse(dist)
     if isinstance(dist, Requirement):
         dist = get_provider(dist)
@@ -1379,7 +1362,7 @@ def evaluate_marker(text, extra=None):
         marker = packaging.markers.Marker(text)
         return marker.evaluate()
     except packaging.markers.InvalidMarker as e:
-        raise SyntaxError(e)
+        raise SyntaxError(e) from e
 
 
 class NullProvider:
@@ -1420,8 +1403,6 @@ class NullProvider:
             return ""
         path = self._get_metadata_path(name)
         value = self._get(path)
-        if six.PY2:
-            return value
         try:
             return value.decode('utf-8')
         except UnicodeDecodeError as exc:
@@ -1459,7 +1440,8 @@ class NullProvider:
         script_filename = self._fn(self.egg_info, script)
         namespace['__file__'] = script_filename
         if os.path.exists(script_filename):
-            source = open(script_filename).read()
+            with open(script_filename) as fid:
+                source = fid.read()
             code = compile(source, script_filename, 'exec')
             exec(code, namespace, namespace)
         else:
@@ -1911,8 +1893,7 @@ class FileMetadata(EmptyProvider):
         return metadata
 
     def _warn_on_replacement(self, metadata):
-        # Python 2.7 compat for: replacement_char = '�'
-        replacement_char = b'\xef\xbf\xbd'.decode('utf-8')
+        replacement_char = '�'
         if replacement_char in metadata:
             tmpl = "{self.path} could not be properly decoded in UTF-8"
             msg = tmpl.format(**locals())
@@ -2057,7 +2038,10 @@ def find_on_path(importer, path_item, only=False):
         )
         return
 
-    entries = safe_listdir(path_item)
+    entries = (
+        os.path.join(path_item, child)
+        for child in safe_listdir(path_item)
+    )
 
     # for performance, before sorting by version,
     # screen entries for only those that will yield
@@ -2107,8 +2091,6 @@ class NoDists:
     """
     def __bool__(self):
         return False
-    if six.PY2:
-        __nonzero__ = __bool__
 
     def __call__(self, fullpath):
         return iter(())
@@ -2125,12 +2107,7 @@ def safe_listdir(path):
     except OSError as e:
         # Ignore the directory if does not exist, not a directory or
         # permission denied
-        ignorable = (
-            e.errno in (errno.ENOTDIR, errno.EACCES, errno.ENOENT)
-            # Python 2 on Windows needs to be handled this way :(
-            or getattr(e, "winerror", None) == 267
-        )
-        if not ignorable:
+        if e.errno not in (errno.ENOTDIR, errno.EACCES, errno.ENOENT):
             raise
     return ()
 
@@ -2288,8 +2265,8 @@ def declare_namespace(packageName):
                 __import__(parent)
             try:
                 path = sys.modules[parent].__path__
-            except AttributeError:
-                raise TypeError("Not a package:", parent)
+            except AttributeError as e:
+                raise TypeError("Not a package:", parent) from e
 
         # Track what packages are namespaces, so when new path items are added,
         # they can be updated
@@ -2373,7 +2350,15 @@ def _is_egg_path(path):
     """
     Determine if given path appears to be an egg.
     """
-    return path.lower().endswith('.egg')
+    return _is_zip_egg(path) or _is_unpacked_egg(path)
+
+
+def _is_zip_egg(path):
+    return (
+        path.lower().endswith('.egg') and
+        os.path.isfile(path) and
+        zipfile.is_zipfile(path)
+    )
 
 
 def _is_unpacked_egg(path):
@@ -2381,7 +2366,7 @@ def _is_unpacked_egg(path):
     Determine if given path appears to be an unpacked egg.
     """
     return (
-        _is_egg_path(path) and
+        path.lower().endswith('.egg') and
         os.path.isfile(os.path.join(path, 'EGG-INFO', 'PKG-INFO'))
     )
 
@@ -2396,7 +2381,7 @@ def _set_parent_ns(packageName):
 
 def yield_lines(strs):
     """Yield non-empty/non-comment lines of a string or sequence"""
-    if isinstance(strs, six.string_types):
+    if isinstance(strs, str):
         for s in strs.splitlines():
             s = s.strip()
             # skip blank lines/comments
@@ -2469,7 +2454,7 @@ class EntryPoint:
         try:
             return functools.reduce(getattr, self.attrs, module)
         except AttributeError as exc:
-            raise ImportError(str(exc))
+            raise ImportError(str(exc)) from exc
 
     def require(self, env=None, installer=None):
         if self.extras and not self.dist:
@@ -2689,14 +2674,14 @@ class Distribution:
     def version(self):
         try:
             return self._version
-        except AttributeError:
+        except AttributeError as e:
             version = self._get_version()
             if version is None:
                 path = self._get_metadata_path_for_display(self.PKG_INFO)
                 msg = (
                     "Missing 'Version:' header and/or {} file at path: {}"
                 ).format(self.PKG_INFO, path)
-                raise ValueError(msg, self)
+                raise ValueError(msg, self) from e
 
             return version
 
@@ -2749,10 +2734,10 @@ class Distribution:
         for ext in extras:
             try:
                 deps.extend(dm[safe_extra(ext)])
-            except KeyError:
+            except KeyError as e:
                 raise UnknownExtra(
                     "%s has no such extra feature %r" % (self, ext)
-                )
+                ) from e
         return deps
 
     def _get_metadata_path_for_display(self, name):
@@ -2833,10 +2818,6 @@ class Distribution:
                 if not attr.startswith('_')
             )
         )
-
-    if not hasattr(object, '__dir__'):
-        # python 2.7 not supported
-        del __dir__
 
     @classmethod
     def from_filename(cls, filename, metadata=None, **kw):
@@ -3077,11 +3058,6 @@ def issue_warning(*args, **kw):
     warnings.warn(stacklevel=level + 1, *args, **kw)
 
 
-class RequirementParseError(ValueError):
-    def __str__(self):
-        return ' '.join(self.args)
-
-
 def parse_requirements(strs):
     """Yield ``Requirement`` objects for each specification in `strs`
 
@@ -3104,13 +3080,14 @@ def parse_requirements(strs):
         yield Requirement(line)
 
 
+class RequirementParseError(packaging.requirements.InvalidRequirement):
+    "Compatibility wrapper for InvalidRequirement"
+
+
 class Requirement(packaging.requirements.Requirement):
     def __init__(self, requirement_string):
         """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
-        try:
-            super(Requirement, self).__init__(requirement_string)
-        except packaging.requirements.InvalidRequirement as e:
-            raise RequirementParseError(str(e))
+        super(Requirement, self).__init__(requirement_string)
         self.unsafe_name = self.name
         project_name = safe_name(self.name)
         self.project_name, self.key = project_name, project_name.lower()
@@ -3180,7 +3157,7 @@ def _find_adapter(registry, ob):
 def ensure_directory(path):
     """Ensure that the parent directory of `path` exists"""
     dirname = os.path.dirname(path)
-    py31compat.makedirs(dirname, exist_ok=True)
+    os.makedirs(dirname, exist_ok=True)
 
 
 def _bypass_ensure_directory(path):
