@@ -1,4 +1,8 @@
 version: 2
+
+sphinx:
+  fail_on_warning: true  # https://github.com/pypa/setuptools/issues/2424
+
 python:
   install:
   - requirements: docs/requirements.txt
