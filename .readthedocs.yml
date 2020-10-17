@@ -1,6 +1,23 @@
+# Read the Docs configuration file
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html
+# for details
+
+version: 2  # required
+
+sphinx:
+  builder: dirhtml
+  configuration: docs/conf.py  # build documentation in the docs/ dir
+  fail_on_warning: true  # https://github.com/pypa/setuptools/issues/2424
+
+formats:
+- epub
+- pdf
+- htmlzip
+
+build:
+  image: latest
+
 python:
-  version: 3
-  extra_requirements:
-  - docs
-  pip_install: false
-  requirements: docs/requirements.txt
+  version: 3  # availability depends on the image
+  install:
+  - requirements: docs/requirements.txt
