@@ -123,12 +123,17 @@ class InfoCommon:
         return safe_name(self.distribution.get_name())
 
     def tagged_version(self):
-        version = self.distribution.get_version()
-        # egg_info may be called more than once for a distribution,
-        # in which case the version string already contains all tags.
-        if self.vtags and version.endswith(self.vtags):
-            return safe_version(version)
-        return safe_version(version + self.vtags)
+        return safe_version(self._maybe_tag(self.distribution.get_version()))
+
+    def _maybe_tag(self, version):
+        """
+        egg_info may be called more than once for a distribution,
+        in which case the version string already contains all tags.
+        """
+        return (
+            version if self.vtags and version.endswith(self.vtags)
+            else version + self.vtags
+        )
 
     def tags(self):
         version = ''

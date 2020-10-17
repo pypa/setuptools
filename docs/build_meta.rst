@@ -56,7 +56,8 @@ setuptools, the content would be::
     requires = ["setuptools", "wheel"]
     build-backend = "setuptools.build_meta" 
 
-Use ``setuptools``' `declarative config`_ to specify the package information::
+Use ``setuptools``' :ref:`declarative config <declarative config>` to
+specify the package information::
 
     [metadata]
     name = meowpkg

@@ -21,8 +21,7 @@ the backend (build system) it wants to use. The distribution can then
 be generated with whatever tools that provides a ``build sdist``-alike
 functionality. While this may appear cumbersome, given the added pieces,
 it in fact tremendously enhances the portability of your package. The
-change is driven under `PEP 517 <https://www.python.org/dev/peps/pep-0517/#
-build-requirements>``. To learn more about Python packaging in general,
+change is driven under :pep:`517 <517#build-requirements>`. To learn more about Python packaging in general,
 navigate to the `bottom <Resources on python packaging>`_ of this page.
 
 
@@ -122,7 +121,7 @@ keyword in your ``setup.cfg``:
 When this project is installed, a ``main`` script will be installed and will
 invoke the ``some_func`` in the ``__init__.py`` file when called by the user.
 For detailed usage, including managing the additional or optional dependencies,
-go to :ref:`entry_point`.
+go to :doc:`entry_point`.
 
 
 Dependency management
@@ -147,8 +146,10 @@ additional keywords such as ``setup_requires`` that allows you to install
 dependencies before running the script, and ``extras_requires`` that take
 care of those needed by automatically generated scripts. It also provides
 mechanisms to handle dependencies that are not in PyPI. For more advanced use,
-see :ref:`dependency_management`
+see :doc:`dependency_management`
 
+
+.. _Including Data Files:
 
 Including Data Files
 ====================
@@ -164,7 +165,7 @@ can simply use the ``include_package_data`` keyword:
 
 This tells setuptools to install any data files it finds in your packages.
 The data files must be specified via the distutils' ``MANIFEST.in`` file.
-For more details, see :ref:`datafiles`
+For more details, see :doc:`datafiles`
 
 
 Development mode

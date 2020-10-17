@@ -76,6 +76,8 @@ In addition to ``console_scripts``, Setuptools supports ``gui_scripts``, which
 will launch a GUI application without running in a terminal window.
 
 
+.. _dynamic discovery of services and plugins:
+
 Advertising Behavior
 ====================
 
@@ -140,7 +142,7 @@ Some entry points may require additional dependencies to properly function.
 For such an entry point, declare in square brakets any number of dependency
 ``extras`` following the entry point definition. Such entry points will only
 be viable if their extras were declared and installed. See the
-:ref:`guide on dependencies management <dependency_management>` for
+:doc:`guide on dependencies management <dependency_management>` for
 more information on defining extra requirements. Consider from the
 above example:
 

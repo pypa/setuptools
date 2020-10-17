@@ -49,7 +49,7 @@ source from a staging area using ``setup.py develop --uninstall``, specifying
 the desired staging area if it's not the default.
 
 There are several options to control the precise behavior of the ``develop``
-command; see the section on the `develop`_ command below for more details.
+command; see the section on the :ref:`develop <develop>` command below for more details.
 
 Note that you can also apply setuptools commands to non-setuptools projects,
 using commands like this::

@@ -1,1 +1,0 @@
-Travis CI test suite now tests against PPC64.

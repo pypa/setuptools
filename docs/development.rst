@@ -31,5 +31,4 @@ setuptools changes.  You have been warned.
    :maxdepth: 1
 
    developer-guide
-   formats
    releases

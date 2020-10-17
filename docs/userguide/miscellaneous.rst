@@ -1,3 +1,5 @@
+.. _Automatic Resource Extraction:
+
 Automatic Resource Extraction
 -----------------------------
 
@@ -46,8 +48,8 @@ directory.  However, since it can be tedious to create such files by hand, you
 may want to create a distutils extension that will create the necessary files
 from arguments to ``setup()``, in much the same way that ``setuptools`` does
 for many of the ``setup()`` arguments it adds.  See the section below on
-`Creating distutils Extensions`_ for more details, especially the subsection on
-`Adding new EGG-INFO Files`_.
+:ref:`Creating ``distutils\`\` Extensions` for more details, especially the
+subsection on :ref:`Adding new EGG-INFO Files`.
 
 Setting the ``zip_safe`` flag
 -----------------------------
@@ -75,7 +77,7 @@ no ``__file__`` or ``__path__`` introspection or source code manipulation, then
 there is an extremely solid chance the project will work when installed as a
 zipfile.  (And if the project uses ``pkg_resources`` for all its data file
 access, then C extensions and other data files shouldn't be a problem at all.
-See the `Accessing Data Files at Runtime`_ section above for more information.)
+See the :ref:`Accessing Data Files at Runtime` section above for more information.)
 
 However, if ``bdist_egg`` can't be *sure* that your package will work, but
 you've checked over all the warnings it issued, and you are either satisfied it
