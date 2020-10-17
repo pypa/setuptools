@@ -1,1 +1,0 @@
-doc overhaul step 2: break main doc into multiple sections

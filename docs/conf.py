@@ -10,9 +10,18 @@ import os
     cwd=os.path.join(os.path.dirname(__file__), os.path.pardir),
 )
 
+# -- Project information -----------------------------------------------------
+
+github_url = 'https://github.com'
+github_sponsors_url = f'{github_url}/sponsors'
+
 # -- General configuration --
 
-extensions = ['jaraco.packaging.sphinx', 'rst.linker']
+extensions = [
+    'sphinx.ext.extlinks',  # allows to create custom roles easily
+    'jaraco.packaging.sphinx',
+    'rst.linker',
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -26,6 +35,11 @@ exclude_trees = []
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
+
+# -- Options for extlinks extension ---------------------------------------
+extlinks = {
+    'user': (f'{github_sponsors_url}/%s', '@'),  # noqa: WPS323
+}
 
 # -- Options for HTML output --
 
@@ -132,3 +146,12 @@ link_files = {
         ],
     ),
 }
+
+
+# Be strict about any broken references:
+nitpicky = True
+
+
+# Ref: https://github.com/python-attrs/attrs/pull/571/files\
+#      #diff-85987f48f1258d9ee486e3191495582dR82
+default_role = 'any'

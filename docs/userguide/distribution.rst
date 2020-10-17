@@ -23,17 +23,17 @@ egg distributions by adding one or more of the following to the project's
 You can add these tags by adding ``egg_info`` and the desired options to
 the command line ahead of the ``sdist`` or ``bdist`` commands that you want
 to generate a daily build or snapshot for.  See the section below on the
-`egg_info`_ command for more details.
+:ref:`egg_info <egg_info>` command for more details.
 
 (Also, before you release your project, be sure to see the section above on
-`Specifying Your Project's Version`_ for more information about how pre- and
+:ref:`Specifying Your Project's Version` for more information about how pre- and
 post-release tags affect how version numbers are interpreted.  This is
 important in order to make sure that dependency processing tools will know
 which versions of your project are newer than others.)
 
 Finally, if you are creating builds frequently, and either building them in a
 downloadable location or are copying them to a distribution server, you should
-probably also check out the `rotate`_ command, which lets you automatically
+probably also check out the :ref:`rotate <rotate>` command, which lets you automatically
 delete all but the N most-recently-modified distributions matching a glob
 pattern.  So, you can use a command line like::
 
@@ -46,7 +46,7 @@ that were built most recently.
 
 If you have to manage automated builds for multiple packages, each with
 different tagging and rotation policies, you may also want to check out the
-`alias`_ command, which would let each package define an alias like ``daily``
+:ref:`alias <alias>` command, which would let each package define an alias like ``daily``
 that would perform the necessary tag, build, and rotate commands.  Then, a
 simpler script or cron job could just run ``setup.py daily`` in each project
 directory.  (And, you could also define sitewide or per-user default versions
@@ -61,7 +61,7 @@ selection with pluggable endpoints for looking up files to include. If you are
 using a revision control system, and your source distributions only need to
 include files that you're tracking in revision control, use a corresponding
 plugin instead of writing a ``MANIFEST.in`` file. See the section below on
-`Adding Support for Revision Control Systems`_ for information on plugins.
+:ref:`Adding Support for Revision Control Systems` for information on plugins.
 
 If you need to include automatically generated files, or files that are kept in
 an unsupported revision control system, you'll need to create a ``MANIFEST.in``
@@ -114,7 +114,8 @@ You can then use it like this::
     setup.py release sdist bdist_egg
 
 Or of course you can create more elaborate aliases that do all of the above.
-See the sections below on the `egg_info`_ and `alias`_ commands for more ideas.
+See the sections below on the :ref:`egg_info <egg_info>` and
+:ref:`alias <alias>` commands for more ideas.
 
 Distributing Extensions compiled with Cython
 --------------------------------------------
@@ -153,6 +154,9 @@ source files.  This will ensure that people tracking your project in a revision
 control system will be able to build it even if they don't have Cython
 installed, and that your source releases will be similarly usable with or
 without Cython.
+
+
+.. _Specifying Your Project's Version:
 
 Specifying Your Project's Version
 ---------------------------------
@@ -237,4 +241,4 @@ have setuptools automatically tag your in-development releases with various
 pre- or post-release tags.  See the following sections for more details:
 
 * `Tagging and "Daily Build" or "Snapshot" Releases`_
-* The `egg_info`_ command
+* The :ref:`egg_info <egg_info>` command

@@ -149,7 +149,7 @@ more information on this.)  Also, you must add a ``declare_namespace()`` call
 in the package's ``__init__.py`` file(s):
 
 ``declare_namespace(name)``
-    Declare that the dotted package name `name` is a "namespace package" whose
+    Declare that the dotted package name ``name`` is a "namespace package" whose
     contained packages and modules may be spread across multiple distributions.
     The named package's ``__path__`` will be extended to include the
     corresponding package in all distributions on ``sys.path`` that contain a
@@ -163,7 +163,7 @@ Applications that manipulate namespace packages or directly alter ``sys.path``
 at runtime may also need to use this API function:
 
 ``fixup_namespace_packages(path_item)``
-    Declare that `path_item` is a newly added item on ``sys.path`` that may
+    Declare that ``path_item`` is a newly added item on ``sys.path`` that may
     need to be used to update existing namespace packages.  Ordinarily, this is
     called for you when an egg is automatically added to ``sys.path``, but if
     your application modifies ``sys.path`` to include locations that may
@@ -197,7 +197,7 @@ not provide any way to detect arbitrary changes to a list object like
 ``working_set`` based on changes to ``sys.path``.
 
 ``WorkingSet(entries=None)``
-    Create a ``WorkingSet`` from an iterable of path entries.  If `entries`
+    Create a ``WorkingSet`` from an iterable of path entries.  If ``entries``
     is not supplied, it defaults to the value of ``sys.path`` at the time
     the constructor is called.
 
@@ -229,9 +229,9 @@ abbreviation for ``pkg_resources.working_set.require()``:
 
 
 ``require(*requirements)``
-    Ensure that distributions matching `requirements` are activated
+    Ensure that distributions matching ``requirements`` are activated
 
-    `requirements` must be a string or a (possibly-nested) sequence
+    ``requirements`` must be a string or a (possibly-nested) sequence
     thereof, specifying the distributions and versions required.  The
     return value is a sequence of the distributions that needed to be
     activated to fulfill the requirements; all relevant distributions are
@@ -259,8 +259,8 @@ abbreviation for ``pkg_resources.working_set.require()``:
     ``obtain()`` method of ``Environment`` objects.
 
 ``run_script(requires, script_name)``
-    Locate distribution specified by `requires` and run its `script_name`
-    script.  `requires` must be a string containing a requirement specifier.
+    Locate distribution specified by ``requires`` and run its ``script_name``
+    script.  ``requires`` must be a string containing a requirement specifier.
     (See `Requirements Parsing`_ below for the syntax.)
 
     The script, if found, will be executed in *the caller's globals*.  That's
@@ -274,11 +274,11 @@ abbreviation for ``pkg_resources.working_set.require()``:
     object's `Metadata API`_ instead.
 
 ``iter_entry_points(group, name=None)``
-    Yield entry point objects from `group` matching `name`
+    Yield entry point objects from ``group`` matching ``name``
 
-    If `name` is None, yields all entry points in `group` from all
+    If ``name`` is None, yields all entry points in ``group`` from all
     distributions in the working set, otherwise only ones matching both
-    `group` and `name` are yielded.  Entry points are yielded from the active
+    ``group`` and ``name`` are yielded.  Entry points are yielded from the active
     distributions in the order that the distributions appear in the working
     set.  (For the global ``working_set``, this should be the same as the order
     that they are listed in ``sys.path``.)  Note that within the entry points
@@ -301,14 +301,14 @@ instance:
     called by the ``WorkingSet()`` constructor during initialization.
 
     This method uses ``find_distributions(entry,True)`` to find distributions
-    corresponding to the path entry, and then ``add()`` them.  `entry` is
+    corresponding to the path entry, and then ``add()`` them.  ``entry`` is
     always appended to the ``entries`` attribute, even if it is already
     present, however. (This is because ``sys.path`` can contain the same value
     more than once, and the ``entries`` attribute should be able to reflect
     this.)
 
 ``__contains__(dist)``
-    True if `dist` is active in this ``WorkingSet``.  Note that only one
+    True if ``dist`` is active in this ``WorkingSet``.  Note that only one
     distribution for a given project can be active in a given ``WorkingSet``.
 
 ``__iter__()``
@@ -317,34 +317,34 @@ instance:
     added to the working set.
 
 ``find(req)``
-    Find a distribution matching `req` (a ``Requirement`` instance).
+    Find a distribution matching ``req`` (a ``Requirement`` instance).
     If there is an active distribution for the requested project, this
     returns it, as long as it meets the version requirement specified by
-    `req`.  But, if there is an active distribution for the project and it
-    does *not* meet the `req` requirement, ``VersionConflict`` is raised.
+    ``req``.  But, if there is an active distribution for the project and it
+    does *not* meet the ``req`` requirement, ``VersionConflict`` is raised.
     If there is no active distribution for the requested project, ``None``
     is returned.
 
 ``resolve(requirements, env=None, installer=None)``
-    List all distributions needed to (recursively) meet `requirements`
+    List all distributions needed to (recursively) meet ``requirements``
 
-    `requirements` must be a sequence of ``Requirement`` objects.  `env`,
+    ``requirements`` must be a sequence of ``Requirement`` objects.  ``env``,
     if supplied, should be an ``Environment`` instance.  If
     not supplied, an ``Environment`` is created from the working set's
-    ``entries``.  `installer`, if supplied, will be invoked with each
+    ``entries``.  ``installer``, if supplied, will be invoked with each
     requirement that cannot be met by an already-installed distribution; it
     should return a ``Distribution`` or ``None``.  (See the ``obtain()`` method
-    of `Environment Objects`_, below, for more information on the `installer`
+    of `Environment Objects`_, below, for more information on the ``installer``
     argument.)
 
 ``add(dist, entry=None)``
-    Add `dist` to working set, associated with `entry`
+    Add ``dist`` to working set, associated with ``entry``
 
-    If `entry` is unspecified, it defaults to ``dist.location``.  On exit from
-    this routine, `entry` is added to the end of the working set's ``.entries``
+    If ``entry`` is unspecified, it defaults to ``dist.location``.  On exit from
+    this routine, ``entry`` is added to the end of the working set's ``.entries``
     (if it wasn't already present).
 
-    `dist` is only added to the working set if it's for a project that
+    ``dist`` is only added to the working set if it's for a project that
     doesn't already have a distribution active in the set.  If it's
     successfully added, any  callbacks registered with the ``subscribe()``
     method will be called.  (See `Receiving Change Notifications`_, below.)
@@ -401,7 +401,7 @@ environment for the newest version of each project that can be safely loaded
 without conflicts or missing requirements.
 
 ``find_plugins(plugin_env, full_env=None, fallback=True)``
-   Scan `plugin_env` and identify which distributions could be added to this
+   Scan ``plugin_env`` and identify which distributions could be added to this
    working set without version conflicts or missing requirements.
 
    Example usage::
@@ -412,19 +412,19 @@ without conflicts or missing requirements.
        map(working_set.add, distributions)  # add plugins+libs to sys.path
        print "Couldn't load", errors        # display errors
 
-   The `plugin_env` should be an ``Environment`` instance that contains only
+   The ``plugin_env`` should be an ``Environment`` instance that contains only
    distributions that are in the project's "plugin directory" or directories.
-   The `full_env`, if supplied, should be an ``Environment`` instance that
+   The ``full_env``, if supplied, should be an ``Environment`` instance that
    contains all currently-available distributions.
 
-   If `full_env` is not supplied, one is created automatically from the
+   If ``full_env`` is not supplied, one is created automatically from the
    ``WorkingSet`` this method is called on, which will typically mean that
    every directory on ``sys.path`` will be scanned for distributions.
 
-   This method returns a 2-tuple: (`distributions`, `error_info`), where
-   `distributions` is a list of the distributions found in `plugin_env` that
+   This method returns a 2-tuple: (``distributions``, ``error_info``), where
+   ``distributions`` is a list of the distributions found in ``plugin_env`` that
    were loadable, along with any other distributions that are needed to resolve
-   their dependencies.  `error_info` is a dictionary mapping unloadable plugin
+   their dependencies.  ``error_info`` is a dictionary mapping unloadable plugin
    distributions to an exception instance describing the error that occurred.
    Usually this will be a ``DistributionNotFound`` or ``VersionConflict``
    instance.
@@ -436,7 +436,7 @@ without conflicts or missing requirements.
    metadata tracking and hooks to be activated.
 
    The resolution algorithm used by ``find_plugins()`` is as follows.  First,
-   the project names of the distributions present in `plugin_env` are sorted.
+   the project names of the distributions present in ``plugin_env`` are sorted.
    Then, each project's eggs are tried in descending version order (i.e.,
    newest version first).
 
@@ -446,7 +446,7 @@ without conflicts or missing requirements.
    the next project name, and no older eggs for that project are tried.
 
    If the resolution attempt fails, however, the error is added to the error
-   dictionary.  If the `fallback` flag is true, the next older version of the
+   dictionary.  If the ``fallback`` flag is true, the next older version of the
    plugin is tried, until a working version is found.  If false, the resolution
    process continues with the next plugin project name.
 
@@ -455,7 +455,7 @@ without conflicts or missing requirements.
    may not be able to safely downgrade a version of a package. Others may want
    to ensure that a new plugin configuration is either 100% good or else
    revert to a known-good configuration.  (That is, they may wish to revert to
-   a known configuration if the `error_info` return value is non-empty.)
+   a known configuration if the ``error_info`` return value is non-empty.)
 
    Note that this algorithm gives precedence to satisfying the dependencies of
    alphabetically prior project names in case of version conflicts. If two
@@ -473,22 +473,22 @@ that are present and potentially importable on the current platform.
 distributions during dependency resolution.
 
 ``Environment(search_path=None, platform=get_supported_platform(), python=PY_MAJOR)``
-    Create an environment snapshot by scanning `search_path` for distributions
-    compatible with `platform` and `python`.  `search_path` should be a
+    Create an environment snapshot by scanning ``search_path`` for distributions
+    compatible with ``platform`` and ``python``.  ``search_path`` should be a
     sequence of strings such as might be used on ``sys.path``.  If a
-    `search_path` isn't supplied, ``sys.path`` is used.
+    ``search_path`` isn't supplied, ``sys.path`` is used.
 
-    `platform` is an optional string specifying the name of the platform
+    ``platform`` is an optional string specifying the name of the platform
     that platform-specific distributions must be compatible with.  If
-    unspecified, it defaults to the current platform.  `python` is an
+    unspecified, it defaults to the current platform.  ``python`` is an
     optional string naming the desired version of Python (e.g. ``'2.4'``);
     it defaults to the currently-running version.
 
-    You may explicitly set `platform` (and/or `python`) to ``None`` if you
+    You may explicitly set ``platform`` (and/or ``python``) to ``None`` if you
     wish to include *all* distributions, not just those compatible with the
     running platform or Python version.
 
-    Note that `search_path` is scanned immediately for distributions, and the
+    Note that ``search_path`` is scanned immediately for distributions, and the
     resulting ``Environment`` is a snapshot of the found distributions.  It
     is not automatically updated if the system's state changes due to e.g.
     installation or removal of distributions.
@@ -504,15 +504,15 @@ distributions during dependency resolution.
     The yielded names are always in lower case.
 
 ``add(dist)``
-    Add `dist` to the environment if it matches the platform and python version
+    Add ``dist`` to the environment if it matches the platform and python version
     specified at creation time, and only if the distribution hasn't already
     been added. (i.e., adding the same distribution more than once is a no-op.)
 
 ``remove(dist)``
-    Remove `dist` from the environment.
+    Remove ``dist`` from the environment.
 
 ``can_add(dist)``
-    Is distribution `dist` acceptable for this environment?  If it's not
+    Is distribution ``dist`` acceptable for this environment?  If it's not
     compatible with the ``platform`` and ``python`` version values specified
     when the environment was created, a false value is returned.
 
@@ -534,34 +534,34 @@ distributions during dependency resolution.
     are silently ignored.
 
 ``best_match(req, working_set, installer=None)``
-    Find distribution best matching `req` and usable on `working_set`
+    Find distribution best matching ``req`` and usable on ``working_set``
 
-    This calls the ``find(req)`` method of the `working_set` to see if a
+    This calls the ``find(req)`` method of the ``working_set`` to see if a
     suitable distribution is already active.  (This may raise
     ``VersionConflict`` if an unsuitable version of the project is already
-    active in the specified `working_set`.)  If a suitable distribution isn't
+    active in the specified ``working_set``.)  If a suitable distribution isn't
     active, this method returns the newest distribution in the environment
-    that meets the ``Requirement`` in `req`.  If no suitable distribution is
-    found, and `installer` is supplied, then the result of calling
+    that meets the ``Requirement`` in ``req``.  If no suitable distribution is
+    found, and ``installer`` is supplied, then the result of calling
     the environment's ``obtain(req, installer)`` method will be returned.
 
 ``obtain(requirement, installer=None)``
     Obtain a distro that matches requirement (e.g. via download).  In the
     base ``Environment`` class, this routine just returns
-    ``installer(requirement)``, unless `installer` is None, in which case
+    ``installer(requirement)``, unless ``installer`` is None, in which case
     None is returned instead.  This method is a hook that allows subclasses
     to attempt other ways of obtaining a distribution before falling back
-    to the `installer` argument.
+    to the ``installer`` argument.
 
 ``scan(search_path=None)``
-    Scan `search_path` for distributions usable on `platform`
+    Scan ``search_path`` for distributions usable on ``platform``
 
-    Any distributions found are added to the environment.  `search_path` should
+    Any distributions found are added to the environment.  ``search_path`` should
     be a sequence of strings such as might be used on ``sys.path``.  If not
     supplied, ``sys.path`` is used.  Only distributions conforming to
     the platform/python version defined at initialization are added.  This
     method is a shortcut for using the ``find_distributions()`` function to
-    find the distributions from each item in `search_path`, and then calling
+    find the distributions from each item in ``search_path``, and then calling
     ``add()`` to add each one to the environment.
 
 
@@ -627,10 +627,10 @@ Requirements Parsing
 --------------------------------------
 
 ``__contains__(dist_or_version)``
-    Return true if `dist_or_version` fits the criteria for this requirement.
-    If `dist_or_version` is a ``Distribution`` object, its project name must
+    Return true if ``dist_or_version`` fits the criteria for this requirement.
+    If ``dist_or_version`` is a ``Distribution`` object, its project name must
     match the requirement's project name, and its version must meet the
-    requirement's version criteria.  If `dist_or_version` is a string, it is
+    requirement's version criteria.  If ``dist_or_version`` is a string, it is
     parsed using the ``parse_version()`` utility function.  Otherwise, it is
     assumed to be an already-parsed version.
 
@@ -668,8 +668,8 @@ Requirements Parsing
 
 ``specs``
     A list of ``(op,version)`` tuples, sorted in ascending parsed-version
-    order.  The `op` in each tuple is a comparison operator, represented as
-    a string.  The `version` is the (unparsed) version number.
+    order.  The ``op`` in each tuple is a comparison operator, represented as
+    a string.  The ``version`` is the (unparsed) version number.
 
 ``marker``
     An instance of ``packaging.markers.Marker`` that allows evaluation
@@ -721,14 +721,14 @@ in sys.path order, etc.
 Convenience API
 ---------------
 
-In the following functions, the `dist` argument can be a ``Distribution``
+In the following functions, the ``dist`` argument can be a ``Distribution``
 instance, a ``Requirement`` instance, or a string specifying a requirement
 (i.e. project name, version, etc.).  If the argument is a string or
 ``Requirement``, the specified distribution is located (and added to sys.path
 if not already present).  An error will be raised if a matching distribution is
 not available.
 
-The `group` argument should be a string containing a dotted identifier,
+The ``group`` argument should be a string containing a dotted identifier,
 identifying an entry point group.  If you are defining an entry point group,
 you should include some portion of your package's name in the group name so as
 to avoid collision with other packages' entry point groups.
@@ -738,25 +738,25 @@ to avoid collision with other packages' entry point groups.
     ``ImportError``.
 
 ``get_entry_info(dist, group, name)``
-    Return an ``EntryPoint`` object for the given `group` and `name` from
+    Return an ``EntryPoint`` object for the given ``group`` and ``name`` from
     the specified distribution.  Returns ``None`` if the distribution has not
     advertised a matching entry point.
 
 ``get_entry_map(dist, group=None)``
-    Return the distribution's entry point map for `group`, or the full entry
+    Return the distribution's entry point map for ``group``, or the full entry
     map for the distribution.  This function always returns a dictionary,
-    even if the distribution advertises no entry points.  If `group` is given,
+    even if the distribution advertises no entry points.  If ``group`` is given,
     the dictionary maps entry point names to the corresponding ``EntryPoint``
-    object.  If `group` is None, the dictionary maps group names to
+    object.  If ``group`` is None, the dictionary maps group names to
     dictionaries that then map entry point names to the corresponding
     ``EntryPoint`` instance in that group.
 
 ``iter_entry_points(group, name=None)``
-    Yield entry point objects from `group` matching `name`.
+    Yield entry point objects from ``group`` matching ``name``.
 
-    If `name` is None, yields all entry points in `group` from all
+    If ``name`` is None, yields all entry points in ``group`` from all
     distributions in the working set on sys.path, otherwise only ones matching
-    both `group` and `name` are yielded.  Entry points are yielded from
+    both ``group`` and ``name`` are yielded.  Entry points are yielded from
     the active distributions in the order that the distributions appear on
     sys.path.  (Within entry points for a particular distribution, however,
     there is no particular ordering.)
@@ -769,26 +769,26 @@ Creating and Parsing
 --------------------
 
 ``EntryPoint(name, module_name, attrs=(), extras=(), dist=None)``
-    Create an ``EntryPoint`` instance.  `name` is the entry point name.  The
-    `module_name` is the (dotted) name of the module containing the advertised
-    object.  `attrs` is an optional tuple of names to look up from the
-    module to obtain the advertised object.  For example, an `attrs` of
-    ``("foo","bar")`` and a `module_name` of ``"baz"`` would mean that the
+    Create an ``EntryPoint`` instance.  ``name`` is the entry point name.  The
+    ``module_name`` is the (dotted) name of the module containing the advertised
+    object.  ``attrs`` is an optional tuple of names to look up from the
+    module to obtain the advertised object.  For example, an ``attrs`` of
+    ``("foo","bar")`` and a ``module_name`` of ``"baz"`` would mean that the
     advertised object could be obtained by the following code::
 
         import baz
         advertised_object = baz.foo.bar
 
-    The `extras` are an optional tuple of "extra feature" names that the
+    The ``extras`` are an optional tuple of "extra feature" names that the
     distribution needs in order to provide this entry point.  When the
-    entry point is loaded, these extra features are looked up in the `dist`
+    entry point is loaded, these extra features are looked up in the ``dist``
     argument to find out what other distributions may need to be activated
-    on sys.path; see the ``load()`` method for more details.  The `extras`
-    argument is only meaningful if `dist` is specified.  `dist` must be
+    on sys.path; see the ``load()`` method for more details.  The ``extras``
+    argument is only meaningful if ``dist`` is specified.  ``dist`` must be
     a ``Distribution`` instance.
 
 ``EntryPoint.parse(src, dist=None)`` (classmethod)
-    Parse a single entry point from string `src`
+    Parse a single entry point from string ``src``
 
     Entry point syntax follows the form::
 
@@ -796,27 +796,27 @@ Creating and Parsing
 
     The entry name and module name are required, but the ``:attrs`` and
     ``[extras]`` parts are optional, as is the whitespace shown between
-    some of the items.  The `dist` argument is passed through to the
+    some of the items.  The ``dist`` argument is passed through to the
     ``EntryPoint()`` constructor, along with the other values parsed from
-    `src`.
+    ``src``.
 
 ``EntryPoint.parse_group(group, lines, dist=None)`` (classmethod)
-    Parse `lines` (a string or sequence of lines) to create a dictionary
+    Parse ``lines`` (a string or sequence of lines) to create a dictionary
     mapping entry point names to ``EntryPoint`` objects.  ``ValueError`` is
-    raised if entry point names are duplicated, if `group` is not a valid
+    raised if entry point names are duplicated, if ``group`` is not a valid
     entry point group name, or if there are any syntax errors.  (Note: the
-    `group` parameter is used only for validation and to create more
-    informative error messages.)  If `dist` is provided, it will be used to
+    ``group`` parameter is used only for validation and to create more
+    informative error messages.)  If ``dist`` is provided, it will be used to
     set the ``dist`` attribute of the created ``EntryPoint`` objects.
 
 ``EntryPoint.parse_map(data, dist=None)`` (classmethod)
-    Parse `data` into a dictionary mapping group names to dictionaries mapping
-    entry point names to ``EntryPoint`` objects.  If `data` is a dictionary,
+    Parse ``data`` into a dictionary mapping group names to dictionaries mapping
+    entry point names to ``EntryPoint`` objects.  If ``data`` is a dictionary,
     then the keys are used as group names and the values are passed to
-    ``parse_group()`` as the `lines` argument.  If `data` is a string or
+    ``parse_group()`` as the ``lines`` argument.  If ``data`` is a string or
     sequence of lines, it is first split into .ini-style sections (using
     the ``split_sections()`` utility function) and the section names are used
-    as group names.  In either case, the `dist` argument is passed through to
+    as group names.  In either case, the ``dist`` argument is passed through to
     ``parse_group()`` so that the entry points will be linked to the specified
     distribution.
 
@@ -837,9 +837,9 @@ addition, the following methods are provided:
     Ensure that any "extras" needed by the entry point are available on
     sys.path.  ``UnknownExtra`` is raised if the ``EntryPoint`` has ``extras``,
     but no ``dist``, or if the named extras are not defined by the
-    distribution.  If `env` is supplied, it must be an ``Environment``, and it
+    distribution.  If ``env`` is supplied, it must be an ``Environment``, and it
     will be used to search for needed distributions if they are not already
-    present on sys.path.  If `installer` is supplied, it must be a callable
+    present on sys.path.  If ``installer`` is supplied, it must be a callable
     taking a ``Requirement`` instance and returning a matching importable
     ``Distribution`` instance or None.
 
@@ -872,16 +872,16 @@ available distributions, respectively.)  You can also obtain ``Distribution``
 objects from one of these high-level APIs:
 
 ``find_distributions(path_item, only=False)``
-    Yield distributions accessible via `path_item`.  If `only` is true, yield
-    only distributions whose ``location`` is equal to `path_item`.  In other
-    words, if `only` is true, this yields any distributions that would be
-    importable if `path_item` were on ``sys.path``.  If `only` is false, this
-    also yields distributions that are "in" or "under" `path_item`, but would
+    Yield distributions accessible via ``path_item``.  If ``only`` is true, yield
+    only distributions whose ``location`` is equal to ``path_item``.  In other
+    words, if ``only`` is true, this yields any distributions that would be
+    importable if ``path_item`` were on ``sys.path``.  If ``only`` is false, this
+    also yields distributions that are "in" or "under" ``path_item``, but would
     not be importable unless their locations were also added to ``sys.path``.
 
 ``get_distribution(dist_spec)``
     Return a ``Distribution`` object for a given ``Requirement`` or string.
-    If `dist_spec` is already a ``Distribution`` instance, it is returned.
+    If ``dist_spec`` is already a ``Distribution`` instance, it is returned.
     If it is a ``Requirement`` object or a string that can be parsed into one,
     it is used to locate and activate a matching distribution, which is then
     returned.
@@ -890,18 +890,18 @@ However, if you're creating specialized tools for working with distributions,
 or creating a new distribution format, you may also need to create
 ``Distribution`` objects directly, using one of the three constructors below.
 
-These constructors all take an optional `metadata` argument, which is used to
-access any resources or metadata associated with the distribution.  `metadata`
+These constructors all take an optional ``metadata`` argument, which is used to
+access any resources or metadata associated with the distribution.  ``metadata``
 must be an object that implements the ``IResourceProvider`` interface, or None.
 If it is None, an ``EmptyProvider`` is used instead.  ``Distribution`` objects
 implement both the `IResourceProvider`_ and `IMetadataProvider Methods`_ by
-delegating them to the `metadata` object.
+delegating them to the ``metadata`` object.
 
 ``Distribution.from_location(location, basename, metadata=None, **kw)`` (classmethod)
-    Create a distribution for `location`, which must be a string such as a
+    Create a distribution for ``location``, which must be a string such as a
     URL, filename, or other string that might be used on ``sys.path``.
-    `basename` is a string naming the distribution, like ``Foo-1.2-py2.4.egg``.
-    If `basename` ends with ``.egg``, then the project's name, version, python
+    ``basename`` is a string naming the distribution, like ``Foo-1.2-py2.4.egg``.
+    If ``basename`` ends with ``.egg``, then the project's name, version, python
     version and platform are extracted from the filename and used to set those
     properties of the created distribution.  Any additional keyword arguments
     are forwarded to the ``Distribution()`` constructor.
@@ -917,8 +917,8 @@ delegating them to the `metadata` object.
 
 ``Distribution(location,metadata,project_name,version,py_version,platform,precedence)``
     Create a distribution by setting its properties.  All arguments are
-    optional and default to None, except for `py_version` (which defaults to
-    the current Python version) and `precedence` (which defaults to
+    optional and default to None, except for ``py_version`` (which defaults to
+    the current Python version) and ``precedence`` (which defaults to
     ``EGG_DIST``; for more details see ``precedence`` under `Distribution
     Attributes`_ below).  Note that it's usually easier to use the
     ``from_filename()`` or ``from_location()`` constructors than to specify
@@ -938,7 +938,7 @@ project_name
     A string, naming the project that this distribution is for.  Project names
     are defined by a project's setup script, and they are used to identify
     projects on PyPI.  When a ``Distribution`` is constructed, the
-    `project_name` argument is passed through the ``safe_name()`` utility
+    ``project_name`` argument is passed through the ``safe_name()`` utility
     function to filter out any unacceptable characters.
 
 key
@@ -952,9 +952,9 @@ extras
 
 version
     A string denoting what release of the project this distribution contains.
-    When a ``Distribution`` is constructed, the `version` argument is passed
+    When a ``Distribution`` is constructed, the ``version`` argument is passed
     through the ``safe_version()`` utility function to filter out any
-    unacceptable characters.  If no `version` is specified at construction
+    unacceptable characters.  If no ``version`` is specified at construction
     time, then attempting to access this attribute later will cause the
     ``Distribution`` to try to discover its version by reading its ``PKG-INFO``
     metadata file.  If ``PKG-INFO`` is unavailable or can't be parsed,
@@ -967,7 +967,7 @@ parsed_version
     distributions by version.  (See the `Parsing Utilities`_ section below for
     more information on the ``parse_version()`` function.)  Note that accessing
     ``parsed_version`` may result in a ``ValueError`` if the ``Distribution``
-    was constructed without a `version` and without `metadata` capable of
+    was constructed without a ``version`` and without ``metadata`` capable of
     supplying the missing version info.
 
 py_version
@@ -998,9 +998,9 @@ precedence
 ------------------------
 
 ``activate(path=None)``
-    Ensure distribution is importable on `path`.  If `path` is None,
+    Ensure distribution is importable on ``path``.  If ``path`` is None,
     ``sys.path`` is used instead.  This ensures that the distribution's
-    ``location`` is in the `path` list, and it also performs any necessary
+    ``location`` is in the ``path`` list, and it also performs any necessary
     namespace package fixups or declarations.  (That is, if the distribution
     contains namespace packages, this method ensures that they are declared,
     and that the distribution's contents for those namespace packages are
@@ -1020,7 +1020,7 @@ precedence
 
 ``requires(extras=())``
     List the ``Requirement`` objects that specify this distribution's
-    dependencies.  If `extras` is specified, it should be a sequence of names
+    dependencies.  If ``extras`` is specified, it should be a sequence of names
     of "extras" defined by the distribution, and the list returned will then
     include any dependencies needed to support the named "extras".
 
@@ -1047,11 +1047,11 @@ by the distribution.  See the section above on `Entry Points`_ for more
 detailed information about these operations:
 
 ``get_entry_info(group, name)``
-    Return the ``EntryPoint`` object for `group` and `name`, or None if no
+    Return the ``EntryPoint`` object for ``group`` and ``name``, or None if no
     such point is advertised by this distribution.
 
 ``get_entry_map(group=None)``
-    Return the entry point map for `group`.  If `group` is None, return
+    Return the entry point map for ``group``.  If ``group`` is None, return
     a dictionary mapping group names to entry point maps for all groups.
     (An entry point map is a dictionary of entry point names to ``EntryPoint``
     objects.)
@@ -1079,8 +1079,8 @@ documented in later sections):
 * ``resource_isdir(resource_name)``
 * ``resource_listdir(resource_name)``
 
-If the distribution was created with a `metadata` argument, these resource and
-metadata access methods are all delegated to that `metadata` provider.
+If the distribution was created with a ``metadata`` argument, these resource and
+metadata access methods are all delegated to that ``metadata`` provider.
 Otherwise, they are delegated to an ``EmptyProvider``, so that the distribution
 will appear to have no resources or metadata.  This delegation approach is used
 so that supporting custom importers or new distribution formats can be done
@@ -1112,11 +1112,11 @@ Thus, you can use the APIs below without needing an explicit
 Basic Resource Access
 ---------------------
 
-In the following methods, the `package_or_requirement` argument may be either
+In the following methods, the ``package_or_requirement`` argument may be either
 a Python package/module name (e.g. ``foo.bar``) or a ``Requirement`` instance.
 If it is a package or module name, the named module or package must be
 importable (i.e., be in a distribution or directory on ``sys.path``), and the
-`resource_name` argument is interpreted relative to the named package.  (Note
+``resource_name`` argument is interpreted relative to the named package.  (Note
 that if a module name is used, then the resource name is relative to the
 package immediately containing the named module.  Also, you should not use use
 a namespace package name, because a namespace package can be spread across
@@ -1127,7 +1127,7 @@ If it is a ``Requirement``, then the requirement is automatically resolved
 (searching the current ``Environment`` if necessary) and a matching
 distribution is added to the ``WorkingSet`` and ``sys.path`` if one was not
 already present.  (Unless the ``Requirement`` can't be satisfied, in which
-case an exception is raised.)  The `resource_name` argument is then interpreted
+case an exception is raised.)  The ``resource_name`` argument is then interpreted
 relative to the root of the identified distribution; i.e. its first path
 segment will be treated as a peer of the top-level modules or packages in the
 distribution.
@@ -1229,12 +1229,12 @@ no need to use these methods.  Unlike the other methods listed above, they are
 you must therefore have an explicit ``ResourceManager`` instance to use them.
 
 ``get_cache_path(archive_name, names=())``
-    Return absolute location in cache for `archive_name` and `names`
+    Return absolute location in cache for ``archive_name`` and ``names``
 
     The parent directory of the resulting path will be created if it does
-    not already exist.  `archive_name` should be the base filename of the
+    not already exist.  ``archive_name`` should be the base filename of the
     enclosing egg (which may not be the name of the enclosing zipfile!),
-    including its ".egg" extension.  `names`, if provided, should be a
+    including its ".egg" extension.  ``names``, if provided, should be a
     sequence of path name parts "under" the egg's extraction location.
 
     This method should only be called by resource providers that need to
@@ -1250,12 +1250,12 @@ you must therefore have an explicit ``ResourceManager`` instance to use them.
     wrap or handle extraction errors themselves.
 
 ``postprocess(tempname, filename)``
-    Perform any platform-specific postprocessing of `tempname`.
+    Perform any platform-specific postprocessing of ``tempname``.
     Resource providers should call this method ONLY after successfully
     extracting a compressed resource.  They must NOT call it on resources
     that are already in the filesystem.
 
-    `tempname` is the current (temporary) name of the file, and `filename`
+    ``tempname`` is the current (temporary) name of the file, and ``filename``
     is the name it will be renamed to by the caller after this routine
     returns.
 
@@ -1323,7 +1323,7 @@ implement the ``IMetadataProvider`` or ``IResourceProvider`` interfaces are:
 ``run_script(script_name, namespace)``
     Execute the named script in the supplied namespace dictionary.  Raises
     ``ResolutionError`` if there is no script by that name in the ``scripts``
-    metadata directory.  `namespace` should be a Python dictionary, usually
+    metadata directory.  ``namespace`` should be a Python dictionary, usually
     a module dictionary if the script is being run as a module.
 
 
@@ -1380,11 +1380,11 @@ with other (PEP 302-compatible) importers or module loaders, you may need to
 register various handlers and support functions using these APIs:
 
 ``register_finder(importer_type, distribution_finder)``
-    Register `distribution_finder` to find distributions in ``sys.path`` items.
-    `importer_type` is the type or class of a PEP 302 "Importer" (``sys.path``
-    item handler), and `distribution_finder` is a callable that, when passed a
-    path item, the importer instance, and an `only` flag, yields
-    ``Distribution`` instances found under that path item.  (The `only` flag,
+    Register ``distribution_finder`` to find distributions in ``sys.path`` items.
+    ``importer_type`` is the type or class of a PEP 302 "Importer" (``sys.path``
+    item handler), and ``distribution_finder`` is a callable that, when passed a
+    path item, the importer instance, and an ``only`` flag, yields
+    ``Distribution`` instances found under that path item.  (The ``only`` flag,
     if true, means the finder should yield only ``Distribution`` objects whose
     ``location`` is equal to the path item provided.)
 
@@ -1392,16 +1392,16 @@ register various handlers and support functions using these APIs:
     example finder function.
 
 ``register_loader_type(loader_type, provider_factory)``
-    Register `provider_factory` to make ``IResourceProvider`` objects for
-    `loader_type`.  `loader_type` is the type or class of a PEP 302
-    ``module.__loader__``, and `provider_factory` is a function that, when
+    Register ``provider_factory`` to make ``IResourceProvider`` objects for
+    ``loader_type``.  ``loader_type`` is the type or class of a PEP 302
+    ``module.__loader__``, and ``provider_factory`` is a function that, when
     passed a module object, returns an `IResourceProvider`_ for that module,
     allowing it to be used with the `ResourceManager API`_.
 
 ``register_namespace_handler(importer_type, namespace_handler)``
-    Register `namespace_handler` to declare namespace packages for the given
-    `importer_type`.  `importer_type` is the type or class of a PEP 302
-    "importer" (sys.path item handler), and `namespace_handler` is a callable
+    Register ``namespace_handler`` to declare namespace packages for the given
+    ``importer_type``.  ``importer_type`` is the type or class of a PEP 302
+    "importer" (sys.path item handler), and ``namespace_handler`` is a callable
     with a signature like this::
 
         def namespace_handler(importer, path_entry, moduleName, module):
@@ -1421,23 +1421,23 @@ IResourceProvider
 -----------------
 
 ``IResourceProvider`` is an abstract class that documents what methods are
-required of objects returned by a `provider_factory` registered with
+required of objects returned by a ``provider_factory`` registered with
 ``register_loader_type()``.  ``IResourceProvider`` is a subclass of
 ``IMetadataProvider``, so objects that implement this interface must also
 implement all of the `IMetadataProvider Methods`_ as well as the methods
-shown here.  The `manager` argument to the methods below must be an object
+shown here.  The ``manager`` argument to the methods below must be an object
 that supports the full `ResourceManager API`_ documented above.
 
 ``get_resource_filename(manager, resource_name)``
-    Return a true filesystem path for `resource_name`, coordinating the
-    extraction with `manager`, if the resource must be unpacked to the
+    Return a true filesystem path for ``resource_name``, coordinating the
+    extraction with ``manager``, if the resource must be unpacked to the
     filesystem.
 
 ``get_resource_stream(manager, resource_name)``
-    Return a readable file-like object for `resource_name`.
+    Return a readable file-like object for ``resource_name``.
 
 ``get_resource_string(manager, resource_name)``
-    Return a string containing the contents of `resource_name`.
+    Return a string containing the contents of ``resource_name``.
 
 ``has_resource(resource_name)``
     Does the package contain the named resource?
@@ -1501,15 +1501,15 @@ where appropriate.  Their inheritance tree looks like this::
 
 ``PathMetadata(path, egg_info)``
     Create an ``IResourceProvider`` for a filesystem-based distribution, where
-    `path` is the filesystem location of the importable modules, and `egg_info`
+    ``path`` is the filesystem location of the importable modules, and ``egg_info``
     is the filesystem location of the distribution's metadata directory.
-    `egg_info` should usually be the ``EGG-INFO`` subdirectory of `path` for an
-    "unpacked egg", and a ``ProjectName.egg-info`` subdirectory of `path` for
+    ``egg_info`` should usually be the ``EGG-INFO`` subdirectory of ``path`` for an
+    "unpacked egg", and a ``ProjectName.egg-info`` subdirectory of ``path`` for
     a "development egg".  However, other uses are possible for custom purposes.
 
 ``EggMetadata(zipimporter)``
     Create an ``IResourceProvider`` for a zipfile-based distribution.  The
-    `zipimporter` should be a ``zipimport.zipimporter`` instance, and may
+    ``zipimporter`` should be a ``zipimport.zipimporter`` instance, and may
     represent a "basket" (a zipfile containing multiple ".egg" subdirectories)
     a specific egg *within* a basket, or a zipfile egg (where the zipfile
     itself is a ".egg").  It can also be a combination, such as a zipfile egg
@@ -1547,12 +1547,12 @@ Parsing Utilities
 
 ``yield_lines(strs)``
     Yield non-empty/non-comment lines from a string/unicode or a possibly-
-    nested sequence thereof.  If `strs` is an instance of ``basestring``, it
+    nested sequence thereof.  If ``strs`` is an instance of ``basestring``, it
     is split into lines, and each non-blank, non-comment line is yielded after
     stripping leading and trailing whitespace.  (Lines whose first non-blank
     character is ``#`` are considered comment lines.)
 
-    If `strs` is not an instance of ``basestring``, it is iterated over, and
+    If ``strs`` is not an instance of ``basestring``, it is iterated over, and
     each item is passed recursively to ``yield_lines()``, so that an arbitrarily
     nested sequence of strings, or sequences of sequences of strings can be
     flattened out to the lines contained therein.  So for example, passing
@@ -1636,15 +1636,15 @@ Platform Utilities
     ``compatible_platforms()`` function.
 
 ``compatible_platforms(provided, required)``
-    Return true if a distribution built on the `provided` platform may be used
-    on the `required` platform.  If either platform value is ``None``, it is
+    Return true if a distribution built on the ``provided`` platform may be used
+    on the ``required`` platform.  If either platform value is ``None``, it is
     considered a wildcard, and the platforms are therefore compatible.
     Likewise, if the platform strings are equal, they're also considered
     compatible, and ``True`` is returned.  Currently, the only non-equal
     platform strings that are considered compatible are macOS platform
     strings with the same hardware type (e.g. ``ppc``) and major version
-    (e.g. ``10``) with the `provided` platform's minor version being less than
-    or equal to the `required` platform's minor version.
+    (e.g. ``10``) with the ``provided`` platform's minor version being less than
+    or equal to the ``required`` platform's minor version.
 
 ``get_default_cache()``
     Determine the default cache location for extracting resources from zipped
@@ -1666,14 +1666,14 @@ File/Path Utilities
 -------------------
 
 ``ensure_directory(path)``
-    Ensure that the parent directory (``os.path.dirname``) of `path` actually
+    Ensure that the parent directory (``os.path.dirname``) of ``path`` actually
     exists, using ``os.makedirs()`` if necessary.
 
 ``normalize_path(path)``
-    Return a "normalized" version of `path`, such that two paths represent
+    Return a "normalized" version of ``path``, such that two paths represent
     the same filesystem location if they have equal ``normalized_path()``
     values.  Specifically, this is a shortcut for calling ``os.path.realpath``
-    and ``os.path.normcase`` on `path`.  Unfortunately, on certain platforms
+    and ``os.path.normcase`` on ``path``.  Unfortunately, on certain platforms
     (notably Cygwin and macOS) the ``normcase`` function does not accurately
     reflect the platform's case-sensitivity, so there is always the possibility
     of two apparently-different paths being equal on such platforms.
