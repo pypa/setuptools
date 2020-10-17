@@ -14,7 +14,7 @@ Console Scripts
 ===============
 
 First consider an example without entry points. Imagine a package
-defined thus::
+defined thus:
 
 .. code-block:: bash
 
@@ -40,7 +40,7 @@ and ``__main__.py`` providing a hook:
         hello_world()
 
 After installing the package, the function may be invoked through the
-`runpy <https://docs.python.org/3/library/runpy.html>`_ module::
+`runpy <https://docs.python.org/3/library/runpy.html>`_ module:
 
 .. code-block:: bash
 
@@ -100,7 +100,7 @@ For a project wishing to solicit entry points, Setuptools recommends the
 module (part of stdlib since Python 3.8) or its backport,
 `importlib_metadata <https://pypi.org/project/importlib_metadata>`_.
 
-For example, to find the console script entry points from the example above::
+For example, to find the console script entry points from the example above:
 
 .. code-block:: python
 
@@ -119,7 +119,7 @@ method to import and load that entry point (module or object).
         hello-world = timmins:hello_world
 
 Then, a different project wishing to load 'my.plugins' plugins could run
-the following routine to load (and invoke) such plugins::
+the following routine to load (and invoke) such plugins:
 
 .. code-block:: python
 
