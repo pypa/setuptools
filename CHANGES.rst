@@ -3080,7 +3080,7 @@ process to fail and PyPI uploads no longer accept files for 13.0.
   connection.
 
 Backward-Incompatible Changes
-=============================
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This release includes a couple of backward-incompatible changes, but most if
 not all users will find 1.0 a drop-in replacement for 0.9.
@@ -3670,12 +3670,12 @@ how it parses version numbers.
 -----
 
 setuptools
-==========
+^^^^^^^^^^
 
 * Fixed a bunch of calls to file() that caused crashes on Python 3.
 
 bootstrapping
-=============
+^^^^^^^^^^^^^
 
 * Fixed a bug in sorting that caused bootstrap to fail on Python 3.
 
@@ -3683,7 +3683,7 @@ bootstrapping
 -----
 
 setuptools
-==========
+^^^^^^^^^^
 
 * Added Python 3 support; see docs/python3.txt.
   This closes Old Setuptools #39.
@@ -3701,7 +3701,7 @@ setuptools
   This closes Old Setuptools #41.
 
 bootstrapping
-=============
+^^^^^^^^^^^^^
 
 * Fixed bootstrap not working on Windows. This closes issue Distribute #49.
 
@@ -3714,7 +3714,7 @@ bootstrapping
 -----
 
 setuptools
-==========
+^^^^^^^^^^
 
 * package_index.urlopen now catches BadStatusLine and malformed url errors.
   This closes Distribute #16 and Distribute #18.
@@ -3731,7 +3731,7 @@ setuptools
 
 
 bootstrapping
-=============
+^^^^^^^^^^^^^
 
 * The boostrap process leave setuptools alone if detected in the system
   and --root or --prefix is provided, but is not in the same location.
@@ -3741,7 +3741,7 @@ bootstrapping
 ---
 
 setuptools
-==========
+^^^^^^^^^^
 
 * Packages required at build time where not fully present at install time.
   This closes Distribute #12.
@@ -3758,7 +3758,7 @@ setuptools
 * Added compatibility with Subversion 1.6. This references Distribute #1.
 
 pkg_resources
-=============
+^^^^^^^^^^^^^
 
 * Avoid a call to /usr/bin/sw_vers on OSX and use the official platform API
   instead. Based on a patch from ronaldoussoren. This closes issue #5.
@@ -3775,7 +3775,7 @@ pkg_resources
 * Immediately close all file handles. This closes Distribute #3.
 
 easy_install
-============
+^^^^^^^^^^^^
 
 * Immediately close all file handles. This closes Distribute #3.
 
