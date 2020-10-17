@@ -3,6 +3,9 @@
 
 version: 2
 
+sphinx:
+  builder: dirhtml
+
 python:
   install:
   - requirements: docs/requirements.txt
