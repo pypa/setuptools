@@ -15,6 +15,6 @@ Documentation content:
    references/keywords
    roadmap
    setuptools
-   Development guide <development>
+   Development guide <developmen/index>
    Backward compatibility & deprecated practice <deprecated/index>
    Changelog <history>
