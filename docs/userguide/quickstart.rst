@@ -106,16 +106,15 @@ use, go to :ref:`package_discovery`
 Entry points and automatic script creation
 ===========================================
 Setuptools support automatic creation of scripts upon installation, that runs
-code within your package if you specify them with the ``entry_point`` keyword.
+code within your package if you specify them with the ``entry_points`` keyword.
 This is what allows you to run commands like ``pip install`` instead of having
 to type ``python -m pip install``. To accomplish this, add the entry_points
 keyword in your ``setup.cfg``:
 
 .. code-block:: ini
 
-    [options]
-    entry_points =
-        [console_script]
+    [options.entry_points]
+    console_scripts =
         main = mypkg:some_func
 
 When this project is installed, a ``main`` script will be installed and will
