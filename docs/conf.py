@@ -152,6 +152,42 @@ link_files = {
 # Be strict about any broken references:
 nitpicky = True
 
+# Ref: https://stackoverflow.com/a/30624034/595220
+nitpick_ignore = [
+    ('c:func', 'SHGetSpecialFolderPath'),  # ref to MS docs
+    ('envvar', 'DISTUTILS_DEBUG'),  # undocumented
+    ('envvar', 'HOME'),  # undocumented
+    ('envvar', 'PLAT'),  # undocumented
+    ('py:attr', 'CCompiler.language_map'),  # undocumented
+    ('py:attr', 'CCompiler.language_order'),  # undocumented
+    ('py:class', 'distutils.dist.Distribution'),  # undocumented
+    ('py:class', 'distutils.extension.Extension'),  # undocumented
+    ('py:class', 'BorlandCCompiler'),  # undocumented
+    ('py:class', 'CCompiler'),  # undocumented
+    ('py:class', 'CygwinCCompiler'),  # undocumented
+    ('py:class', 'distutils.dist.DistributionMetadata'),  # undocumented
+    ('py:class', 'FileList'),  # undocumented
+    ('py:class', 'IShellLink'),  # ref to MS docs
+    ('py:class', 'MSVCCompiler'),  # undocumented
+    ('py:class', 'OptionDummy'),  # undocumented
+    ('py:class', 'UnixCCompiler'),  # undocumented
+    ('py:exc', 'CompileError'),  # undocumented
+    ('py:exc', 'DistutilsExecError'),  # undocumented
+    ('py:exc', 'DistutilsFileError'),  # undocumented
+    ('py:exc', 'LibError'),  # undocumented
+    ('py:exc', 'LinkError'),  # undocumented
+    ('py:exc', 'PreprocessError'),  # undocumented
+    ('py:func', 'distutils.CCompiler.new_compiler'),  # undocumented
+    # undocumented:
+    ('py:func', 'distutils.dist.DistributionMetadata.read_pkg_file'),
+    ('py:func', 'distutils.file_util._copy_file_contents'),  # undocumented
+    ('py:func', 'distutils.log.debug'),  # undocumented
+    ('py:func', 'distutils.spawn.find_executable'),  # undocumented
+    ('py:func', 'distutils.spawn.spawn'),  # undocumented
+    # TODO: check https://docutils.rtfd.io in the future
+    ('py:mod', 'docutils'),  # there's no Sphinx site documenting this
+]
+
 
 # Ref: https://github.com/python-attrs/attrs/pull/571/files\
 #      #diff-85987f48f1258d9ee486e3191495582dR82
