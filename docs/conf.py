@@ -19,6 +19,7 @@ github_sponsors_url = f'{github_url}/sponsors'
 
 extensions = [
     'sphinx.ext.extlinks',  # allows to create custom roles easily
+    'sphinx.ext.intersphinx',  # allows interlinking external docs sites
     'jaraco.packaging.sphinx',
     'rst.linker',
 ]
@@ -155,3 +156,10 @@ nitpicky = True
 # Ref: https://github.com/python-attrs/attrs/pull/571/files\
 #      #diff-85987f48f1258d9ee486e3191495582dR82
 default_role = 'any'
+
+
+# Allow linking objects on other Sphinx sites seamlessly:
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+    'python2': ('https://docs.python.org/2', None),
+}
