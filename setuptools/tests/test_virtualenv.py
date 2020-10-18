@@ -168,8 +168,9 @@ def _check_test_command_install_requirements(virtualenv, tmpdir):
             open('success', 'w').close()
             '''))
     # Run test command for test package.
-    virtualenv.run(
-        ['python', 'setup.py', 'test', '-s', 'test'], cd=str(tmpdir))
+    # use 'virtualenv.python' as workaround for man-group/pytest-plugins#166
+    cmd = [virtualenv.python, 'setup.py', 'test', '-s', 'test']
+    virtualenv.run(cmd, cd=str(tmpdir))
     assert tmpdir.join('success').check()
 
 
