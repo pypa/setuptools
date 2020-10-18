@@ -10,9 +10,9 @@ The setup script is the centre of all activity in building, distributing, and
 installing modules using the Distutils.  The main purpose of the setup script is
 to describe your module distribution to the Distutils, so that the various
 commands that operate on your modules do the right thing.  As we saw in section
-:ref:`distutils-simple-example` above, the setup script consists mainly of a call to
-:func:`setup`, and most information supplied to the Distutils by the module
-developer is supplied as keyword arguments to :func:`setup`.
+:ref:`distutils-simple-example` above, the setup script consists mainly of a call to :func:`~distutils.core.setup`, and most information
+supplied to the Distutils by the module developer is supplied as keyword
+arguments to :func:`~distutils.core.setup`.
 
 Here's a slightly more involved example, which we'll follow for the next couple
 of sections: the Distutils' own setup script.  (Keep in mind that although the
@@ -80,7 +80,7 @@ If you use a different convention to lay out your source directory, that's no
 problem: you just have to supply the ``package_dir`` option to tell the
 Distutils about your convention.  For example, say you keep all Python source
 under :file:`lib`, so that modules in the "root package" (i.e., not in any
-package at all) are in :file:`lib`, modules in the :mod:`foo` package are in
+package at all) are in :file:`lib`, modules in the ``foo`` package are in
 :file:`lib/foo`, and so forth.  Then you would put ::
 
     package_dir = {'': 'lib'}
@@ -90,14 +90,14 @@ empty package name stands for the root package.  The values are directory names
 relative to your distribution root.  In this case, when you say ``packages =
 ['foo']``, you are promising that the file :file:`lib/foo/__init__.py` exists.
 
-Another possible convention is to put the :mod:`foo` package right in
-:file:`lib`, the :mod:`foo.bar` package in :file:`lib/bar`, etc.  This would be
+Another possible convention is to put the ``foo`` package right in
+:file:`lib`, the ``foo.bar`` package in :file:`lib/bar`, etc.  This would be
 written in the setup script as ::
 
     package_dir = {'foo': 'lib'}
 
 A ``package: dir`` entry in the ``package_dir`` dictionary implicitly
-applies to all packages below *package*, so the :mod:`foo.bar` case is
+applies to all packages below *package*, so the ``foo.bar`` case is
 automatically handled here.  In this example, having ``packages = ['foo',
 'foo.bar']`` tells the Distutils to look for :file:`lib/__init__.py` and
 :file:`lib/bar/__init__.py`.  (Keep in mind that although ``package_dir``
@@ -119,7 +119,7 @@ section :ref:`distutils-simple-example`; here is a slightly more involved exampl
     py_modules = ['mod1', 'pkg.mod2']
 
 This describes two modules, one of them in the "root" package, the other in the
-:mod:`pkg` package.  Again, the default package/directory layout implies that
+``pkg`` package.  Again, the default package/directory layout implies that
 these two modules can be found in :file:`mod1.py` and :file:`pkg/mod2.py`, and
 that :file:`pkg/__init__.py` exists as well. And again, you can override the
 package/directory correspondence using the ``package_dir`` option.
@@ -139,18 +139,19 @@ directories, libraries to link with, etc.).
 
 .. XXX read over this section
 
-All of this is done through another keyword argument to :func:`setup`, the
+All of this is done through another keyword argument to
+:func:`~distutils.core.setup`, the
 ``ext_modules`` option.  ``ext_modules`` is just a list of
 :class:`~distutils.core.Extension` instances, each of which describes a
 single extension module.
-Suppose your distribution includes a single extension, called :mod:`foo` and
+Suppose your distribution includes a single extension, called ``foo`` and
 implemented by :file:`foo.c`.  If no additional instructions to the
 compiler/linker are needed, describing this extension is quite simple::
 
     Extension('foo', ['foo.c'])
 
-The :class:`Extension` class can be imported from :mod:`distutils.core` along
-with :func:`setup`.  Thus, the setup script for a module distribution that
+The :class:`~distutils.extension.Extension` class can be imported from :mod:`distutils.core` along
+with :func:`~distutils.core.setup`.  Thus, the setup script for a module distribution that
 contains only this one extension and nothing else might be::
 
     from distutils.core import setup, Extension
@@ -159,7 +160,7 @@ contains only this one extension and nothing else might be::
           ext_modules=[Extension('foo', ['foo.c'])],
           )
 
-The :class:`Extension` class (actually, the underlying extension-building
+The :class:`~distutils.extension.Extension` class (actually, the underlying extension-building
 machinery implemented by the :command:`build_ext` command) supports a great deal
 of flexibility in describing Python extensions, which is explained in the
 following sections.
@@ -177,14 +178,14 @@ describes an extension that lives in the root package, while ::
 
     Extension('pkg.foo', ['src/foo1.c', 'src/foo2.c'])
 
-describes the same extension in the :mod:`pkg` package.  The source files and
+describes the same extension in the ``pkg`` package.  The source files and
 resulting object code are identical in both cases; the only difference is where
 in the filesystem (and therefore where in Python's namespace hierarchy) the
 resulting extension lives.
 
 If you have a number of extensions all in the same package (or all under the
 same base package), use the ``ext_package`` keyword argument to
-:func:`setup`.  For example, ::
+:func:`~distutils.core.setup`.  For example, ::
 
     setup(...,
           ext_package='pkg',
@@ -192,8 +193,8 @@ same base package), use the ``ext_package`` keyword argument to
                        Extension('subpkg.bar', ['bar.c'])],
          )
 
-will compile :file:`foo.c` to the extension :mod:`pkg.foo`, and :file:`bar.c` to
-:mod:`pkg.subpkg.bar`.
+will compile :file:`foo.c` to the extension ``pkg.foo``, and
+:file:`bar.c` to ``pkg.subpkg.bar``.
 
 
 Extension source files
@@ -375,7 +376,8 @@ These relationships can be specified using keyword arguments to the
 :func:`distutils.core.setup` function.
 
 Dependencies on other Python modules and packages can be specified by supplying
-the *requires* keyword argument to :func:`setup`. The value must be a list of
+the *requires* keyword argument to :func:`~distutils.core.setup`. The
+value must be a list of
 strings.  Each string specifies a package that is required, and optionally what
 versions are sufficient.
 
@@ -407,7 +409,7 @@ Let's look at a bunch of examples:
 
 Now that we can specify dependencies, we also need to be able to specify what we
 provide that other distributions can require.  This is done using the *provides*
-keyword argument to :func:`setup`. The value for this keyword is a list of
+keyword argument to :func:`~distutils.core.setup`. The value for this keyword is a list of
 strings, each of which names a Python module or package, and optionally
 identifies the version.  If the version is not specified, it is assumed to match
 that of the distribution.
@@ -474,7 +476,7 @@ containing documentation that might be of interest to programmers using the
 package.  These files are called :dfn:`package data`.
 
 Package data can be added to packages using the ``package_data`` keyword
-argument to the :func:`setup` function.  The value must be a mapping from
+argument to the :func:`~distutils.core.setup` function.  The value must be a mapping from
 package name to a list of relative path names that should be copied into the
 package.  The paths are interpreted as relative to the directory containing the
 package (information from the ``package_dir`` mapping is used if appropriate);
@@ -497,7 +499,7 @@ the files can be arranged like this in the source tree::
                 spoons.dat
                 forks.dat
 
-The corresponding call to :func:`setup` might be::
+The corresponding call to :func:`~distutils.core.setup` might be::
 
     setup(...,
           packages=['mypkg'],

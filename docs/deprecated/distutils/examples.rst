@@ -49,7 +49,7 @@ convention to follow).  However, the distribution name is used to generate
 filenames, so you should stick to letters, digits, underscores, and hyphens.
 
 Since ``py_modules`` is a list, you can of course specify multiple
-modules, eg. if you're distributing modules :mod:`foo` and :mod:`bar`, your
+modules, eg. if you're distributing modules ``foo`` and ``bar``, your
 setup might look like this::
 
    <root>/
@@ -111,8 +111,8 @@ Distutils where source files in the root package live::
          )
 
 More typically, though, you will want to distribute multiple modules in the same
-package (or in sub-packages).  For example, if the :mod:`foo`  and :mod:`bar`
-modules belong in package :mod:`foobar`, one way to layout your source tree is
+package (or in sub-packages).  For example, if the ``foo``  and ``bar``
+modules belong in package ``foobar``, one way to layout your source tree is
 ::
 
    <root>/
@@ -133,7 +133,7 @@ requires the least work to describe in your setup script::
 
 If you want to put modules in directories not named for their package, then you
 need to use the ``package_dir`` option again.  For example, if the
-:file:`src` directory holds modules in the :mod:`foobar` package::
+:file:`src` directory holds modules in the ``foobar`` package::
 
    <root>/
            setup.py
@@ -210,7 +210,7 @@ single extension module in a single C source file, is::
            setup.py
            foo.c
 
-If the :mod:`foo` extension belongs in the root package, the setup script for
+If the ``foo`` extension belongs in the root package, the setup script for
 this could be  ::
 
    from distutils.core import setup
@@ -220,10 +220,10 @@ this could be  ::
          ext_modules=[Extension('foo', ['foo.c'])],
          )
 
-If the extension actually belongs in a package, say :mod:`foopkg`, then
+If the extension actually belongs in a package, say ``foopkg``, then
 
 With exactly the same source tree layout, this extension can be put in the
-:mod:`foopkg` package simply by changing the name of the extension::
+``foopkg`` package simply by changing the name of the extension::
 
    from distutils.core import setup
    from distutils.extension import Extension
@@ -311,7 +311,7 @@ in the Metadata, and ``pyX.X`` the major and minor version of Python like
 
 You can read back this static file, by using the
 :class:`distutils.dist.DistributionMetadata` class and its
-:func:`read_pkg_file` method::
+:func:`~distutils.dist.DistributionMetadata.read_pkg_file` method::
 
     >>> from distutils.dist import DistributionMetadata
     >>> metadata = DistributionMetadata()

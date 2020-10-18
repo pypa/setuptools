@@ -78,9 +78,9 @@ Note that an option spelled :option:`!--foo-bar` on the command-line  is spelled
 .. _distutils-build-ext-inplace:
 
 For example, say you want your extensions to be built "in-place"---that is, you
-have an extension :mod:`pkg.ext`, and you want the compiled extension file
+have an extension ``pkg.ext``, and you want the compiled extension file
 (:file:`ext.so` on Unix, say) to be put in the same source directory as your
-pure Python modules :mod:`pkg.mod1` and :mod:`pkg.mod2`.  You can always use the
+pure Python modules ``pkg.mod1`` and ``pkg.mod2``.  You can always use the
 :option:`!--inplace` option on the command-line to ensure this:
 
 .. code-block:: sh
