@@ -5,7 +5,6 @@ jobs:
   fast_finish: true
   include:
   - python: pypy3
-  - python: 3.5
   - python: 3.6
   - python: 3.7
   - &latest_py3
@@ -19,7 +18,7 @@ jobs:
   - arch: ppc64le
     python: pypy3
   - arch: ppc64le
-    python: 3.5
+    python: 3.6
   - &latest_py3_ppc
     arch: ppc64le
     python: 3.8

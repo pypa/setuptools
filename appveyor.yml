@@ -20,10 +20,6 @@ environment:
       PYTHON: "C:\\Python37-x64"
     - APPVEYOR_JOB_NAME: "python36-x64"
       PYTHON: "C:\\Python36-x64"
-    - APPVEYOR_JOB_NAME: "python35-x64"
-      PYTHON: "C:\\Python35-x64"
-      PYTEST_ADDOPTS: "--cov"
-      TOX_TESTENV_PASSENV: "PYTEST_ADDOPTS"
 
 install:
   # symlink python from a directory with a space
