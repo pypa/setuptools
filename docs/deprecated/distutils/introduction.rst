@@ -55,7 +55,7 @@ Unlike, say, Autoconf-style configure scripts, the setup script may be run
 multiple times in the course of building and installing your module
 distribution.
 
-If all you want to do is distribute a module called :mod:`foo`, contained in a
+If all you want to do is distribute a module called ``foo``, contained in a
 file :file:`foo.py`, then your setup script can be as simple as this::
 
    from distutils.core import setup
@@ -67,7 +67,7 @@ file :file:`foo.py`, then your setup script can be as simple as this::
 Some observations:
 
 * most information that you supply to the Distutils is supplied as keyword
-  arguments to the :func:`setup` function
+  arguments to the :func:`~distutils.core.setup` function
 
 * those keyword arguments fall into two categories: package metadata (name,
   version number) and information about what's in the package (a list of pure
@@ -96,7 +96,7 @@ containing your setup script :file:`setup.py`, and your module :file:`foo.py`.
 The archive file will be named :file:`foo-1.0.tar.gz` (or :file:`.zip`), and
 will unpack into a directory :file:`foo-1.0`.
 
-If an end-user wishes to install your :mod:`foo` module, all they have to do is
+If an end-user wishes to install your ``foo`` module, all they have to do is
 download :file:`foo-1.0.tar.gz` (or :file:`.zip`), unpack it, and---from the
 :file:`foo-1.0` directory---run ::
 

@@ -19,9 +19,9 @@ convenience.
 
 Most distutils command implementations are subclasses of the
 :class:`distutils.cmd.Command` class.  New commands may directly inherit from
-:class:`Command`, while replacements often derive from :class:`Command`
+:class:`~distutils.cmd.Command`, while replacements often derive from :class:`~distutils.cmd.Command`
 indirectly, directly subclassing the command they are replacing.  Commands are
-required to derive from :class:`Command`.
+required to derive from :class:`~distutils.cmd.Command`.
 
 .. % \section{Extending existing commands}
 .. % \label{extend-existing}
@@ -78,12 +78,12 @@ packages searched for command implementations; multiple package names should be
 separated by commas.  When not specified, the search is only performed in the
 :mod:`distutils.command` package.  When :file:`setup.py` is run with the option
 ``--command-packages distcmds,buildcmds``, however, the packages
-:mod:`distutils.command`, :mod:`distcmds`, and :mod:`buildcmds` will be searched
+:mod:`distutils.command`, ``distcmds``, and ``buildcmds`` will be searched
 in that order.  New commands are expected to be implemented in modules of the
 same name as the command by classes sharing the same name.  Given the example
 command line option above, the command :command:`bdist_openpkg` could be
-implemented by the class :class:`distcmds.bdist_openpkg.bdist_openpkg` or
-:class:`buildcmds.bdist_openpkg.bdist_openpkg`.
+implemented by the class ``distcmds.bdist_openpkg.bdist_openpkg`` or
+``buildcmds.bdist_openpkg.bdist_openpkg``.
 
 
 Adding new distribution types

@@ -513,7 +513,7 @@ This module provides the following functions.
    .. method:: CCompiler.detect_language(sources)
 
       Detect the language of a given file, or list of files. Uses the  instance
-      attributes :attr:`language_map` (a dictionary), and  :attr:`language_order` (a
+      attributes :attr:`~CCompiler.language_map` (a dictionary), and  :attr:`~CCompiler.language_order` (a
       list) to do the job.
 
 
@@ -761,7 +761,7 @@ This module provides the following functions.
 
    .. method:: CCompiler.spawn(cmd)
 
-      Invokes :func:`distutils.util.spawn`. This invokes an external  process to run
+      Invokes :func:`distutils.spawn.spawn`. This invokes an external  process to run
       the given command.
 
 
@@ -861,8 +861,8 @@ This module provides :class:`BorlandCCompiler`, a subclass of the abstract
 :class:`CCompiler` class for the Borland C++ compiler.
 
 
-:mod:`distutils.cygwincompiler` --- Cygwin Compiler
-===================================================
+:mod:`distutils.cygwinccompiler` --- Cygwin Compiler
+====================================================
 
 .. module:: distutils.cygwinccompiler
 
@@ -1017,7 +1017,7 @@ directories.
    directories.  If *preserve_symlinks* is true, symlinks will be copied as
    symlinks (on platforms that support them!); otherwise (the default), the
    destination of the symlink will be copied.  *update* and *verbose* are the same
-   as for :func:`copy_file`.
+   as for :func:`~distutils.file_util.copy_file`.
 
    Files in *src* that begin with :file:`.nfs` are skipped (more information on
    these files is available in answer D2 of the `NFS FAQ page
@@ -1058,7 +1058,7 @@ This module contains some utility functions for operating on individual files.
    (using :func:`os.symlink`) instead of copying: set it to ``'hard'`` or
    ``'sym'``; if it is ``None`` (the default), files are copied. Don't set *link*
    on systems that don't support it: :func:`copy_file` doesn't check if hard or
-   symbolic linking is available.  It uses :func:`_copy_file_contents` to copy file
+   symbolic linking is available.  It uses :func:`~distutils.file_util._copy_file_contents` to copy file
    contents.
 
    Return a tuple ``(dest_name, copied)``: *dest_name* is the actual  name of the
@@ -1304,8 +1304,8 @@ represents the module distribution being built/installed/distributed.
               scripts
 
 
-This module provides the :class:`Extension` class, used to describe C/C++
-extension modules in setup scripts.
+This module provides the :class:`~distutils.extension.Extension` class,
+used to describe C/C++ extension modules in setup scripts.
 
 .. % \subsection{Ungrouped modules}
 .. % The following haven't been moved into a more appropriate section yet.
@@ -1363,7 +1363,7 @@ provides the following additional features:
    help_string)`` 3-tuples as described in the constructor for
    :class:`FancyGetopt`. *negative_opt* should be a dictionary mapping option names
    to option names, both the key and value should be in the *options* list.
-   *object* is an object which will be used to store values (see the :meth:`getopt`
+   *object* is an object which will be used to store values (see the :meth:`~FancyGetopt.getopt`
    method of the :class:`FancyGetopt` class). *args* is the argument list. Will use
    ``sys.argv[1:]`` if you  pass ``None`` as *args*.
 
@@ -1441,9 +1441,10 @@ filesystem and building lists of files.
    :synopsis: Provides the spawn() function
 
 
-This module provides the :func:`spawn` function, a front-end to  various
-platform-specific functions for launching another program in a  sub-process.
-Also provides :func:`find_executable` to search the path for a given executable
+This module provides the :func:`~distutils.spawn.spawn` function, a
+front-end to  various platform-specific functions for launching another
+program in a  sub-process.
+Also provides :func:`~distutils.spawn.find_executable` to search the path for a given executable
 name.
 
 
@@ -1755,7 +1756,7 @@ implementing.  This module should implement a class with the same name as the
 module (and the command).  So, for instance, to create the command
 ``peel_banana`` (so that users can run ``setup.py peel_banana``), you'd copy
 :file:`command_template` to :file:`distutils/command/peel_banana.py`, then edit
-it so that it's implementing the class :class:`peel_banana`, a subclass of
+it so that it's implementing the class ``peel_banana``, a subclass of
 :class:`distutils.cmd.Command`.
 
 Subclasses of :class:`Command` must define the following methods.
@@ -2065,6 +2066,6 @@ This is described in more detail in :pep:`301`.
 
 The ``check`` command performs some tests on the meta-data of a package.
 For example, it verifies that all required meta-data are provided as
-the arguments passed to the :func:`setup` function.
+the arguments passed to the :func:`~distutils.core.setup` function.
 
 .. % todo
