@@ -12,11 +12,15 @@ The original history and attribution of all changes contributed to CPython can b
 
 First, create a clone of CPython that only includes the distutils changes. Due to the large size of the CPython repository, this operation is fairly expensive.
 
+::
+
     git clone https://github.com/python/cpython python-distutils
     cd python-distutils
     git filter-branch --prune-empty --subdirectory-filter Lib/distutils master
 
 Then, pull those changes into the repository at the cpython branch.
+
+::
 
     cd $distutils
     git checkout cpython
@@ -31,6 +35,8 @@ To CPython
 Merging changes from this repository is easier.
 
 From the CPython repo, cherry-pick the changes from this project.
+
+::
 
     git -C $distutils format-patch HEAD~2 --stdout | git am --directory Lib
 
