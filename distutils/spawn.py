@@ -40,7 +40,7 @@ def spawn(cmd, search_path=1, verbose=0, dry_run=0, env=None):
     # in, protect our %-formatting code against horrible death
     cmd = list(cmd)
 
-    log.info(' '.join(cmd))
+    log.info(subprocess.list2cmdline(cmd))
     if dry_run:
         return
 
