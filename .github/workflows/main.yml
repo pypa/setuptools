@@ -1,0 +1,6 @@
+jobs:
+  release:
+    steps:
+      - name: Release
+        env:
+          TIDELIFT_TOKEN: ${{ secrets.TIDELIFT_TOKEN }}
