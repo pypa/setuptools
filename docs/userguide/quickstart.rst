@@ -43,11 +43,11 @@ such as metadata, contents, dependencies, etc. Here we demonstrate the minimum
 .. code-block:: ini
 
     [metadata]
-    name = "mypackage"
+    name = mypackage
     version = 0.0.1
 
     [options]
-    packages = "mypackage"
+    packages = mypackage
     install_requires =
       requests
       importlib; python_version == "2.6"
@@ -63,7 +63,7 @@ Then, you need an installer, such as `pep517 <https://pypi.org/project/pep517/>`
 which you can obtain via ``pip install pep517``. After downloading it, invoke
 the installer::
 
-    python -m pep517.build
+    python -m pep517.build .
 
 You now have your distribution ready (e.g. a ``tar.gz`` file and a ``.whl``
 file in the ``dist`` directory), which you can upload to PyPI!
