@@ -703,7 +703,7 @@ entry point group and look for entry points named "pre_process" and
 To advertise an entry point, a project needs to use ``setuptools`` and provide
 an ``entry_points`` argument to ``setup()`` in its setup script, so that the
 entry points will be included in the distribution's metadata.  For more
-details, see `Advertising Behavior <https://setuptools.readthedocs.io/en/latest/userguide/entry_point.html#dynamic-discovery-of-services-and-plugins`>_.
+details, see :ref:`Advertising Behavior<dynamic discovery of services and plugins>`.
 
 Each project distribution can advertise at most one entry point of a given
 name within the same entry point group.  For example, a distutils extension
@@ -1939,4 +1939,3 @@ History
 
 0.3a1
  * Initial release.
-
