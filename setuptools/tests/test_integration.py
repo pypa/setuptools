@@ -123,8 +123,6 @@ build_deps = ['appdirs', 'packaging', 'pyparsing', 'six']
 
 
 @pytest.mark.parametrize("build_dep", build_deps)
-@pytest.mark.skipif(
-    sys.version_info < (3, 6), reason='run only on late versions')
 def test_build_deps_on_distutils(request, tmpdir_factory, build_dep):
     """
     All setuptools build dependencies must build without
