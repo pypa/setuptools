@@ -43,11 +43,11 @@ such as metadata, contents, dependencies, etc. Here we demonstrate the minimum
 .. code-block:: ini
 
     [metadata]
-    name = "mypackage"
+    name = mypackage
     version = 0.0.1
 
     [options]
-    packages = "mypackage"
+    packages = mypackage
     install_requires =
       requests
       importlib; python_version == "2.6"
