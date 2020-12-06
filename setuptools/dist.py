@@ -118,6 +118,13 @@ def read_pkg_file(self, file):
         self.obsoletes = None
 
 
+def single_line(val):
+    # quick and dirty validation for description pypa/setuptools#1390
+    if '\n' in val:
+        raise ValueError("newlines not allowed")
+    return val
+
+
 # Based on Python 3.5 version
 def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     """Write the PKG-INFO format data to a file object.
@@ -130,7 +137,7 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     write_field('Metadata-Version', str(version))
     write_field('Name', self.get_name())
     write_field('Version', self.get_version())
-    write_field('Summary', self.get_description())
+    write_field('Summary', single_line(self.get_description()))
     write_field('Home-page', self.get_url())
 
     if version < StrictVersion('1.2'):
