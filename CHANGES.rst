@@ -1,3 +1,23 @@
+v51.0.0
+-------
+
+
+Breaking Changes
+^^^^^^^^^^^^^^^^
+* #2435: Require Python 3.6 or later.
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #2430: Fixed inconsistent RST title nesting levels caused by #2399
+  -- by :user:`webknjaz`
+* #2430: Fixed a typo in Sphinx docs that made docs dev section disappear
+  as a result of PR #2426 -- by :user:`webknjaz`
+
+Misc
+^^^^
+* #2471: Removed the tests that guarantee that the vendored dependencies can be built by distutils.
+
+
 v50.3.2
 -------
 

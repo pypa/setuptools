@@ -1,1 +1,0 @@
-Removed the tests that guarantee that the vendored dependencies can be built by distutils.

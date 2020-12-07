@@ -1,2 +1,0 @@
-Fixed inconsistent RST title nesting levels caused by #2399
--- by :user:`webknjaz`
