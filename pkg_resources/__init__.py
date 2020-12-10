@@ -2003,11 +2003,15 @@ register_finder(object, find_nothing)
 def _by_version_descending(names):
     """
     Given a list of filenames, return them in descending order
-    by version number.
+    by version number. Non-PEP440 versions are transformed to
+    lower cases and then compared alphabetically.
 
     >>> names = 'bar', 'foo', 'Python-2.7.10.egg', 'Python-2.7.2.egg'
     >>> _by_version_descending(names)
     ['Python-2.7.10.egg', 'Python-2.7.2.egg', 'foo', 'bar']
+    >>> names = 'foo-1.3_04.egg', 'foo-1.3.egg'
+    >>> _by_version_descending(names)
+    ['foo-1.3.egg', 'foo-1.3_04.egg']
     >>> names = 'Setuptools-1.2.3b1.egg', 'Setuptools-1.2.3.egg'
     >>> _by_version_descending(names)
     ['Setuptools-1.2.3.egg', 'Setuptools-1.2.3b1.egg']
@@ -2015,13 +2019,44 @@ def _by_version_descending(names):
     >>> _by_version_descending(names)
     ['Setuptools-1.2.3.post1.egg', 'Setuptools-1.2.3b1.egg']
     """
+
+    class _NonVersion:
+        def __init__(self, value):
+            # Per PEP 440, version strings are compared in a
+            # case-insensitive manner. Do the same for
+            # non-version strings.
+            self._key = value.lower()
+
+        def __lt__(self, other):
+            if isinstance(other, packaging.version.Version):
+                # mimic packaging's behavior - considering non-PEP440
+                # versions smaller than PEP440 ones
+                return True
+            elif not isinstance(other, _NonVersion):
+                return self._key < str(other).lower()
+
+            return self._key < other._key
+
+        def __eq__(self, other):
+            if not isinstance(other, _NonVersion):
+                return NotImplemented
+
+            return self._key == other._key
+
     def _by_version(name):
         """
         Parse each component of the filename
         """
         name, ext = os.path.splitext(name)
         parts = itertools.chain(name.split('-'), [ext])
-        return [packaging.version.parse(part) for part in parts]
+
+        def parse_version_ignore_invalid(version):
+            try:
+                return packaging.version.Version(version)
+            except packaging.version.InvalidVersion:
+                return _NonVersion(version)
+
+        return [parse_version_ignore_invalid(part) for part in parts]
 
     return sorted(names, key=_by_version, reverse=True)
 

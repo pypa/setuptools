@@ -1,0 +1,2 @@
+Drop support for non PEP440-compliant versions in packages when discovering them from the file system.
+-- by :user:`yan12125`
