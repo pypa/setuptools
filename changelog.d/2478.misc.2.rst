@@ -1,0 +1,2 @@
+Fix tests with pip 20.3+
+-- by :user:`yan12125`
