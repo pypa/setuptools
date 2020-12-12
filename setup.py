@@ -1,7 +1,4 @@
 #!/usr/bin/env python
-"""
-Distutils setup file, used to install or test 'setuptools'
-"""
 
 import os
 import sys
