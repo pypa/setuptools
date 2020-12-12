@@ -245,20 +245,30 @@ class FancyGetopt:
             if alias:
                 opt = alias
 
-            if not self.takes_arg[opt]:     # boolean option?
+            if not self.takes_arg[opt]:
+                # boolean option
                 assert val == '', "boolean option can't have value"
                 alias = self.negative_alias.get(opt)
                 if alias:
                     opt = alias
-                    val = 0
+                    val = -1
                 else:
                     val = 1
 
             attr = self.attr_name[opt]
-            # The only repeating option at the moment is 'verbose'.
-            # It has a negative option -q quiet, which should set verbose = 0.
-            if val and self.repeat.get(attr) is not None:
-                val = getattr(object, attr, 0) + 1
+
+            # handle repeating option. for some reason the self.repeat
+            # dictionary keys are long option names including the argument
+            # marker. thus check for repeationg options with and without
+            # argument is this funny way
+            if self.takes_arg[opt] and self.repeat.get(opt + '='):
+                # options with arguments: append values to a list
+                val = getattr(object, attr, []) + [val]
+            elif self.repeat.get(opt):
+                # boolean options: sum the option values. this work
+                # well for boolean options with negative aliases
+                val = getattr(object, attr, 0) + val
+
             setattr(object, attr, val)
             self.option_order.append((opt, val))
 
