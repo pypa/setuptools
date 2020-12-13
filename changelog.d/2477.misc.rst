@@ -1,0 +1,1 @@
+Restore inclusion of rst files in sdist.

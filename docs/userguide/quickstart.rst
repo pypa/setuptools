@@ -21,7 +21,7 @@ the backend (build system) it wants to use. The distribution can then
 be generated with whatever tools that provides a ``build sdist``-alike
 functionality. While this may appear cumbersome, given the added pieces,
 it in fact tremendously enhances the portability of your package. The
-change is driven under :pep:`517 <517#build-requirements>`. To learn more about Python packaging in general,
+change is driven under :pep:`PEP 517 <517#build-requirements>`. To learn more about Python packaging in general,
 navigate to the `bottom <Resources on python packaging>`_ of this page.
 
 
@@ -43,11 +43,11 @@ such as metadata, contents, dependencies, etc. Here we demonstrate the minimum
 .. code-block:: ini
 
     [metadata]
-    name = "mypackage"
+    name = mypackage
     version = 0.0.1
 
     [options]
-    packages = "mypackage"
+    packages = mypackage
     install_requires =
       requests
       importlib; python_version == "2.6"
@@ -63,7 +63,7 @@ Then, you need an installer, such as `pep517 <https://pypi.org/project/pep517/>`
 which you can obtain via ``pip install pep517``. After downloading it, invoke
 the installer::
 
-    python -m pep517.build
+    python -m pep517.build .
 
 You now have your distribution ready (e.g. a ``tar.gz`` file and a ``.whl``
 file in the ``dist`` directory), which you can upload to PyPI!
