@@ -23,6 +23,7 @@ def test_read_from_dylib():
         ("test_lib_multiple_fat.dylib", "10.14.0"),
         ("test_lib_10_10_10.dylib", "10.10.10"),
         ("test_lib_11.dylib", "11.0.0"),
+        ("test_lib_10_9_universal2.dylib", "10.9.0"),
     ]
     for file_name, ver in versions:
         extracted = extract_macosx_min_system_version(
