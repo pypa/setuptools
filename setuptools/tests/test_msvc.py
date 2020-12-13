@@ -88,7 +88,7 @@ class TestModulePatch:
                     assert isinstance(exc, expected)
                     assert 'aka.ms/vcpython27' in str(exc)
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def user_preferred_setting(self):
         """
         Set up environment with different install dirs for user vs. system
@@ -116,7 +116,7 @@ class TestModulePatch:
         expected = os.path.join(user_preferred_setting, 'vcvarsall.bat')
         assert expected == result
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def local_machine_setting(self):
         """
         Set up environment with only the system environment configured.
@@ -138,7 +138,7 @@ class TestModulePatch:
         expected = os.path.join(local_machine_setting, 'vcvarsall.bat')
         assert expected == result
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def x64_preferred_setting(self):
         """
         Set up environment with 64-bit and 32-bit system settings configured

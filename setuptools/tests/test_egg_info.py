@@ -45,7 +45,7 @@ class TestEggInfo:
                 """)
         })
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def env(self):
         with contexts.tempdir(prefix='setuptools-test.') as env_dir:
             env = Environment(env_dir)

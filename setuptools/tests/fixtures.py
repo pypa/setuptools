@@ -3,7 +3,7 @@ import pytest
 from . import contexts
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def user_override(monkeypatch):
     """
     Override site.USER_BASE and site.USER_SITE with temporary directories in
@@ -17,7 +17,7 @@ def user_override(monkeypatch):
                 yield
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def tmpdir_cwd(tmpdir):
     with tmpdir.as_cwd() as orig:
         yield orig

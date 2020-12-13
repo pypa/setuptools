@@ -305,7 +305,7 @@ class TestPTHFileWriter:
         assert not pth.dirty
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def setup_context(tmpdir):
     with (tmpdir / 'setup.py').open('w') as f:
         f.write(SETUP_PY)
@@ -361,7 +361,7 @@ class TestUserInstallTest:
             f.write('Name: foo\n')
         return str(tmpdir)
 
-    @pytest.yield_fixture()
+    @pytest.fixture()
     def install_target(self, tmpdir):
         target = str(tmpdir)
         with mock.patch('sys.path', sys.path + [target]):
@@ -406,7 +406,7 @@ class TestUserInstallTest:
         )
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def distutils_package():
     distutils_setup_py = SETUP_PY.replace(
         'from setuptools import setup',
