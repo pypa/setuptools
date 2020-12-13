@@ -4,7 +4,8 @@ import setuptools
 
 
 def setup(
-    name: str,
+    *,
+    name: Optional[str] = None,
     version: Optional[str] = None,
     description: Optional[str] = None,
     long_description: Optional[str] = None,
@@ -42,3 +43,4 @@ def setup(
     project_urls: Optional[Mapping[str, str]] = None,
     **kwargs: Any,
 ) -> setuptools.Distribution:
+    ...
