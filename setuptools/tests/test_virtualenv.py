@@ -2,6 +2,8 @@ import glob
 import os
 import sys
 
+import pathlib
+
 import pytest
 from pytest import yield_fixture
 from pytest_fixture_config import yield_requires_config
@@ -124,7 +126,7 @@ def _check_test_command_install_requirements(virtualenv, tmpdir):
         make_nspkg_sdist(str(dist_path), distname, version)
         return dist_path
     dependency_links = [
-        str(dist_path)
+        pathlib.Path(str(dist_path)).as_uri()
         for dist_path in (
             sdist('foobar', '2.4'),
             sdist('bits', '4.2'),

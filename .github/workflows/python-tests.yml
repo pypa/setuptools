@@ -57,19 +57,15 @@ jobs:
         ACTIONS_ALLOW_UNSECURE_COMMANDS: true
       run: |
         from __future__ import print_function
+        import os
         python_version = '${{ env.PYTHON_VERSION }}'.replace('-beta', '')
-        print('::set-env name=PYTHON_VERSION::{ver}'.format(ver=python_version))
-        print('::set-env name=USE_DEADSNAKES::true')
+        with open(os.environ['GITHUB_ENV'], 'a') as env_file:
+            env_file.write('PYTHON_VERSION={ver}\n'.format(ver=python_version))
+            env_file.write('USE_DEADSNAKES=true\n')
       shell: python
     - name: Set up Python ${{ env.PYTHON_VERSION }} (deadsnakes)
-      uses: deadsnakes/action@v1.0.0
+      uses: deadsnakes/action@v2.0.1
       if: fromJSON(env.USE_DEADSNAKES) && true || false
-      # FIXME: drop once deadsnakes/action gets fixed
-      # Refs:
-      # * github.com/deadsnakes/issues/issues/135
-      # * github.blog/changelog/2020-10-01-github-actions-deprecating-set-env-and-add-path-commands/
-      env:
-        ACTIONS_ALLOW_UNSECURE_COMMANDS: true
       with:
         python-version: ${{ env.PYTHON_VERSION }}
     - name: Set up Python ${{ env.PYTHON_VERSION }}
@@ -110,13 +106,10 @@ jobs:
         python -m pip freeze --all
     - name: Adjust TOXENV for PyPy
       if: startsWith(env.PYTHON_VERSION, 'pypy')
-      # FIXME: replace `set-env` with a newer alternative
-      # Refs:
-      # * github.blog/changelog/2020-10-01-github-actions-deprecating-set-env-and-add-path-commands/
-      env:
-        ACTIONS_ALLOW_UNSECURE_COMMANDS: true
       run: >-
-        echo "::set-env name=TOXENV::${{ env.PYTHON_VERSION }}"
+        echo "TOXENV=${{ env.PYTHON_VERSION }}"
+        >>
+        "${GITHUB_ENV}"
     - name: Log env vars
       run: >-
         env
