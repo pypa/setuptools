@@ -1978,12 +1978,13 @@ def find_eggs_in_zip(importer, path_item, only=False):
         # don't yield nested distros
         return
     for subitem in metadata.resource_listdir(''):
+        lower = subitem.lower()
         if _is_egg_path(subitem):
             subpath = os.path.join(path_item, subitem)
             dists = find_eggs_in_zip(zipimport.zipimporter(subpath), subpath)
             for dist in dists:
                 yield dist
-        elif subitem.lower().endswith('.dist-info'):
+        elif any(map(lower.endswith, ('.dist-info', '.egg-info'))):
             subpath = os.path.join(path_item, subitem)
             submeta = EggMetadata(zipimport.zipimporter(subpath))
             submeta.egg_info = subpath
