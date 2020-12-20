@@ -1,3 +1,21 @@
+v51.1.0
+-------
+
+
+Changes
+^^^^^^^
+* #2486: Project adopts jaraco/skeleton for shared package maintenance.
+
+Misc
+^^^^
+* #2477: Restore inclusion of rst files in sdist.
+* #2484: Setuptools has replaced the master branch with the main branch.
+* #2485: Fixed failing test when pip 20.3+ is present.
+  -- by :user:`yan12125`
+* #2487: Fix tests with pytest 6.2
+  -- by :user:`yan12125`
+
+
 v51.0.0
 -------
 

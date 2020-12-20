@@ -1,1 +1,0 @@
-Setuptools has replaced the master branch with the main branch.

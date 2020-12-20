@@ -1,2 +1,0 @@
-Fixed failing test when pip 20.3+ is present.
--- by :user:`yan12125`
