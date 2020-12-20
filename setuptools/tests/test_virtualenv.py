@@ -5,7 +5,6 @@ import sys
 import pathlib
 
 import pytest
-from pytest import yield_fixture
 from pytest_fixture_config import yield_requires_config
 
 import pytest_virtualenv
@@ -29,7 +28,7 @@ def pytest_virtualenv_works(virtualenv):
 
 
 @yield_requires_config(pytest_virtualenv.CONFIG, ['virtualenv_executable'])
-@yield_fixture(scope='function')
+@pytest.fixture(scope='function')
 def bare_virtualenv():
     """ Bare virtualenv (no pip/setuptools/wheel).
     """

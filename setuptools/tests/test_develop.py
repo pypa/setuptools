@@ -31,7 +31,7 @@ INIT_PY = """print "foo"
 """
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def temp_user(monkeypatch):
     with contexts.tempdir() as user_base:
         with contexts.tempdir() as user_site:
@@ -40,7 +40,7 @@ def temp_user(monkeypatch):
             yield
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def test_env(tmpdir, temp_user):
     target = tmpdir
     foo = target.mkdir('foo')

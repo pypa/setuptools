@@ -1,0 +1,2 @@
+ Fix tests with pytest 6.2
+-- by :user:`yan12125`
