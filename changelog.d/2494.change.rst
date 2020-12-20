@@ -1,0 +1,2 @@
+Add tests/test*.py to sdist default inclusion list.
+-- by :user:`tomchen`
