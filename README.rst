@@ -34,9 +34,13 @@ Bug reports and especially tested patches may be
 submitted directly to the `bug tracker
 <https://github.com/pypa/setuptools/issues>`_.
 
-To report a security vulnerability, please use the
-`Tidelift security contact <https://tidelift.com/security>`_.
-Tidelift will coordinate the fix and disclosure.
+
+Code of Conduct
+===============
+
+Everyone interacting in the setuptools project's codebases, issue trackers,
+chat rooms, and mailing lists is expected to follow the
+`PSF Code of Conduct <https://github.com/pypa/.github/blob/main/CODE_OF_CONDUCT.md>`_.
 
 
 For Enterprise
@@ -48,9 +52,10 @@ Setuptools and the maintainers of thousands of other packages are working with T
 
 `Learn more <https://tidelift.com/subscription/pkg/pypi-setuptools?utm_source=pypi-setuptools&utm_medium=referral&utm_campaign=github>`_.
 
-Code of Conduct
-===============
 
-Everyone interacting in the setuptools project's codebases, issue trackers,
-chat rooms, and mailing lists is expected to follow the
-`PSF Code of Conduct <https://github.com/pypa/.github/blob/main/CODE_OF_CONDUCT.md>`_.
+Security Contact
+================
+
+To report a security vulnerability, please use the
+`Tidelift security contact <https://tidelift.com/security>`_.
+Tidelift will coordinate the fix and disclosure.
