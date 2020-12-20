@@ -1,8 +1,5 @@
 [run]
-source=
-	pkg_resources
-	setuptools
-omit=
-	*/_vendor/*
+omit = .tox/*
 
 [report]
+show_missing = True

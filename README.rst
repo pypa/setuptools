@@ -6,14 +6,13 @@
 
 .. _PyPI link: https://pypi.org/project/setuptools
 
-.. image:: https://dev.azure.com/jaraco/setuptools/_apis/build/status/pypa.setuptools?branchName=master
-   :target: https://dev.azure.com/jaraco/setuptools/_build/latest?definitionId=1&branchName=master
+.. image:: https://github.com/jaraco/setuptools/workflows/Automated%20Tests/badge.svg
+   :target: https://github.com/jaraco/setuptools/actions?query=workflow%3A%22Automated+Tests%22
+   :alt: Automated Tests
 
-.. image:: https://img.shields.io/travis/pypa/setuptools/master.svg?label=Linux%20CI&logo=travis&logoColor=white
-   :target: https://travis-ci.org/pypa/setuptools
-
-.. image:: https://img.shields.io/appveyor/ci/pypa/setuptools/master.svg?label=Windows%20CI&logo=appveyor&logoColor=white
-   :target: https://ci.appveyor.com/project/pypa/setuptools/branch/master
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+   :target: https://github.com/psf/black
+   :alt: Code style: Black
 
 .. image:: https://img.shields.io/readthedocs/setuptools/latest.svg
     :target: https://setuptools.readthedocs.io
