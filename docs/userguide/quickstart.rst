@@ -71,7 +71,7 @@ file in the ``dist`` directory), which you can upload to PyPI!
 Of course, before you release your project to PyPI, you'll want to add a bit
 more information to your setup script to help people find or learn about your
 project.  And maybe your project will have grown by then to include a few
-dependencies, and perhaps some data files and scripts. In the next few section,
+dependencies, and perhaps some data files and scripts. In the next few sections,
 we will walk through those additional but essential information you need
 to specify to properly package your project.
 
