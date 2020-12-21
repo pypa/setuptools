@@ -108,7 +108,7 @@ defns = [
         'setup.cfg': DALS("""
         [metadata]
         name = foo
-        version='0.0.0'
+        version = 0.0.0
 
         [options]
         py_modules=hello
