@@ -1,0 +1,1 @@
+Support for PEP 440 non-conforming versions has been removed. Environments containing packages with non-conforming versions may fail or the packages may not be recognized.
