@@ -15,6 +15,13 @@ from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
 
 
+pytestmark = pytest.mark.skipif(
+    'platform.python_implementation() == "PyPy" and '
+    'platform.system() == "Windows"',
+    reason="pypa/setuptools#2496",
+)
+
+
 def setup_module(module):
     packages = 'stevedore', 'virtualenvwrapper', 'pbr', 'novaclient'
     for pkg in packages:
