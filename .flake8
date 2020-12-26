@@ -3,11 +3,7 @@ max-line-length = 88
 exclude =
 	setuptools/_vendor
 	pkg_resources/_vendor
-ignore =
-	# W503 violates spec https://github.com/PyCQA/pycodestyle/issues/513
-	W503
-	# W504 has issues https://github.com/OCA/maintainer-quality-tools/issues/545
-	W504
+extend-ignore =
 	# Black creates whitespace before colon
 	E203
 	setuptools/site-patch.py F821
