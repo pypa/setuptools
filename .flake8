@@ -10,7 +10,3 @@ ignore =
 	W504
 	# Black creates whitespace before colon
 	E203
-
-# Allow certain violations in certain files:
-per-file-ignores =
-	setuptools/py*compat.py: F811
