@@ -10,5 +10,8 @@ ignore =
 	W504
 	# Black creates whitespace before colon
 	E203
-	setuptools/site-patch.py F821
-	setuptools/py*compat.py F811
+
+# Allow certain violations in certain files:
+per-file-ignores =
+	setuptools/site-patch.py: F821
+	setuptools/py*compat.py: F811
