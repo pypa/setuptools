@@ -13,5 +13,4 @@ ignore =
 
 # Allow certain violations in certain files:
 per-file-ignores =
-	setuptools/site-patch.py: F821
 	setuptools/py*compat.py: F811
