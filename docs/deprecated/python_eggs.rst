@@ -6,9 +6,6 @@ STOP! This is not the first document you should read!
 
 
 
-.. contents:: **Table of Contents**
-
-
 ----------------------
 Eggs and their Formats
 ----------------------
@@ -676,4 +673,3 @@ to facilitate introspection of installed scripts, and their relationship
 to installed eggs.  For example, an uninstallation tool could use this
 data to identify what scripts can safely be removed, and/or identify
 what scripts would stop working if a particular egg is uninstalled.
-

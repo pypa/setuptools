@@ -11,9 +11,6 @@ subpackages, and APIs for managing Python's current "working set" of active
 packages.
 
 
-.. contents:: **Table of Contents**
-
-
 --------
 Overview
 --------

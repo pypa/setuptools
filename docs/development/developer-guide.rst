@@ -5,9 +5,6 @@ Developer's Guide for Setuptools
 If you want to know more about contributing on Setuptools, this is the place.
 
 
-.. contents:: **Table of Contents**
-
-
 -------------------
 Recommended Reading
 -------------------
@@ -61,7 +58,7 @@ jump to the in-depth discussion about any subject referenced.
 Making a pull request
 ---------------------
 
-When making a pull request, please 
+When making a pull request, please
 :ref:`include a short summary of the changes <Adding change notes
 with your PRs>` and a reference to any issue tickets that the PR is
 intended to solve.

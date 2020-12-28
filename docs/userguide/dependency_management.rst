@@ -11,8 +11,6 @@ dependency.
     version by following `PEP 440 <https://www.python.org/dev/peps/pep-0440/>`_
 
 
-.. contents::
-
 Build system requirement
 ========================
 
@@ -72,7 +70,7 @@ When your project is installed (e.g. using pip), all of the dependencies not
 already installed will be located (via PyPI), downloaded, built (if necessary),
 and installed and 2) Any scripts in your project will be installed with wrappers
 that verify the availability of the specified dependencies at runtime.
-    
+
 
 Platform specific dependencies
 ------------------------------
@@ -202,7 +200,7 @@ Optional dependencies
 Setuptools allows you to declare dependencies that only get installed under
 specific circumstances. These dependencies are specified with ``extras_require``
 keyword and are only installed if another package depends on it (either
-directly or indirectly) This makes it convenient to declare dependencies for 
+directly or indirectly) This makes it convenient to declare dependencies for
 ancillary functions such as "tests" and "docs".
 
 .. note::
