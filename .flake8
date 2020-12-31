@@ -12,3 +12,6 @@ ignore =
 	E203
 	setuptools/site-patch.py F821
 	setuptools/py*compat.py F811
+
+# Let's not overcomplicate the code:
+max-complexity = 10
