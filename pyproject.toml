@@ -7,16 +7,14 @@ skip-string-normalization = true
 
 [tool.setuptools_scm]
 
-# jaraco/skeleton#22
-[tool.jaraco.pytest.plugins.black]
+[pytest.enabler.black]
 addopts = "--black"
 
-# jaraco/skeleton#22
-[tool.jaraco.pytest.plugins.mypy]
+[pytest.enabler.mypy]
 addopts = "--mypy"
 
-[tool.jaraco.pytest.plugins.flake8]
+[pytest.enabler.flake8]
 addopts = "--flake8"
 
-[tool.jaraco.pytest.plugins.cov]
+[pytest.enabler.cov]
 addopts = "--cov"
