@@ -51,7 +51,7 @@ def _legacy_fetch_build_egg(dist, req):
     return cmd.easy_install(req)
 
 
-def fetch_build_egg(dist, req):
+def fetch_build_egg(dist, req):  # noqa: C901  # is too complex (16)  # FIXME
     """Fetch an egg needed for building.
 
     Use pip/wheel to fetch/build a wheel."""

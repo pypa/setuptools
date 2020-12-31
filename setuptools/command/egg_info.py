@@ -32,7 +32,7 @@ from setuptools.extern import packaging
 from setuptools import SetuptoolsDeprecationWarning
 
 
-def translate_pattern(glob):
+def translate_pattern(glob):  # noqa: C901  # is too complex (14)  # FIXME
     """
     Translate a file path glob like '*.txt' in to a regular expression.
     This differs from fnmatch.translate which allows wildcards to match

@@ -320,7 +320,8 @@ class PackageIndex(Environment):
         else:
             self.opener = urllib.request.urlopen
 
-    def process_url(self, url, retrieve=False):
+    # FIXME: 'PackageIndex.process_url' is too complex (14)
+    def process_url(self, url, retrieve=False):  # noqa: C901
         """Evaluate a URL as a possible download, and maybe retrieve it"""
         if url in self.scanned_urls and not retrieve:
             return
@@ -595,7 +596,7 @@ class PackageIndex(Environment):
                 spec = parse_requirement_arg(spec)
         return getattr(self.fetch_distribution(spec, tmpdir), 'location', None)
 
-    def fetch_distribution(
+    def fetch_distribution(  # noqa: C901  # is too complex (14)  # FIXME
             self, requirement, tmpdir, force_scan=False, source=False,
             develop_ok=False, local_index=None):
         """Obtain a distribution suitable for fulfilling `requirement`
@@ -766,7 +767,8 @@ class PackageIndex(Environment):
     def reporthook(self, url, filename, blocknum, blksize, size):
         pass  # no-op
 
-    def open_url(self, url, warning=None):
+    # FIXME:
+    def open_url(self, url, warning=None):  # noqa: C901  # is too complex (12)
         if url.startswith('file:'):
             return local_open(url)
         try:

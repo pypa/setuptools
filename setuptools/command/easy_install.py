@@ -226,7 +226,7 @@ class easy_install(Command):
         print(tmpl.format(**locals()))
         raise SystemExit()
 
-    def finalize_options(self):
+    def finalize_options(self):  # noqa: C901  # is too complex (25)  # FIXME
         self.version and self._render_version()
 
         py_version = sys.version.split()[0]
@@ -437,7 +437,7 @@ class easy_install(Command):
     def warn_deprecated_options(self):
         pass
 
-    def check_site_dir(self):
+    def check_site_dir(self):  # noqa: C901  # is too complex (12)  # FIXME
         """Verify that self.install_dir is .pth-capable dir, if needed"""
 
         instdir = normalize_path(self.install_dir)
@@ -713,7 +713,10 @@ class easy_install(Command):
             if getattr(self, attrname) is None:
                 setattr(self, attrname, scheme[key])
 
-    def process_distribution(self, requirement, dist, deps=True, *info):
+    # FIXME: 'easy_install.process_distribution' is too complex (12)
+    def process_distribution(  # noqa: C901
+            self, requirement, dist, deps=True, *info,
+    ):
         self.update_pth(dist)
         self.package_index.add(dist)
         if dist in self.local_index[dist.key]:
@@ -894,7 +897,8 @@ class easy_install(Command):
             metadata = EggMetadata(zipimport.zipimporter(egg_path))
         return Distribution.from_filename(egg_path, metadata=metadata)
 
-    def install_egg(self, egg_path, tmpdir):
+    # FIXME: 'easy_install.install_egg' is too complex (11)
+    def install_egg(self, egg_path, tmpdir):  # noqa: C901
         destination = os.path.join(
             self.install_dir,
             os.path.basename(egg_path),
@@ -993,7 +997,8 @@ class easy_install(Command):
         # install the .egg
         return self.install_egg(egg_path, tmpdir)
 
-    def exe_to_egg(self, dist_filename, egg_tmp):
+    # FIXME: 'easy_install.exe_to_egg' is too complex (12)
+    def exe_to_egg(self, dist_filename, egg_tmp):  # noqa: C901
         """Extract a bdist_wininst to the directories an egg would use"""
         # Check for .pth file and set up prefix translations
         prefixes = get_exe_prefixes(dist_filename)
@@ -1191,7 +1196,7 @@ class easy_install(Command):
         cfg_filename = os.path.join(base, 'setup.cfg')
         setopt.edit_config(cfg_filename, settings)
 
-    def update_pth(self, dist):
+    def update_pth(self, dist):  # noqa: C901  # is too complex (11)  # FIXME
         if self.pth_file is None:
             return
 
@@ -1427,7 +1432,7 @@ def get_site_dirs():
     return sitedirs
 
 
-def expand_paths(inputs):
+def expand_paths(inputs):  # noqa: C901  # is too complex (11)  # FIXME
     """Yield sys.path directories that might contain "old-style" packages"""
 
     seen = {}

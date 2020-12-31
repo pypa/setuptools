@@ -119,7 +119,7 @@ def read_pkg_file(self, file):
 
 
 # Based on Python 3.5 version
-def write_pkg_file(self, file):
+def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     """Write the PKG-INFO format data to a file object.
     """
     version = self.get_metadata_version()
@@ -548,7 +548,8 @@ class Distribution(_Distribution):
         req.marker = None
         return req
 
-    def _parse_config_files(self, filenames=None):
+    # FIXME: 'Distribution._parse_config_files' is too complex (14)
+    def _parse_config_files(self, filenames=None):  # noqa: C901
         """
         Adapted from distutils.dist.Distribution.parse_config_files,
         this method provides the same functionality in subtly-improved
@@ -612,7 +613,8 @@ class Distribution(_Distribution):
             except ValueError as e:
                 raise DistutilsOptionError(e) from e
 
-    def _set_command_options(self, command_obj, option_dict=None):
+    # FIXME: 'Distribution._set_command_options' is too complex (14)
+    def _set_command_options(self, command_obj, option_dict=None):  # noqa: C901
         """
         Set the options for 'command_obj' from 'option_dict'.  Basically
         this means copying elements of a dictionary ('option_dict') to
