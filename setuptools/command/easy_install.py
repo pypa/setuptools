@@ -837,12 +837,19 @@ class easy_install(Command):
 
     def install_eggs(self, spec, dist_filename, tmpdir):
         # .egg dirs or files are already built, so just return them
-        if dist_filename.lower().endswith('.egg'):
-            return [self.install_egg(dist_filename, tmpdir)]
-        elif dist_filename.lower().endswith('.exe'):
-            return [self.install_exe(dist_filename, tmpdir)]
-        elif dist_filename.lower().endswith('.whl'):
-            return [self.install_wheel(dist_filename, tmpdir)]
+        installer_map = {
+            '.egg': self.install_egg,
+            '.exe': self.install_exe,
+            '.whl': self.install_wheel,
+        }
+        try:
+            install_dist = installer_map[
+                dist_filename.lower()[-4:]
+            ]
+        except KeyError:
+            pass
+        else:
+            return [install_dist(dist_filename, tmpdir)]
 
         # Anything else, try to extract and build
         setup_base = tmpdir
