@@ -43,11 +43,11 @@ def bare_virtualenv():
 SOURCE_DIR = os.path.join(os.path.dirname(__file__), '../..')
 
 
-def test_clean_env_install(bare_virtualenv):
+def test_clean_env_install(bare_virtualenv, tmp_src):
     """
     Check setuptools can be installed in a clean environment.
     """
-    bare_virtualenv.run(['python', 'setup.py', 'install'], cd=SOURCE_DIR)
+    bare_virtualenv.run(['python', 'setup.py', 'install'], cd=tmp_src)
 
 
 def _get_pip_versions():
