@@ -1,6 +1,12 @@
+import pathlib
+import shutil
+
 import pytest
 
 from . import contexts
+
+
+SRC_DIR = pathlib.Path(__file__).parents[2]
 
 
 @pytest.fixture
@@ -21,3 +27,25 @@ def user_override(monkeypatch):
 def tmpdir_cwd(tmpdir):
     with tmpdir.as_cwd() as orig:
         yield orig
+
+
+@pytest.fixture
+def src_dir():
+    """The project source directory available via fixture."""
+    return SRC_DIR
+
+
+@pytest.fixture
+def tmp_src(src_dir, tmp_path):
+    """Make a copy of the source dir under `$tmp/src`.
+
+    This fixture is useful whenever it's necessary to run `setup.py`
+    or `pip install` against the source directory when there's no
+    control over the number of simultaneous invocations. Such
+    concurrent runs create and delete directories with the same names
+    under the target directory and so they influence each other's runs
+    when they are not being executed sequentially.
+    """
+    tmp_src_path = tmp_path / 'src'
+    shutil.copytree(src_dir, tmp_src_path)
+    return tmp_src_path
