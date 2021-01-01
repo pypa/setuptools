@@ -136,8 +136,10 @@ defns = [
 class TestBuildMetaBackend:
     backend_name = 'setuptools.build_meta'
 
-    def get_build_backend(self):
-        return BuildBackend(cwd='.', backend_name=self.backend_name)
+    def get_build_backend(self, cwd_path=None):
+        if cwd_path is None:
+            cwd_path = '.'
+        return BuildBackend(cwd=cwd_path, backend_name=self.backend_name)
 
     @pytest.fixture(params=defns)
     def build_backend(self, tmpdir, request):
