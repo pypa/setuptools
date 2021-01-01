@@ -349,6 +349,7 @@ class TestBuildMetaBackend:
         build_files(self._relative_path_import_files)
         build_backend = self.get_build_backend()
         with pytest.raises(ImportError):
+        with pytest.raises(ImportError, match="^No module named 'hello'$"):
             build_backend.build_sdist("temp")
 
     @pytest.mark.parametrize('setup_literal, requirements', [
