@@ -1,3 +1,12 @@
+v51.1.2
+-------
+
+
+Misc
+^^^^
+* #2505: Disable inclusion of package data as it causes 'tests' to be included as data.
+
+
 v51.1.1
 -------
 

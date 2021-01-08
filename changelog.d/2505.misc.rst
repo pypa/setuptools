@@ -1,1 +1,0 @@
-Disable inclusion of package data as it causes 'tests' to be included as data.
