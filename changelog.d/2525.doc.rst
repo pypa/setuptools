@@ -1,0 +1,1 @@
+Fix typo in the entry point page. -- by :user:`jtr109`
