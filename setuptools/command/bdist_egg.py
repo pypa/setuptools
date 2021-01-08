@@ -69,6 +69,8 @@ class bdist_egg(Command):
                             "(default: %s)" % get_build_platform()),
         ('exclude-source-files', None,
          "remove all .py files from the generated egg"),
+        ('include-init-files', None,
+         "prevent removal of init files from the generated egg"),
         ('keep-temp', 'k',
          "keep the pseudo-installation tree around after " +
          "creating the distribution archive"),
@@ -79,7 +81,7 @@ class bdist_egg(Command):
     ]
 
     boolean_options = [
-        'keep-temp', 'skip-build', 'exclude-source-files'
+        'keep-temp', 'skip-build', 'exclude-source-files', 'include-init-files'
     ]
 
     def initialize_options(self):
@@ -90,6 +92,7 @@ class bdist_egg(Command):
         self.skip_build = 0
         self.egg_output = None
         self.exclude_source_files = None
+        self.include_init_files = False
 
     def finalize_options(self):
         ei_cmd = self.ei_cmd = self.get_finalized_command("egg_info")
@@ -241,8 +244,12 @@ class bdist_egg(Command):
                 path = os.path.join(base, name)
 
                 if name.endswith('.py'):
-                    log.debug("Deleting %s", path)
-                    os.unlink(path)
+                    if not self.include_init_files:
+                        log.debug("Deleting %s", path)
+                        os.unlink(path)
+                    elif not name.endswith('__init__.py'):
+                        log.debug("Deleting %s", path)
+                        os.unlink(path)                        
 
                 if base.endswith('__pycache__'):
                     path_old = path
