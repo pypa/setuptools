@@ -28,7 +28,7 @@ with ``__init__.py`` as:
 
 .. code-block:: python
 
-    def helloworld():
+    def hello_world():
         print("Hello world")
 
 and ``__main__.py`` providing a hook:
