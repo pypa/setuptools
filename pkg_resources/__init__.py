@@ -38,6 +38,7 @@ import itertools
 import inspect
 import ntpath
 import posixpath
+import importlib
 from pkgutil import get_importer
 
 try:
@@ -2209,7 +2210,7 @@ def _handle_ns(packageName, path_item):
     if subpath is not None:
         path = module.__path__
         path.append(subpath)
-        loader.load_module(packageName)
+        importlib.import_module(packageName)
         _rebuild_mod_path(path, packageName, module)
     return subpath
 
