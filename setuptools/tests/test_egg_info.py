@@ -6,6 +6,7 @@ import re
 import stat
 import time
 
+from setuptools.build_meta import prepare_metadata_for_build_wheel
 from setuptools.command.egg_info import (
     egg_info, manifest_maker, EggInfoDeprecationWarning, get_pkg_info_revision,
 )
@@ -885,7 +886,22 @@ class TestEggInfo:
             sources = f.read().split('\n')
             assert 'setup.py' in sources
 
-    def test_egg_info_tag_only_once(self, tmpdir_cwd, env):
+    @pytest.mark.parametrize(
+        ('make_metadata_path', 'run_command'),
+        [
+            (
+                lambda env: os.path.join('.', 'foo.egg-info', 'PKG-INFO'),
+                lambda tmpdir_cwd, env: _run_egg_info_command(tmpdir_cwd, env)
+            ),
+            (
+                lambda env: os.path.join(env, 'foo.dist-info', 'METADATA'),
+                lambda tmpdir_cwd, env: prepare_metadata_for_build_wheel(env)
+            )
+        ]
+    )
+    def test_egg_info_tag_only_once(
+            self, tmpdir_cwd, env, make_metadata_path, run_command
+    ):
         self._create_project()
         build_files({
             'setup.cfg': DALS("""
@@ -895,11 +911,10 @@ class TestEggInfo:
                               tag_svn_revision = 0
                               """),
         })
-        self._run_egg_info_command(tmpdir_cwd, env)
-        egg_info_dir = os.path.join('.', 'foo.egg-info')
-        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
-            pkg_info_lines = pkginfo_file.read().split('\n')
-        assert 'Version: 0.0.0.dev0' in pkg_info_lines
+        run_command(tmpdir_cwd, env)
+        with open(make_metadata_path(env)) as metadata_file:
+            metadata_lines = metadata_file.read().split('\n')
+        assert 'Version: 0.0.0.dev0' in metadata_lines
 
     def test_get_pkg_info_revision_deprecated(self):
         pytest.warns(EggInfoDeprecationWarning, get_pkg_info_revision)
