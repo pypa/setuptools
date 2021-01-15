@@ -19,6 +19,26 @@ from .textwrap import DALS
 from . import contexts
 
 
+def _run_egg_info_command(tmpdir_cwd, env, cmd=None, output=None):
+    environ = os.environ.copy().update(
+        HOME=env.paths['home'],
+    )
+    if cmd is None:
+        cmd = [
+            'egg_info',
+        ]
+    code, data = environment.run_setup_py(
+        cmd=cmd,
+        pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
+        data_stream=1,
+        env=environ,
+    )
+    assert not code, data
+
+    if output:
+        assert output in data
+
+
 class Environment(str):
     pass
 
@@ -132,7 +152,7 @@ class TestEggInfo:
     def test_expected_files_produced(self, tmpdir_cwd, env):
         self._create_project()
 
-        self._run_egg_info_command(tmpdir_cwd, env)
+        _run_egg_info_command(tmpdir_cwd, env)
         actual = os.listdir('foo.egg-info')
 
         expected = [
@@ -166,7 +186,7 @@ class TestEggInfo:
         # currently configured to use a subprocess, the actual traceback
         # object is lost and we need to parse it from stderr
         with pytest.raises(AssertionError) as exc:
-            self._run_egg_info_command(tmpdir_cwd, env)
+            _run_egg_info_command(tmpdir_cwd, env)
 
         # Hopefully this is not too fragile: the only argument to the
         # assertion error should be a traceback, ending with:
@@ -180,13 +200,13 @@ class TestEggInfo:
         """Ensure timestamps are updated when the command is re-run."""
         self._create_project()
 
-        self._run_egg_info_command(tmpdir_cwd, env)
+        _run_egg_info_command(tmpdir_cwd, env)
         timestamp_a = os.path.getmtime('foo.egg-info')
 
         # arbitrary sleep just to handle *really* fast systems
         time.sleep(.001)
 
-        self._run_egg_info_command(tmpdir_cwd, env)
+        _run_egg_info_command(tmpdir_cwd, env)
         timestamp_b = os.path.getmtime('foo.egg-info')
 
         assert timestamp_a != timestamp_b
@@ -201,7 +221,7 @@ class TestEggInfo:
                 'usage.rst': "Run 'hi'",
             }
         })
-        self._run_egg_info_command(tmpdir_cwd, env)
+        _run_egg_info_command(tmpdir_cwd, env)
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         sources_txt = os.path.join(egg_info_dir, 'SOURCES.txt')
         with open(sources_txt) as f:
@@ -441,7 +461,7 @@ class TestEggInfo:
             self, tmpdir_cwd, env, requires, use_setup_cfg,
             expected_requires, install_cmd_kwargs):
         self._setup_script_with_requires(requires, use_setup_cfg)
-        self._run_egg_info_command(tmpdir_cwd, env, **install_cmd_kwargs)
+        _run_egg_info_command(tmpdir_cwd, env, **install_cmd_kwargs)
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         requires_txt = os.path.join(egg_info_dir, 'requires.txt')
         if os.path.exists(requires_txt):
@@ -461,14 +481,14 @@ class TestEggInfo:
         req = 'install_requires={"fake-factory==0.5.2", "pytz"}'
         self._setup_script_with_requires(req)
         with pytest.raises(AssertionError):
-            self._run_egg_info_command(tmpdir_cwd, env)
+            _run_egg_info_command(tmpdir_cwd, env)
 
     def test_extras_require_with_invalid_marker(self, tmpdir_cwd, env):
         tmpl = 'extras_require={{":{marker}": ["barbazquux"]}},'
         req = tmpl.format(marker=self.invalid_marker)
         self._setup_script_with_requires(req)
         with pytest.raises(AssertionError):
-            self._run_egg_info_command(tmpdir_cwd, env)
+            _run_egg_info_command(tmpdir_cwd, env)
         assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
 
     def test_extras_require_with_invalid_marker_in_req(self, tmpdir_cwd, env):
@@ -476,7 +496,7 @@ class TestEggInfo:
         req = tmpl.format(marker=self.invalid_marker)
         self._setup_script_with_requires(req)
         with pytest.raises(AssertionError):
-            self._run_egg_info_command(tmpdir_cwd, env)
+            _run_egg_info_command(tmpdir_cwd, env)
         assert glob.glob(os.path.join(env.paths['lib'], 'barbazquux*')) == []
 
     def test_provides_extra(self, tmpdir_cwd, env):
@@ -864,25 +884,6 @@ class TestEggInfo:
         with open(egg_info_instance.egg_info + "/SOURCES.txt") as f:
             sources = f.read().split('\n')
             assert 'setup.py' in sources
-
-    def _run_egg_info_command(self, tmpdir_cwd, env, cmd=None, output=None):
-        environ = os.environ.copy().update(
-            HOME=env.paths['home'],
-        )
-        if cmd is None:
-            cmd = [
-                'egg_info',
-            ]
-        code, data = environment.run_setup_py(
-            cmd=cmd,
-            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
-            data_stream=1,
-            env=environ,
-        )
-        assert not code, data
-
-        if output:
-            assert output in data
 
     def test_egg_info_tag_only_once(self, tmpdir_cwd, env):
         self._create_project()
