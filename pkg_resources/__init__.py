@@ -1984,7 +1984,7 @@ def find_eggs_in_zip(importer, path_item, only=False):
             dists = find_eggs_in_zip(zipimport.zipimporter(subpath), subpath)
             for dist in dists:
                 yield dist
-        elif any(map(lower.endswith, ('.dist-info', '.egg-info'))):
+        elif subitem.lower().endswith(('.dist-info', '.egg-info')):
             subpath = os.path.join(path_item, subitem)
             submeta = EggMetadata(zipimport.zipimporter(subpath))
             submeta.egg_info = subpath
