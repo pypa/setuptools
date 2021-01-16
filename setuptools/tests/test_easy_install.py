@@ -455,6 +455,7 @@ class TestSetupRequires:
         """
         monkeypatch.setenv(str('PIP_RETRIES'), str('0'))
         monkeypatch.setenv(str('PIP_TIMEOUT'), str('0'))
+        monkeypatch.setenv('PIP_NO_INDEX', 'false')
         with contexts.quiet():
             # create an sdist that has a build-time dependency.
             with TestSetupRequires.create_sdist() as dist_file:
@@ -628,6 +629,7 @@ class TestSetupRequires:
     def test_setup_requires_honors_pip_env(self, mock_index, monkeypatch):
         monkeypatch.setenv(str('PIP_RETRIES'), str('0'))
         monkeypatch.setenv(str('PIP_TIMEOUT'), str('0'))
+        monkeypatch.setenv('PIP_NO_INDEX', 'false')
         monkeypatch.setenv(str('PIP_INDEX_URL'), mock_index.url)
         with contexts.save_pkg_resources_state():
             with contexts.tempdir() as temp_dir:
