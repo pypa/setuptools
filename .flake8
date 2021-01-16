@@ -1,13 +1,15 @@
 [flake8]
 max-line-length = 88
+
+# jaraco/skeleton#34
+max-complexity = 10
+
 exclude =
 	setuptools/_vendor
 	pkg_resources/_vendor
+
 extend-ignore =
 	# Black creates whitespace before colon
 	E203
 	setuptools/site-patch.py F821
 	setuptools/py*compat.py F811
-
-# Let's not overcomplicate the code:
-max-complexity = 10

@@ -138,6 +138,8 @@ Features include:
 - test against multiple Python versions
 - run on late (and updated) platform versions
 - automated releases of tagged commits
+- [automatic merging of PRs](https://github.com/marketplace/actions/merge-pull-requests) (requires [protecting branches with required status checks](https://docs.github.com/en/free-pro-team@latest/github/administering-a-repository/enabling-required-status-checks), [not possible through API](https://github.community/t/set-all-status-checks-to-be-required-as-branch-protection-using-the-github-api/119493))
+
 
 ### Continuous Deployments
 
