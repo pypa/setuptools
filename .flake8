@@ -11,5 +11,3 @@ exclude =
 extend-ignore =
 	# Black creates whitespace before colon
 	E203
-	setuptools/site-patch.py F821
-	setuptools/py*compat.py F811
