@@ -38,6 +38,16 @@ from .files import build_files
 from .textwrap import DALS
 
 
+@pytest.fixture(autouse=True)
+def pip_disable_index(monkeypatch):
+    """
+    Important: Disable the default index for pip to avoid
+    querying packages in the index and potentially resolving
+    and installing packages there.
+    """
+    monkeypatch.setenv('PIP_NO_INDEX', 'true')
+
+
 class FakeDist:
     def get_entry_map(self, group):
         if group != 'console_scripts':
