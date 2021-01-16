@@ -31,7 +31,7 @@ v51.1.1
 
 Misc
 ^^^^
-* #2525: Avoid hitting network during test_virtualenv.test_test_command.
+* #2534: Avoid hitting network during test_virtualenv.test_test_command.
 
 
 v51.1.0
