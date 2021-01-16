@@ -153,7 +153,7 @@ class bdist_egg(Command):
         self.run_command(cmdname)
         return cmd
 
-    def run(self):
+    def run(self):  # noqa: C901  # is too complex (14)  # FIXME
         # Generate metadata first
         self.run_command("egg_info")
         # We run install_lib before install_data, because some data hacks

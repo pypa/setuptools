@@ -697,7 +697,8 @@ class WorkingSet:
             keys2.append(dist.key)
         self._added_new(dist)
 
-    def resolve(self, requirements, env=None, installer=None,
+    # FIXME: 'WorkingSet.resolve' is too complex (11)
+    def resolve(self, requirements, env=None, installer=None,  # noqa: C901
                 replace_conflicting=False, extras=None):
         """List all distributions needed to (recursively) meet `requirements`
 
@@ -1746,7 +1747,8 @@ class ZipProvider(EggProvider):
         timestamp = time.mktime(date_time)
         return timestamp, size
 
-    def _extract_resource(self, manager, zip_path):
+    # FIXME: 'ZipProvider._extract_resource' is too complex (12)
+    def _extract_resource(self, manager, zip_path):  # noqa: C901
 
         if zip_path in self._index():
             for name in self._index()[zip_path]:
@@ -2859,7 +2861,8 @@ class Distribution:
         """Return the EntryPoint object for `group`+`name`, or ``None``"""
         return self.get_entry_map(group).get(name)
 
-    def insert_on(self, path, loc=None, replace=False):
+    # FIXME: 'Distribution.insert_on' is too complex (13)
+    def insert_on(self, path, loc=None, replace=False):  # noqa: C901
         """Ensure self.location is on path
 
         If replace=False (default):
