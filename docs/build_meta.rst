@@ -7,7 +7,7 @@ What is it?
 
 Python packaging has come `a long way <https://www.bernat.tech/pep-517-518/>`_.
 
-The traditional ``setuptools`` way of packgaging Python modules
+The traditional ``setuptools`` way of packaging Python modules
 uses a ``setup()`` function within the ``setup.py`` script. Commands such as
 ``python setup.py bdist`` or ``python setup.py bdist_wheel`` generate a 
 distribution bundle and ``python setup.py install`` installs the distribution. 
