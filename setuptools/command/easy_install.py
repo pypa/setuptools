@@ -226,7 +226,7 @@ class easy_install(Command):
         print(tmpl.format(**locals()))
         raise SystemExit()
 
-    def finalize_options(self):
+    def finalize_options(self):  # noqa: C901  # is too complex (25)  # FIXME
         self.version and self._render_version()
 
         py_version = sys.version.split()[0]
@@ -437,7 +437,7 @@ class easy_install(Command):
     def warn_deprecated_options(self):
         pass
 
-    def check_site_dir(self):
+    def check_site_dir(self):  # noqa: C901  # is too complex (12)  # FIXME
         """Verify that self.install_dir is .pth-capable dir, if needed"""
 
         instdir = normalize_path(self.install_dir)
@@ -713,7 +713,10 @@ class easy_install(Command):
             if getattr(self, attrname) is None:
                 setattr(self, attrname, scheme[key])
 
-    def process_distribution(self, requirement, dist, deps=True, *info):
+    # FIXME: 'easy_install.process_distribution' is too complex (12)
+    def process_distribution(  # noqa: C901
+            self, requirement, dist, deps=True, *info,
+    ):
         self.update_pth(dist)
         self.package_index.add(dist)
         if dist in self.local_index[dist.key]:
@@ -837,12 +840,19 @@ class easy_install(Command):
 
     def install_eggs(self, spec, dist_filename, tmpdir):
         # .egg dirs or files are already built, so just return them
-        if dist_filename.lower().endswith('.egg'):
-            return [self.install_egg(dist_filename, tmpdir)]
-        elif dist_filename.lower().endswith('.exe'):
-            return [self.install_exe(dist_filename, tmpdir)]
-        elif dist_filename.lower().endswith('.whl'):
-            return [self.install_wheel(dist_filename, tmpdir)]
+        installer_map = {
+            '.egg': self.install_egg,
+            '.exe': self.install_exe,
+            '.whl': self.install_wheel,
+        }
+        try:
+            install_dist = installer_map[
+                dist_filename.lower()[-4:]
+            ]
+        except KeyError:
+            pass
+        else:
+            return [install_dist(dist_filename, tmpdir)]
 
         # Anything else, try to extract and build
         setup_base = tmpdir
@@ -887,7 +897,8 @@ class easy_install(Command):
             metadata = EggMetadata(zipimport.zipimporter(egg_path))
         return Distribution.from_filename(egg_path, metadata=metadata)
 
-    def install_egg(self, egg_path, tmpdir):
+    # FIXME: 'easy_install.install_egg' is too complex (11)
+    def install_egg(self, egg_path, tmpdir):  # noqa: C901
         destination = os.path.join(
             self.install_dir,
             os.path.basename(egg_path),
@@ -986,7 +997,8 @@ class easy_install(Command):
         # install the .egg
         return self.install_egg(egg_path, tmpdir)
 
-    def exe_to_egg(self, dist_filename, egg_tmp):
+    # FIXME: 'easy_install.exe_to_egg' is too complex (12)
+    def exe_to_egg(self, dist_filename, egg_tmp):  # noqa: C901
         """Extract a bdist_wininst to the directories an egg would use"""
         # Check for .pth file and set up prefix translations
         prefixes = get_exe_prefixes(dist_filename)
@@ -1184,16 +1196,18 @@ class easy_install(Command):
         cfg_filename = os.path.join(base, 'setup.cfg')
         setopt.edit_config(cfg_filename, settings)
 
-    def update_pth(self, dist):
+    def update_pth(self, dist):  # noqa: C901  # is too complex (11)  # FIXME
         if self.pth_file is None:
             return
 
         for d in self.pth_file[dist.key]:  # drop old entries
-            if self.multi_version or d.location != dist.location:
-                log.info("Removing %s from easy-install.pth file", d)
-                self.pth_file.remove(d)
-                if d.location in self.shadow_path:
-                    self.shadow_path.remove(d.location)
+            if not self.multi_version and d.location == dist.location:
+                continue
+
+            log.info("Removing %s from easy-install.pth file", d)
+            self.pth_file.remove(d)
+            if d.location in self.shadow_path:
+                self.shadow_path.remove(d.location)
 
         if not self.multi_version:
             if dist.location in self.pth_file.paths:
@@ -1207,19 +1221,21 @@ class easy_install(Command):
                 if dist.location not in self.shadow_path:
                     self.shadow_path.append(dist.location)
 
-        if not self.dry_run:
+        if self.dry_run:
+            return
 
-            self.pth_file.save()
+        self.pth_file.save()
 
-            if dist.key == 'setuptools':
-                # Ensure that setuptools itself never becomes unavailable!
-                # XXX should this check for latest version?
-                filename = os.path.join(self.install_dir, 'setuptools.pth')
-                if os.path.islink(filename):
-                    os.unlink(filename)
-                f = open(filename, 'wt')
-                f.write(self.pth_file.make_relative(dist.location) + '\n')
-                f.close()
+        if dist.key != 'setuptools':
+            return
+
+        # Ensure that setuptools itself never becomes unavailable!
+        # XXX should this check for latest version?
+        filename = os.path.join(self.install_dir, 'setuptools.pth')
+        if os.path.islink(filename):
+            os.unlink(filename)
+        with open(filename, 'wt') as f:
+            f.write(self.pth_file.make_relative(dist.location) + '\n')
 
     def unpack_progress(self, src, dst):
         # Progress filter for unpacking
@@ -1360,58 +1376,63 @@ def get_site_dirs():
     if sys.exec_prefix != sys.prefix:
         prefixes.append(sys.exec_prefix)
     for prefix in prefixes:
-        if prefix:
-            if sys.platform in ('os2emx', 'riscos'):
-                sitedirs.append(os.path.join(prefix, "Lib", "site-packages"))
-            elif os.sep == '/':
-                sitedirs.extend([
-                    os.path.join(
-                        prefix,
-                        "lib",
-                        "python{}.{}".format(*sys.version_info),
-                        "site-packages",
-                    ),
-                    os.path.join(prefix, "lib", "site-python"),
-                ])
-            else:
-                sitedirs.extend([
+        if not prefix:
+            continue
+
+        if sys.platform in ('os2emx', 'riscos'):
+            sitedirs.append(os.path.join(prefix, "Lib", "site-packages"))
+        elif os.sep == '/':
+            sitedirs.extend([
+                os.path.join(
                     prefix,
-                    os.path.join(prefix, "lib", "site-packages"),
-                ])
-            if sys.platform == 'darwin':
-                # for framework builds *only* we add the standard Apple
-                # locations. Currently only per-user, but /Library and
-                # /Network/Library could be added too
-                if 'Python.framework' in prefix:
-                    home = os.environ.get('HOME')
-                    if home:
-                        home_sp = os.path.join(
-                            home,
-                            'Library',
-                            'Python',
-                            '{}.{}'.format(*sys.version_info),
-                            'site-packages',
-                        )
-                        sitedirs.append(home_sp)
+                    "lib",
+                    "python{}.{}".format(*sys.version_info),
+                    "site-packages",
+                ),
+                os.path.join(prefix, "lib", "site-python"),
+            ])
+        else:
+            sitedirs.extend([
+                prefix,
+                os.path.join(prefix, "lib", "site-packages"),
+            ])
+        if sys.platform != 'darwin':
+            continue
+
+        # for framework builds *only* we add the standard Apple
+        # locations. Currently only per-user, but /Library and
+        # /Network/Library could be added too
+        if 'Python.framework' not in prefix:
+            continue
+
+        home = os.environ.get('HOME')
+        if not home:
+            continue
+
+        home_sp = os.path.join(
+            home,
+            'Library',
+            'Python',
+            '{}.{}'.format(*sys.version_info),
+            'site-packages',
+        )
+        sitedirs.append(home_sp)
     lib_paths = get_path('purelib'), get_path('platlib')
-    for site_lib in lib_paths:
-        if site_lib not in sitedirs:
-            sitedirs.append(site_lib)
+
+    sitedirs.extend(s for s in lib_paths if s not in sitedirs)
 
     if site.ENABLE_USER_SITE:
         sitedirs.append(site.USER_SITE)
 
-    try:
+    with contextlib.suppress(AttributeError):
         sitedirs.extend(site.getsitepackages())
-    except AttributeError:
-        pass
 
     sitedirs = list(map(normalize_path, sitedirs))
 
     return sitedirs
 
 
-def expand_paths(inputs):
+def expand_paths(inputs):  # noqa: C901  # is too complex (11)  # FIXME
     """Yield sys.path directories that might contain "old-style" packages"""
 
     seen = {}
@@ -1443,13 +1464,18 @@ def expand_paths(inputs):
 
             # Yield existing non-dupe, non-import directory lines from it
             for line in lines:
-                if not line.startswith("import"):
-                    line = normalize_path(line.rstrip())
-                    if line not in seen:
-                        seen[line] = 1
-                        if not os.path.isdir(line):
-                            continue
-                        yield line, os.listdir(line)
+                if line.startswith("import"):
+                    continue
+
+                line = normalize_path(line.rstrip())
+                if line in seen:
+                    continue
+
+                seen[line] = 1
+                if not os.path.isdir(line):
+                    continue
+
+                yield line, os.listdir(line)
 
 
 def extract_wininst_cfg(dist_filename):

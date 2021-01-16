@@ -1,0 +1,2 @@
+Define ``create_module()`` and ``exec_module()`` methods in ``VendorImporter``
+to get rid of ``ImportWarning`` -- by :user:`hroncok`

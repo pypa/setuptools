@@ -51,7 +51,7 @@ def _legacy_fetch_build_egg(dist, req):
     return cmd.easy_install(req)
 
 
-def fetch_build_egg(dist, req):
+def fetch_build_egg(dist, req):  # noqa: C901  # is too complex (16)  # FIXME
     """Fetch an egg needed for building.
 
     Use pip/wheel to fetch/build a wheel."""
@@ -80,20 +80,17 @@ def fetch_build_egg(dist, req):
     if 'allow_hosts' in opts:
         raise DistutilsError('the `allow-hosts` option is not supported '
                              'when using pip to install requirements.')
-    if 'PIP_QUIET' in os.environ or 'PIP_VERBOSE' in os.environ:
-        quiet = False
-    else:
-        quiet = True
+    quiet = 'PIP_QUIET' not in os.environ and 'PIP_VERBOSE' not in os.environ
     if 'PIP_INDEX_URL' in os.environ:
         index_url = None
     elif 'index_url' in opts:
         index_url = opts['index_url'][1]
     else:
         index_url = None
-    if 'find_links' in opts:
-        find_links = _fixup_find_links(opts['find_links'][1])[:]
-    else:
-        find_links = []
+    find_links = (
+        _fixup_find_links(opts['find_links'][1])[:] if 'find_links' in opts
+        else []
+    )
     if dist.dependency_links:
         find_links.extend(dist.dependency_links)
     eggs_dir = os.path.realpath(dist.get_egg_cache_dir())
@@ -112,16 +109,12 @@ def fetch_build_egg(dist, req):
             cmd.append('--quiet')
         if index_url is not None:
             cmd.extend(('--index-url', index_url))
-        if find_links is not None:
-            for link in find_links:
-                cmd.extend(('--find-links', link))
+        for link in find_links or []:
+            cmd.extend(('--find-links', link))
         # If requirement is a PEP 508 direct URL, directly pass
         # the URL to pip, as `req @ url` does not work on the
         # command line.
-        if req.url:
-            cmd.append(req.url)
-        else:
-            cmd.append(str(req))
+        cmd.append(req.url or str(req))
         try:
             subprocess.check_call(cmd)
         except subprocess.CalledProcessError as e:

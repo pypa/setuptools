@@ -38,6 +38,16 @@ from .files import build_files
 from .textwrap import DALS
 
 
+@pytest.fixture(autouse=True)
+def pip_disable_index(monkeypatch):
+    """
+    Important: Disable the default index for pip to avoid
+    querying packages in the index and potentially resolving
+    and installing packages there.
+    """
+    monkeypatch.setenv('PIP_NO_INDEX', 'true')
+
+
 class FakeDist:
     def get_entry_map(self, group):
         if group != 'console_scripts':
@@ -445,6 +455,7 @@ class TestSetupRequires:
         """
         monkeypatch.setenv(str('PIP_RETRIES'), str('0'))
         monkeypatch.setenv(str('PIP_TIMEOUT'), str('0'))
+        monkeypatch.setenv('PIP_NO_INDEX', 'false')
         with contexts.quiet():
             # create an sdist that has a build-time dependency.
             with TestSetupRequires.create_sdist() as dist_file:
@@ -618,6 +629,7 @@ class TestSetupRequires:
     def test_setup_requires_honors_pip_env(self, mock_index, monkeypatch):
         monkeypatch.setenv(str('PIP_RETRIES'), str('0'))
         monkeypatch.setenv(str('PIP_TIMEOUT'), str('0'))
+        monkeypatch.setenv('PIP_NO_INDEX', 'false')
         monkeypatch.setenv(str('PIP_INDEX_URL'), mock_index.url)
         with contexts.save_pkg_resources_state():
             with contexts.tempdir() as temp_dir:

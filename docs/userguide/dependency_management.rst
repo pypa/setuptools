@@ -72,7 +72,7 @@ When your project is installed (e.g. using pip), all of the dependencies not
 already installed will be located (via PyPI), downloaded, built (if necessary),
 and installed and 2) Any scripts in your project will be installed with wrappers
 that verify the availability of the specified dependencies at runtime.
-    
+
 
 Platform specific dependencies
 ------------------------------
@@ -202,7 +202,7 @@ Optional dependencies
 Setuptools allows you to declare dependencies that only get installed under
 specific circumstances. These dependencies are specified with ``extras_require``
 keyword and are only installed if another package depends on it (either
-directly or indirectly) This makes it convenient to declare dependencies for 
+directly or indirectly) This makes it convenient to declare dependencies for
 ancillary functions such as "tests" and "docs".
 
 .. note::
@@ -262,8 +262,12 @@ First is the console_scripts entry point:
         }
     )
 
-When the script ``rst2pdf`` is run, it will trigger the installation of
-the two dependencies ``PDF`` maps to.
+This syntax indicates that the entry point (in this case a console script)
+is only valid when the PDF extra is installed. It is up to the installer
+to determine how to handle the situation where PDF was not indicated
+(e.g. omit the console script, provide a warning when attempting to load
+the entry point, assume the extras are present and let the implementation
+fail later).
 
 The second use case is that other package can use this "extra" for their
 own dependencies. For example, if "Project-B" needs "project A" with PDF support

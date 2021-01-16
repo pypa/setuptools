@@ -179,6 +179,10 @@ def test_test_command_install_requirements(virtualenv, tmpdir):
     # Ensure pip/wheel packages are installed.
     virtualenv.run(
         "python -c \"__import__('pkg_resources').require(['pip', 'wheel'])\"")
+    # uninstall setuptools so that 'setup.py develop' works
+    virtualenv.run("python -m pip uninstall -y setuptools")
+    # disable index URL so bits and bobs aren't requested from PyPI
+    virtualenv.env['PIP_NO_INDEX'] = '1'
     _check_test_command_install_requirements(virtualenv, tmpdir)
 
 

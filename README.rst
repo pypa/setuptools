@@ -6,9 +6,9 @@
 
 .. _PyPI link: https://pypi.org/project/setuptools
 
-.. image:: https://github.com/pypa/setuptools/workflows/Automated%20Tests/badge.svg
-   :target: https://github.com/pypa/setuptools/actions?query=workflow%3A%22Automated+Tests%22
-   :alt: Automated Tests
+.. image:: https://github.com/pypa/setuptools/workflows/tests/badge.svg
+   :target: https://github.com/pypa/setuptools/actions?query=workflow%3A%22tests%22
+   :alt: tests
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
    :target: https://github.com/psf/black

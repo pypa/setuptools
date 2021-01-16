@@ -1,3 +1,39 @@
+v51.2.0
+-------
+
+
+Changes
+^^^^^^^
+* #2493: Use importlib.import_module() rather than the deprectated loader.load_module()
+  in pkg_resources namespace delaration -- by :user:`encukou`
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #2525: Fix typo in the document page about entry point. -- by :user:`jtr109`
+
+Misc
+^^^^
+* #2534: Avoid hitting network during test_easy_install.
+
+
+v51.1.2
+-------
+
+
+Misc
+^^^^
+* #2505: Disable inclusion of package data as it causes 'tests' to be included as data.
+
+
+v51.1.1
+-------
+
+
+Misc
+^^^^
+* #2534: Avoid hitting network during test_virtualenv.test_test_command.
+
+
 v51.1.0
 -------
 
@@ -371,6 +407,7 @@ v47.2.0
 Changes
 ^^^^^^^
 * #2194: Editable-installed entry points now load significantly faster on Python versions 3.8+.
+* #1471: Incidentally fixed by #2194 on Python 3.8 or when importlib_metadata is present.
 
 
 v47.1.1
