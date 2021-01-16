@@ -1,1 +1,0 @@
-Avoid hitting network during test_easy_install.

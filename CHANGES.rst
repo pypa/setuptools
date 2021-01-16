@@ -1,3 +1,21 @@
+v51.2.0
+-------
+
+
+Changes
+^^^^^^^
+* #2493: Use importlib.import_module() rather than the deprectated loader.load_module()
+  in pkg_resources namespace delaration -- by :user:`encukou`
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #2525: Fix typo in the document page about entry point. -- by :user:`jtr109`
+
+Misc
+^^^^
+* #2534: Avoid hitting network during test_easy_install.
+
+
 v51.1.2
 -------
 

@@ -1,2 +1,0 @@
-Use importlib.import_module() rather than the deprectated loader.load_module()
-in pkg_resources namespace delaration -- by :user:`encukou`
