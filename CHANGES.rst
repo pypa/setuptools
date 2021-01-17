@@ -1,3 +1,17 @@
+v51.3.0
+-------
+
+
+Changes
+^^^^^^^
+* #1390: Newlines in metadata description/Summary now trigger a ValueError.
+* #2481: Define ``create_module()`` and ``exec_module()`` methods in ``VendorImporter``
+  to get rid of ``ImportWarning`` -- by :user:`hroncok`
+* #2489: ``pkg_resources`` behavior for zipimport now matches the regular behavior, and finds
+  ``.egg-info`` (previoulsy would only find ``.dist-info``) -- by :user:`thatch`
+* #2529: Fixed an issue where version tags may be added multiple times
+
+
 v51.2.0
 -------
 

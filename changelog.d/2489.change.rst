@@ -1,2 +1,0 @@
-``pkg_resources`` behavior for zipimport now matches the regular behavior, and finds
-``.egg-info`` (previoulsy would only find ``.dist-info``) -- by :user:`thatch`

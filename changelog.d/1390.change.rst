@@ -1,1 +1,0 @@
-Newlines in metadata description/Summary now trigger a ValueError.
