@@ -131,12 +131,10 @@ class InfoCommon:
         egg_info may be called more than once for a distribution,
         in which case the version string already contains all tags.
         """
-        # Remove the tags if they exist. The tags maybe have been normalized
-        # (e.g. turning .dev into .dev0) so we can't just compare strings
-        base_version = parse_version(version).base_version
-
-        # Add the tags
-        return base_version + self.vtags
+        return (
+            version if self.vtags and version.endswith(self.vtags)
+            else version + self.vtags
+        )
 
     def tags(self):
         version = ''
