@@ -742,10 +742,10 @@ class TestSetupRequires:
         assert eggs == ['dep 1.0']
 
     @pytest.mark.parametrize(
-        'use_legacy_installer,with_dependency_links_in_setup_py',
-        itertools.product((False, True), (False, True)))
+        'with_dependency_links_in_setup_py',
+        (False, True))
     def test_setup_requires_with_find_links_in_setup_cfg(
-            self, monkeypatch, use_legacy_installer,
+            self, monkeypatch,
             with_dependency_links_in_setup_py):
         monkeypatch.setenv(str('PIP_RETRIES'), str('0'))
         monkeypatch.setenv(str('PIP_TIMEOUT'), str('0'))
@@ -767,11 +767,9 @@ class TestSetupRequires:
                     fp.write(DALS(
                         '''
                         from setuptools import installer, setup
-                        if {use_legacy_installer}:
-                            installer.fetch_build_egg = installer._legacy_fetch_build_egg
                         setup(setup_requires='python-xlib==42',
                         dependency_links={dependency_links!r})
-                        ''').format(use_legacy_installer=use_legacy_installer,  # noqa
+                        ''').format(
                                     dependency_links=dependency_links))
                 with open(test_setup_cfg, 'w') as fp:
                     fp.write(DALS(
