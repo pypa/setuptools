@@ -1,3 +1,12 @@
+v51.3.1
+-------
+
+
+Misc
+^^^^
+* #2536: Reverted tag deduplication handling.
+
+
 v51.3.0
 -------
 
