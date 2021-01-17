@@ -1,3 +1,12 @@
+v51.3.3
+-------
+
+
+Misc
+^^^^
+* #2539: Fix AttributeError in Description validation.
+
+
 v51.3.2
 -------
 
