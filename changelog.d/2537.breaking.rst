@@ -1,0 +1,1 @@
+Remove fallback support for fetch_build_eggs using easy_install. Now pip is required for setup_requires to succeed.
