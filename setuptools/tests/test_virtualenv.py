@@ -40,9 +40,6 @@ def bare_virtualenv():
         yield venv
 
 
-SOURCE_DIR = os.path.join(os.path.dirname(__file__), '../..')
-
-
 def test_clean_env_install(bare_virtualenv, tmp_src):
     """
     Check setuptools can be installed in a clean environment.
@@ -113,12 +110,12 @@ def test_pip_upgrade_from_source(pip_version, tmp_src, virtualenv):
     virtualenv.run('pip install --no-cache-dir --upgrade ' + sdist)
 
 
-def _check_test_command_install_requirements(virtualenv, tmpdir):
+def _check_test_command_install_requirements(virtualenv, tmpdir, cwd):
     """
     Check the test command will install all required dependencies.
     """
     # Install setuptools.
-    virtualenv.run('python setup.py develop', cd=SOURCE_DIR)
+    virtualenv.run('python setup.py develop', cd=cwd)
 
     def sdist(distname, version):
         dist_path = tmpdir.join('%s-%s.tar.gz' % (distname, version))
@@ -175,7 +172,7 @@ def _check_test_command_install_requirements(virtualenv, tmpdir):
     assert tmpdir.join('success').check()
 
 
-def test_test_command_install_requirements(virtualenv, tmpdir):
+def test_test_command_install_requirements(virtualenv, tmpdir, request):
     # Ensure pip/wheel packages are installed.
     virtualenv.run(
         "python -c \"__import__('pkg_resources').require(['pip', 'wheel'])\"")
@@ -183,18 +180,19 @@ def test_test_command_install_requirements(virtualenv, tmpdir):
     virtualenv.run("python -m pip uninstall -y setuptools")
     # disable index URL so bits and bobs aren't requested from PyPI
     virtualenv.env['PIP_NO_INDEX'] = '1'
-    _check_test_command_install_requirements(virtualenv, tmpdir)
+    _check_test_command_install_requirements(virtualenv, tmpdir, request.config.rootdir)
 
 
 def test_test_command_install_requirements_when_using_easy_install(
-        bare_virtualenv, tmpdir):
-    _check_test_command_install_requirements(bare_virtualenv, tmpdir)
+        bare_virtualenv, tmpdir, request):
+    _check_test_command_install_requirements(
+        bare_virtualenv, tmpdir, request.config.rootdir)
 
 
-def test_no_missing_dependencies(bare_virtualenv):
+def test_no_missing_dependencies(bare_virtualenv, request):
     """
     Quick and dirty test to ensure all external dependencies are vendored.
     """
     for command in ('upload',):  # sorted(distutils.command.__all__):
-        bare_virtualenv.run(
-            ['python', 'setup.py', command, '-h'], cd=SOURCE_DIR)
+        cmd = ['python', 'setup.py', command, '-h']
+        bare_virtualenv.run(cmd, cd=request.config.rootdir)
