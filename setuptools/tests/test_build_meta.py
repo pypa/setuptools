@@ -1,10 +1,8 @@
 import os
 import shutil
-import sys
 import tarfile
 import importlib
 from concurrent import futures
-from contextlib import suppress
 
 import pytest
 
@@ -46,15 +44,6 @@ class BuildBackendCaller(BuildBackendBase):
 
     def __call__(self, name, *args, **kw):
         """Handles aribrary function invocations on the build backend."""
-        with suppress(ValueError):
-            # NOTE: pytest-xdist tends to inject '' into `sys.path` which
-            # NOTE: may break certain isolation expectations. To address
-            # NOTE: this, we remove this entry from there so the import
-            # NOTE: machinery behaves the same as in the default
-            # NOTE: sequential mode.
-            # Ref: https://github.com/pytest-dev/pytest-xdist/issues/376
-            sys.path.remove('')
-
         os.chdir(self.cwd)
         os.environ.update(self.env)
         mod = importlib.import_module(self.backend_name)
