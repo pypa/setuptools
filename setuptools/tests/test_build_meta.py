@@ -11,7 +11,7 @@ from .textwrap import DALS
 
 
 class BuildBackendBase:
-    def __init__(self, cwd=None, env={}, backend_name='setuptools.build_meta'):
+    def __init__(self, cwd='.', env={}, backend_name='setuptools.build_meta'):
         self.cwd = cwd
         self.env = env
         self.backend_name = backend_name
@@ -126,7 +126,7 @@ class TestBuildMetaBackend:
     backend_name = 'setuptools.build_meta'
 
     def get_build_backend(self):
-        return BuildBackend(cwd='.', backend_name=self.backend_name)
+        return BuildBackend(backend_name=self.backend_name)
 
     @pytest.fixture(params=defns)
     def build_backend(self, tmpdir, request):
@@ -337,7 +337,7 @@ class TestBuildMetaBackend:
     def test_build_sdist_relative_path_import(self, tmpdir_cwd):
         build_files(self._relative_path_import_files)
         build_backend = self.get_build_backend()
-        with pytest.raises(ImportError):
+        with pytest.raises(ImportError, match="^No module named 'hello'$"):
             build_backend.build_sdist("temp")
 
     @pytest.mark.parametrize('setup_literal, requirements', [
