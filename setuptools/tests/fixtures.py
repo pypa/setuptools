@@ -6,9 +6,6 @@ import pytest
 from . import contexts
 
 
-SRC_DIR = pathlib.Path(__file__).parents[2]
-
-
 @pytest.fixture
 def user_override(monkeypatch):
     """
@@ -32,7 +29,7 @@ def tmpdir_cwd(tmpdir):
 @pytest.fixture
 def src_dir():
     """The project source directory available via fixture."""
-    return SRC_DIR
+    return pathlib.Path(__file__).parents[2]
 
 
 @pytest.fixture
