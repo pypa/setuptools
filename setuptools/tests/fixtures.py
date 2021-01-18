@@ -1,4 +1,3 @@
-import pathlib
 import shutil
 
 import pytest
@@ -27,13 +26,7 @@ def tmpdir_cwd(tmpdir):
 
 
 @pytest.fixture
-def src_dir():
-    """The project source directory available via fixture."""
-    return pathlib.Path(__file__).parents[2]
-
-
-@pytest.fixture
-def tmp_src(src_dir, tmp_path):
+def tmp_src(request, tmp_path):
     """Make a copy of the source dir under `$tmp/src`.
 
     This fixture is useful whenever it's necessary to run `setup.py`
@@ -44,5 +37,5 @@ def tmp_src(src_dir, tmp_path):
     when they are not being executed sequentially.
     """
     tmp_src_path = tmp_path / 'src'
-    shutil.copytree(src_dir, tmp_src_path)
+    shutil.copytree(request.config.rootdir, tmp_src_path)
     return tmp_src_path
