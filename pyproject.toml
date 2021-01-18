@@ -24,6 +24,9 @@ addopts = "--flake8"
 [pytest.enabler.cov]
 addopts = "--cov"
 
+[pytest.enabler.xdist]
+addopts = "-n auto"
+
 [tool.towncrier]
     package = "setuptools"
     package_dir = "setuptools"
