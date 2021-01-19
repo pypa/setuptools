@@ -715,7 +715,7 @@ class easy_install(Command):
 
     # FIXME: 'easy_install.process_distribution' is too complex (12)
     def process_distribution(  # noqa: C901
-            self, requirement, dist, deps=True, *info,
+            self, requirement, dist, deps=True, *info
     ):
         self.update_pth(dist)
         self.package_index.add(dist)
