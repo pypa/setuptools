@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
-import subprocess
-import sys
-import os
-
-
 extensions = ['sphinx.ext.autodoc', 'jaraco.packaging.sphinx', 'rst.linker']
 
 master_doc = "index"
@@ -80,14 +72,6 @@ link_files = {
         ],
     ),
 }
-
-
-# hack to run the bootstrap script so that jaraco.packaging.sphinx
-# can invoke setup.py
-'READTHEDOCS' in os.environ and subprocess.check_call(
-    [sys.executable, '-m', 'bootstrap'],
-    cwd=os.path.join(os.path.dirname(__file__), os.path.pardir),
-)
 
 
 # Add support for linking usernames
