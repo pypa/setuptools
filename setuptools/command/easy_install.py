@@ -2284,16 +2284,6 @@ def current_umask():
     return tmp
 
 
-def bootstrap():
-    # This function is called when setuptools*.egg is run using /bin/sh
-    import setuptools
-
-    argv0 = os.path.dirname(setuptools.__path__[0])
-    sys.argv[0] = argv0
-    sys.argv.append(argv0)
-    main()
-
-
 def main(argv=None, **kw):
     from setuptools import setup
     from setuptools.dist import Distribution
