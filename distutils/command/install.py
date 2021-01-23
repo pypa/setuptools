@@ -35,6 +35,13 @@ INSTALL_SCHEMES = {
         'scripts': '$base/bin',
         'data'   : '$base',
         },
+    'unix_local': {
+        'purelib': '$base/local/lib/python$py_version_short/site-packages',
+        'platlib': '$platbase/local/$platlibdir/python$py_version_short/site-packages',
+        'headers': '$base/local/include/python$py_version_short$abiflags/$dist_name',
+        'scripts': '$base/local/bin',
+        'data'   : '$base/local',
+        },
     'unix_home': {
         'purelib': '$base/lib/python',
         'platlib': '$base/$platlibdir/python',
@@ -282,6 +289,7 @@ class install(Command):
 
         self.dump_dirs("pre-finalize_{unix,other}")
 
+        self._load_schemes()
         if os.name == 'posix':
             self.finalize_unix()
         else:
@@ -403,6 +411,48 @@ class install(Command):
                 opt_name = opt_name.translate(longopt_xlate)
                 val = getattr(self, opt_name)
             log.debug("  %s: %s", opt_name, val)
+
+    def _load_schemes(self):
+        """
+        Allow sysconfig and runtime behaviors to alter schemes.
+        """
+
+        try:
+            import sysconfig
+            INSTALL_SCHEMES.update(sysconfig.INSTALL_SCHEMES)
+            return
+        except Exception:
+            pass
+
+        def is_virtualenv():
+            return (
+                hasattr(sys, 'real_prefix') or
+                sys.prefix != sys.base_prefix or
+                'VIRTUAL_ENV' in os.environ
+            )
+
+        # fedora:
+        def is_rpm_build():
+            return 'RPM_BUILD_ROOT' in os.environ
+
+        if not is_virtualenv() and not is_rpm_build():
+            INSTALL_SCHEMES['unix_prefix'] = INSTALL_SCHEMES['unix_local']
+
+        # debian:
+        def is_deb_system():
+            # TODO: how to solicit without an additional parameter to build?
+            return self.install_layout.lower() == 'deb'
+
+        if is_deb_system():
+            INSTALL_SCHEMES['unix_prefix'] = {
+                'purelib': '$base/lib/python3/dist-packages',
+                'platlib': '$platbase/lib/python3/dist-packages',
+                'headers': '$base/include/python$py_version_short/$dist_name',
+                'scripts': '$base/bin',
+                'data'   : '$base',
+            }
+        if not is_virtualenv():
+            INSTALL_SCHEMES['unix_prefix'] = INSTALL_SCHEMES['unix_local']
 
     def finalize_unix(self):
         """Finalizes options for posix platforms."""
