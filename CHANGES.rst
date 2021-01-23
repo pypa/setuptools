@@ -1,3 +1,21 @@
+v51.3.3
+-------
+
+
+Misc
+^^^^
+* #2539: Fix AttributeError in Description validation.
+
+
+v51.3.2
+-------
+
+
+Misc
+^^^^
+* #1390: Validation of Description field now is more lenient, emitting a warning and mangling the value to be valid (replacing newlines with spaces).
+
+
 v51.3.1
 -------
 
