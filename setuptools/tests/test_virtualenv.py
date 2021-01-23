@@ -183,12 +183,6 @@ def test_test_command_install_requirements(virtualenv, tmpdir, request):
     _check_test_command_install_requirements(virtualenv, tmpdir, request.config.rootdir)
 
 
-def test_test_command_install_requirements_when_using_easy_install(
-        bare_virtualenv, tmpdir, request):
-    _check_test_command_install_requirements(
-        bare_virtualenv, tmpdir, request.config.rootdir)
-
-
 def test_no_missing_dependencies(bare_virtualenv, request):
     """
     Quick and dirty test to ensure all external dependencies are vendored.

@@ -7,7 +7,6 @@ from distutils import log
 from distutils.errors import DistutilsError
 
 import pkg_resources
-from setuptools.command.easy_install import easy_install
 from setuptools.wheel import Wheel
 
 
@@ -19,54 +18,11 @@ def _fixup_find_links(find_links):
     return find_links
 
 
-def _legacy_fetch_build_egg(dist, req):
-    """Fetch an egg needed for building.
-
-    Legacy path using EasyInstall.
-    """
-    tmp_dist = dist.__class__({'script_args': ['easy_install']})
-    opts = tmp_dist.get_option_dict('easy_install')
-    opts.clear()
-    opts.update(
-        (k, v)
-        for k, v in dist.get_option_dict('easy_install').items()
-        if k in (
-            # don't use any other settings
-            'find_links', 'site_dirs', 'index_url',
-            'optimize', 'site_dirs', 'allow_hosts',
-        ))
-    if dist.dependency_links:
-        links = dist.dependency_links[:]
-        if 'find_links' in opts:
-            links = _fixup_find_links(opts['find_links'][1]) + links
-        opts['find_links'] = ('setup', links)
-    install_dir = dist.get_egg_cache_dir()
-    cmd = easy_install(
-        tmp_dist, args=["x"], install_dir=install_dir,
-        exclude_scripts=True,
-        always_copy=False, build_directory=None, editable=False,
-        upgrade=False, multi_version=True, no_report=True, user=False
-    )
-    cmd.ensure_finalized()
-    return cmd.easy_install(req)
-
-
 def fetch_build_egg(dist, req):  # noqa: C901  # is too complex (16)  # FIXME
     """Fetch an egg needed for building.
 
     Use pip/wheel to fetch/build a wheel."""
-    # Check pip is available.
-    try:
-        pkg_resources.get_distribution('pip')
-    except pkg_resources.DistributionNotFound:
-        dist.announce(
-            'WARNING: The pip package is not available, falling back '
-            'to EasyInstall for handling setup_requires/test_requires; '
-            'this is deprecated and will be removed in a future version.',
-            log.WARN
-        )
-        return _legacy_fetch_build_egg(dist, req)
-    # Warn if wheel is not.
+    # Warn if wheel is not available
     try:
         pkg_resources.get_distribution('wheel')
     except pkg_resources.DistributionNotFound:
