@@ -62,8 +62,9 @@ class TestNamespaces:
         target.mkdir()
         install_cmd = [
             sys.executable,
-            '-m', 'easy_install',
-            '-d', str(target),
+            '-m', 'pip',
+            'install',
+            '-t', str(target),
             str(pkg),
         ]
         with test.test.paths_on_pythonpath([str(target)]):
