@@ -171,8 +171,6 @@ setup_params = dict(
             "dependency_links.txt = setuptools.command.egg_info:overwrite_arg",
         ],
         "console_scripts": list(_gen_console_scripts()),
-        "setuptools.installation":
-            ['eggsecutable = setuptools.command.easy_install:bootstrap'],
     },
     dependency_links=[
         pypi_link(
