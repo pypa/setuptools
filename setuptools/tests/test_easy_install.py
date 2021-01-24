@@ -15,6 +15,7 @@ import zipfile
 import mock
 import time
 import re
+import subprocess
 
 import pytest
 
@@ -25,7 +26,6 @@ from setuptools.command.easy_install import (
     EasyInstallDeprecationWarning, ScriptWriter, PthDistributions,
     WindowsScriptWriter,
 )
-from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
 from pkg_resources import normalize_path, working_set
 from pkg_resources import Distribution as PRDistribution
@@ -461,17 +461,16 @@ class TestSetupRequires:
             with TestSetupRequires.create_sdist() as dist_file:
                 with contexts.tempdir() as temp_install_dir:
                     with contexts.environment(PYTHONPATH=temp_install_dir):
-                        ei_params = [
+                        cmd = [
+                            sys.executable,
+                            '-m', 'setup',
+                            'easy_install',
                             '--index-url', mock_index.url,
                             '--exclude-scripts',
                             '--install-dir', temp_install_dir,
                             dist_file,
                         ]
-                        with sandbox.save_argv(['easy_install']):
-                            # attempt to install the dist. It should
-                            # fail because it doesn't exist.
-                            with pytest.raises(SystemExit):
-                                easy_install_pkg.main(ei_params)
+                        subprocess.Popen(cmd).wait()
         # there should have been one requests to the server
         assert [r.path for r in mock_index.requests] == ['/does-not-exist/']
 
