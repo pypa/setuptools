@@ -1,3 +1,18 @@
+v52.0.0
+-------
+
+
+Breaking Changes
+^^^^^^^^^^^^^^^^
+* #2537: Remove fallback support for fetch_build_eggs using easy_install. Now pip is required for setup_requires to succeed.
+* #2544: Removed 'easy_install' top-level model (runpy entry point) and 'easy_install' console script.
+* #2545: Removed support for eggsecutables.
+
+Changes
+^^^^^^^
+* #2459: Tests now run in parallel via pytest-xdist, completing in about half the time. Special thanks to :user:`webknjaz` for hard work implementing test isolation. To run without parallelization, disable the plugin with ``tox -- -p no:xdist``.
+
+
 v51.3.3
 -------
 
