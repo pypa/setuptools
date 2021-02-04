@@ -243,6 +243,19 @@ data_files               dict                                 40.6.0
 
     **find_namespace directive** - The ``find_namespace:`` directive is supported since Python >=3.3.
 
+
 Notes:
 1. In the ``package_data`` section, a key named with a single asterisk (``*``)
 refers to all packages, in lieu of the empty string used in ``setup.py``.
+
+2. In the ``extras_require`` section, values are parsed as ``list-semi``. This implies that in
+order to include markers, they **must** be *dangling*:
+
+.. code-block:: ini
+
+    [options.extras_require]
+    rest = docutils>=0.3; pack ==1.1, ==1.3
+    pdf =
+      ReportLab>=1.2
+      RXP
+      importlib-metadata; python_version < "3.8"
