@@ -59,11 +59,11 @@ This is what your project would look like::
         setup.cfg
         mypackage/__init__.py
 
-Then, you need an installer, such as `pep517 <https://pypi.org/project/pep517/>`_
-which you can obtain via ``pip install pep517``. After downloading it, invoke
+Then, you need an installer, such as :std:doc:`PyPA build <pypa-build:index>`
+which you can obtain via ``pip install build``. After downloading it, invoke
 the installer::
 
-    python -m pep517.build .
+    python -m build
 
 You now have your distribution ready (e.g. a ``tar.gz`` file and a ``.whl``
 file in the ``dist`` directory), which you can upload to PyPI!
