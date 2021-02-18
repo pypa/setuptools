@@ -1,0 +1,1 @@
+Correctly parse cmdclass in setup.cfg.
