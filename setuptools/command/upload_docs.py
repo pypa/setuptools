@@ -2,7 +2,7 @@
 """upload_docs
 
 Implements a Distutils 'upload_docs' subcommand (upload documentation to
-PyPI's pythonhosted.org).
+sites other than PyPi such as devpi).
 """
 
 from base64 import standard_b64encode
@@ -59,7 +59,10 @@ class upload_docs(upload):
         if self.upload_dir is None:
             if self.has_sphinx():
                 build_sphinx = self.get_finalized_command('build_sphinx')
-                self.target_dir = build_sphinx.builder_target_dir
+                for (builder, builder_dir) in build_sphinx.builder_target_dirs:
+                    if builder == "html":
+                        self.target_dir = builder_dir
+                        break
             else:
                 build = self.get_finalized_command('build')
                 self.target_dir = os.path.join(build.build_base, 'docs')
