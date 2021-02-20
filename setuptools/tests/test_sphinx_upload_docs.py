@@ -25,7 +25,6 @@ def sphinx_doc_sample_project(tmpdir_cwd):
 
 
 @pytest.mark.usefixtures('sphinx_doc_sample_project')
-@pytest.mark.usefixtures('user_override')
 class TestSphinxUploadDocs:
     def test_sphinx_doc(self):
         params = dict(
