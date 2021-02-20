@@ -3,6 +3,7 @@ import zipfile
 import contextlib
 
 import pytest
+from jaraco import path
 
 from setuptools.command.upload_docs import upload_docs
 from setuptools.dist import Distribution
@@ -10,28 +11,20 @@ from setuptools.dist import Distribution
 from .textwrap import DALS
 from . import contexts
 
-SETUP_PY = DALS(
-    """
-    from setuptools import setup
-
-    setup(name='foo')
-    """)
-
 
 @pytest.fixture
 def sample_project(tmpdir_cwd):
-    # setup.py
-    with open('setup.py', 'wt') as f:
-        f.write(SETUP_PY)
+    path.build({
+        'setup.py': DALS("""
+            from setuptools import setup
 
-    os.mkdir('build')
-
-    # A test document.
-    with open('build/index.html', 'w') as f:
-        f.write("Hello world.")
-
-    # An empty folder.
-    os.mkdir('build/empty')
+            setup(name='foo')
+            """),
+        'build': {
+            'index.html': 'Hello world.',
+            'empty': {},
+        }
+    })
 
 
 @pytest.mark.usefixtures('sample_project')
