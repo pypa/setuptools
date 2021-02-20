@@ -54,7 +54,7 @@ Feature Highlights:
 Developer's Guide
 -----------------
 
-The developer's guide has been updated. See the `most recent version. <https://setuptools.readthedocs.io/en/latest/userguide/index.html>`_
+The developer's guide has been updated. See the :doc:`most recent version <userguide/index>`.
 
 
 
