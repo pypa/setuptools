@@ -159,8 +159,10 @@ class TestEggInfo:
             setup()
             """)
 
-        path.build({'setup.py': setup_script,
-                     'setup.cfg': setup_config})
+        path.build({
+            'setup.py': setup_script,
+            'setup.cfg': setup_config,
+        })
 
         # This command should fail with a ValueError, but because it's
         # currently configured to use a subprocess, the actual traceback
@@ -216,8 +218,10 @@ class TestEggInfo:
             '''
         ) % ('' if use_setup_cfg else requires)
         setup_config = requires if use_setup_cfg else ''
-        path.build({'setup.py': setup_script,
-                     'setup.cfg': setup_config})
+        path.build({
+            'setup.py': setup_script,
+            'setup.cfg': setup_config,
+        })
 
     mismatch_marker = "python_version<'{this_ver}'".format(
         this_ver=sys.version_info[0],
