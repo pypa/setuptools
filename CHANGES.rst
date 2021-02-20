@@ -1,3 +1,12 @@
+v53.0.0
+-------
+
+
+Breaking Changes
+^^^^^^^^^^^^^^^^
+* #1527: Removed bootstrap script. Now Setuptools requires pip or another pep517-compliant builder such as 'build' to build. Now Setuptools can be installed from Github main branch.
+
+
 v52.0.0
 -------
 
