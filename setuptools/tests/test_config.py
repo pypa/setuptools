@@ -802,6 +802,40 @@ class TestOptions:
         with get_dist(tmpdir) as dist:
             assert dist.entry_points == expected
 
+    def test_case_sensitive_entry_points(self, tmpdir):
+        _, config = fake_env(
+            tmpdir,
+            '[options.entry_points]\n'
+            'GROUP1 = point1 = pack.module:func, '
+            '.point2 = pack.module2:func_rest [rest]\n'
+            'group2 = point3 = pack.module:func2\n'
+        )
+
+        with get_dist(tmpdir) as dist:
+            assert dist.entry_points == {
+                'GROUP1': [
+                    'point1 = pack.module:func',
+                    '.point2 = pack.module2:func_rest [rest]',
+                ],
+                'group2': ['point3 = pack.module:func2']
+            }
+
+        expected = (
+            '[blogtool.parsers]\n'
+            '.rst = some.nested.module:SomeClass.some_classmethod[reST]\n'
+        )
+
+        tmpdir.join('entry_points').write(expected)
+
+        # From file.
+        config.write(
+            '[options]\n'
+            'entry_points = file: entry_points\n'
+        )
+
+        with get_dist(tmpdir) as dist:
+            assert dist.entry_points == expected
+
     def test_data_files(self, tmpdir):
         fake_env(
             tmpdir,
