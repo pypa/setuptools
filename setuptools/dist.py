@@ -583,6 +583,7 @@ class Distribution(_Distribution):
             self.announce("Distribution.parse_config_files():")
 
         parser = ConfigParser()
+        parser.optionxform = str
         for filename in filenames:
             with io.open(filename, encoding='utf-8') as reader:
                 if DEBUG:
