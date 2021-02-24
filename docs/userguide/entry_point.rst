@@ -64,7 +64,7 @@ After installing the package, a user may invoke that function by simply calling
 
 The syntax for entry points is specified as follows:
 
-.. code-block::
+.. code-block:: ini
 
     <name> = [<package>.[<subpackage>.]]<module>[:<object>.<object>]
 
