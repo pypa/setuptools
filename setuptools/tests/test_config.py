@@ -820,22 +820,6 @@ class TestOptions:
                 'group2': ['point3 = pack.module:func2']
             }
 
-        expected = (
-            '[blogtool.parsers]\n'
-            '.rst = some.nested.module:SomeClass.some_classmethod[reST]\n'
-        )
-
-        tmpdir.join('entry_points').write(expected)
-
-        # From file.
-        config.write(
-            '[options]\n'
-            'entry_points = file: entry_points\n'
-        )
-
-        with get_dist(tmpdir) as dist:
-            assert dist.entry_points == expected
-
     def test_data_files(self, tmpdir):
         fake_env(
             tmpdir,
