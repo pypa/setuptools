@@ -1,3 +1,6 @@
+import types
+import sys
+
 import contextlib
 import configparser
 
@@ -7,6 +10,7 @@ from distutils.errors import DistutilsOptionError, DistutilsFileError
 from mock import patch
 from setuptools.dist import Distribution, _Distribution
 from setuptools.config import ConfigHandler, read_configuration
+from distutils.core import Command
 from .textwrap import DALS
 
 
@@ -870,6 +874,26 @@ class TestOptions:
         with pytest.raises(Exception):
             with get_dist(tmpdir) as dist:
                 dist.parse_config_files()
+
+    def test_cmdclass(self, tmpdir):
+        class CustomCmd(Command):
+            pass
+
+        m = types.ModuleType('custom_build', 'test package')
+
+        m.__dict__['CustomCmd'] = CustomCmd
+
+        sys.modules['custom_build'] = m
+
+        fake_env(
+            tmpdir,
+            '[options]\n'
+            'cmdclass =\n'
+            '    customcmd = custom_build.CustomCmd\n'
+        )
+
+        with get_dist(tmpdir) as dist:
+            assert dist.cmdclass == {'customcmd': CustomCmd}
 
 
 saved_dist_init = _Distribution.__init__
