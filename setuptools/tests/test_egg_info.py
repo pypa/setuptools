@@ -6,15 +6,15 @@ import re
 import stat
 import time
 
+import pytest
+from jaraco import path
+
 from setuptools.command.egg_info import (
     egg_info, manifest_maker, EggInfoDeprecationWarning, get_pkg_info_revision,
 )
 from setuptools.dist import Distribution
 
-import pytest
-
 from . import environment
-from .files import build_files
 from .textwrap import DALS
 from . import contexts
 
@@ -37,7 +37,7 @@ class TestEggInfo:
         """)
 
     def _create_project(self):
-        build_files({
+        path.build({
             'setup.py': self.setup_script,
             'hello.py': DALS("""
                 def run():
@@ -56,7 +56,7 @@ class TestEggInfo:
                 for dirname in subs
             )
             list(map(os.mkdir, env.paths.values()))
-            build_files({
+            path.build({
                 env.paths['home']: {
                     '.pydistutils.cfg': DALS("""
                     [egg_info]
@@ -106,7 +106,7 @@ class TestEggInfo:
         the file should remain unchanged.
         """
         setup_cfg = os.path.join(env.paths['home'], 'setup.cfg')
-        build_files({
+        path.build({
             setup_cfg: DALS("""
             [egg_info]
             tag_build =
@@ -159,8 +159,10 @@ class TestEggInfo:
             setup()
             """)
 
-        build_files({'setup.py': setup_script,
-                     'setup.cfg': setup_config})
+        path.build({
+            'setup.py': setup_script,
+            'setup.cfg': setup_config,
+        })
 
         # This command should fail with a ValueError, but because it's
         # currently configured to use a subprocess, the actual traceback
@@ -193,7 +195,7 @@ class TestEggInfo:
 
     def test_manifest_template_is_read(self, tmpdir_cwd, env):
         self._create_project()
-        build_files({
+        path.build({
             'MANIFEST.in': DALS("""
                 recursive-include docs *.rst
             """),
@@ -216,8 +218,10 @@ class TestEggInfo:
             '''
         ) % ('' if use_setup_cfg else requires)
         setup_config = requires if use_setup_cfg else ''
-        build_files({'setup.py': setup_script,
-                     'setup.cfg': setup_config})
+        path.build({
+            'setup.py': setup_script,
+            'setup.cfg': setup_config,
+        })
 
     mismatch_marker = "python_version<'{this_ver}'".format(
         this_ver=sys.version_info[0],
@@ -546,7 +550,7 @@ class TestEggInfo:
     def test_setup_cfg_license_file(
             self, tmpdir_cwd, env, files, license_in_sources):
         self._create_project()
-        build_files(files)
+        path.build(files)
 
         environment.run_setup_py(
             cmd=['egg_info'],
@@ -645,7 +649,7 @@ class TestEggInfo:
     def test_setup_cfg_license_files(
             self, tmpdir_cwd, env, files, incl_licenses, excl_licenses):
         self._create_project()
-        build_files(files)
+        path.build(files)
 
         environment.run_setup_py(
             cmd=['egg_info'],
@@ -750,7 +754,7 @@ class TestEggInfo:
     def test_setup_cfg_license_file_license_files(
             self, tmpdir_cwd, env, files, incl_licenses, excl_licenses):
         self._create_project()
-        build_files(files)
+        path.build(files)
 
         environment.run_setup_py(
             cmd=['egg_info'],
@@ -886,7 +890,7 @@ class TestEggInfo:
 
     def test_egg_info_tag_only_once(self, tmpdir_cwd, env):
         self._create_project()
-        build_files({
+        path.build({
             'setup.cfg': DALS("""
                               [egg_info]
                               tag_build = dev

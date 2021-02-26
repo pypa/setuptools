@@ -1,5 +1,6 @@
 import pytest
-import os
+
+from jaraco import path
 
 from setuptools.command.upload_docs import upload_docs
 from setuptools.dist import Distribution
@@ -7,21 +8,17 @@ from setuptools.dist import Distribution
 
 @pytest.fixture
 def sphinx_doc_sample_project(tmpdir_cwd):
-    # setup.py
-    with open('setup.py', 'wt') as f:
-        f.write('from setuptools import setup; setup()\n')
-
-    os.makedirs('build/docs')
-
-    # A test conf.py for Sphinx
-    with open('build/docs/conf.py', 'w') as f:
-        f.write("project = 'test'")
-
-    # A test index.rst for Sphinx
-    with open('build/docs/index.rst', 'w') as f:
-        f.write(".. toctree::\
+    path.build({
+        'setup.py': 'from setuptools import setup; setup()',
+        'build': {
+            'docs': {
+                'conf.py': 'project="test"',
+                'index.rst': ".. toctree::\
                     :maxdepth: 2\
-                    :caption: Contents:")
+                    :caption: Contents:",
+            },
+        },
+    })
 
 
 @pytest.mark.usefixtures('sphinx_doc_sample_project')

@@ -2,12 +2,13 @@ import sys
 import distutils.command.build_ext as orig
 from distutils.sysconfig import get_config_var
 
+from jaraco import path
+
 from setuptools.command.build_ext import build_ext, get_abi3_suffix
 from setuptools.dist import Distribution
 from setuptools.extension import Extension
 
 from . import environment
-from .files import build_files
 from .textwrap import DALS
 
 
@@ -106,7 +107,7 @@ def test_build_ext_config_handling(tmpdir_cwd):
             build-base = foo_build
             """),
     }
-    build_files(files)
+    path.build(files)
     code, output = environment.run_setup_py(
         cmd=['build'], data_stream=(0, 2),
     )

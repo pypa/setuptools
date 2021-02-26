@@ -18,6 +18,7 @@ import re
 import subprocess
 
 import pytest
+from jaraco import path
 
 from setuptools import sandbox
 from setuptools.sandbox import run_setup
@@ -34,7 +35,6 @@ from setuptools.tests import fail_on_ascii
 import pkg_resources
 
 from . import contexts
-from .files import build_files
 from .textwrap import DALS
 
 
@@ -794,7 +794,7 @@ class TestSetupRequires:
                 # Create source tree for `dep`.
                 dep_pkg = os.path.join(temp_dir, 'dep')
                 os.mkdir(dep_pkg)
-                build_files({
+                path.build({
                     'setup.py':
                     DALS("""
                           import setuptools
