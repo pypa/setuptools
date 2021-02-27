@@ -2,7 +2,6 @@ import glob
 import os
 import sys
 import itertools
-from collections import UserString
 
 import pathlib
 
@@ -67,23 +66,19 @@ def _get_pip_versions():
             # No network, disable most of these tests
             network = False
 
-    def mark_param(orig, *marks):
-        result = UserString(orig) if not isinstance(orig, UserString) else orig
-        result.marks = getattr(result, 'marks', ()) + marks
-        return result
-
-    def make_param(marked_param):
-        marks = getattr(marked_param, 'marks', ())
-        return pytest.param(marked_param, marks=marks)
+    def mark(param, *marks):
+        if not isinstance(param, type(pytest.param(''))):
+            param = pytest.param(param)
+        return param._replace(marks=param.marks + marks)
 
     def skip_network(param):
-        return mark_param(param, pytest.mark.skip) if not network else param
+        return param if network else mark(param, pytest.mark.skip(reason="no network"))
 
     network_versions = [
         'pip==9.0.3',
         'pip==10.0.1',
         'pip==18.1',
-        mark_param('pip==19.3.1', pytest.mark.xfail(reason='pypa/pip#6599')),
+        mark('pip==19.3.1', pytest.mark.xfail(reason='pypa/pip#6599')),
         'pip==20.0.2',
         'https://github.com/pypa/pip/archive/master.zip',
     ]
@@ -93,7 +88,7 @@ def _get_pip_versions():
         map(skip_network, network_versions)
     )
 
-    return list(map(make_param, versions))
+    return list(versions)
 
 
 @pytest.mark.parametrize('pip_version', _get_pip_versions())
