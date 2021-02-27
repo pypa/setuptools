@@ -69,7 +69,9 @@ def _get_pip_versions():
         'pip==9.0.3',
         'pip==10.0.1',
         'pip==18.1',
-        'pip==19.0.1',
+        # fails due to pypa/pip#6599
+        # 'pip==19.3.1',
+        'pip==20.0.2',
         'https://github.com/pypa/pip/archive/master.zip',
     ]
 
