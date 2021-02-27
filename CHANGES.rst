@@ -5,7 +5,7 @@ v53.1.0
 Changes
 ^^^^^^^
 * #1937: Preserved case-sensitivity of keys in setup.cfg so that entry point names are case-sensitive. Changed sensitivity of configparser. NOTE: Any projects relying on case-insensitivity will need to adapt to accept the original case as published. -- by :user:`melissa-kun-li`
-* #2573: Fixed error in uploading a Sphinx doc with the :code:`upload_docs` command. An html builder will be used. 
+* #2573: Fixed error in uploading a Sphinx doc with the :code:`upload_docs` command. An html builder will be used.
   Note: :code:`upload_docs` is deprecated for PyPi, but is supported for other sites -- by :user:`melissa-kun-li`
 
 
