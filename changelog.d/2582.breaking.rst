@@ -1,0 +1,1 @@
+Simplified build-from source story. Build requirements no longer include setuptools itself. Project can no longer be installed from source on pip 19.x, but install from source is still supported on pip < 19 and pip >= 20 and install from wheel is still supported with pip >= 9.
