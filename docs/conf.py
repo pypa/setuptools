@@ -73,6 +73,9 @@ link_files = {
     ),
 }
 
+intersphinx_mapping = {
+    'pypa-build': ('https://pypa-build.readthedocs.io/en/latest/', None)
+}
 
 # Add support for linking usernames
 github_url = 'https://github.com'
@@ -80,7 +83,7 @@ github_sponsors_url = f'{github_url}/sponsors'
 extlinks = {
     'user': (f'{github_sponsors_url}/%s', '@'),  # noqa: WPS323
 }
-extensions += ['sphinx.ext.extlinks']
+extensions += ['sphinx.ext.extlinks', 'sphinx.ext.intersphinx']
 
 # Be strict about any broken references:
 nitpicky = True
