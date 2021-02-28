@@ -59,9 +59,9 @@ This is what your project would look like::
         setup.cfg
         mypackage/__init__.py
 
-Then, you need an installer, such as :std:doc:`PyPA build <pypa-build:index>`
+Then, you need an builder, such as :std:doc:`PyPA build <pypa-build:index>`
 which you can obtain via ``pip install build``. After downloading it, invoke
-the installer::
+the builder::
 
     python -m build
 
