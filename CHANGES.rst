@@ -1,3 +1,21 @@
+v54.0.0
+-------
+
+
+Breaking Changes
+^^^^^^^^^^^^^^^^
+* #2582: Simplified build-from-source story by providing bootstrapping metadata in a separate egg-info directory. Build requirements no longer include setuptools itself. Sdist once again includes the pyproject.toml. Project can no longer be installed from source on pip 19.x, but install from source is still supported on pip < 19 and pip >= 20 and install from wheel is still supported with pip >= 9.
+
+Changes
+^^^^^^^
+* #1932: Handled :code:`AttributeError` by raising :code:`DistutilsSetupError` in :code:`dist.check_specifier()` when specifier is not a string -- by :user:`melissa-kun-li`
+* #2570: Correctly parse cmdclass in setup.cfg.
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #2553: Added userguide example for markers in extras_require -- by :user:`pwoolvett`
+
+
 v53.1.0
 -------
 
