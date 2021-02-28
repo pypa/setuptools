@@ -9,6 +9,7 @@ from setuptools.dist import (
     _get_unpatched,
     check_package_data,
     DistDeprecationWarning,
+    check_specifier,
 )
 from setuptools import sic
 from setuptools import Distribution
@@ -323,3 +324,15 @@ def test_check_package_data(package_data, expected_message):
         with pytest.raises(
                 DistutilsSetupError, match=re.escape(expected_message)):
             check_package_data(None, str('package_data'), package_data)
+
+
+def test_check_specifier():
+    # valid specifier value
+    attrs = {'name': 'foo', 'python_requires': '>=3.0, !=3.1'}
+    dist = Distribution(attrs)
+    check_specifier(dist, attrs, attrs['python_requires'])
+
+    # invalid specifier value
+    attrs = {'name': 'foo', 'python_requires': ['>=3.0', '!=3.1']}
+    with pytest.raises(DistutilsSetupError):
+        dist = Distribution(attrs)

@@ -292,7 +292,7 @@ def check_specifier(dist, attr, value):
     """Verify that value is a valid version specifier"""
     try:
         packaging.specifiers.SpecifierSet(value)
-    except packaging.specifiers.InvalidSpecifier as error:
+    except (packaging.specifiers.InvalidSpecifier, AttributeError) as error:
         tmpl = (
             "{attr!r} must be a string "
             "containing valid version specifiers; {error}"

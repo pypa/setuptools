@@ -1,0 +1,1 @@
+Handled :code:`AttributeError` by raising :code:`DistutilsSetupError` in :code:`dist.check_specifier()` when specifier is not a string -- by :user:`melissa-kun-li`
