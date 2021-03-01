@@ -37,26 +37,45 @@ package your project:
     requires = ["setuptools", "wheel"]
     build-backend = "setuptools.build_meta"
 
-Then, you will need a ``setup.cfg`` to specify your package information,
-such as metadata, contents, dependencies, etc. Here we demonstrate the minimum
+Then, you will need a ``setup.cfg`` or ``setup.py`` to specify your package
+information, such as metadata, contents, dependencies, etc. Here we demonstrate
+the minimum
 
-.. code-block:: ini
+.. tab:: setup.cfg
 
-    [metadata]
-    name = mypackage
-    version = 0.0.1
+    .. code-block:: ini
 
-    [options]
-    packages = mypackage
-    install_requires =
-      requests
-      importlib; python_version == "2.6"
+        [metadata]
+        name = mypackage
+        version = 0.0.1
+
+        [options]
+        packages = mypackage
+        install_requires =
+        requests
+        importlib; python_version == "2.6"
+
+.. tab:: setup.py
+
+    .. code-block:: python
+
+        from setuptools import setup
+
+        setup(
+            name='mypackage"'
+            version='0.0.1',
+            packages=['mypackage'],
+            install_requires=[
+                'requests',
+                'importlib; python_version == "2.6"',
+            ],
+        )
 
 This is what your project would look like::
 
     ~/mypackage/
         pyproject.toml
-        setup.cfg
+        setup.cfg # or setup.py
         mypackage/__init__.py
 
 Then, you need an installer, such as `pep517 <https://pypi.org/project/pep517/>`_
