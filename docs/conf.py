@@ -1,4 +1,4 @@
-extensions = ['sphinx.ext.autodoc', 'jaraco.packaging.sphinx', 'rst.linker']
+extensions = ['sphinx.ext.autodoc', 'jaraco.packaging.sphinx', 'rst.linker', 'sphinx_inline_tabs']
 
 master_doc = "index"
 
