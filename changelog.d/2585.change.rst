@@ -1,0 +1,1 @@
+Use /O2 compiler option instead of /Ox for MSVC.
