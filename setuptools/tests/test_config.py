@@ -791,6 +791,20 @@ class TestOptions:
             }
             assert dist.metadata.provides_extras == set(['pdf', 'rest'])
 
+    def test_dash_preserved_extras_require(self, tmpdir):
+        fake_env(
+            tmpdir,
+            '[options.extras_require]\n'
+            'foo-a = foo\n'
+            'foo_b = test\n'
+        )
+
+        with get_dist(tmpdir) as dist:
+            assert dist.extras_require == {
+                'foo-a': ['foo'],
+                'foo_b': ['test']
+            }
+
     def test_entry_points(self, tmpdir):
         _, config = fake_env(
             tmpdir,
