@@ -104,7 +104,7 @@ def test_build_ext_config_handling(tmpdir_cwd):
         'setup.cfg': DALS(
             """
             [build]
-            build-base = foo_build
+            build_base = foo_build
             """),
     }
     path.build(files)
