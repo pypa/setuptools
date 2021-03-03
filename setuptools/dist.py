@@ -598,7 +598,7 @@ class Distribution(_Distribution):
                         continue
 
                     val = parser.get(section, opt)
-                    opt = self.dash_to_underscore_warning(opt)
+                    opt = self.dash_to_underscore_warning(opt, section)
                     opt_dict[opt] = (filename, val)
 
             # Make the ConfigParser forget everything (so we retain
@@ -622,21 +622,19 @@ class Distribution(_Distribution):
                 setattr(self, alias or opt, val)
             except ValueError as e:
                 raise DistutilsOptionError(e) from e
-
-    def dash_to_underscore_warning(self, opt):
-        if opt in (
-            'home-page', 'download-url', 'author-email',
-            'maintainer-email', 'long-description', 'build-base',
-            'project-urls', 'license-file', 'license-files',
-            'long-description-content-type',
+    
+    def dash_to_underscore_warning(self, opt, section):
+        if section in (
+            'options.extras_require', 'options.data_files',
         ):
-            underscore_opt = opt.replace('-', '_')
+            return opt
+        underscore_opt = opt.replace('-', '_')
+        if '-' in opt:
             warnings.warn(
                 "Usage of dash-separated '%s' will not be supported in future "
                 "versions. Please use the underscore name '%s' instead"
                 % (opt, underscore_opt))
-            return underscore_opt
-        return opt
+        return underscore_opt
 
     # FIXME: 'Distribution._set_command_options' is too complex (14)
     def _set_command_options(self, command_obj, option_dict=None):  # noqa: C901
