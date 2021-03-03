@@ -507,6 +507,25 @@ class TestMetadata:
             with get_dist(tmpdir):
                 pass
 
+    def test_dash_to_underscore_warning(self, tmpdir):
+        # dash_to_underscore_warning() is a method in setuptools.dist
+        # remove this test and method when dash convert to underscore in setup.cfg
+        # is no longer supported
+        fake_env(
+            tmpdir,
+            '[metadata]\n'
+            'author-email = test@test.com\n'
+            'maintainer_email = foo@foo.com\n'
+            )
+        msg = ("Usage of dash-separated 'author-email' will not be supported "
+               "in future versions. "
+               "Please use the underscore name 'author_email' instead")
+        with pytest.warns(UserWarning, match=msg):
+            with get_dist(tmpdir) as dist:
+                metadata = dist.metadata
+                assert metadata.author_email == 'test@test.com'
+                assert metadata.maintainer_email == 'foo@foo.com'
+
 
 class TestOptions:
 
