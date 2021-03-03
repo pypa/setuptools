@@ -622,7 +622,7 @@ class Distribution(_Distribution):
                 setattr(self, alias or opt, val)
             except ValueError as e:
                 raise DistutilsOptionError(e) from e
-    
+
     def dash_to_underscore_warning(self, opt, section):
         if section in (
             'options.extras_require', 'options.data_files',
