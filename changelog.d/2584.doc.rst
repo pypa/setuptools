@@ -1,0 +1,1 @@
+Added ``sphinx-inline-tabs`` extension to allow for comparison of ``setup.py`` and its equivalent ``setup.cfg`` -- by :user:`amy-lei`

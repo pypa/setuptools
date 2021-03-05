@@ -49,23 +49,27 @@ be able to run. ``setuptools`` support automatically download and install
 these dependencies when the package is installed. Although there is more
 finess to it, let's start with a simple example.
 
-.. code-block:: ini
+.. tab:: setup.cfg
 
-    [options]
-    #...
-    install_requires =
-        docutils
-        BazSpam ==1.1
+    .. code-block:: ini
 
-.. code-block:: python
+        [options]
+        #...
+        install_requires =
+            docutils
+            BazSpam ==1.1
 
-    setup(
-        #...,
-        install_requires = [
-            'docutils',
-            'BazSpam ==1.1'
-        ]
-    )
+.. tab:: setup.py
+
+    .. code-block:: python
+
+        setup(
+            #...,
+            install_requires = [
+                'docutils',
+                'BazSpam ==1.1'
+            ]
+        )
 
 
 When your project is installed (e.g. using pip), all of the dependencies not
@@ -82,41 +86,49 @@ specific dependencies. For example, the ``enum`` package was added in Python
 3.4, therefore, package that depends on it can elect to install it only when
 the Python version is older than 3.4. To accomplish this
 
-.. code-block:: ini
+.. tab:: setup.cfg
 
-    [options]
-    #...
-    install_requires =
-        enum34;python_version<'3.4'
+    .. code-block:: ini
 
-.. code-block:: python
-
-    setup(
+        [options]
         #...
-        install_requires=[
-            "enum34;python_version<'3.4'",]
-    )
+        install_requires =
+            enum34;python_version<'3.4'
+
+.. tab:: setup.py
+
+    .. code-block:: python
+
+        setup(
+            #...
+            install_requires=[
+                "enum34;python_version<'3.4'",]
+        )
 
 Similarly, if you also wish to declare ``pywin32`` with a minimal version of 1.0
 and only install it if the user is using a Windows operating system:
 
-.. code-block:: ini
+.. tab:: setup.cfg
 
-    [options]
-    #...
-    install_requires =
-        enum34;python_version<'3.4'
-        pywin32 >= 1.0;platform_system=='Windows'
+    .. code-block:: ini
 
-.. code-block:: python
-
-    setup(
+        [options]
         #...
-        install_requires=[
-            "enum34;python_version<'3.4'",
-            "pywin32 >= 1.0;platform_system=='Windows'"
-            ]
-    )
+        install_requires =
+            enum34;python_version<'3.4'
+            pywin32 >= 1.0;platform_system=='Windows'
+
+.. tab:: setup.py
+
+    .. code-block:: python
+
+        setup(
+            #...
+            install_requires=[
+                "enum34;python_version<'3.4'",
+                "pywin32 >= 1.0;platform_system=='Windows'"
+                ]
+        )
 
 The environmental markers that may be used for testing platform types are
 detailed in `PEP 508 <https://www.python.org/dev/peps/pep-0508/>`_.
@@ -181,20 +193,24 @@ The ``dependency_links`` option takes the form of a list of URL strings.  For
 example, this will cause a search of the specified page for eggs or source
 distributions, if the package's dependencies aren't already installed:
 
-.. code-block:: ini
+.. tab:: setup.cfg
 
-    [options]
-    #...
-    dependency_links = http://peak.telecommunity.com/snapshots/
+    .. code-block:: ini
 
-.. code-block:: python
-
-    setup(
+        [options]
         #...
-        dependency_links=[
-            "http://peak.telecommunity.com/snapshots/"
-        ],
-    )
+        dependency_links = http://peak.telecommunity.com/snapshots/
+
+.. tab:: setup.py
+
+    .. code-block:: python
+
+        setup(
+            #...
+            dependency_links=[
+                "http://peak.telecommunity.com/snapshots/"
+            ],
+        )
 
 
 Optional dependencies
@@ -211,24 +227,28 @@ ancillary functions such as "tests" and "docs".
 For example, Package-A offers optional PDF support and requires two other
 dependencies for it to work:
 
-.. code-block:: ini
+.. tab:: setup.cfg
 
-    [metadata]
-    name = Package-A
+    .. code-block:: ini
 
-    [options.extras_require]
-    PDF = ReportLab>=1.2; RXP
+        [metadata]
+        name = Package-A
+
+        [options.extras_require]
+        PDF = ReportLab>=1.2; RXP
 
 
-.. code-block:: python
+.. tab:: setup.py
 
-    setup(
-        name="Project-A",
-        #...
-        extras_require={
-            "PDF":  ["ReportLab>=1.2", "RXP"],
-        }
-    )
+    .. code-block:: python
+
+        setup(
+            name="Project-A",
+            #...
+            extras_require={
+                "PDF":  ["ReportLab>=1.2", "RXP"],
+            }
+        )
 
 The name ``PDF`` is an arbitary identifier of such a list of dependencies, to
 which other components can refer and have them installed. There are two common
@@ -236,31 +256,35 @@ use cases.
 
 First is the console_scripts entry point:
 
-.. code-block:: ini
+.. tab:: setup.cfg
 
-    [metadata]
-    name = Project A
-    #...
+    .. code-block:: ini
 
-    [options]
-    #...
-    entry_points=
-        [console_scripts]
-        rst2pdf = project_a.tools.pdfgen [PDF]
-        rst2html = project_a.tools.htmlgen
+        [metadata]
+        name = Project A
+        #...
 
-.. code-block:: python
+        [options]
+        #...
+        entry_points=
+            [console_scripts]
+            rst2pdf = project_a.tools.pdfgen [PDF]
+            rst2html = project_a.tools.htmlgen
 
-    setup(
-        name = "Project-A"
-        #...,
-        entry_points={
-            "console_scripts": [
-                "rst2pdf = project_a.tools.pdfgen [PDF]",
-                "rst2html = project_a.tools.htmlgen",
-            ],
-        }
-    )
+.. tab:: setup.py
+
+    .. code-block:: python
+
+        setup(
+            name = "Project-A"
+            #...,
+            entry_points={
+                "console_scripts": [
+                    "rst2pdf = project_a.tools.pdfgen [PDF]",
+                    "rst2html = project_a.tools.htmlgen",
+                ],
+            }
+        )
 
 This syntax indicates that the entry point (in this case a console script)
 is only valid when the PDF extra is installed. It is up to the installer
@@ -273,24 +297,28 @@ The second use case is that other package can use this "extra" for their
 own dependencies. For example, if "Project-B" needs "project A" with PDF support
 installed, it might declare the dependency like this:
 
-.. code-block:: ini
+.. tab:: setup.cfg
 
-    [metadata]
-    name = Project-B
-    #...
+    .. code-block:: ini
 
-    [options]
-    #...
-    install_requires =
-        Project-A[PDF]
+        [metadata]
+        name = Project-B
+        #...
 
-.. code-block:: python
+        [options]
+        #...
+        install_requires =
+            Project-A[PDF]
 
-    setup(
-        name="Project-B",
-        install_requires=["Project-A[PDF]"],
-        ...
-    )
+.. tab:: setup.py
+
+    .. code-block:: python
+
+        setup(
+            name="Project-B",
+            install_requires=["Project-A[PDF]"],
+            ...
+        )
 
 This will cause ReportLab to be installed along with project A, if project B is
 installed -- even if project A was already installed.  In this way, a project
