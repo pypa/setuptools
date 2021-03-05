@@ -1,3 +1,12 @@
+v54.1.0
+-------
+
+
+Changes
+^^^^^^^
+* #1608: Removed the conversion of dashes to underscores in the :code:`extras_require` and :code:`data_files` of :code:`setup.cfg` to support the usage of dashes. Method will warn users when they use a dash-separated key which in the future will only allow an underscore. Note: the method performs the dash to underscore conversion to preserve compatibility, but future versions will no longer support it -- by :user:`melissa-kun-li`
+
+
 v54.0.0
 -------
 
