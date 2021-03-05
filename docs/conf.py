@@ -1,4 +1,4 @@
-extensions = ['sphinx.ext.autodoc', 'jaraco.packaging.sphinx', 'rst.linker', 'sphinx_inline_tabs']
+extensions = ['sphinx.ext.autodoc', 'jaraco.packaging.sphinx', 'rst.linker']
 
 master_doc = "index"
 
@@ -93,3 +93,6 @@ default_role = 'any'
 html_theme = 'alabaster'
 templates_path = ['_templates']
 html_sidebars = {'index': ['tidelift-sidebar.html']}
+
+# Add support for inline tabs
+extensions += ['sphinx_inline_tabs']
