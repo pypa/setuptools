@@ -1,0 +1,1 @@
+Warned for usage of uppercase keys in :code:`metadata` in :code:`setup.cfg`, restored some compatiblity by transforming to lowercase if not. Followed the change of keys in :code:`setup.cfg` now being case-sensitive -- by :user:`melissa-kun-li`
