@@ -541,8 +541,9 @@ class TestMetadata:
         with pytest.warns(UserWarning, match=msg):
             with get_dist(tmpdir) as dist:
                 metadata = dist.metadata
-                assert metadata.name == 'foo'
-                assert metadata.description == 'Some description'
+
+        assert metadata.name == 'foo'
+        assert metadata.description == 'Some description'
 
 
 class TestOptions:

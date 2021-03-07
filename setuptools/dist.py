@@ -599,7 +599,7 @@ class Distribution(_Distribution):
 
                     val = parser.get(section, opt)
                     opt = self.dash_to_underscore_warning(opt, section)
-                    opt = self.uppercase_warning(opt, section)
+                    opt = self.make_option_lowercase(opt, section)
                     opt_dict[opt] = (filename, val)
 
             # Make the ConfigParser forget everything (so we retain
@@ -637,16 +637,17 @@ class Distribution(_Distribution):
                 % (opt, underscore_opt))
         return underscore_opt
 
-    def uppercase_warning(self, opt, section):
-        if section in ('metadata',) and (any(c.isupper() for c in opt)):
-            lowercase_opt = opt.lower()
-            warnings.warn(
-                "Usage of uppercase key '%s' in '%s' will be deprecated in future "
-                "versions. Please use lowercase '%s' instead"
-                % (opt, section, lowercase_opt)
-            )
-            return lowercase_opt
-        return opt
+    def make_option_lowercase(self, opt, section):
+        if section != 'metadata' or opt.islower():
+            return opt
+
+        lowercase_opt = opt.lower()
+        warnings.warn(
+            "Usage of uppercase key '%s' in '%s' will be deprecated in future "
+            "versions. Please use lowercase '%s' instead"
+            % (opt, section, lowercase_opt)
+        )
+        return lowercase_opt
 
     # FIXME: 'Distribution._set_command_options' is too complex (14)
     def _set_command_options(self, command_obj, option_dict=None):  # noqa: C901
