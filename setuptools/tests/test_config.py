@@ -526,6 +526,25 @@ class TestMetadata:
                 assert metadata.author_email == 'test@test.com'
                 assert metadata.maintainer_email == 'foo@foo.com'
 
+    def test_uppercase_warning(self, tmpdir):
+        # remove this test and the method uppercase_warning() in setuptools.dist
+        # when no longer needed
+        fake_env(
+            tmpdir,
+            '[metadata]\n'
+            'Name = foo\n'
+            'description = Some description\n'
+        )
+        msg = ("Usage of uppercase key 'Name' in 'metadata' will be deprecated in "
+               "future versions. "
+               "Please use lowercase 'name' instead")
+        with pytest.warns(UserWarning, match=msg):
+            with get_dist(tmpdir) as dist:
+                metadata = dist.metadata
+
+        assert metadata.name == 'foo'
+        assert metadata.description == 'Some description'
+
 
 class TestOptions:
 
