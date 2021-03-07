@@ -1,3 +1,0 @@
-Made option keys in the ``[metadata]`` section of ``setup.cfg`` case-sensitive. Users having
-uppercase option spellings will get a warning suggesting to make them to lowercase
--- by :user:`melissa-kun-li`

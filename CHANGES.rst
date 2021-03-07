@@ -1,3 +1,18 @@
+v54.1.1
+-------
+
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #2584: Added ``sphinx-inline-tabs`` extension to allow for comparison of ``setup.py`` and its equivalent ``setup.cfg`` -- by :user:`amy-lei`
+
+Misc
+^^^^
+* #2592: Made option keys in the ``[metadata]`` section of ``setup.cfg`` case-sensitive. Users having
+  uppercase option spellings will get a warning suggesting to make them to lowercase
+  -- by :user:`melissa-kun-li`
+
+
 v54.1.0
 -------
 
