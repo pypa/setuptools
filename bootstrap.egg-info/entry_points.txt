@@ -1,6 +1,10 @@
 [distutils.commands]
 egg_info = setuptools.command.egg_info:egg_info
-
+bdist_wheel = wheel.bdist_wheel:bdist_wheel
+easy_install = setuptools.command.easy_install:easy_install
+install = setuptools.command.install:install
+bdist_egg = setuptools.command.bdist_egg:bdist_egg
+ 
 [distutils.setup_keywords]
 include_package_data = setuptools.dist:assert_bool
 install_requires = setuptools.dist:check_requirements
