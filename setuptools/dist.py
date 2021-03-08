@@ -600,7 +600,7 @@ class Distribution(_Distribution):
                         continue
 
                     val = parser.get(section, opt)
-                    opt = self.dash_to_underscore_warning(opt, section)
+                    opt = self.warn_dash_deprecation(opt, section)
                     opt = self.make_option_lowercase(opt, section)
                     opt_dict[opt] = (filename, val)
 
@@ -626,7 +626,7 @@ class Distribution(_Distribution):
             except ValueError as e:
                 raise DistutilsOptionError(e) from e
 
-    def dash_to_underscore_warning(self, opt, section):
+    def warn_dash_deprecation(self, opt, section):
         if section in (
             'options.extras_require', 'options.data_files',
         ):
