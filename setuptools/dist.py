@@ -11,6 +11,7 @@ import distutils.log
 import distutils.core
 import distutils.cmd
 import distutils.dist
+import distutils.command
 from distutils.util import strtobool
 from distutils.debug import DEBUG
 from distutils.fancy_getopt import translate_longopt
@@ -29,6 +30,7 @@ from setuptools.extern import ordered_set
 from . import SetuptoolsDeprecationWarning
 
 import setuptools
+import setuptools.command
 from setuptools import windows_support
 from setuptools.monkey import get_unpatched
 from setuptools.config import parse_configuration
@@ -598,7 +600,7 @@ class Distribution(_Distribution):
                         continue
 
                     val = parser.get(section, opt)
-                    opt = self.dash_to_underscore_warning(opt, section)
+                    opt = self.warn_dash_deprecation(opt, section)
                     opt = self.make_option_lowercase(opt, section)
                     opt_dict[opt] = (filename, val)
 
@@ -624,12 +626,18 @@ class Distribution(_Distribution):
             except ValueError as e:
                 raise DistutilsOptionError(e) from e
 
-    def dash_to_underscore_warning(self, opt, section):
+    def warn_dash_deprecation(self, opt, section):
         if section in (
             'options.extras_require', 'options.data_files',
         ):
             return opt
+
         underscore_opt = opt.replace('-', '_')
+        commands = distutils.command.__all__ + setuptools.command.__all__
+        if (not section.startswith('options') and section != 'metadata'
+                and section not in commands):
+            return underscore_opt
+
         if '-' in opt:
             warnings.warn(
                 "Usage of dash-separated '%s' will not be supported in future "

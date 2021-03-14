@@ -507,10 +507,9 @@ class TestMetadata:
             with get_dist(tmpdir):
                 pass
 
-    def test_dash_to_underscore_warning(self, tmpdir):
-        # dash_to_underscore_warning() is a method in setuptools.dist
-        # remove this test and method when dash convert to underscore in setup.cfg
-        # is no longer supported
+    def test_warn_dash_deprecation(self, tmpdir):
+        # warn_dash_deprecation() is a method in setuptools.dist
+        # remove this test and the method when no longer needed
         fake_env(
             tmpdir,
             '[metadata]\n'
@@ -523,11 +522,12 @@ class TestMetadata:
         with pytest.warns(UserWarning, match=msg):
             with get_dist(tmpdir) as dist:
                 metadata = dist.metadata
-                assert metadata.author_email == 'test@test.com'
-                assert metadata.maintainer_email == 'foo@foo.com'
 
-    def test_uppercase_warning(self, tmpdir):
-        # remove this test and the method uppercase_warning() in setuptools.dist
+        assert metadata.author_email == 'test@test.com'
+        assert metadata.maintainer_email == 'foo@foo.com'
+
+    def test_make_option_lowercase(self, tmpdir):
+        # remove this test and the method make_option_lowercase() in setuptools.dist
         # when no longer needed
         fake_env(
             tmpdir,
