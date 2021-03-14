@@ -1,3 +1,12 @@
+v54.1.2
+-------
+
+
+Misc
+^^^^
+* #2595: Reduced scope of dash deprecation warning to Setuptools/distutils only -- by :user:`melissa-kun-li`
+
+
 v54.1.1
 -------
 
