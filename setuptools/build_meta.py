@@ -101,8 +101,12 @@ def _file_with_extension(directory, extension):
         f for f in os.listdir(directory)
         if f.endswith(extension)
     )
-    file, = matching
-    return file
+    try:
+        return next(matching)
+    except StopIteration:
+        raise ValueError('No distribution was found. The distribution was '
+                         'possibly not built. Ensure that your `setup.py` '
+                         'is not empty and that it calls `setup()`.')
 
 
 def _open_setup_script(setup_script):
