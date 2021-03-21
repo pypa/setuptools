@@ -8,6 +8,7 @@ import io
 import subprocess
 import platform
 import pathlib
+import textwrap
 
 from setuptools.command import test
 
@@ -201,7 +202,17 @@ class TestNamespaces:
         with test.test.paths_on_pythonpath([str(target)]):
             subprocess.check_call(pkg_resources_imp)
 
-    @pytest.mark.xfail(reason="#2612")
+    @staticmethod
+    def install_workaround(site_packages):
+        site_packages.mkdir(parents=True)
+        sc = site_packages / 'sitecustomize.py'
+        sc.write_text(textwrap.dedent("""
+            import site
+            import pathlib
+            here = pathlib.Path(__file__).parent
+            site.addsitedir(str(here))
+            """).lstrip())
+
     def test_editable_prefix(self, tmp_path, sample_project):
         """
         Editable install to a prefix should be discoverable.
@@ -209,23 +220,30 @@ class TestNamespaces:
         prefix = tmp_path / 'prefix'
         prefix.mkdir()
 
-        cmd = [
-            sys.executable,
-            '-m', 'pip',
-            'install',
-            '-e', str(sample_project),
-            '--prefix', str(prefix),
-        ]
-        subprocess.check_call(cmd)
-
-        # now run 'sample' with the prefix on the PYTHONPATH
+        # figure out where pip will likely install the package
         site_packages = prefix / next(
             pathlib.Path(path).relative_to(sys.prefix)
             for path in sys.path
             if 'site-packages' in path
             and path.startswith(sys.prefix)
         )
+
+        # install the workaround
+        self.install_workaround(site_packages)
+
         env = dict(PYTHONPATH=site_packages)
+        cmd = [
+            sys.executable,
+            '-m', 'pip',
+            'install',
+            '--editable',
+            str(sample_project),
+            '--prefix', str(prefix),
+            '--no-build-isolation',
+        ]
+        subprocess.check_call(cmd, env=env)
+
+        # now run 'sample' with the prefix on the PYTHONPATH
         bin = 'Scripts' if platform.system() == 'Windows' else 'bin'
-        sample = prefix / bin / 'sample'
-        subprocess.check_call([sample], env=env)
+        exe = prefix / bin / 'sample'
+        subprocess.check_call([exe], env=env)
