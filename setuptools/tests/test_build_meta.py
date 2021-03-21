@@ -450,10 +450,7 @@ class TestBuildMetaBackend:
 
         with pytest.raises(
                 ValueError,
-                match=re.escape(
-                    'No distribution was found. The distribution was '
-                    'possibly not built. Ensure that your `setup.py` '
-                    'is not empty and that it calls `setup()`.')):
+                match=re.escape('No distribution was found.')):
             getattr(build_backend, build_hook)("temp")
 
 
