@@ -1,6 +1,7 @@
 import contextlib
 import sys
 import shutil
+import subprocess
 
 import pytest
 
@@ -58,3 +59,16 @@ def workaround_xdist_376(request):
 
     with contextlib.suppress(ValueError):
         sys.path.remove('')
+
+
+@pytest.fixture
+def sample_project(tmp_path):
+    """
+    Clone the 'sampleproject' and return a path to it.
+    """
+    cmd = ['git', 'clone', 'https://github.com/pypa/sampleproject']
+    try:
+        subprocess.check_call(cmd, cwd=str(tmp_path))
+    except Exception:
+        pytest.skip("Unable to clone sampleproject")
+    return tmp_path / 'sampleproject'

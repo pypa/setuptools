@@ -7,6 +7,7 @@ import sys
 import io
 import subprocess
 import platform
+import pathlib
 
 from setuptools.command import test
 
@@ -199,3 +200,32 @@ class TestNamespaces:
         ]
         with test.test.paths_on_pythonpath([str(target)]):
             subprocess.check_call(pkg_resources_imp)
+
+    @pytest.mark.xfail(reason="#2612")
+    def test_editable_prefix(self, tmp_path, sample_project):
+        """
+        Editable install to a prefix should be discoverable.
+        """
+        prefix = tmp_path / 'prefix'
+        prefix.mkdir()
+
+        cmd = [
+            sys.executable,
+            '-m', 'pip',
+            'install',
+            '-e', str(sample_project),
+            '--prefix', str(prefix),
+        ]
+        subprocess.check_call(cmd)
+
+        # now run 'sample' with the prefix on the PYTHONPATH
+        site_packages = prefix / next(
+            pathlib.Path(path).relative_to(sys.prefix)
+            for path in sys.path
+            if 'site-packages' in path
+            and path.startswith(sys.prefix)
+        )
+        env = dict(PYTHONPATH=site_packages)
+        bin = 'Scripts' if platform.system() == 'Windows' else 'bin'
+        sample = prefix / bin / 'sample'
+        subprocess.check_call([sample], env=env)
