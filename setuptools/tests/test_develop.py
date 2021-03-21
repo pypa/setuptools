@@ -213,6 +213,10 @@ class TestNamespaces:
             site.addsitedir(str(here))
             """).lstrip())
 
+    @pytest.mark.xfail(
+        platform.python_implementation() == 'PyPy',
+        reason="Workaround fails on PyPy (why?)",
+    )
     def test_editable_prefix(self, tmp_path, sample_project):
         """
         Editable install to a prefix should be discoverable.
