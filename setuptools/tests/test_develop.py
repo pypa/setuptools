@@ -231,7 +231,7 @@ class TestNamespaces:
         # install the workaround
         self.install_workaround(site_packages)
 
-        env = dict(PYTHONPATH=site_packages)
+        env = dict(os.environ, PYTHONPATH=str(site_packages))
         cmd = [
             sys.executable,
             '-m', 'pip',
@@ -246,4 +246,6 @@ class TestNamespaces:
         # now run 'sample' with the prefix on the PYTHONPATH
         bin = 'Scripts' if platform.system() == 'Windows' else 'bin'
         exe = prefix / bin / 'sample'
+        if sys.version_info < (3, 7) and platform.system() == 'Windows':
+            exe = str(exe)
         subprocess.check_call([exe], env=env)
