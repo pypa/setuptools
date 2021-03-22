@@ -1,3 +1,13 @@
+v54.2.0
+-------
+
+
+Changes
+^^^^^^^
+* #2608: Added informative error message to PEP 517 build failures owing to
+  an empty ``setup.py`` -- by :user:`layday`
+
+
 v54.1.3
 -------
 
