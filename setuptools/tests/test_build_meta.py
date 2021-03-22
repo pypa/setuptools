@@ -3,6 +3,7 @@ import shutil
 import tarfile
 import importlib
 from concurrent import futures
+import re
 
 import pytest
 from jaraco import path
@@ -441,6 +442,16 @@ class TestBuildMetaBackend:
         build_backend = self.get_build_backend()
         with pytest.raises(AssertionError):
             build_backend.build_sdist("temp")
+
+    @pytest.mark.parametrize('build_hook', ('build_sdist', 'build_wheel'))
+    def test_build_with_empty_setuppy(self, build_backend, build_hook):
+        files = {'setup.py': ''}
+        path.build(files)
+
+        with pytest.raises(
+                ValueError,
+                match=re.escape('No distribution was found.')):
+            getattr(build_backend, build_hook)("temp")
 
 
 class TestBuildMetaLegacyBackend(TestBuildMetaBackend):

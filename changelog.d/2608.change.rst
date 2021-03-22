@@ -1,0 +1,2 @@
+Added informative error message to PEP 517 build failures owing to
+an empty ``setup.py`` -- by :user:`layday`
