@@ -107,8 +107,7 @@ def _file_with_extension(directory, extension):
         raise ValueError(
             'No distribution was found. Ensure that `setup.py` '
             'is not empty and that it calls `setup()`.')
-    else:
-        return file
+    return file
 
 
 def _open_setup_script(setup_script):
