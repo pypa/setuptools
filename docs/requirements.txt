@@ -3,6 +3,6 @@ sphinx
 jaraco.packaging>=6.1
 rst.linker>=1.9
 pygments-github-lexers==0.0.5
-sphinx-inline-tabs
+sphinx-inline-tabs@git+https://github.com/pradyunsg/sphinx-inline-tabs@main
 
 setuptools>=34
