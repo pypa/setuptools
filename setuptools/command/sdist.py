@@ -4,7 +4,6 @@ import os
 import sys
 import io
 import contextlib
-import warnings
 from glob import iglob
 
 from setuptools.extern import ordered_set
@@ -208,9 +207,9 @@ class sdist(sdist_add_defaults, orig.sdist):
             else ordered_set.OrderedSet(license_files)
 
         if 'license_file' in opts:
-            warnings.warn(
-                "The 'license_file' option is deprecated. Use 'license_files' instead.",
-                DeprecationWarning)
+            log.warn(
+                "warning: the 'license_file' option is deprecated, "
+                "use 'license_files' instead")
             patterns.append(opts['license_file'][1])
 
         if 'license_file' not in opts and 'license_files' not in opts:
