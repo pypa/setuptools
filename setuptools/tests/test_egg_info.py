@@ -537,7 +537,7 @@ class TestEggInfo:
             'setup.cfg': DALS("""
                               """),
             'LICENSE': "Test license"
-        }, False),  # no license_file attribute
+        }, True),  # no license_file attribute, LICENSE auto-included
         ({
             'setup.cfg': DALS("""
                               [metadata]
@@ -625,7 +625,7 @@ class TestEggInfo:
             'setup.cfg': DALS("""
                               """),
             'LICENSE': "Test license"
-        }, [], ['LICENSE']),  # no license_files attribute
+        }, ['LICENSE'], []),  # no license_files attribute, LICENSE auto-included
         ({
             'setup.cfg': DALS("""
                               [metadata]
