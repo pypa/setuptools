@@ -76,6 +76,18 @@ Keywords
 ``license``
     A string specifying the license of the package.
 
+``license_file``
+
+    .. warning::
+        ``license_file`` is deprecated. Use ``license_files`` instead.
+
+``license_files``
+
+    A list of glob patterns for license related files that should be included.
+    If neither ``license_file`` nor ``license_files`` is specified, this option
+    defaults to ``LICEN[CS]E*``, ``COPYING*``, ``NOTICE*``, and ``AUTHORS*``.
+    Any ``exclude`` specified in ``MANIFEST.in`` will overwrite it.
+
 ``keywords``
     A list of strings or a comma-separated string providing descriptive
     meta-data. See: `PEP 0314`_.

@@ -1,0 +1,2 @@
+The ``license_file`` option is now marked as deprecated.
+Use ``license_files`` instead. -- by :user:`cdce8p`

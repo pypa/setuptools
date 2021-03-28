@@ -1,0 +1,1 @@
+The ``license_file`` and ``license_files`` options now support glob patterns. -- by :user:`cdce8p`

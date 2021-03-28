@@ -1,0 +1,1 @@
+Added documentation for the ``license_files`` option. -- by :user:`cdce8p`
