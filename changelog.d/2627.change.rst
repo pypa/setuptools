@@ -1,0 +1,1 @@
+Honor `runtime_library_dirs` on macOS by passing `-rpath` to the linker
