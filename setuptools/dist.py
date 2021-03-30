@@ -96,6 +96,24 @@ def read_pkg_file(self, file):
     """Reads the metadata values from a file object."""
     msg = message_from_file(file)
 
+    def _read_long_description():
+        value = msg['description']
+        if value in ('UNKNOWN', None):
+            return None
+        description_lines = value.splitlines()
+        if len(description_lines) == 1:
+            return description_lines[0].lstrip()
+        description_dedent = '\n'.join(
+            (description_lines[0].lstrip(),
+             textwrap.dedent('\n'.join(description_lines[1:]))))
+        return description_dedent
+
+    def _read_payload():
+        value = msg.get_payload().strip()
+        if value == 'UNKNOWN':
+            return None
+        return value
+
     self.metadata_version = StrictVersion(msg['metadata-version'])
     self.name = _read_field_from_msg(msg, 'name')
     self.version = _read_field_from_msg(msg, 'version')
@@ -114,6 +132,8 @@ def read_pkg_file(self, file):
         self.download_url = None
 
     self.long_description = _read_field_unescaped_from_msg(msg, 'description')
+    if self.long_description is None and self.metadata_version >= StrictVersion('2.1'):
+        self.long_description = _read_payload()
     self.description = _read_field_from_msg(msg, 'summary')
 
     if 'keywords' in msg:

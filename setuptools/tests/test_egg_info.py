@@ -875,9 +875,15 @@ class TestEggInfo:
         assert expected_line in pkg_info_lines
         assert 'Metadata-Version: 2.1' in pkg_info_lines
 
-    def test_description(self, tmpdir_cwd, env):
+    def test_long_description(self, tmpdir_cwd, env):
+        # Test that specifying `long_description` and `long_description_content_type`
+        # keyword args to the `setup` function results in writing
+        # the description in the message payload of the `PKG-INFO` file
+        # in the `<distribution>.egg-info` directory.
         self._setup_script_with_requires(
-            "long_description='This is a long description\\nover multiple lines',")
+            "long_description='This is a long description\\nover multiple lines',"
+            "long_description_content_type='text/markdown',"
+        )
         environ = os.environ.copy().update(
             HOME=env.paths['home'],
         )
