@@ -176,8 +176,9 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     for project_url in self.project_urls.items():
         write_field('Project-URL', '%s, %s' % project_url)
 
-    long_desc = rfc822_escape(self.get_long_description())
-    write_field('Description', long_desc)
+    if version < StrictVersion('2.1'):
+        long_desc = rfc822_escape(self.get_long_description())
+        write_field('Description', long_desc)
 
     keywords = ','.join(self.get_keywords())
     if keywords:
@@ -206,6 +207,9 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     if self.provides_extras:
         for extra in self.provides_extras:
             write_field('Provides-Extra', extra)
+
+    if version >= StrictVersion('2.1'):
+        file.write("\n%s\n\n" % self.get_long_description())
 
 
 sequence = tuple, list

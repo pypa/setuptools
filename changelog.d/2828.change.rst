@@ -1,0 +1,2 @@
+Write long description in message payload of PKG-INFO file.
+Changed in metadata version 2.1
