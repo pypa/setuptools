@@ -156,7 +156,7 @@ to use ``find_namespace:``:
         =src
     packages = find_namespace:
 
-    [options.packages.find_namespace]
+    [options.packages.find]
     where = src
 
 When you install the zipped distribution, ``timmins.foo`` would become
