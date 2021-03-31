@@ -1,3 +1,12 @@
+v55.0.0
+-------
+
+
+Breaking Changes
+^^^^^^^^^^^^^^^^
+* #2566: Remove the deprecated ``bdist_wininst`` command. Binary packages should be built as wheels instead. -- by :user:`hroncok`
+
+
 v54.2.0
 -------
 
