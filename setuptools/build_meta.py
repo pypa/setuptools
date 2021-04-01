@@ -97,16 +97,16 @@ def _get_immediate_subdirectories(a_dir):
 
 
 def _file_with_extension(directory, extension):
-    matching = (
+    matching = [
         f for f in os.listdir(directory)
         if f.endswith(extension)
-    )
+    ]
     try:
         file, = matching
     except ValueError:
-        raise ValueError(
-            'No distribution was found. Ensure that `setup.py` '
-            'is not empty and that it calls `setup()`.')
+        msg = ('No distribution was found. Ensure that `setup.py` '
+               'is not empty and that it calls `setup()`.')
+        raise ValueError(msg) from None
     return file
 
 
