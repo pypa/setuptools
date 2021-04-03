@@ -3,7 +3,7 @@ Dependencies Management in Setuptools
 =====================================
 
 There are three types of dependency styles offered by setuptools:
-1) build system requirement, required dependency and 3) optional
+1) build system requirement, 2) required dependency and 3) optional
 dependency.
 
 .. Note::
@@ -19,8 +19,8 @@ Build system requirement
 Package requirement
 -------------------
 After organizing all the scripts and files and getting ready for packaging,
-there needs to be a way to tell Python what programs it need to actually
-do the packgaging (in our case, ``setuptools`` of course). Usually,
+there needs to be a way to tell Python what programs it needs to actually
+do the packaging (in our case, ``setuptools`` of course). Usually,
 you also need the ``wheel`` package as well since it is recommended that you
 upload a ``.whl`` file to PyPI alongside your ``.tar.gz`` file. Unlike the
 other two types of dependency keyword, this one is specified in your
@@ -47,7 +47,7 @@ Declaring required dependency
 This is where a package declares its core dependencies, without which it won't
 be able to run. ``setuptools`` support automatically download and install
 these dependencies when the package is installed. Although there is more
-finess to it, let's start with a simple example.
+finesse to it, let's start with a simple example.
 
 .. tab:: setup.cfg
 
