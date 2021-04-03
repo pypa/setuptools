@@ -654,8 +654,7 @@ class TestEggInfo:
             'LICENSE-XYZ': "XYZ license"
         }, ['LICENSE-ABC'], ['LICENSE-XYZ']),  # subset is manually excluded
         pytest.param({
-            'setup.cfg': DALS("""
-                              """),
+            'setup.cfg': "",
             'LICENSE-ABC': "ABC license",
             'COPYING-ABC': "ABC copying",
             'NOTICE-ABC': "ABC notice",

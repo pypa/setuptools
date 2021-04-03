@@ -213,6 +213,9 @@ class sdist(sdist_add_defaults, orig.sdist):
             patterns.append(opts['license_file'][1])
 
         if 'license_file' not in opts and 'license_files' not in opts:
+            # Default patterns match the ones wheel uses
+            # See https://wheel.readthedocs.io/en/stable/user_guide.html
+            # -> 'Including license files in the generated wheel file'
             patterns = ('LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*')
 
         for pattern in patterns:

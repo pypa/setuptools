@@ -86,7 +86,6 @@ Keywords
     A list of glob patterns for license related files that should be included.
     If neither ``license_file`` nor ``license_files`` is specified, this option
     defaults to ``LICEN[CS]E*``, ``COPYING*``, ``NOTICE*``, and ``AUTHORS*``.
-    Any ``exclude`` specified in ``MANIFEST.in`` will overwrite it.
 
 ``keywords``
     A list of strings or a comma-separated string providing descriptive
