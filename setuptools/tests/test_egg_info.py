@@ -537,7 +537,7 @@ class TestEggInfo:
             'setup.cfg': DALS("""
                               """),
             'LICENSE': "Test license"
-        }, False),  # no license_file attribute
+        }, True),  # no license_file attribute, LICENSE auto-included
         ({
             'setup.cfg': DALS("""
                               [metadata]
@@ -545,7 +545,15 @@ class TestEggInfo:
                               """),
             'MANIFEST.in': "exclude LICENSE",
             'LICENSE': "Test license"
-        }, False)  # license file is manually excluded
+        }, False),  # license file is manually excluded
+        pytest.param({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_file = LICEN[CS]E*
+                              """),
+            'LICENSE': "Test license",
+            }, True,
+            id="glob_pattern"),
     ])
     def test_setup_cfg_license_file(
             self, tmpdir_cwd, env, files, license_in_sources):
@@ -625,7 +633,7 @@ class TestEggInfo:
             'setup.cfg': DALS("""
                               """),
             'LICENSE': "Test license"
-        }, [], ['LICENSE']),  # no license_files attribute
+        }, ['LICENSE'], []),  # no license_files attribute, LICENSE auto-included
         ({
             'setup.cfg': DALS("""
                               [metadata]
@@ -644,7 +652,36 @@ class TestEggInfo:
             'MANIFEST.in': "exclude LICENSE-XYZ",
             'LICENSE-ABC': "ABC license",
             'LICENSE-XYZ': "XYZ license"
-        }, ['LICENSE-ABC'], ['LICENSE-XYZ'])  # subset is manually excluded
+        }, ['LICENSE-ABC'], ['LICENSE-XYZ']),  # subset is manually excluded
+        pytest.param({
+            'setup.cfg': "",
+            'LICENSE-ABC': "ABC license",
+            'COPYING-ABC': "ABC copying",
+            'NOTICE-ABC': "ABC notice",
+            'AUTHORS-ABC': "ABC authors",
+            'LICENCE-XYZ': "XYZ license",
+            'LICENSE': "License",
+            'INVALID-LICENSE': "Invalid license",
+            }, [
+            'LICENSE-ABC',
+            'COPYING-ABC',
+            'NOTICE-ABC',
+            'AUTHORS-ABC',
+            'LICENCE-XYZ',
+            'LICENSE',
+            ], ['INVALID-LICENSE'],
+            # ('LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*')
+            id="default_glob_patterns"),
+        pytest.param({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_files =
+                                  LICENSE*
+                              """),
+            'LICENSE-ABC': "ABC license",
+            'NOTICE-XYZ': "XYZ notice",
+            }, ['LICENSE-ABC'], ['NOTICE-XYZ'],
+            id="no_default_glob_patterns"),
     ])
     def test_setup_cfg_license_files(
             self, tmpdir_cwd, env, files, incl_licenses, excl_licenses):
@@ -749,7 +786,28 @@ class TestEggInfo:
             'LICENSE-PQR': "PQR license",
             'LICENSE-XYZ': "XYZ license"
             # manually excluded
-        }, ['LICENSE-XYZ'], ['LICENSE-ABC', 'LICENSE-PQR'])
+        }, ['LICENSE-XYZ'], ['LICENSE-ABC', 'LICENSE-PQR']),
+        pytest.param({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_file = LICENSE*
+                              """),
+            'LICENSE-ABC': "ABC license",
+            'NOTICE-XYZ': "XYZ notice",
+            }, ['LICENSE-ABC'], ['NOTICE-XYZ'],
+            id="no_default_glob_patterns"),
+        pytest.param({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_file = LICENSE*
+                              license_files =
+                                NOTICE*
+                              """),
+            'LICENSE-ABC': "ABC license",
+            'NOTICE-ABC': "ABC notice",
+            'AUTHORS-ABC': "ABC authors",
+            }, ['LICENSE-ABC', 'NOTICE-ABC'], ['AUTHORS-ABC'],
+            id="combined_glob_patterrns"),
     ])
     def test_setup_cfg_license_file_license_files(
             self, tmpdir_cwd, env, files, incl_licenses, excl_licenses):
