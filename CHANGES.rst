@@ -1,3 +1,31 @@
+v56.0.0
+-------
+
+
+Deprecations
+^^^^^^^^^^^^
+* #2620: The ``license_file`` option is now marked as deprecated.
+  Use ``license_files`` instead. -- by :user:`cdce8p`
+
+Breaking Changes
+^^^^^^^^^^^^^^^^
+* #2620: If neither ``license_file`` nor ``license_files`` is specified, the ``sdist``
+  option will now auto-include files that match the following patterns:
+  ``LICEN[CS]E*``, ``COPYING*``, ``NOTICE*``, ``AUTHORS*``.
+  This matches the behavior of ``bdist_wheel``. -- by :user:`cdce8p`
+
+Changes
+^^^^^^^
+* #2620: The ``license_file`` and ``license_files`` options now support glob patterns. -- by :user:`cdce8p`
+* #2632: Implemented ``VendorImporter.find_spec()`` method to get rid
+  of ``ImportWarning`` that Python 3.10 emits when only the old-style
+  importer hooks are present -- by :user:`webknjaz`
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #2620: Added documentation for the ``license_files`` option. -- by :user:`cdce8p`
+
+
 v55.0.0
 -------
 

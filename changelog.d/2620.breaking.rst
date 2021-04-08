@@ -1,4 +1,0 @@
-If neither ``license_file`` nor ``license_files`` is specified, the ``sdist``
-option will now auto-include files that match the following patterns:
-``LICEN[CS]E*``, ``COPYING*``, ``NOTICE*``, ``AUTHORS*``.
-This matches the behavior of ``bdist_wheel``. -- by :user:`cdce8p`
