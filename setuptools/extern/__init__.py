@@ -26,14 +26,6 @@ class VendorImporter:
         root, base, target = fullname.partition(self.root_name + '.')
         return not root and any(map(target.startswith, self.vendored_names))
 
-    def find_module(self, fullname, path=None):
-        """
-        Return self when fullname starts with root_name and the
-        target module is one vendored through this importer.
-        """
-        spec = self.find_spec(fullname, path)
-        return spec.loader if spec is not None else None
-
     def load_module(self, fullname):
         """
         Iterate over the search path to locate and load fullname.
