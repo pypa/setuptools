@@ -1,4 +1,4 @@
-import importlib.machinery
+import importlib.util
 import sys
 
 
@@ -57,7 +57,7 @@ class VendorImporter:
     def find_spec(self, fullname, path=None, target=None):
         """Return a module spec for vendored names."""
         return (
-            importlib.machinery.ModuleSpec(fullname, self)
+            importlib.util.spec_from_loader(fullname, self)
             if self._module_matches_namespace(fullname) else None
         )
 
