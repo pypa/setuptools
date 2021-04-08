@@ -1,3 +1,4 @@
+import importlib.machinery
 import sys
 
 
@@ -20,17 +21,18 @@ class VendorImporter:
         yield self.vendor_pkg + '.'
         yield ''
 
+    def _module_matches_namespace(self, fullname):
+        """Figure out if the target module is vendored."""
+        root, base, target = fullname.partition(self.root_name + '.')
+        return not root and any(map(target.startswith, self.vendored_names))
+
     def find_module(self, fullname, path=None):
         """
         Return self when fullname starts with root_name and the
         target module is one vendored through this importer.
         """
-        root, base, target = fullname.partition(self.root_name + '.')
-        if root:
-            return
-        if not any(map(target.startswith, self.vendored_names)):
-            return
-        return self
+        spec = self.find_spec(fullname, path)
+        return spec.loader if spec is not None else None
 
     def load_module(self, fullname):
         """
@@ -59,6 +61,13 @@ class VendorImporter:
 
     def exec_module(self, module):
         pass
+
+    def find_spec(self, fullname, path=None, target=None):
+        """Return a module spec for vendored names."""
+        return (
+            importlib.machinery.ModuleSpec(fullname, self)
+            if self._module_matches_namespace(fullname) else None
+        )
 
     def install(self):
         """
