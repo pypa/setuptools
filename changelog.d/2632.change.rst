@@ -1,0 +1,3 @@
+Implemented ``VendorImporter.find_spec()`` method to get rid
+of ``ImportWarning`` that Python 3.10 emits when only the old-style
+importer hooks are present -- by :user:`webknjaz`
