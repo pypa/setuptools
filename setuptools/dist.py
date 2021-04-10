@@ -16,6 +16,7 @@ from distutils.util import strtobool
 from distutils.debug import DEBUG
 from distutils.fancy_getopt import translate_longopt
 import itertools
+import textwrap
 from typing import List, Optional, TYPE_CHECKING
 
 from collections import defaultdict
@@ -71,12 +72,30 @@ def get_metadata_version(self):
     return mv
 
 
+def rfc822_unescape(content: str) -> str:
+    """Reverse RFC-822 escaping by removing leading whitespaces from content."""
+    lines = content.splitlines()
+    if len(lines) == 1:
+        return lines[0].lstrip()
+    return '\n'.join(
+        (lines[0].lstrip(),
+         textwrap.dedent('\n'.join(lines[1:]))))
+
+
 def _read_field_from_msg(msg: "Message", field: str) -> Optional[str]:
     """Read Message header field."""
     value = msg[field]
     if value == 'UNKNOWN':
         return None
     return value
+
+
+def _read_field_unescaped_from_msg(msg: "Message", field: str) -> Optional[str]:
+    """Read Message header field and apply rfc822_unescape."""
+    value = _read_field_from_msg(msg, field)
+    if value is None:
+        return value
+    return rfc822_unescape(value)
 
 
 def _read_list_from_msg(msg: "Message", field: str) -> Optional[List[str]]:
@@ -108,7 +127,7 @@ def read_pkg_file(self, file):
     else:
         self.download_url = None
 
-    self.long_description = _read_field_from_msg(msg, 'description')
+    self.long_description = _read_field_unescaped_from_msg(msg, 'description')
     self.description = _read_field_from_msg(msg, 'summary')
 
     if 'keywords' in msg:
