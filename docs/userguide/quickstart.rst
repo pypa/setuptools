@@ -22,7 +22,7 @@ be generated with whatever tools that provides a ``build sdist``-alike
 functionality. While this may appear cumbersome, given the added pieces,
 it in fact tremendously enhances the portability of your package. The
 change is driven under :pep:`PEP 517 <517#build-requirements>`. To learn more about Python packaging in general,
-navigate to the `bottom <Resources on python packaging>`_ of this page.
+navigate to the :ref:`bottom <packaging-resources>` of this page.
 
 
 Basic Use
@@ -215,13 +215,14 @@ basic use here.
 
 
 Transitioning from ``setup.py`` to ``setup.cfg``
-==================================================
+================================================
 To avoid executing arbitary scripts and boilerplate code, we are transitioning
 into a full-fledged ``setup.cfg`` to declare your package information instead
 of running ``setup()``. This inevitably brings challenges due to a different
 syntax. Here we provide a quick guide to understanding how ``setup.cfg`` is
 parsed by ``setuptool`` to ease the pain of transition.
 
+.. _packaging-resources:
 
 Resources on Python packaging
 =============================
