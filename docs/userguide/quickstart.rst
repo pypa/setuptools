@@ -52,8 +52,8 @@ the minimum
         [options]
         packages = mypackage
         install_requires =
-        requests
-        importlib; python_version == "2.6"
+	        requests
+    	    importlib; python_version == "2.6"
 
 .. tab:: setup.py
 
