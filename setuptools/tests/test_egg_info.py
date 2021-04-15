@@ -886,6 +886,37 @@ class TestEggInfo:
         assert expected_line in pkg_info_lines
         assert 'Metadata-Version: 1.2' in pkg_info_lines
 
+    def test_license(self, tmpdir_cwd, env):
+        """Test single line license."""
+        self._setup_script_with_requires(
+            "license='MIT',"
+        )
+        code, data = environment.run_setup_py(
+            cmd=['egg_info'],
+            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
+            data_stream=1,
+        )
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
+        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+            pkg_info_lines = pkginfo_file.read().split('\n')
+        assert 'License: MIT' == pkg_info_lines[7]
+
+    def test_license_escape(self, tmpdir_cwd, env):
+        """Test license is escaped correctly if longer than one line."""
+        self._setup_script_with_requires(
+            "license='This is a long license text \\nover multiple lines',"
+        )
+        code, data = environment.run_setup_py(
+            cmd=['egg_info'],
+            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
+            data_stream=1,
+        )
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
+        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+            pkg_info_lines = pkginfo_file.read().split('\n')
+        assert 'License: This is a long license text ' == pkg_info_lines[7]
+        assert '        over multiple lines' == pkg_info_lines[8]
+
     def test_python_requires_egg_info(self, tmpdir_cwd, env):
         self._setup_script_with_requires(
             """python_requires='>=2.7.12',""")

@@ -120,7 +120,7 @@ def read_pkg_file(self, file):
     self.author_email = _read_field_from_msg(msg, 'author-email')
     self.maintainer_email = None
     self.url = _read_field_from_msg(msg, 'home-page')
-    self.license = _read_field_from_msg(msg, 'license')
+    self.license = _read_field_unescaped_from_msg(msg, 'license')
 
     if 'download-url' in msg:
         self.download_url = _read_field_from_msg(msg, 'download-url')
@@ -188,7 +188,8 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
             if attr_val is not None:
                 write_field(field, attr_val)
 
-    write_field('License', self.get_license())
+    license = rfc822_escape(self.get_license())
+    write_field('License', license)
     if self.download_url:
         write_field('Download-URL', self.download_url)
     for project_url in self.project_urls.items():
