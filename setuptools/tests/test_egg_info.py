@@ -884,21 +884,17 @@ class TestEggInfo:
             "long_description='This is a long description\\nover multiple lines',"
             "long_description_content_type='text/markdown',"
         )
-        environ = os.environ.copy().update(
-            HOME=env.paths['home'],
-        )
         code, data = environment.run_setup_py(
             cmd=['egg_info'],
             pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
             data_stream=1,
-            env=environ,
         )
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
         assert 'Metadata-Version: 2.1' in pkg_info_lines
         assert '' == pkg_info_lines[-1]
-        long_desc_lines = pkg_info_lines[pkg_info_lines.index(''):]
+        long_desc_lines = pkg_info_lines[8:]
         assert 'This is a long description' in long_desc_lines
         assert 'over multiple lines' in long_desc_lines
 
