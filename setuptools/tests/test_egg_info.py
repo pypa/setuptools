@@ -551,7 +551,7 @@ class TestEggInfo:
                               """),
             'MANIFEST.in': "exclude LICENSE",
             'LICENSE': "Test license"
-        }, False),  # license file is manually excluded
+        }, True),  # manifest is overwritten by license_file
         pytest.param({
             'setup.cfg': DALS("""
                               [metadata]
@@ -647,7 +647,7 @@ class TestEggInfo:
                               """),
             'MANIFEST.in': "exclude LICENSE",
             'LICENSE': "Test license"
-        }, [], ['LICENSE']),  # license file is manually excluded
+        }, ['LICENSE'], []),  # manifest is overwritten by license_files
         ({
             'setup.cfg': DALS("""
                               [metadata]
@@ -658,7 +658,8 @@ class TestEggInfo:
             'MANIFEST.in': "exclude LICENSE-XYZ",
             'LICENSE-ABC': "ABC license",
             'LICENSE-XYZ': "XYZ license"
-        }, ['LICENSE-ABC'], ['LICENSE-XYZ']),  # subset is manually excluded
+            # manifest is overwritten by license_files
+        }, ['LICENSE-ABC', 'LICENSE-XYZ'], []),
         pytest.param({
             'setup.cfg': "",
             'LICENSE-ABC': "ABC license",
@@ -791,8 +792,8 @@ class TestEggInfo:
             'LICENSE-ABC': "ABC license",
             'LICENSE-PQR': "PQR license",
             'LICENSE-XYZ': "XYZ license"
-            # manually excluded
-        }, ['LICENSE-XYZ'], ['LICENSE-ABC', 'LICENSE-PQR']),
+            # manifest is overwritten
+        }, ['LICENSE-ABC', 'LICENSE-PQR', 'LICENSE-XYZ'], []),
         pytest.param({
             'setup.cfg': DALS("""
                               [metadata]
