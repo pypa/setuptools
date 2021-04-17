@@ -835,6 +835,35 @@ class TestEggInfo:
         for lf in excl_licenses:
             assert sources_lines.count(lf) == 0
 
+    def test_license_file_attr_pkg_info(self, tmpdir_cwd, env):
+        """All matched license files should have a corresponding License-File."""
+        self._create_project()
+        path.build({
+            "setup.cfg": DALS("""
+                              [metadata]
+                              license_files =
+                                  LICENSE*
+                              """),
+            "LICENSE-ABC": "ABC license",
+            "LICENSE-XYZ": "XYZ license",
+            "NOTICE": "not included",
+        })
+
+        environment.run_setup_py(
+            cmd=['egg_info'],
+            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)])
+        )
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
+        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+            pkg_info_lines = pkginfo_file.read().split('\n')
+        license_file_lines = [
+            line for line in pkg_info_lines if line.startswith('License-File:')]
+
+        # Only 'LICENSE-ABC' and 'LICENSE-XYZ' should have been matched
+        assert len(license_file_lines) == 2
+        assert "License-File: LICENSE-ABC" in license_file_lines
+        assert "License-File: LICENSE-XYZ" in license_file_lines
+
     def test_metadata_version(self, tmpdir_cwd, env):
         """Make sure latest metadata version is used by default."""
         self._setup_script_with_requires("")
