@@ -15,9 +15,10 @@ import distutils.command
 from distutils.util import strtobool
 from distutils.debug import DEBUG
 from distutils.fancy_getopt import translate_longopt
+from glob import iglob
 import itertools
 import textwrap
-from typing import List, Optional, TYPE_CHECKING
+from typing import List, Optional, Set, TYPE_CHECKING
 
 from collections import defaultdict
 from email import message_from_file
@@ -132,6 +133,8 @@ def read_pkg_file(self, file):
         self.provides = None
         self.obsoletes = None
 
+    self.license_files_computed = _read_list_from_msg(msg, 'license-file')
+
 
 def single_line(val):
     # quick and dirty validation for description pypa/setuptools#1390
@@ -206,6 +209,8 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     if self.provides_extras:
         for extra in self.provides_extras:
             write_field('Provides-Extra', extra)
+
+    self._write_list(file, 'License-File', self.license_files_computed)
 
 
 sequence = tuple, list
@@ -406,7 +411,9 @@ class Distribution(_Distribution):
         'long_description_content_type': lambda: None,
         'project_urls': dict,
         'provides_extras': ordered_set.OrderedSet,
-        'license_files': ordered_set.OrderedSet,
+        'license_file': None,
+        'license_files': None,
+        'license_files_computed': list,
     }
 
     _patched_dist = None
@@ -564,6 +571,31 @@ class Distribution(_Distribution):
         """
         req.marker = None
         return req
+
+    def _finalize_license_files(self):
+        """Compute names of all license files which should be included."""
+        files = set()
+        license_files: Optional[List[str]] = self.metadata.license_files
+        patterns: Set[str] = set(license_files) if license_files else set()
+
+        license_file: Optional[str] = self.metadata.license_file
+        if license_file:
+            patterns.add(license_file)
+
+        if license_files is None and license_file is None:
+            # Default patterns match the ones wheel uses
+            # See https://wheel.readthedocs.io/en/stable/user_guide.html
+            # -> 'Including license files in the generated wheel file'
+            patterns = ('LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*')
+
+        for pattern in patterns:
+            for path in iglob(pattern):
+                if path.endswith('~'):
+                    continue
+                if path not in files and os.path.isfile(path):
+                    files.add(path)
+
+        self.metadata.license_files_computed = sorted(files)
 
     # FIXME: 'Distribution._parse_config_files' is too complex (14)
     def _parse_config_files(self, filenames=None):  # noqa: C901
@@ -729,6 +761,7 @@ class Distribution(_Distribution):
         parse_configuration(self, self.command_options,
                             ignore_option_errors=ignore_option_errors)
         self._finalize_requires()
+        self._finalize_license_files()
 
     def fetch_build_eggs(self, requires):
         """Resolve pre-setup requirements"""
