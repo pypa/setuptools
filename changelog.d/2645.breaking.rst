@@ -1,0 +1,3 @@
+License files excluded via the ``MANIFEST.in`` but matched by either
+the ``license_file`` (deprecated) or ``license_files`` options,
+will be nevertheless included in the source distribution. - by :user:`cdce8p`

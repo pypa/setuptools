@@ -539,9 +539,9 @@ class manifest_maker(sdist):
         if not os.path.exists(self.manifest):
             self.write_manifest()  # it must exist so it'll get in the list
         self.add_defaults()
-        self.add_license_files()
         if os.path.exists(self.template):
             self.read_template()
+        self.add_license_files()
         self.prune_file_list()
         self.filelist.sort()
         self.filelist.remove_duplicates()
