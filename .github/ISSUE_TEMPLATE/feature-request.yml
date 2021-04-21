@@ -5,7 +5,6 @@ title: '[FR] '
 labels:
 - enhancement
 - Needs Triage
-issue_body: false  # default: true, adds a classic WSYWIG textarea, if on
 
 body:
 - type: markdown
