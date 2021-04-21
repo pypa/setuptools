@@ -1,0 +1,3 @@
+Updated the docs build tooling to support the latest version of
+Towncrier and show the previews of not-yet-released setuptools versions
+in the changelog -- :user:`webknjaz`
