@@ -11,10 +11,13 @@ import distutils.log
 import distutils.core
 import distutils.cmd
 import distutils.dist
+import distutils.command
 from distutils.util import strtobool
 from distutils.debug import DEBUG
 from distutils.fancy_getopt import translate_longopt
 import itertools
+import textwrap
+from typing import List, Optional, TYPE_CHECKING
 
 from collections import defaultdict
 from email import message_from_file
@@ -29,10 +32,14 @@ from setuptools.extern import ordered_set
 from . import SetuptoolsDeprecationWarning
 
 import setuptools
+import setuptools.command
 from setuptools import windows_support
 from setuptools.monkey import get_unpatched
 from setuptools.config import parse_configuration
 import pkg_resources
+
+if TYPE_CHECKING:
+    from email.message import Message
 
 __import__('setuptools.extern.packaging.specifiers')
 __import__('setuptools.extern.packaging.version')
@@ -65,61 +72,92 @@ def get_metadata_version(self):
     return mv
 
 
+def rfc822_unescape(content: str) -> str:
+    """Reverse RFC-822 escaping by removing leading whitespaces from content."""
+    lines = content.splitlines()
+    if len(lines) == 1:
+        return lines[0].lstrip()
+    return '\n'.join(
+        (lines[0].lstrip(),
+         textwrap.dedent('\n'.join(lines[1:]))))
+
+
+def _read_field_from_msg(msg: "Message", field: str) -> Optional[str]:
+    """Read Message header field."""
+    value = msg[field]
+    if value == 'UNKNOWN':
+        return None
+    return value
+
+
+def _read_field_unescaped_from_msg(msg: "Message", field: str) -> Optional[str]:
+    """Read Message header field and apply rfc822_unescape."""
+    value = _read_field_from_msg(msg, field)
+    if value is None:
+        return value
+    return rfc822_unescape(value)
+
+
+def _read_list_from_msg(msg: "Message", field: str) -> Optional[List[str]]:
+    """Read Message header field and return all results as list."""
+    values = msg.get_all(field, None)
+    if values == []:
+        return None
+    return values
+
+
 def read_pkg_file(self, file):
     """Reads the metadata values from a file object."""
     msg = message_from_file(file)
 
-    def _read_field(name):
-        value = msg[name]
-        if value == 'UNKNOWN':
-            return None
-        return value
-
-    def _read_list(name):
-        values = msg.get_all(name, None)
-        if values == []:
-            return None
-        return values
-
     self.metadata_version = StrictVersion(msg['metadata-version'])
-    self.name = _read_field('name')
-    self.version = _read_field('version')
-    self.description = _read_field('summary')
+    self.name = _read_field_from_msg(msg, 'name')
+    self.version = _read_field_from_msg(msg, 'version')
+    self.description = _read_field_from_msg(msg, 'summary')
     # we are filling author only.
-    self.author = _read_field('author')
+    self.author = _read_field_from_msg(msg, 'author')
     self.maintainer = None
-    self.author_email = _read_field('author-email')
+    self.author_email = _read_field_from_msg(msg, 'author-email')
     self.maintainer_email = None
-    self.url = _read_field('home-page')
-    self.license = _read_field('license')
+    self.url = _read_field_from_msg(msg, 'home-page')
+    self.license = _read_field_from_msg(msg, 'license')
 
     if 'download-url' in msg:
-        self.download_url = _read_field('download-url')
+        self.download_url = _read_field_from_msg(msg, 'download-url')
     else:
         self.download_url = None
 
-    self.long_description = _read_field('description')
-    self.description = _read_field('summary')
+    self.long_description = _read_field_unescaped_from_msg(msg, 'description')
+    self.description = _read_field_from_msg(msg, 'summary')
 
     if 'keywords' in msg:
-        self.keywords = _read_field('keywords').split(',')
+        self.keywords = _read_field_from_msg(msg, 'keywords').split(',')
 
-    self.platforms = _read_list('platform')
-    self.classifiers = _read_list('classifier')
+    self.platforms = _read_list_from_msg(msg, 'platform')
+    self.classifiers = _read_list_from_msg(msg, 'classifier')
 
     # PEP 314 - these fields only exist in 1.1
     if self.metadata_version == StrictVersion('1.1'):
-        self.requires = _read_list('requires')
-        self.provides = _read_list('provides')
-        self.obsoletes = _read_list('obsoletes')
+        self.requires = _read_list_from_msg(msg, 'requires')
+        self.provides = _read_list_from_msg(msg, 'provides')
+        self.obsoletes = _read_list_from_msg(msg, 'obsoletes')
     else:
         self.requires = None
         self.provides = None
         self.obsoletes = None
 
 
+def single_line(val):
+    # quick and dirty validation for description pypa/setuptools#1390
+    if '\n' in val:
+        # TODO after 2021-07-31: Replace with `raise ValueError("newlines not allowed")`
+        warnings.warn("newlines not allowed and will break in the future")
+        val = val.replace('\n', ' ')
+    return val
+
+
 # Based on Python 3.5 version
-def write_pkg_file(self, file):
+def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     """Write the PKG-INFO format data to a file object.
     """
     version = self.get_metadata_version()
@@ -130,7 +168,7 @@ def write_pkg_file(self, file):
     write_field('Metadata-Version', str(version))
     write_field('Name', self.get_name())
     write_field('Version', self.get_version())
-    write_field('Summary', self.get_description())
+    write_field('Summary', single_line(self.get_description()))
     write_field('Home-page', self.get_url())
 
     if version < StrictVersion('1.2'):
@@ -283,7 +321,7 @@ def check_specifier(dist, attr, value):
     """Verify that value is a valid version specifier"""
     try:
         packaging.specifiers.SpecifierSet(value)
-    except packaging.specifiers.InvalidSpecifier as error:
+    except (packaging.specifiers.InvalidSpecifier, AttributeError) as error:
         tmpl = (
             "{attr!r} must be a string "
             "containing valid version specifiers; {error}"
@@ -548,7 +586,8 @@ class Distribution(_Distribution):
         req.marker = None
         return req
 
-    def _parse_config_files(self, filenames=None):
+    # FIXME: 'Distribution._parse_config_files' is too complex (14)
+    def _parse_config_files(self, filenames=None):  # noqa: C901
         """
         Adapted from distutils.dist.Distribution.parse_config_files,
         this method provides the same functionality in subtly-improved
@@ -557,14 +596,12 @@ class Distribution(_Distribution):
         from configparser import ConfigParser
 
         # Ignore install directory options if we have a venv
-        if sys.prefix != sys.base_prefix:
-            ignore_options = [
-                'install-base', 'install-platbase', 'install-lib',
-                'install-platlib', 'install-purelib', 'install-headers',
-                'install-scripts', 'install-data', 'prefix', 'exec-prefix',
-                'home', 'user', 'root']
-        else:
-            ignore_options = []
+        ignore_options = [] if sys.prefix == sys.base_prefix else [
+            'install-base', 'install-platbase', 'install-lib',
+            'install-platlib', 'install-purelib', 'install-headers',
+            'install-scripts', 'install-data', 'prefix', 'exec-prefix',
+            'home', 'user', 'root',
+        ]
 
         ignore_options = frozenset(ignore_options)
 
@@ -575,6 +612,7 @@ class Distribution(_Distribution):
             self.announce("Distribution.parse_config_files():")
 
         parser = ConfigParser()
+        parser.optionxform = str
         for filename in filenames:
             with io.open(filename, encoding='utf-8') as reader:
                 if DEBUG:
@@ -585,32 +623,69 @@ class Distribution(_Distribution):
                 opt_dict = self.get_option_dict(section)
 
                 for opt in options:
-                    if opt != '__name__' and opt not in ignore_options:
-                        val = parser.get(section, opt)
-                        opt = opt.replace('-', '_')
-                        opt_dict[opt] = (filename, val)
+                    if opt == '__name__' or opt in ignore_options:
+                        continue
+
+                    val = parser.get(section, opt)
+                    opt = self.warn_dash_deprecation(opt, section)
+                    opt = self.make_option_lowercase(opt, section)
+                    opt_dict[opt] = (filename, val)
 
             # Make the ConfigParser forget everything (so we retain
             # the original filenames that options come from)
             parser.__init__()
 
+        if 'global' not in self.command_options:
+            return
+
         # If there was a "global" section in the config file, use it
         # to set Distribution options.
 
-        if 'global' in self.command_options:
-            for (opt, (src, val)) in self.command_options['global'].items():
-                alias = self.negative_opt.get(opt)
-                try:
-                    if alias:
-                        setattr(self, alias, not strtobool(val))
-                    elif opt in ('verbose', 'dry_run'):  # ugh!
-                        setattr(self, opt, strtobool(val))
-                    else:
-                        setattr(self, opt, val)
-                except ValueError as e:
-                    raise DistutilsOptionError(e) from e
+        for (opt, (src, val)) in self.command_options['global'].items():
+            alias = self.negative_opt.get(opt)
+            if alias:
+                val = not strtobool(val)
+            elif opt in ('verbose', 'dry_run'):  # ugh!
+                val = strtobool(val)
 
-    def _set_command_options(self, command_obj, option_dict=None):
+            try:
+                setattr(self, alias or opt, val)
+            except ValueError as e:
+                raise DistutilsOptionError(e) from e
+
+    def warn_dash_deprecation(self, opt, section):
+        if section in (
+            'options.extras_require', 'options.data_files',
+        ):
+            return opt
+
+        underscore_opt = opt.replace('-', '_')
+        commands = distutils.command.__all__ + setuptools.command.__all__
+        if (not section.startswith('options') and section != 'metadata'
+                and section not in commands):
+            return underscore_opt
+
+        if '-' in opt:
+            warnings.warn(
+                "Usage of dash-separated '%s' will not be supported in future "
+                "versions. Please use the underscore name '%s' instead"
+                % (opt, underscore_opt))
+        return underscore_opt
+
+    def make_option_lowercase(self, opt, section):
+        if section != 'metadata' or opt.islower():
+            return opt
+
+        lowercase_opt = opt.lower()
+        warnings.warn(
+            "Usage of uppercase key '%s' in '%s' will be deprecated in future "
+            "versions. Please use lowercase '%s' instead"
+            % (opt, section, lowercase_opt)
+        )
+        return lowercase_opt
+
+    # FIXME: 'Distribution._set_command_options' is too complex (14)
+    def _set_command_options(self, command_obj, option_dict=None):  # noqa: C901
         """
         Set the options for 'command_obj' from 'option_dict'.  Basically
         this means copying elements of a dictionary ('option_dict') to

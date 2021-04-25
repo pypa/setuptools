@@ -15,8 +15,10 @@ import zipfile
 import mock
 import time
 import re
+import subprocess
 
 import pytest
+from jaraco import path
 
 from setuptools import sandbox
 from setuptools.sandbox import run_setup
@@ -25,7 +27,6 @@ from setuptools.command.easy_install import (
     EasyInstallDeprecationWarning, ScriptWriter, PthDistributions,
     WindowsScriptWriter,
 )
-from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
 from pkg_resources import normalize_path, working_set
 from pkg_resources import Distribution as PRDistribution
@@ -34,8 +35,17 @@ from setuptools.tests import fail_on_ascii
 import pkg_resources
 
 from . import contexts
-from .files import build_files
 from .textwrap import DALS
+
+
+@pytest.fixture(autouse=True)
+def pip_disable_index(monkeypatch):
+    """
+    Important: Disable the default index for pip to avoid
+    querying packages in the index and potentially resolving
+    and installing packages there.
+    """
+    monkeypatch.setenv('PIP_NO_INDEX', 'true')
 
 
 class FakeDist:
@@ -305,7 +315,7 @@ class TestPTHFileWriter:
         assert not pth.dirty
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def setup_context(tmpdir):
     with (tmpdir / 'setup.py').open('w') as f:
         f.write(SETUP_PY)
@@ -361,7 +371,7 @@ class TestUserInstallTest:
             f.write('Name: foo\n')
         return str(tmpdir)
 
-    @pytest.yield_fixture()
+    @pytest.fixture()
     def install_target(self, tmpdir):
         target = str(tmpdir)
         with mock.patch('sys.path', sys.path + [target]):
@@ -406,7 +416,7 @@ class TestUserInstallTest:
         )
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def distutils_package():
     distutils_setup_py = SETUP_PY.replace(
         'from setuptools import setup',
@@ -445,22 +455,22 @@ class TestSetupRequires:
         """
         monkeypatch.setenv(str('PIP_RETRIES'), str('0'))
         monkeypatch.setenv(str('PIP_TIMEOUT'), str('0'))
+        monkeypatch.setenv('PIP_NO_INDEX', 'false')
         with contexts.quiet():
             # create an sdist that has a build-time dependency.
             with TestSetupRequires.create_sdist() as dist_file:
                 with contexts.tempdir() as temp_install_dir:
                     with contexts.environment(PYTHONPATH=temp_install_dir):
-                        ei_params = [
+                        cmd = [
+                            sys.executable,
+                            '-m', 'setup',
+                            'easy_install',
                             '--index-url', mock_index.url,
                             '--exclude-scripts',
                             '--install-dir', temp_install_dir,
                             dist_file,
                         ]
-                        with sandbox.save_argv(['easy_install']):
-                            # attempt to install the dist. It should
-                            # fail because it doesn't exist.
-                            with pytest.raises(SystemExit):
-                                easy_install_pkg.main(ei_params)
+                        subprocess.Popen(cmd).wait()
         # there should have been one requests to the server
         assert [r.path for r in mock_index.requests] == ['/does-not-exist/']
 
@@ -618,6 +628,7 @@ class TestSetupRequires:
     def test_setup_requires_honors_pip_env(self, mock_index, monkeypatch):
         monkeypatch.setenv(str('PIP_RETRIES'), str('0'))
         monkeypatch.setenv(str('PIP_TIMEOUT'), str('0'))
+        monkeypatch.setenv('PIP_NO_INDEX', 'false')
         monkeypatch.setenv(str('PIP_INDEX_URL'), mock_index.url)
         with contexts.save_pkg_resources_state():
             with contexts.tempdir() as temp_dir:
@@ -730,10 +741,10 @@ class TestSetupRequires:
         assert eggs == ['dep 1.0']
 
     @pytest.mark.parametrize(
-        'use_legacy_installer,with_dependency_links_in_setup_py',
-        itertools.product((False, True), (False, True)))
+        'with_dependency_links_in_setup_py',
+        (False, True))
     def test_setup_requires_with_find_links_in_setup_cfg(
-            self, monkeypatch, use_legacy_installer,
+            self, monkeypatch,
             with_dependency_links_in_setup_py):
         monkeypatch.setenv(str('PIP_RETRIES'), str('0'))
         monkeypatch.setenv(str('PIP_TIMEOUT'), str('0'))
@@ -755,11 +766,9 @@ class TestSetupRequires:
                     fp.write(DALS(
                         '''
                         from setuptools import installer, setup
-                        if {use_legacy_installer}:
-                            installer.fetch_build_egg = installer._legacy_fetch_build_egg
                         setup(setup_requires='python-xlib==42',
                         dependency_links={dependency_links!r})
-                        ''').format(use_legacy_installer=use_legacy_installer,  # noqa
+                        ''').format(
                                     dependency_links=dependency_links))
                 with open(test_setup_cfg, 'w') as fp:
                     fp.write(DALS(
@@ -785,7 +794,7 @@ class TestSetupRequires:
                 # Create source tree for `dep`.
                 dep_pkg = os.path.join(temp_dir, 'dep')
                 os.mkdir(dep_pkg)
-                build_files({
+                path.build({
                     'setup.py':
                     DALS("""
                           import setuptools

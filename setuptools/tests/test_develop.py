@@ -7,6 +7,8 @@ import sys
 import io
 import subprocess
 import platform
+import pathlib
+import textwrap
 
 from setuptools.command import test
 
@@ -31,7 +33,7 @@ INIT_PY = """print "foo"
 """
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def temp_user(monkeypatch):
     with contexts.tempdir() as user_base:
         with contexts.tempdir() as user_site:
@@ -40,7 +42,7 @@ def temp_user(monkeypatch):
             yield
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def test_env(tmpdir, temp_user):
     target = tmpdir
     foo = target.mkdir('foo')
@@ -199,3 +201,55 @@ class TestNamespaces:
         ]
         with test.test.paths_on_pythonpath([str(target)]):
             subprocess.check_call(pkg_resources_imp)
+
+    @staticmethod
+    def install_workaround(site_packages):
+        site_packages.mkdir(parents=True)
+        sc = site_packages / 'sitecustomize.py'
+        sc.write_text(textwrap.dedent("""
+            import site
+            import pathlib
+            here = pathlib.Path(__file__).parent
+            site.addsitedir(str(here))
+            """).lstrip())
+
+    @pytest.mark.xfail(
+        platform.python_implementation() == 'PyPy',
+        reason="Workaround fails on PyPy (why?)",
+    )
+    def test_editable_prefix(self, tmp_path, sample_project):
+        """
+        Editable install to a prefix should be discoverable.
+        """
+        prefix = tmp_path / 'prefix'
+        prefix.mkdir()
+
+        # figure out where pip will likely install the package
+        site_packages = prefix / next(
+            pathlib.Path(path).relative_to(sys.prefix)
+            for path in sys.path
+            if 'site-packages' in path
+            and path.startswith(sys.prefix)
+        )
+
+        # install the workaround
+        self.install_workaround(site_packages)
+
+        env = dict(os.environ, PYTHONPATH=str(site_packages))
+        cmd = [
+            sys.executable,
+            '-m', 'pip',
+            'install',
+            '--editable',
+            str(sample_project),
+            '--prefix', str(prefix),
+            '--no-build-isolation',
+        ]
+        subprocess.check_call(cmd, env=env)
+
+        # now run 'sample' with the prefix on the PYTHONPATH
+        bin = 'Scripts' if platform.system() == 'Windows' else 'bin'
+        exe = prefix / bin / 'sample'
+        if sys.version_info < (3, 7) and platform.system() == 'Windows':
+            exe = str(exe)
+        subprocess.check_call([exe], env=env)

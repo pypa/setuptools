@@ -54,7 +54,7 @@ Feature Highlights:
 Developer's Guide
 -----------------
 
-
+The developer's guide has been updated. See the :doc:`most recent version <userguide/index>`.
 
 
 
@@ -157,7 +157,7 @@ To use this feature:
       ]
       build-backend = "setuptools.build_meta"
 
-* Use a :pep:`517` compatible build frontend, such as ``pip >= 19`` or ``pep517``.
+* Use a :pep:`517` compatible build frontend, such as ``pip >= 19`` or ``build``.
 
   .. warning::
 

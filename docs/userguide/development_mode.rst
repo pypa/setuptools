@@ -3,9 +3,9 @@
 
 Under normal circumstances, the ``distutils`` assume that you are going to
 build a distribution of your project, not use it in its "raw" or "unbuilt"
-form.  If you were to use the ``distutils`` that way, you would have to rebuild
-and reinstall your project every time you made a change to it during
-development.
+form.  However, if you were to use the ``distutils`` to build a distribution,
+you would have to rebuild and reinstall your project every time you made a
+change to it during development.
 
 Another problem that sometimes comes up with the ``distutils`` is that you may
 need to do development on two related projects at the same time.  You may need

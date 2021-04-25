@@ -1,0 +1,14 @@
+[distutils.commands]
+egg_info = setuptools.command.egg_info:egg_info
+
+[distutils.setup_keywords]
+include_package_data = setuptools.dist:assert_bool
+install_requires = setuptools.dist:check_requirements
+extras_require = setuptools.dist:check_extras
+entry_points = setuptools.dist:check_entry_points
+
+[egg_info.writers]
+PKG-INFO = setuptools.command.egg_info:write_pkg_info
+dependency_links.txt = setuptools.command.egg_info:overwrite_arg
+entry_points.txt = setuptools.command.egg_info:write_entries
+requires.txt = setuptools.command.egg_info:write_requirements

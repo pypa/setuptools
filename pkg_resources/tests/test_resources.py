@@ -773,7 +773,7 @@ class TestNamespaces:
 
     ns_str = "__import__('pkg_resources').declare_namespace(__name__)\n"
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def symlinked_tmpdir(self, tmpdir):
         """
         Where available, return the tempdir as a symlink,
@@ -791,7 +791,7 @@ class TestNamespaces:
         finally:
             os.unlink(link_name)
 
-    @pytest.yield_fixture(autouse=True)
+    @pytest.fixture(autouse=True)
     def patched_path(self, tmpdir):
         """
         Patch sys.path to include the 'site-pkgs' dir. Also

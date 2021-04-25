@@ -21,7 +21,7 @@ the backend (build system) it wants to use. The distribution can then
 be generated with whatever tools that provides a ``build sdist``-alike
 functionality. While this may appear cumbersome, given the added pieces,
 it in fact tremendously enhances the portability of your package. The
-change is driven under :pep:`517 <517#build-requirements>`. To learn more about Python packaging in general,
+change is driven under :pep:`PEP 517 <517#build-requirements>`. To learn more about Python packaging in general,
 navigate to the `bottom <Resources on python packaging>`_ of this page.
 
 
@@ -37,33 +37,52 @@ package your project:
     requires = ["setuptools", "wheel"]
     build-backend = "setuptools.build_meta"
 
-Then, you will need a ``setup.cfg`` to specify your package information,
-such as metadata, contents, dependencies, etc. Here we demonstrate the minimum
+Then, you will need a ``setup.cfg`` or ``setup.py`` to specify your package
+information, such as metadata, contents, dependencies, etc. Here we demonstrate
+the minimum
 
-.. code-block:: ini
+.. tab:: setup.cfg
 
-    [metadata]
-    name = "mypackage"
-    version = 0.0.1
+    .. code-block:: ini
 
-    [options]
-    packages = "mypackage"
-    install_requires =
-      requests
-      importlib; python_version == "2.6"
+        [metadata]
+        name = mypackage
+        version = 0.0.1
+
+        [options]
+        packages = mypackage
+        install_requires =
+        requests
+        importlib; python_version == "2.6"
+
+.. tab:: setup.py
+
+    .. code-block:: python
+
+        from setuptools import setup
+
+        setup(
+            name='mypackage',
+            version='0.0.1',
+            packages=['mypackage'],
+            install_requires=[
+                'requests',
+                'importlib; python_version == "2.6"',
+            ],
+        )
 
 This is what your project would look like::
 
     ~/mypackage/
         pyproject.toml
-        setup.cfg
+        setup.cfg # or setup.py
         mypackage/__init__.py
 
-Then, you need an installer, such as `pep517 <https://pypi.org/project/pep517/>`_
-which you can obtain via ``pip install pep517``. After downloading it, invoke
-the installer::
+Then, you need an builder, such as :std:doc:`PyPA build <pypa-build:index>`
+which you can obtain via ``pip install build``. After downloading it, invoke
+the builder::
 
-    python -m pep517.build
+    python -m build
 
 You now have your distribution ready (e.g. a ``tar.gz`` file and a ``.whl``
 file in the ``dist`` directory), which you can upload to PyPI!
@@ -71,7 +90,7 @@ file in the ``dist`` directory), which you can upload to PyPI!
 Of course, before you release your project to PyPI, you'll want to add a bit
 more information to your setup script to help people find or learn about your
 project.  And maybe your project will have grown by then to include a few
-dependencies, and perhaps some data files and scripts. In the next few section,
+dependencies, and perhaps some data files and scripts. In the next few sections,
 we will walk through those additional but essential information you need
 to specify to properly package your project.
 

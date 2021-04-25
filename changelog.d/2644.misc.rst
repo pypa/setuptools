@@ -1,0 +1,1 @@
+Fixed ``DeprecationWarning`` due to ``threading.Thread.setDaemon`` in tests -- by :user:`tirkarthi`
