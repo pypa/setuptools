@@ -1,3 +1,7 @@
+{% if top_line %}
+{{ top_line }}
+{{ top_underline * ((top_line)|length)}}
+{% endif %}
 {% for section, _ in sections.items() %}
 {% set underline = underlines[0] %}{% if section %}{{section}}
 {{ underline * section|length }}
