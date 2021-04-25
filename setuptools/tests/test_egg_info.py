@@ -855,7 +855,43 @@ class TestEggInfo:
         assert expected_line in pkg_info_lines
         assert 'Metadata-Version: 2.1' in pkg_info_lines
 
-    def test_project_urls(self, tmpdir_cwd, env):
+    @pytest.mark.parametrize("requires, use_setup_cfg", [
+        pytest.param(
+            DALS("""project_urls={
+            'Link One': 'https://example.com/one/',
+            'Link Two': 'https://example.com/two/',
+            },"""), False,
+            id="setup_py",
+        ),
+        pytest.param(
+            DALS("""
+            [metadata]
+            project_urls =
+                Link One = https://example.com/one/
+                Link Two = https://example.com/two/
+            """), True,
+            id="setup_cfg",
+        ),
+        pytest.param(
+            DALS("""
+            [metadata]
+            project_urls =
+                'Link One' = https://example.com/one/
+                'Link Two' = https://example.com/two/
+            """), True,
+            id="setup_cfg_with_single_quotes",
+        ),
+        pytest.param(
+            DALS("""
+            [metadata]
+            project_urls =
+                "Link One" = https://example.com/one/
+                "Link Two" = https://example.com/two/
+            """), True,
+            id="setup_cfg_with_double_quotes",
+        ),
+    ])
+    def test_project_urls(self, tmpdir_cwd, env, requires, use_setup_cfg):
         # Test that specifying a `project_urls` dict to the `setup`
         # function results in writing multiple `Project-URL` lines to
         # the `PKG-INFO` file in the `<distribution>.egg-info`
@@ -863,11 +899,7 @@ class TestEggInfo:
         # `Project-URL` is described at https://packaging.python.org
         #     /specifications/core-metadata/#project-url-multiple-use
 
-        self._setup_script_with_requires(
-            """project_urls={
-                'Link One': 'https://example.com/one/',
-                'Link Two': 'https://example.com/two/',
-                },""")
+        self._setup_script_with_requires(requires, use_setup_cfg)
         environ = os.environ.copy().update(
             HOME=env.paths['home'],
         )
