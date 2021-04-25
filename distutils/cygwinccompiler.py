@@ -116,7 +116,7 @@ class CygwinCCompiler(UnixCCompiler):
 
         if ('gcc' in self.cc): # Start gcc workaround
             self.gcc_version, self.ld_version, self.dllwrap_version = \
-                get_gcc_versions()
+                get_versions()
             self.debug_print(self.compiler_type + ": gcc %s, ld %s, dllwrap %s\n" %
                              (self.gcc_version,
                               self.ld_version,
@@ -400,7 +400,7 @@ def _find_exe_version(cmd):
     # so we need to decode our bytes
     return LooseVersion(result.group(1).decode())
 
-def get_gcc_versions():
+def get_versions():
     """ Try to find out the versions of gcc, ld and dllwrap.
 
     If not possible it returns None for it.
