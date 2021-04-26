@@ -24,3 +24,6 @@ link_files = {
         ],
     )
 }
+
+# Be strict about any broken references:
+nitpicky = True
