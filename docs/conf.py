@@ -73,10 +73,6 @@ link_files = {
     ),
 }
 
-intersphinx_mapping = {
-    'pypa-build': ('https://pypa-build.readthedocs.io/en/latest/', None)
-}
-
 # Add support for linking usernames
 github_url = 'https://github.com'
 github_sponsors_url = f'{github_url}/sponsors'
@@ -140,6 +136,7 @@ nitpick_ignore = [
 
 # Allow linking objects on other Sphinx sites seamlessly:
 intersphinx_mapping = {
+    'pypa-build': ('https://pypa-build.rtfd.io/en/latest', None),
     'python': ('https://docs.python.org/3', None),
     'python2': ('https://docs.python.org/2', None),
 }
