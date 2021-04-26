@@ -77,6 +77,7 @@ The features/techniques employed by the skeleton include:
 - A CHANGES.rst file intended for publishing release notes about the project
 - Use of [Black](https://black.readthedocs.io/en/stable/) for code formatting (disabled on unsupported Python 3.5 and earlier)
 - Integrated type checking through [mypy](https://github.com/python/mypy/).
+- Dependabot enabled to enable supply chain security.
 
 ## Packaging Conventions
 
