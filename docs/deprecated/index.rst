@@ -16,5 +16,6 @@ objectives.
     python3
     python_eggs
     easy_install
+    distutils/index
     distutils-legacy
     functionalities
