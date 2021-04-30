@@ -194,9 +194,8 @@ def _msvc14_find_vc2017():
             "-latest",
             "-prerelease",
             "-requiresAny",
-            "-requires", "Microsoft.VisualStudio.Component.VC.Tools.ARM",
-            "-requires", "Microsoft.VisualStudio.Component.VC.Tools.ARM64",
             "-requires", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+            "-requires", "Microsoft.VisualStudio.Workload.WDExpress",
             "-property", "installationPath",
             "-products", "*",
         ]).decode(encoding="mbcs", errors="strict").strip()
