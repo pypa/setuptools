@@ -73,6 +73,9 @@ link_files = {
     ),
 }
 
+# Be strict about any broken references:
+nitpicky = True
+
 intersphinx_mapping = {
     'pypa-build': ('https://pypa-build.readthedocs.io/en/latest/', None)
 }
@@ -84,9 +87,6 @@ extlinks = {
     'user': (f'{github_sponsors_url}/%s', '@'),  # noqa: WPS323
 }
 extensions += ['sphinx.ext.extlinks', 'sphinx.ext.intersphinx']
-
-# Be strict about any broken references:
-nitpicky = True
 
 # Ref: https://github.com/python-attrs/attrs/pull/571/files\
 #      #diff-85987f48f1258d9ee486e3191495582dR82
