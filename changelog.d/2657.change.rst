@@ -1,1 +1,0 @@
-Adopted docs from distutils.

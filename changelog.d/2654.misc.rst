@@ -1,2 +1,0 @@
-Made the changelog generator compatible
-with Towncrier >= 19.9 -- :user:`webknjaz`

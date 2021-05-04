@@ -1,3 +1,21 @@
+v56.1.0v56.1.0
+-------
+
+
+Changes
+^^^^^^^
+* #2653: Incorporated assorted changes from pypa/distutils.
+* #2657: Adopted docs from distutils.
+* #2663: Added Visual Studio Express 2017 support -- by :user:`dofuuz`
+
+Misc
+^^^^
+* #2644: Fixed ``DeprecationWarning`` due to ``threading.Thread.setDaemon`` in tests -- by :user:`tirkarthi`
+* #2654: Made the changelog generator compatible
+  with Towncrier >= 19.9 -- :user:`webknjaz`
+* #2664: Relax the deprecation message in the distutils hack.
+
+
 v56.0.0
 -------
 
