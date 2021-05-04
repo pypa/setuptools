@@ -1,0 +1,1 @@
+Relax the deprecation message in the distutils hack.
