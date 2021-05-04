@@ -1,0 +1,1 @@
+Added Visual Studio Express 2017 support -- by :user:`dofuuz`
