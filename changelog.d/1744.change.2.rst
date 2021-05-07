@@ -1,0 +1,2 @@
+Fixed develop installs generating scripts with an invalid shebang line when the
+path to the Python executable contains spaces -- :user:`AWhetter`

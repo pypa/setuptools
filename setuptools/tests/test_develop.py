@@ -13,6 +13,7 @@ import textwrap
 from setuptools.command import test
 
 import pytest
+import jaraco.envs
 
 from setuptools.command.develop import develop
 from setuptools.dist import Distribution
@@ -124,6 +125,53 @@ class TestDevelop:
         cmd.install_dir = tmpdir
         cmd.run()
         # assert '0.0' not in foocmd_text
+
+    def test_shebang_with_spaces(self, tmp_path, tmp_src, sample_project):
+        venv_path = tmp_path / "my virtualenv"
+
+        venv = jaraco.envs.VirtualEnv()
+        venv.name = "venv"
+        venv.root = venv_path
+        venv.req = str(tmp_src)
+        venv.create()
+
+        install_cmd = [
+            venv.exe(),
+            '-m',
+            'pip',
+            'install',
+            '--no-build-isolation',
+            '--editable',
+            sample_project,
+        ]
+        subprocess.check_call(install_cmd, cwd=venv_path)
+
+        subprocess.check_call(venv.exe('sample'))
+
+    def test_long_shebang(self, tmp_path, tmp_src, sample_project):
+        venv_path = tmp_path
+        for i in range(25):
+            venv_path = venv_path / 'really_super_duper_long_dir{0}'.format(i)
+        venv_path.mkdir(parents=True)
+
+        venv = jaraco.envs.VirtualEnv()
+        venv.name = "venv"
+        venv.root = venv_path
+        venv.req = str(tmp_src)
+        venv.create()
+
+        install_cmd = [
+            venv.exe(),
+            '-m',
+            'pip',
+            'install',
+            '--no-build-isolation',
+            '--editable',
+            sample_project,
+        ]
+        subprocess.check_call(install_cmd, cwd=venv_path)
+
+        subprocess.check_call(venv.exe('sample'))
 
 
 class TestResolver:

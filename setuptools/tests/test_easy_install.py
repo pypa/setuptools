@@ -1011,7 +1011,22 @@ class TestScriptHeader:
         actual = ei.ScriptWriter.get_header(
             '#!/usr/bin/python',
             executable='"' + self.exe_with_spaces + '"')
-        expected = '#!"%s"\n' % self.exe_with_spaces
+        expected = '#!/bin/sh\n'
+        expected += "'''exec' \"" + self.exe_with_spaces + '" "$0" "$@"\n'
+        expected += "' '''\n"
+        assert actual == expected
+
+    def test_get_script_header_exe_with_long_path(self):
+        exe = "/venv/bin/python"
+        for _ in range(25):
+            exe = "/really_super_duper_long_path" + exe
+
+        actual = ei.ScriptWriter.get_header(
+            '#!/usr/bin/python',
+            executable='"' + exe + '"')
+        expected = '#!/bin/sh\n'
+        expected += "'''exec' " + exe + ' "$0" "$@"\n'
+        expected += "' '''\n"
         assert actual == expected
 
 
@@ -1038,7 +1053,9 @@ class TestCommandSpec:
         os.environ.pop('__PYVENV_LAUNCHER__', None)
         cmd = ei.CommandSpec.from_environment()
         assert len(cmd) == 1
-        assert cmd.as_header().startswith('#!"')
+        shebang = cmd.as_header().splitlines()[0]
+        assert "'" not in shebang
+        assert '"' not in shebang
 
     def test_from_simple_string_uses_shlex(self):
         """

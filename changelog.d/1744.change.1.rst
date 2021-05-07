@@ -1,0 +1,3 @@
+Fixed develop installs generating scripts with an invalid shebang line when the
+length of the path to the Python executable is above the default shebang line
+length limit -- :user:`AWhetter`

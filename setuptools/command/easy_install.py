@@ -2025,7 +2025,21 @@ class CommandSpec(list):
     def _render(items):
         cmdline = subprocess.list2cmdline(
             CommandSpec._strip_quotes(item.strip()) for item in items)
-        return '#!' + cmdline + '\n'
+
+        if sys.platform == 'darwin':
+            max_shebang_length = 512
+        else:
+            max_shebang_length = 127
+
+        if (all(' ' not in item for item in items)
+                and len(cmdline) <= max_shebang_length):
+            result = '#!' + cmdline + '\n'
+        else:
+            result = '#!/bin/sh\n'
+            result += "'''exec' " + cmdline + ' "$0" "$@"\n'
+            result += "' '''\n"
+
+        return result
 
 
 # For pbr compat; will be removed in a future version.
