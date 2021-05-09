@@ -1,6 +1,3 @@
-from pathlib import Path
-
-
 extensions = ['sphinx.ext.autodoc', 'jaraco.packaging.sphinx', 'rst.linker']
 
 master_doc = "index"
@@ -149,13 +146,5 @@ intersphinx_mapping.update(
 
 # Add support for the unreleased "next-version" change notes
 extensions += ['sphinxcontrib.towncrier']
-
-
-# -- Options for towncrier_draft extension --------------------------------------------
-
-PROJECT_ROOT_DIR = Path(__file__).parents[1].resolve()
-
-towncrier_draft_autoversion_mode = "draft"  # or: 'sphinx-release', 'sphinx-version'
-towncrier_draft_include_empty = True
-towncrier_draft_working_directory = PROJECT_ROOT_DIR
-# Not yet supported: towncrier_draft_config_path = 'pyproject.toml'  # relative to cwd
+# Extension needs a path from here to the towncrier config.
+towncrier_draft_working_directory = '..'
