@@ -893,8 +893,8 @@ class TestEggInfo:
         with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
         assert 'Metadata-Version: 2.1' in pkg_info_lines
-        assert '' == pkg_info_lines[-1]
-        long_desc_lines = pkg_info_lines[8:]
+        assert '' == pkg_info_lines[-1]  # last line should be empty
+        long_desc_lines = pkg_info_lines[pkg_info_lines.index(''):]
         assert 'This is a long description' in long_desc_lines
         assert 'over multiple lines' in long_desc_lines
 
