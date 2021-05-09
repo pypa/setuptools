@@ -1,0 +1,2 @@
+Setuptools will now always try to use the latest supported
+metadata version for ``PKG-INFO``. - by :user:`cdce8p`
