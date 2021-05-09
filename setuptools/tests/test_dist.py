@@ -116,6 +116,10 @@ def __read_test_cases():
         ('Metadata Version 2.1: Long Description Content Type', params(
             long_description_content_type='text/x-rst; charset=UTF-8',
         )),
+        ('License', params(license='MIT', )),
+        ('License multiline', params(
+            license='This is a long license \nover multiple lines',
+        )),
         pytest.param(
             'Metadata Version 2.1: Provides Extra',
             params(provides_extras=['foo', 'bar']),
