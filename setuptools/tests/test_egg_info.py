@@ -5,6 +5,7 @@ import glob
 import re
 import stat
 import time
+from typing import List, Tuple
 
 import pytest
 from jaraco import path
@@ -44,6 +45,11 @@ class TestEggInfo:
                     print('hello')
                 """)
         })
+
+    @staticmethod
+    def _extract_mv_version(pkg_info_lines: List[str]) -> Tuple[int, int]:
+        version_str = pkg_info_lines[0].split(' ')[1]
+        return tuple(map(int, version_str.split('.')[:2]))
 
     @pytest.fixture
     def env(self):
@@ -829,6 +835,20 @@ class TestEggInfo:
         for lf in excl_licenses:
             assert sources_lines.count(lf) == 0
 
+    def test_metadata_version(self, tmpdir_cwd, env):
+        """Make sure latest metadata version is used by default."""
+        self._setup_script_with_requires("")
+        code, data = environment.run_setup_py(
+            cmd=['egg_info'],
+            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
+            data_stream=1,
+        )
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
+        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+            pkg_info_lines = pkginfo_file.read().split('\n')
+        # Update metadata version if changed
+        assert self._extract_mv_version(pkg_info_lines) == (2, 1)
+
     def test_long_description_content_type(self, tmpdir_cwd, env):
         # Test that specifying a `long_description_content_type` keyword arg to
         # the `setup` function results in writing a `Description-Content-Type`
@@ -884,7 +904,40 @@ class TestEggInfo:
         assert expected_line in pkg_info_lines
         expected_line = 'Project-URL: Link Two, https://example.com/two/'
         assert expected_line in pkg_info_lines
-        assert 'Metadata-Version: 1.2' in pkg_info_lines
+        assert self._extract_mv_version(pkg_info_lines) >= (1, 2)
+
+    def test_license(self, tmpdir_cwd, env):
+        """Test single line license."""
+        self._setup_script_with_requires(
+            "license='MIT',"
+        )
+        code, data = environment.run_setup_py(
+            cmd=['egg_info'],
+            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
+            data_stream=1,
+        )
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
+        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+            pkg_info_lines = pkginfo_file.read().split('\n')
+        assert 'License: MIT' in pkg_info_lines
+
+    def test_license_escape(self, tmpdir_cwd, env):
+        """Test license is escaped correctly if longer than one line."""
+        self._setup_script_with_requires(
+            "license='This is a long license text \\nover multiple lines',"
+        )
+        code, data = environment.run_setup_py(
+            cmd=['egg_info'],
+            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
+            data_stream=1,
+        )
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
+        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+            pkg_info_lines = pkginfo_file.read().split('\n')
+
+        assert 'License: This is a long license text ' in pkg_info_lines
+        assert '        over multiple lines' in pkg_info_lines
+        assert 'text \n        over multiple' in '\n'.join(pkg_info_lines)
 
     def test_python_requires_egg_info(self, tmpdir_cwd, env):
         self._setup_script_with_requires(
@@ -902,7 +955,7 @@ class TestEggInfo:
         with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
         assert 'Requires-Python: >=2.7.12' in pkg_info_lines
-        assert 'Metadata-Version: 1.2' in pkg_info_lines
+        assert self._extract_mv_version(pkg_info_lines) >= (1, 2)
 
     def test_manifest_maker_warning_suppression(self):
         fixtures = [
