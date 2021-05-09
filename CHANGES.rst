@@ -1,3 +1,14 @@
+v56.2.0
+-------
+
+
+Changes
+^^^^^^^
+* #2640: Fixed handling of multiline license strings. - by :user:`cdce8p`
+* #2641: Setuptools will now always try to use the latest supported
+  metadata version for ``PKG-INFO``. - by :user:`cdce8p`
+
+
 v56.1.0
 -------
 
