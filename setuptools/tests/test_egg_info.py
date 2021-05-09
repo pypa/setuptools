@@ -919,7 +919,7 @@ class TestEggInfo:
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
-        assert 'License: MIT' == pkg_info_lines[7]
+        assert 'License: MIT' in pkg_info_lines
 
     def test_license_escape(self, tmpdir_cwd, env):
         """Test license is escaped correctly if longer than one line."""
@@ -934,8 +934,10 @@ class TestEggInfo:
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
-        assert 'License: This is a long license text ' == pkg_info_lines[7]
-        assert '        over multiple lines' == pkg_info_lines[8]
+
+        assert 'License: This is a long license text ' in pkg_info_lines
+        assert '        over multiple lines' in pkg_info_lines
+        assert 'text \n        over multiple' in '\n'.join(pkg_info_lines)
 
     def test_python_requires_egg_info(self, tmpdir_cwd, env):
         self._setup_script_with_requires(
