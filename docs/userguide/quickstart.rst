@@ -173,7 +173,7 @@ Including Data Files
 ====================
 The distutils have traditionally allowed installation of "data files", which
 are placed in a platform-specific location. Setuptools offers three ways to
-specify data files to be included in your packages. For the simpliest use, you
+specify data files to be included in your packages. For the simplest use, you
 can simply use the ``include_package_data`` keyword:
 
 .. code-block:: ini
@@ -189,7 +189,7 @@ For more details, see :doc:`datafiles`
 Development mode
 ================
 ``setuptools`` allows you to install a package without copying any files
-to your interpretor directory (e.g. the ``site-packages`` directory). This
+to your interpreter directory (e.g. the ``site-packages`` directory). This
 allows you to modify your source code and have the changes take effect without
 you having to rebuild and reinstall. This is currently incompatible with
 PEP 517 and therefore it requires a ``setup.py`` script with the following
@@ -202,7 +202,7 @@ Then::
 
     pip install --editable .
 
-This creates a link file in your interpretor site package directory which
+This creates a link file in your interpreter site package directory which
 associate with your source code. For more information, see: (WIP)
 
 
@@ -216,7 +216,7 @@ basic use here.
 
 Transitioning from ``setup.py`` to ``setup.cfg``
 ================================================
-To avoid executing arbitary scripts and boilerplate code, we are transitioning
+To avoid executing arbitrary scripts and boilerplate code, we are transitioning
 into a full-fledged ``setup.cfg`` to declare your package information instead
 of running ``setup()``. This inevitably brings challenges due to a different
 syntax. Here we provide a quick guide to understanding how ``setup.cfg`` is
