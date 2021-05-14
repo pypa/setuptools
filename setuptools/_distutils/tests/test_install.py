@@ -101,7 +101,7 @@ class InstallTestCase(support.TempdirManager,
         cmd = install(dist)
 
         # making sure the user option is there
-        options = [name for name, short, lable in
+        options = [name for name, short, label in
                    cmd.user_options]
         self.assertIn('user', options)
 

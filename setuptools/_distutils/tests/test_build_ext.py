@@ -139,7 +139,7 @@ class BuildExtTestCase(TempdirManager,
         cmd = self.build_ext(dist)
 
         # making sure the user option is there
-        options = [name for name, short, lable in
+        options = [name for name, short, label in
                    cmd.user_options]
         self.assertIn('user', options)
 
