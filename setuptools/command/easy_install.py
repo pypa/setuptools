@@ -54,6 +54,8 @@ from setuptools.package_index import (
 )
 from setuptools.command import bdist_egg, egg_info
 from setuptools.wheel import Wheel
+from setuptools.extern.distlib.scripts import ScriptMaker
+from setuptools.extern.distlib.util import FileOperator
 from pkg_resources import (
     yield_lines, normalize_path, resource_string, ensure_directory,
     get_distribution, find_distributions, Environment, Requirement,
@@ -790,18 +792,28 @@ class easy_install(Command):
     def install_wrapper_scripts(self, dist):
         if self.exclude_scripts:
             return
-        for args in ScriptWriter.best().get_args(dist):
-            self.write_script(*args)
+
+        spec = str(dist.as_requirement())
+        with self._tmpdir() as tmpdir:
+            maker = ScriptMaker(tmpdir, self.script_dir, dry_run=self.dry_run)
+            for type_, gui in (('console', False), ('gui', True)):
+                group = type_ + '_scripts'
+                options = {'gui': gui}
+                for name, ep in dist.get_entry_map(group).items():
+                    specification = f"{name} = {ep.module_name}:{ep.attrs}"
+                    maker.make(specification)
 
     def install_script(self, dist, script_name, script_text, dev_path=None):
         """Generate a legacy script wrapper and install it"""
         spec = str(dist.as_requirement())
-        is_script = is_python_script(script_text, script_name)
+        with self._tmpdir() as tmpdir:
+            maker = ScriptMaker(tmpdir, self.script_dir, dry_run=self.dry_run)
 
-        if is_script:
-            body = self._load_template(dev_path) % locals()
-            script_text = ScriptWriter.get_header(script_text) + body
-        self.write_script(script_name, _to_bytes(script_text), 'b')
+            target = os.path.join(tmpdir, script_name)
+            with open(target, "wb") as f:
+                f.write(_to_bytes(script_text))
+
+            maker.make(script_name)
 
     @staticmethod
     def _load_template(dev_path):
