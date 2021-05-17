@@ -83,13 +83,13 @@ def get_msvcr():
             # VS2010 / MSVC 10.0
             return ['msvcr100']
         elif msc_ver == '1700':
-            # Visual Studio 2012 / Visual C++ 11.0
+            # VS2012 / MSVC 11.0
             return ['msvcr110']
         elif msc_ver == '1800':
-            # Visual Studio 2013 / Visual C++ 12.0
+            # VS2013 / MSVC 12.0
             return ['msvcr120']
         elif int(msc_ver) >= 1900 and int(msc_ver) < 2000:
-            # Visual Studio 2015 / Visual C++ 14.0
+            # VS2015 / MSVC 14.0
            return ['vcruntime140'] 
         else:
             raise ValueError("Unknown MS Compiler version %s " % msc_ver)
