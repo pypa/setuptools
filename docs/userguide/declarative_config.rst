@@ -183,8 +183,7 @@ maintainer                                         str
 maintainer_email                maintainer-email   str
 classifiers                     classifier         file:, list-comma
 license                                            str
-license_file                                       str
-license_files                                      list-comma         42.0.0
+license_files                   license_file       list-comma         42.0.0
 description                     summary            file:, str
 long_description                long-description   file:, str
 long_description_content_type                      str                38.6.0
