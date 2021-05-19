@@ -167,7 +167,7 @@ class TestGUI(WrapperTester):
         """).strip()
 
     def test_basic(self, tmpdir):
-        """Test the GUI version with the simple scipt, bar-script.py"""
+        """Test the GUI version with the simple script, bar-script.py"""
         self.create_script(tmpdir)
 
         cmd = [

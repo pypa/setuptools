@@ -250,7 +250,7 @@ dependencies for it to work:
             }
         )
 
-The name ``PDF`` is an arbitary identifier of such a list of dependencies, to
+The name ``PDF`` is an arbitrary identifier of such a list of dependencies, to
 which other components can refer and have them installed. There are two common
 use cases.
 

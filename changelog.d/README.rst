@@ -76,7 +76,7 @@ File :file:`changelog.d/1354.misc.rst`:
 
 .. code-block:: rst
 
-    Added ``towncrier`` for changelog managment -- by :user:`pganssle`
+    Added ``towncrier`` for changelog management -- by :user:`pganssle`
 
 File :file:`changelog.d/2355.change.rst`:
 

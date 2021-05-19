@@ -213,7 +213,7 @@ v51.2.0
 
 Changes
 ^^^^^^^
-* #2493: Use importlib.import_module() rather than the deprectated loader.load_module()
+* #2493: Use importlib.import_module() rather than the deprecated loader.load_module()
   in pkg_resources namespace delaration -- by :user:`encukou`
 
 Documentation changes
@@ -4295,7 +4295,7 @@ how it parses version numbers.
   (platform.mac_ver() fails)
 * Distribute #103: test_get_script_header_jython_workaround not run
   anymore under py3 with C or POSIX local. Contributed by Arfrever.
-* Distribute #104: remvoved the assertion when the installation fails,
+* Distribute #104: removed the assertion when the installation fails,
   with a nicer message for the end user.
 * Distribute #100: making sure there's no SandboxViolation when
   the setup script patches setuptools.
@@ -4432,7 +4432,7 @@ setuptools
 bootstrapping
 ^^^^^^^^^^^^^
 
-* The boostrap process leave setuptools alone if detected in the system
+* The bootstrap process leave setuptools alone if detected in the system
   and --root or --prefix is provided, but is not in the same location.
   This closes Distribute #10.
 

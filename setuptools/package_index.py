@@ -161,7 +161,7 @@ def interpret_distro_name(
     # Generate alternative interpretations of a source distro name
     # Because some packages are ambiguous as to name/versions split
     # e.g. "adns-python-1.1.0", "egenix-mx-commercial", etc.
-    # So, we generate each possible interepretation (e.g. "adns, python-1.1.0"
+    # So, we generate each possible interpretation (e.g. "adns, python-1.1.0"
     # "adns-python, 1.1.0", and "adns-python-1.1.0, no version").  In practice,
     # the spurious interpretations should be ignored, because in the event
     # there's also an "adns" package, the spurious "python-1.1.0" version will

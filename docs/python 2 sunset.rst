@@ -50,7 +50,7 @@ versions of Setuptools installed, here are some things to try.
    Then ``pip install setuptools``.
 2. If possible, attempt to replicate the problem in a second environment
    (virtual machine, friend's computer, etc). If the issue is isolated to just
-   one unique enviornment, first determine what is different about those
+   one unique environment, first determine what is different about those
    environments (or reinstall/reset the failing one to defaults).
 3. End users who are not themselves the maintainers for the package they are
    trying to install should contact the support channels for the relevant

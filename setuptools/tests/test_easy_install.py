@@ -659,7 +659,7 @@ class TestSetupRequires:
                 dep_url = path_to_url(dep_sdist, authority='localhost')
                 test_pkg = create_setup_requires_package(
                     temp_dir,
-                    # Ignored (overriden by setup_attrs)
+                    # Ignored (overridden by setup_attrs)
                     'python-xlib', '0.19',
                     setup_attrs=dict(
                         setup_requires='dependency @ %s' % dep_url))
@@ -731,7 +731,7 @@ class TestSetupRequires:
         with contexts.save_pkg_resources_state():
             test_pkg = create_setup_requires_package(
                 str(tmpdir),
-                'python-xlib', '0.19',  # Ignored (overriden by setup_attrs).
+                'python-xlib', '0.19',  # Ignored (overridden by setup_attrs).
                 setup_attrs=dict(
                     setup_requires='dep', dependency_links=[index_url]))
             test_setup_py = os.path.join(test_pkg, 'setup.py')

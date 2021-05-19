@@ -29,7 +29,7 @@ def run_setup_py(cmd, pypath=None, path=None,
     if pypath is not None:
         env["PYTHONPATH"] = pypath
 
-    # overide the execution path if needed
+    # override the execution path if needed
     if path is not None:
         env["PATH"] = path
     if not env.get("PATH", ""):
