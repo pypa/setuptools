@@ -133,7 +133,7 @@ def read_pkg_file(self, file):
         self.provides = None
         self.obsoletes = None
 
-    self.license_files_computed = _read_list_from_msg(msg, 'license-file')
+    self.license_files = _read_list_from_msg(msg, 'license-file')
 
 
 def single_line(val):
@@ -210,7 +210,7 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
         for extra in self.provides_extras:
             write_field('Provides-Extra', extra)
 
-    self._write_list(file, 'License-File', self.license_files_computed)
+    self._write_list(file, 'License-File', self.license_files or [])
 
 
 sequence = tuple, list
@@ -413,7 +413,6 @@ class Distribution(_Distribution):
         'provides_extras': ordered_set.OrderedSet,
         'license_file': None,
         'license_files': None,
-        'license_files_computed': list,
     }
 
     _patched_dist = None
@@ -595,7 +594,7 @@ class Distribution(_Distribution):
                 if path not in files and os.path.isfile(path):
                     files.add(path)
 
-        self.metadata.license_files_computed = sorted(files)
+        self.metadata.license_files = sorted(files)
 
     # FIXME: 'Distribution._parse_config_files' is too complex (14)
     def _parse_config_files(self, filenames=None):  # noqa: C901
