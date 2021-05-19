@@ -593,7 +593,7 @@ class manifest_maker(sdist):
         self.filelist.graft(ei_cmd.egg_info)
 
     def add_license_files(self):
-        license_files = self.distribution.metadata.license_files_computed
+        license_files = self.distribution.metadata.license_files or []
         for lf in license_files:
             log.info("adding license file '%s'", lf)
             pass
