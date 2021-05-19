@@ -143,3 +143,10 @@ intersphinx_mapping.update(
     python=('https://docs.python.org/3', None),
     python2=('https://docs.python.org/2', None),
 )
+
+# Add support for the unreleased "next-version" change notes
+extensions += ['sphinxcontrib.towncrier']
+# Extension needs a path from here to the towncrier config.
+towncrier_draft_working_directory = '..'
+# Avoid an empty section for unpublished changes.
+towncrier_draft_include_empty = False
