@@ -11,12 +11,12 @@ here = os.path.dirname(__file__)
 
 
 def read_commands():
-    command_ns = {}
-    cmd_module_path = 'setuptools/command/__init__.py'
-    init_path = os.path.join(here, cmd_module_path)
-    with open(init_path) as init_file:
-        exec(init_file.read(), command_ns)
-    return command_ns['__all__']
+    return [
+        'alias', 'bdist_egg', 'bdist_rpm', 'build_ext', 'build_py', 'develop',
+        'easy_install', 'egg_info', 'install', 'install_lib', 'rotate', 'saveopts',
+        'sdist', 'setopt', 'test', 'install_egg_info', 'install_scripts',
+        'upload_docs', 'build_clib', 'dist_info',
+    ]
 
 
 package_data = dict(

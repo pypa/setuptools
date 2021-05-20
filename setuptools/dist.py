@@ -639,7 +639,7 @@ class Distribution(_Distribution):
             return opt
 
         underscore_opt = opt.replace('-', '_')
-        commands = distutils.command.__all__ + setuptools.command.__all__
+        commands = distutils.command.__all__ + self._setuptools_commands()
         if (not section.startswith('options') and section != 'metadata'
                 and section not in commands):
             return underscore_opt
@@ -650,6 +650,10 @@ class Distribution(_Distribution):
                 "versions. Please use the underscore name '%s' instead"
                 % (opt, underscore_opt))
         return underscore_opt
+
+    def _setuptools_commands(self):
+        dist = pkg_resources.get_distribution('setuptools')
+        return list(dist.get_entry_map('distutils.commands'))
 
     def make_option_lowercase(self, opt, section):
         if section != 'metadata' or opt.islower():
