@@ -10,15 +10,6 @@ from setuptools.command.install import install
 here = os.path.dirname(__file__)
 
 
-def read_commands():
-    return [
-        'alias', 'bdist_egg', 'bdist_rpm', 'build_ext', 'build_py', 'develop',
-        'easy_install', 'egg_info', 'install', 'install_lib', 'rotate', 'saveopts',
-        'sdist', 'setopt', 'test', 'install_egg_info', 'install_scripts',
-        'upload_docs', 'build_clib', 'dist_info',
-    ]
-
-
 package_data = dict(
     setuptools=['script (dev).tmpl', 'script.tmpl', 'site-patch.py'],
 )
@@ -98,8 +89,26 @@ setup_params = dict(
     package_data=package_data,
     entry_points={
         "distutils.commands": [
-            "%(cmd)s = setuptools.command.%(cmd)s:%(cmd)s" % locals()
-            for cmd in read_commands()
+            "alias = setuptools.command.alias:alias",
+            "bdist_egg = setuptools.command.bdist_egg:bdist_egg",
+            "bdist_rpm = setuptools.command.bdist_rpm:bdist_rpm",
+            "build_clib = setuptools.command.build_clib:build_clib",
+            "build_ext = setuptools.command.build_ext:build_ext",
+            "build_py = setuptools.command.build_py:build_py",
+            "develop = setuptools.command.develop:develop",
+            "dist_info = setuptools.command.dist_info:dist_info",
+            "easy_install = setuptools.command.easy_install:easy_install",
+            "egg_info = setuptools.command.egg_info:egg_info",
+            "install = setuptools.command.install:install",
+            "install_egg_info = setuptools.command.install_egg_info:install_egg_info",
+            "install_lib = setuptools.command.install_lib:install_lib",
+            "install_scripts = setuptools.command.install_scripts:install_scripts",
+            "rotate = setuptools.command.rotate:rotate",
+            "saveopts = setuptools.command.saveopts:saveopts",
+            "sdist = setuptools.command.sdist:sdist",
+            "setopt = setuptools.command.setopt:setopt",
+            "test = setuptools.command.test:test",
+            "upload_docs = setuptools.command.upload_docs:upload_docs",
         ],
         "setuptools.finalize_distribution_options": [
             "parent_finalize = setuptools.dist:_Distribution.finalize_options",
