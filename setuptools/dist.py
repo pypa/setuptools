@@ -652,8 +652,12 @@ class Distribution(_Distribution):
         return underscore_opt
 
     def _setuptools_commands(self):
-        dist = pkg_resources.get_distribution('setuptools')
-        return list(dist.get_entry_map('distutils.commands'))
+        try:
+            dist = pkg_resources.get_distribution('setuptools')
+            return list(dist.get_entry_map('distutils.commands'))
+        except pkg_resources.DistributionNotFound:
+            # during bootstrapping, distribution doesn't exist
+            return []
 
     def make_option_lowercase(self, opt, section):
         if section != 'metadata' or opt.islower():
