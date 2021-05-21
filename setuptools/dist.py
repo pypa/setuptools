@@ -403,7 +403,7 @@ class Distribution(_Distribution):
     """
 
     _DISTUTILS_UNSUPPORTED_METADATA = {
-        'long_description_content_type': None,
+        'long_description_content_type': lambda: None,
         'project_urls': dict,
         'provides_extras': ordered_set.OrderedSet,
         'license_files': ordered_set.OrderedSet,
@@ -442,21 +442,21 @@ class Distribution(_Distribution):
             if k not in self._DISTUTILS_UNSUPPORTED_METADATA
         })
 
-        # Fill-in missing metadata fields not supported by distutils.
-        # Note some fields may have been set by other tools (e.g. pbr)
-        # above; they are taken preferrentially to setup() arguments
-        for option, default in self._DISTUTILS_UNSUPPORTED_METADATA.items():
-            for source in self.metadata.__dict__, attrs:
-                if option in source:
-                    value = source[option]
-                    break
-            else:
-                value = default() if default else None
-            setattr(self.metadata, option, value)
+        self._set_metadata_defaults(attrs)
 
         self.metadata.version = self._normalize_version(
             self._validate_version(self.metadata.version))
         self._finalize_requires()
+
+    def _set_metadata_defaults(self, attrs):
+        """
+        Fill-in missing metadata fields not supported by distutils.
+        Some fields may have been set by other tools (e.g. pbr).
+        Those fields (vars(self.metadata)) take precedence to
+        supplied attrs.
+        """
+        for option, default in self._DISTUTILS_UNSUPPORTED_METADATA.items():
+            vars(self.metadata).setdefault(option, attrs.get(option, default()))
 
     @staticmethod
     def _normalize_version(version):
