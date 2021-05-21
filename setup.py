@@ -10,15 +10,6 @@ from setuptools.command.install import install
 here = os.path.dirname(__file__)
 
 
-def read_commands():
-    command_ns = {}
-    cmd_module_path = 'setuptools/command/__init__.py'
-    init_path = os.path.join(here, cmd_module_path)
-    with open(init_path) as init_file:
-        exec(init_file.read(), command_ns)
-    return command_ns['__all__']
-
-
 package_data = dict(
     setuptools=['script (dev).tmpl', 'script.tmpl', 'site-patch.py'],
 )
@@ -96,54 +87,6 @@ setup_params = dict(
     src_root=None,
     cmdclass={'install': install_with_pth},
     package_data=package_data,
-    entry_points={
-        "distutils.commands": [
-            "%(cmd)s = setuptools.command.%(cmd)s:%(cmd)s" % locals()
-            for cmd in read_commands()
-        ],
-        "setuptools.finalize_distribution_options": [
-            "parent_finalize = setuptools.dist:_Distribution.finalize_options",
-            "keywords = setuptools.dist:Distribution._finalize_setup_keywords",
-            "2to3_doctests = "
-            "setuptools.dist:Distribution._finalize_2to3_doctests",
-        ],
-        "distutils.setup_keywords": [
-            "eager_resources        = setuptools.dist:assert_string_list",
-            "namespace_packages     = setuptools.dist:check_nsp",
-            "extras_require         = setuptools.dist:check_extras",
-            "install_requires       = setuptools.dist:check_requirements",
-            "tests_require          = setuptools.dist:check_requirements",
-            "setup_requires         = setuptools.dist:check_requirements",
-            "python_requires        = setuptools.dist:check_specifier",
-            "entry_points           = setuptools.dist:check_entry_points",
-            "test_suite             = setuptools.dist:check_test_suite",
-            "zip_safe               = setuptools.dist:assert_bool",
-            "package_data           = setuptools.dist:check_package_data",
-            "exclude_package_data   = setuptools.dist:check_package_data",
-            "include_package_data   = setuptools.dist:assert_bool",
-            "packages               = setuptools.dist:check_packages",
-            "dependency_links       = setuptools.dist:assert_string_list",
-            "test_loader            = setuptools.dist:check_importable",
-            "test_runner            = setuptools.dist:check_importable",
-            "use_2to3               = setuptools.dist:assert_bool",
-            "convert_2to3_doctests  = setuptools.dist:assert_string_list",
-            "use_2to3_fixers        = setuptools.dist:assert_string_list",
-            "use_2to3_exclude_fixers = setuptools.dist:assert_string_list",
-        ],
-        "egg_info.writers": [
-            "PKG-INFO = setuptools.command.egg_info:write_pkg_info",
-            "requires.txt = setuptools.command.egg_info:write_requirements",
-            "entry_points.txt = setuptools.command.egg_info:write_entries",
-            "eager_resources.txt = setuptools.command.egg_info:overwrite_arg",
-            (
-                "namespace_packages.txt = "
-                "setuptools.command.egg_info:overwrite_arg"
-            ),
-            "top_level.txt = setuptools.command.egg_info:write_toplevel_names",
-            "depends.txt = setuptools.command.egg_info:warn_depends_obsolete",
-            "dependency_links.txt = setuptools.command.egg_info:overwrite_arg",
-        ],
-    },
     dependency_links=[
         pypi_link(
             'certifi-2016.9.26.tar.gz#md5=baa81e951a29958563689d868ef1064d',

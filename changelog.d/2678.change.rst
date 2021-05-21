@@ -1,0 +1,1 @@
+Moved Setuptools' own entry points into declarative config.
