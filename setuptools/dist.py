@@ -411,6 +411,7 @@ class Distribution(_Distribution):
         'long_description_content_type': lambda: None,
         'project_urls': dict,
         'provides_extras': ordered_set.OrderedSet,
+        'license_file': lambda: None,
         'license_files': lambda: None,
     }
 
@@ -576,10 +577,7 @@ class Distribution(_Distribution):
         license_files: Optional[List[str]] = self.metadata.license_files
         patterns: List[str] = license_files if license_files else []
 
-        license_file: Optional[str] = None
-        opts = self.get_option_dict('metadata')
-        if 'license_file' in opts:
-            license_file = opts['license_file'][1]
+        license_file: Optional[str] = self.metadata.license_file
         if license_file and license_file not in patterns:
             patterns.append(license_file)
 
