@@ -689,6 +689,17 @@ class TestEggInfo:
             'NOTICE-XYZ': "XYZ notice",
             }, ['LICENSE-ABC'], ['NOTICE-XYZ'],
             id="no_default_glob_patterns"),
+        pytest.param({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_files =
+                                  LICENSE-ABC
+                                  LICENSE*
+                              """),
+            'LICENSE-ABC': "ABC license",
+            }, ['LICENSE-ABC'], [],
+            id="files_only_added_once",
+        ),
     ])
     def test_setup_cfg_license_files(
             self, tmpdir_cwd, env, files, incl_licenses, excl_licenses):
@@ -843,11 +854,13 @@ class TestEggInfo:
             "setup.cfg": DALS("""
                               [metadata]
                               license_files =
+                                  NOTICE*
                                   LICENSE*
                               """),
             "LICENSE-ABC": "ABC license",
             "LICENSE-XYZ": "XYZ license",
-            "NOTICE": "not included",
+            "NOTICE": "included",
+            "IGNORE": "not include",
         })
 
         environment.run_setup_py(
@@ -860,10 +873,13 @@ class TestEggInfo:
         license_file_lines = [
             line for line in pkg_info_lines if line.startswith('License-File:')]
 
-        # Only 'LICENSE-ABC' and 'LICENSE-XYZ' should have been matched
-        assert len(license_file_lines) == 2
-        assert "License-File: LICENSE-ABC" in license_file_lines
-        assert "License-File: LICENSE-XYZ" in license_file_lines
+        # Only 'NOTICE', LICENSE-ABC', and 'LICENSE-XYZ' should have been matched
+        # Also assert that order from license_files is keeped
+        assert license_file_lines == [
+            "License-File: NOTICE",
+            "License-File: LICENSE-ABC",
+            "License-File: LICENSE-XYZ",
+        ]
 
     def test_metadata_version(self, tmpdir_cwd, env):
         """Make sure latest metadata version is used by default."""

@@ -573,13 +573,13 @@ class Distribution(_Distribution):
 
     def _finalize_license_files(self):
         """Compute names of all license files which should be included."""
-        files = set()
+        files: List[str] = []
         license_files: Optional[List[str]] = self.metadata.license_files
-        patterns: Set[str] = set(license_files) if license_files else set()
+        patterns: List[str] = license_files if license_files else []
 
         license_file: Optional[str] = self.metadata.license_file
-        if license_file:
-            patterns.add(license_file)
+        if license_file and license_file not in patterns:
+            patterns.append(license_file)
 
         if license_files is None and license_file is None:
             # Default patterns match the ones wheel uses
@@ -588,13 +588,15 @@ class Distribution(_Distribution):
             patterns = ('LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*')
 
         for pattern in patterns:
+            files_pattern: Set[str] = set()
             for path in iglob(pattern):
                 if path.endswith('~'):
                     continue
                 if path not in files and os.path.isfile(path):
-                    files.add(path)
+                    files_pattern.add(path)
+            files.extend(sorted(files_pattern))
 
-        self.metadata.license_files = sorted(files)
+        self.metadata.license_files = files
 
     # FIXME: 'Distribution._parse_config_files' is too complex (14)
     def _parse_config_files(self, filenames=None):  # noqa: C901
