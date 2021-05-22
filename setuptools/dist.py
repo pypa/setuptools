@@ -411,8 +411,8 @@ class Distribution(_Distribution):
         'long_description_content_type': lambda: None,
         'project_urls': dict,
         'provides_extras': ordered_set.OrderedSet,
-        'license_file': None,
-        'license_files': None,
+        'license_file': lambda: None,
+        'license_files': lambda: None,
     }
 
     _patched_dist = None
