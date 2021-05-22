@@ -1,0 +1,1 @@
+Write long description in message payload of PKG-INFO file. - by :user:`cdce8p`

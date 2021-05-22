@@ -251,8 +251,8 @@ def test_maintainer_author(name, attrs, tmpdir):
     with io.open(str(fn.join('PKG-INFO')), 'r', encoding='utf-8') as f:
         raw_pkg_lines = f.readlines()
 
-    # Drop blank lines
-    pkg_lines = list(filter(None, raw_pkg_lines))
+    # Drop blank lines and strip lines from default description
+    pkg_lines = list(filter(None, raw_pkg_lines[:-2]))
 
     pkg_lines_set = set(pkg_lines)
 

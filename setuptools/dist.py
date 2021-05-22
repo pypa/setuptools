@@ -92,6 +92,13 @@ def _read_list_from_msg(msg: "Message", field: str) -> Optional[List[str]]:
     return values
 
 
+def _read_payload_from_msg(msg: "Message") -> Optional[str]:
+    value = msg.get_payload().strip()
+    if value == 'UNKNOWN':
+        return None
+    return value
+
+
 def read_pkg_file(self, file):
     """Reads the metadata values from a file object."""
     msg = message_from_file(file)
@@ -114,6 +121,8 @@ def read_pkg_file(self, file):
         self.download_url = None
 
     self.long_description = _read_field_unescaped_from_msg(msg, 'description')
+    if self.long_description is None and self.metadata_version >= StrictVersion('2.1'):
+        self.long_description = _read_payload_from_msg(msg)
     self.description = _read_field_from_msg(msg, 'summary')
 
     if 'keywords' in msg:
@@ -176,9 +185,6 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     for project_url in self.project_urls.items():
         write_field('Project-URL', '%s, %s' % project_url)
 
-    long_desc = rfc822_escape(self.get_long_description())
-    write_field('Description', long_desc)
-
     keywords = ','.join(self.get_keywords())
     if keywords:
         write_field('Keywords', keywords)
@@ -206,6 +212,8 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     if self.provides_extras:
         for extra in self.provides_extras:
             write_field('Provides-Extra', extra)
+
+    file.write("\n%s\n\n" % self.get_long_description())
 
 
 sequence = tuple, list

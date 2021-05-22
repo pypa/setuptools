@@ -875,6 +875,29 @@ class TestEggInfo:
         assert expected_line in pkg_info_lines
         assert 'Metadata-Version: 2.1' in pkg_info_lines
 
+    def test_long_description(self, tmpdir_cwd, env):
+        # Test that specifying `long_description` and `long_description_content_type`
+        # keyword args to the `setup` function results in writing
+        # the description in the message payload of the `PKG-INFO` file
+        # in the `<distribution>.egg-info` directory.
+        self._setup_script_with_requires(
+            "long_description='This is a long description\\nover multiple lines',"
+            "long_description_content_type='text/markdown',"
+        )
+        code, data = environment.run_setup_py(
+            cmd=['egg_info'],
+            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
+            data_stream=1,
+        )
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
+        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+            pkg_info_lines = pkginfo_file.read().split('\n')
+        assert 'Metadata-Version: 2.1' in pkg_info_lines
+        assert '' == pkg_info_lines[-1]  # last line should be empty
+        long_desc_lines = pkg_info_lines[pkg_info_lines.index(''):]
+        assert 'This is a long description' in long_desc_lines
+        assert 'over multiple lines' in long_desc_lines
+
     def test_project_urls(self, tmpdir_cwd, env):
         # Test that specifying a `project_urls` dict to the `setup`
         # function results in writing multiple `Project-URL` lines to
