@@ -18,7 +18,7 @@ from distutils.fancy_getopt import translate_longopt
 from glob import iglob
 import itertools
 import textwrap
-from typing import List, Optional, Set, TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING
 
 from collections import defaultdict
 from email import message_from_file
@@ -573,7 +573,6 @@ class Distribution(_Distribution):
 
     def _finalize_license_files(self):
         """Compute names of all license files which should be included."""
-        files: List[str] = []
         license_files: Optional[List[str]] = self.metadata.license_files
         patterns: List[str] = license_files if license_files else []
 
@@ -587,16 +586,18 @@ class Distribution(_Distribution):
             # -> 'Including license files in the generated wheel file'
             patterns = ('LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*')
 
-        for pattern in patterns:
-            files_pattern: Set[str] = set()
-            for path in iglob(pattern):
-                if path.endswith('~'):
-                    continue
-                if path not in files and os.path.isfile(path):
-                    files_pattern.add(path)
-            files.extend(sorted(files_pattern))
+        self.metadata.license_files = list(
+            unique_everseen(self._expand_patterns(patterns)))
 
-        self.metadata.license_files = files
+    @staticmethod
+    def _expand_patterns(patterns):
+        return (
+            path
+            for pattern in patterns
+            for path in iglob(pattern)
+            if not path.endswith('~')
+            and os.path.isfile(path)
+        )
 
     # FIXME: 'Distribution._parse_config_files' is too complex (14)
     def _parse_config_files(self, filenames=None):  # noqa: C901
@@ -1103,3 +1104,21 @@ class Distribution(_Distribution):
 class DistDeprecationWarning(SetuptoolsDeprecationWarning):
     """Class for warning about deprecations in dist in
     setuptools. Not ignored by default, unlike DeprecationWarning."""
+
+
+def unique_everseen(iterable, key=None):
+    "List unique elements, preserving order. Remember all elements ever seen."
+    # unique_everseen('AAAABBBCCDAABBB') --> A B C D
+    # unique_everseen('ABBCcAD', str.lower) --> A B C D
+    seen = set()
+    seen_add = seen.add
+    if key is None:
+        for element in itertools.filterfalse(seen.__contains__, iterable):
+            seen_add(element)
+            yield element
+    else:
+        for element in iterable:
+            k = key(element)
+            if k not in seen:
+                seen_add(k)
+                yield element
