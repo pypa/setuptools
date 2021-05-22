@@ -28,6 +28,8 @@ from distutils import log
 from distutils.errors import DistutilsError
 from fnmatch import translate
 from setuptools.wheel import Wheel
+from setuptools.extern.more_itertools import unique_everseen
+
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.+!]+)$')
 HREF = re.compile(r"""href\s*=\s*['"]?([^'"> ]+)""", re.I)
@@ -181,25 +183,6 @@ def interpret_distro_name(
             py_version=py_version, precedence=precedence,
             platform=platform
         )
-
-
-# From Python 2.7 docs
-def unique_everseen(iterable, key=None):
-    "List unique elements, preserving order. Remember all elements ever seen."
-    # unique_everseen('AAAABBBCCDAABBB') --> A B C D
-    # unique_everseen('ABBCcAD', str.lower) --> A B C D
-    seen = set()
-    seen_add = seen.add
-    if key is None:
-        for element in itertools.filterfalse(seen.__contains__, iterable):
-            seen_add(element)
-            yield element
-    else:
-        for element in iterable:
-            k = key(element)
-            if k not in seen:
-                seen_add(k)
-                yield element
 
 
 def unique_values(func):
