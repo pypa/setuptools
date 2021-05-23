@@ -551,7 +551,7 @@ class TestEggInfo:
                               """),
             'MANIFEST.in': "exclude LICENSE",
             'LICENSE': "Test license"
-        }, False),  # license file is manually excluded
+        }, True),  # manifest is overwritten by license_file
         pytest.param({
             'setup.cfg': DALS("""
                               [metadata]
@@ -647,7 +647,7 @@ class TestEggInfo:
                               """),
             'MANIFEST.in': "exclude LICENSE",
             'LICENSE': "Test license"
-        }, [], ['LICENSE']),  # license file is manually excluded
+        }, ['LICENSE'], []),  # manifest is overwritten by license_files
         ({
             'setup.cfg': DALS("""
                               [metadata]
@@ -658,7 +658,8 @@ class TestEggInfo:
             'MANIFEST.in': "exclude LICENSE-XYZ",
             'LICENSE-ABC': "ABC license",
             'LICENSE-XYZ': "XYZ license"
-        }, ['LICENSE-ABC'], ['LICENSE-XYZ']),  # subset is manually excluded
+            # manifest is overwritten by license_files
+        }, ['LICENSE-ABC', 'LICENSE-XYZ'], []),
         pytest.param({
             'setup.cfg': "",
             'LICENSE-ABC': "ABC license",
@@ -688,6 +689,17 @@ class TestEggInfo:
             'NOTICE-XYZ': "XYZ notice",
             }, ['LICENSE-ABC'], ['NOTICE-XYZ'],
             id="no_default_glob_patterns"),
+        pytest.param({
+            'setup.cfg': DALS("""
+                              [metadata]
+                              license_files =
+                                  LICENSE-ABC
+                                  LICENSE*
+                              """),
+            'LICENSE-ABC': "ABC license",
+            }, ['LICENSE-ABC'], [],
+            id="files_only_added_once",
+        ),
     ])
     def test_setup_cfg_license_files(
             self, tmpdir_cwd, env, files, incl_licenses, excl_licenses):
@@ -791,8 +803,8 @@ class TestEggInfo:
             'LICENSE-ABC': "ABC license",
             'LICENSE-PQR': "PQR license",
             'LICENSE-XYZ': "XYZ license"
-            # manually excluded
-        }, ['LICENSE-XYZ'], ['LICENSE-ABC', 'LICENSE-PQR']),
+            # manifest is overwritten
+        }, ['LICENSE-ABC', 'LICENSE-PQR', 'LICENSE-XYZ'], []),
         pytest.param({
             'setup.cfg': DALS("""
                               [metadata]
@@ -835,6 +847,38 @@ class TestEggInfo:
         for lf in excl_licenses:
             assert sources_lines.count(lf) == 0
 
+    def test_license_file_attr_pkg_info(self, tmpdir_cwd, env):
+        """All matched license files should have a corresponding License-File."""
+        self._create_project()
+        path.build({
+            "setup.cfg": DALS("""
+                              [metadata]
+                              license_files =
+                                  NOTICE*
+                                  LICENSE*
+                              """),
+            "LICENSE-ABC": "ABC license",
+            "LICENSE-XYZ": "XYZ license",
+            "NOTICE": "included",
+            "IGNORE": "not include",
+        })
+
+        environment.run_setup_py(
+            cmd=['egg_info'],
+            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)])
+        )
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
+        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+            pkg_info_lines = pkginfo_file.read().split('\n')
+        license_file_lines = [
+            line for line in pkg_info_lines if line.startswith('License-File:')]
+
+        # Only 'NOTICE', LICENSE-ABC', and 'LICENSE-XYZ' should have been matched
+        # Also assert that order from license_files is keeped
+        assert "License-File: NOTICE" == license_file_lines[0]
+        assert "License-File: LICENSE-ABC" in license_file_lines[1:]
+        assert "License-File: LICENSE-XYZ" in license_file_lines[1:]
+
     def test_metadata_version(self, tmpdir_cwd, env):
         """Make sure latest metadata version is used by default."""
         self._setup_script_with_requires("")
@@ -874,6 +918,29 @@ class TestEggInfo:
         expected_line = 'Description-Content-Type: text/markdown'
         assert expected_line in pkg_info_lines
         assert 'Metadata-Version: 2.1' in pkg_info_lines
+
+    def test_long_description(self, tmpdir_cwd, env):
+        # Test that specifying `long_description` and `long_description_content_type`
+        # keyword args to the `setup` function results in writing
+        # the description in the message payload of the `PKG-INFO` file
+        # in the `<distribution>.egg-info` directory.
+        self._setup_script_with_requires(
+            "long_description='This is a long description\\nover multiple lines',"
+            "long_description_content_type='text/markdown',"
+        )
+        code, data = environment.run_setup_py(
+            cmd=['egg_info'],
+            pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
+            data_stream=1,
+        )
+        egg_info_dir = os.path.join('.', 'foo.egg-info')
+        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+            pkg_info_lines = pkginfo_file.read().split('\n')
+        assert 'Metadata-Version: 2.1' in pkg_info_lines
+        assert '' == pkg_info_lines[-1]  # last line should be empty
+        long_desc_lines = pkg_info_lines[pkg_info_lines.index(''):]
+        assert 'This is a long description' in long_desc_lines
+        assert 'over multiple lines' in long_desc_lines
 
     def test_project_urls(self, tmpdir_cwd, env):
         # Test that specifying a `project_urls` dict to the `setup`
