@@ -1,0 +1,1 @@
+Vendored `more_itertools <https://pypi.org/project/more-itertools>`_ for Setuptools.
