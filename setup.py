@@ -29,9 +29,6 @@ if include_windows_files:
     package_data.setdefault('setuptools', []).extend(['*.exe'])
     package_data.setdefault('setuptools.command', []).extend(['*.xml'])
 
-needs_wheel = set(['release', 'bdist_wheel']).intersection(sys.argv)
-wheel = ['wheel'] if needs_wheel else []
-
 
 def pypi_link(pkg_filename):
     """
@@ -95,8 +92,6 @@ setup_params = dict(
             'wincertstore-0.2.zip#md5=ae728f2f007185648d0c7a8679b361e2',
         ),
     ],
-    setup_requires=[
-    ] + wheel,
 )
 
 if __name__ == '__main__':
