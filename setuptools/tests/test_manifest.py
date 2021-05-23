@@ -55,7 +55,6 @@ def touch(filename):
 default_files = frozenset(map(make_local_path, [
     'README.rst',
     'MANIFEST.in',
-    'LICENSE',
     'setup.py',
     'app.egg-info/PKG-INFO',
     'app.egg-info/SOURCES.txt',

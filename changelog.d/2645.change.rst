@@ -1,0 +1,4 @@
+Added ``License-File`` (multiple) to the output package metadata.
+The field will contain the path of a license file, matched by the
+``license_file`` (deprecated) and ``license_files`` options,
+relative to ``.dist-info``. - by :user:`cdce8p`
