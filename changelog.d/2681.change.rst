@@ -1,0 +1,1 @@
+Setuptools own setup.py no longer declares setup_requires, but instead expects wheel to be installed as declared by pyproject.toml.
