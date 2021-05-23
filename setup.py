@@ -19,11 +19,7 @@ force_windows_specific_files = (
     not in ("", "0", "false", "no")
 )
 
-include_windows_files = (
-    sys.platform == 'win32' or
-    os.name == 'java' and os._name == 'nt' or
-    force_windows_specific_files
-)
+include_windows_files = sys.platform == 'win32' or force_windows_specific_files
 
 if include_windows_files:
     package_data.setdefault('setuptools', []).extend(['*.exe'])
