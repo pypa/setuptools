@@ -79,14 +79,6 @@ class install_with_pth(install):
 setup_params = dict(
     cmdclass={'install': install_with_pth},
     package_data=package_data,
-    dependency_links=[
-        pypi_link(
-            'certifi-2016.9.26.tar.gz#md5=baa81e951a29958563689d868ef1064d',
-        ),
-        pypi_link(
-            'wincertstore-0.2.zip#md5=ae728f2f007185648d0c7a8679b361e2',
-        ),
-    ],
 )
 
 if __name__ == '__main__':
