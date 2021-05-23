@@ -81,7 +81,6 @@ class install_with_pth(install):
 
 
 setup_params = dict(
-    src_root=None,
     cmdclass={'install': install_with_pth},
     package_data=package_data,
     dependency_links=[
