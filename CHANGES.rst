@@ -1,3 +1,31 @@
+v57.0.0
+-------
+
+
+Breaking Changes
+^^^^^^^^^^^^^^^^
+* #2645: License files excluded via the ``MANIFEST.in`` but matched by either
+  the ``license_file`` (deprecated) or ``license_files`` options,
+  will be nevertheless included in the source distribution. - by :user:`cdce8p`
+
+Changes
+^^^^^^^
+* #2628: Write long description in message payload of PKG-INFO file. - by :user:`cdce8p`
+* #2645: Added ``License-File`` (multiple) to the output package metadata.
+  The field will contain the path of a license file, matched by the
+  ``license_file`` (deprecated) and ``license_files`` options,
+  relative to ``.dist-info``. - by :user:`cdce8p`
+* #2678: Moved Setuptools' own entry points into declarative config.
+* #2680: Vendored `more_itertools <https://pypi.org/project/more-itertools>`_ for Setuptools.
+* #2681: Setuptools own setup.py no longer declares setup_requires, but instead expects wheel to be installed as declared by pyproject.toml.
+
+Misc
+^^^^
+* #2650: Updated the docs build tooling to support the latest version of
+  Towncrier and show the previews of not-yet-released setuptools versions
+  in the changelog -- :user:`webknjaz`
+
+
 v56.2.0
 -------
 
