@@ -5,7 +5,7 @@ Build System Support
 What is it?
 -------------
 
-Python packaging has come `a long way <https://www.bernat.tech/pep-517-518/>`_.
+Python packaging has come `a long way <https://bernat.tech/posts/pep-517-518/>`_.
 
 The traditional ``setuptools`` way of packaging Python modules
 uses a ``setup()`` function within the ``setup.py`` script. Commands such as
