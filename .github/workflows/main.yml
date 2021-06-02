@@ -20,12 +20,8 @@ jobs:
           python -m pip install tox
       - name: Run tests
         run: tox
-      - name: After tests
-        run: tox -e coverage,codecov
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
-        with:
-          fail_ci_if_error: true
+        run: tox -e coverage,codecov
 
   release:
     needs: test
