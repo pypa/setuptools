@@ -168,26 +168,18 @@ char **parse_argv(char *cmdline, int *argc)
     } while (1);
 }
 
-void pass_control_to_child(DWORD control_type) {
-    /*
-     * distribute-issue207
-     * passes the control event to child process (Python)
-     */
-    if (!child_pid) {
-        return;
-    }
-    GenerateConsoleCtrlEvent(child_pid,0);
-}
-
 BOOL control_handler(DWORD control_type) {
     /* 
      * distribute-issue207
-     * control event handler callback function
+     * control event handler callback function and
+     * pass the control event to child process.
      */
-    switch (control_type) {
-        case CTRL_C_EVENT:
-            pass_control_to_child(0);
-            break;
+    if ((control_type == CTRL_C_EVENT) && child_pid){
+        if (!GenerateConsoleCtrlEvent(control_type, 0)){
+            fprintf(stderr, "failed to kill the underlying python process.(%ld)\n", GetLastError());
+            return FALSE;
+        }
+        child_pid = 0;
     }
     return TRUE;
 }

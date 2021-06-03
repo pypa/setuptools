@@ -1,0 +1,5 @@
+Made launcher kill the underlying Python process properly.
+
+Previously, it messed up parameters on ``GenerateConsoleCtrlEvent``
+this fixes that and catches error if anything occurred and prints
+them -- by :user:`naveen521kk`
