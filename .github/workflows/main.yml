@@ -21,7 +21,11 @@ jobs:
       - name: Run tests
         run: tox
       - name: Upload coverage to Codecov
-        run: tox -e coverage,codecov
+        uses: codecov/codecov-action@v1
+        with:
+          functionalities: gcov
+          files: ./coverage.xml
+          verbose: true # optional (default = false)
 
   release:
     needs: test
