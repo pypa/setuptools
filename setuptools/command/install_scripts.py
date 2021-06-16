@@ -42,7 +42,7 @@ class install_scripts(orig.install_scripts):
         if is_wininst:
             exec_param = "python.exe"
             writer = ei.WindowsScriptWriter
-        if exec_param == sys.executable:
+        if os.path.abspath(exec_param) == os.path.abspath(sys.executable):
             # In case the path to the Python executable contains a space, wrap
             # it so it's not split up.
             exec_param = [exec_param]
