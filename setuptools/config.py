@@ -309,7 +309,7 @@ class ConfigHandler:
         from nearest files using `file:` directive.
 
         Examples:
-            file: README.rst, CHANGELOG.md, src/file.txt ../file.txt
+            file: README.rst, CHANGELOG.md, src/file.txt, ../file.txt
 
         :param str value:
         :rtype: str
