@@ -193,7 +193,7 @@ class TestMetadata:
                 'changelog contents\nand stuff'
             )
 
-    def test_file_sandboxed(self, tmpdir):
+    def test_file_outside(self, tmpdir):
 
         fake_env(
             tmpdir,
@@ -201,9 +201,12 @@ class TestMetadata:
             'long_description = file: ../../README\n'
         )
 
-        with get_dist(tmpdir, parse=False) as dist:
-            with pytest.raises(DistutilsOptionError):
-                dist.parse_config_files()  # file: out of sandbox
+        tmpdir.join('../../README').write('readme contents\noutside of the sandbox')
+
+        with get_dist(tmpdir) as dist:
+            assert dist.metadata.long_description == (
+                'readme contents\noutside of the sandbox'
+            )
 
     def test_aliases(self, tmpdir):
 

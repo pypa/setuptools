@@ -308,11 +308,8 @@ class ConfigHandler:
         """Represents value as a string, allowing including text
         from nearest files using `file:` directive.
 
-        Directive is sandboxed and won't reach anything outside
-        directory with setup.py.
-
         Examples:
-            file: README.rst, CHANGELOG.md, src/file.txt
+            file: README.rst, CHANGELOG.md, src/file.txt ../file.txt
 
         :param str value:
         :rtype: str
@@ -330,15 +327,8 @@ class ConfigHandler:
         return '\n'.join(
             cls._read_file(path)
             for path in filepaths
-            if (cls._assert_local(path) or True)
-            and os.path.isfile(path)
+            if os.path.isfile(path)
         )
-
-    @staticmethod
-    def _assert_local(filepath):
-        if not filepath.startswith(os.getcwd()):
-            raise DistutilsOptionError(
-                '`file:` directive can not access %s' % filepath)
 
     @staticmethod
     def _read_file(filepath):
