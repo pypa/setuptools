@@ -1,0 +1,3 @@
+Allowed to copy the content of the file outside the main directory in the ``setup.cfg`` file.
+Example: ``long_description = file: ../../README.md``.
+-- by :user:`airvzxf`
