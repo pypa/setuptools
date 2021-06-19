@@ -67,6 +67,7 @@ def get_msvcr():
     msc_pos = sys.version.find('MSC v.')
     if msc_pos != -1:
         msc_ver = sys.version[msc_pos+6:msc_pos+10]
+        # https://en.wikipedia.org/wiki/Microsoft_Visual_C%2B%2B#Internal_version_numbering
         if msc_ver == '1300':
             # MSVC 7.0
             return ['msvcr70']
@@ -82,6 +83,16 @@ def get_msvcr():
         elif msc_ver == '1600':
             # VS2010 / MSVC 10.0
             return ['msvcr100']
+        elif msc_ver == '1700':
+            # Visual Studio 2012 / Visual C++ 11.0
+            return ['msvcr110']
+        elif msc_ver == '1800':
+            # Visual Studio 2013 / Visual C++ 12.0
+            return ['msvcr120']
+        elif msc_ver == '1900':
+            # Visual Studio 2015 / Visual C++ 14.0
+            # "msvcr140.dll no longer exists" http://blogs.msdn.com/b/vcblog/archive/2014/06/03/visual-studio-14-ctp.aspx
+            return ['vcruntime140']
         else:
             raise ValueError("Unknown MS Compiler version %s " % msc_ver)
 

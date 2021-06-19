@@ -142,6 +142,15 @@ class CygwinCCompilerTestCase(support.TempdirManager,
                        '[MSC v.1500 32 bits (Intel)]')
         self.assertEqual(get_msvcr(), ['msvcr90'])
 
+        sys.version = 'MSC v.1600'
+        self.assertEqual(get_msvcr(), ['msvcr100'])
+        sys.version = 'MSC v.1700'
+        self.assertEqual(get_msvcr(), ['msvcr110'])
+        sys.version = 'MSC v.1800'
+        self.assertEqual(get_msvcr(), ['msvcr120'])
+        sys.version = 'MSC v.1900'
+        self.assertEqual(get_msvcr(), ['vcruntime140'])
+
         # unknown
         sys.version = ('2.5.1 (r251:54863, Apr 18 2007, 08:51:08) '
                        '[MSC v.1999 32 bits (Intel)]')
