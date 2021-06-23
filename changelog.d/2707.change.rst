@@ -1,1 +1,1 @@
-Avoid symlink infinite loops -- by :user:`ssbarnea`
+Avoid infinite symlink follow loops -- by :user:`ssbarnea`
