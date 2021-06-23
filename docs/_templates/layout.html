@@ -1,0 +1,31 @@
+{%- extends "!layout.html" %}
+
+{%- block footer %}
+  <div class="tidelift for-enterprise" style="margin: 0 auto; width: 940px;">
+	<h3 class="donation" style="font-size: 2em; font-weight: normal;">For Enterprise</h3>
+
+	<div style="float: left; padding-right: 10px;">
+	  <a href="https://tidelift.com/subscription/pkg/pypi-{{ project }}?utm_source=pypi-{{ project }}&utm_medium=referral&utm_campaign=docs">
+		  <img alt="Tidelift" src="https://nedbatchelder.com/pix/Tidelift_Logos_RGB_Tidelift_Shorthand_On-White_small.png" style="height: 6rem">
+	  </a>
+	</div>
+
+	<p style="text-align: justify">
+	  Professional support for setuptools is available as part of the
+	  <a class="reference external" href="https://tidelift.com/subscription/pkg/pypi-{{ project }}?utm_source=pypi-{{ project }}&utm_medium=referral&utm_campaign=docs |project|">Tidelift
+Subscription</a>.
+      Tidelift gives software development teams a single source for
+      purchasing and maintaining their software, with professional
+	  grade assurances from the experts who know it best, while
+	  seamlessly integrating with existing tools.
+	</p>
+
+	<p>
+	  <a style="background-color: rgb(246, 145, 77); border-radius: 5px; color: white; display: inline-block; font-family: sans; font-size: 1.2rem; font-weight: bolder; margin: 5px; padding: 15px 0; text-align: center; text-decoration: none; text-transform: uppercase; width: 40%;" href="https://tidelift.com/subscription/pkg/pypi-{{ project }}?utm_source=pypi-{{ project }}&utm_medium=referral&utm_campaign=docs">Learn more</a>
+	  <a style="background-color: rgb(246, 145, 77); border-radius: 5px; color: white; display: inline-block; font-family: sans; font-size: 1.2rem; font-weight: bolder; margin: 5px; padding: 15px 0; text-align: center; text-decoration: none; text-transform: uppercase; width: 41%;" href="https://tidelift.com/subscription/request-a-demo?utm_source=pypi-{{ project }}&utm_medium=referral&utm_campaign=docs">Request a Demo</a>
+	</p>
+  <div>
+
+  {{ super() }}
+
+{%- endblock %}
