@@ -247,12 +247,22 @@ def _find_all_simple(path):
     """
     Find all files under 'path'
     """
-    results = (
-        os.path.join(base, file)
-        for base, dirs, files in os.walk(path, followlinks=True)
-        for file in files
-    )
-    return filter(os.path.isfile, results)
+    # https://bugs.python.org/issue44497
+    dirs = set()
+    files = set()
+    for dirpath, dirnames, filenames in os.walk(path, followlinks=True):
+        st = os.stat(dirpath)
+        scandirs = []
+        for dirname in dirnames:
+            st = os.stat(os.path.join(dirpath, dirname))
+            dirkey = st.st_dev, st.st_ino
+            if dirkey not in dirs:
+                dirs.add(dirkey)
+                scandirs.append(dirname)
+        dirnames[:] = scandirs
+        for f in filenames:
+            files.add(os.path.join(dirpath, f))
+    return files
 
 
 def findall(dir=os.curdir):
