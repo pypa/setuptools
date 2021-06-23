@@ -1,3 +1,6 @@
+from sphinx.addnodes import toctree
+
+
 extensions = ['sphinx.ext.autodoc', 'jaraco.packaging.sphinx', 'rst.linker']
 
 master_doc = "index"
@@ -150,3 +153,26 @@ extensions += ['sphinxcontrib.towncrier']
 towncrier_draft_working_directory = '..'
 # Avoid an empty section for unpublished changes.
 towncrier_draft_include_empty = False
+
+
+def _doctree_read(app, doctree):
+    """Add a Tidelift link into the main ToC tree."""
+    if app.env.docname != 'index':
+        return
+
+    project = app.config.project
+
+    tidelift_toc_entry = (
+        # Text -> Link
+        'For Enterprise',
+        f'https://tidelift.com/subscription/pkg/pypi-{project}?'
+        f'utm_source=pypi-{project}&utm_medium=referral&utm_campaign=docs',
+    )
+
+    toc_node = doctree.traverse(toctree)[-1]
+    toc_node['entries'].append(tidelift_toc_entry)
+
+
+def setup(app):
+    """Add a callback for injecting a Tidefift link into ToC tree."""
+    app.connect('doctree-read', _doctree_read)
