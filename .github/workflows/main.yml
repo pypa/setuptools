@@ -27,6 +27,10 @@ jobs:
             GHA,
             ${{ runner.os }},
             ${{ matrix.python }}
+          flags: >-
+            GHA,
+            ${{ runner.os }},
+            ${{ matrix.python }}
           functionalities: gcov
           verbose: true # optional (default = false)
 
