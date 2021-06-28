@@ -1,6 +1,5 @@
 import os
 import socket
-import atexit
 import re
 import functools
 import urllib.request
