@@ -225,38 +225,14 @@ def once(func):
     return wrapper
 
 
-@once
 def get_win_certfile():
-    try:
-        import wincertstore
-    except ImportError:
-        return None
-
-    class CertFile(wincertstore.CertFile):
-        def __init__(self):
-            super(CertFile, self).__init__()
-            atexit.register(self.close)
-
-        def close(self):
-            try:
-                super(CertFile, self).close()
-            except OSError:
-                pass
-
-    _wincerts = CertFile()
-    _wincerts.addstore('CA')
-    _wincerts.addstore('ROOT')
-    return _wincerts.name
+    return None
 
 
 def find_ca_bundle():
     """Return an existing CA bundle path, or None"""
     extant_cert_paths = filter(os.path.isfile, cert_paths)
-    return (
-        get_win_certfile()
-        or next(extant_cert_paths, None)
-        or _certifi_where()
-    )
+    return next(extant_cert_paths, None) or _certifi_where()
 
 
 def _certifi_where():
