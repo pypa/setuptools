@@ -15,7 +15,7 @@ import distutils.command
 from distutils.util import strtobool
 from distutils.debug import DEBUG
 from distutils.fancy_getopt import translate_longopt
-from glob import glob
+from glob import iglob
 import itertools
 import textwrap
 from typing import List, Optional, TYPE_CHECKING
@@ -603,7 +603,7 @@ class Distribution(_Distribution):
         return (
             path
             for pattern in patterns
-            for path in sorted(glob(pattern))
+            for path in sorted(iglob(pattern))
             if not path.endswith('~')
             and os.path.isfile(path)
         )
