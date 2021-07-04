@@ -22,13 +22,6 @@ jobs:
         run: tox
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
-        with:
-          flags: >-
-            GHA,
-            ${{ runner.os }},
-            ${{ matrix.python }}
-          functionalities: gcov
-          verbose: true # optional (default = false)
 
   release:
     needs: test
