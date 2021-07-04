@@ -255,19 +255,25 @@ def _find_all_simple(path):
     return filter(os.path.isfile, results)
 
 
+class UniqueDirs(set):
+    def __call__(self, item):
+        candidate = os.path.realpath(item)
+        result = candidate in self
+        self.add(candidate)
+        return not result
+
+
 def unique_dirs(items):
     """
     Given a walk result, remove any previously-seen dirs,
     avoiding infinite recursion.
     Ref https://bugs.python.org/issue44497.
     """
-    seen = set()
+    seen = UniqueDirs()
     for base, dirs, files in items:
-        real = os.path.realpath(base)
-        if real in seen:
+        if seen(base):
             del dirs[:]
             continue
-        seen.add(real)
         yield base, dirs, files
 
 
