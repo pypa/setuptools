@@ -1,0 +1,1 @@
+Globs are now sorted in 'license_files' restoring reproducibility by eliminating variance from disk order.
