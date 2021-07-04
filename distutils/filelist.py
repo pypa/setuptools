@@ -247,15 +247,21 @@ def _find_all_simple(path):
     """
     Find all files under 'path'
     """
+    all_unique = _UniqueDirs.filter(os.walk(path, followlinks=True))
     results = (
         os.path.join(base, file)
-        for base, dirs, files in _unique_dirs(os.walk(path, followlinks=True))
+        for base, dirs, files in all_unique
         for file in files
     )
     return filter(os.path.isfile, results)
 
 
 class _UniqueDirs(set):
+    """
+    Exclude previously-seen dirs from walk results,
+    avoiding infinite recursion.
+    Ref https://bugs.python.org/issue44497.
+    """
     def __call__(self, walk_item):
         """
         Given an item from an os.walk result, determine
@@ -271,14 +277,9 @@ class _UniqueDirs(set):
         self.add(candidate)
         return not found
 
-
-def _unique_dirs(items):
-    """
-    Given a walk result, remove any previously-seen dirs,
-    avoiding infinite recursion.
-    Ref https://bugs.python.org/issue44497.
-    """
-    return filter(_UniqueDirs(), items)
+    @classmethod
+    def filter(cls, items):
+        return filter(cls(), items)
 
 
 def findall(dir=os.curdir):
