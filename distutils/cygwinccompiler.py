@@ -88,7 +88,7 @@ def get_msvcr():
         elif msc_ver == '1800':
             # VS2013 / MSVC 12.0
             return ['msvcr120']
-        elif int(msc_ver) >= 1900 and int(msc_ver) < 2000:
+        elif 1900 <= int(msc_ver) < 2000:
             # VS2015 / MSVC 14.0
            return ['ucrt', 'vcruntime140'] 
         else:
