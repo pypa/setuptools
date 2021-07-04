@@ -48,45 +48,38 @@ int fail(char *format, char *data) {
 }
 
 char *quoted(char *data) {
-    int i, ln = strlen(data), nb;
+    int ln = strlen(data);
+    int i, nb;
 
     /* We allocate twice as much space as needed to deal with worse-case
        of having to escape everything. */
-    char *result = calloc(ln*2+3, sizeof(char));
+    char *result = calloc((ln * 2) + 3, sizeof(char));
     char *presult = result;
 
     *presult++ = '"';
-    for (nb=0, i=0; i < ln; i++)
-      {
+    for (i = 0, nb = 0; i < ln; i++)
+    {
         if (data[i] == '\\')
-          nb += 1;
+            nb += 1;
         else if (data[i] == '"')
-          {
+        {
             for (; nb > 0; nb--)
               *presult++ = '\\';
             *presult++ = '\\';
-          }
+        }
         else
-          nb = 0;
+            nb = 0;
         *presult++ = data[i];
-      }
+    }
 
     for (; nb > 0; nb--)        /* Deal w trailing slashes */
       *presult++ = '\\';
 
     *presult++ = '"';
     *presult++ = 0;
+
     return result;
 }
-
-
-
-
-
-
-
-
-
 
 char *loadable_exe(char *exename) {
     /* HINSTANCE hPython;  DLL handle for python executable */
@@ -180,7 +173,7 @@ void pass_control_to_child(DWORD control_type) {
 }
 
 BOOL control_handler(DWORD control_type) {
-    /* 
+    /*
      * distribute-issue207
      * control event handler callback function
      */
@@ -209,7 +202,7 @@ int create_and_wait_for_subprocess(char* command) {
     if (!CreateProcessA(NULL, commandline, NULL, NULL, TRUE, 0, NULL, NULL, &s_info, &p_info)) {
         fprintf(stderr, "failed to create process.\n");
         return 0;
-    }   
+    }
     child_pid = p_info.dwProcessId;
     // wait for Python to exit
     WaitForSingleObject(p_info.hProcess, INFINITE);
@@ -333,4 +326,3 @@ int WINAPI WinMain(HINSTANCE hI, HINSTANCE hP, LPSTR lpCmd, int nShow) {
 int main(int argc, char** argv) {
     return run(argc, argv, GUI);
 }
-
