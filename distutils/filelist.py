@@ -249,32 +249,36 @@ def _find_all_simple(path):
     """
     results = (
         os.path.join(base, file)
-        for base, dirs, files in unique_dirs(os.walk(path, followlinks=True))
+        for base, dirs, files in _unique_dirs(os.walk(path, followlinks=True))
         for file in files
     )
     return filter(os.path.isfile, results)
 
 
-class UniqueDirs(set):
-    def __call__(self, item):
-        candidate = os.path.realpath(item)
-        result = candidate in self
+class _UniqueDirs(set):
+    def __call__(self, walk_item):
+        """
+        Given an item from an os.walk result, determine
+        if the item represents a unique dir for this instance
+        and if not, prevent further traversal.
+        """
+        base, dirs, files = walk_item
+        stat = os.stat(base)
+        candidate = stat.st_dev, stat.st_ino
+        found = candidate in self
+        if found:
+            del dirs[:]
         self.add(candidate)
-        return not result
+        return not found
 
 
-def unique_dirs(items):
+def _unique_dirs(items):
     """
     Given a walk result, remove any previously-seen dirs,
     avoiding infinite recursion.
     Ref https://bugs.python.org/issue44497.
     """
-    seen = UniqueDirs()
-    for base, dirs, files in items:
-        if seen(base):
-            del dirs[:]
-            continue
-        yield base, dirs, files
+    return filter(_UniqueDirs(), items)
 
 
 def findall(dir=os.curdir):
