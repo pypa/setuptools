@@ -249,10 +249,26 @@ def _find_all_simple(path):
     """
     results = (
         os.path.join(base, file)
-        for base, dirs, files in os.walk(path, followlinks=True)
+        for base, dirs, files in unique_dirs(os.walk(path, followlinks=True))
         for file in files
     )
     return filter(os.path.isfile, results)
+
+
+def unique_dirs(items):
+    """
+    Given a walk result, remove any previously-seen dirs,
+    avoiding infinite recursion.
+    Ref https://bugs.python.org/issue44497.
+    """
+    seen = set()
+    for base, dirs, files in items:
+        real = os.path.realpath(base)
+        if real in seen:
+            del dirs[:]
+            continue
+        seen.add(real)
+        yield base, dirs, files
 
 
 def findall(dir=os.curdir):
