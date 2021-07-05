@@ -276,7 +276,8 @@ class ConfigHandler:
                 value = trimmed_value.split(directive, 1)[-1].strip()
                 value = os.path.abspath(value)
                 # and expand it while keeping as a relative path:
-                value = sorted(os.path.relpath(path, os.getcwd()) for path in iglob(value))
+                value = sorted(
+                    os.path.relpath(path, os.getcwd()) for path in iglob(value))
                 expanded_values.extend(value)
             else:
                 expanded_values.append(value)
