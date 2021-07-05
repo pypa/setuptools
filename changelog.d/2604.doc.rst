@@ -1,6 +1,0 @@
-Revamped the backward/cross tool compatibility section to remove
-some confusion.
-Add some examples and the version since when ``entry_points`` are
-supported in declarative configuration.
-Tried to make the reading flow a bit leaner, gather some informations
-that were a bit dispersed.

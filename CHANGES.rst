@@ -1,3 +1,23 @@
+v57.1.0
+-------
+
+
+Changes
+^^^^^^^
+* #2692: Globs are now sorted in 'license_files' restoring reproducibility by eliminating variance from disk order.
+* #2714: Update to distutils at pypa/distutils@e2627b7.
+* #2715: Removed reliance on deprecated ssl.match_hostname by removing the ssl support. Now any index operations rely on the native SSL implementation.
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #2604: Revamped the backward/cross tool compatibility section to remove
+  some confusion.
+  Add some examples and the version since when ``entry_points`` are
+  supported in declarative configuration.
+  Tried to make the reading flow a bit leaner, gather some informations
+  that were a bit dispersed.
+
+
 v57.0.0
 -------
 
