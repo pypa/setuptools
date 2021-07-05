@@ -20,6 +20,8 @@ jobs:
           python -m pip install tox
       - name: Run tests
         run: tox
+      - name: Install coveragepy tool
+        run: pip install coverage
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
 
