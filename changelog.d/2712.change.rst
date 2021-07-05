@@ -1,2 +1,1 @@
-Added `glob:` directive for use inside `[options.data_files]` values, with accompanying unittests.
-Updated declarative_config.rst docs to explain new `glob:` directive.
+Added `glob:` directive for use inside `[options.data_files]` values.
