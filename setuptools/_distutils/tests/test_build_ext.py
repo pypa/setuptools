@@ -316,7 +316,7 @@ class BuildExtTestCase(TempdirManager,
         self.assertRegex(cmd.get_ext_filename(modules[0].name), r'foo(_d)?\..*')
         self.assertRegex(cmd.get_ext_filename(modules[1].name), r'föö(_d)?\..*')
         self.assertEqual(cmd.get_export_symbols(modules[0]), ['PyInit_foo'])
-        self.assertEqual(cmd.get_export_symbols(modules[1]), ['PyInitU_f_gkaa'])
+        self.assertEqual(cmd.get_export_symbols(modules[1]), ['PyInitU_f_1gaa'])
 
     def test_compiler_option(self):
         # cmd.compiler is an option and
